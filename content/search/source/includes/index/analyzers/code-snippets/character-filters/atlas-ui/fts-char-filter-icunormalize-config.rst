@@ -4,11 +4,16 @@
 #. Select the :guilabel:`Create Your Own` radio button and click
    :guilabel:`Next`.
 
-#. Type ``standardExample`` in the :guilabel:`Analyzer Name` field.
+#. Type ``normalizingAnalyzer`` in the :guilabel:`Analyzer Name` field.
 
-#. Expand :guilabel:`Tokenizer` if it's collapsed.
+#. Expand :guilabel:`Character Filters` and click
+   :icon-fa5:`plus-circle` :guilabel:`Add character filter`.
 
-#. Select :guilabel:`standard` from the dropdown.
+#. Select :guilabel:`icuNormalize` from the dropdown and click
+   :guilabel:`Add character filter`.
+
+#. Expand :guilabel:`Tokenizer` if it's collapsed and select
+   :guilabel:`whitespace` from the dropdown.
 
 #. Click :guilabel:`Add` to add the custom analyzer to your index.
 
@@ -20,8 +25,8 @@
    Name` dropdown and **String** from the :guilabel:`Data
    Type` dropdown.
 
-#. In the properties section for the data type, select ``standardExample``
-   from the :guilabel:`Index Analyzer` and :guilabel:`Search Analyzer`
-   dropdowns.
+#. In the properties section for the data type, select the
+   ``normalizingAnalyzer`` from the :guilabel:`Index Analyzer` and
+   :guilabel:`Search Analyzer` dropdowns.
 
 #. Click :guilabel:`Add`, then :guilabel:`Save Changes`.

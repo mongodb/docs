@@ -4,18 +4,18 @@
 #. Select the :guilabel:`Create Your Own` radio button and click
    :guilabel:`Next`.
 
-#. Type |analyzer-name| in the :guilabel:`Analyzer Name` field.
+#. Type ``dmsAnalyzer`` in the :guilabel:`Analyzer Name` field.
 
 #. Expand :guilabel:`Tokenizer` if it's collapsed.
 
-#. Select |fts-tokenizer| from the dropdown.
+#. Select :guilabel:`standard` from the dropdown.
 
 #. Expand :guilabel:`Token Filters` and click :icon-fa5:`plus-circle`
    :guilabel:`Add token filter`.
 
-#. Select |fts-token-filter| from the dropdown and select the value
-   shown in the following table for the
-   |fts-token-filter-option-name| field:
+#. Select :guilabel:`daitchMokotoffSoundex` from the dropdown and select
+   the value shown in the following table for the
+   :guilabel:`originalTokens` field:
 
    .. list-table::
       :header-rows: 1
@@ -33,13 +33,13 @@
 
 #. In the :guilabel:`Field Mappings` section, click :guilabel:`Add
    Field Mapping` to apply the custom analyzer on
-   the |minutes-collection-field| field.
+   the **page_updated_by.last_name** field.
 
-#. Select |minutes-collection-field| from the :guilabel:`Field
-   Name` dropdown and |fts-field-type| from the :guilabel:`Data
+#. Select **page_updated_by.last_name** from the :guilabel:`Field
+   Name` dropdown and **String** from the :guilabel:`Data
    Type` dropdown.
 
-#. In the properties section for the data type, select |analyzer-name|
+#. In the properties section for the data type, select ``dmsAnalyzer``
    from the :guilabel:`Index Analyzer` and :guilabel:`Search Analyzer`
    dropdowns.
 

@@ -4,12 +4,12 @@
 #. Select the :guilabel:`Create Your Own` radio button and click
    :guilabel:`Next`.
 
-#. Type |analyzer-name-a| in the :guilabel:`Analyzer Name` field.
+#. Type ``emailAutocompleteIndex`` in the :guilabel:`Analyzer Name` field.
 
 #. Expand :guilabel:`Character Filters` and click
    :icon-fa5:`plus-circle` :guilabel:`Add character filter`.
 
-#. Select |fts-char-filter| from the dropdown and click
+#. Select :guilabel:`mapping` from the dropdown and click
    :icon-fa5:`plus-circle` :guilabel:`Add mapping`.
 
 #. Enter the following key and value:
@@ -28,13 +28,13 @@
 
 #. Expand :guilabel:`Tokenizer` if it's collapsed.
 
-#. Select |fts-tokenizer| from the dropdown and enter ``15`` in the
+#. Select :guilabel:`whitespace` from the dropdown and enter ``15`` in the
    :guilabel:`maxTokenLength` field.
 
 #. Expand :guilabel:`Token Filters` and click :icon-fa5:`plus-circle`
    :guilabel:`Add token filter`.
 
-#. Select |fts-token-filter-a| from the dropdown and configure the
+#. Select :guilabel:`shingle` from the dropdown and configure the
    following fields.
 
    .. list-table::
@@ -55,7 +55,7 @@
 #. Click :icon-fa5:`plus-circle` :guilabel:`Add token filter` to add
    another token filter.
 
-#. Select |fts-token-filter-b| from the dropdown and configure the
+#. Select :guilabel:`edgeGram` from the dropdown and configure the
    following fields for the token filter:
 
    .. list-table::
@@ -81,12 +81,12 @@
 #. Select the :guilabel:`Create Your Own` radio button and click
    :guilabel:`Next`.
 
-#. Type |analyzer-name-b| in the :guilabel:`Analyzer Name` field.
+#. Type ``emailAutocompleteSearch`` in the :guilabel:`Analyzer Name` field.
 
 #. Expand :guilabel:`Character Filters` and click
    :icon-fa5:`plus-circle` :guilabel:`Add character filter`.
 
-#. Select |fts-char-filter| from the dropdown and click
+#. Select :guilabel:`mapping` from the dropdown and click
    :icon-fa5:`plus-circle` :guilabel:`Add mapping`.
 
 #. Enter the following key and value:
@@ -105,21 +105,21 @@
 
 #. Expand :guilabel:`Tokenizer` if it's collapsed.
 
-#. Select |fts-tokenizer| from the dropdown and enter ``15`` in the
+#. Select :guilabel:`whitespace` from the dropdown and enter ``15`` in the
    :guilabel:`maxTokenLength` field.
 
 #. Click :guilabel:`Add` to add the custom analyzer to your index.
 
 #. In the :guilabel:`Field Mappings` section, click :guilabel:`Add
    Field Mapping` to apply the custom analyzer on the
-   |minutes-collection-field| field.
+   **page_updated_by.email** nested field.
 
-#. Select |minutes-collection-field| from the :guilabel:`Field
-   Name` dropdown and |fts-field-type| from the :guilabel:`Data
+#. Select **page_updated_by.email** nested from the :guilabel:`Field
+   Name` dropdown and **String** from the :guilabel:`Data
    Type` dropdown.
 
-#. In the properties section for the data type, select |analyzer-name-a|
-   from the :guilabel:`Index Analyzer` dropdown and |analyzer-name-b|
+#. In the properties section for the data type, select ``emailAutocompleteIndex``
+   from the :guilabel:`Index Analyzer` dropdown and ``emailAutocompleteSearch``
    from the :guilabel:`Search Analyzer` dropdown.
 
 #. Click :guilabel:`Add`, then :guilabel:`Save Changes`.

@@ -9,7 +9,7 @@
       .. |minutes-collection-field| replace:: **text.fa_IR** (:ref:`nested <document-dot-notation>`)
       .. |fts-field-type| replace:: **String**
 
-      .. include:: /includes/index/analyzers/code-snippets/character-filters/atlas-ui/fts-character-filter-config-steps-without-options.rst 
+      .. include:: /includes/index/analyzers/code-snippets/character-filters/atlas-ui/fts-char-filter-persian-config.rst
 
    .. tab:: JSON Editor 
       :tabid: jsoneditor
