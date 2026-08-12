@@ -46,9 +46,7 @@ of:
    If you deployed separate Search Nodes, for certain changes such as
    :ref:`Java 21 upgrade <fts20240628>`, |service| automatically deploys
    additional Search Nodes for the duration of the index rebuild and you
-   don't need to allocate any additional free disk space. |service|
-   doesn't deploy additional search nodes for an index rebuild that is
-   caused by changes made to that index's definition. 
+   don't need to allocate any additional free disk space.
 
    Once |fts| rebuilds the index, the old index is automatically 
    replaced without any further action from your side.
