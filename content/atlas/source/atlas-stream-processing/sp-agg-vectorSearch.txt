@@ -1,0 +1,463 @@
+.. _atlas-sp-agg-vectorSearch:
+
+===================================
+``$vectorSearch`` Aggregation Stage
+===================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas stream processing, $vectorSearch aggregation pipeline stage, code example
+   :description: Use the $vectorSearch aggregation stage in Atlas Stream Processing to enrich streaming documents with the top matching results from an Atlas Vector Search index on your collection.
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _atlas-sp-agg-vectorSearch-def:
+
+Definition
+----------
+
+The ``$vectorSearch`` stage enriches each streaming document with
+results from a {+avs+} query. For each input document, the stage
+runs a :ref:`$vectorSearch query <return-vector-search-results>`
+against a collection and attaches results to a field you specify.
+
+.. _atlas-sp-agg-vectorSearch-placement:
+
+Placement
+---------
+
+``$vectorSearch`` must be a middle stage of your pipeline. Do not use
+it as your pipeline's :pipeline:`$source` or sink.
+
+.. _atlas-sp-agg-vectorSearch-syntax:
+
+Syntax
+------
+
+The ``$vectorSearch`` pipeline stage has the following prototype form:
+
+.. code-block:: json
+
+   {
+     "$vectorSearch": {
+       "from": {
+         "connectionName": "<registered-atlas-connection>",
+         "db": "<database>",
+         "coll": "<collection>"
+       },
+       "as": "<output-field>",
+       "queryVector": [<number>, ...] | <expression>,
+       "query": {
+         "text": "<string>" | <expression>
+       },
+       "model": "<embedding-model>",
+       "index": "<vector-index-name>",
+       "path": "<field-containing-vectors>",
+       "numCandidates": <int>,
+       "limit": <int>,
+       "filter": { ... },
+       "exact": <bool>,
+       "searchNodePreference": {
+         "key": "<preference>"
+       },
+       "pipeline": [ { $<aggregation-stage>: { ... } }, ... ],
+       "let": {
+         "<variable>": <expression>,
+         . . .
+       }
+     }
+   }
+
+The ``$vectorSearch`` stage takes a document with the following
+fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 15 12 40
+
+   * - Field
+     - Type
+     - Necessity
+     - Description
+
+   * - ``from``
+     - document 
+     - Required
+     - Document that specifies the target {+service+} collection
+       that ``$vectorSearch`` queries for each input document.
+
+   * - ``from.connectionName``
+     - string 
+     - Required
+     - Name of an {+service+} connection in your 
+       :ref:`Connection Registry <atlas-sp-manage-connections>`.
+       {+atlas-sp+} rejects any other connection type at parse time.
+
+   * - ``from.db``
+     - literal string 
+     - Required
+     - Name of the target database.
+
+   * - ``from.coll``
+     - literal string 
+     - Required
+     - Name of the target collection containing the
+       {+avs+} index.
+
+   * - ``as``
+     - string
+     - Required
+     - Output field on the streaming document for the search results
+       array. If {+avs+} returns no matching documents, {+atlas-sp+}
+       sets this field to an empty array.
+
+       :red:`WARNING:` If this field is empty or collides with the
+       stream metadata field name, {+atlas-sp+} reports a
+       ``StreamProcessorInvalidOptions`` error at start time.
+
+   * - ``queryVector``
+     - array | field path expression
+     - Conditional
+     - Explicit :ref:`vector embedding <create-vector-embeddings>` 
+       to search for matching documents against.
+
+   * - ``query``
+     - document
+     - Conditional
+     - Document that specifies the text query for :ref:`auto embedding
+       <avs-auto-embeddings>`.
+
+   * - ``query.text``
+     - string | field path expression
+     - Conditional
+     - Query text to use for auto-embedding.
+
+   * - ``model``
+     - string
+     - Optional
+     - Embedding model {+avs+} uses to convert ``query.text`` to
+       a vector. Valid only alongside ``query``.
+
+       When you omit ``model``, {+avs+} uses the model configured in the
+       target {+avs+} index's definition.
+
+   * - ``index``
+     - string
+     - Required
+     - Name of the {+avs+} index to query.
+
+   * - ``path``
+     - string
+     - Required
+     - Field in the target collection that contains the vector
+       embeddings to search against.
+
+   * - ``numCandidates``
+     - int
+     - Conditional
+     - Number of candidates that {+avs+} considers during the search.
+       Required unless ``exact`` is ``true``. To learn how to choose a
+       value, see :ref:`numCandidates Selection <avs-num-candidates>`.
+
+   * - ``limit``
+     - int
+     - Required
+     - Maximum number of results to return. Must not exceed
+       ``numCandidates``.
+
+       :red:`WARNING:` If ``limit`` exceeds ``numCandidates``, every
+       document fails at runtime with a ``PlanExecutor`` error.
+
+   * - ``filter``
+     - document
+     - Optional
+     - Pre-filter expression to apply before the vector search. For
+       supported operators, see :ref:`Filter
+       <vectorSearch-agg-pipeline-filter>`.
+
+       :red:`WARNING:` If ``filter`` uses an unsupported operator,
+       every document fails at runtime with a ``PlanExecutor`` error.
+
+   * - ``exact``
+     - boolean
+     - Optional
+     - Flag that specifies whether to run an :abbr:`ANN (Approximate
+       Nearest Neighbor)` or :abbr:`ENN (Exact Nearest Neighbor)`
+       search. Provide this field if you omit ``numCandidates``.
+
+       Value can be one of the following:
+       
+       - ``false`` to run :ref:`ANN search <vectorSearch-ann>`
+       - ``true`` to run :ref:`ENN search <vectorSearch-enn>`
+
+       Defaults to ``false``.
+
+   * - ``searchNodePreference``
+     - document
+     - Optional
+     - Document with a ``key`` field that {+atlas-sp+} uses to route
+       the query to a specific search node. The ``key`` value must be
+       a non-empty string.
+
+   * - ``pipeline``
+     - array
+     - Optional
+     - Additional aggregation stages that {+atlas-sp+} runs against
+       the search results, before attaching them to the input
+       document.
+
+   * - ``let``
+     - document
+     - Optional
+     - Variables that {+atlas-sp+} evaluates against each input
+       document. Each value can be a literal, a field path, or an
+       :ref:`expression <aggregation-expressions>`. ``pipeline``
+       stages can reference the resolved values as ``$$<variable>``.
+
+.. _atlas-sp-agg-vectorSearch-behavior:
+
+Behavior
+--------
+
+Query Modes
+~~~~~~~~~~~
+
+``$vectorSearch`` supports two mutually exclusive query modes:
+``queryVector`` for :ref:`vector embeddings
+<create-vector-embeddings>` and ``query.text`` for :ref:`auto
+embedding <avs-auto-embeddings>`. In either mode, you can specify a
+literal value or a field path expression, so a single stream processor
+can issue a different query for each input document.
+
+Error Handling
+~~~~~~~~~~~~~~
+
+If the target {+avs+} index doesn’t exist, the stream processor enters
+an error state when ``$vectorSearch`` first runs. {+atlas-sp+} reports
+a ``MongoServerError`` error and stops processing documents. 
+
+If ``queryVector`` or ``query.text`` evaluates to the wrong type at
+runtime, {+atlas-sp+} routes only the offending document to the
+:term:`dead letter queue`, if configured, or drops it otherwise. The
+stream processor continues to process later documents. For the
+:abbr:`DLQ (Dead Letter Queue)` document schema, see
+:ref:`atlas-sp-monitoring-dlq`.
+
+Process Results
+~~~~~~~~~~~~~~~
+
+Use ``pipeline`` to further process the search results before
+{+atlas-sp+} attaches them to the input document. {+atlas-sp+} forwards
+``pipeline`` to {+avs+} verbatim. To reference a value from the input
+document inside ``pipeline``, pass it through ``let`` and reference it
+as ``$$<variable>``.
+
+.. _atlas-sp-agg-vectorSearch-example:
+
+Examples
+--------
+
+The following examples query the :ref:`sample_mflix dataset
+<sample-mflix>`, which contains data on movies and movie theaters. To
+run them, load the sample data into your {+service+} cluster and
+create an {+avs+} index on the ``embedded_movies`` collection.
+
+.. _atlas-sp-agg-vectorSearch-example-autoembed:
+
+.. collapsible::
+   :heading: Semantic Search Enrichment with Auto-Embedding
+   :expanded: false
+
+   The following example enriches incoming search events with movie
+   recommendations. Each input document has a ``topic`` field. This
+   pipeline uses ``query.text``, and {+avs+} generates the embedding
+   for each document's ``topic`` value using the ``voyage-4-lite``
+   model. This aggregation has three stages:
+
+   1. The :pipeline:`$source` stage establishes a connection with the
+      {+service+} database, specifically targeting the ``searches``
+      collection in the ``app`` database. The ``fullDocumentOnly``
+      option requires pre- and post-images to be enabled on the source
+      collection.
+
+   #. The ``$vectorSearch`` stage queries the ``plot_vector_index``
+      index on the ``sample_mflix.embedded_movies`` collection using
+      the text in each document's ``topic`` field, and attaches up to
+      five results to the ``recommendations`` field. The ``pipeline``
+      field limits each result to its ``title`` and ``plot`` fields.
+
+   #. The :pipeline:`$merge` stage writes the enriched document to
+      the ``enriched_searches`` collection in the ``app`` database.
+
+   .. code-block:: json
+      :copyable: true
+
+      {
+        "$source": {
+          "connectionName": "srcCluster",
+          "db": "app",
+          "coll": "searches",
+          "config": { "fullDocument": "required", "fullDocumentOnly": true }
+        },
+        "$vectorSearch": {
+          "from": {
+            "connectionName": "atlasCluster",
+            "db": "sample_mflix",
+            "coll": "embedded_movies"
+          },
+          "as": "recommendations",
+          "query": {
+            "text": "$topic"
+          },
+          "model": "voyage-4-lite",
+          "index": "plot_vector_index",
+          "path": "plot",
+          "numCandidates": 50,
+          "limit": 5,
+          "pipeline": [
+            { "$project": { "_id": 0, "title": 1, "plot": 1 } }
+          ]
+        },
+        "$merge": {
+          "into": {
+            "connectionName": "atlasCluster",
+            "db": "app",
+            "coll": "enriched_searches"
+          }
+        }
+      }
+
+   The enriched documents written to the output collection resemble the
+   following:
+
+   .. code-block:: json
+      :copyable: false
+
+      {
+        _id: ObjectId('6a4beebd75f00b6ddf98a8c0'),
+        topic: 'gangster crime drama',
+        recommendations: [
+          { title: 'Scarface', plot: 'An ambitious and near insanely violent gangster climbs the ladder of success in the mob, but his weaknesses prove to be his downfall.' },
+          { title: 'That Demon Within', plot: 'A dutiful cop, guilt-ridden over saving the life of a gang leader, becomes obsessed with bringing down the crime syndicate of the man he saved.' },
+          { title: 'Billa 2', plot: 'An ordinary man from the slums enters an underworld gang and becomes the most feared underworld don.' },
+          { title: 'A Better Tomorrow', plot: 'A reforming ex-gangster tries to reconcile with his estranged policeman brother, but the ties to his former gang are difficult to break.' },
+          { title: 'Singham', plot: 'A humiliated gangster uses his influence and goon power to terrorize a newly transferred police officer.' }
+        ]
+      }
+
+.. _atlas-sp-agg-vectorSearch-example-rag:
+
+.. collapsible::
+   :heading: Precision-Critical RAG Context Retrieval with $rerank
+   :expanded: false
+
+   The following example retrieves high-precision movie-plot passages
+   for a :abbr:`RAG (retrieval-augmented generation)` pipeline. Because
+   each incoming event already includes a precomputed
+   ``queryEmbedding`` field, the pipeline uses ``queryVector``. The
+   ``$vectorSearch`` stage retrieves a broad set of candidate passages
+   to maximize recall, and the :pipeline:`$rerank` stage in
+   ``pipeline`` reorders those candidates so that only the most
+   relevant passages continue downstream. This aggregation has four
+   stages:
+
+   1. The :pipeline:`$source` stage establishes a connection with the
+      {+service+} database, specifically targeting the ``events``
+      collection in the ``llm_requests`` database. The
+      ``fullDocumentOnly`` option requires pre- and post-images to be
+      enabled on the source collection.
+
+   #. The ``$vectorSearch`` stage queries the ``plot_embedding_index``
+      index on the ``sample_mflix.embedded_movies`` collection using
+      each document's ``queryEmbedding`` field as the ``queryVector``.
+      It sets ``numCandidates`` high to maximize recall and passes up
+      to 50 matches into ``pipeline``. Inside ``pipeline``:
+
+      - :pipeline:`$rerank` reorders the candidates by relevance to the
+        query text using the ``rerank-2.5-lite`` model.
+      - :pipeline:`$limit` keeps the eight most relevant passages.
+      - :pipeline:`$project` returns only the fields needed to build
+        the prompt.
+
+      The ``query.text`` value references the ``searchText`` variable
+      defined in ``let``, which resolves to each document's ``queryText``
+      field. {+atlas-sp+} stores the results in the ``context`` field.
+
+   #. The :pipeline:`$unset` stage removes the ``queryEmbedding`` and
+      ``queryText`` fields, since they're no longer needed downstream.
+
+   #. The :ref:`$emit <streams-agg-pipeline-emit>` stage sends the
+      enriched document to the ``qa_enriched`` topic.
+
+   .. important::
+
+      Confirm that your {+service+} project administrator has enabled
+      Native Reranking before you run a pipeline that uses
+      :pipeline:`$rerank`.
+
+   .. code-block:: json
+      :copyable: true
+
+      {
+        "$source": {
+          "connectionName": "appCluster",
+          "db": "llm_requests",
+          "coll": "events",
+          "config": { "fullDocument": "required", "fullDocumentOnly": true }
+        },
+        "$vectorSearch": {
+          "from": {
+            "connectionName": "atlasCluster",
+            "db": "sample_mflix",
+            "coll": "embedded_movies"
+          },
+          "as": "context",
+          "queryVector": "$queryEmbedding",
+          "index": "plot_embedding_index",
+          "path": "plot_embedding",
+          "numCandidates": 200,
+          "limit": 50,
+          "let": { "searchText": "$queryText" },
+          "pipeline": [
+            {
+              "$rerank": {
+                "query": { "text": "$$searchText" },
+                "path": "plot",
+                "model": "rerank-2.5-lite",
+                "numDocsToRerank": 50
+              }
+            },
+            { "$limit": 8 },
+            { "$project": { "_id": 0, "title": 1, "plot": 1 } }
+          ]
+        },
+        "$unset": ["queryEmbedding", "queryText"],
+        "$emit": {
+          "connectionName": "appKafka",
+          "topic": "qa_enriched"
+        }
+      }
+
+   The documents emitted to the topic resemble the following:
+
+   .. code-block:: json
+      :copyable: false
+
+      {
+        _id: ObjectId('6a4c0cbc37d690084f3115da'),
+        context: [
+          { title: 'A Better Tomorrow', plot: 'A reforming ex-gangster tries to reconcile with his estranged policeman brother, but the ties to his former gang are difficult to break.' },
+          { title: 'Yuma', plot: 'A story about the rise and fall of Zyga - a Polish kid in his early twenties.' },
+          { title: 'Ghost Dog: The Way of the Samurai', plot: 'An African American mafia hit man who models himself after the samurai of old finds himself targeted for death by the mob.' }
+          ...
+        ]
+      }

@@ -1,3 +1,10 @@
+.. _atlas-sp-20260714:
+
+14 July 2026 Release
+--------------------
+
+- Adds support for the :pipeline:`$vectorSearch` pipeline stage.
+
 .. _atlas-sp-20260709:
 
 9 July 2026 Release
