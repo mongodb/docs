@@ -28,6 +28,14 @@ const forceRedirects = allRedirects
 // prefix b2k already routes on — no asset-prefix, no strip. Must match
 // src/utils/base-path.ts. Also emit the full prefix list for sameProjectHref's
 // longest-prefix match (nested/empty-prefix docsets defeat startsWith).
+//
+// Inactive/EOL manual (v4.4/v5.0/v6.0) deploys on a separate Netlify site from
+// active manual. Set NEXT_PUBLIC_INACTIVE_MANUAL=true on that site so its asset
+// bucket does not collide with active's docs_static_manual path in b2k.
+function isInactiveManualBuild() {
+  return process.env.NEXT_PUBLIC_INACTIVE_MANUAL === 'true';
+}
+
 function getBuildBasePathEnv() {
   const docsProject = process.env.DOCS_PROJECT;
   if (!docsProject) return { basePath: '/docs', prefixes: [], assetBucketSuffix: '' };
@@ -46,8 +54,9 @@ function getBuildBasePathEnv() {
   // manual and landing both resolve to the empty prefix ("docs") and would
   // otherwise be indistinguishable to b2k's asset routing. landing is the
   // permanent fallback and keeps plain `_next`; manual gets a distinguishing
-  // bucket (routed in b2k via MANUAL_SLUGS, separate repo). Fail loudly if a
-  // third empty-prefix project shows up unhandled.
+  // bucket (routed in b2k via MANUAL_SLUGS, separate repo). Inactive manual
+  // uses a second bucket so its chunks don't collide with active manual.
+  // Fail loudly if a third empty-prefix project shows up unhandled.
   let assetBucketSuffix = '';
   if (rawPrefix === 'docs') {
     switch (dirName) {
@@ -55,7 +64,9 @@ function getBuildBasePathEnv() {
         assetBucketSuffix = '';
         break;
       case 'manual':
-        assetBucketSuffix = '/docs_static_manual';
+        assetBucketSuffix = isInactiveManualBuild()
+          ? '/docs_static_manual_inactive'
+          : '/docs_static_manual';
         break;
       default:
         throw new Error(
@@ -84,10 +95,13 @@ const nextConfig = {
   // makes this a no-op: assetPrefix === basePath, Next's default.
   assetPrefix: `${BASE_PATH}${ASSET_BUCKET_SUFFIX}`,
   // Expose to server + client for manual prefixing where Next doesn't auto-apply
-  // basePath (raw <img> src, client fetches). See src/utils/base-path.ts.
+  // basePath/assetPrefix (raw <img> src, client fetches). See src/utils/base-path.ts.
   env: {
     NEXT_PUBLIC_DOCS_BASE_PATH: BASE_PATH,
     NEXT_PUBLIC_DOCS_PREFIXES: JSON.stringify(DOCS_PREFIXES),
+    // Keep getAssetBucketSuffix() in lockstep with assetPrefix for this build
+    // (active vs inactive manual, or empty for every other project).
+    NEXT_PUBLIC_DOCS_ASSET_BUCKET_SUFFIX: ASSET_BUCKET_SUFFIX,
   },
   compiler: {
     emotion: true,

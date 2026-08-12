@@ -47,3 +47,39 @@ describe('sameProjectHref', () => {
     expect(sameProjectHref('/docs/atlas/architecture/')).toBeNull();
   });
 });
+
+describe('getAssetBucketSuffix', () => {
+  const load = async () => {
+    jest.resetModules();
+    return import('@/utils/base-path');
+  };
+
+  afterEach(() => {
+    delete process.env.NEXT_PUBLIC_DOCS_ASSET_BUCKET_SUFFIX;
+    delete process.env.NEXT_PUBLIC_BUILD_STATIC_PAGES;
+  });
+
+  it('returns the suffix next.config baked into NEXT_PUBLIC_DOCS_ASSET_BUCKET_SUFFIX', async () => {
+    process.env.NEXT_PUBLIC_DOCS_ASSET_BUCKET_SUFFIX = '/docs_static_manual';
+    const { getAssetBucketSuffix } = await load();
+    expect(getAssetBucketSuffix()).toBe('/docs_static_manual');
+  });
+
+  it('returns the inactive manual suffix when that build sets it', async () => {
+    process.env.NEXT_PUBLIC_DOCS_ASSET_BUCKET_SUFFIX = '/docs_static_manual_inactive';
+    const { getAssetBucketSuffix } = await load();
+    expect(getAssetBucketSuffix()).toBe('/docs_static_manual_inactive');
+  });
+
+  it('returns empty when the env is unset (non-manual / landing)', async () => {
+    const { getAssetBucketSuffix } = await load();
+    expect(getAssetBucketSuffix()).toBe('');
+  });
+
+  it('returns empty for the offline static export', async () => {
+    process.env.NEXT_PUBLIC_BUILD_STATIC_PAGES = 'true';
+    process.env.NEXT_PUBLIC_DOCS_ASSET_BUCKET_SUFFIX = '/docs_static_manual';
+    const { getAssetBucketSuffix } = await load();
+    expect(getAssetBucketSuffix()).toBe('');
+  });
+});

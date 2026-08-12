@@ -20,17 +20,14 @@ export function getBasePath(): string {
 /**
  * Suffix appended after basePath for this deploy's `_next` asset bucket.
  * Empty except for manual, which needs a distinguishing bucket so its assets
- * don't collide with landing's identical basePath in b2k. Must match the
- * assetBucketSuffix next.config.mjs bakes into assetPrefix.
+ * don't collide with landing's identical basePath in b2k. Inactive/EOL manual
+ * uses `/docs_static_manual_inactive`. Must match the assetBucketSuffix
+ * next.config.mjs bakes into assetPrefix (exposed as
+ * NEXT_PUBLIC_DOCS_ASSET_BUCKET_SUFFIX).
  */
 export function getAssetBucketSuffix(): string {
   if (process.env.NEXT_PUBLIC_BUILD_STATIC_PAGES === 'true') return '';
-  switch (process.env.NEXT_PUBLIC_DOCS_PROJECT) {
-    case 'manual':
-      return '/docs_static_manual';
-    default:
-      return '';
-  }
+  return process.env.NEXT_PUBLIC_DOCS_ASSET_BUCKET_SUFFIX || '';
 }
 
 /**

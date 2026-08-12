@@ -59,9 +59,15 @@ at the time it starts.
 The app throws at startup without `MONGODB_URI`. Ask the Documentation
 Platform team for a value.
 
-`DOCS_PROJECT`, `NEXT_PUBLIC_DOCS_BASE_PATH`, and
-`NEXT_PUBLIC_DOCS_PREFIXES` are set for you by `pnpm dev` or
+`DOCS_PROJECT`, `NEXT_PUBLIC_DOCS_BASE_PATH`,
+`NEXT_PUBLIC_DOCS_PREFIXES`, and
+`NEXT_PUBLIC_DOCS_ASSET_BUCKET_SUFFIX` are set for you by `pnpm dev` or
 `next.config.mjs` — don't set these by hand.
+
+For the inactive/EOL manual Netlify site only, set
+`NEXT_PUBLIC_INACTIVE_MANUAL=true` so that build emits assets under
+`/docs/docs_static_manual_inactive` instead of `/docs/docs_static_manual`.
+Active manual leaves this unset.
 
 ## Building a project
 
