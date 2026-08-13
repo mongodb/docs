@@ -867,6 +867,11 @@ const tocData: TocItem[] = [
             url: '/docs/ops-manager/:version/tutorial/enable-ssl-for-a-deployment',
           },
           {
+            label: 'Rotate TLS Certificates',
+            contentSite: 'ops-manager',
+            url: '/docs/ops-manager/:version/tutorial/rotate-tls-certificates',
+          },
+          {
             label: 'Configure LDAP',
             contentSite: 'ops-manager',
             url: '/docs/ops-manager/:version/tutorial/configure-for-ldap-authentication',
