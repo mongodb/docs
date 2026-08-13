@@ -28,7 +28,7 @@
   region is available on |service|. To learn more about |aws|
   PrivateLink cross-region support, see the :aws:`AWS PrivateLink
   documentation
-  <privatelink/latest/userguide/privatelink-share-your-services.html>`.
+  </vpc/latest/privatelink/privatelink-share-your-services.html>`.
 
 - If you deploy nodes in more than one region and enable an endpoint
   service for each region, each endpoint service can accept a maximum
