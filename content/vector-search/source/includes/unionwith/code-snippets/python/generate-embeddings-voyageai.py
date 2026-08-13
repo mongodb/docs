@@ -15,7 +15,7 @@ def get_embedding(data, input_type = "document"):
   ).embeddings
   return embeddings[0]
 
-# Connect to your MongoDB Atlas cluster
+# Connect to your MongoDB cluster
 mongo_client = pymongo.MongoClient("<connection-string>")
 db = mongo_client["sample_mflix"]
 collection = db["embedded_movies"]

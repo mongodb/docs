@@ -16,7 +16,7 @@ func main() {
 	// Replace the placeholder with your Atlas connection string
 	const uri = "<connection-string>"
 
-	// Connect to your Atlas cluster
+	// Connect to your cluster
 	clientOptions := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(clientOptions)
 	if err != nil {

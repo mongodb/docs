@@ -14,7 +14,7 @@ def get_embedding(text):
     embedding = openai_client.embeddings.create(input = [text], model=model).data[0].embedding
     return embedding
 
-# Connect to your Atlas cluster
+# Connect to your cluster
 mongo_client = pymongo.MongoClient("<connection-string>")
 db = mongo_client["sample_mflix"]
 collection = db["embedded_movies"]

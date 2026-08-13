@@ -14,7 +14,7 @@ public class DatabaseService
     var camelCaseConvention = new ConventionPack { new CamelCaseElementNameConvention() };
     ConventionRegistry.Register("CamelCase", camelCaseConvention, type => true);
 
-    // connect to your Atlas cluster
+    // connect to your cluster
     var mongoClient = new MongoClient(MongoConnectionString);
 
     // define namespace

@@ -13,7 +13,7 @@ public class IndexService
     {
         try
         {
-            // Connect to your Atlas cluster
+            // Connect to your cluster
             var client = new MongoClient(MongoConnectionString);
             var database = client.GetDatabase("sample_mflix");
             var collection = database.GetCollection<BsonDocument>("embedded_movies");
