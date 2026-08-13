@@ -60,9 +60,10 @@
   see :ref:`atlas-sp-agg-source-syntax-coll`.
 - Adds an ``addedParallelism`` field to
   :method:`sp.processor.stats()` that reports the additional
-  parallelism the stream processor has configured, equal to the
-  :ref:`Max Parallelism <stream-processing-costs>` defined by its
-  stream processor tier.
+  parallelism the stream processor has configured, calculated as the
+  sum of ``(parallelism - 1)`` across every stage that sets a
+  ``parallelism`` value greater than ``1``. To learn more, see
+  :ref:`atlas-sp-manage-processor-stats`.
 
 .. _atlas-sp-20260611:
 

@@ -6,9 +6,11 @@ processor is calculated as follows:
 
 Where ``parallelism total`` is the sum of all ``parallelism`` values
 greater than 1 across the :pipeline:`$source`, :ref:`$lookup
-<atlas-sp-agg-lookup>`, and :ref:`$merge <atlas-sp-agg-merge>` stages,
-and ``parallelized stages`` is the number of these stages with
-``parallelism`` values greater than ``1``.
+<atlas-sp-agg-lookup>`, :ref:`$merge <atlas-sp-agg-merge>`,
+:ref:`$emit <atlas-sp-agg-emit>`, and :ref:`$externalFunction
+<atlas-sp-agg-external-function>` stages, and ``parallelized stages``
+is the number of these stages with ``parallelism`` values greater than
+``1``.
 
 For example, if your ``$source`` stage sets a ``parallelism`` value of
 ``4``, your ``$lookup`` stage sets no ``parallelism`` value (thus
