@@ -1,5 +1,7 @@
 .. step:: Login to Atlas.
 
+   .. include:: /includes/get-started/manual-atlas-managed/atlas-cli/atlas-cli-version.rst
+
    In your terminal, run the following command:
 
    .. code-block:: bash
