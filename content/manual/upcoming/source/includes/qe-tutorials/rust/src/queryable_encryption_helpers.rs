@@ -182,9 +182,9 @@ pub fn get_customer_master_key_credentials(kms_provider_name: &str) -> MasterKey
     }
 }
 
-pub fn get_auto_encryption_options(key_vault_namespace: &Namespace, kms_providers: &Vec<(KmsProvider, Document, Option<TlsOptions>)>) -> EncryptedClientBuilder {
+pub async fn get_auto_encryption_options(uri: &str, key_vault_namespace: &Namespace, kms_providers: &Vec<(KmsProvider, Document, Option<TlsOptions>)>) -> EncryptedClientBuilder {
     // start-auto-encryption-options
-    let client_options = ClientOptions::builder().build();
+    let client_options = ClientOptions::parse(uri).await.expect("Unable to parse MONGODB_URI");
 
     let builder = Client::encrypted_builder(
         client_options,
