@@ -13,6 +13,8 @@
      - Optimized for code retrieval and agentic-coding applications.
        Recommended for new code-retrieval use cases.
 
+       To learn more, see the `blog post <https://blog.voyageai.com/2026/08/13/voyage-code-4/>`__.
+
    * - ``voyage-finance-2``
      - 32,000 tokens
      - 1024
