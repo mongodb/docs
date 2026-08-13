@@ -73,7 +73,7 @@ using your MongoDB cluster as a vector database.
 
          .. code-block:: shell
 
-            pip install --quiet --upgrade langchain langchain-community langchain-core langchain-mongodb langchain-voyageai langchain-openai pypdf
+            pip install --quiet --upgrade langchain langchain-community langchain-core langchain-mongodb langchain-voyageai langchain-openai langgraph langgraph-checkpoint-mongodb pypdf
 
       #. Set environment variables.
 
@@ -173,31 +173,33 @@ conversation memory by using the LangChain MongoDB integration.
 .. procedure:: 
    :style: normal
 
-   .. step:: Define a function to get chat message history.
+   .. step:: Configure the MongoDB checkpointer.
 
       To maintain conversation history across multiple interactions,
-      use the ``MongoDBChatMessageHistory`` class. It allows you 
-      to store chat messages in a MongoDB database and extend them to 
-      your |rag| chain to handle conversation context.
+      use the LangGraph ``MongoDBSaver`` checkpointer. A checkpointer
+      saves the state of a conversation to MongoDB after each step and
+      restores it on the next interaction, which lets your |rag|
+      application handle conversation context.
+
+      LangGraph identifies each conversation by a ``thread_id``. The
+      checkpointer writes state to the ``checkpoints`` and
+      ``checkpoint_writes`` collections in the database that you
+      specify.
 
       Paste and run the following code in your notebook to create a
-      function named ``get_session_history`` that returns a 
-      ``MongoDBChatMessageHistory`` instance. This instance 
-      retrieves the chat history for a specific session.
+      checkpointer named ``checkpointer`` that stores conversation
+      state in the ``langchain_db`` database.
       
       .. code-block:: python
       
-         from langchain_mongodb.chat_message_histories import MongoDBChatMessageHistory
-         from langchain_core.runnables.history import RunnableWithMessageHistory
-         from langchain_core.prompts import MessagesPlaceholder
-                  
-         def get_session_history(session_id: str) -> MongoDBChatMessageHistory:
-             return MongoDBChatMessageHistory(
-                 connection_string=MONGODB_URI,
-                 session_id=session_id,
-                 database_name="langchain_db",
-                 collection_name="rag_with_memory"
-             )
+         from langgraph.checkpoint.mongodb import MongoDBSaver
+         from pymongo import MongoClient
+
+         # Connect to your MongoDB cluster
+         mongo_client = MongoClient(MONGODB_URI)
+
+         # Create the checkpointer to persist conversation state
+         checkpointer = MongoDBSaver(mongo_client, db_name="langchain_db")
 
    .. step:: Create a RAG chain that handles chat message history.
      
@@ -216,7 +218,7 @@ conversation memory by using the LangChain MongoDB integration.
   
          .. code-block:: python
          
-            from langchain_core.prompts import ChatPromptTemplate
+            from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
             from langchain_core.output_parsers import StrOutputParser
             
             # Create a prompt to generate standalone questions from follow-up questions
@@ -280,14 +282,35 @@ conversation memory by using the LangChain MongoDB integration.
                 | llm
                 | parse_output
             )
-            
-            # Wrap the chain with message history
-            rag_with_memory = RunnableWithMessageHistory(
-                rag_chain,
-                get_session_history,
-                input_messages_key="question",
-                history_messages_key="history",
-            )
+
+         Then, wrap the chain in a LangGraph graph and compile it with
+         the checkpointer. The graph contains a single node that reads
+         the conversation state, passes the latest question and the
+         prior messages to the chain, and appends the answer to the
+         state:
+
+         .. code-block:: python
+
+            from langgraph.graph import StateGraph, START, END, MessagesState
+            from langchain_core.messages import AIMessage
+
+            # Define the node that runs the RAG chain
+            def call_rag_chain(state: MessagesState):
+                question = state["messages"][-1].content
+                history = state["messages"][:-1]
+                answer = rag_chain.invoke(
+                    {"question": question, "history": history}
+                )
+                return {"messages": [AIMessage(content=answer)]}
+
+            # Build the graph
+            workflow = StateGraph(MessagesState)
+            workflow.add_node("rag", call_rag_chain)
+            workflow.add_edge(START, "rag")
+            workflow.add_edge("rag", END)
+
+            # Compile the graph with the checkpointer
+            rag_with_memory = workflow.compile(checkpointer=checkpointer)
 
    .. step:: Test your RAG implementation.
    
@@ -304,10 +327,10 @@ conversation memory by using the LangChain MongoDB integration.
 
             # First question
             response_1 = rag_with_memory.invoke(
-                {"question": "What was MongoDB's latest acquisition?"},
-                {"configurable": {"session_id": "user_1"}}
+                {"messages": [("human", "What was MongoDB's latest acquisition?")]},
+                {"configurable": {"thread_id": "user_1"}}
             )
-            print(response_1)
+            print(response_1["messages"][-1].content)
 
          .. output::
 
@@ -322,10 +345,10 @@ conversation memory by using the LangChain MongoDB integration.
 
             # Follow-up question that references the previous question
             response_2 = rag_with_memory.invoke(
-                {"question": "Why did they do it?"},
-                {"configurable": {"session_id": "user_1"}}
+                {"messages": [("human", "Why did they do it?")]},
+                {"configurable": {"thread_id": "user_1"}}
             )
-            print(response_2)
+            print(response_2["messages"][-1].content)
 
          .. output::
 
@@ -394,8 +417,8 @@ see :ref:`Learn by Watching <langchain-semantic-cache-video>`.
 
             # First query (not cached)
             rag_with_memory.invoke(
-              {"question": "What was MongoDB's latest acquisition?"},
-              {"configurable": {"session_id": "user_2"}}
+              {"messages": [("human", "What was MongoDB's latest acquisition?")]},
+              {"configurable": {"thread_id": "user_2"}}
             )
 
          .. output::
@@ -415,8 +438,8 @@ see :ref:`Learn by Watching <langchain-semantic-cache-video>`.
 
             # Second query (cached)
             rag_with_memory.invoke(
-              {"question": "What company did MongoDB acquire recently?"},
-              {"configurable": {"session_id": "user_2"}}
+              {"messages": [("human", "What company did MongoDB acquire recently?")]},
+              {"configurable": {"thread_id": "user_2"}}
             )
             
          .. output::
