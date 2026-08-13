@@ -40,6 +40,10 @@
      - number
      - .. include:: /includes/api/maxCapacityGB-description.rst
    
+   * - oidc
+     - object
+     - .. include:: /includes/api/oidc-object-request-description.rst
+
    * - uri
      - string
      - A comma-separated list of hosts in the ``<hostname:port>``

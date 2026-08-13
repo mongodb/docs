@@ -9,7 +9,7 @@
 
    * - acceptedTos
      - boolean
-     - Flag that indicates whether or not you accepted the terms of
+     - Flag that indicates whether you accepted the terms of
        service for using |s3| with |onprem|. You
        must set this to ``true`` to create an |s3| store.
 
@@ -44,9 +44,9 @@
 
    * - disableProxyS3
      - boolean
-     - Flag that indicates whether the
-       :doc:`HTTP proxy </tutorial/use-with-http-proxy>` should be
-       used when connecting to |s3|.
+     - Flag that indicates whether to use the
+       :doc:`HTTP proxy </tutorial/use-with-http-proxy>`
+       when connecting to |s3|.
 
    * - encryptedCredentials
      - boolean
@@ -81,6 +81,10 @@
      - boolean
      - Flag that indicates whether object lock is enabled to prevent 
        the objects in an S3 bucket from being deleted.
+
+   * - oidc
+     - object
+     - .. include:: /includes/api/oidc-object-response-description.rst
 
    * - pathStyleAccessEnabled
      - boolean

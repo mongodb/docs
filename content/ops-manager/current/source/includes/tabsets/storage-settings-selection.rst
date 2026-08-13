@@ -1,5 +1,6 @@
-The format of the Username and Password depends on the authentication
-mechanism. Select one of the following tabs:
+The authentication mechanism determines whether you provide a
+username and password, and in what format. Select one of the
+following tabs:
 
 .. tabs::
 
@@ -14,3 +15,6 @@ mechanism. Select one of the following tabs:
 
    .. tab:: LDAP
       :tabid: ldap
+
+   .. tab:: OIDC
+      :tabid: oidc
