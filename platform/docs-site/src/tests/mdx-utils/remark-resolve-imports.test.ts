@@ -257,6 +257,43 @@ describe('remarkResolveImports flow-context references (phrasing at flow positio
     await expect(reparseMdx(resolved)).resolves.toBeDefined();
   });
 
+  it('does not wrap inline RefRole links inside a one-line DefinitionDescription', async () => {
+    // Glossary terms emit a one-line <DefinitionDescription> with mid-sentence
+    // <RefRole> children. DefinitionListItem is a flow parent, so the description
+    // re-parses as mdxJsxFlowElement even though its children are inline. Wrapping
+    // each resolved link in a paragraph produces <dd>text <p><a>…</a></p> text</dd>
+    // and breaks glossary spacing.
+    mockGetContentString.mockImplementation(async (rawPath: string) => {
+      if (rawPath.endsWith('_references.json')) {
+        return JSON.stringify({
+          substitutions: {},
+          refs: {
+            collection: '#std-term-collection',
+            'database-command': '#std-term-database-command',
+          },
+        });
+      }
+      return null;
+    });
+
+    const pageMdx = [
+      '<DefinitionList>',
+      '  <DefinitionListItem>',
+      '    <DefinitionTerm>$cmd</DefinitionTerm>',
+      "    <DefinitionDescription>A virtual <RefRole type=\"term\" name=\"collection\">collection</RefRole> that exposes MongoDB's <RefRole type=\"term\" name=\"database-command\">database commands</RefRole>.</DefinitionDescription>",
+      '  </DefinitionListItem>',
+      '</DefinitionList>',
+      '',
+    ].join('\n');
+
+    const resolved = await resolve(pageMdx);
+
+    expect(resolved).toContain('A virtual [collection](');
+    expect(resolved).toContain("that exposes MongoDB's [database commands](");
+    expect(resolved).not.toMatch(/A virtual\s*\n\n\[collection\]/);
+    await expect(reparseMdx(resolved)).resolves.toBeDefined();
+  });
+
   it('escapes braces in a block-position reference link (acorn crash)', async () => {
     // A block-position reference whose title contains `{...}` (e.g. an API path
     // template). When the link lands directly in a flow container it is stringified

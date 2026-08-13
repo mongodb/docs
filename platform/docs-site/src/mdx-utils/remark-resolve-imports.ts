@@ -579,10 +579,17 @@ const PHRASING_NODE_TYPES = new Set([
  * tag" or "could not parse expression with acorn". Wrapping the phrasing in a
  * paragraph keeps the flow position valid; it renders identically in the HTML
  * compile path.
+ *
+ * Do not wrap when the original node was inline JSX (`mdxJsxTextElement`). A
+ * one-line `<DefinitionDescription>…<RefRole>…</RefRole>…</DefinitionDescription>`
+ * parses as a flow parent with inline children; wrapping each resolved link in a
+ * paragraph produces `<dd>text <p><a>link</a></p> text</dd>` and breaks glossary
+ * spacing.
  */
-const wrapPhrasingForFlowParent = (parent: Parent, nodes: Node[]): Node[] => {
+const wrapPhrasingForFlowParent = (parent: Parent, nodes: Node[], original?: Node): Node[] => {
   if (nodes.length === 0) return nodes;
   if (PHRASING_PARENT_TYPES.has(parent.type)) return nodes;
+  if (original?.type === 'mdxJsxTextElement') return nodes;
   if (!nodes.every((node) => PHRASING_NODE_TYPES.has(node.type))) return nodes;
   return [{ type: 'paragraph', children: nodes as PhrasingContent[] } as Paragraph];
 };
@@ -590,8 +597,9 @@ const wrapPhrasingForFlowParent = (parent: Parent, nodes: Node[]): Node[] => {
 const applyReplacements = (replacements: JsxReplacement[]) => {
   for (let i = replacements.length - 1; i >= 0; i--) {
     const { parent, index, replacement } = replacements[i];
+    const original = parent.children[index] as Node | undefined;
     const nodes = Array.isArray(replacement) ? replacement : [replacement];
-    parent.children.splice(index, 1, ...wrapPhrasingForFlowParent(parent, nodes));
+    parent.children.splice(index, 1, ...wrapPhrasingForFlowParent(parent, nodes, original));
   }
 };
 
