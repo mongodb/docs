@@ -10,44 +10,40 @@ using bsoncxx::builder::basic::kvp;
 using bsoncxx::builder::basic::make_document;
 
 int main() {
-  try {
-    mongocxx::instance inst{};
+  mongocxx::instance inst;
 
-    // Replace the placeholder with your Atlas connection string
-    const auto uri = mongocxx::uri{"<connection-string>"};
+  // Replace the placeholder with your Atlas connection string
+  const auto uri = mongocxx::uri{"<connection-string>"};
 
-    // Connect to your Atlas cluster
-    auto client = mongocxx::client{uri};
-    auto db = client["sample_mflix"];
-    auto collection = db["movies"];
+  // Connect to your Atlas cluster
+  auto client = mongocxx::client{uri};
+  auto collection = client["sample_mflix"]["movies"];
 
-    // Define the pipeline with vectorSearch query options
-    mongocxx::pipeline stages;
+  // Define the pipeline with vectorSearch query options
+  mongocxx::pipeline stages;
 
-    stages
-        .append_stage(make_document(kvp(
-            "$vectorSearch",
-            make_document(
-                kvp("index", "autoembed_index"), kvp("path", "fullplot"),
-                kvp("query",
-                    make_document(kvp("text",
-                                      "young heroes caught in epic struggles "
-                                      "between light and darkness"))),
-                kvp("model", "voyage-4-large"), kvp("numCandidates", 100),
-                kvp("limit", 10)))))
-        .project(make_document(
-            kvp("_id", 0), kvp("title", 1), kvp("fullplot", 1),
-            kvp("year", 1), kvp("genres", 1),
-            kvp("score", make_document(kvp("$meta", "vectorSearchScore")))));
+  stages
+      .append_stage(make_document(kvp(
+          "$vectorSearch",
+          make_document(
+              kvp("index", "autoembed_index"), kvp("path", "fullplot"),
+              kvp("query",
+                  make_document(kvp("text",
+                                    "young heroes caught in epic struggles "
+                                    "between light and darkness"))),
+              kvp("model", "voyage-4-large"), kvp("numCandidates", 100),
+              kvp("limit", 10)))))
+      .project(make_document(
+          kvp("_id", 0), kvp("title", 1), kvp("fullplot", 1), kvp("year", 1),
+          kvp("genres", 1),
+          kvp("score", make_document(kvp("$meta", "vectorSearchScore")))));
 
-    // Run the query and print the results
-    auto cursor = collection.aggregate(stages);
+  // Run the query and print the results
+  auto cursor = collection.aggregate(stages);
 
-    for (auto&& doc : cursor) {
-      std::cout << bsoncxx::to_json(doc) << std::endl;
-    }
-  } catch (const std::exception& e) {
-    std::cout << "Exception: " << e.what() << std::endl;
+  for (auto&& doc : cursor) {
+    std::cout << bsoncxx::to_json(doc) << std::endl;
   }
+
   return 0;
 }
