@@ -8801,7 +8801,7 @@ export const toc: L1TocItem[] = [
         group: true,
         items: [
           {
-            label: 'AI Models',
+            label: 'AI Model APIs',
             isExternal: true,
             url: 'https://www.mongodb.com/docs/voyageai/',
           },

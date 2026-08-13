@@ -14,6 +14,7 @@ export interface TocItem {
   showSubNav?: boolean;
   isExternal?: boolean;
   versionDropdown?: boolean;
+  navSection?: 'docs' | 'voyageai';
   versions?: {
     includes?: string[];
     excludes?: string[];

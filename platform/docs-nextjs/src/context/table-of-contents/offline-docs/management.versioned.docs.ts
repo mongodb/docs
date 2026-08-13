@@ -1028,7 +1028,7 @@ export const toc: L1TocItem[] = [
                 url: '/docs/atlas/billing/data-transfer-costs',
               },
               {
-                label: 'AI Models',
+                label: 'AI Model APIs',
                 isExternal: true,
                 url: 'https://www.mongodb.com/docs/voyageai/management/billing',
               },

@@ -70,7 +70,7 @@
        {+voyage-api-full+}, and |service| Subscription Plans with
        corresponding usage costs for each service, and the total usage
        amount. {+voyage-api-full+} charges appear under
-       :guilabel:`AI Models`.
+       :guilabel:`AI Model APIs`.
 
    * - :guilabel:`Usage Details`
      - List of all line item details for each month's bill. This is a

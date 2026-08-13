@@ -9,7 +9,7 @@
          from the :icon-mms:`office` :guilabel:`Organizations` menu in 
          the navigation bar.
       #. At the organization level, click :guilabel:`Usage`
-         under the :guilabel:`AI Models` header in the navigation bar.
+         under the :guilabel:`AI Model APIs` header in the navigation bar.
 
    .. step:: Review usage metrics.
 

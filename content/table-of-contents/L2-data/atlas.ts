@@ -1020,7 +1020,7 @@ const tocData: TocItem[] = [
         url: '/docs/atlas/billing/data-transfer-costs',
       },
       {
-        label: 'AI Models',
+        label: 'AI Model APIs',
         url: 'https://www.mongodb.com/docs/voyageai/management/billing',
         isExternal: true,
       },
