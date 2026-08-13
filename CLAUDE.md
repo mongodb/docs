@@ -89,7 +89,7 @@ After presenting the completion summary, wait for explicit user instruction befo
 
 - Apply style guidance from .github/prompts/style-guide.prompt.md to all content regardless of how it is written in the ticket. If a ticket instruction directly conflicts with a style rule or critical instruction, stop and ask the writer for input before proceeding.
 - Never open a PR without explicit instruction from the user.
-- For reStructuredText files, maintain consistent indentation, directive syntax, and formatting. Preserve ``{+text+}`` and ``|text|`` substitution markup as-is — do not expand or reformat these. Header underline characters must match the heading length exactly.
+- For reStructuredText files, maintain consistent indentation, directive syntax, and formatting. Preserve ``{+text+}`` and ``|text|`` substitution markup as-is — do not expand or reformat these. Header underline characters must match the heading length exactly. When a heading contains a substitution, which length to count depends on the substitution type — see the "Headings" section of ``.claude/rules/rst-conventions.md``.
 - When editing YAML includes, maintain consistent ref naming and structure, and verify all ref anchors either already exist or are included in your suggested changes.
 
 - Do not create nested components: no admonitions inside admonitions or tables, no examples inside admonitions or tables, no procedures inside procedures, no tables inside tables. See .github/ai-reviewer/nested-components-guide.md for remediation patterns.

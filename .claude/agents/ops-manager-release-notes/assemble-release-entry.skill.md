@@ -28,13 +28,13 @@ Example: `.. _opsmgr-server-8.0.25:`
 ## Step 2: Create the Title
 
 Format: `|onprem| Server {version}`
-Underline with tildes (`~`) matching the rendered title length exactly.
+Underline with tildes (`~`) matching the title length exactly.
 
-Because `|onprem|` expands to "Ops Manager" (11 chars), the rendered title is `Ops Manager Server {version}`. Count the rendered length for the underline.
+`|onprem|` is a `|pipe|` substitution, so count the **raw RST source text**. Do not expand `|onprem|` to "Ops Manager" when counting. See the "Headings" section of `.claude/rules/rst-conventions.md` for the full rule.
 
 Example for version `8.0.25`:
-- Rendered title: `Ops Manager Server 8.0.25` (25 chars)
-- Underline: 25 tildes
+- Source title: `|onprem| Server 8.0.25` (22 chars)
+- Underline: 22 tildes
 
 ```rst
 |onprem| Server 8.0.25
