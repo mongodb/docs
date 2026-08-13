@@ -1,4 +1,4 @@
-.. Last updated: July 14, 2026 at 2:53 PM EDT
+.. Last updated: August 13, 2026 at 2:51 PM EDT
 
 .. _api-rate-limits-ai-model-apis:
 
@@ -662,6 +662,21 @@ IP Addresses
 
 * **GET** ``/api/atlas/v2/groups/{groupId}/ipAddresses``
 
+.. _api-rate-limits-invoice-report-generation:
+
+Invoice Report Generation
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Scope:** ORGANIZATION
+
+**Capacity:** 20
+
+**Refill:** 10/60s
+
+**Endpoints:**
+
+* **POST** ``/api/atlas/v2/orgs/{orgId}/invoices/{invoiceId}/reports``
+
 .. _api-rate-limits-invoices:
 
 Invoices
@@ -675,12 +690,15 @@ Invoices
 
 **Endpoints:**
 
+* **GET** ``/api/atlas/v2/orgs/{orgId}/associatedInvoices``
 * **GET** ``/api/atlas/v2/orgs/{orgId}/billing/costExplorer/usage/{token}``
 * **GET** ``/api/atlas/v2/orgs/{orgId}/invoices``
 * **GET** ``/api/atlas/v2/orgs/{orgId}/invoices/pending``
 * **GET** ``/api/atlas/v2/orgs/{orgId}/invoices/{invoiceId}``
 * **GET** ``/api/atlas/v2/orgs/{orgId}/invoices/{invoiceId}/csv``
 * **GET** ``/api/atlas/v2/orgs/{orgId}/invoices/{invoiceId}/lineItems:search``
+* **GET** ``/api/atlas/v2/orgs/{orgId}/invoices/{invoiceId}/reports``
+* **GET** ``/api/atlas/v2/orgs/{orgId}/invoices/{invoiceId}/reports/{reportId}``
 * **POST** ``/api/atlas/v2/orgs/{orgId}/billing/costExplorer/usage``
 
 **Scope:** USER
@@ -753,6 +771,25 @@ Maintenance Windows
 * **PATCH** ``/api/atlas/v2/groups/{groupId}/maintenanceWindow``
 * **POST** ``/api/atlas/v2/groups/{groupId}/maintenanceWindow/autoDefer``
 * **POST** ``/api/atlas/v2/groups/{groupId}/maintenanceWindow/defer``
+
+.. _api-rate-limits-metric-integrations:
+
+Metric Integrations
+~~~~~~~~~~~~~~~~~~~
+
+**Scope:** GROUP
+
+**Capacity:** 1200
+
+**Refill:** 500/60s
+
+**Endpoints:**
+
+* **DELETE** ``/api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}``
+* **GET** ``/api/atlas/v2/groups/{groupId}/metricIntegrations``
+* **GET** ``/api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}``
+* **POST** ``/api/atlas/v2/groups/{groupId}/metricIntegrations``
+* **PUT** ``/api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}``
 
 .. _api-rate-limits-mongodb-cloud-users:
 
@@ -1149,6 +1186,47 @@ Rate Limits Inspection
 
 * **GET** ``/api/atlas/v2/rateLimits``
 * **GET** ``/api/atlas/v2/rateLimits/{endpointSetId}``
+
+.. _api-rate-limits-remote-mcp-configurations:
+
+Remote MCP Configurations
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Scope:** GROUP
+
+**Capacity:** 10
+
+**Refill:** 10/60s
+
+**Endpoints:**
+
+* **DELETE** ``/api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}``
+* **DELETE** ``/api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}/secrets/{secretId}``
+* **GET** ``/api/atlas/v2/groups/{groupId}/mcpConfigs``
+* **GET** ``/api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}``
+* **GET** ``/api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}/secrets``
+* **GET** ``/api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}/secrets/{secretId}``
+* **PATCH** ``/api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}``
+* **POST** ``/api/atlas/v2/groups/{groupId}/mcpConfigs``
+* **POST** ``/api/atlas/v2/groups/{groupId}/mcpConfigs/{mcpConfigId}/secrets``
+
+**Scope:** ORGANIZATION
+
+**Capacity:** 10
+
+**Refill:** 10/60s
+
+**Endpoints:**
+
+* **DELETE** ``/api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}``
+* **DELETE** ``/api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}/secrets/{secretId}``
+* **GET** ``/api/atlas/v2/orgs/{orgId}/mcpConfigs``
+* **GET** ``/api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}``
+* **GET** ``/api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}/secrets``
+* **GET** ``/api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}/secrets/{secretId}``
+* **PATCH** ``/api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}``
+* **POST** ``/api/atlas/v2/orgs/{orgId}/mcpConfigs``
+* **POST** ``/api/atlas/v2/orgs/{orgId}/mcpConfigs/{mcpConfigId}/secrets``
 
 .. _api-rate-limits-resource-policies:
 
