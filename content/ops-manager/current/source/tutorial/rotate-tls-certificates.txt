@@ -1,0 +1,218 @@
+.. _rotate-tls-certificates:
+
+========================================
+Rotate TLS Certificates Without Downtime
+========================================
+
+.. meta::
+   :description: Use Ops Manager to rotate TLS certificates across your MongoDB deployments without downtime. Requires MongoDB 5.0 or later and a TLS-enabled deployment.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+|mms| can rotate |tls| certificates across a managed deployment
+without restarting MongoDB processes. When you increment the
+``certificatesVersion`` field in the Automation Configuration, the
+{+mdbagent+} runs ``db.adminCommand({ rotateCertificates: 1 })``
+on each eligible process in place, so client connections remain
+uninterrupted throughout the operation.
+
+Eligibility
+-----------
+
+The {+mdbagent+} applies zero-downtime rotation only to processes
+that meet all of the following requirements:
+
+- Process type is |mongod| or |mongos|.
+- MongoDB version is 5.0 or later.
+- |tls| is configured on the process.
+- All members of the deployment meet the requirements above.
+
+The {+mdbagent+} cannot apply zero-downtime rotation to a process
+in any of the following categories. In the |mms| UI, the checkbox
+for an ineligible deployment is disabled. Through the Automation
+API, |mms| rejects a configuration update for an ineligible
+deployment with an HTTP 400 error explaining why:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Condition
+     - Behavior
+
+   * - MongoDB version earlier than 5.0
+     - Not selectable in the |mms| UI. Automation API rejects the
+       configuration update with an HTTP 400 error.
+
+   * - |tls| not configured
+     - Not selectable in the |mms| UI. Automation API rejects the
+       configuration update with an HTTP 400 error.
+
+   * - BI Connector or ``mongosqld``
+     - Not selectable in the |mms| UI. Automation API rejects the
+       configuration update with an HTTP 400 error.
+
+   * - |tls| path change coincides with rotation
+     - Rolling restart handles the path change. |mms| records the
+       rotation as complete.
+
+.. important::
+
+   Zero-downtime rotation requires all processes in the deployment
+   to meet the eligibility requirements. If any process does not
+   qualify, use the existing method instead: navigate to
+   :guilabel:`Deployment`, :guilabel:`Security`,
+   :guilabel:`Settings`, :guilabel:`TLS Settings`, update the
+   certificate path, and trigger a rolling restart through
+   :guilabel:`Review and Deploy`.
+
+Prerequisites
+-------------
+
+Before you rotate certificates, verify the following:
+
+- Your deployment is managed by |mms| Automation.
+- All |mongod| and |mongos| processes in the deployment run
+  MongoDB 5.0 or later.
+- |tls| is enabled on the deployment.
+- Your new TLS certificate is valid and correctly overwritten at
+  the original configured path.
+
+Rotate TLS Certificates
+-----------------------
+
+Use the Automation API or the |mms| UI to trigger certificate
+rotation.
+
+.. important::
+
+   You cannot revert ``certificatesVersion`` to a previous value
+   through the UI or the API. |mms| only allows this value to
+   increase.
+
+Use the Automation API
+~~~~~~~~~~~~~~~~~~~~~~
+
+To rotate certificates using the Automation API, retrieve the
+current Automation Configuration, increment
+``certificatesVersion``, and upload the updated configuration.
+
+.. procedure::
+
+   .. step:: Retrieve the current Automation Configuration.
+
+      Send a ``GET`` request to the Automation Configuration
+      endpoint:
+
+      .. code-block:: sh
+
+         curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" \
+              --digest \
+              --header "Accept: application/json" \
+              --request GET \
+              "https://<OpsManagerHost>/api/public/v1.0/groups/{GROUP-ID}/automationConfig"
+
+      Save the response body to a local file, such as
+      ``automation-config.json``.
+
+   .. step:: Increment the ``certificatesVersion`` field.
+
+      In the ``processes`` array, locate the object for each
+      process you want to rotate. Increment the
+      ``certificatesVersion`` integer by 1. If the field is absent,
+      add it and set it to ``1``.
+
+      To trigger in-place rotation, set a value greater than the
+      currently published value. Equal values do not trigger
+      rotation. |mms| rejects decrements with
+      ``HTTP 400 INVALID_AUTOMATION_CONFIG``. For field validation
+      rules, see :ref:`autoconfig-mongodb-processes`.
+
+   .. step:: Upload the updated Automation Configuration.
+
+      Send a ``PUT`` request with the modified configuration:
+
+      .. code-block:: sh
+
+         curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" \
+              --digest \
+              --header "Accept: application/json" \
+              --header "Content-Type: application/json" \
+              --request PUT \
+              --data @automation-config.json \
+              "https://<OpsManagerHost>/api/public/v1.0/groups/{GROUP-ID}/automationConfig"
+
+   .. step:: Monitor the deployment until it reaches goal state.
+
+      In the |mms| UI, click :guilabel:`Deployment`, then
+      :guilabel:`Processes`. Wait for the status indicator to show
+      that all processes have converged. The {+mdbagent+} applies
+      rotation to each eligible process and records the result.
+
+Use the Ops Manager UI
+~~~~~~~~~~~~~~~~~~~~~~
+
+To rotate certificates using the |mms| UI, navigate to the TLS
+settings for your project and select the deployments to rotate.
+
+.. procedure::
+
+   .. step:: Open TLS settings.
+
+      Click :guilabel:`Deployment`, :guilabel:`Security`,
+      :guilabel:`Settings`, then :guilabel:`TLS Settings`.
+
+   .. step:: Open the certificate rotation section.
+
+      Click :guilabel:`Edit`, then click
+      :guilabel:`Rotate Certificates`. The table lists all
+      deployment items in the project. Ineligible items are
+      disabled and display the reason on hover.
+
+   .. step:: Select deployments and confirm.
+
+      Select one or more eligible deployment items, then confirm
+      the operation.
+
+   .. step:: Monitor convergence.
+
+      Wait for all processes to reach goal state. The status
+      indicator in the |mms| Automation status panel updates as
+      the {+mdbagent+} applies rotation to each eligible process.
+
+Rotation State and Durability
+-----------------------------
+
+The {+mdbagent+} persists the result of each rotation so that it
+survives agent restarts and resumes from where it left off.
+
+|mms| records a ``TLS_CERTIFICATES_ROTATED`` event in the
+project's activity feed each time an Automation Configuration
+update rotates certificates on one or more processes. Use this
+event to audit certificate rotation history.
+
+Retry Behavior
+--------------
+
+If the ``rotateCertificates`` command fails, the {+mdbagent+} returns
+error code 128 (``TlsCertificatesRotationErr``). |mms| displays "TLS
+Certificate Rotation Error" in the Automation status panel and
+reschedules the step on the next convergence tick. Correct the
+certificate file on disk to resolve the error.
+
+If the command succeeds but the {+mdbagent+} can't persist the
+result, it retries automatically.
+
+How the Agent Applies Rotation
+------------------------------
+
+When the {+mdbagent+} detects an incremented
+``certificatesVersion`` in the Automation Configuration, it checks
+each eligible process against the eligibility requirements and runs
+``db.adminCommand({ rotateCertificates: 1 })``.
