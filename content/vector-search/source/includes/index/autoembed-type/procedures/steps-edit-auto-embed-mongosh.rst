@@ -25,6 +25,14 @@
                  "modality": "text",
                  "path": "<field-to-index>",
                  "model": "<embedding-model>",
+                 "similarity": "<similarity-metric>",
+                 "numDimensions": <number-of-dimensions>,
+                 "indexingMethod": "<indexing-method>",
+                 "hnswOptions": {
+                   "maxEdges": <number-of-connected-neighbors>,
+                   "numEdgeCandidates": <number-of-nearest-neighbors>
+                 },
+                 "quantization": "<quantization-type>"
                },
                {
                  "type": "filter",
@@ -34,9 +42,3 @@
              ]
            }
          );
-         
-      .. note:: 
-
-         You can add text fields to index as the ``autoEmbed`` type, but 
-         you can't replace or delete existing ``autoEmbed`` type fields in 
-         the index definition.

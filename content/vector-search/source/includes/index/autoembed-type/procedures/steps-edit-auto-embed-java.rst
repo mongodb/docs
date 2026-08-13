@@ -8,7 +8,7 @@
          :copyable: true 
          :linenos: 
 
-   .. step:: Replace the following values and save the file.
+   .. step:: Replace the following values and add or modify other settings in the index definition as needed, then save the file.
 
       .. list-table:: 
          :stub-columns: 1 
@@ -24,15 +24,6 @@
 
          * - ``<indexName>``
            - Name of your index. If you omit the index name, defaults to ``vector_index``.
-
-         * - ``<indexedField>``
-           - Name of the field indexed as the ``autoEmbed`` type. 
-
-         * - ``<modelName>``
-           - |voyage| embedding model to use to generate embeddings.
-
-         * - ``<fieldToIndex>``
-           - Name of the field to index.
 
    .. step:: Execute the code to update the index.
 

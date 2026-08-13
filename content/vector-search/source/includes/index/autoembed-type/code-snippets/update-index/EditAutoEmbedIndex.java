@@ -29,7 +29,14 @@ public class EditVectorIndex {
                     new Document("type", "autoEmbed")
                         .append("modality", "text")
                         .append("model", "<modelName>")
-                        .append("path", "<indexedField>"),
+                        .append("path", "<indexedField>")
+                        .append("similarity", "<similarityMetric>")
+                        .append("indexingMethod", "<indexingMethod>")
+                        .append("hnswOptions", new Document()
+                            .append("maxEdges", <maxNumEdges>)
+                            .append("numEdgeCandidates", <numEdgeCandidates>))
+                        .append("quantization", "<quantizationType>")
+                        .append("numDimensions", <numDimensions>),
                     new Document("type", "filter")
                         .append("path", "<filterField1>"),
                     new Document("type", "filter")

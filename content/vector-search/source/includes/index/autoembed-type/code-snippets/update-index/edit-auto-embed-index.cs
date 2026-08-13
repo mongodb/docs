@@ -27,7 +27,17 @@ public class IndexService
                             { "type", "autoEmbed" },
                             { "modality", "text" },
                             { "path", "<indexedField>" },
-                            { "model", "<embeddingModel>" }
+                            { "model", "<embeddingModel>" },
+                            { "similarity", "<similarityMetric>" },
+                            { "indexingMethod", "<indexingMethod>" },
+                            { "hnswOptions", new BsonDocument
+                                {
+                                    { "maxEdges", <maxEdges> },
+                                    { "numEdgeCandidates", <numEdgeCandidates> }
+                                }
+                            },
+                            { "quantization", "<quantizationType>" },
+                            { "numDimensions", <numDimensions> }
                         },
                         new BsonDocument
                         {
