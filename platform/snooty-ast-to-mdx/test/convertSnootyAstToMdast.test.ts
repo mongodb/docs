@@ -2268,6 +2268,95 @@ describe('DefinitionTerm inline content rendering', () => {
     expect(mdx).toMatch(/^<Footnote/m);
   });
 
+  it('indexes each reference to a multiply-referenced footnote', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'paragraph',
+          children: [
+            { type: 'text', value: 'See ' },
+            { type: 'footnote_reference', id: 'id1', refname: '1' },
+            { type: 'text', value: ' and ' },
+            { type: 'footnote_reference', id: 'id2', refname: '1' },
+          ],
+        },
+        {
+          type: 'footnote',
+          id: 'id8',
+          name: '1',
+          children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Footnote text' }] }],
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    // Both references share the pairing name but get distinct ordinals, so the two back-link
+    // anchors stay unique without depending on render order.
+    expect(mdx).toContain('<FootnoteReference name="1" index="1" />');
+    expect(mdx).toContain('<FootnoteReference name="1" index="2" />');
+    // The footnote needs only the name: that is what its references link to.
+    expect(mdx).toContain('<Footnote name="1">');
+  });
+
+  it('pairs anonymous footnotes by document order and gives them a shared name', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'paragraph',
+          children: [
+            { type: 'footnote_reference', id: 'id1' },
+            { type: 'text', value: ' then ' },
+            { type: 'footnote_reference', id: 'id2' },
+          ],
+        },
+        {
+          type: 'footnote',
+          id: 'id3',
+          children: [{ type: 'paragraph', children: [{ type: 'text', value: 'First.' }] }],
+        },
+        {
+          type: 'footnote',
+          id: 'id4',
+          children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Second.' }] }],
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    // RST pairs the Nth anonymous reference with the Nth anonymous footnote.
+    expect(mdx).toContain('<FootnoteReference name="anon-id3" index="1" />');
+    expect(mdx).toContain('<FootnoteReference name="anon-id4" index="1" />');
+    expect(mdx).toContain('<Footnote name="anon-id3">First.</Footnote>');
+    expect(mdx).toContain('<Footnote name="anon-id4">Second.</Footnote>');
+  });
+
+  it('warns and leaves extra anonymous footnote nodes unpaired when counts are unbalanced', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'paragraph',
+          children: [
+            { type: 'footnote_reference', id: 'id1' },
+            { type: 'footnote_reference', id: 'id2' },
+          ],
+        },
+        {
+          type: 'footnote',
+          id: 'id3',
+          children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Only one.' }] }],
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('Unbalanced anonymous footnotes'));
+    expect(mdx).toContain('<FootnoteReference name="anon-id3" index="1" />');
+    // The unpaired reference gets no name rather than being mismatched to the wrong footnote.
+    expect(mdx).toContain('<FootnoteReference />');
+    warn.mockRestore();
+  });
+
   it('renders footnote with inline JSX children (e.g. guilabel) without blank lines', () => {
     const ast: SnootyNode = {
       type: 'root',

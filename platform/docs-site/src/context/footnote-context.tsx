@@ -2,16 +2,24 @@
 
 import { createContext, useContext, useRef, useCallback, type RefObject, type MutableRefObject } from 'react';
 
+/** Reduces a footnote name to characters that are safe in a DOM id / URL fragment. */
+const sanitizeName = (name: string): string => name.replace(/[^a-zA-Z0-9_-]/g, '-');
+
+/**
+ * Fallback ID allocator for footnotes and references that carry no `name`. Such nodes
+ * can't be paired with anything, so a render-order counter is sufficient. IDs are
+ * prefixed to keep them out of the namespace used by name-derived IDs.
+ */
 const getOrCreateId = (
   stableId: string,
   mapRef: RefObject<Map<string, number>>,
   counterRef: MutableRefObject<number>,
 ): string => {
   const existing = mapRef.current!.get(stableId);
-  if (existing !== undefined) return existing.toString();
+  if (existing !== undefined) return `anon-${existing}`;
   const id = counterRef.current++;
   mapRef.current!.set(stableId, id);
-  return id.toString();
+  return `anon-${id}`;
 };
 
 interface FootnoteEntry {
@@ -28,7 +36,7 @@ interface FootnoteContextType {
   getOrCreateRefId: (stableId: string, name?: string) => string;
   getOrCreateFootnoteId: (stableId: string, name?: string) => string;
   registerFootnote: (id: string) => number;
-  registerReference: (stableId: string, footnoteId: string) => ReferenceResult;
+  registerReference: (stableId: string, footnoteId: string, preferredRefId?: string) => ReferenceResult;
   getFootnoteData: (id: string) => FootnoteEntry | undefined;
 }
 
@@ -54,22 +62,26 @@ export const FootnoteProvider = ({ children }: FootnoteProviderProps) => {
   // Sequential counter for footnote display labels (1, 2, 3…)
   const currentFootnoteNumber = useRef(1);
 
-  // Dedup map: ensures a FootnoteReference gets the same ID across re-renders
+  // Dedup maps for *unnamed* footnotes/references only. These carry no AST identity, so the
+  // two sides can only be paired positionally: the Nth unnamed reference to the Nth unnamed
+  // footnote. That requires the parallel counters kept below.
   const refIdByStableId = useRef<Map<string, number>>(new Map());
-  // Dedup map: ensures a Footnote gets the same ID across re-renders
   const footnoteIdByStableId = useRef<Map<string, number>>(new Map());
-  // Next numeric ID for FootnoteReference dedup
   const nextRefId = useRef(1);
   const nextFootnoteId = useRef(1);
 
+  // A *named* footnote and the references pointing at it are paired by `name`, which comes
+  // from the AST and is identical on both sides. Deriving the ID from the name rather than
+  // from a render-order counter keeps the pairing correct even when one side never renders
+  // — e.g. a <FootnoteReference> inside an unselected <ComposableContent>.
   const getOrCreateRefId = useCallback((stableId: string, name?: string) => {
-    const key = name !== undefined ? `name:${name}` : stableId;
-    return getOrCreateId(key, refIdByStableId, nextRefId);
+    if (name !== undefined) return sanitizeName(name);
+    return getOrCreateId(stableId, refIdByStableId, nextRefId);
   }, []);
 
   const getOrCreateFootnoteId = useCallback((stableId: string, name?: string) => {
-    const key = name !== undefined ? `name:${name}` : stableId;
-    return getOrCreateId(key, footnoteIdByStableId, nextFootnoteId);
+    if (name !== undefined) return sanitizeName(name);
+    return getOrCreateId(stableId, footnoteIdByStableId, nextFootnoteId);
   }, []);
 
   const registerFootnote = useCallback((id: string): number => {
@@ -81,27 +93,36 @@ export const FootnoteProvider = ({ children }: FootnoteProviderProps) => {
     return label;
   }, []);
 
-  const registerReference = useCallback((stableId: string, footnoteId: string): ReferenceResult => {
-    const cached = registeredRefs.current.get(stableId);
-    if (cached) return cached;
+  const registerReference = useCallback(
+    (stableId: string, footnoteId: string, preferredRefId?: string): ReferenceResult => {
+      const cached = registeredRefs.current.get(stableId);
+      if (cached) return cached;
 
-    const count = (refCounters.current.get(footnoteId) ?? 0) + 1;
-    refCounters.current.set(footnoteId, count);
-    const refId = `ref-${footnoteId}-${count}`;
+      // Prefer the anchor derived from the parser-assigned node id, which is unique per
+      // occurrence and independent of render order. Only fall back to a counter for MDX
+      // generated before the converter began emitting `id`.
+      let refId = preferredRefId;
+      if (!refId) {
+        const count = (refCounters.current.get(footnoteId) ?? 0) + 1;
+        refCounters.current.set(footnoteId, count);
+        refId = `ref-${footnoteId}-${count}`;
+      }
 
-    const entry = footnotes.current.get(footnoteId);
-    if (entry) {
-      entry.refIds.push(refId);
-    } else {
-      const label = currentFootnoteNumber.current++;
-      footnotes.current.set(footnoteId, { label, refIds: [refId] });
-    }
+      const entry = footnotes.current.get(footnoteId);
+      if (entry) {
+        entry.refIds.push(refId);
+      } else {
+        const label = currentFootnoteNumber.current++;
+        footnotes.current.set(footnoteId, { label, refIds: [refId] });
+      }
 
-    const label = footnotes.current.get(footnoteId)!.label;
-    const result: ReferenceResult = { label, refId };
-    registeredRefs.current.set(stableId, result);
-    return result;
-  }, []);
+      const label = footnotes.current.get(footnoteId)!.label;
+      const result: ReferenceResult = { label, refId };
+      registeredRefs.current.set(stableId, result);
+      return result;
+    },
+    [],
+  );
 
   const getFootnoteData = useCallback((id: string): FootnoteEntry | undefined => {
     return footnotes.current.get(id);

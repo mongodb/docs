@@ -649,6 +649,90 @@ export const buildSubstitutionDefinitionNodesMap = (root: SnootyNode): Map<strin
   return map;
 };
 
+/**
+ * Resolve the two things a footnote's identity needs, both of which depend on document order and
+ * are therefore only knowable here:
+ *
+ * 1. `anonymousNames` — anonymous footnotes (`[#]_` / `.. [#]`) get a unique `id` from the parser
+ *    but no name, so the only thing tying a reference to its footnote is position: RST pairs the
+ *    Nth anonymous reference with the Nth anonymous footnote. Assigning a shared synthetic name
+ *    here means every emitted `<Footnote>`/`<FootnoteReference>` has one, and the frontend needs
+ *    no positional logic at all.
+ *
+ * 2. `referenceIndexes` — when a footnote is referenced more than once (41 of 152 across the docs
+ *    set), each reference needs its own anchor so the footnote can link back to each site. This is
+ *    that reference's ordinal among references to the same footnote.
+ *
+ * Neither survives downstream: the frontend only ever sees *render* order, which diverges from
+ * document order whenever content is conditionally hidden (e.g. an unselected
+ * `<ComposableContent>`).
+ *
+ * Deliberately does not descend into nested `ast` subtrees: those are include bodies, emitted as
+ * separate MDX files with their own conversion pass and their own maps.
+ */
+export const buildFootnoteIdentityMaps = (
+  root: SnootyNode,
+): { anonymousNames: Map<string, string>; referenceIndexes: Map<string, number> } => {
+  const references: SnootyNode[] = [];
+  const anonymousReferences: SnootyNode[] = [];
+  const anonymousFootnotes: SnootyNode[] = [];
+
+  const visitNode = (node: SnootyNode | undefined) => {
+    if (!node) return;
+    if (node.type === 'footnote_reference') {
+      references.push(node);
+      if (!node.refname) anonymousReferences.push(node);
+    }
+    if (node.type === 'footnote' && !node.name) anonymousFootnotes.push(node);
+    if (Array.isArray(node.children)) {
+      for (const c of node.children) visitNode(c);
+    }
+    if (Array.isArray(node.argument)) {
+      for (const c of node.argument) {
+        if (c && typeof c === 'object' && 'type' in (c as object)) visitNode(c as SnootyNode);
+      }
+    }
+  };
+  visitNode(root);
+
+  // An unbalanced count means the source is malformed, or that a `[#]_` and its `.. [#]` were
+  // split across an include boundary — in which case per-file zipping would silently mispair
+  // them. Warn rather than guess; docutils likewise errors on unresolvable anonymous footnotes.
+  if (anonymousReferences.length !== anonymousFootnotes.length) {
+    console.warn(
+      `[footnotes] Unbalanced anonymous footnotes: ${anonymousReferences.length} reference(s) ` +
+        `but ${anonymousFootnotes.length} footnote(s). Extra nodes will be left unpaired.`,
+    );
+  }
+
+  const anonymousNames = new Map<string, string>();
+  const pairCount = Math.min(anonymousReferences.length, anonymousFootnotes.length);
+  for (let i = 0; i < pairCount; i += 1) {
+    const footnoteId = String(anonymousFootnotes[i].id ?? '');
+    const referenceId = String(anonymousReferences[i].id ?? '');
+    if (!footnoteId || !referenceId) continue;
+    const pairingKey = `anon-${footnoteId}`;
+    anonymousNames.set(footnoteId, pairingKey);
+    anonymousNames.set(referenceId, pairingKey);
+  }
+
+  // Counted after anonymous names are resolved, so anonymous references are grouped by the same
+  // key the frontend will pair on.
+  const referenceIndexes = new Map<string, number>();
+  const countsByName = new Map<string, number>();
+  for (const reference of references) {
+    const referenceId = String(reference.id ?? '');
+    if (!referenceId) continue;
+    const name = String(reference.refname ?? anonymousNames.get(referenceId) ?? '');
+    if (!name) continue;
+    const index = (countsByName.get(name) ?? 0) + 1;
+    countsByName.set(name, index);
+    referenceIndexes.set(referenceId, index);
+  }
+
+  return { anonymousNames, referenceIndexes };
+};
+
 const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): MdastNode | MdastNode[] | null => {
   switch (node.type) {
     case 'text':
@@ -1719,7 +1803,10 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         return convertChildren({ nodes: node.children, depth, ctx });
       }
       const attributes: MdastNode[] = [];
-      if (node.name) attributes.push({ type: 'mdxJsxAttribute', name: 'name', value: String(node.name) });
+      // Anonymous footnotes (`.. [#]`) carry no name, so fall back to the pairing key the
+      // pre-pass derived for them. Downstream, every footnote then has a name to pair on.
+      const resolvedName = node.name ?? ctx.anonymousFootnoteNames?.get(String(node.id ?? ''));
+      if (resolvedName) attributes.push({ type: 'mdxJsxAttribute', name: 'name', value: String(resolvedName) });
 
       const bodyChildren = convertChildren({ nodes: node.children, depth, ctx });
 
@@ -1777,7 +1864,13 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       const identifier = String(node.id ?? '');
       if (!identifier) return null;
       const attributes: MdastNode[] = [];
-      if (node.refname) attributes.push({ type: 'mdxJsxAttribute', name: 'name', value: String(node.refname) });
+      // `name` says which footnote this points at; `index` says which reference to that footnote
+      // this is (1-based), so multiply-referenced footnotes get one back-link anchor per site.
+      // Anonymous references (`[#]_`) take their name from the pre-pass.
+      const resolvedRefname = node.refname ?? ctx.anonymousFootnoteNames?.get(String(node.id ?? ''));
+      if (resolvedRefname) attributes.push({ type: 'mdxJsxAttribute', name: 'name', value: String(resolvedRefname) });
+      const referenceIndex = ctx.footnoteReferenceIndexes?.get(String(node.id ?? ''));
+      if (referenceIndex) attributes.push({ type: 'mdxJsxAttribute', name: 'index', value: String(referenceIndex) });
       return {
         type: 'mdxJsxTextElement',
         name: 'FootnoteReference',
@@ -2287,6 +2380,9 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
     buildSubstitutionDefinitionNodesMap(root),
   );
 
+  const { anonymousNames: anonymousFootnoteNames, referenceIndexes: footnoteReferenceIndexes } =
+    buildFootnoteIdentityMaps(root);
+
   const ctx: ConversionContext = {
     emitMdxFile: options?.onEmitMdxFile,
     currentOutfilePath: options?.currentOutfilePath,
@@ -2298,6 +2394,8 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
     emittingIncludeFile: options?.emittingIncludeFile,
     collectedSubstitutions,
     collectedRefs,
+    anonymousFootnoteNames,
+    footnoteReferenceIndexes,
   };
 
   // Pre-scan the whole tree for facet directives (they can be anywhere, e.g. inside a section).
