@@ -1,0 +1,1 @@
+db.movies.createIndex( { year: 1 } )
