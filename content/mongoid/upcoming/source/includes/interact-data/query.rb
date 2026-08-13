@@ -43,8 +43,8 @@ Band.where(label: 'Trust in Trance').or(Band.where(name: 'Astral Projection'))
 # Uses "not" to specify criteria
 Band.not(label: 'Trust in Trance', name: 'Astral Projection')
 
-# Uses "not" without arguments
-Band.not.where(label: 'Trust in Trance', name: 'Astral Projection')
+# Uses "not" to negate a Criteria object
+Band.not(Band.where(label: 'Trust in Trance'))
 # end-logical-ops
 
 # start-logical-and-ops
@@ -93,22 +93,23 @@ Band.where(name: 'Sun').or(label: 'Trust').where(label: 'Feist')
 # end-logical-combination-ops-2
 
 # start-not-logical
-# "not" negates "where"
-Band.not.where(name: 'Best')
-
-# The second "where" is added as "$and"
-Band.not.where(name: 'Best').where(label: /Records/)
-
 # "not" negates its argument
 Band.not(name: 'Best')
+
+# "not" negates the selector of a Criteria object
+Band.not(Band.where(name: 'Best'))
 # end-not-logical
+
+# start-not-logical-deprecated
+Band.not.where(name: 'Best')
+# end-not-logical-deprecated
 
 # start-not-logical-note
 # String negation - uses "$ne"
-Band.not.where(name: 'Best')
- 
+Band.not(name: 'Best')
+
 # Regex negation - uses "$not"
-Band.not.where(name: /Best/)
+Band.not(name: /Best/)
 # end-not-logical-note
 
 # start-not-behavior
