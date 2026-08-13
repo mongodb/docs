@@ -882,6 +882,12 @@ const tocData: TocItem[] = [
             url: '/docs/ops-manager/:version/tutorial/configure-for-oidc-authentication',
           },
           {
+            label: 'OIDC for Backing Databases',
+            contentSite: 'ops-manager',
+            url: '/docs/ops-manager/:version/core/oidc-backing-db-overview',
+            versions: { includes: ['upcoming', 'current'] },
+          },
+          {
             label: 'Secure with Authentication',
             contentSite: 'ops-manager',
             url: '/docs/ops-manager/:version/tutorial/nav/security-enable-authentication',
