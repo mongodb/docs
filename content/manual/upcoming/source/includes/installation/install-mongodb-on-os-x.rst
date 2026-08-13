@@ -98,6 +98,12 @@ Follow these steps to install MongoDB |edition| Edition using Homebrew's
 
       brew tap mongodb/brew
 
+   Then, mark the tap as a trusted source:
+
+   .. code-block:: bash
+
+      brew trust mongodb/brew
+
    If you have already done this for a previous installation of MongoDB,
    you can skip this step.
 
