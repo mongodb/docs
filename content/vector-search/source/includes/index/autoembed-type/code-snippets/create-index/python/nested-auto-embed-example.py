@@ -1,0 +1,62 @@
+from pymongo.mongo_client import MongoClient
+from pymongo.operations import SearchIndexModel
+import time
+
+# Connect to your deployment
+uri = "<connectionString>"
+client = MongoClient(uri)
+
+# Access your database and collection
+database = client["sample_airbnb"]
+collection = database["listingsAndReviews"]
+
+# Create your index model, then create the search index
+search_index_model = SearchIndexModel(
+  definition={
+    "fields": [
+      {
+        "type": "autoEmbed",
+        "modality": "text",
+        "path": "reviews.comments",
+        "model": "voyage-4",
+        "similarity": "cosine",
+        "indexingMethod": "hnsw"
+      },
+      {
+        "type": "filter",
+        "path": "address.country"
+      },
+      {
+        "type": "filter",
+        "path": "bedrooms"
+      },
+      {
+        "type": "filter",
+        "path": "property_type"
+      },
+      {
+        "type": "filter",
+        "path": "reviews.date"
+      }
+    ],
+    "nestedRoot": "reviews"
+  },
+  name="autoembed_index",
+  type="vectorSearch"
+)
+
+result = collection.create_search_index(model=search_index_model)
+print("New search index named " + result + " is building.")
+
+# Wait for initial sync to complete
+print("Polling to check if the index is ready. This may take several minutes.")
+predicate = lambda index: index.get("queryable") is True
+
+while True:
+  indices = list(collection.list_search_indexes(result))
+  if len(indices) and predicate(indices[0]):
+    break
+  time.sleep(5)
+print(result + " is ready for querying.")
+
+client.close()

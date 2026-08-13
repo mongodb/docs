@@ -20,7 +20,7 @@ class Program
         var database = client.GetDatabase("sample_mflix");  
         var collection = database.GetCollection<BsonDocument>("movies");  
           
-        CreateVectorIndex(client, collection, "vector_index");  
+        CreateVectorIndex(client, collection, "autoembed_index");  
     }  
   
     private static void CreateVectorIndex(MongoClient client, IMongoCollection<BsonDocument> collection, string indexName)  

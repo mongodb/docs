@@ -26,7 +26,7 @@
 
          * - ``<indexName>``
            - Name of your index. If you omit the index name, defaults to
-             ``vector_index``. 
+             ``autoembed_index``. 
 
    .. step:: Run the following command to update the index.
 

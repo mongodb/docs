@@ -64,6 +64,22 @@
        results. This value can't exceed the value of ``numCandidates`` if
        you specify ``numCandidates``.
 
+   * - ``nestedOptions``
+     - Object
+     - Optional
+     - Configure how {+avs+} scores documents that contain nested 
+       arrays. 
+
+   * - | ``nestedOptions.``
+       | ``scoreMode``
+     - String
+     - Optional
+     - Specifies how to score documents that contain nested arrays. 
+       Value can be one of the following:
+
+       - ``avg`` - average the scores of the nested array elements.
+       - ``max`` - use the maximum score of the nested array elements.
+
    * - ``numCandidates``
      - Int 
      - Conditional 
@@ -83,6 +99,21 @@
 
        To learn more about other variables that might impact this
        parameter, see :ref:`avs-num-candidates`. 
+
+   * - ``parentFilter``
+     - Object
+     - Optional
+     - :abbr:`MQL (MongoDB Query Language)` expression that uses an 
+       indexed top-level field for pre-filtering the documents. 
+       You can filter on {+avs-filter-types+}.
+
+       To learn which MQL operators {+avs+} supports
+       in your filter, see :ref:`vectorSearch-agg-pipeline-filter`.
+
+       The ``parentFilter`` option is only valid if you specify a nested 
+       field (``nestedRoot``) in the index definition. If you specify 
+       the ``parentFilter``, {+avs+} filters the top-level documents 
+       before filtering the nested documents.
 
    * - ``path``
      - String 
@@ -120,4 +151,5 @@
      - Flag that specifies whether to perform a full document lookup on
        the backend database (``false``) or return only stored source
        fields directly from {+avs+} (``true``). If omitted, defaults to
-       ``false``. To learn more, see :ref:`Return Stored Source Fields <avs-return-stored-source-self-managed>`.
+       ``false``. To learn more, see :ref:`Return Stored Source Fields 
+       <avs-return-stored-source-self-managed>`.

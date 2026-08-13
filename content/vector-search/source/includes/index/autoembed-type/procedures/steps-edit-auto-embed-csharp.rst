@@ -23,7 +23,7 @@
            - Collection for which you want to create the index.
 
          * - ``<indexName>``
-           - Name of your index. If you omit the index name, defaults to ``vector_index``.
+           - Name of your index. If you omit the index name, defaults to ``autoembed_index``.
 
    .. step:: Initialize the class and call the method in ``Program.cs``.
 

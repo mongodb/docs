@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	indexName = "vector_index"
+	indexName = "autoembed_index"
 )
 
 func main() {

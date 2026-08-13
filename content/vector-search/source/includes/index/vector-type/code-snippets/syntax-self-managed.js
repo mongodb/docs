@@ -18,6 +18,7 @@
     },
     ...
   ],
+  "nestedRoot": "<embedded-document-field-name>",
   "storedSource": {
     "include|exclude": ["<field-name>",...]
   }

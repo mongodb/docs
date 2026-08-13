@@ -29,7 +29,7 @@ public class AutoEmbedQuery {
                 vectorSearch(
                     fieldPath("fullplot"),
                     textQuery("solo traveler discovering new cultures"),
-                    "vector_index",
+                    "autoembed_index",
                     10L,
                     exactVectorSearchOptions()
                 ),

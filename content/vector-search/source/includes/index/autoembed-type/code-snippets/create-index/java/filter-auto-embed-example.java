@@ -20,7 +20,7 @@ public class VectorIndex {
             
             // define your MongoDB Vector Search index
             SearchIndexModel indexModel = new SearchIndexModel(
-                "vector_index",
+                "autoembed_index",
                 new Document("fields",
                     Arrays.asList(
                     	new Document("type", "autoEmbed")

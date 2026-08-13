@@ -29,7 +29,7 @@ index definition.
 .. code-block:: json
    :copyable: true 
    :linenos:
-   :emphasize-lines: 8-11
+   :emphasize-lines: 8-15, 18
 
    {
      "fields":[ 
@@ -47,5 +47,6 @@ index definition.
            "numEdgeCandidates": <number-of-nearest-neighbors>
          }
        }
-     ]
+     ],
+     "nestedRoot": "<embedded-document-field-name>"
    }

@@ -7,20 +7,59 @@
 
    .. step:: Switch to the database that contains the collection for which you want to create the index. 
 
-      .. example:: 
+      .. tabs:: 
 
-         .. io-code-block:: 
-            :copyable: true 
+         .. tab:: Basic Example
+            :tabid: basic 
+
+            .. input:: 
+               :language: shell
+
+               use sample_mflix 
+
+            .. output:: 
+               :language: shell 
+
+               switched to db sample_mflix
+
+         .. tab:: Filter Example 
+            :tabid: filter
+
+            .. input:: 
+               :language: shell
+
+               use sample_mflix 
+
+            .. output:: 
+               :language: shell 
+
+               switched to db sample_mflix
+
+         .. tab:: Flat Example 
+            :tabid: flat
+
+            .. input:: 
+               :language: shell
+
+               use sample_mflix 
+
+            .. output:: 
+               :language: shell 
+
+               switched to db sample_mflix
+
+         .. tab:: Nested Field Example 
+            :tabid: nested-root
 
             .. input:: 
                :language: shell
               
-               use sample_mflix 
+               use sample_airbnb 
 
             .. output:: 
-              :language: shell 
+               :language: shell 
 
-              switched to db sample_mflix
+               switched to db sample_airbnb
 
    .. step:: Create the index using the ``db.collection.createSearchIndex()`` method. 
 
@@ -72,34 +111,41 @@
 
       #. Run the ``db.collection.createSearchIndex()`` method.
 
-      .. tabs::
+         .. tabs:: 
 
-         .. tab:: Basic Example
-            :tabid: basic
+            .. tab:: Basic Example
+               :tabid: basic 
 
-            .. include:: /includes/quick-start/facts/auto-embed-basic-example-description.rst
+               .. include:: /includes/quick-start/facts/auto-embed-basic-example-description.rst
 
-            .. literalinclude:: /includes/index/autoembed-type/code-snippets/create-index/shell/basic-auto-embed-example.sh
-               :language: shell
-               :copyable: true
-               :linenos:
+               .. literalinclude:: /includes/index/autoembed-type/code-snippets/create-index/shell/basic-auto-embed-example.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
 
-         .. tab:: Filter Example
-            :tabid: filter
+            .. tab:: Filter Example
+               :tabid: filter
 
-            .. include:: /includes/quick-start/facts/auto-embed-filter-example-description.rst
+               .. include:: /includes/quick-start/facts/auto-embed-filter-example-description.rst
 
-            .. literalinclude:: /includes/index/autoembed-type/code-snippets/create-index/shell/filter-auto-embed-example.sh
-               :language: shell
-               :copyable: true 
-               :linenos:
+               .. literalinclude:: /includes/index/autoembed-type/code-snippets/create-index/shell/filter-auto-embed-example.sh
+                  :language: shell
+                  :copyable: true 
+                  :linenos:
 
-         .. tab:: Flat Example
-            :tabid: flat
+            .. tab:: Flat Example
+               :tabid: flat
 
-            .. include:: /includes/quick-start/facts/auto-embed-flat-example-description.rst
+               .. include:: /includes/quick-start/facts/auto-embed-flat-example-description.rst
 
-            .. literalinclude:: /includes/index/autoembed-type/code-snippets/create-index/shell/flat-auto-embed-example.sh
-               :language: shell
-               :copyable: true 
-               :linenos:
+               .. literalinclude:: /includes/index/autoembed-type/code-snippets/create-index/shell/flat-auto-embed-example.sh
+                  :language: shell
+                  :copyable: true 
+                  :linenos:
+
+            .. tab:: Nested Field Example
+               :tabid: nested-root
+
+               .. include:: /includes/index/autoembed-type/facts/nested-root-example-description.rst
+
+               .. literalinclude:: /includes/index/autoembed-type/code-snippets/create-index/shell/nested-auto-embed-example.sh

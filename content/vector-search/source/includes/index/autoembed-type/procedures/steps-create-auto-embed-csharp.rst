@@ -26,7 +26,7 @@
            - Collection for which you want to create the index.
 
          * - ``<indexName>``
-           - Name of your index. If you omit the index name, defaults to ``vector_index``.
+           - Name of your index. If you omit the index name, defaults to ``autoembed_index``.
 
          * - ``<fieldToIndex>``
            - Vector and filter fields to index. For this parameter, you can pass either

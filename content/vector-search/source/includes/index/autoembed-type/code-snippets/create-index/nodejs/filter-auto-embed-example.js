@@ -12,7 +12,7 @@ async function run() {
     
      // define your MongoDB Vector Search index
      const index = {
-         name: "vector_index",
+         name: "autoembed_index",
          type: "vectorSearch",
          definition: {
            "fields": [

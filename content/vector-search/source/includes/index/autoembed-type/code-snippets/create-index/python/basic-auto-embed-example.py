@@ -22,7 +22,7 @@ search_index_model = SearchIndexModel(
       }
     ]
   },
-  name="vector_index",
+  name="autoembed_index",
   type="vectorSearch"
 )
 

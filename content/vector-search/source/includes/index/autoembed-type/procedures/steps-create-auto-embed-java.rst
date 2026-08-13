@@ -23,7 +23,7 @@
            - Collection for which you want to create the index.
 
          * - ``<indexName>``
-           - Name of your index. If you omit the index name, defaults to ``vector_index``.
+           - Name of your index. If you omit the index name, defaults to ``autoembed_index``.
 
          * - ``<embeddingModel>``
            - |voyage| embedding model you want {+avs+} to use for automatically generating 

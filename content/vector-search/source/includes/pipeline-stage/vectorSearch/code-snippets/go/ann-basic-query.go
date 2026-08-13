@@ -33,7 +33,7 @@ func main() {
 
 	vectorSearchStage := bson.D{
 		{"$vectorSearch", bson.D{
-			{"index", "vector_index"},
+			{"index", "autoembed_index"},
 			{"path", "plot_embedding_voyage_3_large"},
 			{"queryVector", queryVector},
 			{"numCandidates", 150},
