@@ -28,6 +28,14 @@
 
        To learn more, see the `blog post <https://blog.voyageai.com/2025/05/20/voyage-3-5/>`__.
 
+   * - ``voyage-code-3``
+     - 32,000 tokens
+     - 1024 (default), 256, 512, 2048
+     - Previous generation of code embeddings, optimized for code
+       retrieval and documentation.
+
+       To learn more, see the `blog post <https://blog.voyageai.com/2024/12/04/voyage-code-3/>`__.
+
    * - ``voyage-code-2``
      - 16,000 tokens
      - 1536

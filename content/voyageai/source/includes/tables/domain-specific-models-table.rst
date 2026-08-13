@@ -7,12 +7,11 @@
      - Dimensions
      - Description
 
-   * - ``voyage-code-3``
+   * - ``voyage-code-4``
      - 32,000 tokens
      - 1024 (default), 256, 512, 2048
-     - Optimized for code retrieval and documentation.
-
-       To learn more, see the `blog post <https://blog.voyageai.com/2024/12/04/voyage-code-3/>`__.
+     - Optimized for code retrieval and agentic-coding applications.
+       Recommended for new code-retrieval use cases.
 
    * - ``voyage-finance-2``
      - 32,000 tokens
