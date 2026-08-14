@@ -1,0 +1,203 @@
+.. _rm-preflight-checks:
+
+===================================
+Preflight Checks for Migration Jobs
+===================================
+
+.. meta::
+   :description: Reference for the Relational Migrator preflight checks that verify source database readiness and permissions before you run a snapshot migration job, with remediation SQL for failures.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. versionadded:: 1.18
+
+{+rel-mig+} runs preflight checks to verify that your source database
+has the permissions and configuration required by a migration job.
+The checks run automatically when you create a migration job. They also
+run during :ref:`Pre-Migration Analysis <rm-app-analysis>`, which
+reports the results on its :guilabel:`Prerequisites` tab.
+
+Review Failed Checks
+--------------------
+
+When a check fails during job creation, {+rel-mig+} displays a warning
+below the :guilabel:`Mode` selection that summarizes how many checks
+failed. Click :guilabel:`View details` to open the
+:guilabel:`Preflight checks failed` dialog, which lists each failed
+check, the tables that the check affects, and the SQL that remediates
+the failure. To fix the failures, you can copy an individual statement
+or download a script that contains every fix.
+
+.. important::
+
+   A failed check never blocks the migration. Before you start the
+   migration job, review each failure and run the remediation script
+   with a database administrator. To learn what each check verifies,
+   see the section for your source database.
+
+Oracle
+------
+
+Preflight checks for Oracle are the verified minimal set of permissions
+and configuration for each migration mode. A failed check reflects a
+real requirement, and leaving it unresolved can cause the migration to
+fail. The following checks run for snapshot migration jobs from an
+Oracle source database:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Preflight Check
+     - Description
+
+   * - Oracle version 11.1 or later
+     - Verifies that the source runs Oracle 11.1 or later.
+
+       The Debezium Oracle LogMiner connector requires this minimum
+       version.
+
+   * - Role: SELECT_CATALOG_ROLE
+     - Verifies that the migration user has the ``SELECT_CATALOG_ROLE``
+       role.
+
+       This role grants read access to the data dictionary views that
+       {+rel-mig+} inspects to check table and log configuration.
+
+   * - SELECT privilege on migrated table
+     - Verifies that the migration user has the ``SELECT`` privilege on
+       each migrated table.
+
+       {+rel-mig+} reads rows from each table during the snapshot.
+
+   * - FLASHBACK privilege on migrated table
+     - Verifies that the migration user has the ``FLASHBACK`` privilege
+       on each migrated table.
+
+       This privilege lets the snapshot read each table at a
+       consistent point in time without blocking concurrent writes.
+
+MySQL
+-----
+
+.. include:: /includes/fact-preflight-checks-approximation.rst
+
+   .. replacement:: database
+
+      MySQL
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Preflight Check
+     - Description
+
+   * - MySQL version 5.7 or later
+     - Verifies that the source runs MySQL 5.7 or later.
+
+       The Debezium MySQL connector requires this minimum version.
+
+   * - Privileges: SELECT, RELOAD, SHOW DATABASES, REPLICATION SLAVE,
+       REPLICATION CLIENT
+     - Verifies that the migration user has the ``SELECT``, ``RELOAD``,
+       ``SHOW DATABASES``, ``REPLICATION SLAVE``, and ``REPLICATION
+       CLIENT`` privileges.
+
+       The ``SELECT`` privilege reads table data during the snapshot.
+       The connector requires the replication privileges even for
+       snapshot migrations.
+
+PostgreSQL
+----------
+
+.. include:: /includes/fact-preflight-checks-approximation.rst
+
+   .. replacement:: database
+
+      PostgreSQL
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Preflight Check
+     - Description
+
+   * - PostgreSQL version 9.4 or later
+     - Verifies that the source runs PostgreSQL 9.4 or later.
+
+       The Debezium PostgreSQL connector uses logical decoding, which
+       requires this minimum version.
+
+   * - SELECT privilege on migrated tables
+     - Verifies that the migration user has the ``SELECT`` privilege on
+       each migrated table.
+
+       {+rel-mig+} reads rows from each table during the snapshot.
+
+SQL Server
+----------
+
+.. include:: /includes/fact-preflight-checks-approximation.rst
+
+   .. replacement:: database
+
+      SQL Server
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Preflight Check
+     - Description
+
+   * - SQL Server version 2008 (10.0) or later
+     - Verifies that the source runs SQL Server 2008 (10.0) or later.
+
+       The Debezium SQL Server connector requires this minimum version.
+
+   * - Change data capture enabled on source database
+     - Verifies that change data capture (CDC) is enabled on the source
+       database.
+
+       The connector requires database-level CDC even for snapshot
+       migrations.
+
+DB2
+---
+
+.. include:: /includes/fact-preflight-checks-approximation.rst
+
+   .. replacement:: database
+
+      DB2
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Preflight Check
+     - Description
+
+   * - Debezium ASNCDC.IBMSNAP_REGISTER table exists
+     - Verifies that the ``ASNCDC.IBMSNAP_REGISTER`` table exists.
+
+       The connector requires the ``ASNCDC`` schema and
+       ``IBMSNAP_REGISTER`` table even for snapshot migrations.
+
+Sybase
+------
+
+{+rel-mig+} runs no preflight checks for Sybase source databases.
+
+Learn More
+----------
+
+- :ref:`rm-create-jobs`
+- :ref:`Pre-Migration Analysis <rm-app-analysis>`
+- :ref:`supported-databases`

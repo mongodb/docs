@@ -577,6 +577,11 @@ const tocData: TocItem[] = [
             url: '/docs/relational-migrator/jobs/creating-jobs',
           },
           {
+            label: 'Preflight Checks',
+            contentSite: 'docs-relational-migrator',
+            url: '/docs/relational-migrator/jobs/preflight-checks',
+          },
+          {
             label: 'Monitor',
             contentSite: 'docs-relational-migrator',
             url: '/docs/relational-migrator/jobs/monitoring-jobs',
