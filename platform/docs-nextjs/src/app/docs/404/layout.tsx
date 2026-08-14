@@ -4,6 +4,7 @@ import { Analytics } from '@/mdx-components/Analytics';
 import { DarkModeContextProvider } from '@/context/dark-mode-context';
 import { getBannerData } from '@/services/db/banner';
 import { Footer } from '@/mdx-components/Footer';
+import { Header } from '@/mdx-components/Header';
 import { darkModeScript } from '@/app/lib/dark-mode-script';
 import { CookiesProvider } from '@/context/cookies-context';
 import { LocaleProvider } from '@/context/locale';
@@ -34,6 +35,7 @@ export default async function Docs404Layout({ children }: { children: React.Reac
               <CookiesProvider cookies={cookieValues}>
                 <LeafyGreenProviderWrapper>
                   <Analytics />
+                  <Header />
                   {children}
                   <Footer />
                 </LeafyGreenProviderWrapper>

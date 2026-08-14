@@ -8,6 +8,7 @@ import { DOTCOM_BASE_URL } from '@/constants';
 import { ErrorPage } from '@/templates/error-template';
 import { TrackJS } from 'trackjs';
 import { useEffect } from 'react';
+import notFoundImage from '@/assets/404.png';
 
 const NotFoundBody = () => {
   const pathname = usePathname();
@@ -29,7 +30,7 @@ const NotFoundBody = () => {
 
 export default function NotFound() {
   return (
-    <ErrorPage imageSrc="/404.png" imageAlt="Page not found" title="Sorry, we can't find that page.">
+    <ErrorPage imageSrc={notFoundImage} imageAlt="Page not found" title="Sorry, we can't find that page.">
       <NotFoundBody />
     </ErrorPage>
   );
