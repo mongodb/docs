@@ -4,39 +4,169 @@
 Data Verification
 =================
 
+.. meta::
+   :description: Learn how Relational Migrator data verification checks migrated data by comparing source rows to destination documents, and review its supported databases and limitations.
+
 .. contents:: On this page
    :local:
    :backlinks: none
    :depth: 1
    :class: singlecol
 
-Data verification is a process that is built into the sync engine.
-The data verification process uses the source and destination 
-connection strings to validate that a migration job was successful.
+Data verification checks that a migration job accurately migrated
+your data. The verification engine connects to the source and
+destination databases and compares migrated documents to the source
+data. The verification engine validates the following:
 
-- Data verification is supported for one-time migration jobs.
-- By default, data verification is not performed when running a migration job. 
-  You must explicitly opt-in to verification in :guilabel:`Migration Options` 
-  before the job is started.
-- Enabling data verification can add significant compute time to a migration 
-  job.
+- Field names
+- Data types
+- Field paths
+- Values
 
-When data verification is successful, source and destination states match.
+Data verification runs by default for one-time migration jobs. To
+learn how to enable or disable verification for a job, see
+:ref:`rm-use-data-verification`.
 
-- The source relational database row count equals the target collection 
-  document count.
-- The source relational rows are equivalent to the collection documents.
+.. note::
 
-When data verification is unsuccessful, source and destination states 
-do not match.
+   This page describes the verification engine in {+rel-mig+} 1.18
+   or later. Earlier versions check only primary key values, verify
+   a narrower range of schemas, and run more slowly. To use these
+   verification features, upgrade to 1.18 or later.
 
-Data verification does not consider the following when verifying 
-destination databases:
+How Data Verification Works
+---------------------------
 
-- The destination collection contained unrelated data before the migration 
-  job started.
-- The data in the relational database tables has changed since the migration 
-  job was started.
+For each collection in a migration job, the verification engine
+completes the following steps:
+
+#. Compares the number of documents in the destination collection
+   to the number of rows in the source table. To learn more, see
+   :ref:`rm-verification-count-comparison`.
+
+#. Retrieves rows from the source database in batches, using the
+   source table's primary keys, and maps each source column to its
+   corresponding field path in the collection.
+
+#. Retrieves the documents that have the same primary keys from the
+   destination collection. The verification engine unwinds and
+   flattens these documents so that it can compare each field value
+   to the corresponding source column value.
+
+#. Compares the source rows to the destination documents. To learn
+   more, see :ref:`rm-verification-field-comparison`.
+
+If the verification engine completes these steps for every
+collection without finding any mismatches, the data verification
+process reports a status of :guilabel:`VERIFIED`. To learn more
+about verification statuses, see :ref:`rm-data-verification-statuses`.
+
+.. _rm-verification-count-comparison:
+
+Document Count Comparison
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the number of documents in the destination collection does not
+match the number of rows in the source table of the new document
+mapping, the verification engine reports the mismatch. A count
+mismatch does not stop verification for the collection.
+
+.. _rm-verification-field-comparison:
+
+Field-Level Comparison
+~~~~~~~~~~~~~~~~~~~~~~
+
+The verification engine matches source rows to destination
+documents by their primary key values. Because primary key values
+are unique, they typically identify exactly one source row and one
+destination document. The verification engine compares each matched
+pair field by field. If the pair does not match, the verification
+engine reports each difference.
+
+In some cases, multiple rows or documents share the same primary
+key values. For example, when the verification engine unwinds an
+embedded array, each array element shares the primary key values of
+its parent document. If multiple mismatched rows or documents share
+the same primary key values, the verification engine does not
+attempt to pair them. Instead, it reports the number of mismatched
+rows and documents and displays the calculated difference for one
+representative source row and destination document.
+
+In both cases, the verification engine logs the full set of primary
+key values so that you can locate the affected data.
+
+Verification Assumptions
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Data verification assumes that the source data does not change
+after the migration job starts and that the destination collection
+contains only migrated data. If either assumption is not true, the
+verification engine can report mismatches that are not migration
+errors:
+
+- If the destination collection contained data before the migration
+  job started, the verification engine reports the pre-existing
+  documents as unexpected documents.
+- If the source data changes after the migration job starts, the
+  verification engine reports mismatches between the changed rows
+  and the migrated documents.
+
+Limitations
+-----------
+
+Data verification can add significant compute time to a migration
+job. The verification engine also has limitations at the database,
+job, collection, and field levels.
+
+Supported Databases
+~~~~~~~~~~~~~~~~~~~
+
+Data verification supports the following source databases:
+
+- PostgreSQL
+- Oracle
+- MySQL
+- SQL Server
+
+Unsupported Configurations
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Data verification cannot run when the
+``migrator.job.allow.null.join`` user property is set to ``true``.
+Null values do not match in SQL comparisons, so the verification
+engine stops and reports an error in the :guilabel:`Job Update Log`
+pane.
+
+Skipped Collections
+~~~~~~~~~~~~~~~~~~~
+
+The verification engine skips a collection in the following cases:
+
+- The source table has no primary key, or one or more primary key
+  fields are not mapped. The verification engine uses primary key
+  values to retrieve rows in batches.
+- The collection uses a mapping rule filter. To filter migrated
+  data, use a table filter instead. To learn more, see
+  :ref:`rm-mapping-filters` and :ref:`rm-table-filters`.
+- The collection uses an array condition. To learn more, see
+  :ref:`rm-embedded-array`.
+- The collection uses a table filter with a row limit. Without an
+  ``ORDER BY`` clause, the rows that the filter selects are not
+  deterministic. To apply a row limit that can be verified, add
+  both an ``ORDER BY`` clause and a ``LIMIT`` clause to the
+  filter's SQL statement.
+
+Skipped Fields
+~~~~~~~~~~~~~~
+
+The verification engine skips a field in the following cases:
+
+- The field is a calculated field. To learn more, see
+  :ref:`rm-calculated-fields`.
+- The field's source column type is ``INTERVAL``.
+- The field's target type is not ``BOOL``, ``DATE``, ``DECIMAL``,
+  ``INTEGER``, ``LONG``, or ``STRING``. For example, the
+  verification engine skips ``ObjectId`` fields.
 
 Get Started
 -----------
