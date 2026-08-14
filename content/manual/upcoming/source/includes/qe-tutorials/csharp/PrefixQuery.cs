@@ -11,7 +11,7 @@ var encryptedFields = new BsonDocument
                 { "bsonType", "string" },
                 { "queries", new BsonDocument
                     {
-                        { "queryType", "prefixPreview" },
+                        { "queryType", "prefix" },
                         { "strMinQueryLength", 3 },
                         { "strMaxQueryLength", 10 },
                         { "caseSensitive", true },

@@ -11,10 +11,10 @@ var encryptedFields = new BsonDocument
                 { "bsonType", "string" },
                 { "queries", new BsonDocument
                     {
-                        { "queryType", "substringPreview" },
+                        { "queryType", "substring" },
                         { "strMaxLength", 12 },
                         { "strMinQueryLength", 3 },
-                        { "strMaxQueryLength", 10 },
+                        { "strMaxQueryLength", 6 },
                         { "caseSensitive", true },
                         { "diacriticSensitive", true }
                     }
