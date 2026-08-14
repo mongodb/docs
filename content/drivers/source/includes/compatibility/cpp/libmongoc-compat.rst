@@ -8,6 +8,9 @@ The following table shows the minimum libmongoc version for each version of the 
    * - C++ Driver Version
      - Minimum libmongoc Version
 
+   * - 4.5.x
+     - 2.3.3
+
    * - 4.4.x
      - 2.3.1
   
