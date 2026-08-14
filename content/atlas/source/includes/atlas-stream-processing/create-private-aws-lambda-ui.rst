@@ -1,8 +1,8 @@
-Add an {+aws+} S3 Private Link Connection through the {+atlas-ui+}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Add an AWS Lambda Private Link Connection through the {+atlas-ui+}
+------------------------------------------------------------------
 
-To add an {+aws+} S3 Private Link connection to your {+spw+} through
-the {+atlas-ui+}, follow these steps:
+To add an {+aws+} Lambda Private Link connection to your {+spw+}
+through the {+atlas-ui+}, follow these steps:
 
 .. procedure::
    :style: normal
@@ -23,11 +23,11 @@ the {+atlas-ui+}, follow these steps:
 
       a. Set :guilabel:`Cloud Provider` to :guilabel:`AWS`.
 
-      #. Set :guilabel:`Vendor` to :guilabel:`S3`.
+      #. Set :guilabel:`Vendor` to :guilabel:`Lambda`.
 
       #. Click :guilabel:`Next, enter service details`
 
-   .. step:: Provide your AWS |s3| endpoint region.
+   .. step:: Provide your {+aws+} Lambda endpoint region.
 
       Your endpoint must be in the same region in which you
       intend to host the stream processors that use it.
@@ -38,38 +38,10 @@ the {+atlas-ui+}, follow these steps:
       Access
       <https://docs.mongodb.com/atlas/security/set-up-unified-aws-access/?interface=atlas-ui>`__.
 
-      Ensure that you grant your IAM role ``ListAllMyBuckets`` and
-      ``PutObject`` permissions. The following example policy grants the AWS
-      principal these permissions for any S3 bucket:
-
-      .. literalinclude:: /includes/s3-private-link-connection-example-policy.json
-         :language: json
-         :dedent:
-         :emphasize-lines: 7,10-11,14
-
       Note the ARN value in ``Statement.Principal.AWS`` to use
       later in this procedure.
 
    .. include:: /includes/nav/steps-project-access-manager
-
-   .. step:: Create an API key.
-
-      The :oas-bump-atlas-op:`Create One Connection
-      <createGroupStreamConnection>` API endpoint
-      requires digest authorization when creating an S3 Connection. To
-      support this, you must create an API Key.
-
-      a. In the :guilabel:`Project Access Manager`, select the
-	 :guilabel:`Applications` tab, then click :guilabel:`API Keys`.
-
-      b. Click :guilabel:`Create API Key`. Provide a short description
-	 for the key.
-
-      c. In the :guilabel:`Project Permissions` dropdown menu,
-	 select both the :guilabel:`Project Stream Processing Owner` and
-	 :guilabel:`Project Owner` roles. Click :guilabel:`Next`.
-
-      d. Save both the public and private keys to use later in this procedure.
 
    .. include:: /includes/nav/steps-stream-processing.rst  
 
@@ -84,16 +56,18 @@ the {+atlas-ui+}, follow these steps:
 
    .. step:: Add a new connection.  
 
-      a. Select an :guilabel:`S3` connection.  
+      a. Select an :guilabel:`AWS Lambda` connection.  
 
       #. Provide a :guilabel:`Connection Name`. Each connection
 	 name must be unique within a {+spw+}. This is the name
 	 used to reference the connection in {+atlas-sp+}
 	 :ref:`aggregations <atlas-sp-aggregation>`.
 
-      #. Click the :guilabel:`PrivateLink` button. From the
-	 dropdown menu, select the private endpoint you created
-	 earlier.
+      #. Click the :guilabel:`PrivateLink` button. Then, toggle
+	 :guilabel:`Enable PrivateLink networking`.
+
+	 From the dropdown menu, select the private endpoint you
+	 created earlier.
 
       #. From the :guilabel:`AWS IAM Role ARN` dropdown, select
 	 the ARN of the unified access role you authorized in a

@@ -1,5 +1,5 @@
-Add an External Function Connection through the {+atlas-admin-api+}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Add an AWS Lambda Connection through the {+atlas-admin-api+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The {+atlas-admin-api+} provides the :oas-bump-atlas-op:`Create One
 Connection <creategroupstreamconnection>` endpoint for adding a
@@ -22,4 +22,4 @@ example with the ``arn`` from your `AWS IAM configuration
       --data '{"name": "TestAWSLambdaConnection","type": "AWSLambda","aws": {"roleArn": "arn:aws:iam::<aws_account>:role/<role_name>"}}' \
       --request POST "https://cloud.mongodb.com/api/atlas/v2/groups/<group_id>/streams/<tenant_name>/connections"
 
-.. include:: /includes/atlas-stream-processing/external-function-stage-support.rst
+.. include:: /includes/atlas-stream-processing/aws-lambda-stage-support.rst

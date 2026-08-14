@@ -81,6 +81,11 @@ const tocData: TocItem[] = [
                     url: '/docs/atlas/atlas-stream-processing/kinesis-private-connection',
                   },
                   {
+                    label: 'AWS Lambda Private Link',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/atlas-stream-processing/aws-lambda-private-connection',
+                  },
+                  {
                     label: 'Google Pub/Sub Private Service Connect',
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/atlas-stream-processing/gcp-pubsub-private-connection',

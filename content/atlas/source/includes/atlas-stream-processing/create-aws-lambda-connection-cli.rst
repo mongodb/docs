@@ -1,8 +1,8 @@
-Add an External Function Connection through {+atlas-cli+}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Add an AWS Lambda Connection through the {+atlas-cli+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To add an external connection to your Stream Processing Workspace through
-Atlas CLI, follow these steps:
+To add an {+aws+} Lambda connection to your {+spw+} through the
+{+atlas-cli+}, follow these steps:
 
 .. procedure:: 
    :style: normal
@@ -12,14 +12,14 @@ Atlas CLI, follow these steps:
       .. code-block:: javascript
 
          {
-            "name": "ExampleExternalFunctionConnection",
+            "name": "ExampleAWSLambdaConnection",
             "type": "AWSLambda",
             "aws": {
                "roleArn": "<your-aws-role-arn>"
             }
          }
 
-   .. step:: Create the External Function connection.
+   .. step:: Create the {+aws+} Lambda connection.
 
       Run the following {+atlas-cli+} command to create the connection:
 
@@ -27,4 +27,4 @@ Atlas CLI, follow these steps:
 
          atlas streams connections create -i <instance-name> -f </path/to/config.json>
 
-.. include:: /includes/atlas-stream-processing/external-function-stage-support.rst
+.. include:: /includes/atlas-stream-processing/aws-lambda-stage-support.rst

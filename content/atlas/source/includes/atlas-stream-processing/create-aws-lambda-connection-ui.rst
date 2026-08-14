@@ -1,7 +1,7 @@
-Add an External Function Connection through {+atlas-ui+}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Add an AWS Lambda Connection through the {+atlas-ui+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To add an external function connection to your Stream Processing Workspace through
+To add an {+aws+} Lambda connection to your {+spw+} through
 {+atlas-ui+}, follow these steps:
 
 .. procedure::
@@ -31,4 +31,4 @@ To add an external function connection to your Stream Processing Workspace throu
 
       #. Click :guilabel:`+ Add Connection` to create the connection.
 
-.. include:: /includes/atlas-stream-processing/external-function-stage-support.rst
+.. include:: /includes/atlas-stream-processing/aws-lambda-stage-support.rst
