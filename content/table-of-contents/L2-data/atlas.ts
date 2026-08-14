@@ -518,9 +518,27 @@ const tocData: TocItem[] = [
         ],
       },
       {
-        label: 'Export Snapshots',
+        label: 'Export Snapshots to Object Storage',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/backup/cloud-backup/export',
+        collapsible: true,
+        items: [
+          {
+            label: 'AWS S3',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/backup/cloud-backup/export/aws-s3',
+          },
+          {
+            label: 'Azure Blob Storage',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/backup/cloud-backup/export/azure-blob-storage',
+          },
+          {
+            label: 'Google Cloud Storage',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/backup/cloud-backup/export/google-cloud-storage',
+          },
+        ],
       },
       {
         label: 'Restore Sources',
