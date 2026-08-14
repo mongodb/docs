@@ -5,7 +5,7 @@
 ================================================
 
 .. meta::
-   :description: Use `$out` to write aggregation pipeline results to Atlas clusters, AWS S3, Azure Blob Storage, or Google Cloud Storage.
+   :description: Use the $out stage in Atlas Data Federation to write aggregation pipeline results to Atlas cluster collections, AWS S3 buckets, Azure Blob Storage containers, or Google Cloud Storage.
 
 .. default-domain:: mongodb
 
@@ -121,7 +121,6 @@ Syntax
       :tabid: s3
 
       .. code-block:: json
-         :linenos:
 
          {
            "$out": {
@@ -144,7 +143,6 @@ Syntax
       :tabid: azure
 
       .. code-block:: json
-         :linenos:
 
          {
            "$out": {
@@ -168,7 +166,6 @@ Syntax
       :tabid: gcp
 
       .. code-block:: json
-         :linenos:
 
          {
            "$out": {
@@ -191,7 +188,6 @@ Syntax
       :tabid: atlas
 
       .. code-block:: json
-         :linenos:
 
          {
            "$out": {
@@ -265,11 +261,9 @@ Fields
              :ref:`created dynamically <adf-out-stage-egs>` from the
              fields in the documents that reach the |out| stage. Any
              filename expression you provide must evaluate to a
-             ``string`` data type. 
-             
-             :gold:`IMPORTANT:` If there are any files on |s3| 
-             with the same name and path as the newly generated files, 
-             |out| overwrites the existing files with the newly 
+             ``string`` data type. If there are any files on |s3|
+             with the same name and path as the newly generated files,
+             |out| overwrites the existing files with the newly
              generated files.
 
              The generated call to |s3| inserts a ``/`` between
@@ -570,20 +564,23 @@ Fields
 
          * - ``errorMode``
            - enum
-           - Specifies how {+adf+} should proceed when it encounters an error
-             while processing a document. Valid values are: 
+           - Specifies how {+adf+} should proceed if there are errors
+             when processing a document. For example, if {+adf+}
+             encounters an array in a document when {+adf+} is writing
+             to a CSV file, {+adf+} uses this value to determine
+             whether or not to skip the document and process other
+             documents. Valid values are:
 
-             - ``continue`` to skip the document and continue 
-               processing the remaining documents. {+adf+} records the error
-               in an error file.
-                
-             - ``stop`` to stop without processing
-               the remaining documents. {+adf+} records the error in an
-               error file.
+             - ``continue`` to skip the document and continue
+               processing the remaining documents. {+adf+} also writes
+               the document that caused the error to an error file.
+
+               To learn more see, :ref:`Errors <adf-out-stage-errors>`.
+
+             - ``stop`` to stop at that point and not process
+               the remaining documents.
 
              If omitted, defaults to ``continue``.
-
-             To learn more, see :ref:`Errors <adf-out-stage-errors>`.
 
            - Optional
 
@@ -626,7 +623,7 @@ Fields
 
          * - ``gcs.region``
            - string
-           - Name of the |aws| region in which the bucket is hosted. If 
+           - Name of the {+gcp+} region in which the bucket is hosted. If 
              omitted, uses the {+fdi+} :ref:`configuration 
              <config-adf>` to determine the region where the specified 
              ``gcs.bucket`` is hosted.
@@ -750,8 +747,8 @@ Options
        omitted, defaults to ``false``. When set to ``true``, {+adf+} 
        runs the queries in the background. 
 
-       .. code-block:: json 
-          :copyable: false 
+       .. code-block:: json
+          :copyable: false
 
           { "background" : true }
        
@@ -782,189 +779,176 @@ Examples
       Simple String Example
       ~~~~~~~~~~~~~~~~~~~~~
 
-      .. example::
+      You want to write 1 GiB of data as compressed |bson| files to
+      an |s3| bucket named ``my-s3-bucket``. 
 
-         You want to write 1 GiB of data as compressed |bson| files to
-         an |s3| bucket named ``my-s3-bucket``. 
+      Using the following |out| syntax:
 
-         Using the following |out| syntax:
+      .. code-block:: json
 
-         .. code-block:: json
-            :linenos:
+         {
+           "$out": {
+             "s3": {
+               "bucket": "my-s3-bucket",
+               "filename": "big_box_store/",
+               "format": {
+                 "name": "bson.gz"
+               }
+             }
+           }
+         }
 
-            {
-              "$out": {
-                "s3": {
-                  "bucket": "my-s3-bucket",
-                  "filename": "big_box_store/",
-                  "format": {
-                    "name": "bson.gz"
-                  }
-                }
-              }
-            }
+      The ``s3.region`` is omitted and so, {+adf+} determines the 
+      region where the bucket named ``my-s3-bucket`` is hosted from 
+      the storage configuration. |out| writes five compressed |bson| 
+      files:
 
-         The ``s3.region`` is omitted and so, {+adf+} determines the 
-         region where the bucket named ``my-s3-bucket`` is hosted from 
-         the storage configuration. |out| writes five compressed |bson| 
-         files:
+      1. The first 200 MiB of data to a file that |out| names
+         ``big_box_store/1.bson.gz``.
 
-         1. The first 200 MiB of data to a file that |out| names
-            ``big_box_store/1.bson.gz``.
+         - The value of ``s3.filename`` serves as a constant in
+           each filename. This value doesn't depend upon any
+           document field or value.
 
-            - The value of ``s3.filename`` serves as a constant in
-              each filename. This value doesn't depend upon any
-              document field or value.
+         - Your ``s3.filename`` ends with a delimiter, so {+adf+}
+           appends the counter after the constant.
 
-            - Your ``s3.filename`` ends with a delimiter, so {+adf+}
-              appends the counter after the constant.
+         - If it didn't end with a delimiter, {+adf+} would have
+           added a ``.`` between the constant and the counter,
+           like ``big_box_store.1.bson.gz``
 
-            - If it didn't end with a delimiter, {+adf+} would have
-              added a ``.`` between the constant and the counter,
-              like ``big_box_store.1.bson.gz``
+         - Because you didn't change the maximum file size using
+           ``s3.format.maxFileSize``, {+adf+} uses the default
+           value of 200 MiB.
 
-            - Because you didn't change the maximum file size using
-              ``s3.format.maxFileSize``, {+adf+} uses the default
-              value of 200 MiB.
+      2. The second 200 MiB of data to a new file that |out| names
+         ``big_box_store/2.bson.gz``.
 
-         2. The second 200 MiB of data to a new file that |out| names
-            ``big_box_store/2.bson.gz``.
-
-         3. Three more files that |out| names
-            ``big_box_store/3.bson.gz`` through
-            ``big_box_store/5.bson.gz``.
+      3. Three more files that |out| names
+         ``big_box_store/3.bson.gz`` through
+         ``big_box_store/5.bson.gz``.
 
       Single Field from Documents
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      .. example::
+      You want to write 90 MiB of data to |json| files to an |s3|
+      bucket named ``my-s3-bucket``.
 
-         You want to write 90 MiB of data to |json| files to an |s3|
-         bucket named ``my-s3-bucket``.
+      Using the following |out| syntax:
 
-         Using the following |out| syntax:
+      .. code-block:: json
 
-         .. code-block:: json
-            :linenos:
+         {
+           "$out": {
+             "s3": {
+               "bucket": "my-s3-bucket",
+               "region": "us-east-1",
+               "filename": {"$toString": "$saleDate"},
+               "format": {
+                 "name": "json",
+                 "maxFileSize": "100MiB"
+               }
+             }
+           }
+         }
 
-            {
-              "$out": {
-                "s3": {
-                  "bucket": "my-s3-bucket",
-                  "region": "us-east-1",
-                  "filename": {"$toString": "$saleDate"},
-                  "format": {
-                    "name": "json",
-                    "maxFileSize": "100MiB"
-                  }
-                }
-              }
-            }
-
-         |out| writes 90 MiB of data to |json| files in the root of the
-         bucket. Each |json| file contains all of the documents with the
-         same ``saleDate`` value. |out| names each file using the
-         documents' ``saleDate`` value converted to a string.
+      |out| writes 90 MiB of data to |json| files in the root of the
+      bucket. Each |json| file contains all of the documents with the
+      same ``saleDate`` value. |out| names each file using the
+      documents' ``saleDate`` value converted to a string.
 
       Multiple Fields from Documents
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      .. example::
+      You want to write 176 MiB of data as |bson| files to an |s3|
+      bucket named ``my-s3-bucket``.
 
-         You want to write 176 MiB of data as |bson| files to an |s3|
-         bucket named ``my-s3-bucket``.
+      Using the following |out| syntax:
 
-         Using the following |out| syntax:
+      .. code-block:: json
 
-         .. code-block:: json
-            :linenos:
+         {
+           "$out": {
+             "s3": {
+               "bucket": "my-s3-bucket",
+               "region": "us-east-1",
+               "filename": {
+                 "$concat": [
+                   "persons/",
+                   "$name", "/",
+                   "$uniqueId", "/"
+                 ]
+               },
+               "format": {
+                 "name": "bson",
+                 "maxFileSize": "200MiB"
+               }
+             }
+           }
+         }
 
-            {
-              "$out": {
-                "s3": {
-                  "bucket": "my-s3-bucket",
-                  "region": "us-east-1",
-                  "filename": {
-                    "$concat": [
-                      "persons/",
-                      "$name", "/",
-                      "$uniqueId", "/"
-                    ]
-                  },
-                  "format": {
-                    "name": "bson",
-                    "maxFileSize": "200MiB"
-                  }
-                }
-              }
-            }
+      |out| writes 176 MiB of data to |bson| files. To name each
+      file, |out| concatenates:
 
-         |out| writes 176 MiB of data to |bson| files. To name each
-         file, |out| concatenates:
+      - A constant string ``persons/`` and, from the documents:
 
-         - A constant string ``persons/`` and, from the documents:
+        - The string value of the ``name`` field,
+        - A forward slash (``/``), 
+        - The string value of the ``uniqueId`` field, and
+        - A forward slash (``/``).
 
-           - The string value of the ``name`` field,
-           - A forward slash (``/``), 
-           - The string value of the ``uniqueId`` field, and
-           - A forward slash (``/``).
-
-         Each |bson| file contains all of the documents with the same
-         ``name`` and ``uniqueId`` values. |out| names each file using
-         the documents' ``name`` and ``uniqueId`` values.
-
+      Each |bson| file contains all of the documents with the same
+      ``name`` and ``uniqueId`` values. |out| names each file using
+      the documents' ``name`` and ``uniqueId`` values.
 
       Multiple Types of Fields from Documents
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      .. example::
+      You want to write 154 MiB of data as compressed |json| files
+      to an |s3| bucket named ``my-s3-bucket``.
 
-         You want to write 154 MiB of data as compressed |json| files
-         to an |s3| bucket named ``my-s3-bucket``.
+      Consider the following |out| syntax:
 
-         Consider the following |out| syntax:
+      .. code-block:: json
 
-         .. code-block:: json
-            :linenos:
+         {
+           "$out": {
+             "s3": {
+               "bucket": "my-s3-bucket",
+               "region": "us-east-1",
+               "filename": {
+                 "$concat": [
+                   "big-box-store/",
+                   {
+                     "$toString": "$storeNumber"
+                   }, "/",
+                   {
+                     "$toString": "$saleDate"
+                   }, "/",
+                   "$partId", "/"
+                 ]
+               },
+               "format": {
+                 "name": "json.gz",
+                 "maxFileSize": "200MiB"
+               }
+             }
+           }
+         }
 
-            {
-              "$out": {
-                "s3": {
-                  "bucket": "my-s3-bucket",
-                  "region": "us-east-1",
-                  "filename": {
-                    "$concat": [
-                      "big-box-store/",
-                      {
-                        "$toString": "$storeNumber"
-                      }, "/",
-                      {
-                        "$toString": "$saleDate"
-                      }, "/",
-                      "$partId", "/"
-                    ]
-                  },
-                  "format": {
-                    "name": "json.gz",
-                    "maxFileSize": "200MiB"
-                  }
-                }
-              }
-            }
+      |out| writes 154 MiB of data to compressed |json| files, where
+      each file contains all documents with the same 
+      ``storeNumber``, ``saleDate``, and ``partId`` values.  To 
+      name each file, |out| concatenates:
 
-         |out| writes 154 MiB of data to compressed |json| files, where
-         each file contains all documents with the same 
-         ``storeNumber``, ``saleDate``, and ``partId`` values.  To 
-         name each file, |out| concatenates:
-
-         - A constant string value of ``big-box-store/``,
-         - A string value of a unique store number in the
-           ``storeNumber`` field,
-         - A forward slash (``/``),
-         - A string value of the date from the ``saleDate`` field, 
-         - A forward slash (``/``), 
-         - A string value of part ID from the ``partId`` field, and 
-         - A forward slash (``/``).
+      - A constant string value of ``big-box-store/``,
+      - A string value of a unique store number in the
+        ``storeNumber`` field,
+      - A forward slash (``/``),
+      - A string value of the date from the ``saleDate`` field, 
+      - A forward slash (``/``), 
+      - A string value of part ID from the ``partId`` field, and 
+      - A forward slash (``/``).
 
    .. tab:: Azure
       :tabid: azure
@@ -979,194 +963,181 @@ Examples
       Simple String Example
       ~~~~~~~~~~~~~~~~~~~~~
 
-      .. example::
+      You want to write 1 GiB of data as compressed |bson| files to
+      an |azure| storage account ``mystorageaccount`` and 
+      container named ``my-container``. 
 
-         You want to write 1 GiB of data as compressed |bson| files to
-         an |azure| storage account ``mystorageaccount`` and 
-         container named ``my-container``. 
+      Using the following |out| syntax:
 
-         Using the following |out| syntax:
+      .. code-block:: json
 
-         .. code-block:: json
-            :linenos:
+         {
+           "$out": {
+             "azure": {
+               "serviceURL": "http://mystorageaccount.blob.core.windows.net/",
+               "containerName": "my-container",
+               "filename": "big_box_store/",
+               "format": {
+                 "name": "bson.gz"
+               }
+             }
+           }
+         }
 
-            {
-              "$out": {
-                "azure": {
-                  "serviceURL": "http://mystorageaccount.blob.core.windows.net/",
-                  "container": "my-container",
-                  "filename": "big_box_store/",
-                  "format": {
-                    "name": "bson.gz"
-                  }
-                }
-              }
-            }
+      The ``azure.region`` is omitted and so {+adf+} determines the 
+      region where the container named ``my-container`` is hosted from 
+      the storage configuration. |out| writes five compressed |bson| 
+      files:
 
-         The ``azure.region`` is omitted and so {+adf+} determines the 
-         region where the container named ``my-container`` is hosted from 
-         the storage configuration. |out| writes five compressed |bson| 
-         files:
+      1. The first 200 MiB of data to a file that |out| names
+         ``big_box_store/1.bson.gz``.
 
-         1. The first 200 MiB of data to a file that |out| names
-            ``big_box_store/1.bson.gz``.
+         - The value of ``azure.filename`` serves as a constant in
+           each filename. This value doesn't depend upon any
+           document field or value.
 
-            - The value of ``azure.filename`` serves as a constant in
-              each filename. This value doesn't depend upon any
-              document field or value.
+         - Your ``azure.filename`` ends with a delimiter, so {+adf+}
+           appends the counter after the constant.
 
-            - Your ``azure.filename`` ends with a delimiter, so {+adf+}
-              appends the counter after the constant.
+         - If it didn't end with a delimiter, {+adf+} would have
+           added a ``.`` between the constant and the counter,
+           like ``big_box_store.1.bson.gz``
 
-            - If it didn't end with a delimiter, {+adf+} would have
-              added a ``.`` between the constant and the counter,
-              like ``big_box_store.1.bson.gz``
+         - Because you didn't change the maximum file size using
+           ``azure.format.maxFileSize``, {+adf+} uses the default
+           value of 200 MiB.
 
-            - Because you didn't change the maximum file size using
-              ``azure.format.maxFileSize``, {+adf+} uses the default
-              value of 200 MiB.
+      2. The second 200 MiB of data to a new file that |out| names
+         ``big_box_store/2.bson.gz``.
 
-         2. The second 200 MiB of data to a new file that |out| names
-            ``big_box_store/2.bson.gz``.
-
-         3. Three more files that |out| names
-            ``big_box_store/3.bson.gz`` through
-            ``big_box_store/5.bson.gz``.
+      3. Three more files that |out| names
+         ``big_box_store/3.bson.gz`` through
+         ``big_box_store/5.bson.gz``.
 
       Single Field from Documents
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      .. example::
+      You want to write 90 MiB of data to |json| files to an |azure| Blob Storage
+      container named ``my-container``.
 
-         You want to write 90 MiB of data to |json| files to an |azure| Blob Storage
-         container named ``my-container``.
+      Using the following |out| syntax:
 
-         Using the following |out| syntax:
+      .. code-block:: json
 
-         .. code-block:: json
-            :linenos:
+         {
+           "$out": {
+             "azure": {
+               "serviceURL": "http://mystorageaccount.blob.core.windows.net/",
+               "containerName": "my-container",
+               "region": "eastus2",
+               "filename": {"$toString": "$saleDate"},
+               "format": {
+                 "name": "json",
+                 "maxFileSize": "100MiB"
+               }
+             }
+           }
+         }
 
-            {
-              "$out": {
-                "azure": {
-                  "serviceURL": "http://mystorageaccount.blob.core.windows.net/",
-                  "container": "my-container",
-                  "region": "eastus2",
-                  "filename": {"$toString": "$saleDate"},
-                  "format": {
-                    "name": "json",
-                    "maxFileSize": "100MiB"
-                  }
-                }
-              }
-            }
-
-         |out| writes 90 MiB of data to |json| files in the root of the
-         container. Each |json| file contains all of the documents with the
-         same ``saleDate`` value. |out| names each file using the
-         documents' ``saleDate`` value converted to a string.
+      |out| writes 90 MiB of data to |json| files in the root of the
+      container. Each |json| file contains all of the documents with the
+      same ``saleDate`` value. |out| names each file using the
+      documents' ``saleDate`` value converted to a string.
 
       Multiple Fields from Documents
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      .. example::
+      You want to write 176 MiB of data as |bson| files to an |azure| Blob Storage
+      container named ``my-container``.
 
-         You want to write 176 MiB of data as |bson| files to an |azure| Blob Storage
-         container named ``my-container``.
+      Using the following |out| syntax:
 
-         Using the following |out| syntax:
+      .. code-block:: json
 
-         .. code-block:: json
-            :linenos:
+         {
+           "$out": {
+             "azure": {
+               "serviceURL": "http://mystorageaccount.blob.core.windows.net/",
+               "containerName": "my-container",
+               "region": "eastus2",
+               "filename": {
+                 "$concat": [
+                   "persons/",
+                   "$name", "/",
+                   "$uniqueId", "/"
+                 ]
+               },
+               "format": {
+                 "name": "bson",
+                 "maxFileSize": "200MiB"
+               }
+             }
+           }
+         }
 
-            {
-              "$out": {
-                "azure": {
-                  "serviceURL": "http://mystorageaccount.blob.core.windows.net/",
-                  "container": "my-container",
-                  "region": "eastus2",
-                  "filename": {
-                    "$concat": [
-                      "persons/",
-                      "$name", "/",
-                      "$uniqueId", "/"
-                    ]
-                  },
-                  "format": {
-                    "name": "bson",
-                    "maxFileSize": "200MiB"
-                  }
-                }
-              }
-            }
+      |out| writes 176 MiB of data to |bson| files. To name each
+      file, |out| concatenates:
 
-         |out| writes 176 MiB of data to |bson| files. To name each
-         file, |out| concatenates:
+      - A constant string ``persons/`` and, from the documents:
 
-         - A constant string ``persons/`` and, from the documents:
+        - The string value of the ``name`` field,
+        - A forward slash (``/``), 
+        - The string value of the ``uniqueId`` field, and
+        - A forward slash (``/``).
 
-           - The string value of the ``name`` field,
-           - A forward slash (``/``), 
-           - The string value of the ``uniqueId`` field, and
-           - A forward slash (``/``).
-
-         Each |bson| file contains all of the documents with the same
-         ``name`` and ``uniqueId`` values. |out| names each file using
-         the documents' ``name`` and ``uniqueId`` values.
-
+      Each |bson| file contains all of the documents with the same
+      ``name`` and ``uniqueId`` values. |out| names each file using
+      the documents' ``name`` and ``uniqueId`` values.
 
       Multiple Types of Fields from Documents
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      .. example::
+      You want to write 154 MiB of data as compressed |json| files
+      to an |azure| Blob Storage container named ``my-container``.
 
-         You want to write 154 MiB of data as compressed |json| files
-         to an |azure| Blob Storage container named ``my-container``.
+      Consider the following |out| syntax:
 
-         Consider the following |out| syntax:
+      .. code-block:: json
 
-         .. code-block:: json
-            :linenos:
+         {
+           "$out": {
+             "azure": {
+               "serviceURL": "http://mystorageaccount.blob.core.windows.net/",
+               "containerName": "my-container",
+               "region": "eastus2",
+               "filename": {
+                 "$concat": [
+                   "big-box-store/",
+                   {
+                     "$toString": "$storeNumber"
+                   }, "/",
+                   {
+                     "$toString": "$saleDate"
+                   }, "/",
+                   "$partId", "/"
+                 ]
+               },
+               "format": {
+                 "name": "json.gz",
+                 "maxFileSize": "200MiB"
+               }
+             }
+           }
+         }
 
-            {
-              "$out": {
-                "azure": {
-                  "serviceURL": "http://mystorageaccount.blob.core.windows.net/",
-                  "container": "my-container",
-                  "region": "eastus2",
-                  "filename": {
-                    "$concat": [
-                      "big-box-store/",
-                      {
-                        "$toString": "$storeNumber"
-                      }, "/",
-                      {
-                        "$toString": "$saleDate"
-                      }, "/",
-                      "$partId", "/"
-                    ]
-                  },
-                  "format": {
-                    "name": "json.gz",
-                    "maxFileSize": "200MiB"
-                  }
-                }
-              }
-            }
+      |out| writes 154 MiB of data to compressed |json| files, where
+      each file contains all documents with the same 
+      ``storeNumber``, ``saleDate``, and ``partId`` values.  To 
+      name each file, |out| concatenates:
 
-         |out| writes 154 MiB of data to compressed |json| files, where
-         each file contains all documents with the same 
-         ``storeNumber``, ``saleDate``, and ``partId`` values.  To 
-         name each file, |out| concatenates:
-
-         - A constant string value of ``big-box-store/``,
-         - A string value of a unique store number in the
-           ``storeNumber`` field,
-         - A forward slash (``/``),
-         - A string value of the date from the ``saleDate`` field, 
-         - A forward slash (``/``), 
-         - A string value of part ID from the ``partId`` field, and 
-         - A forward slash (``/``).
+      - A constant string value of ``big-box-store/``,
+      - A string value of a unique store number in the
+        ``storeNumber`` field,
+      - A forward slash (``/``),
+      - A string value of the date from the ``saleDate`` field, 
+      - A forward slash (``/``), 
+      - A string value of part ID from the ``partId`` field, and 
+      - A forward slash (``/``).
 
    .. tab:: GCP
       :tabid: gcp
@@ -1181,189 +1152,176 @@ Examples
       Simple String Example
       ~~~~~~~~~~~~~~~~~~~~~
 
-      .. example::
+      You want to write 1 GiB of data as compressed |bson| files to
+      an {+gcs+} bucket named ``my-gcs-bucket``. 
 
-         You want to write 1 GiB of data as compressed |bson| files to
-         an {+gcs+} bucket named ``my-gcs-bucket``. 
+      Using the following |out| syntax:
 
-         Using the following |out| syntax:
+      .. code-block:: json
 
-         .. code-block:: json
-            :linenos:
+         {
+           "$out": {
+             "gcs": {
+               "bucket": "my-gcs-bucket",
+               "filename": "big_box_store/",
+               "format": {
+                 "name": "bson.gz"
+               }
+             }
+           }
+         }
 
-            {
-              "$out": {
-                "gcs": {
-                  "bucket": "my-gcs-bucket",
-                  "filename": "big_box_store/",
-                  "format": {
-                    "name": "bson.gz"
-                  }
-                }
-              }
-            }
+      The ``gcs.region`` is omitted and so, {+adf+} determines the 
+      region where the bucket named ``my-gcs-bucket`` is hosted from 
+      the storage configuration. |out| writes five compressed |bson| 
+      files:
 
-         The ``gcs.region`` is omitted and so, {+adf+} determines the 
-         region where the bucket named ``my-gcs-bucket`` is hosted from 
-         the storage configuration. |out| writes five compressed |bson| 
-         files:
+      1. The first 200 MiB of data to a file that |out| names
+         ``big_box_store/1.bson.gz``.
 
-         1. The first 200 MiB of data to a file that |out| names
-            ``big_box_store/1.bson.gz``.
+         - The value of ``gcs.filename`` serves as a constant in
+           each filename. This value doesn't depend upon any
+           document field or value.
 
-            - The value of ``gcs.filename`` serves as a constant in
-              each filename. This value doesn't depend upon any
-              document field or value.
+         - Your ``gcs.filename`` ends with a delimiter, so {+adf+}
+           appends the counter after the constant.
 
-            - Your ``gcs.filename`` ends with a delimiter, so {+adf+}
-              appends the counter after the constant.
+         - If it didn't end with a delimiter, {+adf+} would have
+           added a ``.`` between the constant and the counter,
+           like ``big_box_store.1.bson.gz``
 
-            - If it didn't end with a delimiter, {+adf+} would have
-              added a ``.`` between the constant and the counter,
-              like ``big_box_store.1.bson.gz``
+         - Because you didn't change the maximum file size using
+           ``gcs.format.maxFileSize``, {+adf+} uses the default
+           value of 200 MiB.
 
-            - Because you didn't change the maximum file size using
-              ``gcs.format.maxFileSize``, {+adf+} uses the default
-              value of 200 MiB.
+      2. The second 200 MiB of data to a new file that |out| names
+         ``big_box_store/2.bson.gz``.
 
-         2. The second 200 MiB of data to a new file that |out| names
-            ``big_box_store/2.bson.gz``.
-
-         3. Three more files that |out| names
-            ``big_box_store/3.bson.gz`` through
-            ``big_box_store/5.bson.gz``.
+      3. Three more files that |out| names
+         ``big_box_store/3.bson.gz`` through
+         ``big_box_store/5.bson.gz``.
 
       Single Field from Documents
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      .. example::
+      You want to write 90 MiB of data to |json| files to a {+gcs+}
+      bucket named ``my-gcs-bucket``.
 
-         You want to write 90 MiB of data to |json| files to a {+gcs+}
-         bucket named ``my-gcs-bucket``.
+      Using the following |out| syntax:
 
-         Using the following |out| syntax:
+      .. code-block:: json
 
-         .. code-block:: json
-            :linenos:
+         {
+           "$out": {
+             "gcs": {
+               "bucket": "my-gcs-bucket",
+               "region": "us-central1",
+               "filename": {"$toString": "$saleDate"},
+               "format": {
+                 "name": "json",
+                 "maxFileSize": "100MiB"
+               }
+             }
+           }
+         }
 
-            {
-              "$out": {
-                "gcs": {
-                  "bucket": "my-gcs-bucket",
-                  "region": "us-central1",
-                  "filename": {"$toString": "$saleDate"},
-                  "format": {
-                    "name": "json",
-                    "maxFileSize": "100MiB"
-                  }
-                }
-              }
-            }
-
-         |out| writes 90 MiB of data to |json| files in the root of the
-         bucket. Each |json| file contains all of the documents with the
-         same ``saleDate`` value. |out| names each file using the
-         documents' ``saleDate`` value converted to a string.
+      |out| writes 90 MiB of data to |json| files in the root of the
+      bucket. Each |json| file contains all of the documents with the
+      same ``saleDate`` value. |out| names each file using the
+      documents' ``saleDate`` value converted to a string.
 
       Multiple Fields from Documents
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      .. example::
+      You want to write 176 MiB of data as |bson| files to a {+gcs+}
+      bucket named ``my-gcs-bucket``.
 
-         You want to write 176 MiB of data as |bson| files to a {+gcs+}
-         bucket named ``my-gcs-bucket``.
+      Using the following |out| syntax:
 
-         Using the following |out| syntax:
+      .. code-block:: json
 
-         .. code-block:: json
-            :linenos:
+         {
+           "$out": {
+             "gcs": {
+               "bucket": "my-gcs-bucket",
+               "region": "us-central1",
+               "filename": {
+                 "$concat": [
+                   "persons/",
+                   "$name", "/",
+                   "$uniqueId", "/"
+                 ]
+               },
+               "format": {
+                 "name": "bson",
+                 "maxFileSize": "200MiB"
+               }
+             }
+           }
+         }
 
-            {
-              "$out": {
-                "gcs": {
-                  "bucket": "my-gcs-bucket",
-                  "region": "us-central1",
-                  "filename": {
-                    "$concat": [
-                      "persons/",
-                      "$name", "/",
-                      "$uniqueId", "/"
-                    ]
-                  },
-                  "format": {
-                    "name": "bson",
-                    "maxFileSize": "200MiB"
-                  }
-                }
-              }
-            }
+      |out| writes 176 MiB of data to |bson| files. To name each
+      file, |out| concatenates:
 
-         |out| writes 176 MiB of data to |bson| files. To name each
-         file, |out| concatenates:
+      - A constant string ``persons/`` and, from the documents:
 
-         - A constant string ``persons/`` and, from the documents:
+        - The string value of the ``name`` field,
+        - A forward slash (``/``), 
+        - The string value of the ``uniqueId`` field, and
+        - A forward slash (``/``).
 
-           - The string value of the ``name`` field,
-           - A forward slash (``/``), 
-           - The string value of the ``uniqueId`` field, and
-           - A forward slash (``/``).
-
-         Each |bson| file contains all of the documents with the same
-         ``name`` and ``uniqueId`` values. |out| names each file using
-         the documents' ``name`` and ``uniqueId`` values.
-
+      Each |bson| file contains all of the documents with the same
+      ``name`` and ``uniqueId`` values. |out| names each file using
+      the documents' ``name`` and ``uniqueId`` values.
 
       Multiple Types of Fields from Documents
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      .. example::
+      You want to write 154 MiB of data as compressed |json| files
+      to a {+gcs+} bucket named ``my-gcs-bucket``.
 
-         You want to write 154 MiB of data as compressed |json| files
-         to a {+gcs+} bucket named ``my-gcs-bucket``.
+      Consider the following |out| syntax:
 
-         Consider the following |out| syntax:
+      .. code-block:: json
 
-         .. code-block:: json
-            :linenos:
+         {
+           "$out": {
+             "gcs": {
+               "bucket": "my-gcs-bucket",
+               "region": "us-central1",
+               "filename": {
+                 "$concat": [
+                   "big-box-store/",
+                   {
+                     "$toString": "$storeNumber"
+                   }, "/",
+                   {
+                     "$toString": "$saleDate"
+                   }, "/",
+                   "$partId", "/"
+                 ]
+               },
+               "format": {
+                 "name": "json.gz",
+                 "maxFileSize": "200MiB"
+               }
+             }
+           }
+         }
 
-            {
-              "$out": {
-                "gcs": {
-                  "bucket": "my-gcs-bucket",
-                  "region": "us-central1",
-                  "filename": {
-                    "$concat": [
-                      "big-box-store/",
-                      {
-                        "$toString": "$storeNumber"
-                      }, "/",
-                      {
-                        "$toString": "$saleDate"
-                      }, "/",
-                      "$partId", "/"
-                    ]
-                  },
-                  "format": {
-                    "name": "json.gz",
-                    "maxFileSize": "200MiB"
-                  }
-                }
-              }
-            }
+      |out| writes 154 MiB of data to compressed |json| files, where
+      each file contains all documents with the same 
+      ``storeNumber``, ``saleDate``, and ``partId`` values.  To 
+      name each file, |out| concatenates:
 
-         |out| writes 154 MiB of data to compressed |json| files, where
-         each file contains all documents with the same 
-         ``storeNumber``, ``saleDate``, and ``partId`` values.  To 
-         name each file, |out| concatenates:
-
-         - A constant string value of ``big-box-store/``,
-         - A string value of a unique store number in the
-           ``storeNumber`` field,
-         - A forward slash (``/``),
-         - A string value of the date from the ``saleDate`` field, 
-         - A forward slash (``/``), 
-         - A string value of part ID from the ``partId`` field, and 
-         - A forward slash (``/``).
+      - A constant string value of ``big-box-store/``,
+      - A string value of a unique store number in the
+        ``storeNumber`` field,
+      - A forward slash (``/``),
+      - A string value of the date from the ``saleDate`` field, 
+      - A forward slash (``/``), 
+      - A string value of part ID from the ``partId`` field, and 
+      - A forward slash (``/``).
 
    .. tab:: Atlas Cluster
       :tabid: atlas
@@ -1376,22 +1334,19 @@ Examples
       named ``myTestCluster``. The syntax doesn't specify a project ID; 
       |out| uses the ID of the project that contains your {+fdi+}.
 
-      .. example::
+      .. code-block:: json
 
-         .. code-block:: json
-            :linenos:
+         {
+           "$out": {
+             "atlas": {
+               "clusterName": "myTestCluster",
+               "db": "sampleDB",
+               "coll": "mySampleData"
+             }
+           }
+         }
 
-            {
-              "$out": {
-                "atlas": {
-                  "clusterName": "myTestCluster",
-                  "db": "sampleDB",
-                  "coll": "mySampleData"
-                }
-              }
-            }
-
-Run a Query in the background
+Run a Query in the Background
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following example shows |out| syntax for running an aggregation 
@@ -1403,119 +1358,111 @@ pipeline that ends with the |out| stage in the background.
    .. tab:: S3
       :tabid: s3
 
-      .. example::
+      .. code-block:: json
 
-         .. code-block:: json 
+         db.runCommand({
+           "aggregate": "my-collection",
+           "pipeline": [
+             {
+               "$out": {
+                 "s3": {
+                   "bucket": "my-s3-bucket",
+                   "filename": { "$toString": "$saleDate" },
+                   "format": {
+                     "name": "json"
+                   }
+                 }
+               }
+             }
+           ],
+           "background": true
+         })
 
-            db.runCommand({
-              "aggregate": "my-collection",
-              "pipeline": [
-                { 
-                  "$out": { 
-                    "s3": {
-                      "bucket": "my-s3-bucket",
-                      "filename": { "$toString": "$saleDate" }
-                      "format": { 
-                        "name": "json" 
-                      }
-                    }
-                  } 
-                }
-              ],
-              { "background" : true }
-            })
-
-         |out| writes to |json| files in the root of the bucket in the 
-         background. Each |json| file contains all of the documents 
-         with the same ``saleDate`` value. |out| names each file using 
-         the documents' ``saleDate`` value converted to a string. 
+      |out| writes to |json| files in the root of the bucket in the 
+      background. Each |json| file contains all of the documents 
+      with the same ``saleDate`` value. |out| names each file using 
+      the documents' ``saleDate`` value converted to a string. 
 
    .. tab:: Azure
       :tabid: azure
 
-      .. example::
+      .. code-block:: json
 
-         .. code-block:: json 
+         db.runCommand({
+           "aggregate": "my-collection",
+           "pipeline": [
+             {
+               "$out": {
+                 "azure": {
+                   "serviceURL": "http://mystorageaccount.blob.core.windows.net/",
+                   "containerName": "my-container",
+                   "filename": { "$toString": "$saleDate" },
+                   "format": {
+                     "name": "json"
+                   }
+                 }
+               }
+             }
+           ],
+           "background": true
+         })
 
-            db.runCommand({
-              "aggregate": "my-collection",
-              "pipeline": [
-                { 
-                  "$out": { 
-                    "azure": {
-                      "serviceURL": "http://mystorageaccount.blob.core.windows.net/",
-                      "container": "my-container",
-                      "filename": {"$toString": "$saleDate"},
-                      "format": {
-                        "name": "json"
-                      }
-                    } 
-                  }
-                }
-              ], 
-              { "background" : true }
-            })
-
-         |out| writes to |json| files in the root of the |azure| Blob Storage container
-         in the background. Each |json| file contains all of the documents 
-         with the same ``saleDate`` value. |out| names each file using 
-         the documents' ``saleDate`` value converted to a string. 
+      |out| writes to |json| files in the root of the |azure| Blob Storage container
+      in the background. Each |json| file contains all of the documents 
+      with the same ``saleDate`` value. |out| names each file using 
+      the documents' ``saleDate`` value converted to a string. 
 
    .. tab:: GCP
       :tabid: gcp
 
-      .. example::
+      .. code-block:: json
 
-         .. code-block:: json 
+         db.runCommand({
+           "aggregate": "my-collection",
+           "pipeline": [
+             {
+               "$out": {
+                 "gcs": {
+                   "bucket": "my-gcs-bucket",
+                   "filename": { "$toString": "$saleDate" },
+                   "format": {
+                     "name": "json"
+                   }
+                 }
+               }
+             }
+           ],
+           "background": true
+         })
 
-            db.runCommand({
-              "aggregate": "my-collection",
-              "pipeline": [
-                { 
-                  "$out": { 
-                    "gcs": {
-                      "bucket": "my-gcs-bucket",
-                      "filename": { "$toString": "$saleDate" }
-                      "format": { 
-                        "name": "json" 
-                      }
-                    }
-                  } 
-                }
-              ],
-              { "background" : true }
-            })
-
-         |out| writes to |json| files in the root of the bucket in the 
-         background. Each |json| file contains all of the documents 
-         with the same ``saleDate`` value. |out| names each file using 
-         the documents' ``saleDate`` value converted to a string.
+      |out| writes to |json| files in the root of the bucket in the 
+      background. Each |json| file contains all of the documents 
+      with the same ``saleDate`` value. |out| names each file using 
+      the documents' ``saleDate`` value converted to a string.
 
    .. tab:: Atlas Cluster
       :tabid: atlas
 
-      .. example:: 
+      .. code-block:: json
 
-         .. code-block:: json 
-            
-            db.runCommand({
-              "aggregate": "my-collection",
-              "pipeline": [
-                {
-                  "$out": {
-                    "atlas": {
-                      "clusterName": "myTestCluster",
-                      "db": "sampleDB",
-                      "coll": "mySampleData"
-                    }
-                  }
-                }
-              ], 
-              { background: true }
-            })
+         db.runCommand({
+           "aggregate": "my-collection",
+           "pipeline": [
+             {
+               "$out": {
+                 "atlas": {
+                   "clusterName": "myTestCluster",
+                   "db": "sampleDB",
+                   "coll": "mySampleData"
+                 }
+               }
+             }
+           ],
+           "background": true
+         })
 
-         |out| writes to ``sampleDB.mySampleData`` collection in the 
-         |service| cluster named ``myTestCluster`` in the background.
+      |out| writes to ``sampleDB.mySampleData`` collection in the 
+      |service| cluster named ``myTestCluster`` in the background.
 
 .. _adf-out-stage-limitations:
 .. _csv_and_tsv_format:
@@ -1536,39 +1483,35 @@ Limitations
       filenames, wrap the field references that could have ``null``
       values using |convert| with an empty string ``onNull`` value.
 
-      .. example::
+      This example shows how to handle null values in the ``year``
+      field when creating a filename from the field value.
 
-         This example shows how to handle null values in the ``year``
-         field when creating a filename from the field value.
+      .. code-block:: json
 
-         .. code-block:: json
-            :copyable: false
-            :linenos:
-
-            {
-              "$out": {
-                "s3": {
-                  "bucket": "my-s3-bucket",
-                  "region": "us-east-1",
-                  "filename": {
-                    "$concat": [
-                      "big-box-store/",
-                      {
-                        "$convert": {
-                          "input": "$year",
-                          "to": "string",
-                          "onNull": ""
-                        }
-                      }, "/"
-                    ]
-                  },
-                  "format": {
-                    "name": "json.gz",
-                    "maxFileSize": "200MiB"
-                  }
-                }
-              }
-            }
+         {
+           "$out": {
+             "s3": {
+               "bucket": "my-s3-bucket",
+               "region": "us-east-1",
+               "filename": {
+                 "$concat": [
+                   "big-box-store/",
+                   {
+                     "$convert": {
+                       "input": "$year",
+                       "to": "string",
+                       "onNull": ""
+                     }
+                   }, "/"
+                 ]
+               },
+               "format": {
+                 "name": "json.gz",
+                 "maxFileSize": "200MiB"
+               }
+             }
+           }
+         }
 
       Number of Unique Fields
       ~~~~~~~~~~~~~~~~~~~~~~~
@@ -1593,8 +1536,8 @@ Limitations
       (``.``) notation. For example, {+adf+} writes 
       ``{ x: { a: 1, b: 2 } }`` as the following in the CSV file: 
 
-      .. code-block:: shell 
-         :copyable: false 
+      .. code-block:: shell
+         :copyable: false
 
          x.a,x.b 
          1,2
@@ -1622,91 +1565,88 @@ Limitations
         document with the correct data types if the Parquet file is 
         read back by {+adf+}.
 
-      .. example:: 
+      Consider the following |bson| documents:
 
-         Consider the following |bson| documents:
+      .. code-block:: json
+         :copyable: false
 
-         .. code-block:: json
-            :copyable: false 
+         {
+           "clientId": 102, 
+           "phoneNumbers": ["123-4567", "234-5678"], 
+           "clientInfo": {
+             "name": "Taylor",
+             "occupation": "teacher"
+           }
+         }
+         {
+           "clientId": "237", 
+           "phoneNumbers": ["345-6789"],
+           "clientInfo": {
+             "name": "Jordan"
+           }
+         }
 
-            {
-              "clientId": 102, 
-              "phoneNumbers": ["123-4567", "234-5678"], 
-              "clientInfo": {
-                "name": "Taylor",
-                "occupation": "teacher"
-              }
-            }
-            {
-              "clientId": "237", 
-              "phoneNumbers" ["345-6789"]
-              "clientInfo": {
-                "name": "Jordan"
-              }
-            }
+      If you write the preceding |bson| documents to Parquet format using
+      :ref:`$out to S3 <adf-out-stage>`, the Parquet file schema for your
+      |bson| documents would look similar to the following: 
 
-         If you write the preceding |bson| documents to Parquet format using
-         :ref:`$out to S3 <adf-out-stage>`, the Parquet file schema for your
-         |bson| documents would look similar to the following: 
+      .. code-block:: shell
+         :copyable: false
 
-         .. code-block:: shell 
-            :copyable: false 
+         message root {
+           optional group clientId {
+             optional int32 int;
+             optional binary string (STRING);
+           }
+           optional group phoneNumbers (LIST) {
+             repeated group list {
+               optional binary element (STRING);
+             }
+           }
+           optional group clientInfo {
+             optional binary name (STRING);
+             optional binary occupation (STRING);
+           }
+         }
 
-            message root {
-              optional group clientId {
-                optional int32 int;
-                optional binary string; (STRING)
-              }
-              optional group phoneNumbers (LIST) {
-                repeated group list {
-                  optional binary element (STRING);
-                }
-              }
-              optional group clientInfo {
-                optional binary name (STRING);
-                optional binary occupation (STRING);
-              }
-            }
+      Your Parquet data on |s3| would look similar to the following: 
 
-         Your Parquet data on |s3| would look similar to the following: 
+      .. code-block:: shell
+         :copyable: false
 
-         .. code-block:: shell
-            :copyable: false 
-            :linenos:
+         clientId:
+         .int = 102
+         phoneNumbers:
+         .list:
+         ..element = "123-4567"
+         .list:
+         ..element = "234-5678"
+         clientInfo:
+         .name = "Taylor"
+         .occupation = "teacher"
 
-            clientId:
-            .int = 102
-            phoneNumbers:
-            .list:
-            ..element = "123-4567"
-            .list:
-            ..element = "234-5678"
-            clientInfo:
-            .name = "Taylor"
-            .occupation = "teacher"
+         clientId:
+         .string = "237"
+         phoneNumbers:
+         .list:
+         ..element = "345-6789"
+         clientInfo:
+         .name = "Jordan"
 
-            clientId:
-            .string = "237"
-            phoneNumbers:
-            .list:
-            ..element = "345-6789"
-            clientInfo:
-            .name = "Jordan"
+      The preceding example demonstrates how {+adf+} handles complex data
+      types: 
 
-         The preceding example demonstrates how {+adf+} handles complex data
-         types: 
-
-         - {+adf+} maps documents at all levels to a Parquet group.
-         - {+adf+} encodes arrays using the ``LIST`` logical type and the
-           mandatory three-level list or element structure. To learn more,
-           see `Lists
-           <https://github.com/apache/parquet-format/blob/master/LogicalTypes.md#nested-types>`__. 
-         - {+adf+} maps polymorphic |bson| fields to a group of multiple single-type
-           columns because Parquet doesn't support polymorphic columns. 
-           {+adf+} names the group after the |bson| field. In the preceding
-           example, {+adf+} creates a Parquet group named ``clientId`` for
-           the polymorphic field named ``clientId`` with two children named
-           after its |bson| types, ``int`` and ``string``.
+      - {+adf+} maps documents at all levels to a Parquet group.
+      - {+adf+} encodes arrays using the ``LIST`` logical type and the
+        mandatory three-level list or element structure. To learn more,
+        see `Lists
+        <https://github.com/apache/parquet-format/blob/master/LogicalTypes.md#nested-types>`__. 
+      - {+adf+} maps polymorphic |bson| fields to a group of multiple single-type
+        columns because Parquet doesn't support polymorphic columns. 
+        {+adf+} names the group after the |bson| field. In the preceding
+        example, {+adf+} creates a Parquet group named ``clientId`` for
+        the polymorphic field named ``clientId`` with two children named
+        after its |bson| types, ``int`` and ``string``.
 
    .. tab:: Azure
       :tabid: azure
@@ -1719,40 +1659,36 @@ Limitations
       filenames, wrap the field references that could have ``null``
       values using |convert| with an empty string ``onNull`` value.
 
-      .. example::
+      This example shows how to handle null values in the ``year``
+      field when creating a filename from the field value.
 
-         This example shows how to handle null values in the ``year``
-         field when creating a filename from the field value.
+      .. code-block:: json
 
-         .. code-block:: json
-            :copyable: false
-            :linenos:
-
-            {
-              "$out": {
-                "azure": {
-                  "serviceURL": "http://mystorageaccount.blob.core.windows.net/",
-                  "container": "my-container",
-                  "region": "eastus2",
-                  "filename": {
-                    "$concat": [
-                      "big-box-store/",
-                      {
-                        "$convert": {
-                          "input": "$year",
-                          "to": "string",
-                          "onNull": ""
-                        }
-                      }, "/"
-                    ]
-                  },
-                  "format": {
-                    "name": "json.gz",
-                    "maxFileSize": "200MiB"
-                  }
-                }
-              }
-            }
+         {
+           "$out": {
+             "azure": {
+               "serviceURL": "http://mystorageaccount.blob.core.windows.net/",
+               "containerName": "my-container",
+               "region": "eastus2",
+               "filename": {
+                 "$concat": [
+                   "big-box-store/",
+                   {
+                     "$convert": {
+                       "input": "$year",
+                       "to": "string",
+                       "onNull": ""
+                     }
+                   }, "/"
+                 ]
+               },
+               "format": {
+                 "name": "json.gz",
+                 "maxFileSize": "200MiB"
+               }
+             }
+           }
+         }
 
       Number of Unique Fields
       ~~~~~~~~~~~~~~~~~~~~~~~
@@ -1777,8 +1713,8 @@ Limitations
       (``.``) notation. For example, {+adf+} writes 
       ``{ x: { a: 1, b: 2 } }`` as the following in the CSV file: 
 
-      .. code-block:: shell 
-         :copyable: false 
+      .. code-block:: shell
+         :copyable: false
 
          x.a,x.b 
          1,2
@@ -1806,91 +1742,88 @@ Limitations
         document with the correct data types if the Parquet file is 
         read back by {+adf+}.
 
-      .. example:: 
+      Consider the following |bson| documents:
 
-         Consider the following |bson| documents:
+      .. code-block:: json
+         :copyable: false
 
-         .. code-block:: json
-            :copyable: false 
+         {
+           "clientId": 102, 
+           "phoneNumbers": ["123-4567", "234-5678"], 
+           "clientInfo": {
+             "name": "Taylor",
+             "occupation": "teacher"
+           }
+         }
+         {
+           "clientId": "237", 
+           "phoneNumbers": ["345-6789"],
+           "clientInfo": {
+             "name": "Jordan"
+           }
+         }
 
-            {
-              "clientId": 102, 
-              "phoneNumbers": ["123-4567", "234-5678"], 
-              "clientInfo": {
-                "name": "Taylor",
-                "occupation": "teacher"
-              }
-            }
-            {
-              "clientId": "237", 
-              "phoneNumbers" ["345-6789"]
-              "clientInfo": {
-                "name": "Jordan"
-              }
-            }
+      If you write the preceding |bson| documents to Parquet format using
+      :ref:`$out to Azure <adf-out-stage>`, the Parquet file schema for your
+      |bson| documents would look similar to the following: 
 
-         If you write the preceding |bson| documents to Parquet format using
-         :ref:`$out to Azure <adf-out-stage>`, the Parquet file schema for your
-         |bson| documents would look similar to the following: 
+      .. code-block:: shell
+         :copyable: false
 
-         .. code-block:: shell 
-            :copyable: false 
+         message root {
+           optional group clientId {
+             optional int32 int;
+             optional binary string (STRING);
+           }
+           optional group phoneNumbers (LIST) {
+             repeated group list {
+               optional binary element (STRING);
+             }
+           }
+           optional group clientInfo {
+             optional binary name (STRING);
+             optional binary occupation (STRING);
+           }
+         }
 
-            message root {
-              optional group clientId {
-                optional int32 int;
-                optional binary string (STRING);
-              }
-              optional group phoneNumbers (LIST) {
-                repeated group list {
-                  optional binary element (STRING);
-                }
-              }
-              optional group clientInfo {
-                optional binary name (STRING);
-                optional binary occupation (STRING);
-              }
-            }
+      Your Parquet data in |azure| Blob Storage would look similar to the following: 
 
-         Your Parquet data in |azure| Blob Storage would look similar to the following: 
+      .. code-block:: shell
+         :copyable: false
 
-         .. code-block:: shell
-            :copyable: false 
-            :linenos:
+         clientId:
+         .int = 102
+         phoneNumbers:
+         .list:
+         ..element = "123-4567"
+         .list:
+         ..element = "234-5678"
+         clientInfo:
+         .name = "Taylor"
+         .occupation = "teacher"
 
-            clientId:
-            .int = 102
-            phoneNumbers:
-            .list:
-            ..element = "123-4567"
-            .list:
-            ..element = "234-5678"
-            clientInfo:
-            .name = "Taylor"
-            .occupation = "teacher"
+         clientId:
+         .string = "237"
+         phoneNumbers:
+         .list:
+         ..element = "345-6789"
+         clientInfo:
+         .name = "Jordan"
 
-            clientId:
-            .string = "237"
-            phoneNumbers:
-            .list:
-            ..element = "345-6789"
-            clientInfo:
-            .name = "Jordan"
+      The preceding example demonstrates how {+adf+} handles complex data
+      types: 
 
-         The preceding example demonstrates how {+adf+} handles complex data
-         types: 
-
-         - {+adf+} maps documents at all levels to a Parquet group.
-         - {+adf+} encodes arrays using the ``LIST`` logical type and the
-           mandatory three-level list or element structure. To learn more,
-           see `Lists
-           <https://github.com/apache/parquet-format/blob/master/LogicalTypes.md#nested-types>`__. 
-         - {+adf+} maps polymorphic |bson| fields to a group of multiple single-type
-           columns because Parquet doesn't support polymorphic columns. 
-           {+adf+} names the group after the |bson| field. In the preceding
-           example, {+adf+} creates a Parquet group named ``clientId`` for
-           the polymorphic field named ``clientId`` with two children named
-           after its |bson| types, ``int`` and ``string``.
+      - {+adf+} maps documents at all levels to a Parquet group.
+      - {+adf+} encodes arrays using the ``LIST`` logical type and the
+        mandatory three-level list or element structure. To learn more,
+        see `Lists
+        <https://github.com/apache/parquet-format/blob/master/LogicalTypes.md#nested-types>`__. 
+      - {+adf+} maps polymorphic |bson| fields to a group of multiple single-type
+        columns because Parquet doesn't support polymorphic columns. 
+        {+adf+} names the group after the |bson| field. In the preceding
+        example, {+adf+} creates a Parquet group named ``clientId`` for
+        the polymorphic field named ``clientId`` with two children named
+        after its |bson| types, ``int`` and ``string``.
 
    .. tab:: GCP
       :tabid: gcp
@@ -1903,39 +1836,35 @@ Limitations
       filenames, wrap the field references that could have ``null``
       values using |convert| with an empty string ``onNull`` value.
 
-      .. example::
+      This example shows how to handle null values in the ``year``
+      field when creating a filename from the field value.
 
-         This example shows how to handle null values in the ``year``
-         field when creating a filename from the field value.
+      .. code-block:: json
 
-         .. code-block:: json
-            :copyable: false
-            :linenos:
-
-            {
-              "$out": {
-                "gcs": {
-                  "bucket": "my-gcs-bucket",
-                  "region": "us-central1",
-                  "filename": {
-                    "$concat": [
-                      "big-box-store/",
-                      {
-                        "$convert": {
-                          "input": "$year",
-                          "to": "string",
-                          "onNull": ""
-                        }
-                      }, "/"
-                    ]
-                  },
-                  "format": {
-                    "name": "json.gz",
-                    "maxFileSize": "200MiB"
-                  }
-                }
-              }
-            }
+         {
+           "$out": {
+             "gcs": {
+               "bucket": "my-gcs-bucket",
+               "region": "us-central1",
+               "filename": {
+                 "$concat": [
+                   "big-box-store/",
+                   {
+                     "$convert": {
+                       "input": "$year",
+                       "to": "string",
+                       "onNull": ""
+                     }
+                   }, "/"
+                 ]
+               },
+               "format": {
+                 "name": "json.gz",
+                 "maxFileSize": "200MiB"
+               }
+             }
+           }
+         }
 
       Number of Unique Fields
       ~~~~~~~~~~~~~~~~~~~~~~~
@@ -1960,8 +1889,8 @@ Limitations
       (``.``) notation. For example, {+adf+} writes 
       ``{ x: { a: 1, b: 2 } }`` as the following in the CSV file: 
 
-      .. code-block:: shell 
-         :copyable: false 
+      .. code-block:: shell
+         :copyable: false
 
          x.a,x.b 
          1,2
@@ -1989,91 +1918,88 @@ Limitations
         document with the correct data types if the Parquet file is 
         read back by {+adf+}.
 
-      .. example:: 
+      Consider the following |bson| documents:
 
-         Consider the following |bson| documents:
+      .. code-block:: json
+         :copyable: false
 
-         .. code-block:: json
-            :copyable: false 
+         {
+           "clientId": 102, 
+           "phoneNumbers": ["123-4567", "234-5678"], 
+           "clientInfo": {
+             "name": "Taylor",
+             "occupation": "teacher"
+           }
+         }
+         {
+           "clientId": "237", 
+           "phoneNumbers": ["345-6789"],
+           "clientInfo": {
+             "name": "Jordan"
+           }
+         }
 
-            {
-              "clientId": 102, 
-              "phoneNumbers": ["123-4567", "234-5678"], 
-              "clientInfo": {
-                "name": "Taylor",
-                "occupation": "teacher"
-              }
-            }
-            {
-              "clientId": "237", 
-              "phoneNumbers" ["345-6789"]
-              "clientInfo": {
-                "name": "Jordan"
-              }
-            }
+      If you write the preceding |bson| documents to Parquet format using
+      :ref:`$out to GCP <adf-out-stage>`, the Parquet file schema for your
+      |bson| documents would look similar to the following: 
 
-         If you write the preceding |bson| documents to Parquet format using
-         :ref:`$out to GCP <adf-out-stage>`, the Parquet file schema for your
-         |bson| documents would look similar to the following: 
+      .. code-block:: shell
+         :copyable: false
 
-         .. code-block:: shell 
-            :copyable: false 
+         message root {
+           optional group clientId {
+             optional int32 int;
+             optional binary string (STRING);
+           }
+           optional group phoneNumbers (LIST) {
+             repeated group list {
+               optional binary element (STRING);
+             }
+           }
+           optional group clientInfo {
+             optional binary name (STRING);
+             optional binary occupation (STRING);
+           }
+         }
 
-            message root {
-              optional group clientId {
-                optional int32 int;
-                optional binary string; (STRING)
-              }
-              optional group phoneNumbers (LIST) {
-                repeated group list {
-                  optional binary element (STRING);
-                }
-              }
-              optional group clientInfo {
-                optional binary name (STRING);
-                optional binary occupation (STRING);
-              }
-            }
+      Your Parquet data on {+gcs+} would look similar to the following: 
 
-         Your Parquet data on {+gcs+} would look similar to the following: 
+      .. code-block:: shell
+         :copyable: false
 
-         .. code-block:: shell
-            :copyable: false 
-            :linenos:
+         clientId:
+         .int = 102
+         phoneNumbers:
+         .list:
+         ..element = "123-4567"
+         .list:
+         ..element = "234-5678"
+         clientInfo:
+         .name = "Taylor"
+         .occupation = "teacher"
 
-            clientId:
-            .int = 102
-            phoneNumbers:
-            .list:
-            ..element = "123-4567"
-            .list:
-            ..element = "234-5678"
-            clientInfo:
-            .name = "Taylor"
-            .occupation = "teacher"
+         clientId:
+         .string = "237"
+         phoneNumbers:
+         .list:
+         ..element = "345-6789"
+         clientInfo:
+         .name = "Jordan"
 
-            clientId:
-            .string = "237"
-            phoneNumbers:
-            .list:
-            ..element = "345-6789"
-            clientInfo:
-            .name = "Jordan"
+      The preceding example demonstrates how {+adf+} handles complex data
+      types: 
 
-         The preceding example demonstrates how {+adf+} handles complex data
-         types: 
-
-         - {+adf+} maps documents at all levels to a Parquet group.
-         - {+adf+} encodes arrays using the ``LIST`` logical type and the
-           mandatory three-level list or element structure. To learn more,
-           see `Lists
-           <https://github.com/apache/parquet-format/blob/master/LogicalTypes.md#nested-types>`__. 
-         - {+adf+} maps polymorphic |bson| fields to a group of multiple single-type
-           columns because Parquet doesn't support polymorphic columns. 
-           {+adf+} names the group after the |bson| field. In the preceding
-           example, {+adf+} creates a Parquet group named ``clientId`` for
-           the polymorphic field named ``clientId`` with two children named
-           after its |bson| types, ``int`` and ``string``.
+      - {+adf+} maps documents at all levels to a Parquet group.
+      - {+adf+} encodes arrays using the ``LIST`` logical type and the
+        mandatory three-level list or element structure. To learn more,
+        see `Lists
+        <https://github.com/apache/parquet-format/blob/master/LogicalTypes.md#nested-types>`__. 
+      - {+adf+} maps polymorphic |bson| fields to a group of multiple single-type
+        columns because Parquet doesn't support polymorphic columns. 
+        {+adf+} names the group after the |bson| field. In the preceding
+        example, {+adf+} creates a Parquet group named ``clientId`` for
+        the polymorphic field named ``clientId`` with two children named
+        after its |bson| types, ``int`` and ``string``.
 
    .. tab:: Atlas Cluster
       :tabid: atlas
@@ -2122,72 +2048,71 @@ Error Output
            - {+adf+} writes a single summary document for each type of error encountered during an aggregation operation to this file.
              Each summary document contains a description of the type of error and a count of the number of documents that encountered that type of error.
 
-      .. example::
+      This example shows how to generate error files using :pipeline:`$out` in a {+fdi+}. 
 
-         This example shows how to generate error files using :pipeline:`$out` in a {+fdi+}. 
+      The following aggregation pipeline sorts documents in the ``analytics.customers`` sample dataset collection 
+      by descending customer birthdate and attempts to write the ``_id``, ``name`` and ``accounts`` fields of the 
+      youngest three customers to the file named ``youngest-customers.csv`` in the |s3| bucket named ``customer-data``.   
 
-         The following aggregation pipeline sorts documents in the ``analytics.customers`` sample dataset collection 
-         by descending customer birthdate and attempts to write the ``_id``, ``name`` and ``accounts`` fields of the 
-         youngest three customers to the file named ``youngest-customers.csv`` in the |s3| bucket named ``customer-data``.   
-        
-         .. code-block:: json
-            :copyable: true
+      .. code-block:: json
 
-            db.customers.aggregate([ 
-               { $sort: { "birthdate"  :  -1 } }, 
-               { $unset: [ "username", "address", "email", "tier_and_details", "birthdate" ] }, 
-               { $limit: 3 }, 
-               { $out: {
-                    "s3": {
-                       "bucket": "customer-data", 
-                       "filename": "youngest-customers",
-                       "region":"us-east-2", 
-                       "format": {
-                         "name": "csv"
-                       }
-                    }
-                } 
-             ])
+         db.customers.aggregate([
+           { "$sort": { "birthdate": -1 } },
+           { "$unset": [ "username", "address", "email", "tier_and_details", "birthdate" ] },
+           { "$limit": 3 },
+           {
+             "$out": {
+               "s3": {
+                 "bucket": "customer-data",
+                 "region": "us-east-2",
+                 "filename": "youngest-customers",
+                 "format": {
+                   "name": "csv"
+                 }
+               }
+             }
+           }
+         ])
 
-         Because ``accounts`` is an array field, :pipeline:`$out` encounters an error when it tries to write
-         a document to ``s3.format.name`` ``csv``. To handle these errors, {+adf+} writes to the following three error files: 
-        
-         - The following output shows the first of three documents written to the ``out-error-docs/1.json`` file: 
+      Because ``accounts`` is an array field, :pipeline:`$out` encounters an error when it tries to write
+      a document to ``s3.format.name`` ``csv``. To handle these errors, {+adf+} writes to the following three error files: 
 
-           .. code-block:: json
-              :copyable: false
-              :caption: s3://customer-data/atlas-data-lake-1773b3d5e2a7f3858530daf5/out-error-docs/1.json
+      - The following output shows the first of three documents written to the ``out-error-docs/1.json`` file: 
 
-              {
-                "_id" : {"$oid":"5ca4bbcea2dd94ee58162ba7"},
-                "name": "Marc Cain",
-                "accounts": [{"$numberInt":"980440"}, {"$numberInt":"626807"}, {"$numberInt":"313907"}, {"$numberInt":"218101"}, {"$numberInt":"157495"}, {"$numberInt":"736396"}],
-              }
-        
-         - The following output shows the first of three error messages written to the ``out-error-index/1.json`` file.  
-           The ``n`` field starts at 0 and increments for each error written to the file.  
+        .. code-block:: json
+           :copyable: false
+           :caption: s3://customer-data/atlas-data-lake-1773b3d5e2a7f3858530daf5/out-error-docs/1.json
 
-           .. code-block:: json
-              :copyable: false
-              :caption: s3://customer-data/atlas-data-lake-1773b3d5e2a7f3858530daf5/out-error-index/1.json
+           {
+             "_id" : {"$oid":"5ca4bbcea2dd94ee58162ba7"},
+             "name": "Marc Cain",
+             "accounts": [{"$numberInt":"980440"}, {"$numberInt":"626807"}, {"$numberInt":"313907"}, {"$numberInt":"218101"}, {"$numberInt":"157495"}, {"$numberInt":"736396"}]
+           }
 
-              { 
-                "n" : {"$numberInt": "0"},
-                "error" : "field accounts is of unsupported type array"
-              }  
+      - The following output shows the first of three error messages written to the ``out-error-index/1.json`` file.  
+        The ``n`` field starts at 0 and increments for each error written to the file.  
 
-         - The following output shows the error summary document written to the ``out-error-summary`` file. 
-           The ``count`` field represents the number of documents passed to :pipeline:`$out` that encountered 
-           an error due to the ``accounts`` array field. 
+        .. code-block:: json
+           :copyable: false
+           :caption: s3://customer-data/atlas-data-lake-1773b3d5e2a7f3858530daf5/out-error-index/1.json
 
-           .. code-block:: json
-              :copyable: false
-              :caption: s3://customer-data/atlas-data-lake-1773b3d5e2a7f3858530daf5/out-error-summary.json
+           { 
+             "n" : {"$numberInt": "0"},
+             "error" : "field accounts is of unsupported type array"
+           }  
 
-                {
-                 "errorType": "field accounts is of unsupported type array",
-                 "count": {"$numberInt":"3"}
-                } 
+      - The following output shows the error summary document written to the ``out-error-summary`` file. 
+        The ``count`` field represents the number of documents passed to :pipeline:`$out` that encountered 
+        an error due to the ``accounts`` array field. 
+
+        .. code-block:: json
+           :copyable: false
+           :caption: s3://customer-data/atlas-data-lake-1773b3d5e2a7f3858530daf5/out-error-summary.json
+
+             {
+              "errorType": "field accounts is of unsupported type array",
+              "count": {"$numberInt":"3"}
+             } 
 
    .. tab:: Azure
       :tabid: azure
@@ -2228,74 +2153,73 @@ Error Output
             Each summary document contains a description of the type of error and a count of the number of documents that encountered that type of error.
 
 
-      .. example::
+      This example shows how to generate error files using :pipeline:`$out` in a {+fdi+}. 
 
-         This example shows how to generate error files using :pipeline:`$out` in a {+fdi+}. 
+      The following aggregation pipeline sorts documents in the ``analytics.customers`` sample dataset collection 
+      by descending customer birthdate and attempts to write the ``_id``, ``name`` and ``accounts`` fields of the 
+      youngest three customers to the file named ``youngest-customers.csv`` in the |azure| Blob Storage container 
+      named ``customer-data``.
 
-         The following aggregation pipeline sorts documents in the ``analytics.customers`` sample dataset collection 
-         by descending customer birthdate and attempts to write the ``_id``, ``name`` and ``accounts`` fields of the 
-         youngest three customers to the file named ``youngest-customers.csv`` in the |azure| Blob Storage container 
-         named ``customer-data``.
-        
-         .. code-block:: json
-            :copyable: true
+      .. code-block:: json
 
-            db.customers.aggregate([ 
-               { $sort: { "birthdate"  :  -1 } }, 
-               { $unset: [ "username", "address", "email", "tier_and_details", "birthdate" ] }, 
-               { $limit: 3 }, 
-               { $out: {
-                    "azure": {
-                       "serviceURL": "https://myserviceaccount.blob.core.windows.net"
-                       "container": "customer-data", 
-                       "filename": "youngest-customers",
-                       "region":"eastus2", 
-                       "format": {
-                         "name": "csv"
-                       }
-                    }
-                } 
-             ])
+         db.customers.aggregate([
+           { "$sort": { "birthdate": -1 } },
+           { "$unset": [ "username", "address", "email", "tier_and_details", "birthdate" ] },
+           { "$limit": 3 },
+           {
+             "$out": {
+               "azure": {
+                 "serviceURL": "https://mystorageaccount.blob.core.windows.net/",
+                 "containerName": "customer-data",
+                 "region": "eastus2",
+                 "filename": "youngest-customers",
+                 "format": {
+                   "name": "csv"
+                 }
+               }
+             }
+           }
+         ])
 
-         Because ``accounts`` is an array field, :pipeline:`$out` encounters an error when it tries to write
-         a document to ``azure.format.name`` ``csv``. To handle these errors, {+adf+} writes to the following three error files: 
-        
-         - The following output shows the first of three documents written to the ``out-error-docs/1.json`` file: 
+      Because ``accounts`` is an array field, :pipeline:`$out` encounters an error when it tries to write
+      a document to ``azure.format.name`` ``csv``. To handle these errors, {+adf+} writes to the following three error files: 
 
-           .. code-block:: json
-              :copyable: false
-              :caption: http://mystorageaccount.blob.core.windows.net/customer-data/atlas-data-lake-1773b3d5e2a7f3858530daf5/out-error-docs/1.json
+      - The following output shows the first of three documents written to the ``out-error-docs/1.json`` file: 
 
-              {
-                "_id" : {"$oid":"5ca4bbcea2dd94ee58162ba7"},
-                "name": "Marc Cain",
-                "accounts": [{"$numberInt":"980440"}, {"$numberInt":"626807"}, {"$numberInt":"313907"}, {"$numberInt":"218101"}, {"$numberInt":"157495"}, {"$numberInt":"736396"}],
-              }
-        
-         - The following output shows the first of three error messages written to the ``out-error-index/1.json`` file.  
-           The ``n`` field starts at 0 and increments for each error written to the file.  
+        .. code-block:: json
+           :copyable: false
+           :caption: http://mystorageaccount.blob.core.windows.net/customer-data/atlas-data-lake-1773b3d5e2a7f3858530daf5/out-error-docs/1.json
 
-           .. code-block:: json
-              :copyable: false
-              :caption: http://mystorageaccount.blob.core.windows.net/customer-data/atlas-data-lake-1773b3d5e2a7f3858530daf5/out-error-index/1.json
+           {
+             "_id" : {"$oid":"5ca4bbcea2dd94ee58162ba7"},
+             "name": "Marc Cain",
+             "accounts": [{"$numberInt":"980440"}, {"$numberInt":"626807"}, {"$numberInt":"313907"}, {"$numberInt":"218101"}, {"$numberInt":"157495"}, {"$numberInt":"736396"}]
+           }
 
-              { 
-                "n" : {"$numberInt": "0"},
-                "error" : "field accounts is of unsupported type array"
-              }  
+      - The following output shows the first of three error messages written to the ``out-error-index/1.json`` file.  
+        The ``n`` field starts at 0 and increments for each error written to the file.  
 
-         - The following output shows the error summary document written to the ``out-error-summary`` file. 
-           The ``count`` field represents the number of documents passed to :pipeline:`$out` that encountered 
-           an error due to the ``accounts`` array field. 
+        .. code-block:: json
+           :copyable: false
+           :caption: http://mystorageaccount.blob.core.windows.net/customer-data/atlas-data-lake-1773b3d5e2a7f3858530daf5/out-error-index/1.json
 
-           .. code-block:: json
-              :copyable: false
-              :caption: http://mystorageaccount.blob.core.windows.net/customer-data/atlas-data-lake-1773b3d5e2a7f3858530daf5/out-error-summary.json
+           { 
+             "n" : {"$numberInt": "0"},
+             "error" : "field accounts is of unsupported type array"
+           }  
 
-                {
-                 "errorType": "field accounts is of unsupported type array",
-                 "count": {"$numberInt":"3"}
-                } 
+      - The following output shows the error summary document written to the ``out-error-summary`` file. 
+        The ``count`` field represents the number of documents passed to :pipeline:`$out` that encountered 
+        an error due to the ``accounts`` array field. 
+
+        .. code-block:: json
+           :copyable: false
+           :caption: http://mystorageaccount.blob.core.windows.net/customer-data/atlas-data-lake-1773b3d5e2a7f3858530daf5/out-error-summary.json
+
+             {
+              "errorType": "field accounts is of unsupported type array",
+              "count": {"$numberInt":"3"}
+             } 
 
    .. tab:: GCP
       :tabid: gcp
@@ -2332,72 +2256,71 @@ Error Output
            - {+adf+} writes a single summary document for each type of error encountered during an aggregation operation to this file.
              Each summary document contains a description of the type of error and a count of the number of documents that encountered that type of error.
 
-      .. example::
+      This example shows how to generate error files using :pipeline:`$out` in a {+fdi+}. 
 
-         This example shows how to generate error files using :pipeline:`$out` in a {+fdi+}. 
+      The following aggregation pipeline sorts documents in the ``analytics.customers`` sample dataset collection 
+      by descending customer birthdate and attempts to write the ``_id``, ``name`` and ``accounts`` fields of the 
+      youngest three customers to the file named ``youngest-customers.csv`` in the {+gcs+} bucket named ``customer-data``.   
 
-         The following aggregation pipeline sorts documents in the ``analytics.customers`` sample dataset collection 
-         by descending customer birthdate and attempts to write the ``_id``, ``name`` and ``accounts`` fields of the 
-         youngest three customers to the file named ``youngest-customers.csv`` in the {+gcs+} bucket named ``customer-data``.   
-        
-         .. code-block:: json
-            :copyable: true
+      .. code-block:: json
 
-            db.customers.aggregate([ 
-               { $sort: { "birthdate"  :  -1 } }, 
-               { $unset: [ "username", "address", "email", "tier_and_details", "birthdate" ] }, 
-               { $limit: 3 }, 
-               { $out: {
-                    "gcs": {
-                       "bucket": "customer-data", 
-                       "filename": "youngest-customers",
-                       "region":"us-central1", 
-                       "format": {
-                         "name": "csv"
-                       }
-                    }
-                } 
-             ])
+         db.customers.aggregate([
+           { "$sort": { "birthdate": -1 } },
+           { "$unset": [ "username", "address", "email", "tier_and_details", "birthdate" ] },
+           { "$limit": 3 },
+           {
+             "$out": {
+               "gcs": {
+                 "bucket": "customer-data",
+                 "region": "us-central1",
+                 "filename": "youngest-customers",
+                 "format": {
+                   "name": "csv"
+                 }
+               }
+             }
+           }
+         ])
 
-         Because ``accounts`` is an array field, :pipeline:`$out` encounters an error when it tries to write
-         a document to ``gcs.format.name`` ``csv``. To handle these errors, {+adf+} writes to the following three error files: 
-        
-         - The following output shows the first of three documents written to the ``out-error-docs/1.json`` file: 
+      Because ``accounts`` is an array field, :pipeline:`$out` encounters an error when it tries to write
+      a document to ``gcs.format.name`` ``csv``. To handle these errors, {+adf+} writes to the following three error files: 
 
-           .. code-block:: json
-              :copyable: false
-              :caption: gcs://customer-data/atlas-data-lake-1773b3d5e2a7f3858530daf5/out-error-docs/1.json
+      - The following output shows the first of three documents written to the ``out-error-docs/1.json`` file: 
 
-              {
-                "_id" : {"$oid":"5ca4bbcea2dd94ee58162ba7"},
-                "name": "Marc Cain",
-                "accounts": [{"$numberInt":"980440"}, {"$numberInt":"626807"}, {"$numberInt":"313907"}, {"$numberInt":"218101"}, {"$numberInt":"157495"}, {"$numberInt":"736396"}],
-              }
-        
-         - The following output shows the first of three error messages written to the ``out-error-index/1.json`` file.  
-           The ``n`` field starts at 0 and increments for each error written to the file.  
+        .. code-block:: json
+           :copyable: false
+           :caption: gcs://customer-data/atlas-data-lake-1773b3d5e2a7f3858530daf5/out-error-docs/1.json
 
-           .. code-block:: json
-              :copyable: false
-              :caption: gcs://customer-data/atlas-data-lake-1773b3d5e2a7f3858530daf5/out-error-index/1.json
+           {
+             "_id" : {"$oid":"5ca4bbcea2dd94ee58162ba7"},
+             "name": "Marc Cain",
+             "accounts": [{"$numberInt":"980440"}, {"$numberInt":"626807"}, {"$numberInt":"313907"}, {"$numberInt":"218101"}, {"$numberInt":"157495"}, {"$numberInt":"736396"}]
+           }
 
-              { 
-                "n" : {"$numberInt": "0"},
-                "error" : "field accounts is of unsupported type array"
-              }  
+      - The following output shows the first of three error messages written to the ``out-error-index/1.json`` file.  
+        The ``n`` field starts at 0 and increments for each error written to the file.  
 
-         - The following output shows the error summary document written to the ``out-error-summary`` file. 
-           The ``count`` field represents the number of documents passed to :pipeline:`$out` that encountered 
-           an error due to the ``accounts`` array field. 
+        .. code-block:: json
+           :copyable: false
+           :caption: gcs://customer-data/atlas-data-lake-1773b3d5e2a7f3858530daf5/out-error-index/1.json
 
-           .. code-block:: json
-              :copyable: false
-              :caption: gcs://customer-data/atlas-data-lake-1773b3d5e2a7f3858530daf5/out-error-summary.json
+           { 
+             "n" : {"$numberInt": "0"},
+             "error" : "field accounts is of unsupported type array"
+           }  
 
-                {
-                 "errorType": "field accounts is of unsupported type array",
-                 "count": {"$numberInt":"3"}
-                }
+      - The following output shows the error summary document written to the ``out-error-summary`` file. 
+        The ``count`` field represents the number of documents passed to :pipeline:`$out` that encountered 
+        an error due to the ``accounts`` array field. 
+
+        .. code-block:: json
+           :copyable: false
+           :caption: gcs://customer-data/atlas-data-lake-1773b3d5e2a7f3858530daf5/out-error-summary.json
+
+             {
+              "errorType": "field accounts is of unsupported type array",
+              "count": {"$numberInt":"3"}
+             }
 
    .. tab:: Atlas Cluster
       :tabid: atlas
