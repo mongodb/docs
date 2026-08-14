@@ -34,21 +34,6 @@ configure your stream processor:
             name of the collection in that database. To learn more
             about ``$source`` stage syntax, see :pipeline:`$source`.
 
-            .. example::
-
-               The following ``$source`` stage operates on
-               real-time data from the pre-configured
-               ``sample_stream_solar`` connection:
-
-               .. code-block:: json
-                  :copyable: true
-
-                  {
-                    "$source": {
-                      "connectionName": "sample_stream_solar"
-                    }
-                  }
-
          .. step:: Optional: Add aggregation stages to the pipeline.
 
             In the :guilabel:`Pipeline` field, select the aggregation
@@ -111,11 +96,6 @@ configure your stream processor:
 
             a. In the :guilabel:`Stream processor name` field, enter a
                name for your stream processor.
-
-            #. Specify whether to enable autoscaling for your stream
-               processor. If you enable autoscaling, you must also
-               specify a minimum tier, a maximum tier, and a starting
-               tier.
 
             #. Select the data processing tier for your stream
                processor. The default tier is ``SP10``. To learn more,

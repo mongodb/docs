@@ -34,7 +34,10 @@ The ``failover`` option has the following syntax:
      - Required
      - Name of the cloud region in which the target failover
        processor lives. This region must be one of the failover
-       regions configured for your {+spw+}.
+       regions configured for your {+spw+}. To check which failover
+       regions your {+spw+} uses, see :ref:`atlas-sp-manage-spi-view`.
+       For the regions that {+atlas-sp+} supports, see
+       :ref:`atlas-sp-regions`.
 
    * - ``failover.mode``
      - string
@@ -56,7 +59,21 @@ processor has stopped before it initiates failover. ``FORCED`` mode
 also attempts to stop the active processor, but initiates failover
 even if the processor doesn't stop. A ``FORCED`` failover starts the
 processor in the target region from the most recent checkpoint
-unless you explicitly clear checkpoints.
+unless you clear checkpoints. To clear checkpoints, set the
+``resumeFromCheckpoint`` option to ``false``:
+
+.. code-block:: sh
+
+   sp.<streamprocessor>.start({
+     failover: {
+       region: "<region>",
+       mode: "FORCED"
+     },
+     resumeFromCheckpoint: false
+   })
+
+The target processor then retains only summary statistics and
+starts processing from the current position in the stream.
 
 For example, to initiate a graceful failover of a stream processor
 named ``proc01`` to the ``us-west-2`` region, run the following
