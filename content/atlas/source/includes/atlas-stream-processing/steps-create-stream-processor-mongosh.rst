@@ -69,7 +69,16 @@ To create a new stream processor with {+mongosh+}, use the
       processor. If you do not declare this option,
       {+atlas-sp+} assigns the processor to a pod of the
       {+spw+}'s default tier. To learn more, see :ref:`Tiers
-      <atlas-sp-architecture-tiers>`.        
+      <atlas-sp-architecture-tiers>`.
+
+  * - ``options.failover``
+    - boolean
+    - Optional
+    - Flag that specifies whether to create the processor in every
+      :ref:`failover region <atlas-sp-architecture-failover>`
+      configured for your {+spw+} in addition to the default region.
+      If you omit this field, {+atlas-sp+} creates the processor
+      only in the default region.
 
 .. procedure::
   :style: normal

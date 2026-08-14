@@ -10,10 +10,23 @@ following command:
 .. code-block:: javascript
 
    sp.proc1.modify(<pipeline>, {
-      resumeFromCheckpoint: bool, // optional 
+      resumeFromCheckpoint: bool, // optional
       name: string, // optional
       dlq: string, // optional
+      failover: bool, // optional
   })
+
+The ``failover`` option controls whether the processor runs in the
+:ref:`failover regions <atlas-sp-architecture-failover>` configured
+for your {+spw+}:
+
+- Set ``failover`` to ``true`` to read the processor definition from
+  the default region and create that processor in every failover
+  region that doesn't already have it.
+
+- Set ``failover`` to ``false`` to disable failover for a processor
+  that has failover regions configured and revert it to running in
+  a single region.
 
 
 Add a Stage to an Existing Pipeline
