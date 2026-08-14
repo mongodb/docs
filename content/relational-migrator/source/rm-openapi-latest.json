@@ -2,11 +2,17 @@
   "openapi": "3.0.2",
   "info": {
     "contact": {
+      "email": "support@mongodb.com",
+      "name": "MongoDB Support",
       "url": "https://support.mongodb.com/help"
     },
     "description": "OpenAPI specification for MongoDB Relational Migrator tool",
+    "license": {
+      "name": "MongoDB, Inc. Technology Evaluation Agreement",
+      "url": "https://www.mongodb.com/legal"
+    },
     "title": "MongoDB Relational Migrator REST API",
-    "version": "1.17.0"
+    "version": "1.18.0"
   },
   "servers": [
     {
@@ -1223,12 +1229,6 @@
           "connectionString"
         ]
       },
-      "migration-jobs-get-type": {
-        "type": "string",
-        "enum": [
-          "IN_PROGRESS"
-        ]
-      },
       "migration-job-status": {
         "type": "object",
         "properties": {
@@ -1289,6 +1289,9 @@
           "jmxConnectivity": {
             "$ref": "#/components/schemas/jmx-connectivity"
           },
+          "connectorStatus": {
+            "$ref": "#/components/schemas/connector-status"
+          },
           "failureError": {
             "$ref": "#/components/schemas/failureError"
           },
@@ -1309,6 +1312,12 @@
           "projectId",
           "status",
           "submittedAt"
+        ]
+      },
+      "migration-jobs-get-type": {
+        "type": "string",
+        "enum": [
+          "IN_PROGRESS"
         ]
       },
       "post-migration-job-request": {
@@ -1523,12 +1532,12 @@
             "$ref": "#/components/schemas/project-tables"
           }
         },
+        "additionalProperties": false,
         "required": [
           "collections",
           "diagrams",
           "mappings",
           "relationships",
-          "schemas",
           "settings",
           "tables"
         ]
@@ -1544,7 +1553,9 @@
         "type": "object",
         "properties": {
           "version": {
-            "type": "string"
+            "description": "The descriptor schema version, as a three-part semantic version (major.minor.patch).",
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$"
           },
           "project": {
             "$ref": "#/components/schemas/ProjectDescriptor"
@@ -1614,7 +1625,8 @@
         },
         "additionalProperties": false,
         "required": [
-          "databases"
+          "databases",
+          "metadata"
         ]
       },
       "error-response-issue": {
@@ -1623,7 +1635,7 @@
           "type": {
             "description": "An error category identifying what kind of issue occurred (SNAKE_CASE).",
             "type": "string",
-            "example": "RELMIG_MAPPING_TARGET_FIELD_NAME_EMPTY"
+            "example": "RELMIG_MAPPING_TABLE_MISSING"
           },
           "message": {
             "description": "A human-readable explanation of what went wrong.",
@@ -1889,15 +1901,97 @@
             "type": "integer",
             "minimum": 0
           },
-          "signalingTable": {
-            "type": "string",
-            "example": "database.schema.table"
+          "incrementalSnapshotOptions": {
+            "$ref": "#/components/schemas/incremental-snapshot-options"
           }
         },
         "additionalProperties": false,
         "required": [
           "mode"
         ]
+      },
+      "migration-verification": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": false
+          },
+          "type": {
+            "description": "COUNT_ONLY runs a standalone count comparison only (no field compare) and requires enabled: false and options.mode: VERIFICATION.",
+            "default": "FULL",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/verification-type-enum"
+              }
+            ]
+          },
+          "countMethod": {
+            "description": "COUNT_ONLY only. How both the source and target are counted. ESTIMATE uses database metadata estimates on both sides; EXACT counts both sides exactly.",
+            "default": "EXACT",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/count-method-enum"
+              }
+            ]
+          },
+          "includedCollections": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "samplePercentage": {
+            "type": "integer",
+            "default": 100,
+            "maximum": 100,
+            "minimum": 1
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "enabled"
+        ]
+      },
+      "relational-table-filters": {
+        "description": "An object where each key represents a schema name. Each schema contains tables you can apply table filters on.",
+        "type": "object",
+        "example": {
+          "schema_1_name": {
+            "table_1_name": {
+              "whereClause": "id > 1000 AND id <= 2000"
+            },
+            "table_2_name": {
+              "whereClause": "TRUE",
+              "rowCount": 10
+            }
+          }
+        },
+        "additionalProperties": {
+          "additionalProperties": {
+            "$ref": "#/components/schemas/table-filter"
+          },
+          "description": "An object where each key represents a table name within a schema.",
+          "type": "object"
+        }
+      },
+      "collection-filters": {
+        "description": "Include or exclude collections for this migration.\n- include only: Only collections matching the specified include filter will be migrated.\n- exclude only: All collections will be migrated, except those matching the exclude filter.\n- include and exclude: Migrate collections that match the include filter, excluding those that also match the exclude filter. \n- No filters: All collections will be migrated.\n",
+        "type": "object",
+        "properties": {
+          "include": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "exclude": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
       },
       "migration-job-statistics": {
         "allOf": [
@@ -1974,6 +2068,19 @@
           "status"
         ]
       },
+      "connector-status": {
+        "description": "Runtime status of the Kafka Connect connectors backing this migration job (kafka-connect /\nconfluent deployment profiles only), reflecting the actual state reported by Kafka Connect rather\nthan assuming success at submission time. Lets the UI show which specific connector/task has an\nissue instead of a job that looks healthy while a connector is FAILED. Absent for deployments not\nbacked by Kafka Connect.\n",
+        "type": "object",
+        "properties": {
+          "source": {
+            "$ref": "#/components/schemas/connector-role-status"
+          },
+          "sink": {
+            "$ref": "#/components/schemas/connector-role-status"
+          }
+        },
+        "additionalProperties": false
+      },
       "failureError": {
         "type": "object",
         "properties": {
@@ -1990,6 +2097,20 @@
           "setupError": {
             "type": "boolean",
             "default": false
+          },
+          "failedLocation": {
+            "description": "Location of the last error before the job failed. See the job logs for the full error breakdown.",
+            "type": "string",
+            "nullable": true
+          },
+          "failedLocationType": {
+            "description": "TABLE = source table, COLLECTION = destination collection.",
+            "type": "string",
+            "enum": [
+              "TABLE",
+              "COLLECTION"
+            ],
+            "nullable": true
           }
         },
         "additionalProperties": false,
@@ -2011,69 +2132,18 @@
           "ABORTED"
         ]
       },
-      "relational-table-filters": {
-        "description": "An object where each key represents a schema name. Each schema contains tables you can apply table filters on.",
-        "type": "object",
-        "example": {
-          "schema_1_name": {
-            "table_1_name": {
-              "whereClause": "id > 1000 AND id <= 2000"
-            },
-            "table_2_name": {
-              "whereClause": "TRUE",
-              "rowCount": 10
-            }
-          }
-        },
-        "additionalProperties": {
-          "additionalProperties": {
-            "$ref": "#/components/schemas/table-filter"
-          },
-          "description": "An object where each key represents a table name within a schema.",
-          "type": "object"
-        }
+      "verification-type-enum": {
+        "type": "string",
+        "enum": [
+          "FULL",
+          "COUNT_ONLY"
+        ]
       },
-      "collection-filters": {
-        "description": "Include or exclude collections for this migration.\n- include only: Only collections matching the specified include filter will be migrated.\n- exclude only: All collections will be migrated, except those matching the exclude filter.\n- include and exclude: Migrate collections that match the include filter, excluding those that also match the exclude filter. \n- No filters: All collections will be migrated.\n",
-        "type": "object",
-        "properties": {
-          "include": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "exclude": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "migration-verification": {
-        "type": "object",
-        "properties": {
-          "enabled": {
-            "type": "boolean",
-            "default": false
-          },
-          "includedCollections": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "samplePercentage": {
-            "type": "integer",
-            "default": 100,
-            "maximum": 100,
-            "minimum": 1
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "enabled"
+      "count-method-enum": {
+        "type": "string",
+        "enum": [
+          "EXACT",
+          "ESTIMATE"
         ]
       },
       "ddl-connection-details": {
@@ -2465,6 +2535,40 @@
           "SKIP"
         ]
       },
+      "incremental-snapshot-options": {
+        "description": "Options for INCREMENTAL migration mode only.",
+        "type": "object",
+        "properties": {
+          "signalingTable": {
+            "description": "Signaling table on the source database used to coordinate the incremental snapshot.",
+            "type": "string",
+            "example": "database.schema.table"
+          },
+          "chunkSize": {
+            "description": "Rows per incremental-snapshot chunk (Debezium incremental.snapshot.chunk.size).\nWhen omitted, Debezium's default of 1024 applies.\nLarger chunks copy faster but hold more rows in memory per open chunk window.\n",
+            "type": "integer",
+            "maximum": 100000,
+            "minimum": 1
+          }
+        },
+        "additionalProperties": false
+      },
+      "table-filter": {
+        "type": "object",
+        "properties": {
+          "whereClause": {
+            "description": "Contents of the SQL WHERE clause to filter rows for the specified source table.",
+            "type": "string"
+          },
+          "rowCount": {
+            "description": "Optional limit to the number of rows returned from the source table.",
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          }
+        },
+        "additionalProperties": false
+      },
       "migration-job-statistics-details": {
         "type": "object",
         "properties": {
@@ -2485,6 +2589,13 @@
               "type": "string"
             }
           },
+          "migratedTables": {
+            "description": "Source tables whose snapshot copy has completed. Completion means the source snapshot finished reading, not that every row migrated successfully; on failure a table listed here may also appear in failureError.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "totalEventsSeen": {
             "type": "integer",
             "format": "int64",
@@ -2497,26 +2608,37 @@
         },
         "additionalProperties": false
       },
-      "table-filter": {
+      "connector-role-status": {
+        "description": "Runtime status of one Kafka Connect connector (source or sink) and its tasks.",
         "type": "object",
         "properties": {
-          "whereClause": {
-            "description": "Contents of the SQL WHERE clause to filter rows for the specified source table.",
+          "name": {
+            "description": "Connector name as registered in Kafka Connect.",
             "type": "string"
           },
-          "rowCount": {
-            "description": "Optional limit to the number of rows returned from the source table.",
-            "type": "integer",
-            "format": "int64"
+          "state": {
+            "$ref": "#/components/schemas/connector-state-enum"
+          },
+          "tasks": {
+            "description": "Per-task runtime status for this connector.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/connector-task-status"
+            }
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "required": [
+          "state"
+        ]
       },
       "collection": {
         "type": "object",
         "properties": {
           "name": {
-            "type": "string"
+            "description": "Target collection name. Rejects whitespace-only values, a leading or trailing dot, the dollar sign, a \"system.\" prefix, and any \".system.\" substring. Interior dots are permitted.",
+            "type": "string",
+            "pattern": "^(?!\\s*$)(?!\\.)(?!.*\\.$)(?!.*\\$)(?!system\\.)(?!.*\\.system\\.).*$"
           }
         },
         "additionalProperties": false,
@@ -2601,6 +2723,7 @@
             "$ref": "#/components/schemas/project-diagram-view"
           }
         },
+        "additionalProperties": false,
         "required": [
           "collection",
           "id",
@@ -2746,6 +2869,45 @@
           "targetTable"
         ]
       },
+      "connector-state-enum": {
+        "description": "Runtime state reported by Kafka Connect for a connector or one of its tasks (see https://kafka.apache.org/documentation/#connect_administration). UNKNOWN is Relational Migrator's own value for a status that could not be retrieved, e.g. when the Kafka Connect worker is unreachable.",
+        "type": "string",
+        "enum": [
+          "RUNNING",
+          "PAUSED",
+          "FAILED",
+          "UNASSIGNED",
+          "RESTARTING",
+          "STOPPED",
+          "UNKNOWN"
+        ]
+      },
+      "connector-task-status": {
+        "description": "Runtime status of a single Kafka Connect task, as reported by Kafka Connect.",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "Task id within the connector.",
+            "type": "integer"
+          },
+          "state": {
+            "$ref": "#/components/schemas/connector-state-enum"
+          },
+          "workerId": {
+            "description": "Kafka Connect worker the task is assigned to, when known.",
+            "type": "string"
+          },
+          "trace": {
+            "description": "Failure stack trace, present when the task state is FAILED.",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "state"
+        ]
+      },
       "mapping-settings": {
         "type": "object",
         "properties": {
@@ -2756,7 +2918,9 @@
             "type": "string"
           },
           "embeddedPath": {
-            "type": "string"
+            "description": "A single path segment for the embedded mapping. Rejects dots and whitespace-only values.",
+            "type": "string",
+            "pattern": "^(?!\\s+$)[^.]*$"
           },
           "primitive": {
             "type": "boolean"
@@ -2786,6 +2950,7 @@
             "$ref": "#/components/schemas/source-field-mapping"
           }
         },
+        "additionalProperties": false,
         "required": [
           "source",
           "target"
@@ -2795,7 +2960,9 @@
         "type": "object",
         "properties": {
           "name": {
-            "type": "string"
+            "description": "Calculated field name. Rejects whitespace-only values, a leading or trailing dot, and consecutive dots. Interior dots are permitted (they express dot-notation paths).",
+            "type": "string",
+            "pattern": "^(?!\\s*$)(?!\\.)(?!.*\\.$)(?!.*\\.\\.).*$"
           },
           "isNullExcluded": {
             "type": "boolean",
@@ -2839,6 +3006,7 @@
             }
           }
         },
+        "additionalProperties": false,
         "required": [
           "edges",
           "nodes"
@@ -2989,7 +3157,8 @@
           },
           "limit": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "minimum": 1
           }
         },
         "additionalProperties": false,
@@ -3002,7 +3171,9 @@
         "type": "object",
         "properties": {
           "name": {
-            "type": "string"
+            "description": "Target field name. Rejects whitespace-only values, a leading or trailing dot, and consecutive dots. Interior dots are permitted (they express dot-notation paths).",
+            "type": "string",
+            "pattern": "^(?!\\s*$)(?!\\.)(?!.*\\.$)(?!.*\\.\\.).*$"
           },
           "included": {
             "type": "boolean"
@@ -3151,7 +3322,8 @@
           "ddl": {
             "$ref": "#/components/schemas/ddl-connection-details"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "schema_descriptor_metadata": {
         "type": "object",
@@ -3162,7 +3334,11 @@
           "databaseVersion": {
             "type": "string"
           }
-        }
+        },
+        "additionalProperties": false,
+        "required": [
+          "databaseType"
+        ]
       },
       "project_diagrams_node_position": {
         "type": "object",
@@ -3174,6 +3350,7 @@
             "type": "number"
           }
         },
+        "additionalProperties": false,
         "required": [
           "x",
           "y"
