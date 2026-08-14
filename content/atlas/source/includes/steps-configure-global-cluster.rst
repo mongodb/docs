@@ -540,4 +540,4 @@
       If you selected :guilabel:`Self-Managed Sharding`, you must manually 
       configure the shard key and shard the global collection. To learn more, 
       see :manual:`Shard Keys </core/sharding-shard-key/>` and 
-      :manual:`Shard a Collection </core/sharding-shard-a-collection/>`.
+      :manual:`Distribute Collection Data </core/sharding-distribute-collection-data/>`.
