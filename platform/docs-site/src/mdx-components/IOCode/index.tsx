@@ -68,7 +68,8 @@ const outputWrapperStyle = css`
     }
 
     > div > div > pre {
-      border: 1px solid ${palette.gray.light2};
+      border: none;
+      border-top: none;
 
       &::after,
       &::before {

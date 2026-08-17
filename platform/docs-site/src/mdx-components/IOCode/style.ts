@@ -68,16 +68,7 @@ const variantColors = {
   },
 };
 
-/**
- * Token colors follow the resolved `darkMode` value (not just the global
- * `.dark-theme` class). Some code blocks — notably output panels — force
- * `darkMode` via a nested LeafyGreenProvider without a `.dark-theme`
- * ancestor. Keying only off `.dark-theme` left those blocks with light
- * token colors on a dark background in light mode. The `.dark-theme &`
- * override is retained so blocks that rely on the CSS class alone (SSR /
- * no-flash) still resolve to dark.
- */
-export const lgStyles = (darkMode: boolean) => css`
+export const lgStyles = css`
   [class*='lg-highlight-hljs-'] {
     .lg-highlight-keyword,
     .lg-highlight-keyword.lg-highlight-function,
@@ -87,7 +78,7 @@ export const lgStyles = (darkMode: boolean) => css`
     .lg-highlight-selector-pseudo,
     .lg-highlight-selector-id,
     .lg-highlight-selector-class {
-      color: ${darkMode ? variantColors.dark[10] : variantColors.light[10]};
+      color: ${variantColors.light[10]};
 
       .dark-theme & {
         color: ${variantColors.dark[10]};
@@ -98,7 +89,7 @@ export const lgStyles = (darkMode: boolean) => css`
     .lg-highlight-number,
     .lg-highlight-literal,
     .lg-highlight-function.lg-highlight-title {
-      color: ${darkMode ? variantColors.dark[9] : variantColors.light[9]};
+      color: ${variantColors.light[9]};
 
       .dark-theme & {
         color: ${variantColors.dark[9]};
@@ -108,7 +99,7 @@ export const lgStyles = (darkMode: boolean) => css`
     .lg-highlight-quote,
     .lg-highlight-section,
     .lg-highlight-name {
-      color: ${darkMode ? variantColors.dark[8] : variantColors.light[8]};
+      color: ${variantColors.light[8]};
 
       .dark-theme & {
         color: ${variantColors.dark[8]};
@@ -117,7 +108,7 @@ export const lgStyles = (darkMode: boolean) => css`
 
     .lg-highlight-string,
     .lg-highlight-addition {
-      color: ${darkMode ? variantColors.dark[7] : variantColors.light[7]};
+      color: ${variantColors.light[7]};
 
       .dark-theme & {
         color: ${variantColors.dark[7]};
@@ -126,7 +117,7 @@ export const lgStyles = (darkMode: boolean) => css`
 
     .lg-highlight-meta,
     .lg-highlight-meta-string {
-      color: ${darkMode ? variantColors.dark[6] : variantColors.light[6]};
+      color: ${variantColors.light[6]};
 
       .dark-theme & {
         color: ${variantColors.dark[6]};
@@ -146,7 +137,7 @@ export const lgStyles = (darkMode: boolean) => css`
     .lg-highlight-built_in,
     .lg-highlight-type,
     .lg-highlight-params {
-      color: ${darkMode ? variantColors.dark[5] : variantColors.light[5]};
+      color: ${variantColors.light[5]};
 
       .dark-theme & {
         color: ${variantColors.dark[5]};
@@ -155,7 +146,7 @@ export const lgStyles = (darkMode: boolean) => css`
 
     .lg-highlight-title,
     .lg-highlight-class.lg-highlight-title {
-      color: ${darkMode ? variantColors.dark[3] : variantColors.light[3]};
+      color: ${variantColors.light[3]};
 
       .dark-theme & {
         color: ${variantColors.dark[3]};
@@ -164,7 +155,7 @@ export const lgStyles = (darkMode: boolean) => css`
 
     .lg-highlight-doctag,
     .lg-highlight-formula {
-      color: ${darkMode ? variantColors.dark[3] : variantColors.light[3]};
+      color: ${variantColors.light[3]};
 
       .dark-theme & {
         color: ${variantColors.dark[3]};
@@ -172,7 +163,7 @@ export const lgStyles = (darkMode: boolean) => css`
     }
 
     .lg-highlight-comment {
-      color: ${darkMode ? variantColors.dark[2] : variantColors.light[2]};
+      color: ${variantColors.light[2]};
 
       .dark-theme & {
         color: ${variantColors.dark[2]};

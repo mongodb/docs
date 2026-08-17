@@ -37,6 +37,17 @@ function parseSubstitutionsTs(raw: string): Record<string, string> {
     const value = match[2].replace(/\\"/g, '"');
     if (key) result[key] = value;
   }
+
+  // Structured values (rich markup, links, abbreviations) are objects rather than bare strings,
+  // so the pair regex above skips them. Markdown output is plain text, so take their flattened
+  // `text` field — without this a rich substitution resolves to nothing and the node is stripped.
+  const objectRe = /"([^"]+)"\s*:\s*\{\s*text:\s*"((?:[^"\\]|\\.)*)"/g;
+  while ((match = objectRe.exec(raw)) !== null) {
+    const key = match[1];
+    const value = match[2].replace(/\\"/g, '"');
+    if (key && result[key] === undefined) result[key] = value;
+  }
+
   return result;
 }
 

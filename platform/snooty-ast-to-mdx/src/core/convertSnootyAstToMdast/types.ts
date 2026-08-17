@@ -30,7 +30,17 @@ export interface LinkSubstitution {
   text: string;
   url: string;
 }
-export type CollectedSubstitutionValue = string | LinkSubstitution;
+/**
+ * A substitution whose resolved value is inline markup rather than plain text (e.g. |ui-org-menu| =
+ * ":icon-mms:`office` :guilabel:`Organizations` menu"). `nodes` holds the converted mdast so the
+ * renderer can splice real elements in at the reference site; `text` is the flattened form for
+ * consumers that can only take a string (markdown export, link labels).
+ */
+export interface RichSubstitution {
+  text: string;
+  nodes: MdastNode[];
+}
+export type CollectedSubstitutionValue = string | LinkSubstitution | RichSubstitution;
 
 export interface ConversionContext {
   emitMdxFile?: (args: EmitMdxFileArgs) => void;

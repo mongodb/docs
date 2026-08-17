@@ -156,7 +156,9 @@ const fetchAndParseInclude = async ({
 
 type AbbrSubstitution = { text: string; tooltip: string };
 type LinkSubstitution = { text: string; url: string };
-type SubstitutionValue = string | AbbrSubstitution | LinkSubstitution;
+/** Inline markup (icons, guilabels, roles) stored as mdast, with `text` as the flattened fallback. */
+type RichSubstitution = { text: string; nodes: PhrasingContent[] };
+type SubstitutionValue = string | AbbrSubstitution | LinkSubstitution | RichSubstitution;
 
 interface ReferencesData {
   substitutions: Record<string, SubstitutionValue>;
@@ -243,6 +245,21 @@ const resolveSubstitutions = ({ tree, refs, projectPath, dirNameToPrefix = {} }:
         return;
       }
       replacements.push({ index, parent, replacement: { type: 'text', value: inlineValue } as PhrasingContent });
+      return;
+    }
+
+    // Rich substitution: the value is inline markup (e.g. |ui-org-menu| = ":icon-mms:`office`
+    // :guilabel:`Organizations` menu") that no string attribute could carry, so the converter
+    // stored the mdast in _references.json. Splice it in at the reference site. Clone per use —
+    // the same entry serves every reference to this key, and remark plugins mutate nodes.
+    if (value && typeof value === 'object' && 'nodes' in value) {
+      replacements.push({
+        index,
+        parent,
+        // JSON round-trip rather than structuredClone: the nodes come straight from
+        // _references.json, so they are already plain data, and this runs in every environment.
+        replacement: JSON.parse(JSON.stringify(value.nodes)) as PhrasingContent[],
+      });
       return;
     }
 

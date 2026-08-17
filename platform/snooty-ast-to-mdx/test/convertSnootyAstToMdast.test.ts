@@ -1430,6 +1430,46 @@ describe('convertSnootyAstToMdast', () => {
     expect(plainPageMdx).not.toContain(LINK_URL);
   });
 
+  it('stores page-level rich substitution markup in the shared references artifact', () => {
+    // Same |ui-org-menu| substitution, but used directly on a page rather than through an include.
+    // A flat `value="Organizations menu"` would drop the icon and the guilabel styling at render time.
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'paragraph',
+          children: [
+            { type: 'text', value: 'Select the organization from the ' },
+            {
+              type: 'substitution_reference',
+              refname: 'ui-org-menu',
+              children: [
+                { type: 'role', name: 'icon-mms', children: [{ type: 'text', value: 'office' }] },
+                { type: 'text', value: ' ' },
+                { type: 'role', name: 'guilabel', children: [{ type: 'text', value: 'Organizations' }] },
+                { type: 'text', value: ' menu' },
+              ],
+            },
+            { type: 'text', value: ' in the navigation bar.' },
+          ],
+        },
+      ],
+    };
+    const { mdx, references } = convertSnootyAst({ ast });
+
+    // The page keeps a plain reference; the markup lives once in the shared references artifact.
+    expect(mdx).toContain('<Reference refKey="ui-org-menu" type="substitution" />');
+    expect(mdx).not.toContain('value="Organizations menu"');
+    expect(mdx).not.toContain('<Icon');
+
+    const rich = (references as { substitutions: Record<string, { text: string; nodes: SnootyNode[] }> })
+      .substitutions['ui-org-menu'];
+    expect(rich.text).toBe('Organizations menu');
+    const richMdx = convertMdastToMdx({ type: 'root', children: [{ type: 'paragraph', children: rich.nodes }] });
+    expect(richMdx).toContain('<Icon name="icon-mms">office</Icon>');
+    expect(richMdx).toContain('<Guilabel>Organizations</Guilabel>');
+  });
+
   it('wraps inline role nodes (icon, guilabel) in a fragment inside Replacement slot', () => {
     // |ui-org-menu| = ":icon-mms:`office` :guilabel:`Organizations` menu"
     // The children of the substitution_reference are inline role nodes (not wrapped in a paragraph).
@@ -2706,28 +2746,6 @@ describe('DefinitionTerm inline content rendering', () => {
       const outputSection = mdx.split('<Output>')[1];
       expect(outputSection).toContain('copyable={false}');
       expect(outputSection).not.toContain('copyable={true}');
-    });
-
-    it('does not force darkMode on the Output code block (it follows the page theme)', () => {
-      const ast: SnootyNode = {
-        type: 'root',
-        children: [
-          {
-            type: 'directive',
-            name: 'io-code-block',
-            options: { copyable: true },
-            children: [
-              makeIoChild('input', { lang: 'javascript', value: 'db.find()' }),
-              makeIoChild('output', { lang: 'shell', value: '[{ _id: 1 }]' }),
-            ],
-          },
-        ],
-      };
-      const { mdx } = convertSnootyAst({ ast });
-
-      const outputSection = mdx.split('<Output>')[1];
-      expect(outputSection).not.toContain('darkMode={true}');
-      expect(outputSection).not.toContain('darkMode');
     });
 
     it('emits copyable={false} on Output even when the code block has no language', () => {

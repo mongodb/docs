@@ -58,7 +58,7 @@ const codeContainerStyle = (darkMode: boolean) => css`
     }
   }
 
-  ${lgStyles(darkMode)}
+  ${lgStyles}
 `;
 
 const sourceCodeStyle = css`

@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import type { SnootyNode } from '../src/core/convertSnootyAstToMdast/types';
 import { convertJsonAstToMdxFiles } from '../src/core/convertJsonAstToMdxFiles/convertJsonAstToMdxFiles';
+import { mergeSubstitutions } from '../src/core/convertJsonAstToMdxFiles/buildReferencesArtifacts';
 
 // no files will get output since we mock the fs calls below
 const OUTPUT_PATH = './test/__snapshots__/out.mdx';
@@ -166,5 +167,29 @@ describe('convertJsonAstToMdx', () => {
     } catch (error) {
       expect(error).toBe(errorMessage);
     }
+  });
+});
+
+describe('mergeSubstitutions', () => {
+  const rich = { text: 'Organizations menu', nodes: [{ type: 'text', value: 'Organizations menu' }] };
+
+  it('keeps a rich value when a later contributor supplies only the flattened string', () => {
+    // Reproduces the real failure: the page collects the markup, then an include body that
+    // mentions the same key collects "Organizations menu" and last-writer-wins erased it.
+    const merged = mergeSubstitutions({ 'ui-org-menu': rich }, { 'ui-org-menu': 'Organizations menu' });
+
+    expect(merged['ui-org-menu']).toEqual(rich);
+  });
+
+  it('upgrades a plain string to a rich value regardless of contribution order', () => {
+    const merged = mergeSubstitutions({ 'ui-org-menu': 'Organizations menu' }, { 'ui-org-menu': rich });
+
+    expect(merged['ui-org-menu']).toEqual(rich);
+  });
+
+  it('still lets a later string overwrite an earlier string', () => {
+    const merged = mergeSubstitutions({ mms: 'Ops Manager' }, { mms: 'Cloud Manager' });
+
+    expect(merged.mms).toBe('Cloud Manager');
   });
 });

@@ -312,3 +312,79 @@ describe('remarkResolveImports flow-context references (phrasing at flow positio
     await expect(reparseMdx(resolved)).resolves.toBeDefined();
   });
 });
+
+describe('remarkResolveImports rich substitution references', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetContentString.mockImplementation(async (rawPath: string) => {
+      if (rawPath.endsWith('_references.json')) {
+        return JSON.stringify({
+          substitutions: {
+            // Rich value: markup the renderer splices in, plus a flattened string fallback.
+            'ui-org-menu': {
+              text: 'Organizations menu',
+              nodes: [
+                {
+                  type: 'mdxJsxTextElement',
+                  name: 'Icon',
+                  attributes: [{ type: 'mdxJsxAttribute', name: 'name', value: 'icon-mms' }],
+                  children: [{ type: 'text', value: 'office' }],
+                },
+                { type: 'text', value: ' ' },
+                {
+                  type: 'mdxJsxTextElement',
+                  name: 'Guilabel',
+                  attributes: [],
+                  children: [{ type: 'text', value: 'Organizations' }],
+                },
+                { type: 'text', value: ' menu' },
+              ],
+            },
+            mms: 'Ops Manager',
+          },
+          refs: {},
+        });
+      }
+      return null;
+    });
+  });
+
+  async function resolve(pageMdx: string): Promise<string> {
+    const file = await remark()
+      .use(remarkFrontmatter, ['yaml'])
+      .use(remarkGfm)
+      .use(remarkMdx)
+      .use(remarkResolveImports, { projectPath: 'manual/manual', dirNameToPrefix: {} })
+      .use(remarkStringify)
+      .process(pageMdx);
+    return String(file);
+  }
+
+  it('splices shared markup in at the reference site', async () => {
+    const resolved = await resolve(
+      'Select it from the <Reference refKey="ui-org-menu" type="substitution" /> in the navigation bar.\n',
+    );
+
+    expect(resolved).not.toContain('<Reference');
+    expect(resolved).toContain('<Icon name="icon-mms">office</Icon>');
+    expect(resolved).toContain('<Guilabel>Organizations</Guilabel>');
+    expect(resolved).toContain('menu in the navigation bar.');
+    await expect(reparseMdx(resolved)).resolves.toBeDefined();
+  });
+
+  it('gives every reference to the key its own copy of the markup', async () => {
+    // One shared entry serves many call sites; splicing the same node objects into each would
+    // let a later mutating plugin corrupt every other occurrence.
+    const resolved = await resolve(
+      'The <Reference refKey="ui-org-menu" type="substitution" /> and the <Reference refKey="ui-org-menu" type="substitution" />.\n',
+    );
+
+    expect(resolved.match(/<Guilabel>Organizations<\/Guilabel>/g)).toHaveLength(2);
+  });
+
+  it('still resolves plain string substitutions to text', async () => {
+    const resolved = await resolve('Open <Reference refKey="mms" type="substitution" />.\n');
+
+    expect(resolved).toContain('Open Ops Manager.');
+  });
+});

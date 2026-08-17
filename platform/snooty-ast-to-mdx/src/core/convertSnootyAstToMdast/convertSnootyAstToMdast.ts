@@ -227,6 +227,21 @@ const convertCodeNode = (node: SnootyNode, fallbackLang?: string | null): MdastN
 };
 
 /** Convert a list of Snooty nodes to a list of mdast nodes */
+/**
+ * Record a substitution's resolved value for `_references.json`.
+ *
+ * A key is collected many times across a conversion — once per page and once per include body that
+ * mentions it — and most of those sites only know the flattened text. A rich value (inline markup
+ * such as an icon or guilabel) can only be produced at the one site that sees the resolved role
+ * nodes, so a later plain-string write must not overwrite it: the string carries strictly less
+ * information, and losing it here silently drops the markup from every page at render time.
+ */
+const setCollectedSubstitution = (ctx: ConversionContext, refname: string, value: CollectedSubstitutionValue) => {
+  const existing = ctx.collectedSubstitutions.get(refname);
+  if (existing && typeof existing === 'object' && 'nodes' in existing && typeof value === 'string') return;
+  ctx.collectedSubstitutions.set(refname, value);
+};
+
 const convertChildren = ({ nodes, depth, ctx, parentType }: ConvertChildrenArgs): MdastNode[] => {
   if (!nodes || !Array.isArray(nodes)) return [];
   const children = nodes.flatMap((node) => convertNode({ node, depth, ctx, parentType })).filter(Boolean);
@@ -1020,11 +1035,9 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
           // Output code blocks are never copyable — force the prop regardless of the source AST.
           // Also ensure lang is non-null so remark serializes the meta string (copyable={false}).
           // remark only emits the info string when lang is present; without it the meta is dropped.
-          // Output panels intentionally follow the page theme (light in light mode, dark in
-          // dark mode), so darkMode is not forced here.
           const normalizedCodeNode =
             childName === 'output'
-              ? { ...codeNode, copyable: false, lang: codeNode.lang ?? fallbackLang ?? 'text' }
+              ? { ...codeNode, copyable: false, darkMode: true, lang: codeNode.lang ?? fallbackLang ?? 'text' }
               : codeNode;
           const codeMdast = convertCodeNode(normalizedCodeNode, fallbackLang);
 
@@ -1921,7 +1934,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         const linkLabel = extractInlineDisplayText(externalHyperlinkRef.children ?? []);
         const slotBody = ctx.emitSubstitutionReferencesAsReplacement;
         if (!slotBody && refname && linkLabel) {
-          ctx.collectedSubstitutions.set(refname, { text: linkLabel, url: externalHyperlinkRef.refuri });
+          setCollectedSubstitution(ctx, refname, { text: linkLabel, url: externalHyperlinkRef.refuri });
         }
         return {
           type: 'link',
@@ -1972,7 +1985,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
 
           // Break out `|alias| replace:: :ref:` … as the same output as a standalone `:ref:` / `:doc:`.
           if (title) {
-            ctx.collectedSubstitutions.set(refname, title);
+            setCollectedSubstitution(ctx, refname, title);
           }
           const attributes: MdastNode[] = [{ type: 'mdxJsxAttribute', name: 'name', value: refTargetKey }];
           if (title) {
@@ -2033,8 +2046,43 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       // Emit the node's resolved children directly so inline formatting (code, emphasis, etc.) is
       // kept; a flat `value` would render as plain text at runtime.
       if (catalogOverriddenByLocal) {
-        if (refname) ctx.collectedSubstitutions.set(refname, localResolvedText);
+        if (refname) setCollectedSubstitution(ctx, refname, localResolvedText);
         return convertChildren({ nodes: node.children ?? [], depth, ctx });
+      }
+      // Page-level substitutions whose value is mixed inline markup (e.g. |ui-org-menu| =
+      // ":icon-mms:`office` :guilabel:`Organizations` menu") have no catalog entry and no single
+      // role to special-case above, so they would fall through to the flat `value` attribute below
+      // and lose the icon and guilabel entirely. Store the converted markup in the shared
+      // `_references.json` as a rich substitution and emit a plain `<Reference>` that points at
+      // it — the same indirection every other substitution uses, just with a value that a string
+      // attribute could not carry. remark-resolve-imports splices the markup in at render time.
+      if (
+        !fromCatalog &&
+        !ctx.emitSubstitutionReferencesAsReplacement &&
+        !ctx.suppressSubstitutionInlineValues &&
+        refname &&
+        (node.children ?? []).some((child) => child.type !== 'text')
+      ) {
+        // Icon roles carry the icon's *name* as their text (`:icon-mms:`office`` → "office"),
+        // which is meaningless in prose, so drop them from the flattened fallback.
+        const flattened = extractInlineDisplayText(
+          (node.children ?? []).filter(
+            (child) => !(child.type === 'role' && String(child.name ?? '').startsWith('icon')),
+          ),
+        ).trim();
+        setCollectedSubstitution(ctx, refname, {
+          text: flattened,
+          nodes: convertChildren({ nodes: node.children ?? [], depth, ctx }),
+        });
+        return {
+          type: 'mdxJsxTextElement',
+          name: 'Reference',
+          attributes: [
+            { type: 'mdxJsxAttribute', name: 'refKey', value: refname },
+            { type: 'mdxJsxAttribute', name: 'type', value: 'substitution' },
+          ],
+          children: [],
+        };
       }
       if (fromCatalog) {
         const slotBody = ctx.emitSubstitutionReferencesAsReplacement;
@@ -2066,7 +2114,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
           if (ctx.suppressSubstitutionInlineValues && refname) {
             // Record the resolved value as the _references.json fallback in case a caller supplies
             // no <Replacement> slot for this substitution.
-            ctx.collectedSubstitutions.set(refname, fromCatalog.title);
+            setCollectedSubstitution(ctx, refname, fromCatalog.title);
             return {
               type: 'mdxJsxTextElement',
               name: 'Reference',
@@ -2102,7 +2150,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         // Plain include bodies with a page-level literal override: suppress baked xref so the
         // per-page <Replacement> slot can provide the literal value instead.
         if (ctx.suppressSubstitutionInlineValues && ctx.substitutionDefLiterals?.has(refname)) {
-          ctx.collectedSubstitutions.set(refname, fromCatalog.title);
+          setCollectedSubstitution(ctx, refname, fromCatalog.title);
           return {
             type: 'mdxJsxTextElement',
             name: 'Reference',
@@ -2113,7 +2161,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
             children: [],
           };
         }
-        ctx.collectedSubstitutions.set(refname, fromCatalog.title);
+        setCollectedSubstitution(ctx, refname, fromCatalog.title);
         return {
           type: 'mdxJsxTextElement',
           name: 'Reference',
@@ -2131,7 +2179,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       }
       const slotBody = ctx.emitSubstitutionReferencesAsReplacement;
       if (!slotBody && refname && text) {
-        ctx.collectedSubstitutions.set(refname, text);
+        setCollectedSubstitution(ctx, refname, text);
       }
       // Include bodies: type="replacement" for parent <Replacement>; pages use type="substitution"
       const attributes: MdastNode[] = [];
