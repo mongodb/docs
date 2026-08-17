@@ -102,6 +102,14 @@ const nextConfig = {
     // Keep getAssetBucketSuffix() in lockstep with assetPrefix for this build
     // (active vs inactive manual, or empty for every other project).
     NEXT_PUBLIC_DOCS_ASSET_BUCKET_SUFFIX: ASSET_BUCKET_SUFFIX,
+    // Build identity, so a field web vitals regression can be traced to the
+    // merge that caused it. See src/utils/build-info.ts.
+    NEXT_PUBLIC_BUILD_BRANCH: process.env.BRANCH ?? process.env.HEAD ?? '',
+    NEXT_PUBLIC_BUILD_COMMIT: process.env.COMMIT_REF ?? '',
+    NEXT_PUBLIC_BUILD_DOCS_PROJECT: process.env.DOCS_PROJECT ?? '',
+    // Sampling lives in the deploy env so the rate can be changed without a PR.
+    // See src/utils/report-web-vitals.ts.
+    NEXT_PUBLIC_WEB_VITALS_SAMPLE_RATE: process.env.WEB_VITALS_SAMPLE_RATE ?? '',
   },
   compiler: {
     emotion: true,
