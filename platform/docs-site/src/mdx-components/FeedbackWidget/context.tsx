@@ -68,6 +68,7 @@ export type FeedbackContextType = {
   setComment: Dispatch<SetStateAction<string>>;
   email: string;
   setEmail: Dispatch<SetStateAction<string>>;
+  hasSubmitted: boolean;
 };
 
 export type FeedbackViewType = 'waiting' | 'comment' | 'rating' | 'submitted';
@@ -99,6 +100,7 @@ const initialValue: FeedbackContextType = {
   setComment: () => {},
   email: '',
   setEmail: () => {},
+  hasSubmitted: false,
 };
 
 const FeedbackContext = createContext<FeedbackContextType>(initialValue);
@@ -126,6 +128,11 @@ export function FeedbackProvider({ page, test, position = 'right column', ...pro
   const [screenshotElement, setScreenshotElement] = useState<Element | null>(null);
   const [comment, setComment] = useState('');
   const [email, setEmail] = useState('');
+  // Once a feedback has been submitted on this page, the widget hides itself
+  // and won't accept another submission until a full page reload. A soft
+  // deterrent against repeated automated submissions, complementing the
+  // server-side rate limits.
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   const [, startTransition] = useTransition();
   const { user, reassignCurrentUser } = useBrowserUser();
   const pathname = usePathname();
@@ -183,6 +190,8 @@ export function FeedbackProvider({ page, test, position = 'right column', ...pro
   };
 
   const selectInitialRating = async (ratingValue: number) => {
+    // Block starting a new submission once one has been submitted on this page.
+    if (hasSubmitted) return;
     reportAnalytics('Click', {
       position: position,
       position_context: 'Rating',
@@ -250,6 +259,9 @@ export function FeedbackProvider({ page, test, position = 'right column', ...pro
       setFeedbackId(undefined);
       setComment('');
       setEmail('');
+      // Mark this page's widget as spent; it will hide once the "submitted"
+      // confirmation is dismissed and won't reopen without a page reload.
+      setHasSubmitted(true);
     }
   };
 
@@ -290,6 +302,7 @@ export function FeedbackProvider({ page, test, position = 'right column', ...pro
     setComment,
     email,
     setEmail,
+    hasSubmitted,
   };
 
   // reset feedback when route changes
@@ -297,6 +310,8 @@ export function FeedbackProvider({ page, test, position = 'right column', ...pro
     // disable effect for testing views
     if (test?.view) return;
     abandon();
+    // Re-enable the widget on client-side navigation to a new page.
+    setHasSubmitted(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 

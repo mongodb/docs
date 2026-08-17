@@ -1,6 +1,7 @@
 import { BSON } from 'mongodb';
 import { type NextRequest, NextResponse } from 'next/server';
 import { withCORS } from '@/app/lib/with-cors';
+import { checkRateLimit, getClientIp } from '@/services/rate-limit/rate-limit';
 
 export interface SlackAction {
   action_id: string;
@@ -38,6 +39,15 @@ export async function OPTIONS() {
 }
 
 export async function POST(request: NextRequest) {
+  // Rate limit by client IP on this public, unauthenticated endpoint. Slack's
+  // legitimate interaction volume stays well under the limit.
+  const rateLimit = await checkRateLimit({ key: `feedback-interaction:${getClientIp(request)}` });
+  if (!rateLimit.allowed) {
+    const response = NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
+    response.headers.set('Retry-After', String(rateLimit.retryAfterSec));
+    return withCORS(response);
+  }
+
   try {
     const text = await request.text();
 
