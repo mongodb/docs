@@ -143,7 +143,13 @@ async function updateAhaFeatureWhatsNewPost(domain: string, featureId: string, w
   // request "succeeding" is not proof the field changed. Confirm the returned
   // feature actually reflects the URL we wrote; otherwise the field key is
   // likely wrong or not writable by this API token.
-  const returnedValue = responseBody.feature.custom_fields?.[AHA_WHATS_NEW_POST_FIELD_KEY];
+  //
+  // Note: Aha returns custom_fields as an ARRAY of { key, value, ... } objects
+  // (not an object keyed by field key), so we look the field up by its key.
+  const customFields: Array<{ key: string; value: unknown }> = Array.isArray(responseBody.feature.custom_fields)
+    ? responseBody.feature.custom_fields
+    : [];
+  const returnedValue = customFields.find((field) => field.key === AHA_WHATS_NEW_POST_FIELD_KEY)?.value;
   console.info('Aha feature update response', {
     featureId,
     returnedCustomFields: responseBody.feature.custom_fields,
