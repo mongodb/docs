@@ -1,3 +1,17 @@
+.. _atlas-sp-20260804:
+
+4 August 2026 Release
+---------------------
+
+- Adds the :authrole:`Project Stream Processing Manager` role. To
+  learn more, see :ref:`project-roles`.
+- Adds support for creating an {+aws+} Confluent Enterprise cluster
+  Private Link connection without a ``dnsDomain`` value. To learn
+  more, see :ref:`atlas-sp-pl-kafka-add`.
+- Adds a modal in the {+atlas-ui+} for checkpoint clearing when
+  editing a stream processor.
+- Adds new activity feed events for {+atlas-sp+}.
+
 .. _atlas-sp-20260714:
 
 14 July 2026 Release
