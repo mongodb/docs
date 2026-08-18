@@ -306,6 +306,11 @@ const tocData: TocItem[] = [
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/audio-based-AI-diagnostics',
           },
+          {
+            label: 'Smart Grid Management',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/smart-grid-management',
+          },
         ],
       },
       {
