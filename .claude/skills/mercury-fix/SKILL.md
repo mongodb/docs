@@ -31,10 +31,15 @@ The docs URL is almost never in the description — descriptions say "this page"
 | `URL(s)` | `customfield_12054` | The target page(s), newline-separated. The whole job depends on this. |
 | Epic Link | `customfield_10857` | Confirms ticket shape; do not gate on its value |
 | `comment` | — | Comments frequently withdraw part of the request |
+| `issuelinks` | — | These tickets are often clones of an earlier one; see below |
 
-So the read is `summary,description,labels,components,status,comment,customfield_12054` — never `*all`, which returns 150+ mostly-null custom fields.
+So the read is `summary,description,labels,components,status,comment,issuelinks,customfield_12054` — never `*all`, which returns 150+ mostly-null custom fields.
 
 **Read the comments before planning.** A comment often narrows or withdraws part of the description — a request to change a page's URL, for instance, may be countermanded later in the thread. A request that a comment has withdrawn must not be implemented.
+
+**Read the linked tickets too.** These tickets are frequently clones of an earlier ticket asking the same question against a different model, so the linked issue may hold prior discussion, an earlier fix attempt, or the reason the question came back. Fetch each key in `issuelinks` — the same field list works — and pay particular attention to a `Cloners` link.
+
+What you are looking for: a fix that was already applied and did not work, wording the reporter rejected last time, or a different page chosen as the target. Any of those changes the plan. Summarise what the linked ticket adds in your Step 4 plan, and say so explicitly if it adds nothing, so the writer knows it was checked rather than skipped.
 
 If the `URL(s)` field is empty, scan the description and comments for a complete `mongodb.com/docs/` URL written out explicitly. Never construct or guess a URL. If none is present, stop and ask the user which page to edit.
 

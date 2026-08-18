@@ -24,7 +24,7 @@ Match the underline to the **rendered** length, not the raw markup. `{+mongosh+}
 
 That heading renders as `mongosh Configuration` — 21 characters — so the underline is 21 tildes, not the 25 characters of the literal source text. `.claude/skills/fix-seo/assets/rst.md` documents how to count visible length, including role-stripping.
 
-Note a known inconsistency in the repo's own guidance: `.claude/skills/release-notes-base/references/rst-formatting.md` says `|pipe|` substitutions match the *raw* source length while `{+curly+}` constants match the *rendered* length. Copy the convention used by neighbouring headings in the file you are editing, and flag the discrepancy rather than assuming.
+Pipe substitutions behave the opposite way: `|onprem| Server 8.0` takes a 19-character underline matching the raw source, not the 22 it renders as. The two differ because Snooty resolves them at different stages. `.claude/rules/rst-conventions.md` is authoritative on this — read its Headings section rather than relying on the summary here.
 
 ## Note lifted out of a table
 
