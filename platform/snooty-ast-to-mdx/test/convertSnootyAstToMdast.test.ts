@@ -2922,7 +2922,7 @@ describe('DefinitionTerm inline content rendering', () => {
       };
       const { mdx } = convertSnootyAst({ ast });
 
-      expect(mdx).toContain('<StepHeading>');
+      expect(mdx).toContain('<StepHeading headingLevel={1}>');
       expect(mdx).toContain('Do the thing');
       expect(mdx).toContain('Body text.');
       expect(mdx).not.toMatch(/^#{1,6}\s/m);
@@ -2943,7 +2943,7 @@ describe('DefinitionTerm inline content rendering', () => {
       };
       const { mdx } = convertSnootyAst({ ast });
 
-      expect(mdx).toContain('<StepHeading>');
+      expect(mdx).toContain('<StepHeading headingLevel={1}>');
       expect(mdx).not.toMatch(/^\s*#{1,6}\s+Step title/m);
       expect(mdx).toMatch(/^\s*#{1,6}\s+Sub-section/m);
     });
@@ -2989,7 +2989,7 @@ describe('DefinitionTerm inline content rendering', () => {
       };
       const { mdx } = convertSnootyAst({ ast });
 
-      expect(mdx).toContain('<StepHeading>');
+      expect(mdx).toContain('<StepHeading headingLevel={1}>');
       expect(mdx).toContain('<Guilabel>Settings</Guilabel>');
       expect(mdx).not.toMatch(/^#{1,6}\s/m);
     });
@@ -3026,7 +3026,7 @@ describe('DefinitionTerm inline content rendering', () => {
       const { mdx } = convertSnootyAst({ ast });
 
       expect(mdx).toContain('<Procedure');
-      expect(mdx).toContain('<StepHeading>');
+      expect(mdx).toContain('<StepHeading headingLevel={1}>');
       expect(mdx).toContain('Step one');
       expect(mdx).toContain('Step two');
       expect(mdx).not.toMatch(/^#{1,6}\s/m);
