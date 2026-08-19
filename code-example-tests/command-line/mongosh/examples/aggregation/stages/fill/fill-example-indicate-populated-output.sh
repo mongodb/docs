@@ -1,0 +1,38 @@
+[
+  {
+    _id: ...,
+    date: ISODate("2021-03-08T00:00:00.000Z"),
+    score: 90,
+    valueExisted: true
+  },
+  {
+    _id: ...,
+    date: ISODate("2021-03-09T00:00:00.000Z"),
+    score: 92,
+    valueExisted: true
+  },
+  {
+    _id: ...,
+    date: ISODate("2021-03-10T00:00:00.000Z"),
+    valueExisted: false,
+    score: 92
+  },
+  {
+    _id: ...,
+    date: ISODate("2021-03-11T00:00:00.000Z"),
+    valueExisted: false,
+    score: 92
+  },
+  {
+    _id: ...,
+    date: ISODate("2021-03-12T00:00:00.000Z"),
+    score: 85,
+    valueExisted: true
+  },
+  {
+    _id: ...,
+    date: ISODate("2021-03-13T00:00:00.000Z"),
+    valueExisted: false,
+    score: 85
+  }
+]

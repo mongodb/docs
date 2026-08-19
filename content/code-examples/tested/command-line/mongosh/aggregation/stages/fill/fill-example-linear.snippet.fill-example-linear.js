@@ -1,0 +1,12 @@
+db.stock.aggregate( [
+   {
+      $fill:
+         {
+            sortBy: { time: 1 },
+            output:
+               {
+                  "price": { method: "linear" }
+               }
+         }
+   }
+] )
