@@ -126,6 +126,10 @@ Prefer CSS/SCSS modules ([docs](https://nextjs.org/docs/app/getting-started/css#
 
 Components are built on [LeafyGreen](https://github.com/mongodb/leafygreen-ui), which uses [Emotion](https://emotion.sh/docs/introduction). Use `className` with Emotion styling.
 
+`src/app/emotion.tsx` inlines those Emotion styles into every served HTML document, ahead of the
+page content. [INLINE-CSS-BASELINE.md](INLINE-CSS-BASELINE.md) records how many bytes that costs and
+how to re-measure it with `pnpm measure:inline-css`.
+
 ## Deploy
 
 Each content project deploys to its own Netlify site, not a single shared one. Site names generally follow the project — for example, `ops-manager` deploys at [ops-manager-docs](https://app.netlify.com/projects/ops-manager-docs/overview). Check the Netlify dashboard for a project's exact site name.
