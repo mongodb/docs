@@ -93,6 +93,108 @@ jobs:
           pnpm run test
           pnpm run typecheck
 
+  # Report-only bundle size measurement (UXE-697). Must stay out of the
+  # platform-ci-status aggregate and out of required checks: a size gate during
+  # the LeafyGreen -> Via migration would fail on correct changes.
+  bundle:
+    name: Bundle size report
+    needs: changes
+    if: needs.changes.outputs.platform == 'true'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    permissions:
+      contents: read
+      pull-requests: write
+    # Two quick pushes would otherwise both find no marker comment and both
+    # post, turning update-in-place into append-forever.
+    concurrency:
+      group: bundle-size-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: true
+    defaults:
+      run:
+        working-directory: platform
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        run: npm install -g pnpm@10.27.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+          cache-dependency-path: platform/pnpm-lock.yaml
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+        with:
+          aws-access-key-id: ${{ secrets.NPM_AWS_KEY }}
+          aws-secret-access-key: ${{ secrets.NPM_AWS_SECRET }}
+          aws-region: us-east-1
+
+      - name: Authenticate with CodeArtifact
+        run: |
+          CODEARTIFACT_TOKEN=$(aws codeartifact get-authorization-token \
+            --domain mongodb --domain-owner 271346171620 --region us-east-1 \
+            --query authorizationToken --output text)
+          echo "::add-mask::$CODEARTIFACT_TOKEN"
+          echo "NPM_AWS_AUTH=$CODEARTIFACT_TOKEN" >> "$GITHUB_ENV"
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      # DOCS_PROJECT stays unset: setting it makes next.config.mjs read a prefix
+      # map built by `build:prefix-map`, which needs a live MONGODB_URI. Unset
+      # gives a fixed /docs basePath — buildable here and stable across runs.
+      #
+      # `next build` still exits non-zero, because page-data collection imports
+      # API routes needing live MongoDB/Jira/Slack credentials. That runs after
+      # the client compile, which is all this job measures; the verify step
+      # below catches a genuine compile break.
+      - name: Build docs-site client bundle
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
+        run: pnpm --filter docs-site run build:stats || true
+
+      - name: Verify the client compile produced stats
+        run: |
+          if [ ! -f docs-site/.bundle-stats/client-stats.json ]; then
+            echo "::error::Client compile produced no bundle stats — the webpack build itself failed."
+            exit 1
+          fi
+
+      - name: Generate report
+        run: pnpm --filter docs-site run bundle:report -- --baseline bundle-baseline.json
+
+      - name: Upload report
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-size-report
+          path: |
+            platform/docs-site/.bundle-stats/summary.json
+            platform/docs-site/.bundle-stats/report.md
+          if-no-files-found: ignore
+
+      # Skipped on forks, where GITHUB_TOKEN is read-only; the report is still in
+      # the job summary and artifact. always() so a report flagging degraded
+      # attribution still reaches the PR despite the failed step before it.
+      - name: Comment on PR
+        if: >-
+          always() &&
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: pnpm --filter docs-site exec tsx scripts/post-bundle-comment.ts
+
   platform-ci-status:
     name: Platform CI
     needs: [changes, test]

@@ -1,4 +1,4 @@
-import { readdirSync } from 'node:fs';
+import { mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -47,9 +47,7 @@ function getBuildBasePathEnv() {
   if (!rawPrefix) {
     throw new Error(`DOCS_PROJECT "${docsProject}" has no entry in dir-name-to-prefix.json`);
   }
-  const prefixes = [...new Set(Object.values(dirNameToPrefix).map((p) => `/${p}`))].sort(
-    (a, b) => b.length - a.length,
-  );
+  const prefixes = [...new Set(Object.values(dirNameToPrefix).map((p) => `/${p}`))].sort((a, b) => b.length - a.length);
 
   // manual and landing both resolve to the empty prefix ("docs") and would
   // otherwise be indistinguishable to b2k's asset routing. landing is the
@@ -80,11 +78,46 @@ function getBuildBasePathEnv() {
   return { basePath: `/${rawPrefix}`, prefixes, assetBucketSuffix };
 }
 
-const {
-  basePath: BASE_PATH,
-  prefixes: DOCS_PREFIXES,
-  assetBucketSuffix: ASSET_BUCKET_SUFFIX,
-} = getBuildBasePathEnv();
+const { basePath: BASE_PATH, prefixes: DOCS_PREFIXES, assetBucketSuffix: ASSET_BUCKET_SUFFIX } = getBuildBasePathEnv();
+
+// Bundle size reporting (UXE-697). Off by default, so normal and Netlify builds
+// produce byte-identical output.
+const BUNDLE_STATS = process.env.BUNDLE_STATS === 'true';
+
+// Emits the client module graph for scripts/bundle-report.ts. Client only:
+// server bundles never reach a user and would drown the signal.
+function bundleStatsPlugin() {
+  return {
+    apply(compiler) {
+      compiler.hooks.done.tap('BundleStatsPlugin', (stats) => {
+        const json = stats.toJson({
+          all: false,
+          modules: true,
+          nestedModules: true,
+          // On a warm filesystem cache webpack otherwise collapses unchanged
+          // modules into one unnamed "cached modules" group, zeroing out every
+          // bucket. These keep each module listed individually.
+          cachedModules: true,
+          groupModulesByCacheStatus: false,
+          groupModulesByAttributes: false,
+          groupModulesByPath: false,
+          groupModulesByExtension: false,
+          groupModulesByType: false,
+          groupModulesByLayer: false,
+          // modulesSpace caps the top-level list; nestedModulesSpace (default
+          // 10) caps concatenated children, where most LG imports land.
+          modulesSpace: Infinity,
+          nestedModulesSpace: Infinity,
+          reasons: false,
+          source: false,
+        });
+        const outDir = join(__dirname, '.bundle-stats');
+        mkdirSync(outDir, { recursive: true });
+        writeFileSync(join(outDir, 'client-stats.json'), JSON.stringify(json));
+      });
+    },
+  };
+}
 
 const nextConfig = {
   pageExtensions: ['mdx', 'tsx', 'ts'],
@@ -116,6 +149,12 @@ const nextConfig = {
   },
   experimental: {
     optimizePackageImports: ['@leafygreen-ui/emotion'],
+  },
+  webpack(config, { isServer }) {
+    if (BUNDLE_STATS && !isServer) {
+      config.plugins.push(bundleStatsPlugin());
+    }
+    return config;
   },
   async redirects() {
     return forceRedirects;
