@@ -1,4 +1,3 @@
-#include <bsoncxx/json.hpp>
 #include <iostream>
 #include <mongocxx/client.hpp>
 #include <mongocxx/instance.hpp>
@@ -8,20 +7,19 @@
 int main() {
   mongocxx::instance inst;
 
-  // Replace the placeholder with your connection string
+  // Connect to your deployment
   const auto uri = mongocxx::uri{"<connectionString>"};
-
-  // Connect to your cluster
   mongocxx::client conn{uri};
 
   // Access your database and collection
   auto collection = conn["<databaseName>"]["<collectionName>"];
 
-  // Get a list of the collection's search indexes and print them
   auto siv = collection.search_indexes();
-  auto indexes = siv.list();
-  for (const auto& index : indexes) {
-    std::cout << bsoncxx::to_json(index) << std::endl;
-  }
+  auto name = "<indexName>";
+
+  // Delete the search index
+  siv.drop_one(name);
+  std::cout << "Search index named " << name << " is deleted."
+            << std::endl;
   return 0;
 }
