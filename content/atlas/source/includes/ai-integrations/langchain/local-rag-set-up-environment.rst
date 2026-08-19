@@ -26,13 +26,17 @@
 
       .. code-block:: python
 
-         pip install --quiet --upgrade pymongo gpt4all sentence_transformers
+         pip install --quiet --upgrade pymongo gpt4all sentence_transformers atlas-local-lib-py
 
-   .. step:: Define your connection string.
+   .. step:: Create or reuse a local Atlas deployment.
 
-      Run the following code in your notebook, replacing ``<port-number>`` 
-      with the port for your local {+deployment+}.
-      
+      Run the following code in your notebook to create a new local {+deployment+}
+      or reuse an existing one with matching configuration. This also retrieves
+      the connection string programmatically.
+
       .. code-block:: python
 
-         MONGODB_URI = ("mongodb://localhost:<port-number>/?directConnection=true")
+         from atlas_local import LocalDeployment
+
+         deployment = LocalDeployment.get_or_create(name="local-atlas-deployment")
+         MONGODB_URI = deployment.connection_string()
