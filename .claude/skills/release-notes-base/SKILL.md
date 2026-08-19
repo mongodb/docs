@@ -24,9 +24,9 @@ Read the first 60 lines of `{RELEASE_NOTES_FILE}` to confirm the exact heading s
 
 ### 3. Fetch the release date from GitHub
 
-Use the `mcp__github__get_release_by_tag` tool to retrieve the release date. Split `{GITHUB_REPO}` into `owner` and `repo` (e.g., `mongodb-js/compass` → owner `mongodb-js`, repo `compass`). Pass `v{VERSION}` as the tag (prepend `v` if not already present).
+Use the Agent tool (subagent_type: Explore) to retrieve the release date. Instruct the subagent to split `{GITHUB_REPO}` into `owner` and `repo` (e.g., `mongodb-js/compass` → owner `mongodb-js`, repo `compass`), prepend `v` to `{VERSION}` if not already present, call `mcp__github__get_release_by_tag` with that tag, and return the `published_at` field.
 
-Extract the `published_at` field and format it as `Month D, YYYY` (e.g., `March 11, 2026`). If the tool call fails or `published_at` is missing, use `TBD` as the placeholder and note it to the writer.
+Format the returned value as `Month D, YYYY` (e.g., `March 11, 2026`). If the subagent reports a failure or `published_at` is missing, use `TBD` as the placeholder and note it to the writer.
 
 ### 4. Check the changes for embargoed terms
 
@@ -42,7 +42,7 @@ If no change matches, continue to the next step.
 
 Format the new entry to match the conventions observed in step 2, using the tool-specific overrides supplied by the calling skill. Insert the entry in the correct version-sorted position (newest version first). Do not assume the new entry belongs at the top — scan the existing headings to find where `{VERSION}` falls relative to other versions and insert it there, with a blank line separating it from the entry above and below.
 
-**Format rules:** If `{RELEASE_NOTES_FILE}` ends in `.txt`, read `references/rst-formatting.md` for the heading template and line-length rules. If it ends in `.mdx`, read `references/mdx-formatting.md` instead.
+**Format rules:** Read `references/rst-formatting.md` for the heading template and line-length rules. This workflow currently only supports `.txt` (RST) release notes files. If `{RELEASE_NOTES_FILE}` does not end in `.txt`, stop and ask the writer how to proceed rather than guessing at formatting conventions — do not draft against an unsupported format.
 
 #### Shared rules (apply to all tools unless the calling skill overrides)
 
