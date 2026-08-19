@@ -8,7 +8,7 @@
 
       .. code-block:: console
 
-         cmake_minimum_required(VERSION 3.30)
+         cmake_minimum_required(VERSION 3.15)
 
          project(delete_index)
 
@@ -32,20 +32,21 @@
    .. step:: Replace the following values and save the file.
 
       .. list-table::
+         :widths: 25 75
          :stub-columns: 1
 
-         * - ``<connection-string>``
+         * - ``<connectionString>``
            - Cluster connection string. To learn more, see
              :ref:`connect-via-driver`.
 
-         * - ``<database-name>``
+         * - ``<databaseName>``
            - Database that contains the collection for which you want
              to delete the index.
 
-         * - ``<collection-name>``
+         * - ``<collectionName>``
            - Collection for which you want to delete the index.
 
-         * - ``<index-name>``
+         * - ``<indexName>``
            - Name of the index you want to delete. If you omit the index
              name, defaults to ``vector_index``.
 
@@ -56,7 +57,7 @@
          cmake -B build
          cmake --build build
 
-   .. step:: Run the app to delete the index.
+   .. step:: Run the following command to delete the index.
 
       .. code-block:: shell
 

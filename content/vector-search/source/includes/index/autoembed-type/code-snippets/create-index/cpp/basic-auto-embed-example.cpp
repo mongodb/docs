@@ -15,7 +15,7 @@ int main() {
     mongocxx::instance inst{};
 
     // Connect to your deployment
-    const auto uri = mongocxx::uri{"<connection-string>"};
+    const auto uri = mongocxx::uri{"<connectionString>"};
     mongocxx::client conn{uri};
 
     // Access your database and collection

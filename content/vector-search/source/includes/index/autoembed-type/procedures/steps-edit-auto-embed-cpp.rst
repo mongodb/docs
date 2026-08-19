@@ -8,19 +8,19 @@
 
       .. code-block:: console
 
-         cmake_minimum_required(VERSION 3.30)
+         cmake_minimum_required(VERSION 3.15)
 
-         project(vector_index)
+         project(edit_index)
 
          set(CMAKE_CXX_STANDARD 17)
 
          find_package(mongocxx REQUIRED)
 
-         add_executable(vector_index
+         add_executable(edit_index
            edit-auto-embed-index.cpp
          )
 
-         target_link_libraries(vector_index PRIVATE mongo::mongocxx_shared)
+         target_link_libraries(edit_index PRIVATE mongo::mongocxx_shared)
 
    .. step:: Create an ``edit-auto-embed-index.cpp`` file and define the index changes in the file.
 
@@ -32,36 +32,37 @@
    .. step:: Replace the following values and save the file.
 
       .. list-table::
+         :widths: 25 75
          :stub-columns: 1
 
-         * - ``<connection-string>``
+         * - ``<connectionString>``
            - Cluster connection string. To learn more, see
              :ref:`connect-via-driver`.
 
-         * - ``<database-name>``
+         * - ``<databaseName>``
            - Database that contains the collection for which you want
              to edit the index.
 
-         * - ``<collection-name>``
+         * - ``<collectionName>``
            - Collection for which you want to edit the index.
 
-         * - ``<index-name>``
+         * - ``<indexName>``
            - Name of your index. If you omit the index name, defaults
              to ``vector_index``.
 
-         * - ``<indexed-field>``
+         * - ``<indexedField>``
            - Name of the text field to index as the ``autoEmbed``
              type. {+avs+} automatically generates vector embeddings
              for this field by using the specified |voyage| model.
 
-         * - ``<embedding-model>``
+         * - ``<embeddingModel>``
            - Name of the supported |voyage| embedding model to use for
              generating embeddings. You can specify
              ``voyage-4-lite``, ``voyage-4``, ``voyage-4-large``, or
              ``voyage-code-3``. To learn more, see
              :ref:`avs-auto-embeddings-model-ecosystem`.
 
-         * - ``<field-to-index>``
+         * - ``<fieldToIndex>``
            - Field to index as the ``filter`` type for pre-filtering
              your data. Filtering narrows the scope of your semantic
              search, such as in a multi-tenant environment. You can
@@ -74,8 +75,8 @@
          cmake -B build
          cmake --build build
 
-   .. step:: Run the app to edit the index.
+   .. step:: Run the following command to update the index.
 
       .. code-block:: shell
 
-         ./build/vector_index
+         ./build/edit_index

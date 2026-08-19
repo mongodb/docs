@@ -8,14 +8,14 @@ int main() {
   mongocxx::instance inst;
 
   // Connect to your deployment
-  const auto uri = mongocxx::uri{"<connection-string>"};
+  const auto uri = mongocxx::uri{"<connectionString>"};
   mongocxx::client conn{uri};
 
   // Access your database and collection
-  auto collection = conn["<database-name>"]["<collection-name>"];
+  auto collection = conn["<databaseName>"]["<collectionName>"];
 
   auto siv = collection.search_indexes();
-  auto name = "<index-name>";
+  auto name = "<indexName>";
 
   // Delete the search index
   siv.drop_one(name);

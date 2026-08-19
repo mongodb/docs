@@ -13,14 +13,14 @@ int main() {
   mongocxx::instance inst;
 
   // Connect to your deployment
-  const auto uri = mongocxx::uri{"<connection-string>"};
+  const auto uri = mongocxx::uri{"<connectionString>"};
   mongocxx::client conn{uri};
 
   // Access your database and collection
-  auto collection = conn["<database-name>"]["<collection-name>"];
+  auto collection = conn["<databaseName>"]["<collectionName>"];
 
   auto siv = collection.search_indexes();
-  auto name = "<index-name>";
+  auto name = "<indexName>";
 
   // Specify the new index definition with automated embedding and
   // filter fields
@@ -29,10 +29,10 @@ int main() {
           make_array(
               make_document(kvp("type", "autoEmbed"),
                             kvp("modality", "text"),
-                            kvp("path", "<indexed-field>"),
-                            kvp("model", "<embedding-model>")),
+                            kvp("path", "<indexedField>"),
+                            kvp("model", "<embeddingModel>")),
               make_document(kvp("type", "filter"),
-                            kvp("path", "<field-to-index>")))));
+                            kvp("path", "<fieldToIndex>")))));
 
   // Update the search index
   siv.update_one(name, definition.view());
