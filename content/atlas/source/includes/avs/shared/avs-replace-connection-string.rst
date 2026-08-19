@@ -3,4 +3,4 @@ Replace the ``<connection-string>`` placeholder value with the |srv|
 </reference/connection-string/#find-your-mongodb-atlas-connection-string>` for
 your cluster.
 
-.. include:: /includes/fact-connection-string-format-drivers.rst
+.. include:: /includes/shared/facts/fact-connection-string-format-drivers.rst

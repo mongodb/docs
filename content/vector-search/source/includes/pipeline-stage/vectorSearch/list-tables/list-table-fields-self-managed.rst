@@ -64,6 +64,22 @@
        results. This value can't exceed the value of ``numCandidates`` if
        you specify ``numCandidates``.
 
+   * - ``nestedOptions``
+     - Object
+     - Optional
+     - Configure how {+avs+} scores documents that contain nested 
+       arrays. 
+
+   * - | ``nestedOptions.``
+       | ``scoreMode``
+     - String
+     - Optional
+     - Specifies how to score documents that contain nested arrays. 
+       Value can be one of the following:
+
+       - ``avg`` - average the scores of the nested array elements.
+       - ``max`` - use the maximum score of the nested array elements.
+
    * - ``numCandidates``
      - Int 
      - Conditional 
@@ -83,6 +99,21 @@
 
        To learn more about other variables that might impact this
        parameter, see :ref:`avs-num-candidates`. 
+
+   * - ``parentFilter``
+     - Object
+     - Optional
+     - :abbr:`MQL (MongoDB Query Language)` expression that uses an 
+       indexed top-level field for pre-filtering the documents. 
+       You can filter on {+avs-filter-types+}.
+
+       To learn which MQL operators {+avs+} supports
+       in your filter, see :ref:`vectorSearch-agg-pipeline-filter`.
+
+       The ``parentFilter`` option is only valid if you specify a nested 
+       field (``nestedRoot``) in the index definition. If you specify 
+       the ``parentFilter``, {+avs+} filters the top-level documents 
+       before filtering the nested documents.
 
    * - ``path``
      - String 
@@ -109,7 +140,16 @@
        You must embed your query with the same model that you used to
        embed the data.
 
-       You can query your embeddings with full-fidelity vectors,
-       as long as the vector subtype is the same. This is only possible with
+       You can query your embeddings with full-fidelity vectors
+       if the vector subtype is the same. This is only possible with
        ``binData`` vectors with subtype ``float32``. If you use any other
        subtype (``int8`` or ``int1``), {+avs+} doesn't return any results or errors.
+
+   * - ``returnStoredSource``
+     - Boolean
+     - Optional
+     - Flag that specifies whether to perform a full document lookup on
+       the backend database (``false``) or return only stored source
+       fields directly from {+avs+} (``true``). If omitted, defaults to
+       ``false``. To learn more, see :ref:`Return Stored Source Fields 
+       <avs-return-stored-source-self-managed>`.

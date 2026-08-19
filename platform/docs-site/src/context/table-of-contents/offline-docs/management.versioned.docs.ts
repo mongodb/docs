@@ -1028,7 +1028,7 @@ export const toc: L1TocItem[] = [
                 url: '/docs/atlas/billing/data-transfer-costs',
               },
               {
-                label: 'AI Models',
+                label: 'AI Model APIs',
                 isExternal: true,
                 url: 'https://www.mongodb.com/docs/voyageai/management/billing',
               },
@@ -2366,7 +2366,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/reference/cluster-parameters/fleDisableSubstringPreviewParameterLimits',
                         versions: {
-                          excludes: ['v7.0', 'v8.0'],
+                          excludes: ['v7.0', 'v8.0', 'upcoming'],
                         },
                       },
                     ],

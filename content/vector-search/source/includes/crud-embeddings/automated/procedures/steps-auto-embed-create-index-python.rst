@@ -39,7 +39,7 @@
          :widths: 25 75
 
          * - ``<CONNECTION-STRING>``
-           - The connection string for your Atlas cluster.
+           - The connection string for your cluster.
          * - ``<database-name>``
            - The name of the database that contains the collection
              for which you want to create the index.

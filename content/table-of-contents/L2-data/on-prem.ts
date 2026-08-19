@@ -607,7 +607,12 @@ const tocData: TocItem[] = [
                 label: 'fleDisableSubstringPreviewParameterLimits',
                 contentSite: 'docs',
                 url: '/docs/:version/reference/cluster-parameters/fleDisableSubstringPreviewParameterLimits',
-                versions: { excludes: manualVersions.before('v8.2') },
+                versions: {
+                  excludes: [
+                    ...manualVersions.before('v8.2'),
+                    ...manualVersions.after('v8.3'),
+                  ],
+                },
               },
             ],
           },

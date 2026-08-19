@@ -97,6 +97,12 @@ function parseAhaFeatureUrl(url: string): { domain: string; featureId: string } 
   return { domain, featureId };
 }
 
+// The key of the Aha custom field that stores the What's New post URL. Aha
+// addresses custom fields by this key, and silently ignores an unknown key
+// while still returning 200, so the value written here must exactly match the
+// field key configured in Aha.
+const AHA_WHATS_NEW_POST_FIELD_KEY = 'whats_new_post_url';
+
 async function updateAhaFeatureWhatsNewPost(domain: string, featureId: string, whatsNewPostUrl: string): Promise<void> {
   const apiKey = envConfig.AHA_API_KEY;
 
@@ -115,7 +121,7 @@ async function updateAhaFeatureWhatsNewPost(domain: string, featureId: string, w
     body: JSON.stringify({
       feature: {
         custom_fields: {
-          whats_new_post_url: whatsNewPostUrl,
+          [AHA_WHATS_NEW_POST_FIELD_KEY]: whatsNewPostUrl,
         },
       },
     }),
@@ -131,6 +137,30 @@ async function updateAhaFeatureWhatsNewPost(domain: string, featureId: string, w
   // Verify the update was successful by checking the response
   if (!responseBody.feature) {
     throw new Error('Aha API response missing feature data');
+  }
+
+  // Aha returns 200 even when it ignores an unknown custom-field key, so the
+  // request "succeeding" is not proof the field changed. Confirm the returned
+  // feature actually reflects the URL we wrote; otherwise the field key is
+  // likely wrong or not writable by this API token.
+  //
+  // Note: Aha returns custom_fields as an ARRAY of { key, value, ... } objects
+  // (not an object keyed by field key), so we look the field up by its key.
+  const customFields: Array<{ key: string; value: unknown }> = Array.isArray(responseBody.feature.custom_fields)
+    ? responseBody.feature.custom_fields
+    : [];
+  const returnedValue = customFields.find((field) => field.key === AHA_WHATS_NEW_POST_FIELD_KEY)?.value;
+  console.info('Aha feature update response', {
+    featureId,
+    returnedCustomFields: responseBody.feature.custom_fields,
+  });
+
+  if (returnedValue !== whatsNewPostUrl) {
+    throw new Error(
+      `Aha update did not take effect: field "${AHA_WHATS_NEW_POST_FIELD_KEY}" returned ` +
+        `${JSON.stringify(returnedValue)} instead of the written URL. Verify the custom-field ` +
+        `key matches the field configured in Aha and that the API token can write it.`,
+    );
   }
 }
 
@@ -148,13 +178,28 @@ export async function POST(request: NextRequest) {
       return withCORS(NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 }));
     }
 
+    // Log every received webhook so the branch taken below is always
+    // reconstructable from logs. None of the 200 responses previously logged
+    // anything, which made silent no-ops impossible to diagnose.
+    console.info('Contentstack webhook received', {
+      event: body.event,
+      contentTypeUid: body.data?.content_type?.uid,
+      environmentName: body.data?.environment?.name,
+      entryTitle: body.data?.entry?.title,
+      hasAhaFeatureLink: Boolean(body.data?.entry?.aha_feature_link),
+    });
+
     // Only process product_update entries
     if (body.data.content_type.uid !== 'product_update') {
+      console.info('Ignored webhook: not a product_update entry', {
+        contentTypeUid: body.data.content_type.uid,
+      });
       return withCORS(NextResponse.json({ success: true, message: 'Ignored: not a product_update entry' }));
     }
 
     // Only process publish events
     if (body.event !== 'publish') {
+      console.info('Ignored webhook: non-publish event', { event: body.event });
       return withCORS(NextResponse.json({ success: true, message: `Ignored: event type ${body.event}` }));
     }
 
@@ -167,6 +212,10 @@ export async function POST(request: NextRequest) {
     const whatsNewPostUrl = getWhatsNewPostUrl(entry.title, environmentName);
 
     if (!whatsNewPostUrl) {
+      console.info('Ignored webhook: unrecognized environment', {
+        environmentName,
+        recognized: [PRODUCTION_ENVIRONMENT, STAGING_ENVIRONMENT],
+      });
       return withCORS(
         NextResponse.json({ success: true, message: `Ignored: environment ${environmentName}` }),
       );
@@ -175,6 +224,10 @@ export async function POST(request: NextRequest) {
     const ahaFeatureUrl = body.data.entry.aha_feature_link;
 
     if (!ahaFeatureUrl) {
+      console.info('Ignored webhook: entry has no aha_feature_link', {
+        entryTitle: entry.title,
+        environmentName,
+      });
       return withCORS(NextResponse.json({ success: true, message: 'No Aha feature URL found' }));
     }
 
@@ -210,6 +263,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.info('Aha feature What\'s New post URL updated', {
+      featureId: parsedUrl.featureId,
+      environmentName,
+      whatsNewPostUrl,
+    });
     return withCORS(NextResponse.json({ success: true, message: 'Webhook received and processed' }));
   } catch (err) {
     console.error('Error processing webhook:', err);

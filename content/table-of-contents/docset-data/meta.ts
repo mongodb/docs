@@ -4,7 +4,6 @@ const tocData: TocItem[] = [
   {
     label: 'MongoDB Meta Documentation',
     contentSite: 'meta',
-    url: '/docs/meta/',
     collapsible: true,
     items: [
       {
@@ -494,38 +493,17 @@ const tocData: TocItem[] = [
       {
         label: 'Tutorials',
         contentSite: 'meta',
-        url: '/docs/meta/tutorials',
         collapsible: true,
         items: [
-          {
-            label: 'Adding Images',
-            contentSite: 'meta',
-            url: '/docs/meta/images-guide',
-          },
-          {
-            label: 'Version Bumping',
-            contentSite: 'meta',
-            url: '/docs/meta/tutorials/version-bumping',
-          },
-          {
-            label: 'Generating a Browser Coverage List',
-            contentSite: 'meta',
-            url: '/docs/meta/tutorials/generating-a-browser-list',
-          },
           {
             label: 'Fantastic Errors and How to Fix Them',
             contentSite: 'meta',
             url: '/docs/meta/error-kb',
           },
           {
-            label: 'How to Create a Docstools-Enabled Repository',
+            label: 'How to Review an Agent Skill',
             contentSite: 'meta',
-            url: '/docs/meta/tutorials/repo',
-          },
-          {
-            label: 'How to Create a Guide for MongoDB Docs',
-            contentSite: 'meta',
-            url: '/docs/meta/tutorials/guide',
+            url: '/docs/meta/tutorials/review-agent-skill',
           },
         ],
       },
@@ -551,16 +529,6 @@ const tocData: TocItem[] = [
             url: 'http://www.sphinx-doc.org/en/stable/contents.html',
           },
           {
-            label: 'Redirects',
-            contentSite: 'meta',
-            url: '/docs/meta/redirects',
-          },
-          {
-            label: 'Apiargs',
-            contentSite: 'meta',
-            url: '/docs/meta/reference/apiargs',
-          },
-          {
             label: ' Directive',
             contentSite: 'meta',
             url: '/docs/meta/reference/cond',
@@ -571,11 +539,6 @@ const tocData: TocItem[] = [
             url: '/docs/meta/reference/code-blocks',
           },
           {
-            label: 'Eval Role',
-            contentSite: 'meta',
-            url: '/docs/meta/reference/eval',
-          },
-          {
             label: 'Icon Roles',
             contentSite: 'meta',
             url: '/docs/meta/reference/icon',
@@ -584,11 +547,6 @@ const tocData: TocItem[] = [
             label: 'Image Lightboxes',
             contentSite: 'meta',
             url: '/docs/meta/reference/lightbox',
-          },
-          {
-            label: 'Options / Settings',
-            contentSite: 'meta',
-            url: '/docs/meta/reference/options',
           },
           {
             label: 'Source Constants',
@@ -605,35 +563,12 @@ const tocData: TocItem[] = [
             contentSite: 'meta',
             url: '/docs/meta/reference/suppressing-prevnext-links',
           },
-          {
-            label: 'XML Role',
-            contentSite: 'meta',
-            url: '/docs/meta/reference/xmlrole',
-          },
         ],
-      },
-      {
-        label: 'Manual Organization',
-        contentSite: 'meta',
-        url: '/docs/meta/organization',
       },
       {
         label: 'Practices and Processes',
         contentSite: 'meta',
         url: '/docs/meta/practices',
-        collapsible: true,
-        items: [
-          {
-            label: 'Snooty',
-            contentSite: 'meta',
-            url: '/docs/meta/snooty',
-          },
-        ],
-      },
-      {
-        label: 'Translation',
-        contentSite: 'meta',
-        url: '/docs/meta/translation',
       },
     ],
   },

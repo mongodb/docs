@@ -10,61 +10,40 @@ configure your stream processor:
    .. tab:: Visual Builder 
       :tabid: visual-builder
 
-      .. procedure:: 
-         :style: normal 
-         
-         .. step:: Click :guilabel:`Create with visual builder`.
+      .. procedure::
+         :style: normal
 
-            If there are existing stream processors in your {+spw+},
-            click the :guilabel:`+ Create stream processor` button, then
-            select :guilabel:`Visual Builder` from the drop-down
-            options.
-            
-            The Visual Builder opens with a form where you can
-            configure your stream processor.
-          
-         .. step:: In the :guilabel:`Stream processor name` field, enter a name for your stream processor.
-         
+         .. step:: Open the Visual Builder.
+
+            Click :guilabel:`Stream Processors` in the left-hand
+            navigation menu, then click :guilabel:`Create stream
+            processor`.
+
+            The :guilabel:`Create Stream Processor` screen opens with a
+            form where you can configure your stream processor.
+
          .. step:: Add a source connection.
-            
-            In the :guilabel:`Source` field, select a connection from 
-            the :guilabel:`Connection` drop-down list to use as the 
-            source for your stream processor.
 
-            This opens a |json| text box where you can configure the
-            ``source`` stage for your stream processor. To learn
-            more about ``source`` stage syntax, see :pipeline:`$source`.
+            In the :guilabel:`Build Pipeline` section, select the
+            connection that your stream processor reads data from in
+            the :guilabel:`Source` drop-down list.
 
-            .. example:: 
+            This opens a |json| text box that contains the ``$source``
+            stage for your stream processor. In the text box, set
+            ``db`` to the name of your database and ``coll`` to the
+            name of the collection in that database. To learn more
+            about ``$source`` stage syntax, see :pipeline:`$source`.
 
-               The following ``source`` stage operates on
-               real-time data from the pre-configured
-               ``sample_stream_solar`` connection:
+         .. step:: Optional: Add aggregation stages to the pipeline.
 
-               .. code-block:: json
-                  :copyable: true
+            In the :guilabel:`Pipeline` field, select the aggregation
+            stages that you want your stream processor to apply. To add
+            these stages later, leave this field empty.
 
-                  {
-                    "$source": {
-                      "connectionName": "sample_stream_solar"
-                    }
-                  }
+            To learn more about stream processing aggregation stages
+            and their syntax, see :ref:`atlas-sp-aggregation`.
 
-         .. step:: Add aggregation stages to the stream processor pipeline.
-            
-            In the :guilabel:`Start building your pipeline` pane, click 
-            the button for the aggregation stage that you want to add to your
-            pipeline. This opens a text box where you can configure the
-            selected aggregation stage in |json| format. 
-            
-            If your aggregation stage isn't listed, click 
-            :guilabel:`+ Custom stage` to define a 
-            :ref:`supported aggregation stage <atlas-sp-aggregation>`
-            in |json| format. To learn more about stream processing 
-            aggregation stages and their syntax, see 
-            :ref:`atlas-sp-aggregation`. 
-
-            .. example:: 
+            .. example::
 
                The following :pipeline:`$match` stage matches all
                documents in the pre-configured ``sample_stream_solar``
@@ -80,30 +59,21 @@ configure your stream processor:
                     }
                   }
 
-         .. step:: (Optional) Configure additional aggregation stages.
-
-            To add additional aggregation stages to your pipeline, click
-            the :guilabel:`+ Add stage below` button below the last
-            stage in your pipeline, and select the aggregation stage
-            that you want to add or click :guilabel:`Custom stage` to
-            define a different :ref:`supported aggregation stage
-            <atlas-sp-aggregation>`. This opens a text box where you can
-            configure the new stage in |json| format.
-
          .. step:: Add a sink connection.
 
-            In the :guilabel:`Sink` field, select a connection from the
-            :guilabel:`Connection` drop-down list to write your
-            processed data to.
+            In the :guilabel:`Sink` field, select the connection that
+            your stream processor writes processed data to.
 
-            This opens a |json| text box where you can configure the
-            ``merge`` stage for your stream processor. To learn
-            more about ``merge`` stage syntax, see :pipeline:`$merge`.
+            This opens a |json| text box that contains the ``$merge``
+            stage for your stream processor. In the text box, set
+            ``db`` to the name of your database and ``coll`` to the
+            name of the collection in that database. To learn more
+            about ``$merge`` stage syntax, see :pipeline:`$merge`.
 
-            .. example:: 
+            .. example::
 
-               The following ``sink`` stage writes processed data to the
-               ``demoDb.demoColl`` collection in a connection named
+               The following ``$merge`` stage writes processed data to
+               the ``demoDb.demoColl`` collection in a connection named
                ``demoConnection``:
 
                .. code-block:: json
@@ -119,23 +89,43 @@ configure your stream processor:
                     }
                   }
 
+         .. step:: Enter your stream processor details.
+
+            In the :guilabel:`Enter processor details` section, do the
+            following:
+
+            a. In the :guilabel:`Stream processor name` field, enter a
+               name for your stream processor.
+
+            #. Select the data processing tier for your stream
+               processor. The default tier is ``SP10``. To learn more,
+               see :ref:`Tiers <atlas-sp-architecture-tiers>`.
+
+            #. Specify whether to start your stream processor when
+               {+atlas-sp+} creates it.
+
+         .. step:: (Optional) Add a dead letter queue.
+
+            Specify a destination for your :ref:`dead letter queue
+            <atlas-sp-dlq>`.
+
          .. step:: (Optional) Create failover processors.
 
             In the :guilabel:`Advanced settings` pane, toggle
             :guilabel:`Create failover processor(s)` to create one or
-	    more :ref:`failover processors
-	    <atlas-sp-architecture-failover>`.
+            more :ref:`failover processors
+            <atlas-sp-architecture-failover>`.
 
-	    :gold:`IMPORTANT`: This feature is only available in
+            :gold:`IMPORTANT`: This feature is only available in
             {+spw+}s configured with failover regions. To learn more,
-	    see :ref:`Limitations <atlas-sp-limitations>`.
-		  
+            see :ref:`Limitations <atlas-sp-limitations>`.
+
          .. step:: Click :guilabel:`Create stream processor`.
 
             {+atlas-sp+} creates the stream processor and lists it on
             the :guilabel:`Stream Processors` tab of the
             :guilabel:`Stream Processing` page.
-		  
+
    .. tab:: JSON Editor 
       :tabid: json-editor
 

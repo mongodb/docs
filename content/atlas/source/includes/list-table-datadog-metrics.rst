@@ -1087,3 +1087,44 @@ Database, Query, Search, and Stream Processing Metrics
        | (mongodb.atlas.stream_processing.processor_p50_micros)
      - Gauge
      - 50th percentile latency of the processor in microseconds.
+
+   * - | ``PROCESSORS_FAILED``
+       | (mongodb.atlas.stream_processing.processors_failed)
+     - Gauge
+     - Number of stream processors in the failed state.
+
+   * - | ``PROCESSORS_RUNNING``
+       | (mongodb.atlas.stream_processing.processors_running)
+     - Gauge
+     - Number of stream processors in the running state.
+
+   * - | ``PROCESSORS_STOPPED``
+       | (mongodb.atlas.stream_processing.processors_stopped)
+     - Gauge
+     - Number of stream processors in the stopped state.
+
+   * - | ``PROCESSOR_STATE``
+       | (mongodb.atlas.stream_processing.processor_state)
+     - Gauge
+     - Current lifecycle state of the stream processor, reported as an
+       integer:
+
+       - ``1``: Creating
+       - ``2``: Validating
+       - ``3``: Created
+       - ``4``: Provisioning
+       - ``5``: Started
+       - ``6``: Stopping
+       - ``7``: Stopped
+       - ``8``: Failed
+       - ``9``: Dropped
+
+   * - | ``SYSTEM_CPU_PERCENT``
+       | (mongodb.atlas.stream_processing.system_cpu_percent)
+     - Gauge
+     - Percentage of the container's CPU limit (cgroup) currently used.
+
+   * - | ``SYSTEM_MEM_PERCENT``
+       | (mongodb.atlas.stream_processing.system_mem_percent)
+     - Gauge
+     - Percentage of the container's memory limit (cgroup) currently used.

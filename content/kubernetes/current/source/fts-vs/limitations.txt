@@ -37,7 +37,27 @@ Deployment and Topology
   ``mongot`` instance across multiple ``mongod`` deployments.
   Deploy a separate ``mongot`` instance for each replica set or
   shard.
+- A self-managed load balancer only supports single-cluster 
+  deployments. Multi-cluster deployments require the managed Envoy load
+  balancer.
+- ``mongot`` does not support cross-cluster query failover. Each
+  cluster's search deployment is independent. If a cluster becomes
+  unavailable, search is unavailable in that cluster, and queries
+  do not fail over to another cluster.
+- When you delete a multi-cluster ``MongoDBSearch`` resource, |k8s|
+  garbage collection removes only the resources in the central
+  cluster. The |k8s-op| does not delete the ``mongot`` resources
+  that it created in the other member clusters. Delete those
+  resources manually.
+- If you remove a cluster from ``spec.clusters``, the |k8s-op|
+  does not remove all of that cluster's resources. 
   
+  - For sharded cluster sources, the |k8s-op| removes the stale ``mongot``
+    StatefulSets, Services, and ConfigMaps, but does not remove the
+    TLS certificate Secrets or the Envoy proxy resources. 
+  - For replica set sources, the |k8s-op| does not remove any of the
+    cluster's resources. Delete the remaining resources manually.
+
 Security
 --------
 
@@ -94,6 +114,7 @@ Search and Vector Search Features
 - Automated embedding is a Preview feature and integrates only
   with |voyage| models. To use another embedding provider, generate
   embeddings in your application and store them in a vector field.
+- Automated embedding is only available for single-cluster topologies.
 - Features that are guarded by Atlas-only flags are not available
   on self-managed ``mongot``. A feature is available on
   self-managed deployments only after it ships in a ``mongot``

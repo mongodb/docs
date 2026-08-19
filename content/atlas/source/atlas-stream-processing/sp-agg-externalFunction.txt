@@ -8,8 +8,7 @@
 
 .. meta::
    :keywords: atlas stream processing, $externalFunction aggregation pipeline stage 
-   :description: Learn how to use the $externalFunction stage to run external processes while streaming 
-                 data
+   :description: Learn how to use the $externalFunction stage to run external processes while streaming data
 
 .. facet::
    :name: genre
@@ -21,7 +20,7 @@
    :depth: 2
    :class: singlecol
 
-.. _atlas-sp-agg-source-def:
+.. _atlas-sp-agg-externalFunction-def:
 
 Definition
 ~~~~~~~~~~
@@ -32,41 +31,51 @@ The :pipeline:`$externalFunction` stage triggers processes in a specific AWS
 Lambda resource. Your request to the AWS Lambda process can either be synchronous 
 or asynchronous. 
 
+.. _atlas-sp-agg-externalFunction-auth:
+
 Create an AWS Lambda and Authenticate with Unified AWS Access
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In order to call an AWS Lambda resource from within your {+atlas-sp+} pipeline, 
-your AWS Lambda must be deployed to the same AWS region in which your {+atlas-sp+} 
-is deployed. To learn more about deploying an AWS Lambda resource, see the 
-`AWS documentation <https://docs.aws.amazon.com/lambda/>`__.
+In order to call an AWS Lambda resource from within your {+atlas-sp+}
+pipeline, your AWS Lambda must be deployed to the same AWS region in
+which your {+atlas-sp+} is deployed. To learn more about deploying an
+AWS Lambda resource, see the `AWS documentation
+<https://docs.aws.amazon.com/lambda/>`__.
 
 .. procedure::
    :style: normal
 
    .. step:: Create an AWS Lambda Function.
       
-      With either the AWS CLI or through the AWS UI, `create a lambda function <https://docs.aws.amazon.com/lambda/latest/dg/getting-started.html>`__.
+      With either the AWS CLI or through the AWS UI, `create a lambda
+      function
+      <https://docs.aws.amazon.com/lambda/latest/dg/getting-started.html>`__.
 
       .. note:: 
 
-        - AWS Lambda resources must be created with an ``AWS_IAM`` authentication type,
-          which requires that you create an AWS IAM `Role <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html>`__ 
-          and `Policy <https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html>`__. 
-        - Only the buffered, not streaming, response type is supported.
+        - AWS Lambda resources must be created with an ``AWS_IAM``
+          authentication type, which requires that you create an AWS
+          IAM `Role
+          <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html>`__
+          and `Policy
+          <https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html>`__.
+	- Only the buffered, not streaming, response type is
+	  supported.
 
    .. step:: Configure Unified AWS Access.
 
       .. note:: 
 
-         The procedure described here only covers the basic setup flow in the {+atlas-ui+}. 
-         To learn more, see the the :ref:`Set Up Unified AWS Access <set-up-unified-aws-access>` 
+         The procedure described here only covers the basic setup flow
+         in the {+atlas-ui+}.  To learn more, see the the :ref:`Set Up
+         Unified AWS Access <set-up-unified-aws-access>`
          documentation.
 
       **Required Access**
 
       To set up unified |aws| access, you must have
-      :authrole:`Organization Owner` or :authrole:`Project Owner` access to
-      the project.
+      :authrole:`Organization Owner` or :authrole:`Project Owner`
+      access to the project.
 
       **Prerequisites**
 
@@ -75,44 +84,56 @@ is deployed. To learn more about deploying an AWS Lambda resource, see the
 
       .. note:: 
 
-         - Your AWS IAM policy must include the ``lambda:InvokeFunction`` action.
-         - You must replace the placeholder ``ExternalId`` and ``Resource`` values 
-           with your own, which are available through the Unified AWS Access 
-           configuration process. Note that the ``ExternalId`` in this example 
-           includes a wildcard that matches any Lambda Function with a name that 
-           begins with ``function-``. 
+         - Your AWS IAM policy must include the
+	   ``lambda:InvokeFunction`` action.
+         - You must replace the placeholder ``ExternalId``
+	   and ``Resource`` values with your own, which
+	   are available through the Unified AWS Access 
+           configuration process. Note that the ``ExternalId``
+	   in this example includes a wildcard that matches
+	   any Lambda Function with a name that begins
+	   with ``function-``. 
 
-   .. step:: Add Trust Relationships to an Existing Role in the {+atlas-ui+}
+   .. step:: Add Trust Relationships to an Existing Role
+      in the {+atlas-ui+}
 
-      Next, you must enable your self-managed AWS IAM role to execute your AWS 
-      Lambda resource. 
+      Next, you must enable your self-managed AWS IAM role to execute
+      your AWS Lambda resource.
 
       ``permission-policy.json``
 
       .. literalinclude:: /includes/atlas-stream-processing/permission-policy.json
 
-      1. Navigate to the AWS IAM integration page in your Atlas project and click on the 
-         :guilabel:`Authorize an AWS IAM role` button.
-      #. Create a new role (or modify an existing role) with the ``role-trust-policy.json`` 
-         that is shown in the modal.
-      #. Once the role is created (or the existing role is updated with the new 
-         trust policy), paste the role's ARN in the modal.
+      1. Navigate to the AWS IAM integration page in your Atlas
+         project and click on the :guilabel:`Authorize an AWS
+	 IAM role` button.
+	 
+      #. Create a new role (or modify an existing role) with the
+         ``role-trust-policy.json`` that is shown in the modal.
+      #. Once the role is created (or the existing role is updated
+         with the new trust policy), paste the role's ARN in the
+	 modal.
       #. In the AWS console, go to :guilabel:`IAM` > :guilabel:`Roles` and 
          select your role.
-      #. In the :guilabel:`permissions` tab, add a new "inline permission" to 
-         allow this role to invoke your lambda(s). The example ``permission-policy.json`` 
-         provided above adds the permission to run any lambda with the name ``<function-name>``.
-      #. Finally, navigate to your {+atlas-sp+} Workspace, add a new :guilabel:`AWS Lambda connection` 
-         and choose the :guilabel:`AWS IAM Role ARN` that you configured in the previous step.
+      #. In the :guilabel:`permissions` tab, add a new
+         "inline permission" to allow this role to invoke your
+         lambda(s). The example ``permission-policy.json`` 
+         provided above adds the permission to run any lambda
+	 with the name ``<function-name>``.
+      #. Finally, navigate to your {+atlas-sp+} Workspace, add a
+         new :guilabel:`AWS Lambda connection` and choose the
+	 :guilabel:`AWS IAM Role ARN` that you configured in the
+	 previous step.
 
 Connect your {+atlas-sp+} Workspace to your AWS Lambda Function
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In order to send a request to your AWS Lambda resource from within your {+atlas-sp+} 
-pipeline, you must first add your AWS Lambda resource as a :ref:`connection <atlas-sp-manage-connections>` 
-in your {+atlas-sp+} resource. 
+In order to send a request to your AWS Lambda resource from within
+your {+atlas-sp+} pipeline, you must first add your AWS Lambda
+resource as a :ref:`connection <atlas-sp-manage-connections>` in your
+{+atlas-sp+} resource.
 
-.. include:: /includes/atlas-stream-processing/add-external-function-connection.rst
+.. include:: /includes/atlas-stream-processing/add-aws-lambda-connection.rst
 
 Syntax
 ~~~~~~
@@ -131,9 +152,10 @@ The following example shows the required fields for a minimal request.
 
 Customized request
 ```````````````````
-The following, customized example specifies error handling, synchronous execution 
-and a preprocessed {+atlas-sp+} document as a payload in addition to the required 
-fields illustrated above.
+
+The following, customized example specifies error handling,
+synchronous execution and a preprocessed {+atlas-sp+} document as a
+payload in addition to the required fields illustrated above.
 
 .. code-block:: json
 
@@ -225,6 +247,35 @@ The ``$externalFunction`` stage takes a document with the following fields:
        - ``$addFields``
        - ``$replaceRoot``
        - ``$set``
+
+   * - ``parallelism``
+     - integer
+     - Optional
+     - Maximum number of parallel requests made to the external
+       function. Higher parallelism values may increase throughput.
+       However, higher values also require more computational
+       resources.
+
+       To set this field to a value greater than ``1``, you must set
+       ``execution`` to ``"sync"``. Defaults to ``1``.
+
+       .. include:: /includes/atlas-stream-processing/atlas-sp-stage-parallelism-max.rst
+
+       .. include:: /includes/atlas-stream-processing/atlas-sp-max-parallel.rst
+
+   * - ``partitionBy``
+     - expression
+     - Optional
+     - Expression used to partition the input stream into parallel
+       threads. {+atlas-sp+} allocates each input document with the
+       same ``partitionBy`` expression result to the same thread.
+
+       If this field is unspecified, {+atlas-sp+} distributes input
+       documents across the parallel threads without regard to
+       document content.
+
+       To set this field, you must set ``execution`` to ``"sync"``
+       and ``parallelism`` to a value greater than ``1``.
 
 Behavior
 ~~~~~~~~

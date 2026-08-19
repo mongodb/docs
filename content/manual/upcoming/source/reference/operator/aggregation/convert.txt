@@ -80,6 +80,11 @@ Syntax
        MongoDB also supports these numeric types as input when converting a value
        to ``binData``.
 
+       Starting in MongoDB 9.0, if the ``input`` field resolves to an
+       object, you can set the ``to`` field to ``binData``. For
+       examples, see :ref:`Convert an Object to binData
+       <convert-object-to-bindata>`.
+
    * - ``to``
      - Required
      - Specifies the type to convert the ``input`` expression to. You
@@ -371,6 +376,147 @@ of numeric values into ``binData``.
    :language: javascript
    :category: usage example
    :copyable: false
+
+.. _convert-object-to-bindata:
+
+Convert an object to ``binData``
+````````````````````````````````
+
+.. versionadded:: 9.0
+
+When the ``input`` field resolves to an object and the ``to`` field is
+``binData``, ``$convert`` returns the raw BSON representation of the
+object. The subtype of the returned ``binData`` value is ``0`` unless
+you specify a different value in ``to.subtype``.
+
+Because the output is the raw BSON of the object, the order of the
+object's fields and the order of elements in its arrays both affect
+the returned bytes.
+
+``$convert`` validates the ``format``, ``byteOrder``, and ``base``
+fields for this conversion, but these fields have no effect on the
+output.
+
+The following table shows object to ``binData`` conversion examples:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 65 35
+   :class: border-table
+
+   * - Example
+     - Results
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: {}, to: "binData" }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          Binary.createFromBase64('BQAAAAA=', 0)
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: {
+                a: "hello",
+                b: { x: NumberInt(42), y: [NumberInt(1), NumberInt(2), NumberInt(3)] },
+                c: BinData(0, "AQIDBA==")
+             },
+             to: "binData"
+          }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          Binary.createFromBase64('SgAAAAJhAAYAAABoZWxsbwADYgApAAAAEHgAKgAAAAR5ABoAAAAQMAABAAAAEDEAAgAAABAyAAMAAAAAAAVjAAQAAAAAAQIDBAA=', 0)
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: { a: "a", b: "b" }, to: "binData" }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          Binary.createFromBase64('FwAAAAJhAAIAAABhAAJiAAIAAABiAAA=', 0)
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: { b: "b", a: "a" }, to: "binData" }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          Binary.createFromBase64('FwAAAAJiAAIAAABiAAJhAAIAAABhAAA=', 0)
+
+       The output differs from the preceding example because the
+       field order differs.
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: { a: [ NumberInt(1), NumberInt(2) ] }, to: "binData" }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          Binary.createFromBase64('GwAAAARhABMAAAAQMAABAAAAEDEAAgAAAAAA', 0)
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: { a: [ NumberInt(2), NumberInt(1) ] }, to: "binData" }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          Binary.createFromBase64('GwAAAARhABMAAAAQMAACAAAAEDEAAQAAAAAA', 0)
+
+       The output differs from the preceding example because the
+       array element order differs.
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: { a: "a" }, to: { type: 5, subtype: 128 } }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          Binary.createFromBase64('DgAAAAJhAAIAAABhAAA=', 128)
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: { a: "a" }, to: "binData", format: "hex" }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          Binary.createFromBase64('DgAAAAJhAAIAAABhAAA=', 0)
+
+       ``$convert`` ignores the ``format`` field.
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: { a: "a" }, to: "binData", format: "bson" }
+
+     - Error: Invalid 'format' argument for $convert: bson
+
+       ``$convert`` validates the ``format`` field before ignoring it.
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: null, to: "binData" }
+
+     - null
 
 Convert from string to BinData
 ``````````````````````````````

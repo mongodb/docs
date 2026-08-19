@@ -2,13 +2,23 @@ import type { Store } from '@netlify/blobs';
 
 export const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg'];
 export const INV_EXTENSION = '.inv';
+export const MANPAGES_FILENAME = 'manpages.tar.gz';
 
 export const constructBlobKey = (relativePath: string): string => {
   const lowerPath = relativePath.toLowerCase();
   const isImage = IMAGE_EXTENSIONS.some((ext) => lowerPath.endsWith(ext));
   const isJson = lowerPath.endsWith('.json');
   const isInv = lowerPath.endsWith(INV_EXTENSION);
-  const prefix = isImage ? 'image' : isJson ? 'reference' : isInv ? 'inventory' : 'mdx';
+  const isManpages = lowerPath.endsWith(MANPAGES_FILENAME);
+  const prefix = isImage
+    ? 'image'
+    : isJson
+      ? 'reference'
+      : isInv
+        ? 'inventory'
+        : isManpages
+          ? 'manpages'
+          : 'mdx';
   return `${prefix}/${lowerPath}`;
 };
 

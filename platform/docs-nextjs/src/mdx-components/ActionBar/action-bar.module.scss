@@ -3,6 +3,16 @@
 @use "@/templates/main-column.module.scss" as mainColumn;
 @use "@/styles/mixins.module.scss" as mixins;
 
+// On desktop, lay the action bar out as a flex row and push its contents
+// (search bar + action buttons) together to the right. Applied to every
+// template's container so the spacing is consistent across all page types.
+@mixin right-aligned-actions {
+  @media #{theme.$screenSize-largeAndUp} {
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
 .action-bar {
   display: flex;
   height: 60px;
@@ -39,14 +49,29 @@
   width: 100%;
   background: inherit;
 
-  @media #{theme.$screenSize-mediumAndUp} {
-    padding-right: theme.$size-default;
+  // On desktop, size the search container to sit beside the action buttons
+  // as a single group justified to the right of the bar. Use a narrower
+  // preferred width between large and xLarge so it does not collide with
+  // ProductTabs overflowing from the Accordion sidenav header (~290px).
+  // Do not grow into leftover left space — that space is for the tabs.
+  @media #{theme.$screenSize-largeAndUp} {
+    width: 280px;
+    max-width: 400px;
+    flex: 0 1 280px;
+    min-width: 160px;
+  }
+
+  @media #{theme.$screenSize-xLargeAndUp} {
+    width: 400px;
+    flex: 0 1 400px;
   }
 
   @media #{theme.$screenSize-upToLarge} {
     max-width: unset;
     justify-content: space-between;
     width: 100%;
+    min-width: 0;
+    flex: 1 1 auto;
   }
 }
 
@@ -55,6 +80,8 @@
     calc(((100% - (#{documentTemplate.$max-content-value})) / 2) + #{mainColumn.$main-column-horizontal-margin}),
     #{mainColumn.$main-column-horizontal-margin}
   );
+
+  @include right-aligned-actions;
 
   @media #{theme.$screenSize-3XLargeAndUp} {
     padding-left: max(
@@ -78,17 +105,30 @@
   @media #{theme.$screenSize-upToLarge} {
     grid-template-columns: theme.$size-medium 1fr fit-content(100%);
   }
+
+  @include right-aligned-actions;
 }
 
 .landing-grid-styling {
   display: grid;
-  
+
+  // Include landing grid styles from shared mixin (desktop/tablet alignment)
+  @include mixins.landing-grid-template;
+
+  // On mobile, mirror the grid-styling layout so the search bar groups to the
+  // right with the action buttons instead of being pinned to the left next to
+  // the Docs Menu. This override comes after the mixin so it wins for all
+  // viewports below the large breakpoint.
   @media #{theme.$screenSize-upToLarge} {
     grid-template-columns: theme.$size-medium 1fr fit-content(100%);
+
+    .left-in-grid {
+      grid-column: auto;
+      padding-left: 0;
+    }
   }
-  
-  // Include landing grid styles from shared mixin
-  @include mixins.landing-grid-template;
+
+  @include right-aligned-actions;
 }
 
 .flex-styling {
@@ -101,6 +141,8 @@
   @media #{theme.$screenSize-upToLarge} {
     padding-left: theme.$size-medium;
   }
+
+  @include right-aligned-actions;
 }
 
 .middle-alignment {
@@ -114,14 +156,17 @@
   @media #{theme.$screenSize-upToMedium} {
     grid-template-columns: repeat(12, 1fr);
   }
+
+  @include right-aligned-actions;
 }
 
 .left-in-grid {
   grid-column: 2/-2;
 
   @media #{theme.$screenSize-upToLarge} {
-    grid-column: 2/-3;
+    grid-column: 1/-3;
     padding-right: 0;
+    padding-left: 25px;
   }
   @media #{theme.$screenSize-largeAndUp} {
     grid-column: 2/-8;

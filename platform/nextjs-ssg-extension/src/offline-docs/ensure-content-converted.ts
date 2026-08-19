@@ -11,7 +11,7 @@ import {
   getParserVersion,
   runPrebuildModules,
 } from '../../../nextjs-extension/src/parse/runModules';
-import { runMdxConversionForContentPaths } from '../../../nextjs-extension/src/parse/runMdxConversion';
+import { runMdxConversionForContentPaths } from '../parse/runMdxConversion';
 import type { OfflineBundlesToBuild } from './offline-bundles-to-rebuild/index';
 import { extractContentSitesWithPages } from './extract-content-sites';
 

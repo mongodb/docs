@@ -1,0 +1,940 @@
+.. _arch-center-is-snomed-ct:
+
+==========================
+SNOMED CT on MongoDB Atlas
+==========================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta:: 
+   :description: Explore how to model, search, and navigate SNOMED CT
+    clinical terminology on MongoDB Atlas using hybrid search, ancestor
+    arrays, and clinical note grounding.
+   
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Learn how to model, search, navigate, and ground SNOMED CT clinical
+terminology with MongoDB Atlas.
+
+**Use cases:** `Interoperability
+<https://www.mongodb.com/solutions/industries/healthcare/interoperability>`__
+
+**Industries:** `Healthcare
+<https://www.mongodb.com/solutions/industries/healthcare>`__
+
+**Products:** `MongoDB Atlas <http://mongodb.com/atlas>`__, `MongoDB
+Search <https://www.mongodb.com/products/platform/atlas-search>`__,
+`MongoDB Vector Search
+<https://www.mongodb.com/products/platform/atlas-vector-search>`__,
+`Voyage AI
+<https://www.mongodb.com/products/platform/ai-search-and-retrieval>`__
+
+Solution Overview
+-----------------
+Healthcare applications need to understand clinical meaning, not only
+store clinical text. A doctor may write “heart failure,” “cardiac
+failure,” or “insuficiencia cardíaca.” Different words can describe the
+same clinical idea. Clinical coding gives applications a standard way to
+represent that meaning with stable identifiers.
+
+Healthcare teams use different coding systems for different purposes.
+Some coding systems group diagnoses and encounters for reporting,
+statistics, reimbursement, or hospital activity analysis. :abbr:`SNOMED
+CT (Systemized Nomenclature of Medicine Clinical Terms)` focuses on
+clinical meaning inside the health record. It can represent problems,
+findings, procedures, body structures, organisms, substances, products,
+and many other clinical ideas. SNOMED CT supports applications to
+search, exchange, analyze, or reason over clinical facts recorded in an
+electronic health record.
+
+SNOMED International describes SNOMED CT as a clinical terminology with
+concepts that have unique meanings, formal definitions, and hierarchical
+organization.
+
+SNOMED CT has a graph-like structure. There are more than 500,000
+clinical concepts where each can have several human-readable
+descriptions, including synonyms and translations. It can have parent
+concepts, child concepts, ancestors, and formal relationships to other
+concepts. SNOMED CT represents terminology content through concepts,
+descriptions, and relationships as follows: 
+
+- A concept represents a clinical idea. 
+
+- A description links a human-readable term to that concept. 
+
+- A relationship connects one concept to another.  
+
+This structure is powerful, but it creates implementation challenges.
+Application teams need fast term search, multilingual lookup, hierarchy
+navigation, descendant expansion, and relationship inspection. They also
+need to use SNOMED’s terminology inside workflows such as clinical note
+review, problem-list creation, decision support, cohort discovery, and
+semantic search. Traditional implementations often split these needs
+across several systems: 
+
+- A relational database for the terminology files. 
+
+- A search engine for text lookup. 
+
+- A graph database for hierarchy traversal. 
+
+- A vector database for semantic search.
+
+This solution shows how to operationalize SNOMED CT on MongoDB Atlas as
+follows:
+
+- Store each SNOMED concept as a MongoDB document that keeps the concept
+  identity, descriptions, relationships, parents, children, and ancestor
+  paths together. 
+
+- Build one term-level search projection for MongoDB Search and MongoDB
+  Vector Search. 
+
+- Use ancestor arrays and multikey indexes to support common hierarchy
+  and descendant queries without a separate graph database. 
+
+- Use the same terminology service to ground clinical notes to SNOMED
+  candidates
+
+- Store reviewed codings with evidence, context, and ancestor paths.
+
+For example, a user can search for “heart failure,” inspect the selected
+clinical concept, see its parent and child concepts, review its formal
+relationships, and expand specific concepts below it. SNOMED CT, often
+utilizes :abbr:`ECL (Expression Constraint Language)` to express this type of
+descendant expansion. ECL  functions as a compact query language for
+describing sets of SNOMED CT concepts. For example, the expression ``<<
+Heart failure`` refers to “heart failure and all concepts below it in
+the hierarchy.” In MongoDB’s schema design, this pattern maps naturally
+to a query over precomputed ancestor arrays. SNOMED’s official ECL
+reference defines the operator ``<<`` as “descendant or self of,” which
+retrieves a concept and its subtypes.
+
+.. figure:: /includes/images/industry-solutions/healthcare-snomed-ct-1.svg
+   :figwidth: 1200px
+   :alt: Clinical concept with its hierarchy of parents and children 
+
+   Figure 1. Clinical concept with its hierarchy of parents and children 
+
+The solution also demonstrates clinical note grounding. A note may
+contain present findings, past history, family history, planned actions,
+uncertain statements, and negated findings. The application extracts
+candidate clinical terms, searches SNOMED CT through MongoDB, proposes
+candidate concepts, and stores reviewed codings only after confirmation.
+The stored coding keeps the original evidence span, the selected SNOMED
+concept, the assertion context, the reviewer status, and the ancestor
+path. Downstream applications can then query by clinical meaning, not
+only by exact words.
+
+Use this solution when you need to:
+
+- Search clinical terms, synonyms, translations, and SNOMED identifiers.
+
+- Navigate parent, child, ancestor, descendant, and relationship views.
+
+- Support lexical, semantic, and hybrid terminology search from one
+  MongoDB collection.
+
+- Expand concept sets with ECL-style hierarchy expressions such as “all
+  descendants of heart failure.”
+
+- Ground clinical notes to SNOMED CT candidates with evidence spans and
+  human review.
+
+- Store reviewed SNOMED codings with ancestor paths for indexed
+  downstream queries.
+
+This pattern gives application teams one operational platform for
+terminology data, terminology search, semantic retrieval, hierarchy
+queries, clinical evidence capture, and audited coding output. It
+reduces the need to run separate systems for document storage, search,
+semantic retrieval, and graph-style navigation.
+
+*SNOMED CT licensing note: The public repository associated with this
+solution, includes only a small sample dataset. SNOMED CT requires
+proper licensing.*
+
+Reference Architectures
+-----------------------
+
+This reference architecture consists of a **Navigation** and a **ground
+Clinical Note** workflow.
+
+Navigation helps a terminology user search, inspect, and scope SNOMED CT
+concepts. Ground Clinical Note reuses the same terminology retrieval
+layer, using deterministic lexical search by default, to propose SNOMED
+CT candidates from clinical text and store only reviewed codings.
+
+The architecture uses a set of MongoDB collections: 
+
+- The ``snomed-irbd`` collection stores the source-of-truth terminology
+  view. 
+
+- The ``snomed-term-search`` supports high-quality terminology search. 
+
+- The ``grounded_notes`` collection stores reviewed application output,
+  not source terminology data. 
+
+SNOMED CT content is graph-shaped. This architecture keeps connected
+structures together in MongoDB documents and uses search projections and
+ancestor arrays to make them operational.
+
+Architecture at a Glance
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+This implementation starts with an authorized SNOMED CT content package
+that is already available as a JSON concept model. In the current demo,
+the source model comes from the Spanish national SNOMED CT distribution
+used by the Ministry of Health. `The public repository
+<https://github.com/mongodb-industry-solutions/snomed-ct-on-mongodb>`__
+includes only a sample dataset. It does not redistribute the full SNOMED
+CT terminology.
+
+The architecture is source-format independent. If an organization
+receives SNOMED CT as JSON, it can load that model directly into
+MongoDB.
+
+.. figure:: /includes/images/industry-solutions/healthcare-snomed-ct-2.svg
+   :figwidth: 1200px
+   :alt: MongoDB as the code authority, with an optional, candidate-bounded LLM gateway.
+
+   Figure 2. MongoDB as the code authority, with an optional, candidate-bounded LLM gateway.
+
+The target model has the following terminology collections:
+
+- ``snomed-irbd``: Stores each clinical concept with its
+  descriptions, relationships, parents, children, ancestors, active
+  status, release metadata, and membership metadata. Applications use
+  this collection for concept lookup, hierarchy navigation, relationship
+  inspection, and descendant expansion.
+
+- ``snomed-term-search``: Stores one searchable document per active
+  term, language, and release. Applications use this projection for
+  lexical search, semantic search, hybrid search, language filtering,
+  and scope filtering.  
+
+The Navigation API uses the ``snomed-term-search`` to find matching
+concepts. It then enriches selected results from the ``snomed-irbd``
+collection. A user can search for a clinical phrase such as “heart
+failure,” inspect the selected concept, view broader and more-specific
+concepts, and open API examples for the same operation.
+
+The Grounding API reuses the terminology retrieval layer inside a
+clinical-note workflow. Grounding retrieval defaults to deterministic
+lexical search, while Navigation offers lexical, semantic, and hybrid
+modes. The optional LLM tier can help interpret text and choose among
+MongoDB-provided candidates, but it must not create new SNOMED CT
+identifiers.
+
+After review, the application stores confirmed codings in
+``grounded_notes``. Each coding keeps the selected SNOMED CT concept,
+the evidence text, assertion context, subject context, reviewer status,
+and ancestor IDs. Downstream applications can then query reviewed
+clinical facts by meaning, not only by exact words.
+
+Navigation Workflow
+~~~~~~~~~~~~~~~~~~~
+
+A user searches for a clinical term such as “heart failure.” The
+application queries the term search projection and returns concept-level
+results grouped by SNOMED concept.
+
+Each result shows:
+
+- The term that matched the user query
+
+- The preferred display for the concept
+
+- The formal clinical name
+
+- The SNOMED identifier
+
+- The active status
+
+- The semantic category
+
+- The release
+
+- The search provenance
+
+The user can then open the concept focus view. This view shows the
+concept summary, descriptions, parent concepts, child concepts,
+relationships, descendants, raw document, and API examples.
+
+Navigation supports these search modes:
+
+- **Lexical search** uses MongoDB Search for exact terms, synonyms,
+  formal names, identifiers, prefixes, and fuzzy text.
+
+- **Semantic search** uses MongoDB Vector Search, which auto-embeds the
+  term's ``embedText`` field with the voyage-4 reference model. As such,
+  retrieval by meaning runs on the same collection without requiring a
+  separate vector store or embedding pipeline.
+
+- **Hybrid search** combines lexical and vector retrieval. If a Voyage
+  cross-encoder reranker is configured, the application reranks the
+  fused candidate pool; otherwise it falls back to fusion order.
+
+The search screen also supports semantic scope. A user can limit results
+to a broad clinical area, such as Clinical finding, Procedure, Body
+structure, or Substance. A user can also use a descendant expression
+such as ``<< 404684003`` to restrict results to a concept and its
+more-specific concepts.
+
+.. figure:: /includes/images/industry-solutions/healthcare-snomed-ct-3.svg
+   :figwidth: 1200px
+   :alt: Expanded semantic search with ECL scopes
+
+   Figure 3. Expanded semantic search with ECL scopes
+
+Ground Clinical Note Workflow
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A user pastes a clinical note. The workflow extracts clinical mentions
+and context cues, such as present findings, negation, history, family
+history, planned actions, uncertainty, and temporal expressions.
+
+The workflow then searches SNOMED CT candidates through MongoDB. It
+returns reviewable candidates with evidence spans and context. A
+reviewer can accept, reject, or mark each candidate for review.
+
+The optional LLM tier can assist with text interpretation and candidate
+selection. It should only choose from candidates returned by MongoDB. It
+must not create new SNOMED identifiers or persist codings without
+review.
+
+After review, the application stores the confirmed codings in
+``grounded_notes``. Each saved coding includes the evidence span,
+selected SNOMED concept, assertion, subject, status, and ancestor IDs.
+This pattern enables downstream applications to query for meaning. For
+example, an application can find reviewed notes containing any accepted
+descendant of a selected clinical concept.
+
+.. figure:: /includes/images/industry-solutions/healthcare-snomed-ct-4.svg
+   :figwidth: 1200px
+   :alt: Grounding a clinical note - LLM process
+
+   Figure 4. Grounding a clinical note - LLM process
+
+.. figure:: /includes/images/industry-solutions/healthcare-snomed-ct-5.svg
+   :figwidth: 1200px
+   :alt: Grounding a clinical note after terms search with MongoDB
+
+   Figure 5. Grounding a clinical note after terms search with MongoDB
+
+Example API Snippets
+~~~~~~~~~~~~~~~~~~~~
+
+The solution exposes APIs for both the Navigation and Ground Clinical
+Note workflows. These snippets show the core request patterns. 
+
+Search SNOMED Terms and Concepts
+````````````````````````````````
+
+Use this endpoint to search the term-level projection. The response
+groups matching terms back to SNOMED concepts. It returns concept-level
+results with the matched term, preferred display, semantic category, and
+search provenance.
+
+.. code-block:: json
+
+   POST /api/navigator-search
+   {
+     "query": "heart failure",
+     "languageCode": "en",
+     "mode": "lexical",
+     "limit": 24
+   }
+
+Use lexical mode when the user searches by a known term, synonym, formal
+name, or SNOMED identifier. The API also supports semantic and hybrid
+modes when the demo is configured for MongoDB Vector Search and
+reranking.
+
+Expand a Concept and Its Descendants
+````````````````````````````````````
+
+Use this endpoint to expand a concept set. SNOMED CT uses ECL to
+describe sets of concepts. In this example, the expression ``<<
+84114007`` means “Heart failure and all more-specific concepts below
+it.”
+
+.. code-block:: json
+
+   POST /api/ecl
+   {
+     "expr": "<< 84114007",
+     "languageCode": "en",
+     "limit": 200
+   }
+
+The implementation resolves this expression with precomputed ancestor
+arrays in MongoDB. This pattern makes common descendant queries fast
+without requiring a separate graph database for the demo architecture.
+
+Ground a Clinical Note to SNOMED Candidates
+```````````````````````````````````````````
+
+Use this endpoint to extract candidate clinical mentions from text and
+retrieve bounded SNOMED candidates from MongoDB. The response generates
+reviewable output without persisting codes automatically.
+
+.. code-block:: json
+
+   POST /api/nlp-map
+   {
+     "text": "Patient with chronic systolic heart failure and type 2 diabetes. No evidence of chest pain at present.",
+     "languageCode": "en"
+   }
+
+The grounding workflow detects clinical mentions and context such as
+negation, history, family history, plans, and temporal expressions.
+MongoDB provides the candidate SNOMED concepts. A reviewer confirms the
+final codings.
+
+Save Reviewer-Confirmed Codings
+```````````````````````````````
+
+Use this endpoint after review. The application only stores confirmed
+codings and enriches them with ancestor IDs to enable downstream
+semantic queries.
+
+.. code-block:: json
+
+   POST /api/coding-confirm
+   {
+     "text": "Patient with heart failure.",
+     "languageCode": "en",
+     "codings": [
+       {
+         "mention": "heart failure",
+         "conceptId": "84114007",
+         "displayTerm": "Heart failure",
+         "semanticTag": "disorder",
+         "accepted": true
+       }
+     ]
+   }
+
+The saved document keeps the selected SNOMED concept, evidence text,
+assertion context, reviewer status, and ancestor IDs. This schema
+enables downstream queries to locate notes by either a general concept
+or a specific descendant. 
+
+Query Grounded Notes by Meaning
+```````````````````````````````
+
+Use this endpoint to retrieve reviewed notes that contain a selected
+SNOMED concept or its clinical descendants.
+
+.. code-block:: json
+
+   POST /api/grounded-corpus
+   {
+     "conceptId": "84114007",
+     "includeDescendants": true,
+     "limit": 10
+   } 
+
+This endpoint demonstrates the downstream value of storing ancestor IDs
+with reviewed codings. Applications can query clinical meaning instead
+of searching only for exact words.
+
+Data Model Approach
+-------------------
+
+SNOMED CT represents connected data. A clinical concept can have many
+human-readable terms, several broader concepts, many more-specific
+concepts, and formal relationships to other concepts. 
+
+MongoDB works well for this pattern because most operational
+applications need a concept-centered view. When a user opens a concept,
+the application needs the concept identifier, display terms,
+descriptions, parents, children, ancestor path, relationships, active
+status, and release metadata together.
+
+This approach does not remove the graph structure. It stores the
+relationships and adds query-friendly arrays for common navigation
+patterns. For example, each concept document can store its direct
+parents and its ancestor path. This pattern lets the application find
+broader concepts, child concepts, and descendants with indexed MongoDB
+queries.
+
+Why This Model Works
+~~~~~~~~~~~~~~~~~~~~
+
+The design choices below address specific operational requirements: fast
+lookups, accurate searches, rapid hierarchy traversal, and auditable
+coding.
+
+- **Keep Concept Data Together**: A terminology application often needs
+  to render a complete concept card. Embedding descriptions,
+  relationship summaries, parent IDs, child IDs, and ancestor IDs keeps
+  the most useful operational view in one document.
+
+- **Separate Search From Source Terminology**: Search is term-level, not
+  concept-level. One concept can have many descriptions across languages
+  and dialects. A term-level projection lets MongoDB Search and MongoDB
+  Vector Search rank the exact term that matched while still returning
+  the canonical concept.
+
+- **Precompute Hierarchy Paths**: SNOMED CT has a rich hierarchy. Many
+  applications need fast descendant queries, such as “find this concept
+  and all more-specific concepts below it.” Store ancestor IDs on each
+  concept and each reviewed clinical coding. Then use multikey indexes
+  for common hierarchy queries.
+
+- **Store Evidence With Reviewed Codings**: Coding delivers more value
+  when the application can explain its origin. Store the selected SNOMED
+  concept together with the clinical text span, assertion status,
+  subject context, and reviewer status. This pattern supports audit,
+  review, and downstream queries.
+
+.. figure:: /includes/images/industry-solutions/healthcare-snomed-ct-6.svg
+   :figwidth: 1200px
+   :alt: SNOMED CT metamodel and MongoDB collection mapping
+
+   Figure 6. SNOMED CT metamodel and MongoDB collection mapping
+
+SNOMED CT Metamodel and MongoDB Collection Mapping
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The solution uses three terminology collections, plus a separate
+telemetry collection. The sections below describe the document shape and
+the main fields of each one.
+
+The snomed-irbd collection
+``````````````````````````
+
+Use ``snomed-irbd`` as the source-of-truth view for a SNOMED CT concept.
+Each document represents one concept in one release, carrying its RF2
+descriptions, defining relationships, parent concepts, child concepts,
+active status, release metadata, and the precomputed ancestor closure
+that powers hierarchy and subsumption.
+
+.. code-block:: json
+
+   {
+     "conceptId":          "44054006",
+     "active":             true,
+     "effectiveTime":      "20020131",
+     "moduleId":           "900000000000207008",
+     "definitionStatusId": "900000000000074008",
+     "descriptions": [
+       { "id": "73465010", "term": "Diabetes mellitus type II",
+         "typeId": "900000000000013009", "languageCode": "en",
+         "acceptabilityMap": { "900000000000509007": "..." } }
+     ],
+     "relationships": [
+       { "typeId": "116680003", "destinationId": "73211009",
+         "relationshipGroup": "0", "active": "1" }
+     ],
+     "inferredParentIds":   ["73211009"],
+     "inferredAncestorIds": ["73211009", "64572001", "138875005"],
+     "inferredChildIds":    ["..."],
+     "relationshipAttributeKeys": ["116680003|73211009"],
+     "memberOfRefsetIds":   ["..."],
+     "releaseId":           "20260601",
+     "releaseDate":         "2026-06-01T00:00:00.000Z",
+     "releaseAppliedAt":    "2026-07-06T00:00:00.000Z"
+   }
+
+The ``snomed-irdb`` contains the following relevant fields:
+
+- ``conceptId``: Represents the SNOMED identifier (SCTID); the stable
+  concept identity.
+
+- ``descriptions[]``: Represents the human readable names for the
+  concept. Each name is a synonym or the fully specified name (the
+  formal clinical name), and records its language and whether it is
+  preferred or acceptable in that language. These entries map to the
+  description rows in the SNOMED CT release files
+
+- ``relationships[]``: Represents the concept's relationships to other
+  concepts. "Is a" relationship defines the hierarchy. Attribute
+  relationships define clinical properties such as finding site or
+  causative agent.
+
+- ``relationshipAttributeKeys[]``: Represents each attribute relationship
+  as a single indexed value. This lets the application find concepts by
+  a specific attribute, and return results with an index instead of a
+  full scan.
+
+- ``inferredParentIds``, ``ChildIds``, ``AncestorIds``: Represent bounded
+  precomputed closure for subsumption without graph traversal.
+  Descendants are queried with the ``{ inferredAncestorIds: conceptId
+  }`` clause rather than stored on every parent concept.
+
+The snomed-term-search collection test
+``````````````````````````````````````
+
+Use ``snomed-term-search`` as the search projection. Each document
+represents one active description term in one language and one release,
+denormalized for MongoDB Search, scoped filtering, and auto-embedded
+MongoDB Vector Search. This structure enables users to type a synonym,
+abbreviation, localized term, formal clinical name, or natural-language
+phrase.
+ 
+The search document repeats concept context to make each search result
+self-contained. A result can show the matched term, the preferred
+display, the semantic category, active status, release, and hierarchy
+scope without fetching the full concept document for every candidate.
+
+.. code-block:: json
+
+   {
+     "conceptId":     "44054006",
+     "descriptionId": "116680003",
+     "term":          "Type 2 diabetes mellitus",
+     "preferredTerm": "Type 2 diabetes mellitus",
+     "fsn":           "Type 2 diabetes mellitus (disorder)",
+     "semanticTag":   "disorder",
+     "semanticTagKey":"disorder",
+     "termType":      "synonym",
+     "preferred":     true,
+     "languageCode":  "en",
+     "definitionStatusId": "900000000000074008",
+     "moduleId":      "900000000000207008",
+     "effectiveTime": "20020131",
+     "parentIds":     ["73211009"],
+     "ancestorIds":   ["404684003", "73211009"],
+     "topRoots":      ["404684003"],
+     "areaTags":      ["disorder"],
+     "releaseId":     "20260601",
+     "releaseDate":   "2026-06-01T00:00:00.000Z",
+     "embedText":     "Type 2 diabetes mellitus | disorder | ..."
+   }
+
+The ``snomed-term-search`` collection contains the following relevant
+fields:
+
+- ``conceptId``, ``descriptionId``: Link back to the concept and the
+  specific description.
+
+- ``term``, ``preferredTerm``, ``fsn``:  Provide matched term and
+  concept context, so search results are self-contained.
+
+- ``semanticTag``, ``semanticTagKey``, ``termType``, ``preferred``:
+  Provide filtering and ranking signals.
+
+- ``parentIds``, ``ancestorIds``,  ``topRoots``,  ``areaTags``: Scope
+  filters without joining back to ``snomed-irbd``.
+
+- ``releaseId``,  ``releaseDate``, ``effectiveTime``:  Provide
+  release-scoped search and release maintenance visibility.
+
+- ``embedText``:  Contains the field that MongoDB auto-embeds use for
+  Vector Search.
+
+This snippet explains the most important design choice: the search
+projection is term-level. It shows why a search for “High blood sugar”
+can still return the canonical concept “Diabetes mellitus”
+
+With auto-embedding, you store only the human-readable ``embedText``
+field, and MongoDB Vector Search generates and maintains the embedding
+for that field automatically. You do not require a separate embedding
+pipeline or vector store, because the semantic layer lives on the same
+collection.
+
+The grounded_notes collection
+`````````````````````````````
+
+Use ``grounded_notes`` to store application output after review. These
+documents are not source terminology data. Each document stores the
+following data:
+
+- The source text 
+
+- The selected SNOMED CT concept 
+
+- The evidence span 
+
+- The assertion context such as present or absent 
+
+- The subject context such as patient or family member 
+
+- The review status
+
+- The ancestor IDs
+
+The example below shows this shape. 
+
+.. code-block:: json
+
+   {
+    "tenantId": "demo-hospital",
+    "languageCode": "en",
+    "text": "Patient with type 2 diabetes mellitus.",
+    "codings": [
+      {
+        "conceptId": "44054006",
+        "system": "http://snomed.info/sct",
+        "display": "Type 2 diabetes mellitus",
+        "semanticTag": "disorder",
+        "role": "principal",
+        "target": "Condition.code",
+        "assertion": "present",
+        "subject": "patient",
+        "status": "accepted",
+        "evidence": {
+          "text": "diabetes mellitus tipo 2"
+        },
+        "ancestorIds": ["44054006","75934005"]
+      }
+    ],
+    "recordedAt": "2026-07-07T16:22:47.210Z",
+    "createdAt": {
+      "$date": "2026-07-07T16:22:47.210Z"
+    }
+   }
+
+This design turns clinical text into queryable clinical meaning. An
+application can later search for reviewed notes that contain a concept
+or any more-specific concept below it in the SNOMED CT hierarchy. Each
+coding keeps its evidence, so a reviewer can trace every code back to
+the exact text and context that produced it, which supports audit and
+confident downstream use.
+
+The telemetry Collection
+````````````````````````
+ 
+Use a separate ``telemetry`` collection for search events, hierarchy
+requests, note-grounding activity, feedback, and diagnostics. Keep
+telemetry data outside the conceptual data model.
+
+Build the Solution
+------------------
+
+The `public repository
+<https://github.com/mongodb-industry-solutions/snomed-ct-on-mongodb>`__
+includes the application code, scripts, and a sample dataset. Licensed
+users can replace the sample dataset with their own SNOMED CT release
+files.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+- A MongoDB Atlas cluster with MongoDB Search enabled.
+
+- Access to a licensed SNOMED CT release or a small sample dataset for
+  demo purposes.
+
+- Node.js and npm for the demo application.
+
+- Optional: MongoDB Vector Search automated embedding configuration for
+  semantic search.
+
+- Optional: Voyage reranking key or other configured reranker for hybrid
+  mode.
+
+- Optional: LLM gateway for bounded extraction and candidate
+  disambiguation.
+
+Procedure
+~~~~~~~~~
+
+.. procedure::
+   :style: normal
+
+   .. step:: Prepare licensed terminology input
+
+      Use the SNOMED CT RF2 distribution from your organization, or a
+      JSON distribution. Load this input into MongoDB as the canonical
+      concept collection using your own ingestion process. The default
+      terminology corresponds to ``snomed-irdb``. This collection is a
+      prerequisite. 
+
+      The scripts in this repository operate on a pre-loaded canonical
+      collection; they do not read RF2 files. Do not commit a full
+      release to a public repository. 
+
+   .. step:: Prepare canonical concept documents
+
+      The canonical collection stores each concept as a concept-centric
+      document, containing its descriptions, relationships, parents,
+      ancestors, and hierarchy information. This schema contains source
+      metadata to support active and inactive status, release-aware
+      lookup, description inspection, and relationship navigation. 
+
+      Once you load the collection, normalize the fields for consistent
+      lookups, and record the release version on each document, so
+      results are reproducible across releases.
+
+      .. code-block:: bash
+
+         NORMALIZE_APPLY=true npm run model:harden          # normalize SCTIDs / strings
+         RELEASE_ID_TARGET=20260601 RELEASE_ID_OVERWRITE=true npm run releaseid:stamp
+
+   .. step:: Build the term sidecar
+
+      Generate ``snomed-term-search`` from the canonical concept
+      collection. The sidecar stores one active term document per
+      release, language, description, and concept. It repeats key
+      concept context so search results do not need to join back to the
+      concept collection for every result card.
+
+      .. code-block:: bash
+
+         # Curated demo branches
+         TERM_PROJECTION_SCOPE=demo npm run terms:rebuild
+
+         # Full licensed local release
+         TERM_PROJECTION_SCOPE=full npm run terms:rebuild
+
+         # Replace documents while preserving index definitions when possible
+         npm run terms:rebuild:replace
+
+   .. step:: Create MongoDB indexes
+
+      Create the btree indexes for concept lookup and hierarchy
+      expansion. Create the MongoDB Search index for lexical terminology
+      lookup. Create the MongoDB Vector Search index for semantic search
+      if you use semantic or hybrid mode.
+
+      .. code-block:: bash
+
+         npm run indexes:build
+
+      Use the following recommended source collection indexes:
+
+      .. code-block:: javascript
+
+         db.getCollection("snomed-irbd").createIndex({ releaseId: 1, conceptId: 1 })
+         db.getCollection("snomed-irbd").createIndex({ releaseId: 1, active: 1, conceptId: 1 })
+         db.getCollection("snomed-irbd").createIndex({ releaseId: 1, inferredAncestorIds: 1, active: 1 })
+
+      Semantic search uses MongoDB Vector Search auto-embedding with
+      voyage-4 as the default model. Hybrid mode adds the Voyage
+      rerank-2.5 reranker. A manual Voyage embedding fallback exists for
+      clusters without auto-embedding.
+
+   .. step:: Configure semantic search & reranking
+
+      Semantic and hybrid search use MongoDB Vector Search
+      auto-embedding. Create a Vector Search index on the ``embedText``
+      field with an embedding model configured on the cluster. 
+
+      Hybrid mode adds an optional Voyage reranker; set VOYAGE_API_KEY
+      to enable it. Without a key, hybrid search still works and falls
+      back to fusion order. The reranker tries your configured base URL,
+      then the MongoDB-hosted Voyage gateway corresponding to
+      https://ai.mongodb.com/v1, then Voyage's own native platform
+      endpoint.
+
+   .. step:: Run the demo application
+
+      .. code-block:: bash
+
+         npm install
+         npm run dev
+
+      Use a lean ``.env.local`` file. Keep operational defaults in code
+      or configuration files, not as a long list of environment
+      variables.
+
+      .. code-block:: bash
+
+         MONGODB_URI=
+         MONGODB_DB=terminology
+         VOYAGE_API_KEY=
+         ENABLE_LLM_GROUNDING=false
+         LLM_BASE_URL=
+         LLM_API_KEY=
+         LLM_AUTH_HEADER=api-key
+         LLM_GROUNDING_MODEL=gpt-5.5
+
+         # Semantic / hybrid search
+         MONGODB_VECTOR_MODE=autoEmbed
+         MONGODB_VECTOR_INDEX=snomed_voyage_idx
+         MONGODB_VECTOR_AUTO_EMBED_MODEL=voyage-4
+         VOYAGE_API_KEY=
+         VOYAGE_RERANK_MODEL=rerank-2.5
+
+   .. step:: Validate Navigation
+
+      Execute the following operations to verify your Navigation
+      workflow:
+   
+      - Run a lexical search for diabetes and heart failure.
+
+      - Run a semantic or hybrid search for natural-language phrases
+        such as high blood sugar or trouble breathing.
+
+      - Open a concept and inspect summary, descriptions, hierarchy,
+        relationships, descendants, and raw JSON.
+
+      - Run an ECL-style expansion such as the expression ``<<
+        84114007``.
+
+      - Verify that result cards show matched term, preferred term,
+        semantic tag, active status, and search provenance.
+   
+   .. step:: Validate Ground Clinical Note
+
+      Execute the following operations to validate your Ground Clinical
+      Note workflow:
+
+      - Load a simple clinical note and a richer discharge-summary
+        example.
+
+      - Verify span extraction and context detection for present,
+        negated, family-history, historical, planned, and uncertain
+        mentions.
+
+      - Verify that the system does not over-code generic symptoms to
+        overly specific descendants.
+
+      - Confirm only reviewed codings and save them to the
+        ``grounded_notes`` collection.
+
+      - Run a MongoDB query on ``ancestorIds`` to prove operational
+        searchability.
+
+Key Learnings
+-------------
+
+- **Operationalize SNOMED CT in MongoDB Atlas**: Serve graph-shaped
+  clinical terminology through a document-centered operational model
+  that supports search, hierarchy, relationships, and application
+  workflows.
+
+- **Unify terminology navigation and semantic search**: Use MongoDB
+  Search and MongoDB Vector Search to help users find, inspect, and
+  scope SNOMED CT concepts from the same Atlas-backed service.
+
+- **Ground clinical text with reviewed evidence**: Use the terminology
+  service to propose SNOMED CT candidates from clinical notes, then
+  store reviewed codings with evidence, context, and ancestor paths.
+
+Authors
+-------
+
+- Francesc Mateu Amengual, MongoDB
+- Giovanni Rodríguez, MongoDB
+- Diego Canales, MongoDB
+
+Learn More
+----------
+
+- `MongoDB Search Overview <https://www.mongodb.com/docs/search/>`__:
+  Learn how MongoDB supports full-text search, autocomplete, filtering,
+  scoring, and search-driven application experiences.
+
+- `MongoDB Vector Search Overview
+  <https://www.mongodb.com/docs/vector-search/>`__: Learn how MongoDB
+  supports semantic retrieval and vector search inside Atlas.
+
+- `Get SNOMED CT <https://www.snomed.org/get-snomed>`__: Review how
+  organizations access SNOMED CT and understand the licensing path for
+  their country or territory.
+
+- `SNOMED CT concepts, descriptions, and relationships
+  <https://docs.snomed.org/snomed-ct-practical-guides/snomed-ct-terminology-services-guide/4-terminology-service-types/4.2-get-a-concept-description-or-relationship>`__:
+  Learn the basic SNOMED CT building blocks that this solution maps into
+  MongoDB documents.

@@ -5,13 +5,34 @@ import { createParentFromToc, findParentBreadCrumb } from '@/mdx-components/Brea
 import type { TocItem, BreadCrumb } from '@/mdx-components/UnifiedSidenav/types';
 import { getFullSlug } from '@/utils/get-full-slug';
 
-const homeCrumb = {
+const docsHomeCrumb: BreadCrumb = {
   title: 'Docs Home',
   path: '/docs',
 };
 
+const voyageAiHomeCrumb: BreadCrumb = {
+  title: 'Voyage AI Models Home',
+  path: '/docs/voyageai',
+};
+
+const isVoyageAiPath = (path: string): boolean => {
+  const normalized = path.startsWith('/') ? path : `/${path}`;
+  return normalized === '/docs/voyageai' || normalized.startsWith('/docs/voyageai/');
+};
+
+const getHomeCrumb = (path: string): BreadCrumb =>
+  isVoyageAiPath(path) ? voyageAiHomeCrumb : docsHomeCrumb;
+
+const normalizePath = (path: string): string => {
+  const withLeadingSlash = path.startsWith('/') ? path : `/${path}`;
+  return withLeadingSlash.replace(/\/$/, '') || '/';
+};
+
 export function usePageBreadcrumbs(tocTree: TocItem[], slug: string, siteBasePrefixWithVersion: string): BreadCrumb[] {
   const breadcrumbs = useMemo(() => {
+    const fullSlug = getFullSlug(slug ?? '', siteBasePrefixWithVersion);
+    const homeCrumb = getHomeCrumb(fullSlug);
+
     if (!slug || !tocTree || tocTree.length === 0) {
       return [homeCrumb];
     }
@@ -19,10 +40,13 @@ export function usePageBreadcrumbs(tocTree: TocItem[], slug: string, siteBasePre
     const tree = createParentFromToc(tocTree, []);
     if (!tree) return [homeCrumb];
 
-    const fullSlug = getFullSlug(slug, siteBasePrefixWithVersion);
-    const parents = findParentBreadCrumb(fullSlug, tree);
+    const parents = findParentBreadCrumb(fullSlug, tree) ?? [];
+    // Avoid duplicating the home crumb when the TOC root shares the same path
+    // (e.g. Voyage AI Models Home and the "AI Models" TOC entry both use /docs/voyageai).
+    const homePath = normalizePath(homeCrumb.path);
+    const filteredParents = parents.filter((parent) => normalizePath(parent.path) !== homePath);
 
-    return [homeCrumb, ...(parents ?? [])];
+    return [homeCrumb, ...filteredParents];
   }, [slug, tocTree, siteBasePrefixWithVersion]);
 
   return breadcrumbs;

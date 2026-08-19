@@ -8,23 +8,21 @@
 
       .. code-block:: console
 
-         cmake_minimum_required(VERSION 3.30)
+         cmake_minimum_required(VERSION 3.15)
 
          project(vector_index)
 
          set(CMAKE_CXX_STANDARD 17)
 
          find_package(mongocxx REQUIRED)
-         find_package(bsoncxx REQUIRED)
 
          add_executable(vector_index
-           vector_index.cpp
+           create-auto-embed-index.cpp
          )
 
          target_link_libraries(vector_index PRIVATE mongo::mongocxx_shared)
-         target_link_libraries(vector_index PRIVATE mongo::bsoncxx_shared)
 
-   .. step:: Create a ``vector_index.cpp`` file and define the index in the file.
+   .. step:: Create a ``create-auto-embed-index.cpp`` file and define the index in the file.
 
       .. literalinclude:: /includes/index/autoembed-type/code-snippets/create-index/cpp/create-auto-embed-index.cpp
          :language: cpp
@@ -34,33 +32,34 @@
    .. step:: Replace the following values and save the file.
 
       .. list-table::
+         :widths: 25 75
          :stub-columns: 1
 
-         * - ``<connection-string>``
+         * - ``<connectionString>``
            - Cluster connection string. To learn more, see
              :ref:`connect-via-driver`.
 
-         * - ``<database-name>``
+         * - ``<databaseName>``
            - Database that contains the collection for which you want
              to create the index.
 
-         * - ``<collection-name>``
+         * - ``<collectionName>``
            - Collection for which you want to create the index.
 
-         * - ``<index-name>``
+         * - ``<indexName>``
            - Name of your index. If you omit the index name, defaults
              to ``vector_index``.
 
-         * - ``<field-to-index>``
+         * - ``<fieldToIndex>``
            - Field to index for automated embedding vector search.
 
-         * - ``<embedding-model>``
+         * - ``<embeddingModel>``
            - Name of the supported |voyage| embedding model to use for
              generating embeddings.
 
       For example, copy and paste the following into the
-      ``vector_index.cpp`` file and replace the
-      ``<connection-string>`` placeholder value. The following index
+      ``create-auto-embed-index.cpp`` file and replace the
+      ``<connectionString>`` placeholder value. The following index
       definition indexes the ``fullplot`` field as the ``autoEmbed``
       type and the ``genres`` and ``year`` fields as the ``filter``
       type in a {+avs+} index.
@@ -77,7 +76,7 @@
                :language: cpp
                :copyable: true
                :linenos:
-               :caption: vector_index.cpp
+               :caption: create-auto-embed-index.cpp
 
          .. tab:: Filter Example
             :tabid: advanced
@@ -93,7 +92,7 @@
                :language: cpp
                :copyable: true
                :linenos:
-               :caption: vector_index.cpp
+               :caption: create-auto-embed-index.cpp
 
    .. step:: Prepare and build your project.
 
@@ -102,8 +101,8 @@
          cmake -B build
          cmake --build build
 
-   .. step:: Execute the app to create the index.
+   .. step:: Run the following command to create the index.
 
       .. code-block:: shell
 
-         ./vector_index
+         ./build/vector_index

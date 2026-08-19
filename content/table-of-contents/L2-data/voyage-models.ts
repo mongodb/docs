@@ -21,6 +21,11 @@ const tocData: TocItem[] = [
     contentSite: 'voyageai',
     url: '/docs/voyageai/models/rerankers',
   },
+  {
+    label: 'Model Lifecycle and Support Status',
+    contentSite: 'voyageai',
+    url: '/docs/voyageai/models/lifecycle',
+  },
 ];
 
 export default tocData;

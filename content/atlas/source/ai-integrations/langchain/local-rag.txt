@@ -56,40 +56,35 @@ Prerequisites
 
 To complete this tutorial, you must have the following:
 
-- The :atlascli:`{+atlas-cli+} </>` installed and running v1.14.3 or later.
+- Python v3.10 or later.
 
-- An interactive Python notebook that you can run locally. 
-  You can run interactive Python notebooks in `VS Code 
+- Docker running locally.
+
+- An interactive Python notebook that you can run locally.
+  You can run interactive Python notebooks in `VS Code
   <https://code.visualstudio.com/docs/datascience/jupyter-notebooks>`__.
-  Ensure that your environment runs Python v3.10 or later.
-
-Create a Local |service| Deployment
------------------------------------
-
-To create the local deployment, run ``atlas deployments setup`` 
-in your terminal and follow the prompts to create the deployment.
-
-For detailed instructions, see :atlascli:`Create a Local Atlas Deployment 
-</atlas-cli-deploy-local/#create-a-local-atlas-deployment-1>`.
 
 .. collapsible::
    :heading: About Local Deployments
    :expanded: false
-   
-   You use the {+atlas-cli+} to create local |service| {+deployments+}.
-   The {+atlas-cli+} is the command-line interface for |service-fullname|, and you can use 
-   the {+atlas-cli+} to interact with |service| from the terminal for 
-   various tasks, including creating local |service| {+deployments+}.
-   These are fully local deployments that do not require
-   connecting to the cloud.
 
-   Local |service| {+deployments+} are intended for testing only. 
+   This tutorial uses the ``atlas-local-lib-py`` Python library to create
+   and manage local |service| {+deployments+}. The library wraps Docker
+   containers to provide fully local deployments that do not require
+   connecting to the cloud. The library automatically handles deployment
+   lifecycle, connection string retrieval, and ensures deployment reusability
+   across Jupyter notebook sessions.
+
+   Local |service| {+deployments+} are intended for testing only.
    For production environments, :ref:`deploy a {+cluster+} <create-new-cluster>`.
 
 Set Up the Environment
 ----------------------
 
-In this section, you set up the environment for this tutorial.
+In this section, you set up the environment for this tutorial. The
+``atlas-local-lib-py`` library automatically creates and manages your
+local MongoDB deployment through Docker, eliminating the need for
+manual setup or CLI commands.
 
 .. procedure:: 
    :style: normal 
@@ -119,16 +114,20 @@ In this section, you set up the environment for this tutorial.
 
       .. code-block:: python
 
-         pip install --quiet --upgrade pymongo langchain langchain-community langchain-huggingface gpt4all pypdf
+         pip install --quiet --upgrade pymongo langchain langchain-community langchain-huggingface gpt4all pypdf atlas-local-lib-py
 
-   .. step:: Define your connection string.
+   .. step:: Create or reuse a local Atlas deployment.
 
-      Run the following code in your notebook, replacing ``<port-number>`` 
-      with the port for your local {+deployment+}.
-      
+      Run the following code in your notebook to create a new local {+deployment+}
+      or reuse an existing one with matching configuration. This also retrieves
+      the connection string programmatically.
+
       .. code-block:: python
 
-         MONGODB_URI = ("mongodb://localhost:<port-number>/?directConnection=true")
+         from atlas_local import LocalDeployment
+
+         deployment = LocalDeployment.get_or_create(name="local-atlas-deployment")
+         MONGODB_URI = deployment.connection_string()
 
 Use Your Local Deployment as a Vector Store
 -------------------------------------------

@@ -1285,6 +1285,11 @@ export const toc: L1TocItem[] = [
                     url: '/docs/kubernetes/:version/fts-vs/deployment/single-cluster-installation',
                   },
                   {
+                    label: 'Multi-Cluster Installation',
+                    contentSite: 'mck',
+                    url: '/docs/kubernetes/:version/fts-vs/deployment/multi-cluster-installation',
+                  },
+                  {
                     label: 'Verify Package Integrity',
                     contentSite: 'mck',
                     url: '/docs/kubernetes/:version/fts-vs/deployment/verify-package-integrity',

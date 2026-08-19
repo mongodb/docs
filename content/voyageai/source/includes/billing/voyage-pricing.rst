@@ -35,9 +35,9 @@ the API key used for access. All models include a free tier. Get started with
            - $0.02
            - 200 million
 
-         * - ``voyage-code-3``
-           - $0.00018
-           - $0.18
+         * - ``voyage-code-4``
+           - $0.00012
+           - $0.12
            - 200 million
 
          * - | ``voyage-finance-2``
@@ -74,6 +74,11 @@ the API key used for access. All models include a free tier. Get started with
             * - ``voyage-3.5-lite``
               - $0.00002
               - $0.02
+              - 0
+
+            * - ``voyage-code-3``
+              - $0.00018
+              - $0.18
               - 0
 
    .. tab:: Contextualized Chunk
@@ -253,3 +258,4 @@ the API key used for access. All models include a free tier. Get started with
               - $0.02
               - $0.001
               - 0
+

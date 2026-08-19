@@ -30,6 +30,10 @@ end_date: string          # YYYY-MM-DD format
 
 ## Step 0: Resolve start_date
 
+`START_DATE` always comes from the last-run comment, never from the calendar.
+The agent may be run sporadically, so anything between the last run and today
+must still be picked up.
+
 Read the last-run date from the bottom of the changelog file:
 
 ```bash
@@ -38,8 +42,24 @@ tail -n 5 content/atlas/source/includes/changelog/atlas-{YYYY}.rst \
 ```
 
 - If a date is found, use it as `START_DATE`.
-- If the file does not exist or the comment is absent, use the first day of the
-  month derived from `end_date` (e.g., `2026-04-25` → `2026-04-01`).
+- If the comment is absent but the file exists, check the previous year's file
+  (`atlas-{YYYY-1}.rst`) before falling back. Only if neither has the comment,
+  use the first day of the month derived from `end_date` and tell the operator
+  that the lookback is a guess.
+- If the file does not exist, use the first day of the month derived from
+  `end_date` (e.g., `2026-04-25` → `2026-04-01`).
+
+<gap_check>
+If the operator supplies a `start_date` directly, compare it to the last-run
+date. When the supplied date is later, the difference is a gap that no run
+will ever cover. Do not proceed silently:
+
+1. Tell the operator the gap and its length.
+2. Fetch the gap window separately and report what it contains.
+3. Ask whether to widen the run or accept the gap.
+
+Never narrow the window on your own initiative.
+</gap_check>
 
 ## Step 0b: Load Terminology from snooty.toml
 

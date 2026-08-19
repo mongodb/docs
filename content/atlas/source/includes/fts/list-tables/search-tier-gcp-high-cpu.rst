@@ -3,8 +3,13 @@
    :header-rows: 1
    :widths: 20 80
 
-   * - Instance Size 
+   * - Instance Size
      - Instance Details
+
+   * - S10
+     - - **Default RAM**: 4 GB
+       - **Default Storage**: 60 GiB
+       - **vCPU**: 1
 
    * - S20
      - - **Default RAM**: 4 GB

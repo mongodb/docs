@@ -27,7 +27,7 @@
        - ``filter`` - for additional fields to filter on. You
          can filter on {+avs-filter-types+}.
 
-       To learn more, see :ref:`mdb-vs-types-vector` and :ref:`avs-types-filter-vector`.
+       To learn more, see :ref:`avs-types-vector` and :ref:`avs-types-filter-vector`.
 
    * - | ``fields.``
        | ``path``
@@ -73,7 +73,7 @@
        - ``dotProduct`` - measures similarity like ``cosine``, but takes 
          into account the magnitude of the vector.  
          
-       To learn more, see :ref:`mdb-vs-similarity-functions`.
+       To learn more, see :ref:`avs-similarity-functions`.
 
    * - | ``fields.``
        | ``quantization``
@@ -97,7 +97,7 @@
          If precision is critical, select ``none`` or ``scalar`` instead
          of ``binary``. 
 
-       To learn more, see :ref:`mdb-vs-quantization`.
+       To learn more, see :ref:`avs-quantization`.
 
    * - | ``fields.``
        | ``indexingMethod``
@@ -110,7 +110,7 @@
        - ``flat`` - for flat, non-graph, index
 
        If omitted, defaults to ``hnsw``. To learn more, see 
-       :ref:`mdb-vs-vector-index-method`.
+       :ref:`avs-vector-index-method`.
 
    * - | ``fields.``
        | ``hnswOptions`` 
@@ -127,7 +127,7 @@
        also increase memory usage and slow down indexing and search speed.
        
        To learn more, see :ref:`About the Indexing Methods 
-       <mdb-vs-vector-index-method>`.
+       <avs-vector-index-method>`.
 
    * - | ``fields.`` 
        | ``hnswOptions.`` 
@@ -163,3 +163,31 @@
        A higher number provides a graph with high-quality connections,
        which can improve search quality (recall), but it can also
        negatively affect query latency.
+
+   * - ``storedSource``
+     - Object
+     - Optional
+     - Specifies the fields in the documents to store for query-time
+       look-ups using the ``returnStoredSource`` option. Value must
+       be an object that specifies the fields to ``include`` or
+       ``exclude`` from storage. By default, {+avs+} doesn't store any
+       fields on ``mongot``.
+
+       To learn more, see :ref:`avs-stored-source-definition`.
+
+   * - | ``storedSource.``
+       | ``include``
+     - Array of Strings
+     - Optional
+     - List of fields or dot-separated paths to fields to store. In
+       addition to the specified fields, {+avs+} stores ``_id`` also by
+       default. Either ``include`` or ``exclude`` is required.
+
+   * - | ``storedSource.``
+       | ``exclude``
+     - Array of Strings
+     - Optional
+     - List of fields or dot-separated paths to fields to exclude from
+       being stored. If specified, {+avs+} stores original documents
+       except the fields listed here. Either ``exclude`` or ``include``
+       is required.

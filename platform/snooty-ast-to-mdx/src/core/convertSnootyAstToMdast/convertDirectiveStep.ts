@@ -28,7 +28,17 @@ export const convertDirectiveStep = ({ node, ctx, depth, convertChildren }: Conv
       stepChildren.push({
         type: 'mdxJsxFlowElement',
         name: 'StepHeading',
-        attributes: [],
+        // Thread the step's section-nesting depth through so the renderer can
+        // size/weight the heading to match its position in the document,
+        // matching Snooty (which wraps each step title in a section at this
+        // depth) rather than assuming a fixed level.
+        attributes: [
+          {
+            type: 'mdxJsxAttribute',
+            name: 'headingLevel',
+            value: { type: 'mdxJsxAttributeValueExpression', value: String(depth) },
+          },
+        ],
         children: [{ type: 'paragraph', children: headingContent }],
       });
       hasStepHeading = true;

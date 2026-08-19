@@ -29,7 +29,6 @@ import mongocliRedirects from './mongocli-redirects.json';
 import mongodbAnalyzerRedirects from './mongodb-analyzer-redirects.json';
 import mongoidRedirects from './mongoid-redirects.json';
 import nodeRedirects from './node-redirects.json';
-import opsManagerRedirects from './ops-manager-redirects.json';
 import phpLibraryRedirects from './php-library-redirects.json';
 import pymongoArrowDriverRedirects from './pymongo-arrow-driver-redirects.json';
 import pymongoDriverRedirects from './pymongo-driver-redirects.json';
@@ -74,7 +73,6 @@ export const allRedirects: RedirectEntry[] = [
   ...mongodbAnalyzerRedirects,
   ...mongoidRedirects,
   ...nodeRedirects,
-  ...opsManagerRedirects,
   ...phpLibraryRedirects,
   ...pymongoArrowDriverRedirects,
   ...pymongoDriverRedirects,

@@ -1,70 +1,54 @@
-============================================================
-{+aws+} Confluent Connection
-============================================================
+========================================================================
+{+aws+} Confluent Dedicated Cluster Connection
+========================================================================
 
-.. important::
+.. include:: /includes/atlas-stream-processing/aws-confluent-pl-limitation.rst
 
-   You can't have more than one Private Link connection to a given
-   Confluent cluster per |service| project. Before you begin this
-   procedure, call the :oas-bump-atlas-op:`Return All Private Link
-   Connections <listgroupstreamprivatelinkconnections>`
-   endpoint. If you have an existing Private Link connection to your
-   Confluent cluster within {+service+} but not within your Confluent
-   account, only perform those steps that configure your
-   Confluent-side networking.
-   
-To create an {+aws+} Confluent connection to use in your {+atlas-sp+}
-project, follow these steps:
+To create a connection to an {+aws+} Confluent Dedicated cluster for
+use in your {+atlas-sp+} project, follow these steps:
 
 .. procedure::
    :style: normal
 
-   .. step:: Configure your Confluent cluster.
+   .. step:: Get the {+aws+} account ID for your {+service+} project.
 
-      You must configure your Confluent cluster to accept incoming connections from your {+service+} project.
+      You must configure your Confluent cluster to accept incoming
+      connections from your {+service+} project.
 
-      .. important::
-     
-         Confluent accepts incoming connections only from {+aws+}. To
-         use a Confluent Private Link connection, you must host your
-         {+spw+}s on {+aws+}.
+      :gold:`IMPORTANT:` Confluent accepts incoming connections only
+      from {+aws+}. To use a Confluent Private Link connection, you
+      must host your {+spw+}s on {+aws+}.
 
-      a. Call the :oas-bump-atlas-op:`Return Account ID and VPC ID for group and region <getgroupstreamaccountdetails>`
-         {+atlas-admin-api+} endpoint. Note the value of
-         ``awsAccountId``, you will need this in a later step.
+      Call the :oas-bump-atlas-op:`Return Account ID and VPC ID for
+      group and region <getgroupstreamaccountdetails>`
+      {+atlas-admin-api+} endpoint. Save the value of
+      ``awsAccountId`` for further use in this procedure.
 
-      #. In your Confluent account, navigate to the cluster you
-         want to connect to. In your cluster networking
-         interface, navigate to your cluster networking details.
+   .. step:: Go to your Confluent cluster networking details.
 
-      #. `Add Private Link Access <https://docs.confluent.io/cloud/current/networking/private-links/aws-privatelink.html#aws-privatelink-register>`__
+      In your Confluent account:
 
-      For a Confluent dedicated cluster, provide a name of your
-      choice. For the {+aws+} account number, provide the value of
-      the ``awsAccountId`` field you noted earlier.
+      a. Navigate to the cluster you want to connect to.
+      #. In your cluster networking interface, navigate to your
+         cluster networking details.
 
-      .. note::
+   .. step:: Add Private Link Access to your Confluent cluster.
 
-        This step is not required for Confluent serverless
-        clusters.
-     
+      `Add Private Link Access
+      <https://docs.confluent.io/cloud/current/networking/private-links/aws-privatelink.html#aws-privatelink-register>`__
+      to your cluster. Provide a name of your choice. For the {+aws+}
+      account number, provide the value of the ``awsAccountId`` field
+      that you saved previously.
+
+      Save the value of the :guilabel:`VPC Endpoint service name` for
+      further use in this procedure.
+
    .. step:: Request a connection to your cloud provider.
 
-      The {+atlas-admin-api+} provides an endpoint for requesting a
-      Private Link connection configured for {+atlas-sp+}.
+      .. include:: /includes/atlas-stream-processing/aws-confluent-pl-request-connection-intro.rst
 
-      :oas-bump-atlas-op:`Create One Private Link
-      <creategroupstreamprivatelinkconnection>`
-
-      .. tip::
-
-         Alternatively, you can use the Atlas CLI to request a Private
-         Link connection.
-
-         .. include:: /includes/extracts/atlas-streams-privateLinks-create.rst
-
-      For an {+aws+} Confluent Private Link connection, you must set
-      the following key-value pairs:
+      For an {+aws+} Confluent Dedicated cluster Private Link
+      connection, you must set the following key-value pairs:
 
       .. list-table::
          :widths: 35 65
@@ -73,24 +57,26 @@ project, follow these steps:
          * - Key
            - Value
 
-         * - ``serviceEndpointId`` 
-           - Your Confluent cluster's :guilabel:`VPC Endpoint service name`.
+         * - ``serviceEndpointId``
+           - Your cluster's :guilabel:`VPC Endpoint service name`.
 
          * - ``dnsDomain``
-           - Fully qualified domain name of the bootstrap server on your
-             Confluent cluster.
+           - Fully qualified domain name of the bootstrap server on
+             your Confluent cluster.
 
          * - ``dnsSubDomain``
-           - If your cluster doesn't use subdomains, you must set this to
-             the empty array ``[]``. If your cluster uses subdomains, you
-             must set this to an array containing one fully qualified
-             subdomain name for each of your cluster's subdomains.
+           - - If your cluster doesn't use subdomains, you must set
+               this to the empty array ``[]``.
+             - If your cluster uses subdomains, you must set this to
+               an array containing one fully qualified subdomain name
+               for each of your cluster's subdomains.
 
-      You can find these values in your Confluent cluster's networking details.
+      You can find these values in your Confluent cluster's
+      networking details.
 
       The following example command requests a connection to your
       Confluent cluster and illustrates a typical response:
-      
+
       .. include:: /includes/fact-service-accounts-first.rst
 
       .. io-code-block::
@@ -117,27 +103,11 @@ project, follow these steps:
          .. output::
             :language: bash
 
-            {"_id":"6aa12e7ccd660d4b2380b1c1","dnsDomain":"sample.us-east-1.aws.confluent.cloud.","vendor":"Confluent","provider":"AWS","region":"us_east_1","serviceEndpointId":"com.amazonaws.vpce.us-east-1.vpce-svc-93da685022ee702a9"}                
+            {"_id":"6aa12e7ccd660d4b2380b1c1","dnsDomain":"sample.us-east-1.aws.confluent.cloud.","vendor":"Confluent","provider":"AWS","region":"us_east_1","serviceEndpointId":"com.amazonaws.vpce.us-east-1.vpce-svc-93da685022ee702a9"}
 
-      After you send the request, note the value of the ``_id`` field in the response body. You will need this in a later step.
+      After you send the request, save the value of the ``_id`` field
+      in the response body for further use in this procedure.
 
-   .. step:: Provide the interface endpoint ID to Confluent.
-
-      .. note::
-
-         This step applies only to Confluent serverless clusters.
-
-      Call the :oas-bump-atlas-op:`Return All Private Link Connections
-      <listgroupstreamprivatelinkconnections>` endpoint. Note
-      the value of ``interfaceEndpointId``.
-
-      In your Confluent account, navigate to the cluster you want to
-      connect to. In your cluster networking interface, navigate to
-      your cluster networking details. Navigate to the access points
-      interface, and add a new access point. When Confluent prompts
-      you for an interface endpoint, provide the value of
-      ``interfaceEndpointId`` that you noted previously.
-      
    .. step:: Create the {+service+}-side connection.
 
       .. include:: /includes/steps-create-sp-kafka-pl-atlas-side-connection.rst

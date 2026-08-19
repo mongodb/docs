@@ -165,18 +165,29 @@ For more information on locking in MongoDB, see :doc:`/faq/concurrency`.
 Resource Locking in Replica Sets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If renaming a collection within the same database, 
+When you rename a collection within the same database, 
 ``renameCollection`` obtains an exclusive lock on 
 the source and target collections for the duration of the operation. 
 All subsequent operations on the collections must wait until
 ``renameCollection`` completes. 
 
-If renaming a collection between different databases, 
-``renameCollection`` obtains an exclusive (W) lock on the target 
-database, an intent shared (r) lock on the source database, and a shared (S) 
-lock on the source collection. Subsequent operations on the target database
-must wait until ``renameCollection`` releases the exclusive database 
-lock.
+Starting in MongoDB 9.0, when you rename a collection between different
+databases, ``renameCollection`` obtains an exclusive lock on the source
+and target collections for the duration of the operation.
+:ref:`DDL operations <ddl-operations>` and writes on the source and target
+collections must wait until ``renameCollection`` completes. Most read
+operations use
+:ref:`lock-free reads <faq-concurrency-lock-free-read-operations>` and
+are not blocked.
+
+In versions earlier than 9.0, during a cross-database rename,
+``renameCollection`` held only a shared (S) lock on the source
+collection during the copy phase, and released the lock before
+completing the rename.
+
+The locking change affects replica sets only. Sharded clusters
+already lock both collections for the duration of the rename, as
+described earlier on this page.
 
 For more information on locking in MongoDB, see :doc:`/faq/concurrency`.
 

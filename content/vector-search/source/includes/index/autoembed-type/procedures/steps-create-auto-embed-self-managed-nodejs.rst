@@ -1,0 +1,90 @@
+.. procedure:: 
+   :style: normal 
+
+   .. step:: Create a ``.js`` file and define the index in the file. 
+
+      .. literalinclude:: /includes/index/autoembed-type/code-snippets/create-index/nodejs/create-auto-embed-self-managed-index.js
+         :language: javascript
+         :copyable: true 
+         :linenos: 
+
+      .. example:: 
+
+         Create a file named ``vector-index.js``.
+
+   .. step:: Replace the following values and save the file.
+
+      .. list-table:: 
+         :stub-columns: 1 
+
+         * - ``<connectionString>``
+           - Cluster connection string. To learn more, see :ref:`connect-via-driver`.
+
+         * - ``<databaseName>``
+           - Database that contains the collection for which you want to create the index.
+
+         * - ``<collectionName>``
+           - Collection for which you want to create the index.
+
+         * - ``<indexName>``
+           - Name of your index. If you omit the index name, defaults to ``autoembed_index``.
+
+         * - ``<fieldToIndex>``
+           - Vector and filter fields to index.
+
+         * - ``<embeddingModel>``
+           - Name of |voyage| embedding model to use.
+
+      .. example:: 
+
+         Copy and paste the following into the ``vector-index.js`` file
+         and replace the ``<connectionString>`` placeholder value. The
+         following index definition uses the ``sample_mflix.movies``
+         collection. 
+
+         .. tabs:: 
+
+            .. tab:: Basic Example
+               :tabid: basic
+
+               .. include:: /includes/quick-start/facts/auto-embed-basic-example-description.rst 
+
+               .. literalinclude:: /includes/index/autoembed-type/code-snippets/create-index/nodejs/basic-auto-embed-example.js
+                  :language: js
+                  :copyable: true 
+                  :linenos:
+                  :caption: autoembed_index.js
+
+            .. tab:: Filter Example 
+               :tabid: filter
+
+               .. include:: /includes/quick-start/facts/auto-embed-filter-example-description.rst
+
+               .. literalinclude:: /includes/index/autoembed-type/code-snippets/create-index/nodejs/filter-auto-embed-example.js
+                  :language: js
+                  :copyable: true 
+                  :linenos:
+                  :caption: autoembed_index.js
+
+            .. tab:: Flat Example 
+               :tabid: flat
+
+               .. include:: /includes/quick-start/facts/auto-embed-flat-example-description.rst
+
+               .. literalinclude:: /includes/index/autoembed-type/code-snippets/create-index/nodejs/flat-auto-embed-example.js
+                  :language: js
+                  :copyable: true 
+                  :linenos:
+                  :caption: autoembed_index.js
+
+   .. step:: Run the following command to create the index.
+
+      .. code-block:: shell
+
+         node <file-name>.js
+
+      .. example:: 
+
+         .. code-block:: shell
+
+            node autoembed_index.js

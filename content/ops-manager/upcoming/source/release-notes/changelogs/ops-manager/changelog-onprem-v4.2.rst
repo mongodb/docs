@@ -450,7 +450,7 @@ Upgrades Agent: :ref:`mongodb-10.2.11.5927`.
   - The alert had been configured for deployments using the legacy
     Monitoring and Backup Agents, and
   - Deployments using that alert were upgraded to using the
-    :doc:`MongoDB Agent </tutorial/nav/mongodb-agent>`.
+    :ref:`MongoDB Agent <mongodb-agent>`.
 
 
 - Upgrades Agent: :ref:`mongodb-10.2.8.5901-1`.
@@ -498,7 +498,7 @@ Upgrades Agent: :ref:`mongodb-10.2.11.5927`.
 - Supports management of MongoDB 4.2 deployments.
 
 - Merges Automation, Backup and Monitoring Agents into a single
-  :doc:`{+mdbagent+} </tutorial/nav/mongodb-agent>`.
+  :ref:`{+mdbagent+} <mongodb-agent>`.
 
 - Replaces Personal |api| Keys with
   :doc:`Programmatic API Keys </tutorial/manage-programmatic-access>`.

@@ -807,8 +807,13 @@ describe('convertSnootyAstToMdast', () => {
     );
   });
 
-  it('resolves typed-role substitution_reference via catalog when children are empty (include file)', () => {
-    // Verifies |mongos| in a plain include resolves via the xref catalog built from the page's definitions.
+  it('emits a substitution placeholder (not a baked typed role) for a catalog substitution in a plain include body', () => {
+    // A typed-role substitution (|mongos| = :binary:`bin.mongos`) inside a shared/plain include must
+    // NOT be baked into the emitted include file as a <RefRole>: the same include is reused by pages
+    // that define the alias differently, and the include file is written once (last-writer-wins on
+    // disk). Baking one page's binary name makes every other page render the wrong text. Instead the
+    // include body emits a <Reference type="substitution"> placeholder and the calling page carries a
+    // <Replacement> slot with its own value.
     const ast: SnootyNode = {
       type: 'root',
       children: [
@@ -844,15 +849,85 @@ describe('convertSnootyAstToMdast', () => {
       ],
     };
     const onEmitMdxFile = jest.fn();
-    convertSnootyAst({ ast, onEmitMdxFile });
+    const { mdx } = convertSnootyAst({ ast, onEmitMdxFile });
 
+    // Include file: placeholder only, no baked binary name.
     expect(onEmitMdxFile).toHaveBeenCalledTimes(1);
     const [{ mdastRoot }] = onEmitMdxFile.mock.calls[0];
     const emittedMdx = convertMdastToMdx(mdastRoot);
-    expect(emittedMdx).toContain('<RefRole');
-    expect(emittedMdx).toContain('type="binary"');
-    expect(emittedMdx).toContain('name="bin.mongos"');
-    expect(emittedMdx).not.toContain('type="substitution"');
+    expect(emittedMdx).toContain('refKey="mongos"');
+    expect(emittedMdx).toContain('type="substitution"');
+    expect(emittedMdx).not.toContain('<RefRole');
+    expect(emittedMdx).not.toContain('name="bin.mongos"');
+
+    // Calling page: <Include> carries a <Replacement> slot with this page's typed-role value.
+    expect(mdx).toContain('<Replacement name="mongos">');
+    expect(mdx).toContain('type="binary"');
+    expect(mdx).toContain('name="bin.mongos"');
+  });
+
+  it('emits identical placeholder include files when a shared extract is reused with different per-page substitutions', () => {
+    // Regression for the dbtools-compatibility-single bug: |tool-binary| is a :binary: role on the
+    // mongofiles page but a plain literal on the other tool pages. Both pages include the same shared
+    // extract, which is written to the same path (last-writer-wins). The emitted include file must be
+    // a value-free placeholder for BOTH pages so whichever writes last does not corrupt the others.
+    const makeAst = (definition: SnootyNode): SnootyNode => ({
+      type: 'root',
+      children: [
+        definition,
+        {
+          type: 'directive',
+          name: 'include',
+          argument: 'extracts/dbtools-compatibility-single.rst',
+          children: [
+            {
+              type: 'paragraph',
+              children: [
+                { type: 'substitution_reference', refname: 'tool-binary', children: [] },
+                { type: 'text', value: ' supports the following server versions.' },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    // mongofiles: typed :binary: role
+    const mongofilesAst = makeAst({
+      type: 'substitution_definition',
+      name: 'tool-binary',
+      children: [
+        { type: 'ref_role', name: 'binary', target: 'bin.mongofiles', children: [{ type: 'literal', value: 'mongofiles' }] },
+      ],
+    });
+    // bsondump: plain literal
+    const bsondumpAst = makeAst({
+      type: 'substitution_definition',
+      name: 'tool-binary',
+      children: [{ type: 'literal', value: 'bsondump' }],
+    });
+
+    const mongofilesEmit = jest.fn();
+    const { mdx: mongofilesMdx } = convertSnootyAst({ ast: mongofilesAst, onEmitMdxFile: mongofilesEmit });
+    const bsondumpEmit = jest.fn();
+    const { mdx: bsondumpMdx } = convertSnootyAst({ ast: bsondumpAst, onEmitMdxFile: bsondumpEmit });
+
+    const mongofilesInclude = convertMdastToMdx(mongofilesEmit.mock.calls[0][0].mdastRoot);
+    const bsondumpInclude = convertMdastToMdx(bsondumpEmit.mock.calls[0][0].mdastRoot);
+
+    // Both emitted include files are the same value-free placeholder — no baked binary name.
+    for (const includeMdx of [mongofilesInclude, bsondumpInclude]) {
+      expect(includeMdx).toContain('refKey="tool-binary"');
+      expect(includeMdx).toContain('type="substitution"');
+      expect(includeMdx).not.toContain('mongofiles');
+      expect(includeMdx).not.toContain('bsondump');
+    }
+
+    // Each page supplies its own value via a <Replacement> slot.
+    expect(mongofilesMdx).toContain('<Replacement name="tool-binary">');
+    expect(mongofilesMdx).toContain('name="bin.mongofiles"');
+    expect(bsondumpMdx).toContain('<Replacement name="tool-binary">');
+    expect(bsondumpMdx).toContain('`bsondump`');
   });
 
   it('emits refKey + refTarget + replacement when substitution_reference is :ref: inside replacement-slot include body', () => {
@@ -1353,6 +1428,46 @@ describe('convertSnootyAstToMdast', () => {
     expect(plainPageMdx).toContain('<Replacement name="fts-index">');
     expect(plainPageMdx).toContain('MongoDB Search index');
     expect(plainPageMdx).not.toContain(LINK_URL);
+  });
+
+  it('stores page-level rich substitution markup in the shared references artifact', () => {
+    // Same |ui-org-menu| substitution, but used directly on a page rather than through an include.
+    // A flat `value="Organizations menu"` would drop the icon and the guilabel styling at render time.
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'paragraph',
+          children: [
+            { type: 'text', value: 'Select the organization from the ' },
+            {
+              type: 'substitution_reference',
+              refname: 'ui-org-menu',
+              children: [
+                { type: 'role', name: 'icon-mms', children: [{ type: 'text', value: 'office' }] },
+                { type: 'text', value: ' ' },
+                { type: 'role', name: 'guilabel', children: [{ type: 'text', value: 'Organizations' }] },
+                { type: 'text', value: ' menu' },
+              ],
+            },
+            { type: 'text', value: ' in the navigation bar.' },
+          ],
+        },
+      ],
+    };
+    const { mdx, references } = convertSnootyAst({ ast });
+
+    // The page keeps a plain reference; the markup lives once in the shared references artifact.
+    expect(mdx).toContain('<Reference refKey="ui-org-menu" type="substitution" />');
+    expect(mdx).not.toContain('value="Organizations menu"');
+    expect(mdx).not.toContain('<Icon');
+
+    const rich = (references as { substitutions: Record<string, { text: string; nodes: SnootyNode[] }> })
+      .substitutions['ui-org-menu'];
+    expect(rich.text).toBe('Organizations menu');
+    const richMdx = convertMdastToMdx({ type: 'root', children: [{ type: 'paragraph', children: rich.nodes }] });
+    expect(richMdx).toContain('<Icon name="icon-mms">office</Icon>');
+    expect(richMdx).toContain('<Guilabel>Organizations</Guilabel>');
   });
 
   it('wraps inline role nodes (icon, guilabel) in a fragment inside Replacement slot', () => {
@@ -2193,6 +2308,95 @@ describe('DefinitionTerm inline content rendering', () => {
     expect(mdx).toMatch(/^<Footnote/m);
   });
 
+  it('indexes each reference to a multiply-referenced footnote', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'paragraph',
+          children: [
+            { type: 'text', value: 'See ' },
+            { type: 'footnote_reference', id: 'id1', refname: '1' },
+            { type: 'text', value: ' and ' },
+            { type: 'footnote_reference', id: 'id2', refname: '1' },
+          ],
+        },
+        {
+          type: 'footnote',
+          id: 'id8',
+          name: '1',
+          children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Footnote text' }] }],
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    // Both references share the pairing name but get distinct ordinals, so the two back-link
+    // anchors stay unique without depending on render order.
+    expect(mdx).toContain('<FootnoteReference name="1" index="1" />');
+    expect(mdx).toContain('<FootnoteReference name="1" index="2" />');
+    // The footnote needs only the name: that is what its references link to.
+    expect(mdx).toContain('<Footnote name="1">');
+  });
+
+  it('pairs anonymous footnotes by document order and gives them a shared name', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'paragraph',
+          children: [
+            { type: 'footnote_reference', id: 'id1' },
+            { type: 'text', value: ' then ' },
+            { type: 'footnote_reference', id: 'id2' },
+          ],
+        },
+        {
+          type: 'footnote',
+          id: 'id3',
+          children: [{ type: 'paragraph', children: [{ type: 'text', value: 'First.' }] }],
+        },
+        {
+          type: 'footnote',
+          id: 'id4',
+          children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Second.' }] }],
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    // RST pairs the Nth anonymous reference with the Nth anonymous footnote.
+    expect(mdx).toContain('<FootnoteReference name="anon-id3" index="1" />');
+    expect(mdx).toContain('<FootnoteReference name="anon-id4" index="1" />');
+    expect(mdx).toContain('<Footnote name="anon-id3">First.</Footnote>');
+    expect(mdx).toContain('<Footnote name="anon-id4">Second.</Footnote>');
+  });
+
+  it('warns and leaves extra anonymous footnote nodes unpaired when counts are unbalanced', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'paragraph',
+          children: [
+            { type: 'footnote_reference', id: 'id1' },
+            { type: 'footnote_reference', id: 'id2' },
+          ],
+        },
+        {
+          type: 'footnote',
+          id: 'id3',
+          children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Only one.' }] }],
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('Unbalanced anonymous footnotes'));
+    expect(mdx).toContain('<FootnoteReference name="anon-id3" index="1" />');
+    // The unpaired reference gets no name rather than being mismatched to the wrong footnote.
+    expect(mdx).toContain('<FootnoteReference />');
+    warn.mockRestore();
+  });
+
   it('renders footnote with inline JSX children (e.g. guilabel) without blank lines', () => {
     const ast: SnootyNode = {
       type: 'root',
@@ -2718,7 +2922,7 @@ describe('DefinitionTerm inline content rendering', () => {
       };
       const { mdx } = convertSnootyAst({ ast });
 
-      expect(mdx).toContain('<StepHeading>');
+      expect(mdx).toContain('<StepHeading headingLevel={1}>');
       expect(mdx).toContain('Do the thing');
       expect(mdx).toContain('Body text.');
       expect(mdx).not.toMatch(/^#{1,6}\s/m);
@@ -2739,7 +2943,7 @@ describe('DefinitionTerm inline content rendering', () => {
       };
       const { mdx } = convertSnootyAst({ ast });
 
-      expect(mdx).toContain('<StepHeading>');
+      expect(mdx).toContain('<StepHeading headingLevel={1}>');
       expect(mdx).not.toMatch(/^\s*#{1,6}\s+Step title/m);
       expect(mdx).toMatch(/^\s*#{1,6}\s+Sub-section/m);
     });
@@ -2785,7 +2989,7 @@ describe('DefinitionTerm inline content rendering', () => {
       };
       const { mdx } = convertSnootyAst({ ast });
 
-      expect(mdx).toContain('<StepHeading>');
+      expect(mdx).toContain('<StepHeading headingLevel={1}>');
       expect(mdx).toContain('<Guilabel>Settings</Guilabel>');
       expect(mdx).not.toMatch(/^#{1,6}\s/m);
     });
@@ -2822,7 +3026,7 @@ describe('DefinitionTerm inline content rendering', () => {
       const { mdx } = convertSnootyAst({ ast });
 
       expect(mdx).toContain('<Procedure');
-      expect(mdx).toContain('<StepHeading>');
+      expect(mdx).toContain('<StepHeading headingLevel={1}>');
       expect(mdx).toContain('Step one');
       expect(mdx).toContain('Step two');
       expect(mdx).not.toMatch(/^#{1,6}\s/m);

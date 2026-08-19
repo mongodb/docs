@@ -44,16 +44,17 @@
          :sub_heading: Copy and paste the following code into your config.js file.
          :expanded: false
 
-         .. literalinclude:: /includes/ai-integrations/code-snippets/config.js
+         .. literalinclude:: /code-examples/tested/javascript/driver/vector_search/ai_agent/config.snippet.config.js
             :language: javascript
             :copyable:
+            :category: ai-agent
 
    .. step:: Use MongoDB as a vector database.
 
       Create a file named ``ingest-data.js`` in your project. This script
       ingests a sample PDF that contains a recent `MongoDB earnings report
-      <https://investors.mongodb.com/node/12881/pdf>`__ into a collection
-      in MongoDB by using the ``voyage-3-large`` embedding model. This
+      <https://investors.mongodb.com/node/13176/pdf>`__ into a collection
+      in MongoDB by using the ``voyage-4-large`` embedding model. This
       code also includes a function to create a vector search index on your
       data if it doesn't already exist.
 
@@ -64,9 +65,10 @@
          :sub_heading: Copy and paste the following code into your ingest-data.js file.
          :expanded: false
 
-         .. literalinclude:: /includes/ai-integrations/code-snippets/ingest-data.js
+         .. literalinclude:: /code-examples/tested/javascript/driver/vector_search/ai_agent/ingest-data.snippet.ingest-data.js
             :language: javascript
             :copyable:
+            :category: ai-agent
 
    .. step:: Define tools for the agent.
 
@@ -85,9 +87,10 @@
          :sub_heading: Copy and paste the following code into your tools.js file.
          :expanded: false
 
-         .. literalinclude:: /includes/ai-integrations/code-snippets/tools.js
+         .. literalinclude:: /code-examples/tested/javascript/driver/vector_search/ai_agent/tools.snippet.tools.js
             :language: javascript
-            :copyable: 
+            :copyable:
+            :category: ai-agent
 
    .. step:: Add memory to the agent.
 
@@ -103,9 +106,10 @@
          :sub_heading: Copy and paste the following code into your memory.js file.
          :expanded: false
 
-         .. literalinclude:: /includes/ai-integrations/code-snippets/memory.js
+         .. literalinclude:: /code-examples/tested/javascript/driver/vector_search/ai_agent/memory.snippet.memory.js
             :language: javascript
-            :copyable:     
+            :copyable:
+            :category: ai-agent
 
    .. step:: Define the agent's planning.
 
@@ -125,9 +129,10 @@
          :sub_heading: Copy and paste the following code into your planning.js file.
          :expanded: false
 
-         .. literalinclude:: /includes/ai-integrations/code-snippets/planning.js
+         .. literalinclude:: /code-examples/tested/javascript/driver/vector_search/ai_agent/planning.snippet.planning.js
             :language: javascript
             :copyable:
+            :category: ai-agent
 
    .. step:: Test the agent.
 
@@ -139,9 +144,10 @@
          :sub_heading: Copy and paste the following code into your index.js file.
          :expanded: false
 
-         .. literalinclude:: /includes/ai-integrations/code-snippets/index.js
+         .. literalinclude:: /code-examples/tested/javascript/driver/vector_search/ai_agent/index.snippet.index.js
             :language: javascript
-            :copyable:    
+            :copyable:
+            :category: ai-agent
 
       Save your project, then run the following command. When you run the agent:
 

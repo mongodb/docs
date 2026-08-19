@@ -262,4 +262,63 @@ class RelationshipsExamplesTest extends TestCase
         $passenger = Passenger::first();
         $this->assertInstanceOf(Passenger::class, $passenger);
     }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function testRelationAggregates(): void
+    {
+        require_once __DIR__ . '/one-to-many/Planet.php';
+        require_once __DIR__ . '/one-to-many/Moon.php';
+
+        // Clear the database
+        Planet::truncate();
+        Moon::truncate();
+
+        $planet = new Planet();
+        $planet->name = 'Jupiter';
+        $planet->save();
+
+        $moon1 = new Moon();
+        $moon1->name = 'Ganymede';
+        $moon1->orbital_period = 7.15;
+
+        $moon2 = new Moon();
+        $moon2->name = 'Europa';
+        $moon2->orbital_period = 3.55;
+
+        $planet->moons()->save($moon1);
+        $planet->moons()->save($moon2);
+
+        // begin relation aggregate example
+        $planet = Planet::withExists('moons')
+            ->withCount('moons')
+            ->withMax('moons', 'orbital_period')
+            ->first();
+
+        echo 'Has moons: ' . ($planet->moons_exists ? 'yes' : 'no') . PHP_EOL;
+        echo 'Number of moons: ' . $planet->moons_count . PHP_EOL;
+        echo 'Longest orbital period: ' . $planet->moons_max_orbital_period . PHP_EOL;
+        // end relation aggregate example
+
+        $this->assertTrue($planet->moons_exists);
+        $this->assertSame(2, $planet->moons_count);
+        $this->assertSame(7.15, $planet->moons_max_orbital_period);
+
+        // begin relation aggregate alias example
+        $planet = Planet::withCount('moons as total_moons')->first();
+        // end relation aggregate alias example
+
+        $this->assertSame(2, $planet->total_moons);
+
+        // begin relation aggregate load example
+        $planet = Planet::first();
+        $planet->loadCount('moons');
+
+        echo 'Number of moons: ' . $planet->moons_count . PHP_EOL;
+        // end relation aggregate load example
+
+        $this->assertSame(2, $planet->moons_count);
+    }
 }

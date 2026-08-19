@@ -10,8 +10,14 @@ except Exception:
     print('')
 " 2>/dev/null)
 
-# Only run git status if the command plausibly touched a content/ .txt file
-if ! echo "$command" | grep -qE 'content/.*\.txt|git (mv|rm).*content/|rm.*content/.*\.txt'; then
+# Only run git status if the command plausibly moved or deleted a content/
+# .txt file: require an actual (git )?mv or (git )?rm verb token, not just a
+# substring match (e.g. "term" or "confirm" contain "rm"), and a content/
+# .txt path somewhere in the command.
+if ! echo "$command" | grep -qE '(^|[;&|[:space:]])(git[[:space:]]+)?(mv|rm)[[:space:]]'; then
+    exit 0
+fi
+if ! echo "$command" | grep -q 'content/.*\.txt'; then
     exit 0
 fi
 

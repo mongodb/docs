@@ -26,6 +26,7 @@ from analyze import (
     INTERFACE_IDS,
     DEPLOYMENT_IDS,
     INTERFACE_ONLY,
+    EMBEDDING_IDS,
 )
 
 TABID_RE = re.compile(r'^ *:tabid:\s+(.+?)\s*$')
@@ -38,6 +39,10 @@ def composable_selections(tabid, case):
     # Case A: single selection value
     if case == "A":
         return LANGUAGE_IDS.get(tabid, tabid)
+
+    # Case A-embedding: single selection value (embedding provider)
+    if case == "A-embedding":
+        return EMBEDDING_IDS.get(tabid, tabid)
 
     # Case B: two values (interface, language)
     if case == "B":

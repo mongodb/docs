@@ -1,3 +1,5 @@
-# Currently it's not possible to check the status of search indexes, we need to just wait
-echo "Sleeping to wait for search indexes to be created"
-sleep 60
+kubectl exec --context "${K8S_CTX}" -n "${MDB_NS}" mongodb-tools-pod -- \
+  mongosh --quiet "${MDB_CONNECTION_STRING}" --eval '
+    db.getSiblingDB("sample_mflix").movies.getSearchIndexes()
+      .forEach(index => print(index.name, index.status));
+  '

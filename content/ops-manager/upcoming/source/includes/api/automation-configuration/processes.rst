@@ -14,6 +14,7 @@ instances. Using this array, you can:
      "alias": "<string>",
      "authSchemaVersion": "<integer>",
      "backupRestoreUrl": "<string>",
+     "certificatesVersion": "<integer>",
      "cluster": "<string>",
      "defaultRWConcern": {
        "defaultReadConcern": {
@@ -102,6 +103,20 @@ instances. Using this array, you can:
        option to ``CANCEL``.
 
        To learn more, see :doc:`/tutorial/automate-backup-restoration-with-api`.
+
+   * - processes[n].certificatesVersion
+     - integer
+     - Optional
+     - Counter that triggers zero-downtime |tls| certificate
+       rotation. When you increment this value, the {+mdbagent+}
+       runs ``db.adminCommand({ rotateCertificates: 1 })`` on each
+       eligible process instead of restarting it. Rotation applies
+       only to |mongod| and |mongos| processes running MongoDB 5.0
+       or later with |tls| configured. Omit or set to ``null`` to
+       treat as ``0``. Equal values do not trigger rotation. |mms|
+       rejects decrements with
+       ``HTTP 400 INVALID_AUTOMATION_CONFIG``. To learn more, see
+       :ref:`rotate-tls-certificates`.
 
    * - processes[n].cluster
      - string

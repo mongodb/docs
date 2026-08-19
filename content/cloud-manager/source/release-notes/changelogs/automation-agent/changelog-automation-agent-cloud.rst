@@ -198,7 +198,7 @@ Automation Agent 5.6.0.5523
 - Don't remove binaries that are currently in use by unmanaged
   processes.
 
-- Performance improvement for clusters with lots of sharding tags.
+- Performance improvement for clusters with many sharding tags.
 
 - Only block rolling updates if there are not enough replica set
   members without replication lag to do majority writes.
@@ -295,7 +295,7 @@ Automation Agent 5.2.1.5387
 
 *Released 2018-05-03*
 
-- Allow option to rotate MongoDB audit logs along with MongoDB logs.
+- Allow option to rotate MongoDB audit logs with MongoDB logs.
 
 .. _automation-5.2.0.5382:
 
@@ -354,7 +354,7 @@ Automation Agent 5.0.0.2526
 
 *Released 2018-03-12*
 
-- Fix: Disable MongoDB's TTL monitor thread while applying oplogs
+- Fix: Disable the MongoDB TTL monitor thread while applying oplogs
   during a point in time restore.
 
 .. _automation-5.0.0.2526:
@@ -543,7 +543,7 @@ Automation Agent 4.4.0.2256
 
 *Released 2017-10-05*
 
-**Fix:** When Automation creates a temporary Windows service in order to
+**Fix:** When Automation creates a temporary Windows service to
 perform maintenance operations on a ``mongod``, remove the service when
 the maintenance is completed.
 
@@ -661,8 +661,8 @@ Automation Agent 3.6.0.2024
 *Released 2017-03-29*
 
 - Substantial optimization for state monitoring of sharded clusters.
-  Considerably fewer requests will be made by the Automation Agents to 
-  the deployment.
+  The Automation Agents make considerably fewer requests to the
+  deployment.
 
 - **Fix:** Process shutdown during a restore of a sharded cluster on 
   Windows.
@@ -965,8 +965,8 @@ Automation Agent 2.6.1.1564
 
 *Released 2016-03-09*
 
-- Support |tls-ssl| downgrades, i.e. changes from stricter to looser 
-  |tls-ssl| settings (required -> preferred)
+- Support |tls-ssl| downgrades (changes from stricter to looser
+  |tls-ssl| settings, such as required to preferred)
 
 .. _automation-2.6.0.1551:
 
@@ -980,7 +980,7 @@ Automation Agent 2.6.0.1551
 - Includes support for no-downtime conversions to config server
   replica sets, for MongoDB 3.2.4.
 
-- **Fix:** Automation Agent will not fail
+- **Fix:** Automation Agent doesn't fail
   validation for auth schema versions for arbiters.
 
 - **Fix:** More accurate computation of current size of oplog.
@@ -1000,7 +1000,7 @@ Automation Agent 2.5.15.1526
   are build in the background.
 
 - Added optimization to not compare unsupported index options when
-  determining whether or not an index already exists.
+  determining whether an index already exists.
 
 .. _automation-2.5.14.1514:
 
@@ -1066,7 +1066,7 @@ Automation Agent 2.5.6.1469
 *Released 2015-11-24*
 
 - **Fix:** When building a rolling index on a single-node replica set,
-  simply create the index with background:true
+  create the index with background:true
 
 - **Fix:** If a MongoDB version is used, removed and then used again,
   ensure that it is re-downloaded.
@@ -1118,7 +1118,7 @@ Automation Agent 2.4.0.1384
 
 *Released 2015-10-08*
 
-- Support for performing a restore via Automation Agents.
+- Support for performing a restore through Automation Agents.
 
 - Support for rolling index builds.
 
@@ -1358,12 +1358,12 @@ Automation Agent 1.9.0.1073
 - Added ability to change the storage engine for replica sets with
   more than one data node.
 
-- Added a RHEL7-specific Automation Agent build. The generic 
-  builds will not work with RHEL7.
+- Added a RHEL7-specific Automation Agent build. The generic
+  builds don't work with RHEL7.
   
-  If you run an earlier Automation Agent (prior to ``1.9.0``), the
-  agent will fail to auto-upgrade on RHEL7: you will need to do the
-  upgrade manually.
+  If you run an earlier Automation Agent (before ``1.9.0``), the
+  agent fails to auto-upgrade on RHEL7. You must do the upgrade
+  manually.
 
 - Added more detailed logging of when MongoDB, Monitoring Agent,
   or Backup Agent log rotation.
@@ -1434,7 +1434,7 @@ Automation Agent 1.6.2.960
 
 - Ability to import an existing deployment into Automation, which allows
   you to use Automation to manage the deployment. 
-  See :doc:`/tutorial/nav/mongodb-agent`.
+  See :ref:`MongoDB Agent <mongodb-agent>`.
 
 - The :guilabel:`Deployment` tab now displays all deployment
   information, for both servers and processes, on one page, with icons

@@ -28,5 +28,5 @@ export const convertSnootyAst = ({
   });
   const mdx = convertMdastToMdx(mdast).trim();
 
-  return { mdast, mdx };
+  return { mdast, mdx, references: mdast.__references };
 };

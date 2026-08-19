@@ -113,17 +113,23 @@ const getCanonicalUrl = ({
   // at the end of the path, leaving slugs like "index-management" untouched.
   const cleanSlug = slug === '/' ? '' : slug.replace(/(^|\/)index$/, '');
 
-  // Use default logic assuming there is no canonical provided from the meta directive
+  // Use default logic assuming there is no canonical provided from the meta
+  // directive.
   let canonical = `${DOTCOM_BASE_URL}${normalizePath(`${pathPrefix}/${cleanSlug}`)}`;
 
   // else we check for EOL
   if (metadata.eol && metadata.canonical) {
-    // if a canonical is provided by the writers
+    // if a canonical is provided by the writers, use it verbatim
     canonical = metadata.canonical;
   }
 
-  canonical = assertTrailingSlash(canonical);
-  return canonical.toLowerCase();
+  // Canonicals always advertise the lowercase URL: even for
+  // legitimately mixed-case pages (e.g. .../changeStreams/), the canonical is
+  // lowercased here. A request to the lowercase URL 404s under
+  // `dynamicParams = false` and is redirected to the real page casing by the
+  // post-404 edge function (netlify/edge-functions/soft-redirects.ts). Host and
+  // prefix segments are already lowercase, so this only affects the slug.
+  return assertTrailingSlash(canonical).toLowerCase();
 };
 
 export const getRepoBranchesPrefixEnv = (env: Environments) => {

@@ -4,12 +4,12 @@
 #. Select the :guilabel:`Create Your Own` radio button and click
    :guilabel:`Next`.
 
-#. Type |analyzer-name| in the :guilabel:`Analyzer Name` field.
+#. Type ``tokenTrimmer`` in the :guilabel:`Analyzer Name` field.
 
 #. Expand :guilabel:`Character Filters` and click
    :icon-fa5:`plus-circle` :guilabel:`Add character filter`.
 
-#. Select |fts-char-filter| from the dropdown and type
+#. Select :guilabel:`htmlStrip` from the dropdown and type
    ``a`` in the :guilabel:`ignoredTags` field.
 
 #. Click :guilabel:`Add character filter` to add the character filter
@@ -17,12 +17,12 @@
 
 #. Expand :guilabel:`Tokenizer` if it's collapsed.
 
-#. Select |fts-tokenizer| from the dropdown.
+#. Select :guilabel:`keyword` from the dropdown.
 
 #. Expand :guilabel:`Token Filters` and click :icon-fa5:`plus-circle`
    :guilabel:`Add token filter`.
 
-#. Select |fts-token-filter| from the dropdown.
+#. Select :guilabel:`trim` from the dropdown.
 
 #. Click :guilabel:`Add token filter` to add the token filter to your
    custom analyzer.
@@ -31,13 +31,13 @@
 
 #. In the :guilabel:`Field Mappings` section, click :guilabel:`Add
    Field Mapping` to apply the custom analyzer on the
-   |minutes-collection-field| field.
+   **text.en_US** nested field.
 
-#. Select |minutes-collection-field| from the :guilabel:`Field
-   Name` dropdown and |fts-field-type| from the :guilabel:`Data
+#. Select **text.en_US** nested from the :guilabel:`Field
+   Name` dropdown and **String** from the :guilabel:`Data
    Type` dropdown.
 
-#. In the properties section for the data type, select |analyzer-name|
+#. In the properties section for the data type, select ``tokenTrimmer``
    from the :guilabel:`Index Analyzer` and :guilabel:`Search Analyzer`
    dropdowns.
 

@@ -1,5 +1,5 @@
 db.embedded_movies.createSearchIndex(
-  "vector_index", 
+  "autoembed_index", 
   "vectorSearch", 
   {
     "fields": [

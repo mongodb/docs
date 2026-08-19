@@ -1,6 +1,6 @@
 const { MongoClient } = require("mongodb");
 
-// connect to your Atlas cluster
+// connect to your cluster
 const uri = "<connection-string>";
 
 const client = new MongoClient(uri);

@@ -1,3 +1,6 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
 ===============================
 $dateDiff (expression operator)
 ===============================
@@ -120,6 +123,14 @@ specific part of each date. For the ``year`` unit, it compares
 the year values: any date in 2022 is one ``year`` apart from any
 date in 2023. For the ``week`` unit, it compares week numbers:
 any date in week 5 is one ``week`` apart from any date in week 6.
+
+``$dateDiff`` counts the unit boundaries crossed between
+``startDate`` and ``endDate``. It does not measure elapsed
+duration. For example, ``$dateDiff`` reports a difference of one
+``year`` between December 31, 2022 and January 1, 2023. A year
+boundary was crossed, even though a few hours passed between the
+two dates. See :ref:`dateDiff-year-boundary-example` for a full
+example.
 
 Start Of Week
 ~~~~~~~~~~~~~
@@ -345,6 +356,57 @@ In the second row, 2010-01-01 and 2011-07-01 are in different years
 (2010 and 2011), so ``$dateDiff`` returns 1 ``year``. In the third
 row, 2010-03-01 (March) and 2010-04-30 (April) differ by one month,
 so ``$dateDiff`` returns 1 ``month``.
+
+.. _dateDiff-year-boundary-example:
+
+Year Boundary Crossing
+~~~~~~~~~~~~~~~~~~~~~~
+
+Create a collection with two dates that are only a few hours apart
+but fall on either side of a calendar year boundary:
+
+.. code-block:: javascript
+
+   db.events.insertOne(
+      {
+         start: ISODate("2022-12-31T20:00:00Z"),
+         end: ISODate("2023-01-01T02:00:00Z")
+      }
+   )
+
+Use ``$dateDiff`` with the ``year`` unit to find the difference
+between the two dates:
+
+.. code-block:: javascript
+
+   db.events.aggregate(
+      [
+         {
+            $project: {
+               _id: 0,
+               yearsApart: {
+                  $dateDiff: {
+                     startDate: "$start",
+                     endDate: "$end",
+                     unit: "year"
+                  }
+               }
+            }
+         }
+      ]
+   )
+
+The operation returns the following result:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "yearsApart" : 1 }
+
+Even though only six hours passed between the two dates,
+``$dateDiff`` returns ``1`` because the dates fall in different
+calendar years. This reflects the fact that ``$dateDiff`` counts
+unit boundaries crossed rather than elapsed duration.
 
 Weeks Per Month
 ~~~~~~~~~~~~~~~

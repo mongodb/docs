@@ -100,12 +100,15 @@ Grove currently supports these languages:
 
 | Language | Suite directory |
 |----------|---------------|
-| C# | `csharp/driver/` |
+| C# (Driver) | `csharp/driver/` |
+| C# (EF Core) | `csharp/driver/` (`Examples/EfCore/`, `Tests/EfCore/`) |
 | Go | `go/driver/` |
 | Java | `java/driver-sync/` |
 | JavaScript (Node.js) | `javascript/driver/` |
 | Mongosh | `command-line/mongosh/` |
 | Python | `python/pymongo/` |
+
+**Out of scope**: `java/driver-reactive/`, `go/atlas-sdk/`, and `openapi/`.
 
 If the detected language is **not in this list**, flag it to the user and
 ask them to review it manually — it is not eligible for Grove migration.
@@ -288,7 +291,9 @@ If you create an output file:
 
 ### Test strategy — new file or existing?
 
-Check existing test files in `tests/{topic}/`:
+Locate existing test files in the language's tests directory (e.g.
+`tests/{topic}/` for JS, `tests_package/{topic}/` for Python,
+`src/test/java/{topic}/` for Java, `Tests/EfCore/{topic}/` for EF Core):
 
 1. **Add to existing file** when: the example uses the same database AND
    collection as existing tests, AND the file has fewer than 8 `it` blocks

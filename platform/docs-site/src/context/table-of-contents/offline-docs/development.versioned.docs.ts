@@ -20,7 +20,15 @@ export const toc: L1TocItem[] = [
           {
             label: 'Documents',
             contentSite: 'docs',
+            collapsible: true,
             url: '/docs/:version/core/document',
+            items: [
+              {
+                label: 'Other Uses of the Document Structure',
+                contentSite: 'docs',
+                url: '/docs/:version/core/documents-other-uses',
+              },
+            ],
           },
           {
             label: 'Databases & Collections',
@@ -209,7 +217,7 @@ export const toc: L1TocItem[] = [
                   {
                     label: 'SQL Interface',
                     isExternal: true,
-                    url: 'https://www.mongodb.com/docs/atlas/data-federation/query/connect-with-sql-overview/',
+                    url: 'https://www.mongodb.com/docs/sql-interface/',
                   },
                   {
                     label: 'Command Line Tools',
@@ -453,12 +461,12 @@ export const toc: L1TocItem[] = [
             url: '/docs/:version/crud',
             items: [
               {
-                label: 'Insert',
+                label: 'Create',
                 contentSite: 'docs',
                 url: '/docs/:version/tutorial/insert-documents',
               },
               {
-                label: 'Query',
+                label: 'Read',
                 contentSite: 'docs',
                 collapsible: true,
                 url: '/docs/:version/tutorial/query-documents',
@@ -524,7 +532,7 @@ export const toc: L1TocItem[] = [
                 ],
               },
               {
-                label: 'Remove',
+                label: 'Delete',
                 contentSite: 'docs',
                 url: '/docs/:version/tutorial/remove-documents',
               },
@@ -2611,6 +2619,11 @@ export const toc: L1TocItem[] = [
                 label: 'Multi-Tenant Architecture',
                 contentSite: 'vector-search',
                 url: '/docs/vector-search/deployment/multi-tenant-architecture',
+              },
+              {
+                label: 'Compatibility & Limitations',
+                contentSite: 'vector-search',
+                url: '/docs/vector-search/deployment/compatibility-limitations',
               },
               {
                 label: 'AI Integrations',
@@ -8788,7 +8801,7 @@ export const toc: L1TocItem[] = [
         group: true,
         items: [
           {
-            label: 'AI Models',
+            label: 'AI Model APIs',
             isExternal: true,
             url: 'https://www.mongodb.com/docs/voyageai/',
           },
@@ -8956,6 +8969,11 @@ export const toc: L1TocItem[] = [
                         label: 'Build an AI Agent',
                         contentSite: 'cloud-docs',
                         url: '/docs/atlas/ai-integrations/crewai/build-agents',
+                      },
+                      {
+                        label: 'Add Long-Term Memory',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/ai-integrations/crewai/agent-memory',
                       },
                     ],
                   },
@@ -9125,6 +9143,11 @@ export const toc: L1TocItem[] = [
                     label: 'Tier Sizing Guide',
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/atlas-stream-processing/tier-guide',
+                  },
+                  {
+                    label: 'Build Streaming Materialized Views',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/atlas-stream-processing/streaming-materialized-views',
                   },
                 ],
               },

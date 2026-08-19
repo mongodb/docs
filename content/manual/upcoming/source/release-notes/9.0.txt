@@ -13,7 +13,7 @@ Release Notes for MongoDB 9.0
    :depth: 1
    :class: twocols
 
-.. include:: /includes/in-dev.rst
+.. include:: /includes/rc-available.rst
 
 General Changes
 ---------------
@@ -45,6 +45,21 @@ of open transactions reaches the limit set by the
 ``10000``), the server rejects new multi-document transactions and
 returns a ``TooManyOpenTransactions`` error. To learn more, see
 :parameter:`maxConcurrentMultiDocumentTransactions`.
+
+Per-Operation Memory Limit
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 9.0, MongoDB limits the total amount of memory
+that a single query operation can use. By default, the limit is 1
+gigabyte or 20% of the memory available to the server process,
+whichever is greater. Operations that exceed the limit fail with
+:error:`ExceededMemoryLimit <146>` or
+:error:`QueryExceededMemoryLimitNoDiskUseAllowed <292>`. In earlier
+versions, an operation could use an unbounded amount of memory.
+
+The 100 megabyte per-stage memory limit and the spill-to-disk
+behavior of individual stages are unchanged. To learn more, see
+:ref:`operation-memory-limit`.
 
 Server-side JavaScript
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -78,10 +93,27 @@ MongoDB 9.0 adds the following :dbcommand:`serverStatus` metrics:
 - :serverstatus:`metrics.changeStreams.error.retriable.other`
 - :serverstatus:`metrics.changeStreams.option.cursor.batchSize`
 - :serverstatus:`metrics.changeStreams.option.cursor.maxTimeMS`
+- :serverstatus:`metrics.changeStreams.option.fullDocument.required`
+- :serverstatus:`metrics.changeStreams.option.fullDocument.updateLookup`
+- :serverstatus:`metrics.changeStreams.option.fullDocument.whenAvailable`
+- :serverstatus:`metrics.changeStreams.option.fullDocumentBeforeChange.required`
+- :serverstatus:`metrics.changeStreams.option.fullDocumentBeforeChange.whenAvailable`
+- :serverstatus:`metrics.changeStreams.option.ignoreRemovedShards`
+- :serverstatus:`metrics.changeStreams.option.matchCollectionUUIDForUpdateLookup`
+- :serverstatus:`metrics.changeStreams.option.resumeAfter`
+- :serverstatus:`metrics.changeStreams.option.showMigrationEvents`
+- :serverstatus:`metrics.changeStreams.option.showRawUpdateDescription`
+- :serverstatus:`metrics.changeStreams.option.showSystemEvents`
+- :serverstatus:`metrics.changeStreams.option.startAfter`
+- :serverstatus:`metrics.changeStreams.option.startAtOperationTime`
+- :serverstatus:`metrics.changeStreams.scope.cluster`
+- :serverstatus:`metrics.changeStreams.scope.collection`
+- :serverstatus:`metrics.changeStreams.scope.db`
 - :serverstatus:`metrics.repl.network.bytesSent`
 - :serverstatus:`metrics.operation.writeConflictRetryLimitHit`
 - :serverstatus:`metrics.operation.writeConflictRetryWaiters`
 - :serverstatus:`metrics.query.configuredMaxMemoryUsageBytesPerOperation`
+- :serverstatus:`metrics.query.lookupUnwind`
 - :serverstatus:`metrics.query.nonLeadingPushdown.addFields`
 - :serverstatus:`metrics.query.nonLeadingPushdown.match`
 - :serverstatus:`metrics.query.nonLeadingPushdown.project`
@@ -91,7 +123,55 @@ MongoDB 9.0 adds the following :dbcommand:`serverStatus` metrics:
 - :serverstatus:`metrics.query.pathArrayness.leadingFilter`
 - :serverstatus:`metrics.query.pathArrayness.leadingFilterSimplified`
 - :serverstatus:`metrics.query.peakMemoryUsageOperation`
+- :serverstatus:`shardingStatistics.collectionShardingMetadataStatistics`
+- :serverstatus:`shardingStatistics.collectionShardingMetadataStatistics.countCollectionMetadataCacheClears`
+- :serverstatus:`shardingStatistics.collectionShardingMetadataStatistics.countCollectionMetadataCacheSets`
+- :serverstatus:`shardingStatistics.collectionShardingMetadataStatistics.countDiskRecoveriesPerformed`
+- :serverstatus:`shardingStatistics.collectionShardingMetadataStatistics.countInvalidateCollectionMetadataOplogEntriesApplied`
+- :serverstatus:`shardingStatistics.collectionShardingMetadataStatistics.countInvalidateCollectionMetadataOplogEntriesForDroppedCollections`
+- :serverstatus:`shardingStatistics.collectionShardingMetadataStatistics.countLocalCollectionMetadataClones`
+- :serverstatus:`shardingStatistics.collectionShardingMetadataStatistics.countLocalCollectionMetadataCommits`
+- :serverstatus:`shardingStatistics.collectionShardingMetadataStatistics.countLocalCollectionMetadataDrops`
+- :serverstatus:`shardingStatistics.collectionShardingMetadataStatistics.countLocalCollectionMetadataRenames`
+- :serverstatus:`shardingStatistics.collectionShardingMetadataStatistics.countMetadataSynchronizersCreated`
+- :serverstatus:`shardingStatistics.collectionShardingMetadataStatistics.countPostRecoveryWaitsResolvedByConfigTime`
+- :serverstatus:`shardingStatistics.collectionShardingMetadataStatistics.countPostRecoveryWaitsResolvedByVersionChange`
+- :serverstatus:`shardingStatistics.collectionShardingMetadataStatistics.countSetAllowChunkOperationsOplogEntriesApplied`
+- :serverstatus:`shardingStatistics.collectionShardingMetadataStatistics.countUpdateCollectionMetadataChangedChunksApplied`
+- :serverstatus:`shardingStatistics.collectionShardingMetadataStatistics.countUpdateCollectionMetadataOplogEntriesApplied`
+- :serverstatus:`shardingStatistics.collectionShardingMetadataStatistics.countVersionMismatchResolutions`
+- :serverstatus:`shardingStatistics.collectionShardingMetadataStatistics.totalDiskRecoveryChunksRead`
+- :serverstatus:`shardingStatistics.collectionShardingMetadataStatistics.totalDiskRecoveryMillis`
+- :serverstatus:`shardingStatistics.collectionShardingMetadataStatistics.totalPostRecoveryWaitMillis`
+- :serverstatus:`shardingStatistics.databaseShardingMetadataStatistics`
+- :serverstatus:`shardingStatistics.databaseShardingMetadataStatistics.countCreateDatabaseMetadataOplogEntriesApplied`
+- :serverstatus:`shardingStatistics.databaseShardingMetadataStatistics.countDatabaseMetadataAccessorAccessTypeChanges`
+- :serverstatus:`shardingStatistics.databaseShardingMetadataStatistics.countDatabaseMetadataCacheClears`
+- :serverstatus:`shardingStatistics.databaseShardingMetadataStatistics.countDatabaseMetadataCacheSets`
+- :serverstatus:`shardingStatistics.databaseShardingMetadataStatistics.countDbVersionMismatchWaits`
+- :serverstatus:`shardingStatistics.databaseShardingMetadataStatistics.countDropDatabaseMetadataOplogEntriesApplied`
+- :serverstatus:`shardingStatistics.databaseShardingMetadataStatistics.countLocalDatabaseMetadataClones`
+- :serverstatus:`shardingStatistics.databaseShardingMetadataStatistics.countLocalDatabaseMetadataCommits`
+- :serverstatus:`shardingStatistics.databaseShardingMetadataStatistics.countLocalDatabaseMetadataDrops`
+- :serverstatus:`shardingStatistics.databaseShardingMetadataStatistics.countShardCatalogDatabaseWrites`
+- :serverstatus:`shardingStatistics.databaseShardingMetadataStatistics.movePrimariesInProgress`
+- :serverstatus:`shardingStatistics.databaseShardingMetadataStatistics.totalDbVersionMismatchWaitMillis`
 - :serverstatus:`shardingStatistics.resharding.countSearchIndexAborts`
+
+Renamed Server Status Metrics
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 9.0 renames the
+``shardingStatistics.databaseVersionUpdateCounters`` document,
+introduced in MongoDB 8.3, to
+:serverstatus:`shardingStatistics.databaseShardingMetadataStatistics`.
+MongoDB 9.0 also replaces the fields of the renamed document with a
+new set of metrics.
+
+MongoDB 9.0 renames the ``metrics.changeStreams.showExpandedEvents``
+metric to :serverstatus:`metrics.changeStreams.option.showExpandedEvents`.
+If you monitor the metric by name, update your monitoring to use the new
+name.
 
 Sharding
 --------
@@ -118,6 +198,18 @@ command on a time series collection, the ``cursor.ns`` field in the
 response returns the user-facing namespace you originally targeted. In previous
 versions, the server could return the internal namespace.
 
+Change Stream Shard Targeting
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 9.0, change streams on sharded clusters open
+cursors only on the shards that hold relevant data and adjust
+targeting automatically as the cluster topology changes. MongoDB 9.0
+also adds the ``ignoreRemovedShards`` parameter to the
+:pipeline:`$changeStream` aggregation stage. When set to ``true``, a
+change stream continues and skips events from a shard that was removed
+from the cluster instead of returning an error. For details, see
+:pipeline:`$changeStream`.
+
 BSON Validation
 ~~~~~~~~~~~~~~~
 
@@ -125,6 +217,15 @@ MongoDB 9.0 deprecates the :setting:`net.wireObjectCheck` configuration option
 and its corresponding ``--objcheck`` and  ``--noobjcheckand`` CLI arguments.
 Starting in 9.0, MongoDB validates all BSON objects that the server ingests by
 default. If the server receives invalid BSON data, MongoDB returns an error.
+
+Document Validation
+~~~~~~~~~~~~~~~~~~~
+
+MongoDB 9.0 introduces a new schema validation level of ``constraint``.
+With the ``constraint`` validation level, MongoDB applies the validation
+rules to all document inserts and updates, and guarantees that *every*
+document in the collection satisfies the rules. For details, see
+:ref:`upgrade-to-constraint-validation`.
 
 Time Series
 -----------
@@ -177,6 +278,31 @@ organization. This update includes the following new output fields:
 For more information on the new output structure, see :ref:`$queryStats Output
 <queryStats-output>`.
 
+Command Support
+```````````````
+
+Starting in  9.0, MongoDB collections and reports query statistics for
+:dbcommand:`update`, :dbcommand:`insert`, and :dbcommand:`delete`
+commands. For details, see :ref:`queryStats-update-query-shape`,
+:ref:`queryStats-insert-query-shape`, and
+:ref:`queryStats-delete-query-shape`.
+
+Query Language
+--------------
+
+Null Comparisons on Dotted Paths
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 9.0, a dotted path that does not resolve to a
+non-null value evaluates as ``null``. The new behavior applies when a
+field in the path holds an empty array or an array of scalar values.
+Comparisons to ``null`` that use the :query:`$eq`, :query:`$ne`,
+:query:`$in`, :query:`$nin`, :query:`$gte`, and :query:`$lte`
+operators reflect the new semantics. Equality matching in the
+:pipeline:`$lookup` stage also reflects the new semantics. Queries
+that compare a dotted path to ``null`` can return different results
+after you upgrade. For details, see :ref:`9.0-compatibility`.
+
 Security
 --------
 
@@ -199,6 +325,26 @@ authorization backend ``usersInfo`` queries when looking up
 user authorization information. For details, see
 :dbcommand:`usersInfo`.
 
+``mongocryptd`` Deprecated
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 9.0, ``mongocryptd`` is deprecated. Use the
+{+shared-library+} instead. The {+shared-library+} replaces
+``mongocryptd`` and does not require you to start a separate process.
+For details, see :ref:`csfle-reference-install-lib` and
+:ref:`qe-csfle-install-library`.
+
+Audit Log Improvements
+~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 9.0 adds the ``directRemote`` field to audit messages in
+the ``mongo`` schema and the ``direct_endpoint`` field to audit
+messages in the {+ocsf+} schema. These fields record the literal
+TCP peer for a session, independent of any client address that a
+PROXY protocol header asserts. For details, see
+:ref:`event-audit-messages-mongo` and
+:ref:`event-audit-messages-ocsf`.
+
 Replication
 -----------
 
@@ -217,6 +363,37 @@ Each document in
 reports the ``phase``, ``nodeUptimeSecs``, and ``phaseDurations`` for that
 attempt. For details, see
 :data:`replSetGetStatus.initialSyncStatus.initialSyncAttempts`.
+
+Diagnostics
+-----------
+
+Improved Diagnostics for Unindexable Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 9.0, key-extraction failures on :ref:`2dsphere
+<2dsphere-index>` indexes produce structured diagnostics that make
+unindexable documents easier to identify:
+
+- Geo key-extraction failures now throw the named error codes
+  :error:`510` (``GeoKeyExtractionFailed``) and :error:`511`
+  (``GeoKeyExtractionFailedTimeseries``), which replace the previous
+  unnamed assertion codes.
+
+- Failed geo inserts and index builds now include a
+  ``writeErrors[].errInfo`` document that contains the ``failingPath``,
+  ``underlyingCode``, ``underlyingReason``, and ``failingElement``
+  fields. Existing field names are unchanged, but the error reason
+  string is now bounded to 256 characters.
+
+- The :data:`validate.errors` output for geo key-extraction failures
+  now emits a bounded, self-contained message and writes full
+  per-document detail to the :binary:`~bin.mongod` log. Identical
+  failures on the same index and path are deduplicated into a single
+  message, so to map a failure back to specific documents, consult the
+  log instead of the :dbcommand:`validate` output. Full per-document
+  detail is logged only when :ref:`log redaction
+  <log-message-log-redaction>` is disabled. For details, see
+  :dbcommand:`validate`.
 
 .. toctree::
    :titlesonly:

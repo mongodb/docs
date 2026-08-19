@@ -78,6 +78,7 @@ type TocItemBase = {
 export type L1TocItem = TocItemBase & {
   contentSite: DocSite;
   url: string;
+  navSection?: 'docs' | 'voyageai';
   versions?: never;
   collapsible?: never;
   group?: never;

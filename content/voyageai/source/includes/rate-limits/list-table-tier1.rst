@@ -8,7 +8,7 @@
    * - ``voyage-4-lite``, ``voyage-3.5-lite``
      - 16,000,000
      - 2,000
-   * - ``voyage-4``, ``voyage-3.5``
+   * - ``voyage-4``, ``voyage-3.5``, ``voyage-code-4``
      - 8,000,000
      - 2,000
    * - ``voyage-4-large``, ``voyage-context-4``

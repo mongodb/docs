@@ -21,9 +21,9 @@ the {+atlas-ui+}, follow these steps:
 
    .. step:: Select your cloud provider and vendor.
 
-      a. Set :guilabel:`Cloud Provider` to :guilabel:`Azure`.
+      a. Set :guilabel:`Cloud Provider` to :guilabel:`AWS`.
 
-      #. Set :guilabel:`Vendor` to :guilabel:`EventHub`.
+      #. Set :guilabel:`Vendor` to :guilabel:`S3`.
 
       #. Click :guilabel:`Next, enter service details`
 
@@ -87,7 +87,7 @@ the {+atlas-ui+}, follow these steps:
       a. Select an :guilabel:`S3` connection.  
 
       #. Provide a :guilabel:`Connection Name`. Each connection
-	 name must be unique within a {+spw+}.  This is the name
+	 name must be unique within a {+spw+}. This is the name
 	 used to reference the connection in {+atlas-sp+}
 	 :ref:`aggregations <atlas-sp-aggregation>`.
 
@@ -95,7 +95,7 @@ the {+atlas-ui+}, follow these steps:
 	 dropdown menu, select the private endpoint you created
 	 earlier.
 
-      #. From the :guilabel:`AWS IAM Role ARN` drodpwon, select
+      #. From the :guilabel:`AWS IAM Role ARN` dropdown, select
 	 the ARN of the unified access role you authorized in a
 	 prior step.
 

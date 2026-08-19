@@ -11,6 +11,7 @@ You can run the following commands to load sample data into your deployment:
       .. code-block:: bash
 
          brew tap mongodb/brew
+         brew trust mongodb/brew
          brew install mongodb-database-tools
 
       Then, run the following commands to load the sample data:

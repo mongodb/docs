@@ -27,7 +27,7 @@
            - Collection for which you want to create the index.
 
          * - ``<indexName>``
-           - Name of your index. If you omit the index name, defaults to ``vector_index``.
+           - Name of your index. If you omit the index name, defaults to ``autoembed_index``.
 
          * - ``<fieldToIndex>``
            - Vector and filter fields to index.
@@ -53,7 +53,7 @@
                   :language: js
                   :copyable: true 
                   :linenos:
-                  :caption: vector_index.js
+                  :caption: autoembed_index.js
 
             .. tab:: Filter Example 
                :tabid: filter
@@ -64,7 +64,7 @@
                   :language: js
                   :copyable: true 
                   :linenos:
-                  :caption: vector_index.js
+                  :caption: autoembed_index.js
 
             .. tab:: Flat Example 
                :tabid: flat
@@ -75,7 +75,14 @@
                   :language: js
                   :copyable: true 
                   :linenos:
-                  :caption: vector_index.js
+                  :caption: autoembed_index.js
+
+            .. tab:: Nested Field Example 
+               :tabid: nested-root
+
+               .. include:: /includes/index/autoembed-type/facts/nested-root-example-description.rst
+
+               .. literalinclude:: /includes/index/autoembed-type/code-snippets/create-index/nodejs/nested-auto-embed-example.js
 
    .. step:: Run the following command to create the index.
 
@@ -87,4 +94,4 @@
 
          .. code-block:: shell
 
-            node vector_index.js
+            node autoembed_index.js

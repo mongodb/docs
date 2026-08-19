@@ -2,7 +2,12 @@ import fs from 'node:fs/promises';
 import { posix as path } from 'node:path';
 import { convertMdastToMdx } from '../convertMdastToMdx';
 import { convertSnootyAstToMdast } from '../convertSnootyAstToMdast/convertSnootyAstToMdast';
-import { buildReferencesArtifacts, readExistingReferences, mergeReferences } from './buildReferencesArtifacts';
+import {
+  buildReferencesArtifacts,
+  readExistingReferences,
+  mergeReferences,
+  mergeSubstitutions,
+} from './buildReferencesArtifacts';
 import type { ReferencesArtifact } from './buildReferencesArtifacts';
 import type { SnootyNode, SubstitutionRefXrefInfo } from '../convertSnootyAstToMdast/types';
 
@@ -68,7 +73,9 @@ export const convertJsonAstToMdxFiles: ConvertJsonAstToMdxFiles = async ({
 
         const references = mdastRoot.__references as ReferencesArtifact;
         if (references) {
-          Object.assign(additionalRefs.substitutions, references.substitutions || {});
+          // Rich-aware merge: include bodies contribute the flattened text for keys whose value is
+          // inline markup, and a plain Object.assign would let one of them erase that markup.
+          additionalRefs.substitutions = mergeSubstitutions(additionalRefs.substitutions, references.substitutions);
           Object.assign(additionalRefs.refs, references.refs || {});
         }
       } catch (error) {
@@ -106,7 +113,7 @@ interface CreateReferencesFilesArgs {
 const createReferencesFiles = async ({ rootDir, refsArtifact, additionalRefs }: CreateReferencesFilesArgs) => {
   if (refsArtifact || Object.keys(additionalRefs.substitutions).length || Object.keys(additionalRefs.refs).length) {
     if (refsArtifact) {
-      Object.assign(additionalRefs.substitutions, refsArtifact.substitutions || {});
+      additionalRefs.substitutions = mergeSubstitutions(additionalRefs.substitutions, refsArtifact.substitutions);
       Object.assign(additionalRefs.refs, refsArtifact.refs || {});
     }
 

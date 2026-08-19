@@ -4,7 +4,7 @@
 
 .. meta::
    :keywords: code example, node.js, compass
-   :description: Analyze query performance using explain plan results to determine execution time, index usage, and documents scanned in MongoDB.
+   :description: Analyze query performance in MongoDB using explain plan results to determine query execution time, whether a query uses an index, and the number of documents and index keys scanned.
 
 .. _interpret-explain-plan:
 
@@ -58,34 +58,37 @@ a query:
 Evaluate the Performance of a Query
 -----------------------------------
 
-Consider a collection ``inventory`` with the following documents:
-
-.. code-block:: javascript
-
-   db.inventory.insertMany ( [ 
-      { _id: 1, item: "f1", type: "food", quantity: 500 },
-      { _id: 2, item: "f2", type: "food", quantity: 100 },
-      { _id: 3, item: "p1", type: "paper", quantity: 200 },
-      { _id: 4, item: "p2", type: "paper", quantity: 150 },
-      { _id: 5, item: "f3", type: "food", quantity: 300 },
-      { _id: 6, item: "t1", type: "toys", quantity: 500 },
-      { _id: 7, item: "a1", type: "apparel", quantity: 250 },
-      { _id: 8, item: "a2", type: "apparel", quantity: 400 },
-      { _id: 9, item: "t2", type: "toys", quantity: 50 },
-      { _id: 10, item: "f4", type: "food", quantity: 75 }
-   ] )
-
 .. tabs-drivers::
    :hidden: true
 
    .. tab::
       :tabid: shell
 
+      .. include:: /includes/sample-data-usage.rst
+
    .. tab::
       :tabid: compass
 
+      Consider a collection ``inventory`` with the following
+      documents:
+
+      .. code-block:: javascript
+
+         db.inventory.insertMany ( [
+            { _id: 1, item: "f1", type: "food", quantity: 500 },
+            { _id: 2, item: "f2", type: "food", quantity: 100 },
+            { _id: 3, item: "p1", type: "paper", quantity: 200 },
+            { _id: 4, item: "p2", type: "paper", quantity: 150 },
+            { _id: 5, item: "f3", type: "food", quantity: 300 },
+            { _id: 6, item: "t1", type: "toys", quantity: 500 },
+            { _id: 7, item: "a1", type: "apparel", quantity: 250 },
+            { _id: 8, item: "a2", type: "apparel", quantity: 400 },
+            { _id: 9, item: "t2", type: "toys", quantity: 50 },
+            { _id: 10, item: "f4", type: "food", quantity: 75 }
+         ] )
+
       The documents appear in |compass| as the following:
-      
+
       .. figure:: /images/compass-analyze-inventory-docs.png
          :alt: Compass Inventory collection documents
 
@@ -100,62 +103,33 @@ Query with No Index
      - id: shell
        content: |
          The following query retrieves documents where the
-         ``quantity`` field has a value between ``100`` and ``200``,
+         ``year`` field has a value between ``2000`` and ``2005``,
          inclusive:
 
-         .. code-block:: javascript
+         .. literalinclude:: /code-examples/tested/command-line/mongosh/tutorial/analyze-query-plan/range-query.snippet.range-query.js
+            :language: javascript
+            :copyable: true
+            :category: usage example
 
-            db.inventory.find( { quantity: { $gte: 100, $lte: 200 } } )
-
-         The query returns the following documents:
-
-         .. code-block:: javascript
-
-            { "_id" : 2, "item" : "f2", "type" : "food", "quantity" : 100 }
-            { "_id" : 3, "item" : "p1", "type" : "paper", "quantity" : 200 }
-            { "_id" : 4, "item" : "p2", "type" : "paper", "quantity" : 150 }
+         This query matches ``3809`` of the ``21349`` documents in
+         the collection.
 
          To view the query plan selected, chain the
          :method:`cursor.explain("executionStats") <cursor.explain()>`
          cursor method to the end of the :command:`find` command:
 
-         .. code-block:: javascript
+         .. io-code-block::
+            :copyable: true
 
-            db.inventory.find(
-               { quantity: { $gte: 100, $lte: 200 } }
-            ).explain("executionStats")
+            .. input:: /code-examples/tested/command-line/mongosh/tutorial/analyze-query-plan/range-explain.snippet.range-explain.js
+               :language: javascript
+               :category: usage example
 
-         :method:`~cursor.explain()` returns the following results:
+            .. output:: /code-examples/tested/command-line/mongosh/tutorial/analyze-query-plan/range-explain-no-index-output.sh
+               :language: javascript
 
-         .. code-block:: javascript
-
-            {
-               queryPlanner: {
-                     ...
-                     winningPlan: {
-                        queryPlan: {
-                           stage: 'COLLSCAN',
-                           ...
-                        }
-                     }
-               },
-               executionStats: {
-                  executionSuccess: true,
-                  nReturned: 3,
-                  executionTimeMillis: 0,
-                  totalKeysExamined: 0,
-                  totalDocsExamined: 10,
-                  executionStages: {
-                     stage: 'COLLSCAN',
-                     ...
-                  },
-                  ...
-               },
-               ...
-            }
-
-         - :data:`queryPlanner.winningPlan.queryPlan.stage
-           <explain.queryPlanner.winningPlan.queryPlan.stage>` displays
+         - :data:`queryPlanner.winningPlan.stage
+           <explain.queryPlanner.winningPlan.stage>` displays
            ``COLLSCAN`` to indicate a collection scan.
 
            Collection scans indicate that the
@@ -165,17 +139,18 @@ Query with No Index
            queries.
 
          - :data:`executionStats.nReturned
-           <explain.executionStats.nReturned>` displays ``3`` to
-           indicate that the winning query plan returns three documents.
+           <explain.executionStats.nReturned>` displays ``3809`` to
+           indicate that the winning query plan returns 3,809
+           documents.
 
          - :data:`executionStats.totalKeysExamined
            <explain.executionStats.totalKeysExamined>` displays ``0``
            to indicate that this is query is not using an index.
 
          - :data:`executionStats.totalDocsExamined
-           <explain.executionStats.totalDocsExamined>` displays ``10``
-           to indicate that MongoDB had to scan ten documents (i.e.
-           all documents in the collection) to find the three matching
+           <explain.executionStats.totalDocsExamined>` displays
+           ``21349`` to indicate that MongoDB had to scan all 21,349
+           documents in the collection to find the 3,809 matching
            documents.
 
      - id: compass
@@ -260,87 +235,59 @@ query might benefit from the use of an index.
 Query with Index
 ~~~~~~~~~~~~~~~~
 
-To support the query on the ``quantity`` field, add an index on the
-``quantity`` field:
-
 .. tabs-drivers::
 
    tabs:
      - id: shell
        content: |
-         .. code-block:: javascript
+         To support the query on the ``year`` field, add an index
+         on the ``year`` field:
 
-            db.inventory.createIndex( { quantity: 1 } )
+         .. literalinclude:: /code-examples/tested/command-line/mongosh/tutorial/analyze-query-plan/create-year-index.snippet.create-year-index.js
+            :language: javascript
+            :copyable: true
+            :category: usage example
 
          To view the query plan statistics, use the
          :method:`~cursor.explain("executionStats")` method:
 
-         .. code-block:: javascript
+         .. io-code-block::
+            :copyable: true
 
-            db.inventory.find(
-               { quantity: { $gte: 100, $lte: 200 } }
-            ).explain("executionStats")
+            .. input:: /code-examples/tested/command-line/mongosh/tutorial/analyze-query-plan/range-explain.snippet.range-explain.js
+               :language: javascript
+               :category: usage example
 
-         The :method:`~cursor.explain()` method returns the following
-         results:
+            .. output:: /code-examples/tested/command-line/mongosh/tutorial/analyze-query-plan/range-explain-index-output.sh
+               :language: javascript
 
-         .. code-block:: javascript
-
-            {
-               queryPlanner: {
-                     ...
-                     winningPlan: {
-                        queryPlan: {
-                           stage: 'FETCH',
-                           inputStage: {
-                              stage: 'IXSCAN',
-                              keyPattern: {
-                                 quantity: 1
-                              },
-                              ...
-                           }
-                        }
-                     },
-                     rejectedPlans: [ ]
-               },
-               executionStats: {
-                     executionSuccess: true,
-                     nReturned: 3,
-                     executionTimeMillis: 0,
-                     totalKeysExamined: 3,
-                     totalDocsExamined: 3,
-                     executionStages: {
-                        ...
-                     },
-                     ...
-               },
-               ...
-            }
-
-         - :data:`queryPlanner.winningPlan.queryPlan.inputStage.stage
-           <explain.queryPlanner.winningPlan.queryPlan.inputStage>` displays
+         - :data:`queryPlanner.winningPlan.inputStage.stage
+           <explain.queryPlanner.winningPlan.inputStage>` displays
            ``IXSCAN`` to indicate index use.
 
          - :data:`executionStats.nReturned <explain.executionStats.nReturned>`
-           displays ``3`` to indicate that the winning query plan returns 
-           three documents.
+           displays ``3809`` to indicate that the winning query plan
+           returns 3,809 documents.
 
          - :data:`executionStats.totalKeysExamined
-           <explain.executionStats.totalKeysExamined>` displays ``3``
-           to indicate that MongoDB scanned three index entries. The
+           <explain.executionStats.totalKeysExamined>` displays ``3809``
+           to indicate that MongoDB scanned 3,809 index entries. The
            number of keys examined match the number of documents
            returned, meaning that the :binary:`~bin.mongod` only had
            to examine index keys to return the results. The
            :binary:`~bin.mongod` did not have to scan all of the
-           documents, and only the three matching documents had to be
+           documents, and only the 3,809 matching documents had to be
            pulled into memory. This results in a very efficient query.
 
          - :data:`executionStats.totalDocsExamined
-           <explain.executionStats.totalDocsExamined>` display ``3``
-           to indicate that MongoDB scanned three documents.
+           <explain.executionStats.totalDocsExamined>` display ``3809``
+           to indicate that MongoDB scanned 3,809 documents.
 
      - id: compass
        content: |
+         To support the query on the ``quantity`` field, add an
+         index on the ``quantity`` field:
+
          1. Click the :guilabel:`Indexes` tab for the
             ``test.inventory`` collection.
 
@@ -420,15 +367,13 @@ To support the query on the ``quantity`` field, add an index on the
          .. figure:: /images/compass-explain-plan-with-index-raw-json.png
             :alt: Compass query plan with index raw JSON
 
-Without the index, the query would scan the whole collection of ``10``
-documents to return ``3`` matching documents. The query also had to
-scan the entirety of each document, potentially pulling them into
-memory. This results in an expensive and potentially slow query
-operation.
+Without the index, the query scans the entire collection to return
+the matching documents. The query also has to scan the entirety of
+each document, potentially pulling them into memory. This results in
+an expensive and potentially slow query operation.
 
-When run with an index, the query scanned ``3`` index entries
-and ``3`` documents to return ``3`` matching documents, resulting
-in a very efficient query.
+When run with an index, the query scans only as many index entries
+and documents as it returns, resulting in a more efficient query.
 
 .. tabs-drivers::
 
@@ -446,153 +391,76 @@ in a very efficient query.
 
       Consider the following query:
 
-      .. code-block:: javascript
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/tutorial/analyze-query-plan/range-rated-query.snippet.range-rated-query.js
+         :language: javascript
+         :copyable: true
+         :category: usage example
 
-         db.inventory.find( {
-            quantity: {
-               $gte: 100, $lte: 300
-            },
-            type: "food"
-         } )
-
-      The query returns the following documents:
-
-
-      .. code-block:: javascript
-
-         { "_id" : 2, "item" : "f2", "type" : "food", "quantity" : 100 }
-         { "_id" : 5, "item" : "f3", "type" : "food", "quantity" : 300 }
+      This query matches ``235`` documents.
 
       To support the query, add a :ref:`compound index
       <index-type-compound>`. With compound indexes, the order
       of the fields matter.
 
       For example, add the following two compound indexes. The
-      first index orders by ``quantity`` field first, and then the
-      ``type`` field. The second index orders by ``type`` first,
-      and then the ``quantity`` field.
+      first index orders by ``year`` field first, and then the
+      ``rated`` field. The second index orders by ``rated`` first,
+      and then the ``year`` field.
 
-      .. code-block:: javascript
-
-         db.inventory.createIndex( { quantity: 1, type: 1 } )
-         db.inventory.createIndex( { type: 1, quantity: 1 } )
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/tutorial/analyze-query-plan/create-compound-indexes.snippet.create-compound-indexes.js
+         :language: javascript
+         :copyable: true
+         :category: usage example
 
       Evaluate the effect of the first index on the query:
 
-      .. code-block:: javascript
+      .. io-code-block::
+         :copyable: true
 
-         db.inventory.find(
-            { quantity: { $gte: 100, $lte: 300 }, type: "food" }
-         ).hint({ quantity: 1, type: 1 }).explain("executionStats")
+         .. input:: /code-examples/tested/command-line/mongosh/tutorial/analyze-query-plan/hint-year-rated.snippet.hint-year-rated.js
+            :language: javascript
+            :category: usage example
 
-      The :method:`~cursor.explain()` method returns the following
-      output:
+         .. output:: /code-examples/tested/command-line/mongosh/tutorial/analyze-query-plan/hint-year-rated-output.sh
+            :language: javascript
 
-      .. code-block:: javascript
-         :emphasize-lines: 22,24
-
-         {
-            queryPlanner: {
-               ...
-               winningPlan: {
-                  queryPlan: {
-                     stage: 'FETCH',
-                     inputStage: {
-                        stage: 'IXSCAN',
-                        keyPattern: {
-                           quantity: 1,
-                           type: 1
-                        },
-                        ...
-                        }
-                     }
-                  }
-               },
-               rejectedPlans: [ ]
-            },
-            executionStats: {
-               executionSuccess: true,
-               nReturned: 2,
-               executionTimeMillis: 0,
-               totalKeysExamined: 5,
-               totalDocsExamined: 2,
-               executionStages: {
-               ...
-               }
-            },
-            ...
-         }
-
-      MongoDB scanned ``5`` index keys
+      MongoDB scanned ``246`` index keys
       (:data:`executionStats.totalKeysExamined
-      <explain.executionStats.totalKeysExamined>`) to return ``2``
+      <explain.executionStats.totalKeysExamined>`) to return ``235``
       matching documents (:data:`executionStats.nReturned
       <explain.executionStats.nReturned>`).
 
       Evaluate the effect of the second index on the query:
 
-      .. code-block:: javascript
+      .. io-code-block::
+         :copyable: true
 
-         db.inventory.find(
-            { quantity: { $gte: 100, $lte: 300 }, type: "food" }
-         ).hint({ type: 1, quantity: 1 }).explain("executionStats")
+         .. input:: /code-examples/tested/command-line/mongosh/tutorial/analyze-query-plan/hint-rated-year.snippet.hint-rated-year.js
+            :language: javascript
+            :category: usage example
 
-      The :method:`~cursor.explain()` method returns the following
-      output:
+         .. output:: /code-examples/tested/command-line/mongosh/tutorial/analyze-query-plan/hint-rated-year-output.sh
+            :language: javascript
 
-      .. code-block:: javascript
-         :emphasize-lines: 19,21
-
-         {
-            queryPlanner: {
-               ...
-               queryPlan: {
-                  winningPlan: {
-                     stage: 'FETCH',
-                     inputStage: {
-                        stage: 'IXSCAN',
-                        keyPattern: {
-                           type: 1,
-                           quantity: 1
-                        },
-                        ...
-                     }
-                  }
-               },
-               rejectedPlans: [ ]
-            },
-            executionStats: {
-               executionSuccess: true,
-               nReturned: 2,
-               executionTimeMillis: 0,
-               totalKeysExamined: 2,
-               totalDocsExamined: 2,
-               executionStages: {
-                  ...
-               }
-            },
-            ...
-         }
-
-      MongoDB scanned ``2`` index keys
+      MongoDB scanned ``235`` index keys
       (:data:`executionStats.totalKeysExamined
-      <explain.executionStats.totalKeysExamined>`) to return ``2``
+      <explain.executionStats.totalKeysExamined>`) to return ``235``
       matching documents (:data:`executionStats.nReturned
       <explain.executionStats.nReturned>`).
 
-      The second compound index, ``{ type: 1, quantity: 1 }``, is
+      The second compound index, ``{ rated: 1, year: 1 }``, is
       therefore the more efficient index for supporting the example
-      query, as the MongoDB server only needs to scan ``2``
+      query, as the MongoDB server only needs to scan ``235``
       :data:`index keys <explain.executionStats.totalKeysExamined>`
       to find all matching documents using this index, compared to
-      ``5`` when when using the compound index
-      ``{ quantity: 1, type: 1 }``.
+      ``246`` when using the compound index
+      ``{ year: 1, rated: 1 }``.
 
       .. seealso::
 
-         - :doc:`/core/query-optimization`
-         - :doc:`/core/query-plans`
-         - :doc:`/applications/indexes`
+         - :ref:`read-operations-indexing`
+         - :ref:`read-operations-query-optimization`
+         - :ref:`manual-indexing-strategies`
 
 
    .. tab:: Compass

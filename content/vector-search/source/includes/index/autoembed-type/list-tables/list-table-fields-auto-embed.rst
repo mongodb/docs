@@ -44,16 +44,16 @@
        | ``path``
      - String 
      - Required 
-     - Name of the text field to index. For nested fields, use :ref:`dot notation <document-dot-notation>` 
-       to specify the path to embedded fields. If the text value in the 
-       specified field exceeds 32,000 tokens, {+avs+} automatically 
-       truncates during indexing to fit the context window of the embedding 
-       model.
+     - Name of the top-level or nested text field to index. For nested 
+       fields, use :ref:`dot notation <document-dot-notation>` to specify 
+       the path to embedded fields. If the field is nested in an array of 
+       documents, the field must be a child of the field specified in the 
+       ``nestedRoot`` option.
        
-       Automated Embedding does not support generating vector embeddings
-       for fields that are nested within an array of objects or
-       subdocuments.
-             
+       If the text value in the specified field exceeds 32,000 tokens, 
+       {+avs+} automatically truncates during indexing to fit the context 
+       window of the embedding model.
+
    * - | ``fields.``
        | ``model``
      - String
@@ -85,6 +85,18 @@
        - ``2048``
 
        If omitted, defaults to ``1024`` vector dimensions. 
+
+   * - ``nestedRoot``
+     - String
+     - Optional
+     - Path to the top-level array of documents field that contains  
+       the field for which you want to configure Automated Embedding. If 
+       you specify a value, the value of ``fields.path`` must be a child 
+       of the field specified here.
+
+       This setting is not yet available in the {+atlas-ui+} 
+       :guilabel:`Visual Editor`. Use the :guilabel:`JSON Editor` 
+       instead.
 
    * - | ``fields.``
        | ``quantization``

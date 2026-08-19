@@ -1631,6 +1631,84 @@ General Parameters
       mongod \
         --setParameter "ingressRequestRateLimiterApplicationExemptions={\"appNames\":[\"MongoDB Internal Client\"]}"
 
+.. parameter:: internalOperationResponseMaxMS
+
+   .. versionadded:: 9.0
+
+   |mongod-only|
+
+   *Type*: integer
+
+   *Default*: 0
+
+   Sets an approximate time limit, in milliseconds, that a
+   :ref:`change stream <changeStreams>` :dbcommand:`aggregate` or
+   :dbcommand:`getMore` command can spend scanning the oplog before it
+   returns the results accumulated so far, along with an updated
+   :ref:`resume token <change-stream-resume-token>`.
+
+   By default, ``internalOperationResponseMaxMS`` is ``0``, which means
+   that change stream oplog scans are not time-limited and do not return
+   an updated resume token until the command fills a batch or the change
+   stream reaches the end of the oplog. This setting preserves the
+   behavior of MongoDB versions earlier than 9.0. The feature is
+   strictly opt-in.
+
+   When you set ``internalOperationResponseMaxMS`` to a value greater
+   than ``0``, change stream oplog scans periodically check whether the
+   time limit is exceeded. If the limit is exceeded, the command returns
+   the accumulated results with an updated resume token, even if the
+   scan has not reached the end of the oplog or filled a batch. An
+   updated resume token lets change stream consumers observe progress
+   during a long scan. If an error occurs, consumers can resume from a
+   later point instead of restarting the scan from the beginning.
+
+   Setting ``internalOperationResponseMaxMS`` requires
+   :ref:`feature compatibility version <view-fcv>` (fCV) ``9.0`` or
+   later.
+
+   .. note::
+
+      Although the name of the ``internalOperationResponseMaxMS``
+      parameter suggests broad applicability, the parameter currently
+      affects only change stream queries. Setting the parameter has no
+      effect on other query types.
+
+   Consider the following behavior when you set this parameter:
+
+   - The time limit is checked only when the query yields, so treat the
+     value as approximate. The limit is not enforced after the change
+     stream reaches the end of the oplog and is waiting for new writes.
+
+   - Set the value substantially higher than the change stream's
+     ``maxTimeMS`` or ``maxAwaitTimeMS`` value, but lower than the
+     network timeout value. A value that is too low causes oplog scans
+     to bail out too frequently, which limits the progress that each
+     command makes and can cause the change stream to fall behind the
+     write workload.
+
+   To override the parameter for an individual change stream, pass the
+   ``operationResponseMaxMS`` query knob in the change stream's initial
+   :dbcommand:`aggregate` command:
+
+   .. code-block:: javascript
+
+      { querySettings: { queryKnobs: { operationResponseMaxMS: <value> } } }
+
+   The following command sets ``internalOperationResponseMaxMS`` to
+   ``5000`` milliseconds:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, internalOperationResponseMaxMS: 5000 } )
+
+   The following startup command sets
+   ``internalOperationResponseMaxMS`` to ``5000`` milliseconds:
+
+   .. code-block:: bash
+
+      mongod --setParameter internalOperationResponseMaxMS=5000
+
 .. parameter:: overloadAwareServerSelectionEnabled
 
    .. versionadded:: 8.3
@@ -1671,8 +1749,105 @@ General Parameters
 
    .. include:: /includes/fact-runtime-startup-parameter
 
+.. parameter:: maxEstimatedScanBytes
+
+   .. versionadded:: 9.0
+
+   |mongod-only|
+
+   *Type*: integer
+
+   *Default*: -1 (disabled)
+
+   Specifies the maximum data size that a collection scan reads. At
+   planning time, MongoDB rejects a query if the query plan requires an
+   unbounded collection scan on a collection whose uncompressed logical
+   data size exceeds this threshold. MongoDB measures the threshold in
+   uncompressed logical bytes, which is equivalent to the ``size`` field
+   that the :dbcommand:`collStats` command returns, and not the
+   compressed on-disk size.
+
+   Use ``maxEstimatedScanBytes`` as a more production-suitable
+   alternative to :parameter:`notablescan`. When MongoDB rejects a query,
+   the server returns a ``NoQueryExecutionPlans`` error. To learn more
+   about this error, see :ref:`Error Codes <error-codes>`.
+
+   MongoDB doesn't reject the following queries, even when the collection
+   exceeds the threshold:
+
+   - Queries that use the ``limit`` option
+
+   - Queries that use an indexed plan
+
+   - Queries against internal namespaces, such as ``system.*``
+     collections and internal databases
+
+   - Bounded clustered collection scans that specify ``min`` and ``max``
+     record bounds
+
+   For :pipeline:`$lookup` operations, MongoDB rejects all join
+   strategies that aren't indexed nested loop joins when the foreign
+   collection exceeds the threshold.
+
+   To bypass rejection for a specific query, add a ``$natural`` hint to
+   the query.
+
+   To log queries that exceed the threshold without rejecting them, see
+   :parameter:`maxEstimatedScanBytesDryRun`.
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   The following example shows the syntax for setting
+   ``maxEstimatedScanBytes`` at startup:
+
+   .. code-block:: bash
+
+      mongod --setParameter maxEstimatedScanBytes=<int>
+
+   To set the parameter at run time, use the :dbcommand:`setParameter`
+   command:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, maxEstimatedScanBytes: <int> } )
+
+.. parameter:: maxEstimatedScanBytesDryRun
+
+   .. versionadded:: 9.0
+
+   |mongod-only|
+
+   *Type*: boolean
+
+   *Default*: false
+
+   Enables dry-run mode for the :parameter:`maxEstimatedScanBytes` parameter.
+   When set to ``true``, MongoDB runs queries that the server would otherwise
+   reject and instead logs the queries and increments the
+   :serverstatus:`metrics.query.maxEstimatedScanBytes.dryRunWouldReject`
+   counter.
+
+   Use dry-run mode to evaluate the impact of a threshold before you
+   enforce it.
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   The following example shows the syntax for setting
+   ``maxEstimatedScanBytesDryRun`` at startup:
+
+   .. code-block:: bash
+
+      mongod --setParameter maxEstimatedScanBytesDryRun=true
+
+   To set the parameter at run time, use the :dbcommand:`setParameter`
+   command:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, maxEstimatedScanBytesDryRun: true } )
+
 .. parameter:: maxIndexBuildMemoryUsageMegabytes
-   
+
    |mongod-only|
 
    | *Default (absolute)*: 200

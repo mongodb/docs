@@ -4,11 +4,10 @@ import { css } from '@leafygreen-ui/emotion';
 import { Heading } from '@/mdx-components/Heading';
 import { SkipPTagContext } from '@/mdx-components/Paragraph';
 
-// Match Snooty: step titles render at section depth 3, i.e. a LeafyGreen
-// Subtitle (18px / 600). Snooty wraps each step's title in a section that
-// bumps the heading one level below the procedure's section, which for the
-// common case (a procedure under an H2) resolves to depth 3.
-const STEP_HEADING_LEVEL = 3;
+// Fallback for MDX generated before StepHeading carried a headingLevel prop.
+// Matches Snooty for the common case (a procedure under an H2), where the
+// step title's section resolves to depth 3, i.e. a LeafyGreen Subtitle
+const DEFAULT_STEP_HEADING_LEVEL = 3;
 
 // Fallback for when SkipPTagContext doesn't prevent the inner Paragraph's Body
 // from rendering (e.g. server-rendered MDX where the client context Provider
@@ -30,12 +29,13 @@ const stepHeadingFallbackStyle = css`
 
 type StepHeadingProps = {
   children: React.ReactNode;
+  headingLevel?: number;
 };
 
-export const StepHeading = ({ children }: StepHeadingProps) => {
+export const StepHeading = ({ children, headingLevel = DEFAULT_STEP_HEADING_LEVEL }: StepHeadingProps) => {
   return (
     <SkipPTagContext.Provider value={true}>
-      <Heading headingLevel={STEP_HEADING_LEVEL} className={stepHeadingFallbackStyle}>
+      <Heading headingLevel={headingLevel} className={stepHeadingFallbackStyle}>
         {/* Step titles are a single MDX paragraph; skip inner Body on Paragraph so we do not nest <p> inside the heading. */}
         {children}
       </Heading>

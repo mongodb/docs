@@ -1,10 +1,9 @@
-#![recursion_limit = "2560"]
-use mongodb::{ 
+use mongodb::{
     bson::{Document, doc},
     sync::Client
 };
 
-fn basic_query() -> mongodb::error::Result<()> {
+pub(crate) fn basic_query() -> mongodb::error::Result<()> {
     // Replace the placeholder with your Atlas connection string
     let client = Client::with_uri_str("<connection-string>")?;
 

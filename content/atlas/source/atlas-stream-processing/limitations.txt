@@ -21,6 +21,9 @@ Limitations
 
 The following limitations apply to {+atlas-sp+}:
 
+General
+-------
+
 - {+atlas-sp+} supports only at-least-once processing.
 
 - {+atlas-sp+} doesn't support horizontal scaling.
@@ -39,9 +42,9 @@ The following limitations apply to {+atlas-sp+}:
   higher-tier stream processors.
 
   When a stream processor crosses the 80% RAM threshold, it fails
-  with a ``Worker out of memory`` error. You can 
-  view the ``state.stateSize`` value of each stream processor with the 
-  ``sp.processor.stats()`` command. See :ref:`View Statistics of a Stream 
+  with a ``Worker out of memory`` error. You can
+  view the ``state.stateSize`` value of each stream processor with the
+  ``sp.processor.stats()`` command. See :ref:`View Statistics of a Stream
   Processor <atlas-sp-manage-processor-stats>` to learn more.
 
 - An {+atlas-sp+} pipeline definition cannot exceed 16 MB.
@@ -51,14 +54,47 @@ The following limitations apply to {+atlas-sp+}:
   Processing Owner` or :atlasrole:`Atlas admin` roles can use
   {+atlas-sp+}.
 
-- For {+atlas-sp+} using {+kafka+} as a :ref:`$source
-  <atlas-sp-agg-source>`, if the {+kafka+} topic acting as :ref:`$source 
-  <atlas-sp-agg-source>` to the running processor adds a partition,
-  {+atlas-sp+} continues running without reading the partition.
-  The processor fails when it detects the new partition after you restore
-  it from a checkpoint after a failure, or you restart it after stopping it. 
-  You must recreate the processors that read from topics with
-  the newly added partitions. 
+- You must use {+mongosh+} version 2.3.4 or later to override an option
+  on an existing stream processor using a {+mongosh+} method. For
+  example, using ``sp.processor.start()`` to specify a tier for the
+  processor you are starting.
+
+  See :ref:`Develop Stream Processors <atlas-sp-manage-processor>` to learn
+  more about managing a stream processor using {+mongosh+}.
+
+Aggregation Pipeline
+--------------------
+
+- {+atlas-sp+} supports a subset of the Aggregation Pipeline Stages available
+  in |service|, allowing you to perform many of the same operations on streaming
+  data that you can perform on data-at-rest. For a full list of supported
+  Aggregation Pipeline Stages, see the :ref:`Stream Aggregation documentation <atlas-sp-aggregation>`.
+
+- {+atlas-sp+} doesn't support the aggregation variables ``$$NOW``,
+  ``$$CLUSTER_TIME``, ``$$USER_ROLES``, and ``$SEARCH_META``.
+
+- {+atlas-sp+} doesn't support writing BSON documents larger than
+  ``125 MB`` using the :ref:`$emit <atlas-sp-agg-emit>` stage to an {+aws+} |s3|
+  bucket.
+
+Kafka Connections
+------------------
+
+- For {+kafka+} :ref:`$source <atlas-sp-agg-source>` stages, if the
+  {+kafka+} topic acting as :ref:`$source <atlas-sp-agg-source>` to
+  the running processor adds a partition, the starting offset is
+  determined by the :ref:`auto_offset_reset
+  <atlas-sp-agg-source-syntax-kafka>` property.
+
+- For {+kafka+} :ref:`$source <atlas-sp-agg-source>` stages are
+  subject to {+spw+} tier partition limits. If you exceed the
+  partition limit of your {+spw+} tier, the affected stream processor
+  will fail. You must upgrade your {+spw+} to support additional
+  partitions.
+
+- {+atlas-sp+} doesn't support connecting to an {+kafka+} consumer in
+  the same consumer group as other consumers. Ensure any Kafka
+  consumer used with {+atlas-sp+} runs in a dedicated consumer group.
 
 - For {+kafka+} connections, {+atlas-sp+} currently supports only the
   following security protocols:
@@ -66,7 +102,7 @@ The following limitations apply to {+atlas-sp+}:
   - ``SASL_PLAINTEXT``
   - ``SASL_SSL``
   - ``SSL``
-  
+
   For ``SASL``, {+atlas-sp+} supports the following mechanisms:
 
   - ``PLAIN``
@@ -81,24 +117,38 @@ The following limitations apply to {+atlas-sp+}:
   - a client TLS certificate
   - a TLS keyfile, used to sign your TLS certificate
 
-- {+atlas-sp+} supports a subset of the Aggregation Pipeline Stages available 
-  in |service|, allowing you to perform many of the same operations on streaming 
-  data that you can perform on data-at-rest. For a full list of supported 
-  Aggregation Pipeline Stages, see the :ref:`Stream Aggregation documentation <atlas-sp-aggregation>`.
- 
-- {+atlas-sp+} doesn't support the aggregation variables ``$$NOW``, 
-  ``$$CLUSTER_TIME``, ``$$USER_ROLES``, and ``$SEARCH_META``.
+Initial Sync
+------------
 
-- {+atlas-sp+} doesn't support writing BSON documents larger than
-  ``125 MB`` using the :ref:`$emit <atlas-sp-agg-emit>` stage to an {+aws+} |s3|
-  bucket.
+- :ref:`initialSync <atlas-sp-agg-source>` supports collections whose
+  ``_id`` values are of any type except array, regular expression, or
+  JavaScript code, which MongoDB doesn't support as ``_id`` values.
+  All ``_id`` values in a collection must be of the same type.
+  {+atlas-sp+} doesn't support ``initialSync`` on collections that
+  contain mixed ``_id`` types.
 
-- You must use {+mongosh+} version 2.3.4 or higher to override an option on an
-  existing stream processor using a {+mongosh+} method. For example, using 
-  ``sp.processor.start()`` to specify a tier for the processor you are starting.
+- If your collection's ``_id`` values are default generated
+  :ref:`ObjectId <objectid>` values or
+  ordered ``int`` or ``long`` values, ``initialSync`` achieves optimal
+  performance. For other ``_id`` types, ``initialSync`` might take
+  longer to complete because the values aren't stored in a
+  predictable order. Increase your oplog size before you begin a
+  longer ``initialSync`` operation so that the processor's resume
+  token remains on the oplog. If the resume token is no longer on the
+  oplog when ``initialSync`` completes, the processor enters a failed
+  state to prevent data loss, and ``initialSync`` runs again.
 
-  See :ref:`Develop Stream Processors <atlas-sp-manage-processor>` to learn
-  more about managing a stream processor using {+mongosh+}.
+- {+atlas-sp+} can insert new documents into a partition while
+  ``initialSync`` copies it. A network failure that interrupts a
+  query on a growing partition can prolong the collection-copy phase.
+
+- ``initialSync`` might insert duplicate documents if it reads a
+  change event during the collection-copy or catch-up phase.
+  {+atlas-sp+}'s at-least-once processing guarantee covers this
+  behavior.
+
+Failover Processors
+-------------------
 
 - {+atlas-sp+} supports :ref:`failover processors
   <atlas-sp-architecture-failover>` only for processors with the

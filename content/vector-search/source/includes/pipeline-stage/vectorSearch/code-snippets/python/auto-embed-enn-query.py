@@ -1,13 +1,13 @@
 import pymongo
 
-# connect to your Atlas cluster
+# connect to your cluster
 client = pymongo.MongoClient("<connection-string>")
 
 # define pipeline
 pipeline = [
   {
     '$vectorSearch': {
-      'index': 'vector_index', 
+      'index': 'autoembed_index', 
       'path': 'fullplot', 
       'query': {
         "text": "solo traveler discovering new cultures"

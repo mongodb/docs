@@ -3,8 +3,9 @@
 closed skill-review Jira ticket, then opens a PR for a human to merge.
 
 Triggered by .github/workflows/skill-review-complete.yml via a
-repository_dispatch event, which a Jira Automation rule fires when a
-skill-review-* ticket transitions to Closed. Only tickets closed with
+repository_dispatch event, which a ScriptRunner Script Listener on Jira DC
+fires when a skill-review-* ticket transitions to Closed (NOT an Automation
+for Jira rule — see .github/jira-automation/README.md). Only tickets closed with
 resolution "Done" (an actual review happened) bump last_reviewed — closures
 like "Won't Do" (e.g. an orphaned-DRI ticket) are left alone.
 
@@ -79,8 +80,8 @@ def main():
     fields = issue["fields"]
 
     components = [c["name"] for c in fields.get("components", [])]
-    if "Agent Skills" not in components:
-        print(f"{ISSUE_KEY} is not an Agent Skills ticket ({components}). Skipping.")
+    if "Maverick" not in components:
+        print(f"{ISSUE_KEY} is not a Maverick skill-review ticket ({components}). Skipping.")
         return
 
     labels = fields.get("labels", [])

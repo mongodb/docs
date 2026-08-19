@@ -1,0 +1,82 @@
+name: Daily merge main into standby-clusters public preview
+
+on:
+  schedule:
+    - cron: "0 13 * * *" # 9am ET daily
+  workflow_dispatch: # allow manual trigger
+
+concurrency:
+  group: daily-merge-standby-clusters
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_STANDBY_CLUSTERS_MERGE }}
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/standby-clusters-public-preview
+          fetch-depth: 0
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge main into feature branch
+        id: merge
+        run: |
+          git fetch origin main
+          if git merge origin/main --no-edit; then
+            echo "merge_status=success" >> $GITHUB_OUTPUT
+          else
+            CONFLICTS=$(git diff --name-only --diff-filter=U)
+            echo "merge_status=conflict" >> $GITHUB_OUTPUT
+            echo "conflicts<<EOF" >> $GITHUB_OUTPUT
+            echo "$CONFLICTS" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            git merge --abort
+          fi
+
+      - name: Push branch
+        if: steps.merge.outputs.merge_status == 'success'
+        run: git push origin feature/standby-clusters-public-preview
+
+      - name: Send Slack notification on success
+        if: steps.merge.outputs.merge_status == 'success'
+        run: |
+          jq -n \
+            '{"text": "Daily merge of main into feature/standby-clusters-public-preview completed successfully."}' | \
+          curl -s -X POST "$SLACK_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d @-
+
+      - name: Send Slack notification on merge conflict
+        if: steps.merge.outputs.merge_status == 'conflict'
+        env:
+          CONFLICTS: ${{ steps.merge.outputs.conflicts }}
+        run: |
+          jq -n \
+            --arg run_url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            --arg conflicts "$CONFLICTS" \
+            '{"text": ("Daily merge of main into feature/standby-clusters-public-preview hit a conflict and needs a manual merge. Conflicting files:\n" + $conflicts + "\n" + $run_url)}' | \
+          curl -s -X POST "$SLACK_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d @-
+
+      - name: Send Slack notification on workflow failure
+        if: failure()
+        run: |
+          jq -n \
+            --arg run_url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            '{"text": ("Daily merge workflow for feature/standby-clusters-public-preview failed. Check the run for details: " + $run_url)}' | \
+          curl -s -X POST "$SLACK_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d @-

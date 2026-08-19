@@ -465,8 +465,6 @@ accepts for incoming connections to |tls| 1.3.
 
 Possible values for ``minTLSVersion`` include:
 
-* **TLS 1.0**: ``ResourcePolicy::TLSVersion::"tls1_0"``
-* **TLS 1.1**: ``ResourcePolicy::TLSVersion::"tls1_1"``
 * **TLS 1.2**: ``ResourcePolicy::TLSVersion::"tls1_2"``
 * **TLS 1.3**: ``ResourcePolicy::TLSVersion::"tls1_3"``
 

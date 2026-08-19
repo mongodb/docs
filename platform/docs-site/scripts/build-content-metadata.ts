@@ -1,5 +1,5 @@
 /**
- * Generates per-docset sitemaps and copies intersphinx inventories from
+ * Generates per-docset sitemaps and copies static metadata files from
  * content-mdx into public/, so that with the app's per-project basePath
  * (/docs/<docsetBase>) Next serves them at their canonical URLs with no rewrites.
  *
@@ -8,10 +8,22 @@
  * to basePath that's <rest>/FILE (rest = version segment(s), or empty), so
  * staging to public/<rest>/FILE serves it at <basePath>/<rest>/FILE = canonical.
  *
- * public/ (not _next) because .xml/.inv can't ride the _next static path — Next's
- * production static handler only serves image/asset extensions there. We stage
- * only this deploy's docset; others live on their own deploys. Emits sitemap-0.xml,
- * sitemap-index.xml, and objects.inv (when present) per _site.json dir.
+ * For versioned docsets, MDX conversion also writes the stable-branch
+ * objects.inv at the project root (content-mdx/<dir>/objects.inv, no
+ * _site.json). That file is staged to public/objects.inv so it is served at
+ * /docs/<docsetBase>/objects.inv. Skipped for landing (empty docsetBase) and
+ * for non-versioned docsets whose project root already has a _site.json
+ * (already staged by the per-site-dir loop).
+ *
+ * manpages.tar.gz (when present in the parser bundle) is staged only at the
+ * versioned path for versioned docsets, or at the project base for unversioned
+ * ones — never also at the unversioned project root of a versioned docset.
+ *
+ * public/ (not _next) because .xml/.inv/.tar.gz can't ride the _next static
+ * path — Next's production static handler only serves image/asset extensions
+ * there. We stage only this deploy's docset; others live on their own deploys.
+ * Emits sitemap-0.xml, sitemap-index.xml, objects.inv, and manpages.tar.gz
+ * (when present) per _site.json dir.
  *
  * Runs prebuild so files land in public/ before next build. Generated files are
  * gitignored. Run via: pnpm build:metadata
@@ -28,8 +40,14 @@ import {
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.mongodb.com';
 const PUBLIC_DIR = path.join(process.cwd(), 'public');
-const GENERATED_FILENAMES = ['sitemap-0.xml', 'sitemap-index.xml', 'objects.inv'];
+const GENERATED_FILENAMES = [
+  'sitemap-0.xml',
+  'sitemap-index.xml',
+  'objects.inv',
+  'manpages.tar.gz',
+];
 const INVENTORY_FILENAME = 'objects.inv';
+const MANPAGES_FILENAME = 'manpages.tar.gz';
 
 /** This deploy's docset URL prefix (e.g. `languages/python/django-mongodb`, or
  * '' for the empty-prefix landing/manual deploy). Mirrors next.config.mjs. */
@@ -140,15 +158,28 @@ async function readSiteMetadata(diskDir: string): Promise<SiteMetadata | null> {
   }
 }
 
-async function copyInventory(diskDir: string, destDir: string): Promise<boolean> {
-  const src = path.join(CONTENT_MDX_DIR, diskDir, INVENTORY_FILENAME);
+/** Copy a generated static file from content-mdx/<diskDir>/ into destDir if present. */
+async function copyStaticFile(
+  diskDir: string,
+  destDir: string,
+  filename: string,
+): Promise<boolean> {
+  const src = path.join(CONTENT_MDX_DIR, diskDir, filename);
   try {
     await fs.access(src);
   } catch {
     return false;
   }
-  await fs.copyFile(src, path.join(destDir, INVENTORY_FILENAME));
+  await fs.copyFile(src, path.join(destDir, filename));
   return true;
+}
+
+async function copyInventory(diskDir: string, destDir: string): Promise<boolean> {
+  return copyStaticFile(diskDir, destDir, INVENTORY_FILENAME);
+}
+
+async function copyManpages(diskDir: string, destDir: string): Promise<boolean> {
+  return copyStaticFile(diskDir, destDir, MANPAGES_FILENAME);
 }
 
 async function main(): Promise<void> {
@@ -184,6 +215,7 @@ async function main(): Promise<void> {
 
   let sitemapCount = 0;
   let inventoryCount = 0;
+  let manpagesCount = 0;
 
   for (const diskDir of siteDirs) {
     const urlPrefix = remapDiskRelativeToBlobRelative(diskDir, prefixMap);
@@ -224,12 +256,34 @@ async function main(): Promise<void> {
     sitemapCount++;
 
     if (await copyInventory(diskDir, destDir)) inventoryCount++;
+    // manpages.tar.gz is only staged at this site dir's path (versioned or
+    // unversioned base). Unlike objects.inv, it is never dual-written to the
+    // unversioned project root of a versioned docset.
+    if (await copyManpages(diskDir, destDir)) manpagesCount++;
+  }
+
+  // Stage the project-root objects.inv for versioned docsets. Conversion writes
+  // this for the stable branch at content-mdx/<dir>/objects.inv (no _site.json,
+  // so the loop above never sees it). Skip when:
+  // - docsetBase is empty (landing; /docs/objects.inv is handled above), or
+  // - the project root is already a site dir (non-versioned docsets like
+  //   compass — the loop already copied their inv to public/).
+  // manpages.tar.gz is intentionally omitted here.
+  if (docsetBase) {
+    const diskRoot = process.env.DOCS_PROJECT?.split('/')[0];
+    if (
+      diskRoot &&
+      !siteDirs.includes(diskRoot) &&
+      (await copyInventory(diskRoot, PUBLIC_DIR))
+    ) {
+      inventoryCount++;
+    }
   }
 
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
   console.log(
-    `Generated ${sitemapCount} sitemap(s) and copied ${inventoryCount} inventory file(s) ` +
-      `to public/ in ${elapsed}s`,
+    `Generated ${sitemapCount} sitemap(s), copied ${inventoryCount} inventory file(s), ` +
+      `and ${manpagesCount} manpages bundle(s) to public/ in ${elapsed}s`,
   );
 }
 

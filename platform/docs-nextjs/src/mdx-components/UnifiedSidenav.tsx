@@ -32,10 +32,6 @@ const toastPortalStyling = LeafyCSS`
   z-index: ${theme.zIndexes.sidenav + 1};
 `;
 
-export const ArtificialPadding = styled('div')`
-  height: 15px;
-`;
-
 export const downloadButtonStlying = LeafyCSS`
   bottom: 20px;
   position: absolute;
@@ -48,7 +44,7 @@ export const NavTopContainer = (isTabletOrMobile: boolean) => LeafyCSS`
   ${!isTabletOrMobile && 'background-color: var(--background-color-primary)'};
   position: absolute;
   top: -0px;
-  height: 60px;
+  height: ${isTabletOrMobile ? '145px' : '60px'};
   width: 100%;
   border-bottom: 1px solid var(--sidenav-border-bottom-color);
   z-index: 1;
@@ -56,8 +52,8 @@ export const NavTopContainer = (isTabletOrMobile: boolean) => LeafyCSS`
 
 const getTopAndHeight = (topValue: string) => {
   return LeafyCSS`
-    top: max(min(calc(${topValue} - var(--scroll-y))), ${theme.header.actionBarMobileHeight});
-    height: calc(100vh - max(min(calc(${topValue} - var(--scroll-y))), ${theme.header.actionBarMobileHeight}));
+    top: max(calc(${topValue} - var(--scroll-y)), ${theme.header.actionBarMobileHeight});
+    height: calc(100vh - max(calc(${topValue} - var(--scroll-y)), ${theme.header.actionBarMobileHeight}));
   `;
 };
 
@@ -140,6 +136,11 @@ const findPageParent = (tree: TocItem[], targetUrl: string): [boolean, TocItem |
   return [false, null];
 };
 
+const getActiveNavSection = (pathname: string | null): 'docs' | 'voyageai' => {
+  if (pathname?.startsWith('/docs/voyageai')) return 'voyageai';
+  return 'docs';
+};
+
 export const UnifiedSidenav = () => {
   const { hideMobile, setHideMobile } = useContext(SidenavContext);
   const { slug: pageSlug } = usePageContext();
@@ -151,7 +152,10 @@ export const UnifiedSidenav = () => {
   const topValues = useStickyTopValues({ eol: false, isAbsolute: true, hasBanner });
   const hash = typeof window !== 'undefined' ? window.location.hash : '';
 
-  const tree = useProcessedUnifiedToc();
+  const fullTree = useProcessedUnifiedToc();
+  const activeNavSection = getActiveNavSection(pathname);
+  const isAccordionOnly = activeNavSection === 'voyageai';
+  const tree = fullTree.filter((item) => (item.navSection ?? 'docs') === activeNavSection);
 
   const [isDriver, currentL2List] = findPageParent(tree, slug);
   const [showDriverBackBtn, setShowDriverBackBtn] = useState<boolean>(isDriver);
@@ -221,6 +225,7 @@ export const UnifiedSidenav = () => {
             hideMobile={hideMobile}
             currentL1={currentL1}
             tree={tree}
+            isAccordionOnly={isAccordionOnly}
           />
           <DoublePannedNav
             showDriverBackBtn={showDriverBackBtn}
@@ -231,6 +236,7 @@ export const UnifiedSidenav = () => {
             setCurrentL1={setCurrentL1}
             setCurrentL2s={setCurrentL2s}
             currentL1={currentL1}
+            isAccordionOnly={isAccordionOnly}
           />
         </div>
       </OfflineDownloadProvider>

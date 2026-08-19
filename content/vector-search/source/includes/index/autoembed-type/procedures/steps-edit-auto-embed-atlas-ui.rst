@@ -28,9 +28,4 @@
          needed. To learn more about the {+avs+} index settings, see 
          :ref:`avs-index-definition` and :ref:`avs-types-vector-search-options`.
 
-         You can add multiple fields to your index. However: 
-   
-         - You can't edit an existing ``autoEmbed`` type field.
-         - You can't add a field of type ``vector`` and ``autoEmbed`` in the same index.
-
    .. include:: /includes/shared/procedures/steps-avs-finish-index-creation.rst

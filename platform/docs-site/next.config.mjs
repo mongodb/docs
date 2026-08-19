@@ -1,4 +1,4 @@
-import { readdirSync } from 'node:fs';
+import { mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -28,39 +28,133 @@ const forceRedirects = allRedirects
 // prefix b2k already routes on — no asset-prefix, no strip. Must match
 // src/utils/base-path.ts. Also emit the full prefix list for sameProjectHref's
 // longest-prefix match (nested/empty-prefix docsets defeat startsWith).
+//
+// Inactive/EOL manual (v4.4/v5.0/v6.0) deploys on a separate Netlify site from
+// active manual. Set NEXT_PUBLIC_INACTIVE_MANUAL=true on that site so its asset
+// bucket does not collide with active's docs_static_manual path in b2k.
+function isInactiveManualBuild() {
+  return process.env.NEXT_PUBLIC_INACTIVE_MANUAL === 'true';
+}
+
 function getBuildBasePathEnv() {
   const docsProject = process.env.DOCS_PROJECT;
-  if (!docsProject) return { basePath: '/docs', prefixes: [] };
+  if (!docsProject) return { basePath: '/docs', prefixes: [], assetBucketSuffix: '' };
 
   const mapPath = join(__dirname, 'src/generated/dir-name-to-prefix.json');
   const dirNameToPrefix = requireFile(mapPath);
-  const rawPrefix = dirNameToPrefix[docsProject.split('/')[0]];
+  const dirName = docsProject.split('/')[0];
+  const rawPrefix = dirNameToPrefix[dirName];
   if (!rawPrefix) {
     throw new Error(`DOCS_PROJECT "${docsProject}" has no entry in dir-name-to-prefix.json`);
   }
-  const prefixes = [...new Set(Object.values(dirNameToPrefix).map((p) => `/${p}`))].sort(
-    (a, b) => b.length - a.length,
-  );
-  return { basePath: `/${rawPrefix}`, prefixes };
+  const prefixes = [...new Set(Object.values(dirNameToPrefix).map((p) => `/${p}`))].sort((a, b) => b.length - a.length);
+
+  // manual and landing both resolve to the empty prefix ("docs") and would
+  // otherwise be indistinguishable to b2k's asset routing. landing is the
+  // permanent fallback and keeps plain `_next`; manual gets a distinguishing
+  // bucket (routed in b2k via MANUAL_SLUGS, separate repo). Inactive manual
+  // uses a second bucket so its chunks don't collide with active manual.
+  // Fail loudly if a third empty-prefix project shows up unhandled.
+  let assetBucketSuffix = '';
+  if (rawPrefix === 'docs') {
+    switch (dirName) {
+      case 'landing':
+        assetBucketSuffix = '';
+        break;
+      case 'manual':
+        assetBucketSuffix = isInactiveManualBuild()
+          ? '/docs_static_manual_inactive'
+          : '/docs_static_manual';
+        break;
+      default:
+        throw new Error(
+          `DOCS_PROJECT "${docsProject}" resolves to the empty prefix ("docs") but is neither ` +
+            `"manual" nor "landing" — it needs its own asset bucket suffix to avoid colliding ` +
+            `with landing's _next assets in b2k.`,
+        );
+    }
+  }
+
+  return { basePath: `/${rawPrefix}`, prefixes, assetBucketSuffix };
 }
 
-const { basePath: BASE_PATH, prefixes: DOCS_PREFIXES } = getBuildBasePathEnv();
+const { basePath: BASE_PATH, prefixes: DOCS_PREFIXES, assetBucketSuffix: ASSET_BUCKET_SUFFIX } = getBuildBasePathEnv();
+
+// Bundle size reporting (UXE-697). Off by default, so normal and Netlify builds
+// produce byte-identical output.
+const BUNDLE_STATS = process.env.BUNDLE_STATS === 'true';
+
+// Emits the client module graph for scripts/bundle-report.ts. Client only:
+// server bundles never reach a user and would drown the signal.
+function bundleStatsPlugin() {
+  return {
+    apply(compiler) {
+      compiler.hooks.done.tap('BundleStatsPlugin', (stats) => {
+        const json = stats.toJson({
+          all: false,
+          modules: true,
+          nestedModules: true,
+          // On a warm filesystem cache webpack otherwise collapses unchanged
+          // modules into one unnamed "cached modules" group, zeroing out every
+          // bucket. These keep each module listed individually.
+          cachedModules: true,
+          groupModulesByCacheStatus: false,
+          groupModulesByAttributes: false,
+          groupModulesByPath: false,
+          groupModulesByExtension: false,
+          groupModulesByType: false,
+          groupModulesByLayer: false,
+          // modulesSpace caps the top-level list; nestedModulesSpace (default
+          // 10) caps concatenated children, where most LG imports land.
+          modulesSpace: Infinity,
+          nestedModulesSpace: Infinity,
+          reasons: false,
+          source: false,
+        });
+        const outDir = join(__dirname, '.bundle-stats');
+        mkdirSync(outDir, { recursive: true });
+        writeFileSync(join(outDir, 'client-stats.json'), JSON.stringify(json));
+      });
+    },
+  };
+}
 
 const nextConfig = {
   pageExtensions: ['mdx', 'tsx', 'ts'],
   trailingSlash: true,
   basePath: BASE_PATH,
+  // Next won't auto-combine assetPrefix with basePath once assetPrefix is set
+  // explicitly, so write the full path. Empty suffix (everything but manual)
+  // makes this a no-op: assetPrefix === basePath, Next's default.
+  assetPrefix: `${BASE_PATH}${ASSET_BUCKET_SUFFIX}`,
   // Expose to server + client for manual prefixing where Next doesn't auto-apply
-  // basePath (raw <img> src, client fetches). See src/utils/base-path.ts.
+  // basePath/assetPrefix (raw <img> src, client fetches). See src/utils/base-path.ts.
   env: {
     NEXT_PUBLIC_DOCS_BASE_PATH: BASE_PATH,
     NEXT_PUBLIC_DOCS_PREFIXES: JSON.stringify(DOCS_PREFIXES),
+    // Keep getAssetBucketSuffix() in lockstep with assetPrefix for this build
+    // (active vs inactive manual, or empty for every other project).
+    NEXT_PUBLIC_DOCS_ASSET_BUCKET_SUFFIX: ASSET_BUCKET_SUFFIX,
+    // Build identity, so a field web vitals regression can be traced to the
+    // merge that caused it. See src/utils/build-info.ts.
+    NEXT_PUBLIC_BUILD_BRANCH: process.env.BRANCH ?? process.env.HEAD ?? '',
+    NEXT_PUBLIC_BUILD_COMMIT: process.env.COMMIT_REF ?? '',
+    NEXT_PUBLIC_BUILD_DOCS_PROJECT: process.env.DOCS_PROJECT ?? '',
+    // Sampling lives in the deploy env so the rate can be changed without a PR.
+    // See src/utils/report-web-vitals.ts.
+    NEXT_PUBLIC_WEB_VITALS_SAMPLE_RATE: process.env.WEB_VITALS_SAMPLE_RATE ?? '',
   },
   compiler: {
     emotion: true,
   },
   experimental: {
     optimizePackageImports: ['@leafygreen-ui/emotion'],
+  },
+  webpack(config, { isServer }) {
+    if (BUNDLE_STATS && !isServer) {
+      config.plugins.push(bundleStatsPlugin());
+    }
+    return config;
   },
   async redirects() {
     return forceRedirects;
@@ -74,6 +168,16 @@ const nextConfig = {
         source: '/:path*.md',
         destination: '/api/markdown/:path*',
       },
+      // Resolve manual's bucketed asset path back to the real _next location.
+      // Basepath-relative, like the rewrite above.
+      ...(ASSET_BUCKET_SUFFIX
+        ? [
+            {
+              source: `${ASSET_BUCKET_SUFFIX}/_next/:path*`,
+              destination: '/_next/:path*',
+            },
+          ]
+        : []),
     ];
   },
   images: {

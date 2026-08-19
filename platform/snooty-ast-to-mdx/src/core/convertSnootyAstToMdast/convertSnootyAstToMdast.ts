@@ -227,6 +227,21 @@ const convertCodeNode = (node: SnootyNode, fallbackLang?: string | null): MdastN
 };
 
 /** Convert a list of Snooty nodes to a list of mdast nodes */
+/**
+ * Record a substitution's resolved value for `_references.json`.
+ *
+ * A key is collected many times across a conversion — once per page and once per include body that
+ * mentions it — and most of those sites only know the flattened text. A rich value (inline markup
+ * such as an icon or guilabel) can only be produced at the one site that sees the resolved role
+ * nodes, so a later plain-string write must not overwrite it: the string carries strictly less
+ * information, and losing it here silently drops the markup from every page at render time.
+ */
+const setCollectedSubstitution = (ctx: ConversionContext, refname: string, value: CollectedSubstitutionValue) => {
+  const existing = ctx.collectedSubstitutions.get(refname);
+  if (existing && typeof existing === 'object' && 'nodes' in existing && typeof value === 'string') return;
+  ctx.collectedSubstitutions.set(refname, value);
+};
+
 const convertChildren = ({ nodes, depth, ctx, parentType }: ConvertChildrenArgs): MdastNode[] => {
   if (!nodes || !Array.isArray(nodes)) return [];
   const children = nodes.flatMap((node) => convertNode({ node, depth, ctx, parentType })).filter(Boolean);
@@ -647,6 +662,90 @@ export const buildSubstitutionDefinitionNodesMap = (root: SnootyNode): Map<strin
 
   visitNode(root);
   return map;
+};
+
+/**
+ * Resolve the two things a footnote's identity needs, both of which depend on document order and
+ * are therefore only knowable here:
+ *
+ * 1. `anonymousNames` — anonymous footnotes (`[#]_` / `.. [#]`) get a unique `id` from the parser
+ *    but no name, so the only thing tying a reference to its footnote is position: RST pairs the
+ *    Nth anonymous reference with the Nth anonymous footnote. Assigning a shared synthetic name
+ *    here means every emitted `<Footnote>`/`<FootnoteReference>` has one, and the frontend needs
+ *    no positional logic at all.
+ *
+ * 2. `referenceIndexes` — when a footnote is referenced more than once (41 of 152 across the docs
+ *    set), each reference needs its own anchor so the footnote can link back to each site. This is
+ *    that reference's ordinal among references to the same footnote.
+ *
+ * Neither survives downstream: the frontend only ever sees *render* order, which diverges from
+ * document order whenever content is conditionally hidden (e.g. an unselected
+ * `<ComposableContent>`).
+ *
+ * Deliberately does not descend into nested `ast` subtrees: those are include bodies, emitted as
+ * separate MDX files with their own conversion pass and their own maps.
+ */
+export const buildFootnoteIdentityMaps = (
+  root: SnootyNode,
+): { anonymousNames: Map<string, string>; referenceIndexes: Map<string, number> } => {
+  const references: SnootyNode[] = [];
+  const anonymousReferences: SnootyNode[] = [];
+  const anonymousFootnotes: SnootyNode[] = [];
+
+  const visitNode = (node: SnootyNode | undefined) => {
+    if (!node) return;
+    if (node.type === 'footnote_reference') {
+      references.push(node);
+      if (!node.refname) anonymousReferences.push(node);
+    }
+    if (node.type === 'footnote' && !node.name) anonymousFootnotes.push(node);
+    if (Array.isArray(node.children)) {
+      for (const c of node.children) visitNode(c);
+    }
+    if (Array.isArray(node.argument)) {
+      for (const c of node.argument) {
+        if (c && typeof c === 'object' && 'type' in (c as object)) visitNode(c as SnootyNode);
+      }
+    }
+  };
+  visitNode(root);
+
+  // An unbalanced count means the source is malformed, or that a `[#]_` and its `.. [#]` were
+  // split across an include boundary — in which case per-file zipping would silently mispair
+  // them. Warn rather than guess; docutils likewise errors on unresolvable anonymous footnotes.
+  if (anonymousReferences.length !== anonymousFootnotes.length) {
+    console.warn(
+      `[footnotes] Unbalanced anonymous footnotes: ${anonymousReferences.length} reference(s) ` +
+        `but ${anonymousFootnotes.length} footnote(s). Extra nodes will be left unpaired.`,
+    );
+  }
+
+  const anonymousNames = new Map<string, string>();
+  const pairCount = Math.min(anonymousReferences.length, anonymousFootnotes.length);
+  for (let i = 0; i < pairCount; i += 1) {
+    const footnoteId = String(anonymousFootnotes[i].id ?? '');
+    const referenceId = String(anonymousReferences[i].id ?? '');
+    if (!footnoteId || !referenceId) continue;
+    const pairingKey = `anon-${footnoteId}`;
+    anonymousNames.set(footnoteId, pairingKey);
+    anonymousNames.set(referenceId, pairingKey);
+  }
+
+  // Counted after anonymous names are resolved, so anonymous references are grouped by the same
+  // key the frontend will pair on.
+  const referenceIndexes = new Map<string, number>();
+  const countsByName = new Map<string, number>();
+  for (const reference of references) {
+    const referenceId = String(reference.id ?? '');
+    if (!referenceId) continue;
+    const name = String(reference.refname ?? anonymousNames.get(referenceId) ?? '');
+    if (!name) continue;
+    const index = (countsByName.get(name) ?? 0) + 1;
+    countsByName.set(name, index);
+    referenceIndexes.set(referenceId, index);
+  }
+
+  return { anonymousNames, referenceIndexes };
 };
 
 const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): MdastNode | MdastNode[] | null => {
@@ -1717,7 +1816,10 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         return convertChildren({ nodes: node.children, depth, ctx });
       }
       const attributes: MdastNode[] = [];
-      if (node.name) attributes.push({ type: 'mdxJsxAttribute', name: 'name', value: String(node.name) });
+      // Anonymous footnotes (`.. [#]`) carry no name, so fall back to the pairing key the
+      // pre-pass derived for them. Downstream, every footnote then has a name to pair on.
+      const resolvedName = node.name ?? ctx.anonymousFootnoteNames?.get(String(node.id ?? ''));
+      if (resolvedName) attributes.push({ type: 'mdxJsxAttribute', name: 'name', value: String(resolvedName) });
 
       const bodyChildren = convertChildren({ nodes: node.children, depth, ctx });
 
@@ -1775,7 +1877,13 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       const identifier = String(node.id ?? '');
       if (!identifier) return null;
       const attributes: MdastNode[] = [];
-      if (node.refname) attributes.push({ type: 'mdxJsxAttribute', name: 'name', value: String(node.refname) });
+      // `name` says which footnote this points at; `index` says which reference to that footnote
+      // this is (1-based), so multiply-referenced footnotes get one back-link anchor per site.
+      // Anonymous references (`[#]_`) take their name from the pre-pass.
+      const resolvedRefname = node.refname ?? ctx.anonymousFootnoteNames?.get(String(node.id ?? ''));
+      if (resolvedRefname) attributes.push({ type: 'mdxJsxAttribute', name: 'name', value: String(resolvedRefname) });
+      const referenceIndex = ctx.footnoteReferenceIndexes?.get(String(node.id ?? ''));
+      if (referenceIndex) attributes.push({ type: 'mdxJsxAttribute', name: 'index', value: String(referenceIndex) });
       return {
         type: 'mdxJsxTextElement',
         name: 'FootnoteReference',
@@ -1826,7 +1934,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         const linkLabel = extractInlineDisplayText(externalHyperlinkRef.children ?? []);
         const slotBody = ctx.emitSubstitutionReferencesAsReplacement;
         if (!slotBody && refname && linkLabel) {
-          ctx.collectedSubstitutions.set(refname, { text: linkLabel, url: externalHyperlinkRef.refuri });
+          setCollectedSubstitution(ctx, refname, { text: linkLabel, url: externalHyperlinkRef.refuri });
         }
         return {
           type: 'link',
@@ -1877,7 +1985,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
 
           // Break out `|alias| replace:: :ref:` … as the same output as a standalone `:ref:` / `:doc:`.
           if (title) {
-            ctx.collectedSubstitutions.set(refname, title);
+            setCollectedSubstitution(ctx, refname, title);
           }
           const attributes: MdastNode[] = [{ type: 'mdxJsxAttribute', name: 'name', value: refTargetKey }];
           if (title) {
@@ -1938,16 +2046,85 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       // Emit the node's resolved children directly so inline formatting (code, emphasis, etc.) is
       // kept; a flat `value` would render as plain text at runtime.
       if (catalogOverriddenByLocal) {
-        if (refname) ctx.collectedSubstitutions.set(refname, localResolvedText);
+        if (refname) setCollectedSubstitution(ctx, refname, localResolvedText);
         return convertChildren({ nodes: node.children ?? [], depth, ctx });
+      }
+      // Page-level substitutions whose value is mixed inline markup (e.g. |ui-org-menu| =
+      // ":icon-mms:`office` :guilabel:`Organizations` menu") have no catalog entry and no single
+      // role to special-case above, so they would fall through to the flat `value` attribute below
+      // and lose the icon and guilabel entirely. Store the converted markup in the shared
+      // `_references.json` as a rich substitution and emit a plain `<Reference>` that points at
+      // it — the same indirection every other substitution uses, just with a value that a string
+      // attribute could not carry. remark-resolve-imports splices the markup in at render time.
+      if (
+        !fromCatalog &&
+        !ctx.emitSubstitutionReferencesAsReplacement &&
+        !ctx.suppressSubstitutionInlineValues &&
+        refname &&
+        (node.children ?? []).some((child) => child.type !== 'text')
+      ) {
+        // Icon roles carry the icon's *name* as their text (`:icon-mms:`office`` → "office"),
+        // which is meaningless in prose, so drop them from the flattened fallback.
+        const flattened = extractInlineDisplayText(
+          (node.children ?? []).filter(
+            (child) => !(child.type === 'role' && String(child.name ?? '').startsWith('icon')),
+          ),
+        ).trim();
+        setCollectedSubstitution(ctx, refname, {
+          text: flattened,
+          nodes: convertChildren({ nodes: node.children ?? [], depth, ctx }),
+        });
+        return {
+          type: 'mdxJsxTextElement',
+          name: 'Reference',
+          attributes: [
+            { type: 'mdxJsxAttribute', name: 'refKey', value: refname },
+            { type: 'mdxJsxAttribute', name: 'type', value: 'substitution' },
+          ],
+          children: [],
+        };
       }
       if (fromCatalog) {
         const slotBody = ctx.emitSubstitutionReferencesAsReplacement;
         if (fromCatalog.href && !ctx.collectedRefs.has(fromCatalog.refTargetKey)) {
           ctx.collectedRefs.set(fromCatalog.refTargetKey, fromCatalog.href);
         }
-        // Typed ref roles (e.g. :binary:) in catalog — emit as <RefRole> not <Reference>.
+        // Typed ref roles (e.g. :binary:) resolve to a page-specific *display* value. On standalone
+        // page content they emit as <RefRole>, but inside an include body that value varies per
+        // calling page — e.g. |tool-binary| is `mongofiles` (a :binary: role) here but a plain
+        // literal (`bsondump`, `mongodump`, ...) on the other tool pages — while the shared include
+        // file is written once (last-writer-wins on disk). Baking one page's role there makes every
+        // other page render the wrong text, so emit a placeholder and let each caller's <Replacement>
+        // slot (see convertDirectiveInclude) supply the value. Global linked references
+        // (:ref:/:pipeline:, i.e. the fromCatalog.href branch below) are identical on every page and
+        // stay baked.
         if (fromCatalog.roleType) {
+          if (slotBody) {
+            return {
+              type: 'mdxJsxTextElement',
+              name: 'Reference',
+              attributes: [
+                { type: 'mdxJsxAttribute', name: 'refKey', value: refname },
+                { type: 'mdxJsxAttribute', name: 'type', value: 'replacement' },
+                { type: 'mdxJsxAttribute', name: 'refTarget', value: fromCatalog.refTargetKey },
+              ],
+              children: [],
+            };
+          }
+          if (ctx.suppressSubstitutionInlineValues && refname) {
+            // Record the resolved value as the _references.json fallback in case a caller supplies
+            // no <Replacement> slot for this substitution.
+            setCollectedSubstitution(ctx, refname, fromCatalog.title);
+            return {
+              type: 'mdxJsxTextElement',
+              name: 'Reference',
+              attributes: [
+                { type: 'mdxJsxAttribute', name: 'refKey', value: refname },
+                { type: 'mdxJsxAttribute', name: 'type', value: 'substitution' },
+              ],
+              children: [],
+            };
+          }
           return {
             type: 'mdxJsxTextElement',
             name: 'RefRole',
@@ -1973,7 +2150,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         // Plain include bodies with a page-level literal override: suppress baked xref so the
         // per-page <Replacement> slot can provide the literal value instead.
         if (ctx.suppressSubstitutionInlineValues && ctx.substitutionDefLiterals?.has(refname)) {
-          ctx.collectedSubstitutions.set(refname, fromCatalog.title);
+          setCollectedSubstitution(ctx, refname, fromCatalog.title);
           return {
             type: 'mdxJsxTextElement',
             name: 'Reference',
@@ -1984,7 +2161,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
             children: [],
           };
         }
-        ctx.collectedSubstitutions.set(refname, fromCatalog.title);
+        setCollectedSubstitution(ctx, refname, fromCatalog.title);
         return {
           type: 'mdxJsxTextElement',
           name: 'Reference',
@@ -2002,7 +2179,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       }
       const slotBody = ctx.emitSubstitutionReferencesAsReplacement;
       if (!slotBody && refname && text) {
-        ctx.collectedSubstitutions.set(refname, text);
+        setCollectedSubstitution(ctx, refname, text);
       }
       // Include bodies: type="replacement" for parent <Replacement>; pages use type="substitution"
       const attributes: MdastNode[] = [];
@@ -2251,6 +2428,9 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
     buildSubstitutionDefinitionNodesMap(root),
   );
 
+  const { anonymousNames: anonymousFootnoteNames, referenceIndexes: footnoteReferenceIndexes } =
+    buildFootnoteIdentityMaps(root);
+
   const ctx: ConversionContext = {
     emitMdxFile: options?.onEmitMdxFile,
     currentOutfilePath: options?.currentOutfilePath,
@@ -2262,6 +2442,8 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
     emittingIncludeFile: options?.emittingIncludeFile,
     collectedSubstitutions,
     collectedRefs,
+    anonymousFootnoteNames,
+    footnoteReferenceIndexes,
   };
 
   // Pre-scan the whole tree for facet directives (they can be anywhere, e.g. inside a section).

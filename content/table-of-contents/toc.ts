@@ -15,12 +15,14 @@ export const toc: L1TocItem[] = [
     contentSite: 'landing',
     url: '/docs/get-started',
     items: GetStarted,
+    navSection: 'docs',
   },
   {
     label: 'Deployment',
     contentSite: 'landing',
     url: '/docs/deployment',
     items: DeploymentData,
+    navSection: 'docs',
   },
   {
     label: 'Development',
@@ -29,6 +31,7 @@ export const toc: L1TocItem[] = [
     subTitle:
       'Includes Database Manual, AI Integration, Streaming Data and Release notes. Select a server version.',
     items: DevelopmentData,
+    navSection: 'docs',
   },
   {
     label: 'Management',
@@ -37,6 +40,7 @@ export const toc: L1TocItem[] = [
     subTitle:
       'Includes MongoDB Atlas and Self-Managed Deployments. Select a Self-Managed Deployment version. ',
     items: ManagementData,
+    navSection: 'docs',
   },
   {
     label: 'Client Libraries',
@@ -45,6 +49,7 @@ export const toc: L1TocItem[] = [
     subTitle:
       'Includes compatibility tables and other document database compatibility.',
     items: ClientLibData,
+    navSection: 'docs',
   },
   {
     label: 'Tools',
@@ -52,13 +57,15 @@ export const toc: L1TocItem[] = [
     url: '/docs/tools-and-connectors',
     subTitle: 'Includes MongoDB Partner integrations.',
     items: ToolsData,
+    navSection: 'docs',
   },
   {
-    label: 'AI Models',
+    label: 'AI Model APIs',
     contentSite: 'voyageai',
     url: '/docs/voyageai/',
     subTitle: 'Use VoyageAI by MongoDB.',
     items: VoyageData,
+    navSection: 'voyageai',
   },
   {
     label: 'Atlas Architecture Center',
@@ -67,5 +74,6 @@ export const toc: L1TocItem[] = [
     subTitle:
       'Includes well-architected framework, solutions library and partners library.',
     items: AtlasArchData,
+    navSection: 'docs',
   },
 ];

@@ -42,5 +42,12 @@
 
       .. include:: /includes/fact-configure-connections-to-app-db.rst
 
-      To learn more about configuring LDAP authentication, see 
+      To learn more about configuring LDAP authentication, see
       :ref:`LDAP <security-ldap>`.
+
+   .. tab:: OIDC
+      :tabid: oidc
+
+      |onprem| hides this field when you enable |oidc| for this
+      store. To configure |oidc|, use the
+      :guilabel:`OIDC Authentication` field instead.

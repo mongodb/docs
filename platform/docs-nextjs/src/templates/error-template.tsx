@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import Image, { type StaticImageData } from 'next/image';
 import { css, cx } from '@leafygreen-ui/emotion';
 import Button from '@leafygreen-ui/button';
 import { palette } from '@leafygreen-ui/palette';
@@ -111,7 +111,7 @@ export const wrapperStyle = css`
 `;
 
 type ErrorPageProps = {
-  imageSrc: string;
+  imageSrc: string | StaticImageData;
   imageAlt: string;
   title: string;
   children?: React.ReactNode;
@@ -124,7 +124,8 @@ const ErrorContent = ({ imageSrc, imageAlt, title, children, imageStyle }: Error
   return (
     <div className={notFoundContainerStyle}>
       <div className={cx(imageContainerStyle, imageStyle)}>
-        <Image src={imageSrc} alt={imageAlt} height={444} width={444} />
+        {/* unoptimized: /_next/image is not routed to this app on the CDN */}
+        <Image src={imageSrc} alt={imageAlt} height={444} width={444} unoptimized />
       </div>
       <div className={errorBoxStyle}>
         <Body as="h1" className={cx(errorTitleStyling)}>

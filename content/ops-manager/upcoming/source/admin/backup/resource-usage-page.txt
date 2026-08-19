@@ -1,11 +1,11 @@
 .. _resource-usage-page:
 
-==============
-Resource Usage
-==============
+=====================================
+Backup Job and Project Resource Usage
+=====================================
 
 .. meta::
-   :description: View key size and throughput statistics for backup jobs in Ops Manager, including oplog and SnapshotStore usage, with export options available.
+   :description: View size, throughput, and graph-based resource usage statistics for Ops Manager backup jobs and projects, including network, disk, oplog, and SnapshotStore metrics for each job.
 
 .. default-domain:: mongodb
 
@@ -50,3 +50,172 @@ basis for all projects for which you enabled backup.
 .. note:: Multiple backup jobs use the same snapshot store.
 
 To export this information, click :guilabel:`Export as CSV`.
+
+View Job Resource Usage Details
+--------------------------------
+
+Click the job name in the :guilabel:`Job` column of the
+:guilabel:`Per Job` table to view time-series resource usage graphs
+for that job. |onprem| displays the following graphs:
+
+- Network Usage
+- Data Blocks Throughput (WTC)
+- Data Blocks Request Latency (WTC)
+- Writing Blocks Latency Details (WTC)
+- CPU Usage
+- Disk (HEAD) Usage
+- SnapshotStore Usage
+
+The ``(WTC)`` graphs apply to WiredTiger checkpoint-based backups.
+
+.. note::
+
+   Most graphs on this page require you to enable :guilabel:`Resource
+   Usage` on the :ref:`Backup Daemon <daemons-interface>`. The Data
+   Blocks Throughput, Data Blocks Request Latency, and Writing Blocks
+   Latency Details graphs are an exception. |onprem| collects this
+   data automatically for jobs that use :term:`backup cursors <backup
+   cursor>`.
+
+Network Usage
+~~~~~~~~~~~~~
+
+This graph shows the throughput of oplog data that |onprem|
+receives from the MongoDB Agent for this backup job, measured in
+bits per second. It plots two series:
+
+- Oplog data received during ongoing replication
+- Data received during the initial sync of the backup job, if an
+  initial sync is in progress
+
+Use this graph to identify network throughput bottlenecks. If the
+throughput drops, the MongoDB Agent might be struggling to send
+oplog data to |onprem|.
+
+Data Blocks Throughput (WTC)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This graph applies to backup jobs that use :term:`backup cursors
+<backup cursor>` to create snapshots. It shows the throughput, in
+bytes per second, of data blocks at three stages of processing:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Series
+     - Description
+
+   * - Network Throughput
+     - The rate at which |onprem| receives data blocks over the
+       network from the MongoDB Agent.
+
+   * - Snapshot Storage Throughput
+     - The rate at which |onprem| writes data blocks to the
+       snapshot store.
+
+   * - Snapshot Throughput
+     - The overall throughput of the snapshot, including any idle
+       time between requests. This value is typically lower than
+       the other two series.
+
+Compare the three series to identify where a slowdown originates.
+If :guilabel:`Network Throughput` is low, the connection between
+the MongoDB Agent and |onprem| might be the bottleneck. If
+:guilabel:`Snapshot Storage Throughput` is low, the snapshot store
+might be slow to write data.
+
+Data Blocks Request Latency (WTC)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This graph applies to backup jobs that use :term:`backup cursors
+<backup cursor>` to create snapshots. It shows the average time (in
+milliseconds) that each request to upload a data block spends in
+the following phases:
+
+- Reading incoming data from the network
+- Awaiting the completion of block writes to the snapshot store
+- Updating block metadata
+
+Use this graph to isolate which phase of the upload request is
+slow. Consistently high values in one phase point to the specific
+component that is limiting backup throughput, such as the network
+or the snapshot store.
+
+Writing Blocks Latency Details (WTC)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This graph applies to backup jobs that use :term:`backup cursors
+<backup cursor>` to create snapshots. It provides a more granular,
+per-block breakdown of the storage phase than the
+:guilabel:`Data Blocks Request Latency (WTC)` graph. It shows the
+average time spent on each of the following operations:
+
+- Checking whether a block already exists in the snapshot store
+- Compressing a block
+- Writing a block to the snapshot store
+- Writing block metadata
+
+Use this graph to pinpoint whether compression, snapshot store
+writes, or metadata updates are the source of slow backups.
+
+CPU Usage
+~~~~~~~~~
+
+.. note::
+
+   Despite its name, this graph does not measure CPU usage. It
+   measures the throughput of the Backup Daemon's oplog application
+   process and related page faults.
+
+This graph shows two series. The first is the rate, in KB per
+second, at which the Backup Daemon applies oplog entries to keep
+the backup current. The second is the rate of page faults per
+second during that process.
+
+Use this graph to evaluate whether the daemon is keeping pace with
+incoming oplog data. If applied throughput drops while the
+:guilabel:`Network Usage` graph shows steady incoming data, the
+daemon might be falling behind. A high page fault rate can indicate
+that the backed-up data does not fit in available memory, causing
+disk I/O.
+
+.. note::
+
+   For backup jobs that use :term:`backup cursors <backup cursor>`,
+   this graph might be absent or show no data.
+
+Disk (HEAD) Usage
+~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   The label on this graph is legacy terminology. For backup jobs
+   that use :term:`backup cursors <backup cursor>`, |onprem| has no
+   local head database. The graph instead reflects size statistics
+   for the source database that you are backing up.
+
+This graph shows the data size, storage size, and file size of the
+database being backed up. |onprem| adds one data point each time a
+snapshot completes.
+
+Use this graph to track database growth over time and to plan
+backup storage capacity.
+
+SnapshotStore Usage
+~~~~~~~~~~~~~~~~~~~~
+
+This graph shows the storage that snapshots for this backup job
+consume in the snapshot store over time, split into the following
+series:
+
+- Live bytes, which are referenced by currently active snapshots
+- Dead bytes, which belong to deleted snapshots that a groom job
+  has not yet removed
+- Total bytes, which is the sum of the live and dead series
+
+Use this graph to track storage growth. It also helps you identify
+when dead bytes accumulate faster than the :ref:`Resource Tracking
+job <groom-priority-page>` reclaims them. |onprem| updates this
+graph periodically rather than continuously, so recent changes
+might not appear immediately.

@@ -9,7 +9,7 @@
       .. |minutes-collection-field| replace:: **message**
       .. |fts-field-type| replace:: **String**
 
-      .. include:: /includes/index/analyzers/code-snippets/character-filters/atlas-ui/fts-character-filter-config-steps-without-options.rst 
+      .. include:: /includes/index/analyzers/code-snippets/character-filters/atlas-ui/fts-char-filter-icunormalize-config.rst
 
    .. tab:: JSON Editor 
       :tabid: jsoneditor

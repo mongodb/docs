@@ -13,6 +13,14 @@ The following table shows compatibility between the Ruby driver and {+mdb-server
      - MongoDB 4.4
      - MongoDB 4.2
 
+   * - 2.26
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✗
+
    * - 2.21 to 2.25
      - ✓
      - ✓

@@ -61,7 +61,6 @@ If there are :term:`orphaned documents <orphaned document>` during chunk migrati
 cluster. 
 
 .. _avs-return-stored-source-use-case:
-.. _mdb-vs-return-stored-source-use-case: 
 
 Sample Use  
 ``````````

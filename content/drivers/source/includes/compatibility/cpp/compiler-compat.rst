@@ -4,7 +4,7 @@ The C++ driver supports the following compilers:
 - `Clang <https://clang.llvm.org/>`__ v3.8 or later
 - `Xcode <https://developer.apple.com/xcode/cpp>`__ v13.1 or later
 - `Visual Studio <https://visualstudio.microsoft.com/vs/features/cplusplus/>`__
-  2015 Update 3 or later
+  2017 version 15.9 or later
 
 .. note::
 

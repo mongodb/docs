@@ -1,4 +1,4 @@
-import { getBasePath } from '@/utils/base-path';
+import { getAssetBucketSuffix, getBasePath } from '@/utils/base-path';
 import { parseBooleanEnv } from './utils/parse-boolean-env';
 
 export const REF_TARGETS = {
@@ -39,8 +39,7 @@ export const CONTENT_MAX_WIDTH = 1200;
 // the file is served (<basePath>/docs/images/...). Offline returns '' from
 // getBasePath(), preserving the /docs/images/... path build-offline relativizes.
 export const INTERNAL_IMAGE_API_PATH = `${getBasePath()}/docs/images/`;
-// Online: a static file served under <basePath>/_next/static/images (copied
-// there by copy-images-to-next-static.ts) — no optimizer. The <img> src is raw,
-// so Next does not auto-apply basePath; prepend it explicitly via getBasePath()
-// so images resolve on the per-project deploy.
-export const ONLINE_IMAGE_PREFIX = `${getBasePath()}/_next/static/images/`;
+// Online: a static file served under <basePath><assetBucketSuffix>/_next/static/images
+// (copied there by copy-images-to-next-static.ts) — no optimizer. The <img> src is raw,
+// so Next does not auto-apply basePath/assetPrefix; prepend both explicitly.
+export const ONLINE_IMAGE_PREFIX = `${getBasePath()}${getAssetBucketSuffix()}/_next/static/images/`;

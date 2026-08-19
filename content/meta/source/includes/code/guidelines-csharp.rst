@@ -246,37 +246,37 @@ Always name your variables, methods, and classes in a way that clearly indicates
 their purpose and intent. Follow the standard C# naming conventions, such as 
 using PascalCase for class names and method names, and camelCase for variable names.
 
-  .. list-table::
-     :header-rows: 1
-     :widths: 20 30 50
+.. list-table::
+   :header-rows: 1
+   :widths: 20 30 50
 
-     * - Element
-       - Casing Convention
-       - Example
+   * - Element
+     - Casing Convention
+     - Example
 
-     * - Classes
-       - PascalCase
-       - ``InsertOneExample``, ``MongoClientSettings``
+   * - Classes
+     - PascalCase
+     - ``InsertOneExample``, ``MongoClientSettings``
 
-     * - Methods
-       - PascalCase
-       - ``InsertOne()``, ``GetCollection()``
+   * - Methods
+     - PascalCase
+     - ``InsertOne()``, ``GetCollection()``
 
-     * - Variables
-       - camelCase
-       - ``mongoClient``, ``database``, ``collection``
+   * - Variables
+     - camelCase
+     - ``mongoClient``, ``database``, ``collection``
 
-     * - Static Fields
-       - ``s_`` + camelCase
-       - ``s_mongoClient``, ``s_database``, ``s_collection``
+   * - Static Fields
+     - ``s_`` + camelCase
+     - ``s_mongoClient``, ``s_database``, ``s_collection``
 
-     * - Private Fields
-       - _ + camelCase
-       - ``_mongoClient``, ``_database``, ``_collection``
+   * - Private Fields
+     - _ + camelCase
+     - ``_mongoClient``, ``_database``, ``_collection``
 
-     * - Constants
-       - PascalCase
-       - ``MaxPoolSize``, ``DefaultTimeout``
+   * - Constants
+     - PascalCase
+     - ``MaxPoolSize``, ``DefaultTimeout``
 
 Variables can be defined with ``var`` when the type is clear from the right-hand 
 side of the assignment, but should be defined with an explicit type when the 
@@ -334,8 +334,7 @@ Placeholders
    var client = new MongoClient(uri);
    // ...
 
-
-.. _indentation-java:
+.. _indentation-csharp:
 
 Tabs, Spaces, and Indentation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

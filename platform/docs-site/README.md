@@ -1,83 +1,145 @@
 # MongoDB Docs on Next.js
 
-Docs-Nextjs is a [Next.js](https://nextjs.org) application using app router features. It serves all MDB Documentation via static site generation (SSG).
+Next.js app that serves MongoDB documentation via static pages. Pages are pre-rendered at build time from a local
+`content-mdx/` directory.
 
-## Page generation strategy
+- **Single-version project** (e.g. `DOCS_PROJECT=pymongo-driver/current`): builds pages at `/docs/<prefix>/<branch>/<slug>/`
+- **Multi-version project** (e.g. `DOCS_PROJECT=pymongo-driver`): builds pages for every version under that project directory, using the `branch` value from each version's `_site.json`
 
-All pages under `/docs` are pre-rendered at build time using `generateStaticParams`. Content is read directly from a local `content-mdx/` directory — there is no runtime blob store dependency.
+Most projects also get a URL prefix before the branch (e.g.
+`languages/python` for `pymongo-driver`). This prefix comes from a
+database, not from the project name. `pnpm dev` and `pnpm build`
+auto-generate it into `src/generated/dir-name-to-prefix.json` (via the
+`build:prefix-map` script, run automatically as a turbo task
+dependency) and `next.config.mjs` reads it as the Next.js `basePath`.
+You can't guess it from the dir name; check that generated file.
 
-- **Single-version project** (e.g. `DOCS_PROJECT=manual/manual`): builds pages at `/docs/<branch>/<slug>/`
-- **Multi-version project** (e.g. `DOCS_PROJECT=manual`): builds pages for every version found under the project directory, each using the `branch` value from its own `_site.json`
+## Prerequisites
 
-## Developing
+- Node 24 and pnpm 10 (see `platform/.nvmrc` and the `packageManager` field in `platform/package.json`)
+- AWS SSO access and an exported `NPM_AWS_AUTH` token — private `@mdb/*` packages are pulled from AWS CodeArtifact. See [platform README](../README.md) for how to get this.
 
-`turborepo` is used to orchestrate tasks in this monorepo. It is recommended to run commands from the root of the `platform/` directory rather than from this directory directly.
+## Setup
 
-### Building a project
-
-First, convert the RST source to MDX (run from `platform/`):
+Run everything from `platform/`, not from this directory.
 
 ```bash
-pnpm convert:rst-to-mdx -- manual
+cd platform
+pnpm i
 ```
 
-Then build the Next.js app for a project. You only need to supply `DOCS_PROJECT`:
+`content-mdx/` is empty on a fresh clone. Generate MDX for a project before you can view it:
+
+```bash
+pnpm convert:rst-to-mdx -- pymongo-driver
+```
+
+Then start the dev server:
+
+```bash
+pnpm dev
+```
+
+This launches an interactive picker over whatever projects exist in
+`content-mdx/`. Pick one, and it sets `DOCS_PROJECT` and runs the
+Next.js dev server for you. Pages are available at
+`http://localhost:3000/docs/<prefix>/<branch>/<page-slug>/`
+(no `<prefix>` for projects that don't have one). For example, the
+`pymongo-driver` `current` version's root page is at
+`http://localhost:3000/docs/languages/python/pymongo-driver/current/`.
+
+If you add a new project to `content-mdx/`, you need to re-run
+`pnpm dev` to pick it up — the picker only lists projects that exist
+at the time it starts.
+
+## Environment variables
+
+`.env.sample` in this directory has real values to copy into `.env`.
+
+The app throws at startup without `MONGODB_URI`. Ask the Documentation
+Platform team for a value.
+
+`DOCS_PROJECT`, `NEXT_PUBLIC_DOCS_BASE_PATH`,
+`NEXT_PUBLIC_DOCS_PREFIXES`, and
+`NEXT_PUBLIC_DOCS_ASSET_BUCKET_SUFFIX` are set for you by `pnpm dev` or
+`next.config.mjs` — don't set these by hand.
+
+For the inactive/EOL manual Netlify site only, set
+`NEXT_PUBLIC_INACTIVE_MANUAL=true` so that build emits assets under
+`/docs/docs_static_manual_inactive` instead of `/docs/docs_static_manual`.
+Active manual leaves this unset.
+
+## Building a project
+
+This is the same build production runs. Use it to test a production
+build locally before shipping. Unlike `pnpm dev`, which renders pages
+on request, `pnpm build` statically pre-renders every page at build
+time.
+
+Convert RST to MDX (from `platform/`):
+
+```bash
+pnpm convert:rst-to-mdx -- pymongo-driver
+```
+
+Build the app. You only need `DOCS_PROJECT`:
 
 ```bash
 # All versions of a project
-DOCS_PROJECT=manual pnpm build
+DOCS_PROJECT=pymongo-driver pnpm build
 
 # A single version
-DOCS_PROJECT=manual/manual pnpm build
+DOCS_PROJECT=pymongo-driver/current pnpm build
 ```
 
-Start the production server after a successful build:
+Start the production server:
 
 ```bash
 pnpm start
 ```
 
-Pages are available at `http://localhost:3000/docs/<branch>/<page-slug>/`.
+Pages are available at `http://localhost:3000/docs/<prefix>/<branch>/<page-slug>/`.
 
-### Offline Build
+## Offline build
 
-An offline build produces a fully self-contained static snapshot that can be opened from the filesystem. See [platform README](../README.md#offline-build) for details.
+Produces a fully self-contained static snapshot you can open from the
+filesystem. Built from the same `content-mdx/` directory as the SSG
+build — no extra credentials needed. See [platform README](../README.md#offline-build)
+for details.
 
-### Product Updates Page
-
-If you would like to test Aha! integration, grab the `CONTENTSTACK_WEBHOOK_TOKEN` value from Netlify env config.
-
-### Styling Conventions
-
-Next.js supports module [css](https://nextjs.org/docs/app/getting-started/css#css-modules)/[scss](https://nextjs.org/docs/app/guides/sass) out of the box. Prefer css/scss modules for layouts and server-side components that do not hydrate on the client.
-
-Components are built on [LeafyGreen's UI Library](https://github.com/mongodb/leafygreen-ui), which uses the [Emotion library](https://emotion.sh/docs/introduction). Use `className` with Emotion styling.
-
-## Building offline docs locally
-
-Offline docs are built from the local `content-mdx/` directory — the same source the main SSG build reads from. There are no Netlify Blob credentials to configure.
-
-Before running `pnpm build:offline`, make sure `content-mdx/` has MDX for every project referenced by the TOC file you're building (see [MDX Conversion Commands](../README.md#mdx-conversion-commands) in the platform README):
+Make sure `content-mdx/` has MDX for every project referenced by the
+TOC file you're building (see [MDX Conversion Commands](../README.md#mdx-conversion-commands)):
 
 ```bash
 pnpm convert:rst-to-mdx -- <project>
 ```
 
-Then run from the `platform/` directory:
+Then, from `platform/`:
 
 ```bash
 pnpm build:offline -- --tocFile=<name> --version=<version>
 ```
 
-## Deploy on Netlify
+## Styling conventions
 
-This application is deployed on Netlify at [Docs on Next](https://app.netlify.com/projects/docs-on-nextjs/overview). Branch and preview deploys can be managed via the UI under [Project Configuration -> Build & Deploy](https://app.netlify.com/projects/docs-on-nextjs/configuration/deploys#content).
+Prefer CSS/SCSS modules ([docs](https://nextjs.org/docs/app/getting-started/css#css-modules)) for layouts and server components that don't hydrate on the client.
 
-## Short lived scripts
+Components are built on [LeafyGreen](https://github.com/mongodb/leafygreen-ui), which uses [Emotion](https://emotion.sh/docs/introduction). Use `className` with Emotion styling.
 
-TODO: delete once redirects are fully converted to Next.js
+`src/app/emotion.tsx` inlines those Emotion styles into every served HTML document, ahead of the
+page content. [INLINE-CSS-BASELINE.md](INLINE-CSS-BASELINE.md) records how many bytes that costs and
+how to re-measure it with `pnpm measure:inline-css`.
 
-Run `pnpm migrate:redirects` to convert redirects from `netlify.toml` format into the Next.js redirect JSON files (`src/redirects/*-redirects.json`). The script:
+## Deploy
+
+Each content project deploys to its own Netlify site, not a single shared one. Site names generally follow the project — for example, `ops-manager` deploys at [ops-manager-docs](https://app.netlify.com/projects/ops-manager-docs/overview). Check the Netlify dashboard for a project's exact site name.
+
+## Redirect migration script
+
+TODO: delete once redirects are fully converted to Next.js.
+
+`pnpm migrate:redirects` converts redirects from `netlify.toml` format
+into Next.js redirect JSON files (`src/redirects/*-redirects.json`):
 
 - **Removes** catch-all entries that insert a default version slug (e.g., `/docs/drivers/node/` → `/docs/drivers/node/current/`). These are handled as soft redirects in `page.tsx` on 404 without causing loops.
 - **Preserves `force: true`** on entries that explicitly had `force = true` in the original `netlify.toml`. These are the only redirects placed in `next.config.mjs` (always fire regardless of page existence).

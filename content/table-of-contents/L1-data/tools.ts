@@ -17,6 +17,18 @@ import type { TocItem } from '../types';
 
 const tocData: TocItem[] = [
   {
+    label: 'App Connections',
+    contentSite: 'cloud-docs',
+    group: true,
+    items: [
+      {
+        label: 'Atlas App Connections',
+        contentSite: 'cloud-docs',
+        url: '/docs/atlas/app-connections',
+      },
+    ],
+  },
+  {
     label: 'CLIs and Utilities',
     contentSite: 'docs',
     group: true,

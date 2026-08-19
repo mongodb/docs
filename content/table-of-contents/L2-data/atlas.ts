@@ -518,9 +518,27 @@ const tocData: TocItem[] = [
         ],
       },
       {
-        label: 'Export Snapshots',
+        label: 'Export Snapshots to Object Storage',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/backup/cloud-backup/export',
+        collapsible: true,
+        items: [
+          {
+            label: 'AWS S3',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/backup/cloud-backup/export/aws-s3',
+          },
+          {
+            label: 'Azure Blob Storage',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/backup/cloud-backup/export/azure-blob-storage',
+          },
+          {
+            label: 'Google Cloud Storage',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/backup/cloud-backup/export/google-cloud-storage',
+          },
+        ],
       },
       {
         label: 'Restore Sources',
@@ -1020,7 +1038,7 @@ const tocData: TocItem[] = [
         url: '/docs/atlas/billing/data-transfer-costs',
       },
       {
-        label: 'AI Models',
+        label: 'AI Model APIs',
         url: 'https://www.mongodb.com/docs/voyageai/management/billing',
         isExternal: true,
       },
@@ -1073,6 +1091,11 @@ const tocData: TocItem[] = [
         label: 'International Usage & Taxes',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/billing/international-usage',
+      },
+      {
+        label: 'FOCUS Data API',
+        contentSite: 'cloud-docs',
+        url: '/docs/atlas/billing/focus-api',
       },
     ],
   },
@@ -1491,6 +1514,11 @@ const tocData: TocItem[] = [
         url: '/docs/atlas/faq',
         collapsible: true,
         items: [
+          {
+            label: 'FAQ: Account Access and Authentication',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/reference/faq/access',
+          },
           {
             label: 'FAQ: Accounts',
             contentSite: 'cloud-docs',

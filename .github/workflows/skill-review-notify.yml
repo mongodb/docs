@@ -101,6 +101,10 @@ jobs:
 
           # dri -> Slack-formatted link to their ticket, e.g. "<https://.../browse/DOCSP-1|DOCSP-1>"
           dri_tickets = {}
+          # DRIs whose existing ticket is Blocked — excluded from the Slack
+          # ping since the ticket is already tracked and no action is
+          # expected from them while blocked.
+          blocked_dris = []
 
           failed = False
           for dri, skills in stale_by_dri.items():
@@ -136,11 +140,11 @@ jobs:
               # both false-positive match unrelated tickets and fail to find
               # the right one.
               jql = (
-                  'project = DOCSP AND component = "Agent Skills" '
+                  'project = DOCSP AND component = "Maverick" '
                   f'AND labels = "{dri_label}" AND statusCategory != Done'
               )
               search_req = urllib.request.Request(
-                  f'{base_url}/rest/api/2/search?jql={urllib.parse.quote(jql)}&fields=key',
+                  f'{base_url}/rest/api/2/search?jql={urllib.parse.quote(jql)}&fields=key,status',
                   headers=headers,
               )
               try:
@@ -153,6 +157,11 @@ jobs:
 
               if existing.get('total', 0) > 0:
                   key = existing['issues'][0]['key']
+                  status = existing['issues'][0]['fields']['status']['name']
+                  if status == 'Blocked':
+                      print(f"Skipping Slack ping for '{dri}': {key} is Blocked")
+                      blocked_dris.append(dri)
+                      continue
                   update_fields = {'description': description}
                   if dri in jira_map:
                       update_fields['assignee'] = {'name': jira_map[dri]}
@@ -176,7 +185,7 @@ jobs:
                   'project': {'key': 'DOCSP'},
                   'summary': summary,
                   'issuetype': {'name': 'Task'},
-                  'components': [{'name': 'Agent Skills'}],
+                  'components': [{'name': 'Maverick'}],
                   'description': description,
                   'labels': [dri_label],
               }
@@ -197,6 +206,7 @@ jobs:
 
           with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
               out.write(f"dri_tickets={json.dumps(dri_tickets)}\n")
+              out.write(f"blocked_dris={json.dumps(blocked_dris)}\n")
 
           if failed:
               sys.exit(1)
@@ -219,13 +229,14 @@ jobs:
               'Content-Type': 'application/json',
           }
 
-          # Find open Agent Skills tickets whose skill-review-<dri> label no
-          # longer matches any skill's current primary DRI — i.e. the DRI in
-          # OWNERS.yaml changed (or the skill was removed) since the ticket
-          # was filed. Flag once via a comment + marker label rather than
-          # guessing a new owner, since we can't reliably infer intent.
+          # Find open skill-review tickets (Maverick component) whose
+          # skill-review-<dri> label no longer matches any skill's current
+          # primary DRI — i.e. the DRI in OWNERS.yaml changed (or the skill
+          # was removed) since the ticket was filed. Flag once via a comment
+          # + marker label rather than guessing a new owner, since we can't
+          # reliably infer intent.
           jql = (
-              'project = DOCSP AND component = "Agent Skills" '
+              'project = DOCSP AND component = "Maverick" '
               'AND labels is not EMPTY AND statusCategory != Done'
           )
           search_req = urllib.request.Request(
@@ -299,6 +310,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.DOCS_WRITERS_SLACK_WEBHOOK }}
           STALE_BY_DRI: ${{ steps.detect.outputs.stale_by_dri }}
           DRI_TICKETS: ${{ steps.jira.outputs.dri_tickets }}
+          BLOCKED_DRIS: ${{ steps.jira.outputs.blocked_dris }}
         run: |
           python3 - <<'PYEOF'
           import json, os
@@ -318,13 +330,19 @@ jobs:
               'mdb-ashley': 'U02UZB74K7W',
               'amalhotra-mdb': 'U05A064A4BH',
               'jwilliams-mongo': 'UN7S9QH54',
+              'emetozar': 'U03UH1SDB2M',
           }
 
           stale_by_dri = json.loads(os.environ['STALE_BY_DRI'])
           dri_tickets = json.loads(os.environ.get('DRI_TICKETS') or '{}')
+          blocked_dris = set(json.loads(os.environ.get('BLOCKED_DRIS') or '[]'))
 
           lines = [':warning: *Skill review reminder* — the following skills are past their review cadence:']
           for dri, skills in stale_by_dri.items():
+              if dri in blocked_dris:
+                  # Ticket is already filed and Blocked — don't re-ping the
+                  # DRI while there's nothing actionable for them to do.
+                  continue
               parts = [f"{s['name']} ({s['days_overdue']} day(s) overdue)" for s in skills]
               ticket_link = dri_tickets.get(dri, '_ticket pending_')
               mention = f"<@{slack_map[dri]}>" if dri in slack_map else f"*{dri}*"
@@ -338,10 +356,20 @@ jobs:
           # is why prior runs showed raw "*text*" and "<@U...>" instead of
           # rendered formatting. Incoming Webhooks parse the "text" field
           # as full mrkdwn, matching the syntax built above.
-          payload = json.dumps({'text': '\n'.join(lines)})
-          with open('slack_payload.json', 'w') as f:
-              f.write(payload)
+          # If every stale DRI has a Blocked ticket, there's nothing
+          # actionable to report — skip the ping instead of sending just
+          # the header line. No slack_payload.json is written in that case.
+          if len(lines) == 1:
+              print("All stale DRIs have Blocked tickets — skipping Slack notification")
+          else:
+              payload = json.dumps({'text': '\n'.join(lines)})
+              with open('slack_payload.json', 'w') as f:
+                  f.write(payload)
           PYEOF
+
+          if [ ! -f slack_payload.json ]; then
+            exit 0
+          fi
 
           echo "=== JSON BEING SENT TO SLACK ==="
           cat slack_payload.json

@@ -2,7 +2,7 @@ import type { TocItem } from '../types';
 
 const tocData: TocItem[] = [
   {
-    label: 'AI Models',
+    label: 'AI Model APIs',
     isExternal: true,
     url: 'https://www.mongodb.com/docs/voyageai/',
   },

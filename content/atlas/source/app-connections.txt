@@ -1,0 +1,224 @@
+:orphan:
+
+.. this page appears in the unified toc. the orphan tag suppresses
+   snooty parser warnings because it is not yet referenced in any
+   Atlas toctree.
+
+.. _atlas-app-connections:
+
+==============================
+Atlas App Connections Overview
+==============================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: app connections, oauth, delegated access, mcp, ai clients, partner applications, mongodb applications
+   :description: Atlas App Connections is the MongoDB Atlas OAuth 2.1 platform that lets AI clients, partner applications, and MongoDB applications act on behalf of Atlas users through secure, user-delegated access.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Atlas App Connections is the |service-fullname| OAuth 2.1 platform
+that lets apps act on behalf of |service| users through user-delegated
+access. When a user authorizes an app, the app receives tokens it can
+use to call the {+atlas-admin-api+} with the same permissions the user
+holds in their |service| organizations.
+
+Apps can include:
+
+- AI clients, which connect to |service| through the MongoDB MCP
+  Server
+- Partner applications
+- MongoDB applications
+
+This page explains the concepts that underlie user-delegated access
+through Atlas App Connections. For specific information on how to use AI clients
+to interact with your MongoDB data, see the MongoDB MCP Server documentation linked
+throughout this page.
+
+How Delegated Access Works
+--------------------------
+
+When a user authorizes an app, the app acts on behalf of that
+user, not as a separate entity. The app receives tokens that let it call the
+{+atlas-admin-api+} with the **same permissions the user holds** in
+their |service| organizations and projects. If the user cannot
+perform an action, the app cannot perform it on their behalf
+either. The app never receives the user's password or long-lived
+credentials.
+
+For AI clients specifically, effective access is the more
+restrictive of two factors: the authorizing user's existing
+|service| permissions, and the read-only or read-write access mode
+that an Organization Owner configures for the organization. The
+access mode can reduce what an AI client can do, but never grants
+more access than the user's own permissions allow.
+
+Because access is inherited from the user's own permissions:
+
+- The app's effective permissions change automatically when the
+  user's roles change.
+- Operations against an organization succeed only when that organization
+  allows AI client connections *and* the authorizing user holds the
+  required role for the operation.
+
+Users always delegate all of their access when they authorize a
+client, which can be more than the client needs for a given task.
+To limit delegations to their organization, Organization Owners can
+take the following actions:
+
+- |service| disables AI client access by default for existing
+  organizations and for new organizations an existing |service|
+  user creates.
+- Organization Owners can enable AI client access for only the
+  organizations that need it.
+- Organization Owners can specify a read-only or read-write access
+  mode for AI clients.
+
+To learn more, see :ref:`remote-mcp-access-models`.
+
+Authorization and Consent
+-------------------------
+
+Apps obtain delegated access through the OAuth 2.1 Authorization
+Code flow with Proof Key for Code Exchange (PKCE). The PKCE flow is
+as follows:
+
+.. procedure::
+   :style: normal
+
+   .. step:: The user starts the connection from the app, not from
+      Atlas.
+
+      The exact steps to start a connection vary by app. For AI
+      clients, see the MongoDB MCP Server documentation for
+      client-specific setup guidance.
+
+      The app controls how it directs the user to the authorization
+      page, such as through a new browser window, a pop-up, or a
+      redirect within the existing window.
+
+   .. step:: Atlas prompts the user to sign in, if they are not
+      already.
+
+      A user who does not yet have an Atlas account and creates one
+      during this step must restart the connection from the app.
+      Atlas does not redirect a newly registered user back to the
+      app automatically.
+
+   .. step:: Atlas shows a consent screen listing the permissions
+      being requested.
+
+      The user selects **Authorize** to grant access or **Decline**
+      to cancel.
+
+   .. step:: Atlas redirects the user back to
+      the app.
+
+      The connection is now active.
+
+To learn more,
+see :ref:`remote-mcp-security`.
+
+Organization-Level Governance
+-----------------------------
+
+|service| disables AI client connections by default for existing
+organizations and for new organizations existing |service| users create.
+An Organization Owner must explicitly enable AI client
+access before an AI client can use delegated access against that
+organization. |service| enables AI client access by default for an
+organization that a brand new user creates during sign-up, when the
+user doesn't have an existing Atlas account.
+
+Organization Owners can:
+
+- Enable or disable AI client access for the organization.
+- Choose a read-only or read-write access mode.
+- Set the maximum token lifetime for authorized connections.
+
+The access mode you configure and the authorizing user's own
+|service| permissions together determine what an AI client can do.
+An AI client's effective access is always the more restrictive of
+the two.
+
+For setup and configuration steps, see
+:ref:`remote-mcp-manage-ai-client-access`.
+
+Access Revocation and Timing
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When a user authorizes delegated access to an app, the app receives
+an access token and a refresh token. The app presents its access token with
+each {+atlas-admin-api+} call. When the access token expires, the
+app uses its refresh token to obtain a new access token without
+requiring the user to sign in again.
+
+The time it takes for an AI clients access revocation to take effect differs depending on
+who revokes access:
+
+- **An Organization Owner disables AI client access for the
+  organization:** control-plane access is revoked immediately for
+  every AI client connected to the organization.
+- **A user revokes an individual AI client's access:** changes may
+  take up to 10 minutes to take effect.
+
+.. warning:: Deprovision federated users promptly
+
+   When your organization uses `Role Mapping
+   <https://www.mongodb.com/docs/atlas/security/manage-role-mapping/>`__
+   to manage Atlas user access through Identity Provider groups, a
+   federated user's permissions in Atlas only update when that user
+   logs in. This is known as Just-In-Time (JIT) Provisioning. If
+   your organization doesn't deprovision a user through the
+   {+atlas-admin-api+} when that user loses access, an AI client
+   that holds a refresh token for that user can continue to act on
+   their behalf.
+
+   To limit this risk:
+
+   - Deprovision users through the {+atlas-admin-api+} as soon as
+     they lose access.
+   - Set the maximum refresh token lifetime for your organization to
+     reduce how long a client can retain access after a user is
+     deprovisioned.
+
+   To learn more, see :ref:`AI Client Access Lifetime
+   <remote-mcp-manage-ai-client-access-lifetime>`.
+
+.. _atlas-app-connections-known-limitations:
+
+Limitations
+-----------
+
+When planning your integration, consider the following scope and
+boundaries of Atlas App Connections:
+
+- Organization Owners cannot revoke individual access granted from a
+  user to a client. To remove access delegated by any user in an
+  organization, disable AI client access for the entire
+  organization. Enabling AI client access for an organization
+  enables all current and future AI clients that support delegated
+  access.
+- {+atlas-admin-api+} IP access lists do not apply to delegated-access
+  traffic. An AI client's delegated-access calls can't be blocked
+  based on the IP address the AI client connects from.
+- Revocation does not remove security artifacts that the client
+  created during its authorized access. These artifacts remain valid
+  independent of the client's revoked tokens:
+
+  - Service accounts and API keys are control-plane artifacts. Audit
+    them, then remove or rotate them to end the client's
+    control-plane access. To learn more, see
+    :ref:`rotate-service-account-secrets`.
+  - Database users are data-plane artifacts. Review them alongside
+    the other database identities in your project. To learn more, see
+    :ref:`mongodb-users`.

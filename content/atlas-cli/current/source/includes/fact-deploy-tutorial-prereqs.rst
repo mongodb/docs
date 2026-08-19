@@ -46,7 +46,7 @@ Before you begin, complete the following prerequisites:
 
   .. code-block:: sh	
 
-     brew tap mongodb/brew && brew install mongodb-database-tools
+     brew tap mongodb/brew && brew trust mongodb/brew && brew install mongodb-database-tools
 
   To learn about the MongoDB Database Tools install instructions for 
   other operating systems, see :dbtools:`Installing the Database Tools 

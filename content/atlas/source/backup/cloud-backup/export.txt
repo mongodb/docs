@@ -4,16 +4,16 @@
 
 .. _cloud-provider-snapshot-export:
 
-================================
-Export {+Cloud-Backup+} Snapshot
-================================
+===================================================
+Export {+Cloud-Backup+} Snapshots to Object Storage
+===================================================
 
 .. default-domain:: mongodb
 
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 .. include:: /includes/fact-atlas-free-tier-limits.rst
@@ -45,47 +45,23 @@ buckets using PrivateLink.
 How |service| Exports Snapshots 
 -------------------------------
 
-.. note::
+You can manually export individual snapshots or set up an export policy
+for automatic export of your snapshots. For steps specific to your
+object storage service, see :ref:`your cloud provider's export page
+<cloud-backup-export-providers>`.
 
-   If you export backups to |aws| |s3|, you can enable 
-   `AWS S3 Object Lock <https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock-configure.html>`__ 
-   to ensure the immutability of your backup files required 
-   for compliance and security. Object locks prevent deletions 
-   and modifications of exported backup files.
+To set up automatic exports, add an export policy to your
+{+Cloud-Backup+} schedule and set its frequency type to ``daily``,
+``weekly``, ``monthly``, or ``yearly``. When a :ref:`backup policy item
+<configure-backup-policy>` with the same frequency type creates a
+snapshot, |service| exports that snapshot to your specified object
+store.
 
-You can manually export individual snapshots or set up an export 
-policy for automatic export of your snapshots. For automatic exports, 
-you must specify a frequency in your export policy: 
-
-- Daily
-- Weekly
-- Monthly
-- Yearly
-
-|service| automatically exports any backup snapshot with the
-frequency type that matches the export frequency. The exported result 
-is a full backup of that snapshot.
-
-.. example::
-
-   Consider the following: 
-
-   - A backup policy that sets a weekly and monthly snapshot schedule 
-   - An export policy that sets a monthly export frequency
-
-   Suppose, at the end of the month, the weekly and monthly snapshots 
-   happen on the same day. There would be ``4`` snapshots of which 
-   ``3`` would be weekly snapshots and the fourth snapshot, although 
-   treated as a weekly snapshot by |service|, would also be the monthly 
-   snapshot because it happened on the same day. |service| will export 
-   the monthly snapshot only because the export frequency matches the 
-   snapshot frequency for that snapshot. To export the weekly snapshots 
-   as well, update the export policy to export weekly snapshots also. 
-   If the export frequency is set to weekly, |service| would export all 
-   ``4`` snapshots.
-
-As the export progresses, you may see partial results in your object
-storage service.
+|service| uploads an empty file to the
+``/exported_snapshots/.permissioncheck`` path on your object store when
+you add a new :ref:`object store <snapshot-export-supported-storage>`
+for export and when you start an export. As the export progresses, you
+may see partial results in your object storage service.
 
 |service| persists documents in snapshots irrespective of
 :manual:`Time to Live </tutorial/expire-data>` settings. You can access these
@@ -94,541 +70,368 @@ documents from your snapshot past their Time to Live deadline.
 To learn about snapshot export pricing, see :ref:`Snapshot Export Costs
 <snapshot-export-costs>`.
 
-Files |service| Uploads
+Exported Data Files
+~~~~~~~~~~~~~~~~~~~
+
+Each {+Cloud-Backup+} snapshot export job uploads the snapshot data to
+the object store in gzip-compressed :ref:`Extended JSON v2
+<mongodb-extended-json-v2>` documents. These files are not uploaded in
+any particular order. Each file contains a chunk of documents from a
+single collection in the snapshot. For sharded clusters {+service+}
+creates a separate export job per replica set (shard), and specifies the
+replica set name in the path of the uploaded files.
+
+.. important:: 
+  
+  As the export progresses, you may see partial results in your object
+  storage service. If an export job fails: 
+
+  - |service| doesn't automatically try to export again.
+  - |service| doesn't remove any partial data in your object store.
+
+|service| uploads each data file to the following path on your object
+store:
+
+.. code-block:: sh
+  :copyable: false
+
+  /exported_snapshots/<orgName>/<projectName>/<clusterName>/<initiationDateOfSnapshot>/<timestamp>/<dbName>/<collectionName>/<shardName>.<increment>.json.gz
+
+|service| replaces each placeholder in the path with these values:
+
+.. list-table::
+  :widths: 35 65
+
+  * - ``<orgName>``
+    - Name of your |service| organization.
+
+  * - ``<projectName>``
+    - Name of your |service| project.
+
+  * - ``<clusterName>``
+    - Name of your |service| cluster.
+
+  * - ``<initiationDateOfSnapshot>``
+    - Date when snapshot was taken.
+
+  * - ``<timestamp>``
+    - Timestamp when the export job was created.
+
+  * - ``<dbName>``
+    - Name of the database in the |service| cluster.
+
+  * - ``<collectionName>``
+    - Name of the |service| collection.
+
+  * - ``<shardName>``
+    - Name of the replica set. For sharded collections, this is
+      the name of the
+      :manual:`primary shard
+      </core/sharded-cluster-shards/#primary-shard>`.
+
+  * - ``<increment>``
+    - Count that is incremented as chunks are uploaded. Starts
+      at ``0``.
+
+Exported Metadata Files
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-|service| uploads an empty file to ``/exported_snapshots/.permissioncheck`` 
-when you:
+After |service| finishes exporting the snapshot data to your object
+store, |service| also uploads a metadata file named ``.complete`` and a
+metadata file named ``metadata.json`` for each collection:
 
-- Add a new :ref:`object store <snapshot-export-supported-storage>` for export
-- Start an export
+.. collapsible:: 
+   :heading: .complete Metadata File
+   :sub_heading: Exported metadata file that contains information about the export job and the exported snapshot.
+   :expanded: false
 
-After |service| finishes exporting, |service| uploads a metadata file 
-named ``.complete`` and a metadata file named ``metadata.json`` for 
-each collection. 
+   For each collection in the snapshot export job, {+service+} uploads a
+   metadata file named ``.complete`` to the following path on your
+   object store:
 
-.. tabs:: 
+   .. code-block:: shell
+      :copyable: false
 
-   .. tab:: .complete File 
-      :tabid: complete
+      /exported_snapshots/<orgUUID>/<projectUUID>/<clusterName>/<initiationDateOfSnapshot>/<timestamp>/
 
-      |service| uploads the metadata file named ``.complete`` in the 
-      following path on your object store: 
+   .. note:: 
 
-      .. code-block:: shell
+      By default, |service| uses organization and project UUIDs in the
+      path for the metadata files. To use organization and project names
+      instead of UUIDs, set the ``useOrgAndGroupNamesInExportPrefix``
+      flag to ``true`` via the :oas-bump-atlas-op:`API
+      <updategroupclusterbackupschedule>`. |service| replaces any spaces
+      with underscores (``_``) and removes any :aws:`characters that
+      might require special handling
+      </AmazonS3/latest/userguide/object-keys.html>` and
+      :aws:`characters to avoid
+      </AmazonS3/latest/userguide/object-keys.html>` from the
+      organization and project names in the path.
+
+   The ``.complete`` metadata file is in |json| format and contains 
+   the following fields: 
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 35 65
+
+      * - Request Body Field
+        - Description
+
+      * - ``orgId``
+        - Unique 24-hexadecimal digit string that identifies the
+          |service| organization.
+
+      * - ``orgName``
+        - Name of the |service| organization.
+
+      * - ``groupId``
+        - Unique 24-hexadecimal digit string that identifies the
+          project in the |service| organization.
+
+      * - ``groupName``
+        - Name of the |service| project.
+
+      * - ``clusterUniqueId``
+        - Unique 24-hexadecimal digit string that identifies the
+          |service| cluster.
+
+      * - ``clusterName``
+        - Name of the |service| project.
+
+      * - ``snapshotInitiationDate``
+        - Date when snapshot was taken.
+
+      * - ``totalFiles``
+        - Total number of files uploaded to the object store.
+
+      * - ``labels``
+        - Labels of the {+cluster+} whose snapshot was exported.
+
+      * - ``customData``
+        - Custom data, if any, that you specified when creating the
+          export job.
+
+   .. example::
+
+      .. code-block:: json
          :copyable: false
 
-         /exported_snapshots/<orgUUID>/<projectUUID>/<clusterName>/<initiationDateOfSnapshot>/<timestamp>/
+         {
+           "orgId": "60512d6f65e4047fe0842095",
+           "orgName": "org1",
+           "groupId": "60512dac65e4047fe084220f",
+           "groupName": "group1",
+           "clusterUniqueId": "60512dac65e4047fe0842212",
+           "clusterName": "cluster0",
+           "snapshotInitiationDate": "2020-04-03T05:50:29.321Z"
+           "totalFiles": 23,
+           "labels": [
+             {
+               "key": "key1",
+               "value": "xyz"
+             },
+             {
+               "key": "key2",
+               "value": "xyzuio"
+             }
+           ],
+           "customData": [
+             {
+               "key": "key1",
+               "value": "xyz"
+             },
+             {
+               "key": "key2",
+               "value": "xyzuio"
+             }
+           ]
+         }
 
-      .. note:: 
+.. collapsible:: 
+   :heading: metadata.json Metadata File
+   :sub_heading: Exported metadata file that contains information about the exported collection, including its indexes and options.
+   :expanded: false
 
-         By default, |service| uses organization and project UUIDs in 
-         the path for the metadata files. To use organization and 
-         project names instead of UUIDs, set the 
-         ``useOrgAndGroupNamesInExportPrefix`` flag to ``true`` via the 
-         :oas-bump-atlas-op:`API 
-         <updategroupclusterbackupschedule>`. |service| 
-         replaces any spaces with underscores (``_``) and removes any 
-         :aws:`characters that might require special handling 
-         </AmazonS3/latest/userguide/object-keys.html>` and 
-         :aws:`characters to avoid 
-         </AmazonS3/latest/userguide/object-keys.html>` from the 
-         organization and project names in the path.
+   For each collection in the snapshot export job, {+service+} uploads a
+   metadata file named ``metadata.json`` to the following path on your
+   object store:
 
-      The ``.complete`` metadata file is in |json| format and contains 
-      the following fields: 
+   .. code-block:: shell
+      :copyable: false
 
-      .. list-table::
-         :header-rows: 1
-         :widths: 35 65 
+      /exported_snapshots/<orgUUID>/<projectUUID>/<clusterName>/<initiationDateOfSnapshot>/<timestamp>/<dbName>/<collectionName>/metadata.json
 
-         * - Field
-           - Description 
+   .. note::
 
-         * - ``orgId``
-           - Unique 24-hexadecimal digit string that identifies the 
-             |service| organization.
+      By default, |service| uses organization and project UUIDs in
+      the path for the metadata files. To use organization and
+      project names instead of UUIDs, set the
+      ``useOrgAndGroupNamesInExportPrefix`` flag via the
+      :oas-bump-atlas-op:`API
+      <updategroupclusterbackupschedule>` to true.
+      |service| replaces any spaces with underscores (``_``) and
+      removes any :aws:`characters that might require special
+      handling </AmazonS3/latest/userguide/object-keys.html>` and
+      :aws:`characters to avoid
+      </AmazonS3/latest/userguide/object-keys.html>` from the
+      organization and project names in the path.
 
-         * - ``orgName``
-           - Name of the |service| organization. 
+   The metadata file is in |json| format and contains the following
+   fields:
 
-         * - ``groupId``
-           - Unique 24-hexadecimal digit string that identifies the 
-             project in the |service| organization.
+   .. list-table::
+      :header-rows: 1
+      :widths: 35 65
 
-         * - ``groupName``
-           - Name of the |service| project. 
+      * - Request Body Field
+        - Description
 
-         * - ``clusterUniqueId``
-           - Unique 24-hexadecimal digit string that identifies the 
-             |service| cluster.
+      * - ``collectionName``
+        - Human-readable label that identifies the collection.
 
-         * - ``clusterName``
-           - Name of the |service| project.
+      * - ``indexes``
+        - List of all the indexes on the collection in the format
+          returned by :manual:`db.collection.getIndexes
+          </reference/method/db.collection.getIndexes/#output>`
+          command.
 
-         * - ``snapshotInitiationDate``
-           - Date when snapshot was taken.
+      * - ``options``
+        - Configuration options defined on the collection. To learn
+          more about the options, see :manual:`db.createCollection()
+          </reference/method/db.createCollection/>` command.
 
-         * - ``totalFiles``
-           - Total number of files uploaded to the object store.
+      * - ``type``
+        - (Optional) Type of collection. This field is only supported
+          for time series collections, with a value of
+          ``timeseries``. Leave this field unset for standard
+          collections.
 
-         * - ``labels``
-           - Labels of the {+cluster+} whose snapshot was exported.
+          |service| doesn't support export of ``view`` type
+          collections.
 
-         * - ``customData``
-           - Custom data, if any, that you specified when creating the 
-             export job.
+      * - ``uuid``
+        - Collection's UUID. To learn more about UUID, see
+          :manual:`UUID </reference/method/UUID/>`.
 
-      .. example:: 
+   .. example::
 
-         .. code-block:: json 
-            :copyable: false 
-
-            {
-              "orgId": "60512d6f65e4047fe0842095",
-              "orgName": "org1",
-              "groupId": "60512dac65e4047fe084220f",
-              "groupName": "group1",
-              "clusterUniqueId": "60512dac65e4047fe0842212",
-              "clusterName": "cluster0",
-              "snapshotInitiationDate": "2020-04-03T05:50:29.321Z"
-              "totalFiles": 23,
-              "labels": [
-                {
-                  "key": "key1",
-                  "value": "xyz"
-                },
-                {
-                  "key": "key2",
-                  "value": "xyzuio"
-                }
-              ],
-              "customData": [
-                {
-                  "key": "key1",
-                  "value": "xyz"
-                },
-                {
-                  "key": "key2",
-                  "value": "xyzuio"
-                }
-              ]
-            }
-
-   .. tab:: metadata.json File 
-      :tabid: metadata
-
-      |service| uploads the ``metadata.json`` file for each collection 
-      in the following path on your object store: 
-
-      .. code-block:: shell
+      .. code-block:: json
          :copyable: false
 
-         /exported_snapshots/<orgUUID>/<projectUUID>/<clusterName>/<initiationDateOfSnapshot>/<timestamp>/<dbName>/<collectionName>/metadata.json
+         {
+           "options":{
+             "viewOn":"othercol",
+             "pipeline":[{"$project":{"namez":"$name"}}]
+           },
+           "indexes":[],
+           "collectionName":"viewcol",
+           "type":"view"
+         }
 
-      .. note:: 
+      .. code-block:: json
+         :copyable: false
 
-         By default, |service| uses organization and project UUIDs in 
-         the path for the metadata files. To use organization and 
-         project names instead of UUIDs, set the 
-         ``useOrgAndGroupNamesInExportPrefix`` flag via the 
-         :oas-bump-atlas-op:`API 
-         <updategroupclusterbackupschedule>` to true. 
-         |service| replaces any spaces with underscores (``_``) and 
-         removes any :aws:`characters that might require special 
-         handling </AmazonS3/latest/userguide/object-keys.html>` and 
-         :aws:`characters to avoid 
-         </AmazonS3/latest/userguide/object-keys.html>` from the 
-         organization and project names in the path.
+         {
+           "options":{
+             "timeseries":{
+               "timeField":"timestamp",
+               "granularity":"seconds",
+               "bucketMaxSpanSeconds":{"$numberInt":"3600"}
+             }
+           },
+           "indexes":[],
+           "collectionName":"timeseriescol",
+           "type":"timeseries"
+         }
 
-      The metadata file is in |json| format and contains the following 
-      fields: 
+      .. code-block:: json
+         :copyable: false
 
-      .. list-table::
-         :header-rows: 1
-         :widths: 35 65 
+         {
+           "indexes": [
+             {
+               "v":{"$numberInt":"2"},
+               "key":{
+                 "_id":{"$numberInt":"1"}
+               },
+               "name":"_id_"
+             }
+           ],
+           "uuid":"342c40a937c34c478bab03de8ce44f3e",
+           "collectionName":"somecol"
+         }
 
-         * - Field
-           - Description 
-
-         * - ``collectionName``
-           - Human-readable label that identifies the collection.
-
-         * - ``indexes``
-           - List of all the indexes on the collection in the format 
-             returned by :manual:`db.collection.getIndexes 
-             </reference/method/db.collection.getIndexes/#output>` 
-             command. 
-
-         * - ``options``
-           - Configuration options defined on the collection. To learn 
-             more about the options, see :manual:`db.createCollection() 
-             </reference/method/db.createCollection/>` command.
-
-         * - ``type``
-           - (Optional) Type of collection. This field is only supported
-	     for time series collections, with a value of ``timeseries``.
-	     Leave this field unset for standard collections.
-
-             |service| doesn't support export of ``view`` type
-	     collections.
-
-         * - ``uuid``
-           - Collection's UUID. To learn more about UUID, see 
-             :manual:`UUID </reference/method/UUID/>`.
-
-      .. example:: 
-
-         .. code-block:: json 
-            :copyable: false 
-
-            {
-              "options":{
-                "viewOn":"othercol",
-                "pipeline":[{"$project":{"namez":"$name"}}]
-              },
-              "indexes":[],
-              "collectionName":"viewcol",
-              "type":"view"
-            }
-
-         .. code-block:: json 
-            :copyable: false
-
-            {
-              "options":{
-                "timeseries":{
-                  "timeField":"timestamp",
-                  "granularity":"seconds",
-                  "bucketMaxSpanSeconds":{"$numberInt":"3600"}
-                }
-              },
-              "indexes":[],
-              "collectionName":"timeseriescol",
-              "type":"timeseries"
-            }
-
-         .. code-block:: json 
-            :copyable: false
-
-            {
-              "indexes": [
-                {
-                  "v":{"$numberInt":"2"},
-                  "key":{
-                    "_id":{"$numberInt":"1"}
-                  },
-                  "name":"_id_"
-                }
-              ],
-              "uuid":"342c40a937c34c478bab03de8ce44f3e",
-              "collectionName":"somecol"
-            }
-
-If an export job fails: 
-
-- |service| doesn't automatically try to export again.
-- |service| doesn't remove any partial data in your object store.
-
-Exported Data Format
---------------------
-
-|service| uploads ``gzip``-compressed :manual:`Extended JSON (v2) </reference/mongodb-extended-json>`
-documents. |service| doesn't upload these documents in order. The following is
-the path to the files on your :ref:`object store <snapshot-export-supported-storage>`:
-
-.. code-block:: sh 
-   :copyable: false 
-
-   /exported_snapshots/<orgName>/<projectName>/<clusterName>/<initiationDateOfSnapshot>/<timestamp>/<dbName>/<collectionName>/<shardName>.<increment>.json.gz
-
-Where: 
-
-.. list-table:: 
-   :widths: 35 65
-
-   * - ``<orgName>``
-     - Name of your |service| organization.
-
-   * - ``<projectName>``
-     - Name of your |service| project.
-
-   * - ``<clusterName>``
-     - Name of your |service| cluster.
-
-   * - ``<initiationDateOfSnapshot>``
-     - Date when snapshot was taken.
-
-   * - ``<timestamp>``
-     - Timestamp when the export job was created.
-
-   * - ``<dbName>``
-     - Name of the database in the |service| cluster.
-
-   * - ``<collectionName>``
-     - Name of the |service| collection.
-
-   * - ``<shardName>``
-     - Name of the replica set. For sharded collections, this is the
-       name of the :manual:`primary shard </core/sharded-cluster-shards/#primary-shard>`.
-
-   * - ``<increment>``
-     - Count that is incremented as chunks are uploaded. Starts at 
-       ``0``.
-
-Limitations 
+Limitations
 -----------
 
-You can't perform the following actions:
-
-- Export :ref:`fallback snapshots <cps-fallback-snapshots>`.
-- Have more than one active export per snapshot.
-- Export :manual:`view collections </core/views>`, or
-  :manual:`system collections </reference/system-collections>`,
-  except for ``<database>.system.js`` collections.
-- Export snapshots from {+clusters+} in |a-service| project
-  with IP-restricted :ref:`Encryption at Rest
-  <security-kms-encryption>` enabled.
-- Export snapshots over :ref:`Private Endpoints
-  <atlas-configure-private-endpoint>` (private exports) for |azure| or
-  |gcp| clusters.
+.. include:: /includes/backup/export-limitations.rst
 
 Required Access
 ---------------
 
-To manage your {+Cloud-Backup+} snapshots, you must have
-:authrole:`Project Backup Manager` or :authrole:`Project Owner` access 
-to the project.
+.. include:: /includes/backup/export-required-access.rst
 
-Users with :authrole:`Organization Owner` access must add themselves as 
-a ``Project Backup Manager`` or ``Project Owner`` to the project before 
-they can manage {+Cloud-Backup+} snapshots. 
+.. _cloud-backup-export-providers:
 
-To download and export {+Cloud-Backup+} snapshots, you must have
-:authrole:`Project Backup Export Operator` access to the project.
+Export to Your Cloud Provider
+-----------------------------
 
-.. _cloud-backup-export-prereqs: 
+The steps to export {+Cloud-Backup+} snapshots depend on your object
+storage service. To set up |service| access, configure an export
+bucket, and export snapshots, see the page for your cloud provider:
 
-Prerequisites
--------------
+.. card-group::
+   :columns: 3
+   :style: compact
 
-Export Management
------------------
+   .. card::
+      :cta: AWS S3
+      :url: https://www.mongodb.com/docs/atlas/backup/cloud-backup/export/aws-s3/
+
+      Export snapshots to |aws| |s3| buckets, including over
+      PrivateLink.
+
+   .. card::
+      :cta: Azure Blob Storage
+      :url: https://www.mongodb.com/docs/atlas/backup/cloud-backup/export/azure-blob-storage/
+
+      Export snapshots to {+az-bs+} containers.
+
+   .. card::
+      :cta: Google Cloud Storage
+      :url: https://www.mongodb.com/docs/atlas/backup/cloud-backup/export/google-cloud-storage/
+
+      Export snapshots to {+gcs+} buckets.
+
+.. _cloud-backup-manage-snapshot-export:
+
+Manage Snapshot Export
+----------------------
 
 .. composable-tutorial::
-   :options: cloud-provider, connection-type, interface
-   :defaults: aws, public, atlas-cli
+   :options: interface
+   :defaults: atlas-cli
 
    .. selected-content::
-      :selections: aws, public, atlas-cli
+      :selections: atlas-cli
 
-      .. include:: /includes/backup/export-prereq-generic.rst
-      .. include:: /includes/backup/export-prereq-aws-public.rst
+      Use the following {+atlas-cli+} commands to manage snapshot
+      export buckets, private endpoints, and export jobs.
+
       .. include:: /includes/backup/export-management-public-cli.rst
 
    .. selected-content::
-      :selections: aws, public, atlas-api
+      :selections: atlas-api
 
-      .. include:: /includes/backup/export-prereq-generic.rst
-      .. include:: /includes/backup/export-prereq-aws-public.rst
+      Use the following {+atlas-admin-api+} endpoints to manage
+      snapshot export buckets, private endpoints, and export jobs.
 
-   .. selected-content::
-      :selections: aws, private-link, atlas-api
+      .. include:: /includes/backup/export-management-api.rst
 
-      .. include:: /includes/backup/export-prereq-generic.rst
-      .. include:: /includes/backup/export-prereq-aws-public.rst
+.. toctree::
+   :titlesonly:
 
-   .. selected-content::
-      :selections: azure, public, atlas-cli
-
-      .. include:: /includes/backup/export-prereq-generic.rst
-      .. include:: /includes/backup/export-prereq-azure-public.rst
-      .. include:: /includes/backup/export-management-public-cli.rst
-
-   .. selected-content::
-      :selections: azure, public, atlas-api
-
-      .. include:: /includes/backup/export-prereq-generic.rst
-      .. include:: /includes/backup/export-prereq-azure-public.rst
-
-   .. selected-content::
-      :selections: gcp, public, atlas-cli
-
-      .. include:: /includes/backup/export-prereq-generic.rst
-      .. include:: /includes/backup/export-prereq-gcp-public.rst
-      .. include:: /includes/backup/export-management-public-cli.rst
-
-   .. selected-content::
-      :selections: gcp, public, atlas-api
-
-      .. include:: /includes/backup/export-prereq-generic.rst
-      .. include:: /includes/backup/export-prereq-gcp-public.rst
-
-   .. selected-content::
-      :selections: none, none, atlas-api
-
-      To grant and manage cloud provider access and to create and manage
-      snapshot export jobs, the |api| that you use must have the
-      :authrole:`Project Owner` role.
-
-   .. selected-content::
-      :selections: none, public, atlas-api
-
-      Create One Export Bucket 
-      ~~~~~~~~~~~~~~~~~~~~~~~~
-      
-      To grant access to an object store for exporting snapshots, send
-      a ``POST`` request to the Cloud Backups
-      :oas-bump-atlas-op:`endpoint
-      <creategroupbackupexportbucket>`. This enables the object store
-      to receive |service| Cloud Backup snapshots. When sending the
-      request to grant access, you must provide the following
-      information:
-
-   .. selected-content::
-      :selections: aws, none, atlas-api
-
-      - Unique 24-hexadecimal character string that identifies the
-	unified AWS access role ID that |service| must use to 
-	access the |aws| |s3| Bucket. To learn more, see
-	:ref:`set-up-unified-aws-access`.
-
-   .. selected-content::
-      :selections: aws, private-link, atlas-api
-
-      Create One PrivateLink Export Bucket
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-      To enable snapshot export over an |aws| PrivateLink connection,
-      perform the following procedure:
-
-      .. include:: /includes/backup/export-procedure-aws-pl-api.rst
-
-      Update One Export Bucket to a PrivateLink Bucket
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-      .. important:: 
-         
-         This feature is only available for |aws| |s3| export buckets.
-
-      To update the ``requirePrivateNetworking`` value of an existing
-      |aws| |s3| bucket to which |service| exports snapshots, send a
-      ``PATCH`` request to the Cloud Backup :oas-bump-atlas-op:`endpoint
-      <updategroupbackupexportbucket>`.
-
-   .. selected-content::
-      :selections: aws, private-link, atlas-cli
-
-      Create One PrivateLink Export Bucket
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-      To enable snapshot export over an |aws| PrivateLink connection,
-      perform the following procedure:
-
-      .. include:: /includes/backup/export-procedure-aws-pl-cli.rst
-
-      Update One Export Bucket to a PrivateLink Bucket
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-      .. important:: 
-         
-         This feature is only available for |aws| |s3| export buckets.
-
-      To update the ``requirePrivateNetworking`` value of an existing
-      |aws| |s3| bucket to which |service| exports snapshots, use the
-      :atlascli:`atlas api cloudBackups updateBackupExportBucket </command/atlas-api-cloudBackups-updateBackupExportBucket/>`
-      command. 
-
-   .. selected-content::
-      :selections: azure, none, atlas-api
-
-      - Unique 24-hexadecimal character string that identifies the
-	|azure| Service Principal that |service| must use to
-	access the {+az-bs+}. To learn more, see
-	:ref:`manage-azure-access`. 
-      - Service endpoint of your {+az-bs+} account. To learn more,
-	see :azure:`Azure Documentation </storage/common/storage-account-get-info?tabs=azure-cli#get-service-endpoints-for-the-storage-account>`.
-
-   .. selected-content::
-      :selections: gcp, none, atlas-api
-
-      - Unique 24-hexadecimal digit string that identifies the {+gcp+} Provider 
-	Access Role that |service| uses to access the {+gcs+} bucket.
-
-   .. selected-content:: 
-      :selections: aws, private-link, atlas-api
-
-      Create One Object Storage Private Endpoint 
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-      
-      .. important:: 
-         
-         This feature is only available for |aws| |s3| export buckets.
-
-      To create an object storage private endpoint for an object storage
-      export bucket, send a ``POST`` request to the Cloud Backups
-      :oas-bump-atlas-op:`endpoint <creategroupbackupprivateendpoint>`.
-
-      Return Object Storage Private Endpoints
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-      To return one object storage private endpoint by its ID, send a
-      ``GET`` request to the Cloud Backups :oas-bump-atlas-op:`endpoint
-      <getgroupbackupprivateendpoint>`.
-
-      Delete One Object Storage Private Endpoint
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-      To delete an object storage private endpoint, send a ``DELETE``
-      request to the Cloud Backups :oas-bump-atlas-op:`endpoint
-      <deletegroupbackupprivateendpoint>` with the ID of the private
-      endpoint.
-
-   .. selected-content::
-      :selections: none, none, atlas-api
-
-      Return Export Buckets
-      ~~~~~~~~~~~~~~~~~~~~~
-
-      To return one export bucket by its ID, send a ``GET`` request to
-      the Cloud Backups :oas-bump-atlas-op:`endpoint
-      <getgroupbackupexportbucket>`.
-
-      To return all the |aws| |s3| Buckets, {+az-bs+} Containers, or
-      {+gcs+} buckets to which |service| exports snapshots, send a
-      ``GET`` request to the Cloud Backups
-      :oas-bump-atlas-op:`endpoint <listgroupbackupexportbuckets>`.
-      
-      Delete One Export Bucket
-      ~~~~~~~~~~~~~~~~~~~~~~~~
-      
-      To delete an export bucket from {+service+}, you must first
-      disable automatic export of snapshots to the |aws| |s3| Bucket,
-      {+az-bs+} Container, or {+gcs+} bucket for all {+clusters+} in the
-      project and then send a ``DELETE`` request to the Cloud Backups
-      :oas-bump-atlas-op:`endpoint <deletegroupbackupexportbucket>` with
-      the ID of the export bucket. 
-      
-      To retrieve the export bucket ID, send a ``GET`` request to the
-      :oas-bump-atlas-op:`endpoint <listgroupbackupexportbuckets>` .
-
-      Create One Snapshot Export Job
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-      To export one |service| backup snapshot to an |aws| |s3| Bucket,
-      {+az-bs+} Container, or {+gcs+} bucket, send a ``POST`` request
-      to the Cloud Backups :oas-bump-atlas-op:`endpoint
-      <creategroupclusterbackupexport>` with the ID of the snapshot to
-      export and the ID of the |aws| |s3| Bucket, {+az-bs+} Container,
-      or {+gcs+} bucket.
-
-      Return Snapshot Export Jobs
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-      To return one snapshot export job by its ID, send a ``GET``
-      request to the Cloud Backups :oas-bump-atlas-op:`endpoint
-      <getgroupclusterbackupexport>` with the ID of the export job.
-
-      To return all running snapshot export jobs, send a ``GET`` request
-      to the Cloud Backups :oas-bump-atlas-op:`endpoint
-      <listgroupclusterbackupexports>`.
+   AWS S3 </backup/cloud-backup/export/aws-s3>
+   Azure Blob Storage </backup/cloud-backup/export/azure-blob-storage>
+   Google Cloud Storage </backup/cloud-backup/export/google-cloud-storage>

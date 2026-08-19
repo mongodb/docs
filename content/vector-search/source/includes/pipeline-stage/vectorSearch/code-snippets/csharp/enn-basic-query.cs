@@ -6,14 +6,14 @@ using MongoDB.Driver.Search;
 
 public class vectorSearchBasicQuery 
 {
-  // define connection to your Atlas cluster
+  // define connection to your cluster
   private const string MongoConnectionString = "<connection-string>";
 
   public static void Main(string[] args){
     var camelCaseConvention = new ConventionPack { new CamelCaseElementNameConvention() };
     ConventionRegistry.Register("CamelCase", camelCaseConvention, type => true);
 
-    // connect to your Atlas cluster
+    // connect to your cluster
     var mongoClient = new MongoClient(MongoConnectionString);
 
     // define namespace

@@ -22,3 +22,6 @@
 
    * - :driver:`C++ </cxx/>`
      - 3.11.0 or later
+
+   * - :driver:`Rust </rust/current/>`
+     - 3.1.0 or later

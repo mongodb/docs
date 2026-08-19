@@ -12,7 +12,7 @@ import (
 )
 
 const (
-        indexName = "vector_index"
+        indexName = "autoembed_index"
 )
 
 // autoEmbedField represents the auto-embedding index field definition.

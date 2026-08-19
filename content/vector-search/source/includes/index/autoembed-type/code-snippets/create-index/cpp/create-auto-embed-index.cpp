@@ -15,23 +15,23 @@ int main() {
     mongocxx::instance inst{};
 
     // Connect to your deployment
-    const auto uri = mongocxx::uri{"<connection-string>"};
+    const auto uri = mongocxx::uri{"<connectionString>"};
     mongocxx::client conn{uri};
 
     // Access your database and collection
-    auto db = conn["<database-name>"];
-    auto collection = db["<collection-name>"];
+    auto db = conn["<databaseName>"];
+    auto collection = db["<collectionName>"];
 
     auto siv = collection.search_indexes();
-    std::string name = "<index-name>";
+    std::string name = "<indexName>";
 
     // Define the index with automated embedding and filter fields
     auto definition = make_document(
         kvp("fields",
             make_array(make_document(
                 kvp("type", "autoEmbed"), kvp("modality", "text"),
-                kvp("path", "<field-to-index>"),
-                kvp("model", "<embedding-model>")))));
+                kvp("path", "<fieldToIndex>"),
+                kvp("model", "<embeddingModel>")))));
     auto model =
         mongocxx::search_index_model(name, definition.view())
             .type("vectorSearch");

@@ -30,7 +30,17 @@ export interface LinkSubstitution {
   text: string;
   url: string;
 }
-export type CollectedSubstitutionValue = string | LinkSubstitution;
+/**
+ * A substitution whose resolved value is inline markup rather than plain text (e.g. |ui-org-menu| =
+ * ":icon-mms:`office` :guilabel:`Organizations` menu"). `nodes` holds the converted mdast so the
+ * renderer can splice real elements in at the reference site; `text` is the flattened form for
+ * consumers that can only take a string (markdown export, link labels).
+ */
+export interface RichSubstitution {
+  text: string;
+  nodes: MdastNode[];
+}
+export type CollectedSubstitutionValue = string | LinkSubstitution | RichSubstitution;
 
 export interface ConversionContext {
   emitMdxFile?: (args: EmitMdxFileArgs) => void;
@@ -60,6 +70,19 @@ export interface ConversionContext {
    * definition rather than the globally-resolved default that Snooty baked into the include body.
    */
   substitutionDefNodes?: Map<string, SnootyNode[]>;
+  /**
+   * Pairing keys for anonymous footnotes (`[#]_` / `.. [#]`), which the parser leaves unnamed.
+   * Keyed by the parser-assigned node `id` of both the footnote and its reference, mapping to a
+   * shared synthetic name. Built once from the full page AST, where document order — the order
+   * RST defines the pairing by — is still available.
+   */
+  anonymousFootnoteNames?: Map<string, string>;
+  /**
+   * For each footnote reference, its ordinal among the references to the same footnote (1-based),
+   * keyed by the parser-assigned node `id`. Emitted as the `index` attribute so each reference to
+   * a multiply-referenced footnote gets a distinct back-link anchor.
+   */
+  footnoteReferenceIndexes?: Map<string, number>;
   /** When true (plain include content), substitution references do NOT get a `value` attribute
    * baked in. The calling page's `<Include>` element provides per-page values via `<Replacement>`
    * slots; unmatched refs fall back to `_references.json`.

@@ -46,6 +46,8 @@ Procedure
 
    .. include:: /includes/steps-verify-atlas-cli.rst
 
+   .. include:: /includes/steps-atlas-cli-auth-after-install.rst
+
 Update the {+atlas-cli+}
 ------------------------
 

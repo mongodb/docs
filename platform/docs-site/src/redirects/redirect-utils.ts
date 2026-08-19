@@ -16,11 +16,24 @@ interface CompiledRedirect {
 }
 
 export function compileRedirects(redirects: RedirectEntry[]): CompiledRedirect[] {
-  return redirects.map((entry) => ({
-    match: match(entry.source, { decode: decodeURIComponent }),
-    destination: entry.destination,
-    statusCode: entry.statusCode,
-  }));
+  const compiled: CompiledRedirect[] = [];
+  for (const entry of redirects) {
+    try {
+      compiled.push({
+        match: match(entry.source, { decode: decodeURIComponent }),
+        destination: entry.destination,
+        statusCode: entry.statusCode,
+      });
+    } catch (err) {
+      // Keep in sync with netlify/edge-functions/soft-redirects.ts: skip
+      // sources path-to-regexp cannot compile (e.g. query strings).
+      console.warn(
+        `[soft-redirects] Skipping redirect that failed to compile: ${entry.source} -> ${entry.destination}`,
+        err,
+      );
+    }
+  }
+  return compiled;
 }
 
 /**

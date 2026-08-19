@@ -97,6 +97,17 @@
             :copyable: true 
             :linenos:
 
+      .. collapsible:: 
+         :heading: Stored Source Example
+         :expanded: false
+
+         .. include:: /includes/index/vector-type/facts/stored-source-example.rst
+
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/nodejs/stored-source-example.js
+            :language: js
+            :copyable: true
+            :linenos:
+
    .. step:: Run the following command to create the index.
 
       .. code-block:: shell

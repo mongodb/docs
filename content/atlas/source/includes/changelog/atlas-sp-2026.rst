@@ -1,3 +1,24 @@
+.. _atlas-sp-20260804:
+
+4 August 2026 Release
+---------------------
+
+- Adds the :authrole:`Project Stream Processing Manager` role. To
+  learn more, see :ref:`project-roles`.
+- Adds support for creating an {+aws+} Confluent Enterprise cluster
+  Private Link connection without a ``dnsDomain`` value. To learn
+  more, see :ref:`atlas-sp-pl-kafka-add`.
+- Adds a modal in the {+atlas-ui+} for checkpoint clearing when
+  editing a stream processor.
+- Adds new activity feed events for {+atlas-sp+}.
+
+.. _atlas-sp-20260714:
+
+14 July 2026 Release
+--------------------
+
+- Adds support for the :pipeline:`$vectorSearch` pipeline stage.
+
 .. _atlas-sp-20260709:
 
 9 July 2026 Release
@@ -53,9 +74,10 @@
   see :ref:`atlas-sp-agg-source-syntax-coll`.
 - Adds an ``addedParallelism`` field to
   :method:`sp.processor.stats()` that reports the additional
-  parallelism the stream processor has configured, equal to the
-  :ref:`Max Parallelism <stream-processing-costs>` defined by its
-  stream processor tier.
+  parallelism the stream processor has configured, calculated as the
+  sum of ``(parallelism - 1)`` across every stage that sets a
+  ``parallelism`` value greater than ``1``. To learn more, see
+  :ref:`atlas-sp-manage-processor-stats`.
 
 .. _atlas-sp-20260611:
 

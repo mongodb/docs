@@ -1823,18 +1823,6 @@ Cluster Event Types
        Cluster Mongot process arguments update submitted
      - no
 
-   * - ``CLUSTER_MONGUARD_DISABLED``
-     - .. _atlas_event_cluster_monguard_disabled:
-
-       Atlas Network Protection Layer became inactive on a cluster
-     - no
-
-   * - ``CLUSTER_MONGUARD_ENABLED``
-     - .. _atlas_event_cluster_monguard_enabled:
-
-       Atlas Network Protection Layer became active on a cluster
-     - no
-
    * - ``CLUSTER_OPLOG_RESIZED``
      - .. _atlas_event_cluster_oplog_resized:
 
@@ -5119,7 +5107,7 @@ Other Event Types
    * - ``ACTIVE_LEGACY_TLS_CONNECTIONS``
      - .. _atlas_event_active_legacy_tls_connections:
 
-       Clusters with minimum TLS version set to TLS 1.0 or TLS 1.1 detected
+       Deprecated. TLS 1.0 and TLS 1.1 are no longer supported.
      - yes
 
    * - ``ADMIN_CLUSTER_LOCK_UPDATED``
@@ -6217,7 +6205,7 @@ Other Event Types
    * - ``NO_ACTIVE_LEGACY_TLS_CONNECTIONS``
      - .. _atlas_event_no_active_legacy_tls_connections:
 
-       No clusters with minimum TLS version set to TLS 1.0 or TLS 1.1
+       Deprecated. TLS 1.0 and TLS 1.1 are no longer supported.
      - no
 
    * - ``NO_PRIMARY``

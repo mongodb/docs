@@ -22,7 +22,7 @@
    .. wayfinding-option:: https://www.mongodb.com/docs/languages/python/pymongo-driver/current/read/count/#retrieve-an-estimated-count
       :id: pymongo
 
-   .. wayfinding-option:: https://www.mongodb.com/docs/drivers/node/current/usage-examples/count/
+   .. wayfinding-option:: https://www.mongodb.com/docs/drivers/node/current/crud/query/count/
       :id: nodejs
 
    .. wayfinding-option:: https://www.mongodb.com/docs/drivers/go/current/fundamentals/crud/read-operations/count/#estimated-count

@@ -9,7 +9,7 @@
 - Adds :ref:`englishMinimalStemming <englishMinimalStemming-tf-ref>` 
   token filter.
 
-.. _fts20260630: 
+.. _avs20260630: 
 
 30 June 2026 Release
 ~~~~~~~~~~~~~~~~~~~~
@@ -17,6 +17,8 @@
 - Adds Native Reranking through the :pipeline:`$rerank` aggregation 
   stage for reordering input documents by using |voyage|'s 
   :ref:`reranking models <voyage-rerankers>`.
+- Makes support for nested embedding in {+avs+} indexes generally 
+  available.
 
 .. _fts20260624: 
 
@@ -71,6 +73,8 @@
   in {+avs+} through the ``flat`` value for the ``indexingMethod`` option.
   Flat indexes provide enhanced support for multitenant workloads,
   delivering improved performance, recall, and resource efficiency.
+- Executes queries concurrently across index partitions if
+  :ref:`concurrent <concurrent-ref>` is set to ``true``.
 
 .. _fts20260129:
 

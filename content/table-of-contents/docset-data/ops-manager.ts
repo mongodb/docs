@@ -692,6 +692,7 @@ const tocData: TocItem[] = [
           {
             label: 'Back Up',
             contentSite: 'ops-manager',
+            url: '/docs/ops-manager/:version/tutorial/nav/backup-deployments',
             collapsible: true,
             items: [
               {
@@ -714,6 +715,7 @@ const tocData: TocItem[] = [
           {
             label: 'Manage Backups',
             contentSite: 'ops-manager',
+            url: '/docs/ops-manager/:version/tutorial/nav/backup-use-operations',
             collapsible: true,
             items: [
               {
@@ -865,6 +867,11 @@ const tocData: TocItem[] = [
             url: '/docs/ops-manager/:version/tutorial/enable-ssl-for-a-deployment',
           },
           {
+            label: 'Rotate TLS Certificates',
+            contentSite: 'ops-manager',
+            url: '/docs/ops-manager/:version/tutorial/rotate-tls-certificates',
+          },
+          {
             label: 'Configure LDAP',
             contentSite: 'ops-manager',
             url: '/docs/ops-manager/:version/tutorial/configure-for-ldap-authentication',
@@ -878,6 +885,12 @@ const tocData: TocItem[] = [
             label: 'Configure OIDC',
             contentSite: 'ops-manager',
             url: '/docs/ops-manager/:version/tutorial/configure-for-oidc-authentication',
+          },
+          {
+            label: 'OIDC for Backing Databases',
+            contentSite: 'ops-manager',
+            url: '/docs/ops-manager/:version/core/oidc-backing-db-overview',
+            versions: { includes: ['upcoming', 'current'] },
           },
           {
             label: 'Secure with Authentication',
@@ -998,6 +1011,7 @@ const tocData: TocItem[] = [
       {
         label: 'MongoDB Agent',
         contentSite: 'ops-manager',
+        url: '/docs/ops-manager/:version/tutorial/nav/mongodb-agent',
         collapsible: true,
         items: [
           {
@@ -1017,7 +1031,7 @@ const tocData: TocItem[] = [
                 url: '/docs/ops-manager/:version/tutorial/install-mongodb-agent-to-manage',
               },
               {
-                label: 'Monitor or Backup Deployments',
+                label: 'Monitor or Back Up Deployments',
                 contentSite: 'ops-manager',
                 url: '/docs/ops-manager/:version/tutorial/install-mongodb-agent-to-monitor',
               },
@@ -1026,6 +1040,7 @@ const tocData: TocItem[] = [
           {
             label: 'Update',
             contentSite: 'ops-manager',
+            url: '/docs/ops-manager/:version/tutorial/nav/update-mongodb-agent',
             collapsible: true,
             items: [
               {
@@ -1066,7 +1081,7 @@ const tocData: TocItem[] = [
             url: '/docs/ops-manager/:version/reference/mongodb-agent-settings',
           },
           {
-            label: 'Required Acccess',
+            label: 'Required Access',
             contentSite: 'ops-manager',
             url: '/docs/ops-manager/:version/reference/required-access-mongodb-agent',
           },
@@ -1166,6 +1181,7 @@ const tocData: TocItem[] = [
       {
         label: 'Account Management',
         contentSite: 'ops-manager',
+        url: '/docs/ops-manager/:version/tutorial/nav/account-management',
         collapsible: true,
         items: [
           {

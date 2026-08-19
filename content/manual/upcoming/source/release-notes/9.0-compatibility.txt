@@ -10,10 +10,24 @@ Compatibility Changes in MongoDB 9.0
    :depth: 1
    :class: singlecol
 
-.. include:: /includes/in-dev.rst
+.. include:: /includes/rc-available.rst
 
 This page describes changes introduced in MongoDB 9.0 that can affect
 compatibility with older versions of MongoDB.
+
+Deprecations
+------------
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Deprecated
+     - Description
+
+   * - ``fleDisableSubstringPreviewParameterLimits``
+     - You cannot override the internal limits on substring queries against
+       encrypted fields in MongoDB 9.0.
 
 Aggregation
 -----------
@@ -24,6 +38,67 @@ Empty Field Names in ``$group``
 Starting in MongoDB 9.0, the :pipeline:`$group` stage returns an error
 if an accumulator expression has an empty field name. For details, see
 :limit:`Empty Field Name $group Restriction`.
+
+``allowPartialResults`` in the aggregate ``$queryStats`` Key
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 9.0, the :pipeline:`$queryStats` key for
+``aggregate`` commands includes the ``allowPartialResults`` option when
+the option is explicitly set. Query stats can then distinguish between
+requests where ``allowPartialResults`` is omitted, explicitly ``true``,
+or explicitly ``false``.
+
+The addition changes the ``key`` and ``keyHash`` serialization for
+``aggregate`` queries that set ``allowPartialResults``. The
+``queryShapeHash`` is unchanged. Downstream consumers that match on
+``keyHash`` might observe different values for these queries.
+
+For more information, see the :ref:`aggregate command query shape
+<queryStats-aggregate-query-shape>`.
+
+Query Language
+--------------
+
+Null Comparisons on Dotted Paths That Traverse Arrays
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 9.0, a dotted path that does not resolve to a
+non-null value evaluates as ``null``. The new behavior applies when a
+field in the path holds an empty array or an array of scalar values.
+In earlier versions, these paths did not evaluate as ``null``, which
+produced results that disagreed with :query:`$exists`.
+
+Consider a collection that contains the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, a: [ 1 ] }
+   { _id: 2, a: [ ] }
+
+The path ``a.b`` does not resolve to a non-null value in either
+document.
+Starting in MongoDB 9.0, the ``{ "a.b": null }`` query matches both
+documents. In earlier versions, the query matched neither document.
+The ``{ "a.b": { $ne: null } }`` query returns the opposite results:
+in MongoDB 9.0, the query matches neither document, and in earlier
+versions, it matched both.
+
+The new behavior affects comparisons to ``null`` that use the
+:query:`$eq`, :query:`$ne`, :query:`$in`, :query:`$nin`,
+:query:`$gte`, and :query:`$lte` operators. Equality matching in the
+:pipeline:`$lookup` stage follows the same semantics.
+
+Upgrade Impact
+``````````````
+
+Before you upgrade to MongoDB 9.0, review queries and
+:pipeline:`$lookup` stages that compare a dotted path to ``null``. If
+a field in the path holds an empty array or an array of scalar
+values, these queries return different result sets after the upgrade.
+Queries that use ``{ $ne: null }`` to
+find documents where a dotted path exists and is not ``null`` return
+fewer documents, and queries that use ``{ $eq: null }`` return more
+documents.
 
 General Changes
 ---------------
@@ -37,5 +112,128 @@ running, the query might fail with a ``QueryKilledError``. An indexed
 field becomes multikey when you insert or update a document so the
 field contains an array value.
 
-If your query fails with this error, re-run the query after the insert or 
-update operation completes.
+If your query fails with this error, re-run the query after the insert
+or update operation completes.
+
+Change Streams Enforce Read Preference After Elections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 9.0, a change stream opened with a
+``readPreference`` of ``primary`` or ``secondary`` returns the
+resumable error ``InterruptedDueToReplStateChange`` (error code
+``11602``) from ``getMore`` if a replica set election changes the
+node's role so that it no longer satisfies the read preference. In
+earlier versions, the cursor kept returning results from the same node.
+
+Compliant drivers and :binary:`~bin.mongos` resume automatically from
+the last resume token. Manual ``getMore`` loops and
+:binary:`~bin.mongosh` must resume with ``resumeAfter``. For details,
+see :ref:`change-stream-resume`.
+
+Geospatial Index Key-Extraction Error Codes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 9.0, :ref:`2dsphere <2dsphere-index>` index
+key-extraction failures return the named error codes :error:`510`
+(``GeoKeyExtractionFailed``) and :error:`511`
+(``GeoKeyExtractionFailedTimeseries``). These codes replace the previous
+assertion codes ``16755`` and ``16756`` for regular 2dsphere indexes and
+``183934`` and ``183493`` for time series collections. If your
+application matches on the previous codes, update it to match ``510``
+and ``511``.
+
+Stronger Collection Locks for Cross-Database ``renameCollection``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 9.0, when you rename a collection between different
+databases on a replica set, the :dbcommand:`renameCollection` command
+holds an exclusive lock on the source and target collections. The lock
+lasts for the entire operation, and blocks :ref:`DDL operations
+<ddl-operations>` and writes to both collections. Most read operations
+use :ref:`lock-free reads <faq-concurrency-lock-free-read-operations>`
+and are not blocked.
+
+Earlier versions released the source collection's lock before
+:dbcommand:`renameCollection` completed the rename. A concurrent
+write to the source collection during that window could be lost.
+
+The change affects replica sets only. Sharded clusters already lock
+both collections for the duration of the rename.
+
+Security
+--------
+
+.. _qe-prefix-suffix-substring-preview-to-ga-migration:
+
+{+qe+} Prefix, Suffix, and Substring Public Preview to GA Migration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 9.0 marks the GA of prefix, suffix, and substring queries on
+encrypted string fields in {+qe+} enabled collections. The GA feature
+is incompatible with the Public Preview version released in MongoDB 8.2, which 
+should not be used now that the feature is GA.
+
+To use prefix, suffix, or substring queries with {+qe+}, MongoDB must be
+version 9.0 or later, with 9.0 compatible drivers. If you are still using the 
+Public Preview, MongoDB must remain on version 8.2 or 8.3, with 8.2 or 8.3 
+compatible drivers.
+
+MongoDB 9.0 drivers can decrypt data created with MongoDB 8.2 or 8.3 drivers.
+For upgrade options, see the following sections.
+
+Start Fresh (Preferred)
+```````````````````````
+
+If possible, create new collections rather than migrating collections created
+with Public Preview functionality:
+
+#. Upgrade MongoDB server and drivers to 9.0.
+#. Configure a new encrypted collection with a different name from the
+   previous collection.
+#. Insert new data, or an unencrypted version of the existing data if
+   you have a local copy.
+#. Drop the previous collection.
+
+Migrate Existing Data
+`````````````````````
+
+If you cannot use new data or do not have an unencrypted version of the
+existing data:
+
+#. Upgrade MongoDB server and drivers to 9.0
+#. Using a 9.0 compatible driver, query the encrypted collection to
+   decrypt it.
+#. Save the output locally.
+#. Configure a new encrypted collection and ingest the data.
+
+.. warning::
+
+   - The :binary:`~bin.mongoexport` and :binary:`~bin.mongodump`
+     operations do not decrypt the collection. You must query the
+     collection from a driver to output decrypted data.
+
+   - MongoDB 9.0 compatible drivers can't query encrypted fields on
+     data encrypted for MongoDB 8.2 Public Preview query types. To decrypt
+     data, either query an unencrypted field or query the entire collection.
+
+.. _9.0-downgrade-incompatible:
+
+Backward-Incompatible Features
+------------------------------
+
+.. |version| replace:: 9.0
+
+.. include:: /includes/downgrade-introduction.rst
+
+Expressions in Views
+~~~~~~~~~~~~~~~~~~~~
+
+In MongoDB 9.0, :expression:`$convert` can convert an object to
+``binData``. For details, see :ref:`Convert an Object to binData
+<convert-object-to-bindata>`.
+
+If you create a view that uses this conversion, queries on that view
+return an error after you downgrade to an earlier version.
+
+Before you downgrade from 9.0, update or drop any views that use this
+conversion.

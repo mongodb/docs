@@ -28,10 +28,18 @@ func main() {
 	indexName := "<index-name>"  
   
 	type autoEmbedField struct {  
-		Type     string `bson:"type"`  
-		Modality string `bson:"modality"`  
-		Path     string `bson:"path"`  
-		Model    string `bson:"model"`  
+		Type             string `bson:"type"`  
+		Modality         string `bson:"modality"`  
+		Path             string `bson:"path"`  
+		Model            string `bson:"model"`
+		Similarity       string `bson:"similarity"`  
+		IndexingMethod   string `bson:"indexingMethod"`  
+		HnswOptions      struct {  
+			MaxEdges         int `bson:"maxEdges"`  
+			NumEdgeCandidates int `bson:"numEdgeCandidates"`  
+		} `bson:"hnswOptions"`  
+		Quantization string `bson:"quantization"`  
+		NumDimensions  int    `bson:"numDimensions"`  
 	}  
   
 	type filterField struct {  
@@ -49,7 +57,18 @@ func main() {
 				Type:     "autoEmbed",  
 				Modality: "text",  
 				Path:     "<indexed-field>",  
-				Model:    "<embedding-model>",  
+				Model:    "<embedding-model>", 
+				Similarity:       "<similarity-metric>",  
+				IndexingMethod:   "<indexing-method>",  
+				HnswOptions:      struct {  
+					MaxEdges         int `bson:"maxEdges"`  
+					NumEdgeCandidates int `bson:"numEdgeCandidates"`  
+				} {  
+					MaxEdges:         <max-edges>,  
+					NumEdgeCandidates: <num-edge-candidates>,  
+				},  
+				Quantization: "<quantization-type>",  
+				NumDimensions:  <num-dimensions>,  
 			},  
 			filterField{  
 				Type: "filter",

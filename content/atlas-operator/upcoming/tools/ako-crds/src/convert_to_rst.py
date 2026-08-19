@@ -3,6 +3,11 @@ import html
 
 class ConvertToRST:
     """Class to convert markdown content to RST format."""
+
+    # Internal sentinel marking a paragraph promoted out of a **NOTE**: block.
+    # Never reaches the output: it is stripped when cell lines are emitted.
+    NOTE_MARKER = '\x01'
+
     def __init__(self):
         pass
     
@@ -36,7 +41,17 @@ class ConvertToRST:
         return ''.join(result)
 
     def _convert_pipe_table_in_cell(self, cell_content):
-        """Convert markdown pipe tables within cell content to RST list-table format."""
+        """Convert markdown pipe tables within cell content to an RST bullet list.
+
+        A ``list-table`` here would sit inside a ``list-table`` cell, which the
+        nested-components linter forbids, so each row is flattened to one
+        bullet instead:
+
+            first column (middle columns joined by ": "): last column
+
+        The header row is dropped; the sentence introducing the table in the
+        cell already supplies that context.
+        """
         lines = cell_content.split('\n')
         table_lines = []
         non_table_before = []
@@ -75,31 +90,22 @@ class ConvertToRST:
             return cell_content
         
         num_cols = len(header_row)
-        
-        # Build RST list-table
-        rst_parts = []
-        rst_parts.append('\n\n.. list-table::')
-        rst_parts.append('   :header-rows: 1')
-        # Distribute widths evenly
-        width = 100 // num_cols
-        widths = [width] * (num_cols - 1) + [100 - width * (num_cols - 1)]
-        rst_parts.append(f'   :widths: {" ".join(str(w) for w in widths)}')
-        rst_parts.append('')
-        
-        # Header row
-        rst_parts.append(f'   * - {header_row[0]}')
-        for h in header_row[1:]:
-            rst_parts.append(f'     - {h}')
-        rst_parts.append('')
-        
-        # Data rows
+
+        # Build a bullet list, one bullet per data row
+        rst_parts = ['', '']
         for row in data_rows:
-            padded = row + [''] * (num_cols - len(row))
-            rst_parts.append(f'   * - {padded[0]}')
-            for c in padded[1:]:
-                rst_parts.append(f'     - {c}')
-            rst_parts.append('')
-        
+            padded = [c for c in row + [''] * (num_cols - len(row))]
+            subject = padded[0]
+            qualifiers = [c for c in padded[1:-1] if c]
+            value = padded[-1]
+
+            bullet = subject
+            if qualifiers:
+                bullet += f' ({": ".join(qualifiers)})'
+            if value:
+                bullet += f': {value}'
+            rst_parts.append(f'- {bullet}')
+
         result_parts = []
         if non_table_before:
             result_parts.append('\n'.join(non_table_before))
@@ -224,11 +230,13 @@ class ConvertToRST:
                             cell
                         )
                         
-                        # Convert **NOTE**: pattern to .. note:: admonition
-                        # Use \n\n to create paragraph breaks that the cell processing will handle
+                        # Promote **NOTE**: content to its own plain paragraph.
+                        # A .. note:: admonition here would sit inside a
+                        # list-table cell, which the nested-components linter
+                        # forbids.
                         cell = re.sub(
                             r'\*\*NOTE\*\*:\s*(.+?)(?=\n\n|\n(?=[A-Z*])|\Z)',
-                            r'\n\n.. note::\n\n   \1',
+                            f'\\n\\n{self.NOTE_MARKER}\\1',
                             cell,
                             flags=re.DOTALL
                         )
@@ -355,33 +363,44 @@ class ConvertToRST:
                         next_is_list_item = False
                         next_is_directive = False
                         next_is_nonempty = False
+                        next_is_note = False
                         if i + 1 < len(lines):
                             next_line = lines[i + 1].strip()
                             next_is_list_item = next_line.startswith('- ') or next_line.startswith('* ')
                             next_is_directive = next_line.startswith('.. ') and next_line.endswith('::')
                             next_is_nonempty = bool(next_line)
+                            next_is_note = next_line.startswith(self.NOTE_MARKER)
                         
                         # Check if previous line was a bullet item
                         prev_is_list_item = False
+                        prev_is_note = False
                         if i > 0:
                             prev_stripped = lines[i - 1].strip()
                             prev_is_list_item = prev_stripped.startswith('- ') or prev_stripped.startswith('* ')
-                        
+                            prev_is_note = prev_stripped.startswith(self.NOTE_MARKER)
+
                         # Current line is a bullet item
                         is_list_item = stripped.startswith('- ') or stripped.startswith('* ')
-                        
+
+                        # A promoted **NOTE**: paragraph keeps a blank line on
+                        # either side so it reads as its own paragraph
+                        is_note_break = prev_is_note or next_is_note
+
                         # Skip empty lines unless they're before list items, directives,
-                        # inside directives, or after bullet items (to prevent unindent warnings)
-                        if not stripped and not next_is_list_item and not next_is_directive and not in_directive and not prev_is_list_item:
+                        # inside directives, after bullet items (to prevent unindent
+                        # warnings), or bounding a promoted note paragraph
+                        if not stripped and not next_is_list_item and not next_is_directive and not in_directive and not prev_is_list_item and not is_note_break:
                             continue
-                        
+
+                        stripped = stripped.removeprefix(self.NOTE_MARKER)
+
                         if i == 0:
                             # First line doesn't need extra indentation
                             processed_lines.append(stripped)
                         else:
                             # Additional lines need proper indentation for RST list-table
                             # Use 7 spaces to align with content in list-table cells
-                            if not stripped and (next_is_list_item or next_is_directive or in_directive):
+                            if not stripped and (next_is_list_item or next_is_directive or in_directive or is_note_break):
                                 processed_lines.append('\n')
                             elif line.startswith('   ') and in_directive:
                                 # Preserve relative indentation for directive content
@@ -391,7 +410,7 @@ class ConvertToRST:
                     
                     processed_cells.append(''.join(processed_lines))
                 else:
-                    processed_cells.append(cell)
+                    processed_cells.append(cell.replace(self.NOTE_MARKER, ''))
 
             # field name - strip any RST link formatting, we just want plain text
             raw_field_name = processed_cells[0].strip()

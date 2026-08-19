@@ -29,7 +29,8 @@ run_for_output 08_0420_import_sample_data.sh
 # Create search indexes
 run 08_0430_create_search_index.sh
 run 08_0435_create_vector_search_index.sh
-run_for_output 08_0440_internal_wait_for_search_indexes.sh
+run 08_0439_internal_wait_for_search_indexes.sh
+run_for_output 08_0440_list_search_indexes.sh
 
 # Execute search queries
 run_for_output 08_0450_execute_search_query.sh

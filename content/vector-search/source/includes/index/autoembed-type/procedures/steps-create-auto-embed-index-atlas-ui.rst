@@ -3,7 +3,13 @@
 
    .. include:: /includes/shared/procedures/steps-atlas-search.rst
 
-   .. include:: /includes/shared/procedures/steps-configure-index.rst
+   .. include:: /includes/index/autoembed-type/procedures/steps-configure-index.rst
+
+   .. note:: 
+
+      The basic, filter, and flat examples use the ``sample_mflix`` database and 
+      ``movies`` collection. The nested field example uses the ``sample_airbnb`` 
+      database and ``listingsAndReviews`` collection.
 
    .. step:: Specify the index definition.
 
@@ -26,7 +32,8 @@
 
                .. include:: /includes/quick-start/facts/auto-embed-basic-example-description.rst
 
-               Configure the index for the :guilabel:`AutoEmbed` field as follows:
+               Select the ``sample_mflix`` database and ``movies`` collection. Then, 
+               configure the index for the :guilabel:`AutoEmbed` field as follows:
 
                .. list-table:: 
                   :header-rows: 1
@@ -48,7 +55,9 @@
 
                .. include:: /includes/quick-start/facts/auto-embed-filter-example-description.rst
 
-               a. Configure the index for the :guilabel:`AutoEmbed` field as follows:
+               a. Select the ``sample_mflix`` database and ``movies`` collection. 
+               
+               #. Configure the index for the :guilabel:`AutoEmbed` field as follows:
 
                   .. list-table:: 
                      :header-rows: 1
@@ -94,7 +103,8 @@
 
                .. include:: /includes/quick-start/facts/auto-embed-basic-example-description.rst
 
-               Replace the default index definition with the following:
+               Select the ``sample_mflix`` database and ``movies`` collection. Then, 
+               replace the default index definition with the following:
 
                .. literalinclude:: /includes/index/autoembed-type/code-snippets/create-index/json/basic-auto-embed-example.json
                   :language: json
@@ -106,7 +116,8 @@
 
                .. include:: /includes/quick-start/facts/auto-embed-filter-example-description.rst
 
-               Replace the default index definition with the following:
+               Select the ``sample_mflix`` database and ``movies`` collection. Then, 
+               replace the default index definition with the following:
 
                .. literalinclude:: /includes/index/autoembed-type/code-snippets/create-index/json/filter-auto-embed-example.json
                   :language: json
@@ -118,10 +129,29 @@
 
                .. include:: /includes/quick-start/facts/auto-embed-flat-example-description.rst
 
-               Replace the default index definition with the following:
+               Select the ``sample_mflix`` database and ``movies`` collection. Then, 
+               replace the default index definition with the following:
 
                .. literalinclude:: /includes/index/autoembed-type/code-snippets/create-index/json/flat-auto-embed-example.json
                   :language: json
                   :copyable: true 
                   :linenos:
+
+            .. tab:: Nested Field Example 
+               :tabid: nested-root
+
+               .. include:: /includes/index/autoembed-type/facts/nested-root-example-description.rst
+
+               Select the ``sample_airbnb`` database and ``listingsAndReviews`` collection. 
+               Then, replace the default index definition with the following:
+
+               .. literalinclude:: /includes/index/autoembed-type/code-snippets/create-index/json/nested-auto-embed-example.json
+                  :language: json
+                  :copyable: true 
+                  :linenos:
+
+               .. note:: 
+
+                  It might take some time for the index to build.
+
    .. include:: /includes/shared/procedures/steps-avs-finish-index-creation.rst

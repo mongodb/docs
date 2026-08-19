@@ -96,9 +96,55 @@ the write concern specified in the URI string.
 Time Series Collections
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Starting in MongoDB 5.0, you can use ``mongorestore`` to restore 
+Starting in MongoDB 5.0, you can use ``mongorestore`` to restore
 :ref:`timeseries collections <manual-timeseries-landing>`.
 For details, see :ref:`mongorestore-example-time-series`.
+
+.. _mongorestore-time-series-format-conversion:
+
+Oplog Replay Across a Time Series Format Conversion
+```````````````````````````````````````````````````
+
+.. include:: /includes/fact-timeseries-format-conversion.rst
+
+As a result, ``mongorestore`` can't replay an oplog range that spans a
+conversion. Restore the entries on each side of the conversion as
+separate ranges, and change the FCV on the target deployment between
+the two restores:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Replay the oplog entries that precede the conversion.
+
+      Use :option:`--oplogLimit <mongorestore --oplogLimit>` to stop
+      the replay before the conversion.
+
+   .. step:: Change the FCV on the target deployment.
+
+      Run :dbcommand:`setFeatureCompatibilityVersion` on the target to
+      make the same FCV change, in the same direction, that produced
+      the conversion.
+
+   .. step:: Replay the remaining oplog entries.
+
+The FCV change on the target is required. ``mongorestore`` never
+changes the FCV and doesn't rewrite namespaces across the
+conversion. If the target stays at one FCV for both restores, the
+entries in the second range name a namespace that doesn't match the
+collection format on the target. The restore then fails.
+
+Starting in {+dbtools-short+} 100.18.0, ``mongorestore`` fails with a
+message that names the conversion when it encounters one during
+:option:`--oplogReplay <mongorestore --oplogReplay>`. Earlier versions
+of {+dbtools-short+} report an unknown oplog command instead.
+
+To avoid producing a dump that you can't restore, don't change the FCV
+while :option:`mongodump --oplog` runs. If you capture the oplog
+yourself with ``mongodump --db=local --collection=oplog.rs`` and replay
+it with :option:`--oplogFile <mongorestore --oplogFile>`, ``mongodump``
+can't detect the FCV change, so check that the range you restore
+doesn't span a conversion.
 
 Using ``mongorestore`` on Atlas Free and Flex  Clusters 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

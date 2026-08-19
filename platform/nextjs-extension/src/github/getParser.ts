@@ -119,22 +119,14 @@ export const cloneParser = async ({
   run: NetlifyPluginUtils['run'];
   expectedParserVersion: string;
 }) => {
-  const { parserDir: parserPath, repoRoot } = getRepoPaths();
+  const { repoRoot } = getRepoPaths();
   const parserRepoUrl = `https://github.com/${MONGODB_ORG}/snooty-parser.git`;
   console.log(`Downloading parser from ${parserRepoUrl} ...`);
 
-  await run.command(`git clone ${parserRepoUrl}`, { cwd: repoRoot });
-
   await run.command(
-    `git -c advice.detachedHead=false fetch --depth 1 --tags origin ${expectedParserVersion}`,
-    {
-      cwd: parserPath,
-    },
+    `git -c advice.detachedHead=false clone --depth 1 --branch ${expectedParserVersion} ${parserRepoUrl}`,
+    { cwd: repoRoot },
   );
-
-  await run.command('git checkout FETCH_HEAD', {
-    cwd: parserPath,
-  });
 };
 
 const updateParserVersion = async ({

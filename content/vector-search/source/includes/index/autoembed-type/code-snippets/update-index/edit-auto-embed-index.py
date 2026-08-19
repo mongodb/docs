@@ -14,7 +14,15 @@ definition = {
       "type": "autoEmbed",
       "modality": "text",
       "path": "<fieldToIndex>",
-      "model": "<embeddingModel>"
+      "model": "<embeddingModel>",
+      "similarity": "<similarityMetric>",
+      "indexingMethod": "<indexingMethod>",
+      "hnswOptions": {
+        "maxEdges": <maxEdges>,
+        "numEdgeCandidates": <numEdgeCandidates>
+      },
+      "quantization": "<quantizationType>",
+      "numDimensions": <numDimensions>
     },
     {
       "type": "filter",

@@ -14,7 +14,7 @@
      value in the Aggregation Pipeline of the source database.
    - Restarting or shutting down |application| or Backup Daemon.
    - Restarting, shutting down, or upgrading the
-     :doc:`{+mdbagent+} </tutorial/nav/mongodb-agent>`.
+     :ref:`{+mdbagent+} <mongodb-agent>`.
 
    **Conditions to Avoid during Initial Sync:**
 

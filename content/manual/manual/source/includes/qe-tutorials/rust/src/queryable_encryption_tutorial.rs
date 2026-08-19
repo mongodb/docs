@@ -26,7 +26,7 @@ async fn main() -> mongodb::error::Result<()> {
     let kms_provider_credentials = helpers::get_kms_provider_credentials(&kms_provider_name);
     let customer_master_key_credentials = helpers::get_customer_master_key_credentials(&kms_provider_name);
 
-    let encrypted_client_builder = helpers::get_auto_encryption_options(&key_vault_namespace, &kms_provider_credentials);
+    let encrypted_client_builder = helpers::get_auto_encryption_options(&uri, &key_vault_namespace, &kms_provider_credentials).await;
 
     // start-create-client
     let encrypted_client = encrypted_client_builder

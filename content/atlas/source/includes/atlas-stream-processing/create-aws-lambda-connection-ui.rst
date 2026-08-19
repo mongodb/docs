@@ -1,0 +1,34 @@
+Add an AWS Lambda Connection through the {+atlas-ui+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To add an {+aws+} Lambda connection to your {+spw+} through
+{+atlas-ui+}, follow these steps:
+
+.. procedure::
+   :style: normal 
+
+   .. step:: Navigate to your {+spw+}.
+
+      Select the :guilabel:`Stream Processing` tab in the left sidebar 
+      menu in the |service| UI. 
+
+   .. step:: Configure your connection.
+
+      #. Click the :guilabel:`Manage` button for your {+spw+} to which
+         you want to register a connection. 
+
+      #. Select the :guilabel:`Connection Registry` tab. 
+
+      #. Click the :guilabel:`+ Add Connection` button. 
+
+      #. Select :guilabel:`AWS Lambda` from the :guilabel:`Connection Type` dropdown menu. 
+
+      #. Name your new connection. 
+
+      #. Select an :guilabel:`AWS IAM Role ARN` from the dropdown menu. 
+         To learn more about creating an :guilabel:`AWS IAM Role ARN`, 
+         see :ref:`Set Up Unified AWS Access <set-up-unified-aws-access>`.
+
+      #. Click :guilabel:`+ Add Connection` to create the connection.
+
+.. include:: /includes/atlas-stream-processing/aws-lambda-stage-support.rst

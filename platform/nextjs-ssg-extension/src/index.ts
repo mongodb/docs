@@ -18,7 +18,7 @@ import {
 	type AllContentData,
 } from "../../nextjs-extension/src/contentMetadata/processContentMetadata";
 import { getParserVersion } from "../../nextjs-extension/src/parse/runModules";
-import { runMdxConversionForContentPaths } from "../../nextjs-extension/src/parse/runMdxConversion";
+import { runMdxConversionForContentPaths } from "./parse/runMdxConversion";
 import { getRepoPaths } from "../../nextjs-extension/src/paths";
 import { buildUnifiedTOC } from "../../nextjs-extension/src/util/buildTOC/generateJSON";
 import {
@@ -26,7 +26,7 @@ import {
 	getProjectVersionPaths,
 } from "../../nextjs-extension/src/blobUploads/buildPrefixList";
 import { getDirNameToPrefix } from "../../nextjs-extension/src/blobUploads/mapFilesToUrlPaths";
-import { resolvePathsToBuild } from "../../nextjs-extension/src/util/resolvePathsToBuild";
+import { resolvePathsToBuild } from "./util/resolvePathsToBuild";
 import { handleSearchManifests } from "../../nextjs-extension/src/searchManifests/index";
 import { handleOfflineDownloads } from "./offline-docs/index";
 
@@ -38,7 +38,7 @@ const TOML_SEARCH_MAX_DEPTH = 5;
 const ENVS_TO_RUN = ["dotcomprd", "dotcomstg"];
 
 const extension = new Extension({
-	isEnabled: envVarToBool(process.env.NEXTJS_SSG_EXTENSION_ENABLED),
+  isEnabled: envVarToBool(process.env.NEXTJS_SSG_EXTENSION_ENABLED),
 });
 
 const allContentData: AllContentData = {
@@ -80,7 +80,7 @@ extension.addBuildEventHandler(
 			console.log(`Found ${contentDirectories.length} snooty.toml files`);
 		}
 
-		const validParserCache = await getParser({
+		await getParser({
 			run: utils.run,
 			cache: utils.cache,
 			expectedParserVersion: parserVersion,
@@ -89,7 +89,7 @@ extension.addBuildEventHandler(
 
 		const projectNames: ProjectNames =
 			await getAllProjectNames(contentDirectories);
-		console.log("Retrieved all project names for changed content paths");
+		console.log("Retrieved all project names for content paths");
 
 		const atlasProjectDocuments = await fetchAtlasData({
 			configEnvironment,
@@ -108,11 +108,9 @@ extension.addBuildEventHandler(
 			}),
 		);
 
-		await resolvePathsToBuild({
-			utils,
+		resolvePathsToBuild({
 			contentDirectories,
 			allContentData,
-			validParserCache,
 		});
 
 		if (allContentData.pathsToBuild) {

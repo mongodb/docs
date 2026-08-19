@@ -128,9 +128,7 @@ The spec of the databaseuser resource for version v20250312.
      - string
      - Unique 24-hexadecimal digit string that identifies your project. Use the ``/groups`` endpoint to retrieve all projects to which the authenticated user has access.
 
-       .. note::
-
-          Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+       Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
 
        **Validations:**
 
@@ -174,59 +172,15 @@ The entry fields of the databaseuser resource spec. These fields can be set for 
      - string
      - Human-readable label that represents the user that authenticates to ``MongoDB``. The format of this label depends on the method of authentication:
 
-       .. list-table::
-          :header-rows: 1
-          :widths: 25 25 25 25
-
-          * - Authentication Method
-            - Parameter Needed
-            - Parameter Value
-            - ``username`` Format
-
-          * - ``AWS`` ``IAM``
-            - ``awsIAMType``
-            - ``ROLE``
-            - ``ARN``
-
-          * - ``AWS`` ``IAM``
-            - ``awsIAMType``
-            - ``USER``
-            - ``ARN``
-
-          * - x.509
-            - ``x509Type``
-            - ``CUSTOMER``
-            - `RFC 2253 <https://tools.ietf.org/html/2253>`__ Distinguished Name
-
-          * - x.509
-            - ``x509Type``
-            - ``MANAGED``
-            - `RFC 2253 <https://tools.ietf.org/html/2253>`__ Distinguished Name
-
-          * - ``LDAP``
-            - ``ldapAuthType``
-            - ``USER``
-            - `RFC 2253 <https://tools.ietf.org/html/2253>`__ Distinguished Name
-
-          * - ``LDAP``
-            - ``ldapAuthType``
-            - ``GROUP``
-            - `RFC 2253 <https://tools.ietf.org/html/2253>`__ Distinguished Name
-
-          * - ``OIDC`` Workforce
-            - ``oidcAuthType``
-            - ``IDP_GROUP``
-            - Atlas ``OIDC`` ``IdP`` ``ID`` (found in federation settings), followed by a '/', followed by the ``IdP`` group name
-
-          * - ``OIDC`` Workload
-            - ``oidcAuthType``
-            - ``USER``
-            - Atlas ``OIDC`` ``IdP`` ``ID`` (found in federation settings), followed by a '/', followed by the ``IdP`` user name
-
-          * - ``SCRAM``-``SHA``
-            - ``awsIAMType``, ``x509Type``, ``ldapAuthType``, ``oidcAuthType``
-            - ``NONE``
-            - Alphanumeric string
+       - ``AWS`` ``IAM`` (``awsIAMType``: ``ROLE``): ``ARN``
+       - ``AWS`` ``IAM`` (``awsIAMType``: ``USER``): ``ARN``
+       - x.509 (``x509Type``: ``CUSTOMER``): `RFC 2253 <https://tools.ietf.org/html/2253>`__ Distinguished Name
+       - x.509 (``x509Type``: ``MANAGED``): `RFC 2253 <https://tools.ietf.org/html/2253>`__ Distinguished Name
+       - ``LDAP`` (``ldapAuthType``: ``USER``): `RFC 2253 <https://tools.ietf.org/html/2253>`__ Distinguished Name
+       - ``LDAP`` (``ldapAuthType``: ``GROUP``): `RFC 2253 <https://tools.ietf.org/html/2253>`__ Distinguished Name
+       - ``OIDC`` Workforce (``oidcAuthType``: ``IDP_GROUP``): Atlas ``OIDC`` ``IdP`` ``ID`` (found in federation settings), followed by a '/', followed by the ``IdP`` group name
+       - ``OIDC`` Workload (``oidcAuthType``: ``USER``): Atlas ``OIDC`` ``IdP`` ``ID`` (found in federation settings), followed by a '/', followed by the ``IdP`` user name
+       - ``SCRAM``-``SHA`` (``awsIAMType``, ``x509Type``, ``ldapAuthType``, ``oidcAuthType``: ``NONE``): Alphanumeric string
      - true
 
    * -  ``awsIAMType``
@@ -519,57 +473,13 @@ The last observed Atlas state of the databaseuser resource for version v20250312
      - string
      - Human-readable label that represents the user that authenticates to ``MongoDB``. The format of this label depends on the method of authentication:
 
-       .. list-table::
-          :header-rows: 1
-          :widths: 25 25 25 25
-
-          * - Authentication Method
-            - Parameter Needed
-            - Parameter Value
-            - ``username`` Format
-
-          * - ``AWS`` ``IAM``
-            - ``awsIAMType``
-            - ``ROLE``
-            - ``ARN``
-
-          * - ``AWS`` ``IAM``
-            - ``awsIAMType``
-            - ``USER``
-            - ``ARN``
-
-          * - x.509
-            - ``x509Type``
-            - ``CUSTOMER``
-            - `RFC 2253 <https://tools.ietf.org/html/2253>`__ Distinguished Name
-
-          * - x.509
-            - ``x509Type``
-            - ``MANAGED``
-            - `RFC 2253 <https://tools.ietf.org/html/2253>`__ Distinguished Name
-
-          * - ``LDAP``
-            - ``ldapAuthType``
-            - ``USER``
-            - `RFC 2253 <https://tools.ietf.org/html/2253>`__ Distinguished Name
-
-          * - ``LDAP``
-            - ``ldapAuthType``
-            - ``GROUP``
-            - `RFC 2253 <https://tools.ietf.org/html/2253>`__ Distinguished Name
-
-          * - ``OIDC`` Workforce
-            - ``oidcAuthType``
-            - ``IDP_GROUP``
-            - Atlas ``OIDC`` ``IdP`` ``ID`` (found in federation settings), followed by a '/', followed by the ``IdP`` group name
-
-          * - ``OIDC`` Workload
-            - ``oidcAuthType``
-            - ``USER``
-            - Atlas ``OIDC`` ``IdP`` ``ID`` (found in federation settings), followed by a '/', followed by the ``IdP`` user name
-
-          * - ``SCRAM``-``SHA``
-            - ``awsIAMType``, ``x509Type``, ``ldapAuthType``, ``oidcAuthType``
-            - ``NONE``
-            - Alphanumeric string
+       - ``AWS`` ``IAM`` (``awsIAMType``: ``ROLE``): ``ARN``
+       - ``AWS`` ``IAM`` (``awsIAMType``: ``USER``): ``ARN``
+       - x.509 (``x509Type``: ``CUSTOMER``): `RFC 2253 <https://tools.ietf.org/html/2253>`__ Distinguished Name
+       - x.509 (``x509Type``: ``MANAGED``): `RFC 2253 <https://tools.ietf.org/html/2253>`__ Distinguished Name
+       - ``LDAP`` (``ldapAuthType``: ``USER``): `RFC 2253 <https://tools.ietf.org/html/2253>`__ Distinguished Name
+       - ``LDAP`` (``ldapAuthType``: ``GROUP``): `RFC 2253 <https://tools.ietf.org/html/2253>`__ Distinguished Name
+       - ``OIDC`` Workforce (``oidcAuthType``: ``IDP_GROUP``): Atlas ``OIDC`` ``IdP`` ``ID`` (found in federation settings), followed by a '/', followed by the ``IdP`` group name
+       - ``OIDC`` Workload (``oidcAuthType``: ``USER``): Atlas ``OIDC`` ``IdP`` ``ID`` (found in federation settings), followed by a '/', followed by the ``IdP`` user name
+       - ``SCRAM``-``SHA`` (``awsIAMType``, ``x509Type``, ``ldapAuthType``, ``oidcAuthType``: ``NONE``): Alphanumeric string
      - true

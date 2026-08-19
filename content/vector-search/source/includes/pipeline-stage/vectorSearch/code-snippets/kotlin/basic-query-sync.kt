@@ -14,7 +14,7 @@ fun main() {
     val client = MongoClient.create(uri)
 
     try {
-        // Connect to your Atlas cluster
+        // Connect to your cluster
         val database = client.getDatabase("sample_mflix")
         val collection = database.getCollection<Movie>("embedded_movies")
 

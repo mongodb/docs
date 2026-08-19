@@ -53,7 +53,7 @@
             vector_index::vector_index();
          }
 
-   .. step:: Run the file in your IDE, or execute a command from the command line to run the code.
+   .. step:: Run the file in your IDE, or run the following command in your terminal.
 
       .. io-code-block::
          :copyable: true

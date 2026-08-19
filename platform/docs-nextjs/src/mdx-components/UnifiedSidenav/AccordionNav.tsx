@@ -7,10 +7,10 @@ import { useViewportSize } from '@leafygreen-ui/hooks';
 import { theme } from '@/styles/theme';
 import useScreenSize from '@/hooks/use-screen-size';
 import { DownloadButton } from '@/mdx-components/offline-download-modal/download-button';
-import { NavTopContainer, downloadButtonStlying, ArtificialPadding } from '../UnifiedSidenav';
+import { NavTopContainer, downloadButtonStlying } from '../UnifiedSidenav';
 import { UnifiedTocNavItem } from './UnifiedTocNavItems';
 import type { TocItem } from './types';
-import DocsHomeButton from './DocsHomeButton';
+import { ProductTabs } from '@/mdx-components/ActionBar/ProductTabs';
 import { tocItemKey } from '@/utils/create-toc-key';
 
 export const leftPane = LeafyCSS`
@@ -23,7 +23,7 @@ export const leftPane = LeafyCSS`
 const panelStyling = LeafyCSS`
     position: fixed;
     overflow-y: auto;
-    top: 50px;
+    top: 60px;
     height: calc(100% - 120px);
     padding-top: 10px;
     border-bottom: 1px solid var(--sidenav-border-bottom-color);
@@ -38,17 +38,24 @@ const panelStyling = LeafyCSS`
       width: 100%;
     }
 
+    @media ${theme.screenSize.upToLarge} {
+      top: 145px;
+      height: calc(100% - 205px);
+    }
 `;
 
-const sideNavStyle = ({ hideMobile }: { hideMobile: boolean }) => LeafyCSS`
+const sideNavStyle = ({ hideMobile, isAccordionOnly }: { hideMobile: boolean; isAccordionOnly: boolean }) => LeafyCSS`
   height: 100%;
   padding: 0px;
+  overflow: visible !important;
 
-  @media ${theme.screenSize['2XLargeAndUp']} {
-    display: none;
+  nav > div,
+  nav > div > ul {
+    overflow: visible !important;
   }
 
-  // Mobile & Tablet nav
+  ${!isAccordionOnly && `@media ${theme.screenSize['2XLargeAndUp']} { display: none; }`}
+
   @media ${theme.screenSize.upToLarge} {
     position: absolute;
     ${hideMobile && 'display: none;'}
@@ -79,6 +86,7 @@ interface AccordionNavPanelProps {
   setCurrentL2s: (item: TocItem) => void;
   tree: TocItem[];
   hideMobile: boolean;
+  isAccordionOnly?: boolean;
 }
 
 export const AccordionNavPanel = ({
@@ -91,19 +99,18 @@ export const AccordionNavPanel = ({
   setCurrentL2s,
   tree,
   hideMobile,
+  isAccordionOnly = false,
 }: AccordionNavPanelProps) => {
   const { isTabletOrMobile } = useScreenSize();
   const viewportSize = useViewportSize();
-
   return (
     <SideNav
       widthOverride={isTabletOrMobile && viewportSize ? viewportSize.width : 290}
-      className={cx(sideNavStyle({ hideMobile }))}
+      className={cx(sideNavStyle({ hideMobile, isAccordionOnly }))}
       aria-label="Accordion Side navigation Panel"
     >
       <div className={cx(NavTopContainer(isTabletOrMobile))}>
-        <ArtificialPadding />
-        <DocsHomeButton />
+        <ProductTabs slug={slug} />
       </div>
       <div className={cx(panelStyling)}>
         <div className={cx(leftPane)}>

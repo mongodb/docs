@@ -88,7 +88,11 @@ export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, output
 
     if (file.path === 'site.bson') {
       const siteData = docs[0];
-      // Extract objects.inv from static_files before removing it
+      // Extract known static_files before removing them from site metadata.
+      // objects.inv: always write to the version/output dir; for the stable branch
+      // of versioned projects also write to the project root (additionalInvOutputDirectory).
+      // manpages.tar.gz: write only to the version/output dir (never the unversioned
+      // project root). Unversioned projects already use the project base as outputDirectory.
       const invBinary = siteData.static_files?.['objects.inv'];
       if (invBinary != null) {
         const invBuffer = Buffer.from(invBinary.buffer ?? invBinary);
@@ -97,6 +101,11 @@ export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, output
           await fs.mkdir(additionalInvOutputDirectory, { recursive: true });
           await fs.writeFile(path.join(additionalInvOutputDirectory, 'objects.inv'), invBuffer);
         }
+      }
+      const manpagesBinary = siteData.static_files?.['manpages.tar.gz'];
+      if (manpagesBinary != null) {
+        const manpagesBuffer = Buffer.from(manpagesBinary.buffer ?? manpagesBinary);
+        await fs.writeFile(path.join(outputDirectory, 'manpages.tar.gz'), manpagesBuffer);
       }
       delete siteData.static_files;
       // Defer writing _site.json until after page processing so we can

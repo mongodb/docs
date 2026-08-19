@@ -8,7 +8,16 @@ export interface LinkSubstitution {
   text: string;
   url: string;
 }
-export type SubstitutionValue = string | AbbrSubstitution | LinkSubstitution;
+/**
+ * A substitution whose value is inline markup (icons, guilabels, nested roles). `nodes` is the
+ * serialized mdast the renderer splices in; `text` is the flattened fallback for string-only
+ * consumers such as the markdown export.
+ */
+export interface RichSubstitution {
+  text: string;
+  nodes: unknown[];
+}
+export type SubstitutionValue = string | AbbrSubstitution | LinkSubstitution | RichSubstitution;
 type Substitutions = Record<string, SubstitutionValue>;
 type Refs = Record<string, string>;
 
@@ -29,6 +38,9 @@ const parseSubstitutionValue = (value: string): SubstitutionValue => {
 const serializeSubstitutionValue = (value: SubstitutionValue): string => {
   if (typeof value === 'string') return esc(value);
   if ('url' in value) return `{ text: ${esc(value.text)}, url: ${esc(value.url)} }`;
+  // Rich values carry serialized mdast, which has no compact literal form — emit it as JSON.
+  // `esc` truncates to 1000 chars and would corrupt the tree, so stringify the nodes directly.
+  if ('nodes' in value) return `{ text: ${esc(value.text)}, nodes: ${JSON.stringify(value.nodes)} }`;
   return `{ text: ${esc(value.text)}, tooltip: ${esc(value.tooltip)} }`;
 };
 
@@ -81,8 +93,28 @@ interface MergeReferencesArgs {
   add: ReferencesArtifact;
 }
 
+const isRich = (value: SubstitutionValue | undefined): value is RichSubstitution =>
+  !!value && typeof value === 'object' && 'nodes' in value;
+
+/**
+ * Merge substitution maps, keeping the richer value when both sides define a key.
+ *
+ * A key is contributed once per page and once per include body that mentions it, and only the site
+ * that sees the resolved role nodes can produce inline markup — everywhere else contributes the
+ * flattened text. A plain `Object.assign` is last-writer-wins, so a single include emitting the
+ * string form would erase the markup for the whole project.
+ */
+export const mergeSubstitutions = (base: Substitutions = {}, add: Substitutions = {}): Substitutions => {
+  const merged: Substitutions = { ...base };
+  for (const [key, value] of Object.entries(add)) {
+    if (isRich(merged[key]) && !isRich(value)) continue;
+    merged[key] = value;
+  }
+  return merged;
+};
+
 export const mergeReferences = ({ base, add }: MergeReferencesArgs): ReferencesArtifact => ({
-  substitutions: { ...base.substitutions, ...(add.substitutions ?? {}) },
+  substitutions: mergeSubstitutions(base.substitutions, add.substitutions),
   refs: { ...base.refs, ...(add.refs ?? {}) },
 });
 

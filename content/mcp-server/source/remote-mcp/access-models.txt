@@ -1,0 +1,199 @@
+.. _remote-mcp-access-models:
+
+===================================
+MCP Access Models for MongoDB Atlas
+===================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: MCP, access models, user-delegated access, OAuth, service accounts, programmatic agents, App Connections
+   :description: Compare the access models for connecting AI clients and agents to MongoDB Atlas through MCP, including user-delegated and programmatic access, and choose the right model for your use case.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The {+mdb-mcp+} provides two access models for connecting to Atlas:
+
+- :ref:`remote-mcp-access-models-user-delegated`
+- :ref:`remote-mcp-access-models-programmatic`
+
+Both access models use the same {+mdb-mcp+} and the same set of
+:ref:`tools <mcp-server-tools>`. They differ in how access is granted,
+who the actions are attributed to, and how administrators manage them.
+Choose the access model that matches how you intend to use MCP.
+
+You can use these access models to connect only to Atlas-hosted
+clusters. To connect to a MongoDB deployment outside Atlas, such as
+MongoDB Community Edition or MongoDB Enterprise Advanced, run the MCP
+server yourself. To learn more, see :ref:`mcp-overview`.
+
+.. _remote-mcp-access-models-user-delegated:
+
+User-Delegated Access Through Atlas App Connections
+---------------------------------------------------
+
+With user-delegated access, an AI client uses OAuth to connect to
+Atlas on behalf of an individual Atlas user. The user authorizes the
+AI client through :ref:`Atlas App Connections
+<atlas-app-connections>`, and the client acts using that user's
+existing Atlas permissions. The client cannot exceed what the user is
+already allowed to do.
+
+Use this model for interactive work in an AI client where you are
+issuing the prompts, such as exploring data or writing queries while
+coding.
+
+This model works only with AI clients that MongoDB registers in
+advance. To learn which clients MongoDB supports, see
+:ref:`remote-mcp-access-models-supported-clients`. To connect an agent
+that you build yourself, use
+:ref:`remote-mcp-access-models-programmatic`.
+
+Key characteristics:
+
+- **Identity:** the AI client acts on behalf of the individual Atlas
+  user who authorized it.
+- **Setup:** the user connects from the AI client's marketplace and
+  authorizes access in the browser. There is no infrastructure to
+  provision.
+- **Permissions:** based on the authorizing Atlas user's existing
+  roles, and on the access mode that the organization sets. Access
+  cannot exceed that user's own permissions. To learn which roles
+  receive read and write access, see
+  :ref:`remote-mcp-manage-ai-client-access-roles`.
+- **Administration:** an Organization Owner enables AI client access
+  at the organization level and sets a read-only or read-write mode,
+  which can restrict an AI client to fewer permissions than
+  the authorizing Atlas user has. Access is disabled by default,
+  except in organizations that Atlas creates when a new user signs up.
+  Enablement applies to all AI clients as a group. You cannot enable
+  one AI client and leave another disabled, and you cannot restrict AI
+  client access to specific projects. To learn how to enable and
+  configure access, see :ref:`remote-mcp-manage-ai-client-access`.
+- **Attribution:** Atlas does not record individual tool calls. When a
+  tool call creates an audit event, such as creating a cluster, the
+  event records both the authorizing Atlas user and the AI client.
+
+.. _remote-mcp-access-models-supported-clients:
+
+Supported AI Clients
+~~~~~~~~~~~~~~~~~~~~
+
+User-delegated access supports the following AI clients:
+
+- ChatGPT Desktop & Web
+- Claude Code
+- Claude Desktop & Web
+- Codex
+- Cursor
+- Devin AI
+- Grok Build
+
+.. _remote-mcp-access-models-programmatic:
+
+Programmatic Access Through MCP Configurations
+----------------------------------------------
+
+With programmatic access, an automated agent connects to Atlas using
+an :ref:`MCP configuration <mcp-get-started-configure>` that an
+administrator provisions and configures using the `MCP Configuration
+API
+<https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-remote-mcp-configurations/>`__.
+An automated agent runs multi-step workflows without a user manually
+approving each step. The agent acts using that MCP configuration with
+its assigned Atlas roles, rather than as an individual user.
+
+Use this model for automated, multi-step workflows built with agent
+frameworks, such as production pipelines. This model does not require
+MongoDB to register the agent in advance, because the administrator
+creates the MCP configuration that the agent uses. You can therefore
+use this model with agents that you build yourself.
+
+When an administrator creates an MCP configuration, Atlas creates a
+pair of Service Accounts for it. The configuration specifies the Atlas
+roles the agent receives and the access controls that apply to it. One
+Service Account lets the agent reach the MCP server, and Atlas records
+the other in audit events.
+
+Key characteristics:
+
+- **Identity:** the agent acts as the configured MCP configuration.
+- **Setup:** administrator-provisioned. Either an Organization Owner
+  creates a configuration with organization-level roles, or a Project
+  Owner creates one with project-level roles, depending on the scope
+  the agent needs.
+- **Administration:** each MCP configuration has its own roles, an
+  optional IP access list, and a read-only setting. The permissions
+  map to the :ref:`Atlas roles <user-roles>` that you select. Atlas
+  preselects read-only when you create an MCP configuration. When an
+  MCP configuration is read-only, write tools are not available to
+  the agent.
+- **Attribution:** Atlas does not record individual tool calls. When a
+  tool call creates an audit event, the event records the Service
+  Account rather than an individual user.
+
+.. _remote-mcp-access-models-compare:
+
+Compare the Access Models
+-------------------------
+
+The following table compares key characteristics of the user-delegated
+and programmatic access models:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 40 40
+
+   * -
+     - User-Delegated (App Connections)
+     - Programmatic (MCP Configurations)
+   * - Identity and attribution
+     - Individual Atlas user
+     - MCP configuration
+   * - Setup
+     - The user authorizes the AI client from the client's marketplace
+     - An administrator provisions an MCP configuration
+   * - Permissions
+     - The user's existing Atlas roles
+     - The MCP configuration's assigned roles
+   * - Admin controls
+     - Organization-level enablement for all AI clients as a group,
+       read-only or read-write mode. Disabled by default.
+     - Per-configuration roles, optional IP access list, and read-only
+       setting, preselected at creation.
+   * - Best for
+     - Interactive AI coding
+     - Automated, multi-step workflows
+
+.. _remote-mcp-access-models-choose:
+
+Choose an Access Model
+----------------------
+
+Choose **user-delegated access** if you are an individual developer
+connecting an AI client to Atlas for interactive work, and you want
+actions to run under your own Atlas identity and permissions.
+
+Choose **programmatic access** if you are building an automated agent or
+production workflow that needs to run independently of any individual
+user, under a dedicated MCP configuration.
+
+Learn More
+----------
+
+- To learn about the platform that supports user-delegated access,
+  see :ref:`atlas-app-connections`.
+- To learn how an Organization Owner enables and configures AI client
+  access, see :ref:`remote-mcp-manage-ai-client-access`.
+- To learn what the read-only and read-write modes allow, see
+  :ref:`remote-mcp-manage-ai-client-access-modes`.
+- To learn about current restrictions, see
+  :ref:`atlas-app-connections-known-limitations`.

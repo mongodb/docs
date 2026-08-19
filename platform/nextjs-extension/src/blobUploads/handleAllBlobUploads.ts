@@ -12,6 +12,7 @@ import { getDirNameToPrefix, remapFilePath } from './mapFilesToUrlPaths.js';
 import {
   IMAGE_EXTENSIONS,
   INV_EXTENSION,
+  MANPAGES_FILENAME,
   constructBlobKey,
   uploadWithRetry,
 } from './uploadIndividualBlob.js';
@@ -103,10 +104,12 @@ const processFile = async ({
     dirNameToPrefix,
   });
   const key = constructBlobKey(remappedPath);
-  const isImage = IMAGE_EXTENSIONS.some((ext) =>
-    relativeFilePath.toLowerCase().endsWith(ext),
-  );
-  const isBinary = isImage || relativeFilePath.toLowerCase().endsWith(INV_EXTENSION);
+  const lowerRelativePath = relativeFilePath.toLowerCase();
+  const isImage = IMAGE_EXTENSIONS.some((ext) => lowerRelativePath.endsWith(ext));
+  const isBinary =
+    isImage ||
+    lowerRelativePath.endsWith(INV_EXTENSION) ||
+    lowerRelativePath.endsWith(MANPAGES_FILENAME);
   const uploadContent: string | ArrayBuffer = isBinary
     ? (raw.buffer.slice(
         raw.byteOffset,

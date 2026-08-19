@@ -12,6 +12,12 @@ const SITEMAP_INDEX_URL = `${DOCS_BASE_URL}sitemap-index-full.xml`;
  * Matched against the stripped prefix using exact equality or startsWith so
  * that both root entries (e.g. "docs-platform") and versioned children, if present,
  * are excluded.
+ *
+ * This denylist is broader than INTERNAL_ONLY_PROJECTS in
+ * platform/tools/generate-llms/src/exclusions.ts (which only covers
+ * internalOnly content projects that would otherwise get an llms.txt). When
+ * you add an internalOnly project here, also update INTERNAL_ONLY_PROJECTS
+ * if that project should be excluded from llms.txt generation.
  */
 const HEALTH_CHECK_PREFIX_DENYLIST = new Set([
   '404',

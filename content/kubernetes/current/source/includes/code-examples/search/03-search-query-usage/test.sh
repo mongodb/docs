@@ -22,10 +22,13 @@ if [ -n "${EMBEDDING_MODEL:-}" ]; then
 else
     echo "Skipping creation of autoEmbed vector search index for non community deployments."
 fi
+run 03_0439_internal_wait_for_search_indexes.sh
 run_for_output 03_0440_wait_for_search_index_ready.sh
 run_for_output 03_0444_list_search_indexes.sh
 run_for_output 03_0445_list_vector_search_indexes.sh
-run_for_output 03_0447_list_auto_embed_vector_search_indexes.sh
+if [ -n "${EMBEDDING_MODEL:-}" ]; then
+    run_for_output 03_0447_list_auto_embed_vector_search_indexes.sh
+fi
 run_for_output 03_0450_execute_search_query.sh
 run_for_output 03_0455_execute_vector_search_query.sh
 if [ -n "${EMBEDDING_MODEL:-}" ]; then

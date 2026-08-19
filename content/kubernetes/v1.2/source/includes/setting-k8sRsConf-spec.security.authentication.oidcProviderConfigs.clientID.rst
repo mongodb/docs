@@ -1,4 +1,4 @@
-.. setting:: spec.security.authentication.oidcProviderConfigs.clientID
+.. setting:: spec.security.authentication.oidcProviderConfigs.clientId
 
    *Type*: string
 

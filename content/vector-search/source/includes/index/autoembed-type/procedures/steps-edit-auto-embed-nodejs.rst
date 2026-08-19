@@ -8,7 +8,7 @@
          :copyable: true 
          :linenos: 
 
-   .. step:: Replace the following values and save the file.
+   .. step:: Replace the following values and add or modify other settings in the index definition as needed, then save the file.
 
       .. list-table:: 
          :stub-columns: 1 
@@ -26,17 +26,7 @@
 
          * - ``<indexName>``
            - Name of your index. If you omit the index name, defaults to
-             ``vector_index``. 
-
-         * - ``<fieldToIndex>``
-           - Text and filter fields to index. You can add text fields to
-             index as the ``autoEmbed`` type, but you can't replace or
-             delete existing ``autoEmbed`` type fields in the index
-             definition.
-
-         * - ``<modelName>``
-           - Name of the embedding model to use to generate the
-             embeddings.  
+             ``autoembed_index``. 
 
    .. step:: Run the following command to update the index.
 

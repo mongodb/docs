@@ -95,6 +95,13 @@
                   :linenos:
                   :caption: vector-index.py
 
+            .. tab:: Nested Field Example 
+               :tabid: nested-root
+
+               .. include:: /includes/index/autoembed-type/facts/nested-root-example-description.rst
+
+               .. literalinclude:: /includes/index/autoembed-type/code-snippets/create-index/python/nested-auto-embed-example.py
+
    .. step:: Run the following command to create the index.
 
       .. code-block:: shell

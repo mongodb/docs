@@ -4,7 +4,7 @@ You can use |vsce| to connect to :ref:`Atlas Stream Processing <atlas-sp-overvie
 by providing a Stream Processing Workspace (SPW) connection string.
 
 For details on how to configure Atlas Stream Processing, see 
-:ref:`manage-spi`. 
+:ref:`atlas-sp-manage-spi`. 
 
 .. procedure::
    :style: normal

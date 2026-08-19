@@ -9,8 +9,10 @@
 
       .. include:: /includes/fact-configure-connections-to-app-db.rst
 
-      To learn more about configuring SCRAM authentication, see 
+      To learn more about configuring SCRAM authentication, see
       :ref:`SCRAM <authentication-scram>`.
+
+      .. include:: /includes/warning-plaintext-password.rst
 
    .. tab:: X.509
       :tabid: x509
@@ -45,3 +47,12 @@
 
       To learn more about configuring LDAP authentication, see
       :ref:`LDAP <security-ldap>`.
+
+      .. include:: /includes/warning-plaintext-password.rst
+
+   .. tab:: OIDC
+      :tabid: oidc
+
+      |onprem| hides this field when you enable |oidc| for this
+      store. To configure |oidc|, use the
+      :guilabel:`OIDC Authentication` field instead.

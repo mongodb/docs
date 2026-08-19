@@ -1,47 +1,47 @@
+.. |analyzer-name| replace:: ``keywordLowerer``
+.. |fts-tokenizer| replace:: :guilabel:`keyword`
+.. |fts-token-filter| replace:: :guilabel:`lowercase`
+.. |minutes-collection-field| replace:: **title**
+.. |fts-field-type| replace:: **Autocomplete**
+.. |fts-autocomplete-tokenization| replace:: **nGram**
+
 .. tabs:: 
+  
+   .. tab:: Visual Editor
+      :tabid: vib
 
-   .. tab:: Visual Editor 
-      :tabid: vib 
+      .. include:: /includes/index/analyzers/code-snippets/token-filters/atlas-ui/fts-token-filter-lowercase-config-simple.rst
 
-      .. |analyzer-name| replace:: ``keywordLowerer``
-      .. |fts-tokenizer| replace:: :guilabel:`keyword`
-      .. |fts-token-filter| replace:: :guilabel:`lowercase`
-      .. |minutes-collection-field| replace:: **title** 
-      .. |fts-field-type| replace:: **Autocomplete**
-      .. |fts-autocomplete-tokenization| replace:: **nGram**
-
-      .. include:: /includes/index/analyzers/code-snippets/token-filters/atlas-ui/fts-token-filter-lowercase-config-simple.rst 
-
-   .. tab:: JSON Editor 
+   .. tab:: JSON Editor
       :tabid: jsoneditor
 
       Replace the default index definition with the following:
 
       .. code-block:: json
-          :copyable: true
+         :copyable: true
 
-          {
-            "mappings": {
-              "fields": {
-                "title": {
-                  "analyzer": "keywordLowerer",
-                  "tokenization": "nGram",
-                  "type": "autocomplete"
-                }
-              }
-            },
-            "analyzers": [
-              {
-                "name": "keywordLowerer",
-                "charFilters": [],
-                "tokenizer": {
-                  "type": "keyword"
-                },
-                "tokenFilters": [
-                  {
-                    "type": "lowercase"
-                  }
-                ]
-              }
-            ]
-          }
+         {
+           "mappings": {
+             "fields": {
+               "title": {
+                 "analyzer": "keywordLowerer",
+                 "tokenization": "nGram",
+                 "type": "autocomplete"
+               }
+             }
+           },
+           "analyzers": [
+             {
+               "name": "keywordLowerer",
+               "charFilters": [],
+               "tokenizer": {
+                 "type": "keyword"
+               },
+               "tokenFilters": [
+                 {
+                   "type": "lowercase"
+                 }
+               ]
+             }
+           ]
+         }

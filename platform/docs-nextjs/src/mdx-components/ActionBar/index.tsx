@@ -67,9 +67,11 @@ export const ActionBar = ({ template, sidenav, className }: ActionBarProps) => {
             Docs Menu
           </Overline>
         )}
-        <Suspense fallback={null}>
-          <SearchInput />
-        </Suspense>
+        {!isOfflineBuild && (
+          <Suspense fallback={null}>
+            <SearchInput />
+          </Suspense>
+        )}
       </div>
       {!isOfflineBuild && <ActionsContainer />}
     </div>

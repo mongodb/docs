@@ -7,11 +7,11 @@ import { theme } from '@/styles/theme';
 import useScreenSize from '@/hooks/use-screen-size';
 import { tocItemKey } from '@/utils/create-toc-key';
 import { DownloadButton } from '@/mdx-components/offline-download-modal/download-button';
-import { NavTopContainer, downloadButtonStlying, ArtificialPadding } from '../UnifiedSidenav';
+import { NavTopContainer, downloadButtonStlying } from '../UnifiedSidenav';
 import { StaticNavItem, UnifiedTocNavItem } from './UnifiedTocNavItems';
 import { VersionDropdown } from './VersionDropdown';
 import type { TocItem } from './types';
-import DocsHomeButton from './DocsHomeButton';
+import { ProductTabs } from '@/mdx-components/ActionBar/ProductTabs';
 
 export const leftPane = LeafyCSS`
   flex: 0 0 161px;
@@ -44,20 +44,28 @@ const backLinkStyling = LeafyCSS`
   }
 `;
 
-const sideNavStyle = LeafyCSS`
+const sideNavStyle = ({ isAccordionOnly }: { isAccordionOnly: boolean }) => LeafyCSS`
   height: 100%;
   padding: 0px;
+  overflow: visible !important;
+
+ nav > div,
+  nav > div > ul {
+    overflow: visible !important;
+  }
 
   @media ${theme.screenSize.upTo2XLarge} {
     display: none;
   }
+
+  ${isAccordionOnly && 'display: none !important;'}
 `;
 
 const panelStyling = LeafyCSS`
     display: flex;
     flex-direction: row;
     position: fixed;
-    top: 50px;
+    top: 60px;
     height: calc(100% - 120px);
     padding-top: 10px;
     border-bottom: 1px solid var(--sidenav-border-bottom-color);
@@ -79,6 +87,7 @@ interface DoublePannedNavProps {
   setCurrentL1: (item: TocItem) => void;
   setCurrentL2s: (item: TocItem) => void;
   currentL1?: TocItem;
+  isAccordionOnly?: boolean;
 }
 
 export const DoublePannedNav = ({
@@ -90,18 +99,18 @@ export const DoublePannedNav = ({
   setCurrentL1,
   setCurrentL2s,
   currentL1,
+  isAccordionOnly = false,
 }: DoublePannedNavProps) => {
   const { isTabletOrMobile } = useScreenSize();
 
   return (
     <SideNav
       widthOverride={currentL2s?.items && currentL2s.items.length > 0 ? 426 : 161}
-      className={cx(sideNavStyle)}
+      className={cx(sideNavStyle({ isAccordionOnly }))}
       aria-label="Double Panned Side navigation Panel"
     >
       <div className={cx(NavTopContainer(isTabletOrMobile))}>
-        <ArtificialPadding />
-        <DocsHomeButton />
+        <ProductTabs slug={slug} />
       </div>
       <div className={cx(panelStyling)} data-nav-panel="fixed-sidenav">
         <div className={cx(leftPane)} data-nav-pane="left">

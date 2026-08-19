@@ -29,11 +29,13 @@ interface StyledInputProps {
 export const StyledInputContainer = styled.div<StyledInputProps>`
   width: 100%;
   max-width: 610px;
+  min-width: 0;
   background: inherit;
 
   div[role='searchbox'] {
     background-color: var(--search-input-background-color);
     width: 100%;
+    min-width: 0;
   }
 
   --search-input-background-color: ${palette.white};
@@ -103,9 +105,12 @@ export const ActionsBox = styled('div')`
   column-gap: ${theme.size.default};
   position: relative;
   top: 0;
-  margin: 0 ${theme.size.large} 0 ${theme.size.medium};
+  margin: 0 ${theme.size.large} 0 ${theme.size.default};
   justify-self: flex-end;
   grid-column: -2/-1;
+  // Keep action buttons at their intrinsic width so the search bar
+  // absorbs shrink when the action bar is tight.
+  flex-shrink: 0;
 
   @media ${theme.screenSize.upToLarge} {
     column-gap: 6px;

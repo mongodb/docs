@@ -1,3 +1,136 @@
+.. _opsmgr-server-8.0.26:
+
+|onprem| Server 8.0.26
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2026-08-12*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to
+  :ref:`108.0.26.9062-1 <mongodb-108.0.26.9062-1>`.
+- Adds support for the MongoDB Connector for BI 2.14.29.
+- Supports :dbtools:`MongoDB Database Tools 100.17.0
+  </release-notes/dbtools-100.17.0-changelog>`.
+- Updates JDK to `jdk-21.0.12+8
+  <https://adoptium.net/temurin/release-notes/?version=jdk-21.0.12+8>`__.
+- Enables in-place TLS certificate rotation for MongoDB 5.0 and
+  later deployments, allowing certificate updates without
+  downtime. To learn more, see :ref:`rotate-tls-certificates`.
+- Updates {+mongosh+} to 2.9.1 for all supported environments.
+- Updates the bundled MongoDB Java Driver from 4.9.1 to 5.4.0.
+  This driver update removes support for MongoDB Server 3.6.
+- Improves hybrid-mode deployments by ensuring agent binary
+  download URLs correctly use the hybrid base URL when available.
+- Adds support for OIDC authentication to AppDB and all backing
+  databases, including UI and public APIs support. To learn
+  more, see :ref:`oidc-backing-db-overview`.
+- Streams log uploads to AppDB as they arrive instead of
+  buffering them in temporary files on the |onprem| server.
+  This removes ``/tmp`` disk usage during large or concurrent
+  log collection operations, reducing the risk of server
+  crashes from temporary-storage exhaustion and the need to
+  provision oversized temporary volumes.
+- Supports cancelling in-progress log collection jobs so
+  cancelled work stops immediately, reducing wasted network,
+  CPU, and storage resources when a job is deleted.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes a critical backup corruption issue where a static abort
+  flag could cause unrelated backup jobs to be permanently marked
+  as broken, halting backups for other tenants until manual
+  intervention.
+- Prevents cross-project backup data access by ensuring imported
+  snapshot restores are properly scoped to the correct project.
+- Fixes a bug where the :guilabel:`Restore` page in the Admin UI
+  could error if a restore job pointed to a deleted import
+  deployment job, and cleans up orphaned restore jobs.
+- Corrects sharded cluster restore validation to match snapshot
+  components to target shards by replica set ID instead of list
+  position.
+- Fixes a regression where major or minor MongoDB version changes
+  could be blocked by spurious ``lastErrorModes`` changes.
+- Ensures that the AppDB SSL toggle in monitoring settings updates
+  correctly in the UI.
+- Fixes a bug where automated restore jobs stalled if the
+  deployment used ``net.tls.clusterAuthX509.attributes``.
+- Prevents misleading errors when importing deployments with
+  matching TLS settings by only rejecting on actual mismatches.
+- Fixes an issue where config backup persist failures could block
+  goal-state reporting even when encryption is disabled.
+- Fixes an issue where disk metrics weren't reported by the agent
+  when the database data resided on a dynamically mounted volume.
+- Fixes a UI issue where the left navigation highlight jumped to
+  the :guilabel:`Support` tab when the :guilabel:`Backup` tab was
+  selected.
+- Fixes a bug where LDAP configuration changes required an
+  |onprem| restart.
+- Fixes a bug where the backup daemon diagnostics page was
+  vulnerable to stored XSS through unescaped replica set names.
+- Prevents credential exposure by redacting AWS and backup
+  database credentials in S3 blockstore admin APIs and public
+  admin API reads.
+- Prevents credential exposure by redacting agent API keys and
+  certificate passwords in backup module startup error logs.
+- Prevents credential exposure by redacting the backup restore
+  verification token in agent logs during point-in-time restore
+  retries or failures.
+- Prevents credential exposure by redacting pre-signed S3 URLs in
+  agent logs on backup block download failures.
+- Prevents cross-tenant checkpoint writes by scoping agent
+  checkpoint mutations to the owning cluster.
+- Prevents persistent backup daemon denial of service from a
+  forged Snappy length in stored oplog slices by adding a maximum
+  size check.
+- Fixes a bug where new files in FileSystemStore incremental
+  backup could wedge the finish step, leaving snapshots
+  incomplete.
+- Fixes a bug where the login password appeared in plaintext in
+  browser DevTools by base64-encoding the password before sending
+  it to the server.
+- Fixes a bug where the oldest supported {+mdbagent+} version
+  wasn't updated, which could cause patch failures due to missing
+  S3 artifacts.
+- Fixes a bug where the agent couldn't resolve MongoDB Tools or
+  {+mongosh+} download URLs for ``ppc64le_rhel9`` platforms.
+- Fixes a bug where the agent couldn't resolve MongoDB Tools
+  download URLs for RHEL 8 (``s390x``) hosts.
+- Fixes the following |cve|\s:
+
+  - `CVE-2026-55223 <https://nvd.nist.gov/vuln/detail/CVE-2026-55223>`__
+  - `CVE-2026-67214 <https://nvd.nist.gov/vuln/detail/CVE-2026-67214>`__
+  - `CVE-2026-67213 <https://nvd.nist.gov/vuln/detail/CVE-2026-67213>`__
+  - `CVE-2026-40181 <https://nvd.nist.gov/vuln/detail/CVE-2026-40181>`__
+  - `CVE-2026-42338 <https://nvd.nist.gov/vuln/detail/CVE-2026-42338>`__
+  - `CVE-2026-69192 <https://nvd.nist.gov/vuln/detail/CVE-2026-69192>`__
+  - `CVE-2026-69153 <https://nvd.nist.gov/vuln/detail/CVE-2026-69153>`__
+  - `CVE-2026-13676 <https://nvd.nist.gov/vuln/detail/CVE-2026-13676>`__
+  - `CVE-2026-16221 <https://nvd.nist.gov/vuln/detail/CVE-2026-16221>`__
+  - `CVE-2026-18446 <https://nvd.nist.gov/vuln/detail/CVE-2026-18446>`__
+  - `CVE-2026-12590 <https://nvd.nist.gov/vuln/detail/CVE-2026-12590>`__
+  - `CVE-2026-10050 <https://nvd.nist.gov/vuln/detail/CVE-2026-10050>`__
+  - `CVE-2026-8384 <https://nvd.nist.gov/vuln/detail/CVE-2026-8384>`__
+  - `CVE-2026-59901 <https://nvd.nist.gov/vuln/detail/CVE-2026-59901>`__
+  - `CVE-2026-56745 <https://nvd.nist.gov/vuln/detail/CVE-2026-56745>`__
+  - `CVE-2026-55831 <https://nvd.nist.gov/vuln/detail/CVE-2026-55831>`__
+  - `CVE-2026-55833 <https://nvd.nist.gov/vuln/detail/CVE-2026-55833>`__
+  - `CVE-2026-59898 <https://nvd.nist.gov/vuln/detail/CVE-2026-59898>`__
+  - `CVE-2026-59899 <https://nvd.nist.gov/vuln/detail/CVE-2026-59899>`__
+  - `CVE-2026-59921 <https://nvd.nist.gov/vuln/detail/CVE-2026-59921>`__
+  - `CVE-2026-33750 <https://nvd.nist.gov/vuln/detail/CVE-2026-33750>`__
+  - `CVE-2026-13149 <https://nvd.nist.gov/vuln/detail/CVE-2026-13149>`__
+  - `CVE-2026-27903 <https://nvd.nist.gov/vuln/detail/CVE-2026-27903>`__
+  - `CVE-2026-27904 <https://nvd.nist.gov/vuln/detail/CVE-2026-27904>`__
+  - `CVE-2026-25896 <https://nvd.nist.gov/vuln/detail/CVE-2026-25896>`__
+  - `CVE-2026-25128 <https://nvd.nist.gov/vuln/detail/CVE-2026-25128>`__
+  - `CVE-2026-26278 <https://nvd.nist.gov/vuln/detail/CVE-2026-26278>`__
+  - `CVE-2026-27942 <https://nvd.nist.gov/vuln/detail/CVE-2026-27942>`__
+  - `CVE-2025-69873 <https://nvd.nist.gov/vuln/detail/CVE-2025-69873>`__
+  - `CVE-2026-41907 <https://nvd.nist.gov/vuln/detail/CVE-2026-41907>`__
+
 .. _opsmgr-server-8.0.25:
 
 |onprem| Server 8.0.25

@@ -166,9 +166,14 @@ transform the notifications at will.
 
    When a change stream is opened on a sharded cluster:
 
-   - The :binary:`mongos` creates individual change streams on **each
-     shard**. This behavior occurs regardless of whether the change
-     stream targets a particular shard key range.
+   - .. versionchanged:: 9.0
+
+        The :binary:`mongos` opens change stream cursors only on
+        the shards that hold data for the monitored namespace
+        and adjusts which shards it targets as the cluster
+        topology changes. In earlier versions, the ``mongos``
+        opened a change stream cursor on every shard in the
+        cluster.
 
    - When the ``mongos`` receives change stream results, it sorts and
      filters those results. If needed, the ``mongos`` also performs a
@@ -939,6 +944,29 @@ transform the notifications at will.
    Change streams are resumable by specifying a resume token to either
    :ref:`resumeAfter <change-stream-resume-after>` or :ref:`startAfter
    <change-stream-start-after>` when opening the cursor.
+
+   .. note:: Read Preference Enforcement After Elections
+
+      .. versionchanged:: 9.0
+
+      When you open a change stream with a ``readPreference`` of
+      ``primary`` or ``secondary``, a replica set election can change
+      the role of the node serving the cursor. If the node's new role no
+      longer satisfies the cursor's ``readPreference``, ``getMore``
+      returns the resumable error ``InterruptedDueToReplStateChange``
+      (error code ``11602``). This behavior applies to both replica sets
+      and sharded clusters.
+
+      Compliant drivers and :binary:`~bin.mongos` treat this error as a
+      resumable change stream error and automatically resume the stream
+      from the last resume token, which routes to a node that satisfies
+      the ``readPreference``. If your application processes change
+      events with a manual ``getMore`` loop, or uses
+      :binary:`~bin.mongosh`, catch this error and resume the change
+      stream with :ref:`resumeAfter <change-stream-resume-after>`.
+
+      The ``primaryPreferred``, ``secondaryPreferred``, and ``nearest``
+      read preferences are always satisfiable and are unaffected.
 
    .. warning::
 

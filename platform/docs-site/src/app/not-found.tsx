@@ -1,23 +1,37 @@
 'use client';
 
+import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { Body } from '@leafygreen-ui/typography';
+import { TrackJS } from 'trackjs';
 import { Link } from '@/mdx-components/Link';
-
 import { DOTCOM_BASE_URL } from '@/constants';
 import { getBasePath } from '@/utils/base-path';
 import { ErrorPage } from '@/templates/error-template';
-import { TrackJS } from 'trackjs';
-import { useEffect } from 'react';
+
+/**
+ * Build the absolute URL shown on the 404 body.
+ * usePathname() is usually basePath-relative (prepend this deploy's basePath).
+ * When the pathname already includes a `/docs` path — e.g. a cross-docset URL
+ * or a CDN rewrite — skip basePath so we don't double-prefix.
+ */
+function buildFromUrl(pathname: string): string {
+  const isAbsoluteDocsPath = pathname === '/docs' || pathname.includes('/docs/');
+
+  return isAbsoluteDocsPath
+    ? `${DOTCOM_BASE_URL}${pathname}`
+    : `${DOTCOM_BASE_URL}${getBasePath()}${pathname}`;
+}
 
 const NotFoundBody = () => {
   const pathname = usePathname();
-  // usePathname() is basePath-relative; prepend basePath to show the full URL.
-  const fromURL = `${DOTCOM_BASE_URL}${getBasePath()}${pathname}`;
+  const fromURL = pathname ? buildFromUrl(pathname) : '';
 
   useEffect(() => {
-    TrackJS.track(`page_not_found - fromURL: ${fromURL}`);
-  }, []);
+    if (fromURL) {
+      TrackJS.track(`page_not_found - fromURL: ${fromURL}`);
+    }
+  }, [fromURL]);
 
   return pathname ? (
     <Body>

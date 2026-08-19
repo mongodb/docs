@@ -60,6 +60,7 @@ Skills for triage duty and batch ticket completion.
 | Skill | What it does |
 |---|---|
 | `/captain-v2` | Batch workflow for completing small DOCSP Jira tickets via sage-bot-beta |
+| `/mercury-fix` | Turn a Mercury mismatch ticket into a reviewable docs edit |
 | `/triage` | Run triage duty for CET/Cloud, Server, or Drivers/DBX |
 
 ## Platform & Tooling
@@ -92,5 +93,8 @@ For detecting and fixing linter-flagged issues in content/.
 
 | Tool | What it does |
 |---|---|
+| `feature-branch` | Deterministic git flow for the feature-branch workflow: create, sync, and start-task |
+| `feature-drafter-agent` | Drafts one page or section from a planner task and opens a PR against the feature branch |
+| `feature-planner-agent` | Turns an approved documentation plan into tasks and delegates drafting to feature-drafter-agent sub-agents |
 | `jira-state-transitions` | PostToolUse hooks that transition DOCSP tickets on branch and PR creation |
 | `ops-manager-release-notes` | Generate a versioned patch release entry for Ops Manager by fetching improvements and bug fixes from Aha! and Jira, writing RST entries, and prepending the assembled block to the active changelog file |

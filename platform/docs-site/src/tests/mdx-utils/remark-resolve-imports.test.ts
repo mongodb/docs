@@ -206,3 +206,185 @@ describe('remarkResolveImports ref link path prefix', () => {
     );
   });
 });
+
+describe('remarkResolveImports flow-context references (phrasing at flow position)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetContentString.mockImplementation(async (rawPath: string) => {
+      if (rawPath.endsWith('_references.json')) {
+        return JSON.stringify({
+          substitutions: {},
+          refs: {
+            'core/backup-preparations': 'core/backup-preparations',
+            'reference/api/hosts/get-all-hosts-in-group': 'reference/api/hosts/get-all-hosts-in-group',
+          },
+        });
+      }
+      return null;
+    });
+  });
+
+  async function resolve(pageMdx: string): Promise<string> {
+    const file = await remark()
+      .use(remarkFrontmatter, ['yaml'])
+      .use(remarkGfm)
+      .use(remarkMdx)
+      .use(remarkResolveImports, { projectPath: 'ops-manager/v7.0', dirNameToPrefix: {} })
+      .use(remarkStringify)
+      .process(pageMdx);
+    return String(file);
+  }
+
+  it('wraps a block-position <Reference> link in a paragraph so the document stays separated', async () => {
+    // A <Reference/> on its own line parses as a block (mdxJsxFlowElement) directly
+    // under root. Replacing it with a bare link node (phrasing) at that flow position
+    // makes remark-stringify glue every block together; the re-parse then fails with
+    // "Expected a closing tag".
+    const pageMdx = [
+      '# Back up a Deployment',
+      '',
+      '<Reference name="core/backup-preparations" title="Decide how to back up the data." />',
+      '',
+      'More content.',
+      '',
+    ].join('\n');
+
+    const resolved = await resolve(pageMdx);
+
+    // Heading, link, and trailing paragraph must remain on separate blocks.
+    expect(resolved).toMatch(/# Back up a Deployment\n\n\[Decide how to back up the data\.\]/);
+    expect(resolved).toMatch(/\)\n\nMore content\./);
+    await expect(reparseMdx(resolved)).resolves.toBeDefined();
+  });
+
+  it('does not wrap inline RefRole links inside a one-line DefinitionDescription', async () => {
+    // Glossary terms emit a one-line <DefinitionDescription> with mid-sentence
+    // <RefRole> children. DefinitionListItem is a flow parent, so the description
+    // re-parses as mdxJsxFlowElement even though its children are inline. Wrapping
+    // each resolved link in a paragraph produces <dd>text <p><a>…</a></p> text</dd>
+    // and breaks glossary spacing.
+    mockGetContentString.mockImplementation(async (rawPath: string) => {
+      if (rawPath.endsWith('_references.json')) {
+        return JSON.stringify({
+          substitutions: {},
+          refs: {
+            collection: '#std-term-collection',
+            'database-command': '#std-term-database-command',
+          },
+        });
+      }
+      return null;
+    });
+
+    const pageMdx = [
+      '<DefinitionList>',
+      '  <DefinitionListItem>',
+      '    <DefinitionTerm>$cmd</DefinitionTerm>',
+      "    <DefinitionDescription>A virtual <RefRole type=\"term\" name=\"collection\">collection</RefRole> that exposes MongoDB's <RefRole type=\"term\" name=\"database-command\">database commands</RefRole>.</DefinitionDescription>",
+      '  </DefinitionListItem>',
+      '</DefinitionList>',
+      '',
+    ].join('\n');
+
+    const resolved = await resolve(pageMdx);
+
+    expect(resolved).toContain('A virtual [collection](');
+    expect(resolved).toContain("that exposes MongoDB's [database commands](");
+    expect(resolved).not.toMatch(/A virtual\s*\n\n\[collection\]/);
+    await expect(reparseMdx(resolved)).resolves.toBeDefined();
+  });
+
+  it('escapes braces in a block-position reference link (acorn crash)', async () => {
+    // A block-position reference whose title contains `{...}` (e.g. an API path
+    // template). When the link lands directly in a flow container it is stringified
+    // with unescaped braces, so the re-parse reads `{PROJECT-ID}` as an MDX
+    // expression and throws "Could not parse expression with acorn".
+    const pageMdx = [
+      '<TableCell>',
+      '  <Reference name="reference/api/hosts/get-all-hosts-in-group" title="/groups/{PROJECT-ID}/hosts" />',
+      '</TableCell>',
+      '',
+    ].join('\n');
+
+    const resolved = await resolve(pageMdx);
+
+    expect(resolved).toContain('\\{PROJECT-ID}');
+    await expect(reparseMdx(resolved)).resolves.toBeDefined();
+  });
+});
+
+describe('remarkResolveImports rich substitution references', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetContentString.mockImplementation(async (rawPath: string) => {
+      if (rawPath.endsWith('_references.json')) {
+        return JSON.stringify({
+          substitutions: {
+            // Rich value: markup the renderer splices in, plus a flattened string fallback.
+            'ui-org-menu': {
+              text: 'Organizations menu',
+              nodes: [
+                {
+                  type: 'mdxJsxTextElement',
+                  name: 'Icon',
+                  attributes: [{ type: 'mdxJsxAttribute', name: 'name', value: 'icon-mms' }],
+                  children: [{ type: 'text', value: 'office' }],
+                },
+                { type: 'text', value: ' ' },
+                {
+                  type: 'mdxJsxTextElement',
+                  name: 'Guilabel',
+                  attributes: [],
+                  children: [{ type: 'text', value: 'Organizations' }],
+                },
+                { type: 'text', value: ' menu' },
+              ],
+            },
+            mms: 'Ops Manager',
+          },
+          refs: {},
+        });
+      }
+      return null;
+    });
+  });
+
+  async function resolve(pageMdx: string): Promise<string> {
+    const file = await remark()
+      .use(remarkFrontmatter, ['yaml'])
+      .use(remarkGfm)
+      .use(remarkMdx)
+      .use(remarkResolveImports, { projectPath: 'manual/manual', dirNameToPrefix: {} })
+      .use(remarkStringify)
+      .process(pageMdx);
+    return String(file);
+  }
+
+  it('splices shared markup in at the reference site', async () => {
+    const resolved = await resolve(
+      'Select it from the <Reference refKey="ui-org-menu" type="substitution" /> in the navigation bar.\n',
+    );
+
+    expect(resolved).not.toContain('<Reference');
+    expect(resolved).toContain('<Icon name="icon-mms">office</Icon>');
+    expect(resolved).toContain('<Guilabel>Organizations</Guilabel>');
+    expect(resolved).toContain('menu in the navigation bar.');
+    await expect(reparseMdx(resolved)).resolves.toBeDefined();
+  });
+
+  it('gives every reference to the key its own copy of the markup', async () => {
+    // One shared entry serves many call sites; splicing the same node objects into each would
+    // let a later mutating plugin corrupt every other occurrence.
+    const resolved = await resolve(
+      'The <Reference refKey="ui-org-menu" type="substitution" /> and the <Reference refKey="ui-org-menu" type="substitution" />.\n',
+    );
+
+    expect(resolved.match(/<Guilabel>Organizations<\/Guilabel>/g)).toHaveLength(2);
+  });
+
+  it('still resolves plain string substitutions to text', async () => {
+    const resolved = await resolve('Open <Reference refKey="mms" type="substitution" />.\n');
+
+    expect(resolved).toContain('Open Ops Manager.');
+  });
+});

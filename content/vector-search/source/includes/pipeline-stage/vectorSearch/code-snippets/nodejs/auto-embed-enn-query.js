@@ -1,6 +1,6 @@
 const { MongoClient } = require("mongodb");
 
-// connect to your Atlas cluster
+// connect to your cluster
 const uri = "<connection-string>";
     
 const client = new MongoClient(uri);
@@ -17,7 +17,7 @@ async function run() {
         const agg = [
             {
               '$vectorSearch': {
-                'index': 'vector_index', 
+                'index': 'autoembed_index', 
                 'path': 'fullplot', 
                 'query': {
                     "text": "solo traveler discovering new cultures"

@@ -45,6 +45,7 @@ const scrollMarginStyles = css`
 
 export type FootnoteProps = {
   children?: React.ReactNode;
+  /** Pairing key shared with every <FootnoteReference> that points at this footnote. */
   name?: string;
 };
 

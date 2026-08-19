@@ -7,7 +7,7 @@ $uri = '<connection-string>';
 
 try {
 
-    // Connect to your Atlas cluster
+    // Connect to your cluster
     $client = new MongoDB\Client($uri);
 
     // Set the namespace

@@ -1391,6 +1391,70 @@ Overall, effective fields behaviour falls into one of three scenarios:
         ]
         }
 
+Adjust the Auto-Scaling Range with Effective Fields
+```````````````````````````````````````````````````
+
+If you enable :ref:`effective fields <effective-fields>`,
+|service| validates any new auto-scaling range against the
+{+cluster+}'s current effective instance size. |service| rejects
+a request that sets a range that doesn't contain the current
+effective instance size. This behavior applies to
+:term:`operational nodes <operational node>` and
+:term:`analytics nodes <analytics node>` that use auto-scaling.
+
+The request fails with a validation error in either of these
+cases:
+
+- The new minimum instance size is larger than the effective
+  instance size.
+
+- The new maximum instance size is smaller than the effective
+  instance size.
+
+If the new range still contains the current effective instance
+size, you can change the bounds in a single request.
+
+If the current effective instance size falls outside the new
+range, use the following procedure to move it into the new range
+before you change the bounds. If you update the instance size in
+the same request as the range change, |service| doesn't apply the
+new instance size while auto-scaling is enabled with effective
+fields, so the request still fails.
+
+.. tabs::
+
+  .. tab:: API
+    :tabid: api
+
+    .. procedure::
+       :style: normal
+
+       .. step:: Disable compute auto-scaling.
+
+          Set ``compute.enabled`` to ``false``.
+
+       .. step:: Set the instance size to a value inside the intended new range.
+
+          Set ``instanceSize`` to the target value, then send the
+          request.
+
+       .. step:: Re-enable compute auto-scaling.
+
+          Set ``compute.enabled`` to ``true``.
+
+       .. step:: Set the new range bounds.
+
+          Set ``minInstanceSize`` and ``maxInstanceSize`` to the
+          new bounds, then send the request.
+
+  .. tab:: Terraform
+    :tabid: terraform
+
+    To adjust the auto-scaling range with {+terraform+}, see
+    `Adjusting the Auto-Scaling Range with use_effective_fields
+    <https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#adjusting-the-auto-scaling-range-with-use_effective_fields>`__
+    in the {+terraform+} provider documentation.
+
 .. _custom-alerts-auto-scaling-events:
 
 Configure Alerts for Auto-Scaling Events

@@ -1,0 +1,295 @@
+.. _remote-mcp-security:
+
+======================================
+Security, Governance, and Auditability
+======================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: MCP, authorization, OAuth, user delegation, identity, credentials, database access, token, audit
+   :description: Learn how MongoDB Atlas handles authorization, identity, credential isolation, and auditability when AI clients use delegated access to act on your behalf through OAuth.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+When you connect an AI client to Atlas using user-delegated access,
+the AI client acts on your behalf using your own Atlas identity. This
+page explains how that authorization works, what the AI client can
+and cannot access, and how your credentials stay protected.
+
+To learn how an Organization Owner enables access, configures access
+modes, and audits AI client activity, see
+:ref:`remote-mcp-manage-ai-client-access`.
+
+The Remote MCP server implements version 2025-11-25 of the `Model
+Context Protocol specification
+<https://modelcontextprotocol.io/specification/2025-11-25>`__. As part
+of the protocol, user-delegated access uses the OAuth 2.1
+Authorization Code flow with Proof Key for Code Exchange (PKCE).
+
+Identity and Permissions
+------------------------
+
+The AI client acts under your Atlas identity, using your existing
+Atlas role. The AI client cannot exceed the permissions that you
+already have. If your role does not allow an action, the AI client
+cannot perform that action on your behalf.
+
+You cannot delegate a subset of your permissions. When you authorize
+an AI client, it acts with your full existing permissions, subject to
+the access mode that your Organization Owner configures. To learn
+about access modes, see
+:ref:`remote-mcp-manage-ai-client-access-modes`.
+
+Atlas attributes all actions that an AI client performs to you in the
+audit log. Organization audit log events record both your user ID and
+the ID of the AI client that made the request. To learn how Atlas
+records AI client activity in your audit log, see
+:ref:`remote-mcp-manage-ai-client-access`.
+
+Credential Isolation
+--------------------
+
+Atlas never shares your credentials with the AI client. During the
+connection flow, you authenticate directly with Atlas in your browser.
+The AI client never receives your Atlas password or long-lived
+credentials.
+
+After you authorize the connection, Atlas manages the tokens that the
+connection uses. Token refresh is automatic. You do not manage a
+connection string or secret.
+
+Data-Plane Connection Isolation
+-------------------------------
+
+To connect to your data, Atlas uses short-lived credentials that
+carry your individual identity. Atlas creates these credentials for
+the data-plane connection only.
+
+The database connection details are never exposed to the AI client.
+The AI client interacts with your data only through the tools
+available in its configured access mode.
+
+An AI client's ability to connect to your clusters depends on your
+own Atlas permissions. To learn which Atlas roles receive database
+access through an AI client, see
+:ref:`remote-mcp-manage-ai-client-access-roles`.
+
+Revoking access also ends data-plane access on the same timeline. The
+AI client must present a valid access token to call any tool. When
+the access token expires and the refresh token no longer works, the
+AI client cannot reach your data, even if its database credentials
+have not yet expired.
+
+Access Lifetime and Revocation
+------------------------------
+
+An AI client's access on your behalf ends after 7 days of
+inactivity, or 30 days from when you granted access, regardless of
+activity. When access ends, you must authenticate again to reconnect
+the AI client. Organization Owners can reduce the maximum token
+lifetime for the organization.
+
+You can revoke an AI client's access at any time from the Atlas UI.
+Revoking access invalidates the AI client's refresh token, but the
+client's current access token remains valid until it expires, up to
+10 minutes later. When an Organization Owner disables AI client
+access for the organization, control-plane access ends immediately,
+because Atlas checks whether access is enabled on every
+Administration API call.
+
+.. _remote-mcp-security-tool-annotations:
+
+Tool Annotations and Destructive Operations
+-------------------------------------------
+
+Each :ref:`MongoDB MCP server tool <mcp-server-tools>` carries
+annotations that describe what the tool does. AI clients can use
+these annotations to decide how to present a tool to you, such as
+whether to ask before running it.
+
+The two annotations relevant to security are:
+
+- ``readOnlyHint``: when ``true``, indicates that the tool doesn't change any data
+  or configuration.
+- ``destructiveHint``: when ``true``, indicates that the tool can remove or overwrite
+  existing data or configuration.
+
+The MCP Server derives both annotations from the tool's operation
+type:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 20 20 35
+
+   * - Operation Type
+     - ``readOnlyHint``
+     - ``destructiveHint``
+     - Example Tools
+
+   * - ``read``, ``metadata``, ``connect``
+     - ``true``
+     - ``false``
+     - ``find``, ``aggregate``, ``list-databases``
+
+   * - ``create``
+     - ``false``
+     - ``false``
+     - ``atlas-create-access-list``, ``atlas-create-db-user``
+
+   * - ``update``, ``delete``
+     - ``false``
+     - ``true``
+     - ``update-many``, ``drop-database``, ``delete-many``
+
+.. include:: /includes/fact-tool-hints-not-security-gate.rst
+
+Non-Destructive Security-Sensitive Tools
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``create`` tools report ``destructiveHint`` as ``false`` because such
+tools add resources instead of removing or overwriting resources.
+However, some ``create`` tools still change your security posture.
+For example:
+
+- ``atlas-create-access-list`` increases your cluster's exposure by
+  adding entries to a project's IP access list. An entry such as
+  ``0.0.0.0/0`` exposes the cluster to every IP address.
+- ``atlas-create-db-user`` creates a database user that can read or
+  write data, depending on the roles granted to it.
+
+Evaluate a tool based on what it changes, not on the value of
+``destructiveHint``.
+
+Confirming Intent
+~~~~~~~~~~~~~~~~~
+
+For some tools, the MCP Server asks you to confirm the operation
+before the tool runs. MongoDB calls this process elicitation. The AI
+client displays the confirmation prompt and, if you decline, the MCP
+Server returns an error and doesn't perform the operation.
+
+Confirmation depends on the AI client supporting the MCP elicitation capability. If the AI client doesn't
+support elicitation, the MCP Server runs the tool without asking you
+to confirm. Don't assume that a confirmation prompt appears before a
+risky operation runs.
+
+What Bounds a Tool
+~~~~~~~~~~~~~~~~~~
+
+Permissions, not annotations, determine what an AI client can change
+using their tools. Permissions are determined by:
+
+- your Atlas role
+- your organization's AI client access level
+
+A tool fails if you lack the privileges that the operation requires, regardless of
+the tool annotations or the confirmation prompts.
+
+Because you can't delegate a subset of your permissions, an AI client
+that acts on your behalf can reach anything your role allows. Consider
+this when you hold a broadly privileged role such as
+``Project Database Access Admin`` or ``Project IP Access List Admin``.
+These roles allow the tools described in the earlier section.
+
+To learn about Atlas roles, see :ref:`Atlas User Roles <user-roles>`.
+
+If you connect an automated agent with programmatic access instead,
+the agent acts as a Service Account rather than as you. Scope each MCP
+configuration to only the roles that the agent's workflow requires,
+and keep the configuration read-only unless the agent must write. A
+read-only configuration prevents AI agents from seeing write tools at
+all, making it an effective access control.
+
+.. _remote-mcp-security-read-tools-can-write:
+
+Read-Labeled Tools That Can Perform Writes
+------------------------------------------
+
+.. warning:: Some read-labeled tools can write
+
+   ``aggregate``, ``aggregate-db``, and ``export`` are ``read`` tools
+   that report ``readOnlyHint: true``. These tools run aggregation
+   pipelines that can include a ``$out`` or ``$merge`` stage, both of
+   which write the pipeline results to a collection.
+   ``operationType: "read"`` doesn't guarantee that a tool leaves your
+   data unchanged.
+
+Scope of the Risk
+~~~~~~~~~~~~~~~~~
+
+An aggregation pipeline's ``$merge`` stage can write to a different
+database or collection than the one that the pipeline reads from. The
+``$merge`` stage's ``into`` option accepts ``{db: <database>, coll:
+<collection>}``. The write can target any database or collection
+that the AI client's Atlas identity can access, beyond what the AI
+client appears to be querying.
+
+A ``$out`` stage completely overwrites the contents of the target
+collection if the target collection already exists.
+
+Mitigations
+~~~~~~~~~~~
+
+Not every aggregation pipeline results in a write. Running a
+write-producing aggregation pipeline requires:
+
+- **An authenticated session**: either your own session under
+  user-delegated access, or a Service Account's credentials under
+  programmatic access.
+- **Project access**: the AI client's Atlas identity must grant it
+  write access to the target project. For user-delegated access,
+  this is your own Atlas role. For programmatic access, this is the
+  Service Account's assigned Atlas roles.
+
+These conditions reduce the risk, but don't remove it. A policy that
+grants access to ``aggregate``, ``aggregate-db``, or ``export`` based
+on the ``read`` label alone can unintentionally grant the AI client
+write access.
+
+``aggregate`` remains available even when an AI client's access mode
+or a Service Account's role is read-only. However, the write still
+fails: if a Service Account's role is read-only, or your
+organization's access mode is set to read-only for user-delegated
+access, a ``$out`` or ``$merge`` stage in the pipeline can't complete
+because the connection doesn't have write permission.
+
+The MCP Server also triggers a confirmation prompt when an
+aggregation pipeline contains a ``$out`` or ``$merge`` stage. The AI
+client displays the prompt and asks you to confirm the write
+before the pipeline runs. This confirmation depends on the AI client
+supporting `elicitation
+<https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation>`__.
+If the AI client doesn't support elicitation, the MCP Server runs the
+pipeline without asking you to confirm.
+
+Reducing the Risk
+~~~~~~~~~~~~~~~~~
+
+- Grant AI clients and Service Accounts only the Atlas roles that
+  their workflow requires. A read-only role prevents ``aggregate``
+  from writing through a ``$out`` or ``$merge`` stage.
+- Use an AI client that supports elicitation, so the MCP Server can
+  ask for your consent before it runs a write-producing aggregation
+  pipeline.
+- For user-delegated access, an Organization Owner can set your
+  organization's access mode to read-only instead of read-write.
+  This prevents writes through ``aggregate`` for every AI client in
+  your organization.
+- For programmatic access, keep the Service Account's MCP
+  configuration read-only unless the agent's workflow requires
+  writes. This prevents writes through ``aggregate`` the same way.
+
+Learn More
+----------
+
+To learn about retained security artifacts and guidance for federated
+users, see :ref:`atlas-app-connections`.

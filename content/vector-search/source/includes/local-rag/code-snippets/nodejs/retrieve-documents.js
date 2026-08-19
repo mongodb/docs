@@ -3,7 +3,7 @@ import { getEmbedding } from './get-embeddings.js';
 
 // Function to get the results of a vector query
 export async function getQueryResults(query) {
-    // Connect to your Atlas cluster
+    // Connect to your cluster
     const client = new MongoClient(process.env.MONGODB_URI);
 
     try {

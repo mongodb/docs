@@ -11,7 +11,7 @@
 
       .. code-block:: python
 
-         pip install --quiet --upgrade llama-index llama-index-vector-stores-mongodb llama-index-llms-openai llama-index-embeddings-voyageai pymongo
+         pip install --quiet --upgrade llama-index llama-index-vector-stores-mongodb llama-index-llms-openai llama-index-embeddings-voyageai pymongo atlas-local-lib-py
 
       Then, run the following code to import the required packages:
 
@@ -32,15 +32,42 @@
          from llama_index.llms.openai import OpenAI
          from llama_index.vector_stores.mongodb import MongoDBAtlasVectorSearch
                            
-   .. step:: Define environment variables.
+   .. step:: Define environment variables and connection string.
 
-      Run the following code, replacing the placeholders with 
+      Run the following code, replacing the placeholders with
       the following values:
 
       - Your OpenAI API Key.
       - Your Voyage AI API Key.
-      - Your MongoDB cluster's |srv| :manual:`connection string
-        </reference/connection-string/#find-your-mongodb-atlas-connection-string>`.
+
+      For your MongoDB connection, choose one of the following options:
+
+      **Option 1: Local Deployment (Recommended for Testing)**
+
+      Use ``atlas-local-lib-py`` to create or reuse a local deployment
+      and retrieve the connection string programmatically:
+
+      ..
+         NOTE: If you edit this Python code, also update the Jupyter Notebook
+         at https://github.com/mongodb/docs-notebooks/blob/main/ai-integrations/llamaindex.ipynb
+
+      .. code-block:: python
+
+         from atlas_local import LocalDeployment
+
+         os.environ["OPENAI_API_KEY"] = "<openai-api-key>"
+         os.environ["VOYAGEAI_API_KEY"] = "<voyageai-api-key>"
+
+         # Create or reuse a local Atlas deployment
+         deployment = LocalDeployment.get_or_create(
+             name="llamaindex-local-deployment"
+         )
+         MONGODB_URI = deployment.connection_string()
+
+      **Option 2: Cloud Cluster**
+
+      Manually specify your MongoDB cluster's |srv| :manual:`connection string
+      </reference/connection-string/#find-your-mongodb-atlas-connection-string>`:
 
       ..
          NOTE: If you edit this Python code, also update the Jupyter Notebook
@@ -52,7 +79,7 @@
          os.environ["VOYAGEAI_API_KEY"] = "<voyageai-api-key>"
          MONGODB_URI = "<connection-string>"
 
-      .. note:: 
+      .. note::
 
          .. include:: /includes/search-shared/find-connection-string.rst
             

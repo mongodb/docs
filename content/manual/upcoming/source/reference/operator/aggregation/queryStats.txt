@@ -24,7 +24,10 @@ Definition
 
 ``$queryStats`` collects and reports metrics for
 :method:`~db.collection.aggregate()`, :method:`~db.collection.find()`,
-and :method:`~db.collection.distinct()` queries. ``$queryStats`` does
+:method:`~db.collection.distinct()`, :method:`~db.collection.count()`,
+:method:`~db.collection.update()`, :method:`~db.collection.insert()`,
+:method:`~db.collection.deleteOne()`, and
+:method:`~db.collection.deleteMany()` queries. ``$queryStats`` does
 not collect information for queries that use :ref:`{+qe+}
 <qe-manual-feature-qe>`.
 
@@ -782,8 +785,53 @@ Each document in the output array contains the following fields:
        number of matching queries where the value of ``fromPlanCache`` is ``true`` or
        ``false``, respectively.
 
-       ``fromPlanCache`` is ``true`` when the query planner is able to use a plan from the 
+       ``fromPlanCache`` is ``true`` when the query planner is able to use a plan from the
        plan cache.
+
+   * - | ``metrics``
+       | ``.queryPlanner``
+       | ``.planShapeCounters``
+     - Document
+     - Literal
+     - .. versionadded:: 9.0
+
+       Counts of the plan shapes that MongoDB selected for queries with
+       the given key. For details, see
+       :ref:`queryStats-planShapeCounters`.
+
+   * - | ``metrics``
+       | ``.queryPlanner``
+       | ``.planShapeCounters``
+       | ``.patterns``
+     - Document
+     - Literal
+     - .. versionadded:: 9.0
+
+       Counts of the overall shapes of the winning plans. Each winning
+       plan matches at most one pattern.
+
+   * - | ``metrics``
+       | ``.queryPlanner``
+       | ``.planShapeCounters``
+       | ``.nodes``
+     - Document
+     - Literal
+     - .. versionadded:: 9.0
+
+       Counts of the types of plan stages that appear in the winning
+       plans. A single winning plan can match multiple node counters.
+
+   * - | ``metrics``
+       | ``.queryPlanner``
+       | ``.planShapeCounters``
+       | ``.accessPaths``
+     - Document
+     - Literal
+     - .. versionadded:: 9.0
+
+       Counts of the data access paths and index bounds that the
+       winning plans use. A single winning plan can match multiple
+       access path counters.
 
    * - ``metrics.writes``
      - Document
@@ -1220,6 +1268,322 @@ Each document in the output array contains the following fields:
        .. versionadded:: 8.3
 
 
+.. _queryStats-planShapeCounters:
+
+Plan Shape Counters
+~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 9.0
+
+The ``metrics.queryPlanner.planShapeCounters`` document records how
+often MongoDB selected each plan shape for queries with the given key.
+Use these counters to learn which query plans your workload relies on
+most.
+
+``planShapeCounters`` contains up to three subdocuments, which each map
+counter names to counts:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 30
+
+   * - Subdocument
+     - Description
+
+   * - ``patterns``
+     - Counts the overall shape of each winning plan. The patterns are
+       mutually exclusive, so each query execution increments at most
+       one pattern counter.
+
+   * - ``nodes``
+     - Counts the types of plan stages that appear in each winning
+       plan. The node counters are not mutually exclusive, so one
+       query execution can increment several of them.
+
+   * - ``accessPaths``
+     - Counts the data access paths and index bounds that each winning
+       plan uses. The access path counters are not mutually exclusive,
+       so one query execution can increment several of them.
+
+Each counter increments by at most one for each query execution, even if
+the plan uses the corresponding stage or access path many times. For
+example, a plan with 1,000 branches under an ``$or`` stage increments
+the matching ``$or`` node counter by one, not by 1,000. As a result, the
+counters record how many executions used a stage, not how many times
+each execution used it.
+
+MongoDB omits counters with a count of zero and omits subdocuments that
+contain no counters. If none of the recorded queries produced plan shape
+counters, MongoDB omits the ``planShapeCounters`` document entirely. For
+example, a query that matches a single document by ``_id`` uses a fast
+path that doesn't match any tracked plan shape, so its query stats entry
+contains no ``planShapeCounters`` document.
+
+MongoDB records plan shape counters only for the top-level query. For
+example, MongoDB does not record counters for the foreign side of a
+:pipeline:`$lookup` stage.
+
+Pattern Counters
+````````````````
+
+Each pattern counter name lists the stages of the winning plan in
+order, starting with the access path stage. For example,
+``ixscanFetchSort`` counts winning plans that use an index scan, fetch
+the matching documents, and then sort them.
+
+Pattern names describe plans at a coarse level. They omit limit and skip
+stages, and they don't distinguish whether a stage applies a filter or
+which type of projection a plan uses. To determine those details, combine
+a pattern counter with the ``nodes`` counters and the
+:ref:`query shape <queryStats-queryShape>` for the entry.
+
+``patterns`` can contain the following counters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 30
+
+   * - Access Path
+     - Counters
+
+   * - Collection scan
+     - - ``collscan``
+       - ``collscanProject``
+       - ``collscanProjectSort``
+       - ``collscanProjectSortProject``
+       - ``collscanSort``
+       - ``collscanSortProject``
+       - ``collscanSortProjectSort``
+
+   * - Index scan with a fetch
+     - - ``ixscanFetch``
+       - ``ixscanFetchProject``
+       - ``ixscanFetchProjectSort``
+       - ``ixscanFetchProjectSortProject``
+       - ``ixscanFetchSort``
+       - ``ixscanFetchSortProject``
+       - ``ixscanFetchSortProjectSort``
+       - ``ixscanFetchSortMerge``
+       - ``ixscanFetchSortMergeProject``
+
+   * - Index scan with an ``$or``
+     - - ``ixscanFetchOr``
+       - ``ixscanFetchOrProject``
+       - ``ixscanFetchOrProjectSort``
+       - ``ixscanFetchOrSort``
+       - ``ixscanFetchOrSortProject``
+       - ``ixscanOrFetch``
+       - ``ixscanOrFetchProject``
+       - ``ixscanOrFetchProjectSort``
+       - ``ixscanOrFetchSort``
+       - ``ixscanOrFetchSortProject``
+       - ``ixscanOrProject``
+       - ``ixscanOrProjectSort``
+
+   * - Index scan without an immediate fetch
+     - - ``ixscanProject``
+       - ``ixscanProjectSort``
+       - ``ixscanProjectSortProject``
+       - ``ixscanSortFetch``
+       - ``ixscanSortFetchProject``
+       - ``ixscanSortMergeFetch``
+       - ``ixscanSortMergeFetchProject``
+       - ``ixscanSortMergeProject``
+
+Node Counters
+`````````````
+
+MongoDB records node counters after it selects the query execution
+engine, so the counters include the plan stages that represent
+aggregation stages pushed down to the :ref:`slot-based engine
+<sbe-landing>`.
+
+``nodes`` can contain the following counters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 35
+
+   * - Counter
+     - Description
+
+   * - | ``collscanNoFilter``
+       | ``collscanWithFilter``
+     - Collection scan stages, counted separately based on whether the
+       stage applies a filter.
+
+   * - | ``ixscanNoFilter``
+       | ``ixscanWithFilter``
+     - Index scan stages, counted separately based on whether the stage
+       applies a filter.
+
+   * - | ``fetchNoFilter``
+       | ``fetchWithFilter``
+     - Fetch stages, counted separately based on whether the stage
+       applies a filter.
+
+   * - | ``andHashNoFilter``
+       | ``andHashWithFilter``
+     - Hash-based index intersection stages, counted separately based
+       on whether the stage applies a filter.
+
+   * - ``andSorted``
+     - Sorted index intersection stages.
+
+   * - | ``orNoFilterLte100Children``
+       | ``orWithFilterLte100Children``
+       | ``orNoFilterGt100Children``
+       | ``orWithFilterGt100Children``
+     - ``$or`` stages, counted separately based on whether the stage
+       applies a filter and whether the stage has more than 100 child
+       stages.
+
+   * - | ``sortMergeNoFilterLte100Children``
+       | ``sortMergeWithFilterLte100Children``
+       | ``sortMergeNoFilterGt100Children``
+       | ``sortMergeWithFilterGt100Children``
+     - Sort merge stages, counted separately based on whether the stage
+       applies a filter and whether the stage has more than 100 child
+       stages.
+
+   * - ``returnKey``
+     - Stages that return index keys instead of documents.
+
+   * - ``shardingFilter``
+     - Stages that filter out orphaned documents on a shard.
+
+   * - | ``projectionDefault``
+       | ``projectionCovered``
+       | ``projectionSimple``
+     - Projection stages, counted separately by projection type.
+
+   * - ``sortKeyGenerator``
+     - Stages that generate sort keys for a sort.
+
+   * - | ``sortDefaultNoLimit``
+       | ``sortDefaultWithLimit``
+       | ``sortSimpleNoLimit``
+       | ``sortSimpleWithLimit``
+     - Sort stages, counted separately by sort type and by whether the
+       sort has a limit.
+
+   * - | ``limitSmall``
+       | ``limitMedium``
+       | ``limitLarge``
+     - Limit stages, counted separately by limit value. ``limitSmall``
+       counts limits of 100 or less, ``limitMedium`` counts limits from
+       101 to 10,000, and ``limitLarge`` counts limits greater than
+       10,000.
+
+   * - | ``skipSmall``
+       | ``skipMedium``
+       | ``skipLarge``
+     - Skip stages, counted separately by skip value. ``skipSmall``
+       counts skips of 100 or less, ``skipMedium`` counts skips from
+       101 to 10,000, and ``skipLarge`` counts skips greater than
+       10,000.
+
+   * - ``textOr``
+     - Stages that combine the results of a text search.
+
+   * - ``match``
+     - Match stages.
+
+   * - ``replaceRoot``
+     - Stages that replace the root of a document.
+
+   * - ``group``
+     - Group stages.
+
+   * - | ``eqLookupNoUnwind``
+       | ``eqLookupWithUnwind``
+     - Equality lookup stages, counted separately based on whether the
+       stage also unwinds the results.
+
+   * - ``unpackTsBucket``
+     - Stages that unpack :ref:`time series
+       <manual-timeseries-collection>` buckets.
+
+   * - | ``hashJoin``
+       | ``nlj``
+       | ``inlj``
+       | ``indexProbe``
+     - Join stages, counted separately by join algorithm: hash join,
+       nested loop join, indexed nested loop join, and index probe.
+
+Access Path Counters
+````````````````````
+
+``accessPaths`` can contain the following counters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 35
+
+   * - Counter
+     - Description
+
+   * - | ``collscan``
+       | ``clusteredCollscan``
+     - Collection scans, counted separately based on whether the scan
+       uses the :ref:`clustered index <clustered-collections>`.
+
+   * - ``coveredIxscan``
+     - Index scans that don't fetch documents.
+
+   * - ``ixscanFetch``
+     - Index scans that fetch documents.
+
+   * - ``countScan``
+     - Scans that count index keys without returning documents.
+
+   * - | ``distinctScan``
+       | ``distinctScanFetch``
+     - Scans that skip duplicate index keys, counted separately based
+       on whether the scan fetches documents.
+
+   * - | ``geoNear2d``
+       | ``geoNear2dSphere``
+     - Geospatial proximity searches, counted separately based on
+       whether the query uses a :ref:`2d <2d-index>` or
+       :ref:`2dsphere <2dsphere-index>` index.
+
+   * - ``textMatch``
+     - Text searches that use a :ref:`text index <index-type-text>`.
+
+   * - ``otherAccessPath``
+     - Winning plans that don't use a collection scan, an index scan, a
+       count scan, a distinct scan, or a geospatial access path. A plan
+       that only performs a text search increments both ``textMatch``
+       and ``otherAccessPath``.
+
+   * - | ``btreeIxscan``
+       | ``wildcardIxscan``
+       | ``sparseIxscan``
+       | ``uniqueIxscan``
+       | ``hashedIxscan``
+       | ``multikeyIxscan``
+     - Index scans, counted separately by index property. A single
+       index scan can increment multiple of these counters.
+
+   * - | ``boundsFullScan``
+       | ``boundsPoint``
+       | ``boundsBoundedRange``
+       | ``boundsMinKeyToValue``
+       | ``boundsValueToMaxKey``
+       | ``boundsMixture``
+     - Index scans, counted separately by the index bounds that the
+       scan uses. MongoDB increments
+       ``boundsMixture`` when the scan uses more than one type of
+       bound.
+
+   * - | ``boundsUnionedSmall``
+       | ``boundsUnionedLarge``
+     - Index scans where a field has multiple bounds, counted
+       separately by the number of bounds. ``boundsUnionedSmall``
+       counts fields with 2 to 50 bounds, and ``boundsUnionedLarge``
+       counts fields with 51 or more bounds.
+
 .. _queryStats-collectionType:
 
 Collection Type
@@ -1273,7 +1637,8 @@ about query shapes, see :ref:`query-shapes`.
 The fields in ``key.queryShape`` vary based on the
 command that resulted in the query stats entry. ``$queryStats`` creates
 query stats entries for :dbcommand:`aggregate`, :dbcommand:`find`,
-:dbcommand:`distinct`, and :dbcommand:`count` commands.
+:dbcommand:`distinct`, :dbcommand:`count`, :dbcommand:`update`,
+:dbcommand:`insert`, and :dbcommand:`delete` commands.
 
 Each query shape property corresponds to a query option. For example,
 ``key.queryShape.sort`` corresponds to the :method:`~cursor.sort()`
@@ -1289,7 +1654,7 @@ commands.
 
 .. list-table::
    :header-rows: 1
-   :widths: 10 10 10
+   :widths: 20 10 10
 
    * - Field
      - Type
@@ -1369,7 +1734,7 @@ The following table describes the query shape properties for
 
 .. list-table::
    :header-rows: 1
-   :widths: 10 10 10
+   :widths: 20 10 10
 
    * - Field
      - Type
@@ -1384,6 +1749,10 @@ The following table describes the query shape properties for
      - Literal
 
    * - ``key.queryShape.allowDiskUse``
+     - Boolean
+     - Literal
+
+   * - ``key.queryShape.allowPartialResults``
      - Boolean
      - Literal
 
@@ -1409,7 +1778,7 @@ The following table describes the query shape properties for
 
 .. list-table::
    :header-rows: 1
-   :widths: 10 10 10
+   :widths: 20 10 10
 
    * - Field
      - Type
@@ -1437,7 +1806,7 @@ The following table describes the query shape properties for
 
 .. list-table::
    :header-rows: 1
-   :widths: 10 10 10
+   :widths: 20 10 10
 
    * - Field
      - Type
@@ -1458,6 +1827,143 @@ The following table describes the query shape properties for
    * - ``key.queryShape.skip``
      - Integer
      - Normalized
+
+.. _queryStats-update-query-shape:
+
+update Command Query Shape
+``````````````````````````
+
+.. versionadded:: 9.0
+
+The following table describes the query shape properties for
+``update`` commands. ``$queryStats`` tracks query shape statistics
+for each update statement in the ``updates`` array, not for the
+top-level ``update`` command as a whole.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10 10
+
+   * - Field
+     - Type
+     - Literal or Normalized
+
+   * - ``key.queryShape.q``
+     - Document
+     - Normalized
+
+   * - ``key.queryShape.u``
+     - Document or Array
+     - Normalized
+
+   * - ``key.queryShape.c``
+     - Document
+     - Normalized
+
+   * - ``key.queryShape.arrayFilters``
+     - Array of documents
+     - Normalized
+
+   * - ``key.queryShape.multi``
+     - Boolean
+     - Literal
+
+   * - ``key.queryShape.upsert``
+     - Boolean
+     - Literal
+
+   * - ``key.queryShape.let``
+     - Document
+     - Normalized
+
+   * - ``key.queryShape.collation``
+     - Document
+     - Literal
+
+.. important::
+
+   ``$queryStats`` does not collect query shape statistics for
+   ``update`` operations on :ref:`time series collections
+   <manual-timeseries-collection>`.
+
+.. _queryStats-insert-query-shape:
+
+insert Command Query Shape
+``````````````````````````
+
+.. versionadded:: 9.0
+
+The following table describes the query shape properties for
+``insert`` commands. ``$queryStats`` tracks query shape statistics
+once for the entire ``insert`` command, not for each document in the
+``documents`` array. MongoDB always normalizes ``documents`` to a
+fixed placeholder value, regardless of the number or contents of the
+inserted documents.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10 10
+
+   * - Field
+     - Type
+     - Literal or Normalized
+
+   * - ``key.queryShape.documents``
+     - Array
+     - Normalized
+
+.. important::
+
+   ``$queryStats`` does not collect query shape statistics for
+   ``insert`` operations on :ref:`time series collections
+   <manual-timeseries-collection>`.
+
+.. _queryStats-delete-query-shape:
+
+delete Command Query Shape
+``````````````````````````
+
+.. versionadded:: 9.0
+
+The following table describes the query shape properties for
+``delete`` commands. ``$queryStats`` tracks query shape statistics
+for each delete statement in the ``deletes`` array, not for the
+top-level ``delete`` command as a whole.
+
+``key.queryShape.limit`` reflects the ``limit`` field of the delete
+statement, where ``0`` deletes all matching documents and ``1``
+deletes a single document. It does not cap the number of query stats
+entries.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10 10
+
+   * - Field
+     - Type
+     - Literal or Normalized
+
+   * - ``key.queryShape.q``
+     - Document
+     - Normalized
+
+   * - ``key.queryShape.limit``
+     - Integer
+     - Literal
+
+   * - ``key.queryShape.let``
+     - Document
+     - Normalized
+
+   * - ``key.queryShape.collation``
+     - Document
+     - Literal
+
+.. important::
+
+   ``$queryStats`` does not collect query shape statistics for
+   ``delete`` operations on :ref:`time series collections
+   <manual-timeseries-collection>`.
 
 Supplemental Metrics
 ~~~~~~~~~~~~~~~~~~~~

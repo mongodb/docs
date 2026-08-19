@@ -167,6 +167,29 @@ The output document has the following fields:
     - integer
     - The timestamp of the current watermark.
 
+  * - ``stats.addedParallelism``
+    - integer
+    - The total parallelism of your stream processor.
+      {+atlas-sp+} calculates this value as the sum of
+      ``(parallelism - 1)`` across every stage that sets a
+      ``parallelism`` value greater than ``1``.
+
+      This field summarizes the entire pipeline and doesn't appear in
+      ``stats.operatorStats``.  {+atlas-sp+} returns this field only
+      if at least one stage sets a ``parallelism`` value greater than
+      ``1``.
+
+      For example, if your :pipeline:`$source` stage sets an
+      ``initialSync.parallelism`` value of ``2``, your :ref:`$lookup
+      <atlas-sp-agg-lookup>` stage sets a ``parallelism`` value of
+      ``4``, and your :ref:`$merge <atlas-sp-agg-merge>` stage sets a
+      ``parallelism`` value of ``4``, then ``stats.addedParallelism``
+      reports ``(2 - 1) + (4 - 1) + (4 - 1)``, or ``7``.
+
+      Use this value to compare the parallelism that you configured
+      against the parallelism available to your stream processor
+      tier. To learn more, see :ref:`atlas-sp-tier-guide`.
+
   * - ``stats.operatorStats``
     - array
     - The statistics for each operator in the processor pipeline. 
@@ -307,6 +330,7 @@ KB:
       dlqMessageSize: Long("0"),
       stateSize: Long("2747968"),
       watermark: ISODate("2023-12-14T14:35:32.417Z"),
+      addedParallelism: 7,
       ok: 1
     },
   }

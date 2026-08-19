@@ -19,5 +19,6 @@
       "path": "<field-to-index>"
     },
     ...
-  ]
+  ],
+  "nestedRoot": "<embedded-document-field-name>"
 }
