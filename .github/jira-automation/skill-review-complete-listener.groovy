@@ -26,7 +26,7 @@
  *                   The App needs Contents: write (granted 2026-07-30).
  *
  * GATING — deliberately thin. This listener only checks the cheap things:
- *   component "Agent Skills", a skill-review-* label, and an actual transition
+ *   component "Maverick", a skill-review-* label, and an actual transition
  *   into Closed. It does NOT check resolution: per the design note on PR
  *   #22475, skill_review_complete.py is the sole gate on resolution == "Done",
  *   so Won't Do / Duplicate / no-resolution closes are evaluated (and
@@ -52,7 +52,7 @@ import java.security.spec.PKCS8EncodedKeySpec
 
 // --- config ---------------------------------------------------------------
 final String CLOSED_STATUS  = "Closed"
-final String COMPONENT_NAME = "Agent Skills"
+final String COMPONENT_NAME = "Maverick"
 final String LABEL_PREFIX   = "skill-review-"
 final String GITHUB_REPO    = "10gen/docs-mongodb-internal"
 final String EVENT_TYPE     = "skill-review-complete"

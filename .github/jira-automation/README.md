@@ -102,13 +102,13 @@ removing the label clears it, so remove-then-re-add is a deliberate re-request.
 | Triggers | `.github/workflows/skill-review-complete.yml` → `.github/scripts/skill_review_complete.py` |
 | Project | `DOCSP` |
 | Events | **Issue Updated**, **Issue Closed**, **Generic Event** — select all three |
-| Fires | On a transition into `Closed` for an Agent Skills `skill-review-*` ticket |
+| Fires | On a transition into `Closed` for a Maverick-component `skill-review-*` ticket |
 
 Select all three events because which one a Close transition emits depends on
 that transition's Fire Event post-function; the changelog check in the script
 makes the extras inert.
 
-The listener gates only on component `Agent Skills`, a `skill-review-*` label,
+The listener gates only on component `Maverick`, a `skill-review-*` label,
 and a real changelog transition into `Closed`. It deliberately does **not** check
 resolution — `skill_review_complete.py` is the sole gate on
 `resolution == "Done"`, so `Won't Do`, `Duplicate`, and no-resolution closes are

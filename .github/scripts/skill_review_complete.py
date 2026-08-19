@@ -80,8 +80,8 @@ def main():
     fields = issue["fields"]
 
     components = [c["name"] for c in fields.get("components", [])]
-    if "Agent Skills" not in components:
-        print(f"{ISSUE_KEY} is not an Agent Skills ticket ({components}). Skipping.")
+    if "Maverick" not in components:
+        print(f"{ISSUE_KEY} is not a Maverick skill-review ticket ({components}). Skipping.")
         return
 
     labels = fields.get("labels", [])
