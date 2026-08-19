@@ -34,3 +34,18 @@ command, replacing ``<tag>`` with the version tag:
 
 To learn how to run {+atlas-cli+} commands with Docker after you
 pull the Docker image, see :ref:`atlas-cli-docker`.
+
+Authenticate with |service|
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After pulling the Docker image, authenticate to start using the
+{+atlas-cli+}:
+
+.. code-block:: sh
+
+   docker run -it mongodb/atlas auth login
+
+The command opens a browser window and returns a one-time
+activation code. This code expires after 10 minutes.
+
+For more authentication options, see :ref:`connect-atlas-cli`.
