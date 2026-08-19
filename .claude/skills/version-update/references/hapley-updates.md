@@ -190,8 +190,8 @@ MongoCLI is patch-only in the monorepo.
 ## Server Manual
 
 The Server Manual Hapley update is a **post-merge, post-deploy** step
-that requires coordination with DOP (Anabella) and Sarah Lin. Do not
-perform this step autonomously — surface it in Step 11.
+that requires coordination with DOP and Sarah Lin. Do not perform this
+step autonomously — surface it in Step 11.
 
 After the feature branch is merged and deployed:
 
@@ -199,7 +199,7 @@ After the feature branch is merged and deployed:
    - The `upcoming` entry's **Selector Label** should reflect the new
      upcoming version (e.g., `v8.3 (upcoming)`).
 2. Take screenshots of all Hapley changes.
-3. Send the screenshots to DOP (Anabella) for review.
+3. Send the screenshots to DOP for review.
 4. Verify with Sarah Lin whether to archive the previous released version.
 5. If archiving: mark the old version (e.g., `v8.1`) as inactive in
    Hapley following the sunset process.
