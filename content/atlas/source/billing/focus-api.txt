@@ -1,0 +1,819 @@
+.. _focus-api-overview:
+
+======================================
+Access Billing Data with the FOCUS API
+======================================
+
+.. meta::
+   :description: Access standardized MongoDB Atlas billing data with the FOCUS Data API. Automate cost analysis, eliminate manual calculations, and gain granular visibility into usage-based spend.
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+
+The `FinOps Open Cost and Usage Specification (FOCUS)
+<https://focus.finops.org/focus-specification/>`__
+establishes uniform requirements for technology billing datasets. 
+To align with these standards, the {+focus-api+} offers a consistent
+method for consuming |service-fullname| billing data.
+
+About the FOCUS Data API
+------------------------
+
+Historically, |service| customers, particularly large "sales-sold"
+enterprises and partners faced a "calculation gap." Understanding costs
+required manual effort to convert |service| Credit Units (ACUs) into
+billing currency, involving hardcoded unit prices and complex
+spreadsheets.
+
+The {+focus-api+} automates this process by providing a pre-calculated,
+industry-standard view of cost and usage.
+
+FOCUS Data API Capabilities
+----------------------------
+
+With the {+focus-api+}, you can:
+
+-  **View costs in billing currency:** Access ``BilledCost`` and
+   ``EffectiveCost`` directly in billing currency, without manual
+   conversion.
+-  **Identify credit types:** See whether a credit is Prepaid,
+   Promotional, or Elastic through the ``Contract Applied`` field.
+-  **Analyze costs with full context:** Use fields such as ``Region``,
+   ``UsageDate``, and ``ServiceCategory`` for granular cost analysis.
+-  **Work with standard industry terms:** Use ``SubAccountName`` and
+   other intuitive FOCUS terms instead of internal API terms such as
+   ``groupName``.
+
+FOCUS Column Reference
+-----------------------
+
+The following table lists the columns returned in the
+{+focus-api+} response and their equivalent legacy billing fields:
+
+.. list-table::
+   :widths: 40 22 18 20
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - FOCUS 1.3 Column ID
+     - Definition
+     - Current CSV Equivalent Field
+     - Current JSON Equivalent Field
+
+   * - ``BilledCost``
+     - The cost, in billing currency, charged during the current
+       invoicing period.
+     - N/A
+     - N/A
+
+   * - ``BillingAccountId``
+     - The |service| organization ID for this invoice.
+     - Organization ID
+     - N/A
+
+   * - ``BillingAccountName``
+     - The |service| organization name for this invoice.
+     - Organization Name
+     - N/A
+
+   * - ``BillingCurrency``
+     - The billing currency for this charge.
+     - N/A
+     - N/A
+
+   * - ``BillingPeriodEnd``
+     - The end date of the invoicing period.
+       Billing period is exclusive of end date.
+     - N/A
+     - "endDate" (invoice)
+
+   * - ``BillingPeriodStart``
+     - The start date of the invoicing period.
+       Billing period is inclusive of start date.
+     - N/A
+     - "created" (invoice)
+
+   * - ``ChargeCategory``
+     - Classification of a charge based on the nature of how it is
+       billed. For example, "usage" denotes a charge based on the
+       quantity of the service or resource consumed.
+     - N/A
+     - N/A
+
+   * - ``ChargeDescription``
+     - High-level context about the charge.
+     - Description
+     - N/A
+
+   * - ``ChargePeriodEnd``
+     - The end of the period when the charge was incurred.
+       Billing period is exclusive of end date.
+     - N/A
+     - "endDate" (lineItems)
+
+   * - ``ChargePeriodStart``
+     - The start of the period when the charge was incurred.
+       Billing period is inclusive of start date.
+     - Usage Date
+     - "startDate" (lineItems)
+
+   * - ``ConsumedQuantity``
+     - The volume of a given SKU associated with a resource or service
+       used, based on the consumed unit.
+     - Quantity
+     - "quantity"
+
+   * - ``ConsumedUnit``
+     - The unit used to meter a given SKU.
+     - Unit
+     - "unit"
+
+   * - ``ContractApplied``
+     - A set of properties that associate a charge with one or
+       more contract commitments. Identifies the name of the
+       Atlas Credit used to cover the consumed usage.
+     - N/A
+     - N/A
+
+   * - ``ContractedCost``
+     - Represents the cost calculated by multiplying contracted unit
+       price and the corresponding pricing quantity. This field is
+       denominated in billing currency.
+     - N/A
+     - N/A
+
+   * - ``ContractedUnitPrice``
+     - The agreed-upon unit price for a single pricing unit of the
+       associated SKU, inclusive of discounts. This price is
+       denominated in billing currency.
+     - N/A
+     - N/A
+
+   * - ``EffectiveCost``
+     - Represents the amortized cost of a charge after applying all
+       reduced rates and discounts. This field is denominated in
+       billing currency.
+     - N/A
+     - N/A
+
+   * - ``HostProviderName``
+     - The name of the entity that provides the underlying
+       infrastructure where the service provider deploys its
+       resources and services. For example, AWS, Azure, GCP.
+     - N/A
+     - N/A
+
+   * - ``InvoiceIssuer``
+     - The entity responsible for invoicing for the resources or
+       services consumed. For example, MongoDB for customers who
+       transact directly with MongoDB, or marketplace for customers
+       that transact with |service| through a marketplace.
+     - N/A
+     - N/A
+
+   * - ``ListCost``
+     - Represents the cost calculated by multiplying the list unit
+       price and the corresponding pricing quantity. This field is
+       denominated in billing currency.
+     - N/A
+     - N/A
+
+   * - ``ListUnitPrice``
+     - The suggested provider-published unit price for a single
+       pricing unit of the associated SKU, exclusive of any
+       discounts. This price is denominated in billing currency.
+     - N/A
+     - N/A
+
+   * - ``PricingCurrency``
+     - The metering currency for this charge, for example,
+       |service| Credits.
+     - N/A
+     - N/A
+
+   * - ``PricingCurrencyContractedUnitPrice``
+     - The agreed-upon unit price for a single pricing unit of the
+       associated SKU, inclusive of discounts. This price is
+       denominated in the pricing currency.
+     - N/A
+     - N/A
+
+   * - ``PricingCurrencyEffectiveCost``
+     - Represents the amortized cost of a charge after applying all
+       reduced rates and discounts. This field is denominated in
+       pricing currency.
+     - Amount
+     - "totalPriceCents"
+
+   * - ``PricingCurrencyListUnitPrice``
+     - Represents the cost calculated by multiplying the list unit
+       price and the corresponding pricing quantity. This field is
+       denominated in pricing currency.
+     - Unit Price
+     - "unitPriceDollars"
+
+   * - ``PricingQuantity``
+     - Represents the volume of a given SKU associated with a
+       resource or service used or purchased, based on pricing unit.
+     - N/A
+     - N/A
+
+   * - ``PricingUnit``
+     - Represents a unit for determining unit prices, for example,
+       GB-Hours.
+     - N/A
+     - N/A
+
+   * - ``RegionId``
+     - An identifier for an isolated geographic area where a resource
+       is provisioned or a service is provided. For example,
+       ``us-east-1``.
+     - N/A
+     - N/A
+
+   * - ``RegionName``
+     - A name for an isolated geographic area where a resource is
+       provisioned or a service is provided. For example,
+       ``N. Virginia``.
+     - Region
+     - N/A
+
+   * - ``ResourceName``
+     - For |service|, this is the cluster name.
+     - Cluster
+     - "clusterName"
+
+   * - ``ServiceCategory``
+     - Highest-level classification as defined by FOCUS. This is
+       "Databases" for MongoDB |service|.
+     - N/A
+     - N/A
+
+   * - ``ServiceName``
+     - Represents an offering that can be purchased from a service
+       provider, for example, MongoDB |service|.
+     - N/A
+     - N/A
+
+   * - ``ServiceProviderName``
+     - Name of the entity that provides the resources or services
+       available for usage or purchase. For example, MongoDB.
+     - N/A
+     - N/A
+
+   * - ``SkuId``
+     - A unique identifier for a Stock Keeping Unit (SKU),
+       representing a distinct billable configuration.
+     - N/A
+     - N/A
+
+   * - ``SkuMeter``
+     - The unit of measurement for the associated SKU, indicating
+       what is being measured, for example, ``GB``, compute time,
+       or requests.
+     - N/A
+     - N/A
+
+   * - ``SkuPriceDetails``
+     - The price dimensions of the price point that the charge was
+       billed at, as key-value pairs in JSON. This column is empty
+       when the charge has no price point or the price point
+       specifies no dimensions.
+     - N/A
+     - N/A
+
+   * - ``SkuPriceId``
+     - A unique identifier for the price point that the charge was
+       billed at.
+     - N/A
+     - N/A
+
+   * - ``SubAccountId``
+     - An identifier assigned to a sub account, which is a grouping
+       based on organizational constructs. This equates to a Project
+       in MongoDB |service|.
+     - Project ID
+     - "groupId"
+
+   * - ``SubAccountName``
+     - The display name of sub account. This equates to a Project
+       in MongoDB |service|.
+     - Project
+     - "groupName"
+
+   * - ``Tags``
+     - Tags assigned to the associated resources.
+     - Tags/application
+     - "tags"
+
+   * - ``x_AtlasSku``
+     - The Atlas SKU that is being billed.
+     - SKU
+     - "sku"
+
+   * - ``x_BilledDateEnd``
+     - The end of the period when MongoDB billed the charge.
+     - Date
+     - "created" (lineItems)
+
+   * - ``x_BilledDateStart``
+     - The start of the period when MongoDB billed the charge.
+     - N/A
+     - N/A
+
+   * - ``x_PricingCurrencyRate``
+     - The "price" of an |service| Credit. Apply this rate to find
+       the cost of an |service| Credit in billing currency.
+     - N/A
+     - N/A
+
+   * - ``x_SkuCategory``
+     - Highest-level classification for the associated Atlas
+       SKU. For example, ``Clusters``, or ``Backup``.
+     - N/A
+     - N/A
+
+Endpoints
+---------
+
+The {+focus-api+} extends the
+:ref:`{+atlas-admin-api+} <atlas-admin-api>` with three endpoints:
+
+- :ref:`focus-api-list-invoices` lists the available invoices for an
+  organization.
+- :ref:`focus-api-request-report` requests generation of a
+  FOCUS-formatted billing report.
+- :ref:`focus-api-retrieve-report` returns the status of that report
+  and, when the report is ready, the URL to download it.
+
+.. note::
+
+   All endpoints require :authrole:`Organization Billing Admin`,
+   :authrole:`Organization Owner`,
+   or :authrole:`Organization Billing Viewer` role.
+
+.. _focus-api-list-invoices:
+
+List Invoices for an Organization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Retrieves a list of available invoice IDs. For Cross-Org Billing,
+this endpoint identifies invoices for all linked organizations.
+
+Base URL: ``/api/atlas/v2/orgs/{orgId}/associatedInvoices``
+
+.. code-block:: http
+
+   GET /api/atlas/v2/orgs/{orgId}/associatedInvoices
+
+Request Path Parameters
+```````````````````````
+
+.. list-table::
+   :widths: 20 14 11 55
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Necessity
+     - Description
+
+   * - ``orgId``
+     - string
+     - Required
+     - Unique 24-hexadecimal digit string that identifies the
+       organization.
+
+Request Query Parameters
+````````````````````````
+
+The following query parameters are optional:
+
+.. list-table::
+   :widths: 20 14 11 45 10
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Necessity
+     - Description
+     - Default
+
+   * - ``month``
+     - integer
+     - Optional
+     - The month of the invoices to retrieve (1-12).
+     - Current month
+
+   * - ``year``
+     - integer
+     - Optional
+     - The year of the invoices to retrieve. Must be >= 2000.
+     - Current year
+
+   * - ``includeLinkedOrgs``
+     - boolean
+     - Optional
+     - Flag that indicates whether to include invoices from linked
+       organizations.
+     - ``false``
+
+Example Request
+```````````````
+
+.. code-block:: shell
+
+   curl --user "${PUBLIC_KEY}:${PRIVATE_KEY}" \
+     --digest \
+     --header "Accept: application/vnd.atlas.2025-03-12+json" \
+     --request GET "https://cloud.mongodb.com/api/atlas/v2/orgs/{orgId}/associatedInvoices"
+
+Response
+````````
+
+.. code-block:: json
+
+   {
+     "associatedInvoices": [
+       {
+         "invoiceId": "string",
+         "orgId": "string"
+       }
+     ],
+     "month": "06",
+     "year": "2026"
+   }
+
+Response Elements
++++++++++++++++++
+
+.. list-table::
+   :widths: 30 10 60
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Description
+
+   * - ``associatedInvoices``
+     - array
+     - List of invoices associated with the organization for the
+       specified period.
+
+   * - ``associatedInvoices[n].invoiceId``
+     - string
+     - Unique 24-hexadecimal digit identifier for an invoice.
+
+   * - ``associatedInvoices[n].orgId``
+     - string
+     - Unique 24-hexadecimal digit identifier for an organization.
+
+   * - ``month``
+     - string
+     - Two-digit number that represents the month of the associated
+       invoices, for example, ``06``.
+
+   * - ``year``
+     - string
+     - Four-digit number that represents the year of the associated
+       invoices, for example, ``2026``.
+
+.. _focus-api-request-report:
+
+Request a FOCUS Report
+~~~~~~~~~~~~~~~~~~~~~~
+
+Requests generation of a billing report in the FOCUS standard format.
+|service| generates the report asynchronously and returns a report ID
+that you use to poll for the report status.
+
+Base URL: ``/api/atlas/v2/orgs/{orgId}/invoices/{invoiceId}/reports``
+
+.. code-block:: http
+
+   POST /api/atlas/v2/orgs/{orgId}/invoices/{invoiceId}/reports
+
+Request Path Parameters
+```````````````````````
+
+.. list-table::
+   :widths: 20 14 11 55
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Necessity
+     - Description
+
+   * - ``orgId``
+     - string
+     - Required
+     - Unique 24-hexadecimal digit string that identifies the
+       organization.
+
+   * - ``invoiceId``
+     - string
+     - Required
+     - Unique 24-hexadecimal digit string that identifies the invoice.
+
+Request Body Parameters
+```````````````````````
+
+.. list-table::
+   :widths: 24 14 11 51
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Necessity
+     - Description
+
+   * - ``reportType``
+     - string
+     - Required
+     - Type of report to generate. Must be set to ``FOCUS``.
+
+   * - ``reportFormat``
+     - string
+     - Required
+     - Format of the report. Allowed values: ``CSV``.
+
+   * - ``formatSpecVersion``
+     - string
+     - Optional
+     - Version of the report format specification, for
+       example, ``1.3``.
+
+Example Request
+```````````````
+
+.. code-block:: shell
+
+   curl --user "${PUBLIC_KEY}:${PRIVATE_KEY}" \
+     --digest \
+     --header "Accept: application/vnd.atlas.2025-03-12+json" \
+     --header "Content-Type: application/json" \
+     --request POST "https://cloud.mongodb.com/api/atlas/v2/orgs/{orgId}/invoices/{invoiceId}/reports" \
+     --data '{
+       "reportType": "FOCUS",
+       "reportFormat": "CSV",
+       "formatSpecVersion": "1.3"
+     }'
+
+Response
+````````
+
+On success, returns ``201 Created`` with the report ID and the initial
+state of the report:
+
+.. code-block:: json
+
+   {
+     "invoiceId": "32b6e34b3d91647abb20e7b8",
+     "reportFormat": "CSV",
+     "reportId": "5f5f4c9e2b8f4b3a1c2d3e4f",
+     "reportType": "FOCUS",
+     "state": "PENDING"
+   }
+
+To download the report, pass the returned ``reportId`` to the
+:ref:`retrieve endpoint <focus-api-retrieve-report>`.
+
+.. _focus-api-retrieve-report:
+
+Retrieve a FOCUS Report
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Returns the status and details of a FOCUS report that you requested.
+Poll this endpoint until ``state`` is ``SUCCEEDED`` or
+``FAILED``.
+
+Poll no more than once every five seconds. If a report takes longer to
+generate, increase the interval between requests exponentially. Most
+reports complete within seconds, but reports for large invoices can
+take a few minutes.
+
+Base URL:
+``/api/atlas/v2/orgs/{orgId}/invoices/{invoiceId}/reports/{reportId}``
+
+.. code-block:: http
+
+   GET /api/atlas/v2/orgs/{orgId}/invoices/{invoiceId}/reports/{reportId}
+
+Request Path Parameters
+```````````````````````
+
+.. list-table::
+   :widths: 20 14 11 55
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Necessity
+     - Description
+
+   * - ``orgId``
+     - string
+     - Required
+     - Unique 24-hexadecimal digit string that identifies the
+       organization.
+
+   * - ``invoiceId``
+     - string
+     - Required
+     - Unique 24-hexadecimal digit string that identifies the invoice.
+
+   * - ``reportId``
+     - string
+     - Required
+     - Unique 24-hexadecimal digit string that identifies the report.
+
+Example Request
+```````````````
+
+.. code-block:: shell
+
+   curl --user "${PUBLIC_KEY}:${PRIVATE_KEY}" \
+     --digest \
+     --header "Accept: application/vnd.atlas.2025-03-12+json" \
+     --request GET "https://cloud.mongodb.com/api/atlas/v2/orgs/{orgId}/invoices/{invoiceId}/reports/{reportId}"
+
+Response
+````````
+
+On success, returns ``200 OK`` with the current state of the report.
+When ``state`` is ``SUCCEEDED``, the response also includes the
+download URL and its expiration time:
+
+.. code-block:: json
+
+   {
+     "downloadUrl": "https://<presigned-url>",
+     "expiresAt": "2026-08-17T18:30:00Z",
+     "formatSpecVersion": "1.3",
+     "invoiceId": "32b6e34b3d91647abb20e7b8",
+     "reportFormat": "CSV",
+     "reportId": "5f5f4c9e2b8f4b3a1c2d3e4f",
+     "reportType": "FOCUS",
+     "state": "SUCCEEDED"
+   }
+
+Report States
++++++++++++++
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - State
+     - Description
+
+   * - ``PENDING``
+     - |service| accepted the request but hasn't started generating
+       the report.
+
+   * - ``RUNNING``
+     - |service| is generating the report.
+
+   * - ``SUCCEEDED``
+     - The report is ready. The response includes ``downloadUrl``
+       and ``expiresAt``.
+
+   * - ``FAILED``
+     - |service| couldn't generate the report. The response includes
+       ``failureReason``.
+
+Response Elements
++++++++++++++++++
+
+.. list-table::
+   :widths: 26 12 62
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Description
+
+   * - ``downloadUrl``
+     - string
+     - URL to download the report. The response includes this
+       parameter only when ``state`` is ``SUCCEEDED``.
+
+   * - ``expiresAt``
+     - string
+     - Date and time at which ``downloadUrl`` expires, in ISO 8601
+       format in UTC. Each download URL is valid for 15 minutes. The
+       response includes this parameter only when ``state`` is
+       ``SUCCEEDED``.
+
+   * - ``failureReason``
+     - string
+     - Reason the report failed. The response includes this parameter
+       only when ``state`` is ``FAILED``.
+
+   * - ``formatSpecVersion``
+     - string
+     - Version of the report format specification.
+
+   * - ``invoiceId``
+     - string
+     - Unique 24-hexadecimal digit string that identifies the invoice.
+
+   * - ``reportFormat``
+     - string
+     - Format of the generated report.
+
+   * - ``reportId``
+     - string
+     - Unique 24-hexadecimal digit string that identifies the report.
+
+   * - ``reportType``
+     - string
+     - Type of the generated report.
+
+   * - ``state``
+     - string
+     - Current state of the report generation.
+
+.. _focus-api-report-availability:
+
+Report Availability
++++++++++++++++++++
+
+Each ``downloadUrl`` is valid for 15 minutes. To download a report
+after its URL expires, call this endpoint again with the same
+``reportId``. |service| returns a new ``downloadUrl`` and a new
+``expiresAt`` time.
+
+A report remains available for seven days after you request it. After
+seven days, request a new report to download the same invoice data.
+
+Data Behavior and Performance
+------------------------------
+
+The following sections describe how the {+focus-api+} handles
+pending data and large-scale report generation.
+
+Pending Month Visibility
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can query data for the "Pending" (current) month.
+While |service| associates usage with credits in real-time to offer
+cost estimates, these values are :guilabel:`not final` until the
+invoice closes. Re-pull data after the month closes to confirm
+final billing values.
+
+File Handling for Large Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The {+focus-api+} generates and delivers reports in a way designed to
+handle large-scale billing data:
+
+-  **Asynchronous generation:** Report generation doesn't block your
+   request. The request endpoint returns a ``reportId`` immediately,
+   and you poll the retrieve endpoint for the report state.
+-  **CSV format:** Reports generate as CSV files.
+-  **Time-limited download URL:** When a report succeeds, the retrieve
+   endpoint returns a ``downloadUrl`` that is valid for 15 minutes.
+   Reports remain available for seven days. To learn how to refresh an
+   expired URL, see :ref:`focus-api-report-availability`.
+-  **Single-organization scope:** Each request returns data for one
+   organization. If you use cross-org billing, request one report
+   for each ``invoiceId`` returned by the list endpoint.
+
+Limitations
+-----------
+
+- The endpoint covers usage-based costs only. It does not currently
+  include:
+
+  - Shortfall charges (Monthly/Flex commitment differences).
+  - Tax line items.
+  - Adjustments or refunds.
+
+Support and Feedback
+--------------------
+
+For questions about the {+focus-api+}, contact your MongoDB account
+team. To ask questions and engage in discussions with fellow
+developers, see the MongoDB communities on `Stack Overflow
+<https://stackoverflow.com/questions/tagged/mongodb>`__ or `Reddit
+<https://www.reddit.com/r/mongodb/>`__.
