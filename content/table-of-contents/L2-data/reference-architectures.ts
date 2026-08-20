@@ -11,6 +11,11 @@ const tocData: TocItem[] = [
     contentSite: 'atlas-architecture',
     url: '/docs/atlas/architecture/:version/deployment-paradigms/reference-architectures/fraud-detect',
   },
+  {
+    label: 'Durable AI Workflows',
+    contentSite: 'atlas-architecture',
+    url: '/docs/atlas/architecture/:version/deployment-paradigms/reference-architectures/durable-ai-workflows',
+  },
 ];
 
 export default tocData;

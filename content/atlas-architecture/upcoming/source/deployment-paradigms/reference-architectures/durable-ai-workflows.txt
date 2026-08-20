@@ -1,0 +1,331 @@
+.. _arch-center-durable-ai-workflows:
+
+=============================================================
+Building Durable AI Workflows with Temporal and MongoDB Atlas
+=============================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Learn how to build durable AI ingestion and agent workflows on MongoDB Atlas with Temporal for orchestration and Voyage AI for embeddings and reranking.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: onecol
+
+This reference architecture describes how to build durable AI
+workflows on MongoDB Atlas with `Temporal
+<https://temporal.io/solutions/ai>`__ for event-driven ingestion,
+semantic retrieval, and agentic execution.
+
+It supports teams that need retrieval-augmented generation (RAG)
+and multi-step AI workflows to continue reliably across failures,
+retries, and long-running operations.
+
+The architecture supports two ingestion patterns. In the
+event-stream pattern, source updates flow through Kafka and Atlas
+Stream Processing before invoking Temporal. In the direct pattern,
+source updates trigger Temporal workflows immediately. In both
+cases, MongoDB Atlas stores operational data, semantic knowledge,
+and application state, while Temporal coordinates extraction,
+chunking, embedding, indexing, and retrieval operations.
+
+Solution 1: Ingest through Kafka and Atlas Stream Processing
+------------------------------------------------------------
+
+This pattern suits environments that already use Kafka for event
+transport, change propagation, or decoupled system integration.
+Kafka provides a standard ingress layer for high-volume or varied
+source updates, while Atlas Stream Processing transforms and
+routes events before invoking Temporal. This separation matters
+when ingestion must scale independently from workflow execution,
+or when teams want a common event backbone across multiple
+downstream consumers in addition to the AI pipeline. Content
+updates originate from diverse platforms such as S3, APIs, or a
+database or messaging system.
+
+Diagram
+~~~~~~~
+
+The following diagram shows this flow.
+
+.. figure:: /includes/images/reference-architectures/RA-durable-ai-workflows-solution1-diagram.png
+   :lightbox:
+   :figwidth: 1200px
+   :alt: Ingest through Kafka and Atlas Stream Processing
+
+   Figure 1. Ingest through Kafka and Atlas Stream Processing
+
+Data Flow
+~~~~~~~~~
+
+The following steps describe this flow:
+
+1. Source systems produce or expose content
+
+   Content originates from upstream systems such as Amazon S3,
+   IoT platforms, and operational databases. These systems provide
+   the raw documents, records, or events that the pipeline
+   processes. When new or updated content becomes available, the
+   source system emits an event to the Kafka Sink Connector, which
+   writes it to the MongoDB ``sources`` collection.
+
+#. Kafka Sink Connector
+
+   The Kafka Sink Connector is the durable message handoff between
+   the streaming layer and MongoDB. It consumes events from Kafka
+   topics and writes them into MongoDB Atlas as documents. This
+   component provides two things the direct trigger does not: it
+   fans in multiple, varied sources into one ordered stream, and it
+   buffers against back-pressure.
+
+#. MongoDB (Atlas, Stream Processing, and Vector Search)
+
+   MongoDB plays a dual role in this architecture, appearing at
+   two different points in the flow.
+
+   a. MongoDB Atlas is the landing zone for Kafka Sink Connector
+      events. Raw source documents that the Sink Connector writes
+      sit in Atlas as the staging record of what arrived from the
+      outside world.
+
+      Atlas Stream Processing acts as the trigger between that
+      landing zone and Temporal. It watches the incoming documents
+      through change streams and starts the downstream workflow.
+      This turns MongoDB from a passive store into an active event
+      source, removing the need for a polling loop and making the
+      handoff to Temporal event-driven rather than scheduled.
+
+   #. Atlas Vector Search serves the read path for the agent,
+      running semantic similarity search as a native aggregation
+      pipeline stage, with no separate vector database and no
+      cross-system query fan-out.
+
+   MongoDB appears on both sides of the data flow: it receives raw
+   events and serves the final embedded vectors. Atlas Stream
+   Processing connects the two.
+
+#. Temporal and Voyage AI embedding
+
+   Atlas Stream Processing invokes Temporal, rather than Temporal
+   receiving the event directly. The processing core is the same
+   as in Solution 2: Temporal workflows provide durable, resumable
+   orchestration, and Voyage AI embedding runs as independently
+   retryable activities within those workflows.
+
+   In this solution, Temporal consumes MongoDB events rather than
+   receiving source events directly. It only ever receives a
+   clean, normalized trigger from Atlas Stream Processing,
+   regardless of whether that trigger originated from S3, IoT, or
+   a database. This stage is bidirectional: Temporal writes the
+   embedded, indexed chunks back into the MongoDB knowledge
+   collection once processing completes.
+
+Solution 2: Ingest Data Sources Directly into Temporal
+------------------------------------------------------
+
+This pattern suits systems that can emit reliable object, API, or
+application events directly into a workflow trigger. It reduces
+architectural layers and keeps the ingestion path straightforward,
+while still preserving resumability for long-running extraction
+and embedding steps. Because the workflow is triggered with a
+source reference rather than raw content, the downstream pipeline
+stays source-agnostic and can support additional upstream systems
+with minimal orchestration changes.
+
+Diagram
+~~~~~~~
+
+The following diagram shows this flow.
+
+.. figure:: /includes/images/reference-architectures/RA-durable-ai-workflows-solution2-diagram.png
+   :lightbox:
+   :figwidth: 1200px
+   :alt: Ingest Data Sources Directly into Temporal
+
+   Figure 2. Ingest Data Sources Directly into Temporal
+
+Data Flow
+~~~~~~~~~
+
+The following steps describe this flow:
+
+1. Source systems produce or expose content
+
+   Content originates from upstream systems such as Amazon S3,
+   IoT platforms, and operational databases. These systems provide
+   the raw documents, records, or events that the pipeline
+   processes. When new or updated content becomes available, the
+   source system emits an event to a lightweight adapter, such as
+   AWS Lambda, a webhook, or a connector. The adapter starts the
+   Temporal workflow and passes only the source reference and
+   required metadata. This keeps source-specific logic outside the
+   workflow, so you can add new source types without changing the
+   downstream pipeline.
+
+#. Temporal manages the ingestion lifecycle
+
+   After the workflow starts, Temporal coordinates execution,
+   retries, and recovery across the ingestion steps. This makes
+   the processing path durable, so long-running operations
+   continue reliably across failures or restarts. The workflow
+   retrieves the source content and converts it into a normalized
+   form for downstream AI processing, creating a consistent
+   representation across source types before semantic
+   transformation begins.
+
+#. Voyage AI generates embeddings inside the workflow
+
+   Voyage AI embedding runs as part of the workflow rather than as
+   an external, fire-and-forget step. This keeps embedding
+   observable and recoverable within the same execution path, and
+   keeps the semantic transformation tightly coupled to the
+   ingestion lifecycle.
+
+#. MongoDB Atlas stores content, metadata, and embeddings
+
+   MongoDB Atlas persists the processed content, related metadata,
+   and embedding vectors in a single platform. This creates a
+   durable knowledge layer that supports both the ingestion write
+   path and the downstream retrieval path.
+
+#. Atlas Vector Search makes the knowledge retrievable
+
+   Atlas Vector Search indexes the embedded content so you can
+   query it by semantic similarity. Because the embeddings and
+   operational metadata remain in the same platform, later
+   application and agent requests retrieve relevant context
+   without a separate vector store or synchronization layer.
+
+Agent Request Flow
+------------------
+
+This flow applies to both ingestion solutions. It uses the same
+durability principles as ingestion: instead of treating agent
+execution as a short-lived API request, the architecture runs
+retrieval and reasoning as workflow-driven operations that you can
+observe, retry, and resume. This matters when the agent performs
+multiple retrieval calls, invokes external tools, or needs to
+return progressive status updates before a final result.
+
+Diagram
+~~~~~~~
+
+The following diagram shows the agent's components.
+
+.. figure:: /includes/images/reference-architectures/RA-durable-ai-workflows-agent-diagram.png
+   :lightbox:
+   :figwidth: 1200px
+   :alt: Research Agent Architecture
+
+   Figure 3. Research Agent Architecture
+
+Data Flow
+~~~~~~~~~
+
+The following steps describe this flow:
+
+1. Start an agent research request
+
+   When the agent API receives a user query through the UI, it
+   starts a durable Temporal workflow. The system immediately
+   returns a workflow identifier, so the UI can track progress as
+   the research agent retrieves context and reasons about an
+   answer.
+
+#. Retrieve context from MongoDB Atlas Vector Search
+
+   MongoDB Atlas hosts the metadata, vector embeddings, and
+   semantic indexes. During a user interaction, the agent embeds
+   the query and uses MongoDB Atlas Vector Search to retrieve
+   relevant context, often applying a reranking layer before final
+   synthesis. For indexing and query patterns, see the `Atlas
+   Vector Search
+   <https://www.mongodb.com/docs/vector-search/>`__
+   documentation.
+
+#. Return a durable research result
+
+   The research workflow coordinates tool execution, model
+   interactions, and final synthesis. Temporal maintains the
+   process through retries and state persistence, so the UI
+   delivers a validated answer. For more on durable execution, see
+   the `Temporal documentation <https://docs.temporal.io/>`__.
+
+Components
+----------
+
+The following components implement this architecture.
+
+MongoDB Atlas
+~~~~~~~~~~~~~
+
+Use `MongoDB Atlas <https://www.mongodb.com/docs/atlas/>`__ to
+store the ingestion pipeline's staged and embedded chunks, the
+MongoDB Atlas Vector Search index, and the agent's state in a
+single database. Because the agent reads the same data that the
+ingestion pipeline writes, there is no separate memory store to
+keep in sync.
+
+Atlas Stream Processing
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Use `Atlas Stream Processing
+<https://www.mongodb.com/docs/atlas/atlas-stream-processing/>`__
+to provide an optional, event-driven integration path between
+streaming sources and Temporal workflows. It handles real-time
+transformation and routing of incoming events for high-throughput
+architectures. This lets you implement near-real-time ingestion
+without requiring Kafka if you choose a direct source-to-Temporal
+connection instead.
+
+Voyage AI
+~~~~~~~~~
+
+Use `Voyage AI <https://www.mongodb.com/docs/voyageai/>`__ to
+generate the embeddings and perform the result reranking for this
+architecture. Because embedding and reranking are separate from
+workflow orchestration, teams can upgrade the model independently
+of the ingestion and retrieval pipelines.
+
+Atlas Vector Search
+~~~~~~~~~~~~~~~~~~~
+
+Use `MongoDB Atlas Vector Search
+<https://www.mongodb.com/docs/vector-search/>`__
+to retrieve document context and agent memory through semantic
+indexing. The research agent queries the same MongoDB Atlas
+cluster used for primary storage, so retrieval uses current
+operational data.
+
+Temporal
+~~~~~~~~
+
+Use `Temporal <https://temporal.io/>`__ as the durable execution
+layer for ingestion and agentic workflows across source systems,
+MongoDB Atlas, and external AI services. It coordinates
+long-running steps such as extraction, chunking, embedding, and
+indexing, and provides built-in retries, checkpointing, and
+recovery. This allows workflows to resume from their last
+successful state after a failure or interruption, instead of
+restarting. By making orchestration durable, Temporal helps teams
+reliably operate, backfill, and evolve production AI pipelines.
+
+Exceptions, Caveats, and Tradeoffs
+----------------------------------
+
+Consider the tradeoffs between direct and Kafka-based ingestion
+before you adopt this architecture. A direct source-to-Temporal
+connection has fewer moving parts to operate. A Kafka-based path
+adds a message broker, which introduces additional infrastructure
+but fits naturally if your organization already routes source
+updates through Kafka.
+
+Implementation and Learn More
+-----------------------------
+
+See the `mdb-temporal-pra
+<https://github.com/mongodb-partners/mdb-temporal-pra>`__ GitHub
+repository for deployment guidance and technical documentation.
