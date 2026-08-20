@@ -562,7 +562,16 @@ const resolveReplacementReferences = (tree: Root, slots: Record<string, Node[]>)
     // own line is a flow element (block context). Only inline references should have their
     // slot flattened to phrasing — block references must keep block-level slot content.
     const inline = node.type === 'mdxJsxTextElement';
-    replacements.push({ index, parent, replacement: replacementSlotToNodes(fragment, inline) });
+    // Clone per use. `slots` holds one fragment per Replacement name, but an included file may
+    // reference the same name several times. Splicing the shared nodes in at every reference
+    // would put one object at multiple indices of the same parent; `visit` then reports the
+    // same index for each occurrence and the reverse splice in applyReplacements collapses
+    // onto that single position, leaving the other occurrences unresolved.
+    replacements.push({
+      index,
+      parent,
+      replacement: replacementSlotToNodes(fragment.map(cloneMdastTree), inline),
+    });
   });
 
   applyReplacements(replacements);
