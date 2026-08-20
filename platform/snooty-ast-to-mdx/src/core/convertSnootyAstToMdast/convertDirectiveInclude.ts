@@ -35,6 +35,60 @@ const collectSubstitutionRefs = (nodes: SnootyNode[]): Map<string, SnootyNode[]>
   return refs;
 };
 
+/**
+ * Expand `|alias| replace:: |other|` (and longer chains) to the concrete
+ * definition body before emitting a `<Replacement>` slot.
+ *
+ * Nested substitution references would otherwise serialize as
+ * `<Reference type="substitution">` inside the slot. Those nodes must be
+ * fully resolved before React render — they are not page components — and
+ * the Atlas Azure AD page (`|idp-provider| replace:: |azure-ad|` plus RST
+ * tabs wrapping YAML step includes) is the outlier that left them in the
+ * tree. Okta/Google/Ping define `|idp-provider|` as a literal, so they
+ * never hit this path.
+ */
+const expandSubstitutionSlotNodes = (
+  nodes: SnootyNode[],
+  ctx: ConversionContext,
+  seen: Set<string> = new Set(),
+): SnootyNode[] => {
+  const out: SnootyNode[] = [];
+  for (const node of nodes) {
+    if (node.type !== 'substitution_reference' && node.type !== 'substitution') {
+      out.push(node);
+      continue;
+    }
+    const key =
+      (typeof node.refname === 'string' && node.refname) ||
+      (typeof node.name === 'string' && node.name) ||
+      '';
+    if (!key || seen.has(key)) {
+      if (Array.isArray(node.children) && node.children.length) {
+        out.push(...(node.children as SnootyNode[]));
+      }
+      continue;
+    }
+    const nextSeen = new Set(seen);
+    nextSeen.add(key);
+    const defNodes = ctx.substitutionDefNodes?.get(key);
+    if (defNodes?.length) {
+      out.push(...expandSubstitutionSlotNodes(defNodes, ctx, nextSeen));
+      continue;
+    }
+    if (Array.isArray(node.children) && node.children.length) {
+      out.push(...expandSubstitutionSlotNodes(node.children as SnootyNode[], ctx, nextSeen));
+      continue;
+    }
+    const literal = ctx.substitutionDefLiterals?.get(key);
+    if (literal) {
+      out.push({ type: 'text', value: literal });
+      continue;
+    }
+    out.push(node);
+  }
+  return out;
+};
+
 export const convertDirectiveInclude = ({ node, ctx, depth }: ConvertDirectiveIncludeArgs): MdastNode => {
   const pathText = parseSnootyArgument(node);
 
@@ -170,11 +224,18 @@ export const convertDirectiveInclude = ({ node, ctx, depth }: ConvertDirectiveIn
       const xref = ctx.substitutionRefXref?.get(refname);
       const isBakedGlobalRef = !!xref && !xref.roleType;
       const pageNodes = !isBakedGlobalRef ? ctx.substitutionDefNodes?.get(refname) : undefined;
-      const nodesToConvert = pageNodes ?? subChildren;
+      const nodesToConvert = expandSubstitutionSlotNodes(pageNodes ?? subChildren, ctx);
       if (!nodesToConvert.length) continue;
       const slotRoot = convertSnootyAstToMdast(
         { type: 'root', children: nodesToConvert },
-        { onEmitMdxFile: ctx.emitMdxFile, currentOutfilePath: path.normalize(emittedPathNormalized), skipRootBlockWrapping: true },
+        {
+          onEmitMdxFile: ctx.emitMdxFile,
+          currentOutfilePath: path.normalize(emittedPathNormalized),
+          skipRootBlockWrapping: true,
+          substitutionRefXref: ctx.substitutionRefXref,
+          substitutionDefLiterals: ctx.substitutionDefLiterals,
+          substitutionDefNodes: ctx.substitutionDefNodes,
+        },
       );
       let slotNodes: MdastNode[] = slotRoot.children.filter(
         (c) => (c as { type: string }).type !== 'yaml',

@@ -1093,7 +1093,7 @@ const tocData: TocItem[] = [
         url: '/docs/atlas/billing/international-usage',
       },
       {
-        label: 'FOCUS Data API',
+        label: 'FOCUS Cost & Usage Report',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/billing/focus-api',
       },

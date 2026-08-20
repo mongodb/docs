@@ -4,6 +4,10 @@
  */
 
 import yaml from 'yaml';
+import { remark } from 'remark';
+import remarkMdx from 'remark-mdx';
+import remarkFrontmatter from 'remark-frontmatter';
+import remarkGfm from 'remark-gfm';
 import { convertSnootyAst } from './utils';
 import { convertMdastToMdx } from '../src/core/convertMdastToMdx';
 import { buildSubstitutionRefXrefMap } from '../src/core/convertSnootyAstToMdast/convertSnootyAstToMdast';
@@ -1530,6 +1534,140 @@ describe('convertSnootyAstToMdast', () => {
     );
     expect(replacementBlock).not.toMatch(/<Icon[^>]*\/>\s*\n\s*\n/);
     expect(replacementBlock).not.toMatch(/<\/Guilabel>\s*\n\s*\n/);
+  });
+
+  it('round-trips RST tabs wrapping includes with a nested |idp-provider| → |azure-ad| substitution', () => {
+    // Atlas federated-auth-azure-ad.txt is the outlier that 500s on docs-on-nextjs:
+    // RST `.. tab::` wrapping YAML step includes, a second tabset later, and
+    // `.. |idp-provider| replace:: |azure-ad|`. MDX must stringify/reparse with
+    // `<Include>` still as JSX (not markdown/html) so remarkResolveImports can
+    // fully resolve Include/Reference before React render.
+    const idpRef = {
+      type: 'substitution_reference',
+      refname: 'idp-provider',
+      children: [{ type: 'text', value: 'Microsoft Entra ID' }],
+    };
+    const includeBody = (text: string): SnootyNode => ({
+      type: 'paragraph',
+      children: [{ type: 'text', value: `${text} ` }, idpRef],
+    });
+    const tabInclude = (tabid: string, title: string, path: string, preview: string): SnootyNode => ({
+      type: 'directive',
+      name: 'tab',
+      options: { tabid },
+      argument: [{ type: 'text', value: title }],
+      children: [
+        {
+          type: 'directive',
+          name: 'include',
+          argument: path,
+          children: [includeBody(preview)],
+        },
+      ],
+    });
+
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'substitution_definition',
+          refname: 'idp-provider',
+          children: [
+            {
+              type: 'substitution_reference',
+              refname: 'azure-ad',
+              children: [{ type: 'text', value: 'Microsoft Entra ID' }],
+            },
+          ],
+        },
+        {
+          type: 'directive',
+          name: 'tabs',
+          children: [
+            tabInclude(
+              'integrated',
+              'Use the MongoDB Cloud Gallery App',
+              '/includes/steps/idp-add-azure-ad-as-idp-gallery.rst',
+              'Gallery',
+            ),
+            tabInclude(
+              'manual',
+              'Configure an App Manually',
+              '/includes/steps/idp-add-azure-ad-as-idp-manual.rst',
+              'Manual',
+            ),
+          ],
+        },
+        {
+          type: 'directive',
+          name: 'include',
+          argument: '/includes/map-domain.rst',
+          children: [
+            {
+              type: 'directive',
+              name: 'include',
+              argument: '/includes/procedures/manage-domain-mapping.rst',
+              children: [
+                includeBody('Associate'),
+                {
+                  type: 'directive',
+                  name: 'tabs',
+                  children: [
+                    {
+                      type: 'directive',
+                      name: 'tab',
+                      options: { tabid: 'upload-html' },
+                      argument: [{ type: 'text', value: 'Upload HTML File' }],
+                      children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Upload an HTML file.' }] }],
+                    },
+                    {
+                      type: 'directive',
+                      name: 'tab',
+                      options: { tabid: 'create-dns' },
+                      argument: [{ type: 'text', value: 'Create DNS Record' }],
+                      children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Create a DNS TXT record.' }] }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    const onEmitMdxFile = jest.fn();
+    const { mdx } = convertSnootyAst({ ast, onEmitMdxFile });
+
+    // Page MDX: Includes stay nested inside Tab, not hoisted/self-closed beside them.
+    expect(mdx).toContain('<Tabs>');
+    expect(mdx).toContain('tabid="integrated"');
+    expect(mdx).toContain('<Include src="/_includes/steps/idp-add-azure-ad-as-idp-gallery"');
+    expect(mdx).toContain('<Replacement name="idp-provider">');
+    // Nested `|idp-provider| replace:: |azure-ad|` must expand to the concrete
+    // value in the slot — a leftover `<Reference>` would crash React render.
+    const idpSlot = mdx.slice(
+      mdx.indexOf('<Replacement name="idp-provider">'),
+      mdx.indexOf('</Replacement>', mdx.indexOf('<Replacement name="idp-provider">')) + '</Replacement>'.length,
+    );
+    expect(idpSlot).toContain('Microsoft Entra ID');
+    expect(idpSlot).not.toContain('<Reference');
+    expect(idpSlot).not.toContain('refKey="azure-ad"');
+
+    const parsed = remark().use(remarkFrontmatter, ['yaml']).use(remarkGfm).use(remarkMdx).parse(mdx);
+
+    const names: string[] = [];
+    const walk = (node: { type?: string; name?: string; children?: unknown[] }) => {
+      if ((node.type === 'mdxJsxFlowElement' || node.type === 'mdxJsxTextElement') && node.name) {
+        names.push(node.name);
+      }
+      (node.children ?? []).forEach((c) => walk(c as { type?: string; name?: string; children?: unknown[] }));
+    };
+    walk(parsed);
+    expect(names.filter((n) => n === 'Include').length).toBeGreaterThanOrEqual(2);
+    expect(names).toContain('Tabs');
+    expect(names).toContain('Tab');
+    expect(names).toContain('Replacement');
   });
 
   it('collects substitutions and refs into root.__references', () => {

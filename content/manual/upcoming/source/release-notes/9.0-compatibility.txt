@@ -160,6 +160,84 @@ write to the source collection during that window could be lost.
 The change affects replica sets only. Sharded clusters already lock
 both collections for the duration of the rename.
 
+Server-Side JavaScript Date Operations Use UTC
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 9.0, server-side JavaScript runs on a WebAssembly
+(WASM)-based engine that evaluates local ``Date`` operations in UTC,
+regardless of the :binary:`~bin.mongod` host time zone. In earlier
+versions, these operations observed the host time zone. The change
+affects JavaScript that runs in :expression:`$function`,
+:group:`$accumulator`, :query:`$where`, and :dbcommand:`mapReduce`.
+
+The stored BSON date value is unchanged, as are UTC operations such as
+``Date.prototype.getTime()``, ``Date.prototype.toISOString()``, and the
+``getUTC*()`` methods. The difference affects local-time operations:
+
+- ``Date.prototype.toString()``
+- ``Date.prototype.toTimeString()``
+- ``Date.prototype.getHours()`` and other local getters
+- Local ``Date`` constructors and setters
+- Operations that implicitly convert dates to strings, including
+  ``Array.prototype.sort()`` called without a comparator
+
+Consider the following operations on a :binary:`~bin.mongod` that runs
+with ``TZ=America/New_York``:
+
+.. code-block:: javascript
+
+   db.events.insertOne( {
+      name: "before-opening",
+      occurredAt: ISODate("2024-01-15T13:30:00Z")
+   } )
+
+   db.events.find( {
+      $expr: {
+         $function: {
+            body: function(date) { return date.getHours() < 9; },
+            args: [ "$occurredAt" ],
+            lang: "js"
+         }
+      }
+   } )
+
+In earlier versions, ``13:30`` UTC is ``08:30`` in New York, so
+``getHours()`` returns ``8`` and the query matches the document.
+Starting in MongoDB 9.0, ``getHours()`` returns ``13`` and the query
+does not match. The operation succeeds in both versions because the
+stored date remains valid, so the difference is not reported as an
+error. Deployments that run mixed binary versions can return different
+results for the same JavaScript.
+
+Upgrade Impact
+``````````````
+
+Before you upgrade to MongoDB 9.0, review the JavaScript in your
+:expression:`$function`, :group:`$accumulator`, :query:`$where`, and
+:dbcommand:`mapReduce` code for local ``Date`` usage, and do not rely
+on the :binary:`~bin.mongod` host time zone.
+
+To evaluate dates in a named time zone, use an aggregation date operator
+with an explicit ``timezone`` argument instead of JavaScript. The
+following query returns the same results in all versions:
+
+.. code-block:: javascript
+
+   db.events.find( {
+      $expr: {
+         $lt: [ { $hour: { date: "$occurredAt",
+                           timezone: "America/New_York" } }, 9 ]
+      }
+   } )
+
+For JavaScript that requires deterministic comparison or
+serialization, use ``getTime()``, ``toISOString()``, or the
+``getUTC*()`` methods rather than local ``Date`` methods or implicit
+string conversion. Pass an explicit comparator to
+``Array.prototype.sort()`` when the sorted values can contain dates.
+
+To learn more, see :ref:`server-side-javascript`.
+
 Security
 --------
 

@@ -30,6 +30,11 @@ const tocData: TocItem[] = [
     url: '/docs/voyageai/management/billing',
   },
   {
+    label: 'Manage Data Collection for Model Training',
+    contentSite: 'voyageai',
+    url: '/docs/voyageai/management/model-training-data',
+  },
+  {
     label: 'Deploy on VPC',
     contentSite: 'voyageai',
     collapsible: true,

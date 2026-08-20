@@ -31,8 +31,9 @@
       a. Click :guilabel:`Download` in the upper right corner of the
          :guilabel:`Invoice` page.
       
-      #. Select :guilabel:`PDF` or :guilabel:`CSV`.
-         
+      #. Select :guilabel:`PDF Usage Summary`, :guilabel:`CSV Usage
+         Summary`, or :guilabel:`CSV FOCUS Cost & Usage Report`.
+
          When you download your invoice as a PDF, the document represents
          a copy of your actual bill for the specified billing period.
       
@@ -46,3 +47,8 @@
          This information helps you calculate when you ran out of credits.
          When summing the :guilabel:`Amount` column, you can filter out this
          row to calculate your invoice subtotal.
+
+         When you download the CSV FOCUS cost and usage report, the
+         document presents your cost and usage data in the
+         industry-standard FOCUS format. To learn more, see
+         :ref:`focus-api-overview`.
