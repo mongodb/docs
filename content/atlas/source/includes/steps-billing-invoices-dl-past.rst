@@ -29,7 +29,8 @@
       - Filter the invoices by status or date.
       - View the invoice status.
       - Click the link to view the invoice.
-      - Download each invoice as PDF or CSV.
+      - Download each invoice as a PDF or CSV usage summary, or as a
+        CSV FOCUS cost and usage report.
       
    .. step:: Filter your list of invoices, if desired.
       
@@ -67,4 +68,7 @@
    .. step:: Download your desired invoice.
       
       From your invoice's :guilabel:`Download As` column, select
-      :guilabel:`PDF` or :guilabel:`CSV`.      
+      :guilabel:`PDF Usage Summary`, :guilabel:`CSV Usage Summary`, or
+      :guilabel:`CSV FOCUS Cost & Usage Report`.
+
+      To learn about the FOCUS format, see :ref:`focus-api-overview`.      
