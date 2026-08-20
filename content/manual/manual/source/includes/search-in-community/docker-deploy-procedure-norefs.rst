@@ -170,9 +170,9 @@
 
       You can configure ``mongot`` with a YAML configuration file. You must
       specify the username that you specified in the previous step as the
-      ``syncSource.replicaSet.username``. You must also specify the
-      ``passwordFile`` that you created in the previous step as the
-      ``syncSource.replicaSet.passwordFile``. 
+      ``syncSource.replicaSet.scramAuth.username``. You must also specify
+      the ``passwordFile`` that you created in the previous step as the
+      ``syncSource.replicaSet.scramAuth.passwordFile``.
 
       For more information
       on ``mongot`` configuration options, see
