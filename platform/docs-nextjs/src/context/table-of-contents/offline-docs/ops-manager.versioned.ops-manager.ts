@@ -876,6 +876,11 @@ export const toc: L1TocItem[] = [
                 url: '/docs/ops-manager/:version/tutorial/enable-ssl-for-a-deployment',
               },
               {
+                label: 'Rotate TLS Certificates',
+                contentSite: 'ops-manager',
+                url: '/docs/ops-manager/:version/tutorial/rotate-tls-certificates',
+              },
+              {
                 label: 'Configure LDAP',
                 contentSite: 'ops-manager',
                 url: '/docs/ops-manager/:version/tutorial/configure-for-ldap-authentication',
@@ -889,6 +894,14 @@ export const toc: L1TocItem[] = [
                 label: 'Configure OIDC',
                 contentSite: 'ops-manager',
                 url: '/docs/ops-manager/:version/tutorial/configure-for-oidc-authentication',
+              },
+              {
+                label: 'OIDC for Backing Databases',
+                contentSite: 'ops-manager',
+                url: '/docs/ops-manager/:version/core/oidc-backing-db-overview',
+                versions: {
+                  includes: ['upcoming', 'current'],
+                },
               },
               {
                 label: 'Secure with Authentication',

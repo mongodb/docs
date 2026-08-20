@@ -43,39 +43,6 @@ export const toc: L1TocItem[] = [
             ],
           },
           {
-            label: 'PHP',
-            contentSite: 'landing',
-            collapsible: true,
-            url: '/docs/languages/php/',
-            items: [
-              {
-                label: 'PHP Extension',
-                isExternal: true,
-                url: 'https://www.php.net/mongodb',
-              },
-              {
-                label: 'Symfony Integration',
-                contentSite: 'drivers',
-                url: '/docs/drivers/php-frameworks/symfony/',
-              },
-              {
-                label: 'Drupal Integration',
-                contentSite: 'drivers',
-                url: '/docs/drivers/php-frameworks/drupal/',
-              },
-              {
-                label: 'LLPhant Integration',
-                contentSite: 'drivers',
-                url: '/docs/drivers/php-frameworks/llphant/',
-              },
-              {
-                label: 'Libraries, Frameworks, & Tools',
-                contentSite: 'drivers',
-                url: '/docs/drivers/php-libraries/',
-              },
-            ],
-          },
-          {
             label: 'Node.js',
             contentSite: 'landing',
             collapsible: true,
@@ -110,6 +77,39 @@ export const toc: L1TocItem[] = [
                 label: 'Next.js Integration',
                 contentSite: 'drivers',
                 url: '/docs/drivers/node-frameworks/next-integration/',
+              },
+            ],
+          },
+          {
+            label: 'PHP',
+            contentSite: 'landing',
+            collapsible: true,
+            url: '/docs/languages/php/',
+            items: [
+              {
+                label: 'PHP Extension',
+                isExternal: true,
+                url: 'https://www.php.net/mongodb',
+              },
+              {
+                label: 'Symfony Integration',
+                contentSite: 'drivers',
+                url: '/docs/drivers/php-frameworks/symfony/',
+              },
+              {
+                label: 'Drupal Integration',
+                contentSite: 'drivers',
+                url: '/docs/drivers/php-frameworks/drupal/',
+              },
+              {
+                label: 'LLPhant Integration',
+                contentSite: 'drivers',
+                url: '/docs/drivers/php-frameworks/llphant/',
+              },
+              {
+                label: 'Libraries, Frameworks, & Tools',
+                contentSite: 'drivers',
+                url: '/docs/drivers/php-libraries/',
               },
             ],
           },

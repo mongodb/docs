@@ -526,9 +526,27 @@ export const toc: L1TocItem[] = [
                 ],
               },
               {
-                label: 'Export Snapshots',
+                label: 'Export Snapshots to Object Storage',
                 contentSite: 'cloud-docs',
+                collapsible: true,
                 url: '/docs/atlas/backup/cloud-backup/export',
+                items: [
+                  {
+                    label: 'AWS S3',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/backup/cloud-backup/export/aws-s3',
+                  },
+                  {
+                    label: 'Azure Blob Storage',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/backup/cloud-backup/export/azure-blob-storage',
+                  },
+                  {
+                    label: 'Google Cloud Storage',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/backup/cloud-backup/export/google-cloud-storage',
+                  },
+                ],
               },
               {
                 label: 'Restore Sources',
@@ -1082,6 +1100,11 @@ export const toc: L1TocItem[] = [
                 contentSite: 'cloud-docs',
                 url: '/docs/atlas/billing/international-usage',
               },
+              {
+                label: 'FOCUS Cost & Usage Report',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/billing/focus-api',
+              },
             ],
           },
           {
@@ -1499,6 +1522,11 @@ export const toc: L1TocItem[] = [
                 collapsible: true,
                 url: '/docs/atlas/faq',
                 items: [
+                  {
+                    label: 'FAQ: Account Access and Authentication',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/reference/faq/access',
+                  },
                   {
                     label: 'FAQ: Accounts',
                     contentSite: 'cloud-docs',
@@ -3238,7 +3266,7 @@ export const toc: L1TocItem[] = [
                         url: '/docs/:version/core/security-ldap-external',
                       },
                       {
-                        label: 'LDAP Deprecation',
+                        label: 'LDAP Alternatives',
                         contentSite: 'docs',
                         url: '/docs/:version/core/LDAP-deprecation',
                       },

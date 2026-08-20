@@ -526,9 +526,27 @@ export const toc: L1TocItem[] = [
                 ],
               },
               {
-                label: 'Export Snapshots',
+                label: 'Export Snapshots to Object Storage',
                 contentSite: 'cloud-docs',
+                collapsible: true,
                 url: '/docs/atlas/backup/cloud-backup/export',
+                items: [
+                  {
+                    label: 'AWS S3',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/backup/cloud-backup/export/aws-s3',
+                  },
+                  {
+                    label: 'Azure Blob Storage',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/backup/cloud-backup/export/azure-blob-storage',
+                  },
+                  {
+                    label: 'Google Cloud Storage',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/backup/cloud-backup/export/google-cloud-storage',
+                  },
+                ],
               },
               {
                 label: 'Restore Sources',
@@ -1081,6 +1099,11 @@ export const toc: L1TocItem[] = [
                 label: 'International Usage & Taxes',
                 contentSite: 'cloud-docs',
                 url: '/docs/atlas/billing/international-usage',
+              },
+              {
+                label: 'FOCUS Cost & Usage Report',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/billing/focus-api',
               },
             ],
           },

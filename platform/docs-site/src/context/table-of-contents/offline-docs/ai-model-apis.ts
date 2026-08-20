@@ -58,6 +58,11 @@ export const toc: L1TocItem[] = [
             contentSite: 'voyageai',
             url: '/docs/voyageai/models/rerankers',
           },
+          {
+            label: 'Model Lifecycle and Support Status',
+            contentSite: 'voyageai',
+            url: '/docs/voyageai/models/lifecycle',
+          },
         ],
       },
       {
@@ -126,6 +131,11 @@ export const toc: L1TocItem[] = [
             label: 'Billing',
             contentSite: 'voyageai',
             url: '/docs/voyageai/management/billing',
+          },
+          {
+            label: 'Manage Data Collection for Model Training',
+            contentSite: 'voyageai',
+            url: '/docs/voyageai/management/model-training-data',
           },
           {
             label: 'Deploy on VPC',

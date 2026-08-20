@@ -105,9 +105,20 @@ export const toc: L1TocItem[] = [
             url: 'https://www.mongodb.com/docs/manual/administration/install-enterprise',
           },
           {
-            label: 'Install Search and Vector Search in a Kubernetes Cluster',
-            isExternal: true,
-            url: 'https://www.mongodb.com/docs/kubernetes/current/fts-vs/deployment/single-cluster-installation/?cluster-topology=repl&deployment-type=k8s-managed&mdb-edition=enterprise&mongot-instances=single',
+            label: 'Install Search and Vector Search',
+            collapsible: true,
+            items: [
+              {
+                label: 'In a Kubernetes Cluster',
+                isExternal: true,
+                url: 'https://www.mongodb.com/docs/kubernetes/current/fts-vs/deployment/single-cluster-installation/?cluster-topology=repl&deployment-type=k8s-managed&mdb-edition=enterprise&mongot-instances=single',
+              },
+              {
+                label: 'In Multiple Kubernetes Clusters',
+                isExternal: true,
+                url: 'https://www.mongodb.com/docs/kubernetes/current/fts-vs/deployment/multi-cluster-installation/',
+              },
+            ],
           },
         ],
       },

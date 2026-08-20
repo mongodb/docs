@@ -24,7 +24,7 @@ export const toc: L1TocItem[] = [
             url: '/docs/:version/core/document',
             items: [
               {
-                label: 'Other Uses of the Document Structure',
+                label: 'Use Cases',
                 contentSite: 'docs',
                 url: '/docs/:version/core/documents-other-uses',
               },
@@ -1231,6 +1231,11 @@ export const toc: L1TocItem[] = [
                         label: 'Sharded Collections',
                         contentSite: 'docs',
                         url: '/docs/:version/tutorial/shard-collection-with-unique-index',
+                      },
+                      {
+                        label: 'Unique Index on Sharded Collection',
+                        contentSite: 'docs',
+                        url: '/docs/:version/tutorial/create-unique-index-on-sharded-collection',
                       },
                     ],
                   },
@@ -9203,6 +9208,11 @@ export const toc: L1TocItem[] = [
                             url: '/docs/atlas/atlas-stream-processing/kinesis-private-connection',
                           },
                           {
+                            label: 'AWS Lambda Private Link',
+                            contentSite: 'cloud-docs',
+                            url: '/docs/atlas/atlas-stream-processing/aws-lambda-private-connection',
+                          },
+                          {
                             label: 'Google Pub/Sub Private Service Connect',
                             contentSite: 'cloud-docs',
                             url: '/docs/atlas/atlas-stream-processing/gcp-pubsub-private-connection',
@@ -9336,6 +9346,11 @@ export const toc: L1TocItem[] = [
                         label: '$iceberg',
                         contentSite: 'cloud-docs',
                         url: '/docs/atlas/atlas-stream-processing/sp-agg-iceberg',
+                      },
+                      {
+                        label: '$vectorSearch',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/atlas-stream-processing/sp-agg-vectorSearch',
                       },
                     ],
                   },

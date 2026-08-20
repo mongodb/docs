@@ -7,6 +7,18 @@ export const toc: L1TocItem[] = [
     url: '/docs/tools-and-connectors',
     items: [
       {
+        label: 'App Connections',
+        contentSite: 'cloud-docs',
+        group: true,
+        items: [
+          {
+            label: 'Atlas App Connections',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/app-connections',
+          },
+        ],
+      },
+      {
         label: 'For Agents',
         contentSite: 'docs',
         group: true,

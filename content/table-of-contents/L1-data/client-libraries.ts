@@ -136,6 +136,51 @@ const tocData: TocItem[] = [
         ],
       },
       {
+        label: 'Node.js',
+        contentSite: 'landing',
+        url: '/docs/languages/javascript/',
+        collapsible: true,
+        items: [
+          {
+            label: 'Node.js Driver',
+            contentSite: 'node',
+            url: '/docs/drivers/node/:version/',
+            showSubNav: true,
+            items: NodeDriverData,
+          },
+          {
+            label: 'Angular Integration',
+            contentSite: 'drivers',
+            url: '/docs/drivers/node-frameworks/angular/',
+          },
+          {
+            label: 'React Integration',
+            contentSite: 'drivers',
+            url: '/docs/drivers/node-frameworks/react/',
+          },
+          {
+            label: 'Meteor and Vue Integration',
+            contentSite: 'drivers',
+            url: '/docs/drivers/node-frameworks/meteor-vue/',
+          },
+          {
+            label: 'Nuxt and Vue Integration',
+            contentSite: 'drivers',
+            url: '/docs/drivers/node-frameworks/nuxt-vue/',
+          },
+          {
+            label: 'TanStack Integration',
+            contentSite: 'drivers',
+            url: '/docs/drivers/node-frameworks/tanstack/',
+          },
+          {
+            label: 'Next.js Integration',
+            contentSite: 'drivers',
+            url: '/docs/drivers/node-frameworks/next-integration/',
+          },
+        ],
+      },
+      {
         label: 'PHP',
         contentSite: 'landing',
         url: '/docs/languages/php/',
@@ -179,51 +224,6 @@ const tocData: TocItem[] = [
             label: 'Libraries, Frameworks, & Tools',
             contentSite: 'drivers',
             url: '/docs/drivers/php-libraries/',
-          },
-        ],
-      },
-      {
-        label: 'Node.js',
-        contentSite: 'landing',
-        url: '/docs/languages/javascript/',
-        collapsible: true,
-        items: [
-          {
-            label: 'Node.js Driver',
-            contentSite: 'node',
-            url: '/docs/drivers/node/:version/',
-            showSubNav: true,
-            items: NodeDriverData,
-          },
-          {
-            label: 'Angular Integration',
-            contentSite: 'drivers',
-            url: '/docs/drivers/node-frameworks/angular/',
-          },
-          {
-            label: 'React Integration',
-            contentSite: 'drivers',
-            url: '/docs/drivers/node-frameworks/react/',
-          },
-          {
-            label: 'Meteor and Vue Integration',
-            contentSite: 'drivers',
-            url: '/docs/drivers/node-frameworks/meteor-vue/',
-          },
-          {
-            label: 'Nuxt and Vue Integration',
-            contentSite: 'drivers',
-            url: '/docs/drivers/node-frameworks/nuxt-vue/',
-          },
-          {
-            label: 'TanStack Integration',
-            contentSite: 'drivers',
-            url: '/docs/drivers/node-frameworks/tanstack/',
-          },
-          {
-            label: 'Next.js Integration',
-            contentSite: 'drivers',
-            url: '/docs/drivers/node-frameworks/next-integration/',
           },
         ],
       },

@@ -435,6 +435,11 @@ export const toc: L1TocItem[] = [
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/solutions-library/openEHR-persistance-layer',
                   },
+                  {
+                    label: 'SNOMED CT on MongoDB Atlas',
+                    contentSite: 'atlas-architecture',
+                    url: '/docs/atlas/architecture/:version/solutions-library/healthcare-snomed-ct',
+                  },
                 ],
               },
             ],
@@ -578,6 +583,11 @@ export const toc: L1TocItem[] = [
                     label: 'Real-Time Audio Diagnostics',
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/solutions-library/audio-based-AI-diagnostics',
+                  },
+                  {
+                    label: 'Smart Grid Management',
+                    contentSite: 'atlas-architecture',
+                    url: '/docs/atlas/architecture/:version/solutions-library/smart-grid-management',
                   },
                 ],
               },
@@ -813,6 +823,11 @@ export const toc: L1TocItem[] = [
                 contentSite: 'atlas-architecture',
                 collapsible: true,
                 items: [
+                  {
+                    label: 'Agentic Network Automation',
+                    contentSite: 'atlas-architecture',
+                    url: '/docs/atlas/architecture/:version/solutions-library/agentic-network-automation',
+                  },
                   {
                     label: 'AI-Powered Chatbot for Network Management',
                     contentSite: 'atlas-architecture',
