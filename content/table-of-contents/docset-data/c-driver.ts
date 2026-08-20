@@ -14,11 +14,6 @@ const tocData: TocItem[] = [
         url: '/docs/languages/c/c-driver/:version/',
       },
       {
-        label: 'Asynchronous C Driver: Public Preview',
-        contentSite: 'c',
-        url: '/docs/languages/c/c-driver/:version/async-c-driver',
-      },
-      {
         label: 'Get Started',
         contentSite: 'c',
         url: '/docs/languages/c/c-driver/:version/get-started',
