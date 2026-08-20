@@ -238,3 +238,132 @@ describe('remarkResolveImports — <Include> nodes inside <Replacement> slots', 
     expect(output).not.toMatch(/<Include\s/);
   });
 });
+
+describe('remarkResolveImports — RST tabs wrapping YAML-step includes (Atlas Azure AD 500)', () => {
+  // Atlas federated-auth-azure-ad.txt 500s on docs-on-nextjs because leftover
+  // <Include> / <Reference> nodes reach React (they are not page components).
+  // MDX compiles — a compile failure would 404. This page is the outlier:
+  // RST `.. tab::` wrapping YAML step includes, a second tabset later, and
+  // `|idp-provider| replace:: |azure-ad|`. Okta/Google/Ping and Cloud Manager's
+  // Azure AD page (YAML-style tabs) all 200.
+  const PROJECT = 'atlas';
+
+  const nestedIdpSlot = [
+    '      <Replacement name="idp-provider">',
+    '        <><Reference refKey="azure-ad" type="substitution" /></>',
+    '      </Replacement>',
+  ].join('\n');
+
+  const PAGE_MDX = [
+    '<Tabs>',
+    '  <Tab tabid="integrated" name="Use the MongoDB Cloud Gallery App">',
+    '    <Include src="/_includes/steps/idp-add-azure-ad-as-idp-gallery">',
+    nestedIdpSlot,
+    '    </Include>',
+    '  </Tab>',
+    '  <Tab tabid="manual" name="Configure an App Manually">',
+    '    <Include src="/_includes/steps/idp-add-azure-ad-as-idp-manual">',
+    nestedIdpSlot,
+    '    </Include>',
+    '  </Tab>',
+    '</Tabs>',
+    '',
+    '<Include src="/_includes/map-domain">',
+    nestedIdpSlot,
+    '</Include>',
+    '',
+  ].join('\n');
+
+  const GALLERY_MDX = [
+    '<Procedure style="normal">',
+    '  <Step>',
+    '    <StepHeading headingLevel={4}>',
+    '      Add the app to <Reference refKey="idp-provider" type="substitution" />.',
+    '    </StepHeading>',
+    '',
+    '    Configure <Reference refKey="idp-provider" type="substitution" /> from the gallery.',
+    '  </Step>',
+    '</Procedure>',
+    '',
+  ].join('\n');
+  const MANUAL_MDX = [
+    '<Procedure style="normal">',
+    '  <Step>',
+    '    <StepHeading headingLevel={4}>',
+    '      Add a non-gallery app to <Reference refKey="idp-provider" type="substitution" />.',
+    '    </StepHeading>',
+    '',
+    '    Configure <Reference refKey="idp-provider" type="substitution" /> manually.',
+    '  </Step>',
+    '</Procedure>',
+    '',
+  ].join('\n');
+  const MAP_DOMAIN_MDX = [
+    '<Include src="/_includes/procedures/manage-domain-mapping">',
+    '  <Replacement name="idp-provider">',
+    '    <Reference refKey="idp-provider" type="replacement" />',
+    '  </Replacement>',
+    '</Include>',
+    '',
+  ].join('\n');
+  const MANAGE_DOMAIN_MDX = [
+    'Associate the domain with <Reference refKey="idp-provider" type="substitution" />.',
+    '',
+    '<Tabs>',
+    '  <Tab tabid="upload-html" name="Upload HTML File">',
+    '    Upload an HTML file.',
+    '  </Tab>',
+    '  <Tab tabid="create-dns" name="Create DNS Record">',
+    '    Create a DNS TXT record.',
+    '  </Tab>',
+    '</Tabs>',
+    '',
+  ].join('\n');
+
+  const REFERENCES_JSON = JSON.stringify({
+    substitutions: { 'azure-ad': 'Microsoft Entra ID', 'idp-provider': 'GLOBAL FALLBACK' },
+    refs: {},
+  });
+
+  const blobFor = (mdxPath: string) => `mdx/${PROJECT}/${mdxPath}`;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetBlobString.mockImplementation(async (key: string) => {
+      const map: Record<string, string> = {
+        [blobFor('_includes/steps/idp-add-azure-ad-as-idp-gallery.mdx')]: GALLERY_MDX,
+        [blobFor('_includes/steps/idp-add-azure-ad-as-idp-manual.mdx')]: MANUAL_MDX,
+        [blobFor('_includes/map-domain.mdx')]: MAP_DOMAIN_MDX,
+        [blobFor('_includes/procedures/manage-domain-mapping.mdx')]: MANAGE_DOMAIN_MDX,
+        [`reference/${PROJECT}/_references.json`]: REFERENCES_JSON,
+      };
+      return map[key] ?? null;
+    });
+  });
+
+  const resolve = async (topPageMdx: string): Promise<string> => {
+    const file = await remark()
+      .use(remarkFrontmatter, ['yaml'])
+      .use(remarkGfm)
+      .use(remarkMdx)
+      .use(remarkResolveImports, { projectPath: PROJECT })
+      .process(topPageMdx);
+    return String(file);
+  };
+
+  it('resolves tab-wrapped step includes and nested idp-provider → azure-ad substitutions', async () => {
+    const output = await resolve(PAGE_MDX);
+
+    expect(output).toContain('Configure Microsoft Entra ID from the gallery');
+    expect(output).toContain('Configure Microsoft Entra ID manually');
+    expect(output).toContain('Associate the domain with Microsoft Entra ID');
+    expect(output).toContain('Upload an HTML file');
+    expect(output).toContain('Create a DNS TXT record');
+    expect(output).not.toContain('GLOBAL FALLBACK');
+    expect(output).not.toMatch(/<Include\s/);
+    expect(output).not.toContain('<Reference');
+    expect(output).not.toContain('<>');
+    expect(output).not.toContain('type="replacement"');
+    expect(output).not.toContain('type="substitution"');
+  });
+});

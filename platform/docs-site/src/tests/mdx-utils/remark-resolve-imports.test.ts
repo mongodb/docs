@@ -388,3 +388,33 @@ describe('remarkResolveImports rich substitution references', () => {
     expect(resolved).toContain('Open Ops Manager.');
   });
 });
+
+describe('remarkResolveImports leftover Include/Reference sweep', () => {
+  // Include and Reference are not page components. If they survive resolve
+  // (MDX still compiles), React throws — the Atlas Azure AD 500. Strip them.
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetContentString.mockImplementation(async (rawPath: string) => {
+      if (rawPath.endsWith('_references.json')) return JSON.stringify({ substitutions: {}, refs: {} });
+      return null;
+    });
+  });
+
+  it('removes leftover Include/Reference nodes and keeps a substitution value fallback', async () => {
+    const pageMdx = [
+      '<Include />',
+      '',
+      'Hello <Reference refKey="missing" type="replacement" /> world.',
+      '',
+      'See <Reference refKey="also-missing" type="substitution" value="Fallback Text" />.',
+      '',
+    ].join('\n');
+
+    const resolved = await resolveToMdx(pageMdx);
+
+    expect(resolved).not.toMatch(/<Include(\s|\/|>)/);
+    expect(resolved).not.toContain('<Reference');
+    expect(resolved).toContain('Fallback Text');
+    await expect(reparseMdx(resolved)).resolves.toBeDefined();
+  });
+});

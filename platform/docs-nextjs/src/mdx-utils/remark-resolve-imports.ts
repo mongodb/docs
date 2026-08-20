@@ -34,13 +34,14 @@ const mdxProcessor = remark().use(remarkFrontmatter, ['yaml']).use(remarkGfm).us
  */
 export const remarkResolveImports = ({ projectPath }: { projectPath: string }) => {
   return async (tree: Root) => {
-    await resolveIncludes({ tree, projectPath });
-
     const loadedRefs = await loadReferences(projectPath);
     const refs: ReferencesData = loadedRefs ?? { substitutions: {}, refs: {} };
 
+    await resolveIncludes({ tree, projectPath, refs });
+
     resolveSubstitutions({ tree, refs, projectPath });
     resolveRefLinks({ tree, refs, projectPath });
+    stripUnresolvedImportNodes(tree);
   };
 };
 
@@ -55,9 +56,15 @@ interface ResolveIncludesArgs {
   tree: Root;
   projectPath: string;
   includeStack?: Set<string>;
+  refs: ReferencesData;
 }
 
-const resolveIncludes = async ({ tree, projectPath, includeStack = new Set<string>() }: ResolveIncludesArgs) => {
+const resolveIncludes = async ({
+  tree,
+  projectPath,
+  includeStack = new Set<string>(),
+  refs,
+}: ResolveIncludesArgs) => {
   const nodesToReplace: IncludeNode[] = [];
 
   visit(tree, (node, index, parent) => {
@@ -81,6 +88,7 @@ const resolveIncludes = async ({ tree, projectPath, includeStack = new Set<strin
         projectPath,
         includeStack,
         replacementSlots,
+        refs,
       });
       return { ...item, replacement };
     }),
@@ -104,6 +112,7 @@ interface FetchAndParseIncludeArgs {
   projectPath: string;
   includeStack: Set<string>;
   replacementSlots?: Record<string, Node[]>;
+  refs: ReferencesData;
 }
 
 const fetchAndParseInclude = async ({
@@ -111,6 +120,7 @@ const fetchAndParseInclude = async ({
   projectPath,
   includeStack,
   replacementSlots,
+  refs,
 }: FetchAndParseIncludeArgs): Promise<Root | null> => {
   const mdxFilePath = src.replace(/^\/+/, '').replace(/\.mdx$/, '') + '.mdx';
   // projectPath is empty string for the landing page (no project path prefix)
@@ -134,12 +144,18 @@ const fetchAndParseInclude = async ({
 
     const parsed = mdxProcessor.parse(content);
 
-    await resolveIncludes({ tree: parsed, projectPath, includeStack: nextStack });
+    await resolveIncludes({ tree: parsed, projectPath, includeStack: nextStack, refs });
 
     resolveReplacementReferences(parsed, replacementSlots ?? {});
 
     // Resolve any <Include> nodes introduced by the replacement slots above.
-    await resolveIncludes({ tree: parsed, projectPath, includeStack: nextStack });
+    await resolveIncludes({ tree: parsed, projectPath, includeStack: nextStack, refs });
+
+    // Slot values may themselves contain <Reference> nodes (e.g. `|idp-provider|
+    // replace:: |azure-ad|`). Resolve them here — before the include is spliced
+    // into the page — so leftover Include/Reference never reach React.
+    resolveSubstitutions({ tree: parsed, refs, projectPath });
+    resolveRefLinks({ tree: parsed, refs, projectPath });
 
     return parsed;
   } catch (err) {
@@ -379,6 +395,23 @@ const resolveRefLinks = ({ tree, refs, projectPath }: ResolveRefsArgs) => {
 /** Block-level node types that must never be flattened into an inline (text) context. */
 const TRULY_BLOCK = new Set(['code', 'heading', 'blockquote', 'list', 'listItem', 'thematicBreak', 'table']);
 
+/** Unwrap `<>...</>` (null-name JSX) so slot values are the inner nodes.
+ * Converter wraps inline Replacement content in a fragment to survive stringify;
+ * leaving that wrapper in the tree hides nested `<Reference>` nodes from some
+ * later passes and is unnecessary once the slot is spliced in. */
+const unwrapNullNameFragments = (nodes: Node[]): Node[] =>
+  nodes.flatMap((n) => {
+    if (
+      (n.type === 'mdxJsxFlowElement' || n.type === 'mdxJsxTextElement') &&
+      (n as MdxJsxElement).name == null &&
+      Array.isArray((n as Parent).children) &&
+      (n as Parent).children.length
+    ) {
+      return unwrapNullNameFragments((n as Parent).children);
+    }
+    return [n];
+  });
+
 /** Convert a replacement-slot fragment into nodes appropriate for where the
  * `<Reference type="replacement" />` appears.
  *
@@ -394,6 +427,7 @@ const TRULY_BLOCK = new Set(['code', 'heading', 'blockquote', 'list', 'listItem'
  * :guilabel:) was serialized with blank lines and re-parsed as separate flow elements.
  */
 const replacementSlotToNodes = (fragment: Node[], inline: boolean): Node[] => {
+  fragment = unwrapNullNameFragments(fragment);
   if (!inline) return fragment;
 
   const [first] = fragment;
@@ -423,14 +457,12 @@ const extractReplacementSlots = (includeNode: MdxJsxElement): Record<string, Nod
 
     const inner = (child.children ?? []).filter((c) => (c as Node).type !== 'yaml');
 
-    slots[name] = inner.map(cloneMdastTree);
+    slots[name] = unwrapNullNameFragments(inner.map(cloneMdastTree));
   }
   return slots;
 };
 
 const resolveReplacementReferences = (tree: Root, slots: Record<string, Node[]>) => {
-  if (!Object.keys(slots).length) return;
-
   const replacements: JsxReplacement[] = [];
 
   visit(tree, (node, index, parent) => {
@@ -509,4 +541,41 @@ const cloneMdastTree = (node: Node): Node => {
     } as Node;
   }
   return { ...node };
+};
+
+/**
+ * Include and Reference are conversion-time placeholders, not page components.
+ * If any survive the resolve passes (MDX still compiles; React then throws),
+ * strip them so the renderer cannot 500.
+ */
+const stripUnresolvedImportNodes = (tree: Root) => {
+  const replacements: JsxReplacement[] = [];
+
+  visit(tree, (node, index, parent) => {
+    if (index === undefined || !parent) return;
+    if (!isJsxElement(node)) return;
+
+    if (node.name === 'Include') {
+      console.error(
+        `[remarkResolveImports] Unresolved <Include src="${getAttr(node, 'src') ?? ''}"> — node removed to prevent render error`,
+      );
+      replacements.push({ index, parent, replacement: [] });
+      return;
+    }
+
+    if (node.name === 'Reference') {
+      const value = getAttr(node, 'value');
+      const key = getAttr(node, 'refKey') ?? getAttr(node, 'name') ?? '';
+      console.error(
+        `[remarkResolveImports] Unresolved <Reference${key ? ` refKey="${key}"` : ''}> — node removed to prevent render error`,
+      );
+      replacements.push({
+        index,
+        parent,
+        replacement: value ? ({ type: 'text', value } as PhrasingContent) : [],
+      });
+    }
+  });
+
+  applyReplacements(replacements);
 };
