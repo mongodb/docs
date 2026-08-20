@@ -1,17 +1,17 @@
-You can consider using a config shard if your cluster has three or fewer 
-shards.
+A config shard costs less than a dedicated config server because a
+dedicated config server runs as its own replica set. A config shard
+combines the config server role into an existing shard's replica set,
+so your cluster needs one replica set instead of two. Using a config
+shard has no measurable performance impact at low shard counts. A
+dedicated config server isolates cluster metadata from application
+data, which certain features require.
 
-If your application has demanding availability and resiliency 
-requirements, consider deploying a dedicated config server. A dedicated 
-config server provides isolation, dedicated resources, and consistent 
-performance for critical cluster operations.
+Use a dedicated config server if you use one or more of the following
+features:
 
-You should use a dedicated config server if you satisfy one or more of 
-the following conditions:
+- :ref:`Queryable Encryption <qe-manual-feature-qe>` collections
+- :opsmgr:`Queryable backups </tutorial/query-backup>` (on-prem)
 
-- You plan to use more than three :ref:`shards 
-  <sharding-sharded-cluster>`.
-- You plan to use :ref:`Queryable Encryption 
-  <qe-manual-feature-qe>` collections. 
-- You plan to use :opsmgr:`queryable backups 
-  </tutorial/query-backup>` (on-prem).
+On {+atlas+}, a cluster automatically transitions from a config shard
+to a dedicated config server when the cluster has more than five
+:ref:`shards <sharding-sharded-cluster>`.
