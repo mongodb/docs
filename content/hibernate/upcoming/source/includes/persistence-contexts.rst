@@ -46,5 +46,5 @@
            emf.close;
 
          To use an ``EntityManager``, you must create a ``persistence.xml`` file that declares a persistence
-         unit. To learn more, see the `Tutorial using JPA-standard APIs <https://docs.hibernate.org/orm/6.6/quickstart/html_single/#tutorial_jpa>`__
+         unit. To learn more, see the `Tutorial using JPA-standard APIs <https://docs.hibernate.org/orm/7.4/quickstart/html_single/#tutorial_jpa>`__
          in the {+orm+} documentation.
