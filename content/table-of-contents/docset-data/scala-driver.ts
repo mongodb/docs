@@ -24,33 +24,45 @@ const tocData: TocItem[] = [
       {
         label: 'Connect',
         contentSite: 'scala',
-        url: '/docs/languages/scala/scala-driver/:version/connect',
         collapsible: true,
         items: [
           {
-            label: 'Create a Client',
+            label: 'Create a MongoClient',
             contentSite: 'scala',
             url: '/docs/languages/scala/scala-driver/:version/connect/mongoclient',
           },
           {
-            label: 'Stable API',
+            label: 'Specify Connection Options',
             contentSite: 'scala',
-            url: '/docs/languages/scala/scala-driver/:version/connect/stable-api',
+            url: '/docs/languages/scala/scala-driver/:version/connect/connection-options',
+            collapsible: true,
+            items: [
+              {
+                label: 'Stable API',
+                contentSite: 'scala',
+                url: '/docs/languages/scala/scala-driver/:version/connect/connection-options/stable-api',
+              },
+              {
+                label: 'Limit Execution Time',
+                contentSite: 'scala',
+                url: '/docs/languages/scala/scala-driver/:version/connect/connection-options/csot',
+              },
+              {
+                label: 'Connection Pools',
+                contentSite: 'scala',
+                url: '/docs/languages/scala/scala-driver/:version/connect/connection-options/connection-pools',
+              },
+              {
+                label: 'Compress Network Traffic',
+                contentSite: 'scala',
+                url: '/docs/languages/scala/scala-driver/:version/connect/connection-options/network-compression',
+              },
+            ],
           },
           {
             label: 'Choose a Connection Target',
             contentSite: 'scala',
             url: '/docs/languages/scala/scala-driver/:version/connect/connection-targets',
-          },
-          {
-            label: 'Limit Execution Time',
-            contentSite: 'scala',
-            url: '/docs/languages/scala/scala-driver/:version/connect/csot',
-          },
-          {
-            label: 'Configure TLS',
-            contentSite: 'scala',
-            url: '/docs/languages/scala/scala-driver/:version/connect/tls',
           },
           {
             label: 'AWS Lambda',
@@ -63,176 +75,254 @@ const tocData: TocItem[] = [
         label: 'Databases & Collections',
         contentSite: 'scala',
         url: '/docs/languages/scala/scala-driver/:version/databases-collections',
-        collapsible: true,
-        items: [
-          {
-            label: 'Run a Command',
-            contentSite: 'scala',
-            url: '/docs/languages/scala/scala-driver/:version/databases-collections/run-command',
-          },
-          {
-            label: 'Time Series',
-            contentSite: 'scala',
-            url: '/docs/languages/scala/scala-driver/:version/databases-collections/time-series',
-          },
-        ],
       },
       {
-        label: 'Read Data',
+        label: 'CRUD Operations',
         contentSite: 'scala',
-        url: '/docs/languages/scala/scala-driver/:version/read',
+        url: '/docs/languages/scala/scala-driver/:version/crud',
         collapsible: true,
         items: [
           {
-            label: 'Retrieve Data',
+            label: 'Insert Documents',
             contentSite: 'scala',
-            url: '/docs/languages/scala/scala-driver/:version/read/retrieve',
+            url: '/docs/languages/scala/scala-driver/:version/crud/insert',
           },
           {
-            label: 'Specify a Query',
+            label: 'Query Documents',
             contentSite: 'scala',
-            url: '/docs/languages/scala/scala-driver/:version/read/specify-a-query',
+            url: '/docs/languages/scala/scala-driver/:version/crud/query',
+            collapsible: true,
+            items: [
+              {
+                label: 'Specify a Query',
+                contentSite: 'scala',
+                url: '/docs/languages/scala/scala-driver/:version/crud/query/specify-a-query',
+              },
+              {
+                label: 'Find Documents',
+                contentSite: 'scala',
+                url: '/docs/languages/scala/scala-driver/:version/crud/query/retrieve',
+              },
+              {
+                label: 'Specify Documents to Return',
+                contentSite: 'scala',
+                url: '/docs/languages/scala/scala-driver/:version/crud/query/specify-documents-to-return',
+              },
+              {
+                label: 'Specify Fields to Return',
+                contentSite: 'scala',
+                url: '/docs/languages/scala/scala-driver/:version/crud/query/project',
+              },
+              {
+                label: 'Count Documents',
+                contentSite: 'scala',
+                url: '/docs/languages/scala/scala-driver/:version/crud/query/count',
+              },
+              {
+                label: 'Distinct Field Values',
+                contentSite: 'scala',
+                url: '/docs/languages/scala/scala-driver/:version/crud/query/distinct',
+              },
+              {
+                label: 'Query Text',
+                contentSite: 'scala',
+                url: '/docs/languages/scala/scala-driver/:version/crud/query/query-text',
+              },
+              {
+                label: 'Access Data from an Observable',
+                contentSite: 'scala',
+                url: '/docs/languages/scala/scala-driver/:version/crud/query/observables',
+              },
+              {
+                label: 'Geospatial Queries',
+                contentSite: 'scala',
+                url: '/docs/languages/scala/scala-driver/:version/crud/query/geo',
+              },
+            ],
           },
           {
-            label: 'Specify Documents to Return',
+            label: 'Update Documents',
             contentSite: 'scala',
-            url: '/docs/languages/scala/scala-driver/:version/read/specify-documents-to-return',
+            url: '/docs/languages/scala/scala-driver/:version/crud/update',
+            collapsible: true,
+            items: [
+              {
+                label: 'Replace Documents',
+                contentSite: 'scala',
+                url: '/docs/languages/scala/scala-driver/:version/crud/update/replace',
+              },
+            ],
           },
           {
-            label: 'Specify Fields to Return',
+            label: 'Delete Documents',
             contentSite: 'scala',
-            url: '/docs/languages/scala/scala-driver/:version/read/project',
-          },
-          {
-            label: 'Distinct Field Values',
-            contentSite: 'scala',
-            url: '/docs/languages/scala/scala-driver/:version/read/distinct',
-          },
-          {
-            label: 'Count Documents',
-            contentSite: 'scala',
-            url: '/docs/languages/scala/scala-driver/:version/read/count',
-          },
-          {
-            label: 'Monitor Changes',
-            contentSite: 'scala',
-            url: '/docs/languages/scala/scala-driver/:version/read/change-streams',
-          },
-        ],
-      },
-      {
-        label: 'Write Data',
-        contentSite: 'scala',
-        url: '/docs/languages/scala/scala-driver/:version/write',
-        collapsible: true,
-        items: [
-          {
-            label: 'Insert',
-            contentSite: 'scala',
-            url: '/docs/languages/scala/scala-driver/:version/write/insert',
-          },
-          {
-            label: 'Replace',
-            contentSite: 'scala',
-            url: '/docs/languages/scala/scala-driver/:version/write/replace',
-          },
-          {
-            label: 'Update',
-            contentSite: 'scala',
-            url: '/docs/languages/scala/scala-driver/:version/write/update',
-          },
-          {
-            label: 'Delete',
-            contentSite: 'scala',
-            url: '/docs/languages/scala/scala-driver/:version/write/delete',
+            url: '/docs/languages/scala/scala-driver/:version/crud/delete',
           },
           {
             label: 'Bulk Write Operations',
             contentSite: 'scala',
-            url: '/docs/languages/scala/scala-driver/:version/write/bulk-write',
+            url: '/docs/languages/scala/scala-driver/:version/crud/bulk-write',
           },
           {
             label: 'Transactions',
             contentSite: 'scala',
-            url: '/docs/languages/scala/scala-driver/:version/write/transactions',
+            url: '/docs/languages/scala/scala-driver/:version/crud/transactions',
           },
           {
-            label: 'Store Large Files',
+            label: 'Compound Operations',
             contentSite: 'scala',
-            url: '/docs/languages/scala/scala-driver/:version/write/gridfs',
+            url: '/docs/languages/scala/scala-driver/:version/crud/compound-operations',
+          },
+          {
+            label: 'Configure CRUD Operations',
+            contentSite: 'scala',
+            url: '/docs/languages/scala/scala-driver/:version/crud/configure',
+          },
+          {
+            label: 'Store Large Files with GridFS',
+            contentSite: 'scala',
+            url: '/docs/languages/scala/scala-driver/:version/crud/gridfs',
           },
         ],
       },
       {
-        label: 'Operations on Replica Sets',
+        label: 'Aggregation',
         contentSite: 'scala',
-        url: '/docs/languages/scala/scala-driver/:version/read-write-pref',
+        url: '/docs/languages/scala/scala-driver/:version/aggregation',
+      },
+      {
+        label: 'Data Formats',
+        contentSite: 'scala',
+        collapsible: true,
+        items: [
+          {
+            label: 'BSON',
+            contentSite: 'scala',
+            url: '/docs/languages/scala/scala-driver/:version/data-formats/bson',
+          },
+          {
+            label: 'Codecs',
+            contentSite: 'scala',
+            url: '/docs/languages/scala/scala-driver/:version/data-formats/codecs',
+          },
+          {
+            label: 'Extended JSON',
+            contentSite: 'scala',
+            url: '/docs/languages/scala/scala-driver/:version/data-formats/extended-json',
+          },
+          {
+            label: 'Time Series',
+            contentSite: 'scala',
+            url: '/docs/languages/scala/scala-driver/:version/data-formats/time-series',
+          },
+        ],
       },
       {
         label: 'Indexes',
         contentSite: 'scala',
         url: '/docs/languages/scala/scala-driver/:version/indexes',
-        collapsible: true,
-        items: [
-          {
-            label: 'Single Field',
-            contentSite: 'scala',
-            url: '/docs/languages/scala/scala-driver/:version/indexes/single-field-index',
-          },
-          {
-            label: 'Compound',
-            contentSite: 'scala',
-            url: '/docs/languages/scala/scala-driver/:version/indexes/compound-index',
-          },
-          {
-            label: 'Multikey',
-            contentSite: 'scala',
-            url: '/docs/languages/scala/scala-driver/:version/indexes/multikey-index',
-          },
-          {
-            label: 'MongoDB Search',
-            contentSite: 'scala',
-            url: '/docs/languages/scala/scala-driver/:version/indexes/atlas-search-index',
-          },
-        ],
       },
       {
-        label: 'Monitor Your Application',
+        label: 'Run a Database Command',
+        contentSite: 'scala',
+        url: '/docs/languages/scala/scala-driver/:version/run-command',
+      },
+      {
+        label: 'MongoDB Search',
+        contentSite: 'scala',
+        url: '/docs/languages/scala/scala-driver/:version/mongodb-search',
+      },
+      {
+        label: 'MongoDB Vector Search',
+        contentSite: 'scala',
+        url: '/docs/languages/scala/scala-driver/:version/vector-search',
+      },
+      {
+        label: 'Logging and Monitoring',
         contentSite: 'scala',
         collapsible: true,
         items: [
           {
-            label: 'Cluster Monitoring',
+            label: 'Monitoring',
             contentSite: 'scala',
-            url: '/docs/languages/scala/scala-driver/:version/monitoring/cluster-monitoring',
+            url: '/docs/languages/scala/scala-driver/:version/logging-monitoring/monitoring',
+          },
+          {
+            label: 'Logging',
+            contentSite: 'scala',
+            url: '/docs/languages/scala/scala-driver/:version/logging-monitoring/logging',
+          },
+          {
+            label: 'Change Streams',
+            contentSite: 'scala',
+            url: '/docs/languages/scala/scala-driver/:version/logging-monitoring/change-streams',
           },
         ],
-      },
-      {
-        label: 'Data Aggregation',
-        contentSite: 'scala',
-        url: '/docs/languages/scala/scala-driver/:version/aggregation',
-      },
-      {
-        label: 'Observables',
-        contentSite: 'scala',
-        url: '/docs/languages/scala/scala-driver/:version/observables',
       },
       {
         label: 'Security',
         contentSite: 'scala',
-        url: '/docs/languages/scala/scala-driver/:version/security',
         collapsible: true,
         items: [
           {
             label: 'Authentication',
             contentSite: 'scala',
-            url: '/docs/languages/scala/scala-driver/:version/security/auth',
+            url: '/docs/languages/scala/scala-driver/:version/security/authentication',
+            collapsible: true,
+            items: [
+              {
+                label: 'SCRAM',
+                contentSite: 'scala',
+                url: '/docs/languages/scala/scala-driver/:version/security/authentication/scram',
+              },
+              {
+                label: 'X.509',
+                contentSite: 'scala',
+                url: '/docs/languages/scala/scala-driver/:version/security/authentication/x509',
+              },
+              {
+                label: 'LDAP',
+                contentSite: 'scala',
+                url: '/docs/languages/scala/scala-driver/:version/security/authentication/ldap',
+              },
+              {
+                label: 'Kerberos (GSSAPI)',
+                contentSite: 'scala',
+                url: '/docs/languages/scala/scala-driver/:version/security/authentication/kerberos',
+              },
+            ],
           },
           {
             label: 'In-Use Encryption',
             contentSite: 'scala',
             url: '/docs/languages/scala/scala-driver/:version/security/encrypt',
+          },
+          {
+            label: 'TLS/SSL',
+            contentSite: 'scala',
+            url: '/docs/languages/scala/scala-driver/:version/security/tls',
+          },
+        ],
+      },
+      {
+        label: 'Reference',
+        contentSite: 'scala',
+        collapsible: true,
+        items: [
+          {
+            label: 'Release Notes',
+            contentSite: 'scala',
+            url: '/docs/languages/scala/scala-driver/:version/reference/whats-new',
+          },
+          {
+            label: 'Compatibility',
+            isExternal: true,
+            url: 'https://www.mongodb.com/docs/drivers/compatibility/?driver-language=scala',
+          },
+          {
+            label: 'Upgrade',
+            contentSite: 'scala',
+            url: '/docs/languages/scala/scala-driver/:version/reference/upgrade',
           },
         ],
       },
@@ -240,21 +330,6 @@ const tocData: TocItem[] = [
         label: 'Issues & Help',
         contentSite: 'scala',
         url: '/docs/languages/scala/scala-driver/:version/issues-and-help',
-      },
-      {
-        label: "What's New",
-        contentSite: 'scala',
-        url: '/docs/languages/scala/scala-driver/:version/whats-new',
-      },
-      {
-        label: 'Upgrade',
-        contentSite: 'scala',
-        url: '/docs/languages/scala/scala-driver/:version/upgrade',
-      },
-      {
-        label: 'Compatibility',
-        isExternal: true,
-        url: 'https://www.mongodb.com/docs/drivers/compatibility/?driver-language=scala',
       },
       {
         label: 'View the Source',

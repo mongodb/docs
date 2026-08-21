@@ -1,0 +1,448 @@
+.. _scala-logging:
+
+=======
+Logging
+=======
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn how to use logging with the MongoDB
+      Scala driver to record diagnostic information about your
+      application and troubleshoot common issues.
+   :keywords: logging, log, diagnostics, troubleshooting, debug
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to set up and configure a logger in the
+MongoDB {+driver-short+}.
+
+This guide shows how to record events in the driver.
+If you would like to learn how to use information about the activity of the
+driver in code, see the :ref:`Monitoring <scala-monitoring>` guide.
+
+Set Up a Logger
+---------------
+
+This section explains the dependencies necessary to set up a
+logger and provides an example logger setup.
+
+Background
+~~~~~~~~~~
+
+The MongoDB {+driver-short+} uses the Simple Logging Facade For Java (SLF4J).
+You can specify a logging framework at deployment time when you use SLF4J. Setting
+up a logger is optional in the {+driver-short+}.
+
+When you start your application, the MongoDB {+driver-short+} looks for the
+``slf4j-api`` artifact in your classpath. If the driver can't find the
+``slf4j-api`` artifact, it logs the following warning and disables all further logging:
+
+.. code-block:: none
+   :copyable: false
+
+   WARNING: SLF4J not found on the classpath.  Logging is disabled for the 'org.mongodb.driver' component
+
+To set up a logger, you must include the following components in your project:
+
+* The ``slf4j-api`` artifact
+* A logging framework
+* A **binding**, which connects the ``slf4j-api`` artifact to a logging framework
+
+The following example shows how to bind the ``slf4j-api`` artifact
+to your chosen logging framework.
+
+Logger Example
+~~~~~~~~~~~~~~
+
+Select the :guilabel:`Logback` or :guilabel:`Log4j2` tab to set
+up your chosen logging framework and see corresponding code examples:
+
+.. tabs::
+
+   .. tab:: Logback
+      :tabid: logback
+
+      To use Logback, add the following lines to
+      your project's ``build.sbt`` file. These lines
+      include the ``slf4j-api`` artifact, the logging framework, and the binding.
+
+      .. code-block:: none
+
+         libraryDependencies += "org.slf4j" % "slf4j-api" % "{+slf4j-api-version+}"
+         libraryDependencies += "ch.qos.logback" % "logback-classic" % "{+logback-version+}"
+
+      To test your Logback setup, add the following code to your project's ``Main.scala`` file.
+      The code connects to your MongoDB deployment and retrieves a document. After
+      you add the code, use ``sbt run`` to run your application in the terminal rather than the IDE.
+
+      .. io-code-block::
+
+         .. input:: /includes/logging-monitoring/logger-examples.scala
+            :start-after: start-find-first
+            :end-before: end-find-first
+            :language: scala
+            :dedent:
+
+         .. output::
+            :language: console
+            :visible: false
+
+            ...
+            12:14:55.853 [main] DEBUG org.mongodb.driver.connection - Opened connection [connectionId{localValue:3, serverValue:3}] to <MongoDB hostname>
+            12:14:55.861 [main] DEBUG org.mongodb.driver.protocol.command - Command "find" started on database <database> using a connection with driver-generated ID 3 and server-generated ID 3 to <MongoDB hostname>. The request ID is 5. Command: {"find": "<collection>", "filter": {}, "limit": 1, "singleBatch": true, "$db": "<database>", "lsid": {"id": {"$binary": {"base64": "<_id>", "subType": "04"}}}, "$readPreference": {"mode": "primaryPreferred"}}
+            12:14:55.864 [main] DEBUG org.mongodb.driver.protocol.command - Command "find" succeeded in 4.34 ms using a connection with driver-generated ID 3 and server-generated ID 3 to <MongoDB hostname>. The request ID is 5. Command reply: {"cursor": {"id": 0, "ns": "<database>.<collection>", "firstBatch": []}, "ok": 1.0, "$clusterTime": {"clusterTime": {"$timestamp": {"t": 1673778535, "i": 1}}, "signature": {"hash": {"$binary": {"base64": "<_id>", "subType": "00"}}, "keyId": 0}}, "operationTime": {"$timestamp": {"t": 1673778535, "i": 1}}}
+
+      .. note:: Default Log Level
+
+         The default log level of Logback is DEBUG. The DEBUG level records
+         detailed diagnostic messages intended for troubleshooting, such as
+         opened connections and the commands the driver sends to and receives
+         from MongoDB. To learn how to change your Logback logger's log level,
+         see the example in the :ref:`scala-configure-logger` section of this page.
+
+      For more information about Logback, see the
+      `Logback manual <https://logback.qos.ch/manual/>`__.
+
+   .. tab:: Log4j2
+      :tabid: log4j2
+
+      To use Log4j2, add the following lines to
+      your project's ``build.sbt`` file. These lines
+      include the ``slf4j-api`` artifact, the logging framework, and the binding.
+
+      .. code-block:: none
+
+         libraryDependencies += "org.slf4j" % "slf4j-api" % "{+slf4j-api-version+}"
+         libraryDependencies += "org.apache.logging.log4j" % "log4j-slf4j2-impl" % "{+log4j-slf4j-impl-version+}"
+         libraryDependencies += "org.apache.logging.log4j" % "log4j-core" % "{+log4j-core-version+}"
+
+      To test your Log4j2 setup, add the following code to your project's ``Main.scala`` file.
+      The code logs an error message. After you add the code, use ``sbt run`` to run your application in the terminal rather than the IDE.
+
+      .. io-code-block::
+
+         .. input:: /includes/logging-monitoring/logger-examples.scala
+            :start-after: start-log-error
+            :end-before: end-log-error
+            :language: scala
+            :dedent:
+
+         .. output::
+            :language: none
+            :visible: false
+
+            12:35:00.438 [main] ERROR <my package path> - Logging an Error
+
+      .. note:: Default Log Level
+
+         The default log level of Log4j2 is ERROR. This means that running
+         standard operations in the MongoDB {+driver-short+} will not
+         produce output from Log4j2 without log level configuration. To learn how to
+         change your Log4j2 logger's log level, see the example in the
+         :ref:`scala-configure-logger` section of this page.
+
+      For more information about Log4j2, see the
+      `Log4j2 manual <https://logging.apache.org/log4j/2.x/manual/>`__.
+
+For more information about SLF4J, see the `SLF4J documentation <https://www.slf4j.org/>`__.
+
+.. _scala-configure-logger:
+
+Configure Your Logger
+---------------------
+
+To configure your logger, you must use the configuration system of the logging
+framework you bound to SLF4J.
+
+Configuration Example
+~~~~~~~~~~~~~~~~~~~~~
+
+A log level specifies how urgent a message must be
+for the logger to output that message. The following example shows how to use each logging framework's
+configuration system to set the **log level** to INFO. Select the :guilabel:`Logback` or :guilabel:`Log4j2` tab to see corresponding code for each approach:
+
+.. tabs::
+
+   .. tab:: Logback
+      :tabid: logback
+
+      Logback reads its configuration from a file named ``logback.xml``
+      on your classpath. This file doesn't exist by default, so you must
+      create it. You can place ``logback.xml`` anywhere in your Scala
+      project, as long as it's accessible from your classpath.
+
+      The Logback framework defines the following log levels, listed from most urgent to least urgent:
+
+      - ERROR
+      - WARN
+      - INFO
+      - DEBUG
+      - TRACE
+
+      To learn more about what each log level means, see
+      `Effective Level
+      <https://logback.qos.ch/manual/architecture.html#effectiveLevel>`__
+      in the Logback documentation.
+
+      Insert the following code into your ``logback.xml`` file:
+
+      .. literalinclude:: /includes/logging-monitoring/loggerconfig.xml
+         :language: xml
+         :start-after: start-logback-config
+         :end-before: end-logback-config
+
+      To test that your logger configuration was successful, run the
+      following code by using the ``sbt run`` command rather than your
+      IDE:
+
+      .. io-code-block::
+
+         .. input:: /includes/logging-monitoring/logger-examples.scala
+            :start-after: start-find-first
+            :end-before: end-find-first
+            :language: scala
+            :dedent:
+
+         .. output::
+            :language: console
+            :visible: false
+
+            ...
+            1317 [cluster-<your cluster id>-<your connection uri>] INFO  org.mongodb.driver.cluster - Discovered replica set primary <your connection uri>
+            1568 [main] INFO  org.mongodb.driver.connection - Opened connection [connectionId{localValue:7, serverValue:<server value>}] to <your connection uri>
+
+      For more information about configuring Logback, see the
+      `Logback Manual <https://logback.qos.ch/manual/configuration.html>`__.
+
+   .. tab:: Log4j2
+      :tabid: log4j2
+
+      Log4j2 reads its configuration from a file named ``log4j2.xml`` on
+      your classpath. This file doesn't exist by default, so you must
+      create it. You can place ``log4j2.xml`` anywhere in your Scala
+      project, as long as it's accessible from your classpath.
+
+      The Log4j2 framework defines the following log levels, listed from most urgent to least urgent:
+
+      - FATAL
+      - ERROR
+      - WARN
+      - INFO
+      - DEBUG
+      - TRACE
+      - ALL
+
+      To learn more about what each log level means, see
+      `Custom Log Levels
+      <https://logging.apache.org/log4j/2.x/manual/customloglevels.html>`__
+      in the Log4j2 documentation.
+
+      Set your ``log4j2.xml`` file to the following:
+
+      .. literalinclude:: /includes/logging-monitoring/loggerconfig.xml
+         :language: xml
+         :start-after: start-log4j2-config
+         :end-before: end-log4j2-config
+
+      To test that your logger configuration was successful, run the
+      following code by using the ``sbt run`` command rather than your
+      IDE:
+
+      .. io-code-block::
+
+         .. input:: /includes/logging-monitoring/logger-examples.scala
+            :start-after: start-find-first
+            :end-before: end-find-first
+            :language: scala
+            :dedent:
+
+         .. output::
+            :language: console
+            :visible: false
+
+            ...
+            10:14:57.633 [cluster-ClusterId{value=<your cluster id>, description='null'}-<your connection uri>] INFO  org.mongodb.driver.cluster - Discovered replica set primary <your connection uri>
+            10:14:57.790 [main] INFO  org.mongodb.driver.connection - Opened connection [connectionId{localValue:7, serverValue:<your server value>}] to <your connection uri>
+
+      For more information on configuring Log4j2, see the
+      `Log4j2 configuration guide
+      <https://logging.apache.org/log4j/2.x/manual/configuration.html>`__ in the Log4j2 documentation. 
+
+Logger Names
+------------
+
+Logging frameworks use hierarchical *logger names* to organize logging events. A logger is an ancestor of another logger if
+its name followed by a ``"."`` is a prefix of the other logger's name. For example, the
+``grandparent`` logger is an ancestor of the ``grandparent.parent`` logger, which is an
+ancestor of the ``grandparent.parent.child`` logger.
+
+The following code creates a ``parent`` logger and a ``parent.child``
+logger, in which the ``parent`` logger is an ancestor of the
+``parent.child`` logger:
+
+.. literalinclude:: /includes/logging-monitoring/logger-examples.scala
+   :language: scala
+   :start-after: start-logger-hierarchy
+   :end-before: end-logger-hierarchy
+   :dedent:
+
+A logger hierarchy is similar to a class hierarchy in Scala: a logger inherits the properties of its ancestor logger and can also define its own.
+
+The {+driver-short+} includes the following default logger names:
+
+* ``org.mongodb.driver.authenticator``: Authentication
+* ``org.mongodb.driver.client``: ``MongoClient`` instances
+* ``org.mongodb.driver.cluster``: MongoDB deployment monitoring
+* ``org.mongodb.driver.connection``: Connections and connection pools
+* ``org.mongodb.driver.connection.tls``: TLS/SSL
+* ``org.mongodb.driver.operation``: Operations, including automatic retries
+* ``org.mongodb.driver.protocol``: Commands and replies exchanged with MongoDB deployments
+* ``org.mongodb.driver.uri``: Connection string parsing
+* ``org.mongodb.driver.management``: Java Management Extensions (JMX)
+
+Logger Name Example
+~~~~~~~~~~~~~~~~~~~
+
+The following example shows how to set the root logger configuration to OFF and the ``org.mongodb.driver.connection`` logger configuration to INFO, so that the application logs only messages related to connecting to a MongoDB deployment. 
+
+Select the :guilabel:`Logback` or :guilabel:`Log4j2` tab to see example configuration and output for the corresponding framework:
+
+.. tabs::
+
+   .. tab:: Logback
+      :tabid: logback
+
+      Insert the following code into your ``logback.xml`` file:
+
+      .. literalinclude:: /includes/logging-monitoring/loggerconfig.xml
+         :language: xml
+         :start-after: start-logback-logger-name
+         :end-before: end-logback-logger-name
+         :emphasize-lines: 10
+
+      To test that your logger configuration was successful, run the
+      following code by using the ``sbt run`` command rather than your
+      IDE:
+
+      .. io-code-block::
+
+         .. input:: /includes/logging-monitoring/logger-examples.scala
+            :start-after: start-find-first
+            :end-before: end-find-first
+            :language: scala
+            :dedent:
+
+         .. output::
+            :language: console
+            :visible: false
+
+            ...
+            829  [cluster-<your cluster id>-<your connection uri>] INFO  org.mongodb.driver.connection - Opened connection [connectionId{localValue:2, serverValue:<your server value>}] to <your connection uri>
+            977  [main] INFO  org.mongodb.driver.connection - Opened connection [connectionId{localValue:7, serverValue:<your server value>}] to <your connection uri>
+
+      For more information about configuring Logback, see the
+      `official Logback configuration guide
+      <https://logback.qos.ch/manual/configuration.html#syntax>`__.
+
+   .. tab:: Log4j2
+      :tabid: log4j2
+
+      Insert the following code into your ``log4j2.xml`` file:
+
+      .. literalinclude:: /includes/logging-monitoring/loggerconfig.xml
+         :language: xml
+         :start-after: start-log4j2-logger-name
+         :end-before: end-log4j2-logger-name
+         :emphasize-lines: 9
+
+      To test that your logger configuration was successful, run the
+      following code by using the ``sbt run`` command rather than your
+      IDE:
+
+      .. io-code-block::
+
+         .. input:: /includes/logging-monitoring/logger-examples.scala
+            :start-after: start-find-first
+            :end-before: end-find-first
+            :language: scala
+            :dedent:
+
+         .. output::
+            :language: console
+            :visible: false
+
+            ...
+            15:40:23.005 [cluster-<your cluster id>-<your connection uri>] INFO  org.mongodb.driver.connection - Opened connection [connectionId{localValue:3, serverValue:<your server value>}] to <your connection uri>
+            15:40:23.159 [main] INFO  org.mongodb.driver.connection - Opened connection [connectionId{localValue:7, serverValue:<your server value>}] to <your connection uri>
+
+      For more information about configuring Log4j2, see the
+      `official Log4j2 configuration guide
+      <https://logging.apache.org/log4j/2.x/manual/configuration.html>`__.
+
+Client Logging Settings
+-----------------------
+
+You can apply logging settings to your ``MongoClient`` instance by using the `applyToLoggerSettings() <{+core-api+}/MongoClientSettings.Builder.html#applyToLoggerSettings(com.mongodb.Block)>`__
+and `applicationName() <{+core-api+}/MongoClientSettings.Builder.html#applicationName(java.lang.String)>`__ methods.
+
+The following table describes the methods that you can chain to your
+logger settings to modify the logging behavior:
+
+.. list-table::
+   :widths: 40 60
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``maxDocumentLength()``
+     - Sets the maximum document length, in characters, of a single log message
+       
+       **Default**: ``1000``
+
+Client Logging Settings Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example names the application sending requests and specifies ``5000`` characters as the maximum log message length. Run the example by using the ``sbt run`` command rather than your IDE.
+
+.. io-code-block::
+
+   .. input:: /includes/logging-monitoring/logger-examples.scala
+      :start-after: start-logger-settings
+      :end-before: end-logger-settings
+      :language: scala
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      01:20:38.782 [main] INFO org.mongodb.driver.client -- MongoClient with
+      metadata {"application": {"name": "<application name>"}, ...,
+      loggerSettings=LoggerSettings{maxDocumentLength=5000}, ... timeoutMS=null}
+      ...
+      01:20:41.022 [main] DEBUG org.mongodb.driver.protocol.command -- Command
+      "listDatabases" succeeded ... Command reply: {"databases": [...], ...}
+      01:20:41.024 [main] DEBUG org.mongodb.driver.connection -- Connection checked in: address=<address>, driver-generated ID=6
+      myDb
+      sample_airbnb
+      sample_analytics
+      ...
+ 
+For more information, see the `MongoClientSettings.Builder
+<{+core-api+}/MongoClientSettings.Builder.html>`__
+API documentation. 
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1

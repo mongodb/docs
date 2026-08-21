@@ -1,0 +1,223 @@
+.. _scala-extended-json:
+
+============================
+Work with Extended JSON Data
+============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code examples, bson, relaxed, canonical, legacy
+   :description: Learn how to work with Extended JSON data in the {+driver-long+}, including reading and writing Extended JSON formats and customizing BSON type conversion.
+
+.. sharedinclude:: dbx/extended-json.rst
+
+   .. replacement:: driver-specific-text-extended
+
+      To learn more about this format, see `JsonMode.EXTENDED
+      <{+api-root+}/bson/org/bson/json/JsonMode.html#EXTENDED>`__
+      in the API documentation.
+
+   .. replacement:: driver-specific-text-relaxed
+
+      The {+driver-short+} uses Relaxed mode by default.
+      To learn more about this format, see `JsonMode.RELAXED
+      <{+api-root+}/bson/org/bson/json/JsonMode.html#RELAXED>`__
+      in the API documentation.
+
+   .. replacement:: driver-specific-text-shell
+
+      To learn more about this format, see `JsonMode.SHELL
+      <{+api-root+}/bson/org/bson/json/JsonMode.html#SHELL>`__
+      in the API documentation.
+
+   .. replacement:: uuid-field-note
+
+      .. note::
+
+         The {+driver-short+} parses the ``$uuid`` Extended JSON type from a string to a
+         ``Binary`` object of binary subtype 4. For more information about ``$uuid`` field
+         parsing, see the :spec:`special rules for parsing $uuid fields </extended-json/extended-json.md#special-rules-for-parsing-uuid-fields>`
+         section in the extended JSON specification.
+
+Read Extended JSON
+------------------
+
+You can read an Extended JSON string into {+language+} objects by using the
+{+driver-short+}'s document classes or by using the BSON library directly.
+The following sections show how to use each approach.
+
+Document Classes
+~~~~~~~~~~~~~~~~
+
+You can read an Extended JSON string into a {+language+} document object by calling
+the ``parse()`` static method on ``BsonDocument`` and then wrapping the
+result in a {+language+} ``Document`` instance. This approach parses the Extended
+JSON string in any of the formats and returns a ``Document`` containing
+the data.
+
+The following example shows how you can read an Extended JSON string into
+a ``Document`` object by calling ``BsonDocument.parse()`` and passing the
+result to the ``Document`` factory:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/extended-json.scala
+      :language: scala
+      :start-after: start-read-document
+      :end-before: end-read-document
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      Iterable((_id,BsonObjectId{value=507f1f77bcf86cd799439011}), (myNumber,BsonInt64{value=4794261}))
+
+To learn more about documents in MongoDB, see :ref:`bson-document-format` in the {+mdb-server+} manual.
+
+BSON Library
+~~~~~~~~~~~~
+
+You can also read an Extended JSON string into {+language+} objects without using
+the {+driver-short+}'s document classes by using the ``JsonReader`` class.
+This class contains methods to sequentially parse the fields and values
+in any format of the Extended JSON string, and returns them as {+language+} objects.
+The driver's document classes also use this class to parse Extended JSON.
+
+The following code example shows how you can use the ``JsonReader`` class to convert
+an Extended JSON string into {+language+} objects:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/extended-json.scala
+      :language: scala
+      :start-after: start-read-bson
+      :end-before: end-read-bson
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      507f1f77bcf86cd799439011 is type: org.bson.types.ObjectId
+      4794261 is type: long
+
+For more information, see the `JsonReader
+<{+api-root+}/bson/org/bson/json/JsonReader.html>`__ API documentation.
+
+Write Extended JSON
+-------------------
+
+You can write an Extended JSON string from your data by using the
+{+driver-short+}'s document classes or by using the BSON library directly.
+The following sections show how to use each approach.
+
+Document Classes
+~~~~~~~~~~~~~~~~
+
+You can write an Extended JSON string from an instance of ``Document`` or
+``BsonDocument`` by calling the ``toJson()`` method. By default, the ``toJson()`` method
+outputs the string in the Relaxed mode format. To use a different format,
+pass an instance of the ``JsonWriterSettings`` class to the ``toJson()`` method.
+
+The following example calls the ``toJson()`` method without arguments to output the
+Extended JSON in the default Relaxed mode format:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/extended-json.scala
+      :language: scala
+      :start-after: start-write-document
+      :end-before: end-write-document
+      :dedent:
+
+   .. output::
+      :language: javascript
+      :visible: false
+
+      {"_id": {"$oid": "507f1f77bcf86cd799439012"}, "myNumber": 11223344}
+
+BSON Library
+~~~~~~~~~~~~
+
+You can also output an Extended JSON string from data in {+language+} objects using
+the BSON library with the ``JsonWriter`` class. To construct an instance
+of ``JsonWriter``, pass a subclass of a Java ``Writer`` to specify how
+you want to output the Extended JSON. You can optionally pass a ``JsonWriterSettings``
+instance to specify options such as the Extended JSON format. By default, the
+``JsonWriter`` uses the Relaxed mode format. The {+driver-short+}'s
+document classes also use this class to convert BSON to Extended JSON.
+
+The following code example shows how you can use ``JsonWriter`` to create an
+Extended JSON string and output it to ``System.out``. The example specifies the format
+by passing the ``outputMode()`` builder method the ``JsonMode.EXTENDED`` constant:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/extended-json.scala
+      :language: scala
+      :start-after: start-write-bson
+      :end-before: end-write-bson
+      :dedent:
+
+   .. output::
+      :language: javascript
+      :visible: false
+
+      {"_id": {"$oid": "507f1f77bcf86cd799439012"}, "myNumber": {"$numberLong": "11223344"}}
+
+For more information about the methods and classes mentioned in this section,
+see the following API documentation:
+
+- `JsonWriter <{+api-root+}/bson/org/bson/json/JsonWriter.html>`__
+- `JsonWriterSettings <{+api-root+}/bson/org/bson/json/JsonWriterSettings.html>`__
+- `outputMode() <{+api-root+}/bson/org/bson/json/JsonWriterSettings.Builder.html#outputMode(org.bson.json.JsonMode)>`__
+
+Custom BSON Type Conversion
+---------------------------
+
+In addition to specifying the ``outputMode()`` to format the JSON output, you
+can further customize the output by adding converters to your
+``JsonWriterSettings.Builder`` instance. These converter methods detect specific BSON
+types and execute the logic defined by the ``Converter`` passed to them.
+
+The following sample code shows how to append converters, defined as lambda
+expressions, to simplify the Relaxed mode JSON output:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/extended-json.scala
+      :language: scala
+      :start-after: start-custom-converters
+      :end-before: end-custom-converters
+      :dedent:
+
+   .. output::
+      :language: javascript
+      :visible: false
+
+      {"_id": "507f1f77bcf86cd799439012", "createdAt": "2020-10-01T01:43:09", "myNumber": 4794261}
+
+      // Without specifying the converters, the Relaxed mode JSON output
+      // would look something like this:
+      {"_id": {"$oid": "507f1f77bcf86cd799439012"}, "createdAt": {"$timestamp": {"t": 1601516589, "i": 1}}, "myNumber": 4794261}
+
+For more information about the methods and classes mentioned in this section,
+see the following API documentation:
+
+- `Converter <{+api-root+}/bson/org/bson/json/Converter.html>`__
+- `JsonWriterSettings.Builder <{+api-root+}/bson/org/bson/json/JsonWriterSettings.Builder.html>`__

@@ -1,5 +1,6 @@
 import org.mongodb.scala._
 import org.mongodb.scala.model.SearchIndexModel
+import com.mongodb.client.model.SearchIndexType
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.Await
@@ -24,9 +25,21 @@ object AtlasSearchIndexes {
 
     {
       // start-create-search-indexes
-      val indexOne = SearchIndexModel("<first index name>", Document("mappings" -> Document("dynamic" -> true, "fields" -> Document("field1" -> Document("type" -> "string")))))
-      val indexTwo = SearchIndexModel("<second index name>", Document("mappings" -> Document("dynamic" -> false, "fields" -> Document("field2" -> Document("type" -> "string")))))
-      collection.createSearchIndexes(List(indexOne, indexTwo))
+      val searchIdxMdl = SearchIndexModel(
+        Option("searchIdx"),
+        Document("analyzer" -> "lucene.standard", "mappings" -> Document("dynamic" -> true)),
+        Option(SearchIndexType.search())
+      )
+      val vectorSearchIdxMdl = SearchIndexModel(
+        Option("vsIdx"),
+        Document(
+          "fields" -> List(
+            Document("type" -> "vector", "path" -> "embeddings", "numDimensions" -> 1536, "similarity" -> "dotProduct")
+          )
+        ),
+        Option(SearchIndexType.vectorSearch())
+      )
+      collection.createSearchIndexes(List(searchIdxMdl, vectorSearchIdxMdl))
                 .subscribe((result: String) => ())
       // end-create-search-indexes
     }

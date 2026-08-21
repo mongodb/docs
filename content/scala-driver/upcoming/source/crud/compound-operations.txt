@@ -1,0 +1,349 @@
+.. _scala-compound-operations:
+
+===================
+Compound Operations
+===================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn how to perform compound operations in the MongoDB Scala Driver to find and update, replace, or delete documents atomically and avoid race conditions.
+   :keywords: code example, atomic, findOneAndUpdate, findOneAndReplace, findOneAndDelete, race condition
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to perform **compound operations** with
+the {+driver-short+}.
+
+Compound operations consist of a read operation and a write operation performed as one
+**atomic operation**. An atomic operation is an operation that either completes
+entirely, or does not complete at all. 
+
+Atomic operations can help you avoid **race conditions** in your code. A
+race condition occurs when your code's behavior depends on the order of
+uncontrollable events.
+
+MongoDB supports the following compound operations:
+
+- Find and update one document
+- Find and replace one document
+- Find and delete one document
+
+For more information about atomic operations and atomicity, see
+:ref:`Atomicity and Transactions <transactions-write-atomicity>` in the {+mdb-server+} manual.
+
+.. tip:: Transactions
+
+   If you need to perform more complex tasks atomically, such as reading and
+   writing to more than one document, use **transactions**.  Transactions
+   let you execute a sequence of database commands as an atomic operation.
+   For more information about transactions, see
+   :ref:`Transacations <transactions>` in the {+mdb-server+} manual.
+
+How to Use Compound Operations
+------------------------------
+
+This section shows how to use the {+driver-short+} to perform compound operations.
+
+The following examples use a collection containing two sample
+documents:
+
+.. code-block:: json
+   :copyable: false
+
+   {"_id": {"$oid": "1"}, "food": "donut", "color": "green"}
+   {"_id": {"$oid": "2"}, "food": "pear", "color": "yellow"}
+
+The examples use the following ``collection`` reference to map each document
+to an instance of the ``Document`` class:
+
+.. literalinclude:: /includes/write/compound-operations.scala
+   :language: scala
+   :start-after: start-db-coll
+   :end-before: end-db-coll
+   :dedent:
+
+Each compound operation returns a ``SingleObservable[Document]`` that emits
+the matched document, or completes without emitting a value if no documents
+match the query filter. If the query filter matches multiple documents,
+the method acts on the first match, where ``first`` refers to natural
+order on disk unless you specify a sort order in the corresponding
+options object.
+
+.. note:: Return Documents after Write Operation
+
+   By default, a compound operation returns the matching document, and then
+   performs the write operation on it. You can direct the compound operation
+   to perform the write operation first by passing an options object to the
+   corresponding method. The :ref:`Find and Replace <scala-find-and-replace-example>` example
+   shows this configuration.
+
+Find and Update
+~~~~~~~~~~~~~~~
+
+To find and update one document, use the ``findOneAndUpdate()`` method of
+the ``MongoCollection`` class.
+
+Example
+^^^^^^^
+
+The following example uses the ``findOneAndUpdate()`` method to find a
+document where the ``color`` field has the value ``"green"``. Then, it updates
+the ``food`` field in that document to ``"pizza"``.
+
+The example also uses a ``FindOneAndUpdateOptions`` instance to specify the
+following options:
+
+- Specify an upsert, which inserts the document specified by the query
+  filter if no documents match the query.
+- Set a maximum execution time of 5 seconds for this operation on the
+  MongoDB instance. If the operation takes longer, the
+  ``findOneAndUpdate()`` method emits a ``MongoExecutionTimeoutException``
+  through the observer's ``onError()`` callback.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/write/compound-operations.scala
+      :language: scala
+      :start-after: start-find-one-update
+      :end-before: end-find-one-update
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      {"_id": {"$oid": "1"}, "color": "green", "food": "pizza"}
+      Completed
+
+For more information about the methods and classes used in this section,
+see the following API documentation:
+
+- `MongoCollection <{+driver-api+}/MongoCollection.html>`__
+- `FindOneAndUpdateOptions <{+driver-api+}/model/package$$FindOneAndUpdateOptions$.html>`__
+- `MongoExecutionTimeoutException <{+core-api+}/MongoExecutionTimeoutException.html>`__
+
+.. _scala-find-and-replace-example:
+
+Find and Replace
+~~~~~~~~~~~~~~~~
+
+To find and replace one document, use the ``findOneAndReplace()`` method of
+the ``MongoCollection`` class.
+
+Example
+^^^^^^^
+
+The following example uses the ``findOneAndReplace()`` method to find a
+document where the ``color`` field has the value ``"green"``. It replaces
+the matching document with
+
+.. code-block:: json
+   :copyable: false
+
+   {"music": "classical", "color": "green"}
+
+The example also uses a ``FindOneAndReplaceOptions`` instance to specify
+that the returned document should be in the state after the replace
+operation.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/write/compound-operations.scala
+      :language: scala
+      :start-after: start-find-one-replace
+      :end-before: end-find-one-replace
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      {"_id": {"$oid": "1"}, "music": "classical", "color": "green"}
+      Completed
+
+For more information about the methods and classes used in this section,
+see the following API documentation:
+
+- `MongoCollection <{+driver-api+}/MongoCollection.html>`__
+- `FindOneAndReplaceOptions <{+driver-api+}/model/package$$FindOneAndReplaceOptions$.html>`__
+
+Find and Delete
+~~~~~~~~~~~~~~~
+
+To find and delete one document, use the ``findOneAndDelete()`` method of
+the ``MongoCollection`` class.
+
+Example
+^^^^^^^
+
+The following example uses the ``findOneAndDelete()`` method to find and
+delete the document with the largest value in its ``_id`` field.
+
+The example uses a ``FindOneAndDeleteOptions`` instance to specify a
+descending sort on the ``_id`` field.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/write/compound-operations.scala
+      :language: scala
+      :start-after: start-find-one-delete
+      :end-before: end-find-one-delete
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      {"_id": {"$oid": "2"}, "food": "pear", "color": "yellow"}
+      Completed
+
+For more information about the methods and classes used in this section,
+see the following API documentation:
+
+- `MongoCollection <{+driver-api+}/MongoCollection.html>`__
+- `FindOneAndDeleteOptions <{+driver-api+}/model/package$$FindOneAndDeleteOptions$.html>`__
+
+Avoiding a Race Condition
+-------------------------
+
+By performing multiple operations atomically, compound operations help
+you avoid race conditions. 
+
+For the examples in this section, imagine that you run a hotel with one room. You use a
+small {+language+} program to check guests into the room.
+
+The following document represents the hotel room:
+
+.. code-block:: json
+   :copyable: false
+
+   {"_id": {"$oid": "1"}, "guest": null, "room": "Blue Room", "reserved": false}
+
+Example With Race Condition
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses the ``bookARoomUnsafe()`` function to check a
+guest into a room. The function performs the find and update operations separately.
+
+.. literalinclude:: /includes/write/compound-operations.scala
+   :language: scala
+   :start-after: start-unsafe
+   :end-before: end-unsafe
+   :dedent:
+   :emphasize-lines: 4-7,21-24
+
+Imagine that two guests, Jan and Pat, try to book the same room
+at the same time.
+
+Jan sees this output:
+
+.. code-block:: none
+   :copyable: false
+
+   You got the Blue Room, Jan
+
+Pat sees this output:
+
+.. code-block:: none
+   :copyable: false
+
+   You got the Blue Room, Pat
+
+When you look at the database, you see the following document:
+
+.. code-block:: json
+   :copyable: false
+
+   {"_id": {"$oid": "1"}, "guest": "Jan", "room": "Blue Room", "reserved": true}
+
+Your application told both Pat and Jan that they had reserved the room, but the database
+shows a reservation for Jan only. Here is the sequence of operations that MongoDB
+performed:
+
+#. Find and return the empty room for Jan
+#. Find and return the empty room for Pat
+#. Update the room with Pat's reservation
+#. Update the room with Jan's reservation
+
+Although Pat reserved the room for a moment, Jan's update operation
+overwrote Pat's reservation because it ran last.
+
+Example Without Race Condition
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses the ``bookARoomSafe()`` function to check a
+guest into a room. The function uses ``findOneAndUpdate()`` to perform
+the find and update operations as a single atomic operation.
+
+.. literalinclude:: /includes/write/compound-operations.scala
+   :language: scala
+   :start-after: start-safe
+   :end-before: end-safe
+   :dedent:
+   :emphasize-lines: 7-10
+
+Imagine that two guests, Jan and Pat, try to book the same room
+at the same time.
+
+Jan sees this output:
+
+.. code-block:: none
+   :copyable: false
+
+   You got the Blue Room, Jan
+
+Pat sees this output:
+
+.. code-block:: none
+   :copyable: false
+
+   Sorry, we are booked, Pat
+
+When you look at the database, you see the following document:
+
+.. code-block:: json
+   :copyable: false
+
+   {"_id": {"$oid": "1"}, "guest": "Jan", "room": "Blue Room", "reserved": true}
+
+Jan reserved the room, and Pat received the correct message that no
+rooms are available. Here is the sequence of operations that MongoDB
+performed:
+
+#. Find an empty room for Jan and reserve it
+#. Try to find and reserve an empty room for Pat
+#. Find no empty rooms and complete without emitting a value
+
+Because ``findOneAndUpdate()`` performs the find and update atomically,
+Pat's operation cannot read the room as available after Jan's
+reservation completes.
+
+.. important:: Write Lock
+
+   Your MongoDB instance places a write lock on the document that you are
+   modifying for the duration of your compound operation.
+
+For more information about the methods and classes used in this
+section, see the following API documentation:
+
+- `MongoCollection <{+driver-api+}/MongoCollection.html>`__
+- `Filters <{+driver-api+}/model/Filters$.html>`__
+- `Updates <{+driver-api+}/model/Updates$.html>`__
+- `Sorts <{+driver-api+}/model/Sorts$.html>`__
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1

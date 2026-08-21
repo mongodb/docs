@@ -1,0 +1,376 @@
+.. _scala-codecs:
+
+============================
+Encode Data with Type Codecs
+============================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn how to use codecs and codec registries in the MongoDB Scala Driver to encode and decode custom data types between Scala objects and BSON documents.
+   :keywords: codec, decode, BSON, CodecRegistry, CodecProvider, custom codec, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn about **codecs** and the supporting
+classes that handle the encoding and decoding of Scala objects to and
+from BSON data in the {+driver-short+}. The ``Codec`` abstraction
+allows you to map any Scala type to a corresponding BSON type. Use this
+to map your domain objects directly to and from BSON instead of relying
+on an intermediate map-based object such as ``Document`` or
+``BsonDocument``.
+
+.. _scala-codecs-codec:
+
+Codec Interface
+---------------
+
+The ``Codec`` interface contains abstract methods for encoding and
+decoding Scala objects to and from BSON data. Implement these methods to
+define the conversion logic between BSON and your ``Codec`` implementation's Scala type.
+
+To implement the ``Codec`` interface, define the interface's ``encode()``,
+``decode()``, and ``getEncoderClass()`` methods. To see a code example that implements these methods, see
+the :ref:`Basic Custom Codec Example <scala-codecs-powerstatus-codec>`
+section.
+
+encode() Method
+~~~~~~~~~~~~~~~
+
+The ``encode()`` method encodes an instance of the Scala type
+to BSON so that the driver can store it in MongoDB. This method
+requires the following parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20
+
+   * - Parameter Type
+     - Description
+
+   * - ``writer``
+     - An instance of a class that implements ``BsonWriter``, an
+       interface that exposes methods for writing a BSON
+       document. Use this instance to write your BSON value by using the appropriate
+       write method for your BSON value type.
+
+   * - ``value``
+     - The data that the method encodes. The ``value`` type must
+       match the type parameter that you assigned to your ``Codec`` implementation.
+
+   * - ``encoderContext``
+     - Metadata about the Scala object that the method encodes to BSON,
+       including whether to store the current value in a MongoDB collection.
+
+The ``encode()`` method doesn't return a value.
+
+decode() Method
+~~~~~~~~~~~~~~~
+
+The ``decode()`` method uses the BSON data to decode an
+instance of the Scala type. This method requires the following
+parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20
+
+   * - Parameter Type
+     - Description
+
+   * - ``bsonReader``
+     - An instance of a class that implements ``BsonReader``, an
+       interface that exposes methods for reading a BSON
+       document.
+
+   * - ``decoderContext``
+     - Metadata about the BSON data that the method decodes
+       to a Scala object.
+
+getEncoderClass() Method
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``getEncoderClass()`` method returns an instance of the
+Scala type defined in the ``Codec``. This method provides
+the type information that the Java Virtual Machine (JVM) erases at
+runtime.
+
+.. _scala-codecs-powerstatus-codec:
+
+Basic Custom Codec Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following code samples use the ``PowerStatus`` sealed trait and
+``PowerStatusCodec`` class to show how you can implement a custom
+``Codec``.
+
+The ``PowerStatus`` sealed trait uses the case objects ``On`` and ``Off``
+to represent the states of an electrical switch:
+
+.. literalinclude:: /includes/data-formats/PowerStatus.scala
+   :start-after: start class
+   :end-before: end class
+   :language: scala
+   :dedent:
+
+The ``PowerStatusCodec`` class implements the ``Codec`` interface to encode
+``PowerStatus`` values to corresponding BSON Boolean values. The
+``encode()`` method encodes a ``PowerStatus`` value to a BSON Boolean value and
+the ``decode()`` method decodes a BSON Boolean value to a ``PowerStatus`` value.
+
+.. literalinclude:: /includes/data-formats/PowerStatusCodec.scala
+   :start-after: start class
+   :end-before: end class
+   :language: scala
+   :dedent:
+
+To use the ``PowerStatusCodec`` class, you must add an instance of the class to your
+``CodecRegistry`` interface, which maps your ``Codec`` to the corresponding Scala type.
+The driver can encode and decode a type only if the ``CodecRegistry``
+contains a ``Codec`` for that type. To learn how to include your custom
+``Codec`` in your ``CodecRegistry`` interface, see the
+:ref:`CodecRegistry <scala-codecs-codecregistry>` section of this page.
+
+For more information about the classes and interfaces in this section,
+see the following API documentation:
+
+- `Codec <{+api-root+}/bson/org/bson/codecs/Codec.html>`__
+- `BsonWriter <{+api-root+}/bson/org/bson/BsonWriter.html>`__
+- `BsonBinaryWriter <{+api-root+}/bson/org/bson/BsonBinaryWriter.html>`__
+- `EncoderContext <{+api-root+}/bson/org/bson/codecs/EncoderContext.html>`__
+- `BsonReader <{+api-root+}/bson/org/bson/BsonReader.html>`__
+- `DecoderContext <{+api-root+}/bson/org/bson/codecs/DecoderContext.html>`__
+- `BsonBinaryReader <{+api-root+}/bson/org/bson/BsonBinaryReader.html>`__
+
+.. _scala-codecs-codecregistry:
+
+CodecRegistry Collection
+------------------------
+
+A ``CodecRegistry`` is an immutable collection of ``Codec`` instances.
+To construct a ``CodecRegistry`` instance, use one of the following
+``CodecRegistries`` class static factory methods. Each method builds
+the registry from a different source of ``Codec`` instances:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 40
+
+   * - Method
+     - Description
+
+   * - ``fromCodecs()``
+     - Builds a registry from the ``Codec`` instances that you pass
+       to the method
+
+   * - ``fromProviders()``
+     - Builds a registry from the ``Codec`` instances that the
+       ``CodecProvider`` instances you pass to the method supply
+
+   * - ``fromRegistries()``
+     - Builds a registry by combining the other ``CodecRegistry``
+       instances that you pass to the method
+
+The following examples use two ``Codec`` implementations:
+
+- ``IntegerCodec``: A ``Codec`` in the BSON package that encodes Java ``Integer`` values to BSON 32-bit integer values.
+- :ref:`PowerStatusCodec <scala-codecs-powerstatus-codec>`: A sample
+  ``Codec`` that decodes ``PowerStatus`` values to BSON Booleans.
+
+The following example shows how to construct a ``CodecRegistry`` instance
+by using the ``fromCodecs()`` method to assign these implementations to the registry:
+
+.. literalinclude:: /includes/data-formats/CodecsExamples.scala
+   :start-after: start construct-registry
+   :end-before: end construct-registry
+   :language: scala
+   :dedent:
+
+The following example retrieves the ``Codec`` instances in the previous example
+from the ``CodecRegistry`` collection:
+
+.. literalinclude:: /includes/data-formats/CodecsExamples.scala
+   :start-after: start retrieve-codecs
+   :end-before: end retrieve-codecs
+   :language: scala
+   :dedent:
+
+.. note::
+   If you call the ``get()`` method on a ``Codec`` instance for an
+   unregistered class, the driver throws a
+   ``CodecConfigurationException``.
+
+.. _scala-codecs-default-codec-registry:
+
+Default Codec Registry
+~~~~~~~~~~~~~~~~~~~~~~
+
+The default codec registry is a set of ``CodecProvider`` classes that encode between commonly
+used Scala and MongoDB types. The driver automatically uses the
+default codec registry unless you specify a custom codec registry. To learn more about the ``CodecProvider`` interface, see the :ref:`CodecProvider <scala-codecs-codecprovider>` section.
+
+.. _codecs-override:
+
+If you must override the behavior of one or more ``Codec`` classes,
+but want to keep the behavior from the default codec registry for the other
+classes, you can specify all of the registries in order of precedence.
+For example, to override the default provider behavior of a ``Codec``
+for a custom type with your ``MyEnumCodec``, add it to the registry
+list before the default codec registry. The following example shows this pattern:
+
+.. literalinclude:: /includes/data-formats/CodecsExamples.scala
+   :start-after: start override-registry
+   :end-before: end override-registry
+   :language: scala
+   :emphasize-lines: 2
+   :dedent:
+
+For more information about the classes and interfaces in this section,
+see the following API documentation:
+
+- `CodecRegistries <{+api-root+}/bson/org/bson/codecs/configuration/CodecRegistries.html>`__
+- `IntegerCodec <{+api-root+}/bson/org/bson/codecs/IntegerCodec.html>`__
+- `getDefaultCodecRegistry() <{+core-api+}/MongoClientSettings.html#getDefaultCodecRegistry()>`__
+
+.. _scala-codecs-codecprovider:
+
+CodecProvider Interface
+-----------------------
+
+The ``CodecProvider`` interface contains abstract methods
+that create ``Codec`` instances and assign them to a ``CodecRegistry``
+instance. Like the ``CodecRegistry`` interface, the ``CodecProvider``
+interface defines a ``get()`` method that returns ``Codec`` instances.
+The BSON library uses these ``Codec`` instances to encode between
+Scala and BSON data types.
+
+Use a ``CodecProvider`` when you add a class to your code whose
+fields need corresponding ``Codec`` objects. When each field
+requires its own ``Codec`` instance, you must instantiate the ``Codec``
+objects for each field before instantiating the ``Codec`` instance for the
+class. Use the ``CodecRegistry`` parameter in the ``get()`` method to pass any of the
+``Codec`` instances that the ``Codec`` relies on into a constructor.
+
+The following example shows how to implement a ``CodecProvider``
+interface. The driver uses the implemented ``MonolightCodecProvider``
+interface to create a ``MonolightCodec`` instance for the ``Monolight``
+class.
+
+.. literalinclude:: /includes/data-formats/MonolightCodecProvider.scala
+   :start-after: start class
+   :end-before: end class
+   :language: scala
+   :dedent:
+
+For a complete implementation of a ``CodecProvider`` interface, including custom classes, see the
+:ref:`Complete Custom Codec Example <scala-codecs-custom-example>` section of
+this guide.
+
+For more information about the classes and interfaces in this section,
+see the following API documentation:
+
+- `CodecProvider <{+api-root+}/bson/org/bson/codecs/configuration/CodecProvider.html>`__
+
+.. _scala-codecs-custom-example:
+
+Complete Custom Codec Example
+-----------------------------
+
+In this section, you can learn how to implement the ``Codec`` and
+``CodecProvider`` interfaces to define the encoding and decoding logic for a
+custom Scala class. This section also shows how to specify and use
+your custom implementations to perform insert and retrieve operations.
+
+The following code snippet shows the example custom class
+``Monolight`` and its fields:
+
+.. literalinclude:: /includes/data-formats/Monolight.scala
+   :start-after: start class
+   :end-before: end class
+   :language: scala
+   :dedent:
+
+The ``Monolight`` class contains the following fields, each of which
+requires a ``Codec`` interface implementation:
+
+- ``powerStatus`` describes if the light is switched on or off.
+  The :ref:`PowerStatusCodec <scala-codecs-powerstatus-codec>` class encodes
+  ``PowerStatus`` values to BSON Booleans.
+- ``colorTemperature`` describes the color of the light and contains
+  an ``Int`` value. The ``IntegerCodec`` class included in the BSON library
+  encodes ``colorTemperature`` values to BSON 32-bit integers.
+
+The following code example shows how to implement a ``Codec`` interface for the
+``Monolight`` class. The constructor uses a ``CodecRegistry`` instance to retrieve the ``Codec`` instances it
+needs to encode and decode the ``Monolight`` fields.
+
+.. literalinclude:: /includes/data-formats/MonolightCodec.scala
+   :start-after: start class
+   :end-before: end class
+   :language: scala
+   :dedent:
+
+The following code example shows how to construct ``Codec`` instances for the fields in the
+``Monolight`` class and implement a custom ``CodecProvider``:
+
+.. literalinclude:: /includes/data-formats/MonolightCodecProvider.scala
+   :start-after: start class
+   :end-before: end class
+   :language: scala
+   :dedent:
+
+The ``get()`` method returns a new ``MonolightCodec`` when the driver
+requests a ``Codec`` for the ``Monolight`` class. The method passes the
+``CodecRegistry`` to the ``MonolightCodec`` constructor so the ``MonolightCodec`` can retrieve the ``Codec`` instances for
+its fields, such as ``PowerStatusCodec`` and ``IntegerCodec``. If the driver requests a ``Codec`` for any other class,
+the method returns ``null``.
+
+After you define the conversion logic, you can perform the following operations:
+
+- Store data from instances of the ``Monolight`` class into MongoDB
+- Retrieve data from MongoDB into instances of the ``Monolight`` class
+
+The following example assigns the ``MonolightCodecProvider`` class to the
+``MongoCollection`` instance by passing it to the
+``withCodecRegistry()`` method. The example then inserts a new
+``Monolight`` instance into the collection by calling the
+``insertOne()`` method and then calling the ``find()`` method to return the stored ``Monolight`` instance.
+The output shows the retrieved ``Monolight`` instance, which
+confirms that the custom codecs successfully encoded and decoded the
+data.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/data-formats/MonolightCodecExample.scala
+      :start-after: start class
+      :end-before: end class
+      :language: scala
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      List(Monolight(On,5200))
+
+For more information about the methods and classes mentioned in this
+section, see the following API documentation:
+
+- `MongoCollection.withCodecRegistry() <{+driver-api+}/MongoCollection.html>`__
+- `MongoClientSettings.getDefaultCodecRegistry() <{+core-api+}/MongoClientSettings.html#getDefaultCodecRegistry()>`__
+- `Codec <{+api-root+}/bson/org/bson/codecs/Codec.html>`__
+- `CodecProvider <{+api-root+}/bson/org/bson/codecs/configuration/CodecProvider.html>`__
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1

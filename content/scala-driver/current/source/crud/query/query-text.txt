@@ -1,0 +1,231 @@
+.. _scala-query-text:
+
+====================
+Perform Text Queries
+====================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn how to use the MongoDB Scala driver to perform text queries on your documents. Search for specific words and phrases by using the Filters.text() method.
+   :keywords: text search, full-text, index, term, phrase, code example
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to run
+**text queries** on your documents.
+
+You can use a text query to retrieve documents that contain a term or a
+phrase in a specified field. A term contains only non-whitespace
+characters. A phrase contains terms separated by any number of
+whitespace characters.
+
+.. note::
+
+   Text queries require a **text index** on the collection fields
+   you want to search. To learn how to create indexes, see the
+   :ref:`scala-indexes` guide.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``movies`` collection in the
+``sample_mflix`` database from the :atlas:`Atlas sample datasets
+</sample-data>`. To access this collection from your Scala
+application, create a ``MongoClient`` that connects to an Atlas
+cluster. Then, assign the following values to your ``database`` and
+``collection`` variables:
+
+.. literalinclude:: /includes/read/QueryText.scala
+   :language: scala
+   :dedent:
+   :start-after: start-db-coll
+   :end-before: end-db-coll
+
+To learn how to create a free MongoDB Atlas cluster and load the
+sample datasets, see the `MongoDB Get Started
+<https://www.mongodb.com/docs/get-started/>`__ guide.
+
+Create a Text Index
+-------------------
+
+Before you run a text query, you must create a text index on the
+collection. A text index specifies one or more string fields to
+index for text search. The following example creates a text index
+on the ``title`` field of the ``movies`` collection:
+
+.. literalinclude:: /includes/read/QueryText.scala
+   :language: scala
+   :dedent:
+   :start-after: start-create-text-index
+   :end-before: end-create-text-index
+
+Query Text by Term
+------------------
+
+To find documents that contain a specific term, pass the term
+as a string to the ``text()`` method of the ``Filters`` class.
+
+The following example counts documents that have the term
+``"time"`` in the ``title`` field:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/QueryText.scala
+      :start-after: start-text-term
+      :end-before: end-text-term
+      :language: scala
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      146
+
+To find documents that contain multiple terms, separate the
+terms with spaces in the search string. The following example counts
+documents that have the term ``"time"`` or the term ``"machine"`` in
+the ``title`` field:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/QueryText.scala
+      :start-after: start-text-multiple-terms
+      :end-before: end-text-multiple-terms
+      :language: scala
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      158
+
+Query Text by Phrase
+--------------------
+
+To find documents that contain a phrase, surround it with
+escaped quotation marks (``\"``) in the search string.
+
+The following example counts documents that have the phrase
+``"time machine"`` in the ``title`` field:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/QueryText.scala
+      :start-after: start-text-phrase
+      :end-before: end-text-phrase
+      :language: scala
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      4
+
+Query Text with Excluded Terms
+------------------------------
+
+To exclude documents that contain a specific term, prefix the term
+with a hyphen (``-``) in the search string. You must include at
+least one positive term in the query.
+
+The following example counts documents that contain the term
+``"time"`` but not the term ``"machine"``:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/QueryText.scala
+      :start-after: start-text-exclude
+      :end-before: end-text-exclude
+      :language: scala
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      142
+
+Specify Query Text Options
+--------------------------
+
+You can customize text query behavior by passing a
+``TextSearchOptions`` object as the second parameter to
+``Filters.text()``. The following table describes the methods you
+can chain to a ``TextSearchOptions`` instance:
+
+.. list-table::
+   :widths: 35 65
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``caseSensitive()``
+     - | Sets whether the text query is case-sensitive.
+         Defaults to ``false``.
+       | **Parameter Type**: ``Boolean``
+
+   * - ``diacriticSensitive()``
+     - | Sets whether the text query is diacritic-sensitive.
+         Defaults to ``false``.
+       | **Parameter Type**: ``Boolean``
+
+   * - ``language()``
+     - | Sets the language for the text query. Defaults to the
+         ``default_language`` of the text index. If no language
+         is set, the default is ``"english"``.
+       | **Parameter Type**: ``String``
+
+The following example counts documents that match a case-sensitive
+search for the term ``"Time"`` in the ``title`` field:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/read/QueryText.scala
+      :start-after: start-text-options
+      :end-before: end-text-options
+      :language: scala
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      146
+
+Additional Information
+----------------------
+
+To learn more about text search, see the following resources in the
+{+mdb-server+} manual:
+
+- :manual:`$text </reference/operator/query/text/>`
+- :manual:`Text Indexes </core/indexes/index-types/index-text/>`
+
+To learn more about creating indexes by using the {+driver-short+},
+see the :ref:`scala-indexes` guide.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `countDocuments() <{+driver-api+}/MongoCollection.html#countDocuments(filter:org.mongodb.scala.bson.conversions.Bson):org.mongodb.scala.SingleObservable[Long]>`__
+- `Filters <{+driver-api+}/model/Filters$.html>`__
+- `TextSearchOptions <{+driver-api+}/model/index.html#TextSearchOptions=com.mongodb.client.model.TextSearchOptions>`__
+- `createIndex() <{+driver-api+}/MongoCollection.html#createIndex(key:org.mongodb.scala.bson.conversions.Bson,options:org.mongodb.scala.model.IndexOptions):org.mongodb.scala.SingleObservable[String]>`__
+- `Indexes <{+driver-api+}/model/Indexes$.html>`__

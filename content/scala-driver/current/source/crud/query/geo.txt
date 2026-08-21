@@ -1,0 +1,331 @@
+
+.. _scala-geo:
+
+==================
+Geospatial Queries
+==================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn how to perform geospatial queries with the MongoDB Scala Driver, including creating 2dsphere indexes and querying for locations near a GeoJSON point.
+   :keywords: code example, coordinates, location, geographic
+
+Overview
+--------
+
+In this guide, you can learn how to query **geospatial data** by using
+the {+driver-short+}. You can also learn about different geospatial data
+formats supported by MongoDB.
+
+Geospatial data represents a geographical location on
+the surface of the Earth. Examples of geospatial data include:
+
+- Locations of movie theaters
+- Borders of countries
+- Routes of bicycle rides
+- Dog exercise areas in New York City
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``theaters`` collection in the ``sample_mflix``
+database from the :ref:`Atlas sample datasets <sample-mflix>`. To access this collection
+from your Scala application, create a ``MongoClient`` that connects to an Atlas cluster
+and assign the following values to your ``database`` and ``collection`` variables:
+
+.. code-block:: scala
+
+    val database: MongoDatabase = mongoClient.getDatabase("sample_mflix")
+    val collection: MongoCollection[Document] = database.getCollection("theaters")
+
+To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
+`MongoDB Get Started <https://www.mongodb.com/docs/get-started/>`__ guide.
+
+Coordinates on Earth
+--------------------
+
+To store and query your geospatial data in MongoDB, use **GeoJSON**. GeoJSON is
+a data format created by the Internet Engineering Task Force (IETF). 
+
+Here is the location of MongoDB headquarters in GeoJSON:
+
+.. code-block:: json
+
+   "location" : {
+      "type": "Point",
+      "coordinates": [-73.986805, 40.7620853]
+   }
+
+For definitive information on GeoJSON, see the
+`official IETF specification <https://datatracker.ietf.org/doc/html/rfc7946>`__.
+
+GeoJSON Positions
+~~~~~~~~~~~~~~~~~
+
+A position represents a single place on Earth and is given as an array
+containing two or three number values: 
+
+- Longitude in the first position (required)
+- Latitude in the second position (required)
+- Elevation in the third position (optional)
+
+.. important:: Longitude then Latitude
+
+   GeoJSON orders coordinates as longitude first and latitude second. This may
+   be surprising as geographic coordinate system conventions generally list
+   latitude first and longitude second. Make sure to check what format any other
+   tools you are working with use. Popular tools such as OpenStreetMap and Google
+   Maps list coordinates as latitude first and longitude second.
+
+GeoJSON Types
+~~~~~~~~~~~~~
+
+Your GeoJSON object's type determines its geometric shape. Geometric shapes are
+made up of positions.
+
+Here are some common GeoJSON types and how you can specify them with positions:
+
+- ``Point``: Single position. This could represent the location of a
+  `sculpture <https://en.wikipedia.org/wiki/Chicago_Picasso>`__.
+- ``LineString``: Array of two or more positions, thus forming a series of line
+  segments. This could represent
+  `the route of the Great Wall of China <https://commons.wikimedia.org/wiki/File:GreatWallChina4.png>`__. 
+- ``Polygon``: Array of positions in which the first and last
+  position are the same, enclosing some space. This could represent 
+  `the land within Vatican City <https://commons.wikimedia.org/wiki/File:Vatican_City_map_EN.png>`__.
+
+To learn more about the shapes you can use in MongoDB, see
+:manual:`GeoJSON </reference/geojson/>` in the Server manual.
+
+Index
+~~~~~
+
+To create a ``2dsphere`` index, use the ``Indexes.geo2dsphere()``
+helper to create a specification for the ``2dsphere`` index. Pass the
+specification to the ``MongoCollection.createIndex()`` method to create
+the index.
+
+The following example creates a ``2dsphere`` index on the
+``"location.geo"`` field in the ``theaters`` collection:
+
+.. code-block:: scala
+
+  val indexObservable = collection.createIndex(Indexes.geo2dsphere("location.geo"))
+  Await.result(indexObservable.toFuture(), Duration(10, TimeUnit.SECONDS))
+
+To learn more about indexes in the {+driver-short+}, see the 
+:ref:`scala-indexes` guide.
+
+Coordinates on a 2D Plane
+-------------------------
+
+You can store geospatial data using ``x`` and ``y`` coordinates on 
+a two-dimensional Euclidean plane. Coordinates on a two-dimensional
+plane are called *legacy coordinate pairs*.
+
+Legacy coordinate pairs have the following structure:
+
+.. code-block:: json
+
+   { "location" : [ x, y ] }
+
+The field value contains an array of two values in which the first represents 
+the ``x`` axis value and the second represents the ``y`` axis value.
+
+Index
+~~~~~
+
+To query data stored as legacy coordinate pairs, you must add the field containing
+legacy coordinate pairs to a ``2d`` index. The following snippet creates a
+``2d`` index on the ``coordinates`` field by using the ``Indexes`` object:
+
+.. code-block:: scala
+
+  val indexObservable = collection.createIndex(Indexes.geo2d("coordinates"))
+  Await.result(indexObservable.toFuture(), Duration(10, TimeUnit.SECONDS))
+
+To learn more about indexes in the {+driver-short+}, see the 
+:ref:`scala-indexes` guide.
+   
+For more information on legacy coordinate pairs, see the
+:manual:`Legacy Coordinate Pairs
+</geospatial-queries/#legacy-coordinate-pairs>` section of the
+Geospatial Queries guide in the Server manual.
+
+.. tip:: Supported Operators
+
+   Spherical (``2dsphere``) and flat (``2d``) indexes support some, but
+   not all, of the same query operators. To view a full list of operators
+   and their index compatibility, see the :manual:`Geospatial Query
+   Operators </geospatial-queries/#geospatial-query-operators>` section
+   of the Geospatial Queries guide in the Server manual.
+
+Geospatial Queries
+------------------
+
+Geospatial queries consist of a query operator and GeoJSON shapes as query
+parameters.
+
+Query Operators
+~~~~~~~~~~~~~~~
+
+To query your geospatial data, use one of the following query operators: 
+
+- ``$near``
+- ``$geoWithin``
+- ``$nearSphere``
+- ``$geoIntersects`` *requires a 2dsphere index*
+
+You can specify these query operators in the {+driver-short+} with the
+``near()``, ``geoWithin()``, ``nearSphere()``, and ``geoIntersects()``
+methods of the ``Filters`` object.
+
+To learn more about geospatial query operators, see the :manual:`Geospatial Query
+Operators </geospatial-queries/#geospatial-query-operators>` section
+of the Geospatial Queries guide in the Server manual.
+
+To view a full list of ``Filters`` helper methods, see the `Filters <{+driver-api+}/model/Filters$.html>`__ API documentation.
+
+Query Parameters
+~~~~~~~~~~~~~~~~
+
+To specify a shape to use in a geospatial query, use the ``Position``,
+``Point``, ``LineString``, and ``Polygon`` classes from the {+driver-short+}.
+
+To learn more about the GeoJSON shape classes, see the
+`GeoJSON package <{+core-api+}/client/model/geojson/package-summary.html>`__
+API Documentation.
+
+Geospatial Query Examples
+-------------------------
+
+The following examples use the MongoDB Atlas ``theaters`` collection in the ``sample_mflix`` sample database. You can learn how
+to set up your own free-tier Atlas cluster and how to load the sample dataset
+in the :ref:`scala-get-started` guide.
+
+The examples in this section require the following imports:
+
+.. code-block:: scala
+
+   import org.mongodb.scala.*
+   import org.mongodb.scala.model.Indexes
+   import org.mongodb.scala.model.Filters
+   import org.mongodb.scala.model.Projections
+   import com.mongodb.client.model.geojson.{Point, Polygon, Position}
+   import java.util.Arrays
+   import java.util.concurrent.TimeUnit
+   import scala.concurrent.Await
+   import scala.concurrent.duration.Duration
+
+The ``theaters`` collection already contains a ``2dsphere`` index on the 
+``location.geo`` field.
+
+Query by Proximity
+~~~~~~~~~~~~~~~~~~
+
+To search for and return documents from nearest to farthest from a point, use
+the ``near()`` method of the ``Filters`` object. The
+``near()`` method constructs a query with the ``$near`` query operator.
+
+The following example returns documents that are at most 1000 meters
+from the specified GeoJSON ``Point`` instance, sorted from nearest to
+farthest:
+
+.. io-code-block::
+   :copyable:
+
+   .. input::
+      :language: scala
+
+      val refPoint = new Point(new Position(-73.986805, 40.7620853))
+      val findObservable = collection.find(Filters.near("location.geo", refPoint, Some(1000.0), Some(0.0)))
+      val results = Await.result(findObservable.toFuture(), Duration(10, TimeUnit.SECONDS))
+
+   .. output::
+      :visible: false
+
+      {"_id": {"$oid": "59a47287cfa9a3a73e51e8e2"}, "theaterId": 1908, "location":
+      {"address": {"street1": "750 Seventh Ave", "city": "New York", "state": "NY",
+      "zipcode": "10019"}, "geo": {"type": "Point", "coordinates": [-73.983487, 40.76078]}}}
+      {"_id": {"$oid": "59a47286cfa9a3a73e51e838"}, "theaterId": 1448, "location":
+      {"address": {"street1": "1880 Broadway", "city": "New York", "state": "NY",
+      "zipcode": "10023"}, "geo": {"type": "Point", "coordinates": [-73.982094, 40.769882]}}}
+
+.. tip::
+
+   MongoDB uses the :manual:`same reference system </reference/glossary/#std-term-WGS84>`
+   as GPS satellites to calculate geometries over the Earth.
+
+To learn more about the ``$near`` operator, see the 
+:manual:`$near </reference/operator/query/near/>` reference in the
+Server manual.
+
+Query Within a Range
+~~~~~~~~~~~~~~~~~~~~
+
+To search for geospatial data within a specified shape, use the ``geoWithin()``
+method of the ``Filters`` object. The ``geoWithin()``
+method constructs a query with the ``$geoWithin`` query operator.
+
+The following example searches for movie theaters in a section of Long
+Island. The example applies a projection so that each result includes
+only the ``location.address.city`` field and excludes the ``_id`` field:
+
+.. _example_range_query:
+
+.. io-code-block::
+   :copyable:
+
+   .. input::
+      :language: scala
+
+      val longIslandTriangle = new Polygon(Arrays.asList(
+          new Position(-72.0, 40.0),
+          new Position(-74.0, 41.0),
+          new Position(-72.0, 39.0),
+          new Position(-72.0, 40.0)
+      ))
+      val projection = Projections.fields(
+          Projections.include("location.address.city"),
+          Projections.excludeId()
+      )
+      val geoWithinComparison = Filters.geoWithin("location.geo", longIslandTriangle)
+      val findObservable = collection.find(geoWithinComparison).projection(projection)
+      val results = Await.result(findObservable.toFuture(), Duration(10, TimeUnit.SECONDS))
+      results.foreach(doc => println(doc.toJson()))
+
+   .. output::
+      :visible: false
+
+      {"location": {"address": {"city": "Baldwin"}}}
+      {"location": {"address": {"city": "Levittown"}}}
+      {"location": {"address": {"city": "Westbury"}}}
+      {"location": {"address": {"city": "Mount Vernon"}}}
+      {"location": {"address": {"city": "Massapequa"}}}
+
+The following figure shows the polygon defined by the
+``longIslandTriangle`` variable and dots representing the locations of
+the movie theaters that the query returns.
+
+.. figure:: /includes/figures/geo_geometry.png
+   :alt: Area of Long Island in which to search for movie theaters
+
+To learn more about the ``$geoWithin`` operator, see the
+:manual:`$geoWithin </reference/operator/query/geoWithin/>` reference in
+the Server manual.
+
+Additional Information
+----------------------
+
+To learn more about performing geospatial queries, see
+:manual:`Geospatial Queries </geospatial-queries/>` in the
+Server manual.

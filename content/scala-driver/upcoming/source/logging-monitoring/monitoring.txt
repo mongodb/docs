@@ -1,0 +1,467 @@
+.. _scala-monitoring:
+
+==========================
+Monitor Application Events
+==========================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn how to use the MongoDB Scala driver to monitor command, SDAM, and connection pool events in your application for performance insights and debugging.
+   :keywords: code example, monitoring, command, SDAM, connection pool, listener
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to
+monitor events that occur during driver operation. Monitoring involves
+collecting information about the activities of a running program, which
+you can use with an application or an application performance management
+library.
+
+You can monitor application events to understand the driver's resource usage and
+performance, which helps you make informed decisions when designing and
+debugging your application.
+
+The {+driver-short+} organizes the events you can monitor into the
+following categories:
+
+- **Command events**: Events related to MongoDB database commands
+- **Server Discovery and Monitoring (SDAM) events**: Events related to
+  changes in the state of the MongoDB instance or cluster you are
+  connected to
+- **Connection pool events**: Events related to the connection pool
+  the driver maintains with a MongoDB instance
+
+The following sections describe each event category and show how to
+monitor events. To learn how to record driver events to a log, see the
+:ref:`scala-logging` guide.
+
+.. _scala-command-monitoring:
+
+Monitor Command Events
+----------------------
+
+A command event is an event related to a MongoDB database command.
+Examples of database commands that produce command events include
+``find``, ``insert``, ``delete``, and ``count``. 
+
+The {+driver-short+} does not publish events for commands it calls
+internally. This includes commands the driver uses to monitor your
+cluster and commands related to connection establishment, such as
+the initial ``hello`` command.
+
+To monitor command events, create a class that implements the
+``CommandListener`` interface and register an instance of that class
+with your ``MongoClient`` instance.
+
+.. important:: Redacted Output
+
+   As a security measure, the driver redacts the contents of some
+   command events to protect sensitive information. For a full list of
+   redacted command events, see the
+   :spec:`Security
+   </command-logging-and-monitoring/command-logging-and-monitoring.md#security>`
+   section of the MongoDB Command Logging and Monitoring specification.
+
+To learn more about MongoDB database commands, see
+:ref:`Database Commands <database-commands>`.
+
+Example
+~~~~~~~
+
+The following example defines the ``CommandCounter`` class, which
+implements the ``CommandListener`` interface. The class tracks the
+number of times the driver successfully executes each database command
+and prints this information each time a command finishes.
+
+.. literalinclude:: /includes/monitoring/command.scala
+   :start-after: start-command-listener-impl
+   :end-before: end-command-listener-impl
+   :language: scala
+   :copyable:
+   :dedent:
+
+The following code adds an instance of the ``CommandCounter`` class to
+a ``MongoClientSettings`` object and configures a ``MongoClient``
+instance by using the settings:
+
+.. literalinclude:: /includes/monitoring/command.scala
+   :start-after: start-monitor-command
+   :end-before: end-monitor-command
+   :language: scala
+   :copyable:
+   :dedent:
+
+When you run the application, the output resembles the following:
+
+.. code-block:: none
+   :copyable: false
+
+   Map(find -> 1)
+   Map(find -> 2)
+   Map(find -> 2, endSessions -> 1)
+
+Event Descriptions
+~~~~~~~~~~~~~~~~~~
+
+The following table describes the command events that the
+{+driver-short+} publishes and the listener interface that handles them:
+
+.. list-table::
+   :widths: 35 25 40
+   :header-rows: 1
+
+   * - Event Type
+     - Listener Interface
+     - Description
+
+   * - `CommandStartedEvent
+       <{+core-api+}/event/CommandStartedEvent.html>`__
+     - `CommandListener
+       <{+core-api+}/event/CommandListener.html>`__
+     - Published when a database command starts.
+
+   * - `CommandSucceededEvent
+       <{+core-api+}/event/CommandSucceededEvent.html>`__
+     - `CommandListener
+       <{+core-api+}/event/CommandListener.html>`__
+     - Published when a database command succeeds.
+
+   * - `CommandFailedEvent
+       <{+core-api+}/event/CommandFailedEvent.html>`__
+     - `CommandListener
+       <{+core-api+}/event/CommandListener.html>`__
+     - Published when a database command fails.
+
+.. _scala-cluster-monitoring:
+
+Monitor SDAM Events
+-------------------
+
+A server discovery and monitoring (SDAM) event is an event related to
+a change in the state of the MongoDB instance or cluster you are
+connected to.
+
+The {+driver-short+} defines nine SDAM events and provides the
+following listener interfaces, which each listen for three SDAM events:
+
+- ``ClusterListener``: Listens for events related to topology changes,
+  or changes in the state and structure of the cluster
+- ``ServerListener``: Listens for events related to individual server
+  changes
+- ``ServerMonitorListener``: Listens for heartbeat events, which
+  report on the status of communication between replica set members
+
+You can use information from SDAM events to understand cluster changes,
+assess cluster health, or plan capacity.
+
+.. _scala-subscribe-sdam:
+
+Example
+~~~~~~~
+
+The following example defines the ``TestClusterListener`` class, which
+implements the ``ClusterListener`` interface. The class contains
+methods that print messages in response to the following
+topology-related events:
+
+- ``clusterOpening()``: Prints a message when the driver first
+  connects to a cluster
+- ``clusterClosed()``: Prints a message when the driver disconnects
+  from a cluster
+- ``clusterDescriptionChanged()``: Prints a message about changes to
+  the read and write availability of the cluster
+
+.. literalinclude:: /includes/monitoring/sdam.scala
+   :start-after: start-listener-class
+   :end-before: end-listener-class
+   :language: scala
+   :copyable:
+   :dedent:
+
+The following code adds an instance of the ``TestClusterListener``
+class to a ``MongoClientSettings`` object and configures a
+``MongoClient`` instance by using the settings:
+
+.. literalinclude:: /includes/monitoring/sdam.scala
+   :start-after: start-configure-client
+   :end-before: end-configure-client
+   :language: scala
+   :copyable:
+   :dedent:
+
+When you run the application, the output resembles the following:
+
+.. code-block:: none
+   :copyable: false
+
+   Cluster with ID ClusterId{value='...', description='...'} opening
+   Writable server available
+   Readable server available
+   Cluster with ID ClusterId{value='...', description='...'} closed
+
+Event Descriptions
+~~~~~~~~~~~~~~~~~~
+
+The following table describes each SDAM event, the listener interface
+that handles it, and when the driver publishes it:
+
+.. list-table::
+   :widths: 20 20 60
+   :header-rows: 1
+
+   * - Event Type
+     - Listener Interface
+     - Description
+
+   * - `ClusterDescriptionChangedEvent
+       <{+core-api+}/event/ClusterDescriptionChangedEvent.html>`__
+     - `ClusterListener
+       <{+core-api+}/event/ClusterListener.html>`__
+     - Published when the topology description changes, such as when
+       there is an election of a new primary.
+
+   * - `ClusterOpeningEvent
+       <{+core-api+}/event/ClusterOpeningEvent.html>`__
+     - `ClusterListener
+       <{+core-api+}/event/ClusterListener.html>`__
+     - Published when the driver first connects to the cluster.
+
+   * - `ClusterClosedEvent
+       <{+core-api+}/event/ClusterClosedEvent.html>`__
+     - `ClusterListener
+       <{+core-api+}/event/ClusterListener.html>`__
+     - Published when the driver disconnects from the cluster.
+
+   * - `ServerDescriptionChangedEvent
+       <{+core-api+}/event/ServerDescriptionChangedEvent.html>`__
+     - `ServerListener
+       <{+core-api+}/event/ServerListener.html>`__
+     - Published when the server description changes.
+
+   * - `ServerOpeningEvent
+       <{+core-api+}/event/ServerOpeningEvent.html>`__
+     - `ServerListener
+       <{+core-api+}/event/ServerListener.html>`__
+     - Published when a new server is added to the topology.
+
+   * - `ServerClosedEvent
+       <{+core-api+}/event/ServerClosedEvent.html>`__
+     - `ServerListener
+       <{+core-api+}/event/ServerListener.html>`__
+     - Published when an existing server is removed from the topology.
+
+   * - `ServerHeartbeatStartedEvent
+       <{+core-api+}/event/ServerHeartbeatStartedEvent.html>`__
+     - `ServerMonitorListener
+       <{+core-api+}/event/ServerMonitorListener.html>`__
+     - Published when the server monitor sends a ``hello`` command to
+       the server. This action is called a heartbeat.
+
+   * - `ServerHeartbeatSucceededEvent
+       <{+core-api+}/event/ServerHeartbeatSucceededEvent.html>`__
+     - `ServerMonitorListener
+       <{+core-api+}/event/ServerMonitorListener.html>`__
+     - Published when the heartbeat succeeds.
+
+   * - `ServerHeartbeatFailedEvent
+       <{+core-api+}/event/ServerHeartbeatFailedEvent.html>`__
+     - `ServerMonitorListener
+       <{+core-api+}/event/ServerMonitorListener.html>`__
+     - Published when the heartbeat fails.
+
+.. _scala-connection-pool-monitoring:
+
+Monitor Connection Pool Events
+------------------------------
+
+A connection pool event is an event related to the connection pool the
+driver maintains with a MongoDB instance. A connection pool is a set of
+open TCP connections your driver maintains with a MongoDB instance.
+Connection pools reduce the number of network handshakes your
+application needs to perform and can help your application run faster.
+
+To monitor connection pool events, create a class that implements the
+``ConnectionPoolListener`` interface and register an instance of that
+class with your ``MongoClient`` instance.
+
+.. tip:: Connection Pools
+
+   To learn more about connection pools, see the
+   :ref:`scala-connection-pools` guide.
+
+Example
+~~~~~~~
+
+The following example defines the ``ConnectionPoolLibrarian`` class,
+which implements the ``ConnectionPoolListener`` interface. The class
+prints a message each time the driver checks out a connection from
+the connection pool.
+
+.. literalinclude:: /includes/monitoring/connection-pool.scala
+   :start-after: start-cp-listener-impl
+   :end-before: end-cp-listener-impl
+   :language: scala
+   :copyable:
+   :dedent:
+
+The following code adds an instance of the
+``ConnectionPoolLibrarian`` class to a ``MongoClientSettings`` object
+and configures a ``MongoClient`` instance by using the settings:
+
+.. literalinclude:: /includes/monitoring/connection-pool.scala
+   :start-after: start-monitor-cp
+   :end-before: end-monitor-cp
+   :language: scala
+   :copyable:
+   :dedent:
+
+When you run the application, the output resembles the following:
+
+.. code-block:: none
+   :copyable: false
+
+   Let me get you the connection with id 1...
+
+Event Descriptions
+~~~~~~~~~~~~~~~~~~
+
+The following table describes the connection pool events that the
+{+driver-short+} publishes and the listener interface that handles them:
+
+.. list-table::
+   :widths: 35 35 30
+   :header-rows: 1
+
+   * - Event Type
+     - Listener Interface
+     - Description
+
+   * - `ConnectionPoolCreatedEvent
+       <{+core-api+}/event/ConnectionPoolCreatedEvent.html>`__
+     - `ConnectionPoolListener
+       <{+core-api+}/event/ConnectionPoolListener.html>`__
+     - Published when the connection pool is created.
+
+   * - `ConnectionPoolReadyEvent
+       <{+core-api+}/event/ConnectionPoolReadyEvent.html>`__
+     - `ConnectionPoolListener
+       <{+core-api+}/event/ConnectionPoolListener.html>`__
+     - Published when the connection pool is ready for use.
+
+   * - `ConnectionPoolClosedEvent
+       <{+core-api+}/event/ConnectionPoolClosedEvent.html>`__
+     - `ConnectionPoolListener
+       <{+core-api+}/event/ConnectionPoolListener.html>`__
+     - Published when the connection pool is closed.
+
+   * - `ConnectionCreatedEvent
+       <{+core-api+}/event/ConnectionCreatedEvent.html>`__
+     - `ConnectionPoolListener
+       <{+core-api+}/event/ConnectionPoolListener.html>`__
+     - Published when a connection is created in the pool.
+
+   * - `ConnectionReadyEvent
+       <{+core-api+}/event/ConnectionReadyEvent.html>`__
+     - `ConnectionPoolListener
+       <{+core-api+}/event/ConnectionPoolListener.html>`__
+     - Published when a connection completes its handshake
+       and is ready for use.
+
+   * - `ConnectionClosedEvent
+       <{+core-api+}/event/ConnectionClosedEvent.html>`__
+     - `ConnectionPoolListener
+       <{+core-api+}/event/ConnectionPoolListener.html>`__
+     - Published when a connection is closed.
+
+   * - `ConnectionCheckOutStartedEvent
+       <{+core-api+}/event/ConnectionCheckOutStartedEvent.html>`__
+     - `ConnectionPoolListener
+       <{+core-api+}/event/ConnectionPoolListener.html>`__
+     - Published when the driver starts to check out a connection.
+
+   * - `ConnectionCheckedOutEvent
+       <{+core-api+}/event/ConnectionCheckedOutEvent.html>`__
+     - `ConnectionPoolListener
+       <{+core-api+}/event/ConnectionPoolListener.html>`__
+     - Published when the driver successfully checks out
+       a connection.
+
+   * - `ConnectionCheckOutFailedEvent
+       <{+core-api+}/event/ConnectionCheckOutFailedEvent.html>`__
+     - `ConnectionPoolListener
+       <{+core-api+}/event/ConnectionPoolListener.html>`__
+     - Published when the driver fails to check out a connection.
+
+   * - `ConnectionCheckedInEvent
+       <{+core-api+}/event/ConnectionCheckedInEvent.html>`__
+     - `ConnectionPoolListener
+       <{+core-api+}/event/ConnectionPoolListener.html>`__
+     - Published when the driver checks a connection back
+       into the pool.
+
+   * - `ConnectionPoolClearedEvent
+       <{+core-api+}/event/ConnectionPoolClearedEvent.html>`__
+     - `ConnectionPoolListener
+       <{+core-api+}/event/ConnectionPoolListener.html>`__
+     - Published when the connection pool is cleared.
+
+API Documentation
+-----------------
+
+To learn more about the methods and types discussed in this guide, see the
+following API documentation:
+
+- `CommandListener <{+core-api+}/event/CommandListener.html>`__
+- `CommandStartedEvent
+  <{+core-api+}/event/CommandStartedEvent.html>`__
+- `CommandSucceededEvent
+  <{+core-api+}/event/CommandSucceededEvent.html>`__
+- `CommandFailedEvent <{+core-api+}/event/CommandFailedEvent.html>`__
+- `ClusterListener <{+core-api+}/event/ClusterListener.html>`__
+- `ServerListener <{+core-api+}/event/ServerListener.html>`__
+- `ServerMonitorListener
+  <{+core-api+}/event/ServerMonitorListener.html>`__
+- `ClusterDescriptionChangedEvent
+  <{+core-api+}/event/ClusterDescriptionChangedEvent.html>`__
+- `clusterOpening()
+  <{+core-api+}/event/ClusterListener.html#clusterOpening(com.mongodb.event.ClusterOpeningEvent)>`__
+- `clusterClosed()
+  <{+core-api+}/event/ClusterListener.html#clusterClosed(com.mongodb.event.ClusterClosedEvent)>`__
+- `clusterDescriptionChanged()
+  <{+core-api+}/event/ClusterListener.html#clusterDescriptionChanged(com.mongodb.event.ClusterDescriptionChangedEvent)>`__
+- `ConnectionPoolListener
+  <{+core-api+}/event/ConnectionPoolListener.html>`__
+- `ConnectionPoolCreatedEvent
+  <{+core-api+}/event/ConnectionPoolCreatedEvent.html>`__
+- `ConnectionPoolReadyEvent
+  <{+core-api+}/event/ConnectionPoolReadyEvent.html>`__
+- `ConnectionPoolClosedEvent
+  <{+core-api+}/event/ConnectionPoolClosedEvent.html>`__
+- `ConnectionCreatedEvent
+  <{+core-api+}/event/ConnectionCreatedEvent.html>`__
+- `ConnectionReadyEvent
+  <{+core-api+}/event/ConnectionReadyEvent.html>`__
+- `ConnectionClosedEvent
+  <{+core-api+}/event/ConnectionClosedEvent.html>`__
+- `ConnectionCheckOutStartedEvent
+  <{+core-api+}/event/ConnectionCheckOutStartedEvent.html>`__
+- `ConnectionCheckedOutEvent
+  <{+core-api+}/event/ConnectionCheckedOutEvent.html>`__
+- `ConnectionCheckOutFailedEvent
+  <{+core-api+}/event/ConnectionCheckOutFailedEvent.html>`__
+- `ConnectionCheckedInEvent
+  <{+core-api+}/event/ConnectionCheckedInEvent.html>`__
+- `ConnectionPoolClearedEvent
+  <{+core-api+}/event/ConnectionPoolClearedEvent.html>`__
+- `MongoClientSettings <{+core-api+}/MongoClientSettings.html>`__
+- `event package <{+core-api+}/event/package-summary.html>`__

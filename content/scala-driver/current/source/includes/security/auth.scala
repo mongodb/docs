@@ -8,15 +8,15 @@ object StableAPI {
 
     {
       // start-default
-      val user = "<db_username>"     // the username
-      val source = "<source>"     // the source where the user is defined
-      val password = ...          // the password as a character array
+      val user = "<db_username>"          // the username
+      val source = "<authenticationDb>"   // the authentication database
+      val password = ...                  // the password as a character array
 
       val credential = MongoCredential.createCredential(user, source, password)
       val mongoClient = MongoClient(MongoClientSettings
           .builder()
           .applyToClusterSettings(builder =>
-              builder.hosts(Collections.singletonList(ServerAddress("localhost", 27017))))
+              builder.hosts(Collections.singletonList(ServerAddress("<hostname>", <port>))))
           .credential(credential)
           .build())
       // end-default
@@ -24,21 +24,21 @@ object StableAPI {
 
     {
       // start-default-connection-string
-      val mongoClient = MongoClient("mongodb://user1:pwd1@host1/?authSource=db1")
+      val mongoClient = MongoClient("mongodb://<db_username>:<db_password>@<hostname>:<port>/?authSource=<authenticationDb>")
       // end-default-connection-string
     }
 
     {
       // start-scram-sha-256
-      val user = "<db_username>"     // the username
-      val source = "<source>"     // the source where the user is defined
-      val password = ...          // the password as a character array
+      val user = "<db_username>"          // the username
+      val source = "<authenticationDb>"   // the authentication database
+      val password = ...                  // the password as a character array
 
       val credential = MongoCredential.createScramSha256Credential(user, source, password)
       val mongoClient = MongoClient(MongoClientSettings
           .builder()
           .applyToClusterSettings(builder =>
-              builder.hosts(Collections.singletonList(ServerAddress("localhost", 27017))))
+              builder.hosts(Collections.singletonList(ServerAddress("<hostname>", <port>))))
           .credential(credential)
           .build())
       // end-scram-sha-256
@@ -46,21 +46,21 @@ object StableAPI {
 
     {
       // start-scram-sha-256-connection-string
-      val mongoClient = MongoClient("mongodb://user1:pwd1@host1/?authSource=db1&authMechanism=SCRAM-SHA-256")
+      val mongoClient = MongoClient("mongodb://<db_username>:<db_password>@<hostname>:<port>/?authSource=<authenticationDb>&authMechanism=SCRAM-SHA-256")
       // end-scram-sha-256-connection-string
     }
 
     {
       // start-scram-sha-1
-      val user = "<db_username>"     // the username
-      val source = "<source>"     // the source where the user is defined
-      val password = ...          // the password as a character array
+      val user = "<db_username>"          // the username
+      val source = "<authenticationDb>"   // the authentication database
+      val password = ...                  // the password as a character array
 
       val credential = MongoCredential.createScramSha1Credential(user, source, password)
       val mongoClient = MongoClient(MongoClientSettings
           .builder()
           .applyToClusterSettings(builder =>
-              builder.hosts(Collections.singletonList(ServerAddress("localhost", 27017))))
+              builder.hosts(Collections.singletonList(ServerAddress("<hostname>", <port>))))
           .credential(credential)
           .build())
       // end-scram-sha-1
@@ -68,7 +68,7 @@ object StableAPI {
 
     {
       // start-scram-sha-1-connection-string
-      val mongoClient = MongoClient("mongodb://user1:pwd1@host1/?authSource=db1&authMechanism=SCRAM-SHA-1")
+      val mongoClient = MongoClient("mongodb://<db_username>:<db_password>@<hostname>:<port>/?authSource=<authenticationDb>&authMechanism=SCRAM-SHA-1")
       // end-scram-sha-1-connection-string
     }
 
@@ -78,7 +78,9 @@ object StableAPI {
       val mongoClient = MongoClient(MongoClientSettings
           .builder()
           .applyToClusterSettings(builder =>
-              builder.hosts(Collections.singletonList(ServerAddress("localhost", 27017))))
+              builder.hosts(Collections.singletonList(ServerAddress("<hostname>", <port>))))
+          .applyToSslSettings(builder =>
+              builder.enabled(true))
           .credential(credential)
           .build())
       // end-mongodb-x509
@@ -86,8 +88,28 @@ object StableAPI {
 
     {
       // start-mongodb-x509-connection-string
-      val mongoClient = MongoClient("mongodb://subjectName@host1/?authMechanism=MONGODB-X509&ssl=true")
+      val mongoClient = MongoClient("mongodb://<hostname>:<port>/?authMechanism=MONGODB-X509&tls=true")
       // end-mongodb-x509-connection-string
+    }
+
+    {
+      // start-ldap-connection-string
+      val mongoClient = MongoClient("mongodb://<ldap_username>:<password>@<hostname>:<port>/?authSource=$external&authMechanism=PLAIN")
+      // end-ldap-connection-string
+    }
+
+    {
+      // start-ldap-mongo-credential
+      val credential = MongoCredential.createPlainCredential(
+          "<ldap_username>", "$external", "<password>".toCharArray())
+      val mongoClient = MongoClient(MongoClientSettings
+          .builder()
+          .applyToClusterSettings(builder =>
+              builder.hosts(Collections.singletonList(
+                  ServerAddress("<hostname>", <port>))))
+          .credential(credential)
+          .build())
+      // end-ldap-mongo-credential
     }
   }
 }

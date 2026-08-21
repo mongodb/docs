@@ -85,6 +85,25 @@ object ReadWritePref {
         .build())
     // end-local-threshold-settings
 
+    // Connects to a sharded cluster and specifies a secondary read preference
+    // start-sharded-cluster-uri
+    val mongosClient = MongoClient("mongodb://user:password@mongos1.example.com,mongos2.example.com/?readPreference=secondary")
+    // end-sharded-cluster-uri
+
+    // Disables retryable reads and writes using MongoClientSettings builder
+    // start-retryable-reads-writes
+    val retryClient = MongoClient(MongoClientSettings.builder()
+        .applyConnectionString(ConnectionString("mongodb://localhost:27017/"))
+        .retryReads(false)
+        .retryWrites(false)
+        .build())
+    // end-retryable-reads-writes
+
+    // Disables retryable reads and writes using a URI option
+    // start-retryable-reads-writes-uri
+    val retryUriClient = MongoClient("mongodb://localhost:27017/?retryReads=false&retryWrites=false")
+    // end-retryable-reads-writes-uri
+
     // Keep the main thread alive long enough for the asynchronous operations to complete
     Thread.sleep(5000)
 

@@ -1,0 +1,248 @@
+.. _scala-connection-pools:
+
+================
+Connection Pools
+================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn how to use connection pools in the MongoDB Scala driver. Configure pool size, idle time, and lifetime settings to manage and reuse database connections.
+   :keywords: connection pool, maxPoolSize, minPoolSize, pool settings, MongoClientSettings
+
+Overview
+--------
+
+In this guide, you can learn about how the {+driver-short+} uses
+connection pools to manage connections to a MongoDB deployment and how
+you can configure connection pool settings in your application.
+
+A connection pool is a cache of open database connections maintained
+by the {+driver-short+}. Your application retrieves a connection from
+the pool, performs operations, and returns the connection for reuse.
+
+Using a connection pool reduces latency and minimizes the number of
+times the driver creates new connections.
+
+Create a Connection Pool
+------------------------
+
+Every ``MongoClient`` instance has a built-in connection pool for
+each server in your MongoDB topology. Connection pools open sockets
+on demand to support concurrent MongoDB operations in your
+application.
+
+The ``maxPoolSize`` option sets the maximum size of each connection
+pool, which defaults to ``100``. If the number of in-use connections
+to a server reaches the value of ``maxPoolSize``, the next request to
+that server waits until a connection becomes available.
+
+Each ``MongoClient`` instance opens two more sockets per server in
+your MongoDB topology for monitoring the server's state.
+
+Configure a Connection Pool
+---------------------------
+
+You can configure a connection pool by using either a connection
+string or a ``MongoClientSettings`` object.
+
+Select the :guilabel:`Connection String` or
+:guilabel:`MongoClientSettings` tab to see the corresponding syntax:
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: connection-string
+
+      The following table describes the connection string options
+      for configuring a connection pool:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 35 65
+
+         * - Option
+           - Description
+
+         * - ``maxConnecting``
+           - The maximum number of connections the driver can
+             establish concurrently.
+
+             *Default:* ``2``
+
+         * - ``maxIdleTimeMS``
+           - The maximum number of milliseconds a connection can
+             remain idle in the pool before the driver closes it.
+             A value of ``0`` indicates no limit.
+
+             *Default:* ``0``
+
+         * - ``maxPoolSize``
+           - The maximum number of connections the driver can have
+             open at one time in a single connection pool.
+
+             *Default:* ``100``
+
+         * - ``minPoolSize``
+           - The minimum number of connections the driver maintains
+             in a single connection pool. This value must be less
+             than ``maxPoolSize``.
+
+             *Default:* ``0``
+
+         * - ``waitQueueTimeoutMS`` *(deprecated)*
+           - This option is deprecated. Use ``timeoutMS`` instead.
+             To learn more, see :ref:`scala-csot`.
+
+             Maximum wait time in milliseconds that an operation can
+             wait for a connection to become available. A value of
+             ``0`` means there is no limit.
+
+             *Default:* ``120000``
+
+         * - ``maxLifeTimeMS``
+           - The maximum number of milliseconds a connection can
+             remain open. A value of ``0`` indicates no limit.
+
+             *Default:* ``0``
+
+      For more information, see the `ConnectionString
+      <{+core-api+}/ConnectionString.html>`__ API documentation.
+
+   .. tab:: MongoClientSettings
+      :tabid: mongoclientsettings
+
+      Chain the ``applyToConnectionPoolSettings()`` method to
+      the ``MongoClientSettings.Builder`` class to configure a
+      connection pool. The following table describes the
+      ``ConnectionPoolSettings.Builder`` methods you can chain
+      to configure the pool:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 40 60
+
+         * - Method
+           - Description
+
+         * - ``addConnectionPoolListener()``
+           - Adds a listener for connection pool events.
+
+         * - ``applyConnectionString()``
+           - Applies settings from a ``ConnectionString`` object.
+
+         * - ``applySettings()``
+           - Applies settings from a ``ConnectionPoolSettings``
+             object.
+
+         * - ``connectionPoolListenerList()``
+           - Sets a list of connection pool listeners.
+
+         * - ``maintenanceFrequency()``
+           - Sets the frequency of the periodic job that manages
+             idle and expired connections.
+
+         * - ``maintenanceInitialDelay()``
+           - Sets the period of time to wait before running the
+             first maintenance job on a connection pool.
+
+         * - ``maxConnectionIdleTime()``
+           - Sets the maximum idle time for a pooled connection.
+             A value of ``0`` indicates no limit.
+
+         * - ``maxConnectionLifeTime()``
+           - Sets the maximum lifetime of a pooled connection.
+             A value of ``0`` indicates no limit.
+
+         * - ``maxConnecting()``
+           - Sets the maximum number of connections a pool can
+             establish concurrently.
+
+             *Default:* ``2``
+
+         * - ``maxSize()``
+           - Sets the maximum number of connections allowed in
+             the pool.
+
+             *Default:* ``100``
+
+         * - ``maxWaitTime()``
+           - Sets the maximum time to wait for an available
+             connection.
+
+             *Default:* ``2`` minutes
+
+         * - ``minSize()``
+           - Sets the minimum number of connections the driver
+             maintains in the pool.
+
+             *Default:* ``0``
+
+      .. note::
+
+         The ``maxSize()`` and ``minSize()`` settings apply to each
+         server in your deployment individually, not to the pool
+         as a whole.
+
+      To learn more, see the `ConnectionPoolSettings.Builder
+      <{+core-api+}/connection/ConnectionPoolSettings.Builder.html>`__
+      API documentation.
+
+Example
+~~~~~~~
+
+The following example shows how to create a connection pool that
+has a maximum size of ``50`` connections.
+
+Select the :guilabel:`Connection String` or
+:guilabel:`MongoClientSettings` tab to see the corresponding syntax:
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: connection-string
+
+      .. literalinclude:: /includes/connect/ConnectionPools.scala
+         :language: scala
+         :start-after: begin ConnectionString
+         :end-before: end ConnectionString
+         :dedent:
+
+   .. tab:: MongoClientSettings
+      :tabid: mongoclientsettings
+
+      .. literalinclude:: /includes/connect/ConnectionPools.scala
+         :language: scala
+         :start-after: begin MongoSettings
+         :end-before: end MongoSettings
+         :dedent:
+
+Additional Information
+----------------------
+
+For more information on using a connection pool, see the
+:manual:`Connection Pool </administration/connection-pool-overview>`
+documentation in the Server manual.
+
+API Documentation
+-----------------
+
+To learn more about the types and methods discussed in this guide,
+see the following API documentation:
+
+- `MongoClient <{+driver-api+}/MongoClient.html>`__
+- `MongoClientSettings <{+core-api+}/MongoClientSettings.html>`__
+- `MongoClientSettings.Builder
+  <{+core-api+}/MongoClientSettings.Builder.html>`__
+- `ConnectionPoolSettings
+  <{+core-api+}/connection/ConnectionPoolSettings.html>`__
+- `ConnectionPoolSettings.Builder
+  <{+core-api+}/connection/ConnectionPoolSettings.Builder.html>`__

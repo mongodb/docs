@@ -15,28 +15,100 @@ Optimize Queries by Using Indexes
    :values: reference
 
 .. meta::
-   :description: Learn how to use the MongoDB Scala Driver to read data from MongoDB by using queries, projections, pagination, and other read operations.
+   :description: Learn how to use the MongoDB Scala Driver to create and manage indexes to optimize query performance, including code examples for different index types.
    :keywords: query, optimization, efficiency, usage example, code example
-
-.. toctree::
-   :titlesonly:
-   :maxdepth: 1
-
-   Single Field </indexes/single-field-index>
-   Compound </indexes/compound-index>
-   Multikey </indexes/multikey-index>
-   MongoDB Search </indexes/atlas-search-index>
 
 Overview
 --------
 
-On this page, you can see copyable code examples that show how to manage
-different types of indexes by using the {+driver-long+}.
+In this guide, you can learn how to create and manage **indexes** by using the
+{+driver-long+}.
 
-To use an example from this page, copy the code example into the sample 
-application or your own application. Be sure to replace all placeholders in the 
-code examples, such as ``<connection string URI>``, with the relevant values for 
-your MongoDB deployment.
+Indexes support the efficient execution of queries in MongoDB. Without
+indexes, MongoDB must perform a collection scan, reading every document
+in a collection to find query matches. Collection scans can slow your
+application's performance. If an appropriate index
+exists for a query, MongoDB uses that index to limit the documents it
+inspects.
+
+Indexes also enable the following capabilities:
+
+- Efficient sorting
+- Geospatial search
+- :manual:`Other index types and features </indexes/>`
+
+.. tip::
+
+   MongoDB also uses indexes when finding documents for update operations and
+   delete operations. :manual:`Certain stages
+   </core/aggregation-pipeline/#pipeline-operators-and-indexes>` in the
+   aggregation pipeline also use indexes to improve performance.
+
+Query Coverage and Performance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you execute a query against MongoDB, your command can include the
+following elements:
+
+- Query criteria that specify fields and values you are looking for
+- Options that affect the query's execution, such as read concern
+- Projection criteria that specify the fields MongoDB returns
+  (optional)
+- Sort criteria that specify the order documents are returned
+  (optional)
+
+When all the fields in the query, projection, and sort are in the same
+index, MongoDB returns results from the index. This process is called
+a **covered query**.
+
+.. important:: Sort Order
+
+   Sort criteria must match or invert the order of the index.
+
+   Consider an index on the field ``name`` in ascending order (A-Z)
+   and ``age`` in descending order (9-0):
+
+   .. code-block:: none
+      :copyable: false
+
+      name_1_age_-1
+
+   MongoDB uses this index when you sort your data by either:
+
+   - ``name`` ascending, ``age`` descending
+   - ``name`` descending, ``age`` ascending
+
+   Specifying ``name`` and ``age`` both ascending or both descending
+   requires an in-memory sort.
+
+For more information about index coverage, see :manual:`Query
+Optimization </core/query-optimization/#covered-query>` in the
+{+mdb-server+} manual.
+
+Operational Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following guidelines describe how you can optimize the way
+your application uses indexes:
+
+- To improve query performance, build indexes on fields that appear often in
+  your application's queries and operations that return sorted results.
+
+- Track index memory and disk usage for capacity planning, because each
+  index that you add consumes disk space and memory when active.
+  
+- Avoid adding indexes that you infrequently use. Note that when a write
+  operation updates an indexed field, MongoDB updates the related index.
+
+Since MongoDB supports dynamic schemas, applications can query against fields
+whose names cannot be known in advance or are arbitrary. MongoDB 4.2 introduced
+:manual:`wildcard indexes </core/index-wildcard/>` to help support these
+queries. Wildcard indexes are not designed to replace workload-based index
+planning.
+
+For more information on designing your data model and choosing indexes appropriate for your application, see the MongoDB
+server documentation on :manual:`Indexing Strategies </applications/indexes>` and
+:manual:`Data Modeling and Indexes </core/data-model-operations/#indexes>`.
 
 Sample Application
 ~~~~~~~~~~~~~~~~~~
@@ -56,8 +128,34 @@ use the sample application, perform the following steps:
    :language: scala
    :emphasize-lines: 20-23
 
-Single Field Index
-------------------
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``movies`` collection in the
+``sample_mflix`` database from the :atlas:`Atlas sample datasets
+</sample-data>`. To learn how to create a free MongoDB Atlas cluster and
+load the sample datasets, see :ref:`Get Started with Atlas <unified-get-started>`.
+
+Index Types
+-----------
+
+MongoDB supports several different index types to support querying your data. The following sections describe the
+most common index types and provide sample code for creating each index type. For a full list of index types, see
+:manual:`Indexes </indexes/>` in the Server manual.
+
+.. _scala-single-field-index:
+
+Single Field Indexes
+~~~~~~~~~~~~~~~~~~~~
+
+:manual:`Single field indexes </core/index-single/>` are indexes with a reference to a single field within a collection's
+documents. They improve single field query and sort performance, and support :manual:`TTL Indexes </core/index-ttl>` that
+automatically remove documents from a collection after a certain amount of time or at a specific clock time.
+
+.. note::
+
+   The ``_id_`` index is an example of a single field index. This index is automatically created on the ``_id`` field
+   when a new collection is created.
 
 The following example creates an ascending index on the specified field:
 
@@ -66,11 +164,73 @@ The following example creates an ascending index on the specified field:
    :start-after: start-index-single
    :end-before: end-index-single
 
-To learn more about single field indexes, see the :ref:`scala-single-field-index`
-guide.
+To run the following examples in this section, you must include the following import 
+statements in your file:
 
-Compound Index
---------------
+.. literalinclude:: /includes/indexes/single-field.scala
+   :start-after: start-single-index-imports
+   :end-before: end-single-index-imports
+   :language: scala
+   :copyable:
+   :dedent:
+
+Use the ``createIndex()`` method to create a single
+field index. The following example creates an index in ascending order on the
+``title`` field:
+
+.. literalinclude:: /includes/indexes/single-field.scala
+   :start-after: start-index-single
+   :end-before: end-index-single
+   :language: scala
+   :copyable:
+   :dedent:
+
+You can verify that the index was created by using the ``listIndexes()`` method.
+You should see an index for ``title`` in the list, as shown in the following output:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/indexes/single-field.scala
+      :start-after: start-check-single-index
+      :end-before: end-check-single-index
+      :language: scala
+      :dedent:
+   
+   .. output::
+      :visible: true
+
+      {"v": 2, "key": {"title": 1}, "name": "title_1"}
+
+The following is an example of a query that is covered by the index
+created on the ``title`` field:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/indexes/single-field.scala
+      :start-after: start-index-single-query
+      :end-before: end-index-single-query
+      :language: scala
+      :dedent:
+   
+   .. output::
+      :visible: false
+
+      {"_id":...,"plot":"A musical comedy duo...",
+      "genres":["Musical"],...,"title":"Sweethearts",...}
+
+.. _scala-compound-index:
+
+Compound Indexes
+~~~~~~~~~~~~~~~~
+
+:manual:`Compound </core/index-compound/>` indexes hold references to multiple fields within a collection's documents,
+improving query and sort performance.
+
+.. tip::
+
+   To learn more about **index prefixes** see the :manual:`Index Prefixes </core/index-compound/#index-prefixes>` entry in the {+mdb-server+} manual.
 
 The following example creates a compound index on the two specified fields.
 
@@ -79,10 +239,76 @@ The following example creates a compound index on the two specified fields.
    :start-after: start-index-compound
    :end-before: end-index-compound
 
-To learn more about compound indexes, see the :ref:`scala-compound-index` guide.
+To run the following examples in this section, you must include the following import 
+statements in your file:
 
-Multikey Index
---------------
+.. literalinclude:: /includes/indexes/compound-field.scala
+   :start-after: start-compound-index-imports
+   :end-before: end-compound-index-imports
+   :language: scala
+   :copyable:
+   :dedent:
+
+Use the ``createIndex()`` method to create a
+compound index. The following example creates an index in descending
+order on the ``runtime`` field and in ascending order on the ``year`` field:
+
+.. literalinclude:: /includes/indexes/compound-field.scala
+   :start-after: start-index-compound
+   :end-before: end-index-compound
+   :language: scala
+   :copyable:
+   :dedent:
+
+You can verify that the index was created by using the ``listIndexes()`` method.
+You should see an index for ``runtime`` and ``year`` in the list, as shown in the following output:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/indexes/compound-field.scala
+      :start-after: start-check-compound-index
+      :end-before: end-check-compound-index
+      :language: scala
+      :dedent:
+
+   .. output::
+      :visible: true
+
+      {"v": 2, "key": {"runtime": -1, "year": 1}, "name": "runtime_-1_year_1"}
+
+The following is an example of a query that is covered by the index
+created on the ``runtime`` and ``year`` fields:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/indexes/compound-field.scala
+      :start-after: start-index-compound-query
+      :end-before: end-index-compound-query
+      :language: scala
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {"_id":...,"runtime": 98,...,"title": "In the Mood for Love",...,"year": 2000,...}
+
+.. _scala-multikey-index:
+
+Multikey Indexes
+~~~~~~~~~~~~~~~~
+
+**Multikey indexes** are indexes that improve the performance of queries
+on array-valued fields. You can create a multikey index on a collection
+by using the ``createIndex()`` method and the same syntax that you use to create
+a :ref:`single field index <scala-single-field-index>`.
+
+When creating a multikey index, you must specify the following details:
+
+- The fields on which to create the index
+
+- The sort order for each field (ascending or descending)
 
 The following example creates a multikey index on the specified array-valued field:
 
@@ -91,10 +317,196 @@ The following example creates a multikey index on the specified array-valued fie
    :start-after: start-create-multikey-index
    :end-before: end-create-multikey-index
 
-To learn more about multikey indexes, see the :ref:`scala-multikey-index` guide.
+To run the following examples in this section, you must include the following import 
+statements in your file:
 
-Geospatial Index
-----------------
+.. literalinclude:: /includes/indexes/multikey-field.scala
+   :start-after: start-multikey-index-imports
+   :end-before: end-multikey-index-imports
+   :language: scala
+   :copyable:
+   :dedent:
+
+Use the ``createIndex()`` method to create a
+multikey index. The following example creates an index in ascending order
+on the ``cast`` field:
+
+.. literalinclude:: /includes/indexes/multikey-field.scala
+   :start-after: start-index-multikey
+   :end-before: end-index-multikey
+   :language: scala
+   :copyable:
+   :dedent:
+
+You can verify that the index was created by calling the ``listIndexes()`` method.
+You should see an index for ``cast`` in the list, as shown in the following output:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/indexes/multikey-field.scala
+      :start-after: start-check-multikey-index
+      :end-before: end-check-multikey-index
+      :language: scala
+      :dedent:
+
+   .. output::
+      :visible: true
+
+      {"v": 2, "key": {"cast": 1}, "name": "cast_1"}
+
+The following is an example of a query that is covered by the index
+created on the ``cast`` field:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/indexes/multikey-field.scala
+      :start-after: start-index-multikey-query
+      :end-before: end-index-multikey-query
+      :language: scala
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {"_id":...,"title":"Fanaa",...,"cast": ["Aamir Khan", "Kajol", "Rishi Kapoor", "Tabu"],...}
+
+.. _scala-atlas-search-index:
+
+{+search+} and {+vector-search+} Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:atlas:`{+search+} </atlas-search>` enables you to perform full-text searches on
+collections hosted on MongoDB Atlas. {+search+} indexes specify the behavior of
+the search and which fields to index.
+
+{+vector-search+} enables you to perform semantic searches on vector
+embeddings stored in MongoDB. To learn more about {+vector-search+},
+see the :atlas:`{+vector-search+} Overview </atlas-vector-search/vector-search-overview/>`.
+
+You can call the following methods on a collection to manage your {+search+} and
+{+vector-search+} indexes:
+
+- ``createSearchIndex()``
+- ``createSearchIndexes()``
+- ``listSearchIndexes()``
+- ``updateSearchIndex()``
+- ``dropSearchIndex()``
+
+.. note::
+
+   The preceding index management methods run asynchronously and might return before
+   confirming that they ran successfully. To determine the current status of the indexes,
+   call the ``listSearchIndexes()`` method.
+
+.. _scala-atlas-search-index-create:
+
+Create Search and Vector Search Indexes
++++++++++++++++++++++++++++++++++++++++
+
+You can use the ``createSearchIndex()`` and the ``createSearchIndexes()``
+methods to create one or more {+search+} or {+vector-search+} indexes. The
+``createSearchIndexes()`` method accepts a list of index definitions, which
+allows you to create multiple indexes in one call and specify the index type for
+each index.
+
+The following code example shows how to create a {+search+} index:
+
+.. literalinclude:: /includes/indexes/atlas-search-index.scala
+   :language: scala
+   :start-after: start-create-search-index
+   :end-before: end-create-search-index
+   :dedent:
+
+Use the ``createSearchIndexes()`` method to create multiple {+search+} or
+{+vector-search+} indexes.
+
+The following code example shows how to create {+search+} and
+{+vector-search+} indexes in one call:
+
+.. literalinclude:: /includes/indexes/atlas-search-index.scala
+   :language: scala
+   :start-after: start-create-search-indexes
+   :end-before: end-create-search-indexes
+   :dedent:
+
+To learn more about the syntax used to define {+search+} indexes, see the
+:atlas:`Index Reference </atlas-search/index-definitions>` guide
+in the Atlas manual.
+
+.. _scala-atlas-search-index-list:
+
+List Search Indexes
++++++++++++++++++++
+
+You can use the ``listSearchIndexes()`` method to return all {+search+} indexes in a
+collection.
+
+The following code example shows how to print a list of the search indexes in
+a collection by subscribing to the ``Observable`` returned by the ``listSearchIndexes()``
+method:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/indexes/atlas-search-index.scala
+      :language: scala
+      :start-after: start-list-search-indexes
+      :end-before: end-list-search-indexes
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {"id": "...", "name": "<index name 1>", "type": "search", "status": "READY", "queryable": true, ... }
+      {"id": "...", "name": "<index name 2>", "type": "search", "status": "READY", "queryable": true, ... }
+
+.. _scala-atlas-search-index-update:
+
+Update a Search Index
++++++++++++++++++++++
+
+You can use the ``updateSearchIndex()`` method to update a {+search+} index.
+
+The following code shows how to update a search index:
+
+.. literalinclude:: /includes/indexes/atlas-search-index.scala
+   :language: scala
+   :start-after: start-update-search-indexes
+   :end-before: end-update-search-indexes
+   :dedent:
+
+.. _scala-atlas-search-index-drop:
+
+Delete a Search Index
++++++++++++++++++++++
+
+You can use the ``dropSearchIndex()`` method to delete a {+search+} index.
+
+.. warning:: Deleting Search Indexes and Clusters Is Irreversible
+
+   Deleting Search indexes and associated clusters is a permanent
+   action. MongoDB doesn't provide support for recovering deleted Search
+   indexes or data. Ensure that you have taken appropriate measures,
+   such as creating backups, to avoid data loss before proceeding.
+
+   MongoDB doesn't support requests to recover deleted Search indexes or
+   data. You are responsible for data integrity and configurations.
+
+The following code shows how to delete a search index from a collection:
+
+.. literalinclude:: /includes/indexes/atlas-search-index.scala
+   :language: scala
+   :start-after: start-drop-search-index
+   :end-before: end-drop-search-index
+   :dedent:
+
+
+.. _scala-geospatial-index:
+
+Geospatial Indexes
+~~~~~~~~~~~~~~~~~~
 
 The following example creates a 2dsphere index on the specified field that
 contains GeoJSON objects:
@@ -112,8 +524,13 @@ For more information about the GeoJSON type, see the
 :manual:`GeoJSON Objects </reference/geojson/>` guide in
 the {+mdb-server+} manual.
 
-Drop Index
-----------
+.. TODO: Add a link to the new Geospatial Queries guide.
+
+Remove an Index
+---------------
+
+You can remove any unused index except the default unique index on the
+``_id`` field.
 
 The following example deletes an index with the specified name:
 
@@ -121,60 +538,6 @@ The following example deletes an index with the specified name:
    :language: scala
    :start-after: start-drop-single-index
    :end-before: end-drop-single-index
-
-{+search+} Index Management
--------------------------------
-
-The following sections contain code examples that describe how to manage 
-{+search+} indexes.
-
-To learn more about search indexes, see the :ref:`scala-atlas-search-index` guide.
-
-Create Search Index
-~~~~~~~~~~~~~~~~~~~
-
-The following example creates a {+search+} index on the specified field:
-
-.. literalinclude:: /includes/indexes/index-code-examples.scala
-   :language: scala
-   :start-after: start-create-search-index
-   :end-before: end-create-search-index
-   :dedent:
-
-List Search Indexes
-~~~~~~~~~~~~~~~~~~~
-
-The following example prints a list of {+search+} indexes in the specified 
-collection:
-
-.. literalinclude:: /includes/indexes/index-code-examples.scala
-   :language: scala
-   :start-after: start-list-search-indexes
-   :end-before: end-list-search-indexes
-   :dedent:
-
-Update Search Indexes
-~~~~~~~~~~~~~~~~~~~~~
-
-The following example updates an existing {+search+} index with the specified
-new index definition:
-
-.. literalinclude:: /includes/indexes/index-code-examples.scala
-   :language: scala
-   :start-after: start-update-search-indexes
-   :end-before: end-update-search-indexes
-   :dedent:
-
-Delete Search Indexes
-~~~~~~~~~~~~~~~~~~~~~
-
-The following example deletes a {+search+} index with the specified name:
-
-.. literalinclude:: /includes/indexes/index-code-examples.scala
-   :language: scala
-   :start-after: start-drop-search-index
-   :end-before: end-drop-search-index
-   :dedent:
 
 API Documentation
 -----------------
@@ -185,7 +548,9 @@ API documentation:
 - `createIndex() <{+driver-api+}/MongoCollection.html#createIndex(key:org.mongodb.scala.bson.conversions.Bson,options:org.mongodb.scala.model.IndexOptions):org.mongodb.scala.SingleObservable[String]>`__
 - `Indexes object <{+driver-api+}/model/Indexes$.html>`__
 - `dropIndex() <{+driver-api+}/MongoCollection.html#dropIndex(keys:org.mongodb.scala.bson.conversions.Bson,dropIndexOptions:org.mongodb.scala.model.DropIndexOptions):org.mongodb.scala.SingleObservable[Unit]>`__
+- `SearchIndexModel <{+driver-api+}/model/package$$SearchIndexModel$.html>`__
 - `createSearchIndex() <{+driver-api+}/MongoCollection.html#createSearchIndex(indexName:String,definition:org.mongodb.scala.bson.conversions.Bson):org.mongodb.scala.SingleObservable[String]>`__
+- `createSearchIndexes() <{+driver-api+}/MongoCollection.html#createSearchIndexes(searchIndexModels:List[org.mongodb.scala.model.SearchIndexModel]):org.mongodb.scala.Observable[String]>`__
 - `listSearchIndexes() <{+driver-api+}/MongoCollection.html#listSearchIndexes[C]()(implicite:org.mongodb.scala.bson.DefaultHelper.DefaultsTo[C,org.mongodb.scala.Document],implicitct:scala.reflect.ClassTag[C]):org.mongodb.scala.ListSearchIndexesObservable[C]>`__
 - `updateSearchIndex() <{+driver-api+}/MongoCollection.html#updateSearchIndex(indexName:String,definition:org.mongodb.scala.bson.conversions.Bson):org.mongodb.scala.SingleObservable[Unit]>`__
 - `dropSearchIndex() <{+driver-api+}/MongoCollection.html#dropSearchIndex(indexName:String):org.mongodb.scala.SingleObservable[Unit]>`__
