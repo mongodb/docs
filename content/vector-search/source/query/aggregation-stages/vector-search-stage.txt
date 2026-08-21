@@ -343,6 +343,58 @@ Run Vector Search ANN and ENN Queries
       <vectorSearch-agg-pipeline-egs>`.
 
    .. selected-content::
+      :selections: atlas, None, None, None
+
+      Query Cancellation
+      ~~~~~~~~~~~~~~~~~~
+
+      You can use the :method:`cursor.maxTimeMS()` cursor option to specify a
+      cumulative time limit (in milliseconds) for processing a
+      :pipeline:`$vectorSearch` query. If you specify the ``maxTimeMS`` option
+      with your query and the time limit expires, {+avs+} terminates the query 
+      and returns an error.
+
+      For many queries, most of the latency occurs after ``mongot`` returns
+      results, while ``mongod`` looks up the full documents that match the
+      returned IDs. To effectively reduce resource usage, set the time limit 
+      expiration to cancel the query while ``mongot`` is still running.
+
+      .. note::
+
+         Starting in MongoDB v8.3, if the time limit expires while ``mongot``
+         is still running the Lucene search, ``mongot`` also stops that
+         search, which reduces resource usage on the ``mongot`` process. On
+         earlier versions, ``mongod`` still cancels the query and returns
+         the same error, but ``mongot`` continues running the Lucene search
+         to completion.
+
+      .. io-code-block::
+         :copyable: true
+         :caption: Example: Cancel a Query
+
+         .. input:: 
+            :language: shell
+            :emphasize-lines: 7
+
+            db.embedded_movies.aggregate([
+              {
+                "$vectorSearch": {
+                  ...
+                }
+              }
+            ]).maxTimeMS(120)
+
+         .. output:: 
+            :language: json
+            :visible: false
+
+            MongoServerError[MaxTimeMSExpired]: Executor error during aggregate command on namespace: sample_mflix.embedded_movies :: caused by :: operation exceeded time limit
+
+      The preceding example uses the ``maxTimeMS`` option to cancel a query 
+      against the ``sample_mflix.embedded_movies`` collection after 120 
+      milliseconds.
+
+   .. selected-content::
       :selections: self, auto, None, None
 
       Best Practices 
