@@ -111,9 +111,10 @@ Options
        included in the results. ``filter`` clauses do not contribute
        to a returned document's score.
        
-       For example, you can replace the :pipeline:`$match` stage with the :pipeline:`$search` stage 
-       using the ``compound`` operator ``filter`` option. The following 
-       :pipeline:`$match` stage filters for documents with a given value for the field ``role``:
+       For example, you can replace the :pipeline:`$match` stage with
+       the :pipeline:`$search` stage using the ``compound`` operator
+       ``filter`` option. The following :pipeline:`$match` stage filters
+       for documents with a given value for the field ``role``:
        
        .. code-block:: json
           :copyable: false
@@ -130,9 +131,9 @@ Options
           $search: {
             "compound": {
               "filter": [{
-                "queryString": {
-                  "defaultPath": "role",
-                  "query": "CLIENT OR PROFESSIONAL"                     
+                "in": {
+                  "path": "role",
+                  "value": [ "CLIENT", "PROFESSIONAL" ]
                 }
               }]
             }
@@ -253,8 +254,9 @@ your cluster.
 Sample Collection 
 ~~~~~~~~~~~~~~~~~
 
-The examples on this page use a collection called ``fruit``, which 
-contains the following documents:
+To run the :ref:`sample queries <compound-egs-sample-queries>` on this
+page, create a collection named ``fruit`` on your cluster and insert the
+following documents into the collection:
 
 .. code-block:: json
    :linenos:
@@ -286,11 +288,35 @@ contains the following documents:
 Sample Index 
 ~~~~~~~~~~~~
 
-The ``fruit`` collection has a default index with :ref:`dynamic mappings
-<static-dynamic-mappings>` that automatically indexes all the fields in
-the collection and uses the default :ref:`standard
-<ref-standard-analyzer>` analyzer. The ``standard`` analyzer lower-cases
-all words and disregards common stop words (``"the", "a", "and",`` etc). 
+To run the :ref:`sample queries <compound-egs-sample-queries>` on this
+page, create the following |fts| index named ``default`` on the
+``fruit`` :ref:`sample collection <compound-egs-sample-collections>`.
+The index definition configures |fts| to do the following:
+
+- :ref:`Dynamically index <static-dynamic-mappings>` all the fiels in
+  the ``fruit`` collection using the default :ref:`standard
+  <ref-standard-analyzer>` analyzer to extract tokens. The ``standard``
+  analyzer lower-cases all words and disregards common stop words, such
+  as ``"the"``, ``"a"``, ``"and"``, and so on.
+- Statically index the ``type`` field as the :ref:`string
+  <bson-data-types-string>` type to support :ref:`text <text-ref>`
+  operator queries and the :ref:`token <bson-data-types-token>` type to
+  support :ref:`equals <equals-ref>` operator queries.
+
+.. code-block:: json
+   :linenos:
+
+   {
+     "mappings": {
+       "dynamic": true,
+       "fields": {
+         "type": [
+           { "type": "string" },
+           { "type": "token" }
+         ]
+       }
+     }
+   }
 
 .. _compound-egs-sample-queries:
 
@@ -611,23 +637,80 @@ does not affect the order of the returned documents.
    .. tab:: $match Replacement Example 
       :tabid: match
 
-      You can replace the :pipeline:`$match` with :query:`$in` in your 
-      queries against data on your cluster with the 
-      ``filter`` clause. The following query demonstrates how to use 
-      ``filter`` in the :pipeline:`$search` stage to specify the search 
-      terms that must match. The query also uses ``should`` to specify 
-      preference for documents containing the term ``varieties``. The 
-      query includes the ``$project`` pipeline stage to do the 
-      following:
-      
-      - Exclude all fields except ``_id`` and ``description``. 
-      - Add a ``score`` field, which displays the document's relevance 
-        score.
+      When a :pipeline:`$match` stage follows a :pipeline:`$search`
+      stage, you can improve query performance by moving the match
+      conditions into a ``filter`` clause within the ``$search`` stage.
+      |fts| applies ``filter`` conditions during the search instead of
+      re-scanning the result set to run the :pipeline:`$match` stage.
 
-      .. io-code-block:: 
-         :copyable: true 
-         
-         .. input:: 
+      Consider the following pipeline, which searches the
+      ``description`` field for the term ``varieties`` and then uses
+      :pipeline:`$match` with :query:`$in` to keep only apples and
+      bananas:
+
+      .. io-code-block::
+         :copyable: true
+
+
+         .. input::
+            :language: javascript
+            :linenos:
+            
+            db.fruit.aggregate([
+              {
+                "$search": {
+                  "text": {
+                    "query": "varieties",
+                    "path": "description"
+                  }
+                }
+              },
+              {
+                "$match": {
+                  "type": { "$in": [ "apple", "banana" ] }
+                }
+              },
+              {
+                "$project": {
+                  "description": 1,
+                  "score": { "$meta": "searchScore" }
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: javascript
+            :linenos:
+            :visible: false
+
+            [
+              {
+                _id: 1,
+                description: 'Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp.',
+                score: 0.20814445614814758
+              }
+            ]
+
+      The following query replaces the :pipeline:`$match` stage with a
+      ``filter`` clause that uses the :ref:`equals <equals-ref>`
+      operator on the ``type`` field. The :pipeline:`$search` stage uses
+      the ``compound`` operator to combine the following clauses:
+
+      - ``must`` clause to match for the ``varieties`` search term in
+        the ``description`` field
+      - ``filter`` clause to match for the ``apple`` and ``banana``
+        types
+
+      The :pipeline:`$project` stage does the following:
+
+      - Excludes all fields except ``_id`` and ``description``
+      - Adds a ``score`` field that contains the document's relevance
+        score
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
             :language: javascript
             :linenos:
 
@@ -635,16 +718,16 @@ does not affect the order of the returned documents.
               {
                 "$search": {
                   "compound": {
-                    "filter": [{
-                      "text": {
-                        "query": ["apples", "bananas"],
-                        "path": "description"
-                      }
-                    }],
-                    "should": [{
+                    "must": [{
                       "text": {
                         "query": "varieties",
                         "path": "description"
+                      }
+                    }],                  
+                    "filter": [{
+                      "in": {
+                        "path": "type",
+                        "value": [ "apple", "banana" ]
                       }
                     }]
                   }
@@ -657,7 +740,7 @@ does not affect the order of the returned documents.
                 }
               }
             ])
-         
+
          .. output:: 
             :language: javascript
             :linenos:
@@ -666,26 +749,19 @@ does not affect the order of the returned documents.
             [
               {
                 _id: 1,
-                description: 'Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp. The most popular varieties are McIntosh, Gala, and Granny Smith.',
-                score: 0.36074575781822205
-              },
-              {
-                _id: 2,
-                description: 'Bananas are usually sold in bunches of five or six.',
-                score: 0
+                description: 'Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp.',
+                score: 0.20814445614814758
               }
             ]
 
       The documents in the result fulfill all the requirements for 
       inclusion:
 
-      - Both documents contain the term ``apples`` or ``bananas`` that 
-        was specified in the ``filter`` clause of the query.
+      - Both documents have a ``type`` value of ``apple`` or ``banana``,
+        which is specified in the ``filter`` clause of the query.
       - Document with ``_id: 1`` scores higher than document with 
         ``_id: 2`` because it contains the term ``varieties`` specified 
         in the ``should`` clause of the query.
-
-      |arrow| Try this in the :asp:`{+fts+} Playground </661400e853a0260867247811>`.
 
 Nested Example 
 ``````````````
