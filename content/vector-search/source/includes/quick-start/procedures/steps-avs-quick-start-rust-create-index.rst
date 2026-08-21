@@ -21,7 +21,7 @@
                :language: rust
                :copyable: true
                :caption: vector_index.rs
-               :emphasize-lines: 11
+               :emphasize-lines: 9
                :linenos:
 
          .. tab::
@@ -31,7 +31,7 @@
                :language: rust
                :copyable: true
                :caption: vector_index.rs
-               :emphasize-lines: 13
+               :emphasize-lines: 10
                :linenos:
 
       .. include:: /includes/quick-start/facts/avs-quick-start-basic-index-description.rst
@@ -45,13 +45,30 @@
 
    .. step:: Call the function from your ``main.rs``.
 
-      .. code-block:: rust
+      .. tabs::
 
-         mod vector_index;
+         .. tab::
+            :tabid: Asynchronous API
 
-         fn main() {
-            vector_index::vector_index();
-         }
+            .. code-block:: rust
+
+               mod vector_index;
+
+               #[tokio::main]
+               async fn main() {
+                  vector_index::vector_index().await;
+               }
+
+         .. tab::
+            :tabid: Synchronous API
+
+            .. code-block:: rust
+
+               mod vector_index;
+
+               fn main() {
+                  vector_index::vector_index();
+               }
 
    .. step:: Run the file in your IDE, or run the following command in your terminal.
 

@@ -1,11 +1,9 @@
-use std::ops::Index;
 use std::time::Duration;
-use futures::{TryStreamExt};
-use mongodb::{bson::{Document, doc}, Client, Collection, SearchIndexModel};
+use futures::TryStreamExt;
+use mongodb::{bson::{doc, Document}, Client, Collection, SearchIndexModel};
 use mongodb::SearchIndexType::VectorSearch;
 use tokio::time::sleep;
 
-#[tokio::main]
 pub(crate) async fn vector_index() {
     // Replace the placeholder with your connection string
     let uri = "<connection_string>";
@@ -33,12 +31,14 @@ pub(crate) async fn vector_index() {
         .build();
 
     let models = vec![search_index_def];
-    let result = my_coll.create_search_indexes(models).await;
-    if let Err(e) = result {
-        eprintln!("There was an error creating the search index: {}", e);
-        std::process::exit(1)
-    } else {
-        println!("New search index named {} is building.", result.unwrap().index(0));
+    match my_coll.create_search_indexes(models).await {
+        Err(e) => {
+            eprintln!("There was an error creating the search index: {}", e);
+            std::process::exit(1)
+        }
+        Ok(names) => {
+            println!("New search index named {} is building.", names[0]);
+        }
     }
 
     // Polling for the index to become queryable
@@ -49,9 +49,8 @@ pub(crate) async fn vector_index() {
         let mut search_indexes = my_coll.list_search_indexes().await.unwrap();
         // Check if the index is present and queryable
         while let Some(index) = search_indexes.try_next().await.unwrap() {
-            let retrieved_name = index.get_str("name");
-            if retrieved_name.unwrap().to_string() == index_name {
-                is_index_queryable = index.get_bool("queryable").unwrap();
+            if index.get_str("name") == Ok(index_name) {
+                is_index_queryable = index.get_bool("queryable").unwrap_or(false);
             }
         }
         if !is_index_queryable {
