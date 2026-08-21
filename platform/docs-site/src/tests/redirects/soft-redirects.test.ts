@@ -32,7 +32,7 @@ describe('soft-redirects', () => {
       expect(result).toBeNull();
     });
 
-    it.skip('matches atlas page-specific redirects', () => {
+    it('matches atlas page-specific redirects', () => {
       const result = findSoftRedirect('/docs/atlas/additional-resources/');
       expect(result).not.toBeNull();
       expect(result!.destination).toBe('/docs/atlas/');
