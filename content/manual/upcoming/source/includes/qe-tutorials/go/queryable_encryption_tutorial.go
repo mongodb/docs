@@ -17,10 +17,13 @@ func main() {
 
 	// start-setup-application-variables
 	kmsProviderName := "<KMS provider name>"
+
 	uri := os.Getenv("MONGODB_URI") // Your connection URI
+
 	keyVaultDatabaseName := "encryption"
 	keyVaultCollectionName := "__keyVault"
 	keyVaultNamespace := keyVaultDatabaseName + "." + keyVaultCollectionName
+
 	encryptedDatabaseName := "medicalRecords"
 	encryptedCollectionName := "patients"
 	// end-setup-application-variables
@@ -132,11 +135,11 @@ func main() {
 		context.TODO(),
 		bson.M{"patientRecord.ssn": "987-65-4320"},
 	).Decode(&findResult)
+	// end-find-document
 	if err != nil {
 		fmt.Print("Unable to find the document\n")
 	} else {
 		output, _ := json.MarshalIndent(findResult, "", "    ")
 		fmt.Printf("%s\n", output)
 	}
-	// end-find-document
 }

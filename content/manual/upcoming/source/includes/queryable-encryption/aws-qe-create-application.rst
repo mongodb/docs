@@ -1098,7 +1098,6 @@
 
          - The namespace of your {+key-vault-long+}
          - The ``$kmsProviders`` object, defined in the previous step
-         - The path to your Automatic Encryption Shared Library
 
          .. literalinclude:: /includes/qe-tutorials/php/queryable-encryption-helpers.php
             :start-after: start-auto-encryption-options
