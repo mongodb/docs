@@ -36,9 +36,7 @@ public class QueryableEncryptionTutorial {
     public static void main(String[] args) throws Exception {
         // start-setup-application-variables
         String kmsProviderName = "<KMS provider name>";
-
         String uri = QueryableEncryptionHelpers.getEnv("MONGODB_URI"); // Your connection URI
-
         String keyVaultDatabaseName = "encryption";
         String keyVaultCollectionName = "__keyVault";
         String keyVaultNamespace = keyVaultDatabaseName + "." + keyVaultCollectionName;
@@ -105,10 +103,10 @@ public class QueryableEncryptionTutorial {
                         createCollectionOptions,
                         encryptedCollectionParams);
             } 
-            // end-create-encrypted-collection
             catch (Exception e) {
                 throw new Exception("Unable to create encrypted collection due to the following error: " + e.getMessage());
             }
+            // end-create-encrypted-collection
 
             // start-insert-document
             MongoDatabase encryptedDb = encryptedClient.getDatabase(encryptedDatabaseName).withCodecRegistry(pojoCodecRegistry);

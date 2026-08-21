@@ -173,6 +173,9 @@ function getAutoEncryptionOptions(
             'keyVaultNamespace' => $keyVaultNamespace,
             'kmsProviders' => $kmsProviders,
             'tlsOptions' => $tlsOptions,
+            'extraOptions' => [
+                'cryptSharedLibPath' => getenv('SHARED_LIB_PATH'), // Path to your Automatic Encryption Shared Library
+            ],
         ];
         // end-kmip-encryption-options
         return $autoEncryptionOptions;
@@ -181,6 +184,9 @@ function getAutoEncryptionOptions(
         $autoEncryptionOptions = [
             'keyVaultNamespace' => $keyVaultNamespace,
             'kmsProviders' => $kmsProviders,
+            'extraOptions' => [
+                'cryptSharedLibPath' => getenv('SHARED_LIB_PATH'), // Path to your Automatic Encryption Shared Library
+            ],
         ];
         // end-auto-encryption-options
 
@@ -211,9 +217,9 @@ function getClientEncryption(Client $encryptedClient, array $autoEncryptionOptio
 }
 
 function createEncryptedCollection(
-    Client $client,
+    Client $encryptedClient,
     ClientEncryption $clientEncryption,
-    string $encryptedDatabase,
+    string $encryptedDatabaseName,
     string $encryptedCollectionName,
     string $kmsProviderName,
     array $collectionOpts,
@@ -222,7 +228,7 @@ function createEncryptedCollection(
 {
     try {
         // start-create-encrypted-collection
-        $client->getDatabase($encryptedDatabase)->createEncryptedCollection(
+        $encryptedClient->getDatabase($encryptedDatabaseName)->createEncryptedCollection(
             $encryptedCollectionName,
             $clientEncryption,
             $kmsProviderName,

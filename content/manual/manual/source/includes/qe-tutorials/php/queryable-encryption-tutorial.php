@@ -12,9 +12,7 @@ require __DIR__.'/queryable-encryption-helpers.php';
 
 // start-setup-application-variables
 $kmsProviderName = getenv('KMS_PROVIDER');
-
 $uri = getenv('MONGODB_URI'); // Your connection URI
-
 $keyVaultDatabaseName = 'encryption';
 $keyVaultCollectionName = '__keyVault';
 $keyVaultNamespace = $keyVaultDatabaseName . '.' . $keyVaultCollectionName;
@@ -105,5 +103,5 @@ $findResult = $encryptedCollection->findOne([
     'patientRecord.ssn' => '987-65-4320',
 ]);
 
-print_r($findResult);
+print(json_encode($findResult, JSON_PRETTY_PRINT));
 // end-find-document

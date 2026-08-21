@@ -1,6 +1,6 @@
+// start-patientBilling-model
 package com.mongodb.tutorials.qe.models;
 
-// start-patientBilling-model
 public class PatientBilling {
     public String cardType;
     public String cardNumber;

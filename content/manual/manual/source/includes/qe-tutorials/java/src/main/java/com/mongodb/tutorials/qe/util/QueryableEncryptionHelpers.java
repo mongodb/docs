@@ -26,20 +26,18 @@ public final class QueryableEncryptionHelpers {
     public static Map<String, Map<String, Object>> getKmsProviderCredentials(String kmsProviderName) throws Exception {
 
         if (kmsProviderName == "local") {
+            // start-generate-local-key
             // Reuse the key from the customer-master-key.txt file if it exists
             if (!new File("./customer-master-key.txt").isFile()) {
-                // start-generate-local-key
                 byte[] localCustomerMasterKey = new byte[96];
                 new SecureRandom().nextBytes(localCustomerMasterKey);
                 try (FileOutputStream stream = new FileOutputStream("customer-master-key.txt")) {
                     stream.write(localCustomerMasterKey);
-
-                    // ...
-                    // end-generate-local-key
                 } catch (Exception e) {
                     throw new Exception("Unable to write Customer Master Key file due to the following error:" + e.getMessage());
                 }
             }
+            // end-generate-local-key
 
             // start-get-local-key
             byte[] localCustomerMasterKey = new byte[96];

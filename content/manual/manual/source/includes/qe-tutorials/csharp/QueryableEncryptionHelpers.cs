@@ -110,11 +110,11 @@ public class QueryableEncryptionHelpers
 
                 kmsProviderCredentials.Add("local", localOptions);
             }
-            // end-get-local-key
             catch (Exception e)
             {
                 throw new Exception("Unable to read the Customer Master Key due to the following error: " + e.Message);
             }
+            // end-get-local-key
             return kmsProviderCredentials;
 
         }

@@ -10,8 +10,6 @@ dependencies:
 
 - MongoDB Server version 7.0 or later
 - [mongosh](https://www.mongodb.com/try/download/shell)
-- [direnv](https://direnv.net/docs/installation.html) to assign your KMS
-  credentials to environment variables.
 
 Do not install mongosh via homebrew on Mac OS. See 
 https://jira.mongodb.org/browse/MONGOSH-1216 for details.
@@ -38,11 +36,8 @@ For more information on installation requirements for {+qe+}, see [Installation 
 1. In a shell, navigate to the directory in which the application
    is saved.
 
-1. Run `direnv allow` to load the environment variables defined in your `.envrc`
+1. Run `source .envrc` to load the environment variables defined in your `.envrc`
    file into your environment.
-
-   > **Note:** `direnv allow` only needs to be run the first time you are
-   > running this application.
 
 1. In `queryable-encryption-tutorial.js`, Replace the placeholder `<Your KMS
 Provider Name>` with a valid KMS provider name.

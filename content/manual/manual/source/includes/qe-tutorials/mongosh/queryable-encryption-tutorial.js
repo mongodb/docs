@@ -3,9 +3,7 @@ var qeHelper = require("./queryable-encryption-helpers.js");
 async function runExample() {
   // start-setup-application-variables
   const kmsProviderName = "<Your KMS Provider Name>";
-
   const uri = process.env.MONGODB_URI; // Your connection URI
-
   const keyVaultDatabaseName = "encryption";
   const keyVaultCollectionName = "__keyVault";
   const keyVaultNamespace = `${keyVaultDatabaseName}.${keyVaultCollectionName}`;

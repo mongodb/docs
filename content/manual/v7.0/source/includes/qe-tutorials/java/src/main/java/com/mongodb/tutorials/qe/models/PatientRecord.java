@@ -1,6 +1,6 @@
+// start-patientRecord-model
 package com.mongodb.tutorials.qe.models;
 
-// start-patientRecord-model
 public class PatientRecord {
     public String ssn;
     public PatientBilling billing;

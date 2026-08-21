@@ -115,9 +115,9 @@ func GetCustomerMasterKeyCredentials(kmsProviderName string) map[string]string {
 		return customerMasterKeyCredentials
 	case "kmip", "local":
 		// start-kmip-local-cmk-credentials
-		cmkCredentials := map[string]string{}
+		customerMasterKey := map[string]string{}
 		// end-kmip-local-cmk-credentials
-		return cmkCredentials
+		return customerMasterKey
 	default:
 		panic(fmt.Sprintf("Unrecognized value for kmsProviderName encountered while retrieving Customer Master Key credentials: %s\n", kmsProviderName))
 	}
@@ -148,11 +148,11 @@ func GetClientEncryption(
 	}
 
 	// start-client-encryption
-	opts := options.ClientEncryption().
+	clientEncryptionOpts := options.ClientEncryption().
 		SetKeyVaultNamespace(keyVaultNamespace).
 		SetKmsProviders(kmsProviderCredentials)
 
-	clientEncryption, err := mongo.NewClientEncryption(encryptedClient, opts)
+	clientEncryption, err := mongo.NewClientEncryption(encryptedClient, clientEncryptionOpts)
 	if err != nil {
 		panic(fmt.Sprintf("Unable to create a ClientEncryption instance due to the following error: %s\n", err))
 	}

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using MongoDB.Bson;
+using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 using MongoDB.Driver.Encryption;
@@ -22,7 +23,6 @@ public static class QueryableEncryptionTutorial
             CollectionNamespace.FromFullName($"{keyVaultDatabaseName}.{keyVaultCollectionName}");
         const string encryptedDatabaseName = "medicalRecords";
         const string encryptedCollectionName = "patients";
-
         var appSettings = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
         var uri = appSettings["MongoDbUri"];
         // end-setup-application-variables
@@ -82,18 +82,17 @@ public static class QueryableEncryptionTutorial
         };
         // end-encrypted-fields-map
 
-        var patientDatabase = encryptedClient.GetDatabase(encryptedDatabaseName);
-        patientDatabase.DropCollection(encryptedCollectionName);
-
         var clientEncryption = qeHelpers.GetClientEncryption(encryptedClient,
             keyVaultNamespace,
             kmsProviderCredentials);
 
         var customerMasterKeyCredentials = qeHelpers.GetCustomerMasterKeyCredentials(kmsProviderName);
-
+        
+        // start-create-encrypted-collection
+        var patientDatabase = encryptedClient.GetDatabase(encryptedDatabaseName);
+        patientDatabase.DropCollection(encryptedCollectionName); // Ensure the collection is dropped before creating a new one
         try
         {
-            // start-create-encrypted-collection
             var createCollectionOptions = new CreateCollectionOptions<Patient>
             {
                 EncryptedFields = encryptedFields
@@ -104,12 +103,12 @@ public static class QueryableEncryptionTutorial
                 createCollectionOptions,
                 kmsProviderName,
                 customerMasterKeyCredentials);
-            // end-create-encrypted-collection
         }
         catch (Exception e)
         {
             throw new Exception("Unable to create encrypted collection due to the following error: " + e.Message);
         }
+        // end-create-encrypted-collection
 
         // start-insert-document
         var patient = new Patient
@@ -138,7 +137,7 @@ public static class QueryableEncryptionTutorial
         var ssnFilter = Builders<Patient>.Filter.Eq("patientRecord.ssn", patient.PatientRecord.Ssn);
         var findResult = await encryptedCollection.Find(ssnFilter).FirstOrDefaultAsync();
 
-        Console.WriteLine(findResult.ToJson());
+        Console.WriteLine(findResult.ToJson(new JsonWriterSettings { Indent = true }));
         // end-find-document
     }
 }

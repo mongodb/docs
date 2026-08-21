@@ -6,9 +6,7 @@ require_relative "queryable-encryption-helpers"
 
 # start-setup-application-variables
 kms_provider_name = ENV["KMS_PROVIDER"]
-
 uri = ENV["MONGODB_URI"] # Your connection URI
-
 key_vault_database_name = "encryption"
 key_vault_collection_name = "__keyVault"
 key_vault_namespace = "#{key_vault_database_name}.#{key_vault_collection_name}"

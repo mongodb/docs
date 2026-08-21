@@ -8,9 +8,7 @@ load_dotenv()
 # start-setup-application-variables
 # KMS provider name should be one of the following: "aws", "gcp", "azure", "kmip" or "local"
 kms_provider_name = "<KMS provider name>"
-
-uri = os.environ['MONGODB_URI']  # Your connection URI
-
+uri = os.environ.get("MONGODB_URI", "mongodb://127.0.0.1:27017")  # Your connection URI
 key_vault_database_name = "encryption"
 key_vault_collection_name = "__keyVault"
 key_vault_namespace = f"{key_vault_database_name}.{key_vault_collection_name}"

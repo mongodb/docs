@@ -14,7 +14,6 @@ use mongodb::{
     options::{ClientOptions, TlsOptions},
     Client, Namespace,
 };
-use dotenv::dotenv;
 use std::env;
 
 use rand::RngCore;
@@ -95,8 +94,8 @@ pub fn get_kms_provider_credentials(kms_provider_name: &str) -> Vec<(KmsProvider
                 local_key = key.to_vec();
             } 
             // end-generate-local-key
-            else
             // start-get-local-key
+            else
             {
                 // WARNING: Do not use a local key file in a production application
                 match fs::File::open(key_file_path) {
@@ -173,8 +172,9 @@ pub fn get_customer_master_key_credentials(kms_provider_name: &str) -> MasterKey
         "local" => {
             // start-local-cmk-credentials
             let local_master_key = LocalMasterKey::builder().build();
+            let customer_master_key_credentials = MasterKey::Local(local_master_key);
             // end-local-cmk-credentials
-            return MasterKey::Local(local_master_key);
+            return customer_master_key_credentials;
         },
         &_ => {
             panic!("Specify a valid KMS provider name.")
@@ -186,13 +186,13 @@ pub fn get_auto_encryption_options(key_vault_namespace: &Namespace, kms_provider
     // start-auto-encryption-options
     let client_options = ClientOptions::builder().build();
 
-    let builder = Client::encrypted_builder(
+    let encrypted_client_builder = Client::encrypted_builder(
         client_options,
         key_vault_namespace.clone(),
         kms_providers.clone()
     ).expect("");
     // end-auto-encryption-options
-    return builder;
+    return encrypted_client_builder;
 }
 
 pub fn get_kmip_tls_options() -> TlsOptions {
