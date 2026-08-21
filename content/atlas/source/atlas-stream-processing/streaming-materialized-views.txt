@@ -8,7 +8,7 @@ Build Streaming Materialized Views
 
 .. meta::
    :keywords: stream processing, materialized view, aggregation, real time, code example
-   :description: Compare on-demand and streaming materialized views in Atlas Stream Processing, and build a streaming materialized view in the Atlas UI that stays continuously current.
+   :description: Compare on-demand and streaming materialized views in Atlas Stream Processing, and build a streaming materialized view in the Atlas UI or mongosh that stays continuously current.
 
 .. contents:: On this page
    :local:
@@ -123,10 +123,10 @@ aggregation in ways that affect downstream consumers:
   :pipeline:`$lookup` stage, later changes to the reference collection
   do not update documents that the view already wrote.
 
-Create a Streaming Materialized View in the Atlas UI
-----------------------------------------------------
+Create a Streaming Materialized View
+------------------------------------
 
-The following procedure creates a streaming materialized view that
+The following tutorial creates a streaming materialized view that
 maintains a count of completed sales by purchase method. The stream
 processor reads the change stream of the ``sample_supplies.sales``
 collection and writes to the ``sample_supplies.sales_by_channel``
@@ -146,6 +146,9 @@ Before you create the stream processor, you must have a
 :ref:`{+spw+} <atlas-sp-manage-spi>` with an {+service+} connection to
 the cluster that holds the source data. To add a connection, see
 :ref:`atlas-sp-manage-connections`.
+
+Run the commands in this section against your cluster. To connect, see
+:ref:`connect-mongo-shell`.
 
 Complete the following steps to prepare the source collection and seed
 the view:
@@ -269,224 +272,27 @@ the view:
 Procedure
 ~~~~~~~~~
 
-.. procedure::
-   :style: normal
+Select the {+atlas-ui+} or {+mongosh+} to create the stream processor.
 
-   .. step:: Go to the Stream Processing page for your project.
+.. composable-tutorial::
+   :options: interface
+   :defaults: atlas-ui
 
-      a. In the {+atlas-ui+}, go to the :guilabel:`Stream Processing`
-         page for your {+service+} project. 
+   .. selected-content::
+      :selections: atlas-ui
 
-      #. Click :guilabel:`Manage` in the pane of your {+spw+} that
-         holds your {+service+} connection to the source cluster.
+      .. include:: /includes/atlas-stream-processing/create-smv-ui.rst
 
-   .. step:: Open the Visual Builder.
+   .. selected-content::
+      :selections: mongosh
 
-      a. Click :guilabel:`Create stream processor`. 
-      
-      #. Select the :guilabel:`Visual Builder`.
-
-   .. step:: Configure the source.
-
-      a. In the :guilabel:`Source` field, select your {+service+}
-         connection to the source cluster from the
-         :guilabel:`Connection` drop-down list. 
-      
-      #. In the |json| text box, configure the :pipeline:`$source`
-         stage to read the ``sales`` collection with pre- and post-images:
-
-      .. code-block:: json
-         :copyable: true
-
-         {
-           "$source": {
-             "connectionName": "<connection-name>",
-             "db": "sample_supplies",
-             "coll": "sales",
-             "config": {
-               "fullDocument": "required",
-               "fullDocumentBeforeChange": "required"
-             }
-           }
-         }
-
-   .. step:: Add a stage that computes the change delta for each event.
-
-      a. In the :guilabel:`Start building your pipeline` pane, click
-         :guilabel:`+ Custom stage`. 
-      
-      #. In the |json| text box, add an :pipeline:`$addFields` stage
-         that assigns a signed delta to each insert, update, or delete
-         and captures the purchase method:
-
-      .. code-block:: json
-         :copyable: true
-
-         {
-           "$addFields": {
-             "_delta": {
-               "$switch": {
-                 "branches": [
-                   {
-                     "case": {
-                       "$and": [
-                         { "$eq": ["$operationType", "insert"] },
-                         { "$eq": ["$fullDocument.status", "completed"] }
-                       ]
-                     },
-                     "then": 1
-                   },
-                   {
-                     "case": {
-                       "$and": [
-                         { "$eq": ["$operationType", "update"] },
-                         { "$eq": ["$fullDocumentBeforeChange.status", "completed"] },
-                         { "$eq": ["$fullDocument.status", "returned"] }
-                       ]
-                     },
-                     "then": -1
-                   },
-                   {
-                     "case": {
-                       "$and": [
-                         { "$eq": ["$operationType", "delete"] },
-                         { "$eq": ["$fullDocumentBeforeChange.status", "completed"] }
-                       ]
-                     },
-                     "then": -1
-                   }
-                 ],
-                 "default": 0
-               }
-             },
-             "_channel": {
-               "$ifNull": [
-                 "$fullDocument.purchaseMethod",
-                 "$fullDocumentBeforeChange.purchaseMethod"
-               ]
-             }
-           }
-         }
-
-   .. step:: Add a stage that drops events with no effect.
-
-      a. Click :guilabel:`+`, then select :guilabel:`Custom stage`.
-
-      #. In the |json| text box, add a :pipeline:`$match` stage that
-         removes events with a delta of zero:
-
-      .. code-block:: json
-         :copyable: true
-
-         {
-           "$match": { "_delta": { "$ne": 0 } }
-         }
-
-   .. step:: Add a windowed group stage.
-
-      a. Click :guilabel:`+`, then select :guilabel:`Custom stage`.
-
-      #. In the |json| text box, add a :pipeline:`$tumblingWindow`
-         stage that sums the deltas by purchase method over one-second
-         intervals:
-
-      .. code-block:: json
-         :copyable: true
-
-         {
-           "$tumblingWindow": {
-             "boundary": "processingTime",
-             "interval": { "size": 1, "unit": "second" },
-             "pipeline": [
-               {
-                 "$group": {
-                   "_id": "$_channel",
-                   "active_count": { "$sum": "$_delta" },
-                   "windowStart": {
-                     "$first": { "$meta": "stream.window.start" }
-                   }
-                 }
-               }
-             ]
-           }
-         }
-
-      .. important:: 
-         
-         A stream processor requires every :pipeline:`$group` stage to
-         run inside a window stage.
-
-   .. step:: Configure the sink.
-
-      a. In the :guilabel:`Sink` field, select your {+service+}
-         connection from the :guilabel:`Connection` drop-down list. 
-      
-      #. In the |json| text box, configure the :pipeline:`$merge` stage
-         to add each window's result to the running total in
-         ``sales_by_channel``:
-
-      .. code-block:: json
-         :copyable: true
-
-         {
-           "$merge": {
-             "into": {
-               "connectionName": "<connection-name>",
-               "db": "sample_supplies",
-               "coll": "sales_by_channel"
-             },
-             "whenMatched": [
-               {
-                 "$set": {
-                   "active_count": {
-                     "$cond": [
-                       { "$gt": ["$$new.windowStart", { "$ifNull": ["$lastWindowStart", { "$toDate": 0 }] }] },
-                       { "$add": ["$active_count", "$$new.active_count"] },
-                       "$active_count"
-                     ]
-                   },
-                   "lastWindowStart": {
-                     "$max": [
-                       { "$ifNull": ["$lastWindowStart", { "$toDate": 0 }] },
-                       "$$new.windowStart"
-                     ]
-                   }
-                 }
-               }
-             ],
-             "whenNotMatched": "insert"
-           }
-         }
-
-      .. note::
-
-         The ``lastWindowStart`` high-water mark prevents a replayed
-         window from double-counting
-
-   .. step:: Enter processor details.
-
-      a. In the :guilabel:`Stream processor name` field, enter
-         ``sales_stats_sp``.
-
-      #. Select the tier for the stream processor. To choose a tier for
-         your workload, see :ref:`atlas-sp-tier-guide`.
-
-   .. step:: Create the stream processor.
-
-      Click :guilabel:`Create stream processor`.
-
-   .. step:: Start the stream processor.
-
-      On the :guilabel:`Stream Processors` tab, select
-      ``sales_stats_sp`` and click :guilabel:`Start`.
-
-      The processor now maintains ``sales_by_channel`` continuously. To
-      learn more about starting, stopping, and monitoring stream
-      processors, see :ref:`atlas-sp-manage-processor`.
+      .. include:: /includes/atlas-stream-processing/create-smv-mongosh.rst
 
 Verify the View Stays Current
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Run the commands in this section against your cluster. To connect, see
+:ref:`connect-mongo-shell`.
 
 After you start the processor, changes to the ``sales`` collection
 update ``sales_by_channel`` within seconds. To confirm this, insert a
