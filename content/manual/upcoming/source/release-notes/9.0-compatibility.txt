@@ -64,9 +64,10 @@ Null Comparisons on Dotted Paths That Traverse Arrays
 
 Starting in MongoDB 9.0, a dotted path that does not resolve to a
 non-null value evaluates as ``null``. The new behavior applies when a
-field in the path holds an empty array or an array of scalar values.
-In earlier versions, these paths did not evaluate as ``null``, which
-produced results that disagreed with :query:`$exists`.
+field in the path holds an empty array, an array of scalar values, or
+an array that contains a nested array. In earlier versions, these
+paths did not evaluate as ``null``, which produced results that
+disagreed with :query:`$exists`.
 
 Consider a collection that contains the following documents:
 
@@ -83,6 +84,24 @@ The ``{ "a.b": { $ne: null } }`` query returns the opposite results:
 in MongoDB 9.0, the query matches neither document, and in earlier
 versions, it matched both.
 
+MongoDB does not traverse into nested arrays, so an element that is
+itself an array never resolves the rest of the path. Consider a
+collection that contains the following documents:
+
+.. code-block:: javascript
+
+   { _id: 3, a: [ [ { b: 3 } ] ] }
+   { _id: 4, a: [ [ { b: 2 } ], { b: 3 } ] }
+
+Each ``b`` value in ``_id: 3`` and the ``b`` value of ``2`` in
+``_id: 4`` sit inside a nested array, so the path ``a.b`` does not
+reach them. Starting in MongoDB 9.0, the ``{ "a.b": null }`` query
+matches both documents, and the ``{ "a.b": { $ne: null } }`` query
+matches neither. In earlier versions, the ``{ "a.b": null }`` query
+matched neither document. The nested array causes ``_id: 4`` to match
+``{ "a.b": null }`` even though its second element resolves ``a.b``
+to the non-null value ``3``.
+
 The new behavior affects comparisons to ``null`` that use the
 :query:`$eq`, :query:`$ne`, :query:`$in`, :query:`$nin`,
 :query:`$gte`, and :query:`$lte` operators. Equality matching in the
@@ -93,8 +112,9 @@ Upgrade Impact
 
 Before you upgrade to MongoDB 9.0, review queries and
 :pipeline:`$lookup` stages that compare a dotted path to ``null``. If
-a field in the path holds an empty array or an array of scalar
-values, these queries return different result sets after the upgrade.
+a field in the path holds an empty array, an array of scalar values,
+or an array that contains a nested array, these queries return
+different result sets after the upgrade.
 Queries that use ``{ $ne: null }`` to
 find documents where a dotted path exists and is not ``null`` return
 fewer documents, and queries that use ``{ $eq: null }`` return more
