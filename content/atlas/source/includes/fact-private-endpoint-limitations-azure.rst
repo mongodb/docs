@@ -41,13 +41,18 @@
   See :ref:`atlas_regionalized-pl` for an exception for
   multi-region and global sharded clusters.
 
-- To connect to |service| clusters using {+az-pl+} from 
-  regions in which you haven't deployed a private endpoint 
-  connection, you must peer VNets in those regions to VNets 
-  in a region in which you have deployed a private endpoint 
-  connection.
+- Your application and the private endpoint that it connects
+  through must reside in the same |azure| region. Your
+  |service| {+cluster+} can reside in any region. To connect
+  from a different region, select that region from the
+  :guilabel:`Private Endpoint Region` list when you create
+  the private endpoint. To learn more, see
+  :ref:`manage-accepted-endpoint-regions`.
 
-  To learn about Global VNet peering, see the
+  You can also connect from a region that has no private
+  endpoint connection. To do so, peer the VNets in that
+  region to VNets in a region that has a private endpoint
+  connection. To learn about Global VNet peering, see the
   :azure:`Azure documentation </virtual-network/virtual-networks-faq#can-i-create-a-peering-connection-to-a-vnet-in-a-different-region>`.
 
 - You can use {+az-pl+} in |service| projects with up to 150

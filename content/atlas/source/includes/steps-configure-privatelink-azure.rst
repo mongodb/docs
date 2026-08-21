@@ -1,8 +1,17 @@
 .. procedure::
    :style: normal
-      
+
+   .. note::
+
+      Cross-region private endpoint connectivity is available for
+      |azure|. To connect to your {+service+} cluster from a different
+      |azure| region, select that region from the
+      :guilabel:`Private Endpoint Region` list when you create the
+      private endpoint. To learn more, see
+      :ref:`manage-accepted-endpoint-regions`.
+
    .. include:: /includes/nav/steps-network-access.rst
-      
+
    .. step:: Navigate to the private endpoint for your dedicated cluster.
 
       a. In the sidebar, click :guilabel:`Private Endpoint`.
@@ -58,7 +67,14 @@
       #. Enter a unique name for your private endpoint in the
          :guilabel:`Private Endpoint Name` field.
 
-      #. Create the private endpoint in your VNet by copying the 
+      #. From the :guilabel:`Private Endpoint Region` list, select the
+         |azure| region where you want to create your private
+         endpoint. This region must match the region of the
+         application that connects through the endpoint, but it
+         doesn't need to match the region of your |service|
+         {+database-deployment+}.
+
+      #. Create the private endpoint in your VNet by copying the
          ``az network private-endpoint create`` command the dialog box 
          displays and running it using the |azure| CLI.
 

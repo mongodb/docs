@@ -93,11 +93,11 @@
                 required for clients in your |vpc| to send
                 traffic to the private endpoint.
 
-            * - :guilabel:`Consumer Region`
-              - |aws| region where your consumer |vpc| is
-                located. This region must be one of the accepted
-                endpoint regions configured for the endpoint
-                service.
+            * - :guilabel:`Interface Endpoint Region`
+              - |aws| region where you want to create your |vpc|
+                :term:`interface endpoint`. This region must be one
+                of the accepted endpoint regions configured for the
+                endpoint service.
 
       #. Click :guilabel:`Create Endpoint`.
 

@@ -6,7 +6,7 @@ Learn About Private Endpoints in |service|
 ==========================================
 
 .. meta::
-   :description: Explore how to set up private endpoints in Atlas for secure connections to dedicated clusters across AWS, Azure, and Google Cloud.
+   :description: Explore how to set up private endpoints in Atlas for secure, private connections to your dedicated clusters across AWS, Azure, and Google Cloud, plus key limitations.
 
 .. default-domain:: mongodb
 
@@ -106,7 +106,7 @@ Learn About Private Endpoints in |service|
 
             .. figure:: /images/atlas-aws-privatelink-directconnect.svg
                :width: 720px
-               :alt: Image showing how you can use |aws| Direct Connect to establish a transitive connection from your data center to a peered |aws| VPC to resources in the |service| VPC using |aws| Direct Connect.
+               :alt: Diagram of an |aws| Direct Connect transitive connection from your data center through a peered VPC to the |service| VPC.
       
       .. include:: /includes/fact-private-endpoint-connections-aws.rst
 
@@ -158,6 +158,7 @@ Learn About Private Endpoints in |service|
 
       .. figure:: /images/atlas-azure-privatelink.png
          :width: 720px
+         :figwidth: 720px
          :alt: Diagram showing how {+az-pl+} establishes connections from your application to resources in the |service| VNet.
 
       .. include:: /includes/fact-private-endpoint-connections-azure.rst
@@ -220,7 +221,7 @@ Learn About Private Endpoints in |service|
 
             .. figure:: /images/google-psc-diagram-new.svg
                :width: 720px
-               :alt: Image showing how {+gcp-psc+} establishes connections from your application VPC to resources in the |service| VPC when you have one cluster in one region.
+               :alt: {+gcp-psc+} connections from an application VPC to the |service| VPC with one cluster in one region.
 
          .. tab:: Multiple Clusters, One Region
             :tabid: gcp-psc-two-clusters
@@ -231,7 +232,7 @@ Learn About Private Endpoints in |service|
 
             .. figure:: /images/google-psc-diagram-two-clusters-new.svg
                :width: 720px
-               :alt: Image showing how {+gcp-psc+} establishes connections from your application VPC to resources in the |service| VPC when you have two clusters in one region.
+               :alt: {+gcp-psc+} connections from an application VPC to the |service| VPC with two clusters in one region.
 
          .. tab:: One Cluster, Multiple Regions 
             :tabid: gcp-psc-one-cluster-multiple-regions
@@ -242,7 +243,7 @@ Learn About Private Endpoints in |service|
 
             .. figure:: /images/google-psc-diagram-multiple-regions-new.svg
                :width: 720px
-               :alt: Image showing how {+gcp-psc+} establishes connections from your application VPC to resources in the |service| VPC when you have one cluster in multiple regions.
+               :alt: {+gcp-psc+} connections from an application VPC to the |service| VPC with one cluster in multiple regions.
       
       Legacy Private Endpoints Support
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -580,48 +581,58 @@ Learn About Private Endpoints in |service|
 
    .. _manage-accepted-endpoint-regions:
 
-   Manage Accepted Endpoint Regions for {+aws-pl+}
-   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   Manage Accepted Endpoint Regions
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   You can configure which |aws| regions can connect to your private
-   endpoint service. This enables cross-region private endpoint
-   connectivity, allowing applications in different |aws| regions to
-   connect to your {+service+} clusters through private endpoints.
+   .. include:: /includes/warning-private-endpoint-single-endpoint-service-migration.rst
 
-   .. warning::
+   .. selected-content::
+      :selections: aws
 
-      **Migrating from Multiple Endpoint Services to Single Endpoint Service**
+      You can configure which |aws| regions can connect to your
+      private endpoint service. This enables cross-region private
+      endpoint connectivity, allowing applications in different |aws|
+      regions to connect to your {+service+} clusters through private
+      endpoints.
 
-      To migrate from multiple endpoint services to a single endpoint
-      service that supports multiple endpoints, you must terminate the
-      endpoints and endpoint services in the other regions first. This
-      migration requires downtime.
+      To add or remove accepted endpoint regions:
 
-      The migration process includes:
+      .. include:: /includes/steps-manage-accepted-endpoint-regions-aws.rst
 
-      1. Terminating endpoints in other regions
-      2. Terminating endpoint services in other regions
-      3. Provisioning new endpoints in your VPCs to connect to the
-         remaining endpoint service
-      4. Updating application connection strings (which might require
-         an application restart)
+      Connecting to Multi-Region {+Clusters+} Without Regionalized Private Endpoints or Cross-Region Private Link
+      ```````````````````````````````````````````````````````````````````````````````````````````````````````````
 
-      Downtime occurs between terminating the other endpoints and
-      updating your application to use the correct connection string.
+      If you use {+aws-pl+} and have applications that connect to
+      multi-region {+clusters+} that have endpoints in different
+      regions but are not using :ref:`regionalized private endpoints
+      <atlas_regionalized-pl>`, ensure that those applications can
+      reach endpoints in the other regions. For example, to do this
+      with |aws|, you can :ref:`peer <vpc-peering>` the |vpc|\s that
+      contain the endpoints on their side.
 
-   To add or remove accepted endpoint regions:
+   .. selected-content::
+      :selections: azure
 
-   .. include:: /includes/steps-manage-accepted-endpoint-regions-aws.rst
+      {+az-pl+} supports cross-region connectivity natively. To
+      configure it, choose a different region for your private
+      endpoint than the region of the underlying private endpoint
+      service.
 
-   Connecting to Multi-Region {+Clusters+} Without Regionalized Private Endpoints or Cross-Region Private Link
-   ``````````````````````````````````````````````````````````````````````````````````````````````````````````
+      Your application and the private endpoint that it connects
+      through must reside in the same |azure| region. Your |service|
+      {+database-deployment+} can reside in any region. To connect
+      from a different region, select that region from the
+      :guilabel:`Private Endpoint Region` list when you create the
+      private endpoint. To learn more, see
+      :ref:`cluster-private-endpoint`.
 
-   If you use {+aws-pl+} and have applications that connect to 
-   multi-region {+clusters+} that have endpoints in different regions 
-   but are not using :ref:`regionalized private endpoints <atlas_regionalized-pl>`, 
-   ensure that those applications can reach endpoints in the other regions. 
-   For example, to do this with |aws|, you can :ref:`peer <vpc-peering>` 
-   the |vpc|\s that contain the endpoints on their side.
+   .. selected-content::
+      :selections: gcp
+
+      {+gcp-psc+} requires the private endpoint to reside in the same
+      region as the private endpoint service. To connect to a private
+      endpoint from a different |gcp| region, configure global access.
+      To learn more, see :ref:`private-endpoint-ha`.
 
    Avoiding Downtime When Removing Private Endpoints
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
