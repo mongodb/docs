@@ -8,7 +8,7 @@
      - MongoDB 5.0
      - MongoDB 6.0
      - MongoDB 7.0
-     - MongoDB 8.0
+     - MongoDB 8.0 [#backingdb80]_
 
    * - |onprem| 8.0
      - 
@@ -30,6 +30,9 @@
      - Supported
      - 
      -
+
+.. [#backingdb80] MongoDB 8.2 and 8.3 are not supported for the backing
+   databases.
 
 .. include:: /includes/deprecated-definition.rst
 
