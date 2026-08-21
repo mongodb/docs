@@ -7,6 +7,52 @@ July 2026
   primary unless the primary is unavailable. This restores the behavior
   that was in place before March 2026.
 
+- Improves Atlas resiliency during cloud provider regional
+  outages. When you start a scaling or region-change operation
+  that requires tearing down resources in an unhealthy region,
+  Atlas now bypasses that teardown safely instead of stalling, so
+  your operation completes without manual intervention. To learn
+  more, see :ref:`reconfigure-rs-during-regional-outage`.
+
+- Extends :ref:`data validation <data-validation>` coverage to
+  clusters that use |cmk|. Atlas runs data validation
+  automatically as a background job to detect silent data
+  corruption, so this requires no action from you.
+
+- General Availability: Adds support for additional payment
+  methods in :ref:`Atlas billing <atlas-billing>`, including
+  Link, ACH, SEPA Direct Debit, Google Pay, and Revolut, in
+  addition to existing credit card and PayPal options.
+
+- General Availability: Adds support for {+Db-Coll-Restore+},
+  allowing you to restore an individual database or collection
+  directly into a live cluster through the {+atlas-ui+} or the
+  :ref:`Atlas Administration API <restore-from-db-coll>`. This
+  gives you fine-grained control over recovery workflows, so you
+  can fix isolated data issues without affecting the rest of your
+  application.
+
+- Improves performance of the
+  :ref:`Projects page <manage-projects>` by adding pagination,
+  helping you load and navigate large lists of projects more
+  quickly.
+
+- Adds support for setting an operations contact for your Atlas
+  organization, similar to existing security and billing
+  contacts. This contact, which does not need to be an Atlas
+  user, receives operational notifications from MongoDB.
+
+- Adds support for downloading {+cloud-backup+} snapshots through
+  a private endpoint for |gcp|, matching existing {+aws+} and
+  |azure| support. This enhances security by keeping backup
+  download traffic off the public internet.
+
+- Adds automatic scaling of the maximum oplog size on dedicated
+  {+clusters+} that use EBS (non-NVMe) storage. When you change
+  the storage size, Atlas now resizes the oplog to match the new
+  disk size, even if you never set a custom oplog size. To learn
+  more, see :ref:`oplog-size-behavior`.
+
 .. _atlas_2026_06:
 
 June 2026
@@ -17,6 +63,17 @@ June 2026
   so you can distribute snapshots to |s3| buckets in other 
   |aws| regions while keeping all export
   traffic on private endpoints and private |ipaddr|\s.
+
+- Adds cost-effective
+  :ref:`Extended Standard IOPS <extended-iops-gen2>` for {+aws+}
+  Gen2 {+Dedicated-clusters+}. You can provision |iops| above the
+  baseline your disk storage already includes, without moving to
+  a higher-cost |iops| option.
+
+- Updates the storage capacity display for {+gen-2-clusters+}
+  with local :ref:`NVMe SSDs <nvme-storage>` to use GiB instead
+  of GB, matching the unit that other cluster tiers already use.
+  Existing AWS Gen1 clusters continue to display storage in GB.
 
 .. _atlas_2026_05:
 
@@ -296,4 +353,4 @@ January 2026
   with data exfiltration prevention policies enabled.
 
 
-.. last-run: 2026-06-17
+.. last-run: 2026-07-29
