@@ -1,8 +1,8 @@
+// start-patient-model
 package com.mongodb.tutorials.qe.models;
 
 import org.bson.types.ObjectId;
 
-// start-patient-model
 public class Patient {
     public ObjectId id;
     public String patientName;

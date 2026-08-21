@@ -13,9 +13,7 @@ async fn main() -> mongodb::error::Result<()> {
     dotenv().ok();
     // start-setup-application-variables
     let kms_provider_name = "<KMS provider name>";
-    
     let uri = env::var("MONGODB_URI").expect("Set MONGODB_URI environment variable to your connection string");
-
     let key_vault_database_name = "encryption";
     let key_vault_collection_name = "__keyVault";
     let key_vault_namespace = Namespace::new(key_vault_database_name, key_vault_collection_name);
