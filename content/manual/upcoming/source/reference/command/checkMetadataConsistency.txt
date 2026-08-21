@@ -87,7 +87,7 @@ Command Fields
 ~~~~~~~~~~~~~~
 
 .. list-table::
-   :widths: 20 15 65
+   :widths: 45 15 65
    :header-rows: 1
 
    * - Field
@@ -124,13 +124,40 @@ Command Fields
    * - ``dbMetadataLockMaxTimeMS``
      - integer
      - Optional. Maximum time in milliseconds that the command is allowed
-       to wait to acquire a database lock. 
-       
+       to wait to acquire a database lock.
+
        You can also use this field with
-       :ref:`max-time-ms`. For example, if you set ``dbMetadataLockMaxTimeMs``
-       to 500 and ``maxTimeMs`` to 5000, the operation waits 500
+       :ref:`max-time-ms`. For example, if you set ``dbMetadataLockMaxTimeMS``
+       to 500 and ``maxTimeMS`` to 5000, the operation waits 500
        milliseconds to try to acquire the database lock and waits a total
        of 5000 milliseconds for the entire operation to finish.
+
+   * - ``performStrictChunkChecksIfBelowThreshold``
+     - integer
+     
+     - .. versionadded:: 9.0
+
+       Optional. Chunk-count threshold that determines how thoroughly
+       the command compares a shard's chunk metadata for the checked
+       collection.
+
+       - If the shard owns fewer chunks for the collection than this
+         threshold, the command performs a full comparison. The command
+         checks every chunk's metadata across the config server, the
+         shard, and the in-memory chunk map.
+         
+       - If the shard's chunk count meets or exceeds the threshold, the
+         command instead compares only the total chunk count and the
+         highest chunk version.
+
+       The default value is ``1152921504606846975`` (2\ :sup:`60` - 1)
+       chunks, which means that by default, the command always performs
+       the strict check with full comparison.
+
+       For more information, see
+       :ref:`checkMetadataConsistency-chunk-check-threshold`.
+
+       
 
 Output
 ~~~~~~
@@ -210,6 +237,33 @@ To check metadata consistency and indexes, use the ``checkIndexes`` option:
    db.runCommand( {
       checkMetadataConsistency: 1,
       checkIndexes: true
+   } )
+
+
+.. _checkMetadataConsistency-chunk-check-threshold:
+
+Chunk Check Threshold
+~~~~~~~~~~~~~~~~~~~~~
+
+By default, the ``checkMetadataConsistency`` command performs a full
+comparison of every chunk's metadata across the config server, the
+shard, and the in-memory chunk map. On a shard that owns a large number
+of chunks, this comparison can increase how long the command holds its
+metadata lock. A large number of chunks can also increase the amount of
+data the command reads from the config server.
+
+To reduce this impact, set ``performStrictChunkChecksIfBelowThreshold``
+to a chunk count. When a shard's chunk count for the checked
+collection is less than this threshold, the command performs the
+full chunk comparison. When the count meets or exceeds the
+threshold, the command compares only the total chunk count and the
+highest chunk version instead:
+
+.. code-block:: javascript
+
+   db.runCommand( {
+      checkMetadataConsistency: 1,
+      performStrictChunkChecksIfBelowThreshold: 10000
    } )
 
 
