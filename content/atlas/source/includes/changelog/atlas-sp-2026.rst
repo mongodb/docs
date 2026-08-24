@@ -1,3 +1,12 @@
+.. _atlas-sp-20260819:
+
+19 August 2026 Release
+----------------------
+
+- Adds Private Link support for the :pipeline:`$externalFunction`
+  aggregation stage. To learn more, see
+  :ref:`atlas-sp-pl-aws-lambda-add`.
+
 .. _atlas-sp-20260805:
 
 5 August 2026 Release
