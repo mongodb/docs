@@ -97,6 +97,11 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: 'Accelerate PCI DSS Compliance',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/pci-dss-compliance',
+          },
+          {
             label: 'Agentic AI-Powered Payments Orchestration',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/agentic-powered-payments',

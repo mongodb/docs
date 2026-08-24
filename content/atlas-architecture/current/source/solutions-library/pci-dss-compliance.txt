@@ -1,0 +1,749 @@
+.. _arch-center-is-pci-dss-compliance:
+
+==============================================
+Accelerate PCI DSS Adoption with MongoDB Atlas
+==============================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta:: 
+   :keywords: GenAI, MongoDB Atlas, Manufacturing, RAG, Technical Documentation, Manuals
+   :description: Build context-aware RAG with MongoDB Atlas and transform technical documentation into intelligent systems. Code examples included.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: onecol
+
+**Use cases:** `Payments <https://www.mongodb.com/solutions/use-cases/payments>`__
+
+**Industries:** 
+`Financial Services <https://www.mongodb.com/solutions/industries/financial-services>`__,
+`Security and Compliance <https://www.mongodb.com/products/platform/trust>`__
+
+**Products:** 
+`MongoDB Atlas <https://www.mongodb.com/products/platform/atlas-database>`__,
+:ref:`Queryable Encryption <qe-manual-feature-qe>`,
+:ref:`<security-kms-encryption>`,
+:ref:`Private Endpoints <private-endpoint-overview>`,
+:ref:`Database Auditing <set-up-database-auditing>`,
+`PCI DSS Certification <https://www.mongodb.com/products/platform/trust/pci-dss>`__
+
+**Partners**: 
+`Amazon Web Services <https://cloud.mongodb.com/ecosystem/amazon-web-services>`__
+
+Solution Overview
+-----------------
+
+:abbr:`PCI (Payment Card Industry)` :abbr:`DSS (Data Security Standard)`
+constitutes the reference standard for protecting payment account data.
+It sets a baseline of technical and operational practices for systems
+that store, process, or transmit {+chd+}. It gives teams a common
+reference point for how payment systems should be secured and
+controlled.
+
+Protecting payment data usually involves encryption. With a conventional
+approach, once a field is encrypted, it can no longer be searched by its
+value. For a payment platform this limitation represents a practical
+problem, because fraud investigation depends on searching sensitive
+fields, such as a customer's email, phone, or account reference. Without
+a way to search encrypted data, investigation forces an uncomfortable
+choice: either decrypt data in bulk, which widens exposure, or work
+slower and offline. This dilemma leads to the solution’s design
+question:
+
+*How can a payment platform keep data encrypted at rest, and still let
+fraud analysts search it by value?*
+
+PCI DSS raises the bar for how payment data is protected. Its latest
+versions, `v4.0
+<https://blog.pcisecuritystandards.org/pci-dss-v4-0-resource-hub>`__ and
+`v4.0.1
+<https://docs-prv.pcisecuritystandards.org/PCI%20DSS/Standard/PCI-DSS-v4_0_1.pdf>`__,
+put more weight on continuous compliance, point-in-time audits, and
+treat scope reduction to lower assessment effort for service providers.
+
+Under PCI DSS, compliance follows a shared-responsibility model: MongoDB
+Atlas ensures the operational security of the host platform, while
+customers control their deployment's configuration and data policies.
+
+Stated plainly, using MongoDB does not, on its own, make a solution PCI
+DSS compliant. Compliance is assessed against a specific environment,
+covering the product, its processes, and the organization.
+{+service-full+} offers a certified infrastructure plus data-layer
+features that reduce the amount of work to achieve compliance and shrink
+the audit scope. The value here is acceleration and scope reduction, not
+a compliance guarantee.
+
+What PCI DSS Looks Like, and Where the Layers Split
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The PCI Security Standards Council maintains PCI DSS and organizes a set
+of requirements grouped under control objectives:
+
+.. list-table:: PCI DSS Control Objectives and Requirements
+   :widths: 40 60
+   :header-rows: 1
+
+   * - Objective
+     - Requirements
+   * - Build and maintain a secure network
+     - #. Network security controls
+       #. Secure configurations
+   * - Protect account data
+     - #. Protect stored account data
+       #. Encrypt data in transit
+   * - Maintain a vulnerability management program
+     - #. Anti-malware
+       #. Secure software and systems
+   * - Implement strong access control
+     - #. Restrict access by need to know
+       #. Identify and authenticate users
+       #. Restrict physical access
+   * - Regularly monitor and test networks
+     - #. Log and monitor all access
+       #. Test security regularly
+   * - Maintain an information security policy
+     - #. Organizational security policy
+
+Under the shared-responsibility model, these requirements split across
+these layers:
+
+- **Infrastructure layer (the provider's responsibility):** Comprises
+  physical security, network controls, platform patching, and encryption
+  at rest of the underlying storage. MongoDB Cloud is a PCI DSS
+  certified service provider, validated by a :abbr:`QSA (Qualified
+  Security Assessor)`, Coalfire Systems. For the CHD environment in
+  MongoDB Cloud, a QSA can rely on the MongoDB Cloud :abbr:`AOC
+  (Attestation of Compliance)`, available on request through the MongoDB
+  Trust Center. This pre-validated layer eliminates the need for
+  customers to re-audit the underlying infrastructure. 
+
+- **Application layer (the customer's responsibility):** Comprises how
+  the product stores, protects, queries, masks, and audits CHD, and who
+  is allowed to read the information. This layer remains the customer's
+  design decision.
+
+.. figure:: /includes/images/industry-solutions/pci-dss-responsability.svg
+   :figwidth: 750px
+   :alt: PCI DSS shared responsibility layered model
+
+   Figure 1. PCI DSS shared responsibility layered model
+
+The :abbr:`PSP (Payment Service Provider)` project fills the application
+layer. It comprises a reference architecture and a set of best
+practices. It shows how to use MongoDB to align the application layer
+with the PCI DSS control objectives for protecting stored data,
+restricting access, monitoring it, and reducing audit scope. This
+project constitutes a starting point to accelerate the PCI DSS adoption.
+
+The Architectural Proposal
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The PSP project is a PCI DSS-aligned PSP platform. It runs the payment
+lifecycle on {+service-full+}: card checkout and authorization,
+automated fraud scoring, and multi-tier analyst investigation. It shows
+how analysts can search encrypted data with a clear design philosophy:
+
+*Encrypt everything. Query anything. Keys are yours*.
+
+With the infrastructure layer inherited from Atlas (see Figure 1), the
+remaining work happens at the application layer. Atlas provides diverse
+features to support this work, with Queryable Encryption being the
+central one. The full set of features is enumerated in the MongoDB
+capabilities section. 
+
+Queryable Encryption in Focus
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With a conventional approach, a field is either kept in plaintext so it
+can be searched (readable by anyone with database access), or encrypted
+so it is protected (but no longer searchable). Queryable Encryption
+removes that either/or for the query types it supports.
+
+.. figure:: /includes/images/industry-solutions/pci-dss-encryption.svg
+   :figwidth: 750px
+   :alt: MongoDB Encryption Architecture: Queryable Encryption, Key Management, and Data Protection Layers
+
+   Figure 2. MongoDB Encryption Architecture: Queryable Encryption, Key Management, and Data Protection Layers
+
+For an equality-searchable field, the flow proceeds as follows:
+
+- The driver encrypts the search value on the client side, using the
+  field's :abbr:`DEK (Data Encryption Key)`.
+
+- The server matches that encrypted value against an encrypted index. It
+  compares ciphertext to ciphertext and does not decrypt the field.
+
+- When matching documents return to the application process, the driver
+  decrypts the target fields in memory. {+service-full+} stores and
+  processes only ciphertext, held as :abbr:`BSON (Binary JSON)` Binary
+  Subtype 06; as a result, a database administrator with full cluster
+  access sees only opaque bytes. 
+
+The concrete effect in the PSP project: a fraud analyst searches for a
+customer by encrypted email, phone, or account reference and gets the
+record back, while the plaintext value does not reach Atlas. This
+capability keeps sensitive :abbr:`PII (Personally Identifiable
+Information)` encrypted at rest and available by value, without the bulk
+decryption that widens the :abbr:`CDE (Cardholder Data Environment)`. 
+
+Fields that need protection but not search use a non-searchable mode,
+decrypted only for an authorized, escalated request. The data model
+section covers both modes and the fields they protect.
+
+MongoDB Capabilities for the Application Layer 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The PSP project combines several MongoDB and Atlas capabilities. Each
+maps to a specific part of the PCI DSS application-layer work:
+
+.. list-table:: MongoDB PCI DSS Capabilities
+   :widths: 25 35 20 20
+   :header-rows: 1
+
+   * - Capability
+     - Role in the Project
+     - PCI DSS Control Objectives
+     - MongoDB Documentation
+   * - Queryable Encryption:equality
+     - Search encrypted PII (email, phone, account reference) by exact
+       match; the field is encrypted client-side, so the database server
+       stores and processes only ciphertext for it and does not receive
+       the plaintext. 
+     - Protect stored account data; restrict access. 
+     - :ref:`Queryable Encryption <qe-manual-feature-qe>`
+   * - Queryable Encryption:non-searchable, and Client-Side Field Level
+       Encryption
+     - Encrypt high-sensitivity fields (address, government ID, raw
+       gateway payload) for retrieval only, decrypted client-side. 
+     - Protect stored account data; restrict access. 
+     - :ref:`Queryable Encryption <qe-manual-feature-qe>`
+   * - Customer-Managed Keys
+     - Keep the Customer Master Key in the customer's own Key Management
+       Service; the master keys stay there and MongoDB does not have
+       access to them, while the data keys are encrypted under them. 
+     - Protect stored account data. 
+     - :ref:`<security-kms-encryption>`
+   * - Automatic Encryption Shared Library: ``crypt_shared``
+     - Perform encryption and decryption in the driver/application
+       process, so plaintext for encrypted fields does not cross the wire
+       to Atlas. 
+     - Protect stored account data; encrypt in transit. 
+     - :ref:`Queryable Encryption <qe-manual-feature-qe>`
+   * - :abbr:`RBAC (Role-Based Access Control)` and Identity Federation
+     - Granular role-based access at database and collection level, with
+       :abbr:`LDAC (Lightweight Directory Access Protocol)` / Active
+       Directory, OpenID Connect, and workforce identity federation for
+       authentication. 
+     - Restrict access by need to know; identify and authenticate users.
+     - :ref:`Database Users and Access <mongodb-users>`
+   * - Two-Tier Data Encryption Key Hierarchy
+     - Enforce least-privilege field visibility cryptographically,
+       backed by per-tier Atlas roles and database users. 
+     - Restrict access by need to know.
+     - :ref:`<security-kms-encryption>`
+   * - Private Networking
+     - Keep cardholder-data traffic on the cloud-provider backbone over
+       private endpoints, with IP allowlisting, forming a defined network
+       boundary around the CDE. 
+     - Build and maintain a secure network. 
+     - :ref:`Private Endpoints <private-endpoint-overview>`
+   * - Atlas Database Auditing
+     - Record access to sensitive fields as an audit record and forward
+       audit logs to a :abbr:`SIEM (Security Information and Event
+       Management)` system for review. 
+     - Log and monitor all access. 
+     - :ref:`Database Auditing <set-up-database-auditing>`
+   * - Transport Layer Security 1.3 on Atlas Connections
+     - Encrypt cardholder data on every network hop.
+     - Encrypt data in transit.
+     - :ref:`Private Endpoints <private-endpoint-overview>`
+   * - Document Model with :abbr:`BIAN (Banking Industry Architecture
+       Network)`-Aligned Schema
+     - Model card, transaction, and party data so cardholder data can be
+       isolated and minimized. 
+     - Supports scoping and data minimization. 
+     - :ref:`Data Modeling <manual-data-modeling-intro>`
+
+Adjacent Use Cases
+~~~~~~~~~~~~~~~~~~
+
+The core principles of this solution, including a stable API boundary,
+field-level Queryable Encryption, and a DEK-per-access-tier model, can
+be applied to other use cases:
+
+- **Open finance:** Consent-scoped data access that restricts a third
+  party to the fields a customer authorized, such as :abbr:`PSD2
+  (Payment Services Directive 2)` and consumer data right.
+
+- **Healthcare:** Protected health information under the :abbr:`HIPAA
+  (Health Insurance Portability and Accountability Act)`.
+
+- **Insurance and wealth:** Platforms handling government identifiers
+  and financial account data under the :abbr:`GDPR (General Data
+  Protection Regulation)`.
+
+Reference Architectures
+-----------------------
+
+The PSP project is the payment gateway position in the standard card
+payment chain: 
+
+- Merchant backend 
+
+- Payment gateway: Processor, acquirer, card network, and issuer 
+
+It owns the PCI DSS-scoped storage, the encryption, and the access
+control that governs who can read which cardholder-data fields. It does
+not emulate the card network or the processor; so the architecture
+focuses on the data-security layer.
+
+Downstream actors such as the processor, acquirer, card network, and
+card issuer are external subsystems, reached through providers. In the
+demo, each provider has a built-in module that keeps the project
+self-contained, but they can be replaced by a real external subsystem in
+production. The card issuer is one such provider: its built-in module
+stores card data internally for the demo, whereas in production that
+data would live in an external issuer.
+
+.. figure:: /includes/images/industry-solutions/pci-dss-architecture.svg
+   :figwidth: 750px
+   :alt: PSP platform layered architecture and external components
+
+   Figure 3. PSP platform layered architecture and external components
+
+Architecture Components
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The architecture uses the following components:
+
+- **PSP dashboard (Frontend):** The presentation layer. It does not talk
+  to the database directly. On checkout it tokenizes the :abbr:`PAN
+  (Primary Account Number)` so the full PAN is not transmitted or stored
+  by the PSP core.
+
+- **PSP API gateway (Backend):** The single entry point and the only
+  component that can decrypt protected fields. It holds the Queryable
+  Encryption client, resolves the caller's role, and selects the correct
+  key tier per request. All callers, including the user interface, service
+  accounts, and integrations, pass through the same API and are subject
+  to the same RBAC and key rules.
+
+- **MongoDB Atlas (M10 or higher) with Queryable Encryption:** Stores
+  only ciphertext (Binary Subtype 06) for every protected field. A
+  database administrator with full cluster access sees opaque bytes. TLS
+  1.3 protects all data in transit. The PSP project relies on equality
+  search, which is supported in production. 
+
+- **AWS KMS:** Holds the :abbr:`CMK (Customer Master Key)`
+  that wraps and unwraps the data encryption keys. The CMK stays in
+  |kms|, and MongoDB does not have access to it. A local key provider is
+  available as an offline fallback for demos.
+
+.. note::
+
+   Queryable Encryption support for prefix, suffix, and substring
+   queries is in public preview and requires MongoDB 8.2 or later.
+   Ensure you’re using MongoDB 8.2 or later on both the Atlas cluster
+   and the ``crypt_shared`` library. Equality and range queries do not
+   need 8.2.
+
+Data Model Approach
+-------------------
+
+The PSP project data model follows BIAN service domain naming
+conventions, so every collection and field maps to a service domain
+defined in the BIAN standard. On top of BIAN, MongoDB Queryable
+Encryption defines the field-level security posture.
+
+Query Types and How the Project Applies Them
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB Queryable Encryption keeps a field encrypted client-side while
+still allowing the server to query the ciphertext. The PSP project uses
+these query types:
+
+- **Equality (production):** The searchable mode for the PCI DSS-scoped
+  lookup keys. The driver encrypts the query value and matches it
+  against an encrypted index, so the server does not decrypt the field.
+  This feature lets a fraud analyst find a record by email, phone, or
+  account reference without exposing plaintext.
+
+- **No query (retrieval-only):** The non-searchable mode for the
+  highest-sensitivity fields, including residential address, government
+  identifier, and raw gateway payloads. An authorized client decrypts
+  these fields just-in-time only.
+
+- **Range (production):** Used for value-band lookups, such as filtering
+  by an amount range. It keeps the amount encrypted.
+
+- **Prefix, suffix, and substring (public preview):** Demonstrated for
+  :abbr:`KYC (Know Your Customer)` style partial-match lookups on
+  encrypted identity fields.
+
+For the PCI DSS-scoped card and PII fields below, the access design
+reduces to the following categories:
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 30 20 30 15
+
+   * - Field
+     - Classification
+     - Encryption Mode
+     - Searchable
+   * - ``cardTransactionAccountReference``
+     - Account reference / PII
+     - ``QE:equality``
+     - Yes
+   * - ``customerAgreementReference``
+     - Account reference
+     - ``QE:equality``
+     - Yes
+   * - ``partyEmailAddress``
+     - PII
+     - ``QE:equality``
+     - Yes
+   * - ``partyMobilePhoneNumber``
+     - PII
+     - ``QE:equality``
+     - Yes
+   * - ``paymentCardExpirationDate``
+     - CHD
+     - ``QE:none``
+     - No
+   * - ``customerAgreementResidentialAddress``
+     - High PII
+     - ``QE:none``
+     - No
+   * - ``governmentIdentificationReference``
+     - High PII
+     - ``QE:none``
+     - No
+   * - ``rawGatewayPayload``, ``processorTransactionMetadata``
+     - Sensitive operational
+     - ``QE:none``
+     - No
+   * - ``paymentCardReference``
+     - Network token
+     - Plaintext
+     - Yes
+   * - ``paymentCardMaskedPanDisplay``
+     - Display only
+     - Plaintext
+     - No
+   * - Full PAN (``paymentCardNumber``)
+     - CHD
+     - Not stored by the PSP core
+     - n/a for the PSP core
+   * - :abbr:`CVV (Card Verification Value)` and :abbr:`PIN (Personal
+       Identification Number)`
+     - Sensitive Authentication Data
+     - Never stored
+     - n/a
+
+Design choices that keep cardholder data out of scope where possible
+include:
+
+- **PAN tokenization:** The application replaces the full PAN with a
+  ``tok_<uuid>`` surrogate token and retains only the last four digits
+  for display purposes.
+
+- **Zero SAD capture:** Endpoints never capture :abbr:`SAD (Sensitive
+  Authentication)` such as CVV or PIN.
+
+Reduce Scope through Segmentation and Tokenization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A common PCI DSS practice keeps cardholder data out of systems that do
+not need it, so that most of the platform falls outside the CDE. These
+techniques apply segmentation, which isolates the CDE from the rest of
+the system, and tokenization, which replaces the primary account number
+with a surrogate token held in a dedicated tokenization vault.
+Segmentation is not a PCI DSS requirement, but it takes systems out of
+scope and reduces assessment cost; when used, it must be documented,
+justified, and validated.
+
+The PSP project applies these techniques at the data layer:
+
+- **The full PAN never resides in the PSP core:** The core stores only
+  the surrogate token, the :abbr:`BIN (Bank Identification Number)`, and
+  the last four digits. Most of the platform carries no cardholder data
+  and stays out of scope. The full PAN belongs to the card-issuer
+  subsystem, which is external in production. In the demo, a replaceable
+  built-in issuer module stands in and stores the PAN in its own
+  isolated vault, encrypted with ``QE:equality``. This field can be
+  matched for exact lookup and duplicate detection without being
+  decrypted.
+
+- **PII is centralized:** Identity fields, such as email, or phone, live
+  in a single BIAN SD-13 party collection that the agreement, card, and
+  transaction records reference. One place to protect and process a
+  data-subject erasure request.
+
+- **Sensitive fields sit behind a separate key tier:** ``QE:none``
+  fields use a different data encryption key tier than the searchable
+  ``QE:equality`` fields, so the boundary between sensitive and
+  non-sensitive data is enforced by the keys.
+
+This is a reference pattern, not a certification. The CDE definition and
+its validation remain the customer's responsibility and the assessor's
+to confirm.
+
+Access Control Enforced Keys, Not Application Code
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Separate DEK back the encryption tiers:
+
+- **Lookup tier:** ``QE:equality`` keys are available to all
+  authenticated analyst roles for search.
+
+- **Sensitive tier:** ``QE:none`` keys are available only to a level 2
+  investigator holding a valid, short-lived escalation token, and to a
+  read-only security auditor.
+
+- **The design core:** A level 1 client's encrypted-field map omits the
+  sensitive keys, so the driver cannot decrypt those fields and returns
+  them as ciphertext. Field-level access control here is cryptographic
+  rather than a projection in application code, which reduces the risk
+  of an accidental leak through a query bug. When an analyst escalates a
+  case and a level 2 investigator approves, the investigator receives an
+  escalation token that activates the sensitive-tier client pool for
+  that request.
+
+Build the Solution
+------------------
+
+This section is a deployment guide for teams that want to run and
+evaluate the solution. It covers the configuration choices that matter
+for a successful deployment, how to run the stack locally and how to
+deploy it for production. Use this `GitHub repository
+<https://github.com/mongodb-industry-solutions/sec-fsi-pci-dss/wiki>`__
+to implement this solution.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Set up the prerequisites 
+
+      Verify that your project complies with the following requirements:
+
+      - Node.js 20 LTS or higher.
+
+      - Docker and Docker Compose (recommended to run the full stack).
+
+      - A {+service-full+} cluster, M10 or higher. Queryable Encryption
+        is not available on the free tier.
+
+      - A key provider, such as AWS KMS, or the local provider,
+        ``PSP_KMS_PROVIDER=local``, for offline development.
+
+      - The :ref:`qe-reference-shared-library`. Download it from the MongoDB Enterprise downloads
+        and point to ``MONGODB_CRYPT_SHARED_LIB_PATH``. The backend
+        falls back to common install paths if unset.
+
+   .. step:: Configure the key management service
+
+      Use the database setup command ``npm run setup:db`` to provision
+      the MongoDB key vault. Use a DEK for each encrypted field, wrapped
+      by the CMK. This step is idempotent, so you can safely re-run it
+      to reuse existing keys.
+
+      Use a managed KMS, such as AWS KMS, for any production or
+      production-like deployment. The CMK stays in the organization’s
+      own account and MongoDB does not have access to it.
+
+      For AWS KMS, configure the provider through environment variables:
+
+      .. code-block:: sh  
+         :copyable: true  
+
+         PSP_KMS_PROVIDER=aws
+         AWS_CMK_ARN=arn:aws:kms:<region>:<account-id>:key/<key-id>
+         AWS_REGION=<region>
+         AWS_ACCESS_KEY_ID=<access-key-id>
+         AWS_SECRET_ACCESS_KEY=<secret-access-key>
+         # AWS_SESSION_TOKEN=<token> # optional, for temporary credentials
+
+      Alternatively, use a local key provider which keeps the master key
+      in an environmental variable. This setup operates as a workaround
+      for offline demos and local development, and is not appropriate
+      for real cardholder data.
+
+      Configure the local KMS workaround for offline demos only:
+
+      .. code-block:: sh  
+         :copyable: true  
+
+         PSP_KMS_PROVIDER=local
+         PSP_KMS_LOCAL_MASTER_KEY=<96-byte base64 key> # generate with: npm run setup:key:master
+   
+      The local provider requires a 96-byte base64 master key. MongoDB
+      Queryable Encryption expects this size for a local provider.
+
+   .. step:: Configure the event bus
+
+      The platform is event-driven. Business and compliance events flow
+      over an event bus. The engine is selected by ``EVENT_BUS_ENGINE``,
+      and the same publisher and consumer code runs regardless of the
+      choice.
+
+      Use Kafka for production or high-throughput environments, so
+      events are durable, partitioned, and consumable by other systems.
+
+      .. code-block:: sh  
+         :copyable: true  
+
+         EVENT_BUS_ENGINE=kafka
+         KAFKA_BROKERS=broker1:9092,broker2:9092
+         KAFKA_CLIENT_ID=pci-psp
+         KAFKA_SSL=true
+         KAFKA_SASL_MECHANISM=plain # or scram-sha-256 / scram-sha-512
+         KAFKA_SASL_USERNAME=<username>
+         KAFKA_SASL_PASSWORD=<password>
+         EVENT_BUS_TOPIC_PREFIX=pci.psp
+
+      Use the in-process engine for less demanding environments like
+      local development, demos, or low-volume deployments. 
+
+      .. code-block:: sh  
+         :copyable: true  
+
+         EVENT_BUS_ENGINE=in-process
+
+      Card data travels as an encrypted envelope, so the choice of
+      engine does not change the PCI DSS posture.
+
+   .. step:: Set additional configurations
+
+      Set the following values in the root ``.env`` before starting the
+      stack:
+
+      - {+service-full+}: ``MONGODB_URI``, ``MONGODB_DB_NAME``
+      
+      - QE shared library: ``MONGODB_CRYPT_SHARED_LIB_PATH``
+      
+      - Authentication: ``PSP_JWT_SECRET``, ``PSP_OAUTH_KEY_PROVIDER``
+      
+      - Frontend/merchant: ``NEXT_PUBLIC_PSP_URL_BACKEND_PUBLIC``,
+        ``PSP_MERCHANT_OAUTH_CLIENT_ID``,
+        ``PSP_MERCHANT_OAUTH_CLIENT_SECRET``,
+        ``PSP_MERCHANT_SESSION_SECRET``   
+
+      The repository contains a ``.env`` file `to edit
+      <https://github.com/mongodb-industry-solutions/sec-fsi-pci-dss/blob/main/backend/.env.example>`__;
+      see the `Installation wiki page
+      <https://github.com/mongodb-industry-solutions/sec-fsi-pci-dss/wiki/Installation>`__
+      for the full list.
+
+   .. step:: Run the demo locally with Docker Compose
+
+      Install dependencies, provision and seed the database, then start
+      the stack. Docker Compose is the recommended path for a first run.
+      It starts the backend, the PSP portal, and the merchant app as a
+      self-contained containerised stack:
+
+      .. code-block:: sh  
+         :copyable: true  
+
+         npm run setup      # install root + backend + frontend + merchant dependencies
+         npm run setup:db   # create QE collections, provision DEKs and indexes
+         npm run setup:seed # insert synthetic BIAN demo data
+         docker compose up  # start the full stack
+
+      For local development with hot reload, use ``npm run dev`` instead of
+      ``docker compose up``.
+
+      Once running, the services are available at:
+
+      - PSP portal at http://localhost:8080
+
+      - Merchant app at http://localhost:8082
+
+      - Backend API at http://localhost:8081 
+
+      - OpenAPI/Swagger at ``/doc``
+
+      - Health check at ``/api/v1/system/health``
+
+      .. figure:: /includes/images/industry-solutions/pci-dss-ui.svg
+         :figwidth: 750px
+         :alt: Leafy Pay application demo user interface 
+      
+         Figure 4. Leafy Pay application demo user interface 
+      
+      ``setup:db`` requires a live M10 or higher Atlas cluster with
+      valid KMS credentials. The demo uses only synthetic data.
+
+   .. step:: Deploy for production 
+
+      For a production or shared environment, deploy to Kubernetes
+      rather than a single Docker Compose host:
+
+      .. code-block:: sh  
+         :copyable: true  
+
+         npm run deploy:kube     # Kubernetes deploy via tools/kube.ts
+         # npm run deploy:docker # alternative: containerised deploy with docker compose
+
+      Recommended production settings:
+
+      - Use AWS KMS for the key provider and the Kafka event bus.
+
+      - Provide the QE per-tier connection strings and credentials as
+        Kubernetes secrets.
+
+      - Terminate client traffic over TLS, and reach Atlas over private
+        endpoints where available.
+
+      - Scale the backend horizontally once AWS KMS is in place; keep a
+        single replica only while running on the local key provider.
+
+Key Learnings
+-------------
+
+- **Design for shared responsibility from day one:** {+service-full+}'s
+  PCI DSS certification lets the infrastructure layer be inherited
+  through the AOC, but the application layer remains the customer's
+  responsibility. 
+
+- **Enable encryption and searchability together:** Queryable Encryption
+  supports exact-match search on encrypted PII without the server
+  decrypting it, which can ease the "decrypt to investigate" trade-off
+  that tends to widen PCI DSS scope.
+
+- **Enforce access control with keys, not just code:** A per-tier DEK
+  model makes field-level access cryptographic. A low-privilege client
+  cannot decrypt sensitive fields, which lowers the chance that a query
+  bug leaks them.
+
+- **Reduce scope before protecting data:** Tokenizing the PAN and
+  storing only the masked last four digits keeps most of the system out
+  of cardholder-data scope. Data that is out of scope needs fewer
+  controls than data that is encrypted but still in scope, so scope
+  reduction shrinks the audit surface.
+
+- **Design the audit trail to outlive the keys:** Keep the append-only
+  access log unencrypted and separate from the data it describes, so it
+  stays readable through key rotation and supports the access logging and
+  monitoring that PCI DSS expects.
+
+Authors
+-------
+
+- Antonio Membrides Espinosa, MongoDB 
+
+Learn More
+----------
+
+- `Architecture Overview <https://github.com/mongodb-industry-solutions/sec-fsi-pci-dss/wiki/architecture>`__
+
+- :ref:`arch-center-is-document-intelligence-fsi`
+
+- :ref:`arch-center-is-payments-solution`
