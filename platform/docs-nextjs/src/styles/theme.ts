@@ -5,8 +5,6 @@ const fontSize = {
   default: '16px',
   h1: '36px',
   h2: '24px',
-  h3: '18px',
-  h4: '16px',
 };
 
 const size = {
@@ -17,7 +15,6 @@ const size = {
   large: '32px',
   xlarge: '64px',
   xxlarge: '128px',
-  maxWidth: '1400px',
   stripUnit(unit: string): number {
     return parseInt(unit, 10);
   },
@@ -41,7 +38,6 @@ const breakpoints = {
  */
 const screenSize = {
   upToXSmall: `only screen and (max-width: ${breakpoints.xSmall}px)`,
-  xSmallAndUp: `not all and (max-width: ${breakpoints.xSmall}px)`,
   upToSmall: `only screen and (max-width: ${breakpoints.small}px)`,
   smallAndUp: `not all and (max-width: ${breakpoints.small}px)`,
   upToMedium: `only screen and (max-width: ${breakpoints.medium}px)`,
@@ -53,7 +49,6 @@ const screenSize = {
   upTo2XLarge: `only screen and (max-width: ${breakpoints.xxLarge}px)`,
   '2XLargeAndUp': `not all and (max-width: ${breakpoints.xxLarge}px)`,
   upTo3XLarge: `only screen and (max-width: ${breakpoints.xxxLarge}px)`,
-  '3XLargeAndUp': `not all and (max-width: ${breakpoints.xxxLarge}px)`,
   tablet: `only screen and (min-width: ${breakpoints.small + 1}px) and (max-width: ${breakpoints.large}px)`,
 };
 
@@ -61,7 +56,6 @@ const header = {
   bannerHeight: '40px',
   navbarHeight: '95px',
   navbarMobileHeight: '56px',
-  docsMobileMenuHeight: '52px',
   // used for scrolling elements into place, considering sticky header
   navbarScrollOffset: '85px',
   actionBarMobileHeight: '60px',
@@ -71,12 +65,6 @@ const header = {
 
 const widgets = {
   buttonContainerMobileHeight: '60px',
-};
-
-const transitionSpeed = {
-  iaExit: '100ms',
-  iaEnter: '200ms',
-  contentFade: '300ms',
 };
 
 // z-indexes for topmost major elements on the site. Subcomponents should have their own z-indexes set
@@ -92,8 +80,6 @@ const zIndexes = {
 // media queries that define system color preference
 const colorPreference = {
   dark: '(prefers-color-scheme: dark)',
-  light: '(prefers-color-scheme: light)',
-  auto: '(prefers-color-scheme: auto)',
 };
 
 export const theme = {
@@ -103,7 +89,6 @@ export const theme = {
   widgets,
   screenSize,
   size,
-  transitionSpeed,
   zIndexes,
   colorPreference,
 };
