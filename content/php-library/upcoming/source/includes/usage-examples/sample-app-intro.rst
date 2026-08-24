@@ -10,3 +10,10 @@ page. To use the sample application, perform the following steps:
 #. Copy the following code and paste it into a new ``.php`` file.
 #. Copy a code example from this page and paste it on the specified
    lines in the file.
+
+.. tip::
+
+   The ``require`` statement in the sample application loads the {+php-library+}
+   and assumes that the ``vendor`` directory is in the same directory as your
+   application file. If your application file is located elsewhere, adjust
+   the path to ``vendor/autoload.php`` accordingly.

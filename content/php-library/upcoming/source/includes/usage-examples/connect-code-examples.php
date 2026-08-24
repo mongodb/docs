@@ -1,6 +1,6 @@
 <?php
 
-require 'vendor/autoload.php';
+require __DIR__ . '/vendor/autoload.php';
 
 // Connects to a local MongoDB deployment
 // start-local
@@ -10,7 +10,7 @@ $client = new MongoDB\Client($uri);
 
 // Connects to a MongoDB Atlas deployment
 // start-atlas
-$uri = '<Atlas connection string>';
+$uri = 'mongodb+srv://<db_username>:<db_password>@<cluster-url>/';
 $client = new MongoDB\Client($uri);
 // end-atlas
 
