@@ -199,6 +199,11 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/architecture/:version/solutions-library/insurance-agentic-claims',
           },
           {
+            label: 'Agentic Control Center',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/agentic-control-center',
+          },
+          {
             label: 'AI-Enhanced Claim Adjustment',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/insurance-image-search',
