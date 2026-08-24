@@ -2,8 +2,8 @@
 
    Run the ``--version`` command:
 
-.. code-block:: sh
+   .. code-block:: sh
 
-   atlas --version
+      atlas --version
 
    The response returns your {+atlas-cli+} version.

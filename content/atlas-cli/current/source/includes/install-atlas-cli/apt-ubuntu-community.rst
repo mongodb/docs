@@ -31,8 +31,8 @@ Procedure
       .. code-block:: sh
 
          curl -fsSL https://pgp.mongodb.com/server-{+mdbVersion+}.asc | \
-            sudo gpg -o /usr/share/keyrings/mongodb-server-{+mdbVersion+}.gpg \
-            --dearmor
+         sudo gpg -o /usr/share/keyrings/mongodb-server-{+mdbVersion+}.gpg \
+         --dearmor
 
       A successful command returns an ``OK``.
 

@@ -55,12 +55,16 @@ Related Commands
 ----------------
 
 * :ref:`atlas-api-invoices-createCostExplorerProcess` - Creates a query process within the Cost Explorer for the given parameters.
+* :ref:`atlas-api-invoices-createOrgInvoiceReport` - Requests asynchronous generation of a report for the specified invoice.
 * :ref:`atlas-api-invoices-getCostExplorerUsage` - Returns the usage details for a Cost Explorer query, if the query is finished and the data is ready to be viewed.
 * :ref:`atlas-api-invoices-getInvoice` - Returns one invoice that MongoDB issued to the specified organization.
 * :ref:`atlas-api-invoices-getInvoiceCsv` - Returns one invoice that MongoDB issued to the specified organization in CSV format.
+* :ref:`atlas-api-invoices-getOrgAssociatedInvoices` - Returns a list of invoice IDs for the specified organization and month/year.
+* :ref:`atlas-api-invoices-getOrgInvoiceReport` - Returns the status and details of a previously requested invoice report.
 * :ref:`atlas-api-invoices-getSku` - Returns details about a single SKU (Stock Keeping Unit) by its identifier.
 * :ref:`atlas-api-invoices-listInvoicePending` - Returns all invoices accruing charges for the current billing cycle for the specified organization.
 * :ref:`atlas-api-invoices-listInvoices` - Returns all invoices that MongoDB issued to the specified organization.
+* :ref:`atlas-api-invoices-listOrgInvoiceReports` - Returns all unexpired reports for the specified invoice, newest first.
 * :ref:`atlas-api-invoices-listSkus` - Returns all available SKUs (Stock Keeping Units) that can appear on MongoDB invoices.
 * :ref:`atlas-api-invoices-searchInvoiceLineItems` - Query the lineItems of the specified invoice and return the result JSON.
 
@@ -69,11 +73,15 @@ Related Commands
    :titlesonly:
 
    createCostExplorerProcess </command/atlas-api-invoices-createCostExplorerProcess>
+   createOrgInvoiceReport </command/atlas-api-invoices-createOrgInvoiceReport>
    getCostExplorerUsage </command/atlas-api-invoices-getCostExplorerUsage>
    getInvoice </command/atlas-api-invoices-getInvoice>
    getInvoiceCsv </command/atlas-api-invoices-getInvoiceCsv>
+   getOrgAssociatedInvoices </command/atlas-api-invoices-getOrgAssociatedInvoices>
+   getOrgInvoiceReport </command/atlas-api-invoices-getOrgInvoiceReport>
    getSku </command/atlas-api-invoices-getSku>
    listInvoicePending </command/atlas-api-invoices-listInvoicePending>
    listInvoices </command/atlas-api-invoices-listInvoices>
+   listOrgInvoiceReports </command/atlas-api-invoices-listOrgInvoiceReports>
    listSkus </command/atlas-api-invoices-listSkus>
    searchInvoiceLineItems </command/atlas-api-invoices-searchInvoiceLineItems>

@@ -4,7 +4,7 @@
 
 .. step:: Enter the authorization code.
 
-          Paste your activation code into the browser and click 
+          Paste your activation code into the browser and click
           :guilabel:`Confirm Authorization`.
 
 .. step:: Return to the {+atlas-cli+}.
@@ -15,10 +15,10 @@
 
 .. step:: Select your default organization.
 
-          Press the :kbd:`Down Arrow` and :kbd:`Up Arrow`  
+          Press the :kbd:`Down Arrow` and :kbd:`Up Arrow`
           keys to highlight the desired organization and press
           :guilabel:`Enter`.
-                  
+
           .. code-block:: sh
              :copyable: false
 
@@ -29,55 +29,55 @@
 
 .. step:: Select your default project.
 
-          Press the :kbd:`Down Arrow` and :kbd:`Up Arrow`  
+          Press the :kbd:`Down Arrow` and :kbd:`Up Arrow`
           keys to highlight the desired project and press
           :guilabel:`Enter`.
-                  
+
           .. code-block:: sh
              :copyable: false
 
              ? Choose a default project:  [Use arrows to move, type to filter]
-               Project1 (5e5ebffd0c04a97009061234)
-               Project2 (5cfacee6014b761b07f15678)
+             Project1 (5e5ebffd0c04a97009061234)
+             Project2 (5cfacee6014b761b07f15678)
              > Project3 (5e39bf4979358e6857741212)
-               Project4 (5c815cc7014b768fb67e3434)
+             Project4 (5c815cc7014b768fb67e3434)
 
 .. step:: Select your default output format.
 
-          Press the :kbd:`Down Arrow` and :kbd:`Up Arrow`  
+          Press the :kbd:`Down Arrow` and :kbd:`Up Arrow`
           keys to highlight the desired output format and press
           :guilabel:`Enter`.
 
           .. code-block:: sh
-            :copyable: false
+             :copyable: false
 
-            ? Default Output Format:  [Use arrows to move, type to filter]
-            > plaintext
-              json
+             ? Default Output Format:  [Use arrows to move, type to filter]
+             > plaintext
+             json
 
           .. list-table::
-              :header-rows: 1
-              :widths: 30 70
+             :header-rows: 1
+             :widths: 30 70
 
-              * - Option
-                - Description
-   
-              * - ``plaintext``
-                - Human-readable output that includes all fields that 
-                   the {+atlas-cli+} returns.
+             * - Option
+               - Description
 
-              * - ``json``
-                - JSON output that includes all fields that {+mcli+} returns.
+             * - ``plaintext``
+               - Human-readable output that includes all fields that
+                 the {+atlas-cli+} returns.
+
+             * - ``json``
+               - JSON output that includes all fields that {+mcli+} returns.
 
 .. step:: Specify the path to the MongoDB Shell, {+mongosh+}, on your system.
 
-   The {+atlas-cli+} uses the specified {+mongosh+} path so that you can 
-   access your deployments. The default value is 
-   ``/usr/local/bin/mongosh``. Press :kbd:`Enter` to accept the default 
+   The {+atlas-cli+} uses the specified {+mongosh+} path so that you can
+   access your deployments. The default value is
+   ``/usr/local/bin/mongosh``. Press :kbd:`Enter` to accept the default
    or specify the path to {+mongosh+} on your system and press :kbd:`Enter`.
 
-   .. code-block:: sh 
-      :copyable: false 
+   .. code-block:: sh
+      :copyable: false
 
       ? Default MongoDB Shell Path: [? for help] (/usr/local/bin/mongosh)
 
@@ -96,7 +96,7 @@
 
    .. code-block:: sh
       :copyable: false
-              
+
       SETTING           VALUE
       "access_token":   "redacted",
       "mongosh_path":   "/usr/local/bin/mongosh",
@@ -105,4 +105,3 @@
       "project_id":     "60c94857241ae99848af45ad",
       "refresh_token":  "redacted",
       "service":        "cloud"
-

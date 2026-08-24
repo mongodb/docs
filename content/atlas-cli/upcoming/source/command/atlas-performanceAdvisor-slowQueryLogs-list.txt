@@ -72,7 +72,7 @@ Options
    * - --since
      - int
      - false
-     - Date and time from which the query retrieves the suggested indexes. Specify this value as the number of seconds that have elapsed since the UNIX epoch. If you don't set the duration option, this command returns data from the since value to the current time.
+     - Date and time from which the query retrieves the suggested indexes. Specify this value as the number of milliseconds that have elapsed since the UNIX epoch. If you don't set the duration option, this command returns data from the since value to the current time.
 
 Inherited Options
 -----------------

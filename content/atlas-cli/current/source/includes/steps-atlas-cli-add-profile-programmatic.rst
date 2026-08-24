@@ -4,10 +4,10 @@
 
 .. step:: Select your default organization.
 
-          Press the :kbd:`Down Arrow` and :kbd:`Up Arrow`  
+          Press the :kbd:`Down Arrow` and :kbd:`Up Arrow`
           keys to highlight the desired organization and press
           :kbd:`Enter`.
-                  
+
           .. code-block:: sh
              :copyable: false
 
@@ -16,31 +16,31 @@
 
 .. step:: Select your default project.
 
-          Press the :kbd:`Down Arrow` and :kbd:`Up Arrow`  
+          Press the :kbd:`Down Arrow` and :kbd:`Up Arrow`
           keys to highlight the desired project and press
           :guilabel:`Enter`.
-                  
+
           .. code-block:: sh
              :copyable: false
 
              ? Choose a default project:  [Use arrows to move, type to filter]
-               Project1 (5e5ebffd0c04a97009061234)
-               Project2 (5cfacee6014b761b07f15678)
+             Project1 (5e5ebffd0c04a97009061234)
+             Project2 (5cfacee6014b761b07f15678)
              > Project3 (5e39bf4979358e6857741212)
-               Project4 (5c815cc7014b768fb67e3434)
+             Project4 (5c815cc7014b768fb67e3434)
 
 .. step:: Select your default output format.
 
-          Press the :kbd:`Down Arrow` and :kbd:`Up Arrow`  
+          Press the :kbd:`Down Arrow` and :kbd:`Up Arrow`
           keys to highlight the desired output format and press
           :kbd:`Enter`.
 
           .. code-block:: sh
-            :copyable: false
+             :copyable: false
 
-            ? Default Output Format:  [Use arrows to move, type to filter]
-            > plaintext
-              json
+             ? Default Output Format:  [Use arrows to move, type to filter]
+             > plaintext
+             json
 
           .. list-table::
              :header-rows: 1
@@ -48,9 +48,9 @@
 
              * - Option
                - Description
-   
+
              * - ``plaintext``
-               - Human-readable output that includes all fields that 
+               - Human-readable output that includes all fields that
                  the {+atlas-cli+} returns.
 
              * - ``json``
@@ -58,13 +58,13 @@
 
 .. step:: Specify the path to the MongoDB Shell, {+mongosh+}, on your system.
 
-   The {+atlas-cli+} uses the specified {+mongosh+} path so that you can 
-   access your deployments. The default value is 
-   ``/usr/local/bin/mongosh``. Press :kbd:`Enter` to accept the default 
+   The {+atlas-cli+} uses the specified {+mongosh+} path so that you can
+   access your deployments. The default value is
+   ``/usr/local/bin/mongosh``. Press :kbd:`Enter` to accept the default
    or specify the path to {+mongosh+} on your system and press :kbd:`Enter`.
 
-   .. code-block:: sh 
-      :copyable: false 
+   .. code-block:: sh
+      :copyable: false
 
       ? Default MongoDB Shell Path: [? for help] (/usr/local/bin/mongosh)
 
@@ -83,7 +83,7 @@
 
    .. code-block:: sh
       :copyable: false
-              
+
       SETTING            VALUE
       "mongosh_path":    "/usr/local/bin/mongosh",
       "org_id":          "60c9877baf349d6fc4fd9744",
@@ -92,4 +92,3 @@
       "project_id":      "60c94857241ae99848af45ad",
       "public_api_key":  "redacted",
       "service":         "cloud"
-

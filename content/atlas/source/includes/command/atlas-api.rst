@@ -216,6 +216,7 @@ Related Commands
 * :ref:`atlas-api-pushBasedLogExport` - You can continually export mongod, mongos, and audit logs to an AWS S3 bucket.
 * :ref:`atlas-api-queryShapeInsights` -
 * :ref:`atlas-api-rateLimiting` - Returns details about rate limit policies for the Atlas Administration API.
+* :ref:`atlas-api-remoteMcpConfigurations` - Returns and manages Remote MCP configurations for organizations and projects.
 * :ref:`atlas-api-resourcePolicies` - Configure and manage Atlas Resource Policies within your organization.
 * :ref:`atlas-api-rollingIndex` - Creates one index to a database deployment in a rolling manner.
 * :ref:`atlas-api-root` - Returns details that describe the MongoDB Cloud build and the access token that requests this resource.
@@ -271,6 +272,7 @@ Related Commands
    pushBasedLogExport </command/atlas-api-pushBasedLogExport>
    queryShapeInsights </command/atlas-api-queryShapeInsights>
    rateLimiting </command/atlas-api-rateLimiting>
+   remoteMcpConfigurations </command/atlas-api-remoteMcpConfigurations>
    resourcePolicies </command/atlas-api-resourcePolicies>
    rollingIndex </command/atlas-api-rollingIndex>
    root </command/atlas-api-root>

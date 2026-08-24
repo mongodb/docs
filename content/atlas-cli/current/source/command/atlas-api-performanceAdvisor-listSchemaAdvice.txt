@@ -48,6 +48,10 @@ Options
      - string
      - true
      - Human-readable label that identifies the cluster.
+   * - --envelope
+     - envelope
+     - false
+     - Flag that indicates whether Application wraps the response in an envelope JSON object. Some API clients cannot access the HTTP response headers or status code. To remediate this, set envelope=true in the query. Endpoints that return a list of results use the results object as an envelope. Application adds the status parameter to the response body.
    * - --groupId
      - string
      - true

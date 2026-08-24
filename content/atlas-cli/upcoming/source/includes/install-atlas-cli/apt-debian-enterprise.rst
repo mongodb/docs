@@ -28,54 +28,54 @@ Procedure
       Replace ``{+mdbVersion+}`` with your
       edition of MongoDB.
 
-.. code-block:: sh
+      .. code-block:: sh
 
-   curl -fsSL https://pgp.mongodb.com/server-{+mdbVersion+}.asc | \
-   sudo gpg -o /usr/share/keyrings/mongodb-server-{+mdbVersion+}.gpg \
-   --dearmor
+         curl -fsSL https://pgp.mongodb.com/server-{+mdbVersion+}.asc | \
+         sudo gpg -o /usr/share/keyrings/mongodb-server-{+mdbVersion+}.gpg \
+         --dearmor
 
-   A successful command returns an ``OK``.
+      A successful command returns an ``OK``.
 
    .. step:: Create a list file for your version of Debian.
 
-   Create a ``/etc/apt/sources.list.d/mongodb-enterprise.list`` file
-   for your version of Debian.
-   Replace ``{+mdbVersion+}`` with your edition of
-   MongoDB.
+      Create a ``/etc/apt/sources.list.d/mongodb-enterprise.list`` file
+      for your version of Debian.
+      Replace ``{+mdbVersion+}`` with your edition of
+      MongoDB.
 
-   .. tabs::
+      .. tabs::
 
-   .. tab:: Debian 11 (Bullseye)
-   :tabid: ent-deb-11
+         .. tab:: Debian 11 (Bullseye)
+            :tabid: ent-deb-11
 
-   .. code-block:: sh
+            .. code-block:: sh
 
-   echo "deb http://repo.mongodb.com/apt/debian bullseye/mongodb-enterprise/{+mdbVersion+} main" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
+               echo "deb http://repo.mongodb.com/apt/debian bullseye/mongodb-enterprise/{+mdbVersion+} main" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
 
    .. step:: Refresh the package database.
 
-   Invoke the following ``apt`` command:
+      Invoke the following ``apt`` command:
 
-   .. code-block:: sh
+      .. code-block:: sh
 
-   sudo apt-get update
+         sudo apt-get update
 
    .. step:: Install the {+atlas-cli+} and {+mongosh+}.
 
-   Invoke the following ``apt`` command to install both the
-   {+atlas-cli+} and {+mongosh+}:
+      Invoke the following ``apt`` command to install both the
+      {+atlas-cli+} and {+mongosh+}:
 
-   .. code-block:: sh
+      .. code-block:: sh
 
-   sudo apt-get install -y mongodb-atlas
+         sudo apt-get install -y mongodb-atlas
 
-   If you don't want to install {+mongosh+}, invoke the
-   following ``apt`` command instead to install the
-   {+atlas-cli+} only:
+      If you don't want to install {+mongosh+}, invoke the
+      following ``apt`` command instead to install the
+      {+atlas-cli+} only:
 
-   .. code-block:: sh
+      .. code-block:: sh
 
-   sudo apt-get install -y mongodb-atlas-cli
+         sudo apt-get install -y mongodb-atlas-cli
 
    .. include:: /includes/steps-verify-atlas-cli.rst
 
@@ -95,16 +95,16 @@ To update the {+atlas-cli+} with Apt, follow the steps below.
       using the ``mongodb-atlas`` package, invoke the following
       ``apt`` command:
 
-.. code-block:: sh
+      .. code-block:: sh
 
-   sudo apt-get install --only-upgrade mongodb-atlas
+         sudo apt-get install --only-upgrade mongodb-atlas
 
-   If you installed the {+atlas-cli+} only using the
-   ``mongodb-atlas-cli`` package, invoke the following ``apt``
-   command:
+      If you installed the {+atlas-cli+} only using the
+      ``mongodb-atlas-cli`` package, invoke the following ``apt``
+      command:
 
-   .. code-block:: sh
+      .. code-block:: sh
 
-   sudo apt-get install --only-upgrade mongodb-atlas-cli
+         sudo apt-get install --only-upgrade mongodb-atlas-cli
 
    .. include:: /includes/steps-verify-update-atlas-cli.rst

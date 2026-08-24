@@ -1,6 +1,6 @@
 
-.. procedure:: 
-   :style: normal 
+.. procedure::
+   :style: normal
 
    .. step:: Install the dependencies.
 
@@ -12,16 +12,16 @@
          .. code-block::
 
             brew install mongodb-atlas-cli
-               
+
          For installation instructions on other operating systems,
          see :ref:`install-atlas-cli`.
 
       #. Install `Docker <https://www.docker.com/>`__.
 
-         Docker requires a network connection for pulling and caching 
+         Docker requires a network connection for pulling and caching
          MongoDB images.
 
-         - For MacOS or Windows, install `Docker Desktop v4.31+ <https://docs.docker.com/desktop/release-notes/#4310>`__. 
+         - For MacOS or Windows, install `Docker Desktop v4.31+ <https://docs.docker.com/desktop/release-notes/#4310>`__.
          - For Linux, install `Docker Engine v27.0+ <https://docs.docker.com/engine/release-notes/27/>`__.
          - For Linux RHEL, you can also use `Podman v5.0+ <https://podman.io>`__.
 
@@ -31,24 +31,24 @@
 
             brew install mongosh
 
-         For installation instructions on other operating 
+         For installation instructions on other operating
          systems, see :mongosh:`Install mongosh </install>`.
-         
+
       #. (Optional) Install :compass:`Compass </install>` version 1.39.4 or later.
 
          .. code-block:: sh
 
             brew install mongodb-compass
 
-         For installation instructions on other operating 
+         For installation instructions on other operating
          systems, see :compass:`Download and Install Compass </install>`.
-          
-      #. (Optional) Install `Visual Studio Code <https://code.visualstudio.com/download>`__ 
+
+      #. (Optional) Install `Visual Studio Code <https://code.visualstudio.com/download>`__
          and `MongoDB for VS Code Extension <https://www.mongodb.com/docs/mongodb-vscode/install/>`__.
-           
+
          To learn more, see `Install MongoDB for VS Code Extension <https://www.mongodb.com/docs/mongodb-vscode/install/>`__.
 
    .. step:: Create an |service| account.
 
-      If you don't already have an existing |service| account, run ``atlas setup`` in your terminal
-      or `create a new account <https://account.mongodb.com/account/register>`__.
+   If you don't already have an existing |service| account, run ``atlas setup`` in your terminal
+   or `create a new account <https://account.mongodb.com/account/register>`__.
