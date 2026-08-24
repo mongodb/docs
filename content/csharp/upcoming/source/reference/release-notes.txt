@@ -21,6 +21,7 @@
 
 Learn what's new in:
 
+* :ref:`Version 3.11 <csharp-version-3.11>`
 * :ref:`Version 3.10 <csharp-version-3.10>`
 * :ref:`Version 3.9 <csharp-version-3.9>`
 * :ref:`Version 3.8 <csharp-version-3.8>`
@@ -38,6 +39,71 @@ Learn what's new in:
 * :ref:`Version 2.27 <csharp-version-2.27>`
 * :ref:`Version 2.26 <csharp-version-2.26>`
 * :ref:`Version 2.25 <csharp-version-2.25>`
+
+.. _csharp-version-3.11:
+
+What's New in 3.11
+------------------
+
+The 3.11 driver release includes the following new features,
+improvements, and fixes:
+
+- Adds support for routing Client-Side Field Level Encryption (CSFLE)
+  and {+qe+} Key Management System (KMS) requests through an HTTP
+  proxy. To use a proxy, implement the ``IKmsConnector`` interface and
+  pass your implementation to the ``SetKmsConnector()`` method of
+  ``ClientEncryptionOptions`` or ``AutoEncryptionOptions``. The driver
+  then calls your connector to create the network stream to the KMS
+  host and performs the TLS handshake against the KMS host over that
+  stream, so certificate and hostname verification still apply to the
+  KMS host rather than to the proxy.
+
+  The following example passes a connector implementation named
+  ``HttpsProxyKmsConnector`` to both explicit and automatic
+  encryption:
+
+  .. code-block:: csharp
+
+     var kmsConnector = new HttpsProxyKmsConnector(
+         proxyHost: "proxy.example.com", proxyPort: 3129);
+
+     // Explicit encryption
+     var clientEncryptionOptions = new ClientEncryptionOptions(
+         keyVaultClient: keyVaultClient,
+         keyVaultNamespace: keyVaultNamespace,
+         kmsProviders: kmsProviders);
+     clientEncryptionOptions.SetKmsConnector(kmsConnector);
+     using var clientEncryption = new ClientEncryption(clientEncryptionOptions);
+
+     // Automatic encryption
+     var autoEncryptionOptions = new AutoEncryptionOptions(
+         keyVaultNamespace: keyVaultNamespace,
+         kmsProviders: kmsProviders);
+     autoEncryptionOptions.SetKmsConnector(kmsConnector);
+
+     var clientSettings = MongoClientSettings.FromConnectionString(
+         "mongodb://localhost:27017");
+     clientSettings.AutoEncryptionOptions = autoEncryptionOptions;
+     var client = new MongoClient(clientSettings);
+
+  To learn more about CSFLE, see :manual:`Client-Side Field Level
+  Encryption </core/csfle/>` in the Server manual.
+
+- Adds support for the ``baseBackoffMS`` field in client
+  backpressure. When the server returns an overload error that
+  includes ``baseBackoffMS``, the driver uses that value as the base
+  for its retry backoff instead of the driver default.
+
+- Fixes an issue in v3.10 in which a LINQ ``Join()`` or ``LeftJoin()``
+  call whose inner sequence carries operators such as ``Where()``,
+  ``OrderBy()``, ``Skip()``, or ``Take()`` could return incorrect
+  results. The driver again rejects these queries with an
+  ``ExpressionNotSupportedException``, as it did in v3.9 and earlier.
+  The inner sequence must be a bare collection.
+
+To learn more about this release, see the
+:github:`v3.11.0 Release Notes
+<mongodb/mongo-csharp-driver/releases/tag/v3.11.0>` on GitHub.
 
 .. _csharp-version-3.10:
 
