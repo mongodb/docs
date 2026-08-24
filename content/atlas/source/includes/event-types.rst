@@ -3317,13 +3317,13 @@ Host Event Types
      - .. _atlas_event_host_restarted:
 
        Host has restarted
-     - yes
+     - no
 
    * - ``HOST_ROLLBACK``
      - .. _atlas_event_host_rollback:
 
        Host experienced a rollback
-     - yes
+     - no
 
    * - ``HOST_SEARCH_NODE_INDEX_FAILED``
      - .. _atlas_event_host_search_node_index_failed:
