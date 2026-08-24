@@ -91,7 +91,7 @@ $result = $client->bulkWrite($bulkWrite);
 
 // Stores a file in a GridFS bucket and writes data to the file
 // start-gridfs-upload
-$bucket = $client->getDatabase('<database name>')->selectGridFSBucket();
+$bucket = $client->getDatabase('<database name>')->getGridFSBucket();
 $stream = $bucket->openUploadStream('<file name>');
 fwrite($stream, '<data>');
 fclose($stream);
