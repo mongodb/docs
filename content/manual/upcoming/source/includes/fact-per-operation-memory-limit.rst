@@ -1,8 +1,13 @@
 Starting in MongoDB 9.0, MongoDB limits the total amount of memory
 that a single query operation can use. The limit applies to the
 combined memory of all memory-tracked stages of the operation.
-Tracked memory includes blocking stages such as :pipeline:`$group`
-and :pipeline:`$sort`, and the evaluation of expressions.
+
+Tracked memory includes:
+
+- Blocking stages such as :pipeline:`$group` and :pipeline:`$sort`
+- Expression evaluation
+- Query execution stages that buffer records, such as geospatial
+  proximity searches, counts that use an index, and updates
 
 By default, the limit is 1 gigabyte or 20% of the memory available
 to the server process, whichever is greater. MongoDB sets the
