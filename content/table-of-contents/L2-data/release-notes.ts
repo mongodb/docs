@@ -143,7 +143,10 @@ const tocData: TocItem[] = [
         contentSite: 'docs',
         url: '/docs/:version/release-notes/8.2',
         collapsible: true,
-        versions: { excludes: manualVersions.before('v8.2') },
+        // Removed from v8.3 as part of the 8.2 sunset. Still present in
+        // v8.2 and v9.0 (upcoming). Note v8.3 is the named version
+        // 'manual' at runtime -- excluding 'v8.3' would be a no-op.
+        versions: { excludes: [...manualVersions.before('v8.2'), 'manual'] },
         items: [
           {
             label: 'Compatibility Changes',
