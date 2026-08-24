@@ -3,6 +3,7 @@
  * On navigation, layouts preserve state, remain interactive, and do not rerender.
  */
 import { LeafyGreenProviderWrapper } from '@/app/emotion';
+import { ViaProviderWrapper } from '@/app/via-provider';
 import { SiteBannerProvider } from '@/mdx-components/SiteBannerProvider';
 import { Analytics } from '@/mdx-components/Analytics';
 import { WebVitals } from '@/mdx-components/WebVitals';
@@ -44,10 +45,12 @@ export default async function Layout({ children }: { children: React.ReactNode }
             <DarkModeContextProvider>
               <CookiesProvider cookies={cookieValues}>
                 <LeafyGreenProviderWrapper>
-                  <Analytics />
-                  <WebVitals />
-                  {children}
-                  <Footer />
+                  <ViaProviderWrapper>
+                    <Analytics />
+                    <WebVitals />
+                    {children}
+                    <Footer />
+                  </ViaProviderWrapper>
                 </LeafyGreenProviderWrapper>
               </CookiesProvider>
             </DarkModeContextProvider>
