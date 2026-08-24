@@ -1,5 +1,6 @@
 ---
 name: fix-seo
+internal: true
 description: Fix SEO issues in MongoDB docs files. Generates missing titles and meta descriptions, corrects length violations, and fixes heading and image issues. Use when asked to fix SEO issues, add missing titles or meta descriptions, or clean up SEO errors. Also invoked automatically by lint-docs.sh when SEO errors are found.
 argument-hint: <file-or-directory-path>
 ---

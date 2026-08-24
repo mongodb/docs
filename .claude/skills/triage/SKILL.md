@@ -1,5 +1,6 @@
 ---
 name: triage
+internal: true
 description: Run triage duty for CET/Cloud, Server, or Drivers/DBX. Retrieves Needs Triage tickets from Jira, builds a triage plan, and applies changes after human confirmation.
 argument-hint: [cet|server|dbx|--groom-backlog]
 context: fork

@@ -1,5 +1,6 @@
 ---
 name: fix-nested-components
+internal: true
 description: Fix forbidden nested RST components flagged by the nested components linter — callouts inside callouts, callouts inside list-tables, examples inside callouts, examples inside list-tables, and procedures inside procedures. Runs ./lint-docs.sh nested to detect violations, applies the canonical remediation for each, and re-lints to verify. Handles the case where the nested component is pulled in from a shared include reused elsewhere in an un-nested context (inlines the fix at the nesting site instead of editing the shared file). Does NOT handle tabs-in-tabs — use language-tabs-to-composable-scripted for that. Use when the user asks to "fix nested components", "resolve nested component errors", "fix the nested components linter findings", or when the nested linter reports callout/example/procedure nesting.
 argument-hint: '[filepath...]'
 ---

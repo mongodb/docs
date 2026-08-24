@@ -1,5 +1,6 @@
 ---
 name: grove-setup
+internal: true
 description: >
   Set up a local Grove environment for running code example tests. Use when the
   user asks to "set up Grove", "configure the test suite", "get started with

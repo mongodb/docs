@@ -1,5 +1,6 @@
 ---
 name: docs-drift
+internal: true
 description: |
   Detect drift between a documentation property and its source code, classify each finding (Confirmed / Tracked / Upcoming / Intentional / Needs-eng- confirmation), and draft held DOCSP tickets for confirmed drift only. Runs against any property given a manifest (docs source, code repo(s)). Use when a docs engineer wants an accuracy/drift check of a property against its source. Trigger phrases: "check docs drift", "accuracy report", "docs vs source audit", "find documentation drift", "drift check".
 ---

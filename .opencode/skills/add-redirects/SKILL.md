@@ -1,5 +1,6 @@
 ---
 name: add-redirects
+internal: true
 description: Add redirects when MongoDB documentation pages are renamed, moved, or deleted under content/. Use this skill when page .txt files are renamed/moved/deleted in content/*/source/.
 ---
 

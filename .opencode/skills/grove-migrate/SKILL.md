@@ -1,5 +1,6 @@
 ---
 name: grove-migrate
+internal: true
 description: |
   Migrate existing untested code into the Grove test suite. Use when the user asks to "migrate this code", "convert to Grove", "make this testable", "move this example to the test suite", "add tests for this existing code", "migrate the code on this page", or wants to convert documentation code examples that currently live outside of Grove into properly tested, snippeted examples. Supports both page-level migration (scan an RST page for all code) and snippet-level migration (convert a single code block).
 ---

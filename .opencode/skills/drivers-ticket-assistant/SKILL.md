@@ -1,5 +1,6 @@
 ---
 name: drivers-ticket-assistant
+internal: true
 description: Help the user understand and complete their assigned DOCSP tickets for drivers. Provides a prioritized overview of all assigned tickets and suggests next steps. Use only when the user explicitly uses the slash command.
 argument-hint: '[ticket ID or category: in-progress|review|backlog|blocked]'
 disable-model-invocation: true

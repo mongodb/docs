@@ -1,5 +1,6 @@
 ---
 name: grove-setup
+internal: true
 description: >
   Set up a local Grove environment for running code example tests. Use when the
   user asks to "set up Grove", "configure the test suite", "get started with
@@ -117,8 +118,14 @@ sequence.
 | Python | `code-example-tests/python/pymongo/` |
 | Go | `code-example-tests/go/driver/` |
 | Java | `code-example-tests/java/driver-sync/` |
-| C# | `code-example-tests/csharp/driver/` |
+| C# (Driver + EF Core) | `code-example-tests/csharp/driver/` |
 | Mongosh | `code-example-tests/command-line/mongosh/` |
+
+EF Core examples and tests live under `Examples/EfCore/` and `Tests/EfCore/`
+in the C# driver directory — same setup as the driver suite.
+
+**Out of scope**: `java/driver-reactive/`, `go/atlas-sdk/`, and `openapi/` —
+see each project's README.
 
 ## Step 2: Verify Prerequisites
 
@@ -136,7 +143,7 @@ requirements change over time:
 | Mongosh | `node --version` / `npm --version` / `mongosh --version` | `engines` field in `code-example-tests/command-line/mongosh/package.json` |
 
 If the config file doesn't specify a version, fall back to these reasonable
-minimums: Node >= 18, Python >= 3.9, Go >= 1.21, Java >= 17, .NET >= 8.0.
+minimums: Node >= 24.4.1, Python >= 3.9, Go >= 1.24, Java >= 21, .NET >= 10.0.
 
 Mongosh also requires `mongosh` to be installed and on PATH (it's the shell
 binary that tests execute as a subprocess).
@@ -197,6 +204,19 @@ cd code-example-tests/command-line/mongosh && npm install
 Report success or failure. If install fails, diagnose the error (version
 mismatch, network issue, etc.).
 
+### Full pipeline script
+
+Each main suite includes `run-tests.js` (format → test → snip with
+connectivity preflight). After dependencies are installed, writers can
+verify the full workflow with:
+
+```bash
+cd code-example-tests/{driver-dir} && node run-tests.js
+```
+
+Use `--no-snip` to skip snippet extraction. This is optional during setup —
+the smoke test in Step 7 uses lighter-weight test commands.
+
 ### Bluehawk (all suites)
 
 Bluehawk is required when **creating or modifying examples** — it
@@ -239,7 +259,9 @@ required variables. Provide the variable names and format:
 |-------|--------------------|
 | JavaScript | `CONNECTION_STRING="<connection-string>"`, `TZ=UTC` |
 | Python | `CONNECTION_STRING="<connection-string>"` |
-| Go / Java / C# / Mongosh | `CONNECTION_STRING="<connection-string>"` (check the language's `.env.example` for any additional variables) |
+| Go / C# | `CONNECTION_STRING="<connection-string>"` |
+| Java | `CONNECTION_STRING` — export in the shell (`export CONNECTION_STRING="..."`) or place a `.env` file in `code-example-tests/java/driver-sync/` or `code-example-tests/java/` (loaded by `node run-tests.js`, not by raw `mvn test`) |
+| Mongosh | `CONNECTION_STRING="<connection-string>"`, `CONNECTION_PORT="<port>"` (port for local deployments; optional for Atlas SRV URIs) |
 
 Tell the user their connection string can be:
 - An **Atlas cluster** connection string (e.g., `mongodb+srv://...`)
@@ -321,8 +343,8 @@ framework, .env loading, MongoDB connectivity):
 | Python | `cd code-example-tests/python/pymongo && ./venv/bin/python -m unittest tests_package.example.test_example_stub` |
 | Go | `cd code-example-tests/go/driver && go test -v -run TestExampleStub ./tests/example/` |
 | Java | `cd code-example-tests/java/driver-sync && mvn test -Dtest="example.ExampleStubTest"` |
-| C# | `cd code-example-tests/csharp/driver && dotnet test --filter "FullyQualifiedName~Tests.Example.ExampleStubTest"` |
-| Mongosh | `cd code-example-tests/command-line/mongosh && npm test -- -t 'Should count all documents'` |
+| C# | `cd code-example-tests/csharp/driver && dotnet test --filter "FullyQualifiedName~ExampleStubTest"` |
+| Mongosh | `cd code-example-tests/command-line/mongosh && npm test -- -t 'Should count all documents in the sample_mflix'` |
 
 Each language has a stub test that performs a minimal MongoDB operation. It
 should always pass regardless of sample data availability. Mongosh has no
@@ -347,7 +369,7 @@ Provide a summary headed with `Skill: grove-setup`:
 | Bluehawk | Installed / Not installed (needed for creating/modifying examples) |
 | .env file | Created / Already existed |
 | MongoDB connectivity | Connected to [cluster name or localhost] |
-| Sample databases | X of 10 found: [list] |
+| Sample databases | X of 9 found: [list] |
 | Smoke test | Passed |
 
 You're ready to use:

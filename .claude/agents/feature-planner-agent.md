@@ -1,5 +1,6 @@
 ---
 name: feature-planner-agent
+internal: true
 description: >
   The Feature Planner Agent for medium-sized feature documentation. The writer
   invokes this agent directly and works with it conversationally to turn an

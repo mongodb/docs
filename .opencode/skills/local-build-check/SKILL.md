@@ -1,5 +1,6 @@
 ---
 name: local-build-check
+internal: true
 description: |
   Run local docs build checks on pending content/ changes before opening a PR. Catches broken directives, bad refs, missing includes, invalid substitutions, and indentation errors using the Snooty RST parser. Applies unambiguous fixes from a learned per-repo knowledge base, surfaces ambiguous ones, and appends new errors to a local log. Use when the user is about to commit or open a PR and the pending changes include: edits to .txt or .rst files, changes to YAML extract files in source/includes/, any file renamed/moved/ deleted in content/ (could break :ref:, literalinclude, or include paths), or snooty.toml changes. Also use when the user asks to "check the build", "test before PR", "lint the build", or wants to validate edits work. Do NOT trigger for image-only changes, code-example file edits that don't touch RST, or non-RST config files with no path impact.
 ---

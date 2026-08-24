@@ -1,5 +1,6 @@
 ---
 name: staging-preview
+internal: true
 description: Generate staging preview links for a MongoDB docs PR. Polls for the builder-bot deploy preview comment, then constructs page-specific URLs for changed .txt files, includes, YAML extracts, images, and TOC files. Use when you need to generate or refresh staging links for a pull request.
 argument-hint: <PR_NUMBER>
 ---

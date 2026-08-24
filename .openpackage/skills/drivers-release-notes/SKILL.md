@@ -1,5 +1,6 @@
 ---
 name: drivers-release-notes
+internal: true
 description: Draft MongoDB drivers release notes for a new version by fetching the corresponding release from the driver source code and adding them to the documentation. Use when asked to create release notes or What's New sections for the drivers and frameworks listed in the Workflow section.
 argument-hint: "<driver> <version> e.g. pymongo 4.10.1"
 ---

@@ -1,5 +1,6 @@
 ---
 name: grove-test
+internal: true
 description: |
   Create or fix tests for existing Grove code examples. Use when the user asks to "add a test", "create a test", "fix this test", "update the test", "the test doesn't match the output", "test is failing", or wants to add test coverage for an existing example or fix a broken test.
 ---

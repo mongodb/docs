@@ -1,5 +1,6 @@
 ---
 name: grove-maintain
+internal: true
 description: >
   Audit, upgrade, and maintain Grove test suites. Use when the user asks to
   "audit the test suite", "find untested examples", "upgrade dependencies",

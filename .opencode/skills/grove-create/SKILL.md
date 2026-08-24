@@ -1,5 +1,6 @@
 ---
 name: grove-create
+internal: true
 description: |
   Create a new tested code example in the Grove platform. Use when the user asks to "create a code example", "add a new example", "scaffold a Grove example", "new tested example for docs", "create an example for [language]", or wants to add a tested, snippeted code example for MongoDB documentation. Covers Python (PyMongo), Go, Java (Sync Driver), JavaScript (Node.js Driver), C#, and Mongosh (MongoDB Shell).
 ---

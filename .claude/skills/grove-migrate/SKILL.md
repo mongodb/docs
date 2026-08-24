@@ -1,5 +1,6 @@
 ---
 name: grove-migrate
+internal: true
 description: >
   Migrate existing untested code into the Grove test suite. Use when the user
   asks to "migrate this code", "convert to Grove", "make this testable", "move

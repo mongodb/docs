@@ -1,5 +1,6 @@
 ---
 name: source-explorer
+internal: true
 description: >
   Read a product's source code and build a plain-language summary of its public
   surface — flags, options, API endpoints, states, defaults, and constraints.

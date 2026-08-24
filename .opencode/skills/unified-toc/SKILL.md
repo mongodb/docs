@@ -1,5 +1,6 @@
 ---
 name: unified-toc
+internal: true
 description: Update the unified table of contents when pages are added, removed, or moved. Use when you need to register a new page, deregister a removed page, or relocate an entry in the ToC hierarchy.
 ---
 

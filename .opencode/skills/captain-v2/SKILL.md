@@ -1,5 +1,6 @@
 ---
 name: captain-v2
+internal: true
 description: |
   Batch workflow for completing small DOCSP Jira tickets via sage-bot-beta. Selects tickets, hands them off to sage-bot-beta for implementation, polls for the resulting draft PRs, and adds staging links. Use this skill whenever the user wants to work through multiple small DOCSP Jira tickets or pick up batch work. Trigger phrases: "start tickets", "captain tickets", "do some tickets", "work on backlog", "bug tickets", "bug bash".
 ---

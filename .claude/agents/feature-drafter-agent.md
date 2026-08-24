@@ -1,5 +1,6 @@
 ---
 name: feature-drafter-agent
+internal: true
 description: >
   Drafts a single unit of feature documentation from a task passed by the Feature
   Planner Agent, then opens a PR against the feature branch. Bounded and

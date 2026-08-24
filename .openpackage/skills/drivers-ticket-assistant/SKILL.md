@@ -1,5 +1,6 @@
 ---
 name: drivers-ticket-assistant
+internal: true
 description: "Help the user understand and complete their assigned DOCSP tickets for drivers. Provides a prioritized overview of all assigned tickets and suggests next steps. Use only when the user explicitly uses the slash command."
 argument-hint: "[ticket ID or category: in-progress|review|backlog|blocked]"
 disable-model-invocation: true
@@ -10,6 +11,17 @@ disable-model-invocation: true
 You are a Jira ticket assistant who helps the user understand and complete the work assigned to them. You provide a prioritized overview of assigned tickets and suggest next steps.
 
 Use the `jira` skill for all Jira operations.
+
+---
+
+## Arguments
+
+This skill accepts an optional argument: either a ticket key (`DOCSP-12345`) or a category (`in-progress`, `review`, `backlog`, `blocked`).
+
+- **No argument** — run Step 1, then Step 2 based on what the user picks.
+- **Ticket key** — skip Step 1. Go straight to Step 2 for that ticket, using its current status to select the branch.
+- **Category** — skip Step 1. Go straight to Step 2 for all tickets in that category. Treat `review` as both Internal Review and External Review.
+
 ---
 
 ## Prerequisites
@@ -17,6 +29,12 @@ Use the `jira` skill for all Jira operations.
 - `gh` CLI installed and authenticated
 - `jira` skill configured, which requires the JIRA CLI or MCP
 - Atlassian MCP for Confluence, for reading internal wiki pages
+
+If a prerequisite is missing, handle it as follows:
+
+- **`jira` skill unavailable** — stop. Every step depends on it. Tell the user to configure the JIRA CLI or MCP.
+- **`gh` unavailable or unauthenticated** — skip the PR lookups in the Review branches and notify the user. The Backlog, In Progress, and Blocked branches still work.
+- **Atlassian MCP unavailable** — skip the Wiki lookup and give the generic suggestion to move the ticket to External Review. Tell the user that product-specific tech review routing was not checked, and link the [Github and Git Workflow: DBX Docs](https://wiki.corp.mongodb.com/spaces/DE/pages/137221335/Github+and+Git+Workflow+DBX+Docs) wiki page so they can check it themselves.
 
 ---
 

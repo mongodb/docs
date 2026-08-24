@@ -1,5 +1,6 @@
 ---
 name: release-notes-base
+internal: true
 description: Shared workflow for drafting MongoDB docs release notes from a GitHub repo. Not invoked directly — referenced by tool-specific release notes skills.
 user-invocable: false
 ---

@@ -1,5 +1,6 @@
 ---
 name: version-update
+internal: true
 description: "Create a new version of any versioned MongoDB documentation docset — drivers, providers, or product docsets. TRIGGER when: user says 'version update', 'bump the version', 'releasing vX.Y', or 'new version' for any docset."
 ---
 

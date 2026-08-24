@@ -1,5 +1,6 @@
 ---
 name: fix-404s
+internal: true
 description: Detect and fix broken external links (404s) in MongoDB documentation files. Runs the 404 linter, strips tracking parameters, follows redirects, and searches for live replacements. Auto-applies confirmed redirects; confirms lower-confidence fixes with the writer before applying.
 argument-hint: <file-or-directory-path>
 ---

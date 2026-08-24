@@ -1,5 +1,6 @@
 ---
 name: docs-drift
+internal: true
 description: >
   Detect drift between a documentation property and its source code, classify
   each finding (Confirmed / Tracked / Upcoming / Intentional / Needs-eng-

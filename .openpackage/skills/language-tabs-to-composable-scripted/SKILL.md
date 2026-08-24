@@ -1,5 +1,6 @@
 ---
 name: language-tabs-to-composable-scripted
+internal: true
 description: >-
   Converts RST pages using language tabs to composable tutorial format.
   Script-first: uses analyze.py and convert.py for automation, with manual
@@ -65,7 +66,7 @@ Use this table to verify the analyzer's mappings. If a tabid is not in analyze.p
 | Tab `:tabid:` | Composable ID |
 |---|---|
 | python | python |
-| nodejs, node | nodejs |
+| nodejs, node, javascript, typescript | nodejs |
 | java-sync, java | java-sync |
 | java-async | java-async |
 | csharp, dotnet | csharp |
@@ -125,11 +126,7 @@ The analyzer's `composable_scope` covers only the first tab block to the last ta
 
 **Check: sections before the first tab block**
 
-Read the file between the page top and the first tab block. If there are H2 or H3 section headings at document level before the first tab block — especially on multi-section pages where the first H2 heading is followed by the first tab block — expand the scope start to include those headings.
-
-**Why this matters:** If an H2 heading exists at document level before the composable, any H2 heading inside the composable will conflict and cause a "Section Hierarchy Must Be Linear" RST parser error.
-
-**Rule:** On multi-section pages, move the scope start to before the first H2 heading on the page when that heading introduces language-differentiated content.
+Read the file between the page top and the first tab block. If there are H2 or H3 section headings at document level before the first tab block, expand the scope start to include those headings — a document-level H2 outside the composable conflicts with any H2 inside it and triggers a "Section Hierarchy Must Be Linear" error. On multi-section pages, move the scope start to before the first H2 that introduces language-differentiated content.
 
 **Check: sections after the last tab block**
 
@@ -145,7 +142,16 @@ Before running the converter, scan for these elements and note any required manu
 
 **Standalone interface sections:** Is there a section outside the tab blocks that presents content for a specific interface (e.g., an "Atlas UI" procedure section at the bottom of the page)? If so, that section must be pulled into the composable as a `.. selected-content::` block with the appropriate interface selection. Remove the standalone section heading and move its content inside the composable.
 
-**Content-variant tabs:** Does the file contain `.. tabs::` blocks with tabids that are NOT language or interface IDs (e.g., edgeGram/nGram/rightEdgeGram, "Visual Editor"/"JSON Editor", tokenization strategies)? These are content-variant tabs, not language-selection tabs. Do NOT convert them to `.. selected-content::` blocks. They pass through as shared content inside the composable (or remain inside a `.. selected-content::` block if already nested there).
+**Content-variant tabs:** Does the file contain `.. tabs::` blocks with tabids that are NOT language or interface IDs (e.g., edgeGram/nGram/rightEdgeGram, "Visual Editor"/"JSON Editor", tokenization strategies)? These are content-variant tabs, not language-selection tabs. Do NOT convert them to `.. selected-content::` blocks.
+
+A `.. tabs::` directive is only legal inside the composable if it is nested inside a `.. selected-content::` block. Choose a remediation based on where the content-variant tab sits:
+
+- **Already inside a `.. selected-content::` block** → leave it as-is; it passes through unchanged.
+- **At document level inside the composable scope** (not nested in a `.. selected-content::` block) → the composable cannot contain a bare `.. tabs::`. Remediate one of two ways, matching the page's existing patterns:
+  - **Flatten to sequential sections** — replace each tab with an H3/H4 section heading and its content. Preferred when the variants are short and reading them in sequence is acceptable.
+  - **Convert to a `.. collapsible::` block** — one collapsible per variant. Preferred when the variants are long and the reader only needs one at a time.
+
+Confirm the chosen remediation with the user before applying. Do NOT use `.. rubric::`.
 
 **Substitution definitions:** Lines like `.. |arrow| unicode:: U+27A4` or `.. |name| replace:: text` must remain at document level, OUTSIDE the composable block. If the analyzer's scope includes a substitution definition, plan to move it to just before the composable start.
 
@@ -162,6 +168,8 @@ Before running the converter, scan for these elements and note any required manu
 ---
 
 ## Step 8: Check includes for nested tabs
+
+The analyzer lists include *directives* in `includes_in_scope` but does NOT read include file *contents*. You must open each referenced include yourself — nested tabs inside an include will otherwise slip through and produce illegal `.. tabs::` directives inside the composable.
 
 For each entry in `includes_in_scope`, read the referenced include file and check whether it contains `.. tabs::`, `.. tabs-drivers::`, or `.. tabs-selector::` directives.
 
@@ -234,6 +242,8 @@ python .claude/skills/language-tabs-to-composable-scripted/assets/convert.py \
 
 Default mode outputs a unified diff without modifying the file. Share key diff sections with the user and ask whether to apply.
 
+The converter validates the generated `:options:`, `:defaults:`, and `:selections:` lines: every `:defaults:` and `:selections:` line must have the same number of comma-separated values as `:options:`, and the first value cannot be `None`. In dry-run mode, validation errors print to stderr as warnings. In `--apply` mode, the script refuses to write the file (exit code 2) until the counts match. If you see these errors, the page likely over-generates option slots (one per tab attribute) and needs option dimensions collapsed by hand — see "Known script limitations."
+
 ---
 
 ## Step 12: Apply the conversion
@@ -269,6 +279,15 @@ Do not use `.. rubric::` — it is not supported in Snooty.
 
 **Trailing content:** Confirm that nothing remains at document level after the composable block. Any trailing content (headings, paragraphs) must be inside the composable as shared content at 3-space indent.
 
+**Indentation breakage from the 3-space shift:** The converter adds 3-space indent to every shared-content line inside the composable scope. This reliably breaks a few RST structures that need hand-correction:
+
+- **`list-table` columns** — column markers (`* -`) and their continuation lines can fall out of alignment, causing "Expected N columns, saw 1" or "Unexpected indentation" errors. Re-align every row so cells share a consistent indent.
+- **Bullet and definition-list continuations** — wrapped continuation lines (for example, a `:ref:` that spilled to a second line) must stay aligned with the text of their list item, not the marker.
+- **Nested code-blocks** — a `.. code-block::` nested under a bullet or step can end up indented too deep; verify its body is indented exactly 3 spaces past the directive.
+- **Directives left at a stray indent** — a passed-through directive (for example, a content-variant `.. tabs::`) may keep an old indent that no longer matches its new context.
+
+After fixing, run the local build check to confirm the parser accepts the re-indented blocks.
+
 **Extra blank lines:** Collapse sequences of more than two consecutive blank lines.
 
 **Procedure steps:** If the page has `.. procedure::` blocks that mix shared and language-specific steps, split them:
@@ -290,68 +309,24 @@ Read the edited file and confirm:
 - No content was invented or omitted.
 - No RST section headings appear at document level after the composable.
 - No substitution definitions appear inside the composable.
+- No old-format include files were orphaned. If the conversion replaced or inlined nested tabs from an include, grep for the old include path and delete any include that is no longer referenced by any page.
+- No filenames have a doubled extension (for example, `...atlas-api.rst.rst`) introduced during extraction.
 
 Report the final summary of changes to the user.
 
 ---
 
-## Large Pages (many tab blocks)
+## Large pages and structural edge cases
 
-The script handles pages with any number of tab blocks. Follow the
-standard Steps 1–14 for pages of any size.
-
-The manual approach below is a fallback for structural edge cases where
-the script cannot produce correct output:
-
-- The page structure requires a custom ID mapping that differs from the
-  standard `TABID_MAP` (e.g., interleaved tab sets with incompatible
-  ID schemes)
-- The page requires multiple independent composable blocks
-
-If you need the manual approach, write a custom Python script instead.
-
-**Custom script structure**
-
-Write a page-specific Python script. Key elements:
-
-```python
-TABID_MAP = {
-    # tabid → (interface_or_None, language_or_None)
-    # Case B example:
-    "atlas-ui": ("atlas-ui", "None"),
-    "shell":    ("mongosh",  "None"),  # check snooty.toml: mongosh vs shell
-    "compass":  ("compass",  "None"),
-    "csharp":   ("driver",   "csharp"),
-    "go":       ("driver",   "go"),
-    # ... etc.
-}
-REMOVE_1IDX = {<set of 1-indexed line numbers to remove>}
-COMPOSABLE_AFTER_1IDX = <line after which to insert the composable header>
-COMPOSABLE_HEADER_LINES = [
-    # Case B (interface + language):
-    ".. composable-tutorial::\n",
-    "   :options: interface, language\n",
-    "   :defaults: driver, nodejs\n",
-    "\n",
-]
-```
-
-**Tab detection:** Detect `.. tab::` blocks by looking for a line matching `r"^   \.\. tab::.*$"` (3-space indent, inside a `.. tabs-drivers::` block). Content-variant `.. tabs::` blocks at deeper nesting (9+ space indent) will not match and pass through as shared content unchanged.
-
-**State machine:** Track `in_tabs_drivers` (True when inside a `.. tabs-drivers::` block; reset when a non-blank line at 0-indent appears). Collect tab content lines and emit them as `.. selected-content::` blocks.
-
-**Shared content indentation:** All lines inside the composable scope that are not part of a tab block get 3-space indent added.
-
-Always validate with a unified diff before writing the file. Check that
-tab counts match, no content is duplicated, and trailing sections are
-inside the composable. After the script produces output, follow
-Steps 13 and 14 above exactly as for script-driven conversions.
+The script handles pages of any size — follow Steps 1–14. For rare structural edge cases the script cannot handle (custom ID mappings, multiple independent composable blocks), write a page-specific script following [assets/large-pages.md](assets/large-pages.md).
 
 ---
 
 ## Known script limitations
 
 - **Old YAML-format tabs** (`tabs:` / `- id:` syntax) are not supported by analyze.py. Convert to `.. tab::` / `:tabid:` format first.
+- **Option over-generation and dead states** — the analyzer proposes one option slot per tab attribute, which on multi-attribute pages can exceed the composable's options or create unresolvable "dead state" `:selections:`. The converter's count validation (Step 11) blocks `--apply` when this happens. Fix by collapsing redundant dimensions into one combined ID (for example, `v7-rpm`, `v7-tar`) and rewriting the affected `:selections:` lines, then re-run.
+- **Titled `.. tab::` children are not parsed as language tabs** — the analyzer only recognizes argument-less `.. tab::` children (with a separate `:tabid:`). A `.. tabs::` block whose children use the title-argument form (`.. tab:: Some Title`) — typical of content-variant tabs like `movies Collection` or `Ascending Sort` — is reported with an empty `tabs` list. The converter does NOT delete these blocks: it passes them through as shared content and prints a note listing their line numbers. Because a bare `.. tabs::` is illegal at document level inside a composable, you must still remediate each one by hand (flatten to sections or `.. collapsible::`; see Step 7). Never `--apply` blindly on a page with pass-through blocks without checking those locations.
 - **Case B default** — when a Case B page has only interface tabs (no driver language tabs), `analyze.py` proposes `:defaults: driver, nodejs`. That is wrong. Correct it in Step 5 to `:defaults: <first-interface-id>, None` (e.g., `:defaults: atlas-ui, None`).
 - **Interface ID for shell** — the script maps `shell` tabids to `shell` regardless of project. Atlas uses `mongosh`. Step 5 (snooty.toml check) will surface this; correct the `:selections:` values after applying.
 - **Scope boundaries** — the script's `composable_scope` covers only the first to last tab block. Expand manually (Step 6).
@@ -373,7 +348,10 @@ Steps 13 and 14 above exactly as for script-driven conversions.
 - Do not modify content beyond what the script produces and the manual fixes listed in Step 13.
 - Do not backport the conversion unless the user explicitly asks.
 - **Never strip trailing whitespace.** Preserve every trailing space exactly as it appears in the original. Only change lines that are structurally part of the conversion.
-- **Shared-content headings inside the composable cause a "Section Hierarchy Must Be Linear" error** if a section at the same heading level already exists at document level before the composable. Move the conflicting document-level section INTO the composable as shared content (see Step 13). Never use `.. rubric::` — it is not supported in Snooty.
-- **Include files inside the composable must not contain `.. tabs::`, `.. tabs-drivers::`, or `.. tabs-selector::` directives** used for language or interface selection. Inline such includes as `.. selected-content::` blocks (see Step 8).
-- **No RST section headings at document level after the composable block.** Move all trailing sections inside the composable as shared content (see Steps 6 and 13).
-- **Substitution definitions must be at document level**, outside the composable block (see Step 7 and Step 13).
+- Never use `.. rubric::` — it is not supported in Snooty.
+
+The following are enforced by the steps above; a violation breaks the build:
+
+- No document-level section headings conflict with headings inside the composable, and none appear after the composable block (Steps 6, 13).
+- Substitution definitions stay at document level (Steps 7, 13).
+- Include files inside the composable contain no `.. tabs::`, `.. tabs-drivers::`, or `.. tabs-selector::` selection directives (Step 8).

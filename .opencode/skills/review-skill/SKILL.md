@@ -1,5 +1,6 @@
 ---
 name: review-skill
+internal: true
 description: Review a proposed Agent Skill for structural validity and content quality before publishing. Runs the skill-validator CLI to check for structural issues, scores the skill with an LLM judge, and interprets results to advise SMEs on what to address. Use when a user wants to review, validate, or quality-check an Agent Skill.
 compatibility: Requires skill-validator CLI and claude CLI for LLM scoring. LLM scoring can be skipped for structural-only review.
 metadata:

@@ -1,11 +1,12 @@
 ---
 name: jira
+internal: true
 description: "Use this skill for any Jira operation in the DOCSP project — creating, viewing, searching, updating, transitioning, commenting on, or linking tickets. Also handles follow-up ticket creation to manage scope creep. TRIGGER when: user mentions a DOCSP-XXXXX ticket number or any Jira ticket URL; user asks to view, open, check, update, transition, close, comment on, link, or search tickets; user references \"the ticket\", \"the Jira\", or \"open a ticket\". SKIP: GitHub issues; non-Jira platforms; questions unrelated to ticket operations."
 ---
 
 # Jira Tool for Docs Writers
 
-Unified Jira skill for the DOCSP project. Supports both the `jira` CLI and `mcp-atlassian` MCP tools with automatic fallback.
+Unified Jira skill for the DOCSP project. Supports three interchangeable backends with automatic fallback between them (see Tool Selection below).
 
 ## Critical Rules
 
@@ -13,122 +14,58 @@ Unified Jira skill for the DOCSP project. Supports both the `jira` CLI and `mcp-
 - Always present a plan and get confirmation before making changes.
 - Field values are case-sensitive.
 - Always use Jira wiki markup in descriptions and comments, never Markdown.
+- When referencing a ticket key back to the user, include its title (e.g., "DOCSP-12345 — Fix broken link on X page") so it's identifiable without a lookup.
+- When asked to "add" or "update" ticket content without a target specified, ask whether it goes in the description or as a comment rather than defaulting to a comment.
 
 ---
 
 ## Tool Selection & Fallback Strategy
 
+Three tools can back this skill:
+
+- **CLI** — the `jira` binary. Reference: [references/cli.md](references/cli.md).
+- **mcp-atlassian** — a generic Jira/Confluence MCP server. Reference: [references/mcp-atlassian.md](references/mcp-atlassian.md).
+- **DevProd MCP Gateway** — MongoDB's internal MCP gateway, Jira backend (tools prefixed `jira_`, distinct parameter shapes from mcp-atlassian). Reference: [references/devprod-gateway.md](references/devprod-gateway.md).
+
 **On the first Jira operation in a session**, determine which tool to use:
 
-1. Check auto-memory (MEMORY.md) for a Jira tool preference entry:
-   - "Jira CLI available" entry present → **session-preferred = CLI** — skip the probe.
-   - "Jira MCP preferred" entry present → **session-preferred = MCP** — skip the probe.
-2. If neither entry is present, run `which jira && jira me` (5-second Bash timeout).
-3. If both succeed → **session-preferred = CLI**. Write a memory entry (see below) so future sessions skip this probe.
-4. If either fails → **session-preferred = MCP**. Write a memory entry (see below) so future sessions skip this probe.
+1. Check auto-memory (MEMORY.md) for a stored tool preference:
+   - "Jira CLI preferred" → **session-preferred = CLI** — skip the probe.
+   - "mcp-atlassian preferred" → **session-preferred = mcp-atlassian** — skip the probe.
+   - "DevProd Gateway preferred" → **session-preferred = DevProd Gateway** — skip the probe.
+2. If no preference is stored, probe availability:
+   - CLI: run `which jira && jira me` (5-second Bash timeout).
+   - mcp-atlassian: check whether its tools (e.g., `jira_search`, `jira_get_issue`) are present in the session.
+   - DevProd Gateway: check whether its tools (e.g., `jira_search_issues`, `jira_get_issue`) are present in the session.
+3. If more than one is available, ask the user which to default to. Nudge toward the CLI when offering a recommendation — it avoids MCP tool-schema overhead and is generally more token-efficient — but let the user decide.
+4. If only one is available, use it without asking.
+5. Write the choice to memory (see below) so future sessions skip this probe.
 
-**Session memory**: Once a tool is marked as session-preferred, use it for all subsequent operations without re-testing.
+**Session memory**: Once a tool is marked as session-preferred, use it for all subsequent operations without re-probing.
 
-**Quick-fail rule**: If the session-preferred tool fails on a specific operation, immediately try the other. Do not retry the failed tool more than once. If the fallback succeeds, switch session-preferred to the fallback. If both fail, report the error.
+**Quick-fail rule**: If the session-preferred tool fails on a specific operation, immediately try one of the others that's available. Do not retry the failed tool more than once. If a fallback succeeds, switch session-preferred to it for the rest of the session (this does not overwrite the stored memory preference — ask the user before changing that permanently). If none succeed, report the error.
 
-**MCP tool names** are environment-specific (e.g., `jira_create_issue`, `jira_search`). Use whatever Jira MCP tools are available in the current session.
+### Writing Tool Preference to Memory
 
-### Writing Probe Results to Memory
+After determining session-preferred, write a `feedback` memory entry to the project's auto-memory directory so future sessions skip the probe, plus the corresponding line to `MEMORY.md`:
 
-After a probe (step 3 or 4), write a `feedback` memory entry to the project's auto-memory directory (path shown in system instructions) so future sessions skip the probe.
+| Result | Filename | name slug | Body | MEMORY.md line |
+|---|---|---|---|---|
+| CLI | `feedback_jira_cli_preferred.md` | `feedback-jira-cli-preferred` | "User prefers the Jira CLI. Skip probe and use CLI directly." | `- [Jira CLI preferred — skip probe](feedback_jira_cli_preferred.md) — User prefers jira CLI; skip probe, go straight to CLI` |
+| mcp-atlassian | `feedback_jira_mcp_preferred.md` | `feedback-jira-mcp-preferred` | "User prefers the mcp-atlassian MCP server. Skip probe and use it directly." | `- [mcp-atlassian preferred — skip probe](feedback_jira_mcp_preferred.md) — User prefers mcp-atlassian MCP; skip probe, go straight to it` |
+| DevProd Gateway | `feedback_jira_devprod_gateway_preferred.md` | `feedback-jira-devprod-gateway-preferred` | "User prefers the DevProd MCP Gateway's Jira backend. Skip probe and use it directly." | `- [DevProd Gateway preferred — skip probe](feedback_jira_devprod_gateway_preferred.md) — User prefers the DevProd MCP Gateway's Jira backend; skip probe, go straight to it` |
 
-| Result | Filename | name slug | Body |
-|---|---|---|---|
-| CLI succeeded | `feedback_jira_cli_available.md` | `feedback-jira-cli-available` | "User has the Jira CLI installed. Skip probe and use CLI directly." |
-| CLI failed | `feedback_jira_mcp_preferred.md` | `feedback-jira-mcp-preferred` | "User does not have Jira CLI. Skip probe and use MCP directly." |
-
-Also add the corresponding line to `MEMORY.md`:
-- CLI: `- [Jira CLI available — skip availability check](feedback_jira_cli_available.md) — User has jira CLI installed; skip probe, go straight to CLI`
-- MCP: `- [Jira MCP preferred — skip probe](feedback_jira_mcp_preferred.md) — User has no jira CLI; skip probe, go straight to MCP tools`
-
----
-
-## Configuration
-
-- CLI binary: `jira` (`jira-cli` v1.7.0+, installed via Homebrew)
-- CLI config: `~/.config/.jira/.config.yml`
-- Auth: Bearer token (pre-configured)
-- Default project: DOCSP
-
----
-
-## CLI Gotchas
-
-### Custom Field Names
-
-The `--custom` flag requires **lowercase-hyphenated** display names — not the raw field key or the Jira display name.
-
-| Display Name | `--custom` Name | Field Key |
-|---|---|---|
-| Story Points | `story-points` | customfield_10555 |
-| Did you use AI? | `did-you-use-ai?` | customfield_27257 |
-
-Pattern: `"Display Name"` → `display-name` — lowercase and replace spaces with hyphens, but **do not strip punctuation**. jira-cli preserves characters like `?`, so "Did you use AI?" becomes `did-you-use-ai?` (trailing `?` included), not `did-you-use-ai`. Passing the wrong slug triggers an `Invalid custom fields used in the command` warning and the field is silently ignored (the command still exits 0).
-
-### JQL ORDER BY
-
-Do NOT put `ORDER BY` inside the JQL string when using the CLI. Use flags:
-
-```bash
-# WRONG — will error
-jira issue list -q "assignee = currentUser() ORDER BY updated DESC"
-
-# CORRECT — default order is DESC, so --order-by updated gives newest first
-jira issue list -q "assignee = currentUser()" --order-by updated
-```
-
-### Transition Names vs Status Names
-
-`jira issue move` uses **transition names**, not status names. The CLI shows valid transitions on error:
-
-```bash
-# WRONG — "Closed" is a status name
-jira issue move DOCSP-12345 "Closed"
-
-# CORRECT — "Close Issue" is the transition name (verify per ticket)
-jira issue move DOCSP-12345 "Close Issue"
-```
-
-When uncertain, attempt the move and read the error for valid transition names.
-
-### Description via Stdin
-
-For multi-line descriptions, **always pipe via stdin** — not `-b "$(cat <<'EOF'...)"`. The `-b` flag with `$()` heredocs causes the CLI to hang silently.
-
-```bash
-# WRONG — hangs silently
-jira issue create -p DOCSP -t Task -s "Title" -b "$(cat <<'EOF'
-description here
-EOF
-)" --no-input
-
-# CORRECT
-cat <<'EOF' | jira issue create -p DOCSP -t Task -s "Title" --no-input --raw
-h2. Overview
-description here
-EOF
-```
-
-The `-b` flag works fine for short single-line descriptions.
-
-### Non-Interactive Mode
-
-Always pass `--no-input` for create/edit operations. Always pass `--plain` for list operations.
+If an existing memory entry uses the old "Jira CLI available" / "Jira MCP preferred" naming from before the three-way split, treat it as CLI / mcp-atlassian respectively and update the filename/slug to the new naming next time you'd write to it.
 
 ---
 
 ## Ticket Lifecycle
 
-Standard progression for a writing ticket:
+Standard progression for a writing ticket (same across all three tools — this is Jira workflow configuration, not tool-specific):
 
 **Needs Triage → Ready for Work → In Progress → Internal Review → External Review → Closed**
 
-Use `jira_get_transitions` (MCP) or attempt `jira issue move` and read the error (CLI) to get valid transition names/IDs before transitioning.
+Look up valid transition names/IDs before transitioning — see your tool's reference file.
 
 | Status | When to use |
 |---|---|
@@ -138,150 +75,17 @@ Use `jira_get_transitions` (MCP) or attempt `jira issue move` and read the error
 | External Review | Waiting for SME or stakeholder review |
 | Needs Merge | PR is approved and waiting to be merged — optional |
 | Blocked | Work is blocked on an external dependency |
-| Closed | PR merged and work complete — see Closing Issues below |
+| Closed | PR merged and work complete — see Closing Issues in your tool's reference file |
 
 Tickets typically close directly from Internal Review or External Review. Needs Merge is available but not a standard step for any team.
 
-The Close transition requires Story Points and "Did you use AI?" — see Closing Issues.
+When moving a ticket to Internal Review or Needs Merge, post the PR URL as a comment (see Post a PR link comment in your tool's reference file).
 
----
+Before closing, confirm the PR has been merged.
 
-## Labels
+The Close transition requires Story Points and "Did you use AI?" — see Closing Issues in your tool's reference file.
 
-Apply labels when creating or updating a ticket. Labels are case-sensitive.
-
-Apply exactly one primary label; add zero or more additional labels alongside it.
-
-| Label | Type | When to use |
-|---|---|---|
-| `feature` | primary | New feature documentation driven by a product change |
-| `request` | primary | Stakeholder or community-submitted content request |
-| `proactive` | primary | Writer-initiated improvement |
-| `bug` | primary | Documentation error or inaccuracy |
-| `docs-rn` | primary | Release notes ticket |
-| `404` | additional | Broken link or missing page |
-| `seo` | additional | Redirect or metadata work motivated by SEO |
-| `IA` | additional | Information architecture initiative (navigation, TOC, reorganization) |
-| `LLM` | additional | Mercury / AI chatbot content review |
-| `archiving` | additional | EOL or archival work |
-| `nested-components` | additional | Nested tab component fix |
-| `taxonomy` | additional | Taxonomy or metadata classification work |
-
-```bash
-# CLI — replaces existing labels; include all desired labels
-jira issue edit DOCSP-12345 --label feature --label seo --no-input
-```
-
-```python
-# MCP — replaces existing labels; include all desired labels
-jira_update_issue(
-    issue_key="DOCSP-12345",
-    fields={"labels": ["feature", "seo"]}
-)
-```
-
----
-
-## Component Field
-
-Components are optional but should be set when the work's ownership is clear. If the component isn't obvious from context, ask the user which team owns the work. Use `all-docs` when the work applies to or affects all teams equally and cannot be attributed to a single team's ownership.
-
-If the component is ambiguous and the user is unsure, omit it rather than guessing. Do not use these archived components: `snooty`, `snooty autobuilder`, `snooty-autobuilder`, `snooty-frontend`, `snooty-parser`.
-
----
-
-## Creating Issues
-
-| Field | CLI Flag | MCP Parameter | Notes |
-|---|---|---|---|
-| Project \* | `-p DOCSP` | `project_key="DOCSP"` | |
-| Type \* | `-t Task` | `issue_type` — see below | |
-| Summary \* | `-s "Title"` | `summary` | |
-| Description | `-b` or stdin | `description` | Jira wiki markup |
-| Component | `-C Atlas` | `components` | Infer from context; omit if unclear |
-| Priority | `-y "Major - P3"` | `additional_fields: {"priority": {"name": "..."}}` | |
-| Fix Version | — | `additional_fields: {"fixVersions": [{"name": "..."}]}` | Versioned driver or server work |
-| Story Points Estimate | — | `additional_fields: {"customfield_27258": <number>}` | Upfront effort estimate; use the story point scale |
-| Epic Name | — | `additional_fields: {"customfield_10858": "Name"}` | Required when issue type is Epic |
-| Labels | `--label feature` | `additional_fields: {"labels": ["..."]}` | See Labels section |
-
-\* Required
-
-**Issue type:**
-- `Task` — general docs work (default)
-- `Bug` — error, inaccuracy, or broken content
-- `Story` — larger feature or initiative
-- `Epic` — large initiative spanning multiple tickets; must include Epic Name (`customfield_10858`)
-
-**Priority:**
-- `Critical - P2` — urgent, blocking, or high-visibility
-- `Major - P3` — standard work
-- `Minor - P4` — low-impact or nice-to-have (default)
-
-**CLI example:**
-
-```bash
-cat <<'EOF' | jira issue create -p DOCSP -t Task \
-  -s "Update connection string examples for Atlas shared clusters" \
-  -C Atlas -y "Major - P3" --label feature --no-input --raw
-h2. Overview
-Update the connection string examples...
-EOF
-```
-
-**MCP example:**
-
-```python
-jira_create_issue(
-    project_key="DOCSP",
-    summary="Update connection string examples for Atlas shared clusters",
-    issue_type="Task",
-    description="h2. Overview\nUpdate the connection string examples...",
-    components="Atlas",
-    additional_fields={
-        "priority": {"name": "Major - P3"},
-        "labels": ["feature"]
-    }
-)
-```
-
----
-
-## Closing Issues
-
-Before closing, confirm the PR has been merged. Tickets typically close from Internal Review or External Review — Needs Merge is not a required step.
-
-**Story Points, "Did you use AI?", and Resolution are required at close time.**
-
-The `resolution` field is screen-controlled — it can only be set during the Close transition, not via a separate edit. Omitting it leaves the ticket in an unresolved state even after it reaches Closed status, so it will continue to appear in `resolution = Unresolved` filters.
-
-**CLI approach** — set the fields first, then transition:
-
-```bash
-jira issue edit DOCSP-12345 \
-  --custom "story-points=3" \
-  --custom "did-you-use-ai?=Yes" \
-  --no-input
-jira issue move DOCSP-12345 "Close Issue"
-```
-
-**MCP approach** — get the Close transition ID, then transition with required fields:
-
-```python
-jira_get_transitions(issue_key="DOCSP-12345")
-
-jira_transition_issue(
-    issue_key="DOCSP-12345",
-    transition_id="<close-id>",
-    fields={
-        "customfield_10555": 3,
-        "customfield_27257": {"value": "Yes"},
-        "resolution": {"name": "Done"}
-    }
-)
-```
-
-If the MCP transition fails with "This field is required", use `jira_search_fields` to identify the missing field.
+Before attempting the Close transition, check whether Story Points is already set. If not, ask the user for an estimate (see Story Point Estimation below) rather than attempting the transition first and reacting to the failure.
 
 ### Resolution Values
 
@@ -312,155 +116,62 @@ Ask the user for their estimate if the ticket scope is unclear.
 
 ---
 
-## Common Operations
+## Labels
 
-### View a ticket
+Apply labels when creating or updating a ticket. Labels are case-sensitive. Apply exactly one primary label; add zero or more additional labels alongside it. See your tool's reference file for the exact syntax to set labels.
 
-```bash
-# CLI
-jira issue view DOCSP-12345 --plain
-jira issue view DOCSP-12345 --raw     # full JSON for parsing fields
-```
-
-```python
-# MCP
-jira_get_issue(issue_key="DOCSP-12345")
-```
-
-### Search tickets
-
-```bash
-# CLI
-jira issue list --plain \
-  -q "assignee = currentUser() AND status = 'In Progress'" \
-  --order-by updated --paginate "0:10"
-```
-
-```python
-# MCP
-jira_search(jql="assignee = currentUser() AND status = 'In Progress'
-ORDER BY updated DESC")
-```
-
-### Update a ticket
-
-```bash
-# CLI
-jira issue edit DOCSP-12345 -s "New summary" --no-input
-jira issue edit DOCSP-12345 -y "Critical - P2" --no-input
-jira issue edit DOCSP-12345 -a "jane.smith@mongodb.com" --no-input
-```
-
-```python
-# MCP
-jira_update_issue(
-    issue_key="DOCSP-12345",
-    fields={"summary": "New summary", "priority": {"name": "Critical - P2"}}
-)
-```
-
-### Transition a ticket
-
-```bash
-# CLI — attempt and read error for valid transition names
-jira issue move DOCSP-12345 "Start Progress"
-```
-
-```python
-# MCP
-jira_get_transitions(issue_key="DOCSP-12345")   # get transition IDs first
-jira_transition_issue(issue_key="DOCSP-12345", transition_id="<id>")
-```
-
-**Story Points Estimate required on In Progress:** The In Progress transition screen requires `customfield_27258` (Story Points Estimate). Set it before or during the transition:
-
-```bash
-# CLI — set before transitioning
-jira issue edit DOCSP-12345 --custom "story-points-estimate=3" --no-input
-jira issue move DOCSP-12345 "Start Progress"
-```
-
-```python
-# MCP — pass with transition
-jira_transition_issue(
-    issue_key="DOCSP-12345",
-    transition_id="<in-progress-id>",
-    fields={"customfield_27258": 3}
-)
-```
-
-### Add a comment
-
-```bash
-# CLI
-jira issue comment add DOCSP-12345 "Comment body here."
-
-# Multi-line
-jira issue comment add DOCSP-12345 $'Line one\n\nLine two'
-```
-
-```python
-# MCP
-jira_add_comment(issue_key="DOCSP-12345", comment="Comment body here.")
-```
-
-To mention a user, use `[~username]` where username is their MongoDB email prefix (e.g. `[~jane.smith]`). Use this when requesting SME or stakeholder review.
-
-### Post a PR link comment
-
-When moving a ticket to Internal Review or Needs Merge, post the PR URL as a comment:
-
-```bash
-# CLI
-jira issue comment add DOCSP-12345 \
-  "PR: https://github.com/10gen/docs-mongodb-internal/pull/12345"
-```
-
-```python
-# MCP
-jira_add_comment(
-    issue_key="DOCSP-12345",
-    comment="PR: https://github.com/10gen/docs-mongodb-internal/pull/12345"
-)
-```
-
-### Link two tickets
-
-```bash
-# CLI
-jira issue link DOCSP-111 DOCSP-222 "Related"
-```
-
-```python
-# MCP
-jira_create_issue_link(
-    issue_key="DOCSP-111",
-    linked_issue_key="DOCSP-222",
-    link_type="Related"
-)
-```
-
-**Link types in common use:**
-
-| Type | Direction | When to use |
+| Label | Type | When to use |
 |---|---|---|
-| `Related` | — | General cross-reference between two tickets |
-| `Depends` | `depends on` / `is depended on by` | This ticket is blocked on or waiting for another (often an engineering ticket in CLOUDP, JAVA, etc.) |
-| `documents` | outward: `documents` / inward: `is documented by` | Use when a DOCSP ticket documents an engineering ticket. The DOCSP ticket is the outward link ("documents"); the engineering ticket is the inward link ("is documented by"). |
-| `Cloners` | `clones` / `is cloned by` | This ticket was cloned from a template (common for recurring release notes tickets) |
-
-### Other CLI operations
-
-```bash
-jira me                                    # current user
-jira open DOCSP-12345                      # open in browser
-jira issue clone DOCSP-12345               # clone an issue
-jira issue watch DOCSP-12345 $(jira me)    # watch an issue
-```
+| `feature` | primary | New feature documentation driven by a product change |
+| `request` | primary | Stakeholder or community-submitted content request |
+| `proactive` | primary | Writer-initiated improvement |
+| `bug` | primary | Documentation error or inaccuracy |
+| `docs-rn` | primary | Release notes ticket |
+| `404` | additional | Broken link or missing page |
+| `seo` | additional | Redirect or metadata work motivated by SEO |
+| `IA` | additional | Information architecture initiative (navigation, TOC, reorganization) |
+| `LLM` | additional | Mercury / AI chatbot content review |
+| `archiving` | additional | EOL or archival work |
+| `nested-components` | additional | Nested tab component fix |
+| `taxonomy` | additional | Taxonomy or metadata classification work |
 
 ---
 
-Use `--plain` for list output, `--raw` for full JSON (pipe through `jq` for parsing), `--csv`, `--no-truncate`, `--no-headers`, and `--columns X,Y,Z` as needed.
+## Component Field
+
+Components are optional but should be set when the work's ownership is clear. If the component isn't obvious from context, ask the user which team owns the work. Use `all-docs` when the work applies to or affects all teams equally and cannot be attributed to a single team's ownership.
+
+If the component is ambiguous and the user is unsure, omit it rather than guessing. Do not use these archived components: `snooty`, `snooty autobuilder`, `snooty-autobuilder`, `snooty-frontend`, `snooty-parser`.
+
+---
+
+## Creating Issues
+
+**Issue type:**
+- `Task` — general docs work (default)
+- `Bug` — error, inaccuracy, or broken content
+- `Story` — larger feature or initiative
+- `Epic` — large initiative spanning multiple tickets; must include Epic Name
+
+**Priority:**
+- `Critical - P2` — urgent, blocking, or high-visibility
+- `Major - P3` — standard work
+- `Minor - P4` — low-impact or nice-to-have (default)
+
+See your tool's reference file for field mappings and a full create example.
+
+---
+
+## Link Types
+
+Common link types (same across all three tools; syntax to create a link is tool-specific, see your tool's reference file):
+
+| Type | Direction | When to use |
+|---|---|---|
+| `Related` | (none) | General cross-reference between two tickets |
+| `Depends` | `depends on` / `is depended on by` | This ticket is blocked on or waiting for another (often an engineering ticket in CLOUDP, JAVA, etc.) |
+| `documents` | outward: `documents` / inward: `is documented by` | Use when a DOCSP ticket documents an engineering ticket. The DOCSP ticket is the outward link ("documents"); the engineering ticket is the inward link ("is documented by"). |
+| `Cloners` | `clones` / `is cloned by` | This ticket was cloned from a template (common for recurring release notes tickets) |
 
 ---
 
@@ -473,7 +184,7 @@ When work during a session expands beyond the current ticket's original scope, c
 **Workflow:**
 
 1. Identify the out-of-scope work clearly.
-2. Ask the user to confirm it should be a separate ticket.
+2. Ask the user to confirm it should be a separate ticket, and whether it belongs under an epic (or no epic).
 3. Create a new DOCSP ticket with:
    - A summary scoped to the new work only
    - A description referencing the originating ticket (e.g., "Discovered during DOCSP-XXXXX")
@@ -490,7 +201,3 @@ Follow-up work discovered during DOCSP-12345.
 h2. Scope
 [Description of the additional work]
 ```
-
----
-
-Use Jira wiki markup in all descriptions and comments (e.g. `h2.`, `*bold*`, `{{code}}`, `[label|url]`, `[~username]`) — not Markdown.

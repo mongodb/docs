@@ -1,5 +1,6 @@
 ---
 name: grove-test
+internal: true
 description: >
   Create or fix tests for existing Grove code examples. Use when the user asks
   to "add a test", "create a test", "fix this test", "update the test", "the
@@ -82,8 +83,8 @@ This is **Create mode** with the source file identified. Skip Step 1
 (task determination — it's a create, not a fix) and use:
 - `sourceFile` → the example file to read in Step 3 (Analyze the Example).
 - `language` → the target suite for conventions lookup in Step 2.
-- `projectPath` → the Grove project root for locating the `tests/`
-  directory.
+- `projectPath` → the Grove project root for locating the tests directory
+  (`tests_package/` for Python, `src/test/java/` for Java, etc.).
 - `snippetNames` → the snippets already marked in the source (may be
   empty for suites like mongosh that don't require Bluehawk tags). When
   non-empty, the test's Bluehawk markup should reference the same names
@@ -91,7 +92,7 @@ This is **Create mode** with the source file identified. Skip Step 1
 
 Propose the test file location based on the source path and the
 language's convention (e.g., `examples/crud/insert_one.py` →
-`tests/crud/test_insert_one.py`). Confirm the location with the writer
+`tests_package/crud/test_insert_one.py`). Confirm the location with the writer
 before proceeding to Step 2.
 
 Echo one line confirming the captured context, e.g.:
@@ -147,10 +148,18 @@ If fixing, also:
 
 ## Step 4: Test Strategy (Create Mode)
 
-Check existing test files in the topic area:
+Check existing test files in the topic area using the language's test
+directory and naming convention:
 
-1. Search `tests/{topic}/**/*.test.js` (or equivalent for the language)
-2. If a related test file exists, read it and decide whether to add an `it`
+| Suite | Search pattern |
+|-------|----------------|
+| JavaScript / Mongosh | `tests/{topic}/**/*.test.js` |
+| Python | `tests_package/{topic}/**/test_*.py` |
+| Go | `tests/{topic}/**/*_test.go` |
+| Java | `src/test/java/{topic}/**/*Tests.java` |
+| C# | `Tests/{topic}/**/*Tests.cs` (EF Core: `Tests/EfCore/{topic}/`) |
+
+1. If a related test file exists, read it and decide whether to add an `it`
    block or create a new file
 3. **Add to existing file** when: the new example uses the same database AND
    collection as existing tests, AND the file has fewer than 8 `it` blocks
@@ -238,10 +247,23 @@ framework-specific assertions. This keeps all validation on a single path.
 ## Step 7: Run the Test
 
 Run the test once to verify it passes. Use the test commands from `/grove-run`
-Step 3 (the canonical source for per-language test commands). For JavaScript:
+Step 3 (the canonical source for per-language test commands). Examples:
 
 ```bash
+# JavaScript / Mongosh
 cd code-example-tests/{driver-dir} && npm test -- -t '{test name}'
+
+# Python
+cd code-example-tests/python/pymongo && ./venv/bin/python -m unittest tests_package/topic/test_file.py -k test_name
+
+# Go (from tests/)
+cd code-example-tests/go/driver/tests && go test -v -count=1 ./topic -run TestName/SubtestName
+
+# Java
+cd code-example-tests/java/driver-sync && mvn test -Dtest=topic.YourTests
+
+# C#
+cd code-example-tests/csharp/driver && dotnet test --filter "FullyQualifiedName~TestMethodName"
 ```
 
 If it fails, diagnose and fix (loop back to Step 5, max 3 attempts). After 3

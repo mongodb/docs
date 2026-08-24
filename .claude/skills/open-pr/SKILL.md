@@ -1,5 +1,6 @@
 ---
 name: open-pr
+internal: true
 description: "Opens a GitHub Pull Request with the standard PR template: Description, Staging Links, and JIRA ticket. Infers the ticket from the branch name and generates staging preview URLs from changed files after the PR is created. TRIGGER when: user asks to open, create, submit, make, update, or edit a PR or pull request, or wants to refresh staging links on an existing PR."
 argument-hint: "[--base <branch>] [optional notes or extra context]"
 ---

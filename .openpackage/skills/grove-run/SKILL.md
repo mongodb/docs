@@ -1,5 +1,6 @@
 ---
 name: grove-run
+internal: true
 description: >
   Run Grove tests and diagnose failures. Use when the user asks to "run the
   tests", "run my test", "debug this test failure", "why is this test failing",
@@ -108,37 +109,121 @@ language directory they're currently working in.
 
 Map the language to its driver directory under `code-example-tests/`:
 
-| Suite | Directory | Test command |
-|-------|-----------|--------------|
-| JavaScript | `javascript/driver/` | `npm test` (all) or `npm test -- -t '{name}'` (single) |
-| Python | `python/pymongo/` | `python -m pytest` or `python -m unittest` |
-| Go | `go/driver/` | `go test ./tests/...` |
-| Java | `java/driver-sync/` | `mvn test` |
-| C# | `csharp/driver/` | `dotnet test` |
-| Mongosh | `command-line/mongosh/` | `npm test` (all) or `npm test -- -t '{name}'` (single) |
+| Suite | Directory | Quick test command |
+|-------|-----------|-------------------|
+| JavaScript | `javascript/driver/` | `npm test` or `npm test -- -t '{name}'` |
+| Python | `python/pymongo/` | `./venv/bin/python -m unittest discover tests_package` |
+| Go | `go/driver/` | `go test -v -p 1 -count=1 ./...` (from `tests/`) |
+| Java | `java/driver-sync/` | `mvn test` (requires `CONNECTION_STRING` in env) |
+| C# (Driver) | `csharp/driver/` | `dotnet test Tests/Tests.csproj` |
+| C# (EF Core) | `csharp/driver/` (Examples/EfCore, Tests/EfCore) | Same as C# driver |
+| Mongosh | `command-line/mongosh/` | `npm test` or `npm test -- -t '{name}'` |
 
-Read the language's CLAUDE.md for the exact commands and any env setup needed.
+**Out of scope** for these skills: `java/driver-reactive/` (comparison-library
+tests only), `go/atlas-sdk/`, and `openapi/` (OpenAPI validation) — use each
+project's README.
+
+Read the language's CLAUDE.md for formatting, snip, and env setup details.
 
 ## Step 3: Run the Tests
 
 This is the canonical source for test commands. Other grove skills reference
 these patterns — keep them up to date here.
 
-For JavaScript and Mongosh (Jest-based suites):
+### Full pipeline (format → test → snip)
 
-**All tests:**
+Each main suite provides `run-tests.js`, which runs preflight connectivity
+checks, formats code, runs tests, and extracts snippets. Prefer this when the
+writer wants the full local CI workflow:
+
 ```bash
-cd code-example-tests/{driver-dir} && npm test
+cd code-example-tests/{driver-dir} && node run-tests.js
 ```
 
-**Single test by name:**
+Pass `--no-snip` to skip snippet extraction. Repo-wide:
+`node code-example-tests/run-all-tests.js`.
+
+### JavaScript (Jest)
+
+From `code-example-tests/javascript/driver/`:
+
 ```bash
-cd code-example-tests/{driver-dir} && npm test -- -t '{describe or it text}'
+npm test                                    # All tests
+npm test -- -t '{describe or it text}'      # Single test by name
+npx jest tests/path/file.test.js            # Single file (after .env is loaded)
 ```
 
-`npm test` handles `.env` loading and Jest flags (`--runInBand`,
-`--detectOpenHandles`) via the `scripts.test` entry in `package.json`. Do not
-call `npx jest` directly — use `npm test --` to pass arguments through.
+`npm test` loads `.env` and sets Jest flags via `package.json`. Do not call
+`npx jest` for ad-hoc runs without loading `CONNECTION_STRING` — use `npm test --`
+to pass arguments through.
+
+### Python (unittest)
+
+From `code-example-tests/python/pymongo/`:
+
+```bash
+./venv/bin/python -m unittest discover tests_package
+./venv/bin/python -m unittest tests_package/topic/test_file.py
+./venv/bin/python -m unittest tests_package/topic/test_file.py -k test_name
+```
+
+The suite uses **unittest**, not pytest.
+
+### Go
+
+From `code-example-tests/go/driver/tests/`:
+
+```bash
+go test -v -p 1 -count=1 ./...                              # All tests
+go test -v -p 1 -count=1 ./aggregation/pipelines             # One package
+go test -v -count=1 ./... -run TestExampleOperations/YourName # One subtest
+```
+
+`-p 1` avoids concurrent DB writes across packages. `-count=1` is required
+because `CONNECTION_STRING` is loaded from `.env` at runtime (Go's cache keys
+on shell env, not dotenv). Consider `GOFLAGS=-count=1` in your shell profile.
+
+### Java
+
+From `code-example-tests/java/driver-sync/`:
+
+```bash
+mvn test
+mvn -Dtest=example.ExampleStubTest test
+mvn test -Dtest="topic.subtopic.YourTests#testYourExample"
+```
+
+`CONNECTION_STRING` must be in the **shell environment** before `mvn test`
+(`export CONNECTION_STRING="..."`) or loaded via `node run-tests.js` (which
+reads `.env` from `driver-sync/` or `java/` via preflight). A `.env` under
+`src/` is not read by Maven directly.
+
+First-time setup: `mvn clean install -DskipTests` from `code-example-tests/java/`.
+
+### C# (Driver and EF Core)
+
+From `code-example-tests/csharp/driver/`:
+
+```bash
+dotnet test Tests/Tests.csproj
+dotnet test --filter "FullyQualifiedName~Tests.ExampleStubTest"
+dotnet test --filter "FullyQualifiedName=Tests.Topic.TestClass.TestMethod"
+```
+
+EF Core tests live in `Tests/EfCore/` in the same solution — `dotnet test`
+runs them with the driver tests unless filtered.
+
+### Mongosh (Jest)
+
+From `code-example-tests/command-line/mongosh/`:
+
+```bash
+npm test
+npm test -- -t '{test name}'
+```
+
+Same `npm test` / `.env` loading rules as JavaScript. Tests use `test()` and
+`outputFromExampleFiles()` rather than driver-style `it()` / `that()`.
 
 Capture the full output including any error messages, stack traces, and test
 result summary.
@@ -156,10 +241,12 @@ If any tests fail, for each failure:
    issues include environment setup, syntax errors, incorrect imports, bad
    output files, and test logic bugs. Tooling issues include comparison
    utility crashes, parser errors in output matching utilities, missing data
-   type support in comparison libraries, and infrastructure/CI pipeline
-   failures. If the writer's code and output appear correct but the
-   comparison utility can't match them, that's a tooling issue — tell the
-   writer to report it with enough detail to reproduce.
+   type support in comparison libraries, comparison-kernel binary mismatches
+   (see `code-example-tests/tools/comparison-kernel/README.md` — native
+   per-OS binaries under `bin/`), and infrastructure/CI pipeline failures.
+   If the writer's code and output appear correct but the comparison utility
+   can't match them, that's a tooling issue — tell the writer to report it
+   with enough detail to reproduce.
 3. **For writer issues**, classify into one of these categories:
 
 ### Connection Error

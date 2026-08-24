@@ -1,5 +1,6 @@
 ---
 name: local-build-check
+internal: true
 description: >
   Run local docs build checks on pending content/ changes before opening a PR.
   Catches broken directives, bad refs, missing includes, invalid substitutions,

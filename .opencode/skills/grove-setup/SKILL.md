@@ -1,5 +1,6 @@
 ---
 name: grove-setup
+internal: true
 description: |
   Set up a local Grove environment for running code example tests. Use when the user asks to "set up Grove", "configure the test suite", "get started with Grove", "set up my environment", "I need to run Grove tests", or is working with Grove for the first time and needs prerequisites configured. Checks for required tools, installs dependencies, guides .env file setup, verifies MongoDB connectivity, and checks sample data availability.
 ---

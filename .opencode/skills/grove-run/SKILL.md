@@ -1,5 +1,6 @@
 ---
 name: grove-run
+internal: true
 description: |
   Run Grove tests and diagnose failures. Use when the user asks to "run the tests", "run my test", "debug this test failure", "why is this test failing", "check if tests pass", or wants to execute and troubleshoot code example tests.
 ---

@@ -1,5 +1,6 @@
 ---
 name: dochub
+internal: true
 description: "Create or update a DocHub link (dochub.mongodb.org/core/<key>) so product UI and error messages point at docs through a stable vanity URL, or check whether a moved/renamed/deleted docs page has broken any DocHub link. Use when a writer or stakeholder asks to create, add, update, change, or repoint a dochub link; needs a stable link for code before docs are live; or when the dochub-drift-check hook reports that a moved page may be referenced by a dochub link. To add an in-repo redirect for a moved page, use add-redirects instead; not for casual link sharing."
 ---
 

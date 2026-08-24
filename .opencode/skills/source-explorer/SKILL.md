@@ -1,5 +1,6 @@
 ---
 name: source-explorer
+internal: true
 description: |
   Read a product's source code and build a plain-language summary of its public surface — flags, options, API endpoints, states, defaults, and constraints. Stays interactive so writers can ask follow-up questions about how the product works before writing or auditing docs. Consumes the same manifest as docs-drift but produces no structured output and runs no diff. Use when a writer wants to understand an unfamiliar codebase, calibrate a new docs-drift manifest, or answer "what does this flag actually do?" questions. Trigger phrases: "explore the source", "understand the source for X", "summarize the codebase", "explain the source surface", "what does X's source do", "source summary for X".
 ---

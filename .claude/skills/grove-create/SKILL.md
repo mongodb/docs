@@ -1,5 +1,6 @@
 ---
 name: grove-create
+internal: true
 description: >
   Create a new tested code example in the Grove platform. Use when the user asks
   to "create a code example", "add a new example", "scaffold a Grove example",

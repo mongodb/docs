@@ -2,20 +2,28 @@
 
 Load this file when performing a minor or major release for a docset
 whose redirects are managed in the Next.js format
-(`platform/docs-nextjs/src/redirects/<slug>-redirects.json`). Skip this step
-entirely for patch releases.
+(`<slug>-redirects.json`). Skip this step entirely for patch releases.
 
-This file is the JSON counterpart to `netlify-toml-updates.md`. The
-docset sections below appear in the same order. `SKILL.md` Step 8 decides
-which file(s) to apply based on what exists on disk — see "Routing"
-there. During the migration period a docset may have **both** a
-`netlify.toml` and a `<slug>-redirects.json`; in that case apply the
-matching section from **both** reference files.
+Every docset covered by `version-update` has moved off Netlify/Snooty
+for redirects. `content/{docset}/netlify.toml` may still exist on disk
+for some docsets, but it is no longer edited as part of this workflow
+— see "Step 8: Update Redirects" in `SKILL.md`.
 
-The redirect file path is **outside `content/`**, under
-`platform/docs-nextjs/src/redirects/`. Editing it is an expected part of this
-workflow (the `add-redirects` skill writes there too), but it is a
-`platform/` change — note it as such in the change summary.
+The redirect file path is **outside `content/`**, under one of two
+directories depending on the docset — confirm which before editing:
+
+- `platform/docs-nextjs/src/redirects/<slug>-redirects.json` — standard
+  drivers, providers, and cloud/Atlas products.
+- `platform/docs-site/src/redirects/<slug>-redirects.json` — Mongosync,
+  Server Manual, and the other docsets migrated as part of the site-wide
+  Next.js SSG rollout (django-mongodb, hibernate, ops-manager, compass,
+  mongodb-vscode, mongodb-shell, database-tools, meta, mcp-server,
+  relational-migrator, mongodb-intellij).
+
+Each docset's section below states which directory its file lives in.
+Editing either file is an expected part of this workflow (the
+`add-redirects` skill writes there too), but it is a `platform/` change —
+note it as such in the change summary.
 
 ---
 
@@ -32,34 +40,24 @@ sections, comments, or version subheadings. Each entry is:
 }
 ```
 
-Append new entries at the end of the array. Do not reorder existing
-entries. Next.js evaluates redirects in array order (first match wins),
-but version-structural entries do not overlap each other, so order within
-the structural block does not matter in practice. Do not add `"force":
+Next.js evaluates redirects in array order (first match wins), but
+version-structural entries do not overlap each other, so exact order
+within the structural block does not affect behavior. Even so, insert a
+new version-consolidation redirect immediately after the alias redirect
+and before the entry for the previous version — this matches every
+version-bump PR in history (JVM, Go, C#, Node) and keeps the file
+scannable. Do not reorder existing entries. If a docset's file has no
+obvious version-consolidation block to slot into, recommend a placement
+and confirm with the user before applying it. Do not add `"force":
 true`.
 
-## Translation rules from `netlify.toml`
+## The "no entry" pattern
 
-These rules are verified against the two docsets already migrated
-(`node-redirects.json`, `atlas-redirects.json`):
-
-| `netlify.toml` | `<slug>-redirects.json` |
-|---|---|
-| `from = "/docs/x/*"` | `"source": "/docs/x/:path*"` |
-| `to = "/docs/x/:splat"` | `"destination": "/docs/x/:path*"` |
-| `status = 302` | `"statusCode": 302` |
-| `status = 301` (or omitted) | `"statusCode": 301` |
-| `status = 200` (direct self-serve) | **no entry** — see below |
-| Section headers (`### ALIAS REDIRECTS`, `### CATCH ALLS`, etc.) | none — flat array |
-| `:version` named parameter | supported (Next.js allows `:version` + `:path*` in one rule; Netlify does not) |
-
-**The `status = 200` rule is the biggest difference.** In `netlify.toml`,
-an archived version that is served from its own directory gets a
-self-referential `from = "/docs/x/vX.Y/*"` → `to = "/docs/x/vX.Y/:splat"`
-with `status = 200`. Next.js has no direct-serve redirect: a version that
-should serve from its own directory simply has **no entry** in the JSON
-file. Whenever the TOML instructions say "add a `status = 200`
-direct-serve redirect," the JSON equivalent is to add nothing.
+Unlike `netlify.toml`'s self-referential direct-serve redirect
+(`status = 200`), the JSON format has no direct-serve entry at all: a
+version that should serve from its own directory simply has **no
+entry** in the file. Several docset sections below describe this as
+"no entry" for that reason — there is nothing to add.
 
 Consequence: `statusCode` in these files is only ever **302** (a
 temporary alias for the live version, whose target moves on the next
@@ -144,10 +142,9 @@ entry for the newly released minor, pointing at the current major's
 
 URL base: `/docs/entity-framework/`.
 
-**Derived** (Entity Framework is not yet migrated — verify against
-`entity-framework-redirects.json` once it exists or against the first
-migration PR). Entity Framework uses exact released minor versions, not
-`vX.x` consolidation aliases.
+**Verified** against the live `entity-framework-redirects.json`. Entity
+Framework uses exact released minor versions, not `vX.x` consolidation
+aliases.
 
 ### Minor or major release
 
@@ -164,9 +161,26 @@ migration PR). Entity Framework uses exact released minor versions, not
 
 2. Change the previous released version's alias from 302 to a
    direct-serve (i.e. **delete** the JSON entry — the previous version is
-   now archived in its own directory and serves directly).
+   now archived in its own directory and serves directly). Verified:
+   every version with a `content/entity-framework/vX.Y/` directory
+   (`v8.0`–`v9.1` at time of writing) has no entry in the file.
 
-3. No `VERSION CONSOLIDATION` entry (Entity Framework has none in TOML
+3. If a version's content directory is later removed from the repo
+   entirely (full EOL, a separate and less frequent action than the
+   routine flip), add an explicit 301 entry redirecting it to `current`:
+
+   ```json
+   {
+     "source": "/docs/entity-framework/v7.0/:path*",
+     "destination": "/docs/entity-framework/current/:path*",
+     "statusCode": 301
+   }
+   ```
+
+   Verified: `v7.0` has exactly this entry and no directory in
+   `content/entity-framework/` anymore.
+
+4. No `VERSION CONSOLIDATION` entry (Entity Framework has none in TOML
    either).
 
 ---
@@ -175,41 +189,61 @@ migration PR). Entity Framework uses exact released minor versions, not
 
 URL base: `/docs/atlas/cli/`.
 
-**Derived** (not yet migrated). Atlas CLI keeps the five most-recent
-versions online and tracks two aliases (current and upcoming).
+**Verified** against the live `atlas-cli-redirects.json` and the current
+`netlify.toml`, which the JSON mirrors 1:1 — this confirms Atlas CLI's
+"five most recent versions online" policy (see `product-specific-steps.md`)
+is real. The five versions immediately before `current` have **no** entry (they
+self-serve from their own `content/atlas-cli/vX.Y/` directory); anything
+older gets an explicit 301 entry redirecting it to `current`.
+
+Before editing, confirm the file's current state actually matches this
+rule (count entries against the five-version window). A previous flip
+can leave the window half-shifted (an old version not yet given its EOL
+entry, or the just-superseded version not yet dropped into the window)
+— fix any such gap forward as part of this release rather than building
+on top of it.
 
 ### Minor or major release
 
-1. Update the **upcoming** alias source from the old upcoming version to
-   the new one (302, → `upcoming`):
+1. Add a new entry for the just-released version at 302:
 
    ```json
    {
-     "source": "/docs/atlas/cli/v1.56/:path*",
-     "destination": "/docs/atlas/cli/upcoming/:path*",
+     "source": "/docs/atlas/cli/v1.57/:path*",
+     "destination": "/docs/atlas/cli/current/:path*",
      "statusCode": 302
    }
    ```
 
-2. Update the **current** alias source from the old current version to
-   the new one (302, → `current`).
+2. **Remove** the entry for the outgoing current version entirely (no
+   replacement) — it now enters the five-version self-serving window:
 
-3. The newly archived version (the old `current`) enters the
-   five-version online window and serves from its own directory: **no
-   JSON entry**.
+   ```json
+   // delete this entry for the version that just stopped being current
+   {
+     "source": "/docs/atlas/cli/v1.56/:path*",
+     "destination": "/docs/atlas/cli/current/:path*",
+     "statusCode": 302
+   }
+   ```
 
-4. Add a 301 entry for the version rolling **out** of the five-version
-   window (the sixth-most-recent), pointing to `current`:
+3. Add a 301 entry for the version that ages **out** of the five-version
+   window as a result (the sixth-most-recent, counting back from the new
+   current):
 
    ```json
    {
-     "source": "/docs/atlas/cli/v1.50/:path*",
+     "source": "/docs/atlas/cli/v1.51/:path*",
      "destination": "/docs/atlas/cli/current/:path*",
      "statusCode": 301
    }
    ```
 
-   Also remove that version from `targetBranchChoices` in
+4. `master` → `upcoming` (301) and `stable` → `current` (301) are static
+   aliases with no version number in the `source` — verified they don't
+   change on a flip. Leave them untouched.
+
+5. Also remove the superseded version from `targetBranchChoices` in
    `.backportrc.json` (Step 6) and run the Snooty sunset procedure — see
    `product-specific-steps.md`.
 
@@ -219,17 +253,31 @@ versions online and tracks two aliases (current and upcoming).
 
 URL base: `/docs/atlas/operator/`.
 
-**Derived** (not yet migrated). AKO uses a pre-emptive alias: the
-next minor's `vX.Y` entry already exists pointing to `current` at 302
-before that version ships.
+**Verified** against the live `atlas-operator-redirects.json` and the
+current `netlify.toml`, which the JSON mirrors 1:1. AKO does **not**
+self-serve archived versions the way standard drivers do, even when a
+version has its own directory under `content/atlas-operator/` — every
+non-current version number gets an explicit 301 entry redirecting to
+`current`. Each version has **exactly one** entry in the file at any
+time: 302 while it is current, 301 once superseded. There is no
+pre-emptive alias for a not-yet-released version — don't add one
+speculatively; only add it if you find one already present in the file
+at release time.
 
 ### Minor release
 
-1. **Remove** the pre-emptive alias entry for the version now being
-   released (e.g. delete the `v2.14` → `current` 302 entry when releasing
-   v2.14 — that version now serves from its own directory).
+1. Edit the outgoing current version's entry in place, changing its
+   `statusCode` from 302 to 301 (destination stays `current`):
 
-2. **Add** a fresh pre-emptive alias for the next upcoming minor:
+   ```json
+   {
+     "source": "/docs/atlas/operator/v2.14/:path*",
+     "destination": "/docs/atlas/operator/current/:path*",
+     "statusCode": 301
+   }
+   ```
+
+2. Add a new entry for the just-released version at 302:
 
    ```json
    {
@@ -239,20 +287,13 @@ before that version ships.
    }
    ```
 
-3. The just-released version and the previous current both serve from
-   their own directories: **no JSON entry** — only fully-EOL versions
-   get a 301.
+3. Leave the `master` → `upcoming` alias (301) and `stable` → `current`
+   alias (301) untouched — both are static and don't change on a flip.
 
-4. If a version rolls out of the online window and is fully EOL'd, add a
-   301 entry pointing to `current`:
-
-   ```json
-   {
-     "source": "/docs/atlas/operator/v2.10/:path*",
-     "destination": "/docs/atlas/operator/current/:path*",
-     "statusCode": 301
-   }
-   ```
+4. Per-version page-specific redirects (e.g. the
+   `migrate-parameter-to-resource` entries scoped to specific old
+   versions) are static and unrelated to the flip — do not touch them
+   here.
 
 ---
 
@@ -260,31 +301,41 @@ before that version ships.
 
 URL base: `/docs/kubernetes/`.
 
-**Derived** (not yet migrated). MCK archives each minor exactly and
-serves each from its own directory; it has no `vX.x` consolidation
-aliases.
+**Verified** against the live `kubernetes-redirects.json` and the current
+`netlify.toml`, which the JSON mirrors 1:1. MCK follows the same
+self-serve model as Entity Framework and Mongosync: a version with its
+own `content/kubernetes/vX.Y/` directory has no entry in the file —
+confirmed for every one of `v1.1`–`v1.9`. There is no live "current
+version" alias entry of the kind Atlas CLI or the standard drivers use;
+`current`/`upcoming` resolve without a JSON redirect. Only page-specific
+overrides scoped to individual old versions, the `master` → `upcoming`
+and `stable` → `current` aliases, and the trailing catch-all exist in
+the file — none of these change on a routine flip.
 
 ### Minor or major release
 
 1. The newly archived version (old `current`) and the new current both
-   serve from their own directories: **no JSON entries**.
+   serve from their own directories: no JSON entries needed for the flip
+   itself.
 
-2. If the new current's version-numbered URL must resolve to `current`,
-   add a single alias at 302:
+2. If a version's content directory is later removed from the repo
+   entirely (full EOL), add an explicit 301 entry redirecting it to
+   `current`, matching the Entity Framework and Mongosync pattern:
 
    ```json
    {
-     "source": "/docs/kubernetes/v1.8/:path*",
+     "source": "/docs/kubernetes/v1.0/:path*",
      "destination": "/docs/kubernetes/current/:path*",
-     "statusCode": 302
+     "statusCode": 301
    }
    ```
 
-   Confirm against the migrated file whether MCK keeps this alias or
-   relies on the directory serving directly.
+   Confirm no directory-backed version has a stray entry before and
+   after editing.
 
-3. Fully-EOL versions (rolled out of the support window) redirect to
-   `current` at 301.
+3. Page-specific overrides scoped to individual old versions (e.g. the
+   `fts-vs-deployment`/`tutorial/*` entries under `v1.1`–`v1.3`) are
+   static and unrelated to the flip — do not touch them here.
 
 ---
 
@@ -292,23 +343,35 @@ aliases.
 
 URL base: `/docs/kafka-connector/`.
 
-**Derived** (not yet migrated). Per-minor, served directly per version.
+**Verified** against the live `kafka-connector-redirects.json` and the
+current `netlify.toml`, which the JSON mirrors 1:1. Kafka Connector
+follows the same self-serve model as Entity Framework, Mongosync, and
+MCK: a version with its own `content/kafka-connector/vX.Y/` directory
+has no entry in the file; a version whose directory has been fully
+removed gets an explicit 301 entry to `current`, confirmed for
+`v1.0`–`v1.12`. There is no live "current version" alias entry —
+`current`/`upcoming` resolve without a JSON redirect.
 
 ### Minor release
 
-1. The newly archived version serves from its own directory: **no JSON
-   entry**.
+1. The newly archived version (old `current`) and the new current both
+   serve from their own directories: no JSON entries needed for the flip
+   itself.
 
-2. Update the alias for the new current version to point at `current` at
-   302, if the file uses version-numbered aliases:
+2. If a version's content directory is later removed from the repo
+   entirely (full EOL), add an explicit 301 entry redirecting it to
+   `current`, matching the pattern above:
 
    ```json
    {
-     "source": "/docs/kafka-connector/v2.1/:path*",
+     "source": "/docs/kafka-connector/v1.13/:path*",
      "destination": "/docs/kafka-connector/current/:path*",
-     "statusCode": 302
+     "statusCode": 301
    }
    ```
+
+   Confirm no directory-backed version has a stray entry before and
+   after editing.
 
 ---
 
@@ -326,34 +389,64 @@ and provider docsets** above, using the `/docs/spark-connector/` base.
 
 ## Mongosync
 
-URL base: `/docs/mongosync/`.
+URL base: `/docs/mongosync/`. File:
+`platform/docs-site/src/redirects/mongosync-redirects.json`.
 
-**Derived** (not yet migrated). Mongosync has no `upcoming` directory and
-archives each minor to its own directory.
+**Verified** against the live `mongosync-redirects.json` (migrated
+2026-08-13) and the current `netlify.toml`, which the JSON file still
+mirrors 1:1. Mongosync has no `upcoming` directory. There is exactly one
+"current version" alias entry in the file at any time (302, → `current`);
+everything else is either a version that serves directly from its own
+retained `content/mongosync/vX.Y/` directory (no entry) or a version
+whose directory has been fully removed from the repo (explicit 301 to
+`current`).
 
 ### Minor release
 
-1. The newly archived version serves from its own directory: **no JSON
-   entry**.
-
-2. Add an alias for the newly released current version pointing to
-   `current` at 302 (the TOML "comment block / v1.21 → current" step):
+1. Edit the single current-version alias entry in place, bumping its
+   `source` version number (destination and statusCode stay the same):
 
    ```json
    {
-     "source": "/docs/mongosync/v1.21/:path*",
+     "source": "/docs/mongosync/v1.22/:path*",
      "destination": "/docs/mongosync/current/:path*",
      "statusCode": 302
    }
    ```
 
-   Confirm the status against the migrated file.
+2. Add **no entry** for the version that just stopped being current — it
+   now serves directly from its own retained directory
+   (`content/mongosync/v{OLD}/`), matching `v1.10`–`v1.20` in the live
+   file.
+
+3. Only if a version's content directory is being fully removed from the
+   repo this release (a separate, less frequent action than the routine
+   flip), add an explicit 301 entry redirecting it to `current`:
+
+   ```json
+   {
+     "source": "/docs/mongosync/v1.10/:path*",
+     "destination": "/docs/mongosync/current/:path*",
+     "statusCode": 301
+   }
+   ```
+
+   Verified pattern: `v0.9`, `v1.7`, `v1.8`, and `v1.9` all have exactly
+   this entry — none of those versions has a directory in
+   `content/mongosync/` anymore.
+
+4. Leave everything else untouched: the `cluster-to-cluster-sync` legacy
+   alias, the `master` → `current` alias, the root `/docs/mongosync/` →
+   `current` alias, the page-specific redirects (`beta-program`,
+   `disaster-recovery`, `install-on-windows/`, etc.), and the trailing
+   catch-all. None of these change on a version flip.
 
 ### Major release
 
 Mongosync makes no structural distinction between minor and major
-releases for redirects (the same archive-and-alias applies). Follow the
-minor-release steps above.
+releases for redirects (verified: the same v1.x numbering and
+archive/EOL pattern applies uniformly). Follow the minor-release steps
+above.
 
 ---
 
@@ -367,15 +460,23 @@ for patch releases.
 ## Server Manual
 
 URL base: `/docs/` (the manual serves at the docs root, with version
-segments such as `/docs/v8.0/` and the alias `/docs/manual/`).
+segments such as `/docs/v8.0/` and the alias `/docs/manual/`). File:
+`platform/docs-site/src/redirects/manual-redirects.json`.
 
-**Derived** (not yet migrated; the manual's redirect file is large and
-DOP-owned). The four-PR flip's redirect work (PR 4) translates to JSON as
-follows. Confirm every entry with DOP/Anabella before merge, exactly as
-in the TOML process.
+**Verified** against the live `manual-redirects.json` (migrated
+2026-08-13; 1,821 entries) and the current `netlify.toml`, which the JSON
+file mirrors 1:1 — including its EOL, alias-wildcard, major/version
+page-level, and catch-all sections. Confirmed: this docset never uses
+`status = 200` in `netlify.toml`, so the "no entry" pattern above never
+applies here — every entry in the file is a real 301 or 302. The
+four-PR flip's redirect work (PR 4) is what changes the file. Confirm
+every entry with DOP before merge — see `server-manual-pr4.md`.
 
-1. **Alias wildcards** — update the `manual`-alias and `upcoming`-alias
-   entries to the new version numbers:
+1. **Alias wildcards** — three wildcards point at `/docs/manual/:path*`:
+   `stable` and `current` are static (301, never change on a flip), and
+   the released-version alias (currently `v8.3`) is the one that moves.
+   On a flip, bump its `source` version number in place, keeping
+   `destination` and `statusCode` (302) unchanged:
 
    ```json
    {
@@ -385,13 +486,15 @@ in the TOML process.
    }
    ```
 
-   (The `manual` alias serves the released version; the `upcoming` alias
-   points the next dev version at `/docs/upcoming/`.)
+   Separately, the `upcoming`-alias entry (destination
+   `/docs/upcoming/:path*`, 302) gets its own `source` version number
+   bumped when a new in-development version starts.
 
 2. **Newly archived version** (`v{OUTGOING}`) serves from its own
-   directory: **no JSON entry** (the TOML process never added a
-   `status = 200` catch-all for it either — it added a full per-page
-   redirect section, which is page-level work handled separately).
+   directory: **no JSON entry** (confirmed — no `v{OUTGOING}`-specific
+   alias exists anywhere in the live file for archived majors like
+   `v8.0`, `v7.0`, or `v8.2`; only page-specific redirect sections
+   reference them, which is page-level work handled separately).
 
 3. **Per-archived-version page redirects** (the TOML `### v{OUTGOING}
    REDIRECTS` sibling section copied from `### MANUAL REDIRECTS`) are
@@ -400,7 +503,11 @@ in the TOML process.
    `add-redirects` territory, not version-update — do not generate the
    block here.
 
-4. Fully-EOL versions redirect to the current manual at 301.
+4. Fully-EOL versions redirect to the current manual at 301 — verified:
+   the 18 exact-version EOL entries listed in the live file's `EOL
+   REDIRECTS` comment (`v2.2` through `v7.3`) all point straight to
+   `/docs/manual/:path*` at 301, a direct 1:1 translation from
+   `netlify.toml`.
 
 ---
 

@@ -1,5 +1,6 @@
 ---
 name: review-skill
+internal: true
 description: >-
   Review a proposed Agent Skill for structural validity and content
   quality before publishing. Runs the skill-validator CLI to check for

@@ -1,5 +1,6 @@
 ---
 name: language-tabs-to-composable-scripted
+internal: true
 description: >-
   Converts RST pages using language tabs to composable tutorial format.
   Script-first: uses analyze.py and convert.py for automation, with manual
