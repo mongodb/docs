@@ -1,3 +1,11 @@
+.. _atlas-sp-20260805:
+
+5 August 2026 Release
+---------------------
+
+- Adds support for parallelism in the :pipeline:`$externalFunction` aggregation
+  stage.
+
 .. _atlas-sp-20260804:
 
 4 August 2026 Release
