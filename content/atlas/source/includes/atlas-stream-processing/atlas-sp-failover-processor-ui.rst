@@ -22,7 +22,9 @@
       #. In the modal window, select the :ref:`failover type
          <atlas-sp-architecture-failover>`. To perform a
          :guilabel:`Forced failover`, type ``Force`` in the confirmation
-         prompt.
+         prompt. For a :guilabel:`Forced failover`, select
+         :guilabel:`Clear checkpoint` to skip resuming from the most
+         recent checkpoint. By default, this checkbox is cleared.
 
       #. Click the :guilabel:`Activate [TYPE] failover` button, where
 	 ``[TYPE]`` is your chosen failover type.

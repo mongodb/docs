@@ -57,10 +57,12 @@ The ``failover`` option has the following syntax:
 ``GRACEFUL`` mode takes a checkpoint and confirms that the active
 processor has stopped before it initiates failover. ``FORCED`` mode
 also attempts to stop the active processor, but initiates failover
-even if the processor doesn't stop. A ``FORCED`` failover starts the
-processor in the target region from the most recent checkpoint
-unless you clear checkpoints. To clear checkpoints, set the
-``resumeFromCheckpoint`` option to ``false``:
+even if the processor doesn't stop. By default, a ``FORCED`` failover
+starts the processor in the target region using the most recent
+checkpoint.
+
+To start the target processor without recovering from a checkpoint
+for a ``FORCED`` failover, set ``clearCheckpoints`` to ``true``:
 
 .. code-block:: sh
 
@@ -69,11 +71,13 @@ unless you clear checkpoints. To clear checkpoints, set the
        region: "<region>",
        mode: "FORCED"
      },
-     resumeFromCheckpoint: false
+     clearCheckpoints: true
    })
 
-The target processor then retains only summary statistics and
-starts processing from the current position in the stream.
+When you clear checkpoints, the target processor starts from the
+current position in the stream instead of recovering its most recent
+checkpoint. Clearing checkpoints might cause duplicate or missing
+records in the output.
 
 For example, to initiate a graceful failover of a stream processor
 named ``proc01`` to the ``us-west-2`` region, run the following
