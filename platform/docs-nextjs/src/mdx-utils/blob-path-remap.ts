@@ -18,7 +18,12 @@ export function remapDiskRelativeToBlobRelative(diskRelative: string, dirNameToP
   const filePath = diskRelative.split(path.sep).join('/');
   const firstSlash = filePath.indexOf('/');
   if (firstSlash === -1) {
-    return filePath;
+    // Bare docset dir name with no remainder (the docset's root index page).
+    // Remap it to the stripped prefix so it lines up with the prefixed paths
+    // of every other page in the same docset. A docset whose prefix strips to
+    // empty keeps the unremapped name, preserving existing behavior.
+    const stripped = stripDocsPrefix(dirNameToPrefix[filePath] ?? '');
+    return stripped || filePath;
   }
   const dirName = filePath.slice(0, firstSlash);
   const rest = filePath.slice(firstSlash + 1);
