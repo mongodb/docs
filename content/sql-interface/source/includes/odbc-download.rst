@@ -1,7 +1,7 @@
 .. procedure::
    :style: normal
 
-   .. step:: Download the latest `MongoDB ODBC Driver <https://www.mongodb.com/try/download/odbc-driver>`__ version from the MongoDB download center.
+   .. step:: Download the latest `MongoDB ODBC Driver <https://www.mongodb.com/try/download/odbc-driver/>`__ version from the MongoDB download center.
   
    .. step:: Verify the integrity of the downloaded package.
 
@@ -10,15 +10,21 @@
       MongoDB release. Complete the following steps to verify the ODBC driver
       binary against its SHA256 key:
   
-      a. Download the ``.sha256`` file for Windows x64 from the `MongoDB ODBC Drivers Downloads page <https://translators-connectors-releases.s3.amazonaws.com/mongosql-odbc-driver/windows/{+sql-odbc-version+}/release/mongoodbc.msi.sha256>`__. 
+      a. On the `MongoDB download center
+         <https://www.mongodb.com/try/download/odbc-driver/>`__, click
+         :guilabel:`Copy link` for the Windows installer. Append ``.sha256``
+         to the copied URL and download the result. MongoDB publishes the
+         checksum file alongside each installer, so this URL is correct for
+         every release. 
   
-      #. Compare the signature file to the MongoDB installer hash using the
-         following Powershell script:
+      #. Compare the checksum file to the MongoDB installer hash using the
+         following PowerShell script. Replace ``<installer>`` with the name
+         of the installer you downloaded, without the ``.msi`` extension:
     
          .. code-block:: shell
       
-            $sigHash = (Get-Content $Env:HomePath\Downloads\mongodbodbc.msi.sha256 | Out-String).    SubString(0,64).ToUpper(); `
-            $fileHash = (Get-FileHash $Env:HomePath\Downloads\mongodbodbc.msi).Hash.Trim(); `
+            $sigHash = (Get-Content $Env:HomePath\Downloads\<installer>.msi.sha256 | Out-String).    SubString(0,64).ToUpper(); `
+            $fileHash = (Get-FileHash $Env:HomePath\Downloads\<installer>.msi).Hash.Trim(); `
             echo $sigHash; echo $fileHash; `
             $sigHash -eq $fileHash
         
