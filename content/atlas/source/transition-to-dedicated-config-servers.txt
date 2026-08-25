@@ -76,7 +76,7 @@ dedicated config servers when
 The following diagram shows when |service| triggers each transition:
 
 .. figure:: /images/when-embedded-to-dedicated-transition.png
-   :alt: "Atlas transitions from an embedded to a dedicated config server when the shard count increases beyond 3 and there are no blocking features."
+   :alt: "Decision flow for when Atlas transitions a cluster from an embedded to a dedicated config server."
    :figwidth: 700px
    :align: center
    :lightbox:
@@ -90,9 +90,9 @@ automatically transitions your {+cluster+} between
 :ref:`config server types <config-server-types>` based on shard
 count:
 
-- When the shard count increases beyond 3, |service| transitions
+- When the shard count increases beyond 5, |service| transitions
   from an embedded config server to a dedicated config server.
-- When the shard count decreases to 3 or fewer, |service|
+- When the shard count decreases to 5 or fewer, |service|
   transitions from a dedicated config server to an embedded config
   server.
 
@@ -140,7 +140,7 @@ Example Transition Process
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following table shows the steps |service| performs when you
-add a fourth shard to a 3-shard {+cluster+} with
+add a sixth shard to a 5-shard {+cluster+} with
 :ref:`{+Managed-Configs+} <config-server-management>` enabled,
 which initiates the transition.
 
@@ -153,16 +153,18 @@ which initiates the transition.
      - Effective Shard Count
 
    * - Start
-     - 3-shard {+cluster+} with embedded config server
-       (``config-0``, ``shard-0``, ``shard-1``)
-     - 3
+     - 5-shard {+cluster+} with embedded config server
+       (``config-0``, ``shard-0``, ``shard-1``, ``shard-2``,
+       ``shard-3``)
+     - 5
 
    * - 1
-     - |service| adds ``shard-2``, bringing the {+cluster+} to
-       its target shard count. The {+cluster+} now has 4
+     - |service| adds ``shard-4``, bringing the {+cluster+} to
+       its target shard count. The {+cluster+} now has 6
        user-facing shards: ``shard-0``, ``shard-1``, ``shard-2``,
-       and ``config-0``, which still stores user data.
-     - 4
+       ``shard-3``, ``shard-4``, and ``config-0``, which still
+       stores user data.
+     - 6
 
    * - 2
      - |service| runs :dbcommand:`transitionToDedicatedConfigServer`,
@@ -170,7 +172,7 @@ which initiates the transition.
        Sharded collections drain to other shards via the :ref:`balancer
        <sharding-balancing>` using chunk migrations. Unsharded
        collections move via :dbcommand:`moveCollection`.
-     - 4 (drain in progress)
+     - 6 (drain in progress)
 
    * - 3
      - |service| waits for :parameter:`orphanCleanupDelaySecs` to
@@ -178,19 +180,20 @@ which initiates the transition.
        running MongoDB versions earlier than 8.2.7, |service| waits for
        all range deletions to complete instead, which can take
        significantly longer.
-     - 4 (cleanup in progress)
+     - 6 (cleanup in progress)
 
    * - 4
      - ``config-0`` converts to a dedicated config server.
-       |service| adds ``shard-3`` to restore the target shard
-       count. The 4 user-facing shards are now ``shard-0``,
-       ``shard-1``, ``shard-2``, and ``shard-3``.
-     - 4
+       |service| adds ``shard-5`` to restore the target shard
+       count. The 6 user-facing shards are now ``shard-0``,
+       ``shard-1``, ``shard-2``, ``shard-3``, ``shard-4``, and
+       ``shard-5``.
+     - 6
 
    * - 5
      - |service| scales down ``config-0`` to the default for dedicated
        config servers, M30.
-     - 4
+     - 6
 
 Duration
 ~~~~~~~~
