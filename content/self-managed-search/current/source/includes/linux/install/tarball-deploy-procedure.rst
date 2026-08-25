@@ -3,21 +3,29 @@
 
    .. step:: Download the ``mongot`` tarball.
 
-      Click the following link to download the Search in Community tarball.
+      Download the latest Search in Community tarball for your system
+      architecture from the `MongoDB Search in Community Download Center
+      <https://www.mongodb.com/try/download/search-in-community/>`__.
+
+      To download a specific version from the command line, replace
+      ``{VERSION_NUMBER}`` with the version of ``mongot`` that you want
+      and run the command for your system architecture:
 
       .. tabs::
-      
+
          .. tab:: ARM Architectures
             :tabid: arm-arch
 
-            For ``ARM`` architectures, use the `ARM-compatible tarball
-            <https://downloads.mongodb.org/mongodb-search-community/0.53.0/mongot_community_0.53.0_linux_aarch64.tgz>`_.
+            .. code-block:: shell
+
+               wget https://downloads.mongodb.org/mongodb-search-community/{VERSION_NUMBER}/mongot_community_{VERSION_NUMBER}_linux_aarch64.tgz
 
          .. tab:: AMD x86_64 Architectures
             :tabid: amd-arch
 
-            For ``AMD x86_64`` architectures, use the `AMD x86-64-compatible 
-            tarball <https://downloads.mongodb.org/mongodb-search-community/0.53.0/mongot_community_0.53.0_linux_x86_64.tgz>`_.
+            .. code-block:: shell
+
+               wget https://downloads.mongodb.org/mongodb-search-community/{VERSION_NUMBER}/mongot_community_{VERSION_NUMBER}_linux_x86_64.tgz
 
    .. step:: (Optional). Verify the integrity of the tarball package.
 
@@ -25,23 +33,25 @@
 
    .. step:: Extract the ``mongot`` tarball.
 
-      Run the following command to extract the tarball:
-      
+      Replace ``{VERSION_NUMBER}`` with the version of ``mongot`` that
+      you downloaded and run the command for your system architecture to
+      extract the tarball:
+
       .. tabs::
-      
+
          .. tab:: ARM Architectures
             :tabid: arm-arch
 
             .. code-block:: shell
 
-               tar -zxvf mongot_community_0.53.0_linux_aarch64.tgz
+               tar -zxvf mongot_community_{VERSION_NUMBER}_linux_aarch64.tgz
 
          .. tab:: AMD x86_64 Architectures
             :tabid: amd-arch
-      
+
             .. code-block:: shell
 
-               tar -zxvf mongot_community_0.53.0_linux_x86_64.tgz
+               tar -zxvf mongot_community_{VERSION_NUMBER}_linux_x86_64.tgz
 
       .. note::
       
@@ -94,9 +104,18 @@
       parameters. For detailed information about search-specific ``setParameter``
       options, see :ref:`MongoDB Search Options <set-parameter-search-options>`.
 
+      .. note::
+
+         The ``mongotHost``, ``searchIndexManagementHostAndPort``, and
+         ``useGrpcForSearch`` parameters are set only at startup. You
+         can't change them at runtime with ``setParameter``. To point
+         ``mongod`` at a different ``mongot`` instance, update these
+         parameters in the ``mongod`` configuration file and restart
+         ``mongod``.
+
       **If you want to deploy a new replica set with keyfile
       authentication**, follow the steps in
-      :ref:`deploy-repl-set-with-keyfile`. 
+      :ref:`deploy-repl-set-with-keyfile`.
 
    .. step:: Create a user for the ``mongot`` process on your MongoDB deployment.
 
@@ -191,9 +210,12 @@
          syncSource:
             replicaSet:
                hostAndPort: "localhost:27017" # Replace with the mongod host and port.
-               username: mongotUser # Replace with mongod username enabled with "searchCoordinator" role.
-               passwordFile: "/etc/mongot/secrets/passwordFile" # Replace with path to password file for the above user.
-               tls: false
+               scramAuth:
+                  username: mongotUser # Replace with mongod username enabled with "searchCoordinator" role.
+                  authSource: admin # Replace with the database to authenticate the user against.
+                  passwordFile: "/etc/mongot/secrets/passwordFile" # Replace with path to password file for the above user.
+                  tls:
+                     enabled: false
          storage:
             dataPath: "/var/lib/mongot"  # Replace with the path where you want mongot to store search data.
          server:
@@ -214,7 +236,29 @@
          The ``dataPath`` directory in your configuration file must be
          writable by the user that runs ``mongot``.
 
-      Use :setting:`logging.logPath` to specify the path of the log file that 
+      The sample configuration uses SCRAM authentication with the
+      ``scramAuth`` block. You must configure exactly one authentication
+      mechanism for the sync source: either SCRAM or X.509. To
+      authenticate with a TLS client certificate instead of a username
+      and password, use the ``x509`` block. For both mechanisms,
+      including the sharded-cluster ``syncSource.router`` configuration,
+      see :ref:`mongot-auth`.
+
+      This sample runs ``mongot`` and ``mongod`` on the same host, so it
+      binds ``server.grpc.address`` to ``localhost`` and disables TLS. If
+      you run ``mongot`` and ``mongod`` on separate hosts, complete the
+      following steps instead:
+
+      - Bind ``server.grpc.address`` to a network interface that
+        ``mongod`` can reach, rather than ``localhost``.
+      - Set the ``mongod`` ``mongotHost`` and
+        ``searchIndexManagementHostAndPort`` parameters to that address.
+      - Enable TLS for the sync source and gRPC connections. Running
+        without TLS is only appropriate when ``mongot`` and ``mongod``
+        run on the same host. To configure TLS, see
+        :ref:`mongot-tls-encryption`.
+
+      Use :setting:`logging.logPath` to specify the path of the log file that
       ``mongot`` writes to. If you do not specify a log file path, ``mongot``
       logs to standard output.
 
