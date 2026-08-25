@@ -30,19 +30,35 @@ export type AtlasProjectDocuments = {
  * current environment. Falls back to 'prd' then 'stg' if env key is missing.
  */
 const flattenForEnvironment = (
-  docset: DocsetsDocument,
+  docset: DocsetsDocument | undefined,
   env: Environments,
+  projectName: string,
 ): DocsetsDocument => {
-  const newDocument = { ...docset } as Record<string, unknown>;
-  const envFields = ['prefix', 'url', 'bucket'] as const;
+  if (!docset) {
+    const message = `[fetchAndStoreAtlasData] No docsets entry found for project "${projectName}"; cannot flatten undefined docset.`;
+    console.error(message);
+    throw new Error(message);
+  }
+  const newDocument: DocsetsDocument = { ...docset };
+  const envFields: (keyof DocsetsDocument)[] = ['prefix', 'url', 'bucket'];
 
   for (const key of envFields) {
-    const fieldValue = newDocument[key] as Record<string, string>;
+    /*
+    TODO: fix this by creating a separate raw vs. flattened type.
+    DocsetsDocument (fetchAndStoreAtlasData.ts) types bucket/url/prefix as string, 
+    but raw Atlas docs have them as per-environment objects until flattenForEnvironment 
+    collapses them — causes unsafe casts, needs a separate raw vs. flattened type. 
+    */
+    const fieldValue = newDocument[key] as unknown as Record<string, string>;
     if (Object.hasOwn(fieldValue, env)) {
       newDocument[key] = fieldValue[env];
+    } else {
+      console.error(
+        `[fetchAndStoreAtlasData] Docset for project "${docset.project}" is missing env key "${env}" on field "${key}". Available keys: ${JSON.stringify(Object.keys(fieldValue))}.`,
+      );
     }
   }
-  return newDocument as DocsetsDocument;
+  return newDocument;
 };
 
 /** Fetches repos branches and docsets data from Atlas
@@ -71,7 +87,7 @@ export const fetchAtlasData = async ({
       projectNames,
     });
   console.log(
-    `Fetched ${reposBranchesCount} reposBranches documents into ${reposBranchesOutput}`,
+    `[fetchAndStoreAtlasData] Fetched ${reposBranchesCount} reposBranches documents into ${reposBranchesOutput}`,
   );
   // fetch docsets data
   const docsetsConnectionInfo = {
@@ -87,7 +103,7 @@ export const fetchAtlasData = async ({
       projectNames,
     });
   console.log(
-    `Fetched ${docsetsCount} docsets documents into ${docsetsOutput}`,
+    `[fetchAndStoreAtlasData] Fetched ${docsetsCount} docsets documents into ${docsetsOutput}`,
   );
 
   const atlasProjectDocuments = await constructAtlasProjectDocuments({
@@ -168,9 +184,14 @@ export const constructAtlasProjectDocuments = async ({
     const docsetEntry = docsetsDocs.find(
       (docset) => docset.project === projectName,
     );
+    if (!repoBranchesEntry) {
+      console.error(
+        `[fetchAndStoreAtlasData] No reposBranches entry found for project "${projectName}".`,
+      );
+    }
     const atlasDataEntry = {
       reposBranchesEntry: repoBranchesEntry as ReposBranchesDocument,
-      docsetsEntry: flattenForEnvironment(docsetEntry as DocsetsDocument, env),
+      docsetsEntry: flattenForEnvironment(docsetEntry, env, projectName),
     };
     atlasProjectDocuments[projectName] = atlasDataEntry;
   });
