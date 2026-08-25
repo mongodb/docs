@@ -1,3 +1,10 @@
+.. _fts20260729: 
+
+29 July 2026 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Adds :ref:`doubleMetaphone <doubleMetaphone-tf-ref>` token filter.
+
 .. _fts20260706: 
 
 06 July 2026 Release
