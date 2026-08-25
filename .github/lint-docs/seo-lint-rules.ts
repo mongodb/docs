@@ -275,6 +275,67 @@ function extractMetaDescription(content: string, filename: string): DescInfo | n
   return null;
 }
 
+/**
+ * Function to extract all meta descriptions in a file
+ * Returns an array of meta descriptions
+ */
+function extractAllMetaDescriptions(content: string, filename: string): DescInfo[]{
+  const foundDescs: DescInfo[] = [];
+  const add = (desc: string, index: number, format: DescInfo['format']) => {
+    foundDescs.push({
+      desc: desc.replace(/\s+/g, ' ').trim(), 
+      line: lineNumberFromIndex(content, index),
+      format
+    });
+  };
+
+  // 1. YAML frontmatter block (works for all formats)
+  let fmStart = -1;
+  let fmEnd = -1;
+  const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+  if (frontmatterMatch){
+    const fmContent = frontmatterMatch[1];
+    fmStart = frontmatterMatch[0].indexOf(fmContent); 
+    fmEnd = fmStart + fmContent.length;
+    // Quoted (single or double) or unquoted
+    for (const m of fmContent.matchAll(/^description:\s*(?:"([^"]+)"|'([^']+)'|([^"'\n][^\n]*))$/gm)){
+      add(m[1] ?? m[2] ?? m[3], fmStart + (m.index ?? 0), 'frontmatter');
+    }
+  }
+
+  const inFrontmatter = (index: number) => fmStart >= 0 && index >= fmStart && index < fmEnd;
+  
+  // 2. Standalone YAML: description: "..." or '...' or bare
+  for (const m of content.matchAll(/^description:\s*(?:"([^"]+)"|'([^']+)'|([^"'\n][^\n]*))$/gm)){
+    const index = m.index ?? 0;
+    if (inFrontmatter(index)){
+      continue; // already counted as frontmatter
+    }
+    add(m[1] ?? m[2] ?? m[3], index, 'yaml');
+  }
+
+  // 3. RST format: :description:
+  for (const m of content.matchAll(/^:description:\s*(.+)$/gm)){
+    add(m[1], m.index ?? 0, 'rst');
+  }
+
+  // 4. RST meta directive (:description: anywhere in the meta block,
+  //    including indented continuation lines)
+  for (const block of content.matchAll(/\.\.\s+meta::([\s\S]*?)(?=\n\S|\n\n\S|$)/g)){
+    const blockStart = block.index ?? 0;
+    for (const inner of block[0].matchAll(/:description:\s*(.+(?:\n[ \t]+(?!:).+)*)/g)){
+      add(inner[1], blockStart + (inner.index ?? 0), 'meta-directive');
+    }
+  }
+
+  // 5. meta_description variant
+  for (const m of content.matchAll(/^:?meta_description:\s*["']?([^"'\n]+)["']?\s*$/gm)){
+    add(m[1], m.index ?? 0, 'meta');
+  }
+
+  return foundDescs;
+}
+
 function checkMetaDescription(content: string, filename: string): LintIssue[] {
   const issues: LintIssue[] = [];
   const isMd = isMarkdown(filename);
@@ -343,6 +404,44 @@ function checkMetaDescription(content: string, filename: string): LintIssue[] {
   }
   
   return issues;
+}
+
+/**
+ * Function to check for duplicate meta descriptions in a file.
+ * Identifies if the duplicate descriptions are indentical or they differ.
+ * Gives different message, current and suggestion depending if the duplicates
+ * are identical or not. 
+ */
+function checkDuplicateMetaDescriptions(content: string, filename: string): LintIssue[] {
+  const all = extractAllMetaDescriptions(content, filename);
+  if(all.length < 2){
+    return [];
+  }
+
+  const normalize = (d: string) => d.toLowerCase().replace(/\s+/g, ' ').replace(/[.\s]+$/, '').trim();
+  const truncate = (d: string, max: number) => d.length > max ? d.substring(0, max) + '...' : d;
+
+  const orderedDescs = [...all].sort((a, b) => a.line - b.line);
+  const first = orderedDescs[0];
+
+  return orderedDescs.slice(1).map((dup): LintIssue =>{
+    const identicalDescs = normalize(dup.desc) === normalize(first.desc);
+    return {
+      file: filename,
+      line: dup.line,
+      rule: 'seo-meta-duplicate',
+      severity: 'error',
+      message: identicalDescs
+        ? `Duplicate meta description: same description is present on line ${first.line}`
+        : `Conflicting meta description: differing description appears on line ${first.line}`,
+      current: identicalDescs
+        ? truncate(dup.desc, 50)
+        : `Line ${first.line}: ${truncate(first.desc, 100)}\n            Line ${dup.line}: ${truncate(dup.desc, 100)}`,
+      suggestion: identicalDescs
+        ? `Remove the duplicate description on line ${dup.line}`
+        : `Keep one description or merge the content of both into one description`
+    };
+  });
 }
 
 // =============================================================================
@@ -759,6 +858,7 @@ export function lintContent(content: string, filename: string): LintIssue[] {
   if (!isInclude) {
     allIssues.push(...checkTitle(content, filename));
     allIssues.push(...checkMetaDescription(content, filename));
+    allIssues.push(...checkDuplicateMetaDescriptions(content, filename));
     allIssues.push(...checkH1(content, filename));
     allIssues.push(...checkH2BeforeH1(content, filename));
     allIssues.push(...checkLowContent(content, filename));

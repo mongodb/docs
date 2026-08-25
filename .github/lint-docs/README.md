@@ -140,6 +140,7 @@ Open a PR to `docs-mongodb-internal` with the updated `facet-allowlist.json` aft
 | `seo-title-length` | Error | Title not 30-60 characters |
 | `seo-meta-missing` | Error | No meta description found |
 | `seo-meta-length` | Error | Meta description not 150-200 characters |
+| `seo-meta-duplicate` | Error | Duplicate meta description found |
 | `structure-h1-required` | Error | No H1 heading found |
 | `structure-h1-single` | Error | Multiple H1 headings |
 | `structure-h2-before-h1` | Error | H2 appears before H1 |
