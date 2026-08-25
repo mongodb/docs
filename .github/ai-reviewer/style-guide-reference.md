@@ -112,3 +112,51 @@ When showing "real-looking" example values in request/response samples:
 - **Access Token**: Always use `{accessToken}` — never use a real or simulated JWT string
 
 > **⚠ Warning**: Never include real credentials, passwords, or JWT strings in code examples or screenshots. Real JWT strings trigger GitHub secret scanning alerts. Always use `{accessToken}` for access tokens.
+
+## Reference Page Guidelines
+
+Reference pages provide quick information to experienced users. The title is typically the name of the command, operator, or method described.
+
+### Standard Reference Page Structure
+1. **Short description** — Brief intro summarizing contents; may link to concept or task pages.
+2. **Compatibility** *(optional)* — List MongoDB editions that support the feature:
+   - MongoDB Atlas (specify level: all clusters, certain clusters, or no clusters)
+   - MongoDB Enterprise
+   - MongoDB Community
+   - Use standard includes where available (e.g., `.. include:: /includes/fact-environments-atlas-only.rst`)
+3. **Access Control** *(optional)* — Privilege actions or built-in roles required; include when authentication affects behavior.
+4. **Syntax** — Sample syntax with required parameters in a `code-block`.
+5. **Command Fields** — `list-table` with columns: Field, Type, Necessity, Description.
+6. **Behaviors** *(optional)* — Only behaviors specific to the described operator.
+7. **Examples** *(optional)* — Most common use cases. Use includes for examples shared between reference and task pages.
+8. **Learn More** — Links to related content.
+
+## Shared Include (`sharedinclude`) Guidelines
+
+The `sharedinclude` directive sources content from the MongoDB internal `docs-shared` repository. Use it to keep content in sync across multiple documentation sets or branches.
+
+### Setup
+Set `sharedinclude_root` in `snooty.toml` to the raw GitHub URL of the shared repository branch:
+```
+sharedinclude_root = "https://raw.githubusercontent.com/10gen/docs-shared/main/"
+```
+
+### Syntax
+```rst
+.. sharedinclude:: path/to/file.rst
+```
+Specify the path relative to the `docs-shared` root, without a leading slash.
+
+### Replacements
+External files use `|variable-name|` placeholders. Define replacements in the sourcing file:
+```rst
+.. sharedinclude:: drivers/compatibility-tables/language.rst
+
+   .. replacement:: driver-name
+
+      PyMongo
+```
+
+### Inline vs. Block Context
+- **Inline context** (placeholder adjacent to paragraph text): Replace with unformatted text, formatted text (`monospace`, bold, italic), or links. Cannot use lists, code blocks, includes, or headers.
+- **Block context** (placeholder separated by line breaks): Replace with most inline or block RST elements, including titles, code blocks, anchors, and admonitions.
