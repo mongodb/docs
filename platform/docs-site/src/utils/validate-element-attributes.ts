@@ -128,7 +128,7 @@ const dataAndRoleBasedAttributes = [
   /^aria-/, // Matches any Role Aria base attribute
 ];
 
-export const elements = {
+const elements = {
   anchor: anchorTagAttributes,
 };
 

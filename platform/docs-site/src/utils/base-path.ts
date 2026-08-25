@@ -35,7 +35,7 @@ export function getAssetBucketSuffix(): string {
  * `['languages','python','django-mongodb']`, or `[]` for `/docs`.
  * generateStaticParams strips these off; content loaders re-prepend them.
  */
-export function getDocsetPrefixSegments(): string[] {
+function getDocsetPrefixSegments(): string[] {
   const stripped = stripDocsPrefix(getBasePath().replace(/^\//, ''));
   return stripped ? stripped.split('/') : [];
 }

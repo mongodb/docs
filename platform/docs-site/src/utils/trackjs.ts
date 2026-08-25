@@ -21,6 +21,3 @@ export const initializeTrackJS = () => {
     }
   }
 };
-
-// Export TrackJS instance for manual error tracking if needed
-export { TrackJS };

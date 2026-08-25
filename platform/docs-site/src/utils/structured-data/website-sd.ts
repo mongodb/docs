@@ -1,6 +1,6 @@
 import { StructuredData } from './structured-data';
 
-export class WebSiteSd extends StructuredData {
+class WebSiteSd extends StructuredData {
   name: string;
   url: string;
   publisher: object;

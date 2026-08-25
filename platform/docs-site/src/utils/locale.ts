@@ -1,4 +1,3 @@
-import { SIDE_NAV_CONTAINER_ID, TEMPLATE_CONTAINER_ID } from '@/constants';
 import { assertTrailingSlash } from './assert-trailing-slash';
 import { isBrowser } from './is-browser';
 import { normalizePath } from '@/utils/normalize-path';
@@ -16,10 +15,6 @@ export type AvailableLanguageData = {
 // (https://help.smartling.com/hc/en-us/articles/13274689281307-Default-Translatable-Content-In-The-GDN)
 export const NOTRANSLATE_CLASS = 'notranslate';
 
-/**
- * Key used to access browser storage for user's preferred locale
- */
-export const STORAGE_KEY_PREF_LOCALE = 'preferredLocale';
 // Should be the same as what B2K expects
 export const COOKIE_KEY_PREF_LOCALE = 'mdb_docsPrefLocale';
 
@@ -34,9 +29,6 @@ const AVAILABLE_LANGUAGES: AvailableLanguageData[] = [
   { language: '日本語', localeCode: 'ja-jp', fontFamily: 'Noto Sans JP' },
   { language: 'Español', localeCode: 'es' },
 ];
-
-// GTM locale
-export const BETA_LOCALE: { [key: string]: AvailableLanguageData } = {};
 
 // Languages in current development that we do not want displayed publicly yet
 const HIDDEN_LANGUAGES: AvailableLanguageData[] = [];
@@ -86,45 +78,6 @@ export const stripLocale = (slug: string) => {
   } else {
     return res;
   }
-};
-
-export const getAllLocaleCssStrings = () => {
-  const strings: string[] = [];
-  // We want to bypass feature flag requirements to ensure fonts for hidden languages are always included
-  const allLangs = getAvailableLanguages(true);
-
-  allLangs.forEach(({ localeCode, fontFamily }) => {
-    if (!fontFamily) {
-      return;
-    }
-    const [languageCode] = localeCode.split('-');
-    // Only check that languageCode is in the beginning to be flexible when region code is capitalized
-    // For example: zh-cn and zh-CN will be treated the same.
-    // We want to target everything except for inline code, code blocks, and the consistent-nav components
-    strings.push(`
-      html[lang^=${languageCode}] {
-        #${TEMPLATE_CONTAINER_ID} *:not(:is(code, code *)),
-        #${SIDE_NAV_CONTAINER_ID} * {
-          font-family: ${fontFamily};
-        }
-
-        // Italicized non-latin characters may look confusing, so we want to replace them with bold
-        // without changing the source HTML tag (and potentially causing errors with Smartling)
-        em,
-        h1 .guilabel,
-        h2 .guilabel,
-        h3 .guilabel,
-        h4 .guilabel,
-        h5 .guilabel,
-        h6 .guilabel {
-          font-style: normal;
-          font-weight: bold;
-        }
-      }
-    `);
-  });
-
-  return strings;
 };
 
 /**
