@@ -60,6 +60,33 @@ This method is available in deployments hosted in the following environments:
 Behavior
 --------
 
+Global Write Concern
+~~~~~~~~~~~~~~~~~~~~
+
+Removing a member changes the number of voting members in the replica
+set, which can change the :ref:`implicit default write concern
+<wc-default-behavior>`. 
+
+.. include:: /includes/fact-set-global-write-concern-before-reconfig.rst
+
+Removal Waits Until a Majority of Members Install the Replica Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:method:`rs.remove()` runs the :dbcommand:`replSetReconfig` command
+with a configuration that omits the removed member. The method waits
+until a majority of voting replica set members install the new replica
+configuration before it returns success. A voting member is any replica
+set member where :rsconf:`members[n].votes` is ``1``, including
+arbiters. To learn how replica set members install a new configuration,
+see :ref:`replSetReconfig-cmd-majority-install`.
+
+:method:`rs.remove()` does not accept a :ref:`maxTimeMS
+<replSetReconfig-cmd-maxTimeMS>` limit. If a majority of voting members
+never install the new configuration, the operation waits indefinitely.
+
+Connections to the Removed Member
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 ..
   This behavior will change once SERVER-36417 closes. 
 
