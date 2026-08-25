@@ -1,0 +1,186 @@
+.. _django-atlas-vector-search:
+
+=================================
+Run a MongoDB Vector Search Query
+=================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: full text, text analyzer, meta, pipeline, scoring, Lucene, AI, artificial intelligence, code example, semantic, nearest
+   :description: Learn about how to use Django MongoDB Backend to perform a MongoDB Vector Search query.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use {+django-odm+} to perform
+:atlas:`MongoDB Vector Search </atlas-vector-search/vector-search-overview/>`
+queries. This feature allows you to perform a **semantic
+search** on your documents. A semantic search is a type of search that
+locates information that is similar in meaning, but not necessarily
+identical, to your provided search term or phrase.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``MovieWithEmbeddings`` model, which represents
+the ``sample_mflix.embedded_movies`` collection from the :atlas:`Atlas sample datasets
+</sample-data>`. The ``MovieWithEmbeddings`` model class has the following definition:
+
+.. literalinclude:: /includes/interact-data/vector-search.py
+   :start-after: start-models
+   :end-before: end-models
+   :language: python
+   :copyable:
+
+.. include:: /includes/use-sample-data.rst
+
+   .. replacement:: model-classes
+
+      ``MovieWithEmbeddings`` model includes
+
+   .. replacement:: model-imports
+
+      .. code-block:: python
+
+         from <your application name>.models import MovieWithEmbeddings
+
+.. _django-run-vector-search:
+
+Perform a Vector Search
+-----------------------
+
+.. important:: Query Requirements
+    
+   Before you can perform MongoDB Vector Search queries, you must create a Vector Search
+   index on your collection. To learn how to use {+django-odm+} to create a
+   Vector Search index, see :ref:`django-indexes-vector-search` in the Create
+   Indexes guide.
+
+You can use {+django-odm+} to query your data based on its semantic meaning.
+A MongoDB Vector Search query returns results based on a query vector, or an array of numbers
+that represents the meaning of your search term or phrase. MongoDB compares this
+query vector to the vectors stored in your documents' vector fields.
+
+To specify your Vector Search criteria, create an instance of the ``SearchVector``
+expression class provided by the ``django_mongodb_backend.expressions`` module.
+This expression corresponds to the :pipeline:`$vectorSearch` MongoDB pipeline
+stage. Pass the following arguments to the ``SearchVector()`` constructor:
+
+- ``path``: The field to query.
+- ``query_vector``: An array of numbers that represents your search criteria.
+  To learn more about query vectors, see :term:`vectors <vector>` in the MongoDB
+  Atlas documentation.
+- ``limit``: The maximum number of results to return.
+- ``num_candidates``: *(Optional)* The number of documents to consider
+  for the query.
+- ``exact``: *(Optional)* A boolean value that indicates whether to
+  perform an Exact Nearest Neighbor (ENN) search. The default value is ``False``.
+  To learn more about ENN searches, see :ref:`vectorSearch-enn` in the MongoDB
+  Atlas documentation.
+- ``filter``: *(Optional)* A filter to apply to the query results.
+
+Then, run your Vector Search query by passing your ``SearchVector`` instance to
+the :py:meth:`~django.db.models.query.QuerySet.annotate` method from {+framework+}'s
+``QuerySet`` API. The following code shows the syntax for performing a Vector
+Search query:
+
+.. code-block:: python
+
+   from django_mongodb_backend.expressions import SearchVector
+
+   Model.objects.annotate(
+      score=SearchVector(
+        path="<field name>",
+        query_vector=[<vector values>],
+        limit=<number>,
+        num_candidates=<number>,
+        exact=<boolean>,
+        filter=<filter expression>
+      )
+   )
+
+.. _django-vector-search-basic-ex:
+
+Basic Vector Search Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example runs a MongoDB Vector Search query on the ``sample_mflix.embedded_movies``
+collection. The query performs the following actions:
+
+- Queries the ``plot_embedding`` vector field.
+- Limits the results to ``5`` documents.
+- Specifies an Approximate Nearest Neighbor (ANN) vector search that considers
+  ``150`` candidates. To learn more about ANN searches, see :ref:`vectorSearch-ann`
+  in the MongoDB Atlas documentation.
+
+.. io-code-block::
+    :copyable: true
+
+    .. input:: /includes/interact-data/vector-search.py
+        :start-after: start-basic-example
+        :end-before: end-basic-example
+        :language: python
+
+    .. output::
+        :language: none
+        :visible: false
+
+        <QuerySet [<MovieWithEmbeddings: Berserk: The Golden Age Arc I - The Egg of the King>,
+        <MovieWithEmbeddings: Rollerball>, <MovieWithEmbeddings: After Life>,
+        <MovieWithEmbeddings: What Women Want>, <MovieWithEmbeddings: Truth About Demons>]>
+
+.. tip::
+
+   The preceding code example passes an arbitrary vector to the
+   ``query_vector`` argument. To learn how to generate a vector that
+   represents the meaning of a search term or phrase, see
+   :ref:`create-vector-embeddings` in the MongoDB Atlas documentation.
+
+Vector Search Score Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB assigns a relevance score to every document returned in a Vector Search
+query. The documents included in a result set are ordered from highest to lowest
+relevance score.
+
+To include this score in your query results, you can use the ``values()`` method
+from {+framework+}'s ``QuerySet`` API. Pass the ``score`` field as an argument
+to the ``values()`` method.
+
+The following example shows how to run the same vector search
+query as the :ref:`preceding example <django-vector-search-basic-ex>`
+and print the documents' vector search relevance scores:
+
+.. io-code-block::
+    :copyable: true
+
+    .. input:: /includes/interact-data/vector-search.py
+        :start-after: start-search-score
+        :end-before: end-search-score
+        :language: python
+
+    .. output::
+        :language: none
+        :visible: false
+
+        <QuerySet [{'title': 'Berserk: The Golden Age Arc I - The Egg of the King', 'score': 0.47894009947776794},
+        {'title': 'Rollerball', 'score': 0.45006513595581055}, {'title': 'After Life', 'score': 0.42825883626937866},
+        {'title': 'What Women Want', 'score': 0.4211753308773041}, {'title': 'Truth About Demons', 'score': 0.4194544851779938}]>
+
+Additional Information
+----------------------
+
+To learn more about MongoDB Vector Search, see the following
+resources from the MongoDB Atlas documentation:
+
+- :ref:`avs-types-vector-search`
+- :ref:`return-vector-search-results`

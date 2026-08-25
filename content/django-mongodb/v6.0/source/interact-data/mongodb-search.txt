@@ -1,0 +1,660 @@
+.. _django-atlas-search:
+
+==========================
+Run a MongoDB Search Query
+==========================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: full text, text analyzer, meta, pipeline, scoring, Lucene
+   :description: Learn about how to use Django MongoDB Backend to run MongoDB Search queries.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use {+django-odm+} to
+run :atlas:`MongoDB Search </atlas-search/>` queries on a collection.
+MongoDB Search enables you to perform full-text searches on your
+MongoDB collections. MongoDB Search indexes specify the behavior of the
+search and which fields to index.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``Movie`` and ``Theater`` models, which represent
+the ``sample_mflix.movies`` and ``sample_mflix.theaters`` collections from the
+:atlas:`Atlas sample datasets </sample-data>`. The model classes have the
+following definitions:
+
+.. literalinclude:: /includes/interact-data/atlas-search.py
+   :start-after: start-models
+   :end-before: end-models
+   :language: python
+   :copyable:
+
+.. tip:: GeoDjango Fields
+
+   The ``Theater`` model uses a GeoDjango ``PointField`` named ``geo`` to
+   store geospatial data. To learn more about GeoDjango fields, see
+   the :ref:`django-geospatial` guide. 
+
+.. include:: /includes/use-sample-data.rst
+
+   .. replacement:: model-classes
+
+      ``Movie`` and ``Theater`` models include
+
+   .. replacement:: model-imports
+
+      .. code-block:: python
+
+         from <your application name>.models import Movie, Theater
+         from django_mongodb_backend.expressions import (
+              SearchEquals, SearchAutocomplete, SearchExists, SearchIn, 
+              SearchPhrase, SearchQueryString, SearchRange, SearchRegex, 
+              SearchText, SearchWildcard, SearchGeoShape, SearchGeoWithin, 
+              SearchMoreLikeThis, CompoundExpression, SearchScoreOption
+         )
+
+Run a MongoDB Search Query
+--------------------------
+
+.. important:: Index Requirements
+
+   Before running a MongoDB Search query, you must create a Search index
+   on the relevant fields. To learn how to create Search indexes,
+   see :ref:`django-indexes-atlas-search` in the Create Indexes guide.
+
+To run a MongoDB Search query, use the ``annotate()`` method from
+{+framework+}'s ``QuerySet`` API. Pass your MongoDB Search criteria, including
+your search operator, as a ``score`` argument to ``annotate()``. The following
+code shows the basic syntax for running a Search query:
+
+.. code-block:: python
+
+   Model.objects.annotate(
+      score=<Search Operator>(path="<field name", <additional arguments>)
+   )
+
+To specify Search operators, use the expression classes provided
+by the ``django_mongodb_backend.expressions`` module. Each class
+corresponds to a Search operator.
+
+The following sections show how to run Search queries by using
+each supported expression class.
+
+.. _django-search-equals:
+
+SearchEquals
+~~~~~~~~~~~~
+
+.. important:: Additional Index Requirements
+
+   Before using the ``SearchEquals`` expression in a Search query,
+   create a Search index that indexes the relevant field
+   as the :atlas:`token type </atlas-search/field-types/token-type/?deployment-type=atlas&interface=driver&language=python>`.
+   Starting in {+django-odm+} v5.2.2, you can use the :ref:`field_mappings
+   <django-search-index-advanced>` argument to create this index.
+
+The ``SearchEquals`` expression matches documents in which a field
+is equal to a specified value. This corresponds to the MongoDB :ref:`equals <equals-ref>`
+operator.
+
+To use this operator, pass the following arguments to the ``SearchEquals()`` constructor:
+
+- ``path``: The name of the field to search. You can specify a string value or a
+  :py:class:`~django.db.models.F` instance.
+
+- ``value``: The value to match. You can specify a string value or a
+  :py:class:`~django.db.models.Value` instance.
+
+- ``score``: *(Optional)* A :ref:`SearchScoreOption <django-search-score-option>`
+  instance that configures the relevance score.
+
+The following example uses the ``SearchEquals`` operator to query the
+``sample_mflix.movies`` collection for documents that have a ``title``
+value of ``"Finding Nemo"``:
+
+.. literalinclude:: /includes/interact-data/atlas-search.py
+    :start-after: start-search-equals
+    :end-before: end-search-equals
+    :language: python
+    :copyable:
+
+.. _django-search-autocomplete:
+
+SearchAutocomplete
+~~~~~~~~~~~~~~~~~~
+
+.. important:: Additional Index Requirements
+
+   Before using the ``SearchAutocomplete`` expression in a Search query,
+   create a Search index that indexes the relevant field
+   as the :atlas:`autocomplete type </atlas-search/field-types/autocomplete-type/?deployment-type=atlas&interface=driver&language=python>`.
+   Starting in {+django-odm+} v5.2.2, you can use the :ref:`field_mappings
+   <django-search-index-advanced>` argument to create this index.
+
+The ``SearchAutocomplete`` expression searches for a word or phrase that contains a
+sequence of characters from an incomplete input string. This corresponds to the
+MongoDB :ref:`autocomplete <autocomplete-ref>` operator.
+
+To use this operator, pass the following arguments to the ``SearchAutocomplete()`` constructor:
+
+- ``path``: The name of the field to search. You can specify a string value or a
+  :py:class:`~django.db.models.F` instance.
+
+- ``query``: The input string to autocomplete. You can specify a string value or a 
+  :py:class:`~django.db.models.Value` instance.
+
+- ``fuzzy``: *(Optional)* A dictionary that enables fuzzy matching and allows you to
+  configure its behavior. For example, you can specify ``{"maxEdits": 1}`` to allow one
+  character change before matching the search term. To view all available values, see the
+  :ref:`autocomplete options <autocomplete-ref-options>` in the MongoDB Atlas documentation.
+
+- ``token_order``: *(Optional)* A string that configures token sequence behavior.
+  You can set this value to ``"sequential"`` or ``"any"``.
+
+- ``score``: *(Optional)* A :ref:`SearchScoreOption <django-search-score-option>`
+  instance that configures the relevance score.
+
+The following example uses the ``SearchAutocomplete`` expression to query the
+``sample_mflix.movies`` collection for documents that have a ``title``
+value beginning with ``"First"``:
+
+.. literalinclude:: /includes/interact-data/atlas-search.py
+    :start-after: start-search-autocomplete
+    :end-before: end-search-autocomplete
+    :language: python
+    :copyable:
+
+.. _django-search-exists:
+
+SearchExists
+~~~~~~~~~~~~
+
+The ``SearchExists`` expression matches documents in which a specified field
+exists. This corresponds to the MongoDB :ref:`exists <exists-ref>` operator.
+
+To use this operator, pass the following arguments to the ``SearchExists()`` constructor:
+
+- ``path``: The name of the field to match. You can specify a string value or a
+  :py:class:`~django.db.models.F` instance.
+
+- ``score``: *(Optional)* A :ref:`SearchScoreOption <django-search-score-option>`
+  instance that configures the relevance score.
+
+The following example uses the ``SearchExists`` expression to query the
+``sample_mflix.movies`` collection for documents that have a ``plot``
+field:
+
+.. literalinclude:: /includes/interact-data/atlas-search.py
+    :start-after: start-search-exists
+    :end-before: end-search-exists
+    :language: python
+    :copyable:
+
+.. _django-search-in:
+
+SearchIn
+~~~~~~~~
+
+.. important:: Additional Index Requirements
+
+   Before using the ``SearchIn`` expression in a Search query,
+   create a Search index on the relevant field. If you are querying a ``string`` field, 
+   you must index it as the :atlas:`token type </atlas-search/field-types/token-type/?deployment-type=atlas&interface=driver&language=python>`.
+   Starting in {+django-odm+} v5.2.2, you can use the :ref:`field_mappings
+   <django-search-index-advanced>` argument to create this index.
+
+The ``SearchIn`` expression matches documents in which a field's value
+is in a given list. This corresponds to the MongoDB :ref:`in <in-ref>` operator.
+
+To use this operator, pass the following arguments to the ``SearchIn()`` constructor:
+
+- ``path``: The name of the field to search. You can specify a string value or a
+  :py:class:`~django.db.models.F` instance.
+
+- ``value``: The list of values to match. You can specify a list of values or a
+  :py:class:`~django.db.models.Value` instance.
+
+- ``score``: *(Optional)* A :ref:`SearchScoreOption <django-search-score-option>`
+  instance that configures the relevance score.
+
+The following example uses the ``SearchIn`` expression to query the
+``sample_mflix.movies`` collection for documents that have a ``runtime``
+value of ``100``, ``200``, or ``300`` minutes:
+
+.. literalinclude:: /includes/interact-data/atlas-search.py
+    :start-after: start-search-in
+    :end-before: end-search-in
+    :language: python
+    :copyable:
+
+.. _django-search-phrase:
+
+SearchPhrase
+~~~~~~~~~~~~
+
+The ``SearchPhrase`` expression matches exact or near-exact sequences of terms in a field.
+This corresponds to the MongoDB :ref:`phrase <phrase-ref>` operator.
+
+To use this operator, pass the following arguments to the ``SearchPhrase()`` constructor:
+
+- ``path``: The name of the field to search. You can specify a string value or a
+  :py:class:`~django.db.models.F` instance.
+
+- ``query``: The phrase to match. You can specify a string or a list of strings.
+
+- ``slop``: *(Optional)* The maximum number of terms allowed between phrase terms.
+
+- ``synonyms``: *(Optional)* The name of a synonym mapping defined in your Search index.
+
+- ``score``: *(Optional)* A :ref:`SearchScoreOption <django-search-score-option>`
+  instance that configures the relevance score.
+
+The following example uses the ``SearchPhrase`` expression to query the
+``sample_mflix.movies`` collection for documents that have the phrase ``"space adventure"``
+in their ``plot`` field, allowing up to ``2`` words between these terms:
+
+.. literalinclude:: /includes/interact-data/atlas-search.py
+    :start-after: start-search-phrase
+    :end-before: end-search-phrase
+    :language: python
+    :copyable:
+
+.. _django-search-query-string:
+
+SearchQueryString
+~~~~~~~~~~~~~~~~~
+
+The ``SearchQueryString`` operator allows you to perform text, wildcard, regular expression,
+fuzzy, and range searches on ``string`` fields. This corresponds to the MongoDB
+:ref:`queryString <querystring-ref>` operator.
+
+To use this operator, pass the following arguments to the ``SearchQueryString()`` constructor:
+
+- ``path``: The name of the field to search. You can specify a string value or a
+  :py:class:`~django.db.models.F` instance.
+
+- ``query``: The Lucene-style query string. To learn more about Lucene query syntax,
+  see the `Apache Lucene <https://lucene.apache.org/core/2_9_4/queryparsersyntax.html>`__
+  documentation.
+
+- ``score``: *(Optional)* A :ref:`SearchScoreOption <django-search-score-option>`
+  instance that configures the relevance score.
+
+The following example uses the ``SearchQueryString`` expression to query the
+``sample_mflix.movies`` collection for documents that match a Lucene-style
+query on the ``plot`` field:
+
+.. literalinclude:: /includes/interact-data/atlas-search.py
+    :start-after: start-search-query-string
+    :end-before: end-search-query-string
+    :language: python
+    :copyable:
+
+.. _django-search-range:
+
+SearchRange
+~~~~~~~~~~~
+
+.. important:: Additional Index Requirements
+
+   Before using the ``SearchRange`` expression in a Search query,
+   create a Search index on the relevant field. If you are querying a ``string`` field,
+   you must index it as the :atlas:`token type </atlas-search/field-types/token-type/?deployment-type=atlas&interface=driver&language=python>`.
+   Starting in {+django-odm+} v5.2.2, you can use the :ref:`field_mappings
+   <django-search-index-advanced>` argument to create this index.
+
+The ``SearchRange`` expression searches for values within a specified range.
+You can provide a range of numeric, date, string, or ``ObjectId`` values.
+This corresponds to the MongoDB :ref:`range <range-ref>` operator.
+
+To use this operator, pass the following arguments to the ``SearchRange()`` constructor:
+
+- ``path``: The name of the field to search. You can specify a string value or a
+  :py:class:`~django.db.models.F` instance.
+
+- ``lt``: *(Optional)* Exclusive upper bound (``<``)
+
+- ``lte``: *(Optional)* Inclusive upper bound (``<=``)
+
+- ``gt``: *(Optional)* Exclusive lower bound (``>``)
+
+- ``gte``: *(Optional)* Inclusive lower bound (``>=``)
+
+- ``score``: *(Optional)* A :ref:`SearchScoreOption <django-search-score-option>`
+  instance that configures the relevance score.
+
+The following example uses the ``SearchRange`` expression to query the
+``sample_mflix.movies`` collection for documents that have a ``runtime``
+value between ``90`` and ``120`` minutes.
+
+.. literalinclude:: /includes/interact-data/atlas-search.py
+    :start-after: start-search-range
+    :end-before: end-search-range
+    :language: python
+    :copyable:
+
+.. _django-search-regex:
+
+SearchRegex
+~~~~~~~~~~~
+
+The ``SearchRegex`` expression matches string field values by using a regular expression.
+This corresponds to the MongoDB :ref:`regex <regex-ref>` operator.
+
+To use this operator, pass the following arguments to the ``SearchRegex()`` constructor:
+
+- ``path``: The name of the field to search. You can specify a string value or a
+  :py:class:`~django.db.models.F` instance.
+
+- ``query``: The regular expression string used to search the field contents.
+
+- ``allow_analyzed_field``: *(Optional)* A boolean value that indicates whether to allow matching
+  against analyzed fields. The default value is ``False``.
+
+- ``score``: *(Optional)* A :ref:`SearchScoreOption <django-search-score-option>`
+  instance that configures the relevance score.
+
+The following example uses the ``SearchRegex`` expression to query the
+``sample_mflix.movies`` collection for documents that have a ``title``
+value that includes the word ``"winter"``:
+
+.. literalinclude:: /includes/interact-data/atlas-search.py
+    :start-after: start-search-regex
+    :end-before: end-search-regex
+    :language: python
+    :copyable:
+
+.. _django-search-text:
+
+SearchText
+~~~~~~~~~~
+
+The ``SearchText`` expression performs a full-text search on string fields.
+This corresponds to the MongoDB :ref:`text <text-ref>` operator.
+
+To use this operator, pass the following arguments to the ``SearchText()`` constructor:
+
+- ``path``: The name of the field to search. You can specify a string value or a
+  :py:class:`~django.db.models.F` instance.
+
+- ``query``: The search term or phrase.
+
+- ``fuzzy``: *(Optional)* A dictionary that enables fuzzy matching and allows you to
+  configure its behavior. For example, you can specify ``{"maxEdits": 1}`` to allow one
+  character change before matching the search term.
+
+- ``match_criteria``: *(Optional)* Whether to match documents that contain ``"all"`` or
+  ``"any"`` of the search terms. The default value is ``"any"``.
+
+- ``synonyms``: *(Optional)* The name of a synonym mapping defined in your Atlas index.
+
+- ``score``: *(Optional)* A :ref:`SearchScoreOption <django-search-score-option>`
+  instance that configures the relevance score.
+
+The following example uses the ``SearchText`` expression to query the
+``sample_mflix.movies`` collection for documents that have ``"sudden disappearance"`` in their
+``plot`` field, with fuzzy matching enabled:
+
+.. literalinclude:: /includes/interact-data/atlas-search.py
+    :start-after: start-search-text
+    :end-before: end-search-text
+    :language: python
+    :copyable:
+
+.. _django-search-wildcard:
+
+SearchWildcard
+~~~~~~~~~~~~~~
+
+The ``SearchWildcard`` expression matches strings by using wildcard patterns.
+This corresponds to the MongoDB :ref:`wildcard <wildcard-ref>` operator.
+
+To use this operator, pass the following arguments to the ``SearchWildcard()`` constructor:
+
+- ``path``: The name of the field to search. You can specify a string value or a
+  :py:class:`~django.db.models.F` instance.
+
+- ``query``: A wildcard string that may include the ``*`` character, to match any sequence of
+  characters, and the ``?`` character, to match any single character.
+
+- ``allow_analyzed_field``: *(Optional)* A boolean value that allows matching against analyzed
+  fields. The default value is ``False``.
+
+- ``score``: *(Optional)* A :ref:`SearchScoreOption <django-search-score-option>`
+  instance that configures the relevance score.
+
+The following example uses the ``SearchWildcard`` expression to query the
+``sample_mflix.movies`` collection for documents that have a ``title``
+starting with ``"Star"`` and ending with any characters:
+
+.. literalinclude:: /includes/interact-data/atlas-search.py
+    :start-after: start-search-wildcard
+    :end-before: end-search-wildcard
+    :language: python
+    :copyable:
+
+.. _django-search-geo-shape:
+
+SearchGeoShape
+~~~~~~~~~~~~~~
+
+.. important:: Additional Index Requirements
+
+   Before using the ``SearchGeoShape`` expression in a Search query,
+   create a Search index that indexes the relevant field as
+   the :atlas:`geo type </atlas-search/field-types/geo-type/?deployment-type=atlas&interface=driver&language=python>`
+   with the ``indexShapes`` property set to ``true``. Starting in {+django-odm+}
+   v5.2.2, you can use the :ref:`field_mappings <django-search-index-advanced>`
+   argument to create this index.
+
+The ``SearchGeoShape`` expression filters documents based on spatial relationships with a shape.
+This corresponds to the MongoDB :ref:`geoShape <geoshape-ref>` operator.
+
+To use this operator, pass the following arguments to the ``SearchGeoShape()`` constructor:
+
+- ``path``: The name of the field to search. You can specify a string value or a
+  :py:class:`~django.db.models.F` instance.
+
+- ``relation``: The spatial relation to test. Valid values include
+  ``"within"``, ``"intersects"``, and ``"disjoint"``.
+
+- ``geometry``: A GeoJSON geometry object to compare against.
+
+- ``score``: *(Optional)* A :ref:`SearchScoreOption <django-search-score-option>`
+  instance that configures the relevance score.
+
+The following example uses the ``SearchGeoShape`` expression to query the
+``sample_mflix.theaters`` collection for documents that have a ``geo`` value
+within a specified polygon:
+
+.. literalinclude:: /includes/interact-data/atlas-search.py
+    :start-after: start-search-geo-shape
+    :end-before: end-search-geo-shape
+    :language: python
+    :copyable:
+
+.. _django-search-geo-within:
+
+SearchGeoWithin
+~~~~~~~~~~~~~~~
+
+.. important:: Additional Index Requirements
+
+   Before using the ``SearchGeoWithin`` expression in a Search query,
+   create a Search index that indexes the query field as 
+   the :atlas:`geo type </atlas-search/field-types/geo-type/?deployment-type=atlas&interface=driver&language=python>`.
+   Starting in {+django-odm+} v5.2.2, you can use the :ref:`field_mappings <django-search-index-advanced>`
+   argument to create this index.
+
+The ``SearchGeoWithin`` expression filters documents with geo fields contained within a specified shape.
+This corresponds to the MongoDB :ref:`geoWithin <geowithin-ref>` operator.
+
+To use this operator, pass the following arguments to the ``SearchGeoWithin()`` constructor:
+
+- ``path``: The name of the field to search. You can specify a string value or a
+  :py:class:`~django.db.models.F` instance.
+
+- ``kind``: The GeoJSON geometry type: ``"circle"``, ``"box"``, or ``"geometry"``.
+
+- ``geometry``: The GeoJSON geometry defining the spatial boundary.
+
+- ``score``: *(Optional)* A :ref:`SearchScoreOption <django-search-score-option>`
+  instance that configures the relevance score.
+
+The following example uses the ``SearchGeoWithin`` operator to query the
+``sample_mflix.theaters`` collection for documents that have a ``geo``
+value within a specified circle:
+
+.. literalinclude:: /includes/interact-data/atlas-search.py
+    :start-after: start-search-geo-within
+    :end-before: end-search-geo-within
+    :language: python
+    :copyable:
+
+.. _django-search-more-like-this:
+
+SearchMoreLikeThis
+~~~~~~~~~~~~~~~~~~
+
+The ``SearchMoreLikeThis`` expression finds documents similar to the provided examples.
+This corresponds to the MongoDB :ref:`moreLikeThis <more-like-this-ref>` operator.
+
+To use this operator, pass the following arguments to the ``SearchMoreLikeThis()`` constructor:
+
+- ``documents``: A list of example documents or expressions that serve as references for similarity.
+
+- ``score``: *(Optional)* A :ref:`SearchScoreOption <django-search-score-option>`
+  instance that configures the relevance score.
+
+The following example uses the ``SearchMoreLikeThis`` expression to query the
+``sample_mflix.movies`` collection for documents that are similar to a
+provided example document:
+
+.. literalinclude:: /includes/interact-data/atlas-search.py
+    :start-after: start-search-more-like-this
+    :end-before: end-search-more-like-this
+    :language: python
+    :copyable:
+
+.. _django-combine-atlas-search-expressions:
+
+Combine Expressions
+-------------------
+
+You can perform MongoDB Search queries that combine multiple search expressions
+in the following ways:
+
+- :ref:`django-compound-expression`
+- :ref:`django-combined-bitwise`
+
+.. _django-compound-expression:
+
+Use the CompoundExpression Class
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``CompoundExpression`` expression allows you to use boolean logic to combine
+multiple Search expressions. This corresponds to the MongoDB :ref:`compound <compound-ref>`
+operator.
+
+You must pass one or more of the following
+arguments to the ``CompoundExpression()`` constructor:
+
+- ``must``: A list of expressions that documents must match
+- ``should``: A list of expressions that documents should match
+- ``must_not``: A list of expressions that documents must not match
+- ``filter``: A list of expressions that filter the results
+
+You can also pass the following optional arguments:
+
+- ``minimum_should_match``: The minimum number of ``should`` clauses that
+  documents must match
+- ``score``: A :ref:`SearchScoreOption <django-search-score-option>`
+  instance that configures the relevance score
+
+This example uses the ``CompoundExpression`` expression to query the
+``sample_mflix.movies`` collection for documents that match the following criteria:
+
+- ``plot`` field exists
+- ``plot`` field contains the text ``"fast-paced"``
+- ``genres`` field does not contain either ``"Romance"`` or ``"Comedy"``
+
+.. literalinclude:: /includes/interact-data/atlas-search.py
+    :start-after: start-compound-expression
+    :end-before: end-compound-expression
+    :language: python
+    :copyable:
+
+.. _django-combined-bitwise:
+
+Use Bitwise Operators
+~~~~~~~~~~~~~~~~~~~~~
+
+You can use the following bitwise operators to combine Search expressions:
+
+- ``&``: Represents a logical AND operation
+- ``|``: Represents a logical OR operation
+- ``~``: Represents a logical NOT operation
+
+This example uses the ``|`` operator to query the
+``sample_mflix.movies`` collection for documents that match either
+or both of the following criteria:
+
+- ``plot`` field contains the text ``"heartwarming"``
+- ``genres`` field contains either ``"Romance"`` or ``"Comedy"``
+
+.. literalinclude:: /includes/interact-data/atlas-search.py
+    :start-after: start-bitwise
+    :end-before: end-bitwise
+    :language: python
+    :copyable:
+
+.. _django-search-score-option:
+
+Configure Relevance Scores
+--------------------------
+
+MongoDB assigns a relevance score to every document returned in a Search query.
+The documents included in a result set are ordered from highest to lowest relevance score.
+
+You can use the ``SearchScoreOption`` expression to customize how MongoDB calculates
+and applies relevance scores. The ``SearchScoreOption()`` constructor accepts
+the following arguments:
+
+- ``boost``: Increases the score of documents that match a specified expression
+- ``constant``: Applies a fixed score to all matches
+- ``function``: Applies a function to compute the score
+- ``path``: Scores documents based on the value of a field
+
+.. tip::
+
+   To learn more about relevance scores, see :ref:`scoring-ref` in the MongoDB Atlas documentation.
+
+The following example boosts the relevance score of documents that match the
+``SearchEquals`` expression by a factor of ``3``:
+
+.. literalinclude:: /includes/interact-data/atlas-search.py
+    :start-after: start-search-score-option
+    :end-before: end-search-score-option
+    :language: python
+    :copyable:
+
+Additional Information
+----------------------
+
+To learn more about creating MongoDB Search indexes, see :ref:`django-indexes-atlas-search`
+in the Create Indexes guide.
+
+To learn more about MongoDB Search queries, see :ref:`atlas-search` in the MongoDB
+Atlas documentation.

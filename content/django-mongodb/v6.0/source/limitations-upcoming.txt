@@ -1,0 +1,551 @@
+.. _django-limitations:
+.. _django-feature-compat:
+
+========================================
+Django and MongoDB Feature Compatibility
+========================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: upcoming, odm, support
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+On this page, you can find information about supported and unsupported
+features in {+django-odm+}. You can also find features
+currently planned for future releases. We will prioritize these upcoming features
+based on user demand, and you can request support
+for a feature by :ref:`creating a JIRA issue <django-issues-and-help>`.
+
+.. _django-performance-limits:
+
+Performance Limitations
+-----------------------
+
+{+django-odm+} supports the following operations, but they might be less performant:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 35 65
+
+   * - Operation
+     - Performance Notes
+
+   * - ``$expr`` operations
+     - | Queries that use the ``$expr`` operator might run slowly, since
+         this operator often cannot predict which index to use and performs
+         a collection scan. Some ``QuerySet`` operations, such as queries that
+         specify an ``in`` lookup, use ``$expr`` to evaluate the query results and
+         experience degraded performance.
+       | We plan to address this performance issue in a
+         post-GA release.
+
+   * - ``$lookup`` operations
+     - | Queries that use the ``$lookup`` operator might run slowly.
+         To improve performance, we recommend that you use :ref:`embedded
+         models <django-models-embedded>` instead of the ``$lookup`` operator when possible.
+         To learn more about how to reduce ``$lookup`` operations, see the :atlas:`Reduce $lookup Operations
+         </schema-suggestions/reduce-lookup-operations/>` guide in the MongoDB Atlas
+         documentation.
+
+
+MongoDB Features
+----------------
+
+This section indicates whether {+django-odm+} supports various
+MongoDB features.
+
+Index Support
+~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 35 65
+
+   * - MongoDB Feature
+     - Current Support
+
+   * - Search indexes
+     - *Partially Supported.* The following advanced :ref:`index definition fields <index-definition-syntax>`
+       are unsupported:
+
+       - ``numPartitions``
+       - ``analyzers``
+       - ``storedSource``
+       - ``synonyms``
+       - ``typeSets``
+
+       MongoDB does not support Search indexes on some data types. To
+       view a list of unsupported types, see :ref:`Data Type Limitations <bson-data-types>`
+       in the MongoDB Atlas documentation.
+
+   * - Vector Search indexes
+     - *Partially Supported.* You can use {+django-odm+} to create basic Vector Search indexes
+       that specify an index name, the fields to index, and a similarity function.
+       All other :ref:`index definition fields <avs-index-definition>` are unsupported.
+
+   * - Compound indexes
+     - ✓
+
+   * - Embedded document indexes
+     - ✓
+
+   * - Geospatial indexes
+     - ✓
+
+   * - Multikey indexes
+     - ✓
+
+   * - Partial indexes
+     - ✓
+
+   * - Single field indexes
+     - ✓
+
+   * - Unique indexes
+     - ✓
+
+   * - Updating embedded model indexes after model creation
+     - *Unsupported*.
+
+   * - ``EmbeddedModelArrayField`` indexes
+     - ✓
+
+   * - ``PolymorphicEmbeddedModelField`` and ``PolymorphicEmbeddedModelArrayField`` indexes
+     - ✓
+
+Data Type Support
+~~~~~~~~~~~~~~~~~
+
+{+django-odm+} currently supports all MongoDB data types not included
+in the following table. To view a full list of supported types, see the
+:ref:`django-models-mongodb-fields` section of the :ref:`django-models` guide.
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 35 65
+
+   * - BSON Data Type
+     - Current Support
+
+   * - ``Object``
+     - | ✓
+       | You can use embedded models and polymorphic embedded models to represent objects.
+         If you are using the ``EmbeddedModelField`` field, the following
+         limitations apply:
+       | * Foreign key fields are not supported.
+       | * Arbitrary or untyped embedded model fields are not supported. You must derive all fields from an ``EmbeddedModel`` class.
+
+Query Support
+~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 35 65
+
+   * - MongoDB Feature
+     - Current Support
+
+   * - Aggregation operations
+     - *Partially Supported*. The {+django-odm+} does not include custom
+       Django field lookups for the MongoDB aggregation framework, but you
+       can use the :ref:`raw_aggregate() method <django-raw-queries-filter-group>`.
+
+   * - MongoDB Search queries
+     - ✓
+
+   * - Delete operations
+     - ✓
+
+   * - Geospatial queries
+     - | ✓
+       | You can use the following spatial lookups from the
+         `GIS QuerySet API <{+django-docs+}/ref/contrib/gis/geoquerysets/>`__:
+       | * ``contains``
+       | * ``disjoint``
+       | * ``distance_gt``
+       | * ``distance_lte``
+       | * ``dwithin``
+       | * ``intersects``
+       | * ``within``
+       |
+       | For other geospatial queries, use the :ref:`raw_aggregate() method <django-raw-queries-geospatial>`.
+
+   * - Insert operations
+     - ✓
+
+   * - Read operations
+     - ✓
+
+   * - Update operations
+     - ✓
+
+   * - MongoDB Vector Search queries
+     - ✓
+
+.. _django-feature-compat-db-coll:
+
+Database and Collection Support
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 35 65
+
+   * - MongoDB Feature
+     - Current Support
+
+   * - Asynchronous support
+     - ✓
+
+   * - Authentication
+     - ✓
+
+   * - Cached data storage
+     - *Unsupported*. However, we plan to add support for this feature in a post-GA release.
+
+   * - Change Streams
+     - *Unsupported*. However, we plan to add support for this feature
+       in a post-GA release.
+
+   * - Client-side Field Level Encryption
+     - *Unsupported*.
+
+   * - Collection interaction
+     - ✓
+
+   * - Database interaction
+     - ✓
+
+   * - GridFS
+     - *Unsupported*. However, we plan to add support for this feature
+       in a post-GA release.
+
+   * - Multiple models for one collection
+     - *Unsupported*.
+
+   * - Queryable Encryption
+     - ✓
+
+   * - Representing documents
+     - | ✓
+       | Use models to represent MongoDB documents.
+
+   * - Schema validation
+     - *Unsupported*. However, we plan to add support for this feature
+       in a post-GA release.
+
+   * - Timeseries data
+     - ✓
+
+   * - Transactions
+     - | ✓
+       | You can use {+django-odm+}'s custom transactions API with the
+         following limitations:
+       | * ``QuerySet.union()`` is not supported within a transaction.
+       | * Savepoints, or nested atomic blocks, are not supported. The outermost atomic block starts
+           a transaction, and any subsequent atomic blocks have no effect.
+       | * Your MongoDB deployment must be a replica set or sharded cluster.
+
+Django Features
+---------------
+
+This section indicates whether the {+django-odm+} supports various
+{+framework+} features.
+
+Field Support
+~~~~~~~~~~~~~
+
+{+django-odm+} currently supports all {+framework+} fields not included in
+the following table. To view a full list of supported fields, see the :ref:`django-models-django-fields`
+section of the Create Models guide.
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 35 65
+
+   * - {+framework+} Field Type
+     - Current Support
+
+   * - ``AutoField``
+     - *Unsupported*. The ``BigAutoField`` and ``SmallAutoField`` types are also
+       not supported. Instead, use ``ObjectIdAutoField``.
+
+   * - ``CompositePrimaryKey``
+     - *Unsupported*.
+
+   * - ``DateTimeField``
+     - | ✓
+       | Microsecond granularity for ``DateTimeField`` values is not supported.
+
+   * - ``DurationField``
+     - | ✓
+       | ``DurationField`` stores milliseconds rather than microseconds.
+
+   * - ``ForeignKey``
+     - *Partially Supported*. You can use this field type with the
+       following limitations:
+
+       - When possible, you should use an ``EmbeddedModelField`` instead of a
+         ``ForeignKey`` field to avoid using ``$lookup`` operations. An
+         ``EmbeddedModelField`` emulates a MongoDB embedded document and performs
+         better than a ``ForeignKey`` field. To learn more about how to reduce
+         ``$lookup`` operations, see the :atlas:`Reduce $lookup Operations
+         </schema-suggestions/reduce-lookup-operations/>` guide in the Atlas
+         documentation.
+       - Performance of :py:attr:`CASCADE deletes <django.db.models.CASCADE>`
+         on a ``ForeignKey`` field is not as performant as using an
+         ``EmbeddedModelField``.
+
+   * - ``GeneratedField``
+     - *Unsupported*.
+
+   * - ``JSONField``
+     - *Partially Supported*. You can use this field type with the
+       following limitations:
+
+       - {+django-odm+} cannot distinguish between a JSON and a SQL ``null`` value.
+         Queries that use ``Value(None, JSONField())`` or the ``isnull`` lookup
+         return both JSON and SQL ``null`` values.
+       - Some queries with ``Q`` objects, such as ``Q(value__foo="bar")``, might
+         not work as expected.
+       - Filtering for ``None`` values incorrectly returns objects in which a field
+         does not exist.
+
+Query Support
+~~~~~~~~~~~~~
+
+{+django-odm+} currently supports all {+framework+} ``QuerySet`` methods not
+included in the following table. To view the supported methods, see
+:ref:`QuerySet API <queryset-api>` in the {+framework+} documentation.
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 35 65
+
+   * - {+framework+} ``QuerySet`` Feature
+     - Current Support
+
+   * - ``delete()``
+     - | ✓
+       | You cannot use this method to perform
+         queries that span multiple collections.
+
+   * - ``extra()``
+     - *Unsupported*.
+
+   * - Pattern-matching lookups
+     - | ✓
+       | You can only use these lookups to query string fields.
+       | The pattern-matching lookups are ``iexact``, ``startswith``, ``istartswith``,
+         ``endswith``, ``iendswith``, ``contains``, ``icontains``, ``regex``, and
+         ``iregex``
+
+   * - ``prefetch_related()``
+     - *Unsupported*.
+
+   * - ``raw()``
+     - *Unsupported*. However, you can use the ``raw_aggregate()`` method
+       to run queries that use MongoDB's aggregation pipeline syntax.
+
+   * - ``select_for_update()``
+     - *Unsupported*.
+
+   * - ``update()``
+     - | ✓
+       | You cannot use this method to perform
+         queries that span multiple collections.
+
+Database Function Support
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+django-odm+} currently supports all database functions not included in
+the following table. To view a full list of functions, see `Database
+Functions <{+django-docs+}/ref/models/database-functions/>`__ in the
+{+framework+} documentation.
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 35 65
+
+   * - {+framework+} Function
+     - Current Support
+
+   * - ``Chr``
+     - *Unsupported*.
+
+   * - ``ExtractQuarter``
+     - *Unsupported*.
+
+   * - ``MD5``
+     - *Unsupported*.
+
+   * - ``Ord``
+     - *Unsupported*.
+
+   * - ``Pad``
+     - *Unsupported*.
+
+   * - ``Repeat``
+     - *Unsupported*.
+
+   * - ``Reverse``
+     - *Unsupported*.
+
+   * - ``Right``
+     - *Unsupported*.
+
+   * - ``SHA1``, ``SHA224``, ``SHA256``, ``SHA384``, ``SHA512``
+     - *Unsupported*.
+
+   * - ``Sign``
+     - *Unsupported*.
+
+   * - ``StringAgg``
+     - *Unsupported*.
+
+   * - ``Trunc``
+     - *Partially Supported*. The ``tzinfo`` parameter of the
+       :py:class:`~django.db.models.functions.TruncDate` and
+       :py:class:`~django.db.models.functions.TruncTime` database
+       functions is not supported.
+
+.. _django-contrib-app-support:
+
+Contrib App Support
+~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 35 65
+
+   * - {+framework+} Feature
+     - Current Support
+
+   * - {+framework+} Admin
+     - ✓
+
+   * - {+framework+} Authentication
+     - ✓
+
+   * - GeoDjango
+     - *Partially Supported*. This web framework is supported with the following limitations:
+
+       - GIS aggregate functions and geographic database functions are not supported.
+       - MongoDB does not support any spatial reference system identifiers other than
+         `4326 <https://spatialreference.org/ref/epsg/4326/>`__.
+       - ``RasterField`` is not supported.
+
+Forms Support
+~~~~~~~~~~~~~
+
+{+django-odm+} supports {+framework+} forms, but ``PolymorphicEmbeddedModelField``
+and ``PolymorphicEmbeddedModelArrayField`` do not appear in forms.
+
+.. _django-management-commands:
+
+Management Command Support
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+django-odm+} currently supports all management commands not included in
+the following table. To view a full list of commands, see `Available commands
+<{+django-docs+}/ref/django-admin/#available-commands>`__ in the {+framework+}
+documentation.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - {+framework+} Command
+     - Current Support
+
+   * - ``createcachetable``
+     - *Unsupported*.
+
+   * - ``dumpdata``
+     - *Unsupported*. However, we plan to add support for this feature in a post-GA release.
+
+   * - ``inspectdb``
+     - *Unsupported*. However, we plan to add support for this feature in a post-GA release.
+
+   * - ``loaddata``
+     - *Unsupported*. However, we plan to add support for this feature in a post-GA release.
+
+.. _django-feature-compat-migrations:
+
+Migration Support
+~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 35 65
+
+   * - {+framework+} Feature
+     - Current Support
+
+   * - Creating, deleting, and updating indexes through migration
+       commands
+     - *Partially Supported*. You cannot update indexes on embedded model
+       or array fields.
+
+   * - `DDL Transactions <{+django-docs+}/topics/migrations/#transactions>`__
+     - *Unsupported*.
+
+   * - ``migrate --fake-initial`` option
+     - *Unsupported*.
+
+   * - Migrations for embedded models
+     - *Partially Supported*. Migration commands do not detect changes to embedded model fields
+       or embedded models referenced by a ``PolymorphicEmbeddedModelField`` or
+       ``PolymorphicEmbeddedModelArrayField``.
+
+Third Party Library Support
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 35 65
+
+   * - Library
+     - Current Support
+
+   * - `Django-filter <https://django-filter.readthedocs.io/en/stable/>`__
+     - *Partially Supported*. To learn more about the use cases and limitations
+       of this library, see `Django filter <{+cli-docs+}/supported-libraries/django-filter/>`__
+       in the {+framework+} MongoDB CLI documentation.
+
+   * - `Django Rest Framework <https://www.django-rest-framework.org/>`__
+     - *Partially Supported*. To learn more about the use cases and limitations
+       of this library, see `Django rest framework <{+cli-docs+}/supported-libraries/django-rest-framework/>`__
+       in the {+framework+} MongoDB CLI documentation.
+
+   * - `Django-allauth <https://docs.allauth.org/en/latest/>`__
+     - *Partially Supported*. To learn more about the use cases and limitations
+       of this library, see `Django allauth <{+cli-docs+}/supported-libraries/django-allauth/>`__
+       in the {+framework+} MongoDB CLI documentation.
+
+   * - `Django Debug Toolbar <https://django-debug-toolbar.readthedocs.io/en/latest/>`__
+     - *Partially Supported*. To learn more about the use cases and limitations
+       of this library, see `Django debug toolbar <{+cli-docs+}/supported-libraries/django-debug-toolbar/>`__
+       in the {+framework+} MongoDB CLI documentation.

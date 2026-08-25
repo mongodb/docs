@@ -10,10 +10,15 @@ The following table shows compatibility between Django MongoDB Backend and {+mdb
      - MongoDB 7.0
      - MongoDB 6.0
 
+   * - 6.1
+     - ✓
+     - ✓
+     -
+
    * - 6.0
-     - ✓ 
-     - ✓ 
-     - 
+     - ✓
+     - ✓
+     -
 
    * - 5.2
      - ✓ 
