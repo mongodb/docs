@@ -27,7 +27,7 @@ Cursor supports the following setup methods:
 
          Go to **Cursor Settings → Customize → Browse Marketplace**. 
          
-         Search for **MongoDB Atlas (Managed MCP)** and click **Add**.
+         Search for **MongoDB Atlas** and click **Add**.
 
       .. step:: Login to Atlas.
 
@@ -62,7 +62,7 @@ Cursor supports the following setup methods:
 
          Go to **Cursor Settings → Customize → Browse Marketplace**. 
          
-         Search for **MongoDB Atlas (Managed MCP)** and click **Add**.
+         Search for **MongoDB** and click **Add**.
 
       .. step:: Complete setup.
 
