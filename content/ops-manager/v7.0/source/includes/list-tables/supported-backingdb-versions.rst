@@ -22,4 +22,7 @@
      - 
 
 .. include:: /includes/deprecated-definition.rst
-  
+
+.. important::
+
+   .. include:: /includes/facts/fact-backing-db-minor-release-unsupported.rst
