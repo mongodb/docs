@@ -299,6 +299,12 @@ which directory. Read that file and apply the docset's section. Editing
 it is expected here, but flag it as a `platform/` change in the Step 11
 change summary.
 
+If the glob above matches the slug in **both** directories, only one
+copy is live — see `references/nextjs-redirects-updates.md` for which
+one, and for the current list of docsets with a stale, dead leftover
+copy in the other directory. Edit the live copy only; leave the dead
+one alone and note it in the change summary.
+
 If no `<slug>-redirects.json` is found for the docset, stop and ask the
 user — do not invent a redirect file.
 
