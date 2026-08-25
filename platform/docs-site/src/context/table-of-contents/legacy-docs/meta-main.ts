@@ -26,7 +26,7 @@ export const toc: TocItem[] = [
                 label: "Writing Guidelines",
                 contentSite: "meta",
                 collapsible: true,
-                url: "/docs/meta/style-guide/writing/index",
+                url: "/docs/meta/style-guide/writing",
                 items: [
                   {
                     label: "Use Active Voice",
@@ -114,7 +114,7 @@ export const toc: TocItem[] = [
                 label: "Style Guidelines",
                 contentSite: "meta",
                 collapsible: true,
-                url: "/docs/meta/style-guide/style/index",
+                url: "/docs/meta/style-guide/style",
                 items: [
                   {
                     label: "Abbreviations",
@@ -371,13 +371,13 @@ export const toc: TocItem[] = [
                 label: "Terminology Guidelines",
                 contentSite: "meta",
                 collapsible: true,
-                url: "/docs/meta/style-guide/terminology/index",
+                url: "/docs/meta/style-guide/terminology",
                 items: [
                   {
                     label: "General Terminology Guidelines",
                     contentSite: "meta",
                     collapsible: true,
-                    url: "/docs/meta/style-guide/terminology/general-term-guidelines/index",
+                    url: "/docs/meta/style-guide/terminology/general-term-guidelines",
                     items: [
                       {
                         label: "Use Consistent Terminology",
@@ -417,7 +417,7 @@ export const toc: TocItem[] = [
                 label: "Screenshot and Diagram Guidelines",
                 contentSite: "meta",
                 collapsible: true,
-                url: "/docs/meta/style-guide/screenshots/index",
+                url: "/docs/meta/style-guide/screenshots",
                 items: [
                   {
                     label: "Screenshot Guidelines and Process",
@@ -450,7 +450,7 @@ export const toc: TocItem[] = [
                 label: "Information Types",
                 contentSite: "meta",
                 collapsible: true,
-                url: "/docs/meta/style-guide/information-types/index",
+                url: "/docs/meta/style-guide/information-types",
                 items: [
                   {
                     label: "Information Type Prototypes",

@@ -20,7 +20,7 @@ const tocData: TocItem[] = [
           {
             label: 'Writing Guidelines',
             contentSite: 'meta',
-            url: '/docs/meta/style-guide/writing/index',
+            url: '/docs/meta/style-guide/writing',
             collapsible: true,
             items: [
               {
@@ -108,7 +108,7 @@ const tocData: TocItem[] = [
           {
             label: 'Style Guidelines',
             contentSite: 'meta',
-            url: '/docs/meta/style-guide/style/index',
+            url: '/docs/meta/style-guide/style',
             collapsible: true,
             items: [
               {
@@ -357,13 +357,13 @@ const tocData: TocItem[] = [
           {
             label: 'Terminology Guidelines',
             contentSite: 'meta',
-            url: '/docs/meta/style-guide/terminology/index',
+            url: '/docs/meta/style-guide/terminology',
             collapsible: true,
             items: [
               {
                 label: 'General Terminology Guidelines',
                 contentSite: 'meta',
-                url: '/docs/meta/style-guide/terminology/general-term-guidelines/index',
+                url: '/docs/meta/style-guide/terminology/general-term-guidelines',
                 collapsible: true,
                 items: [
                   {
@@ -404,7 +404,7 @@ const tocData: TocItem[] = [
           {
             label: 'Screenshot and Diagram Guidelines',
             contentSite: 'meta',
-            url: '/docs/meta/style-guide/screenshots/index',
+            url: '/docs/meta/style-guide/screenshots',
             collapsible: true,
             items: [
               {
@@ -437,7 +437,7 @@ const tocData: TocItem[] = [
           {
             label: 'Information Types',
             contentSite: 'meta',
-            url: '/docs/meta/style-guide/information-types/index',
+            url: '/docs/meta/style-guide/information-types',
             collapsible: true,
             items: [
               {
