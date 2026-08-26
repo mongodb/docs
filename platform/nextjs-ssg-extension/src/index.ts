@@ -38,7 +38,7 @@ const TOML_SEARCH_MAX_DEPTH = 5;
 const ENVS_TO_RUN = ["dotcomprd", "dotcomstg"];
 
 const extension = new Extension({
-  isEnabled: envVarToBool(process.env.NEXTJS_SSG_EXTENSION_ENABLED),
+  isEnabled: envVarToBool(process.env.NEXTJS_EXTENSION_ENABLED_STAGING_2),
 });
 
 const allContentData: AllContentData = {

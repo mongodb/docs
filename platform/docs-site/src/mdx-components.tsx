@@ -42,7 +42,7 @@ import { Link } from '@/mdx-components/Link';
 import { Video } from '@/mdx-components/Video/Video';
 import { Kicker } from '@/mdx-components/Kicker';
 import { TabsSelector } from '@/mdx-components/TabsSelector';
-import { Version } from '@/mdx-components/Version';
+import { Version, VersionArgument } from '@/mdx-components/Version';
 import { Code } from '@/mdx-components/Code';
 import { Replacement } from '@/mdx-components/Include/Replacement';
 import { Wayfinding } from './mdx-components/Wayfinding/Wayfinding';
@@ -197,6 +197,8 @@ export const components = (injectedProps?: InjectedProps) =>
         {children}
       </Version>
     ),
+    // Mapped directly so Version can identify it by reference among its children.
+    VersionArgument,
     Video: (props) => <Video {...props} />,
     Wayfinding: ({ children, ...props }) => <Wayfinding {...props}>{children}</Wayfinding>,
     WayfindingOption: (props) => <WayfindingOption {...props} />,

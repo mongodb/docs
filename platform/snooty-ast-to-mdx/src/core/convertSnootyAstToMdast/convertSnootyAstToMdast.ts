@@ -19,6 +19,7 @@ import { convertDirectiveListTable } from './convertDirectiveListTable';
 import { convertDirectiveProcedure } from './convertDirectiveProcedure';
 import { convertDirectiveStep } from './convertDirectiveStep';
 import { parseSnootyArgument } from './parseSnootyArgument';
+import { buildVersionElementParts } from './buildVersionElementParts';
 import { computeComposableTutorialData, buildComposableOptionsFromNode } from './computeComposableTutorialData';
 import { extractInlineDisplayText } from './extractInlineDisplayText';
 import { parseAbbrText } from './parseAbbrText';
@@ -1244,36 +1245,29 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         };
       }
       if (directiveName === 'deprecated') {
-        const version = parseSnootyArgument(node);
         return {
           type: 'paragraph',
           children: [
             {
               type: 'mdxJsxTextElement',
               name: 'Deprecated',
-              attributes: [{ type: 'mdxJsxAttribute', name: 'version', value: version }],
-              children: convertChildren({ nodes: node.children, depth, ctx }),
+              ...buildVersionElementParts({ node, convertChildren, depth, ctx }),
             },
           ],
         };
       }
       if (directiveName === 'versionchanged') {
-        const version = parseSnootyArgument(node);
-
         return {
           type: 'mdxJsxFlowElement',
           name: 'VersionChanged',
-          attributes: [{ type: 'mdxJsxAttribute', name: 'version', value: version }],
-          children: convertChildren({ nodes: node.children, depth, ctx }),
+          ...buildVersionElementParts({ node, convertChildren, depth, ctx }),
         };
       }
       if (directiveName === 'versionadded') {
-        const version = parseSnootyArgument(node);
         return {
           type: 'mdxJsxFlowElement',
           name: 'VersionAdded',
-          attributes: [{ type: 'mdxJsxAttribute', name: 'version', value: version }],
-          children: convertChildren({ nodes: node.children, depth, ctx }),
+          ...buildVersionElementParts({ node, convertChildren, depth, ctx }),
         };
       }
       if (directiveName === 'rubric') {
