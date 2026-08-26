@@ -3,7 +3,7 @@
 import { UnifiedNav } from '@mdb/consistent-nav';
 import headingStyles from '@/styles/header-theme.module.scss';
 import { SiteBanner } from '@/mdx-components/Banner/SiteBanner';
-import { cx } from '@leafygreen-ui/emotion';
+import { clsx } from 'clsx';
 import { useSiteBanner } from './SiteBannerProvider';
 import { useLocale, type NavLocale } from '@/context/locale';
 import { NOTRANSLATE_CLASS } from '@/utils/locale';
@@ -16,7 +16,7 @@ export const Header = ({ eol = false }: { eol?: boolean }) => {
   return (
     <>
       {hasBanner && <SiteBanner />}
-      <header className={cx(headingStyles.header, hasBanner && headingStyles.headerHasBanner, NOTRANSLATE_CLASS)}>
+      <header className={clsx(headingStyles.header, hasBanner && headingStyles.headerHasBanner, NOTRANSLATE_CLASS)}>
         {/* Two navs used intentionally: one for light mode, one for dark mode */}
         {!eol && (
           <>
