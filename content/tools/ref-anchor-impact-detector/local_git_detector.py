@@ -256,12 +256,14 @@ def is_rst_file(filename: str) -> bool:
     return filename.endswith(('.rst', '.txt'))
 
 
-def get_all_documentation_files(content_dir: Path) -> List[Path]:
+def get_all_documentation_files(content_dir: Path, site_names: Set[str] = None) -> List[Path]:
     """
     Get all documentation files from the content directory.
 
     Args:
         content_dir: Path to content directory
+        site_names: If provided, only walk these sites (matched against the
+            top-level directory name under content/) instead of every site.
 
     Returns:
         List of all .rst and .txt files
@@ -274,6 +276,9 @@ def get_all_documentation_files(content_dir: Path) -> List[Path]:
     # Get all repositories in content directory
     for repo_dir in content_dir.iterdir():
         if not repo_dir.is_dir() or repo_dir.name.startswith('.'):
+            continue
+
+        if site_names is not None and repo_dir.name not in site_names:
             continue
 
         # Check if this looks like a versioned repository
@@ -386,6 +391,86 @@ def search_corpus_for_references(anchors: Set[str], content_dir: Path) -> Dict[s
             continue
 
     return references
+
+
+def find_anchors_still_defined(
+    anchors: Set[str],
+    content_dir: Path,
+    anchor_to_site: Dict[str, str],
+    dependency_graph: Dict[str, Set[str]],
+    repo_root: Path
+) -> Set[str]:
+    """
+    Check which of the given anchor names still have a definition that the
+    anchor's own site could actually resolve a `:ref:` to.
+
+    A diff can show an anchor label disappearing from one file (e.g. a
+    rename or dedup of a copy-pasted label) while the same-named anchor
+    still legitimately exists elsewhere in the same site. Those anchors
+    were never actually removed and should not be treated as broken.
+
+    A remaining definition only counts if it is in the anchor's own site
+    (a same-site duplicate) or in a site that the anchor's site depends on
+    via intersphinx (so the anchor's own `:ref:` calls would still resolve
+    there via fallback). `:ref:` labels are scoped per-project — a same-named
+    anchor in an unrelated, non-dependency site is invisible to the site the
+    anchor was removed from and does not make the removal safe.
+
+    Args:
+        anchors: Set of anchor names to check
+        content_dir: Path to content directory
+        anchor_to_site: Dict mapping anchor names to the sites they were removed from
+        dependency_graph: Dict mapping sites to sets of sites they can reference
+        repo_root: Repository root path
+
+    Returns:
+        Set of anchor names that still have a definition reachable from their own site
+    """
+    if not anchors:
+        return set()
+
+    # Only the anchor's own site and sites it depends on via intersphinx can
+    # ever satisfy the scoping check below — restrict the file scan to those
+    # sites instead of walking the entire monorepo.
+    relevant_sites = set()
+    for anchor in anchors:
+        site = anchor_to_site.get(anchor, '')
+        if site:
+            relevant_sites.add(site)
+            relevant_sites.update(dependency_graph.get(site, set()))
+
+    if not relevant_sites:
+        return set()
+
+    all_files = get_all_documentation_files(content_dir, site_names=relevant_sites)
+
+    anchor_patterns = {
+        anchor: re.compile(r'^\s*\.\.\s+_' + re.escape(anchor) + r':\s*$', re.MULTILINE)
+        for anchor in anchors
+    }
+
+    still_defined = set()
+    for file_path in all_files:
+        try:
+            content = file_path.read_text(encoding='utf-8')
+        except Exception:
+            continue
+
+        try:
+            defining_site = get_site_name_from_path(str(file_path.relative_to(repo_root)))
+        except ValueError:
+            continue
+
+        for anchor, pattern in anchor_patterns.items():
+            if anchor in still_defined:
+                continue
+            removed_from_site = anchor_to_site.get(anchor, '')
+            if not pattern.search(content):
+                continue
+            if defining_site == removed_from_site or defining_site in dependency_graph.get(removed_from_site, set()):
+                still_defined.add(anchor)
+
+    return still_defined
 
 
 def generate_enhanced_impact_report(
@@ -676,6 +761,24 @@ class LocalGitDetector:
             # Extract removed anchors, categorized by impact type
             immediate_removed, future_removed, anchor_to_site = self.extract_removed_anchors_from_git_diff(diff_content)
 
+            # Build intersphinx dependency graph for cross-site validation
+            dependency_graph = build_intersphinx_dependency_graph(self.content_dir)
+
+            # Drop anchors that still have a definition the anchor's own site
+            # could actually resolve a `:ref:` to (a same-site duplicate, or a
+            # site reachable via that site's own intersphinx dependencies) —
+            # these were never actually removed. A same-named anchor in an
+            # unrelated, non-dependency site does not count: `:ref:` labels
+            # are scoped per-project, so that anchor is invisible to the site
+            # the removal happened in.
+            still_defined = find_anchors_still_defined(
+                immediate_removed | future_removed, self.content_dir, anchor_to_site, dependency_graph, self.repo_root
+            )
+            if still_defined:
+                print(f"✅ {len(still_defined)} anchor(s) still resolvable from their own site, not actually removed: {', '.join(sorted(still_defined))}")
+                immediate_removed -= still_defined
+                future_removed -= still_defined
+
             if not immediate_removed and not future_removed:
                 return "✅ No ref anchors were removed in the specified changes."
 
@@ -689,9 +792,6 @@ class LocalGitDetector:
                 immediate_references = search_corpus_for_references(immediate_removed, self.content_dir)
             if future_removed:
                 future_references = search_corpus_for_references(future_removed, self.content_dir)
-
-            # Build intersphinx dependency graph for cross-site validation
-            dependency_graph = build_intersphinx_dependency_graph(self.content_dir)
 
             # Filter references based on intersphinx dependencies
             immediate_filtered = filter_references_by_intersphinx(
