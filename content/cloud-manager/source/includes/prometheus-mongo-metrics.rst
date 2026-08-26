@@ -4566,11 +4566,7 @@
           "type": "interval"
         },
         {
-          "current": {
-            "selected": false,
-            "text": "thanos",
-            "value": "thanos"
-          },
+          "current": {},
           "hide": 0,
           "includeAll": false,
           "multi": false,
@@ -4579,7 +4575,7 @@
           "query": "prometheus",
           "queryValue": "",
           "refresh": 1,
-          "regex": "/thanos.*/",
+          "regex": "",
           "skipUrlSync": false,
           "type": "datasource"
         },

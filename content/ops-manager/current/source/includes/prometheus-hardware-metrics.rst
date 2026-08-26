@@ -108,7 +108,7 @@
         "targets": [
           {
             "exemplar": true,
-            "expr": "label_replace( sum(mongodb_up{group_id=~\"$group_id\",  instance=~\"$host.*\"}) by (group_name, group_id, org_id, replica_set_name, cluster_name), \"hostname\", \"$1\", \"instance\", \"(.*):.*\")\n",
+            "expr": "label_replace( sum(mongodb_up{group_id=~\"$group_id\",  instance=~\"$host.*\"}) by (group_name, group_id, org_id, rs_nm, cl_name), \"hostname\", \"$1\", \"instance\", \"(.*):.*\")\n",
             "format": "table",
             "interval": "",
             "legendFormat": "",
@@ -124,28 +124,28 @@
                 "Time": true,
                 "Value #A": true,
                 "instance": true,
-                "replica_set_name": false
+                "rs_nm": false
               },
               "indexByName": {
                 "Time": 0,
                 "Value #A": 6,
-                "cluster_name": 4,
+                "cl_name": 4,
                 "group_id": 3,
                 "group_name": 2,
                 "org_id": 1,
-                "replica_set_name": 5
+                "rs_nm": 5
               },
               "renameByName": {
                 "Time": "",
-                "cluster_name": "Cluster Name",
+                "cl_name": "Cluster Name",
                 "group_id": "Group Id",
                 "group_name": "Group Name ",
                 "hostname": "Host",
                 "instance": "",
                 "org_id": "Org Id",
                 "process_port": "Port",
-                "replica_set_name": "ReplicaSet Name",
-                "replica_state": "ReplicaSet State"
+                "rs_nm": "ReplicaSet Name",
+                "rs_state": "ReplicaSet State"
               }
             }
           },
@@ -341,7 +341,7 @@
         "targets": [
           {
             "exemplar": true,
-            "expr": "label_replace( sum(mongodb_up{group_id=~\"$group_id\",  instance=~\"$host.*\"}) by (instance, replica_state, process_port, replica_set_name, process_type), \"hostname\", \"$1\", \"instance\", \"(.*):.*\")\n",
+            "expr": "label_replace( sum(mongodb_up{group_id=~\"$group_id\",  instance=~\"$host.*\"}) by (instance, rs_state, process_port, rs_nm, cl_role), \"hostname\", \"$1\", \"instance\", \"(.*):.*\")\n",
             "format": "table",
             "interval": "",
             "legendFormat": "",
@@ -357,8 +357,8 @@
                 "Time": true,
                 "Value #A": true,
                 "instance": true,
-                "process_type": false,
-                "replica_set_name": false
+                "cl_role": false,
+                "rs_nm": false
               },
               "indexByName": {
                 "Time": 0,
@@ -366,17 +366,17 @@
                 "hostname": 1,
                 "instance": 2,
                 "process_port": 3,
-                "replica_set_name": 5,
-                "replica_state": 4
+                "rs_nm": 5,
+                "rs_state": 4
               },
               "renameByName": {
                 "Time": "",
                 "hostname": "Host",
                 "instance": "",
                 "process_port": "Port",
-                "process_type": "Type",
-                "replica_set_name": "ReplicaSet Name",
-                "replica_state": "ReplicaSet State"
+                "cl_role": "Type",
+                "rs_nm": "ReplicaSet Name",
+                "rs_state": "ReplicaSet State"
               }
             }
           },
@@ -2400,7 +2400,7 @@
       },
       {
         "datasource": null,
-        "description": "The average rate of physical bytes received per second by the eth0 network interface\n",
+        "description": "The average rate of bytes received per second across all network interfaces\n",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -2472,7 +2472,7 @@
         "targets": [
           {
             "exemplar": true,
-            "expr": "label_replace( sum(rate(hardware_system_network_eth0_bytes_in_bytes{group_id=~\"$group_id\",  instance=~\"$host.*\"}[$interval])) by (instance) + sum(rate(hardware_system_network_lo_bytes_in_bytes{group_id=~\"$group_id\",  instance=~\"$host.*\"}[$interval])) by (instance), \"hostname\", \"$1\", \"instance\", \"(.*):.*\")",
+            "expr": "label_replace( sum(rate(hardware_system_network_bytes_in_bytes{group_id=~\"$group_id\",  instance=~\"$host.*\"}[$interval])) by (instance), \"hostname\", \"$1\", \"instance\", \"(.*):.*\")",
             "interval": "",
             "legendFormat": "host - {{hostname}}",
             "refId": "A"
@@ -2483,7 +2483,7 @@
       },
       {
         "datasource": null,
-        "description": "The average rate of physical bytes transmitted per second by the eth0 network interface",
+        "description": "The average rate of bytes transmitted per second across all network interfaces",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -2555,7 +2555,7 @@
         "targets": [
           {
             "exemplar": true,
-            "expr": "label_replace( sum(rate(hardware_system_network_eth0_bytes_out_bytes{group_id=~\"$group_id\",  instance=~\"$host.*\"}[$interval])) by (instance) + sum(rate(hardware_system_network_lo_bytes_out_bytes{group_id=~\"$group_id\",  instance=~\"$host.*\"}[$interval])) by (instance), \"hostname\", \"$1\", \"instance\", \"(.*):.*\")",
+            "expr": "label_replace( sum(rate(hardware_system_network_bytes_out_bytes{group_id=~\"$group_id\",  instance=~\"$host.*\"}[$interval])) by (instance), \"hostname\", \"$1\", \"instance\", \"(.*):.*\")",
             "interval": "",
             "legendFormat": "host - {{hostname}}",
             "refId": "A"
@@ -4038,11 +4038,7 @@
         },
         {
           "allValue": null,
-          "current": {
-            "selected": false,
-            "text": "611c15fc5851c22d37e3f351",
-            "value": "611c15fc5851c22d37e3f351"
-          },
+          "current": {},
           "datasource": null,
           "definition": "label_values(group_id)",
           "description": null,
@@ -4065,13 +4061,9 @@
         },
         {
           "allValue": null,
-          "current": {
-            "selected": false,
-            "text": "Cluster0",
-            "value": "Cluster0"
-          },
+          "current": {},
           "datasource": null,
-          "definition": "label_values(mongodb_up{group_id='$group_id'}, cluster_name)",
+          "definition": "label_values(mongodb_up{group_id='$group_id'}, cl_name)",
           "description": null,
           "error": null,
           "hide": 0,
@@ -4081,7 +4073,7 @@
           "name": "cluster_name",
           "options": [],
           "query": {
-            "query": "label_values(mongodb_up{group_id='$group_id'}, cluster_name)",
+            "query": "label_values(mongodb_up{group_id='$group_id'}, cl_name)",
             "refId": "StandardVariableQuery"
           },
           "refresh": 2,
@@ -4102,7 +4094,7 @@
             ]
           },
           "datasource": null,
-          "definition": "label_values(mongodb_up{group_id='$group_id', cluster_name='$cluster_name'}, replica_set_name)",
+          "definition": "label_values(mongodb_up{group_id='$group_id', cl_name='$cluster_name'}, rs_nm)",
           "description": null,
           "error": null,
           "hide": 0,
@@ -4112,7 +4104,7 @@
           "name": "replica_set_name",
           "options": [],
           "query": {
-            "query": "label_values(mongodb_up{group_id='$group_id', cluster_name='$cluster_name'}, replica_set_name)",
+            "query": "label_values(mongodb_up{group_id='$group_id', cl_name='$cluster_name'}, rs_nm)",
             "refId": "StandardVariableQuery"
           },
           "refresh": 2,
@@ -4133,7 +4125,7 @@
             ]
           },
           "datasource": null,
-          "definition": "label_values(mongodb_up{group_id='$group_id', cluster_name='$cluster_name',replica_set_name='$replica_set_name'},instance)",
+          "definition": "label_values(mongodb_up{group_id='$group_id', cl_name='$cluster_name', rs_nm=~'$replica_set_name'}, instance)",
           "description": null,
           "error": null,
           "hide": 0,
@@ -4143,7 +4135,7 @@
           "name": "host",
           "options": [],
           "query": {
-            "query": "label_values(mongodb_up{group_id='$group_id', cluster_name='$cluster_name',replica_set_name='$replica_set_name'},instance)",
+            "query": "label_values(mongodb_up{group_id='$group_id', cl_name='$cluster_name', rs_nm=~'$replica_set_name'}, instance)",
             "refId": "StandardVariableQuery"
           },
           "refresh": 2,
@@ -4164,7 +4156,7 @@
             ]
           },
           "datasource": null,
-          "definition": "label_values(mongodb_up{group_id='$group_id', cluster_name='$cluster_name',replica_set_name='$replica_set_name'},process_port)",
+          "definition": "label_values(mongodb_up{group_id='$group_id', cl_name='$cluster_name', rs_nm=~'$replica_set_name'}, process_port)",
           "description": "Only applicable for process level metrics",
           "error": null,
           "hide": 0,
@@ -4174,7 +4166,7 @@
           "name": "process_port",
           "options": [],
           "query": {
-            "query": "label_values(mongodb_up{group_id='$group_id', cluster_name='$cluster_name',replica_set_name='$replica_set_name'},process_port)",
+            "query": "label_values(mongodb_up{group_id='$group_id', cl_name='$cluster_name', rs_nm=~'$replica_set_name'}, process_port)",
             "refId": "StandardVariableQuery"
           },
           "refresh": 1,

@@ -193,22 +193,12 @@
      - Gauge
      - Number of logical CPUs usable by the current process.
 
-   * - ``hardware_system_network_eth0_bytes_in_bytes``
+   * - ``hardware_system_network_bytes_in_bytes``
      - All
      - Counter
      - Number of bytes of data received by the interface.
 
-   * - ``hardware_system_network_eth0_bytes_out_bytes``
-     - All
-     - Counter
-     - Number of bytes of data transmitted by the interface.
-
-   * - ``hardware_system_network_lo_bytes_in_bytes``
-     - All
-     - Counter
-     - Number of bytes of data received by the interface.
-
-   * - ``hardware_system_network_lo_bytes_out_bytes``
+   * - ``hardware_system_network_bytes_out_bytes``
      - All
      - Counter
      - Number of bytes of data transmitted by the interface.
