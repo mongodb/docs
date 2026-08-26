@@ -586,6 +586,14 @@ export const toc: L1TocItem[] = [
                     url: '/docs/php-library/:version/reference/method/MongoDBDatabase-getDatabaseName',
                   },
                   {
+                    label: 'getGridFSBucket()',
+                    contentSite: 'php-library',
+                    url: '/docs/php-library/:version/reference/method/MongoDBDatabase-getGridFSBucket',
+                    versions: {
+                      excludes: ['v1.x', 'current'],
+                    },
+                  },
+                  {
                     label: 'getManager()',
                     contentSite: 'php-library',
                     url: '/docs/php-library/:version/reference/method/MongoDBDatabase-getManager',

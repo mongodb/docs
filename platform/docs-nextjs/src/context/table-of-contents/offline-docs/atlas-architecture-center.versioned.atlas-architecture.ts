@@ -380,6 +380,11 @@ export const toc: L1TocItem[] = [
                 collapsible: true,
                 items: [
                   {
+                    label: 'Accelerate PCI DSS Compliance',
+                    contentSite: 'atlas-architecture',
+                    url: '/docs/atlas/architecture/:version/solutions-library/pci-dss-compliance',
+                  },
+                  {
                     label: 'Agentic AI-Powered Payments Orchestration',
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/solutions-library/agentic-powered-payments',
@@ -480,6 +485,11 @@ export const toc: L1TocItem[] = [
                     label: 'Agentic Claims Processing',
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/solutions-library/insurance-agentic-claims',
+                  },
+                  {
+                    label: 'Agentic Control Center',
+                    contentSite: 'atlas-architecture',
+                    url: '/docs/atlas/architecture/:version/solutions-library/agentic-control-center',
                   },
                   {
                     label: 'AI-Enhanced Claim Adjustment',

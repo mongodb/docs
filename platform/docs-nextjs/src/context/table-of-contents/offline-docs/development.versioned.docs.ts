@@ -9668,7 +9668,7 @@ export const toc: L1TocItem[] = [
                 collapsible: true,
                 url: '/docs/:version/release-notes/8.2',
                 versions: {
-                  excludes: ['v7.0', 'v8.0'],
+                  excludes: ['v7.0', 'v8.0', 'manual'],
                 },
                 items: [
                   {

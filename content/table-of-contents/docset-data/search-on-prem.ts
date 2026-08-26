@@ -92,15 +92,14 @@ const tocData: TocItem[] = [
             collapsible: true,
             items: [
               {
-                label: 'Deploy mongod and mongot in a Kubernetes Cluster',
+                label: 'Deploy mongot in a Kubernetes Cluster',
                 isExternal: true,
-                url: 'https://www.mongodb.com/docs/kubernetes/current/tutorial/install-fts-vs-with-enterprise/?cluster-topology=repl&mongot-instances=single',
+                url: 'https://www.mongodb.com/docs/kubernetes/current/fts-vs/deployment/single-cluster-installation/?cluster-topology=repl&mongot-instances=single&mdb-edition=enterprise&deployment-type=k8s-managed',
               },
               {
-                label:
-                  'Deploy mongot in a Kubernetes Cluster for External mongod',
+                label: 'Deploy mongot in Multiple Kubernetes Clusters',
                 isExternal: true,
-                url: 'https://www.mongodb.com/docs/kubernetes/current/tutorial/install-fts-vs-with-external-enterprise/?cluster-topology=repl&mongot-instances=single',
+                url: 'https://www.mongodb.com/docs/kubernetes/current/fts-vs/deployment/multi-cluster-installation/?cluster-topology=repl&deployment-type=external',
               },
             ],
           },
