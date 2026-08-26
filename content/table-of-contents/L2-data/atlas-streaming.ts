@@ -27,6 +27,11 @@ const tocData: TocItem[] = [
             contentSite: 'cloud-docs',
             url: '/docs/atlas/atlas-stream-processing/streaming-materialized-views',
           },
+          {
+            label: 'Configure Multi-Collection Initial Sync',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/atlas-stream-processing/multi-collection-initial-sync',
+          },
         ],
       },
       {

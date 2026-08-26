@@ -1,0 +1,342 @@
+.. _atlas-sp-multi-collection-initial-sync:
+
+=========================================
+Configure Multi-Collection Initial Sync
+=========================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: stream processing, initial sync, change stream, replication, code example
+   :description: Configure Atlas Stream Processing to run initial sync across multiple collections in one $source stage, compare sync scopes, and review a cross-cluster replication example.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. facet::
+   :name: programming_language
+   :values: javascript/typescript, shell
+
+``initialSync`` lets an {+atlas-sp+} stream processor ingest
+preexisting documents in an {+service+} collection as though they were
+insert ``changeEvent`` documents before it starts tailing the change
+stream. A single :pipeline:`$source` stage can now run ``initialSync``
+against more than one collection at once.
+
+This page compares single-collection and multi-collection sync
+characteristics, walks through configuring a multi-collection sync, and
+demonstrates a cross-cluster replication pipeline built on it.
+
+Comparison With Single-Collection Initial Sync
+-----------------------------------------------
+
+The ``coll`` field of the :pipeline:`$source` stage accepts either a
+single collection name or an array of collection names. Every
+collection that you name in the array must belong to the database that
+you specify in the ``db`` field. You can't synchronize collections
+from more than one database in a single :pipeline:`$source` stage. The
+value you provide determines the sync scope:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 40 35
+
+   * - Scope
+     - ``$source`` Configuration
+     - Behavior
+
+   * - Single collection
+     - ``db: "app", coll: "orders"``
+     - {+atlas-sp+} synchronizes the one named collection.
+
+   * - Explicit list
+     - ``db: "app", coll: ["a", "b", "c"]``
+     - {+atlas-sp+} synchronizes each collection in the list in the
+       order in which you list them.
+
+Traits of Multi-Collection Initial Sync
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A multi-collection ``initialSync`` operation has the following
+traits:
+
+- **Syncs collections in list order.** With
+  ``coll: ["a", "b", "c"]``, {+atlas-sp+} drains ``a``'s partitions
+  before ``b``'s, and ``b``'s before ``c``'s, except where spillover
+  fills idle capacity with partitions from a later collection.
+
+- **Resumes without resyncing completed collections.** {+atlas-sp+}
+  tracks which collections have finished, so a restarted stream
+  processor skips completed collections and resumes any in-progress
+  collection from its last synchronized document. It might redeliver
+  documents it already emitted, so design your sink to handle repeated
+  documents idempotently.
+
+- **Exposes overall sync progress.** ``stats().stats.initialSync``
+  reports the combined sync progress and document count across all
+  target collections. To learn more, see
+  :ref:`atlas-sp-multi-collection-initial-sync-verify`.
+
+Behavior Differences to Consider
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Multi-collection ``initialSync`` differs from single-collection sync
+in ways that affect how you configure and operate your stream
+processor:
+
+- **Parallelism is global, not per collection.** Setting
+  ``initialSync.parallelism`` caps the number of concurrent partition
+  reads across the entire set of target collections, not per
+  collection.
+
+- **Catchup scope follows source scope.** After the sync phase,
+  {+atlas-sp+} opens a change stream matching the source's scope: a
+  database-level change stream for a whole-database source, a
+  cluster-level change stream for a whole-cluster source, or a
+  filtered change stream for an explicit list of collections. You
+  don't need to configure this separately.
+
+- **A collection sync failure fails the whole processor.** As with
+  single-collection sync, if {+atlas-sp+} fails to synchronize any one
+  collection in the list, the entire stream processor fails.
+
+- **Some source-side configuration doesn't replicate to the
+  destination.** ``initialSync`` doesn't replicate indexes, collection
+  options such as capped collections, time series collections,
+  validators, or default collation, or view definitions. Create these
+  on the destination before you start the stream processor.
+  {+atlas-sp+} also doesn't discover collections that you create after
+  the stream processor starts; the set of collections to synchronize
+  is fixed at that point.
+
+Configure Multi-Collection Initial Sync
+----------------------------------------
+
+The following procedure uses two collections from the
+:ref:`sample_analytics <sample-analytics>` dataset: ``customers``,
+which holds customer profiles, and ``accounts``, which holds each
+customer's financial accounts. The procedure configures a stream
+processor that copies both collections from one {+service+} cluster
+to another, then keeps them current as documents change.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+Before you complete this procedure, you must have:
+
+- A :ref:`{+spw+} <atlas-sp-manage-spi>` with {+service+} connections
+  to both the source and destination clusters. To add a connection,
+  see :ref:`atlas-sp-manage-connections`.
+
+- A processor tier that supports the number of collections you plan
+  to list. To learn more, see :ref:`atlas-sp-tier-guide-resources`.
+
+Run the commands in this section against your cluster. To connect,
+see :ref:`connect-mongo-shell`.
+
+Complete the following steps to prepare the source collections:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Load the sample dataset.
+
+      This procedure uses the ``customers`` and ``accounts``
+      collections from the :ref:`sample_analytics <sample-analytics>`
+      dataset. To learn how to load sample data, see
+      :ref:`load-sample-data`.
+
+   .. step:: Enable change stream pre- and post-images.
+
+      Enable pre- and post-images on the ``customers`` and
+      ``accounts`` collections, because the procedure's
+      :pipeline:`$source` stage sets ``fullDocument: "required"``.
+      Run the following commands against the cluster:
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: javascript
+
+            db.getSiblingDB("sample_analytics").runCommand({
+               collMod: "customers",
+               changeStreamPreAndPostImages: { enabled: true }
+            })
+
+         .. output::
+            :language: javascript
+            :visible: false
+
+            { ok: 1, ... }
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: javascript
+
+            db.getSiblingDB("sample_analytics").runCommand({
+               collMod: "accounts",
+               changeStreamPreAndPostImages: { enabled: true }
+            })
+
+         .. output::
+            :language: javascript
+            :visible: false
+
+            { ok: 1, ... }
+
+      To learn more about ``fullDocument: "required"``, see
+      :ref:`atlas-sp-agg-source-syntax-coll`.
+
+Procedure
+~~~~~~~~~
+
+Select the {+atlas-ui+} or {+mongosh+} to configure the stream
+processor.
+
+.. composable-tutorial::
+   :options: interface
+   :defaults: atlas-ui
+
+   .. selected-content::
+      :selections: atlas-ui
+
+      .. include:: /includes/atlas-stream-processing/create-mcis-ui.rst
+
+   .. selected-content::
+      :selections: mongosh
+
+      .. include:: /includes/atlas-stream-processing/create-mcis-mongosh.rst
+
+.. _atlas-sp-multi-collection-initial-sync-verify:
+
+Verify Initial Sync Progress
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After you start the stream processor, run
+``sp.<processor-name>.stats().stats.initialSync`` to check the
+overall sync progress across all target collections:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: javascript
+
+      sp.replicate_analytics_sp.stats().stats.initialSync
+
+   .. output::
+      :language: javascript
+      :visible: false
+
+      { progress: 1, numInputDocuments: Long('2246') }
+
+``progress`` reports whether initial sync has completed.
+``numInputDocuments`` reports the total number of documents that
+{+atlas-sp+} has ingested from the target collections so far.
+
+Examples
+--------
+
+The preceding procedure replicates two collections between {+service+}
+clusters. The following example applies the same pipeline to a
+different set of collections. Only the ``db`` and ``coll`` values in
+the :pipeline:`$source` stage change.
+
+.. collapsible::
+   :heading: Replicate a database to another cluster
+   :sub_heading: Combine multi-collection initial sync with dynamic namespace routing to replicate a set of collections.
+   :expanded: false
+
+   The pipeline synchronizes existing documents in ``orders`` and
+   ``customers``, then continues to replicate changes to both
+   collections as they occur. The aggregation has three stages:
+
+   1. The :pipeline:`$source` stage synchronizes ``orders`` and
+      ``customers`` on ``<source-connection-name>``, then opens a
+      change stream scoped to those two collections.
+
+   #. The :pipeline:`$replaceRoot` stage selects the document key for
+      delete events and the full document for every other event.
+      Because metadata isn't part of the document body,
+      ``stream.source.*`` metadata survives this stage.
+
+   #. The :pipeline:`$merge` stage writes each event to the matching
+      collection on ``<destination-connection-name>``, using the
+      source event's namespace metadata to route the write and the
+      operation type to choose between inserting, replacing, or
+      deleting the destination document.
+
+   .. code-block:: javascript
+      :copyable: true
+
+      sp = db.createStreamProcessor("replicate-app-db", [
+        { $source: {
+            connectionName: "<source-connection-name>",
+            db: "app",
+            coll: ["orders", "customers"],
+            config: { fullDocument: "required" },
+            initialSync: { enable: true }
+        } },
+        { $replaceRoot: {
+            newRoot: {
+              $cond: {
+                if:   { $eq: [{ $meta: "stream.source.operationType" }, "delete"] },
+                then: { $meta: "stream.source.documentKey" },
+                else: "$fullDocument"
+              }
+            }
+        } },
+        { $merge: {
+            into: {
+              connectionName: "<destination-connection-name>",
+              db:   { $meta: "stream.source.ns.db" },
+              coll: { $meta: "stream.source.ns.coll" }
+            },
+            on: "_id",
+            whenMatched: { $cond: {
+                if:   { $eq: [{ $meta: "stream.source.operationType" }, "delete"] },
+                then: "delete",
+                else: "replace"
+            } },
+            whenNotMatched: { $cond: {
+                if:   { $eq: [{ $meta: "stream.source.operationType" }, "delete"] },
+                then: "discard",
+                else: "insert"
+            } }
+        } }
+      ]);
+
+      sp.start();
+
+   Before you start this stream processor, create any indexes,
+   collection options, or views that ``orders`` and ``customers``
+   need on ``<destination-connection-name>``. ``initialSync``
+   doesn't replicate these.
+
+Additional Information
+-----------------------
+
+To learn more about the stages and concepts in this guide, see the
+following resources:
+
+- To learn about the ``$source`` stage and its ``initialSync``
+  fields, see :ref:`atlas-sp-agg-source-syntax-coll`.
+
+- To learn how processor tier affects the number of collections you
+  can synchronize, see :ref:`atlas-sp-tier-guide-resources`.
+
+- To learn how {+atlas-sp+} checkpoints an in-progress sync, see
+  :ref:`atlas-sp-checkpoints`.
+
+- To learn how to create, start, stop, and monitor stream processors,
+  see :ref:`atlas-sp-manage-processor`.
