@@ -3806,6 +3806,7 @@ const tocData: TocItem[] = [
             label: '$sigmoid',
             contentSite: 'docs',
             url: '/docs/:version/reference/operator/aggregation/sigmoid',
+            versions: { excludes: manualVersions.before('v8.3') },
           },
           {
             label: '$similarityCosine',
@@ -3971,7 +3972,7 @@ const tocData: TocItem[] = [
           {
             label: '$top',
             contentSite: 'docs',
-            url: '/docs/:version/reference/operator/top',
+            url: '/docs/:version/reference/operator/aggregation/top',
           },
           {
             label: '$topN',
