@@ -1,1 +1,0 @@
-See :ref:`unified-get-started` to learn about starting a MongoDB instance.

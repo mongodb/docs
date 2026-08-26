@@ -1,1 +1,0 @@
-Limited support for :atlas:`Free and {+flex-clusters+} </unsupported-commands/#limited-commands>`.

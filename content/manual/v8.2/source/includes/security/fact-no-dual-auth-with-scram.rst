@@ -1,1 +1,0 @@
-You cannot use both SCRAM authentication and another authentication type for the same user.

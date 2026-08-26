@@ -1,4 +1,0 @@
-- Use the :ref:`Reshard to Shard <reshard-to-shard-def>` technique to shard a collection and distribute its data across all relevant shards
-- Add new shards faster
-- Remove shards faster 
-- Rewrite collections to reclaim disk space
