@@ -18,13 +18,11 @@ entry: string  # Complete RST entry starting with "- Fixes"
 </output>
 
 <terminology>
-Use RST source constants and substitutions from `content/atlas/snooty.toml`.
-
-- Constants: `{+constant-name+}` syntax
-- Substitutions: `|substitution-name|` syntax
-
-Read the `[constants]` and `[substitutions]` sections to find available replacements.
-Always prefer substitutions over hardcoded product names for consistency.
+Use `/tmp/atlas-rn/terminology.txt`. Each line is `key=syntax`. Do not
+re-read `snooty.toml`. When prose text matches a key's meaning, replace
+it with the syntax token. Constants (`{+key+}`) win over substitutions
+(`|key|`) on collision, so prefer whichever token the terminology file
+already resolved to.
 </terminology>
 
 <instructions>

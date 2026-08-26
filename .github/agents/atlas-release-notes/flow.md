@@ -62,24 +62,22 @@ will ever cover. Do not proceed silently:
 Never narrow the window on your own initiative.
 </gap_check>
 
-## Step 0b: Load Terminology from snooty.toml
+## Step 0b: Load Terminology from the shared expansion map
 
-Build a compact `key=syntax` terminology file from `content/atlas/snooty.toml`:
+Ensure the maintained expansion map exists for this docset, regenerating it if missing or stale:
+
+```bash
+python3 .claude/scripts/build-expansion-map.py content/atlas/snooty.toml
+```
+
+Build a compact `key=syntax` terminology file from that map (`content/atlas/.expansion-map.yml`):
 
 ```bash
 mkdir -p /tmp/atlas-rn && python3 -c "
-with open('content/atlas/snooty.toml') as f:
-    content = f.read()
-subs, consts, current = {}, {}, None
-for line in content.splitlines():
-    s = line.strip()
-    if s == '[substitutions]': current = 'sub'
-    elif s == '[constants]': current = 'const'
-    elif s.startswith('['): current = None
-    elif current and '=' in s and not s.startswith('#'):
-        key = s.partition('=')[0].strip()
-        if current == 'sub': subs[key] = f'|{key}|'
-        else: consts[key] = '{+' + key + '+}'
+import yaml
+d = yaml.safe_load(open('content/atlas/.expansion-map.yml'))
+subs = {k: f'|{k}|' for k in d['substitutions']}
+consts = {k: '{+' + k + '+}' for k in d['constants']}
 merged = {**subs, **consts}  # constants win on collision
 for k, v in sorted(merged.items()):
     print(f'{k}={v}')
