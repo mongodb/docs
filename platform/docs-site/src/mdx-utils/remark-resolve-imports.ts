@@ -49,6 +49,7 @@ export const remarkResolveImports = ({
     resolveRefLinks({ tree, refs, projectPath, dirNameToPrefix });
     normalizePhrasingContainers(tree);
     stripUnresolvedImportNodes(tree);
+    hoistBlocksOutOfParagraphs(tree);
   };
 };
 
@@ -167,6 +168,7 @@ const fetchAndParseInclude = async ({
     // into the page — so leftover Include/Reference never reach React.
     resolveSubstitutions({ tree: parsed, refs, projectPath, dirNameToPrefix });
     resolveRefLinks({ tree: parsed, refs, projectPath, dirNameToPrefix });
+    hoistBlocksOutOfParagraphs(parsed);
 
     return parsed;
   } catch (err) {
@@ -423,6 +425,29 @@ const resolveRefLinks = ({ tree, refs, projectPath, dirNameToPrefix = {} }: Reso
 /** Block-level node types that must never be flattened into an inline (text) context. */
 const TRULY_BLOCK = new Set(['code', 'heading', 'blockquote', 'list', 'listItem', 'thematicBreak', 'table']);
 
+/** JSX names that are phrasing even when they parse as flow (blank lines in a slot). */
+const INLINE_JSX_NAMES = new Set([
+  'Icon',
+  'Guilabel',
+  'Abbr',
+  'RefRole',
+  'Reference',
+  'Kbd',
+  'Highlight',
+  'Literal',
+  'Gold',
+  'Red',
+  null,
+]);
+
+const fragmentHasBlockContent = (fragment: Node[]): boolean => {
+  if (fragment.some((n) => TRULY_BLOCK.has(n.type))) return true;
+  if (fragment.filter((n) => n.type === 'paragraph').length > 1) return true;
+  return fragment.some(
+    (n) => n.type === 'mdxJsxFlowElement' && !INLINE_JSX_NAMES.has((n as MdxJsxElement).name as string | null),
+  );
+};
+
 /** Unwrap `<>...</>` (null-name JSX) so slot values are the inner nodes.
  * Converter wraps inline Replacement content in a fragment to survive stringify;
  * leaving that wrapper in the tree hides nested `<Reference>` nodes from some
@@ -456,7 +481,10 @@ const unwrapNullNameFragments = (nodes: Node[]): Node[] =>
  */
 const replacementSlotToNodes = (fragment: Node[], inline: boolean): Node[] => {
   fragment = unwrapNullNameFragments(fragment);
-  if (!inline) return fragment;
+  // Keep real block content (Tabs, Warning, Include, multiple paragraphs) even
+  // when the <Reference> parsed as inline. Flattening those to phrasing is what
+  // left only the nested mongodb-crypt link on In-Use Encryption pages.
+  if (!inline || fragmentHasBlockContent(fragment)) return fragment;
 
   const [first] = fragment;
   if (fragment.length === 1 && first.type === 'paragraph') {
@@ -663,6 +691,49 @@ const applyReplacements = (replacements: JsxReplacement[]) => {
     const original = parent.children[index] as Node | undefined;
     const nodes = Array.isArray(replacement) ? replacement : [replacement];
     parent.children.splice(index, 1, ...wrapPhrasingForFlowParent(parent, nodes, original));
+  }
+};
+
+const isBlockish = (n: Node): boolean => {
+  if (TRULY_BLOCK.has(n.type) || n.type === 'paragraph') return true;
+  return n.type === 'mdxJsxFlowElement';
+};
+
+const splitParagraphAtBlocks = (children: Node[]): Node[] => {
+  const out: Node[] = [];
+  let pending: Node[] = [];
+  const flush = () => {
+    const inline = pending.filter(
+      (n) => !(n.type === 'text' && !String((n as { value?: string }).value ?? '').trim()),
+    );
+    if (inline.length) out.push({ type: 'paragraph', children: inline } as Paragraph);
+    pending = [];
+  };
+  for (const child of children) {
+    if (isBlockish(child)) {
+      flush();
+      out.push(child);
+    } else {
+      pending.push(child);
+    }
+  }
+  flush();
+  return out.length ? out : [{ type: 'paragraph', children } as Paragraph];
+};
+
+/** Split paragraphs that received block slot content (warnings, tabs, includes). */
+const hoistBlocksOutOfParagraphs = (tree: Root) => {
+  const targets: { parent: Parent; index: number; children: Node[] }[] = [];
+  visit(tree, (node, index, parent) => {
+    if (!parent || index === undefined) return;
+    if (node.type !== 'paragraph') return;
+    const children = (node as Parent).children ?? [];
+    if (!children.some(isBlockish)) return;
+    targets.push({ parent, index, children });
+  });
+  for (let i = targets.length - 1; i >= 0; i--) {
+    const { parent, index, children } = targets[i];
+    parent.children.splice(index, 1, ...splitParagraphAtBlocks(children));
   }
 };
 

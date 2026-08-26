@@ -468,6 +468,130 @@ describe('convertSnootyAstToMdast', () => {
     expect(mdx).not.toContain('type="substitution"');
   });
 
+  it('does not collapse a block replacement substitution to a nested hyperlink (encrypt-fields)', () => {
+    // dbx/encrypt-fields.rst exposes |driver-specific-content| as an inline
+    // substitution. Snooty inlines the page's .. replacement:: body as that
+    // node's children. The JVM driver replacement includes an anonymous
+    // hyperlink (`mongodb-crypt <url>`__) plus warnings/tabs. Recursive
+    // hyperlink matching used to emit only that link and drop the rest, which
+    // is the orphaned mongodb-crypt link on docs-on-nextjs.
+    const replacementBody: SnootyNode[] = [
+      {
+        type: 'directive',
+        name: 'warning',
+        argument: [{ type: 'text', value: 'MongoDB 8.2 Known Issue' }],
+        children: [
+          {
+            type: 'paragraph',
+            children: [{ type: 'text', value: 'mongocryptd might not run on Windows.' }],
+          },
+        ],
+      },
+      {
+        type: 'paragraph',
+        children: [
+          { type: 'text', value: 'The Java driver uses the ' },
+          {
+            type: 'reference',
+            refuri: 'https://mvnrepository.com/artifact/org.mongodb/mongodb-crypt',
+            children: [{ type: 'text', value: 'mongodb-crypt' }],
+          },
+          { type: 'text', value: ' encryption library.' },
+        ],
+      },
+      {
+        type: 'directive',
+        name: 'tabs',
+        children: [
+          {
+            type: 'tab',
+            options: { tabid: 'maven-dependency' },
+            argument: [{ type: 'text', value: 'Maven' }],
+            children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Maven snippet' }] }],
+          },
+        ],
+      },
+    ];
+
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'directive',
+          name: 'sharedinclude',
+          argument: 'dbx/encrypt-fields.rst',
+          children: [
+            {
+              type: 'directive',
+              name: 'replacement',
+              argument: 'driver-specific-content',
+              children: [
+                {
+                  type: 'directive',
+                  name: 'include',
+                  argument: '/includes/security/crypt-library-version.rst',
+                  children: replacementBody,
+                },
+              ],
+            },
+            {
+              type: 'heading',
+              children: [{ type: 'text', value: 'In-Use Encryption' }],
+            },
+            {
+              type: 'heading',
+              children: [{ type: 'text', value: 'Overview' }],
+            },
+            {
+              type: 'paragraph',
+              children: [{ type: 'text', value: 'You can use the Java driver to encrypt fields.' }],
+            },
+            {
+              type: 'paragraph',
+              children: [
+                {
+                  type: 'substitution_reference',
+                  refname: 'driver-specific-content',
+                  children: replacementBody,
+                },
+              ],
+            },
+            {
+              type: 'paragraph',
+              children: [{ type: 'text', value: 'In-use encryption prevents unauthorized users from viewing plaintext.' }],
+            },
+          ],
+        },
+      ],
+    };
+
+    const onEmitMdxFile = jest.fn();
+    const { mdx } = convertSnootyAst({ ast, onEmitMdxFile });
+
+    expect(onEmitMdxFile).toHaveBeenCalled();
+    const encryptFieldsEmit = onEmitMdxFile.mock.calls.find(([{ outfilePath }]) =>
+      String(outfilePath).includes('encrypt-fields'),
+    );
+    expect(encryptFieldsEmit).toBeDefined();
+    const includeMdx = convertMdastToMdx(encryptFieldsEmit[0].mdastRoot);
+
+    expect(includeMdx).toContain('refKey="driver-specific-content"');
+    expect(includeMdx).toContain('type="replacement"');
+    expect(includeMdx).toContain('You can use the Java driver to encrypt fields.');
+    expect(includeMdx).toContain('In-use encryption prevents unauthorized users');
+    // Placeholder must be a block element (own line), not phrasing inside a <p>.
+    expect(includeMdx).toMatch(/<Reference\b[^>]*type="replacement"[^>]*\/>/);
+    // The nested mongodb-crypt hyperlink must not replace the whole slot.
+    expect(includeMdx).not.toMatch(/^\s*\[mongodb-crypt\]/);
+    expect(includeMdx).not.toBe(
+      '[mongodb-crypt](https://mvnrepository.com/artifact/org.mongodb/mongodb-crypt)',
+    );
+
+    expect(mdx).toContain('<Include src="/_includes/dbx/encrypt-fields"');
+    expect(mdx).toContain('<Replacement name="driver-specific-content">');
+    expect(mdx).toContain('<Include src="/_includes/security/crypt-library-version"');
+  });
+
   it('substitution_reference with expanded external reference (refuri) emits markdown link, not Reference substitution', () => {
     const ast: SnootyNode = {
       type: 'root',

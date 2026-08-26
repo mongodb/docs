@@ -388,17 +388,48 @@ const findRefOrDocRoleInSubstitution = (nodes: SnootyNode[] | undefined): Snooty
  * External hyperlink substitutions from Snooty config (e.g. TOML `|hnsw|` → `` `Title <url>`__ ``).
  * Snooty expands these as a `reference` node with `refuri`; those must **not** match
  * {@link findRefOrDocRoleInSubstitution} (internal xrefs use `reference` without `refuri`).
+ *
+ * Only treat the substitution as "is an external link" when that reference is the
+ * expansion itself (direct child, or sole child of a wrapping paragraph). Recursing
+ * into directives/paragraphs steals a nested hyperlink from block replacement
+ * content — e.g. `|driver-specific-content|` whose JVM-driver slot contains
+ * `mongodb-crypt <url>`__ — and emits only that link.
  */
 const findExternalHyperlinkReference = (nodes: SnootyNode[] | undefined): SnootyNode | null => {
   if (!nodes?.length) return null;
-  for (const n of nodes) {
-    if (n.type === 'reference' && typeof n.refuri === 'string' && n.refuri.length > 0) {
-      return n;
-    }
-    const nested = findExternalHyperlinkReference(n.children);
-    if (nested) return nested;
+  let children = nodes;
+  if (children.length === 1 && children[0].type === 'paragraph') {
+    children = children[0].children ?? [];
+  }
+  const significant = children.filter((n) => n.type !== 'text' || String(n.value ?? '').trim());
+  if (significant.length !== 1) return null;
+  const only = significant[0];
+  if (only.type === 'reference' && typeof only.refuri === 'string' && only.refuri.length > 0) {
+    return only;
   }
   return null;
+};
+
+/** True when Snooty inlined block replacement content as the substitution's children. */
+const SUBSTITUTION_BLOCK_CHILD_TYPES = new Set([
+  'directive',
+  'section',
+  'heading',
+  'title',
+  'literal_block',
+  'code',
+  'list',
+  'bullet_list',
+  'enumerated_list',
+  'table',
+  'block_quote',
+  'definition_list',
+]);
+
+const substitutionHasBlockContent = (nodes: SnootyNode[] | undefined): boolean => {
+  if (!nodes?.length) return false;
+  if (nodes.some((n) => SUBSTITUTION_BLOCK_CHILD_TYPES.has(n.type))) return true;
+  return nodes.filter((n) => n.type === 'paragraph').length > 1;
 };
 
 /**
@@ -1905,6 +1936,33 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
     case 'substitution': {
       // parser sometimes uses 'substitution' instead
       const refname = node.refname || node.name || '';
+
+      // Block replacement content (warnings, tabs, nested includes) inlined into
+      // `|driver-specific-content|` must not be interpreted as an abbr/link/ref
+      // expansion. Slot-based include bodies emit a placeholder so the caller's
+      // <Replacement> supplies the blocks; otherwise splice the children through.
+      if (substitutionHasBlockContent(node.children)) {
+        if (refname && (ctx.emitSubstitutionReferencesAsReplacement || ctx.suppressSubstitutionInlineValues)) {
+          // Flow, not text: the slot is block content (warnings, tabs, nested
+          // includes). A text element would stay inside the wrapping paragraph
+          // and remark-resolve-imports would flatten the slot to phrasing —
+          // keeping only the nested mongodb-crypt link.
+          return {
+            type: 'mdxJsxFlowElement',
+            name: 'Reference',
+            attributes: [
+              { type: 'mdxJsxAttribute', name: 'refKey', value: refname },
+              {
+                type: 'mdxJsxAttribute',
+                name: 'type',
+                value: ctx.emitSubstitutionReferencesAsReplacement ? 'replacement' : 'substitution',
+              },
+            ],
+            children: [],
+          };
+        }
+        return convertChildren({ nodes: node.children ?? [], depth, ctx });
+      }
 
       // If the substitution expands to an abbr role, emit <Abbr> directly
       const abbrChild = node.children?.find(

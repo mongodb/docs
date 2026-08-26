@@ -364,3 +364,84 @@ describe('remarkResolveImports — RST tabs wrapping YAML-step includes (Atlas A
     expect(output).not.toContain('type="substitution"');
   });
 });
+
+describe('remarkResolveImports — block |driver-specific-content| replacement (encrypt-fields)', () => {
+  const PROJECT = 'java/current';
+  const CRYPT_URL = 'https://mvnrepository.com/artifact/org.mongodb/mongodb-crypt';
+
+  const PAGE_MDX = [
+    '<Include src="/_includes/dbx/encrypt-fields">',
+    '  <Replacement name="driver-specific-content">',
+    '    <Include src="/_includes/security/crypt-library-version" />',
+    '  </Replacement>',
+    '</Include>',
+    '',
+  ].join('\n');
+
+  const ENCRYPT_FIELDS_MDX = [
+    '# In-Use Encryption',
+    '',
+    '## Overview',
+    '',
+    'You can use the Java driver to encrypt fields.',
+    '',
+    '<Reference refKey="driver-specific-content" type="replacement" />',
+    '',
+    'In-use encryption prevents unauthorized users from viewing plaintext.',
+    '',
+  ].join('\n');
+
+  const CRYPT_LIBRARY_MDX = [
+    '<Warning>',
+    '',
+    'mongocryptd might not run on Windows.',
+    '',
+    '</Warning>',
+    '',
+    `The Java driver uses the [mongodb-crypt](${CRYPT_URL}) encryption library.`,
+    '',
+    '<Tabs>',
+    '  <Tab tabid="maven-dependency" name="Maven">',
+    '',
+    '    Maven snippet',
+    '',
+    '  </Tab>',
+    '</Tabs>',
+    '',
+  ].join('\n');
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetContentString.mockImplementation(async (relativePath: string) => {
+      const map: Record<string, string> = {
+        [`${PROJECT}/_includes/dbx/encrypt-fields.mdx`]: ENCRYPT_FIELDS_MDX,
+        [`${PROJECT}/_includes/security/crypt-library-version.mdx`]: CRYPT_LIBRARY_MDX,
+        [`${PROJECT}/_references.json`]: JSON.stringify({ substitutions: {}, refs: {} }),
+      };
+      return map[relativePath] ?? null;
+    });
+  });
+
+  const resolve = async (topPageMdx: string): Promise<string> => {
+    const file = await remark()
+      .use(remarkFrontmatter, ['yaml'])
+      .use(remarkGfm)
+      .use(remarkMdx)
+      .use(remarkResolveImports, { projectPath: PROJECT })
+      .process(topPageMdx);
+    return String(file);
+  };
+
+  it('inlines the full driver-specific slot, not only the nested mongodb-crypt link', async () => {
+    const output = await resolve(PAGE_MDX);
+
+    expect(output).toContain('You can use the Java driver to encrypt fields.');
+    expect(output).toContain('mongocryptd might not run on Windows.');
+    expect(output).toContain('The Java driver uses the [mongodb-crypt]');
+    expect(output).toContain(CRYPT_URL);
+    expect(output).toContain('Maven snippet');
+    expect(output).toContain('In-use encryption prevents unauthorized users');
+    expect(output).not.toMatch(/<Include\s/);
+    expect(output).not.toContain('type="replacement"');
+  });
+});
