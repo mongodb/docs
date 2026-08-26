@@ -4,8 +4,12 @@ import type { RedirectEntry } from './redirect-utils';
 import atlasArchitectureRedirects from './atlas-architecture-redirects.json';
 import atlasCliRedirects from './atlas-cli-redirects.json';
 import atlasGovernmentRedirects from './atlas-government-redirects.json';
+import atlasOperatorRedirects from './atlas-operator-redirects.json';
 import atlasRedirects from './atlas-redirects.json';
+import biConnectorRedirects from './bi-connector-redirects.json';
 import cDriverRedirects from './c-driver-redirects.json';
+import chartsRedirects from './charts-redirects.json';
+import cloudManagerRedirects from './cloud-manager-redirects.json';
 import compassRedirects from './compass-redirects.json';
 import cppDriverRedirects from './cpp-driver-redirects.json';
 import csharpRedirects from './csharp-redirects.json';
@@ -17,12 +21,16 @@ import golangRedirects from './golang-redirects.json';
 import hibernateRedirects from './hibernate-redirects.json';
 import javaRedirects from './java-redirects.json';
 import javaRsRedirects from './java-rs-redirects.json';
+import kafkaConnectorRedirects from './kafka-connector-redirects.json';
 import kotlinRedirects from './kotlin-redirects.json';
 import kotlinSyncRedirects from './kotlin-sync-redirects.json';
+import kubernetesOperatorRedirects from './kubernetes-operator-redirects.json';
+import kubernetesRedirects from './kubernetes-redirects.json';
 import laravelMongodbRedirects from './laravel-mongodb-redirects.json';
 import manualRedirects from './manual-redirects.json';
 import mcpServerRedirects from './mcp-server-redirects.json';
 import metaRedirects from './meta-redirects.json';
+import mongocliRedirects from './mongocli-redirects.json';
 import mongodbAnalyzerRedirects from './mongodb-analyzer-redirects.json';
 import mongodbIntellijRedirects from './mongodb-intellij-redirects.json';
 import mongodbShellRedirects from './mongodb-shell-redirects.json';
@@ -38,14 +46,21 @@ import relationalMigratorRedirects from './relational-migrator-redirects.json';
 import rubyDriverRedirects from './ruby-driver-redirects.json';
 import rustRedirects from './rust-redirects.json';
 import scalaDriverRedirects from './scala-driver-redirects.json';
+import selfManagedSearchRedirects from './self-managed-search-redirects.json';
 import sparkConnectorRedirects from './spark-connector-redirects.json';
+import sqlInterfaceRedirects from './sql-interface-redirects.json';
+import voyageaiRedirects from './voyageai-redirects.json';
 
 export const allRedirects: RedirectEntry[] = [
   ...atlasArchitectureRedirects,
   ...atlasCliRedirects,
   ...atlasGovernmentRedirects,
+  ...atlasOperatorRedirects,
   ...atlasRedirects,
+  ...biConnectorRedirects,
   ...cDriverRedirects,
+  ...chartsRedirects,
+  ...cloudManagerRedirects,
   ...compassRedirects,
   ...cppDriverRedirects,
   ...csharpRedirects,
@@ -57,12 +72,16 @@ export const allRedirects: RedirectEntry[] = [
   ...hibernateRedirects,
   ...javaRedirects,
   ...javaRsRedirects,
+  ...kafkaConnectorRedirects,
   ...kotlinRedirects,
   ...kotlinSyncRedirects,
+  ...kubernetesOperatorRedirects,
+  ...kubernetesRedirects,
   ...laravelMongodbRedirects,
   ...manualRedirects,
   ...mcpServerRedirects,
   ...metaRedirects,
+  ...mongocliRedirects,
   ...mongodbAnalyzerRedirects,
   ...mongodbIntellijRedirects,
   ...mongodbShellRedirects,
@@ -78,5 +97,8 @@ export const allRedirects: RedirectEntry[] = [
   ...rubyDriverRedirects,
   ...rustRedirects,
   ...scalaDriverRedirects,
+  ...selfManagedSearchRedirects,
   ...sparkConnectorRedirects,
+  ...sqlInterfaceRedirects,
+  ...voyageaiRedirects,
 ] as RedirectEntry[];

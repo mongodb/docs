@@ -37,5 +37,30 @@ describe('soft-redirects', () => {
       expect(result).not.toBeNull();
       expect(result!.destination).toBe('/docs/atlas/');
     });
+
+    it('matches kubernetes-operator page-specific redirects', () => {
+      const result = findSoftRedirect(
+        '/docs/kubernetes-operator/v1.33/reference-architectures/multi-cluster/multi-cluster/',
+      );
+      expect(result).not.toBeNull();
+      expect(result!.destination).toBe(
+        '/docs/kubernetes-operator/v1.33/reference-architectures/multi-cluster/',
+      );
+    });
+
+    it.each([
+      ['/docs/charts/atlas/', '/docs/charts/'],
+      ['/docs/voyageai/management/azure-marketplace/', '/docs/voyageai/management/azure-foundry/'],
+      ['/docs/sql-interface/connect/jdbc/', '/docs/sql-interface/install-driver/'],
+      [
+        '/docs/mongocli/current/command/mongocli-atlas-accessLists-create/',
+        '/docs/atlas/cli/current/migrate-to-atlas-cli/',
+      ],
+      ['/docs/cloud-manager/agents/', '/docs/cloud-manager/tutorial/nav/mongodb-agent/'],
+    ])('matches migrated product redirect %s', (source, destination) => {
+      const result = findSoftRedirect(source);
+      expect(result).not.toBeNull();
+      expect(result!.destination).toBe(destination);
+    });
   });
 });
