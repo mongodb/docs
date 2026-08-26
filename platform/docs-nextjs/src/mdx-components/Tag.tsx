@@ -1,5 +1,11 @@
 'use client';
 
+// TODO(UXE-702): migrate to Via's `Chip`/`ChipGroup` (from
+// @via-ds/components/chip) when this subdir's LeafyGreen-to-Via migration is
+// tackled. docs-nextjs has no @via-ds dependency yet. See the docs-site
+// version of this migration, closed unmerged for reference:
+// https://github.com/10gen/docs-mongodb-internal/pull/23275
+
 import { palette } from '@leafygreen-ui/palette';
 import { useDarkMode } from '@leafygreen-ui/leafygreen-provider';
 import { Theme } from '@leafygreen-ui/lib';
