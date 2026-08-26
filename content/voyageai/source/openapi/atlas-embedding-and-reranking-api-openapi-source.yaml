@@ -1,0 +1,1167 @@
+---
+openapi: 3.1.1
+info:
+  title: Atlas Embedding and Reranking API
+  description: >
+    The Atlas Embedding and Reranking API provides programmatic access
+    to the latest Voyage AI embedding and reranking models through a RESTful
+    interface.
+
+
+    Provide your [model API key](http://dochub.mongodb.org/core/voyage-api-keys) using the Bearer token format when constructing API requests.
+
+    For example, the following cURL command sends a request to the `/embeddings` endpoint
+
+    to embed a sample text:
+
+
+    ```bash
+
+    curl https://ai.mongodb.com/v1/embeddings \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer VOYAGE_API_KEY" \
+      -d '{
+        "input": ["Sample text to embed"],
+        "model": "voyage-4-large"
+      }'
+    ```
+
+
+    To learn more, see the [Embedding and Reranking API Overview](http://dochub.mongodb.org/core/voyage-api-overview).
+
+    To learn how to create and manage your model API keys, see [Manage Model API Keys](http://dochub.mongodb.org/core/voyage-api-keys).
+
+
+    ## Authentication
+
+
+    All requests must include an `Authorization` header with your model API key using the Bearer token format:
+
+
+    ```
+
+    Authorization: Bearer VOYAGE_API_KEY
+
+    ```
+
+
+    ## Rate Limits
+
+
+    [Rate limits](http://dochub.mongodb.org/core/voyage-rate-limits) are applied per API key and measured in two dimensions:
+
+
+    - **TPM (Tokens Per Minute)**: Maximum number of tokens processed per minute
+
+    - **RPM (Requests Per Minute)**: Maximum number of API requests per minute
+  version: "1.1"
+  contact:
+    name: MongoDB Documentation
+    url: http://dochub.mongodb.org/core/voyage-landing
+servers:
+  - url: https://ai.mongodb.com/v1
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API_KEY
+      description: "Model API key authentication using Bearer token. Format: `Bearer
+        VOYAGE_API_KEY`. To manage your model API keys, use MongoDB Atlas."
+      x-default: $VOYAGE_ATLAS_API_KEY
+  responses:
+    BadRequest:
+      description: Invalid Request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                description: The request is invalid. This error can occur due to invalid JSON,
+                  invalid parameter types, incorrect data types, batch size too
+                  large, total tokens exceeding the limit, or tokens in an
+                  example exceeding context length.
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                description: Invalid authentication. Ensure your model API key is correctly
+                  specified in the Authorization header as `Bearer
+                  VOYAGE_API_KEY`.
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                description: Access forbidden. This may occur if the IP address you are sending
+                  the request from is not allowed.
+    RateLimitExceeded:
+      description: Rate Limit Exceeded
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                description: Rate limit exceeded. Your request frequency or token usage is too
+                  high. Reduce your request rate or wait before retrying.
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                description: An unexpected error occurred on the server. Retry your request
+                  after a brief wait.
+    BadGateway:
+      description: Bad Gateway
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                description: The server received an invalid response from an upstream server.
+                  Retry your request after a brief wait.
+    ServiceUnavailable:
+      description: Service Unavailable
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                description: The service is temporarily unavailable due to high traffic or
+                  maintenance. Retry your request after a brief wait.
+    GatewayTimeout:
+      description: Gateway Timeout
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                description: The server did not receive a timely response from an upstream
+                  server. Retry your request after a brief wait.
+security:
+  - ApiKeyAuth: []
+tags:
+  - name: Endpoints
+paths:
+  /embeddings:
+    post:
+      tags:
+        - Endpoints
+      summary: Create text embeddings
+      description: >
+        Creates vector embeddings for the provided text input(s). This
+        endpoint accepts a single text string or a list of text strings and
+        returns their corresponding vector embeddings.
+
+
+        For semantic search and retrieval tasks, set the `input_type` parameter to `query` or `document` to optimize how the model creates the vectors.
+      operationId: createEmbedding
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - input
+                - model
+              properties:
+                input:
+                  description: >
+                    A single text string or a list of text strings to be embedded, such
+                    as `["I like cats", "I also like dogs"]`.
+
+
+                    Constraints:
+
+                    - Maximum list length: 1,000 items
+
+                    - Maximum total tokens: 1M for `voyage-3.5-lite` and `voyage-4-lite`; 320K for `voyage-3.5`, `voyage-4`, and `voyage-2`; 120K for `voyage-3-large`, `voyage-4-large`, `voyage-code-3`, `voyage-finance-2`, and `voyage-law-2`
+                  oneOf:
+                    - type: string
+                      minLength: 1
+                    - type: array
+                      minItems: 1
+                      maxItems: 1000
+                      items:
+                        type: string
+                        minLength: 1
+                model:
+                  type: string
+                  description: >
+                    The embedding model to use. Recommended models: `voyage-4-large`,
+                    `voyage-4`, `voyage-4-lite`, `voyage-code-3`,
+                    `voyage-code-2`, `voyage-finance-2`, `voyage-law-2`.
+                  enum:
+                    - voyage-4
+                    - voyage-4-lite
+                    - voyage-4-large
+                    - voyage-3.5
+                    - voyage-3.5-lite
+                    - voyage-3-large
+                    - voyage-code-3
+                    - voyage-finance-2
+                    - voyage-law-2
+                    - voyage-code-2
+                input_type:
+                  description: >
+                    The type of input text. Use this parameter to optimize embeddings
+                    for semantic search and retrieval tasks.
+
+
+                    Options:
+
+                    - `null` (default): The model directly converts the input into numerical vectors without any additional prompts.
+
+                    - `query`: Use when the input represents a search query. The model prepends "Represent the query for retrieving supporting documents: " to optimize the embedding for retrieval.
+
+                    - `document`: Use when the input represents a document to be searched. The model prepends "Represent the document for retrieval: " to optimize the embedding for retrieval.
+
+
+                    For semantic search and retrieval tasks, always set this parameter to `query` or `document` as appropriate. Embeddings generated with and without the `input_type` argument are compatible.
+                  enum:
+                    - query
+                    - document
+                    - null
+                  nullable: true
+                  default: null
+                truncation:
+                  type: boolean
+                  description: >
+                    Whether to truncate input texts that exceed the context length.
+
+
+                    - `true` (default): Input texts that exceed the context length are automatically truncated before vectorization.
+
+                    - `false`: An error is returned if any input text exceeds the context length.
+                  default: true
+                output_dimension:
+                  description: >
+                    The number of dimensions for the output embeddings.
+
+
+                    Most models support only a single default dimension. The models `voyage-4-large`, `voyage-4`, `voyage-4-lite`, `voyage-3-large`, `voyage-3.5`, `voyage-3.5-lite`, and `voyage-code-3` support the following values: 256, 512, 1024 (default), and 2048.
+
+
+                    Set to `null` to use the model's default dimension.
+                  type: integer
+                  nullable: true
+                  default: null
+                  enum:
+                    - 256
+                    - 512
+                    - 1024
+                    - 2048
+                    - null
+                  x-supported-models:
+                    - voyage-4-large
+                    - voyage-4
+                    - voyage-4-lite
+                    - voyage-3-large
+                    - voyage-3.5
+                    - voyage-3.5-lite
+                    - voyage-code-3
+                output_dtype:
+                  type: string
+                  description: >
+                    The data type for the returned embeddings.
+
+
+                    Options:
+
+                    - `float` (default): 32-bit single-precision floating-point numbers. Provides the highest precision and retrieval accuracy. Supported by all models.
+
+                    - `int8`: 8-bit signed integers ranging from -128 to 127. Supported by `voyage-4-large`, `voyage-4`, `voyage-4-lite`, `voyage-3-large`, `voyage-3.5`, `voyage-3.5-lite`, and `voyage-code-3`.
+
+                    - `uint8`: 8-bit unsigned integers ranging from 0 to 255. Supported by `voyage-4-large`, `voyage-4`, `voyage-4-lite`, `voyage-3-large`, `voyage-3.5`, `voyage-3.5-lite`, and `voyage-code-3`.
+
+                    - `binary`: Bit-packed, quantized single-bit embedding values represented as `int8`. The returned list length is 1/8 of `output_dimension`. Uses the offset binary method. Supported by `voyage-4-large`, `voyage-4`, `voyage-4-lite`, `voyage-3-large`, `voyage-3.5`, `voyage-3.5-lite`, and `voyage-code-3`.
+
+                    - `ubinary`: Bit-packed, quantized single-bit embedding values represented as `uint8`. The returned list length is 1/8 of `output_dimension`. Supported by `voyage-4-large`, `voyage-4`, `voyage-4-lite`, `voyage-3-large`, `voyage-3.5`, `voyage-3.5-lite`, and `voyage-code-3`.
+                  enum:
+                    - float
+                    - int8
+                    - uint8
+                    - binary
+                    - ubinary
+                  default: float
+                  x-supported-models:
+                    int8:
+                      - voyage-4-large
+                      - voyage-4
+                      - voyage-4-lite
+                      - voyage-3-large
+                      - voyage-3.5
+                      - voyage-3.5-lite
+                      - voyage-code-3
+                    uint8:
+                      - voyage-4-large
+                      - voyage-4
+                      - voyage-4-lite
+                      - voyage-3-large
+                      - voyage-3.5
+                      - voyage-3.5-lite
+                      - voyage-code-3
+                    binary:
+                      - voyage-4-large
+                      - voyage-4
+                      - voyage-4-lite
+                      - voyage-3-large
+                      - voyage-3.5
+                      - voyage-3.5-lite
+                      - voyage-code-3
+                    ubinary:
+                      - voyage-4-large
+                      - voyage-4
+                      - voyage-4-lite
+                      - voyage-3-large
+                      - voyage-3.5
+                      - voyage-3.5-lite
+                      - voyage-code-3
+                encoding_format:
+                  description: >
+                    The format in which embeddings are encoded in the response.
+
+
+                    Options:
+
+                    - `null` (default): Embeddings are returned as arrays. When `output_dtype` is `float`, each embedding is an array of floating-point numbers. For other `output_dtype` values (`int8`, `uint8`, `binary`, `ubinary`), each embedding is an array of integers.
+
+                    - `base64`: Embeddings are returned as Base64-encoded NumPy arrays with the following data types:
+                      - `numpy.float32` when `output_dtype` is `float`
+                      - `numpy.int8` when `output_dtype` is `int8` or `binary`
+                      - `numpy.uint8` when `output_dtype` is `uint8` or `ubinary`
+                  enum:
+                    - base64
+                    - null
+                  nullable: true
+                  default: null
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - object
+                  - data
+                  - model
+                  - usage
+                properties:
+                  object:
+                    type: string
+                    description: The object type. Always returns "list".
+                    enum:
+                      - list
+                  data:
+                    type: array
+                    description: An array of embedding objects, one for each input text.
+                    items:
+                      type: object
+                      required:
+                        - object
+                        - embedding
+                        - index
+                      properties:
+                        object:
+                          type: string
+                          description: The object type. Always returns "embedding".
+                          enum:
+                            - embedding
+                        embedding:
+                          description: >
+                            The embedding vector. The format depends on the `encoding_format`
+                            parameter:
+
+                            - When `encoding_format` is `null`: An array of numbers (floats when `output_dtype` is `float`, integers for `int8`, `uint8`, `binary`, and `ubinary`)
+
+                            - When `encoding_format` is `base64`: A Base64-encoded string
+                          oneOf:
+                            - type: array
+                              description: Array format (when encoding_format is null)
+                              items:
+                                type: number
+                            - type: string
+                              description: Base64-encoded format (when encoding_format is base64)
+                        index:
+                          type: integer
+                          description: The index of this embedding in the input list.
+                  model:
+                    type: string
+                    description: The name of the model used to generate the embeddings.
+                  usage:
+                    type: object
+                    required:
+                      - total_tokens
+                    properties:
+                      total_tokens:
+                        type: integer
+                        description: The total number of tokens processed across all input texts.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/RateLimitExceeded"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "502":
+          $ref: "#/components/responses/BadGateway"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+        "504":
+          $ref: "#/components/responses/GatewayTimeout"
+  /contextualizedembeddings:
+    post:
+      tags:
+        - Endpoints
+      summary: Create contextualized chunk embeddings
+      description: >
+        Creates contextualized vector embeddings for document chunks. These
+        embeddings capture both local details within each chunk and global
+        context from the entire document.
+
+
+        This endpoint accepts queries, full documents, or document chunks and returns embeddings that are context-aware across the entire document.
+      operationId: createContextualizedEmbedding
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - inputs
+                - model
+              properties:
+                inputs:
+                  type: array
+                  description: >
+                    A list of lists, where each inner list contains a query, a
+                    document, or document chunks to be vectorized.
+
+
+                    Each inner list in `inputs` represents a set of text elements that are embedded together. Each element in the list is encoded not just independently, but also encodes context from the other elements in the same list.
+
+
+                    ```
+
+                    inputs = [["text_1_1", "text_1_2", ..., "text_1_n"],
+                              ["text_2_1", "text_2_2", ..., "text_2_m"]]
+                    ```
+
+
+                    **Document Chunks**. Most commonly, each inner list contains chunks from a single document, ordered by their position in the document. In this case:
+
+
+                    ```
+
+                    inputs = [["doc_1_chunk_1", "doc_1_chunk_2", ..., "doc_1_chunk_n"],
+                              ["doc_2_chunk_1", "doc_2_chunk_2", ..., "doc_2_chunk_m"]]
+                    ```
+
+
+                    Each chunk is encoded in context with the others from the same document, resulting in more context-aware embeddings. **Supplied chunks should not have any overlap.**
+
+
+                    **Context-Agnostic Behavior for Queries and Documents**. If there is one element per inner list, each text is embedded independently—similar to standard (context-agnostic) embeddings:
+
+
+                    ```
+
+                    inputs = [["query_1"], ["query_2"], ..., ["query_k"]]
+
+                    inputs = [["doc_1"], ["doc_2"], ..., ["doc_k"]]
+
+                    ```
+
+
+                    Therefore, if the inputs are queries, each inner list should contain a single query (a length of one), as shown above, and the `input_type` should be set to `query`.
+
+
+                    The following constraints apply to the `inputs` list:
+
+
+                    - The list must not contain more than 1,000 inputs.
+
+                    - The total number of tokens across all inputs must not exceed 120K when `enable_auto_chunking` is `true`, and must not exceed 32K otherwise.
+
+                    - The total number of chunks across all inputs must not exceed 16K.
+                  minItems: 1
+                  maxItems: 1000
+                  items:
+                    type: array
+                    description: For queries, the list contains only a single query. For documents
+                      or document chunks, the list should include all chunks
+                      from a single document, ordered by their position in the
+                      document, or the entire document may be provided as a
+                      single chunk. The total number of tokens in the list must
+                      not exceed 32,000 tokens.
+                    minItems: 1
+                    items:
+                      type: string
+                      description: A query, document, or chunk of text from a document.
+                      minLength: 1
+                model:
+                  type: string
+                  description: >
+                    The contextualized embedding model to use. Recommended model:
+                    `voyage-context-4`.
+                  enum:
+                    - voyage-context-4
+                    - voyage-context-3
+                input_type:
+                  description: >
+                    Type of the input text. Defaults to `null`. Other options: `query`,
+                    `document`.
+
+
+                    - When `input_type` is `null`, the embedding model directly converts the inputs into numerical vectors. For retrieval or search purposes, where a "query" searches for relevant information among a collection of data referred to as "documents," specify whether your inputs are queries or documents by setting `input_type` to `query` or `document`, respectively. In these cases, Voyage automatically prepends a prompt to your `inputs` before vectorizing them, creating vectors more tailored for retrieval or search tasks. Embeddings generated with and without the `input_type` argument are compatible.
+
+                    - For transparency, the following prompts are prepended to your input:
+                      - For `query`, the prompt is _"Represent the query for retrieving supporting documents: "._
+                      - For `document`, the prompt is _"Represent the document for retrieval: "._
+                  enum:
+                    - query
+                    - document
+                    - null
+                  nullable: true
+                  default: null
+                output_dimension:
+                  description: >
+                    The number of dimensions for resulting output embeddings. Defaults
+                    to `null`. `voyage-context-4` and `voyage-context-3`
+                    support the following `output_dimension` values: 2048, 1024
+                    (default), 512, and 256. If set to `null`, the model uses
+                    the default value of 1024.
+                  type: integer
+                  nullable: true
+                  default: null
+                  enum:
+                    - 256
+                    - 512
+                    - 1024
+                    - 2048
+                    - null
+                output_dtype:
+                  type: string
+                  description: >
+                    The data type for the embeddings to be returned. Defaults to
+                    `float`. Other options: `int8`, `uint8`, `binary`,
+                    `ubinary`.
+
+
+                    - `float`: Each returned embedding is a list of 32-bit (4-byte) [single-precision floating-point](https://en.wikipedia.org/wiki/Single-precision_floating-point_format) numbers. This is the default and provides the highest precision / retrieval accuracy.
+
+                    - `int8` and `uint8`: Each returned embedding is a list of 8-bit (1-byte) integers ranging from -128 to 127 and 0 to 255, respectively.
+
+                    - `binary` and `ubinary`: Each returned embedding is a list of 8-bit integers that represent bit-packed, quantized single-bit embedding values: `int8` for `binary` and `uint8` for `ubinary`. The length of the returned list of integers is 1/8 of `output_dimension` (which is the actual dimension of the embedding). The `binary` type uses the offset binary method.
+                  default: float
+                enable_auto_chunking:
+                  type: boolean
+                  description: >
+                    Whether to automatically chunk each input document on the backend.
+                    Defaults to `false`.
+
+
+                    When `true`, `inputs` must be a flat list of full-document strings, and `input_type` must be `document`.
+                  default: false
+                chunk_size:
+                  type: integer
+                  description: >
+                    Target chunk size in tokens when `enable_auto_chunking` is `true`.
+                    If omitted, the server resolves it to 512. `chunk_size`
+                    must not exceed 32K.
+
+
+                    This limit is an upper bound. The actual chunk size can be less than the value passed, but cannot be higher.
+                  maximum: 32000
+                  nullable: true
+                  default: null
+                chunk_overlap:
+                  type: integer
+                  description: >
+                    Chunk overlap in tokens when `enable_auto_chunking` is `true`.
+                    Defaults to `0`. `chunk_overlap` must be smaller than
+                    `chunk_size`, and is only valid when
+                    `enable_auto_chunking` is `true`.
+
+
+                    This limit is an upper bound. The actual chunk overlap can be less than the value passed, but cannot be higher. Overlapping tokens are billed in the same way as input tokens.
+                  minimum: 0
+                  default: 0
+                encoding_format:
+                  description: >
+                    Format in which the embeddings are encoded. Defaults to `null`.
+                    Other options: `base64`.
+
+
+                    - If `null`, each embedding is an array of float numbers when `output_dtype` is set to `float` and an array of integers for all other values of `output_dtype` (`int8`, `uint8`, `binary`, and `ubinary`). See `output_dtype` for more details.
+
+                    - If `base64`, the embeddings are represented as a [Base64-encoded](https://docs.python.org/3/library/base64.html) NumPy array of:
+                      - Floating-point numbers ([numpy.float32](https://numpy.org/doc/2.1/user/basics.types.html#numerical-data-types)) for `output_dtype` set to `float`.
+                      - Signed integers ([numpy.int8](https://numpy.org/doc/2.1/user/basics.types.html#numerical-data-types)) for `output_dtype` set to `int8` or `binary`.
+                      - Unsigned integers ([numpy.uint8](https://numpy.org/doc/2.1/user/basics.types.html#numerical-data-types)) for `output_dtype` set to `uint8` or `ubinary`.
+                  enum:
+                    - base64
+                    - null
+                  nullable: true
+                  default: null
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - object
+                  - data
+                  - model
+                  - usage
+                properties:
+                  object:
+                    type: string
+                    description: The object type, which is always "list".
+                    enum:
+                      - list
+                  data:
+                    type: array
+                    description: An array of contextualized embeddings.
+                    items:
+                      type: object
+                      required:
+                        - object
+                        - data
+                        - index
+                      properties:
+                        object:
+                          type: string
+                          description: The object type, which is always "list".
+                          enum:
+                            - list
+                        data:
+                          type: array
+                          description: An array of embedding objects, one for each chunk in the input
+                            list.
+                          items:
+                            type: object
+                            required:
+                              - object
+                              - embedding
+                              - index
+                            properties:
+                              object:
+                                type: string
+                                description: The object type, which is always "embedding".
+                                enum:
+                                  - embedding
+                              embedding:
+                                description: >
+                                  The embedding vector. When `encoding_format` is null, this is an
+                                  array of numbers (floats when `output_dtype`
+                                  is `float`, integers for `int8`, `uint8`,
+                                  `binary`, and `ubinary`). When
+                                  `encoding_format` is `base64`, this is a
+                                  base64-encoded string.
+                                oneOf:
+                                  - type: array
+                                    description: Array format when encoding_format is null
+                                    items:
+                                      type: number
+                                  - type: string
+                                    description: Base64-encoded format when encoding_format is base64
+                              index:
+                                type: integer
+                                description: An integer representing the index of the query or the
+                                  contextualized chunk embedding within the list
+                                  of embeddings from the same document.
+                        index:
+                          type: integer
+                          description: An integer representing the index of the query or document within
+                            the list of queries or documents, respectively.
+                  model:
+                    type: string
+                    description: Name of the model.
+                  usage:
+                    type: object
+                    required:
+                      - total_tokens
+                    properties:
+                      total_tokens:
+                        type: integer
+                        description: The total number of tokens used for computing the embeddings.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/RateLimitExceeded"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "502":
+          $ref: "#/components/responses/BadGateway"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+        "504":
+          $ref: "#/components/responses/GatewayTimeout"
+  /multimodalembeddings:
+    post:
+      tags:
+        - Endpoints
+      summary: Create multimodal embeddings
+      description: >
+        Creates vector embeddings for multimodal inputs consisting of text,
+        images, or a combination of both.
+
+
+        This endpoint accepts inputs that can contain text and images in any combination and returns their vector representations.
+      operationId: createMultimodalEmbedding
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - inputs
+                - model
+              properties:
+                inputs:
+                  type: array
+                  description: >
+                    A list of multimodal inputs to be vectorized.
+
+
+                    A single input in the list is a dictionary containing a single key `"content"`, whose value represents a sequence of text and images.
+
+
+                    - The value of `"content"` is a list of dictionaries, each representing a single piece of text or image. The dictionaries have four possible keys:
+
+                    1. **type**: Specifies the type of the piece of the content. Allowed values are `text`, `image_url`, or `image_base64`.
+
+                    2. **text**: Only present when `type` is `text`. The value should be a text string.
+
+                    3. **image_base64**: Only present when `type` is `image_base64`. The value should be a Base64-encoded image in the [data URL](https://developer.mozilla.org/en-US/docs/Web/URI/Schemes/data) format `data:[<mediatype>];base64,<data>`. Currently supported `mediatypes` are: `image/png`, `image/jpeg`, `image/webp`, and `image/gif`.
+
+                    4. **image_url**: Only present when `type` is `image_url`. The value should be a URL linking to the image. We support PNG, JPEG, WEBP, and GIF images.
+
+                    - **Note**: Only one of the keys, `image_base64` or `image_url`, should be present in each dictionary for image data. Consistency is required within a request, meaning each request should use either `image_base64` or `image_url` exclusively for images, not both.
+
+
+                    **Example payload where `inputs` contains an image as a URL:**
+
+
+                    The `inputs` list contains a single input, which consists of a piece of text and an image (which is provided via a URL).
+
+
+                    ```json
+
+                    { "inputs": [ { "content": [ { "type": "text", "text": "This is a banana." }, { "type": "image_url", "image_url": "https://raw.githubusercontent.com/voyage-ai/voyage-multimodal-3/refs/heads/main/images/banana.jpg" } ] } ], "model": "voyage-multimodal-3.5" }
+
+                    ```
+
+
+                    **Example payload where `inputs` contains a Base64 image:**
+
+
+                    Below is an equivalent example to the one above where the image content is a Base64 image instead of a URL. (Base64 images can be lengthy, so the example only shows a shortened version.)
+
+
+                    ```json
+
+                    { "inputs": [ { "content": [ { "type": "text", "text": "This is a banana." }, { "type": "image_base64", "image_base64": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAA..." } ] } ], "model": "voyage-multimodal-3.5" }
+
+                    ```
+
+
+                    **The following constraints apply to the `inputs` list:**
+
+
+                    - The list must not contain more than 1000 inputs.
+
+                    - Each image must not contain more than 16 million pixels or be larger than 20 MB in size.
+
+                    - With every 560 pixels of an image being counted as a token, each input in the list must not exceed 32,000 tokens, and the total number of tokens across all inputs must not exceed 320,000.
+                  minItems: 1
+                  maxItems: 1000
+                  items:
+                    type: object
+                    required:
+                      - content
+                    properties:
+                      content:
+                        type: array
+                        description: A sequence of text and images.
+                        minItems: 1
+                        items:
+                          oneOf:
+                            - type: object
+                              description: Text content
+                              required:
+                                - type
+                                - text
+                              properties:
+                                type:
+                                  type: string
+                                  enum:
+                                    - text
+                                text:
+                                  type: string
+                                  description: The text string.
+                                  minLength: 1
+                            - type: object
+                              description: Image content via URL
+                              required:
+                                - type
+                                - image_url
+                              properties:
+                                type:
+                                  type: string
+                                  enum:
+                                    - image_url
+                                image_url:
+                                  type: string
+                                  format: uri
+                                  description: URL linking to the image. Supports PNG, JPEG, WEBP, and GIF.
+                            - type: object
+                              description: Image content via Base64
+                              required:
+                                - type
+                                - image_base64
+                              properties:
+                                type:
+                                  type: string
+                                  enum:
+                                    - image_base64
+                                image_base64:
+                                  type: string
+                                  description: Base64-encoded image in data URL format
+                                    (data:[mediatype];base64,[data]). Supported
+                                    mediatypes are image/png, image/jpeg,
+                                    image/webp, and image/gif.
+                                  minLength: 1
+                          discriminator:
+                            propertyName: type
+                model:
+                  type: string
+                  description: >
+                    The multimodal embedding model to use. Recommended model:
+                    `voyage-multimodal-3.5`.
+                  enum:
+                    - voyage-multimodal-3.5
+                    - voyage-multimodal-3
+                input_type:
+                  description: >
+                    Type of the input. Defaults to `null`. Other options: `query`,
+                    `document`.
+
+
+                    - When `input_type` is `null`, the embedding model directly converts the `inputs` into numerical vectors. For retrieval or search purposes, where a "query", which can be text or image in this case, searches for relevant information among a collection of data referred to as "documents," specify whether your `inputs` are queries or documents by setting `input_type` to `query` or `document`, respectively. In these cases, Voyage automatically prepends a prompt to your `inputs` before vectorizing them, creating vectors more tailored for retrieval or search tasks. Since inputs can be multimodal, "queries" and "documents" can be text, images, or an interleaving of both modalities. Embeddings generated with and without the `input_type` argument are compatible.
+
+                    - For transparency, the following prompts are prepended to your input:
+
+                    - For `query`, the prompt is _"Represent the query for retrieving supporting documents: "._
+
+                    - For `document`, the prompt is _"Represent the document for retrieval: "._
+                  enum:
+                    - query
+                    - document
+                    - null
+                  nullable: true
+                  default: null
+                truncation:
+                  type: boolean
+                  description: >
+                    Whether to truncate the inputs to fit within the context length.
+                    Defaults to `true`.
+
+
+                    - If `true`, over-length inputs are truncated to fit within the context length before vectorization by the embedding model. If the truncation happens in the middle of an image, the entire image is discarded.
+
+                    - If `false`, an error occurs if any input exceeds the context length.
+                  default: true
+                output_encoding:
+                  description: >
+                    Format in which the embeddings are encoded. Defaults to `null`.
+
+
+                    - If `null`, the embeddings are represented as a list of floating-point numbers.
+
+                    - If `base64`, the embeddings are represented as a Base64-encoded NumPy array of single-precision floats.
+                  enum:
+                    - base64
+                    - null
+                  nullable: true
+                  default: null
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - object
+                  - data
+                  - model
+                  - usage
+                properties:
+                  object:
+                    type: string
+                    description: The object type, which is always `list`.
+                    enum:
+                      - list
+                  data:
+                    type: array
+                    description: An array of embedding objects.
+                    items:
+                      type: object
+                      required:
+                        - object
+                        - embedding
+                        - index
+                      properties:
+                        object:
+                          type: string
+                          description: The object type, which is always `embedding`.
+                          enum:
+                            - embedding
+                        embedding:
+                          description: >
+                            The embedding vector. When `output_encoding` is null, this is an
+                            array of floating-point numbers. When
+                            `output_encoding` is `base64`, this is a
+                            base64-encoded string.
+                          oneOf:
+                            - type: array
+                              description: Array format when output_encoding is null
+                              items:
+                                type: number
+                            - type: string
+                              description: Base64-encoded format when output_encoding is base64
+                        index:
+                          type: integer
+                          description: >
+                            An integer representing the index of the embedding within the list
+                            of embeddings.
+                  model:
+                    type: string
+                    description: Name of the model.
+                  usage:
+                    type: object
+                    required:
+                      - text_tokens
+                      - image_pixels
+                      - total_tokens
+                    properties:
+                      text_tokens:
+                        type: integer
+                        description: The total number of text tokens in the list of inputs.
+                      image_pixels:
+                        type: integer
+                        description: The total number of image pixels in the list of inputs.
+                      total_tokens:
+                        type: integer
+                        description: The combined total of text and image tokens. Every 560 pixels
+                          counts as a token.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/RateLimitExceeded"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "502":
+          $ref: "#/components/responses/BadGateway"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+        "504":
+          $ref: "#/components/responses/GatewayTimeout"
+  /rerank:
+    post:
+      tags:
+        - Endpoints
+      summary: Rerank documents
+      description: >
+        Reranks a list of documents based on their relevance to a query.
+
+
+        This endpoint accepts a query and a list of documents, then returns the documents sorted by relevance score in descending order.
+      operationId: rerankDocuments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - query
+                - documents
+                - model
+              properties:
+                query:
+                  type: string
+                  description: |
+                    The search query as a string.
+
+                    Maximum query length:
+                    - 8,000 tokens for `rerank-2.5` and `rerank-2.5-lite`
+                    - 4,000 tokens for `rerank-2`
+                    - 2,000 tokens for `rerank-2-lite`
+                  minLength: 1
+                documents:
+                  type: array
+                  description: >
+                    A list of documents to be reranked, provided as strings.
+
+
+                    Constraints:
+
+                    - Maximum number of documents: 1,000
+
+                    - Maximum tokens per query + document pair:
+                      - 32,000 for `rerank-2.5` and `rerank-2.5-lite`
+                      - 16,000 for `rerank-2`
+                      - 8,000 for `rerank-2-lite`
+                    - Maximum total tokens (query tokens × number of documents + sum of all document tokens):
+                      - 600K for `rerank-2.5`, `rerank-2.5-lite`, `rerank-2`, and `rerank-2-lite`
+                  minItems: 1
+                  maxItems: 1000
+                  items:
+                    type: string
+                    minLength: 1
+                model:
+                  type: string
+                  description: >
+                    The reranking model to use. Recommended models: `rerank-2.5`,
+                    `rerank-2.5-lite`.
+                  enum:
+                    - rerank-2.5
+                    - rerank-2.5-lite
+                    - rerank-2
+                    - rerank-2-lite
+                top_k:
+                  description: >
+                    The number of most relevant documents to return. If not specified,
+                    all documents are returned with their reranking scores.
+                  type: integer
+                  minimum: 1
+                  nullable: true
+                  default: null
+                return_documents:
+                  type: boolean
+                  description: >
+                    Whether to include the document text in the response.
+
+
+                    - `false` (default): Returns only `{"index", "relevance_score"}` for each document
+
+                    - `true`: Returns `{"index", "document", "relevance_score"}` for each document
+                  default: false
+                truncation:
+                  type: boolean
+                  description: >
+                    Whether to truncate inputs that exceed the context length limit.
+
+
+                    - `true` (default): The query and documents are automatically truncated to fit within the context length limit.
+
+                    - `false`: An error is returned if the query or any query-document pair exceeds the context length limit.
+                  default: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - object
+                  - data
+                  - model
+                  - usage
+                properties:
+                  object:
+                    type: string
+                    description: The object type. Always returns "list".
+                    enum:
+                      - list
+                  data:
+                    type: array
+                    description: An array of reranking results, sorted by relevance score in
+                      descending order.
+                    items:
+                      type: object
+                      required:
+                        - index
+                        - relevance_score
+                      properties:
+                        index:
+                          type: integer
+                          description: The index of the document in the original input list.
+                        relevance_score:
+                          type: number
+                          description: The relevance score of the document with respect to the query.
+                        document:
+                          type: string
+                          description: The document text. Only included when `return_documents` is set to
+                            `true`.
+                  model:
+                    type: string
+                    description: The name of the model used for reranking.
+                  usage:
+                    type: object
+                    required:
+                      - total_tokens
+                    properties:
+                      total_tokens:
+                        type: integer
+                        description: The total number of tokens processed for the reranking operation.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/RateLimitExceeded"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "502":
+          $ref: "#/components/responses/BadGateway"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+        "504":
+          $ref: "#/components/responses/GatewayTimeout"

@@ -1,0 +1,32 @@
+name: Publish OpenAPI to Bump.sh
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+concurrency:
+  group: bump-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish API documentation on Bump.sh
+    if: >-
+      github.event.pull_request.merged == true &&
+      contains(github.event.pull_request.labels.*.name, 'eras-openapi')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Publish OpenAPI spec
+        uses: bump-sh/github-action@3cfa0288007867bad2515ca467cc01d8291a3301
+        with:
+          doc: ${{ vars.ERAS_BUMP_DOC_ID }}
+          token: ${{ secrets.ERAS_BUMP_TOKEN }}
+          file: content/voyageai/source/openapi/atlas-embedding-and-reranking-api-openapi-source.yaml
+          branch: main
