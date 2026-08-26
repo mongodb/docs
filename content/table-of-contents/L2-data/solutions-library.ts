@@ -112,6 +112,11 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/architecture/:version/solutions-library/document-intelligence',
           },
           {
+            label: 'Offline-First Wallet',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/offline-first-wallet',
+          },
+          {
             label: 'Payments Modernization Accelerator',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/payments-solution',
