@@ -59,6 +59,40 @@ fi
   fi
 fi
 
+# Check if any staged files are redirect source JSON in docs-site
+STAGED_REDIRECT_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep -E "^platform/docs-site/src/redirects/.*-redirects\.json$" | grep -v "^platform/docs-site/src/redirects/all-redirects\.json$" || true)
+
+if [ -n "$STAGED_REDIRECT_FILES" ]; then
+  if ! command -v pnpm &> /dev/null; then
+    echo "⚠️  WARNING: pnpm is required but is not installed."
+    echo "   Install it with: npm install -g pnpm"
+    echo "   Skipping redirects regeneration..."
+  else
+    echo "Regenerating docs-site redirects aggregate..."
+    cd platform/docs-site
+
+    if pnpm run generate:redirects 2>&1; then
+      cd ../..
+      REDIRECT_OUTPUTS="platform/docs-site/src/redirects/all-redirects.ts platform/docs-site/src/redirects/all-redirects.json"
+
+      for REDIRECT_FILE in $REDIRECT_OUTPUTS; do
+        CHANGED_REDIRECT=$(git diff --name-only "$REDIRECT_FILE" 2>/dev/null || true)
+        UNTRACKED_REDIRECT=$(git ls-files --others --exclude-standard "$REDIRECT_FILE" 2>/dev/null || true)
+
+        if [ -n "$CHANGED_REDIRECT" ] || [ -n "$UNTRACKED_REDIRECT" ]; then
+          git add "$REDIRECT_FILE"
+          echo "✓ redirects aggregate updated and staged: $REDIRECT_FILE"
+        else
+          echo "✓ redirects aggregate unchanged: $REDIRECT_FILE"
+        fi
+      done
+    else
+      cd ../..
+      echo "⚠️  WARNING: generate:redirects failed, continuing with commit anyway..."
+    fi
+  fi
+fi
+
 # Run Vale on staged content RST/TXT files
 STAGED_RST_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep -E "^content/.*\.(txt|rst)$" || true)
 
