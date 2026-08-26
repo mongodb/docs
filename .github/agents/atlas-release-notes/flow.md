@@ -16,8 +16,9 @@ end_date: string          # YYYY-MM-DD format
 3. YAML IN/OUT - Format input as YAML, capture output as YAML
 4. PARALLEL FEATURE PROCESSING - Spawn one subagent per verified feature simultaneously; do not process features sequentially
 5. NO INFLUENCE FROM EXISTING CONTENT - Do not let existing changelog entries influence how you write new ones. Each entry must be written fresh from source data.
-6. VERIFICATION CRITERIA IS THE ONLY FILTER - After fetching, apply only the defined verification criteria to determine RST inclusion. Do not invent additional filters.
+6. APPLY ONLY THE DEFINED GATES - Two gates decide whether an entry is written: the verification criteria and the customer-impact check, both defined in Step 1a. Apply both. Do not invent any other filter.
 7. ACCOUNT FOR ALL ITEMS - Every fetched item must appear in either the RST output or the Flagged table. Nothing is silently dropped.
+8. NEVER GUESS A PRODUCT NAME - The name a feature carries in Aha! is often internal. Before writing, confirm what the feature is called in the published docs. If you cannot confirm it, flag the feature instead of inventing a name.
 </rules>
 
 <prerequisites>
@@ -100,15 +101,34 @@ python .github/agents/atlas-release-notes/fetch_aha_features.py \
 ```
 
 The script returns **all** Atlas features in the date range regardless of status.
-After fetching, classify each feature using the verification criteria below.
-Verified features become RST entries. Flagged features appear in the DRI table only.
+After fetching, put each feature through both gates below. A feature must pass both to get an RST entry. Anything that fails either gate goes in the DRI table only.
 
 <feature_verification>
-- Verified (write RST entry): `risk_status = "Complete"` OR `status = "Shipped"` OR `status = "Ready to Ship"`
-- Flagged (DRI table only, no RST entry): All others
+Gate 1 — shipped status:
+- Passes: `risk_status = "Complete"` OR `status = "Shipped"` OR `status = "Ready to Ship"`
+- Fails: All others
 </feature_verification>
 
-DRI field: `assigned_to`
+<customer_impact_check>
+Gate 2 — customer impact. `Shipped` in Aha! means the code merged. It does not mean a customer can use the feature, and it does not mean a customer can see any difference. Read the description and answer two questions:
+
+1. **Can a customer observe this?** If the change is an internal migration, a refactor, a build/buy evaluation, a spike, tooling, or tuning of a mechanism customers have no visibility into, it fails. Internal work of this kind is the most common thing to slip through this gate, so treat any description that never names something the customer sees or does as a failure.
+
+2. **Can a customer reach it today?** A feature can be `Shipped` long before customers get it — sometimes close to a year. If the description hints at a future preview or GA date, or describes groundwork for something later, it fails.
+
+When the answer to either question is unclear, the feature fails the gate. Put it in the DRI table with the reason, and let the DRI decide. A missed entry costs one cycle. A wrong entry announces a product that does not exist.
+</customer_impact_check>
+
+<dri_resolution>
+Resolve the DRI in this order:
+
+1. The linked JIRA ticket on the feature. Use its `assignee`, and `customfield_12751` for the owning team. This is the reliable source.
+2. Aha! `assigned_to`, only when no ticket is linked. Mark it **unconfirmed** in the DRI table.
+
+Aha! `assigned_to` frequently names whoever created the record rather than whoever owns the work. In one pass it named a single person for four features across three different teams, none of which were theirs. Never send a sign-off request based on that field alone without marking it unverified.
+
+The JIRA `assignee` is not guaranteed to be a PM — it may be the implementing engineer. The intent of this flow is that DRIs are product owners, so when the assignee is not a PM, use `customfield_12751` (owning team) to route to the product owner for that team, and confirm before sending.
+</dri_resolution>
 
 ## Step 1b: Fetch Features from JIRA
 
@@ -166,15 +186,16 @@ with open('/tmp/atlas-rn/features-slim.json','w') as f:
 "
 ```
 
-**Build the anchor index** — page-level anchors only (line ≤ 10), excluding
+**Build the anchor index** — every anchor in the docs, excluding
 auto-generated command/steps/list includes:
 
 ```bash
 grep -rn "^\.\. _" content/atlas/source/ \
   | grep -iv "includes/command\|includes/steps\|includes/list" \
-  | awk -F: '$2+0 <= 10' \
   > /tmp/atlas-rn/all-anchors.txt
 ```
+
+Do not restrict this to page-level anchors. An earlier version kept only anchors on lines 1–10, which hid every section anchor from the subagents. The correct target for a feature is usually a section, not a page: in one pass, both anchors that turned out to be the right link were filtered out, the subagents wrote from the Aha! description alone, and one of them invented a product name as a result.
 
 ## Step 3: Process Features in Parallel
 
@@ -204,7 +225,7 @@ Derive the skill inputs for each feature as follows:
 |-------------|---------------|
 | `name` | Feature name from Aha! or JIRA `summary` |
 | `description` | Feature description from Aha! or JIRA `description` + `customfield_14266` (doc notes) |
-| `maturity` | Infer from feature name: contains "General Availability" or "GA:" → `ga`; contains "Preview" → `preview`; otherwise → `null` |
+| `maturity` | Infer from feature name, checking private before public: contains "Private Preview" → `private-preview`; contains "Public Preview" or "Preview" → `public-preview`; contains "General Availability" or "GA:" → `ga`; otherwise → `null`. Never collapse "Private Preview" into `public-preview` — that announces a closed program as open. |
 | `doc_ref` | If the feature name or description clearly maps to a documented Atlas feature, provide the RST ref target. Otherwise `null`. |
 | `doc_ref_label` | Display text for the ref link. Required if `doc_ref` is set, otherwise `null`. |
 </field_derivation>
@@ -213,12 +234,14 @@ Derive the skill inputs for each feature as follows:
 feature:
   name: "{from data}"
   description: "{from data}"
-  maturity: {ga|preview|null}
+  maturity: {ga|public-preview|private-preview|null}
   doc_ref: {ref target or null}
   doc_ref_label: {display text or null}
 </skill_input>
 
 Wait for all subagents to complete, then collect their `entry` outputs.
+
+A subagent may return `entry: null` with a `reason` — a private preview, or a product name it could not confirm. That is a valid result, not a failure. Move the feature to the Flagged table with its reason and carry on. Do not re-run the subagent to force an entry out of it.
 
 ## Step 4: Group by Month
 
@@ -261,47 +284,103 @@ Invoke `assemble-release-notes.skill.md` once per month group.
 After generating release notes, produce:
 
 1. **Release notes RST** - Generated content in changelog
-2. **All features with DRIs** - List ALL features (Aha! + JIRA) for SME confirmation
-3. **Flagged features** - Aha! features not meeting verification criteria + Glean findings
-4. **Complete DRI list for JIRA** - Formatted for copy/paste into tracking ticket
+2. **Sign-off table** - One row per published entry, carrying the full entry text
+3. **Flagged features** - Everything that failed either gate, with the reason
+4. **Per-DRI messages** - One ready-to-send message per stakeholder, for Slack
+5. **JIRA record** - Opening and closing comments for the tracking ticket
+
+## Sign-off table
+
+One row per entry that will publish. This is the writer's tracking table.
+
+| # | Entry (full text) | DRI | Source | DRI source | Status |
+|---|-------------------|-----|--------|------------|--------|
+| 1 | {the complete entry, not a summary} | {name} | Aha! / CLOUDP-XXXXX | ticket / Aha! unconfirmed | Pending |
+
+Carry the **full entry text**, not the feature name and not a summary. In one pass, every DRI shown the actual prose found something to correct, and none of the DRIs shown only a list of feature names did. The errors were there in both cases; only one format surfaced them.
+
+Mark the `DRI source` column so the writer knows which contacts are trustworthy before spending a stakeholder's attention on the wrong person.
+
+## Flagged features
+
+| Feature | DRI | Gate failed | Reason | Recommendation |
+|---------|-----|-------------|--------|----------------|
+
+Include features that failed the shipped-status gate, the customer-impact gate, and any subagent that returned `entry: null`. Nothing is dropped silently.
+
+## Per-DRI messages
+
+Draft one message per DRI, ready to send with no editing. Each message:
+
+- names the specific entries that DRI owns, quoting the **full published text** with substitutions resolved to plain English — a stakeholder should never be shown `{+Db-Coll-Restore+}` or `|iops|`
+- asks a specific question where you are genuinely unsure, rather than a generic "does this look right?"
+- states that you will publish as written absent a reply, so a silent DRI does not block the pass indefinitely
+- links the PR, not the staging preview — Netlify previews expire while sign-off is still open
+
+<slack_guidance>
+Tell the writer to send these on Slack rather than as JIRA comments.
+
+Sign-off moves faster in a DM. JIRA comments notify into a queue people triage in batches, and a stakeholder who has never reviewed a release note will not know what is being asked of them or how urgent it is. In one pass the substantive corrections all came from Slack threads, and one DRI asked whether the entries were even customer-facing — a question worth answering conversationally, not through ticket comments.
+
+Keep JIRA for the record. Post the outcome to the ticket once sign-off closes, so the decisions are durable and searchable, but gather them on Slack.
+</slack_guidance>
+
+## JIRA record
+
+Slack threads are not durable and are not searchable by anyone who was not in them. Once sign-off closes, post the outcome to the tracking ticket so there is a record of who approved what and why anything was pulled.
+
+Produce two blocks:
+
+**Opening comment**, posted when sign-off starts — the sign-off table with the full entry text and the DRI for each, so anyone can see what is in flight.
+
+**Closing comment**, posted when the review ends:
+
+| Section | Contents |
+|---------|----------|
+| Published | One row per entry: entry, DRI, and what the sign-off actually was |
+| Corrections applied | One row per change made during review, and why |
+| Pulled | One row per entry removed, DRI, and reason |
+| Attribution notes | Any DRI that turned out to be wrong, and how the real owner was found |
+
+Record the sign-off honestly. "Approved final wording", "approved from a feature list without seeing the prose", and "corrections applied, no reply to the final check" are different things, and the difference matters if the entry is questioned later. If you publish on a non-reply, say so and say that the DRI was told you would.
+
+<jira_formatting>
+Write these blocks in Markdown, not JIRA wiki markup, and keep the structure flat:
+
+- Use tables, not bullet lists. The Atlassian MCP corrupts bold inside list items — `**Feature**` is stored as `**Feature*`, with the closing asterisk dropped. This happens regardless of whether you send wiki markup or Markdown.
+- Avoid `*bold*` and `_italic_` in any list context.
+- Underscores in identifiers get escaped: `customfield_12751` renders as `customfield\_12751`. Prefer names without underscores in prose, or accept it.
+
+Verify the rendered result after posting. If it is mangled, edit the comment rather than posting a correction underneath.
+</jira_formatting>
 
 <dri_output_template>
-## All Features - DRI Confirmation Required
+## DRI Sign-off Required
 
-### Aha! Features
+| DRI | Entries | DRI source | Status |
+|-----|---------|------------|--------|
+| {name} | {count} | ticket / Aha! unconfirmed | Pending |
 
-#### Verified ✅
-| Feature | Release Date | Status | DRI | Entry Summary |
-|---------|--------------|--------|-----|---------------|
+### {DRI Name}
 
-#### Flagged ⚠️
-| Feature | Release Date | Status | Risk Status | DRI | Recommendation |
-|---------|--------------|--------|-------------|-----|----------------|
+Entries owned:
 
-### JIRA Features (Documentation Changes = Needed)
+- {full entry text, substitutions resolved}
 
-| JIRA Key | Feature | DRI | Assigned Team | Entry Summary |
-|----------|---------|-----|---------------|---------------|
+Message to send:
 
----
+```
+Hi {name} — I'm writing the Atlas release notes for the {version} pass,
+covering {start} through {end}. Here's the entry for your work:
 
-## Complete DRI List (for JIRA ticket)
+  {full entry text, substitutions resolved}
 
-> Note: The block below uses JIRA wiki markup. Paste it directly into a JIRA
-> ticket comment — it will not render correctly in GitHub, Slack, or Markdown.
+{a specific question, if you have one}
 
-h3. DRI Sign-off Required
+Let me know if anything's off, otherwise I'll publish as-is.
 
-||DRI||Features||Source||Status||
-|{name}|{features}|Aha!/JIRA|Pending|
-
-h4. Features by DRI
-
-* *{DRI Name}*
-** {Feature} (Aha!)
-** {Feature} (JIRA: CLOUDP-XXXXX)
-
-cc: [~accountid:{id}]
+PR: {pr url}
+```
 </dri_output_template>
 
 </output_format>
@@ -313,4 +392,11 @@ cc: [~accountid:{id}]
 - [ ] RST syntax valid
 - [ ] snooty.toml constants used (no hardcoded AWS, Azure, GCP, MFA, IAM, KMS)
 - [ ] Count in = count out
+- [ ] No feature named "Private Preview" produced a published entry
+- [ ] Every entry's product name was confirmed against the published docs, not taken from Aha!
+- [ ] No entry names an implementation detail absent from the feature's documentation
+- [ ] Both gates applied: shipped status and customer impact
+- [ ] Every DRI resolved from a linked ticket, or explicitly marked unconfirmed
+- [ ] Sign-off table carries full entry text, with substitutions resolved for the stakeholder
+- [ ] Outcome recorded in the tracking ticket, with each sign-off described honestly
 </validation_checklist>
