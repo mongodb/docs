@@ -71,7 +71,7 @@ MongoClient mongoClient = MongoClients.create(
 // start-azure-oidc-connection-string
 MongoClient mongoClient = MongoClients.create(
             "mongodb://<username>@<hostname>:<port>/?" + 
-            "?authMechanism=MONGODB-OIDC" +
+            "authMechanism=MONGODB-OIDC" +
             "&authMechanismProperties=ENVIRONMENT:azure,TOKEN_RESOURCE:<percent-encoded audience>");
 // end-azure-oidc-connection-string
 
