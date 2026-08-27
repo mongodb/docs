@@ -9,6 +9,13 @@
      - OpenShift Version
      - OpenShift Minimum Supported Version (:abbr:`OLM (Operator Lifecycle Manager)` Bundle)
 
+   * - 1.11.0
+     - August 26, 2026
+     - to be determined
+     - 1.34, 1.35, 1.36
+     - 4.22
+     - 4.6
+
    * - 1.10.0
      - July 30, 2026
      - to be determined
