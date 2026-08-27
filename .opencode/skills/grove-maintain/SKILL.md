@@ -39,16 +39,20 @@ prior context exists, ask which language suite to target.
 Use this table for all modes — it maps languages to their file extensions,
 base directories, export patterns, and import patterns for grepping:
 
-| Suite | Base dir | Ext | Export pattern | Import pattern |
-|-------|----------|-----|----------------|----------------|
-| JavaScript | `javascript/driver` | `.js` | `export (async )?function` | `from ['"].*examples/` |
-| Python | `python/pymongo` | `.py` | `^def \|^async def ` | `from examples\.` |
-| Go | `go/driver` | `.go` | `^func [A-Z]` | `"driver-examples/examples/` |
-| Java | `java/driver-sync` | `.java` | `public .* \w+\(` | `import .*examples\.` |
-| C# | `csharp/driver` | `.cs` | `public .* \w+\(` | `using .*Examples` |
-| Mongosh | `command-line/mongosh` | `.js` | *(none — raw shell commands)* | `outputFromExampleFiles\(\[` |
+| Suite | Base dir | Ext | Export pattern | Import pattern | Test file glob |
+|-------|----------|-----|----------------|----------------|----------------|
+| JavaScript | `javascript/driver` | `.js` | `export (async )?function` | `from ['"].*examples/` | `tests/**/*.test.js` |
+| Python | `python/pymongo` | `.py` | `^def \|^async def ` | `from examples\.` | `tests_package/**/test_*.py` |
+| Go | `go/driver` | `.go` | `^func [A-Z]` | `"driver-examples/examples/` | `tests/**/*_test.go` |
+| Java | `java/driver-sync` | `.java` | `public .* \w+\(` | `import .*examples\.` | `src/test/java/**/*Tests.java` |
+| C# (Driver) | `csharp/driver` | `.cs` | `public .* \w+\(` | `using .*Examples` | `Tests/**/*Tests.cs` |
+| C# (EF Core) | `csharp/driver` | `.cs` | `public .* \w+\(` | `using .*Examples\.EfCore` | `Tests/EfCore/**/*Tests.cs` |
+| Mongosh | `command-line/mongosh` | `.js` | *(none — raw shell commands)* | `outputFromExampleFiles\(\[` | `tests/**/*.test.js` |
 
 All base dirs are under `code-example-tests/`.
+
+**Out of scope**: `java/driver-reactive/` (comparison tests only),
+`go/atlas-sdk/`, and `openapi/` — not Grove doc-example suites.
 
 ## Audit Mode
 
@@ -69,10 +73,12 @@ the same directory).
 
 ### Step 2: Inventory Tests
 
-Search for all test files:
+Search for all test files using the **Test file glob** from the language
+reference table above (not a single `tests/**/*.test.*` pattern — Python,
+Java, Go, and C# use different conventions):
 
 ```
-code-example-tests/{base-dir}/tests/**/*.test.{ext}
+code-example-tests/{base-dir}/{test-glob from table}
 ```
 
 For each test file, grep for import statements using the import pattern from
@@ -99,8 +105,10 @@ Look for:
 ### Step 5: Spot-Check Patterns
 
 Review 5-10 example and test files — the 3 most recently modified (by
-`git log --diff-filter=M --name-only -20 -- examples/ tests/`), plus any
-files flagged in earlier steps. For each file, check:
+`git log --diff-filter=M --name-only -20 --` scoped to the language's
+examples and tests directories), plus any files flagged in earlier steps.
+For Java, examples live under `src/main/java/` and tests under
+`src/test/java/`. For each file, check:
 
 1. **Consistent test lifecycle**: Search for `beforeAll|beforeEach|afterAll|afterEach`
    across all test files. Flag if the suite mixes `beforeAll` and `beforeEach`
@@ -172,12 +180,12 @@ missing venv looks identical to a real regression.
    `nc -zv` only proves something is listening on the port, not that MongoDB
    is healthy or that the connection string and credentials resolve. A
    driver ping works identically for `mongodb://localhost` and Atlas SRV
-   strings, so use one universal command per language. Examples (substitute
-   the suite's actual URI env var):
-   - Python: `./venv/bin/python -c "import os; from pymongo import MongoClient; MongoClient(os.environ['MONGODB_URI']).admin.command('ping')"`
-   - JavaScript: `node -e "const {MongoClient}=require('mongodb');new MongoClient(process.env.MONGODB_URI).db().admin().ping().then(r=>console.log(r))"`
+   strings, so use one universal command per language. Examples (all suites
+   use **`CONNECTION_STRING`** — not `MONGODB_URI`):
+   - Python: `./venv/bin/python -c "import os; from pymongo import MongoClient; MongoClient(os.environ['CONNECTION_STRING']).admin.command('ping')"`
+   - JavaScript: `node -e "const {MongoClient}=require('mongodb');new MongoClient(process.env.CONNECTION_STRING).db().admin().ping().then(r=>console.log(r))"`
    - Other languages: any one-liner that opens a client and runs
-     `db.adminCommand({ping: 1})`.
+     `db.adminCommand({ping: 1})` using `CONNECTION_STRING`.
 
    A successful ping returns in ~1 second; failure beats a 20-minute hang.
    If unreachable, stop and ask the user to start their DB or fix the
@@ -338,8 +346,10 @@ Run the language's formatter in check mode:
 | Language | Command |
 |----------|---------|
 | JavaScript | `cd code-example-tests/javascript/driver && npx prettier --check examples/` |
-| Python | `cd code-example-tests/python/pymongo && python -m black --check examples/` |
-| Go | `gofmt -l examples/` |
+| Python | `cd code-example-tests/python/pymongo && ./venv/bin/python -m black --check examples/` |
+| Go | `cd code-example-tests/go/driver && gofmt -l examples/` |
+| Java | `cd code-example-tests/java/driver-sync && mvn spotless:check` |
+| C# | `cd code-example-tests/csharp/driver && dotnet format --verify-no-changes` |
 
 Report any files with formatting issues.
 

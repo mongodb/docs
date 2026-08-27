@@ -10,17 +10,40 @@ for some docsets, but it is no longer edited as part of this workflow
 — see "Step 8: Update Redirects" in `SKILL.md`.
 
 The redirect file path is **outside `content/`**, under one of two
-directories depending on the docset — confirm which before editing:
+directories. The glob below is authoritative; the per-docset lists in
+this file are a fast path, not a source of truth. Run it before
+editing:
 
-- `platform/docs-nextjs/src/redirects/<slug>-redirects.json` — standard
-  drivers, providers, and cloud/Atlas products.
-- `platform/docs-site/src/redirects/<slug>-redirects.json` — Mongosync,
-  Server Manual, and the other docsets migrated as part of the site-wide
-  Next.js SSG rollout (django-mongodb, hibernate, ops-manager, compass,
-  mongodb-vscode, mongodb-shell, database-tools, meta, mcp-server,
-  relational-migrator, mongodb-intellij).
+```bash
+ls platform/docs-nextjs/src/redirects/<slug>-redirects.json 2>/dev/null
+ls platform/docs-site/src/redirects/<slug>-redirects.json 2>/dev/null
+```
 
-Each docset's section below states which directory its file lives in.
+- `platform/docs-site/src/redirects/<slug>-redirects.json` — the
+  default location for most docsets, including all standard drivers
+  and providers, Spark Connector, Entity Framework, Mongosync, and
+  Server Manual.
+- `platform/docs-nextjs/src/redirects/<slug>-redirects.json` — the
+  remaining docsets, including MCK (`kubernetes`), Atlas Kubernetes
+  Operator, Kafka Connector, and MongoCLI.
+
+**A few slugs currently have a leftover copy in `docs-nextjs`** even
+though the docset has moved to `docs-site` (confirmed for `kotlin`,
+`atlas`, `atlas-cli`, `atlas-architecture`, and `atlas-government`).
+The `docs-nextjs` copy is dead — the site it once served no longer
+runs from `docs-nextjs` — so if the glob above matches in both
+locations, edit only the `docs-site` copy and ignore the
+`docs-nextjs` one. Note the stale `docs-nextjs` file in the change
+summary so it can be cleaned up; do not delete it yourself unless the
+user asks.
+
+Each docset's section below states which directory its file lives in,
+as last verified. Treat that as a hint and let the glob above settle
+it, since docsets move between the two directories over time. Match
+the docset's **exact** slug — a substring glob can pull in a
+different docset's file (`kubernetes-redirects.json` and
+`kubernetes-operator-redirects.json` are separate docsets).
+
 Editing either file is an expected part of this workflow (the
 `add-redirects` skill writes there too), but it is a `platform/` change —
 note it as such in the change summary.
@@ -69,7 +92,10 @@ major alias) and every other entry is 301.
 
 ## Standard driver and provider docsets
 
-URL base: `/docs/drivers/{docset}/`.
+URL base: `/docs/drivers/{docset}/`. File:
+`platform/docs-site/src/redirects/<slug>-redirects.json`. `kotlin`
+(the coroutine driver) also has a stale, dead copy left over in
+`docs-nextjs` — ignore it; edit the `docs-site` copy only.
 
 **Verified** against `node-redirects.json` (Node is a migrated standard
 driver). The model: each released minor redirects to its major's `vX.x`
@@ -140,7 +166,8 @@ entry for the newly released minor, pointing at the current major's
 
 ## Entity Framework
 
-URL base: `/docs/entity-framework/`.
+URL base: `/docs/entity-framework/`. File:
+`platform/docs-site/src/redirects/entity-framework-redirects.json`.
 
 **Verified** against the live `entity-framework-redirects.json`. Entity
 Framework uses exact released minor versions, not `vX.x` consolidation
@@ -187,7 +214,10 @@ aliases.
 
 ## Atlas CLI
 
-URL base: `/docs/atlas/cli/`.
+URL base: `/docs/atlas/cli/`. File:
+`platform/docs-site/src/redirects/atlas-cli-redirects.json`. A stale,
+dead copy is also left over in `docs-nextjs` — ignore it; edit the
+`docs-site` copy only.
 
 **Verified** against the live `atlas-cli-redirects.json` and the current
 `netlify.toml`, which the JSON mirrors 1:1 — this confirms Atlas CLI's
@@ -251,7 +281,8 @@ on top of it.
 
 ## Atlas Kubernetes Operator (AKO)
 
-URL base: `/docs/atlas/operator/`.
+URL base: `/docs/atlas/operator/`. File:
+`platform/docs-nextjs/src/redirects/atlas-operator-redirects.json`.
 
 **Verified** against the live `atlas-operator-redirects.json` and the
 current `netlify.toml`, which the JSON mirrors 1:1. AKO does **not**
@@ -299,7 +330,8 @@ at release time.
 
 ## MongoDB Controllers for Kubernetes (MCK)
 
-URL base: `/docs/kubernetes/`.
+URL base: `/docs/kubernetes/`. File:
+`platform/docs-nextjs/src/redirects/kubernetes-redirects.json`.
 
 **Verified** against the live `kubernetes-redirects.json` and the current
 `netlify.toml`, which the JSON mirrors 1:1. MCK follows the same
@@ -341,7 +373,8 @@ the file — none of these change on a routine flip.
 
 ## Kafka Connector
 
-URL base: `/docs/kafka-connector/`.
+URL base: `/docs/kafka-connector/`. File:
+`platform/docs-nextjs/src/redirects/kafka-connector-redirects.json`.
 
 **Verified** against the live `kafka-connector-redirects.json` and the
 current `netlify.toml`, which the JSON mirrors 1:1. Kafka Connector
@@ -377,7 +410,8 @@ removed gets an explicit 301 entry to `current`, confirmed for
 
 ## Spark Connector
 
-URL base: `/docs/spark-connector/`.
+URL base: `/docs/spark-connector/`. File:
+`platform/docs-site/src/redirects/spark-connector-redirects.json`.
 
 **Verified pattern** — Spark uses the same per-major consolidation model
 as the standard drivers (confirmed from the live `spark-connector`

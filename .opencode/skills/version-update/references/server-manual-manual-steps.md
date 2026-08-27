@@ -22,17 +22,17 @@ automated.
 
 ### 2. Hapley version selector update
 
-Hapley requires coordination with DOP (Anabella) before changes go
-live. Take screenshots of all changes and send them to DOP in the
-`#docs-platform` Slack channel before saving.
+Hapley requires coordination with DOP before changes go live. Take
+screenshots of all changes and send them to DOP in the `#docs-platform`
+Slack channel before saving.
 
 On the Server Manual page in Hapley (hapley.corp.mongodb.com):
 
 1. Update the **`upcoming`** entry:
    - Change **Selector Label** to `v{NEXT} (Upcoming)`.
 2. Take a screenshot of the updated entry.
-3. Send the screenshot to DOP (Anabella) for review. Wait for
-   confirmation before saving if DOP requests changes.
+3. Send the screenshot to DOP for review. Wait for confirmation
+   before saving if DOP requests changes.
 4. Deploy all versions after saving.
 
 ### 3. Confirm archiving with Sarah Lin

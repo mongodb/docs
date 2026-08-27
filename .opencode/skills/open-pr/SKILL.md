@@ -56,7 +56,7 @@ Use the format: `DOCSP-NNNNN <short description of the change>` — same pattern
 
 ## Step 4 — Write the Description section
 
-Based on the commit messages, changed files, and any extra context provided in `$ARGUMENTS`, write a clear prose summary of what the PR does. Focus on *what changed and why*, not just listing files. Follow the tone and style of the example summary in the reference PR: concise bullet points under a short introductory sentence work well for multi-page changes.
+Based on the commit messages, changed files, and any extra context provided in `$ARGUMENTS`, write a clear prose summary of what the PR does. Focus on *what changed and why*, not just listing files. Concise bullet points under a short introductory sentence work well for multi-page changes.
 
 ## Step 4b — Choose a PR template
 

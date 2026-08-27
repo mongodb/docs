@@ -209,11 +209,9 @@ update for major and minor releases.
 Atlas CLI keeps only the five most-recent versions online. On each minor
 or major release, the sixth-oldest is EOL'd:
 
-1. Update the docset's redirects per the Atlas CLI section of whichever
-   redirect reference applies (see Step 8 routing): the EOL REDIRECTS /
-   CATCH ALLS instructions in `netlify-toml-updates.md` for `netlify.toml`,
-   and/or the EOL 301 entry in `nextjs-redirects-updates.md` for
-   `<slug>-redirects.json`.
+1. Update the docset's redirects per the Atlas CLI section of
+   `nextjs-redirects-updates.md` (see Step 8 routing): add the EOL 301
+   entry to `atlas-cli-redirects.json`.
 2. Remove the EOL'd version from `targetBranchChoices` in
    `.backportrc.json` (see Step 6).
 3. Follow the Snooty sunset procedure on the EOL'd version:

@@ -171,6 +171,7 @@ First detect which redirect format(s) are present:
 
 ```bash
 ls content/atlas-architecture/netlify.toml 2>/dev/null
+ls platform/docs-site/src/redirects/atlas-architecture-redirects.json 2>/dev/null
 ls platform/docs-nextjs/src/redirects/atlas-architecture-redirects.json 2>/dev/null
 ```
 
@@ -220,7 +221,10 @@ OFFLINE REDIRECTS block. For example, archiving `v20260227`:
 ### `atlas-architecture-redirects.json` (if present)
 
 URL base: `/docs/atlas/architecture/`. File:
-`platform/docs-nextjs/src/redirects/atlas-architecture-redirects.json`.
+`platform/docs-site/src/redirects/atlas-architecture-redirects.json`.
+A stale, dead copy is also left over in `docs-nextjs` — ignore it;
+edit the `docs-site` copy only. See the preamble of
+`nextjs-redirects-updates.md` for why.
 Note this as a `platform/` change.
 
 1. **Update the alias entry**: remove the entry for the old current

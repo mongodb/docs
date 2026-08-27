@@ -23,6 +23,22 @@ Header 3
 ~~~~~~~~
 ```
 
+When the heading contains a substitution, which length to count depends on
+the substitution type, because Snooty resolves the two at different stages:
+
+- **Source constants** (``{+curly+}``, defined in ``snooty.toml``) are
+  substituted before the parser reads the line, so match the underline to
+  the **rendered** text. ``{+mongosh+} Configuration`` renders as
+  ``mongosh Configuration`` (21 characters), so the underline is 21
+  characters, not the 25 of the literal source.
+- **Pipe substitutions** (``|pipe|``) are resolved after parsing, so match
+  the underline to the **raw RST source text**. ``|onprem| Server 8.0`` is
+  19 characters and takes a 19-character underline, even though it renders
+  as ``Ops Manager Server 8.0`` (22 characters).
+
+An underline shorter than the parsed heading breaks the build. Check
+existing headings in the same file to confirm.
+
 ## Procedures
 
 - Use the ``.. procedure::`` directive for any procedure with more than one

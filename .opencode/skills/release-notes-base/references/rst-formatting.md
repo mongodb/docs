@@ -13,11 +13,14 @@ Use these rules when `{RELEASE_NOTES_FILE}` ends in `.txt`.
 
 The heading underline (`-`) must exactly match the heading length:
 
-- If the heading uses a substitution constant (e.g., `|compass|`), match the
+- If the heading uses a pipe substitution (e.g., `|compass|`), match the
   underline to the length of the **raw RST source text**, not the rendered
   word. Check existing headings in the file to confirm.
 - If the heading uses a source constant (e.g., `{+mongosh+}`), match the
   underline to the length of the **rendered text**.
+
+See the "Headings" section of `.claude/rules/rst-conventions.md` for why the
+two differ.
 
 ## Line length
 

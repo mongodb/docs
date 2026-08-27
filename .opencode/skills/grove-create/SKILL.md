@@ -149,7 +149,9 @@ names — these will be dropped in test teardown to ensure idempotency.
 
 ## Step 6: Test Strategy — New File or Existing?
 
-Check existing test files in `tests/{topic}/`:
+Locate existing test files in the language's tests directory (see table in
+Step 2 — e.g. `tests/{topic}/` for JS, `tests_package/{topic}/` for Python,
+`src/test/java/{topic}/` for Java):
 
 1. If a test file exists for this topic, read it to understand the structure
 2. Decide whether to **add an `it` block** to the existing test file or **create
@@ -226,7 +228,9 @@ files in the same language (e.g., `tutorial-setup.js` in JS).
 Launch a subagent to validate the work:
 
 Use the Agent tool with this prompt (fill in the paths). For the test command,
-use the per-language commands from `/grove-run` Step 3:
+use the per-language commands from `/grove-run` Step 3. Optionally run the
+full pipeline with `node run-tests.js` (add `--no-snip` during test-only
+validation):
 
 ```
 Validate a new Grove code example. Perform these steps in order:

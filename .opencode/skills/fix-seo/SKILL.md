@@ -69,6 +69,8 @@ Group findings by file. For each finding, cross-reference the rule name against 
 | `seo-meta-missing` | 150–200 char description from page intro |
 | `seo-meta-length` (too short) | Expand existing description to ≥150 chars |
 | `seo-meta-length` (too long) | Shorten existing description to ≤200 chars |
+| `seo-meta-duplicate` (identical) | Remove the later description, or the non-`.. meta::` one if the formats differ |
+| `seo-meta-duplicate` (conflicting) | Remove least relevant description |
 | `structure-h1-required` | Generate an H1 from page content and add it |
 | `structure-h1-single` | Identify the correct H1; demote all others to H2 |
 | `structure-h2-before-h1` | Move the H2 content to after the H1 |
@@ -131,10 +133,19 @@ The H1 is the page title.
 7. After editing the title text, apply any heading-markup and length-counting requirements from the format asset file for the file's extension (loaded in Step 0), including product-name substitution conventions.
 
 **Fixing the meta description:**
-
-1. Check whether a description already exists in the file.
-2. If a description exists and is valid (not a null/undefined placeholder), check that it is unique and between 150–200 chars. If it meets both criteria, leave it unchanged. If it is too short or too long, edit it in place — do not rewrite it from scratch.
-3. If no description exists or the existing value is a null/undefined placeholder, generate one from page content:
+1. If the linter reported `seo-meta-duplicate`, resolve it before any other fixes.
+   - Read the page and find the occurrences of the meta description.
+   - Read each meta description found.
+   - If the meta descriptions are identical:
+      - Remove the later description.
+   - If the meta descriptions are conflicting:
+      - Read the page's content.
+      - Identify which meta description fits the least with the page's content and remove it.
+   - When removing, delete only the `:description:` line. Delete the enclosing `.. meta::` block only if the description was its sole option.
+   - Re-check the length on the remaining description before continuing.
+2. Check whether a description already exists in the file.
+3. If a description exists and is valid (not a null/undefined placeholder), check that it is unique and between 150–200 chars. If it meets both criteria, leave it unchanged. If it is too short or too long, edit it in place — do not rewrite it from scratch.
+4. If no description exists or the existing value is a null/undefined placeholder, generate one from page content:
    - Read the first body paragraph after the H1 (skip directives, headings, and blank lines to reach prose). If the opening content is code-heavy or table-heavy, scan further.
    - Draft 150–200 chars: active voice, second person, present tense. Lead with what the page helps the reader accomplish. Do not start with "This page" or repeat the title verbatim.
    - Target 160 chars — leaves a buffer on both sides of the range.

@@ -53,9 +53,9 @@ Stop and confirm that all of the following are true before proceeding:
   three days before the flip date. Writers should not merge new content
   to `upcoming/` during the flip.
 - [ ] Engineering has confirmed the GA date for the RELEASING version.
-- [ ] DOP/Anabella is aware of and available to review PR 4
-  (the `netlify.toml` redirect changes). PR 4 must not be merged without
-  DOP review.
+- [ ] DOP is aware of and available to review PR 4 (the
+  `manual-redirects.json` redirect changes). PR 4 must not be merged
+  without DOP review.
 
 ### Content readiness
 - [ ] Release notes for RELEASING are complete in
@@ -78,7 +78,7 @@ The flip proceeds across four PRs in this order:
 | PR 1 | Directory operations — rename `manual/` to `v{OUTGOING}/`, then copy `upcoming/` to `manual/` | No |
 | PR 2 | Content cleanup — strip in-dev and RC markers from `manual/`; update `minor-release.rst` includes in `upcoming/`; restructure `manual/source/release-notes.txt`. See `server-manual-pr2.md`. | No |
 | PR 3 | Config and upcoming updates — `.backportrc.json`, `upcoming/snooty.toml` constants, ToC files, `{NEXT}` release-notes stubs, `in-dev.rst` includes. See `server-manual-pr3.md`. | No |
-| PR 4 | Redirect updates in `netlify.toml` — alias redirects, archived version catch-alls, new `v{OUTGOING}` redirect block. See `server-manual-pr4.md`. | **Yes — Anabella must review before merge** |
+| PR 4 | Redirect updates in `manual-redirects.json` — alias entry bump, EOL entries if a version ages out. See `server-manual-pr4.md`. | **Yes — DOP must review before merge** |
 
 Before beginning each PR, read the corresponding reference file for
 execution details.

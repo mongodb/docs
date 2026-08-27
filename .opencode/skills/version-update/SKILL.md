@@ -18,9 +18,8 @@ You are creating a new version of a versioned MongoDB documentation docset.
 4. Dry-runs `version-bump.sh --docset csharp --type minor
    --new-version 3.13 --old-version 3.12` — shows planned ops, confirms
    with user.
-5. Applies: deletes `current/`, copies `upcoming/` → `current/`,
-   updates `netlify.toml` (adds VERSION CONSOLIDATION redirect for
-   `v3.13` → `v3.x`).
+5. Applies: deletes `current/`, copies `upcoming/` → `current/`, adds a
+   consolidation entry to `csharp-redirects.json` (`v3.13` → `v3.x`).
 6. Surfaces Hapley selector-label steps and remaining manual tasks.
 
 ## Step 1: Identify the Docset and Check Prerequisites
@@ -285,32 +284,35 @@ for the docset and inform the user.
 
 For a **patch release**, skip this step.
 
-For a **minor or major release**, the docset's redirects may live in one or
-both of two formats. Detect which are present, then apply the matching
-reference for **each** file that exists:
+For a **minor or major release**, locate the docset's redirect file —
+a flat JSON array keyed by URL slug (confirm the slug from an existing
+entry; it is not always the docset directory name). It lives outside
+`content/`, under one of two directories:
 
 ```bash
-# Snooty/legacy format (sectioned TOML)
-ls content/{DOCSET}/netlify.toml 2>/dev/null
-
-# Next.js format (flat JSON), keyed by URL slug — confirm the slug from an
-# existing entry; it is not always the docset directory name
 ls platform/docs-nextjs/src/redirects/*-redirects.json 2>/dev/null
+ls platform/docs-site/src/redirects/*-redirects.json 2>/dev/null
 ```
 
-Routing:
+See `references/nextjs-redirects-updates.md` for which docsets use
+which directory. Read that file and apply the docset's section. Editing
+it is expected here, but flag it as a `platform/` change in the Step 11
+change summary.
 
-- `netlify.toml` present → read `references/netlify-toml-updates.md` and
-  apply the docset's section.
-- `<slug>-redirects.json` present → read
-  `references/nextjs-redirects-updates.md` and apply the docset's section.
-- **Both** present (the expected state during the TOML→Next.js migration)
-  → apply both, keeping the two files consistent.
-- Neither present → stop and ask the user; do not invent a redirect file.
+If the glob above matches the slug in **both** directories, only one
+copy is live — see `references/nextjs-redirects-updates.md` for which
+one, and for the current list of docsets with a stale, dead leftover
+copy in the other directory. Edit the live copy only; leave the dead
+one alone and note it in the change summary.
 
-The Next.js redirect file lives under `platform/docs-nextjs/src/redirects/`,
-outside `content/`. Editing it is expected here, but flag it as a
-`platform/` change in the Step 11 change summary.
+If no `<slug>-redirects.json` is found for the docset, stop and ask the
+user — do not invent a redirect file.
+
+Every docset in the table above still has a `content/{docset}/netlify.toml`
+file on disk. Ignore it: per platform team guidance (Matt Meigs,
+`#docs-writers` Slack, 2026-08-13), all public-facing docsites have
+moved off Snooty/Netlify-serving, and redirects are no longer edited in
+`netlify.toml` regardless of whether the file still exists in the repo.
 
 ## Step 9: MongoCLI Submodule Update
 
