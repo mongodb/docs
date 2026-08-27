@@ -22,6 +22,10 @@ const tocData: TocItem[] = inheritContentSite('laravel', [
         url: '/docs/drivers/php/laravel-mongodb/:version/connect/connection-options',
       },
       {
+        label: 'Network Compression',
+        url: '/docs/drivers/php/laravel-mongodb/:version/connect/network-compression',
+      },
+      {
         label: 'TLS Configuration',
         url: '/docs/drivers/php/laravel-mongodb/:version/connect/tls',
       },

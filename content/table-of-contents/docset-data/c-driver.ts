@@ -41,6 +41,11 @@ const tocData: TocItem[] = [
             collapsible: true,
             items: [
               {
+                label: 'Network Compression',
+                contentSite: 'c',
+                url: '/docs/languages/c/c-driver/:version/connect/connection-options/network-compression',
+              },
+              {
                 label: 'Stable API',
                 contentSite: 'c',
                 url: '/docs/languages/c/c-driver/:version/connect/connection-options/stable-api',
