@@ -51,4 +51,4 @@
          When you download the CSV FOCUS cost and usage report, the
          document presents your cost and usage data in the
          industry-standard FOCUS format. To learn more, see
-         :ref:`focus-api-overview`.
+         :ref:`focus-report-overview`.

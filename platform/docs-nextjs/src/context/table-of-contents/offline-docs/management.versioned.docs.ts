@@ -1029,6 +1029,11 @@ export const toc: L1TocItem[] = [
                 url: '/docs/atlas/billing/invoice-breakdown',
               },
               {
+                label: 'FOCUS Cost & Usage Report',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/billing/focus-report',
+              },
+              {
                 label: 'Subscriptions',
                 contentSite: 'cloud-docs',
                 url: '/docs/atlas/billing/subscriptions',
@@ -1112,11 +1117,6 @@ export const toc: L1TocItem[] = [
                 label: 'International Usage & Taxes',
                 contentSite: 'cloud-docs',
                 url: '/docs/atlas/billing/international-usage',
-              },
-              {
-                label: 'FOCUS Cost & Usage Report',
-                contentSite: 'cloud-docs',
-                url: '/docs/atlas/billing/focus-api',
               },
             ],
           },

@@ -9,7 +9,8 @@
    * - Invoice header card
      - The invoice amount due, the total cost of your usage for the billing
        period, and your billing information. In this card, you can
-       export the invoice details to PDF or CSV. If you use credits, you can also
+       download the invoice as a PDF or CSV usage summary, or as a CSV
+       FOCUS cost and usage report. If you use credits, you can also
        see your total credit usage and the credit unit price.
 
    * - :guilabel:`Payment Details`

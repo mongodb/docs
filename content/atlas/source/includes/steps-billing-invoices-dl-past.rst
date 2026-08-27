@@ -67,8 +67,8 @@
       
    .. step:: Download your desired invoice.
       
-      From your invoice's :guilabel:`Download As` column, select
-      :guilabel:`PDF Usage Summary`, :guilabel:`CSV Usage Summary`, or
-      :guilabel:`CSV FOCUS Cost & Usage Report`.
+      In your invoice's :guilabel:`Download` column, click the download
+      icon, then select :guilabel:`PDF Usage Summary`, :guilabel:`CSV
+      Usage Summary`, or :guilabel:`CSV FOCUS Cost & Usage Report`.
 
-      To learn about the FOCUS format, see :ref:`focus-api-overview`.      
+      To learn about the FOCUS format, see :ref:`focus-report-overview`.      
