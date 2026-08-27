@@ -26,6 +26,13 @@ using :ref:`security-aws-kms`:
 
 - :alert:`AWS encryption key elapsed time since last rotation is above 90 days <AWS encryption key elapsed time since last rotation is above (n) days>`
 
+|service| provides the following default alerts for projects with
+:ref:`External Log Sinks <export-logs-external-sinks>` configured:
+
+- :alert:`Log export has failed. Check your integration settings and credentials.`
+- :alert:`Log export is failing after multiple attempts. Logs are being queued and will be sent once the connection is restored.`
+- :alert:`Log export replay has failed to deliver records to an external platform, even after an automatic replay attempt. These records will be permanently deleted once their retention window expires. Contact MongoDB Support to request redelivery.`
+
 |service| provides the following default |fts| alerts:
 
 - :alert:`Atlas Search: Max Number of Fields Indexed is`, ``above 1000``

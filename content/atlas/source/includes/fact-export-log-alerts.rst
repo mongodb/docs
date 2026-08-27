@@ -1,34 +1,31 @@
-To ensure you are notified if {+service+} stops exporting logs to your external sink, 
-configure a project-level alert:
+{+service+} automatically notifies you when log exports fail or recover through
+:ref:`default alerts <default-alert-settings>` that are enabled for all projects.
 
-.. procedure::
-   :style: normal
+Default Alerts
+~~~~~~~~~~~~~~
 
-   .. include:: /includes/nav/steps-project-alerts.rst
+The following alerts are enabled by default for all projects with External Log Sinks:
 
-   .. step:: Click :guilabel:`Add New Alert`.
-  
-   .. step:: Select the condition that triggers the alert.
-      
-      In the :guilabel:`Condition/Metric` dropdown menu, select 
-      :guilabel:`Log export is unable to export logs on this host`.
-         
-   .. step:: Select the recipient, notification method, and frequency of the alert.
-   
-      a. In the :guilabel:`Add Notification Method` section, select from the list of roles.
-      
-      b. In the :guilabel:`Add Notifier` dropdown menu, select from the options
-         described in the following table.
-         
-         .. include:: /includes/list-table-alert-notification-methods.rst
-      
-      c. In the :guilabel:`Recurrence` section, set the alert to trigger when the 
-         log export failure condition lasts longer than ``60`` minutes and to resend every 
-         ``10080`` minutes (7 days) until the issue is resolved. 
-      
-         This way, you will be notified if log export failures persist for an extended period, 
-         while avoiding excessive notifications for transient issues.
+- :alert:`Log export has failed. Check your integration settings and credentials.`
+- :alert:`Log export is failing after multiple attempts. Logs are being queued and will be sent once the connection is restored.`
+- :alert:`Log export replay has failed to deliver records to an external platform, even after an automatic replay attempt. These records will be permanently deleted once their retention window expires. Contact MongoDB Support to request redelivery.`
 
-   .. step:: Click :guilabel:`Save`.
+All alerts send email notifications to all users with the
+:authrole:`Project Owner` role and appear in the :guilabel:`Project
+Activity Feed`. You can customize the notification recipients and
+methods in the :guilabel:`Project Alerts` settings.
 
-      For more details on configuring alerts, see :ref:`configure-alert-settings`.
+Activity Feed Events
+~~~~~~~~~~~~~~~~~~~~
+
+In addition to alerts, {+service+} logs the following informational
+events to the :guilabel:`Project Activity Feed`:
+
+- :guilabel:`Log export has recovered. Queued logs are ready to resume sending.`
+- :guilabel:`Log export has recovered. Queued logs are now being sent.`
+- :guilabel:`All queued logs have been delivered to sink.`
+
+To view these events, see :ref:`activity-feed`.
+
+For more information about configuring alert notifications, see
+:ref:`configure-alert-settings`.

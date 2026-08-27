@@ -68,6 +68,77 @@ Considerations
 - Network issues or retries can cause duplicate log entries in
   your external service.
 
+Failure Handling and Automatic Recovery
+----------------------------------------
+
+{+service+} automatically handles log export failures and recovers
+without manual intervention:
+
+Retry and Circuit Breaker
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When log delivery to your external sink fails, {+service+}
+automatically retries with exponential backoff for up to 3 attempts by
+default. The retry delay starts at 1 second and doubles up to a
+maximum of 10 seconds between attempts.
+
+After 5 consecutive failures, a circuit breaker opens to prevent
+hammering your sink with repeated requests. The circuit breaker stays
+open for 5 minutes before it attempts a test write. If the test
+succeeds, normal operation resumes. If it fails, the circuit breaker
+reopens.
+
+Each sink configuration has its own independent circuit breaker, so
+issues with one integration don't affect others.
+
+Dead Letter Queue (DLQ)
+~~~~~~~~~~~~~~~~~~~~~~~
+
+When retries are exhausted or errors are non-retryable (such as
+invalid credentials), {+service+} queues failed log events in a Dead
+Letter Queue (DLQ) with a 7-day retention. The DLQ prevents data loss
+while your sink is unavailable.
+
+.. warning::
+
+   Logs older than 7 days are permanently deleted from the DLQ. If
+   your sink remains inaccessible for more than 7 days, those logs
+   cannot be recovered.
+
+When connectivity is restored and the circuit breaker closes,
+{+service+} automatically replays queued logs from the DLQ to your
+sink. No manual intervention is required.
+
+.. warning::
+
+   If you modify the sink configuration while logs are queued in the
+   DLQ, the queued logs will use the new configuration when replayed.
+   For example, if you change the destination from one S3 bucket to
+   another, queued logs will be sent to the new bucket rather than the
+   original destination.
+
+Monitoring and Alerts
+~~~~~~~~~~~~~~~~~~~~~
+
+{+service+} provides :ref:`default alerts <default-alert-settings>`
+that automatically send email notifications to :authrole:`Project Owner`
+users when:
+
+- Log export encounters non-retryable errors (logs queued in DLQ).
+- Log export fails after multiple retry attempts (logs queued in DLQ).
+- Log export replay fails to deliver records.
+
+Additionally, the :ref:`Project Activity Feed <activity-feed>` logs
+the following informational events:
+
+- Log export recovered (queued logs ready to resume).
+- Log export recovered (queued logs now being sent).
+- All queued logs delivered.
+
+You can customize alert recipients and notification methods in your
+project's alert settings. For details, see
+:ref:`configure-alert-settings`.
+
 Supported Export Destinations
 -----------------------------
 
