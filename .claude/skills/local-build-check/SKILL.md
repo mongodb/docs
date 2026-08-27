@@ -217,10 +217,12 @@ The diff added a page that isn't yet in any toctree.
 The diff modified a file that contains a ``.. toctree::`` directive.
 A malformed entry (wrong path, missing title prefix, stray leading space)
 can silently drop pages from the tree, causing "not included" warnings on
-those pages even though they haven't changed. The script automatically
-promotes these to INTRO when any changed file contains a toctree directive,
-so they appear as INTRO warnings in the log — not PRE. Treat them like any
-other introduced warning:
+those pages even though they haven't changed. The script promotes these to
+INTRO when the diff actually touched lines inside a `.. toctree::` block (or
+added a whole new file containing one), so they appear as INTRO warnings in
+the log — not PRE. Editing a page that merely *has* a toctree elsewhere in it
+does not promote anything. Treat promoted warnings like any other introduced
+warning:
 
 1. Read the changed file's toctree entries.
 2. Check each entry for malformed syntax: missing title prefix, incorrect

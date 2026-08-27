@@ -102,6 +102,49 @@ get_changed_relative_paths() {
   done | sort -u
 }
 
+toctree_block_touched() {
+  # Args: <repo-relative path> <absolute path>
+  # True when a line the diff actually changed falls inside a .. toctree::
+  # block. A block runs from the directive line through the last line that is
+  # blank or indented.
+  local repo_rel="$1" abs="$2"
+  local ranges changed start count end bs be
+
+  # The block ends at its last indented content line, NOT at the last blank
+  # line before the next directive. Counting trailing blanks made an append at
+  # end of file overlap a toctree that happened to be the file's last block,
+  # which is how this over-promotion survived its first fix (DOCSP-63308).
+  ranges=$(awk '
+    /^\.\. toctree::/ { inblock=1; start=NR; last=NR; next }
+    inblock && $0 ~ /^[[:space:]]*$/ { next }
+    inblock && $0 ~ /^[[:space:]]+/  { last=NR; next }
+    inblock { print start "," last; inblock=0 }
+    END { if (inblock) print start "," last }
+  ' "$abs")
+  [[ -z "$ranges" ]] && return 1
+
+  # Hunk headers give the changed line ranges on the new side of the diff.
+  changed=$( { git -C "$REPO_ROOT" diff -U0 origin/main...HEAD -- "$repo_rel" 2>/dev/null || true
+               git -C "$REPO_ROOT" diff -U0 HEAD -- "$repo_rel" 2>/dev/null || true
+             } | sed -nE 's/^@@ -[0-9]+(,[0-9]+)? \+([0-9]+)(,([0-9]+))? @@.*/\2 \4/p' )
+  [[ -z "$changed" ]] && return 1
+
+  while read -r start count; do
+    [[ -z "$start" ]] && continue
+    # A pure deletion reports a count of 0; treat it as touching one line so the
+    # removal of a toctree entry still counts.
+    [[ -z "$count" || "$count" -eq 0 ]] && count=1
+    end=$((start + count - 1))
+    while IFS=, read -r bs be; do
+      [[ -z "$bs" ]] && continue
+      if [[ "$start" -le "$be" && "$end" -ge "$bs" ]]; then
+        return 0
+      fi
+    done <<< "$ranges"
+  done <<< "$changed"
+  return 1
+}
+
 find_snooty_roots_for_project() {
   local project="$1"
   {
@@ -176,15 +219,31 @@ run_snooty() {
   # Collect changed paths relative to snooty source root for diff-filtering
   get_changed_relative_paths "$project" "$snooty_root" > "$changed_paths"
 
-  # Check if any changed file contains a .. toctree:: directive.
-  # Used to promote "Page not included in any toctree" warnings in unchanged
-  # files: when the user edits a toctree file, detached-page warnings are a
-  # downstream effect of that change, not pre-existing noise.
+  # Find changed files whose diff actually TOUCHED a .. toctree:: block. Used
+  # to promote "Page not included in any toctree" warnings in unchanged files:
+  # when the writer edits a toctree, detached-page warnings are a downstream
+  # effect of that change, not pre-existing noise.
+  #
+  # Merely CONTAINING a toctree is too loose a test (DOCSP-63308). Index pages
+  # carry a toctree and are edited constantly, so any edit to one promoted
+  # every detached-page warning in the project to INTRO. Measured on
+  # content/docs-platform: appending one unrelated directive to index.txt
+  # turned 6 pre-existing warnings into 6 "you detached these pages" reports,
+  # sending the agent off to fix a toctree the diff never touched.
   local toctree_changed_file="/tmp/snooty-toctree-changed-${project}-${TS}.txt"
   local source_root="${snooty_root}/source"
   while IFS= read -r rel_path; do
     local abs="${source_root}/${rel_path}"
-    if [[ -f "$abs" ]] && grep -qE '^\.\. toctree::' "$abs" 2>/dev/null; then
+    [[ -f "$abs" ]] || continue
+    grep -qE '^\.\. toctree::' "$abs" 2>/dev/null || continue
+
+    local repo_rel="${abs#${REPO_ROOT}/}"
+    # An untracked file is new in its entirety, so its toctree is new too.
+    if ! git -C "$REPO_ROOT" cat-file -e "HEAD:${repo_rel}" 2>/dev/null; then
+      echo "$rel_path" >> "$toctree_changed_file"
+      continue
+    fi
+    if toctree_block_touched "$repo_rel" "$abs"; then
       echo "$rel_path" >> "$toctree_changed_file"
     fi
   done < "$changed_paths"
