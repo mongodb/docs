@@ -46,6 +46,11 @@ export ATLAS_PRIVATE_KEY="your_private_key_here"
 export ATLAS_API_VERSION="preview"  # Default is "preview" for rate limits API
 ```
 
+**Optional - GitHub token:**
+```bash
+export GITHUB_TOKEN="your_token_here"  # Raises the GitHub API rate limit when fetching Private Preview specs
+```
+
 ## Installation
 
 ```bash
@@ -62,6 +67,16 @@ node rate-limits-generator.js
 ```
 
 This outputs the complete restructured text table to stdout.
+
+### Run the Tests
+
+```bash
+npm test
+```
+
+The tests cover the filtering logic in `groupPublishableLimits`, including
+the mixed Private Preview and generally available endpoint set case. They
+use the built-in Node test runner and make no network calls.
 
 ### Save to File
 
@@ -106,6 +121,36 @@ If you see 401/403 errors:
 - Verify your credentials are correct
 - Check that service account/API key has proper permissions
 - For API keys, ensure your IP is whitelisted
+
+## Private Preview Filtering
+
+The script omits endpoints that are still in Private Preview. It
+determines Private Preview status from the MongoDB OpenAPI repository:
+
+1. Fetches every `openapi-private-preview-*.json` spec in
+   [`openapi/v2/private`](https://github.com/mongodb/openapi/tree/main/openapi/v2/private).
+2. Collects each operation marked with `"x-beta": true` or
+   `"x-state": { "label": "PREVIEW" }`.
+3. Removes any endpoint in that collection from its endpoint set.
+4. Drops an endpoint set entirely when no endpoints remain after
+   filtering, which covers sets that are wholly in Private Preview.
+
+Filtering is per endpoint, not per endpoint set, so a set that mixes
+Private Preview and generally available endpoints still publishes its
+generally available endpoints. Each removal is logged to stderr.
+
+Path parameter names are normalized before comparison, so
+`/clusters/{clusterName}` matches the same endpoint regardless of the
+parameter name used in the spec.
+
+Presence in a private preview spec, not absence from the public spec, is
+the signal. Private Preview paths such as the Overload Protection
+Simulation endpoints also appear in the generally available spec, so path
+absence alone does not identify them.
+
+When a program graduates from Private Preview, MongoDB removes its private
+spec or clears the preview markers, and the endpoint set appears in the
+generated output on the next run without any change to this script.
 
 ## Notes
 

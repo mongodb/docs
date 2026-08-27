@@ -46,9 +46,148 @@ async function getAuthHeaders() {
   throw new Error('Authentication credentials not found. Set either ATLAS_CLIENT_ID/ATLAS_CLIENT_SECRET (service account) or ATLAS_PUBLIC_KEY/ATLAS_PRIVATE_KEY (API key)');
 }
 
+// Private Preview OpenAPI specs. MongoDB publishes one spec per Private
+// Preview program under openapi/v2/private/. Every operation in those specs
+// carries "x-beta": true and "x-state": { "label": "PREVIEW" }. Presence in
+// these specs is what identifies an endpoint set as Private Preview: the
+// paths themselves may also appear in the generally available spec, as the
+// Overload Protection Simulation endpoints do, so path absence is not a
+// reliable signal.
+const PRIVATE_PREVIEW_SPECS_API = 'https://api.github.com/repos/mongodb/openapi/contents/openapi/v2/private';
+
+// Replaces path parameter names with a placeholder so that
+// /groups/{groupId}/clusters/{clusterName} matches the same endpoint
+// declared with different parameter names in the OpenAPI spec.
+function normalizePath(apiPath) {
+  return apiPath.replace(/\{[^}]*\}/g, '{}');
+}
+
+function endpointKey(method, apiPath) {
+  return `${method.toUpperCase()} ${normalizePath(apiPath)}`;
+}
+
+async function fetchJson(url) {
+  const headers = {
+    'Accept': 'application/json',
+    'User-Agent': 'atlas-rate-limits-generator'
+  };
+
+  // Authenticate GitHub API requests when a token is available to avoid
+  // unauthenticated rate limiting in CI.
+  if (process.env.GITHUB_TOKEN && url.startsWith('https://api.github.com/')) {
+    headers['Authorization'] = `Bearer ${process.env.GITHUB_TOKEN}`;
+  }
+
+  const response = await request(url, { headers, followRedirect: true });
+
+  if (response.status !== 200) {
+    throw new Error(`Request to ${url} failed with status ${response.status}`);
+  }
+
+  return JSON.parse(response.data.toString());
+}
+
+function isPrivatePreviewOperation(operation) {
+  if (!operation || typeof operation !== 'object' || !operation.responses) {
+    return false;
+  }
+
+  return operation['x-beta'] === true || operation['x-state']?.label === 'PREVIEW';
+}
+
+// Returns the set of endpoints that are in Private Preview, keyed by method
+// and normalized path. Individual endpoints in this set are removed from
+// their endpoint set, and a set is dropped entirely when no endpoints
+// remain.
+async function getPrivatePreviewEndpoints() {
+  const contents = await fetchJson(PRIVATE_PREVIEW_SPECS_API);
+  const specFiles = contents.filter(
+    (entry) => entry.name.startsWith('openapi-private-preview-') && entry.name.endsWith('.json')
+  );
+
+  if (specFiles.length === 0) {
+    throw new Error('No Private Preview OpenAPI specs found; cannot determine Private Preview status');
+  }
+
+  const endpoints = new Set();
+
+  for (const specFile of specFiles) {
+    const spec = await fetchJson(specFile.download_url);
+
+    Object.entries(spec.paths || {}).forEach(([apiPath, operations]) => {
+      Object.entries(operations).forEach(([method, operation]) => {
+        if (!isPrivatePreviewOperation(operation)) {
+          return;
+        }
+
+        endpoints.add(endpointKey(method, apiPath));
+      });
+    });
+  }
+
+  console.error(`Found ${endpoints.size} Private Preview endpoints across ${specFiles.length} specs`);
+
+  return endpoints;
+}
+
+// Groups the rate limit results that belong in the published table, keyed by
+// endpoint set name. Endpoint sets are excluded by name, and individual
+// endpoints are excluded when they are serverless, legacy Data Lake, or
+// Private Preview. An endpoint set that has no endpoints left after
+// filtering is dropped, which covers the case where every endpoint in the
+// set is in Private Preview.
+function groupPublishableLimits(results, privatePreviewEndpoints) {
+  const groupedResults = {};
+
+  (results || []).forEach((limit) => {
+    // Skip Data Lake Pipelines and Legacy Backups by endpoint set name
+    const name = limit.endpointSetName || 'N/A';
+    if (name === 'Data Lake Pipelines' || name === 'Legacy Backups') {
+      return;
+    }
+
+    // Filter out serverless and legacy dataLakes endpoints from the
+    // endpoint list
+    let endpoints = (limit.endpoints || []).filter(
+      (ep) => !ep.path.includes('/serverless') && !ep.path.includes('/dataLakes')
+    );
+
+    // Filter out individual Private Preview endpoints. An endpoint set can
+    // mix Private Preview and generally available endpoints, so filter per
+    // endpoint rather than skipping the whole set.
+    const publicEndpoints = endpoints.filter(
+      (ep) => !privatePreviewEndpoints.has(endpointKey(ep.method, ep.path))
+    );
+
+    const removedCount = endpoints.length - publicEndpoints.length;
+    if (removedCount > 0) {
+      console.error(
+        `Removed ${removedCount} Private Preview endpoint(s) from endpoint set: ${name}`
+      );
+    }
+
+    endpoints = publicEndpoints;
+
+    // Skip if no endpoints remain after filtering
+    if (endpoints.length === 0) {
+      return;
+    }
+
+    if (!groupedResults[name]) {
+      groupedResults[name] = [];
+    }
+    groupedResults[name].push({ ...limit, endpoints });
+  });
+
+  return groupedResults;
+}
+
 async function generateRateLimitsTable() {
   try {
     const authConfig = await getAuthHeaders();
+
+    console.error('Fetching Private Preview OpenAPI specs...');
+    const privatePreviewEndpoints = await getPrivatePreviewEndpoints();
 
     console.error('Fetching rate limits from Atlas API...');
     
@@ -57,7 +196,7 @@ async function generateRateLimitsTable() {
     const responseData = JSON.parse(response.data.toString());
 
     console.error('Successfully fetched rate limits');
-    console.errorimestamp
+
     const now = new Date();
     const options = { 
       timeZone: 'America/New_York',
@@ -74,37 +213,7 @@ async function generateRateLimitsTable() {
     // Generate sections with timestamp
     let output = `.. Last updated: ${timestamp}\n\n`;
 
-    // Filter out serverless endpoints, data lake pipelines, legacy backups, and legacy dataLakes paths
-    const groupedResults = {};
-    responseData.results.forEach((limit) => {
-      // Skip Data Lake Pipelines and Legacy Backups by endpoint set name
-      const name = limit.endpointSetName || 'N/A';
-      if (name === 'Data Lake Pipelines' || name === 'Legacy Backups') {
-        return;
-      }
-      
-      // Skip entire endpoint set if ALL endpoints contain serverless
-      if (limit.endpoints && limit.endpoints.every(ep => ep.path.includes('/serverless'))) {
-        return;
-      }
-      
-      // Filter out serverless and legacy dataLakes endpoints from the endpoint list
-      if (limit.endpoints) {
-        limit.endpoints = limit.endpoints.filter(ep => 
-          !ep.path.includes('/serverless') && !ep.path.includes('/dataLakes')
-        );
-      }
-      
-      // Skip if no endpoints remain after filtering
-      if (!limit.endpoints || limit.endpoints.length === 0) {
-        return;
-      }
-      
-      if (!groupedResults[name]) {
-        groupedResults[name] = [];
-      }
-      groupedResults[name].push(limit);
-    });
+    const groupedResults = groupPublishableLimits(responseData.results, privatePreviewEndpoints);
 
     // Sort by endpoint set name for consistency
     const sortedNames = Object.keys(groupedResults).sort();
@@ -181,4 +290,15 @@ async function generateRateLimitsTable() {
   }
 }
 
-generateRateLimitsTable();
+// Only run when invoked directly so that the pure helpers can be required
+// from tests.
+if (require.main === module) {
+  generateRateLimitsTable();
+}
+
+module.exports = {
+  normalizePath,
+  endpointKey,
+  isPrivatePreviewOperation,
+  groupPublishableLimits
+};
