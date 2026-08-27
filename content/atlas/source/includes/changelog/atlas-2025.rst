@@ -253,7 +253,7 @@
 
 - Allows you to set protected hours for your project, during which |service|
   avoids performing standard updates to the clusters. To learn more,
-  see :ref:`maintenance-window-protected-hours`.
+  see :ref:`Configure Your Maintenance Management Settings <maintenance-window-protected-hours>`.
 
 - Introduces :ref:`Atlas resource policies <atlas-resource-policies-overview>`
   in public preview. |service| resource policies define configuration standards

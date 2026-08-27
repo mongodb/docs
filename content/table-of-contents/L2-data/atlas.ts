@@ -360,9 +360,22 @@ const tocData: TocItem[] = [
             ],
           },
           {
-            label: 'Maintenance Windows',
+            label: 'Manage Cluster Maintenance',
             contentSite: 'cloud-docs',
+            collapsible: true,
             url: '/docs/atlas/tutorial/cluster-maintenance-window',
+            items: [
+              {
+                label: 'Configure Maintenance Management Settings',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/tutorial/configure-maintenance-window-settings',
+              },
+              {
+                label: 'Respond to Maintenance',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/tutorial/respond-to-required-maintenance',
+              },
+            ],
           },
           {
             label: 'Stop, Start, or Delete',
