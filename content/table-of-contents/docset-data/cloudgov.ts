@@ -71,14 +71,6 @@ const tocData: TocItem[] = [
         label: ' User Access',
         contentSite: 'cloudgov',
         url: '/docs/atlas/government/atlas-access',
-        collapsible: true,
-        items: [
-          {
-            label: 'Troubleshoot User Access Issues',
-            contentSite: 'cloudgov',
-            url: '/docs/atlas/government/troubleshoot-user-access',
-          },
-        ],
       },
       {
         label: 'Database Users',

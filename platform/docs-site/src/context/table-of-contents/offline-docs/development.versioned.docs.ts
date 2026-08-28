@@ -4100,7 +4100,7 @@ export const toc: L1TocItem[] = [
                     contentSite: 'docs',
                     url: '/docs/:version/core/sharding-shard-key-indexes',
                     versions: {
-                      excludes: ['v7.0', 'v8.0', 'v8.2'],
+                      excludes: ['v7.0', 'v8.0'],
                     },
                   },
                   {
@@ -4578,7 +4578,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/reference/command/abortRewriteCollection',
                         versions: {
-                          excludes: ['v7.0', 'v8.0', 'v8.2'],
+                          excludes: ['v7.0', 'v8.0'],
                         },
                       },
                       {
@@ -4651,7 +4651,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/reference/command/commitShardRemoval',
                         versions: {
-                          excludes: ['v7.0', 'v8.0', 'v8.2'],
+                          excludes: ['v7.0', 'v8.0'],
                         },
                       },
                       {
@@ -4659,7 +4659,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/reference/command/commitTransitionToDedicatedConfigServer',
                         versions: {
-                          excludes: ['v7.0', 'v8.0', 'v8.2'],
+                          excludes: ['v7.0', 'v8.0'],
                         },
                       },
                       {
@@ -4692,7 +4692,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/reference/command/getTransitionToDedicatedConfigServerStatus',
                         versions: {
-                          excludes: ['v7.0', 'v8.0', 'v8.2'],
+                          excludes: ['v7.0', 'v8.0'],
                         },
                       },
                       {
@@ -4760,7 +4760,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/reference/command/rewriteCollection',
                         versions: {
-                          excludes: ['v7.0', 'v8.0', 'v8.2'],
+                          excludes: ['v7.0', 'v8.0'],
                         },
                       },
                       {
@@ -4778,7 +4778,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/reference/command/shardDrainingStatus',
                         versions: {
-                          excludes: ['v7.0', 'v8.0', 'v8.2'],
+                          excludes: ['v7.0', 'v8.0'],
                         },
                       },
                       {
@@ -4796,7 +4796,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/reference/command/startShardDraining',
                         versions: {
-                          excludes: ['v7.0', 'v8.0', 'v8.2'],
+                          excludes: ['v7.0', 'v8.0'],
                         },
                       },
                       {
@@ -4804,7 +4804,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/reference/command/startTransitionToDedicatedConfigServer',
                         versions: {
-                          excludes: ['v7.0', 'v8.0', 'v8.2'],
+                          excludes: ['v7.0', 'v8.0'],
                         },
                       },
                       {
@@ -4812,7 +4812,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/reference/command/stopShardDraining',
                         versions: {
-                          excludes: ['v7.0', 'v8.0', 'v8.2'],
+                          excludes: ['v7.0', 'v8.0'],
                         },
                       },
                       {
@@ -4820,7 +4820,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/reference/command/stopTransitionToDedicatedConfigServer',
                         versions: {
-                          excludes: ['v7.0', 'v8.0', 'v8.2'],
+                          excludes: ['v7.0', 'v8.0'],
                         },
                       },
                       {
@@ -7681,7 +7681,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/createObjectId',
                         versions: {
-                          excludes: ['v7.0', 'v8.0', 'v8.2'],
+                          excludes: ['v7.0', 'v8.0'],
                         },
                       },
                       {
@@ -7851,7 +7851,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/hash',
                         versions: {
-                          excludes: ['v7.0', 'v8.0', 'v8.2'],
+                          excludes: ['v7.0', 'v8.0'],
                         },
                       },
                       {
@@ -7859,7 +7859,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/hexHash',
                         versions: {
-                          excludes: ['v7.0', 'v8.0', 'v8.2'],
+                          excludes: ['v7.0', 'v8.0'],
                         },
                       },
                       {
@@ -8166,13 +8166,16 @@ export const toc: L1TocItem[] = [
                         label: '$sigmoid',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/sigmoid',
+                        versions: {
+                          excludes: ['v7.0', 'v8.0'],
+                        },
                       },
                       {
                         label: '$similarityCosine',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/similarityCosine',
                         versions: {
-                          excludes: ['v7.0', 'v8.0', 'v8.2'],
+                          excludes: ['v7.0', 'v8.0'],
                         },
                       },
                       {
@@ -8180,7 +8183,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/similarityDotProduct',
                         versions: {
-                          excludes: ['v7.0', 'v8.0', 'v8.2'],
+                          excludes: ['v7.0', 'v8.0'],
                         },
                       },
                       {
@@ -8188,7 +8191,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/similarityEuclidean',
                         versions: {
-                          excludes: ['v7.0', 'v8.0', 'v8.2'],
+                          excludes: ['v7.0', 'v8.0'],
                         },
                       },
                       {
@@ -8266,7 +8269,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/subtype',
                         versions: {
-                          excludes: ['v7.0', 'v8.0', 'v8.2'],
+                          excludes: ['v7.0', 'v8.0'],
                         },
                       },
                       {
@@ -8289,7 +8292,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/toArray',
                         versions: {
-                          excludes: ['v7.0', 'v8.0', 'v8.2'],
+                          excludes: ['v7.0', 'v8.0'],
                         },
                       },
                       {
@@ -8332,7 +8335,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/toObject',
                         versions: {
-                          excludes: ['v7.0', 'v8.0', 'v8.2'],
+                          excludes: ['v7.0', 'v8.0'],
                         },
                       },
                       {
@@ -8343,7 +8346,7 @@ export const toc: L1TocItem[] = [
                       {
                         label: '$top',
                         contentSite: 'docs',
-                        url: '/docs/:version/reference/operator/top',
+                        url: '/docs/:version/reference/operator/aggregation/top',
                       },
                       {
                         label: '$topN',
@@ -9154,6 +9157,11 @@ export const toc: L1TocItem[] = [
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/atlas-stream-processing/streaming-materialized-views',
                   },
+                  {
+                    label: 'Configure Multi-Collection Initial Sync',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/atlas-stream-processing/multi-collection-initial-sync',
+                  },
                 ],
               },
               {
@@ -9555,7 +9563,7 @@ export const toc: L1TocItem[] = [
                 collapsible: true,
                 url: '/docs/:version/release-notes/8.3',
                 versions: {
-                  excludes: ['v7.0', 'v8.0', 'v8.2'],
+                  excludes: ['v7.0', 'v8.0'],
                 },
                 items: [
                   {
