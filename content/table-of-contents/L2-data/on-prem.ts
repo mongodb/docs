@@ -1611,11 +1611,13 @@ const tocData: TocItem[] = [
                 label: 'mongo Schema',
                 contentSite: 'docs',
                 url: '/docs/:version/reference/audit-message/mongo',
+                versions: { excludes: ['v7.0'] },
               },
               {
                 label: 'OSCF Schema',
                 contentSite: 'docs',
                 url: '/docs/:version/reference/audit-message/ocsf',
+                versions: { excludes: ['v7.0'] },
               },
             ],
           },

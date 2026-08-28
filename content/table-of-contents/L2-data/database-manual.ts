@@ -640,6 +640,7 @@ const tocData: TocItem[] = [
             contentSite: 'docs',
             url: '/docs/:version/core/moveable-collections',
             collapsible: true,
+            versions: { excludes: ['v7.0'] },
             items: [
               {
                 label: 'Move a Collection',
@@ -665,6 +666,7 @@ const tocData: TocItem[] = [
         contentSite: 'docs',
         url: '/docs/:version/core/unsharded-collections',
         collapsible: true,
+        versions: { excludes: ['v7.0'] },
         items: [
           {
             label: 'Unshard a Collection',
