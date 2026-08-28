@@ -665,6 +665,7 @@ const tocData: TocItem[] = [
         label: 'Unsharded Collections',
         contentSite: 'docs',
         url: '/docs/:version/core/unsharded-collections',
+        versions: { excludes: ['v7.0'] },
         collapsible: true,
         versions: { excludes: ['v7.0'] },
         items: [
