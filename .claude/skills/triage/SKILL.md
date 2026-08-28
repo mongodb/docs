@@ -187,10 +187,15 @@ Before triaging, fetch the full details of each ticket (description, comments, a
 
 Cross-reference each ticket with the knowledge from Step 4 and all applicable rules from Parts 1–2 and the selected team module.
 
+**Story Points Estimate (CET/Cloud and Server only):** For every ticket you are moving to **Ready for Work**, propose a Story Points Estimate (`customfield_27258`) using the Story Point Estimation rubric in the `jira` skill. Setting the estimate at triage means it is already in place when a writer picks the ticket up, so the In Progress transition — which requires the field — does not stall later. Propose the number in the plan for the triager to confirm or override in Step 7; do not set it silently. Omit the estimate for tickets you are closing or flagging for manual review.
+
+**Do not estimate Drivers/DBX tickets.** That module explicitly prohibits assigning story points (see the "No RICET Involvement" rule in `references/drivers-dbx.md`), and its triage query selects tickets whose Story Points Estimate is empty — setting the field would drop them out of their own queue.
+
 For each ticket, prepare:
 - **Ticket ID & Summary**
 - **Description** (full ticket description, so the triager can verify the recommendation)
 - **Triage Recommendation** (components, labels, status change, close, or flag for manual review; individual assignee for CET/Cloud only)
+- **Story Points Estimate** (CET/Cloud and Server only, and only for tickets moving to Ready for Work; omit this line entirely for Drivers/DBX)
 - **URL(s)** (only if a `mongodb.com/docs/` URL is clearly present in the ticket content; otherwise omit)
 - **Rationale** (why this recommendation was made, citing the applicable rule or source)
 
@@ -208,8 +213,9 @@ If `auto` is in `$ARGUMENTS`, skip confirmation and proceed immediately to apply
 
 Once approved, use the `jira` skill to apply all approved changes:
 1. Apply components, labels, priority, and status changes. Always **add** — never remove existing labels or components. Because both the CLI and MCP replace these fields on write, read the ticket's current values first and include them alongside any new ones when writing. For status changes, use the Jira transition that moves the ticket to the target status. When closing as Won't Do, follow the `jira` skill's closing procedure with story points set to 0.
-2. For CET/Cloud only: assign individual writers.
-3. Add a comment to **every triaged ticket** using the appropriate template from `assets/comment-templates.md` (Assigned to Backlog, Moved to Ready for Work, or Closed).
+2. For CET/Cloud and Server only: set the confirmed Story Points Estimate (`customfield_27258`) on each ticket moving to Ready for Work. Skip this for Drivers/DBX. After writing the field with the CLI's `--custom` flag, re-read the ticket and confirm the value landed — the CLI drops undeclared custom fields with a soft warning and exit 0.
+3. For CET/Cloud only: assign individual writers.
+4. Add a comment to **every triaged ticket** using the appropriate template from `assets/comment-templates.md` (Assigned to Backlog, Moved to Ready for Work, or Closed).
 
 ---
 

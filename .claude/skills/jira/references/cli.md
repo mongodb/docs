@@ -172,15 +172,6 @@ jira issue comment add DOCSP-12345 $'Line one\n\nLine two'
 
 To mention a user, use `[~username]` where username is their MongoDB email prefix (e.g. `[~jane.smith]`). Use this when requesting SME or stakeholder review.
 
-### Post a PR link comment
-
-When moving a ticket to Internal Review or Needs Merge, post the PR URL as a comment:
-
-```bash
-jira issue comment add DOCSP-12345 \
-  "PR: https://github.com/10gen/docs-mongodb-internal/pull/12345"
-```
-
 ### Link two tickets
 
 ```bash

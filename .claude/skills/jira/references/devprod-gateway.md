@@ -124,17 +124,6 @@ jira_add_comment(issue_key="DOCSP-12345", body="Comment body here.")
 
 To mention a user, use `[~username]`. Use this when requesting SME or stakeholder review. Do not combine `[~username]` mentions with `developers_only=true` — the tool refuses the post, since the mention notification would leak the restricted body regardless of visibility settings.
 
-### Post a PR link comment
-
-When moving a ticket to Internal Review or Needs Merge, post the PR URL as a comment:
-
-```python
-jira_add_comment(
-    issue_key="DOCSP-12345",
-    body="PR: https://github.com/10gen/docs-mongodb-internal/pull/12345"
-)
-```
-
 ### Link two tickets
 
 ```python

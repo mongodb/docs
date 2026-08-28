@@ -104,17 +104,6 @@ jira_add_comment(issue_key="DOCSP-12345", comment="Comment body here.")
 
 To mention a user, use `[~username]` where username is their MongoDB email prefix (e.g. `[~jane.smith]`). Use this when requesting SME or stakeholder review.
 
-### Post a PR link comment
-
-When moving a ticket to Internal Review or Needs Merge, post the PR URL as a comment:
-
-```python
-jira_add_comment(
-    issue_key="DOCSP-12345",
-    comment="PR: https://github.com/10gen/docs-mongodb-internal/pull/12345"
-)
-```
-
 ### Link two tickets
 
 ```python

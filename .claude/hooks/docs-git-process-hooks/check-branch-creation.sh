@@ -25,7 +25,7 @@ fi
 
 # Check for git fetch origin && prefix
 if ! printf '%s' "$cmd" | grep -qE 'git[[:space:]]+fetch[[:space:]]+origin[[:space:]]+&&'; then
-  jq -n '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"Blocked: Always fetch before creating a branch. Use: git fetch origin && git checkout -b <name> origin/main"}}'
+  jq -n '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"Blocked: The fetch must be part of the same command as the branch creation, so a fetch you ran earlier does not satisfy this check. Use: git fetch origin && git checkout -b <name> origin/<base>. Any origin/<base> is accepted, not only origin/main -- to base on an unmerged branch, use its name, for example origin/DOCSP-12345-some-branch."}}'
   exit 0
 fi
 
@@ -54,7 +54,7 @@ fi
 
 # Check for origin/<base> start point
 if ! printf '%s' "$cmd" | grep -qE 'origin/[^[:space:]]+'; then
-  jq -n '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"Blocked: New branches must specify an origin/ base. Use: git fetch origin && git checkout -b <name> origin/main"}}'
+  jq -n '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"Blocked: New branches must specify an origin/<base> start point. Any origin/<base> is accepted, not only origin/main. Use: git fetch origin && git checkout -b <name> origin/main, or name another branch to base on it, for example origin/DOCSP-12345-some-branch."}}'
   exit 0
 fi
 
