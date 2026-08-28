@@ -19,6 +19,8 @@ Use the following methods to access the API:
 
 - :ref:`REST API <voyage-rest-api>`: for language-agnostic access.
 - :ref:`Python client <voyage-python-client>`: official client for ease of use.
+- :ref:`TypeScript client <voyage-typescript-client>`: official client for
+  TypeScript and JavaScript applications.
 
 This page summarizes how to access the API.
 For full details about the API, including rate limits and usage tiers, 
@@ -246,52 +248,157 @@ The following table describes the parameters you can pass when initializing
 the client:
 
 .. list-table::
- :widths: 15 10 5 70
- :header-rows: 1
+   :widths: 15 10 5 70
+   :header-rows: 1
 
- * - Parameter
-   - Type
-   - Required
-   - Description
- * - ``api_key``
-   - String
-   - No
-   - :ref:`Model API key <voyage-api-keys>`. Defaults to None.
-     
-     If None, the client searches for the API key in 
-     the following order:
+   * - Parameter
+     - Type
+     - Required
+     - Description
 
-     - ``voyageai.api_key_path``, path to the file containing the key
-     - environment variable ``VOYAGE_API_KEY_PATH``, which can be set
-       to the path to the file containing the key
-     - ``voyageai.api_key``, an attribute of the voyageai module, which
-       can be used to store the key
-     - environment variable ``VOYAGE_API_KEY``
+   * - ``api_key``
+     - String
+     - No
+     - :ref:`Model API key <voyage-api-keys>`. Defaults to None.
 
-     .. include:: /includes/facts/python-client-api-key-routing.rst
+       If None, the client searches for the API key in 
+       the following order:
 
- * - ``max_retries``
-   - Integer
-   - No
-   - Maximum number of retries for each API request in case of rate 
-     limit errors or temporary server unavailability. Defaults to 0.
-     
-     The client employs a wait-and-retry strategy to handle such errors and raises 
-     an exception upon reaching the maximum retry limit. By default, 
-     the client does not retry.
+       - ``voyageai.api_key_path``, path to the file containing the key
+       - environment variable ``VOYAGE_API_KEY_PATH``, which can be set
+         to the path to the file containing the key
+       - ``voyageai.api_key``, an attribute of the voyageai module, which
+         can be used to store the key
+       - environment variable ``VOYAGE_API_KEY``
 
- * - ``timeout``
-   - Integer
-   - No
-   - Maximum time in seconds to wait for a response from the API before 
-     aborting the request. Defaults to None.
-     
-     If the specified timeout is exceeded, the 
-     request is terminated and a timeout exception is raised. By 
-     default, no timeout constraint is enforced.
+       .. include:: /includes/facts/python-client-api-key-routing.rst
 
- * - ``base_url``
-   - String
-   - No
-   - Custom base URL for API requests. By default, the client automatically
-     detects the correct endpoint based on the provided API key.
+   * - ``max_retries``
+     - Integer
+     - No
+     - Maximum number of retries for each API request in case of rate 
+       limit errors or temporary server unavailability. Defaults to 0.
+
+       The client employs a wait-and-retry strategy to handle such errors and raises 
+       an exception upon reaching the maximum retry limit. By default, 
+       the client does not retry.
+
+   * - ``timeout``
+     - Integer
+     - No
+     - Maximum time in seconds to wait for a response from the API before 
+       aborting the request. Defaults to None.
+
+       If the specified timeout is exceeded, the 
+       request is terminated and a timeout exception is raised. By 
+       default, no timeout constraint is enforced.
+
+   * - ``base_url``
+     - String
+     - No
+     - Custom base URL for API requests. By default, the client automatically
+       detects the correct endpoint based on the provided API key.
+
+.. _voyage-typescript-client:
+
+TypeScript Client
+-----------------
+
+To install the official TypeScript package using ``npm``:
+
+.. code-block:: bash
+
+   npm install voyageai
+
+The ``VoyageAIClient`` class provides an asynchronous interface to
+invoke Voyage's API from TypeScript and JavaScript applications.
+Create a client object and use it to access {+voyageai+} models.
+
+Unlike the :ref:`Python client <voyage-python-client>`, the TypeScript
+client sends requests to the Voyage platform endpoint
+(``https://api.voyageai.com/v1``) by default. To use the
+{+voyage-api+} with your :ref:`model API key <voyage-api-keys>`, set the
+``environment`` option to ``https://ai.mongodb.com/v1`` when you
+create the client.
+
+.. example::
+
+   The following example shows how to initialize the client for the
+   {+voyage-api+} and generate embeddings:
+
+   .. code-block:: typescript
+
+      import { VoyageAIClient } from "voyageai";
+
+      // Initialize the client for the Embedding and Reranking API
+      const client = new VoyageAIClient({
+        apiKey: process.env.VOYAGE_API_KEY,     // Model API key
+        environment: "https://ai.mongodb.com/v1",
+        maxRetries: 3,                          // Retry up to 3 times
+        timeoutInSeconds: 30                    // Time out after 30 seconds
+      });
+
+      // Generate embeddings
+      const result = await client.embed({
+        input: ["MongoDB is redefining what a database is in the AI era."],
+        model: "voyage-4-large"
+      });
+
+      console.log(`Embedding dimension: ${result.data[0].embedding.length}`);
+      console.log(`Total tokens used: ${result.usage.totalTokens}`);
+
+The following table describes the options you can pass when
+initializing the client:
+
+.. list-table::
+   :widths: 15 10 5 70
+   :header-rows: 1
+
+   * - Option
+     - Type
+     - Required
+     - Description
+
+   * - ``apiKey``
+     - String
+     - Yes
+     - :ref:`Model API key <voyage-api-keys>`. If you don't set this
+       option, the client uses the ``VOYAGE_API_KEY`` environment
+       variable.
+
+   * - ``environment``
+     - String
+     - No
+     - Base URL for API requests. Defaults to
+       ``https://api.voyageai.com/v1``, the Voyage platform endpoint.
+       Set this option to ``https://ai.mongodb.com/v1`` to use the
+       {+voyage-api+}.
+
+   * - ``maxRetries``
+     - Number
+     - No
+     - Maximum number of retries for each API request in case of rate
+       limit errors or temporary server unavailability. Defaults to 2.
+
+       The client employs a wait-and-retry strategy to handle such
+       errors and throws an exception upon reaching the maximum retry
+       limit.
+
+   * - ``timeoutInSeconds``
+     - Number
+     - No
+     - Maximum time in seconds to wait for a response from the API
+       before aborting the request. Defaults to 60.
+
+       If the request exceeds the specified timeout, the client
+       terminates the request and throws a timeout exception.
+
+   * - ``headers``
+     - Object
+     - No
+     - Extra HTTP headers to send with every API request.
+
+In addition to ``embed``, the client provides the ``rerank``,
+``multimodalEmbed``, and ``contextualizedEmbed`` methods. For
+model-specific parameters, see the usage examples for each
+:ref:`model page <voyage-text-embeddings>`.
