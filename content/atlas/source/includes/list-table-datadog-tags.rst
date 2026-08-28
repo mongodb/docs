@@ -36,8 +36,13 @@
 
    * - ``hostnamestate``
      - State of your |service| hostname (primary, secondary, or individual process).
-       You can use this tag to filter collection-level latency metrics when querying 
+       You can use this tag to filter collection-level latency metrics when querying
        your sharded cluster or replica set.
+
+   * - ``nodeType``
+     - Type of node associated with the metric. Possible values are
+       ``ELECTABLE``, ``READ_ONLY``, and ``ANALYTICS``. For more
+       information, see :ref:`repl-set-node-types`.
 
    * - ``processor_name``
      - Name of the stream processor associated with the metric.
