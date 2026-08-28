@@ -1,4 +1,5 @@
 import type { TocItem } from '../types';
+import manualVersions from '../version-arrays/server-docs/manual';
 
 const tocData: TocItem[] = [
   {
@@ -41,6 +42,7 @@ const tocData: TocItem[] = [
         label: 'Timeouts',
         contentSite: 'docs',
         url: '/docs/:version/tutorial/query-documents/specify-query-timeout',
+        versions: { excludes: manualVersions.before('v8.0') },
       },
       {
         label: 'Perform Long-Running Snapshot Queries',

@@ -1,4 +1,5 @@
 import type { TocItem } from '../types';
+import manualVersions from '../version-arrays/server-docs/manual';
 
 const tocData: TocItem[] = [
   {
@@ -314,6 +315,7 @@ const tocData: TocItem[] = [
         label: 'Many-to-Many Embedded Documents',
         contentSite: 'docs',
         url: '/docs/:version/tutorial/model-embedded-many-to-many-relationships-between-documents',
+        versions: { excludes: manualVersions.before('v8.0') },
       },
     ],
   },
