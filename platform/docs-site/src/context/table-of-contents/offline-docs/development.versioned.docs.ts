@@ -500,6 +500,9 @@ export const toc: L1TocItem[] = [
                     label: 'Timeouts',
                     contentSite: 'docs',
                     url: '/docs/:version/tutorial/query-documents/specify-query-timeout',
+                    versions: {
+                      excludes: ['v7.0'],
+                    },
                   },
                   {
                     label: 'Perform Long-Running Snapshot Queries',
@@ -1635,6 +1638,9 @@ export const toc: L1TocItem[] = [
                     label: 'Many-to-Many Embedded Documents',
                     contentSite: 'docs',
                     url: '/docs/:version/tutorial/model-embedded-many-to-many-relationships-between-documents',
+                    versions: {
+                      excludes: ['v7.0'],
+                    },
                   },
                 ],
               },
@@ -4205,6 +4211,9 @@ export const toc: L1TocItem[] = [
                     contentSite: 'docs',
                     collapsible: true,
                     url: '/docs/:version/core/moveable-collections',
+                    versions: {
+                      excludes: ['v7.0'],
+                    },
                     items: [
                       {
                         label: 'Move a Collection',
@@ -4230,6 +4239,9 @@ export const toc: L1TocItem[] = [
                 contentSite: 'docs',
                 collapsible: true,
                 url: '/docs/:version/core/unsharded-collections',
+                versions: {
+                  excludes: ['v7.0'],
+                },
                 items: [
                   {
                     label: 'Unshard a Collection',
@@ -8351,7 +8363,7 @@ export const toc: L1TocItem[] = [
                       {
                         label: '$topN',
                         contentSite: 'docs',
-                        url: '/docs/:version/reference/operator/topN',
+                        url: '/docs/:version/reference/operator/aggregation/topN',
                       },
                       {
                         label: '$toString',

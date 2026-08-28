@@ -41,6 +41,11 @@ export const toc: L1TocItem[] = [
                 url: '/docs/drivers/php/laravel-mongodb/:version/connect/connection-options',
               },
               {
+                label: 'Network Compression',
+                contentSite: 'laravel',
+                url: '/docs/drivers/php/laravel-mongodb/:version/connect/network-compression',
+              },
+              {
                 label: 'TLS Configuration',
                 contentSite: 'laravel',
                 url: '/docs/drivers/php/laravel-mongodb/:version/connect/tls',

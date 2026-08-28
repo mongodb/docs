@@ -2486,6 +2486,9 @@ export const toc: L1TocItem[] = [
                     contentSite: 'docs',
                     collapsible: true,
                     url: '/docs/:version/core/sharding-scaling-strategies',
+                    versions: {
+                      excludes: ['v7.0'],
+                    },
                     items: [
                       {
                         label: 'Start with Sharded Clusters',
@@ -2547,6 +2550,9 @@ export const toc: L1TocItem[] = [
                     contentSite: 'docs',
                     collapsible: true,
                     url: '/docs/:version/core/config-shard',
+                    versions: {
+                      excludes: ['v7.0'],
+                    },
                     items: [
                       {
                         label: 'Convert a Replica Set to a Sharded Cluster with an Embedded Config Server',
@@ -2559,21 +2565,33 @@ export const toc: L1TocItem[] = [
                     label: 'Start with a Config Shard',
                     contentSite: 'docs',
                     url: '/docs/:version/tutorial/start-a-sharded-cluster-with-config-shard',
+                    versions: {
+                      excludes: ['v7.0'],
+                    },
                   },
                   {
                     label: 'Reshard to the Same Shard Key',
                     contentSite: 'docs',
                     url: '/docs/:version/core/reshard-to-same-key',
+                    versions: {
+                      excludes: ['v7.0'],
+                    },
                   },
                   {
                     label: 'Reshard a Collection back to the Same Shard Key',
                     contentSite: 'docs',
                     url: '/docs/:version/tutorial/resharding-back-to-same-key',
+                    versions: {
+                      excludes: ['v7.0'],
+                    },
                   },
                   {
                     label: 'Resharding for Adding and Removing Shards',
                     contentSite: 'docs',
                     url: '/docs/:version/tutorial/resharding-for-adding-and-removing-shards',
+                    versions: {
+                      excludes: ['v7.0'],
+                    },
                   },
                   {
                     label: 'Troubleshoot Stuck Chunk Migrations',
@@ -3399,11 +3417,17 @@ export const toc: L1TocItem[] = [
                         label: 'mongo Schema',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/audit-message/mongo',
+                        versions: {
+                          excludes: ['v7.0'],
+                        },
                       },
                       {
                         label: 'OSCF Schema',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/audit-message/ocsf',
+                        versions: {
+                          excludes: ['v7.0'],
+                        },
                       },
                     ],
                   },
