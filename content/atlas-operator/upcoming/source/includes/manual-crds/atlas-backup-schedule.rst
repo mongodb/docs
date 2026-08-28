@@ -195,7 +195,7 @@ Export policy for automatically exporting cloud backup snapshots to AWS bucket.
    * -  ``frequencyType``
      - enum
      - Human-readable label that indicates the rate at which the export policy item occurs.
-       *Enum*: monthly
+       *Enum*: monthly, yearly
        *Default*: monthly
      - true
 

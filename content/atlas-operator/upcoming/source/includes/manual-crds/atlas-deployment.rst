@@ -487,6 +487,12 @@ AtlasDeployment.spec.deploymentSpec.replicationSpecs.regionConfigs
      - Description
      - Required
 
+   * -  ``analyticsAutoScaling``
+     - object
+     - Options that determine how this cluster handles resource scaling for analytics nodes specifically.
+       When set, must match across all ``regionConfigs``. Atlas requires all ``autoScaling`` objects to be consistent.
+     - false
+
    * -  ``analyticsSpecs``
      - object
      - Hardware specifications for analytics nodes deployed in the region.
@@ -532,6 +538,91 @@ AtlasDeployment.spec.deploymentSpec.replicationSpecs.regionConfigs
      - string
      - Physical location of your ``MongoDB`` deployment.
        The region you choose can affect network latency for clients accessing your databases.
+     - false
+
+.. _atlasdeployment-spec-deploymentspec-replicationspecs-regionconfigs-analyticsautoscaling: 
+
+AtlasDeployment.spec.deploymentSpec.replicationSpecs.regionConfigs.analyticsAutoScaling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Options that determine how this cluster handles resource scaling for analytics nodes specifically.
+When set, must match across all regionConfigs. Atlas requires all autoScaling objects to be consistent.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 10 65 10
+
+   * -  ``Name``
+     - Type
+     - Description
+     - Required
+
+   * -  ``compute``
+     - object
+     - Collection of settings that configure how a deployment might scale its deployment tier and whether the deployment can scale down.
+     - false
+
+   * -  ``diskGB``
+     - object
+     - Flag that indicates whether disk auto-scaling is enabled. The default is true.
+     - false
+
+.. _atlasdeployment-spec-deploymentspec-replicationspecs-regionconfigs-analyticsautoscaling-compute: 
+
+AtlasDeployment.spec.deploymentSpec.replicationSpecs.regionConfigs.analyticsAutoScaling.compute
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Collection of settings that configure how a deployment might scale its deployment tier and whether the deployment can scale down.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 10 65 10
+
+   * -  ``Name``
+     - Type
+     - Description
+     - Required
+
+   * -  ``enabled``
+     - boolean
+     - Flag that indicates whether deployment tier auto-scaling is enabled. The default is false.
+     - false
+
+   * -  ``maxInstanceSize``
+     - string
+     - Maximum instance size to which your deployment can automatically scale (such as ``M40``). Atlas requires this parameter if "``autoScaling``.compute.enabled" : true.
+     - false
+
+   * -  ``minInstanceSize``
+     - string
+     - Minimum instance size to which your deployment can automatically scale (such as ``M10``). Atlas requires this parameter if "``autoScaling``.compute.``scaleDownEnabled``" : true.
+     - false
+
+   * -  ``scaleDownEnabled``
+     - boolean
+     - Flag that indicates whether the deployment tier may scale down. Atlas requires this parameter if "``autoScaling``.compute.enabled" : true.
+     - false
+
+.. _atlasdeployment-spec-deploymentspec-replicationspecs-regionconfigs-analyticsautoscaling-diskgb: 
+
+AtlasDeployment.spec.deploymentSpec.replicationSpecs.regionConfigs.analyticsAutoScaling.diskGB
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Flag that indicates whether disk auto-scaling is enabled. The default is true.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 10 65 10
+
+   * -  ``Name``
+     - Type
+     - Description
+     - Required
+
+   * -  ``enabled``
+     - boolean
+     - Flag that indicates whether this cluster enables disk auto-scaling.
+       The maximum memory allowed for the selected cluster tier and the oplog size can limit storage auto-scaling.
      - false
 
 .. _atlasdeployment-spec-deploymentspec-replicationspecs-regionconfigs-analyticsspecs: 
@@ -984,7 +1075,7 @@ AtlasDeployment.spec.deploymentSpec.searchNodes
 AtlasDeployment.spec.deploymentSpec.tags
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-TagSpec holds a key-value pair for resource tagging on this deployment.
+TagSpec holds a key-value pair for resource tagging on this resource.
 
 .. list-table::
    :header-rows: 1
@@ -1105,7 +1196,7 @@ Group of cloud provider settings that configure the provisioned MongoDB flex clu
 AtlasDeployment.spec.flexSpec.tags
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-TagSpec holds a key-value pair for resource tagging on this deployment.
+TagSpec holds a key-value pair for resource tagging on this resource.
 
 .. list-table::
    :header-rows: 1
@@ -1481,7 +1572,7 @@ DEPRECATED: Serverless private endpoints are deprecated. See `https://dochub.mon
 AtlasDeployment.spec.serverlessSpec.tags
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-TagSpec holds a key-value pair for resource tagging on this deployment.
+TagSpec holds a key-value pair for resource tagging on this resource.
 
 .. list-table::
    :header-rows: 1

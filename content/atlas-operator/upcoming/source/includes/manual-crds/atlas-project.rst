@@ -175,6 +175,14 @@ AtlasProjectSpec defines the target state of Project in Atlas
      - Settings allows the configuration of the Project Settings.
      - false
 
+   * -  ``tags``
+     - []object
+     - Tags is a list of key-value pairs used to tag and categorize the project. See more at
+       `https://www.mongodb.com/docs/atlas/tags/ <https://www.mongodb.com/docs/atlas/tags/>`__
+       If you omit this setting, Atlas Kubernetes Operator doesn't alter the project's tags. Set it to an empty list
+       to remove all ``tags`` from the project.
+     - false
+
    * -  ``teams``
      - []object
      - Teams enable you to grant project access roles to multiple users.
@@ -1803,6 +1811,32 @@ Settings allows the configuration of the Project Settings.
      - boolean
      - Flag that indicates whether to enable the Schema Advisor for the specified project.
      - false
+
+.. _atlasproject-spec-tags: 
+
+AtlasProject.spec.tags
+~~~~~~~~~~~~~~~~~~~~~~
+
+TagSpec holds a key-value pair for resource tagging on this resource.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 10 65 10
+
+   * -  ``Name``
+     - Type
+     - Description
+     - Required
+
+   * -  ``key``
+     - string
+     - Constant that defines the set of the tag.
+     - true
+
+   * -  ``value``
+     - string
+     - Variable that belongs to the set of the tag.
+     - true
 
 .. _atlasproject-spec-teams: 
 
