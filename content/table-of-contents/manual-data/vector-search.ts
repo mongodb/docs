@@ -47,7 +47,7 @@ const tocData: TocItem[] = [
       {
         label: 'Index Reference',
         contentSite: 'vector-search',
-        url: '/docs/vector-search/index/vector-search-type',
+        url: '/docs/vector-search/indexes/vector-search-type',
       },
       {
         label: 'Query Reference',

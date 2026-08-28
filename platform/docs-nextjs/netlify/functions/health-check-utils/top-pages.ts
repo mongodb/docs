@@ -105,7 +105,7 @@ export const TOP_PAGES: string[] = [
   'https://www.mongodb.com/docs/manual/tutorial/remove-documents/',
   'https://www.mongodb.com/docs/manual/reference/mql/expressions/',
   'https://www.mongodb.com/docs/database-tools/mongoexport/',
-  'https://www.mongodb.com/docs/vector-search/index/vector-search-type/',
+  'https://www.mongodb.com/docs/vector-search/indexes/vector-search-type/',
   'https://www.mongodb.com/docs/manual/administration/production-notes/',
   'https://www.mongodb.com/docs/manual/core/views/',
   'https://www.mongodb.com/docs/atlas/billing/atlas-flex-costs/',
