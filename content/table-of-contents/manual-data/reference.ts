@@ -2170,6 +2170,12 @@ const tocData: TocItem[] = [
             url: '/docs/:version/reference/method/sh.getShardedDataDistribution',
           },
           {
+            label: 'sh.getTransitionToDedicatedConfigServerStatus',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/method/sh.getTransitionToDedicatedConfigServerStatus',
+            versions: { excludes: manualVersions.before('v9.0') },
+          },
+          {
             label: 'sh.help',
             contentSite: 'docs',
             url: '/docs/:version/reference/method/sh.help',
@@ -2243,6 +2249,12 @@ const tocData: TocItem[] = [
             label: 'sh.shardCollection',
             contentSite: 'docs',
             url: '/docs/:version/reference/method/sh.shardCollection',
+          },
+          {
+            label: 'sh.shardDrainingStatus',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/method/sh.shardDrainingStatus',
+            versions: { excludes: manualVersions.before('v9.0') },
           },
           {
             label: 'sh.splitAt',
