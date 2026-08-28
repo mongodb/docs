@@ -2,49 +2,19 @@
 // Run: pnpm generate:redirects to regenerate.
 import type { RedirectEntry } from './redirect-utils';
 import appServicesRedirects from './app-services-redirects.json';
-import atlasArchitectureRedirects from './atlas-architecture-redirects.json';
 import atlasCliRedirects from './atlas-cli-redirects.json';
-import atlasGovernmentRedirects from './atlas-government-redirects.json';
-import atlasOperatorRedirects from './atlas-operator-redirects.json';
-import atlasRedirects from './atlas-redirects.json';
-import biConnectorRedirects from './bi-connector-redirects.json';
-import chartsRedirects from './charts-redirects.json';
-import cloudManagerRedirects from './cloud-manager-redirects.json';
-import kafkaConnectorRedirects from './kafka-connector-redirects.json';
-import kotlinRedirects from './kotlin-redirects.json';
-import kubernetesOperatorRedirects from './kubernetes-operator-redirects.json';
-import kubernetesRedirects from './kubernetes-redirects.json';
 import landingRedirects from './landing-redirects.json';
-import mongocliRedirects from './mongocli-redirects.json';
 import realmRedirects from './realm-redirects.json';
 import searchRedirects from './search-redirects.json';
-import selfManagedSearchRedirects from './self-managed-search-redirects.json';
-import sqlInterfaceRedirects from './sql-interface-redirects.json';
 import standbyClustersRedirects from './standby-clusters-redirects.json';
 import vectorSearchRedirects from './vector-search-redirects.json';
-import voyageaiRedirects from './voyageai-redirects.json';
 
 export const allRedirects: RedirectEntry[] = [
   ...appServicesRedirects,
-  ...atlasArchitectureRedirects,
   ...atlasCliRedirects,
-  ...atlasGovernmentRedirects,
-  ...atlasOperatorRedirects,
-  ...atlasRedirects,
-  ...biConnectorRedirects,
-  ...chartsRedirects,
-  ...cloudManagerRedirects,
-  ...kafkaConnectorRedirects,
-  ...kotlinRedirects,
-  ...kubernetesOperatorRedirects,
-  ...kubernetesRedirects,
   ...landingRedirects,
-  ...mongocliRedirects,
   ...realmRedirects,
   ...searchRedirects,
-  ...selfManagedSearchRedirects,
-  ...sqlInterfaceRedirects,
   ...standbyClustersRedirects,
   ...vectorSearchRedirects,
-  ...voyageaiRedirects,
 ] as RedirectEntry[];
