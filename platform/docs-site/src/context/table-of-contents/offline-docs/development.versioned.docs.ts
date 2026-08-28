@@ -8768,6 +8768,9 @@ export const toc: L1TocItem[] = [
                     label: 'Migrate Undefined Data and Queries',
                     contentSite: 'docs',
                     url: '/docs/:version/reference/bson-types/migrate-undefined',
+                    versions: {
+                      excludes: ['v7.0'],
+                    },
                   },
                   {
                     label: 'Extended JSON (v2)',

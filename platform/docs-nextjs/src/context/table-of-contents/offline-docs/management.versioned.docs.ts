@@ -2807,6 +2807,9 @@ export const toc: L1TocItem[] = [
                     label: 'Node Direct Commands',
                     contentSite: 'docs',
                     url: '/docs/:version/reference/supported-shard-direct-commands',
+                    versions: {
+                      excludes: ['v7.0'],
+                    },
                   },
                 ],
               },
