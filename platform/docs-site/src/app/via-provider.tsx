@@ -4,6 +4,7 @@ import { useContext } from 'react';
 import { ViaProvider } from '@via-ds/components';
 import { ColorScheme, Size } from '@via-ds/components/types';
 import '@via-ds/components/index.css';
+import '@via-ds/icons/styles.css';
 
 import { DarkModeContext } from '@/context/dark-mode-context';
 

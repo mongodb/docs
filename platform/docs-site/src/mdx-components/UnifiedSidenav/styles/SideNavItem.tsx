@@ -12,18 +12,39 @@ export const sideNavItemBasePadding = css`
       display: none;
     }
   }
+
+  /* && doubles specificity so these outrank Via Link's own styles. Via sets the
+     padding shorthand, so restate LG's base here; each level's padding-left
+     lands on top of it. */
+  && {
+    display: flex;
+    padding: 6px 16px;
+
+    &:hover {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    &:focus-visible {
+      outline: none;
+    }
+  }
 `;
 
 export const l1ItemStyling = ({ isActive, isAccordion }: { isActive: boolean; isAccordion: boolean }) => css`
   ${sideNavItemBasePadding}
-  padding-left: ${theme.size.medium};
-  padding-right: ${theme.size.medium};
-  padding-top: ${theme.size.default};
-  padding-bottom: ${isActive && isAccordion ? theme.size.small : theme.size.default};
-  font-weight: 500;
-  font-size: 12px;
-  line-height: 16px;
-  text-transform: uppercase;
+
+  /* && doubles specificity so these outrank Via Link's padding and type scale. */
+  && {
+    padding-left: ${theme.size.medium};
+    padding-right: ${theme.size.medium};
+    padding-top: ${theme.size.default};
+    padding-bottom: ${isActive && isAccordion ? theme.size.small : theme.size.default};
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 16px;
+    text-transform: uppercase;
+  }
 
   ${isActive &&
   css`
@@ -91,17 +112,21 @@ export const groupHeaderStyling = ({ isAccordion }: { isAccordion: boolean }) =>
 
 export const l2ItemStyling = ({ level, isAccordion }: { level: number; isAccordion: boolean }) => css`
   ${sideNavItemBasePadding}
-  line-height: 20px;
-  font-size: ${theme.fontSize.small};
-  text-transform: none !important;
 
-  ${isAccordion
-    ? css`
-        padding-left: calc(20px + ${(level - 1) * 25}px);
-      `
-    : css`
-        padding-left: calc(${theme.size.default} + ${(level - 1) * 25}px);
-      `}
+  /* && doubles specificity so these outrank Via Link's padding and type scale. */
+  && {
+    line-height: 20px;
+    font-size: ${theme.fontSize.small};
+    text-transform: none !important;
+
+    ${isAccordion
+      ? css`
+          padding-left: calc(20px + ${(level - 1) * 25}px);
+        `
+      : css`
+          padding-left: calc(${theme.size.default} + ${(level - 1) * 25}px);
+        `}
+  }
 
   /* Hides the left tab on Active Selection */
 

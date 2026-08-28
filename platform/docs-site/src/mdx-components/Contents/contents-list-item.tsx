@@ -39,28 +39,32 @@ const listItemStyling = ({ isActive }: { isActive: boolean }) => css`
 `;
 
 const linkStyling = ({ depth, isActive }: { depth: number; isActive: boolean }) => css`
-  color: var(--font-color-primary);
-  font-size: ${theme.fontSize.small};
-  line-height: ${theme.fontSize.default};
-  font-weight: normal;
+  /* && doubles specificity so these outrank Via Link's own layout and type scale. */
+  && {
+    color: var(--font-color-primary);
+    font-size: ${theme.fontSize.small};
+    line-height: ${theme.fontSize.default};
+    font-weight: normal;
 
-  ${isActive && ` font-weight: 600;`}
+    ${isActive && ` font-weight: 600;`}
 
-  display: inline-block;
-  padding-left: ${`${depth * LINK_DEPTH_PADDING}px`};
-  width: 100%;
+    display: inline-block;
+    padding-left: ${`${depth * LINK_DEPTH_PADDING}px`};
+    width: 100%;
 
-  @media ${theme.screenSize.largeAndUp} {
-    padding-left: calc(14px + ${depth * LINK_DEPTH_PADDING}px);
-  }
+    @media ${theme.screenSize.largeAndUp} {
+      padding-left: calc(14px + ${depth * LINK_DEPTH_PADDING}px);
+    }
 
-  :hover,
-  :active {
-    color: currentColor;
-    text-decoration: none;
-  }
-  span > span {
-    position: unset;
+    &:hover,
+    &:active {
+      color: currentColor;
+      text-decoration: none;
+    }
+
+    span > span {
+      position: unset;
+    }
   }
 `;
 

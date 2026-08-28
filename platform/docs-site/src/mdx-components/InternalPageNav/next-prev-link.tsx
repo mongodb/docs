@@ -66,9 +66,11 @@ const baseButtonStyle = css`
 `;
 
 const noUnderlineLinkStyling = css`
-  &:hover,
-  &:focus {
-    text-decoration: none;
+  && {
+    &:hover,
+    &:focus {
+      text-decoration: none;
+    }
   }
 `;
 

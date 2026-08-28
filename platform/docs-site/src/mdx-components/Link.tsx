@@ -2,78 +2,14 @@
 
 import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
-import { css, cx } from '@leafygreen-ui/emotion';
-import { useDarkMode } from '@leafygreen-ui/leafygreen-provider';
-import { palette } from '@leafygreen-ui/palette';
-import { Link as LGLink } from '@leafygreen-ui/typography';
+import { clsx } from 'clsx';
+import { Link as ViaLink, LinkStyle } from '@via-ds/components';
+import styles from './link.module.scss';
 import { validateHTMAttributes } from '@/utils/validate-element-attributes';
-import { Icon } from '@leafygreen-ui/icon';
 import { isRelativeUrl } from '@/utils/is-relative-url';
 import { assertLeadingAndTrailingSlash } from '@/utils/assert-leading-and-trailing-slash';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
 import { getBasePath, sameProjectHref } from '@/utils/base-path';
-
-type LinkThemeStyle = {
-  color: string;
-  focusTextDecorColor: string;
-  hoverTextDecorColor: string;
-  fontWeight: string | number;
-};
-
-type LinkThemeStyles = { light: LinkThemeStyle; dark: LinkThemeStyle };
-
-const THEME_STYLES: LinkThemeStyles = {
-  light: {
-    color: palette.blue.base,
-    focusTextDecorColor: palette.blue.base,
-    hoverTextDecorColor: palette.gray.light2,
-    fontWeight: 'inherit',
-  },
-  dark: {
-    color: palette.blue.light1,
-    focusTextDecorColor: palette.blue.light1,
-    hoverTextDecorColor: palette.gray.dark2,
-    fontWeight: 700,
-  },
-};
-
-export const sharedDarkModeOverwriteStyles = `
-  color: var(--link-color-primary);
-  font-weight: var(--link-font-weight);
-`;
-
-/**
- * CSS purloined from LG Link definition (source: https://bit.ly/3JpiPIt)
- * @param {ThemeStyle} linkThemeStyle
- */
-const linkStyling = (linkThemeStyle: LinkThemeStyle) => css`
-  align-items: center;
-  cursor: pointer;
-  position: relative;
-  text-decoration: none;
-  text-decoration-color: transparent;
-  line-height: 13px;
-  ${sharedDarkModeOverwriteStyles}
-
-  > span > code, > code {
-    ${sharedDarkModeOverwriteStyles}
-  }
-
-  &:focus,
-  &:hover {
-    text-decoration-line: underline;
-    transition: text-decoration 150ms ease-in-out;
-    text-underline-offset: 4px;
-    text-decoration-thickness: 2px;
-  }
-  &:focus {
-    text-decoration-color: ${linkThemeStyle.focusTextDecorColor};
-    outline: none;
-  }
-  &:hover {
-    text-decoration-color: ${linkThemeStyle.hoverTextDecorColor};
-  }
-`;
 
 /**
  * Inserts index.html before the hash fragment (or at the end) for offline builds
@@ -90,50 +26,10 @@ function addOfflineIndexHtml(url: string): string {
   return path + '/index.html' + hash;
 }
 
-// Symlinks (absolute mongodb.com/docs URLs) render with a rotated ArrowRight glyph.
-const symLinkStyling = css`
-  padding-top: 6px;
-  padding-bottom: 6px;
-  svg {
-    transform: rotate(-45deg);
-    margin-left: 7px;
-    margin-bottom: -3px;
-    width: 13px;
-    height: 13px;
-    opacity: 1;
-  }
-`;
-
-// In the sidenav, the external-link icon should match the nav item text color
-// instead of LG's default icon color.
-const sidenavExternalIconStyling = css`
-  svg {
-    color: ${palette.gray.base};
-  }
-`;
-
-// DOP-3091: LG anchors are not inline by default
-const lgLinkStyling = css`
-  display: inline;
-  ${sharedDarkModeOverwriteStyles}
-
-  > span > code, > code {
-    ${sharedDarkModeOverwriteStyles}
-  }
-
-  /* LG Link only nudges the OpenNewTab glyph ~1px; align like a superscript. */
-  & > svg[role='presentation'] {
-    vertical-align: super;
-    position: relative;
-    top: 0;
-  }
-`;
-
 type LinkProps = {
   children?: React.ReactNode;
   className?: string;
   to?: string;
-  showLinkArrow?: boolean;
   hideExternalIcon?: boolean;
   showExternalIcon?: boolean;
   openInNewTab?: boolean;
@@ -146,7 +42,6 @@ export const Link = ({
   children,
   className,
   to,
-  showLinkArrow,
   hideExternalIcon,
   showExternalIcon,
   openInNewTab,
@@ -177,40 +72,23 @@ export const Link = ({
   const anchor = to.startsWith('#');
 
   const anchorProps = validateHTMAttributes('anchor', other);
-  const { theme: siteTheme } = useDarkMode();
-
-  const decoration = showLinkArrow ? (
-    <span>
-      {' '}
-      <Icon role="presentation" size={12} glyph="ArrowRight" />{' '}
-    </span>
-  ) : (
-    ''
-  );
 
   const strippedUrl = to?.replace(/(^https:\/\/)|(www\.)/g, '');
   const isMDBLink = strippedUrl.includes('mongodb.com');
-  const showExtIcon = showExternalIcon ?? (!anchor && !isMDBLink && !hideExternalIcon);
 
-  // A symlink is an absolute mongodb.com/docs URL (e.g. a TOC entry pointing to
-  // another docs property). Relative TOC paths like /docs/atlas are not symlinks.
-  // Only the sidenav renders these with the rotated arrow; content links don't.
-  const isDocsSymlink = isSidenav && !!to && !anchor && !isRelativeUrl(to) && strippedUrl.includes('mongodb.com/docs');
+  // A symlink is an absolute mongodb.com/docs URL, e.g. a TOC entry pointing at
+  // another docs property. Only the sidenav flags these; the same URL in content
+  // stays icon-free, which is what isSidenav distinguishes.
+  const isDocsSymlink =
+    !!isSidenav && !!to && !anchor && !isRelativeUrl(to) && strippedUrl.includes('mongodb.com/docs');
 
-  if (isDocsSymlink) {
-    return (
-      <NextLink className={cx(symLinkStyling, className)} onClick={onClick} href={to} target="_self" {...anchorProps}>
-        {children}
-        {decoration}
-        <Icon glyph="ArrowRight" fill={palette.gray.base} />
-      </NextLink>
-    );
-  }
+  // A symlink shows the icon whatever isMDBLink and hideExternalIcon say.
+  const showExtIcon = showExternalIcon ?? (isDocsSymlink || (!anchor && !isMDBLink && !hideExternalIcon));
 
   if (to && isRelativeUrl(to) && !anchor) {
     to = assertLeadingAndTrailingSlash(to);
 
-    const linkClassName = cx(linkStyling(THEME_STYLES[siteTheme]), className);
+    const linkClassName = clsx(styles.link, className);
     const linkTarget = !showExtIcon ? '_self' : undefined;
 
     // Same-deploy links navigate client-side via NextLink (sameProjectHref
@@ -219,15 +97,8 @@ export const Link = ({
     const clientHref = isOfflineBuild ? null : sameProjectHref(to);
     if (clientHref) {
       return (
-        <NextLink
-          className={linkClassName}
-          onClick={onClick}
-          href={clientHref}
-          target={linkTarget}
-          {...anchorProps}
-        >
+        <NextLink className={linkClassName} onClick={onClick} href={clientHref} target={linkTarget} {...anchorProps}>
           {children}
-          {decoration}
         </NextLink>
       );
     }
@@ -237,24 +108,30 @@ export const Link = ({
     return (
       <a className={linkClassName} onClick={onClick} href={to} target={linkTarget} {...anchorProps}>
         {children}
-        {decoration}
       </a>
     );
   }
 
-  const target = showExtIcon || openInNewTab ? '_blank' : '_self';
+  // External and anchor links render Via Link. Leaving target unset lets Via add
+  // rel="noopener noreferrer" alongside target="_blank"; passing target makes its
+  // getAnchorProps() return early and drop the rel. Symlinks opt out — they show
+  // the icon but stay in the same tab.
+  const needsNewTab = !showExtIcon && !!openInNewTab;
+  const target = isDocsSymlink ? '_self' : showExtIcon ? undefined : needsNewTab ? '_blank' : '_self';
 
   return (
-    <LGLink
+    <ViaLink
       href={to}
-      className={cx(lgLinkStyling, isSidenav && sidenavExternalIconStyling, className)}
-      hideExternalIcon={!showExtIcon}
+      className={clsx(styles.viaLink, className)}
+      linkStyle={showExtIcon ? LinkStyle.External : LinkStyle.Internal}
       target={target}
-      onClick={onClick}
+      rel={needsNewTab ? 'noopener noreferrer' : undefined}
+      // React Aria drops onClick, and its PressEvent has target but no
+      // currentTarget, which sidenav analytics reads. Bridge the two.
+      onPress={onClick && ((e) => (onClick as (arg: { currentTarget: Element }) => void)({ currentTarget: e.target }))}
       {...anchorProps}
     >
       {children}
-      {decoration}
-    </LGLink>
+    </ViaLink>
   );
 };

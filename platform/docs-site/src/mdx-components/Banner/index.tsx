@@ -21,6 +21,7 @@ const bannerStyle = ({ variant }: { variant: string }) => css`
   }
   a {
     color: ${styleMapLight[variant].linkColor};
+    font-weight: inherit;
     :hover {
       color: ${styleMapLight[variant].color};
       text-decoration-color: ${styleMapLight[variant].color};
@@ -37,6 +38,7 @@ const bannerStyle = ({ variant }: { variant: string }) => css`
     background-color: ${styleMapDark[variant].backgroundColor};
     color: ${styleMapDark[variant].color};
     border-color: ${styleMapDark[variant].borderColor};
+    font-weight: inherit;
     ::before {
       background: linear-gradient(to left, transparent 6px, ${styleMapDark[variant].beforeColor} 6px);
     }

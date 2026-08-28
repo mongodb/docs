@@ -70,6 +70,22 @@ describe('Link component renders a variety of strings correctly', () => {
     expect(tree.asFragment()).toMatchSnapshot();
   });
 
+  // A sidenav symlink points at another docs property. It is a mongodb.com URL,
+  // so the plain external heuristic would suppress its icon; isSidenav forces
+  // Via's external glyph while keeping navigation in the same tab.
+  it('sidenav symlink to another docs property', () => {
+    const tree = setup({ to: 'https://www.mongodb.com/docs/atlas/', isSidenav: true, text: 'Atlas' });
+    const anchor = tree.container.querySelector('a');
+    expect(anchor).toHaveAttribute('target', '_self');
+    expect(anchor?.querySelector('svg')).toBeInTheDocument();
+    expect(tree.asFragment()).toMatchSnapshot();
+  });
+
+  it('sidenav link to a relative path is not a symlink', () => {
+    const tree = setup({ to: 'drivers/c', isSidenav: true, text: 'C Driver' });
+    expect(tree.container.querySelector('svg')).not.toBeInTheDocument();
+  });
+
   it('identfies mailto links as external urls', () => {
     const tree = setup({ to: 'mailto:docs@mongodb.com', text: 'docs@mongodb.com' });
     expect(tree.asFragment()).toMatchSnapshot();
