@@ -11,8 +11,14 @@ contains the following information about the new database user:
 
 .. note::
 
-   Alternatively, you can specify an optional 
-   ``spec.connectionStringSecretName`` field in the 
-   :ref:`mongodbuser-specification` to specify 
-   the name of the connection string secret that the 
+   Alternatively, you can specify an optional
+   ``spec.connectionStringSecretName`` field in the
+   :ref:`mongodbuser-specification` to specify
+   the name of the connection string secret that the
    |k8s-op-short| creates.
+
+   By default, both connection strings omit the database from the URI
+   path, so the database that clients use depends on the client. To
+   set the database in the URI path, specify the optional
+   :ref:`spec.connectionStringDatabase
+   <mdbuser-spec-connection-string-database>` field.

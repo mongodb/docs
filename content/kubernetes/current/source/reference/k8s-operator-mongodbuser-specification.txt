@@ -61,6 +61,15 @@ This section describes settings that you must use for all ``MongoDBUser`` resour
 
   Name of the MongoDB database that these users will access. The default is ``admin``.
 
+  ``spec.db`` sets the user's authentication database. The
+  |k8s-op-short| uses this database to identify the user. It also
+  sets the ``authSource`` parameter in the generated connection
+  string and names the generated connection string secret.
+
+  To set the database in the connection string URI path, use
+  :ref:`spec.connectionStringDatabase
+  <mdbuser-spec-connection-string-database>`.
+
 .. _mdbuser-spec-username:
 
 ``spec.username``
@@ -72,6 +81,33 @@ Optional ``MongoDBUser`` Resource Settings
 ------------------------------------------
 
 The ``MongoDBUser`` custom resource can use the following settings:
+
+.. _mdbuser-spec-connection-string-database:
+
+``spec.connectionStringDatabase``
+  *Type*: string
+
+  Name of the database in the URI path of the connection string that
+  the |k8s-op-short| generates for this user. Clients that read the
+  connection string secret use this database by default.
+
+  ``spec.connectionStringDatabase`` changes the URI path but not
+  authentication, which :ref:`spec.db <mdbuser-spec-db>` controls.
+  For example, a user with a ``spec.db`` of ``admin`` and a
+  ``spec.connectionStringDatabase`` of ``myapp`` authenticates
+  against ``admin`` and uses ``myapp`` by default:
+
+  .. code-block:: none
+
+     mongodb://my-user:pass@host:27017/myapp?authSource=admin
+
+  The |k8s-op-short| applies the database to both the
+  ``connectionString.standard`` and ``connectionString.standardSrv``
+  keys of the connection string secret.
+
+  Leaving this setting blank results in an empty URI path. 
+  In this case, your client determines the active 
+  database-for instance, |mongosh| uses``test`` by default.
 
 ``spec.connectionStringSecretName``
   *Type*: string
