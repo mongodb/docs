@@ -689,6 +689,7 @@ const tocData: TocItem[] = [
             label: 'Scaling Strategies',
             contentSite: 'docs',
             url: '/docs/:version/core/sharding-scaling-strategies',
+            versions: { excludes: manualVersions.before('v8.0') },
             collapsible: true,
             items: [
               {
@@ -748,6 +749,7 @@ const tocData: TocItem[] = [
             label: 'Config Shard',
             contentSite: 'docs',
             url: '/docs/:version/core/config-shard',
+            versions: { excludes: manualVersions.before('v8.0') },
             collapsible: true,
             items: [
               {
@@ -762,21 +764,25 @@ const tocData: TocItem[] = [
             label: 'Start with a Config Shard',
             contentSite: 'docs',
             url: '/docs/:version/tutorial/start-a-sharded-cluster-with-config-shard',
+            versions: { excludes: manualVersions.before('v8.0') },
           },
           {
             label: 'Reshard to the Same Shard Key',
             contentSite: 'docs',
             url: '/docs/:version/core/reshard-to-same-key',
+            versions: { excludes: manualVersions.before('v8.0') },
           },
           {
             label: 'Reshard a Collection back to the Same Shard Key',
             contentSite: 'docs',
             url: '/docs/:version/tutorial/resharding-back-to-same-key',
+            versions: { excludes: manualVersions.before('v8.0') },
           },
           {
             label: 'Resharding for Adding and Removing Shards',
             contentSite: 'docs',
             url: '/docs/:version/tutorial/resharding-for-adding-and-removing-shards',
+            versions: { excludes: manualVersions.before('v8.0') },
           },
           {
             label: 'Troubleshoot Stuck Chunk Migrations',
@@ -1009,6 +1015,7 @@ const tocData: TocItem[] = [
             label: 'Node Direct Commands',
             contentSite: 'docs',
             url: '/docs/:version/reference/supported-shard-direct-commands',
+            versions: { excludes: manualVersions.before('v8.0') },
           },
         ],
       },
