@@ -29,40 +29,61 @@ CONNECTION_STRING = os.getenv("CONNECTION_STRING")
 
 # --- Pre-import mocking ---
 # config.py initializes voyageai.Client() and OpenAI() at import time, so the
-# example modules cannot be imported without valid credentials. Replacing the
-# SDKs via sys.modules before import lets the unit tests import config.py and
-# exercise the calculator, memory, and MongoDB logic without API keys.
+# example modules cannot be imported without valid credentials. ingest_data.py
+# imports LangChain's PDF loader and text splitter, and tools.py imports from
+# ingest_data, so importing any agent module also pulls in LangChain and its
+# heavy transitive dependencies (transformers). Replacing all of these via
+# sys.modules before import lets the unit tests import config.py and exercise
+# the calculator, memory, and MongoDB logic without API keys.
+#
+# The mocks are installed only for the duration of the example imports below
+# and are then restored. The example modules bind the names they need at import
+# time (config.py binds the client instances, ingest_data.py binds PyPDFLoader
+# and RecursiveCharacterTextSplitter), so they keep their mocks afterward.
+#
+# Leaving the mocks in sys.modules permanently breaks any test module that
+# imports the real package later in the same interpreter: a MagicMock has no
+# __path__, so submodule imports such as langchain_community.storage fail with
+# "is not a package". Test discovery imports every test module before running
+# any test, so a leaked mock reaches tests that import lazily inside a function.
 _mock_voyageai = MagicMock()
 _mock_vo_instance = MagicMock()
 _mock_voyageai.Client.return_value = _mock_vo_instance
-sys.modules["voyageai"] = _mock_voyageai
 
 _mock_openai_module = MagicMock()
 _mock_openai_client_instance = MagicMock()
 _mock_openai_module.OpenAI.return_value = _mock_openai_client_instance
-sys.modules["openai"] = _mock_openai_module
 
-# ingest_data.py imports LangChain's PDF loader and text splitter, and tools.py
-# imports from ingest_data, so importing any agent module pulls in LangChain and
-# its heavy transitive dependencies (transformers). The PDF ingestion path is
-# only exercised by the integration class, so the LangChain packages are mocked
-# here to keep the unit tests import-light and free of third-party dependencies.
 _mock_lc_document_loaders = MagicMock()
 _mock_lc_community = MagicMock()
 _mock_lc_community.document_loaders = _mock_lc_document_loaders
-sys.modules["langchain_community"] = _mock_lc_community
-sys.modules["langchain_community.document_loaders"] = _mock_lc_document_loaders
-sys.modules["langchain_text_splitters"] = MagicMock()
+
+_import_mocks = {
+    "voyageai": _mock_voyageai,
+    "openai": _mock_openai_module,
+    "langchain_community": _mock_lc_community,
+    "langchain_community.document_loaders": _mock_lc_document_loaders,
+    "langchain_text_splitters": MagicMock(),
+}
+_saved_modules = {name: sys.modules.get(name) for name in _import_mocks}
+sys.modules.update(_import_mocks)
 
 # Import the example modules only when a MongoDB connection string is present.
 # The unit tests need a live local deployment to exercise the memory logic.
-if CONNECTION_STRING:
-    import examples.vector_search.ai_agent.config as config
-    import examples.vector_search.ai_agent.ingest_data as ingest_data
-    import examples.vector_search.ai_agent.tools as tools
-    import examples.vector_search.ai_agent.memory as memory
-    import examples.vector_search.ai_agent.planning as planning
-    import examples.vector_search.ai_agent.main as main
+try:
+    if CONNECTION_STRING:
+        import examples.vector_search.ai_agent.config as config
+        import examples.vector_search.ai_agent.ingest_data as ingest_data
+        import examples.vector_search.ai_agent.tools as tools
+        import examples.vector_search.ai_agent.memory as memory
+        import examples.vector_search.ai_agent.planning as planning
+        import examples.vector_search.ai_agent.main as main
+finally:
+    for _name, _original in _saved_modules.items():
+        if _original is None:
+            sys.modules.pop(_name, None)
+        else:
+            sys.modules[_name] = _original
 
 
 @unittest.skipIf(

@@ -9,13 +9,16 @@ Atlas cluster plus ``CONNECTION_STRING``, ``OPENAI_API_KEY``,
 any of those are missing so the suite can run in CI without secrets.
 
 This lives in a separate file from ``test_ai_agent.py`` on purpose. The unit
-suite installs mock ``voyageai``/``openai`` SDKs into ``sys.modules`` at import
-time, and ``unittest discover`` loads that module first (alphabetical order).
-Because Python caches imported modules, the example modules it imports would
-otherwise stay bound to those mocks here too, and these tests would never touch
-the real APIs. Before importing the example modules, this file removes any
-mocked SDKs and any cached ``ai_agent`` example modules from ``sys.modules`` so
-the import below binds the real vendor clients.
+suite installs mock ``voyageai``/``openai`` SDKs into ``sys.modules`` only
+around its own example imports and then restores the real entries, so no mock
+is left behind for this file. The example modules themselves are a different
+matter: they bind the mocked names at import time and Python caches them, so
+the copies the unit suite imported stay bound to the mocks. ``unittest
+discover`` loads that module first (alphabetical order), so without
+intervention these tests would reuse those cached modules and never touch the
+real APIs. Before importing the example modules, this file drops the cached
+``ai_agent`` modules from ``sys.modules`` so the import below re-executes them
+against the real vendor clients.
 
 Because live LLM output is non-deterministic, assertions verify behavior and
 structure (embedding dimensions, non-empty search hits, valid tool selection,
@@ -43,17 +46,16 @@ CONNECTION_STRING = os.getenv("CONNECTION_STRING")
 
 # Import the example modules with the real SDKs only when the integration
 # environment is fully configured. When it is not (for example, in CI), the
-# class below skips and this import block never runs, so the unit suite's mocks
-# are left untouched.
+# class below skips and this import block never runs.
 if not MISSING_ENV_VARS:
-    # Drop the unit suite's mock SDKs and any example modules it imported while
-    # those mocks were active, so the import below loads the real clients.
+    # Drop any example modules the unit suite imported while its mock SDKs were
+    # active, so the import below re-executes them against the real clients.
+    # The mock SDKs themselves are already gone: the unit suite restores the
+    # real ``sys.modules`` entries as soon as its own imports finish.
     for _cached in [
         name
         for name in sys.modules
-        if name == "voyageai"
-        or name == "openai"
-        or name.startswith("examples.vector_search.ai_agent")
+        if name.startswith("examples.vector_search.ai_agent")
     ]:
         del sys.modules[_cached]
 

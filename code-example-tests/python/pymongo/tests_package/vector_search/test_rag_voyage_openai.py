@@ -3,15 +3,21 @@ Tests for the RAG pipeline examples (Voyage AI embeddings + OpenAI generation).
 
 Mock notices
 ------------
-- voyageai: Replaced via sys.modules before any example module loads.
-  The module-level ``vo = voyageai.Client()`` in get_embeddings_voyage.py
-  receives a MagicMock instance. No real Voyage AI API calls are made.
-- openai: Replaced via sys.modules before rag_pipeline loads.
+- voyageai: Replaced via sys.modules before any example module loads, then
+  restored. The module-level ``vo = voyageai.Client()`` in
+  get_embeddings_voyage.py receives a MagicMock instance. No real Voyage AI
+  API calls are made.
+- openai: Replaced via sys.modules before rag_pipeline loads, then restored.
   ``OpenAI()`` in generate_response() returns a MagicMock. No real
   OpenAI API calls are made.
-- huggingface_hub: Replaced via sys.modules before rag_pipeline loads.
-  ``InferenceClient(...)`` in generate_response_hf() returns a MagicMock.
-  No real Hugging Face Inference API calls are made.
+- huggingface_hub: Applied per-test with ``patch.dict`` rather than at import
+  time, because generate_response_hf() imports it inside the function body.
+  ``InferenceClient(...)`` returns a MagicMock. No real Hugging Face
+  Inference API calls are made.
+
+The sys.modules replacements above are reverted rather than left in place. A
+MagicMock has no ``__path__``, so a leaked entry breaks later submodule imports
+anywhere else in the suite.
 - Collection.aggregate (retrieval and generation tests): Patched at the
   PyMongo class level because $vectorSearch requires an Atlas Vector Search
   index not available on standard MongoDB deployments.
@@ -32,25 +38,46 @@ from pymongo.operations import SearchIndexModel
 # These sys.modules replacements must happen before the example modules are
 # imported so that module-level initialization (voyageai.Client(),
 # from openai import OpenAI) uses MagicMocks instead of real packages.
+#
+# The replacements are reverted once the example modules are loaded. Both
+# modules bind their names at import time, so they keep the mocks, while the
+# real packages stay importable for the rest of the interpreter. A MagicMock
+# left in sys.modules has no __path__, so a later submodule import elsewhere in
+# the suite would fail with "is not a package".
 
 _mock_voyageai = MagicMock()
 _mock_vo_instance = MagicMock()
 _mock_voyageai.Client.return_value = _mock_vo_instance
-sys.modules["voyageai"] = _mock_voyageai
 
 _mock_openai_module = MagicMock()
 _mock_openai_client_instance = MagicMock()
 _mock_openai_module.OpenAI.return_value = _mock_openai_client_instance
-sys.modules["openai"] = _mock_openai_module
 
+_import_mocks = {
+    "voyageai": _mock_voyageai,
+    "openai": _mock_openai_module,
+}
+_saved_modules = {name: sys.modules.get(name) for name in _import_mocks}
+sys.modules.update(_import_mocks)
+
+# Import example modules only after mocks are in place
+try:
+    import examples.vector_search.rag.get_embeddings_voyage as get_embeddings_voyage
+    import examples.vector_search.rag.rag_pipeline as rag_pipeline
+finally:
+    for _name, _original in _saved_modules.items():
+        if _original is None:
+            sys.modules.pop(_name, None)
+        else:
+            sys.modules[_name] = _original
+
+# generate_response_hf() imports huggingface_hub inside the function body, so
+# the mock has to be active when the test calls it rather than at import time.
+# It is applied per-test via @patch.dict instead of being left in sys.modules.
 _mock_hf_module = MagicMock()
 _mock_hf_client_instance = MagicMock()
 _mock_hf_module.InferenceClient.return_value = _mock_hf_client_instance
-sys.modules["huggingface_hub"] = _mock_hf_module
-
-# Import example modules only after mocks are in place
-import examples.vector_search.rag.get_embeddings_voyage as get_embeddings_voyage
-import examples.vector_search.rag.rag_pipeline as rag_pipeline
+_patch_hf = patch.dict(sys.modules, {"huggingface_hub": _mock_hf_module})
 
 
 class TestRagVoyageOpenAI(unittest.TestCase):
@@ -222,6 +249,7 @@ class TestRagVoyageOpenAI(unittest.TestCase):
         prompt_content = call_kwargs["messages"][0]["content"]
         self.assertIn(context_text, prompt_content)
 
+    @_patch_hf
     @patch("pymongo.collection.Collection.aggregate")
     def test_generate_response_hf_returns_string(self, mock_aggregate):
         """generate_response_hf: should return the LLM completion text."""
@@ -242,6 +270,7 @@ class TestRagVoyageOpenAI(unittest.TestCase):
         self.assertIsInstance(result, str)
         self.assertTrue(len(result) > 0)
 
+    @_patch_hf
     @patch("pymongo.collection.Collection.aggregate")
     def test_generate_response_hf_calls_llm_with_context(self, mock_aggregate):
         """generate_response_hf: should pass retrieved context to the Hugging Face model."""
