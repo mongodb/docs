@@ -24,5 +24,3 @@
    rc-available, or minor-release includes directly in release
    notes.
 
-.. include:: /includes/rc-available.rst
-
