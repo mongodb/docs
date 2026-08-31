@@ -17,6 +17,7 @@ Skills every writer should know, regardless of team.
 | `/jira` | Use this skill for any Jira operation in the DOCSP project — creating, viewing, searching, updating, transitioning, commenting on, or linking tickets |
 | `/local-build-check` | Run local docs build checks on pending content/ changes before opening a PR |
 | `/open-pr` | Opens a GitHub Pull Request with the standard PR template: Description, Staging Links, and JIRA ticket |
+| `/pr-coverage-check` | Compare a docs PR against the engineering PR (and Jira) it documents, and produce a short list of pointers — not a full report — telling an engineering reviewer exactly where to look and why, to speed up tech review |
 | `/staging-preview` | Generate staging preview links for a MongoDB docs PR |
 | `/unified-toc` | Update the unified table of contents when pages are added, removed, or moved |
 | `/version-update` | Create a new version of any versioned MongoDB documentation docset — drivers, providers, or product docsets |
