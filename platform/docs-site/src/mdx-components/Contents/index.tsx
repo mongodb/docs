@@ -2,7 +2,7 @@
 
 import { useContext } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { css, cx } from '@leafygreen-ui/emotion';
+import { clsx } from 'clsx';
 import { isEmpty } from 'lodash';
 import { ContentsContext, type ActiveSelectorIds } from '@/context/contents-context';
 import type { HeadingNodeSelectorIds } from '@/types/ast';
@@ -12,34 +12,8 @@ import { ContentsListItem } from './contents-list-item';
 import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
 import { usePageContext } from '@/context/page-context';
 import { FeedbackRating } from '@/mdx-components/FeedbackWidget';
-import { theme } from '@/styles/theme';
 import useScreenSize from '@/hooks/use-screen-size';
-
-const formContainer = css`
-  @media ${theme.screenSize.tablet} {
-    z-index: 1;
-  }
-`;
-
-const formStyle = css`
-  position: absolute;
-  right: 0;
-  margin-top: ${theme.size.tiny};
-
-  @media ${theme.screenSize.upToLarge} {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    overflow-y: auto;
-  }
-`;
-
-const styledContentList = css`
-  overflow: auto;
-  height: 80%;
-`;
+import styles from './contents.module.scss';
 
 export const DEPRECATED_PROJECTS = ['atlas-app-services', 'datalake', 'realm'];
 
@@ -81,7 +55,7 @@ export const Contents = ({ className }: { className?: string }) => {
   if (filteredNodes.length === 0 || !showContentsComponent) {
     return (
       <div className={className}>
-        <FeedbackRating className={formStyle} position="right column" />
+        <FeedbackRating className={styles.form} position="right column" />
       </div>
     );
   }
@@ -93,9 +67,9 @@ export const Contents = ({ className }: { className?: string }) => {
   return (
     <>
       {!isTabletOrMobile && shouldProjShowFW && (
-        <FeedbackRating className={formStyle} classNameContainer={formContainer} position="right column" />
+        <FeedbackRating className={styles.form} classNameContainer={styles.formContainer} position="right column" />
       )}
-      <div className={cx(className, styledContentList)}>
+      <div className={clsx(className, styles.contentsList)}>
         <ContentsList label={label}>
           {filteredNodes.map(({ depth, id, title }) => {
             // Depth of heading nodes refers to their depth in the AST
@@ -109,7 +83,7 @@ export const Contents = ({ className }: { className?: string }) => {
         </ContentsList>
       </div>
       {isTabletOrMobile && shouldProjShowFW && !hideFWOnMobile && (
-        <FeedbackRating className={formStyle} classNameContainer={formContainer} position="body" />
+        <FeedbackRating className={styles.form} classNameContainer={styles.formContainer} position="body" />
       )}
     </>
   );

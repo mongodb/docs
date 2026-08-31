@@ -1,72 +1,9 @@
-import { css } from '@leafygreen-ui/emotion';
-import { palette } from '@leafygreen-ui/palette';
+import type { CSSProperties } from 'react';
+import { clsx } from 'clsx';
 import { Link } from '@/mdx-components/Link';
-import { theme } from '@/styles/theme';
 import { reportAnalytics } from '@/utils/report-analytics';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
-
-const LINK_DEPTH_PADDING = 16;
-
-const listItemStyling = ({ isActive }: { isActive: boolean }) => css`
-  padding: 6px 0 6px 1px;
-
-  &:hover,
-  &:active {
-    padding-left: 4px;
-  }
-
-  --active-border-color: ${palette.black};
-  --border-color: ${palette.gray.light2};
-
-  .dark-theme & {
-    --active-border-color: ${palette.gray.light1};
-    --border-color: ${palette.gray.dark2};
-  }
-
-  @media ${theme.screenSize.largeAndUp} {
-    border-left-style: solid;
-    border-left-width: ${isActive ? '2px' : '1px'};
-    border-left-color: ${isActive ? `var(--active-border-color)` : `var(--border-color)`};
-    ${isActive && 'padding-left: 0;'}
-
-    &:hover,
-    &:active {
-      border-left-width: 2px;
-      border-left-color: var(--active-border-color);
-      padding-left: 0;
-    }
-  }
-`;
-
-const linkStyling = ({ depth, isActive }: { depth: number; isActive: boolean }) => css`
-  /* && doubles specificity so these outrank Via Link's own layout and type scale. */
-  && {
-    color: var(--font-color-primary);
-    font-size: ${theme.fontSize.small};
-    line-height: ${theme.fontSize.default};
-    font-weight: normal;
-
-    ${isActive && ` font-weight: 600;`}
-
-    display: inline-block;
-    padding-left: ${`${depth * LINK_DEPTH_PADDING}px`};
-    width: 100%;
-
-    @media ${theme.screenSize.largeAndUp} {
-      padding-left: calc(14px + ${depth * LINK_DEPTH_PADDING}px);
-    }
-
-    &:hover,
-    &:active {
-      color: currentColor;
-      text-decoration: none;
-    }
-
-    span > span {
-      position: unset;
-    }
-  }
-`;
+import styles from './contents-list-item.module.scss';
 
 type ContentsListItemProps = {
   children: React.ReactNode;
@@ -76,9 +13,12 @@ type ContentsListItemProps = {
 };
 export const ContentsListItem = ({ children, id, depth = 0, isActive = false }: ContentsListItemProps) => {
   return (
-    <li className={listItemStyling({ isActive })}>
+    <li
+      className={clsx(styles.listItem, isActive && styles.listItemActive)}
+      style={{ '--contents-depth': depth } as CSSProperties}
+    >
       <Link
-        className={linkStyling({ depth, isActive })}
+        className={styles.link}
         to={`#${id}`}
         onClick={() => {
           reportAnalytics('Click', {
