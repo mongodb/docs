@@ -13,6 +13,8 @@ The following sections describe these methods in more detail.
 
 .. include:: /includes/method-overloads.rst
 
+.. include:: /includes/builders-input-validation.rst
+
 .. include:: /includes/atlas-sample-data.rst
 
 Methods and Parameters
