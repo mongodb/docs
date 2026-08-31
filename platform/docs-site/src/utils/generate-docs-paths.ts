@@ -1,7 +1,7 @@
 import fs from 'fs/promises';
 import nodePath from 'path';
 import { getPathArraysFromFilesystem } from '@/utils/scan-mdx-files';
-import { loadDirNameToPrefixMap, remapDiskRelativeToBlobRelative, stripDocsPrefix } from '@/mdx-utils/blob-path-remap';
+import { loadDirNameToPrefixMap, stripDocsPrefix, toBasePathRelativePath } from '@/mdx-utils/blob-path-remap';
 import { CONTENT_MDX_DIR } from '@/mdx-utils/content-constants';
 
 /**
@@ -30,15 +30,8 @@ export async function generateDocsStaticPaths(): Promise<Array<{ path: string[] 
   const docsetPrefix = stripDocsPrefix(prefixMap[dirName] ?? '');
   const docsetPrefixSegments = docsetPrefix ? docsetPrefix.split('/') : [];
 
-  const toUrlPath = (diskSegments: string[]): string[] => {
-    const full = remapDiskRelativeToBlobRelative(diskSegments.join('/'), prefixMap).split('/');
-    for (let i = 0; i < docsetPrefixSegments.length; i++) {
-      if (full[i] !== docsetPrefixSegments[i]) {
-        throw new Error(`Expected path "${full.join('/')}" to start with docset prefix "${docsetPrefix}"`);
-      }
-    }
-    return full.slice(docsetPrefixSegments.length);
-  };
+  const toUrlPath = (diskSegments: string[]): string[] =>
+    toBasePathRelativePath(diskSegments, prefixMap, docsetPrefixSegments);
 
   let isLeaf = false;
   try {

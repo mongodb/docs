@@ -18,12 +18,17 @@ export function remapDiskRelativeToBlobRelative(diskRelative: string, dirNameToP
   const filePath = diskRelative.split(path.sep).join('/');
   const firstSlash = filePath.indexOf('/');
   if (firstSlash === -1) {
-    // Bare docset dir name with no remainder (the docset's root index page).
-    // Remap it to the stripped prefix so it lines up with the prefixed paths
-    // of every other page in the same docset. A docset whose prefix strips to
-    // empty keeps the unremapped name, preserving existing behavior.
-    const stripped = stripDocsPrefix(dirNameToPrefix[filePath] ?? '');
-    return stripped || filePath;
+    // Bare docset dir name: the docset's root index after scan-mdx-files pops
+    // a trailing `index`. Remap to the stripped URL prefix so it lines up with
+    // every other page in the same docset.
+    //
+    // Empty-prefix docsets (landing; prefix `docs`) strip to ''. That empty
+    // string is the optional catch-all root under basePath `/docs`, not
+    // `/docs/landing`. Callers must not `.split('/')` the empty string (that
+    // yields `['']`); see toBasePathRelativePath.
+    const rawPrefix = dirNameToPrefix[filePath];
+    if (rawPrefix === undefined) return filePath;
+    return stripDocsPrefix(rawPrefix);
   }
   const dirName = filePath.slice(0, firstSlash);
   const rest = filePath.slice(firstSlash + 1);
@@ -34,6 +39,32 @@ export function remapDiskRelativeToBlobRelative(diskRelative: string, dirNameToP
   const stripped = stripDocsPrefix(prefix);
   if (!stripped) return rest;
   return `${stripped}/${rest}`;
+}
+
+/**
+ * Map on-disk content-mdx segments (including the project dir name) to
+ * basePath-relative generateStaticParams segments.
+ *
+ * An empty remapped path is the catch-all root (`{ path: [] }` → `/docs/`
+ * for landing). `''.split('/')` is `['']`, which would emit a bogus empty
+ * segment instead of that root, so handle it before splitting.
+ */
+export function toBasePathRelativePath(
+  diskSegments: string[],
+  dirNameToPrefix: Record<string, string>,
+  docsetPrefixSegments: string[],
+): string[] {
+  const remapped = remapDiskRelativeToBlobRelative(diskSegments.join('/'), dirNameToPrefix);
+  if (!remapped) return [];
+  const full = remapped.split('/');
+  for (let i = 0; i < docsetPrefixSegments.length; i++) {
+    if (full[i] !== docsetPrefixSegments[i]) {
+      throw new Error(
+        `Expected path "${full.join('/')}" to start with docset prefix "${docsetPrefixSegments.join('/')}"`,
+      );
+    }
+  }
+  return full.slice(docsetPrefixSegments.length);
 }
 
 /**

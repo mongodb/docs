@@ -244,7 +244,9 @@ async function main(): Promise<void> {
     await fs.mkdir(destDir, { recursive: true });
 
     // Sitemap page URLs use the full canonical prefix (unaffected by basePath).
-    const baseDocUrl = `${SITE_URL}/docs/${urlPrefix}`;
+    // Empty urlPrefix is the docs homepage (landing); avoid `/docs/` + extra
+    // slash from `${...}/docs/${''}` feeding slugToUrl a trailing slash.
+    const baseDocUrl = urlPrefix ? `${SITE_URL}/docs/${urlPrefix}` : `${SITE_URL}/docs`;
     const urls = buildSitemapUrls(baseDocUrl, siteMetadata);
 
     await fs.writeFile(path.join(destDir, 'sitemap-0.xml'), buildSitemapXml(urls), 'utf-8');
