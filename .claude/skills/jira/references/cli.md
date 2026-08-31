@@ -32,6 +32,20 @@ jira issue view DOCSP-12345 --raw | jq '.fields.customfield_27258'   # confirm i
 
 If the value is missing or null, the field isn't declared in the local config — tell the user to add it there, or fall back to MCP/DevProd Gateway for that field, since both discover field keys dynamically rather than depending on a local config file.
 
+### The URL(s) Field Is Invisible to `--plain`
+
+DOCSP tickets carry a `URL(s)` custom field (`customfield_12054`) holding the docs page(s) the ticket is about. It is a plain string. When a ticket targets several pages, the URLs are **newline-separated within that one string**, not an array.
+
+`jira issue view KEY --plain` does not render this field at all, and `jira issue list --columns 'url(s)'` resolves to an empty column. Both were confirmed against DOCSP-63608, and neither warns. A session that reads a ticket only through `--plain` will conclude the ticket has no target page even when it does. When the target page matters, read the field explicitly:
+
+```bash
+jira issue view DOCSP-12345 --raw | jq -r '.fields.customfield_12054 // empty'
+```
+
+Filter on it in JQL with `cf[12054]`, for example `cf[12054] is not EMPTY`.
+
+If the field comes back null or empty, look for a complete `mongodb.com/docs/` URL written out in the description or comments. Never construct or guess a docs URL from the summary. Stop and ask the user which page to edit.
+
 ### JQL ORDER BY
 
 Do NOT put `ORDER BY` inside the JQL string when using the CLI. Use flags:
