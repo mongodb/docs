@@ -46,6 +46,12 @@ Sample Data
 
 .. include:: /includes/sample-data.rst
 
+The code examples on this page also use the following ``Awards`` ``@Struct`` aggregate embeddable:
+
+.. literalinclude:: /includes/interact-data/Awards.java
+   :start-after: start-awards-struct
+   :end-before: end-awards-struct
+
 .. include:: /includes/persistence-contexts.rst
    
    .. replacement:: additional-information
@@ -413,22 +419,10 @@ of ``"The Godfather"`` and a ``year`` value of ``1972`` from the
 
             Title: The Godfather
 
-.. _hibernate-query-advanced-fields:
-
-Advanced Field Queries
-----------------------
-
-This section describes how to run queries on the
-following fields:
-
-- :ref:`Primary key fields <hibernate-query-primary-key>`
-- :ref:`Embedded fields <hibernate-query-embedded>`
-- :ref:`Array fields <hibernate-query-array>`
-
 .. _hibernate-query-primary-key:
 
 Query a Primary Key Field
-~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------
 
 To retrieve a document based on its ``ObjectId`` value, you can
 pass this value as an argument to the ``get()`` method, if you're
@@ -459,8 +453,8 @@ collection by its ``ObjectId`` value:
 
 .. _hibernate-query-embedded:
 
-Query an Embedded Field
-~~~~~~~~~~~~~~~~~~~~~~~~
+Query an Embedded Document
+---------------------------
 
 You can represent MongoDB embedded documents by creating
 ``@Struct`` aggregate embeddables. You can then
@@ -471,11 +465,6 @@ associated with specific parent entities.
 
    To learn more about representing embedded documents, see
    :ref:`Embedded Data <hibernate-entities-embedded-data>` in the Create Entities guide.
-
-.. important:: Query Limitations
-
-   To learn more about the query limitations for embeddables, see :ref:`Hibernate Query Support <hibernate-query-support>`
-   on the Feature Compatibility page.
 
 The following example retrieves documents that have a ``title`` value
 of ``"Hairspray"`` from the ``sample_mflix.movies`` collection. Then,
@@ -519,6 +508,72 @@ aggregate embeddable, and prints the ``wins`` field of the ``Awards`` embeddable
 
             Award wins: 0
             Award wins: 21
+            
+Query a Field on an Embedded Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can reference a field on an embeddable type by using a dotted path expression in the 
+``SELECT``, ``WHERE``, ``ORDER BY``, and ``UPDATE`` clauses of an 
+HQL or JPQL query. You can also chain
+multiple embeddable names in a path expression to reference a
+field on a nested embeddable within another embeddable.
+
+.. important:: Query Limitations
+
+   Path expressions do not support embeddable fields that
+   use the ``@ColumnTransformer`` annotation to define a 
+   custom read expression.
+
+   The {+extension-short+} also rejects the following
+   ``@Struct`` aggregate embeddable mappings when it builds the
+   entity model:
+
+   - A ``@Struct`` aggregate embeddable used as an ``@Id`` field
+   - A polymorphic ``@Struct`` aggregate embeddable hierarchy
+
+   You can't use a path expression to reference a field on these types.
+   
+The following example uses a path expression to filter documents
+in the ``sample_mflix.movies`` collection. There are two ``"Hairspray"`` movies
+in the ``sample_mflix.movies`` collection. One ``"Hairspray"`` movie is from 1998, 
+and the other is from 2007. The query matches documents that have a ``title`` value 
+of ``"Hairspray"`` and an ``awards.wins`` value greater than ``10``:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-retrieve-nested-field-session
+            :end-before: end-retrieve-nested-field-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Hairspray, Year: 2007
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-retrieve-nested-field-em
+            :end-before: end-retrieve-nested-field-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Hairspray, Year: 2007
 
 .. _hibernate-query-elements-embedded-array:
 
@@ -651,7 +706,7 @@ the following ``$match`` stage:
 .. _hibernate-query-array:
 
 Query an Array Field
-~~~~~~~~~~~~~~~~~~~~~
+---------------------
 
 The {+extension-short+} supports the following functions for
 querying array fields:

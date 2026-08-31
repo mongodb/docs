@@ -327,6 +327,27 @@ public class Query {
         }
         // end-retrieve-embedded-em
 
+        // Retrieves the title and year of the "Hairspray" movie that has more than 10 award wins using a session
+        // start-retrieve-nested-field-session
+        var matchingDocument = session.createQuery("from Movie where title = :title and awards.wins > :minWins", Movie.class)
+                .setParameter("title", "Hairspray")
+                .setParameter("minWins", 10)
+                .getResultList();
+        for (var m : matchingDocument) {
+            System.out.println("Title: " + m.getTitle() + ", Year: " + m.getYear());
+        }
+        // end-retrieve-nested-field-session
+
+        // Retrieves the title and year of the "Hairspray" movie that has more than 10 award wins using an entity manager
+        // start-retrieve-nested-field-em
+        var matchingDocument = entityManager.createQuery("select m from Movie m where m.title = :title and m.awards.wins > :minWins", Movie.class)
+                .setParameter("title", "Hairspray")
+                .setParameter("minWins", 10)
+                .getResultList();
+        for (var m : matchingDocument) {
+            System.out.println("Title: " + m.getTitle() + ", Year: " + m.getYear());
+        }
+        // end-retrieve-nested-field-em
         // Retrieves documents that have a matching "grades" array element using a session
         // start-retrieve-exists-session
         var existsResult = session.createQuery(
