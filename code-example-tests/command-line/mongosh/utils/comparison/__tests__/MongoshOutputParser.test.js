@@ -245,6 +245,23 @@ describe('MongoshOutputParser', () => {
       expect(result.data[0].consensus).toBe("Francis Ford Coppola's continuation of Mario Puzo's saga.");
     });
 
+    test('should handle a string value containing identifier-colon text (SBE explain plan text)', () => {
+      // The unquoted-key regex used to run directly against the raw string,
+      // so an "identifier:" pattern inside a quoted string value (e.g. SBE
+      // explain plan text mentioning internal field names) would get quoted
+      // too, corrupting the string and breaking the parse.
+      const input = `{
+  explainVersion: '2',
+  plan: '[2] group { _internalCount: s5, _internalArithmeticAverage: s6 }'
+}`;
+
+      const result = MongoshOutputParser.parse(input);
+
+      expect(result.success).toBe(true);
+      expect(result.data[0].explainVersion).toBe('2');
+      expect(result.data[0].plan).toBe('[2] group { _internalCount: s5, _internalArithmeticAverage: s6 }');
+    });
+
     test('should handle Binary.fromInt8Array with Int8Array', () => {
       // This pattern appears in $convert aggregation output when converting
       // arrays of integers to binData (e.g., for vector embeddings)

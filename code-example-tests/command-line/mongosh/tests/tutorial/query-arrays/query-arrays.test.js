@@ -41,6 +41,13 @@ describeWithSampleData("query arrays example tests", () => {
       });
   });
 
+  test("Should return documents where genres contains any of the specified elements", async () => {
+    await Expect
+      .outputFromExampleFiles(["tutorial/query-arrays/find-element-in.js"])
+      .withDbName(dbName)
+      .shouldMatch("tutorial/query-arrays/find-element-in-output.sh");
+  });
+
   test("Should return documents where a cast element matches a regex", async () => {
     await Expect
       .outputFromExampleFiles(["tutorial/query-arrays/find-element-regex.js"])

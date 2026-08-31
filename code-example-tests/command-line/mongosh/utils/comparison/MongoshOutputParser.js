@@ -200,11 +200,12 @@ class MongoshOutputParser {
     // - Double-quoted strings with embedded apostrophes (leave them alone)
     result = MongoshOutputParser.convertSingleToDoubleQuotes(result);
 
-    // Quote unquoted keys (must be preceded by {, [, comma, or start of line)
-    result = result.replace(
-      /(^|[\{\[,]\s*)([a-zA-Z_$][\w$]*)(\s*:)/gm,
-      '$1"$2"$3'
-    );
+    // Quote unquoted keys (must be preceded by {, [, comma, or start of line).
+    // This must be string-aware: a plan-explain string value can itself
+    // contain "identifier:"-shaped text (e.g. SBE stage text mentioning
+    // internal names like _internalCount), and the naive regex would quote
+    // that text too, corrupting the string and breaking the parse.
+    result = this.quoteUnquotedKeys(result);
 
     // Quote unquoted ellipsis used as property values or array elements.
     // This must be done in a string-aware manner to avoid corrupting ellipsis
@@ -380,6 +381,59 @@ class MongoshOutputParser {
     }
 
     return result;
+  }
+
+  /**
+   * Quotes unquoted object keys in a string-aware manner. Runs after
+   * convertSingleToDoubleQuotes, so all string literals are already
+   * double-quoted at this point.
+   *
+   * Masks each double-quoted string literal with a placeholder before
+   * applying the key-quoting regex, then restores the original literals
+   * afterward. This prevents "identifier:"-shaped text inside a string
+   * value (e.g. explain plan text containing internal field names) from
+   * being mistaken for an unquoted key and corrupted.
+   *
+   * @param {string} str - Input string with double-quoted string literals
+   * @returns {string} String with unquoted object keys wrapped in quotes
+   */
+  static quoteUnquotedKeys(str) {
+    const literals = [];
+    let masked = '';
+    let i = 0;
+
+    while (i < str.length) {
+      const char = str[i];
+
+      if (char === '"') {
+        let literal = char;
+        i++;
+        while (i < str.length) {
+          const innerChar = str[i];
+          literal += innerChar;
+          if (innerChar === '\\' && i + 1 < str.length) {
+            i++;
+            literal += str[i];
+          } else if (innerChar === '"') {
+            i++;
+            break;
+          }
+          i++;
+        }
+        masked += ` STR${literals.length} `;
+        literals.push(literal);
+      } else {
+        masked += char;
+        i++;
+      }
+    }
+
+    const quoted = masked.replace(
+      /(^|[\{\[,]\s*)([a-zA-Z_$][\w$]*)(\s*:)/gm,
+      '$1"$2"$3'
+    );
+
+    return quoted.replace(/ STR(\d+) /g, (_, idx) => literals[Number(idx)]);
   }
 
   /**
