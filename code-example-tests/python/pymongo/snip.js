@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 
 // ------ CONFIGURATION: Set these values for your language/project ----------
 const IGNORE_PATTERNS = new Set(["__pycache__", "example_folder", "example_stub.py",
-    "pylint-config.toml"]);
+    "pylint-config.toml", "gateway.py"]);
 
 const START_DIRECTORY = "code-example-tests/python/pymongo/examples";
 const OUTPUT_DIRECTORY = "content/code-examples/tested/python/pymongo";
