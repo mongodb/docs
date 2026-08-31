@@ -17,13 +17,13 @@
       * - Value
         - Condition
       * - ``remote``
-        - |onprem| and Agents have internet access.
+        - |onprem| and Agents have Internet access.
       * - ``hybrid``
-        - |onprem| has internet access, but Agents do not. |onprem|
-          downloads MongoDB binaries from the internet; Agents download
+        - |onprem| has Internet access, but Agents do not. |onprem|
+          downloads MongoDB binaries from the Internet; Agents download
           the binaries from |onprem|.
       * - ``local``
-        - Neither |onprem| nor the Agents have internet access. An
+        - Neither |onprem| nor the Agents have Internet access. An
           |onprem| administrator must upload the version manifest and
           the MongoDB binaries to the |onprem| host, as described in
           :doc:`/tutorial/configure-local-mode`.

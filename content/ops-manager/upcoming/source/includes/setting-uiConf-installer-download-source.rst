@@ -13,7 +13,7 @@
    
       * - :guilabel:`remote`
         - All Agents and |onprem| hosts download MongoDB 
-          binaries from a remote source in the background. An internet 
+          binaries from a remote source in the background. An Internet 
           connection is required on all hosts.
    
           You can specify the remote source for downloading MongoDB 
@@ -41,7 +41,7 @@
           the installers to Agent hosts. The Version Manifest
           must be 
           :doc:`updated manually </tutorial/update-version-manifest>`.
-          No hosts in the deployment require an internet connection.
+          No hosts in the deployment require an Internet connection.
    
    Corresponds to :setting:`automation.versions.source`.
    
