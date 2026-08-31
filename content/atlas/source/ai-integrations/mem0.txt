@@ -1,0 +1,676 @@
+.. _mem0:
+
+===========================
+Integrate MongoDB with Mem0
+===========================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. meta::
+   :keywords: memory, agents, agentic, RAG, retrieval, vector database, vector search, code example, python
+   :description: Integrate MongoDB with Mem0 to give your AI agents long-term memory that persists across conversations, using MongoDB Vector Search for semantic retrieval.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can integrate MongoDB with `Mem0 <https://docs.mem0.ai/>`__, an
+open-source memory layer for AI agents and assistants that extracts,
+stores, and retrieves facts from conversations over time. When you
+configure Mem0 to use MongoDB as its vector store, Mem0 persists agent
+memory in your MongoDB collections. It uses {+avs+} for semantic
+retrieval and {+fts+} for full-text keyword retrieval.
+
+.. TODO: uncomment once get started is created
+.. Get Started
+.. -----------
+
+.. To complete a tutorial that configures Mem0 to use MongoDB, see :ref:`mem0-get-started`.
+
+Installation
+------------
+
+Mem0 requires Python v3.10 or later and PyMongo v4.13.2 or later. To install
+the latest Mem0 and PyMongo versions, run the following command:
+
+.. code-block:: shell
+
+   pip install mem0ai pymongo
+
+Usage
+-----
+
+To use MongoDB as the Mem0 vector store, pass a configuration
+dictionary to ``Memory.from_config()`` that sets the ``provider``
+key of the ``vector_store`` dictionary to ``mongodb``.
+
+Select the :guilabel:`Basic initialization` tab to 
+view a basic MongoDB and Mem0 configuration example, or select
+the :guilabel:`Custom configuration` tab to see how to
+configure the integration with custom settings.
+
+.. tabs::
+
+   .. tab:: Basic initialization
+      :tabid: basic
+
+      To initialize the vector store, specify your MongoDB connection
+      string, database name, collection name, and the number of
+      dimensions that your embedding model produces. The following
+      example sets these keys in the ``vector_store.config``
+      dictionary:
+
+      .. code-block:: python
+
+         import os
+         from mem0 import Memory
+
+         config = {
+             "vector_store": {
+                 "provider": "mongodb",
+                 "config": {
+                     "mongo_uri": os.environ["MONGODB_URI"],
+                     "db_name": "mem0_db",
+                     "collection_name": "agent_memory",
+                     "embedding_model_dims": 1536,
+                 },
+             }
+         }
+
+         m = Memory.from_config(config)
+
+   .. tab:: Custom configuration
+      :tabid: custom
+
+      The configuration dictionary also accepts ``llm`` and
+      ``embedder`` keys, which you can use to replace the default
+      OpenAI models with any provider that Mem0 supports. The following
+      example sets these optional keys:
+
+      .. code-block:: python
+
+         import os
+         from mem0 import Memory
+
+         config = {
+             "llm": {
+                 "provider": "openai",
+                 "config": {
+                     "model": "gpt-4o-mini",
+                     "temperature": 0.1,
+                     "max_tokens": 2000,
+                 },
+             },
+             "embedder": {
+                 "provider": "openai",
+                 "config": {
+                     "model": "text-embedding-3-small",
+                     "embedding_dims": 1536,
+                 },
+             },
+             "vector_store": {
+                 "provider": "mongodb",
+                 "config": {
+                     "mongo_uri": os.environ["MONGODB_URI"],
+                     "db_name": "mem0_db",
+                     "collection_name": "agent_memory",
+                     "embedding_model_dims": 1536,
+                 },
+             },
+             "history_db_path": os.path.expanduser("~/.mem0/history.db"),
+         }
+
+         m = Memory.from_config(config)
+
+      The value of the ``embedding_model_dims`` key in the
+      ``vector_store.config`` dictionary must match the number of
+      dimensions that your configured embedder produces.
+
+When you first call the ``Memory.from_config()`` method, Mem0
+creates the target collection if it doesn't already exist and
+creates a {+avs+} index and a {+fts+} index on the
+collection. Because these indexes build asynchronously, searches
+might return empty results until the index build finishes.
+
+.. collapsible::
+   :heading: MongoDB Vector Store Keys
+   :sub_heading: Use these keys to configure the vector store.
+   :expanded: false
+
+   When you set the ``provider`` key to ``mongodb``, Mem0 reads your
+   MongoDB settings from the ``config`` dictionary nested inside the
+   ``vector_store`` dictionary. That dictionary accepts the following
+   keys. Each key is optional and falls back to the specified default
+   value, but you must set ``mongo_uri`` to connect to any deployment
+   other than a local one.
+
+   .. list-table::
+      :widths: 25 15 60
+      :header-rows: 1
+
+      * - Key
+        - Necessity
+        - Description
+
+      * - ``mongo_uri``
+        - Optional
+        - The connection string for your MongoDB deployment. Defaults
+          to ``mongodb://localhost:27017``. To learn more about
+          finding your connection string, see
+          :ref:`connect-via-driver`.
+
+      * - ``db_name``
+        - Optional
+        - The name of the database that holds the memory collection.
+          Defaults to ``mem0_db``. Mem0 creates the database if it
+          doesn't already exist.
+
+      * - ``collection_name``
+        - Optional
+        - The name of the collection that stores memory documents.
+          Defaults to ``mem0``. Mem0 creates the collection if it
+          doesn't already exist.
+
+      * - ``embedding_model_dims``
+        - Optional
+        - The number of dimensions in the embedding vectors. Defaults
+          to ``1536``. This value must match the number of dimensions
+          that your configured embedder produces.
+
+Methods
+-------
+
+This section describes the methods provided by the ``Memory`` class.
+Each method operates on the collection that you configure in the 
+``vector_store.config`` dictionary.
+
+To scope a method to a specific user, agent, or conversation run, pass
+a ``filters`` dictionary that contains at least one of the
+``user_id``, ``agent_id``, or ``run_id`` keys.
+
+add()
+~~~~~
+
+The ``add()`` method extracts facts from a conversation and writes them to
+your collection as memory documents. If a semantically equivalent memory already
+exists for the entity, Mem0 updates that memory instead of creating a
+duplicate document.
+
+The following example passes a conversation to the ``add()`` method and
+scopes the resulting memory to a specific user:
+
+.. io-code-block::
+   :copyable: false
+
+   .. input::
+      :language: python
+
+      messages = [
+          {"role": "user", "content": "I'm moving to Berlin next month."},
+          {"role": "assistant", "content": "I'll remember that you're relocating to Berlin."},
+      ]
+
+      result = m.add(messages, user_id="alice")
+      print(result)
+
+   .. output::
+      :visible: false
+
+      {'results': [{'id': '...', 'memory': 'User is moving to Berlin around September 2026.', 'event': 'ADD'}]}
+
+.. collapsible::
+   :heading: add() Parameters
+   :sub_heading: Use these parameters to configure how Mem0 stores memories.
+   :expanded: false
+
+   .. list-table::
+      :widths: 25 15 60
+      :header-rows: 1
+
+      * - Parameter
+        - Necessity
+        - Description
+
+      * - ``messages``
+        - Required
+        - The conversation turns to extract facts from, either as a
+          list of ``{"role": ..., "content": ...}`` dictionaries or as
+          a string.
+
+      * - ``user_id``
+        - Conditional
+        - An identifier for the user that the memory belongs to. You
+          must provide at least one of the ``user_id``, ``agent_id``, or
+          ``run_id`` keys.
+
+      * - ``agent_id``
+        - Conditional
+        - An identifier for the agent that the memory belongs to.
+          Required if you don't provide a ``user_id`` or ``run_id``
+          value.
+
+      * - ``run_id``
+        - Conditional
+        - An identifier for a specific conversation run or session.
+          Required if you don't provide a ``user_id`` or ``agent_id``
+          value.
+
+      * - ``metadata``
+        - Optional
+        - The key-value pairs to attach to every memory document that this
+          call writes. You can query these values by using the
+          ``filters`` parameter of the ``search()`` method.
+
+      * - ``expiration_date``
+        - Optional
+        - The date after which Mem0 excludes the memory from results.
+
+      * - ``infer``
+        - Optional
+        - Whether Mem0 uses the LLM to extract discrete facts before
+          storing them. Defaults to ``True``. If ``False``, Mem0
+          stores the raw message content.
+
+      * - ``memory_type``
+        - Optional
+        - The type of memory to store.
+
+      * - ``prompt``
+        - Optional
+        - A custom extraction prompt that overrides the default
+          fact-extraction template.
+
+get()
+~~~~~
+
+The ``get()`` method retrieves a single memory document by its ID
+value without running a vector search.
+
+The following example retrieves a memory directly by its ID:
+
+.. io-code-block::
+   :copyable: false
+
+   .. input::
+      :language: python
+
+      memory = m.get(memory_id="<memory-id>")
+      print(memory)
+
+   .. output::
+      :visible: false
+
+      {'id': '...', 'memory': 'User is moving to Berlin around September 2026.',
+      'hash': '...', 'metadata': None, 'score': None, 'created_at': '...',
+      'updated_at': '...', 'user_id': 'alice', 'attributed_to': 'user'}
+
+The ``memory_id`` parameter is required and accepts the ``id`` value of
+the memory document to retrieve. If no memory with that ID exists,
+the ``get()`` method returns ``None``.
+
+search()
+~~~~~~~~
+
+The ``search()`` method runs a semantic search against the {+avs+}
+index and returns the memories that are most relevant to a query
+string.
+
+The following example searches a specific user's memories for the
+five most relevant results:
+
+.. io-code-block::
+   :copyable: false
+
+   .. input::
+      :language: python
+
+      results = m.search(
+          query="Where does Alice live?",
+          filters={"user_id": "alice"},
+          top_k=5,
+      )
+
+      for mem in results["results"]:
+          print(mem["memory"], "- score:", mem["score"])
+
+   .. output::
+      :visible: false
+
+      User is moving to Berlin around September 2026. - score: 0.7043201923370361
+
+.. collapsible::
+   :heading: search() Parameters
+   :sub_heading: Use these parameters to configure the search query.
+   :expanded: false
+
+   .. list-table::
+      :widths: 25 15 60
+      :header-rows: 1
+
+      * - Parameter
+        - Necessity
+        - Description
+
+      * - ``query``
+        - Required
+        - The natural-language query that Mem0 uses to generate the
+          search embedding.
+
+      * - ``filters``
+        - Optional
+        - The filter conditions to apply alongside the semantic query.
+          Must contain at least one of the ``user_id``, ``agent_id``, or
+          ``run_id`` keys. Supports comparison operators, list operators,
+          string operators, and the ``AND``, ``OR``, and ``NOT``
+          logical operators.
+
+      * - ``top_k``
+        - Optional
+        - The maximum number of results to return. Defaults to ``20``.
+
+      * - ``threshold``
+        - Optional
+        - The minimum relevance score that a memory must meet to
+          appear in the results. Defaults to ``0.1``.
+
+      * - ``rerank``
+        - Optional
+        - Whether Mem0 reranks the results before returning them.
+          Defaults to ``False``.
+
+      * - ``explain``
+        - Optional
+        - Whether to include a ``score_details`` breakdown for each
+          result. Defaults to ``False``.
+
+      * - ``reference_date``
+        - Optional
+        - The date that Mem0 uses to resolve relative time expressions
+          in the query.
+
+      * - ``show_expired``
+        - Optional
+        - Whether to include memories whose ``expiration_date`` has
+          passed. Defaults to ``False``.
+
+get_all()
+~~~~~~~~~
+
+The ``get_all()`` method returns the memory documents stored for a
+given entity without running a semantic search. Use this method to
+display an entity's full memory history.
+
+The following example returns and prints all memories for a specific
+user:
+
+.. io-code-block::
+   :copyable: false
+
+   .. input::
+      :language: python
+
+      all_memories = m.get_all(filters={"user_id": "alice"})
+
+      for mem in all_memories["results"]:
+          print(mem["id"], mem["memory"])
+
+   .. output::
+      :visible: false
+
+      <id> User is moving to Berlin around September 2026.
+
+.. collapsible::
+   :heading: get_all() Parameters
+   :sub_heading: Use these parameters to configure which memories Mem0 returns.
+   :expanded: false
+
+   .. list-table::
+      :widths: 25 15 60
+      :header-rows: 1
+
+      * - Parameter
+        - Necessity
+        - Description
+
+      * - ``filters``
+        - Optional
+        - The filter conditions that identify the memories to return.
+          Must contain at least one of ``user_id``, ``agent_id``, or
+          ``run_id``.
+
+      * - ``top_k``
+        - Optional
+        - The maximum number of documents to return. Defaults to
+          ``20``.
+
+      * - ``show_expired``
+        - Optional
+        - Whether to include memories whose ``expiration_date`` has
+          passed. Defaults to ``False``.
+
+update()
+~~~~~~~~
+
+The ``update()`` method replaces the text of an existing memory document.
+Mem0 recomputes the embedding from the new text and updates the document
+in place.
+
+The following example replaces the text of an existing memory:
+
+.. code-block:: python
+
+   m.update(memory_id="<memory-id>", text="Alice relocated to Berlin in July 2025.")
+
+.. collapsible::
+   :heading: update() Parameters
+   :sub_heading: Use these parameters to configure the update.
+   :expanded: false
+
+   .. list-table::
+      :widths: 25 15 60
+      :header-rows: 1
+
+      * - Parameter
+        - Necessity
+        - Description
+
+      * - ``memory_id``
+        - Required
+        - The ``id`` value of the memory document to update.
+
+      * - ``text``
+        - Optional
+        - The replacement text for the memory. Mem0 computes and
+          stores a new embedding for this text.
+
+      * - ``metadata``
+        - Optional
+        - The replacement metadata for the memory document.
+
+      * - ``expiration_date``
+        - Optional
+        - The date after which Mem0 excludes the memory from results.
+
+delete()
+~~~~~~~~
+
+The ``delete()`` method deletes a single memory document from your
+collection.
+
+The following example deletes a memory by its ID:
+
+.. code-block:: python
+
+   m.delete(memory_id="<memory-id>")
+
+The ``memory_id`` parameter is required and accepts the ``id`` value of
+the memory document to delete.
+
+delete_all()
+~~~~~~~~~~~~
+
+The ``delete_all()`` method deletes all memory documents for a given
+entity from your collection.
+
+The following example deletes all memories for a specific user:
+
+.. code-block:: python
+
+   m.delete_all(user_id="alice")
+
+.. collapsible::
+   :heading: delete_all() Parameters
+   :sub_heading: Use these parameters to configure which memories Mem0 deletes.
+   :expanded: false
+
+   .. list-table::
+      :widths: 25 15 60
+      :header-rows: 1
+
+      * - Parameter
+        - Necessity
+        - Description
+
+      * - ``user_id``
+        - Optional
+        - Deletes all memories for this user. You must provide at
+          least one of ``user_id``, ``agent_id``, or ``run_id``.
+
+      * - ``agent_id``
+        - Optional
+        - Deletes all memories for this agent.
+
+      * - ``run_id``
+        - Optional
+        - Deletes all memories for this run or session.
+
+history()
+~~~~~~~~~
+
+The ``history()`` method returns the edit history for a single memory,
+including each version of the text and the event type. Mem0 stores this
+history in a local SQLite database rather than in MongoDB. To change
+where Mem0 writes that database, set the ``history_db_path`` key in your
+configuration dictionary.
+
+The following example retrieves and prints the edit history for a
+memory:
+
+.. io-code-block::
+   :copyable: false
+
+   .. input::
+      :language: python
+
+      history = m.history(memory_id="<memory-id>")
+
+      for entry in history:
+          print(entry["event"], entry["old_memory"], entry["new_memory"])
+
+   .. output::
+      :visible: false
+      
+      ADD None User is moving to Berlin around September 2026.
+      UPDATE User is moving to Berlin around September 2026. Alice relocated to Berlin in July 2025.
+
+The ``memory_id`` parameter is required and accepts the ``id`` value of
+the memory document whose history you want to retrieve.
+
+reset()
+~~~~~~~
+
+The ``reset()`` method performs the following actions:
+
+- Deletes your MongoDB collection and its {+avs+} and {+fts+}
+  indexes
+- Resets the local history database
+- Recreates the collection and its indexes from scratch
+
+Use this method to clear all memories rather than using the ``delete_all()``
+method to delete them one entity at a time.
+
+.. code-block:: python
+
+   m.reset()
+
+``reset()`` does not accept any parameters and deletes every memory Mem0 has
+stored through this ``Memory`` instance.
+
+close()
+~~~~~~~
+
+The ``close()`` method releases the local SQLite connection that Mem0
+uses for the history database. This method doesn't affect your MongoDB
+connection.
+
+.. code-block:: python
+
+   m.close()
+
+``close()`` does not accept any parameters. Mem0 calls it automatically if you
+use the ``Memory`` instance as a context manager.
+
+Search Indexes
+--------------
+
+Mem0 creates the following indexes on your collection the first time
+it connects. You can also create or inspect these indexes manually.
+To learn more, see :ref:`avs-create-index`.
+
+The {+avs+} index is named ``<collectionName>_vector_index``, where
+``<collectionName>`` is the name of the collection that stores memory
+documents. The index uses the following definition:
+
+.. code-block:: json
+
+   {
+     "fields": [
+       {
+         "type": "vector",
+         "path": "embedding",
+         "numDimensions": 1536,
+         "similarity": "cosine"
+       }
+     ]
+   }
+
+The {+fts+} index is named ``<collection-name>_text_search_index`` and
+uses the following definition:
+
+.. code-block:: json
+
+   {
+     "mappings": {
+       "dynamic": false,
+       "fields": {
+         "payload": {
+           "type": "document",
+           "fields": {
+             "data": { "type": "string" },
+             "text_lemmatized": { "type": "string" }
+           }
+         }
+       }
+     }
+   }
+
+Mem0 uses the {+fts+} index to run keyword searches that complement
+the semantic results from ``search()``. If the index doesn't exist,
+Mem0 logs a warning and returns semantic results only.
+
+Additional Resources
+--------------------
+
+To learn more about using Mem0 with MongoDB, see:
+
+- `Mem0 MongoDB Vector Store Reference <https://docs.mem0.ai/components/vectordbs/dbs/mongodb>`__
+- `Mem0 Configuration Reference <https://docs.mem0.ai/open-source/python-quickstart>`__
+- `Mem0 GitHub Repository <https://github.com/mem0ai/mem0>`__

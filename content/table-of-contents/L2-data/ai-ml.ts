@@ -183,6 +183,11 @@ const tocData: TocItem[] = [
             contentSite: 'cloud-docs',
             url: '/docs/atlas/ai-integrations/mastra',
           },
+          {
+            label: 'Mem0',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/ai-integrations/mem0',
+          },
         ],
       },
       {
