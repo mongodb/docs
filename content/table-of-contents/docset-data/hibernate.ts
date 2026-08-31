@@ -40,9 +40,19 @@ const tocData: TocItem[] = [
             url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/crud',
           },
           {
+            label: 'Find Documents',
+            contentSite: 'hibernate',
+            url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/find-documents',
+          },
+          {
             label: 'Specify a Query',
             contentSite: 'hibernate',
             url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/specify-a-query',
+          },
+          {
+            label: 'Modify Query Results',
+            contentSite: 'hibernate',
+            url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/modify-query-results',
           },
           {
             label: 'Perform Native Queries',

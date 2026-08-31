@@ -2,6 +2,7 @@ import org.hibernate.Transaction;
 
 import java.util.List;
 
+import org.example.Restaurant;
 import org.hibernate.Session;
 
 public class Query {
@@ -125,6 +126,64 @@ public class Query {
             System.out.println("Title: " + m.getTitle());
         }
         // end-comparison-query-em
+
+        // Retrieves documents that have a "year" value between 2012 and 2013, inclusive, using a session
+        // start-between-query-session
+        var betweenResult = session.createQuery("from Movie where year between :start and :end", Movie.class)
+                                   .setParameter("start", 2012)
+                                   .setParameter("end", 2013)
+                                   .getResultList();
+        for (var m : betweenResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-between-query-session
+
+        // Retrieves documents that have a "year" value between 2012 and 2013, inclusive, using an entity manager
+        // start-between-query-em
+        var betweenResult = entityManager.createQuery("select m from Movie m where m.year between :start and :end", Movie.class)
+                                         .setParameter("start", 2012)
+                                         .setParameter("end", 2013)
+                                         .getResultList();
+        for (var m : betweenResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-between-query-em
+
+        // Retrieves documents that do not have a "cast" value using a session
+        // start-isnull-query-session
+        var isNullResult = session.createQuery("from Movie where cast is null", Movie.class)
+                .getResultList();
+        for (var m : isNullResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-isnull-query-session
+
+        // Retrieves documents that do not have a "cast" value using an entity manager
+        // start-isnull-query-em
+        var isNullResult = entityManager.createQuery("select m from Movie m where m.cast is null", Movie.class)
+                .getResultList();
+        for (var m : isNullResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-isnull-query-em
+
+        // Retrieves documents that have a "directors" value using a session
+        // start-isnotnull-query-session
+        var isNotNullResult = session.createQuery("from Movie where directors is not null", Movie.class)
+                .getResultList();
+        for (var m : isNotNullResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-isnotnull-query-session
+
+        // Retrieves documents that have a "directors" value using an entity manager
+        // start-isnotnull-query-em
+        var isNotNullResultEm = entityManager.createQuery("select m from Movie m where m.directors is not null", Movie.class)
+                .getResultList();
+        for (var m : isNotNullResultEm) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-isnotnull-query-em
 
         // Retrieves a document that has a "title" of "The Godfather" and a "year" of 1972 using a session
         // start-logical-query-session
@@ -267,6 +326,32 @@ public class Query {
             System.out.println("Award wins: " + a.getWins());
         }
         // end-retrieve-embedded-em
+
+        // Retrieves documents that have a matching "grades" array element using a session
+        // start-retrieve-exists-session
+        var existsResult = session.createQuery(
+                        "from Restaurant r where exists (select g.grade from r.grades g where g.grade = :grade and g.score = :score)",
+                        Restaurant.class)
+                .setParameter("grade", "B")
+                .setParameter("score", 12)
+                .getResultList();
+        for (var r : existsResult) {
+            System.out.println("Name: " + r.getName());
+        }
+        // end-retrieve-exists-session
+
+        // Retrieves documents that have a matching "grades" array element using an entity manager
+        // start-retrieve-exists-em
+        var existsResultEm = entityManager.createQuery(
+                        "select r from Restaurant r where exists (select g.grade from r.grades g where g.grade = :grade and g.score = :score)",
+                        Restaurant.class)
+                .setParameter("grade", "B")
+                .setParameter("score", 12)
+                .getResultList();
+        for (var r : existsResultEm) {
+            System.out.println("Name: " + r.getName());
+        }
+        // end-retrieve-exists-em
 
         // Retrieves documents that have a "cast" array that contains "Kathryn Hahn" using a session
         // start-retrieve-array-session

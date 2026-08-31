@@ -22,13 +22,15 @@ The ``Movie`` entity has the following definition:
       private String plot;
       private int year;
       private List<String> cast;
+      private List<String> directors;
 
 
-      public Movie(String title, String plot, int year, List<String> cast) {
+      public Movie(String title, String plot, int year, List<String> cast, List<String> directors) {
          this.title = title;
          this.plot = plot;
          this.year = year;
          this.cast = cast;
+         this.directors = directors;
       }
 
       public Movie() {
@@ -69,6 +71,14 @@ The ``Movie`` entity has the following definition:
 
       public void setCast(List<String> cast) {
          this.cast = cast;
+      }
+
+      public List<String> getDirectors() {
+         return directors;
+      }
+
+      public void setDirectors(List<String> directors) {
+         this.directors = directors;
       }
    }
 
