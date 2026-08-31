@@ -1,0 +1,371 @@
+.. _mem0-get-started:
+
+=============================================
+Get Started with the MongoDB Mem0 Integration
+=============================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. meta::
+   :keywords: memory, agents, agentic, retrieval, vector database, vector search, semantic search, code example, OpenAI, python
+   :description: Configure Mem0 to use MongoDB as its vector store, then store and retrieve agent memories with MongoDB Vector Search to build a memory-augmented assistant.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can integrate MongoDB with Mem0 to configure long-term
+memory for your AI agents that persists across conversations.
+This tutorial configures Mem0 to use MongoDB as its vector
+store, and then builds a memory-augmented assistant.
+In this tutorial, you perform the following tasks:
+
+#. Set up your environment.
+#. Use MongoDB as the Mem0 vector store.
+#. Store and retrieve memory documents.
+#. Build an assistant that personalizes its responses based on the
+   memories that it retrieves.
+
+Background
+----------
+
+`Mem0 <https://docs.mem0.ai/>`__ is an open-source memory layer for
+AI agents and assistants. Instead of passing an entire conversation
+history to the LLM on every request, Mem0 extracts discrete facts
+from conversations, stores each fact as a document, and retrieves
+only the most relevant facts at query time.
+
+When you configure Mem0 to use MongoDB as its vector store, Mem0
+persists these memory documents in a MongoDB collection. It uses
+{+avs+} for semantic retrieval and {+fts+} for full-text keyword
+retrieval. Mem0 creates both indexes for you the first time that it
+connects to your collection.
+
+Prerequisites
+-------------
+
+To complete this tutorial, you must have the following resources:
+
+- .. include:: /includes/avs/shared/avs-requirements-cluster.rst
+
+- .. include:: /includes/avs/shared/avs-requirements-openai-api-key.rst
+
+- Python v3.10 or later.
+
+Set Up the Environment
+----------------------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Install dependencies.
+
+      Run the following commands in your terminal to create a new
+      directory named ``mem0-mongodb-project`` and install the
+      required dependencies:
+
+      .. code-block:: text
+
+         mkdir mem0-mongodb-project
+         cd mem0-mongodb-project
+         pip install mem0ai pymongo openai python-dotenv
+
+      Mem0 requires PyMongo v4.13.2 or later. The preceding command
+      installs the latest version of PyMongo.
+
+   .. step:: Set your environment variables.
+
+      In your ``mem0-mongodb-project`` directory, create a ``.env``
+      file and add the following code:
+
+      .. code-block:: text
+
+         OPENAI_API_KEY="<openai-api-key>"
+         MONGODB_URI="<connection-string>"
+
+      .. include:: /includes/search-shared/find-connection-string.rst
+
+   .. step:: Create a project file.
+
+      In your ``mem0-mongodb-project`` directory, create a file named
+      ``main.py``. Add the following code to this file to load your
+      environment variables:
+
+      .. code-block:: python
+
+         from mem0 import Memory
+         from openai import OpenAI
+         from dotenv import load_dotenv
+         import os
+
+         load_dotenv()
+
+      In future steps, you will add code to this file to
+      configure Mem0 and build your assistant.
+
+.. _mem0-get-started-memory-data:
+
+Store and Retrieve Memory Data
+------------------------------
+
+In this section, you configure Mem0 to use MongoDB as its vector
+store. Then, you store memories that Mem0 extracts from conversations and
+retrieve them by using semantic search.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Configure MongoDB as a vector store.
+
+      To use MongoDB as the Mem0 vector store, add the following code to
+      your ``main.py`` file:
+
+      .. code-block:: python
+
+         config = {
+             "llm": {
+                 "provider": "openai",
+                 "config": {
+                     "model": "gpt-4o-mini",
+                     "temperature": 0.1,
+                     "max_tokens": 2000,
+                 },
+             },
+             "embedder": {
+                 "provider": "openai",
+                 "config": {
+                     "model": "text-embedding-3-small",
+                     "embedding_dims": 1536,
+                 },
+             },
+             "vector_store": {
+                 "provider": "mongodb",
+                 "config": {
+                     "mongo_uri": os.environ["MONGODB_URI"],
+                     "db_name": "mem0_db",
+                     "collection_name": "agent_memory",
+                     "embedding_model_dims": 1536,
+                 },
+             },
+         }
+
+         m = Memory.from_config(config)
+
+      This code sets the following keys in the ``config`` dictionary:
+
+      - ``llm``: Specifies ``gpt-4o-mini`` as the model that extracts
+        facts from conversations
+      - ``embedder``: Specifies ``text-embedding-3-small`` as the model
+        that generates the embeddings
+      - ``vector_store``: Configures MongoDB as the vector store
+      .. include:: /includes/search-shared/fact-index-build-initial-sync.rst
+
+   .. step:: Store memories from a conversation.
+
+      Add the following code to extract and store memories from a
+      conversation about a user's relocation:
+
+      .. code-block:: python
+
+         messages = [
+             {"role": "user", "content": "I'm moving to Berlin next month."},
+             {"role": "assistant", "content": "I'll remember that you're relocating to Berlin."},
+         ]
+
+         result = m.add(messages, user_id="alice")
+         print(result)
+
+      When you pass conversation data to the ``add()`` method, Mem0
+      uses the LLM to extract facts from the conversation and
+      writes each fact to your collection as a separate memory
+      document.
+
+   .. step:: Store memories from a second conversation.
+
+      Add the following code to store memories from a second conversation,
+      which Mem0 adds to the same user's memory profile:
+
+      .. code-block:: python
+
+         messages = [
+             {"role": "user", "content": "I prefer concise answers and I use Python daily."},
+             {"role": "assistant", "content": "Noted. I'll keep my responses brief and Python-focused."},
+         ]
+
+         result = m.add(messages, user_id="alice")
+         print(result)
+
+   .. step:: Search the stored memories.
+
+      To search memory data that answers a query about the user's
+      relocation, add the following code to your ``main.py`` file:
+
+      .. code-block:: python
+
+         print("\nWaiting for the MongoDB Vector Search index to finish building...")
+         time.sleep(60)
+
+         results = m.search(
+             query="When is Alice moving?",
+             filters={"user_id": "alice"},
+             top_k=5,
+         )
+
+         for mem in results["results"]:
+             print(mem["memory"], "- score:", mem["score"])
+
+      Before running the query, the code waits for 60 seconds to
+      allow the {+avs+} index to finish building.
+
+   .. step:: Return the full memory history.
+
+      To return the user's complete memory history without running a
+      semantic search, add the following code to your ``main.py`` file:
+
+      .. code-block:: python
+
+         all_memories = m.get_all(filters={"user_id": "alice"})
+
+         for mem in all_memories["results"]:
+             print(mem["id"], mem["memory"])
+
+.. tip::
+
+   To inspect the stored memory documents, browse the
+   ``mem0_db.agent_memory`` collection in the {+atlas-ui+}. To learn
+   more, see :ref:`atlas-ui-view-collections`.
+
+.. _mem0-get-started-assistant:
+
+Build a Memory-Augmented Assistant
+----------------------------------
+
+This section shows how to combine memory storage and
+retrieval into an assistant that personalizes its responses. Before
+the assistant responds, it retrieves the memories that are most
+relevant to the current message and adds them to the system prompt.
+After it responds, it stores the new conversation turn so that the
+memories grow with every exchange.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Retrieve memories and build the system prompt.
+
+      In your ``main.py`` file, add the following code to define
+      a function that searches for the memories most relevant to
+      a message and adds those memories to the system prompt:
+
+      .. code-block:: python
+
+         openai_client = OpenAI()
+         USER_ID = "alice"
+
+         def build_system_prompt(user_message):
+             # Retrieve the memories that are most relevant to the message
+             relevant = m.search(
+                 query=user_message,
+                 filters={"user_id": USER_ID},
+                 top_k=5,
+             )
+             memory_text = "\n".join(f"- {mem['memory']}" for mem in relevant["results"])
+
+             # Add the retrieved memories to the system prompt
+             system_prompt = "You are a helpful personal assistant."
+             if memory_text:
+                 system_prompt += (
+                     " Use the following facts to personalize your response:\n"
+                     f"{memory_text}"
+                 )
+
+             return system_prompt
+
+   .. step:: Generate a response and store the conversation turn.
+
+      Add the following code to define a function that generates a
+      personalized response and stores the new conversation turn as
+      memories:
+
+      .. code-block:: python
+
+         def chat(user_message):
+             # Generate a response
+             response = openai_client.chat.completions.create(
+                 model="gpt-4o-mini",
+                 messages=[
+                     {"role": "system", "content": build_system_prompt(user_message)},
+                     {"role": "user", "content": user_message},
+                 ],
+             )
+             assistant_message = response.choices[0].message.content
+
+             # Store the new conversation turn as memories
+             m.add(
+                 [
+                     {"role": "user", "content": user_message},
+                     {"role": "assistant", "content": assistant_message},
+                 ],
+                 user_id=USER_ID,
+             )
+
+             return assistant_message
+
+         print(chat("Can you recommend a programming meetup in my city?"))
+
+      The assistant recommends a Python meetup in Berlin because it
+      retrieved Alice's location and language preferences from MongoDB
+      before it assembled the prompt.
+
+Run the File
+------------
+
+To run the ``main.py`` file, run the following command from your
+``mem0-mongodb-project`` directory:
+
+.. code-block:: text
+
+   python main.py
+
+If the command runs successfully, the output resembles the following:
+
+.. code-block:: text
+   :copyable: false
+
+   # Output from the first add() method that stores relocation data
+   {'results': [{'id': '...', 'memory': 'User is moving to Berlin around September 2026.', 'event': 'ADD'}]}
+
+   # Output from the second add() method that stores user preferences
+   {'results': [{'id': '...', 'memory': 'Prefers concise answers', 'event': 'ADD'}, {'id': '...', 'memory': 'Uses Python daily', 'event': 'ADD'}]}
+   
+   Waiting for the MongoDB Vector Search index to finish building...
+
+   # Output from the search() method that retrieves the relocation memory
+   User is moving to Berlin in September 2026. - score: 0.38553877995545677User is moving to Berlin around September 2026. - score: 0.7043201923370361
+
+   # Output from the get_all() method that returns the full memory history
+   <id> User is moving to Berlin around September 2026.
+   <id> Prefers concise answers
+   <id> Uses Python daily
+
+   # Output from the chat() method that asks the assistant about programming meetups
+   Since you're moving to Berlin around September 25, 2026, I recommend checking platforms
+   like Meetup.com or Eventbrite closer to your move for local Python programming meetups.
+   You can also follow local tech communities on social media for updates on events.
+
+Next Steps
+----------
+
+To learn more about the Mem0 configuration keys and the full set of
+``Memory`` methods, see :ref:`mem0`.
+
+To learn more about the indexes that Mem0 creates on your
+collection, see :ref:`avs-create-index` and
+:ref:`ref-create-index`.

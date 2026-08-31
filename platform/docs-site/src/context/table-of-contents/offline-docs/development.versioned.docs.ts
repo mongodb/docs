@@ -9008,7 +9008,15 @@ export const toc: L1TocItem[] = [
                   {
                     label: 'Mem0',
                     contentSite: 'cloud-docs',
+                    collapsible: true,
                     url: '/docs/atlas/ai-integrations/mem0',
+                    items: [
+                      {
+                        label: 'Get Started',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/ai-integrations/mem0/get-started',
+                      },
+                    ],
                   },
                 ],
               },

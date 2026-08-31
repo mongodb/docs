@@ -187,6 +187,14 @@ const tocData: TocItem[] = [
             label: 'Mem0',
             contentSite: 'cloud-docs',
             url: '/docs/atlas/ai-integrations/mem0',
+            collapsible: true,
+            items: [
+              {
+                label: 'Get Started',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/ai-integrations/mem0/get-started',
+              },
+            ],
           },
         ],
       },
