@@ -32,7 +32,7 @@
          As another option, you can request a restore snapshot using the
          :oas-bump-atlas-op:`API <creategroupclusterbackuprestorejob>`. The 
          {+atlas-admin-api+} returns the download link in the 
-         ``deliveryUrl`` field for downloading over the public internet 
+         ``deliveryUrl`` field for downloading over the public Internet 
          and in the ``privateDownloadDeliveryUrls`` field for downloading 
          over the private endpoint in the same region as the 
          snapshot.

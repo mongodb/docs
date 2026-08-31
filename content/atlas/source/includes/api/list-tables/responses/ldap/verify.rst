@@ -30,7 +30,7 @@
    * - request.hostname
      - string
      - |fqdn| or IP address of the host that serves the |ldap|
-       directory. This host must be visible to the internet or
+       directory. This host must be visible to the Internet or
        connected to your |service| cluster with :ref:`VPC Peering
        <vpc-peering>`.
 

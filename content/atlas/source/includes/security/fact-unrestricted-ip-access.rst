@@ -5,4 +5,4 @@
    data exfiltration, and other malicious activity.
    Restrict access to trusted IP addresses or |cidr| ranges whenever
    possible, and use strong credentials for all database users when
-   allowing access from the public internet.
+   allowing access from the public Internet.

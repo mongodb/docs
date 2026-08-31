@@ -34,7 +34,7 @@ Optimize Data Transfer Patterns
 ```````````````````````````````
 
 Whenever possible, deploy resources to the same provider and region to minimize 
-data transfer costs. Only use inter-region or internet transfers when necessary. 
+data transfer costs. Only use inter-region or Internet transfers when necessary. 
 
 
 Underutilized {+Clusters+}

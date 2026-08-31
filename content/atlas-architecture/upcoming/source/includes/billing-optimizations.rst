@@ -110,7 +110,7 @@ Optimize Data Transfer Patterns
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Whenever possible, opt for same-provider, same-region data transfer to
-minimize costs. Only use inter-region or internet transfers when
+minimize costs. Only use inter-region or Internet transfers when
 necessary, such as for disaster recovery scenarios where you need to
 restore the application in a different region. Locating your {+cluster+}
 in the same region as most of your traffic — usually where you host your

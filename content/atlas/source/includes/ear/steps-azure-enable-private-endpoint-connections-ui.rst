@@ -44,8 +44,8 @@
       {+clusters+} for which you enabled :ref:`customer managed keys
       <azure-enable-cluster-encryption-at-rest-pvt-endpoint>`, including
       existing {+clusters+} that allow connections using public
-      internet, to use only the private endpoint connection. You can
-      optionally disable public internet access to your |akv| after
+      Internet, to use only the private endpoint connection. You can
+      optionally disable public Internet access to your |akv| after
       migrating your {+clusters+} to use the private endpoint
       connection. All new |service| {+clusters+} on |azure| will by
       default use only the active private endpoint connection. |service|
