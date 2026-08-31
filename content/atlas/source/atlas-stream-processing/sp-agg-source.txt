@@ -356,8 +356,8 @@ The ``$source`` stage takes a document with the following fields:
    * - ``initialSync``
      - document 
      - Optional
-     - Document containing fields pertaining to ``initialSync``
-       functionality.
+     - Document containing ``initialSync`` configuration
+       parameters.
 
        {+atlas-sp+} ``initialSync`` allows you to ingest preexisting
        documents in an {+service+} collection as though they were insert
@@ -388,8 +388,8 @@ The ``$source`` stage takes a document with the following fields:
    * - ``initialSync.enable``
      - boolean
      - Conditional
-     - Determines whether or not to enable ``initialSync``. If you
-       declare an ``initialSync`` field, you must set this field.
+     - Determines whether to enable ``initialSync``. If you declare an
+       ``initialSync`` field, you must set this field.
 
    * - ``initialSync.parallelism``
      - integer
@@ -1261,6 +1261,66 @@ run the following command:
    .. output:: /includes/examples/sp-agg-source/change-stream-find-result.sh
       :language: json
       :visible: false
+
+Database Change Stream Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation ingests data from the
+``db-change-stream-connection`` source, which connects to an
+{+service+} cluster loaded with the :ref:`sample-mflix` dataset. To
+learn how to create a stream processing workspace and add a
+connection to an {+service+} cluster to the connection registry, see
+:ref:`atlas-sp-quickstart`. This aggregation runs two stages to open a
+change stream against the ``sample_mflix`` source database and record
+changes to the ``db_changes`` collection in the
+``sample_mflix_changes`` sink database:
+
+1. The :pipeline:`$source` stage connects to the
+   ``db-change-stream-connection`` source and opens a change stream
+   against the ``sample_mflix`` source database. The
+   ``config.startAtOperationTime`` field sets the time after which the
+   source begins reporting. This example sets the ``startAt`` value to
+   start one minute in the past.
+
+#. The :pipeline:`$merge` stage writes the change stream documents to
+   an {+service+} collection named ``db_changes`` in the
+   ``sample_mflix_changes`` sink database.
+
+.. literalinclude:: /includes/examples/sp-agg-source/db-change-stream-pipeline.js
+   :language: javascript
+   :copyable: true
+
+Run the following commands against your source cluster to verify the
+stream processor's behavior. To connect, see
+:ref:`connect-mongo-shell`. 
+
+Insert a document into the ``movies`` collection and a document into
+the ``comments`` collection in the ``sample_mflix`` source database:
+
+.. literalinclude:: /includes/examples/sp-agg-source/db-change-stream-insert.js
+   :language: javascript
+   :copyable: true
+
+After you insert the documents, the stream processor writes a change
+stream event document for each insert to the
+``sample_mflix_changes.db_changes`` collection. Run the following
+command against your cluster to view the documents in the resulting
+``sample_mflix_changes.db_changes`` collection:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/examples/sp-agg-source/db-change-stream-find.js
+      :language: javascript
+
+   .. output:: /includes/examples/sp-agg-source/db-change-stream-find-result.js
+      :language: javascript
+      :visible: false
+
+Each event includes a timestamp, the full document change, an
+``operationType``, and an ``ns`` field. The ``ns`` field names the
+source database and collection, so you can distinguish which collection
+produced each change.
 
 Document Array Example
 ~~~~~~~~~~~~~~~~~~~~~~
