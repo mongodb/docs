@@ -46,3 +46,13 @@ export async function getPathArraysFromFilesystem(contentMdxDir: string): Promis
   const paths = await collectMdxPaths(resolvedDir, base);
   return paths.map((p) => ({ path: p }));
 }
+
+/**
+ * Page slugs relative to a single site/version root (the directory that
+ * contains `_site.json`). The site index is `""`. Used by sitemap generation
+ * so the URL list matches the MDX files this deploy serves.
+ */
+export async function getPageSlugsFromSiteDir(siteDir: string): Promise<string[]> {
+  const paths = await collectMdxPaths(siteDir, siteDir);
+  return paths.map((p) => p.join('/'));
+}

@@ -23,7 +23,9 @@
  * path — Next's production static handler only serves image/asset extensions
  * there. We stage only this deploy's docset; others live on their own deploys.
  * Emits sitemap-0.xml, sitemap-index.xml, objects.inv, and manpages.tar.gz
- * (when present) per _site.json dir.
+ * (when present) per _site.json dir. Sitemap page URLs come from the MDX
+ * files in that dir (same walk as static page generation); composable
+ * tutorial query-string variants still come from `_site.json`.
  *
  * Runs prebuild so files land in public/ before next build. Generated files are
  * gitignored. Run via: pnpm build:metadata
@@ -34,9 +36,16 @@ import path from 'path';
 import { CONTENT_MDX_DIR } from '../src/mdx-utils/content-constants';
 import {
   loadDirNameToPrefixMap,
-  remapDiskRelativeToBlobRelative,
   stripDocsPrefix,
 } from '../src/mdx-utils/blob-path-remap';
+import { getPageSlugsFromSiteDir } from '../src/utils/scan-mdx-files';
+import { buildSitemapUrls } from '../src/utils/build-sitemap-urls';
+import {
+  diskDirBelongsToDocsProject,
+  sitemapBaseDocUrl,
+  sitemapPublicRest,
+  sitemapUrlPrefix,
+} from '../src/utils/sitemap-site-path';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.mongodb.com';
 const PUBLIC_DIR = path.join(process.cwd(), 'public');
@@ -58,9 +67,8 @@ function getDocsetBase(dirNameToPrefix: Record<string, string>): string {
   return rawPrefix ? stripDocsPrefix(rawPrefix) : '';
 }
 
-/** Minimal shape of _site.json needed to build a sitemap. */
+/** Minimal shape of _site.json needed after the MDX page walk. */
 interface SiteMetadata {
-  toctreeOrder?: string[];
   composablePages?: Record<string, Array<Record<string, string>>>;
 }
 
@@ -97,34 +105,6 @@ function buildSitemapIndexXml(sitemapUrls: string[]): string {
     entries,
     '</sitemapindex>',
   ].join('\n');
-}
-
-function slugToUrl(baseDocUrl: string, slug: string): string {
-  const normalized = slug.replace(/^\/+|\/+$/g, '');
-  if (!normalized || normalized === 'index') {
-    return `${baseDocUrl}/`;
-  }
-  return `${baseDocUrl}/${normalized}/`;
-}
-
-function buildSitemapUrls(baseDocUrl: string, siteMetadata: SiteMetadata): string[] {
-  const urls = [
-    ...new Set((siteMetadata.toctreeOrder ?? []).map((slug) => slugToUrl(baseDocUrl, slug))),
-  ];
-
-  // Composable tutorial pages get an extra sitemap entry per selection permutation,
-  // mirroring the query-string variants the API-route sitemap produced.
-  if (siteMetadata.composablePages) {
-    for (const [slug, selectionsList] of Object.entries(siteMetadata.composablePages)) {
-      const base = slugToUrl(baseDocUrl, slug);
-      for (const selections of selectionsList) {
-        const qs = new URLSearchParams(selections).toString();
-        if (qs) urls.push(`${base}?${qs}`);
-      }
-    }
-  }
-
-  return urls.sort();
 }
 
 /** Recursively collect content-mdx dirs (relative to baseDir) that contain a _site.json. */
@@ -217,22 +197,17 @@ async function main(): Promise<void> {
   let inventoryCount = 0;
   let manpagesCount = 0;
 
-  for (const diskDir of siteDirs) {
-    const urlPrefix = remapDiskRelativeToBlobRelative(diskDir, prefixMap);
+  const docsProject = process.env.DOCS_PROJECT;
 
-    // Only stage THIS deploy's docset; other docsets live on their own deploys.
-    // `rest` is the canonical path relative to basePath (the version segment(s),
-    // or '' for a non-versioned docset root).
-    let rest: string;
-    if (urlPrefix === docsetBase) {
-      rest = '';
-    } else if (docsetBase === '') {
-      rest = urlPrefix;
-    } else if (urlPrefix.startsWith(`${docsetBase}/`)) {
-      rest = urlPrefix.slice(docsetBase.length + 1);
-    } else {
-      continue;
-    }
+  for (const diskDir of siteDirs) {
+    // Landing and manual both have an empty URL prefix. Filter by content
+    // directory name so a landing deploy does not emit manual version sitemaps
+    // (and vice versa).
+    if (!diskDirBelongsToDocsProject(diskDir, docsProject)) continue;
+
+    const urlPrefix = sitemapUrlPrefix(diskDir, prefixMap);
+    const rest = sitemapPublicRest(urlPrefix, docsetBase);
+    if (rest === null) continue;
 
     const siteMetadata = await readSiteMetadata(diskDir);
     if (!siteMetadata) {
@@ -244,10 +219,9 @@ async function main(): Promise<void> {
     await fs.mkdir(destDir, { recursive: true });
 
     // Sitemap page URLs use the full canonical prefix (unaffected by basePath).
-    // Empty urlPrefix is the docs homepage (landing); avoid `/docs/` + extra
-    // slash from `${...}/docs/${''}` feeding slugToUrl a trailing slash.
-    const baseDocUrl = urlPrefix ? `${SITE_URL}/docs/${urlPrefix}` : `${SITE_URL}/docs`;
-    const urls = buildSitemapUrls(baseDocUrl, siteMetadata);
+    const baseDocUrl = sitemapBaseDocUrl(SITE_URL, urlPrefix);
+    const pageSlugs = await getPageSlugsFromSiteDir(path.join(CONTENT_MDX_DIR, diskDir));
+    const urls = buildSitemapUrls(baseDocUrl, pageSlugs, siteMetadata.composablePages);
 
     await fs.writeFile(path.join(destDir, 'sitemap-0.xml'), buildSitemapXml(urls), 'utf-8');
     await fs.writeFile(

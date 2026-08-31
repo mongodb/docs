@@ -11,8 +11,8 @@
  * already-deployed `sitemap-0.xml` and reuses the helpers below. This module has
  * NO imports so it is safe to import from both jest and the Deno edge runtime.
  *
- * Coverage note: the sitemap is built from each `_site.json`'s `toctreeOrder`, so
- * a handful of orphan pages that are not part of any toctree are not covered.
+ * Coverage note: the sitemap is built from the MDX files in each site/version
+ * directory, so it includes pages that are not in the unified ToC.
  */
 
 /**
