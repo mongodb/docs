@@ -40,6 +40,11 @@ const tocData: TocItem[] = [
         url: '/docs/atlas/atlas-stream-processing/architecture',
       },
       {
+        label: 'Vertical Autoscaling',
+        contentSite: 'cloud-docs',
+        url: '/docs/atlas/atlas-stream-processing/autoscaling',
+      },
+      {
         label: 'Stream Processor Windows',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/atlas-stream-processing/windows',

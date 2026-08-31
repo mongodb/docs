@@ -1,0 +1,357 @@
+.. _atlas-sp-autoscaling:
+
+====================================
+{+atlas-sp+} Vertical Autoscaling
+====================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas stream processing, vertical scaling, tiers, minTier, maxTier, code example
+   :description: Learn how Atlas Stream Processing vertical autoscaling automatically adjusts stream processor tiers based on resource usage within tier bounds you set.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Vertical autoscaling automatically adjusts the :ref:`tier
+<atlas-sp-architecture-tiers>` of a stream processor in response to its
+resource usage. When you enable autoscaling, {+atlas-sp+} scales a
+processor up or down within the range of tiers that you define. You don't
+need to stop and restart the processor to change its tier.
+
+Autoscaling helps you handle fluctuating workloads, absorb unexpected
+traffic spikes, and avoid failures that occur when a processor exhausts
+the resources of its tier. Because {+atlas-sp+} manages the scaling
+decisions internally, you don't need to monitor usage and resize
+processors yourself.
+
+.. _atlas-sp-autoscaling-use-cases:
+
+Use Cases
+---------
+
+Consider enabling vertical autoscaling in the following scenarios:
+
+- **Uncertain initial sizing**: If you can't accurately estimate the tier
+  a processor requires, start with a smaller tier and allow autoscaling
+  to adjust the tier to match the actual load.
+
+- **Fluctuating or growing traffic**: If your workload experiences
+  organic growth or periodic spikes, autoscaling increases resources
+  during high demand and reduces them during low demand.
+
+- **Operational resilience**: If an undersized processor risks failure
+  during peak events, autoscaling raises the tier automatically to keep
+  the processor running.
+
+.. _atlas-sp-autoscaling-how-it-works:
+
+How Autoscaling Works
+---------------------
+
+When you enable autoscaling for a stream processor, {+atlas-sp+}
+monitors the processor's CPU and memory usage and compares it to
+internally managed thresholds. {+atlas-sp+} controls these thresholds
+to balance responsiveness and stability, and you can't configure them.
+
+To change a processor's tier, {+atlas-sp+} performs the following
+actions:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Stop the processor
+
+      {+atlas-sp+} stops the processor on its current tier.
+
+   .. step:: Change the tier
+
+      {+atlas-sp+} moves the processor to the next tier in the tier
+      hierarchy: ``SP2``, ``SP5``, ``SP10``, ``SP30``, ``SP50``.
+
+   .. step:: Restart the processor
+
+      {+atlas-sp+} restarts the processor on the new tier and resumes
+      operation from the last committed :ref:`checkpoint
+      <atlas-sp-checkpoints>`, so no data is lost.
+
+.. _atlas-sp-autoscaling-scale-up:
+
+Scale-Up Behavior
+~~~~~~~~~~~~~~~~~~
+
+{+atlas-sp+} scales a processor up to the next higher tier when the
+processor's resource usage exceeds one of the following scale-up thresholds for a sustained
+period:
+
+- CPU usage is above 90% for 60 minutes
+- Memory usage is above 80% for 60 minutes, or above 90% for 30 seconds
+
+{+atlas-sp+} also scales a processor up if the processor runs out of
+memory. When autoscaling is enabled, an out-of-memory condition scales
+the processor up to the next higher tier instead of failing the
+processor.
+
+Scaling up responds quickly to sustained resource pressure to protect
+processor availability.
+
+{+atlas-sp+} scales a processor up only when the next higher tier is
+less than or equal to the configured :ref:`maxTier
+<atlas-sp-autoscaling-tier-bounds>`.
+
+.. _atlas-sp-autoscaling-scale-down:
+
+Scale-Down Behavior
+~~~~~~~~~~~~~~~~~~~~
+
+{+atlas-sp+} scales down a processor to the next lower tier when the
+processor's CPU and memory usage remain below a scale-down threshold for
+more than two days. The scale-down threshold is the scale-up threshold
+of the next lower tier, minus a 10% buffer that prevents the processor
+from scaling back up immediately. This two-day stabilization period
+makes scaling down deliberately slow to prevent frequent scaling between
+tiers.
+
+{+atlas-sp+} scales a processor down only when the next lower tier is
+greater than or equal to the configured :ref:`minTier
+<atlas-sp-autoscaling-tier-bounds>`.
+
+.. _atlas-sp-autoscaling-tier-bounds:
+
+Tier Bounds: minTier and maxTier
+--------------------------------
+
+While {+atlas-sp+} manages the scaling thresholds, you control the
+range of tiers a processor can scale between with two settings:
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Setting
+     - Description
+
+   * - ``minTier``
+     - The lowest tier the processor can scale down to. Guarantees a
+       baseline level of resources and sets a cost floor.
+
+   * - ``maxTier``
+     - The highest tier the processor can scale up to. Caps resource
+       consumption and cost, and prevents an anomalous spike from
+       scaling the processor to an unnecessarily expensive tier.
+
+If you don't specify ``minTier`` or ``maxTier`` when you enable
+autoscaling, {+atlas-sp+} uses the :ref:`{+spw+}
+<atlas-sp-architecture-tiers>` configuration as the default:
+
+- If you don't specify ``minTier``, {+atlas-sp+} uses the lower of the
+  {+spw+} default tier and the tier that you start the processor on.
+  Using the lower value prevents an invalid configuration when the
+  default tier is above the starting tier.
+- If you don't specify ``maxTier``, {+atlas-sp+} uses the {+spw+}
+  maximum tier size. If the {+spw+} has no maximum tier size, the
+  processor returns an error and doesn't start.
+
+Some pipeline features require a minimum tier. For example, processors
+that use :ref:`failover processors <atlas-sp-architecture-failover>`
+require a minimum tier of ``SP10``. Set ``minTier`` to at least the
+minimum tier that your processor's pipeline requires.
+
+The following table shows how ``minTier`` and ``maxTier`` bound scaling
+actions:
+
+.. list-table::
+   :widths: 30 20 25 25
+   :header-rows: 1
+
+   * - Tier Configuration
+     - Current Tier
+     - Scale Action
+     - Resulting Tier
+
+   * - ``minTier: SP5``, ``maxTier: SP30``
+     - ``SP10``
+     - Scale up
+     - ``SP30``
+
+   * - ``minTier: SP5``, ``maxTier: SP30``
+     - ``SP30``
+     - Scale up
+     - Remains ``SP30`` (maximum reached)
+
+   * - ``minTier: SP5``, ``maxTier: SP30``
+     - ``SP10``
+     - Scale down
+     - ``SP5``
+
+   * - ``minTier: SP5``, ``maxTier: SP30``
+     - ``SP5``
+     - Scale down
+     - Remains ``SP5`` (minimum reached)
+
+.. _atlas-sp-autoscaling-configure:
+
+Enable and Configure Autoscaling
+--------------------------------
+
+You can enable, modify, and disable autoscaling for a stream processor with
+the ``autoscaling`` option on the :method:`sp.processor.start()` or
+:method:`sp.processor.modify()` method in {+mongosh+}. {+atlas-sp+} persists
+the autoscaling configuration, so a processor reuses its prior
+configuration if you stop and restart it without changes.
+
+To enable autoscaling with the {+spw+} default and maximum tiers as
+bounds, use the following syntax:
+
+.. code-block:: javascript
+
+   sp.processor.start({autoscaling: {enabled: true}})
+
+To enable autoscaling with explicit tier bounds, specify ``minTier`` and
+``maxTier``:
+
+.. code-block:: javascript
+
+   sp.processor.start(
+      {autoscaling: {enabled: true, minTier: "SP2", maxTier: "SP50"}}
+   )
+
+To set the tier a processor starts on while allowing it to scale within
+a different range, specify ``tier`` with the ``autoscaling`` option:
+
+.. code-block:: javascript
+
+   sp.processor.start(
+      {tier: "SP10", autoscaling: {enabled: true, minTier: "SP5", maxTier: "SP30"}}
+   )
+
+To change the tier bounds of an existing processor, stop the processor,
+then modify the tier levels with the new values. You must stop a processor before you
+modify it. {+atlas-sp+} changes only the values that you provide:
+
+.. code-block:: javascript
+
+   sp.processor.modify(
+      {autoscaling: {enabled: true, minTier: "SP2", maxTier: "SP30"}}
+   )
+
+To disable autoscaling, stop the processor and set ``enabled`` to
+``false``:
+
+.. code-block:: javascript
+
+   sp.processor.modify({autoscaling: {enabled: false}})
+
+When you disable autoscaling, {+atlas-sp+} pins the processor's
+:ref:`effectiveTier <atlas-sp-autoscaling-effective-tier>` to its
+``tier`` baseline.
+
+.. _atlas-sp-autoscaling-behavior:
+
+Additional Behavior
+-------------------
+
+.. _atlas-sp-autoscaling-effective-tier:
+
+tier and effectiveTier
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+When autoscaling is enabled, {+atlas-sp+} tracks two tier values for a
+processor:
+
+- ``tier``: The baseline tier that you set. {+atlas-sp+} doesn't change
+  this value through autoscaling. It changes only when you set a new
+  baseline, which takes effect the next time you start the processor.
+- ``effectiveTier``: A read-only value that shows the tier the processor
+  is actually running on. When autoscaling is enabled, {+atlas-sp+}
+  adjusts ``effectiveTier`` within the range set by ``minTier`` and
+  ``maxTier``. When autoscaling is disabled, ``effectiveTier`` matches
+  ``tier``.
+
+If you stop a processor after autoscaling changes its ``effectiveTier``,
+{+atlas-sp+} restarts the processor on its last ``effectiveTier``, not
+the ``tier`` you initially started it on. This behavior lets the
+processor resume its previous workload without waiting to autoscale
+again.
+
+To view a processor's autoscaling configuration and current tier, use
+the :method:`sp.processor.stats()` method. The output includes the
+``tier`` baseline, the read-only ``effectiveTier``, and an
+``autoscaling`` object with ``minTier`` and ``maxTier``:
+
+.. code-block:: javascript
+   :copyable: false
+
+   sp.processor.stats()
+   {
+     ok: 1,
+     name: 'sampleProc',
+     state: 'STARTED',
+     tier: 'SP10',
+     effectiveTier: 'SP10',
+     autoscaling: { minTier: 'SP2', maxTier: 'SP50' },
+     stats: {
+       ...
+     },
+     ...
+   }
+
+.. _atlas-sp-autoscaling-tier-alignment:
+
+Tier Alignment
+~~~~~~~~~~~~~~
+
+If you start a processor with a ``tier`` value outside the configured
+autoscaling range, either below ``minTier`` or above ``maxTier``, the
+processor returns an error and doesn't start.
+
+.. _atlas-sp-autoscaling-max-tier-exhaustion:
+
+Resource Exhaustion at maxTier
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If a processor exhausts its resources at the configured ``maxTier``,
+{+atlas-sp+} behaves as follows:
+
+- **Memory exhaustion**: The processor fails with an out-of-memory error.
+- **CPU exhaustion**: The processor continues running.
+
+If a processor reaches ``maxTier`` and can't keep up with its workload,
+consider optimizing your pipeline logic or increasing ``maxTier``.
+
+.. _atlas-sp-autoscaling-monitoring:
+
+Monitoring Autoscaling Events
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+atlas-sp+} records each scale-up and scale-down event. Each record
+identifies the processor and {+spw+}, whether the event is a scale-up
+or scale-down, the tiers the processor moved to and from, and the
+metric that triggered the event. To learn how to view scaling events
+and configure alerts, see :ref:`Monitor Stream Processors
+<atlas-sp-monitoring>`.
+
+.. _atlas-sp-autoscaling-get-started:
+
+Get Started
+-----------
+
+To learn how to create and manage the stream processors you enable
+autoscaling on, see :ref:`Develop Stream Processors
+<atlas-sp-manage-processor>`.
+
+To choose an appropriate tier range for your workload, see the
+:ref:`Tier Selection Guide <atlas-sp-tier-guide>`.
+
+.. _atlas-sp-autoscaling-learn-more:
+
+Learn More
+----------
+
+- :ref:`atlas-sp-architecture`
+- :ref:`atlas-sp-tier-guide`
+- :ref:`Monitor Stream Processors <atlas-sp-monitoring>`
+- :ref:`atlas-sp-limitations`
