@@ -1,13 +1,13 @@
 .. _atlas-sp-monitoring:
 
-================================================================
-{+atlas-sp+} Monitoring and Alerting
-================================================================
+==============================================
+{+atlas-sp+} Monitoring and Metrics
+==============================================
 
 .. default-domain:: mongodb
 
 .. meta::
-   :keywords: atlas stream processing, streaming data, data stream, monitoring, alerting, alerts, stats, statistics, report, reporting, metrics
+   :keywords: atlas stream processing, streaming data, data stream, alerting, alerts, stats, statistics, report, reporting, code example
    :description: Learn how to monitor Atlas Stream Processing by using stream processor statistics, Datadog and OpenTelemetry metrics integrations, and configurable alerts.
 
 .. contents:: On this page
@@ -71,7 +71,20 @@ choosing. Users can compare the sampled results against their expected
 results to diagnose any errors in their aggregation pipeline design.
 
 The ``sp.processor.stats()`` method returns runtime statistics about
-a stream processor of your choosing.
+a stream processor of your choosing. To learn how to call it, see
+:ref:`atlas-sp-manage-processor-stats`.
+
+.. _atlas-sp-metrics:
+
+Stream Processor Metrics
+------------------------
+
+The following metrics describe the runtime behavior of a stream
+processor. {+atlas-sp+} reports them in the ``sp.processor.stats()``
+output document, in the :guilabel:`Monitoring` tab of the
+{+atlas-ui+}, and through the {+atlas-admin-api+} and the
+:ref:`Datadog <datadog-integration>` and :ref:`OpenTelemetry
+<otel-integration>` integrations.
 
 .. _atlas-sp-stats-output-fields:
 
@@ -100,13 +113,24 @@ The output document has the following fields:
 
    * - ``stats.status``
      - string
-     - The status of the stream processor. This field can have the
-       following values:
+     - The engine state of the stream processor, which represents
+       its internal execution state on a single worker. This field
+       can have the following values:
 
-       - ``created``
+       - ``starting``
        - ``running``
        - ``error``
        - ``stopping``
+
+       This differs from the ``state`` field returned by
+       :method:`sp.listStreamProcessors()`, which reports the
+       |service| control-plane lifecycle state of the stream
+       processor. The two values can differ. For example, a
+       processor's control-plane ``state`` can be ``STOPPING``
+       while its engine ``stats.status`` is still ``running``, or
+       the control-plane ``state`` can be ``PROVISIONING`` while
+       ``stats.status`` returns no value because the processor is
+       not yet running on a worker.
 
    * - ``stats.scaleFactor``
      - integer
@@ -226,6 +250,31 @@ The output document has the following fields:
    * - ``stats.watermark``
      - date
      - The timestamp of the current watermark.
+
+   * - ``stats.addedParallelism``
+     - integer
+     - The total parallelism of your stream processor.
+       {+atlas-sp+} calculates this value as the sum of
+       ``(parallelism - 1)`` across every stage that sets a
+       ``parallelism`` value greater than ``1``.
+
+       This field summarizes the entire pipeline and doesn't appear
+       in ``stats.operatorStats``. {+atlas-sp+} returns this field
+       only if at least one stage sets a ``parallelism`` value
+       greater than ``1``.
+
+       For example, if your :pipeline:`$source` stage sets an
+       ``initialSync.parallelism`` value of ``2``, your
+       :ref:`$lookup <atlas-sp-agg-lookup>` stage sets a
+       ``parallelism`` value of ``4``, and your :ref:`$merge
+       <atlas-sp-agg-merge>` stage sets a ``parallelism`` value of
+       ``4``, then ``stats.addedParallelism`` reports
+       ``(2 - 1) + (4 - 1) + (4 - 1)``, or ``7``.
+
+       Use this value to compare the parallelism that you
+       configured against the parallelism available to your stream
+       processor tier. To learn more, see
+       :ref:`atlas-sp-tier-guide`.
 
    * - ``stats.operatorStats``
      - array
@@ -474,7 +523,7 @@ DLQ documents contain the following fields:
    * - doc
      - document
      - Always
-     - The full document written to the DLQ as a result of this
+     - The full document written to the DLQ because of this
        failure event.
 
    * - _stream_meta
