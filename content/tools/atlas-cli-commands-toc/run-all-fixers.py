@@ -56,9 +56,10 @@ def main():
   rc = run_cmd(consolidated_cmd, cwd=str(repo_root))
   if rc != 0:
     print('Consolidated fixer returned non-zero:', rc)
+    return rc
 
   print('\nAll steps finished. If --apply was used, files may have been modified in-place.')
-  return 0
+  return rc
 
 
 if __name__ == '__main__':

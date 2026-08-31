@@ -156,12 +156,14 @@ def dedent_literalincludes(path: Path, apply: bool) -> int:
     if not new.endswith('\n'):
         new += '\n'
     diff = ''.join(difflib.unified_diff(old.splitlines(keepends=True), new.splitlines(keepends=True), fromfile=str(path), tofile=str(path) + '.fixed'))
-    print(f'--- Dedent proposed changes for {path} (literalincludes counted: {lit_count})')
-    print(diff)
+    if apply:
+        print(f'Applied dedent changes to {path} (literalincludes counted: {lit_count})')
+    else:
+        print(f'--- Dedent proposed changes for {path} (literalincludes counted: {lit_count})')
+        print(diff)
 
     if apply:
         path.write_text(new, encoding='utf-8')
-        print(f'Wrote {path}')
         return 1
     return 0
 
@@ -224,12 +226,14 @@ def wrap_completions_in_file(path: Path, patterns: set, apply: bool) -> int:
     old = text
     new = '\n'.join(out) + '\n'
     diff = ''.join(difflib.unified_diff(old.splitlines(keepends=True), new.splitlines(keepends=True), fromfile=str(path), tofile=str(path) + '.fixed'))
-    print(f'--- Wrap completions proposed changes for {path}')
-    print(diff)
+    if apply:
+        print(f'Applied completion wrapping to {path}')
+    else:
+        print(f'--- Wrap completions proposed changes for {path}')
+        print(diff)
 
     if apply:
         path.write_text(new, encoding='utf-8')
-        print(f'Wrote {path}')
         return 1
     return 0
 
@@ -335,13 +339,13 @@ def fix_scope(scope: Path, skip_list: list, apply: bool) -> int:
         new = '\n'.join(lines)
         if not new.endswith('\n'): new += '\n'
         if new != txt:
-            diff = ''.join(difflib.unified_diff(txt.splitlines(keepends=True), new.splitlines(keepends=True), fromfile=str(f), tofile=str(f) + '.fixed'))
-            print(f'--- Proposed general fixes for {f}')
-            print(diff)
+            if not apply:
+                diff = ''.join(difflib.unified_diff(txt.splitlines(keepends=True), new.splitlines(keepends=True), fromfile=str(f), tofile=str(f) + '.fixed'))
+                print(f'--- Proposed general fixes for {f}')
+                print(diff)
             report.append(f)
             if apply:
                 f.write_text(new, encoding='utf-8')
-                print(f'Wrote {f}')
 
     print(f'Scanned {len(files)} file(s). Proposed changes: {len(report)}. Apply: {apply}')
     return len(report)

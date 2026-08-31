@@ -58,7 +58,7 @@ function parseCommandLineArgs(): CommandLineArgs {
 async function runCommand(command: string, options?: { cwd?: string }): Promise<string> {
   const { exec } = await import('child_process');
   return new Promise((resolve, reject) => {
-    exec(command, options, (error, stdout, stderr) => {
+    exec(command, { ...options, maxBuffer: 10 * 1024 * 1024 }, (error, stdout, stderr) => {
       if (error) {
         reject(new Error(`Command failed: ${command}\nError: ${error.message}\nStderr: ${stderr}`));
         return;
@@ -91,7 +91,8 @@ async function runFixersScript(scope: string): Promise<void> {
     }
     console.log('✅ Fixers script completed successfully');
   } catch (error) {
-    console.warn('⚠️  Fixers script failed, but continuing:', (error as Error).message);
+    console.error('❌ Fixers script failed:', (error as Error).message);
+    throw error;
   }
 }
 
