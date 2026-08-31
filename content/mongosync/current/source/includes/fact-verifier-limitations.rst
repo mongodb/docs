@@ -2,8 +2,8 @@
 Compatibility
 ~~~~~~~~~~~~~
 
-The embedded verifier is not available in mongosync 1.8 and
-earlier.
+The embedded verifier is not available in {+c2c-product-name+} 1.8
+and earlier.
 
 For alternative verification methods, see :ref:`c2c-verification`.
 

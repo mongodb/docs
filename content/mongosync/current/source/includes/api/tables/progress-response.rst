@@ -119,7 +119,8 @@
 
    * - ``lagTimeSeconds``
      - integer
-     - *Deprecated in mongosync 1.21.* Use ``lag.overallLagSeconds``
+     - *Deprecated in {+c2c-product-name+} 1.21.* Use
+       ``lag.overallLagSeconds``
        instead. This field may be removed in a future version.
 
        Time difference in seconds between the latest event timestamp
