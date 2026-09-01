@@ -196,6 +196,11 @@ const tocData: TocItem[] = [
               },
             ],
           },
+          {
+            label: 'OpenAI Agents SDK',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/ai-integrations/openai-agents',
+          },
         ],
       },
       {

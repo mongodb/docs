@@ -1,0 +1,225 @@
+.. _openai-agents:
+
+============================================
+Integrate MongoDB with the OpenAI Agents SDK
+============================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. meta::
+   :description: Use MongoDB as the backing database for agents built with the OpenAI Agents SDK, storing conversation sessions and shared reference data for multiple agents in one cluster.
+   :keywords: Agents SDK, agentic, multi-agent, session, memory, python, integration
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can use MongoDB as the backing database for agents that you build
+with the `OpenAI Agents SDK
+<https://openai.github.io/openai-agents-python/>`__. The Agents SDK is
+a Python framework for building agentic applications from a small set
+of primitives:
+
+- **Agents**, which are large language models (LLMs) configured with
+  instructions and tools.
+
+- **Handoffs**, which let one agent delegate a task to another agent.
+
+- **Guardrails**, which validate the inputs and outputs of an agent.
+
+- **Sessions**, which store conversation history across agent runs.
+
+The SDK follows two design principles. It includes enough features to
+build real applications, but few enough primitives to learn in a short
+time. Its defaults also produce good results, and you can customize
+every step of an agent run.
+
+Why Use MongoDB with the Agents SDK
+-----------------------------------
+
+The Agents SDK provides ``MongoDBSession``, a session implementation
+that persists conversation history in MongoDB. Storing that history in
+MongoDB gives your agents the following advantages:
+
+- **Horizontally scalable, multi-process session storage.** Session
+  state lives in your cluster rather than in the memory of a single
+  process, so any worker, container, or serverless function that
+  connects to the same cluster can continue a conversation. Each
+  message carries a monotonically increasing ``seq`` counter, which
+  preserves message order across concurrent writers.
+
+- **One database for conversations and application data.** If your
+  application already uses MongoDB, your agents read operational data
+  and write session history through the same connection and the same
+  driver, without a separate memory service to deploy and secure.
+
+- **Flexible documents for agent state.** The document model stores
+  conversation turns, tool calls, and structured outputs together as
+  they evolve, so you can extend what you record without a schema
+  migration.
+
+- **Queryable agent history.** Session history is stored in ordinary
+  collections, so you can query, aggregate, and index it to audit
+  agent behavior or build analytics.
+
+- **A path to retrieval.** Because your agents already connect to
+  MongoDB, you can add :ref:`{+avs+} <avs-types-vector-search>` to the
+  same cluster to give them semantic retrieval over your data. To
+  learn more, see :ref:`agentic-rag`.
+
+Tutorial
+--------
+
+In this tutorial, you build a multi-agent travel assistant. A triage
+agent answers questions by calling two specialist agents as tools, and
+both specialists read reference data from the same cluster that stores
+the conversation session.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+To complete this tutorial, you must have the following:
+
+- Python 3.10 or later.
+
+- .. include:: /includes/avs/shared/avs-requirements-cluster.rst
+
+- .. include:: /includes/avs/shared/avs-requirements-openai-api-key.rst
+
+Set Up the Environment
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create and activate a virtual environment.
+
+      This tutorial uses `uv <https://docs.astral.sh/uv/>`__ to manage
+      the environment:
+
+      .. code-block:: shell
+
+         uv venv
+         source .venv/bin/activate
+
+   .. step:: Install the dependencies.
+
+      Install the Agents SDK with the ``mongodb`` extra. Quote the
+      package name so that your shell doesn't interpret the brackets:
+
+      .. code-block:: shell
+
+         uv pip install "openai-agents[mongodb]"
+
+      The extra installs ``pymongo`` version 4.14 or later, which
+      provides the ``AsyncMongoClient`` class that both the session
+      and the agent tools use.
+
+   .. step:: Set your environment variables.
+
+      The application reads your Atlas connection string from
+      ``ATLAS_URI``, and the Agents SDK reads your key from
+      ``OPENAI_API_KEY``:
+
+      .. code-block:: shell
+
+         export ATLAS_URI="<connection-string>"
+         export OPENAI_API_KEY="<api-key>"
+
+      .. include:: /includes/avs/shared/avs-replace-connection-string.rst
+
+Build the Agent
+~~~~~~~~~~~~~~~
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create the application file.
+
+      Create a file named ``multi_agent_app.py`` and paste the
+      following code into it. The inline comments explain how each
+      part of the application uses MongoDB.
+
+      .. literalinclude:: /includes/ai-integrations/openai-agents/multi_agent_app.py
+         :language: python
+         :caption: multi_agent_app.py
+
+   .. step:: Run the application.
+
+      .. code-block:: shell
+
+         python multi_agent_app.py
+
+      The agent answers the first question from the
+      ``destinations`` collection and the second question from the
+      ``policies`` collection. Because the session stores the first
+      turn in MongoDB, the assistant resolves "that trip" in the
+      second question without you passing the history yourself.
+
+      .. collapsible::
+         :heading: Example output
+         :sub_heading: Your output might differ, because the model generates a new response for each run.
+         :expanded: false
+
+         .. code-block:: none
+
+            For Lisbon, the best time to go is **March through May**.
+
+            That's the sweet spot for **mild weather**, comfortable sightseeing, **fewer crowds**, and generally **better hotel rates** than peak summer. If you want the best single month, I'd pick **May** for warmer days while still avoiding the biggest summer crowds.
+            I still don't see a company policy entry for a **Lisbon hotel budget/nightly cap**.
+
+            Best next step: check the company booking tool or ask your travel/admin team to confirm the approved lodging allowance for Lisbon.
+
+How the Application Uses MongoDB
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The application creates one ``AsyncMongoClient`` and shares it across
+the agents and the session:
+
+- The specialist agents query the ``destinations`` and ``policies``
+  collections from their tool functions, so they answer from your
+  data.
+
+- ``MongoDBSession`` writes each conversation turn to the
+  ``agent_sessions`` and ``agent_messages`` collections in the same
+  database. Both collection names are configurable, and the session
+  creates the required indexes on first use.
+
+Because the application constructs the client itself, the client
+lifecycle belongs to the application and ``session.close()`` does
+nothing. To have the session own the client instead, create it with
+``MongoDBSession.from_uri()``.
+
+Next Steps
+----------
+
+To learn more about coordinating multiple agents with the Agents SDK,
+see the following pages in the OpenAI documentation:
+
+- `Orchestrating multiple agents
+  <https://openai.github.io/openai-agents-python/multi_agent/>`__ for
+  the tradeoffs between orchestrating through code and orchestrating
+  through an LLM.
+
+- `Handoffs <https://openai.github.io/openai-agents-python/handoffs/>`__
+  for delegating a conversation to another agent instead of calling it
+  as a tool.
+
+- `Guardrails
+  <https://openai.github.io/openai-agents-python/guardrails/>`__ for
+  validating agent inputs and outputs.
+
+- `Sessions
+  <https://openai.github.io/openai-agents-python/sessions/#mongodb-sessions>`__
+  for the full ``MongoDBSession`` reference.
+ 
