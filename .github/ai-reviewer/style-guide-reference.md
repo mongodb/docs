@@ -11,12 +11,19 @@ Source repository: https://github.com/mongodb/docs-meta/tree/master/source
 - Clear, active, direct writing
 - Grammatically correct content
 - Concise technical content
+- Use present tense
+- Write to the user
+- Use effective verbs
+- Use positive statements
+- Write for accessibility and global audience
 
 ### Style Guidelines
 - Abbreviations usage
 - Heading capitalization
 - Contractions policy
 - Text formatting standards
+- Collapsible sections
+- Language selectors
 
 ### Terminology Guidelines
 - Accurate, consistent terminology
@@ -131,6 +138,18 @@ Reference pages provide quick information to experienced users. The title is typ
 7. **Examples** *(optional)* — Most common use cases. Use includes for examples shared between reference and task pages.
 8. **Learn More** — Links to related content.
 
+## Information Types
+
+Information typing categorizes content by type based on audience goals. It keeps content focused, accounts for page purpose before writing, and helps users quickly understand relevance.
+
+### Types Used in MongoDB Documentation
+
+- **Concept** — Explains ideas, context, or background. Audience includes users who need to understand before they act.
+- **Reference** — Delivers granular details (methods, operators, database commands). Audience includes experienced users.
+- **Task** — Guides users through completing a goal. Audience includes users who need step-by-step instructions.
+
+These types are similar to DITA Document Types but do not impose strict RST structural requirements.
+
 ## Shared Include (`sharedinclude`) Guidelines
 
 The `sharedinclude` directive sources content from the MongoDB internal `docs-shared` repository. Use it to keep content in sync across multiple documentation sets or branches.
@@ -160,3 +179,31 @@ External files use `|variable-name|` placeholders. Define replacements in the so
 ### Inline vs. Block Context
 - **Inline context** (placeholder adjacent to paragraph text): Replace with unformatted text, formatted text (`monospace`, bold, italic), or links. Cannot use lists, code blocks, includes, or headers.
 - **Block context** (placeholder separated by line breaks): Replace with most inline or block RST elements, including titles, code blocks, anchors, and admonitions.
+
+## Selected Terminology Reference (B Terms)
+
+Flag the following common term issues when reviewing documentation:
+
+| Term | Guidance |
+|---|---|
+| **back end** | Avoid; use a specific term like *server*, *operating system*, or *network*. If needed, hyphenate as adjective: *back-end*. |
+| **backslash / slash** | Use *backslash* for `\` and *slash* for `/`. Don't use *slash mark*. |
+| **back up / backup** | *Back up* (verb); *backup* (noun or adjective). |
+| **backward** | Use instead of *backwards*. |
+| **bad** | Avoid; use *serious* or provide a specific explanation. |
+| **be sure** | Avoid; use *ensure* or *verify* depending on context. |
+| **because** | Use *because* (not *since* or *as*) to express causality. |
+| **before** | Use for time/order. Don't use to locate content; use *preceding* or a cross-reference instead. |
+| **below** | Avoid to locate information or refer to versions. Use *following* or a specific link; use *earlier* for versions. |
+| **between / among** | Use *between* for two items; *among* for three or more. |
+| **billion** | Avoid in prose; express as numerals. If unavoidable, use the short-scale definition (10⁹). |
+| **biweekly / bimonthly** | Avoid (ambiguous). Use *every two weeks*, *twice a month*, etc. |
+| **blacklist** | Avoid. Use *access list* (noun) or *remove from an access list* (verb); use *blocked* as adjective. |
+| **blackout** | Avoid. Use *scheduled outage* or *scheduled downtime*. |
+| **Boolean** | Always capitalize. |
+| **both** | Use only when referring to exactly two things. |
+| **bottom left / bottom right** | Avoid. Use *lower left* / *lower right* for UI locations. |
+| **box** | Use for UI boxes (text box, list box, etc.) within a dialog. Don't use *box* to refer to a computer. |
+| **bring up** | Avoid. Use *start* or *turn on* for systems; use *open* for windows/UI elements. |
+| **button / icon** | Don't use interchangeably. Use *button* for command/toolbar buttons; *icon* for graphics. Omit the word *button* when instructing users to click (e.g., "click **OK**"). |
+| **by using** | See also: *using*, *with*. |
