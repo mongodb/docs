@@ -33,6 +33,7 @@ For writers working with tested code examples in the Grove platform.
 | `/grove-create` | Create a new tested code example in the Grove platform |
 | `/grove-maintain` | Audit, upgrade, and maintain Grove test suites |
 | `/grove-migrate` | Migrate existing untested code into the Grove test suite |
+| `/grove-review` | Review a GitHub PR that adds or changes Grove tested code examples (source files, tests, output files, and the docs pages that reference them via literalinclude/io-code-block) |
 | `/grove-run` | Run Grove tests and diagnose failures |
 | `/grove-setup` | Set up a local Grove environment for running code example tests |
 | `/grove-test` | Create or fix tests for existing Grove code examples |
