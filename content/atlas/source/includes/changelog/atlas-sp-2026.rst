@@ -1,3 +1,11 @@
+.. _atlas-sp-20260827:
+
+27 August 2026 Release
+----------------------
+
+- Fixes a bug where {+atlas-sp+} did not support audit logs in ``us-east-2``,
+  ``eu-west-3``, and ``ap-northeast-2``.
+
 .. _atlas-sp-20260819:
 
 19 August 2026 Release
