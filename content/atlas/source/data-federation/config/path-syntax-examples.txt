@@ -1,8 +1,8 @@
 .. _adf-path-syntax:
 
-========================
-Define Path File Syntax
-========================
+==================================
+Define Path Syntax for Data Stores
+==================================
 
 .. meta::
    :description: Learn to define paths for your data in Atlas Data Federation, using path syntax to map filenames to computed fields and create partitions for querying.
@@ -123,7 +123,15 @@ Supported Parsing Functions
 
           /path/to/files/{<fieldA>.<fieldB> <data-type>}
 
-   * - You can specify ``ObjectIds`` in the path to the files to create 
+   * - You can enclose a field name in single quotes (``'``) if the
+       field name contains special characters, such as ``:`` or
+       ``#``.
+     - .. code-block:: none
+          :copyable: false
+
+          /path/to/files/{'<fieldA>' <data-type>}
+
+   * - You can specify ``ObjectIds`` in the path to the files to create
        partitions.
      - .. code-block:: none 
           :copyable: false
@@ -281,6 +289,7 @@ computed fields:
 - :ref:`adf-advanced-path-parse-regex`
 - :ref:`adf-advanced-path-parse-range`
 - :ref:`adf-advanced-parse-nested-fields`
+- :ref:`adf-advanced-path-special-chars`
 - :ref:`adf-advanced-path-objectids`
 - :ref:`adf-advanced-path-create-partition`
 - :ref:`adf-advanced-path-isodate`
@@ -571,6 +580,61 @@ The following :ref:`adf-aws-databases-reference` object identifies
 When {+adf+} receives a query on a specific month such as 
 ``January``, it uses the specified path to identify which file 
 contains the data that matches the query.
+
+.. _adf-advanced-path-special-chars:
+
+Identify Fields with Special Characters from Filename
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If a field name contains special characters, such as a colon (``:``)
+or a number sign (``#``), enclose the field name in single quotes
+(``'``) in the
+:datalakeconf-aws:`~databases.[n].collections.[n].dataSources.[n].path`.
+Otherwise, {+adf+} considers the storage configuration invalid.
+Enclose the entire field name, including any dots that separate
+nested fields, in a single pair of quotes.
+
+Consider a {+fdi+} store ``accountingArchive`` that contains files
+with names that match values of nested fields in the documents. For
+example, suppose a file contains a document with the following
+fields:
+
+.. code-block:: text
+   :copyable: false
+
+   {
+     "m:invoice": {
+       "m:asOfDate": {
+         "#value": "2026-08-01T14:54:51Z"
+       }
+     },
+     "vendor": "MONGODB",
+     ...
+   }
+
+The following :ref:`adf-aws-databases-reference` object encloses the
+``m:invoice.m:asOfDate.#value`` field name in single quotes to
+identify the range of dates that each file contains:
+
+.. code-block:: text
+   :copyable: false
+
+   "databases" : [
+     {
+       "name" : "accounting",
+       "collections" : [
+         {
+           "name" : "invoices",
+           "dataSources" : [
+             {
+               "storeName" : "accountingArchive",
+               "path" : "/invoices/{min('m:invoice.m:asOfDate.#value') isodate}-{max('m:invoice.m:asOfDate.#value') isodate}/*"
+             }
+           ]
+         }
+       ]
+     }
+   ]
 
 .. _adf-advanced-path-objectids:
 
