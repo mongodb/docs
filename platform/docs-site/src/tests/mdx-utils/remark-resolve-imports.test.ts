@@ -207,6 +207,91 @@ describe('remarkResolveImports ref link path prefix', () => {
   });
 });
 
+describe('remarkResolveImports index.txt refs', () => {
+  async function resolveWithRefs(
+    pageMdx: string,
+    projectPath: string,
+    refs: Record<string, string>,
+    dirNameToPrefix: Record<string, string> = {},
+  ): Promise<string> {
+    mockGetContentString.mockImplementation(async (rawPath: string) => {
+      if (rawPath.endsWith('_references.json')) {
+        return JSON.stringify({ substitutions: {}, refs });
+      }
+      return null;
+    });
+
+    const file = await remark()
+      .use(remarkFrontmatter, ['yaml'])
+      .use(remarkGfm)
+      .use(remarkMdx)
+      .use(remarkResolveImports, { projectPath, dirNameToPrefix })
+      .use(remarkStringify)
+      .process(pageMdx);
+    return String(file);
+  }
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('collapses a root index.txt fileid so :ref: links omit /index/', async () => {
+    const resolved = await resolveWithRefs(
+      'See <Reference name="atlas-editions" title="Database Editions" />.\n',
+      'atlas',
+      { 'atlas-editions': 'index#std-label-atlas-editions' },
+    );
+
+    expect(resolved).toContain('[Database Editions](/docs/atlas/#std-label-atlas-editions)');
+    expect(resolved).not.toContain('/atlas/index');
+  });
+
+  it('collapses a nested index.txt fileid', async () => {
+    const resolved = await resolveWithRefs(
+      'See <Reference name="core-overview" title="Overview" />.\n',
+      'atlas',
+      { 'core-overview': 'core/index#std-label-core-overview' },
+    );
+
+    expect(resolved).toContain('[Overview](/docs/atlas/core#std-label-core-overview)');
+    expect(resolved).not.toContain('/core/index');
+  });
+
+  it('does not collapse pages whose last segment only contains the word index', async () => {
+    const resolved = await resolveWithRefs(
+      'See <Reference name="indexes" title="Indexes" />.\n',
+      'atlas',
+      { indexes: 'indexes#std-label-indexes' },
+    );
+
+    expect(resolved).toContain('[Indexes](/docs/atlas/indexes#std-label-indexes)');
+  });
+
+  it('does not collapse a mid-path index segment', async () => {
+    const resolved = await resolveWithRefs(
+      'See <Reference name="analyzers" title="Analyzers" />.\n',
+      'atlas',
+      { analyzers: 'search/index/analyzers#std-label-analyzers' },
+    );
+
+    expect(resolved).toContain('[Analyzers](/docs/atlas/search/index/analyzers#std-label-analyzers)');
+  });
+
+  it('collapses index.txt refs after remapping the project URL prefix', async () => {
+    const resolved = await resolveWithRefs(
+      'See <Reference name="landing-label" title="Landing" />.\n',
+      'django-mongodb/current',
+      { 'landing-label': 'index#std-label-landing-label' },
+      { 'django-mongodb': 'docs/languages/python/django-mongodb' },
+    );
+
+    expect(resolved).toContain(
+      '[Landing](/docs/languages/python/django-mongodb/current/#std-label-landing-label)',
+    );
+    expect(resolved).not.toContain('/index#');
+  });
+});
+
 describe('remarkResolveImports flow-context references (phrasing at flow position)', () => {
   beforeEach(() => {
     jest.clearAllMocks();

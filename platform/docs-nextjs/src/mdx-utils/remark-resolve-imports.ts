@@ -206,9 +206,15 @@ interface ResolveRefsArgs {
   projectPath?: string;
 }
 
+/** Snooty stores `index.txt` as fileid `index` (`index#hash`). Drop that trailing segment. */
+const collapseTrailingIndexHref = (href: string): string => href.replace(/(?:^|\/)index(?=#|$)/, '');
+
 /** Join `/docs` + optional projectPath + href without producing `/docs//...` for landing. */
-const toDocsHref = (href: string, projectPath?: string) =>
-  href.startsWith('http') ? href : `/docs/${[projectPath, href].filter(Boolean).join('/')}`;
+const toDocsHref = (href: string, projectPath?: string) => {
+  if (href.startsWith('http')) return href;
+  const canonical = collapseTrailingIndexHref(href);
+  return `/docs/${[projectPath, canonical].filter(Boolean).join('/')}`;
+};
 
 const resolveSubstitutions = ({ tree, refs, projectPath }: ResolveRefsArgs) => {
   const replacements: JsxReplacement[] = [];

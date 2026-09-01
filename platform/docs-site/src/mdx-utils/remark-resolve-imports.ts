@@ -217,6 +217,9 @@ interface ResolveRefsArgs {
   dirNameToPrefix?: Record<string, string>;
 }
 
+/** Snooty stores `index.txt` as fileid `index` (`index#hash`). Drop that trailing segment. */
+const collapseTrailingIndexHref = (href: string): string => href.replace(/(?:^|\/)index(?=#|$)/, '');
+
 /**
  * Build the `/docs/...` URL for a project-relative ref href.
  *
@@ -233,7 +236,7 @@ const buildDocsHref = (
   dirNameToPrefix: Record<string, string>,
 ): string => {
   if (href.startsWith('http')) return href;
-  const cleanedHref = href.replace(/^\/+/, '');
+  const cleanedHref = collapseTrailingIndexHref(href).replace(/^\/+/, '');
   const diskRelative = projectPath ? `${projectPath}/${cleanedHref}` : cleanedHref;
   return `/docs/${remapDiskRelativeToBlobRelative(diskRelative, dirNameToPrefix)}`;
 };
