@@ -5,7 +5,7 @@
 =============================================
 
 .. meta::
-   :description: Configure explicit encryption for fine-grained control over field security in MongoDB, using ClientEncryption and specifying encryption algorithms.
+   :description: Use ClientEncryption and specify encryption algorithms and parameters to explicitly encrypt fields in your application, and to read from or write to those fields while maintaining encryption.
 
 .. default-domain:: mongodb
 
@@ -62,37 +62,73 @@ To encrypt fields, use the ``encrypt`` method of your ``ClientEncryption``
 instance. Specify the following:
 
 - The value to be encrypted
-- The algorithm used: ``Indexed``, ``Unindexed``, or ``Range``
 - The ID of the {+dek-long+}
-- The :ref:`contention factor <qe-contention>` (if you are using the 
-  ``Indexed`` or ``Range`` algorithm)
-- If you are performing a read operation using the ``Indexed`` or 
-  ``Range`` algorithm, set the query type defined for your field.
-- The ``range`` options :ref:`min, max<qe-field-min-max>` (if you 
-  are using the ``Range`` algorithm)
+- The algorithm
 
-.. note:: Query Types
+  - ``unindexed``: for non-queryable encrypted fields.
+  - ``indexed``: supports equality queries. 
+  - ``range``: supports range queries.
+  - ``string``: supports prefix, suffix, and substring queries.
 
-   The query type only applies to read operations.
+- The parameters for your chosen algorithm. Explicit encryption doesn't use an
+  encryption schema, so you must pass these parameters on every call to
+  ``encrypt``, for both read and write operations.
+- Read operations must specify a :ref:`queryType <qe-query-types>` that 
+  matches the specified algorithm.
 
-   To learn more about query types, see :ref:`qe-query-types`. 
+.. note::
+
+   The ``indexed``, ``range``, and ``string`` algorithms require an index on
+   the server, which is created when you specify the ``encryptedFields``
+   option during :method:`db.createCollection()`.
 
 .. _qe-fundamentals-man-enc-algorithm-choice:
 
-Algorithm Choice
-````````````````
+Algorithms and QueryTypes
+`````````````````````````
 
-Use the ``Indexed`` or ``Range`` algorithm if you specify a 
-``queryType`` on the field.
+.. list-table::
+   :header-rows: 1
+   :widths: 20 25 55
+   
+   * - algorithm
+     - queryType (read operations)
+     - Additional Parameters
 
-``Indexed`` supports equality queries. ``Range`` supports range 
-queries. ``Indexed`` and ``Range`` fields require an index on the 
-server. The index is created by specifying the ``encryptedFields`` 
-option in :method:`db.createCollection()`. 
+   * - ``indexed``
+     - ``equality``
+     - - (Required) :ref:`contention factor <qe-contention>`
 
-.. note:: 
+   * - ``range``
+     - ``range``
+     - - (Required) :ref:`contention factor <qe-contention>`
+       - (Required if setting :ref:`precision <qe-field-precision>`, otherwise
+         optional but recommended) :ref:`min, max <qe-field-min-max>` queryable values
+       - (Optional, use with ``double`` and ``decimal`` fields only)
+         :ref:`precision <qe-field-precision>`
+       - (Optional) :ref:`trimFactor <qe-field-trimfactor>`
+       - (Optional) :ref:`sparsity <qe-field-sparsity>`
 
-   .. include:: /includes/rangePreview-deprecated.rst
+   * - ``string``
+     - ``prefix`` or ``suffix``
+     - - (Required) :ref:`contention factor <qe-contention>`
+       - (Required) :ref:`caseSensitive, diacriticSensitive <qe-substring-parameters>`
+       - (Required) :ref:`strMinQueryLength, strMaxQueryLength <qe-substring-parameters>`
+
+   * - ``string``
+     - ``substring``
+     - - (Required) :ref:`contention factor <qe-contention>`
+       - (Required) :ref:`caseSensitive, diacriticSensitive <qe-substring-parameters>`
+       - (Required) :ref:`strMinQueryLength, strMaxQueryLength <qe-substring-parameters>`
+       - (Required) :ref:`strMaxLength <qe-substring-parameters>`
+
+For write operations, you can specify ``prefix`` and ``suffix`` options in
+the same call to index a field for both query types. You can't set
+``substring`` alongside ``prefix`` or ``suffix``.
+
+.. note::
+
+   .. include:: /includes/queryable-encryption/prefix-suffix-substring-preview-deprecated.rst
 
 .. _qe-fundamentals-manual-encryption-automatic-decryption:
 
@@ -120,10 +156,6 @@ Server-Side Field Level Encryption Enforcement
 
 :ref:`qe-specify-fields-for-encryption` to enforce 
 encryption of specific fields in a collection.
-
-``Indexed`` and ``Range`` fields require an index on the server. The 
-index is created by specifying the ``encryptedFields`` option in 
-:method:`db.createCollection()`.
 
 If your MongoDB instance enforces the encryption of specific fields, any
 client performing {+qe+} with {+manual-enc+} must encrypt those fields

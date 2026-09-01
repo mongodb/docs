@@ -4,7 +4,7 @@
 
 .. meta::
    :keywords: queryable encryption, contention
-   :description: Define encrypted fields at the collection level using an encryption schema to enable queries, impacting storage and performance.
+   :description: Define encrypted fields at the collection level. Use an encryption schema to encrypt fields, and to enable and configure queries on those fields. Affects performance and storage.
 
 .. _qe-fundamentals-encrypt-query:
 .. _qe-encryption-schema:
@@ -89,8 +89,7 @@ field, MongoDB updates the related index.
 Configure Encrypted Fields for Optimal Search and Storage
 ---------------------------------------------------------
 
-MongoDB provides the following parameters to facilitate debugging 
-and performance tuning:
+MongoDB provides the following parameters to facilitate performance tuning and debugging:
 
 .. _qe-field-min-max:
 
@@ -100,9 +99,9 @@ and performance tuning:
 
    *Type*: Must match the field's ``bsonType``.
 
-   Required if ``bsonType`` is ``decimal`` or ``double``. Optional
-   but highly recommended if it is ``int``, ``long``, or ``date``. Defaults to
-   the ``bsonType`` min and max values.
+   Required if setting :ref:`precision <qe-field-precision>`. Otherwise 
+   optional, but highly recommended. Defaults to the ``bsonType`` min and max 
+   values.
    
    Specify minimum and maximum (inclusive) queryable values for a
    field when possible, as smaller bounds improve query efficiency. If querying
@@ -110,42 +109,41 @@ and performance tuning:
 
 .. _qe-substring-parameters:
 
-Substring Parameters
-~~~~~~~~~~~~~~~~~~~~
-
-.. include:: includes/queryable-encryption/qe-warning-public-preview.rst
+Prefix, Suffix, and Substring Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. parameter:: strMaxLength
 
-   *Query Type*: ``substringPreview``
+   *Query Type*: ``substring``
 
-   *Type*: Integer from 1-60, inclusive.
+   *Type*: Integer from 2-50, inclusive.
 
-   The maximum allowed length for a substring-indexed field. Attempting to
-   insert a longer string returns an error. 
+   Required. The maximum allowed length for a substring-indexed field.
+   Attempting to insert a longer string returns an error.
 
 .. parameter:: strMinQueryLength 
 
-   *Query Type*: ``prefixPreview``, ``suffixPreview``, ``substringPreview``
+   *Query Type*: ``prefix``, ``suffix``, ``substring``
 
    *Type*: Positive integer.
 
-   - Must be >= 1 for ``prefixPreview`` or ``suffixPreview`` queries.
-   - Must be >= 2 for ``substringPreview`` queries.
+   - Must be >= 1 for ``prefix`` or ``suffix`` queries.
+   - Must be >= 2 for ``substring`` queries.
 
-   The minimum allowed prefix/suffix/substring length to query. Attempting to
-   query a shorter string returns an error.
+   Required. The minimum allowed prefix/suffix/substring length to query.
+   Attempting to query a shorter string returns an error.
 
 .. parameter:: strMaxQueryLength 
 
-   *Query Type*: ``prefixPreview``, ``suffixPreview``, ``substringPreview``
+   *Query Type*: ``prefix``, ``suffix``, ``substring``
 
-   *Type*: Positive integer
-   - Must be >=1 for ``prefixPreview`` or ``suffixPreview`` queries.
-   - Must 2-10 inclusive for ``substringPreview`` queries.
+   *Type*: Positive integer.
 
-   The maximum allowed prefix/suffix/substring length to query. Attempting to
-   query a longer string returns an error.
+   - Must be >= 1 for ``prefix`` or ``suffix`` queries.
+   - Must be 2-6 inclusive for ``substring`` queries.
+
+   Required. The maximum allowed prefix/suffix/substring length to query.
+   Attempting to query a longer string returns an error.
    
    .. important::
 
@@ -154,25 +152,24 @@ Substring Parameters
 
 .. parameter:: caseSensitive
 
-   *Query Type*: ``prefixPreview``, ``suffixPreview``, ``substringPreview``
+   *Query Type*: ``prefix``, ``suffix``, ``substring``
 
    *Type*: Boolean
 
-   Optional. Defaults to ``true``.
-
-   Whether prefix/suffix/substring queries are case-sensitive. Set to ``false``
-   for case-insensitive matching.
+   Required. Whether prefix/suffix/substring queries are case-sensitive. Set to
+   ``false`` for case-insensitive matching. If you enable multiple query types
+   on the same field, this value must be identical for all of them.
 
 .. parameter:: diacriticSensitive
 
-   *Query Type*: ``prefixPreview``, ``suffixPreview``, ``substringPreview``
+   *Query Type*: ``prefix``, ``suffix``, ``substring``
 
    *Type*: Boolean
 
-   Optional. Defaults to ``true``.
-
-   Whether prefix/suffix/substring queries must match diacritical marks. Set to
-   ``false`` for diacritic-insensitive matching.
+   Required. Whether prefix/suffix/substring queries must match diacritical
+   marks. Set to ``false`` for diacritic-insensitive matching. If you enable
+   multiple query types on the same field, this value must be identical for all
+   of them.
 
 Advanced Query Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -243,16 +240,14 @@ Advanced Query Parameters
 
 .. parameter:: contention
 
-   *Query Type*: ``equality``, ``range``, ``prefixPreview``, ``suffixPreview``, ``substringPreview``
+   *Query Type*: ``equality``, ``range``, ``prefix``, ``suffix``, ``substring``
 
    *Type*: Integer.
 
-   Optional. Defaults to 8.
+   Optional for {+automatic-encryption+}, defaults to 8. Required for 
+   {+manual-enc+}.
 
    .. include:: /includes/queryable-encryption/qe-csfle-contention.rst
-
-   You can optionally include ``contention`` on queryable fields to change the
-   value from its default of 8. 
 
    For more thorough information on contention factor and its cryptographic 
    implications, see "Section 9: Guidelines" in MongoDB's 
