@@ -4,7 +4,7 @@
    .. step:: Unlink your account from the Google account.
 
       a. Click :guilabel:`Manage your MongoDB Account`.
-      #. Click :guilabel:`Profile Info`.
+      #. Click :guilabel:`Login and Security`.
          The console indicates that:
 
          - Your |service| account is linked to your Google
