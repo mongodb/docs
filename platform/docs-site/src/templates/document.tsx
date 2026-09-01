@@ -2,14 +2,13 @@
 
 import { InternalPageNav } from '@/mdx-components/InternalPageNav';
 import { RightColumn } from '@/mdx-components/RightColumn';
-import documentStyling from './document.module.scss';
+import styles from './document.module.scss';
 import { Contents } from '@/mdx-components/Contents';
 import { usePageContext } from '@/context/page-context';
 import { TabsSelector } from '@/mdx-components/TabsSelector';
 import { DismissibleSkillsCard } from '@/mdx-components/DismissibleSkillsCard';
 import type { BaseTemplateProps } from '.';
 import MainColumn from './main-column';
-import { cx } from '@leafygreen-ui/emotion';
 import Breadcrumbs from '@/mdx-components/Breadcrumbs';
 import { OfflineBanner } from '@/mdx-components/Banner/OfflineBanner';
 import { getFullSlug } from '@/utils/get-full-slug';
@@ -25,8 +24,8 @@ export default function DocumentTemplate({ children, pageOptions }: BaseTemplate
   const dismissibleSkillsCard = pageOptions?.dismissible_skills_card;
 
   return (
-    <div className={cx(documentStyling.document, 'document-template')}>
-      <MainColumn className={documentStyling['main-column']}>
+    <div className={styles.document}>
+      <MainColumn className={styles.mainColumn}>
         <div className="body">
           {isOfflineBuild && (
             <OfflineBanner
@@ -39,7 +38,7 @@ export default function DocumentTemplate({ children, pageOptions }: BaseTemplate
           {showPrevNext && <InternalPageNav />}
         </div>
       </MainColumn>
-      <RightColumn hasDismissibleSkillsCard={!!dismissibleSkillsCard} className={documentStyling['right-column']}>
+      <RightColumn hasDismissibleSkillsCard={!!dismissibleSkillsCard} className={styles.rightColumn}>
         {!!dismissibleSkillsCard && (
           <DismissibleSkillsCard skill={dismissibleSkillsCard.skill} url={dismissibleSkillsCard.url} />
         )}

@@ -1,8 +1,7 @@
 'use client';
 
-import { cx } from '@leafygreen-ui/emotion';
 import type { BaseTemplateProps } from '.';
-import changelogStyles from './changelog.module.scss';
+import styles from './changelog.module.scss';
 import { OfflineBanner } from '@/mdx-components/Banner/OfflineBanner';
 import { getFullSlug } from '@/utils/get-full-slug';
 import { useVersionContext } from '@/context/version-context';
@@ -13,8 +12,8 @@ const ChangelogTemplate = ({ children }: BaseTemplateProps) => {
   const { siteBasePrefixWithVersion } = useVersionContext();
   const { slug: pageSlug } = usePageContext();
   return (
-    <div className={cx(changelogStyles['changelog-template'], 'changelog-template')}>
-      <main className={cx(changelogStyles['changelog-wrapper'], 'changelog-wrapper')}>
+    <div className={styles.changelogTemplate}>
+      <main className={styles.changelogWrapper}>
         {isOfflineBuild && (
           <OfflineBanner
             linkUrl={'https://mongodb.com/' + getFullSlug(pageSlug, siteBasePrefixWithVersion)}
