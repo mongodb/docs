@@ -9,12 +9,12 @@
      - |onprem| 6.0
 
    * - MongoDB 8.3
-     - Supported
+     - Supported [#]
      -
      -
 
    * - MongoDB 8.2
-     - Supported
+     - Supported [#]
      -
      -
 
@@ -37,5 +37,8 @@
      - Deprecated
      - Supported
      - Supported
+
+.. [#] Supported from |onprem| 8.0.23
+.. [#] Supported from |onprem| 8.0.14
 
 .. include:: /includes/deprecated-definition.rst
