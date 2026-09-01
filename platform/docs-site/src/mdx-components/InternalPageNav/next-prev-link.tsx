@@ -1,78 +1,20 @@
 'use client';
 
-import type { ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import { clsx } from 'clsx';
 import { Link } from '@/mdx-components/Link';
-import { css, cx } from '@leafygreen-ui/emotion';
-import Button from '@leafygreen-ui/button';
-import { Body } from '@leafygreen-ui/typography';
-import Icon from '@leafygreen-ui/icon';
-import { palette } from '@leafygreen-ui/palette';
-import { theme } from '@/styles/theme';
-import { navLinkButtonStyle } from './styles';
+import { Text } from '@via-ds/components';
+import ArrowLeftIcon from '@via-ds/icons/ArrowLeft';
+import ArrowRightIcon from '@via-ds/icons/ArrowRight';
+import styles from './next-prev-link.module.scss';
 
-const commonTextStyles = css`
-  font-size: ${theme.fontSize.small};
-  line-height: 20px;
-`;
+/** Which way the link points. Doubles as the visible label. */
+export type Direction = 'Back' | 'Next';
 
-const nextPrevTextStyling = css`
-  ${commonTextStyles}
-  font-weight: 500;
-  color: var(--font-color-primary);
-`;
-
-const nextTextStyling = css`
-  text-align: end;
-`;
-
-const prevTextStyling = css`
-  text-align: start;
-`;
-
-const nextPrevTitleTextStyling = css`
-  ${commonTextStyles}
-  color: ${palette.gray.base};
-
-  .dark-theme & {
-    color: ${palette.gray.light1};
-  }
-`;
-
-const commonLinkContentContainerStyling = css`
-  align-items: center;
-  display: flex;
-  column-gap: 14px;
-`;
-
-const nextLinkContainerStyling = css`
-  ${commonLinkContentContainerStyling}
-  flex-direction: row-reverse;
-`;
-
-const prevLinkContainerStyling = css`
-  ${commonLinkContentContainerStyling}
-  flex-direction: row;
-`;
-
-const baseButtonStyle = css`
-  width: 52px;
-  height: 48px;
-
-  @media ${theme.screenSize.mediumAndUp} {
-    width: 40px;
-    height: 36px;
-  }
-`;
-
-const noUnderlineLinkStyling = css`
-  && {
-    &:hover,
-    &:focus {
-      text-decoration: none;
-    }
-  }
-`;
+const ARROW: Record<Direction, typeof ArrowLeftIcon> = {
+  Back: ArrowLeftIcon,
+  Next: ArrowRightIcon,
+};
 
 function scrollToTopHtml() {
   Promise.resolve().then(() => {
@@ -85,36 +27,44 @@ function scrollToTopHtml() {
 }
 
 export type NextPrevLinkProps = {
-  pageTitle: ReactNode;
+  /** Visible label for the destination page. Null when the TOC entry has no label. */
+  pageTitle: string | null;
+  /** `title` attribute on the anchor, e.g. "Previous Section". */
   title: string;
   targetSlug: string;
-  direction: string;
-  icon: string;
-  onClick: (direction: string, targetSlug: string) => void;
-  className: string;
+  direction: Direction;
+  onClick: (direction: Direction) => void;
+  className?: string;
 };
 
-const NextPrevLink = ({ className, icon, direction, pageTitle, title, targetSlug, onClick }: NextPrevLinkProps) => {
-  const isNext = direction.toLowerCase() === 'next';
-  const isPrev = direction.toLowerCase() === 'back';
+const NextPrevLink = ({ className, direction, pageTitle, title, targetSlug, onClick }: NextPrevLinkProps) => {
+  const isNext = direction === 'Next';
+  const ArrowIcon = ARROW[direction];
   const router = useRouter();
 
   const handleClick = () => {
     router.push(targetSlug);
-    onClick(direction, targetSlug);
+    onClick(direction);
     scrollToTopHtml();
   };
 
+  const rowClass = clsx(styles.row, isNext ? styles['row-next'] : styles['row-prev']);
+  const textClass = isNext ? styles['text-next'] : styles['text-prev'];
+
   return (
     <div className={className}>
-      <Link to={targetSlug} {...{ title }} onClick={handleClick} className={noUnderlineLinkStyling}>
-        <div className={cx({ [nextLinkContainerStyling]: isNext, [prevLinkContainerStyling]: isPrev })}>
-          <Button className={cx(baseButtonStyle, navLinkButtonStyle)}>
-            <Icon glyph={icon} />
-          </Button>
-          <div className={cx({ [nextTextStyling]: isNext }, { [prevTextStyling]: isPrev })}>
-            <Body className={cx(nextPrevTextStyling)}>{direction}</Body>
-            <Body className={cx(nextPrevTitleTextStyling)}>{pageTitle}</Body>
+      <Link to={targetSlug} {...{ title }} onClick={handleClick} className={styles.link}>
+        <div className={rowClass}>
+          <span className={styles.arrow}>
+            <ArrowIcon role="presentation" />
+          </span>
+          <div className={textClass}>
+            <Text elementType="div" className={styles.direction}>
+              {direction}
+            </Text>
+            <Text elementType="div" textStyle="description">
+              {pageTitle}
+            </Text>
           </div>
         </div>
       </Link>

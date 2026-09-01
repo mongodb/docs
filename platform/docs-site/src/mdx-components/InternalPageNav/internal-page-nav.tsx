@@ -1,9 +1,6 @@
 'use client';
 
 import { useMemo } from 'react';
-import { glyphs } from '@leafygreen-ui/icon';
-import { css, cx } from '@leafygreen-ui/emotion';
-import { theme } from '@/styles/theme';
 import { reportAnalytics } from '@/utils/report-analytics';
 import type { ActiveVersions, AvailableVersions } from '@/context/version-context';
 import { assertTrailingSlash } from '@/utils/assert-trailing-slash';
@@ -17,6 +14,8 @@ import { stripLocale } from '@/utils/locale';
 
 import type { TocItem } from '@/mdx-components/UnifiedSidenav/types';
 import NextPrevLink from './next-prev-link';
+import type { Direction } from './next-prev-link';
+import styles from './internal-page-nav.module.scss';
 import { usePageContext } from '@/context/page-context';
 import { assertLeadingSlash } from '@/utils/assert-leading-slash';
 import { getFullSlug } from '@/utils/get-full-slug';
@@ -34,37 +33,6 @@ interface FlatItem {
     excludes?: string[];
   };
 }
-
-const containerStyling = css`
-  padding-bottom: 2.5em;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  column-gap: ${theme.size.default};
-  margin-top: 88px;
-
-  @media ${theme.screenSize.upToSmall} {
-    flex-direction: column-reverse;
-    row-gap: 64px;
-    margin-top: 66px;
-  }
-
-  @media print {
-    display: none;
-  }
-
-  a {
-    text-decoration: none;
-  }
-`;
-
-const prevStyle = css`
-  margin-right: auto;
-`;
-
-const nextStyle = css`
-  margin-left: auto;
-`;
 
 // Replacing the version in the pathPrefix with `:version` to match toc.json urls
 function replaceVersionInPath(pathPrefix: string, versions?: BranchData[]): string {
@@ -355,7 +323,7 @@ const InternalPageNav = () => {
   const prevPage = getPrevUnified(flattenedData, activeVersions, availableVersions);
   const nextPage = getNextUnified(flattenedData, activeVersions, availableVersions);
 
-  const handleClick = (direction: string) => {
+  const handleClick = (direction: Direction) => {
     reportAnalytics('CTA Click', {
       position: 'body',
       position_context: 'internal page nav',
@@ -366,11 +334,10 @@ const InternalPageNav = () => {
   };
 
   return (
-    <div className={cx(containerStyling)}>
+    <div className={styles.container}>
       {prevPage?.targetSlug && (
         <NextPrevLink
-          className={prevStyle}
-          icon={glyphs.ArrowLeft.displayName ?? 'ArrowLeft'}
+          className={styles.prev}
           direction="Back"
           targetSlug={prevPage.targetSlug}
           pageTitle={prevPage.pageTitle}
@@ -380,8 +347,7 @@ const InternalPageNav = () => {
       )}
       {nextPage?.targetSlug && (
         <NextPrevLink
-          className={nextStyle}
-          icon={glyphs.ArrowRight.displayName ?? 'ArrowRight'}
+          className={styles.next}
           direction="Next"
           targetSlug={nextPage.targetSlug}
           pageTitle={nextPage.pageTitle}
