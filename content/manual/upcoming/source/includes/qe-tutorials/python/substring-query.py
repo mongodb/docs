@@ -5,10 +5,10 @@ encrypted_fields = {
             "path": "patientRecord.ssn",
             "bsonType": "string",
             "queries": [{
-                "queryType": "substringPreview",
+                "queryType": "substring",
                 "strMaxLength": 12,
                 "strMinQueryLength": 3,
-                "strMaxQueryLength": 10,
+                "strMaxQueryLength": 6,
                 "caseSensitive": True,
                 "diacriticSensitive": True,
             }]
@@ -20,7 +20,7 @@ encrypted_fields = {
 # start-query-substring
 find_result = encrypted_collection.find_one(
    { "$expr": { "$encStrContains": 
-      { "input": "$patientRecord.ssn", "substring": "-65-432" } 
+      { "input": "$patientRecord.ssn", "substring": "-65-4" }
     } 
 })
 # end-query-substring
