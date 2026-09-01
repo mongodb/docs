@@ -40,3 +40,13 @@
      - - **Default RAM**: 256 GiB
        - **Default Storage**: 1348 GiB
        - **vCPU**: 32
+
+   * - S100
+     - - **Default RAM**: 384 GiB
+       - **Default Storage**: 2697 GiB
+       - **vCPU**: 48
+
+   * - S130
+     - - **Default RAM**: 768 GiB
+       - **Default Storage**: 5394 GiB
+       - **vCPU**: 96

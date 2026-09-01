@@ -35,3 +35,13 @@
      - - **Default RAM**: 64 GB
        - **Default Storage**: 1348 GiB
        - **vCPU**: 32
+
+   * - S70
+     - - **Default RAM**: 96 GB
+       - **Default Storage**: 2697 GiB
+       - **vCPU**: 48
+
+   * - S80
+     - - **Default RAM**: 128 GB
+       - **Default Storage**: 2697 GiB
+       - **vCPU**: 64
