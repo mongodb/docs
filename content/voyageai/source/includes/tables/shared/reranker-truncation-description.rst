@@ -6,7 +6,8 @@ If ``True``, {+voyageai+} truncates the query and documents to fit within
 the context length limit, before processing using the reranker model. 
 
 If ``False``, {+voyageai+} returns an error
-when the query exceeds 8,000 tokens for ``rerank-2.5`` and ``rerank-2.5-lite``.
+when the query exceeds 8,000 tokens for ``rerank-3``, ``rerank-3-lite``,
+``rerank-2.5``, and ``rerank-2.5-lite``.
 
 
    

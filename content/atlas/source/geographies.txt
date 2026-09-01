@@ -1,0 +1,196 @@
+.. _atlas-geographies:
+
+================================================
+Geographies and Designated Services in |service|
+================================================
+
+.. meta::
+   :description: Learn how Geographies define where Atlas processes your content for AI inference, which services honor them, and how Geographies differ from cluster regions.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+A **Geography** is a named group of cloud provider regions inside
+which |service| processes the content that you submit to certain
+|service| services. A Geography is independent of the cloud
+provider region where your {+database-deployment+} stores data.
+
+Use a Geography when you must show that |service| processes
+particular data within a particular part of the world. If you
+have no such requirement, you don't need to select a Geography.
+
+.. note:: Public Preview
+
+   The Europe Geography is available as a Public Preview
+   feature. The feature and the corresponding documentation
+   might change at any time during the Preview period.
+
+.. _atlas-geographies-vs-regions:
+
+Geographies and Cluster Regions
+-------------------------------
+
+A Geography is a sibling concept to the cloud provider region
+where your {+database-deployment+} runs. The two boundaries are
+independent, and you set each one separately:
+
+- The **region** governs where |service| stores your
+  {+database-deployment+}'s data. The cluster region is a single
+  cloud provider region, such as ``us-west-1`` or ``eu-west-2``,
+  that you choose when you provision a {+database-deployment+}.
+
+- A **Geography** governs where |service| processes the content
+  that you submit to a Designated Service. The inference
+  Geography groups cloud provider regions under one
+  jurisdiction. You select it when you configure the service,
+  and it remains unscoped until you set it.
+
+Choosing a Geography does not move your {+database-deployment+},
+and choosing a {+database-deployment+} region does not scope
+your processing. Because these two settings are independent,
+review them separately when you assess where |service| processes
+your data.
+
+To learn about the regions available for your
+{+database-deployment+}, see
+:ref:`create-cluster-cloud-provider-region`.
+
+.. _atlas-geographies-available:
+
+Available Geographies
+---------------------
+
+|service| supports the following Geographies:
+
+.. list-table::
+   :widths: 20 15 30 35
+   :header-rows: 1
+
+   * - Geography
+     - API Value
+     - Regions
+     - Description
+
+   * - Europe
+     - ``eu``
+     - European Economic Area (EEA)
+     - Processing runs in cloud provider regions inside the
+       EEA.
+
+   * - United States
+     - ``us``
+     - United States
+     - Processing runs in cloud provider regions inside the
+       United States.
+
+The set of regions inside a Geography can change over time. The
+Geography boundary itself does not.
+
+.. _atlas-designated-services:
+
+Designated Services
+-------------------
+
+A **Designated Service** is a |service| service that honors a
+Geography scope. When you send a scoped request to a Designated
+Service, |service| processes that request inside the Geography.
+
+The following table lists the Designated Services and the
+Geographies that each one supports:
+
+.. list-table::
+   :widths: 50 25 25
+   :header-rows: 1
+
+   * - Designated Service
+     - Europe
+     - United States
+
+   * - {+voyage-api-full+} Service
+     - Yes
+     - Yes
+
+To consume the {+voyage-api-full+} within a Geography, you scope
+a model API key to that Geography when you create the key. To
+learn more, see :ref:`voyage-api-keys`.
+
+Automated Embedding and Native Reranking also run inference in
+|service|, but they don't support Geography targeting yet. You
+can't scope where |service| processes the content that you
+submit to these services.
+
+.. _atlas-geographies-commitments:
+
+What a Geography Guarantees
+---------------------------
+
+When you send a request to a Designated Service using a model
+API key scoped to a Geography, the following commitments hold:
+
+- |service| processes the content that you submit inside that
+  Geography.
+- Request payloads that |service| retains for logging are stored
+  inside that Geography.
+- |service| tags every request with the Geography that served
+  it, so you can filter and audit usage records and invoices by
+  Geography.
+- If the Geography cannot serve a request, the request fails.
+  |service| does not fall back to another Geography to serve the
+  request.
+
+Because a scoped request fails rather than running somewhere
+else, design your application to retry failed requests with
+backoff and to set a retry budget on your client. Do not fail
+over to a different Geography's endpoint unless processing in
+that Geography is acceptable for your use case.
+
+A Geography constrains where |service| processes your content,
+not your account. Account management, key management, resource
+policies, billing, and usage metadata operate globally
+regardless of the Geography you choose. This global metadata
+does not contain the content that you submit for processing.
+
+.. _atlas-geographies-choosing:
+
+Choosing a Geography
+--------------------
+
+Use an unscoped model API key unless you must demonstrate that
+|service| processes particular data within a particular part of
+the world. Unscoped keys work against ``ai.mongodb.com``, draw
+on the largest pool of capacity, and are not restricted to a
+paid usage tier.
+
+Before you scope a key to a Geography, note the following:
+
+- |service| charges a 10% uplift on the tokens that you send to
+  a scoped endpoint.
+- Scoped endpoints require a paid usage tier. To learn more, see
+  :ref:`voyage-api-usage-tiers`.
+- Scoped endpoints have their own rate limits, which are lower
+  than those of the unscoped endpoint. To learn more, see
+  :ref:`voyage-rate-limits`.
+- You set the Geography when you create the key and you can't
+  change it afterward. To use a different Geography, create a
+  new key.
+
+Your organization can require that new model API keys be created
+in a given Geography. To learn more, see :ref:`voyage-api-keys`.
+
+Learn More
+----------
+
+- To learn how Geographies apply to the {+voyage-api-full+},
+  including Geography endpoints, rate limits, and available
+  models, see `Geographies for Voyage AI Inference
+  <https://www.mongodb.com/docs/voyageai/geographies/>`__ in the
+  |voyage| documentation.
+
+- To learn about the cloud providers and regions that |service|
+  supports for {+database-deployments+}, see
+  :ref:`create-cluster-cloud-provider-region`.

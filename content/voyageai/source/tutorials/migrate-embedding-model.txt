@@ -1,0 +1,291 @@
+.. _voyage-migrate-embedding-model:
+
+================================
+Migrate to a New Embedding Model
+================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: model migration, re-embed, successor model, upgrade, code example
+   :description: Learn how to migrate to a new Voyage AI embedding model by identifying a successor model, re-embedding your corpus, updating your application, and rebuilding your vector index.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Migrate to a new {+voyageai+} embedding model when your current model
+reaches the Legacy or Deprecated status, or when a newer model offers
+better retrieval quality, latency, or cost for your use case.
+
+Embeddings that different models generate aren't comparable, so a
+migration involves more than changing a model name. Always regenerate
+the embeddings for your entire corpus with the successor model so that
+your stored vectors and your query vectors come from the same model.
+
+Regenerate your corpus even when the successor model produces
+embeddings with the same number of dimensions and the same element
+type as your current model. Matching dimensions make two sets of
+vectors mathematically comparable, but {+voyageai+} models aren't
+trained to preserve relevance across models. Comparing query
+embeddings from a new model against stored embeddings from an older
+one degrades retrieval quality and undercuts the benefits of migrating 
+to the new model.
+
+The steps you follow depend on how your embeddings are generated:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Embedding Method
+     - Migration Steps
+
+   * - Automated Embedding
+     - MongoDB Vector Search generates and stores the embeddings for
+       you. Change the model in your index definition and MongoDB
+       Vector Search re-embeds your data. See
+       :ref:`voyage-migrate-model-auto-embed`.
+
+   * - Self-managed embeddings
+     - You generate and store the embeddings yourself. Re-embed your
+       corpus with the {+voyage-api+}, update your application, and
+       rebuild your vector index. See
+       :ref:`voyage-migrate-model-self-managed`.
+
+.. _voyage-migrate-model-identify-successor:
+
+Identify a Successor Model
+--------------------------
+
+First, check the status of your current model in the :ref:`Current
+Model Status <voyage-model-lifecycle>` table. If the model is Legacy or
+Deprecated, migrate to the recommended replacement that the table lists
+for that model.
+
+To compare the available models, see :ref:`voyage-models`. For most
+migrations, choose a successor from the following recommended models:
+
+- **General-purpose text.** Use ``voyage-4-large`` for the best
+  retrieval quality, ``voyage-4-lite`` for the lowest latency and cost,
+  and ``voyage-4`` for a balance between quality and performance. To
+  learn more, see :ref:`voyage-text-embeddings`.
+
+- **Code.** Use ``voyage-code-4`` for code retrieval and agentic-coding
+  applications, such as coding agents and programming documentation. To
+  compare the models for specialized domains, see
+  :ref:`voyage-domain-specific-models`.
+
+- **Longer documents.** Use ``voyage-context-4`` to embed chunks that
+  capture the full document context without manual metadata or context
+  augmentation. Retrieval quality improves the most on longer
+  documents. It serves as a drop-in replacement for standard embeddings
+  and requires no downstream workflow changes. To learn more, see
+  :ref:`voyage-context-chunk-embeddings`.
+
+- **Multimodal.** Use ``voyage-multimodal-3.5`` to embed interleaved
+  text and visual data, such as screenshots of PDFs, slides, tables,
+  and figures. To learn more, see :ref:`voyage-multimodal-embeddings`.
+
+When you choose among these models, consider the following model
+characteristics:
+
+- **Modality.** Migrate to a model that supports the same data types as
+  your current model. For example, migrate from ``voyage-multimodal-3``
+  to ``voyage-multimodal-3.5`` rather than to a text-only model.
+
+- **Embedding dimensions.** Note the number of dimensions that the
+  successor model produces. Your new :ref:`vector index
+  <avs-types-vector-search>` must specify that value.
+
+- **Context length.** A shorter context length than your current model
+  can truncate your longest documents. Verify the context length of the
+  successor model in :ref:`voyage-models`.
+
+.. note::
+
+   Embeddings from the ``voyage-4`` series models are compatible with
+   each other, which makes them comparable, but {+voyageai+} still
+   recommends that you regenerate your corpus when you migrate between
+   them.
+
+After you select a successor model, evaluate its retrieval quality on a
+representative sample of your own data before you migrate your
+production corpus.
+
+.. _voyage-migrate-model-auto-embed:
+
+Migrate with Automated Embedding
+--------------------------------
+
+If you use Automated Embedding in MongoDB Vector Search, MongoDB
+manages the migration for you. Edit your MongoDB Vector Search index
+definition and change the value of the ``model`` field in your
+``autoEmbed`` type field definition to the successor model:
+
+.. code-block:: json
+
+   {
+     "fields": [
+       {
+         "type": "autoEmbed",
+         "modality": "text",
+         "path": "<field-name>",
+         "model": "<successor-model>"
+       }
+     ]
+   }
+
+When you change the ``model``, ``numDimensions``, or ``quantization``
+settings, MongoDB Vector Search regenerates the index and the
+embeddings, which incurs additional embedding costs. While the index
+rebuilds, you can continue to run queries against the old index
+definition. When the rebuild finishes, MongoDB Vector Search replaces
+the old index automatically.
+
+To learn more about editing an index, see :ref:`avs-edit-index`. For
+the models that Automated Embedding supports, see
+:ref:`avs-auto-embeddings-model-ecosystem`.
+
+.. note::
+
+   On self-managed deployments, you can't modify an ``autoEmbed`` type
+   field after you create the index. To migrate, create a new index
+   that specifies the successor model, then delete the old index.
+
+.. _voyage-migrate-model-self-managed:
+
+Migrate Self-Managed Embeddings
+-------------------------------
+
+If you generate embeddings yourself, complete the following steps to
+migrate to the successor model. To avoid downtime, write the new
+embeddings to a new field and keep your existing field and index in
+place until the migration is complete.
+
+.. _voyage-migrate-model-re-embed:
+
+Re-Embed Your Corpus
+~~~~~~~~~~~~~~~~~~~~
+
+Use the :ref:`{+voyage-api+} <voyage-api-and-clients>` to generate new
+embeddings for your existing documents with the successor model. If you
+don't have a {+model-api-key+}, see :ref:`voyage-create-api-keys`.
+
+The following example reads the source text from each document in a
+collection, generates embeddings in batches with the successor model,
+and writes the results to a new field:
+
+.. code-block:: python
+
+   import os
+   import voyageai
+   from pymongo import MongoClient, UpdateOne
+
+   SUCCESSOR_MODEL = "<successor-model>"
+   TEXT_FIELD = "<source-text-field>"
+   NEW_EMBEDDING_FIELD = "<new-embedding-field>"
+   BATCH_SIZE = 100
+
+   vo = voyageai.Client()
+   # This automatically uses the VOYAGE_API_KEY environment variable.
+
+   client = MongoClient(os.environ["MONGODB_URI"])
+   collection = client["<database>"]["<collection>"]
+
+   def process_batch(documents):
+       texts = [document[TEXT_FIELD] for document in documents]
+       result = vo.embed(
+           texts,
+           model=SUCCESSOR_MODEL,
+           input_type="document"
+       )
+       collection.bulk_write([
+           UpdateOne(
+               {"_id": document["_id"]},
+               {"$set": {NEW_EMBEDDING_FIELD: embedding}}
+           )
+           for document, embedding in zip(documents, result.embeddings)
+       ])
+
+   batch = []
+   for document in collection.find({}, {TEXT_FIELD: 1}):
+       batch.append(document)
+       if len(batch) == BATCH_SIZE:
+           process_batch(batch)
+           batch = []
+
+   if batch:
+       process_batch(batch)
+
+Batch your requests and monitor your token usage, because re-embedding
+a large corpus can exhaust your rate limits. To learn more, see
+:ref:`voyage-rate-limits` and :ref:`voyage-monitor-usage`.
+
+.. _voyage-migrate-model-rebuild-index:
+
+Rebuild Your Vector Index
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create a new MongoDB Vector Search index on the field that holds your
+new embeddings. Set ``numDimensions`` to the number of dimensions that
+the successor model produces:
+
+.. code-block:: json
+
+   {
+     "fields": [
+       {
+         "type": "vector",
+         "path": "<new-embedding-field>",
+         "numDimensions": "<successor-model-dimensions>",
+         "similarity": "dotProduct"
+       }
+     ]
+   }
+
+To learn how to create the index, see :ref:`avs-create-index`. For the
+full index definition syntax, see :ref:`avs-types-vector-search`.
+
+Note the name that you give the new index. You need it when you update
+your application code. Wait for the index to reach the ``READY`` status
+before you query it.
+
+.. _voyage-migrate-model-update-application:
+
+Update Your Application Code
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Update your application to generate query embeddings with the successor
+model. Your query embeddings must come from the same model as your
+stored embeddings, so change the model wherever your application calls
+the {+voyage-api+}:
+
+.. code-block:: python
+
+   result = vo.embed(
+       [query_text],
+       model="<successor-model>",
+       input_type="query"
+   )
+
+For retrieval, set the ``input_type`` parameter to ``query`` for
+queries and to ``document`` for stored text. {+voyageai+} prepends a
+task-specific prompt to your input, which improves retrieval accuracy.
+
+If you set the model name in a configuration file or an environment
+variable, update that value instead. Also update any code that depends
+on the number of embedding dimensions, such as schema validation or
+vector storage settings.
+
+Update your queries to use the new index name and the new embedding
+field path, then verify your retrieval results. When you confirm that
+the new index returns the results you expect, delete the old index and
+remove the old embedding field from your documents.
+
+To learn more about generating embeddings, see
+:ref:`voyage-text-embeddings`.

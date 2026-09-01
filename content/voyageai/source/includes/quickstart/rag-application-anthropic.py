@@ -39,7 +39,7 @@ print(f"Semantic search result: {documents[ranked_indices[0]][:50]}...")
 print(f"Similarity score: {similarities[ranked_indices[0]]:.4f}\n")
 
 # Refine results with reranking model
-reranked = vo.rerank(query, documents, model="rerank-2.5", top_k=3)
+reranked = vo.rerank(query, documents, model="rerank-3", top_k=3)
 
 print("Reranked results:")
 for i, result in enumerate(reranked.results, 1):

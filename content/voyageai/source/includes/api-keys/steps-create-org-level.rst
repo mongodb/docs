@@ -11,7 +11,22 @@
          Model API keys can't exceed 250 characters.
 
       #. Select a project from the dropdown to link with the API key.
-      #. Click :guilabel:`Create`. 
+      #. Select a cloud provider from the :guilabel:`Cloud
+         provider` dropdown.
+
+         Select ``any`` to leave the cloud dimension unscoped.
+
+      #. Optional. Select a geography from the
+         :guilabel:`Geography` dropdown.
+
+         Most keys don't need a Geography. Select ``any`` to
+         leave the geography dimension unscoped.
+
+         |service| displays the read-only :guilabel:`API
+         Endpoint` for the scope that you select. The key
+         authenticates against this endpoint.
+
+      #. Click :guilabel:`Create`.
 
    .. step:: Save the API key.
 

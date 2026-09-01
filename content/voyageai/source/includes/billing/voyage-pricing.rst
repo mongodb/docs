@@ -217,17 +217,29 @@ the API key used for access. All models include a free tier. Get started with
            - Est. price per request*
            - Free tokens
 
-         * - ``rerank-2.5``
+         * - ``rerank-3``
            - $0.00005
            - $0.05
            - $0.0025
            - 200 million
 
-         * - ``rerank-2.5-lite``
+         * - ``rerank-3-lite``
            - $0.00002
            - $0.02
            - $0.001
            - 200 million
+
+         * - ``rerank-2.5``
+           - $0.00005
+           - $0.05
+           - $0.0025
+           - 0
+
+         * - ``rerank-2.5-lite``
+           - $0.00002
+           - $0.02
+           - $0.001
+           - 0
 
       \* Estimated price assumes 100 documents per request, with the sum of query tokens
       and tokens per document totaling 500.

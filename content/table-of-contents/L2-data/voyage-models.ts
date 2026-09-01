@@ -26,6 +26,11 @@ const tocData: TocItem[] = [
     contentSite: 'voyageai',
     url: '/docs/voyageai/models/lifecycle',
   },
+  {
+    label: 'Migrate to a New Embedding Model',
+    contentSite: 'voyageai',
+    url: '/docs/voyageai/tutorials/migrate-embedding-model',
+  },
 ];
 
 export default tocData;

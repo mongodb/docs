@@ -231,6 +231,11 @@ const tocData: TocItem[] = [
         url: '/docs/atlas/cloud-providers-regions',
       },
       {
+        label: 'Geographies and Designated Services',
+        contentSite: 'cloud-docs',
+        url: '/docs/atlas/geographies',
+      },
+      {
         label: 'Manage Clusters',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/manage-clusters',

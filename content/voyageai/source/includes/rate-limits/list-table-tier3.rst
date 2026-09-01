@@ -21,9 +21,9 @@
    * - ``voyage-multimodal-3.5``, ``voyage-multimodal-3``
      - 6,000,000
      - 6,000
-   * - ``rerank-2-lite``, ``rerank-2.5-lite``
+   * - ``rerank-3-lite``, ``rerank-2.5-lite``, ``rerank-2-lite``
      - 12,000,000
      - 6,000
-   * - ``rerank-2``, ``rerank-2.5``
+   * - ``rerank-3``, ``rerank-2.5``, ``rerank-2``
      - 6,000,000
      - 6,000

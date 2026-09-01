@@ -64,12 +64,15 @@ in the project.
 
 .. note::
 
-   If you create a {+model-api-key+} through |service|, as described in the following procedure, 
-   the key only authenticates requests to ``https://ai.mongodb.com/v1/embeddings``. 
-   Conversely, if you create a key through VoyageAI directly, it will authenticate 
+   If you create a {+model-api-key+} through |service|, as described in the following procedure,
+   the key authenticates requests to the ``ai.mongodb.com``
+   endpoints. Conversely, if you create a key through VoyageAI directly, it will authenticate
    requests to ``https://api.voyageai.com/v1/embeddings``.
 
-.. tabs:: 
+You also set the key's scope when you create it. To learn more,
+see :ref:`voyage-api-key-scope`.
+
+.. tabs::
 
    .. tab:: Organization Level 
       :tabid: org-level
@@ -86,6 +89,73 @@ in the project.
       following steps:
 
       .. include:: /includes/api-keys/steps-create-project-level.rst
+
+.. _voyage-api-key-scope:
+
+Key Scope
+~~~~~~~~~
+
+.. include:: /includes/facts/note-geography-preview.rst
+
+When you create a {+model-api-key+}, you supply a ``cloud`` and a
+``geography``. Together these set the key's scope, which
+determines the endpoint that the key authenticates against.
+
+Set either value to ``any`` to leave that dimension unscoped. A
+key with ``cloud`` and ``geography`` both set to ``any`` is an
+unscoped key and works against ``ai.mongodb.com``.
+
+.. include:: /includes/facts/geography-endpoints.rst
+
+To learn what a Geography is and when to scope a key to one, see
+:ref:`voyage-geographies`.
+
+Consider the following when you scope a key:
+
+- The scope is fixed when you create the key. To use a different
+  cloud or Geography, delete the key and create a new one.
+  A ``PATCH`` request to a {+model-api-key+} changes only the
+  key's name.
+- The key prefix encodes the scope. For example, a key scoped to
+  Europe begins with ``al-eu-``. Use the prefix to identify a
+  key's scope without recreating it.
+- Scoped keys require a paid usage tier. You can't scope a key
+  on the free trial. To learn more, see
+  :ref:`voyage-api-usage-tiers`.
+
+{+model-api-keys+} that you created before Geographies were
+available read as ``cloud=any`` and ``geography=any``. These keys
+keep working against ``ai.mongodb.com`` and are not
+migrated. To use a scope, create a new key.
+
+.. _voyage-api-key-scope-resource-policy:
+
+Restrict Model API Key Scope Using a Resource Policy
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can configure a resource policy at the organization level to
+require that new {+model-api-keys+} be created in a given cloud,
+a given Geography, or both. To do this, add a ``forbid`` rule
+written in Cedar that targets the {+voyage-api+} action.
+
+The policy governs key *creation*. It does not constrain where an
+existing key is used. If you configure this policy, users can't
+create keys outside the scope you allow. However, the policy
+doesn't revoke or re-scope keys that already exist. Those keys
+keep working. To remove a key that predates the policy, see
+:ref:`voyage-delete-api-keys`.
+
+You can allow specific scopes by using the ``unless`` clause in
+the ``forbid`` rule.
+
+.. code-block:: text
+   :copyable: false
+   :caption: Example: Restrict Model API Key Scope with Exceptions
+
+   forbid (principal, action == ResourcePolicy::Action::"project.aiModelAPI.modify", resource) unless { <exception> };
+
+To learn more about setting the resource policy, see
+:ref:`atlas-resource-policies-overview`.
 
 .. _voyage-view-api-keys:
 
