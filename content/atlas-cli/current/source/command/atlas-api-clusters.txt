@@ -72,7 +72,6 @@ Related Commands
 * :ref:`atlas-api-clusters-updateCluster` - Updates the details for one cluster in the specified project.
 * :ref:`atlas-api-clusters-updateProcessArgs` - Updates the advanced configuration details for one cluster in the specified project.
 * :ref:`atlas-api-clusters-upgradeTenantUpgrade` - Upgrades a shared-tier cluster to a Flex or Dedicated (M10+) cluster in the specified project.
-* :ref:`atlas-api-clusters-validateGroupClusterConfigurations` - Checks if the given cluster configuration is valid and ready to be used to create or edit a cluster.
 
 
 .. toctree::
@@ -96,4 +95,3 @@ Related Commands
    updateCluster </command/atlas-api-clusters-updateCluster>
    updateProcessArgs </command/atlas-api-clusters-updateProcessArgs>
    upgradeTenantUpgrade </command/atlas-api-clusters-upgradeTenantUpgrade>
-   validateGroupClusterConfigurations </command/atlas-api-clusters-validateGroupClusterConfigurations>

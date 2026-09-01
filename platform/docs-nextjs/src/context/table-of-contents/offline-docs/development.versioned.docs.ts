@@ -6528,6 +6528,14 @@ export const toc: L1TocItem[] = [
                         url: '/docs/:version/reference/method/sh.getShardedDataDistribution',
                       },
                       {
+                        label: 'sh.getTransitionToDedicatedConfigServerStatus',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/method/sh.getTransitionToDedicatedConfigServerStatus',
+                        versions: {
+                          excludes: ['v7.0', 'v8.0', 'manual'],
+                        },
+                      },
+                      {
                         label: 'sh.help',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/method/sh.help',
@@ -6601,6 +6609,14 @@ export const toc: L1TocItem[] = [
                         label: 'sh.shardCollection',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/method/sh.shardCollection',
+                      },
+                      {
+                        label: 'sh.shardDrainingStatus',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/method/sh.shardDrainingStatus',
+                        versions: {
+                          excludes: ['v7.0', 'v8.0', 'manual'],
+                        },
                       },
                       {
                         label: 'sh.splitAt',
@@ -9196,6 +9212,11 @@ export const toc: L1TocItem[] = [
                 label: 'Architecture',
                 contentSite: 'cloud-docs',
                 url: '/docs/atlas/atlas-stream-processing/architecture',
+              },
+              {
+                label: 'Vertical Autoscaling',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/atlas-stream-processing/autoscaling',
               },
               {
                 label: 'Stream Processor Windows',

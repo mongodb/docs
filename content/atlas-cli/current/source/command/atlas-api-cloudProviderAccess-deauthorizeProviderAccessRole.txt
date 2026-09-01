@@ -73,9 +73,9 @@ Options
      - false
      - Flag that indicates whether the response body should be in the prettyprint format.
    * - --roleId
-     - string
+     - roleId
      - true
-     - Unique 24-hexadecimal digit string that identifies the role.
+     - Unique 24-hexadecimal digit string that identifies the role. Amazon Web Services (AWS) IAM roles and Google Service Accounts return this value as roleId. Azure Service Principals return it as ``_id``.
    * - --version
      - string
      - false

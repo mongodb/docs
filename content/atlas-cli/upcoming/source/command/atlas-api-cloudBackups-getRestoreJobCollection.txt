@@ -104,5 +104,5 @@ Inherited Options
 Examples
 --------
 
-.. literalinclude:: /includes/examples/atlas-api-cloudBackups-getRestoreJobCollection-preview-default.sh
+.. literalinclude:: /includes/examples/atlas-api-cloudBackups-getRestoreJobCollection-2025-03-12-default.sh
    :language: shell

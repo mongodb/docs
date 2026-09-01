@@ -106,5 +106,5 @@ Inherited Options
 Examples
 --------
 
-.. literalinclude:: /includes/examples/atlas-api-cloudBackups-getBackupSnapshotDatabase-preview-default.sh
+.. literalinclude:: /includes/examples/atlas-api-cloudBackups-getBackupSnapshotDatabase-2025-03-12-default.sh
    :language: shell

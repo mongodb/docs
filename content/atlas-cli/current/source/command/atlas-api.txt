@@ -203,11 +203,13 @@ Related Commands
 * :ref:`atlas-api-ldapConfiguration` - Returns, edits, verifies, and removes LDAP configurations.
 * :ref:`atlas-api-limitDescription` - Returns User-Configurable Project Limits.
 * :ref:`atlas-api-maintenanceWindows` - Returns, edits, and removes maintenance windows.
+* :ref:`atlas-api-metricIntegrations` - Returns, creates, updates, and removes metric integration configurations for a project.
 * :ref:`atlas-api-mongoDbCloudUsers` - Returns, adds, and edits MongoDB Cloud users.
 * :ref:`atlas-api-monitoringAndLogs` - Returns database deployment monitoring and logging data.
 * :ref:`atlas-api-networkPeering` - Returns, adds, edits, and removes network peering containers and peering connections.
 * :ref:`atlas-api-onlineArchive` - Returns, adds, edits, or removes an online archive.
 * :ref:`atlas-api-organizations` - Returns, adds, and edits organizational units in MongoDB Cloud.
+* :ref:`atlas-api-overloadProtectionSimulation` - Returns and starts overload protection simulations for a cluster.
 * :ref:`atlas-api-performanceAdvisor` - Returns suggested indexes and slow query data for a database deployment.
 * :ref:`atlas-api-privateEndpointServices` - Returns, adds, edits, and removes private endpoint services.
 * :ref:`atlas-api-programmaticApiKeys` - Returns, adds, edits, and removes access tokens to use the MongoDB Cloud API.
@@ -259,11 +261,13 @@ Related Commands
    ldapConfiguration </command/atlas-api-ldapConfiguration>
    limitDescription </command/atlas-api-limitDescription>
    maintenanceWindows </command/atlas-api-maintenanceWindows>
+   metricIntegrations </command/atlas-api-metricIntegrations>
    mongoDbCloudUsers </command/atlas-api-mongoDbCloudUsers>
    monitoringAndLogs </command/atlas-api-monitoringAndLogs>
    networkPeering </command/atlas-api-networkPeering>
    onlineArchive </command/atlas-api-onlineArchive>
    organizations </command/atlas-api-organizations>
+   overloadProtectionSimulation </command/atlas-api-overloadProtectionSimulation>
    performanceAdvisor </command/atlas-api-performanceAdvisor>
    privateEndpointServices </command/atlas-api-privateEndpointServices>
    programmaticApiKeys </command/atlas-api-programmaticApiKeys>
