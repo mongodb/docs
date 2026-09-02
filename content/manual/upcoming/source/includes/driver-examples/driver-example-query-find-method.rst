@@ -1,88 +1,99 @@
-.. tabs-drivers::
+.. selected-content::
+   :selections: mongosh, None
 
-   tabs:
-     - id: shell
-       content: |
-         To select all documents in the collection, pass an empty
-         document as the query filter parameter to the find method. The
-         query filter parameter determines the select criteria:
+   To select all documents in the collection, pass an empty
+   document as the query filter parameter to the find method. The
+   query filter parameter determines the select criteria:
 
-     - id: compass
-       content: |
-         To select all documents in the collection, pass an empty
-         document as the query filter parameter to the
-         :ref:`query bar <compass-query-bar>`. The
-         :ref:`query filter parameter <compass-query-bar-filter>` determines
-         the select criteria:
+.. selected-content::
+   :selections: compass, None
 
-     - id: c
-       content: |
-         To select all documents in the collection, pass an empty
-         document as the query filter parameter to the find method. The
-         query filter parameter determines the select criteria:
-    
-     - id: python
-       content: |
-         To select all documents in the collection, pass an empty
-         document as the query filter parameter to the find method. The
-         query filter parameter determines the select criteria:
+   To select all documents in the collection, pass an empty
+   document as the query filter parameter to the
+   :ref:`query bar <compass-query-bar>`. The
+   :ref:`query filter parameter <compass-query-bar-filter>` determines
+   the select criteria:
 
-     - id: motor
-       content: |
-         To select all documents in the collection, pass an empty
-         document as the query filter parameter to the find method. The
-         query filter parameter determines the select criteria:
+.. selected-content::
+   :selections: driver, c
 
-     - id: java-sync
-       content: |
-         To select all documents in the collection, pass an empty
-         document as the query filter parameter to the find method. The
-         query filter parameter determines the select criteria:
+   To select all documents in the collection, pass an empty
+   document as the query filter parameter to the find method. The
+   query filter parameter determines the select criteria:
 
-     - id: java-async
-       content: |
-         To select all documents in the collection, pass an empty
-         document as the query filter parameter to the find method. The
-         query filter parameter determines the select criteria:
+.. selected-content::
+   :selections: driver, python
 
-     - id: kotlin-coroutine
-       content: |
-         To select all documents in the collection, pass an empty
-         document as the query filter parameter to the find method. The
-         query filter parameter determines the select criteria:
+   To select all documents in the collection, pass an empty
+   document as the query filter parameter to the find method. The
+   query filter parameter determines the select criteria:
 
-     - id: nodejs
-       content: |
-         To select all documents in the collection, pass an empty
-         document as the query filter parameter to the find method. The
-         query filter parameter determines the select criteria:
+.. selected-content::
+   :selections: driver, motor
 
-     - id: php
-       content: |
-         To select all documents in the collection, pass an empty
-         document as the query filter parameter to the find method. The
-         query filter parameter determines the select criteria:
+   To select all documents in the collection, pass an empty
+   document as the query filter parameter to the find method. The
+   query filter parameter determines the select criteria:
 
-     - id: ruby
-       content: |
-         To select all documents in the collection, pass an empty
-         document as the query filter parameter to the find method. The
-         query filter parameter determines the select criteria:
+.. selected-content::
+   :selections: driver, java-sync
 
-     - id: scala
-       content: |
-         To select all documents in the collection, pass an empty
-         document as the query filter parameter to the find method. The
-         query filter parameter determines the select criteria:
+   To select all documents in the collection, pass an empty
+   document as the query filter parameter to the find method. The
+   query filter parameter determines the select criteria:
 
-     - id: csharp
-       content: |
-         To select all documents in the collection, pass an empty
-         document as the query filter parameter to the find method. The
-         query filter parameter determines the select criteria:
+.. selected-content::
+   :selections: driver, java-async
 
-     - id: go
-       content: |
-         To select all documents in the collection, pass an empty
-         document as the query filter parameter to the find method. The
-         query filter parameter determines the select criteria:
+   To select all documents in the collection, pass an empty
+   document as the query filter parameter to the find method. The
+   query filter parameter determines the select criteria:
+
+.. selected-content::
+   :selections: driver, kotlin-coroutine
+
+   To select all documents in the collection, pass an empty
+   document as the query filter parameter to the find method. The
+   query filter parameter determines the select criteria:
+
+.. selected-content::
+   :selections: driver, nodejs
+
+   To select all documents in the collection, pass an empty
+   document as the query filter parameter to the find method. The
+   query filter parameter determines the select criteria:
+
+.. selected-content::
+   :selections: driver, php
+
+   To select all documents in the collection, pass an empty
+   document as the query filter parameter to the find method. The
+   query filter parameter determines the select criteria:
+
+.. selected-content::
+   :selections: driver, ruby
+
+   To select all documents in the collection, pass an empty
+   document as the query filter parameter to the find method. The
+   query filter parameter determines the select criteria:
+
+.. selected-content::
+   :selections: driver, scala
+
+   To select all documents in the collection, pass an empty
+   document as the query filter parameter to the find method. The
+   query filter parameter determines the select criteria:
+
+.. selected-content::
+   :selections: driver, csharp
+
+   To select all documents in the collection, pass an empty
+   document as the query filter parameter to the find method. The
+   query filter parameter determines the select criteria:
+
+.. selected-content::
+   :selections: driver, go
+
+   To select all documents in the collection, pass an empty
+   document as the query filter parameter to the find method. The
+   query filter parameter determines the select criteria:

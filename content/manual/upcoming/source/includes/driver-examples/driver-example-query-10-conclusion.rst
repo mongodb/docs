@@ -1,142 +1,153 @@
-.. tabs-drivers::
+.. selected-content::
+   :selections: mongosh, None
 
-   tabs:
-     - id: shell
-       content: |
-         The operation uses a query predicate of
-         ``{ rated: { $in: [ "G", "PG-13" ] } }``, which
-         corresponds to the following SQL statement:
+   The operation uses a query predicate of
+   ``{ rated: { $in: [ "G", "PG-13" ] } }``, which
+   corresponds to the following SQL statement:
 
-         .. code-block:: sql
+   .. code-block:: sql
 
-            SELECT * FROM movies WHERE rated in ("G", "PG-13")
+      SELECT * FROM movies WHERE rated in ("G", "PG-13")
 
-     - id: compass
-       content: |
-         The operation uses a query predicate of
-         ``{ status: { $in: [ "A", "D" ] } }``, which
-         corresponds to the following SQL statement:
+.. selected-content::
+   :selections: compass, None
 
-         .. code-block:: sql
+   The operation uses a query predicate of
+   ``{ status: { $in: [ "A", "D" ] } }``, which
+   corresponds to the following SQL statement:
 
-            SELECT * FROM inventory WHERE status in ("A", "D")
+   .. code-block:: sql
 
-     - id: c
-       content: |
-         The operation uses a query predicate of
-         ``{ status: { $in: [ "A", "D" ] } }``, which
-         corresponds to the following SQL statement:
+      SELECT * FROM inventory WHERE status in ("A", "D")
 
-         .. code-block:: sql
+.. selected-content::
+   :selections: driver, c
 
-            SELECT * FROM inventory WHERE status in ("A", "D")
+   The operation uses a query predicate of
+   ``{ status: { $in: [ "A", "D" ] } }``, which
+   corresponds to the following SQL statement:
 
-     - id: python
-       content: |
-         The operation uses a query predicate of
-         ``{ status: { $in: [ "A", "D" ] } }``, which
-         corresponds to the following SQL statement:
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory WHERE status in ("A", "D")
 
-            SELECT * FROM inventory WHERE status in ("A", "D")
+.. selected-content::
+   :selections: driver, python
 
-     - id: motor
-       content: |
-         The operation uses a query predicate of
-         ``{ status: { $in: [ "A", "D" ] } }``, which
-         corresponds to the following SQL statement:
+   The operation uses a query predicate of
+   ``{ status: { $in: [ "A", "D" ] } }``, which
+   corresponds to the following SQL statement:
 
-         .. code-block:: sql
+   .. code-block:: sql
 
-            SELECT * FROM inventory WHERE status in ("A", "D")
+      SELECT * FROM inventory WHERE status in ("A", "D")
 
-     - id: java-sync
-       content: |
-         The operation uses a query predicate of
-         ``{ status: { $in: [ "A", "D" ] } }``, which
-         corresponds to the following SQL statement:
+.. selected-content::
+   :selections: driver, motor
 
-         .. code-block:: sql
+   The operation uses a query predicate of
+   ``{ status: { $in: [ "A", "D" ] } }``, which
+   corresponds to the following SQL statement:
 
-            SELECT * FROM inventory WHERE status in ("A", "D")
+   .. code-block:: sql
 
-     - id: java-async
-       content: |
-         The operation uses a query predicate of
-         ``{ status: { $in: [ "A", "D" ] } }``, which
-         corresponds to the following SQL statement:
+      SELECT * FROM inventory WHERE status in ("A", "D")
 
-         .. code-block:: sql
+.. selected-content::
+   :selections: driver, java-sync
 
-            SELECT * FROM inventory WHERE status in ("A", "D")
+   The operation uses a query predicate of
+   ``{ status: { $in: [ "A", "D" ] } }``, which
+   corresponds to the following SQL statement:
 
-     - id: kotlin-coroutine
-       content: |
-         The operation uses a query predicate of
-         ``{ status: { $in: [ "A", "D" ] } }``, which
-         corresponds to the following SQL statement:
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory WHERE status in ("A", "D")
 
-            SELECT * FROM inventory WHERE status in ("A", "D")
+.. selected-content::
+   :selections: driver, java-async
 
-     - id: nodejs
-       content: |
-         The operation uses a query predicate of
-         ``{ status: { $in: [ "A", "D" ] } }``, which
-         corresponds to the following SQL statement:
+   The operation uses a query predicate of
+   ``{ status: { $in: [ "A", "D" ] } }``, which
+   corresponds to the following SQL statement:
 
-         .. code-block:: sql
+   .. code-block:: sql
 
-            SELECT * FROM inventory WHERE status in ("A", "D")
+      SELECT * FROM inventory WHERE status in ("A", "D")
 
-     - id: php
-       content: |
-         The operation uses a query predicate of
-         ``{ status: { $in: [ "A", "D" ] } }``, which
-         corresponds to the following SQL statement:
+.. selected-content::
+   :selections: driver, kotlin-coroutine
 
-         .. code-block:: sql
+   The operation uses a query predicate of
+   ``{ status: { $in: [ "A", "D" ] } }``, which
+   corresponds to the following SQL statement:
 
-            SELECT * FROM inventory WHERE status in ("A", "D")
+   .. code-block:: sql
 
-     - id: ruby
-       content: |
-         The operation uses a query predicate of
-         ``{ status: { $in: [ "A", "D" ] } }``, which
-         corresponds to the following SQL statement:
+      SELECT * FROM inventory WHERE status in ("A", "D")
 
-         .. code-block:: sql
+.. selected-content::
+   :selections: driver, nodejs
 
-            SELECT * FROM inventory WHERE status in ("A", "D")
+   The operation uses a query predicate of
+   ``{ status: { $in: [ "A", "D" ] } }``, which
+   corresponds to the following SQL statement:
 
-     - id: scala
-       content: |
-         The operation uses a query predicate of
-         ``{ status: { $in: [ "A", "D" ] } }``, which
-         corresponds to the following SQL statement:
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory WHERE status in ("A", "D")
 
-            SELECT * FROM inventory WHERE status in ("A", "D")
+.. selected-content::
+   :selections: driver, php
 
-     - id: csharp
-       content: |
-         The operation uses a query predicate of
-         ``{ status: { $in: [ "A", "D" ] } }``, which
-         corresponds to the following SQL statement:
+   The operation uses a query predicate of
+   ``{ status: { $in: [ "A", "D" ] } }``, which
+   corresponds to the following SQL statement:
 
-         .. code-block:: sql
+   .. code-block:: sql
 
-            SELECT * FROM inventory WHERE status in ("A", "D")
+      SELECT * FROM inventory WHERE status in ("A", "D")
 
-     - id: go
-       content: |
-         The operation uses a query predicate of
-         ``{ status: { $in: [ "A", "D" ] } }``, which
-         corresponds to the following SQL statement:
+.. selected-content::
+   :selections: driver, ruby
 
-         .. code-block:: sql
+   The operation uses a query predicate of
+   ``{ status: { $in: [ "A", "D" ] } }``, which
+   corresponds to the following SQL statement:
 
-            SELECT * FROM inventory WHERE status in ("A", "D")
+   .. code-block:: sql
+
+      SELECT * FROM inventory WHERE status in ("A", "D")
+
+.. selected-content::
+   :selections: driver, scala
+
+   The operation uses a query predicate of
+   ``{ status: { $in: [ "A", "D" ] } }``, which
+   corresponds to the following SQL statement:
+
+   .. code-block:: sql
+
+      SELECT * FROM inventory WHERE status in ("A", "D")
+
+.. selected-content::
+   :selections: driver, csharp
+
+   The operation uses a query predicate of
+   ``{ status: { $in: [ "A", "D" ] } }``, which
+   corresponds to the following SQL statement:
+
+   .. code-block:: sql
+
+      SELECT * FROM inventory WHERE status in ("A", "D")
+
+.. selected-content::
+   :selections: driver, go
+
+   The operation uses a query predicate of
+   ``{ status: { $in: [ "A", "D" ] } }``, which
+   corresponds to the following SQL statement:
+
+   .. code-block:: sql
+
+      SELECT * FROM inventory WHERE status in ("A", "D")

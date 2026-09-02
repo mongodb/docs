@@ -1,100 +1,111 @@
-.. tabs-drivers::
+.. selected-content::
+   :selections: mongosh, None
 
-   tabs:
-     - id: shell
-       content: |
-         The following example retrieves all documents in the
-         ``sample_mflix.movies`` collection where ``rated``
-         equals ``"G"`` **and** ``runtime`` is less than
-         (:query:`$lt`) ``90``:
+   The following example retrieves all documents in the
+   ``sample_mflix.movies`` collection where ``rated``
+   equals ``"G"`` **and** ``runtime`` is less than
+   (:query:`$lt`) ``90``:
 
-     - id: compass
-       content: |
-         The following example retrieves all documents in the
-         ``inventory`` collection where ``status`` equals
-         ``"A"`` **and** ``qty`` is less than
-         (:query:`$lt`) ``30``:
+.. selected-content::
+   :selections: compass, None
 
-     - id: c
-       content: |
-         The following example retrieves all documents in the
-         ``inventory`` collection where ``status`` equals
-         ``"A"`` **and** ``qty`` is less than
-         (:query:`$lt`) ``30``:
+   The following example retrieves all documents in the
+   ``inventory`` collection where ``status`` equals
+   ``"A"`` **and** ``qty`` is less than
+   (:query:`$lt`) ``30``:
 
-     - id: python
-       content: |
-         The following example retrieves all documents in the
-         ``inventory`` collection where ``status`` equals
-         ``"A"`` **and** ``qty`` is less than
-         (:query:`$lt`) ``30``:
+.. selected-content::
+   :selections: driver, c
 
-     - id: motor
-       content: |
-         The following example retrieves all documents in the
-         ``inventory`` collection where ``status`` equals
-         ``"A"`` **and** ``qty`` is less than
-         (:query:`$lt`) ``30``:
+   The following example retrieves all documents in the
+   ``inventory`` collection where ``status`` equals
+   ``"A"`` **and** ``qty`` is less than
+   (:query:`$lt`) ``30``:
 
-     - id: java-sync
-       content: |
-         The following example retrieves all documents in the
-         ``inventory`` collection where ``status`` equals
-         ``"A"`` **and** ``qty`` is less than
-         (:query:`$lt`) ``30``:
+.. selected-content::
+   :selections: driver, python
 
-     - id: java-async
-       content: |
-         The following example retrieves all documents in the
-         ``inventory`` collection where ``status`` equals
-         ``"A"`` **and** ``qty`` is less than
-         (:query:`$lt`) ``30``:
+   The following example retrieves all documents in the
+   ``inventory`` collection where ``status`` equals
+   ``"A"`` **and** ``qty`` is less than
+   (:query:`$lt`) ``30``:
 
-     - id: kotlin-coroutine
-       content: |
-         The following example retrieves all documents in the
-         ``inventory`` collection where ``status`` equals
-         ``"A"`` **and** ``qty`` is less than
-         (:query:`$lt`) ``30``:
+.. selected-content::
+   :selections: driver, motor
 
-     - id: nodejs
-       content: |
-         The following example retrieves all documents in the
-         ``inventory`` collection where ``status`` equals
-         ``"A"`` **and** ``qty`` is less than
-         (:query:`$lt`) ``30``:
+   The following example retrieves all documents in the
+   ``inventory`` collection where ``status`` equals
+   ``"A"`` **and** ``qty`` is less than
+   (:query:`$lt`) ``30``:
 
-     - id: php
-       content: |
-         The following example retrieves all documents in the
-         ``inventory`` collection where ``status`` equals
-         ``"A"`` **and** ``qty`` is less than
-         (:query:`$lt`) ``30``:
+.. selected-content::
+   :selections: driver, java-sync
 
-     - id: ruby
-       content: |
-         The following example retrieves all documents in the
-         ``inventory`` collection where ``status`` equals
-         ``"A"`` **and** ``qty`` is less than
-         (:query:`$lt`) ``30``:
+   The following example retrieves all documents in the
+   ``inventory`` collection where ``status`` equals
+   ``"A"`` **and** ``qty`` is less than
+   (:query:`$lt`) ``30``:
 
-     - id: scala
-       content: |
-         The following example retrieves all documents in the
-         ``inventory`` collection where ``status`` equals
-         ``"A"`` **and** ``qty`` is less than
-         (:query:`$lt`) ``30``:
+.. selected-content::
+   :selections: driver, java-async
 
-     - id: csharp
-       content: |
-         The following example retrieves all documents in the
-         ``inventory`` collection where ``status`` equals
-         ``"A"`` **and** ``qty`` is less than
-         (:query:`$lt`) ``30``:
+   The following example retrieves all documents in the
+   ``inventory`` collection where ``status`` equals
+   ``"A"`` **and** ``qty`` is less than
+   (:query:`$lt`) ``30``:
 
-     - id: go
-       content: |
-         The following example retrieves all documents in the
-         ``inventory`` collection where ``status`` equals
-         ``"A"`` **and** ``qty`` is less than
-         (:query:`$lt`) ``30``:
+.. selected-content::
+   :selections: driver, kotlin-coroutine
+
+   The following example retrieves all documents in the
+   ``inventory`` collection where ``status`` equals
+   ``"A"`` **and** ``qty`` is less than
+   (:query:`$lt`) ``30``:
+
+.. selected-content::
+   :selections: driver, nodejs
+
+   The following example retrieves all documents in the
+   ``inventory`` collection where ``status`` equals
+   ``"A"`` **and** ``qty`` is less than
+   (:query:`$lt`) ``30``:
+
+.. selected-content::
+   :selections: driver, php
+
+   The following example retrieves all documents in the
+   ``inventory`` collection where ``status`` equals
+   ``"A"`` **and** ``qty`` is less than
+   (:query:`$lt`) ``30``:
+
+.. selected-content::
+   :selections: driver, ruby
+
+   The following example retrieves all documents in the
+   ``inventory`` collection where ``status`` equals
+   ``"A"`` **and** ``qty`` is less than
+   (:query:`$lt`) ``30``:
+
+.. selected-content::
+   :selections: driver, scala
+
+   The following example retrieves all documents in the
+   ``inventory`` collection where ``status`` equals
+   ``"A"`` **and** ``qty`` is less than
+   (:query:`$lt`) ``30``:
+
+.. selected-content::
+   :selections: driver, csharp
+
+   The following example retrieves all documents in the
+   ``inventory`` collection where ``status`` equals
+   ``"A"`` **and** ``qty`` is less than
+   (:query:`$lt`) ``30``:
+
+.. selected-content::
+   :selections: driver, go
+
+   The following example retrieves all documents in the
+   ``inventory`` collection where ``status`` equals
+   ``"A"`` **and** ``qty`` is less than
+   (:query:`$lt`) ``30``:
