@@ -1,35 +1,6 @@
 .. procedure::
    :style: normal
 
-   .. step:: Install the MongoDB Ruby Driver.
-
-      a. If you don't already have a ``Gemfile`` for your project, run the
-         following command to generate one:
-
-         .. code-block:: sh
-            :copyable: true
-
-            bundle init
-
-      #. Add the ``mongo`` gem to your ``Gemfile``:
-
-         .. code-block:: sh
-            :copyable: true
-            :caption: Gemfile
-
-            gem "mongo"
-
-      #. Run the following command to install the dependency:
-
-         .. code-block:: sh
-            :copyable: true
-
-            bundle install
-
-      This installs the latest version of the Ruby driver. For
-      alternate installation instructions and version compatibility,
-      see the `MongoDB Ruby Driver documentation <https://www.mongodb.com/docs/ruby-driver/current/get-started/download-and-install/>`__.
-
    .. step:: Construct your vector search query.
 
       .. include:: /includes/quick-start/facts/fact-avs-quick-start-intro.rst

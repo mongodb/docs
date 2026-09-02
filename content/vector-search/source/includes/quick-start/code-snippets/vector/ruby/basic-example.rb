@@ -11,22 +11,24 @@ begin
   db = client.database  
   collection = db[:embedded_movies]  
   
-  # Define the Vector Search index specification  
-  index_definition = {  
-    name: 'vector_index',  
-    type: 'vectorSearch',  
-    fields: [  
-      {  
-        type: "vector",  
-        path: "plot_embedding_voyage_3_large",  
-        numDimensions: 2048,  
-        similarity: "dotProduct"  
-      }  
-    ]  
-  }  
-  
-  # Create the index using `create_one`  
-  index_name = collection.search_indexes.create_one(index_definition)  
+  # Define the Vector Search index definition
+  index_definition = {
+    fields: [
+      {
+        type: "vector",
+        path: "plot_embedding_voyage_3_large",
+        numDimensions: 2048,
+        similarity: "dotProduct"
+      }
+    ]
+  }
+
+  # Create the index using `create_one`
+  index_name = collection.search_indexes.create_one(
+    index_definition,
+    name: 'vector_index',
+    type: 'vectorSearch'
+  )
   
   puts "Vector search index created successfully: #{index_name}"  
   
