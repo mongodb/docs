@@ -10,6 +10,6 @@ To obtain the query shape hash string, do any of these:
 - Examine the :ref:`database profiler <database-profiling>` output.
 - View the :ref:`slow query logs <log-message-slow-ops>`.
 
-If you set the query settings using a hash string, then you won't have
-the ``representativeQuery`` field in the ``$querySettings`` aggregation
-stage output.
+If you set the query settings using a hash string, the
+``representativeQuery`` field is initially absent from the
+``$querySettings`` aggregation stage output.
