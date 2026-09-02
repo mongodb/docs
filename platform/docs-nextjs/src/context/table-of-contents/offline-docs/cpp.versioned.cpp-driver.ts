@@ -422,7 +422,6 @@ export const toc: L1TocItem[] = [
             label: 'Connect to MongoDB',
             contentSite: 'cpp-driver',
             collapsible: true,
-            url: '/docs/languages/cpp/cpp-driver/:version/connect',
             items: [
               {
                 label: 'Create a Driver Instance',
@@ -604,7 +603,6 @@ export const toc: L1TocItem[] = [
             label: 'Security',
             contentSite: 'cpp-driver',
             collapsible: true,
-            url: '/docs/languages/cpp/cpp-driver/:version/security',
             items: [
               {
                 label: 'Authentication',

@@ -11,7 +11,6 @@ const tocData: TocItem[] = inheritContentSite('cpp-driver', [
   },
   {
     label: 'Connect to MongoDB',
-    url: '/docs/languages/cpp/cpp-driver/:version/connect',
     collapsible: true,
     items: [
       {
@@ -161,7 +160,6 @@ const tocData: TocItem[] = inheritContentSite('cpp-driver', [
   },
   {
     label: 'Security',
-    url: '/docs/languages/cpp/cpp-driver/:version/security',
     collapsible: true,
     items: [
       {
