@@ -401,7 +401,7 @@ const tocData: TocItem[] = [
               {
                 label: 'Perform Maintenance on Replica Set Members',
                 contentSite: 'docs',
-                url: '/docs/:version/tutorial/perform-maintence-on-replica-set-members',
+                url: '/docs/:version/tutorial/perform-maintenance-on-replica-set-members',
               },
               {
                 label: 'Force a Member to Become Primary',
