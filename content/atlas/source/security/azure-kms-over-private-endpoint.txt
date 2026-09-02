@@ -76,6 +76,56 @@ Limitations
   the :guilabel:`Key Vault Name`, :guilabel:`Subscription ID`, or :guilabel:`Resource Group Name` of your |akv|, but you can still :ref:`rotate the {+azure+} Key Identifier <rotate-azure-key-identifier>`. 
   To modify these values, you must first :ref:`remove all private endpoint connections <azure-remove-reject-pvt-endpoint>`.
 
+.. _azure-kms-pvt-endpoint-resource-locks:
+
+Azure Resource Locks
+~~~~~~~~~~~~~~~~~~~~
+
+.. warning::
+
+   |azure| resource locks on VNets peered with |service| can block
+   the creation and deletion of Encryption at Rest private endpoints.
+
+   |service| creates the private endpoint in the |service|-managed
+   VNet for the {+cluster+} region. If that |service| VNet is peered
+   with a VNet in your |azure| subscription, |azure| updates
+   networking resources on your peered VNet as part of the private
+   endpoint operation. If a resource lock exists on that peered VNet,
+   or on the resource group that contains it, |azure| returns
+   ``ScopeLocked`` and the private endpoint doesn't complete.
+
+   This lock is often on the peered VNet's resource group, not on the
+   |akv| resource group. A lock on only the |akv| resource group
+   doesn't cause this failure.
+
+To create or delete a private endpoint when a resource lock is in
+place:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Remove the lock.
+
+      Temporarily remove the lock, or replace a resource-group lock
+      with resource-level locks that don't cover the peered VNet.
+
+   .. step:: Retry the private endpoint creation or deletion in |service|.
+
+   .. step:: Approve the pending private endpoint connection.
+
+      If you are creating a private endpoint, approve the pending
+      private endpoint connection on your |akv|.
+
+   .. step:: Re-apply the lock if you still need it.
+
+Your |akv| can be in a different region than the |service| private
+endpoint. A cross-region |akv| is supported and doesn't cause
+``ScopeLocked`` errors.
+
+To learn more about |azure| resource locks, see :azure:`Lock your
+resources to protect your infrastructure
+</azure-resource-manager/management/lock-resources>`.
+
 Multi-Region Clusters
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -132,9 +182,12 @@ You must enable |cmk| for a project before you can enable it on a
 Enable and Set up Private Endpoint Connections for a Project 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can enable and set up private endpoints by using the {+atlas-ui+} and 
+You can enable and set up private endpoints by using the {+atlas-ui+} and
 {+atlas-admin-api+}. To enable private networking and set up a private
-endpoint in your |akv|, you must do the following: 
+endpoint in your |akv|, you must do the following:
+
+Before you begin, to learn how |azure| resource locks can block private
+endpoint creation, see :ref:`azure-kms-pvt-endpoint-resource-locks`.
 
 .. tabs::    
 
@@ -227,7 +280,10 @@ Reject or Remove Private Endpoint Connection
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can remove private endpoint connections from the {+atlas-ui+} and
-the {+atlas-admin-api+}. 
+the {+atlas-admin-api+}.
+
+Before you begin, to learn how |azure| resource locks can block private
+endpoint deletion, see :ref:`azure-kms-pvt-endpoint-resource-locks`.
 
 .. tabs:: 
 
