@@ -840,10 +840,14 @@ async function main() {
 
     const parser = new LogParser();
 
-    // Load AI agent patterns from MongoDB
-    await parser.loadAgentPatternsFromDB();
-
     try {
+        // Load AI agent patterns from MongoDB. If MongoDB auth fails here,
+        // the error propagates out of main() and exits the process non-zero
+        // (see the entrypoint below), so the Kubernetes pod reports Error
+        // instead of Completed. A silently-caught failure here previously
+        // left the CronJob "Completed" while writing nothing for months.
+        await parser.loadAgentPatternsFromDB();
+
         // Get files from the specified start date (24-hour period)
         const files = await parser.getLogFilesFromDate(startDate);
         const endDate = new Date(startDate.getTime() + 24 * 60 * 60 * 1000);
@@ -852,8 +856,14 @@ async function main() {
         if (files.length > 0) {
             console.log(`\nProcessing ${files.length} files from the requested 24-hour period...`);
 
-            // Use batched processing to reduce memory usage
-            const batchSize = 20; // Process 20 files at a time
+            // Use batched processing to reduce memory usage. Defaults to 20
+            // (production); lower it via BATCH_SIZE for memory-constrained
+            // environments such as a local backfill.
+            const parsedBatchSize = parseInt(process.env.BATCH_SIZE || '', 10);
+            if (process.env.BATCH_SIZE && !(Number.isInteger(parsedBatchSize) && parsedBatchSize > 0)) {
+                throw new Error(`Invalid BATCH_SIZE: ${process.env.BATCH_SIZE} (expected a positive integer)`);
+            }
+            const batchSize = parsedBatchSize > 0 ? parsedBatchSize : 20;
 
             const results = await parser.processFilesInBatches(files, batchSize, mdOnly);
             const { pageViews, mdRequests } = results;
@@ -937,7 +947,13 @@ async function main() {
 
 // Run if this file is executed directly
 if (require.main === module) {
-    main().catch(console.error);
+    main().catch((error) => {
+        // Exit non-zero so the Kubernetes CronJob pod reports Error, not
+        // Completed. This surfaces failures (e.g. MongoDB auth errors) that
+        // would otherwise be swallowed and go unnoticed.
+        console.error('Fatal error:', error);
+        process.exit(1);
+    });
 }
 
 export { LogParser, LogEntry };

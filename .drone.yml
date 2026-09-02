@@ -10,6 +10,10 @@ trigger:
   event:
     - push
     - tag
+  paths:
+    include:
+      - platform/tools/cdnLogParser/**
+      - .drone.yml
 
 steps:
   # Builds and publishes Docker image for production
@@ -28,6 +32,23 @@ steps:
         from_secret: ecr_access_key
       secret_key:
         from_secret: ecr_secret_key
+
+  # A build failure skips the production-deploy pipeline entirely, so that
+  # pipeline's notify-slack step never runs. Notify here on failure only;
+  # a successful build is reported by the deploy pipeline.
+  - name: notify-slack-build-failure
+    image: alpine/curl
+    environment:
+      SLACK_WEBHOOK:
+        from_secret: cdn_log_parser_slack_webhook_url
+    commands:
+      - |
+        curl -X POST -H 'Content-type: application/json' \
+          --data "{\"text\": \"❌ *CDN Log Parser Build Failed*\n*Repo:* $DRONE_REPO_NAME\n*Branch:* $DRONE_BRANCH\n*Commit:* ${DRONE_COMMIT_SHA:0:7}\n*Author:* $DRONE_COMMIT_AUTHOR\n*Build:* <$DRONE_BUILD_LINK|#$DRONE_BUILD_NUMBER>\"}" \
+          "$SLACK_WEBHOOK"
+    when:
+      status:
+        - failure
 ---
 depends_on: ['production-build']
 kind: pipeline
@@ -40,6 +61,10 @@ trigger:
     - DOP-5575
   event:
     - push
+  paths:
+    include:
+      - platform/tools/cdnLogParser/**
+      - .drone.yml
 
 steps:
   # Deploys docker image to production
@@ -56,6 +81,29 @@ steps:
       api_server: https://api.prod.corp.mongodb.com
       kubernetes_token:
         from_secret: prod_kubernetes_token
+
+  # Notify Slack of build/deploy status so failures are not silent.
+  # A stale MongoDB credential once broke the CDN log parser cron for
+  # months without any alert because this pipeline had no notification.
+  - name: notify-slack
+    image: alpine/curl
+    environment:
+      SLACK_WEBHOOK:
+        from_secret: cdn_log_parser_slack_webhook_url
+    commands:
+      - |
+        if [ "$DRONE_BUILD_STATUS" = "success" ]; then
+          STATUS_MSG="✅ *CDN Log Parser Deploy Succeeded*"
+        else
+          STATUS_MSG="❌ *CDN Log Parser Deploy Failed*"
+        fi
+        curl -X POST -H 'Content-type: application/json' \
+          --data "{\"text\": \"$STATUS_MSG\n*Repo:* $DRONE_REPO_NAME\n*Branch:* $DRONE_BRANCH\n*Commit:* ${DRONE_COMMIT_SHA:0:7}\n*Author:* $DRONE_COMMIT_AUTHOR\n*Build:* <$DRONE_BUILD_LINK|#$DRONE_BUILD_NUMBER>\"}" \
+          "$SLACK_WEBHOOK"
+    when:
+      status:
+        - success
+        - failure
 
 ---
 # Pipeline for OpenAPI test suite cronjob
