@@ -20,9 +20,9 @@ import { useToast, Variant } from '@leafygreen-ui/toast';
 import { Body, Disclaimer, H3, Link } from '@leafygreen-ui/typography';
 import Box from '@leafygreen-ui/box';
 import Button, { Variant as ButtonVariant } from '@leafygreen-ui/button';
+import { ProgressCircle } from '@via-ds/components/progress-circle';
 import { theme } from '@/styles/theme';
 import fetchAndSaveFile from '@/utils/download-file';
-import { Spinner } from '@/mdx-components/Spinner';
 import { VersionSelect } from './version-selector';
 import { useOfflineDownloadContext, type OfflineVersion, type OfflineObject } from './download-context';
 
@@ -316,7 +316,7 @@ export const DownloadModal = ({ open, setOpen }: ModalProps) => {
             }
           `)}
           isLoading={resultsLoading}
-          loadingIndicator={<Spinner size={14} />}
+          loadingIndicator={<ProgressCircle size="small" aria-label="Loading" />}
           disabled={!rowSelection || !Object.keys(rowSelection)?.length}
           onClick={onDownload}
         >
