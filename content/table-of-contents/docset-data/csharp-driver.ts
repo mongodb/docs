@@ -631,14 +631,12 @@ const tocData: TocItem[] = [
       {
         label: 'Fundamentals',
         contentSite: 'csharp',
-        url: '/docs/drivers/csharp/:version/fundamentals',
         collapsible: true,
         versions: { includes: outdatedVersions },
         items: [
           {
             label: 'Connection',
             contentSite: 'csharp',
-            url: '/docs/drivers/csharp/:version/fundamentals/connection',
             collapsible: true,
             items: [
               {
@@ -689,7 +687,6 @@ const tocData: TocItem[] = [
               {
                 label: 'Write',
                 contentSite: 'csharp',
-                url: '/docs/drivers/csharp/:version/fundamentals/crud/write-operations',
                 collapsible: true,
                 items: [
                   {
@@ -753,7 +750,6 @@ const tocData: TocItem[] = [
               {
                 label: 'Read',
                 contentSite: 'csharp',
-                url: '/docs/drivers/csharp/:version/fundamentals/crud/read-operations',
                 collapsible: true,
                 items: [
                   {
