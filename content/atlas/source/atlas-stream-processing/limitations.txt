@@ -141,11 +141,11 @@ Initial Sync
   ordered ``int`` or ``long`` values, ``initialSync`` achieves optimal
   performance. For other ``_id`` types, ``initialSync`` might take
   longer to complete because the values aren't stored in a
-  predictable order. Increase your oplog size before you begin a
-  longer ``initialSync`` operation so that the processor's resume
-  token remains on the oplog. If the resume token is no longer on the
+  predictable order. If the resume token is no longer on the
   oplog when ``initialSync`` completes, the processor enters a failed
-  state to prevent data loss, and ``initialSync`` runs again.
+  state to prevent data loss. To recover, restart the processor with
+  ``resumeFromCheckpoint=false``, which causes ``initialSync`` to run
+  again. To learn more, see :ref:`atlas-sp-checkpoints`. 
 
 - {+atlas-sp+} can insert new documents into a partition while
   ``initialSync`` copies it. A network failure that interrupts a
@@ -154,7 +154,10 @@ Initial Sync
 - ``initialSync`` might insert duplicate documents if it reads a
   change event during the collection-copy or catch-up phase.
   {+atlas-sp+}'s at-least-once processing guarantee covers this
-  behavior.
+  behavior. Duplicates are more likely when your collection's ``_id``
+  values aren't ``ObjectId`` values or ordered ``int`` or ``long``
+  values, because the collection-copy phase runs longer and spans
+  more change events.
 
 Failover Processors
 -------------------
