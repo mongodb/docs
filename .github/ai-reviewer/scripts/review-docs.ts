@@ -361,7 +361,7 @@ The following are already handled — skip them entirely:
 - CommaRestrictiveClause: comma before restrictive "that" clauses
 - ComplexWords: complex word substitutions ("modify" → "change", etc.)
 - ConciseTerms: wordy phrases ("in order to" → "to", "is able to" → "can", "a number of" → "several", etc.)
-- ConsistencyEarlierLater: "earlier/later" vs "above/below" for version references
+- ConsistencyEarlierLater: "8.0 or higher" → "8.0 or later" in version references
 - Contractions: non-standard or obscure contractions
 - ContractionsNegative: "does not" → "doesn't", "is not" → "isn't", etc.
 - Dashes: en dash used where em dash is required
@@ -450,7 +450,7 @@ The rules are organized into groups for navigation only. The grouping does not c
 39. **Example values**: use reserved example domains ("example.com"), documentation IP ranges (not private CIDR blocks), the reserved "555-01xx" phone range with "+1", and fictional names — never real or copyrighted names. Write "IP address", not bare "IP".
 40. **Keyboard keys**: use standardized key names ("Ctrl", "Esc"); use "press" for keys and "type" for text; do not use "hit", "strike", or "punch".
 41. **American English and consistent terms**: use American spellings ("color", "gray"); do not alternate between synonyms for one concept ("version"/"release", "window"/"dialog box", "panel"/"screen"); avoid neologisms.
-42. **In-text location references**: use "following"/"preceding" for on-page references, not "above"/"below"/"earlier"/"later". Apply only to cases Vale's ConsistencyEarlierLater rule does not already catch — do not re-flag anything Vale covers.
+42. **In-text location references**: use "following"/"preceding" for on-page references, not "above"/"below"/"earlier"/"later".
 
 **Additional instructions:**
 - **Actionable**: Every comment must have a clear, specific fix
