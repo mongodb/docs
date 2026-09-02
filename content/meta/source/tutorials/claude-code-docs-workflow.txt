@@ -1,0 +1,242 @@
+.. meta::
+   :robots: noindex, nosnippet
+   :description: Learn what Claude Code helps you do in the docs repo,
+      how skills, hooks, agents, and scripts differ, what starts each
+      one, and where they fit in a documentation task.
+
+.. _claude-code-docs-workflow:
+
+==================================
+How the Docs Team Uses Claude Code
+==================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Claude Code is an AI agent harness that you run from your editor or
+terminal. Each back-and-forth session with it is a **conversation**.
+Within a conversation, Claude reads files, edits them, and runs
+commands through discrete **tool calls**, such as an ``Edit``, a
+``Write``, or a ``Bash`` command. Several pieces of the tooling
+described on this page trigger on tool calls rather than on anything a
+writer types.
+
+This page describes what Claude Code helps you do across the
+documentation workflow. It also covers the types of tooling that
+support that work, including what starts each type and where each one
+lands in a documentation task. The same workflow applies to similar
+AI coding tools the team uses, such as Augment, but the tooling
+specifics are Claude Code's.
+
+Claude Code in the Documentation Workflow
+-----------------------------------------
+
+Writers can use Claude Code across the whole documentation workflow:
+
+- **Research.** Read a product's source code, find related content
+  elsewhere in the repo, and pull context from Jira tickets,
+  engineering pull requests, and Glean.
+
+- **Planning.** Turn a ticket or an approved feature scope into a
+  sequenced task list before anyone writes a page.
+
+- **Drafting and revision.** Write new pages and update existing
+  ones.
+
+- **Code examples.** Add and test code examples using the
+  :ref:`Grove platform <grove-platform>`.
+
+- **Review support.** Compare a docs pull request against the
+  engineering change it documents, run style and link passes, and
+  validate the build before a reviewer sees it.
+
+Skills and agents deliver most of these capabilities directly, while
+hooks and helper scripts support them automatically in the
+background.
+
+Tooling Types
+-------------
+
+The four types differ in what starts them and what role they play.
+Writers invoke skills and agents directly. Hooks run without
+invocation. Helper scripts exist for other tooling to call.
+
+.. list-table::
+   :widths: 12 28 22 38
+   :header-rows: 1
+
+   * - Type
+     - What it is
+     - What starts it
+     - Use it when
+   * - Skill
+     - Packaged instructions for one bounded task
+     - A writer types ``/name``, or Claude infers it from the task
+     - A task is bounded and repeatable, and someone decides when to
+       run it
+   * - Hook
+     - A script wired to a tool-call event
+     - Runs automatically on a matching tool call
+     - A check or reminder must run every time, with nobody deciding
+       to invoke it
+   * - Custom agent
+     - A separately configured workflow with its own model and
+       settings
+     - A writer invokes it, or another agent spawns it
+     - The task would flood a conversation with output nobody
+       reuses, or needs a setup different from the writer's own
+       conversation
+   * - Helper script
+     - A plain executable that encapsulates a fixed sequence
+     - Called by an agent, not run directly by a writer
+     - The same inputs must always produce the same outputs
+
+The Manifest
+~~~~~~~~~~~~
+
+For the current list of skills, see
+:github:`.claude/skills/README.md
+<10gen/docs-mongodb-internal/blob/main/.claude/skills/README.md>`. The
+list is generated from the manifest,
+:github:`.claude/skills/OWNERS.yaml
+<10gen/docs-mongodb-internal/blob/main/.claude/skills/OWNERS.yaml>`.
+The manifest exists so every skill, agent, and script has a named
+owner responsible for keeping it current. It records that owner and a
+review cadence for each entry.
+
+The manifest doesn't cover every piece of tooling. Hooks have no
+section in it, and individual agents can be absent, so don't rely on
+the generated catalog to find every hook or agent in the repo.
+
+How Hooks Work
+~~~~~~~~~~~~~~
+
+Each hook is registered in the ``hooks`` block of
+``.claude/settings.json`` under an event, either ``PreToolUse`` or
+``PostToolUse``, with a matcher naming a tool or a ``Tool1|Tool2``
+pattern. A hook script with no entry in that block does nothing.
+Blocking checks use ``PreToolUse``, because only a ``PreToolUse`` hook
+can stop a ``git push`` before it runs. Hooks that add context or
+trigger a follow-up use ``PostToolUse``.
+
+To see the current hook inventory without reading
+``.claude/settings.json`` directly, run ``/hooks`` in a Claude Code
+session. It opens a read-only browser of every configured hook,
+grouped by event, with its matcher, type, and source file.
+
+Hooks trigger on Claude's own ``Edit``, ``Write``, and ``Bash`` tool
+calls. They don't trigger on anything else. An edit made in an
+integrated development environment (IDE), or a ``git`` command run in
+a plain terminal outside a Claude Code session, fires nothing. Content
+edited or pushed outside Claude Code bypasses every check described on
+this page.
+
+Example: A Feature Documentation Task
+-------------------------------------
+
+The following walkthrough follows one feature documentation task and
+names the tooling type responsible at each stage. This workflow
+touches all four types.
+
+1. **You research the feature**: Claude reads the engineering pull
+   request and the product source. This stage uses no tooling.
+
+2. **You open the ticket and write the plan**: The ``jira`` skill
+   handles ticket operations. The Documentation Plan and Docs Scope
+   come from templates in :github:`.claude/templates/
+   <10gen/docs-mongodb-internal/tree/main/.claude/templates>`.
+   *(Skill)*
+
+3. **The Feature Planner Agent decomposes the scope**: You invoke the
+   planner and work with it until the approved scope becomes a
+   sequenced task list on a feature branch. *(Custom agent)*
+
+4. **Branch setup runs through a script**: The planner calls
+   :github:`feature-branch.sh
+   <10gen/docs-mongodb-internal/blob/main/.claude/scripts/feature-branch.sh>`
+   rather than running raw ``git`` commands, so branch naming and
+   merge behavior stay the same across sessions. *(Helper script)*
+
+5. **Feature Drafter Agents draft each unit**: The planner spawns one
+   drafter per task. A drafter spawned by another agent is a
+   **sub-agent**. Each drafter also runs in its own git **worktree**,
+   a separate checkout of the repo, which prevents parallel drafts
+   from colliding. Each drafter drafts its unit, tests any code
+   examples, and opens a pull request against the feature branch.
+   *(Custom agent)*
+
+6. **Hooks fire throughout, including inside the drafters**: Hooks run
+   for sub-agent tool calls the same way they run for a writer's. Each
+   drafter's edits trigger a prose-style check and a check for
+   forbidden nested components, such as an admonition inside a table.
+   Its page moves trigger the redirect and table-of-contents
+   reminders. Its ``git push`` passes through the same blocking size
+   check that scans staged content changes before letting a push
+   through. If the earlier redirect reminder went unanswered, the same
+   push is also blocked by the missing-redirects check. Its
+   ``gh pr create`` moves that task's ticket to Internal Review.
+   *(Hook)*
+
+7. **You validate before review**: Run ``local-build-check`` to catch
+   broken refs and directives, and ``staging-preview`` to generate
+   preview links. *(Skill)*
+
+8. **You review and merge every pull request**: Review remains a
+   human responsibility at every stage.
+
+Tooling File Locations
+----------------------
+
+.. list-table::
+   :widths: 40 60
+   :header-rows: 1
+
+   * - Path
+     - Contents
+   * - :github:`.claude/skills/
+       <10gen/docs-mongodb-internal/tree/main/.claude/skills>`
+     - One directory per skill, each containing a ``SKILL.md``
+   * - :github:`.claude/hooks/
+       <10gen/docs-mongodb-internal/tree/main/.claude/hooks>`
+     - Hook scripts, including a ``docs-git-process-hooks/``
+       subdirectory
+   * - :github:`.claude/agents/
+       <10gen/docs-mongodb-internal/tree/main/.claude/agents>`
+     - Agent definitions
+   * - :github:`.claude/scripts/
+       <10gen/docs-mongodb-internal/tree/main/.claude/scripts>`
+     - Helper scripts
+   * - :github:`.claude/settings.json
+       <10gen/docs-mongodb-internal/blob/main/.claude/settings.json>`
+     - The ``hooks`` block that wires hook scripts to events
+
+Four more locations fall outside the four types but affect
+documentation work:
+
+- :github:`CLAUDE.md
+  <10gen/docs-mongodb-internal/blob/main/CLAUDE.md>` at the repo root
+  holds the main project instructions — conventions, critical rules,
+  and workflow requirements — and loads into every session
+  automatically.
+- :github:`rules/ <10gen/docs-mongodb-internal/tree/main/.claude/rules>`
+  holds additional, topic-specific instructions that load the same
+  way, split into one file per subject. Writers never invoke either
+  one directly, and both apply regardless of what other tooling is in
+  use.
+- :github:`templates/
+  <10gen/docs-mongodb-internal/tree/main/.claude/templates>` contains
+  the Documentation Plan, Docs Scope, and decision log templates that
+  the feature workflow takes as input.
+- :github:`commands/
+  <10gen/docs-mongodb-internal/tree/main/.claude/commands>` contains
+  custom slash commands.
+
+Additional Information
+----------------------
+
+To learn how to review an agent skill, see :ref:`review-agent-skill`.
+
+.. TODO: Link to contribution meta guide when it's done

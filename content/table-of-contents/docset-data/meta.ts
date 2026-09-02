@@ -505,6 +505,11 @@ const tocData: TocItem[] = [
             contentSite: 'meta',
             url: '/docs/meta/tutorials/review-agent-skill',
           },
+          {
+            label: 'How the Docs Team Uses Claude Code',
+            contentSite: 'meta',
+            url: '/docs/meta/tutorials/claude-code-docs-workflow',
+          },
         ],
       },
       {
