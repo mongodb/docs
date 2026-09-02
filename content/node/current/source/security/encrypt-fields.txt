@@ -57,9 +57,10 @@ Queryable Encryption
 ~~~~~~~~~~~~~~~~~~~~
 
 Queryable Encryption (QE) is an in-use encryption feature that
-lets you run queries on encrypted field values.
-{+mdb-server+} 7.0 or later supports QE equality queries.
-{+mdb-server+} 8.0 or later also supports QE range queries.
+lets you run queries on encrypted field values, including
+equality, range, and prefix, suffix, and substring queries. Range
+query support requires {+mdb-server+} 8.0 or later. Prefix, suffix,
+and substring query support requires {+mdb-server+} 9.0 or later.
 
 To learn more about Queryable Encryption, see :manual:`Queryable
 Encryption </core/queryable-encryption/>` in the {+mdb-server+} manual.
@@ -126,3 +127,118 @@ collection:
    ];
 
    const results = await collection.aggregate(pipeline).toArray();
+
+.. _node-csfle-kms-http-proxy:
+
+Route KMS Requests Through an HTTP Proxy
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in {+driver-short+} version 7.6, you can route the requests that the
+{+driver-short+} makes to your key management system (KMS) through an HTTP
+proxy. Use this feature when your environment requires outbound KMS traffic to
+pass through an HTTP forward proxy. The ``proxyOptions`` setting supports only
+the SOCKS5 protocol and doesn't cover this case.
+
+To control how the driver connects to a KMS host, set the ``kmsConnectCallback``
+option on your ``ClientEncryptionOptions`` object or your
+``AutoEncryptionOptions`` object. When you set this option, the driver calls
+your callback instead of connecting to the KMS host itself. The callback
+receives the following properties:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Property
+     - Description
+
+   * - ``host``
+     - The hostname of the KMS host that the driver must reach.
+
+   * - ``port``
+     - The port of the KMS host that the driver must reach.
+
+   * - ``timeoutMS``
+     - The time remaining in the operation's client-side operation timeout
+       (CSOT) budget, in milliseconds. This property is ``undefined`` if the
+       operation has no CSOT configured.
+
+   * - ``signal``
+     - An ``AbortSignal`` that aborts when the connection attempt exceeds the
+       timeout budget. When the signal fires, your callback must stop connecting
+       and reject.
+
+The following example defines a callback that opens a tunnel to the KMS host by
+sending an HTTP ``CONNECT`` request to a proxy, and then passes the callback to
+a ``ClientEncryption`` instance:
+
+.. code-block:: javascript
+
+   import * as net from "net";
+
+   const kmsConnectCallback = ({ host, port, timeoutMS, signal }) =>
+     new Promise((resolve, reject) => {
+       // Opens a plain connection to the proxy, not to the KMS host.
+       // Passing signal lets Node abort the connection attempt when the
+       // driver's timeout budget expires.
+       const socket = net.connect({
+         host: "proxy.example.com",
+         port: 8080,
+         signal
+       });
+
+       // Applies the remaining CSOT budget to the proxy handshake, so that
+       // a proxy that accepts the connection but never answers CONNECT
+       // can't stall the operation.
+       if (timeoutMS !== undefined) {
+         socket.setTimeout(timeoutMS, () => {
+           socket.destroy();
+           reject(new Error("Timed out waiting for the proxy"));
+         });
+       }
+
+       socket.once("error", reject);
+
+       socket.once("connect", () => {
+         // Asks the proxy to tunnel to the KMS host
+         socket.write(
+           `CONNECT ${host}:${port} HTTP/1.1\r\n` +
+             `Host: ${host}:${port}\r\n\r\n`
+         );
+
+         socket.once("data", chunk => {
+           if (chunk.toString("utf8").startsWith("HTTP/1.1 200")) {
+             // Clears the handshake timeout and returns the socket so that
+             // the driver can perform the TLS handshake
+             socket.setTimeout(0);
+             resolve(socket);
+           } else {
+             socket.destroy();
+             reject(new Error("Proxy refused the CONNECT request"));
+           }
+         });
+       });
+     });
+
+   const clientEncryption = new ClientEncryption(keyVaultClient, {
+     keyVaultNamespace,
+     kmsProviders,
+     kmsConnectCallback
+   });
+
+The ``signal`` property applies to the connection to the proxy, and the
+``timeoutMS`` property applies to the ``CONNECT`` exchange. A socket timeout
+stays active after the ``CONNECT`` exchange ends, so clear the timeout before
+you resolve the promise. Otherwise, the timeout can destroy the socket while the
+driver performs the TLS handshake.
+
+The preceding example is condensed to show the sequence of calls. In production
+code, buffer the proxy's response until you receive the end of the header block,
+because the response can arrive across multiple chunks.
+
+.. important::
+
+   The ``kmsConnectCallback`` and ``proxyOptions`` options are mutually
+   exclusive. If you set ``kmsConnectCallback`` and specify a ``proxyHost``
+   value in ``proxyOptions``, the driver raises a
+   ``MongoCryptInvalidArgumentError``.
