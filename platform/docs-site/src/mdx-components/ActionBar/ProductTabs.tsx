@@ -9,24 +9,13 @@ import { isOfflineBuild } from '@/utils/isOfflineBuild';
 import useScreenSize from '@/hooks/use-screen-size';
 import Icon from '@leafygreen-ui/icon';
 import { palette } from '@leafygreen-ui/palette';
-import { sameProjectHref } from '@/utils/base-path';
+import { navigateToDocsPath } from '@/utils/navigate-to-docs-path';
 
 const NAV_TABS = [
   { label: 'Database', path: '/docs' },
   // { label: 'Agentic Platform', path: '/docs/agentic-platform' },
   { label: 'VoyageAI Models', path: '/docs/voyageai' },
 ] as const;
-
-// Full `/docs/...` product roots. Same-deploy uses router (basePath-relative);
-// cross-deploy uses window.location so Next doesn't prepend this deploy's basePath.
-const navigateToProduct = (path: string, router: ReturnType<typeof useRouter>) => {
-  const clientHref = sameProjectHref(path);
-  if (clientHref) {
-    router.push(clientHref);
-    return;
-  }
-  window.location.assign(path);
-};
 
 const containerStyling = css`
   display: flex;
@@ -112,7 +101,7 @@ export const ProductTabs = ({ slug }: { slug: string }) => {
           const isActive = index === activeIndex;
           return (
             <div key={label}>
-              <div className={cx(mobileItemStyling)} onClick={() => navigateToProduct(path, router)}>
+              <div className={cx(mobileItemStyling)} onClick={() => navigateToDocsPath(router, path)}>
                 {isActive ? (
                   <Icon glyph="Checkmark" color={palette.blue.base} />
                 ) : (
@@ -136,7 +125,7 @@ export const ProductTabs = ({ slug }: { slug: string }) => {
       <LeafyTabs
         className={cx(productTabsStyling)}
         selected={activeIndex}
-        setSelected={(index) => navigateToProduct(NAV_TABS[index].path, router)}
+        setSelected={(index) => navigateToDocsPath(router, NAV_TABS[index].path)}
         aria-label="Product navigation"
       >
         {NAV_TABS.map(({ label }) => (

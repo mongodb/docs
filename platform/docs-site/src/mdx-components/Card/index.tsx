@@ -17,6 +17,7 @@ import { isRelativeUrl } from '@/utils/is-relative-url';
 import { getSuitableIcon } from '@/utils/get-suitable-icon';
 import { reportAnalytics } from '@/utils/report-analytics';
 import { useVersionContext } from '@/context/version-context';
+import { navigateToDocsPath } from '@/utils/navigate-to-docs-path';
 import CardGroupContext from './card-group-context';
 
 const cardBaseStyles = css`
@@ -155,7 +156,7 @@ const onCardClick = (
     scroll_position: currentScrollPosition(),
     tagbook: 'true',
   });
-  return isRelativeUrl(url) ? router.push(url) : (window.location.href = url);
+  navigateToDocsPath(router, url);
 };
 
 export type CardProps = {

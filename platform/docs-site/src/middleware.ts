@@ -38,6 +38,15 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    // The basePath root itself (`/docs/` for landing, `/docs/<prefix>/` for
+    // every other docset). Next prefixes basePath onto each matcher source, so
+    // `/:path(...)` below compiles to `^/docs(?:/(...))$` — which requires a
+    // segment after the prefix. Next then match-tests the *trailing-slash-
+    // stripped* pathname (`/docs`), so the root falls through unmatched and
+    // next-server answers it with an empty 200 body instead of rendering the
+    // page. Only the literal `/` source gets Next's isRoot treatment, which
+    // makes the trailing slash optional. See vercel/next.js#47085.
+    '/',
     // Docs pages (basePath-relative) minus Next.js internals. basePath is
     // applied by Next automatically and _next assets are auto-excluded.
     '/:path((?!_next).*)',
