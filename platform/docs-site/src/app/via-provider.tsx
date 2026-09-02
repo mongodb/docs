@@ -1,7 +1,7 @@
 'use client';
 
 import { useContext } from 'react';
-import { ViaProvider } from '@via-ds/components';
+import { ViaProvider } from '@via-ds/components/provider';
 import { ColorScheme, Size } from '@via-ds/components/types';
 import '@via-ds/components/index.css';
 import '@via-ds/icons/styles.css';

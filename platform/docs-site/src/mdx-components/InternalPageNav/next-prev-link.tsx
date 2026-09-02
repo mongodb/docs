@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { clsx } from 'clsx';
 import { Link } from '@/mdx-components/Link';
-import { Text } from '@via-ds/components';
+import { Text } from '@via-ds/components/typography';
 import ArrowLeftIcon from '@via-ds/icons/ArrowLeft';
 import ArrowRightIcon from '@via-ds/icons/ArrowRight';
 import styles from './next-prev-link.module.scss';

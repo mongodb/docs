@@ -3,7 +3,7 @@
 import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 import { clsx } from 'clsx';
-import { Link as ViaLink, LinkStyle } from '@via-ds/components';
+import { Link as ViaLink, LinkStyle } from '@via-ds/components/typography';
 import styles from './link.module.scss';
 import { validateHTMAttributes } from '@/utils/validate-element-attributes';
 import { isRelativeUrl } from '@/utils/is-relative-url';

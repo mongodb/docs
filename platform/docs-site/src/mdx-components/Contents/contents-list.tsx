@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { clsx } from 'clsx';
-import { Text, TextStyle } from '@via-ds/components';
+import { Text, TextStyle } from '@via-ds/components/typography';
 import { Icon } from '@via-ds/icons';
 import styles from './contents-list.module.scss';
 
