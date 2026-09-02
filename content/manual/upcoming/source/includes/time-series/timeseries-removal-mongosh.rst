@@ -111,3 +111,5 @@ set ``expireAfterSeconds`` to ``off``:
        collMod: "weather24h",
        expireAfterSeconds: "off"
    })
+
+.. include:: /includes/time-series/timeseries-removal-note.rst

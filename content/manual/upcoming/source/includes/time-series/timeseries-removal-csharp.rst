@@ -68,3 +68,5 @@ set ``expireAfterSeconds`` to ``off``:
    :language: csharp
    :category: syntax example
    :emphasize-lines: 4
+
+.. include:: /includes/time-series/timeseries-removal-note.rst

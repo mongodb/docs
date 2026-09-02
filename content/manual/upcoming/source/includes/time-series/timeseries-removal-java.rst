@@ -68,3 +68,5 @@ set ``expireAfterSeconds`` to ``off``:
    :language: java
    :category: syntax example
    :emphasize-lines: 1-2
+
+.. include:: /includes/time-series/timeseries-removal-note.rst
