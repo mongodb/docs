@@ -287,7 +287,6 @@ const tocData: TocItem[] = inheritContentSite('rust', [
   {
     label: 'API Documentation',
     contentSite: 'rust',
-    url: '/docs/drivers/rust/:version/api',
     collapsible: true,
     items: [
       {

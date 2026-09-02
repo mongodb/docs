@@ -1247,7 +1247,6 @@ export const toc: L1TocItem[] = [
             label: 'API Documentation',
             contentSite: 'rust',
             collapsible: true,
-            url: '/docs/drivers/rust/:version/api',
             items: [
               {
                 label: 'MongoDB Rust Driver',
