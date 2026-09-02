@@ -1,86 +1,97 @@
-.. tabs-drivers::
+.. selected-content::
+   :selections: mongosh, None
 
-   tabs:
-     - id: shell
-       content: |
-         The following example selects all documents from the
-         ``sample_mflix.movies`` collection where ``rated``
-         equals ``"PG-13"``:
+   The following example selects all documents from the
+   ``sample_mflix.movies`` collection where ``rated``
+   equals ``"PG-13"``:
 
-     - id: compass
-       content: |
-         The following example selects all documents from the
-         ``inventory`` collection where ``status`` equals
-         ``"D"``:
+.. selected-content::
+   :selections: compass, None
 
-     - id: c
-       content: |
-         The following example selects all documents from the
-         ``inventory`` collection where ``status`` equals
-         ``"D"``:
+   The following example selects all documents from the
+   ``inventory`` collection where ``status`` equals
+   ``"D"``:
 
-     - id: python
-       content: |
-         The following example selects all documents from the
-         ``inventory`` collection where ``status`` equals
-         ``"D"``:
+.. selected-content::
+   :selections: driver, c
 
-     - id: motor
-       content: |
-         The following example selects all documents from the
-         ``inventory`` collection where ``status`` equals
-         ``"D"``:
+   The following example selects all documents from the
+   ``inventory`` collection where ``status`` equals
+   ``"D"``:
 
-     - id: java-sync
-       content: |
-         The following example selects all documents from the
-         ``inventory`` collection where ``status`` equals
-         ``"D"``:
+.. selected-content::
+   :selections: driver, python
 
-     - id: java-async
-       content: |
-         The following example selects all documents from the
-         ``inventory`` collection where ``status`` equals
-         ``"D"``:
+   The following example selects all documents from the
+   ``inventory`` collection where ``status`` equals
+   ``"D"``:
 
-     - id: kotlin-coroutine
-       content: |
-         The following example selects all documents from the
-         ``inventory`` collection where ``status`` equals
-         ``"D"``:
+.. selected-content::
+   :selections: driver, motor
 
-     - id: nodejs
-       content: |
-         The following example selects all documents from the
-         ``inventory`` collection where ``status`` equals
-         ``"D"``:
+   The following example selects all documents from the
+   ``inventory`` collection where ``status`` equals
+   ``"D"``:
 
-     - id: php
-       content: |
-         The following example selects all documents from the
-         ``inventory`` collection where ``status`` equals
-         ``"D"``:
+.. selected-content::
+   :selections: driver, java-sync
 
-     - id: ruby
-       content: |
-         The following example selects all documents from the
-         ``inventory`` collection where ``status`` equals
-         ``"D"``:
+   The following example selects all documents from the
+   ``inventory`` collection where ``status`` equals
+   ``"D"``:
 
-     - id: scala
-       content: |
-         The following example selects all documents from the
-         ``inventory`` collection where ``status`` equals
-         ``"D"``:
+.. selected-content::
+   :selections: driver, java-async
 
-     - id: csharp
-       content: |
-         The following example selects all documents from the
-         ``inventory`` collection where ``status`` equals
-         ``"D"``:
+   The following example selects all documents from the
+   ``inventory`` collection where ``status`` equals
+   ``"D"``:
 
-     - id: go
-       content: |
-         The following example selects all documents from the
-         ``inventory`` collection where ``status`` equals
-         ``"D"``:
+.. selected-content::
+   :selections: driver, kotlin-coroutine
+
+   The following example selects all documents from the
+   ``inventory`` collection where ``status`` equals
+   ``"D"``:
+
+.. selected-content::
+   :selections: driver, nodejs
+
+   The following example selects all documents from the
+   ``inventory`` collection where ``status`` equals
+   ``"D"``:
+
+.. selected-content::
+   :selections: driver, php
+
+   The following example selects all documents from the
+   ``inventory`` collection where ``status`` equals
+   ``"D"``:
+
+.. selected-content::
+   :selections: driver, ruby
+
+   The following example selects all documents from the
+   ``inventory`` collection where ``status`` equals
+   ``"D"``:
+
+.. selected-content::
+   :selections: driver, scala
+
+   The following example selects all documents from the
+   ``inventory`` collection where ``status`` equals
+   ``"D"``:
+
+.. selected-content::
+   :selections: driver, csharp
+
+   The following example selects all documents from the
+   ``inventory`` collection where ``status`` equals
+   ``"D"``:
+
+.. selected-content::
+   :selections: driver, go
+
+   The following example selects all documents from the
+   ``inventory`` collection where ``status`` equals
+   ``"D"``:

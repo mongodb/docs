@@ -1,142 +1,153 @@
-.. tabs-drivers::
+.. selected-content::
+   :selections: mongosh, None
 
-   tabs:
-     - id: shell
-       content: |
-         The operation uses a query predicate of
-         ``{ $or: [ { rated: 'G' }, { runtime: { $lt: 90 } } ] }``,
-         which corresponds to the following SQL statement:
+   The operation uses a query predicate of
+   ``{ $or: [ { rated: 'G' }, { runtime: { $lt: 90 } } ] }``,
+   which corresponds to the following SQL statement:
 
-         .. code-block:: sql
+   .. code-block:: sql
 
-            SELECT * FROM movies WHERE rated = "G" OR runtime < 90
+      SELECT * FROM movies WHERE rated = "G" OR runtime < 90
 
-     - id: compass
-       content: |
-         The operation uses a query predicate of
-         ``{ $or: [ { status: 'A' }, { qty: { $lt: 30 } } ] }``,
-         which corresponds to the following SQL statement:
+.. selected-content::
+   :selections: compass, None
 
-         .. code-block:: sql
+   The operation uses a query predicate of
+   ``{ $or: [ { status: 'A' }, { qty: { $lt: 30 } } ] }``,
+   which corresponds to the following SQL statement:
 
-            SELECT * FROM inventory WHERE status = "A" OR qty < 30
+   .. code-block:: sql
 
-     - id: c
-       content: |
-         The operation uses a query predicate of
-         ``{ $or: [ { status: 'A' }, { qty: { $lt: 30 } } ] }``,
-         which corresponds to the following SQL statement:
+      SELECT * FROM inventory WHERE status = "A" OR qty < 30
 
-         .. code-block:: sql
+.. selected-content::
+   :selections: driver, c
 
-            SELECT * FROM inventory WHERE status = "A" OR qty < 30
+   The operation uses a query predicate of
+   ``{ $or: [ { status: 'A' }, { qty: { $lt: 30 } } ] }``,
+   which corresponds to the following SQL statement:
 
-     - id: python
-       content: |
-         The operation uses a query predicate of
-         ``{ $or: [ { status: 'A' }, { qty: { $lt: 30 } } ] }``,
-         which corresponds to the following SQL statement:
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory WHERE status = "A" OR qty < 30
 
-            SELECT * FROM inventory WHERE status = "A" OR qty < 30
+.. selected-content::
+   :selections: driver, python
 
-     - id: motor
-       content: |
-         The operation uses a query predicate of
-         ``{ $or: [ { status: 'A' }, { qty: { $lt: 30 } } ] }``,
-         which corresponds to the following SQL statement:
+   The operation uses a query predicate of
+   ``{ $or: [ { status: 'A' }, { qty: { $lt: 30 } } ] }``,
+   which corresponds to the following SQL statement:
 
-         .. code-block:: sql
+   .. code-block:: sql
 
-            SELECT * FROM inventory WHERE status = "A" OR qty < 30
+      SELECT * FROM inventory WHERE status = "A" OR qty < 30
 
-     - id: java-sync
-       content: |
-         The operation uses a query predicate of
-         ``{ $or: [ { status: 'A' }, { qty: { $lt: 30 } } ] }``,
-         which corresponds to the following SQL statement:
+.. selected-content::
+   :selections: driver, motor
 
-         .. code-block:: sql
+   The operation uses a query predicate of
+   ``{ $or: [ { status: 'A' }, { qty: { $lt: 30 } } ] }``,
+   which corresponds to the following SQL statement:
 
-            SELECT * FROM inventory WHERE status = "A" OR qty < 30
+   .. code-block:: sql
 
-     - id: java-async
-       content: |
-         The operation uses a query predicate of
-         ``{ $or: [ { status: 'A' }, { qty: { $lt: 30 } } ] }``,
-         which corresponds to the following SQL statement:
+      SELECT * FROM inventory WHERE status = "A" OR qty < 30
 
-         .. code-block:: sql
+.. selected-content::
+   :selections: driver, java-sync
 
-            SELECT * FROM inventory WHERE status = "A" OR qty < 30
+   The operation uses a query predicate of
+   ``{ $or: [ { status: 'A' }, { qty: { $lt: 30 } } ] }``,
+   which corresponds to the following SQL statement:
 
-     - id: kotlin-coroutine
-       content: |
-         The operation uses a query predicate of
-         ``{ $or: [ { status: 'A' }, { qty: { $lt: 30 } } ] }``,
-         which corresponds to the following SQL statement:
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory WHERE status = "A" OR qty < 30
 
-            SELECT * FROM inventory WHERE status = "A" OR qty < 30
+.. selected-content::
+   :selections: driver, java-async
 
-     - id: nodejs
-       content: |
-         The operation uses a query predicate of
-         ``{ $or: [ { status: 'A' }, { qty: { $lt: 30 } } ] }``,
-         which corresponds to the following SQL statement:
+   The operation uses a query predicate of
+   ``{ $or: [ { status: 'A' }, { qty: { $lt: 30 } } ] }``,
+   which corresponds to the following SQL statement:
 
-         .. code-block:: sql
+   .. code-block:: sql
 
-            SELECT * FROM inventory WHERE status = "A" OR qty < 30
+      SELECT * FROM inventory WHERE status = "A" OR qty < 30
 
-     - id: php
-       content: |
-         The operation uses a query predicate of
-         ``{ $or: [ { status: 'A' }, { qty: { $lt: 30 } } ] }``,
-         which corresponds to the following SQL statement:
+.. selected-content::
+   :selections: driver, kotlin-coroutine
 
-         .. code-block:: sql
+   The operation uses a query predicate of
+   ``{ $or: [ { status: 'A' }, { qty: { $lt: 30 } } ] }``,
+   which corresponds to the following SQL statement:
 
-            SELECT * FROM inventory WHERE status = "A" OR qty < 30
+   .. code-block:: sql
 
-     - id: ruby
-       content: |
-         The operation uses a query predicate of
-         ``{ $or: [ { status: 'A' }, { qty: { $lt: 30 } } ] }``,
-         which corresponds to the following SQL statement:
+      SELECT * FROM inventory WHERE status = "A" OR qty < 30
 
-         .. code-block:: sql
+.. selected-content::
+   :selections: driver, nodejs
 
-            SELECT * FROM inventory WHERE status = "A" OR qty < 30
+   The operation uses a query predicate of
+   ``{ $or: [ { status: 'A' }, { qty: { $lt: 30 } } ] }``,
+   which corresponds to the following SQL statement:
 
-     - id: scala
-       content: |
-         The operation uses a query predicate of
-         ``{ $or: [ { status: 'A' }, { qty: { $lt: 30 } } ] }``,
-         which corresponds to the following SQL statement:
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory WHERE status = "A" OR qty < 30
 
-            SELECT * FROM inventory WHERE status = "A" OR qty < 30
+.. selected-content::
+   :selections: driver, php
 
-     - id: csharp
-       content: |
-         The operation uses a query predicate of
-         ``{ $or: [ { status: 'A' }, { qty: { $lt: 30 } } ] }``,
-         which corresponds to the following SQL statement:
+   The operation uses a query predicate of
+   ``{ $or: [ { status: 'A' }, { qty: { $lt: 30 } } ] }``,
+   which corresponds to the following SQL statement:
 
-         .. code-block:: sql
+   .. code-block:: sql
 
-            SELECT * FROM inventory WHERE status = "A" OR qty < 30
+      SELECT * FROM inventory WHERE status = "A" OR qty < 30
 
-     - id: go
-       content: |
-         The operation uses a query predicate of
-         ``{ $or: [ { status: 'A' }, { qty: { $lt: 30 } } ] }``,
-         which corresponds to the following SQL statement:
+.. selected-content::
+   :selections: driver, ruby
 
-         .. code-block:: sql
+   The operation uses a query predicate of
+   ``{ $or: [ { status: 'A' }, { qty: { $lt: 30 } } ] }``,
+   which corresponds to the following SQL statement:
 
-            SELECT * FROM inventory WHERE status = "A" OR qty < 30
+   .. code-block:: sql
+
+      SELECT * FROM inventory WHERE status = "A" OR qty < 30
+
+.. selected-content::
+   :selections: driver, scala
+
+   The operation uses a query predicate of
+   ``{ $or: [ { status: 'A' }, { qty: { $lt: 30 } } ] }``,
+   which corresponds to the following SQL statement:
+
+   .. code-block:: sql
+
+      SELECT * FROM inventory WHERE status = "A" OR qty < 30
+
+.. selected-content::
+   :selections: driver, csharp
+
+   The operation uses a query predicate of
+   ``{ $or: [ { status: 'A' }, { qty: { $lt: 30 } } ] }``,
+   which corresponds to the following SQL statement:
+
+   .. code-block:: sql
+
+      SELECT * FROM inventory WHERE status = "A" OR qty < 30
+
+.. selected-content::
+   :selections: driver, go
+
+   The operation uses a query predicate of
+   ``{ $or: [ { status: 'A' }, { qty: { $lt: 30 } } ] }``,
+   which corresponds to the following SQL statement:
+
+   .. code-block:: sql
+
+      SELECT * FROM inventory WHERE status = "A" OR qty < 30

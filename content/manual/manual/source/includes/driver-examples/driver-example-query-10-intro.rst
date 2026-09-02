@@ -1,86 +1,97 @@
-.. tabs-drivers::
+.. selected-content::
+   :selections: mongosh, None
 
-   tabs:
-     - id: shell
-       content: |
-         The following example retrieves all documents from the
-         ``sample_mflix.movies`` collection where ``rated``
-         equals either ``"G"`` or ``"PG-13"``:
+   The following example retrieves all documents from the
+   ``sample_mflix.movies`` collection where ``rated``
+   equals either ``"G"`` or ``"PG-13"``:
 
-     - id: compass
-       content: |
-         The following example retrieves all documents from the
-         ``inventory`` collection where ``status`` equals
-         either ``"A"`` or ``"D"``:
+.. selected-content::
+   :selections: compass, None
 
-     - id: c
-       content: |
-         The following example retrieves all documents from the
-         ``inventory`` collection where ``status`` equals
-         either ``"A"`` or ``"D"``:
+   The following example retrieves all documents from the
+   ``inventory`` collection where ``status`` equals
+   either ``"A"`` or ``"D"``:
 
-     - id: python
-       content: |
-         The following example retrieves all documents from the
-         ``inventory`` collection where ``status`` equals
-         either ``"A"`` or ``"D"``:
+.. selected-content::
+   :selections: driver, c
 
-     - id: motor
-       content: |
-         The following example retrieves all documents from the
-         ``inventory`` collection where ``status`` equals
-         either ``"A"`` or ``"D"``:
+   The following example retrieves all documents from the
+   ``inventory`` collection where ``status`` equals
+   either ``"A"`` or ``"D"``:
 
-     - id: java-sync
-       content: |
-         The following example retrieves all documents from the
-         ``inventory`` collection where ``status`` equals
-         either ``"A"`` or ``"D"``:
+.. selected-content::
+   :selections: driver, python
 
-     - id: java-async
-       content: |
-         The following example retrieves all documents from the
-         ``inventory`` collection where ``status`` equals
-         either ``"A"`` or ``"D"``:
+   The following example retrieves all documents from the
+   ``inventory`` collection where ``status`` equals
+   either ``"A"`` or ``"D"``:
 
-     - id: kotlin-coroutine
-       content: |
-         The following example retrieves all documents from the
-         ``inventory`` collection where ``status`` equals
-         either ``"A"`` or ``"D"``:
+.. selected-content::
+   :selections: driver, motor
 
-     - id: nodejs
-       content: |
-         The following example retrieves all documents from the
-         ``inventory`` collection where ``status`` equals
-         either ``"A"`` or ``"D"``:
+   The following example retrieves all documents from the
+   ``inventory`` collection where ``status`` equals
+   either ``"A"`` or ``"D"``:
 
-     - id: php
-       content: |
-         The following example retrieves all documents from the
-         ``inventory`` collection where ``status`` equals
-         either ``"A"`` or ``"D"``:
+.. selected-content::
+   :selections: driver, java-sync
 
-     - id: ruby
-       content: |
-         The following example retrieves all documents from the
-         ``inventory`` collection where ``status`` equals
-         either ``"A"`` or ``"D"``:
+   The following example retrieves all documents from the
+   ``inventory`` collection where ``status`` equals
+   either ``"A"`` or ``"D"``:
 
-     - id: scala
-       content: |
-         The following example retrieves all documents from the
-         ``inventory`` collection where ``status`` equals
-         either ``"A"`` or ``"D"``:
+.. selected-content::
+   :selections: driver, java-async
 
-     - id: csharp
-       content: |
-         The following example retrieves all documents from the
-         ``inventory`` collection where ``status`` equals
-         either ``"A"`` or ``"D"``:
+   The following example retrieves all documents from the
+   ``inventory`` collection where ``status`` equals
+   either ``"A"`` or ``"D"``:
 
-     - id: go
-       content: |
-         The following example retrieves all documents from the
-         ``inventory`` collection where ``status`` equals
-         either ``"A"`` or ``"D"``:
+.. selected-content::
+   :selections: driver, kotlin-coroutine
+
+   The following example retrieves all documents from the
+   ``inventory`` collection where ``status`` equals
+   either ``"A"`` or ``"D"``:
+
+.. selected-content::
+   :selections: driver, nodejs
+
+   The following example retrieves all documents from the
+   ``inventory`` collection where ``status`` equals
+   either ``"A"`` or ``"D"``:
+
+.. selected-content::
+   :selections: driver, php
+
+   The following example retrieves all documents from the
+   ``inventory`` collection where ``status`` equals
+   either ``"A"`` or ``"D"``:
+
+.. selected-content::
+   :selections: driver, ruby
+
+   The following example retrieves all documents from the
+   ``inventory`` collection where ``status`` equals
+   either ``"A"`` or ``"D"``:
+
+.. selected-content::
+   :selections: driver, scala
+
+   The following example retrieves all documents from the
+   ``inventory`` collection where ``status`` equals
+   either ``"A"`` or ``"D"``:
+
+.. selected-content::
+   :selections: driver, csharp
+
+   The following example retrieves all documents from the
+   ``inventory`` collection where ``status`` equals
+   either ``"A"`` or ``"D"``:
+
+.. selected-content::
+   :selections: driver, go
+
+   The following example retrieves all documents from the
+   ``inventory`` collection where ``status`` equals
+   either ``"A"`` or ``"D"``:

@@ -1,282 +1,279 @@
-.. tabs-drivers::
+.. selected-content::
+   :selections: mongosh, None
 
-   tabs:
-     - id: shell
-       content: |
+   .. code-block:: javascript
 
-         .. code-block:: javascript
+      {
+         rated: 'G',
+         $or: [
+           { runtime: { $lt: 90 } },
+           { title: { $regex: '^T' } }
+         ]
+      }
 
-            {
-               rated: 'G',
-               $or: [
-                 { runtime: { $lt: 90 } },
-                 { title: { $regex: '^T' } }
-               ]
-            }
+   which corresponds to the following SQL statement:
 
-         which corresponds to the following SQL statement:
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM movies WHERE rated = "G"
+      AND ( runtime < 90 OR title LIKE "T%")
 
-            SELECT * FROM movies WHERE rated = "G"
-            AND ( runtime < 90 OR title LIKE "T%")
+.. selected-content::
+   :selections: compass, None
 
-     - id: compass
-       content: |
+   .. code-block:: javascript
 
-         .. code-block:: javascript
+      {
+         status: 'A',
+         $or: [
+           { qty: { $lt: 30 } },
+           { item: { $regex: '^p' } }
+         ]
+      }
 
-            {
-               status: 'A',
-               $or: [
-                 { qty: { $lt: 30 } },
-                 { item: { $regex: '^p' } }
-               ]
-            }
+   which corresponds to the following SQL statement:
 
-         which corresponds to the following SQL statement:
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory WHERE status = "A"
+      AND ( qty < 30 OR item LIKE "p%")
 
-            SELECT * FROM inventory WHERE status = "A"
-            AND ( qty < 30 OR item LIKE "p%")
+.. selected-content::
+   :selections: driver, c
 
-     - id: c
-       content: |
+   .. code-block:: javascript
 
-         .. code-block:: javascript
+      {
+         status: 'A',
+         $or: [
+           { qty: { $lt: 30 } },
+           { item: { $regex: '^p' } }
+         ]
+      }
 
-            {
-               status: 'A',
-               $or: [
-                 { qty: { $lt: 30 } },
-                 { item: { $regex: '^p' } }
-               ]
-            }
+   which corresponds to the following SQL statement:
 
-         which corresponds to the following SQL statement:
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory WHERE status = "A"
+      AND ( qty < 30 OR item LIKE "p%")
 
-            SELECT * FROM inventory WHERE status = "A"
-            AND ( qty < 30 OR item LIKE "p%")
+.. selected-content::
+   :selections: driver, python
 
-     - id: python
-       content: |
+   .. code-block:: javascript
 
-         .. code-block:: javascript
+      {
+         status: 'A',
+         $or: [
+           { qty: { $lt: 30 } },
+           { item: { $regex: '^p' } }
+         ]
+      }
 
-            {
-               status: 'A',
-               $or: [
-                 { qty: { $lt: 30 } },
-                 { item: { $regex: '^p' } }
-               ]
-            }
+   which corresponds to the following SQL statement:
 
-         which corresponds to the following SQL statement:
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory WHERE status = "A"
+      AND ( qty < 30 OR item LIKE "p%")
 
-            SELECT * FROM inventory WHERE status = "A"
-            AND ( qty < 30 OR item LIKE "p%")
+.. selected-content::
+   :selections: driver, motor
 
-     - id: motor
-       content: |
+   .. code-block:: javascript
 
-         .. code-block:: javascript
+      {
+         status: 'A',
+         $or: [
+           { qty: { $lt: 30 } },
+           { item: { $regex: '^p' } }
+         ]
+      }
 
-            {
-               status: 'A',
-               $or: [
-                 { qty: { $lt: 30 } },
-                 { item: { $regex: '^p' } }
-               ]
-            }
+   which corresponds to the following SQL statement:
 
-         which corresponds to the following SQL statement:
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory WHERE status = "A"
+      AND ( qty < 30 OR item LIKE "p%")
 
-            SELECT * FROM inventory WHERE status = "A"
-            AND ( qty < 30 OR item LIKE "p%")
+.. selected-content::
+   :selections: driver, java-sync
 
-     - id: java-sync
-       content: |
+   .. code-block:: javascript
 
-         .. code-block:: javascript
+      {
+         status: 'A',
+         $or: [
+           { qty: { $lt: 30 } },
+           { item: { $regex: '^p' } }
+         ]
+      }
 
-            {
-               status: 'A',
-               $or: [
-                 { qty: { $lt: 30 } },
-                 { item: { $regex: '^p' } }
-               ]
-            }
+   which corresponds to the following SQL statement:
 
-         which corresponds to the following SQL statement:
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory WHERE status = "A"
+      AND ( qty < 30 OR item LIKE "p%")
 
-            SELECT * FROM inventory WHERE status = "A"
-            AND ( qty < 30 OR item LIKE "p%")
+.. selected-content::
+   :selections: driver, java-async
 
-     - id: java-async
-       content: |
+   .. code-block:: javascript
 
-         .. code-block:: javascript
+      {
+         status: 'A',
+         $or: [
+           { qty: { $lt: 30 } },
+           { item: { $regex: '^p' } }
+         ]
+      }
 
-            {
-               status: 'A',
-               $or: [
-                 { qty: { $lt: 30 } },
-                 { item: { $regex: '^p' } }
-               ]
-            }
+   which corresponds to the following SQL statement:
 
-         which corresponds to the following SQL statement:
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory WHERE status = "A"
+      AND ( qty < 30 OR item LIKE "p%")
 
-            SELECT * FROM inventory WHERE status = "A"
-            AND ( qty < 30 OR item LIKE "p%")
+.. selected-content::
+   :selections: driver, kotlin-coroutine
 
-     - id: kotlin-coroutine
-       content: |
+   .. code-block:: javascript
 
-         .. code-block:: javascript
+      {
+         status: 'A',
+         $or: [
+           { qty: { $lt: 30 } },
+           { item: { $regex: '^p' } }
+         ]
+      }
 
-            {
-               status: 'A',
-               $or: [
-                 { qty: { $lt: 30 } },
-                 { item: { $regex: '^p' } }
-               ]
-            }
+   which corresponds to the following SQL statement:
 
-         which corresponds to the following SQL statement:
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory WHERE status = "A"
+      AND ( qty < 30 OR item LIKE "p%")
 
-            SELECT * FROM inventory WHERE status = "A"
-            AND ( qty < 30 OR item LIKE "p%")
+.. selected-content::
+   :selections: driver, nodejs
 
-     - id: nodejs
-       content: |
+   .. code-block:: javascript
 
-         .. code-block:: javascript
+      {
+         status: 'A',
+         $or: [
+           { qty: { $lt: 30 } },
+           { item: { $regex: '^p' } }
+         ]
+      }
 
-            {
-               status: 'A',
-               $or: [
-                 { qty: { $lt: 30 } },
-                 { item: { $regex: '^p' } }
-               ]
-            }
+   which corresponds to the following SQL statement:
 
-         which corresponds to the following SQL statement:
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory WHERE status = "A"
+      AND ( qty < 30 OR item LIKE "p%")
 
-            SELECT * FROM inventory WHERE status = "A"
-            AND ( qty < 30 OR item LIKE "p%")
+.. selected-content::
+   :selections: driver, php
 
-     - id: php
-       content: |
+   .. code-block:: javascript
 
-         .. code-block:: javascript
+      {
+         status: 'A',
+         $or: [
+           { qty: { $lt: 30 } },
+           { item: { $regex: '^p' } }
+         ]
+      }
 
-            {
-               status: 'A',
-               $or: [
-                 { qty: { $lt: 30 } },
-                 { item: { $regex: '^p' } }
-               ]
-            }
+   which corresponds to the following SQL statement:
 
-         which corresponds to the following SQL statement:
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory WHERE status = "A"
+      AND ( qty < 30 OR item LIKE "p%")
 
-            SELECT * FROM inventory WHERE status = "A"
-            AND ( qty < 30 OR item LIKE "p%")
+.. selected-content::
+   :selections: driver, ruby
 
-     - id: ruby
-       content: |
+   .. code-block:: javascript
 
-         .. code-block:: javascript
+      {
+         status: 'A',
+         $or: [
+           { qty: { $lt: 30 } },
+           { item: { $regex: '^p' } }
+         ]
+      }
 
-            {
-               status: 'A',
-               $or: [
-                 { qty: { $lt: 30 } },
-                 { item: { $regex: '^p' } }
-               ]
-            }
+   which corresponds to the following SQL statement:
 
-         which corresponds to the following SQL statement:
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory WHERE status = "A"
+      AND ( qty < 30 OR item LIKE "p%")
 
-            SELECT * FROM inventory WHERE status = "A"
-            AND ( qty < 30 OR item LIKE "p%")
+.. selected-content::
+   :selections: driver, scala
 
-     - id: scala
-       content: |
+   .. code-block:: javascript
 
-         .. code-block:: javascript
+      {
+         status: 'A',
+         $or: [
+           { qty: { $lt: 30 } },
+           { item: { $regex: '^p' } }
+         ]
+      }
 
-            {
-               status: 'A',
-               $or: [
-                 { qty: { $lt: 30 } },
-                 { item: { $regex: '^p' } }
-               ]
-            }
+   which corresponds to the following SQL statement:
 
-         which corresponds to the following SQL statement:
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory WHERE status = "A"
+      AND ( qty < 30 OR item LIKE "p%")
 
-            SELECT * FROM inventory WHERE status = "A"
-            AND ( qty < 30 OR item LIKE "p%")
+.. selected-content::
+   :selections: driver, csharp
 
-     - id: csharp
-       content: |
+   .. code-block:: javascript
 
-         .. code-block:: javascript
+      {
+         status: 'A',
+         $or: [
+           { qty: { $lt: 30 } },
+           { item: { $regex: '^p' } }
+         ]
+      }
 
-            {
-               status: 'A',
-               $or: [
-                 { qty: { $lt: 30 } },
-                 { item: { $regex: '^p' } }
-               ]
-            }
+   which corresponds to the following SQL statement:
 
-         which corresponds to the following SQL statement:
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory WHERE status = "A"
+      AND ( qty < 30 OR item LIKE "p%")
 
-            SELECT * FROM inventory WHERE status = "A"
-            AND ( qty < 30 OR item LIKE "p%")
+.. selected-content::
+   :selections: driver, go
 
-     - id: go
-       content: |
+   .. code-block:: javascript
 
-         .. code-block:: javascript
+      {
+         status: 'A',
+         $or: [
+           { qty: { $lt: 30 } },
+           { item: { $regex: '^p' } }
+         ]
+      }
 
-            {
-               status: 'A',
-               $or: [
-                 { qty: { $lt: 30 } },
-                 { item: { $regex: '^p' } }
-               ]
-            }
+   which corresponds to the following SQL statement:
 
-         which corresponds to the following SQL statement:
+   .. code-block:: sql
 
-         .. code-block:: sql
-
-            SELECT * FROM inventory WHERE status = "A"
-            AND ( qty < 30 OR item LIKE "p%")
+      SELECT * FROM inventory WHERE status = "A"
+      AND ( qty < 30 OR item LIKE "p%")

@@ -1,100 +1,97 @@
-.. tabs-drivers::
+.. selected-content::
+   :selections: mongosh, None
 
-   tabs:
-     - id: shell
-       content: |
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM movies
 
-            SELECT * FROM movies
+.. selected-content::
+   :selections: compass, None
 
-     - id: compass
-       content: |
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory
 
-            SELECT * FROM inventory
+.. selected-content::
+   :selections: driver, c
 
-     - id: c
-       content: |
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory
 
-            SELECT * FROM inventory
+.. selected-content::
+   :selections: driver, python
 
-     - id: python
-       content: |
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory
 
-            SELECT * FROM inventory
+.. selected-content::
+   :selections: driver, motor
 
-     - id: motor
-       content: |
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory
 
-            SELECT * FROM inventory
+.. selected-content::
+   :selections: driver, java-sync
 
-     - id: java-sync
-       content: |
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory
 
-            SELECT * FROM inventory
+.. selected-content::
+   :selections: driver, java-async
 
-     - id: java-async
-       content: |
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory
 
-            SELECT * FROM inventory
+.. selected-content::
+   :selections: driver, kotlin-coroutine
 
-     - id: kotlin-coroutine
-       content: |
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory
 
-            SELECT * FROM inventory
+.. selected-content::
+   :selections: driver, nodejs
 
-     - id: nodejs
-       content: |
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory
 
-            SELECT * FROM inventory
+.. selected-content::
+   :selections: driver, php
 
-     - id: php
-       content: |
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory
 
-            SELECT * FROM inventory
+.. selected-content::
+   :selections: driver, ruby
 
-     - id: ruby
-       content: |
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory
 
-            SELECT * FROM inventory
+.. selected-content::
+   :selections: driver, scala
 
-     - id: scala
-       content: |
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory
 
-            SELECT * FROM inventory
+.. selected-content::
+   :selections: driver, csharp
 
-     - id: csharp
-       content: |
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory
 
-            SELECT * FROM inventory
+.. selected-content::
+   :selections: driver, go
 
-     - id: go
-       content: |
+   .. code-block:: sql
 
-         .. code-block:: sql
-
-            SELECT * FROM inventory
+      SELECT * FROM inventory

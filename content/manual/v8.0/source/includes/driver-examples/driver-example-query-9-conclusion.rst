@@ -1,142 +1,153 @@
-.. tabs-drivers::
+.. selected-content::
+   :selections: mongosh, None
 
-   tabs:
-     - id: shell
-       content: |
-         This operation uses a query predicate of
-         ``{ rated: "PG-13" }``, which corresponds to the
-         following SQL statement:
+   This operation uses a query predicate of
+   ``{ rated: "PG-13" }``, which corresponds to the
+   following SQL statement:
 
-         .. code-block:: sql
+   .. code-block:: sql
 
-            SELECT * FROM movies WHERE rated = "PG-13"
+      SELECT * FROM movies WHERE rated = "PG-13"
 
-     - id: compass
-       content: |
-         This operation uses a query predicate of
-         ``{ status: "D" }``, which corresponds to the
-         following SQL statement:
+.. selected-content::
+   :selections: compass, None
 
-         .. code-block:: sql
+   This operation uses a query predicate of
+   ``{ status: "D" }``, which corresponds to the
+   following SQL statement:
 
-            SELECT * FROM inventory WHERE status = "D"
+   .. code-block:: sql
 
-     - id: c
-       content: |
-         This operation uses a query predicate of
-         ``{ status: "D" }``, which corresponds to the
-         following SQL statement:
+      SELECT * FROM inventory WHERE status = "D"
 
-         .. code-block:: sql
+.. selected-content::
+   :selections: driver, c
 
-            SELECT * FROM inventory WHERE status = "D"
+   This operation uses a query predicate of
+   ``{ status: "D" }``, which corresponds to the
+   following SQL statement:
 
-     - id: python
-       content: |
-         This operation uses a query predicate of
-         ``{ status: "D" }``, which corresponds to the
-         following SQL statement:
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory WHERE status = "D"
 
-            SELECT * FROM inventory WHERE status = "D"
+.. selected-content::
+   :selections: driver, python
 
-     - id: motor
-       content: |
-         This operation uses a query predicate of
-         ``{ status: "D" }``, which corresponds to the
-         following SQL statement:
+   This operation uses a query predicate of
+   ``{ status: "D" }``, which corresponds to the
+   following SQL statement:
 
-         .. code-block:: sql
+   .. code-block:: sql
 
-            SELECT * FROM inventory WHERE status = "D"
+      SELECT * FROM inventory WHERE status = "D"
 
-     - id: java-sync
-       content: |
-         This operation uses a query predicate of
-         ``{ status: "D" }``, which corresponds to the
-         following SQL statement:
+.. selected-content::
+   :selections: driver, motor
 
-         .. code-block:: sql
+   This operation uses a query predicate of
+   ``{ status: "D" }``, which corresponds to the
+   following SQL statement:
 
-            SELECT * FROM inventory WHERE status = "D"
+   .. code-block:: sql
 
-     - id: java-async
-       content: |
-         This operation uses a query predicate of
-         ``{ status: "D" }``, which corresponds to the
-         following SQL statement:
+      SELECT * FROM inventory WHERE status = "D"
 
-         .. code-block:: sql
+.. selected-content::
+   :selections: driver, java-sync
 
-            SELECT * FROM inventory WHERE status = "D"
+   This operation uses a query predicate of
+   ``{ status: "D" }``, which corresponds to the
+   following SQL statement:
 
-     - id: kotlin-coroutine
-       content: |
-         This operation uses a query predicate of
-         ``{ status: "D" }``, which corresponds to the
-         following SQL statement:
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory WHERE status = "D"
 
-            SELECT * FROM inventory WHERE status = "D"
+.. selected-content::
+   :selections: driver, java-async
 
-     - id: nodejs
-       content: |
-         This operation uses a query predicate of
-         ``{ status: "D" }``, which corresponds to the
-         following SQL statement:
+   This operation uses a query predicate of
+   ``{ status: "D" }``, which corresponds to the
+   following SQL statement:
 
-         .. code-block:: sql
+   .. code-block:: sql
 
-            SELECT * FROM inventory WHERE status = "D"
+      SELECT * FROM inventory WHERE status = "D"
 
-     - id: php
-       content: |
-         This operation uses a query predicate of
-         ``{ status: "D" }``, which corresponds to the
-         following SQL statement:
+.. selected-content::
+   :selections: driver, kotlin-coroutine
 
-         .. code-block:: sql
+   This operation uses a query predicate of
+   ``{ status: "D" }``, which corresponds to the
+   following SQL statement:
 
-            SELECT * FROM inventory WHERE status = "D"
+   .. code-block:: sql
 
-     - id: ruby
-       content: |
-         This operation uses a query predicate of
-         ``{ status: "D" }``, which corresponds to the
-         following SQL statement:
+      SELECT * FROM inventory WHERE status = "D"
 
-         .. code-block:: sql
+.. selected-content::
+   :selections: driver, nodejs
 
-            SELECT * FROM inventory WHERE status = "D"
+   This operation uses a query predicate of
+   ``{ status: "D" }``, which corresponds to the
+   following SQL statement:
 
-     - id: scala
-       content: |
-         This operation uses a query predicate of
-         ``{ status: "D" }``, which corresponds to the
-         following SQL statement:
+   .. code-block:: sql
 
-         .. code-block:: sql
+      SELECT * FROM inventory WHERE status = "D"
 
-            SELECT * FROM inventory WHERE status = "D"
+.. selected-content::
+   :selections: driver, php
 
-     - id: csharp
-       content: |
-         This operation uses a query predicate of
-         ``{ status: "D" }``, which corresponds to the
-         following SQL statement:
+   This operation uses a query predicate of
+   ``{ status: "D" }``, which corresponds to the
+   following SQL statement:
 
-         .. code-block:: sql
+   .. code-block:: sql
 
-            SELECT * FROM inventory WHERE status = "D"
+      SELECT * FROM inventory WHERE status = "D"
 
-     - id: go
-       content: |
-         This operation uses a query predicate of
-         ``{ status: "D" }``, which corresponds to the
-         following SQL statement:
+.. selected-content::
+   :selections: driver, ruby
 
-         .. code-block:: sql
+   This operation uses a query predicate of
+   ``{ status: "D" }``, which corresponds to the
+   following SQL statement:
 
-            SELECT * FROM inventory WHERE status = "D"
+   .. code-block:: sql
+
+      SELECT * FROM inventory WHERE status = "D"
+
+.. selected-content::
+   :selections: driver, scala
+
+   This operation uses a query predicate of
+   ``{ status: "D" }``, which corresponds to the
+   following SQL statement:
+
+   .. code-block:: sql
+
+      SELECT * FROM inventory WHERE status = "D"
+
+.. selected-content::
+   :selections: driver, csharp
+
+   This operation uses a query predicate of
+   ``{ status: "D" }``, which corresponds to the
+   following SQL statement:
+
+   .. code-block:: sql
+
+      SELECT * FROM inventory WHERE status = "D"
+
+.. selected-content::
+   :selections: driver, go
+
+   This operation uses a query predicate of
+   ``{ status: "D" }``, which corresponds to the
+   following SQL statement:
+
+   .. code-block:: sql
+
+      SELECT * FROM inventory WHERE status = "D"

@@ -1,123 +1,122 @@
-.. tabs-drivers::
+.. selected-content::
+   :selections: mongosh, None
 
-   tabs:
-     - id: shell
-       content: |
+   .. literalinclude:: /code-examples/tested/command-line/mongosh/tutorial/query-documents/find-all.snippet.find-all-movies.js
+      :language: javascript
+      :category: usage example
 
-         .. literalinclude:: /code-examples/tested/command-line/mongosh/tutorial/query-documents/find-all.snippet.find-all-movies.js
-            :language: javascript
-            :category: usage example
+.. selected-content::
+   :selections: compass, None
 
-     - id: compass
-       content: |
+   .. figure:: /images/compass-select-all-new.png
+      :alt: Compass select all documents in collection
 
-         .. figure:: /images/compass-select-all-new.png
-            :alt: Compass select all documents in collection
+.. selected-content::
+   :selections: driver, c
 
-     - id: c
-       content: |
+   .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+      :language: c
+      :dedent: 3
+      :start-after: Start Example 7
+      :end-before: End Example 7
 
-         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
-            :language: c
-            :dedent: 3
-            :start-after: Start Example 7
-            :end-before: End Example 7
+   .. include:: /includes/driver-examples/driver-example-c-cleanup.rst
 
-         .. include:: /includes/driver-examples/driver-example-c-cleanup.rst
+.. selected-content::
+   :selections: driver, python
 
-     - id: python
-       content: |
+   .. literalinclude:: /driver-examples/test_examples.py
+      :language: python
+      :dedent: 8
+      :start-after: Start Example 7
+      :end-before: End Example 7
 
-         .. literalinclude:: /driver-examples/test_examples.py
-            :language: python
-            :dedent: 8
-            :start-after: Start Example 7
-            :end-before: End Example 7
+.. selected-content::
+   :selections: driver, motor
 
-     - id: motor
-       content: |
+   .. literalinclude:: /driver-examples/test_examples_motor.py
+      :language: python
+      :dedent: 8
+      :start-after: Start Example 7
+      :end-before: End Example 7
 
-         .. literalinclude:: /driver-examples/test_examples_motor.py
-            :language: python
-            :dedent: 8
-            :start-after: Start Example 7
-            :end-before: End Example 7
+.. selected-content::
+   :selections: driver, java-sync
 
-     - id: java-sync
-       content: |
+   .. literalinclude:: /driver-examples/DocumentationSamples.java
+      :language: java
+      :dedent: 8
+      :start-after: Start Example 7
+      :end-before: End Example 7
 
-         .. literalinclude:: /driver-examples/DocumentationSamples.java
-            :language: java
-            :dedent: 8
-            :start-after: Start Example 7
-            :end-before: End Example 7
+.. selected-content::
+   :selections: driver, java-async
 
-     - id: java-async
-       content: |
+   .. literalinclude:: /driver-examples/AsyncDocumentationSamples.java
+      :language: java
+      :dedent: 8
+      :start-after: Start Example 7
+      :end-before: End Example 7
 
-         .. literalinclude:: /driver-examples/AsyncDocumentationSamples.java
-            :language: java
-            :dedent: 8
-            :start-after: Start Example 7
-            :end-before: End Example 7
+.. selected-content::
+   :selections: driver, kotlin-coroutine
 
-     - id: kotlin-coroutine
-       content: |
+   .. literalinclude:: /driver-examples/kotlin_examples.kt
+      :language: kotlin
+      :dedent:
+      :start-after: Start Example 7
+      :end-before: End Example 7
 
-         .. literalinclude:: /driver-examples/kotlin_examples.kt
-            :language: kotlin
-            :dedent:
-            :start-after: Start Example 7
-            :end-before: End Example 7
+.. selected-content::
+   :selections: driver, nodejs
 
-     - id: nodejs
-       content: |
-         .. literalinclude:: /driver-examples/node_query.js
-            :language: javascript
-            :dedent: 6
-            :start-after: Start Example 7
-            :end-before: End Example 7
+   .. literalinclude:: /driver-examples/node_query.js
+      :language: javascript
+      :dedent: 6
+      :start-after: Start Example 7
+      :end-before: End Example 7
 
-     - id: php
-       content: |
+.. selected-content::
+   :selections: driver, php
 
-         .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
-            :language: php
-            :dedent: 8
-            :start-after: Start Example 7
-            :end-before: End Example 7
+   .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
+      :language: php
+      :dedent: 8
+      :start-after: Start Example 7
+      :end-before: End Example 7
 
-     - id: ruby
-       content: |
+.. selected-content::
+   :selections: driver, ruby
 
-         .. literalinclude:: /driver-examples/shell_examples_spec.rb
-            :language: ruby
-            :dedent: 8
-            :start-after: Start Example 7
-            :end-before: End Example 7
+   .. literalinclude:: /driver-examples/shell_examples_spec.rb
+      :language: ruby
+      :dedent: 8
+      :start-after: Start Example 7
+      :end-before: End Example 7
 
-     - id: scala
-       content: |
+.. selected-content::
+   :selections: driver, scala
 
-         .. literalinclude:: /driver-examples/DocumentationExampleSpec.scala
-            :language: scala
-            :dedent: 4
-            :start-after: Start Example 7
-            :end-before: End Example 7
+   .. literalinclude:: /driver-examples/DocumentationExampleSpec.scala
+      :language: scala
+      :dedent: 4
+      :start-after: Start Example 7
+      :end-before: End Example 7
 
-     - id: csharp
-       content: |
+.. selected-content::
+   :selections: driver, csharp
 
-         .. literalinclude:: /driver-examples/DocumentationExamples.cs
-            :language: csharp
-            :dedent: 12
-            :start-after: Start Example 7
-            :end-before: End Example 7
+   .. literalinclude:: /driver-examples/DocumentationExamples.cs
+      :language: csharp
+      :dedent: 12
+      :start-after: Start Example 7
+      :end-before: End Example 7
 
-     - id: go
-       content: |
-         .. literalinclude:: /driver-examples/go_examples.go
-            :language: go
-            :dedent: 2
-            :start-after: Start Example 7
-            :end-before: End Example 7
+.. selected-content::
+   :selections: driver, go
+
+   .. literalinclude:: /driver-examples/go_examples.go
+      :language: go
+      :dedent: 2
+      :start-after: Start Example 7
+      :end-before: End Example 7
