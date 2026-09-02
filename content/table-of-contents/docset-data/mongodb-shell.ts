@@ -198,7 +198,6 @@ const tocData: TocItem[] = [
           {
             label: 'Reference',
             contentSite: 'mongodb-shell',
-            url: '/docs/mongodb-shell/snippets/reference',
             collapsible: true,
             items: [
               {

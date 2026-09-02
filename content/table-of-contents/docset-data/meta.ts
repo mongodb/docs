@@ -510,7 +510,6 @@ const tocData: TocItem[] = [
       {
         label: 'Reference',
         contentSite: 'meta',
-        url: '/docs/meta/reference',
         collapsible: true,
         items: [
           {

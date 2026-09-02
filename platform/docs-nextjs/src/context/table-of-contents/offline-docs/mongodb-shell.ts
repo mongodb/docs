@@ -204,7 +204,6 @@ export const toc: L1TocItem[] = [
                 label: 'Reference',
                 contentSite: 'mongodb-shell',
                 collapsible: true,
-                url: '/docs/mongodb-shell/snippets/reference',
                 items: [
                   {
                     label: 'Commands',

@@ -1649,7 +1649,6 @@ const tocData: TocItem[] = [
       {
         label: 'Appendix',
         contentSite: 'docs',
-        url: '/docs/:version/appendix/security',
         collapsible: true,
         items: [
           {

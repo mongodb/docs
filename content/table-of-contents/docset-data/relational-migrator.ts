@@ -72,7 +72,6 @@ const tocData: TocItem[] = [
               {
                 label: 'Linux',
                 contentSite: 'docs-relational-migrator',
-                url: '/docs/relational-migrator/installation/install-on-a-local-machine/linux',
                 collapsible: true,
                 items: [
                   {
@@ -452,7 +451,6 @@ const tocData: TocItem[] = [
               {
                 label: 'Manage Diagrams',
                 contentSite: 'docs-relational-migrator',
-                url: '/docs/relational-migrator/diagrams/manage-diagrams',
                 collapsible: true,
                 items: [
                   {
@@ -627,7 +625,6 @@ const tocData: TocItem[] = [
       {
         label: 'API & Developer Reference',
         contentSite: 'docs-relational-migrator',
-        url: '/docs/relational-migrator/api-developer-reference',
         collapsible: true,
         items: [
           {

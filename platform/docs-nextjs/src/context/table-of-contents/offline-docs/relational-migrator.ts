@@ -78,7 +78,6 @@ export const toc: L1TocItem[] = [
                     label: 'Linux',
                     contentSite: 'docs-relational-migrator',
                     collapsible: true,
-                    url: '/docs/relational-migrator/installation/install-on-a-local-machine/linux',
                     items: [
                       {
                         label: 'Ubuntu',
@@ -458,7 +457,6 @@ export const toc: L1TocItem[] = [
                     label: 'Manage Diagrams',
                     contentSite: 'docs-relational-migrator',
                     collapsible: true,
-                    url: '/docs/relational-migrator/diagrams/manage-diagrams',
                     items: [
                       {
                         label: 'Create',
@@ -633,7 +631,6 @@ export const toc: L1TocItem[] = [
             label: 'API & Developer Reference',
             contentSite: 'docs-relational-migrator',
             collapsible: true,
-            url: '/docs/relational-migrator/api-developer-reference',
             items: [
               {
                 label: 'REST API Documentation',
