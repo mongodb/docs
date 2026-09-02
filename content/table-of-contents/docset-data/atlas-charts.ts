@@ -22,7 +22,6 @@ const tocData: TocItem[] = [
       {
         label: 'Tutorials',
         contentSite: 'charts',
-        url: '/docs/charts/tutorials',
         collapsible: true,
         items: [
           {
@@ -112,7 +111,6 @@ const tocData: TocItem[] = [
           {
             label: 'Access',
             contentSite: 'charts',
-            url: '/docs/charts/dashboards/dashboard-access',
             collapsible: true,
             items: [
               {
@@ -130,7 +128,6 @@ const tocData: TocItem[] = [
           {
             label: 'Manage',
             contentSite: 'charts',
-            url: '/docs/charts/dashboards/manage-dashboards',
             collapsible: true,
             items: [
               {
@@ -335,7 +332,6 @@ const tocData: TocItem[] = [
           {
             label: 'Reference',
             contentSite: 'charts',
-            url: '/docs/charts/build-charts-reference',
             collapsible: true,
             items: [
               {
@@ -389,7 +385,6 @@ const tocData: TocItem[] = [
           {
             label: 'Grid Charts',
             contentSite: 'charts',
-            url: '/docs/charts/chart-type-reference/grid-charts',
             collapsible: true,
             items: [
               {

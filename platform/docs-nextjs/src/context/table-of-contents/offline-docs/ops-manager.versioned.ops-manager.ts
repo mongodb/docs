@@ -86,7 +86,6 @@ export const toc: L1TocItem[] = [
                 label: 'Advanced Options',
                 contentSite: 'ops-manager',
                 collapsible: true,
-                url: '/docs/ops-manager/:version/tutorial/nav/advanced-deployments',
                 items: [
                   {
                     label: 'Configure for Limited Internet Access',
@@ -403,7 +402,6 @@ export const toc: L1TocItem[] = [
                 label: 'MongoDB Versions',
                 contentSite: 'ops-manager',
                 collapsible: true,
-                url: '/docs/ops-manager/:version/tutorial/nav/mongodb-versions',
                 items: [
                   {
                     label: 'Change Version',
@@ -1034,7 +1032,6 @@ export const toc: L1TocItem[] = [
                 label: 'Install',
                 contentSite: 'ops-manager',
                 collapsible: true,
-                url: '/docs/ops-manager/:version/tutorial/nav/install-mongodb-agent',
                 items: [
                   {
                     label: 'Manage Deployments',
@@ -1399,7 +1396,6 @@ export const toc: L1TocItem[] = [
                 label: 'Manage Snapshot Storage',
                 contentSite: 'ops-manager',
                 collapsible: true,
-                url: '/docs/ops-manager/:version/tutorial/nav/backup-storage',
                 items: [
                   {
                     label: 'Blockstore',

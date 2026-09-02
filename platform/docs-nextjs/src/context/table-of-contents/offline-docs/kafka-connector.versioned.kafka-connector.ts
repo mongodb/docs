@@ -31,7 +31,6 @@ export const toc: L1TocItem[] = [
             label: 'Introduction',
             contentSite: 'kafka-connector',
             collapsible: true,
-            url: '/docs/kafka-connector/:version/introduction',
             items: [
               {
                 label: 'Kafka and Kafka Connect',
@@ -64,7 +63,6 @@ export const toc: L1TocItem[] = [
             label: 'Tutorials',
             contentSite: 'kafka-connector',
             collapsible: true,
-            url: '/docs/kafka-connector/:version/tutorials',
             items: [
               {
                 label: 'Tutorial Setup',
@@ -176,7 +174,6 @@ export const toc: L1TocItem[] = [
                 label: 'Fundamentals',
                 contentSite: 'kafka-connector',
                 collapsible: true,
-                url: '/docs/kafka-connector/:version/sink-connector/fundamentals',
                 items: [
                   {
                     label: 'Write Model Strategies',
@@ -288,7 +285,6 @@ export const toc: L1TocItem[] = [
                 label: 'Fundamentals',
                 contentSite: 'kafka-connector',
                 collapsible: true,
-                url: '/docs/kafka-connector/:version/source-connector/fundamentals',
                 items: [
                   {
                     label: 'Change Streams',
@@ -313,7 +309,6 @@ export const toc: L1TocItem[] = [
             label: 'Security and Authentication',
             contentSite: 'kafka-connector',
             collapsible: true,
-            url: '/docs/kafka-connector/:version/security-and-authentication',
             items: [
               {
                 label: 'SSL/TLS and X.509 Certificates',
@@ -354,7 +349,6 @@ export const toc: L1TocItem[] = [
             label: 'Troubleshooting',
             contentSite: 'kafka-connector',
             collapsible: true,
-            url: '/docs/kafka-connector/:version/troubleshooting',
             items: [
               {
                 label: 'Invalid Resume Token',

@@ -249,7 +249,6 @@ export const toc: L1TocItem[] = [
                 label: 'MongoDB Versions',
                 contentSite: 'cloud-manager',
                 collapsible: true,
-                url: '/docs/cloud-manager/tutorial/nav/mongodb-versions',
                 items: [
                   {
                     label: 'Change Version',
@@ -531,7 +530,6 @@ export const toc: L1TocItem[] = [
             label: 'Backup & Restore Deployments',
             contentSite: 'cloud-manager',
             collapsible: true,
-            url: '/docs/cloud-manager/tutorial/nav/backup-use',
             items: [
               {
                 label: 'Back Up Deployments',
@@ -832,7 +830,6 @@ export const toc: L1TocItem[] = [
                 label: 'Update',
                 contentSite: 'cloud-manager',
                 collapsible: true,
-                url: '/docs/cloud-manager/tutorial/nav/update-mongodb-agent',
                 items: [
                   {
                     label: 'All Legacy Agents',
@@ -1037,7 +1034,6 @@ export const toc: L1TocItem[] = [
             label: 'API',
             contentSite: 'cloud-manager',
             collapsible: true,
-            url: '/docs/cloud-manager/api',
             items: [
               {
                 label: 'Principles',
@@ -2235,7 +2231,6 @@ export const toc: L1TocItem[] = [
                     label: 'Automation',
                     contentSite: 'cloud-manager',
                     collapsible: true,
-                    url: '/docs/cloud-manager/reference/api/nav/automation',
                     items: [
                       {
                         label: 'Configuration Resource',

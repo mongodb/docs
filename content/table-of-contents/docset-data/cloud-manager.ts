@@ -243,7 +243,6 @@ const tocData: TocItem[] = [
           {
             label: 'MongoDB Versions',
             contentSite: 'cloud-manager',
-            url: '/docs/cloud-manager/tutorial/nav/mongodb-versions',
             collapsible: true,
             items: [
               {
@@ -525,7 +524,6 @@ const tocData: TocItem[] = [
       {
         label: 'Backup & Restore Deployments',
         contentSite: 'cloud-manager',
-        url: '/docs/cloud-manager/tutorial/nav/backup-use',
         collapsible: true,
         items: [
           {
@@ -826,7 +824,6 @@ const tocData: TocItem[] = [
           {
             label: 'Update',
             contentSite: 'cloud-manager',
-            url: '/docs/cloud-manager/tutorial/nav/update-mongodb-agent',
             collapsible: true,
             items: [
               {
@@ -1031,7 +1028,6 @@ const tocData: TocItem[] = [
       {
         label: 'API',
         contentSite: 'cloud-manager',
-        url: '/docs/cloud-manager/api',
         collapsible: true,
         items: [
           {
@@ -2229,7 +2225,6 @@ const tocData: TocItem[] = [
               {
                 label: 'Automation',
                 contentSite: 'cloud-manager',
-                url: '/docs/cloud-manager/reference/api/nav/automation',
                 collapsible: true,
                 items: [
                   {

@@ -25,7 +25,6 @@ const tocData: TocItem[] = [
       {
         label: 'Introduction',
         contentSite: 'kafka-connector',
-        url: '/docs/kafka-connector/:version/introduction',
         collapsible: true,
         items: [
           {
@@ -58,7 +57,6 @@ const tocData: TocItem[] = [
       {
         label: 'Tutorials',
         contentSite: 'kafka-connector',
-        url: '/docs/kafka-connector/:version/tutorials',
         collapsible: true,
         items: [
           {
@@ -170,7 +168,6 @@ const tocData: TocItem[] = [
           {
             label: 'Fundamentals',
             contentSite: 'kafka-connector',
-            url: '/docs/kafka-connector/:version/sink-connector/fundamentals',
             collapsible: true,
             items: [
               {
@@ -282,7 +279,6 @@ const tocData: TocItem[] = [
           {
             label: 'Fundamentals',
             contentSite: 'kafka-connector',
-            url: '/docs/kafka-connector/:version/source-connector/fundamentals',
             collapsible: true,
             items: [
               {
@@ -307,7 +303,6 @@ const tocData: TocItem[] = [
       {
         label: 'Security and Authentication',
         contentSite: 'kafka-connector',
-        url: '/docs/kafka-connector/:version/security-and-authentication',
         collapsible: true,
         items: [
           {
@@ -346,7 +341,6 @@ const tocData: TocItem[] = [
       {
         label: 'Troubleshooting',
         contentSite: 'kafka-connector',
-        url: '/docs/kafka-connector/:version/troubleshooting',
         collapsible: true,
         items: [
           {

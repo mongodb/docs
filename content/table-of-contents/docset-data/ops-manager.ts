@@ -80,7 +80,6 @@ const tocData: TocItem[] = [
           {
             label: 'Advanced Options',
             contentSite: 'ops-manager',
-            url: '/docs/ops-manager/:version/tutorial/nav/advanced-deployments',
             collapsible: true,
             items: [
               {
@@ -397,7 +396,6 @@ const tocData: TocItem[] = [
           {
             label: 'MongoDB Versions',
             contentSite: 'ops-manager',
-            url: '/docs/ops-manager/:version/tutorial/nav/mongodb-versions',
             collapsible: true,
             items: [
               {
@@ -1022,7 +1020,6 @@ const tocData: TocItem[] = [
           {
             label: 'Install',
             contentSite: 'ops-manager',
-            url: '/docs/ops-manager/:version/tutorial/nav/install-mongodb-agent',
             collapsible: true,
             items: [
               {
@@ -1387,7 +1384,6 @@ const tocData: TocItem[] = [
           {
             label: 'Manage Snapshot Storage',
             contentSite: 'ops-manager',
-            url: '/docs/ops-manager/:version/tutorial/nav/backup-storage',
             collapsible: true,
             items: [
               {

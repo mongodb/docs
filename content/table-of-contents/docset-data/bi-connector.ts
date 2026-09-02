@@ -231,7 +231,6 @@ const tocData: TocItem[] = [
       {
         label: 'Reference',
         contentSite: 'bi-connector',
-        url: '/docs/bi-connector/:version/reference',
         collapsible: true,
         items: [
           {

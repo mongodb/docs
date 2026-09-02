@@ -28,7 +28,6 @@ export const toc: L1TocItem[] = [
             label: 'Tutorials',
             contentSite: 'charts',
             collapsible: true,
-            url: '/docs/charts/tutorials',
             items: [
               {
                 label: 'Visualize Order Data',
@@ -118,7 +117,6 @@ export const toc: L1TocItem[] = [
                 label: 'Access',
                 contentSite: 'charts',
                 collapsible: true,
-                url: '/docs/charts/dashboards/dashboard-access',
                 items: [
                   {
                     label: 'Ownership',
@@ -136,7 +134,6 @@ export const toc: L1TocItem[] = [
                 label: 'Manage',
                 contentSite: 'charts',
                 collapsible: true,
-                url: '/docs/charts/dashboards/manage-dashboards',
                 items: [
                   {
                     label: 'Existing Dashboards',
@@ -340,7 +337,6 @@ export const toc: L1TocItem[] = [
                 label: 'Reference',
                 contentSite: 'charts',
                 collapsible: true,
-                url: '/docs/charts/build-charts-reference',
                 items: [
                   {
                     label: 'Subset Mode',
@@ -394,7 +390,6 @@ export const toc: L1TocItem[] = [
                 label: 'Grid Charts',
                 contentSite: 'charts',
                 collapsible: true,
-                url: '/docs/charts/chart-type-reference/grid-charts',
                 items: [
                   {
                     label: 'Heatmap',

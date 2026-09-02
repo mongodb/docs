@@ -235,7 +235,6 @@ export const toc: L1TocItem[] = [
             label: 'Reference',
             contentSite: 'bi-connector',
             collapsible: true,
-            url: '/docs/bi-connector/:version/reference',
             items: [
               {
                 label: 'Configure TLS for BI Connector',

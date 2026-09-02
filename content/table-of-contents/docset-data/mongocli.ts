@@ -62,7 +62,6 @@ const tocData: TocItem[] = [
       {
         label: 'Quick Start',
         contentSite: 'mongocli',
-        url: '/docs/mongocli/:version/quick-start',
         collapsible: true,
         items: [
           {
