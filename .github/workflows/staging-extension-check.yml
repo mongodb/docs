@@ -1,0 +1,40 @@
+name: Staging extension check
+
+on:
+  pull_request:
+    paths:
+      - platform/docs-site/netlify.toml
+      - platform/nextjs-ssg-extension/src/index.ts
+      - .github/workflows/staging-extension-check.yml
+  workflow_dispatch:
+
+jobs:
+  # Non-blocking on purpose: flags a staging extension flag left enabled so
+  # it's obvious before merge, but must never gate the merge itself (this is
+  # normal in-flight state while testing extension changes on a preview).
+  check:
+    name: Check for enabled staging flags
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Check netlify.toml and index.ts for staging flags
+        run: |
+          FOUND=0
+
+          if grep -Ei '^[A-Z_]*STAGING[A-Z_0-9]*\s*=\s*"true"' platform/docs-site/netlify.toml; then
+            echo "::error file=platform/docs-site/netlify.toml::A staging extension flag is set to \"true\". Flip it back before merging to main."
+            FOUND=1
+          fi
+
+          if grep -Eq 'isEnabled:\s*envVarToBool\(process\.env\.[A-Z_]*STAGING[A-Z_0-9]*\)' platform/nextjs-ssg-extension/src/index.ts; then
+            echo "::error file=platform/nextjs-ssg-extension/src/index.ts::isEnabled is wired to a staging extension flag. Point it back at the non-staging flag before merging to main."
+            FOUND=1
+          fi
+
+          if [ "$FOUND" = "1" ]; then
+            exit 1
+          fi
+          echo "No staging extension flags left enabled."
