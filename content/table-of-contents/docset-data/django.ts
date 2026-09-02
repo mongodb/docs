@@ -25,7 +25,6 @@ const tocData: TocItem[] = [
       {
         label: 'Model Data',
         contentSite: 'django',
-        url: '/docs/languages/python/django-mongodb/:version/model-data',
         collapsible: true,
         items: [
           {
