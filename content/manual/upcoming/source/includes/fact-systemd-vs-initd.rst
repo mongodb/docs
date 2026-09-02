@@ -1,8 +1,8 @@
-To run and manage your :binary:`~bin.mongod` process, you will be using
+To run and manage your :binary:`~bin.mongod` process, use
 your operating system's built-in :term:`init system`. Recent versions of
-Linux tend to use **systemd** (which uses the ``systemctl`` command),
-while older versions of Linux tend to use **System V init** (which uses
-the ``service`` command).
+Linux use **systemd**, which uses the ``systemctl`` command,
+while older versions of Linux use **System V init**, which uses
+the ``service`` command.
 
 If you are unsure which init system your platform uses, run the
 following command:
