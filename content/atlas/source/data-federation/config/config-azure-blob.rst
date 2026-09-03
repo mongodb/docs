@@ -80,7 +80,7 @@ The following table describes the fields in the stores object:
        
        - Files in an {+az-bs+} container
        - Documents in an |service| cluster
-       - Files stored at publicly accessible |url|\s. 
+       - Files stored at public |url|\s.
        
        {+adf+} can only access data stores 
        defined in the ``stores`` object.
@@ -369,8 +369,12 @@ The following table describes the fields in the databases object:
        you configure the :datalakeconf-aws:`~databases.[n].collections.[n].dataSources.[n].path`
        ``/employees/{phone string}``. {+adf+} adds the attribute ``phone:
        949-555-0195`` to the document if you set ``omitAttributes`` to
-       ``false``. If you set ``omitAttributes`` to ``true``, {+adf+}
-       doesn't add the attribute to the document in the virtual collection.
+       ``false``, regardless of whether the key-value pair already
+       exists in the document. If you set ``omitAttributes`` to
+       ``true``, {+adf+} doesn't add the attribute to the document in
+       the virtual collection.
+
+       .. include:: /includes/data-federation/fact-attributes-duplicate-field-names.rst
 
    * - .. datalakeconf-azure:: databases.[n].maxWildcardCollections 
      - integer
@@ -397,7 +401,7 @@ The following table describes the fields in the databases object:
      - required
      - Name of the source collection for the view. If you want to create a
        view with a :ref:`$sql <adf-sql-stage>` stage, you must omit this field
-       as the SQL statement will specify the source collection.
+       as the SQL statement specifies the source collection.
 
    * - .. datalakeconf-azure:: databases.[n].views.[n].pipeline 
      - array

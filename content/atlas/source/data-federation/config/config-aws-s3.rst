@@ -144,7 +144,7 @@ The following table describes the fields in the ``stores`` object:
    * - .. datalakeconf-aws:: stores.[n].includeTags
      - boolean
      - optional
-     - Determines whether or not to use |aws| |s3| tags on the files in the 
+     - Determines whether to use |aws| |s3| tags on the files in the
        given path as additional partition attributes. Valid values are 
        ``true`` and ``false``. 
    
@@ -359,6 +359,8 @@ The ``database`` object contains the following fields:
        ``false``, regardless of whether the key-value pair already exists in the document. If you set ``omitAttributes`` to ``true``, {+adf+}
        doesn't add the attribute to the document in the virtual collection.
 
+       .. include:: /includes/data-federation/fact-attributes-duplicate-field-names.rst
+
    * - .. datalakeconf-aws:: databases.[n].maxWildcardCollections 
      - integer
      - optional
@@ -382,7 +384,7 @@ The ``database`` object contains the following fields:
      - required
      - Name of the source collection for the view. If you want to create a
        view with a :ref:`$sql <adf-sql-stage>` stage, you must omit this field
-       as the SQL statement will specify the source collection.
+       as the SQL statement specifies the source collection.
 
    * - .. datalakeconf-aws:: databases.[n].views.[n].pipeline 
      - array

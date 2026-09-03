@@ -77,7 +77,7 @@ The following table describes the fields in the stores object:
    
        - Files in a {+gcs+} bucket
        - Documents in an |service| cluster
-       - Files stored at publicly accessible |url|\s 
+       - Files stored at public |url|\s
    
        {+adf+} can only access data stores 
        defined in the ``stores`` object.
@@ -353,6 +353,8 @@ The following table describes the fields in the databases object:
        exists in the document. If you set ``omitAttributes``
        to ``true``, {+adf+} doesn't add the attribute to
        the document in the virtual collection.
+
+       .. include:: /includes/data-federation/fact-attributes-duplicate-field-names.rst
 
 Example Configuration for {+gcs+} Bucket
 -----------------------------------------------------
