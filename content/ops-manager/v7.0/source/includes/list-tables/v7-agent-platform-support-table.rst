@@ -118,7 +118,7 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * - zSeries/ 390x
-      - RHEL 7 
+      - RHEL 7
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -127,6 +127,11 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
+    * -
+      - RHEL 9
+      - :icon:`check-circle`
+      -
+      -
 
 :sup:`1` MongoDB supports Oracle Linux running
 :abbr:`RHCK (Red Hat Compatible Kernel)` only. 

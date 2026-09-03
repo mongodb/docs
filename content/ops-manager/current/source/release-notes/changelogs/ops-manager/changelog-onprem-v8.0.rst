@@ -438,7 +438,7 @@ Improvements
   others) for stronger, centralized security.
   To learn more, see :ref:`configure-agent-oidc`.
 - Makes the {+mdbagent+} available as a supported binary for
-  IBM Z (s390x) on RHEL 8.
+  IBM Z (s390x) on RHEL 8 and RHEL 9.
 - Improves log output for full snapshot enforcement reasons.
 - Makes the following improvements to the {+admin-api+}:
 
