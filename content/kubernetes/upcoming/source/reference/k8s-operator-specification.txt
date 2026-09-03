@@ -558,6 +558,117 @@ with your MongoDB resource:
    authentication. If you want to use Prometheus with your MongoDB 
    resource, you must specify this setting.
 
+.. _migration-crd-settings-summary:
+
+Migration Settings
+-------------------
+
+.. important::
+
+   The settings in this section exist to support migrating a
+   self-managed deployment into Kubernetes under |k8s-op-short|.
+   Do not set them on a ``MongoDB`` resource that you deploy
+   directly in Kubernetes without an accompanying migration. For
+   full detail on every field in this section, see
+   :ref:`k8s-migration-crd-settings`.
+
+``spec.externalMembers``
+   *Type*: array of ``ExternalMember`` objects
+
+   The virtual machine or bare-metal source processes that are
+   part of the migration.
+
+``spec.externalMembers[].processName``
+   *Type*: string, *Required*
+
+   The process name exactly as it appears in the ``processes``
+   array of the automation config.
+
+``spec.externalMembers[].hostname``
+   *Type*: string, *Required*
+
+   The ``host:port`` value for the process, exactly as it appears
+   in the automation config.
+
+``spec.externalMembers[].type``
+   *Type*: enum: ``mongod`` or ``mongos``, *Required for sharded
+   clusters*
+
+   A replica set has only ``mongod`` external members.
+
+``spec.externalMembers[].replicaSetName``
+   *Type*: string, *Optional*
+
+   Required for a sharded-cluster ``mongod`` external member.
+   Identifies whether the process belongs to the config server
+   replica set or to a specific shard's replica set.
+
+``spec.replicaSetNameOverride``
+   *Type*: string
+
+   The automation config replica set name, when it differs from
+   the Kubernetes resource name, or when the automation config
+   replica set name is not a valid Kubernetes name.
+
+``spec.configServerNameOverride``
+   *Type*: string
+
+   The config server replica set name as it appears in the
+   automation config.
+
+``spec.shardNameOverrides``
+   *Type*: array of ``ShardNameOverride`` objects
+
+   Per-shard automation config replica set name and shard ``_id``.
+
+``spec.downloadBase``
+   *Type*: string, *Default*: ``/var/lib/mongodb-mms-automation``
+
+   Directory where the {+mdbagent+} downloads the agent binary.
+
+``spec.security.tls.caFilePath``
+   *Type*: string, *Default*:
+   ``/mongodb-automation/tls/ca/ca-pem``
+
+   Absolute path where |k8s-op-short| projects the CA certificate
+   inside the pod. Not supported for the {+appdb+}.
+
+``spec.security.authentication.agents.autoPEMKeyFilePath``
+   *Type*: string
+
+   Absolute path of the {+mdbagent+}'s combined PEM file inside
+   database pods. Requires
+   ``spec.security.authentication.agents.clientCertificateSecretRef``.
+
+``status.conditions``
+   *Type*: array of `Kubernetes Conditions
+   <https://pkg.go.dev/k8s.io/apimachinery/pkg/apis/meta/v1#Condition>`__
+
+   New on the ``MongoDB`` resource. Standard Kubernetes
+   conditions, keyed by ``type``, including ``Migrating`` and
+   ``NetworkConnectivityVerified``.
+
+``status.migrationObservedExternalMembersCount``
+   *Type*: integer
+
+   The number of ``spec.externalMembers`` entries that
+   |k8s-op-short| observed on the last reconcile.
+
+``metadata.annotations.mongodb.com/migration-dry-run``
+   *Type*: string (boolean value)
+
+   The ``kubectl mongodb migrate-to-mck`` plugin sets this
+   annotation to ``true``. While present, |k8s-op-short| makes no
+   automation config changes and performs connectivity validation
+   only.
+
+``metadata.annotations.mongodb.com/migrate-tool-version``
+   *Type*: string
+
+   This annotation exists for migration only. Records the version
+   of the ``kubectl mongodb migrate-to-mck`` plugin that generated
+   the resource.
+
 .. _tls-settings:
 .. _security-settings:
 

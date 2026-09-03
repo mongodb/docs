@@ -290,6 +290,64 @@ const mckUpcoming: TocItem[] = [
         url: '/docs/kubernetes/:version/tutorial/deploy-prometheus',
       },
       {
+        label: 'Migrate a Self-Managed Deployment to Kubernetes',
+        contentSite: 'mck',
+        url: '/docs/kubernetes/:version/migration-om-to-kubernetes',
+        collapsible: true,
+        items: [
+          {
+            label: 'Overview',
+            contentSite: 'mck',
+            url: '/docs/kubernetes/:version/tutorial/migration-om-to-k8s-overview',
+          },
+          {
+            label: 'Limitations',
+            contentSite: 'mck',
+            url: '/docs/kubernetes/:version/tutorial/migration-om-to-k8s-limitations',
+          },
+          {
+            label: 'Prerequisites',
+            contentSite: 'mck',
+            url: '/docs/kubernetes/:version/tutorial/migration-om-to-k8s-prerequisites',
+          },
+          {
+            label: 'Dry Run',
+            contentSite: 'mck',
+            url: '/docs/kubernetes/:version/tutorial/migration-om-to-k8s-dry-run',
+          },
+          {
+            label: 'TLS Configuration',
+            contentSite: 'mck',
+            url: '/docs/kubernetes/:version/tutorial/migration-om-to-k8s-tls',
+          },
+          {
+            label: 'Network Requirements',
+            contentSite: 'mck',
+            url: '/docs/kubernetes/:version/tutorial/migration-om-to-k8s-network',
+          },
+          {
+            label: 'Replica Set',
+            contentSite: 'mck',
+            url: '/docs/kubernetes/:version/tutorial/migration-om-to-k8s-replica-set',
+          },
+          {
+            label: 'Sharded Cluster',
+            contentSite: 'mck',
+            url: '/docs/kubernetes/:version/tutorial/migration-om-to-k8s-sharded-cluster',
+          },
+          {
+            label: 'MCK-to-MCK Migration',
+            contentSite: 'mck',
+            url: '/docs/kubernetes/:version/tutorial/migration-om-to-k8s-mck-to-mck',
+          },
+          {
+            label: 'MongoDB Search Interaction',
+            contentSite: 'mck',
+            url: '/docs/kubernetes/:version/tutorial/migration-om-to-k8s-search',
+          },
+        ],
+      },
+      {
         label: 'Edit',
         contentSite: 'mck',
         url: '/docs/kubernetes/:version/tutorial/edit-deployment',
@@ -837,6 +895,21 @@ const mckUpcoming: TocItem[] = [
         label: 'Host on GDC',
         contentSite: 'mck',
         url: '/docs/kubernetes/:version/gdc-hosted',
+      },
+      {
+        label: 'Migration Resource Settings',
+        contentSite: 'mck',
+        url: '/docs/kubernetes/:version/reference/migration-crd-settings',
+      },
+      {
+        label: 'migrate-to-mck Plugin Command',
+        contentSite: 'mck',
+        url: '/docs/kubernetes/:version/reference/kubectl-mongodb-migrate-to-mck',
+      },
+      {
+        label: 'Migration Troubleshooting',
+        contentSite: 'mck',
+        url: '/docs/kubernetes/:version/reference/migration-troubleshooting',
       },
     ],
   },
