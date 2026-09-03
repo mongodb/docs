@@ -1,11 +1,17 @@
-Do you want to ingest data into MongoDB? (Y/N): Y
+Do you want to ingest data into MongoDB? (Y/N): 
+Enter your question: 
+Answer: ## Latest Voyage AI Announcements
 
-Creating vector search index...
+Based on the provided context, MongoDB announced several new **Voyage AI models** as part of their broader product innovations and AI partner ecosystem expansions. The key announcements include:
 
-Enter your question: What are the latest Voyage AI announcements?
+1. **voyage-context-3** - A newly launched Voyage AI model
+2. **rerank-2.5** - Another newly launched Voyage AI model
 
-Answer: The latest Voyage AI announcements from MongoDB include the 
-launch of several new AI models, specifically **voyage-context-3** 
-and **rerank-2.5**. MongoDB also expanded its partnerships with major 
-AI providers, including LangChain, and added new members to its 
-AI partner ecosystem, such as **Temporal** and **Galileo**.
+These launches are part of MongoDB's initiative to make it **faster and easier** for customers to build:
+- ✅ Accurate AI applications
+- ✅ Trustworthy AI applications
+- ✅ Reliable AI applications at scale
+
+Additionally, MongoDB also announced the **expansion of partnerships with major AI** providers (though the full details of those partners appear to be cut off in the provided context).
+
+> **Note:** The context provided is repetitive and may be incomplete, so there could be additional details about these announcements not captured in the available information.
