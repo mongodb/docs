@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId } from 'react';
 import styled from '@emotion/styled';
 import TextArea from '@leafygreen-ui/text-area';
 import TextInput from '@leafygreen-ui/text-input';
@@ -66,7 +66,7 @@ const StyledEmailInput = styled(TextInput)`
   }
 
   div > input {
-    color: ${palette.black} !important;
+    color: initial !important;
 
     ::placeholder {
       color: #b8c4c2;
@@ -99,7 +99,20 @@ const useValidation = (inputValue: string, validator: (input: string) => boolean
 };
 
 const CommentView = () => {
-  const { submitAllFeedback, screenshotTaken, screenshotElement, setSelectedRating, selectedRating = 0, comment, setComment, email, setEmail } = useFeedbackContext();
+  const {
+    submitAllFeedback,
+    screenshotTaken,
+    screenshotElement,
+    setSelectedRating,
+    selectedRating = 0,
+    comment,
+    setComment,
+    email,
+    setEmail,
+  } = useFeedbackContext();
+  const instanceId = useId();
+  const commentInputId = `feedback-comment-${instanceId}`;
+  const emailInputId = `feedback-email-${instanceId}`;
   const [hasEmailError, setHasEmailError] = useState(false);
   const isValidEmail = useValidation(email, validateEmail);
   const viewport = useViewport();
@@ -127,9 +140,14 @@ const CommentView = () => {
   return (
     <Layout>
       <StyledStarRating handleRatingSelection={setSelectedRating} />
+      {/* TODO(UXE-616): LG forwards aria-label but omits it from its own label
+          guard, so the type demands aria-labelledby. Drop this once the field
+          moves to Via, where aria-label is the supported way to label a field
+          that has no visible label. */}
+      {/* @ts-expect-error -- see above */}
       <StyledCommentInput
-        id="feedback-comment"
-        aria-labelledby="Comment Text Box"
+        id={commentInputId}
+        aria-label="Comment Text Box"
         placeholder={selectedRating < 4 ? COMMENT_PLACEHOLDER_TEXT_LOW : COMMENT_PLACEHOLDER_TEXT}
         value={comment}
         onChange={(e) => setComment(e.target.value)}
@@ -137,8 +155,8 @@ const CommentView = () => {
       />
       <StyledEmailInput
         type="email"
-        id="feedback-email"
-        aria-labelledby="Email Text Box"
+        id={emailInputId}
+        aria-label="Email Text Box"
         placeholder={EMAIL_PLACEHOLDER_TEXT}
         value={email}
         onChange={(e) => setEmail(e.target.value)}

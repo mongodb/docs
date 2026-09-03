@@ -7,7 +7,6 @@ import Button from '@leafygreen-ui/button';
 import Icon from '@leafygreen-ui/icon';
 import Portal from '@leafygreen-ui/portal';
 import { useFeedbackContext } from '../context';
-import { feedbackId } from '../feedback-form';
 import { isBrowser } from '@/utils/is-browser';
 import useNoScroll from '@/hooks/use-no-scroll';
 import { theme } from '@/styles/theme';
@@ -17,8 +16,6 @@ import screenshotIconLight from './screenshoticon-light.svg';
 import screenshotCTAImage from './screenshotCTA.svg';
 
 const HIGHLIGHT_BORDER_SIZE = 5;
-
-let savedPosition: DOMRect | null = null;
 
 type ElemProps = {
   width: number;
@@ -104,8 +101,16 @@ const ScreenshotSelect = styled(Button)`
 `;
 
 const ScreenshotButton = ({ ...props }) => {
-  const { setScreenshotTaken, selectedRating, isScreenshotButtonClicked, setIsScreenshotButtonClicked, setDetachForm, setScreenshotElement } =
-    useFeedbackContext();
+  const {
+    setScreenshotTaken,
+    selectedRating,
+    isScreenshotButtonClicked,
+    setIsScreenshotButtonClicked,
+    setDetachForm,
+    setScreenshotElement,
+    formRef,
+    savedCardPosition,
+  } = useFeedbackContext();
   const [currElemState, setCurrElemState] = useState<Element | null>(null);
 
   // border around highlighted element
@@ -135,13 +140,20 @@ const ScreenshotButton = ({ ...props }) => {
   }, [currElemState]);
 
   // prevent FW from being selected
-  const isFWSelected = useCallback((listOfElements: Element[]) => {
-    for (let i = 0; i < listOfElements.length; i++) {
-      if (listOfElements[i]?.id?.includes(feedbackId)) {
-        return true;
+  const isFWSelected = useCallback(
+    (listOfElements: Element[]) => {
+      const card = formRef.current;
+      if (!card) return false;
+      for (let i = 0; i < listOfElements.length; i++) {
+        const elem = listOfElements[i];
+        if (elem && card.contains(elem)) {
+          return true;
+        }
       }
-    }
-  }, []);
+      return false;
+    },
+    [formRef],
+  );
 
   // set properties of selected DOM element based on bounding box
   const setSelectedElementProperties = useCallback((currDOMRect: DOMRect) => {
@@ -202,16 +214,16 @@ const ScreenshotButton = ({ ...props }) => {
 
   // when screenshot button is first clicked
   const takeNewScreenshot = useCallback(() => {
-    savedPosition = document.getElementById(feedbackId)?.getBoundingClientRect() ?? null;
+    savedCardPosition.current = formRef.current?.getBoundingClientRect() ?? null;
     setIsScreenshotButtonClicked(true);
     setDetachForm(true);
     domElementClickedRef.current = 'dashed';
     setSelectedElementBorderStyle('dashed');
-  }, [setIsScreenshotButtonClicked, setDetachForm]);
+  }, [setIsScreenshotButtonClicked, setDetachForm, formRef, savedCardPosition]);
 
   // close out the instructions panel
   const handleInstructionClick = () => {
-    const instructionPanel = document.getElementById(feedbackId);
+    const instructionPanel = formRef.current;
     if (instructionPanel) instructionPanel.style.left = '';
     resetProperties();
   };
@@ -235,20 +247,20 @@ const ScreenshotButton = ({ ...props }) => {
     setScreenshotElement(currElem.current);
 
     // Allows for the feedback widget to appear on top of the screenshot overlay
-    const fbFormEl = document.getElementById(feedbackId);
+    const fbFormEl = formRef.current;
     if (fbFormEl) {
       fbFormEl.style.display = 'unset';
       fbFormEl.style.zIndex = '1004';
-      if (savedPosition) {
-        fbFormEl.style.top = `${savedPosition.top + window.scrollY}px`;
-        fbFormEl.style.left = `${savedPosition.left}px`;
+      if (savedCardPosition.current) {
+        fbFormEl.style.top = `${savedCardPosition.current.top + window.scrollY}px`;
+        fbFormEl.style.left = `${savedCardPosition.current.left}px`;
       }
     }
   };
 
   const handleExitButtonClick = (e: ReactMouseEvent) => {
     resetProperties();
-    const fbFormEl = document.getElementById(feedbackId);
+    const fbFormEl = formRef.current;
     if (fbFormEl) fbFormEl.style.display = 'none';
 
     setIsScreenshotButtonClicked(true);
@@ -260,7 +272,7 @@ const ScreenshotButton = ({ ...props }) => {
 
   if (isScreenshotButtonClicked) {
     if (isBrowser && domElementClickedRef.current === 'dashed') {
-      const fbFormEl = document.getElementById(feedbackId);
+      const fbFormEl = formRef.current;
       if (fbFormEl) fbFormEl.style.left = '-9000px';
       // highlight elements based on mouse movement
       document.addEventListener('mousemove', handleElementHighlight);

@@ -1,5 +1,5 @@
+import { useId } from 'react';
 import { css, cx } from '@leafygreen-ui/emotion';
-import { Label } from '@leafygreen-ui/typography';
 import { useFeedbackContext } from '../context';
 import StarRating from '../components/star-rating';
 
@@ -11,13 +11,15 @@ const labelStyling = css`
 
 const RatingView = () => {
   const { selectInitialRating } = useFeedbackContext();
+  const ratingLabelId = `feedback-rating-label-${useId()}`;
 
   return (
     <>
-      <Label className={cx(labelStyling)} htmlFor="rating">
+      {/* Not a <label>: the stars aren't a labelable form control. */}
+      <div className={cx(labelStyling)} id={ratingLabelId}>
         Rate this page
-      </Label>
-      <StarRating handleRatingSelection={selectInitialRating} />
+      </div>
+      <StarRating aria-labelledby={ratingLabelId} handleRatingSelection={selectInitialRating} />
     </>
   );
 };

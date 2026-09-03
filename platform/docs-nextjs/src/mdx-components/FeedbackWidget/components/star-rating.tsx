@@ -88,9 +88,16 @@ export type StarRatingProps = {
   className?: string;
   handleRatingSelection?: (rating: number) => void;
   editable?: boolean;
+  /** Id of the element labelling the star group. */
+  'aria-labelledby'?: string;
 };
 
-const StarRating = ({ className, handleRatingSelection = () => {}, editable = true }: StarRatingProps) => {
+const StarRating = ({
+  className,
+  handleRatingSelection = () => {},
+  editable = true,
+  'aria-labelledby': ariaLabelledBy,
+}: StarRatingProps) => {
   const [hoveredRating, setHoveredRating] = useState<number | null>(null);
   const [lastHoveredRating, setLastHoveredRating] = useState<number | null>(null);
   const { selectedRating } = useFeedbackContext();
@@ -119,7 +126,12 @@ const StarRating = ({ className, handleRatingSelection = () => {}, editable = tr
 
   return (
     <>
-      <Layout className={className} onMouseLeave={resetHoverStates}>
+      <Layout
+        className={className}
+        onMouseLeave={resetHoverStates}
+        role={ariaLabelledBy ? 'group' : undefined}
+        aria-labelledby={ariaLabelledBy}
+      >
         {[1, 2, 3, 4, 5].map((ratingValue) => {
           let isHighlighted = false;
           if (hoveredRating) isHighlighted = hoveredRating >= ratingValue;

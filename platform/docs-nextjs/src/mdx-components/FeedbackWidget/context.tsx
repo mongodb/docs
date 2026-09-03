@@ -1,5 +1,5 @@
-import type { Dispatch, SetStateAction, ReactNode } from 'react';
-import { useState, useCallback, useContext, useEffect, createContext, useTransition } from 'react';
+import type { Dispatch, SetStateAction, ReactNode, RefObject, MutableRefObject } from 'react';
+import { useState, useCallback, useContext, useEffect, createContext, useTransition, useId, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import type { Viewport } from '@/hooks/use-viewport';
 import { getViewport } from '@/hooks/use-viewport';
@@ -69,6 +69,12 @@ export type FeedbackContextType = {
   email: string;
   setEmail: Dispatch<SetStateAction<string>>;
   hasSubmitted: boolean;
+  /** Id of this instance's form card. Shared so screenshot-button can target it. */
+  cardId: string;
+  /** This instance's form card. Use instead of getElementById, which finds the first instance. */
+  formRef: RefObject<HTMLDivElement>;
+  /** Card position before the screenshot flow moved it off-screen. Kept here to survive the portal remount that detachForm triggers. */
+  savedCardPosition: MutableRefObject<DOMRect | null>;
 };
 
 export type FeedbackViewType = 'waiting' | 'comment' | 'rating' | 'submitted';
@@ -101,6 +107,9 @@ const initialValue: FeedbackContextType = {
   email: '',
   setEmail: () => {},
   hasSubmitted: false,
+  cardId: '',
+  formRef: { current: null },
+  savedCardPosition: { current: null },
 };
 
 const FeedbackContext = createContext<FeedbackContextType>(initialValue);
@@ -133,6 +142,10 @@ export function FeedbackProvider({ page, test, position = 'right column', ...pro
   // deterrent against repeated automated submissions, complementing the
   // server-side rate limits.
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  // `feedbackId` above is the persisted document id, not a DOM id.
+  const cardId = `feedback-card-${useId()}`;
+  const formRef = useRef<HTMLDivElement>(null);
+  const savedCardPosition = useRef<DOMRect | null>(null);
   const [, startTransition] = useTransition();
   const { user, reassignCurrentUser } = useBrowserUser();
   const pathname = usePathname();
@@ -303,6 +316,9 @@ export function FeedbackProvider({ page, test, position = 'right column', ...pro
     email,
     setEmail,
     hasSubmitted,
+    cardId,
+    formRef,
+    savedCardPosition,
   };
 
   // reset feedback when route changes

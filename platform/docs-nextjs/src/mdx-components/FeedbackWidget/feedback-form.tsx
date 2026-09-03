@@ -22,7 +22,6 @@ export const FeedbackContent = ({ view }: FeedbackContentProps) => {
   return <View />;
 };
 
-export const feedbackId = 'feedback-card';
 export const fwFormId = 'feedback-form';
 
 export type FeedbackFormProps = {
@@ -30,12 +29,12 @@ export type FeedbackFormProps = {
 };
 
 const FeedbackForm = ({ className }: FeedbackFormProps) => {
-  const { view, detachForm } = useFeedbackContext();
+  const { view, detachForm, cardId, formRef } = useFeedbackContext();
   const { isTabletOrMobile } = useScreenSize();
   const isOpen = view !== 'waiting';
 
   const renderedComponent = isOpen && (
-    <div className={cx(fwFormId, className)} id={feedbackId} hidden={!isOpen}>
+    <div ref={formRef} className={cx(fwFormId, className)} id={cardId} hidden={!isOpen}>
       <FeedbackCard isOpen={isOpen}>
         <FeedbackContent view={view} />
       </FeedbackCard>
