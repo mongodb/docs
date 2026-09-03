@@ -1,55 +1,17 @@
+'use client';
+
 import { useState, useRef, forwardRef } from 'react';
-import { cx, css } from '@leafygreen-ui/emotion';
-import { Icon } from '@leafygreen-ui/icon';
-import { useDarkMode } from '@leafygreen-ui/leafygreen-provider';
-import { palette } from '@leafygreen-ui/palette';
-import { Tooltip } from '@leafygreen-ui/tooltip';
+import clsx from 'clsx';
+import { Link as LinkIcon } from '@via-ds/icons';
+import { Tooltip, TooltipRoot, TooltipTrigger } from '@via-ds/components/tooltip';
+import { Text, TextStyle } from '@via-ds/components/typography';
+import { Size } from '@via-ds/components/types';
 import { isBrowser } from '@/utils/is-browser';
-import { theme } from '@/styles/theme';
 import useCopyClipboard from '@/utils/hooks/use-copy-clipboard';
 import useHashAnchor from '@/utils/hooks/use-hash-anchor';
 import { usePageContext } from '@/context/page-context';
 import { useMergedRef } from '@/mdx-utils/use-merged-ref';
-
-const tooltipStyle = css`
-  padding: 2px 8px;
-  font-size: ${theme.fontSize.xsmall};
-
-  > div {
-    font-size: ${theme.fontSize.tiny};
-  }
-`;
-
-const getHeaderBufferStyle = (hasComposable: boolean) => css`
-  display: inline;
-  left: 0;
-  top: 0;
-  margin-top: ${hasComposable
-    ? `calc(-1 * (${theme.header.composableDesktopHeight} + ${theme.header.navbarScrollOffset}))`
-    : `-${theme.header.navbarScrollOffset}`};
-  position: absolute;
-  // Add a bit of padding to help headings be more accurately set as "active" on FF and Safari
-  padding-bottom: 2px;
-
-  @media ${theme.screenSize.upToMedium} {
-    margin-top: ${hasComposable
-      ? `calc(-1 * (${theme.header.composableMobileHeight} + ${theme.header.navbarScrollOffset}))`
-      : `-${theme.header.navbarScrollOffset}`};
-  }
-`;
-
-const headingStyle = (copied: boolean) => css`
-  ${!!copied && 'visibility: visible !important;'}
-  position: absolute;
-  align-self: center;
-  padding: 0 10px;
-  visibility: hidden;
-`;
-
-const iconStyling = css`
-  vertical-align: middle;
-  margin-top: -2px;
-`;
+import styles from './permalink.module.scss';
 
 export type PermalinkProps = {
   id: string;
@@ -57,7 +19,6 @@ export type PermalinkProps = {
 };
 
 export const Permalink = forwardRef<HTMLDivElement, PermalinkProps>(({ id, description }, ref) => {
-  const { darkMode } = useDarkMode();
   const { options } = usePageContext();
   const url = isBrowser ? window.location.href.split('#')[0] + '#' + id : '';
 
@@ -76,31 +37,31 @@ export const Permalink = forwardRef<HTMLDivElement, PermalinkProps>(({ id, descr
   };
 
   return (
-    <a
-      className={cx('headerlink', headingStyle(copied))}
-      ref={headingRef}
-      href={`#${id}`}
-      title={'Permalink to this ' + description}
-      onClick={handleClick}
-    >
-      <Icon
-        className={cx(iconStyling)}
-        glyph={'Link'}
-        size={12}
-        fill={darkMode ? palette.gray.light1 : palette.gray.base}
-      />
-      <Tooltip
-        className={cx(tooltipStyle)}
-        triggerEvent="click"
-        open={copied}
-        align="top"
-        justify="middle"
-        darkMode={true}
-      >
-        {'copied'}
+    <TooltipRoot isOpen={copied}>
+      {/* TooltipTrigger clones its child and overwrites any ref set directly
+          on it, so the anchor ref ClipboardJS needs must be forwarded here
+          instead — a ref on the <a> itself would silently never attach. */}
+      <TooltipTrigger ref={headingRef}>
+        <a
+          className={clsx('headerlink', styles.heading, copied && styles.copied)}
+          href={`#${id}`}
+          title={'Permalink to this ' + description}
+          onClick={handleClick}
+        >
+          <LinkIcon className={styles.icon} size={12} />
+          <div
+            className={options?.has_composable_tutorial ? styles.headerBufferComposable : styles.headerBuffer}
+            ref={mergedRef}
+            id={id}
+          />
+        </a>
+      </TooltipTrigger>
+      <Tooltip className={styles.tooltip}>
+        <Text textStyle={TextStyle.body} size={Size.Large} elementType="span" className={styles.tooltipText}>
+          copied
+        </Text>
       </Tooltip>
-      <div className={cx(getHeaderBufferStyle(options?.has_composable_tutorial ?? false))} ref={mergedRef} id={id} />
-    </a>
+    </TooltipRoot>
   );
 });
 Permalink.displayName = 'Permalink';

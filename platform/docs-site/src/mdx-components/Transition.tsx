@@ -1,8 +1,3 @@
-import { palette } from '@leafygreen-ui/palette';
-import { css } from '@leafygreen-ui/emotion';
+import styles from './transition.module.scss';
 
-const hrStyle = css`
-  border: 0.5px solid ${palette.gray.light2};
-`;
-
-export const Transition = () => <hr className={hrStyle} />;
+export const Transition = () => <hr className={styles.transition} />;

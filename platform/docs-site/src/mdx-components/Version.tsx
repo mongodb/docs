@@ -1,13 +1,7 @@
 'use client';
 
-import { css, cx } from '@leafygreen-ui/emotion';
 import { Children, isValidElement, type ReactNode } from 'react';
-
-const versionStyle = css`
-  font-weight: 400;
-  margin-bottom: 16px; /* added to match current spacing in prod */
-  margin-top: 16px;
-`;
+import styles from './version.module.scss';
 
 const getVersionChangeText = (changeType: string) => {
   switch (changeType) {
@@ -40,7 +34,7 @@ export const Version = ({ changeType, version, endPunctuation = '.', children }:
 
   return (
     <div>
-      <p className={cx([versionStyle])}>
+      <p className={styles.version}>
         <em>
           {getVersionChangeText(changeType)} version {version}
           {argument ? <> {argument}</> : null}

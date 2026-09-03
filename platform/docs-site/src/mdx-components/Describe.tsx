@@ -1,18 +1,14 @@
-import { css, cx } from '@leafygreen-ui/emotion';
+import styles from './describe.module.scss';
 
 export type DescribeProps = {
   children: React.ReactNode;
   term: string;
 };
 
-const codeStyle = css`
-  font-weight: 400;
-`;
-
 export const Describe = ({ term, children }: DescribeProps) => (
   <dl>
     <dt>
-      <code className={cx(codeStyle)}>{term}</code>
+      <code className={styles.term}>{term}</code>
     </dt>
     <dd>{children}</dd>
   </dl>
