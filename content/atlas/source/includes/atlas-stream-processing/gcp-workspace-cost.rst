@@ -15,7 +15,7 @@ processor of a given tier in a given region.
      - SP10  
      - SP30  
      - SP50  
-   * - europe-west1  
+   * - europe-west1
      - $0.0605  
      - $0.1210  
      - $0.2090  
@@ -33,3 +33,9 @@ processor of a given tier in a given region.
      - $0.2140
      - $0.4392
      - $1.7569
+   * - us-west1
+     - $0.0550
+     - $0.1100
+     - $0.1900
+     - $0.3900
+     - $1.5600
