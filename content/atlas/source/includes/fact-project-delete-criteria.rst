@@ -1,3 +1,4 @@
-You can delete a project only if there are no :ref:`Online 
-Archives <online-archive-overview>` for the clusters in the 
-project.
+|service| guides you through a wizard that lists the project's
+resources and deletes them for you. You don't need to terminate
+{+clusters+}, applications, or other resources first. For more
+information, see :ref:`delete-project`.

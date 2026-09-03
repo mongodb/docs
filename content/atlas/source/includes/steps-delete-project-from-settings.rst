@@ -3,10 +3,11 @@
       
    .. include:: /includes/nav/steps-project-settings.rst
       
-   .. step:: In the :guilabel:`Delete Project` section, click :guilabel:`Delete`.
-      
-   .. step:: Click :guilabel:`Delete Project` to confirm.
-      
-   .. step:: If :ref:`atlas-enable-mfa` is enabled, enter the verification code.
+   .. step:: In the :guilabel:`Delete Project` section, click :guilabel:`Delete Project`.
 
-      After verifying, click :guilabel:`Delete Project` again.
+      If the project contains no resources, |service| opens a
+      confirmation modal. Enter the project name, then click
+      :guilabel:`Delete Project`. Otherwise, |service| opens the
+      project deletion wizard.
+
+   .. include:: /includes/steps-delete-project-wizard.rst

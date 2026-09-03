@@ -196,8 +196,8 @@ if you have :charts:`created a Charts instance </launch-charts>` for your projec
 Delete Project
 ~~~~~~~~~~~~~~
 
-The :guilabel:`Delete Project` setting allows you to delete a project by clicking 
-the ``DELETE`` button.
+The :guilabel:`Delete Project` setting allows you to delete a project by clicking
+the :guilabel:`Delete Project` button.
 
 .. include:: /includes/fact-project-delete-criteria.rst
 
