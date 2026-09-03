@@ -49,82 +49,54 @@ const tocData: TocItem[] = [
         contentSite: 'docs',
         url: '/docs/:version/tutorial/long-running-queries',
       },
-    ],
-  },
-  {
-    label: 'Update',
-    contentSite: 'docs',
-    url: '/docs/:version/tutorial/update-documents',
-    collapsible: true,
-    items: [
       {
-        label: 'Aggregation Pipeline',
+        label: 'Retryable Reads',
         contentSite: 'docs',
-        url: '/docs/:version/tutorial/update-documents-with-aggregation-pipeline',
+        url: '/docs/:version/core/retryable-reads',
       },
       {
-        label: 'Methods',
+        label: 'Read Concern',
         contentSite: 'docs',
-        url: '/docs/:version/reference/update-methods',
-      },
-      {
-        label: 'Use MQL to Update an Array',
-        contentSite: 'docs',
-        url: '/docs/:version/tutorial/use-mql-to-update-an-array',
-      },
-    ],
-  },
-  {
-    label: 'Delete',
-    contentSite: 'docs',
-    url: '/docs/:version/tutorial/remove-documents',
-  },
-  {
-    label: 'Bulk Write',
-    contentSite: 'docs',
-    url: '/docs/:version/core/bulk-write-operations',
-  },
-  {
-    label: 'Retryable Writes',
-    contentSite: 'docs',
-    url: '/docs/:version/core/retryable-writes',
-  },
-  {
-    label: 'Retryable Reads',
-    contentSite: 'docs',
-    url: '/docs/:version/core/retryable-reads',
-  },
-  {
-    label: 'SQL to MongoDB',
-    contentSite: 'docs',
-    url: '/docs/:version/reference/sql-comparison',
-  },
-  {
-    label: 'Natural Language to MongoDB',
-    contentSite: 'docs',
-    url: '/docs/:version/natural-language-to-mongodb',
-  },
-  {
-    label: 'Text Search',
-    contentSite: 'docs',
-    url: '/docs/:version/text-search',
-    collapsible: true,
-    items: [
-      {
-        label: 'MongoDB Search',
-        isExternal: true,
-        url: 'https://www.mongodb.com/docs/atlas/atlas-search/',
-      },
-      {
-        label: 'MongoDB Vector Search',
-        isExternal: true,
-        url: 'https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/',
+        url: '/docs/:version/reference/read-concern',
+        collapsible: true,
+        items: [
+          {
+            label: '"local"',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/read-concern-local',
+          },
+          {
+            label: '"available"',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/read-concern-available',
+          },
+          {
+            label: '"majority"',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/read-concern-majority',
+          },
+          {
+            label: '"linearizable"',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/read-concern-linearizable',
+          },
+          {
+            label: '"snapshot"',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/read-concern-snapshot',
+          },
+        ],
       },
       {
         label: '$text Queries',
         contentSite: 'docs',
         collapsible: true,
         items: [
+          {
+            label: '$text',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/operator/query/text',
+          },
           {
             label: 'Perform a $text Query',
             contentSite: 'docs',
@@ -134,14 +106,6 @@ const tocData: TocItem[] = [
             label: '$text Query Operators',
             contentSite: 'docs',
             url: '/docs/:version/core/text-search-operators',
-            collapsible: true,
-            items: [
-              {
-                label: '$text',
-                contentSite: 'docs',
-                url: '/docs/:version/reference/operator/query/text',
-              },
-            ],
           },
           {
             label: '$text Queries in the Aggregation Pipeline',
@@ -173,20 +137,17 @@ const tocData: TocItem[] = [
                 label: 'Specify the Default Language for a Text Index',
                 contentSite: 'docs',
                 url: '/docs/:version/core/indexes/index-types/index-text/specify-text-index-language',
-                collapsible: true,
-                items: [
-                  {
-                    label:
-                      'Create a Text Index for a Collection Containing Multiple Languages',
-                    contentSite: 'docs',
-                    url: '/docs/:version/core/indexes/index-types/index-text/specify-language-text-index/create-text-index-multiple-languages',
-                  },
-                  {
-                    label: 'Use Any Field to Specify Text Index Language',
-                    contentSite: 'docs',
-                    url: '/docs/:version/core/indexes/index-types/index-text/specify-language-text-index/use-any-field-to-specify-language',
-                  },
-                ],
+              },
+              {
+                label:
+                  'Create a Text Index for a Collection Containing Multiple Languages',
+                contentSite: 'docs',
+                url: '/docs/:version/core/indexes/index-types/index-text/specify-language-text-index/create-text-index-multiple-languages',
+              },
+              {
+                label: 'Use Any Field to Specify Text Index Language',
+                contentSite: 'docs',
+                url: '/docs/:version/core/indexes/index-types/index-text/specify-language-text-index/use-any-field-to-specify-language',
               },
               {
                 label: 'Assign Weights to $text Query Results',
@@ -217,82 +178,23 @@ const tocData: TocItem[] = [
           },
         ],
       },
-    ],
-  },
-  {
-    label: 'Geospatial Queries',
-    contentSite: 'docs',
-    url: '/docs/:version/geospatial-queries',
-    collapsible: true,
-    items: [
       {
-        label: 'Find Restaurants',
+        label: 'Geospatial Queries',
         contentSite: 'docs',
-        url: '/docs/:version/tutorial/geospatial-tutorial',
-      },
-      {
-        label: 'GeoJSON Objects',
-        contentSite: 'docs',
-        url: '/docs/:version/reference/geojson',
-      },
-    ],
-  },
-  {
-    label: 'Read Concern',
-    contentSite: 'docs',
-    url: '/docs/:version/reference/read-concern',
-    collapsible: true,
-    items: [
-      {
-        label: '"local"',
-        contentSite: 'docs',
-        url: '/docs/:version/reference/read-concern-local',
-      },
-      {
-        label: '"available"',
-        contentSite: 'docs',
-        url: '/docs/:version/reference/read-concern-available',
-      },
-      {
-        label: '"majority"',
-        contentSite: 'docs',
-        url: '/docs/:version/reference/read-concern-majority',
-      },
-      {
-        label: '"linearizable"',
-        contentSite: 'docs',
-        url: '/docs/:version/reference/read-concern-linearizable',
-      },
-      {
-        label: '"snapshot"',
-        contentSite: 'docs',
-        url: '/docs/:version/reference/read-concern-snapshot',
-      },
-    ],
-  },
-  {
-    label: 'Write Concern',
-    contentSite: 'docs',
-    url: '/docs/:version/reference/write-concern',
-    collapsible: true,
-    items: [
-      {
-        label: 'Lifecycle Diagrams',
-        contentSite: 'docs',
-        url: '/docs/:version/reference/write-concern/write-lifecycle',
-      },
-    ],
-  },
-  {
-    label: 'MongoDB CRUD Concepts',
-    contentSite: 'docs',
-    url: '/docs/:version/core/crud',
-    collapsible: true,
-    items: [
-      {
-        label: 'Atomicity & Transactions',
-        contentSite: 'docs',
-        url: '/docs/:version/core/write-operations-atomicity',
+        url: '/docs/:version/geospatial-queries',
+        collapsible: true,
+        items: [
+          {
+            label: 'GeoJSON Objects',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/geojson',
+          },
+          {
+            label: 'Find Restaurants',
+            contentSite: 'docs',
+            url: '/docs/:version/tutorial/geospatial-tutorial',
+          },
+        ],
       },
       {
         label: 'Distributed Queries',
@@ -300,105 +202,70 @@ const tocData: TocItem[] = [
         url: '/docs/:version/core/distributed-queries',
       },
       {
-        label: 'Periods & Dollar Signs',
-        contentSite: 'docs',
-        url: '/docs/:version/core/dot-dollar-considerations',
-        collapsible: true,
-        items: [
-          {
-            label: 'Dollar-Prefixed Field Names',
-            contentSite: 'docs',
-            url: '/docs/:version/core/dot-dollar-considerations/dollar-prefix',
-          },
-          {
-            label: 'Field Names with Periods',
-            contentSite: 'docs',
-            url: '/docs/:version/core/dot-dollar-considerations/periods',
-          },
-        ],
-      },
-      {
         label: 'Read Isolation, Consistency, and Recency',
         contentSite: 'docs',
         url: '/docs/:version/core/read-isolation-consistency-recency',
-        collapsible: true,
-        items: [
-          {
-            label: 'Causal Consistency and Read and Write Concerns',
-            contentSite: 'docs',
-            url: '/docs/:version/core/causal-consistency-read-write-concerns',
-          },
-        ],
       },
       {
         label: 'Query Optimization',
         contentSite: 'docs',
         url: '/docs/:version/core/query-optimization',
+      },
+      {
+        label: 'Write Operation Performance',
+        contentSite: 'docs',
+        url: '/docs/:version/core/write-performance',
+      },
+      {
+        label: 'Analyze Query Performance',
+        contentSite: 'docs',
+        url: '/docs/:version/tutorial/evaluate-operation-performance',
+      },
+      {
+        label: 'Explain Results',
+        contentSite: 'docs',
+        url: '/docs/:version/reference/explain-results',
+      },
+      {
+        label: 'Interpret Results',
+        contentSite: 'docs',
+        url: '/docs/:version/tutorial/analyze-query-plan',
+      },
+      {
+        label: 'Explain Slow Queries',
+        contentSite: 'docs',
+        url: '/docs/:version/tutorial/explain-slow-queries',
+      },
+      {
+        label: 'Database Profiler',
+        contentSite: 'docs',
+        url: '/docs/:version/tutorial/manage-the-database-profiler',
         collapsible: true,
         items: [
           {
-            label: 'Analyze Query Performance',
+            label: 'Output',
             contentSite: 'docs',
-            url: '/docs/:version/tutorial/evaluate-operation-performance',
-            collapsible: true,
-            items: [
-              {
-                label: 'Explain Results',
-                contentSite: 'docs',
-                url: '/docs/:version/reference/explain-results',
-                collapsible: true,
-                items: [
-                  {
-                    label: 'Interpret Results',
-                    contentSite: 'docs',
-                    url: '/docs/:version/tutorial/analyze-query-plan',
-                  },
-                  {
-                    label: 'Explain Slow Queries',
-                    contentSite: 'docs',
-                    url: '/docs/:version/tutorial/explain-slow-queries',
-                  },
-                ],
-              },
-              {
-                label: 'Database Profiler',
-                contentSite: 'docs',
-                url: '/docs/:version/tutorial/manage-the-database-profiler',
-                collapsible: true,
-                items: [
-                  {
-                    label: 'Output',
-                    contentSite: 'docs',
-                    url: '/docs/:version/reference/database-profiler',
-                  },
-                  {
-                    label: 'Find Slow Queries',
-                    contentSite: 'docs',
-                    url: '/docs/:version/tutorial/find-slow-queries-with-database-profiler',
-                  },
-                ],
-              },
-              {
-                label: 'Monitor Slow Queries',
-                contentSite: 'docs',
-                url: '/docs/:version/tutorial/monitor-slow-queries',
-              },
-              {
-                label: 'Block Slow Queries',
-                contentSite: 'docs',
-                url: '/docs/:version/tutorial/operation-rejection-filters',
-              },
-              {
-                label: 'Troubleshoot Slow Queries',
-                contentSite: 'docs',
-                url: '/docs/:version/troubleshooting/slow-queries-in-production',
-              },
-            ],
+            url: '/docs/:version/reference/database-profiler',
           },
           {
-            label: 'Write Operation Performance',
+            label: 'Find Slow Queries',
             contentSite: 'docs',
-            url: '/docs/:version/core/write-performance',
+            url: '/docs/:version/tutorial/find-slow-queries-with-database-profiler',
+          },
+          {
+            label: 'Monitor Slow Queries',
+            contentSite: 'docs',
+            url: '/docs/:version/tutorial/monitor-slow-queries',
+          },
+          {
+            label: 'Block Slow Queries',
+            contentSite: 'docs',
+            url: '/docs/:version/tutorial/operation-rejection-filters',
+          },
+          {
+            label: 'Troubleshoot Slow Queries',
+            contentSite: 'docs',
+            url: '/docs/:version/troubleshooting/slow-queries-in-production',
           },
         ],
       },
@@ -429,6 +296,118 @@ const tocData: TocItem[] = [
             url: '/docs/:version/core/tailable-cursors',
           },
         ],
+      },
+    ],
+  },
+  {
+    label: 'Update',
+    contentSite: 'docs',
+    url: '/docs/:version/tutorial/update-documents',
+    collapsible: true,
+    items: [
+      {
+        label: 'Aggregation Pipeline',
+        contentSite: 'docs',
+        url: '/docs/:version/tutorial/update-documents-with-aggregation-pipeline',
+      },
+      {
+        label: 'Methods',
+        contentSite: 'docs',
+        url: '/docs/:version/reference/update-methods',
+      },
+      {
+        label: 'Use MQL to Update an Array',
+        contentSite: 'docs',
+        url: '/docs/:version/tutorial/use-mql-to-update-an-array',
+      },
+      {
+        label: 'Bulk Write',
+        contentSite: 'docs',
+        url: '/docs/:version/core/bulk-write-operations',
+      },
+      {
+        label: 'Retryable Writes',
+        contentSite: 'docs',
+        url: '/docs/:version/core/retryable-writes',
+      },
+      {
+        label: 'Write Concern',
+        contentSite: 'docs',
+        url: '/docs/:version/reference/write-concern',
+        collapsible: true,
+        items: [
+          {
+            label: 'Lifecycle Diagrams',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/write-concern/write-lifecycle',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    label: 'Delete',
+    contentSite: 'docs',
+    url: '/docs/:version/tutorial/remove-documents',
+  },
+  {
+    label: 'SQL to MongoDB',
+    contentSite: 'docs',
+    url: '/docs/:version/reference/sql-comparison',
+  },
+  {
+    label: 'Natural Language to MongoDB',
+    contentSite: 'docs',
+    url: '/docs/:version/natural-language-to-mongodb',
+  },
+  {
+    label: 'Causal Consistency and Read and Write Concerns',
+    contentSite: 'docs',
+    url: '/docs/:version/core/causal-consistency-read-write-concerns',
+  },
+  {
+    label: 'Atomicity & Transactions',
+    contentSite: 'docs',
+    url: '/docs/:version/core/write-operations-atomicity',
+  },
+  {
+    label: 'Text Search',
+    contentSite: 'docs',
+    url: '/docs/:version/text-search',
+    collapsible: true,
+    items: [
+      {
+        label: 'MongoDB Search',
+        isExternal: true,
+        url: 'https://www.mongodb.com/docs/atlas/atlas-search/',
+      },
+      {
+        label: 'MongoDB Vector Search',
+        isExternal: true,
+        url: 'https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/',
+      },
+    ],
+  },
+  {
+    label: 'MongoDB CRUD Concepts',
+    contentSite: 'docs',
+    url: '/docs/:version/core/crud',
+  },
+  {
+    label: 'Periods & Dollar Signs',
+    contentSite: 'docs',
+    url: '/docs/:version/core/dot-dollar-considerations',
+    collapsible: true,
+    items: [
+      {
+        label: 'Dollar-Prefixed Field Names',
+        contentSite: 'docs',
+        url: '/docs/:version/core/dot-dollar-considerations/dollar-prefix',
+      },
+      {
+        label: 'Field Names with Periods',
+        contentSite: 'docs',
+        url: '/docs/:version/core/dot-dollar-considerations/periods',
       },
     ],
   },

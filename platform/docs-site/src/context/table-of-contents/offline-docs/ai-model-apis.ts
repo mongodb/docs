@@ -63,6 +63,11 @@ export const toc: L1TocItem[] = [
             contentSite: 'voyageai',
             url: '/docs/voyageai/models/lifecycle',
           },
+          {
+            label: 'Migrate to a New Embedding Model',
+            contentSite: 'voyageai',
+            url: '/docs/voyageai/tutorials/migrate-embedding-model',
+          },
         ],
       },
       {
@@ -170,6 +175,11 @@ export const toc: L1TocItem[] = [
             label: 'API Overview',
             contentSite: 'voyageai',
             url: '/docs/voyageai/api-reference/overview',
+          },
+          {
+            label: 'Geographies',
+            contentSite: 'voyageai',
+            url: '/docs/voyageai/geographies',
           },
           {
             label: 'API Specification',
