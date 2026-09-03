@@ -1,64 +1,17 @@
 'use client';
 
-import LeafyBanner, { Variant as LeafyVariant } from '@leafygreen-ui/banner';
-import { css, cx } from '@leafygreen-ui/emotion';
+import { clsx } from 'clsx';
+import { Banner as ViaBanner, BannerVariant as ViaBannerVariant } from '@via-ds/components/banner';
 import { getCurrLocale } from '@/utils/locale';
-import { baseBannerStyle, styleMapDark, styleMapLight } from './styles';
-
-export const alertMap = {
-  info: LeafyVariant.Info,
-  warning: LeafyVariant.Warning,
-  danger: LeafyVariant.Danger,
-};
-
-const bannerStyle = ({ variant }: { variant: string }) => css`
-  ${baseBannerStyle}
-  background-color: ${styleMapLight[variant].backgroundColor};
-  color: ${styleMapLight[variant].color};
-  border-color: ${styleMapLight[variant].borderColor};
-  ::before {
-    background: linear-gradient(to left, transparent 6px, ${styleMapLight[variant].beforeColor} 6px);
-  }
-  a {
-    color: ${styleMapLight[variant].linkColor};
-    font-weight: inherit;
-    :hover {
-      color: ${styleMapLight[variant].color};
-      text-decoration-color: ${styleMapLight[variant].color};
-    }
-  }
-  p {
-    color: ${styleMapLight[variant].color};
-  }
-  > svg {
-    color: ${styleMapLight[variant].iconColor};
-  }
-
-  .dark-theme & {
-    background-color: ${styleMapDark[variant].backgroundColor};
-    color: ${styleMapDark[variant].color};
-    border-color: ${styleMapDark[variant].borderColor};
-    font-weight: inherit;
-    ::before {
-      background: linear-gradient(to left, transparent 6px, ${styleMapDark[variant].beforeColor} 6px);
-    }
-    a {
-      color: ${styleMapDark[variant].linkColor};
-      :hover {
-        color: ${styleMapDark[variant].color};
-        text-decoration-color: ${styleMapDark[variant].color};
-      }
-    }
-    p {
-      color: ${styleMapDark[variant].color};
-    }
-    > svg {
-      color: ${styleMapDark[variant].iconColor};
-    }
-  }
-`;
+import styles from './banner.module.scss';
 
 export type BannerVariant = 'info' | 'warning' | 'danger';
+
+const variantMap: Record<BannerVariant, ViaBannerVariant> = {
+  info: ViaBannerVariant.Info,
+  warning: ViaBannerVariant.Warning,
+  danger: ViaBannerVariant.Danger,
+};
 
 export interface BannerProps {
   children: React.ReactNode;
@@ -73,17 +26,11 @@ export const Banner = ({ children, variant = 'info', locale: localeProp }: Banne
   if (locales && !locales.includes(locale)) {
     return <div />;
   }
-  const styleVariant = variant && variant in styleMapLight ? variant : 'info';
+  const styleVariant = variant && variant in variantMap ? variant : 'info';
 
   return (
-    <LeafyBanner
-      className={cx(
-        bannerStyle({
-          variant: styleVariant,
-        }),
-      )}
-    >
+    <ViaBanner className={clsx(styles.base)} variant={variantMap[styleVariant]}>
       {children}
-    </LeafyBanner>
+    </ViaBanner>
   );
 };
