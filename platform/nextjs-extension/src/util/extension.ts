@@ -117,7 +117,7 @@ export type ConfigEnvironmentVariables = Partial<{
 	BRANCH_NAME: string;
 	// Usually duplicate of BRANCH_NAME property, this is the git primitve branch that the build is being built on
 	BRANCH: string;
-	ALLOW_INACTIVE_VERSIONS: boolean; // If true, will build inactive branches. Default is false.
+	ALLOW_INACTIVE_VERSIONS: boolean; // If true, also build inactive branches with eol_type === 'link'. Default is false.
 	COMMIT_REF: string;
 	CACHED_COMMIT_REF: string;
 	REPO_NAME: string;

@@ -109,6 +109,27 @@ export const isContentPathActive = ({
   return branch?.active === true;
 };
 
+/** Atlas branch for a content path, or undefined if docsPaths / repos_branches has no match. */
+export const getBranchForContentPath = (
+  contentPath: string,
+  allContentData: AllContentData,
+): BranchEntry | undefined => {
+  const bundle = allContentData.docsPaths?.[contentPath];
+  if (!bundle?.projectName) return undefined;
+  const branches =
+    allContentData.atlasProjectDocuments[bundle.projectName]?.reposBranchesEntry
+      ?.branches ?? [];
+  if (!bundle.versionName) {
+    return branches.length <= 1 ? branches[0] : undefined;
+  }
+  return branches.find(
+    (b: BranchEntry) =>
+      b.urlSlug === bundle.versionName ||
+      b.name === bundle.versionName ||
+      b.gitBranchName === bundle.versionName,
+  );
+};
+
 /** Split the content path, retrieving project directory name and version name
  * @param contentPath - the content path to split (relative to contentDir, e.g. `atlas` or `c-driver/current`)
  * @param reposBranchesEntry - the repos branches entry for the project

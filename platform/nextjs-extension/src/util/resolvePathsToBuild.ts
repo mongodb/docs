@@ -4,7 +4,10 @@ import {
 	getFileChanges,
 	findContentPathsWithChanges,
 } from "../github/processFileChanges";
-import type { AllContentData } from "../contentMetadata/processContentMetadata";
+import {
+	type AllContentData,
+	getBranchForContentPath,
+} from "../contentMetadata/processContentMetadata";
 
 export async function resolvePathsToBuild({
 	utils,
@@ -95,11 +98,7 @@ export async function resolvePathsToBuild({
 				) &&
 				!allContentData.pathsToBuild.includes(contentPath)
 			) {
-				// Only force-build active versions unless ALLOW_INACTIVE_VERSIONS is set to true
-				if (!allowInactiveVersions && !isPathActive(contentPath, allContentData)) {
-					console.log(
-						`Skipping inactive path (set ALLOW_INACTIVE_VERSIONS to include): ${contentPath}`,
-					);
+				if (!shouldQueueForcedPath(contentPath, allContentData, allowInactiveVersions)) {
 					continue;
 				}
 				console.log(`Force-adding to build: ${contentPath}`);
@@ -120,4 +119,28 @@ const isPathActive = (
 	const bundle = allContentData.docsPaths?.[contentPath];
 	if (!bundle) return true;
 	return bundle.active;
+};
+
+/**
+ * Active versions always queue. Inactive versions queue only when
+ * ALLOW_INACTIVE_VERSIONS is set and Atlas eol_type === 'link' (not 'download').
+ */
+const shouldQueueForcedPath = (
+	contentPath: string,
+	allContentData: AllContentData,
+	allowInactiveVersions: boolean,
+): boolean => {
+	if (isPathActive(contentPath, allContentData)) return true;
+	if (!allowInactiveVersions) {
+		console.log(
+			`Skipping inactive path (set ALLOW_INACTIVE_VERSIONS to include eol_type=link): ${contentPath}`,
+		);
+		return false;
+	}
+	const eolType = getBranchForContentPath(contentPath, allContentData)?.eol_type;
+	if (eolType === 'link') return true;
+	console.log(
+		`Skipping inactive path ${contentPath}: eol_type is ${eolType ?? 'unset'} (ALLOW_INACTIVE_VERSIONS only includes eol_type=link)`,
+	);
+	return false;
 };
