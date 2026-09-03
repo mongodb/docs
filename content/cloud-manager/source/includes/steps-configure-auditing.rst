@@ -21,7 +21,22 @@
       
    .. step:: (Optional) To filter which events are audited, repeat steps 1-4 and add the ``auditLogFilter`` property.
       
-      For information about how to create filters, see 
-      :ref:`Configure Audit Filters <audit-filter>`.
+      The filter must be valid JSON. Enclose every field name in
+      double quotes:
+
+      .. code-block:: json
+
+         { "atype": { "$in": [ "createCollection", "dropCollection" ] } }
+
+      |mms| accepts filters that use other syntax, but the
+      :ref:`MongoDB Agent <mongodb-agent>` can read only valid JSON.
+      When the agent can't read a filter, it logs a normalization
+      error each time it compares the deployment to the goal
+      configuration.
+
+      For information about how to create filters, see
+      :ref:`Configure Audit Filters <audit-filter>`. The filter
+      examples omit quotes around field names. Enclose each field
+      name in double quotes when you set ``auditLogFilter``.
       
    .. step:: Click :guilabel:`Apply` to deploy your auditing configuration.
