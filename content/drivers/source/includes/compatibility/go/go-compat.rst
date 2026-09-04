@@ -1,1 +1,1 @@
-The Go driver requires Go 1.19 or later.
+The Go driver requires Go 1.25 or later.
