@@ -4,7 +4,7 @@
 
 - Module name: `driver-examples`
 - Go >= 1.24.5
-- Key deps: `go.mongodb.org/mongo-driver/v2` 2.5.0, `github.com/joho/godotenv` 1.5.1
+- Key deps: `go.mongodb.org/mongo-driver/v2` 2.8.0, `github.com/joho/godotenv` 1.5.1
 - `.env` file required at this directory root: `CONNECTION_STRING="..."`
 - No Makefile — raw `go` and `node` commands
 
