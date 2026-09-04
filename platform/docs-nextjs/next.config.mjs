@@ -1,25 +1,3 @@
-import { readdirSync } from 'node:fs';
-import { createRequire } from 'node:module';
-import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const __dirname = fileURLToPath(new URL('.', import.meta.url));
-const requireFile = createRequire(import.meta.url);
-
-// Auto-discovers all *-redirects.json files — no manual import needed when adding a new product.
-const redirectsDir = join(__dirname, 'src/redirects');
-const allRedirects = readdirSync(redirectsDir)
-  .filter((f) => f.endsWith('-redirects.json'))
-  .flatMap((f) => requireFile(join(redirectsDir, f)));
-
-// Only redirects with explicit force: true go here. These always fire regardless
-// of whether a page exists at the source path. All other redirects are checked in
-// page.tsx as a fallback when the page would otherwise 404, replicating Netlify's
-// default force=false behavior.
-const forceRedirects = allRedirects
-  .filter((r) => r.force === true)
-  .map(({ force, ...rest }) => rest);
-
 const nextConfig = {
   pageExtensions: ['mdx', 'tsx', 'ts'],
   trailingSlash: true,
@@ -30,9 +8,6 @@ const nextConfig = {
     optimizePackageImports: ['@leafygreen-ui/emotion'],
   },
   assetPrefix: '/docs/docs_static_nextjs',
-  async redirects() {
-    return forceRedirects;
-  },
   async rewrites() {
     return [
       {

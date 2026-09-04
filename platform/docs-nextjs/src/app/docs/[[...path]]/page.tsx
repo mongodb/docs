@@ -1,4 +1,4 @@
-import { notFound, permanentRedirect, redirect } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { loadMDX } from '@/mdx-utils/load-mdx';
 import { getSiteMetadata } from '@/mdx-utils/load-metadata';
 import { getAllDocsetsWithVersionsCached } from '@/services/db/docsets';
@@ -8,7 +8,6 @@ import { CustomTemplate } from './custom-template';
 import { getPageMetadata } from '@/utils/seo';
 import type { ServerSideChangelogData } from '@/types/openapi';
 import { getChangelogData } from '@/services/db/openapi';
-import { findSoftRedirect } from '@/redirects/soft-redirects';
 import { getIndexRedirectTarget } from '@/utils/index-redirect';
 
 /** Normalize the optional catch-all segment to a concrete path array.
@@ -41,14 +40,6 @@ export default async function MDXPage({ params }: PageProps) {
   const result = isIncludeOnlyPath(path) ? null : await loadMDX(path);
 
   if (!result || !result.frontmatter) {
-    // Page not found, check soft redirects before returning 404.
-    // This replicates Netlify's force=false behavior where
-    // redirects only fire when no page exists at the source path.
-    const urlPath = `/docs/${path.join('/')}/`;
-    const softMatch = findSoftRedirect(urlPath);
-    if (softMatch) {
-      return redirect(softMatch.destination);
-    }
     return notFound();
   }
 
@@ -93,15 +84,6 @@ export async function generateMetadata({ params }: PageProps) {
   const result = isIncludeOnlyPath(path) ? null : await loadMDX(path);
 
   if (!result || !result.frontmatter) {
-    // Mirror the page component's soft-redirect check. When a soft redirect
-    // matches, the page component issues the redirect, so metadata generation
-    // must not call notFound() here — doing so races the redirect and causes
-    // intermittent 404s for redirect-only paths. Return null and let the page
-    // component handle the redirect.
-    const urlPath = `/docs/${path.join('/')}/`;
-    if (findSoftRedirect(urlPath)) {
-      return null;
-    }
     return notFound();
   }
 
