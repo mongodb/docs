@@ -9,8 +9,12 @@
  *
  * This will:
  *   1. Search the main TOC for items matching the contentSite
- *   2. Filter TOC items based on the version (includes/excludes)
- *   3. Create a TypeScript file at legacy-docs/{contentSite}-{version}.ts
+ *   2. Filter TOC items based on the version (includes/excludes) and drop
+ *      internal pages whose contentSite is not the target. `isExternal` links
+ *      are kept.
+ *   3. Create a TypeScript file at
+ *      platform/docs-site/src/context/table-of-contents/legacy-docs/{contentSite}-{version}.ts
+ *      (`--version` is the docset urlSlug).
  */
 
 import * as fs from 'node:fs';
@@ -67,7 +71,8 @@ function shouldIncludeByVersion(
 /**
  * Recursively filters TOC items for the given version.
  * Removes version-related properties and replaces :version in URLs.
- * Also filters out items that don't match the target contentSite.
+ * Drops internal pages whose contentSite is not the target. `isExternal`
+ * links are kept even when they have a different contentSite.
  *
  * Version inheritance is handled implicitly: if a parent is excluded,
  * we skip it entirely and never recurse into its children.
@@ -80,15 +85,10 @@ function filterTocItems(
   const result: TocItemLoose[] = [];
 
   for (const item of items) {
-    // Skip items that have a different contentSite than the target
-    // Exceptions:
-    // - Items without a contentSite are structural and should be included
-    // - Collapsible items without a URL are structural containers and should be included // TODO, i dont know about this one, maybe it should match docsite
-    const isStructuralCollapsible = item.collapsible && !item.url;
     if (
       item.contentSite &&
       item.contentSite !== targetContentSite &&
-      !isStructuralCollapsible
+      !item.isExternal
     ) {
       continue;
     }
@@ -328,7 +328,7 @@ async function generateLegacyToc(options: CommandLineOptions): Promise<void> {
   // Write to file
   const outputDir = path.join(
     __dirname,
-    '../../../platform/docs-nextjs/src/context/table-of-contents/legacy-docs',
+    '../../../platform/docs-site/src/context/table-of-contents/legacy-docs',
   );
   const outputFile = path.join(outputDir, `${contentSite}-${version}.ts`);
 
@@ -352,7 +352,7 @@ const argv = yargs(hideBin(process.argv))
   })
   .option('version', {
     type: 'string',
-    description: 'The version to filter for (e.g., v1.12)',
+    description: 'The docset urlSlug to filter for (e.g., v1.12)',
     demandOption: true,
   })
   .option('offline', {

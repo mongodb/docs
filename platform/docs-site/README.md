@@ -114,11 +114,13 @@ TOC file you're building (see [MDX Conversion Commands](../README.md#mdx-convers
 pnpm convert:rst-to-mdx -- <project>
 ```
 
-Then, from `platform/`:
+Then, from `platform/docs-site`:
 
 ```bash
-pnpm build:offline -- --tocFile=<name> --version=<version>
+pnpm build:offline -- --tocFile=<name> --version=<version> [--tocDir=<dir>]
 ```
+
+`--tocDir` defaults to `offline-docs`. Pass `--tocDir=legacy-docs` for a frozen EOL snapshot.
 
 ## Styling conventions
 

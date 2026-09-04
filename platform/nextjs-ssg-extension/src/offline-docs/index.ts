@@ -5,6 +5,7 @@ import type { AllContentData } from '../../../nextjs-extension/src/contentMetada
 import type { StaticEnvVars } from '../../../nextjs-extension/src/util/assertDbEnvVars';
 import type { ConfigEnvironmentVariables } from '../../../nextjs-extension/src/util/extension';
 import { getOfflineBundlesToRebuild } from './offline-bundles-to-rebuild/index';
+import { getLegacyOfflineBundles } from './legacy-bundles-to-rebuild/index';
 import { ensureContentConvertedForBundles } from './ensure-content-converted';
 import { getRepoPaths } from '../../../nextjs-extension/src/paths';
 import { createOfflineTarball } from '../../../nextjs-extension/src/offline-docs/offline-utils/convertToTar';
@@ -19,6 +20,7 @@ import { join } from 'node:path/posix';
 const APP_DIR = 'docs-site';
 const APP_ROOT_DIR = getRepoPaths(undefined, APP_DIR).docsNextjsDir;
 const OFFLINE_BUNDLE_OUTPUT_DIR = path.resolve(APP_ROOT_DIR, 'offline-bundle-output');
+const LEGACY_TOC_DIR = 'legacy-docs';
 
 // Bundle filenames to skip entirely for offline builds (no content conversion, no build).
 const SKIPPED_OFFLINE_BUNDLES = new Set(['client-libraries.ts', 'tools.ts']);
@@ -37,17 +39,19 @@ const SKIPPED_OFFLINE_BUNDLES = new Set(['client-libraries.ts', 'tools.ts']);
 const runOfflineBuild = async ({
   bundleStem,
   version,
+  tocDir = 'offline-docs',
   run,
 }: {
   bundleStem: string;
   version: string;
+  tocDir?: string;
   run: NetlifyPluginUtils['run'];
 }): Promise<void> => {
   const label = `${bundleStem}@${version}`;
-  console.log(`[offline-docs] Starting build for ${label}`);
+  console.log(`[offline-docs] Starting build for ${label} (tocDir=${tocDir})`);
 
   await run.command(
-    `pnpm run build:offline -- --tocFile=${bundleStem} --version=${version}`,
+    `pnpm run build:offline -- --tocFile=${bundleStem} --version=${version} --tocDir=${tocDir}`,
     { cwd: APP_ROOT_DIR },
   );
 
@@ -60,7 +64,11 @@ const runOfflineBuild = async ({
 
   console.log(`[offline-docs] Bundle written to ${destDir}`);
 
-  const tarballName = `${bundleStem}-${version}.tar.gz`;
+  // Legacy TOC filenames are already `{project}-{urlSlug}`; do not append version again.
+  const tarballName =
+    tocDir === LEGACY_TOC_DIR
+      ? `${bundleStem}.tar.gz`
+      : `${bundleStem}-${version}.tar.gz`;
   const tarballPath = path.join(OFFLINE_BUNDLE_OUTPUT_DIR, tarballName);
 
   await createOfflineTarball({
@@ -87,7 +95,6 @@ const runOfflineBuild = async ({
 
   // Nothing downstream reads the uncompressed copy after a successful upload.
   await fs.rm(destDir, { recursive: true, force: true });
-
 };
 
 /**
@@ -96,6 +103,9 @@ const runOfflineBuild = async ({
  * content is still being migrated to MDX elsewhere in the build), then iterates over
  * the bundles that need rebuilding and runs the offline build for each bundle/version
  * combination, always against docs-site.
+ *
+ * Legacy (`eol_type === 'link'`) bundles run first so archive zips are not starved
+ * if a later live bundle fails or the job hits a time limit.
  *
  * @param allContentData - Content data including atlas documents, paths to build, and doc paths
  * @param gitChangedFiles - List of files changed in the current git commit/PR
@@ -110,6 +120,13 @@ export const handleOfflineDownloads = async (
   dbEnvVars: StaticEnvVars,
   configEnvironment: ConfigEnvironmentVariables,
 ): Promise<void> => {
+  const { legacyDocsDir } = getRepoPaths(undefined, APP_DIR);
+  const legacyBundles = getLegacyOfflineBundles({
+    allContentData,
+    legacyDocsDir,
+  });
+  console.log('[offline-docs] legacyBundles', legacyBundles);
+
   const allBundlesToRebuild = getOfflineBundlesToRebuild(
     allContentData,
     gitChangedFiles,
@@ -129,20 +146,35 @@ export const handleOfflineDownloads = async (
     ),
   );
   const bundleEntries = Object.entries(bundlesToRebuild);
-  if (bundleEntries.length === 0) {
+  if (legacyBundles.length === 0 && bundleEntries.length === 0) {
     console.log('[offline-docs] No bundles need rebuilding.');
     return;
   }
 
-  // TODO: remove this check once all the content-mdx lives in the repo 
-  console.log(`[offline-docs] Bundles to rebuild: ${JSON.stringify(bundlesToRebuild, null, 2)}`);
-  await ensureContentConvertedForBundles({
-    bundlesToRebuild,
-    allContentData,
-    netlifyPluginUtils,
-    dbEnvVars,
-    configEnvironment,
-  });
+  if (bundleEntries.length > 0) {
+    // TODO: remove this check once all the content-mdx lives in the repo
+    console.log(`[offline-docs] Bundles to rebuild: ${JSON.stringify(bundlesToRebuild, null, 2)}`);
+    await ensureContentConvertedForBundles({
+      bundlesToRebuild,
+      allContentData,
+      netlifyPluginUtils,
+      dbEnvVars,
+      configEnvironment,
+    });
+  }
+
+  for (const { bundleStem, version } of legacyBundles) {
+    try {
+      await runOfflineBuild({
+        bundleStem,
+        version,
+        tocDir: LEGACY_TOC_DIR,
+        run: netlifyPluginUtils.run,
+      });
+    } catch (err) {
+      console.error(`[offline-docs] Failed to build ${bundleStem}@${version}:`, err);
+    }
+  }
 
   for (const [filename, versions] of bundleEntries) {
     const bundleStem = filename.replace(/\.ts$/, '');

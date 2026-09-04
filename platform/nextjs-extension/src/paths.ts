@@ -43,6 +43,13 @@ export const getRepoPaths = (
 			"table-of-contents",
 			"offline-docs",
 		),
+		legacyDocsDir: path.join(
+			appRoot,
+			"src",
+			"context",
+			"table-of-contents",
+			"legacy-docs",
+		),
 		parserDir: path.join(repoRoot, "snooty-parser"),
 		mdxOutputDir: path.join(repoRoot, "content-mdx"),
 		/** Resolve a content-relative path (e.g. `atlas/main`) to an absolute path */

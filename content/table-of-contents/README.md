@@ -128,7 +128,7 @@ This will display:
 
 ## Generating Legacy TOC Files
 
-When a versioned docs project (e.g. Kafka Connector, Atlas CLI) is archived (set a version to **EOL**), you need to generate a **legacy TOC file** so the docs site can still render a sidenav for that version. The `generate-legacy` script reads the main TOC, filters it down to the entries for a specific `contentSite` and version, and writes the result to a `.ts` file in `platform/docs-nextjs/src/context/table-of-contents/legacy-docs/`.
+When a versioned docs project (e.g. Kafka Connector, Atlas CLI) is archived (set a version to **EOL**), you need to generate a **legacy TOC file** so the docs site can still render a sidenav for that version. The `generate-legacy` script reads the main TOC, filters it down to the entries for a specific `contentSite` and version, and writes the result to a `.ts` file in `platform/docs-site/src/context/table-of-contents/legacy-docs/`. `--version` must be the docset `urlSlug`.
 
 ### Prerequisites
 
@@ -154,9 +154,9 @@ pnpm generate-legacy --contentSite=kafka-connector --version=v1.12
 ### What the script does
 
 1. Searches the main TOC for all `group: true` entries matching the given `contentSite`
-2. Filters items to only those valid for the specified version (respecting `versions.includes` / `versions.excludes`)
+2. Filters items to only those valid for the specified version (respecting `versions.includes` / `versions.excludes`), and drops internal pages whose `contentSite` is not the target (`isExternal` links are kept)
 3. Replaces any `:version` placeholders in URLs with the actual version string
-4. Writes a `.ts` file to `platform/docs-nextjs/src/context/table-of-contents/legacy-docs/<contentSite>-<version>.ts`
+4. Writes a `.ts` file to `platform/docs-site/src/context/table-of-contents/legacy-docs/<contentSite>-<version>.ts`
 
 ### Expected output
 
@@ -173,7 +173,7 @@ Legacy TOC file created: .../legacy-docs/kafka-connector-v1.12.ts
 
 ### After running the script
 
-Commit the generated file under `platform/docs-nextjs/src/context/table-of-contents/legacy-docs/` as part of your PR. The docs site will automatically pick it up for the archived version's sidebar.
+Commit the generated file under `platform/docs-site/src/context/table-of-contents/legacy-docs/` as part of your PR. The docs site will automatically pick it up for the archived version's sidebar.
 
 **IMPORTANT**: you should manually check over this file that was created, it should do a good job creating the legacy toc but its not guarenteed to be perfect. Just double check the urls look correct. 
 

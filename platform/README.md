@@ -92,26 +92,32 @@ Commands should generally be run from the root of the `platform/` directory so t
 
 An offline build produces a fully self-contained static snapshot of a docs site that can be opened directly from the filesystem (e.g. via `file://` or distributed as a zip).
 
-Run from the `platform/docs-nextjs` directory:
+SSG offline bundles are built from `platform/docs-site`:
 
 ```bash
-pnpm build:offline -- --tocFile=<name> --version=<version>
+pnpm build:offline -- --tocFile=<name> --version=<version> [--tocDir=<dir>]
 ```
 
-- `--tocFile`: name of a TOC file (without `.ts`) from `src/context/table-of-contents/offline-docs/`
+- `--tocFile`: name of a TOC file (without `.ts`) from `src/context/table-of-contents/<tocDir>/`
 - `--version`: version string to build (e.g. `current`, `v1.12`). Use `main` for unversioned sites.
+- `--tocDir`: TOC directory under `table-of-contents/` (default: `offline-docs`). Use `legacy-docs` for a frozen EOL snapshot.
 
 **Examples:**
 
 ```bash
-# Unversioned site
+# Unversioned site (live offline TOC)
 pnpm build:offline -- --tocFile=ai-models --version=main
 
-# Versioned site
+# Versioned site (live offline TOC)
 pnpm build:offline -- --tocFile=kafka-connector.versioned.kafka-connector --version=current
+
+# Frozen EOL snapshot
+pnpm build:offline -- --tocFile=kafka-connector-v1.12 --tocDir=legacy-docs --version=v1.12
 ```
 
-Output is written to `platform/docs-nextjs/out/`.
+Output is written to `platform/docs-site/out/`.
+
+The same `build:offline` script also exists under `platform/docs-nextjs` for that app's live `offline-docs/` TOCs (`--tocDir` is docs-site only).
 
 ### Linting
 - `pnpm lint`: Run linting across all packages
