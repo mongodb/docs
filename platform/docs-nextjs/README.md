@@ -1,41 +1,54 @@
-# MongoDB Docs on Next.js
+# MongoDB Docs Next.js (ISR)
 
-Docs-Nextjs is a [Next.js](https://nextjs.org) application using app router features. It is the designated site to serve all MDB Documentation through an ISR pipeline.
+This app serves shared pages that are not writer content: site search, 404, AI Assistant, Product Updates, and similar. Writer content is moving off it onto [`docs-site`](../docs-site/README.md), which statically generates pages from `content-mdx/`.
 
-## Page generation strategy
+## Prerequisites
 
-- Pregenerated pages are built at deploy time and immediately available (SSG)
-- All other ISR pages are built on first request, then cached and revalidated per your revalidate setting
-- All ISR pages follow the same ISR revalidation schedule (at least how it's setup currently)
+- Node 24 and pnpm 10 (see `platform/.nvmrc` and the `packageManager` field in `platform/package.json`)
+- AWS SSO access and an exported `NPM_AWS_AUTH` token — private `@mdb/*` packages are pulled from AWS CodeArtifact. See [platform README](../README.md) for how to get this.
 
-## Developing
+## Setup
 
-`turborepo` is used to orchestrate tasks in this monorepo. It is recommended to run commands from the root of the `platform` directory, as opposed to directly from this directory. You can do this however if you need to bypass the additional checks that `turborepo` will perform. In addition to linting/tests, `turbo` is also ensuring the TOC gets built.
-
-### Product Updates Page
-If you would like to test Aha! integration, grab the CONTENTSTACK_WEBHOOK_TOKEN value from Netlify env config.
-
-### Styling Conventions
-Next.js supports module [css](https://nextjs.org/docs/app/getting-started/css#css-modules)/[scss](https://nextjs.org/docs/app/guides/sass) out of the box. It is preferred to use css/scss modules for layouts and server side components that do not have to hydrate on the client side.
-
-We develop components based off [LeafyGreen's UI Library](https://github.com/mongodb/leafygreen-ui). These are based off the [Emotion library](https://emotion.sh/docs/introduction) and should use the convention of `className` with styling. 
-
-## Building offline docs locally
-
-Offline docs are built from the production Netlify Blob store. The following env vars must be set in your `.env` file before running `pnpm build:offline`:
-
-```
-NETLIFY_SITE_ID=<site ID for docs-on-nextjs>
-NETLIFY_ACCESS_TOKEN=<your personal Netlify access token>
-```
-
-Both values can be found in the Netlify UI. `NETLIFY_SITE_ID` is under **Project Configuration -> General -> Site details**. `NETLIFY_ACCESS_TOKEN` is a personal token generated under **User settings -> OAuth -> Personal access tokens**.
-
-Once set, run from the `platform/` directory:
+Install from `platform/`:
 
 ```bash
-pnpm build:offline -- --tocFile=<name> --version=<version>
+cd platform
+pnpm i
 ```
+
+Copy `.env.sample` in this directory to `.env`. The app validates required variables at startup (including `MONGODB_URI`). Ask the Documentation Platform team for values.
+
+You can start the dev server from `platform/` if you want to run both `docs-site` and `docs-nextjs` locally, otherwise you can `cd docs-nextjs` before running:
+
+```bash
+pnpm dev
+```
+
+That runs `netlify dev --offline`. Shared pages and remaining ISR docs routes are available through the Netlify dev proxy (port 8888).
+
+### Local blobs
+
+Writer pages still served here are read from Netlify Blobs at runtime. Locally, seed the sandbox after the dev server is up:
+
+```bash
+pnpm blobs:seed    # upload content-mdx/ into the local blob store
+pnpm blobs:watch   # re-seed when content-mdx/ files change
+pnpm blobs:clear   # empty the local blob store
+```
+
+`blobs:seed` and `blobs:clear` call the dev server at `http://localhost:8888` and fail if it is not running.
+
+Turbo can still run lint, tests, and builds from `platform/`. Run `pnpm dev` from this directory when you need to bypass those extra checks.
+
+### Product Updates Page
+
+If you would like to test Aha! integration, grab the `CONTENTSTACK_WEBHOOK_TOKEN` value from Netlify env config.
+
+## Styling conventions
+
+Next.js supports module [css](https://nextjs.org/docs/app/getting-started/css#css-modules)/[scss](https://nextjs.org/docs/app/guides/sass) out of the box. Prefer CSS/SCSS modules for layouts and server components that do not have to hydrate on the client.
+
+The design system is moving from [LeafyGreen](https://github.com/mongodb/leafygreen-ui) to Via (`@via-ds/components`, `@via-ds/icons`, `@via-ds/tokens`). This app still uses LeafyGreen, which is built on [Emotion](https://emotion.sh/docs/introduction); pass styles with `className`. `docs-site` is migrating first — follow that pattern when this app's LeafyGreen-to-Via work starts. Do not add new LeafyGreen usage if a Via equivalent already exists there.
 
 ## Deploy on Netlify
 

@@ -1,7 +1,8 @@
-# MongoDB Docs on Next.js
+# MongoDB Docs Site (SSG)
 
-Next.js app that serves MongoDB documentation via static pages. Pages are pre-rendered at build time from a local
-`content-mdx/` directory.
+This app serves MongoDB documentation via static pages. Pages are pre-rendered at build time from a local `content/mdx` directory. [`docs-nextjs`](../docs-nextjs/README.md) is the other Next.js app; it serves shared pages (site search, 404, AI Assistant, Product Updates) that are not writer content.
+
+These pages are generated via Next.js Static Site Generation (SSG), NOT "static export".
 
 - **Single-version project** (e.g. `DOCS_PROJECT=pymongo-driver/current`): builds pages at `/docs/<prefix>/<slug>/`
 - **Multi-version project** (e.g. `DOCS_PROJECT=pymongo-driver`): builds pages for every versioned subdirectory under that project directory, using the subdirectory name as the `<version>` segment at `/docs/<prefix>/<version>/<slug>/`
@@ -109,35 +110,42 @@ Pages are available at `http://localhost:3000/docs/<prefix>/<branch>/<page-slug>
 
 ## Offline build
 
-Produces a fully self-contained static snapshot you can open from the
-filesystem. Built from the same `content-mdx/` directory as the SSG
-build — no extra credentials needed. See [platform README](../README.md#offline-build)
-for details.
+Produces a fully self-contained static snapshot you can open from the filesystem (for example via `file://` or as a zip). Built from the same `content-mdx/` directory as the SSG build — no Netlify credentials needed.
 
-Make sure `content-mdx/` has MDX for every project referenced by the
-TOC file you're building (see [MDX Conversion Commands](../README.md#mdx-conversion-commands)):
+Make sure `content-mdx/` has MDX for every project referenced by the TOC file you're building. See [MDX Conversion Commands](../README.md#mdx-conversion-commands).
+
+From `platform/`:
 
 ```bash
 pnpm convert:rst-to-mdx -- <project>
 ```
 
-Then, from `platform/docs-site`:
+Then, from `platform/docs-site/`:
 
 ```bash
 pnpm build:offline -- --tocFile=<name> --version=<version> [--tocDir=<dir>]
 ```
 
-`--tocDir` defaults to `offline-docs`. Pass `--tocDir=legacy-docs` for a frozen EOL snapshot.
+- `--tocDir` defaults to `offline-docs`. Pass `--tocDir=legacy-docs` for a frozen EOL snapshot.
+- `--version`: version string to build (e.g. `current`, `v1.12`). Use `main` for unversioned sites.
+
+```bash
+# Unversioned site
+pnpm build:offline -- --tocFile=ai-models --version=main
+
+# Versioned site
+pnpm build:offline -- --tocFile=kafka-connector.versioned.kafka-connector --version=current
+```
+
+Output is written to `platform/docs-site/out/`.
 
 ## Styling conventions
 
 Prefer CSS/SCSS modules ([docs](https://nextjs.org/docs/app/getting-started/css#css-modules)) for layouts and server components that don't hydrate on the client.
 
-Components are built on [LeafyGreen](https://github.com/mongodb/leafygreen-ui), which uses [Emotion](https://emotion.sh/docs/introduction). Use `className` with Emotion styling.
+The design system is moving from [LeafyGreen](https://github.com/mongodb/leafygreen-ui) to Via (`@via-ds/components`, `@via-ds/icons`, `@via-ds/tokens`). Prefer Via for new components and for any LeafyGreen call site you touch. Remaining LeafyGreen components still use [Emotion](https://emotion.sh/docs/introduction); pass styles with `className`.
 
-`src/app/emotion.tsx` inlines those Emotion styles into every served HTML document, ahead of the
-page content. [INLINE-CSS-BASELINE.md](INLINE-CSS-BASELINE.md) records how many bytes that costs and
-how to re-measure it with `pnpm measure:inline-css`.
+`src/app/emotion.tsx` inlines those Emotion styles into every served HTML document, ahead of the page content, until the last LeafyGreen component is gone. [INLINE-CSS-BASELINE.md](INLINE-CSS-BASELINE.md) records how many bytes that costs and how to re-measure it with `pnpm measure:inline-css`.
 
 ## Deploy
 

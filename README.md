@@ -1,5 +1,14 @@
 # Docs Monorepo
 
+This monorepo holds MongoDB documentation source (`content/`) and the apps that build and serve it (`platform/`).
+
+- Writers currently author a Snooty dialect of RST in `content/`.
+- CI converts that RST to MDX (`platform/snooty-ast-to-mdx`).
+- `platform/docs-site` statically generates each content site and deploys it to Netlify (one site per content project).
+- RST is the current source format; new authoring is moving to MDX.
+
+`platform/` contains the build and serving apps for the docs sites, plus the RST-to-MDX converter, Netlify extensions, and related tools. `docs-nextjs` used to serve all docs via ISR. Writer content is moving off it onto `docs-site`. `docs-nextjs` remains for shared pages that aren't writer content: site search, 404, AI Assistant, Product Updates, and similar.
+
 ## Selecting PR Template
 
 When creating a pull request, you can automatically populate the
