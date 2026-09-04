@@ -35,6 +35,15 @@ If you need to sync a sharded cluster or an older release of MongoDB, or
 if the locks are unacceptable for your application workload, use a different
 :ref:`verification method <c2c-verify-method>`.
 
+The :dbcommand:`dbHash` command hashes collections in the current
+database only, and the ``collections`` field accepts bare collection
+names. If you include the database name in a collection name, such as
+``accounts.us_accounts``, :dbcommand:`dbHash` finds no matching
+collection and returns the hash of an empty input on both clusters. To
+hash collections in more than one database, switch to each database in
+turn, run the command once per database, and compare the ``md5`` values
+for each database separately.
+
 Steps
 -----
 
@@ -42,27 +51,30 @@ Steps
 
    .. step:: Retrieve the Source Hash
 
-      Run the :dbcommand:`dbHash` command on the source cluster.
-      In the ``collections`` field, list each collection included
-      in the sync. Then, return the ``md5`` output field:
+      Switch to the database that contains the synced collections, then
+      run the :dbcommand:`dbHash` command on the source cluster. In the
+      ``collections`` field, list each collection included in the sync
+      by name, without the database prefix. Then, return the ``md5``
+      output field:
 
       .. io-code-block::
 
          .. input::
             :language: javascript
 
+            use accounts
             db.runCommand({
                dbHash: 1,
                collections: [
-                  "accounts.us_accounts",
-                  "accounts.eu_accounts",
+                  "us_accounts",
+                  "eu_accounts",
                   ...
                ]}).md5
 
          .. output::
             :language: text
 
-            d41d8cd98f00b204e9800998ecf8427e
+            9a1e4b7c2f8d3056ae91cbd4f72608b3
 
       While running this command, retrieve the destination hash.
 
@@ -70,27 +82,30 @@ Steps
 
    .. step:: Retrieve the Destination Hash
 
-      Run the :dbcommand:`dbHash` command on the destination cluster.
-      In the ``collections`` field, list each collection included
-      in the sync. Then, return the ``md5`` output field:
+      Switch to the database that contains the synced collections,
+      then run the :dbcommand:`dbHash` command on the destination
+      cluster. In the ``collections`` field, list each collection
+      included in the sync by name, without the database prefix. Then,
+      return the ``md5`` output field:
 
       .. io-code-block::
 
          .. input::
             :language: javascript
 
+            use accounts
             db.runCommand({
                dbHash: 1,
                collections: [
-                  "accounts.us_accounts",
-                  "accounts.eu_accounts",
+                  "us_accounts",
+                  "eu_accounts",
                   ...
                ]}).md5
 
          .. output::
             :language: text
 
-            d41d8cd98f00b204e9800998ecf8427e
+            9a1e4b7c2f8d3056ae91cbd4f72608b3
 
       Note the hash.
 
