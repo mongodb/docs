@@ -3,16 +3,22 @@
 Next.js app that serves MongoDB documentation via static pages. Pages are pre-rendered at build time from a local
 `content-mdx/` directory.
 
-- **Single-version project** (e.g. `DOCS_PROJECT=pymongo-driver/current`): builds pages at `/docs/<prefix>/<branch>/<slug>/`
-- **Multi-version project** (e.g. `DOCS_PROJECT=pymongo-driver`): builds pages for every version under that project directory, using the `branch` value from each version's `_site.json`
+- **Single-version project** (e.g. `DOCS_PROJECT=pymongo-driver/current`): builds pages at `/docs/<prefix>/<slug>/`
+- **Multi-version project** (e.g. `DOCS_PROJECT=pymongo-driver`): builds pages for every versioned subdirectory under that project directory, using the subdirectory name as the `<version>` segment at `/docs/<prefix>/<version>/<slug>/`
 
-Most projects also get a URL prefix before the branch (e.g.
-`languages/python` for `pymongo-driver`). This prefix comes from a
-database, not from the project name. `pnpm dev` and `pnpm build`
-auto-generate it into `src/generated/dir-name-to-prefix.json` (via the
-`build:prefix-map` script, run automatically as a turbo task
-dependency) and `next.config.mjs` reads it as the Next.js `basePath`.
-You can't guess it from the dir name; check that generated file.
+Most projects also get a URL prefix before the version (e.g.
+`languages/python` for `pymongo-driver`).
+
+This prefix comes from our atlas database. `pnpm dev` and
+`pnpm build` auto-generate it via the `build:prefix-map` script (run
+automatically as a turbo task dependency), which writes two files:
+
+- `src/generated/dir-name-to-prefix.json` — the map `next.config.mjs` reads as
+  the Next.js `basePath`.
+- `src/generated/prefix-map.json` — used by the content loaders.
+
+To find a project's prefix, look up its `content-mdx/` directory name in
+`src/generated/dir-name-to-prefix.json`.
 
 ## Prerequisites
 
@@ -43,7 +49,7 @@ pnpm dev
 This launches an interactive picker over whatever projects exist in
 `content-mdx/`. Pick one, and it sets `DOCS_PROJECT` and runs the
 Next.js dev server for you. Pages are available at
-`http://localhost:3000/docs/<prefix>/<branch>/<page-slug>/`
+`http://localhost:3000/docs/<prefix>/<version>/<page-slug>/`
 (no `<prefix>` for projects that don't have one). For example, the
 `pymongo-driver` `current` version's root page is at
 `http://localhost:3000/docs/languages/python/pymongo-driver/current/`.
@@ -56,8 +62,9 @@ at the time it starts.
 
 `.env.sample` in this directory has real values to copy into `.env`.
 
-The app throws at startup without `MONGODB_URI`. Ask the Documentation
-Platform team for a value.
+The app throws at startup if any required env var is missing: `MONGODB_URI`,
+`JIRA_USERNAME`, `JIRA_PASSWORD`, and `SLACK_QUOKKA_OAUTH_ACCESS_TOKEN`. Ask
+the Documentation Platform team for values.
 
 `DOCS_PROJECT`, `NEXT_PUBLIC_DOCS_BASE_PATH`,
 `NEXT_PUBLIC_DOCS_PREFIXES`, and
@@ -140,9 +147,22 @@ Each content project deploys to its own Netlify site, not a single shared one. S
 
 TODO: delete once redirects are fully converted to Next.js.
 
-`pnpm migrate:redirects` converts redirects from `netlify.toml` format
+`pnpm import:redirects` converts redirects from `netlify.toml` format
 into Next.js redirect JSON files (`src/redirects/*-redirects.json`):
 
-- **Removes** catch-all entries that insert a default version slug (e.g., `/docs/drivers/node/` → `/docs/drivers/node/current/`). These are handled as soft redirects in `page.tsx` on 404 without causing loops.
-- **Preserves `force: true`** on entries that explicitly had `force = true` in the original `netlify.toml`. These are the only redirects placed in `next.config.mjs` (always fire regardless of page existence).
-- **Leaves all other entries unchanged** (no `force` field). These are treated as soft redirects — they only fire when no page exists at the source path, replicating Netlify's default behavior.
+- `pnpm parse:redirects <product>` converts a product's redirects from its
+  `content/<product>/netlify.toml` into `src/redirects/<product>-redirects.json`.
+- `pnpm migrate:redirects` sanitizes the JSON files for Next.js compatibility:
+  - **Removes** catch-all entries that insert a default version slug (e.g.,
+    `/docs/drivers/node/` → `/docs/drivers/node/current/`).
+  - **Preserves `force: true`** on entries that explicitly had `force = true`
+    in the original `netlify.toml`. These are the only redirects placed in
+    `next.config.mjs` (always fire regardless of page existence).
+  - **Leaves all other entries unchanged** (no `force` field). These are
+    treated as soft redirects — they only fire when no page exists at the
+    source path, replicating Netlify's default behavior.
+- `pnpm import:redirects` runs parse + migrate together.
+
+The non-`force` (soft) redirects are applied at the CDN edge by
+`netlify/edge-functions/soft-redirects.ts`, which matches them against
+would-be-404 requests; `page.tsx` only returns `notFound()`.
