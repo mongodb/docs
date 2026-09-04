@@ -315,8 +315,25 @@ projects in an organization *except* the project with ID
          {
             "body": "forbid (principal, action == ResourcePolicy::Action::\"project.aiModelAPI.modify\", resource) unless { resource in ResourcePolicy::Project::\"6217f7fff7957854e2d09179\" };"
          }
-      ]  
-   }    
+      ]
+   }
+
+You can also limit the :ref:`Geographies <atlas-geographies>` that
+users can scope model API keys to. The following example allows users
+to create model API keys only for the Europe Geography:
+
+.. code-block::
+   :copyable: true
+   :emphasize-lines: 5
+
+   {
+      "name": "Policy Restricting ERAS Access to the Europe Geography",
+      "policies": [
+         {
+            "body": "forbid (principal, action == ResourcePolicy::Action::\"project.aiModelAPI.modify\", resource) unless { context.aiModelApi.geography == ResourcePolicy::Geography::\"eu\" };"
+         }
+      ]
+   }
 
 .. _require-maintenance-window:
 

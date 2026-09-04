@@ -93,6 +93,15 @@ projects in an organization *except* the project with ID
    :start-after: # start-restrict-eras-except-project
    :end-before: # end-restrict-eras-except-project
 
+You can also limit the :ref:`Geographies <atlas-geographies>` that
+users can scope model API keys to. The following example allows users
+to create model API keys only for the Europe Geography:
+
+.. literalinclude:: /includes/example-resource-policies-tf/example-resource-policies-terraform.tf
+   :language: terraform
+   :start-after: # start-restrict-eras-geography
+   :end-before: # end-restrict-eras-geography
+
 .. _tf-require-database-auditing:
 
 Require Database Auditing

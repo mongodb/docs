@@ -243,11 +243,25 @@ projects in an organization *except* the project with ID
    :copyable: true
 
     forbid (
-      principal, 
+      principal,
       action == ResourcePolicy::Action::"project.aiModelAPI.modify",
       resource
-    ) 
+    )
     unless { resource in ResourcePolicy::Project::"6217f7fff7957854e2d09179" };
+
+You can also limit the :ref:`Geographies <atlas-geographies>` that
+users can scope model API keys to. The following example allows users
+to create model API keys only for the Europe Geography:
+
+.. code-block::
+   :copyable: true
+
+    forbid (
+      principal,
+      action == ResourcePolicy::Action::"project.aiModelAPI.modify",
+      resource
+    )
+    unless { context.aiModelApi.geography == ResourcePolicy::Geography::"eu" };
 
 .. _require-maintenance-window-ui:
 

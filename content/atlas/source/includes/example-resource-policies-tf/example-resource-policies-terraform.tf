@@ -73,6 +73,25 @@ resource "mongodbatlas_resource_policy" "restrict_eras_except_one_project" {
 }
 # end-restrict-eras-except-project
 
+# start-restrict-eras-geography
+resource "mongodbatlas_resource_policy" "restrict_eras_geography" {
+  org_id = var.org_id
+  name   = "restrict-eras-to-europe"
+  policies = [
+    {
+      body = <<EOF
+        forbid (
+            principal,
+            action == ResourcePolicy::Action::"project.aiModelAPI.modify",
+            resource
+        )
+        unless { context.aiModelApi.geography == ResourcePolicy::Geography::"eu" };
+      EOF
+    },
+  ]
+}
+# end-restrict-eras-geography
+
 # start-require-database-auditing
 resource "mongodbatlas_resource_policy" "require_database_auditing" {
   org_id = var.org_id
