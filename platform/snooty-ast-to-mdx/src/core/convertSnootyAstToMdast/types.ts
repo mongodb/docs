@@ -68,8 +68,18 @@ export interface ConversionContext {
    * Raw AST children of every `substitution_definition` on the current page, keyed by refname.
    * Used by include conversion to build `<Replacement>` slots that reflect the page-level
    * definition rather than the globally-resolved default that Snooty baked into the include body.
+   *
+   * This map is last-writer-wins across the whole tree, so it is the wrong source when one page
+   * redefines the same alias in multiple includes (composable-tutorial token-filter UI files).
    */
   substitutionDefNodes?: Map<string, SnootyNode[]>;
+  /**
+   * `substitution_definition` children from **this** conversion root only (not merged with the
+   * parent page). While emitting an include file, nested includes bake these local defs into
+   * `<Replacement>` slots instead of forwarding a placeholder — so `*_ui.rst` files that redefine
+   * `|analyzer-name|` keep their own value even when a later sibling include redefines the alias.
+   */
+  localSubstitutionDefNodes?: Map<string, SnootyNode[]>;
   /**
    * Pairing keys for anonymous footnotes (`[#]_` / `.. [#]`), which the parser leaves unnamed.
    * Keyed by the parser-assigned node `id` of both the footnote and its reference, mapping to a
@@ -91,9 +101,9 @@ export interface ConversionContext {
   /**
    * True while converting the body of an include file (i.e. the MDX currently being generated is a
    * shared include, not a top-level page). In this mode the auto-`<Replacement>` slot loop in
-   * `convertDirectiveInclude` emits a `<Reference type="replacement">` placeholder instead of baking
-   * a concrete value, so the shared include file stays caller-agnostic. The actual per-page value is
-   * supplied by the top-level page's `<Include>` slot and propagates down at runtime.
+   * `convertDirectiveInclude` emits a `<Reference type="replacement">` placeholder for aliases
+   * **not** defined in this file, so the shared include stays caller-agnostic. Aliases defined in
+   * this file (see `localSubstitutionDefNodes`) are baked so nested includes keep the local value.
    */
   emittingIncludeFile?: boolean;
   /** Collected references to emit into a _references.ts artifact */

@@ -1236,6 +1236,133 @@ describe('convertSnootyAstToMdast', () => {
     expect(mdx).not.toContain('dateFacet');
   });
 
+  it('keeps per-include substitution redefinitions on a composable-tutorial page', () => {
+    // token-filters.txt (and tokenizers / character-filters) after composable-tutorial conversion:
+    // each *_ui.rst redefines |analyzer-name| then includes a shared config template.
+    // Snooty's document-global last-writer-wins resolves every substitution_reference to the
+    // last include's value (wordDelimiterGraphAnalyzer). Replacement slots must still use the
+    // definition that lives in that include, not the page-level map.
+    const LAST_WINS = 'wordDelimiterGraphAnalyzer';
+
+    const uiInclude = (file: string, analyzer: string): SnootyNode => ({
+      type: 'directive',
+      name: 'include',
+      argument: `includes/token-filters/atlas-ui/${file}.rst`,
+      children: [
+        {
+          type: 'directive',
+          name: 'tabs',
+          children: [
+            {
+              type: 'directive',
+              name: 'tab',
+              options: { tabid: 'visual-editor' },
+              argument: [{ type: 'text', value: 'Visual Editor' }],
+              children: [
+                {
+                  type: 'substitution_definition',
+                  refname: 'analyzer-name',
+                  children: [{ type: 'literal', value: analyzer }],
+                },
+                {
+                  type: 'directive',
+                  name: 'include',
+                  argument: 'includes/token-filters/atlas-ui/fts-token-filter-shared-config.rst',
+                  children: [
+                    {
+                      type: 'paragraph',
+                      children: [
+                        { type: 'text', value: 'Type ' },
+                        {
+                          type: 'substitution_reference',
+                          refname: 'analyzer-name',
+                          // Snooty already applied document-global last-wins.
+                          children: [{ type: 'literal', value: LAST_WINS }],
+                        },
+                        { type: 'text', value: ' in the Analyzer Name field.' },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'directive',
+          name: 'composable-tutorial',
+          options: { options: 'interface', defaults: 'atlas-ui' },
+          children: [
+            {
+              type: 'directive',
+              name: 'selected-content',
+              selections: { interface: 'atlas-ui' },
+              children: [uiInclude('doublemetaphone_ui', 'doubleMetaphoneAnalyzer')],
+            },
+            {
+              type: 'directive',
+              name: 'selected-content',
+              selections: { interface: 'atlas-ui' },
+              children: [uiInclude('worddelimitergraph_ui', LAST_WINS)],
+            },
+          ],
+        },
+      ],
+    };
+
+    const onEmitMdxFile = jest.fn();
+    const { mdx } = convertSnootyAst({ ast, onEmitMdxFile });
+
+    const includeBlock = (fileStem: string): string => {
+      const marker = `src="/_includes/token-filters/atlas-ui/${fileStem}"`;
+      const markerAt = mdx.indexOf(marker);
+      expect(markerAt).toBeGreaterThan(-1);
+      const start = mdx.lastIndexOf('<Include', markerAt);
+      const end = mdx.indexOf('</Include>', markerAt);
+      expect(end).toBeGreaterThan(start);
+      return mdx.slice(start, end);
+    };
+
+    const doubleMetaBlock = includeBlock('doublemetaphone_ui');
+    expect(doubleMetaBlock).toContain('<Replacement name="analyzer-name">');
+    expect(doubleMetaBlock).toContain('`doubleMetaphoneAnalyzer`');
+    expect(doubleMetaBlock).not.toContain(LAST_WINS);
+
+    const wordDelimBlock = includeBlock('worddelimitergraph_ui');
+    expect(wordDelimBlock).toContain('<Replacement name="analyzer-name">');
+    expect(wordDelimBlock).toContain(`\`${LAST_WINS}\``);
+
+    const emittedFor = (stem: string): string => {
+      const call = onEmitMdxFile.mock.calls.find(([{ outfilePath }]) => String(outfilePath).includes(stem));
+      expect(call).toBeDefined();
+      return convertMdastToMdx(call![0].mdastRoot);
+    };
+
+    // Each *_ui.mdx bakes its own local definition into the nested config include, rather than
+    // forwarding a placeholder that the page-level last-wins slot would then fill incorrectly.
+    const doubleMetaUi = emittedFor('doublemetaphone_ui');
+    expect(doubleMetaUi).toContain('<Replacement name="analyzer-name">');
+    expect(doubleMetaUi).toContain('`doubleMetaphoneAnalyzer`');
+    expect(doubleMetaUi).not.toContain(LAST_WINS);
+    expect(doubleMetaUi).not.toContain('type="replacement"');
+
+    const wordDelimUi = emittedFor('worddelimitergraph_ui');
+    expect(wordDelimUi).toContain(`\`${LAST_WINS}\``);
+
+    // Shared config file stays a placeholder so whichever *_ui writes last cannot clobber the others.
+    const sharedConfig = emittedFor('fts-token-filter-shared-config');
+    expect(sharedConfig).toContain('refKey="analyzer-name"');
+    expect(sharedConfig).toContain('type="substitution"');
+    expect(sharedConfig).not.toContain('doubleMetaphoneAnalyzer');
+    expect(sharedConfig).not.toContain(LAST_WINS);
+  });
+
   it('plain include suppresses typed-role substitution and emits substitution placeholder (YAML extract case)', () => {
     // Reproduces the aggregate.txt / 4.2-changes-disconnect.rst bug.
     // |operation| is defined on the page as :dbcommand:`aggregate` (a typed ref role).

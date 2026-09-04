@@ -35,6 +35,23 @@ const collectSubstitutionRefs = (nodes: SnootyNode[]): Map<string, SnootyNode[]>
   return refs;
 };
 
+/** Last-writer-wins `substitution_definition` bodies under `nodes` (this include's own content). */
+const collectSubstitutionDefs = (nodes: SnootyNode[]): Map<string, SnootyNode[]> => {
+  const defs = new Map<string, SnootyNode[]>();
+  const walk = (node: SnootyNode) => {
+    if (node.type === 'substitution_definition') {
+      const key =
+        (typeof node.refname === 'string' && node.refname) || (typeof node.name === 'string' && node.name) || '';
+      if (key && Array.isArray(node.children) && node.children.length > 0) {
+        defs.set(key, node.children as SnootyNode[]);
+      }
+    }
+    (node.children ?? []).forEach(walk);
+  };
+  nodes.forEach(walk);
+  return defs;
+};
+
 /**
  * Expand `|alias| replace:: |other|` (and longer chains) to the concrete
  * definition body before emitting a `<Replacement>` slot.
@@ -184,15 +201,23 @@ export const convertDirectiveInclude = ({ node, ctx, depth }: ConvertDirectiveIn
   // page-specific values (e.g. |idp-provider| = "Okta" on one page, "Google Workspace" on
   // another) override the global _references.json fallback at runtime in remark-resolve-imports.
   if (!isSlotBased) {
+    const includeLocalDefNodes = collectSubstitutionDefs(contentChildren);
     const substRefs = collectSubstitutionRefs(contentChildren);
     for (const [refname, subChildren] of substRefs) {
-      // When this include is itself being emitted as a shared file, do not bake a value: a single
-      // value would collide across pages that include this file with different substitutions
-      // (last-writer-wins on disk). Instead forward a `<Reference type="replacement">` placeholder
-      // that this include's caller (ultimately the top page) resolves via its own `<Replacement>`
-      // slot at runtime. resolveReplacementReferences matches it by refKey and substitutes the
-      // caller's value; if no caller ever supplies one the node falls back to _references.json.
-      if (ctx.emittingIncludeFile) {
+      // Prefer defs that belong to *this* include (or, while emitting an include file, defs from
+      // that file) over the page-level last-writer-wins map. Composable-tutorial pages such as
+      // token-filters.txt include many `*_ui.rst` files that each redefine `|analyzer-name|`; a
+      // document-global lookup would make every section render the last include's analyzer.
+      const scopedNodes =
+        includeLocalDefNodes.get(refname) ??
+        (ctx.emittingIncludeFile ? ctx.localSubstitutionDefNodes?.get(refname) : undefined);
+
+      // When this include is itself being emitted as a shared file and the alias is *not* defined
+      // here, do not bake a value: a single value would collide across pages that include this file
+      // with different substitutions (last-writer-wins on disk). Instead forward a
+      // `<Reference type="replacement">` placeholder that this include's caller (ultimately the top
+      // page) resolves via its own `<Replacement>` slot at runtime.
+      if (ctx.emittingIncludeFile && !scopedNodes) {
         replacementChildren.push({
           type: 'mdxJsxFlowElement',
           name: 'Replacement',
@@ -224,7 +249,7 @@ export const convertDirectiveInclude = ({ node, ctx, depth }: ConvertDirectiveIn
       const xref = ctx.substitutionRefXref?.get(refname);
       const isBakedGlobalRef = !!xref && !xref.roleType;
       const pageNodes = !isBakedGlobalRef ? ctx.substitutionDefNodes?.get(refname) : undefined;
-      const nodesToConvert = expandSubstitutionSlotNodes(pageNodes ?? subChildren, ctx);
+      const nodesToConvert = expandSubstitutionSlotNodes(scopedNodes ?? pageNodes ?? subChildren, ctx);
       if (!nodesToConvert.length) continue;
       const slotRoot = convertSnootyAstToMdast(
         { type: 'root', children: nodesToConvert },

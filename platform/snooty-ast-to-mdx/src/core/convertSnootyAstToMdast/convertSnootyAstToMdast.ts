@@ -2475,9 +2475,10 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
     buildSubstitutionDefinitionLiteralMap(root),
   );
 
+  const localSubstitutionDefNodes = buildSubstitutionDefinitionNodesMap(root);
   const substitutionDefNodes = mergeSubstitutionDefNodesMaps(
     options?.substitutionDefNodes,
-    buildSubstitutionDefinitionNodesMap(root),
+    localSubstitutionDefNodes,
   );
 
   const { anonymousNames: anonymousFootnoteNames, referenceIndexes: footnoteReferenceIndexes } =
@@ -2490,6 +2491,7 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
     substitutionRefXref,
     substitutionDefLiterals,
     substitutionDefNodes,
+    localSubstitutionDefNodes,
     suppressSubstitutionInlineValues: options?.suppressSubstitutionInlineValues,
     emittingIncludeFile: options?.emittingIncludeFile,
     collectedSubstitutions,
