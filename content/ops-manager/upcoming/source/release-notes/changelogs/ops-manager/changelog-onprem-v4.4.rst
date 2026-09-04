@@ -302,7 +302,7 @@
 *Released 2021-01-11*
 
 - Fixes a bug that causes the |mms|
-  :doc:`Backup </tutorial/nav/backup-use/>` process to require excess
+  :doc:`Backup </tutorial/nav/backup-deployments>` process to require excess
   memory when terminating the backup job.
 - Fixes a bug that causes the backup process to fail to take new
   snapshots when using a :term:`File System Store` during a

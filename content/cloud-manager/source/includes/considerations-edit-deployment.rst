@@ -66,8 +66,8 @@ instance after the storage engine configuration change. |mms| *does not*
 delete the backup directories. 
 
 You cannot change the storage engine on a :term:`config server`. For
-more information on storage engines and the available options, see
-:ref:`Storage <self-managed-storage>` in the MongoDB manual.
+more information on storage engines, see :ref:`Storage Engines
+<storage-engines>` in the MongoDB manual.
 
 Fixed Properties
 ~~~~~~~~~~~~~~~~
