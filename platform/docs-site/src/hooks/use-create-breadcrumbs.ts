@@ -3,7 +3,9 @@
 import { useMemo } from 'react';
 import { createParentFromToc, findParentBreadCrumb } from '@/mdx-components/Breadcrumbs/unified-toc-breadcrumbs';
 import type { TocItem, BreadCrumb } from '@/mdx-components/UnifiedSidenav/types';
+import { useVersionContext } from '@/context/version-context';
 import { getFullSlug } from '@/utils/get-full-slug';
+import { isTocItemAllowedForVersion } from '@/utils/toc-version-gate';
 
 const docsHomeCrumb: BreadCrumb = {
   title: 'Docs Home',
@@ -29,6 +31,8 @@ const normalizePath = (path: string): string => {
 };
 
 export function usePageBreadcrumbs(tocTree: TocItem[], slug: string, siteBasePrefixWithVersion: string): BreadCrumb[] {
+  const { activeVersions, availableVersions } = useVersionContext();
+
   const breadcrumbs = useMemo(() => {
     const fullSlug = getFullSlug(slug ?? '', siteBasePrefixWithVersion);
     const homeCrumb = getHomeCrumb(fullSlug);
@@ -40,14 +44,15 @@ export function usePageBreadcrumbs(tocTree: TocItem[], slug: string, siteBasePre
     const tree = createParentFromToc(tocTree, []);
     if (!tree) return [homeCrumb];
 
-    const parents = findParentBreadCrumb(fullSlug, tree) ?? [];
+    const isAllowed = (item: TocItem) => isTocItemAllowedForVersion(item, activeVersions, availableVersions);
+    const parents = findParentBreadCrumb(fullSlug, tree, isAllowed) ?? findParentBreadCrumb(fullSlug, tree) ?? [];
     // Avoid duplicating the home crumb when the TOC root shares the same path
     // (e.g. Voyage AI Models Home and the "AI Models" TOC entry both use /docs/voyageai).
     const homePath = normalizePath(homeCrumb.path);
     const filteredParents = parents.filter((parent) => normalizePath(parent.path) !== homePath);
 
     return [homeCrumb, ...filteredParents];
-  }, [slug, tocTree, siteBasePrefixWithVersion]);
+  }, [slug, tocTree, siteBasePrefixWithVersion, activeVersions, availableVersions]);
 
   return breadcrumbs;
 }

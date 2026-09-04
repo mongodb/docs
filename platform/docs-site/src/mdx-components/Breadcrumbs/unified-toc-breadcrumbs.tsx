@@ -25,9 +25,15 @@ export function createParentFromToc(tree: TocItem[] | undefined, breadcrumbs: Br
   });
 }
 
-// Finds breadcrumb through slug
-export function findParentBreadCrumb(slug: string, tocTree: TocItem[]): BreadCrumb[] | undefined {
+// Finds breadcrumb through slug.
+export function findParentBreadCrumb(
+  slug: string,
+  tocTree: TocItem[],
+  isAllowed: (item: TocItem) => boolean = () => true,
+): BreadCrumb[] | undefined {
   for (const item of tocTree) {
+    if (!isAllowed(item)) continue;
+
     if (
       item.newUrl &&
       assertLeadingSlash(removeTrailingSlash(item.newUrl)) === assertLeadingSlash(removeTrailingSlash(slug))
@@ -36,7 +42,7 @@ export function findParentBreadCrumb(slug: string, tocTree: TocItem[]): BreadCru
     }
 
     if (item.items) {
-      const found = findParentBreadCrumb(slug, item.items);
+      const found = findParentBreadCrumb(slug, item.items, isAllowed);
       if (found) return found;
     }
   }
