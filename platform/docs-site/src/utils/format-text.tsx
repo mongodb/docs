@@ -1,33 +1,12 @@
-import styled from '@emotion/styled';
-import { css } from '@leafygreen-ui/emotion';
-import { cx } from '@leafygreen-ui/emotion';
-import { InlineCode } from '@leafygreen-ui/typography';
+import clsx from 'clsx';
+import { Text, TextStyle } from '@via-ds/components/typography';
+import { Size } from '@via-ds/components/types';
 import type { ASTNode, LiteralNode, TextNode } from '@/types/ast';
+import styles from './format-text.module.scss';
 
 type FormatTextOptions = {
   literalEnableInline: boolean;
 };
-
-const StyledNavigationInlineCode = styled('code')`
-  font-family: 'Source Code Pro';
-  color: unset;
-`;
-
-const inlineCodeStyling = css`
-  font-size: unset;
-  display: inline;
-  color: var(--font-color-primary);
-  background: var(--background-color-secondary);
-
-  a & {
-    color: inherit;
-  }
-`;
-
-const wordWrapStyle = css`
-  word-wrap: break-word;
-  white-space: unset;
-`;
 
 const renderNodes = (nodes: ASTNode[], options?: FormatTextOptions): React.ReactNode[] =>
   nodes.flatMap((node, i) => {
@@ -36,15 +15,21 @@ const renderNodes = (nodes: ASTNode[], options?: FormatTextOptions): React.React
       const children = renderNodes((node as LiteralNode).children as ASTNode[], options);
       if (options?.literalEnableInline) {
         return (
-          <StyledNavigationInlineCode key={i} className={wordWrapStyle}>
+          <code key={i} className={clsx(styles.navigationInlineCode, styles.wordWrap)}>
             {children}
-          </StyledNavigationInlineCode>
+          </code>
         );
       }
       return (
-        <InlineCode key={i} className={cx(inlineCodeStyling, wordWrapStyle)}>
+        <Text
+          key={i}
+          textStyle={TextStyle.inlineCode}
+          size={Size.Large}
+          elementType="code"
+          className={clsx(styles.inlineCode, styles.wordWrap)}
+        >
           {children}
-        </InlineCode>
+        </Text>
       );
     }
     if ('children' in node && Array.isArray(node.children)) {

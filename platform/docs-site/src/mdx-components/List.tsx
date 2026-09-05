@@ -1,4 +1,4 @@
-import { css, cx } from '@leafygreen-ui/emotion';
+import styles from './list.module.scss';
 
 const enumtypeMap = {
   arabic: '1',
@@ -7,10 +7,6 @@ const enumtypeMap = {
   lowerroman: 'i',
   upperroman: 'I',
 } as const;
-
-const listStyles = css`
-  margin-top: 0px;
-`;
 
 export type ListEnumtype = 'unordered' | 'arabic' | 'loweralpha' | 'upperalpha' | 'lowerroman' | 'upperroman';
 
@@ -28,7 +24,7 @@ export const List = ({ children, enumtype, startat }: ListProps) => {
 
   return (
     <ListTag
-      className={cx(listStyles)}
+      className={styles.list}
       {...(typeAttr ? { type: typeAttr } : {})}
       {...(startAttr ? { start: startAttr } : {})}
     >

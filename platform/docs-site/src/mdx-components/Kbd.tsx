@@ -1,17 +1,14 @@
 'use client';
 
-import { css, cx } from '@leafygreen-ui/emotion';
-import { InlineKeyCode } from '@leafygreen-ui/typography';
+import { Text, TextStyle } from '@via-ds/components/typography';
+import { Size } from '@via-ds/components/types';
 
 type KbdProps = {
   children: React.ReactNode;
 };
 
-const darkModeOverwriteStyling = css`
-  color: var(--font-color-primary);
-  background-color: var(--background-color-primary);
-`;
-
 export const Kbd = ({ children }: KbdProps) => (
-  <InlineKeyCode className={cx(darkModeOverwriteStyling)}>{children}</InlineKeyCode>
+  <Text textStyle={TextStyle.inlineKeyCode} size={Size.Large} elementType="code">
+    {children}
+  </Text>
 );

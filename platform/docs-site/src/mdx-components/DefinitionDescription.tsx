@@ -1,19 +1,9 @@
-import { css } from '@leafygreen-ui/emotion';
+import styles from './definition-description.module.scss';
 
 type DefinitionDescriptionProps = {
   children: React.ReactNode;
 };
 
 export const DefinitionDescription = ({ children }: DefinitionDescriptionProps) => {
-  return (
-    <dd
-      className={css`
-        p:first-of-type {
-          margin-top: 0 !important;
-        }
-      `}
-    >
-      {children}
-    </dd>
-  );
+  return <dd className={styles.definitionDescription}>{children}</dd>;
 };
