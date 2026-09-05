@@ -1,41 +1,22 @@
 'use client';
 
-import Image from 'next/image';
-import Badge from '@leafygreen-ui/badge';
-import { css, cx } from '@leafygreen-ui/emotion';
-import type { IconProps } from '@leafygreen-ui/icon';
-import { Icon as LeafyGreenIcon } from '@leafygreen-ui/icon';
-import { getBasePath } from '@/utils/base-path';
+import { Icon as ViaIcon, type GlyphName } from '@via-ds/icons';
+import styles from './icon.module.scss';
 
-const cloudSyncStyle = css`
-  padding-right: 7px;
-`;
-
-const syncPillStyle = css`
-  align-self: center;
-  margin-left: 4px;
-  position: relative;
-  top: -3px;
-`;
-
-const leafyGreenIconStyle = css`
-  vertical-align: middle;
-`;
+// Content authored against LG's icon-lg glyph vocabulary predates Via and
+// used a couple of names Via renamed when it introduced its own glyph set.
+const GLYPH_ALIASES: Record<string, GlyphName> = {
+  Charts: 'Chart',
+  GlobeAmericas: 'Globe',
+};
 
 export type RoleIconProps = {
   target: string;
   name: string;
 };
 
-export const Icon = ({ target, name }: IconProps) => {
-  if (target === 'sync-pill') {
-    return (
-      <Badge variant="lightgray" className={cx(syncPillStyle)}>
-        <Image src={`${getBasePath()}/cloud.png`} alt="Sync" className={cx(cloudSyncStyle)} width={16} height={16} />
-        APP SERVICES
-      </Badge>
-    );
-  } else if (name === 'icon' || name === 'icon-fa5') {
+export const Icon = ({ target, name }: RoleIconProps) => {
+  if (name === 'icon' || name === 'icon-fa5') {
     return <i className={`fa-${target} fas`} />;
   } else if (name === 'icon-fa5-brands') {
     return <i className={`fab fa-${target}`} />;
@@ -46,6 +27,7 @@ export const Icon = ({ target, name }: IconProps) => {
   } else if (name === 'icon-mms') {
     return <i className={`mms-icon-${target} mms-icon`} />;
   } else if (name === 'icon-lg') {
-    return <LeafyGreenIcon glyph={target ?? ''} className={cx(leafyGreenIconStyle)} />;
+    const glyph = (GLYPH_ALIASES[target] ?? target) as GlyphName;
+    return <ViaIcon glyph={glyph} className={styles.viaIcon} />;
   }
 };
