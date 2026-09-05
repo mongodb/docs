@@ -38,13 +38,13 @@ describe('soft-redirects', () => {
       expect(result!.destination).toBe('/docs/atlas/');
     });
 
-    it('matches kubernetes-operator page-specific redirects', () => {
+    it('matches kubernetes page-specific redirects', () => {
       const result = findSoftRedirect(
-        '/docs/kubernetes-operator/v1.33/reference-architectures/multi-cluster/multi-cluster/',
+        '/docs/kubernetes/current/reference-architectures/multi-cluster/multi-cluster-sharded-cluster/',
       );
       expect(result).not.toBeNull();
       expect(result!.destination).toBe(
-        '/docs/kubernetes-operator/v1.33/reference-architectures/multi-cluster/',
+        '/docs/kubernetes/current/reference-architectures/multi-cluster/sharded-cluster/',
       );
     });
 

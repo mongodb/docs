@@ -1,7 +1,10 @@
 .. step:: Upgrade to v1.33 of the MongoDB Enterprise Kubernetes Operator.
 
-          For instructions on upgrading from an earlier version of the |k8s-op-short| 
-          to v1.33, see the `upgrade guide <https://www.mongodb.com/docs/kubernetes-operator/v1.33/tutorial/upgrade-k8s-operator/>`__.
+          Upgrade your MongoDB Enterprise Kubernetes Operator deployment 
+          to v1.33 before you migrate. The upgrade process requires that 
+          you upgrade incrementally through each minor version. For 
+          example, if you are upgrading from version 1.31.x, you must 
+          first upgrade to 1.32.x before proceeding to 1.33.x.
 
 .. step:: Scale down the MongoDB Enterprise Kubernetes Operator to 0 replicas.
 

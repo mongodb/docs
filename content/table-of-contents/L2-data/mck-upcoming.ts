@@ -938,11 +938,6 @@ const mckUpcoming: TocItem[] = [
     url: 'https://github.com/mongodb/mongodb-kubernetes/tree/master/docs/mongodbcommunity',
     isExternal: true,
   },
-  {
-    label: 'MongoDB Enterprise Kubernetes Operator (Deprecated)',
-    url: 'https://www.mongodb.com/docs/kubernetes-operator/v1.33',
-    isExternal: true,
-  },
 ];
 
 export default mckUpcoming;

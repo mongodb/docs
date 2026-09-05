@@ -35,7 +35,8 @@
    * - MongoDB
      - Readiness Probe
      - :setting:`MongoDB CRD <spec.agent.readinessProbe.environmentVariables>`
-     - `Container Environment Variables <https://www.mongodb.com/docs/kubernetes-operator/master/reference/kubectl-operator-settings/#readiness-probe-logger-max-size>`__
+     - :ref:`Container Environment Variables
+       <readiness-probe-logger-max-size>`
 
    * - {+appdb+}
      - MongoDB Logs

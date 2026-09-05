@@ -1,7 +1,6 @@
 import CloudManagerData from '../docset-data/cloud-manager';
 import OmData from '../docset-data/ops-manager';
 import AtlasData from '../L2-data/atlas';
-import EnterpriseK8sData from '../L2-data/enterprise-k8s';
 import MckData from '../L2-data/mck';
 import OnPremData from '../L2-data/on-prem';
 import type { TocItem } from '../types';
@@ -30,13 +29,6 @@ const tocData: TocItem[] = [
         contentSite: 'mck',
         url: '/docs/kubernetes/:version/',
         items: MckData,
-        showSubNav: true,
-      },
-      {
-        label: 'Kubernetes Operator (Deprecated)',
-        contentSite: 'docs-k8s-operator',
-        url: '/docs/kubernetes-operator/v1.33/',
-        items: EnterpriseK8sData,
         showSubNav: true,
       },
       {

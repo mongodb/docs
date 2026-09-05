@@ -887,11 +887,6 @@ export const toc: L1TocItem[] = [
             isExternal: true,
             url: 'https://github.com/mongodb/mongodb-kubernetes/tree/master/docs/mongodbcommunity',
           },
-          {
-            label: 'MongoDB Enterprise Kubernetes Operator (Deprecated)',
-            isExternal: true,
-            url: 'https://www.mongodb.com/docs/kubernetes-operator/v1.33',
-          },
         ],
       },
       {
@@ -1768,11 +1763,6 @@ export const toc: L1TocItem[] = [
             label: 'Deploy MongoDB Community on Kubernetes',
             isExternal: true,
             url: 'https://github.com/mongodb/mongodb-kubernetes/tree/master/docs/mongodbcommunity',
-          },
-          {
-            label: 'MongoDB Enterprise Kubernetes Operator (Deprecated)',
-            isExternal: true,
-            url: 'https://www.mongodb.com/docs/kubernetes-operator/v1.33',
           },
         ],
       },
