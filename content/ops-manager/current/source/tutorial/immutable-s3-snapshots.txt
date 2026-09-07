@@ -5,7 +5,7 @@ Immutable S3 Snapshots with Object Lock
 =======================================
 
 .. meta::
-   :description: Configure immutable S3 snapshots in Ops Manager with S3 Object Lock to protect MongoDB backups from deletion or modification until the retention period expires.
+   :description: Configure immutable S3 snapshots in Ops Manager with S3 Object Lock to protect backups from deletion or modification, verify snapshot immutability, and import snapshots for disaster recovery.
 
 .. default-domain:: mongodb
 
@@ -31,6 +31,12 @@ Use this feature to protect backups against malicious or accidental
 deletion, such as ransomware attacks or operator error. You can
 restore backups in a new |onprem| instance using only what you
 store in S3.
+
+This guide covers immutable S3 snapshots for Ops Manager
+deployments that you install and manage directly on a host. If you
+deploy Ops Manager using the MongoDB Controllers for Kubernetes
+Operator (MCK), see the :ref:`Ops Manager resource specification
+example <om_resource_spec_example_single_cluster>`.
 
 .. important::
 
@@ -119,31 +125,30 @@ To configure immutable S3 snapshots, complete the following tasks:
 Enable Immutable Backups
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-A feature flag in |onprem| controls immutable backups. You must enable
-this flag before you configure the S3 snapshot store.
+An application setting controls immutable backups. A global
+administrator must enable this setting before you configure an S3
+snapshot store with Object Lock.
 
 .. procedure::
    :style: normal
 
-   .. step:: Edit the |onprem| configuration file.
+   .. step:: Navigate to the :guilabel:`Ops Manager Config` page.
 
-      On the |onprem| host, open the configuration file. For example,
-      ``conf-mms.properties``.
+      Click :guilabel:`Admin`, :guilabel:`General`,
+      :guilabel:`Ops Manager Config`.
 
-   .. step:: Set the immutable backup property.
+   .. step:: Add the immutable backup application setting.
 
-      Add or update the following property:
+      a. Click the :guilabel:`Custom` tab.
+      #. Click :guilabel:`+ Add Option`.
+      #. In the :guilabel:`Key` field, enter
+         ``brs.immutableBackupEnabled``.
+      #. In the :guilabel:`Value` field, enter ``true``.
+      #. Click :guilabel:`Save`.
 
-      .. code-block:: none
-
-         brs.immutableBackupEnabled=true
-
-      This flag enables S3 snapshot immutability for stores backed by
-      Object-Lock-enabled buckets.
-
-   .. step:: Restart |onprem|.
-
-      Restart |onprem| so the configuration change takes effect.
+      This setting enables S3 snapshot immutability for stores backed
+      by Object-Lock-enabled buckets. |onprem| applies this setting
+      immediately. You do not need to restart |onprem|.
 
 Create an Object-Lock-Enabled S3 Bucket
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -161,7 +166,22 @@ Create an Object-Lock-Enabled S3 Bucket
       Enable Object Lock during bucket creation. Most S3 providers
       require Object versioning for Object Lock to work.
 
-   .. step:: Optionally, configure default retention.
+   .. step:: (Optional) Configure conditional writes on the bucket.
+
+      |onprem| uses your bucket's conditional write support by
+      default to reduce the storage space that immutable snapshot
+      metadata uses. Configure your bucket to support
+      :aws:`conditional writes
+      </AmazonS3/latest/userguide/conditional-writes-enforce.html>`.
+
+      .. important::
+
+         Conditional write support is recommended, not required. If
+         your bucket does not support conditional writes, |onprem|
+         still protects your snapshots with Object Lock, but the
+         bucket can grow at an unexpected rate.
+
+   .. step:: (Optional) Configure default retention.
 
       Configure a default retention mode and period in your object
       store.
@@ -181,19 +201,31 @@ Configure a New S3 Snapshot Store in |onprem|
 
    .. step:: Create a new S3 snapshot store.
 
-      In |onprem|, create a new S3 snapshot store that points to the
-      Object-Lock-enabled bucket.
+      Follow the :ref:`add-s3-blockstore` procedure to create a new
+      S3 snapshot store that points to the Object-Lock-enabled
+      bucket. Specify the bucket name, endpoint, region, and
+      credentials as required by your S3 provider.
 
-   .. step:: Configure the store settings.
+   .. step:: Select :guilabel:`Object Lock Enabled`.
 
-      Specify the bucket name, endpoint, region, and credentials as
-      required by your S3 provider. Ensure that the Object Lock
-      settings in |onprem| match the settings on your S3 bucket.
+      Select :guilabel:`Object Lock Enabled` to confirm that the
+      underlying bucket has Object Lock enabled.
+
+   .. step:: (Optional) Set :guilabel:`Object Retention Period (Days)`.
+
+      Enter the number of days |onprem| protects each snapshot's
+      objects with Object Lock. Leave this field blank to rely only
+      on your bucket's default retention settings.
 
    .. step:: Save the store.
 
       |onprem| automatically validates connectivity when
       you save the store.
+
+.. important::
+
+   You can select these settings only when you create a new S3
+   snapshot store. You cannot change them after you save the store.
 
 This snapshot store serves as the target for immutable snapshots. |onprem|
 writes both snapshot blocks and metadata for backups that use this
@@ -248,6 +280,29 @@ When you switch stores:
 - **Subsequent snapshots are incremental.** Snapshots after the first   
   full snapshot on the new store use incremental backup behavior.
 
+Verify Snapshot Immutability
+----------------------------
+
+|onprem| automatically writes each snapshot's data and the Object
+Lock metadata that protects it to the S3 bucket. You do not need to
+manually export the data. Use the following procedure to confirm that
+a specific snapshot is protected by Object Lock.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Go to the :guilabel:`View All Snapshots` page.
+
+      Go to the :guilabel:`View All Snapshots` page for the backup
+      you want to check, then find the snapshot you want to confirm
+      in the list.
+
+   .. step:: Check the :guilabel:`Object Lock` column.
+
+      Examine the :guilabel:`Object Lock` column for that snapshot.
+      If the column displays :guilabel:`Yes`, |onprem| manages the
+      snapshot as immutable.
+
 Import Snapshots for Disaster Recovery
 --------------------------------------
 
@@ -265,20 +320,55 @@ scenarios, such as restoring backups after rebuilding |onprem|.
 .. procedure::
    :style: normal
 
-   .. step:: Register the bucket as an import snapshot store.
+   .. step:: Go to the :guilabel:`Imported Snapshots` tab.
 
-      In |onprem|, register the bucket as an import snapshot store.
+      Click :guilabel:`Admin`, :guilabel:`Backup`,
+      :guilabel:`Imported Snapshots`.
 
-   .. step:: Run the snapshot import workflow.
+   .. step:: Click :guilabel:`Import Snapshot`.
 
-      Run the snapshot import workflow to scan the bucket, validate
-      metadata, and register available snapshots in a target project.
+      Click :guilabel:`Import Snapshot` in the upper right corner of
+      the page to open the import wizard.
 
-   .. step:: Restore from imported snapshots.
+   .. step:: Select or add the external S3 bucket.
 
-      After you import snapshots, they appear as an independent cluster
-      in the project, separate from clusters with active backup
-      schedules. You can use these snapshots for restore operations.
+      Select an existing bucket, or select :guilabel:`Add S3 bucket`
+      to define a new one. The bucket name and S3 endpoint must match
+      the values configured on the snapshot's S3 store.
+
+      .. important::
+
+         The :guilabel:`Add S3 bucket` form asks for the same fields
+         as the :ref:`add-s3-blockstore` procedure, including a
+         datastore type and MongoDB host list or URI. These fields
+         must point to the dedicated metadata store for this bucket,
+         not to the MongoDB deployment that you are restoring.
+
+   .. step:: Select the snapshots to import.
+
+      Select the snapshots or clustershots that you want to import
+      from the bucket.
+
+      .. important::
+
+         For a clustershot with shards stored in different buckets,
+         import each shard's bucket separately. Add each additional
+         bucket and select that bucket's shards, one bucket at a
+         time, until you import all of the clustershot's shards.
+
+         |onprem| does not make the clustershot restorable, and does
+         not display it on the :guilabel:`Continuous Backup` page,
+         until you import all of its shards.
+
+   .. step:: Assign the organization and project.
+
+      Select the organization and project to import the snapshots
+      into. This selection determines which project can restore from
+      the imported snapshots.
+
+Once the import completes, the imported snapshots appear on the
+:guilabel:`Continuous Backup` page under the project you assigned
+them to. |onprem| displays only clustershots that are fully imported.
 
 |onprem| never deletes or grooms data from imported stores. You
 control the lifecycle of imported snapshot objects at the object storage
