@@ -52,96 +52,50 @@
             :guilabel:`Connect Service Account` dropdown menu. Otherwise,
             complete the following steps:
 
-            .. tabs::
+            a. Click :guilabel:`Authorize a new service account`.
+               The :guilabel:`Encrypt Data with GCP KMS` dialog box appears.
 
-               .. tab:: First-time Setup
-                  :tabid: first-time-setup
+            #. If you have not yet set up a service account for your
+               |service| project, click the :guilabel:`Set Up` button to
+               create your GCP resources. |service| provisions the GCP
+               `folder <https://cloud.google.com/resource-manager/docs/creating-managing-folders>`__
+               and creates the service account. The folder is required in order to
+               create service accounts. Skip this step if you already have
+               a service account for your |service| project.
 
-                  If you have not yet set up a service account for your |service| project:
+            #. Select the |service| service account from the dropdown menu
+               or :ref:`create a new one <create-org-api-key>`.
 
-                  a. Click :guilabel:`Authorize a new service account`.
-                     The :guilabel:`Encrypt Data with GCP KMS` dialog box appears.
+            #. Run the :gcp:`gcloud </sdk/docs/install>` commands
+               that appear to grant the service account the following
+               required permissions:
 
-                  #. Click the :guilabel:`Set Up` button to create your GCP resources.
-                     |service| provisions the GCP `folder <https://cloud.google.com/resource-manager/docs/creating-managing-folders>`__
-                     and creates the service account. The folder is required in order to
-                     create service accounts.
+               - :guilabel:`Enable Encrypt/Decrypt operations`
 
-                  #. Select the |service| service account from the dropdown menu
-                     or :ref:`create a new one <create-org-api-key>`.
+                 .. code-block:: sh
+                    :copyable: false
 
-                  #. Run the :gcp:`gcloud </sdk/docs/install>` commands
-                     that appear to grant the service account the following
-                     required permissions:
+                    gcloud kms keys add-iam-policy-binding \
+                      <key-name> \
+                        --location <location> \
+                        --keyring <keyring-name> \
+                        --member <ATLAS_OWNED_SERVICE_ACCOUNT_EMAIL> \
+                        --role="roles/cloudkms.cryptoKeyEncrypterDecrypter"
 
-                     - :guilabel:`Enable Encrypt/Decrypt operations`
+               - :guilabel:`Enable GetPublicKey operations`
 
-                       .. code-block:: sh
-                          :copyable: false
+                 .. code-block:: sh
+                    :copyable: false
 
-                          gcloud kms keys add-iam-policy-binding \
-                            <key-name> \
-                              --location <location> \
-                              --keyring <keyring-name> \
-                              --member <ATLAS_OWNED_SERVICE_ACCOUNT_EMAIL> \
-                              --role="roles/cloudkms.cryptoKeyEncrypterDecrypter"
+                    gcloud kms keys add-iam-policy-binding \
+                      <key-name> \
+                        --location <location> \
+                        --keyring <keyring-name> \
+                        --member <ATLAS_OWNED_SERVICE_ACCOUNT_EMAIL> \
+                        --role="roles/cloudkms.viewer"
 
-                     - :guilabel:`Enable GetPublicKey operations`
+            #. Click :guilabel:`Validate & Finish` to confirm.
 
-                       .. code-block:: sh
-                          :copyable: false
-
-                          gcloud kms keys add-iam-policy-binding \
-                            <key-name> \
-                              --location <location> \
-                              --keyring <keyring-name> \
-                              --member <ATLAS_OWNED_SERVICE_ACCOUNT_EMAIL> \
-                              --role="roles/cloudkms.viewer"
-
-                  #. Click :guilabel:`Validate & Finish` to confirm.
-
-               .. tab:: Existing Service Account
-                  :tabid: existing-service-account
-
-                  If you have an existing service account for your |service| project:
-
-                  a. Click :guilabel:`Authorize a new service account`.
-                     The :guilabel:`Encrypt Data with GCP KMS` dialog box appears.
-
-                  #. Select your existing
-                     |service| service account from the dropdown menu
-                     or :ref:`create a new one <create-org-api-key>`.
-
-                  #. Run the :gcp:`gcloud </sdk/docs/install>` commands
-                     that appear to grant the service account the following
-                     required permissions:
-
-                     - :guilabel:`Enable Encrypt/Decrypt operations`
-
-                       .. code-block:: sh
-                          :copyable: false
-
-                          gcloud kms keys add-iam-policy-binding \
-                            <key-name> \
-                              --location <location> \
-                              --keyring <keyring-name> \
-                              --member <ATLAS_OWNED_SERVICE_ACCOUNT_EMAIL> \
-                              --role="roles/cloudkms.cryptoKeyEncrypterDecrypter"
-
-                     - :guilabel:`Enable GetPublicKey operations`
-
-                       .. code-block:: sh
-                          :copyable: false
-
-                          gcloud kms keys add-iam-policy-binding \
-                            <key-name> \
-                              --location <location> \
-                              --keyring <keyring-name> \
-                              --member <ATLAS_OWNED_SERVICE_ACCOUNT_EMAIL> \
-                              --role="roles/cloudkms.viewer"
-
-                  #. Click :guilabel:`Validate & Finish` to confirm.
-                  
          .. tab:: Static Credentials
             :tabid: static-credentials-auth
 
