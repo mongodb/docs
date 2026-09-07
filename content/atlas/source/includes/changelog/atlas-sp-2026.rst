@@ -1,3 +1,14 @@
+.. _atlas-sp-20260901:
+
+1 September 2026 Release
+------------------------
+
+- Updates the ``$iceberg`` aggregation stage to write files to
+  {+aws+} S3 using the ``s3://`` scheme instead of the ``s3a://``
+  scheme, which increases compatibility with external query
+  engines. To learn more, see
+  :ref:`$iceberg <atlas-sp-agg-iceberg>`.
+
 .. _atlas-sp-20260827:
 
 27 August 2026 Release
