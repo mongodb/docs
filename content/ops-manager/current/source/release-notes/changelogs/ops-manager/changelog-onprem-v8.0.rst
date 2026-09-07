@@ -349,7 +349,10 @@ Improvements
 
 - Updates the {+mdbagent+} to
   :ref:`108.0.23.8997-1 <mongodb-108.0.23.8997-1>`.
-- Adds {+mdbagent+} support for MongoDB Server 8.3.
+- Enables MongoDB Server 8.3 for production use for MongoDB
+  deployments managed by |onprem| 8.0. MongoDB 8.3 is not supported
+  for |onprem| 8.0 backing databases, including the Application
+  Database.
 - Adds the following platform support for the {+mdbagent+}:
 
   - Publishes dedicated Ubuntu 20.04 deb packages.
