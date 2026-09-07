@@ -7,9 +7,8 @@
 .. default-domain:: mongodb
 
 .. meta::
-   :keywords: atlas stream processing, $source aggregation pipeline stage 
-   :description: Learn how to use the $source stage to pull in streaming 
-                 data for processing
+   :keywords: atlas stream processing, $source aggregation pipeline stage, code example
+   :description: Use the $source stage in Atlas Stream Processing to read streaming data from Kafka brokers, change streams, Kinesis data streams, document arrays, or a cron schedule.
 
 .. facet::
    :name: genre
@@ -38,6 +37,7 @@ from. The following connection types are supported:
 - MongoDB cluster change stream
 - {+aws+} Kinesis data stream
 - Document array
+- Cron schedule
 
 .. _atlas-sp-agg-source-syntax:
 
@@ -350,7 +350,7 @@ The ``$source`` stage takes a document with the following fields:
      - Name of one or more MongoDB collections hosted on the |service|
        instance specified by ``connectionName``. The change stream of
        these collections act as the streaming data source. If you omit
-       this field, your stream processor will source from a
+       this field, your stream processor sources from a
        :ref:`atlas-sp-agg-source-syntax-db`.
 
    * - ``initialSync``
@@ -362,7 +362,7 @@ The ``$source`` stage takes a document with the following fields:
        {+atlas-sp+} ``initialSync`` allows you to ingest preexisting
        documents in an {+service+} collection as though they were insert
        ``changeEvent`` documents. If you enable ``initialSync``, when you start
-       your stream processor, it will first ingest and process all
+       your stream processor, it first ingests and processes all
        existing documents in the collection before proceeding to
        ingest and process new incoming ``changeEvent`` documents. Once the
        ``initialSync`` is complete, it doesn't repeat.
@@ -1150,6 +1150,58 @@ The ``$source`` stage takes a document with the following fields:
        expression that evaluates to an array of objects. Do not use this
        field when using the ``connectionName`` field.
 
+.. _atlas-sp-agg-source-syntax-cron:
+
+Cron Schedule
+~~~~~~~~~~~~~
+
+To generate a document on a recurring schedule instead of reading from
+a connection, the ``$source`` stage has the following prototype form:
+
+.. code-block:: json
+
+  {
+    "$source": {
+      "schedule": "<cron-expression>",
+      "tsFieldName": "<timestamp-field-name>"
+    }
+  }
+
+The ``$source`` stage takes a document with the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 16 17 17 60
+
+   * - Field
+     - Type
+     - Necessity
+     - Description
+
+   * - ``schedule``
+     - string
+     - Required
+     - Six-field cron expression that determines when the stage emits
+       a document. The fields are, in order: second, minute, hour, day
+       of month, month, and day of week. {+atlas-sp+} evaluates the
+       expression in UTC.
+
+       Each field accepts ``*`` for all values, a single value, a
+       range such as ``1-5``, a step such as ``0/15``, or a
+       comma-separated list such as ``1,15,30``. You can use the names
+       ``JAN`` through ``DEC`` for months and ``SUN`` through ``SAT``
+       for days of the week. Do not include a ``CRON_TZ`` prefix.
+
+       To learn about how {+atlas-sp+} resolves an expression that
+       restricts both the day of month and the day of week, see
+       :ref:`atlas-sp-agg-source-behavior`.
+
+   * - ``tsFieldName``
+     - string
+     - Optional
+     - Name of the field that the stage projects the scheduled
+       timestamp into. Defaults to ``_ts``.
+
 .. _atlas-sp-agg-source-behavior:
 
 Behavior
@@ -1161,6 +1213,26 @@ in. You can use only one :pipeline:`$source` stage per pipeline.
 For Kafka ``$source`` stages, {+atlas-sp+} reads in parallel from
 multiple partitions within the source topic. The partition limit is
 determined by your processor tier. To learn more, see the :ref:`Stream
+Processing billing reference <atlas-sp-processor-billing>`.
+
+For cron ``$source`` stages, each scheduled time produces a single
+empty document that carries the scheduled timestamp. Use later stages
+in the pipeline to populate the document.
+
+When a ``schedule`` expression restricts both the day of month and the
+day of week, {+atlas-sp+} emits a document only at the scheduled times
+that satisfy both fields. This differs from cron implementations that
+emit a document when either field matches.
+
+If a stream processor with a cron ``$source`` stage restarts, it emits
+a document for each scheduled time that it missed while it was not
+running. It does not emit documents for scheduled times that it missed
+after you stopped it.
+
+A stream processor with a cron ``$source`` stage runs continuously
+between scheduled times, and {+service+} bills it at your processor
+tier for that entire period. An infrequent schedule does not reduce
+the cost of running the processor. To learn more, see the :ref:`Stream
 Processing billing reference <atlas-sp-processor-billing>`.
 
 .. _atlas-sp-agg-source-examples:
@@ -1363,4 +1435,46 @@ following command:
    .. output:: /includes/examples/sp-agg-source/docarray-find-result.sh
       :language: json
       :visible: false
+
+Cron Schedule Example
+~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation generates a document every five minutes
+instead of reading from a connection. This aggregation runs three
+stages:
+
+1. The :pipeline:`$source` stage emits an empty document at second
+   ``0`` of every fifth minute, in UTC.
+
+2. The :pipeline:`$project` stage labels each document with a job name
+   and copies the scheduled timestamp from the ``_ts`` field into a
+   ``runAt`` field.
+
+3. The :pipeline:`$merge` stage writes the output to an {+service+}
+   collection named ``heartbeats`` in the ``sample_weatherstream``
+   database. If no such database or collection exist, {+service+}
+   creates them.
+
+.. literalinclude:: /includes/examples/sp-agg-source/cron-pipeline.json
+   :language: json
+   :copyable: true
+
+To view the documents in the resulting
+``sample_weatherstream.heartbeats`` collection, connect to your
+{+service+} cluster and run the following command:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/examples/sp-agg-source/cron-find.js
+      :language: javascript
+
+   .. output:: /includes/examples/sp-agg-source/cron-find-result.sh
+      :language: json
+      :visible: false
+
+.. note::
+
+   The preceding is a representative example. The timestamps that you
+   see depend on when you start the stream processor.
 
