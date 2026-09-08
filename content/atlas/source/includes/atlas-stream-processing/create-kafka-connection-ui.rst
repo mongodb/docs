@@ -22,8 +22,10 @@ To add a Kafka connection to your {+spw+} through the
   
       a. Select a :guilabel:`Kafka` connection.  
   
-      #. Provide a :guilabel:`Connection Name`. Each connection name must be unique within a {+spw+}.  
-         This is the name used to reference the connection in {+atlas-sp+} :ref:`aggregations <atlas-sp-aggregation>`.  
+      #. Provide a :guilabel:`Connection Name`. Each connection name
+         must be unique within a {+spw+}.  This setting is the name
+         used to reference the connection in {+atlas-sp+}
+         :ref:`aggregations <atlas-sp-aggregation>`.
   
       #. Select a :guilabel:`Network Access` type. {+atlas-sp+}  
          supports :guilabel:`Public IP` or :guilabel:`VPC Peering`  
@@ -79,7 +81,9 @@ To add a Kafka connection to your {+spw+} through the
 
                   - ``OAUTHBEARER``
   
-               #. If you select ``PLAIN``, ``SCRAM-SHA-256``, or ``SCRAM-SHA-512``, you must also provide the following: 
+               #. If you specify ``PLAIN``, ``SCRAM-SHA-256``, or
+                  ``SCRAM-SHA-512``, you must also provide the
+                  following information:
   
                   #. A :guilabel:`Username` for authentication.  
                   #. A password for authentication.

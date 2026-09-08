@@ -1,0 +1,457 @@
+.. _atlas-sp-ops-guide:
+
+===========================================================
+{+atlas-sp+} Operations
+===========================================================
+
+.. meta::
+   :description: Learn best practices for key Atlas Stream Processing workflows. Understand concepts such as failover, observability, scaling, security, and the dead letter queue.
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This guide describes best practices for managing {+atlas-sp+},
+including specific procedures for essential workflows.
+
+.. _atlas-sp-ops-guide-networking:
+
+Networking
+----------
+
+Each stream processor relies on :ref:`connections
+<atlas-sp-manage-connections>` to data sources and sinks. {+atlas-sp+}
+encrypts all data in transit using TLS/SSL, but basic connections
+still pass data through the public internet. To achieve optimal
+performance and security with {+atlas-sp+}, consider the practices
+described in this section.
+
+.. _atlas-sp-ops-guide-networking-peering:
+
+Peering and Route Tables
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To ensure secure communication between {+atlas-sp+} and private
+external systems such as self-managed {+kafka+} clusters or private
+APIs, use :ref:`VPC or VNet peering <atlas-sp-manage-vpc-peering>`
+connections. These connections shield your data from exposure to the
+public internet. Note that in addition to establishing the peering
+connection, you must explicitly configure route tables for your
+application's VPC to direct traffic to your {+service+} VPC CIDR
+block. To learn more about how to configure your route table, consult
+the VPC documentation for your external provider.
+
+.. _atlas-sp-ops-guide-networking-xproject:
+
+{+service+} Cross-Project Connections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To route streaming data between different {+service+} projects within
+the same organization, {+atlas-sp+} supports :ref:`Cross Project
+Connections <atlas-sp-manage-connections-cross-project>`. Cross
+Project Connections transmit data without exposing clusters to the
+private internet, which ensures privacy without the need to manually
+configure VPC peering.
+
+.. _atlas-sp-ops-guide-networking-aws:
+
+Passwordless {+aws+} Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+atlas-sp+} supports the following {+aws+} integrations:
+
+- |s3|
+- Kinesis Data Streams
+- Lambda (as ``$externalFunction``)
+
+Each of these integrations is compatible with :ref:`Unified AWS Access
+<set-up-unified-aws-access>`. Configuring Unified Access
+eliminates the need to store static access IDs or Secret credentials
+in MongoDB, and is the recommended authentication model for all
+{+aws+} integrations.
+
+.. _atlas-sp-ops-guide-networking-kafka:
+
+Kafka OIDC
+~~~~~~~~~~~~~
+
+{+atlas-sp+} supports authenticating to {+kafka+} brokers using `OIDC
+<https://openid.net/developers/how-connect-works>`__ with `JSON Web
+Tokens <https://jwt.io>`__. However, this feature currently supports
+only Identity Providers accessible over public networks. This feature
+isn't supported for Identity Providers within a customer's VPC.
+
+.. _atlas-sp-ops-guide-fault-tolerance:
+
+Fault Tolerance
+---------------
+
+{+atlas-sp+} provides various mechanisms to ensure reliable, robust
+service in common failure scenarios, including :ref:`checkpoints
+<atlas-sp-checkpoints>`, :ref:`dead letter queues <atlas-sp-dlq>`,
+and :ref:`failover processors <atlas-sp-ops-guide-failover>`.
+
+{+atlas-sp+} monitors stream processor health using a 30-second
+heartbeat. If a stream processor fails to send a heartbeat for more
+than 30 seconds, {+atlas-sp+} automatically restarts the processor.
+
+{+atlas-sp+} automatically manages topology changes for sharded
+integrations like {+aws+} Kinesis.
+
+.. _atlas-sp-ops-guide-dlq:
+
+Dead Letter Queues
+~~~~~~~~~~~~~~~~~~
+
+You can configure {+atlas-sp+} to route unprocessed data to a
+:ref:`dead letter queue (DLQ) <atlas-sp-dlq>`. You can then view
+unprocessed records in the DLQ to remediate processing failures.
+
+When you examine your DLQ, look for the following common processing
+errors:
+
+- **Payload Parsing**
+
+  The incoming record is malformed and fails to
+  parse. This often results from invalid JSON.
+   
+- **Expression Evaluation**
+
+  An expression in the processing pipeline fails to evaluate
+  properly.
+
+  .. example::
+
+     Your pipeline includes the ``$emit.config.tombstoneWhen``
+     configuration field to delete Kafka records and a given document
+     is missing the field to be evaluated.
+
+- **Size Limit**
+
+  The outgoing record exceeds the size limit of your target sink,
+  such as ``1 MB`` for {+aws+} Kinesis.
+
+- **Key Generation**
+
+  The processor encounters an error when generating a partition key
+  for your sink.
+
+- **Late Data**
+
+  Your processor uses :ref:`windows <atlas-sp-windows>` and a given
+  document arrived after the configured :ref:`allowed lateness
+  <atlas-sp-allowed-late>` period expires.
+
+After you analyze the causes of processing failures, modify either
+your upstream data sources to correct the data before it enters your
+{+atlas-sp+} pipeline, or modify your pipeline to handle edge
+cases.
+
+Consider the following remediation options for records in the DLQ after
+using them to guide corrections to your {+atlas-sp+} configuration:
+
+- **Discard**
+
+  If a record is highly malformed or irrelevant—as in the case of
+  very late data in highly time-sensitive systems—delete it from the
+  collection.
+
+- **Manual Correction**
+
+  For a record with minor JSON errors or one that's mission-critical,
+  manually adjust the fields and insert them directly into your
+  target sink.
+
+- **Automated Reprocessing**:
+
+  For large volumes of recoverable, relevant data, create a secondary
+  script or an additional stream processor that reads from the DLQ
+  and applies a transformation against known failure conditions
+  before routing the cleaned data to the target sink.
+
+.. _atlas-sp-ops-guide-failover:
+
+Failover
+--------
+
+{+atlas-sp+} provides :ref:`failover processors
+<atlas-sp-architecture-failover>` to prevent service outage in the
+event of region-wide system failure.
+
+.. _atlas-sp-ops-guide-failover-principles:
+
+Principles of Failover Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following principles define a robust failover configuration to
+protect your {+atlas-sp+} workloads.
+
+- **Deploy {+service+} clusters in multiple regions.**
+
+  To ensure continued operation of your stream processors in a
+  regional failover event, any {+service+} cluster to which your
+  stream processor connects must be a multi-region cluster. This
+  principle ensures your source or sink connections remain active when
+  the primary region is down.
+
+- **Create {+atlas-sp+} workspaces for each region.**
+
+  After deploying your multi-region clusters, create a workspace for
+  each region. This principle minimizes the latency of connections
+  between your stream processors and their supporting {+service+}
+  databases.
+
+- **Populate the Connection Registry with backup connections.**
+
+  Configure connections for each source and sink in each region's
+  workspace. Ensure that you configure connections not only for
+  :ref:`basic connections <atlas-sp-add-connection>`, but for
+  :ref:`VPC <atlas-sp-manage-vpc-peering>` and private endpoint
+  connections.
+
+-  **Configure connection-specific disaster recovery**
+
+   To ensure continuity of service for a stream processor, any
+   external providers on which it relies must also have failover
+   enabled. Ensure that each external provider source or sink is
+   properly configured according to its documentation.
+  
+   .. example::
+
+      If your stream processor uses a Kafka cluster as a source or
+      sink, configure the cluster for consumer offset preservation
+      to enable {+atlas-sp+} to resume processing from a consumer
+      group offset.
+
+- **Perform routine dry runs.**
+
+  Verify your failover configuration by periodically performing
+  failover dry runs. These dry runs serve both to ensure your
+  configuration connects to networks and loads checkpoints correctly
+  and to train the failover workflow so that it is easier to perform
+  at need. Consider establishing a regular cadence of failover dry
+  runs, and perform a dry run every time you alter your failover
+  configuration.
+
+.. _atlas-sp-ops-guide-failover-setup:
+
+Setting Up Stream Processor Failover
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After ensuring best practices are in place, :ref:`create a stream processor
+<atlas-sp-manage-processor-create>` and verify your failover
+configuration.
+
+{+atlas-sp+} supports automated regional failover only for processors
+with the following configurations:
+
+- {+service+} source and sink
+- {+service+} source and {+kafka+} sink
+
+For more information about automated failover, see :ref:`Failover
+Processor <atlas-sp-architecture-failover>`.
+
+However, you can configure an {+atlas-sp+} architecture that supports
+manual failover for any combination of source and sink connection.
+
+.. composable-tutorial::
+   :options: interface, sp-failover
+   :defaults: atlas-api, automated
+
+   .. selected-content::
+      :selections: atlas-api, automated
+
+      .. include:: includes/atlas-stream-processing/ops-guide-failover-setup-api.rst
+
+   .. selected-content::
+      :selections: atlas-api, manual
+
+      .. include:: includes/atlas-stream-processing/ops-guide-failover-manual-api.rst
+
+   .. selected-content::
+      :selections: atlas-ui, automated
+
+      .. include:: includes/atlas-stream-processing/ops-guide-failover-setup-ui.rst
+
+   .. selected-content::
+      :selections: atlas-ui, manual
+
+      .. include:: includes/atlas-stream-processing/ops-guide-failover-manual-ui.rst
+
+   .. selected-content::
+      :selections: atlas-cli, automated
+
+      .. include:: includes/atlas-stream-processing/ops-guide-failover-setup-cli.rst
+
+   .. selected-content::
+      :selections: atlas-cli, manual
+
+      .. include:: includes/atlas-stream-processing/ops-guide-failover-manual-cli.rst
+
+.. _atlas-sp-ops-guide-failover-trigger:
+
+Initiate Forced Failover
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can initiate a forced failover at either the workspace or stream
+processor level.
+
+To initiate {+spw+} failover, follow the procedure described in
+:ref:`Trigger {+spw+} Failover <atlas-sp-manage-spi-failover>`.
+
+To initiate individual stream processor failover, follow the procedure
+described in :ref:`Initiate Failover for One Stream Processor
+<atlas-sp-manage-processor-failover>`.
+
+.. _atlas-sp-ops-guide-failover-response:
+
+Responding to a Failover Event
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In case of a regional service outage event:
+
+.. include:: includes/atlas-stream-processing/ops-guide-failover-event-respond.rst
+
+.. _atlas-sp-ops-guide-failover-behavior:
+
+Failover Behavior
+~~~~~~~~~~~~~~~~~
+
+Consider the following when you configure your systems for regional
+failover or triggering manual failover:
+
+- When regional failover occurs, {+atlas-sp+} promotes the inactive
+  failove processors in your failover region to active
+  processors. These processors resume stream processing from the last
+  available :ref:`checkpoint <atlas-sp-checkpoints>`.
+
+- {+atlas-sp+} checkpoints are guaranteed to be no more than 10
+  minutes old. However, failover processors reprocess any data that
+  your primary processor processed since the last checkpoint on
+  initiation. Failover guarantees at-least-once processing semantics.
+
+- If a failover processor fails to start during a regional failover
+  event, it still assumes the role of active processor. You can then
+  troubleshoot the underlying cause and restart the processor as
+  normal in the failover region.
+
+.. _atlas-sp-ops-guide-observability:
+
+Observability
+-------------
+
+{+atlas-sp+} provides various :ref:`observability tools
+<atlas-sp-monitoring>` to assess the performance and health of your
+workspaces, connections, and processors. Additionally, to track
+regional service status and outages, you can visit the `MongoDB Cloud
+Status <https://status.mongodb.com/>`__ page.
+
+.. _atlas-sp-ops-guide-scaling:
+
+Scale {+atlas-sp+}
+---------------------------------------------
+
+{+atlas-sp+} provisions resources per stream processor. To learn more,
+see the :ref:`Tier Selection Guide <atlas-sp-tier-guide>`.
+
+For {+atlas-sp+} processors that operate on {+service+} clusters,
+ensure you also scale your both your processors and
+clusters proportionate to your pipeline I/O needs. In particular,
+evaluate processors that perform a high volume of ``$lookup`` or
+``$merge`` operations as candidates for cluster upscaling.
+
+.. _atlas-sp-ops-guide-change-streams:
+
+Change Stream Considerations
+----------------------------
+
+{+atlas-sp+} can use a {+service+} cluster :pipeline:`$source` to
+consume change stream events. To ensure optimal performance and
+reliability for such stream processors, review the following
+considerations:
+
+- **Oplog Window Size**
+
+  Stream processors leverage the ``$source`` cluster's :term:`oplog`
+  to resume service after stoppage. If a processor is down for a
+  period greater than the oplog retention period, the :ref:`resume
+  token <change-stream-resume>` can point to truncated data, causing
+  a ``ChangeStreamHistoryLost`` error.
+
+  Mitigate this risk by aligning oplog sizing with acceptable
+  downtime for your stream processing systems.
+
+- **Resumption Options**
+
+  {+atlas-sp+} supports resuming change-stream
+  ``$source``s from either the last stored checkpoint with
+  ``resumeFromCheckpoint`` or a specific time with
+  ``startAtOperationTime``. To avoid gaps or duplications in
+  processed data, define a standardized policy around which
+  resumption options you use in a given scenario.
+
+- **Backlog Ingestion**
+
+  Stream processors that operate on a large
+  namespace can experience long initial periods of catch-up
+  processing. Consider reducing the scope of your stream processor's
+  namespace or choosing a more recent start point to reduce this
+  initial catch-up period.
+
+- **Change Stream Images**
+
+  Auditing, compensating transactions, and undo operations require
+  access to pre-processing document state. When you work with
+  {+service+} as a source, enable :ref:`Document Pre- and Post-Images
+  <change-stream-pre-post-images>` to support these operations. When
+  you roll out support for document pre- or post-images, verify
+  coverage and stability across your system.
+
+- **The ``$replaceRoot`` Stage**
+
+  Change stream sources return documents that bundle operational
+  metadata with the content of the affected document. Writing these
+  documents to a sink requires consumers to work with the change-event
+  schema rather than the business logic of the source document. Unless
+  you require the metadata, use the ``$replaceRoot`` stage to promote
+  the source content subdocument before further processing.
+
+- **Join-Oriented Pipelines**
+
+  {+atlas-sp+} supports the ``$lookup``
+  stage to enable join-like enrichments of streaming data. These
+  operations can increase processing latency. Consider limiting your
+  {+atlas-sp+} pipelines to only those ``$lookup`` operations that
+  must be performed before writing to a sink, reserving more complex
+  enrichments to precomputed views.
+
+- **Stale Checkpoints**
+
+  Checkpoints contain only event history, not
+  processing logic. When you resume operation from a checkpoint, your
+  stream processor applies your current pipeline's logic to the old
+  events, which can cause a mismatch between your existing downstream
+  state and your new output. Consider introducing a new stream
+  processor rather than resuming from a checkpoint if you require
+  significantly different processing semantics.
+
+- **Restart Planning**
+
+  During restart, a stream processor might experience reduced
+  throughput of new events. To increase system resiliency, schedule
+  restarts to account for the temporarily reduced capacity.
+
+- **Failover Planning**
+
+  Develop standard procedures for sharing stream
+  processor checkpoints across regions, choosing safe resumption
+  points, and validating output consistency to ensure regional
+  failover events don't lead to data quality issues.
