@@ -79,9 +79,9 @@ traits:
   documents it already emitted, so design your sink to handle repeated
   documents idempotently.
 
-- **Exposes overall sync progress.** ``stats().stats.initialSync``
-  reports the combined sync progress and document count across all
-  target collections. To learn more, see
+- **Exposes granular collection level sync progress.**
+  ``stats().stats.operatorStats[0].targetStats`` reports sync progress
+  and document counts for each target collection. To learn more, see
   :ref:`atlas-sp-multi-collection-initial-sync-verify`.
 
 Behavior Differences to Consider
@@ -222,9 +222,11 @@ processor.
 Verify Initial Sync Progress
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-After you start the stream processor, run
-``sp.<processor-name>.stats().stats.initialSync`` to check the
-overall sync progress across all target collections:
+After you start the stream processor, call
+``sp.<processor-name>.stats()`` with the ``verbose`` option to view
+sync progress for each target collection. The source operator's
+entry in ``stats.operatorStats`` reports a ``targetStats`` array with
+one element per collection:
 
 .. io-code-block::
    :copyable: true
@@ -232,17 +234,64 @@ overall sync progress across all target collections:
    .. input::
       :language: javascript
 
-      sp.replicate_analytics_sp.stats().stats.initialSync
+      sp.replicate_analytics_sp.stats(
+        { options: { verbose: true } }
+      ).stats.operatorStats[0].targetStats
 
    .. output::
       :language: javascript
       :visible: false
 
-      { progress: 1, numInputDocuments: Long('2246') }
+      [
+        {
+          db: 'sample_analytics',
+          coll: 'customers',
+          inputMessageCount: Long('500'),
+          inputMessageSize: 672326,
+          initialSync: {
+            estimatedDocs: Long('500'),
+            copiedDocs: Long('251'),
+            status: 'in_progress'
+          }
+        },
+        {
+          db: 'sample_analytics',
+          coll: 'accounts',
+          inputMessageCount: Long('1746'),
+          inputMessageSize: 1883681,
+          initialSync: {
+            estimatedDocs: Long('1746'),
+            copiedDocs: Long('1746'),
+            status: 'completed'
+          }
+        }
+      ]
 
-``progress`` reports whether initial sync has completed.
-``numInputDocuments`` reports the total number of documents that
-{+atlas-sp+} has ingested from the target collections so far.
+Each target's ``initialSync.status`` field cycles through
+``pending``, ``in_progress``, and ``completed`` as {+atlas-sp+}
+syncs that collection, or reports ``failed`` if the sync fails.
+``estimatedDocs`` and ``copiedDocs`` report the estimated and
+completed document counts for that one collection.
+
+To view total progress across every target collection, use the
+source operator's own ``initialSync`` field, which sums
+``estimatedDocs`` and ``copiedDocs`` across all collections:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: javascript
+
+      sp.replicate_analytics_sp.stats(
+        { options: { verbose: true } }
+      ).stats.operatorStats[0].initialSync
+
+   .. output::
+      :language: javascript
+      :visible: false
+
+      { estimatedDocs: Long('2246'), copiedDocs: Long('1997') }
 
 Examples
 --------
