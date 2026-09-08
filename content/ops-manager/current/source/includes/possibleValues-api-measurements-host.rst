@@ -127,10 +127,14 @@ Host Measurements
 
      - Durations and throughput of the MongoDB process'
        :ref:`oplog <replica-set-oplog>`.
+
        The ``OPLOG_SLAVE_LAG_MASTER_TIME`` metric is deprecated in the
        measurement API. Use the ``OPLOG_REPLICATION_LAG_TIME`` metric
        instead. It returns decimal values (seconds and milliseconds).
        For example, the value 2.75 means 2 seconds and 750 milliseconds.
+
+       The deprecation applies only to the measurement API. For alert
+       configurations, continue to use ``OPLOG_SLAVE_LAG_MASTER_TIME``.
 
    * - - ``DB_STORAGE_TOTAL``
 
