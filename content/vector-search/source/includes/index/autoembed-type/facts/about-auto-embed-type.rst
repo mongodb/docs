@@ -14,7 +14,7 @@ you must configure the fields highlighted below:
          "type": "autoEmbed",
          "modality": "text",
          "path": "<fieldToIndex>",
-         "model": "voyage-4 | voyage-4-large | voyage-4-lite | voyage-code-3"
+         "model": "voyage-4 | voyage-4-large | voyage-4-lite | voyage-code-4 | voyage-code-3"
        }
      ]
    }

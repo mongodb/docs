@@ -23,8 +23,10 @@ a. Modify the settings.
             relationships.
           - ``voyage-4-lite`` - Optimized for high-volume, cost-sensitive 
             applications. 
-          - ``voyage-code-3`` - Specialized for code search and technical 
-            documentation.
+          - ``voyage-code-4`` - (**Recommended for code**) Specialized for
+            code search and technical documentation.
+          - ``voyage-code-3`` - Legacy model specialized for code search and
+            technical documentation. Use ``voyage-code-4`` instead.
 
       * - :guilabel:`Advanced`
         - Optional

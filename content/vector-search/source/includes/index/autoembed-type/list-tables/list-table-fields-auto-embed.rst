@@ -67,8 +67,10 @@
          text search.
        - ``voyage-4-large`` - Maximum accuracy for complex semantic 
          relationships.
-       - ``voyage-code-3`` - Specialized for code search and technical 
-         documentation.
+       - ``voyage-code-4`` - (**Recommended for code**) Specialized for
+         code search and technical documentation.
+       - ``voyage-code-3`` - Legacy model specialized for code search and
+         technical documentation. Use ``voyage-code-4`` instead.
 
        To learn more, see :ref:`Automated Embedding Models <avs-auto-embeddings-model-ecosystem>`.
 

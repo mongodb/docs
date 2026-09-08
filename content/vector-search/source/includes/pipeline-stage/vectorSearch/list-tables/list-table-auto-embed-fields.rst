@@ -58,23 +58,28 @@
        Name of the embedding model to use for generating embeddings 
        for the query string. The embedding model must be compatible with 
        the embedding model specified in the index definition for the field 
-       against which you want to run the query. All the models in the 
-       ``voyage-4`` family of models are compatible with each other, but 
-       the ``voyage-code-3`` is not compatible with the other models.
-       
-       Value can be one of the following: 
+       against which you want to run the query. All the models in the
+       ``voyage-4`` family of models are compatible with each other, but
+       the ``voyage-code-4`` and ``voyage-code-3`` models are not
+       compatible with any other model.
 
-       - ``voyage-4-large`` - Highest-quality retrieval across languages 
+       Value can be one of the following:
+
+       - ``voyage-4-large`` - Highest-quality retrieval across languages
          and domains.
-       - ``voyage-4`` - Balanced model for multilingual use and 
+       - ``voyage-4`` - Balanced model for multilingual use and
          general-purpose retrieval accuracy. (Recommended)
-       - ``voyage-4-lite`` - Lightweight, faster model optimized for 
+       - ``voyage-4-lite`` - Lightweight, faster model optimized for
          latency and lower cost.
-       - ``voyage-code-3`` - Optimized for code retrieval. This embedding 
-         model is not compatible with ``voyage-4-large``, ``voyage-4``, 
-         and ``voyage-4-lite`` embedding models. Therefore, this model can't 
-         be used if you indexed the field using the other supported embedding 
-         models.
+       - ``voyage-code-4`` - Optimized for code retrieval. (Recommended
+         for code) This embedding model is not compatible with any other
+         supported embedding model. Therefore, you can't use this model if
+         you indexed the field using a different embedding model.
+       - ``voyage-code-3`` - Legacy model optimized for code retrieval.
+         Use ``voyage-code-4`` instead. This embedding model is not
+         compatible with any other supported embedding model. Therefore,
+         you can't use this model if you indexed the field using a
+         different embedding model.
      
        If omitted, defaults to the embedding model specified in the index 
        definition. 

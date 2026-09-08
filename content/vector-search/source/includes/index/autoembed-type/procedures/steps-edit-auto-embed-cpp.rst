@@ -58,8 +58,8 @@
          * - ``<embeddingModel>``
            - Name of the supported |voyage| embedding model to use for
              generating embeddings. You can specify
-             ``voyage-4-lite``, ``voyage-4``, ``voyage-4-large``, or
-             ``voyage-code-3``. To learn more, see
+             ``voyage-4-lite``, ``voyage-4``, ``voyage-4-large``,
+             ``voyage-code-4``, or ``voyage-code-3``. To learn more, see
              :ref:`avs-auto-embeddings-model-ecosystem`.
 
          * - ``<fieldToIndex>``
