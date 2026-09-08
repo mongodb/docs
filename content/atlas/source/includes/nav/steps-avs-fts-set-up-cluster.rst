@@ -1,3 +1,6 @@
+.. :snippet-start: steps-avs-fts-set-up-cluster
+.. :snippet-output: content/search/source/includes/nav/, content/vector-search/source/includes/nav/
+
 .. step:: Set up your |service| {+cluster+}.
 
    a. `Create a free Atlas account or sign in to an existing account <https://account.mongodb.com/account/register>`__.
@@ -25,3 +28,5 @@
 
    #. In the left sidebar, click `Search & Vector Search <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fclusters%2FatlasSearch>`__. 
       Choose your cluster from the :guilabel:`Select data source` menu and click :guilabel:`Go to Atlas Search`.
+
+.. :snippet-end:

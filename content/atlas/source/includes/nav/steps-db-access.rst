@@ -1,3 +1,6 @@
+.. :snippet-start: steps-db-access
+.. :snippet-output: content/search/source/includes/nav/, content/vector-search/source/includes/nav/
+
 .. step:: In |service|, go to the :guilabel:`Database & Network Access` page for your project.
 
    a. If it's not already displayed, select the 
@@ -12,4 +15,5 @@
 
    The `Database & Network Access <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fsecurity%2Fdatabase>`__ page 
    displays.
-      
+
+.. :snippet-end:

@@ -1,3 +1,6 @@
+.. :snippet-start: list-data-explorer
+.. :snippet-output: content/search/source/includes/nav/, content/vector-search/source/includes/nav/
+
 In |service|, go to the :guilabel:`Data Explorer` page for your project.
 
 i. If it's not already displayed, select the 
@@ -17,3 +20,5 @@ i. If it's not already displayed, select the
    You can also click the name of a cluster
    to open the :guilabel:`Cluster` sidebar, and then click :guilabel:`Data Explorer` under
    the :guilabel:`Shortcuts` heading.
+
+.. :snippet-end:

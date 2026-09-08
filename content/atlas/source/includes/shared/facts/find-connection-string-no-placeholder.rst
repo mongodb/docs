@@ -1,6 +1,5 @@
-.. SHARED FILE: This file is a copy of
-   content/atlas/source/includes/search-shared/find-connection-string-no-placeholder.rst
-   Any changes here must also be applied to the source file.
+.. :snippet-start: find-connection-string-no-placeholder
+.. :snippet-output: content/search/source/includes/shared/facts/find-connection-string-no-placeholder.rst, content/vector-search/source/includes/shared/facts/find-connection-string-no-placeholder.rst
 
 .. tabs::
 
@@ -22,3 +21,5 @@
          mongodb://localhost:<port-number>/?directConnection=true
 
       To learn more, see :manual:`Connection Strings </reference/connection-string/>`.
+
+.. :snippet-end:

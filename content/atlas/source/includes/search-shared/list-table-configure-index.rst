@@ -1,3 +1,6 @@
+.. :snippet-start: list-table-configure-index
+.. :snippet-output: content/search/source/includes/shared/list-tables/list-table-configure-index.rst
+
 .. list-table:: 
    :widths: 25 75
 
@@ -17,3 +20,5 @@
      - | For a guided experience, select :guilabel:`Visual Editor`.
        |
        | To edit the raw index definition, select :guilabel:`JSON Editor`. 
+
+.. :snippet-end:

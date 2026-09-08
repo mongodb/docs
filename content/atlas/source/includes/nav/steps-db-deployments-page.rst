@@ -1,3 +1,6 @@
+.. :snippet-start: steps-db-deployments-page
+.. :snippet-output: content/search/source/includes/nav/, content/vector-search/source/includes/nav/
+
 .. step:: In |service|, go to the :guilabel:`Clusters` page for your project.
 
    a. If it's not already displayed, select the organization that
@@ -11,3 +14,5 @@
       the :guilabel:`Database` heading.
 
    The `Clusters <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fclusters>`__ page displays.
+
+.. :snippet-end:

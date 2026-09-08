@@ -1,3 +1,6 @@
+.. :snippet-start: steps-data-explorer
+.. :snippet-output: content/search/source/includes/nav/, content/vector-search/source/includes/nav/
+
 .. step:: In |service|, go to the :guilabel:`Data Explorer` page for your project.
 
    a. If it's not already displayed, select the 
@@ -15,3 +18,5 @@
    :gold:`IMPORTANT:` You can also click the name of a cluster
    to open the :guilabel:`Cluster` sidebar, and then click
    :guilabel:`Data Explorer` under the :guilabel:`Shortcuts` heading.
+
+.. :snippet-end:

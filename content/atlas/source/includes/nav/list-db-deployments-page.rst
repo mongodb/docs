@@ -1,3 +1,6 @@
+.. :snippet-start: list-db-deployments-page
+.. :snippet-output: content/search/source/includes/nav/, content/vector-search/source/includes/nav/
+
 In |service|, go to the :guilabel:`Clusters` page for your project.
 
 i. If it's not already displayed, select the organization that
@@ -11,3 +14,5 @@ i. If it's not already displayed, select the organization that
    the :guilabel:`Database` heading.
 
    The `Clusters <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fclusters>`__ page displays.
+
+.. :snippet-end:

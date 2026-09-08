@@ -1,3 +1,6 @@
+.. :snippet-start: steps-configure-index
+.. :snippet-output: content/search/source/includes/nav/, content/vector-search/source/includes/nav/
+
 .. step:: Click :guilabel:`Create Search Index`.
 
 .. step:: Start your index configuration.
@@ -11,3 +14,5 @@
    default. If you are creating multiple indexes, we recommend that you 
    maintain a consistent, descriptive naming convention across your 
    indexes.
+
+.. :snippet-end:

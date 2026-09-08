@@ -1,3 +1,6 @@
+.. :snippet-start: steps-avs-fts-local-set-up
+.. :snippet-output: content/search/source/includes/nav/, content/vector-search/source/includes/nav/
+
 .. step:: Install the dependencies.
 
    a. Install the :atlascli:`{+atlas-cli+} </install-atlas-cli/>`.
@@ -54,3 +57,5 @@
       .. code-block:: 
 
          mongorestore --archive=sampledata.archive --port=<port-number>
+
+.. :snippet-end:

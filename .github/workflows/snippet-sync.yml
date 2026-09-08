@@ -1,0 +1,141 @@
+name: Snippet Sync
+
+# Only snippet SOURCE docsets are listed. Destination docsets such as
+# search and vector-search have no snippet-manifest.json and no snip.js, so
+# they have nothing to sync — their generated files are written by the
+# source docset's sync.
+on:
+  pull_request:
+    paths:
+      - 'content/atlas/source/includes/**'
+      - 'content/atlas/source/snippet-manifest.json'
+      - 'content/self-managed-search/current/source/includes/**'
+      - 'content/self-managed-search/current/source/snippet-manifest.json'
+      - 'content/**/snip.js'
+
+permissions:
+  contents: write
+
+jobs:
+  # Guards the assumption the sync steps rest on: that every docset's snip.js is
+  # the same script. Discovers the copies by walking content/, so a new snippet
+  # source docset needs no change here.
+  check-snip-drift:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check snip.js copies for drift
+        run: node .github/scripts/check-snip-drift.js
+
+  sync-snippets:
+    needs: check-snip-drift
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Bluehawk
+        run: npm install -g bluehawk
+
+      - name: Detect changed docsets
+        id: detect
+        run: |
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          
+          DOCSETS=""
+          if echo "$CHANGED_FILES" | grep -q "^content/atlas/source/"; then
+            DOCSETS="$DOCSETS atlas"
+          fi
+          if echo "$CHANGED_FILES" | grep -q "^content/self-managed-search/current/source/"; then
+            DOCSETS="$DOCSETS self-managed-search"
+          fi
+          
+          echo "docsets=$DOCSETS" >> $GITHUB_OUTPUT
+          echo "Detected changed docsets: $DOCSETS"
+
+      # Docset names are matched space-padded because contains() is a substring
+      # test. Keep the padding when adding a docset: an unpadded 'search'
+      # would also match 'self-managed-search', firing the wrong sync step.
+      - name: Sync Atlas snippets
+        if: contains(format(' {0} ', steps.detect.outputs.docsets), ' atlas ')
+        run: |
+          cd content/atlas/source
+          if [ -f snippet-manifest.json ]; then
+            npm run snip -- --sync
+          else
+            echo "No manifest found, skipping sync"
+          fi
+
+      - name: Sync Self-Managed Search snippets
+        if: contains(format(' {0} ', steps.detect.outputs.docsets), ' self-managed-search ')
+        run: |
+          cd content/self-managed-search/current/source
+          if [ -f snippet-manifest.json ]; then
+            npm run snip -- --sync
+          else
+            echo "No manifest found, skipping sync"
+          fi
+
+      # Scoped to the only paths --sync writes: the manifests and the
+      # "-snippet-from-<docset>" outputs. An unscoped 'git add -A' would sweep
+      # up unrelated runner-side edits into the bot commit. Uses status rather
+      # than 'git diff' so newly generated, still-untracked outputs count as
+      # changes.
+      - name: Check for changes
+        id: changes
+        env:
+          SNIPPET_PATHS: ":(glob)content/**/snippet-manifest.json :(glob)content/**/*-snippet-from-*.rst"
+        run: |
+          echo "snippet_paths=$SNIPPET_PATHS" >> $GITHUB_OUTPUT
+          if [ -z "$(git status --porcelain -- $SNIPPET_PATHS)" ]; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "No snippet changes detected"
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "Snippet changes detected:"
+            git status --porcelain -- $SNIPPET_PATHS
+          fi
+
+      - name: Commit regenerated snippets
+        if: steps.changes.outputs.has_changes == 'true'
+        env:
+          SNIPPET_PATHS: ${{ steps.changes.outputs.snippet_paths }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A -- $SNIPPET_PATHS
+          git commit -m "Auto-regenerate snippets [skip ci]"
+          git push
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## 📋 Snippet Sync Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Docsets checked:** ${{ steps.detect.outputs.docsets }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.changes.outputs.has_changes }}" == "true" ]; then
+            echo "✅ Snippets were regenerated and committed." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ All snippets are up to date." >> $GITHUB_STEP_SUMMARY
+          fi

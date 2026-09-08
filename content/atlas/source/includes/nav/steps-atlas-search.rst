@@ -1,3 +1,6 @@
+.. :snippet-start: steps-atlas-search
+.. :snippet-output: content/search/source/includes/nav/, content/vector-search/source/includes/nav/
+
 .. step:: In |service|, go to the :guilabel:`Search & Vector Search` page for your cluster.
 
    You can go the |fts| page from the
@@ -50,4 +53,5 @@
          #. Click the :guilabel:`Search and Vector Search` link in the banner.
 
             The `Search & Vector Search <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fclusters%2FatlasSearch%2F%3Ccluster%3E%3Fdatabase%3Dsample_mflix%26collectionName%3Dusers>`__ page displays.
-            
+
+.. :snippet-end:

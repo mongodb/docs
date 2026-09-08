@@ -1,4 +1,5 @@
 .. :snippet-start: verify-mongot-health
+.. :snippet-output: /content/search/source/includes/tutorial/procedures/verify-mongot-health.rst, /content/vector-search/source/includes/quick-start/procedures/verify-mongot-health.rst
 
 .. step:: Verify the health of the ``mongot`` process.
 
