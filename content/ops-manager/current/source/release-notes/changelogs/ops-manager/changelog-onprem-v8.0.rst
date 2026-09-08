@@ -21,6 +21,11 @@ Improvements
 - Updates {+mongosh+} to 2.9.1 for all supported environments.
 - Updates the bundled MongoDB Java Driver from 4.9.1 to 5.4.0.
   This driver update removes support for MongoDB Server 3.6.
+- Uses ``majority`` write concern by default for durable writes to
+  the application database and to backup metadata stores, improving
+  durability on 5-node and 7-node deployments. For write concern
+  details for backing databases, see :ref:`write concern for backing
+  databases <backing-database-write-concern>`.
 - Improves hybrid-mode deployments by ensuring agent binary
   download URLs correctly use the hybrid base URL when available.
 - Adds support for OIDC authentication to AppDB and all backing

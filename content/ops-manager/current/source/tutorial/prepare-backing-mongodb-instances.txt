@@ -109,12 +109,21 @@ of the replica set on the same host as |onprem|.
 
 .. important:: Backing Databases with Fewer Than Three Data-Bearing Members
 
-   When writing to its :term:`backing databases`, |onprem| uses the
-   :guilabel:`Replica Acknowledged` (``w:2``)
-   :ref:`write concern <write-operations-write-concern>`. This write
-   concern reports a write as successful *only* after the primary *and*
-   one secondary acknowledge that write. This means that if a backing
-   database loses one of the two data-bearing members, MongoDB stops
+   Starting in |onprem| 8.0.26, |onprem| uses ``majority``
+   :ref:`write concern <write-operations-write-concern>` by default
+   for durable writes to its :term:`backing databases`, including
+   the :term:`application database`. Non-durable writes, such as
+   logs and metrics, continue to use the :guilabel:`Replica
+   Acknowledged` (``w:2``) write concern. To revert to the
+   pre-8.0.26 behavior, where some durable writes used ``w:2``, set
+   ``mms.writeConcern.mode`` to ``legacy``. Only use ``legacy``
+   mode if you experience a performance drop after upgrading.
+
+   With either write concern, a write is reported as successful
+   *only* after the primary *and* one other data-bearing member
+   acknowledge it when the replica set has fewer than three
+   data-bearing members. This means that if a backing database with
+   only two data-bearing members loses one of them, MongoDB stops
    write operations.
 
    If you lack storage capacity for three data-bearing members, you
