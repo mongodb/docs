@@ -6,7 +6,7 @@ new BsonArray(Arrays.asList(
                 .append("path", new BsonString("patientRecord.ssn"))
                 .append("bsonType", new BsonString("string"))
                 .append("queries", new BsonDocument()
-                        .append("queryType", new BsonString("prefixPreview"))
+                        .append("queryType", new BsonString("prefix"))
                         .append("strMinQueryLength", new BsonInt32(3))
                         .append("strMaxQueryLength", new BsonInt32(10))
                         .append("caseSensitive", new BsonBoolean(true))

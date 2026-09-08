@@ -6,10 +6,10 @@ new BsonArray(Arrays.asList(
                 .append("path", new BsonString("patientRecord.ssn"))
                 .append("bsonType", new BsonString("string"))
                 .append("queries", new BsonDocument()
-                        .append("queryType", new BsonString("substringPreview"))
+                        .append("queryType", new BsonString("substring"))
                         .append("strMaxLength", new BsonInt32(12))
                         .append("strMinQueryLength", new BsonInt32(3))
-                        .append("strMaxQueryLength", new BsonInt32(10))
+                        .append("strMaxQueryLength", new BsonInt32(6))
                         .append("caseSensitive", new BsonBoolean(true))
                         .append("diacriticSensitive", new BsonBoolean(true))))));
 // end-enable-substring
@@ -19,7 +19,7 @@ Document filter = new Document("$expr",
     new Document("$encStrContains", 
         new Document()
             .append("input", "$patientRecord.ssn")
-            .append("substring", "-65-432")));
+            .append("substring", "-65-4")));
             
 Patient findResult = collection.find(filter).first();
 
