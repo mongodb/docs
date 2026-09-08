@@ -1,5 +1,5 @@
 After you install the |application| to your |onprem| hosts, you
-must :ref:`install {+mdbagent+}s <automation-agent-install-steps-manage>`
+must :ref:`install {+mdbagent+}s <install-agent>`
 on the hosts that will run your MongoDB deployments.
 
 You can :ref:`Enable Application Database Monitoring
