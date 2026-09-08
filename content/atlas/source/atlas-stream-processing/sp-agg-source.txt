@@ -1398,6 +1398,71 @@ Each event includes a timestamp, the full document change, an
 source database and collection, so you can distinguish which collection
 produced each change.
 
+Cluster-wide Change Stream Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation ingests data from the
+``cluster-changestream-connection`` source, which connects to an
+{+service+} cluster loaded with the :ref:`sample-mflix` dataset, and
+writes to the ``cluster-changestream-sink-connection`` destination,
+which connects to a separate {+service+} cluster. To learn how to
+create a stream processing workspace and add a connection to an
+{+service+} cluster to the connection registry, see
+:ref:`atlas-sp-quickstart`. This aggregation runs two stages to open a
+cluster-wide change stream on the source cluster and record changes to
+the ``events`` collection in the ``cluster_changes`` database on the
+destination cluster. This ``$source`` stage omits ``db`` and ``coll``,
+so it reports changes from every database and collection on the source
+cluster, rather than from a single collection or database.
+
+1. The :pipeline:`$source` stage connects to the
+   ``cluster-changestream-connection`` source and opens a change
+   stream against the entire source cluster. The
+   ``config.startAtOperationTime`` field specifies that the stream
+   processor should begin reporting changes that occur on or after a
+   specified time.
+
+#. The :pipeline:`$merge` stage writes the change stream documents
+   to an {+service+} collection named ``events`` in the
+   ``cluster_changes`` database on the destination cluster. If no
+   such database or collection exists, {+service+} creates them.
+
+.. literalinclude:: /includes/examples/sp-agg-source/cluster-changestream-pipeline.json
+   :language: json
+   :copyable: true
+
+The following :binary:`~bin.mongosh` command inserts a document into
+the ``movies`` collection in the ``sample_mflix`` database on the
+source cluster:
+
+.. literalinclude:: /includes/examples/sp-agg-source/cluster-changestream-insert.js
+   :language: javascript
+   :copyable: true
+
+After the document is inserted, the stream processor writes the
+change stream event document to the ``cluster_changes.events``
+collection on the destination cluster.
+
+To view the documents in the resulting ``cluster_changes.events``
+collection, run the following commands against your destination
+cluster. To connect, see :ref:`connect-mongo-shell`.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/examples/sp-agg-source/cluster-changestream-find.js
+      :language: javascript
+
+   .. output:: /includes/examples/sp-agg-source/cluster-changestream-find-result.sh
+      :language: json
+      :visible: false
+
+The ``ns`` field in the output document shows that the change
+originates from the ``sample_mflix.movies`` insert on the source
+cluster. The change stream aggregation pipeline reflects this change
+to the ``cluster_changes.events`` collection on the destination
+cluster.
+
 Document Array Example
 ~~~~~~~~~~~~~~~~~~~~~~
 
