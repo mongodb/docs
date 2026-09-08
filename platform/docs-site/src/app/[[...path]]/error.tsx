@@ -1,15 +1,10 @@
 'use client';
 
-import { Body } from '@leafygreen-ui/typography';
-import { css } from '@leafygreen-ui/emotion';
-import { theme } from '@/styles/theme';
+import { Text, TextStyle } from '@via-ds/components/typography';
+import { Size } from '@via-ds/components/types';
 import { ErrorPage } from '@/templates/error-template';
 import { getBasePath } from '@/utils/base-path';
-
-const centeredImageStyle = css`
-  align-self: center;
-  margin-top: ${theme.size.large};
-`;
+import styles from './error.module.scss';
 
 export default function Error() {
   return (
@@ -17,9 +12,11 @@ export default function Error() {
       imageSrc={`${getBasePath()}/500.png`}
       imageAlt="Internal server error"
       title="Something went wrong on our end."
-      imageStyle={centeredImageStyle}
+      imageStyle={styles.centeredImage}
     >
-      <Body>Try reloading the page.</Body>
+      <Text textStyle={TextStyle.body} size={Size.Large}>
+        Try reloading the page.
+      </Text>
     </ErrorPage>
   );
 }

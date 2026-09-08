@@ -1,92 +1,20 @@
 'use client';
 
-import { palette } from '@leafygreen-ui/palette';
-import { css, cx } from '@leafygreen-ui/emotion';
-import styled from '@emotion/styled';
-import Button from '@leafygreen-ui/button';
-import { H2 } from '@leafygreen-ui/typography';
-import { theme } from '@/styles/theme';
+import { clsx } from 'clsx';
+import { Button } from '@via-ds/components/button';
+import { Text, TextStyle } from '@via-ds/components/typography';
 import Breadcrumbs from '@/mdx-components/Breadcrumbs';
 import { useRouter } from 'next/navigation';
 import { getBasePath } from '@/utils/base-path';
-
-const StyledMain = styled.main`
-  max-width: 100vw;
-  .body {
-    margin: ${theme.size.default} ${theme.size.xlarge} ${theme.size.xlarge};
-    @media ${theme.screenSize.upToSmall} {
-      margin: ${theme.size.default} ${theme.size.medium} ${theme.size.xlarge};
-    }
-    overflow-x: auto;
-  }
-`;
-
-const ContentBox = styled.div`
-  max-width: 560px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-`;
-
-const ImageContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-content: center;
-  margin-top: ${theme.size.xxlarge};
-  @media ${theme.screenSize.upToSmall} {
-    margin-top: ${theme.size.medium};
-  }
-  margin-bottom: ${theme.size.default};
-  img {
-    @media ${theme.screenSize.upToSmall} {
-      width: 270px;
-      height: auto;
-    }
-  }
-`;
+import styles from './feature-not-available.module.scss';
 
 const FeatureNotAvailImage = () => {
   return (
-    <ImageContainer>
+    <div className={styles.imageContainer}>
       <img src={`${getBasePath()}/feature-not-avail.svg`} alt="Feature not available" height={240} width={360} />
-    </ImageContainer>
+    </div>
   );
 };
-
-const titleStyling = css`
-  --color: ${palette.black};
-  .dark-theme & {
-    --color: white;
-  }
-  color: var(--color);
-  text-align: center;
-`;
-
-const buttonStyling = css`
-  --background-color: ${palette.gray.light3};
-  --color: ${palette.black};
-  .dark-theme & {
-    --background-color: ${palette.gray.dark2};
-    --color: white;
-  }
-  background-color: var(--background-color);
-  color: var(--color);
-`;
-
-const LinkContainer = styled.div`
-  margin-top: ${theme.size.large};
-`;
-
-const FeatureNotAvailContainer = styled.div`
-  align-items: center;
-  display: flex;
-  flex-flow: column;
-  justify-content: center;
-  margin-bottom: ${theme.size.xxlarge};
-  @media ${theme.screenSize.upToSmall} {
-    margin-bottom: 72px;
-  }
-`;
 
 const FeatureNotAvailable = () => {
   const router = useRouter();
@@ -102,24 +30,23 @@ const FeatureNotAvailable = () => {
   };
 
   return (
-    <StyledMain>
-      <div className="body">
+    <main className={styles.main}>
+      <div className={clsx('body', styles.bodyLayout)}>
         <Breadcrumbs />
-        <FeatureNotAvailContainer>
+        <div className={styles.container}>
           <FeatureNotAvailImage />
-          <ContentBox>
-            <H2 className={cx(titleStyling)}>
+          <div className={styles.contentBox}>
+            <Text textStyle={TextStyle.heading2} elementType="h1" className={styles.title}>
               We&rsquo;re sorry, this page isn&rsquo;t available in the version you selected.
-            </H2>
-            <LinkContainer>
-              <Button variant="default" className={cx(buttonStyling)} onClick={goBack}>
-                Go back to previous page
-              </Button>
-            </LinkContainer>
-          </ContentBox>
-        </FeatureNotAvailContainer>
+            </Text>
+            <div className={styles.linkContainer}>
+              {/* React Aria exposes the press handler as `onPress`; `onClick` is a discouraged alias. */}
+              <Button onPress={goBack}>Go back to previous page</Button>
+            </div>
+          </div>
+        </div>
       </div>
-    </StyledMain>
+    </main>
   );
 };
 

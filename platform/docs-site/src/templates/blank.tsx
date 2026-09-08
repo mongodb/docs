@@ -1,13 +1,14 @@
 'use client';
 
+import { clsx } from 'clsx';
 import landingStyles from '@/styles/landing.module.css';
-import { notFoundContainerStyle, wrapperStyle } from '@/templates/error-template';
+import errorStyles from '@/templates/error-template.module.scss';
+import styles from '@/templates/blank.module.scss';
 import type { BaseTemplateProps } from './index';
-import { cx } from '@leafygreen-ui/emotion';
 
 const BlankTemplate = ({ children }: BaseTemplateProps) => (
-  <main className={cx(wrapperStyle, landingStyles.fullWidth)}>
-    <div className={notFoundContainerStyle}>{children}</div>
+  <main className={clsx(errorStyles.wrapper, landingStyles.fullWidth)}>
+    <div className={clsx(errorStyles.notFoundContainer, styles.content)}>{children}</div>
   </main>
 );
 
