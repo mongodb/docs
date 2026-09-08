@@ -21,7 +21,9 @@
    :class: singlecol
    
 This page explores the results of our {+avs+} :ref:`performance benchmark
-<avs-benchmark-overview>`.
+<avs-benchmark-overview>`. MongoDB offers a range of solutions that support
+various implementation needs. Customers can choose the levels of performance
+and accuracy that are suited to their specific business setup.
 
 .. _avs-benchmark-results-summary:
 
@@ -32,10 +34,10 @@ Summary of Results
   {+avs+} with quantization configured retains 90-95% 
   accuracy with < 50ms query latency.
   
-- Binary quantization is slower when the number of candidates requested 
-  is in the hundreds due to the additional cost of rescoring with full 
-  fidelity vectors. However, at ~1/4 the price of serving the index, it might 
-  be a preferable option for many large scale workloads.
+- Binary quantization offers a cheaper solution, at about one fourth the price of
+  serving the index. Since it rescores with full-fidelity vectors, it can be a
+  preferable option for many large scale workloads, though we recommend running
+  tests on the sample data set to ensure the performance fits your needs.
   
 - We recommend over 1024 dimensions when running 
   larger workloads with quantization.
@@ -77,14 +79,15 @@ approaching the asymptote of scalar quantization, and in some cases
 passing it, at the cost of higher latency, particularly above 
 ``numCandidates`` of 1000.
 
-Generally lower values of ``limit`` are harder to get closer to 100% accuracy 
-due to the top results being harder to pinpoint, and often might 
-require higher ``numCandidates`` to achieve better results. This is particularly 
-observable in the binary quantization plot. We can also observe that lower 
-dimensional vectors 256d and 512d particularly suffer at a large scale with 
-either form of quantization. 256d never exceeds 70% recall and 512d never 
-exceeds 80% recall in the limit ``10`` tests, with limit ``100`` requiring higher 
-values ``numCandidates`` to reach the 90-95% target zone.
+Lower values of ``limit`` generally require higher ``numCandidates`` to
+approach 100% accuracy, because the query is more selective about the very top
+results. This effect is particularly visible in the binary quantization plot.
+Higher-dimensional vectors (1024d and above) reach the 90-95% target range at
+lower ``numCandidates``, as the richer representation makes near neighbors
+easier to distinguish. The tests that ``limit`` the results to ``100`` reach
+the 90-95% target range with lower ``numCandidates`` than the tests that
+``limit`` the results to ``10``, because the larger result set gives the search
+more opportunities to surface relevant neighbors.
 
 Given this information, we determined that when working with a large 
 dataset, we recommend having dimensionality of at least 1024d and applying 
@@ -142,9 +145,14 @@ for ~500k items of the 15.3M items are in the Pet Supplies Category (~3% of the 
 
    To view the full chart, see the `Claude artifact <https://claude.ai/public/artifacts/10af9b38-3aca-4a1f-ac55-17f151e850dd>`__.
 
-We can see that the 3% selective filter can cause queries to be significantly 
-more expensive. For binary quantization at lower ``limit`` values, this 
-was roughly 4x as expensive to achieve 90-95% recall compared to the unfiltered 
+A selective filter is a filter that matches only a small slice of the data (in this
+case, ~3%). Because the search engine must now find nearest neighbors within this
+small subset, it has to explore more of the index and evaluate more candidates to
+reach the same recall. Each query does more work than an unfiltered query.
+
+As anticipated, we can see that the 3% selective filter can cause queries to
+do more work. For binary quantization at lower ``limit`` values, this required
+roughly 4x as much work to achieve 90-95% recall compared to the unfiltered
 queries.
 
 Future improvements in Lucene 10, which support Acorn-1 search strategies for 
@@ -173,18 +181,17 @@ selected by choosing values that allow 90-95% recall to be achieved:
 
    To view the full chart, see the `Claude artifact <https://claude.ai/public/artifacts/a60b1ed9-1b87-4806-b6cc-63594def621b>`__.
 
-We observe that scalar quantization achieves substantially higher :abbr:`QPS (queries per second)`
-at all values of limit, likely because less work is being done per query with 
-lower ``numCandidates`` and because rescoring is not being performed. We
-observe substantial CPU bottlenecks occurring, as indicated by the concurrency 
-10 and concurrency 100 plots generally being very close to each other, 
-indicating that higher latency would be observed.
+We observe that scalar quantization achieves higher :abbr:`QPS (queries per second)`
+at all values of ``limit``, likely because each query can complete with lower
+``numCandidates`` and without rescoring. At higher concurrencies, the
+:abbr:`QPS (queries per second)` curves for concurrency 10 and concurrency 100 are
+close together, suggesting that the system is efficiently using available CPU resources,
+and that extra concurrency primarily affects latency.
 
 One exceptional data point is limit ``10``, concurrency ``100`` for scalar quantization 
-yielding significantly higher QPS. This is likely because of the lack of 
-rescoring and lower ``limit`` values means fewer comparisons are performed for this 
-query, allowing each request to return more quickly and make the cores 
-available to serve other queries.
+yielding significantly higher QPS. This is likely because no rescoring and lower
+``limit`` values means fewer comparisons are performed for this query, allowing each
+request to return more quickly and make the cores available to serve other queries.
 
 Scaling out the number of available vCPUs to serve requests, either by scaling 
 up the Search Node tier or scaling up the number of Search Nodes from the 
