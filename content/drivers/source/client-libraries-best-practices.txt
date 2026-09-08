@@ -1,0 +1,178 @@
+.. _client-libraries-best-practices:
+
+===============================
+Client Libraries Best Practices
+===============================
+
+.. meta::
+   :description: Learn best practices for developing with MongoDB client libraries, including how to prevent injection attacks and safely handle untrusted input in your application.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page describes best practices for developing your application
+when you use MongoDB client libraries. Follow these recommendations
+to reduce the risk of injection attacks and other security issues
+that can arise when your application handles untrusted input.
+
+.. _best-practices-srv-connection-strings:
+
+Use SRV Connection Strings
+--------------------------
+
+Use the ``mongodb+srv://`` connection string format instead of the
+standard ``mongodb://`` format when your deployment supports it. The
+``+srv`` format automatically enables Transport Layer Security (TLS)
+for the connection,
+encrypting traffic between your application and your MongoDB
+deployment by default. The standard format doesn't enable TLS
+unless you set it explicitly.
+
+The ``+srv`` format also resolves the full list of seed hosts from a
+DNS SRV record. Your connection string doesn't need updates when
+the underlying hosts change.
+
+.. warning::
+
+   Drivers trust SRV lookup results that share the same parent
+   domain as the original seed hostname. For example, a lookup for
+   ``foo.example.com`` may return ``node1.foo.example.com``. It may
+   also return ``node1.example.com``, which shares the
+   ``example.com`` parent domain even though it isn't under
+   ``foo.example.com``.
+
+   A malicious or compromised DNS server can try to redirect
+   your application to an attacker-controlled host during
+   connection setup. The parent domain constraint limits this
+   risk. Verify that the parent domain of your seed hostname
+   resolves only to hosts in your cluster, or to clusters
+   controlled by the same trusted entity.
+
+To learn more, see :ref:`SRV Connection Format
+<connections-dns-seedlist>` and :manual:`Connection Strings
+</reference/connection-string/>` in the {+mdb-server+} manual.
+
+.. _best-practices-validate-json-bson-input:
+
+Validate Untrusted Input Before Converting JSON to BSON
+-------------------------------------------------------
+
+Many client libraries offer a convenience method that converts a
+JSON string into a BSON document, for example, through Extended
+JSON. If your application passes the resulting document into a
+query, update, or command without validation, an attacker can
+change the meaning of that operation.
+
+Consider an API endpoint that accepts a JSON request body and
+expects a ``name`` field containing a string value. Assume the endpoint
+converts the request body to BSON and uses the result in a query
+filter without validation. An attacker can submit an object in
+place of the expected string, as shown in the following example:
+
+.. code-block:: json
+   :copyable: false
+
+   {"name": {"$ne": null}}
+
+MongoDB evaluates the ``$ne`` field as a query operator instead of
+as a literal value. Instead of matching a single document by name,
+this filter matches every document with a non-null ``name`` field,
+exposing more data than intended.
+
+Concatenating untrusted input into a JSON string before converting
+it to BSON creates the same risk. The following C++ example builds a
+query filter by using string concatenation to insert a user-supplied
+value into a JSON string:
+
+.. code-block:: cpp
+   :copyable: false
+
+   std::string json_query =
+       "{ \"name\": \"" + user_supplied_name + "\" }";
+   bsoncxx::document::value filter =
+       bsoncxx::from_json(json_query);
+   mongocxx::cursor cursor = collection.find(filter.view());
+
+If ``user_supplied_name`` contains a double quote or a JSON
+operator, the resulting string can escape the intended field value
+and inject arbitrary query syntax.
+
+This risk applies whenever a JSON string originates from a user, an
+API request, or another source that your application does not
+control. To reduce this risk, type-check and validate untrusted
+input before converting it to BSON. Many of the drivers provide a
+typed document API or query builder that you can use to build
+queries. You can also apply a JSON Schema or similar validation
+layer within your application before you accept JSON input for
+conversion.
+
+The following example builds the same filter as the preceding
+concatenation example, but uses a typed document builder instead:
+
+.. code-block:: cpp
+   :copyable: false
+
+   bsoncxx::builder::basic::document filter_builder;
+   filter_builder.append(
+       bsoncxx::builder::basic::kvp("name", user_supplied_name));
+   mongocxx::cursor cursor = collection.find(filter_builder.view());
+
+Because the builder treats ``user_supplied_name`` as a value rather
+than as part of a string to parse, the value can't alter the
+structure of the query.
+
+Building queries as BSON documents instead of strings avoids
+traditional SQL injection, since attackers have no query string to
+manipulate. To learn more, see
+:manual:`FAQ: MongoDB Fundamentals </faq/fundamentals/>` in the
+{+mdb-server+} manual. To learn
+more about Extended JSON types and conversions, see
+:manual:`MongoDB Extended JSON
+</reference/mongodb-extended-json/>` in the {+mdb-server+} manual.
+
+.. _best-practices-restrict-server-side-js:
+
+Restrict Server-Side JavaScript Execution
+-----------------------------------------
+
+MongoDB supports operators and commands that execute
+JavaScript, including ``$where``,
+``$function``, ``$accumulator``, and :dbcommand:`mapReduce`. When
+your application builds one of these expressions from user input,
+the server executes that input as code. This behavior creates the
+same class of risk as passing untrusted input to an ``eval``
+function in application code.
+
+To reduce this risk, follow these recommendations:
+
+- **Avoid string concatenation**: Don't build ``$where`` expressions,
+  ``$function`` bodies, or ``$accumulator`` functions by
+  concatenating or interpolating untrusted input into a JavaScript
+  string. Use standard query operators instead, since MongoDB
+  evaluates them without executing JavaScript.
+- **Disable server-side scripting**: Disable server-side scripting
+  if your application doesn't use ``$where``, ``$function``,
+  ``$accumulator``, or ``mapReduce``. Set the
+  :setting:`security.javascriptEnabled` configuration option to
+  ``false``, or start the ``mongod`` or ``mongos`` process and pass the
+  ``--noscripting`` option.
+
+To learn more about securing server-side JavaScript execution, see
+:ref:`Run MongoDB with Secure Configuration Options
+<security-checklist-javascript>`.
+
+To learn more about the ``$where`` operator, see
+:manual:`$where </reference/operator/query/where/>` in the
+{+mdb-server+} manual.
+
+.. _best-practices-additional-information:
+
+Additional Information
+----------------------
+
+For a list of best practices on securing self-managed deployments,
+see the :ref:`Security Checklist <security-checklist>` in the
+{+mdb-server+} manual.

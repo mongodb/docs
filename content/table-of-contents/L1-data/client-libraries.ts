@@ -362,6 +362,18 @@ const tocData: TocItem[] = [
       },
     ],
   },
+  {
+    label: 'Resources',
+    contentSite: 'drivers',
+    group: true,
+    items: [
+      {
+        label: 'Client Libraries Best Practices',
+        contentSite: 'drivers',
+        url: '/docs/drivers/client-libraries-best-practices',
+      },
+    ],
+  },
 ];
 
 export default tocData;
