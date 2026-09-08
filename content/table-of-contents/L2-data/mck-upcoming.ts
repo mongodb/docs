@@ -172,6 +172,26 @@ const mckUpcoming: TocItem[] = [
         url: '/docs/kubernetes/:version/tutorial/deploy-om-multi-cluster',
       },
       {
+        label: 'Back Up the Application Database',
+        contentSite: 'mck',
+        url: '/docs/kubernetes/:version/tutorial/om-appdb-backup',
+      },
+      {
+        label: 'Deploy with an External Application Database',
+        contentSite: 'mck',
+        url: '/docs/kubernetes/:version/tutorial/deploy-om-external-appdb',
+      },
+      {
+        label: 'Migrate to an External Application Database',
+        contentSite: 'mck',
+        url: '/docs/kubernetes/:version/tutorial/migrate-appdb-to-external',
+      },
+      {
+        label: 'Return to an Internal Application Database',
+        contentSite: 'mck',
+        url: '/docs/kubernetes/:version/tutorial/migrate-appdb-to-internal',
+      },
+      {
         label: 'Upgrade',
         contentSite: 'mck',
         url: '/docs/kubernetes/:version/tutorial/upgrade-om-version',

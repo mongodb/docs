@@ -1,0 +1,304 @@
+.. _migrate-appdb-to-external:
+
+=========================================================
+Migrate an Application Database to an External Deployment
+=========================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: appdb, statefulset, forward migration
+   :description: Migrate an internally managed Ops Manager Application Database to an external MongoDB custom resource so that Ops Manager can back it up and restore it.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can convert an |onprem| resource that uses an internally managed
+{+appdb+} to one that uses an **external** {+appdb+}: a MongoDB custom
+resource with ``spec.role`` set to ``AppDB``. This lets
+|onprem| back up and restore the {+appdb+}. To learn more, see
+:ref:`om-appdb-backup`.
+
+The migration re-points ownership of the existing {+appdb+}
+StatefulSet and its |k8s-pvs| from the |onprem| resource to the
+MongoDB resource. The |k8s-op-short| doesn't move or recreate your
+data, and it doesn't restart the |onprem| pods.
+
+.. _migrate-appdb-to-external-how:
+
+How the Migration Works
+-----------------------
+
+The |onprem| resource starts with an internally managed {+appdb+}, and
+the |k8s-op-short| owns a StatefulSet named
+``<primary-om-name>-db``. The migration proceeds as follows:
+
+1. You create a MongoDB resource with ``spec.role`` set to
+   ``AppDB`` and the same name as the StatefulSet, in a project that a
+   **management** |onprem| instance manages. The MongoDB resource
+   can't take ownership of the StatefulSet yet, so it stays in the
+   ``Pending`` phase with a message that it can't take ownership of
+   the {+appdb+} StatefulSet.
+
+2. You add :opsmgrkube:`spec.externalApplicationDatabaseRef` to the
+   |onprem| resource. The |k8s-op-short| detaches the StatefulSet by
+   removing the |onprem| resource's owner reference and marking the
+   StatefulSet as ready for migration. The MongoDB resource then takes
+   ownership of it.
+
+Because the |k8s-op-short| computes the same connection string as
+before, which uses the same hostnames, the |onprem| pods don't
+restart.
+
+Prerequisites
+-------------
+
+Before you begin, complete the following tasks:
+
+- Install the |k8s-op-short| and ``kubectl``. To learn more, see
+  :ref:`install-k8s-operator`.
+
+- Deploy a primary |onprem| resource that uses an internally managed
+  {+appdb+}. This resource sets
+  :opsmgrkube:`spec.applicationDatabase`, and the |k8s-op-short| owns
+  a StatefulSet named ``<primary-om-name>-db``. To learn more, see
+  :ref:`deploy-om-container`.
+
+- Deploy a management |onprem| resource that is in the ``Running``
+  phase and that owns the project for the external {+appdb+}. To learn
+  more, see :ref:`deploy-om-external-appdb`.
+
+- Confirm that the |k8s-op-short| created the programmatic |api| key
+  secret for the management |onprem| resource. The |k8s-op-short|
+  names this secret
+  ``<namespace>-<management-om-name>-admin-key``.
+
+Considerations
+--------------
+
+Review the following considerations before you migrate:
+
+- The {+appdb+} version that you set on the MongoDB resource must
+  match the version that the internally managed {+appdb+} runs, and it
+  must be a MongoDB version that the management |onprem| instance
+  offers.
+
+- The |k8s-op-short| doesn't support
+  ``spec.applicationDatabase.passwordSecretKeyRef`` during
+  migration. The |k8s-op-short| generates a new password, and it
+  rotates any password that you provided.
+
+- The {+appdb+} can be unavailable for one to two minutes if the
+  MongoDB resource configuration differs from the internally managed
+  {+appdb+} configuration, such as a different pod template or a
+  different set of containers. If the two configurations are
+  semantically identical, the {+appdb+} remains available.
+
+- The |k8s-op-short| supports migration on a single |k8s| cluster
+  only.
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Set the environment variables for the migration.
+
+      .. code-block:: sh
+
+         export K8S_CTX="<your-kube-context>"
+         export MDB_NS="mongodb"
+
+         export MANAGEMENT_OM_NAME="management-om"
+         export PRIMARY_OM_NAME="primary-om"
+
+         export APPDB_NAME="${PRIMARY_OM_NAME}-db"
+         export APPDB_VERSION="8.0.5-ent"
+
+         export MANAGEMENT_OM_URL="http://${MANAGEMENT_OM_NAME}-svc.${MDB_NS}.svc.cluster.local:8080"
+         export MANAGEMENT_OM_ADMIN_KEY_SECRET="${MDB_NS}-${MANAGEMENT_OM_NAME}-admin-key"
+
+         export APPDB_PROJECT_CONFIGMAP="${APPDB_NAME}-config"
+         export APPDB_PROJECT_NAME="external-appdb"
+
+   .. step:: Confirm the starting state.
+
+      a. Confirm that the primary |onprem| resource and its internally
+         managed {+appdb+} are in the ``Running`` phase:
+
+         .. code-block:: sh
+
+            kubectl get om "${PRIMARY_OM_NAME}" --context "${K8S_CTX}" -n "${MDB_NS}" \
+              -o jsonpath='{.status.opsManager.phase} / appdb={.status.applicationDatabase.phase}{"\n"}'
+
+      #. Confirm that the |onprem| resource owns the {+appdb+}
+         StatefulSet:
+
+         .. code-block:: sh
+
+            kubectl get statefulset "${APPDB_NAME}" --context "${K8S_CTX}" -n "${MDB_NS}" \
+              -o jsonpath='{range .metadata.ownerReferences[*]}{.kind}/{.name}{"\n"}{end}'
+
+         The command returns
+         ``MongoDBOpsManager/${PRIMARY_OM_NAME}``.
+
+   .. step:: Create the project ConfigMap for the external {+appdb+}.
+
+      .. code-block:: sh
+
+         kubectl create configmap "${APPDB_PROJECT_CONFIGMAP}" \
+           --context "${K8S_CTX}" -n "${MDB_NS}" \
+           --from-literal=baseUrl="${MANAGEMENT_OM_URL}" \
+           --from-literal=projectName="${APPDB_PROJECT_NAME}" \
+           --from-literal=orgId=""
+
+   .. step:: Create the MongoDB resource for the external {+appdb+}.
+
+      Give the resource the same name as the existing {+appdb+}
+      StatefulSet.
+
+      .. code-block:: sh
+
+         kubectl apply --context "${K8S_CTX}" -n "${MDB_NS}" -f - <<EOF
+         apiVersion: mongodb.com/v1
+         kind: MongoDB
+         metadata:
+           name: ${APPDB_NAME}
+         spec:
+           members: 3
+           version: ${APPDB_VERSION}
+           type: ReplicaSet
+           role: AppDB
+           opsManager:
+             configMapRef:
+               name: ${APPDB_PROJECT_CONFIGMAP}
+           credentials: ${MANAGEMENT_OM_ADMIN_KEY_SECRET}
+           persistent: true
+           security:
+             authentication:
+               enabled: true
+               modes: ["SCRAM"]
+               ignoreUnknownUsers: true
+         EOF
+
+   .. step:: Confirm that the MongoDB resource waits for ownership.
+
+      Until the |onprem| resource releases the StatefulSet, the
+      MongoDB resource stays in the ``Pending`` phase. This is
+      expected and isn't an error.
+
+      .. code-block:: sh
+
+         kubectl wait --for=jsonpath='{.status.phase}'=Pending \
+           mdb/"${APPDB_NAME}" --context "${K8S_CTX}" -n "${MDB_NS}" --timeout=300s
+
+         kubectl get mdb "${APPDB_NAME}" --context "${K8S_CTX}" -n "${MDB_NS}" \
+           -o jsonpath='{.status.message}{"\n"}'
+
+      The status message reports that the resource can't take
+      ownership of the {+appdb+} StatefulSet.
+
+   .. step:: Add the external {+appdb+} reference to the |onprem| resource.
+
+      .. code-block:: sh
+
+         kubectl patch om "${PRIMARY_OM_NAME}" \
+           --context "${K8S_CTX}" -n "${MDB_NS}" \
+           --type merge \
+           -p "{\"spec\":{\"externalApplicationDatabaseRef\":{\"name\":\"${APPDB_NAME}\",\"kind\":\"MongoDB\"}}}"
+
+      You can remove :opsmgrkube:`spec.applicationDatabase` in the
+      same patch. Leaving it in place has no effect: once you set
+      :opsmgrkube:`spec.externalApplicationDatabaseRef`, the
+      |k8s-op-short| stops managing an internal {+appdb+} for this
+      resource.
+
+   .. step:: Wait for the migration to finish.
+
+      .. code-block:: sh
+
+         kubectl wait --for=jsonpath='{.status.phase}'=Running \
+           mdb/"${APPDB_NAME}" --context "${K8S_CTX}" -n "${MDB_NS}" --timeout=1200s
+
+         kubectl wait --for=jsonpath='{.status.opsManager.phase}'=Running \
+           om/"${PRIMARY_OM_NAME}" --context "${K8S_CTX}" -n "${MDB_NS}" --timeout=1800s
+
+   .. step:: Verify the migration.
+
+      a. Confirm that the MongoDB resource owns the {+appdb+}
+         StatefulSet:
+
+         .. code-block:: sh
+
+            kubectl get statefulset "${APPDB_NAME}" --context "${K8S_CTX}" -n "${MDB_NS}" \
+              -o jsonpath='{range .metadata.ownerReferences[*]}{.kind}/{.name}{"\n"}{end}'
+
+         The command returns ``MongoDB/${APPDB_NAME}``.
+
+      #. Confirm that the |onprem| resource reports its {+appdb+} as
+         ``Disabled``, which means that the |k8s-op-short| no longer
+         manages an internal {+appdb+} for it:
+
+         .. code-block:: sh
+
+            kubectl get om "${PRIMARY_OM_NAME}" --context "${K8S_CTX}" -n "${MDB_NS}" \
+              -o jsonpath='{.status.applicationDatabase.phase}{"\n"}'
+
+      #. Confirm that the |onprem| pods didn't restart by checking
+         their age and restart counts:
+
+         .. code-block:: sh
+
+            kubectl get pods --context "${K8S_CTX}" -n "${MDB_NS}"
+
+Common Migration Issues
+-----------------------
+
+The MongoDB Resource Reports a Version Error
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the MongoDB resource reports ``Failed`` with a message that the
+MongoDB version isn't available, set :setting:`spec.version` to a
+version that the management |onprem| instance offers, and keep the
+|onprem| version and the {+appdb+} version on the same major version.
+
+The MongoDB Resource Stays Pending After the Patch
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The |k8s-op-short| must detach the StatefulSet before the MongoDB
+resource can take ownership of it. Confirm that you applied
+:opsmgrkube:`spec.externalApplicationDatabaseRef` to the primary
+|onprem| resource, and that the value of
+:opsmgrkube:`spec.externalApplicationDatabaseRef.name` is exactly
+``<primary-om-name>-db``.
+
+The MongoDB Resource Reports a Project Error
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the MongoDB resource stays in the ``Pending`` phase with a project
+or registration error, the management |onprem| public |api| might not
+have been ready when you created the resource. Confirm that the
+management |onprem| resource is in the ``Running`` phase and that its
+|api| answers requests, then reconcile the resource again.
+
+The Ops Manager Pods Restart During the Migration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the |onprem| pods restart, the computed connection string changed.
+For a replica set that uses the default port, the connection string is
+identical before and after the migration. The |k8s-op-short| doesn't
+support non-default ports for this migration.
+
+Next Steps
+----------
+
+- To back up the external {+appdb+}, enable backup on the MongoDB
+  resource in the project that the management |onprem| instance
+  manages. To learn more, see :ref:`back-up-mdb-resources`.
+
+- To reverse this migration, see
+  :ref:`migrate-appdb-to-internal`.

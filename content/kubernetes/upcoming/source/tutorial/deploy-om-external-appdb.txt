@@ -1,0 +1,371 @@
+.. _deploy-om-external-appdb:
+
+========================================================
+Deploy Ops Manager with an External Application Database
+========================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: appdb, statefulset, ops manager backup
+   :description: Deploy an Ops Manager resource that uses an external Application Database, a MongoDB custom resource that a second Ops Manager instance manages and backs up.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can deploy an |onprem| resource that uses an **external**
+{+appdb+}: a MongoDB custom resource with ``spec.role`` set to
+``AppDB``, which a second |onprem| instance manages as a project. This
+lets |onprem| back up and restore the {+appdb+}. To learn more, see
+:ref:`om-appdb-backup`.
+
+This procedure deploys a new |onprem| instance. To convert an existing
+|onprem| instance that uses an internally managed {+appdb+}, see
+:ref:`migrate-appdb-to-external`.
+
+This procedure deploys the following resources:
+
+- A **management** |onprem| instance with its own internally managed
+  {+appdb+}. This instance manages the project that contains the
+  external {+appdb+}.
+
+- An external {+appdb+}: a MongoDB replica set with
+  ``spec.role`` set to ``AppDB``, named
+  ``<primary-om-name>-db``.
+
+- A **primary** |onprem| instance that omits
+  :opsmgrkube:`spec.applicationDatabase` and references the external
+  {+appdb+} with
+  :opsmgrkube:`spec.externalApplicationDatabaseRef`.
+
+Prerequisites
+-------------
+
+Before you begin, complete the following tasks:
+
+- Deploy a |k8s| cluster with a default ``StorageClass``.
+- Install ``kubectl`` and ``helm`` and configure them for that
+  cluster.
+- Obtain access to the |k8s-op-short| Helm chart.
+
+Considerations
+--------------
+
+Set the |onprem| version and the {+appdb+} version to a consistent
+pair. The management |onprem| instance manages the external
+{+appdb+}, so the {+appdb+} version must be a MongoDB version that the
+management |onprem| instance offers in its version manifest. For
+example, an 8.0.x |onprem| instance offers 8.0.x MongoDB versions, but
+a 7.0.x |onprem| instance doesn't.
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Set the environment variables for the deployment.
+
+      .. code-block:: sh
+
+         export K8S_CTX="<your-kube-context>"
+         export MDB_NS="mongodb"
+
+         export OPERATOR_HELM_CHART="oci://quay.io/mongodb/helm-charts/mongodb-kubernetes"
+
+         export OM_VERSION="8.0.7"
+         export APPDB_VERSION="8.0.5-ent"
+
+         export MANAGEMENT_OM_NAME="management-om"
+         export PRIMARY_OM_NAME="primary-om"
+
+         export APPDB_NAME="${PRIMARY_OM_NAME}-db"
+
+         export MANAGEMENT_OM_URL="http://${MANAGEMENT_OM_NAME}-svc.${MDB_NS}.svc.cluster.local:8080"
+         export MANAGEMENT_OM_ADMIN_KEY_SECRET="${MDB_NS}-${MANAGEMENT_OM_NAME}-admin-key"
+
+         export APPDB_PROJECT_CONFIGMAP="${APPDB_NAME}-config"
+         export APPDB_PROJECT_NAME="external-appdb"
+         export APPDB_CONNECTION_STRING_SECRET="${APPDB_NAME}-connection-string"
+
+         export OM_ADMIN_EMAIL="admin@example.com"
+         export OM_ADMIN_PASSWORD="<your-password>"
+         export OM_ADMIN_FIRST_NAME="Admin"
+         export OM_ADMIN_LAST_NAME="User"
+
+      The |k8s-op-short| requires the external {+appdb+} to be named
+      ``<primary-om-name>-db``, which is why ``APPDB_NAME`` derives
+      from ``PRIMARY_OM_NAME``.
+
+   .. step:: Create the namespace.
+
+      .. code-block:: sh
+
+         kubectl create namespace "${MDB_NS}" --context "${K8S_CTX}"
+
+   .. step:: Install the |k8s-op-short|.
+
+      .. code-block:: sh
+
+         helm upgrade --install --kube-context "${K8S_CTX}" \
+           --namespace "${MDB_NS}" --create-namespace \
+           mongodb-kubernetes "${OPERATOR_HELM_CHART}"
+
+         kubectl rollout status deployment/mongodb-kubernetes-operator \
+           --context "${K8S_CTX}" -n "${MDB_NS}" --timeout=300s
+
+   .. step:: Create the |onprem| admin secret.
+
+      Both |onprem| resources reference this secret with
+      :opsmgrkube:`spec.adminCredentials`.
+
+      .. code-block:: sh
+
+         kubectl create secret generic ops-manager-admin-secret \
+           --context "${K8S_CTX}" -n "${MDB_NS}" \
+           --from-literal=Username="${OM_ADMIN_EMAIL}" \
+           --from-literal=Password="${OM_ADMIN_PASSWORD}" \
+           --from-literal=FirstName="${OM_ADMIN_FIRST_NAME}" \
+           --from-literal=LastName="${OM_ADMIN_LAST_NAME}"
+
+   .. step:: Deploy the management |onprem| instance.
+
+      .. code-block:: sh
+
+         kubectl apply --context "${K8S_CTX}" -n "${MDB_NS}" -f - <<EOF
+         apiVersion: mongodb.com/v1
+         kind: MongoDBOpsManager
+         metadata:
+           name: ${MANAGEMENT_OM_NAME}
+         spec:
+           replicas: 1
+           version: ${OM_VERSION}
+           adminCredentials: ops-manager-admin-secret
+           applicationDatabase:
+             members: 3
+             version: ${APPDB_VERSION}
+           backup:
+             enabled: false
+           configuration:
+             automation.versions.source: mongodb
+             mms.ignoreInitialUiSetup: "true"
+             mms.adminEmailAddr: admin@example.com
+             mms.fromEmailAddr: admin@example.com
+             mms.replyToEmailAddr: admin@example.com
+             mms.mail.hostname: email-smtp.us-east-1.amazonaws.com
+             mms.mail.port: "465"
+             mms.mail.ssl: "true"
+             mms.mail.transport: smtp
+             mms.minimumTLSVersion: TLSv1.2
+         EOF
+
+      The ``mms.*`` mail settings are required. When
+      ``mms.ignoreInitialUiSetup`` is ``true``, the |onprem| pre-flight
+      check doesn't start |onprem| unless ``mms.fromEmailAddr`` and the
+      related mail settings are present.
+
+   .. step:: Wait for the management |onprem| instance to become ready.
+
+      a. Wait for the internally managed {+appdb+} and the |onprem|
+         resource:
+
+         .. code-block:: sh
+
+            kubectl wait --for=jsonpath='{.status.applicationDatabase.phase}'=Running \
+              om/"${MANAGEMENT_OM_NAME}" --context "${K8S_CTX}" -n "${MDB_NS}" --timeout=1200s
+
+            kubectl wait --for=jsonpath='{.status.opsManager.phase}'=Running \
+              om/"${MANAGEMENT_OM_NAME}" --context "${K8S_CTX}" -n "${MDB_NS}" --timeout=1800s
+
+      #. Confirm that the |onprem| public |api| answers requests. An
+         ``opsManager.phase`` of ``Running`` means that the |onprem|
+         pod is up, but the |api| that the |k8s-op-short| uses to
+         create the {+appdb+} project can lag by a few seconds. A
+         ``401`` response is the expected unauthenticated response and
+         means that the |api| is ready:
+
+         .. code-block:: sh
+
+            om_pod="${MANAGEMENT_OM_NAME}-0"
+            until [ "$(kubectl exec "${om_pod}" -c mongodb-ops-manager --context "${K8S_CTX}" -n "${MDB_NS}" -- \
+              curl -s -o /dev/null -w '%{http_code}' \
+              "http://$(kubectl get pod "${om_pod}" --context "${K8S_CTX}" -n "${MDB_NS}" \
+                -o jsonpath='{.status.podIP}'):8080/api/public/v1.0" 2>/dev/null)" = "401" ]; do
+              echo "waiting for management Ops Manager public API..."; sleep 10
+            done
+
+      #. Confirm that the |k8s-op-short| created the programmatic
+         |api| key secret for the management |onprem| instance:
+
+         .. code-block:: sh
+
+            kubectl get secret "${MANAGEMENT_OM_ADMIN_KEY_SECRET}" \
+              --context "${K8S_CTX}" -n "${MDB_NS}"
+
+   .. step:: Create the project ConfigMap for the external {+appdb+}.
+
+      .. code-block:: sh
+
+         kubectl create configmap "${APPDB_PROJECT_CONFIGMAP}" \
+           --context "${K8S_CTX}" -n "${MDB_NS}" \
+           --from-literal=baseUrl="${MANAGEMENT_OM_URL}" \
+           --from-literal=projectName="${APPDB_PROJECT_NAME}" \
+           --from-literal=orgId=""
+
+   .. step:: Create the external {+appdb+}.
+
+      .. code-block:: sh
+
+         kubectl apply --context "${K8S_CTX}" -n "${MDB_NS}" -f - <<EOF
+         apiVersion: mongodb.com/v1
+         kind: MongoDB
+         metadata:
+           name: ${APPDB_NAME}
+         spec:
+           members: 3
+           version: ${APPDB_VERSION}
+           type: ReplicaSet
+           role: AppDB
+           opsManager:
+             configMapRef:
+               name: ${APPDB_PROJECT_CONFIGMAP}
+           credentials: ${MANAGEMENT_OM_ADMIN_KEY_SECRET}
+           persistent: true
+         EOF
+
+         kubectl wait --for=jsonpath='{.status.phase}'=Running \
+           mdb/"${APPDB_NAME}" --context "${K8S_CTX}" -n "${MDB_NS}" --timeout=1200s
+
+      When you set ``spec.role`` to ``AppDB``, the
+      |k8s-op-short| configures SCRAM authentication for the
+      resource. To learn more, see ``spec.role``.
+
+   .. step:: Deploy the primary |onprem| instance.
+
+      This resource omits :opsmgrkube:`spec.applicationDatabase` and
+      references the external {+appdb+} instead.
+
+      .. code-block:: sh
+
+         kubectl apply --context "${K8S_CTX}" -n "${MDB_NS}" -f - <<EOF
+         apiVersion: mongodb.com/v1
+         kind: MongoDBOpsManager
+         metadata:
+           name: ${PRIMARY_OM_NAME}
+         spec:
+           replicas: 1
+           version: ${OM_VERSION}
+           adminCredentials: ops-manager-admin-secret
+           externalApplicationDatabaseRef:
+             name: ${APPDB_NAME}
+             kind: MongoDB
+           backup:
+             enabled: false
+           configuration:
+             automation.versions.source: mongodb
+             mms.ignoreInitialUiSetup: "true"
+             mms.adminEmailAddr: admin@example.com
+             mms.fromEmailAddr: admin@example.com
+             mms.replyToEmailAddr: admin@example.com
+             mms.mail.hostname: email-smtp.us-east-1.amazonaws.com
+             mms.mail.port: "465"
+             mms.mail.ssl: "true"
+             mms.mail.transport: smtp
+             mms.minimumTLSVersion: TLSv1.2
+         EOF
+
+      To enable backup for your MongoDB deployments, set
+      :opsmgrkube:`spec.backup.enabled` to ``true`` on this resource
+      and configure snapshot storage. To learn more, see
+      :ref:`configure-file-store`.
+
+   .. step:: Wait for the primary |onprem| instance to become ready.
+
+      .. code-block:: sh
+
+         kubectl wait --for=jsonpath='{.status.opsManager.phase}'=Running \
+           om/"${PRIMARY_OM_NAME}" --context "${K8S_CTX}" -n "${MDB_NS}" --timeout=1800s
+
+         kubectl wait --for=jsonpath='{.status.applicationDatabase.phase}'=Disabled \
+           om/"${PRIMARY_OM_NAME}" --context "${K8S_CTX}" -n "${MDB_NS}" --timeout=600s
+
+      The |k8s-op-short| doesn't manage an internal {+appdb+} for an
+      |onprem| resource that uses an external {+appdb+}, so
+      ``status.applicationDatabase.phase`` reports ``Disabled``. This
+      is expected and isn't an error.
+
+   .. step:: Verify the deployment.
+
+      a. Confirm that the management |onprem| pods, the external
+         {+appdb+} pods, and the primary |onprem| pods are running:
+
+         .. code-block:: sh
+
+            kubectl get pods --context "${K8S_CTX}" -n "${MDB_NS}"
+
+      #. Confirm that the MongoDB resource owns the {+appdb+}
+         StatefulSet, and that the primary |onprem| resource doesn't:
+
+         .. code-block:: sh
+
+            kubectl get statefulset "${APPDB_NAME}" --context "${K8S_CTX}" -n "${MDB_NS}" \
+              -o jsonpath='{range .metadata.ownerReferences[*]}{.kind}/{.name}{"\n"}{end}'
+
+         The command returns ``MongoDB/${APPDB_NAME}``.
+
+      #. Confirm that the |k8s-op-short| created the connection string
+         secret for the primary |onprem| instance:
+
+         .. code-block:: sh
+
+            kubectl get secret "${APPDB_CONNECTION_STRING_SECRET}" \
+              --context "${K8S_CTX}" -n "${MDB_NS}"
+
+Common External Application Database Issues
+-------------------------------------------
+
+The MongoDB Resource Reports a Version Error
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the external {+appdb+} reports ``Failed`` with a message that the
+MongoDB version isn't available, set :setting:`spec.version` to a
+version that the management |onprem| instance offers. Keep the
+|onprem| version and the {+appdb+} version on the same major version.
+The management |onprem| instance's own internally managed {+appdb+}
+isn't affected, because it downloads binaries directly when you set
+``automation.versions.source`` to ``mongodb``.
+
+The Management Ops Manager Pod Restarts Repeatedly
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the pod logs report that ``mms.fromEmailAddr`` must not be blank,
+add the ``mms.*`` mail settings to
+:opsmgrkube:`spec.configuration`.
+
+The External Application Database Stays Pending
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the external {+appdb+} stays in the ``Pending`` phase and the
+{+mdbagent+} never receives an automation configuration, you might
+have created the MongoDB resource before the management |onprem|
+public |api| was serving requests. The |k8s-op-short| couldn't create
+the project. Confirm that the |api| readiness check returns ``401``,
+then reconcile the resource again.
+
+The Operator Rejects the External Application Database Reference
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The value of
+:opsmgrkube:`spec.externalApplicationDatabaseRef.name` must be exactly
+``<primary-om-name>-db``, and the MongoDB resource must be in the same
+namespace as the |onprem| resource.
+
+Next Steps
+----------
+
+To back up the external {+appdb+}, enable backup on the MongoDB
+resource in the project that the management |onprem| instance
+manages. To learn more, see :ref:`back-up-mdb-resources`.

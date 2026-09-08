@@ -1,0 +1,237 @@
+.. _om-appdb-backup:
+
+============================================
+Back Up the Ops Manager Application Database
+============================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: backup, application database, disaster recovery
+   :description: Back up and restore the Ops Manager Application Database with the Kubernetes Operator by managing the Application Database as a MongoDB custom resource.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The {+appdb+} stores your |onprem| settings, operation history, and
+backup metadata. When you deploy the {+appdb+} as an **external**
+{+appdb+}, the |k8s-op-short| manages it as a standard MongoDB custom
+resource, which means that |onprem| can back it up and restore it like
+any other MongoDB deployment that the |k8s-op-short| manages.
+
+To deploy an external {+appdb+}, see the following procedures:
+
+- :ref:`deploy-om-external-appdb`
+- :ref:`migrate-appdb-to-external`
+- :ref:`migrate-appdb-to-internal`
+
+.. _om-appdb-backup-why:
+
+Why Back Up the Application Database
+------------------------------------
+
+An |onprem| deployment with an internally managed {+appdb+} stores the
+{+appdb+} inside the |onprem| custom resource, where standard backup
+tooling can't reach it. If |onprem| itself fails, you can lose control
+of the deployments that it manages.
+
+Backing up an external {+appdb+} addresses the following needs:
+
+- **Disaster recovery.** Restore the {+appdb+} after data loss, data
+  corruption, or a failed configuration change.
+
+- **Operational safety net.** Roll back an erroneous bulk write to the
+  moment before it happened.
+
+- **Lower recovery objectives.** Continuous oplog capture supports
+  lower recovery point and recovery time objectives than a strategy
+  based on periodic snapshots alone.
+
+.. _om-appdb-backup-provides:
+
+What Application Database Backup Provides
+-----------------------------------------
+
+|onprem| keeps a copy of the {+appdb+} data and a continuous stream of
+oplog entries, which lets you do the following:
+
+- Restore a full snapshot of the {+appdb+} to a new or existing
+  deployment.
+
+- Restore the {+appdb+} to any point in time between snapshots by
+  replaying the oplog to a timestamp that you choose.
+
+- Query a backup snapshot without restoring it. To learn more, see
+  :ref:`configure-om-queryable-backups`.
+
+- Meet retention and compliance requirements, optionally with
+  immutable snapshots.
+
+.. _om-appdb-backup-architecture:
+
+Architecture
+------------
+
+An external {+appdb+} deployment uses the following resources:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Resource
+     - Description
+
+   * - Management |onprem|
+     - An |onprem| resource with its own internally managed
+       {+appdb+}. The management |onprem| instance doesn't manage your
+       databases. It manages the project that contains the external
+       {+appdb+}, and it acts as the recovery engine if you lose the
+       primary |onprem| instance. Deploy it in a separate failure
+       domain, such as a different availability zone.
+
+   * - External {+appdb+}
+     - A MongoDB resource with ``spec.role`` set to ``AppDB``. To
+       learn more, see :ref:`k8s-specification`.
+       Its name must be ``<primary-om-name>-db``. The management
+       |onprem| instance manages this resource as a project, so you
+       can enable backup on it like any other MongoDB resource.
+
+   * - Primary |onprem|
+     - The |onprem| resource that manages your databases. It omits
+       :opsmgrkube:`spec.applicationDatabase` and references the
+       external {+appdb+} with
+       :opsmgrkube:`spec.externalApplicationDatabaseRef`.
+
+Because a new |onprem| instance can't start without an {+appdb+}, and
+a MongoDB resource with ``spec.role`` set to ``AppDB`` can't reconcile
+without an available |onprem| instance, the management |onprem|
+instance is a prerequisite for an external {+appdb+}. Deploy it before
+you deploy the external {+appdb+}.
+
+If you lose the primary |onprem| instance, you use the management
+|onprem| instance to restore the external {+appdb+}, then recreate the
+primary |onprem| instance against the restored {+appdb+}, then restore
+your MongoDB workloads.
+
+.. _om-appdb-backup-external-appdb:
+
+Backup and the External Application Database
+--------------------------------------------
+
+|onprem| stores backup metadata in the {+appdb+}, and both the
+|application| and the Backup Daemon connect to the {+appdb+}. When you
+reference an external {+appdb+} with
+:opsmgrkube:`spec.externalApplicationDatabaseRef`, the |k8s-op-short|
+handles this connection for you:
+
+- The |k8s-op-short| resolves the |tls| configuration and |certauth|
+  of the referenced MongoDB resource and applies it to both the
+  |onprem| StatefulSet and the Backup Daemon StatefulSet. The Backup
+  Daemon trusts a |tls|-enabled external {+appdb+} the same way it
+  trusts an internally managed one.
+
+- The Backup Daemon connects using the same connection string that
+  the |k8s-op-short| computes for the |application|.
+
+Enabling backup doesn't change. You set
+:opsmgrkube:`spec.backup.enabled` on the primary |onprem| resource, as
+you would for an internally managed {+appdb+}. The only difference is
+where the {+appdb+} runs.
+
+To back up the external {+appdb+} itself, enable backup on the
+MongoDB resource that represents it, in the project that the
+management |onprem| instance manages. To learn more, see
+:ref:`back-up-mdb-resources`.
+
+.. _om-appdb-backup-annotations:
+
+Migration Annotations
+---------------------
+
+During a migration between an internally managed {+appdb+} and an
+external {+appdb+}, the |k8s-op-short| sets an annotation on the
+{+appdb+} StatefulSet to record that the StatefulSet is ready to
+change owners. The |k8s-op-short| sets and reads these annotations.
+Don't set them yourself.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 45 55
+
+   * - Annotation
+     - Description
+
+   * - ``mongodb.com/appdb-migration-ready``
+     - The |onprem| resource released the StatefulSet so that the
+       MongoDB resource can take ownership of it. The |k8s-op-short|
+       sets this annotation when you migrate from an internally
+       managed {+appdb+} to an external {+appdb+}. To learn more, see
+       :ref:`migrate-appdb-to-external`.
+
+   * - ``mongodb.com/appdb-reverse-migration-ready``
+     - The MongoDB resource released the StatefulSet so that the
+       |onprem| resource can reclaim it. The |k8s-op-short| sets this
+       annotation when you return an external {+appdb+} to internal
+       management. To learn more, see
+       :ref:`migrate-appdb-to-internal`.
+
+.. _om-appdb-backup-requirements:
+
+Requirements
+------------
+
+Before you back up an external {+appdb+}, complete the following
+tasks:
+
+- Configure an external {+appdb+} for the primary |onprem| resource.
+  To learn more, see :ref:`deploy-om-external-appdb` or
+  :ref:`migrate-appdb-to-external`.
+
+- Back up the encryption key secret that the |k8s-op-short| creates
+  for the |onprem| resource. The |k8s-op-short| names this secret
+  ``<om-resource-name>-gen-key``, and |onprem| can't read the
+  {+appdb+} without it. To learn more, see
+  :ref:`om-rsrc-considerations-encrypt-key`.
+
+- Configure snapshot storage for the management |onprem| instance. To
+  learn more, see :ref:`configure-file-store`.
+
+.. _om-appdb-backup-limitations:
+
+Limitations
+-----------
+
+External {+appdb+} backup has the following limitations:
+
+- The external {+appdb+} must be a MongoDB resource on a single |k8s|
+  cluster. The |k8s-op-short| rejects MongoDBMultiCluster resources
+  and MongoDB resources that use a multi-Kubernetes cluster topology.
+  Multi-Kubernetes cluster support is planned for a later release.
+
+- This feature doesn't replicate the {+appdb+} across regions or
+  across |k8s| clusters.
+
+- This feature doesn't back up or restore |onprem| state other than
+  the {+appdb+} itself.
+
+- This feature doesn't change how you back up or restore the MongoDB
+  deployments that you manage with |onprem|.
+
+- The |k8s-op-short| doesn't support ``automationConfig`` overrides
+  for an external {+appdb+}, because the MongoDB resource has no
+  equivalent setting.
+
+- The |k8s-op-short| doesn't support
+  ``spec.applicationDatabase.passwordSecretKeyRef`` during
+  migration to an external {+appdb+}. The |k8s-op-short| generates a
+  new password and rotates any password that you provided.
+
+- When you reference an existing MongoDB deployment as an external
+  {+appdb+}, you take on responsibility for the day-to-day management
+  of that deployment. The |k8s-op-short| provides no tool that
+  reconciles the MongoDB resource configuration with the internally
+  managed {+appdb+} configuration. You must specify that
+  configuration yourself.

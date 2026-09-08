@@ -152,11 +152,74 @@ resources.
    to ensure it replaces the default file in the |onprem| Pods.
    To learn more, see :ref:`k8s-om-log-rotation-crd`.
 
+.. _om-spec-external-appdb-ref:
+
+.. opsmgrkube:: spec.externalApplicationDatabaseRef
+
+   *Type*: collection
+
+   References a MongoDB resource to use as this |onprem| resource's
+   {+appdb+} instead of an {+appdb+} that the |k8s-op-short| manages
+   internally. To learn more, see :ref:`om-appdb-backup`.
+
+   When you specify this setting, the |k8s-op-short| doesn't manage an
+   internal {+appdb+} for this resource, and
+   ``status.applicationDatabase.phase`` reports ``Disabled``. This
+   phase is expected and isn't an error.
+   ``status.opsManager.phase`` behaves as it does for an internally
+   managed {+appdb+}.
+
+   .. code-block:: yaml
+
+      apiVersion: mongodb.com/v1
+      kind: MongoDBOpsManager
+      metadata:
+        name: primary-om
+      spec:
+        externalApplicationDatabaseRef:
+          name: primary-om-db
+          kind: MongoDB
+
+   If you set both this setting and
+   :opsmgrkube:`spec.applicationDatabase`, this setting takes
+   precedence and the |k8s-op-short| ignores
+   :opsmgrkube:`spec.applicationDatabase`. The |k8s-op-short| also
+   skips the validations that it otherwise runs against
+   :opsmgrkube:`spec.applicationDatabase`.
+
+.. opsmgrkube:: spec.externalApplicationDatabaseRef.kind
+
+   *Type*: string
+
+   *Required if you set*
+   :opsmgrkube:`spec.externalApplicationDatabaseRef`.
+
+   Kind of the referenced resource. The only accepted value is
+   ``MongoDB``.
+
+.. opsmgrkube:: spec.externalApplicationDatabaseRef.name
+
+   *Type*: string
+
+   *Required if you set*
+   :opsmgrkube:`spec.externalApplicationDatabaseRef`.
+
+   Name of the MongoDB resource to use as the external {+appdb+}. This
+   resource must set ``spec.role`` to ``AppDB``, as described in
+   :ref:`k8s-specification`, and it must be
+   in the same namespace as the |onprem| resource. The |k8s-op-short|
+   doesn't support references across namespaces.
+
+   The name must be ``<MongoDBOpsManager-name>-db``. This convention
+   lets the |onprem| resource and the MongoDB resource use the same
+   {+appdb+} StatefulSet name, which the |k8s-op-short| requires to
+   transfer ownership of that StatefulSet during migration.
+
 .. setting:: spec.logging.LogBackAccessRef
 
-   *Type:* string 
+   *Type:* string
 
-   Reference to a ConfigMap that contains a custom ``logback-access.xml`` file 
+   Reference to a ConfigMap that contains a custom ``logback-access.xml`` file
    for configuring |onprem| logs.
 
    The key in the ConfigMap must be exactly ``logback-access.xml`` to ensure it 
@@ -1575,10 +1638,18 @@ You can use |tls| for both |s3| and your {+appdb+}, or for
 {+appdb+} Required Settings
 --------------------------------------
 
-This section describes settings that you must use 
+This section describes settings that you must use
 in addition to the :ref:`required Ops Manager settings
-<om_resource-spec-required>` in order to 
+<om_resource-spec-required>` to
 configure your |onprem| {+appdb+}.
+
+.. note::
+
+   These settings are required only for an {+appdb+} that the
+   |k8s-op-short| manages internally. If you set
+   :opsmgrkube:`spec.externalApplicationDatabaseRef`, you can omit
+   :opsmgrkube:`spec.applicationDatabase` and its settings entirely.
+   You must set one of the two.
 
 .. opsmgrkube:: spec.applicationDatabase.version
 
@@ -2534,3 +2605,4 @@ This section describes settings specific to your
    Determines whether an {+appdb+} replica set member can vote in an 
    :ref:`election <replica-set-elections>`. Set to ``1`` 
    to allow the member to vote. Set to ``0`` to exclude the member from an election.
+ 

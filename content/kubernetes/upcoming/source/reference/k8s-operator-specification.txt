@@ -228,6 +228,52 @@ Every resource type may use the following settings:
               MDB_WITH_AGENT_FILE_LOGGING: false
               LOG_FILE_PATH: /var/log/mongodb-mms-automation/readiness.log
 
+.. _k8s-mdb-spec-role:
+
+.. setting:: spec.role
+
+   *Type*: string
+
+   Marks this resource as playing a special role for another MongoDB
+   resource in |k8s|. The only accepted value is ``AppDB``, which marks
+   this resource as the externally managed {+appdb+} for a
+   ``MongoDBOpsManager`` resource. When you omit this setting, the
+   |k8s-op-short| manages the resource as an ordinary MongoDB
+   deployment.
+
+   To learn how to use an externally managed {+appdb+}, see
+   :ref:`om-appdb-backup`.
+
+   .. code-block:: yaml
+
+      apiVersion: mongodb.com/v1
+      kind: MongoDB
+      metadata:
+        name: primary-om-db
+      spec:
+        role: AppDB
+
+   This setting is immutable. You must set it when you create the
+   resource. You can't add it to an existing resource, and you can't
+   change or remove it afterward.
+
+   A resource that sets ``spec.role`` to ``AppDB`` must meet the
+   following requirements:
+
+   - :setting:`spec.type` must be ``ReplicaSet``.
+   - :setting:`spec.members` must be ``3`` or greater.
+   - The resource must use a single |k8s| cluster. The |k8s-op-short|
+     rejects a ``MongoDBMultiCluster`` resource and a MongoDB resource
+     that uses a multi-Kubernetes cluster topology.
+   - The name of the resource must be
+     ``<MongoDBOpsManager-name>-db``.
+   - If you configure
+     :setting:`spec.security.authentication`, you must enable it, set
+     its modes to ``SCRAM`` only, and set
+     :setting:`spec.security.authentication.ignoreUnknownUsers` to
+     ``true``. If you omit authentication settings, the
+     |k8s-op-short| applies this configuration for you.
+
 .. include:: /includes/setting-k8sSaConf-spec.featureCompatibilityVersion.rst
 .. include:: /includes/setting-k8sSaConf-spec.clusterDomain.rst
 .. include:: /includes/setting-k8sSaConf-spec.clusterName.rst
