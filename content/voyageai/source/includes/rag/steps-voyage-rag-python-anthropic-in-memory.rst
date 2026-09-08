@@ -26,7 +26,7 @@
       
       .. include:: /includes/rag/code-description-rag-python.rst
 
-      .. literalinclude:: /includes/rag/python-anthropic/in-memory-rag.py
+      .. literalinclude:: /includes/rag/python-anthropic/in_memory_rag_anthropic.py
          :language: python
          :copyable:
 

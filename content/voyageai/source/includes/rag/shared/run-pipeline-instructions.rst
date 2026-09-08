@@ -18,5 +18,5 @@ The generated response might vary.
 
       python main.py
 
-   .. output:: /includes/rag/shared/rag-output.md
+   .. output:: /includes/example-code-output/rag-output.md
       :language: none

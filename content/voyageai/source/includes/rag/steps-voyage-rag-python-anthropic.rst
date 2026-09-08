@@ -71,7 +71,7 @@
          :sub_heading: Copy and paste the following code into your generate_response.py file.
          :expanded: false
 
-         .. literalinclude:: /includes/rag/python-anthropic/generate_response.py
+         .. literalinclude:: /includes/rag/python-anthropic/generate_response_anthropic.py
             :language: python
             :copyable:
 
