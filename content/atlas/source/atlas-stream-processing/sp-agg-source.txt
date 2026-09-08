@@ -1501,6 +1501,71 @@ following command:
       :language: json
       :visible: false
 
+Solar Stream Example
+~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation filters reports from the sample streaming
+data source ``sample_stream_solar``. It archives the results to the
+``solar-cluster-connection`` connection. To learn how to create a
+stream processing workspace and add a connection to your
+{+atlas-sp+} workspace, see :ref:`atlas-sp-quickstart` and
+:ref:`atlas-sp-add-connection`. This aggregation runs three stages to
+filter reports from the ``sample_stream_solar`` source and write the
+results to a collection named ``solarColl`` in the ``solarDb``
+database:
+
+1. The :pipeline:`$source` stage connects to the
+   ``sample_stream_solar`` source. The ``timeField`` field converts the
+   ``timestamp`` field of each incoming report to a date using
+   :expression:`$dateFromString`.
+
+#. The :pipeline:`$match` stage excludes documents where
+   ``device_id`` is ``device_8``, and passes along reports from all
+   other devices to the next stage.
+
+#. The :pipeline:`$merge` stage writes the output to the
+   ``solarColl`` collection in the ``solarDb`` database of the
+   ``solar-cluster-connection`` cluster.
+
+.. literalinclude:: /includes/examples/sp-agg-source/solar-pipeline.json
+   :language: json
+   :copyable: true
+
+.. note::
+
+   The ``sample_stream_solar`` source is a test-only connection that
+   produces sample documents every second and is intended for rapid
+   prototyping.
+
+Run the following commands against your ``solar-cluster-connection``
+cluster to verify the stream processor's behavior. To connect, see
+:ref:`connect-mongo-shell`.
+
+To view the documents in the resulting ``solarDb.solarColl``
+collection, run:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/examples/sp-agg-source/solar-find.js
+      :language: javascript
+
+   .. output:: /includes/examples/sp-agg-source/solar-find-result.sh
+      :language: json
+      :visible: false
+
+Each document includes the ``device_id``, ``event_type``, ``group_id``,
+``max_watts``, ``obs``, and ``timestamp`` fields of a solar device
+report. You can observe that no document in the output has a
+``device_id`` of ``device_8``, because the :pipeline:`$match` stage
+excludes those reports before the :pipeline:`$merge` stage writes the
+remaining documents to ``solarColl``.
+
+.. note::
+
+   The preceding is a representative example. Streaming data are
+   not static, and each user sees distinct documents.
+
 Cron Schedule Example
 ~~~~~~~~~~~~~~~~~~~~~
 
