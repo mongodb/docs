@@ -3,6 +3,11 @@ so that you can install MongoDB directly using ``yum``:
 
 .. tabs::
 
+   .. tab:: 10
+      :tabid: rhel10
+
+      .. include:: /includes/deploy/code/community-rhel10-conf
+
    .. tab:: 9
       :tabid: rhel9
 
