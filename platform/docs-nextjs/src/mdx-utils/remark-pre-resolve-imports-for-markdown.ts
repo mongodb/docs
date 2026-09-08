@@ -21,7 +21,7 @@ export async function preResolveImportsForMarkdownExport(mdxSource: string, proj
     .use(remarkFrontmatter, ['yaml'])
     .use(remarkGfm)
     .use(remarkMdx)
-    .use(remarkResolveImports, { projectPath })
+    .use(remarkResolveImports, { projectPath, isMarkdownExport: true })
     .use(remarkStringify)
     .process(mdxSource);
   return String(file);

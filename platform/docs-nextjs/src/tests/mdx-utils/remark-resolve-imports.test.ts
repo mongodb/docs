@@ -253,3 +253,104 @@ describe('remarkResolveImports index.txt refs', () => {
     expect(resolved).toContain('[Analyzers](/docs/atlas/search/index/analyzers#std-label-analyzers)');
   });
 });
+
+describe('remarkResolveImports markdown export links', () => {
+  async function resolveForMarkdownExport(
+    pageMdx: string,
+    projectPath: string,
+    refs: Record<string, string>,
+  ): Promise<string> {
+    mockGetBlob.mockImplementation(async (rawPath: string) => {
+      if (rawPath.endsWith('_references.json')) {
+        return JSON.stringify({ substitutions: {}, refs });
+      }
+      return null;
+    });
+
+    const file = await remark()
+      .use(remarkFrontmatter, ['yaml'])
+      .use(remarkGfm)
+      .use(remarkMdx)
+      .use(remarkResolveImports, { projectPath, isMarkdownExport: true })
+      .use(remarkStringify)
+      .process(pageMdx);
+    return String(file);
+  }
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('appends .md to a plain page link', async () => {
+    const resolved = await resolveForMarkdownExport(
+      'See <Reference name="billing-data" title="Billing Data" />.\n',
+      'atlas/architecture/current',
+      { 'billing-data': 'billing-data' },
+    );
+
+    expect(resolved).toContain('[Billing Data](/docs/atlas/architecture/current/billing-data.md)');
+  });
+
+  it('inserts .md before a #hash fragment', async () => {
+    const resolved = await resolveForMarkdownExport(
+      'See <Reference name="atlas-editions" title="Database Editions" />.\n',
+      'atlas',
+      { 'atlas-editions': 'billing-data#std-label-atlas-editions' },
+    );
+
+    expect(resolved).toContain('[Database Editions](/docs/atlas/billing-data.md#std-label-atlas-editions)');
+  });
+
+  it('resolves a root index.txt target to index.md, not a bare .md', async () => {
+    const resolved = await resolveForMarkdownExport(
+      'See <Reference name="atlas-editions" title="Database Editions" />.\n',
+      'atlas',
+      { 'atlas-editions': 'index#std-label-atlas-editions' },
+    );
+
+    expect(resolved).toContain('[Database Editions](/docs/atlas/index.md#std-label-atlas-editions)');
+    expect(resolved).not.toContain('//index.md');
+  });
+
+  it('resolves a nested index.txt target to a plain .md (its index segment already collapsed)', async () => {
+    const resolved = await resolveForMarkdownExport(
+      'See <Reference name="core-overview" title="Overview" />.\n',
+      'atlas',
+      { 'core-overview': 'core/index#std-label-core-overview' },
+    );
+
+    expect(resolved).toContain('[Overview](/docs/atlas/core.md#std-label-core-overview)');
+  });
+
+  it('leaves external links untouched', async () => {
+    const resolved = await resolveForMarkdownExport(
+      'See <RefRole type="url" name="ext">External</RefRole>.\n',
+      'atlas',
+      { ext: 'https://example.com/page' },
+    );
+
+    expect(resolved).toContain('[External](https://example.com/page)');
+  });
+
+  it('appends .md to a cross-project reference already baked to an absolute docs URL', async () => {
+    const resolved = await resolveForMarkdownExport(
+      'See <Reference name="cross-org-billing" title="Cross-Organization Billing" />.\n',
+      'atlas/architecture/current',
+      { 'cross-org-billing': 'https://www.mongodb.com/docs/atlas/billing/#std-label-cross-org-billing' },
+    );
+
+    expect(resolved).toContain(
+      '[Cross-Organization Billing](https://www.mongodb.com/docs/atlas/billing.md#std-label-cross-org-billing)',
+    );
+  });
+
+  it('leaves an absolute non-docs mongodb.com link untouched', async () => {
+    const resolved = await resolveForMarkdownExport(
+      'See <RefRole type="url" name="pricing">Pricing</RefRole>.\n',
+      'atlas',
+      { pricing: 'https://www.mongodb.com/pricing' },
+    );
+
+    expect(resolved).toContain('[Pricing](https://www.mongodb.com/pricing)');
+  });
+});
