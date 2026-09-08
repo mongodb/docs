@@ -348,7 +348,7 @@ const tocData: TocItem[] = [
   {
     label: 'Delete',
     contentSite: 'docs',
-    url: '/docs/:version/tutorial/remove-documents',
+    url: '/docs/:version/tutorial/delete-documents',
   },
   {
     label: 'SQL to MongoDB',

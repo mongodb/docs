@@ -102,7 +102,7 @@ export const TOP_PAGES: string[] = [
   'https://www.mongodb.com/docs/atlas/architecture/current/',
   'https://www.mongodb.com/docs/manual/reference/operator/aggregation/match/',
   'https://www.mongodb.com/docs/manual/core/timeseries-collections/',
-  'https://www.mongodb.com/docs/manual/tutorial/remove-documents/',
+  'https://www.mongodb.com/docs/manual/tutorial/delete-documents/',
   'https://www.mongodb.com/docs/manual/reference/mql/expressions/',
   'https://www.mongodb.com/docs/database-tools/mongoexport/',
   'https://www.mongodb.com/docs/vector-search/indexes/vector-search-type/',

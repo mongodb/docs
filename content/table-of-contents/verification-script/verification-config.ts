@@ -111,7 +111,7 @@ export const config: Map<string, string[]> = new Map([
   ['ruby-driver', ['upcoming', 'current']],
   ['rust', ['upcoming', 'current', 'v3.1', 'v3.0', 'v2.8', 'v2.7']],
   ['scala', ['upcoming', 'current', 'v5.4', 'v5.3', 'v5.2', 'v5.1', 'v5.0']],
-  ['docs', ['upcoming', 'rapid', 'manual', 'v7.0']],
+  ['docs', ['upcoming', 'rapid', 'manual', 'v8.0', 'v7.0']],
   //["guides", []],
   //["visual-studio-extension", []],
   ['spark-connector', ['upcoming', 'current', 'v10.4', 'v10.3']],

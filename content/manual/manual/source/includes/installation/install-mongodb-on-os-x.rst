@@ -345,7 +345,7 @@ For information on CRUD (Create,Read,Update,Delete) operations, see:
 - :doc:`/tutorial/insert-documents`
 - :doc:`/tutorial/query-documents`
 - :doc:`/tutorial/update-documents`
-- :doc:`/tutorial/remove-documents`
+- :ref:`write-op-delete`
 
 .. _brew-installs-dbtools:
 
