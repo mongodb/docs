@@ -13,10 +13,10 @@
    
       * - ``true``
         - The daemons retrieve the binaries from MongoDB Inc. over the
-          internet.
+          Internet.
    
       * - ``false``
-        - Backup Daemons do not have internet access and require that an
+        - Backup Daemons do not have Internet access and require that an
           |onprem| administrator manually download and extract every
           archived version of a MongoDB release that the backup daemons
           need. The administrator must place the extracted binaries into

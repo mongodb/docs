@@ -23,7 +23,7 @@
        name: Windows
        content: |
 
-         Windows hosts host must be connected to the internet and
+         Windows hosts host must be connected to the Internet and
          attached to a Active Directory domain. 
 
          Use the following command to find the host |fqdn|:
