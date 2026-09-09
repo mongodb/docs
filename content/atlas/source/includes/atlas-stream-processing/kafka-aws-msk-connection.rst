@@ -1,4 +1,3 @@
-
 =====================================================================
 {+aws+} MSK Private Link Connection
 =====================================================================
@@ -11,9 +10,9 @@ project:
    .. tab:: {+atlas-admin-api+}
       :tabid: aws-msk-api
 
-      .. include:: /includes/atlas-stream-processing/create-private-aws-msk.rst
+      .. include:: /includes/atlas-stream-processing/create-private-aws-msk-api.rst
 
    .. tab:: {+atlas-ui+}
       :tabid: aws-msk-ui
 
-      .. include:: /includes/steps-create-sp-kafka-pl-atlas-side-connection.rst
+      .. include:: /includes/atlas-stream-processing/create-private-aws-msk-ui.rst

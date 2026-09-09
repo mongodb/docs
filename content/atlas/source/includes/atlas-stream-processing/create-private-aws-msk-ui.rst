@@ -2,7 +2,11 @@ Add an {+aws-msk+} Private Link Connection through the {+atlas-ui+}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To add an {+aws-msk+} Private Link connection to your {+spw+} through
-the {+atlas-ui+}, perform these steps:
+the {+atlas-ui+}, first create the private endpoint, then create the
+{+service+}-side connection.
+
+Create the Private Endpoint
+```````````````````````````
 
 .. procedure::
    :style: normal
@@ -33,3 +37,8 @@ the {+atlas-ui+}, perform these steps:
 endpoint's details in the :guilabel:`Network Access` interface under the
 :guilabel:`{+atlas-sp+}` tab by clicking the :guilabel:`View` button in the corresponding
 row.
+
+Create the {+service+}-Side Connection
+````````````````````````````````
+
+.. include:: /includes/atlas-stream-processing/create-kafka-pl-atlas-side-ui.rst

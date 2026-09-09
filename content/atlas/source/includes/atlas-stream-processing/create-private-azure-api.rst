@@ -7,7 +7,7 @@ through the {+atlas-admin-api+}, perform these steps:
 .. procedure::
    :style: normal
  
-   .. step:: Request a connection to your cloud provider.
+   .. step:: Create an {+service+} Private Endpoint.
 
       The {+atlas-admin-api+} provides an endpoint for requesting a
       Private Link connection configured for {+atlas-sp+}.
@@ -69,4 +69,4 @@ through the {+atlas-admin-api+}, perform these steps:
 
    .. step:: Create the {+service+}-side connection.
 
-      .. include:: /includes/steps-create-sp-kafka-pl-atlas-side-connection.rst
+      .. include:: /includes/atlas-stream-processing/create-kafka-pl-atlas-side.rst

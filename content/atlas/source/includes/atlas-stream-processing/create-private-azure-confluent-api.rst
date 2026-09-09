@@ -1,12 +1,8 @@
+Add a {+azure+} Confluent Private Link Connection through the {+atlas-admin-api+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. _atlas-sp-azure-confluent-private-link-add:
-
-==================================================
-Microsoft Azure Confluent Private Link Connections
-==================================================
-
-To create a {+azure+} Confluent Private Link connection to use in your
-{+atlas-sp+} project:
+To add a {+azure+} Confluent Private Link connection to your {+spw+}
+through the {+atlas-admin-api+}, follow these steps:
 
 .. procedure::
    :style: normal

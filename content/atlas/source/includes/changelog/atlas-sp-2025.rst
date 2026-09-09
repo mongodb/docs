@@ -149,7 +149,7 @@
   that specifies a session window for aggregation of data. This allow you
   to run a pipeline on each "session" of activity in an input stream.
   To learn more, see :ref:`$sessionWindow <atlas-sp-agg-session>`.
-- Supports :ref:`Azure-hosted Confluent Kafka clusters via Private Link connection <atlas-sp-azure-confluent-private-link-add>`.
+- Supports :ref:`Azure-hosted Confluent Kafka clusters via Private Link connection <atlas-sp-pl-kafka-add>`.
 
 .. _atlas-sp-20250326:
 

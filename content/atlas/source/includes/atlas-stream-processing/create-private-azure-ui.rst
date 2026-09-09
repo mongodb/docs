@@ -2,7 +2,11 @@ Add an |azure| EventHub Private Link Connection through the {+atlas-ui+}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To add an |azure| EventHub Private Link connection to your {+spw+}
-through the {+atlas-ui+}, perform these steps:
+through the {+atlas-ui+}, first create the private endpoint, then create the
+{+service+}-side connection.
+
+Create the Private Endpoint
+```````````````````````````
 
 .. procedure::
    :style: normal
@@ -56,3 +60,8 @@ You may now view your |azure| EventHub private endpoint in the
 :guilabel:`Network Access` interface under the
 :guilabel:`{+atlas-sp+}` tab by clicking the :guilabel:`View` button
 in its row.
+
+Create the {+service+}-Side Connection
+````````````````````````````````
+
+.. include:: /includes/atlas-stream-processing/create-kafka-pl-atlas-side-ui.rst

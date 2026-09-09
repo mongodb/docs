@@ -1,8 +1,8 @@
-Add an {+aws-msk+} Private Link Connection through the {+atlas-admin-api+}
+Add an {+aws-msk+} Private Link Connection through the {+atlas-cli+}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To add an {+aws-msk+} Private Link connection to your {+spw+} through
-the {+atlas-admin-api+}, follow these steps:
+the {+atlas-cli+}, follow these steps:
 
 .. procedure::
    :style: normal
@@ -57,7 +57,7 @@ the {+atlas-admin-api+}, follow these steps:
               ]
             }
 
-   .. step:: Request a connection to your cloud provider.
+   .. step:: Create an {+service+} Private Endpoint.
 
       The {+atlas-admin-api+} provides an endpoint for requesting a
       Private Link connection configured for {+atlas-sp+}.
@@ -91,7 +91,10 @@ the {+atlas-admin-api+}, follow these steps:
          * - ``arn``
            - String representing the Amazon Resource Number of your {+aws-msk+} cluster.
 
-      You can find the |arn| in your {+aws-msk+} cluster's networking details.
+	 * - ``authenticationScheme``
+	   - Must be set to ``"IAM"``
+	     
+      You can find the |arn| in your {+aws-msk+} cluster's details.
 
       The following example command requests a connection to your
       {+aws-msk+} cluster and illustrates a typical response:
@@ -122,4 +125,36 @@ the {+atlas-admin-api+}, follow these steps:
 
    .. step:: Create the {+service+}-side connection.
 
-      .. include:: /includes/steps-create-sp-msk-pl-atlas-side-connection.rst
+      .. include:: /includes/atlas-stream-processing/create-kafka-pl-atlas-side-cli.rst
+
+      The following example command creates a {+kafka+} connection
+      in {+service+} using ``SASL_SSL`` with the ``SCRAM-512``
+      mechanism:
+
+      .. include:: /includes/fact-service-accounts-first.rst
+
+      .. code-block:: sh
+
+	 curl --location 'https://cloud.mongodb.com/api/atlas/v2/groups/8358217d3abb5c76c3434648/streams/spinstance/connections' \
+	 --header "Authorization: Bearer {ACCESS-TOKEN}" \
+	 --header 'Content-Type: application/json' \
+	 --header 'Accept: application/vnd.atlas.2023-02-01+json' \
+	 --data '{ 
+	   "name": "msk_demo", 
+	   "bootstrapServers": "slr-ntgrbn.sample.kafka.us-east-1.amazonaws.com:9092", 
+	   "security": { 
+	     "protocol": "SASL_SSL" 
+	     }, 
+	   "authentication": {
+	     "mechanism": "SCRAM-512",
+	     "password": "apiSecretDemo",
+	     "username": "apiUserDemo"
+	     },
+	   "type": "Kafka", 
+	   "networking": { 
+	     "access": { 
+	       "type": "PRIVATE_LINK", 
+	       "connectionId": "38972b0cbe9c2aa40a30a246" 
+	       } 
+	     }  
+	   }'

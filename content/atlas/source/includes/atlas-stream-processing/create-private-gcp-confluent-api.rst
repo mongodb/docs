@@ -1,11 +1,8 @@
-.. _atlas-sp-gcp-confluent-private-link-add:
+Add a {+gcp+} Confluent Private Service Connect Connection through the {+atlas-admin-api+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-==================================================
-GCP Confluent Private Link Connections
-==================================================
-
-To create a {+gcp+} Confluent Private Link connection to use in your
-{+atlas-sp+} project:
+To add a {+gcp+} Confluent Private Service Connect connection to your
+{+spw+} through the {+atlas-admin-api+}, follow these steps:
 
 .. procedure::
    :style: normal

@@ -56,18 +56,19 @@ To add a Kafka connection to your {+spw+} through the
       #. Specify an IP address for one or more `bootstrap servers <https://kafka.apache.org/documentation/#streamsconfigs_bootstrap.servers>`__  
          for your {+kafka+} system.  
   
-      #. From the dropdown menu, select a :guilabel:`Security Protocol Method`.  
-  
-         {+atlas-sp+} supports ``SASL_PLAINTEXT``, ``SASL_SSL``, and ``SSL``.  
+      #. From the dropdown menu, select a :guilabel:`Security Protocol
+         Method`. {+atlas-sp+} supports ``SASL_PLAINTEXT``,
+         ``SASL_SSL``, and ``SSL``.
   
          .. tabs::  
   
             .. tab:: ``SASL_PLAINTEXT``  
                :tabid: stream-connect-kafka-plain-auth  
   
-               ``SASL_PLAINTEXT`` is incompatible with  
-               VPC peering. To use VPC peering, you must  
-               select the ``SASL_SSL`` or the ``SSL`` method.  
+               ``SASL_PLAINTEXT`` is incompatible with VPC peering and
+               Private Link connections. To use VPC peering or Private
+               Link, you must select the ``SASL_SSL`` or the ``SSL``
+               method.
   
                a. From the dropdown menu, select a :guilabel:`SASL Mechanism`.  
   
