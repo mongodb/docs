@@ -88,6 +88,40 @@ Behavior
   ``estimatedCopiedBytes``. ``mongosync`` uses the total bytes copied
   as the source of truth. Both values are best-effort estimates.
 
+.. _c2c-cea-stage-behavior:
+
+Change Event Application Stages
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 1.22
+
+The ``ceaStage`` field reports how far ``mongosync`` has progressed
+through the :ref:`Change Event Application <c2c-cea>` (CEA) phase.
+``ceaStage`` can help you interpret ``mongosync`` lag.
+
+During ``"collection copy drain"``, ``mongosync`` applies
+change events accumulated during :ref:`collection copy <c2c-collection-copy>`.
+Because collection copy might have already copied a document whose insert
+remains queued in the backlog, replaying that insert can produce an expected
+duplicate key error. Handling these errors can temporarily reduce CEA throughput,
+so lag may increase during this stage without indicating a problem.
+
+When ``ceaStage`` is ``"steady state"``, ``mongosync`` processes only source
+writes that occur after collection copy finishes. If ``mongosync`` throughput
+exceeds the source write rate, lag should decrease.
+
+.. warning::
+
+   If lag continues to increase while ``ceaStage`` is
+   ``"steady state"``, ``mongosync`` is not keeping up with the source
+   cluster. Unless the source write rate decreases or the CEA
+   throughput increases, ``mongosync`` cannot catch up and
+   complete the migration. In this case, you can do one of the following:
+
+   - Increase the :option:`--loadLevel` value, if CPU usage permits.
+   - Size up the destination cluster to add more CPU capacity.
+   - Lower the source cluster's write rate, if possible.
+
 Endpoint Protection
 ~~~~~~~~~~~~~~~~~~~
 

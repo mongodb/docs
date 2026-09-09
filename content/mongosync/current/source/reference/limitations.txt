@@ -102,6 +102,42 @@ Unsupported Collection Types
 - Clustered collections with :ref:`expireAfterSeconds
   <db.createCollection.expireAfterSeconds>` set aren't supported.
 
+.. _c2c-destination-disk-space:
+
+Destination Disk Space
+----------------------
+
+.. versionadded:: 1.22
+
+Before ``mongosync`` starts a migration, it checks the disk space
+available on the destination cluster. ``mongosync`` estimates the
+on-disk size of the source collections and indexes that you selected
+for migration, then compares that estimate to the space available on
+the destination filesystem. ``mongosync`` applies a 1.25x safety
+factor to the estimate to account for storage engine compression
+differences, temporary space that index builds use, and oplog growth
+during the migration.
+
+If the estimated space required exceeds the space available,
+``/start`` returns an ``InsufficientDestinationDiskSpace`` error, and
+``mongosync`` does not start the migration. To resolve the error, free
+disk space on the destination cluster and call ``/start`` again.
+
+``mongosync`` skips the check for destinations where it cannot
+retrieve filesystem statistics.
+
+.. important::
+
+   This check is a best-effort guardrail. It does not guarantee that
+   the migration fits on the destination cluster. Changes that occur
+   during the migration and differences in how ``mongosync`` distributes
+   disk space across destination shards both affect the estimate.
+
+To disable the check, set ``skipDiskSpaceCheck`` to ``true`` in the
+``/start`` request. Use this option when the destination filesystem
+statistics do not accurately represent the storage available to the
+migration. To learn more, see :ref:`c2c-api-start-params`.
+
 .. _c2c-sharded-limitations:
 
 Sharded Clusters

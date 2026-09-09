@@ -83,6 +83,24 @@
        - ``"waiting for commit to complete"``
        - ``"commit completed"``
 
+   * - ``ceaStage``
+     - string
+     - Stage of the :ref:`Change Event Application <c2c-cea>` (CEA)
+       phase. Only appears when ``mongosync`` is in CEA.
+       This field can be one of the following values:
+
+       - ``"collection copy drain"``: ``mongosync`` is
+         still draining the change events that accumulated during
+         :ref:`collection copy <c2c-collection-copy>`.
+       - ``"steady state"``: ``mongosync`` finished draining the
+         collection copy backlog and is processing change events from
+         the change stream closer to real time.
+
+       Use this field to interpret synchronization lag. For more
+       information, see :ref:`c2c-cea-stage-behavior`.
+
+       .. versionadded:: 1.22
+
    * - ``lag``
      - object
      - Reports synchronization lag broken down by component. The ``lag``
@@ -332,7 +350,9 @@
        the ``"initial hashing"`` phase even if the endpoint previously 
        reported the ``"stream hashing"`` phase.
 
-       .. versionadded:: 1.9
+       Starting in ``mongosync`` 1.22, the verifier reports ``"not started"``
+       until ``mongosync`` reaches the :ref:`Change Event Application <c2c-cea>`
+       phase.
 
    * - ``verification.source.`` ``scannedCollectionCount``
      - integer
@@ -390,7 +410,9 @@
        the ``"initial hashing"`` phase even if the endpoint previously 
        reported the ``"stream hashing"`` phase.
 
-       .. versionadded:: 1.9
+       Starting in ``mongosync`` 1.22, the verifier reports ``"not started"``
+       until ``mongosync`` reaches the :ref:`Change Event Application <c2c-cea>`
+       phase.
 
    * - ``verification.destination.`` ``scannedCollectionCount``
      - integer
