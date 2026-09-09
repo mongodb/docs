@@ -354,3 +354,70 @@ describe('remarkResolveImports markdown export links', () => {
     expect(resolved).toContain('[Pricing](https://www.mongodb.com/pricing)');
   });
 });
+
+describe('remarkResolveImports markdown export with docsBaseUrl (matches preResolveImportsForMarkdownExport)', () => {
+  async function resolveWithBaseUrl(
+    pageMdx: string,
+    projectPath: string,
+    refs: Record<string, string>,
+  ): Promise<string> {
+    mockGetBlob.mockImplementation(async (rawPath: string) => {
+      if (rawPath.endsWith('_references.json')) {
+        return JSON.stringify({ substitutions: {}, refs });
+      }
+      return null;
+    });
+
+    const file = await remark()
+      .use(remarkFrontmatter, ['yaml'])
+      .use(remarkGfm)
+      .use(remarkMdx)
+      .use(remarkResolveImports, {
+        projectPath,
+        isMarkdownExport: true,
+        docsBaseUrl: 'https://www.mongodb.com/docs',
+      })
+      .use(remarkStringify)
+      .process(pageMdx);
+    return String(file);
+  }
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('emits an absolute, .md-suffixed link for a same-project reference', async () => {
+    const resolved = await resolveWithBaseUrl(
+      'See <Reference name="core-overview" title="Overview" />.\n',
+      'atlas',
+      { 'core-overview': 'core/index#std-label-core-overview' },
+    );
+
+    expect(resolved).toContain('[Overview](https://www.mongodb.com/docs/atlas/core.md#std-label-core-overview)');
+  });
+
+  it('emits an absolute, .md-suffixed link for a root docset target', async () => {
+    const resolved = await resolveWithBaseUrl(
+      'See <Reference name="atlas-editions" title="Database Editions" />.\n',
+      'atlas',
+      { 'atlas-editions': 'index#std-label-atlas-editions' },
+    );
+
+    expect(resolved).toContain(
+      '[Database Editions](https://www.mongodb.com/docs/atlas/index.md#std-label-atlas-editions)',
+    );
+    expect(resolved).not.toContain('//index.md');
+  });
+
+  it('appends .md to a cross-project reference already baked to an absolute URL', async () => {
+    const resolved = await resolveWithBaseUrl(
+      'See <Reference name="cross-org-billing" title="Cross-Organization Billing" />.\n',
+      'atlas/architecture/current',
+      { 'cross-org-billing': 'https://www.mongodb.com/docs/atlas/billing/#std-label-cross-org-billing' },
+    );
+
+    expect(resolved).toContain(
+      '[Cross-Organization Billing](https://www.mongodb.com/docs/atlas/billing.md#std-label-cross-org-billing)',
+    );
+  });
+});

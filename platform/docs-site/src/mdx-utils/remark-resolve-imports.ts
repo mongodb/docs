@@ -36,20 +36,24 @@ export const remarkResolveImports = ({
   projectPath,
   dirNameToPrefix = {},
   isMarkdownExport = false,
+  docsBaseUrl,
 }: {
   projectPath: string;
   dirNameToPrefix?: Record<string, string>;
   /** When true, internal doc links resolve to their `.md` target instead of the HTML page. */
   isMarkdownExport?: boolean;
+  /** When set (e.g. for the markdown export), internal links are emitted as
+   * absolute URLs (`${docsBaseUrl}/...`) instead of root-relative (`/docs/...`). */
+  docsBaseUrl?: string;
 }) => {
   return async (tree: Root) => {
     const loadedRefs = await loadReferences(projectPath);
     const refs: ReferencesData = loadedRefs ?? { substitutions: {}, refs: {} };
 
-    await resolveIncludes({ tree, projectPath, refs, dirNameToPrefix, isMarkdownExport });
+    await resolveIncludes({ tree, projectPath, refs, dirNameToPrefix, isMarkdownExport, docsBaseUrl });
 
-    resolveSubstitutions({ tree, refs, projectPath, dirNameToPrefix, isMarkdownExport });
-    resolveRefLinks({ tree, refs, projectPath, dirNameToPrefix, isMarkdownExport });
+    resolveSubstitutions({ tree, refs, projectPath, dirNameToPrefix, isMarkdownExport, docsBaseUrl });
+    resolveRefLinks({ tree, refs, projectPath, dirNameToPrefix, isMarkdownExport, docsBaseUrl });
     normalizePhrasingContainers(tree);
     stripUnresolvedImportNodes(tree);
     hoistBlocksOutOfParagraphs(tree);
@@ -70,6 +74,7 @@ interface ResolveIncludesArgs {
   refs: ReferencesData;
   dirNameToPrefix: Record<string, string>;
   isMarkdownExport: boolean;
+  docsBaseUrl?: string;
 }
 
 const resolveIncludes = async ({
@@ -79,6 +84,7 @@ const resolveIncludes = async ({
   refs,
   dirNameToPrefix,
   isMarkdownExport,
+  docsBaseUrl,
 }: ResolveIncludesArgs) => {
   const nodesToReplace: IncludeNode[] = [];
 
@@ -106,6 +112,7 @@ const resolveIncludes = async ({
         refs,
         dirNameToPrefix,
         isMarkdownExport,
+        docsBaseUrl,
       });
       return { ...item, replacement };
     }),
@@ -132,6 +139,7 @@ interface FetchAndParseIncludeArgs {
   refs: ReferencesData;
   dirNameToPrefix: Record<string, string>;
   isMarkdownExport: boolean;
+  docsBaseUrl?: string;
 }
 
 const fetchAndParseInclude = async ({
@@ -142,6 +150,7 @@ const fetchAndParseInclude = async ({
   refs,
   dirNameToPrefix,
   isMarkdownExport,
+  docsBaseUrl,
 }: FetchAndParseIncludeArgs): Promise<Root | null> => {
   const mdxFilePath = src.replace(/^\/+/, '').replace(/\.mdx$/, '') + '.mdx';
   // projectPath is empty string for the landing page (no project path prefix)
@@ -164,18 +173,34 @@ const fetchAndParseInclude = async ({
 
     const parsed = mdxProcessor.parse(content);
 
-    await resolveIncludes({ tree: parsed, projectPath, includeStack: nextStack, refs, dirNameToPrefix, isMarkdownExport });
+    await resolveIncludes({
+      tree: parsed,
+      projectPath,
+      includeStack: nextStack,
+      refs,
+      dirNameToPrefix,
+      isMarkdownExport,
+      docsBaseUrl,
+    });
 
     resolveReplacementReferences(parsed, replacementSlots ?? {});
 
     // Resolve any <Include> nodes introduced by the replacement slots above.
-    await resolveIncludes({ tree: parsed, projectPath, includeStack: nextStack, refs, dirNameToPrefix, isMarkdownExport });
+    await resolveIncludes({
+      tree: parsed,
+      projectPath,
+      includeStack: nextStack,
+      refs,
+      dirNameToPrefix,
+      isMarkdownExport,
+      docsBaseUrl,
+    });
 
     // Slot values may themselves contain <Reference> nodes (e.g. `|idp-provider|
     // replace:: |azure-ad|`). Resolve them here — before the include is spliced
     // into the page — so leftover Include/Reference never reach React.
-    resolveSubstitutions({ tree: parsed, refs, projectPath, dirNameToPrefix, isMarkdownExport });
-    resolveRefLinks({ tree: parsed, refs, projectPath, dirNameToPrefix, isMarkdownExport });
+    resolveSubstitutions({ tree: parsed, refs, projectPath, dirNameToPrefix, isMarkdownExport, docsBaseUrl });
+    resolveRefLinks({ tree: parsed, refs, projectPath, dirNameToPrefix, isMarkdownExport, docsBaseUrl });
     hoistBlocksOutOfParagraphs(parsed);
 
     return parsed;
@@ -224,6 +249,7 @@ interface ResolveRefsArgs {
   projectPath?: string;
   dirNameToPrefix?: Record<string, string>;
   isMarkdownExport?: boolean;
+  docsBaseUrl?: string;
 }
 
 /** Snooty stores `index.txt` as fileid `index` (`index#hash`). Drop that trailing segment. */
@@ -257,6 +283,7 @@ const buildDocsHref = (
   projectPath: string | undefined,
   dirNameToPrefix: Record<string, string>,
   isMarkdownExport?: boolean,
+  docsBaseUrl?: string,
 ): string => {
   if (href.startsWith('http')) {
     if (isMarkdownExport && href.startsWith(DOCS_ABSOLUTE_URL_PREFIX)) {
@@ -266,14 +293,22 @@ const buildDocsHref = (
   }
   const cleanedHref = collapseTrailingIndexHref(href).replace(/^\/+/, '');
   const diskRelative = projectPath ? `${projectPath}/${cleanedHref}` : cleanedHref;
-  const base = `/docs/${remapDiskRelativeToBlobRelative(diskRelative, dirNameToPrefix)}`;
-  if (!isMarkdownExport) return base;
+  const base = docsBaseUrl ?? '/docs';
+  const joined = `${base}/${remapDiskRelativeToBlobRelative(diskRelative, dirNameToPrefix)}`;
+  if (!isMarkdownExport) return joined;
 
   const isRootTarget = cleanedHref.split('#')[0] === '';
-  return withMarkdownSuffix(base, isRootTarget);
+  return withMarkdownSuffix(joined, isRootTarget);
 };
 
-const resolveSubstitutions = ({ tree, refs, projectPath, dirNameToPrefix = {}, isMarkdownExport }: ResolveRefsArgs) => {
+const resolveSubstitutions = ({
+  tree,
+  refs,
+  projectPath,
+  dirNameToPrefix = {},
+  isMarkdownExport,
+  docsBaseUrl,
+}: ResolveRefsArgs) => {
   const replacements: JsxReplacement[] = [];
 
   visit(tree, (node, index, parent) => {
@@ -331,7 +366,7 @@ const resolveSubstitutions = ({ tree, refs, projectPath, dirNameToPrefix = {}, i
           : undefined;
 
       if (href && linkLabel !== undefined) {
-        const resolvedHref = buildDocsHref(href, projectPath, dirNameToPrefix, isMarkdownExport);
+        const resolvedHref = buildDocsHref(href, projectPath, dirNameToPrefix, isMarkdownExport, docsBaseUrl);
         replacements.push({ index, parent, replacement: createLinkNode(resolvedHref, linkLabel) });
         return;
       }
@@ -386,7 +421,14 @@ const resolveSubstitutions = ({ tree, refs, projectPath, dirNameToPrefix = {}, i
   applyReplacements(replacements);
 };
 
-const resolveRefLinks = ({ tree, refs, projectPath, dirNameToPrefix = {}, isMarkdownExport }: ResolveRefsArgs) => {
+const resolveRefLinks = ({
+  tree,
+  refs,
+  projectPath,
+  dirNameToPrefix = {},
+  isMarkdownExport,
+  docsBaseUrl,
+}: ResolveRefsArgs) => {
   const replacements: JsxReplacement[] = [];
 
   visit(tree, (node, index, parent) => {
@@ -409,7 +451,7 @@ const resolveRefLinks = ({ tree, refs, projectPath, dirNameToPrefix = {}, isMark
       }
 
       const title = getAttr(node, 'title') ?? key;
-      const resolvedHref = buildDocsHref(href, projectPath, dirNameToPrefix, isMarkdownExport);
+      const resolvedHref = buildDocsHref(href, projectPath, dirNameToPrefix, isMarkdownExport, docsBaseUrl);
       replacements.push({ index, parent, replacement: createLinkNode(resolvedHref, title) });
       return;
     }
@@ -443,7 +485,7 @@ const resolveRefLinks = ({ tree, refs, projectPath, dirNameToPrefix = {}, isMark
         return;
       }
 
-      const resolvedHref = buildDocsHref(href, projectPath, dirNameToPrefix, isMarkdownExport);
+      const resolvedHref = buildDocsHref(href, projectPath, dirNameToPrefix, isMarkdownExport, docsBaseUrl);
 
       const linkNode: Link = {
         type: 'link',
