@@ -1997,7 +1997,16 @@ metrics
             bytesRead: Long("<num>"),
             bytesReturned: Long("<num>"),
             docsExamined: Long("<num>"),
-            docsReturned: Long("<num>")
+            docsReturned: Long("<num>"),
+            lifespan: {
+               average: <num>,
+               totalCount: Long("<num>")
+            },
+            open: {
+               pinned: Long("<num>"),
+               total: Long("<num>")
+            },
+            totalOpened: Long("<num>")
          },
          largeEventsFailed: Long("<num>"),
          largeEventsSplit: Long("<num>"),
@@ -2762,16 +2771,23 @@ metrics
 
 .. serverstatus:: metrics.changeStreams.cursor
 
-   A document that reports cumulative throughput statistics for all
-   change stream cursors. These statistics update once per
-   :dbcommand:`aggregate` or :dbcommand:`getMore` command run against
-   a change stream cursor.
+   A document that reports throughput and cursor statistics for the
+   change stream cursors that this process maintains.
 
-   All counters in this document are reported on both
+   The throughput counters update once per :dbcommand:`aggregate` or
+   :dbcommand:`getMore` command run against a change stream cursor. The
+   ``open`` values report the number of cursors open at the time
+   :dbcommand:`serverStatus` runs. The ``totalOpened`` value is
+   cumulative, and the ``lifespan`` values cover cursors that have
+   closed.
+
+   All metrics in this document are reported on both
    :binary:`~bin.mongod` and :binary:`~bin.mongos`. On
    :binary:`~bin.mongos`, the ``docsExamined`` and ``bytesRead``
    counters are aggregated from the shards that serve the change
-   stream.
+   stream. The remaining metrics aren't aggregated from shards and
+   count only the change stream cursors that the :binary:`~bin.mongos`
+   maintains.
 
    .. versionadded:: 9.0
 
@@ -2807,6 +2823,79 @@ metrics
 
    The cumulative number of change stream events returned by all
    change stream cursors.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.cursor.lifespan
+
+   A document that reports the lifespans of the change stream cursors
+   that have closed in this process. A cursor lifespan is the duration
+   between the time the cursor opens and the time the cursor closes.
+
+   The values update when a cursor closes and don't account for cursors
+   that are still open.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.cursor.lifespan.average
+
+   The exponential moving average lifespan, in microseconds, of the
+   change stream cursors that have closed in this process. Recent
+   cursors contribute more to this value than earlier cursors.
+
+   A low average can indicate that applications resume change streams
+   more often than expected.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.cursor.lifespan.totalCount
+
+   The total number of change stream cursors that have closed in this
+   process.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.cursor.open
+
+   A document that reports the number of change stream cursors
+   currently open in this process.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.cursor.open.pinned
+
+   The number of open change stream cursors that are pinned. A pinned
+   cursor is one that an operation is actively using.
+
+   This value is always less than or equal to
+   :serverstatus:`metrics.changeStreams.cursor.open.total`, because
+   open cursors can be idle. Compare the two values to see how change
+   stream activity divides between active and idle cursors.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.cursor.open.total
+
+   The number of change stream cursors currently open in this process,
+   including both idle and pinned cursors.
+
+   This point-in-time value is distinct from
+   :serverstatus:`metrics.changeStreams.cursor.totalOpened`, which is a
+   cumulative count. Use this value to assess how heavily change
+   streams use this process.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.cursor.totalOpened
+
+   The cumulative number of change stream cursors opened in this
+   process, including cursors that have since closed. The value
+   increases when a cursor opens, including when a change stream
+   resumes, and doesn't decrease when a cursor closes.
+
+   Use changes in this value to calculate the rate at which the process
+   opens change stream cursors. A consistently high rate can indicate
+   that applications resume change streams more often than expected.
 
    .. versionadded:: 9.0
 
