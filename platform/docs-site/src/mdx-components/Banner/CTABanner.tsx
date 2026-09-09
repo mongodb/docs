@@ -1,11 +1,12 @@
 'use client';
-import { cx } from '@leafygreen-ui/emotion';
-import { palette } from '@leafygreen-ui/palette';
-import { Icon, glyphs } from '@leafygreen-ui/icon';
+import { clsx } from 'clsx';
+import { Icon, type GlyphName } from '@via-ds/icons';
+import * as viaGlyphs from '@via-ds/icons';
 import { isRelativeUrl } from '@/utils/is-relative-url';
 import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
-import { videoBannerStyling, lgIconStyling } from './styles';
+import bannerStyles from './banner.module.scss';
+import styles from './cta-banner.module.scss';
 
 interface CTABannerProps {
   children: React.ReactNode;
@@ -15,11 +16,11 @@ interface CTABannerProps {
 
 export const CTABanner = ({ children, icon, url }: CTABannerProps) => {
   // Handles case sensitivity for specified icons
-  let lgIcon = 'Play';
+  let glyph: GlyphName = 'Play';
   if (icon) {
-    const standardizeCaseLGIcon = icon.charAt(0).toUpperCase() + icon.slice(1).toLowerCase();
-    if (standardizeCaseLGIcon in glyphs) {
-      lgIcon = standardizeCaseLGIcon;
+    const formattedGlyph = icon.charAt(0).toUpperCase() + icon.slice(1).toLowerCase();
+    if (formattedGlyph in viaGlyphs) {
+      glyph = formattedGlyph as GlyphName;
     }
   }
 
@@ -35,9 +36,9 @@ export const CTABanner = ({ children, icon, url }: CTABannerProps) => {
   }, [url, router]);
 
   return (
-    <div className={cx(videoBannerStyling)} onClick={onClick}>
-      <div className={cx(lgIconStyling)}>
-        <Icon glyph={lgIcon} fill={palette.blue.base} />
+    <div className={clsx(bannerStyles.base, styles.infoBanner)} onClick={onClick}>
+      <div className={styles.infoIconWrapper}>
+        <Icon glyph={glyph} fill="var(--via-color-icon-info)" />
       </div>
       {children}
     </div>

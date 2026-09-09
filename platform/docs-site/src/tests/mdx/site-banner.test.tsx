@@ -1,5 +1,4 @@
 import { render, screen } from '@testing-library/react';
-import { palette } from '@leafygreen-ui/palette';
 import { SiteBanner } from '@/mdx-components/Banner/SiteBanner';
 import type { SiteBannerContent } from '@/mdx-components/Banner/SiteBanner/types';
 import * as BannerContext from '@/mdx-components/SiteBannerProvider';
@@ -113,7 +112,7 @@ describe('SiteBanner component', () => {
     const bannerContent: SiteBannerContent = {
       isEnabled: true,
       altText: mockBannerContent.altText,
-      bgColor: palette.green.dark3,
+      bgColor: 'var(--via-color-green-700)',
       text: 'This is custom banner text',
       pillText: 'DOP',
       url: mockBannerContent.url,

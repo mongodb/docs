@@ -43,24 +43,24 @@ const mockLowercaseIconSpecifiedProps = {
 
 it('renders a CTABanner correctly when non-default icon is specified', () => {
   const wrapper = render(<CTABanner {...mockIconSpecifiedProps} />);
-  expect(wrapper.getByRole('img')).toHaveAttribute('aria-label', 'University Icon');
+  expect(wrapper.getByRole('img')).toHaveAttribute('aria-label', 'Svg University Icon');
   expect(wrapper.asFragment()).toMatchSnapshot();
 });
 
 it('renders a CTABanner correctly when no icon is specified', () => {
   const wrapper = render(<CTABanner {...mockNoIconSpecifiedProps} />);
-  expect(wrapper.getByRole('img')).toHaveAttribute('aria-label', 'Play Icon');
+  expect(wrapper.getByRole('img')).toHaveAttribute('aria-label', 'Svg Play Icon');
   expect(wrapper.asFragment()).toMatchSnapshot();
 });
 
 it('renders a CTABanner correctly when invalid icon is specified', () => {
   const wrapper = render(<CTABanner {...mockInvalidIconSpecifiedProps} />);
-  expect(wrapper.getByRole('img')).toHaveAttribute('aria-label', 'Play Icon');
+  expect(wrapper.getByRole('img')).toHaveAttribute('aria-label', 'Svg Play Icon');
   expect(wrapper.asFragment()).toMatchSnapshot();
 });
 
 it('renders a CTABanner correctly when lowercase icon is specified', () => {
   const wrapper = render(<CTABanner {...mockLowercaseIconSpecifiedProps} />);
-  expect(wrapper.getByRole('img')).toHaveAttribute('aria-label', 'Bell Icon');
+  expect(wrapper.getByRole('img')).toHaveAttribute('aria-label', 'Svg Bell Icon');
   expect(wrapper.asFragment()).toMatchSnapshot();
 });
