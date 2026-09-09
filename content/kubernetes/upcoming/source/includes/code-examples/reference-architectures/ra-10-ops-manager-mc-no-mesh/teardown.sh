@@ -9,6 +9,10 @@ source scripts/code_snippets/sample_test_runner.sh
 
 pushd "${script_dir}"
 
+set +u
+source env_variables.sh
+set -u
+
 prepare_snippets
 
 cleanup_failed=0
