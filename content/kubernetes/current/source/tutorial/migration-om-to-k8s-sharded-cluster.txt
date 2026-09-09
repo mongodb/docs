@@ -1,0 +1,119 @@
+.. _k8s-migration-om-to-k8s-sharded-cluster:
+
+========================================
+Migrate a Sharded Cluster to Kubernetes
+========================================
+
+.. meta::
+   :description: Migrate a sharded cluster managed by Ops Manager or Cloud Manager on virtual machines into Kubernetes under the Kubernetes Operator using a live, incremental workflow.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This procedure migrates a sharded cluster that |mms| or Cloud
+Manager manages into Kubernetes under |k8s-op-short|, using the
+same live, incremental extend-promote-prune workflow as
+:ref:`k8s-migration-om-to-k8s-replica-set`. Follow that procedure,
+applying the differences described on this page. Where
+this page does not mention a step, it works the same as the
+replica set procedure.
+
+.. important::
+
+   Sharded clusters with an **embedded config server** are not
+   supported. |k8s-op-short| detects this topology and rejects
+   the import.
+
+External Members Cover Every Component
+-----------------------------------------
+
+For a sharded cluster, ``spec.externalMembers`` is a single flat
+list covering every process: config server ``mongod``\s, each
+shard's ``mongod``\s, and the ``mongos`` routers. Every entry sets
+``spec.externalMembers[].type``, and every ``mongod`` entry also
+sets ``spec.externalMembers[].replicaSetName`` to identify whether
+the process belongs to the config server replica set or to a
+specific shard's replica set. For the full field reference, see
+:ref:`k8s-migration-crd-settings`.
+
+Name Overrides Preserve the Automation Config Names
+-------------------------------------------------------
+
+The ``kubectl mongodb migrate-to-mck`` plugin sets
+``spec.configServerNameOverride`` and
+``spec.shardNameOverrides`` so that |k8s-op-short| extends the
+existing config server and shard replica sets instead of creating
+new ones. The plugin also sets the Kubernetes-side member counts
+to ``0``.
+
+Extend Uniformly or Per Shard
+---------------------------------
+
+You can extend a sharded cluster into Kubernetes in two ways:
+
+- **Uniformly**, by raising the per-component counts
+  :setting:`spec.mongodsPerShardCount`,
+  :setting:`spec.configServerCount`, and
+  :setting:`spec.mongosCount`. Use this when every shard receives
+  the same number of Kubernetes members.
+
+- **Per shard**, using :setting:`spec.shardOverrides` entries that
+  name the shard and set its member count, either directly or in
+  ``clusterSpecList[]``. Use this when shards are sized
+  differently, when you migrate shard by shard, or when a shard
+  needs its own member layout.
+
+  .. note::
+
+     ``spec.shardOverrides[].memberConfig`` at the entry's top
+     level is ignored. The nested
+     ``spec.shardOverrides[].clusterSpecList[].memberConfig`` is
+     the one that applies.
+
+     Do not confuse :setting:`spec.shardOverrides` (per-shard
+     configuration) with ``spec.shardNameOverrides`` (automation
+     config replica set naming). The two settings are unrelated.
+
+As with the replica set procedure, hand-write ``memberConfig`` for
+every new Kubernetes member on the relevant component before you
+raise its count:
+
+.. include:: /includes/admonitions/warning-migration-member-config.rst
+
+TLS Certificates Per Component
+----------------------------------
+
+Issue one certificate per component, using the naming pattern for
+each: ``<name>-config-*`` for the config server, ``<name>-<i>-*``
+for each shard, and ``<name>-mongos-*`` for the ``mongos``
+routers.
+
+Extend and Prune One Component at a Time
+--------------------------------------------
+
+There is no required order for extending or pruning the config
+server, shards, or ``mongos`` routers. Extend or prune exactly one
+component at a time, and wait for goal state before you move to
+the next component or the next entry.
+
+Status Conditions and Verification
+---------------------------------------
+
+Status conditions and reasons work the same as for a replica set,
+computed from an override-aware member total across all
+components. ``kubectl wait --for=condition=Migrating=False`` is
+valid for a sharded cluster migration.
+
+Verify the migration through a ``mongos`` Pod, not a shard member.
+
+Learn More
+----------
+
+- :ref:`k8s-migration-om-to-k8s-replica-set`
+- :ref:`k8s-migration-om-to-kubernetes`
+- :ref:`k8s-migration-crd-settings`

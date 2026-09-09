@@ -14,7 +14,7 @@ test -n "${om_ca_cert}" || (echo "Error getting OM's CA certificate"; exit 1;)
 # we're using the load balancer IP, hence we need to use --insecure
 # normally, OM should be accessed from inside the cluster or properly exposed externally
 
-om_ip_address=$(gcloud compute forwarding-rules describe om-forwarding-rule --global --format="get(IPAddress)")
+om_ip_address=$(gcloud_retry compute forwarding-rules describe "${OM_FORWARDING_RULE_NAME}" --global --format="get(IPAddress)")
 
 mdb_org_id=$(curl -v --insecure --user "${om_creds}" --digest \
   --header 'Accept: application/json' \

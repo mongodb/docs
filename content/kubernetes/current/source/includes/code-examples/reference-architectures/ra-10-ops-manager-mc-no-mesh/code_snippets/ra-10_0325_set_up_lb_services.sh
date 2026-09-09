@@ -4,7 +4,7 @@ kubectl --context "${K8S_CLUSTER_0_CONTEXT_NAME}" -n "${OM_NAMESPACE}" \
   wait svcneg "${svcneg0}" --for=condition=Initialized --timeout=300s \
   || { kubectl --context "${K8S_CLUSTER_0_CONTEXT_NAME}" -n "${OM_NAMESPACE}" get svcneg "${svcneg0}" -o yaml; exit 1; }
 
-gcloud compute backend-services add-backend om-backend-service \
+gcloud_retry compute backend-services add-backend "${OM_BACKEND_SERVICE_NAME}" \
     --global \
     --network-endpoint-group="${svcneg0}" \
     --network-endpoint-group-zone="${K8S_CLUSTER_0_ZONE}" \

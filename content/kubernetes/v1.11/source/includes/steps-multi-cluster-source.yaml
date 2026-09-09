@@ -1,0 +1,979 @@
+---
+title: "Deploy the |k8s-op-full| in the operator cluster."
+stepnum: 0
+level: 4
+ref: deploy-meko-central-cluster
+content: |
+
+  Deploy the |k8s-op-full| in the operator cluster in the ``mongodb`` namespace with Helm or ``kubectl``.
+
+  .. tabs::
+
+     .. tab:: Helm
+        :tabid: deploy-mc-helm
+
+        a. Add the `MongoDB Helm Charts for Kubernetes <https://mongodb.github.io/helm-charts>`__ repository to Helm.
+
+           .. code-block:: sh
+
+              helm repo add mongodb https://mongodb.github.io/helm-charts
+
+        #. Use the `MongoDB Helm Charts for Kubernetes <https://mongodb.github.io/helm-charts>`__ to deploy the |k8s-op-short|.
+
+           .. code-block:: sh
+
+              helm upgrade \
+                --install \
+                  mongodb-kubernetes-operator-multi-cluster \
+                  mongodb/mongodb-kubernetes \
+                    --namespace mongodb \
+                    --set namespace=mongodb \
+                    --version <mongodb-kubernetes-operator-version> \
+                    --set operator.name=mongodb-kubernetes-operator-multi-cluster \
+                    --set operator.createOperatorServiceAccount=false \
+                    --set operator.createResourcesServiceAccountsAndRoles=false \
+                    --set "multiCluster.clusters={$MDB_CLUSTER_1_FULL_NAME,$MDB_CLUSTER_2_FULL_NAME,$MDB_CLUSTER_3_FULL_NAME}" \
+                    --set multiCluster.performFailover=false
+
+     .. tab:: kubectl
+        :tabid: deploy-mc-kubectl
+
+        a. Apply the |k8s-op-short| custom resources.
+
+           .. code-block:: sh
+
+              kubectl apply -f https://raw.githubusercontent.com/mongodb/mongodb-kubernetes/master/public/crds.yaml
+
+        #. Download the |k8s-op-short| YAML template.
+
+           .. code-block:: sh
+
+              curl https://raw.githubusercontent.com/mongodb/mongodb-kubernetes/master/public/mongodb-kubernetes-multi-cluster.yaml -o operator.yaml
+
+        #. Optional: Customize the |k8s-op-short| YAML template.
+
+           To learn about optional |k8s-op-short| installation settings, see :ref:`meko-op-install-settings-kubectl-oc`.
+
+        #. Apply the |k8s-op-short| YAML file.
+
+           .. code-block:: sh
+
+              kubectl apply -f operator.yaml
+
+        #. Verify that the |k8s-op-short| is deployed.
+
+           .. include:: /includes/install/verify-meko-installation.rst
+
+---
+stepnum: 0
+level: 4
+ref: install-helm-charts
+title: "Add the `MongoDB Helm Charts for Kubernetes <https://mongodb.github.io/helm-charts>`__ repository to Helm."
+content: |
+
+  .. code-block:: sh
+
+     helm repo add mongodb https://mongodb.github.io/helm-charts
+
+---
+stepnum: 0
+level: 4
+ref: run-kubectl-mongodb
+title: "Run the |kubectl-mongodb|."
+content: |
+
+  By default, the |k8s-op-short| is scoped to the ``mongodb`` namespace. When you run the following command, the |kubectl-mongodb|:
+
+  - Creates one operator cluster, three member clusters, and a |k8s-ns| labeled ``mongodb`` in each of the clusters.
+
+  - Creates a default ConfigMap with the hard-coded name ``mongodb-kubernetes-operator-member-list`` that contains all the member clusters. You can't change the ConfigMap's name.
+
+  - Creates the |k8s-service-accounts| and :k8sdocs:`Roles </reference/access-authn-authz/rbac/#role-and-clusterrole>` required for running database workloads in the member clusters.
+
+  Run the |kubectl-mongodb|:
+
+  .. code-block:: sh
+
+     kubectl mongodb multicluster setup \
+       --central-cluster="${MDB_CENTRAL_CLUSTER_FULL_NAME}" \
+       --member-clusters="${MDB_CLUSTER_1_FULL_NAME},${MDB_CLUSTER_2_FULL_NAME},${MDB_CLUSTER_3_FULL_NAME}" \
+       --member-cluster-namespace="mongodb" \
+       --central-cluster-namespace="mongodb" \
+       --create-service-account-secrets \
+       --install-database-roles=true
+
+---
+stepnum: 0
+level: 4
+optional: true
+ref: set-istio-webhook
+title: "Set the Istio injection webhook in each member cluster."
+content: |
+   
+   If you're using Istio, run the following command on the operator cluster,
+   specifying the context for each of the member clusters in the deployment.
+   To enable |sidecar-injection| in Istio, the following commands add
+   the ``istio-injection=enabled`` labels to the ``mongodb`` namespaces
+   on each member cluster. If you use another service mesh, configure
+   it to handle network traffic in the created namespaces.
+
+   .. code-block:: sh
+      :emphasize-lines: 4
+
+      kubectl label \
+        --context=$MDB_CLUSTER_1_FULL_NAME \
+        namespace mongodb \
+        istio-injection=enabled
+
+   .. code-block:: sh
+      :emphasize-lines: 4
+
+      kubectl label \
+        --context=$MDB_CLUSTER_2_FULL_NAME \
+        namespace mongodb \
+        istio-injection=enabled
+
+   .. code-block:: sh
+      :emphasize-lines: 4
+
+      kubectl label \
+        --context=$MDB_CLUSTER_3_FULL_NAME \
+        namespace mongodb \
+        istio-injection=enabled
+
+---
+stepnum: 0
+level: 4
+title: "Configure ``kubectl`` to use the operator cluster's namespace."
+ref: configure-kubectl-mc
+content: |
+
+  If you have not done so already, run the following commands to run
+  all ``kubectl`` commands on the operator cluster in the default
+  namespace.
+
+  .. code-block:: sh
+
+     kubectl config use-context $MDB_CENTRAL_CLUSTER_FULL_NAME
+     kubectl config set-context $(kubectl config current-context) \
+       --namespace=mongodb
+
+---
+stepnum: 0
+level: 4
+title: "Install the |k8s-op-full| in the operator cluster in the default namespace."
+ref: install-kubectl-mc
+content: |
+
+     Use the `MongoDB Helm Charts for Kubernetes <https://mongodb.github.io/helm-charts>`__
+     to install |k8s-op-short| for managing your |multi-cluster|:
+
+     .. code-block:: sh
+
+        helm upgrade \
+          --install \
+            mongodb-kubernetes-operator-multi-cluster \
+            mongodb/mongodb-kubernetes \
+              --namespace mongodb \
+              --set namespace=mongodb \
+              --version <mongodb-kubernetes-operator-version> \
+              --set operator.name=mongodb-kubernetes-operator-multi-cluster \
+              --set operator.createOperatorServiceAccount=false \
+              --set operator.createResourcesServiceAccountsAndRoles=false \
+              --set "multiCluster.clusters={$MDB_CLUSTER_1_FULL_NAME,$MDB_CLUSTER_2_FULL_NAME,$MDB_CLUSTER_3_FULL_NAME}" \
+              --set multiCluster.performFailover=false
+---
+
+stepnum: 0
+title: "Create a secret to use with Ops Manager and create a ConfigMap."
+ref: create-configmap-and-secret
+content: |
+
+   a. Create a secret so that the |k8s-op-short|
+      can create and update objects in your |mms| project.
+      To learn more, see :ref:`create-k8s-credentials`.
+
+   #. Create a ConfigMap to link the |k8s-op-short|
+      to your |mms| project. To learn more, see :ref:`create-k8s-project`.
+
+---
+stepnum: 0
+title: "Deploy |onprem| on the operator cluster and connect to |onprem|."
+ref: deploy-om-mc-central-cluster
+content: |
+
+---
+stepnum: 0
+title: "Configure service accounts and roles for each member cluster."
+ref: configure-mc-service-accounts
+content: |
+
+      Configure the required service accounts for each member cluster:
+
+      .. code-block:: sh
+
+         helm template --show-only \
+           templates/database-roles.yaml \
+           mongodb/mongodb-kubernetes \
+           --set namespace=mongodb | \
+         kubectl apply -f - \
+           --context=$MDB_CLUSTER_1_FULL_NAME \
+           --namespace mongodb
+
+      .. code-block:: sh
+
+         helm template --show-only \
+           templates/database-roles.yaml \
+           mongodb/mongodb-kubernetes \
+           --set namespace=mongodb | \
+         kubectl apply -f - \
+           --context=$MDB_CLUSTER_2_FULL_NAME \
+           --namespace mongodb
+
+      .. code-block:: sh
+
+         helm template --show-only \
+           templates/database-roles.yaml \
+           mongodb/mongodb-kubernetes \
+           --set namespace=mongodb | \
+         kubectl apply -f - \
+           --context=$MDB_CLUSTER_3_FULL_NAME \
+           --namespace mongodb
+
+
+---
+stepnum: 0
+level: 4
+title: "Deploy the |mongodb-multi|."
+ref: deploy-mdbresource-mc-tls
+content: |
+
+  Set :setting:`spec.credentials`, 
+  :setting:`spec.opsManager.configMapRef.name`, and 
+  :ref:`security settings <security-settings>` 
+  and deploy the |mongodb-multi|.
+  In the following code sample, ``duplicateServiceObjects``
+  is set to ``true`` to enable
+  `DNS proxying <https://istio.io/latest/docs/ops/configuration/traffic-management/dns-proxy/>`__
+  in Istio.
+      
+  .. note::
+
+     To enable the cross-cluster DNS resolution by the Istio
+     service mesh, this tutorial creates service objects with a
+     single ClusterIP address per each |k8s| Pod.
+
+  .. code-block:: yaml
+
+     kubectl apply -f - <<EOF
+     apiVersion: mongodb.com/v1
+     kind: MongoDBMultiCluster
+     metadata:
+      name: multi-replica-set
+     spec:
+      version: 8.0.0
+      type: ReplicaSet
+      persistent: false
+      duplicateServiceObjects: true
+      credentials: my-credentials
+      opsManager:
+        configMapRef:
+          name: my-project
+      security:
+        certsSecretPrefix: <prefix>
+        tls:
+          ca: custom-ca
+      clusterSpecList:
+        - clusterName: ${MDB_CLUSTER_1_FULL_NAME}
+          members: 3
+        - clusterName: ${MDB_CLUSTER_2_FULL_NAME}
+          members: 2
+        - clusterName: ${MDB_CLUSTER_3_FULL_NAME}
+          members: 3
+     EOF
+
+  The |k8s-op-short| copies the ConfigMap with the |certauth| that you
+  created in previous steps to each member cluster, generates a
+  concatenated |pem| secret, and distributes it to the member clusters.
+
+---
+stepnum: 0
+level: 4
+title: "Verify that the |mongodb-multis| are running."
+ref: verify-mdb-resources-mc
+content: |
+
+  a. For member clusters, run the following commands to verify that
+     the MongoDB Pods are in the running state:
+
+     .. code-block:: sh
+
+        kubectl get pods \
+         --context=$MDB_CLUSTER_1_FULL_NAME \
+         --namespace mongodb
+
+     .. code-block:: sh
+
+        kubectl get pods \
+         --context=$MDB_CLUSTER_2_FULL_NAME \
+         --namespace mongodb
+
+     .. code-block:: sh
+
+        kubectl get pods \
+         --context=$MDB_CLUSTER_3_FULL_NAME \
+         --namespace mongodb
+
+  #.  In the operator cluster, run the following command to verify that
+      the |mongodb-multi| is in the running state:
+
+      .. code-block:: sh
+
+         kubectl --context=$MDB_CENTRAL_CLUSTER_FULL_NAME \
+           --namespace mongodb \
+           get mdbmc multi-replica-set -o yaml -w
+
+---
+stepnum: 0
+title: "Create the secret for the TLS certificate of your |mongodb-multi|."
+level: 4
+ref: create-k8s-mc-tls-secret
+content: |
+
+  Run the ``kubectl`` command to create a new secret that stores the
+  |mongodb-multi| certificate:
+
+  .. code-block:: sh
+
+     kubectl --context $MDB_CENTRAL_CLUSTER_FULL_NAME \
+       --namespace=<metadata.namespace> \
+       create secret tls <prefix>-<metadata.name>-cert \
+       --cert=<resource-tls-cert> \
+       --key=<resource-tls-key>
+
+  .. note::
+
+     .. include:: /includes/fact-req-secret-prefix.rst
+
+  .. include:: /includes/fact-example-secret-prefix-cluster-file.rst
+
+---
+stepnum: 0
+title: "Create the secret for your agent's X.509 certificate of your |mongodb-multi|."
+level: 4
+ref: create-mc-agent-secret-x509
+content: |
+
+  Run the ``kubectl`` command to create a new secret that stores the agent's X.509 certificate:
+
+  .. code-block:: sh
+
+     kubectl --context $MDB_CENTRAL_CLUSTER_FULL_NAME \
+       --namespace=<metadata.namespace> \
+     create secret tls <prefix>-<metadata.name>-agent-certs \
+       --cert=<agent-tls-cert> \
+       --key=<agent-tls-key>
+
+---
+stepnum: 0
+title: "Create the secret for the member cluster's internal X.509 certificate."
+level: 4
+ref: create-mc-secret-x509-internal
+content: |
+
+  Run the ``kubectl`` command to create a new secret that stores the internal
+  cluster member's X.509 certificate. The member clusters are defined in
+  your |mongodb-multi|.
+
+  .. code-block:: sh
+
+     kubectl --context $MDB_CENTRAL_CLUSTER_FULL_NAME \
+       --namespace=<metadata.namespace> \
+     create secret tls <prefix>-<metadata.name>-clusterfile \
+       --cert=<resource-clusterfile-tls-cert> \
+       --key=<resource-clusterfile-tls-key>
+
+---
+stepnum: 0
+ref: create-k8s-mc-tls-configmap
+title: "Create the ConfigMap to link your CA with your |mongodb-multi|."
+level: 4
+content: |
+   Run the ``kubectl`` command to link your |certauth| to your |mongodb-multi|.
+   Specify the |certauth| certificate file that you must always name
+   ``ca-pem`` for the |mongodb-multi|:
+
+   .. code-block:: sh
+
+      kubectl --context $MDB_CENTRAL_CLUSTER_FULL_NAME \
+        --namespace=<metadata.namespace> \
+        create configmap custom-ca -from-file=ca-pem=<your-custom-ca-file>
+
+---
+stepnum: 0
+title: "Renew the |k8s-secret| for a |mongodb-multi|."
+ref: renew-mc-rs-tls-secret
+level: 4
+content: |
+
+  Run this ``kubectl`` command to renew an existing |k8s-secret| that stores the certificates for the |mongodb-multi|:
+
+  .. code-block:: sh
+
+     kubectl --context $MDB_CENTRAL_CLUSTER_FULL_NAME \
+     --namespace=<metadata.namespace> \
+     create secret tls <prefix>-<metadata.name>-cert \
+     --cert=<resource-tls-cert> \
+     --key=<resource-tls-key> \
+     --dry-run=client \
+     -o yaml |
+     kubectl apply -f -
+
+---
+stepnum: 0
+ref: renew-mc-secret-x509-agent
+title: "Renew the secret for your agent's X.509 certificates."
+level: 4
+content: |
+   Run the ``kubectl`` command to renew an existing secret that stores
+   the |mongodb-multi| agent certificates:
+
+
+   .. code-block:: sh
+
+      kubectl --context $MDB_CENTRAL_CLUSTER_FULL_NAME \
+        --namespace=<metadata.namespace> \
+      create secret tls <prefix>-<metadata.name>-agent-certs \
+        --cert=<agent-tls-cert> \
+        --key=<agent-tls-key> \
+        --dry-run=client \
+        -o yaml | kubectl apply -f -
+
+---
+stepnum: 0
+ref: renew-secret-internal-x509
+title: "Renew the secret for internal members's X.509 certificates of the |mongodb-multi|."
+level: 4
+content: |
+   Run the ``kubectl`` command to renew an existing secret that stores
+   X.509 certificates for internal members of the |mongodb-multi|:
+
+   .. code-block:: sh
+
+      kubectl --context $MDB_CENTRAL_CLUSTER_FULL_NAME \
+        --namespace=<metadata.namespace> \
+      create secret tls <prefix>-<metadata.name>-clusterfile \
+        --cert=<resource-clusterfile-tls-cert> \
+         --key=<resource-clusterfile-tls-key> \
+         --dry-run=client \
+         -o yaml | kubectl apply -f -
+
+---
+title: "Copy and paste the sample {{k8sResource}} resource."
+stepnum: 0
+level: 4
+ref: copy-k8s-mc-example-resource
+content: |
+
+   a. Copy the sample replica set |yaml| file and paste it into a new
+      text file.
+
+   b. Change the file's settings to match your desired replica set configuration.
+
+   {{k8sMultiClusterExample}}
+
+replacement:
+  k8sResource: ""
+  k8sMultiClusterExample: ""
+
+---
+title: "Change the settings to your preferred values."
+stepnum: 0
+level: 4
+ref: change-values
+content: |
+
+  .. include:: /includes/list-tables/rs-multi-cluster-base-options.rst
+
+---
+title: "Add any additional accepted settings for a |mongodb-multi| deployment."
+stepnum: 0
+level: 4
+ref: add-optional-values
+content: |
+
+  You can also add any optional settings to the
+  |k8s-obj| specification. See :ref:`multi-cluster-specification`.
+
+---
+title: "Track the status of your |multi-cluster|."
+stepnum: 0
+level: 4
+ref: track-k8s-mc-deployment-basic
+content: |
+
+  .. include:: /includes/check-resource-status-multi-cluster.rst
+
+---
+title: "Download your desired |k8s-op-short| package version."
+stepnum: 0
+level: 4
+ref: download-k8sop-version
+content: |
+
+  Download your desired |k8s-op-short| package version from the
+  :github:`Release Page of the MongoDB Controllers for Kubernetes Operator Repository </mongodb/mongodb-kubernetes/releases>`.
+
+  The package's name uses this pattern:
+  ``kubectl-mongodb_{{ .Version }}_{{ .Os }}_{{ .Arch }}.tar.gz``.
+  
+  Use one of the following packages:
+
+  - ``kubectl-mongodb_{{ .Version }}_darwin_amd64.tar.gz``
+  - ``kubectl-mongodb_{{ .Version }}_darwin_arm64.tar.gz``
+  - ``kubectl-mongodb_{{ .Version }}_linux_amd64.tar.gz``
+  - ``kubectl-mongodb_{{ .Version }}_linux_arm64.tar.gz``
+
+---
+title: "Unpack the |k8s-op-short| package."
+stepnum: 0
+level: 4
+ref: unpack-k8sop
+content: |
+
+  Unpack the package, as in the following example:
+
+  .. code-block:: sh
+  
+     tar -zxvf kubectl-mongodb_<version>_darwin_amd64.tar.gz
+
+---
+title: "Locate the |kubectl-mongodb| binary and copy it to its desired destination."
+stepnum: 0
+level: 4
+ref: mv-plugin-to-your-dir
+content: |
+
+  Find the ``kubectl-mongodb`` binary in the unpacked directory and move it
+  to its desired destination, inside the PATH for the |k8s-op-short| user,
+  as shown in the following example:
+
+  .. code-block:: sh
+
+     mv kubectl-mongodb /usr/local/bin/kubectl-mongodb
+
+  Now you can run the |kubectl-mongodb| using the following commands:
+
+  .. code-block:: sh
+
+     kubectl mongodb multicluster setup
+     kubectl mongodb multicluster recover
+
+  To learn more about the supported flags,
+  see the :ref:`MongoDB kubectl plugin Reference <kubectl-plugin-ref>`.
+
+---
+title: "Set up your Google Cloud account."
+stepnum: 0
+level: 4
+ref: set-up-gcloud
+content: |
+
+  If you have not done so already, create a Google Cloud project, enable billing on the project, enable the Artifact Registry and GKE APIs, and launch Cloud Shell by following the relevant procedures in the `Google Kubernetes Engine Quickstart <https://cloud.google.com/kubernetes-engine/docs/quickstart>`__ in the Google Cloud documentation.
+
+---
+title: "Create a operator cluster and member clusters."
+stepnum: 0
+level: 4
+ref: create-mc-clusters
+content: |
+
+  Create :ref:`one operator cluster and one or more member clusters <central-and-member-clusters>`, specifying the GKE zones, the number of nodes, 
+  and the instance types, as in these examples:
+
+  .. code-block:: sh
+
+     gcloud container clusters create $MDB_CENTRAL_CLUSTER \
+       --zone=$MDB_CENTRAL_CLUSTER_ZONE \
+       --num-nodes=5 \
+       --machine-type "e2-standard-2"
+
+  .. code-block:: sh
+
+     gcloud container clusters create $MDB_CLUSTER_1 \
+       --zone=$MDB_CLUSTER_1_ZONE \
+       --num-nodes=5 \
+       --machine-type "e2-standard-2"
+
+  .. code-block:: sh
+
+     gcloud container clusters create $MDB_CLUSTER_2 \
+       --zone=$MDB_CLUSTER_2_ZONE \
+       --num-nodes=5 \
+       --machine-type "e2-standard-2"
+
+  .. code-block:: sh
+
+     gcloud container clusters create $MDB_CLUSTER_3 \
+       --zone=$MDB_CLUSTER_3_ZONE \
+       --num-nodes=5 \
+       --machine-type "e2-standard-2"
+
+---
+title: "`Install Go <https://golang.org/dl/>`__ v1.17 or later."
+stepnum: 0
+level: 4
+ref: install-go-prereq
+
+---
+title: "`Install Helm <https://helm.sh/docs/intro/install/>`__."
+stepnum: 0
+level: 4
+ref: install-helm-prereq
+
+---
+title: "Create a namespace in each cluster."
+stepnum: 0
+level: 4
+ref: create-namespace-service
+content: |
+
+  Create a namespace in each of the |k8s| clusters to deploy the ``sample-service.yaml``.
+
+  .. code-block:: sh
+
+     kubectl create --context="${CTX_CLUSTER_1}" namespace sample
+     kubectl create --context="${CTX_CLUSTER_2}" namespace sample
+
+  .. note::
+
+     In certain service mesh solutions, you might need to annotate
+     or label the namespace.
+
+---
+title: "Deploy the ``sample-service.yaml`` in both |k8s| clusters."
+stepnum: 0
+level: 4
+ref: deploy-service-yaml
+content: |
+
+  .. code-block:: sh
+      
+     kubectl apply --context="${CTX_CLUSTER_1}" \
+        -f sample-service.yaml \
+        -l service=helloworld1 \
+        -n sample
+
+     kubectl apply --context="${CTX_CLUSTER_2}" \
+        -f sample-service.yaml \
+        -l service=helloworld2 \
+        -n sample
+
+---
+title: "Deploy the sample application on ``CLUSTER_1``."
+stepnum: 0
+level: 4
+ref: deploy-sample-app
+content: |
+
+  .. code-block:: sh
+
+     kubectl apply --context="${CTX_CLUSTER_1}" \
+        -f sample-service.yaml \
+        -l version=v1 \
+        -n sample
+
+---
+title: "Ensure ``CLUSTER_1`` is running."
+stepnum: 0
+level: 4
+ref: ensure-cluster1-running
+content: |
+
+  Check that the ``CLUSTER_1`` hosting Pod is in the ``Running`` state.
+
+  .. code-block:: sh
+
+     kubectl get pod --context="${CTX_CLUSTER_1}" \
+        -n sample \
+        -l app=helloworld
+
+---
+title: "Deploy the sample application on ``CLUSTER_2``."
+stepnum: 0
+level: 4
+ref: deploy-app-cluster2
+content: |
+
+  .. code-block:: sh
+
+     kubectl apply --context="${CTX_CLUSTER_2}" \
+        -f sample-service.yaml \
+        -l version=v2 \
+        -n sample
+
+---
+title: "Ensure ``CLUSTER_2`` is running."
+stepnum: 0
+level: 4
+ref: ensure-cluster2-running
+content: |
+
+  Check that the ``CLUSTER_2`` hosting Pod is in the ``Running`` state.
+
+  .. code-block:: sh
+
+     kubectl get pod --context="${CTX_CLUSTER_2}" \
+        -n sample \
+        -l app=helloworld
+
+---
+title: "Verify ``CLUSTER_1`` can connect to ``CLUSTER_2``."
+stepnum: 0
+level: 4
+ref: cluster1-to-cluster2
+content: |
+
+  Deploy the Pod in ``CLUSTER_1`` and check that you can reach the sample application in ``CLUSTER_2``.
+
+  .. code-block:: sh
+         
+     kubectl run  --context="${CTX_CLUSTER_1}" \
+        -n sample \
+        curl --image=radial/busyboxplus:curl \
+        -i --tty \
+        curl -sS helloworld2.sample:5000/hello
+
+  You should see output similar to this example:
+
+  .. code-block:: sh
+     :copyable: false
+
+     Hello version: v2, instance: helloworld-v2-758dd55874-6x4t8
+
+---
+title: "Verify ``CLUSTER_2`` can connect to ``CLUSTER_1``."
+stepnum: 0
+level: 4
+ref: cluster2-to-cluster1
+content: |
+
+  Deploy the Pod in ``CLUSTER_2`` and check that you can reach the sample application in ``CLUSTER_1``.
+
+  .. code-block:: sh
+
+     kubectl run --context="${CTX_CLUSTER_2}" \
+        -n sample \
+        curl --image=radial/busyboxplus:curl \
+        -i --tty \
+        curl -sS helloworld1.sample:5000/hello
+
+  You should see output similar to this example:
+
+  .. code-block:: sh
+     :copyable: false
+
+     Hello version: v1, instance: helloworld-v1-758dd55874-6x4t8
+
+---
+title: "Recover the |multi-cluster| using the :ref:`MongoDB kubectl plugin <kubectl-plugin-ref>`."
+stepnum: 0
+level: 4
+ref: recover-mc-kube
+content: |
+
+  .. code-block:: sh
+
+     kubectl mongodb multicluster recover \
+       --central-cluster="MDB_CENTRAL_CLUSTER_FULL_NAME" \
+       --member-clusters="${MDB_CLUSTER_1_FULL_NAME},${MDB_CLUSTER_2_FULL_NAME}" \
+       --member-cluster-namespace="mongodb" \
+       --central-cluster-namespace="mongodb" \
+       --operator-name=mongodb-kubernetes-operator-multi-cluster \
+       --source-cluster="${MDB_CLUSTER_1_FULL_NAME}"
+
+  This command:
+   
+  - Reconfigures the |k8s-op-short| to manage workloads on the two healthy
+    |k8s| clusters. (This list could also include new |k8s| clusters).
+   
+  - Marks ``CLUSTER_1`` as the source of configuration for the member node
+    configuration for new |k8s| clusters. Replicates Role and Service Account
+    configuration to match the configuration in ``CLUSTER_1``.
+
+---
+title: "Rebalance the data nodes on the healthy |k8s| clusters."
+stepnum: 0
+level: 4
+ref: rebalance-nodes
+content: |
+
+  Reconfigure the |mongodb-multi| to rebalance the data nodes on the healthy
+  |k8s| clusters by editing the resources affected by the change:
+
+  .. code-block:: yaml
+
+     kubectl apply -n mongodb -f - <<EOF
+     apiVersion: mongodb.com/v1
+     kind: MongoDBMultiCluster
+     metadata:
+       name: multi-replica-set
+     spec:
+       version: 8.0.0
+       type: ReplicaSet
+       persistent: false
+       duplicateServiceObjects: true
+       credentials: my-credentials
+       opsManager:
+         configMapRef:
+           name: my-project
+      security:
+        tls:
+          ca: custom-ca
+      clusterSpecList:
+        - clusterName: ${MDB_CLUSTER_1_FULL_NAME}
+          members: 4
+        - clusterName: ${MDB_CLUSTER_2_FULL_NAME}
+          members: 3
+      EOF
+
+---
+title: "Edit the |k8s| |mongodb-multi| specification file."
+stepnum: 0
+level: 4
+ref: edit-mc-specs
+
+---
+title: "Modify or add settings as needed."
+stepnum: 0
+level: 4
+ref: modify-mc-specs
+content: |
+
+  To learn about the settings you can change, see the :ref:`multi-cluster-specification`.
+
+---
+title: "Generate a TLS certificate for |k8s| services."
+stepnum: 0
+level: 4
+ref: generate-tls-services
+content: |
+
+  Use one of the following options:
+
+  - Generate a wildcard |tls| certificate that covers hostnames
+    of the services that the |k8s-op-short| creates for each Pod
+    in the deployment.
+
+    If you generate wildcard certificates, you can continue using
+    the same certificates when you scale up or rebalance nodes in
+    the |k8s| member clusters, for example for :ref:`disaster recovery <disaster-recovery-ref>`.
+
+    For example, add the hostname similar to the following format
+    to the |san-dns|:
+
+    .. code-block:: sh
+
+       *.<namespace>.svc.cluster.local
+
+  - For each |k8s| service that the |k8s-op-short| generates corresponding
+    to each Pod in each member cluster, add |san-dns|\s to the certificate.
+    In your |tls| certificate, the |san-dns| for each |k8s| service must
+    use the following format:
+
+    .. include:: /includes/prereqs/san-format-multi-cluster.rst
+
+---
+title: "Generate one TLS certificate for your project's {+mdbagent+}s."
+stepnum: 0
+level: 4
+ref: generate-tls-agents
+content: |
+
+  For the {+mdbagent+} |tls| certificate:
+
+  - The Common Name in the |tls| certificate must not be empty.
+
+  - The combined Organization and Organizational Unit in each |tls|
+    certificate must differ from the Organization and Organizational
+    Unit in the |tls| certificate for your replica set members. 
+
+---
+title: "Generate a TLS certificate for SAN hostnames."
+stepnum: 0
+level: 4
+ref: generate-tls-san-hostnames
+content: |
+
+  Use one of the following options:
+
+  - Generate a wildcard |tls| certificate that contains all
+    :ref:`externalDomains <multi-spec-clusterspeclist-externaldomain>`
+    that you created in the |san-dns|. For example, add the hostnames
+    similar to the following format to the |san-dns|:
+
+    .. code-block:: sh
+   
+       *.cluster-0.example.com, *.cluster-1.example.com
+
+    If you generate wildcard certificates, you can continue using
+    them when you scale up or rebalance nodes in the |k8s| member
+    clusters, for example for :ref:`disaster recovery <disaster-recovery-ref>`.
+
+  - Generate a |tls| certificate for each MongoDB replica set member
+    hostname in the |san-dns|. For example, add the hostnames similar
+    to the following to the |san-dns|:
+
+    .. code-block:: sh
+
+       my-replica-set-0-0.cluster-0.example.com,
+       my-replica-set-0-1.cluster-0.example.com, 
+       my-replica-set-1-0.cluster-1.example.com,
+       my-replica-set-1-1.cluster-1.example.com
+
+    If you generate an individual |tls| certificate that contains
+    all the specific hostnames, you must create a new certificate
+    each time you scale up or rebalance nodes in the |k8s| member
+    clusters, for example for :ref:`disaster recovery <disaster-recovery-ref>`.
+
+---
+title: "Install ``mkcert``."
+stepnum: 0
+level: 4
+ref: install-mkcert
+content: |
+
+  Install `mkcert <https://github.com/FiloSottile/mkcert>`__ on the machine you plan to run this script.
+
+---
+title: "Set the context to the operator cluster."
+stepnum: 0
+level: 4
+ref: set-context-central-cluster
+content: |
+
+  .. code-block:: sh
+
+     kubectl --context $MDB_CENTRAL_CLUSTER_FULL_NAME \
+     --namespace=<metadata.namespace> \
+
+---
+title: "Run the ``setup_tls`` script."
+stepnum: 0
+level: 4
+ref: run-tls-script
+content: |
+
+  .. code-block:: sh
+
+     curl https://raw.githubusercontent.com/mongodb/mongodb-kubernetes/master/scripts/release/kubectl-mongodb/setup_tls.sh  -o  setup_tls.sh
+
+  The output includes:
+
+  - A secret containing the |certauth| named ``ca-key-pair``.
+
+  - A secret containing the server certificates on the central n  ``clustercert-${resource}-cert``.
+
+  - A ConfigMap containing the |certauth| certificates named ``issuer-ca``.
+
+...

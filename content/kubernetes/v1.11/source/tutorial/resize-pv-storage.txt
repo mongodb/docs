@@ -1,0 +1,92 @@
+.. _k8s-resize-storage:
+
+=======================================
+Increase Storage for Persistent Volumes
+=======================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The |mms|, MongoDB Database, AppDB and Backup Daemon custom resources that 
+comprise a standard |k8s-op-short| deployment are each deployed as |k8s| 
+``statefulSets``. The |k8s-op-short| supports increasing the storage associated with 
+these specific resources by increasing the capacity of their respective |k8s| 
+``persistentVolumeClaims`` when the underlying |k8s| ``storageClass`` supports |k8s| 
+``persistentVolume`` expansion.
+
+Depending on the specific resource type, you can increase storage in one of two ways. 
+You can either manually increase storage, or you can leverage the |k8s-op-short| 
+easy storage expansion feature. The following table illustrates which of these two 
+procedures is supported for a given custom resource type. 
+
+.. list-table::
+   :widths: 40 30 30
+   :header-rows: 1
+
+   * - Custom Resource Type
+     - Manual Storage Expansion
+     - Easy Storage Expansion
+
+   * - AppDB
+     - :icon:`check-square`
+     - :icon:`check-square`
+
+   * - Backup Daemon
+     - :icon:`check-square`
+     - 
+
+   * - MongoDB Database
+     - :icon:`check-square`
+     - :icon:`check-square`
+
+   * - MongoDB Multi-Cluster
+     - :icon:`check-square`
+     - :icon:`check-square`
+
+   * - Ops Manager
+     - :icon:`check-square`
+     - 
+
+Prerequisites
+-------------
+
+Storage Class Must Support Resizing
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Make sure the |k8s-sc| and volume plugin provider that the |k8s-pvs|
+use supports resize:
+
+.. code-block:: sh
+
+   kubectl patch storageclass/<my-storageclass> --type='json' \
+           -p='[{"op": "add", "path": "/allowVolumeExpansion", "value": true }]'
+
+If you don't have a ``storageClass`` that supports resizing, ask your |k8s|
+administrator to help.
+
+Easy Expand Storage
+-------------------
+
+.. note:: 
+
+   The easy expansion mechanism requires the default RBAC included with the |k8s-op-short|. 
+   Specifically, it requires ``get``, ``list``, ``watch``, ``patch`` and ``update`` 
+   permissions for ``persistantVolumeClaims``. If you have customized any of 
+   the |k8s-op-short| RBAC resources, you might need to adjust permissions to 
+   allow the |k8s-op-short| to resize storage resources in your |k8s| cluster.
+
+   This process results in a rolling restart of the MongoDB custom resource 
+   in your |k8s| cluster.
+      
+.. include:: /includes/steps/resize-storage-easy.rst
+
+Manually Expand Storage
+-----------------------
+
+      
+.. include:: /includes/steps/resize-storage.rst

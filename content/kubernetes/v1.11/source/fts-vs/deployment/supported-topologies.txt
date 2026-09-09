@@ -1,0 +1,204 @@
+.. _k8s-fts-vs-supported-topologies:
+
+====================
+Supported Topologies
+====================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta:: 
+   :description: Learn about supported topologies for deploying MongoDB Search and Vector Search on Kubernetes, including replica sets, sharded clusters, and multi-cluster deployments.
+   :keywords: vector search, compatibility, requirements, mongot, mongod, version
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can deploy |text-search| and |vector-search| with the
+|k8s-op-short| against a range of MongoDB deployment topologies. The
+topology that you choose determines how the |k8s-op-short| deploys
+and connects the ``mongot`` process to your MongoDB deployment.
+
+Use this page to confirm that your planned topology is supported
+before you deploy. To confirm the MongoDB Server, ``mongot``, and
+|k8s-op-short| versions that you need, see
+:ref:`k8s-fts-vs-compatibility-requirements`.
+
+Deployment Dimensions
+---------------------
+
+A supported topology is a combination of the following dimensions:
+
+- **MongoDB Cluster topology.** Whether the ``mongot`` process serves a
+  MongoDB replica set or a sharded cluster. For sharded clusters, the
+  |k8s-op-short| deploys a separate ``mongot`` group for each shard.
+
+- **Deployment type.** Whether your MongoDB deployment runs in a
+  single |k8s| cluster (single-cluster) or spans multiple |k8s|
+  clusters (multi-cluster). In a multi-cluster topology, a single
+  |k8s-op-short| in a central cluster manages the ``mongot`` processes
+  in all member clusters.
+
+- **Load balancer mode.** When you run multiple ``mongot`` instances,
+  you must place an L7 load balancer between ``mongod`` and the
+  ``mongot`` pods. You can use one of the following options: 
+  
+  - *Managed* load balancer. The |k8s-op-short| deploys and configures 
+    an Envoy proxy.
+  - *Unmanaged* load balancer. You provide and configure your
+    own L7 load balancer. 
+    
+  A single ``mongot`` instance connects directly to ``mongod`` and does 
+  not require a load balancer.
+
+- **MongoDB source mode.** Whether the MongoDBSearch resource uses
+  ``spec.source.mongodbResourceRef`` to reference a MongoDB resource
+  that the |k8s-op-short| manages (managed) or uses
+  ``spec.source.external`` to configure the connection (external).
+
+Supported Topology Matrix
+-------------------------
+
+The following table lists the support status for each combination of
+deployment dimensions:
+
+.. important::
+
+   External MongoDB sources and multi-cluster topologies require
+   MongoDB Enterprise. MongoDB Community supports only replica set
+   deployments that the |k8s-op-short| manages inside |k8s|.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 20 20 20
+
+   * - Cluster Topology
+     - Deployment Type
+     - Load Balancer Mode
+     - MongoDB Source Mode
+     - Support Status
+
+   * - Replica set
+     - Single-cluster
+     - Managed
+     - Managed
+     - Supported
+
+   * - Replica set
+     - Single-cluster
+     - Managed
+     - External
+     - Supported
+
+   * - Replica set
+     - Single-cluster
+     - Unmanaged
+     - Managed
+     - Supported
+
+   * - Replica set
+     - Single-cluster
+     - Unmanaged
+     - External
+     - Supported
+
+   * - Replica set
+     - Multi-cluster
+     - Managed
+     - Managed
+     - Not supported
+
+   * - Replica set
+     - Multi-cluster
+     - Managed
+     - External
+     - Supported
+
+   * - Replica set
+     - Multi-cluster
+     - Unmanaged
+     - Managed
+     - Not supported
+
+   * - Replica set
+     - Multi-cluster
+     - Unmanaged
+     - External
+     - Not supported
+
+   * - Sharded cluster
+     - Single-cluster
+     - Managed
+     - Managed
+     - Supported
+
+   * - Sharded cluster
+     - Single-cluster
+     - Managed
+     - External
+     - Supported
+
+   * - Sharded cluster
+     - Single-cluster
+     - Unmanaged
+     - Managed
+     - Supported
+
+   * - Sharded cluster
+     - Single-cluster
+     - Unmanaged
+     - External
+     - Supported
+
+   * - Sharded cluster
+     - Multi-cluster
+     - Managed
+     - Managed
+     - Not supported
+
+   * - Sharded cluster
+     - Multi-cluster
+     - Managed
+     - External
+     - Supported
+
+   * - Sharded cluster
+     - Multi-cluster
+     - Unmanaged
+     - Managed
+     - Not supported
+
+   * - Sharded cluster
+     - Multi-cluster
+     - Unmanaged
+     - External
+     - Not supported
+
+Topology Considerations
+-----------------------
+
+Review the following considerations when you choose a topology:
+
+- External MongoDB sources and multi-cluster topologies are available
+  only for MongoDB Enterprise. MongoDB Community supports replica set
+  deployments that the |k8s-op-short| manages inside |k8s|.
+
+- In a multi-cluster topology, configure the MongoDB source using
+  ``spec.source.external``, even if the |k8s-op-short| manages the
+  MongoDB deployment. Multi-cluster topologies don't support
+  ``spec.source.mongodbResourceRef``.
+
+- Multi-cluster topologies require the managed load balancer. The
+  |k8s-op-short| supports unmanaged load balancers only in
+  single-cluster topologies.
+
+- Multi-cluster topologies require network connectivity between the
+  central cluster and the |k8s| API server of each member cluster.
+
+For other deployment limitations, see :ref:`k8s-fts-vs-limitations`.

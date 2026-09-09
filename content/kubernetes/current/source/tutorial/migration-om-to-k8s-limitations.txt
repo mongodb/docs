@@ -1,0 +1,163 @@
+.. _k8s-migration-om-to-k8s-limitations:
+
+================================================
+Migration Limitations and Unsupported Scenarios
+================================================
+
+.. meta::
+   :description: Review the limitations, unsupported topologies, and settings that migration to Kubernetes does not carry over before you migrate a self-managed MongoDB deployment.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Review the limitations in this page before you plan a migration
+of a self-managed deployment into Kubernetes. Some limitations
+block migration entirely, and others require you to plan around
+missing capabilities.
+
+One Deployment Per Project
+--------------------------
+
+The |mms| or Cloud Manager project must contain exactly one
+deployment. The ``kubectl mongodb`` plugin errors out if the
+project contains more than one deployment.
+
+If your project contains multiple deployments, split them into
+separate projects before you migrate. To learn how, see
+:ref:`Migrate a MongoDB Deployment to a New Project
+<migrate-deployment-to-new-project>` in the |mms| documentation.
+
+Embedded Config Servers Are Unsupported
+---------------------------------------
+
+A sharded cluster whose config server is also backed by one of
+its shards cannot be migrated. |k8s-op-short| detects an embedded
+config server and rejects the migration at import.
+
+Inbound Connectivity Is Not Auto-Verified
+-----------------------------------------
+
+The dry run validates connectivity from Kubernetes to the virtual
+machines only. It does not check virtual-machine-to-Kubernetes
+inbound connectivity automatically. Verify that direction of
+connectivity yourself before you rely on it.
+
+No Automatic Rollback
+----------------------
+
+No automated way exists to reverse a migration after it starts.
+Plan your migration and take a backup before you begin, because
+you cannot revert through the plugin or the operator.
+
+To manually roll back a migration in progress:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Stop |k8s-op-short|.
+
+      This step is critical. Do not skip it.
+
+   .. step:: Do not delete the ``MongoDB`` resource.
+
+      This step is critical. Do not skip it.
+
+   .. step:: Reconcile the automation config back to its state before migration.
+
+      Edit the automation config directly in |mms| or Cloud
+      Manager.
+
+.. warning::
+
+   If you delete the ``MongoDB`` resource while |k8s-op-short| is
+   still running, |k8s-op-short| does not delete the project in
+   |mms| or Cloud Manager, to protect the external members.
+   However, |k8s-op-short| automatically deletes the
+   ``StatefulSet``\s and Pods for that resource. Depending on how
+   far the migration has progressed, deleting these Pods can cause
+   the replica set to lose its voting majority.
+
+No Seeding or Pre-Copy
+-----------------------
+
+Migration moves data by MongoDB replication only. |k8s-op-short|
+does not seed or pre-copy data into the new Kubernetes members
+through any other mechanism.
+
+No Automated Prune
+------------------
+
+Removing external members is a manual operation. You remove
+entries from ``spec.externalMembers`` one at a time. The operator
+does not automate this step for you.
+
+Ops Manager Itself Is Not Migrated
+-----------------------------------
+
+This workflow migrates only the MongoDB deployment that |mms| or
+Cloud Manager manages. It does not migrate |mms| or Cloud Manager
+itself.
+
+Configuration Freeze during Migration
+--------------------------------------
+
+While a migration is in progress, do not make version or
+configuration changes to the deployment outside the migration
+steps. Concurrent edits through the |mms| UI are also unsupported
+during migration.
+
+Some fields are expected to change as part of the migration
+itself:
+
+- Member counts and the ``votes`` and ``priority`` fields in
+  ``memberConfig`` change as you extend, promote, and prune
+  members.
+
+Other settings must match the source deployment throughout
+migration and must not change:
+
+- MongoDB version
+
+- Feature compatibility version
+
+- Port
+
+- Authentication modes
+
+- Internal cluster authentication
+
+Settings That Do Not Carry Over to New Members
+-----------------------------------------------
+
+Plan for these settings before you migrate, because |k8s-op-short|
+does not reproduce them on the new Kubernetes members:
+
+- ``secondaryDelaySecs`` on a delayed member.
+
+- The hidden setting on a hidden member.
+
+- ``buildIndexes`` set to ``false`` on a member.
+
+If you run analytics nodes or delayed nodes on virtual machines,
+reconfigure the equivalent settings on the Kubernetes members
+yourself, after they join the replica set.
+
+Not Supported on MongoDBMultiCluster
+-------------------------------------
+
+|k8s-op-short| does not support migration on
+|mongodb-multi|. The ``spec.externalMembers`` field was
+deliberately not added to that |crd|. No
+``MongoDBProject`` |crd| exists.
+
+Learn More
+----------
+
+- :ref:`k8s-migration-om-to-k8s-overview`
+- :ref:`k8s-migration-om-to-k8s-prerequisites`
+- :ref:`k8s-migration-om-to-k8s-replica-set`

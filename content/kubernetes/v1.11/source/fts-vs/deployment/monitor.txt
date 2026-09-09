@@ -1,0 +1,303 @@
+.. _k8s-fts-vs-monitor:
+
+=======================
+Monitor Your Deployment
+=======================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Configure Prometheus metrics, log verbosity, health checks, and managed Envoy observability for MongoDB Search and Vector Search running with the Kubernetes Operator.
+   :keywords: mongot, prometheus, metrics, logs, health, envoy, observability, code example
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page describes how to monitor a |text-search| and |vector-search|
+deployment that you manage with the |k8s-op-full|. The following observability
+surfaces are available on the ``mongot`` pod:
+
+- A **Prometheus-compatible** ``/metrics`` endpoint.
+- A **health check** endpoint that exposes ``/health`` and ``/ready``.
+- **Structured JSON logs** written to the pod's stdout and stderr.
+- **FTDC** (Full-Time Diagnostic Data Capture) files for support and
+  postmortem analysis.
+
+When you enable an operator-managed load balancer through
+``spec.clusters[].loadBalancer.managed``, the |k8s-op-short| also provisions an
+Envoy proxy that exposes its own admin and metrics surfaces.
+
+For the full schema of each ``MongoDBSearch`` setting referenced on
+this page, see :ref:`k8s-fts-vs-settings`. To diagnose and resolve
+specific runtime issues, see :ref:`k8s-fts-vs-troubleshoot`.
+
+Monitor ``mongot`` Pod and Resource Status
+------------------------------------------
+
+The most direct signal of ``mongot`` availability is the state of
+its |k8s-pod| and the status of the ``MongoDBSearch`` resource.
+
+Check the pod state and restart count:
+
+.. code-block:: bash
+
+   kubectl get pods -n <namespace> --context <context> | grep search
+
+A healthy ``mongot`` pod reports a ``Running`` state with all
+containers ready and a restart count that doesn't increase. A
+rising restart count can indicate memory pressure or a configuration
+error. To learn more, see :ref:`k8s-fts-vs-troubleshoot`.
+
+Inspect the ``MongoDBSearch`` resource status and conditions:
+
+.. code-block:: bash
+
+   kubectl describe mongodbsearch <MongoDBSearch.metadata.name> \
+     -n <namespace> --context <context>
+
+Enable Prometheus Metrics
+-------------------------
+
+By default, the ``mongot`` Prometheus metrics endpoint is **disabled**.
+Add the ``spec.observability.prometheus`` block to your ``MongoDBSearch`` resource to
+enable it. An empty block enables the endpoint on the default port
+``9946``.
+
+.. code-block:: yaml
+
+   spec:
+     observability:
+       prometheus: {}
+
+To use a non-default port, set ``spec.observability.prometheus.port``:
+
+.. code-block:: yaml
+
+   spec:
+     observability:
+       prometheus:
+         port: 9090
+
+The endpoint is exposed inside the pod and is reachable through the
+``mongot`` container's pod IP on the configured port. The
+|k8s-op-short| doesn't authenticate the metrics endpoint.
+
+Scrape Metrics with Prometheus
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your cluster runs the Prometheus Operator, scrape the ``mongot``
+metrics endpoint with a ``PodMonitor`` (recommended for per-pod
+scraping) or a ``ServiceMonitor`` (when fronted by a Service). Match
+on the labels that the |k8s-op-short| applies to ``mongot`` pods and
+target the port you configured in ``spec.observability.prometheus.port``.
+
+For an example that deploys a ``MongoDB`` resource with a
+``ServiceMonitor`` for Prometheus, see :ref:`deploy-prometheus`.
+
+Available Metrics
+~~~~~~~~~~~~~~~~~
+
+The ``mongot`` Prometheus surface exposes the following categories of
+metrics:
+
+- **JVM** — heap and non-heap memory, garbage collection counts and
+  pause times, thread counts, class loader stats.
+- **System** — CPU usage, system memory, disk usage, network I/O for
+  the ``mongot`` process.
+- **Per-index** — index size, Lucene document and field counts, index
+  status, last-update timestamps.
+- **Search engine** — query counts, failed query counts, query latency
+  histograms.
+
+Forward Metrics to Ops Manager
+------------------------------
+
+The metrics forwarder sends ``mongot`` metrics to |onprem| so that
+you can view them alongside your other deployment metrics. The
+|k8s-op-short| deploys the forwarder as a separate |k8s|
+``Deployment`` that scrapes the ``mongot`` metrics endpoint and
+pushes the metrics to |onprem|.
+
+The metrics forwarder requires |onprem| 8.0.25 or later and does
+not support Cloud Manager.
+
+To configure the forwarder, set the following fields under
+``spec.observability.metricsForwarder`` on the ``MongoDBSearch``
+resource:
+
+- ``mode`` controls whether the |k8s-op-short| deploys the
+  forwarder. Set it to one of the following values:
+
+  - ``auto`` (default) automatically deploys the forwarder for an
+    internal MongoDB source, and for an external source when you
+    set ``opsManager``.
+  - ``enabled`` always deploys the forwarder.
+  - ``disabled`` never deploys the forwarder.
+
+- ``opsManager.projectConfigMapRef`` names the ConfigMap that holds
+  the |onprem| project configuration. Populate the ConfigMap with
+  the following keys:
+
+  - ``baseUrl``: the URL of your |onprem| instance.
+  - ``projectName``: the name of the |onprem| project.
+  - ``orgId``: the ID of the |onprem| organization.
+
+- ``opsManager.agentCredentials`` names the Secret that holds the
+  |onprem| API key. Populate the Secret with the following keys:
+
+  - ``publicKey``: the public key of the |onprem| API key.
+  - ``privateKey``: the private key of the |onprem| API key.
+
+- ``resourceRequirements`` sets the CPU and memory for the
+  forwarder container.
+
+If you don't set ``opsManager``, the |k8s-op-short| derives the
+|onprem| connection details from the source MongoDB resource. You
+must set ``opsManager`` for an external MongoDB source.
+
+.. code-block:: yaml
+
+   spec:
+     observability:
+       metricsForwarder:
+         mode: enabled
+         opsManager:
+           projectConfigMapRef:
+             name: my-om-project-config
+           agentCredentials:
+             name: my-om-agent-api-key
+
+The |k8s-op-short| reports the forwarder status under
+``status.metricsForwarder`` on the ``MongoDBSearch`` resource.
+
+Configure Log Verbosity
+-----------------------
+
+``mongot`` writes structured JSON logs to its container's ``stdout`` and
+``stderr`` streams, so you can read them with standard |k8s| log tools:
+
+.. code-block:: bash
+
+   kubectl logs statefulset/<MongoDBSearch.metadata.name>-search-0
+
+To stream logs in real time, add the ``--follow`` flag. To view
+logs from a previous container instance after a restart, add the
+``--previous`` flag.
+
+To change the log verbosity, set ``spec.logLevel`` on the
+``MongoDBSearch`` resource. Valid values are ``TRACE``, ``DEBUG``,
+``INFO``, ``WARN``, and ``ERROR``. If omitted, ``mongot`` logs at
+``INFO``.
+
+.. code-block:: yaml
+
+   spec:
+     logLevel: DEBUG
+
+``mongot`` doesn't rotate its own logs. In a |k8s| deployment, the
+container runtime (``containerd`` or ``CRI-O`` on most distributions) handles
+log rotation at the node level. If you forward logs to an external
+aggregator, configure retention in that system rather than at the
+``mongot`` process.
+
+Health Check Endpoint
+---------------------
+
+``mongot`` exposes an HTTP health server on port ``8080`` inside the
+pod with two endpoints:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+
+   * - Endpoint
+     - Healthy response
+     - Unhealthy response
+
+   * - ``/health``
+     - ``200 SERVING``
+     - ``503 NOT_SERVING``
+
+   * - ``/ready``
+     - ``200 SERVING``
+     - ``503 NOT_SERVING``
+
+The endpoints reflect ``mongot`` startup, liveness, and the
+initialization of index replication. The endpoints cannot be disabled.
+
+The |k8s-op-short| wires ``/health`` and ``/ready`` to the
+``mongot`` container's liveness and readiness probes
+automatically. You typically don't need to override these probes;
+``kubectl describe pod <mongot-pod>`` shows the probe configuration
+applied by the operator.
+
+FTDC Diagnostics
+----------------
+
+``mongot`` writes Full-Time Diagnostic Data Capture (FTDC) files to
+the persistent volume mounted at the pod's data path, under a
+``diagnostic.data/`` subdirectory. FTDC is enabled by default and is
+intended for MongoDB Support to triage performance and stability
+issues.
+
+FTDC files include higher-cardinality data than the Prometheus
+surface, including per-index sizing, latency breakdowns for indexing
+and querying, request catalog statistics, serialization latency, and
+Lucene performance counters.
+
+To collect FTDC files for a support case, copy the
+``diagnostic.data/`` directory from the ``mongot`` pod with
+``kubectl cp``:
+
+.. code-block:: bash
+
+   kubectl cp <mongot-pod>:/mongot/data/diagnostic.data ./mongot-ftdc
+
+The in-pod mount path is fixed at ``/mongot/data`` regardless of the
+``spec.clusters[].persistence`` configuration. The persistence
+settings control the PVC size and storage class, not the mount
+location.
+
+Managed Envoy Observability
+---------------------------
+
+When you set ``spec.clusters[].loadBalancer.managed``, the |k8s-op-short|
+provisions an Envoy L7 proxy that fronts the ``mongot`` pods. The
+Envoy container exposes two observability surfaces:
+
+- **Admin endpoint** on port ``9901`` for statistics and runtime
+  control (log level, listener draining). The operator restricts the
+  admin interface to an allowlist of paths: ``/ready``, ``/stats*``,
+  ``/drain_listeners``, and ``/logging*``. Use this endpoint for
+  ad-hoc troubleshooting with ``kubectl port-forward``; it is not
+  intended for external exposure.
+
+- **Prometheus metrics** on the Envoy admin port at the standard
+  ``/stats/prometheus`` path. Scrape this endpoint alongside the
+  ``mongot`` metrics to get end-to-end visibility into request flow,
+  upstream health, and connection state for the search traffic plane.
+
+The operator reports the high-level Envoy status under
+``status.loadBalancer.phase`` on the ``MongoDBSearch`` resource:
+
+.. code-block:: bash
+
+   kubectl get mongodbsearch <name> -o jsonpath='{.status.loadBalancer.phase}'
+
+The phase reflects the operator-managed Envoy ``Deployment`` lifecycle
+(for example, ``Pending``, ``Running``, ``Failed``).
+
+Learn More
+----------
+
+- :ref:`k8s-fts-vs-troubleshoot`
+- :ref:`k8s-fts-vs-limitations`
+- :ref:`spec.observability.prometheus <mdbsearch-spec-prometheus>`
+- :ref:`spec.logLevel <mdbsearch-spec-log-level>`
