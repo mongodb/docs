@@ -1,0 +1,424 @@
+.. _arch-center-is-search-regulatory-content:
+
+========================================================
+Build Domain Search for Regulatory and Standards Content 
+========================================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta:: 
+   :keywords: Central Motor Vehicle Rules, CMVR, Automotive Industry Standards, AIS, ARAI, Original Equipment Manufacturer, Automotive Compliance, Homologation, MongoDB Search, Retrieval-Augmented,Generation, RAG, Regulatory Search, code example 
+   :description: Build domain-specific search experiences for Central Motor Vehicle Rules (CMVR) and Automotive Industry Standards (AIS) content with MongoDB, from document ingestion and indexing to grounded results.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+**Use cases:** `Artificial Intelligence <https://www.mongodb.com/solutions/use-cases/artificial-intelligence/>`__,
+`Content Management <https://www.mongodb.com/solutions/use-cases/content-management/>`__,
+`Intelligent Search <https://www.mongodb.com/solutions/use-cases/intelligent-search/>`__
+
+**Industries:** `Manufacturing <https://www.mongodb.com/solutions/industries/manufacturing/>`__
+
+**Products:** :ref:`MongoDB Atlas Search <atlas-search>`,
+:ref:`MongoDB Atlas Vector Search <fts-vector-search>`,
+:ref:`Hybrid Search in MongoDB Atlas <avs-hybrid-search>`
+
+Solution Overview
+-----------------
+
+The :abbr:`CMVR (Central Motor Vehicle Rules)` are the rules issued
+under India's Motor Vehicles Act. They set the technical and safety
+requirements a vehicle must meet before it can be manufactured, sold, or
+registered in the country. The :abbr:`AIS (Automotive Industry
+Standards)` comprises the technical standards, developed and maintained
+by the :abbr:`ARAI (Automotive Research Association of India)`. They
+specify how a vehicle or component must be tested to show it meets a
+given CMVR requirement. An :abbr:`OEM (Original Equipment Manufacturer)`
+building a car for the Indian market uses these documents: the CMVR
+specifies what safety requirements the vehicle must satisfy, and the
+matching AIS establishes how that satisfaction gets tested and
+certified.
+
+Regulatory and standards content is valuable only when people can find
+the right requirement at the right time. Consider an engineer at a
+component supplier finishing a headlamp assembly for an Indian OEM.
+Before the part goes to ARAI for certification, the engineer needs to
+confirm the current revision of AIS-xyz and check whether "rule abc" of
+the CMVR has been amended since the last submission. Searching a folder
+of gazette notifications and standards’ PDFs for that clause takes
+hours, and citing an outdated revision means a rejected certification
+and a delayed launch.
+
+This solution walks through a MongoDB implementation for searching CMVR
+and AIS content, which:
+
+- Takes source material such as CMVR rule text, AIS standards, and
+  their amendment notifications. 
+
+- Turns this material into searchable records.
+
+- Retrieves the relevant document or section for a user query.
+
+- Returns the result context: the title, section or rule number,
+  source, and document version. 
+
+The application uses |fts| to match a query against the rule and section
+text, and returns the matching passage along with its source locator.
+
+The same problem shows up anywhere a manufacturer sells into more than
+one market. A supplier shipping to Europe checks :abbr:`UNECE (United
+Nations Economic Commission for Europe)` regulations, a supplier
+shipping to the United States checks :abbr:`FMVSS (Federal Motor Vehicle
+Safety Standards)`, and a supplier shipping to China checks the
+:abbr:`GB (GuoBiao)` standards. Each regulatory body has its own
+amendment cycle, its own numbering, and its own effective dates. The
+pattern in this solution, preserving section, version, and source
+locator alongside searchable text, applies to these regulatory bodies.
+
+This solution helps users locate and verify the source material that
+might answer a domain-specific question. At a high level, the solution
+uses the following workflow:
+
+1. **Ingest:** Read CMVR rule text, AIS standards, and the gazette
+   notifications or ARAI circulars that amend them.
+
+#. **Prepare:** Normalize each source into a record that carries the
+   document, section or rule number, amendment number, effective date,
+   and locator metadata needed to trace a passage back to its origin.
+
+#. **Retrieve:** Apply the MongoDB search path, filters, and ranking
+   logic, respecting which amendment or revision is currently in force.
+
+#. **Present:** Return the matched content along with its rule number,
+   standard identifier, version, and source context, so a compliance
+   engineer can confirm they are reading the current text.
+
+Representative queries that the application handles include a standard
+identifier (such as AIS-xyz), a CMVR rule number or abbreviation, a
+natural-language requirement (such as "what is the rear seatbelt
+requirement for passenger vehicles)," and a query constrained by
+category or amendment date. These queries make the search vocabulary
+concrete and give the evaluation work a starting point.
+
+Why Regulatory and Standards Search Is Difficult
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+CMVR rules are amended through G.S.R. notifications published in the
+official gazette, and a single rule can carry several amendments layered
+on top of the original text. AIS standards go through their own revision
+cycle, tracked by ARAI with revision letters such as AIS-xyz Rev B. A
+compliance engineer searching by keyword has no reliable way to tell
+whether the passage they found reflects the current or a later version.
+Submitting paperwork against a superseded clause can trigger a rejected
+homologation filing and push a vehicle launch back by weeks. It adds the
+cost of a second certification round.
+
+Terminology adds a second layer of difficulty. Engineers, suppliers, and
+regulators often refer to the same requirement in different words: a
+supplier might search for "headlamp beam pattern" while the standard
+itself uses "photometric requirements for dipped beam." A search built
+only on exact keyword matching misses these connections. Lexical search
+matches words, prefixes, or identifiers. Semantic search matches meaning
+through vector embeddings, numerical representations of text. By using
+these search methods together, a :abbr:`RAG (Retrieval-augmented
+generation)` pipeline can provide the right context to the :abbr:`LLM
+(Large Language Model)`.
+
+The same difficulty appears outside the automotive sector. An
+underwriter reviewing a motor insurance claim must check which
+crash-test standard applied when a car was manufactured, since the AIS
+revision can change policy coverage. An OEM selling into Europe, the
+United States, and China at the same time needs to track UNECE, FMVSS,
+and GB revisions in parallel, each with its own amendment history and
+effective dates. In every case, the underlying requirement is the same:
+preserve the section, the version, and the source locator alongside the
+searchable text. This pattern tells users what the requirement says and
+when it applies.
+
+Reference Architectures
+-----------------------
+
+The solution helps engineering, certification, and compliance teams find
+authoritative CMVR and AIS content without losing the revision and
+source context needed to validate a result. It uses a hybrid retrieval
+pattern: lexical search supports high-precision lookups for identifiers
+such as a CMVR rule number or AIS standard, while vector search surfaces
+relevant passages when a user describes a requirement in plain language.
+
+Every incoming document undergoes an ingestion process that parses text
+down to granular units, such as specific rules, sections, or individual
+chunks. During transformation, provenance and validity metadata is
+appended—encompassing the source ID, exact section or clause locator,
+category, document version/revision, effective date, and current
+lifecycle status. MongoDB then stores and indexes both textual data for
+keyword search and vector embeddings for semantic search. Finally, the
+system merges lexical and semantic query candidates to generate and
+present a ranked, verifiable result grounded in the source material.
+
+.. figure:: /includes/images/industry-solutions/domain-specific-fig1.svg
+   :figwidth: 1000px
+   :align: center
+   :lightbox:
+   :alt: End-to-end reference architecture diagram.
+
+   Figure 1. End-to-end reference architecture diagram
+
+A query such as ``AIS-[standard identifier]``, a CMVR rule number, or
+“rear seatbelt requirement for passenger vehicles” follows the same
+high-level path:
+
+1. The application identifies applicable search terms and optional
+   filters, such as category, revision, effective date, or active
+   status.
+
+#. |fts| retrieves lexical matches for exact identifiers,
+   abbreviations, and terms in the source text.
+
+#. MongoDB Vector Search retrieves semantically similar passages for
+   natural-language requirements and terminology variations.
+
+#. The application fuses and ranks the candidate sets, applies lifecycle
+   filters, and projects the provenance fields required for
+   verification.
+
+#. The result view presents the matching passage alongside its source
+   context.
+
+.. figure:: /includes/images/industry-solutions/domain-specific-fig2-1.svg
+   :figwidth: 1000px
+   :align: center
+   :lightbox:
+   :alt: Hybrid-retrieval sequence diagram
+
+   Figure 2. Hybrid-retrieval sequence diagram
+
+Data Model Approach
+-------------------
+
+A searchable record should contain both the text that is retrieved and
+the context that makes that text verifiable. For a regulatory corpus,
+the application should retain the document identity, the section or rule
+hierarchy, the revision that was indexed, and a stable locator back to
+the original material.
+
+.. figure:: /includes/images/industry-solutions/domain-specific-fig3.svg
+   :figwidth: 1000px
+   :align: center
+   :lightbox:
+   :alt: Document-to-record transformation visual
+
+   Figure 3. Document-to-record transformation visual
+
+The following is an illustrative schema only.
+
+.. code-block:: JavaScript
+
+   {
+      _id: '<documentId>:rule:<ruleNumber>',
+      AIS: {
+         'AIS-XXX': 'Summary of what this standard requires.',
+         'AIS-YYY': 'Summary of another referenced standard.'
+      },
+      canonicalKey: '<documentId>:rule:<ruleNumber>',
+      canonicalTitle: '<Short descriptive title of the rule>',
+      chapterId: '<documentId>:chapter:<chapterNumber>',
+      createdAt: ISODate('<YYYY-MM-DDTHH:mm:ss.sssZ>'),
+      documentId: '<documentId>',
+      ruleNumber: '<ruleNumber>',
+      ruleText: '<Full rule text, including sub-rules, provisos, tables and footnotes>',
+      source: {
+         documentName: '<Official title of the source document>',
+         pdfFile: '<source-file>.pdf',
+         pages: [],
+         chunkCount: NumberInt('<numberOfChunksExtracted>'),
+         extractionModel: '<extraction-model-name>'
+      },
+      status: 'active',
+      updatedAt: ISODate('<YYYY-MM-DDTHH:mm:ss.sssZ>'),
+      ruleTextEmbedding: [/* float[<dimensions>] */]
+   }
+
+The ``ruleText`` field contains the primary regulatory passage, while
+``canonicalTitle`` and ``ruleNumber`` enable rapid verification of the
+requirement. Structural metadata, including ``documentId`` and
+``chapterId``, maintains the relationship between a specific record and
+its parent chapter hierarchy. The ``source`` object provides the
+provenance required for traceability to the original PDF, page numbers,
+and extraction model. For standards-specific context, the AIS object
+captures cross-references and summaries of linked requirements. Record
+lifecycle is tracked via ``status``, ``createdAt``, and ``updatedAt``.
+Finally, the ``ruleTextEmbedding`` and associated metadata fields store
+the numerical vector representations and model details that power
+semantic retrieval.
+
+Build the Solution
+------------------
+
+This section describes the build flow for the hybrid-search
+implementation. Access the full source code in the `GitHub repository
+<https://github.com/mongodb-sc/cmvr_ais_search/>`__.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Prepare the source corpus
+
+      Collect the CMVR rule text, AIS standards, and the notifications
+      or circulars that change their applicability. For each source,
+      capture the original file or URL, document type, identifier,
+      revision, publication date, effective date, and current lifecycle
+      state.
+   
+      .. figure:: /includes/images/industry-solutions/domain-specific-fig4.svg
+         :figwidth: 1000px
+         :align: center
+         :lightbox:
+         :alt: Source corpus information
+      
+         Figure 4. Source corpus information
+      
+   .. step:: Normalize documents into searchable records
+
+      Extract rule- or section-level text, preserving the hierarchy
+      required to identify a result in the original source. Create
+      records that pair the searchable content with provenance, document
+      lifecycle, and filtering metadata.
+
+      .. figure:: /includes/images/industry-solutions/domain-specific-fig5.svg
+         :figwidth: 1000px
+         :align: center
+         :lightbox:
+         :alt: AIS document schema structure
+      
+         Figure 5. AIS document schema structure
+
+   .. step:: Create the hybrid-search indexes
+
+      Create a MongoDB Search index for exact identifiers and textual
+      matching, and a MongoDB Vector Search index for the embedding
+      field. Define mappings, analyzers, filters, vector dimensions, and
+      similarity metric from the verified implementation.
+
+      **Search Index**
+
+      .. code-block:: Javascript
+
+         {
+            mappings: {
+               dynamic: false,
+               fields: {
+                  canonicalTitle: {
+                     type: "string",
+                     analyzer: "lucene.english"
+                  },
+                  ruleText: {
+                     type: "string",
+                     analyzer: "lucene.english"
+                  },
+                  documentId: {
+                     type: "token"
+                  }
+               }
+            }
+         }
+
+      **Vector Search Index**
+
+      .. code-block:: Javascript
+
+         {
+            fields: [
+               {
+                  type: "vector",
+                  path: "ruleTextEmbedding",
+                  numDimensions: 1024,
+                  similarity: "cosine"
+               },
+               {
+                  type: "filter",
+                  path: "documentId"
+               }
+            ]
+         }
+
+   .. step:: Execute lexical and semantic retrieval
+
+      For a user query, retrieve keyword candidates and vector
+      candidates, then combine them with the application’s verified
+      fusion or reranking logic. Apply category, status, revision, or
+      effective-date filters before returning results so a superseded
+      passage is not represented as current.
+
+   .. step:: Return results with provenance
+
+      Present the matched text with the title, rule or section
+      reference, source locator, revision, effective date, and lifecycle
+      status. A relevance score can help rank candidates, but it does
+      not establish regulatory compliance or legal correctness. The user
+      must be able to inspect the original source material.
+
+      .. figure:: /includes/images/industry-solutions/domain-specific-fig6-1.svg
+         :figwidth: 1000px
+         :align: center
+         :lightbox:
+         :alt: UI screenshot showing a query
+      
+         Figure 6. UI screenshot showing a query
+
+   .. step:: Evaluate retrieval quality and document lifecycle
+
+      Build a labeled evaluation set containing identifier searches,
+      abbreviations, synonyms, natural-language requirements,
+      revision-sensitive queries, and no-result cases.
+
+      When a document is amended, withdrawn, or superseded, update its
+      lifecycle metadata and make that state visible in search results. The
+      system should support source verification; it should not be positioned
+      as legal, regulatory, or compliance advice.
+    
+Key Learnings
+-------------
+
+- **Specialized regulatory search requires more than text matching:**
+  Pairing lexical and semantic retrieval serves exact standard
+  identifiers and the varied language users apply to the same
+  requirement.
+
+- **Provenance is a product requirement:** Every retrieved passage
+  should retain a stable source identifier, locator, document revision,
+  and lifecycle state so users can validate the underlying material.
+
+- **Document revision is part of relevance:** A relevant but superseded
+  clause should not be presented as the current requirement.
+
+- **Hybrid search should be evaluated against representative user
+  queries:** Candidate counts, result limits, fusion weights, and
+  latency targets must be selected from the actual workload rather than
+  copied as defaults.
+
+- **A source-grounded search experience speeds up verification:** This
+  improved experience helps users locate and verify material faster; it
+  does not itself make a compliance determination.
+
+Authors 
+-------
+
+- Utsav Talwar, Solutions Architect, MongoDB
+
+- Humza Akhtar, Field CTO, Manufacturing Industry, MongoDB
+
+Learn More
+----------
+
+- :ref:`<arch-center-is-rag-technical-documentation>`
+
+- :ref:`<manual-data-modeling-intro>`
+
+- :ref:`<return-vector-search-results>`
+
+- :ref:`<arch-center-is-car-assistant>`

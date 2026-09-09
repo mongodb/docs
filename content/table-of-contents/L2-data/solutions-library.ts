@@ -300,6 +300,11 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-event-explorer',
           },
           {
+            label: 'Search for Regulatory and Standards Content',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/search-automotive-regulatory-content',
+          },
+          {
             label: 'Transform the Driver Experience',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-asset-car-assistant',
