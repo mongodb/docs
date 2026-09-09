@@ -3,9 +3,9 @@
   same cloud provider and region to host
   your application and {+cluster+} when possible.
 
-- You can configure {+gen-2-clusters+} on only ``M30+`` {+Dedicated-clusters+} on |aws|.
-  To learn more, see
-  :ref:`AWS Gen2 Dedicated Clusters <aws-gen2-clusters>`. 
+- You can configure {+gen-2-clusters+} on only ``M30+``
+  {+Dedicated-clusters+} on |aws| or |gcp|. To learn more, see
+  :ref:`Gen2 Dedicated Clusters <gen2-clusters>`.
 
 - .. include:: /includes/facts/cross-region-limits.rst
 

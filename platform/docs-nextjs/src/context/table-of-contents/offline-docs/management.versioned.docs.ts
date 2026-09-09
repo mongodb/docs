@@ -348,6 +348,11 @@ export const toc: L1TocItem[] = [
                     url: '/docs/atlas/scale-cluster',
                     items: [
                       {
+                        label: 'Change a Cluster\'s Generation',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/cluster-config/change-cluster-generation',
+                      },
+                      {
                         label: 'Recover from an Outage',
                         contentSite: 'cloud-docs',
                         url: '/docs/atlas/reconfigure-replica-set-during-regional-outage',

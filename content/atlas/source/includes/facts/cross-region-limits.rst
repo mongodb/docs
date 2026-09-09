@@ -1,7 +1,10 @@
-Gen1 clusters can span regions and cloud service providers. AWS Gen2 clusters
-can span regions so long as all regions support Gen2 clusters. To learn more,
-see the
-:ref:`AWS Reference for Gen2 Dedicated clusters <aws-reference-gen2-clusters>`.
+Gen1 clusters can span regions and cloud service providers.
+{+gen-2-clusters-short+} do not offer cross-cloud support, but they
+can span multiple regions so long as all regions support Gen2 clusters
+for a given cloud provider. To learn more, see:
+
+- :ref:`AWS Gen2 Supported Regions <aws-reference-gen2-regions>`
+- :ref:`GCP Gen2 Supported Regions <gcp-reference-gen2-regions>`
 
 |service| limits the total number of nodes in other regions in one
 project to a total of 100, **not** including:

@@ -22,10 +22,11 @@
       specification for each data-bearing server [#data-bearing]_ in the
       cluster.
       
-      For ``M30+`` {+Dedicated-clusters+} on |aws|, you can also
-      select your :term:`cluster's generation <cluster generation>`. To learn
-      more, see :ref:`AWS Gen2 Dedicated Clusters <aws-gen2-clusters>`.
-      
+      For ``M30+`` {+Dedicated-clusters+} on |aws| or |gcp|, you
+      can also select your :term:`cluster's generation <cluster
+      generation>`. To learn more, see :ref:`Gen2 Dedicated Clusters
+      <gen2-clusters>`.
+
       .. include:: /includes/fact-auto-scaling-brief.rst
       
       For more information on how to select an appropriate cluster tier and

@@ -476,10 +476,11 @@ following rules:
 - The Config server replica set doesn't auto-scale. However, a
   :ref:`config-shard-concept` does auto-scale.
 
+.. _reactive-autoscaling-gen2-cluster:
 .. _reactive-autoscaling-aws-gen2-cluster:
 
-Scaling an AWS Gen2 Dedicated Cluster
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Scaling a Gen2 Dedicated Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 |service| auto-scales the :term:`cluster tier <cluster tier>` for
 {+gen-2-clusters+} using the same criteria as replica sets. |service| applies
@@ -491,14 +492,36 @@ the following rules:
 - ``M10`` and ``M20`` clusters are generation agnostic. |service| can
   auto-scale ``M10`` or ``M20`` clusters into either Gen1 or Gen2
   clusters.
-  
-  For example, if the maximum auto-scaling bound is a Gen1 cluster tier,
-  |service| auto-scales the cluster into Gen1. If the maximum auto-scaling
-  bound is an AWS Gen2 cluster tier, |service| auto-scales the cluster into
-  Gen2. You can also use ``M10`` or ``M20`` as the minimum
-  auto-scaling bound for both Gen1 and Gen2 clusters.
 
-.. include:: /includes/cluster-settings/gen2-clusters/aws-gen2-autoscaling-bounds.rst
+  For example, if the maximum auto-scaling bound is a Gen1 cluster
+  tier, |service| auto-scales the cluster into Gen1. If the maximum
+  auto-scaling bound is a Gen2 cluster tier, |service| auto-scales
+  the cluster into Gen2. You can also use ``M10`` or ``M20`` as the
+  minimum auto-scaling bound for both Gen1 and Gen2 clusters.
+
+The {+atlas-admin-api+} returns an ``INVALID_ATTRIBUTE`` error if
+you attempt to do either of the following:
+
+- Change a cluster's generation to one that is different from the generation
+  of the cluster's auto-scaling bounds.
+- Set a cluster's auto-scaling bounds to be an ``M30+`` tier cluster
+  belonging to a different generation than the cluster.
+
+.. note:: Switching Cluster Generation for GCP-hosted Clusters
+
+   Clusters hosted on |gcp| use different disk types depending on their
+   cluster generation:
+
+   - **Gen1**, ``M10``, and ``M20`` clusters use Persistent Disk storage.
+   - **Gen2** clusters use Hyperdisk storage.
+
+   To learn more, see :gcp:`Storage Options </compute/docs/disks/>` in the
+   Google documentation.
+
+   Autoscaling a |gcp|-hosted cluster from an ``M10`` or ``M20`` cluster to a
+   {+gen-2-cluster-short+} or vice verse requires |service| to move your data
+   across these disk types. This may take longer than autoscaling an ``M10``
+   or ``M20`` cluster to and from a Gen1 cluster.
 
 .. _predictive-autoscaling-overview:
 
@@ -591,7 +614,7 @@ Eligible clusters for predictive auto-scaling must meet **all**  of the followin
 - Have been active for at least two weeks.
 - **Not** use :ref:`NVMe storage <nvme-storage>` or belong to the
   :guilabel:`Local NVMe SSD` cluster class.
-- **Not** be an :ref:`AWS Gen2 Dedicated Clusters <aws-gen2-clusters>`.
+- **Not** be a :ref:`Gen2 Dedicated Cluster <gen2-clusters>`.
 
 In addition, the following criteria affect whether |service| uses
 predictive auto-scaling for an eligible cluster:
