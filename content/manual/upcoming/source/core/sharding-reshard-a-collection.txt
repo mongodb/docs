@@ -5,7 +5,7 @@ Reshard a Collection
 ====================
 
 .. meta::
-   :description: Change or redistribute shard keys in MongoDB collections to optimize data distribution and performance.
+   :description: Reshard a MongoDB sharded collection to change its shard key or redistribute data across shards, improving data distribution, query performance, and cluster balance.
 
 .. default-domain:: mongodb
 
@@ -28,7 +28,7 @@ change the distribution of your data across a cluster.
 
 Starting in MongoDB 8.0, you can reshard a collection on the same shard key,
 allowing you to redistribute data to include new shards or to different zones
-without changing your shard key. To reshard to the same shard key, set 
+without changing your shard key. To reshard to the same shard key, set
 :ref:`forceRedistribution <forceRedistribution-field>` to ``true``.
 
 .. include:: /includes/time-series/reshard-timeseries.rst
@@ -55,44 +55,48 @@ Before you Begin
 .. |op| replace:: reshard
 .. include:: /includes/fact-reshard-considerations.rst
 
-- You must rewrite your application's queries to use **both** the
-  current shard key and the new shard key.
-
-  .. tip::
-
-     If your application can tolerate downtime, you can perform these
-     steps to avoid rewriting your application's queries to use both the
-     current and new shard keys:
-     
-     #. Stop your application.
-     
-     #. Rewrite your application to use the **new** shard key.
-
-     #. Wait until the resharding operation completes. To
-        monitor the resharding process, use the
-        :pipeline:`$currentOp` pipeline stage.
-     
-     #. Deploy your rewritten application.
-
-  Before the resharding operation completes, the following
-  queries return an error if the query filter does not include
-  either the current shard key or a unique field (like ``_id``):
-
-  - :method:`~db.collection.deleteOne()`
-  - :method:`~db.collection.findAndModify()`
-  - :method:`~db.collection.findOneAndDelete()`
-  - :method:`~db.collection.findOneAndReplace()`
-  - :method:`~db.collection.findOneAndUpdate()`
-  - :method:`~db.collection.replaceOne()`
-  - :method:`~db.collection.updateOne()`
-
-  For optimal performance, we recommend that you also rewrite other
-  queries to include the new shard key.
-
-  Once the resharding operation completes, you can remove the
-  old shard key from the queries.
-
 .. include:: /includes/resharding-oplog-note.rst
+
+Two-Phase Write Protocol
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Queries that don't include the full shard key in the query filter may
+require a two-phase write protocol. This protocol broadcasts the query
+to multiple shards and can significantly reduce performance.
+
+- Queries that provide the old shard key instead of the new shard key
+  use the two-phase write protocol.
+
+- The :method:`~db.collection.deleteOne` method uses the two phase write
+  protocol when the query filter doesn't use the full shard key or the
+  ``_id`` field.
+
+- The :method:`~db.collection.replaceOne` and
+  :method:`~db.collection.updateOne` methods:
+
+   - When the query provides the full shard key, the two phase protocol is
+     never used.
+
+   - When the query doesn't provide the full shard key but provides the
+     ``_id`` field, the use of the two phase write protocol depends on
+     the value of ``upsert``. If ``upsert`` is set to ``true``, the two
+     phase write protocol is used. If ``upsert`` is ``false``, the two
+     phase write protocol is not used.
+
+   - When the query provides neither the full shard key nor the ``_id``
+     field, the two phase write protocol is always used.
+
+- The following methods use the two-phase write protocol when the query
+  filter doesn't use the full shard key:
+
+  - :method:`~db.collection.findAndModify`
+  - :method:`~db.collection.findOneAndDelete`
+  - :method:`~db.collection.findOneAndReplace`
+  - :method:`~db.collection.findOneAndUpdate`
+
+For optimal performance, update your application after the resharding
+operation completes to use the new shard key in query filters for
+these operations.
 
 .. _resharding_process:
 
