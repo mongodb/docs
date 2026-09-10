@@ -50,6 +50,11 @@ const tocData: TocItem[] = [
             url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/specify-a-query',
           },
           {
+            label: 'Join Entities Across Collections',
+            contentSite: 'hibernate',
+            url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/join-entities',
+          },
+          {
             label: 'Modify Query Results',
             contentSite: 'hibernate',
             url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/modify-query-results',

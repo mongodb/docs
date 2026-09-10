@@ -1,0 +1,483 @@
+.. _hibernate-query-joins:
+
+================================
+Join Entities Across Collections
+================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn to join entities across MongoDB collections by using inner joins, left outer joins, JOIN FETCH clauses, and ON conditions.
+   :keywords: lookup, unwind, association, relationship, code example
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+extension-long+} to
+query across entities that are linked by an association. You can use 
+either Hibernate Query Language (HQL) or Jakarta Persistence Query Language (JPQL).
+
+To join entities, you can either navigate the association path
+in a join clause, or name the entity in a join clause and 
+supply an ``ON`` clause. You can also add an ``ON`` clause to an 
+association join.
+
+The {+extension-short+} translates each join to a MongoDB
+:manual:`$lookup </reference/operator/aggregation/lookup>` stage and an
+:manual:`$unwind </reference/operator/aggregation/unwind>` stage.
+
+.. note:: Reference Columns in ``ON`` Conditions
+
+   An ``ON`` condition must compare columns. The {+extension-short+}
+   does not support comparing entity references, as in
+   ``on m = c.movie``, or navigating an association within the
+   condition, as in ``on c.movie.title = 'Blue Jasmine'``. To learn
+   which join types the {+extension-short+} supports, see
+   :ref:`Query Support <hibernate-query-support>` on the Feature
+   Compatibility page.
+
+Sample Data
+-----------
+
+Movie Entity
+~~~~~~~~~~~~
+.. include:: /includes/sample-data.rst
+
+The examples on this page join the ``sample_mflix.movies``
+collection to the ``sample_mflix.comments`` collection. Documents in
+the ``comments`` collection store the ``_id`` value of the movie they
+describe in a ``movie_id`` field.
+
+The ``Movie`` entity maps its ``comments`` field to the ``Comment``
+entities that reference it. The movie's release date is stored in
+the ``Movie`` entity's ``released`` field.
+
+Comment Entity
+~~~~~~~~~~~~~~
+
+The following ``Comment`` entity maps to the ``comments`` collection
+and references its related ``Movie`` entity in its ``movie`` field:
+
+.. literalinclude:: /includes/interact-data/Comment.java
+   :language: java
+   :dedent:
+   :copyable: true
+
+User Entity
+~~~~~~~~~~~~
+
+The examples in the :ref:`hibernate-query-compound-on` section also use
+the following ``User`` entity, which maps to the
+``sample_mflix.users`` collection:
+
+.. literalinclude:: /includes/interact-data/User.java
+   :language: java
+   :dedent:
+   :copyable: true
+
+.. _hibernate-query-inner-join:
+
+Inner Join
+----------
+
+An inner join returns only entities that have a match on both sides of
+the association.
+
+The following example uses an inner join to retrieve the title of each
+movie released in ``2015`` alongside the name of each person who
+commented on it. Movies that have no comments are excluded from the
+results:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Join.java
+            :start-after: start-retrieve-inner-join-session
+            :end-before: end-retrieve-inner-join-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: Paren s nashego kladbishcha, Commenter: Thoros of Myr
+            Title: Right Now, Wrong Then, Commenter: Teresa Thomas
+            Title: The Laundryman, Commenter: Melissa Jones
+            
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Join.java
+            :start-after: start-retrieve-inner-join-em
+            :end-before: end-retrieve-inner-join-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: Paren s nashego kladbishcha, Commenter: Thoros of Myr
+            Title: Right Now, Wrong Then, Commenter: Teresa Thomas
+            Title: The Laundryman, Commenter: Melissa Jones
+
+The {+extension-short+} translates the preceding join to the following
+stages:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$lookup": {
+       "from": "comments",
+       "localField": "_id",
+       "foreignField": "movie_id",
+       "as": "#c1_0"
+     }
+   },
+   { "$unwind": "$#c1_0" }
+
+The {+extension-short+} generates the ``as`` field name from the alias
+in your query statement and uses it to reference joined fields in
+later stages of the pipeline.
+
+.. _hibernate-query-left-join:
+
+Left Outer Join
+---------------
+
+A left outer join returns every entity on the left side of the
+association, including entities that have no match on the right side.
+Entities that have no match on the right side return ``null`` results 
+for the right side of the join.
+
+The following example uses a left outer join to retrieve the title of
+each movie released in ``2015`` alongside the name of each person who
+commented on it. Movies that have no comments are included in the
+results:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Join.java
+            :start-after: start-retrieve-left-join-session
+            :end-before: end-retrieve-left-join-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: The Laundryman, Commenter: Melissa Jones
+            Title: The Red Spider, Commenter: null
+            Title: Our Loved Ones, Commenter: null
+            Title: No Home Movie, Commenter: null
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Join.java
+            :start-after: start-retrieve-left-join-em
+            :end-before: end-retrieve-left-join-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: The Laundryman, Commenter: Melissa Jones
+            Title: The Red Spider, Commenter: null
+            Title: Our Loved Ones, Commenter: null
+            Title: No Home Movie, Commenter: null
+
+The {+extension-short+} translates the preceding join to the following
+stages. The ``preserveNullAndEmptyArrays`` option retains movies that
+have no matching comments:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$lookup": {
+       "from": "comments",
+       "localField": "_id",
+       "foreignField": "movie_id",
+       "as": "#c1_0"
+     }
+   },
+   {
+     "$unwind": {
+       "path": "$#c1_0",
+       "preserveNullAndEmptyArrays": true
+     }
+   }
+
+The {+extension-short+} generates the ``as`` field name from the alias
+in your query statement and uses it to reference joined fields in
+later stages of the pipeline.
+
+.. _hibernate-query-join-fetch:
+
+Join Fetch
+----------
+
+A ``JOIN FETCH`` clause loads an associated entity in the same query
+as its parent, so you can access the association after the session
+closes.
+
+The following example uses a ``JOIN FETCH`` clause to retrieve
+comments and load the ``Movie`` entity that each comment references:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Join.java
+            :start-after: start-retrieve-join-fetch-session
+            :end-before: end-retrieve-join-fetch-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ... 
+            Commenter: Andrea Le, Title: A cambio de nada
+            Commenter: Andrea Le, Title: Jinxy Jenkins, Lucky Lou
+            Commenter: Andrea Le, Title: Bitva za Sevastopol
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Join.java
+            :start-after: start-retrieve-join-fetch-em
+            :end-before: end-retrieve-join-fetch-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ... 
+            Commenter: Andrea Le, Title: A cambio de nada
+            Commenter: Andrea Le, Title: Jinxy Jenkins, Lucky Lou
+            Commenter: Andrea Le, Title: Bitva za Sevastopol
+
+The {+extension-short+} translates a ``JOIN FETCH`` clause to
+the same pipeline stages as the equivalent join.
+
+.. _hibernate-query-compound-on:
+
+Compound ON Conditions
+----------------------
+
+An ``ON`` condition can combine multiple field comparisons with
+``AND`` or ``OR``. Use a compound condition to join entities that are
+related by more than one field, such as entities that have a composite
+key.
+
+The following example joins the ``users`` and ``comments``
+collections on both the ``name`` and the ``email`` field, so that a
+comment matches a user only when both fields are equal:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Join.java
+            :start-after: start-retrieve-compound-on-session
+            :end-before: end-retrieve-compound-on-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Name: Ashlee Hart, Comment: Modi ut molestias quia non blanditiis a rem. Ullam maxime dolore blanditiis. Fugiat ea maxime ratione quam cupiditate.
+            Name: Ashlee Hart, Comment: Labore voluptate provident ipsum maiores ab labore. Dicta ipsam dicta sapiente voluptatem voluptatem quidem. Eius tempore amet error tempora commodi molestiae possimus.
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Join.java
+            :start-after: start-retrieve-compound-on-em
+            :end-before: end-retrieve-compound-on-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Name: Ashlee Hart, Comment: Modi ut molestias quia non blanditiis a rem. Ullam maxime dolore blanditiis. Fugiat ea maxime ratione quam cupiditate.
+            Name: Ashlee Hart, Comment: Labore voluptate provident ipsum maiores ab labore. Dicta ipsam dicta sapiente voluptatem voluptatem quidem. Eius tempore amet error tempora commodi molestiae possimus.
+
+Because the condition compares more than one field, the
+{+extension-short+} uses the ``let`` and ``pipeline`` form of the
+``$lookup`` stage rather than the ``localField`` and ``foreignField``
+form. The ``let`` option binds each field from the outer collection to
+a variable, and the ``pipeline`` option compares those variables to
+the fields of the joined collection in a ``$expr`` operator:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$lookup": {
+       "from": "comments",
+       "let": {
+         "v0_u1_0_name": "$name",
+         "v1_u1_0_email": "$email"
+       },
+       "pipeline": [
+         {
+           "$match": {
+             "$expr": {
+               "$and": [
+                 { "$eq": [ "$$v0_u1_0_name", "$name" ] },
+                 { "$eq": [ "$$v1_u1_0_email", "$email" ] }
+               ]
+             }
+           }
+         }
+       ],
+       "as": "#c1_0"
+     }
+   },
+   { "$unwind": "$#c1_0" }
+
+.. _hibernate-query-nonequijoin-on:
+
+Range and Inequality ON Conditions
+----------------------------------
+
+An ``ON`` condition can compare fields with range and inequality operators, such as ``<`` and ``>``.
+
+The following example joins the ``movies`` and ``comments``
+collections to retrieve comments on movies released in ``2015`` that
+were posted after the movie's release date:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Join.java
+            :start-after: start-retrieve-nonequijoin-on-session
+            :end-before: end-retrieve-nonequijoin-on-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: The Witch, Commenter: Bran Stark
+            Title: Ivy, Commenter: Anthony Thompson
+            Title: Un monstruo de mil cabezas, Commenter: Tormund Giantsbane
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Join.java
+            :start-after: start-retrieve-nonequijoin-on-em
+            :end-before: end-retrieve-nonequijoin-on-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: The Witch, Commenter: Bran Stark
+            Title: Ivy, Commenter: Anthony Thompson
+            Title: Un monstruo de mil cabezas, Commenter: Tormund Giantsbane
+
+The {+extension-short+} combines the association's
+key match and the ``ON`` condition into a single ``$expr`` operator,
+and uses the ``let`` and ``pipeline`` form of the ``$lookup`` stage:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$lookup": {
+       "from": "comments",
+       "let": {
+         "v0_m1_0__id": "$_id",
+         "v1_m1_0_released": "$released"
+       },
+       "pipeline": [
+         {
+           "$match": {
+             "$expr": {
+               "$and": [
+                 { "$eq": [ "$$v0_m1_0__id", "$movie_id" ] },
+                 { "$gt": [ "$date", "$$v1_m1_0_released" ] }
+               ]
+             }
+           }
+         }
+       ],
+       "as": "#c1_0"
+     }
+   },
+   { "$unwind": "$#c1_0" }
+
+Additional Information
+----------------------
+
+To learn more about performing other operations on your MongoDB data,
+see the :ref:`hibernate-crud` or :ref:`hibernate-specify-query` guide.
+
+To learn more about using HQL and JPQL to run queries, see `A Guide to Hibernate Query Language
+<{+query-guide+}>`__ in the {+orm+} documentation.
