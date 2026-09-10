@@ -19,3 +19,21 @@ after changes (the document pre- and post-images):
         collMod: <collection>,
         changeStreamPreAndPostImages: { enabled: true }
      } )
+
+To check the current ``changeStreamPreAndPostImages`` setting for a
+collection, run :method:`db.getCollectionInfos()`:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: javascript
+
+      db.getCollectionInfos( {
+        name: "<collection>"
+      } )[0].options.changeStreamPreAndPostImages
+
+   .. output::
+      :language: javascript
+
+      { changeStreamPreAndPostImages: { enabled: true } }
