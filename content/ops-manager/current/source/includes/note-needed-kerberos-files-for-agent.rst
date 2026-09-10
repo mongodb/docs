@@ -1,8 +1,8 @@
 The following Kerberos configuration files are required on any host
 running {+magent+} or {+bagent+}:
 
-- Create or configure the 
-  `krb5.conf <https://web.mit.edu/kerberos/krb5-1.12/doc/admin/conf_files/krb5_conf.html>`_ 
+- Create or configure the
+  `krb5.conf <https://web.mit.edu/kerberos/krb5-1.12/doc/admin/conf_files/krb5_conf.html>`_
   Kerberos configuration file.
 
   .. list-table::
@@ -26,9 +26,9 @@ running {+magent+} or {+bagent+}:
        - ``%WINDIR%\krb5.ini``
 
        - This is the default path for non-Active Directory-based
-         Kerberos implementations. Refer to the documentation for your
-         Kerberos implementation for your version of Windows to find
-         out where the Kerberos configuration file is stored.
+         Kerberos implementations. See the documentation for your
+         Kerberos implementation to locate the Kerberos configuration
+         file for your version of Windows.
        
 
 - On Linux systems, ensure the

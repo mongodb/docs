@@ -71,7 +71,7 @@
       - Ubuntu 22.x :sup:`1`
       - :icon:`check-circle`
       - :icon:`check-circle`
-      - 
+      - :icon:`check-circle`
     * - 
       - Ubuntu 24.x 
       - :icon:`check-circle`

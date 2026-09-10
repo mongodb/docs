@@ -1,5 +1,4 @@
-The ``tls`` object enables |tls| for encrypting connections. This
-object is optional.
+The optional ``tls`` object enables |tls| for encrypting connections.
 
 .. code-block:: json
 

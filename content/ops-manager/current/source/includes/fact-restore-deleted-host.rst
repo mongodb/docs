@@ -14,7 +14,7 @@ To locate and restore a deleted host:
 #. From the :guilabel:`More` menu, click :guilabel:`Deleted Hosts`.
 #. Select the :icon:`trash-alt` to restore the host.
 
-After the host is restored, you can
+After you restore the host, you can
 :ref:`import existing process procedure <add-existing-mongodb-hosts>`.
 
 .. note::

@@ -168,7 +168,7 @@
   :doc:`update Global API Keys via the API </reference/api/api-keys/global/update-one-global-api-key>`
   results in an invalid request.
 - Fixes an unexpected error when trying to
-  :doc:`update a global whitelist IP </reference/api/api-keys/global/update-one-global-access-list>`.
+  :doc:`update a global access list IP </reference/api/api-keys/global/update-one-global-access-list>`.
 - :ref:`Sets the day of the week to takes a full snapshot <edit-snapshot-schedule>`.
   This ensures a recent complete backup.
 - Updates MongoDB Agent to :ref:`10.2.20.5992 <mongodb-10.2.20.5992>`.

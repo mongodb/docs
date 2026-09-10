@@ -16,16 +16,16 @@ Select your operating system and architecture to update to the
    .. selected-content::
       :selections: ubuntu, intel, None, None, None, None
 
-      On x86_64 architecture running Debian 9, Ubuntu 18.04,
-      Ubuntu 20.04, Ubuntu 22.04, or Ubuntu 24.04:
+      On x86_64 architecture running Debian 11, Ubuntu 22.04,
+      or Ubuntu 24.04:
 
       .. include:: /includes/steps/update-monitoring-to-mongodb-agent-amd64.ubuntu1604-deb.rst
 
    .. selected-content::
       :selections: ubuntu, intel, None, None, rpm, None
 
-      On x86_64 architecture running Debian 9, Ubuntu 18.04,
-      Ubuntu 20.04, Ubuntu 22.04, or Ubuntu 24.04:
+      On x86_64 architecture running Debian 11, Ubuntu 22.04,
+      or Ubuntu 24.04:
 
       .. include:: /includes/steps/update-monitoring-to-mongodb-agent-amd64.ubuntu1604-deb.rst
 
@@ -85,8 +85,12 @@ Select your operating system and architecture to update to the
    .. selected-content::
       :selections: rhel, None, ibm, None, None, None
 
-      On zSeries architecture running RHEL (7.x, 8.x, or 9.x)
-      or CentOS (7.x or 8.x) using the ``rpm`` package manager:
+      On zSeries architecture (managing MongoDB 6.0 or later
+      deployments), use RHEL (7.x, 8.x, or 9.x) or CentOS
+      (7.x or 8.x):
+
+      Running RHEL (7.x, 8.x, or 9.x) or CentOS (7.x or 8.x)
+      using the ``rpm`` package manager:
 
       .. include:: /includes/steps/update-monitoring-to-mongodb-agent-s390x.rhel7-rpm.rst
 

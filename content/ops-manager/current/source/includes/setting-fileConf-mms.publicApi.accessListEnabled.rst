@@ -1,4 +1,4 @@
-.. setting:: mms.publicApi.whitelistEnabled
+.. setting:: mms.publicApi.accessListEnabled
 
    *Type*: boolean
 

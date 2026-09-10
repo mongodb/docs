@@ -23,7 +23,7 @@
 
    * - ``privateKey``
      - string
-     - Unredacted Private key for this Global |api| Key.
+     - Unredacted private key for this Global |api| Key.
 
    * - ``publicKey``
      - string

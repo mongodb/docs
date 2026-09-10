@@ -18,8 +18,8 @@ Select your operating system and architecture to install the
 
       .. include:: /includes/agents/binaries-removed-from-path.rst
 
-      On x86_64 architecture running Debian 9, Ubuntu 18.04,
-      Ubuntu 20.04, Ubuntu 22.04, or Ubuntu 24.04:
+      On x86_64 architecture running Debian 9,
+      Ubuntu 22.04, or Ubuntu 24.04:
 
       .. include:: /includes/steps/install-mongodb-agent-monitor-amd64.ubuntu1604-deb.rst
 
@@ -28,8 +28,8 @@ Select your operating system and architecture to install the
 
       .. include:: /includes/agents/binaries-removed-from-path.rst
 
-      On x86_64 architecture running Debian 9, Ubuntu 18.04,
-      Ubuntu 20.04, Ubuntu 22.04, or Ubuntu 24.04:
+      On x86_64 architecture running Debian 9,
+      Ubuntu 22.04, or Ubuntu 24.04:
 
       .. include:: /includes/steps/install-mongodb-agent-monitor-amd64.ubuntu1604-deb.rst
 
@@ -77,7 +77,7 @@ Select your operating system and architecture to install the
       :selections: rhel, None, powerpc, None, None, rpm, None
 
       On RHEL / CentOS (7.x) on PowerPC architecture (managing
-      MongoDB 3.6 or later deployments):
+      MongoDB 6.0 or later deployments):
 
       .. include:: /includes/agents/binaries-removed-from-path.rst
 
@@ -89,7 +89,7 @@ Select your operating system and architecture to install the
       :selections: rhel, None, powerpc, None, None, tar, None
 
       On RHEL / CentOS (7.x) on PowerPC architecture (managing
-      MongoDB 3.6 or later deployments):
+      MongoDB 6.0 or later deployments):
 
       Using a ``tar`` archive:
 
@@ -98,7 +98,7 @@ Select your operating system and architecture to install the
    .. selected-content::
       :selections: rhel, None, ibm, None, None, None, None
 
-      On zSeries architecture (managing MongoDB 4.4 or later
+      On zSeries architecture (managing MongoDB 6.0 or later
       deployments), use RHEL (7.x, 8.x, or 9.x) or CentOS
       (7.x or 8.x):
 

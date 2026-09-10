@@ -12,8 +12,8 @@
    * - ``links``
      - document array
      - One or more links to sub-resources and/or related resources. The
-       relations between URLs are explained in the `Web Linking Specification
-       <https://tools.ietf.org/html/rfc5988>`_.
+       `Web Linking Specification <https://tools.ietf.org/html/rfc5988>`_
+       explains the relations between URLs.
 
    * - ``name``
      - string

@@ -118,7 +118,7 @@
 
 *Released on 2019-07-04*
 
-- Removing whitelist from Admin (General > Users) now possible.
+- Removing access list from Admin (General > Users) now possible.
   Displays error message when Authentication expires
 
 - **Agent Upgrades:** :ref:`automation-5.4.20.5541`,
@@ -135,7 +135,7 @@
   of ``PEM`` key file and password no matter the
   :option:`tlsMode <mongod.--tlsMode>`.
 
-- **Fix:** Fixes support for the ``security.clusterIpSourceWhitelist``
+- **Fix:** Fixes support for the ``security.clusterIpSourceAccessList``
   MongoDB configuration option.
 
 - **Dependency Update:** Updates jetty to 9.4.18.

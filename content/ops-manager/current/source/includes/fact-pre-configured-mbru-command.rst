@@ -18,8 +18,8 @@
      --apiKey <apiKey> \
      --groupId <groupId> \
      --rsId <rsId> \
-     --whitelist <database1.collection1, database2, etc.> \
-     --blacklist <database1.collection1, database2, etc.> \
+     --accessList <database1.collection1, database2, etc.> \
+     --denyList <database1.collection1, database2, etc.> \
      --seedReplSetMember \
      --oplogSizeMB <size> \
      --seedTargetPort <port> \
