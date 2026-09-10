@@ -35,6 +35,12 @@ type GlobalEnvConfig = {
   JIRA_USERNAME: string;
   JIRA_PASSWORD: string;
   SLACK_QUOKKA_OAUTH_ACCESS_TOKEN: string;
+  /**
+   * Signing secret of the Slack app that posts the feedback messages. Used to
+   * authenticate interaction callbacks in /api/feedback-interaction, which
+   * fails closed (401) when this is unset.
+   */
+  SLACK_SIGNING_SECRET: string;
 };
 
 const envConfig: GlobalEnvConfig = {
@@ -46,6 +52,7 @@ const envConfig: GlobalEnvConfig = {
   JIRA_USERNAME: process.env.JIRA_USERNAME ?? '',
   JIRA_PASSWORD: process.env.JIRA_PASSWORD ?? '',
   SLACK_QUOKKA_OAUTH_ACCESS_TOKEN: process.env.SLACK_QUOKKA_OAUTH_ACCESS_TOKEN ?? '',
+  SLACK_SIGNING_SECRET: process.env.SLACK_SIGNING_SECRET ?? '',
 };
 
 export default envConfig;

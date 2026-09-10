@@ -2,6 +2,7 @@ import { BSON } from 'mongodb';
 import { type NextRequest, NextResponse } from 'next/server';
 import { withCORS } from '@/app/lib/with-cors';
 import { checkRateLimit, getClientIp } from '@/services/rate-limit/rate-limit';
+import { isAllowedSlackResponseUrl, verifySlackRequest } from '@/services/slack/verify-slack-request';
 
 export interface SlackAction {
   action_id: string;
@@ -34,6 +35,8 @@ export interface SlackInteraction {
   };
 }
 
+const SLACK_FETCH_TIMEOUT_MS = 5000;
+
 export async function OPTIONS() {
   return withCORS(new NextResponse(null, { status: 204 }));
 }
@@ -50,6 +53,17 @@ export async function POST(request: NextRequest) {
 
   try {
     const text = await request.text();
+
+    // Authenticate before reading anything out of the body. The payload is
+    // untrusted attacker input until the signature over these exact bytes
+    // verifies, so this must precede parsing, not follow it.
+    const verification = verifySlackRequest({ rawBody: text, headers: request.headers });
+    if (!verification.ok) {
+      console.error(`Rejected feedback interaction: ${verification.reason}`);
+      // Deliberately generic: the caller learns only that it was rejected, not
+      // which check failed or whether the app is configured.
+      return withCORS(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }));
+    }
 
     const params = new URLSearchParams(text);
     const payload = params.get('payload');
@@ -81,9 +95,18 @@ async function handleAction(interaction: SlackInteraction, action: SlackAction) 
       break;
     }
     case 'slack-hide-message': {
+      if (!isAllowedSlackResponseUrl(response_url)) {
+        throw new Error('Refusing to POST to a response_url outside hooks.slack.com');
+      }
       try {
         const slackDeleteResult = await fetch(response_url, {
           method: 'POST',
+          // Bound the outbound request so an unresponsive target can't hold
+          // this serverless invocation open indefinitely.
+          signal: AbortSignal.timeout(SLACK_FETCH_TIMEOUT_MS),
+          // Do not follow redirects: a 30x from an allowed host would otherwise
+          // send this request to an arbitrary origin, bypassing the allowlist.
+          redirect: 'error',
           headers: {
             'Content-type': 'application/json',
           },

@@ -9,15 +9,23 @@ global.ResizeObserver = class ResizeObserver {
   disconnect() {}
 } as any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
+// This file runs for every suite, including those that opt into the `node`
+// test environment via a `@jest-environment node` docblock (API route handlers
+// need it, since `next/server` builds on Request/Response rather than DOM
+// globals). Guard the browser-only setup so those suites can share this file.
+const isBrowser = typeof window !== 'undefined';
+
 // Mock LeafyGreen ID generation for consistent snapshots
 beforeAll(() => {
   mockLeafyGreenIds();
-  mockWindows();
+  if (isBrowser) mockWindows();
 });
 
 // Reset ID counter before each test for consistency
 beforeEach(() => {
   resetLeafyGreenIdCounter();
+
+  if (!isBrowser) return;
 
   // Reset URL via History API so jsdom's real Location object is preserved
   window.history.replaceState({}, '', '/');
@@ -32,4 +40,6 @@ afterAll(() => {
   restoreLeafyGreenIds();
 });
 
-window.scrollTo = jest.fn(); // Set the scrollTo function to a jest mock
+if (isBrowser) {
+  window.scrollTo = jest.fn(); // Set the scrollTo function to a jest mock
+}

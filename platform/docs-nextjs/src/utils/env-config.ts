@@ -42,6 +42,12 @@ type GlobalEnvConfig = {
   CONTENTSTACK_DELIVERY_TOKEN: string;
   CONTENTSTACK_ENVIRONMENT: string;
   SLACK_QUOKKA_OAUTH_ACCESS_TOKEN: string;
+  /**
+   * Signing secret of the Slack app that posts the feedback messages. Used to
+   * authenticate interaction callbacks in /api/feedback-interaction, which
+   * fails closed (401) when this is unset.
+   */
+  SLACK_SIGNING_SECRET: string;
   CONTENTSTACK_WEBHOOK_TOKEN: string;
   AHA_API_KEY: string;
 };
@@ -59,6 +65,7 @@ const envConfig: GlobalEnvConfig = {
   CONTENTSTACK_DELIVERY_TOKEN: process.env.CONTENTSTACK_DELIVERY_TOKEN ?? '',
   CONTENTSTACK_ENVIRONMENT: process.env.CONTENTSTACK_ENVIRONMENT ?? '',
   SLACK_QUOKKA_OAUTH_ACCESS_TOKEN: process.env.SLACK_QUOKKA_OAUTH_ACCESS_TOKEN ?? '',
+  SLACK_SIGNING_SECRET: process.env.SLACK_SIGNING_SECRET ?? '',
   CONTENTSTACK_WEBHOOK_TOKEN: process.env.CONTENTSTACK_WEBHOOK_TOKEN ?? '',
   AHA_API_KEY: process.env.AHA_API_KEY ?? '',
 };
