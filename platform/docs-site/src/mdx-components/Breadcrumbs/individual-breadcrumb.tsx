@@ -21,13 +21,11 @@ const linkStyling = LeafyCss`
   }
 `;
 
-const ellipsisStyling = LeafyCss`
-  text-overflow: ellipsis;
-`;
-
 const linkWrapperLayoutStyling = LeafyCss`
   overflow: hidden;
   white-space: nowrap;
+  text-overflow: ellipsis;
+  min-width: 0;
 
   :first-child {
     min-width: max-content;
@@ -101,7 +99,7 @@ const IndividualBreadcrumb = ({ crumb, onClick }: IndividualBreadcrumbProps) => 
   const { isTruncated } = useIsTruncated(node);
 
   const result = (
-    <div className={cx(linkWrapperLayoutStyling, crumb.title.length > 21 ? ellipsisStyling : '')} ref={measuredRef}>
+    <div className={cx(linkWrapperLayoutStyling)} ref={measuredRef}>
       <Link className={cx(linkStyling)} to={crumb.path} onClick={onClick} hideExternalIcon={true}>
         {formatText(crumb.title)}
       </Link>
@@ -121,11 +119,7 @@ const IndividualBreadcrumb = ({ crumb, onClick }: IndividualBreadcrumbProps) => 
       {formatText(crumb.title)}
     </Tooltip>
   ) : (
-    <div className={cx(linkWrapperLayoutStyling, crumb.title.length > 21 ? ellipsisStyling : '')} ref={measuredRef}>
-      <Link className={cx(linkStyling)} to={crumb.path} onClick={onClick} hideExternalIcon={true}>
-        {formatText(crumb.title)}
-      </Link>
-    </div>
+    result
   );
 };
 

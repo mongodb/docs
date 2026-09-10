@@ -20,9 +20,15 @@ const align = (key: string) => {
 };
 
 const styleTable = ({ customAlign, customWidth }: { customAlign?: string; customWidth?: string }) => css`
-  ${customAlign && `text-align: ${align(customAlign)}`};
-  ${customWidth && `width: ${customWidth}`};
   margin: ${theme.size.medium} 0;
+
+  // Our className lands on LeafyGreen's scroll container; min-content lets the table
+  // outgrow it so overflow: auto engages instead of columns collapsing.
+  & > table {
+    min-width: min-content;
+    ${customAlign && `text-align: ${align(customAlign)}`};
+    ${customWidth && `width: ${customWidth}`};
+  }
 `;
 
 /** TODO: find a long-term solution for this (!important is bad practice)
@@ -65,8 +71,7 @@ const baseCellStyle = css`
 `;
 
 const bodyCellStyle = css`
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  overflow-wrap: break-word;
   align-content: flex-start;
 
   & > div {
