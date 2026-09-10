@@ -16,6 +16,7 @@ Unified Jira skill for the DOCSP project. Supports three interchangeable backend
 - Always use Jira wiki markup in descriptions and comments, never Markdown.
 - When referencing a ticket key back to the user, include its title (e.g., "DOCSP-12345 — Fix broken link on X page") so it's identifiable without a lookup.
 - When asked to "add" or "update" ticket content without a target specified, ask whether it goes in the description or as a comment rather than defaulting to a comment.
+- DOCSP tickets identify the page(s) to change in a `URL(s)` custom field (`customfield_12054`), and the default ticket view of every backend omits it unless you request it. Whenever a ticket's target page matters, read that field explicitly — see your tool's reference file for the syntax. An absent field is not the same as an empty one.
 
 ---
 
@@ -79,7 +80,7 @@ Look up valid transition names/IDs before transitioning — see your tool's refe
 
 Tickets typically close directly from Internal Review or External Review. Needs Merge is available but not a standard step for any team.
 
-When moving a ticket to Internal Review or Needs Merge, post the PR URL as a comment (see Post a PR link comment in your tool's reference file).
+Do not post the PR URL as a comment when moving a ticket to Internal Review or Needs Merge. GitHub and Jira already cross-link, so the comment is noise on a ticket the writer is watching anyway. Comment only when you have something to say that the linkage does not already convey.
 
 Before closing, confirm the PR has been merged.
 

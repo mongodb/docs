@@ -44,8 +44,8 @@ After editing the H1 text, update the overline and underline to match the visibl
 The SEO linter counts raw source characters without expanding markup, so any title or description containing RST substitutions (`|key|`) or Snooty source constants (`{+key+}`) may report a length that differs from what readers see. Before acting on a length finding for such a value, compute the true visible length:
 
 1. Find the `snooty.toml` nearest to the file (walk up from the file's directory until one is found).
-2. Parse the `[substitutions]` and `[constants]` sections to build an expansion map.
-3. Expand all `|key|` and `{+key+}` occurrences using the map.
+2. Read the maintained expansion map at `<that directory>/.expansion-map.yml` (its `expanded` key is a flat `{name: text}` lookup covering `[constants]` and `[substitutions]`). If it's missing or stale, regenerate it with `.claude/scripts/build-expansion-map.py <path-to-snooty.toml>` before continuing.
+3. Expand all `|key|` and `{+key+}` occurrences using the map's `expanded` lookup.
 4. Strip RST roles from the expanded values to get visible text only:
    - `:abbr:`ABBR (Full Text)`` → `ABBR`
    - `:guilabel:`text`` → `text`

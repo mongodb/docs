@@ -61,6 +61,10 @@ jira_update_issue(
 jira_get_issue(issue_key="DOCSP-12345")
 ```
 
+**Reading the URL(s) field:** DOCSP tickets carry a `URL(s)` custom field (`customfield_12054`) holding the docs page(s) the ticket is about. It is a plain string, and when a ticket targets several pages the URLs are newline-separated within that one string rather than returned as an array. If this server's `fields` parameter is narrowing the response, request `customfield_12054` explicitly. This server's exact `fields` syntax is unverified here, so confirm the field actually came back before relying on it — an unrecognized field name may be dropped silently rather than raising an error.
+
+If the field is null or empty, look for a complete `mongodb.com/docs/` URL written out in the description or comments. Never construct or guess a docs URL from the summary. Stop and ask the user which page to edit.
+
 ### Search tickets
 
 ```python
@@ -103,17 +107,6 @@ jira_add_comment(issue_key="DOCSP-12345", comment="Comment body here.")
 ```
 
 To mention a user, use `[~username]` where username is their MongoDB email prefix (e.g. `[~jane.smith]`). Use this when requesting SME or stakeholder review.
-
-### Post a PR link comment
-
-When moving a ticket to Internal Review or Needs Merge, post the PR URL as a comment:
-
-```python
-jira_add_comment(
-    issue_key="DOCSP-12345",
-    comment="PR: https://github.com/10gen/docs-mongodb-internal/pull/12345"
-)
-```
 
 ### Link two tickets
 

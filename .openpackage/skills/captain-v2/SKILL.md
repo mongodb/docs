@@ -106,7 +106,7 @@ For each found PR:
    The `/staging-preview` skill returns a markdown list — one `- [Label](url)` item per changed page. Assign that output verbatim to the `links` variable in the script below. For example, if `/staging-preview` returned:
 
    ```
-   - [compact (database command)](https://deploy-preview-20169--mongodb-manual.netlify.app/docs/manual/reference/command/compact/)
+   - [compact (database command)](https://deploy-preview-20169--docs-on-nextjs.netlify.app/docs/manual/reference/command/compact/)
    ```
 
    then set `links` to that exact string in the script below.

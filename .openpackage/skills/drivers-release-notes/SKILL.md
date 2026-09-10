@@ -62,19 +62,24 @@ Read the first 60 lines of `{RELEASE_NOTES_FILE}` to confirm the exact heading s
 
 Use Glean to fetch the Embargoed Features List from the internal wiki (https://wiki.corp.mongodb.com/pages/viewpage.action?pageId=560136334) and return every embargoed feature name and its aliases. The page is internal to MongoDB, so instruct the subagent to read it with Glean.
 
+If Glean is unavailable or unauthenticated, do not skip this check and do not substitute a guess at the embargo list. Stop, tell the user Glean is unavailable, and ask them to review the Embargoed Features List manually and confirm the change list is clear before you draft.
+
 Scan the change list fetched in step 1 for any embargoed feature name or alias, matching case-insensitively and including aliases.
 
 If any change matches an embargoed term, **stop before drafting**: report the matching term and the affected changes to the writer, then ask how to proceed. Do not draft, include, or publish any release note that references an embargoed feature until the writer confirms the embargo is lifted.
 
 If no change matches, continue to the next step.
 
-### 4. Draft the new release notes entry
+### 4. Create a branch
+
+Before editing any file, ask the user if they want to create a new branch for the changes. If yes, request the ticket number and create a new branch named `DOCSP-<ticket number>-release-notes`. If no, proceed to the next step.
+
+### 5. Draft the new release notes entry
 
 Format the new entry to match the conventions observed in step 2 and the additional instructions listed for the driver in the driver reference file. Insert the entry in the correct version-sorted position (newest version first). Do not assume the new entry belongs at the top — scan the existing headings to find where `{VERSION}` falls relative to other versions and insert it there, with a blank line separating it from the entry above and below. For example, see the **Standard Entry Format** in `references/docs-templates.md`.
 
 #### Shared rules
 
-- Before making changes, ask the user if they want to create a new branch for the changes. If yes, request the ticket number and create a new branch named `DOCSP-<ticket number>-release-notes`. If no, proceed to the next step.
 - The section for the specified version might already exist. In that case, ensure that all the items fetched from GitHub are present in the existing section. If not, add the missing items. If all items are present, instruct the user that the release notes are already complete and move to the next step.
 - Some drivers, such as C# and Ruby, include an `_upcoming-breaking-changes:` ref anchor immediately preceding the newest release notes section. If so, ensure that you move the ref anchor so it's above the section for the version you are adding.
 - See the **Formatting Rules** section in `references/docs-templates.md` for heading underline and line-length rules.
@@ -83,7 +88,7 @@ Format the new entry to match the conventions observed in step 2 and the additio
 - At the bottom of the section, add a link to the changelog in the driver source code by using the `{CHANGELOG_LINK}`. Use this syntax: "To learn more about this release, see the
 :github:`v{VERSION} Release Notes <{CHANGELOG_LINK}>` on GitHub."
 
-### 5. Document breaking changes
+### 6. Document breaking changes
 
 A breaking change is a modification in a convention or behavior in a specific version of the driver that might prevent an application from working properly if not addressed before upgrading. If a driver has breaking changes, document them in the upgrade guide and add a warning admonition to the release notes - unless the driver-specific reference file states otherwise.
 
@@ -104,7 +109,7 @@ Create a new section in the driver's upgrade guide under the Breaking Changes he
 - Do not duplicate entries from the release notes.
 - Read the first 60 lines of the upgrade guide to see the format of each section.
 
-### 6. Apply the changes to `current`
+### 7. Apply the changes to `current`
 
 After modifying the release notes in `upcoming`, ask the user if they also want to apply the changes to the `current` version directory. The `current` directory is a sibling of `upcoming` under the same product's `content/` folder (e.g., `content/c-driver/current/`).
 If yes, use `git diff` and `git apply` to make the same changes to `current`:
@@ -117,7 +122,7 @@ git diff HEAD -- {RELEASE_NOTES_FILE} | \
 
 If `git apply` fails, report the error output to the user and ask how to proceed. Verify the result by reading the patched file before reporting completion.
 
-### 7. Confirm completion
+### 8. Confirm completion
 
 Report the file(s) changed and ask the user if they are ready to commit. Remind the user to complete the documentation version update, providing a link to https://wiki.corp.mongodb.com/spaces/DE/pages/201983140/How+To+Implement+Changes+for+Driver+Version+Updates, and request a technical review before publishing.
 Remind the user that they can use the `version-update` command to update the documentation version if not already completed.

@@ -14,7 +14,7 @@
 | Java Sync | `content/java/upcoming/source/reference/release-notes.txt` |
 | Java Reactive Streams | `content/java-rs/upcoming/source/whats-new.txt` |
 | Kotlin Sync | `content/kotlin-sync/upcoming/source/reference/whats-new.txt` |
-| Kotlin Coroutine | `content/kotlin/upcoming/source/reference/release-notes` |
+| Kotlin Coroutine | `content/kotlin/upcoming/source/reference/release-notes.txt` |
 | Scala | `content/scala-driver/upcoming/source/whats-new.txt` |
 
 The JVM workflow uses a shared file across all sub-drivers:

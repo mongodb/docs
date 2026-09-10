@@ -29,8 +29,10 @@ point-in-time question — not "are the published docs still true?" (that is the
 
 It **never** discovers the engineering PR on its own (see commitment 1 below).
 
-It **never** edits docs, files tickets, or posts PR comments in this slice. It
-produces a report in the conversation for the writer to read and correct.
+It **never** edits docs or files tickets. It produces a report in the
+conversation for the writer to read and correct, and — only with explicit
+per-run confirmation — can append that report to the docs PR description
+(see Stage 7).
 
 ## Design commitments (hold these firm)
 
@@ -114,6 +116,14 @@ enum values, constraints, API shapes, behavioral changes, version metadata.
 changes, formatting. These rarely need docs. Upweight anything that changes
 what a user can do or must know.
 
+**Watch for collateral changes** — in a dependency- or version-bump PR,
+changes made only to keep the code building against the new version (not
+because the reference change itself calls for them) are a third bucket,
+distinct from both public-contract changes and mechanical churn. Do not
+downweight these as churn: a collateral change is often the riskiest part
+of the PR precisely because it maps to nothing in the reference, so
+nothing forces a reviewer to look at it. Keep it in scope.
+
 Be honest about inference limits: a config flag is easy to read off a diff; a
 behavioral change buried in logic may not be. Where you are inferring rather
 than reading a clear signal, mark the unit as **inferred** so its coverage
@@ -150,13 +160,21 @@ earns exactly one tag:
   inferable from the docs alone) that the docs do not mention at all. Purely
   about presence/absence; state it, do not ask permission — the reviewer
   decides whether it matters. Example: a diff adds a deprecation warning the
-  docs never reference.
+  docs never reference. Once something clears the inclusion test as a Gap,
+  keep it as a `[Gap]` line rather than softening it into a "no action
+  expected" or "not a concern" note — whether it matters is the reviewer's
+  call, per design commitment 5.
 - **Verify** — the docs make a specific claim about behavior you're not fully
-  certain is accurate. Point at the claim and the diff line that bears on it;
-  do not assert your own verdict. (Verified case: this skill caught a real
-  docs inaccuracy on one run and silently missed the identical one on a
-  rerun — its own accuracy judgments are unreliable, so hand the call to the
-  reviewer.)
+  certain is accurate. Point at the claim and cite the specific thing you
+  read that it turns on: a diff line, a line in a file you opened, or a
+  passage in release notes/docs. General recollection of how a framework or
+  library usually behaves is weaker evidence than something read for this
+  PR — if that's the only basis for an item, say so in the item itself
+  rather than stating it with the same confidence as a claim you confirmed
+  by reading code. Where confirming a claim depends on knowing what else
+  relies on the changed code, read that dependency directly rather than
+  inferring it from the diff alone. See Known limitations for why this
+  skill's own accuracy judgments still need a human check regardless.
 - **Confirm** — a completeness question only engineering can answer (e.g. "is
   this capability actually finished/user-facing this release?") — not a
   writer's own editorial call about whether to explain more.
@@ -172,13 +190,57 @@ format, the confidence rubric, a worked example, and output constraints.
 
 ### 6. Confirm with the writer
 
-After the pointer list, ask the writer to confirm or correct any **[Confirm]**
-items — briefly. Their answers are the iteration signal for this skill — note
-recurring correction patterns so the flow can be sharpened over time.
+After the pointer list, ask the writer to resolve each **[Confirm]** item.
+Present three explicit options, not just confirm-or-correct: **confirm** it
+as written, **correct** it, or **ignore** it (drop it from the report
+entirely because the writer has determined it doesn't need eng input, e.g.
+a version bump they already know is intentional). If the writer ignores an
+item, remove it from the report before Stage 7; do not carry dismissed
+items into the published version. Their answers are the iteration signal
+for this skill; note recurring correction or ignore patterns so the flow
+can be sharpened over time.
 
 **Do not ask the writer to resolve `Verify` items.** Those are for the
-*engineering reviewer* during tech review — routing them back to the writer
+*engineering reviewer* during tech review; routing them back to the writer
 first risks a pre-biased answer (design commitment 5).
+
+### 7. Offer to publish
+
+After the writer has responded to the `[Confirm]` items, always ask a
+yes/no question: *"Want me to append this report to the docs PR
+description so the engineering reviewer sees it?"* Do not publish without
+an explicit yes on that run — this is a shared, visible artifact, so
+confirmation is required every time, not just once per PR.
+
+If the writer says yes:
+
+1. Fetch the current PR description with
+   `gh pr view <url> --json body -q .body`.
+2. Search it for the marker `<!-- pr-coverage-check:report -->`. The
+   markers must bracket the *entire* report block, including the
+   `## Tech Reviewer Suggestions` heading line, not just the body below it,
+   so the replace step in a rerun can't drift and leave a duplicate heading
+   behind:
+   ```
+   <!-- pr-coverage-check:report -->
+   ## Tech Reviewer Suggestions
+   ...full report body...
+   <!-- /pr-coverage-check:report -->
+   ```
+   - **Marker found:** replace everything from the opening marker to the
+     closing marker, inclusive, with the new markers + report. This is
+     what makes reruns safe — a second publish on the same PR updates the
+     existing report in place instead of stacking a duplicate below it.
+   - **No marker:** append the marker-wrapped report to the end of the
+     existing description.
+3. Write the result back with `gh pr edit <url> --body-file <tmp-file>`
+   (use a temp file, not `--body`, so formatting/newlines survive
+   shell-quoting).
+4. Confirm to the writer that the description was updated and share the PR
+   URL.
+
+If the writer says no, stop here — the report already exists in the
+conversation, which satisfies this skill's job.
 
 ## Known limitations (state these to the writer)
 
