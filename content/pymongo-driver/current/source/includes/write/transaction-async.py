@@ -12,17 +12,17 @@ async def insert_documents(session):
         write_concern=WriteConcern("majority"),
         read_concern=ReadConcern("local")
     )
-    
+
     # Inserts documents within the transaction
     await restaurants_collection_with_session.insert_one(
-        {"name": "PyMongo Pizza", "cuisine": "Pizza"}, session=session
+        {"name": "PyMongo Pizza", "cuisine": "Pizza"}
     )
     await restaurants_collection_with_session.insert_one(
-        {"name": "PyMongo Burger", "cuisine": "Burger"}, session=session
+        {"name": "PyMongo Burger", "cuisine": "Burger"}
     )
 
-# Starts a client session
-with client.start_session() as session:
+# Starts a client session and binds it to operations in this block
+async with client.start_session().bind() as session:
     try:
         # Uses the with_transaction method to start a transaction, execute the callback, and commit (or abort on error).
         await session.with_transaction(insert_documents)

@@ -14,6 +14,15 @@ The following table shows compatibility between PyMongo and {+mdb-server+}:
      - MongoDB 4.2
      - MongoDB 4.0
 
+   * - 4.18
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     -
+     -
+
    * - 4.14 to 4.17
      - ✓ 
      - ✓ 

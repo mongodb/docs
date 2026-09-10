@@ -104,6 +104,50 @@ and upgrade versions.
 
 .. diagram for this example?
 
+.. _version-4.18-breaking-changes:
+
+Version 4.18 Breaking Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Drops support for {+mdb-server+} v4.2. The minimum supported
+  {+mdb-server+} version is now v4.4.
+
+- The aggregation helper methods raise a
+  ``pymongo.errors.ConfigurationError`` if you pass an ``aggregate`` or
+  ``pipeline`` keyword argument. Previously, these keys silently replaced
+  the target namespace and pipeline of the generated ``aggregate``
+  command. This change affects the following methods on both the
+  synchronous and asynchronous classes:
+
+  - ``Collection.aggregate()``
+  - ``Collection.aggregate_raw_batches()``
+  - ``Database.aggregate()``
+  - ``Collection.list_search_indexes()``
+
+- Command monitoring events and command log messages for a single
+  logical operation share one stable ``operation_id`` across all retry
+  attempts of that operation. As a result, ``operation_id`` no longer
+  equals the per-attempt ``request_id`` for these operations.
+
+- Documents and subdocuments that are 4 KB or larger and are decoded to
+  ``bson.raw_bson.RawBSONDocument`` objects from an immutable buffer are
+  exposed as read-only ``memoryview`` slices instead of ``bytes`` copies.
+  Documents decoded from mutable buffers, such as a ``bytearray``, are
+  always ``bytes`` copies.
+
+- The ``bson.get_data_and_view()`` method returns a view of a private
+  ``bytes`` copy for buffer-protocol inputs other than ``bytes`` or
+  ``bytearray``.
+
+- If you use an exhaust cursor (``CursorType.EXHAUST``) against a
+  ``mongos`` version earlier than v7.1, the driver raises a
+  ``pymongo.errors.InvalidOperation`` error on the first iteration of the
+  cursor rather than from the ``find()`` method, because the driver
+  checks the requirement against the connection in use. Asynchronous
+  cursors that combine ``limit`` with ``CursorType.EXHAUST`` raise the
+  error from the ``find()`` method rather than on first iteration, which
+  matches the synchronous API.
+
 .. _version-4.14-breaking-changes:
 
 Version 4.14 Breaking Changes
