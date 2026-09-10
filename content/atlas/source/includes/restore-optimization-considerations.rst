@@ -1,5 +1,6 @@
-To optimize performance and reduce the amount of time it takes to
-restore, follow these principles where applicable:
+To take advantage of faster cross-project restores and to optimize
+performance and reduce the amount of time it takes to restore,
+you must follow all of these principles where they are applicable:
 
 - Select a target cluster that isn't global or multi-cloud.
 - Select a multi-region target cluster only if copies of the snapshot
