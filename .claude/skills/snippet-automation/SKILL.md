@@ -3,8 +3,9 @@ name: snippet-automation
 description: >
   Generate and sync Bluehawk snippets across MongoDB docsets. Use when the user
   asks to "run snip", "generate snippets", "sync snippets", "add snippet",
-  "list snippets", or wants to extract and distribute content from a source
-  docset to target docsets.
+  "list snippets", "setup snippet for a docset", "set up a snippet source", or
+  wants to extract and distribute content from a source docset to target
+  docsets.
 ---
 
 # Snippet Automation: Cross-Docset Content Sharing
@@ -18,6 +19,7 @@ using the `snip.js` tooling with manifest-based change tracking.
 - User asks to "run snip", "generate snippets", "sync snippets", "add snippet", or "list snippets"
 - User wants to share content from one docset to others (atlas → search, vector-search, etc.)
 - User needs to register, remove, or check monitored snippet files
+- User wants to set up a new snippet source docset — add `snip.js`, `package.json`, and CI registration (also the version-flip setup for a versioned docset)
 
 **NEVER use when:**
 - Files are in `code-examples/tested/` → STOP, tell user to use Grove skill instead
@@ -74,6 +76,7 @@ Only ONE version per versioned docset can be a snippet source, because output fi
 | `register snippets <dir>` | Bulk-register directory | `Registered N file(s) from <dir>` |
 | `remove snippet <file>` | Stop tracking and delete output files | `Removed from manifest: <path> (N snippets, M output files deleted)` |
 | `list snippets` | Show tracked files | `Monitored files (N):` then each file with its snippets and output paths |
+| `setup snippet for <docset>` | Set up a new snippet source docset: copy `snip.js`, add `package.json`, register in CI, then init the manifest | drift check passes and `✓ Created empty manifest: <path>` |
 | `init manifest` | Create empty manifest (aborts if exists) | `✓ Created empty manifest: <path>` |
 | `reset manifest` | Clear all tracked files | `✓ Reset manifest: <path>` |
 | `validate manifest` | Check markers, files, and hashes | `N valid, M out of sync, X missing or invalid` |
@@ -108,9 +111,57 @@ Every workflow starts by resolving the docset's source directory from the file p
 - `content/<docset>/source/...` → source dir is `content/<docset>/source`
 - `content/<docset>/<version>/source/...` → source dir is `content/<docset>/<version>/source`, and only ONE version has `snip.js` (see Versioned Docsets above)
 
-VERIFY the directory has a `snip.js` before running any command: `ls <source-dir>/snip.js`. If it is absent, that version is not a snippet source — STOP.
+VERIFY the directory has a `snip.js` before running any command: `ls <source-dir>/snip.js`. If it is absent, that version is not a snippet source — STOP, UNLESS the user is setting one up (see "Set up a new snippet source docset" below, the one workflow that runs before `snip.js` exists).
 
-All commands below run from `<source-dir>`.
+All other commands below run from `<source-dir>`.
+
+### Set up a new snippet source docset
+
+Use when a destination docset needs to become a source, or when a versioned docset flips and the incoming version must take over sourcing (see Versioned Docsets above). `<source-dir>` is the new docset's snippet root — `content/<docset>/source` or, for a versioned docset, the single owning version's `content/<docset>/<version>/source`.
+
+1. CONFIRM it is not already a source: `ls <source-dir>/snip.js` MUST be absent. If it exists, STOP — the docset is already set up; use the tracking workflows instead.
+2. COPY an existing copy verbatim — do NOT hand-write one: `cp content/atlas/source/snip.js <source-dir>/snip.js`. The drift check (`.github/scripts/check-snip-drift.js`) requires every copy to be byte-identical apart from one line.
+3. EDIT only `DEFAULT_START_DIRECTORY` in the new copy so it equals `<source-dir>` exactly (for example `content/foo/source`). The drift check FAILS if this value is anything other than the copy's own directory. Change nothing else.
+4. ADD `package.json` in `<source-dir>` with `"type": "module"` (required for the ESM `import` syntax) and the `snip` script:
+
+   ```json
+   {
+     "name": "<docset>",
+     "private": true,
+     "type": "module",
+     "scripts": {
+       "snip": "node snip.js"
+     }
+   }
+   ```
+
+   No `npm install` is needed — no dependencies are declared. Bluehawk is installed globally.
+5. REGISTER the docset in `.github/workflows/snippet-sync.yml` with THREE edits:
+   - Under `on.pull_request.paths`, add `content/<docset-path>/includes/**` and `content/<docset-path>/snippet-manifest.json`, where `<docset-path>` is `<source-dir>` minus the repo prefix.
+   - In the `Detect changed docsets` step, add a `grep`/`DOCSETS` block appending the docset name when a matching file changes.
+   - Add a `Sync <docset> snippets` step that `cd`s into `<source-dir>` and runs `--sync` when its manifest exists. Its `contains()` guard MUST use the space-padded form (`' {0} '`, `' <docset> '`) — an unpadded `search` would also match `self-managed-search` and fire the wrong step.
+
+   Do NOT touch `check-snip-drift`: it discovers copies by walking `content/`, so the new copy is covered automatically.
+6. INIT the manifest: `cd <source-dir> && npm run snip -- --init`.
+7. VERIFY: run `node .github/scripts/check-snip-drift.js` (MUST exit 0) and `cd <source-dir> && npm run snip -- --validate`.
+8. REPORT the files created (`snip.js`, `package.json`, `snippet-manifest.json`), the workflow edits, and the drift-check result.
+
+**Version-flip variant:** these steps also cover a versioned docset's flip, where the incoming version takes over sourcing. One extra consideration applies — source files branched forward into the new version keep their `:snippet-start:` markers but LOSE their `:snippet-output:` tags. Restore the `:snippet-output:` tag on every such file before step 6, or `--validate`/`--sync` reports them as invalid and skips them.
+
+**Worked example — converting `search` (a destination) into a source.** `<source-dir>` = `content/search/source`; each command maps to the numbered step above:
+
+```bash
+ls content/search/source/snip.js                              # 1. MUST print "No such file"
+cp content/atlas/source/snip.js content/search/source/snip.js # 2. copy verbatim
+# 3. edit copy: const DEFAULT_START_DIRECTORY = "content/search/source";
+# 4. add content/search/source/package.json (block above, "name": "search")
+# 5. snippet-sync.yml: add the two paths + a DOCSETS grep + a --sync step
+#    guarded by contains(..., ' search ') — space-padded, else it also
+#    matches self-managed-search
+cd content/search/source && npm run snip -- --init            # 6.
+node .github/scripts/check-snip-drift.js                      # 7. MUST exit 0
+cd content/search/source && npm run snip -- --validate        # 7.
+```
 
 ### Add a file to tracking
 
