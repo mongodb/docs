@@ -67,7 +67,6 @@ export const toc: L1TocItem[] = [
             label: 'Quick Start',
             contentSite: 'mongocli',
             collapsible: true,
-            url: '/docs/mongocli/:version/quick-start',
             items: [
               {
                 label: 'Use Cloud Manager',

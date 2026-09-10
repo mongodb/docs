@@ -3470,7 +3470,6 @@ export const toc: L1TocItem[] = [
                 label: 'Appendix',
                 contentSite: 'docs',
                 collapsible: true,
-                url: '/docs/:version/appendix/security',
                 items: [
                   {
                     label: 'OpenSSL CA',

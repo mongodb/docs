@@ -583,6 +583,11 @@ export const toc: L1TocItem[] = [
                     url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-event-explorer',
                   },
                   {
+                    label: 'Search for Regulatory and Standards Content',
+                    contentSite: 'atlas-architecture',
+                    url: '/docs/atlas/architecture/:version/solutions-library/search-automotive-regulatory-content',
+                  },
+                  {
                     label: 'Transform the Driver Experience',
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-asset-car-assistant',
@@ -783,7 +788,7 @@ export const toc: L1TocItem[] = [
                 ],
               },
               {
-                label: 'Gen AI',
+                label: 'AI and Gen AI',
                 contentSite: 'atlas-architecture',
                 collapsible: true,
                 items: [
@@ -791,6 +796,11 @@ export const toc: L1TocItem[] = [
                     label: 'Advanced Search with Enterprise Server',
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/solutions-library/search-enterprise-server',
+                  },
+                  {
+                    label: 'Agentic Supplier Management',
+                    contentSite: 'atlas-architecture',
+                    url: '/docs/atlas/architecture/:version/solutions-library/agentic-supply-chain',
                   },
                   {
                     label: 'Automate Product Descriptions',

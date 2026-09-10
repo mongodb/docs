@@ -9176,6 +9176,11 @@ export const toc: L1TocItem[] = [
                     url: '/docs/atlas/atlas-stream-processing/quickstart',
                   },
                   {
+                    label: 'Operations Guide',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/atlas-stream-processing/ops-guide',
+                  },
+                  {
                     label: 'Tier Sizing Guide',
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/atlas-stream-processing/tier-guide',

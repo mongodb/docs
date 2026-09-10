@@ -798,7 +798,6 @@ export const toc: L1TocItem[] = [
             label: 'Fundamentals',
             contentSite: 'csharp',
             collapsible: true,
-            url: '/docs/drivers/csharp/:version/fundamentals',
             versions: {
               includes: ['v2.x'],
             },
@@ -807,7 +806,6 @@ export const toc: L1TocItem[] = [
                 label: 'Connection',
                 contentSite: 'csharp',
                 collapsible: true,
-                url: '/docs/drivers/csharp/:version/fundamentals/connection',
                 items: [
                   {
                     label: 'Connection Guide',
@@ -858,7 +856,6 @@ export const toc: L1TocItem[] = [
                     label: 'Write',
                     contentSite: 'csharp',
                     collapsible: true,
-                    url: '/docs/drivers/csharp/:version/fundamentals/crud/write-operations',
                     items: [
                       {
                         label: 'Insert',
@@ -922,7 +919,6 @@ export const toc: L1TocItem[] = [
                     label: 'Read',
                     contentSite: 'csharp',
                     collapsible: true,
-                    url: '/docs/drivers/csharp/:version/fundamentals/crud/read-operations',
                     items: [
                       {
                         label: 'Retrieve Data',

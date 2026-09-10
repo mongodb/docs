@@ -1,0 +1,283 @@
+.. meta::
+   :robots: noindex, nosnippet
+   :description: Learn how to add or update a skill, hook, or custom
+      agent for AI coding tools in the docs repo, from picking the
+      right type to opening a pull request ready for review.
+
+.. _contribute-ai-tooling:
+
+===============================
+How to Add or Update AI Tooling
+===============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This guide helps you add or update AI tooling in the docs repo:
+a skill, hook, or custom agent. The steps are specific to Claude
+Code, but the same principles apply to similar AI coding tools the
+team uses, such as Augment.
+
+For a system-level explanation of how these types fit together at
+runtime, see :ref:`claude-code-docs-workflow`.
+
+Prerequisites
+-------------
+
+Review :github:`.claude/skills/
+<10gen/docs-mongodb-internal/tree/main/.claude/skills>` for existing
+tooling that covers the same task. If one does, extend it rather
+than adding a near-duplicate.
+
+Adding or changing tooling requires an entry in the ownership
+manifest, :github:`.claude/skills/OWNERS.yaml
+<10gen/docs-mongodb-internal/blob/main/.claude/skills/OWNERS.yaml>`.
+Add or update that entry **regardless of the tooling type**.
+
+Choose the right type before you start. To learn what starts each
+type and when to use it, see :ref:`claude-code-docs-workflow`.
+
+Add a New Skill
+---------------
+
+Add a skill when a writer performs the same task repeatedly, such
+as generating staging links or adding redirects.
+
+.. procedure::
+
+   .. step:: Create the skill directory.
+
+      Use ``.claude/skills/<skill-name>/SKILL.md``. The directory
+      name, in kebab-case, becomes the slash command writers use
+      to run the skill (``/<skill-name>``).
+
+   .. step:: Write the frontmatter.
+
+      ``SKILL.md`` starts with a YAML frontmatter block between
+      ``---`` fences. The fields control how and when the skill
+      activates. Start from this template:
+
+      .. code-block:: yaml
+
+         ---
+         name: <skill-name>
+         description: What the skill does and when to use it.
+         internal: true
+         ---
+
+      ``name`` and ``description`` are **required**.
+      ``description`` is the only text Claude reads when deciding
+      whether to invoke the skill, so state what it does and, if its
+      scope could be confused with another skill's, when to use it
+      and when to skip it. Set ``internal: true`` for skills that
+      only apply to this repo.
+
+   .. step:: Write the body.
+
+      Follow the pattern used by existing skills: an H1 title, a
+      short scope statement, then numbered ``## Step N: ...``
+      sections written as imperative instructions. Move conditional
+      or lengthy material into a ``references/`` subfolder, and add
+      a routing line in ``SKILL.md`` that tells the agent when to
+      load the file. Put output templates in ``assets/``.
+
+      For guidance on what makes a well-structured skill, including
+      scope boundaries, trigger specificity, and what belongs in the
+      body versus a reference file, see :ref:`review-agent-skill`.
+
+   .. step:: Add an OWNERS.yaml entry under the ``skills:`` section.
+
+      Required fields:
+
+      - ``name`` and ``path`` identify the skill.
+      - ``dris`` lists one or two GitHub usernames or emails. The
+        first is the primary DRI. The second, if present, is a
+        backup.
+      - ``last_reviewed`` is today's date in ``YYYY-MM-DD`` form.
+      - ``review_cadence_days`` is the maximum days between reviews
+        before the skill goes stale. Use ``90`` unless the skill is
+        workflow-critical, in which case use ``30``.
+      - ``readme_section`` places the skill in the generated README.
+        It must match a section name defined in
+        :github:`generate-readme.py
+        <10gen/docs-mongodb-internal/blob/main/.claude/skills/generate-readme.py>`,
+        or the skill falls under "Other Skills".
+
+   .. step:: Let the README regenerate.
+
+      Editing ``OWNERS.yaml`` through Claude Code triggers
+      ``generate-readme.py`` through a PostToolUse hook, which
+      rewrites :github:`.claude/skills/README.md
+      <10gen/docs-mongodb-internal/blob/main/.claude/skills/README.md>`.
+      You can also run it manually:
+
+      .. code-block:: sh
+
+         python3 .claude/skills/generate-readme.py
+
+   .. step:: Run the ``review-skill`` workflow.
+
+      Invoke ``/review-skill`` against your new skill. It runs the
+      ``skill-validator`` CLI for structural checks, reviews content
+      quality, and optionally scores the skill with an LLM judge.
+      Fix blocking errors before opening a PR. For the reviewer's
+      side of this process, see :ref:`review-agent-skill`.
+
+   .. step:: Open a PR with the Agent Skill template.
+
+      Run ``gh pr create --template agent-skill.md``. The template
+      requires a skill-information table (skill, path, purpose,
+      ``SKILL.md`` token count), any special considerations such as
+      MCP or runtime dependencies, and the ``review-skill`` output.
+      Include at least five validation prompts you tested, and note
+      any behavioral differences from baseline.
+
+Update an Existing Skill
+------------------------
+
+Updating an existing skill follows the same process as adding a new
+one, minus the directory-creation step:
+
+.. procedure::
+
+   .. step:: Edit the ``SKILL.md`` body or frontmatter in place.
+
+   .. step:: Update the OWNERS.yaml ``last_reviewed`` field to
+      today's date.
+
+   .. step:: Re-run ``/review-skill`` and fix any blocking errors.
+
+   .. step:: Open a PR with the Agent Skill template.
+
+Add or Update a Hook
+--------------------
+
+Add a hook when a check or reminder must run automatically on every
+matching tool call -- for example, blocking any ``git push`` that is
+missing a redirect.
+
+.. procedure::
+
+   .. step:: Write the hook script under ``.claude/hooks/``.
+
+      A new script has no effect until you wire it into
+      ``.claude/settings.json``.
+
+   .. step:: Wire the script into ``.claude/settings.json``.
+
+      Add an entry under an event, either ``PreToolUse`` or
+      ``PostToolUse``, with a matcher naming a tool or a
+      ``Tool1|Tool2`` pattern. The entry's ``hooks`` array holds
+      command objects:
+
+      .. code-block:: json
+
+         {
+           "matcher": "Edit|Write",
+           "hooks": [
+             {
+               "type": "command",
+               "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/your-hook.sh"
+             }
+           ]
+         }
+
+      For working examples, see
+      :github:`.claude/settings.json
+      <10gen/docs-mongodb-internal/blob/main/.claude/settings.json>`.
+
+   .. step:: Trigger the hook and confirm it runs.
+
+      Start a Claude Code session and run the tool call your
+      hook corresponds to. Confirm the hook output
+      before opening the PR.
+
+   .. step:: Add an OWNERS.yaml entry.
+
+      Hooks have no dedicated section. Add the entry under the
+      ``skills:`` section with ``path`` pointing at your hook script
+      or its directory. Use ``readme_description`` to describe it,
+      since hooks have no ``SKILL.md``. Omit ``readme_section``.
+      Entries whose path is outside ``.claude/skills/`` always land
+      under "Other Tools" in the generated README.
+
+   .. step:: Open a PR with the Agent Skill template.
+
+.. important:: Hooks fire only inside Claude Code sessions
+
+   Hooks fire on Claude Code events within a session, including
+   ``Edit``, ``Write``, and ``Bash`` tool calls and prompt
+   submission. They do not fire for edits made directly in an IDE
+   or for git commands run in a plain terminal outside Claude
+   Code. Changes made outside Claude Code bypass every hook.
+
+Add or Update a Custom Agent
+----------------------------
+
+Add an agent when the task needs its own conversation, its own
+model, and its own permissions. For example, a task that runs for
+many turns, writes to its own branch, and only reports back when
+complete.
+
+.. procedure::
+
+   .. step:: Write the agent definition under ``.claude/agents/``.
+
+      Use ``.claude/agents/<agent-name>.md``. The frontmatter
+      controls how the agent runs:
+
+      - ``name``, ``internal``, and ``description`` identify the
+        agent. ``description`` tells Claude when to use it.
+      - ``model`` and ``permissionMode`` set the model and edit
+        permissions.
+      - ``maxTurns`` caps the conversation length.
+      - ``tools``, ``skills``, and ``mcpServers`` list the tools,
+        preloaded skills, and MCP servers the agent can use.
+      - ``isolation: worktree`` runs the agent in its own git
+        worktree, so parallel drafts do not conflict on a shared
+        checkout.
+
+   .. step:: Document the agent's role and workflow in prose.
+
+      ``description`` names when Claude should use the agent. It
+      does not explain how the agent works or how it hands its
+      results back to you. Write that in the body.
+
+   .. step:: Add an OWNERS.yaml entry under the ``agents:`` section.
+
+      Use the same DRI and review-cadence conventions as a skill.
+      Agents have no ``SKILL.md``, so use ``readme_description``.
+      Omit ``readme_section``.
+
+   .. step:: Open a PR with the Agent Skill template.
+
+Checklist Before Opening a PR
+-----------------------------
+
+PRs that change ``.claude/`` tooling automatically require a
+Maverick team member's approval. Before opening a PR, make sure
+you complete these steps:
+
+- ``OWNERS.yaml`` entry added or updated, with DRIs and
+  ``last_reviewed`` set to today
+- ``readme_section`` set for new skills
+- ``/review-skill`` run with no blocking errors, for skill changes
+- :github:`.claude/skills/README.md
+  <10gen/docs-mongodb-internal/blob/main/.claude/skills/README.md>`
+  reflects your change
+- PR opened with the Agent Skill template
+
+Share a link to your PR in the ``#ask-docs-ai`` Slack channel when you
+open it so the team can review the changes.
+
+Additional Information
+----------------------
+
+To learn more about the tooling types described on this page, see
+:ref:`claude-code-docs-workflow`.
+
+To learn how to review a skill written by someone else, see
+:ref:`review-agent-skill`.

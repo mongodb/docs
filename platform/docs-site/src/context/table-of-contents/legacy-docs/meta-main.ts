@@ -543,6 +543,11 @@ export const toc: TocItem[] = [
                 contentSite: "meta",
                 url: "/docs/meta/tutorials/claude-code-docs-workflow",
               },
+              {
+                label: "How to Add or Update AI Tooling",
+                contentSite: "meta",
+                url: "/docs/meta/tutorials/contribute-ai-tooling",
+              },
             ],
           },
           {

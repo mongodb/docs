@@ -31,7 +31,6 @@ export const toc: L1TocItem[] = [
             label: 'Model Data',
             contentSite: 'django',
             collapsible: true,
-            url: '/docs/languages/python/django-mongodb/:version/model-data',
             items: [
               {
                 label: 'Models',
