@@ -505,7 +505,7 @@ const tocData: TocItem[] = [
         ],
       },
       {
-        label: 'Gen AI',
+        label: 'AI and Gen AI',
         contentSite: 'atlas-architecture',
         collapsible: true,
         items: [
@@ -513,6 +513,11 @@ const tocData: TocItem[] = [
             label: 'Advanced Search with Enterprise Server',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/search-enterprise-server',
+          },
+          {
+            label: 'Agentic Supplier Management',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/agentic-supply-chain',
           },
           {
             label: 'Automate Product Descriptions',
