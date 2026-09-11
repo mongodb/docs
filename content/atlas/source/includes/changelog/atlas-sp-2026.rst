@@ -1,3 +1,11 @@
+.. _atlas-sp-20260910:
+
+10 September 2026 Release
+-------------------------
+
+- Adds support for a cron schedule in the ``$source`` stage. To learn
+  more, see :ref:`atlas-sp-agg-source-syntax-cron`.
+
 .. _atlas-sp-20260903:
 
 3 September 2026 Release
