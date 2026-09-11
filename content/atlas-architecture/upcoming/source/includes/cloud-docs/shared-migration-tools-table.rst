@@ -13,13 +13,6 @@
        the destination {+cluster+} until you cut your applications over
        to the destination |service| {+cluster+}.
 
-   * - :atlas:`mongomirror </import/mongomirror/>`
-
-     - Migrate from a MongoDB *replica set* into an |service| cluster
-       without shutting down your existing replica set or applications.
-       :atlas:`mongomirror </import/mongomirror/>` does not import
-       user/role data or copy the ``config`` database.
-
    * - :atlas:`mongorestore </import/mongorestore/>`
 
      - Seed an |service| cluster with a ``BSON`` data backup dump taken 
