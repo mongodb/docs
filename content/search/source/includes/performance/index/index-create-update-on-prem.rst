@@ -2,14 +2,18 @@ Creating and Updating a {+fts+} Index
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Creating a |fts| index is resource-intensive. The performance of your
-cluster may be impacted while the index builds. 
+cluster might be impacted while the index builds. 
 
 In some instances, your |fts| index must be rebuilt. Rebuilding the 
-|fts| index also consumes resources and may affect database 
-performance. |fts| automatically rebuilds the index only in the event 
+|fts| index also consumes resources and might affect database 
+performance. |fts| automatically rebuilds the index in the event
 of:
 
 - :ref:`Changes <ref-edit-index>` to the index definition :icon-fa5:`star`
+- Changes to the number of :ref:`index partitions
+  <fts-index-partition>`
+- An initial sync on your cluster, which rebuilds the |fts| indexes on
+  the affected nodes
 - |fts| version updates that include breaking changes
 - Hardware-related problems such as index corruption
 

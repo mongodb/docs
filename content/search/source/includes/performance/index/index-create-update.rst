@@ -4,18 +4,26 @@ Creating and Updating a {+fts+} Index
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Creating a |fts| index is resource-intensive. The performance of your
-|service| cluster may be impacted while the index builds. 
+|service| cluster might be impacted while the index builds. 
 
 |service| replicates all writes on the collection. This means that for 
 each collection with |fts| indexes, the writes are amplified to the 
 amount of |fts| indexes defined for that collection. 
 
-In some instances, your |fts| index must be rebuilt. Rebuilding the 
-|fts| index also consumes resources and may affect database 
-performance. |fts| automatically rebuilds the index only in the event 
+In some instances, your |fts| index must be rebuilt. Rebuilding the
+|fts| index also consumes resources and might affect database
+performance. |fts| automatically rebuilds the index in the event
 of:
 
 - :ref:`Changes <ref-edit-index>` to the index definition :icon-fa5:`star`
+- Changes to the number of :ref:`index partitions
+  <fts-index-partition>`
+- Enabling or disabling :ref:`customer key management
+  <enable-search-node-encryption>`, which causes |service| to perform
+  an initial sync to re-encrypt your cluster data and rebuild your
+  |fts| and {+avs+} indexes
+- An :ref:`initial sync <troubleshoot-initial-sync>` on your cluster,
+  which rebuilds the |fts| indexes on the affected nodes
 - |fts| version updates that include breaking changes:
 
   - Breaking changes are rare.
