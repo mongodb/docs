@@ -7,18 +7,20 @@
       Create a file called ``retrieve-documents.js`` and paste the following
       code into it:
       
-      .. literalinclude:: /includes/local-rag/code-snippets/nodejs/retrieve-documents.js
+      .. literalinclude:: /code-examples/tested/javascript/driver/vector_search/local_rag/retrieve-documents.snippet.local-rag-retrieve-documents.js
          :language: javascript
          :caption: retrieve-documents.js
+         :category: usage example
 
       This code performs a vector query on your cluster.
 
       Run a test query to confirm you're getting the expected results. Create
       a new file called ``test-query.js``, and paste the following code into it:
 
-      .. literalinclude: /includes/local-rag/code-snippets/nodejs/test-query.js
+      .. literalinclude:: /code-examples/tested/javascript/driver/vector_search/local_rag/test-query.snippet.local-rag-test-query.js
          :language: javascript
          :caption: test-query.js
+         :category: usage example
 
       Run the following code to execute the query:
 
@@ -55,9 +57,10 @@
 
       Create a file called ``local-llm.js`` and paste the following code:
 
-      .. literalinclude:: /includes/local-rag/code-snippets/nodejs/local-llm.js
+      .. literalinclude:: /code-examples/tested/javascript/driver/vector_search/local_rag/local-llm.snippet.local-rag-answer-question.js
          :language: javascript
          :caption: local-llm.js
+         :category: usage example
     
       This code does the following:
 

@@ -6,9 +6,10 @@
       Create a file named ``vector-index.js`` and paste the following code in
       the file:
 
-      .. literalinclude:: /includes/local-rag/code-snippets/nodejs/vector-index.js
+      .. literalinclude:: /code-examples/tested/javascript/driver/vector_search/local_rag/vector-index.snippet.local-rag-create-index.js
          :language: javascript
          :caption: vector-index.js
+         :category: usage example
 
       This index definition indexes the ``embeddings`` field
       in an index of the :ref:`vectorSearch <avs-types-vector-search>` type
