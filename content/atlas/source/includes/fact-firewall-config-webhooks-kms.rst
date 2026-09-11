@@ -3,8 +3,9 @@ add |service| IP addresses to your network's IP access list:
 
 - :ref:`Alert Webhooks <third-party-integrations>`
 - :ref:`security-kms-encryption`
+- :ref:`LDAP Authentication or Authorization <security-ldaps>`
 
-  .. note:: 
+  .. note::
 
      If you enable the :ref:`Encryption at Rest <scale-cluster-enable-encryption>`
      feature, you must allow access from public IPs for all your hosts
@@ -35,12 +36,27 @@ similar to the following:
        "azure":{
          "<region-name>":["<IP-address>", ...],
          ...
-       },"gcp":{
+       },
+       "gcp":{
          "<region-name>":["<IP-address>", ...]
          ...
        }
      },
      "outbound":{
+       "aws":{
+         "<region-name>":["<IP-address>", ...],
+         ...
+       },
+       "azure":{
+         "<region-name>":["<IP-address>", ...],
+         ...
+       },
+       "gcp":{
+         "<region-name>":["<IP-address>", ...],
+         ...
+       }
+     },
+     "gateways":{
        "aws":{
          "<region-name>":["<IP-address>", ...],
          ...
@@ -113,3 +129,27 @@ and |kms|.
 
 We recommend that you :ref:`use the Atlas Admin API <atlas-fetch-control-plane-ips>`
 to fetch the current inbound |service| control plane IP addresses.
+
+.. _atlas-required-gateway-access:
+
+Required Access: ``gateways`` IP Addresses
+-------------------------------------------------------
+
+``gateways`` lists the IP addresses of traffic routed through the
+|service| Gateway. If you have IP restriction policies on services
+that |service| connects to through the gateway, you must allow
+inbound access from the IP addresses listed in ``gateways`` in
+addition to the control plane IP addresses.
+
+Include all gateway IP addresses from all regions, regardless of
+where your clusters are deployed.
+
+We recommend that you use the :ref:`Atlas Admin API
+<atlas-fetch-control-plane-ips>` to fetch the current |service|
+gateway IP addresses.
+
+.. important::
+
+   |service| may update its gateway IP addresses over time. To
+   ensure continued connectivity, periodically fetch the current
+   gateway IP addresses and update your access list.

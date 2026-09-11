@@ -122,8 +122,14 @@ To register your |oidc| application with Okta:
               - Click the drop-down and select :guilabel:`Groups`.
 
             * - :guilabel:`Filter`
-              - Click the drop-down and select :guilabel:`Matches regex`. Next
-                to the drop-down, enter ``.*``.
+              - Click the drop-down and select
+                :guilabel:`Matches regex`. Next to the drop-down,
+                enter a regular expression that matches only groups
+                used for |service| authorization. For example, if
+                your |service| authorization groups use a common
+                naming prefix, enter ``^<mongodb-atlas-group-prefix>.*``
+                where ``<mongodb-atlas-group-prefix>`` is your
+                chosen prefix.
 
             * - :guilabel:`Disable claim`
               - Do not check.
@@ -132,6 +138,28 @@ To register your |oidc| application with Okta:
               - Select :guilabel:`Any scope`.
 
       #. Click :guilabel:`Create`.
+
+      .. important::
+
+         Avoid using ``.*`` as the filter value. The ``.*``
+         expression matches every group assigned to the user,
+         including groups unrelated to |service| authorization.
+         A broad filter increases the access token size and can
+         cause authentication failures when the token exceeds the
+         ``preAuthMaximumMessageSizeBytes`` limit (16 KiB by
+         default).
+
+         To reduce token size, create a dedicated naming
+         convention for |service| authorization groups and filter
+         on that convention.
+
+         If your deployment intentionally requires a large groups
+         claim, you can increase the
+         :parameter:`preAuthMaximumMessageSizeBytes`
+         parameter on your cluster. However, increasing this
+         limit has resource and security implications and should
+         not be used as a workaround for an unnecessarily broad
+         claim.
 
       To learn more, see `Create Claims
       <https://help.okta.com/en-us/content/topics/security/api-config-claims.htm>`__.
