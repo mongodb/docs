@@ -131,6 +131,99 @@ collection:
             Title: Aloha
             ...
 
+.. _hibernate-query-null-comparison:
+
+Compare Field Values to Null
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you compare a field to ``null`` by using a comparison operator,
+the {+extension-short+} applies MongoDB Query Language null semantics
+instead of the ternary logic that {+orm+} defines.
+
+.. note:: Hibernate Ternary Logic for ``null``
+
+   {+orm+} v6.3 and later evaluate a comparison to ``null`` as
+   ``null``, which a predicate treats as ``false``. The
+   {+extension-short+} does not implement this behavior. To learn more
+   about which features the {+extension-short+} supports, see
+   :ref:`Data Type Support <hibernate-data-support>` on the Feature
+   Compatibility page.
+
+MongoDB comparison operators evaluate both a missing field and a field
+that stores an explicit ``null`` value to ``null``. As a result, a
+``= null`` comparison matches documents in which the field stores
+``null`` and documents in which the field is absent. A ``<> null`` or
+``!= null`` comparison matches documents in which the field stores any
+other value.
+
+The following example uses the ``=`` operator to retrieve documents
+that have a ``null`` or missing ``cast`` value from the
+``sample_mflix.movies`` collection:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-null-comparison-query-session
+            :end-before: end-null-comparison-query-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: Song of Lahore
+            Title: A Sinner in Mecca
+            Title: Very Semi-Serious
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-null-comparison-query-em
+            :end-before: end-null-comparison-query-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: Song of Lahore
+            Title: A Sinner in Mecca
+            Title: Very Semi-Serious
+
+The {+extension-short+} translates this query to the
+following ``$match`` stage:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$match": {
+       "cast": { "$eq": null }
+     }
+   }
+
+Comparisons that use the ``>``, ``>=``, ``<``, and ``<=`` operators
+follow the :ref:`MongoDB BSON comparison order <bson-types-comparison-order>`
+for non-existent fields. Because ``null`` is its own BSON type,
+A ``>= null`` or ``<= null`` comparison matches documents in which the field stores
+``null`` or is missing. A ``> null`` or ``< null`` comparison matches no documents.
+
+To match ``null`` and missing values by using a predicate instead of a
+comparison operator, see the :ref:`hibernate-query-is-null` and
+:ref:`hibernate-query-is-not-null` sections of this guide.
+
 .. _hibernate-predicate-comparison-operators:
 
 Use Predicate Operators
@@ -242,6 +335,10 @@ IS NULL
 ~~~~~~~
 
 The ``IS NULL`` predicate matches documents that have a specific field with a null or missing value.
+
+To compare a field to ``null`` by using a comparison operator instead
+of a predicate, see the :ref:`hibernate-query-null-comparison` section
+of this guide.
 
 The following example uses the ``IS NULL`` predicate to retrieve documents that have a missing or 
 ``null`` ``cast`` value from the ``sample_mflix.movies`` collection:

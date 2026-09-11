@@ -149,6 +149,24 @@ public class Query {
         }
         // end-between-query-em
 
+        // Retrieves documents that have a null or missing "cast" value using a session
+        // start-null-comparison-query-session
+        var nullComparisonResult = session.createQuery("from Movie where cast = null", Movie.class)
+                .getResultList();
+        for (var m : nullComparisonResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-null-comparison-query-session
+
+        // Retrieves documents that have a null or missing "cast" value using an entity manager
+        // start-null-comparison-query-em
+        var nullComparisonResult = entityManager.createQuery("select m from Movie m where m.cast = null", Movie.class)
+                .getResultList();
+        for (var m : nullComparisonResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-null-comparison-query-em
+
         // Retrieves documents that do not have a "cast" value using a session
         // start-isnull-query-session
         var isNullResult = session.createQuery("from Movie where cast is null", Movie.class)
