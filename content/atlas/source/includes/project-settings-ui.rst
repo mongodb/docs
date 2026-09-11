@@ -182,6 +182,25 @@ Reranking, see :ref:`native-reranking-billing`.
 The :pipeline:`$rerank` stage is available only on clusters running 
 MongoDB 8.3 or later, and it is disabled by default.
 
+Query Shape Reports
+~~~~~~~~~~~~~~~~~~~~
+
+The :guilabel:`Query Shape Reports` setting controls whether
+|service| sends Query Shape Report emails to
+:authrole:`Project Owner` users in your project. The report
+summarizes inefficient query shapes for the clusters that
+you select in your project.
+
+|service| automatically subscribes the first cluster in a
+project that receives a
+:alert:`Query Targeting: Scanned Objects / Returned` alert.
+To learn more, see :ref:`query-shape-reports`.
+
+Only users with the :authrole:`Project Owner` role can change
+this setting. The setting applies to the entire project. You
+cannot subscribe or unsubscribe individual users, but you
+can change which clusters the report covers.
+
 Delete Charts
 ~~~~~~~~~~~~~
 
