@@ -50,7 +50,7 @@ const CopyPageMarkdownButton = ({ className, slug }: CopyPageMarkdownButtonProps
   const markdownPath = href?.split(/[?#]/)[0] || ''; // Looking to spit either at the ? or # to handle query params and fragment identifiers
   const urlWithoutTrailingSlash = removeTrailingSlash(markdownPath);
   // usePathname() is basePath-relative; prepend basePath so the `.md` fetch hits
-  // `<basePath>/....md` (the next.config rewrite → markdown export route).
+  // `<basePath>/....md` (a next.config rewrite → markdown export route).
   const markdownRelative = slug === '/' ? `${urlWithoutTrailingSlash}/index.md` : `${urlWithoutTrailingSlash}.md`;
   const markdownAddress = `${getBasePath()}${markdownRelative}`;
   const { setChatbotClicked, setText } = useChatbotModal();

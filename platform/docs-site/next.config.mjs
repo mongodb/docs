@@ -161,9 +161,29 @@ const nextConfig = {
   },
   async rewrites() {
     return [
-      // Serve the Markdown export of a page. The route is prerendered at build
+      // Serve the Markdown export of a page. The routes are prerendered at build
       // time (see src/app/api/markdown/[...path]/route.ts). basePath prefixes
-      // the source, so `/:path*.md` becomes `/docs/<prefix>/:path*.md`.
+      // each source, so `/:path*.md` becomes `/docs/<prefix>/:path*.md`.
+      //
+      // The tab params are resolved here, by rule, rather than in middleware:
+      // Netlify never invokes the middleware edge function for a `.md` GET,
+      // serving it from the CDN instead (verified on a deploy preview — dropping
+      // these rules 404s every `.md` URL while HTML pages keep serving).
+      //
+      // Either tab param needs code at request time, so both go to the same
+      // route, which resolves them (allTabs wins when both are present).
+      // `has` takes one condition per rule, hence the two rules.
+      {
+        source: '/:path*.md',
+        has: [{ type: 'query', key: 'allTabs', value: 'true' }],
+        destination: '/api/markdown-tabs/:path*',
+      },
+      {
+        source: '/:path*.md',
+        has: [{ type: 'query', key: 'tabs' }],
+        destination: '/api/markdown-tabs/:path*',
+      },
+      // No tab params: the prerendered default export, straight from the CDN.
       {
         source: '/:path*.md',
         destination: '/api/markdown/:path*',

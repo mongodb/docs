@@ -2,6 +2,22 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { prefersMarkdown } from '@/utils/parse-accept-header';
 import { withCORS } from '@/app/lib/with-cors';
 
+/**
+ * Which markdown export route answers a request, by its tab params. Mirrors the
+ * rewrite rules in next.config.mjs, which resolve the same params for `.md`
+ * URLs.
+ *
+ *   either tab param  the request-time route, which reads the prerendered
+ *                     every-tab export — filtering it for `?tabs=<id,...>`, and
+ *                     falling back to the default export where that companion
+ *                     was not built because the page has no tabs
+ *   neither           the prerendered default export, one tab per tabset
+ */
+function exportRouteFor(searchParams: URLSearchParams): 'markdown-tabs' | 'markdown' {
+  const hasTabParam = searchParams.get('allTabs') === 'true' || searchParams.has('tabs');
+  return hasTabParam ? 'markdown-tabs' : 'markdown';
+}
+
 export function middleware(request: NextRequest) {
   // Answer CORS preflight here rather than with an OPTIONS handler in the
   // markdown route, which would opt that route out of static generation
@@ -13,20 +29,37 @@ export function middleware(request: NextRequest) {
   // Next strips the configured basePath from nextUrl.pathname inside
   // middleware, so this is already basePath-relative — e.g. a request to
   // /docs/<prefix>/current/foo/ arrives here as /current/foo/.
-  const { pathname } = request.nextUrl;
+  const { pathname, searchParams } = request.nextUrl;
 
-  // Content negotiation: serve the Markdown export when a docs HTML page is
-  // requested with an Accept header preferring text/markdown. Skip the API
-  // routes and explicit `.md` URLs (rewritten in next.config).
-  if (!pathname.startsWith('/api/') && !pathname.endsWith('.md')) {
-    if (prefersMarkdown(request.headers.get('Accept'))) {
-      // /current/foo/ → current/foo (basePath-relative; the markdown route
-      // reconstructs the full blob path).
-      const docsPath = pathname.replace(/^\//, '').replace(/\/$/, '');
+  // `.md` URLs belong to next.config's rewrite rules, tab params included.
+  // Netlify serves those requests from the CDN without invoking this edge
+  // function, so anything decided here would apply on some hosts and not others.
+  const isExplicitMd = pathname.endsWith('.md');
 
+  // A caller asking for the export route directly instead of via a `.md` URL.
+  // Matched so those callers get the tab params (and preflight) too.
+  const isDefaultExportRoute = pathname.startsWith('/api/markdown/');
+
+  // Everything else under /api/ is not a docs page. That includes markdown-all,
+  // which answers markdown-tabs' subrequest — skipping it prevents re-entry.
+  const isOtherApi = pathname.startsWith('/api/') && !isDefaultExportRoute;
+
+  // Content negotiation: a docs HTML page whose Accept header prefers markdown
+  // gets the markdown export instead.
+  const wantsMarkdown = isDefaultExportRoute || prefersMarkdown(request.headers.get('Accept'));
+
+  if (!isExplicitMd && !isOtherApi && wantsMarkdown) {
+    // /api/markdown/current/foo or /current/foo/ → current/foo (basePath-
+    // relative; the export routes reconstruct the full blob path).
+    const docsPath = pathname.replace(/^\/api\/markdown\//, '').replace(/^\/|\/$/g, '');
+    const route = exportRouteFor(searchParams);
+
+    // Nothing to do when the request already names the route that answers it.
+    if (docsPath && !(isDefaultExportRoute && route === 'markdown')) {
       const url = request.nextUrl.clone();
-      url.pathname = `/api/markdown/${docsPath}`;
-
+      // The trailing slash is load-bearing: `trailingSlash: true` makes the
+      // slashless form answer 308, which the export routes do not survive.
+      url.pathname = `/api/${route}/${docsPath}/`;
       return NextResponse.rewrite(url);
     }
   }

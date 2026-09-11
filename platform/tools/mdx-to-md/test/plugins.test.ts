@@ -292,6 +292,68 @@ Secure content.
   });
 });
 
+describe('Tabs Component — tabMarkers', () => {
+  const driversTabs = `<Tabs tabset="drivers">
+  <Tab tabid="shell" name="MongoDB Shell">
+
+Shell content here.
+
+  </Tab>
+  <Tab tabid="nodejs" name="Node.js">
+
+Node content here.
+
+  </Tab>
+</Tabs>`;
+
+  it('wraps each tab in start/end markers carrying tabid and tabset', async () => {
+    const { mdxToMarkdown } = await import('../src/parse.js');
+    const result = await mdxToMarkdown(driversTabs, undefined, undefined, { tabMarkers: true });
+    // Literal shape asserted here because docs-site parses these markers with a
+    // copied regex (see docs-site/src/utils/tab-markers.ts).
+    expect(result).toContain('<!--tab tabid="shell" tabset="drivers"-->');
+    expect(result).toContain('<!--tab tabid="nodejs" tabset="drivers"-->');
+    expect(result).toContain('<!--/tab-->');
+    expect(result.match(/<!--\/tab-->/g)).toHaveLength(2);
+    // Markers surround the tab, they do not replace its rendered content.
+    expect(result).toContain('### Node.js');
+    expect(result).toContain('Node content here.');
+  });
+
+  it('omits the tabset attribute for an anonymous tabset', async () => {
+    const anon = `<Tabs>
+  <Tab tabid="linux" name="Linux">
+
+Linux content here.
+
+  </Tab>
+</Tabs>`;
+    const { mdxToMarkdown } = await import('../src/parse.js');
+    const result = await mdxToMarkdown(anon, undefined, undefined, { tabMarkers: true });
+    expect(result).toContain('<!--tab tabid="linux"-->');
+  });
+
+  it('emits a marker with no tabid for a tab that has none', async () => {
+    const noId = `<Tabs tabset="drivers">
+  <Tab name="Unlabeled">
+
+Unlabeled content.
+
+  </Tab>
+</Tabs>`;
+    const { mdxToMarkdown } = await import('../src/parse.js');
+    const result = await mdxToMarkdown(noId, undefined, undefined, { tabMarkers: true });
+    expect(result).toContain('<!--tab tabset="drivers"-->');
+  });
+
+  it('emits no markers when tabMarkers is not set (unchanged behavior)', async () => {
+    const { mdxToMarkdown } = await import('../src/parse.js');
+    const result = await mdxToMarkdown(driversTabs);
+    expect(result).not.toContain('<!--tab');
+    expect(result).not.toContain('<!--/tab-->');
+  });
+});
+
 describe('Tabs Component — tabFilters', () => {
   const tabsMdx = `<Tabs>
   <Tab tabid="cli" name="Atlas CLI">

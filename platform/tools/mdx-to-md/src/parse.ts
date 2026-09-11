@@ -38,6 +38,12 @@ interface MdxToMarkdownOptions extends ResolveReferencesOptions {
   defaultTabsOnly?: boolean;
   /** Map of `tabset` name -> default `tabid`, used only in defaults mode. */
   tabsetDefaults?: Record<string, string>;
+  /**
+   * Wrap each emitted tab in HTML-comment markers (see utils/tab-markers).
+   * Set this on an all-tabs export so a consumer that cannot run remark can
+   * still select tabs from the finished markdown.
+   */
+  tabMarkers?: boolean;
   /** Route-supplied preamble; when set and the page has tabs, the output is
    *  prefixed with an HTML comment listing available tabs and this preamble. */
   tabInfoComment?: string;
@@ -49,7 +55,8 @@ export async function mdxToMarkdown(
   sourceFilePath?: string,
   options: MdxToMarkdownOptions = {}
 ) {
-  const { tabFilters, defaultTabsOnly, tabsetDefaults, tabInfoComment, ...referenceOptions } = options;
+  const { tabFilters, defaultTabsOnly, tabsetDefaults, tabMarkers, tabInfoComment, ...referenceOptions } =
+    options;
   // Pre-process table rows before parsing
   source = preprocessTableRows()(source);
 
@@ -74,7 +81,7 @@ export async function mdxToMarkdown(
     .use(transformImage)
     .use(transformHeading)
     .use(collectTabInfo(tabInfo))
-    .use(transformTabs({ tabFilters, defaultTabsOnly, tabsetDefaults }))
+    .use(transformTabs({ tabFilters, defaultTabsOnly, tabsetDefaults, tabMarkers }))
     .use(transformProcedure)
     .use(transformAbbr)
     .use(transformAdmonitions)

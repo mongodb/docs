@@ -7,6 +7,7 @@ import {
   getJsxAttr,
   type MdxJsxElement,
 } from "../utils/mdx-jsx.js";
+import { TAB_END_MARKER, tabStartMarker } from "../utils/tab-markers.js";
 
 /**
  * Convert <Tab name="..."> components into labeled markdown sections.
@@ -48,6 +49,9 @@ interface TransformTabsOptions {
   defaultTabsOnly?: boolean;
   /** Map of `tabset` name -> default `tabid`, used only in defaults mode. */
   tabsetDefaults?: Record<string, string>;
+  /** When true, wrap each emitted tab in HTML-comment markers so a downstream
+   *  consumer can filter tabs out of the finished markdown. */
+  tabMarkers?: boolean;
 }
 
 export function transformTabs(
@@ -60,6 +64,7 @@ export function transformTabs(
   const allowed = new Set(filters);
   const defaultTabsOnly = options.defaultTabsOnly === true;
   const tabsetDefaults = options.tabsetDefaults ?? {};
+  const tabMarkers = options.tabMarkers === true;
 
   return () => (tree: Root) => {
     // Pass 1 (defaults mode): keep exactly one <Tab> per <Tabs>. This mirrors
@@ -112,20 +117,18 @@ export function transformTabs(
       if (!isTabElement(node)) return;
 
       const tabName = getJsxAttr(node, "name") ?? "Tab";
+      const tabid = getJsxAttr(node, "tabid")?.trim().toLowerCase() ?? "";
 
       // When a filter is active, keep only tabs whose tabid matches.
       // Tabs without a tabid (or with an empty tabid) are not addressable
       // and are dropped while filtering.
-      if (hasFilter) {
-        const tabid = getJsxAttr(node, "tabid")?.trim().toLowerCase() ?? "";
-        if (!tabid || !allowed.has(tabid)) {
-          replacements.push({
-            parent: parent as { children: RootContent[] },
-            index,
-            nodes: [],
-          });
-          return;
-        }
+      if (hasFilter && (!tabid || !allowed.has(tabid))) {
+        replacements.push({
+          parent: parent as { children: RootContent[] },
+          index,
+          nodes: [],
+        });
+        return;
       }
 
       const heading: Heading = {
@@ -134,10 +137,24 @@ export function transformTabs(
         children: [{ type: "text", value: tabName }],
       };
 
+      const body = [heading, ...(node.children ?? [])] as RootContent[];
+
+      // The tabset name lives on the enclosing <Tabs>, which is this node's
+      // parent until stripCustomMdx unwraps it later in the pipeline.
+      const tabsetName = isTabsElement(parent)
+        ? getJsxAttr(parent, "tabset")
+        : undefined;
+
       replacements.push({
         parent: parent as { children: RootContent[] },
         index,
-        nodes: [heading, ...(node.children ?? [])],
+        nodes: tabMarkers
+          ? [
+              { type: "html", value: tabStartMarker(tabid, tabsetName) },
+              ...body,
+              { type: "html", value: TAB_END_MARKER },
+            ]
+          : body,
       });
     });
 
