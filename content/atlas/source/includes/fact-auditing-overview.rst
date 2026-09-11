@@ -11,7 +11,7 @@ project. |service| audits the following specific commands:
 
 .. list-table::
    :header-rows: 1
-   :widths: 25 75
+   :widths: 50 50
 
    * - ``authCheck Reads``
      - ``authCheck Writes``
@@ -20,7 +20,9 @@ project. |service| audits the following specific commands:
      - :manual:`aggregate </reference/command/aggregate>`
 
    * - :manual:`mapReduce </reference/command/mapReduce>`
+       (deprecated in MongoDB 5.0)
      - :manual:`mapReduce </reference/command/mapReduce>`
+       (deprecated in MongoDB 5.0)
 
    * - :manual:`distinct </reference/command/distinct>`
      - :manual:`delete </reference/command/delete>`
@@ -29,24 +31,30 @@ project. |service| audits the following specific commands:
      - :manual:`findAndModify </reference/command/findAndModify>`
 
    * - :manual:`geoNear </reference/command/geoNear>`
+       (removed in MongoDB 4.2)
      - :manual:`insert </reference/command/insert>`
 
    * - :manual:`geoSearch </reference/command/geoSearch>`
+       (removed in MongoDB 5.0)
      - :manual:`update </reference/command/update>`
 
    * - :manual:`group </reference/command/group>`
+       (removed in MongoDB 4.2)
      - `resetError <https://www.mongodb.com/docs/v6.0/reference/command/resetError/>`__
+       (removed in MongoDB 5.0)
 
    * - :manual:`find </reference/command/find>`
      -
 
    * - :manual:`getLastError </reference/command/getLastError>`
+       (removed in MongoDB 5.1)
      -
 
    * - :manual:`getMore </reference/command/getMore>`
      -
 
    * - :manual:`getPrevError </reference/command/getPrevError>`
+       (removed in MongoDB 4.2)
      -
 
 
