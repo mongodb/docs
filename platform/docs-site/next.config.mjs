@@ -29,7 +29,7 @@ const forceRedirects = allRedirects
 // src/utils/base-path.ts. Also emit the full prefix list for sameProjectHref's
 // longest-prefix match (nested/empty-prefix docsets defeat startsWith).
 //
-// Inactive/EOL manual (v4.4/v5.0/v6.0) deploys on a separate Netlify site from
+// Inactive/EOL manual (v5.0/v6.0) deploys on a separate Netlify site from
 // active manual. Set NEXT_PUBLIC_INACTIVE_MANUAL=true on that site so its asset
 // bucket does not collide with active's docs_static_manual path in b2k.
 function isInactiveManualBuild() {

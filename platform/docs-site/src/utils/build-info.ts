@@ -15,7 +15,7 @@ export const BUILD_COMMIT = process.env.NEXT_PUBLIC_BUILD_COMMIT || 'unknown';
 export const BUILD_DOCS_PROJECT = process.env.NEXT_PUBLIC_BUILD_DOCS_PROJECT || 'unknown';
 
 /**
- * Whether this is the inactive/EOL manual deploy (v4.4/v5.0/v6.0). It shares
+ * Whether this is the inactive/EOL manual deploy (v5.0/v6.0). It shares
  * both `/docs` and `DOCS_PROJECT=manual` with active manual, so without this
  * flag its traffic drags active manual's baseline toward EOL pages.
  */
