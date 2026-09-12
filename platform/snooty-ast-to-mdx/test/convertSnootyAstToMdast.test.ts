@@ -1966,6 +1966,29 @@ describe('convertSnootyAstToMdast', () => {
     expect(refs?.refs['configure-api-access']).toBe('configure-api-access');
   });
 
+  it('lowercases mixed-case fileid hrefs so they match the emitted page path', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'paragraph',
+          children: [
+            {
+              type: 'ref_role',
+              domain: 'std',
+              name: 'doc',
+              fileid: ['/changeStreams', 'resume-a-change-stream'],
+              children: [{ type: 'text', value: 'Change Streams' }],
+            },
+          ],
+        },
+      ],
+    };
+    const { mdast } = convertSnootyAst({ ast });
+    const refs = mdast.__references as ReferencesArtifact;
+    expect(refs?.refs['changeStreams']).toBe('changestreams#resume-a-change-stream');
+  });
+
   it('strips the abbr expansion out of options.headings titles and recomputes matching ids', () => {
     // Mirrors the shape Snooty produces for `### :abbr:`AWS (Amazon Web Services)` Kinesis Data Stream`,
     // where the raw AST keeps the full "term (expansion)" text and a stale id derived from it.

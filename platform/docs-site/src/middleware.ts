@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { prefersMarkdown } from '@/utils/parse-accept-header';
 import { withCORS } from '@/app/lib/with-cors';
+import { lowercaseRedirectPath } from '@/redirects/case-canonical';
 
 /**
  * Which markdown export route answers a request, by its tab params. Mirrors the
@@ -30,6 +31,20 @@ export function middleware(request: NextRequest) {
   // middleware, so this is already basePath-relative — e.g. a request to
   // /docs/<prefix>/current/foo/ arrives here as /current/foo/.
   const { pathname, searchParams } = request.nextUrl;
+
+  // Public docs URLs are lowercase. Mixed-case page requests 301 here so the
+  // redirect runs in `next dev` (the Netlify edge function does not) as well
+  // as on Netlify, where Next compiles this middleware to an edge function.
+  // Ahead of content negotiation so the export is resolved from the canonical
+  // path rather than the mixed-case one.
+  if (!pathname.startsWith('/api/')) {
+    const lowerPath = lowercaseRedirectPath(pathname);
+    if (lowerPath) {
+      const url = request.nextUrl.clone();
+      url.pathname = lowerPath;
+      return NextResponse.redirect(url, 301);
+    }
+  }
 
   // `.md` URLs belong to next.config's rewrite rules, tab params included.
   // Netlify serves those requests from the CDN without invoking this edge

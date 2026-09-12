@@ -1,4 +1,5 @@
 import type { TocItem } from '@/mdx-components/UnifiedSidenav/types';
+import { lowercaseDocsHref } from '@/redirects/case-canonical';
 
 function shouldIncludeByVersion(item: TocItem, version: string): boolean {
   if (!item.versions) return true;
@@ -13,6 +14,8 @@ function shouldIncludeByVersion(item: TocItem, version: string): boolean {
  * - Removes items that are version-gated and don't match the target version
  *   (via `versions.includes` / `versions.excludes` on the item).
  * - Replaces all `:version` placeholders in URLs with the target version string.
+ * - Lowercases docs hrefs so they match public page URLs (covers copied/legacy
+ *   ToC that was not rebuilt after toc.json started emitting lowercase urls).
  * - Drops groups and collapsible sections that become empty after filtering.
  *
  * Version inheritance is implicit: if a parent is excluded, its children are never visited.
@@ -24,7 +27,7 @@ export function applyVersionToToc(items: TocItem[], version: string): TocItem[] 
     const { url, ...rest } = item;
     const newItem: TocItem = {
       ...rest,
-      ...(url && { url: url.replace(/:version/g, version) }),
+      ...(url && { url: lowercaseDocsHref(url.replace(/:version/g, version)) }),
     };
     if (item.items?.length) {
       const filteredChildren = applyVersionToToc(item.items, version);

@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import { posix as path } from 'node:path';
 import unzipper from 'unzipper';
 import { BSON } from 'bson';
+import stableStringify from 'fast-json-stable-stringify';
 import { convertJsonAstToMdxFiles } from './convertJsonAstToMdxFiles/convertJsonAstToMdxFiles';
 import {
   buildSubstitutionDefinitionLiteralMap,
@@ -10,7 +11,7 @@ import {
 } from './convertSnootyAstToMdast/convertSnootyAstToMdast';
 import type { SnootyNode, SubstitutionRefXrefInfo } from './convertSnootyAstToMdast/types';
 import { type RouteCollision, detectRouteCollisions, resolveRouteCollisions } from './detectRouteCollision';
-import stableStringify from 'fast-json-stable-stringify';
+import { assertUniqueLowercasePagePaths, toLowercaseRelativePath } from './lowercase-page-path';
 
 /** some BSON files are not AST JSON, but rather raw text or RST */
 const IGNORED_FILE_SUFFIXES = ['.txt.bson', '.rst.bson'] as const;
@@ -47,6 +48,7 @@ export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, output
   }
 
   const pageJobs: ZipPageJob[] = [];
+  const pageRelativePaths: string[] = [];
   const mergedSubstitutionXref = new Map<string, SubstitutionRefXrefInfo>();
   const mergedSubstitutionDefLiterals = new Map<string, string>();
   let pendingSiteData: BSON.Document | null = null;
@@ -136,7 +138,7 @@ export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, output
     }
     const relativePath = file.path.replace('.bson', '.mdx');
     // remove the nesting of the "documents" directory from the output path
-    const outputPath = path.join(outputDirectory, relativePath).replace('documents/', '');
+    const mixedCaseOutputPath = path.join(outputDirectory, relativePath).replace('documents/', '');
 
     // Mirror the legacy Gatsby rule (only `filename.endsWith('.txt')` became a Page):
     // `.rst` documents are includes, not standalone pages. Their content is emitted at
@@ -148,8 +150,17 @@ export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, output
       continue;
     }
 
+    // Page MDX is the Next.js route. Emit at the lowercase path so the public
+    // URL matches `<link rel="canonical">`. Includes/assets are not pages and
+    // keep their original casing via convertDirectiveInclude / convertZipImageFiles.
+    const relToOut = path.relative(outputDirectory, mixedCaseOutputPath);
+    pageRelativePaths.push(relToOut);
+    const outputPath = path.join(outputDirectory, toLowercaseRelativePath(relToOut));
+
     pageJobs.push({ outputPath, astRoot });
   }
+
+  assertUniqueLowercasePagePaths(pageRelativePaths);
 
   // Collect composable tutorial selections per page slug, mirroring the
   // query-string permutations snooty/Gatsby added to the sitemap via resolvePages.

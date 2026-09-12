@@ -7,6 +7,7 @@ import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
 import { getStaticVersion } from '@/utils/extract-mdx-routes-from-toc';
 import { stripLocale } from '@/utils/locale';
+import { lowercaseDocsHref } from '@/redirects/case-canonical';
 
 interface UpdateURLsParams {
   tree?: TocItem[];
@@ -46,6 +47,10 @@ const updateURLs = ({ tree, contentSite, activeVersions, versionsData, project }
       // Strip it so TOC matching works against the locale-free page slug.
       if (newUrl && !/^https?:\/\//i.test(newUrl)) {
         newUrl = stripLocale(newUrl);
+      }
+
+      if (newUrl) {
+        newUrl = lowercaseDocsHref(newUrl);
       }
 
       const items = updateURLs({

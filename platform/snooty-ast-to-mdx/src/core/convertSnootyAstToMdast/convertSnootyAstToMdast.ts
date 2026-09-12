@@ -13,6 +13,7 @@ import type {
   SubstitutionRefXrefInfo,
   CollectedSubstitutionValue,
 } from './types';
+import { lowercaseRelativeHref } from '../lowercase-page-path';
 import { convertDirectiveImage } from './convertDirectiveImage';
 import { convertDirectiveInclude } from './convertDirectiveInclude';
 import { convertDirectiveListTable } from './convertDirectiveListTable';
@@ -494,7 +495,8 @@ const computeHrefFromRefRoleLike = (node: SnootyNode): string | null => {
   const fileid = node.fileid as [string, string?] | undefined;
   const externalUrl = typeof node.url === 'string' ? node.url : undefined;
   if (fileid?.[0]) {
-    return fileid[1] ? `${fileid[0]}#${fileid[1]}` : fileid[0];
+    const href = fileid[1] ? `${fileid[0]}#${fileid[1]}` : fileid[0];
+    return lowercaseRelativeHref(href);
   }
   if (externalUrl) return externalUrl;
   return null;
@@ -1383,7 +1385,11 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
             attributes.push({ type: 'mdxJsxAttribute', name: 'title', value: title });
           }
           if (href) {
-            attributes.push({ type: 'mdxJsxAttribute', name: 'href', value: href });
+            attributes.push({
+              type: 'mdxJsxAttribute',
+              name: 'href',
+              value: lowercaseRelativeHref(href),
+            });
           }
           return {
             type: 'mdxJsxFlowElement',
@@ -1602,7 +1608,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       // Store href so _references.json can resolve it at render time.
       if (fileidPath) {
         const href = fileid?.[1] ? `${fileidPath}#${fileid[1]}` : fileidPath;
-        ctx.collectedRefs.set(key, href);
+        ctx.collectedRefs.set(key, lowercaseRelativeHref(href));
       } else if (externalUrl) {
         ctx.collectedRefs.set(key, externalUrl);
       }
@@ -2139,7 +2145,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       if (fromCatalog) {
         const slotBody = ctx.emitSubstitutionReferencesAsReplacement;
         if (fromCatalog.href && !ctx.collectedRefs.has(fromCatalog.refTargetKey)) {
-          ctx.collectedRefs.set(fromCatalog.refTargetKey, fromCatalog.href);
+          ctx.collectedRefs.set(fromCatalog.refTargetKey, lowercaseRelativeHref(fromCatalog.href));
         }
         // Typed ref roles (e.g. :binary:) resolve to a page-specific *display* value. On standalone
         // page content they emit as <RefRole>, but inside an include body that value varies per

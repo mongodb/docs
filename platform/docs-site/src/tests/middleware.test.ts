@@ -89,6 +89,64 @@ describe('middleware', () => {
     expect(res.headers.get('Vary')).toBe('Accept');
   });
 
+  it('301s a mixed-case page path to lowercase', () => {
+    const res = middleware(
+      fakeRequest({ pathname: '/manual/changeStreams/' }),
+    ) as unknown as { status: number; redirectUrl?: { pathname: string } };
+    expect(res.status).toBe(301);
+    expect(res.redirectUrl?.pathname).toBe('/manual/changestreams/');
+  });
+
+  it('301s a mixed-case slug that contains dots', () => {
+    const res = middleware(
+      fakeRequest({
+        pathname: '/manual/reference/method/db.collection.findOneAndUpdate/',
+      }),
+    ) as unknown as { status: number; redirectUrl?: { pathname: string } };
+    expect(res.status).toBe(301);
+    expect(res.redirectUrl?.pathname).toBe(
+      '/manual/reference/method/db.collection.findoneandupdate/',
+    );
+  });
+
+  it('301s a lowercase dotted slug without a trailing slash to the slashed form', () => {
+    const res = middleware(
+      fakeRequest({
+        pathname: '/manual/reference/method/db.collection.findoneandupdate',
+      }),
+    ) as unknown as { status: number; redirectUrl?: { pathname: string } };
+    expect(res.status).toBe(301);
+    expect(res.redirectUrl?.pathname).toBe(
+      '/manual/reference/method/db.collection.findoneandupdate/',
+    );
+  });
+
+  it('301s a mixed-case .md export to lowercase', () => {
+    const res = middleware(
+      fakeRequest({ pathname: '/manual/changeStreams.md' }),
+    ) as unknown as { status: number; redirectUrl?: { pathname: string } };
+    expect(res.status).toBe(301);
+    expect(res.redirectUrl?.pathname).toBe('/manual/changestreams.md');
+  });
+
+  it('does not redirect an already-lowercase page', () => {
+    const res = middleware(
+      fakeRequest({ pathname: '/manual/changestreams/' }),
+    ) as unknown as { redirectUrl?: unknown; headers: { get: (k: string) => string | null } };
+    expect(res.redirectUrl).toBeUndefined();
+    expect(res.headers.get('Vary')).toBe('Accept');
+  });
+
+  it('does not redirect an already-lowercase dotted slug with a trailing slash', () => {
+    const res = middleware(
+      fakeRequest({
+        pathname: '/manual/reference/method/db.collection.findoneandupdate/',
+      }),
+    ) as unknown as { redirectUrl?: unknown; headers: { get: (k: string) => string | null } };
+    expect(res.redirectUrl).toBeUndefined();
+    expect(res.headers.get('Vary')).toBe('Accept');
+  });
+
   describe('tab query params', () => {
     // Each param selects an export route; the routes themselves own the work.
     // The trailing slash is required — `trailingSlash: true` makes the

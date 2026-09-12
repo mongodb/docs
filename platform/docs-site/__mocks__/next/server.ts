@@ -6,6 +6,8 @@ export class NextResponse {
   readonly status: number;
   // Set by NextResponse.rewrite() so tests can assert the rewrite target.
   rewriteUrl?: unknown;
+  // Set by NextResponse.redirect() so tests can assert the redirect target.
+  redirectUrl?: unknown;
   private _body: string | null;
   private _headers: Map<string, string>;
 
@@ -39,6 +41,12 @@ export class NextResponse {
   static rewrite(url: unknown): NextResponse {
     const res = new NextResponse(null, { status: 200 });
     res.rewriteUrl = url;
+    return res;
+  }
+
+  static redirect(url: unknown, status = 307): NextResponse {
+    const res = new NextResponse(null, { status: typeof status === 'number' ? status : 307 });
+    res.redirectUrl = url;
     return res;
   }
 }

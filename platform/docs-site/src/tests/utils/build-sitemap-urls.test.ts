@@ -16,6 +16,21 @@ describe('slugToUrl', () => {
     );
   });
 
+  it('lowercases mixed-case slugs', () => {
+    expect(slugToUrl(base, 'changeStreams')).toBe(`${base}/changestreams/`);
+  });
+
+  it('keeps a trailing slash on dotted slugs', () => {
+    expect(
+      slugToUrl(
+        'https://www.mongodb.com/docs/manual',
+        'reference/method/db.collection.findOneAndUpdate',
+      ),
+    ).toBe(
+      'https://www.mongodb.com/docs/manual/reference/method/db.collection.findoneandupdate/',
+    );
+  });
+
   it('does not double-slash when the base already has a trailing slash', () => {
     expect(slugToUrl(`${base}/`, '')).toBe(`${base}/`);
     expect(slugToUrl(`${base}/`, 'get-started')).toBe(`${base}/get-started/`);

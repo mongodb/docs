@@ -8,6 +8,8 @@ import { currentScrollPosition } from '@/utils/current-scroll-position';
 import IndividualBreadcrumb from './individual-breadcrumb';
 import CollapsedBreadcrumbs from './collapsed-breadcrumbs';
 import { assertTrailingSlash } from '@/utils/assert-trailing-slash';
+import { lowercaseDocsHref } from '@/redirects/case-canonical';
+import { isOfflineBuild } from '@/utils/isOfflineBuild';
 
 const StyledSlash = styled('span')`
   cursor: default;
@@ -79,7 +81,24 @@ export type BreadcrumbType = {
   path: string;
 };
 
-const BreadcrumbContainer = ({ breadcrumbs }: { breadcrumbs: Array<BreadcrumbType> }) => {
+/**
+ * Public form of a crumb path. Crumbs are built from TOC urls, and a visible
+ * crumb renders through Link while a collapsed one renders as a bare MenuItem
+ * anchor, so canonicalize here — the one point every crumb passes through —
+ * rather than relying on each render path. Offline crumbs already end in
+ * /index.html and take no trailing slash.
+ */
+const canonicalCrumbPath = (path: string): string => {
+  const lowercased = lowercaseDocsHref(path);
+  return isOfflineBuild ? lowercased : assertTrailingSlash(lowercased);
+};
+
+const BreadcrumbContainer = ({ breadcrumbs: rawBreadcrumbs }: { breadcrumbs: Array<BreadcrumbType> }) => {
+  const breadcrumbs = useMemo(
+    () => rawBreadcrumbs.map((crumb) => ({ ...crumb, path: canonicalCrumbPath(crumb.path) })),
+    [rawBreadcrumbs],
+  );
+
   const [maxCrumbs, setMaxCrumbs] = useState(initialMaxCrumbs(breadcrumbs));
 
   // Create different breadcrumb versions for different screen sizes

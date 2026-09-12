@@ -69,15 +69,28 @@ redirects are applied at the CDN edge by
 `netlify/edge-functions/soft-redirects.ts`, which applies the same
 matching logic as the app (a self-contained port of `redirect-utils.ts`,
 kept in sync, since the edge bundler cannot import the app's module
-graph):
+graph).
 
-1. Request arrives for a URL under `/docs/*`.
-2. The edge function calls `context.next()` to get the static response.
-3. Status is not 404 (page exists, or a force redirect already fired) →
-   return it unchanged.
-4. Status is 404 → call `findSoftRedirect(pathname)`.
-5. Match found → redirect response honoring the JSON status (301/302).
-6. No match → return the original 404.
+The same edge function also 301s mixed-case page URLs to lowercase
+*before* calling origin. Page MDX is emitted at a lowercase path, so
+that is the static route. Mixed-case requests (old inbound links, cached
+Google URLs) 301 there. Authored soft redirects on a mixed-case source
+still take precedence over the casing 301.
+
+That pre-origin table lookup is limited to paths that actually contain
+uppercase characters. Matching normalizes the trailing slash first, so
+consulting the table for a path that is only missing its slash would
+answer live pages out of the redirect table: the entry
+`/docs/:version/release-notes/:path*` 301s `/docs/manual/release-notes`
+to itself. A slash-only difference is fixed with a plain 301 and the
+reissued request reaches origin.
+
+`src/middleware.ts` does the same casing 301 in `next dev` (the Netlify
+edge function does not run locally). Next.js `trailingSlash: true` treats
+a last-segment dot as a file; `skipTrailingSlashRedirect` in
+`next.config.mjs` turns that off so dotted slugs such as
+`db.collection.findOneAndUpdate` keep a trailing slash like every other
+HTML page.
 
 Because the docs route sets `dynamicParams = false`, unknown paths 404
 without invoking the page component, so soft redirects are handled only
@@ -105,17 +118,25 @@ Request arrives
 next.config.mjs: force redirect match? ──yes──▶ 301/302
     │ no
     ▼
+edge/middleware: page-like path not already
+lowercase + trailing slash?
+    │ yes
+    ├─ path has uppercase?
+    │      └─ authored soft redirect for it? ──yes──▶ 301/302
+    └─ else 301 to lowercase + trailing slash
+    │ no
+    ▼
 static response: page found? ───────────yes──▶ 200
     │ no (404)
     ▼
-edge function: findSoftRedirect() match? ─yes─▶ 301/302
+edge: findSoftRedirect() match? ─yes─▶ 301/302
     │ no
     ▼
 404
 ```
 
-The "page found?" and edge-function steps are the CDN serving a static
-asset and `netlify/edge-functions/soft-redirects.ts` wrapping the 404.
+On Netlify the casing 301 is `netlify/edge-functions/soft-redirects.ts`
+(matcher `/docs/*`). In `next dev` it is `src/middleware.ts`.
 
 ---
 
@@ -131,7 +152,8 @@ asset and `netlify/edge-functions/soft-redirects.ts` wrapping the 404.
 | `src/redirects/all-redirects.json` | Auto-generated flat data (edge function/Deno) — do not edit |
 | `src/redirects/redirect-utils.ts` | URL matching logic |
 | `src/redirects/soft-redirects.ts` | Soft redirect aggregation |
-| `netlify/edge-functions/soft-redirects.ts` | Applies soft redirects on 404 at the CDN edge (static host) |
+| `src/redirects/case-canonical.ts` | Lowercase public-URL helpers (edge 301) |
+| `netlify/edge-functions/soft-redirects.ts` | Applies soft redirects on 404 and mixed-case 301s at the CDN edge (static host) |
 | `src/app/[[...path]]/page.tsx` | Request handler (renders pages / returns 404; soft redirects handled by the edge function) |
 | `next.config.mjs` | Force redirect registration |
 | `src/tests/scripts/migrate-redirects.test.ts` | Migration tests |

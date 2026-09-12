@@ -30,8 +30,12 @@ export async function generateDocsStaticPaths(): Promise<Array<{ path: string[] 
   const docsetPrefix = stripDocsPrefix(prefixMap[dirName] ?? '');
   const docsetPrefixSegments = docsetPrefix ? docsetPrefix.split('/') : [];
 
+  // Public URLs are lowercase. Disk filenames may still be mixed-case until
+  // content is reconverted; loadMDX resolves those files case-insensitively.
   const toUrlPath = (diskSegments: string[]): string[] =>
-    toBasePathRelativePath(diskSegments, prefixMap, docsetPrefixSegments);
+    toBasePathRelativePath(diskSegments, prefixMap, docsetPrefixSegments).map((seg) =>
+      seg.toLowerCase(),
+    );
 
   let isLeaf = false;
   try {

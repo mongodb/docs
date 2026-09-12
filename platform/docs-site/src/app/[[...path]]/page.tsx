@@ -13,6 +13,7 @@ import { generateDocsStaticPaths } from '@/utils/generate-docs-paths';
 import { getIndexRedirectTarget } from '@/utils/index-redirect';
 import { toFullUrlPath, getBasePath } from '@/utils/base-path';
 import { getPageMetadata } from '@/utils/seo';
+import { toLowercasePublicPath } from '@/redirects/case-canonical';
 
 /** Route params are basePath-relative; re-prepend the docset-prefix segments so
  * downstream loaders get the full urlPath. `undefined` params (the basePath
@@ -87,7 +88,10 @@ export async function generateStaticParams() {
   // the basePath to build a clickable local URL.
   const basePath = getBasePath();
   const links = prefixedPaths
-    .map(({ path: p }) => `  <li><a href="http://localhost:3000${basePath}/${p.join('/')}/">${p.join('/')}</a></li>`)
+    .map(({ path: p }) => {
+      const href = toLowercasePublicPath(`${basePath}/${p.join('/')}`);
+      return `  <li><a href="http://localhost:3000${href}">${p.join('/')}</a></li>`;
+    })
     .join('\n');
   const html = `<!DOCTYPE html>
 <html lang="en">

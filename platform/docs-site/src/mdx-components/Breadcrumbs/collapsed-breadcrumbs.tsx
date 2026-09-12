@@ -7,6 +7,8 @@ import type { BreadcrumbType } from './breadcrumb-container';
 
 const CollapsedBreadcrumbs = ({ crumbs }: { crumbs: BreadcrumbType[] }) => {
   const menuItems = crumbs.map((crumb, index) => {
+    // Canonicalized by BreadcrumbContainer. MenuItem renders a bare anchor, so
+    // this path gets no normalization from Link the way a visible crumb does.
     const to = crumb.path;
 
     return (

@@ -122,6 +122,11 @@ function bundleStatsPlugin() {
 const nextConfig = {
   pageExtensions: ['mdx', 'tsx', 'ts'],
   trailingSlash: true,
+  // Next treats a last-segment dot as a file and 308s `/foo.bar/` → `/foo.bar`,
+  // which fights our lowercase+slash 301 on slugs like
+  // `db.collection.findOneAndUpdate`. We own trailing slashes in middleware
+  // and the Netlify edge function instead.
+  skipTrailingSlashRedirect: true,
   basePath: BASE_PATH,
   // Next won't auto-combine assetPrefix with basePath once assetPrefix is set
   // explicitly, so write the full path. Empty suffix (everything but manual)
@@ -237,6 +242,7 @@ const nextConfig = {
 const staticExportConfig = {
   output: 'export',
   trailingSlash: true,
+  skipTrailingSlashRedirect: true,
   // Only files with extension .offline.tsx / .offline.ts are built for static export.
   // See: https://github.com/vercel/next.js/discussions/51891#discussioncomment-6297178
   pageExtensions: ['offline.tsx', 'offline.ts'],

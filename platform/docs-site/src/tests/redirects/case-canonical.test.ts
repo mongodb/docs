@@ -1,81 +1,140 @@
 import {
-  sitemapLocsToCanonicalPaths,
-  buildCaseMap,
-  canonicalizeCasing,
+  hasUppercase,
+  isPageLikePath,
+  toLowercasePublicPath,
+  lowercaseRedirectPath,
+  lowercaseDocsHref,
+  toLowercaseCanonicalUrl,
 } from '@/redirects/case-canonical';
 
-const SITEMAP_XML = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://www.mongodb.com/docs/manual/v8.0/changeStreams/</loc></url>
-  <url><loc>https://www.mongodb.com/docs/manual/v8.0/reference/method/</loc></url>
-  <url><loc>https://www.mongodb.com/docs/manual/v8.0/tutorial/?tabs=nodejs</loc></url>
-</urlset>`;
-
-describe('sitemapLocsToCanonicalPaths', () => {
-  it('extracts pathnames with trailing slashes, dropping origin', () => {
-    expect(sitemapLocsToCanonicalPaths(SITEMAP_XML)).toEqual([
-      '/docs/manual/v8.0/changeStreams/',
-      '/docs/manual/v8.0/reference/method/',
-      '/docs/manual/v8.0/tutorial/',
-    ]);
-  });
-
-  it('drops query strings from composable-tutorial variants', () => {
-    const paths = sitemapLocsToCanonicalPaths(
-      '<loc>https://www.mongodb.com/docs/x/page/?tabs=a,b</loc>',
+describe('toLowercasePublicPath', () => {
+  it('lowercases an HTML page and adds a trailing slash', () => {
+    expect(toLowercasePublicPath('/docs/manual/changeStreams')).toBe(
+      '/docs/manual/changestreams/',
     );
-    expect(paths).toEqual(['/docs/x/page/']);
   });
 
-  it('decodes &amp; and tolerates non-absolute locs', () => {
-    const paths = sitemapLocsToCanonicalPaths('<loc>/docs/x/page?a=1&amp;b=2</loc>');
-    expect(paths).toEqual(['/docs/x/page/']);
+  it('lowercases a .md export and keeps the suffix', () => {
+    expect(toLowercasePublicPath('/docs/manual/changeStreams.md')).toBe(
+      '/docs/manual/changestreams.md',
+    );
   });
 
-  it('returns an empty array when there are no <loc> entries', () => {
-    expect(sitemapLocsToCanonicalPaths('<urlset></urlset>')).toEqual([]);
+  it('is a no-op for an already-lowercase HTML path with a trailing slash', () => {
+    expect(toLowercasePublicPath('/docs/manual/changestreams/')).toBe(
+      '/docs/manual/changestreams/',
+    );
+  });
+
+  it('lowercases a dotted slug and keeps a trailing slash', () => {
+    expect(
+      toLowercasePublicPath('/docs/manual/reference/method/db.collection.findOneAndUpdate/'),
+    ).toBe('/docs/manual/reference/method/db.collection.findoneandupdate/');
+    expect(
+      toLowercasePublicPath('/docs/manual/reference/method/db.collection.findOneAndUpdate'),
+    ).toBe('/docs/manual/reference/method/db.collection.findoneandupdate/');
   });
 });
 
-describe('canonicalizeCasing', () => {
-  const caseMap = buildCaseMap(sitemapLocsToCanonicalPaths(SITEMAP_XML));
-
-  it('canonicalizes an all-lowercase request for a mixed-case page', () => {
-    expect(canonicalizeCasing('/docs/manual/v8.0/changestreams/', caseMap)).toBe(
-      '/docs/manual/v8.0/changeStreams/',
-    );
+describe('isPageLikePath', () => {
+  it('treats extensionless docs paths and .md exports as pages', () => {
+    expect(isPageLikePath('/docs/manual/changeStreams/')).toBe(true);
+    expect(isPageLikePath('/docs/manual/changeStreams.md')).toBe(true);
   });
 
-  it('canonicalizes an arbitrary-cased request', () => {
-    expect(canonicalizeCasing('/docs/manual/v8.0/CHANGESTREAMS/', caseMap)).toBe(
-      '/docs/manual/v8.0/changeStreams/',
-    );
+  it('treats slugs with dots as pages', () => {
+    expect(
+      isPageLikePath('/docs/manual/reference/method/db.collection.findOneAndUpdate/'),
+    ).toBe(true);
+    expect(
+      isPageLikePath('/docs/manual/reference/method/db.collection.findOneAndUpdate'),
+    ).toBe(true);
   });
 
-  it('lowercases a stray-uppercase request for an all-lowercase page', () => {
-    expect(canonicalizeCasing('/docs/manual/v8.0/Reference/Method/', caseMap)).toBe(
-      '/docs/manual/v8.0/reference/method/',
-    );
-  });
-
-  it('normalizes a missing trailing slash before lookup', () => {
-    expect(canonicalizeCasing('/docs/manual/v8.0/changestreams', caseMap)).toBe(
-      '/docs/manual/v8.0/changeStreams/',
-    );
-  });
-
-  it('returns null when the request is already canonical', () => {
-    expect(canonicalizeCasing('/docs/manual/v8.0/changeStreams/', caseMap)).toBeNull();
-  });
-
-  it('returns null for an unknown page', () => {
-    expect(canonicalizeCasing('/docs/manual/v8.0/does-not-exist/', caseMap)).toBeNull();
+  it('skips static assets', () => {
+    expect(isPageLikePath('/docs/manual/images/foo.png')).toBe(false);
+    expect(isPageLikePath('/docs/manual/sitemap-0.xml')).toBe(false);
   });
 });
 
-describe('buildCaseMap', () => {
-  it('keeps the first canonical when two paths collide only by case', () => {
-    const map = buildCaseMap(['/docs/x/Foo/', '/docs/x/foo/']);
-    expect(map.get('/docs/x/foo/')).toBe('/docs/x/Foo/');
+describe('lowercaseRedirectPath', () => {
+  it('returns the lowercase path for a mixed-case page', () => {
+    expect(lowercaseRedirectPath('/docs/manual/changeStreams/')).toBe(
+      '/docs/manual/changestreams/',
+    );
+  });
+
+  it('returns the lowercase dotted slug with a trailing slash', () => {
+    expect(
+      lowercaseRedirectPath('/docs/manual/reference/method/db.collection.findOneAndUpdate/'),
+    ).toBe('/docs/manual/reference/method/db.collection.findoneandupdate/');
+    expect(
+      lowercaseRedirectPath('/docs/manual/reference/method/db.collection.findOneAndUpdate'),
+    ).toBe('/docs/manual/reference/method/db.collection.findoneandupdate/');
+  });
+
+  it('adds a trailing slash to an already-lowercase dotted slug', () => {
+    expect(
+      lowercaseRedirectPath('/docs/manual/reference/method/db.collection.findoneandupdate'),
+    ).toBe('/docs/manual/reference/method/db.collection.findoneandupdate/');
+  });
+
+  it('returns null when the path is already the public form', () => {
+    expect(lowercaseRedirectPath('/docs/manual/changestreams/')).toBeNull();
+    expect(
+      lowercaseRedirectPath('/docs/manual/reference/method/db.collection.findoneandupdate/'),
+    ).toBeNull();
+  });
+
+  it('returns null for static assets', () => {
+    expect(lowercaseRedirectPath('/docs/manual/images/Foo.png')).toBeNull();
+  });
+});
+
+describe('hasUppercase', () => {
+  // The edge function only consults the soft redirect table ahead of origin for
+  // mixed-case paths; a slashless lowercase path must normalize its slash first.
+  it('separates mixed-case paths from merely slashless ones', () => {
+    expect(hasUppercase('/docs/manual/changeStreams')).toBe(true);
+    expect(hasUppercase('/docs/manual/release-notes')).toBe(false);
+    expect(hasUppercase('/docs/manual/release-notes/')).toBe(false);
+  });
+});
+
+describe('toLowercaseCanonicalUrl', () => {
+  it('lowercases the pathname and keeps a trailing slash on HTML pages', () => {
+    expect(toLowercaseCanonicalUrl('https://www.mongodb.com/docs/manual/changeStreams')).toBe(
+      'https://www.mongodb.com/docs/manual/changestreams/',
+    );
+  });
+
+  it('keeps a trailing slash on dotted slug canonicals', () => {
+    expect(
+      toLowercaseCanonicalUrl(
+        'https://www.mongodb.com/docs/manual/reference/method/db.collection.findOneAndUpdate',
+      ),
+    ).toBe(
+      'https://www.mongodb.com/docs/manual/reference/method/db.collection.findoneandupdate/',
+    );
+  });
+});
+
+describe('lowercaseDocsHref', () => {
+  it('lowercases an internal ToC path and keeps :version, query, and hash', () => {
+    expect(lowercaseDocsHref('/docs/:version/changeStreams')).toBe(
+      '/docs/:version/changestreams',
+    );
+    expect(lowercaseDocsHref('/docs/manual/changeStreams#Resume')).toBe(
+      '/docs/manual/changestreams#Resume',
+    );
+  });
+
+  it('lowercases mongodb.com docs URLs and leaves other hosts alone', () => {
+    expect(
+      lowercaseDocsHref('https://www.mongodb.com/docs/manual/changeStreams/'),
+    ).toBe('https://www.mongodb.com/docs/manual/changestreams/');
+    expect(
+      lowercaseDocsHref('https://github.com/mongodb/mongo/blob/master/README.md'),
+    ).toBe('https://github.com/mongodb/mongo/blob/master/README.md');
   });
 });

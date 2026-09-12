@@ -10,7 +10,7 @@ import { remarkImageDimensions } from './remark-image-dimensions';
 import { remarkStepNumbers } from './remark-step-numbers';
 import { components } from '@/mdx-components';
 import { findProjectPathAndSiteJson } from './load-metadata';
-import { getContentString } from './get-content-string';
+import { fetchMdxString } from './fetch-mdx-string';
 import { getStaticVersion } from '@/utils/extract-mdx-routes-from-toc';
 import { loadDirNameToPrefixMap, blobRelativeToDiskCandidates } from './blob-path-remap';
 
@@ -25,21 +25,6 @@ async function getPrefixMap(): Promise<Record<string, string>> {
   _prefixMap = await loadDirNameToPrefixMap();
   return _prefixMap;
 }
-
-const fetchMdxString = async (filePath: string): Promise<string | null> => {
-  const namedPath = `${filePath}.mdx`;
-  if (process.env.WITH_LOGS === 'true') {
-    console.log(`[fetchMdxString] trying ${namedPath}`);
-  }
-  const mdxString = await getContentString(namedPath);
-  if (mdxString !== null) return mdxString;
-
-  const indexPath = `${filePath}/index.mdx`;
-  if (process.env.WITH_LOGS === 'true') {
-    console.log(`[fetchMdxString] not found, trying ${indexPath}`);
-  }
-  return getContentString(indexPath);
-};
 
 interface CompileMdxWithPluginsOptions {
   mdxString: string;

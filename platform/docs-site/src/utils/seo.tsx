@@ -4,7 +4,7 @@ import { getSiteTitle } from '@/utils/get-site-title';
 import { getPlaintext } from '@/utils/get-plaintext';
 import { getNestedValue } from '@/utils/get-nested-value';
 import type { Docset, RemoteMetadata } from '@/types/data';
-import { assertTrailingSlash } from './assert-trailing-slash';
+import { toLowercaseCanonicalUrl } from '@/redirects/case-canonical';
 import { normalizePath } from './normalize-path';
 import type { Environments } from './env-config';
 import { generateVersionedPrefix } from './generate-versioned-prefix';
@@ -123,13 +123,10 @@ const getCanonicalUrl = ({
     canonical = metadata.canonical;
   }
 
-  // Canonicals always advertise the lowercase URL: even for
-  // legitimately mixed-case pages (e.g. .../changeStreams/), the canonical is
-  // lowercased here. A request to the lowercase URL 404s under
-  // `dynamicParams = false` and is redirected to the real page casing by the
-  // post-404 edge function (netlify/edge-functions/soft-redirects.ts). Host and
-  // prefix segments are already lowercase, so this only affects the slug.
-  return assertTrailingSlash(canonical).toLowerCase();
+  // Canonicals always advertise the lowercase URL, including for pages whose
+  // source filename is mixed-case (e.g. changeStreams.txt). Trailing slash
+  // matches every other HTML page, including dotted slugs.
+  return toLowercaseCanonicalUrl(canonical);
 };
 
 export const getRepoBranchesPrefixEnv = (env: Environments) => {

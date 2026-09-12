@@ -22,6 +22,7 @@ import { getFullSlug } from '@/utils/get-full-slug';
 import { removeLeadingSlash } from '@/utils/remove-leading-slash';
 import { getStaticVersion } from '@/utils/extract-mdx-routes-from-toc';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
+import { lowercaseDocsHref } from '@/redirects/case-canonical';
 
 interface FlatItem {
   label: string;
@@ -56,9 +57,28 @@ function replaceVersionInPath(pathPrefix: string, versions?: BranchData[]): stri
   return pathPrefix;
 }
 
+/**
+ * Comparison key for a TOC url. This component reads the raw TOC, and legacy
+ * and EOL trees are still authored with mixed-case slugs while page slugs are
+ * lowercase, so an unnormalized compare would not find the current page in its
+ * group and no next/prev links would render.
+ */
+function tocUrlKey(url: string): string {
+  return lowercaseDocsHref(removeTrailingSlash(stripLocale(url)));
+}
+
+/**
+ * Public form of a TOC url. NextPrevLink also pushes this through the router on
+ * click, which bypasses the normalization Link applies to the href, so hand it
+ * a slug that is already canonical and does not 301.
+ */
+function canonicalTocHref(url: string): string {
+  return assertTrailingSlash(lowercaseDocsHref(url));
+}
+
 function groupContainsUrl(items: TocItem[], currentUrl: string): boolean {
   for (const item of items) {
-    if (item.url && removeTrailingSlash(stripLocale(item.url)) === removeTrailingSlash(currentUrl)) return true;
+    if (item.url && tocUrlKey(item.url) === tocUrlKey(currentUrl)) return true;
     if (item.items && groupContainsUrl(item.items, currentUrl)) return true;
   }
   return false;
@@ -130,7 +150,7 @@ function getTargetSlug(
   availableVersions: AvailableVersions,
 ): string {
   if (!fullUrl.includes(':version') || !contentSite) {
-    return fullUrl;
+    return canonicalTocHref(fullUrl);
   } else {
     const version = (availableVersions[contentSite] || []).find(
       (version) =>
@@ -141,7 +161,7 @@ function getTargetSlug(
 
     // If no version found in local storage use 'current'
     const currentVersion = isOfflineBuild ? getStaticVersion() : version?.urlSlug ?? 'current';
-    return fullUrl.replace(/:version/g, currentVersion);
+    return canonicalTocHref(fullUrl.replace(/:version/g, currentVersion));
   }
 }
 
@@ -286,7 +306,7 @@ const getFlattenedTocData = (
   let index = -1;
   for (let i = 0; i < flat.length; i++) {
     const item = flat[i];
-    if (item.url && removeTrailingSlash(stripLocale(item.url)) === removeTrailingSlash(currentUrl)) {
+    if (item.url && tocUrlKey(item.url) === tocUrlKey(currentUrl)) {
       // If no versions constraint, this is the correct one
       if (!item.versions) {
         index = i;

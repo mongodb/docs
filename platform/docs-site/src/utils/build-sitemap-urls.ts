@@ -4,13 +4,15 @@
  * variants from `_site.json` `composablePages`.
  */
 
+import { toLowercasePublicPath } from '@/redirects/case-canonical';
+
 export function slugToUrl(baseDocUrl: string, slug: string): string {
   const base = baseDocUrl.replace(/\/+$/, '');
   const normalized = slug.replace(/^\/+|\/+$/g, '');
   if (!normalized || normalized === 'index') {
     return `${base}/`;
   }
-  return `${base}/${normalized}/`;
+  return `${base}${toLowercasePublicPath(`/${normalized}`)}`;
 }
 
 export function buildSitemapUrls(
