@@ -20,7 +20,7 @@ Improvements
 
 Bug Fixes
 ~~~~~~~~~
-
+- Fixes an issue where Ops Manager job worker threads could become stuck waiting on a lock to fetch data, which could cause scheduled jobs to stop progressing.
 - Fixes the following |cve|\s:  
 
   - `CVE-2022-25883 <https://nvd.nist.gov/vuln/detail/CVE-2022-25883>`__
@@ -317,6 +317,8 @@ Bug Fixes
 - Improved backup daemon configuration so ``emptyDaemonFilter`` arrays match as intended.
 - Cache S3 custom keystore creation and reduce excessive log calls in OEM S3 operations.
 - Added and improved validations in Automation and various workflows.
+- Ops Manager now allows users to download logs for a specific time range 
+  via UI, CLI, and API
 
 Bug Fixes
 ```````````
@@ -848,7 +850,7 @@ Automation
 - Replaces the target of the ``/var/lib/mongodb-mms-automation/bin`` symlink. This symlink now points to the 
   latest downloaded version of {+mongosh+}. In the previous releases, this symlink pointed to the latest 
   MongoDB version in the ``/bin`` folder. This change ensures that you always use the newest downloaded 
-  {+mongosh+} version in all scripts for your deployments.  
+  {+mongosh+} version in all scripts for your deployments. 
 
 Migration
 `````````

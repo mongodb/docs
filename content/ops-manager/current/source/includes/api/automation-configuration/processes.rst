@@ -77,9 +77,9 @@ instances. Using this array, you can:
      - Conditional
      - Role of this |mongod| process in a sharded cluster.
 
-       Required for configuration server and shard member processes. 
-       If you omit this fiel, the deployment might get stuck in goal state because
-       MongoDB cannot start without the corresponding startup flag.
+       Required for configuration server and shard member processes.
+       If you omit this field, the deployment might get stuck in the goal state
+       because MongoDB cannot start without the corresponding startup flag.
 
        Accepted values:
 

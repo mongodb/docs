@@ -614,7 +614,7 @@ Improvements
 - Updates JDK to `jdk-21.0.10+7 <https://adoptium.net/temurin/release-notes/?version=jdk-21.0.10+7>`__.
 - Adds the ``description`` field to the ``activityFeed.json`` file in the Diagnostics archive.
 - Removes |service-short|-related entries from the |onprem| activity feed.
-- Removes legacy users when upgrading from the 3-agent system to  
+- Removes legacy users when upgrading from the 3-agent system to
   the single agent system.
 - Improves logic for Ubuntu LTS version mapping.
 - Adds cache ratio metrics to |onprem| monitoring, alerting,
@@ -623,6 +623,7 @@ Improvements
 Bug Fixes
 ~~~~~~~~~
 
+- Fixes an issue where Ops Manager job worker threads could become stuck waiting on a lock to fetch data, which could cause scheduled jobs to stop progressing.
 - Fixes an issue where the Patch User API did not work for global roles.
 - Fixes an issue where some snapshot details did not display on the
   :guilabel:`Snapshots` admin page, although the underlying data
@@ -775,7 +776,7 @@ Improvements
 - Implements a :ref:`Telemetry <om-telemetry-overview>` report to collect and send 
   |onprem| usage data to MongoDB, with controls to enable or disable telemetry 
   through the |onprem| UI or API.
-- Adds |oidc| support for |onprem| user authentication. 
+- Adds |oidc| support for |onprem| user authentication.
 - Addresses `CVE-2025-12383 <https://www.cve.org/CVERecord?id=CVE-2025-12383>`__ by updating the Jersey libraries to 3.1.10.
 
 Bug Fixes
@@ -1001,7 +1002,8 @@ Bug fixes
 
 Improvements
 ~~~~~~~~~~~~
-
+- Adds MongoDB 8.2 deployment support as a preview, not for production use. 
+  Full support available in Ops Manager 8.0.13.
 - Updates the MongoDB Agent to :ref:`108.0.12.8846-1
   <mongodb-108.0.12.8846-1>`.
 - Supports |bic-full| 2.14.24.
@@ -1143,6 +1145,8 @@ Improvements
   in a gap.
 - Improves agent discovery to avoid project-wide failures after config
   node is removed.
+- Ops Manager now allows users to download logs for a specific time range 
+  via UI, CLI, and API
 
 Bug Fixes 
 ~~~~~~~~~

@@ -7,9 +7,8 @@
    the preferred node, such as how current the secondary is with the
    primary and the previously chosen snapshot's member.
 
-#. Once the |mongod| process determines the origin node for the
-   snapshot, the backup process opens a ``$backupCursor`` on the
-   targeted node.
+#. Once the node is selected as the backup source host, the backup 
+   process opens a ``$backupCursor`` on the targeted node.
 
    The ``$backupCursor``, a storage engine layer mechanism, allows the
    database files in storage to be copied in a consistent state while
