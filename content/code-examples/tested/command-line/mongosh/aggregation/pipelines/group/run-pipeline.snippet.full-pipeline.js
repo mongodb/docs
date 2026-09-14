@@ -1,22 +1,16 @@
-// :snippet-start: full-pipeline
 db.orders.aggregate( [
    // Stage 1: Match orders in 2020
-   // :snippet-start: match
    { $match: {
       orderdate: {
          $gte: new Date("2020-01-01T00:00:00Z"),
          $lt: new Date("2021-01-01T00:00:00Z"),
       }
    } },
-   // :snippet-end:
 
    // Stage 2: Sort orders by date
-   // :snippet-start: sort-orderdate
    { $sort: { orderdate: 1 } },
-   // :snippet-end:
 
    // Stage 3: Group orders by email address (customer_id)
-   // :snippet-start: group
    { $group: {
       _id: "$customer_id",
       first_purchase_date: { $first: "$orderdate" },
@@ -29,21 +23,13 @@ db.orders.aggregate( [
          }
       }
    } },
-   // :snippet-end:
 
    // Stage 4: Sort orders by first order date
-   // :snippet-start: sort-first-purchase-date
    { $sort: { first_purchase_date: 1 } },
-   // :snippet-end:
 
    // Stage 5: Display the customers' email addresses
-   // :snippet-start: set
    { $set: { customer_id: "$_id" } },
-   // :snippet-end:
 
    // Stage 6: Remove unneeded fields
-   // :snippet-start: unset
    { $unset: ["_id"] }
-   // :snippet-end:
 ] )
-// :snippet-end:
