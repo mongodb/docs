@@ -90,7 +90,32 @@ Create the |fts| Index
                   
                   default
 
-            .. include:: /includes/index/shared/facts/find-connection-string.rst
+            Replace ``<connection-string>`` with the connection string for
+            your |service| cluster or local |service| deployment.
+
+            .. collapsible::
+               :heading: {+service+} Cluster Connection String
+               :expanded: false
+
+               Your connection string should use the following format:
+
+               .. code-block::
+
+                  mongodb+srv://<db_username>:<db_password>@<clusterName>.<hostname>.mongodb.net
+
+               To learn more, see :ref:`connect-via-driver`.
+
+            .. collapsible::
+               :heading: Local or Self-Managed Connection String
+               :expanded: false
+
+               Your connection string should use the following format:
+
+               .. code-block::
+
+                  mongodb://localhost:<port-number>/?directConnection=true
+
+               To learn more, see :ref:`Connection Strings <mongodb-uri>`.
 
          .. tab:: Multiple Synonym Mappings
             :tabid: multiple
@@ -148,4 +173,29 @@ Create the |fts| Index
                   
                   default
 
-            .. include:: /includes/index/shared/facts/find-connection-string.rst
+            Replace ``<connection-string>`` with the connection string for
+            your |service| cluster or local |service| deployment.
+
+            .. collapsible::
+               :heading: {+service+} Cluster Connection String
+               :expanded: false
+
+               Your connection string should use the following format:
+
+               .. code-block::
+
+                  mongodb+srv://<db_username>:<db_password>@<clusterName>.<hostname>.mongodb.net
+
+               To learn more, see :ref:`connect-via-driver`.
+
+            .. collapsible::
+               :heading: Local or Self-Managed Connection String
+               :expanded: false
+
+               Your connection string should use the following format:
+
+               .. code-block::
+
+                  mongodb://localhost:<port-number>/?directConnection=true
+
+               To learn more, see :ref:`Connection Strings <mongodb-uri>`.

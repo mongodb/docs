@@ -23,109 +23,111 @@
                Mapping` window.
             #. Configure the field mapping based on the operator you intend to use:
 
-               .. tabs::
+               .. collapsible::
+                  :heading: Field Mapping for the autocomplete Operator
+                  :expanded: false
 
-                  .. tab:: autocomplete
-                     :tabid: autocomplete
+                  i. Click :guilabel:`Quick Start for Text Fields`.
+                  #. Select the :guilabel:`Search-as-you-type`
+                     template from the dropdown and review the
+                     default settings.
 
-                     i. Click :guilabel:`Quick Start for Text Fields`.
-                     #. Select the :guilabel:`Search-as-you-type`
-                        template from the dropdown and review the
-                        default settings.
+                     To learn more about these settings, see
+                     :ref:`bson-data-types-autocomplete`.
 
-                        To learn more about these settings, see
-                        :ref:`bson-data-types-autocomplete`.
+               .. collapsible::
+                  :heading: Field Mapping for the phrase Operator
+                  :expanded: false
 
-                  .. tab:: phrase
-                     :tabid: phrase
+                  i. Click :guilabel:`Quick Start for Text Fields`.
+                  #. Select the :guilabel:`Full Text Search` template
+                     from the dropdown and review the default
+                     settings.
 
-                     i. Click :guilabel:`Quick Start for Text Fields`.
-                     #. Select the :guilabel:`Full Text Search` template
-                        from the dropdown and review the default
-                        settings.
+                     To learn more about these settings, see
+                     :ref:`bson-data-types-string`.
 
-                        To learn more about these settings, see
-                        :ref:`bson-data-types-string`.
+               .. collapsible::
+                  :heading: Field Mapping for the regex Operator
+                  :expanded: false
 
-                  .. tab:: regex
-                     :tabid: regex
+                  i. Select :guilabel:`Customized Configuration` from
+                     the dropdown.
+                  #. Select :guilabel:`String` from the
+                     :guilabel:`Data Type` dropdown to run the query
+                     using the :ref:`regex <regex-ref>` operator.
 
-                     i. Select :guilabel:`Customized Configuration` from
-                        the dropdown.
-                     #. Select :guilabel:`String` from the
-                        :guilabel:`Data Type` dropdown to run the query
-                        using the :ref:`wildcard <wildcard-ref>` operator.
+                  #. Modify the default settings for the data type as shown
+                     below:
 
-                     #. Modify the default settings for the data type as shown
-                        below:
+                     .. list-table::
+                        :header-rows: 1
+                        :widths: 20 80
 
-                        .. list-table::
-                           :header-rows: 1
-                           :widths: 20 80
+                        * - UI Field Name
+                          - Configuration
 
-                           * - UI Field Name
-                             - Configuration
+                        * - :guilabel:`Index Analyzer`
+                          - ``lucene.keyword``
 
-                           * - :guilabel:`Index Analyzer`
-                             - ``lucene.keyword``
+                        * - :guilabel:`Search Analyzer`
+                          - ``lucene.keyword``
 
-                           * - :guilabel:`Search Analyzer`
-                             - ``lucene.keyword``
+                        * - :guilabel:`Index Options`
+                          - :guilabel:`offsets`
 
-                           * - :guilabel:`Index Options`
-                             - :guilabel:`offsets`
+                        * - :guilabel:`Store`
+                          - :guilabel:`true`
 
-                           * - :guilabel:`Store`
-                             - :guilabel:`true`
+                        * - :guilabel:`Ignore Above`
+                          - None
 
-                           * - :guilabel:`Ignore Above`
-                             - None
+                        * - :guilabel:`Norms`
+                          - :guilabel:`include`
 
-                           * - :guilabel:`Norms`
-                             - :guilabel:`include`
+                     To learn more about these settings, see
+                     :ref:`bson-data-types-string`.
 
-                        To learn more about these settings, see
-                        :ref:`bson-data-types-string`.
+               .. collapsible::
+                  :heading: Field Mapping for the wildcard Operator
+                  :expanded: false
 
-                  .. tab:: wildcard
-                     :tabid: wildcard
+                  i. Select :guilabel:`Customized Configuration` from
+                     the dropdown.
+                  #. Select :guilabel:`String` from the
+                     :guilabel:`Data Type` dropdown to run the query
+                     using the :ref:`wildcard <wildcard-ref>` operator.
 
-                     i. Select :guilabel:`Customized Configuration` from
-                        the dropdown.
-                     #. Select :guilabel:`String` from the
-                        :guilabel:`Data Type` dropdown to run the query
-                        using the :ref:`wildcard <wildcard-ref>` operator.
+                  #. Modify the default settings for the data type as shown
+                     below:
 
-                     #. Modify the default settings for the data type as shown
-                        below:
+                     .. list-table::
+                        :header-rows: 1
+                        :widths: 20 80
 
-                        .. list-table::
-                           :header-rows: 1
-                           :widths: 20 80
+                        * - UI Field Name
+                          - Configuration
 
-                           * - UI Field Name
-                             - Configuration
+                        * - :guilabel:`Index Analyzer`
+                          - ``lucene.keyword``
 
-                           * - :guilabel:`Index Analyzer`
-                             - ``lucene.keyword``
+                        * - :guilabel:`Search Analyzer`
+                          - ``lucene.keyword``
 
-                           * - :guilabel:`Search Analyzer`
-                             - ``lucene.keyword``
+                        * - :guilabel:`Index Options`
+                          - :guilabel:`offsets`
 
-                           * - :guilabel:`Index Options`
-                             - :guilabel:`offsets`
+                        * - :guilabel:`Store`
+                          - :guilabel:`true`
 
-                           * - :guilabel:`Store`
-                             - :guilabel:`true`
+                        * - :guilabel:`Ignore Above`
+                          - None
 
-                           * - :guilabel:`Ignore Above`
-                             - None
+                        * - :guilabel:`Norms`
+                          - :guilabel:`include`
 
-                           * - :guilabel:`Norms`
-                             - :guilabel:`include`
-
-                        To learn more about these settings, see
-                        :ref:`bson-data-types-string`.
+                     To learn more about these settings, see
+                     :ref:`bson-data-types-string`.
 
             #. Select ``plot`` from the :guilabel:`Field Name` dropdown.
             #. Click :guilabel:`Add` to add the field to the list in
@@ -139,77 +141,79 @@
                index definition for the operator you intend to use for running
                the query.
 
-               .. tabs::
+               .. collapsible::
+                  :heading: Index Definition for the autocomplete Operator
+                  :expanded: false
 
-                  .. tab:: autocomplete
-                     :tabid: autocomplete
+                  .. code-block:: json
 
-                     .. code-block:: json
+                     {
+                       "mappings": {
+                         "dynamic": false,
+                         "fields": {
+                           "plot": [
+                             {
+                               "type": "autocomplete",
+                               "tokenization": "edgeGram",
+                               "minGrams": 2,
+                               "maxGrams": 15,
+                               "foldDiacritics": true
+                             }
+                           ]
+                         }
+                       }
+                     }
 
-                        {
-                          "mappings": {
-                            "dynamic": false,
-                            "fields": {
-                              "plot": [
-                                {
-                                  "type": "autocomplete",
-                                  "tokenization": "edgeGram",
-                                  "minGrams": 2,
-                                  "maxGrams": 15,
-                                  "foldDiacritics": true
-                                }
-                              ]
-                            }
-                          }
-                        }
+               .. collapsible::
+                  :heading: Index Definition for the phrase Operator
+                  :expanded: false
 
-                  .. tab:: phrase
-                     :tabid: phrase
+                  .. code-block:: json
 
-                     .. code-block:: json
+                     {
+                       "mappings": {
+                         "fields": {
+                           "plot": {
+                             "analyzer": "lucene.standard",
+                             "type": "string"
+                           }
+                         }
+                       }
+                     }
 
-                        {
-                          "mappings": {
-                            "fields": {
-                              "plot": {
-                                "analyzer": "lucene.standard",
-                                "type": "string"
-                              }
-                            }
-                          }
-                        }
+               .. collapsible::
+                  :heading: Index Definition for the regex Operator
+                  :expanded: false
 
-                  .. tab:: regex
-                     :tabid: regex
+                  .. code-block:: json
 
-                     .. code-block:: json
+                     {
+                       "mappings": {
+                         "fields": {
+                           "plot": {
+                             "analyzer": "lucene.keyword",
+                             "type": "string"
+                           }
+                         }
+                       }
+                     }
 
-                        {
-                          "mappings": {
-                            "fields": {
-                              "plot": {
-                                "analyzer": "lucene.keyword",
-                                "type": "string"
-                              }
-                            }
-                          }
-                        }
+               .. collapsible::
+                  :heading: Index Definition for the wildcard Operator
+                  :expanded: false
 
-                  .. tab:: wildcard
-                     :tabid: wildcard
+                  .. code-block:: json
 
-                     .. code-block:: json
-
-                        {
-                          "mappings": {
-                            "fields": {
-                              "plot": {
-                                "analyzer": "lucene.keyword",
-                                "type": "string"
-                              }
-                            }
-                          }
-                        }
+                     {
+                       "mappings": {
+                         "fields": {
+                           "plot": {
+                             "analyzer": "lucene.keyword",
+                             "type": "string"
+                           }
+                         }
+                       }
+                     }
 
             #. Click :guilabel:`Next`.
 
@@ -226,4 +230,3 @@
       building, the :guilabel:`Status` column reads ``Build in
       Progress``. When it is finished building, the
       :guilabel:`Status` column reads ``Active``.
-      
