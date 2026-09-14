@@ -123,11 +123,11 @@ Staging (`preprd`) is our preproduction environment. Use it to see your changes 
 
 1. **Let the team know you're using staging.** Staging is a shared environment, so post in the team channel that you're taking `preprd` before you start. This avoids someone else's build overwriting yours while you're testing.
 
-2. **Switch to the `preprd` branch:**
+2. Switch to the `preprd` branch
 
-3. **Merge your branch's changes into `preprd`:**
+3. Merge your branch's changes into `preprd`
 
-4. **Push `preprd` to GitHub:**
+4. Push `preprd` to GitHub
 
 5. **Watch your build run.** Go to [the Netlify builds page](https://app.netlify.com/teams/mongodb/builds) and wait for your build to complete.
 
