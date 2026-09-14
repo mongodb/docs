@@ -16,12 +16,19 @@ For a given day (`--start-date=YYYY-MM-DD`) the parser:
    S3 `LastModified` falls in the 24-hour window starting at `--start-date`.
 3. Streams and gunzips each file, parses the tab-separated CloudFront
    fields, and keeps only `/docs` requests with a `200` status.
-4. Produces two reports and upserts them by `date`:
+4. Produces three reports and upserts them by `date`:
    - **`daily_reports`** — page views split into total / AI / human, plus
      AI referrals and per-agent page breakdowns (`parsePageViews`).
    - **`md_daily_reports`** — the same idea restricted to `.md` requests
-     (the llms.txt / markdown-for-AI traffic), with an `unknown` bucket for
-     non-browser, non-AI agents (`parseMdRequests`).
+     (markdown-for-AI traffic), with an `unknown` bucket for non-browser,
+     non-AI agents (`parseMdRequests`).
+   - **`llmstxt_daily_reports`** — the same idea restricted to `llms.txt`
+     requests, with the same `unknown` bucket (`parseLlmsTxtRequests`).
+     Matches any `/docs/**` path ending in `llms.txt`, including the
+     `<project>-<n>-llms.txt` split-part files oversized docsets use (see
+     `platform/tools/generate-llms/src/generator.ts`) — not just paths
+     ending in `/llms.txt`. The root `www.mongodb.com/llms.txt` is out of
+     scope since it's outside `/docs`.
 
 Files are processed in batches with explicit garbage collection between
 batches, which is why the job runs with
@@ -34,6 +41,7 @@ batches, which is why the job runs with
 | `agent_patterns` | maintained by hand | Source of truth for AI UA/referrer regexes. Only docs with `enabled: true` are loaded. |
 | `daily_reports` | every run | One document per day, keyed by `date`. |
 | `md_daily_reports` | every run (since DOP-6935) | One document per day, keyed by `date`. |
+| `llmstxt_daily_reports` | every run (since DOP-7275) | One document per day, keyed by `date`. |
 
 The database name comes from `MONGODB_DATABASE` (default `cdn_analytics`)
 and the page-view collection from `MONGODB_COLLECTION` (default
@@ -69,10 +77,10 @@ uses an IRSA role instead of static keys (see Deployment).
 ### 3. Run
 
 ```bash
-# Both reports for a specific day
+# All three reports for a specific day
 pnpm start -- --start-date=2026-07-26
 
-# Only the .md report
+# Skip the page-view report; still writes the .md and llms.txt reports
 pnpm start:md -- --start-date=2026-07-26
 ```
 
@@ -186,6 +194,7 @@ yesterday, the job is failing even if pods show `Completed`:
 ```js
 db.daily_reports.find({}, { date: 1 }).sort({ date: -1 }).limit(3)
 db.md_daily_reports.find({}, { date: 1 }).sort({ date: -1 }).limit(3)
+db.llmstxt_daily_reports.find({}, { date: 1 }).sort({ date: -1 }).limit(3)
 ```
 
 ### Inspect / update the MongoDB secret

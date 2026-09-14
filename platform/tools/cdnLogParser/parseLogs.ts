@@ -58,6 +58,17 @@ interface MdDailyReport {
     [agentName: string]: any;  // Per-agent data
 }
 
+interface LlmsTxtDailyReport {
+    date: string;
+    overview: {
+        total_llmstxt_requests: number;
+        ai_llmstxt_requests: number;
+        human_llmstxt_requests: number;
+        unknown_llmstxt_requests: number;
+    };
+    [agentName: string]: any;  // Per-agent data
+}
+
 interface AgentPatternConfig {
     agent_id: string;
     agent_name: string;
@@ -425,6 +436,13 @@ class LogParser {
             return new Promise((resolve, reject) => {
                 const gunzip = createGunzip();
 
+                // pipe() does not forward source-stream errors to the
+                // destination, so a mid-download network reset on `stream`
+                // (e.g. ECONNRESET) would otherwise be an unlistened
+                // 'error' event — which crashes the whole process instead
+                // of rejecting this promise.
+                stream.on('error', reject);
+
                 stream.pipe(gunzip)
                     .on('data', (chunk: Buffer) => chunks.push(chunk))
                     .on('end', () => {
@@ -595,9 +613,76 @@ class LogParser {
     }
 
     /**
+     * Parse log content for llms.txt requests, capturing AI traffic
+     */
+    async parseLlmsTxtRequests(content: string): Promise<{
+        totalLlmsTxtRequests: number;
+        aiLlmsTxtRequests: number;
+        humanLlmsTxtRequests: number;
+        unknownLlmsTxtRequests: number;
+        agentData: Map<string, AgentData>;
+    }> {
+        const summary = {
+            totalLlmsTxtRequests: 0,
+            aiLlmsTxtRequests: 0,
+            humanLlmsTxtRequests: 0,
+            unknownLlmsTxtRequests: 0,
+            agentData: new Map<string, AgentData>(),
+        };
+
+        const lines = content.split('\n');
+
+        for (const line of lines) {
+            const entry = this.parseLogLine(line);
+            if (!entry) continue;
+
+            // Only llms.txt requests under /docs (the .com root llms.txt is
+            // served outside /docs and is out of scope). Match on a bare
+            // "llms.txt" suffix, not "/llms.txt" — oversized docsets split
+            // into part files like manual-1-llms.txt, manual-2-llms.txt,
+            // named specifically so the edge proxy's endsWith('llms.txt')
+            // routing rule still catches them (see generate-llms/generator.ts).
+            if (!entry.requestPath.startsWith('/docs')) continue;
+            if (!entry.requestPath.toLowerCase().endsWith('llms.txt')) continue;
+
+            // Only successful requests
+            if (entry.statusCode !== '200') continue;
+
+            summary.totalLlmsTxtRequests++;
+
+            if (this.isRegularBrowser(entry.userAgent)) {
+                summary.humanLlmsTxtRequests++;
+                continue;
+            }
+
+            if (entry.isAI && entry.aiType) {
+                summary.aiLlmsTxtRequests++;
+
+                if (!summary.agentData.has(entry.aiType)) {
+                    summary.agentData.set(entry.aiType, {
+                        total_page_views: 0,
+                        total_referrals: 0,
+                        all_pages: new Map<string, number>(),
+                    });
+                }
+
+                const agentData = summary.agentData.get(entry.aiType)!;
+                agentData.total_page_views++;
+
+                const pathCount = agentData.all_pages.get(entry.requestPath) || 0;
+                agentData.all_pages.set(entry.requestPath, pathCount + 1);
+            } else {
+                summary.unknownLlmsTxtRequests++;
+            }
+        }
+
+        return summary;
+    }
+
+    /**
      * Process files in smaller batches to reduce memory usage.
-     * Runs both page-view and .md-request parsers on each file in a single S3 read.
-     * Pass mdOnly=true to skip page-view parsing entirely.
+     * Runs page-view, .md-request, and llms.txt-request parsers on each file
+     * in a single S3 read. Pass mdOnly=true to skip page-view parsing entirely.
      */
     async processFilesInBatches(files: LogFile[], batchSize: number = 3, mdOnly: boolean = false): Promise<{
         pageViews: {
@@ -612,6 +697,13 @@ class LogParser {
             aiMdRequests: number;
             humanMdRequests: number;
             unknownMdRequests: number;
+            agentData: Map<string, AgentData>;
+        };
+        llmsTxtRequests: {
+            totalLlmsTxtRequests: number;
+            aiLlmsTxtRequests: number;
+            humanLlmsTxtRequests: number;
+            unknownLlmsTxtRequests: number;
             agentData: Map<string, AgentData>;
         };
     }> {
@@ -629,6 +721,13 @@ class LogParser {
         let unknownMdRequests = 0;
         const mdAgentData = new Map<string, AgentData>();
 
+        // llms.txt-request aggregates
+        let totalLlmsTxtRequests = 0;
+        let aiLlmsTxtRequests = 0;
+        let humanLlmsTxtRequests = 0;
+        let unknownLlmsTxtRequests = 0;
+        const llmsTxtAgentData = new Map<string, AgentData>();
+
         // Process files in batches
         for (let i = 0; i < files.length; i += batchSize) {
             const batch = files.slice(i, i + batchSize);
@@ -644,12 +743,13 @@ class LogParser {
                         const content = await this.processLogFileStreaming(file.key);
                         if (!content) return null;
 
-                        const [pvResult, mdResult] = await Promise.all([
+                        const [pvResult, mdResult, llmsTxtResult] = await Promise.all([
                             mdOnly ? Promise.resolve(null) : this.parsePageViews(content),
                             this.parseMdRequests(content),
+                            this.parseLlmsTxtRequests(content),
                         ]);
 
-                        return { pvResult, mdResult };
+                        return { pvResult, mdResult, llmsTxtResult };
                     } catch (error) {
                         console.error(`Error processing file ${file.key}:`, error);
                     }
@@ -664,7 +764,7 @@ class LogParser {
             for (const result of batchResults) {
                 if (!result) continue;
 
-                const { pvResult, mdResult } = result;
+                const { pvResult, mdResult, llmsTxtResult } = result;
 
                 // Aggregate page-view data (skipped in mdOnly mode)
                 if (pvResult) {
@@ -716,6 +816,30 @@ class LogParser {
                         aggregated.all_pages.set(path, existing + count);
                     }
                 }
+
+                // Aggregate llms.txt-request data
+                totalLlmsTxtRequests += llmsTxtResult.totalLlmsTxtRequests;
+                aiLlmsTxtRequests += llmsTxtResult.aiLlmsTxtRequests;
+                humanLlmsTxtRequests += llmsTxtResult.humanLlmsTxtRequests;
+                unknownLlmsTxtRequests += llmsTxtResult.unknownLlmsTxtRequests;
+
+                for (const [agentType, data] of llmsTxtResult.agentData) {
+                    if (!llmsTxtAgentData.has(agentType)) {
+                        llmsTxtAgentData.set(agentType, {
+                            total_page_views: 0,
+                            total_referrals: 0,
+                            all_pages: new Map<string, number>(),
+                        });
+                    }
+
+                    const aggregated = llmsTxtAgentData.get(agentType)!;
+                    aggregated.total_page_views += data.total_page_views;
+
+                    for (const [path, count] of data.all_pages) {
+                        const existing = aggregated.all_pages.get(path) || 0;
+                        aggregated.all_pages.set(path, existing + count);
+                    }
+                }
             }
 
             // Force garbage collection after each batch
@@ -742,6 +866,13 @@ class LogParser {
                 humanMdRequests,
                 unknownMdRequests,
                 agentData: mdAgentData,
+            },
+            llmsTxtRequests: {
+                totalLlmsTxtRequests,
+                aiLlmsTxtRequests,
+                humanLlmsTxtRequests,
+                unknownLlmsTxtRequests,
+                agentData: llmsTxtAgentData,
             },
         };
     }
@@ -806,6 +937,36 @@ class LogParser {
             throw error;
         }
     }
+
+    /**
+     * Save llms.txt daily report to the llmstxt_daily_reports collection
+     */
+    async saveLlmsTxtReportToMongoDB(report: LlmsTxtDailyReport): Promise<void> {
+        const dbName = process.env.MONGODB_DATABASE || 'cdn_analytics';
+        const collectionName = 'llmstxt_daily_reports';
+
+        try {
+            const client = await this.getMongoClient();
+            const db = client.db(dbName);
+            const collection = db.collection(collectionName);
+
+            const result = await collection.replaceOne(
+                { date: report.date },
+                report,
+                { upsert: true }
+            );
+
+            if (result.upsertedCount > 0) {
+                console.log(`✅ Inserted new llms.txt report for ${report.date}`);
+            } else {
+                console.log(`✅ Updated existing llms.txt report for ${report.date}`);
+            }
+
+        } catch (error) {
+            console.error('❌ Error saving llms.txt report to MongoDB:', error);
+            throw error;
+        }
+    }
 }
 
 // Example usage
@@ -866,7 +1027,7 @@ async function main() {
             const batchSize = parsedBatchSize > 0 ? parsedBatchSize : 20;
 
             const results = await parser.processFilesInBatches(files, batchSize, mdOnly);
-            const { pageViews, mdRequests } = results;
+            const { pageViews, mdRequests, llmsTxtRequests } = results;
 
             // Build and save the standard page-view report (skipped in mdOnly mode)
             if (!mdOnly) {
@@ -931,6 +1092,35 @@ async function main() {
 
             await parser.saveMdReportToMongoDB(mdReport);
             console.log(JSON.stringify(mdReport, null, 2));
+
+            // Build and save the llms.txt-request report
+            const llmsTxtReport: LlmsTxtDailyReport = {
+                date: startDate.toISOString().split('T')[0],
+                overview: {
+                    total_llmstxt_requests: llmsTxtRequests.totalLlmsTxtRequests,
+                    ai_llmstxt_requests: llmsTxtRequests.aiLlmsTxtRequests,
+                    human_llmstxt_requests: llmsTxtRequests.humanLlmsTxtRequests,
+                    unknown_llmstxt_requests: llmsTxtRequests.unknownLlmsTxtRequests,
+                },
+            };
+
+            for (const [agentType, data] of llmsTxtRequests.agentData) {
+                const sortedPages = Array.from(data.all_pages.entries())
+                    .sort((a, b) => b[1] - a[1]);
+
+                const pagesObject: { [key: string]: number } = {};
+                for (const [path, count] of sortedPages) {
+                    pagesObject[path] = count;
+                }
+
+                llmsTxtReport[agentType] = {
+                    total_requests: data.total_page_views,
+                    all_pages: pagesObject,
+                };
+            }
+
+            await parser.saveLlmsTxtReportToMongoDB(llmsTxtReport);
+            console.log(JSON.stringify(llmsTxtReport, null, 2));
 
         } else {
             console.warn('No files found for the specified date range.');
