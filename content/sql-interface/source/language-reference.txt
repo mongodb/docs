@@ -173,12 +173,38 @@ GROUP BY
 
 ``GROUP BY`` provides a means for grouping and aggregating data.
 
-If using ``GROUP BY`` on a field that has been flattened using :ref:`FLATTEN or UNWIND <asql-flatten-and-unwind>`,
-an alias is required.
+``GROUP BY`` keys can be top-level fields or subfields. If you group by
+subfields, they must be aliased in either the SELECT or GROUP BY clause.
+For example, in a ``Sales`` collection, you have documents with the following
+structure: 
 
 .. code-block:: none
      
-   SELECT customerAge, COUNT(*) FROM Sales GROUP BY customer.age AS customerAge
+   {"customer": {"age": <Integer>}}
+
+In this example, the following queries can be executed to use the ``age`` subfield
+as a group key:
+
+.. code-block:: none
+
+   "SELECT customerAge FROM Sales GROUP BY customer.age AS customerAge"
+   "SELECT customer.age as customerAge FROM Sales GROUP BY customerAge"
+
+Even if you :ref:`FLATTEN <asql-flatten-and-unwind>` your data, former subfields
+must be aliased. For example, in an ``Orders`` collection, you have documents with
+the following structure: 
+
+.. code-block:: none
+     
+   {"customer": {"address": {"city": <String>}}}
+
+After flattening, the structure becomes ``{"customer_address_city": <String>}``,
+and you can run the following queries to use the ``city`` subfield as a group key:
+
+.. code-block:: none
+  
+   "SELECT city FROM FLATTEN(orders) GROUP BY customer_address_city AS city"
+   "SELECT customer_address_city AS city FROM FLATTEN(orders) GROUP BY city"
 
 .. _asql-agg-funcs:
 
