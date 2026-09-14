@@ -121,8 +121,12 @@ Define an Entity
 
 To create an entity that represents a MongoDB collection, create a new Java file in
 your project's base package directory and add your entity class to the new file. In your entity
-class, specify the fields you want to store and the collection name. The ``name`` element
-of the ``@jakarta.persistence.Table`` annotation represents your MongoDB collection name. Use
+class, specify the fields you want to store and the collection name. 
+
+The ``name`` element of the ``@jakarta.persistence.Table`` annotation
+represents your MongoDB collection name. You can also set the optional
+``schema`` element to prefix the collection name, as described in the
+:ref:`hibernate-entities-schema-qualifier` section of this guide. Use
 the following syntax to define an entity:
 
 .. code-block:: java
@@ -174,6 +178,49 @@ CRUD operations in the {+extension-short+}, see the :ref:`hibernate-crud` guide.
    XML mappings. If you map your entity by using HBM XML, the
    {+extension-short+} silently renames the identifier column to
    ``_id`` instead of throwing an exception.
+
+.. _hibernate-entities-schema-qualifier:
+
+Schema Qualifiers
+~~~~~~~~~~~~~~~~~
+
+The ``@Table`` annotation accepts an optional ``schema`` element that
+prefixes your collection name. When you set both elements, the
+{+extension-short+} maps the entity to a collection named
+``<schema name>.<collection name>``.
+
+A schema qualifier changes only the collection's name. A schema is not
+a separate MongoDB database. Every schema-qualified collection
+resides in the database that your ``SessionFactory`` instance
+connects to. Because these collections share one database, a
+transaction can span multiple schemas.
+
+Use the following syntax to apply a schema qualifier:
+
+.. code-block:: java
+   :copyable: true
+
+   @Entity
+   @Table(schema = "<schema name>", name = "<collection name>")
+   public class <EntityName> {
+
+       // Define your fields, constructors, and methods here
+
+   }
+
+.. note:: Schema Qualifier Limitations
+
+   The {+extension-short+} rejects the ``catalog`` element of
+   the ``@Table`` annotation and the ``hibernate.default_catalog``
+   configuration property at bootstrap. If your application
+   must access multiple MongoDB databases, create a separate
+   ``SessionFactory`` instance for each database.
+
+   The {+extension-short+} rejects a dot (``.``) in a table name or a
+   schema name at bootstrap. This restriction applies to primary,
+   secondary, join, and collection table names, and to schema names
+   set by either the ``schema`` attribute or the
+   ``hibernate.default_schema`` configuration property. 
 
 .. _hibernate-entities-define-ex:
 
