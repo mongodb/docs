@@ -845,8 +845,10 @@ class Expect {
       }
 
       // Validate required fields
+      // Field names may reference nested fields with dot notation (for example
+      // "imdb.rating") or array-index notation (for example "tags[0]").
       for (const field of requiredFields) {
-        if (!(field in doc)) {
+        if (!this._fieldExists(doc, field)) {
           errors.push(`${source}[${index}]: Missing required field "${field}"`);
         }
       }
@@ -854,11 +856,12 @@ class Expect {
       // Validate field values
       // Note: withIgnoredFields() cannot be used with shouldResemble(), so no conflict is possible
       for (const [field, expectedValue] of Object.entries(fieldValues)) {
-        if (!(field in doc)) {
+        const { value, exists } = this._getNestedValue(doc, field);
+        if (!exists) {
           errors.push(`${source}[${index}]: Missing field "${field}" (expected value: ${JSON.stringify(expectedValue)})`);
-        } else if (!this._valuesMatch(doc[field], expectedValue)) {
+        } else if (!this._valuesMatch(value, expectedValue)) {
           errors.push(
-            `${source}[${index}]: Field "${field}" has value ${JSON.stringify(doc[field])} ` +
+            `${source}[${index}]: Field "${field}" has value ${JSON.stringify(value)} ` +
             `but expected ${JSON.stringify(expectedValue)}`
           );
         }
@@ -866,6 +869,136 @@ class Expect {
     });
 
     return errors;
+  }
+
+  /**
+   * Resolves a field path against a document and returns the value together
+   * with an existence flag. A path exists only when every segment resolves.
+   *
+   * Supports dot-notation and array-index paths, for example "imdb.rating",
+   * "tags[0]", or "a.b[1].c[2]". This mirrors the comparison kernel's
+   * TryGetNestedValue() so the mongosh suite and the kernel share the same
+   * nested-field semantics.
+   *
+   * Note: a field key that literally contains a dot
+   * (for example the "imdb.rating" keys embedded inside the explain plan in
+   * examples/aggregation/pipelines/explain/output.sh) is interpreted as a
+   * nested path, so it cannot be addressed through its literal name. mongosh
+   * validates that output with shouldMatch(), never with
+   * shouldResemble().withSchema(), and no mongosh schema references a dotted
+   * key today, so this ambiguity causes no current failures.
+   *
+   * Another unhandled edge case is if the key contains a bracket, i.e. 
+   * "matrix[0]". This is not currently referenced in any mongosh schema and
+   * would be bad practice naming. 
+   *
+   * @private
+   * @param {Object} doc - Document to inspect
+   * @param {string} field - Field name or nested path
+   * @returns {{value: *, exists: boolean}} Resolved value and existence flag
+   */
+  _getNestedValue(doc, field) {
+    // If just a plain field name, reads the key directly
+    if (!String(field).includes('.') && !String(field).includes('[')) {
+      return { value: doc[field], exists: field in doc };
+    }
+
+    const segments = this._parseFieldPath(field);
+    let current = doc;
+    for (const segment of segments) {
+      if (current === null || typeof current !== 'object') {
+        return { value: undefined, exists: false };
+      }
+      if (segment.index !== undefined) {
+        if (!Array.isArray(current) || segment.index < 0 || segment.index >= current.length) {
+          return { value: undefined, exists: false };
+        }
+        current = current[segment.index];
+      } else if (segment.key in current) {
+        current = current[segment.key];
+      } else {
+        return { value: undefined, exists: false };
+      }
+    }
+    return { value: current, exists: true };
+  }
+
+  /**
+   * Whether a field path exists on a document. Recurses through nested
+   * segments; returns true only when every segment resolves.
+   *
+   * @private
+   * @param {Object} doc - Document to inspect
+   * @param {string} field - Field name or nested path
+   * @returns {boolean} True if the field resolves
+   */
+  _fieldExists(doc, field) {
+    return this._getNestedValue(doc, field).exists;
+  }
+
+  /**
+   * Parses a field path into ordered segments. Mirrors the comparison
+   * kernel's ParseFieldPath(). Splits on ".", then extracts any "[n]" array
+   * indices.
+   *
+   * Examples:
+   *   "imdb.rating" -> [{ key: "imdb" }, { key: "rating" }]
+   *   "tags[0]"     -> [{ key: "tags" }, { index: 0 }]
+   *   "a.b[1].c[2]" -> [{ key: "a" }, { key: "b" }, { index: 1 }, { key: "c" }, { index: 2 }]
+   *
+   * @private
+   * @param {string} field - Field path to parse
+   * @returns {Array<{key?: string, index?: number}>} Ordered path segments
+   * @throws {Error} If the path is malformed (unclosed bracket, non-numeric
+   *   index, negative index, or trailing text after an index)
+   */
+  _parseFieldPath(field) {
+    const segments = [];
+    // Split field by .
+    for (const segment of String(field).split('.')) {
+      if (segment === '') {
+        continue;
+      }
+      const bracketIndex = segment.indexOf('[');
+      // If no bracket (i.e. no index such as tags[0]), push first part of path
+      if (bracketIndex < 0) {
+        segments.push({ key: segment });
+        continue;
+      }
+      // Otherwise, get key before bracket (i.e. tags from tags[0])
+      const key = segment.slice(0, bracketIndex);
+      if (key !== '') {
+        segments.push({ key });
+      }
+      // Then get index
+      let remaining = segment.slice(bracketIndex);
+      while (remaining.startsWith('[')) {
+        const close = remaining.indexOf(']');
+        // Guard against malformed paths: an unclosed bracket is a writer error
+        if (close < 0) {
+          throw new Error(
+            `Invalid field path "${field}": missing closing bracket "]"`
+          );
+        }
+        // Get index between open and closing brackets: "[" and "]"
+        const indexText = remaining.slice(1, close);
+        // Guard against malformed paths: an index must be a non-negative integer
+        if (indexText === '' || !Number.isInteger(Number(indexText)) || Number(indexText) < 0) {
+          throw new Error(
+            `Invalid field path "${field}": "${indexText}" is not a valid array index`
+          );
+        }
+        segments.push({ index: Number(indexText) });
+        remaining = remaining.slice(close + 1);
+      }
+      // Guard against malformed paths: nothing may follow the last "]"
+      if (remaining !== '') {
+        throw new Error(
+          `Invalid field path "${field}": unexpected text "${remaining}" after array index`
+        );
+      }
+    }
+    return segments;
   }
 
   /**
@@ -925,4 +1058,3 @@ class Expect {
 }
 
 module.exports = Expect;
-
