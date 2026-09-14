@@ -580,60 +580,7 @@ export const toc: L1TocItem[] = [
                       {
                         label: 'Text Indexes',
                         contentSite: 'docs',
-                        collapsible: true,
                         url: '/docs/:version/core/indexes/index-types/index-text',
-                        items: [
-                          {
-                            label: 'Create a Text Index',
-                            contentSite: 'docs',
-                            url: '/docs/:version/core/indexes/index-types/index-text/create-text-index',
-                          },
-                          {
-                            label: 'Create a Wildcard Text Index',
-                            contentSite: 'docs',
-                            url: '/docs/:version/core/indexes/index-types/index-text/create-wildcard-text-index',
-                          },
-                          {
-                            label: 'Specify the Default Language for a Text Index',
-                            contentSite: 'docs',
-                            url: '/docs/:version/core/indexes/index-types/index-text/specify-text-index-language',
-                          },
-                          {
-                            label: 'Create a Text Index for a Collection Containing Multiple Languages',
-                            contentSite: 'docs',
-                            url: '/docs/:version/core/indexes/index-types/index-text/specify-language-text-index/create-text-index-multiple-languages',
-                          },
-                          {
-                            label: 'Use Any Field to Specify Text Index Language',
-                            contentSite: 'docs',
-                            url: '/docs/:version/core/indexes/index-types/index-text/specify-language-text-index/use-any-field-to-specify-language',
-                          },
-                          {
-                            label: 'Assign Weights to $text Query Results',
-                            contentSite: 'docs',
-                            url: '/docs/:version/core/indexes/index-types/index-text/control-text-search-results',
-                          },
-                          {
-                            label: 'Limit Number of Text Index Entries Scanned',
-                            contentSite: 'docs',
-                            url: '/docs/:version/core/indexes/index-types/index-text/limit-number-of-items-scanned-for-text-search',
-                          },
-                          {
-                            label: 'Text Index Properties',
-                            contentSite: 'docs',
-                            url: '/docs/:version/core/indexes/index-types/index-text/text-index-properties',
-                          },
-                          {
-                            label: 'Text Index Restrictions',
-                            contentSite: 'docs',
-                            url: '/docs/:version/core/indexes/index-types/index-text/text-index-restrictions',
-                          },
-                          {
-                            label: 'Text Index Versions',
-                            contentSite: 'docs',
-                            url: '/docs/:version/core/indexes/index-types/index-text/text-index-versions',
-                          },
-                        ],
                       },
                     ],
                   },
@@ -899,255 +846,296 @@ export const toc: L1TocItem[] = [
               {
                 label: 'Types',
                 contentSite: 'docs',
-                collapsible: true,
                 url: '/docs/:version/core/indexes/index-types',
+              },
+              {
+                label: 'Single Field',
+                contentSite: 'docs',
+                collapsible: true,
+                url: '/docs/:version/core/indexes/index-types/index-single',
                 items: [
                   {
-                    label: 'Single Field',
+                    label: 'Create',
                     contentSite: 'docs',
-                    collapsible: true,
-                    url: '/docs/:version/core/indexes/index-types/index-single',
-                    items: [
-                      {
-                        label: 'Create',
-                        contentSite: 'docs',
-                        url: '/docs/:version/core/indexes/index-types/index-single/create-single-field-index',
-                      },
-                      {
-                        label: 'Embedded Documents',
-                        contentSite: 'docs',
-                        url: '/docs/:version/core/indexes/index-types/index-single/create-embedded-object-index',
-                      },
-                    ],
+                    url: '/docs/:version/core/indexes/index-types/index-single/create-single-field-index',
+                  },
+                  {
+                    label: 'Embedded Documents',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/indexes/index-types/index-single/create-embedded-object-index',
+                  },
+                ],
+              },
+              {
+                label: 'Compound',
+                contentSite: 'docs',
+                collapsible: true,
+                url: '/docs/:version/core/indexes/index-types/index-compound',
+                items: [
+                  {
+                    label: 'Create',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/indexes/index-types/index-compound/create-compound-index',
+                  },
+                  {
+                    label: 'Sort Order',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/indexes/index-types/index-compound/sort-order',
+                  },
+                ],
+              },
+              {
+                label: 'Multikey',
+                contentSite: 'docs',
+                collapsible: true,
+                url: '/docs/:version/core/indexes/index-types/index-multikey',
+                items: [
+                  {
+                    label: 'Create on Array Field',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/indexes/index-types/index-multikey/create-multikey-index-basic',
+                  },
+                  {
+                    label: 'Embedded Array Field',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/indexes/index-types/index-multikey/create-multikey-index-embedded',
+                  },
+                  {
+                    label: 'Bounds',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/indexes/index-types/index-multikey/multikey-index-bounds',
+                  },
+                ],
+              },
+              {
+                label: 'Wildcard',
+                contentSite: 'docs',
+                collapsible: true,
+                url: '/docs/:version/core/indexes/index-types/index-wildcard',
+                items: [
+                  {
+                    label: 'Create',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/indexes/index-types/index-wildcard/create-wildcard-index-single-field',
+                  },
+                  {
+                    label: 'Include or Exclude Fields',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/indexes/index-types/index-wildcard/create-wildcard-index-multiple-fields',
+                  },
+                  {
+                    label: 'Use All Fields',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/indexes/index-types/index-wildcard/create-wildcard-index-all-fields',
                   },
                   {
                     label: 'Compound',
                     contentSite: 'docs',
-                    collapsible: true,
-                    url: '/docs/:version/core/indexes/index-types/index-compound',
-                    items: [
-                      {
-                        label: 'Create',
-                        contentSite: 'docs',
-                        url: '/docs/:version/core/indexes/index-types/index-compound/create-compound-index',
-                      },
-                      {
-                        label: 'Sort Order',
-                        contentSite: 'docs',
-                        url: '/docs/:version/core/indexes/index-types/index-compound/sort-order',
-                      },
-                    ],
+                    url: '/docs/:version/core/indexes/index-types/index-wildcard/index-wildcard-compound',
                   },
                   {
-                    label: 'Multikey',
+                    label: 'Reference',
                     contentSite: 'docs',
                     collapsible: true,
-                    url: '/docs/:version/core/indexes/index-types/index-multikey',
                     items: [
                       {
-                        label: 'Create on Array Field',
+                        label: 'Embedded Objects & Arrays',
                         contentSite: 'docs',
-                        url: '/docs/:version/core/indexes/index-types/index-multikey/create-multikey-index-basic',
+                        url: '/docs/:version/core/indexes/index-types/index-wildcard/reference/embedded-object-behavior',
                       },
                       {
-                        label: 'Embedded Array Field',
+                        label: 'Signature',
                         contentSite: 'docs',
-                        url: '/docs/:version/core/indexes/index-types/index-multikey/create-multikey-index-embedded',
-                      },
-                      {
-                        label: 'Bounds',
-                        contentSite: 'docs',
-                        url: '/docs/:version/core/indexes/index-types/index-multikey/multikey-index-bounds',
-                      },
-                    ],
-                  },
-                  {
-                    label: 'Wildcard',
-                    contentSite: 'docs',
-                    collapsible: true,
-                    url: '/docs/:version/core/indexes/index-types/index-wildcard',
-                    items: [
-                      {
-                        label: 'Create',
-                        contentSite: 'docs',
-                        url: '/docs/:version/core/indexes/index-types/index-wildcard/create-wildcard-index-single-field',
-                      },
-                      {
-                        label: 'Include or Exclude Fields',
-                        contentSite: 'docs',
-                        url: '/docs/:version/core/indexes/index-types/index-wildcard/create-wildcard-index-multiple-fields',
-                      },
-                      {
-                        label: 'Use All Fields',
-                        contentSite: 'docs',
-                        url: '/docs/:version/core/indexes/index-types/index-wildcard/create-wildcard-index-all-fields',
-                      },
-                      {
-                        label: 'Compound',
-                        contentSite: 'docs',
-                        url: '/docs/:version/core/indexes/index-types/index-wildcard/index-wildcard-compound',
-                      },
-                      {
-                        label: 'Reference',
-                        contentSite: 'docs',
-                        collapsible: true,
-                        items: [
-                          {
-                            label: 'Embedded Objects & Arrays',
-                            contentSite: 'docs',
-                            url: '/docs/:version/core/indexes/index-types/index-wildcard/reference/embedded-object-behavior',
-                          },
-                          {
-                            label: 'Signature',
-                            contentSite: 'docs',
-                            url: '/docs/:version/core/indexes/index-types/index-wildcard/reference/wildcard-projection-signature',
-                          },
-                          {
-                            label: 'Restrictions',
-                            contentSite: 'docs',
-                            url: '/docs/:version/core/indexes/index-types/index-wildcard/reference/restrictions',
-                          },
-                        ],
-                      },
-                    ],
-                  },
-                  {
-                    label: 'Geospatial',
-                    contentSite: 'docs',
-                    collapsible: true,
-                    url: '/docs/:version/core/indexes/index-types/index-geospatial',
-                    items: [
-                      {
-                        label: '2dsphere',
-                        contentSite: 'docs',
-                        collapsible: true,
-                        url: '/docs/:version/core/indexes/index-types/geospatial/2dsphere',
-                        items: [
-                          {
-                            label: 'Create',
-                            contentSite: 'docs',
-                            url: '/docs/:version/core/indexes/index-types/geospatial/2dsphere/create',
-                          },
-                          {
-                            label: 'Query',
-                            contentSite: 'docs',
-                            collapsible: true,
-                            url: '/docs/:version/core/indexes/index-types/geospatial/2dsphere/query',
-                            items: [
-                              {
-                                label: 'Polygons',
-                                contentSite: 'docs',
-                                url: '/docs/:version/core/indexes/index-types/geospatial/2dsphere/query/geojson-bound-by-polygon',
-                              },
-                              {
-                                label: 'Spheres',
-                                contentSite: 'docs',
-                                url: '/docs/:version/core/indexes/index-types/geospatial/2dsphere/query/proximity-to-geojson',
-                              },
-                              {
-                                label: 'Intersections',
-                                contentSite: 'docs',
-                                url: '/docs/:version/core/indexes/index-types/geospatial/2dsphere/query/intersections-of-geojson-objects',
-                              },
-                              {
-                                label: 'Circle in a Sphere',
-                                contentSite: 'docs',
-                                url: '/docs/:version/core/indexes/index-types/geospatial/2dsphere/query/points-within-circle-on-sphere',
-                              },
-                            ],
-                          },
-                          {
-                            label: 'Versions',
-                            contentSite: 'docs',
-                            url: '/docs/:version/core/indexes/index-types/geospatial/2dsphere/2dsphere-index-versions',
-                          },
-                        ],
-                      },
-                      {
-                        label: '2d',
-                        contentSite: 'docs',
-                        collapsible: true,
-                        url: '/docs/:version/core/indexes/index-types/geospatial/2d',
-                        items: [
-                          {
-                            label: 'Create',
-                            contentSite: 'docs',
-                            collapsible: true,
-                            url: '/docs/:version/core/indexes/index-types/geospatial/2d/create',
-                            items: [
-                              {
-                                label: 'Location Precision',
-                                contentSite: 'docs',
-                                url: '/docs/:version/core/indexes/index-types/geospatial/2d/create/define-location-precision',
-                              },
-                              {
-                                label: 'Location Range',
-                                contentSite: 'docs',
-                                url: '/docs/:version/core/indexes/index-types/geospatial/2d/create/define-location-range',
-                              },
-                            ],
-                          },
-                          {
-                            label: 'Query',
-                            contentSite: 'docs',
-                            collapsible: true,
-                            url: '/docs/:version/core/indexes/index-types/geospatial/2d/query',
-                            items: [
-                              {
-                                label: 'Point on a Surface',
-                                contentSite: 'docs',
-                                url: '/docs/:version/core/indexes/index-types/geospatial/2d/query/proximity-flat-surface',
-                              },
-                              {
-                                label: 'Shape on a Surface',
-                                contentSite: 'docs',
-                                url: '/docs/:version/core/indexes/index-types/geospatial/2d/query/points-within-a-shape',
-                              },
-                            ],
-                          },
-                          {
-                            label: 'Internals',
-                            contentSite: 'docs',
-                            url: '/docs/:version/core/indexes/index-types/geospatial/2d/internals',
-                          },
-                          {
-                            label: 'Calculate to Radians',
-                            contentSite: 'docs',
-                            url: '/docs/:version/core/indexes/index-types/geospatial/2d/calculate-distances',
-                          },
-                        ],
+                        url: '/docs/:version/core/indexes/index-types/index-wildcard/reference/wildcard-projection-signature',
                       },
                       {
                         label: 'Restrictions',
                         contentSite: 'docs',
-                        url: '/docs/:version/core/indexes/index-types/geospatial/restrictions',
+                        url: '/docs/:version/core/indexes/index-types/index-wildcard/reference/restrictions',
                       },
                     ],
                   },
+                ],
+              },
+              {
+                label: 'Geospatial',
+                contentSite: 'docs',
+                collapsible: true,
+                url: '/docs/:version/core/indexes/index-types/index-geospatial',
+                items: [
                   {
-                    label: 'Hashed',
+                    label: '2dsphere',
                     contentSite: 'docs',
                     collapsible: true,
-                    url: '/docs/:version/core/indexes/index-types/index-hashed',
+                    url: '/docs/:version/core/indexes/index-types/geospatial/2dsphere',
                     items: [
                       {
                         label: 'Create',
                         contentSite: 'docs',
-                        url: '/docs/:version/core/indexes/index-types/index-hashed/create',
+                        url: '/docs/:version/core/indexes/index-types/geospatial/2dsphere/create',
+                      },
+                      {
+                        label: 'Query',
+                        contentSite: 'docs',
+                        url: '/docs/:version/core/indexes/index-types/geospatial/2dsphere/query',
+                      },
+                      {
+                        label: 'Polygons',
+                        contentSite: 'docs',
+                        url: '/docs/:version/core/indexes/index-types/geospatial/2dsphere/query/geojson-bound-by-polygon',
+                      },
+                      {
+                        label: 'Spheres',
+                        contentSite: 'docs',
+                        url: '/docs/:version/core/indexes/index-types/geospatial/2dsphere/query/proximity-to-geojson',
+                      },
+                      {
+                        label: 'Intersections',
+                        contentSite: 'docs',
+                        url: '/docs/:version/core/indexes/index-types/geospatial/2dsphere/query/intersections-of-geojson-objects',
+                      },
+                      {
+                        label: 'Circle in a Sphere',
+                        contentSite: 'docs',
+                        url: '/docs/:version/core/indexes/index-types/geospatial/2dsphere/query/points-within-circle-on-sphere',
+                      },
+                      {
+                        label: 'Versions',
+                        contentSite: 'docs',
+                        url: '/docs/:version/core/indexes/index-types/geospatial/2dsphere/2dsphere-index-versions',
                       },
                     ],
                   },
                   {
-                    label: 'Text',
+                    label: '2d',
                     contentSite: 'docs',
-                    url: '/docs/:version/core/indexes/index-types/index-text',
+                    collapsible: true,
+                    url: '/docs/:version/core/indexes/index-types/geospatial/2d',
+                    items: [
+                      {
+                        label: 'Create',
+                        contentSite: 'docs',
+                        url: '/docs/:version/core/indexes/index-types/geospatial/2d/create',
+                      },
+                      {
+                        label: 'Location Precision',
+                        contentSite: 'docs',
+                        url: '/docs/:version/core/indexes/index-types/geospatial/2d/create/define-location-precision',
+                      },
+                      {
+                        label: 'Location Range',
+                        contentSite: 'docs',
+                        url: '/docs/:version/core/indexes/index-types/geospatial/2d/create/define-location-range',
+                      },
+                      {
+                        label: 'Query',
+                        contentSite: 'docs',
+                        url: '/docs/:version/core/indexes/index-types/geospatial/2d/query',
+                      },
+                      {
+                        label: 'Point on a Surface',
+                        contentSite: 'docs',
+                        url: '/docs/:version/core/indexes/index-types/geospatial/2d/query/proximity-flat-surface',
+                      },
+                      {
+                        label: 'Shape on a Surface',
+                        contentSite: 'docs',
+                        url: '/docs/:version/core/indexes/index-types/geospatial/2d/query/points-within-a-shape',
+                      },
+                      {
+                        label: 'Internals',
+                        contentSite: 'docs',
+                        url: '/docs/:version/core/indexes/index-types/geospatial/2d/internals',
+                      },
+                      {
+                        label: 'Calculate to Radians',
+                        contentSite: 'docs',
+                        url: '/docs/:version/core/indexes/index-types/geospatial/2d/calculate-distances',
+                      },
+                    ],
                   },
                   {
-                    label: 'Clustered',
+                    label: 'Restrictions',
                     contentSite: 'docs',
-                    url: '/docs/:version/core/clustered-collections',
+                    url: '/docs/:version/core/indexes/index-types/geospatial/restrictions',
                   },
                 ],
+              },
+              {
+                label: 'Hashed',
+                contentSite: 'docs',
+                collapsible: true,
+                url: '/docs/:version/core/indexes/index-types/index-hashed',
+                items: [
+                  {
+                    label: 'Create',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/indexes/index-types/index-hashed/create',
+                  },
+                ],
+              },
+              {
+                label: 'Text',
+                contentSite: 'docs',
+                collapsible: true,
+                url: '/docs/:version/core/indexes/index-types/index-text',
+                items: [
+                  {
+                    label: 'Create a Text Index',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/indexes/index-types/index-text/create-text-index',
+                  },
+                  {
+                    label: 'Create a Wildcard Text Index',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/indexes/index-types/index-text/create-wildcard-text-index',
+                  },
+                  {
+                    label: 'Specify the Default Language for a Text Index',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/indexes/index-types/index-text/specify-text-index-language',
+                  },
+                  {
+                    label: 'Create a Text Index for a Collection Containing Multiple Languages',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/indexes/index-types/index-text/specify-language-text-index/create-text-index-multiple-languages',
+                  },
+                  {
+                    label: 'Use Any Field to Specify Text Index Language',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/indexes/index-types/index-text/specify-language-text-index/use-any-field-to-specify-language',
+                  },
+                  {
+                    label: 'Assign Weights to $text Query Results',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/indexes/index-types/index-text/control-text-search-results',
+                  },
+                  {
+                    label: 'Limit Number of Text Index Entries Scanned',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/indexes/index-types/index-text/limit-number-of-items-scanned-for-text-search',
+                  },
+                  {
+                    label: 'Text Index Properties',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/indexes/index-types/index-text/text-index-properties',
+                  },
+                  {
+                    label: 'Text Index Restrictions',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/indexes/index-types/index-text/text-index-restrictions',
+                  },
+                  {
+                    label: 'Text Index Versions',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/indexes/index-types/index-text/text-index-versions',
+                  },
+                ],
+              },
+              {
+                label: 'Clustered',
+                contentSite: 'docs',
+                url: '/docs/:version/core/clustered-collections',
               },
               {
                 label: 'Properties',

@@ -121,60 +121,6 @@ const tocData: TocItem[] = [
             label: 'Text Indexes',
             contentSite: 'docs',
             url: '/docs/:version/core/indexes/index-types/index-text',
-            collapsible: true,
-            items: [
-              {
-                label: 'Create a Text Index',
-                contentSite: 'docs',
-                url: '/docs/:version/core/indexes/index-types/index-text/create-text-index',
-              },
-              {
-                label: 'Create a Wildcard Text Index',
-                contentSite: 'docs',
-                url: '/docs/:version/core/indexes/index-types/index-text/create-wildcard-text-index',
-              },
-              {
-                label: 'Specify the Default Language for a Text Index',
-                contentSite: 'docs',
-                url: '/docs/:version/core/indexes/index-types/index-text/specify-text-index-language',
-              },
-              {
-                label:
-                  'Create a Text Index for a Collection Containing Multiple Languages',
-                contentSite: 'docs',
-                url: '/docs/:version/core/indexes/index-types/index-text/specify-language-text-index/create-text-index-multiple-languages',
-              },
-              {
-                label: 'Use Any Field to Specify Text Index Language',
-                contentSite: 'docs',
-                url: '/docs/:version/core/indexes/index-types/index-text/specify-language-text-index/use-any-field-to-specify-language',
-              },
-              {
-                label: 'Assign Weights to $text Query Results',
-                contentSite: 'docs',
-                url: '/docs/:version/core/indexes/index-types/index-text/control-text-search-results',
-              },
-              {
-                label: 'Limit Number of Text Index Entries Scanned',
-                contentSite: 'docs',
-                url: '/docs/:version/core/indexes/index-types/index-text/limit-number-of-items-scanned-for-text-search',
-              },
-              {
-                label: 'Text Index Properties',
-                contentSite: 'docs',
-                url: '/docs/:version/core/indexes/index-types/index-text/text-index-properties',
-              },
-              {
-                label: 'Text Index Restrictions',
-                contentSite: 'docs',
-                url: '/docs/:version/core/indexes/index-types/index-text/text-index-restrictions',
-              },
-              {
-                label: 'Text Index Versions',
-                contentSite: 'docs',
-                url: '/docs/:version/core/indexes/index-types/index-text/text-index-versions',
-              },
-            ],
           },
         ],
       },
