@@ -1,0 +1,5 @@
+[
+  { full_name: 'Gary Sheffield' },
+  { full_name: 'Nancy Walker' },
+  { full_name: 'Peter Sumner' }
+]
