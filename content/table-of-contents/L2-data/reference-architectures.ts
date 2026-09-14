@@ -5,7 +5,7 @@ const tocData: TocItem[] = [
     label: 'AI Agent Context Layer for Insurance',
     contentSite: 'atlas-architecture',
     url: '/docs/atlas/architecture/:version/deployment-paradigms/reference-architectures/insurance-context-layer',
-  },  
+  },
   {
     label: 'Operational Data Layer',
     contentSite: 'atlas-architecture',

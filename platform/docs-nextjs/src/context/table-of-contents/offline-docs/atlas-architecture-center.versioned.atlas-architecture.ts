@@ -63,6 +63,11 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     items: [
                       {
+                        label: 'AI Agent Context Layer for Insurance',
+                        contentSite: 'atlas-architecture',
+                        url: '/docs/atlas/architecture/:version/deployment-paradigms/reference-architectures/insurance-context-layer',
+                      },
+                      {
                         label: 'Operational Data Layer',
                         contentSite: 'atlas-architecture',
                         url: '/docs/atlas/architecture/:version/deployment-paradigms/reference-architectures/data-layer',

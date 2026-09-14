@@ -1,4 +1,7 @@
-import { lowercaseTocHref, lowercaseUrlReplacer } from '../src/utils/create-json-file';
+import {
+  lowercaseTocHref,
+  lowercaseUrlReplacer,
+} from '../src/utils/create-json-file';
 
 describe('lowercaseTocHref', () => {
   it('lowercases internal docs paths and keeps :version', () => {

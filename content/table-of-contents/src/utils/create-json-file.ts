@@ -13,7 +13,8 @@ function lowercaseHrefPath(href: string): string {
 function isMongoDbDocsUrl(url: URL): boolean {
   const host = url.hostname.toLowerCase();
   return (
-    (host === 'mongodb.com' || host.endsWith('.mongodb.com')) && url.pathname.startsWith('/docs/')
+    (host === 'mongodb.com' || host.endsWith('.mongodb.com')) &&
+    url.pathname.startsWith('/docs/')
   );
 }
 
@@ -40,7 +41,9 @@ export function lowercaseTocHref(href: string): string {
 
 /** `JSON.stringify` replacer that lowercases every `url` field as it is written. */
 export function lowercaseUrlReplacer(key: string, value: unknown): unknown {
-  return key === 'url' && typeof value === 'string' ? lowercaseTocHref(value) : value;
+  return key === 'url' && typeof value === 'string'
+    ? lowercaseTocHref(value)
+    : value;
 }
 
 export const generateJSON = (toc: L1TocItem[]) => {
