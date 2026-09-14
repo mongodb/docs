@@ -43,6 +43,7 @@ const tocData: TocItem[] = [
             label: 'Find Documents',
             contentSite: 'hibernate',
             url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/find-documents',
+            versions: { includes: ['upcoming'] },
           },
           {
             label: 'Specify a Query',
@@ -53,11 +54,13 @@ const tocData: TocItem[] = [
             label: 'Join Entities Across Collections',
             contentSite: 'hibernate',
             url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/join-entities',
+            versions: { includes: ['upcoming'] },
           },
           {
             label: 'Modify Query Results',
             contentSite: 'hibernate',
             url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/modify-query-results',
+            versions: { includes: ['upcoming'] },
           },
           {
             label: 'Perform Native Queries',
