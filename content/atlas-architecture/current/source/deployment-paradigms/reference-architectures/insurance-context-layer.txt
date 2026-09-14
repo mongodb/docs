@@ -1,0 +1,195 @@
+.. _arch-center-insurance-context-layer:
+
+====================================
+AI Agent Context Layer for Insurance
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: onecol
+
+Underwriting, claims, and service decisions in insurance depend on
+context that is usually scattered across many different systems
+including  policy admin systems, claims platforms, telematics, and
+third-party risk data, among others. Assembling that context by hand
+every time is slow, inconsistent, and hard to audit.
+
+This architecture describes a context layer on |service-fullname|, which
+is a real-time operational data tier that assembles business object
+context into a single live object that agents and applications can read,
+write, and act on.
+
+The context layer sits between existing systems of record and AI-driven
+underwriting, claims, and service workflows, so carriers do not need to
+replace those systems to make them usable by agents. It combines a
+flexible document model, AI-native retrieval, real-time change
+propagation, and field-level governance to meet the low-latency and
+auditability requirements that regulated, agent-augmented decision loops
+demand.
+
+.. figure:: /includes/images/reference-architectures/insurance-context-layer1.svg
+   :lightbox:
+   :figwidth: 1200px
+   :alt: Context Layer Architecture & AI Agent Data Flow
+
+   Figure 1. Context Layer Architecture & AI Agent Data Flow
+
+Data Flow
+---------
+
+The following steps trace a single submission or claim as it moves
+through the context layer, from intake to a written-back, auditable
+decision.
+
+1. Submission or claim intake
+
+   A new submission or claim arrives and the intake service captures
+   core identifiers and initial structured fields. After that
+   information is identified, the intake service writes them into a
+   ``business_objects`` collection in MongoDB Atlas as a single
+   document.
+
+#. Context enrichment and assembly
+
+   A specialized enrichment agent gathers the remaining context that the
+   underwriter or claims handler needs, such as coverage limits,
+   endorsements, loss descriptions, adjuster notes, and more. The agent
+   assembles data from the system of records to create a single, live
+   record.
+   Now, a single MongoDB document holds everything an
+   underwriter or claims agent needs to gather knowledge, make a
+   decision, and take action.
+
+#. Agent memory and state retrieval
+
+   At the same time as the context enrichment, the service also
+   retrieves prior memory for this submission or claim, as the agentic
+   memory holds conversation history, decision traces, audit history,
+   and sentiment for this specific case. This lets an underwriting or
+   claims agent resume work with full memory of prior turns,
+   recommendations, and human overrides.
+
+#. AI-native retrieval over structured and unstructured content
+
+   The service issues hybrid ``$vectorSearch`` and ``$search`` queries
+   against the business object and linked unstructured artifacts such as
+   adjuster notes, loss narratives or imagery metadata.
+   To do this, domain-tuned embeddings and reranking can be used, so the
+   agent sees the most relevant history and precedent first rather than
+   a raw list of matches.
+
+#. Agent decision, the Human-In-The-Loop and write-back
+
+   The agent reviews the assembled context and takes an action, such as
+   issuing a quote or requesting more information. In many situations,
+   this action will need to be reviewed by the human, keeping the final
+   revision always under human control.
+   Finally, the decision, along with its full reasoning trace, is
+   written back by the agent into its own collection of decision traces
+   in MongoDB as an immutable audit entry to ensure full compliance and
+   traceability and transparency over agentic actions.
+
+#. Real-time propagation with Change Streams
+
+   MongoDB Change Streams broadcasts the update to every agent,
+   dashboard, and downstream system watching the submission or claim.
+   Additionally, new signals may be introduced by the human user at any
+   point, so that they can be used to trigger agents directly, such as a
+   new fraud indicator on a claim firing the claims agent immediately,
+   without a batch cycle.
+
+Components
+----------
+
+Systems of record
+~~~~~~~~~~~~~~~~~
+
+A system of record (SoR), also known as a single system of record
+(SSoR), is a single computer system that serves as the authoritative
+data source for a critical data element or data object. The SoR holds
+the "true state" of the data, meaning it’s the most up-to-date,
+accurate, and compliant version available for that particular data
+source.
+
+In this architecture, systems of record remain the source of business
+transactions. They continue to own their original responsibilities while
+the context layer assembles a usable decision context across them.
+
+Business objects and agent memory
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Business objects hold the operational entity, either a submission,
+claim, or customer record, as a single, continuously enriched document.
+This ensures that every consumer works from the same up-to-date view,
+rather than having to gather the information from scattered sources.
+MongoDB stores agent memory alongside this record so agents retain
+context and audit history across a multi-step decision.
+
+AI-native retrieval
+~~~~~~~~~~~~~~~~~~~
+
+MongoDB Vector Search combined with full-text search and reranking lets
+agents retrieve the most relevant loss history, precedent, or guidelines
+from both structured fields and unstructured artifacts in a single
+query, rather than orchestrating across a separate vector store.
+
+Real-time propagation
+~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB Change Streams and native stream processing keep every agent and
+downstream system synchronized with the current state of a submission or
+claim, and allow new signals or events to trigger an agent directly
+instead of waiting on a polling or batch cycle.
+
+Audit trail
+~~~~~~~~~~~
+
+The context layer keeps an immutable audit trail for every read and
+write, so that all AI-assisted decisions remain transparent and
+traceable at all times. One collection gathers the full information
+about each decision from the identity of the user/agent that made the
+decision to the steps to arrive at the conclusion, context, AI metadata,
+decision outcome, and much more.
+
+Limitations
+-----------
+
+This pattern introduces complexity and should be adopted intentionally.
+
+- **Operational Layer is not always best for analytical purposes**: This
+  architecture is not a good fit for analytics-only workloads, archival
+  repositories, or use cases where decisions do not require real-time
+  context assembly, writes, or auditability. If the primary need is
+  reporting or batch-oriented analysis, analytical platforms may be
+  sufficient without adding an operational context layer.
+
+- **Schema flexibility requires its own discipline**: This approach also
+  requires discipline in data modeling, identity resolution, governance,
+  and lifecycle management. A context layer can accumulate large,
+  complex objects and evolving schemas, so teams must define object
+  boundaries, expectations, and update patterns early.
+
+- **Upstream system complexity will not be eliminated**: It reduces
+  decision-time fragmentation, but it still depends on reliable upstream
+  data access and data quality. Poor source quality or weak event design
+  will surface inside the context layer rather than disappear.
+
+The architecture works best when tailored to a specific use case with a
+predefined data model and then expanded from a proven reference
+workflow.
+
+Learn More
+----------
+
+Explore the other reference architectures:
+
+- :ref:`Operational Data Layer <arch-center-operational-data-layer>`
+
+- :ref:`Fraud Detection with MongoDB <arch-center-fraud-detection>`
+
+- :ref:`Building Durable AI Workflows with Temporal and MongoDB Atlas
+  <arch-center-durable-ai-workflows>`
