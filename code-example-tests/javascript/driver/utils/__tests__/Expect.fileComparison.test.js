@@ -3,6 +3,9 @@ import Expect from '../Expect.js';
 import fs from 'fs';
 import path from 'path';
 import { Decimal128, ObjectId } from 'mongodb';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 describe('Expect API (file-based comparison tests)', () => {
   const tempExamplesDir = path.join(__dirname, '../../examples');

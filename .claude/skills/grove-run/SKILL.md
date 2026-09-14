@@ -150,12 +150,14 @@ From `code-example-tests/javascript/driver/`:
 ```bash
 npm test                                    # All tests
 npm test -- -t '{describe or it text}'      # Single test by name
-npx jest tests/path/file.test.js            # Single file (after .env is loaded)
+npm run test:file -- path/file.test.js      # Single file (loads .env)
 ```
 
-`npm test` loads `.env` and sets Jest flags via `package.json`. Do not call
-`npx jest` for ad-hoc runs without loading `CONNECTION_STRING` — use `npm test --`
-to pass arguments through.
+`npm test`, `npm run test:utils`, `npm run test:all`, and `npm run test:file`
+load `.env` and run Jest under native ESM (`--experimental-vm-modules`). Do not
+append a file path to `npm test` because its `--testMatch` glob ignores positional
+paths and runs the full suite. Instead, use `npm run test:file -- <path>` for a single
+file.
 
 ### Python (unittest)
 

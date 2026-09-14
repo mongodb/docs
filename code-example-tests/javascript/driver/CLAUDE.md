@@ -4,7 +4,7 @@
 
 - **ES modules** throughout (`"type": "module"` in package.json)
 - Node >= 24.4.1, npm >= 10.0.0
-- Key deps: `mongodb` 7.5.0, `jest` 30.x, `bluehawk` 1.6.x
+- Key deps: `mongodb` 7.6.0, `jest` 30.x, `bluehawk` 1.6.x
 - `.env` file required at this directory root: `CONNECTION_STRING="..."` and `TZ=UTC`
 - `jest.config.cjs` and `babel.config.cjs` are CJS files — do **not** convert to ESM
 
@@ -107,13 +107,13 @@ Tests auto-skip when required sample databases are unavailable.
 
 ## Commands
 
-| Command                            | Purpose                                           |
-| ---------------------------------- | ------------------------------------------------- |
-| `npm test`                         | Run all tests (`--runInBand --detectOpenHandles`) |
-| `npx jest tests/path/file.test.js` | Run a single test file                            |
-| `npm test -- -t 'describe text'`   | Run tests matching a name                         |
-| `npm run format`                   | Prettier format all files                         |
-| `npm run snip`                     | Extract snippets via Bluehawk                     |
+| Command                                  | Purpose                                           |
+| ---------------------------------------- | ------------------------------------------------- |
+| `npm test`                               | Run all tests (`--runInBand --detectOpenHandles`) |
+| `npm run test:file -- path/file.test.js` | Run a single test file                            |
+| `npm test -- -t 'describe text'`         | Run tests matching a name                         |
+| `npm run format`                         | Prettier format all files                         |
+| `npm run snip`                           | Extract snippets via Bluehawk                     |
 
 All commands run from `code-example-tests/javascript/driver/`.
 

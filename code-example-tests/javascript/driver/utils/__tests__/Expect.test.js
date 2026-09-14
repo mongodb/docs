@@ -2,6 +2,9 @@ import Expect from '../Expect.js';
 import fs from 'fs';
 import path from 'path';
 import { ObjectId, Decimal128 } from 'mongodb';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 describe('Expect API', () => {
   describe('Basic fluent API', () => {

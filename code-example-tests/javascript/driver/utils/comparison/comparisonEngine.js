@@ -2,6 +2,9 @@ import { kernelCompareSync } from './KernelBridge.js';
 import { Decimal128, ObjectId } from 'mongodb';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /**
  * Comparison result used by the public Expect API. Two static factory methods

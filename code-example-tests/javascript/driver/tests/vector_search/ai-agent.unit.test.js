@@ -24,13 +24,13 @@ const mockEmbed = jest.fn(async () => ({
 }));
 
 // Voyage AI SDK: ingest-data.js calls `new VoyageAIClient({ apiKey }).embed()`.
-jest.mock('voyageai', () => ({
+jest.unstable_mockModule('voyageai', () => ({
   VoyageAIClient: jest.fn(() => ({ embed: mockEmbed })),
 }));
 
 // OpenAI SDK: config.js constructs `new OpenAI(...)` at import time. The unit
 // suite never exercises the live LLM paths, so a no-op client is sufficient.
-jest.mock('openai', () => ({
+jest.unstable_mockModule('openai', () => ({
   __esModule: true,
   default: jest.fn(() => ({
     chat: { completions: { create: jest.fn() } },
@@ -39,7 +39,7 @@ jest.mock('openai', () => ({
 
 // LangChain PDF loader: only the integration ingestData path uses it, but
 // ingest-data.js imports it at module load, so provide a stub.
-jest.mock('@langchain/community/document_loaders/fs/pdf', () => ({
+jest.unstable_mockModule('@langchain/community/document_loaders/fs/pdf', () => ({
   PDFLoader: jest.fn(() => ({ load: jest.fn(async () => []) })),
 }));
 

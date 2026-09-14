@@ -1,5 +1,8 @@
 import { ComparisonEngine } from './comparison/comparisonEngine.js';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /**
  * Expect provides a fluent API for comparing MongoDB documentation example
