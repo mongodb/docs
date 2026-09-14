@@ -3378,16 +3378,6 @@ export const toc: L1TocItem[] = [
                         url: '/docs/:version/tutorial/configure-ssl',
                       },
                       {
-                        label: 'Develop Locally with TLS',
-                        contentSite: 'docs',
-                        url: '/docs/:version/tutorial/develop-mongodb-locally-with-tls',
-                      },
-                      {
-                        label: 'Configure Clients',
-                        contentSite: 'docs',
-                        url: '/docs/:version/tutorial/configure-ssl-clients',
-                      },
-                      {
                         label: 'Upgrade Cluster',
                         contentSite: 'docs',
                         url: '/docs/:version/tutorial/upgrade-cluster-to-ssl',
