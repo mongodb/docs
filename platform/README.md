@@ -117,6 +117,26 @@ Writer-content offline builds use `docs-site`. They read the same local `content
 - `pnpm test:update`: Update test snapshots
 - `pnpm test:watch`: Watch for test changes and re-run
 
+### Testing in Staging
+
+Staging (`preprd`) is our preproduction environment. Use it to see your changes live on a real site before they merge to `main`.
+
+1. **Let the team know you're using staging.** Staging is a shared environment, so post in the team channel that you're taking `preprd` before you start. This avoids someone else's build overwriting yours while you're testing.
+
+2. **Switch to the `preprd` branch:**
+
+3. **Merge your branch's changes into `preprd`:**
+
+4. **Push `preprd` to GitHub:**
+
+5. **Watch your build run.** Go to [the Netlify builds page](https://app.netlify.com/teams/mongodb/builds) and wait for your build to complete.
+
+6. **View your changes.** Once the build finishes, go to `https://mongodbcom.staging.corp.mongodb.com/docs` and append the slug for the page you changed. For example, for the Node driver docs:
+   ```
+   https://mongodbcom.staging.corp.mongodb.com/docs/drivers/node/current/
+   ```
+   You should now see your changes live in staging.
+
 ### MDX Conversion Commands
 - `pnpm convert:rst-to-mdx`: Convert all Snooty rST projects to MDX
 - `pnpm convert:rst-to-mdx -- <name>`: Convert a specific project (e.g. `pnpm convert:rst-to-mdx -- atlas`)
