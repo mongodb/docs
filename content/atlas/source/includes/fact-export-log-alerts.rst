@@ -10,10 +10,15 @@ The following alerts are enabled by default for all projects with External Log S
 - :alert:`Log export is failing after multiple attempts. Logs are being queued and will be sent once the connection is restored.`
 - :alert:`Log export replay has failed to deliver records to an external platform, even after an automatic replay attempt. These records will be permanently deleted once their retention window expires. Contact MongoDB Support to request redelivery.`
 
-All alerts send email notifications to all users with the
-:authrole:`Project Owner` role and appear in the :guilabel:`Project
-Activity Feed`. You can customize the notification recipients and
-methods in the :guilabel:`Project Alerts` settings.
+These alerts are informational, which means when the alert condition is met,
+{+service+} immediately sends email notifications to all users with
+the :authrole:`Project Owner` role and logs the alert to the
+:guilabel:`Project Activity Feed`. These alerts don't appear on the
+:guilabel:`Open Alerts` or :guilabel:`Closed Alerts` tabs of the
+:guilabel:`Project Alerts` page. You can customize the notification
+recipients and methods in the :guilabel:`Project Alerts` settings. To
+learn more about the informational alert lifecycle, see
+:ref:`alerts-workflow`.
 
 Activity Feed Events
 ~~~~~~~~~~~~~~~~~~~~
