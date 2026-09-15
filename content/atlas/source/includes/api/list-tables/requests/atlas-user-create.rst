@@ -120,6 +120,8 @@
             - :authrole:`Project Data Access Read/Write`
           * - GROUP_DATA_ACCESS_READ_ONLY
             - :authrole:`Project Data Access Read Only`
+          * - GROUP_SHARDING_MANAGER
+            - :authrole:`Project Sharding Manager`
 
    * - username
      - string
