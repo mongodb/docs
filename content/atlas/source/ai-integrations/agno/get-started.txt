@@ -1,0 +1,339 @@
+.. _agno-get-started:
+
+=============================================
+Get Started with the MongoDB Agno Integration
+=============================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. meta::
+   :keywords: agents, agentic, memory, sessions, retrieval, vector database, vector search, semantic search, code example, OpenAI, python
+   :description: Configure an Agno agent to use MongoDB Vector Search for knowledge retrieval and MongoDB for persistence, then build a cooking assistant that stores prior conversations.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can integrate MongoDB with Agno to configure a searchable
+knowledge base and persistent conversation history for your AI agents.
+This tutorial demonstrates how to configure an Agno agent to use MongoDB
+for knowledge retrieval and session storage, then use that
+configuration to build a cooking assistant. Specifically, you
+perform the following tasks:
+
+#. Set up your environment.
+#. Configure MongoDB as an Agno knowledge base.
+#. Build an assistant that answers questions from your documents and
+   remembers prior turns in the conversation.
+#. Run the file and review the output.
+
+Background
+----------
+
+`Agno <https://docs.agno.com/>`__ is an open-source Python framework
+for building multi-modal AI agents. An Agno agent is composed of
+modular components, including an optional knowledge base and an
+optional database, that you configure independently and pass to the
+same ``Agent`` object.
+
+MongoDB provides two of these components, which you can use
+by importing the following classes:
+
+#. ``MongoVectorDb`` class: Implements Agno's vector database
+   interface with {+avs+}, allowing an agent to retrieve relevant
+   documents from a MongoDB collection
+#. ``MongoDb`` class: Implements Agno's database interface,
+   persisting agent sessions, memories, and metrics as documents in
+   MongoDB collections
+
+.. tip::
+
+   Agno names both MongoDB classes ``MongoDb``, so it exports the
+   vector database class as ``MongoVectorDb`` to avoid a collision. To
+   learn more, see :ref:`agno`.
+
+This tutorial uses both components and stores their data in the same
+MongoDB deployment.
+
+Prerequisites
+-------------
+
+To complete this tutorial, you must have the following resources:
+
+- .. include:: /includes/avs/shared/avs-requirements-cluster.rst
+
+- .. include:: /includes/avs/shared/avs-requirements-openai-api-key.rst
+
+- Python v3.9 or later.
+
+Set Up Your Environment
+-----------------------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Install dependencies.
+
+      Run the following commands in your terminal to create a new
+      directory named ``agno-mongodb-project`` and install the
+      required dependencies:
+
+      .. code-block:: bash
+
+         mkdir agno-mongodb-project
+         cd agno-mongodb-project
+         pip install agno pymongo openai python-dotenv pypdf
+
+   .. step:: Set your environment variables.
+
+      In your ``agno-mongodb-project`` directory, create a ``.env``
+      file and add the following code:
+
+      .. code-block:: bash
+
+         OPENAI_API_KEY="<openai-api-key>"
+         MONGODB_URI="<connection-string>"
+
+      .. include:: /includes/search-shared/find-connection-string.rst
+
+   .. step:: Create a project file.
+
+      In your ``agno-mongodb-project`` directory, create a file
+      named ``main.py``. Add the following code to this file to
+      load your environment variables:
+
+      .. code-block:: python
+
+         import os
+         from dotenv import load_dotenv
+         from agno.agent import Agent
+         from agno.db.mongo import MongoDb
+         from agno.knowledge.knowledge import Knowledge
+         from agno.models.openai import OpenAIChat
+         from agno.vectordb.mongodb import MongoVectorDb
+
+         load_dotenv()
+
+      In future steps, you add code to this file to build your
+      knowledge base and assistant.
+
+.. _agno-get-started-knowledge-base:
+
+Build Your Knowledge Base
+-------------------------
+
+In this section, you configure MongoDB as the vector store for an
+Agno knowledge base, store data in it, and run a semantic search
+query against it.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Configure MongoDB as the vector store.
+
+      Add the following code to configure a MongoDB-backed vector
+      store for your knowledge base:
+
+      .. code-block:: python
+
+         vector_db = MongoVectorDb(
+             collection_name="agent_knowledge",
+             db_url=os.environ["MONGODB_URI"],
+             database="agno",
+         )
+
+         knowledge = Knowledge(vector_db=vector_db)
+
+      The preceding code creates a ``MongoVectorDb`` instance and
+      passes it to the ``vector_db`` parameter of a ``Knowledge``
+      object. Because this is the first time you're using the
+      ``agent_knowledge`` collection, Agno creates it along with an
+      {+avs+} index named ``vector_index_1``.
+
+      .. include:: /includes/search-shared/fact-index-build-initial-sync.rst
+
+   .. step:: Load and store data.
+
+      Add the following code to your ``main.py`` file to load a PDF
+      file containing Thai recipes into your knowledge base:
+
+      .. code-block:: python
+
+         knowledge.insert(
+             name="Recipes",
+             url="https://agno-public.s3.amazonaws.com/recipes/ThaiRecipes.pdf",
+         )
+
+      Agno downloads the file, splits it into chunks, generates an
+      embedding for each chunk with the default OpenAI embedder, and
+      writes the results to your collection.
+
+      .. tip::
+
+         To inspect the stored documents, browse the
+         ``agno.agent_knowledge`` collection in the {+atlas-ui+}.
+         Each document has a ``content`` field with a chunk of the
+         recipe text and an ``embedding`` field that contains the
+         generated vector. To learn more, see
+         :ref:`atlas-ui-view-collections`.
+
+   .. step:: Run a semantic search query.
+
+      Add the following code to your ``main.py`` file to query your
+      knowledge base's vector database directly, before connecting
+      it to an agent. This example searches for the three chunks most
+      relevant to a question about green curry:
+
+      .. code-block:: python
+
+         results = vector_db.search(query="How do I make a green curry?", limit=3)
+
+         for doc in results:
+             print(f"[{doc.name}] {doc.content[:80]}")
+
+      The results include the recipe chunks that are most
+      semantically relevant to the query, ranked by similarity
+      score.
+
+.. _agno-get-started-assistant:
+
+Build an Assistant with Persisted Sessions
+------------------------------------------
+
+In this section, you combine your knowledge base with a
+MongoDB database to build a complete assistant. The agent retrieves
+relevant documents from your knowledge base to answer questions, and
+persists its conversation history in MongoDB so it can refer back to
+earlier turns.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Define the assistant.
+
+      Add the following code to your ``main.py`` file to configure a
+      ``MongoDb`` instance for session storage, and then create an agent
+      that uses this session store and the knowledge base configured
+      in the previous section:
+
+      .. code-block:: python
+
+         db = MongoDb(
+             db_url=os.environ["MONGODB_URI"],
+             db_name="agno",
+         )
+
+         agent = Agent(
+             model=OpenAIChat(id="gpt-4o"),
+             knowledge=knowledge,
+             db=db,
+             search_knowledge=True,
+             add_history_to_context=True,
+             num_history_runs=5,
+             instructions=[
+                 "You are a helpful cooking assistant.",
+                 "Answer questions using only the recipes in your knowledge base.",
+                 "If the knowledge base does not contain a relevant answer, say so clearly.",
+             ],
+         )
+
+   .. step:: Run the assistant across two conversation turns.
+
+      Add the following code to your ``main.py`` file to send two
+      messages to the agent:
+
+      .. code-block:: python
+
+         SESSION_ID = "cooking-session-001"
+
+         # First turn
+         agent.print_response(
+             "My favorite Thai dish is massaman curry.",
+             session_id=SESSION_ID,
+         )
+
+         # Second turn
+         agent.print_response(
+             "How do I make my favorite dish?",
+             session_id=SESSION_ID,
+         )
+
+      The agent retrieves the most relevant recipe chunks from your
+      knowledge base on each turn. Because both calls use the same
+      ``session_id`` value, Agno also retrieves data from the prior response.
+      Agno retrieves the session metadata from the ``agno_sessions`` collection
+      and the message content from the ``agno_runs`` collection. If you omit ``session_id``
+      or pass a different value on the second call, Agno starts a
+      new session and the agent has no record of the first turn.
+
+Run the File
+------------
+
+To run the ``main.py`` file, run the following command from your
+``agno-mongodb-project`` directory:
+
+.. code-block:: bash
+
+   python main.py
+
+If the command runs successfully, the output resembles the following:
+
+.. code-block:: text
+   :copyable: false
+
+   INFO Connected to MongoDB successfully.
+   INFO Creating collection 'agent_knowledge'.
+   INFO Creating search index 'vector_index_1'.
+   INFO Search index 'vector_index_1' is ready.
+   INFO Search index 'vector_index_1' created successfully.
+   INFO Adding content from URL https://agno-public.s3.amazonaws.com/recipes/ThaiRecipes.pdf
+   INFO Upserting 14 documents
+
+   # Output from the vector_db.search() call
+   [Recipes] INGREDIENTS (One serving) 150 grams chicken, cut into bite-size pieces 50 grams
+   [Recipes] Thai SELECT Exotic, Healthy, Delicious Dining-Thai Style Thai food has rapidly g
+   [Recipes] Directions: 1. Roughly pound the garlic with bird's eye chilies in a mortar. Add
+
+   # Output from the agent.print_response() calls
+   ┏━ Message ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+   ┃ My favorite Thai dish is massaman curry.                       ┃
+   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+   ┏━ Response (gpt-4o) ────────────────────────────────────────────┓
+   ┃ Great choice — I found a recipe in the knowledge base for      ┃
+   ┃ Massaman Gai (Massaman Curry with Chicken and Potatoes).       ┃
+   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+   ┏━ Message ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+   ┃ How do I make my favorite dish?                                ┃
+   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+   ┏━ Response (gpt-4o) ────────────────────────────────────────────┓
+   ┃ Here's how to make Massaman Gai (Massaman Curry with Chicken   ┃
+   ┃ and Potatoes) from the knowledge base:                         ┃
+   ┃ **Ingredients**                                                ┃
+   ┃ - 300 grams chicken rump                                       ┃
+   ┃ - 80 grams Massaman curry paste                                ┃
+   ┃ - 100 grams coconut cream                                      ┃
+   ┃ - 300 grams coconut milk                                       ┃
+   ┃ - 250 grams chicken stock                                      ┃
+   ┃ - 50 grams roasted peanuts                                     ┃
+   ┃ - 200 grams potatoes, chopped into large chunks                ┃
+   ┃ - 100 grams onion, chopped into large chunks                   ┃
+   ┃ ...                                                            ┃
+   ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+Next Steps
+----------
+
+To learn more about the ``MongoVectorDb`` and ``MongoDb`` classes,
+including their full parameter and method reference, see :ref:`agno`.
+
+To learn more about the {+avs+} index that Agno creates on your
+collection, see :ref:`avs-create-index`.

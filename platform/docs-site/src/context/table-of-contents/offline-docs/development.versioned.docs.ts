@@ -8991,7 +8991,15 @@ export const toc: L1TocItem[] = [
                   {
                     label: 'Agno',
                     contentSite: 'cloud-docs',
+                    collapsible: true,
                     url: '/docs/atlas/ai-integrations/agno',
+                    items: [
+                      {
+                        label: 'Get Started',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/ai-integrations/agno/get-started',
+                      },
+                    ],
                   },
                   {
                     label: 'Mem0',
