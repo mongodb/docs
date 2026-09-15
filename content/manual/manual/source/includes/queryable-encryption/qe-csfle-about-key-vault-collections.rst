@@ -9,9 +9,10 @@ are BSON documents that contain DEKs and have the following structure:
 
 You create your {+key-vault-long+} as you would a standard MongoDB
 collection. Your {+key-vault-long+} must have a
-:ref:`unique index <index-type-unique>` on the ``keyAltNames`` field. To
-check if the unique index exists, run the :dbcommand:`listIndexes`
-command against the {+key-vault-long+}:
+:ref:`unique index <index-type-unique>` on the ``keyAltNames`` field,
+meaning these values must be unique. To check if the index exists,
+run the :dbcommand:`listIndexes` command against the
+{+key-vault-long+}:
 
 .. io-code-block::
    :copyable: true
