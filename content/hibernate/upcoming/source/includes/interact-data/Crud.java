@@ -102,6 +102,24 @@ public class Crud {
         System.out.println("Number of movies updated: " + updateResult);
         // end-update-many-em
 
+        // Updates the "year" value of the document that has a "title" value of "The 3 Stooges" using an arithmetic expression in the SET clause
+        // start-update-expression-arithmetic
+        var updateResult = session.createMutationQuery(
+            "update Movie m set m.year = m.year + 1 where m.title = :title")
+            .setParameter("title", "The 3 Stooges")
+            .executeUpdate();
+        System.out.println("Number of movies updated: " + updateResult);
+        // end-update-expression-arithmetic
+
+        // Updates the "plot" value to match the "title" value of the document that has a "year" value of 1920 using a field reference in the SET clause
+        // start-update-expression-field-reference
+        var updateResult = session.createMutationQuery(
+            "update Movie m set m.plot = m.title where m.year = :year")
+            .setParameter("year", 1920)
+            .executeUpdate();
+        System.out.println("Number of movies updated: " + updateResult);
+        // end-update-expression-field-reference
+
         // Deletes a document that has the specified ObjectId value using a session
         // start-delete-one-session
         // Your ObjectId value might differ
