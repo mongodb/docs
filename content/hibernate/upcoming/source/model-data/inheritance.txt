@@ -1,0 +1,269 @@
+.. _hibernate-inheritance:
+
+===================================
+Map an Entity Inheritance Hierarchy
+===================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: subclass, superclass, discriminator, polymorphism, code example
+   :description: Learn how to map a Java class hierarchy to MongoDB collections by using single-table inheritance and mapped superclasses in the MongoDB Extension for Hibernate ORM.
+
+Overview
+--------
+
+In this guide, you can learn how to map a Java class hierarchy to
+a MongoDB collection by using the {+extension-short+}. When a Java
+subclass extends a parent class and inherits its fields, the classes
+form a hierarchy. {+orm+} provides inheritance strategies that
+determine how the extension stores each class in a hierarchy. The
+strategy that you choose determines which collections hold your data
+and the shape of the resulting documents.
+
+The {+extension-short+} supports the following inheritance strategies:
+
+- **Single-table inheritance:** The {+extension-short+} stores an
+  entire class hierarchy in one collection.
+
+- **Mapped superclasses:** A non-entity superclass contributes its
+  fields to each subclass without a collection of its own.
+
+The extension does not support the ``JOINED`` and ``TABLE_PER_CLASS``
+inheritance strategies. To learn more, see the
+:ref:`hibernate-inheritance-unsupported` section of this guide.
+
+.. _hibernate-inheritance-single-table:
+
+Single-Table Inheritance
+------------------------
+
+In the single-table inheritance strategy, the framework stores every
+class in a hierarchy within the same MongoDB collection. To use this
+strategy, apply the
+``@Inheritance(strategy = InheritanceType.SINGLE_TABLE)`` annotation
+to the root entity, the highest-level parent class in the hierarchy.
+
+Because the collection holds documents that map to multiple classes,
+the extension must record the class that each document maps to. The
+extension stores this information in a **discriminator** field when
+you save an object. When you query the collection, the extension reads
+the discriminator value to determine which class to instantiate.
+
+To specify the discriminator field, apply the ``@DiscriminatorColumn``
+annotation to the root entity. To set a class's discriminator value,
+apply the ``@DiscriminatorValue`` annotation to the class.
+
+The following example maps a ``Movie`` hierarchy to the ``movies``
+collection. The ``Actor`` and ``Director`` subclasses both inherit the
+``name`` field from ``Movie``, but each subclass also adds its own
+field. Each document stores either ``"actor"`` or ``"director"`` in
+the ``role`` discriminator field.
+
+.. code-block:: java
+   :copyable: false
+
+   @Entity
+   @Table(name = "movies")
+   @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+   @DiscriminatorColumn(name = "role")
+   public abstract class Movie {
+       @Id
+       @ObjectIdGenerator
+       private ObjectId id;
+       private String name;
+
+       // Getter and setter methods
+
+   }
+
+   @Entity
+   @DiscriminatorValue("actor")
+   public class Actor extends Movie {
+       private List<String> awards;
+
+       // Getter and setter methods
+
+   }
+
+   @Entity
+   @DiscriminatorValue("director")
+   public class Director extends Movie {
+       private String studio;
+
+       // Getter and setter methods
+
+   }
+
+When you call the ``persist()`` method on an ``Actor`` instance or a
+``Director`` instance, the extension inserts the corresponding
+document into the ``movies`` collection. Each document contains the
+fields that its own class defines and the discriminator value for that
+class:
+
+.. code-block:: json
+   :copyable: false
+
+   { "_id": ObjectId("..."), "role": "actor", "name": "Andrew Garfield", "awards": ["Golden Globe Award"] }
+   { "_id": ObjectId("..."), "role": "director", "name": "Greta Gerwig", "studio": "Warner Bros." }
+
+The preceding example uses a string discriminator, the default
+discriminator type. To change this type, set the ``discriminatorType``
+element of the ``@DiscriminatorColumn`` annotation. Set this element
+to ``DiscriminatorType.CHAR`` to store the discriminator as a
+character, or to ``DiscriminatorType.INTEGER`` to store the
+discriminator as an integer.
+
+.. important:: Character and Integer Discriminators Require an Explicit Value
+
+   Hibernate does not default a class's discriminator value to the
+   class name for character or integer discriminators. If you set
+   ``discriminatorType`` to ``DiscriminatorType.CHAR`` or
+   ``DiscriminatorType.INTEGER``, you must add a
+   ``@DiscriminatorValue`` annotation to the root entity and to each
+   subclass, even if you never directly instantiate the root entity.
+
+.. _hibernate-inheritance-queries:
+
+Query a Single-Table Hierarchy
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``movies`` collection contains documents for every class in the
+``Movie`` hierarchy. When you query one of these classes, the
+{+extension-short+} filters on the discriminator field so that
+the query returns documents for that class only. This filter depends
+on which class you query:
+
+- If you query a subclass, the extension matches documents whose
+  discriminator equals that subclass's discriminator value. Querying
+  ``Actor`` in the preceding example matches only documents in which
+  ``role`` is ``"actor"``.
+
+- If you query the root class, the extension does not add a filter. The
+  query reads every document in the collection and uses each document's
+  discriminator value to return an object of the correct class. Querying
+  ``Movie`` in the preceding example returns both the ``Actor`` and
+  ``Director`` documents. If the collection contains a document whose
+  discriminator value does not map to a class in the hierarchy, the
+  query throws a ``HibernateException``.
+
+To learn more about querying entities, see the
+:ref:`hibernate-specify-query` guide.
+
+.. _hibernate-inheritance-mapped-superclass:
+
+Mapped Superclasses
+-------------------
+
+A **mapped superclass** shares field mappings with its subclasses
+without becoming an entity itself. To create a mapped superclass, apply
+the ``@MappedSuperclass`` annotation to the superclass. Because a mapped
+superclass is not an entity, the {+extension-short+} does not create a
+collection for it, and you cannot query it directly.
+
+Each subclass that extends a mapped superclass maps to its own
+collection. In each document, the extension stores the inherited
+fields and the subclass's own fields as top-level fields. The
+extension does not nest the inherited fields or store them separately.
+
+The following example defines a ``MovieDetails`` mapped superclass that
+provides the identifier and name mappings for a ``Genre`` entity and a
+``Language`` entity:
+
+.. code-block:: java
+   :copyable: false
+
+   @MappedSuperclass
+   public abstract class MovieDetails {
+       @Id
+       @ObjectIdGenerator
+       private ObjectId id;
+       private String name;
+
+       // Getter and setter methods
+
+   }
+
+   @Entity
+   @Table(name = "genres")
+   public class Genre extends MovieDetails {
+       private String description;
+
+       // Getter and setter methods
+
+   }
+
+   @Entity
+   @Table(name = "languages")
+   public class Language extends MovieDetails {
+       private String code;
+
+       // Getter and setter methods
+
+   }
+
+In the preceding example, the ``@MappedSuperclass`` annotation lets
+``MovieDetails`` define the ``id`` and ``name`` mappings without
+becoming an entity. The ``@Entity`` and ``@Table`` annotations on
+``Genre`` and ``Language`` then map each subclass to its own
+collection.
+
+As a result, the extension does not create a collection for
+``MovieDetails``. Instead, the extension stores ``Genre`` documents in
+the ``genres`` collection and ``Language`` documents in the
+``languages`` collection. Each document contains the ``_id`` and
+``name`` fields that ``MovieDetails`` maps in addition to the fields
+that its corresponding class defines:
+
+.. code-block:: json
+   :copyable: false
+
+   { "_id": ObjectId("..."), "description": "Serious, narrative-driven stories.", "name": "Drama" }
+   { "_id": ObjectId("..."), "code": "en", "name": "English" }
+
+.. _hibernate-inheritance-unsupported:
+
+Unsupported Strategies
+----------------------
+
+The {+extension-short+} does not support the following {+orm+}
+inheritance strategies, which store a single class hierarchy across
+multiple tables:
+
+- ``InheritanceType.JOINED``: Stores each class in its own table
+  and joins the tables to reconstruct an instance
+
+- ``InheritanceType.TABLE_PER_CLASS``: Stores each concrete class
+  in its own table and combines the tables to query the hierarchy
+
+If you map your classes with any of the preceding strategies, the
+extension throws a ``FeatureNotSupportedException``.
+
+.. important:: Errors Occur at Startup
+
+   The {+extension-short+} validates the inheritance strategy when it
+   builds the ``SessionFactory`` instance. An application that uses an
+   unsupported strategy cannot start.
+
+Additional Information
+----------------------
+
+To learn more about creating entities and mapping embedded data, see
+the :ref:`hibernate-entities` guide.
+
+To learn how to use your entities to run database operations, see the
+:ref:`hibernate-crud` and :ref:`hibernate-specify-query` guides.
+
+To view a list of the features that the {+extension-short+} supports,
+see the :ref:`hibernate-feature-compat` page.
+
+To learn more about {+orm+} inheritance strategies, see `Inheritance
+<{+user-guide+}#entity-inheritance>`__ in the {+orm+} documentation.
