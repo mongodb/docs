@@ -22,17 +22,6 @@ pnpm dev
 
 This launches `scripts/select-project.mjs`, which prompts you to pick a project. It sets `DOCS_PROJECT`, then starts `next dev`.
 
-**Verifying pages are available:**  
-After the dev server starts, open:
-
-```
-platform/docs-site/generated-pages.html
-```
-
-This file is written at startup and lists all routes that were discovered from the filesystem, each as a clickable link to `http://localhost:3000/docs/<path>/`.
-
----
-
 ## Build Experience
 
 From **`platform/docs-site/`**:
@@ -51,12 +40,3 @@ platform/docs-site/build.log
 ```
 
 The log captures MDX compile warnings, the route table, and any errors — useful for debugging which pages failed to pre-render.
-
-**Verifying generated pages:**  
-After a successful build, check:
-
-```
-platform/docs-site/generated-pages.html
-```
-
-This file is created during `generateStaticParams` and lists every route that was statically pre-rendered. Spin up the built app with `pnpm start` and visit any of the listed routes to confirm pages render correctly.

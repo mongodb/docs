@@ -1,5 +1,3 @@
-import fs from 'fs/promises';
-import nodePath from 'path';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { loadMDX } from '@/mdx-utils/load-mdx';
 import { loadSiteMetadata } from '@/mdx-utils/load-site-metadata';
@@ -11,9 +9,8 @@ import { getChangelogData } from '@/services/db/openapi';
 import { getAllDocsetsWithVersionsCached } from '@/services/db/docsets';
 import { generateDocsStaticPaths } from '@/utils/generate-docs-paths';
 import { getIndexRedirectTarget } from '@/utils/index-redirect';
-import { toFullUrlPath, getBasePath } from '@/utils/base-path';
+import { toFullUrlPath } from '@/utils/base-path';
 import { getPageMetadata } from '@/utils/seo';
-import { toLowercasePublicPath } from '@/redirects/case-canonical';
 
 /** Route params are basePath-relative; re-prepend the docset-prefix segments so
  * downstream loaders get the full urlPath. `undefined` params (the basePath
@@ -83,27 +80,6 @@ export default async function MDXPage({ params }: PageProps) {
 
 export async function generateStaticParams() {
   const prefixedPaths = await generateDocsStaticPaths();
-
-  // Debug index for local development. Paths are basePath-relative, so prepend
-  // the basePath to build a clickable local URL.
-  const basePath = getBasePath();
-  const links = prefixedPaths
-    .map(({ path: p }) => {
-      const href = toLowercasePublicPath(`${basePath}/${p.join('/')}`);
-      return `  <li><a href="http://localhost:3000${href}">${p.join('/')}</a></li>`;
-    })
-    .join('\n');
-  const html = `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="UTF-8"><title>Generated Pages</title></head>
-<body>
-<h1>Generated Pages (${prefixedPaths.length})</h1>
-<ul>
-${links}
-</ul>
-</body>
-</html>`;
-  await fs.writeFile(nodePath.join(process.cwd(), 'generated-pages.html'), html, 'utf-8');
 
   return prefixedPaths;
 }
