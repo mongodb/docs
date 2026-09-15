@@ -27,12 +27,12 @@
         .. io-code-block::
            :copyable: true
         
-           .. input:: /includes/local-rag/code-snippets/python/local-rag-create-embeddings.py
+           .. input:: /code-examples/tested/python/pymongo/vector_search/local_rag/local_rag_embeddings.snippet.local-rag-create-embeddings.py
               :language: python
-        
-           .. output:: 
+              :category: usage example
 
-              Documents updated: 50
+           .. output:: /code-examples/tested/python/pymongo/vector_search/local_rag/local-rag-create-embeddings-output.txt
+              :language: console
 
    .. step:: Replace ``<model-path>``  with the path to your project directory.
     

@@ -122,6 +122,14 @@ dependencies:
 pip install -r requirements.txt
 ```
 
+The local model tests described in [Optional: local model
+tests](#optional-local-model-tests) need two additional packages that are not
+in `requirements.txt`. Install them only if you plan to run those tests:
+
+```
+pip install -r requirements-models.txt
+```
+
 ## To create a new code example
 
 1. Create a code example file
@@ -584,6 +592,28 @@ CONNECTION_STRING="<your-connection-string>"
 
 Replace the `<your-connection-string>` placeholder with the connection
 string from the deployment you created in the prior step.
+
+#### Optional: local model tests
+
+The local RAG tests in `tests_package/vector_search/test_local_rag.py` run a
+local embedding model and a local LLM. Together these download several
+gigabytes of model files on first run, so the tests are opt-in and skip by
+default. To run them, add the following to your `.env` file or export it in
+your shell:
+
+```
+RUN_LOCAL_MODEL_TESTS=true
+```
+
+These tests also need `sentence-transformers` and `gpt4all`, which are listed
+in `requirements-models.txt` rather than `requirements.txt`.
+`sentence-transformers` pulls in the full `torch` wheel stack, which is too
+large for the CI runner's disk, so CI installs only `requirements.txt`. Install
+the optional packages in your virtual environment:
+
+```
+pip install -r requirements-models.txt
+```
 
 ### Install Certificates for Atlas Connections
 

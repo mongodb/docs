@@ -164,6 +164,11 @@ python3 -m venv ./venv
 ./venv/bin/pip install -r requirements.txt
 ```
 
+`requirements-models.txt` holds the optional `sentence-transformers` and
+`gpt4all` packages used only by the opt-in local model tests
+(`RUN_LOCAL_MODEL_TESTS`). CI does not install them, so any example that uses
+them must import them inside a function rather than at module scope.
+
 ## Snippet Output
 
 `node snip.js` extracts to: `content/code-examples/tested/python/pymongo/{topic}/{file}.snippet.{name}.py`
