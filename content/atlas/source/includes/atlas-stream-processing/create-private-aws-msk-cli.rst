@@ -92,8 +92,10 @@ the {+atlas-cli+}, follow these steps:
            - String representing the Amazon Resource Number of your {+aws-msk+} cluster.
 
 	 * - ``authenticationScheme``
-	   - Must be set to ``"IAM"``
-	     
+	   - Must be set to one of ``"IAM"``, ``"SASL_SCRAM"``, or
+	     ``"TLS"``, depending on the authentication mechanism you
+	     plan to use for the connection.
+
       You can find the |arn| in your {+aws-msk+} cluster's details.
 
       The following example command requests a connection to your

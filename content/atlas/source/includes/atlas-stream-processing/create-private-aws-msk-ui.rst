@@ -29,7 +29,13 @@ Create the Private Endpoint
 
       #. Click :guilabel:`Next, enter service details`.
 
-   .. step:: Provide your :aws:`AWS MSK cluster ARN </AmazonECS/latest/developerguide/ecs-account-settings.html#ecs-resource-ids>`.
+   .. step:: Provide your service details.
+
+      a. In the :guilabel:`Authentication Scheme` select, choose the
+         option that you'd like to use to authenticate with your
+         {+aws-msk+} cluster.
+
+      #. Provide your :aws:`AWS MSK cluster ARN </AmazonECS/latest/developerguide/ecs-account-settings.html#ecs-resource-ids>`.
 
    .. step:: Click :guilabel:`Next, generate endpoint ID`.
              
