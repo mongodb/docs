@@ -412,6 +412,81 @@ public class Query {
         }
         // end-retrieve-array-em
 
+        // Projects the age of the "Hairspray" movies by using a session
+        // start-arithmetic-projection-session
+        var arithmeticResult = session.createQuery(
+                        "select title, :currentYear - year as age from Movie where title = :title",
+                        Object[].class)
+                .setParameter("currentYear", 2026)
+                .setParameter("title", "Hairspray")
+                .getResultList();
+        for (var row : arithmeticResult) {
+            System.out.println("Title: " + row[0] + ", Age: " + row[1]);
+        }
+        // end-arithmetic-projection-session
+
+        // Projects the age of the "Hairspray" movies by using an entity manager
+        // start-arithmetic-projection-em
+        var arithmeticResult = entityManager.createQuery(
+                        "select m.title, :currentYear - m.year as age from Movie m where m.title = :title",
+                        Object[].class)
+                .setParameter("currentYear", 2026)
+                .setParameter("title", "Hairspray")
+                .getResultList();
+        for (var row : arithmeticResult) {
+            System.out.println("Title: " + row[0] + ", Age: " + row[1]);
+        }
+        // end-arithmetic-projection-em
+
+        // Retrieves "Hairspray" movies released less than 20 years before 2026 using a session
+        // start-computed-filter-session
+        var computedFilterResult = session.createQuery(
+                        "from Movie where title = :title and :currentYear - year < 20", Movie.class)
+                .setParameter("title", "Hairspray")
+                .setParameter("currentYear", 2026)
+                .getResultList();
+        for (var m : computedFilterResult) {
+            System.out.println("Title: " + m.getTitle() + ", Year: " + m.getYear());
+        }
+        // end-computed-filter-session
+
+        // Retrieves "Hairspray" movies released less than 20 years before 2026 using an entity manager
+        // start-computed-filter-em
+        var computedFilterResult = entityManager.createQuery(
+                        "select m from Movie m where m.title = :title and :currentYear - m.year < 20",
+                        Movie.class)
+                .setParameter("title", "Hairspray")
+                .setParameter("currentYear", 2026)
+                .getResultList();
+        for (var m : computedFilterResult) {
+            System.out.println("Title: " + m.getTitle() + ", Year: " + m.getYear());
+        }
+        // end-computed-filter-em
+
+        // Projects whether each "Hairspray" movie was released after 2000 using a session
+        // start-comparison-projection-session
+        var comparisonResult = session.createQuery(
+                        "select title, year > 2000 as isRecent from Movie where title = :title",
+                        Object[].class)
+                .setParameter("title", "Hairspray")
+                .getResultList();
+        for (var row : comparisonResult) {
+            System.out.println("Title: " + row[0] + ", Recent: " + row[1]);
+        }
+        // end-comparison-projection-session
+
+        // Projects whether each "Hairspray" movie was released after 2000 using an entity manager
+        // start-comparison-projection-em
+        var comparisonResult = entityManager.createQuery(
+                        "select m.title, m.year > 2000 as isRecent from Movie m where m.title = :title",
+                        Object[].class)
+                .setParameter("title", "Hairspray")
+                .getResultList();
+        for (var row : comparisonResult) {
+            System.out.println("Title: " + row[0] + ", Recent: " + row[1]);
+        }
+        // end-comparison-projection-em
+
         entityManager.getTransaction().commit();
         entityManager.close(); 
 

@@ -224,6 +224,254 @@ To match ``null`` and missing values by using a predicate instead of a
 comparison operator, see the :ref:`hibernate-query-is-null` and
 :ref:`hibernate-query-is-not-null` sections of this guide.
 
+.. _hibernate-query-expressions:
+
+Use Computed Expressions
+------------------------
+
+You can compute a value from field values, literals, and query
+parameters. You can then return that value in a ``SELECT`` clause or
+compare it in a ``WHERE`` clause. The {+extension-short+}
+translates a computed expression to a MongoDB aggregation
+expression.
+
+The {+extension-short+} supports the following arithmetic operators
+in computed expressions:
+
+- ``+``: Addition, which translates to ``$add``
+- ``-``: Subtraction, which translates to ``$subtract``
+- ``*``: Multiplication, which translates to ``$multiply``
+- ``/``: Division, which translates to ``$divide``
+- Unary ``-`` and ``+``
+
+.. note:: Division Always Returns an Integer
+
+   The {+orm+} translates division in a MongoDB aggregation pipeline to 
+   the MongoDB ``$divide`` operator, which always returns a double. The
+   {+extension-short+} truncates the result by wrapping ``$divide`` in
+   ``$toInt``, or ``$toLong`` if the result type is ``BIGINT``. This
+   behavior applies to the ``/`` operator and the
+   Criteria API ``quot()`` method, regardless of whether you enable the
+   {+orm+} ``PORTABLE_INTEGER_DIVISION`` setting.
+
+   The ``div`` operator is not supported.
+
+You can also use the comparison operators described in the
+:ref:`hibernate-query-comparison` section within computed
+expressions.
+
+.. important:: Operand Limitations
+
+   An operand of a computed expression must be a field reference, a
+   literal, or a query parameter. The {+extension-short+} does not
+   support function calls as operands. 
+   
+   Because {+orm+} rewrites the HQL ``%`` operator to a ``mod()`` function call, 
+   ``%`` is also unsupported. To perform a modulo operation, use the Criteria API
+   ``CriteriaBuilder.mod()`` method, which translates to the MongoDB
+   ``$mod`` operator. 
+   
+   The Criteria API ``CriteriaBuilder.quot()``
+   method behaves identically to the ``/`` operator.
+
+.. _hibernate-query-arithmetic:
+
+Perform Arithmetic in a Projection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you select a computed expression, the {+extension-short+} adds
+the computed value to the ``$project`` stage. If you assign the
+expression an alias by using the ``AS`` keyword, the
+{+extension-short+} uses the alias as the projection key. Otherwise,
+it generates a key in the form ``#c_<n>``.
+
+The following example computes the age of each ``"Hairspray"`` movie
+in the ``sample_mflix.movies`` collection by subtracting the ``year``
+field value from a query parameter:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-arithmetic-projection-session
+            :end-before: end-arithmetic-projection-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Hairspray, Age: 38
+            Title: Hairspray, Age: 19
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-arithmetic-projection-em
+            :end-before: end-arithmetic-projection-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Hairspray, Age: 38
+            Title: Hairspray, Age: 19
+
+The {+extension-short+} translates the preceding computed expression
+to the following ``$project`` stage:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$project": {
+       "title": true,
+       "age": { "$subtract": [ 2026, "$year" ] },
+       "_id": 0
+     }
+   }
+
+.. _hibernate-query-computed-filter:
+
+Filter on a Computed Expression
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the ``WHERE`` clause, you can compare a computed expression to a value
+or compare two field values to each other. When either
+side of a comparison is not a direct field reference or value, the
+{+extension-short+} wraps the comparison in the MongoDB
+:manual:`$expr </reference/operator/query/expr>` operator. Comparisons
+between a field and a value continue to use the compact
+``{ field: { operator: value } }`` form.
+
+The following example retrieves ``"Hairspray"`` movies released fewer
+than 20 years before 2026:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-computed-filter-session
+            :end-before: end-computed-filter-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Hairspray, Year: 2007
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-computed-filter-em
+            :end-before: end-computed-filter-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Hairspray, Year: 2007
+
+The {+extension-short+} translates the preceding query to the
+following ``$match`` stage, in which the ``title`` comparison uses
+the compact form and the computed comparison uses ``$expr``:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$match": {
+       "$and": [
+         { "title": { "$eq": "Hairspray" } },
+         { "$expr": { "$lt": [ { "$subtract": [ 2026, "$year" ] }, 20 ] } }
+       ]
+     }
+   }
+
+.. _hibernate-query-comparison-projection:
+
+Project a Comparison Result
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use a comparison in a ``SELECT`` statement to return its boolean result 
+instead of using the comparison as a filter.
+
+The following example returns the title of each ``"Hairspray"`` movie
+and whether the movie was released after 2000:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-comparison-projection-session
+            :end-before: end-comparison-projection-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Hairspray, Recent: false
+            Title: Hairspray, Recent: true
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-comparison-projection-em
+            :end-before: end-comparison-projection-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Hairspray, Recent: false
+            Title: Hairspray, Recent: true
+
+The {+extension-short+} translates the preceding comparison to the
+following ``$project`` stage:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$project": {
+       "title": true,
+       "isRecent": { "$gt": [ "$year", 2000 ] },
+       "_id": 0
+     }
+   }
+
 .. _hibernate-predicate-comparison-operators:
 
 Use Predicate Operators
