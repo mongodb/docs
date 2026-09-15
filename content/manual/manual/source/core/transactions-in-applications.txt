@@ -1,13 +1,13 @@
 .. meta::
    :keywords: code example, node.js, compass
-   :description: Explore how to handle transaction errors in applications using MongoDB drivers, including retry logic for transient and unknown commit errors.
+   :description: Explore how to handle transaction errors in applications using MongoDB drivers, including retry logic for transient and unknown commit errors, with the Callback and Core APIs.
 
 
 .. _transactions-drivers:
 
-===========
-Drivers API
-===========
+========================================================
+Handle Transactions in Applications with the Drivers API
+========================================================
 
 .. default-domain:: mongodb
 
@@ -17,488 +17,648 @@ Drivers API
    :depth: 1
    :class: singlecol
 
-Callback API vs Core API
-------------------------
 
-The :ref:`txn-callback-api`:
+.. composable-tutorial::
+   :options: language-no-dependencies
+   :defaults: nodejs
 
-- Starts a transaction, executes the specified operations, and commits
-  (or aborts on error).
+   Callback API vs Core API
+   ------------------------
 
-- Automatically incorporates error handling logic for
-  :ref:`transient-transaction-error` and
-  :ref:`unknown-transaction-commit-result`.
+   The :ref:`txn-callback-api`:
 
-The :ref:`txn-core-api`:
+   - Starts a transaction, executes the specified operations, and commits
+     (or aborts on error).
 
-- Requires explicit call to start the transaction and commit the
-  transaction.
+   - Automatically incorporates error handling logic for
+     :ref:`transient-transaction-error` and
+     :ref:`unknown-transaction-commit-result`.
 
-- Does not incorporate error handling logic for
-  :ref:`transient-transaction-error` and
-  :ref:`unknown-transaction-commit-result`, and instead provides the
-  flexibility to incorporate custom error handling for these errors.
+   The :ref:`txn-core-api`:
 
-.. _txn-callback-api:
+   - Requires explicit call to start the transaction and commit the
+     transaction.
 
-Callback API
-------------
+   - Does not incorporate error handling logic for
+     :ref:`transient-transaction-error` and
+     :ref:`unknown-transaction-commit-result`, and instead provides the
+     flexibility to incorporate custom error handling for these errors.
 
-The callback API incorporates logic:
+   .. _txn-callback-api:
 
-- To retry the transaction as a whole if the transaction encounters a
-  :ref:`transient-transaction-error` error.
+   Callback API
+   ------------
 
-- To retry the commit operation if the commit encounters an
-  :ref:`unknown-transaction-commit-result` error.
+   The callback API incorporates logic:
 
-Starting in MongoDB 6.2, the server does not retry the transaction if
-it receives a :ref:`transactionTooLargeForCache-error` error.
+   - To retry the transaction as a whole if the transaction encounters a
+     :ref:`transient-transaction-error` error.
 
-Example
-~~~~~~~
+   - To retry the commit operation if the commit encounters an
+     :ref:`unknown-transaction-commit-result` error.
 
-----------
+   Starting in MongoDB 6.2, the server does not retry the transaction if
+   it receives a :ref:`transactionTooLargeForCache-error` error.
 
-.. |arrow| unicode:: U+27A4
+   Example
+   ~~~~~~~
 
-|arrow| Use the **Select your language** drop-down menu in the
-upper-right to set the language of the examples on this page.
 
-----------
+   .. selected-content::
+      :selections: python
 
-.. tabs-selector:: drivers
+      .. include:: /includes/extracts/transactions-example-note.rst
 
-.. tabs-drivers::
+      The example uses the new callback API for working with
+      transactions, which starts a transaction, executes the
+      specified operations, and commits (or aborts on error). The
+      new callback API incorporates retry logic for
+      :ref:`transient-transaction-error` or
+      :ref:`unknown-transaction-commit-result` commit errors.
 
-   tabs:
+      .. literalinclude:: /driver-examples/test_examples.py
+         :language: python
+         :dedent: 8
+         :start-after: Start Transactions withTxn API Example 1
+         :end-before: End Transactions withTxn API Example 1
 
-      - id: python
-        content: |
+   .. selected-content::
+      :selections: java-sync
 
-            .. include:: /includes/extracts/transactions-example-note.rst
+      .. include:: /includes/extracts/transactions-example-note.rst
 
-            The example uses the new callback API for working with
-            transactions, which starts a transaction, executes the
-            specified operations, and commits (or aborts on error). The
-            new callback API incorporates retry logic for
-            :ref:`transient-transaction-error` or
-            :ref:`unknown-transaction-commit-result` commit errors.
+      The example uses the new callback API for working with
+      transactions, which starts a transaction, executes the
+      specified operations, and commits (or aborts on error). The
+      new callback API incorporates retry logic for
+      :ref:`transient-transaction-error` or
+      :ref:`unknown-transaction-commit-result` commit errors.
 
-            .. literalinclude:: /driver-examples/test_examples.py
-               :language: python
-               :dedent: 8
-               :start-after: Start Transactions withTxn API Example 1
-               :end-before: End Transactions withTxn API Example 1
+      .. code-block:: java
 
-      - id: java-sync
-        content: |
+         /*
+         For a replica set, include the replica set name and a seedlist of the members in the URI string; e.g.
+         String uri = "mongodb://mongodb0.example.com:27017,mongodb1.example.com:27017/admin?replicaSet=myRepl";
+         For a sharded cluster, connect to the mongos instances; e.g.
+         String uri = "mongodb://mongos0.example.com:27017,mongos1.example.com:27017:27017/admin";
+         */
 
-            .. include:: /includes/extracts/transactions-example-note.rst
+         final MongoClient client = MongoClients.create(uri);
 
-            The example uses the new callback API for working with
-            transactions, which starts a transaction, executes the
-            specified operations, and commits (or aborts on error). The
-            new callback API incorporates retry logic for
-            :ref:`transient-transaction-error` or
-            :ref:`unknown-transaction-commit-result` commit errors.
+         /*
+            Create collections.
+         */
 
-            .. code-block:: java
+         client.getDatabase("mydb1").getCollection("foo")
+               .withWriteConcern(WriteConcern.MAJORITY).insertOne( new Document("abc", 0));
+         client.getDatabase("mydb2").getCollection("bar")
+               .withWriteConcern(WriteConcern.MAJORITY).insertOne( new Document("xyz", 0));
+
+         /* Step 1: Start a client session. */
+
+         final ClientSession clientSession = client.startSession();
+
+         /* Step 2: Optional. Define options to use for the transaction. */
+
+         TransactionOptions txnOptions = TransactionOptions.builder()
+               .readPreference(ReadPreference.primary())
+               .readConcern(ReadConcern.LOCAL)
+               .writeConcern(WriteConcern.MAJORITY)
+               .build();
+
+         /* Step 3: Define the sequence of operations to perform inside the transactions. */
+
+         TransactionBody txnBody = new TransactionBody<String>() {
+            public String execute() {
+               MongoCollection<Document> coll1 = client.getDatabase("mydb1").getCollection("foo");
+               MongoCollection<Document> coll2 = client.getDatabase("mydb2").getCollection("bar");
 
                /*
-               For a replica set, include the replica set name and a seedlist of the members in the URI string; e.g.
-               String uri = "mongodb://mongodb0.example.com:27017,mongodb1.example.com:27017/admin?replicaSet=myRepl";
-               For a sharded cluster, connect to the mongos instances; e.g.
-               String uri = "mongodb://mongos0.example.com:27017,mongos1.example.com:27017:27017/admin";
-               */
+                  Important:: You must pass the session to the operations..
+                  */
 
-               final MongoClient client = MongoClients.create(uri);
+               coll1.insertOne(clientSession, new Document("abc", 1));
+               coll2.insertOne(clientSession, new Document("xyz", 999));
 
-               /*
-                  Create collections.
-               */
+               return "Inserted into collections in different databases";
+            }
+         };
+         try {
+            /* 
+               Step 4: Use .withTransaction() to start a transaction, 
+               execute the callback, and commit (or abort on error).
+            */
+                           
+            clientSession.withTransaction(txnBody, txnOptions);
+         } catch (RuntimeException e) {
+            // some error handling
+         } finally {
+            clientSession.close();
+         }
 
-               client.getDatabase("mydb1").getCollection("foo")
-                     .withWriteConcern(WriteConcern.MAJORITY).insertOne( new Document("abc", 0));
-               client.getDatabase("mydb2").getCollection("bar")
-                     .withWriteConcern(WriteConcern.MAJORITY).insertOne( new Document("xyz", 0));
+   .. selected-content::
+      :selections: nodejs
 
-               /* Step 1: Start a client session. */
+      .. include:: /includes/extracts/transactions-example-note.rst
 
-               final ClientSession clientSession = client.startSession();
+      The example uses the new callback API for working with
+      transactions, which starts a transaction, executes the
+      specified operations, and commits (or aborts on error). The
+      new callback API incorporates retry logic for
+      :ref:`transient-transaction-error` or
+      :ref:`unknown-transaction-commit-result` commit errors.
 
-               /* Step 2: Optional. Define options to use for the transaction. */
+      .. literalinclude:: /driver-examples/node_transactions.js
+         :language: javascript
+         :dedent: 4
+         :start-after: Start Transactions withTxn API Example 1
+         :end-before: End Transactions withTxn API Example 1
 
-               TransactionOptions txnOptions = TransactionOptions.builder()
+   .. selected-content::
+      :selections: php
+
+      .. include:: /includes/extracts/transactions-example-note.rst
+
+      The example uses the new callback API for working with
+      transactions, which starts a transaction, executes the
+      specified operations, and commits (or aborts on error). The
+      new callback API incorporates retry logic for
+      :ref:`transient-transaction-error` or
+      :ref:`unknown-transaction-commit-result` commit errors.
+
+      .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
+         :language: php
+         :dedent: 8
+         :start-after: Start Transactions withTxn API Example 1
+         :end-before: End Transactions withTxn API Example 1
+
+   .. selected-content::
+      :selections: csharp
+
+      .. include:: /includes/extracts/transactions-example-note.rst
+
+      The example uses the new callback API for working with
+      transactions, which starts a transaction, executes the
+      specified operations, and commits (or aborts on error). The
+      new callback API incorporates retry logic for
+      :ref:`transient-transaction-error` or
+      :ref:`unknown-transaction-commit-result` commit errors.
+
+      .. literalinclude:: /driver-examples/withTxnExample1.cs
+         :language: csharp
+         :dedent: 12
+         :start-after: Start Transactions withTxn API Example 1
+         :end-before: End Transactions withTxn API Example 1
+
+   .. selected-content::
+      :selections: c
+
+      .. include:: /includes/extracts/transactions-example-note.rst
+
+      The example uses the new callback API for working with
+      transactions, which starts a transaction, executes the
+      specified operations, and commits (or aborts on error). The
+      new callback API incorporates retry logic for
+      :ref:`transient-transaction-error` or
+      :ref:`unknown-transaction-commit-result` commit errors.
+
+      .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+         :language: c
+         :start-after: Start Transactions withTxn API Example 1
+         :end-before: End Transactions withTxn API Example 1
+
+   .. selected-content::
+      :selections: cpp
+
+      .. include:: /includes/extracts/transactions-example-note.rst
+
+      The example uses the new callback API for working with
+      transactions, which starts a transaction, executes the
+      specified operations, and commits (or aborts on error). The
+      new callback API incorporates retry logic for
+      :ref:`transient-transaction-error` or
+      :ref:`unknown-transaction-commit-result` commit errors.
+
+      .. literalinclude:: /driver-examples/cpp-with-transaction.cpp
+         :language: cpp
+         :dedent: 4
+         :start-after: Start Transactions withTxn API Example 1
+         :end-before: End Transactions withTxn API Example 1
+
+   .. selected-content::
+      :selections: motor
+
+      .. include:: /includes/extracts/transactions-example-note.rst
+
+      The example uses the new callback API for working with
+      transactions, which starts a transaction, executes the
+      specified operations, and commits (or aborts on error). The
+      new callback API incorporates retry logic for
+      :ref:`transient-transaction-error` or
+      :ref:`unknown-transaction-commit-result` commit errors.
+
+      .. literalinclude:: /driver-examples/test_examples_motor.py
+         :language: python
+         :dedent: 8
+         :start-after: Start Transactions withTxn API Example 1
+         :end-before: End Transactions withTxn API Example 1
+
+   .. selected-content::
+      :selections: ruby
+
+      .. include:: /includes/extracts/transactions-example-note.rst
+
+      The example uses the new callback API for working with
+      transactions, which starts a transaction, executes the
+      specified operations, and commits (or aborts on error). The
+      new callback API incorporates retry logic for
+      :ref:`transient-transaction-error` or
+      :ref:`unknown-transaction-commit-result` commit errors.
+
+
+      .. literalinclude:: /driver-examples/with_transactions_examples_spec.rb
+         :language: ruby
+         :dedent: 4
+         :start-after: Start Transactions withTxn API Example 1
+         :end-before: End Transactions withTxn API Example 1
+
+   .. selected-content::
+      :selections: go
+
+      The example uses the new callback API for working with
+      transactions, which starts a transaction, executes the
+      specified operations, and commits (or aborts on error). The
+      new callback API incorporates retry logic for
+      :ref:`transient-transaction-error` or
+      :ref:`unknown-transaction-commit-result` commit errors.
+
+      .. include:: /includes/extracts/transactions-example-note.rst
+
+      .. literalinclude:: /driver-examples/go_examples.go
+         :language: go
+         :start-after: Start Transactions withTxn API Example 1
+         :end-before: End Transactions withTxn API Example 1
+
+   .. selected-content::
+      :selections: scala
+
+      .. note::
+
+         For the Scala driver, see the :ref:`txn-core-api` usage example instead.
+
+
+   .. _txn-core-api:
+
+   Core API
+   --------
+
+   The core transaction API does not incorporate retry logic for errors
+   labeled:
+
+   - :ref:`transient-transaction-error`. If an operation in a transaction
+     returns an error labeled :ref:`transient-transaction-error`, the
+     transaction as a whole can be retried.
+      
+     To handle :ref:`transient-transaction-error`, applications should
+     explicitly incorporate retry logic for the error.
+
+   - :ref:`unknown-transaction-commit-result`. If the commit returns an
+     error labeled :ref:`unknown-transaction-commit-result`, the commit
+     can be retried. 
+
+     To handle :ref:`unknown-transaction-commit-result`,
+     applications should explicitly incorporate retry logic for the error.
+
+   .. _txn-core-api-retry:
+
+   Example
+   ~~~~~~~
+
+   The following example incorporates logic to retry the transaction for
+   transient errors and retry the commit for unknown commit error:
+
+   .. selected-content::
+      :selections: python
+
+      .. important::
+
+         To associate read and write operations with a transaction, you **must**
+         pass the session to each operation in the transaction.
+
+
+      .. literalinclude:: /driver-examples/test_examples.py
+         :language: python
+         :dedent: 8
+         :start-after: Start Transactions Retry Example 3
+         :end-before: End Transactions Retry Example 3
+
+   .. selected-content::
+      :selections: java-sync
+
+      .. important::
+
+         To associate read and write operations with a transaction, you **must**
+         pass the session to each operation in the transaction.
+
+      .. code-block:: java
+
+         void runTransactionWithRetry(Runnable transactional) {
+             while (true) {
+                 try {
+                     transactional.run();
+                     break;
+                 } catch (MongoException e) {
+                     System.out.println("Transaction aborted. Caught exception during transaction.");
+
+                     if (e.hasErrorLabel(MongoException.TRANSIENT_TRANSACTION_ERROR_LABEL)) {
+                         System.out.println("TransientTransactionError, aborting transaction and retrying ...");
+                         continue;
+                     } else {
+                         throw e;
+                     }
+                 }
+             }
+         }
+
+         void commitWithRetry(ClientSession clientSession) {
+             while (true) {
+                 try {
+                     clientSession.commitTransaction();
+                     System.out.println("Transaction committed");
+                     break;
+                 } catch (MongoException e) {
+                     // can retry commit
+                     if (e.hasErrorLabel(MongoException.UNKNOWN_TRANSACTION_COMMIT_RESULT_LABEL)) {
+                         System.out.println("UnknownTransactionCommitResult, retrying commit operation ...");
+                         continue;
+                     } else {
+                         System.out.println("Exception during commit ...");
+                         throw e;
+                     }
+                 }
+             }
+         }
+         
+         void updateEmployeeInfo() {
+
+             MongoCollection<Document> employeesCollection = client.getDatabase("hr").getCollection("employees");
+             MongoCollection<Document> eventsCollection = client.getDatabase("reporting").getCollection("events");
+
+             TransactionOptions txnOptions = TransactionOptions.builder()
                      .readPreference(ReadPreference.primary())
-                     .readConcern(ReadConcern.LOCAL)
+                     .readConcern(ReadConcern.MAJORITY)
                      .writeConcern(WriteConcern.MAJORITY)
                      .build();
 
-               /* Step 3: Define the sequence of operations to perform inside the transactions. */
+             try (ClientSession clientSession = client.startSession()) {
+                 clientSession.startTransaction(txnOptions);
 
-               TransactionBody txnBody = new TransactionBody<String>() {
-                  public String execute() {
-                     MongoCollection<Document> coll1 = client.getDatabase("mydb1").getCollection("foo");
-                     MongoCollection<Document> coll2 = client.getDatabase("mydb2").getCollection("bar");
+                 employeesCollection.updateOne(clientSession,
+                         Filters.eq("employee", 3),
+                         Updates.set("status", "Inactive"));
+                 eventsCollection.insertOne(clientSession,
+                         new Document("employee", 3).append("status", new Document("new", "Inactive").append("old", "Active")));
 
-                     /*
-                        Important:: You must pass the session to the operations..
-                        */
+                 commitWithRetry(clientSession);
+             }
+         }
+         
+         
+         void updateEmployeeInfoWithRetry() {
+             runTransactionWithRetry(this::updateEmployeeInfo);
+         }
 
-                     coll1.insertOne(clientSession, new Document("abc", 1));
-                     coll2.insertOne(clientSession, new Document("xyz", 999));
+   .. selected-content::
+      :selections: nodejs
 
-                     return "Inserted into collections in different databases";
-                  }
-               };
-               try {
-                  /* 
-                     Step 4: Use .withTransaction() to start a transaction, 
-                     execute the callback, and commit (or abort on error).
-                  */
-                                 
-                  clientSession.withTransaction(txnBody, txnOptions);
-               } catch (RuntimeException e) {
-                  // some error handling
-               } finally {
-                  clientSession.close();
-               }
+      .. important::
 
-      - id: nodejs
-        content: |
+         To associate read and write operations with a transaction, you **must**
+         pass the session to each operation in the transaction.
 
-            .. include:: /includes/extracts/transactions-example-note.rst
+      .. literalinclude:: /driver-examples/node_transactions.js
+         :language: javascript
+         :dedent: 6
+         :start-after: Start Transactions Retry Example 3
+         :end-before: End Transactions Retry Example 3
 
-            The example uses the new callback API for working with
-            transactions, which starts a transaction, executes the
-            specified operations, and commits (or aborts on error). The
-            new callback API incorporates retry logic for
-            :ref:`transient-transaction-error` or
-            :ref:`unknown-transaction-commit-result` commit errors.
+   .. selected-content::
+      :selections: scala
 
-            .. literalinclude:: /driver-examples/node_transactions.js
-               :language: javascript
-               :dedent: 4
-               :start-after: Start Transactions withTxn API Example 1
-               :end-before: End Transactions withTxn API Example 1
+      .. important::
 
-      - id: php
-        content: |
+         To associate read and write operations with a transaction, you **must**
+         pass the session to each operation in the transaction.
 
-            .. include:: /includes/extracts/transactions-example-note.rst
+      .. literalinclude:: /driver-examples/DocumentationTransactionsExampleSpec.scala
+         :language: scala
 
-            The example uses the new callback API for working with
-            transactions, which starts a transaction, executes the
-            specified operations, and commits (or aborts on error). The
-            new callback API incorporates retry logic for
-            :ref:`transient-transaction-error` or
-            :ref:`unknown-transaction-commit-result` commit errors.
+   .. selected-content::
+      :selections: ruby
 
-            .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
-               :language: php
-               :dedent: 8
-               :start-after: Start Transactions withTxn API Example 1
-               :end-before: End Transactions withTxn API Example 1
+      .. important::
 
-      - id: csharp
-        content: |
+         To associate read and write operations with a transaction, you **must**
+         pass the session to each operation in the transaction.
 
-            .. include:: /includes/extracts/transactions-example-note.rst
+      .. literalinclude:: /driver-examples/transactions_examples_spec.rb
+         :language: ruby
+         :dedent: 6
+         :start-after: Start Transactions Retry Example 3
+         :end-before: End Transactions Retry Example 3
 
-            The example uses the new callback API for working with
-            transactions, which starts a transaction, executes the
-            specified operations, and commits (or aborts on error). The
-            new callback API incorporates retry logic for
-            :ref:`transient-transaction-error` or
-            :ref:`unknown-transaction-commit-result` commit errors.
+   .. selected-content::
+      :selections: php
 
-            .. literalinclude:: /driver-examples/withTxnExample1.cs
-               :language: csharp
-               :dedent: 12
-               :start-after: Start Transactions withTxn API Example 1
-               :end-before: End Transactions withTxn API Example 1
+      .. important::
 
+         To associate read and write operations with a transaction, you **must**
+         pass the session to each operation in the transaction.
 
-      - id: c
-        content: |
+      .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
+         :language: php
+         :dedent: 4
+         :start-after: Start Transactions Retry Example 3
+         :end-before: End Transactions Retry Example 3
 
-            .. include:: /includes/extracts/transactions-example-note.rst
+   .. selected-content::
+      :selections: csharp
 
-            The example uses the new callback API for working with
-            transactions, which starts a transaction, executes the
-            specified operations, and commits (or aborts on error). The
-            new callback API incorporates retry logic for
-            :ref:`transient-transaction-error` or
-            :ref:`unknown-transaction-commit-result` commit errors.
+      .. literalinclude:: /driver-examples/TransactionsRetryExample3.cs
+         :language: csharp
+         :dedent: 8
+         :start-after: Start Transactions Retry Example 3
+         :end-before: End Transactions Retry Example 3
 
-            .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
-               :language: c
-               :start-after: Start Transactions withTxn API Example 1
-               :end-before: End Transactions withTxn API Example 1
+   .. selected-content::
+      :selections: c
 
-      - id: cpp
-        content: |
+      .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c 
+         :language: c
+         :start-after: Start Transactions Retry Example 3
+         :end-before: End Transactions Retry Example 3
 
-            .. include:: /includes/extracts/transactions-example-note.rst
+   .. selected-content::
+      :selections: cpp
 
-            The example uses the new callback API for working with
-            transactions, which starts a transaction, executes the
-            specified operations, and commits (or aborts on error). The
-            new callback API incorporates retry logic for
-            :ref:`transient-transaction-error` or
-            :ref:`unknown-transaction-commit-result` commit errors.
+      .. literalinclude:: /driver-examples/cpp-transactions.cpp
+         :language: cpp
+         :dedent: 8
+         :start-after: Start Transactions Retry Example 3
+         :end-before: End Transactions Retry Example 3
 
-            .. literalinclude:: /driver-examples/cpp-with-transaction.cpp
-               :language: cpp
-               :dedent: 4
-               :start-after: Start Transactions withTxn API Example 1
-               :end-before: End Transactions withTxn API Example 1
+   .. selected-content::
+      :selections: go
 
-      - id: motor
-        content: |
+      .. literalinclude:: /driver-examples/go_examples.go
+         :language: go
+         :start-after: Start Transactions Retry Example 3
+         :end-before: End Transactions Retry Example 3
+
+   .. selected-content::
+      :selections: motor
+
+      .. note::
+
+         For Motor, see the :ref:`txn-callback-api` instead.
+
+   Driver Versions
+   ---------------
+
+   .. include:: /includes/list-4.2-drivers.rst
+
+   .. _transactions-retry:
+
+   Transaction Error Handling
+   ---------------------------
+
+   Regardless of the database system, whether MongoDB or relational
+   databases, applications should take measures to handle errors during
+   transaction commits and incorporate retry logic for transactions.
+
+   .. _transient-transaction-error:
+
+   ``TransientTransactionError``
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   The *individual* write operations inside the transaction are not
+   retryable, regardless of the value of :urioption:`retryWrites`. If an
+   operation encounters an error `associated with the label
+   <https://github.com/mongodb/specifications/blob/master/source/transactions/transactions.rst#error-labels>`_ 
+   ``"TransientTransactionError"``, such as when the primary steps down,
+   the transaction as a whole can be retried.
+
+   - The callback API incorporates retry logic for
+     ``"TransientTransactionError"``.
+
+   - The core transaction API does not incorporate retry logic
+     for ``"TransientTransactionError"``. To handle
+     ``"TransientTransactionError"``, applications should explicitly
+     incorporate retry logic for the error. To view an example that incorporates 
+     retry logic for transient errors, see :ref:`Core API Example 
+     <txn-core-api-retry>`.
+
+   .. _unknown-transaction-commit-result:
+
+   ``UnknownTransactionCommitResult``
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Commit operations are :ref:`retryable write operations <retryable-writes>`. If 
+   the commit operation encounters an error, MongoDB drivers retry the commit 
+   regardless of the value of :urioption:`retryWrites`.
+
+   If the commit operation encounters an error labeled
+   ``"UnknownTransactionCommitResult"``, the commit can be retried.
+
+   - The callback API incorporates retry logic for
+     ``"UnknownTransactionCommitResult"``.
+
+   - The core transaction API does not incorporate retry logic for
+     ``"UnknownTransactionCommitResult"``. To handle
+     ``"UnknownTransactionCommitResult"``, applications should explicitly
+     incorporate retry logic for the error. To view an example that incorporates 
+     retry logic for unknown commit errors, see :ref:`Core API Example 
+     <txn-core-api-retry>`.
+
+   .. _transactionTooLargeForCache-error:
+
+   ``TransactionTooLargeForCache``
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   .. versionadded:: 6.2 
+
+   Starting in MongoDB 6.2, the server does not retry the transaction if
+   it receives a ``TransactionTooLargeForCache`` error. This error means
+   the cache is too small and a retry is likely to fail.
+
+   The default value for the
+   :parameter:`transactionTooLargeForCacheThreshold` threshold is ``0.75``.
+   The server returns ``TransactionTooLargeForCache`` instead of retrying
+   the transaction when the transaction uses more than 75% of the cache.
+
+   In earlier versions of MongoDB, the server returns
+   ``TemporarilyUnavailable`` or ``WriteConflict`` instead of
+   ``TransactionTooLargeForCache``.
+
+   Use the :dbcommand:`setParameter` command to modify the error threshold. 
+
+   Additional Information
+   ----------------------
+
+   .. _txn-mongo-shell-example:
+
+   ``mongosh`` Example
+   ~~~~~~~~~~~~~~~~~~~
+
+   The following :binary:`~bin.mongosh` methods are available for
+   transactions:
+
+   - :method:`Session.startTransaction()`
+
+   - :method:`Session.commitTransaction()`
+
+   - :method:`Session.abortTransaction()`
+
+   .. note::
+
+      The :binary:`~bin.mongosh` example omits retry logic
+      and robust error handling for simplicity's sake. For a
+      more practical example of incorporating transactions in
+      applications, see :ref:`transactions-retry` instead.
+
+   .. code-block:: javascript
+      :copyable: false
+
+      // Create collections:
+      db.getSiblingDB("mydb1").foo.insertOne(
+          {abc: 0},
+          { writeConcern: { w: "majority", wtimeout: 2000 } }
+      )
+      db.getSiblingDB("mydb2").bar.insertOne(
+         {xyz: 0},
+         { writeConcern: { w: "majority", wtimeout: 2000 } }
+      )
       
-         .. include:: /includes/extracts/transactions-example-note.rst
-
-         The example uses the new callback API for working with
-         transactions, which starts a transaction, executes the
-         specified operations, and commits (or aborts on error). The
-         new callback API incorporates retry logic for
-         :ref:`transient-transaction-error` or
-         :ref:`unknown-transaction-commit-result` commit errors.
-
-         .. literalinclude:: /driver-examples/test_examples_motor.py
-            :language: python
-            :dedent: 8
-            :start-after: Start Transactions withTxn API Example 1
-            :end-before: End Transactions withTxn API Example 1
-
-      - id: ruby
-        content: |
-
-         .. include:: /includes/extracts/transactions-example-note.rst
-
-         The example uses the new callback API for working with
-         transactions, which starts a transaction, executes the
-         specified operations, and commits (or aborts on error). The
-         new callback API incorporates retry logic for
-         :ref:`transient-transaction-error` or
-         :ref:`unknown-transaction-commit-result` commit errors.
-
-
-         .. literalinclude:: /driver-examples/with_transactions_examples_spec.rb
-            :language: ruby
-            :dedent: 4
-            :start-after: Start Transactions withTxn API Example 1
-            :end-before: End Transactions withTxn API Example 1
-
-      - id: go
-        content: |
-
-         The example uses the new callback API for working with
-         transactions, which starts a transaction, executes the
-         specified operations, and commits (or aborts on error). The
-         new callback API incorporates retry logic for
-         :ref:`transient-transaction-error` or
-         :ref:`unknown-transaction-commit-result` commit errors.
-
-         .. include:: /includes/extracts/transactions-example-note.rst
-
-         .. literalinclude:: /driver-examples/go_examples.go
-            :language: go
-            :start-after: Start Transactions withTxn API Example 1
-            :end-before: End Transactions withTxn API Example 1
-
-      - id: perl
-        content: |
-
-            .. note::
-            
-               For the Perl driver, see the :ref:`txn-core-api` usage example instead.
-
-      - id: scala
-        content: |
-
-            .. note::
-            
-               For the Scala driver, see the :ref:`txn-core-api` usage example instead.
-
-.. _txn-core-api:
-
-Core API
---------
-
-The core transaction API does not incorporate retry logic for errors
-labeled:
-
-- :ref:`transient-transaction-error`. If an operation in a transaction
-  returns an error labeled :ref:`transient-transaction-error`, the
-  transaction as a whole can be retried.
-   
-  To handle :ref:`transient-transaction-error`, applications should
-  explicitly incorporate retry logic for the error.
-
-- :ref:`unknown-transaction-commit-result`. If the commit returns an
-  error labeled :ref:`unknown-transaction-commit-result`, the commit
-  can be retried. 
-
-  To handle :ref:`unknown-transaction-commit-result`,
-  applications should explicitly incorporate retry logic for the error.
-
-.. _txn-core-api-retry:
-
-Example
-~~~~~~~
-
-----------
-
-|arrow| Use the **Select your language** drop-down menu in the
-upper-right to set the language of the examples on this page.
-
-----------
-
-The following example incorporates logic to retry the transaction for
-transient errors and retry the commit for unknown commit error:
-
-.. include:: /includes/driver-examples/driver-example-transactions-retry-3.rst
-
-Driver Versions
----------------
-
-.. include:: /includes/list-4.2-drivers.rst
-
-.. _transactions-retry:
-
-Transaction Error Handling
----------------------------
-
-Regardless of the database system, whether MongoDB or relational
-databases, applications should take measures to handle errors during
-transaction commits and incorporate retry logic for transactions.
-
-.. _transient-transaction-error:
-
-``TransientTransactionError``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The *individual* write operations inside the transaction are not
-retryable, regardless of the value of :urioption:`retryWrites`. If an
-operation encounters an error `associated with the label
-<https://github.com/mongodb/specifications/blob/master/source/transactions/transactions.rst#error-labels>`_ 
-``"TransientTransactionError"``, such as when the primary steps down,
-the transaction as a whole can be retried.
-
-- The callback API incorporates retry logic for
-  ``"TransientTransactionError"``.
-
-- The core transaction API does not incorporate retry logic
-  for ``"TransientTransactionError"``. To handle
-  ``"TransientTransactionError"``, applications should explicitly
-  incorporate retry logic for the error. To view an example that incorporates 
-  retry logic for transient errors, see :ref:`Core API Example 
-  <txn-core-api-retry>`.
-
-.. _unknown-transaction-commit-result:
-
-``UnknownTransactionCommitResult``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Commit operations are :ref:`retryable write operations <retryable-writes>`. If 
-the commit operation encounters an error, MongoDB drivers retry the commit 
-regardless of the value of :urioption:`retryWrites`.
-
-If the commit operation encounters an error labeled
-``"UnknownTransactionCommitResult"``, the commit can be retried.
-
-- The callback API incorporates retry logic for
-  ``"UnknownTransactionCommitResult"``.
-
-- The core transaction API does not incorporate retry logic for
-  ``"UnknownTransactionCommitResult"``. To handle
-  ``"UnknownTransactionCommitResult"``, applications should explicitly
-  incorporate retry logic for the error. To view an example that incorporates 
-  retry logic for unknown commit errors, see :ref:`Core API Example 
-  <txn-core-api-retry>`.
-
-.. _transactionTooLargeForCache-error:
-
-``TransactionTooLargeForCache``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionadded:: 6.2 
-
-Starting in MongoDB 6.2, the server does not retry the transaction if
-it receives a ``TransactionTooLargeForCache`` error. This error means
-the cache is too small and a retry is likely to fail.
-
-The default value for the
-:parameter:`transactionTooLargeForCacheThreshold` threshold is ``0.75``.
-The server returns ``TransactionTooLargeForCache`` instead of retrying
-the transaction when the transaction uses more than 75% of the cache.
-
-In earlier versions of MongoDB, the server returns
-``TemporarilyUnavailable`` or ``WriteConflict`` instead of
-``TransactionTooLargeForCache``.
-
-Use the :dbcommand:`setParameter` command to modify the error threshold. 
-
-Additional Information
-----------------------
-
-.. _txn-mongo-shell-example:
-
-``mongosh`` Example
-~~~~~~~~~~~~~~~~~~~
-
-The following :binary:`~bin.mongosh` methods are available for
-transactions:
-
-- :method:`Session.startTransaction()`
-
-- :method:`Session.commitTransaction()`
-
-- :method:`Session.abortTransaction()`
-
-.. note::
-
-   The :binary:`~bin.mongosh` example omits retry logic
-   and robust error handling for simplicity's sake. For a
-   more practical example of incorporating transactions in
-   applications, see :ref:`transactions-retry` instead.
-
-.. code-block:: javascript
-   :copyable: false
-
-   // Create collections:
-   db.getSiblingDB("mydb1").foo.insertOne(
-       {abc: 0},
-       { writeConcern: { w: "majority", wtimeout: 2000 } }
-   )
-   db.getSiblingDB("mydb2").bar.insertOne(
-      {xyz: 0},
-      { writeConcern: { w: "majority", wtimeout: 2000 } }
-   )
-   
-   // Start a session.
-   session = db.getMongo().startSession( { readPreference: { mode: "primary" } } );
-
-   coll1 = session.getDatabase("mydb1").foo;
-   coll2 = session.getDatabase("mydb2").bar;
-
-   // Start a transaction
-   session.startTransaction( { readConcern: { level: "local" }, writeConcern: { w: "majority" } } );
-
-   // Operations inside the transaction
-   try {
-      coll1.insertOne( { abc: 1 } );
-      coll2.insertOne( { xyz: 999 } );
-   } catch (error) {
-      // Abort transaction on error
-      session.abortTransaction();
-      throw error;
-   }
-
-   // Commit the transaction using write concern set at transaction start
-   session.commitTransaction();
-
-   session.endSession();
+      // Start a session.
+      session = db.getMongo().startSession( { readPreference: { mode: "primary" } } );
+
+      coll1 = session.getDatabase("mydb1").foo;
+      coll2 = session.getDatabase("mydb2").bar;
+
+      // Start a transaction
+      session.startTransaction( { readConcern: { level: "local" }, writeConcern: { w: "majority" } } );
+
+      // Operations inside the transaction
+      try {
+         coll1.insertOne( { abc: 1 } );
+         coll2.insertOne( { xyz: 999 } );
+      } catch (error) {
+         // Abort transaction on error
+         session.abortTransaction();
+         throw error;
+      }
+
+      // Commit the transaction using write concern set at transaction start
+      session.commitTransaction();
+
+      session.endSession();
