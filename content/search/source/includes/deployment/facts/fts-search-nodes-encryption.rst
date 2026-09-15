@@ -2,7 +2,3 @@
 
 To learn more, see
 :ref:`enable-search-node-encryption`.
-
-.. important::
-
-   .. include:: /includes/deployment/facts/fact-search-nodes-kms-availability.rst
