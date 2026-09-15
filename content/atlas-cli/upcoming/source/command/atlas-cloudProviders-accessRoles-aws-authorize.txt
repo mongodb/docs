@@ -92,3 +92,4 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    AWS IAM role '<RoleId> successfully authorized.
+

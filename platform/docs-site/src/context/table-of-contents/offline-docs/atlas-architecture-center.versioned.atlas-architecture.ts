@@ -385,11 +385,6 @@ export const toc: L1TocItem[] = [
                 collapsible: true,
                 items: [
                   {
-                    label: 'Accelerate PCI DSS Compliance',
-                    contentSite: 'atlas-architecture',
-                    url: '/docs/atlas/architecture/:version/solutions-library/pci-dss-compliance',
-                  },
-                  {
                     label: 'Agentic AI-Powered Payments Orchestration',
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/solutions-library/agentic-powered-payments',
@@ -843,6 +838,25 @@ export const toc: L1TocItem[] = [
                     label: 'Real-Time Customer Retention',
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/solutions-library/customer-retention',
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            label: 'Security',
+            contentSite: 'atlas-architecture',
+            collapsible: true,
+            items: [
+              {
+                label: 'Compliance and Regulatory Frameworks',
+                contentSite: 'atlas-architecture',
+                collapsible: true,
+                items: [
+                  {
+                    label: 'PCI DSS',
+                    contentSite: 'atlas-architecture',
+                    url: '/docs/atlas/architecture/:version/solutions-library/pci-dss-compliance',
                   },
                 ],
               },

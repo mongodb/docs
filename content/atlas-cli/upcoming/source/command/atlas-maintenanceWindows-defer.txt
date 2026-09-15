@@ -16,6 +16,8 @@ Defer scheduled maintenance for your project for one week.
 
 To learn more about maintenance windows, see https://www.mongodb.com/docs/atlas/tutorial/cluster-maintenance-window/.
 
+Atlas allows deferral requests only between 48 and 72 hours (2-3 days) before the scheduled maintenance; requests made outside of this window return an error. You can defer a single project maintenance event up to two times. For more information on how to respond to maintenance, see https://www.mongodb.com/docs/atlas/tutorial/respond-to-required-maintenance/.
+
 To use this command, you must authenticate with a user account, a service account, or an API key with the Project Owner role.
 
 Syntax
