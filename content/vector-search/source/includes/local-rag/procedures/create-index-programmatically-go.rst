@@ -6,9 +6,10 @@
       Create a file named ``vector-index.go`` and paste the following code in
       the file:
 
-      .. literalinclude:: /includes/local-rag/code-snippets/go/vector-index.go
+      .. literalinclude:: /code-examples/tested/go/driver/vector_search/local_rag/vector_index.snippet.vector-index.go
          :language: go
          :caption: vector-index.go
+         :category: usage example
 
       This index definition indexes the ``embeddings`` field
       in an index of the :ref:`vectorSearch <avs-types-vector-search>` type

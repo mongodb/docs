@@ -21,3 +21,4 @@ func GetEmbeddings(documents []string) [][]float32 {
 
 	return embs
 }
+

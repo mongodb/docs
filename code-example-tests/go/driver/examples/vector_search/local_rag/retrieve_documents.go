@@ -1,11 +1,26 @@
-package common
+//	:replace-start: {
+//	  "terms": {
+//	    "package local_rag": "package common",
+//	    "utils.GetConnectionString()": "os.Getenv(\"MONGODB_URI\")",
+//	    "EmbeddingsField": "\"embeddings\"",
+//	    "VectorIndexName": "\"vector_index\""
+//	  }
+//	}
+//
+// :snippet-start: retrieve-documents
+package local_rag
 
 import (
 	"context"
 	"log"
-	"os"
+	//:uncomment-start:
+	//"os"
+	//:uncomment-end:
+	"driver-examples/utils" //:remove:
 
-	"github.com/joho/godotenv"
+	//:uncomment-start:
+	//"github.com/joho/godotenv"
+	//:uncomment-end:
 	"github.com/tmc/langchaingo/embeddings"
 	"github.com/tmc/langchaingo/llms/ollama"
 	"github.com/tmc/langchaingo/schema"
@@ -18,12 +33,18 @@ import (
 func RetrieveDocuments(query string) []schema.Document {
 	ctx := context.Background()
 
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("no .env file found")
-	}
+	// :remove-start:
+	// The tests load environment variables through the suite's utils package,
+	// which reads the .env file at the root of the Go suite.
+	// :remove-end:
+	// :uncomment-start:
+	// if err := godotenv.Load(); err != nil {
+	// 	log.Fatal("no .env file found")
+	// }
+	// :uncomment-end:
 
 	// Connect to your MongoDB cluster
-	uri := os.Getenv("MONGODB_URI")
+	uri := utils.GetConnectionString()
 	if uri == "" {
 		log.Fatal("set your 'MONGODB_URI' environment variable.")
 	}
@@ -37,19 +58,21 @@ func RetrieveDocuments(query string) []schema.Document {
 	// Specify the database and collection
 	coll := client.Database("sample_airbnb").Collection("listingsAndReviews")
 
-	// Define the filter and update
+	// Define the filter and update. The mongovector store reads the document
+	// text from pageContent and any extra fields from metadata, so copy the
+	// summary and listing URL into those fields.
 	filter := bson.D{
-		{Key: "embeddings", Value: bson.D{{Key: "$exists", Value: true}}},
+		{Key: EmbeddingsField, Value: bson.D{{Key: "$exists", Value: true}}},
 		{Key: "pageContent", Value: bson.D{{Key: "$exists", Value: false}}},
 		{Key: "metadata.listing_url", Value: bson.D{{Key: "$exists", Value: false}}},
 	}
 
-	update := bson.D{{
-		Key: "$set", Value: bson.D{
+	update := mongo.Pipeline{
+		bson.D{{Key: "$set", Value: bson.D{
 			{Key: "pageContent", Value: "$summary"},
-			{Key: "metadata.listing_url", Value: "$listing_url"},
-		},
-	}}
+			{Key: "metadata", Value: bson.D{{Key: "listing_url", Value: "$listing_url"}}},
+		}}},
+	}
 
 	// Perform the update
 	_, err = coll.UpdateMany(ctx, filter, update)
@@ -67,7 +90,9 @@ func RetrieveDocuments(query string) []schema.Document {
 		log.Fatalf("failed to create an embedder: %v", err)
 	}
 
-	store := mongovector.New(coll, embedder, mongovector.WithPath("embeddings"))
+	store := mongovector.New(coll, embedder,
+		mongovector.WithIndex(VectorIndexName),
+		mongovector.WithPath(EmbeddingsField))
 
 	// Search for similar documents.
 	docs, err := store.SimilaritySearch(context.Background(), query, 5)
@@ -77,3 +102,6 @@ func RetrieveDocuments(query string) []schema.Document {
 
 	return docs
 }
+
+// :snippet-end:
+// :replace-end:

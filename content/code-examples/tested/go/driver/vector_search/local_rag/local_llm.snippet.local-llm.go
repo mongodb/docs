@@ -30,7 +30,7 @@ func main() {
 		textDocuments.WriteString("Listing URL: ")
 		if metadata := doc.Metadata; metadata != nil {
 			if listingURL, ok := metadata["listing_url"]; ok {
-				textDocuments.WriteString(listingURL)
+				textDocuments.WriteString(listingURL.(string))
 			}
 		}
 		textDocuments.WriteString("\n")
@@ -55,6 +55,9 @@ func main() {
 		"context":  textDocuments.String(),
 		"question": question,
 	})
+	if err != nil {
+		log.Fatalf("failed to format the prompt template: %v", err)
+	}
 
 	ctx := context.Background()
 	completion, err := llms.GenerateFromSinglePrompt(ctx, llm, prompt)
@@ -64,3 +67,4 @@ func main() {
 
 	log.Println("Response: ", completion)
 }
+

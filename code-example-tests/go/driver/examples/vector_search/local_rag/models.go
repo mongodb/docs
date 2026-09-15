@@ -1,4 +1,12 @@
-package common
+//	:replace-start: {
+//	  "terms": {
+//	    "package local_rag": "package common",
+//	    "bson:\"embeddings_go,omitempty\"": "bson:\"embeddings,omitempty\""
+//	  }
+//	}
+//
+// :snippet-start: models
+package local_rag
 
 import (
 	"time"
@@ -113,5 +121,8 @@ type Listing struct {
 	Availability         Availability    `bson:"availability"`
 	ReviewScores         ReviewScores    `bson:"review_scores"`
 	Reviews              []Review        `bson:"reviews"`
-	Embeddings           []float32       `bson:"embeddings,omitempty"`
+	Embeddings           []float32       `bson:"embeddings_go,omitempty"`
 }
+
+// :snippet-end:
+// :replace-end:

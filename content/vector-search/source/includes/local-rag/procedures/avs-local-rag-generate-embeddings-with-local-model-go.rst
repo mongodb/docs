@@ -25,17 +25,19 @@
       #. Create a file called ``get-embeddings.go``, and paste the following code
          into it:
 
-         .. literalinclude:: /includes/local-rag/code-snippets/go/get-embeddings.go
+         .. literalinclude:: /code-examples/tested/go/driver/vector_search/local_rag/get_embeddings.snippet.get-embeddings.go
             :language: go
             :caption: get-embeddings.go
+            :category: usage example
 
       #. To simplify marshalling and unmarshalling documents in this collection
          to and from BSON, create a file called ``models.go`` and paste the
          following code into it:
 
-         .. literalinclude:: /includes/local-rag/code-snippets/go/models.go
+         .. literalinclude:: /code-examples/tested/go/driver/vector_search/local_rag/models.snippet.models.go
             :language: go
             :caption: models.go
+            :category: usage example
 
       #. Return to the root directory.
 
@@ -46,20 +48,20 @@
       #. Create another file called ``generate-embeddings.go`` and paste the
          following code into it:
 
-         .. literalinclude:: /includes/local-rag/code-snippets/go/generate-embeddings.go
+         .. literalinclude:: /code-examples/tested/go/driver/vector_search/local_rag/generate_embeddings.snippet.generate-embeddings.go
             :language: go
             :caption: generate-embeddings.go
-            :linenos:
+            :category: usage example
 
          In this example, we set a limit of 250 documents when generating
          embeddings. The process to generate embeddings for the more than
          5000 documents in the collection is slow. If you want to change the
          number of documents you're generating embeddings for:
-         
+
          - Change the number of documents: Adjust the ``.SetLimit(250)``
-           number in the ``Find()`` options in line 51.
-         - Generate embeddings for all documents: Omit the options in the
-           ``Find()`` call in line 54.
+           number in the ``findOptions`` variable.
+         - Generate embeddings for all documents: Omit the ``findOptions``
+           argument from the ``Find()`` call.
 
       #. Run the following command to execute the code:
 

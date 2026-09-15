@@ -13,9 +13,10 @@
       #. Create a file called ``retrieve-documents.go`` and paste the following
          code into it:
       
-         .. literalinclude:: /includes/local-rag/code-snippets/go/retrieve-documents.go
+         .. literalinclude:: /code-examples/tested/go/driver/vector_search/local_rag/retrieve_documents.snippet.retrieve-documents.go
             :language: go
             :caption: retrieve-documents.go
+            :category: usage example
 
          This code uses the `mongovector.SimilaritySearch()
          <https://pkg.go.dev/github.com/tmc/langchaingo/vectorstores/mongovector#Store.SimilaritySearch>`__
@@ -31,9 +32,10 @@
       #. Create a new file called ``test-query.go``, and paste the following
          code into it:
 
-         .. literalinclude:: /includes/local-rag/code-snippets/go/test-query.go
+         .. literalinclude:: /code-examples/tested/go/driver/vector_search/local_rag/test_query.snippet.test-query.go
             :language: go
             :caption: test-query.go
+            :category: usage example
 
       #. Run the following code to execute the query:
 
@@ -59,9 +61,10 @@
 
       Create a file called ``local-llm.go`` and paste the following code:
 
-      .. literalinclude:: /includes/local-rag/code-snippets/go/local-llm.go
+      .. literalinclude:: /code-examples/tested/go/driver/vector_search/local_rag/local_llm.snippet.local-llm.go
          :language: go
          :caption: local-llm.go
+         :category: usage example
     
       This code does the following:
 

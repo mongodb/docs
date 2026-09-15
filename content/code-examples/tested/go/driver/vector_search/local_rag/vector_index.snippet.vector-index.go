@@ -88,3 +88,4 @@ func main() {
 
 	log.Println("Name of Index Created: " + searchIndexName)
 }
+
