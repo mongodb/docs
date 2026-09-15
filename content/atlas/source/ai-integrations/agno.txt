@@ -1,0 +1,581 @@
+.. _agno:
+
+=========================================
+Integrate MongoDB with the Agno Framework
+=========================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. meta::
+   :keywords: agents, agentic, memory, sessions, RAG, retrieval, vector database, vector search, code example, python
+   :description: Integrate MongoDB with Agno to store agent knowledge in MongoDB Vector Search and persist agent sessions, memories, and metrics in your MongoDB collections.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can integrate MongoDB with `Agno <https://docs.agno.com/>`__, an
+open-source Python framework for building multi-modal AI agents. Agno
+provides two MongoDB integrations:
+
+- **Vector database** that stores your agent's knowledge base and
+  retrieves it with {+avs+}.
+- **Session and memory database** that persists agent sessions,
+  user memories, metrics, and evaluation runs in your MongoDB
+  collections.
+
+You can use either integration on its own, or you can use both in
+the same agent.
+
+.. TODO: uncomment once get started is created
+.. Get Started
+.. -----------
+
+.. To complete a tutorial that configures Agno to use MongoDB, see :ref:`agno-get-started`.
+
+Installation
+------------
+
+Agno requires Python v3.9 or later. To install the latest Agno and
+PyMongo versions, run the following command:
+
+.. code-block:: shell
+
+   pip install agno pymongo
+
+The examples on this page use OpenAI models, which Agno uses by
+default. To install the OpenAI client library, run the following
+command:
+
+.. code-block:: shell
+
+   pip install openai
+
+
+The :guilabel:`Custom configuration` examples on this page use
+:ref:`Voyage AI embeddings <voyage-text-embeddings>`. To install the
+Voyage AI client library, run the following command:
+
+.. code-block:: shell
+
+   pip install voyageai
+
+Environment Variables
+~~~~~~~~~~~~~~~~~~~~~
+
+Before running the examples on this page, set the following
+environment variables:
+
+- Connection string: Set ``MONGODB_URI`` to the connection string
+  for your MongoDB deployment.
+- Model API key: Set ``OPENAI_API_KEY`` or ``VOYAGE_API_KEY`` to the
+  API key for your model provider. 
+
+Vector Database
+---------------
+
+The ``MongoVectorDb`` class implements the Agno vector database
+interface with {+avs+}. To give an agent semantic search over your
+documents, pass an instance of this class to the ``vector_db``
+parameter of an Agno ``Knowledge`` object, then pass that object to
+the ``knowledge`` parameter of your agent.
+
+.. important:: MongoDB Class Names
+
+   Agno names both MongoDB classes ``MongoDb``, but imports them
+   from different modules. Import the vector database class from
+   ``agno.vectordb.mongodb`` and the database class from
+   ``agno.db.mongo``. To avoid a name collision, Agno also exports
+   the vector database class as ``MongoVectorDb``. The examples on
+   this page use that alias.
+
+Select the :guilabel:`Basic initialization` tab to view a minimal
+configuration example, or select the :guilabel:`Custom
+configuration` tab to see how to configure the integration with
+custom settings.
+
+.. tabs::
+
+   .. tab:: Basic initialization
+      :tabid: basic
+
+      To initialize the vector database, specify the collection that
+      stores your embeddings and your MongoDB connection string. The
+      following example creates a knowledge base, adds a document, and
+      gives an agent access to the data:
+
+      .. code-block:: python
+
+         import os
+         from agno.agent import Agent
+         from agno.knowledge.knowledge import Knowledge
+         from agno.vectordb.mongodb import MongoVectorDb
+
+         vector_db = MongoVectorDb(
+             collection_name="agent_knowledge",
+             db_url=os.environ["MONGODB_URI"],
+             database="agno",
+         )
+
+         knowledge = Knowledge(vector_db=vector_db)
+         knowledge.insert(
+             name="Recipes",
+             url="https://agno-public.s3.amazonaws.com/recipes/ThaiRecipes.pdf",
+         )
+
+         agent = Agent(knowledge=knowledge, search_knowledge=True)
+
+   .. tab:: Custom configuration
+      :tabid: custom
+
+      The following example enables hybrid search, uses Voyage AI
+      to generate embeddings instead of the OpenAI default, and
+      specifies a {+avs+} index name:
+
+      .. code-block:: python
+
+         import os
+         from agno.agent import Agent
+         from agno.knowledge.embedder.voyageai import VoyageAIEmbedder
+         from agno.knowledge.knowledge import Knowledge
+         from agno.vectordb.mongodb import MongoVectorDb
+         from agno.vectordb.search import SearchType
+
+         embedder = VoyageAIEmbedder(
+             id="voyage-4-large",
+             dimensions=1024,
+             api_key=os.environ["VOYAGE_API_KEY"],
+             request_params={"output_dimension": 1024},
+         )
+
+         vector_db = MongoVectorDb(
+             collection_name="agent_knowledge",
+             db_url=os.environ["MONGODB_URI"],
+             database="agno",
+             embedder=embedder,
+             search_type=SearchType.hybrid,
+             hybrid_vector_weight=0.7,
+             hybrid_keyword_weight=0.3,
+             search_index_name="agno_vector_index",
+         )
+
+         knowledge = Knowledge(vector_db=vector_db)
+         agent = Agent(knowledge=knowledge, search_knowledge=True)
+
+      If you specify an embedder, Agno uses the number of dimensions
+      that the embedder produces when it creates the {+avs+} index.
+      The ``request_params`` dictionary passes provider-specific
+      keyword arguments to the embedding call. For Voyage
+      AI, ``output_dimension`` controls the size of the returned
+      vector for models that support variable dimensions.
+
+When you create a ``Knowledge`` object, Agno verifies whether the
+collection already exists. If it doesn't, Agno creates the
+collection and the {+avs+} index. If the collection exists,
+Agno doesn't check whether the index exists, even if you deleted it
+separately.
+
+After creating the index, Agno waits until the index appears
+on the collection. However, it doesn't verify the index status, so a query
+that runs immediately afterward can return no results while the index
+finishes building.
+
+.. collapsible::
+   :heading: Vector Database Parameters
+   :sub_heading: Use these parameters to configure the vector database.
+   :expanded: false
+
+   The ``MongoVectorDb`` class accepts the following parameters:
+
+   .. list-table::
+      :widths: 30 15 55
+      :header-rows: 1
+
+      * - Parameter
+        - Necessity
+        - Description
+
+      * - ``collection_name``
+        - Required
+        - The name of the collection that stores your documents and
+          their embeddings.
+
+      * - ``db_url``
+        - Optional
+        - The connection string for your MongoDB deployment.
+          Defaults to ``mongodb://localhost:27017/``. To learn more
+          about finding your connection string, see
+          :ref:`connect-via-driver`.
+
+      * - ``client``
+        - Optional
+        - An existing ``MongoClient`` instance. If you specify this
+          parameter, Agno ignores ``db_url``.
+
+      * - ``database``
+        - Optional
+        - The name of the database that holds the collection.
+          Defaults to ``agno``.
+
+      * - ``embedder``
+        - Optional
+        - The embedding model that Agno uses to embed your documents
+          and queries. Defaults to ``OpenAIEmbedder()``.
+
+      * - ``distance_metric``
+        - Optional
+        - The similarity function that the {+avs+} index uses.
+          Only the default value, ``Distance.cosine``, is currently
+          supported.
+
+      * - ``search_type``
+        - Optional
+        - The retrieval strategy. Accepts ``SearchType.vector`` or
+          ``SearchType.hybrid``. Defaults to ``SearchType.vector``.
+
+      * - ``hybrid_vector_weight``
+        - Optional
+        - The weight that hybrid search applies to semantic results.
+          Defaults to ``0.5``.
+
+      * - ``hybrid_keyword_weight``
+        - Optional
+        - The weight that hybrid search applies to keyword results.
+          Defaults to ``0.5``.
+
+      * - ``hybrid_rank_constant``
+        - Optional
+        - The constant that hybrid search adds to each rank before
+          it computes the reciprocal rank fusion score. Defaults to
+          ``60``.
+
+      * - ``search_index_name``
+        - Optional
+        - The name of the {+avs+} index on your collection. Defaults
+          to ``vector_index_1``.
+
+      * - ``wait_until_index_ready_in_seconds``
+        - Optional
+        - Whether Agno waits, after creating the {+avs+} index, for
+          the index name to appear in the collection's search
+          indexes. Set this parameter to a positive number to wait,
+          or to ``None`` to skip the wait. Asynchronous methods use
+          the value as a timeout, in seconds. Defaults to ``3``.
+
+      * - ``wait_after_insert_in_seconds``
+        - Optional
+        - The time, in seconds, that Agno waits after it inserts
+          documents. Defaults to ``3``.
+
+      * - ``max_pool_size``
+        - Optional
+        - The maximum number of connections in the driver connection
+          pool. Defaults to ``100``.
+
+      * - ``retry_writes``
+        - Optional
+        - Whether the driver retries supported write operations.
+          Defaults to ``True``.
+
+      * - ``cosmos_compatibility``
+        - Optional
+        - Whether Agno creates indexes in the Azure Cosmos DB for
+          MongoDB vCore format instead of the {+avs+} format.
+          Defaults to ``False``.
+
+      * - ``name``, ``description``, ``id``
+        - Optional
+        - The identifying metadata for the vector database instance.
+          If you don't specify ``id``, Agno derives it from the
+          connection string, database name, and collection name.
+
+Vector Database Methods
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``Knowledge`` class calls the following methods when you
+add content to a knowledge base or when an agent searches it. Call
+these methods directly only if you manage documents outside of a
+``Knowledge`` object.
+
+To limit a write or search operation to one user's documents, pass a
+``user_id`` value to the operation method.
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``search(query, limit, filters, min_score, user_id)``
+     - Embeds ``query`` and returns up to ``limit`` matching
+       documents. If you set ``search_type`` to
+       ``SearchType.hybrid``, Agno also runs a keyword search and
+       merges the two result sets. The ``filters`` parameter accepts
+       a dictionary of metadata filters. If you pass a list of Agno
+       filter expressions instead, Agno logs a warning and applies no
+       filters because the MongoDB integration doesn't support
+       them.
+
+   * - ``insert(content_hash, documents, filters, user_id)``
+     - Embeds each document in ``documents`` and inserts the
+       documents into your collection. Agno derives each document's
+       ``_id`` value from a hash of the document content.
+
+   * - ``upsert(content_hash, documents, filters, user_id)``
+     - Replaces the documents that share ``content_hash``, then
+       inserts the documents in ``documents``. Use this method to
+       update a document whose content changed.
+
+   * - ``delete()``
+     - Deletes every document from your collection but keeps the
+       collection and its {+avs+} index.
+
+   * - ``delete_by_id(id)``
+     - Deletes the document with the specified ``_id`` value.
+
+   * - ``delete_by_name(name)``
+     - Deletes the documents with the specified ``name`` value.
+
+   * - ``delete_by_metadata(metadata)``
+     - Deletes the documents whose ``meta_data`` field matches the
+       specified key-value pairs.
+
+   * - ``drop()``
+     - Drops your collection and its {+avs+} index.
+
+   * - ``exists()``
+     - Returns ``True`` if your collection exists.
+
+   * - ``get_count()``
+     - Returns the number of documents in your collection.
+
+.. tip:: Asynchronous Methods
+
+   The following methods described in the preceding table each have
+   a corresponding asynchronous method:
+
+   - ``search()``: Use ``async_search()``
+   - ``insert()``: Use ``async_insert()``
+   - ``upsert()``: Use ``async_upsert()``
+   - ``drop()``: Use ``async_drop()``
+   - ``exists()``: Use ``async_exists()``
+
+Session and Memory Database
+---------------------------
+
+The ``MongoDb`` class in the ``agno.db.mongo`` module implements the
+Agno database interface. To persist an agent's sessions, user
+memories, metrics, and evaluation runs in MongoDB, pass an instance
+of this class to the ``db`` parameter of an ``Agent``, ``Team``, or
+``Workflow`` object.
+
+Select the :guilabel:`Basic initialization` tab to view a minimal
+configuration example, or select the :guilabel:`Custom
+configuration` tab to see how to configure the integration with
+custom settings.
+
+.. tabs::
+
+   .. tab:: Basic initialization
+      :tabid: basic
+
+      To initialize the database, specify your MongoDB connection
+      string. The following example creates an agent that stores its
+      session history in MongoDB and includes that history in the
+      model context:
+
+      .. code-block:: python
+
+         import os
+         from agno.agent import Agent
+         from agno.db.mongo import MongoDb
+
+         db = MongoDb(db_url=os.environ["MONGODB_URI"])
+
+         agent = Agent(db=db, add_history_to_context=True)
+
+   .. tab:: Custom configuration
+      :tabid: custom
+
+      The following example specifies the database name and the
+      names of the collections that store sessions, memories, and
+      metrics:
+
+      .. code-block:: python
+
+         import os
+         from agno.agent import Agent
+         from agno.db.mongo import MongoDb
+
+         db = MongoDb(
+             db_url=os.environ["MONGODB_URI"],
+             db_name="agno_prod",
+             session_collection="agent_sessions",
+             memory_collection="agent_memories",
+             metrics_collection="agent_metrics",
+         )
+
+         agent = Agent(db=db, add_history_to_context=True)
+
+Agno creates each collection that you configure the first time it
+writes to that collection.
+
+.. collapsible::
+   :heading: Database Parameters
+   :sub_heading: Use these parameters to configure the database.
+   :expanded: false
+
+   The ``MongoDb`` class accepts the following parameters:
+
+   .. list-table::
+      :widths: 30 15 55
+      :header-rows: 1
+
+      * - Parameter
+        - Necessity
+        - Description
+
+      * - ``db_url``
+        - Conditional
+        - The connection string for your MongoDB deployment.
+          Required if you don't specify ``db_client``.
+
+      * - ``db_client``
+        - Conditional
+        - An existing ``MongoClient`` instance. Required if you
+          don't specify ``db_url``. If you specify both, Agno
+          ignores ``db_url``.
+
+      * - ``db_name``
+        - Optional
+        - The name of the database that holds the collections.
+          Defaults to ``agno``.
+
+      * - ``session_collection``
+        - Optional
+        - The name of the collection that stores agent, team, and
+          workflow sessions. Defaults to ``agno_sessions``.
+
+      * - ``runs_collection``
+        - Optional
+        - The name of the collection that stores runs, with one
+          document per run. Defaults to ``agno_runs``. If you specify
+          ``session_collection`` but not this parameter, Agno creates
+          the name from your session collection name, such as
+          ``agent_sessions_runs``.
+
+      * - ``memory_collection``
+        - Optional
+        - The name of the collection that stores user memories.
+          Defaults to ``agno_memories``.
+
+      * - ``metrics_collection``
+        - Optional
+        - The name of the collection that stores aggregated usage
+          metrics. Defaults to ``agno_metrics``.
+
+      * - ``eval_collection``
+        - Optional
+        - The name of the collection that stores evaluation runs.
+          Defaults to ``agno_eval_runs``.
+
+      * - ``knowledge_collection``
+        - Optional
+        - The name of the collection that stores knowledge content
+          metadata. Defaults to ``agno_knowledge``.
+
+      * - ``traces_collection``, ``spans_collection``
+        - Optional
+        - The names of the collections that store traces and spans.
+          Default to ``agno_traces`` and ``agno_spans``.
+
+      * - ``schedules_collection``, ``schedule_runs_collection``
+        - Optional
+        - The names of the collections that store schedules and
+          schedule runs. Default to ``agno_schedules`` and
+          ``agno_schedule_runs``.
+
+      * - ``learnings_collection``
+        - Optional
+        - The name of the collection that stores learnings. Defaults
+          to ``agno_learnings``.
+
+      * - ``id``
+        - Optional
+        - The identifier for the database instance. If you don't
+          specify this parameter, Agno derives it from the
+          connection string and database name.
+
+As your agent runs, Agno automatically reads from and writes to the
+session, memory, and metrics collections described in this section.
+Agno creates each collection the first time it's needed. You can
+also call methods directly on your ``MongoDb`` instance, such as the
+following:
+
+- ``upsert_session()`` and ``get_sessions()`` read and write
+  sessions.
+- ``upsert_user_memory()`` writes a single user memory.
+- ``get_metrics()`` reads aggregated usage metrics.
+- ``upsert_sessions()`` and ``upsert_memories()`` write many records
+  in a single operation, such as when you migrate existing session
+  history into MongoDB.
+- ``close()`` releases the client connection. Call this method when
+  your application shuts down.
+
+Search Index
+------------
+
+The first time Agno creates your vector collection, it also creates
+an {+avs+} index on the collection. The index name is the value of
+the ``search_index_name`` parameter, which defaults to
+``vector_index_1``. You can also create or inspect this index
+manually. To learn more, see :ref:`avs-create-index`.
+
+The index uses the following definition, where ``numDimensions``
+matches the number of dimensions that your embedder produces and
+``similarity`` matches your ``distance_metric`` value:
+
+.. code-block:: json
+
+   {
+     "fields": [
+       {
+         "type": "vector",
+         "path": "embedding",
+         "numDimensions": 1536,
+         "similarity": "cosine"
+       },
+       {
+         "type": "filter",
+         "path": "user_id"
+       }
+     ]
+   }
+
+Agno indexes the ``user_id`` field as a filter field so that it can
+scope searches to a single end user's documents.
+
+Hybrid search doesn't require a {+fts+} index. Agno runs its keyword
+search as a regular expression query on the ``content`` field, then
+combines those results with the {+avs+} results by using reciprocal
+rank fusion.
+
+Additional Resources
+--------------------
+
+To learn more about using Agno with MongoDB, see the following
+resources:
+
+- `Agno MongoDB Vector Store <https://docs.agno.com/knowledge/vector-stores/mongodb/overview>`__ reference
+- `Agno MongoDB Database <https://docs.agno.com/database/providers/mongo/overview>`__ reference
+- `Agno Knowledge <https://docs.agno.com/knowledge/overview>`__ documentation
+- :github:`Agno <agno-agi/agno>` GitHub repository
