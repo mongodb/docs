@@ -79,9 +79,6 @@ If creating a new page, save it as a `.txt` file.
 .. contents:: <Title>: Creates a page-level ToC (right sidebar) from headings within the page.
 :local:: Generates a ToC for headings below this indicator.
 :depth:: Specifies heading levels to include.
-.. toctree::: Creates a section-level ToC (left sidebar) listing page titles.
-:titlesonly:: Lists only document titles.
-:hidden:: ToC appears only in the left sidebar.
 Metadata:
 Use .. meta:: to add page metadata for SEO (e.g., :keywords: keyword1, keyword2).
 
