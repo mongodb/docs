@@ -2,6 +2,11 @@ A query shape hash is a string that uniquely identifies the query shape.
 An example query shape hash is
 ``"F42757F1AEB68B4C5A6DE6182B29B01947C829C926BCC01226BDA4DDE799766C"``.
 
+In current supported versions, the same query shape is expected to
+produce the same query shape hash across nodes and deployment types.
+To learn how the hash behaves across nodes, deployment types, and
+clusters, see :ref:`query-shape-hash-stability`.
+
 To obtain the query shape hash string, do any of these:
 
 - Use a :pipeline:`$querySettings` stage in an :ref:`aggregation

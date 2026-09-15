@@ -1,8 +1,8 @@
-Starting in MongoDB 8.3, MongoDB backfills the
-``representativeQuery`` field for query settings that you set with a
-query shape hash. When MongoDB runs a query that matches the query
-shape, it schedules the backfill. The backfill requires no action from
-you.
+Starting in MongoDB 8.3, if the {+fcv+} is 8.3 or later, MongoDB
+backfills the ``representativeQuery`` field for query settings that
+you set with a query shape hash. When MongoDB runs a query that
+matches the query shape, it schedules the backfill. The backfill
+requires no action from you.
 
 The backfill runs asynchronously on a best-effort basis to limit the
 performance impact on your queries. A query setting isn't guaranteed to
