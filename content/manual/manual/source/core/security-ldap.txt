@@ -63,10 +63,29 @@ MongoDB can provide `professional services
 <https://www.mongodb.com/products/consulting>`_ for optimal
 configuration of LDAP authentication for your MongoDB deployment.
 
+.. _ldap-digest-md5-unsupported:
+
+DIGEST-MD5 Not Supported with Cyrus SASL 2.1.28 and Later
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-digest-md5-unsupported-behavior.rst
+
+To use LDAP binding on an affected host, consider one of the following
+alternatives:
+
+- Set ``security.ldap.bind.method`` to ``sasl`` with 
+  ``security.ldap.bind.saslMechanisms`` set to ``PLAIN``.
+- Set ``security.ldap.bind.method`` to ``simple``.
+
+Since these alternative options send credentials to the LDAP server in
+the bind request, ensure that
+:setting:`security.ldap.transportSecurity` is set to ``tls`` to keep
+credentials encrypted in transit.
+
 Connection Pool
 ~~~~~~~~~~~~~~~
 
-When connecting to the LDAP server for authentication/authorization, MongoDB, 
+When connecting to the LDAP server for authentication or authorization, MongoDB
 by default:
 
 - Uses connection pooling if run:
@@ -249,6 +268,13 @@ configuration file:
        mechanism.
 
        Defaults to ``DIGEST-MD5``.
+
+       :gold:`IMPORTANT:` On hosts with Cyrus SASL 2.1.28 or later,
+       MongoDB does not support LDAP SASL binding with the
+       ``DIGEST-MD5`` mechanism.
+
+       For details and alternatives, see
+       :ref:`ldap-digest-md5-unsupported`.
 
      - **NO**, unless setting :setting:`~security.ldap.bind.method` to
        ``sasl`` *and* you need different or additional SASL mechanisms.
