@@ -481,6 +481,8 @@ The {+extension-short+} supports the following predicate comparison operators in
 
 - :ref:`EXISTS <hibernate-query-exists>`
 - :ref:`BETWEEN <hibernate-query-between>`
+- :ref:`IN <hibernate-query-in>`
+- :ref:`NOT IN <hibernate-query-not-in>`
 - :ref:`IS NULL <hibernate-query-is-null>`
 - :ref:`IS NOT NULL <hibernate-query-is-not-null>`
 
@@ -576,6 +578,172 @@ the following ``$match`` stage:
        "year": { "$gte": 2012, "$lte": 2013 }
      }
    }
+
+.. _hibernate-query-in:
+
+IN
+~~~
+
+The ``IN`` predicate matches documents where a field value equals any
+value in a specified list. You can supply the list values as literals,
+named parameters, or positional parameters.
+
+The following example uses the ``IN`` predicate to retrieve documents
+that have a ``year`` value of either ``1994`` or ``1996`` from the
+``sample_mflix.movies`` collection:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-in-query-session
+            :end-before: end-in-query-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: Kadhal Kottai
+            Title: Gotti
+            Title: It's Just a Ride
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-in-query-em
+            :end-before: end-in-query-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: Kadhal Kottai
+            Title: Gotti
+            Title: It's Just a Ride
+
+The {+extension-short+} translates the preceding ``IN`` predicate to the
+following ``$match`` stage:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$match": {
+       "year": { "$in": [ 1994, 1996 ] }
+     }
+   }
+
+An empty list is valid, but it never matches any documents. For example, 
+``year in ()`` matches no documents.
+
+.. note:: IN Predicate Limitations
+
+   The {+extension-short+} supports the ``IN`` predicate only when the
+   value to the left of ``IN`` is a field path. The
+   {+extension-short+} does not support ``IN`` predicates that:
+
+   - Take a subquery as the list of values.
+   - Test a value against an array-valued expression, as in
+     ``:value in m.cast``. To match a value against an array field, use
+     the ``array_contains()`` function instead. 
+   
+   To learn more about querying an array, see the :ref:`hibernate-query-array` 
+   section of this guide.
+
+.. _hibernate-query-not-in:
+
+NOT IN
+~~~~~~
+
+The ``NOT IN`` predicate matches documents in which a field value does
+not equal any value in a specified list. ``NOT IN`` accepts the same
+list forms and has the same limitations as the ``IN`` predicate.
+
+The following example uses the ``NOT IN`` predicate to retrieve
+documents that have a ``title`` value other than ``"Romeo and Juliet"``
+or ``"Best in Show"`` from the ``sample_mflix.movies`` collection.
+Because ``NOT IN`` excludes only the listed values, the example calls
+the ``setMaxResults()`` method to limit the result set to ten documents:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-notin-query-session
+            :end-before: end-notin-query-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: 'R Xmas
+            Title: 'Round Midnight
+            Title: 'Til Madness Do Us Part
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-notin-query-em
+            :end-before: end-notin-query-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: 'R Xmas
+            Title: 'Round Midnight
+            Title: 'Til Madness Do Us Part
+
+The {+extension-short+} translates the preceding ``NOT IN`` predicate to
+the following ``$match`` stage:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$match": {
+       "title": { "$nin": [ "Romeo and Juliet", "Best in Show" ] }
+     }
+   }
+
+Because ``$nin`` matches every document against an empty list of values,
+``title not in ()`` matches all documents.
+
+.. note:: NOT IN Limitations
+
+   The {+extension-short+} supports the ``NOT IN`` predicate only when the
+   value to the left of ``NOT IN`` is a field path. The
+   {+extension-short+} does not support ``NOT IN`` predicates that:
+
+   - Take a subquery as the list of values.
+   - Test a value against an array-valued expression, as in
+     ``:value not in m.cast``. 
 
 .. _hibernate-query-is-null:
 

@@ -149,6 +149,52 @@ public class Query {
         }
         // end-between-query-em
 
+        // Retrieves documents that have a "year" value of 1994 or 1996 using a session
+        // start-in-query-session
+        var inResult = session.createQuery("from Movie where year in (:first, :second)", Movie.class)
+                              .setParameter("first", 1994)
+                              .setParameter("second", 1996)
+                              .getResultList();
+        for (var m : inResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-in-query-session
+
+        // Retrieves documents that have a "year" value of 1994 or 1996 using an entity manager
+        // start-in-query-em
+        var inResult = entityManager.createQuery("select m from Movie m where m.year in (:first, :second)", Movie.class)
+                                    .setParameter("first", 1994)
+                                    .setParameter("second", 1996)
+                                    .getResultList();
+        for (var m : inResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-in-query-em
+
+        // Retrieves the first ten documents that do not have a "title" value of "Romeo and Juliet" or "Best in Show" using a session
+        // start-notin-query-session
+        var notInResult = session.createQuery("from Movie where title not in (:first, :second)", Movie.class)
+                                 .setParameter("first", "Romeo and Juliet")
+                                 .setParameter("second", "Best in Show")
+                                 .setMaxResults(10)
+                                 .getResultList();
+        for (var m : notInResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-notin-query-session
+
+        // Retrieves the first ten documents that do not have a "title" value of "Romeo and Juliet" or "Best in Show" using an entity manager
+        // start-notin-query-em
+        var notInResult = entityManager.createQuery("select m from Movie m where m.title not in (:first, :second)", Movie.class)
+                                       .setParameter("first", "Romeo and Juliet")
+                                       .setParameter("second", "Best in Show")
+                                       .setMaxResults(10)
+                                       .getResultList();
+        for (var m : notInResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-notin-query-em
+        
         // Retrieves documents that have a null or missing "cast" value using a session
         // start-null-comparison-query-session
         var nullComparisonResult = session.createQuery("from Movie where cast = null", Movie.class)
