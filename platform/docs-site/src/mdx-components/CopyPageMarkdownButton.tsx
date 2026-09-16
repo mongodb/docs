@@ -1,13 +1,17 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { SplitButton } from '@leafygreen-ui/split-button';
-import { Size } from '@leafygreen-ui/button';
-import { Toast, ToastProvider, Variant } from '@leafygreen-ui/toast';
-import { MenuItem } from '@leafygreen-ui/menu';
-import Icon from '@leafygreen-ui/icon';
-import { css, cx } from '@leafygreen-ui/emotion';
-import { theme } from '@/styles/theme';
+import { clsx } from 'clsx';
+import { Button, ButtonVariant } from '@via-ds/components/button';
+import { ButtonGroup } from '@via-ds/components/button-group';
+import { Menu, MenuItem, MenuPopover, MenuRoot } from '@via-ds/components/menu';
+import { Text } from '@via-ds/components/typography';
+import { Size } from '@via-ds/components/types';
+import Copy from '@via-ds/icons/Copy';
+import Sparkle from '@via-ds/icons/Sparkle';
+import OpenNewTab from '@via-ds/icons/OpenNewTab';
+import CaretDown from '@via-ds/icons/CaretDown';
+import { toast } from '@via-ds/components/toast';
 import { removeTrailingSlash } from '@/utils/remove-trailing-slash';
 import { assertLeadingAndTrailingSlash } from '@/utils/assert-trailing-and-leading-slash';
 import { removeLeadingSlash } from '@/utils/remove-leading-slash';
@@ -16,29 +20,16 @@ import { useChatbotModal } from '@/context/chatbot-context';
 import { reportAnalytics } from '@/utils/report-analytics';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
 import { getBasePath } from '@/utils/base-path';
-
-type ToastOpen = {
-  open: boolean;
-  variant: Variant;
-};
+import styles from './copy-page-markdown-button.module.scss';
 
 export type CopyPageMarkdownButtonProps = {
   className?: string;
   slug: string;
 };
 
-// This keeps the copy button text jump to a new line when viewing on smaller screens
-// [data-theme] is used to increase the width of the dropdown menu to match designs
-const splitButtonStyles = css`
-  [data-theme] {
-    width: 310px;
-    margin-left: -100px;
-  }
-  min-width: 175px; /* Increase min-width to account for Copy Page in diff langs */
-`;
+type CopyPageMenuAction = 'copy-page' | 'ask-question' | 'view-markdown';
 
 const CopyPageMarkdownButton = ({ className, slug }: CopyPageMarkdownButtonProps) => {
-  const [toastOpen, setToastOpen] = useState<ToastOpen>({ open: false, variant: Variant.Success });
   const [markdownText, getMarkdownText] = useState<string | null>(null);
   const href = usePathname();
   const { siteBasePrefixWithVersion } = useVersionContext();
@@ -88,12 +79,12 @@ const CopyPageMarkdownButton = ({ className, slug }: CopyPageMarkdownButtonProps
     };
   }, [markdownAddress]);
 
-  const copyMarkdown = async (event?: React.MouseEvent<HTMLButtonElement>) => {
+  const copyMarkdown = async (labelTextDisplayed: string = 'Copy Page') => {
     try {
       reportAnalytics('CTA Click', {
         position: 'body',
         label: 'Copy Page',
-        label_text_displayed: event?.currentTarget.textContent?.trim() || 'Copy Page',
+        label_text_displayed: labelTextDisplayed,
         scroll_position: currentScrollPosition(),
         tagbook: 'true',
       });
@@ -103,16 +94,10 @@ const CopyPageMarkdownButton = ({ className, slug }: CopyPageMarkdownButtonProps
 
       await navigator.clipboard.writeText(markdownText);
 
-      setToastOpen({
-        open: true,
-        variant: Variant.Success,
-      });
+      toast.success('Copied', { description: 'Page copied as markdown successfully.', duration: 4000 });
     } catch (error) {
       console.error(error);
-      setToastOpen({
-        open: true,
-        variant: Variant.Warning,
-      });
+      toast.warning('Error', { description: 'Failed to copy markdown.', duration: 4000 });
     }
   };
 
@@ -130,62 +115,47 @@ const CopyPageMarkdownButton = ({ className, slug }: CopyPageMarkdownButtonProps
     setChatbotClicked(true);
   };
 
+  const onMenuAction = (key: CopyPageMenuAction) => {
+    if (key === 'copy-page') copyMarkdown('Copy Page');
+    else if (key === 'ask-question') askQuestion();
+    else if (key === 'view-markdown') viewMarkdown();
+  };
+
   return (
-    <>
-      <SplitButton
-        label="Copy page"
-        className={cx(splitButtonStyles, className)}
-        size={Size.Small}
-        onClick={(event: React.MouseEvent<HTMLButtonElement>) => copyMarkdown(event)}
-        variant="default"
-        menuItems={[
-          <MenuItem
-            key={'copy-page'}
-            glyph={<Icon glyph="Copy" />}
-            description="Copy this page as Markdown for LLMs"
-            onClick={(event: React.MouseEvent<HTMLButtonElement>) => copyMarkdown(event)}
-          >
-            Copy Page
-          </MenuItem>,
-          <MenuItem
-            key={'ask-question'}
-            glyph={<Icon glyph="Sparkle" />}
-            description="Ask MongoDB AI about this page"
-            onClick={askQuestion}
-          >
-            Ask a Question
-          </MenuItem>,
-          <MenuItem
-            key={'view-markdown'}
-            glyph={<Icon glyph="OpenNewTab" />}
-            description="View this page as Markdown"
-            onClick={() => viewMarkdown()}
-          >
-            View in Markdown
-          </MenuItem>,
-        ]}
-        leftGlyph={<Icon glyph="Copy" />}
-      />
-      <ToastProvider
-        portalClassName={css`
-          #lg-toast-region {
-            margin: 16px;
-            z-index: ${theme.zIndexes.popovers};
-          }
-        `}
-      >
-        <Toast
-          title={toastOpen.variant === Variant.Success ? 'Copied' : 'Error'}
-          description={
-            toastOpen.variant === Variant.Success ? 'Page copied as markdown successfully.' : 'Failed to copy markdown.'
-          }
-          open={toastOpen.open}
-          variant={toastOpen.variant}
-          timeout={4000}
-          onClose={() => setToastOpen({ open: false, variant: Variant.Success })}
-        />
-      </ToastProvider>
-    </>
+    <ButtonGroup
+      className={clsx(styles.splitButton, className)}
+      variant={ButtonVariant.Default}
+      aria-label="Copy page options"
+    >
+      <Button size={Size.Small} onPress={() => copyMarkdown('Copy Page')}>
+        <Copy slot="icon" />
+        Copy page
+      </Button>
+      <MenuRoot>
+        <Button size={Size.Small} aria-label="More copy page options">
+          <CaretDown slot="icon" aria-hidden="true" />
+        </Button>
+        <MenuPopover>
+          <Menu aria-label="Copy page options" onAction={(key) => onMenuAction(key as CopyPageMenuAction)}>
+            <MenuItem id="copy-page" textValue="Copy Page">
+              <Copy slot="icon" />
+              <Text slot="label">Copy Page</Text>
+              <Text slot="description">Copy this page as Markdown for LLMs</Text>
+            </MenuItem>
+            <MenuItem id="ask-question" textValue="Ask a Question">
+              <Sparkle slot="icon" />
+              <Text slot="label">Ask a Question</Text>
+              <Text slot="description">Ask MongoDB AI about this page</Text>
+            </MenuItem>
+            <MenuItem id="view-markdown" textValue="View in Markdown">
+              <OpenNewTab slot="icon" />
+              <Text slot="label">View in Markdown</Text>
+              <Text slot="description">View this page as Markdown</Text>
+            </MenuItem>
+          </Menu>
+        </MenuPopover>
+      </MenuRoot>
+    </ButtonGroup>
   );
 };
 

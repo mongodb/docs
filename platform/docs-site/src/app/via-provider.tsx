@@ -2,6 +2,7 @@
 
 import { useContext } from 'react';
 import { ViaProvider } from '@via-ds/components/provider';
+import { Toaster } from '@via-ds/components/toast';
 import { ColorScheme, Size } from '@via-ds/components/types';
 import '@via-ds/components/index.css';
 import '@via-ds/icons/styles.css';
@@ -26,6 +27,7 @@ export function ViaProviderWrapper({ children }: { children: React.ReactNode }) 
   return (
     <ViaProvider colorScheme={isDarkMode ? ColorScheme.Dark : ColorScheme.Light} size={Size.Large}>
       {children}
+      <Toaster />
     </ViaProvider>
   );
 }
