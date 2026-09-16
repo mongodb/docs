@@ -31,6 +31,101 @@
    release contains only performance and stability improvements, it is not included 
    in these release notes.
 
+*Released September 10, 2026*
+
+- Updates the {+asql+} engine to version 2.0.0.
+
+  - Changes how {+asql+} translates ``WHERE`` clauses that compare a
+    field to a literal value, such as ``WHERE x > 20``. These
+    comparisons are now translated to MongoDB match language instead
+    of ``$expr`` expressions. MongoDB match language applies type
+    bracketing. With type bracketing, MongoDB compares only values
+    that have the same type as the predicate of your query. This
+    change encourages index usage, but it may affect the results of
+    your queries if your fields are polymorphic. {+asql+} queries
+    that run through Atlas Data Federation are not affected.
+
+    Consider the following collection, where one document stores
+    ``age`` as the number ``25`` and the other stores it as the
+    string ``"25"``:
+
+    .. code-block:: javascript
+
+       [
+         { "_id": 1, "name": "John Doe", "age": 25 },
+         { "_id": 2, "name": "Jane Doe", "age": "25" }
+       ]
+
+    To return all users where ``age`` is greater than ``20``, you can
+    write the aggregation pipeline with ``$expr``:
+
+    .. code-block:: javascript
+
+       [
+         {
+           $match: {
+             $expr: { $gt: [ "$age", 20 ] }
+           }
+         }
+       ]
+
+    This pipeline returns both documents, even though the ``$gt``
+    clause compares against a number:
+
+    .. code-block:: javascript
+
+       [
+         { _id: 1, name: 'John Doe', age: 25 },
+         { _id: 2, name: 'Jane Doe', age: '25' }
+       ]
+
+    You can also write the same query using match language:
+
+    .. code-block:: javascript
+
+       [
+         {
+           $match: {
+             age: { $gt: 20 }
+           }
+         }
+       ]
+
+    This pipeline returns only the document where ``age`` is a
+    number. The ``{ $gt: 20 }`` condition matches only numbers.
+    MongoDB returns only documents that contain numbers greater than
+    ``20``:
+
+    .. code-block:: javascript
+
+       [ { _id: 1, name: 'John Doe', age: 25 } ]
+
+    Compare the results of your queries as you upgrade to version
+    2.0. To learn more about type bracketing, see :manual:`Type
+    Bracketing
+    </reference/method/db.collection.find/#type-bracketing>`.
+
+  - Adds support for the higher order functions ``MAP``, ``FILTER``,
+    and ``REDUCE``. Also adds the following functions, which wrap
+    ``MAP``, ``FILTER``, or ``REDUCE`` functionality: ``ARRAY_CAST``,
+    ``ARRAY_EXTRACT``, ``ARRAY_COMPACT``, ``ARRAY_COUNT_IF``,
+    ``ARRAY_REMOVE``, ``ARRAY_SUM``, ``ARRAY_PRODUCT``,
+    ``ARRAY_AVG``, ``ARRAY_ALL``, ``ARRAY_ANY``, and ``ARRAY_JOIN``.
+
+  - Fixes a bug in ``LEFT JOIN`` and ``RIGHT JOIN`` operations that
+    meet certain criteria. Specifically, the query used a
+    ``LEFT JOIN`` or ``RIGHT JOIN`` with a single field-to-field
+    equality condition in the ``ON`` predicate, where one field was
+    from the left join source and the other was from the right join
+    source. If the schema indicated that both fields were nullable,
+    the result set omitted some rows. For ``LEFT JOIN``, rows from
+    the left source where the join key value was nullish (``NULL``
+    or ``MISSING``) were omitted from the result set even though
+    they should have been included. Likewise, the same issue affects
+    ``RIGHT JOIN`` for rows from the right source. Non-nullish rows
+    that did not have a match were still included in the result
+    sets. Only rows with nullish values were omitted.
+
 *Released August 26, 2026*
 
 - Updates the {+asql+} Transition Readiness Tool to version 1.1.3.
