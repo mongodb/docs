@@ -18,6 +18,30 @@ const tocData: TocItem[] = [
           {
             label: 'Install on Linux',
             contentSite: 'docs',
+            url: '/docs/:version/administration/install-community-linux',
+            versions: { excludes: manualVersions.before('v8.3') },
+          },
+          {
+            label: 'Install on Windows',
+            contentSite: 'docs',
+            url: '/docs/:version/administration/install-community-windows',
+            versions: { excludes: manualVersions.before('v8.3') },
+          },
+          {
+            label: 'Install on macOS',
+            contentSite: 'docs',
+            url: '/docs/:version/administration/install-community-macos',
+            versions: { excludes: manualVersions.before('v8.3') },
+          },
+          {
+            label: 'Install with Docker',
+            contentSite: 'docs',
+            url: '/docs/:version/administration/install-community-docker',
+            versions: { excludes: manualVersions.before('v8.3') },
+          },
+          {
+            label: 'Install on Linux',
+            contentSite: 'docs',
             url: '/docs/:version/administration/install-on-linux',
             collapsible: true,
             versions: { excludes: manualVersions.after('v8.0') },
