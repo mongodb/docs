@@ -6,8 +6,13 @@ Parallelize Query Execution Across Segments
 
 .. default-domain:: mongodb
 
+.. facet::
+   :name: genre
+   :values: reference
+
 .. meta::
-   :description: Learn how to execute each individual MongoDB Search query using multiple threads.
+   :keywords: concurrent option, intra-query parallelism, parallelize query execution, multi-threaded query, query latency, CPU usage, resource usage, monitor Search Nodes, scale Search Nodes, index segments, code example
+   :description: Learn how to execute each individual MongoDB Search query using multiple threads to reduce query latency, how this affects CPU usage on Search Nodes, and how to monitor it.
 
 
 .. contents:: On this page
@@ -27,7 +32,7 @@ latency. This feature is only available for :ref:`dedicated Search Nodes
 ---------------------------------
 
 When you run queries with the ``concurrent`` option, |fts| doesn't
-guarantee that each query will be executed concurrently. For example,
+guarantee that each query executes concurrently. For example,
 when too many concurrent queries are queued, |fts| might fallback to
 single-threaded execution. 
 
@@ -54,8 +59,8 @@ Behavior
 --------
 
 The ``concurrent`` boolean option allows you to request |fts| to
-parallelize query execution across segments, which, in many cases, 
-improves the response time. You can set one of the following values for 
+parallelize query execution across segments, which often
+improves the response time. You can set one of the following values for
 the ``concurrent`` option:
  
 - ``true`` - to request |fts| to run the query multi-threaded 
@@ -67,7 +72,34 @@ which minimizes the contention and improves overall query throughput.
 Concurrent execution is especially efficient on large datasets, as there
 is a larger amount of segments.
 
-Example 
+.. _concurrent-resource-usage:
+
+CPU Usage
+---------
+
+|fts| runs a concurrent query on multiple threads, so the query
+completes faster. But the query consumes more CPU on your
+:ref:`Search Nodes <what-is-search-node>` while it runs. Enabling the
+``concurrent`` option for high-volume or short-running queries can
+saturate the CPU on your Search Nodes and reduce overall query
+throughput. To limit the impact on CPU, enable the ``concurrent``
+option only for the heavy and long-running queries that benefit from
+lower latency.
+
+To measure the CPU cost of an individual query, run the query with
+:ref:`explain <explain-ref>` and review the ``userTimeMs``,
+``systemTimeMs``, and ``maxReportingThreads`` fields in the
+:ref:`resourceUsage <explain-search-resource-usage>` document.
+
+To monitor CPU usage across your deployment, view the |service|
+:ref:`cluster metrics <monitor-cluster-metrics>` and the
+:ref:`review-atlas-search-metrics`. |service| can also trigger
+:ref:`{+fts+} alerts <atlas-search-alerts>` that measure the amount of
+CPU that |fts| processes use. If CPU usage approaches the limits of
+acceptable performance, scale your Search Nodes vertically or
+horizontally. To learn more, see :ref:`fts-search-node-sizing-tips`.
+
+Example
 -------
 
 Consider the following query against the :ref:`sample_mflix.movies 
