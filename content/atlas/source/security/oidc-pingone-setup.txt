@@ -1,0 +1,331 @@
+.. _oidc-pingone-setup:
+
+====================================================
+Configure {+wif+} from PingOne
+====================================================
+
+.. meta::
+   :description: Configure Workforce Identity Federation with OIDC and PingOne to enable database access for your workforce using their PingOne credentials for MongoDB Atlas.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. |idp-provider| replace:: PingOne
+
+This guide shows you how to configure {+wif+} using |idp-provider|
+as your |idp|.
+
+After integrating |idp-provider| and |service|, your workforce can use
+their |idp-provider| credentials to access |service| {+clusters+} with
+|oidc| authentication.
+
+.. include:: /includes/roles-required-fed-auth.rst
+
+Prerequisites
+-------------
+
+To use |idp-provider| as an |idp| for |service|, you must have:
+
+- A |idp-provider| subscription. To obtain a subscription, visit
+  `PingOne <https://www.pingidentity.com/en/platform/solutions/pingone-for-workforce.html>`__.
+- A |idp-provider| user with administrative privileges. To grant a user
+  administrative privileges, see
+  `Managing administrators <https://docs.pingidentity.com/r/en-us/pingone/p1_c_manage_administrators>`__.
+  Alternatively, you can use the default administrative user created
+  upon activation of your |idp-provider| account.
+
+Procedures
+----------
+
+Throughout the following procedure, it is helpful to have one browser
+tab open to your :ref:`Atlas Federation Management Console
+<atlas-federated-authentication>` and one tab open to your
+|idp-provider| account.
+
+.. _configure-pingone-idp-oidc:
+
+Configure |idp-provider| as an Identity Provider
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the |idp-provider| admin console to configure |idp-provider| as an
+|oidc| |idp|.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create an application in |idp-provider|.
+
+      a. In the |idp-provider| admin console, go to
+         :guilabel:`Applications` > :guilabel:`My Applications` >
+         :guilabel:`OIDC`.
+
+      #. Click :guilabel:`Add Application`.
+
+      #. Select :guilabel:`Native App` and click :guilabel:`Next`.
+
+      To learn more, see `Adding or updating an OIDC application
+      <https://docs.pingidentity.com/pingoneforenterprise/pingone_for_enterprise/p14e_add_update_oidc_application.html>`__.
+
+   .. step:: Configure your application.
+
+      a. In the :guilabel:`Application Name` field, enter a name for
+         your application.
+
+      #. In the :guilabel:`Short Description` field, enter a
+         description for the application.
+
+      #. In the :guilabel:`Category` list, select a category to assign
+         the application to.
+
+      #. Click :guilabel:`Next`.
+
+   .. step:: Configure grant types and redirect URIs.
+
+      a. Select the allowed grant types for the application.
+
+         Enable the following grant types:
+
+         - :guilabel:`Authorization Code` or :guilabel:`Device Authorization`
+         - *(Optional)* :guilabel:`Refresh Token`
+
+           Enabling refresh tokens provides a better user experience. When
+           refresh tokens are not enabled, users must re-authenticate with
+           the identity provider once their access token expires.
+
+      #. In the :guilabel:`Redirect URIs` field, enter the following URL:
+         ``http://localhost:27097/redirect``.
+
+      #. Click :guilabel:`Next`.
+
+   .. step:: Configure scopes and attributes.
+
+      a. Add the ``openid`` scope to the allowed list.
+
+      #. Add attributes to the :guilabel:`Default User Profile Attribute
+         Contract`.
+
+         The ``sub`` attribute is required for all applications.
+
+         To use group-based authorization, add a ``groups`` attribute.
+
+      #. Click :guilabel:`Next`.
+
+   .. step:: Map identity repository attributes.
+
+      Map your identity repository attributes to claims made by the
+      application.
+
+      a. For each |idp| attribute, enter or select the target attribute
+         from the list.
+
+      #. Click :guilabel:`Next`.
+
+   .. step:: Assign groups and save.
+
+      a. Click the icon for each group that you want to authorize.
+
+      #. Click :guilabel:`Done`.
+
+   .. step:: Obtain the issuer URI and client ID.
+
+      After you create the application, copy the following values from
+      the application summary page:
+
+      - :guilabel:`Discovery URL` or :guilabel:`Issuer`
+      - :guilabel:`Client ID`
+      - :guilabel:`IDPID` (if displayed)
+
+      The issuer URI typically follows this format:
+      ``https://auth.pingone.com/<environment-id>/as``.
+
+      Save these values to use in the next stage of the |service|
+      configuration.
+
+.. _configure-oidc-pingone:
+
+Configure {+wif+} in |service|
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note:: Prerequisite
+
+   This procedure requires you to have :authrole:`Organization Owner`
+   access and assumes you already have an |oidc| application created
+   in your |idp|. To learn how to configure an |idp|, see
+   :ref:`configure-pingone-idp-oidc`.
+
+To configure a Workforce |idp-full| in |service|:
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-federation.rst
+
+   .. step:: Configure identity providers.
+
+      a. Click :guilabel:`Identity Providers` in the left sidebar.
+
+      #. Do one of the following steps:
+
+         - If you do not have any Identity Providers configured yet, click
+           :guilabel:`Set Up Identity Provider`.
+         - Otherwise, on the :guilabel:`Identity Providers` screen, click
+           :guilabel:`Configure Identity Provider(s)`.
+
+      #. Select :guilabel:`Workforce Identity Federation` and click :guilabel:`Continue`.
+
+      #. Select :guilabel:`OIDC for Data Access`.
+
+   .. step:: Enter the following Workforce Identity Provider Protocol Settings.
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 30 20 50
+         :stub-columns: 1
+
+         * - Setting
+           - Necessity
+           - Value
+
+         * - :guilabel:`Configuration Name`
+           - Required
+           - Human-readable label that identifies this configuration. This label
+             is visible to your |service| users.
+
+         * - :guilabel:`Configuration Description`
+           - Optional
+           - Human-readable label that describes this configuration.
+
+         * - :guilabel:`Issuer URI`
+           - Required
+           - Issuer value provided by your registered |idp| application.
+             Using this URI, MongoDB finds an OpenID Provider Configuration
+             Document, which should be available in the
+             ``/.well-known/openid-configuration`` endpoint.
+
+         * - :guilabel:`Client ID`
+           - Required
+           - Unique identifier for your registered application. Enter
+             the ``clientId`` value from the app you registered
+             with external |idp-full|.
+
+         * - :guilabel:`Audience`
+           - Required
+           - Entity that your external identity provider intends the token for. Enter
+             the ``audience`` value from the app you registered
+             with external |idp-full|. Generally, this value is the same as the
+             :guilabel:`Client ID`.
+
+         * - :guilabel:`Requested Scopes`
+           - Optional
+           - Tokens that give users permission to request data
+             from the authorization endpoint. If you plan to support refresh tokens,
+             this field must include the value ``offline_access``.
+
+             For each additional scope you
+             want to add, click :guilabel:`Add more scopes`.
+
+         * - :guilabel:`Authorization Type`
+           - Required
+           - Select :guilabel:`Group Membership` to grant authorization based on |idp|
+             user group membership, or select :guilabel:`User ID` to grant an individual
+             user authorization.
+
+         * - :guilabel:`Customize Groups Claim`
+           - Required
+           - Identifier of the claim that includes the principal's |idp|
+             user group membership information. Accept the default value
+             unless your |idp| uses a different claim, or you need a custom
+             claim. This field is only required if you select
+             :guilabel:`Group Membership`.
+
+             *Default*: ``groups``
+
+         * - :guilabel:`Customize User Claim`
+           - Required
+           - Identifier of the claim that includes the user principal
+             identity. Accept the default value unless your |idp| uses a
+             different claim.
+
+             *Default*: ``sub``
+
+   .. step:: Click :guilabel:`Save and Finish`.
+   .. step:: (Optional) Associate a domain to your Workforce |idp|.
+
+      .. note::
+
+         This step is required only if you need to connect multiple Workforce |idp|\s
+         to the same organization with different domains. |service| supports a
+         maximum of two Workforce |idp|\s connected to an organization: one OIDC |idp|
+         (for database access) and one SAML |idp| (for UI access).
+
+      a. In your Workforce Identity Provider card, click :guilabel:`Associate Domains`.
+
+      #. In the :guilabel:`Associate Domains with Identity Provider` modal,
+         select one or more domains.
+
+      #. Click :guilabel:`Submit`.
+
+   .. step:: Enable your Workforce |idp-full| in an organization.
+
+      a. Click :guilabel:`Connect Organizations`.
+
+      #. For the organization you want to connect to Workforce Identity Provider,
+         click :guilabel:`Configure Access`.
+
+      #. Click :guilabel:`Connect Identity Provider`.
+
+         .. note::
+
+            If you have another |idp| configured, this button says
+            :guilabel:`Connect Identity Provider(s)`.
+
+   .. step:: Select :guilabel:`Workforce Identity Federation for Data Access`.
+
+      In the :guilabel:`Connect Identity Provider(s)` modal, select  a
+      Workforce Identity Provider where the :guilabel:`Purpose` is
+      :guilabel:`Workforce Identity Federation`.
+
+   .. step:: Click :guilabel:`Connect`.
+
+      When you connect your Workforce |idp-full| to an organization, |service|
+      enables your Workforce |idp-full| for all the projects within that organization.
+
+.. _pingone-oidc-add-db-user:
+
+Add a Database User using Workforce Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/steps-create-oidc-user.rst
+
+Connect a Client to MongoDB with {+wif+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following lists the ways you can connect a client to MongoDB
+with {+wif+} authentication:
+
+- :ref:`Compass <atlas-connect-via-compass>` v1.38+
+- :ref:`MongoDB Shell <connect-mongo-shell>` v2.1.4+
+
+.. note::
+
+   If you configured Device Authorization Flow, you must pass the
+   ``--oidcFlows=device-auth`` flag when connecting with
+   {+mongosh+}. For example:
+
+   .. code-block:: sh
+
+      mongosh "<connection-string>" \
+        --authenticationMechanism MONGODB-OIDC \
+        --oidcFlows=device-auth
+
+Learn More
+----------
+
+- :ref:`Set up {+wif+} with OIDC <oidc-authentication-workforce>`
+- :ref:`Authentication and Authorization with OIDC/OAuth 2.0 <oidc-authentication-authorization>`
+- :ref:`Configure Federated Authentication <atlas-federated-authentication>`

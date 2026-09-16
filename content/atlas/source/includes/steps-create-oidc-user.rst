@@ -24,11 +24,11 @@
       
    .. step:: Select Identity Provider and Identifier
       
-      a. In the :guilabel:`Select Identity Provider` section, select a configured 
-      |oidc| |idp-full|.
+      In the :guilabel:`Select Identity Provider` section, select a
+      configured |oidc| |idp-full|.
       
-      #. Specify either the user identifier or group identifier associated with 
-         your configured Workforce |idp-full|.
+      Specify either the user identifier or group identifier
+      associated with your configured Workforce |idp-full|.
 
       .. note:: 
 

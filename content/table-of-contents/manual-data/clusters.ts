@@ -106,6 +106,19 @@ const tocData: TocItem[] = [
             label: 'Workforce (Humans)',
             contentSite: 'cloud-docs',
             url: '/docs/atlas/workforce-oidc',
+            collapsible: true,
+            items: [
+              {
+                label: 'Okta',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/security/oidc-okta-setup',
+              },
+              {
+                label: 'PingOne',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/security/oidc-pingone-setup',
+              },
+            ],
           },
           {
             label: 'Workload (Applications)',

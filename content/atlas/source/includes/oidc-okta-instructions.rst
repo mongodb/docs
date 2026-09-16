@@ -19,7 +19,7 @@ To register your |oidc| application with Okta:
 
       #. Click :guilabel:`Next`.
 
-      To learn more, see `Create OIDC app Integrations
+      To learn more, see `Create OIDC app integrations
       <https://help.okta.com/en-us/content/topics/apps/apps_app_integration_wizard_oidc.htm>`__.
     
    .. step:: Configure your :guilabel:`New Native App Integration`.
@@ -108,6 +108,7 @@ To register your |oidc| application with Okta:
 
          .. list-table::
             :header-rows: 1
+            :widths: 40 60
 
             * - Field
               - Value
@@ -205,26 +206,26 @@ To register your |oidc| application with Okta:
           .. list-table::
              :header-rows: 1
 
-            * - Field
-              - Value
+             * - Field
+               - Value
 
-            * - :guilabel:`AND user is`
-              - Select :guilabel:`Any user assigned to the app`.
+             * - :guilabel:`AND user is`
+               - Select :guilabel:`Any user assigned to the app`.
 
-            * - :guilabel:`AND Scopes requested`
-              - Select :guilabel:`Any scopes`.
+             * - :guilabel:`AND Scopes requested`
+               - Select :guilabel:`Any scopes`.
 
-            * - :guilabel:`THEN Use this inline hook`
-              - None (disabled)
+             * - :guilabel:`THEN Use this inline hook`
+               - None (disabled)
 
-            * - :guilabel:`AND Access token lifetime is`
-              - :guilabel:`1 Hours`
+             * - :guilabel:`AND Access token lifetime is`
+               - :guilabel:`1 Hours`
 
-            * - :guilabel:`AND Refresh token lifetime is`
-              - Click the second drop-down and select :guilabel:`Unlimited`.
+             * - :guilabel:`AND Refresh token lifetime is`
+               - Click the second drop-down and select :guilabel:`Unlimited`.
 
-            * - :guilabel:`but will expire if not used every`
-              - Enter :guilabel:`7 days`.
+             * - :guilabel:`but will expire if not used every`
+               - Enter :guilabel:`7 days`.
 
       #. Click :guilabel:`Create Rule`.
 
@@ -243,7 +244,7 @@ To register your |oidc| application with Okta:
 
       #. Click :guilabel:`Save`.
 
-         To learn more, see `Create a Group
+         To learn more, see `Create a group
          <https://help.okta.com/en-us/content/topics/users-groups-profiles/usgp-groups-create.htm>`__.
 
       #. Follow the Okta documentation to 
