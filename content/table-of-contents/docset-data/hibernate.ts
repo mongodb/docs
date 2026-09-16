@@ -18,6 +18,25 @@ const tocData: TocItem[] = [
         url: '/docs/languages/java/mongodb-hibernate/:version/get-started',
       },
       {
+        label: 'Spring Boot',
+        contentSite: 'hibernate',
+        collapsible: true,
+        versions: { includes: ['upcoming'] },
+        url: '/docs/languages/java/mongodb-hibernate/:version/spring-boot',
+        items: [
+          {
+            label: 'Get Started with the Spring Boot Starter',
+            contentSite: 'hibernate',
+            url: '/docs/languages/java/mongodb-hibernate/:version/spring-boot/get-started',
+          },
+          {
+            label: 'Configure the Spring Boot Starter',
+            contentSite: 'hibernate',
+            url: '/docs/languages/java/mongodb-hibernate/:version/spring-boot/configure',
+          },
+        ],
+      },
+      {
         label: 'Model Data',
         contentSite: 'hibernate',
         collapsible: true,

@@ -1,0 +1,246 @@
+.. _hibernate-spring-boot-get-started:
+
+========================================
+Get Started with the Spring Boot Starter
+========================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Learn how to build a Spring Boot application that uses the MongoDB Hibernate ORM starter to map JPA entities and repositories to MongoDB.
+   :keywords: quick start, tutorial, repository, code example
+
+Overview
+--------
+
+In this tutorial, you can learn how to create a Spring Boot
+application that stores Java Persistence API (JPA) entities in MongoDB
+by using the {+extension-short+}. The application defines a ``Movie``
+entity, a Spring Data JPA repository, and a query that runs at startup.
+
+Before you begin, complete the :ref:`hibernate-create-deployment` and
+:ref:`hibernate-connection-string` steps of the
+:ref:`hibernate-get-started` tutorial. Those steps create the Atlas
+deployment, sample data, and connection string that this tutorial
+uses.
+
+.. _hibernate-spring-boot-install:
+
+Install the Application Starter
+-------------------------------
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create a Spring Boot project
+
+      Create a Spring Boot {+spring-boot-version+} project named
+      ``MongoHibernateSpringQuickstart``. You can generate the project
+      by using the `Spring Initializr <https://start.spring.io/>`__
+      or create it in your IDE.
+
+      The Spring Initializr generates a main application class named
+      after your project, such as
+      ``MongoHibernateSpringQuickstartApplication.java``. If you use
+      the Spring Initializr to generate your project, delete the
+      auto-generated main application class file. You will create a
+      main application file for this project named
+      ``Movie Application`` later in this tutorial. If your project
+      contains two main application classes, your application fails to
+      start with an ``Unable to find a single main class`` error.
+
+   .. step:: Add the starter dependency
+
+      For Maven projects, add the following dependency to your
+      ``pom.xml`` file:
+
+      .. code-block:: xml
+
+         <dependencies>
+            <dependency>
+               <groupId>org.mongodb</groupId>
+               <artifactId>{+starter-artifact+}</artifactId>
+               <version>{+extension-version+}</version>
+            </dependency>
+         </dependencies>
+
+      For Gradle projects, add the following dependency to your
+      ``build.gradle`` file:
+
+      .. code-block:: groovy
+
+         dependencies {
+            implementation("org.mongodb:{+starter-artifact+}:{+extension-version+}")
+         }
+
+   .. step:: Override the managed {+orm+} version
+
+      The starter requires {+orm+} {+hibernate-version+} or later.
+      Spring Boot manages the {+orm+} version through its bill of
+      materials (BOM), and some Spring Boot
+      {+spring-boot-version+} releases manage an earlier version of
+      {+orm+} than the version that the starter requires. If the
+      managed version is earlier than
+      {+hibernate-version+}, your application fails to start and the
+      {+extension-short+} throws a ``NoSuchMethodError``.
+
+      To override the managed version in a Maven project, add the
+      following property to your ``pom.xml`` file:
+
+      .. code-block:: xml
+
+         <properties>
+            <hibernate.version>{+hibernate-full-version+}</hibernate.version>
+         </properties>
+
+      To override the managed version in a Gradle project, add the
+      following line to your ``build.gradle`` file:
+
+      .. code-block:: groovy
+
+         ext['hibernate.version'] = '{+hibernate-full-version+}'
+
+      Reload or sync your project to complete the installation.
+
+.. _hibernate-spring-boot-configure-app:
+
+Configure Your Application
+--------------------------
+
+.. procedure::
+   :style: connected
+
+   .. step:: Set your application properties
+
+      In your project's ``src/main/resources`` directory, open the
+      ``application.properties`` file and add the following
+      properties:
+
+      .. literalinclude:: /includes/spring-boot/application.properties
+         :copyable: true
+         :language: properties
+
+      Replace the ``<connection string>`` placeholder with the
+      ``sample_mflix`` connection string that you created in the
+      :ref:`hibernate-connection-string` step of the
+      :ref:`hibernate-get-started` tutorial. Your connection string
+      should resemble the following example:
+
+      .. code-block:: text
+         :copyable: false
+
+         mongodb+srv://<db_username>:<db_password>@<cluster>/sample_mflix?<options>
+
+      The application properties you set do the following:
+
+      - ``spring.jpa.database-platform``: Activates the starter. The
+        starter remains inactive unless you set this property to
+        ``MongoDB``.
+      - ``spring.mongodb.uri``: Configures the ``MongoClient``
+        instance that the starter reuses. The starter does not create
+        a client of its own.
+      - ``spring.jpa.properties.com.mongodb.hibernate.semantics.nulls``:
+        Declares the null-comparison semantics that queries use. This
+        property is required and its only supported value is ``MQL``.
+
+   .. step:: Define your ``Movie`` entity
+
+      In your project's ``src/main/java/org/example`` directory,
+      create a file called ``Movie.java`` and paste the following code
+      into it:
+
+      .. literalinclude:: /includes/spring-boot/Movie.java
+         :copyable: true
+         :language: java
+         :dedent:
+
+      This entity represents the ``sample_mflix.movies`` collection
+      from the :atlas:`Atlas sample datasets </sample-data>`. The
+      starter scans your application's main package for entities, so
+      you do not need to register the entity.
+
+   .. step:: Define your repository
+
+      In the same directory, create a file called
+      ``MovieRepository.java`` and paste the following code into it:
+
+      .. literalinclude:: /includes/spring-boot/MovieRepository.java
+         :copyable: true
+         :language: java
+         :dedent:
+
+      The starter enables Spring Data JPA repositories without a SQL
+      ``DataSource``, so Spring Boot implements the
+      ``MovieRepository`` interface for you.
+
+   .. step:: Define your application class
+
+      In the same directory, create a file called
+      ``MovieApplication.java`` and paste the following code into it:
+
+      .. literalinclude:: /includes/spring-boot/MovieApplication.java
+         :copyable: true
+         :language: java
+         :dedent:
+
+      This class runs a repository query at startup and prints each
+      matching movie.
+
+After you complete these steps, your application has the following
+file structure:
+
+.. code-block:: text
+   :copyable: false
+
+   MongoHibernateSpringQuickstart
+   ├── src
+   │   └── main
+   │       ├── java
+   │       │   └── org/example
+   │       │       ├── Movie.java
+   │       │       ├── MovieApplication.java
+   │       │       └── MovieRepository.java
+   │       └── resources
+   │           └── application.properties
+   ├── .gitignore
+   ├── pom.xml (for Maven projects)
+   └── build.gradle (for Gradle projects)
+
+.. _hibernate-spring-boot-run:
+
+Run Your Application
+--------------------
+
+Run the ``MovieApplication`` class in your IDE. Your output resembles
+the following text:
+
+.. code-block:: none
+   :copyable: false
+
+   Title: Little Women, Year: 1949
+   Title: Little Women, Year: 1994
+
+If your application does not start, see
+:ref:`hibernate-spring-boot-troubleshoot` for possible startup errors
+and troubleshooting tips.
+
+Next Steps
+----------
+
+To learn how to set JPA properties, change the field naming strategy,
+and customize the ``MongoClient``, see
+:ref:`hibernate-spring-boot-configure`.
+
+To learn how to model your data as entities, see
+:ref:`hibernate-entities`.
+
+To learn how to query your data, see the
+:ref:`hibernate-interact-data` section.
