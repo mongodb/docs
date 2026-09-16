@@ -1812,6 +1812,38 @@ export const toc: L1TocItem[] = [
                   {
                     label: 'Install on Linux',
                     contentSite: 'docs',
+                    url: '/docs/:version/administration/install-community-linux',
+                    versions: {
+                      excludes: ['v7.0', 'v8.0'],
+                    },
+                  },
+                  {
+                    label: 'Install on Windows',
+                    contentSite: 'docs',
+                    url: '/docs/:version/administration/install-community-windows',
+                    versions: {
+                      excludes: ['v7.0', 'v8.0'],
+                    },
+                  },
+                  {
+                    label: 'Install on macOS',
+                    contentSite: 'docs',
+                    url: '/docs/:version/administration/install-community-macos',
+                    versions: {
+                      excludes: ['v7.0', 'v8.0'],
+                    },
+                  },
+                  {
+                    label: 'Install with Docker',
+                    contentSite: 'docs',
+                    url: '/docs/:version/administration/install-community-docker',
+                    versions: {
+                      excludes: ['v7.0', 'v8.0'],
+                    },
+                  },
+                  {
+                    label: 'Install on Linux',
+                    contentSite: 'docs',
                     collapsible: true,
                     url: '/docs/:version/administration/install-on-linux',
                     versions: {

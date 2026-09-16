@@ -32,6 +32,11 @@ export const toc: L1TocItem[] = [
                 contentSite: 'hibernate',
                 url: '/docs/languages/java/mongodb-hibernate/:version/model-data/entities',
               },
+              {
+                label: 'Inheritance Hierarchies',
+                contentSite: 'hibernate',
+                url: '/docs/languages/java/mongodb-hibernate/:version/model-data/inheritance',
+              },
             ],
           },
           {

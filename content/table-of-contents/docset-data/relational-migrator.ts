@@ -20,7 +20,6 @@ const tocData: TocItem[] = [
           {
             label: 'Create & Manage Projects',
             contentSite: 'docs-relational-migrator',
-            url: '/docs/relational-migrator/projects',
             collapsible: true,
             items: [
               {

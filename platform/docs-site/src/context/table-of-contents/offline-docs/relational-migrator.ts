@@ -26,7 +26,6 @@ export const toc: L1TocItem[] = [
                 label: 'Create & Manage Projects',
                 contentSite: 'docs-relational-migrator',
                 collapsible: true,
-                url: '/docs/relational-migrator/projects',
                 items: [
                   {
                     label: 'Create with Live Database',
