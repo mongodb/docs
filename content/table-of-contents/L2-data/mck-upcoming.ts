@@ -722,7 +722,7 @@ const mckUpcoming: TocItem[] = [
       {
         label: 'Multi-Cluster Architecture',
         contentSite: 'mck',
-        url: '/docs/kubernetes/:version/reference-architectures/multi-cluster/multi-cluster',
+        url: '/docs/kubernetes/:version/reference-architectures/multi-cluster/overview',
         collapsible: true,
         items: [
           {
@@ -765,7 +765,7 @@ const mckUpcoming: TocItem[] = [
       {
         label: 'Multi-Cluster Architecture Without Service Mesh',
         contentSite: 'mck',
-        url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/multi-cluster-no-mesh',
+        url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/overview',
         collapsible: true,
         items: [
           {

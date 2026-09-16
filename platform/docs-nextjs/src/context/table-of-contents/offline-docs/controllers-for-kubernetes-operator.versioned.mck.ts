@@ -1622,7 +1622,7 @@ export const toc: L1TocItem[] = [
                 label: 'Multi-Cluster Architecture',
                 contentSite: 'mck',
                 collapsible: true,
-                url: '/docs/kubernetes/:version/reference-architectures/multi-cluster/multi-cluster',
+                url: '/docs/kubernetes/:version/reference-architectures/multi-cluster/overview',
                 items: [
                   {
                     label: 'GKE Clusters',
@@ -1665,7 +1665,7 @@ export const toc: L1TocItem[] = [
                 label: 'Multi-Cluster Architecture Without Service Mesh',
                 contentSite: 'mck',
                 collapsible: true,
-                url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/multi-cluster-no-mesh',
+                url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/overview',
                 items: [
                   {
                     label: 'GKE Clusters',
