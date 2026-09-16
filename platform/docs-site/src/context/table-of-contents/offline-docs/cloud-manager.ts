@@ -517,6 +517,11 @@ export const toc: L1TocItem[] = [
                     contentSite: 'cloud-manager',
                     url: '/docs/cloud-manager/tutorial/prometheus-integration',
                   },
+                  {
+                    label: 'Webhooks',
+                    contentSite: 'cloud-manager',
+                    url: '/docs/cloud-manager/tutorial/webhook-integration',
+                  },
                 ],
               },
               {

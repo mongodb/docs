@@ -673,6 +673,11 @@ export const toc: L1TocItem[] = [
                     contentSite: 'ops-manager',
                     url: '/docs/ops-manager/:version/tutorial/slack-integration',
                   },
+                  {
+                    label: 'Webhooks',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/tutorial/webhook-integration',
+                  },
                 ],
               },
               {

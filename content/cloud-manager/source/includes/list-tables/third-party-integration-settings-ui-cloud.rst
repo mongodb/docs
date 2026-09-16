@@ -101,19 +101,22 @@
 
    * - Webhook Settings
 
-     - :guilabel:`Webhook URL` endpoint to which |mms| can send alerts
-       for programmatic processing. |mms| sends an alert as an |http|
-       POST request in which the request body contains a |json|
-       document that uses the same format as the |mms| |api|
-       :doc:`Alerts resource </reference/api/alerts>`.
+     - Adds a :guilabel:`Webhook URL` endpoint to which |mms|
+       can send alert notifications for programmatic processing.
+       |mms| sends an alert notification as an |http| POST
+       request.
 
-       .. include:: /includes/facts/alert-webhook-mms-event-header.rst
+       For detailed information about webhook request headers,
+       request body structure, authentication, and limitations,
+       see :doc:`Integrate with Webhooks
+       </tutorial/webhook-integration>`.
 
-       To send alert notifications to a Webhook, select the Webhook
-       notification option when creating or editing an
-       :ref:`alert configuration <configure-alerts>`. If you add a Webhook notification and
-       the |url| or optional key becomes invalid, |mms| sends an email
-       to the :authrole:`Project Owner` and eventually removes the
+       To send alert notifications to a Webhook, select the
+       Webhook notification option when creating or editing an
+       :ref:`alert configuration <configure-alerts>`. If you
+       add a Webhook notification and the |url| or optional key
+       becomes invalid, |mms| sends an email to the
+       :authrole:`Project Owner` and eventually removes the
        Webhook settings.
 
    * - Microsoft Teams Webhook URL
