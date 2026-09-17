@@ -75,6 +75,12 @@ const tocData: TocItem[] = [
             url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/specify-a-query',
           },
           {
+            label: 'Datetime Functions in Queries',
+            contentSite: 'hibernate',
+            url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/datetime-functions',
+            versions: { includes: ['upcoming'] },
+          },
+          {
             label: 'Join Entities Across Collections',
             contentSite: 'hibernate',
             url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/join-entities',
