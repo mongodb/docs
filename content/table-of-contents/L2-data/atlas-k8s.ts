@@ -105,7 +105,7 @@ const tocData: TocItem[] = [
           {
             label: 'Custom Database Roles',
             contentSite: 'atlas-operator',
-            url: '/docs/atlas/operator/:version/ak8so-configure-custom-database-roles',
+            url: '/docs/atlas/operator/:version/atlascustomrole-custom-resource',
           },
           {
             label: 'X.509',
