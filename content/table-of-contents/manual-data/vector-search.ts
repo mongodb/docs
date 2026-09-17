@@ -60,6 +60,11 @@ const tocData: TocItem[] = [
             contentSite: 'vector-search',
             url: '/docs/vector-search/query/explain',
           },
+          {
+            label: 'Disable Concurrent Query Execution Across Segments',
+            contentSite: 'vector-search',
+            url: '/docs/vector-search/query/concurrent',
+          },
         ],
       },
       {
