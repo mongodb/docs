@@ -114,6 +114,56 @@ The following table describes supported BSON field types and their
    The {+extension-short+} does not support the ``@org.hibernate.annotations.JdbcTypeCode`` annotation and 
    throws an exception if you use this annotation to override a field's type mapping.
 
+.. _hibernate-entities-unsupported-types:
+
+Unsupported Field Types
+~~~~~~~~~~~~~~~~~~~~~~~
+
+{+orm+} serializes any Java type that implements ``java.io.Serializable``
+to binary data when it has no other mapping for that type. To prevent
+your data from being stored in this format, the {+extension-short+}
+rejects the following types and throws an exception when your
+application starts. This check applies to primary keys, ordinary
+fields, embeddable attributes, and collection elements.
+
+The following table describes unsupported field types and their supported
+alternatives:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 40 30
+
+   * - Category
+     - Unsupported Types
+     - Supported Alternative
+
+   * - Date and Time
+     - ``java.util.Calendar``, ``java.util.Date``,
+       ``java.sql.Date``, ``java.sql.Time``,
+       ``java.sql.Timestamp``, ``java.time.LocalTime``,
+       ``java.time.LocalDateTime``, ``java.time.ZonedDateTime``,
+       ``java.time.OffsetTime``, ``java.time.OffsetDateTime``
+     - Use ``java.time.Instant``.
+
+   * - BSON Values
+     - ``org.bson.types.BSONTimestamp``, ``org.bson.types.Binary``,
+       ``org.bson.types.Code``, ``org.bson.types.CodeWithScope``,
+       ``org.bson.types.CodeWScope``, ``org.bson.types.MinKey``,
+       ``org.bson.types.MaxKey``, ``org.bson.types.Symbol``,
+       ``org.bson.types.Decimal128``
+     - Use ``byte[]`` for binary data and ``java.math.BigDecimal``
+       for decimal values. The other types have no equivalent.
+
+   * - BSON Documents
+     - ``org.bson.Document``, ``org.bson.BsonDocument``,
+       ``org.bson.RawBsonDocument``, ``org.bson.BsonDocumentWrapper``
+     - Use an ``@org.hibernate.annotations.Struct`` aggregate
+       embeddable.
+
+   * - Identifiers
+     - ``java.util.UUID``
+     - Use ``org.bson.types.ObjectId`` or ``java.lang.String``.
+
 .. _hibernate-entities-define:
 
 Define an Entity
@@ -240,9 +290,11 @@ that includes the following information:
   
   .. tip:: Primary Key Values
 
-     This example specifies the ``ObjectId`` field as the entity's 
-     primary key, but you can also set ``String``, ``Int``, or ``UUID`` fields
-     as the primary key by using the ``@Id`` annotation.
+     This example specifies the ``ObjectId`` field as the entity's
+     primary key, but you can also set ``String`` or ``int`` fields
+     as the primary key by using the ``@Id`` annotation. You cannot
+     use a ``java.util.UUID`` field as the primary key. To learn
+     more, see :ref:`hibernate-entities-unsupported-types`.
 
 - Private fields that represent movie data
 
