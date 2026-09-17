@@ -5,7 +5,7 @@ New driver versions are fully compatible with any {+mdb-server+} version that re
 EOL within the last three years. After this period, new driver
 versions might not be fully compatible with the EOL {+mdb-server+} versions.
 
-For example, MongoDB Server {+one-mdb-version-back+} reaches EOL on
+For example, MongoDB Server {+one-mdb-version-back+} is EOL as of
 {+one-mdb-version-back-eol-date+}. All |driver| releases until
 {+one-mdb-version-back-eol-date-plus-three-years+} will be fully compatible with
 {+mdb-server+} {+one-mdb-version-back+}.
