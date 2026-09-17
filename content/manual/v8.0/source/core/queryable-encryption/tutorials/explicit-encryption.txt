@@ -4,6 +4,7 @@
 
 .. meta::
    :keywords: code example, node.js, compass, java sync
+   :description: Use explicit encryption to encrypt and decrypt document fields with MongoDB drivers, including creating the customer master key, data encryption keys, and the encrypted collection.
 
 .. _qe-tutorials-manual-encryption:
 
@@ -19,228 +20,1102 @@ Use {+manual-enc-title+}
    :depth: 2
    :class: singlecol
 
-Overview
---------
+.. composable-tutorial::
+   :options: language-no-dependencies
+   :defaults: nodejs
 
-This guide shows you how to encrypt a document with {+manual-enc+}
-and a MongoDB driver.
+   Overview
+   --------
 
-After completing this guide, you should be able to configure a driver to
-encrypt fields in a document using {+manual-enc+}. With this knowledge,
-you should be able to create a client application that uses {+manual-enc+}.
-with automatic decryption.
+   This guide shows you how to encrypt a document with {+manual-enc+}
+   and a MongoDB driver.
 
-.. include:: /includes/queryable-encryption/quick-start/production-warning.rst
+   After completing this guide, you can configure a driver to
+   encrypt fields in a document using {+manual-enc+}. With this knowledge,
+   you can create a client application that uses {+manual-enc+}.
+   with automatic decryption.
 
-Before You Get Started
-----------------------
+   .. include:: /includes/queryable-encryption/quick-start/production-warning.rst
 
-.. include:: /includes/queryable-encryption/set-up-section.rst
+   Before You Get Started
+   ----------------------
 
-Full Application Code
-~~~~~~~~~~~~~~~~~~~~~
+   .. include:: /includes/queryable-encryption/set-up-section.rst
 
-To see the complete code for the sample application, select your programming
-language in the language selector.
+   Full Application Code
+   ---------------------
 
-.. tabs-drivers::
+   To see the complete code for the sample application, select your programming
+   language in the language selector.
 
-   .. tab:: Node.js
-      :tabid: nodejs
+   .. selected-content::
+      :selections: nodejs
 
       `Complete Node.js Application <{+sample-app-url-qe-old+}/node/exp/reader/>`__
 
-   .. tab:: Python
-      :tabid: python
+   .. selected-content::
+      :selections: python
 
       `Complete Python Application <{+sample-app-url-qe-old+}/python/exp/reader/>`__
 
-   .. tab:: Java
-      :tabid: java
+   .. selected-content::
+      :selections: java-sync
 
       `Complete Java Application <{+sample-app-url-qe-old+}/java/exp/reader/>`__
 
-   .. tab:: Go
-      :tabid: go
+   .. selected-content::
+      :selections: go
 
       `Complete Go Application <{+sample-app-url-qe-old+}/go/exp/reader/>`__
 
-   .. tab:: C#
-      :tabid: csharp
+   .. selected-content::
+      :selections: csharp
 
       `Complete C# Application <{+sample-app-url-qe-old+}/dotnet/exp/reader/>`__
 
+   .. _qe-manual-enc-create-master-key:
+   .. _qe-manual-encryption-tutorial-data-key-create:
+   .. _qe-tutorials-manual-enc-insert:
 
-.. tabs-selector:: drivers
+   Procedure
+   ---------
 
-Procedure
----------
+   .. selected-content::
+      :selections: nodejs
 
-.. procedure::
-   :style: normal
+      .. procedure::
+         :style: normal
 
-   .. step:: Create a {+cmk-long+}
+         .. step:: Create a {+cmk-long+}
 
-      .. include:: /includes/queryable-encryption/tutorials/exp/cmk.rst
+            You must create a {+cmk-long+} ({+cmk-abbr+}) to perform {+qe+}.
 
-      .. see:: Complete Code
+            Create a 96-byte {+cmk-long+} and save it to the
+            file ``master-key.txt``:
 
-         .. tabs-drivers::
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/exp/reader/make_data_key.js
+               :start-after: start-local-cmk
+               :end-before: end-local-cmk
+               :language: javascript
+               :dedent:
 
-            .. tab::
-               :tabid: nodejs
+            .. include:: /includes/queryable-encryption/qe-warning-local-keys.rst
 
-               To view the complete code for making a {+cmk-long+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe-old+}/node/exp/reader/make_data_key.js>`__.
+            .. include:: /includes/in-use-encryption/cmk-bash.rst
 
-            .. tab::
-               :tabid: python
+         .. step:: Create a Unique Index on your {+key-vault-long+}
 
-               To view the complete code for making a {+cmk-long+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe-old+}/python/exp/reader/make_data_key.py>`__.
+            Create a unique index on the ``keyAltNames`` field in your
+            ``encryption.__keyVault`` namespace.
 
-            .. tab::
-               :tabid: java-sync
+            .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/node/exp/reader/make_data_key.js
+               :start-after: start-create-index
+               :end-before: end-create-index
+               :language: javascript
+               :dedent:
 
-               To view the complete code for making a {+cmk-long+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe-old+}/java/exp/reader/src/main/java/com/mongodb/qe/MakeDataKey.java>`__.
+         .. step:: Create your {+dek-long+}s and Encrypted Collection
 
-            .. tab::
-               :tabid: go
+            a. Read the {+cmk-long+} and Specify KMS Provider Settings
 
-               To view the complete code for making a {+cmk-long+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe-old+}/go/exp/reader/make-data-key.go>`__.
+               Retrieve the contents of the {+cmk-long+} file that you generated
+               in the :ref:`Create a {+cmk-long+} <qe-manual-enc-create-master-key>` step of this guide.
 
-            .. tab::
-               :tabid: csharp
+               Use the {+cmk-abbr+} value in your KMS provider settings. The
+               client uses these settings to discover the {+cmk-abbr+}. Set the provider
+               name to ``local`` to indicate that you are using a
+               Local Key Provider.
 
-               To view the complete code for making a {+cmk-long+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe-old+}/dotnet/exp/reader/QueryableEncryption/MakeDataKey.cs>`__.
+               .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/node/exp/reader/make_data_key.js
+                  :start-after: start-kmsproviders
+                  :end-before: end-kmsproviders
+                  :language: javascript
+                  :dedent:
 
-   .. step:: Create a Unique Index on your {+key-vault-long+}
+            #. Create your {+dek-long+}s
 
-      .. include:: /includes/queryable-encryption/tutorials/exp/key-vault-index.rst
+               Construct a client with your MongoDB connection string and {+key-vault-long+}
+               namespace, and create the {+dek-long+}s:
 
-   .. step:: Create your {+dek-long+}s and Encrypted Collection
+               .. note:: {+key-vault-long-title+} Namespace Permissions
 
-      .. include:: /includes/queryable-encryption/tutorials/exp/dek.rst
+                  .. include:: /includes/note-key-vault-permissions
 
-      .. see:: Complete Code
+               .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/node/exp/reader/make_data_key.js
+                  :start-after: start-create-dek
+                  :end-before: end-create-dek
+                  :language: javascript
+                  :dedent:
 
-         .. tabs-drivers::
+            #. Create Your Encrypted Collection
 
-            .. tab::
-               :tabid: nodejs
+               Use a {+qe+} enabled ``MongoClient`` instance to specify what
+               fields you must encrypt and create your encrypted collection:
 
-               To view the complete code for making a {+dek-long+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe-old+}/node/exp/reader/make_data_key.js>`__.
+               .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/node/exp/reader/make_data_key.js
+                  :start-after: start-create-enc-collection
+                  :end-before: end-create-enc-collection
+                  :language: javascript
+                  :dedent:
 
-            .. tab::
-               :tabid: python
+            The output from the code in this section should resemble the following:
 
-               To view the complete code for making a {+dek-long+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe-old+}/python/exp/reader/make_data_key.py>`__.
+            .. literalinclude:: /includes/queryable-encryption/quick-start/dek-output.out
+               :language: text
+               :copyable: false
 
-            .. tab::
-               :tabid: java-sync
+         .. step:: Configure your MongoClient for Encrypted Reads and Writes
 
-               To view the complete code for making a {+dek-long+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe-old+}/java/exp/reader/src/main/java/com/mongodb/qe/MakeDataKey.java>`__.
+            a. Specify the {+key-vault-long-title+} Namespace
 
-            .. tab::
-               :tabid: go
+               Specify ``encryption.__keyVault`` as the {+key-vault-long+}
+               namespace.
 
-               To view the complete code for making a {+dek-long+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe-old+}/go/exp/reader/make-data-key.go>`__.
+               .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/node/exp/reader/insert_encrypted_document.js
+                  :start-after: start-key-vault
+                  :end-before: end-key-vault
+                  :language: javascript
+                  :dedent:
 
-            .. tab::
-               :tabid: csharp
+            #. Specify the {+cmk-long+}
 
-               To view the complete code for making a {+dek-long+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe-old+}/dotnet/exp/reader/QueryableEncryption/MakeDataKey.cs>`__.
+               Specify the KMS provider and specify your {+cmk-long+} inline:
 
+               .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/node/exp/reader/insert_encrypted_document.js
+                  :start-after: start-kmsproviders
+                  :end-before: end-kmsproviders
+                  :language: javascript
+                  :dedent:
 
-   .. step:: Configure your MongoClient for Encrypted Reads and Writes
+            #. Retrieve {+dek-long+}s 
 
-      .. include:: /includes/queryable-encryption/tutorials/exp/client.rst
+               Retrieve the {+dek-long+}s created in the
+               :ref:`Create a {+dek-long+} <qe-manual-encryption-tutorial-data-key-create>`
+               step of this guide:
 
-   .. step:: Insert a Document with Encrypted Fields
+               .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/node/exp/reader/insert_encrypted_document.js
+                  :start-after: start-retrieve-deks
+                  :end-before: end-retrieve-deks
+                  :language: javascript
+                  :dedent:
 
-      .. include:: /includes/queryable-encryption/tutorials/exp/insert.rst
+            #. Specify the Path of the {+shared-library+}
 
-      .. see:: Complete Code
+               .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/node/exp/reader/insert_encrypted_document.js
+                  :start-after: start-extra-options
+                  :end-before: end-extra-options
+                  :language: javascript
+                  :dedent:
 
-         .. tabs-drivers::
+               .. tip:: Learn More
 
-            .. tab::
-               :tabid: nodejs
+                  To learn more about the library referenced by this path,
+                  see the :ref:`<qe-reference-shared-library>` page.
 
-               To view the complete code to insert a document encrypted with {+manual-enc+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe-old+}/node/exp/reader/insert_encrypted_document.js>`__.
+            #. Create a MongoClient Object
 
-            .. tab::
-               :tabid: python
+               Instantiate a ``MongoClient`` object with the following
+               automatic encryption settings:
 
-               To view the complete code to insert a document encrypted with {+manual-enc+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe-old+}/python/exp/reader/insert_encrypted_document.py>`__.
+               .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/node/exp/reader/insert_encrypted_document.js
+                  :start-after: start-client
+                  :end-before: end-client
+                  :language: javascript
+                  :dedent:
 
-            .. tab::
-               :tabid: java-sync
+               .. note:: Automatic Decryption
 
-               To view the complete code to insert a document encrypted with {+manual-enc+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe-old+}/java/exp/reader/src/main/java/com/mongodb/qe/InsertEncryptedDocument.java>`__.
+                  We use a ``MongoClient`` instance with automatic encryption enabled
+                  to perform automatic decryption.
 
-            .. tab::
-               :tabid: go
+                  To learn more about {+manual-enc+} with automatic decryption,
+                  see the :ref:`Fundamentals <qe-fundamentals>` section. 
 
-               To view the complete code to insert a document encrypted with {+manual-enc+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe-old+}/go/exp/reader/insert-encrypted-document.go>`__.
+            #. Create a ClientEncryption Object
 
-            .. tab::
-               :tabid: csharp
+               Instantiate a ``ClientEncryption`` object as follows:
 
-               To view the complete code to insert a document encrypted with {+manual-enc+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe-old+}/dotnet/exp/reader/QueryableEncryption/InsertEncryptedDocument.cs>`__.
+               .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/node/exp/reader/insert_encrypted_document.js
+                  :start-after: start-client-enc
+                  :end-before: end-client-enc
+                  :language: javascript
+                  :dedent:
 
+            .. note:: Indexed and Unindexed Algorithms
 
-   .. step:: Retrieve Your {+in-use-doc-title+}
+               To learn more about the indexed and unindexed algorithms in
+               {+manual-enc+}, see :ref:`<qe-fundamentals-man-enc-algorithm-choice>`.
 
-      .. include:: /includes/queryable-encryption/tutorials/exp/find.rst
+         .. step:: Insert a Document with Encrypted Fields
 
-      .. see:: Complete Code
+            Use your {+qe+} enabled
+            ``MongoClient`` instance to insert a {+in-use-doc+} into the
+            ``medicalRecords.patients`` namespace using the following code
+            snippet:
 
-         .. tabs-drivers::
+            .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/node/exp/reader/insert_encrypted_document.js
+               :start-after: start-insert
+               :end-before: end-insert
+               :language: javascript
+               :dedent:
 
-            .. tab::
-               :tabid: nodejs
+            When you insert a document, your {+qe+} enabled client
+            encrypts the fields of your document such that it resembles the following:
 
-               To view the code to retrieve your {+in-use-doc+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe-old+}/node/exp/reader/insert_encrypted_document.js>`__.
+            .. literalinclude:: /includes/queryable-encryption/tutorials/exp/inserted-doc-enc.json
+               :language: json
+               :copyable: false
 
-            .. tab::
-               :tabid: python
+            .. include:: /includes/queryable-encryption/safe-content-warning.rst
 
-               To view the code to retrieve your {+in-use-doc+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe-old+}/python/exp/reader/insert_encrypted_document.py>`__.
+         .. step:: Retrieve Your {+in-use-doc-title+}
 
-            .. tab::
-               :tabid: java-sync
+            Retrieve the {+in-use-doc+} you inserted in the
+            :ref:`Insert a Document with Encrypted Fields <qe-tutorials-manual-enc-insert>`
+            step of this guide through a query on an encrypted field:
 
-               To view the code to retrieve your {+in-use-doc+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe-old+}/java/exp/reader/src/main/java/com/mongodb/qe/InsertEncryptedDocument.java>`__.
+            .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/node/exp/reader/insert_encrypted_document.js
+               :start-after: start-find
+               :end-before: end-find
+               :language: javascript
+               :dedent:
 
-            .. tab::
-               :tabid: go
+            The output of the preceding code snippet should contain the following
+            document:
 
-               To view the code to retrieve your {+in-use-doc+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe-old+}/go/exp/reader/insert-encrypted-document.go>`__.
+            .. literalinclude:: /includes/queryable-encryption/tutorials/exp/find-output.json
+               :language: json
+               :copyable: false
 
-            .. tab::
-               :tabid: csharp
+   .. selected-content::
+      :selections: python
 
-               To view the code to retrieve your {+in-use-doc+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe-old+}/dotnet/exp/reader/QueryableEncryption/InsertEncryptedDocument.cs>`__.
+      .. procedure::
+         :style: normal
 
+         .. step:: Create a {+cmk-long+}
+
+            You must create a {+cmk-long+} ({+cmk-abbr+}) to perform {+qe+}.
+
+            Create a 96-byte {+cmk-long+} and save it to the
+            file ``master-key.txt``:
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/python/exp/reader/make_data_key.py
+               :start-after: start-local-cmk
+               :end-before: end-local-cmk
+               :language: python
+               :dedent:
+
+            .. include:: /includes/queryable-encryption/qe-warning-local-keys.rst
+
+            .. include:: /includes/in-use-encryption/cmk-bash.rst
+
+         .. step:: Create a Unique Index on your {+key-vault-long+}
+
+            Create a unique index on the ``keyAltNames`` field in your
+            ``encryption.__keyVault`` namespace.
+
+            .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/python/exp/reader/make_data_key.py
+               :start-after: start-create-index
+               :end-before: end-create-index
+               :language: python
+               :dedent:
+
+         .. step:: Create your {+dek-long+}s and Encrypted Collection
+
+            a. Read the {+cmk-long+} and Specify KMS Provider Settings
+
+               Retrieve the contents of the {+cmk-long+} file that you generated
+               in the :ref:`Create a {+cmk-long+} <qe-manual-enc-create-master-key>` step of this guide.
+
+               Use the {+cmk-abbr+} value in your KMS provider settings. The
+               client uses these settings to discover the {+cmk-abbr+}. Set the provider
+               name to ``local`` to indicate that you are using a
+               Local Key Provider.
+
+               .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/python/exp/reader/make_data_key.py
+                  :start-after: start-kmsproviders
+                  :end-before: end-kmsproviders
+                  :language: python
+                  :dedent:
+
+            #. Create your {+dek-long+}s
+
+               Construct a client with your MongoDB connection string and {+key-vault-long+}
+               namespace, and create the {+dek-long+}s:
+
+               .. note:: {+key-vault-long-title+} Namespace Permissions
+
+                  .. include:: /includes/note-key-vault-permissions
+
+               .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/python/exp/reader/make_data_key.py
+                  :start-after: start-create-dek
+                  :end-before: end-create-dek
+                  :language: python
+                  :dedent:
+
+            #. Create Your Encrypted Collection
+
+               Use a {+qe+} enabled ``MongoClient`` instance to specify what
+               fields you must encrypt and create your encrypted collection:
+
+               .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/python/exp/reader/make_data_key.py
+                  :start-after: start-create-enc-collection
+                  :end-before: end-create-enc-collection
+                  :language: python
+                  :dedent:
+
+            The output from the code in this section should resemble the following:
+
+            .. literalinclude:: /includes/queryable-encryption/quick-start/dek-output.out
+               :language: text
+               :copyable: false
+
+         .. step:: Configure your MongoClient for Encrypted Reads and Writes
+
+            a. Specify the {+key-vault-long-title+} Namespace
+
+               Specify ``encryption.__keyVault`` as the {+key-vault-long+}
+               namespace.
+
+               .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/python/exp/reader/insert_encrypted_document.py
+                  :start-after: start-key-vault
+                  :end-before: end-key-vault
+                  :language: python
+                  :dedent:
+
+            #. Specify the {+cmk-long+}
+
+               Specify the KMS provider and specify your {+cmk-long+} inline:
+
+               .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/python/exp/reader/insert_encrypted_document.py
+                  :start-after: start-kmsproviders
+                  :end-before: end-kmsproviders
+                  :language: python
+                  :dedent:
+
+            #. Retrieve {+dek-long+}s 
+
+               Retrieve the {+dek-long+}s created in the
+               :ref:`Create a {+dek-long+} <qe-manual-encryption-tutorial-data-key-create>`
+               step of this guide:
+
+               .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/python/exp/reader/insert_encrypted_document.py
+                  :start-after: start-retrieve-deks
+                  :end-before: end-retrieve-deks
+                  :language: python
+                  :dedent:
+
+            #. Specify the Path of the {+shared-library+}
+
+               .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/python/exp/reader/insert_encrypted_document.py
+                  :start-after: start-extra-options
+                  :end-before: end-extra-options
+                  :language: python
+                  :dedent:
+
+               .. tip:: Learn More
+
+                  To learn more about the library referenced by this path,
+                  see the :ref:`<qe-reference-shared-library>` page.
+
+            #. Create a MongoClient Object
+
+               Instantiate a ``MongoClient`` object with the following
+               automatic encryption settings:
+
+               .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/python/exp/reader/insert_encrypted_document.py
+                  :start-after: start-client
+                  :end-before: end-client
+                  :language: python
+                  :dedent:
+
+               .. note:: Automatic Decryption
+
+                  We use a ``MongoClient`` instance with automatic encryption enabled
+                  to perform automatic decryption.
+
+                  To learn more about {+manual-enc+} with automatic decryption,
+                  see the :ref:`Fundamentals <qe-fundamentals>` section. 
+
+            #. Create a ClientEncryption Object
+
+               Instantiate a ``ClientEncryption`` object as follows:
+
+               .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/python/exp/reader/insert_encrypted_document.py
+                  :start-after: start-client-enc
+                  :end-before: end-client-enc
+                  :language: python
+                  :dedent:
+
+            .. note:: Indexed and Unindexed Algorithms
+
+               To learn more about the indexed and unindexed algorithms in
+               {+manual-enc+}, see :ref:`<qe-fundamentals-man-enc-algorithm-choice>`.
+
+         .. step:: Insert a Document with Encrypted Fields
+
+            Use your {+qe+} enabled
+            ``MongoClient`` instance to insert a {+in-use-doc+} into the
+            ``medicalRecords.patients`` namespace using the following code
+            snippet:
+
+            .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/python/exp/reader/insert_encrypted_document.py
+               :start-after: start-insert
+               :end-before: end-insert
+               :language: python
+               :dedent:
+
+            When you insert a document, your {+qe+} enabled client
+            encrypts the fields of your document such that it resembles the following:
+
+            .. literalinclude:: /includes/queryable-encryption/tutorials/exp/inserted-doc-enc.json
+               :language: json
+               :copyable: false
+
+            .. include:: /includes/queryable-encryption/safe-content-warning.rst
+
+         .. step:: Retrieve Your {+in-use-doc-title+}
+
+            Retrieve the {+in-use-doc+} you inserted in the
+            :ref:`Insert a Document with Encrypted Fields <qe-tutorials-manual-enc-insert>`
+            step of this guide through a query on an encrypted field:
+
+            .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/python/exp/reader/insert_encrypted_document.py
+               :start-after: start-find
+               :end-before: end-find
+               :language: python
+               :dedent:
+
+            The output of the preceding code snippet should contain the following
+            document:
+
+            .. literalinclude:: /includes/queryable-encryption/tutorials/exp/find-output.json
+               :language: json
+               :copyable: false
+
+   .. selected-content::
+      :selections: java-sync
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Create a {+cmk-long+}
+
+            You must create a {+cmk-long+} ({+cmk-abbr+}) to perform {+qe+}.
+
+            Create a 96-byte {+cmk-long+} and save it to the
+            file ``master-key.txt``:
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/exp/reader/src/main/java/com/mongodb/qe/MakeDataKey.java
+               :start-after: start-local-cmk
+               :end-before: end-local-cmk
+               :language: java
+               :dedent:
+
+            .. include:: /includes/queryable-encryption/qe-warning-local-keys.rst
+
+            .. include:: /includes/in-use-encryption/cmk-bash.rst
+
+         .. step:: Create a Unique Index on your {+key-vault-long+}
+
+            Create a unique index on the ``keyAltNames`` field in your
+            ``encryption.__keyVault`` namespace.
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/exp/reader/src/main/java/com/mongodb/qe/MakeDataKey.java
+               :start-after: start-create-index
+               :end-before: end-create-index
+               :language: java
+               :dedent:
+
+         .. step:: Create your {+dek-long+}s and Encrypted Collection
+
+            a. Read the {+cmk-long+} and Specify KMS Provider Settings
+
+               Retrieve the contents of the {+cmk-long+} file that you generated
+               in the :ref:`Create a {+cmk-long+} <qe-manual-enc-create-master-key>` step of this guide.
+
+               Use the {+cmk-abbr+} value in your KMS provider settings. The
+               client uses these settings to discover the {+cmk-abbr+}. Set the provider
+               name to ``local`` to indicate that you are using a
+               Local Key Provider.
+
+               .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/exp/reader/src/main/java/com/mongodb/qe/MakeDataKey.java
+                  :start-after: start-kmsproviders
+                  :end-before: end-kmsproviders
+                  :language: java
+                  :dedent:
+
+            #. Create your {+dek-long+}s
+
+               Construct a client with your MongoDB connection string and {+key-vault-long+}
+               namespace, and create the {+dek-long+}s:
+
+               .. note:: {+key-vault-long-title+} Namespace Permissions
+
+                  .. include:: /includes/note-key-vault-permissions
+
+               .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/exp/reader/src/main/java/com/mongodb/qe/MakeDataKey.java
+                  :start-after: start-create-dek
+                  :end-before: end-create-dek
+                  :language: java
+                  :dedent:
+
+            #. Create Your Encrypted Collection
+
+               Use a {+qe+} enabled ``MongoClient`` instance to specify what
+               fields you must encrypt and create your encrypted collection:
+
+               .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/exp/reader/src/main/java/com/mongodb/qe/MakeDataKey.java
+                  :start-after: start-create-enc-collection
+                  :end-before: end-create-enc-collection
+                  :language: java
+                  :dedent:
+
+            The output from the code in this section should resemble the following:
+
+            .. literalinclude:: /includes/queryable-encryption/quick-start/dek-output.out
+               :language: text
+               :copyable: false
+
+         .. step:: Configure your MongoClient for Encrypted Reads and Writes
+
+            a. Specify the {+key-vault-long-title+} Namespace
+
+               Specify ``encryption.__keyVault`` as the {+key-vault-long+}
+               namespace.
+
+               .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/exp/reader/src/main/java/com/mongodb/qe/InsertEncryptedDocument.java
+                  :start-after: start-key-vault
+                  :end-before: end-key-vault
+                  :language: java
+                  :dedent:
+
+            #. Specify the {+cmk-long+}
+
+               Specify the KMS provider and specify your {+cmk-long+} inline:
+
+               .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/exp/reader/src/main/java/com/mongodb/qe/InsertEncryptedDocument.java
+                  :start-after: start-kmsproviders
+                  :end-before: end-kmsproviders
+                  :language: java
+                  :dedent:
+
+            #. Retrieve {+dek-long+}s 
+
+               Retrieve the {+dek-long+}s created in the
+               :ref:`Create a {+dek-long+} <qe-manual-encryption-tutorial-data-key-create>`
+               step of this guide:
+
+               .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/exp/reader/src/main/java/com/mongodb/qe/InsertEncryptedDocument.java
+                  :start-after: start-retrieve-deks
+                  :end-before: end-retrieve-deks
+                  :language: java
+                  :dedent:
+
+            #. Specify the Path of the {+shared-library+}
+
+               .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/exp/reader/src/main/java/com/mongodb/qe/InsertEncryptedDocument.java
+                  :start-after: start-extra-options
+                  :end-before: end-extra-options
+                  :language: java
+                  :dedent:
+
+               .. tip:: Learn More
+
+                  To learn more about the library referenced by this path,
+                  see the :ref:`<qe-reference-shared-library>` page.
+
+            #. Create a MongoClient Object
+
+               Instantiate a ``MongoClient`` object with the following
+               automatic encryption settings:
+
+               .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/exp/reader/src/main/java/com/mongodb/qe/InsertEncryptedDocument.java
+                  :start-after: start-client
+                  :end-before: end-client
+                  :language: java
+                  :dedent:
+
+               .. note:: Automatic Decryption
+
+                  We use a ``MongoClient`` instance with automatic encryption enabled
+                  to perform automatic decryption.
+
+                  To learn more about {+manual-enc+} with automatic decryption,
+                  see the :ref:`Fundamentals <qe-fundamentals>` section. 
+
+            #. Create a ClientEncryption Object
+
+               Instantiate a ``ClientEncryption`` object as follows:
+
+               .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/exp/reader/src/main/java/com/mongodb/qe/InsertEncryptedDocument.java
+                  :start-after: start-client-enc
+                  :end-before: end-client-enc
+                  :language: java
+                  :dedent:
+
+            .. note:: Indexed and Unindexed Algorithms
+
+               To learn more about the indexed and unindexed algorithms in
+               {+manual-enc+}, see :ref:`<qe-fundamentals-man-enc-algorithm-choice>`.
+
+         .. step:: Insert a Document with Encrypted Fields
+
+            Use your {+qe+} enabled
+            ``MongoClient`` instance to insert a {+in-use-doc+} into the
+            ``medicalRecords.patients`` namespace using the following code
+            snippet:
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/exp/reader/src/main/java/com/mongodb/qe/InsertEncryptedDocument.java
+               :start-after: start-insert
+               :end-before: end-insert
+               :language: java
+               :dedent:
+
+            When you insert a document, your {+qe+} enabled client
+            encrypts the fields of your document such that it resembles the following:
+
+            .. literalinclude:: /includes/queryable-encryption/tutorials/exp/inserted-doc-enc.json
+               :language: json
+               :copyable: false
+
+            .. include:: /includes/queryable-encryption/safe-content-warning.rst
+
+         .. step:: Retrieve Your {+in-use-doc-title+}
+
+            Retrieve the {+in-use-doc+} you inserted in the
+            :ref:`Insert a Document with Encrypted Fields <qe-tutorials-manual-enc-insert>`
+            step of this guide through a query on an encrypted field:
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/exp/reader/src/main/java/com/mongodb/qe/InsertEncryptedDocument.java
+               :start-after: start-find
+               :end-before: end-find
+               :language: java
+               :dedent:
+
+            The output of the preceding code snippet should contain the following
+            document:
+
+            .. literalinclude:: /includes/queryable-encryption/tutorials/exp/find-output.json
+               :language: json
+               :copyable: false
+
+   .. selected-content::
+      :selections: go
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Create a {+cmk-long+}
+
+            You must create a {+cmk-long+} ({+cmk-abbr+}) to perform {+qe+}.
+
+            Create a 96-byte {+cmk-long+} and save it to the
+            file ``master-key.txt``:
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/exp/reader/make-data-key.go
+               :start-after: start-local-cmk
+               :end-before: end-local-cmk
+               :language: go
+               :dedent:
+
+            .. include:: /includes/queryable-encryption/qe-warning-local-keys.rst
+
+            .. include:: /includes/in-use-encryption/cmk-bash.rst
+
+         .. step:: Create a Unique Index on your {+key-vault-long+}
+
+            Create a unique index on the ``keyAltNames`` field in your
+            ``encryption.__keyVault`` namespace.
+
+            .. include:: /includes/queryable-encryption/tutorials/go-build-constraint.rst
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/exp/reader/make-data-key.go
+               :start-after: start-create-index
+               :end-before: end-create-index
+               :language: go
+               :dedent:
+
+         .. step:: Create your {+dek-long+}s and Encrypted Collection
+
+            a. Read the {+cmk-long+} and Specify KMS Provider Settings
+
+               Retrieve the contents of the {+cmk-long+} file that you generated
+               in the :ref:`Create a {+cmk-long+} <qe-manual-enc-create-master-key>` step of this guide.
+
+               Use the {+cmk-abbr+} value in your KMS provider settings. The
+               client uses these settings to discover the {+cmk-abbr+}. Set the provider
+               name to ``local`` to indicate that you are using a
+               Local Key Provider.
+
+               .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/exp/reader/make-data-key.go
+                  :start-after: start-kmsproviders
+                  :end-before: end-kmsproviders
+                  :language: go
+                  :dedent:
+
+            #. Create your {+dek-long+}s
+
+               Construct a client with your MongoDB connection string and {+key-vault-long+}
+               namespace, and create the {+dek-long+}s:
+
+               .. note:: {+key-vault-long-title+} Namespace Permissions
+
+                  .. include:: /includes/note-key-vault-permissions
+
+               .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/exp/reader/make-data-key.go
+                  :start-after: start-create-dek
+                  :end-before: end-create-dek
+                  :language: go
+                  :dedent:
+
+            #. Create Your Encrypted Collection
+
+               Use a {+qe+} enabled ``MongoClient`` instance to specify what
+               fields you must encrypt and create your encrypted collection:
+
+               .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/exp/reader/make-data-key.go
+                  :start-after: start-create-enc-collection
+                  :end-before: end-create-enc-collection
+                  :language: go
+                  :dedent:
+
+            The output from the code in this section should resemble the following:
+
+            .. literalinclude:: /includes/queryable-encryption/quick-start/dek-output.out
+               :language: text
+               :copyable: false
+
+         .. step:: Configure your MongoClient for Encrypted Reads and Writes
+
+            a. Specify the {+key-vault-long-title+} Namespace
+
+               Specify ``encryption.__keyVault`` as the {+key-vault-long+}
+               namespace.
+
+               .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/exp/reader/insert-encrypted-document.go
+                  :start-after: start-key-vault
+                  :end-before: end-key-vault
+                  :language: go
+                  :dedent:
+
+            #. Specify the {+cmk-long+}
+
+               Specify the KMS provider and specify your {+cmk-long+} inline:
+
+               .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/exp/reader/insert-encrypted-document.go
+                  :start-after: start-kmsproviders
+                  :end-before: end-kmsproviders
+                  :language: go
+                  :dedent:
+
+            #. Retrieve {+dek-long+}s 
+
+               Retrieve the {+dek-long+}s created in the
+               :ref:`Create a {+dek-long+} <qe-manual-encryption-tutorial-data-key-create>`
+               step of this guide:
+
+               .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/exp/reader/insert-encrypted-document.go
+                  :start-after: start-retrieve-deks
+                  :end-before: end-retrieve-deks
+                  :language: go
+                  :dedent:
+
+            #. Specify the Path of the {+shared-library+}
+
+               .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/exp/reader/insert-encrypted-document.go
+                  :start-after: start-extra-options
+                  :end-before: end-extra-options
+                  :language: go
+                  :dedent:
+
+               .. tip:: Learn More
+
+                  To learn more about the library referenced by this path,
+                  see the :ref:`<qe-reference-shared-library>` page.
+
+            #. Create a MongoClient Object
+
+               Instantiate a ``MongoClient`` object with the following
+               automatic encryption settings:
+
+               .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/exp/reader/insert-encrypted-document.go
+                  :start-after: start-client
+                  :end-before: end-client
+                  :language: go
+                  :dedent:
+
+               .. note:: Automatic Decryption
+
+                  We use a ``MongoClient`` instance with automatic encryption enabled
+                  to perform automatic decryption.
+
+                  To learn more about {+manual-enc+} with automatic decryption,
+                  see the :ref:`Fundamentals <qe-fundamentals>` section. 
+
+            #. Create a ClientEncryption Object
+
+               Instantiate a ``ClientEncryption`` object as follows:
+
+               .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/exp/reader/insert-encrypted-document.go
+                  :start-after: start-client-enc
+                  :end-before: end-client-enc
+                  :language: go
+                  :dedent:
+
+            .. note:: Indexed and Unindexed Algorithms
+
+               To learn more about the indexed and unindexed algorithms in
+               {+manual-enc+}, see :ref:`<qe-fundamentals-man-enc-algorithm-choice>`.
+
+         .. step:: Insert a Document with Encrypted Fields
+
+            Use your {+qe+} enabled
+            ``MongoClient`` instance to insert a {+in-use-doc+} into the
+            ``medicalRecords.patients`` namespace using the following code
+            snippet:
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/exp/reader/insert-encrypted-document.go
+               :start-after: start-insert
+               :end-before: end-insert
+               :language: go
+               :dedent:
+
+            When you insert a document, your {+qe+} enabled client
+            encrypts the fields of your document such that it resembles the following:
+
+            .. literalinclude:: /includes/queryable-encryption/tutorials/exp/inserted-doc-enc.json
+               :language: json
+               :copyable: false
+
+            .. include:: /includes/queryable-encryption/safe-content-warning.rst
+
+         .. step:: Retrieve Your {+in-use-doc-title+}
+
+            Retrieve the {+in-use-doc+} you inserted in the
+            :ref:`Insert a Document with Encrypted Fields <qe-tutorials-manual-enc-insert>`
+            step of this guide through a query on an encrypted field:
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/exp/reader/insert-encrypted-document.go
+               :start-after: start-find
+               :end-before: end-find
+               :language: go
+               :dedent:
+
+            The output of the preceding code snippet should contain the following
+            document:
+
+            .. literalinclude:: /includes/queryable-encryption/tutorials/exp/find-output.json
+               :language: json
+               :copyable: false
+
+   .. selected-content::
+      :selections: csharp
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Create a {+cmk-long+}
+
+            You must create a {+cmk-long+} ({+cmk-abbr+}) to perform {+qe+}.
+
+            Create a 96-byte {+cmk-long+} and save it to the
+            file ``master-key.txt``:
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/exp/reader/QueryableEncryption/MakeDataKey.cs
+               :start-after: start-local-cmk
+               :end-before: end-local-cmk
+               :language: csharp
+               :dedent:
+
+            .. include:: /includes/queryable-encryption/qe-warning-local-keys.rst
+
+            .. include:: /includes/in-use-encryption/cmk-bash.rst
+
+         .. step:: Create a Unique Index on your {+key-vault-long+}
+
+            Create a unique index on the ``keyAltNames`` field in your
+            ``encryption.__keyVault`` namespace.
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/exp/reader/QueryableEncryption/MakeDataKey.cs
+               :start-after: start-create-index
+               :end-before: end-create-index
+               :language: csharp
+               :dedent:
+
+         .. step:: Create your {+dek-long+}s and Encrypted Collection
+
+            a. Read the {+cmk-long+} and Specify KMS Provider Settings
+
+               Retrieve the contents of the {+cmk-long+} file that you generated
+               in the :ref:`Create a {+cmk-long+} <qe-manual-enc-create-master-key>` step of this guide.
+
+               Use the {+cmk-abbr+} value in your KMS provider settings. The
+               client uses these settings to discover the {+cmk-abbr+}. Set the provider
+               name to ``local`` to indicate that you are using a
+               Local Key Provider.
+
+               .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/exp/reader/QueryableEncryption/MakeDataKey.cs
+                  :start-after: start-kmsproviders
+                  :end-before: end-kmsproviders
+                  :language: csharp
+                  :dedent:
+
+            #. Create your {+dek-long+}s
+
+               Construct a client with your MongoDB connection string and {+key-vault-long+}
+               namespace, and create the {+dek-long+}s:
+
+               .. note:: {+key-vault-long-title+} Namespace Permissions
+
+                  .. include:: /includes/note-key-vault-permissions
+
+               .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/exp/reader/QueryableEncryption/MakeDataKey.cs
+                  :start-after: start-create-dek
+                  :end-before: end-create-dek
+                  :language: csharp
+                  :dedent:
+
+            #. Create Your Encrypted Collection
+
+               Use a {+qe+} enabled ``MongoClient`` instance to specify what
+               fields you must encrypt and create your encrypted collection:
+
+               .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/exp/reader/QueryableEncryption/MakeDataKey.cs
+                  :start-after: start-create-enc-collection
+                  :end-before: end-create-enc-collection
+                  :language: csharp
+                  :dedent:
+
+            The output from the code in this section should resemble the following:
+
+            .. literalinclude:: /includes/queryable-encryption/quick-start/dek-output.out
+               :language: text
+               :copyable: false
+
+         .. step:: Configure your MongoClient for Encrypted Reads and Writes
+
+            a. Specify the {+key-vault-long-title+} Namespace
+
+               Specify ``encryption.__keyVault`` as the {+key-vault-long+}
+               namespace.
+
+               .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/exp/reader/QueryableEncryption/InsertEncryptedDocument.cs
+                  :start-after: start-key-vault
+                  :end-before: end-key-vault
+                  :language: csharp
+                  :dedent:
+
+            #. Specify the {+cmk-long+}
+
+               Specify the KMS provider and specify your {+cmk-long+} inline:
+
+               .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/exp/reader/QueryableEncryption/InsertEncryptedDocument.cs
+                  :start-after: start-kmsproviders
+                  :end-before: end-kmsproviders
+                  :language: csharp
+                  :dedent:
+
+            #. Retrieve {+dek-long+}s 
+
+               Retrieve the {+dek-long+}s created in the
+               :ref:`Create a {+dek-long+} <qe-manual-encryption-tutorial-data-key-create>`
+               step of this guide:
+
+               .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/exp/reader/QueryableEncryption/InsertEncryptedDocument.cs
+                  :start-after: start-retrieve-deks
+                  :end-before: end-retrieve-deks
+                  :language: csharp
+                  :dedent:
+
+            #. Specify the Path of the {+shared-library+}
+
+               .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/exp/reader/QueryableEncryption/InsertEncryptedDocument.cs
+                  :start-after: start-extra-options
+                  :end-before: end-extra-options
+                  :language: csharp
+                  :dedent:
+
+               .. tip:: Learn More
+
+                  To learn more about the library referenced by this path,
+                  see the :ref:`<qe-reference-shared-library>` page.
+
+            #. Create a MongoClient Object
+
+               Instantiate a ``MongoClient`` object with the following
+               automatic encryption settings:
+
+               .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/exp/reader/QueryableEncryption/InsertEncryptedDocument.cs
+                  :start-after: start-client
+                  :end-before: end-client
+                  :language: csharp
+                  :dedent:
+
+               .. note:: Automatic Decryption
+
+                  We use a ``MongoClient`` instance with automatic encryption enabled
+                  to perform automatic decryption.
+
+                  To learn more about {+manual-enc+} with automatic decryption,
+                  see the :ref:`Fundamentals <qe-fundamentals>` section. 
+
+            #. Create a ClientEncryption Object
+
+               Instantiate a ``ClientEncryption`` object as follows:
+
+               .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/exp/reader/QueryableEncryption/InsertEncryptedDocument.cs
+                  :start-after: start-client-enc
+                  :end-before: end-client-enc
+                  :language: csharp
+                  :dedent:
+
+            .. note:: Indexed and Unindexed Algorithms
+
+               To learn more about the indexed and unindexed algorithms in
+               {+manual-enc+}, see :ref:`<qe-fundamentals-man-enc-algorithm-choice>`.
+
+         .. step:: Insert a Document with Encrypted Fields
+
+            Use your {+qe+} enabled
+            ``MongoClient`` instance to insert a {+in-use-doc+} into the
+            ``medicalRecords.patients`` namespace using the following code
+            snippet:
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/exp/reader/QueryableEncryption/InsertEncryptedDocument.cs
+               :start-after: start-insert
+               :end-before: end-insert
+               :language: csharp
+               :dedent:
+
+            When you insert a document, your {+qe+} enabled client
+            encrypts the fields of your document such that it resembles the following:
+
+            .. literalinclude:: /includes/queryable-encryption/tutorials/exp/inserted-doc-enc.json
+               :language: json
+               :copyable: false
+
+            .. include:: /includes/queryable-encryption/safe-content-warning.rst
+
+         .. step:: Retrieve Your {+in-use-doc-title+}
+
+            Retrieve the {+in-use-doc+} you inserted in the
+            :ref:`Insert a Document with Encrypted Fields <qe-tutorials-manual-enc-insert>`
+            step of this guide through a query on an encrypted field:
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/exp/reader/QueryableEncryption/InsertEncryptedDocument.cs
+               :start-after: start-find
+               :end-before: end-find
+               :language: csharp
+               :dedent:
+
+            The output of the preceding code snippet should contain the following
+            document:
+
+            .. literalinclude:: /includes/queryable-encryption/tutorials/exp/find-output.json
+               :language: json
+               :copyable: false
 
 Learn More
 ----------
