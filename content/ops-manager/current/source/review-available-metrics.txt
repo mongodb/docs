@@ -1,11 +1,11 @@
 .. _review-available-metrics:
 
-========================
-Review Available Metrics
-========================
+====================================
+Review Available Ops Manager Metrics
+====================================
 
 .. meta::
-   :description: Review metrics available in Ops Manager to monitor deployments, including hardware, database, and Search node metrics, depending on user role and deployment type.
+   :description: Review the metrics available in Ops Manager to monitor your deployments. Metrics include hardware and database metrics and vary based on your user role and deployment type.
 
 .. default-domain:: mongodb
 
@@ -15,368 +15,528 @@ Review Available Metrics
    :depth: 1
    :class: singlecol
 
-You can review the following metrics to monitor your 
-deployments. All hardware metrics include metrics or 
+You can review the following metrics to monitor your
+deployments. All hardware metrics include metrics or
 individual charts for maximum values.
 
 .. include:: /includes/fact-hardware-metrics-automation.rst
 
 .. important::
 
-   The metrics available depend on your user role and 
+   The metrics available depend on your user role and
    deployment type.
+
+Database Metrics
+----------------
+
+The following metrics reflect the performance and behavior of
+the MongoDB process.
 
 .. list-table::
    :widths: 30 70
    :header-rows: 1
-        
+
    * - Metric
-  
+
      - Description
 
    * - :guilabel:`Asserts`
-  
+
      - Displays the following information:
 
-       - :guilabel:`regular` displays the average rate of 
-         regular asserts raised per second over the selected sample 
-         period. 
-        
-       - :guilabel:`warning` displays the average rate of 
+       - :guilabel:`regular` displays the average rate of
+         regular asserts raised per second over the selected sample
+         period.
+
+       - :guilabel:`warning` displays the average rate of
          warnings per second over the selected sample period.
-        
-       - :guilabel:`msg` displays the average rate of message 
-         asserts per second over the selected sample period. These 
-         internal server errors have a well-defined text string. 
+
+       - :guilabel:`msg` displays the average rate of message
+         asserts per second over the selected sample period. These
+         internal server errors have a well-defined text string.
          |service| logs stack traces for these.
-       
-       - :guilabel:`user` displays the average rate of user 
-         asserts per second over the selected sample period. This 
-         metric includes asserts that a user generates, such as out of 
+
+       - :guilabel:`user` displays the average rate of user
+         asserts per second over the selected sample period. This
+         metric includes asserts that a user generates, such as out of
          disk space or duplicate key errors.
-     
-       Monitor asserts to track how many errors occur while trying to 
-       read or write data. Check the server logs to identify the source 
+
+       Monitor asserts to track how many errors occur while trying to
+       read or write data. Check the server logs to identify the source
        of any errors.
-   
-   * - :guilabel:`Avg Object Size`
-     
-     - Displays the average object size across all collections in the 
-       database.
 
-       Monitor object size to track the size of your objects and better 
-       understand your database space.
+   * - :guilabel:`Cache Activity`
 
-   * - :guilabel:`Background Flush Avg`
-    
-     - Displays the average time of background flushes in seconds. 	
-       |mongod| writes to and flushes (fsyncs) journal 
-       files immediately. By default, all other data files are flushed 
-       every 60 seconds in the background.
-       
-       Monitor the background flush average to determine whether this 
-       statistic is a significant percentage of 60 seconds. If so, this 
-       statistic could indicate that the server is bottlenecked on 
-       these writes. You might have a large number of random writes 
-       occurring. The operating system might flush data faster than 
-       every 60 seconds. In that case, this statistic will be a very 
-       small value even if the writing is a bottleneck.
+     - Displays the following information:
+
+       - :guilabel:`readInto` displays the average rate of
+         bytes per second read into WiredTiger's cache over
+         the selected sample period.
+
+       - :guilabel:`writtenFrom` displays the average rate of
+         bytes per second written from WiredTiger's cache
+         over the selected sample period.
+
+       Monitor cache activity to track the read and write
+       throughput of the WiredTiger storage engine cache.
+
+   * - :guilabel:`Cache Ratio`
+
+     - Displays the following information:
+
+       - :guilabel:`cache fill ratio` measures how full the
+         cache is. Ops Manager calculates this value by
+         dividing the number of bytes currently in the cache
+         by the maximum number of bytes configured and
+         represents the result as a percentage. A cache fill
+         ratio close to 100% indicates that the query
+         working set is larger than the configured cache
+         size. Increasing the cache size can reduce disk
+         I/O.
+
+       - :guilabel:`dirty fill ratio` represents the
+         proportion of dirty bytes (pages modified in memory
+         but not yet written to disk) relative to the total
+         cache. A high dirty fill ratio indicates that a
+         significant amount of data is waiting to be flushed
+         to disk, which can impact performance. Monitor this
+         metric for write-heavy workloads to ensure data
+         durability.
+
+       Monitor cache ratio to determine whether the cache
+       size is sufficient for the current workload.
+
+   * - :guilabel:`Cache Usage`
+
+     - Displays the following information:
+
+       - :guilabel:`used` displays the number of bytes
+         currently in the WiredTiger cache.
+
+       - :guilabel:`dirty` displays the number of tracked
+         dirty bytes currently in the WiredTiger cache.
+
+       Monitor cache usage to determine whether the WiredTiger
+       cache is approaching capacity.
 
    * - :guilabel:`Catalog`
 
      - Displays the following information:
-     
-       - :guilabel:`total databases` displays the total number of 
+
+       - :guilabel:`total databases` displays the total number of
          non-system databases.
-       
-       - :guilabel:`total collections` displays the total number of 
+
+       - :guilabel:`total collections` displays the total number of
          collections across all non-system databases.
 
-       - :guilabel:`total views` displays the total number of views 
+       - :guilabel:`total views` displays the total number of views
          across all non-system databases.
 
-       - :guilabel:`total indexes` displays the total number of indexes 
+       - :guilabel:`total indexes` displays the total number of indexes
          across all non-system collections.
-      
-       Monitor catalog counts to prevent an excessive number of 
-       databases, collections, views, or indexes from causing startup 
+
+       Monitor catalog counts to prevent an excessive number of
+       databases, collections, views, or indexes from causing startup
        failures.
 
-   * - :guilabel:`Collections`
+   * - :guilabel:`Connection Rate`
 
-     - Displays the number of collections in the database.
-     
-       Monitor collections to determine restart times, continuous 
-       backup performance, and stability.
+     - Displays the following information:
+
+       - :guilabel:`connections net increase` displays the
+         rate per second of the net increase in connections.
+
+       - :guilabel:`connections net decrease` displays the
+         rate per second of the net decrease in connections.
+
+       - :guilabel:`connections created` displays the rate
+         per second of connections created.
+
+       Monitor connection rate to track how quickly
+       connections are being created or removed.
 
    * - :guilabel:`Connections`
 
-     - Displays the total number of active connections to the 
-       deployment.
+     - Displays the total number of active connections to the
+       deployment. Each connection uses its own thread stack,
+       so a large number of connections can result in
+       significant RAM usage.
 
-       Monitor connections to determine whether the current connection 
+       Monitor connections to determine whether the current connection
        limits are sufficient.
-  
+
    * - :guilabel:`Cursors`
 
      - Displays the following information:
-     
-       - :guilabel:`totalOpen` displays the number of cursors that the 
-         server is maintaining for clients. Since MongoDB exhausts 
-         unused cursors, this value is usually small or zero. However, 
-         if there is a queue, stale tailable cursors, or a large number 
+
+       - :guilabel:`totalOpen` displays the number of cursors that the
+         server is maintaining for clients. Since MongoDB exhausts
+         unused cursors, this value is usually small or zero. However,
+         if there is a queue, stale tailable cursors, or a large number
          of operations, this value might rise.
-        
-       - :guilabel:`timedOut` displays the average rate of cursors 
+
+       - :guilabel:`timedOut` displays the average rate of cursors
          that have timed out per second over the selected sample period.
-  
-       Monitor cursors to close unnecessary cursors and reduce the 
+
+       Monitor cursors to close unnecessary cursors and reduce the
        timeout configuration in the application.
-
-   * - :guilabel:`Data Size`
-
-     - Displays the actual size of the data files in the database.
-   
-       Monitor data size to ensure that database is not using too much 
-       memory or CPU.
 
    * - :guilabel:`DB Storage`
 
      - Displays the following information:
-       
-       - :guilabel:`storageSize` displays the sum 
-         total amount of on-disk storage space allocated for document 
-         storage across all databases.
-           
-       - :guilabel:`dataSize` displays the amount 
-         of storage space in bytes that your stored data uses.
 
-       - :guilabel:`indexSize` displays the sum total 
-         size in bytes of the index data across all databases.
-  
-       Monitor storage space to determine whether to manually increase 
-       the disk size.
-   
-   * - :guilabel:`Disk IOPS`
+       - :guilabel:`storageSize` displays the sum total
+         compressed on-disk storage space allocated for
+         document storage across all databases.
 
-     - Displays input operations per second.
+       - :guilabel:`logicalDataSize W/System` displays
+         the sum total uncompressed size in bytes of the
+         document data (including the padding factor)
+         across all databases including system databases.
 
-       .. include:: /includes/fact-disk-iops.rst
+       - :guilabel:`logicalDataSize` displays the sum
+         total uncompressed size in bytes of the document
+         data (including the padding factor) across
+         non-system databases.
 
-   * - :guilabel:`Disk Latency`
+       - :guilabel:`indexSize` displays the sum total
+         logical size in bytes (including prefix
+         compression) of the index data across all
+         databases.
 
-     - Displays the following information:
-     
-       - :guilabel:`read latency` displays the average amount of time 
-         to read from disk.
-      
-       - :guilabel:`write latency` displays the average amount of time 
-         to write to disk.
+       - :guilabel:`totalDatabases` displays the total
+         number of databases.
 
-       Monitor disk latency to track the efficiency of reading from and 
-       writing to disk.
+       - :guilabel:`totalCollections` displays the total
+         number of collections across all databases.
 
-   * - :guilabel:`Disk Queue Depth`
+       - :guilabel:`totalViews` displays the total number
+         of views across all databases.
 
-     - Displays the average length of the queue of requests issued 
-       to the disk partition that stores MongoDB data.
-  
-       .. include:: /includes/fact-disk-queue-depth.rst
+       - :guilabel:`totalIndexes` displays the total
+         number of indexes across all collections.
 
-   * - :guilabel:`Disk Space Free`
-
-     - Displays the total amount of free space remaining on disk.
-
-       Monitor free disk space to determine whether to use disk 
-       auto-scaling or manually increase the disk size.
-
-   * - :guilabel:`Disk Space Percent Free`
-
-     - Displays the total amount of free space remaining on disk as a 
-       percentage of the total disk space.
-
-       Monitor the percentage of free disk space to determine whether 
-       to use disk auto-scaling or manually increase the disk size.
-
-   * - :guilabel:`Disk Space Used`
-
-     - Displays the total bytes of used disk space on the partition 
-       that runs MongoDB.
-
-       Monitor the used disk space to determine whether to manually 
+       Monitor storage space to determine whether to manually
        increase the disk size.
 
    * - :guilabel:`Document Metrics`
-    
+
      - Displays the following information:
-     
-       - :guilabel:`returned` displays the documents per second 
-         returned.
-        
-       - :guilabel:`inserted` displays the documents per second 
-         inserted.
-        
-       - :guilabel:`updated` displays the documents per second updated.
-        
-       - :guilabel:`deleted` displays the documents per second deleted.
-     
+
+       - :guilabel:`returned` displays the average rate per
+         second of documents returned by queries over the
+         selected sample period.
+
+       - :guilabel:`inserted` displays the average rate per
+         second of documents inserted over the selected
+         sample period.
+
+       - :guilabel:`updated` displays the average rate per
+         second of documents updated over the selected
+         sample period.
+
+       - :guilabel:`deleted` displays the average rate per
+         second of documents deleted over the selected
+         sample period.
+
        Monitor document metrics to measure the work MongoDB completes.
-
-   * - :guilabel:`File Size`
-
-     - Displays the total size of all the data files in the database.
-
-       Monitor file size to deternine whether files are consuming 
-       excessive disk space.
-
-   * - :guilabel:`Index Size`
-   
-     - Displays the total size of all indexes in the database. This 
-       metric includes the overhead incurred by indexes on top of the 
-       actual document data on which the indexes are based.
-     
-       Monitor the index size to manage your indexes. To learn more, 
-       see :ref:`Indexing Strategies <manual-indexing-strategies>`. 
-
-   * - :guilabel:`Indexes`
-   
-     - Displays the total number of indexes in the database.
-    
-       Monitor indexes to manage them. To learn more, 
-       see :ref:`Indexing Strategies <manual-indexing-strategies>`.
-  
-   * - :guilabel:`Max Disk IOPS`
-     
-     - Displays the following maximum disk IOPS values over the time 
-       period specified by the metric granularity:
-
-       - :guilabel:`max read iops` maximum disk read input operations 
-         per second.
-
-       - :guilabel:`max write iops` maximum disk write input operations 
-         per second.
-  
-       .. include:: /includes/fact-disk-iops.rst
-
-   * - :guilabel:`Max Disk Queue Depth`
-     - Displays the maximum disk queue depth values over the time 
-       period specified by the metric granularity. Disk queue depth 
-       is the average length of the queue of requests issued to the 
-       disk partition that stores MongoDB data.
-  
-       .. include:: /includes/fact-disk-queue-depth.rst
-
-   * - :guilabel:`Max Normalized System CPU`
-
-     - Displays the maximum CPU usage values of all processes on the 
-       node, scaled to a range of 0-100% by dividing by the number of 
-       CPU cores.
-  
-       .. include:: /includes/fact-cpu.rst
-
-   * - :guilabel:`Max Process CPU`
-
-     - Displays the following maximum process CPU values over the time 
-       period specified by the metric granularity:
-     
-       - :guilabel:`max user` displays the maximum percentage of time 
-         that the CPU spent servicing the MongoDB process.
-
-       - :guilabel:`max kernel` displays the maximum percentage of time 
-         the CPU spent servicing operating system calls for the MongoDB 
-         process.
-
-       .. include:: /includes/fact-cpu.rst
-
-   * - :guilabel:`Max System CPU`
-     
-     - Displays the maximum CPU usage values of all processes on the 
-       node.
-  
-       .. include:: /includes/fact-cpu.rst
-
-   * - :guilabel:`Max System Memory`
-    
-     - Displays the maximum system memory values in bytes.
-
-       .. include:: /includes/fact-memory.rst
 
    * - :guilabel:`Memory`
 
-     - Displays the total consumption of memory in megabytes at a 
+     - Displays the total consumption of memory in megabytes at a
        particular point in time:
-       
-       - :guilabel:`resident` displays the memory that the MongoDB 
-         process running on a node consumes. This metric excludes the 
-         consumption of other processes and does not represent the 
-         total memory that the node consumes.
 
-       - :guilabel:`virtual` displays the memory reserved in disk to 
-         act as swap space.
+       - :guilabel:`resident` displays the number of megabytes
+         of resident memory used by the |mongod| process. For
+         WiredTiger deployments, this includes the WiredTiger
+         cache plus memory used by other in-memory |mongod|
+         structures. By default, |mongod| with WiredTiger
+         reserves 50% of total physical memory for the cache.
 
-       - :guilabel:`mapped` displays the number of MMAPv1 memory maps 
-         of all the data files. This number is likely similar to your 
-         total database(s) size. WiredTiger does not use memory mapped 
-         files, so this should be 0.
+       - :guilabel:`virtual` displays the virtual megabytes
+         for the |mongod| process. If virtual is much larger
+         than mapped memory, the |mongod| process may use
+         excessive memory for other purposes, such as
+         connection thread stacks.
+
+       - :guilabel:`mapped` displays the number of MMAPv1
+         memory maps of all the data files. This number is
+         likely similar to your total database(s) size.
+         WiredTiger does not use memory mapped files, so
+         this value is 0.
 
        .. include:: /includes/fact-memory.rst
 
    * - :guilabel:`Network`
 
      - Displays the following information:
-     
-       - :guilabel:`bytesIn` displays the average rate of physical 
-         bytes (after any wire compression) sent to this database 
+
+       - :guilabel:`bytesIn` displays the average rate of physical
+         bytes (after any wire compression) sent to this database
          server per second over the selected sample period.
 
-       - :guilabel:`bytesOut` displays the average rate of physical  
-         bytes (after any wire compression) sent from this database 
+       - :guilabel:`bytesOut` displays the average rate of physical
+         bytes (after any wire compression) sent from this database
          server per second over the selected sample period.
 
-       - :guilabel:`numRequests` displays the average rate of requests 
-         sent to this database server per second over the selected 
+       - :guilabel:`numRequests` displays the average rate of requests
+         sent to this database server per second over the selected
          sample period.
-   
+
        Monitor network metrics to track network performance.
 
-   * - :guilabel:`Non-Mapped Virtual Memory`
-    
-     - Displays the amount of virtual memory that the memory mapping of 
-       data files doesn't take into account.
-       
-       Monitor non-mapped virtual memory to determine whether aspects 
-       other than memory mapping files use excessive memory. For 
-       example, this could indicate too many connections to the 
-       database. Each connection has a thread stack and the memory for 
-       those stacks can add up to a considerable amount. Keep this 
-       statistic reasonably low because the memory used here is 
-       unavailable for caching.
+   * - :guilabel:`OpCounters`
 
-   * - :guilabel:`Normalized Process CPU`
-    
      - Displays the following information:
-     
-       - :guilabel:`user` displays the percentage of time that the CPU 
-         spent servicing the MongoDB process, scaled to a range of 
-         0-100% by dividing by the number of CPU cores.
 
-       - :guilabel:`kernel` displays the percentage of time the CPU 
-         spent servicing operating system calls for the MongoDB 
-         process, scaled to a range of 0-100% by dividing by the number 
-         of CPU cores.
+       - :guilabel:`command` displays the average rate of
+         commands performed per second over the selected
+         sample period.
 
-       .. include:: /includes/fact-cpu.rst
-  
-   * - :guilabel:`Normalized System CPU`
+       - :guilabel:`query` displays the average rate of
+         queries performed per second over the selected
+         sample period.
 
-     - Displays the CPU usage of all processes on the node, scaled to a 
-       range of 0-100% by dividing by the number of CPU cores.
+       - :guilabel:`insert` displays the average rate of
+         inserts performed per second over the selected
+         sample period.
 
-       .. include:: /includes/fact-cpu.rst
-  
+       - :guilabel:`delete` displays the average rate of
+         deletes performed per second over the selected
+         sample period.
+
+       - :guilabel:`update` displays the average rate of
+         updates performed per second over the selected
+         sample period.
+
+       - :guilabel:`getmore` displays the average rate of
+         getMores performed per second on any cursor over
+         the selected sample period. On a primary, this
+         value can be high even if the query count is low
+         because secondaries getMore from the primary as
+         part of replication.
+
+       - :guilabel:`ttldeleted` displays the average rate
+         of TTL deletes performed per second over the
+         selected sample period. TTL deletes apply only
+         to the primary and are replicated to secondaries.
+
+       Monitor MongoDB operations to validate performance issues
+       related to high workloads. Confirm the type of operations
+       responsible for the load.
+
+   * - :guilabel:`Operation Execution Times`
+
+     - Displays the following information:
+
+       - :guilabel:`avg ms/read` displays the average execution
+         time in milliseconds per read operation over the
+         selected sample period.
+
+       - :guilabel:`avg ms/write` displays the average execution
+         time in milliseconds per write operation over the
+         selected sample period.
+
+       - :guilabel:`avg ms/write w/o flow control` displays
+         the average execution time in milliseconds per write
+         operation over the selected sample period once the
+         impact of flow control is subtracted from the total.
+
+       - :guilabel:`avg ms/command` displays the average
+         execution time in milliseconds per command operation
+         over the selected sample period.
+
+       Monitor operation execution times to identify slow
+       operations and potential performance bottlenecks.
+
+   * - :guilabel:`Operation Throttling`
+
+     - Displays the following information:
+
+       - :guilabel:`rejected` displays the number of
+         operations rejected over time because they match a
+         user-defined rejection filter. These filters prevent
+         cluster degradation caused by inefficient queries
+         or resource limits. You can set these filters by
+         running the query settings command.
+
+       - :guilabel:`killed` displays the number of read
+         operations killed over time due to exceeding the
+         default cluster timeout. This timeout prevents
+         unintentional long-running queries from consuming
+         excessive database resources. Timeouts set at the
+         operation level override the cluster-level timeout.
+
+       Monitor operation throttling to identify queries
+       that are being rejected or killed.
+
+   * - :guilabel:`Page Faults`
+
+     - Displays the average rate of page faults on this process per
+       second over the selected sample period. In non-Windows
+       environments this applies to hard page faults only.
+
+       Monitor page faults to determine whether to increase your memory.
+
+   * - :guilabel:`Queues`
+
+     - Displays the following information:
+
+       - :guilabel:`total` displays the number of operations queued
+         and waiting for any lock.
+
+       - :guilabel:`readers` displays the number of operations queued
+         and waiting for a read lock.
+
+       - :guilabel:`writers` displays the number of operation queued
+         and waiting for a write lock.
+
+       Monitor queues to identify potential issues and bottlenecks.
+
+   * - :guilabel:`Query Executor`
+
+     - Displays the following information:
+
+       - :guilabel:`scanned` displays the average rate per
+         second over the selected sample period of index
+         items scanned during queries and query-plan
+         evaluation. This rate is driven by the same value
+         as ``totalKeysExamined`` in the output of
+         ``explain()``.
+
+       - :guilabel:`scanned objects` displays the average
+         rate per second over the selected sample period of
+         documents scanned during queries and query-plan
+         evaluation. This rate is driven by the same value
+         as ``totalDocsExamined`` in the output of
+         ``explain()``.
+
+       Monitor query executor to identify inefficient
+       queries that scan more indexes or documents than
+       necessary.
+
+   * - :guilabel:`Query Targeting`
+
+     - Displays the efficiency of read operations run on MongoDB:
+
+       - :guilabel:`scanned / returned` displays the ratio of
+         the number of index items scanned to the number of
+         documents returned by queries, since the previous
+         data point for the selected sample period. A value
+         of 1.0 means all returned documents exactly match
+         the query criteria. Higher values indicate that
+         queries scan more index items per returned document.
+
+       - :guilabel:`scanned objects / returned` displays the
+         ratio of the number of documents scanned to the
+         number of documents returned by queries, since the
+         previous data point for the selected sample period.
+
+       Monitor query targeting to determine read efficiency and
+       optimize queries and indexes.
+
+   * - :guilabel:`Scan and Order`
+
+     - Displays the average rate per second over the selected
+       sample period of queries that return sorted results
+       that cannot perform the sort operation using an index.
+
+       Monitor this metric to identify whether your queries need
+       indexes.
+
+   * - :guilabel:`Shard Data Size`
+
+     - Displays the amount of storage space in bytes that your
+       stored data uses on each shard. You can access this chart only
+       in the sharded namespace view for sharded clusters with
+       MongoDB 6.0+.
+
+       .. include:: /includes/fact-balanced-shards.rst
+
+   * - :guilabel:`Shard Document Count`
+
+     - Displays the number of documents on each shard. You can access
+       this chart only in the sharded namespace view for sharded
+       clusters with MongoDB 6.0+.
+
+       .. include:: /includes/fact-balanced-shards.rst
+
+   * - :guilabel:`Tickets Available`
+
+     - Displays the following information:
+
+       - :guilabel:`read` displays the number of read tickets
+         available to the WiredTiger storage engine. Read
+         tickets represent the number of concurrent read
+         operations allowed into the storage engine. When
+         this value reaches zero, new read requests may
+         queue until a read ticket becomes available.
+
+       - :guilabel:`write` displays the number of write
+         tickets available to the WiredTiger storage engine.
+         Write tickets represent the number of concurrent
+         write operations allowed into the storage engine.
+         When this value reaches zero, new write requests
+         may queue until a write ticket becomes available.
+
+       Monitor tickets available to identify storage engine
+       concurrency constraints that may affect performance.
+
+DB Stats
+--------
+
+The following metrics reflect statistics for individual
+databases in the deployment.
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Metric
+
+     - Description
+
+   * - :guilabel:`Avg Object Size`
+
+     - Displays the average object size across all collections in the
+       database.
+
+       Monitor object size to track the size of your objects and better
+       understand your database space.
+
+   * - :guilabel:`Collections`
+
+     - Displays the number of collections in the database.
+
+       Monitor collections to determine restart times, continuous
+       backup performance, and stability.
+
+   * - :guilabel:`Data Size`
+
+     - Displays the actual size of the data files in the database.
+
+       Monitor data size to ensure that database is not using too much
+       memory or CPU.
+
+   * - :guilabel:`Index Size`
+
+     - Displays the total size of all indexes in the database. This
+       metric includes the overhead incurred by indexes on top of the
+       actual document data on which the indexes are based.
+
+       Monitor the index size to manage your indexes. To learn more,
+       see :ref:`Indexing Strategies <manual-indexing-strategies>`.
+
+   * - :guilabel:`Indexes`
+
+     - Displays the total number of indexes in the database.
+
+       Monitor indexes to manage them. To learn more,
+       see :ref:`Indexing Strategies <manual-indexing-strategies>`.
+
    * - :guilabel:`Num Extents`
-   
-     - Displays the total number of contiguously allocated chunks of 
+
+     - Displays the total number of contiguously allocated chunks of
        data file space for the database.
 
        Monitor this metric to better understand your database space.
@@ -387,138 +547,436 @@ individual charts for maximum values.
 
        Monitor this metric to better understand your database space.
 
-   * - :guilabel:`OpCounters`
-
-     - Displays the number of the following operations per second run 
-       on a MongoDB process since the process last started:
-
-       - :guilabel:`command` (replica set) or :guilabel:`cmd` (sharded 
-         cluster)
-
-       - :guilabel:`query`
-
-       - :guilabel:`insert`
-
-       - :guilabel:`delete`
-
-       - :guilabel:`update`
-
-       - :guilabel:`getmore`
-
-       Monitor MongoDB operations to validate performance issues 
-       related to high workloads. Confirm the type of operations 
-       responsible for the load.
-
-   * - :guilabel:`Page Faults`
-   
-     - Displays the average rate of page faults on this process per 
-       second over the selected sample period. In non-Windows 
-       environments this applies to hard page faults only.
-
-       Monitor page faults to determine whether to increase your memory.
-
-   * - :guilabel:`Process CPU`
-   
-     - Displays the following information:
-     
-       - :guilabel:`user` displays the percentage of time that the CPU 
-         spent servicing the MongoDB process.
-
-       - :guilabel:`kernel` displays the percentage of time the CPU 
-         spent servicing operating system calls for the MongoDB process.
-
-       .. include:: /includes/fact-cpu.rst
-
-   * - :guilabel:`Queues`
-
-     - Displays the following information:
-
-       - :guilabel:`total` displays the number of operations queued 
-         and waiting for any lock. 
-
-       - :guilabel:`readers` displays the number of operations queued 
-         and waiting for a read lock.
-
-       - :guilabel:`writers` displays the number of operation queued 
-         and waiting for a write lock.
-
-       Monitor queues to identify potential issues and bottlenecks.
-
-   * - :guilabel:`Query Targeting`
-
-     - Displays the efficiency of read operations run on MongoDB:
-
-       - :guilabel:`scanned / returned` displays the number of 
-         documents scanned to return one document.
-
-       - :guilabel:`scanned objects / returned` the ratio of the number 
-         of documents scanned to the number of documents returned by 
-         queries, since the previous data point for the selected sample 
-         period.
-
-       Monitor query targeting to determine read efficiency and 
-       optimize queries and indexes.
-
-   * - :guilabel:`Scan and Order`
-   
-     - Displays the number of operations per second returning results 
-       that required a sort in-memory.
-
-       Monitor this metric to identify whether your queries need 
-       indexes.
-
-   * - :guilabel:`Shard Data Size`
-    
-     -  Displays the amount of storage space in bytes that your 
-        stored data uses on each shard. You can access this chart only 
-        for sharded clusters with MongoDB 6.0+.
-
-        .. include:: /includes/fact-balanced-shards.rst
-
-   * - :guilabel:`Shard Document Count`
-
-     - Displays the number of documents on each shard. You can access 
-       this chart only for sharded clusters with MongoDB 6.0+.
-
-       .. include:: /includes/fact-balanced-shards.rst
-
    * - :guilabel:`Storage Size`
 
      - Displays the storage size of the database.
 
-       Monitor storage size to determine whether to manually increase 
+       Monitor storage size to determine whether to manually increase
        the disk size.
 
+   * - :guilabel:`Views`
+
+     - Displays the number of views in the database.
+
+       Monitor views to better understand your database space.
+
+Hardware Metrics
+----------------
+
+The following metrics reflect the performance and usage
+of the host machines supporting the deployment.
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Metric
+
+     - Description
+
+   * - :guilabel:`Disk IOPS`
+
+     - Displays the following information:
+
+       - :guilabel:`read iops` displays the read throughput of
+         I/O operations per second for the disk partition used
+         for MongoDB.
+
+       - :guilabel:`write iops` displays the write throughput of
+         I/O operations per second for the disk partition used
+         for MongoDB.
+
+       .. include:: /includes/fact-disk-iops.rst
+
+   * - :guilabel:`Disk Latency`
+
+     - Displays the following information:
+
+       - :guilabel:`read latency` displays the average amount of time
+         to read from disk.
+
+       - :guilabel:`write latency` displays the average amount of time
+         to write to disk.
+
+       - :guilabel:`max read latency` displays the maximum Disk
+         Read Latency value over the time period specified by
+         the metric granularity.
+
+       - :guilabel:`max write latency` displays the maximum Disk
+         Write Latency value over the time period specified by
+         the metric granularity.
+
+       Monitor disk latency to track the efficiency of reading from and
+       writing to disk.
+
+   * - :guilabel:`Disk Queue Depth`
+
+     - Displays the average length of the queue of requests issued
+       to the disk partition that stores MongoDB data.
+
+       .. include:: /includes/fact-disk-queue-depth.rst
+
+   * - :guilabel:`Disk Space Free`
+
+     - Displays the following information:
+
+       - :guilabel:`disk space free` displays the total bytes of
+         free disk space on the disk partition used by MongoDB.
+
+       - :guilabel:`max disk space free` displays the maximum Disk
+         Space Free value over the time period specified by the
+         metric granularity.
+
+       Monitor free disk space to determine whether to use disk
+       auto-scaling or manually increase the disk size.
+
+   * - :guilabel:`Disk Space Percent Free`
+
+     - Displays the following information:
+
+       - :guilabel:`percent disk space free` displays the percent of
+         free disk space on the partition used by MongoDB.
+
+       - :guilabel:`max percent disk space free` displays the maximum
+         Disk Space Percent Free value over the time period specified
+         by the metric granularity.
+
+       Monitor the percentage of free disk space to determine whether
+       to use disk auto-scaling or manually increase the disk size.
+
+   * - :guilabel:`Disk Space Used`
+
+     - Displays the following information:
+
+       - :guilabel:`disk space used` displays the total bytes of
+         used disk space on the partition that runs MongoDB.
+
+       - :guilabel:`max disk space used` displays the maximum Disk
+         Space Used value over the time period specified by the
+         metric granularity.
+
+       Monitor the used disk space to determine whether to manually
+       increase the disk size.
+
+   * - :guilabel:`Max Disk IOPS`
+
+     - Displays the following maximum disk IOPS values over the time
+       period specified by the metric granularity:
+
+       - :guilabel:`max read iops` maximum disk read input operations
+         per second.
+
+       - :guilabel:`max write iops` maximum disk write input operations
+         per second.
+
+       .. include:: /includes/fact-disk-iops.rst
+
+   * - :guilabel:`Max Disk Queue Depth`
+
+     - Displays the maximum disk queue depth values over the time
+       period specified by the metric granularity. Disk queue depth
+       is the average length of the queue of requests issued to the
+       disk partition that stores MongoDB data.
+
+       .. include:: /includes/fact-disk-queue-depth.rst
+
+   * - :guilabel:`Max Normalized System CPU`
+
+     - Displays the maximum CPU usage values of all processes on the
+       node, scaled to a range of 0-100% by dividing by the number of
+       CPU cores:
+
+       - :guilabel:`user` displays the maximum Normalized System
+         User CPU value over the time period specified by the
+         metric granularity.
+
+       - :guilabel:`kernel` displays the maximum Normalized System
+         Kernel CPU value over the time period specified by the
+         metric granularity.
+
+       - :guilabel:`nice` displays the maximum Normalized System
+         Nice CPU value over the time period specified by the
+         metric granularity.
+
+       - :guilabel:`iowait` displays the maximum Normalized System
+         IO Wait CPU value over the time period specified by the
+         metric granularity.
+
+       - :guilabel:`irq` displays the maximum Normalized System
+         IRQ CPU value over the time period specified by the
+         metric granularity.
+
+       - :guilabel:`softirq` displays the maximum Normalized System
+         SoftIRQ CPU value over the time period specified by the
+         metric granularity.
+
+       - :guilabel:`guest` displays the maximum Normalized System
+         Guest CPU value over the time period specified by the
+         metric granularity.
+
+       - :guilabel:`steal` displays the maximum Normalized System
+         Steal CPU value over the time period specified by the
+         metric granularity.
+
+       .. include:: /includes/fact-cpu.rst
+
+   * - :guilabel:`Max Process CPU`
+
+     - Displays the following maximum process CPU values over the time
+       period specified by the metric granularity:
+
+       - :guilabel:`max user` displays the maximum percentage of time
+         that the CPU spent servicing the MongoDB process.
+
+       - :guilabel:`max kernel` displays the maximum percentage of time
+         the CPU spent servicing operating system calls for the MongoDB
+         process.
+
+       .. include:: /includes/fact-cpu.rst
+
+   * - :guilabel:`Max System CPU`
+
+     - Displays the maximum CPU usage values of all processes on the
+       node:
+
+       - :guilabel:`user` displays the maximum System User CPU
+         value over the time period specified by the metric
+         granularity.
+
+       - :guilabel:`kernel` displays the maximum System Kernel CPU
+         value over the time period specified by the metric
+         granularity.
+
+       - :guilabel:`nice` displays the maximum System Nice CPU
+         value over the time period specified by the metric
+         granularity.
+
+       - :guilabel:`iowait` displays the maximum System IO Wait
+         CPU value over the time period specified by the metric
+         granularity.
+
+       - :guilabel:`irq` displays the maximum System IRQ CPU value
+         over the time period specified by the metric granularity.
+
+       - :guilabel:`softirq` displays the maximum System SoftIRQ
+         CPU value over the time period specified by the metric
+         granularity.
+
+       - :guilabel:`guest` displays the maximum System Guest CPU
+         value over the time period specified by the metric
+         granularity.
+
+       - :guilabel:`steal` displays the maximum System Steal CPU
+         value over the time period specified by the metric
+         granularity.
+
+       .. include:: /includes/fact-cpu.rst
+
+   * - :guilabel:`Max System Memory`
+
+     - Displays the maximum system memory values in bytes:
+
+       - :guilabel:`used` displays the maximum System Memory Used
+         value over the time period specified by the metric
+         granularity.
+
+       - :guilabel:`available` displays the maximum System Memory
+         Available value over the time period specified by the
+         metric granularity.
+
+       - :guilabel:`free` displays the maximum System Memory Free
+         value over the time period specified by the metric
+         granularity.
+
+       - :guilabel:`shared` displays the maximum System Memory
+         Shared value over the time period specified by the
+         metric granularity.
+
+       - :guilabel:`buffers` displays the maximum Buffers value
+         over the time period specified by the metric granularity.
+
+       - :guilabel:`cached` displays the maximum Cached value over
+         the time period specified by the metric granularity.
+
+       .. include:: /includes/fact-memory.rst
+
+   * - :guilabel:`Normalized Process CPU`
+
+     - Displays the following information:
+
+       - :guilabel:`user` displays the percentage of time that the CPU
+         spent servicing the MongoDB process, scaled to a range of
+         0-100% by dividing by the number of CPU cores.
+
+       - :guilabel:`kernel` displays the percentage of time the CPU
+         spent servicing operating system calls for the MongoDB
+         process, scaled to a range of 0-100% by dividing by the number
+         of CPU cores.
+
+       - :guilabel:`max user` displays the maximum Normalized
+         Process User CPU value over the time period specified by
+         the metric granularity.
+
+       - :guilabel:`max kernel` displays the maximum Normalized
+         Process Kernel CPU value over the time period specified
+         by the metric granularity.
+
+       .. include:: /includes/fact-cpu.rst
+
+   * - :guilabel:`Normalized System CPU`
+
+     - Displays the CPU usage of all processes on the node, scaled to a
+       range of 0-100% by dividing by the number of CPU cores:
+
+       - :guilabel:`user` displays the percentage of time the CPU
+         spent servicing all user applications (not just MongoDB
+         processes), scaled to a range of 0-100% by dividing by
+         the number of CPU cores.
+
+       - :guilabel:`kernel` displays the percentage of time the
+         CPU spent servicing operating system calls from all
+         processes, scaled to a range of 0-100% by dividing by
+         the number of CPU cores.
+
+       - :guilabel:`nice` displays the percentage of time the CPU
+         spent occupied by all processes with a positive nice
+         value, scaled to a range of 0-100% by dividing by the
+         number of CPU cores.
+
+       - :guilabel:`iowait` displays the percentage of time the
+         CPU spent waiting for IO operations to complete, scaled
+         to a range of 0-100% by dividing by the number of CPU
+         cores.
+
+       - :guilabel:`irq` displays the percentage of time the CPU
+         spent performing hardware interrupts, scaled to a range
+         of 0-100% by dividing by the number of CPU cores.
+
+       - :guilabel:`softirq` displays the percentage of time the
+         CPU spent performing software interrupts, scaled to a
+         range of 0-100% by dividing by the number of CPU cores.
+
+       - :guilabel:`guest` displays the percentage of time the
+         CPU spent servicing guest, which is included in user,
+         scaled to a range of 0-100% by dividing by the number
+         of CPU cores.
+
+       - :guilabel:`steal` displays the percentage of time the
+         CPU had something runnable, but the hypervisor chose to
+         run something else, scaled to a range of 0-100% by
+         dividing by the number of CPU cores.
+
+       .. include:: /includes/fact-cpu.rst
+
+   * - :guilabel:`Process CPU`
+
+     - Displays the following information:
+
+       - :guilabel:`user` displays the percentage of time that the CPU
+         spent servicing the MongoDB process.
+
+       - :guilabel:`kernel` displays the percentage of time the CPU
+         spent servicing operating system calls for the MongoDB process.
+
+       .. include:: /includes/fact-cpu.rst
+
    * - :guilabel:`Swap IO (Internal)`
-  
-     - Displays the rate at which the operating system swaps memory pages between RAM and disk:
+
+     - Displays the rate at which the operating system swaps memory
+       pages between RAM and disk:
 
        .. include:: /includes/fact-swap-io.rst
 
-   * - :guilabel:`Swap Usage` 
+   * - :guilabel:`Swap Usage`
 
      - Displays the following information about swap space on the host:
 
-       .. include:: /includes/fact-swap-usage.rst 
+       .. include:: /includes/fact-swap-usage.rst
 
    * - :guilabel:`System CPU`
-     
-     - Displays the CPU usage of all processes on the node.
+
+     - Displays the CPU usage of all processes on the node:
+
+       - :guilabel:`user` displays the percentage of time the CPU
+         spent servicing all user applications (not just MongoDB
+         processes). For servers with more than 1 CPU core, this
+         value can exceed 100%.
+
+       - :guilabel:`kernel` displays the percentage of time the
+         CPU spent servicing operating system calls from all
+         processes. For servers with more than 1 CPU core, this
+         value can exceed 100%.
+
+       - :guilabel:`nice` displays the percentage of time the CPU
+         spent occupied by all processes with a positive nice
+         value. For servers with more than 1 CPU core, this value
+         can exceed 100%.
+
+       - :guilabel:`iowait` displays the percentage of time the
+         CPU spent waiting for IO operations to complete. For
+         servers with more than 1 CPU core, this value can
+         exceed 100%.
+
+       - :guilabel:`irq` displays the percentage of time the CPU
+         spent performing hardware interrupts. For servers with
+         more than 1 CPU core, this value can exceed 100%.
+
+       - :guilabel:`softirq` displays the percentage of time the
+         CPU spent performing software interrupts. For servers
+         with more than 1 CPU core, this value can exceed 100%.
+
+       - :guilabel:`guest` displays the percentage of time the
+         CPU spent servicing guest, which is included in user.
+         For servers with more than 1 CPU core, this value can
+         exceed 100%.
+
+       - :guilabel:`steal` displays the percentage of time the
+         CPU had something runnable, but the hypervisor chose to
+         run something else. For servers with more than 1 CPU
+         core, this value can exceed 100%.
 
        .. include:: /includes/fact-cpu.rst
+
+   * - :guilabel:`System Memory`
+
+     - Displays the following information:
+
+       - :guilabel:`used` displays the number of bytes of
+         physical memory in use.
+
+       - :guilabel:`available` displays an estimate of the
+         number of bytes of system memory available for
+         running new applications, without swapping.
+
+       - :guilabel:`free` displays the number of bytes of
+         unused physical memory available to the system.
+
+       - :guilabel:`shared` displays the number of bytes of
+         used shared memory shared between several
+         processes, including RAM disks, SYS-V-IPC, and
+         BSD-like SHMEM.
+
+       - :guilabel:`buffers` displays the number of bytes
+         of buffer cache for temporary storage of raw disk
+         blocks.
+
+       - :guilabel:`cached` displays the number of bytes
+         in the page cache.
+
+       .. include:: /includes/fact-memory.rst
 
    * - :guilabel:`System Network`
 
      - Displays the following information:
-     
-       - :guilabel:`network bytes in` displays the average rate of 
+
+       - :guilabel:`network bytes in` displays the average rate of
          physical bytes that the network interface receives per second.
 
-       - :guilabel:`network bytes out` displays the average rate of 
+       - :guilabel:`network bytes out` displays the average rate of
          physical bytes that the network interface transmits per second.
 
-       - :guilabel:`max network bytes in` displays the maximum network 
-         bytes in values over the time period that the metric 
+       - :guilabel:`max network bytes in` displays the maximum network
+         bytes in values over the time period that the metric
          granularity specifies.
 
        - :guilabel:`max network bytes out` displays the maximum network
