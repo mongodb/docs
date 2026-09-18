@@ -107,11 +107,6 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/architecture/:version/solutions-library/document-intelligence',
           },
           {
-            label: 'Offline-First Wallet',
-            contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/offline-first-wallet',
-          },
-          {
             label: 'Payments Modernization Accelerator',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/payments-solution',
@@ -440,6 +435,25 @@ const tocData: TocItem[] = [
             label: 'Text-to-Audio News Conversion',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/text-to-audio-conversion',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    label: 'Mobile and Edge',
+    contentSite: 'atlas-architecture',
+    collapsible: true,
+    items: [
+      {
+        label: 'Disconnected Environments',
+        contentSite: 'atlas-architecture',
+        collapsible: true,
+        items: [
+          {
+            label: 'Offline-First Wallet',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/offline-first-wallet',
           },
         ],
       },
