@@ -21,7 +21,7 @@ import { Introduction } from '@/mdx-components/Introduction';
 import { CommunityPillLink } from '@/mdx-components/CommunityPillLink';
 import ComposableTutorial from '@/mdx-components/ComposableTutorial';
 import ComposableContent from '@/mdx-components/ComposableTutorial/ComposableContent';
-import Button from '@/mdx-components/Button';
+import { LinkButton } from '@/mdx-components/LinkButton';
 import { Literal } from '@/mdx-components/Literal';
 import { Describe } from '@/mdx-components/Describe';
 import { Highlight } from '@/mdx-components/Highlight';
@@ -102,7 +102,8 @@ export const components = (injectedProps?: InjectedProps) =>
     ),
     Abbr: ({ children, ...props }) => <Abbr {...props}>{children}</Abbr>,
     Banner: ({ children, ...props }) => <Banner {...props}>{children}</Banner>,
-    Button: ({ children, ...props }) => <Button {...props}>{children}</Button>,
+    // Destructure onClick because it is not valid to pass a regular HTML onClick event handler to LinkComponent.
+    Button: ({ children, onClick, ...props }) => <LinkButton {...props}>{children}</LinkButton>,
     Card: ({ children, ...props }) => <Card {...props}>{children}</Card>,
     CardGroup: ({ children, ...props }) => <CardGroup {...props}>{children}</CardGroup>,
     Column: ({ children, ...props }) => <Column {...props}>{children}</Column>,

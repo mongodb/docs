@@ -1,7 +1,7 @@
-import Button from '@/mdx-components/Button';
 import { render } from '@testing-library/react';
+import { LinkButton } from '@/mdx-components/LinkButton';
 
 it('button component renders correctly', () => {
-  const tree = render(<Button uri="/install">Download Compass</Button>);
+  const tree = render(<LinkButton uri="/install">Download Compass</LinkButton>);
   expect(tree.asFragment()).toMatchSnapshot();
 });

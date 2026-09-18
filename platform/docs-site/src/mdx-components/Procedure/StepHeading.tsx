@@ -15,15 +15,19 @@ const DEFAULT_STEP_HEADING_LEVEL = 3;
 // (16px / regular), so step headings render smaller and lighter than the
 // heading component's Subtitle styling. Forcing descendants to inherit keeps
 // the fallback in sync with whatever the heading level resolves to.
+// The && boost keeps this ahead of Via Text's own typography classes, which
+// are single-class selectors resolved by stylesheet insertion order.
 const stepHeadingFallbackStyle = css`
-  * {
-    font-size: inherit;
-    font-weight: inherit;
-    line-height: inherit;
-  }
+  && {
+    * {
+      font-size: inherit;
+      font-weight: inherit;
+      line-height: inherit;
+    }
 
-  p {
-    margin: 0;
+    p {
+      margin: 0;
+    }
   }
 `;
 

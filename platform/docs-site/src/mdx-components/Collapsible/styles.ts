@@ -34,8 +34,12 @@ export const headerContainerStyle = css`
   margin: ${theme.size.large} 0;
 `;
 
+// && boosts specificity so this reliably overrides the Via heading's own
+// margin class regardless of stylesheet insertion order.
 export const headerStyle = css`
-  margin-top: 0;
+  && {
+    margin-top: 0;
+  }
 `;
 
 export const iconStyle = css`

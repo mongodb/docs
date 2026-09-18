@@ -2,13 +2,10 @@
 
 import { useContext, useRef, forwardRef } from 'react';
 import { onlyText } from 'react-children-utilities';
-import styled from '@emotion/styled';
-import { cx, css } from '@leafygreen-ui/emotion';
-import { H2, H3, Subtitle, Body } from '@leafygreen-ui/typography';
-import { Button } from '@leafygreen-ui/button';
-import { Icon } from '@leafygreen-ui/icon';
-import { palette } from '@leafygreen-ui/palette';
-import { theme } from '@/styles/theme';
+import clsx from 'clsx';
+import { Text, TextStyle } from '@via-ds/components/typography';
+import { Button } from '@via-ds/components/button';
+import CodeIcon from '@via-ds/icons/Code';
 import { ContentsContext, extractPlainText } from '@/context/contents-context';
 import { ComposableSelectionsContext } from '@/mdx-components/ComposableTutorial/composable-context';
 import { TabContext } from '@/context/tabs-context';
@@ -16,84 +13,30 @@ import useScreenSize from '@/hooks/use-screen-size';
 import { usePageContext } from '@/context/page-context';
 import { ConditionalWrapper } from '@/mdx-components/ConditionalWrapper';
 import { useInstruqt } from '@/context/instruqt-context';
-import { disabledStyle } from '@/mdx-components/Button';
 import { Permalink } from '@/mdx-components/Permalink';
 import { Contents } from '@/mdx-components/Contents';
 import { CopyPageMarkdownButton } from '@/mdx-components/CopyPageMarkdownButton';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
 import { reportAnalytics } from '@/utils/report-analytics';
 import { TabsSelector } from '@/mdx-components/TabsSelector';
+import styles from './heading.module.scss';
 
-const titleMarginStyle = css`
-  margin-top: ${theme.size.default};
-  margin-bottom: ${theme.size.medium};
-`;
+type ViaHeadingStyle =
+  | typeof TextStyle.heading2
+  | typeof TextStyle.heading3
+  | typeof TextStyle.heading4
+  | typeof TextStyle.heading5;
 
-const headingStyles = (sectionDepth: number, shouldShowLabButton: boolean) => css`
-  ${!shouldShowLabButton &&
-  `
-    margin-top: ${theme.size.medium};
-    margin-bottom: ${theme.size.small};
-  `}
-  color: ${sectionDepth < 2 ? `var(--heading-color-primary)` : `var(--font-color-primary)`};
-`;
-
-const labWrapperStyle = css`
-  display: flex;
-  gap: ${theme.size.default} ${theme.size.large};
-  flex-wrap: wrap;
-`;
-
-// Theme-specific styles were copied from the original Button component
-const labButtonStyling = css`
-  align-self: center;
-  background-color: ${palette.gray.light3};
-  border-color: ${palette.gray.base};
-  color: ${palette.black};
-
-  .dark-theme & {
-    background-color: ${palette.gray.dark2};
-    border-color: ${palette.gray.base};
-    color: ${palette.white};
-  }
-`;
-
-const contentsStyle = css`
-  margin-top: ${theme.size.medium};
-`;
-
-const HeadingContainer = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-
-  @media ${theme.screenSize.upToLarge} {
-    flex-direction: column;
-  }
-`;
-
-const ChildContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-
-  @media ${theme.screenSize.upToLarge} {
-    margin: 4px 0 16px 0;
-    align-items: flex-start;
-  }
-`;
-
-const getHeadingComponent = (headingLevel: number) => {
+const getHeadingTextStyle = (headingLevel: number): ViaHeadingStyle => {
   switch (headingLevel) {
     case 1:
-      return H2;
+      return TextStyle.heading2;
     case 2:
-      return H3;
+      return TextStyle.heading3;
     case 3:
-      return Subtitle;
+      return TextStyle.heading4;
     default:
-      return Body;
+      return TextStyle.heading5;
   }
 };
 
@@ -148,7 +91,6 @@ export const Heading = forwardRef<HTMLDivElement, HeadingProps>(
 
     const id = useRef(composableId ?? slugger.slug(headingText));
 
-    const HeadingTag = getHeadingComponent(headingLevel);
     const asHeading = getHeadingTag(headingLevel);
     const isPageTitle = headingLevel === 1;
 
@@ -178,30 +120,32 @@ export const Heading = forwardRef<HTMLDivElement, HeadingProps>(
       setIsOpen(true);
     };
 
+    const headingClassName = clsx(
+      'contains-headerlink',
+      !shouldShowLabButton && styles.sectionMargin,
+      isPageTitle && !hasDrawer && styles.titleMargin,
+      className,
+    );
+
     return (
       <>
         <ConditionalWrapper
           condition={shouldShowMobileHeader}
           wrapper={(children) => (
-            <HeadingContainer>
+            <div className={styles.headingContainer}>
               {children}
-              <ChildContainer>{hasSelectors && !tabsMainColumn && <TabsSelector />}</ChildContainer>
-            </HeadingContainer>
+              <div className={styles.childContainer}>{hasSelectors && !tabsMainColumn && <TabsSelector />}</div>
+            </div>
           )}
         >
           {/* Wrapper for Instruqt drawer button */}
           <ConditionalWrapper
             condition={shouldShowLabButton}
             wrapper={(children) => (
-              <div className={cx(titleMarginStyle, labWrapperStyle)}>
+              <div className={styles.labWrapper}>
                 {children}
-                <Button
-                  role="button"
-                  className={cx(labButtonStyling, disabledStyle)}
-                  disabled={isOpen}
-                  onClick={interactiveOnClick}
-                  leftGlyph={<Icon glyph="Code" />}
-                >
+                <Button className={styles.labButton} isDisabled={isOpen} onPress={interactiveOnClick}>
+                  <CodeIcon slot="icon" />
                   {OpenInteractiveTutorialLabel}
                 </Button>
               </div>
@@ -210,44 +154,25 @@ export const Heading = forwardRef<HTMLDivElement, HeadingProps>(
             <ConditionalWrapper
               condition={showCopyMarkdown}
               wrapper={(children) => (
-                <div
-                  className={css`
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    column-gap: 5px;
-                  `}
-                >
+                <div className={styles.copyMarkdownRow}>
                   {children}
                   {/* using showRating since it has similar logic for showing the copy markdown button only for non-landing pages */}
-                  <CopyPageMarkdownButton
-                    slug={slug}
-                    className={css`
-                      @media ${theme.screenSize.upToLarge} {
-                        display: none;
-                      }
-                    `}
-                  />
+                  <CopyPageMarkdownButton slug={slug} className={styles.copyMarkdownButton} />
                 </div>
               )}
             >
-              <HeadingTag
-                className={cx(
-                  headingStyles(headingLevel, shouldShowLabButton),
-                  'contains-headerlink',
-                  isPageTitle && !hasDrawer ? titleMarginStyle : '',
-                  className,
-                )}
-                as={asHeading}
-                weight="medium"
+              <Text
+                textStyle={getHeadingTextStyle(headingLevel)}
+                elementType={asHeading}
+                className={headingClassName}
               >
                 {children}
                 <Permalink ref={ref} id={id.current} description="heading" />
-              </HeadingTag>
+              </Text>
             </ConditionalWrapper>
           </ConditionalWrapper>
         </ConditionalWrapper>
-        {isPageTitle && isTabletOrMobile && showRating && <Contents className={contentsStyle} />}
+        {isPageTitle && isTabletOrMobile && showRating && <Contents className={styles.contents} />}
       </>
     );
   },

@@ -7,12 +7,12 @@ import Button from '@leafygreen-ui/button';
 import type { LGGlyph } from '@leafygreen-ui/icon';
 import Icon from '@leafygreen-ui/icon';
 import { css, cx } from '@leafygreen-ui/emotion';
+import { palette } from '@leafygreen-ui/palette';
 import { theme } from '@/styles/theme';
 import type { BranchData, Docset } from '@/types/data';
 import { useVersionContext } from '@/context/version-context';
 import { isBrowser } from '@/utils/is-browser';
 import { Select } from '@/mdx-components/Select';
-import { disabledStyle } from '@/mdx-components/Button';
 
 type ProductChoice = {
     text: string;
@@ -35,6 +35,55 @@ const selectStyle = css`
 
   @media ${theme.screenSize.upToSmall} {
     width: 100%;
+  }
+`;
+
+const focusBoxShadow = (color: string) => `
+  0 0 0 2px ${color},
+  0 0 0 4px ${palette.blue.light1};
+`;
+
+// TODO: remove once DeprecatedVersionSelector is migrated to Via.
+const disabledStyle = css`
+  &[aria-disabled='true'] {
+    &,
+    &:hover,
+    &[data-hover='true'],
+    &:active,
+    &[data-active='true'] {
+      background-color: ${palette.gray.light2};
+      border-color: ${palette.gray.light1};
+      color: ${palette.gray.base};
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    &:focus-visible,
+    &[data-focus='true'] {
+      color: ${palette.gray.base};
+      box-shadow: ${focusBoxShadow(palette.white)};
+    }
+
+    // Needs to be nested here to ensure proper cascading
+    .dark-theme & {
+      &,
+      &:hover,
+      &[data-hover='true'],
+      &:active,
+      &[data-active='true'] {
+        background-color: ${palette.gray.dark3};
+        border-color: ${palette.gray.dark2};
+        color: ${palette.gray.dark1};
+        box-shadow: none;
+        cursor: not-allowed;
+      }
+
+      &:focus-visible,
+      &[data-focus='true'] {
+        color: ${palette.gray.dark1};
+        box-shadow: ${focusBoxShadow(palette.black)};
+      }
+    }
   }
 `;
 
