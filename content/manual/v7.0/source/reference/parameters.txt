@@ -2483,6 +2483,41 @@ The following parameters support diagnostic data capture (FTDC):
 Replication and Consistency
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. parameter:: abortStreamingHelloWithSmallTimeout
+
+   *Type*: boolean
+
+   *Default*: false
+
+   Controls how the server responds when an unauthenticated client
+   sends a streaming :dbcommand:`hello` command with a
+   ``maxAwaitTimeMS`` value below the
+   :parameter:`minWaitForStreamingHelloMillis` floor:
+
+   - When ``false``, the server clamps the effective timeout up to
+     ``minWaitForStreamingHelloMillis``.
+
+   - When ``true``, the server rejects the command and returns an
+     ``InvalidOptions`` error.
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   The following example sets ``abortStreamingHelloWithSmallTimeout``
+   to ``true`` at startup:
+
+   .. code-block:: bash
+
+      mongod --setParameter abortStreamingHelloWithSmallTimeout=true
+      mongos --setParameter abortStreamingHelloWithSmallTimeout=true
+
+   The following example sets
+   ``abortStreamingHelloWithSmallTimeout`` to ``true`` using the
+   :dbcommand:`setParameter` command:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, abortStreamingHelloWithSmallTimeout: true } )
+
 .. parameter:: changeSyncSourceThresholdMillis
 
    |mongod-only|
@@ -3331,6 +3366,46 @@ Replication and Consistency
    .. code-block:: bash
 
       db.adminCommand( { setParameter: 1, replBatchLimitBytes: 64 * 1024 * 1024 } )
+
+.. parameter:: minWaitForStreamingHelloMillis
+
+   *Type*: integer
+
+   *Default*: 500
+
+   Specifies the minimum effective timeout, in milliseconds, that the
+   server enforces for streaming :dbcommand:`hello` commands sent by
+   unauthenticated clients. If an
+   unauthenticated client supplies a ``maxAwaitTimeMS`` value below
+   this floor, the server either clamps the timeout up to this value
+   or rejects the command, depending on
+   :parameter:`abortStreamingHelloWithSmallTimeout`.
+
+   This parameter mitigates excessive CPU use from unauthenticated
+   clients that send streaming ``hello`` commands with very small
+   ``maxAwaitTimeMS`` values.
+
+   The value must be greater than or equal to ``0``. A value of ``0``
+   disables enforcement. Authenticated clients are not affected, and
+   topology changes still wake waiting clients immediately regardless
+   of this parameter.
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   The following example sets ``minWaitForStreamingHelloMillis`` to
+   ``1000`` milliseconds at startup:
+
+   .. code-block:: bash
+
+      mongod --setParameter minWaitForStreamingHelloMillis=1000
+      mongos --setParameter minWaitForStreamingHelloMillis=1000
+
+   The following example sets ``minWaitForStreamingHelloMillis`` to
+   ``1000`` milliseconds using the :dbcommand:`setParameter` command:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, minWaitForStreamingHelloMillis: 1000 } )
 
 .. parameter:: mirrorReads
 
