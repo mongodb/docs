@@ -38,20 +38,28 @@ export interface JiraQueryParams {
   description: string;
 }
 
+// Jira's wiki renderer cannot reliably escape a literal pipe
+// (CONFSERVER-4009 is still open) or, in some contexts, brackets
+// (CONFSERVER-55799), so untrusted text is stripped of the characters
+// that have wiki-markup meaning rather than backslash-escaped.
+function stripJiraWikiMarkup(text: string): string {
+  return text.replace(/[|[\]{}!]/g, '');
+}
+
 export function buildJiraDescription(feedback: FeedbackDocument) {
   const description = [
-    `*Feedback for page:* [${feedback.page.title}|${feedback.page.url}]`,
+    `*Feedback for page:* [${stripJiraWikiMarkup(feedback.page.title)}|${stripJiraWikiMarkup(feedback.page.url)}]`,
     `*Feedback Date:* ${feedback.submittedAt}`,
   ];
   if (feedback.user.email) {
-    description.push(`*User Email:* ${feedback.user.email}`);
+    description.push(`*User Email:* ${stripJiraWikiMarkup(feedback.user.email)}`);
   }
   const screenshotAttachment = feedback.attachments.filter((a: Attachment) => a.type === 'screenshot')[0];
   if (screenshotAttachment) {
     description.push(`*Screenshot:* [Download from S3|${(screenshotAttachment as S3ScreenshotAttachment).url}]`);
   }
   if (feedback.comment) {
-    description.push(`\n*Comment:*\n${feedback.comment}`);
+    description.push(`\n*Comment:*\n${stripJiraWikiMarkup(feedback.comment)}`);
   }
   return description.join('\n');
 }

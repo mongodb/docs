@@ -327,6 +327,10 @@ async function createSlackMessage(
   return message;
 }
 
-function slackLink(text: string, url: string) {
-  return `<${url}|${text}>`;
+function escapeSlackMrkdwn(text: string): string {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+export function slackLink(text: string, url: string) {
+  return `<${escapeSlackMrkdwn(url)}|${escapeSlackMrkdwn(text)}>`;
 }

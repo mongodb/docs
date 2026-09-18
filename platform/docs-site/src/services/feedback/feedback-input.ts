@@ -3,15 +3,64 @@ import type { Page, FeedbackSentiment } from './feedback-types';
 
 /**
  * Validation and sanitization for the public, unauthenticated feedback
- * upsert payload (DOP-7023). Kept as a pure, dependency-light function so the
- * security-critical logic is unit-testable without the Next.js request
- * pipeline.
+ * upsert payload (DOP-7023).
  */
 
 const MAX_COMMENT_LENGTH = 5000;
+const MAX_TITLE_LENGTH = 200;
+const MAX_SLUG_LENGTH = 256;
 const VALID_CATEGORIES: FeedbackSentiment[] = ['Negative', 'Suggestion', 'Positive', ' '];
 
+const SLUG_CHARSET = /^[A-Za-z0-9/_.-]+$/;
+const CONTROL_CHARS = /[\x00-\x1F]/;
+// Excludes \n/\r so the multi-line comment Textarea isn't rejected.
+const COMMENT_CONTROL_CHARS = /[\x00-\x08\x0B\x0C\x0E-\x1F]/;
+
 const isString = (value: unknown): value is string => typeof value === 'string';
+
+function isValidSlug(slug: string): boolean {
+  return slug.length <= MAX_SLUG_LENGTH && !slug.includes('..') && SLUG_CHARSET.test(slug);
+}
+
+function isValidDocsProperty(docsProperty: string): boolean {
+  return SLUG_CHARSET.test(docsProperty);
+}
+
+const FEEDBACK_URL_PATH_CHARSET = /^[A-Za-z0-9/_.#?&=-]*$/;
+// Not a bare "*.netlify.app" wildcard: that would accept any Netlify customer's site.
+const PREVIEW_URL_HOSTNAME = /^(deploy-preview-\d+|temp-pr-\d+)--[a-z0-9-]+\.netlify\.app$/;
+// Same host already trusted in ALLOWED_CDN_HOSTNAMES (docs-nextjs's offline-download route).
+const STAGING_URL_HOSTNAME = 'mongodbcom-cdn.staging.corp.mongodb.com';
+
+// Compares url.hostname exactly, never startsWith/includes on the full
+// string, so lookalikes like "www.mongodb.com.evil.com" or userinfo tricks
+// like "www.mongodb.com@evil.com" can't pass.
+function isValidFeedbackUrl(url: string): boolean {
+  if (url.includes('..')) return false;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return false;
+  }
+  if (parsed.username || parsed.password) return false;
+
+  const host = parsed.hostname;
+  const isProd = parsed.protocol === 'https:' && host === 'www.mongodb.com';
+  const isPreview = parsed.protocol === 'https:' && PREVIEW_URL_HOSTNAME.test(host);
+  const isStaging = parsed.protocol === 'https:' && host === STAGING_URL_HOSTNAME;
+  const isLocalDev = parsed.protocol === 'http:' && (host === 'localhost' || host === '127.0.0.1');
+  if (!isProd && !isPreview && !isStaging && !isLocalDev) return false;
+
+  const rest = url.slice(`${parsed.protocol}//${parsed.host}`.length);
+  return FEEDBACK_URL_PATH_CHARSET.test(rest);
+}
+
+// Allows < > since real titles can contain them (e.g. "$[<identifier>]").
+function isValidTitle(title: string): boolean {
+  return title.length <= MAX_TITLE_LENGTH && !CONTROL_CHARS.test(title);
+}
 
 export type FeedbackInput = {
   page: unknown;
@@ -24,16 +73,9 @@ export type ValidatedFeedbackInput =
   | { ok: true; page: Page; comment: string | undefined }
   | { ok: false; error: string };
 
-/**
- * Validates and sanitizes attacker-controlled feedback fields.
- *
- * page.docs_property flows into a MongoDB query filter downstream, so a
- * non-string value (e.g. `{ "$ne": null }`) would be a NoSQL operator
- * injection. All page/user string fields are therefore type-checked, `page`
- * is rebuilt from only its known fields (so no arbitrary object is
- * persisted), and `comment` is stripped of all HTML/markup and length-capped
- * to prevent stored XSS / markup injection into the Slack and JIRA sinks.
- */
+// page.docs_property flows into a MongoDB query filter downstream, so a
+// non-string value (e.g. `{ "$ne": null }`) would be a NoSQL operator
+// injection.
 export function validateFeedbackInput({ page, user, comment, category }: FeedbackInput): ValidatedFeedbackInput {
   if (
     typeof page !== 'object' ||
@@ -41,7 +83,11 @@ export function validateFeedbackInput({ page, user, comment, category }: Feedbac
     !isString((page as Page).slug) ||
     !isString((page as Page).title) ||
     !isString((page as Page).url) ||
-    !isString((page as Page).docs_property)
+    !isString((page as Page).docs_property) ||
+    !isValidSlug((page as Page).slug) ||
+    !isValidFeedbackUrl((page as Page).url) ||
+    !isValidDocsProperty((page as Page).docs_property) ||
+    !isValidTitle((page as Page).title)
   ) {
     return { ok: false, error: 'Invalid page data' };
   }
@@ -54,7 +100,7 @@ export function validateFeedbackInput({ page, user, comment, category }: Feedbac
     return { ok: false, error: 'Invalid category' };
   }
 
-  if (comment !== undefined && !isString(comment)) {
+  if (comment !== undefined && (!isString(comment) || COMMENT_CONTROL_CHARS.test(comment))) {
     return { ok: false, error: 'Invalid comment' };
   }
 

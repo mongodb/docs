@@ -7,13 +7,7 @@ import { feedback_actions } from '@/services/feedback/feedback-actions';
 import { getFeedbackResponsesCollection, type FeedbackDocument } from '@/services/db/feedback';
 import { checkRateLimit, getClientIp } from '@/services/rate-limit/rate-limit';
 import { validateFeedbackInput } from '@/services/feedback/feedback-input';
-import type {
-  Page,
-  User,
-  Attachment,
-  Fingerprint,
-  FeedbackSentiment,
-} from '@/services/feedback/feedback-types';
+import type { Page, User, Attachment, Fingerprint, FeedbackSentiment } from '@/services/feedback/feedback-types';
 import { starRating } from '@/services/feedback/feedback-types';
 
 export type FeedbackPayload = {
@@ -61,8 +55,13 @@ export async function POST(request: NextRequest) {
   const { page, user, attachment, comment, category, rating, snootyEnv, feedback_id } = body;
 
   const validRatings = Object.keys(starRating).map(Number);
-  if (!validRatings.includes(Number(rating))) {
-    return withCORS(NextResponse.json({ error: `Invalid rating value: ${rating}. Must be one of ${validRatings.join(', ')}` }, { status: 400 }));
+  if (typeof rating !== 'number' || !validRatings.includes(rating)) {
+    return withCORS(
+      NextResponse.json(
+        { error: `Invalid rating value: ${rating}. Must be one of ${validRatings.join(', ')}` },
+        { status: 400 },
+      ),
+    );
   }
 
   // --- Input validation & sanitization (DOP-7023) ---
@@ -79,7 +78,10 @@ export async function POST(request: NextRequest) {
   // never blocked. Complements the per-IP limit above; page.url is
   // client-supplied, but a scanner spoofing it is still caught by that limit.
   if (!feedback_id) {
-    const pageKey = String(page?.url ?? 'unknown').split('#')[0].split('?')[0].toLowerCase();
+    const pageKey = String(page?.url ?? 'unknown')
+      .split('#')[0]
+      .split('?')[0]
+      .toLowerCase();
     const perPageLimit = await checkRateLimit({
       key: `feedback-upsert:page:${clientIp}:${pageKey}`,
       limit: PER_PAGE_LIMIT,
