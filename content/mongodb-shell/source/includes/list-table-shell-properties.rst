@@ -37,8 +37,8 @@
    * - ``enableTelemetry``
      - boolean
      - ``true``
-     - Enables sending anonymized tracking and diagnostic data to
-       MongoDB. 
+     - Enables sending pseudo-anonymous tracking and diagnostic data to
+       MongoDB during interactive and agentic sessions only.
 
    * - ``editor``
      - string
