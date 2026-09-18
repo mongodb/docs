@@ -26,7 +26,7 @@
          - ``dimensionsHuggingFaceModel``: ``1024`` dimensions
            ("mixedbread-ai/mxbai-embed-large-v1" model)
          - ``dimensionsVoyageAiModel``: ``1024`` dimensions
-           ("voyage-3-large" model)
+           ("voyage-4-large" model)
          - ``dimensionsOpenAiModel``: ``1536`` dimensions
            ("text-embedding-3-small" model)
     

@@ -6,7 +6,7 @@ Replace ``<api-key>`` with your `Voyage API key
 
 The function specifies the following:
 
-- ``voyage-3-large`` as the embedding model to use.
+- ``voyage-4-large`` as the embedding model to use.
 - ``input_type`` parameter to optimize your embeddings for retrieval. 
   To learn more, see :ref:`Voyage AI Python Client <voyage-python-client>`.
 

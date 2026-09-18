@@ -26,7 +26,7 @@
 
             # Specify your Voyage API key and embedding model
             os.environ["VOYAGE_API_KEY"] = "<api-key>"
-            model = "voyage-3-large"
+            model = "voyage-4-large"
             vo = voyageai.Client()
 
             # Define a function to generate embeddings
@@ -44,7 +44,7 @@
             :language: shell
             :visible: false
 
-            [-0.016463523730635643, -0.040630217641592026, -0.026241062209010124, -0.006248823832720518, ... -0.003811582690104842, -0.01361055113375187, 0.047476209700107574, -0.0030144075863063335]
+            [-0.0680396631360054, 0.03951127082109451, 0.010895480401813984, -0.041856683790683746, ... 0.0393928699195385, 0.0013418495655059814, -0.005869182292371988, -0.014275475405156612]
        
       .. collapsible::
          :heading: (Advanced) Compress your embeddings.
@@ -63,4 +63,4 @@
                :language: shell
                :visible: false
 
-               The converted BSON embedding is: [Binary(b'\'\x00x0\xf4\ ... x9bL\xd4\xbc', 9), Binary(b'\'\x007 ... \x9e?\xe6<', 9)]
+               The converted BSON embedding is: b'\'\x00aX\x8b\xbd\x92\xd6!=\xf5\x822<\x ... \xc0\xbb\xaf\xe3i\xbc'

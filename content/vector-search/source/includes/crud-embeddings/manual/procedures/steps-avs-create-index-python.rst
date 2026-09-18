@@ -30,7 +30,7 @@ a. Paste the following code in your notebook.
    the following values:
 
    - ``768`` if you used ``nomic-embed-text-v1``
-   - ``1024`` if you used ``voyage-3-large``
+   - ``1024`` if you used ``voyage-4-large``
    - ``1536`` if you used ``text-embedding-3-small``
 
 #. Run the code.
