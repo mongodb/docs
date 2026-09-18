@@ -1,24 +1,124 @@
 [
   {
-    _id: ObjectId('573a139af29313caabceffbf'),
-    plot: "The aliens are coming and their goal is to invade and destroy Earth. Fighting superior technology, mankind's best weapon is the will to survive.",
-    title: 'Independence Day',
+    _id: ObjectId('573a1398f29313caabceb2ff'),
+    plot: 'Dragon, a bloody dictator, is challenged by Lancelot, who comes to save the girl, and to liberate the people.',
+    title: 'Ubit drakona',
     scoreDetails: {
-      value: 0.00897745571658615,
+      value: 0.014271255060728745,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
-          rank: 55,
+          rank: 5,
           weight: 0.5,
-          value: 0.6518257856369019,
+          value: 0.6908915042877197,
           details: []
         },
         {
           inputPipelineName: 'vectorPipeline2',
-          rank: 48,
+          rank: 16,
           weight: 0.5,
-          value: 0.5166853666305542,
+          value: 0.6708744168281555,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a13b8f29313caabd4c898'),
+    plot: 'Perseus, mortal son of Zeus, battles the minions of the underworld to stop them from conquering heaven and earth.',
+    title: 'Clash of the Titans',
+    scoreDetails: {
+      value: 0.013354700854700854,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 12,
+          weight: 0.5,
+          value: 0.6787855625152588,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 18,
+          weight: 0.5,
+          value: 0.6699803471565247,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a13ddf29313caabdb37c0'),
+    plot: 'A policeman, who is fearless to death, can do anything for just one truth, while a gangster, who fears death the most, has drew life threats from his risky action all for love. One ...',
+    title: 'Black & White Episode 1: The Dawn of Assault',
+    scoreDetails: {
+      value: 0.011608015640273705,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 64,
+          weight: 0.5,
+          value: 0.6544779539108276,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 6,
+          weight: 0.5,
+          value: 0.6807563304901123,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a13ecf29313caabdd205d'),
+    plot: 'An orphan, whose father has been killed by dark power, attempts to bring justice back to the town.',
+    title: 'Rise of the Legend',
+    scoreDetails: {
+      value: 0.01145320197044335,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 10,
+          weight: 0.5,
+          value: 0.6811603307723999,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 56,
+          weight: 0.5,
+          value: 0.6539888381958008,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a1399f29313caabcee104'),
+    plot: 'The Son of Satan attempts to bring his father to Earth with the aid of some mystic stones.',
+    title: 'Warlock: The Armageddon',
+    scoreDetails: {
+      value: 0.011050995740762057,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 59,
+          weight: 0.5,
+          value: 0.6561703681945801,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 13,
+          weight: 0.5,
+          value: 0.6727579832077026,
           details: []
         }
       ]
@@ -29,375 +129,371 @@
     plot: 'The angel Gabriel comes to Earth to collect a soul which will end the stalemated war in Heaven, and only a former priest and a little girl can stop him.',
     title: 'The Prophecy',
     scoreDetails: {
-      value: 0.008850072780203784,
+      value: 0.011003726129482999,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
-          rank: 15,
+          rank: 16,
           weight: 0.5,
-          value: 0.6676434874534607,
+          value: 0.6765000224113464,
           details: []
         },
         {
           inputPipelineName: 'vectorPipeline2',
-          rank: 169,
+          rank: 53,
           weight: 0.5,
-          value: 0.5124790668487549,
+          value: 0.6550822257995605,
           details: []
         }
       ]
     }
   },
   {
-    _id: ObjectId('573a13adf29313caabd29ca7'),
-    plot: 'A raging god of battle and a master samurai duke it out in a series of sword fights in a remote temple.',
-    title: 'Aragami',
+    _id: ObjectId('573a13b0f29313caabd3505e'),
+    plot: 'The mythical world starts a rebellion against humanity in order to rule the Earth, so Hellboy and his team must save the world from the rebellious creatures.',
+    title: 'Hellboy II: The Golden Army',
     scoreDetails: {
-      value: 0.00819672131147541,
+      value: 0.010998010998011,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
-          rank: 1,
+          rank: 17,
           weight: 0.5,
-          value: 0.7052558064460754,
+          value: 0.6757776737213135,
           details: []
         },
-        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a13c5f29313caabd6ed34'),
-    plot: "Performing the traditional New Year's call on the unknown phone number Andrey didn't even suspected, that just after his return to Moscow, he had bought a magic starting pack of cellular ...",
-    title: 'Tarif Novogodniy',
-    scoreDetails: {
-      value: 0.00819672131147541,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        { inputPipelineName: 'vectorPipeline1', rank: 'NA' },
         {
           inputPipelineName: 'vectorPipeline2',
-          rank: 1,
+          rank: 51,
           weight: 0.5,
-          value: 0.5280892848968506,
+          value: 0.6554251909255981,
           details: []
         }
       ]
     }
   },
   {
-    _id: ObjectId('573a13a7f29313caabd1a9a7'),
-    plot: "A brave unicorn and a magician fight an evil king who is obsessed with attempting to capture the world's unicorns.",
-    title: 'The Last Unicorn',
+    _id: ObjectId('573a13b6f29313caabd467f5'),
+    plot: "Story centers on a battle during China's Warring States Period, a series of civil wars, which spanned from the 5th to the 3rd century B.C. Based on a popular Japanese manga, which was in turn based a Japanese novel inspired by Warring States history in China.",
+    title: 'Battle of the Warriors',
     scoreDetails: {
-      value: 0.008181818181818182,
+      value: 0.01082668134691256,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
-          rank: 28,
+          rank: 113,
           weight: 0.5,
-          value: 0.6599788069725037,
+          value: 0.6454136371612549,
           details: []
         },
-        {
-          inputPipelineName: 'vectorPipeline2',
-          rank: 140,
-          weight: 0.5,
-          value: 0.5131723284721375,
-          details: []
-        }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a1396f29313caabce3a40'),
-    plot: 'Period piece about a Brazil that is no more. This movie is the sequel to "God and the Devil in the Land of the Sun" (Deus e o diabo na terra do sol), and takes place 29 years after Antonio ...',
-    title: 'Antonio das Mortes',
-    scoreDetails: {
-      value: 0.008064516129032258,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        { inputPipelineName: 'vectorPipeline1', rank: 'NA' },
-        {
-          inputPipelineName: 'vectorPipeline2',
-          rank: 2,
-          weight: 0.5,
-          value: 0.5225510001182556,
-          details: []
-        }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a1398f29313caabce9932'),
-    plot: 'A young man must stop the Lord of Darkness from both destroying daylight and marrying the woman he loves.',
-    title: 'Legend',
-    scoreDetails: {
-      value: 0.008064516129032258,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        {
-          inputPipelineName: 'vectorPipeline1',
-          rank: 2,
-          weight: 0.5,
-          value: 0.6911883354187012,
-          details: []
-        },
-        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a139af29313caabcf1e38'),
-    plot: 'The movie opens in a Los Angeles convenience store one late Monday night, where a smalltime drug dealer named Nick (Aaron Eckhart) is trying to decide what coffee brand to buy. His ex-lover...',
-    title: 'Thursday',
-    scoreDetails: {
-      value: 0.007936507936507936,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        { inputPipelineName: 'vectorPipeline1', rank: 'NA' },
         {
           inputPipelineName: 'vectorPipeline2',
           rank: 3,
           weight: 0.5,
-          value: 0.5219411253929138,
+          value: 0.6961238384246826,
           details: []
         }
       ]
     }
   },
   {
-    _id: ObjectId('573a13c2f29313caabd67b22'),
-    plot: '"An Epic Battle for World Domination: In the faraway land of Mirabillis, the warlord Dragon-a Eye has unleashed his terrifying forces to hunt down the source of all power, a legendary ...',
-    title: 'Knights of Bloodsteel',
+    _id: ObjectId('573a1398f29313caabce8f83'),
+    plot: 'A small group of human resistance fighters fight a desperate guerilla war against the genocidal extra-terrestrials who dominate Earth.',
+    title: 'V: The Final Battle',
     scoreDetails: {
-      value: 0.007936507936507936,
+      value: 0.010600567465321564,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
-          rank: 3,
+          rank: 148,
           weight: 0.5,
-          value: 0.6885595321655273,
-          details: []
-        },
-        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a1397f29313caabce8576'),
-    plot: "A brave unicorn and a magician fight an evil king who is obsessed with attempting to capture the world's unicorns.",
-    title: 'The Last Unicorn',
-    scoreDetails: {
-      value: 0.007934782608695653,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        {
-          inputPipelineName: 'vectorPipeline1',
-          rank: 32,
-          weight: 0.5,
-          value: 0.659131646156311,
+          value: 0.640261173248291,
           details: []
         },
         {
           inputPipelineName: 'vectorPipeline2',
-          rank: 140,
+          rank: 1,
           weight: 0.5,
-          value: 0.5131723284721375,
+          value: 0.6989644169807434,
           details: []
         }
       ]
     }
   },
   {
-    _id: ObjectId('573a139af29313caabcef5e7'),
-    plot: "After being unfaithful to her one time too much, Fred's wife has him shot dead by a killer. However, Fred manages to persuade Death to make a deal: He'll receive back his life if he frees ...",
-    title: 'Over My Dead Body',
+    _id: ObjectId('573a139af29313caabcf0e15'),
+    plot: 'A young boy is whisked away to the mythical land of Tao where he becomes the center of a conflict between an evil lord and a group of animal warriors.',
+    title: 'Warriors of Virtue',
     scoreDetails: {
-      value: 0.0078125,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        { inputPipelineName: 'vectorPipeline1', rank: 'NA' },
-        {
-          inputPipelineName: 'vectorPipeline2',
-          rank: 4,
-          weight: 0.5,
-          value: 0.5210697650909424,
-          details: []
-        }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a13c6f29313caabd72148'),
-    plot: "Frankenstein's creature finds himself caught in an all-out, centuries old war between two immortal clans.",
-    title: 'I, Frankenstein',
-    scoreDetails: {
-      value: 0.0078125,
+      value: 0.010530171229740867,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
-          rank: 4,
+          rank: 103,
           weight: 0.5,
-          value: 0.6858282089233398,
+          value: 0.6469591856002808,
           details: []
         },
-        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a13a3f29313caabd0cd93'),
-    plot: "A simple funeral turns a man's world topsy turvy.",
-    title: 'Monday',
-    scoreDetails: {
-      value: 0.007692307692307693,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        { inputPipelineName: 'vectorPipeline1', rank: 'NA' },
-        {
-          inputPipelineName: 'vectorPipeline2',
-          rank: 5,
-          weight: 0.5,
-          value: 0.5210264325141907,
-          details: []
-        }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a13b2f29313caabd385df'),
-    plot: "A young boy is chosen as the defender of good and must team up with Japan's ancient spirits and creatures of lore to destroy the forces of evil.",
-    title: 'The Great Yokai War',
-    scoreDetails: {
-      value: 0.007692307692307693,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        {
-          inputPipelineName: 'vectorPipeline1',
-          rank: 5,
-          weight: 0.5,
-          value: 0.6856359243392944,
-          details: []
-        },
-        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a139af29313caabcf000c'),
-    plot: 'A nice guy has just moved to New York and discovers that he must share his run-down apartment with a couple thousand singing, dancing cockroaches.',
-    title: "Joe's Apartment",
-    scoreDetails: {
-      value: 0.007575757575757576,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        { inputPipelineName: 'vectorPipeline1', rank: 'NA' },
-        {
-          inputPipelineName: 'vectorPipeline2',
-          rank: 6,
-          weight: 0.5,
-          value: 0.5206316113471985,
-          details: []
-        }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a13b0f29313caabd331c0'),
-    plot: 'A fantasy-thriller set in present-day Moscow where the respective forces that control daytime and nighttime do battle.',
-    title: 'Night Watch',
-    scoreDetails: {
-      value: 0.007575757575757576,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        {
-          inputPipelineName: 'vectorPipeline1',
-          rank: 6,
-          weight: 0.5,
-          value: 0.685238778591156,
-          details: []
-        },
-        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a13a3f29313caabd0cd56'),
-    plot: "Old Archibald is chased from the countess's city after she made her physician and counselor Esculaap taste the droppings he bought from him for her. On his way out, he finds a baby in a ...",
-    title: 'Mariken',
-    scoreDetails: {
-      value: 0.007462686567164179,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        { inputPipelineName: 'vectorPipeline1', rank: 'NA' },
         {
           inputPipelineName: 'vectorPipeline2',
           rank: 7,
           weight: 0.5,
-          value: 0.5205734372138977,
+          value: 0.680510938167572,
           details: []
         }
       ]
     }
   },
   {
-    _id: ObjectId('573a13c0f29313caabd62af7'),
-    plot: 'Childhood friends continue their battle against a dangerous cult.',
-    title: '20th Century Boys 2: The Last Hope',
+    _id: ObjectId('573a13bbf29313caabd55001'),
+    plot: `When LexCorps accidentally unleash a murderous creature, Doomsday, Superman meets his greatest challenge as a champion. Based on the "The Death of Superman" storyline that appeared in DC Comics' publications in the 1990s.`,
+    title: 'Superman/Doomsday',
     scoreDetails: {
-      value: 0.007462686567164179,
+      value: 0.009924450549450549,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 164,
+          weight: 0.5,
+          value: 0.6386175751686096,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 5,
+          weight: 0.5,
+          value: 0.6807748079299927,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a13b0f29313caabd34a6e'),
+    plot: 'A man who serves in the war between the forces of Light and Dark comes into possession of a device that can restore life to Moscow, which was nearly destroyed by an apocalyptic event.',
+    title: 'Day Watch',
+    scoreDetails: {
+      value: 0.00957239120851439,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
           rank: 7,
           weight: 0.5,
-          value: 0.6790846586227417,
+          value: 0.6859979629516602,
           details: []
         },
-        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 177,
+          weight: 0.5,
+          value: 0.6353693604469299,
+          details: []
+        }
       ]
     }
   },
   {
-    _id: ObjectId('573a13a5f29313caabd15bbd'),
-    plot: "A desert warrior rises up against the evil army that is destroying his homeland. He captures the enemy's key sorcerer, takes her deep into the desert and prepares for a final showdown.",
-    title: 'The Scorpion King',
+    _id: ObjectId('573a139ff29313caabcffb4a'),
+    plot: 'The conclusion to The Prophecy Trilogy. Once again, Christopher Walken returns as the Arch-Angel Gabriel. As the War in Heaven and on Earth rages on, Pyriel, the Angel of Genocide, rises to...',
+    title: 'The Prophecy 3: The Ascent',
     scoreDetails: {
-      value: 0.007352941176470588,
+      value: 0.009478885893980233,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
-          rank: 8,
+          rank: 45,
           weight: 0.5,
-          value: 0.6788016557693481,
+          value: 0.6607025861740112,
           details: []
         },
-        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 46,
+          weight: 0.5,
+          value: 0.656528890132904,
+          details: []
+        }
       ]
     }
   },
   {
-    _id: ObjectId('573a13a9f29313caabd1e5de'),
-    plot: "The DDT, the professor Bacterio's dangerous invention has just been stolen by the dictator of Tirania. The Sèper wants to recover it but he knows that it should not call Mortadelo and ...",
-    title: 'Mortadelo & Filemon: The Big Adventure',
+    _id: ObjectId('573a13cef29313caabd880e3'),
+    plot: 'Eight classic monsters fight to the death in an explosive wrestling tournament set inside an abandoned and cursed graveyard.',
+    title: 'Monster Brawl',
     scoreDetails: {
-      value: 0.007352941176470588,
+      value: 0.009478885893980233,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
-        { inputPipelineName: 'vectorPipeline1', rank: 'NA' },
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 46,
+          weight: 0.5,
+          value: 0.660697877407074,
+          details: []
+        },
         {
           inputPipelineName: 'vectorPipeline2',
-          rank: 8,
+          rank: 45,
           weight: 0.5,
-          value: 0.5201067924499512,
+          value: 0.6565608978271484,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a139af29313caabcf0748'),
+    plot: 'Gabriel returns to try to destroy the human race he despises so much, with the help of a suicidal teen and the opposition of the angel Daniel.',
+    title: 'The Prophecy II',
+    scoreDetails: {
+      value: 0.009340659340659342,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 31,
+          weight: 0.5,
+          value: 0.6658228635787964,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 70,
+          weight: 0.5,
+          value: 0.6486967206001282,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a139af29313caabcf0c29'),
+    plot: 'Gabriel returns to try to destroy the human race he despises so much, with the help of a suicidal teen and the opposition of the angel Daniel.',
+    title: 'The Prophecy II',
+    scoreDetails: {
+      value: 0.009340659340659342,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 31,
+          weight: 0.5,
+          value: 0.6658228635787964,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 70,
+          weight: 0.5,
+          value: 0.6486967206001282,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a1398f29313caabcebfc6'),
+    plot: 'Warlords Kagetora and Takeda each wish to prevent the other from gaining hegemony in feudal Japan. The two samurai leaders pursue one another across the countryside, engaging in massive ...',
+    title: 'Heaven and Earth',
+    scoreDetails: {
+      value: 0.009167081466733035,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 38,
+          weight: 0.5,
+          value: 0.6630573272705078,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 63,
+          weight: 0.5,
+          value: 0.6518915295600891,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a13a4f29313caabd1286e'),
+    plot: 'Megiddo is a supernatural ride into a world teetering on the edge of the Apocalypse. It follows the rise of a Machiavellian leader bent on amassing the armies of the world for the battle of...',
+    title: 'Megiddo: The Omega Code 2',
+    scoreDetails: {
+      value: 0.009081457925636006,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 13,
+          weight: 0.5,
+          value: 0.6786136627197266,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 164,
+          weight: 0.5,
+          value: 0.6366697549819946,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a13b8f29313caabd4d588'),
+    plot: 'Hellboy travels to Japan to fight an ancient demon.',
+    title: 'Hellboy Animated: Sword of Storms',
+    scoreDetails: {
+      value: 0.008897470846584887,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 82,
+          weight: 0.5,
+          value: 0.6506614685058594,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 33,
+          weight: 0.5,
+          value: 0.6629114747047424,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a1397f29313caabce7dba'),
+    plot: 'A film adaption of the myth of Perseus and his quest to battle both Medusa and the Kraken monster to save the Princess Andromeda.',
+    title: 'Clash of the Titans',
+    scoreDetails: {
+      value: 0.008837440876275828,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 146,
+          weight: 0.5,
+          value: 0.6402950286865234,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 18,
+          weight: 0.5,
+          value: 0.6699803471565247,
           details: []
         }
       ]

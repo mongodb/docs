@@ -18,7 +18,7 @@
           inputPipelineName: 'vectorPipeline2',
           rank: 1,
           weight: 0.5,
-          value: 0.7365994453430176,
+          value: 0.7365995645523071,
           details: []
         }
       ]
@@ -43,7 +43,7 @@
           inputPipelineName: 'vectorPipeline2',
           rank: 3,
           weight: 0.5,
-          value: 0.7172676920890808,
+          value: 0.7172677516937256,
           details: []
         }
       ]
@@ -68,7 +68,7 @@
           inputPipelineName: 'vectorPipeline2',
           rank: 9,
           weight: 0.5,
-          value: 0.7039944529533386,
+          value: 0.7039943933486938,
           details: []
         }
       ]
@@ -93,7 +93,7 @@
           inputPipelineName: 'vectorPipeline2',
           rank: 6,
           weight: 0.5,
-          value: 0.7112279534339905,
+          value: 0.7112280130386353,
           details: []
         }
       ]
@@ -161,14 +161,14 @@
           inputPipelineName: 'vectorPipeline1',
           rank: 9,
           weight: 0.5,
-          value: 0.6990466117858887,
+          value: 0.6990464925765991,
           details: []
         },
         {
           inputPipelineName: 'vectorPipeline2',
           rank: 19,
           weight: 0.5,
-          value: 0.6928691267967224,
+          value: 0.6928690671920776,
           details: []
         }
       ]
@@ -211,14 +211,14 @@
           inputPipelineName: 'vectorPipeline1',
           rank: 15,
           weight: 0.5,
-          value: 0.6893779635429382,
+          value: 0.6893779039382935,
           details: []
         },
         {
           inputPipelineName: 'vectorPipeline2',
           rank: 16,
           weight: 0.5,
-          value: 0.6955952644348145,
+          value: 0.6955952048301697,
           details: []
         }
       ]
@@ -243,7 +243,7 @@
           inputPipelineName: 'vectorPipeline2',
           rank: 22,
           weight: 0.5,
-          value: 0.6893329620361328,
+          value: 0.689332902431488,
           details: []
         }
       ]
@@ -261,7 +261,7 @@
           inputPipelineName: 'vectorPipeline1',
           rank: 33,
           weight: 0.5,
-          value: 0.6565874814987183,
+          value: 0.656587541103363,
           details: []
         },
         {
@@ -286,14 +286,14 @@
           inputPipelineName: 'vectorPipeline1',
           rank: 22,
           weight: 0.5,
-          value: 0.6793349385261536,
+          value: 0.6793348789215088,
           details: []
         },
         {
           inputPipelineName: 'vectorPipeline2',
           rank: 12,
           weight: 0.5,
-          value: 0.6985803842544556,
+          value: 0.698580265045166,
           details: []
         }
       ]
@@ -311,14 +311,14 @@
           inputPipelineName: 'vectorPipeline1',
           rank: 7,
           weight: 0.5,
-          value: 0.7085930109024048,
+          value: 0.7085931301116943,
           details: []
         },
         {
           inputPipelineName: 'vectorPipeline2',
           rank: 41,
           weight: 0.5,
-          value: 0.6817359328269958,
+          value: 0.6817358732223511,
           details: []
         }
       ]
@@ -336,14 +336,14 @@
           inputPipelineName: 'vectorPipeline1',
           rank: 17,
           weight: 0.5,
-          value: 0.6872397065162659,
+          value: 0.6872396469116211,
           details: []
         },
         {
           inputPipelineName: 'vectorPipeline2',
           rank: 39,
           weight: 0.5,
-          value: 0.6822890043258667,
+          value: 0.6822889447212219,
           details: []
         }
       ]
@@ -361,14 +361,14 @@
           inputPipelineName: 'vectorPipeline1',
           rank: 17,
           weight: 0.5,
-          value: 0.6872397065162659,
+          value: 0.6872396469116211,
           details: []
         },
         {
           inputPipelineName: 'vectorPipeline2',
           rank: 39,
           weight: 0.5,
-          value: 0.6822890043258667,
+          value: 0.6822889447212219,
           details: []
         }
       ]
@@ -393,7 +393,7 @@
           inputPipelineName: 'vectorPipeline2',
           rank: 24,
           weight: 0.5,
-          value: 0.6878604888916016,
+          value: 0.6878605484962463,
           details: []
         }
       ]
@@ -418,7 +418,7 @@
           inputPipelineName: 'vectorPipeline2',
           rank: 17,
           weight: 0.5,
-          value: 0.6953783631324768,
+          value: 0.6953784227371216,
           details: []
         }
       ]
@@ -493,7 +493,7 @@
           inputPipelineName: 'vectorPipeline2',
           rank: 45,
           weight: 0.5,
-          value: 0.6797209978103638,
+          value: 0.6797210574150085,
           details: []
         }
       ]

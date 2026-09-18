@@ -1,197 +1,208 @@
 [
   {
-    plot: 'A team of police hunt down a villain.',
-    title: 'Nowhere to Hide',
+    plot: "Agent Jesus Juarez (aka Chucho) has always played the Devil in his town's Nativity Play. This Christmas, when the new pastor of the church recasts the role, the two men engage in a battle between good and evil.",
+    title: 'Pastorela',
     scoreDetails: {
-      value: 0.004273504273504274,
+      value: 0.0037313432835820895,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
-          rank: 57,
+          rank: 74,
           weight: 0.5,
-          value: 0.6504640579223633,
+          value: 0.6515325307846069,
           details: []
         },
-        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 'NA'
+        }
       ]
     },
-    rerankScore: 0.5986876487731934
+    rerankScore: 0.7734375
   },
   {
-    plot: 'Childhood friends continue their battle against a dangerous cult.',
-    title: '20th Century Boys 2: The Last Hope',
+    plot: 'Kurukshetra is a story of war between evil and truth. The D.S.P Prithvi Raj Singh(Sanjay Dutt) is an honest and brave police officer.All dishonest police officers , rogues, criminals and ...',
+    title: 'Kurukshetra',
     scoreDetails: {
-      value: 0.007462686567164179,
+      value: 0.0043859649122807015,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 54,
+          weight: 0.5,
+          value: 0.6584577560424805,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 'NA'
+        }
+      ]
+    },
+    rerankScore: 0.69921875
+  },
+  {
+    plot: "A young boy is chosen as the defender of good and must team up with Japan's ancient spirits and creatures of lore to destroy the forces of evil.",
+    title: 'The Great Yokai War',
+    scoreDetails: {
+      value: 0.0078125,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 4,
+          weight: 0.5,
+          value: 0.6922547221183777,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 'NA'
+        }
+      ]
+    },
+    rerankScore: 0.6796875
+  },
+  {
+    plot: "A ruthless mercenary renounces violence after learning his soul is bound for hell. When a young girl is kidnapped and her family slain by a sorcerer's murderous cult, he is forced to fight and seek his redemption slaying evil.",
+    title: 'Solomon Kane',
+    scoreDetails: {
+      value: 0.006024096385542169,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 23,
+          weight: 0.5,
+          value: 0.6711558699607849,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 'NA'
+        }
+      ]
+    },
+    rerankScore: 0.6328125
+  },
+  {
+    plot: 'An ancient struggle between two Cybertronian races, the heroic Autobots and the evil Decepticons, comes to Earth, with a clue to the ultimate power held by a teenager.',
+    title: 'Transformers',
+    scoreDetails: {
+      value: 0.0058823529411764705,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 25,
+          weight: 0.5,
+          value: 0.6692076325416565,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 'NA'
+        }
+      ]
+    },
+    rerankScore: 0.62890625
+  },
+  {
+    plot: "Gandalf and Aragorn lead the World of Men against Sauron's army to draw his gaze from Frodo and Sam as they approach Mount Doom with the One Ring.",
+    title: 'The Lord of the Rings: The Return of the King',
+    scoreDetails: {
+      value: 0.00641025641025641,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 18,
+          weight: 0.5,
+          value: 0.6744278073310852,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 'NA'
+        }
+      ]
+    },
+    rerankScore: 0.625
+  },
+  {
+    plot: "A desert warrior rises up against the evil army that is destroying his homeland. He captures the enemy's key sorcerer, takes her deep into the desert and prepares for a final showdown.",
+    title: 'The Scorpion King',
+    scoreDetails: {
+      value: 0.007352941176470588,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 8,
+          weight: 0.5,
+          value: 0.6858838796615601,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 'NA'
+        }
+      ]
+    },
+    rerankScore: 0.625
+  },
+  {
+    plot: 'A man who serves in the war between the forces of Light and Dark comes into possession of a device that can restore life to Moscow, which was nearly destroyed by an apocalyptic event.',
+    title: 'Day Watch',
+    scoreDetails: {
+      value: 0.00957239120851439,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
           rank: 7,
           weight: 0.5,
-          value: 0.6790846586227417,
+          value: 0.6859979629516602,
           details: []
         },
-        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
-      ]
-    },
-    rerankScore: 0.5986876487731934
-  },
-  {
-    plot: 'The Addams Family goes on a search for their relatives.',
-    title: 'Addams Family Reunion',
-    scoreDetails: {
-      value: 0.005813953488372093,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        { inputPipelineName: 'vectorPipeline1', rank: 'NA' },
         {
           inputPipelineName: 'vectorPipeline2',
-          rank: 26,
+          rank: 177,
           weight: 0.5,
-          value: 0.5182114243507385,
+          value: 0.6353693604469299,
           details: []
         }
       ]
     },
-    rerankScore: 0.5986876487731934
+    rerankScore: 0.62109375
   },
   {
-    plot: 'An attempt to transform a Roman Western into a Greek tragedy.',
-    title: 'Instructions for a Light and Sound Machine',
+    plot: "Harry Griswald is a NYPD cop who is possessed with the spirit of a great Kabuki master. This has made him 'the chosen one' to do battle with 'the evil one'. He is also out to do good deeds ...",
+    title: 'Sgt. Kabukiman N.Y.P.D.',
     scoreDetails: {
-      value: 0.003968253968253968,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        { inputPipelineName: 'vectorPipeline1', rank: 'NA' },
-        {
-          inputPipelineName: 'vectorPipeline2',
-          rank: 66,
-          weight: 0.5,
-          value: 0.5156481266021729,
-          details: []
-        }
-      ]
-    },
-    rerankScore: 0.5986876487731934
-  },
-  {
-    plot: 'A gang of ex-cons rob a casino during Elvis convention week.',
-    title: '3000 Miles to Graceland',
-    scoreDetails: {
-      value: 0.005154639175257732,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        { inputPipelineName: 'vectorPipeline1', rank: 'NA' },
-        {
-          inputPipelineName: 'vectorPipeline2',
-          rank: 37,
-          weight: 0.5,
-          value: 0.5178723335266113,
-          details: []
-        }
-      ]
-    },
-    rerankScore: 0.5986876487731934
-  },
-  {
-    plot: 'Three freedom fighters attack a large corporation to prevent a future apocalypse.',
-    title: 'T2 3-D: Battle Across Time',
-    scoreDetails: {
-      value: 0.003937007874015748,
+      value: 0.006666666666666667,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
-          rank: 67,
+          rank: 15,
           weight: 0.5,
-          value: 0.6470792889595032,
+          value: 0.6768969893455505,
           details: []
         },
-        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
-      ]
-    },
-    rerankScore: 0.5986876487731934
-  },
-  {
-    plot: "Teenage twins battle dark forces hidden beneath Auckland's volcanoes.",
-    title: 'Under the Mountain',
-    scoreDetails: {
-      value: 0.004310344827586207,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        {
-          inputPipelineName: 'vectorPipeline1',
-          rank: 56,
-          weight: 0.5,
-          value: 0.6506195068359375,
-          details: []
-        },
-        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
-      ]
-    },
-    rerankScore: 0.5986876487731934
-  },
-  {
-    plot: "A simple funeral turns a man's world topsy turvy.",
-    title: 'Monday',
-    scoreDetails: {
-      value: 0.007692307692307693,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        { inputPipelineName: 'vectorPipeline1', rank: 'NA' },
         {
           inputPipelineName: 'vectorPipeline2',
-          rank: 5,
-          weight: 0.5,
-          value: 0.5210264325141907,
-          details: []
+          rank: 'NA'
         }
       ]
     },
-    rerankScore: 0.5986876487731934
+    rerankScore: 0.6171875
   },
   {
-    plot: "Two teenage girls discover a mermaid in their beach club's swimming pool.",
-    title: 'Aquamarine',
-    scoreDetails: {
-      value: 0.003816793893129771,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        { inputPipelineName: 'vectorPipeline1', rank: 'NA' },
-        {
-          inputPipelineName: 'vectorPipeline2',
-          rank: 71,
-          weight: 0.5,
-          value: 0.5154338479042053,
-          details: []
-        }
-      ]
-    },
-    rerankScore: 0.5986876487731934
-  },
-  {
-    plot: 'Seven warriors come together to protect a village from a diabolical General.',
-    title: 'Seven Swords',
-    scoreDetails: {
-      value: 0.005050505050505051,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        {
-          inputPipelineName: 'vectorPipeline1',
-          rank: 39,
-          weight: 0.5,
-          value: 0.6564368009567261,
-          details: []
-        },
-        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
-      ]
-    },
-    rerankScore: 0.5986876487731934
-  },
-  {
-    plot: 'Mystical martial artist/environmental agent takes on a ruthless oil corporation.',
-    title: 'On Deadly Ground',
+    plot: 'A prince turned warrior named He-Man battles against the dark lord Skeletor on the planet Eternia. He-Man and his comrades arrive on Earth and discover two teenage lovers to find the magical Cosmic Key.',
+    title: 'Masters of the Universe',
     scoreDetails: {
       value: 0.004807692307692308,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
@@ -200,183 +211,241 @@
           inputPipelineName: 'vectorPipeline1',
           rank: 44,
           weight: 0.5,
-          value: 0.6541689038276672,
+          value: 0.6614852547645569,
           details: []
         },
-        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 'NA'
+        }
       ]
     },
-    rerankScore: 0.5986876487731934
+    rerankScore: 0.609375
   },
   {
-    plot: 'A super powered vigilante defies the law using extreme violence to fight crime.',
-    title: 'The Flying Man',
+    plot: "On a post-apocalyptic Earth, a wizard and his faire folk comrades fight an evil wizard who's using technology in his bid for conquest.",
+    title: 'Wizards',
     scoreDetails: {
-      value: 0.0032258064516129032,
+      value: 0.007575757575757576,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
-          rank: 95,
+          rank: 6,
           weight: 0.5,
-          value: 0.638878583908081,
+          value: 0.6872477531433105,
           details: []
         },
-        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 'NA'
+        }
       ]
     },
-    rerankScore: 0.5986876487731934
+    rerankScore: 0.60546875
   },
   {
-    plot: 'A rag doll fights a monster that has been stealing the souls of his people.',
-    title: '9',
+    plot: 'Stunt motorcyclist Johnny Blaze gives up his soul to become a hellblazing vigilante, to fight against power hungry Blackheart, the son of the devil himself.',
+    title: 'Ghost Rider',
     scoreDetails: {
-      value: 0.005,
+      value: 0.004919364195382294,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
-          rank: 40,
+          rank: 109,
           weight: 0.5,
-          value: 0.6557563543319702,
+          value: 0.6460839509963989,
           details: []
         },
-        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
-      ]
-    },
-    rerankScore: 0.5986876487731934
-  },
-  {
-    plot: 'A man receives a distressing phone call from a woman who has been kidnapped.',
-    title: 'Connected',
-    scoreDetails: {
-      value: 0.004807692307692308,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        { inputPipelineName: 'vectorPipeline1', rank: 'NA' },
         {
           inputPipelineName: 'vectorPipeline2',
-          rank: 44,
+          rank: 195,
           weight: 0.5,
-          value: 0.5171101093292236,
+          value: 0.6331126689910889,
           details: []
         }
       ]
     },
-    rerankScore: 0.5986876487731934
+    rerankScore: 0.60546875
   },
   {
-    plot: 'The misadventures of a teenager girl in her new life as zombie.',
-    title: "Daddy, I'm a Zombie",
+    plot: 'With the aid of Merlin, Santa Claus must defeat the evil machinations of the devil Pitch to ruin Xmas.',
+    title: 'Santa Claus',
     scoreDetails: {
-      value: 0.00684931506849315,
+      value: 0.005555555555555556,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
-        { inputPipelineName: 'vectorPipeline1', rank: 'NA' },
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 30,
+          weight: 0.5,
+          value: 0.666024923324585,
+          details: []
+        },
         {
           inputPipelineName: 'vectorPipeline2',
-          rank: 13,
-          weight: 0.5,
-          value: 0.5196477770805359,
-          details: []
+          rank: 'NA'
         }
       ]
     },
-    rerankScore: 0.5986876487731934
+    rerankScore: 0.6015625
   },
   {
-    plot: 'A troubled writer moves into a haunted house after inheriting it from his aunt.',
-    title: 'House',
+    plot: 'A young man must stop the Lord of Darkness from both destroying daylight and marrying the woman he loves.',
+    title: 'Legend',
+    scoreDetails: {
+      value: 0.008064516129032258,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 2,
+          weight: 0.5,
+          value: 0.7028788328170776,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 'NA'
+        }
+      ]
+    },
+    rerankScore: 0.59765625
+  },
+  {
+    plot: 'A good guy with no powers joins a superhero team with no clue against a bad guy with no shame.',
+    title: 'Super Capers: The Origins of Ed and the Missing Bullion',
     scoreDetails: {
       value: 0.003424657534246575,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
-        { inputPipelineName: 'vectorPipeline1', rank: 'NA' },
         {
-          inputPipelineName: 'vectorPipeline2',
+          inputPipelineName: 'vectorPipeline1',
           rank: 86,
           weight: 0.5,
-          value: 0.5150279998779297,
+          value: 0.6503360271453857,
           details: []
-        }
-      ]
-    },
-    rerankScore: 0.5986876487731934
-  },
-  {
-    plot: 'A dramatization of the World War II Battle of Iwo Jima.',
-    title: 'Sands of Iwo Jima',
-    scoreDetails: {
-      value: 0.0031446540880503146,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        { inputPipelineName: 'vectorPipeline1', rank: 'NA' },
+        },
         {
           inputPipelineName: 'vectorPipeline2',
-          rank: 99,
+          rank: 'NA'
+        }
+      ]
+    },
+    rerankScore: 0.59765625
+  },
+  {
+    plot: "A brave unicorn and a magician fight an evil king who is obsessed with attempting to capture the world's unicorns.",
+    title: 'The Last Unicorn',
+    scoreDetails: {
+      value: 0.0045045045045045045,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 51,
           weight: 0.5,
-          value: 0.5144232511520386,
+          value: 0.6591238975524902,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 'NA'
+        }
+      ]
+    },
+    rerankScore: 0.59765625
+  },
+  {
+    plot: "A brave unicorn and a magician fight an evil king who is obsessed with attempting to capture the world's unicorns.",
+    title: 'The Last Unicorn',
+    scoreDetails: {
+      value: 0.0045045045045045045,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 51,
+          weight: 0.5,
+          value: 0.6591238975524902,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 'NA'
+        }
+      ]
+    },
+    rerankScore: 0.59765625
+  },
+  {
+    plot: "GABRIEL tells the story of an archangel who fights to bring light back to purgatory - a place where darkness rules - and save the souls of the city's inhabitants.",
+    title: 'Gabriel',
+    scoreDetails: {
+      value: 0.005813953488372093,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 26,
+          weight: 0.5,
+          value: 0.6679627299308777,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 'NA'
+        }
+      ]
+    },
+    rerankScore: 0.59765625
+  },
+  {
+    plot: 'When his lover becomes the latest victim of a serial killer, Guru blurs the line between good and evil in his pursuit of revenge.',
+    title: 'The Villain',
+    scoreDetails: {
+      value: 0.007765151515151515,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 180,
+          weight: 0.5,
+          value: 0.6372897624969482,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 28,
+          weight: 0.5,
+          value: 0.6642218232154846,
           details: []
         }
       ]
     },
-    rerankScore: 0.5986876487731934
+    rerankScore: 0.59375
   },
   {
-    plot: 'Kung-Fu Action / Comedy / Horror / Musical about the second coming.',
-    title: 'Jesus Christ Vampire Hunter',
+    plot: 'Bilbo and Company are forced to engage in a war against an array of combatants and keep the Lonely Mountain from falling into the hands of a rising darkness.',
+    title: 'The Hobbit: The Battle of the Five Armies',
     scoreDetails: {
-      value: 0.0045871559633027525,
+      value: 0.005747126436781609,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
-          rank: 49,
+          rank: 27,
           weight: 0.5,
-          value: 0.652422308921814,
+          value: 0.667843222618103,
           details: []
         },
-        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
-      ]
-    },
-    rerankScore: 0.5986876487731934
-  },
-  {
-    plot: 'An All-American trucker gets dragged into a centuries-old mystical battle in Chinatown.',
-    title: 'Big Trouble in Little China',
-    scoreDetails: {
-      value: 0.00684931506849315,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
         {
-          inputPipelineName: 'vectorPipeline1',
-          rank: 13,
-          weight: 0.5,
-          value: 0.6701953411102295,
-          details: []
-        },
-        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
+          inputPipelineName: 'vectorPipeline2',
+          rank: 'NA'
+        }
       ]
     },
-    rerankScore: 0.5986876487731934
-  },
-  {
-    plot: 'A group of assassins come together for a suicide mission to kill an evil lord.',
-    title: '13 Assassins',
-    scoreDetails: {
-      value: 0.003703703703703704,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        {
-          inputPipelineName: 'vectorPipeline1',
-          rank: 75,
-          weight: 0.5,
-          value: 0.6449810266494751,
-          details: []
-        },
-        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
-      ]
-    },
-    rerankScore: 0.5986876487731934
+    rerankScore: 0.59375
   }
 ]

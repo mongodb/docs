@@ -4,21 +4,21 @@
     plot: 'A young Scottish man travels across America in pursuit of the woman he loves, attracting the attention of an outlaw who is willing to serve as a guide.',
     title: 'Slow West',
     scoreDetails: {
-      value: 0.016129032258064516,
+      value: 0.016001024065540194,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
           rank: 2,
           weight: 0.5,
-          value: 0.9210423827171326,
+          value: 0.9210423231124878,
           details: []
         },
         {
           inputPipelineName: 'vectorPipeline2',
-          rank: 2,
+          rank: 3,
           weight: 0.5,
-          value: 0.6790797114372253,
+          value: 0.6603639125823975,
           details: []
         }
       ]
@@ -29,21 +29,21 @@
     plot: 'In a mythical land, a man and a young boy investigate a series of unusual occurrences.',
     title: 'Tales from Earthsea',
     scoreDetails: {
-      value: 0.015873015873015872,
+      value: 0.015512265512265512,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
           rank: 3,
           weight: 0.5,
-          value: 0.9192964434623718,
+          value: 0.9192966222763062,
           details: []
         },
         {
           inputPipelineName: 'vectorPipeline2',
-          rank: 3,
+          rank: 6,
           weight: 0.5,
-          value: 0.6772182583808899,
+          value: 0.6540493965148926,
           details: []
         }
       ]
@@ -54,21 +54,21 @@
     plot: 'A Englishman returns after a long time abroad and tells his strange stories about the lands he visited which are allegories about the real world.',
     title: "Gulliver's Travels",
     scoreDetails: {
-      value: 0.015549662487945998,
+      value: 0.015165441176470588,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
           rank: 8,
           weight: 0.5,
-          value: 0.9156127572059631,
+          value: 0.9156129360198975,
           details: []
         },
         {
           inputPipelineName: 'vectorPipeline2',
-          rank: 1,
+          rank: 4,
           weight: 0.5,
-          value: 0.6862039566040039,
+          value: 0.6559320092201233,
           details: []
         }
       ]
@@ -79,7 +79,7 @@
     plot: 'Breck Coleman leads hundreds of settlers in covered wagons from the Mississippi River to their destiny out West.',
     title: 'The Big Trail',
     scoreDetails: {
-      value: 0.014854753521126762,
+      value: 0.014756944444444444,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
@@ -91,9 +91,9 @@
         },
         {
           inputPipelineName: 'vectorPipeline2',
-          rank: 11,
+          rank: 12,
           weight: 0.5,
-          value: 0.6496086120605469,
+          value: 0.6431642770767212,
           details: []
         }
       ]
@@ -104,21 +104,21 @@
     plot: 'A young man crosses over North and South Korea to deliver the pain and longings of separated families.',
     title: 'Poongsan',
     scoreDetails: {
-      value: 0.01482213438735178,
+      value: 0.014618011096884338,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
           rank: 6,
           weight: 0.5,
-          value: 0.9168118238449097,
+          value: 0.9168117046356201,
           details: []
         },
         {
           inputPipelineName: 'vectorPipeline2',
-          rank: 9,
+          rank: 11,
           weight: 0.5,
-          value: 0.6547074913978577,
+          value: 0.6439277529716492,
           details: []
         }
       ]
@@ -129,46 +129,21 @@
     plot: "In a countryside town bordering on a magical land, a young man makes a promise to his beloved that he'll retrieve a fallen star by venturing into the magical realm.",
     title: 'Stardust',
     scoreDetails: {
-      value: 0.01436956081764825,
+      value: 0.013752276867030965,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
           rank: 1,
           weight: 0.5,
-          value: 0.9228402376174927,
+          value: 0.9228401184082031,
           details: []
         },
         {
           inputPipelineName: 'vectorPipeline2',
-          rank: 21,
+          rank: 30,
           weight: 0.5,
-          value: 0.6418390274047852,
-          details: []
-        }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a13f7f29313caabde65b4'),
-    plot: 'Our figurine sized supermen hero embarks on an epic surreal journey that will take him across the Ethiopian post apocalyptic landscape in search of a way to get on the hovering spacecraft that for years has become a landmark in the skies.',
-    title: 'Crumbs',
-    scoreDetails: {
-      value: 0.014202256244963738,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        {
-          inputPipelineName: 'vectorPipeline1',
-          rank: 13,
-          weight: 0.5,
-          value: 0.9113836288452148,
-          details: []
-        },
-        {
-          inputPipelineName: 'vectorPipeline2',
-          rank: 8,
-          weight: 0.5,
-          value: 0.6562497615814209,
+          value: 0.631742000579834,
           details: []
         }
       ]
@@ -179,96 +154,21 @@
     plot: "A ten-year-old cartographer secretly leaves his family's ranch in Montana where he lives with his cowboy father and scientist mother and travels across the country aboard a freight train to receive an award at the Smithsonian Institute.",
     title: 'The Young and Prodigious T.S. Spivet',
     scoreDetails: {
-      value: 0.013789868667917449,
+      value: 0.013560247542773934,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
           rank: 22,
           weight: 0.5,
-          value: 0.9102069735527039,
+          value: 0.9102071523666382,
           details: []
         },
         {
           inputPipelineName: 'vectorPipeline2',
-          rank: 5,
+          rank: 7,
           weight: 0.5,
-          value: 0.6698448657989502,
-          details: []
-        }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a139af29313caabcf0e95'),
-    plot: 'A man, having fallen in love with the wrong woman, is sent by the sultan himself on a diplomatic mission to a distant land as an ambassador. Stopping at a Viking village port to restock on supplies, he finds himself unwittingly embroiled on a quest to banish a mysterious threat in a distant Viking land.',
-    title: 'The 13th Warrior',
-    scoreDetails: {
-      value: 0.012854317732366513,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        {
-          inputPipelineName: 'vectorPipeline1',
-          rank: 14,
-          weight: 0.5,
-          value: 0.911109983921051,
-          details: []
-        },
-        {
-          inputPipelineName: 'vectorPipeline2',
-          rank: 22,
-          weight: 0.5,
-          value: 0.6412819027900696,
-          details: []
-        }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a139af29313caabcef85f'),
-    plot: "After the death of his mother, a young Brazilian decides to leave his country and travel to his mother's native land. In a foreign land, he finds love and danger.",
-    title: 'Foreign Land',
-    scoreDetails: {
-      value: 0.012562421972534332,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        {
-          inputPipelineName: 'vectorPipeline1',
-          rank: 12,
-          weight: 0.5,
-          value: 0.9135410785675049,
-          details: []
-        },
-        {
-          inputPipelineName: 'vectorPipeline2',
-          rank: 29,
-          weight: 0.5,
-          value: 0.6383658647537231,
-          details: []
-        }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a1395f29313caabce2911'),
-    plot: "Upon finding a book that relates his grandfather's story, an officer ventures through Spain meeting a wide array of characters, most of whom have a story of their own to tell.",
-    title: 'The Saragossa Manuscript',
-    scoreDetails: {
-      value: 0.012260765550239234,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        {
-          inputPipelineName: 'vectorPipeline1',
-          rank: 28,
-          weight: 0.5,
-          value: 0.9088537693023682,
-          details: []
-        },
-        {
-          inputPipelineName: 'vectorPipeline2',
-          rank: 16,
-          weight: 0.5,
-          value: 0.6467187404632568,
+          value: 0.6493917107582092,
           details: []
         }
       ]
@@ -279,71 +179,96 @@
     plot: 'Settlers traveling through the Oregon desert in 1845 find themselves stranded in harsh conditions.',
     title: "Meek's Cutoff",
     scoreDetails: {
-      value: 0.011997226074895978,
+      value: 0.013471971066907775,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
           rank: 10,
           weight: 0.5,
-          value: 0.9155632257461548,
+          value: 0.9155633449554443,
           details: []
         },
         {
           inputPipelineName: 'vectorPipeline2',
-          rank: 43,
+          rank: 19,
           weight: 0.5,
-          value: 0.6323773860931396,
+          value: 0.636115312576294,
           details: []
         }
       ]
     }
   },
   {
-    _id: ObjectId('573a1392f29313caabcdaa70'),
-    plot: 'Leo Vincey, told by his dying uncle of a lost land visited 500 years ago by his ancestor, heads out with family friend Horace Holly to try to discover the land and its secret of immortality...',
-    title: 'She',
+    _id: ObjectId('573a139af29313caabcef85f'),
+    plot: "After the death of his mother, a young Brazilian decides to leave his country and travel to his mother's native land. In a foreign land, he finds love and danger.",
+    title: 'Foreign Land',
     scoreDetails: {
-      value: 0.01198581560283688,
+      value: 0.012968540829986613,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
-          rank: 15,
+          rank: 12,
           weight: 0.5,
-          value: 0.910618782043457,
+          value: 0.9135410189628601,
           details: []
         },
         {
           inputPipelineName: 'vectorPipeline2',
-          rank: 34,
+          rank: 23,
           weight: 0.5,
-          value: 0.6355405449867249,
+          value: 0.6332080364227295,
           details: []
         }
       ]
     }
   },
   {
-    _id: ObjectId('573a1397f29313caabce8828'),
-    plot: 'A warrior seeks his true origins in a seemingly prehistoric wasteland.',
-    title: 'Yor, the Hunter from the Future',
+    _id: ObjectId('573a13f7f29313caabde65b4'),
+    plot: 'Our figurine sized supermen hero embarks on an epic surreal journey that will take him across the Ethiopian post apocalyptic landscape in search of a way to get on the hovering spacecraft that for years has become a landmark in the skies.',
+    title: 'Crumbs',
     scoreDetails: {
-      value: 0.011944214305440487,
+      value: 0.012946876044102907,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
-          rank: 11,
+          rank: 13,
           weight: 0.5,
-          value: 0.9153545498847961,
+          value: 0.9113838076591492,
           details: []
         },
         {
           inputPipelineName: 'vectorPipeline2',
-          rank: 42,
+          rank: 22,
           weight: 0.5,
-          value: 0.6328363418579102,
+          value: 0.6347121000289917,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a139af29313caabcf0e95'),
+    plot: 'A man, having fallen in love with the wrong woman, is sent by the sultan himself on a diplomatic mission to a distant land as an ambassador. Stopping at a Viking village port to restock on supplies, he finds himself unwittingly embroiled on a quest to banish a mysterious threat in a distant Viking land.',
+    title: 'The 13th Warrior',
+    scoreDetails: {
+      value: 0.012639109697933228,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 14,
+          weight: 0.5,
+          value: 0.9111098051071167,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 25,
+          weight: 0.5,
+          value: 0.6330707669258118,
           details: []
         }
       ]
@@ -354,46 +279,46 @@
     plot: 'In a dry and dusty post-apocalyptic world, two wayfarers wander aimlessly until Leif finds a copy of The Wonderful Wizard of Oz. Using the world around him to interpret what he reads, Leif ...',
     title: 'OzLand',
     scoreDetails: {
-      value: 0.011777438248026482,
+      value: 0.012398401983744319,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
           rank: 59,
           weight: 0.5,
-          value: 0.9061647653579712,
+          value: 0.9061646461486816,
           details: []
         },
         {
           inputPipelineName: 'vectorPipeline2',
-          rank: 6,
+          rank: 1,
           weight: 0.5,
-          value: 0.6690027713775635,
+          value: 0.6617047190666199,
           details: []
         }
       ]
     }
   },
   {
-    _id: ObjectId('573a13d8f29313caabda5a4e'),
-    plot: 'A savage warrior escapes slavery and hunted by his former masters, begins a perilous journey back to his homeland and his wife.',
-    title: 'The Dragonphoenix Chronicles: Indomitable',
+    _id: ObjectId('573a1395f29313caabce2911'),
+    plot: "Upon finding a book that relates his grandfather's story, an officer ventures through Spain meeting a wide array of characters, most of whom have a story of their own to tell.",
+    title: 'The Saragossa Manuscript',
     scoreDetails: {
-      value: 0.0116999747027574,
+      value: 0.012348484848484848,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
-          rank: 7,
+          rank: 28,
           weight: 0.5,
-          value: 0.9163008332252502,
+          value: 0.90885329246521,
           details: []
         },
         {
           inputPipelineName: 'vectorPipeline2',
-          rank: 58,
+          rank: 15,
           weight: 0.5,
-          value: 0.6265405416488647,
+          value: 0.6387715339660645,
           details: []
         }
       ]
@@ -404,71 +329,21 @@
     plot: 'Chris embarks on an odyssey of self-discovery that spans the globe. Kidnapped and enslaved by gun smugglers, sold by pirates and thrust into the murky underworld of gambling and kickboxing,...',
     title: 'The Quest',
     scoreDetails: {
-      value: 0.011512297226582941,
+      value: 0.012028233938346298,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
           rank: 18,
           weight: 0.5,
-          value: 0.910321056842804,
+          value: 0.9103209972381592,
           details: []
         },
         {
           inputPipelineName: 'vectorPipeline2',
-          rank: 38,
+          rank: 29,
           weight: 0.5,
-          value: 0.6335453391075134,
-          details: []
-        }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a1398f29313caabceb40c'),
-    plot: "Epic story about two former Texas rangers who decide to move cattle from the south to Montana. Augustus McCrae and Woodrow Call run into many problems on the way, and the journey doesn't ...",
-    title: 'Lonesome Dove',
-    scoreDetails: {
-      value: 0.011017628205128204,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        {
-          inputPipelineName: 'vectorPipeline1',
-          rank: 96,
-          weight: 0.5,
-          value: 0.9035773277282715,
-          details: []
-        },
-        {
-          inputPipelineName: 'vectorPipeline2',
-          rank: 4,
-          weight: 0.5,
-          value: 0.6702411770820618,
-          details: []
-        }
-      ]
-    }
-  },
-  {
-    _id: ObjectId('573a1395f29313caabce1fb7'),
-    plot: 'The dying words of a thief spark a madcap cross-country rush to find some treasure.',
-    title: "It's a Mad, Mad, Mad, Mad World",
-    scoreDetails: {
-      value: 0.010528600890046674,
-      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
-      details: [
-        {
-          inputPipelineName: 'vectorPipeline1',
-          rank: 51,
-          weight: 0.5,
-          value: 0.9072262048721313,
-          details: []
-        },
-        {
-          inputPipelineName: 'vectorPipeline2',
-          rank: 23,
-          weight: 0.5,
-          value: 0.640996515750885,
+          value: 0.632135272026062,
           details: []
         }
       ]
@@ -479,21 +354,146 @@
     plot: 'A god-fearing Ohio boy dodging the Civil War draft arrives in Jefferson City where he joins up with a hardscrabble group of like runaways heading west.',
     title: 'Bad Company',
     scoreDetails: {
-      value: 0.010272536687631027,
+      value: 0.011473737888832228,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
         {
           inputPipelineName: 'vectorPipeline1',
           rank: 46,
           weight: 0.5,
-          value: 0.9078546166419983,
+          value: 0.9078547954559326,
           details: []
         },
         {
           inputPipelineName: 'vectorPipeline2',
-          rank: 30,
+          rank: 14,
           weight: 0.5,
-          value: 0.6375589966773987,
+          value: 0.6395452618598938,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a1398f29313caabceb40c'),
+    plot: "Epic story about two former Texas rangers who decide to move cattle from the south to Montana. Augustus McCrae and Woodrow Call run into many problems on the way, and the journey doesn't ...",
+    title: 'Lonesome Dove',
+    scoreDetails: {
+      value: 0.011269644334160462,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 96,
+          weight: 0.5,
+          value: 0.9035776853561401,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 2,
+          weight: 0.5,
+          value: 0.6605739593505859,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a1392f29313caabcdaa70'),
+    plot: 'Leo Vincey, told by his dying uncle of a lost land visited 500 years ago by his ancestor, heads out with family friend Horace Holly to try to discover the land and its secret of immortality...',
+    title: 'She',
+    scoreDetails: {
+      value: 0.011014492753623189,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 15,
+          weight: 0.5,
+          value: 0.9106187224388123,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 55,
+          weight: 0.5,
+          value: 0.6225036382675171,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a13d8f29313caabda5a4e'),
+    plot: 'A savage warrior escapes slavery and hunted by his former masters, begins a perilous journey back to his homeland and his wife.',
+    title: 'The Dragonphoenix Chronicles: Indomitable',
+    scoreDetails: {
+      value: 0.01058768656716418,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 7,
+          weight: 0.5,
+          value: 0.9163010120391846,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 100,
+          weight: 0.5,
+          value: 0.6117364764213562,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a1394f29313caabcdf59c'),
+    plot: 'Arriving home to find his native land under the yoke of corrupt merchants, an adventurer named Sadko sets sail in search of a mythical bird of happiness.',
+    title: 'Sadko',
+    scoreDetails: {
+      value: 0.010514350667803353,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 9,
+          weight: 0.5,
+          value: 0.9156086444854736,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 93,
+          weight: 0.5,
+          value: 0.6120991706848145,
+          details: []
+        }
+      ]
+    }
+  },
+  {
+    _id: ObjectId('573a13aaf29313caabd218b4'),
+    plot: 'An adventurous girl finds another world that is a strangely idealized version of her frustrating home, but it has sinister secrets.',
+    title: 'Coraline',
+    scoreDetails: {
+      value: 0.010483184333759046,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 21,
+          weight: 0.5,
+          value: 0.9102448225021362,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 56,
+          weight: 0.5,
+          value: 0.6221538782119751,
           details: []
         }
       ]
