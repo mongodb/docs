@@ -32,29 +32,11 @@ method. Your operation should resemble this prototype:
 About this Task
 ---------------
 
-The example on this page uses a ``students`` collection that contains
-these documents:
+.. include:: /includes/sample-data-usage.rst
 
-.. code-block:: javascript
-
-   db.students.insertMany( [
-      {
-         "name": "Andre Robinson",
-         "test_scores": [ 88, 97 ]
-      },
-      {
-         "name": "Wei Zhang",
-         "test_scores": [ 62, 73 ]
-      },
-      {
-         "name": "Jacob Meyer",
-         "test_scores": [ 92, 89 ]
-      }
-   ] )
-
-You regularly run a query that returns students with at least one
-``test_score`` greater than ``90``. You can create an index on the
-``test_scores`` field to improve performance for this query.
+You regularly run a query that returns movies released before 1910 that
+have the ``Short`` genre. You can create an index on the ``genres``
+field to improve performance for this query.
 
 .. warning:: 
    
@@ -64,51 +46,46 @@ Procedure
 ---------
 
 The following operation creates an ascending multikey index on the
-``test_scores`` field of the ``students`` collection:
+``genres`` field of the ``movies`` collection:
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.students.createIndex( { test_scores: 1 } )
+   .. input:: /code-examples/tested/command-line/mongosh/indexes/multikey/array-field.js
+      :language: javascript
+      :category: usage example
 
-Because ``test_scores`` contains an array value, MongoDB stores this
-index as a multikey index.
+   .. output:: /code-examples/tested/command-line/mongosh/indexes/multikey/array-field-output.sh
+      :language: javascript
+
+Because ``genres`` contains an array value, MongoDB stores this index
+as a multikey index.
 
 Results
 -------
 
 The index contains a key for each individual value that appears in the
-``test_scores`` field. The index is ascending, meaning the keys are
-stored in this order: ``[ 62, 73, 88, 89, 92, 97 ]``.
+``genres`` field. For example, for the movie ``The Godfather``, which
+stores the genres ``Crime`` and ``Drama``, the index contains one key
+for each genre. The index is ascending, meaning the keys are stored in
+ascending order.
 
-The index supports queries that select on the ``test_scores`` field. For
-example, the following query returns documents where at least one
-element in the ``test_scores`` array is greater than 90:
+The index supports queries that select on the ``genres`` field. For
+example, the following query returns movies where at least one element
+in the ``genres`` array is ``Short`` and the movie was released before
+1910:
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.students.find(
-      {
-         test_scores: { $elemMatch: { $gt: 90 } }
-      }
-   )
+   .. input:: /code-examples/tested/command-line/mongosh/indexes/multikey/query-early-shorts.snippet.find-early-short-movies.js
+      :language: javascript
+      :category: usage example
 
-Output:
+   .. output:: /code-examples/tested/command-line/mongosh/indexes/multikey/query-early-shorts-output.sh
+      :language: javascript
 
-.. code-block:: javascript
-   :copyable: false
-
-   [
-      {
-         _id: ObjectId("632240a20646eaee87a56a80"),
-         name: 'Andre Robinson',
-         test_scores: [ 88, 97 ]
-      },
-      {
-         _id: ObjectId("632240a20646eaee87a56a82"),
-         name: 'Jacob Meyer',
-         test_scores: [ 92, 89 ]
-      }
-   ]
+.. include:: /includes/sample-data-additional-fields-note.rst
 
 Learn More
 ----------
