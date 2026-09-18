@@ -1,3 +1,32 @@
+.. _atlas_2026_08:
+
+August 2026
+-----------
+
+- General Availability: Adds a
+  :ref:`FOCUS Cost and Usage Report <focus-report-overview>` that
+  presents your billing cost and usage data in the industry-standard
+  FinOps Open Cost and Usage Specification (FOCUS) 1.3 format, so you
+  can reconcile and integrate your billing data with FinOps and
+  cross-vendor cost-management tools.
+
+- Allows you to manage indexes in
+  :ref:`Data Explorer <atlas-ui-indexes>` when you have the
+  :ref:`Project Index Manager role <project-roles>` combined with the
+  Project Data Access Read Only or Project Data Access Read/Write
+  role, so you can grant granular access to index controls without
+  granting access to data.
+
+- Updates the default number of
+  :ref:`cross-region network permissions <faq-cross-region>` for new
+  projects from 40 to 100. Existing projects are unchanged.
+
+- Adds alerts that notify you when your cluster is impacted by
+  :ref:`connection rate limits <connection-rate-limits>`, so you can
+  identify when your clients are offering more new connections than
+  your cluster can process and act before connections are dropped.
+
+
 .. _atlas_2026_07:
 
 July 2026
@@ -353,4 +382,4 @@ January 2026
   with data exfiltration prevention policies enabled.
 
 
-.. last-run: 2026-07-29
+.. last-run: 2026-08-19
