@@ -1,6 +1,6 @@
 
 Starting in MongoDB 8.3, replica sets that were previously
-sharded clusters cannot be converted back into replica sets.
+sharded clusters cannot be converted back into sharded clusters.
 
 The conversion of a sharded cluster into a replica set preserves
 sharding metadata from its prior deployment, including a shard
