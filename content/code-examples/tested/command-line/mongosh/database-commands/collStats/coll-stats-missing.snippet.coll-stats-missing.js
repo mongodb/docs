@@ -1,0 +1,1 @@
+db.runCommand( { collStats : "nonExistentCollection" } )
