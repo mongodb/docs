@@ -5,7 +5,7 @@
        "clusterType": "REPLICASET",
        "links": [],
        "name": "CustomerPortalProd",
-       "mongoDBMajorVersion": "8.0",
+       "mongoDBMajorVersion": "9.0",
        "replicationSpecs": [
          {
            "numShards": 1,

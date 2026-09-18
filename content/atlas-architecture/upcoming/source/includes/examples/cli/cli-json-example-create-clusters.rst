@@ -5,7 +5,7 @@
        "clusterType": "REPLICASET",
        "links": [],
        "name": "CustomerPortalProd",
-       "mongoDBMajorVersion": "8.0",
+       "mongoDBMajorVersion": "9.0",
        "replicationSpecs": [
          {
            "numShards": 1,
@@ -45,7 +45,7 @@
          "teamName": "TeamA",
          "appName": "ProductManagementApp",
          "env": "Production",
-         "version": "8.0",
+         "version": "9.0",
          "email": "marissa@example.com"
        }]
      }

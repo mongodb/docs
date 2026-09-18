@@ -55,7 +55,7 @@ resource "mongodbatlas_advanced_cluster" "atlas-cluster" {
     TeamName = "TeamA"
     AppName  = "ProductManagementApp"
     Env      = "Production"
-    Version  = "8.0"
+    Version  = "9.0"
     Email    = "test@test.com"
   }
 }

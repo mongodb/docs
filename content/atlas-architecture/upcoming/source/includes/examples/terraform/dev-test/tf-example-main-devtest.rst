@@ -46,7 +46,7 @@
        TeamName = "TeamA"
        AppName  = "ProductManagementApp"
        Env      = "Test"
-       Version  = "8.0"
+       Version  = "9.0"
       Email    = "marissa@example.com"
      }
      

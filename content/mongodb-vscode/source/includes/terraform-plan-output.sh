@@ -24,7 +24,7 @@ Terraform will perform the following actions:
       + disk_size_gb                 = 2
       + encryption_at_rest_provider  = (known after apply)
       + id                           = (known after apply)
-      + mongo_db_major_version       = "4.2"
+      + mongo_db_major_version       = "9.0"
       + mongo_db_version             = (known after apply)
       + mongo_uri                    = (known after apply)
       + mongo_uri_updated            = (known after apply)

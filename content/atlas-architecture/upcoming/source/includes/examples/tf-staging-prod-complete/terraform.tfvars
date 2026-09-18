@@ -4,7 +4,7 @@ environment = "prod"
 cluster_instance_size_name = "M30"
 cloud_provider = "Azure"
 atlas_region = "<Region>"
-mongodb_version = "8.0"
+mongodb_version = "9.0"
 atlas_group_name = "Atlas Group"
 
 atlas_project_id = "<Project ID>"

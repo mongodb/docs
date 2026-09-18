@@ -54,7 +54,7 @@ resource "mongodbatlas_advanced_cluster" "atlas-cluster" {
   project_id = mongodbatlas_project.atlas-project.id
   name = "ClusterPortalProd"
   cluster_type = "REPLICASET"
-  mongo_db_major_version = 8.0
+  mongo_db_major_version = 9.0
   # MongoDB recommends enabling auto-scaling
   # When auto-scaling is enabled, Atlas may change the instance size, and this use_effective_fields
   # block prevents Terraform from reverting Atlas auto-scaling changes
@@ -102,7 +102,7 @@ resource "mongodbatlas_advanced_cluster" "atlas-cluster" {
     TeamName = "TeamA"
     AppName  = "ProductManagementApp"
     Env      = "Production"
-    Version  = "8.0"
+    Version  = "9.0"
     Email    = "marissa@example.com"
   }
   

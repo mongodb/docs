@@ -7,12 +7,12 @@
      --members 3 \
      --tier M10 \
      --provider GCP \
-     --mdbVersion 8.0 \
+     --mdbVersion 9.0 \
      --diskSizeGB 30 \
      --tag bu=ConsumerProducts \
      --tag teamName=TeamA \
      --tag appName=ProductManagementApp \
      --tag env=dev \
-     --tag version=8.0 \
+     --tag version=9.0 \
      --tag email=marissa@example.com \
      --watch

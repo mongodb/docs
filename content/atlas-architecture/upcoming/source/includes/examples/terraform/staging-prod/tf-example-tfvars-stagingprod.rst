@@ -7,5 +7,5 @@
    cluster_instance_size_name = "M30"
    cloud_provider = "AWS"
    atlas_region = "US_WEST_2"
-   mongodb_version = "8.0"
+   mongodb_version = "9.0"
    atlas_group_name = "Atlas Group"

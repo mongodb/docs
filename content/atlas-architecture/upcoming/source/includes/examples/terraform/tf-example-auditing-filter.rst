@@ -32,7 +32,7 @@
      project_id             = module.atlas_project.id    
      name                   = "ClusterPortalProd"    
      cluster_type           = "REPLICASET"    
-     mongo_db_major_version = "8.0"    
+     mongo_db_major_version = "9.0"
     
      replication_specs = [
        {

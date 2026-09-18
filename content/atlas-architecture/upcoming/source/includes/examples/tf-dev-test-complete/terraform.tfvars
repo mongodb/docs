@@ -8,7 +8,7 @@ compute_max_instance_size = "M20"
 compute_min_instance_size = "M10"
 cloud_provider = "<Cloud Provider (AWS, Azure, GCP)>"
 atlas_region = "<Region>"
-mongodb_version = "8.0"
+mongodb_version = "9.0"
 
 user               = ["testUser"]
 database_name      = ["myTestDb"]
