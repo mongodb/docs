@@ -836,11 +836,6 @@ export const toc: L1TocItem[] = [
                 url: '/docs/kubernetes/:version/reference/k8s-op-exclusive-settings',
               },
               {
-                label: 'Support Lifecycle',
-                contentSite: 'mck',
-                url: '/docs/kubernetes/:version/reference/support-lifecycle',
-              },
-              {
                 label: 'CRD Log Rotation Settings',
                 contentSite: 'mck',
                 url: '/docs/kubernetes/:version/reference/k8s-operator-crd-logging-specification',
@@ -1784,11 +1779,6 @@ export const toc: L1TocItem[] = [
                 label: 'Exclusive Settings',
                 contentSite: 'mck',
                 url: '/docs/kubernetes/:version/reference/k8s-op-exclusive-settings',
-              },
-              {
-                label: 'Support Lifecycle',
-                contentSite: 'mck',
-                url: '/docs/kubernetes/:version/reference/support-lifecycle',
               },
               {
                 label: 'Search & Vector Search Settings',

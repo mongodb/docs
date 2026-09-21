@@ -887,11 +887,6 @@ const mckUpcoming: TocItem[] = [
         url: '/docs/kubernetes/:version/reference/k8s-op-exclusive-settings',
       },
       {
-        label: 'Support Lifecycle',
-        contentSite: 'mck',
-        url: '/docs/kubernetes/:version/reference/support-lifecycle',
-      },
-      {
         label: 'Search & Vector Search Settings',
         contentSite: 'mck',
         url: 'https://www.mongodb.com/docs/kubernetes/current/reference/fts-vs-settings/',

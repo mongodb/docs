@@ -15,7 +15,8 @@
          objects for configuring the :ref:`appdb-om-arch` instances.
   
        - ``delete``. The |k8s-op-short| needs the ``delete`` ``configmap`` permission
-         to support its :ref:`older versions <k8s-support-lifecycle>`.
+         to support its `older versions
+         <https://www.mongodb.com/legal/support-policy/software>`_.
          This permission will be deleted when older versions reach their
          End of Life Date.
 
