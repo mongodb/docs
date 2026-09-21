@@ -58,6 +58,9 @@
            - :alert:`Amount billed yesterday is above <Amount billed ($) yesterday is above the threshold>`
            - :alert:`Current bill for any single project is above <Current bill ($) for any single project is above the threshold>`
            - :alert:`Current bill for the organization is above <Current bill ($) for the organization is above the threshold>`
+           - :alert:`Organization gross spend daily change is above <Organization gross spend daily change (%) is above the threshold>`
+           - :alert:`Organization gross spend weekly change is above <Organization gross spend weekly change (%) is above the threshold>`
+           - :alert:`Organization gross spend monthly change is above <Organization gross spend monthly change (%) is above the threshold>`
       
         b. If :guilabel:`above $` appears next to the option you selected,
            specify the amount in :abbr:`USD (United States Dollars)`
