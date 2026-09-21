@@ -131,6 +131,174 @@ collection:
             Title: Aloha
             ...
 
+.. _hibernate-query-row-value:
+
+Compare Multiple Fields at Once
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A **row-value predicate** compares a parenthesized list of fields to a
+parenthesized list of values in a single expression. The
+{+extension-short+} supports row-value predicates that use the following
+operators:
+
+- ``=``: Equality matching
+- ``<>``: Inequality matching
+- ``IN`` and ``NOT IN``: Matching against a list of value rows
+
+You can supply the values as bound parameters or as literals, and each
+list must contain the same number of components.
+
+The following example retrieves documents that have a ``title`` value of
+``"Jurassic World"`` and a ``year`` value of ``2015`` from the
+``sample_mflix.movies`` collection:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-row-value-query-session
+            :end-before: end-row-value-query-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Jurassic World
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-row-value-query-em
+            :end-before: end-row-value-query-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Jurassic World
+
+The {+extension-short+} compares each pair of components separately. The
+preceding row-value predicate translates to the following ``$match``
+stage:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$match": {
+       "$and": [
+         { "title": { "$eq": "Jurassic World" } },
+         { "year": { "$eq": 2015 } }
+       ]
+     }
+   }
+
+A row-value predicate that uses the ``<>`` operator translates to the
+same ``$and`` expression wrapped in a ``$nor`` expression.
+
+If you compare the fields to another list of fields, as in
+``where (title1, year1) = (title2, year2)``, the
+{+extension-short+} translates the predicate to a ``$expr`` expression
+instead.
+
+You can use a row-value predicate in a ``SELECT`` clause. The predicate 
+evaluates to a boolean value in the projection.
+
+.. note:: Null Semantics
+
+   Row-value predicates follow MongoDB Query Language null semantics
+   rather than {+orm+} ternary logic, so a ``<>`` predicate matches
+   documents in which a component is null or missing. To learn more, see
+   the :ref:`hibernate-query-null-comparison` section of this guide.
+
+Match a List of Value Rows
+``````````````````````````
+
+To match a row of fields against multiple rows of values, use the ``IN``
+operator. The following example retrieves documents that match either of
+two ``title`` and ``year`` pairs:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-row-value-in-query-session
+            :end-before: end-row-value-in-query-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Jurassic World
+            Title: Ex Machina
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-row-value-in-query-em
+            :end-before: end-row-value-in-query-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Jurassic World
+            Title: Ex Machina
+
+The preceding row-value predicate translates to the following ``$match``
+stage:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$match": {
+       "$or": [
+         { "$and": [
+             { "title": { "$eq": "Jurassic World" } },
+             { "year": { "$eq": 2015 } }
+         ] },
+         { "$and": [
+             { "title": { "$eq": "Ex Machina" } },
+             { "year": { "$eq": 2015 } }
+         ] }
+       ]
+     }
+   }
+
+If the list contains only one row of values, the predicate translates to
+the ``$and`` expression alone. A ``NOT IN`` predicate translates to the
+``$or`` expression wrapped in a ``$nor`` expression.
+
+.. important:: Ordering Comparisons
+
+   The {+extension-short+} does not support row-value predicates that
+   use the ``>``, ``>=``, ``<``, or ``<=`` operator. These predicates
+   cause the {+extension-short+} to throw a
+   ``FeatureNotSupportedException``.
+
 .. _hibernate-query-null-comparison:
 
 Compare Field Values to Null

@@ -127,6 +127,48 @@ public class Query {
         }
         // end-comparison-query-em
 
+        // Retrieves documents that match a "title" and "year" pair using a session
+        // start-row-value-query-session
+        var rowValueResult = session.createQuery("from Movie where (title, year) = (:t, :y)", Movie.class)
+                                    .setParameter("t", "Jurassic World")
+                                    .setParameter("y", 2015)
+                                    .getResultList();
+        for (var m : rowValueResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-row-value-query-session
+
+        // Retrieves documents that match a "title" and "year" pair using an entity manager
+        // start-row-value-query-em
+        var rowValueResult = entityManager.createQuery("select m from Movie m where (m.title, m.year) = (:t, :y)", Movie.class)
+                                          .setParameter("t", "Jurassic World")
+                                          .setParameter("y", 2015)
+                                          .getResultList();
+        for (var m : rowValueResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-row-value-query-em
+
+        // Retrieves documents that match either of two "title" and "year" pairs using a session
+        // start-row-value-in-query-session
+        var rowValueInResult = session.createQuery(
+                        "from Movie where (title, year) in (('Jurassic World', 2015), ('Ex Machina', 2015))", Movie.class)
+                .getResultList();
+        for (var m : rowValueInResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-row-value-in-query-session
+
+        // Retrieves documents that match either of two "title" and "year" pairs using an entity manager
+        // start-row-value-in-query-em
+        var rowValueInResult = entityManager.createQuery(
+                        "select m from Movie m where (m.title, m.year) in (('Jurassic World', 2015), ('Ex Machina', 2015))", Movie.class)
+                .getResultList();
+        for (var m : rowValueInResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-row-value-in-query-em
+
         // Retrieves documents that have a "year" value between 2012 and 2013, inclusive, using a session
         // start-between-query-session
         var betweenResult = session.createQuery("from Movie where year between :start and :end", Movie.class)
