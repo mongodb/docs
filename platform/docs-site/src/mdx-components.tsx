@@ -96,7 +96,7 @@ export const components = (injectedProps?: InjectedProps) =>
     ),
     // Destructure onClick because it is not valid to pass a regular HTML onClick event handler to LinkComponent.
     a: ({ children, onClick, href, ...props }) => (
-      <Link to={href} {...props}>
+      <Link to={href} {...props} isStandalone={false}>
         {children}
       </Link>
     ),

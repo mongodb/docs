@@ -36,6 +36,7 @@ type LinkProps = {
   onClick?: () => void;
   url?: string;
   isSidenav?: boolean;
+  isStandalone?: boolean;
 };
 
 export const Link = ({
@@ -47,6 +48,7 @@ export const Link = ({
   openInNewTab,
   onClick,
   isSidenav,
+  isStandalone = true,
   ...other
 }: LinkProps) => {
   if (!to) to = '';
@@ -88,7 +90,7 @@ export const Link = ({
   if (to && isRelativeUrl(to) && !anchor) {
     to = assertLeadingAndTrailingSlash(to);
 
-    const linkClassName = clsx(styles.link, className);
+    const linkClassName = clsx(styles.link, !isStandalone && styles.linkInline, className);
     const linkTarget = !showExtIcon ? '_self' : undefined;
 
     // Same-deploy links navigate client-side via NextLink (sameProjectHref
@@ -124,6 +126,7 @@ export const Link = ({
       href={to}
       className={clsx(styles.viaLink, className)}
       linkStyle={showExtIcon ? LinkStyle.External : LinkStyle.Internal}
+      isStandalone={isStandalone}
       target={target}
       rel={needsNewTab ? 'noopener noreferrer' : undefined}
       // React Aria drops onClick, and its PressEvent has target but no
