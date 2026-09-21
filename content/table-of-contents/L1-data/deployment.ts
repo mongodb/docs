@@ -7,6 +7,11 @@ const tocData: TocItem[] = [
     url: '/docs/deployment',
   },
   {
+    label: 'MongoDB Versions and Upgrade Paths',
+    contentSite: 'landing',
+    url: '/docs/mongodb-versions',
+  },
+  {
     label: 'MongoDB Atlas',
     group: true,
     items: [
