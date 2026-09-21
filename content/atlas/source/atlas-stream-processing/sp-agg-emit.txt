@@ -8,7 +8,7 @@
 .. default-domain:: mongodb
 
 .. meta::
-   :keywords: atlas stream processing, $emit aggregation pipeline stage 
+   :keywords: atlas stream processing, $emit aggregation pipeline stage, code example
    :description: Use the $emit stage in Atlas Stream Processing to write processed stream data to Kafka topics, time series collections, AWS S3, Azure Blob Storage, or Pub/Sub.
 
 .. facet::
@@ -253,8 +253,14 @@ The ``$emit`` stage takes a document with the following fields:
    * - ``config.headers``
      - expression
      - Optional
-     - Headers to add to the output message. The expression must evaluate
-       to either an object or an array.
+     - Headers to add to the output message. You must specify
+       ``config.headers`` as an aggregation expression or a field
+       reference. You can't supply a raw inline object that contains
+       dynamic expressions, or a raw array literal, as the value of
+       ``config.headers``.
+
+       At runtime, the expression must evaluate to either the complete
+       headers object or an array of ``{ k, v }`` documents.
 
        If the expression evaluates to an object, {+atlas-sp+}
        constructs a header from each key-value pair in that object, where
@@ -282,6 +288,10 @@ The ``$emit`` stage takes a document with the following fields:
        - ``long``
        - ``double``
        - ``null``
+
+       To learn how to build headers from field values or stream
+       metadata, see :ref:`Dynamic Kafka Headers
+       <sp-emit-dynamic-headers>`.
 
    * - ``config.key``
      - object | string | expression
@@ -1340,8 +1350,45 @@ If you specify a topic with a dynamic expression, but
 {+atlas-sp+} cannot evaluate the expression for a given message, 
 {+atlas-sp+} sends that message to the :term:`dead letter queue` if configured 
 and processes subsequent messages. If there is no :term:`dead letter queue` 
-configured, then {+atlas-sp+} skips the message completely and processes 
+configured, then {+atlas-sp+} skips the message completely and processes
 subsequent messages.
+
+.. _sp-emit-dynamic-headers:
+
+Dynamic Kafka Headers
+~~~~~~~~~~~~~~~~~~~~~
+
+To construct {+kafka+} headers dynamically, build the complete header
+object in an earlier pipeline stage, then reference that object from
+``$emit.config.headers``. Use :ref:`$setStreamMeta
+<atlas-sp-agg-setStreamMeta>` when the headers are transport metadata
+that shouldn't appear in the body of the emitted message:
+
+.. code-block:: json
+
+   {
+     "$setStreamMeta": {
+       "stream.kafka_headers": {
+         "$arrayToObject": [
+           {
+             "k": "test_header",
+             "v": "$myField"
+           }
+         ]
+       }
+     }
+   },
+   {
+     "$emit": {
+       "connectionName": "kafka",
+       "topic": "my-topic",
+       "config": {
+         "headers": {
+           "$meta": "stream.kafka_headers"
+         }
+       }
+     }
+   }
 
 Examples
 --------
