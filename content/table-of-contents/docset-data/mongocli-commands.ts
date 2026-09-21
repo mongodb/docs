@@ -1,7 +1,7 @@
 /**
  * MongoCLI Commands Table of Contents
  * Generated automatically from MongoDB CLI repository
- * Source: mongodb/mongodb-cli repository (mongocli/v2.0.7)
+ * Source: mongodb/mongodb-cli repository (mongocli/v2.0.8)
  *
  * DO NOT EDIT MANUALLY - this file is auto-generated
  * To regenerate: run the mongocli-commands generation script
