@@ -4,7 +4,7 @@
     {
       "$cursor": {
         "queryPlanner": {
-          "namespace": "timeseries.system.buckets.sensorData",
+          "namespace": "timeseries.sensorData",
           ...
           "winningPlan": {
             "isCached": false,
