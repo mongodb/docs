@@ -23,6 +23,27 @@ export const toc: L1TocItem[] = [
             url: '/docs/languages/java/mongodb-hibernate/:version/get-started',
           },
           {
+            label: 'Spring Boot',
+            contentSite: 'hibernate',
+            collapsible: true,
+            url: '/docs/languages/java/mongodb-hibernate/:version/spring-boot',
+            versions: {
+              includes: ['upcoming'],
+            },
+            items: [
+              {
+                label: 'Get Started with the Spring Boot Starter',
+                contentSite: 'hibernate',
+                url: '/docs/languages/java/mongodb-hibernate/:version/spring-boot/get-started',
+              },
+              {
+                label: 'Configure the Spring Boot Starter',
+                contentSite: 'hibernate',
+                url: '/docs/languages/java/mongodb-hibernate/:version/spring-boot/configure',
+              },
+            ],
+          },
+          {
             label: 'Model Data',
             contentSite: 'hibernate',
             collapsible: true,
@@ -95,6 +116,21 @@ export const toc: L1TocItem[] = [
                 label: 'Transactions & Sessions',
                 contentSite: 'hibernate',
                 url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/transactions',
+              },
+            ],
+          },
+          {
+            label: 'Security',
+            contentSite: 'hibernate',
+            collapsible: true,
+            versions: {
+              includes: ['upcoming'],
+            },
+            items: [
+              {
+                label: 'Validate Hibernate Extension Artifact Signatures',
+                contentSite: 'hibernate',
+                url: '/docs/languages/java/mongodb-hibernate/:version/security/validate-signatures',
               },
             ],
           },

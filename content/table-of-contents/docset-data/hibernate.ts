@@ -105,6 +105,19 @@ const tocData: TocItem[] = [
         ],
       },
       {
+        label: 'Security',
+        contentSite: 'hibernate',
+        collapsible: true,
+        versions: { includes: ['upcoming'] },
+        items: [
+          {
+            label: 'Validate Hibernate Extension Artifact Signatures',
+            contentSite: 'hibernate',
+            url: '/docs/languages/java/mongodb-hibernate/:version/security/validate-signatures',
+          },
+        ],
+      },
+      {
         label: 'Feature Compatibility',
         contentSite: 'hibernate',
         url: '/docs/languages/java/mongodb-hibernate/:version/feature-compatibility',
