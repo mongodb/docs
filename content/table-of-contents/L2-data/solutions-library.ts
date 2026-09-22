@@ -451,6 +451,11 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: 'Edge AI Copilot for Connected Vehicles',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/edge-ai-copilot',
+          },
+          {
             label: 'Offline-First Wallet',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/offline-first-wallet',

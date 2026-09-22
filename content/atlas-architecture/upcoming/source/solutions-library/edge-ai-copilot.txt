@@ -1,0 +1,351 @@
+.. _arch-center-is-edge-ai-copilot:
+
+======================================
+Edge AI Copilot for Connected Vehicles
+======================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: Edge AI vehicle copilot, Offline automotive assistant, In-vehicle edge AI, Edge data synchronization, Embedded vehicle telemetry, Offline car AI, Edge-to-cloud automotive, Connected vehicle edge AI
+   :description: Discover how to run an edge AI vehicle copilot using ObjectBox, keep long-term telemetry history scalable, and sync real-time telemetry and cloud vector search with MongoDB Atlas.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+**Use cases:** `Artificial Intelligence <https://www.mongodb.com/solutions/use-cases/artificial-intelligence/>`__
+
+**Industries:** `Manufacturing and Mobility <https://www.mongodb.com/solutions/industries/manufacturing/>`__,
+`Mobile and Edge <https://www.mongodb.com/solutions/use-cases/edge-and-mobile/>`__
+
+**Products:** `MongoDB Atlas <http://mongodb.com/atlas/>`__,
+:ref:`MongoDB Atlas Vector Search <vector-search-quick-start>`,
+:ref:`MongoDB Atlas Triggers <atlas-triggers>`,
+`Voyage AI <https://www.mongodb.com/products/platform/ai-search-and-retrieval/>`__
+
+**Partners:** `ObjectBox <https://cloud.mongodb.com/ecosystem/objectbox/>`__
+
+Solution Overview
+-----------------
+
+Connected vehicles continuously generate sensor data for drivers who
+expect immediate, hands-free support. However, when connectivity drops
+in parking garages, tunnels, or rural roads, any assistant relying on
+the cloud fails right when it is most critical.
+
+This solution runs an AI copilot on the edge to ensure continuous
+in-vehicle assistance during network outages. It uses an on-device
+ObjectBox database to store live vehicle telemetry alongside the owner's
+manual. It then processes inquiries using a local LLM agent that doesn’t
+require an active network connection. Upon reconnection, the ObjectBox
+Sync Server automatically synchronizes this edge data back to
+|service-fullname|. 
+
+|service-fullname| serves as the centralized cloud system of record. It
+performs vector search over the manual content, maintains telemetry
+history within time series collections, and processes every synchronized
+snapshot into a fully queryable document via an |service| Trigger.
+
+Reference Architectures
+-----------------------
+
+The architecture to build an in-vehicle assistant that provides accurate
+responses without internet connectivity is split into two tiers: an
+in-vehicle edge tier and a |service-fullname| cloud tier. 
+
+.. figure:: /includes/images/industry-solutions/edge-ai-fig1.svg
+   :width: 750px
+   :lightbox:
+   :alt: End-to-end user flow from requesting Sync to MongoDB Atlas and the Atlas Trigger output collections
+
+   Figure 1. End-to-end user flow from requesting Sync to |service-fullname| and the |service| Trigger output collections
+
+Edge Tier Architecture
+~~~~~~~~~~~~~~~~~~~~~~
+
+The in-vehicle edge tier constitutes a self-contained runtime where the
+Cockpit, backend, local agent, and ObjectBox services communicate
+directly on the vehicle. This stack enables the assistant to retrieve
+knowledge and operate without |service-fullname|, while local data
+synchronizes with |service-fullname| when connectivity returns. The edge
+tier uses the following components:
+
+- **Cockpit UI:** Built with Next.js, this interface displays live
+  gauges, a fault-code ticker, a chat panel, and a map, restricting all
+  browser calls to same-origin API routes.
+
+- **Python backend:** Exposes REST endpoints and server-sent events to
+  handle telemetry proxying, speech-to-text and text-to-speech
+  conversions, and agent orchestration.
+
+- **LangChain agent:** Communicates with a local LLM via Ollama,
+  managing dual pre-compiled graphs for discrete online and offline
+  execution paths.
+
+- **Embedding pipeline:** The vehicle manual is first divided into
+  smaller text chunks. Each chunk is then converted into a
+  1,024-dimensional embedding using Voyage AI’s voyage-4-nano model,
+  with the resulting embedding stored alongside its corresponding chunk.
+
+- **ObjectBox services:** Powered by C++, three distinct sync clients
+  store user-manual chunks and their embeddings, vehicle telemetry, and
+  dialogue history locally.
+
+- **ObjectBox HNSW vector search:** ObjectBox maintains an HNSW vector
+  index over the locally stored manual embeddings. The resulting index
+  enables approximate nearest-neighbor searches directly on the vehicle,
+  allowing the assistant to retrieve relevant manual content while
+  offline and without depending on |service-fullname| connectivity.
+
+- **Telemetry generator:** Captures and saves :abbr:`VSS (Vehicle Signal
+  Specification)` snapshots directly to the local telemetry store at
+  two-second intervals.
+
+Cloud Tier Architecture
+~~~~~~~~~~~~~~~~~~~~~~~
+
+|service-fullname| acts as the connected counterpart to the vehicle’s
+local ObjectBox store. When connectivity is available, it receives
+synchronized manual chunks and embeddings, vehicle telemetry, and
+dialogue history, providing cloud-based persistence while the edge tier
+remains operational offline. The cloud tier uses the following
+components:
+
+- **Data replication:** The ObjectBox Sync Server connects to the cloud,
+  synchronizing edge data stores directly into |service-fullname| via
+  the `MongoDB connector <https://objectbox.io/mongodb/>`__. The
+  synchronization includes the manual chunks, their embeddings,
+  telemetry, and dialogue history.
+
+- **MongoDB Atlas cluster:** Maintains the replicated data collections
+  and provides more storage capacity than the local ObjectBox store. The
+  sync to |service-fullname| enables the solution to retain larger
+  volumes of manual content, telemetry, dialogue history, and other
+  long-term data without being constrained by the vehicle’s local
+  storage capacity.
+
+- **Atlas Vector Search:** Indexes the synchronized manual embeddings
+  and provides cloud-side vector search over the complete manual content
+  when connectivity is available.
+
+- **Atlas Triggers:** Automatically transforms incoming telemetry
+  snapshots into status documents while extending a dedicated
+  time-series history log.
+
+Execution Flow for Requests
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With the edge and cloud tiers established, the execution flow describes
+how a driver’s request moves through the system, from the Cockpit to the
+local backend and agent. Cloud synchronization occurs when connectivity
+is available. 
+
+When the driver types or speaks, the backend feeds the
+request stream directly to the agent. The agent evaluates the query
+using LangGraph and decides which tool to call. 
+
+The car manual is chunked and embedded with MongoDB Voyage AI’s
+1,024-dimensional voyage-4-nano model. The same embedding representation
+is stored locally in ObjectBox and replicated to |service-fullname|,
+where it is indexed for |service-fullname| Vector Search. On the edge,
+`ObjectBox’s HNSW index <https://objectbox.io/mongodb/>`__ supports
+local approximate nearest-neighbor retrieval over the car manual
+embeddings. In the cloud, |service-fullname| Vector Search provides the
+corresponding vector-search capability over the synchronized manual
+content. 
+
+When a request involves vehicle information, the agent determines which
+telemetry tool is most appropriate for the driver’s question and invokes
+it. Depending on the request, the selected tool retrieves the current
+vehicle state, relevant VSS signals, fault codes, or derived status
+information from the appropriate telemetry store. If the selected tool
+returns a :abbr:`DTC (Diagnostic Trouble Code)`, the agent can invoke
+the dedicated translation tool to convert the code and its associated
+signals into a clear explanation of the affected system, meaning,
+severity, and next steps.
+
+Data Model Approach
+-------------------
+
+The document model stores these shapes in one database: 
+
+- Structured telemetry
+
+  .. figure:: /includes/images/industry-solutions/edge-ai-fig2.svg
+     :width: 750px
+     :lightbox:
+     :alt: Telemetry data model
+
+     Figure 2. Telemetry data model
+
+- Free-text manual chunks
+
+  .. figure:: /includes/images/industry-solutions/edge-ai-fig3.svg
+     :width: 750px
+     :lightbox:
+     :alt: Manual chunks data model
+
+     Figure 3. Car manual data model
+
+- Chat history
+
+  .. figure:: /includes/images/industry-solutions/edge-ai-fig4.svg
+     :width: 750px
+     :lightbox:
+     :alt: Chat conversation data model
+
+     Figure 4. Chat conversation data model
+
+- Timeseries telemetry data
+
+- Last status of the car
+
+  .. figure:: /includes/images/industry-solutions/edge-ai-fig5.svg
+     :width: 750px
+     :lightbox:
+     :alt: Telemetry status data model
+
+     Figure 5. Telemetry status data model
+
+Each telemetry snapshot is one document. A snapshot holds the full VSS
+Vehicle tree, about 1300 signals across many domains, stored as nested
+JSON. The model needs no fixed schema across those domains.
+
+ObjectBox stores the telemetry payload as a string. The MongoDB
+connector expands it into a native nested document in |service| through
+the ``JsonToNative`` external type, so cloud queries address fields by
+their exact VSS path.
+
+Collections
+~~~~~~~~~~~
+
+Together, these data models represent the solution’s core domains:
+searchable manual knowledge, conversation history, raw vehicle
+telemetry, current vehicle status, and historical telemetry. Separating
+these data types enables efficient retrieval, supports real-time
+vehicle-state queries, preserves conversation context, and keeps
+long-term telemetry history scalable and queryable in
+|service-fullname|. The collections for this solution include:
+
+- ``manual_chunks``: Owner's manual text chunks with a 1024-dimension
+  Voyage AI embedding for vector search.
+
+- ``conversations``: Chat history, that includes both human and the
+  assistant response together with the tools each assistant uses to
+  answer a question.
+
+- ``objectbox_telemetry``: A raw snapshot per document, synced from
+  the edge.
+
+- ``telemetry-status``: The current vehicle state, one document per
+  vehicle, written by the trigger.
+
+- ``telemetry-data``: A MongoDB time series collection. The |service|
+  Trigger appends one record per snapshot, so history queries stay
+  efficient as the data grows.
+
+Build the Solution
+------------------
+
+Check the ``README`` in the `GitHub repository
+<https://github.com/mongodb-industry-solutions/voice-car-assistant-v2>`__
+for full implementation details. The following steps explains how to
+create the application:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Clone the repository
+
+      `Download
+      <https://github.com/mongodb-industry-solutions/voice-car-assistant-v2>`__
+      the project and review the README for the required configuration.
+
+   .. step:: Prepare |service-fullname|
+
+      Provision the |service-fullname| cluster and configure the
+      required database access.
+
+   .. step:: Configure the edge environment
+
+      Set up the local ObjectBox stores and the vehicle-side services.
+
+   .. step:: Establish synchronization
+
+      Configure the ObjectBox Sync Server and MongoDB connector to
+      synchronize data between the local Objectbox store and
+      |service-fullname|.
+
+   .. step:: Load the manual data
+
+      Populate the manual chunks and their embeddings so the assistant
+      can retrieve content locally and in the cloud.
+
+   .. step:: Create the |service-fullname| Vector Search index
+
+      Configure a vector search index on the synchronized manual
+      embeddings so |service| can perform cloud-side semantic retrieval.
+
+   .. step:: Create |service-fullname| Triggers
+
+      Configure triggers to process synchronized telemetry, maintain the
+      current vehicle status, and append historical records to the time
+      series collection.
+
+   .. step:: Start the services
+
+      Launch the synchronization services, backend, and Cockpit
+      application using the repository’s setup instructions.
+
+   .. step:: Validate the deployment
+
+      Test the assistant while connected, verify that it operates
+      offline, and confirm that data synchronizes after connectivity is
+      restored.
+
+.. figure:: /includes/images/industry-solutions/edge-ai-fig6.svg
+   :width: 750px
+   :lightbox:
+   :alt: The cockpit UI with live gauges, chat, the fault-code ticker, and the online and offline sync panel
+
+   Figure 6. The cockpit UI with live gauges, chat, the fault-code ticker, and the online and offline sync panel
+
+Key Learnings 
+-------------
+
+- **Keep the edge authoritative:** The on-device ObjectBox store serves
+  reads and accepts writes with no connection, so the assistant works
+  with low connectivity.
+
+- **Run vector search where the query lives:** A MongoDB Voyage AI
+  embedding model (voyage-4-nano, 1024 dimensions) powers ObjectBox
+  vector search on the edge and |service-fullname| Vector Search in the
+  cloud, so answers stay consistent across modes.
+
+- **Store telemetry history as time series:** A |service-fullname|
+  Trigger writes each snapshot into a MongoDB time series collection.
+
+- **Model one snapshot as one document:** The flexible document model
+  stores VSS signals without a fixed cross-domain schema.
+
+- **Design services to tolerate lost connectivity:** The edge buffers
+  writes while offline and reconciles with |service-fullname| on
+  reconnect.
+
+Authors
+-------
+
+- Timothy Marland, MongoDB
+- Dorottya Nyárády, MongoDB
+
+Learn More
+----------
+
+- :ref:`arch-center-is-automotive-diagnostics`
+- :ref:`arch-center-is-multimodal-event-explorer`
+- :ref:`arch-center-is-offline-wallet`
