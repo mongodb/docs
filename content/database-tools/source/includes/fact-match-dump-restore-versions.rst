@@ -27,9 +27,10 @@ To change your feature compatibility version, see
    process could result in failure, silent failure, or corrupted 
    metadata.
 
-In addition, ensure that you are using the same version of 
-:binary:`~bin.mongorestore` to load the data files as the version of
-:binary:`~bin.mongodump` that you used to create them. For example, if
-you used :binary:`~bin.mongodump` version ``{+release+}`` to create the
-dump, use :binary:`~bin.mongorestore` version ``{+release+}`` to restore
-it.
+In addition, ensure that you are using the same version of
+``mongorestore`` to load the data files as the version of ``mongodump``
+that you used to create them. In practice, using a different version of
+``mongorestore`` often works, but if the dump format changes between
+versions, the restore can fail or restore data incorrectly. For example,
+if you use ``mongodump`` version ``{+release+}`` to create the dump, use
+``mongorestore`` version ``{+release+}`` to restore it.
