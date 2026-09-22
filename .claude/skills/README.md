@@ -44,6 +44,7 @@ For writers drafting release notes for specific MongoDB products.
 
 | Skill | What it does |
 |---|---|
+| `/atlas-sp-release-notes` | Draft Atlas Stream Processing release notes from a DOCSP ticket by fetching the linked internal Confluence wiki page and adding a dated entry to the changelog |
 | `/compass-release-notes` | Draft Compass release notes for a new version by fetching the corresponding release from mongodb-js/compass and formatting them for the docs |
 | `/drivers-release-notes` | Draft MongoDB drivers release notes for a new version by fetching the corresponding release from the driver source code and adding them to the documentation |
 | `/mcp-release-notes` | Draft MongoDB MCP Server release notes for a new version by fetching the corresponding release from mongodb-js/mongodb-mcp-server and formatting them for the docs |
@@ -72,6 +73,7 @@ For specialized content migration tasks.
 | Skill | What it does |
 |---|---|
 | `/language-tabs-to-composable-scripted` | Converts RST pages using language tabs to composable tutorial format |
+| `/snippet-automation` | Generate and sync Bluehawk snippets across MongoDB docsets |
 
 ## Skill Authoring
 
@@ -98,5 +100,5 @@ For detecting and fixing linter-flagged issues in content/.
 | `feature-branch` | Deterministic git flow for the feature-branch workflow: create, sync, and start-task |
 | `feature-drafter-agent` | Drafts one page or section from a planner task and opens a PR against the feature branch |
 | `feature-planner-agent` | Turns an approved documentation plan into tasks and delegates drafting to feature-drafter-agent sub-agents |
-| `jira-state-transitions` | PostToolUse hooks that transition DOCSP tickets on branch and PR creation |
+| `jira-state-transitions` | PostToolUse hooks that transition DOCSP tickets on first edit or commit and on PR review readiness |
 | `ops-manager-release-notes` | Generate a versioned patch release entry for Ops Manager by fetching improvements and bug fixes from Aha! and Jira, writing RST entries, and prepending the assembled block to the active changelog file |
