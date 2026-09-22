@@ -1,24 +1,5 @@
 import type { WithId } from 'mongodb';
-import type { ASTNode, Root, TextNode, TocTreeEntry } from './ast';
-
-type AppData = {
-  page: {
-    ast: Root;
-    facets: PageFacet[];
-  };
-  pageImage?: {
-    images: ImageRelativePaths;
-  } | null;
-};
-
-type ImageRelativePaths = { relativePath: string }[];
-
-export type PageFacet = {
-  category: string;
-  value: string;
-  display_name: string;
-  sub_facets: PageFacet[] | null;
-};
+import type { ASTNode, TextNode, TocTreeEntry } from './ast';
 
 type EOLType = 'download' | 'link';
 
@@ -215,7 +196,6 @@ type Viewport = {
 };
 
 export type {
-  AppData,
   BranchData,
   BreadcrumbType,
   Docset,
@@ -226,7 +206,6 @@ export type {
   Group,
   IALinkedData,
   IAOption,
-  ImageRelativePaths,
   MetadataChapter,
   MetadataChapters,
   MetadataGuide,

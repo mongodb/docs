@@ -19,17 +19,6 @@ export const getClient = (): MongoClient => {
   return client;
 };
 
-export const getSnootyDbName = (env: Environments) => {
-  switch (env) {
-    case 'dotcomstg':
-      return 'snooty_dotcomstg';
-    case 'dotcomprd':
-      return 'snooty_dotcomprd';
-    default:
-      return 'snooty_dev';
-  }
-};
-
 export const getFeedbackDbName = (env: SnootyEnv) => {
   switch (env) {
     case 'dotcomstg':

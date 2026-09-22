@@ -1,12 +1,8 @@
 import { DOTCOM_BASE_URL } from '@/constants';
-import type { ASTDocument } from '@/services/db/pages';
-import type { DBMetadataDocument } from '@/services/db/snooty-metadata';
 import type { TextNode } from '@/types/ast';
 import { getSiteTitle } from '@/utils/get-site-title';
 import { getPlaintext } from '@/utils/get-plaintext';
 import { getNestedValue } from '@/utils/get-nested-value';
-import { getLocaleMapping } from '@/utils/locale';
-import { assertLeadingSlash } from '@/utils/assert-leading-slash';
 import type { Docset, RemoteMetadata } from '@/types/data';
 import { assertTrailingSlash } from './assert-trailing-slash';
 import { normalizePath } from './normalize-path';
