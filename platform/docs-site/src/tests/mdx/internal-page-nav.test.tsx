@@ -1,12 +1,19 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import InternalPageNav from '@/mdx-components/InternalPageNav/internal-page-nav';
 import { mockLocation } from '@/tests/utils/mock-location';
+import { navigateToDocsPath } from '@/utils/navigate-to-docs-path';
 
 const mockPush = jest.fn();
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
   usePathname: () => '/changestreams/',
 }));
+
+jest.mock('@/utils/navigate-to-docs-path', () => ({
+  navigateToDocsPath: jest.fn(),
+}));
+
+const mockNavigate = navigateToDocsPath as jest.Mock;
 
 jest.mock('@/utils/use-snooty-metadata', () => ({
   useSnootyMetadata: () => ({ project: 'docs' }),
@@ -51,6 +58,7 @@ describe('InternalPageNav', () => {
     // The current page's own TOC entry is mixed-case; its route is lowercase.
     mockLocation({ pathname: '/docs/manual/changestreams' });
     mockPush.mockClear();
+    mockNavigate.mockClear();
   });
 
   it('finds the current page in a mixed-case TOC and links to lowercase URLs', () => {
@@ -60,12 +68,34 @@ describe('InternalPageNav', () => {
     expect(screen.getByTitle('Next Section')).toHaveAttribute('href', '/docs/manual/timeseries/');
   });
 
-  // The click handler routes past the normalization Link applies to the href.
-  it('pushes the canonical URL on click', () => {
+  it('renders hrefs with a single /docs prefix', () => {
+    render(<InternalPageNav />);
+
+    const prevHref = screen.getByTitle('Previous Section').getAttribute('href');
+    const nextHref = screen.getByTitle('Next Section').getAttribute('href');
+
+    expect(prevHref).toBe('/docs/manual/aggregation/');
+    expect(nextHref).toBe('/docs/manual/timeseries/');
+    expect(prevHref).not.toMatch(/\/docs\/docs\//);
+    expect(nextHref).not.toMatch(/\/docs\/docs\//);
+  });
+
+  it('does not programmatically navigate on a primary click', () => {
     render(<InternalPageNav />);
 
     fireEvent.click(screen.getByTitle('Next Section'));
 
-    expect(mockPush).toHaveBeenCalledWith('/docs/manual/timeseries/');
+    expect(mockPush).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('does not navigate the current tab on Command-click', () => {
+    render(<InternalPageNav />);
+
+    const notCancelled = fireEvent.click(screen.getByTitle('Next Section'), { metaKey: true });
+
+    expect(notCancelled).toBe(true);
+    expect(mockPush).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

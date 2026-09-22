@@ -68,9 +68,8 @@ function tocUrlKey(url: string): string {
 }
 
 /**
- * Public form of a TOC url. NextPrevLink also pushes this through the router on
- * click, which bypasses the normalization Link applies to the href, so hand it
- * a slug that is already canonical and does not 301.
+ * Public form of a TOC url. This is the href NextPrevLink renders, so it must
+ * already be canonical and not 301.
  */
 function canonicalTocHref(url: string): string {
   return assertTrailingSlash(lowercaseDocsHref(url));
