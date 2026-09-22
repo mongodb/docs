@@ -68,11 +68,16 @@ The following table describes supported BSON field types and their
      - | Stores binary data with subtype 0.
 
    * - ``String``
-     - ``char``, ``java.lang.Character``, ``java.lang.String``, or ``char[]``
-     - | Stores UTF-8 encoded string values.
+     - ``char``, ``java.lang.Character``, ``java.lang.String``,
+       ``char[]``, ``java.time.ZoneId``, ``java.time.ZoneOffset``, or
+       ``java.util.TimeZone``
+     - | Stores UTF-8 encoded string values. The ``ZoneId`` and
+         ``TimeZone`` types store their ID, such as ``Europe/Paris``.
+         The ``ZoneOffset`` type stores its offset ID, such as
+         ``+02:00``.
 
    * - ``Int32``
-     - ``int`` or ``java.lang.Integer``
+     - ``int``, ``java.lang.Integer``, or ``java.time.Year``
      - | Stores 32-bit signed integers.
 
    * - ``Int64``
@@ -88,8 +93,9 @@ The following table describes supported BSON field types and their
      - | Stores ``true`` or ``false`` values.
 
    * - ``Decimal128``
-     - ``java.math.BigDecimal``
-     - | Stores 28-bit decimal values.
+     - ``java.math.BigDecimal`` or ``java.time.Duration``
+     - | Stores 28-bit decimal values. ``java.time.Duration`` values
+         store the duration in nanoseconds.
 
    * - ``ObjectId``
      - ``org.bson.types.ObjectId``
@@ -509,6 +515,84 @@ The following sample code creates a ``Writer`` ``@Struct`` aggregate embeddable:
 
        // Getter and setter methods
 
+   }
+
+.. _hibernate-entities-nested-embeddables:
+
+Nested Embeddables
+~~~~~~~~~~~~~~~~~~
+
+You can nest a **flattened embeddable** inside a ``@Struct`` aggregate
+embeddable. A flattened embeddable is a class that includes an
+``@Embeddable`` annotation but not a ``@Struct`` annotation. The
+{+extension-short+} stores the fields of a flattened embeddable as
+fields of the parent embedded document instead of as a separate
+nested document.
+
+The following sample code creates a ``Studio`` ``@Struct`` aggregate
+embeddable that includes an ``Address`` flattened embeddable as a
+field:
+
+.. code-block:: java
+   :copyable: false
+
+   @Embeddable
+   @Struct(name = "Studio")
+   public class Studio {
+       private String name;
+       private Address address;
+
+       public Studio() {
+       }
+
+       public Studio(String name, Address address) {
+           this.name = name;
+           this.address = address;
+       }
+
+       // Getter and setter methods
+
+   }
+
+The following sample code creates the ``Address`` flattened
+embeddable. The class omits the ``@Struct`` annotation:
+
+.. code-block:: java
+   :copyable: false
+
+   @Embeddable
+   public class Address {
+       private String city;
+       private String country;
+
+       public Address() {
+       }
+
+       public Address(String city, String country) {
+           this.city = city;
+           this.country = country;
+       }
+
+       // Getter and setter methods
+
+   }
+
+When you persist an entity that includes a ``Studio`` field, the
+``Address`` fields become fields of the ``Studio`` field's embedded document. 
+The following example document has a ``Studio`` field named ``studio``
+that stores the fields of its ``Address`` flattened embeddable:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "_id": { "$oid": "..." },
+     "title": "Breathless",
+     "studio": {
+       "name": "Les Films Impéria",
+       "city": "Paris",
+       "country": "France"
+     }
    }
 
 Additional Information
