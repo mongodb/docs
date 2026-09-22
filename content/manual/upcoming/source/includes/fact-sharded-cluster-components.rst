@@ -9,5 +9,8 @@ A MongoDB :term:`sharded cluster` consists of the following components:
   sharded cluster.
 
 - :ref:`config servers <sharding-config-server>`: Config
-  servers store metadata and configuration settings for the cluster. Config 
-  servers must be deployed as a replica set (CSRS).
+  servers store metadata and configuration settings for the cluster.
+  Config servers must be deployed as a replica set (CSRS). Starting in
+  MongoDB 8.0, you can deploy the config server as a
+  :ref:`config shard <config-shard-concept>` that also stores
+  application data.
