@@ -457,6 +457,10 @@ AtlasDeployment.spec.deploymentSpec.replicationSpecs
        If you set this value to 1 and ``clusterType`` is ``SHARDED``, ``MongoDB`` Cloud deploys a single-shard sharded cluster.
        Don't create a sharded cluster with a single shard for production environments.
        Single-shard sharded clusters don't provide the same benefits as multi-shard configurations
+       The upper bound is the hard limit Atlas enforces on shards per cluster. The limit
+       effective for a project may be lower (80 by default) and is validated by Atlas.
+       *Minimum*: 0
+       *Maximum*: 1000
      - false
 
    * -  ``regionConfigs``

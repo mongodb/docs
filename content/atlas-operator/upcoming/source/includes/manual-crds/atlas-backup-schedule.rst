@@ -193,10 +193,10 @@ Export policy for automatically exporting cloud backup snapshots to AWS bucket.
      - true
 
    * -  ``frequencyType``
-     - enum
+     - string
      - Human-readable label that indicates the rate at which the export policy item occurs.
-       *Enum*: monthly, yearly
-       *Default*: monthly
+       See the `https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-updategroupclusterbackupschedule#operation-updategroupclusterbackupschedule-body-application-vnd-atlas-2024-08-05-json-export-frequencytype <https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-updategroupclusterbackupschedule#operation-updategroupclusterbackupschedule-body-application-vnd-atlas-2024-08-05-json-export-frequencytype>`__
+       for available values
      - true
 
 .. _atlasbackupschedule-status: 
@@ -222,7 +222,10 @@ BackupScheduleStatus defines the observed state of AtlasBackupSchedule.
 
    * -  ``deploymentID``
      - []string
-     - List of the human-readable names of all deployments utilizing this backup schedule.
+     - List of keys identifying the deployments that use this backup schedule, in
+       "namespace/name" form. A schedule can be referenced from another namespace,
+       so the namespace is part of the key.
+       The json tag is kept for compatibility with statuses written earlier.
      - false
 
    * -  ``observedGeneration``

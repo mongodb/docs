@@ -1534,6 +1534,14 @@ information at `https://www.mongodb.com/docs/atlas/reference/api/maintenance-win
        Cannot be specified if defer is true
      - false
 
+   * -  ``waveAssignment``
+     - integer
+     - Wave assigned to this project for maintenance sequencing across an organization.
+       Must be between 1 and 3, inclusive. Cannot be specified if ``autoDefer`` is true.
+       *Minimum*: 1
+       *Maximum*: 3
+     - false
+
 .. _atlasproject-spec-networkpeers: 
 
 AtlasProject.spec.networkPeers

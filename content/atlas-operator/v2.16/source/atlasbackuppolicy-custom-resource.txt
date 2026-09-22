@@ -1,0 +1,74 @@
+.. _atlasbackuppolicy-custom-resource:
+
+=====================================
+``AtlasBackupPolicy`` Custom Resource
+=====================================
+
+.. meta::
+   :description: Configure backup policies for Atlas deployments using the `AtlasBackupPolicy` custom resource in Kubernetes.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The ``AtlasBackupPolicy`` custom resource configures a backup policy
+that applies to the :ref:`atlasbackupschedule-custom-resource` that you 
+can apply to your :ref:`atlasdeployment-custom-resource`. When you 
+create the ``AtlasBackupPolicy`` custom resource, |ak8so| tries to 
+create or update a backup policy.
+
+.. include:: /includes/fact-ak8so-crds.rst
+
+|ak8so| does one of the following actions using the |service| 
+:oas-bump-atlas-op:`Cloud Backup Schedule API Resource 
+<updategroupclusterbackupschedule>`:
+   
+- Creates a new backup policy.
+- Updates an existing backup policy.
+
+If you remove the ``AtlasBackupPolicy`` resource from your |k8s| 
+cluster, |service| stops creating backups for your {+cluster+}.
+
+.. note:: 
+
+   You must do all of the following tasks to back up a {+cluster+}:
+
+   1. Create a backup policy.
+   #. Create a 
+      :ref:`backup schedule <atlasbackupschedule-custom-resource>` and
+      set the :ref:`spec.policy.name <atlasbackupschedule-spec-policy>` field to the name of the
+      configured backup policy.
+   #. Set the :ref:`spec.backupRef.name <atlasdeployment-spec-backupref>` field in the
+      :ref:`atlasdeployment-custom-resource` to the name of the 
+      configured backup schedule.
+
+   To learn more, see :ref:`ak8so-backup`.
+
+Example
+-------
+
+The following example shows an ``AtlasBackupPolicy`` custom resource
+that is configured to take snapshots weekly and retain snapshots for
+seven days:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasBackupPolicy
+   metadata:
+     name: "atlas-default-backuppolicy"
+   spec:
+     items:
+       - frequencyType: "weekly"
+         frequencyInterval: 1
+         retentionUnit: "days"
+         retentionValue: 7
+
+Parameters
+----------
+
+.. include:: /includes/manual-crds/atlas-backup-policy.rst

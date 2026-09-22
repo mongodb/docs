@@ -1,0 +1,174 @@
+.. _ak8so-independent-crd:
+
+=======================================
+Independent Custom Resource Definitions
+=======================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can use |ak8so| to manage resources in an |service| project
+without using |ak8so| to manage the project itself. In this
+independent custom resource definition ("independent CRD") model, you
+associate resources such as :ref:`atlasdeployment-custom-resource` and
+:ref:`atlasdatabaseuser-custom-resource` with an |service| project
+directly by its |service| :atlas:`ID </api/atlas-admin-api-ref/#project-id>`.
+
+Independent CRDs allow you to use different programmatic
+infrastructure management systems for your projects, while you use
+|ak8so| to manage more frequently-altered resources such as database
+users or individual deployments.
+
+By separating the management of the |service| project from the
+management of subresources such as users and deployments, independent
+CRDs allow you to allocate these responsibilities to different
+personnel or different teams within your organization as suits your
+needs.
+
+.. _ak8so-independent-crd-considerations:
+
+Considerations
+--------------
+
+When you use |ak8so| to manage a project, you can either configure
+{+atlas-admin-api+} authentication using the
+``spec.connectionSecretRef.name`` parameter of the ``atlasProject``
+resource, or leave this parameter unset to default to global |service|
+:ref:`credentials <ak8so-secrets>`. When using independent CRDs, you
+can specify a ``spec.connectionSecret.name`` for each resource. This
+parameter, if set, takes precedence over
+``spec.connectionSecretRef.name`` or global |service|
+credentials.
+
+Setting this parameter is required for any resource whose parent
+resource is referenced using an |service| :atlas:`project ID
+</api/atlas-admin-api-ref/#project-id>`, and optional otherwise.
+
+.. example::
+
+   You define an ``atlasDeployment`` CRD that references its parent
+   project by |service| ID instead of an ``atlasProject``
+   ``spec.name`` parameter.  You must define a
+   ``spec.connectSecret.name`` for the ``atlasDeployment``
+   resource, as in the following:
+
+   .. code-block::
+
+      apiVersion: atlas.mongodb.com/v1
+      kind: AtlasDeployment
+      metadata:
+	name: test-cluster-name
+	namespace: mongodb-atlas-system
+      spec:
+	externalProjectRef:
+	  id: 671998971c8520583f24f411
+	connectionSecret:
+	  name: my-atlas-key
+	deploymentSpec:
+	  clusterType: REPLICASET
+	  name: service-name
+	  tags: 
+	  - key: "environment"
+	    value: "production"
+	  backupEnabled: true
+	  replicationSpecs:
+	    - zoneName: US-Zone
+	      numShards: 3
+	      regionConfigs:
+		- regionName: CENTRAL_US
+		  providerName: GCP
+		  backingProviderName: GCP
+		  priority: 7
+		  electableSpecs:
+		    instanceSize: M10
+		    nodeCount: 3       
+
+.. _ak8so-independent-crd-migrate:
+
+Migration to Independent CRD
+----------------------------
+
+To migrate existing CRDs from ``atlasProject``-level management to
+independent management:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Disable project reconciliation and edit subresource
+      references
+
+      1. Add the ``mongodb.com/atlas-reconciliation-policy: "skip"``
+         annotation to the parent resource's ``metadata``. This
+         prevents |ak8so| from attempting to reconcile the parent
+         resource and its subresources. Consider the following:
+
+	 .. code-block::
+	    :emphasize-lines: 5-6
+
+	    apiVersion: atlas.mongodb.com/v1
+	    kind: AtlasProject
+	    metadata:
+	     name: my-project
+	     annotations: 
+	       mongodb.com/atlas-reconciliation-policy: "skip"
+	    spec:
+	     name: Test project
+	     connectionSecretRef:
+	       name: my-atlas-key
+	     projectIpAccessList:
+	       - cidrBlock: "203.0.113.0/24"
+		 comment: "CIDR block for Application Server B - D"     
+
+         .. warning::
+
+            If you do not apply this annotation, |ak8so| will continue
+	    to attempt reconciliation as you modify your other
+	    resources. For users with :ref:`<deletion-protection>`
+	    disabled, this can result in |ak8so| removing the
+	    |service| project when you remove the ``atlasProject``
+	    resource, or entering a blocked state attempting to remove
+	    a project with active subresources such as database users
+	    or deployments.
+
+      #. Modify the project reference to point to an |service|
+         :atlas:`project ID </api/atlas-admin-api-ref/#project-id>` instead of an
+         ``atlasProject`` name.
+
+	 For example, to decouple an ``atlasDatabaseUser`` resource:
+
+	 .. code-block::
+	    :emphasize-lines: 9-10
+
+	    apiVersion: atlas.mongodb.com/v1
+	    kind: AtlasDatabaseUser
+	    metadata:
+	     name: my-database-user
+	    spec:
+	     roles:
+	       - roleName: readWriteAnyDatabase
+		 databaseName: admin
+	     externalProjectRef:
+	       id: 671998971c8520583f24f411
+	     username: theuser
+	     passwordSecretRef:
+	       name: the-user-password       
+
+   .. step:: Wait for |ak8so| to sync the new resource status.
+
+   .. step:: (Conditional) Remove the ``atlasProject`` CRD.
+
+      To stop managing your project with |ak8so|, you can now remove
+      the ``atlasProject`` CRD. To continue managing your project and
+      attached subresources with |ak8so|, skip to the next step.
+      
+   .. step:: (Conditional) Remove the reconciliation policy annotation
+
+      If you want to continue managing your project with |ak8so|, as in
+      a scenario where you still have resources subordinate to your
+      ``atlasProject``, reactivate reconciliation by removing the
+      reconciliation policy annotation from the ``atlasProject`` CRD.

@@ -1,0 +1,198 @@
+.. _flex-to-dedicated-migration:
+
+==================================================
+Migrate a {+Flex-cluster+} to a {+Dedicated-cluster+}
+==================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+
+|ak8so| supports migrating from a {+Flex-cluster+} to a {+Dedicated-cluster+} in place.
+This enables you to scale your database infrastructure directly from your
+Kubernetes environment. 
+
+.. _flex-to-dedicated-migration-prerequisites:
+
+Prerequisites
+-----------------------
+
+Before you begin, you must have the following:
+
+- An existing {+Flex-cluster+}-tier ``AtlasDeployment`` managed by |ak8so|.
+- Permissions to modify the {+Flex-cluster+}-tier ``AtlasDeployment`` resource in your Kubernetes cluster. 
+- Billing enabled for your |service| project. Upgrading will result in charges to your |service| account.
+
+
+.. _flex-to-dedicated-migration-procedure:
+
+Procedure
+------------------------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Find the {+Flex-cluster+} configuration you want to upgrade.
+
+      You can find your {+Flex-cluster+} configuration in the
+      ``AtlasDeployment`` resource managed by |ak8so|. 
+
+      The following example shows a {+Flex-cluster+} configuration on AWS in the ``us-east-1`` region. 
+
+      .. code-block::
+         
+         # my-cluster.yaml
+         apiVersion: atlas.mongodb.com/v1
+         kind: AtlasDeployment
+         metadata:
+            name: my-flex-cluster
+         spec:
+            projectRef:
+               name: my-atlas-project
+            flexSpec:
+               name: my-cluster
+               providerSettings:
+                  backingProviderName: AWS
+                  regionName: US_EAST_1
+
+  
+   .. step:: Add the ``spec.upgradeToDedicated`` field and the full configuration for the target {+Dedicated-cluster+}.
+
+      Add the ``spec.upgradeToDedicated`` field to your ``AtlasDeployment`` resource.
+      This field is a boolean flag that, when set to ``true``, initiates an
+      in-place upgrade from a {+Flex-cluster+} to a {+Dedicated-cluster+}.
+
+      In the ``spec.deploymentSpec`` block, provide the full configuration for the
+      target {+Dedicated-cluster+}. This includes details such as the provider,
+      region, instance size, and any other necessary parameters.
+
+      Use the same name for your {+Dedicated-cluster+} as your original {+Flex-cluster+}.
+
+      .. note::
+
+         If you use a different name for the {+Dedicated-cluster+}, the migration fails.
+
+      
+      The following example shows how to modify the {+Flex-cluster+} configuration to
+      initiate the migration to a {+Dedicated-cluster+}.
+
+      .. code-block::
+
+         # my-cluster.yaml
+         apiVersion: atlas.mongodb.com/v1
+         kind: AtlasDeployment
+         metadata:
+           # The name MUST remain the same
+           name: my-flex-cluster 
+         spec:
+           projectRef:
+             name: my-atlas-project
+
+           # Add the upgrade flag 
+           upgradeToDedicated: true
+           
+           # Add the full configuration for the target Dedicated-cluster
+           deploymentSpec:
+               name: "my-cluster" # The name MUST remain the same
+               clusterType: REPLICASET
+               backupEnabled: true
+               replicationSpecs:
+                  - regionConfigs:
+                     - providerName: AWS
+                       regionName: US_EAST_1
+                       priority: 7
+                       electableSpecs:
+                          instanceSize: M10
+                          nodeCount: 3
+                
+   
+   .. step:: Apply the change to your Kubernetes cluster.
+
+      Use the ``kubectl apply`` command to apply the changes to your Kubernetes cluster.
+
+      .. code-block::
+
+         kubectl apply -f my-cluster.yaml
+
+    
+   .. step:: Monitor the migration process.
+      
+      |ak8so| immediately starts the migration process. You can monitor the progress using the ``kubectl describe`` command.
+
+      .. code-block::
+
+         kubectl describe atlasdeployment my-flex-cluster
+      
+      Initially, the ``DeploymentReady`` condition appears as the following:
+
+      .. code-block::
+
+         Status:
+            Conditions:
+              ...
+              - Last Transition Time:  2025-06-18T10:00:00Z
+                Message:             Cluster upgrade to dedicated instance initiated in Atlas...
+                Reason:              FlexToDedicatedMigrationProgressing
+                Status:              "False"
+                Type:                DeploymentReady
+      
+      Once the migration is complete, the ``DeploymentReady`` condition updates to:
+
+      .. code-block::
+         
+         Status:
+            Conditions:
+               ...
+               - Last Transition Time:  2025-06-18T10:15:00Z
+                 Message:             Cluster upgrade successful. You can now remove the 'upgradeToDedicated' flag from the spec.
+                 Status:              "True"
+                 Type:                DeploymentReady
+                 
+      You also see a ``Normal`` event in the output after the upgrade completes. If
+      the migration fails, the ``DeploymentReady`` condition shows an error message
+      and the ``Reason``. If you already migrated the cluster to {+Dedicated-cluster+}, nothing
+      changes. 
+  
+
+   .. step:: Cleanup after migration.
+
+      After the migration is complete, you can remove the ``upgradeToDedicated`` flag
+      from your ``AtlasDeployment`` resource and apply it again. This step is optional but recommended
+      to keep your configuration clean and prevent accidental re-triggering of the migration.
+
+      The final ``AtlasDeployment`` resource looks like the following example:
+
+      .. code-block::
+
+         # my-cluster.yaml
+         apiVersion: atlas.mongodb.com/v1
+         kind: AtlasDeployment
+         metadata:
+           name: my-flex-cluster 
+         spec:
+           projectRef:
+             name: my-atlas-project
+           deploymentSpec:
+               name: "my-cluster" # The name MUST remain the same
+               clusterType: REPLICASET
+               backupEnabled: true
+               replicationSpecs:
+                  - regionConfigs:
+                     - providerName: AWS
+                       regionName: US_EAST_1
+                       priority: 7
+                       electableSpecs:
+                          instanceSize: M10
+                          nodeCount: 3
+
+   .. step:: Migration complete. 
+
+        You successfully migrated your {+Flex-cluster+} to a {+Dedicated-cluster+}. Your cluster is now a {+Dedicated-cluster+} M10 instance. 
+        Manage it as a {+Dedicated-cluster+} using |ak8so|. Your application
+        connection strings now point to the new {+Dedicated-cluster+}.
+
