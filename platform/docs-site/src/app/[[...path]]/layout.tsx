@@ -6,7 +6,6 @@ import { LeafyGreenProviderWrapper } from '@/app/emotion';
 import { ViaProviderWrapper } from '@/app/via-provider';
 import { SiteBannerProvider } from '@/mdx-components/SiteBannerProvider';
 import { Analytics } from '@/mdx-components/Analytics';
-import { WebVitals } from '@/mdx-components/WebVitals';
 import { DarkModeContextProvider } from '@/context/dark-mode-context';
 import { getBannerData } from '@/services/db/banner';
 import { Footer } from '@/mdx-components/Footer';
@@ -47,7 +46,6 @@ export default async function Layout({ children }: { children: React.ReactNode }
                 <LeafyGreenProviderWrapper>
                   <ViaProviderWrapper>
                     <Analytics />
-                    <WebVitals />
                     {children}
                     <Footer />
                   </ViaProviderWrapper>

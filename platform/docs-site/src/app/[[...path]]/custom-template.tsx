@@ -20,7 +20,6 @@ import { Header } from '@/mdx-components/Header';
 import type { ServerSideChangelogData } from '@/types/openapi';
 import { getAvailableLanguages } from '@/utils/locale';
 import { LocaleHreflangScript } from '@/mdx-utils/locale-hreflang-script';
-import { WebVitalsRoute } from '@/mdx-components/WebVitalsRoute';
 
 type TemplateComponent = React.ComponentType<BaseTemplateProps>;
 
@@ -141,7 +140,6 @@ export const CustomTemplate = ({
   return (
     <>
       <LocaleHreflangScript slug={slug} />
-      <WebVitalsRoute template={template} slug={slug} />
       <Providers
         metadata={clientMetadata}
         frontmatter={frontmatter}
