@@ -51,6 +51,12 @@ const tocData: TocItem[] = [
             contentSite: 'hibernate',
             url: '/docs/languages/java/mongodb-hibernate/:version/model-data/inheritance',
           },
+          {
+            label: 'Indexes',
+            contentSite: 'hibernate',
+            url: '/docs/languages/java/mongodb-hibernate/:version/model-data/indexes',
+            versions: { includes: ['upcoming'] },
+          },
         ],
       },
       {

@@ -1,0 +1,219 @@
+.. _hibernate-indexes:
+
+==============================
+Indexes for Query Optimization
+==============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, schema generation, field order, sort order
+   :description: Learn how to create MongoDB indexes and unique constraints on your Hibernate ORM entities, including single-field, compound, and unique indexes, and how schema generation creates them.
+
+.. _hibernate-indexes-overview:
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+extension-long+} to declare
+single-field, compound, and unique indexes on an entity. The
+{+extension-short+} translates the indexes and unique constraints you
+declare on your entities into MongoDB index operations when you enable
+schema generation.
+
+Configure Schema Generation
+---------------------------
+
+To create the indexes and unique constraints declared on your entities,
+enable schema generation in your application's configuration. You can
+enable schema generation with either the ``create`` or ``create-drop``
+action:
+
+- ``create``: Creates the schema objects without dropping them when the
+  ``SessionFactory`` closes.
+
+- ``create-drop``: Creates the schema objects when the ``SessionFactory``
+  opens and drops them when it closes.
+
+.. warning::
+
+   The ``create-drop`` action is intended for development and testing.
+   Do not use it when you need to preserve production data.
+
+If you use Spring Boot, add the following property to your
+``application.properties`` file:
+
+.. code-block:: properties
+   :copyable: true
+
+   spring.jpa.properties.jakarta.persistence.schema-generation.database.action=create-drop
+
+If you configure Jakarta Persistence directly, add the following property
+to your ``persistence.xml`` file:
+
+.. code-block:: xml
+   :copyable: true
+
+   <property name="jakarta.persistence.schema-generation.database.action"
+             value="create-drop"/>
+
+Alternatively, you can set the property in your ``hibernate.properties``
+file:
+
+.. code-block:: properties
+   :copyable: true
+
+   jakarta.persistence.schema-generation.database.action=create-drop
+
+When schema generation runs, the {+extension-short+} creates the collection
+and issues MongoDB ``createIndexes`` commands for the indexes and unique
+constraints that your entities declare.
+
+Index Types
+-----------
+
+The examples in this guide declare indexes and unique constraints by
+adding ``@Index`` and ``@UniqueConstraint`` annotations to the ``@Table``
+annotation of the following ``Movie`` entity:
+
+.. literalinclude:: /includes/model-data/Movie.java
+   :start-after: start-movie-entity
+   :end-before: end-movie-entity
+   :language: java
+   :copyable: true
+
+Single Field Indexes
+~~~~~~~~~~~~~~~~~~~~
+
+:manual:`Single field indexes </core/index-single/>` are indexes with
+a reference to a single field within a collection's documents.
+They improve query and sort performance for a single field.
+
+The following example creates a single field index in descending order on
+the ``year`` field:
+
+.. code-block:: java
+   :copyable: true
+
+   @Table(
+       name = "movies",
+       indexes = {
+           @Index(name = "idx_year", columnList = "year desc")
+       })
+
+Set the ``columnList`` to the field name, and add ``asc`` or ``desc`` to
+specify the direction. If you omit the direction, MongoDB creates an
+ascending index. The ``name`` element specifies the name of the MongoDB
+index.
+
+For more information, see :manual:`Single Field Indexes
+</core/index-single/>` in the MongoDB Server manual.
+
+Compound Indexes
+~~~~~~~~~~~~~~~~
+
+:manual:`Compound indexes </core/index-compound/>` hold references to
+multiple fields within a collection's documents, improving query and
+sort performance.
+
+The following example creates a compound index on the ``title`` and
+``year`` fields in descending order:
+
+.. code-block:: java
+   :copyable: true
+
+   @Table(
+       name = "movies",
+       indexes = {
+           @Index(name = "idx_title_year", columnList = "title desc,year desc")
+       })
+
+The order of the fields in the ``columnList`` determines the order in which
+MongoDB sorts the index keys, which affects which query prefixes the index
+can support. For example, an index on ``title`` followed by ``year`` can
+support queries that match ``title`` alone, while an index on ``year``
+does not help a query that matches only ``title``.
+
+For more information, see :manual:`Compound Indexes
+</core/index-compound/>` in the MongoDB Server manual.
+
+Unique Indexes and Constraints
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Unique indexes ensure that the indexed fields do not store duplicate
+values.
+
+You can create a unique index with either the ``@Index`` or the
+``@UniqueConstraint`` annotation:
+
+- Use ``@Index(unique = true)`` when you need to specify index options
+  such as field direction.
+
+- Use ``@UniqueConstraint`` when you want to use the table-level
+  constraint model. The fields in ``columnNames`` define the key order,
+  and ``@UniqueConstraint`` does not specify field directions, so the
+  resulting unique index is ascending.
+
+The following example creates a unique index on the ``title`` field:
+
+.. code-block:: java
+   :copyable: true
+
+   @Table(
+       name = "movies",
+       indexes = {
+           @Index(name = "idx_title", columnList = "title", unique = true)
+       })
+
+The following example creates a unique constraint on the ``title`` and
+``plot`` fields:
+
+.. code-block:: java
+   :copyable: true
+
+   @Table(
+       name = "movies",
+       uniqueConstraints = {
+           @UniqueConstraint(name = "uk_title_plot", columnNames = {"title", "plot"})
+       })
+
+MongoDB treats a ``null`` or missing value for an indexed field as an
+indexed value. Because of the unique constraint, a single-field unique
+index can contain only one document with a ``null`` value in its index
+entry.
+
+.. important:: Unique Index Creation Can Fail
+
+   MongoDB cannot create a unique index on the specified field or fields
+   if the collection already contains documents with duplicate values for
+   those fields. Review your existing data for duplicate values before
+   creating a unique index.
+
+For more information, see :manual:`Unique Indexes
+</core/index-unique/>` in the MongoDB Server manual.
+
+Additional Information
+----------------------
+
+To learn more about creating entities and mapping embedded data, see the
+:ref:`Create Entities to Represent Collections <hibernate-entities>` guide.
+
+To learn how to use your entities to run database operations, see the
+:ref:`Perform CRUD Operations <hibernate-crud>` and
+:ref:`Specify a Query <hibernate-specify-query>` guides.
+
+To view a list of the index types that the {+extension-short+} supports,
+see the :ref:`Feature Compatibility <hibernate-feature-compat>` page.
+
+To learn more about the Jakarta Persistence annotations used in this
+guide, see the `Jakarta Persistence API
+<https://jakarta.ee/specifications/persistence/3.1/apidocs/jakarta.persistence/jakarta/persistence/package-summary.html>`__
+documentation.
