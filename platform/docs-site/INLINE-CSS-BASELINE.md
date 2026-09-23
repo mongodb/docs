@@ -187,7 +187,7 @@ equals the inline total in every row.
 served HTML, all of it from `app/emotion.tsx`.**
 
 All byte figures are bytes of UTF-8 served HTML. The raw report behind these tables is committed
-beside this file as [`inline-css-baseline.json`](inline-css-baseline.json), so a later run can be
+beside this file as [`inline-css-snapshot-2026-08-12.json`](inline-css-snapshot-2026-08-12.json), so a later run can be
 diffed against it rather than re-typed.
 
 What the numbers say:
