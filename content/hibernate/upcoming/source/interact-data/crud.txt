@@ -346,6 +346,117 @@ value to match the ``title`` value for documents that have a
 
       Number of movies updated: 4
 
+.. _hibernate-crud-upsert:
+
+Upsert Documents
+----------------
+
+An upsert operation updates a document if a matching document exists,
+or inserts a new document if no match exists. To perform an upsert, use
+the ``upsert()`` or ``upsertMultiple()`` method. These methods are
+available only on Hibernate's ``StatelessSession`` API.
+
+.. note::
+
+   A ``StatelessSession`` instance does not track changes to the
+   entities it retrieves. To save changes to an entity, pass it to
+   another write method. Use ``StatelessSession`` for bulk write
+   workflows.
+
+Entity Requirements
+~~~~~~~~~~~~~~~~~~~
+
+The {+extension-short+} creates the filter for an upsert operation from
+your entity's identifier, so your application must assign the
+identifier value before you call ``upsert()``.
+
+The ``upsert()`` method does not generate identifier values, even if
+your entity uses the ``@ObjectIdGenerator`` annotation. If you do not
+assign an identifier value, the {+extension-short+} stores the
+document with a ``null`` ``_id`` value.
+
+You can use the `@Column(updatable = false)`` annotation to protect a
+field from updates during an upsert operation. The following ``Movie``
+entity definition annotates the ``released`` field with
+``@Column(updatable = false)``, which instructs the
+{+extension-short+} to write to the field when it inserts a document
+but to omit the field when it updates an existing document:
+
+.. code-block:: java
+
+   @Entity
+   @Table(name = "movies")
+   public class Movie {
+      @Id
+      @ObjectIdGenerator
+      private ObjectId id;
+
+      private String title;
+      private int year;
+
+      @Column(updatable = false)
+      private Instant released;
+
+      // Getters and setters omitted
+   }
+
+The {+extension-short+} sends fields that are both insertable and
+updatable in the ``$set`` operator of the generated update statement.
+It sends insertable-only fields, such as fields annotated with
+``@Column(updatable = false)``, in the ``$setOnInsert`` operator. 
+
+.. _hibernate-crud-upsert-one:
+
+Upsert One Example
+~~~~~~~~~~~~~~~~~~
+
+The following example creates a ``Movie`` entity instance and passes it
+to the ``upsert()`` method. If a document that has the specified
+``ObjectId`` value exists, the {+extension-short+} updates the
+``title`` and ``year`` values of that document. Otherwise, the
+{+extension-short+} inserts a new document:
+
+.. literalinclude:: /includes/interact-data/Crud.java
+   :start-after: start-upsert-one
+   :end-before: end-upsert-one
+   :language: java
+   :dedent:
+
+.. _hibernate-crud-upsert-many:
+
+Upsert Multiple Example
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To upsert several entity instances in one operation, pass a list of
+instances to the ``upsertMultiple()`` method. The following example
+upserts two ``Movie`` entity instances:
+
+.. literalinclude:: /includes/interact-data/Crud.java
+   :start-after: start-upsert-multiple
+   :end-before: end-upsert-multiple
+   :language: java
+   :dedent:
+
+.. _hibernate-crud-upsert-limitations:
+
+Upsert Limitations
+~~~~~~~~~~~~~~~~~~
+
+The following entity mappings are unsupported in upsert operations.
+When you upsert an entity that uses one of these mappings, the
+{+extension-short+} throws a ``FeatureNotSupportedException``:
+
+- Entities that have a field annotated with ``@Version``.
+
+- Entities that have a field annotated with
+  ``@Column(insertable = false)``. MongoDB Query Language provides no
+  way to write a field only when an operation matches an existing
+  document.
+
+- Entities whose only persistent attribute is the identifier. An
+  upsert on this type of entity has no fields to update, so the
+  {+extension-short+} rejects the operation.
+
 .. _hibernate-crud-delete:
 
 Delete Documents

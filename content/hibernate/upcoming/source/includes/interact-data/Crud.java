@@ -1,5 +1,6 @@
 import org.hibernate.Transaction;
 import org.hibernate.Session;
+import org.hibernate.StatelessSession;
 
 public class Crud {
     public static void main(String[] args) {
@@ -119,6 +120,36 @@ public class Crud {
             .executeUpdate();
         System.out.println("Number of movies updated: " + updateResult);
         // end-update-expression-field-reference
+
+        // Upserts a document that has the specified ObjectId value
+        // start-upsert-one
+        try (StatelessSession statelessSession = sf.openStatelessSession()) {
+            var movie = new Movie();
+            movie.setId(new ObjectId("573a1398f29313caabce9682"));
+            movie.setTitle("The General");
+            movie.setYear(1926);
+            movie.setReleased(Instant.parse("1927-02-24T00:00:00Z"));
+
+            statelessSession.upsert(movie);
+        }
+        // end-upsert-one
+
+        // Upserts multiple documents in one operation
+        // start-upsert-multiple
+        try (StatelessSession statelessSession = sf.openStatelessSession()) {
+            var firstMovie = new Movie();
+            firstMovie.setId(new ObjectId("573a1398f29313caabce9682"));
+            firstMovie.setTitle("The General");
+            firstMovie.setYear(1926);
+
+            var secondMovie = new Movie();
+            secondMovie.setId(new ObjectId("573a1398f29313caabce9683"));
+            secondMovie.setTitle("Metropolis");
+            secondMovie.setYear(1927);
+
+            statelessSession.upsertMultiple(List.of(firstMovie, secondMovie));
+        }
+        // end-upsert-multiple
 
         // Deletes a document that has the specified ObjectId value using a session
         // start-delete-one-session
