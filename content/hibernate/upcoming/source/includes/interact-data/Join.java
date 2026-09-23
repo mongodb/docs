@@ -1,6 +1,10 @@
 import org.hibernate.Transaction;
 
+import org.example.Book;
+import org.example.BookId;
 import org.example.Comment;
+import org.example.Review;
+import org.example.ReviewId;
 import org.example.User;
 import org.hibernate.Session;
 
@@ -111,6 +115,72 @@ public class Join {
             System.out.println("Title: " + row[0] + ", Commenter: " + row[1]);
         }
         // end-retrieve-nonequijoin-on-em
+
+        // Inserts books and reviews that use composite primary keys by using a session
+        // start-composite-seed-session
+        var blueDoor = new Book(new BookId(10, 2), "The Blue Door");
+        var winterLight = new Book(new BookId(10, 3), "Winter Light");
+        var saltAndStone = new Book(new BookId(20, 1), "Salt and Stone");
+        session.persist(blueDoor);
+        session.persist(winterLight);
+        session.persist(saltAndStone);
+
+        session.persist(new Review(new ReviewId(30, 7), blueDoor, "Gripping from the first page."));
+        session.persist(new Review(new ReviewId(30, 8), blueDoor, "A slow but rewarding read."));
+        session.persist(new Review(new ReviewId(20, 1), saltAndStone, "Beautifully written."));
+        session.persist(new Review(new ReviewId(10, 3), saltAndStone, "Dense, but worth the effort."));
+        // end-composite-seed-session
+
+        // Inserts books and reviews that use composite primary keys by using an entity manager
+        // start-composite-seed-em
+        var blueDoor = new Book(new BookId(10, 2), "The Blue Door");
+        var winterLight = new Book(new BookId(10, 3), "Winter Light");
+        var saltAndStone = new Book(new BookId(20, 1), "Salt and Stone");
+        entityManager.persist(blueDoor);
+        entityManager.persist(winterLight);
+        entityManager.persist(saltAndStone);
+
+        entityManager.persist(new Review(new ReviewId(30, 7), blueDoor, "Gripping from the first page."));
+        entityManager.persist(new Review(new ReviewId(30, 8), blueDoor, "A slow but rewarding read."));
+        entityManager.persist(new Review(new ReviewId(20, 1), saltAndStone, "Beautifully written."));
+        entityManager.persist(new Review(new ReviewId(10, 3), saltAndStone, "Dense, but worth the effort."));
+        // end-composite-seed-em
+
+        // Retrieves each review and the book it reviews by joining a composite key association by using a session
+        // start-retrieve-composite-association-join-session
+        var compositeJoinResults = session.createQuery("select r.id, b.id, b.title from Review r join r.book b", Object[].class)
+                .getResultList();
+        for (var row : compositeJoinResults) {
+            System.out.println("Review: " + row[0] + ", Book: " + row[1] + ", Book Title: " + row[2]);
+        }
+        // end-retrieve-composite-association-join-session
+
+        // Retrieves each review and the book it reviews by joining a composite key association by using an entity manager
+        // start-retrieve-composite-association-join-em
+        var compositeJoinResults = entityManager.createQuery("select r.id, b.id, b.title from Review r join r.book b", Object[].class)
+                .getResultList();
+        for (var row : compositeJoinResults) {
+            System.out.println("Review: " + row[0] + ", Book: " + row[1] + ", Book Title: " + row[2]);
+        }
+        // end-retrieve-composite-association-join-em
+
+        // Retrieves each book and the review that has a matching composite identifier by using a session
+        // start-retrieve-composite-whole-id-session
+        var wholeIdResults = session.createQuery("select b.id, b.title, r.id from Book b join Review r on b.id = r.id", Object[].class)
+                .getResultList();
+        for (var row : wholeIdResults) {
+            System.out.println("Book Title: " + row[1] + ", Book: " + row[0] + ", Review: " + row[2]);
+        }
+        // end-retrieve-composite-whole-id-session
+
+        // Retrieves each book and the review that has a matching composite identifier by using an entity manager
+        // start-retrieve-composite-whole-id-em
+        var wholeIdResults = entityManager.createQuery("select b.id, b.title, r.id from Book b join Review r on b.id = r.id", Object[].class)
+                .getResultList();
+        for (var row : wholeIdResults) {
+            System.out.println("Book Title: " + row[1] + ", Book: " + row[0] + ", Review: " + row[2]);
+        }
+        // end-retrieve-composite-whole-id-em
 
         entityManager.getTransaction().commit();
         entityManager.close();

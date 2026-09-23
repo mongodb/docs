@@ -39,8 +39,10 @@ The {+extension-short+} translates each join to a MongoDB
    An ``ON`` condition must compare columns. The {+extension-short+}
    does not support comparing entity references, as in
    ``on m = c.movie``, or navigating an association within the
-   condition, as in ``on c.movie.title = 'Blue Jasmine'``. To learn
-   which join types the {+extension-short+} supports, see
+   condition, as in ``on c.movie.title = 'Blue Jasmine'``. You can
+   compare two whole composite identifiers, as described in the
+   :ref:`hibernate-query-composite-key-joins` section of this guide.
+   To learn which join types the {+extension-short+} supports, see
    :ref:`Query Support <hibernate-query-support>` on the Feature
    Compatibility page.
 
@@ -308,8 +310,9 @@ Compound ON Conditions
 
 An ``ON`` condition can combine multiple field comparisons with
 ``AND`` or ``OR``. Use a compound condition to join entities that are
-related by more than one field, such as entities that have a composite
-key.
+related by more than one field. To join entities that have a composite
+primary key, see the :ref:`hibernate-query-composite-key-joins`
+section of this guide.
 
 The following example joins the ``users`` and ``comments``
 collections on both the ``name`` and the ``email`` field, so that a
@@ -388,6 +391,316 @@ the fields of the joined collection in a ``$expr`` operator:
      }
    },
    { "$unwind": "$#c1_0" }
+
+.. _hibernate-query-composite-key-joins:
+
+Composite Key Joins
+-------------------
+
+You can join entities whose primary key is a composite key declared
+with the ``@EmbeddedId`` annotation. To learn how to define a
+composite key, see the :ref:`hibernate-entities-composite-keys`
+section of the Create Entities guide.
+
+The examples in this section use the following ``Book`` and
+``Review`` entities, which are both keyed on a ``publisherId``
+component and a ``bookNo`` component. The ``Review`` entity
+references its related ``Book`` entity in its ``book`` field.
+
+Each entity declares its key in a separate ``@Embeddable`` record.
+Declaring the key as a record rather than a class provides the
+``equals()`` and ``hashCode()`` methods that {+orm+} requires to
+compare identifier values.
+
+The following ``BookId`` record defines the ``Book`` entity's key:
+
+.. literalinclude:: /includes/interact-data/BookId.java
+   :language: java
+   :dedent:
+   :copyable: true
+
+The ``Book`` entity has the following definition:
+
+.. literalinclude:: /includes/interact-data/Book.java
+   :language: java
+   :dedent:
+   :copyable: true
+
+The following ``ReviewId`` record defines the ``Review`` entity's key:
+
+.. literalinclude:: /includes/interact-data/ReviewId.java
+   :language: java
+   :dedent:
+   :copyable: true
+
+The ``Review`` entity has the following definition. The ``book``
+field maps the association to the ``Book`` entity:
+
+.. literalinclude:: /includes/interact-data/Review.java
+   :language: java
+   :dedent:
+   :copyable: true
+
+The following code inserts the documents that the examples in this section use:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. literalinclude:: /includes/interact-data/Join.java
+         :start-after: start-composite-seed-session
+         :end-before: end-composite-seed-session
+         :language: java
+         :dedent:
+         :copyable: true
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. literalinclude:: /includes/interact-data/Join.java
+         :start-after: start-composite-seed-em
+         :end-before: end-composite-seed-em
+         :language: java
+         :dedent:
+         :copyable: true
+
+.. _hibernate-query-composite-foreign-keys:
+
+Composite Foreign Key Storage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A **foreign key** is the field or set of fields that one entity uses
+to store the identifier of an entity it references. The
+{+extension-short+} uses foreign key values to match documents on
+each side of a join.
+
+When an association targets an entity that has a composite key, the
+{+extension-short+} stores the foreign key in the association field
+as a sub-document. The sub-document mirrors the components
+of the target entity's ``_id`` sub-document.
+
+The ``Review`` entity produces documents in the following
+format, in which the ``book`` field holds the foreign key as a sub-document:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "_id": { "bookNo": 7, "publisherId": 30 },
+     "comment": "An excellent read.",
+     "book": { "bookNo": 2, "publisherId": 10 }
+   }
+
+The {+extension-short+} supports this layout for ``@ManyToOne`` and
+``@OneToOne`` associations. The inverse side of an association, which
+you map with the ``mappedBy`` element, stores no foreign key fields.
+
+.. _hibernate-query-composite-association-join:
+
+Join a Composite Key Association
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To join an association whose target entity has a composite key,
+use a join clause, as you would for an
+entity that has a single-field key.
+
+The following example retrieves the identifier of each review
+alongside the identifier of the book that it reviews through an
+inner join on the ``Review`` entity's ``book`` field:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Join.java
+            :start-after: start-retrieve-composite-association-join-session
+            :end-before: end-retrieve-composite-association-join-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Review: ReviewId[publisherId=30, bookNo=7], Book: BookId[publisherId=10, bookNo=2], Book Title: The Blue Door
+            Review: ReviewId[publisherId=30, bookNo=8], Book: BookId[publisherId=10, bookNo=2], Book Title: The Blue Door
+            Review: ReviewId[publisherId=20, bookNo=1], Book: BookId[publisherId=20, bookNo=1], Book Title: Salt and Stone
+            Review: ReviewId[publisherId=10, bookNo=3], Book: BookId[publisherId=20, bookNo=1], Book Title: Salt and Stone
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Join.java
+            :start-after: start-retrieve-composite-association-join-em
+            :end-before: end-retrieve-composite-association-join-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Review: ReviewId[publisherId=30, bookNo=7], Book: BookId[publisherId=10, bookNo=2], Book Title: The Blue Door
+            Review: ReviewId[publisherId=30, bookNo=8], Book: BookId[publisherId=10, bookNo=2], Book Title: The Blue Door
+            Review: ReviewId[publisherId=20, bookNo=1], Book: BookId[publisherId=20, bookNo=1], Book Title: Salt and Stone
+            Review: ReviewId[publisherId=10, bookNo=3], Book: BookId[publisherId=20, bookNo=1], Book Title: Salt and Stone
+
+The ``Winter Light`` book does not appear in the results because it
+has no reviews.
+
+Because a composite key spans more than one field, the
+{+extension-short+} uses the ``let`` and ``pipeline`` form of the
+``$lookup`` stage. The ``let`` option binds each foreign key
+component to a variable. The ``pipeline`` option compares those
+variables to the components of the target ``_id`` sub-document in a
+``$expr`` operator:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$lookup": {
+       "from": "books",
+       "let": {
+         "v0_r1_0_book_publisherId": "$book.publisherId",
+         "v1_r1_0_book_bookNo": "$book.bookNo"
+       },
+       "pipeline": [
+         {
+           "$match": {
+             "$expr": {
+               "$and": [
+                 { "$eq": [ "$_id.publisherId", "$$v0_r1_0_book_publisherId" ] },
+                 { "$eq": [ "$_id.bookNo", "$$v1_r1_0_book_bookNo" ] }
+               ]
+             }
+           }
+         }
+       ],
+       "as": "#b1_0"
+     }
+   },
+   { "$unwind": "$#b1_0" }
+
+You can also use a ``JOIN FETCH`` clause to load a composite key
+association in the same query as its parent, as described in the
+:ref:`hibernate-query-join-fetch` section of this guide.
+
+.. _hibernate-query-composite-whole-id-on:
+
+Compare Whole Composite Identifiers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In an ``ON`` condition, you can compare two whole composite
+identifiers with the ``=`` operator. The {+extension-short+}
+decomposes the comparison into one equality check for each key
+component.
+
+You can use a whole-identifier comparison in a left outer join, and
+you can combine it with additional conditions by using the ``AND``
+operator, as in
+``ON b.id = r.id AND b.title = r.comment``.
+
+The following example joins each book to the review that has a
+matching identifier:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Join.java
+            :start-after: start-retrieve-composite-whole-id-session
+            :end-before: end-retrieve-composite-whole-id-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Book Title: Winter Light, Book: BookId[publisherId=10, bookNo=3], Review: ReviewId[publisherId=10, bookNo=3]
+            Book Title: Salt and Stone, Book: BookId[publisherId=20, bookNo=1], Review: ReviewId[publisherId=20, bookNo=1]
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Join.java
+            :start-after: start-retrieve-composite-whole-id-em
+            :end-before: end-retrieve-composite-whole-id-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Book Title: Winter Light, Book: BookId[publisherId=10, bookNo=3], Review: ReviewId[publisherId=10, bookNo=3]
+            Book Title: Salt and Stone, Book: BookId[publisherId=20, bookNo=1], Review: ReviewId[publisherId=20, bookNo=1]
+
+``The Blue Door`` does not appear in the results because no review
+shares its identifier.
+
+The {+extension-short+} translates the preceding join to the
+following stages:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$lookup": {
+       "from": "reviews",
+       "let": {
+         "v0_b1_0__id_publisherId": "$_id.publisherId",
+         "v1_b1_0__id_bookNo": "$_id.bookNo"
+       },
+       "pipeline": [
+         {
+           "$match": {
+             "$expr": {
+               "$and": [
+                 { "$eq": [ "$$v0_b1_0__id_publisherId", "$_id.publisherId" ] },
+                 { "$eq": [ "$$v1_b1_0__id_bookNo", "$_id.bookNo" ] }
+               ]
+             }
+           }
+         }
+       ],
+       "as": "#r1_0"
+     }
+   },
+   { "$unwind": "$#r1_0" }
+
+.. _hibernate-query-composite-key-limitations:
+
+Composite Key Join Limitations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Composite key joins have the following limitations:
+
+- You cannot apply the ``@JoinColumn`` or ``@JoinColumns``
+  annotation to an association whose target entity has a composite
+  key. The {+extension-short+} derives the foreign key field names
+  from the association name and throws a
+  ``FeatureNotSupportedException`` when your application starts if
+  you override them.
+
+- You cannot compare whole composite identifiers with an ordering
+  operator such as ``>`` or ``<`` in an ``ON`` condition. Compare
+  individual key components instead.
+
+- The {+extension-short+} does not support a ``@ManyToMany``
+  association when either entity has a composite key.
 
 .. _hibernate-query-nonequijoin-on:
 

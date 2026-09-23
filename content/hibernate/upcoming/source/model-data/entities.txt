@@ -15,6 +15,7 @@ Create Entities to Represent Collections
    :values: reference
  
 .. meta::
+   :description: Learn how to define {+extension-short+} entities that map to MongoDB collections, including BSON field types, composite primary keys, and embedded documents.
    :keywords: class, field, code example
 
 Overview
@@ -317,6 +318,112 @@ that includes the following information:
    To learn more about the fields used in the entity
    class definition, see the :ref:`hibernate-entities-mongodb-fields`
    section of this guide.
+
+.. _hibernate-entities-composite-keys:
+
+Composite Primary Keys
+----------------------
+
+To key an entity on more than one field, define a composite primary
+key. Create a plain ``@Embeddable`` class or record that holds the key
+components. Then, annotate your entity's identifier field with the
+``@jakarta.persistence.EmbeddedId`` annotation.
+
+The following ``BookId`` embeddable defines a key that consists of a
+``publisherId`` component and a ``bookNo`` component:
+
+.. code-block:: java
+   :copyable: false
+
+   @Embeddable
+   public record BookId(long publisherId, long bookNo) {}
+
+The following ``Book`` entity uses ``BookId`` as its primary key:
+
+.. code-block:: java
+   :copyable: false
+
+   @Entity(name = "Book")
+   @Table(name = "books")
+   public class Book {
+       @EmbeddedId
+       private BookId id;
+       private String title;
+
+       public Book() {
+
+       }
+
+       public Book(BookId id, String title) {
+           this.id = id;
+           this.title = title;
+       }
+
+       // Getter and setter methods
+
+   }
+
+You must assign composite key values in your application before you
+persist an entity. The {+extension-short+} does not generate composite
+key values.
+
+.. _hibernate-entities-composite-keys-storage:
+
+Composite Key Storage
+~~~~~~~~~~~~~~~~~~~~~
+
+The {+extension-short+} stores a composite key as an ``_id``
+sub-document. The preceding ``Book`` entity produces documents in the
+following format:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "_id": { "bookNo": 2, "publisherId": 10 },
+     "title": "My Book"
+   }
+
+The {+extension-short+} orders the components of the ``_id``
+sub-document alphabetically by component name, rather than in the
+order that you declare them. This order is the same whether you
+declare the embeddable as a class or as a record.
+
+.. important:: Component Order Affects Document Matching
+
+   MongoDB compares sub-documents by field order, so two ``_id``
+   values that contain the same components in a different order do not
+   match. Because the {+extension-short+} always writes components in
+   the same order, this behavior affects you only if you also read or
+   write these documents outside of the {+extension-short+}, such as
+   through the MongoDB Java driver.
+
+.. _hibernate-entities-composite-keys-limitations:
+
+Composite Key Limitations
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The {+extension-short+} throws a ``FeatureNotSupportedException``
+when your application starts if you declare a composite key in any of
+the following ways:
+
+- A non-aggregated identifier, declared either with the
+  ``@jakarta.persistence.IdClass`` annotation or with multiple ``@Id``
+  attributes. Declare the key with ``@EmbeddedId`` instead.
+
+- A ``@Struct`` aggregate embeddable as the identifier. Use a plain
+  ``@Embeddable`` instead.
+
+- A component that is not a basic value, such as a nested
+  ``@Embeddable`` or a collection. Every component of a composite key
+  must be a basic value.
+
+- An association within the identifier, including derived identity
+  that uses the ``@jakarta.persistence.MapsId`` annotation.
+
+You also cannot compare a whole composite identifier by using an
+ordering operator such as ``>`` or ``<``. Compare individual
+components instead.
 
 .. _hibernate-entities-embedded-data:
 
