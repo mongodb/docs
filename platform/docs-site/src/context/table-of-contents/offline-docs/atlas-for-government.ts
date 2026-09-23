@@ -123,7 +123,15 @@ export const toc: L1TocItem[] = [
           {
             label: 'Subscriptions and Billing',
             contentSite: 'cloudgov',
+            collapsible: true,
             url: '/docs/atlas/government/billing',
+            items: [
+              {
+                label: 'Access the FOCUS Cost and Usage Report in AtlasGov',
+                contentSite: 'cloudgov',
+                url: '/docs/atlas/government/billing/focus-report',
+              },
+            ],
           },
           {
             label: 'Support',

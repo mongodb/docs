@@ -119,6 +119,14 @@ const tocData: TocItem[] = [
         label: 'Subscriptions and Billing',
         contentSite: 'cloudgov',
         url: '/docs/atlas/government/billing',
+        collapsible: true,
+        items: [
+          {
+            label: 'Access the FOCUS Cost and Usage Report in AtlasGov',
+            contentSite: 'cloudgov',
+            url: '/docs/atlas/government/billing/focus-report',
+          },
+        ],
       },
       {
         label: 'Support',
