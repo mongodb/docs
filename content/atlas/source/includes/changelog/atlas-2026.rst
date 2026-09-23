@@ -1,3 +1,21 @@
+.. _atlas_2026_09:
+
+September 2026
+--------------
+
+- Adds support for streaming :ref:`Activity Feed events
+  <export-events>` to external tools. You can export events from
+  the Project Activity Feed to |aws| |s3|, {+az-bs+}, Datadog,
+  {+gcs+}, Splunk, or any OpenTelemetry-compatible destination, and
+  events from the Organization Activity Feed to
+  OpenTelemetry-compatible destinations.
+
+- Publishes the :ref:`end-of-life plan <pble-eol>` for
+  :ref:`Push-Based Log Export <mongodb-logs-push>`, which reaches
+  end of life on February 4, 2027 and stops accepting new
+  configurations on October 30, 2026. To migrate to external log
+  sinks, see :ref:`export-logs-external-sinks`.
+
 .. _atlas_2026_08:
 
 August 2026
@@ -88,8 +106,8 @@ June 2026
 ---------
 
 - Adds cross-region support for {+aws-pl+} when you
-  :ref:`export backup snapshots to Amazon S3 <cloud-provider-snapshot-export>`, 
-  so you can distribute snapshots to |s3| buckets in other 
+  :ref:`export backup snapshots to Amazon S3 <cloud-provider-snapshot-export>`,
+  so you can distribute snapshots to |s3| buckets in other
   |aws| regions while keeping all export
   traffic on private endpoints and private |ipaddr|\s.
 
@@ -110,7 +128,7 @@ May 2026
 --------
 
 - Adds support for {+aws-pl+} cross-region connectivity. You can now
-  :ref:`configure which regions can connect to your private endpoint service <manage-accepted-endpoint-regions>`. 
+  :ref:`configure which regions can connect to your private endpoint service <manage-accepted-endpoint-regions>`.
   Applications in different {+aws+} regions can now
   connect to your {+service+} clusters through private endpoints.
 
@@ -234,7 +252,7 @@ March 2026
   ``AP_EAST_1``, ``AP_SOUTH_2``, ``AP_SOUTHEAST_3``,
   ``AP_SOUTHEAST_7``, ``EU_SOUTH_1``, ``EU_CENTRAL_2``,
   ``IL_CENTRAL_1``, ``MX_CENTRAL_1``, ``ME_CENTRAL_1``, and
-  ``AP_SOUTHEAST_2``.  
+  ``AP_SOUTHEAST_2``.
 
 - Improves :ref:`disk auto-scaling <cluster-autoscaling>` to trigger
   during long-running operations such as shard drain operations,

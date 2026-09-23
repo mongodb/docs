@@ -14,9 +14,13 @@
   capture router-specific behavior such as routing of queries to 
   shards, sharding metadata refreshes, and general process diagnostics.
 
-- :guilabel:`MongoDB Router Audit Logs` Auditing logs emitted by 
-  |mongos| router processes, recording the 
-  same kinds of audited system events but from the router's perspective 
+- :guilabel:`MongoDB Router Audit Logs` Auditing logs emitted by
+  |mongos| router processes, recording the
+  same kinds of audited system events but from the router's perspective
   in a sharded deployment.
 
-To learn more, see :ref:`mongodb-logs`.
+- :guilabel:`Events` Events from the :guilabel:`Project Activity
+  Feed`, such as integration lifecycle events and log export status
+  changes. To learn more, see :ref:`export-events`.
+
+To learn more about MongoDB logs, see :ref:`mongodb-logs`.

@@ -41,6 +41,79 @@ Considerations
 - You can only push logs to an |aws| |s3| bucket from an ``M10+`` |service| {+cluster+}.
 - |service| doesn't export log lines over 10 MB.
 
+.. _pble-eol:
+
+End of Life and Migration
+-------------------------
+
+MongoDB is phasing out Push-Based Log Export in favor of
+:ref:`external log sinks <export-logs>`, which offer 1-minute export
+intervals, |aws| |kms| encryption, support for Multi-Region Access
+Points, additional destinations, and per-destination log type
+selection.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Date
+     - Milestone
+
+   * - February 4, 2026
+     - Push-Based Log Export deprecated.
+
+   * - September 2026
+     - External log sinks are generally available and enabled for
+       all accounts.
+
+   * - October 30, 2026
+     - Push-Based Log Export stops accepting new configurations.
+       Existing exports continue to run uninterrupted.
+
+   * - February 4, 2027
+     - Push-Based Log Export reaches end of life. MongoDB no longer
+       provides security updates, bug fixes, or technical support
+       for push-based log export. Existing configurations continue
+       to run until MongoDB retires the feature in coordination
+       with your account team.
+
+Migrate to External Log Sinks
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To migrate from Push-Based Log Export to an external log sink,
+complete the following steps.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Update your {+atlas-admin-api+} integrations.
+
+      Replace calls to
+      ``/api/atlas/v2/groups/{groupId}/pushBasedLogExport`` with
+      calls to ``/api/atlas/v2/groups/{groupId}/logIntegrations``.
+
+   .. step:: Create an |aws| |s3| log export integration.
+
+      Configure the integration to use the same |aws| |iam| role
+      and |s3| bucket as your push-based configuration. To preserve
+      the push-based daily-folder path structure, set
+      ``useLegacyPathStructure`` to ``true``. For configuration
+      steps, see :ref:`export-logs-external-sinks`.
+
+   .. step:: Validate log delivery.
+
+      Confirm that |service| delivers logs to your bucket as
+      expected. During this validation period, push-based log
+      export and the external log sink both deliver logs, so your
+      bucket contains duplicate entries.
+
+   .. step:: Disable push-based log export.
+
+      After you validate delivery, disable your push-based
+      configuration. The duplicate deliveries stop.
+
+If you encounter blockers during migration, contact |mdb-support|.
+
 Prerequisites
 -------------
 

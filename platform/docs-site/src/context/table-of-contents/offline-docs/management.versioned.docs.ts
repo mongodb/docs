@@ -1013,6 +1013,11 @@ export const toc: L1TocItem[] = [
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/export-logs-splunk',
                   },
+                  {
+                    label: 'Export Activity Feed Events',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/export-events',
+                  },
                 ],
               },
               {

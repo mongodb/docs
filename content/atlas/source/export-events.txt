@@ -1,0 +1,341 @@
+.. _export-events:
+
+=============================================
+Export Activity Feed Events to External Tools
+=============================================
+
+.. meta::
+   :description: Stream Atlas project- and organization-level Activity Feed events to Datadog, Splunk, cloud storage, or any OpenTelemetry-compatible tool for centralized audit and monitoring.
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can stream events from the {+service+} :ref:`Activity Feed
+<activity-feed>` to external tools, including Datadog, Splunk,
+customer-managed cloud storage, and any OpenTelemetry
+(OTel)-compatible destination. Exporting events enables centralized
+audit logging, long-term retention, and integration with your
+existing monitoring and observability tools.
+
+You can configure event export at the following levels:
+
+- **Project**: exports events from the :guilabel:`Project Activity
+  Feed`.
+- **Organization**: exports events from the :guilabel:`Organization
+  Activity Feed`.
+
+Unlike :ref:`system log export <export-logs>`, event export doesn't
+require an ``M10+`` cluster. Event export supports clusters of all
+tiers, including free and shared-tier clusters.
+
+Supported Destinations
+----------------------
+
+The available destinations depend on whether you configure the
+integration for a project or an organization. Project event export
+supports all log export destinations. In the initial release,
+organization event export supports only OTel-compatible destinations.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 20 20
+
+   * - Destination
+     - Project Events
+     - Organization Events
+
+   * - :ref:`AWS S3 <export-logs-external-sinks>`
+     - Yes
+     - No
+
+   * - :ref:`Azure Blob Storage <export-logs-azure>`
+     - Yes
+     - No
+
+   * - :ref:`Datadog <export-logs-datadog>`
+     - Yes
+     - No
+
+   * - :ref:`Google Cloud Storage <export-logs-gcs>`
+     - Yes
+     - No
+
+   * - :ref:`OpenTelemetry <export-logs-otel>`
+     - Yes
+     - Yes
+
+   * - :ref:`Splunk <export-logs-splunk>`
+     - Yes
+     - No
+
+Required Access
+---------------
+
+- To configure event export for a project, you must have
+  :authrole:`Project Owner` access to the project.
+
+- To configure event export for an organization, you must have
+  :authrole:`Organization Owner` access to the organization.
+
+Configure Project Event Export
+------------------------------
+
+To export project-level events, follow the configuration procedure
+for your destination and select :guilabel:`Events` under
+:guilabel:`Log Type` when prompted:
+
+- :ref:`AWS S3 <export-logs-external-sinks>`
+- :ref:`Azure Blob Storage <export-logs-azure>`
+- :ref:`Datadog <export-logs-datadog>`
+- :ref:`Google Cloud Storage <export-logs-gcs>`
+- :ref:`OpenTelemetry <export-logs-otel>`
+- :ref:`Splunk <export-logs-splunk>`
+
+You can combine :guilabel:`Events` with system log types in the same
+integration, or create separate integrations for logs and events.
+
+Configure Organization Event Export
+-----------------------------------
+
+Organization-level integrations export events only and support only
+OTel-compatible destinations. To configure an organization-level
+integration, see :ref:`export-logs-otel-org-events`.
+
+Configure Event Export with the API
+-----------------------------------
+
+To configure event export programmatically, use the log integration
+endpoints of the {+atlas-admin-api+}. To export events, set
+``logTypes`` to include ``EVENTS``.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 50 35
+
+   * - Method
+     - Endpoint
+     - Description
+
+   * - ``POST``
+     - ``/api/atlas/v2/groups/{groupId}/logIntegrations``
+     - Creates one project-level log integration.
+
+   * - ``GET``
+     - ``/api/atlas/v2/groups/{groupId}/logIntegrations``
+     - Returns all project-level log integrations.
+
+   * - ``GET``
+     - ``/api/atlas/v2/groups/{groupId}/logIntegrations/{id}``
+     - Returns one project-level log integration.
+
+   * - ``PUT``
+     - ``/api/atlas/v2/groups/{groupId}/logIntegrations/{id}``
+     - Updates one project-level log integration.
+
+   * - ``DELETE``
+     - ``/api/atlas/v2/groups/{groupId}/logIntegrations/{id}``
+     - Removes one project-level log integration.
+
+   * - ``POST``
+     - ``/api/atlas/v2/orgs/{orgId}/logIntegrations``
+     - Creates one organization-level log integration.
+
+   * - ``GET``
+     - ``/api/atlas/v2/orgs/{orgId}/logIntegrations``
+     - Returns all organization-level log integrations.
+
+   * - ``GET``
+     - ``/api/atlas/v2/orgs/{orgId}/logIntegrations/{id}``
+     - Returns one organization-level log integration.
+
+   * - ``PUT``
+     - ``/api/atlas/v2/orgs/{orgId}/logIntegrations/{id}``
+     - Updates one organization-level log integration.
+
+   * - ``DELETE``
+     - ``/api/atlas/v2/orgs/{orgId}/logIntegrations/{id}``
+     - Removes one organization-level log integration.
+
+.. note::
+
+   The organization-level endpoints are available in the preview
+   version of the {+atlas-admin-api+}. To use them, set the
+   ``Accept`` header to ``application/vnd.atlas.preview+json``.
+
+   Organization-level integrations support only the
+   ``OTEL_LOG_EXPORT`` integration type and the ``EVENTS`` log type.
+
+   Responses redact header values. When you update an integration,
+   sending a redacted value back unchanged leaves the stored value in
+   place. Supply a header value in full only when you change it.
+
+Example: Create a Project Event Export Integration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example creates a project-level OpenTelemetry
+integration that exports Activity Feed events:
+
+.. literalinclude:: /includes/export-events/create-project-events-integration.sh
+   :language: sh
+   :category: usage example
+
+Example: Create an Organization Event Export Integration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example creates an organization-level OpenTelemetry
+integration that exports Activity Feed events:
+
+.. literalinclude:: /includes/export-events/create-org-events-integration.sh
+   :language: sh
+   :category: usage example
+
+The endpoint returns the created integration:
+
+.. literalinclude:: /includes/export-events/org-integration-response.json
+   :language: json
+   :category: snippet
+   :copyable: false
+
+Event Format
+------------
+
+{+service+} delivers events to your destination as |json| payloads
+over OTLP/HTTP. Each exported event is an OTLP log record. The
+record's resource includes a ``service.name`` attribute set to
+``mongodb-atlas-events``, which identifies the Activity Feed event
+stream, so your OTel collector can route these events separately
+from other telemetry. {+service+} omits attributes with null values
+from exported events.
+
+Each exported event includes the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Field
+     - Description
+
+   * - ``timeUnixNano``
+     - Time when the event occurred, in nanoseconds since the Unix
+       epoch.
+
+   * - ``severityText``
+     - Severity of the event as text, such as ``INFO``.
+       Corresponds to the event severity shown in the Activity Feed.
+
+   * - ``severityNumber``
+     - Severity of the event as an OTLP severity number enum, such
+       as ``SEVERITY_NUMBER_INFO``.
+
+   * - ``body.stringValue``
+     - JSON-encoded event object. Contains the event ID (``_id``),
+       event type (``eventType``), creation time in milliseconds
+       since the Unix epoch (``createdDate``), project ID
+       (``projectId``, when applicable), and event-specific details
+       (``eventPayload``). The ``source`` object identifies what
+       initiated the event, such as a ``sourceType`` of ``USER``
+       and a ``sourceInfo`` object with the ``username``.
+
+   * - ``mongodb.event.id`` attribute
+     - Unique identifier for the event. Use this field to
+       deduplicate events.
+
+   * - ``mongodb.event.type`` attribute
+     - Activity Feed event type. For the list of event types, see
+       :ref:`atlas-alert-event-types`.
+
+   * - ``mongodb.event.payload.encoding`` attribute
+     - Encoding of the event payload in ``body.stringValue``, such
+       as ``json``.
+
+   * - ``mongodb.org.id`` attribute
+     - ID of the organization where the event occurred. Always
+       present for organization-level exports. Present on some
+       project-level events.
+
+   * - ``mongodb.project.id`` attribute
+     - ID of the project where the event occurred. Always present
+       for project-level exports. Present on some
+       organization-level events.
+
+The following example shows an exported project event:
+
+.. literalinclude:: /includes/export-events/event-record-example.json
+   :language: json
+   :category: snippet
+   :copyable: false
+
+Delivery Behavior
+-----------------
+
+- **Near real time.** Under normal conditions, {+service+} delivers
+  events in near real time. Batches flush approximately once per
+  minute.
+
+- **At-least-once delivery.** {+service+} might deliver the same
+  event more than once. Deduplicate events by using the unique
+  ``mongodb.event.id`` field.
+
+- **Buffering during outages.** If your destination is unavailable,
+  {+service+} buffers events and retries delivery. {+service+}
+  retains undelivered events for up to seven days. Events that
+  remain undelivered after seven days are permanently deleted.
+
+- **No automatic replay, backfill, or failure alerts.** The initial
+  release doesn't automatically replay events after persistent
+  failures and doesn't backfill historical events that occurred
+  before you configured the integration. To request redelivery of
+  events after a persistent failure, contact |mdb-support|.
+
+Destination Limits
+------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Destination
+     - Limits
+
+   * - Datadog
+     - Datadog accepts up to 5 MB and 1,000 events per request.
+
+   * - Splunk
+     - Splunk ingests events in batches through the HTTP Event
+       Collector (HEC). If one event in a batch is malformed,
+       Splunk rejects the entire batch.
+
+   * - OpenTelemetry
+     - Delivery depends on the availability and configuration of
+       your OTel collector. Endpoints must use |https| with a
+       certificate signed by a public Certificate Authority (CA).
+       Endpoint URLs can be up to 2,048 characters. You can
+       configure up to 10 headers with a combined size of up to
+       2 KB.
+
+Pricing
+-------
+
+Event export has no separate SKU or per-feature charge. However,
+exporting events can incur data transfer charges, which vary by
+destination, region, and cloud provider. To learn more, see
+:ref:`data-transfer-costs`.
+
+Learn More
+----------
+
+- :ref:`View the Activity Feed <activity-feed>`
+- :ref:`Export system logs to external services <export-logs>`
+- :ref:`Atlas event types <atlas-alert-event-types>`
+- `{+atlas-admin-api+} Specification
+  <https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/>`__
