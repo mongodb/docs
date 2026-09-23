@@ -27,6 +27,10 @@
      ]
    },
    {
+       "resource": { "db": "local", "collection": "oplog.rs" },
+       "actions": [ "find", "collStats" ]
+   },
+   {
        "resource": { "db": "admin", "collection": "system.version" },
        "actions": [ "find" ]
    },
