@@ -1,36 +1,25 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
-import { Body } from '@leafygreen-ui/typography';
-import { Link } from '@/mdx-components/Link';
-
-import { DOTCOM_BASE_URL } from '@/constants';
+import { css } from '@leafygreen-ui/emotion';
 import { ErrorPage } from '@/templates/error-template';
-import { TrackJS } from 'trackjs';
-import { useEffect } from 'react';
 import notFoundImage from '@/assets/404.png';
+import { NotFoundBody } from './NotFoundBody';
 
-const NotFoundBody = () => {
-  const pathname = usePathname();
-  const fromURL = `${DOTCOM_BASE_URL}${pathname}`;
-
-  useEffect(() => {
-    TrackJS.track(`page_not_found - fromURL: ${fromURL}`);
-  }, []);
-
-  return pathname ? (
-    <Body>
-      The page with the URL &ldquo;<Link to={fromURL}>{fromURL}</Link>
-      &rdquo; does not exist. It might have been moved or deleted.
-    </Body>
-  ) : (
-    <Body>The page might have been moved or deleted.</Body>
-  );
-};
+const centeredImageStyle = css`
+  align-self: center;
+  margin-left: 0;
+  max-width: 340px;
+`;
 
 export default function NotFound() {
   return (
-    <ErrorPage imageSrc={notFoundImage} imageAlt="Page not found" title="Sorry, we can't find that page.">
+    <ErrorPage
+      imageSrc={notFoundImage}
+      imageAlt="Page not found"
+      title="Sorry, we can't find that page."
+      imageStyle={centeredImageStyle}
+      showContactSupport={false}
+    >
       <NotFoundBody />
     </ErrorPage>
   );

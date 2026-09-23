@@ -9,12 +9,59 @@ import { Body } from '@leafygreen-ui/typography';
 import { theme } from '@/styles/theme';
 import { Link } from '@/mdx-components/Link';
 import layoutStyles from '@/app/layout.module.scss';
-import { ChatbotProvider } from '@/context/chatbot-context';
+import { ChatbotProvider, useChatbotModal } from '@/context/chatbot-context';
 
 import { DOTCOM_BASE_URL, DOTCOM_BASE_PREFIX } from '@/constants';
 import { ActionBar } from '@/mdx-components/ActionBar';
 
 const BASE_URL = `${DOTCOM_BASE_URL}/${DOTCOM_BASE_PREFIX}`;
+
+// leafygreen-ui/icon's Sparkle glyph only supports a single currentColor
+// fill, with no gradient hook -- reproduce its path data here so the "Chat
+// with AI Assistant" icon can match the button's green-to-blue gradient
+// border.
+const GradientSparkleIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <defs>
+      <linearGradient id="chatAiSparkleGradient" x1="0" y1="0" x2="16" y2="16">
+        <stop offset="0%" stopColor={palette.green.dark1} />
+        <stop offset="100%" stopColor={palette.blue.base} />
+      </linearGradient>
+    </defs>
+    <path
+      fill="url(#chatAiSparkleGradient)"
+      d="m6.273 2.893-.998 2.995c-.1.3-.336.536-.636.637l-2.995.998a.503.503 0 0 0 0 .954l2.995.998c.3.1.536.336.636.637l.998 2.995a.503.503 0 0 0 .955 0l.998-2.995c.1-.3.336-.536.636-.637l2.995-.998a.503.503 0 0 0 0-.954l-2.995-.998c-.3-.1-.536-.336-.636-.637l-.998-2.995a.503.503 0 0 0-.955 0M12.547 1.172l-.231.693c-.1.3-.336.536-.636.636l-.694.231c-.229.077-.229.401 0 .477l.694.231c.3.1.536.336.636.637l.23.693c.077.229.402.229.478 0l.231-.693c.1-.3.336-.536.636-.637l.693-.23c.23-.077.23-.401 0-.478l-.693-.23c-.3-.1-.536-.337-.636-.637l-.231-.693a.251.251 0 0 0-.477 0M12.547 11.23l-.231.693c-.1.3-.336.536-.636.636l-.694.232c-.229.076-.229.4 0 .477l.694.23c.3.1.536.337.636.637l.23.693c.077.23.402.23.478 0l.231-.693c.1-.3.336-.536.636-.636l.693-.231c.23-.077.23-.401 0-.477l-.693-.232c-.3-.1-.536-.335-.636-.636l-.231-.693a.251.251 0 0 0-.477 0"
+    />
+  </svg>
+);
+
+const getAiButtonDynamicStyle = (darkMode: boolean) => {
+  const baseBg = darkMode ? palette.black : palette.white;
+  const hoverBg = darkMode ? palette.gray.dark3 : palette.gray.light3;
+  const gradient = `linear-gradient(90deg, ${palette.green.dark1}, ${palette.blue.base})`;
+
+  return css`
+    align-items: center;
+    appearance: none;
+    background-clip: padding-box, border-box;
+    background-image: linear-gradient(${baseBg}, ${baseBg}), ${gradient};
+    background-origin: padding-box, border-box;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    color: ${darkMode ? palette.white : palette.black};
+    cursor: pointer;
+    display: inline-flex;
+    font-family: inherit;
+    font-size: ${theme.fontSize.small};
+    font-weight: 700;
+    gap: 8px;
+    padding: 8px 12px;
+
+    &:hover {
+      background-image: linear-gradient(${hoverBg}, ${hoverBg}), ${gradient};
+    }
+  `;
+};
 
 const errorBoxStyle = css`
   flex: 1 0.5 auto;
@@ -38,7 +85,6 @@ const getSupportLinkDynamicStyle = (darkMode: boolean) => css`
     margin-left: 0;
   }
 `;
-
 
 const imageContainerStyle = css`
   margin-left: -27px;
@@ -65,21 +111,31 @@ const errorTitleStyling = css`
 `;
 
 const linkContainerStyle = css`
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${theme.size.default};
   margin-top: ${theme.size.medium};
 
   @media ${theme.screenSize.upToSmall} {
-    display: flex;
+    align-items: flex-start;
     flex-direction: column;
   }
 `;
-
 
 export const notFoundContainerStyle = css`
   align-items: flex-start;
   display: flex;
   flex-direction: column;
   margin-bottom: ${theme.size.xxlarge};
-  grid-column: 6/-3;
+  margin-inline: auto;
+  grid-column: 3/-3;
+  max-width: 775px;
+  width: 100%;
+
+  @media only screen and (min-width: 1921px) {
+    max-width: 884px;
+  }
 
   @media ${theme.screenSize.upToXLarge} {
     grid-column: 4/-4;
@@ -116,10 +172,19 @@ type ErrorPageProps = {
   title: string;
   children?: React.ReactNode;
   imageStyle?: string;
-}
+  showContactSupport?: boolean;
+};
 
-const ErrorContent = ({ imageSrc, imageAlt, title, children, imageStyle }: ErrorPageProps) => {
+const ErrorContent = ({
+  imageSrc,
+  imageAlt,
+  title,
+  children,
+  imageStyle,
+  showContactSupport = true,
+}: ErrorPageProps) => {
   const { darkMode } = useDarkMode();
+  const { setChatbotClicked } = useChatbotModal();
 
   return (
     <div className={notFoundContainerStyle}>
@@ -144,26 +209,42 @@ const ErrorContent = ({ imageSrc, imageAlt, title, children, imageStyle }: Error
           >
             Go to Docs Home
           </Button>
-          <Link
-            to="https://support.mongodb.com/welcome"
-            hideExternalIcon={true}
-            className={cx(getSupportLinkDynamicStyle(darkMode))}
+          <button
+            type="button"
+            className={cx(getAiButtonDynamicStyle(darkMode))}
+            onClick={() => setChatbotClicked(true)}
           >
-            Contact Support →
-          </Link>
+            <GradientSparkleIcon />
+            Chat with AI Assistant
+          </button>
+          {showContactSupport && (
+            <Link
+              to="https://support.mongodb.com/welcome"
+              hideExternalIcon={true}
+              className={cx(getSupportLinkDynamicStyle(darkMode))}
+            >
+              Contact Support →
+            </Link>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-export const ErrorPage = ({ imageSrc, imageAlt, title, children, imageStyle }: ErrorPageProps) => {
+export const ErrorPage = ({ imageSrc, imageAlt, title, children, imageStyle, showContactSupport }: ErrorPageProps) => {
   return (
     <ChatbotProvider>
       <div className={layoutStyles['content-container']}>
         <ActionBar template="errorpage" sidenav={false} />
         <div className={wrapperStyle}>
-          <ErrorContent imageSrc={imageSrc} imageAlt={imageAlt} title={title} imageStyle={imageStyle}>
+          <ErrorContent
+            imageSrc={imageSrc}
+            imageAlt={imageAlt}
+            title={title}
+            imageStyle={imageStyle}
+            showContactSupport={showContactSupport}
+          >
             {children}
           </ErrorContent>
         </div>
