@@ -575,6 +575,30 @@ public class Query {
         }
         // end-comparison-projection-em
 
+        // Groups movies released between 1920 and 1924 by year and returns a count and total runtime for years with more than 300 minutes of runtime using a session
+        // start-aggregate-group-by-session
+        var aggregateResult = session.createQuery(
+                        "select year, count(*), sum(runtime) from Movie where year between 1920 and 1924 "
+                        + "group by year having sum(runtime) > 300 order by year",
+                        Object[].class)
+                .getResultList();
+        for (var row : aggregateResult) {
+            System.out.println("Year: " + row[0] + ", Count: " + row[1] + ", Total runtime: " + row[2]);
+        }
+        // end-aggregate-group-by-session
+
+        // Groups movies released between 1920 and 1924 by year and returns a count and total runtime for years with more than 300 minutes of runtime using an entity manager
+        // start-aggregate-group-by-em
+        var aggregateResult = entityManager.createQuery(
+                        "select m.year, count(m), sum(m.runtime) from Movie m where m.year between 1920 and 1924 "
+                        + "group by m.year having sum(m.runtime) > 300 order by m.year",
+                        Object[].class)
+                .getResultList();
+        for (var row : aggregateResult) {
+            System.out.println("Year: " + row[0] + ", Count: " + row[1] + ", Total runtime: " + row[2]);
+        }
+        // end-aggregate-group-by-em
+
         entityManager.getTransaction().commit();
         entityManager.close(); 
 
