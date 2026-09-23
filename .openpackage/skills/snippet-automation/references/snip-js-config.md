@@ -13,7 +13,7 @@ Only **source** docsets — those holding files with `:snippet-start:` markers �
 
 **Destination** docsets have none of these files. `search`, `vector-search`, and `kubernetes/upcoming` only receive generated `-snippet-from-*` output, which the source docset's sync writes directly into them. There is nothing to run in a destination, so do not add `snip.js` there or list it in the sync workflow.
 
-To make a destination into a source, copy `snip.js` and `package.json` in, point `DEFAULT_START_DIRECTORY` at the new path, add the docset to `.github/workflows/snippet-sync.yml`, then run `--init`.
+To make a destination into a source, follow the "Set up a new snippet source docset" workflow in SKILL.md (copy `snip.js`, add `package.json`, register in the sync workflow, then `--init`).
 
 ## Versioned Docsets: Only One Version Can Be a Source
 
@@ -25,14 +25,7 @@ Snippet markers in any other version are inert: no `snip.js`, no workflow covera
 
 ### At version flip
 
-When a version becomes the new `current`, snippet sharing does not carry over automatically. The incoming version needs:
-
-1. `snip.js` and `package.json` copied in, with `DEFAULT_START_DIRECTORY` pointed at the new path.
-2. The `paths` filter and the docset's `cd` target updated in `.github/workflows/snippet-sync.yml`.
-3. `:snippet-output:` tags restored on every source file that carries `:snippet-start:` — these are dropped when content is branched forward.
-4. A manifest created with `--init`, then `--register` or `--add` per file.
-
-Verify with `--validate` before relying on the sync. Any file with `:snippet-start:` and no `:snippet-output:` reports as invalid and is skipped.
+When a version becomes the new `current`, snippet sharing does not carry over automatically. Follow the "Set up a new snippet source docset" workflow in SKILL.md, which covers the flip case — including the flip-specific step of restoring the `:snippet-output:` tags that are dropped when content is branched forward.
 
 ## Configuration Constants
 

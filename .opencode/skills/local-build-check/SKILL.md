@@ -184,40 +184,6 @@ whether they exist on `origin/main`.
   immediately. Do not offer to fix pre-existing errors unless the user
   explicitly asks in a follow-up.
 
-### Handling "Page not included in any toctree" warnings
-
-This warning fires when a page isn't reachable from any ``.. toctree::``
-directive and isn't marked ``:orphan:``. It should always be **fixed**, not
-ignored — an unattached page won't appear in the site navigation for offline docs.
-
-There are two causes:
-
-**A — New page not wired in (INTRO warning on the new file itself):**
-The diff added a page that isn't yet in any toctree.
-
-1. Collect every introduced file with this warning.
-2. **Find the correct parent toctree file.** Walk up the file hierarchy
-   from the new page until you find the nearest RST file that contains a
-   ``.. toctree::`` directive covering that subdirectory. Add the new
-   page's filename (without extension) to that directive.
-3. Re-run the build check to confirm the warning is gone.
-
-**B — Existing pages detached by a malformed toctree entry:**
-The diff modified a file that contains a ``.. toctree::`` directive.
-A malformed entry (wrong path, missing title prefix, stray leading space)
-can silently drop pages from the tree, causing "not included" warnings on
-those pages even though they haven't changed. The script promotes these to
-INTRO when the diff actually touched lines inside a `.. toctree::` block (or
-added a whole new file containing one), so they appear as INTRO warnings in
-the log — not PRE. Editing a page that merely *has* a toctree elsewhere in it
-does not promote anything. Treat promoted warnings like any other introduced
-warning:
-
-1. Read the changed file's toctree entries.
-2. Check each entry for malformed syntax: missing title prefix, incorrect
-   path, stray indent, or bare filename without path.
-3. Fix any malformed entries, then re-run to confirm the warnings clear.
-
 **EOL version handling:** Running the build and surfacing diagnostics is
 read-only and safe for any version, including EOL (pre-7.0) directories.
 If the changed files are in an EOL version directory, run the check and
