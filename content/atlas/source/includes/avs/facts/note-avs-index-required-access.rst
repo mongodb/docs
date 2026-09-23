@@ -1,4 +1,0 @@
-.. note:: 
-
-   To create a {+avs+} index, you must have :authrole:`Project Data Access Admin` 
-   or higher access to the |service| project.
