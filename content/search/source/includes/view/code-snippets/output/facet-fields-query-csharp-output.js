@@ -1,0 +1,13 @@
+{ "count" : { "lowerBound" : NumberLong("510") },
+  "facet" : { "idFacet" : { "buckets" : [{ "_id" : "10082422", "count" : NumberLong("1") },
+                                         { "_id" : "10166986", "count" : NumberLong("1") },
+                                         { "_id" : "10266175", "count" : NumberLong("1") },
+                                         { "_id" : "10267144", "count" : NumberLong("1") },
+                                         { "_id" : "10317142", "count" : NumberLong("1") },
+                                         { "_id" : "10359729", "count" : NumberLong("1") },
+                                         { "_id" : "10392282", "count" : NumberLong("1") },
+                                         { "_id" : "10548991", "count" : NumberLong("1") },
+                                         { "_id" : "1067052", "count" : NumberLong("1") },
+                                         { "_id" : "1069531", "count" : NumberLong("1") }] },
+              "hostFacet" : { "buckets" : [{ "_id" : "false", "count" : NumberLong("370") },
+                                           { "_id" : "true", "count" : NumberLong("140") }] } } }

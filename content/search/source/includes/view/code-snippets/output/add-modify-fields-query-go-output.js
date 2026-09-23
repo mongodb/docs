@@ -1,0 +1,11 @@
+[{_id 10006546} {totalPrice 115}]
+[{_id 1001265} {totalPrice 215}]
+[{_id 10021707} {totalPrice 40}]
+[{_id 1003530} {totalPrice 270}]
+[{_id 10038496} {totalPrice 269}]
+[{_id 10051164} {totalPrice 250}]
+[{_id 10057447} {totalPrice 50}]
+[{_id 10057826} {totalPrice 205}]
+[{_id 10059244} {totalPrice 43}]
+[{_id 10066928} {totalPrice 140}]
+...

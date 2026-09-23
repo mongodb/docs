@@ -1,0 +1,11 @@
+[{price 80.00} {cleaning_fee 35.00}]
+[{price 140.00}]
+[{price 150.00}]
+[{price 121.00}]
+[{price 185.00}]
+[{price 117.00} {cleaning_fee 0.00}]
+[{price 135.00}]
+[{price 149.00} {cleaning_fee 30.00}]
+[{price 105.00}]
+[{price 100.00}]
+...
