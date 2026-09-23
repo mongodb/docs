@@ -609,11 +609,108 @@ This metric shows the storage capacity.
 Use the following PromQL expression to alert on this condition:
 
 .. code-block:: text
- 
+
    mongot_system_disk_space_data_path_free_bytes / mongot_system_disk_space_data_path_total_bytes
 
 If this metric drops below 30% free, consider having a planning conversation to
 increase storage.
+
+Search Availability and Envoy Routing
+-------------------------------------
+
+Envoy exposes metrics for the availability of search and vector
+search, and for routing failures between ``mongod`` and ``mongot``.
+Configure alerts for the following conditions. Use the equivalent
+metric names and labels exposed by your Envoy deployment.
+
+Search Availability Below 70%
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the following metrics:
+
+- ``envoy_mongorpc_grpc_transcode_request_failed_total``
+- ``envoy_mongorpc_grpc_transcode_request_total``
+- ``mongot_index_stats_query_internallyFailedQueries_total``
+
+Calculate availability using the following:
+
+.. code-block:: shell
+
+   1 - (Envoy failed requests + mongot internal failures) / Envoy total requests
+
+Treat a sustained value below ``0.70`` as a high-severity alert.
+
+High Request-Failure Rate
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use ``envoy_mongorpc_grpc_transcode_request_failed_total`` and
+``envoy_mongorpc_grpc_transcode_request_total``. Alert when the
+following ratio is greater than ``0.10`` on at least 20% of active
+instances with more than 1 QPS, and at least 10 instances meet the
+QPS condition:
+
+.. code-block:: text
+
+   rate(envoy_mongorpc_grpc_transcode_request_failed_total[5m])
+   / rate(envoy_mongorpc_grpc_transcode_request_total[5m]) > 0.10
+
+Too Few xDS Connections
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Use ``envoy_cluster_upstream_rq_active{envoy_cluster_name="xds_cluster"}``
+to identify Envoys with no active xDS upstream requests. Alert when
+fewer than 70% of Search Envoy instances are connected to the
+Search xDS server.
+
+Short-Lived Envoy Instances
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use ``envoy_server_uptime``. Treat ``envoy_server_uptime < 1800``
+as an instance-level signal and alert when more than 20% of Envoy
+instances meet the condition. Treat this as a supporting signal
+because small regions can produce false positives.
+
+mongot Process Silence
+~~~~~~~~~~~~~~~~~~~~~~
+
+Use ``mongot_process_uptime_seconds``. Alert when
+``absent_over_time(mongot_process_uptime_seconds[15m])`` is ``true``
+for an instance that is expected to be running and scraped.
+
+Low Data-Path Disk Space
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use ``mongot_system_disk_space_data_path_free_bytes`` and
+``mongot_system_disk_space_data_path_total_bytes``. Alert when:
+
+.. code-block:: text
+
+   mongot_system_disk_space_data_path_free_bytes
+   / mongot_system_disk_space_data_path_total_bytes < 0.10
+
+Correlate this alert with replication pause, stale-index, and
+process-crash signals.
+
+Replication Lag
+~~~~~~~~~~~~~~~
+
+Use ``mongot_index_stats_indexing_replicationLagMs``. Treat a
+maximum lag above 1800000 milliseconds (30 minutes) and rising as
+an early warning. Escalate above 7200000 milliseconds (2 hours)
+when the value continues to rise.
+
+Fleet-Wide Native Memory Pressure
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use ``mongot_system_memory_phys_inUse_bytes``,
+``mongot_jvm_memory_used_bytes{area="heap"}``, and
+``mongot_system_memory_phys_total_bytes`` to calculate memory
+outside the JVM heap. Investigate when more than 5% of ``mongot``
+instances exceed 50% native-memory usage for 55 minutes.
+
+These thresholds are runbook starting points. Tune them for the
+size and workload of your deployment, and publish each alert only
+when the corresponding metric is available.
 
 Learn More
 ----------

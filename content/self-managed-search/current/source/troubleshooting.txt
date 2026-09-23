@@ -723,47 +723,169 @@ Resolve
 Index Reaches the Lucene Document Limit
 ---------------------------------------
 
-A single index exceeds the Lucene maximum document count.
+A single unpartitioned search index exceeds Lucene's maximum
+document count and can no longer index new documents.
+
+This scenario applies to ``mongot`` deployments that you run
+directly on Linux or in a Docker container. If you deploy
+``mongot`` with the {+k8s-op+}, see the `{+k8s-op+} documentation
+<https://www.mongodb.com/docs/kubernetes/current/>`__ for
+{+k8s+}-specific troubleshooting.
+
+Before you change the partition count, confirm the following:
+
+- Your ``mongot`` version supports increasing ``numPartitions``
+  for an existing search index.
+- You have enough free space to retain the existing index while
+  the replacement index builds. Plan for temporary storage for
+  both index generations.
+- You have recorded baseline query latency and replication health
+  for the affected index.
+- You know the current index definition and the target
+  ``numPartitions`` value.
+
+If the index is approaching the limit but is still indexing
+normally, start the procedure before the index reaches the limit.
+If the index has already reached the limit, expect the existing
+index to remain stale until the replacement index finishes
+building.
 
 Symptoms
-   - A very large index stops making forward progress near the
-     Lucene document-count limit.
+   - The index stops making forward progress near the Lucene
+     document-count limit.
    - Logs show ``java.lang.IllegalArgumentException: number of
      documents in the index cannot exceed 2147483519``.
    - ``mongot_index_stats_numLuceneMaxDocs`` approaches the hard
-     limit and may stop publishing after the limit is hit.
-   - The index-manager state changes to a failed state.
+     limit or stops advancing after the limit is reached.
+   - The index manager reports a failed state.
+   - Search queries continue to return results, but newly
+     inserted or updated documents are not reflected in the
+     index.
 
 Common causes
    #. A single unpartitioned index exceeded Lucene's maximum
-      document count of ``2147483519``.
-   #. A new index was accepted and began building but failed
-      once it hit the same hard limit.
+      document count.
+   #. Lucene accepts a new index and begins building, but reaches
+      the same limit before the build completed.
+   #. The index was partitioned with too few partitions for the
+      expected document volume.
+   #. The index reached the limit before partitioning was
+      planned, leaving insufficient time to complete the
+      replacement build before the existing index became stale.
 
 Diagnose
-   Watch ``mongot_index_stats_numLuceneMaxDocs`` as the primary
-   preventative signal for this failure mode, and check the log
-   for the exact exception string:
+   #. Check the index status from ``mongosh``:
 
-   .. code-block:: text
+      .. code-block:: javascript
 
-      java.lang.IllegalArgumentException: number of documents in the index cannot exceed 2147483519
+         db.<collection>.getSearchIndexes()
+
+   #. Review ``mongot_index_stats_numLuceneMaxDocs`` for the
+      affected index.
+   #. Search the ``mongot`` log for the following string:
+
+      .. code-block:: text
+
+         java.lang.IllegalArgumentException: number of documents in the index cannot exceed 2147483519
+
+   #. Check the index manager state and confirm whether the index
+      is in ``INITIAL_SYNC``, ``STEADY_STATE``, or a failed
+      state.
+   #. Check available space on the ``mongot`` data path. A
+      partitioning operation builds a replacement index and can
+      temporarily require substantially more storage than the
+      steady-state index.
+   #. Review query latency and replication lag before the change.
+      Partitioned indexes can introduce query fan-out and affect
+      search performance, particularly for workloads that use
+      facets, sorts, or other operations that coordinate work
+      across partitions.
 
 Resolve
-   Partition the index so that each partition stays under the
-   Lucene document-count limit, then rebuild the index with
-   ``numPartitions`` set appropriately. Expect trade-offs:
-   partitioning can require query fan-out across multiple
-   partitions and may affect search performance.
+   Partition the index so that each partition remains below
+   Lucene's document-count limit, then rebuild the index with an
+   appropriate ``numPartitions`` value.
 
-   .. code-block:: json
+   .. important::
 
-      {
-        "numPartitions": 4,
-        "mappings": {
-          "dynamic": true
-        }
-      }
+      Increasing ``numPartitions`` starts an asynchronous index
+      rebuild. Updating the index definition does not make the
+      new partitioned index immediately queryable.
+
+   #. **Choose a partition count.** Choose a partition count that
+      keeps the projected document count per partition
+      comfortably below the Lucene limit. Account for future
+      growth, deleted documents that have not yet been purged,
+      rebuild duration, and available disk capacity.
+
+      As a planning guideline, begin evaluating partitioning well
+      before the index approaches the Lucene document-count limit
+      of ``2147483519`` documents. Treat an index near the limit
+      as urgent because the existing index can become stale before
+      the replacement build completes.
+
+      .. note::
+
+         Increasing the number of partitions increases index
+         capacity, but it can also increase query latency.
+         Benchmark representative production queries before and
+         after the change.
+
+   #. **Update the index definition.** Reissue the
+      ``updateSearchIndex`` command with the existing index
+      definition and a higher ``numPartitions`` value. Preserve
+      the rest of the index definition.
+
+      The following example increases an index from one partition
+      to four:
+
+      .. code-block:: javascript
+
+         db.runCommand({
+           updateSearchIndex: "myCollection",
+           name: "mySearchIndex",
+           definition: {
+             mappings: {
+               dynamic: true
+             },
+             numPartitions: 4
+           }
+         })
+
+      The command updates the definition and starts the
+      replacement build. The build runs asynchronously in the
+      background.
+
+   #. **Monitor the replacement build.** Monitor the index until
+      the replacement build completes:
+
+      - Check the index state with
+        ``db.<collection>.getSearchIndexes()``.
+      - Confirm that document counts continue to increase during
+        ``INITIAL_SYNC`` or ``BUILDING``.
+      - Monitor ``mongot_index_stats_numLuceneMaxDocs``.
+      - Monitor disk usage on the ``mongot`` data path.
+      - Monitor CPU, memory, storage performance, and replication
+        lag.
+      - Monitor query latency while the existing index serves
+        production traffic.
+
+      A large replacement build can take a substantial amount of
+      time. The new index is not queryable while its initial sync
+      is in progress.
+
+      Do not treat an accepted ``updateSearchIndex`` command as
+      proof that the index is already partitioned. Verify the
+      index state and wait for the replacement build to complete.
+
+After the replacement index becomes ready, measure query latency.
+Partitioning might require ``mongot`` to coordinate work across
+multiple partitions, which can increase latency for some
+workloads, including facet-heavy queries, sorted queries, and
+queries that combine range or wildcard predicates with sorting.
+Do not use a single latency estimate for all workloads. Measure
+the queries that matter to your application, including p50, p95,
+and p99 latency, before and after the change.
 
 Automated Embedding Failures
 ----------------------------

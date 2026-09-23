@@ -113,6 +113,20 @@ MongoDB Community:
             numConcurrentChangeStreams: <int>
             numIndexingThreads: <int>
             numConcurrentSynonymSyncs: <int>
+            pauseAllInitialSyncs: <boolean>
+            pauseInitialSyncOnIndexIds: <list of strings>
+            changeStreamMaxTimeMs: <int>
+            changeStreamCursorMaxTimeSec: <int>
+            numChangeStreamDecodingThreads: <int>
+         initialSync: <object>
+            bufferless: <object>
+               enableNaturalOrderScan: <boolean>
+      diskMonitor: <object>
+         pauseReplicationThreshold: <double>
+         resumeReplicationThreshold: <double>
+         crashThreshold: <double>
+         pauseInitialSyncThreshold: <double>
+         resumeInitialSyncThreshold: <double>
       autoEmbedding: <object>
          materializedView: <object>
             numConcurrentChangeStreams: <int>
@@ -122,6 +136,17 @@ MongoDB Community:
             matViewWriterMaxConnections: <int>
             mvWriteRateLimitRps: <int>
             embeddingProviderRpsLimit: <int>
+            maxInFlightEmbeddingGetMores: <int>
+            embeddingGetMoreBatchSize: <int>
+            changeStreamMaxTimeMs: <int>
+            changeStreamCursorMaxTimeSec: <int>
+            numChangeStreamDecodingThreads: <int>
+            requestRateLimitBackoffMs: <int>
+            globalMemoryBudgetHeapPercent: <int>
+            perBatchMemoryBudgetHeapPercent: <int>
+      cursor: <object>
+         idleCursorHandlingRateMs: <int>
+         cursorIdleTimeMs: <int>
       ftdc: <object>
          enabled: <boolean>
          directorySizeMb: <int>
@@ -813,6 +838,127 @@ Advanced Settings
    the embedding provider. This is a node-level limit. Must be a
    positive integer no greater than ``100``.
 
+.. setting:: advancedConfigs.autoEmbedding.materializedView.maxInFlightEmbeddingGetMores
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: ``3``
+
+   Maximum number of embedding-provider ``getMore`` operations
+   that can be in flight concurrently for the materialized view.
+
+   Lower values reduce concurrent provider and memory pressure but
+   can reduce embedding throughput. Higher values can improve
+   throughput but may increase resource usage. Must be a positive
+   integer.
+
+.. setting:: advancedConfigs.autoEmbedding.materializedView.embeddingGetMoreBatchSize
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: ``2000``
+
+   Number of documents returned in each embedding-provider
+   ``getMore`` batch.
+
+   Larger batches can improve throughput by reducing request
+   overhead but might increase memory usage and request latency.
+   Must be a positive integer.
+
+.. setting:: advancedConfigs.autoEmbedding.materializedView.changeStreamMaxTimeMs
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: ``700``
+
+   Maximum time, in milliseconds, that a materialized-view
+   change-stream request can run before it times out.
+
+   Lower values can improve responsiveness to stalled operations
+   but might increase request and resume frequency. Higher values
+   can reduce request churn but might delay stall detection. Must be
+   a positive integer.
+
+.. setting:: advancedConfigs.autoEmbedding.materializedView.changeStreamCursorMaxTimeSec
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: ``1200``
+
+   Maximum lifetime, in seconds, of a change-stream cursor used by
+   materialized-view replication.
+
+   Higher values can reduce cursor recreation. Lower values can
+   detect long-lived or stalled cursors sooner. Must be a positive
+   integer.
+
+.. setting:: advancedConfigs.autoEmbedding.materializedView.numChangeStreamDecodingThreads
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: ``3``
+
+   Number of threads used to decode change-stream events for the
+   materialized view. Higher values can improve event-processing
+   throughput but increase CPU usage. Must be a positive integer.
+
+.. setting:: advancedConfigs.autoEmbedding.materializedView.requestRateLimitBackoffMs
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: ``250``
+
+   Backoff interval, in milliseconds, that ``mongot`` applies after
+   embedding requests are rate-limited.
+
+   Increasing this value reduces repeated requests and provider
+   pressure during throttling but can increase embedding update
+   latency. Must be a positive integer.
+
+.. setting:: advancedConfigs.autoEmbedding.materializedView.globalMemoryBudgetHeapPercent
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: ``80``
+
+   Percentage of the ``mongot`` heap that automated-embedding
+   materialized-view processing can use globally.
+
+   Lower values reserve more heap for other ``mongot`` operations
+   but can reduce automated-embedding throughput. Higher values can
+   increase throughput but reduce memory available to other
+   operations. Must be a positive integer.
+
+.. setting:: advancedConfigs.autoEmbedding.materializedView.perBatchMemoryBudgetHeapPercent
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: ``40``
+
+   Percentage of the ``mongot`` heap that a single
+   automated-embedding batch can use.
+
+   This setting limits the memory impact of an individual batch.
+   Configure it consistently with
+   ``advancedConfigs.autoEmbedding.materializedView.globalMemoryBudgetHeapPercent``.
+   Must be a positive integer.
+
 Advanced Indexing Settings
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -951,6 +1097,208 @@ Advanced Replication Settings
 
    Maximum number of synonym source collections that can sync
    concurrently. Must be a positive integer.
+
+.. setting:: advancedConfigs.replication.mongodb.pauseAllInitialSyncs
+
+   *Type*: Boolean
+
+   *Necessity*: Optional
+
+   *Default*: ``false``
+
+   Flag that pauses all new initial-sync operations when set to
+   ``true``. Use this setting to prevent additional index builds
+   from increasing disk or resource usage during recovery or
+   maintenance.
+
+   This setting applies across the deployment and does not provide
+   per-host control. To apply a change to this setting, perform a
+   rolling restart of your ``mongot`` instances.
+
+.. setting:: advancedConfigs.replication.mongodb.pauseInitialSyncOnIndexIds
+
+   *Type*: Array of Strings
+
+   *Necessity*: Optional
+
+   *Default*: None
+
+   Index IDs for which ``mongot`` pauses initial sync. Use this
+   setting to defer selected index builds while allowing other
+   indexes to continue synchronizing.
+
+   Each value must identify a search index. This setting applies
+   across the deployment rather than to an individual host. To
+   apply a change to this setting, perform a rolling restart of
+   your ``mongot`` instances.
+
+.. setting:: advancedConfigs.replication.mongodb.changeStreamMaxTimeMs
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: ``500``
+
+   Maximum time, in milliseconds, that ``mongot`` allows an
+   individual change-stream request to run before it times out.
+
+   Lower values can cause ``mongot`` to retry or resume change
+   streams more frequently. Higher values can reduce request churn
+   but may delay detection of stalled operations. Must be a
+   positive integer.
+
+.. setting:: advancedConfigs.replication.mongodb.changeStreamCursorMaxTimeSec
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: ``900``
+
+   Maximum lifetime, in seconds, of a replication change-stream
+   cursor.
+
+   Adjust this value only when tuning change-stream resource usage
+   or cursor stability. Higher values can reduce cursor recreation.
+   Lower values can detect long-lived or stalled cursors sooner.
+   Must be a positive integer.
+
+.. setting:: advancedConfigs.replication.mongodb.numChangeStreamDecodingThreads
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: ``4``
+
+   Number of threads ``mongot`` uses to decode replication
+   change-stream events. Higher values can improve change-stream
+   processing throughput but increase CPU usage. Must be a
+   positive integer.
+
+.. setting:: advancedConfigs.replication.initialSync.bufferless.enableNaturalOrderScan
+
+   *Type*: Boolean
+
+   *Necessity*: Optional
+
+   *Default*: ``false``
+
+   Flag that enables natural-order scans for bufferless initial
+   sync when set to ``true``.
+
+   Natural-order scans change how ``mongot`` reads documents during
+   initial sync. Evaluate the effect on initial-sync performance
+   and source-node load before you enable this setting in
+   production.
+
+Advanced Disk Monitor Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The disk-monitor settings use a fraction of disk capacity. For
+example, ``0.90`` represents 90% disk usage. Configure the
+resume thresholds below their corresponding pause thresholds to
+prevent repeated pause and resume cycles.
+
+.. note::
+
+   Changes to these settings take effect only after you restart
+   ``mongot``.
+
+.. setting:: advancedConfigs.diskMonitor.pauseReplicationThreshold
+
+   *Type*: Double
+
+   *Necessity*: Optional
+
+   *Default*: ``0.90``
+
+   Disk-utilization threshold at which ``mongot`` pauses
+   replication. Pausing replication prevents additional replicated
+   index data from increasing disk usage while the host is under
+   disk pressure.
+
+.. setting:: advancedConfigs.diskMonitor.resumeReplicationThreshold
+
+   *Type*: Double
+
+   *Necessity*: Optional
+
+   *Default*: ``0.85``
+
+   Disk-utilization threshold below which ``mongot`` resumes
+   replication after disk pressure causes replication to pause.
+   Set this value lower than
+   ``advancedConfigs.diskMonitor.pauseReplicationThreshold``.
+
+.. setting:: advancedConfigs.diskMonitor.crashThreshold
+
+   *Type*: Double
+
+   *Necessity*: Optional
+
+   *Default*: ``0.95``
+
+   Critical disk-utilization threshold at which ``mongot`` crashes
+   to protect the host from disk exhaustion. Set this threshold as
+   a last-resort safety limit above the pause thresholds.
+
+.. setting:: advancedConfigs.diskMonitor.pauseInitialSyncThreshold
+
+   *Type*: Double
+
+   *Necessity*: Optional
+
+   *Default*: ``0.85``
+
+   Disk-utilization threshold at which ``mongot`` pauses
+   initial-sync operations. Use this setting to prevent new index
+   builds from consuming additional disk space when the host is
+   already under disk pressure.
+
+.. setting:: advancedConfigs.diskMonitor.resumeInitialSyncThreshold
+
+   *Type*: Double
+
+   *Necessity*: Optional
+
+   *Default*: ``0.80``
+
+   Disk-utilization threshold below which ``mongot`` resumes
+   initial-sync operations after disk pressure causes them to
+   pause. Set this value lower than
+   ``advancedConfigs.diskMonitor.pauseInitialSyncThreshold``.
+
+Advanced Cursor Settings
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. setting:: advancedConfigs.cursor.idleCursorHandlingRateMs
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: ``1800000``
+
+   Interval, in milliseconds, at which ``mongot`` checks for idle
+   cursors. Lower values allow ``mongot`` to identify idle cursors
+   sooner but increase cursor-management work. Must be a positive
+   integer.
+
+.. setting:: advancedConfigs.cursor.cursorIdleTimeMs
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: ``3600000``
+
+   Duration, in milliseconds, that a cursor can remain idle before
+   ``mongot`` treats it as idle. Lower values allow ``mongot`` to
+   reclaim cursor resources sooner but may affect clients that
+   intentionally wait between requests. Must be a positive
+   integer.
 
 .. _mongot-advanced-ftdc-settings:
 
