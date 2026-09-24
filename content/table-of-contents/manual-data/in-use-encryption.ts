@@ -12,16 +12,6 @@ const tocData: TocItem[] = [
         contentSite: 'docs',
         url: '/docs/:version/core/queryable-encryption/reference/compatibility',
       },
-      {
-        label: 'Queryable Encryption Limitations',
-        contentSite: 'docs',
-        url: '/docs/:version/core/queryable-encryption/reference/limitations',
-      },
-      {
-        label: 'CSFLE Limitations',
-        contentSite: 'docs',
-        url: '/docs/:version/core/csfle/reference/limitations',
-      },
     ],
   },
   {
@@ -162,6 +152,11 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: 'Queryable Encryption Limitations',
+            contentSite: 'docs',
+            url: '/docs/:version/core/queryable-encryption/reference/limitations',
+          },
+          {
             label: 'Supported Operations',
             contentSite: 'docs',
             url: '/docs/:version/core/queryable-encryption/reference/supported-operations',
@@ -275,6 +270,11 @@ const tocData: TocItem[] = [
         url: '/docs/:version/core/csfle/reference',
         collapsible: true,
         items: [
+          {
+            label: 'CSFLE Limitations',
+            contentSite: 'docs',
+            url: '/docs/:version/core/csfle/reference/limitations',
+          },
           {
             label: 'CSFLE Encryption Schemas',
             contentSite: 'docs',
