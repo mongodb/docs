@@ -25,7 +25,7 @@ public class NativeQuery {
             pipeline: [
                 { $match: { title: { $eq: "The Parent Trap" } } },
                 { $sort: { year: -1 } },
-                { $project: { title: 1, plot: 1, year: 1, runtime: 1, cast: 1 } }
+                { $project: { _id: 1, title: 1, plot: 1, year: 1, runtime: 1, cast: 1 } }
             ]
         }
         """;
@@ -45,7 +45,7 @@ public class NativeQuery {
             pipeline: [
                 { $match: { title: { $eq: :movieTitle } } },
                 { $sort: { year: -1 } },
-                { $project: { title: 1, plot: 1, year: 1, runtime: 1, cast: 1 } }
+                { $project: { _id: 1, title: 1, plot: 1, year: 1, runtime: 1, cast: 1 } }
             ]
         }
         """;
@@ -66,7 +66,7 @@ public class NativeQuery {
             pipeline: [
                 { $match: { title: { $eq: ?1 } } },
                 { $sort: { year: -1 } },
-                { $project: { title: 1, plot: 1, year: 1, runtime: 1, cast: 1 } }
+                { $project: { _id: 1, title: 1, plot: 1, year: 1, runtime: 1, cast: 1 } }
             ]
         }
         """;
@@ -91,6 +91,7 @@ public class NativeQuery {
                     runtimeHours: { $divide: [ "$runtime", 60 ] }
                 }},
                 { $project: {
+                    _id: 1,
                     title: 1,
                     plot: 1,
                     year: 1,
@@ -127,6 +128,7 @@ public class NativeQuery {
                 },
                 {
                     $project: {
+                        _id: 1,
                         title: 1,
                         plot: 1,
                         year: 1,
