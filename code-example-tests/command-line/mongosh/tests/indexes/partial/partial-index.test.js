@@ -20,8 +20,8 @@ describe("partial index examples", () => {
          try { db.movies.dropIndex({ title: 1 }); } catch(e) {}
          try { db.movies.dropIndex({ title: 1, genres: 1 }); } catch(e) {}
          try { db.users.dropIndex('name_1'); } catch(e) {}
-         try { db.users.dropIndex('name_partial_unique_idx'); } catch(e) {}
-         try { db.users.deleteMany({ email: { \\$in: ['jon1@example.com', 'sansa@example.com', 'jon2@example.com'] } }); } catch(e) {}
+         try { db.users.dropIndex('email_1'); } catch(e) {}
+         try { db.users.deleteMany({ email: { \\$in: ['jon@example.com'] } }); } catch(e) {}
       `;
 
       const command = `mongosh "${mongoUri}" --eval "${cleanupCommands}"`;
