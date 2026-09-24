@@ -42,21 +42,24 @@ operations for operators or expressions that don't support ``BinData`` values.
 
 .. _qe-commands-supported-bson-types:
 
-Supported and Unsupported BSON Types
-------------------------------------
+BSON Types
+----------
 
-{+qe+} supports :ref:`configuring <qe-create-encryption-schema>` the
-equality query type ``queryType: "equality"`` for all :ref:`BSON types
-<bson-types>` **except** the following:
+The BSON types you can encrypt for a field depend on the field's
+:ref:`query type <qe-supported-query-operators>`.
+
+{+qe+} supports :ref:`configuring <qe-create-encryption-schema>`
+``queryType: "equality"`` for all :ref:`BSON types <bson-types>`
+**except** the following:
 
 - ``array``
 - ``decimal``: Decimal (IEEE 754 Decimal128)
 - ``double``: Double (IEEE 754 Binary64)
 - ``object``
 
-{+qe+} supports :ref:`configuring <qe-create-encryption-schema>` the
-range query type ``queryType: "range"`` for the following :ref:`BSON
-types <bson-types>`:
+{+qe+} supports :ref:`configuring <qe-create-encryption-schema>`
+``queryType: "range"`` for the following :ref:`BSON types
+<bson-types>`:
 
 - ``date``: UTC DateTime (Int64)
 - ``decimal``: Decimal (IEEE 754 Decimal128)
@@ -69,9 +72,43 @@ types <bson-types>`:
    The query type is the :ref:`configuration
    <qe-create-encryption-schema>` of the encrypted index, not the set
    of query operators by itself. In particular, ``decimal`` and
-   ``double`` support the range query type ``queryType: "range"``, and
-   MongoDB evaluates equality queries on these fields using the range
-   index.
+   ``double`` support ``queryType: "range"``, and MongoDB evaluates
+   equality queries on these fields using the range index.
+
+{+qe+} supports :ref:`configuring <qe-create-encryption-schema>`
+``queryType: "prefix"``, ``queryType: "suffix"``, and
+``queryType: "substring"`` for the ``string`` BSON type only.
+
+If you set ``queryType: "none"``, MongoDB encrypts the field but
+does not make it queryable. {+qe+} supports ``queryType: "none"`` for
+all :ref:`BSON types <bson-types>` **except** the
+:ref:`unsupported BSON types <qe-unsupported-bson-types>` listed below,
+including ``array`` and ``object``.
+
+.. _qe-unsupported-bson-types:
+
+Unsupported BSON Types
+~~~~~~~~~~~~~~~~~~~~~~
+
+Regardless of query type, {+qe+} does not support encrypting the
+following BSON types because it doesn't adequately hide the type
+information for these values:
+
+- :bsontype:`MaxKey`
+- :bsontype:`MinKey`
+- ``null``
+- ``undefined``
+
+{+qe+} supports automatic and explicit encryption of ``array`` fields
+if the query type is ``none``. You can encrypt an array, but not the
+fields within it, and you can't query an encrypted array.
+
+{+qe+} does not support read or write operations on an encrypted field
+where the operation compares the encrypted field to the following value
+types:
+
+- ``array``
+- ``object``
 
 CRUD
 ----
@@ -504,26 +541,3 @@ even if using a supported aggregation expression:
               "$otherEncryptedField"
             ]
           }
-
-Unsupported Field Types
------------------------
-
-Drivers configured for automatic encryption do not support any
-read or write operation that requires encrypting the following value
-types, because {+qe+} doesn't adequately hide the type information for these values:
-
-- :bsontype:`MaxKey`
-- :bsontype:`MinKey`
-- ``null``
-- ``undefined``
-
-{+qe+} supports automatic and explicit encryption of array fields if the query
-type is ``none``. You can encrypt an array, but not the fields within it, and
-you can't query an encrypted array.
-
-{+qe+} does not support read or write operations on an
-encrypted field where the operation compares the encrypted field to the
-following value types:
-
-- ``array``
-- ``object``
