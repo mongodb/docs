@@ -1,0 +1,347 @@
+.. _arch-center-is-connected-ev-charging:
+
+===================================
+Connected EV Charging Data Platform
+===================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta:: 
+   :description: Explore a unified operational data layer for EV charging with MongoDB. Connect charging data, improve availability and performance, and scale connected mobility experiences.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol 
+
+Unify EV charging data and operations with MongoDB to build scalable,
+responsive charging experiences and adapt quickly as your infrastructure
+grows.
+
+**Use cases:** `Internet of Things
+<https://www.mongodb.com/solutions/use-cases/internet-of-things>`__
+
+**Industries:** `Manufacturing & Mobility
+<https://www.mongodb.com/solutions/industries/manufacturing>`__
+
+**Products and tools:** `MongoDB Atlas
+<https://www.mongodb.com/products/platform/atlas-database>`__, `MongoDB
+Search <https://www.mongodb.com/products/platform/atlas-search>`__,
+`MongoDB Time Series
+<https://www.mongodb.com/products/capabilities/time-series>`__
+
+**Partners:** `Vercel <https://cloud.mongodb.com/ecosystem/vercel>`__,
+`Apollo GraphQL <https://cloud.mongodb.com/ecosystem/apollographql>`__
+
+Solution Overview
+-----------------
+
+Whether you are an automotive OEM, an energy or utility provider, or a
+mobility tech startup, connected electric vehicle (EV) charging requires
+bringing together data that changes at different speeds and powers
+different parts of the charging experience.
+
+This data includes:
+
+- Station locations and connector capabilities.
+
+- Station availability and active sessions.
+
+- Pricing.
+
+- Operational events.
+
+As charging networks grow, keeping this data consistent and accessible
+across driver-facing and operational experiences becomes increasingly
+important for delivering reliable services and making informed
+decisions.
+
+This solution demonstrates how a unified operational data layer can
+bring these workloads together in MongoDB. A shared data foundation
+supports real-time charging experiences and provides operators with a
+consistent view of station and session activity.
+
+Within a single application architecture, the solution manages:
+
+- Station discovery and availability.
+
+- Charging reservations and active sessions.
+
+- Operational events and telemetry.
+
+The approach uses the MongoDB document model to organize data around
+application access patterns, while geospatial queries support
+location-aware discovery, conditional updates help maintain accurate
+availability, and change streams connect operational state changes with
+downstream processing. Consolidating operational data into one flexible
+platform allows your team to build connected charging applications that
+adapt as networks, data requirements, and operational needs grow.
+
+.. figure:: /includes/images/industry-solutions/connected-ev-charging1.svg
+   :figwidth: 1200px
+   :alt: Overview of the data platform serving the EV charging ecosystem
+   :lightbox:
+
+   Figure 1. Overview of the data platform serving the EV charging ecosystem
+
+Reference Architectures
+-----------------------
+
+The solution brings driver experiences, charging operations, station
+simulation, and operational data together through a unified app
+architecture.
+
+.. figure:: /includes/images/industry-solutions/connected-ev-charging2.svg
+   :figwidth: 1200px
+   :alt: EV charging demo architecture
+   :lightbox:
+
+   Figure 2. EV charging demo architecture
+
+The Next.js app provides two primary experiences:
+
+- **Driver App**: Used for station discovery and charging-session
+  management.
+
+- **Operations Control Center**: Used to monitor real-time charging
+  activity and operational data.
+
+The app communicates bidirectionally with the Charging Station
+Management System (CSMS), built with Apollo GraphQL. The CSMS provides
+the app contract for charging workflows and connects app actions with
+charging-station operations. The app also integrates with location-based
+services through OpenStreetMap to support station discovery and
+location-aware experiences.
+
+A Python FastAPI simulator represents charging-station activity and
+generates session telemetry. :ref:`MongoDB change streams
+<changeStreams>` capture state changes in the charging session for the
+CSMS-to-simulator workflow. The simulator uses these events to:
+
+- Start or stop processing a charging session.
+
+- Calculate the simulated charging state.
+
+- Generate session telemetry.
+
+MongoDB provides the unified operational data platform across the
+architecture. It integrates all data required for the end-to-end
+charging experience—from driver and vehicle context to charging
+infrastructure, session activity, operational events, and high-volume
+telemetry.
+
+As your solution evolves, MongoDB capabilities such as :ref:`geospatial
+queries <geospatial-queries>`, :ref:`time series collections
+<manual-timeseries-landing>`, :ref:`Atlas Search <fts-top-ref>`, and
+:ref:`Online Archive <online-archive-overview>` support varied data and
+access patterns.
+
+Data Model Approach
+-------------------
+
+The data model follows the way EV charging applications actually work:
+drivers need a complete view of a charging session, station searches
+need location and availability together, while telemetry needs to be
+handled as a high-volume stream. The MongoDB document model lets you
+shape each collection around those specific access patterns.
+
+The solution uses the following core collections:
+
+- ``users`` and ``vehicles``: Store driver and vehicle information.
+
+- ``chargingStations`` and ``chargingPoints``: Track station discovery
+  and Electric Vehicle Supply Equipment (EVSE) state.
+
+- ``chargingSessions``: Manage bookings, active sessions, and charging
+  history.
+
+- ``incidents``: Track operational issues.
+
+- ``telemetry``: Store high-volume charging data.
+
+The document model makes the solution intuitive and easier to implement.
+
+For example, the ``chargingSessions`` collection uses the Extended
+Reference Pattern to keep session history data together. Alongside
+references to the underlying vehicle and station, the session stores
+small snapshots of the relevant details.
+
+.. code-block:: JSON
+
+   {
+     "status": "COMPLETED",
+     "stationSnapshot": {
+       "name": "Downtown Mall Charging",
+       "addressShort": "Main St 10, Zurich",
+       "chargingPointLabel": "Bay 1"
+     },
+     "vehicleSnapshot": {
+       "make": "BMW",
+       "model": "i3"
+     },
+     "charging": {
+       "energyDeliveredKwh": 52.4
+     },
+     "pricingSnapshot": {
+       "currency": "EUR",
+       "priceCentsPerKwh": 55
+     },
+     "cost": {
+       "totalCents": 2882
+     }
+   }
+
+When drivers view their session history, the app retrieves this
+information from a single document without joining multiple collections.
+The snapshots also preserve historical session context even if the
+underlying station or vehicle data changes later.
+
+The same principle simplifies station discovery. The
+``chargingStations`` collection stores its location as :ref:`GeoJSON
+<geospatial-indexes-store-geojson>`, enabling MongoDB geospatial queries
+to find stations near a driver's location. It also maintains computed
+availability counts and a bounded projection of charging-point
+capabilities, so common map and search queries can be answered directly
+from the station document.
+
+.. code-block:: JSON
+
+   {
+     "name": "Downtown Mall Charging",
+     "location": {
+       "type": "Point",
+       "coordinates": [8.5417, 47.3769]
+     },
+     "availability": {
+       "availableNowPoints": 7
+     },
+     "chargingPoints": [
+       {
+         "connectors": [
+           { "type": "CCS", "power": 150 },
+           { "type": "TYPE2", "power": 22 }
+         ]
+       }
+     ]
+   }
+
+Frequently changing operational state stays in the separate
+``chargingPoints`` collection to avoid updating station documents
+whenever a charging point's status changes. This separation also keeps
+the model efficient as telemetry volume grows.
+
+Telemetry has a different access pattern: it is high-volume, time-based,
+and continuously growing. The solution keeps telemetry separate and uses
+a :ref:`MongoDB time series collection <manual-timeseries-landing>` with
+a :ref:`TTL index <index-feature-ttl>` to automatically enforce
+retention policies. For longer-lived data, :ref:`MongoDB Online Archive
+<online-archive-overview>` moves older data to lower-cost storage,
+providing a native way to manage the data lifecycle without building
+separate archival workflows.
+
+.. code-block:: JSON
+
+   {
+     "timestamp": "2026-02-12T08:11:58Z",
+     "meta": {
+       "stationId": "65c8f2e2d2f4c3a9b3b9b001",
+       "chargingPointId": "65c8f2e2d2f4c3a9b3b9b101",
+       "stationCode": "station-001",
+       "chargingPointCode": "cp_station-001_01"
+     },
+     "messageType": "SESSION_SAMPLE",
+     "ok": true,
+     "powerKw": 120,
+     "energyKwhDelta": 0.4,
+     "voltageV": 400,
+     "currentA": 300,
+     "temperatureC": 31.2
+   }
+
+These patterns keep the implementation focused on the application's
+actual workflows while enabling each data type to scale and evolve
+independently. The result is a practical document model that reduces app
+complexity without sacrificing flexibility.
+
+Build the Solution
+------------------
+
+To run the solution locally, complete the following steps:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Set up the environment.
+
+      Install Docker, clone the repository, and copy ``.env.example`` to
+      ``.env`` to add your MongoDB Connection String.
+
+   .. step:: Start the solution.
+
+      Run ``make build`` to start the app, the CSMS backend, and the
+      charging station simulator. The solution automatically seeds the
+      database the first time you run it.
+
+   .. step:: Explore the app.
+
+      Open ``http://localhost:3000`` to test the driver journey: find a
+      nearby station, filter charging points, make a reservation, start
+      a session, and report an incident.
+
+   .. step:: Explore operations.
+
+      Switch to the Operations Control Center to view session activity,
+      telemetry, utilization, incidents, and analytics as charging
+      activity changes.
+
+For the complete setup instructions, local development options,
+environment variables, and additional commands, see the `GitHub
+repository
+<https://github.com/mongodb-industry-solutions/leafy-ev-charging>`__.
+
+Key Learnings
+-------------
+
+- **Unify EV charging data and operations**: Consolidate driver
+  experiences, charging infrastructure, operational data, and telemetry
+  onto a single operational data platform to improve visibility and
+  simplify architecture.
+
+- **Simplify development and evolution**: Use the MongoDB flexible
+  document model and schema patterns to build and adapt charging
+  workflows as requirements change.
+
+- **Build for availability and scale**: Combine real-time data,
+  event-driven processing, and native MongoDB capabilities to support
+  responsive charging experiences as infrastructure and data volumes
+  grow.
+
+- **Extend operations with AI**: Use connected station, session,
+  incident, and telemetry context as a foundation for AI-assisted
+  support and operational decision workflows.
+
+Authors
+-------
+
+- Rami Pinto, MongoDB
+- Humza Akhtar, MongoDB
+- Daniel Jamir, MongoDB
+
+Learn More
+----------
+
+- `Plugging the Gap in Automotive Data Interoperability
+  <https://www.mongodb.com/company/blog/innovation/plugging-gap-in-automotive-data-interoperability>`__
+
+- `LeafyCharge EV Charging Demo GitHub Repository
+  <https://github.com/mongodb-industry-solutions/leafy-ev-charging>`__
+
+- `EnBW deploys MongoDB to help lead the charge to carbon neutrality net
+  zero <https://www.mongodb.com/solutions/customer-case-studies/enbw>`__
+
+- `Noodoe leverages MongoDB Atlas on AWS & GCP as core database to crack
+  the global market of EV charging station management
+  <https://www.mongodb.com/solutions/customer-case-studies/noodoe>`__

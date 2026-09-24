@@ -280,6 +280,11 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/architecture/:version/solutions-library/car-manual-explorer',
           },
           {
+            label: 'Connected EV Charging Data Platform',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/connected-ev-charging',
+          },
+          {
             label: 'Context-Aware RAG for Technical Docs',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/rag-technical-documents',
