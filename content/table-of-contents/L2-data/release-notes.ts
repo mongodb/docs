@@ -21,6 +21,98 @@ const tocData: TocItem[] = [
             url: '/docs/:version/release-notes/9.0-compatibility',
           },
           {
+            label: 'Upgrade 8.3 to 9.0',
+            contentSite: 'docs',
+            url: '/docs/:version/release-notes/9.0-upgrade',
+            collapsible: true,
+            items: [
+              {
+                label: 'Standalone',
+                contentSite: 'docs',
+                url: '/docs/:version/release-notes/9.0-upgrade-standalone',
+              },
+              {
+                label: 'Replica Set',
+                contentSite: 'docs',
+                url: '/docs/:version/release-notes/9.0-upgrade-replica-set',
+              },
+              {
+                label: 'Sharded Cluster',
+                contentSite: 'docs',
+                url: '/docs/:version/release-notes/9.0-upgrade-sharded-cluster',
+              },
+            ],
+          },
+          {
+            label: 'Upgrade 8.0 to 9.0',
+            contentSite: 'docs',
+            url: '/docs/:version/release-notes/9.0-upgrade-from-8.0',
+            collapsible: true,
+            items: [
+              {
+                label: 'Standalone',
+                contentSite: 'docs',
+                url: '/docs/:version/release-notes/9.0-upgrade-from-8.0-standalone',
+              },
+              {
+                label: 'Replica Set',
+                contentSite: 'docs',
+                url: '/docs/:version/release-notes/9.0-upgrade-from-8.0-replica-set',
+              },
+              {
+                label: 'Sharded Cluster',
+                contentSite: 'docs',
+                url: '/docs/:version/release-notes/9.0-upgrade-from-8.0-sharded-cluster',
+              },
+            ],
+          },
+          {
+            label: 'Downgrade 9.0 to 8.3',
+            contentSite: 'docs',
+            url: '/docs/:version/release-notes/9.0-downgrade',
+            collapsible: true,
+            items: [
+              {
+                label: 'Standalone',
+                contentSite: 'docs',
+                url: '/docs/:version/release-notes/9.0-downgrade-standalone',
+              },
+              {
+                label: 'Replica Set',
+                contentSite: 'docs',
+                url: '/docs/:version/release-notes/9.0-downgrade-replica-set',
+              },
+              {
+                label: 'Sharded Cluster',
+                contentSite: 'docs',
+                url: '/docs/:version/release-notes/9.0-downgrade-sharded-cluster',
+              },
+            ],
+          },
+          {
+            label: 'Downgrade 9.0 to 8.0',
+            contentSite: 'docs',
+            url: '/docs/:version/release-notes/9.0-downgrade-to-8.0',
+            collapsible: true,
+            items: [
+              {
+                label: 'Standalone',
+                contentSite: 'docs',
+                url: '/docs/:version/release-notes/9.0-downgrade-to-8.0-standalone',
+              },
+              {
+                label: 'Replica Set',
+                contentSite: 'docs',
+                url: '/docs/:version/release-notes/9.0-downgrade-to-8.0-replica-set',
+              },
+              {
+                label: 'Sharded Cluster',
+                contentSite: 'docs',
+                url: '/docs/:version/release-notes/9.0-downgrade-to-8.0-sharded-cluster',
+              },
+            ],
+          },
+          {
             label: 'Changelog',
             contentSite: 'docs',
             url: '/docs/:version/release-notes/9.0-changelog',
