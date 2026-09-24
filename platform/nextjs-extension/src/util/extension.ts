@@ -145,4 +145,6 @@ export type ConfigEnvironmentVariables = Partial<{
 	REVIEW_ID: string;
 	DEPLOY_ID: string;
 	UNIFIED_TOC_JSON_PATH: string;
+	// Content tree this site builds, e.g. "manual" or "pymongo-driver/current"
+	DOCS_PROJECT: string;
 }>;

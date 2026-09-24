@@ -18,6 +18,14 @@ import fs from 'node:fs/promises';
 const DIR_NAME_TO_PREFIX_PATH = path.join('platform', 'docs-nextjs', 'src', 'generated', 'dir-name-to-prefix.json');
 
 /**
+ * Absolute path override for that map. The Netlify SSG build writes its own
+ * copy under `platform/docs-site/src/generated/` (see
+ * platform/nextjs-ssg-extension/src/index.ts), not under docs-nextjs, so the
+ * in-build caller points us at that one instead of the local-CLI default.
+ */
+const DIR_NAME_TO_PREFIX_PATH_ENV = 'LLMS_DIR_NAME_TO_PREFIX_PATH';
+
+/**
  * Strips a leading "docs" (or "docs/") segment from a docset prefix.
  * Ported from platform/nextjs-extension/src/blobUploads/utils.ts so this
  * package doesn't need a workspace dependency on nextjs-extension.
@@ -36,9 +44,14 @@ export type DirNameToPrefix = Record<string, string>;
  * `pnpm dev`/`pnpm build` in docs-nextjs. If it hasn't been generated yet,
  * throws with instructions rather than silently falling back to a hardcoded,
  * potentially stale mapping.
+ *
+ * Pass `overridePath` (or set LLMS_DIR_NAME_TO_PREFIX_PATH) to read an
+ * already-generated copy from somewhere else, e.g. the one the Netlify SSG
+ * build writes under platform/docs-site/src/generated/.
  */
-export async function loadDirNameToPrefixMap(monorepoPath: string): Promise<DirNameToPrefix> {
-  const mapPath = path.join(monorepoPath, DIR_NAME_TO_PREFIX_PATH);
+export async function loadDirNameToPrefixMap(monorepoPath: string, overridePath?: string): Promise<DirNameToPrefix> {
+  const mapPath =
+    overridePath ?? process.env[DIR_NAME_TO_PREFIX_PATH_ENV] ?? path.join(monorepoPath, DIR_NAME_TO_PREFIX_PATH);
   let raw: string;
   try {
     raw = await fs.readFile(mapPath, 'utf-8');

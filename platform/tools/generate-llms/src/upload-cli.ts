@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
- * Uploads every generated llms*.txt file (plus the hand-maintained master
- * index) to S3, at the same path each file is served from in production
+ * Uploads every generated llms*.txt file (plus the hand-maintained root
+ * llms.txt) to S3, at the same path each file is served from in production
  * (e.g. "docs/manual/manual-1-llms.txt" for
  * https://www.mongodb.com/docs/manual/manual-1-llms.txt). See
  * uploadManifest.ts for how each file's key is derived, and its
- * MASTER_INDEX_KEY/EXCLUDED_FROM_UPLOAD comments for why the `landing`
+ * ROOT_LLMS_KEY/EXCLUDED_FROM_UPLOAD comments for why the `landing`
  * project is skipped.
  *
  * Defaults to a dry run: prints what would be uploaded without touching S3.
@@ -38,7 +38,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolveMonorepoPath } from './monorepo.js';
 import { putTextFile } from './s3Client.js';
-import { buildUploadManifest, type UploadEntry } from './uploadManifest.js';
+import { buildUploadManifest, rootLlmsUploadEntry, type UploadEntry } from './uploadManifest.js';
 
 const DEFAULT_OUTPUT_DIR = 'llms-output';
 const DEFAULT_BUCKET = 'docs-mongodb-org-dotcomstg';
@@ -92,7 +92,7 @@ function parseArgs(argv: string[]): CliArgs {
 }
 
 function printHelp(): void {
-  console.log(`Upload generated llms.txt files (and the master index) to S3.
+  console.log(`Upload generated llms.txt files (and the root llms.txt) to S3.
 
 Usage:
   upload-llms [monorepo-path] [flags]
@@ -123,7 +123,12 @@ async function main(): Promise<void> {
   // Matches generate's own outputDir handling: relative to CWD, not
   // monorepoPath, so `pnpm upload` picks up the same llms-output/ directory
   // `pnpm generate` just wrote to.
-  const entries = await buildUploadManifest(monorepoPath, args.outputDir);
+  // The root llms.txt is opted into here, by the one command that means to
+  // publish it; buildUploadManifest only ever returns per-project files.
+  const entries = [
+    await rootLlmsUploadEntry(args.outputDir),
+    ...(await buildUploadManifest(monorepoPath, args.outputDir)),
+  ].sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
 
   if (!args.execute) {
     printPlan(entries, args.bucket, false);

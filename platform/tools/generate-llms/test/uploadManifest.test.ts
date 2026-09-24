@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { buildUploadManifest } from '../src/uploadManifest';
+import { buildUploadManifest, rootLlmsUploadEntry } from '../src/uploadManifest';
 
 async function writeFile(filePath: string, content: string): Promise<void> {
   await fs.mkdir(path.dirname(filePath), { recursive: true });
@@ -26,9 +26,9 @@ describe('buildUploadManifest', () => {
       }),
     );
 
-    // Master index: hand-maintained, always uploaded to "docs/llms.txt". Links
+    // Root llms.txt: hand-maintained, always uploaded to "docs/llms.txt". Links
     // every project generated below so unrelated tests don't also trip the
-    // "missing from master index" warning tested further down.
+    // "missing from root llms.txt" warning tested further down.
     await writeFile(
       path.join(outputDir, 'llms.txt'),
       '# MongoDB Developer Documentation\n\n' +
@@ -47,7 +47,7 @@ describe('buildUploadManifest', () => {
     await writeFile(path.join(outputDir, 'manual', 'manual-2-llms.txt'), '# Manual Part 2\n');
 
     // The landing project's own generated file would collide with the
-    // master index's key ("docs/llms.txt") and must be excluded.
+    // root llms.txt's key ("docs/llms.txt") and must be excluded.
     await writeFile(path.join(monorepoPath, 'content', 'landing', 'source', 'index.txt'), 'Landing\n=======\n');
     await writeFile(path.join(outputDir, 'landing', 'llms.txt'), '# MongoDB Documentation\n');
   });
@@ -56,18 +56,50 @@ describe('buildUploadManifest', () => {
     await fs.rm(monorepoPath, { recursive: true, force: true });
   });
 
-  it('includes the master index at the reserved docs/llms.txt key', async () => {
+  it('limits entries to one project and omits the root llms.txt when publishing a single project', async () => {
+    const entries = await buildUploadManifest(monorepoPath, outputDir, {
+      forProject: 'manual',
+    });
+
+    expect(entries.map((entry) => entry.key)).toEqual([
+      'docs/manual/manual-1-llms.txt',
+      'docs/manual/manual-2-llms.txt',
+    ]);
+  });
+
+  it('reads the root llms.txt from rootLlmsPath when generating into a throwaway directory', async () => {
+    const buildOutputDir = path.join(monorepoPath, 'llms-build-output');
+    await writeFile(path.join(buildOutputDir, 'go-driver', 'llms.txt'), '# Go Driver\n');
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const entries = await buildUploadManifest(monorepoPath, buildOutputDir, {
+      forProject: 'go-driver',
+      rootLlmsPath: path.join(outputDir, 'llms.txt'),
+    });
+
+    expect(entries.map((entry) => entry.key)).toEqual(['docs/drivers/go/current/llms.txt']);
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
+  it('never includes the root llms.txt in the per-project manifest', async () => {
     const entries = await buildUploadManifest(monorepoPath, outputDir);
-    const masterEntry = entries.find((e) => e.key === 'docs/llms.txt');
-    expect(masterEntry).toBeDefined();
-    expect(masterEntry?.localPath).toBe(path.join(outputDir, 'llms.txt'));
+    expect(entries.some((e) => e.key === 'docs/llms.txt')).toBe(false);
+  });
+
+  it('returns the root llms.txt only when a caller asks for it explicitly', async () => {
+    await expect(rootLlmsUploadEntry(outputDir)).resolves.toEqual({
+      localPath: path.join(outputDir, 'llms.txt'),
+      key: 'docs/llms.txt',
+    });
   });
 
   it('excludes the landing project even though it is mapped and has generated output', async () => {
     const entries = await buildUploadManifest(monorepoPath, outputDir);
     expect(entries.filter((e) => e.localPath.includes(path.join('landing', 'llms.txt')))).toHaveLength(0);
-    // Exactly one entry resolves to the master index's key: landing's file was excluded, not merged/overwritten.
-    expect(entries.filter((e) => e.key === 'docs/llms.txt')).toHaveLength(1);
+    // Nothing resolves to the root llms.txt's reserved key: landing's file
+    // was excluded, not merged over the hand-maintained file.
+    expect(entries.filter((e) => e.key === 'docs/llms.txt')).toHaveLength(0);
   });
 
   it('builds a key from the url slug and version for a single-file versioned project', async () => {
@@ -111,9 +143,20 @@ describe('buildUploadManifest', () => {
     expect(entries.some((e) => e.localPath.includes('orphaned'))).toBe(false);
   });
 
-  it('throws if the master index file does not exist', async () => {
+  it('throws when a caller asks for a root llms.txt that does not exist', async () => {
     await fs.rm(path.join(outputDir, 'llms.txt'));
-    await expect(buildUploadManifest(monorepoPath, outputDir)).rejects.toThrow(/Master index not found/);
+    await expect(rootLlmsUploadEntry(outputDir)).rejects.toThrow(/Root llms.txt not found/);
+  });
+
+  it('warns but still builds a manifest when the root llms.txt is absent', async () => {
+    await fs.rm(path.join(outputDir, 'llms.txt'));
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const entries = await buildUploadManifest(monorepoPath, outputDir, { forProject: 'go-driver' });
+
+    expect(entries.map((e) => e.key)).toEqual(['docs/drivers/go/current/llms.txt']);
+    expect(warn.mock.calls.flat().join(' ')).toContain('skipping the "missing from root llms.txt" check');
+    warn.mockRestore();
   });
 
   it('throws on an S3 key collision instead of silently letting one entry overwrite the other', async () => {
@@ -142,15 +185,15 @@ describe('buildUploadManifest', () => {
     expect(keys).toEqual([...keys].sort());
   });
 
-  it('does not warn when every generated file is linked from the master index', async () => {
+  it('does not warn when every generated file is linked from the root llms.txt', async () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     await buildUploadManifest(monorepoPath, outputDir);
     expect(warnSpy).not.toHaveBeenCalledWith(expect.stringContaining('WARNING'));
     warnSpy.mockRestore();
   });
 
-  it('warns (but still returns all entries) when a generated file is not linked from the master index', async () => {
-    // Master index is missing manual's part 2 link, simulating a project
+  it('warns (but still returns all entries) when a generated file is not linked from the root llms.txt', async () => {
+    // Root llms.txt is missing manual's part 2 link, simulating a project
     // that grew more parts without the hand-maintained index being updated.
     await writeFile(
       path.join(outputDir, 'llms.txt'),

@@ -29,11 +29,12 @@ import { getDirNameToPrefix } from "../../nextjs-extension/src/blobUploads/mapFi
 import { resolvePathsToBuild } from "./util/resolvePathsToBuild";
 import { handleSearchManifests } from "../../nextjs-extension/src/searchManifests/index";
 import { handleOfflineDownloads } from "./offline-docs/index";
+import { handleLlmsTxt } from "./llms-txt/index";
+import { APP_DIR } from "./constants";
 
 import path from "node:path";
 import fs from "node:fs/promises";
 
-const APP_DIR = "docs-site";
 const TOML_SEARCH_MAX_DEPTH = 5;
 const ENVS_TO_RUN = ["dotcomprd", "dotcomstg"];
 
@@ -218,9 +219,18 @@ extension.addBuildEventHandler(
 				dbEnvVars,
 				configEnvironment,
 			});
+
+			// A stale llms.txt is never a reason to fail a deploy: the
+			// weekly root llms.txt pass and a manual `pnpm publish-project`
+			// both recover from a skipped publish.
+			try {
+				await handleLlmsTxt(utils, configEnvironment);
+			} catch (error) {
+				console.error("[llms-txt] Failed to publish llms.txt:", error);
+			}
 		} else {
 			console.log(
-				"Skipping search manifest and offline docs generation for env ",
+				"Skipping search manifest, offline docs, and llms.txt generation for env ",
 				configEnvironment.ENV,
 			);
 			return;

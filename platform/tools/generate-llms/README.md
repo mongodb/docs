@@ -36,7 +36,7 @@ part; an array gives one description per part (a single-entry array is
 reused for all parts). Missing entries fall back to
 `"INSERT DESCRIPTION HERE"`.
 
-## The master index (`llms-output/llms.txt`)
+## The root llms.txt (`llms-output/llms.txt`)
 
 **Created and maintained entirely by hand** - it's the only file under
 `llms-output/` that `pnpm generate` doesn't touch. It's what agents read
@@ -49,7 +49,7 @@ from it yet:
 
 ```bash
 pnpm upload
-WARNING: 1 file(s) are not linked from the master index (llms.txt) ...
+WARNING: 1 file(s) are not linked from the root llms.txt (llms.txt) ...
   - https://www.mongodb.com/docs/manual/manual-9-llms.txt
 ```
 
@@ -73,8 +73,41 @@ pnpm upload -- --bucket docs-mongodb-org-prd --execute
 
 Each file uploads to its production path (e.g. `manual`'s part 1 ->
 `docs/manual/manual-1-llms.txt`); see `src/uploadManifest.ts`. `landing` is
-excluded since it would otherwise collide with the master index's own
+excluded since it would otherwise collide with the root llms.txt's own
 `docs/llms.txt` key.
+
+## Publish one project (what deploys run)
+
+`pnpm publish-project` generates and uploads a single project's llms.txt
+file(s) in one step, and never uploads the root llms.txt:
+
+```bash
+pnpm publish-project -- --for-project atlas              # dry run
+pnpm publish-project -- --for-project atlas --execute
+DOCS_PROJECT=pymongo-driver/current pnpm publish-project # project from DOCS_PROJECT
+```
+
+This is what the Netlify SSG extension runs in `onSuccess` on `dotcomprd`
+and `dotcomstg` deploys (see
+`platform/nextjs-ssg-extension/src/llms-txt/index.ts`), so per-project
+files stay current without anyone running the CLI. Each site builds one
+content tree, named by `DOCS_PROJECT`, and only that project is generated
+and uploaded.
+
+Generated files go to `llms-build-output/<project>/` (gitignored) rather
+than `llms-output/`, so a publish never dirties the committed copies. The
+bucket defaults to `$S3_OFFLINE_BUCKET` (the variable Netlify already sets
+for offline docs), then `docs-mongodb-org-dotcomstg`;
+override with `--bucket`.
+
+The root llms.txt is deliberately excluded from this path: it is
+hand-maintained in git and published only from a merged change. If the
+published files aren't linked from it, you get the same warning described
+above, and the fix belongs in a separate PR against
+`llms-output/llms.txt`.
+
+Run it by hand for a dry run, or to republish one project without waiting
+for a deploy.
 
 ## Other commands
 

@@ -12,12 +12,12 @@ import { createOfflineTarball } from '../../../nextjs-extension/src/offline-docs
 import { upload } from '../../../nextjs-extension/src/s3Connection/s3connector';
 import { createReadStream } from 'node:fs';
 import { join } from 'node:path/posix';
+import { APP_DIR, DEFAULT_S3_BUCKET } from '../constants';
 
 // docs-site-specific copy of nextjs-extension/src/offline-docs/index.ts.
 // Always builds offline bundles against docs-site (not docs-nextjs), since that's
 // the app whose TOC/prefix-map data this extension (nextjs-ssg-extension) generates
 // during onPreBuild.
-const APP_DIR = 'docs-site';
 const APP_ROOT_DIR = getRepoPaths(undefined, APP_DIR).docsNextjsDir;
 const OFFLINE_BUNDLE_OUTPUT_DIR = path.resolve(APP_ROOT_DIR, 'offline-bundle-output');
 const LEGACY_TOC_DIR = 'legacy-docs';
@@ -78,7 +78,7 @@ const runOfflineBuild = async ({
 
   console.log(`[offline-docs] Tarball written to ${tarballPath}`);
 
-  const bucketName = process.env.S3_OFFLINE_BUCKET ?? 'docs-mongodb-org-dotcomstg';
+  const bucketName = process.env.S3_OFFLINE_BUCKET ?? DEFAULT_S3_BUCKET;
   const s3Prefix = 'docs/offline/';
   console.log('... uploading to AWS S3 ', bucketName, process.env.S3_OFFLINE_BUCKET, s3Prefix, tarballName);
   const fileStream = createReadStream(tarballPath);
