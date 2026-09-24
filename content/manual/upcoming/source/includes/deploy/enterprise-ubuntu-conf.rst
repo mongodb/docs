@@ -15,8 +15,3 @@ your version of Ubuntu.
 
       .. include:: /includes/deploy/code/enterprise-ubuntu22-conf
 
-   .. tab:: Ubuntu 20.04 (Focal)
-      :tabid: focal
-
-      .. include:: /includes/deploy/code/enterprise-ubuntu20-conf
-
