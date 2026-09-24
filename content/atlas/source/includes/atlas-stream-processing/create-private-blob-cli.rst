@@ -32,7 +32,7 @@ To add an |azure| Blob Storage Private Link connection to your {+spw+} through t
       	 
       Configure your |azure| Storage Account to permit access to  as
       described in the :azure:`network security
-      <storage/common/storage-network-security-overview>` page of the
+      </storage/common/storage-network-security-overview>` page of the
       |azure| Blob Storage documentation, providing the IP addresses,
       stripped of CIDR notation, that you noted earlier.
       
