@@ -16,5 +16,6 @@
      each member cluster.
 
    If set to ``false``:
-     The |k8s-op-short| creates only 
+     The |k8s-op-short| creates only the ``Pod Services`` for the
+     Pods hosted in each member cluster. 
 
