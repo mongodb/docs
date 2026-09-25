@@ -234,6 +234,11 @@ const tocData: TocItem[] = [
         url: '/docs/atlas/tutorial/create-new-cluster',
       },
       {
+        label: 'Create an Ephemeral Cluster (Agent Workflow)',
+        contentSite: 'cloud-docs',
+        url: '/docs/atlas/tutorial/create-ephemeral-cluster',
+      },
+      {
         label: 'AI Cluster Assistant',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/ai-cluster-assistant',

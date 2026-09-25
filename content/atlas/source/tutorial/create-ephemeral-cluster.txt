@@ -1,0 +1,693 @@
+.. _create-ephemeral-cluster:
+
+=================================
+Create an Atlas Ephemeral Cluster
+=================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial, reference
+
+.. meta::
+   :description: Create a temporary, free Atlas Ephemeral cluster and get a ready-to-use MongoDB connection string with one API call. No Atlas account or API keys required.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Build and test with MongoDB using an |service| |ephem-cluster|, a
+temporary {+Free-cluster+} (``M0``) that you can create and connect to
+without an |service| account or API keys. An |ephem-cluster| is a good
+fit when an AI coding agent, or a developer working with one, needs a
+database on demand to start a new project, prototype an application, or
+test an idea.
+
+To create an |ephem-cluster| and get a ready-to-use connection string in
+under a minute, send a ``POST`` request to the following endpoint:
+
+``https://cloud.mongodb.com/api/atlas/v2/unauth/ephemeralClusters:create``
+
+For the complete workflow, required headers, and response details, see
+the :ref:`Quick Start <ephemeral-cluster-quick-start>`.
+
+Unless you claim the |ephem-cluster|, |service| pauses it 2 days after
+creation and deletes it 7 days after creation. To claim the cluster,
+open the ``claimUrl`` from the create response and sign in to |service|.
+Claiming converts the |ephem-cluster| into a standard {+Free-cluster+}
+with no expiration date. An agent can create and connect to the cluster
+autonomously, but only a human can claim it.
+
+.. _ephemeral-cluster-specs-limits:
+
+Ephemeral Cluster Specifications and Limits
+-------------------------------------------
+
+An |ephem-cluster| is an |service| {+Free-cluster+} (``M0``) with a
+limited lifespan. To read and write its data, you can connect to the
+cluster with the connection string returned by the create response.
+Until you claim the cluster, you can't scale the cluster tier, add
+database users, restrict IP access, or perform other administrative
+operations.
+
+An unclaimed |ephem-cluster| has the following fixed specifications:
+
+- **Cluster tier**: Free (``M0``).
+- **Cloud provider and region**: ``AWS`` ``us-east-1``.
+- **IP access**: The cluster allows connections from any IP address
+  (``0.0.0.0/0``).
+- **Limited lifespan**: Unless you claim the cluster, |service| pauses
+  it 2 days after creation and deletes it 7 days after creation. While
+  paused, the cluster is inaccessible.
+
+Because an |ephem-cluster| is a {+Free-cluster+}, all {+Free-cluster+}
+limits also apply, including:
+
+- **Storage**: Maximum of 512 MB, including indexes.
+- **MongoDB server version**: 8.0.
+- **Throughput**: Maximum of 100 total read and write operations per
+  second.
+- **Connections**: Maximum of 500 concurrent connections.
+
+For the complete list of {+Free-cluster+} limitations, see
+:ref:`atlas-free-tier`.
+
+.. _ephemeral-cluster-quick-start:
+
+Quick Start: Create and Connect to an Ephemeral Cluster
+-------------------------------------------------------
+
+Use the following workflow to create and connect to an |ephem-cluster|.
+An AI coding agent can complete every step of this workflow without
+human intervention.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create the |ephem-cluster|.
+
+      Send a ``POST`` request to the following endpoint:
+
+      ``https://cloud.mongodb.com/api/atlas/v2/unauth/ephemeralClusters:create``
+
+      The request requires the following ``Accept`` header:
+
+      'Accept: application/vnd.atlas.preview+json'
+
+      The following example request creates an |ephem-cluster| named
+      ``Cluster0``:
+
+      .. code-block:: console
+         :copyable: true
+         :caption: Example create request
+
+         curl -sS -X POST 'https://cloud.mongodb.com/api/atlas/v2/unauth/ephemeralClusters:create' \
+           -H 'Accept: application/vnd.atlas.preview+json' \
+           -H 'Content-Type: application/json' \
+           -d '{"clusterName": "Cluster0"}'
+
+      The create endpoint returns a response in the following format:
+
+      .. code-block:: json
+         :copyable: false
+         :caption: Example create response
+
+         {
+           "claimUrl": "https://account.mongodb.com/account/register?claimId={claimId}",
+           "clusterId": "{clusterId}",
+           "connectionString": "mongodb+srv://{username}:{password}@{host}/",
+           "expiresAt": "{timestamp}",
+           "status": "PROVISIONING",
+           "termsOfService": "By using this API and any resources provisioned through it, you agree to be bound by MongoDB's Cloud Terms of Service at https://www.mongodb.com/legal/terms-and-conditions/cloud; and Privacy Policy at https://www.mongodb.com/legal/privacy/privacy-policy."
+         }
+
+      The response includes the following fields:
+
+      - ``claimUrl``: Unique URL for claiming this |ephem-cluster|. A
+        human must open this URL in a browser. Valid for 7 days after
+        the cluster is created.
+      - ``clusterId``: Unique identifier of the |ephem-cluster|. To
+        retrieve the cluster's ``status``, ``claimUrl``, and other
+        details, send a ``GET`` request to the following endpoint,
+        replacing ``{clusterId}`` with this value:
+
+        ``https://cloud.mongodb.com/api/atlas/v2/unauth/ephemeralClusters/{clusterId}``
+
+        To learn more, see :ref:`ephemeral-cluster-get-api`.
+      - ``connectionString``: Connection string that uses the
+        ``mongodb+srv://`` protocol to connect to the |ephem-cluster|.
+        Includes the username and password for an autogenerated database
+        user that can read and write data in the cluster. Any client
+        that uses this connection string authenticates as this database
+        user. The create response is the only time that |service|
+        returns the unredacted password.
+      - ``expiresAt``: Date and time when |service| pauses the cluster
+        if it isn't claimed. A paused |ephem-cluster| is inaccessible
+        until you claim it. The timestamp uses the |iso8601| format in
+        UTC.
+      - ``status``: Status of the |ephem-cluster|. One of
+        ``PROVISIONING``, ``ACTIVE``, or ``PAUSED``.
+      - ``termsOfService``: Notice that by using this API, you agree to
+        MongoDB's :legal:`Cloud Terms of Service
+        </terms-and-conditions/cloud>` and :legal:`Privacy Policy
+        </privacy/privacy-policy>`. Includes a link to the full terms.
+
+      To learn more about the create endpoint, see
+      :ref:`ephemeral-cluster-create-api`.
+
+   .. step:: Save the connection string and claim values.
+
+      From the create response, save the ``connectionString``,
+      ``claimUrl``, and ``clusterId``. You need them to connect to,
+      claim, and retrieve the details of the cluster.
+
+      .. warning::
+
+         Treat the ``connectionString``, ``claimUrl``, and ``clusterId``
+         as secrets. Anyone with the ``connectionString`` can read and
+         write cluster data. Anyone with the ``claimUrl`` can claim the
+         cluster into their own |service| account, and anyone with the
+         ``clusterId`` can retrieve the ``claimUrl`` from the :ref:`get
+         endpoint <ephemeral-cluster-get-api>`. |mdb-support| can't
+         recover these values or transfer ownership of a claimed
+         cluster.
+
+         Save all three values to a secure location where the person who
+         claims the cluster can retrieve them. For example, use a shared
+         secrets manager or a git-ignored local ``.env`` file. Don't
+         overwrite existing secrets in that location.
+
+   .. step:: Connect to the |ephem-cluster|.
+
+      Use the ``connectionString`` value from the create response to
+      connect to the |ephem-cluster| from a compatible environment, such
+      as:
+
+      - **Application code**: Provide the connection string to the
+        MongoDB driver for your programming language when you initialize
+        the client object that connects to the cluster. This is the
+        typical choice when connecting from an application. To learn
+        more, see :ref:`connect-via-driver`.
+      - **Command line**: Provide the connection string as an argument
+        to the MongoDB Shell ({+mongosh+}) to connect and run commands
+        interactively:
+
+        .. code-block:: shell
+           :copyable: false
+           :caption: Example command line connection
+
+           mongosh "<connectionString>"
+
+      To learn more about available connection methods, see
+      :ref:`connect-to-database-deployment`.
+
+      .. note::
+
+         The |ephem-cluster| allows connections from any IP address
+         (``0.0.0.0/0``). You can restrict IP access when you claim the
+         cluster.
+
+   .. step:: (Optional) Claim the |ephem-cluster|.
+
+      Claiming the |ephem-cluster| is optional. If you don't claim the
+      cluster, |service| pauses it 2 days after creation and deletes it
+      7 days after creation. When you claim the cluster, |service|
+      converts it into a standard {+Free-cluster+} with no expiration
+      date. The claimed cluster keeps all of its data, and the
+      connection string you saved continues to work with the same
+      credentials. To learn more about the effects of claiming, see
+      :ref:`ephemeral-cluster-claim`.
+
+      To claim the cluster, a human must sign in to |service| in a
+      browser. Choose one of the following options:
+
+      - **Claim now**: Share the ``claimUrl`` only with the person who
+        will claim the cluster. They can follow the procedure in
+        :ref:`ephemeral-cluster-claim` to claim the cluster.
+      - **Claim later**: Save the ``claimUrl`` in a secure location that
+        remains available to the person who will claim the cluster. That
+        person can then claim the cluster any time within 7 days of
+        creation.
+      - **Claim never**: Take no action. |service| deletes the cluster
+        7 days after creation.
+
+.. _ephemeral-cluster-claim:
+
+Claim an Ephemeral Cluster
+--------------------------
+
+Claiming an |ephem-cluster| is optional. If you don't claim the cluster,
+|service| pauses it 2 days after creation and deletes it 7 days after
+creation.
+
+When you claim an |ephem-cluster|, |service| makes the following
+changes:
+
+- **Extends the cluster's lifespan**: |service| converts the
+  |ephem-cluster| into a standard {+Free-cluster+} with no expiration
+  date. The claimed cluster remains available until you delete it, or
+  until |service| pauses it due to 30 days of inactivity.
+- **Preserves the cluster's data and connection string**: The claimed
+  cluster keeps all of its data, and the connection string from the
+  create response continues to work with the same credentials.
+- **Adds the cluster to a project and organization**: In |service|,
+  every cluster belongs to a project, and every project belongs to an
+  organization. |service| places the claimed cluster into a new project
+  within a new or existing organization owned by the account that claims
+  the cluster.
+- **Grants full cluster access**: The account that claims the cluster is
+  an :authrole:`Organization Owner` of the cluster's organization, which
+  also grants the :authrole:`Project Owner` role on every project in
+  that organization. As a Project Owner, you have database access to
+  read and write the cluster's data, and administrative access to manage
+  the cluster and its project using the {+atlas-ui+}, {+atlas-cli+}, or
+  {+atlas-admin-api+}.
+
+An AI coding agent can't claim an |ephem-cluster|. To claim the cluster,
+a human must complete the following workflow in a web browser:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Sign in to |service| from the claim URL.
+
+      a. In a web browser, open the ``claimUrl`` that you saved from the
+         create response to reach the |service| sign-in page. The claim
+         URL has the following format, where ``{claimId}`` is a unique
+         identifier for the |ephem-cluster|:
+
+         ``https://account.mongodb.com/account/register?claimId={claimId}``
+
+      #. On the sign-in page, sign in to |service| with an existing
+         account, or create a new account. When you claim the cluster in
+         the next step, this account gains both database and
+         administrative access to the cluster.
+
+         If you create a new account, verify your email before you
+         continue.
+
+      .. note::
+
+         The claim URL is the only way to claim the cluster. It expires
+         7 days after the cluster is created. If you lose the claim URL,
+         retrieve it with one of the following methods:
+
+         - Send a ``GET`` request to the following endpoint, replacing
+           ``{clusterId}`` with the ``clusterId`` value from the create
+           response:
+
+           ``https://cloud.mongodb.com/api/atlas/v2/unauth/ephemeralClusters/{clusterId}``
+
+           The response includes the ``claimUrl``. To learn more, see
+           :ref:`ephemeral-cluster-get-api`.
+         - If an AI coding agent created the cluster, check for a secure
+           location where it might have saved the ``claimUrl``, such as
+           your project's local ``.env`` file.
+
+   .. step:: Configure and claim the |ephem-cluster|.
+
+      After you sign in, |service| displays the claim page. On this
+      page, do the following:
+
+      a. From the drop-down, select an existing organization, or select
+         :guilabel:`Create new org for this cluster` to create one. When
+         you claim the cluster, |service| moves it into the selected
+         organization and creates a project for it there.
+
+         .. important::
+
+            The drop-down lists only organizations where your |service|
+            account has the :authrole:`Organization Owner` role. When
+            you claim the cluster, every Organization Owner in the
+            selected organization can manage the cluster and its data.
+
+      #. Configure IP access. To restrict access, remove ``0.0.0.0/0``
+         and allow only your current IP address (recommended). To allow
+         connections from any IP address, keep ``0.0.0.0/0``. You can
+         restrict IP access later in the project's :guilabel:`Network
+         Access` settings.
+
+      #. Click :guilabel:`Claim Cluster`. This is a one-time action that
+         you can't undo.
+
+   .. step:: Review the confirmation page.
+
+      After you claim the cluster, |service| displays a confirmation
+      page with the organization and project names, the cluster details,
+      and your chosen IP access configuration.
+
+      Click :guilabel:`Go To Project Overview` to view the claimed
+      cluster in the {+atlas-ui+}.
+
+   .. step:: (Optional) Reconfigure the claimed cluster.
+
+      You can reconfigure the claimed cluster and its project using the
+      {+atlas-ui+}, {+atlas-cli+}, or {+atlas-admin-api+}. At the
+      cluster level, you can scale the cluster to a higher tier to
+      increase storage. At the project level, you can manage database
+      users and restrict IP access to increase security. To learn more,
+      see :ref:`manage-clusters`.
+
+.. _ephemeral-cluster-api-reference:
+
+Ephemeral Cluster API Reference
+-------------------------------
+
+Use the following {+atlas-admin-api+} endpoints to create an
+|ephem-cluster| and retrieve its status, connection, and claim details.
+To learn more, see :oas-bump-atlas-op:`Create One Ephemeral Atlas
+Cluster <createephemeralcluster>` and :oas-bump-atlas-op:`Return One
+Ephemeral Atlas Cluster <getephemeralcluster>` in the
+{+atlas-admin-api+} specification.
+
+.. note::
+
+   You can create an |ephem-cluster| only through the
+   {+atlas-admin-api+}, not through the {+atlas-cli+},
+   |terraform-atlas-provider|, or any other interface.
+
+.. _ephemeral-cluster-create-api:
+
+Create One Ephemeral Atlas Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Creates an |ephem-cluster| and returns its connection and claim
+details.
+
+**Method**: ``POST``
+
+**Endpoint**: ``https://cloud.mongodb.com/api/atlas/v2/unauth/ephemeralClusters:create``
+
+**Path parameters**: None.
+
+**Query parameters**: None.
+
+**Request headers**:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 15 60
+
+   * - Header
+     - Required
+     - Value
+
+   * - ``Accept``
+     - Yes
+     - 'Accept: application/vnd.atlas.preview+json'
+
+   * - ``Content-Type``
+     - Only with a request body
+     - ``application/json``
+
+**Request body**:
+
+The request body is optional. If you send a body, include the
+following field:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 15 15 50
+
+   * - Field
+     - Type
+     - Required
+     - Description
+
+   * - ``clusterName``
+     - string
+     - No
+     - Human-readable label that identifies the |ephem-cluster|.
+       Defaults to ``Cluster0``. Must match the pattern
+       ``^[a-zA-Z0-9][a-zA-Z0-9-]*$``.
+
+**Example request**:
+
+.. code-block:: console
+   :copyable: true
+   :caption: Example create request
+
+   curl -sS -X POST 'https://cloud.mongodb.com/api/atlas/v2/unauth/ephemeralClusters:create' \
+     -H 'Accept: application/vnd.atlas.preview+json' \
+     -H 'Content-Type: application/json' \
+     -d '{ "clusterName": "my-ephemeral-cluster" }'
+
+**Success status code**: ``201 Created``
+
+**Success response fields**:
+
+Returns the new cluster's details in the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 15 60
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``claimUrl``
+     - string (URI)
+     - Unique URL for claiming this |ephem-cluster|. Redirects to the
+       |service| sign-in or registration page, where a user signs in or
+       creates an account to claim the cluster. Valid for 7 days after
+       the cluster is created.
+
+   * - ``clusterId``
+     - string
+     - Unique identifier of the |ephem-cluster|. Use this ID to retrieve
+       the cluster's status and details in a ``GET`` request.
+
+   * - ``connectionString``
+     - string
+     - Connection string that uses the ``mongodb+srv://`` protocol to
+       connect to the |ephem-cluster|. This string includes the
+       unredacted SCRAM credentials (username and password) for an
+       automatically generated database user that |service| grants the
+       built-in ``readWriteAnyDatabase`` role.
+
+   * - ``expiresAt``
+     - string (ISO 8601, UTC)
+     - Date and time when the cluster will be paused and no longer
+       accessible until it is claimed. This parameter expresses its
+       value in the |iso8601| timestamp format in UTC.
+
+   * - ``status``
+     - string (enum)
+     - Status of the |ephem-cluster|. One of ``PROVISIONING``,
+       ``ACTIVE``, or ``PAUSED``.
+
+   * - ``termsOfService``
+     - string
+     - Notice that by using this API, you agree to MongoDB's
+       :legal:`Cloud Terms of Service </terms-and-conditions/cloud>` and
+       :legal:`Privacy Policy </privacy/privacy-policy>`. Includes a
+       link to the full terms.
+
+**Response headers**:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 20 55
+
+   * - Header
+     - Returned With
+     - Description
+
+   * - ``RateLimit-Limit``
+     - ``201``, ``429``
+     - The maximum number of requests that a user can make within a
+       specific time window.
+
+   * - ``RateLimit-Remaining``
+     - ``201``, ``429``
+     - The number of requests remaining in the current rate limit
+       window before the limit is reached.
+
+   * - ``Retry-After``
+     - ``429``
+     - The minimum time you should wait, in seconds, before retrying
+       the API request.
+
+**Error status codes**:
+
+.. note::
+
+   If you receive a ``429`` error, the shared limit for creating
+   |ephem-clusters| has been reached. You can instead deploy a standard
+   {+Free-cluster+}, which provides the same cluster tier without an
+   expiration date. To learn how to create and connect to a
+   {+Free-cluster+} through the {+atlas-cli+}, see
+   :ref:`unified-get-started`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Status
+     - Description
+
+   * - ``400``
+     - Bad Request.
+
+   * - ``429``
+     - Too Many Requests.
+
+   * - ``500``
+     - Internal Server Error.
+
+.. _ephemeral-cluster-get-api:
+
+Return One Ephemeral Atlas Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Returns the details for one |ephem-cluster|.
+
+**Method**: ``GET``
+
+**Endpoint**: ``https://cloud.mongodb.com/api/atlas/v2/unauth/ephemeralClusters/{clusterId}``
+
+**Path parameters**:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 15 15 50
+
+   * - Parameter
+     - Type
+     - Required
+     - Description
+
+   * - ``clusterId``
+     - string
+     - Yes
+     - Unique ID of the |ephem-cluster| to look up.
+
+**Query parameters**: None.
+
+**Request headers**:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 15 60
+
+   * - Header
+     - Required
+     - Value
+
+   * - ``Accept``
+     - Yes
+     - ``application/vnd.atlas.2025-03-12+json``
+
+**Request body**: None.
+
+**Example request**:
+
+.. code-block:: console
+   :copyable: false
+   :caption: Example get request
+
+   curl -sS -X GET 'https://cloud.mongodb.com/api/atlas/v2/unauth/ephemeralClusters/{clusterId}' \
+     -H 'Accept: application/vnd.atlas.preview+json'
+
+**Success status code**: ``200 OK``
+
+**Success response fields**:
+
+Returns the cluster's current status and details in the following
+fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 15 60
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``claimUrl``
+     - string (URI)
+     - Unique URL for claiming this |ephem-cluster|. Redirects to the
+       |service| sign-in or registration page, where a user signs in or
+       creates an account to claim the cluster. Valid for 7 days after
+       the cluster is created.
+
+   * - ``clusterId``
+     - string
+     - Unique identifier of the |ephem-cluster|. Use this ID to retrieve
+       the cluster's status and details in a ``GET`` request.
+
+   * - ``connectionString``
+     - string
+     - Connection string that uses the ``mongodb+srv://`` protocol to
+       connect to the |ephem-cluster|. This string includes the SCRAM
+       username of an automatically generated database user, but
+       replaces the password with a placeholder. |service| returns the
+       password only in the create response.
+
+   * - ``expiresAt``
+     - string (ISO 8601, UTC)
+     - Date and time when the cluster will be paused and no longer
+       accessible until it is claimed. This parameter expresses its
+       value in the |iso8601| timestamp format in UTC.
+
+   * - ``status``
+     - string (enum)
+     - Status of the |ephem-cluster|. One of ``PROVISIONING``,
+       ``ACTIVE``, or ``PAUSED``.
+
+   * - ``termsOfService``
+     - string
+     - Notice that by using this API, you agree to MongoDB's
+       :legal:`Cloud Terms of Service </terms-and-conditions/cloud>` and
+       :legal:`Privacy Policy </privacy/privacy-policy>`. Includes a
+       link to the full terms.
+
+**Response headers**:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 20 55
+
+   * - Header
+     - Returned With
+     - Description
+
+   * - ``RateLimit-Limit``
+     - ``200``, ``429``
+     - The maximum number of requests that a user can make within a
+       specific time window.
+
+   * - ``RateLimit-Remaining``
+     - ``200``, ``429``
+     - The number of requests remaining in the current rate limit
+       window before the limit is reached.
+
+   * - ``Retry-After``
+     - ``429``
+     - The minimum time you should wait, in seconds, before retrying
+       the API request.
+
+**Error status codes**:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Status
+     - Description
+
+   * - ``400``
+     - Bad Request.
+
+   * - ``404``
+     - Not Found.
+
+   * - ``429``
+     - Too Many Requests.
+
+   * - ``500``
+     - Internal Server Error.
