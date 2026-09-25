@@ -6,7 +6,7 @@ M10
   and low-traffic applications, while higher tiers can handle large
   datasets and high-traffic applications. Dedicated clusters can be
   deployed into a single geographical region or multiple geographical 
-  regions. 
+  regions.
   
   .. note::
      

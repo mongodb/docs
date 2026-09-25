@@ -196,6 +196,11 @@ Cluster and Operation Metrics
      - Amount of time in seconds that updates to the secondary delay
        behind updates to the primary.
 
+       For {+atlas-core-full+}, monitor replication lag to determine
+       whether the secondary might fall off the oplog. For
+       {+atlas-infinite-full+}, this metric shows the lag for writes to
+       become visible on the node.
+
    * - | ``REPLICATION_OPLOG_WINDOW``
        | (mongodb.atlas.replset.oplogWindow)
      - Process
@@ -205,6 +210,11 @@ Cluster and Operation Metrics
        </tutorial/resync-replica-set-member/>` is required if
        replication lag on a secondary node exceeds the replication
        oplog window and replication headroom reaches zero.
+
+       On an {+atlas-infinite-cluster+}, this metric measures the
+       number of hours of recent changes the database has stored for
+       features such as change streams. To learn more, see
+       :ref:`atlas-infinite-oplog`.
 
    * - | ``REPLICATION_STATUS_HEALTH``
        | (mongodb.atlas.replstatus.health)
@@ -259,11 +269,15 @@ Cluster and Operation Metrics
        chart, accessed through :ref:`Cluster Metrics
        <monitor-cluster-metrics>`.
 
+       .. include:: /includes/infinite/limitations/observability-core-only-metrics.rst
+
    * - | ``OPLOG_RATE_GB_PER_HOUR``
        | (mongodb.atlas.replset.oplograte)
      - Process
      - The average rate of :manual:`oplog </core/replica-set-oplog/>`
-       the primary generates in gigabytes per hour.
+       the primary generates in gigabytes per hour. On an
+       {+atlas-infinite-cluster+}, the oplog doesn't serve replication.
+       To learn more, see :ref:`atlas-infinite-oplog`.
 
    * - | ``PROFILER_TOTAL_WRITES``
        | (mongodb.atlas.profiler.totalWrites)
@@ -415,6 +429,8 @@ Host System Metrics
      - Latency gauge in milliseconds for read requests and
        write requests.
 
+       .. include:: /includes/infinite/limitations/observability-core-only-metrics.rst
+
    * - | ``DISK_MAX_LATENCY_READS``
        | (mongodb.atlas.system.disk.max.latency.reads)
        | ``DISK_MAX_LATENCY_WRITES``
@@ -423,12 +439,16 @@ Host System Metrics
      - Maximum latency gauge in milliseconds for read requests and write
        requests.
 
+       .. include:: /includes/infinite/limitations/observability-core-only-metrics.rst
+
    * - | ``DISK_QUEUE_DEPTH``
        | (mongodb.atlas.system.disk.queuedepth)
      - Disk
      - Average length of the queue of requests issued to the disk
        partition that MongoDB uses. Datadog records this average over the
        time period set by the metric granularity.
+
+       .. include:: /includes/infinite/limitations/observability-core-only-metrics.rst
 
    * - | ``MAX_DISK_QUEUE_DEPTH``
        | (mongodb.atlas.system.disk.max.queuedepth)
@@ -437,15 +457,21 @@ Host System Metrics
        partition that MongoDB uses. Datadog records the maximum over the
        time period set by the metric granularity.
 
+       .. include:: /includes/infinite/limitations/observability-core-only-metrics.rst
+
    * - | ``DISK_THROUGHPUT_READS``
        | (mongodb.atlas.system.disk.throughput.reads)
      - Disk
      - Disk read throughput in bytes per second for the data partition.
 
+       .. include:: /includes/infinite/limitations/observability-core-only-metrics.rst
+
    * - | ``DISK_THROUGHPUT_WRITES``
        | (mongodb.atlas.system.disk.throughput.writes)
      - Disk
      - Disk write throughput in bytes per second for the data partition.
+
+       .. include:: /includes/infinite/limitations/observability-core-only-metrics.rst
 
    * - | ``DISK_PARTITION_IOPS_READ``
        | (mongodb.atlas.system.disk.iops.reads)
@@ -457,6 +483,8 @@ Host System Metrics
      - Measure throughput of |iops| for the disk partition used by
        MongoDB.
 
+       .. include:: /includes/infinite/limitations/observability-core-only-metrics.rst
+
    * - | ``MAX_DISK_PARTITION_IOPS_READ``
        | (mongodb.atlas.system.disk.max.iops.reads)
        | ``MAX_DISK_PARTITION_IOPS_WRITE``
@@ -467,6 +495,8 @@ Host System Metrics
      - Maximum throughput of |iops| for the disk partition that MongoDB
        uses. Datadog records the maximum over the time period set by the
        metric granularity.
+
+       .. include:: /includes/infinite/limitations/observability-core-only-metrics.rst
 
    * - | ``DISK_PARTITION_SPACE_FREE``
        | (mongodb.atlas.system.disk.space.free)
@@ -480,6 +510,8 @@ Host System Metrics
      - Measure free disk space and used disk space (in bytes) on the
        disk partition used by MongoDB.
 
+       .. include:: /includes/infinite/limitations/observability-core-only-metrics.rst
+
    * - | ``MAX_DISK_PARTITION_SPACE_FREE``
        | (mongodb.atlas.system.disk.max.space.free)
        | ``MAX_DISK_PARTITION_SPACE_USED``
@@ -492,6 +524,8 @@ Host System Metrics
      - Maximum free disk space and used disk space, in bytes, on the disk
        partition that MongoDB uses. Datadog records the maximum over the
        time period set by the metric granularity.
+
+       .. include:: /includes/infinite/limitations/observability-core-only-metrics.rst
 
    * - | ``SYSTEM_NETWORK_BYTES_IN``
        | (mongodb.atlas.system.network.bytes.in)
@@ -526,6 +560,8 @@ Host System Metrics
        :manual:`WiredTiger's cache
        </reference/command/serverStatus/#serverstatus.wiredTiger.cache>`.
 
+       .. include:: /includes/infinite/limitations/observability-core-only-metrics.rst
+
    * - | ``CACHE_USED_BYTES``
        | (mongodb.atlas.wiredtiger.cache.bytes_currently_in_cache)
        | ``CACHE_DIRTY_BYTES``
@@ -533,6 +569,10 @@ Host System Metrics
      - Process
      - Measure number of bytes of data and number of bytes of dirty
        data in :manual:`WiredTiger's cache </reference/command/serverStatus/#serverstatus.wiredTiger.cache>`.
+
+       On an {+atlas-infinite-cluster+}, these metrics describe the
+       compute nodes rather than the storage layer. To learn more, see
+       :ref:`atlas-infinite-architecture`.
 
    * - | ``PAGES_READ_INTO_CACHE``
        | (mongodb.atlas.wiredtiger.cache.pages_read_into_cache)
@@ -570,6 +610,8 @@ Host System Metrics
        due to :manual:`locks </faq/concurrency>` that |service|
        holds on reads, writes, or combined reads and writes.
 
+       .. include:: /includes/infinite/limitations/observability-core-only-metrics.rst
+
 Database, Query, Search, and Stream Processing Metrics
 ``````````````````````````````````````````````````````
 
@@ -590,6 +632,12 @@ Database, Query, Search, and Stream Processing Metrics
      - Process
      - Total database storage size, data size, and index size on the
        {+cluster+} in bytes.
+
+       ``DB_STORAGE_TOTAL`` isn't available for {+atlas-infinite-full+}.
+       On an {+atlas-infinite-cluster+}, monitor the
+       :ref:`logical data size <atlas-logical-data-size>` against the
+       cluster's :ref:`max storage limit
+       <atlas-infinite-max-storage-limit>` instead.
 
    * - | ``AVG_OBJECT_SIZE``
        | (dbstats.avg.object.size)

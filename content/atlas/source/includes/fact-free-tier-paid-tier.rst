@@ -1,5 +1,6 @@
-The following table highlights key differences between {+Free-clusters+},
-{+Flex-clusters+}, and ``M10+`` {+dedicated-cluster+}s.
+The following table highlights key differences between
+{+Free-cluster+}s, {+Flex-cluster+}s, and Dedicated
+{+atlas-core-cluster+}s.
 
 .. include:: /includes/list-table-free-paid-compare.rst
 

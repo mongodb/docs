@@ -59,6 +59,9 @@ export const toc: L1TocItem[] = [
                 label: 'Indexes',
                 contentSite: 'hibernate',
                 url: '/docs/languages/java/mongodb-hibernate/:version/model-data/indexes',
+                versions: {
+                  includes: ['upcoming'],
+                },
               },
             ],
           },

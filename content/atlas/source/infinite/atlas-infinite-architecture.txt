@@ -1,0 +1,269 @@
+.. _atlas-infinite-architecture:
+
+=============================================
+MongoDB {+atlas-infinite-full+}: Architecture
+=============================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn how Atlas Infinite separates compute from storage into two independent layers, so that scaling, failover, and recovery no longer move data across nodes.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+{+atlas-infinite-full+} separates compute from storage into two
+independent layers. Compute nodes run your queries, transactions, and
+aggregations. The storage layer stores your data durably, maintaining
+multiple copies for high availability. MongoDB manages the storage
+layer independently of the compute layer, so scaling and recovery
+operations run without moving or replicating data.
+
+The following diagram shows how {+atlas-infinite-full+} fits within
+|service|, across the application, compute, and storage layers, with
+the Atlas management interfaces below.
+
+.. figure:: /images/infinite/atlas-infinite-arch.svg
+   :width: 720px
+   :alt: Atlas Infinite architecture: application, compute, and Atlas-managed storage layers, with Atlas management interfaces.
+   :align: center
+
+   How {+atlas-infinite-full+} compute and storage fit within the
+   |service| application and management stack
+
+Compute Layer
+-------------
+
+Compute nodes are the layer that runs your queries, transactions, and
+aggregations. Because compute nodes are decoupled from storage, you can
+scale compute capacity independently of storage. You can add compute
+capacity as demand grows and scale it back down when demand drops. If
+you enable auto-scaling, |service| adjusts compute for you.
+
+In public preview, |service| deploys your compute nodes in separate
+availability zones within your {+cluster+}'s region.
+
+Storage Layer
+-------------
+
+The storage layer in {+atlas-infinite-full+} keeps your application's
+data durable, maintaining multiple copies for high availability. With
+{+atlas-infinite-full+}, MongoDB manages storage as an independent
+layer, separate from the compute nodes that run your application's
+workload. The storage layer handles replication, serves reads, and
+provides continuous backups, independent of the compute layer. When you
+scale the cluster tier, or when a compute node fails and
+{+atlas-infinite-full+} performs a failover, your application's data
+remains available in the storage layer for serving queries. MongoDB
+doesn't copy it to the new compute nodes.
+
+Security
+--------
+
+{+atlas-infinite-full+} isolates each cluster across storage layers.
+Atlas mutually authenticates internal traffic with X.509
+certificates for communication within the storage layer.
+
+Because the storage layer is shared, each customer's data is encrypted
+with unique keys that are never shared between customers. To learn how
+|service| encrypts {+atlas-infinite-full+} data, see
+:ref:`atlas-encryption-at-rest-overview`.
+
+.. _atlas-infinite-replication:
+
+Replication and Failover
+------------------------
+
+An {+atlas-infinite-cluster+} has two electable compute nodes: a
+primary, which serves writes, and a standby, which is the other
+electable node and takes over when the primary fails or restarts.
+During public preview, you can add up to five more nodes for
+:ref:`workload isolation <atlas-infinite-workload-isolation>`, giving
+you up to seven in total. The nodes you add can only serve reads. You
+can add the following node types:
+
+- **Read-only nodes** serve reads from your operational workload.
+- **Analytics nodes** isolate analytic queries from your operational
+  workload.
+
+Search nodes aren't supported on {+atlas-infinite-cluster+}s in public
+preview.
+
+The compute nodes don't vote for a primary. The storage layer
+coordinates failover instead of an election among the {+cluster+}'s
+nodes. When the primary fails or restarts, the standby becomes the
+primary. The storage layer keeps your recent data readily available to
+every compute node.
+
+Read preference works as it does on an {+atlas-core-cluster+}. You can
+use all :ref:`read preference modes <read-pref-modes-summary>` and
+:ref:`pre-defined replica set tags <replica-set-tags>`.
+
+Your application's driver sets the read preference. The driver default
+is :readmode:`primary`, so your application sends every read to the
+primary unless you change the read preference.
+
+An {+atlas-infinite-cluster+} has one standby node. When your
+application reads from a node other than the primary, those reads go to
+that standby node, unless you add read-only nodes or analytics nodes and
+set a different read preference. Use the following recommendations:
+
+- **To serve your application's operational reads from more than one
+  node**, :ref:`add read-only nodes
+  <atlas-infinite-workload-isolation>`. Read-only nodes serve reads at
+  any read preference except :readmode:`primary`, so each node you add
+  serves part of that traffic. To distribute those reads across the
+  standby and the read-only nodes, set a read preference of
+  :readmode:`secondaryPreferred`. This keeps your application's reads
+  off the primary and avoids overloading the single standby node. On an
+  {+atlas-core-cluster+}, multiple secondaries spread those reads
+  without added nodes.
+- **To isolate a workload, such as analytics, from your
+  application's operational reads**, :ref:`add analytics nodes
+  <deploy-analytics-nodes>` or :ref:`read-only nodes
+  <atlas-infinite-workload-isolation>` and use :ref:`pre-defined
+  replica set tags <repl-set-node-types>` to direct queries to those
+  nodes.
+- **To give every node more capacity to serve reads**, :ref:`scale the
+  cluster tier <atlas-infinite-modify-tier>`.
+
+Backup, restore, and point-in-time recovery operate at the storage
+layer. To learn about backup and restore, see
+:ref:`atlas-infinite-backup`.
+
+.. _atlas-infinite-write-concern:
+
+Write Concern on {+atlas-infinite-cluster+}s
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A write concern describes the level of acknowledgment that you request
+from MongoDB for a write operation.
+
+This section describes the write concern defaults on an
+{+atlas-infinite-cluster+}, how |service| handles each write concern
+field, and how write concern differs from an {+atlas-core-cluster+}.
+
+On an {+atlas-infinite-cluster+}, the storage layer stores and
+replicates your data, and |service| acknowledges your write once the
+storage layer captures it.
+
+On an {+atlas-infinite-cluster+}, the default write concern is
+``w: "majority"``. Your application sets the write concern in the
+connection string or for a single write operation. You can't change
+the default in the {+atlas-ui+}.
+
+|service| accepts any write concern that your application sends and
+modifies it, where needed, to a value that an
+{+atlas-infinite-cluster+} supports, so your application's write
+concerns keep working.
+
+On an {+atlas-infinite-cluster+}, |service| handles the write concern
+fields as follows:
+
+- **Your application sets the level of write acknowledgment with**
+  ``w``:
+
+  - If your application doesn't set ``w``, |service| applies the
+    default, ``w: "majority"``. On an {+atlas-infinite-cluster+},
+    ``"majority"`` refers to a majority within the storage layer, not a
+    majority of your {+cluster+}'s nodes. |service| never rolls back a
+    ``w: "majority"`` write.
+  - If your application sets ``w`` to ``0`` or ``1``, |service|
+    applies the value that your application sets. ``w: 0`` requests no
+    acknowledgment. A ``w: 1`` write returns sooner than a
+    ``w: "majority"`` write, but |service| can roll it back in rare
+    failures.
+  - If your application sets ``w`` to ``2`` or any number greater than
+    ``2``, |service| applies ``w: "majority"``.
+
+- **Your application can set a time limit with** ``wtimeout``
+  (``wtimeoutMS`` in a connection string), in milliseconds.
+  ``wtimeout`` applies to ``w: "majority"`` writes, including writes
+  that use the default:
+
+  - If your application sets ``wtimeout``, a write that |service|
+    can't acknowledge returns a write concern error when it reaches
+    the ``wtimeout`` limit.
+  - If your application doesn't set ``wtimeout``, the write waits
+    indefinitely and blocks your application.
+
+- **|service| always applies** ``j: true``. The storage layer
+  persists each write outside the node's memory before |service|
+  acknowledges it. Your application's ``j`` setting has no effect on
+  this behavior.
+
+Write concern differs between {+atlas-infinite-cluster+}s and
+{+atlas-core-cluster+}s in the following ways:
+
+- On an {+atlas-infinite-cluster+}, you set ``w`` to ``0``, ``1``, or
+  ``"majority"``. For ``w: 1`` and ``w: "majority"``, the storage
+  layer guarantees your write. For ``w: 0``, the storage layer
+  doesn't acknowledge your write. On an {+atlas-core-cluster+}, you
+  can also set ``w`` to a number, which requests acknowledgment from
+  that many nodes.
+
+- On an {+atlas-infinite-cluster+}, |service| always applies
+  ``j: true``, and you can't disable journal acknowledgment. On an
+  {+atlas-core-cluster+}, you can turn journal acknowledgment off with
+  ``j: false``.
+
+.. _atlas-infinite-oplog:
+
+Oplog on {+atlas-infinite-cluster+}s
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+On an {+atlas-infinite-cluster+}, the oplog collection,
+``local.oplog.rs``, doesn't serve replication, since replication is
+handled at the storage layer. The collection serves change streams and
+some internal functions that require a limited history. The collection
+counts toward your {+cluster+}'s stored data.
+
+- **Replication doesn't use the oplog collection.** On an
+  {+atlas-infinite-cluster+}, replication happens in the storage
+  layer, and |service| stores the oplog collection,
+  ``local.oplog.rs``, there as well. Every node reads from the
+  storage layer, so a node that
+  joins or rejoins the cluster can't fall behind the oplog
+  window. To learn more, see :ref:`atlas-infinite-replication`.
+
+- **The oplog collection serves change streams and internal
+  functions**. ``local.oplog.rs`` serves :ref:`change streams
+  <changeStreams>` and some internal functions that require a limited
+  history. The retention window determines how far back in time an
+  interrupted change stream can resume, but doesn't govern how far
+  back you can restore the cluster itself. For that, use
+  :ref:`point-in-time restores <pit-restore>`.
+
+- **How long Atlas keeps entries.** |service| keeps every oplog
+  entry for at least the minimum oplog retention window. Once an
+  entry is older than the window, |service| deletes it. The default
+  minimum oplog retention window is 24 hours in
+  {+atlas-infinite-full+} and {+atlas-core-full+}. You can
+  :ref:`set the minimum oplog retention window
+  <set-oplog-min-window>` in :guilabel:`Additional Settings` to
+  determine how much history the cluster keeps.
+
+- **How the oplog collection affects data size and cost**. The oplog
+  collection records every write to the cluster. The oplog
+  collection counts toward the data stored in your cluster and
+  toward your storage costs, the same as on an
+  {+atlas-core-cluster+}. History that |service| keeps for
+  :ref:`{+PIT-Restore+} <pit-restore>` is part of backup costs. That
+  history doesn't count toward cluster storage. To learn more,
+  see :ref:`atlas-infinite-billing`.
+
+Operational Experience
+----------------------
+
+Your application runs on {+atlas-infinite-full+} without code changes.
+{+atlas-infinite-full+} uses the MongoDB wire protocol, so your
+application connects to your {+atlas-infinite-cluster+} using MongoDB
+drivers and other connection methods. You can also access and manage
+the cluster with MongoDB programmatic tools.

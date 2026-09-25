@@ -1,3 +1,4 @@
+- The {+cluster+} is an {+atlas-core-cluster+}.
 - The {+cluster+} is either :guilabel:`General` or :guilabel:`Low-CPU` class
 - The {+cluster+} is single-region.
 - Extended storage is available for ``M40`` tier and higher clusters with
@@ -7,7 +8,8 @@
   - ``M50``/``M60``: up to 8TB
   - ``M80+``: up to 14TB
 
-  To change your cluster's tier, see :ref:`Modify a Cluster <modify-cluster>`.
+  To change your cluster's tier, see
+  :ref:`Modify an Atlas Core Cluster <modify-cluster>`.
 
 If you enable extended storage, this slows down initial syncs and cross-project
 snapshot restores, and can reduce high availability. Enabling extended

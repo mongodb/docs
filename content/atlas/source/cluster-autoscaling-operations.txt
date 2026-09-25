@@ -1,0 +1,477 @@
+.. _cluster-autoscaling-operations:
+
+==================================
+Auto-Scaling Operations and Alerts
+==================================
+
+.. meta::
+   :keywords: atlas ui, atlas cli, atlas admin api, atlas terraform
+   :description: Learn how to review auto-scaling activity, configure auto-scaling alerts, enhance auto-scaling with effective fields, and get support for auto-scaling.
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This page covers auto-scaling operations:
+reviewing auto-scaling activity, configuring auto-scaling alerts, enhancing
+auto-scaling with effective fields, and getting support for
+auto-scaling.
+
+.. _activity-feed-auto-scaling-events:
+
+Review Auto-Scaling Activity Feed
+----------------------------------
+
+You can :ref:`view Activity Feed <view-activity-feed>` to review the events
+for each |service| project. When any auto-scaling event occurs, |service| logs
+the event in the project :guilabel:`Activity Feed`.
+
+|service| uses the following audit :ref:`auto-scaling events <alert-conditions-autoscaling>`.
+
+Each auto-scaling event in the Activity Feed includes detailed information
+about what triggered the scaling action, including:
+
+- The specific metric that triggered the auto-scaling event (such as CPU
+  utilization, memory usage, or disk space).
+- The threshold value that was exceeded.
+- Whether the scaling was triggered by reactive auto-scaling (in response to
+  current resource usage) or predictive auto-scaling (in anticipation of
+  forecasted demand).
+
+To view or download only auto-scaling events:
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/list-project-activity-feed.rst
+
+   .. step:: Filter the activity feed for Atlas events.
+
+      In the :guilabel:`Activity Feed`, click the :guilabel:`Filter by event(s)` menu and check :guilabel:`Atlas`.
+
+   .. step:: Search for auto-scaling events.
+
+      In the search box above the list, start typing ``auto-scaling``.
+
+      In the right-hand side of the menu, all auto-scaling events display.
+      Deselect any that you don't want to see.
+      The feed list automatically updates with each change you make.
+
+.. _custom-alerts-auto-scaling-events:
+
+Configure Alerts for Auto-Scaling Events
+-----------------------------------------
+
+.. important::
+
+   .. include:: /includes/opt-out-of-auto-autoscaling-emails.rst
+
+Auto-scaling activities are a subset of :ref:`Atlas alerts <alert-conditions>`.
+Each time |service| triggers any of the :ref:`auto-scaling events <alert-conditions-autoscaling>`,
+you receive default |service| alerts.
+
+You can opt out of or change alert configuration for some or all auto-scaling
+events at a project level.
+
+.. include:: /includes/fact-autoscaling-alert-project-scope.rst
+
+To modify an alert configuration, in the :guilabel:`Category` section,
+select :guilabel:`Atlas Auto Scaling` and then select the :guilabel:`Condition/Metric`
+from the list. You can then modify roles for alert recipients, change a
+notification method, such as email or SMS, and add a notifier, such as Slack.
+To learn more, see :ref:`Configure an Auto-Scaling Alert <configure-autoscaling-alert>`.
+
+.. _effective-fields:
+
+Enhance Auto-Scaling with Effective Fields in {+terraform+}
+-----------------------------------------------------------------
+
+.. note::
+   This feature only applies to {+dedicated-clusters+} in the ``M10`` tier and upwards, and it is
+   not supported for {+Flex-clusters+}.
+
+When auto-scaling is enabled on a {+cluster+}, {+service+} automatically adjusts instance
+sizes and storage capacity based on workload.
+
+If you use |service-terraform| for your {+cluster+} instance sizing and storage
+configurations, you can specify effective fields for a subset of {+cluster+} sizing
+values. We recommend this approach, this way:
+
+- Spec attributes remain exactly as you defined in your {+terraform+}
+  configuration.
+
+- Default and auto-scaled values are available separately in effective specs (for
+  example, ``effectiveElectableSpecs``), and no resource drift occurs when |service|
+  auto-scales your cluster.
+
+- Your configuration stays clean and represents your intent, while effective specs show
+  the reality of what |service| has provisioned.
+
+Effective fields ignore only changes to fields managed by specific types of auto-scaling.
+The following table details the fields ignored when effective fields and specific types of
+auto-scaling are enabled:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Type of Auto-Scaling Enabled
+     - Specs
+     - Ignored Fields
+     - Node Type
+   * - Compute or Storage
+     - ``electableSpecs``
+     - ``instanceSize``, ``diskSizeGB``, ``diskIOPS``
+     - :term:`Electable node <electable node>`
+   * - Compute or Storage
+     - ``readOnlySpecs``
+     - ``instanceSize``, ``diskSizeGB``, ``diskIOPS``
+     - :term:`Read-only node <read-only node>`
+   * - Analytics
+     - ``analyticsSpecs``
+     - ``instanceSize``
+     - :term:`Analytics node <analytics node>`
+
+You cannot use effective fields for :ref:`search nodes <fts-search-node-cost-overview>`.
+
+Enable Effective Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tabs::
+
+  .. tab:: API
+    :tabid: api
+
+    To enable effective fields, include the following header in the API request:
+
+    .. code-block:: bash
+      :copyable: true
+
+      --header "Use-Effective-Instance-Fields: true"
+
+  .. tab:: Terraform
+    :tabid: terraform
+
+    Set the ``use_effective_fields`` argument to ``true`` in your resource definition for
+    the {+cluster+} as the following example shows:
+
+    .. code-block:: bash
+      :copyable: true
+
+        resource "mongodbatlas_advanced_cluster" "this" {
+            project_id           = mongodbatlas_project.this.id
+            name                 = var.cluster_name
+            cluster_type         = var.cluster_type
+            use_effective_fields = true
+            replication_specs    = var.replication_specs
+            tags                 = var.tags
+          }
+
+    To learn more, see :github:`Effective Fields Module Example <mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/effective_fields>`.
+
+    .. include:: /includes/facts/lifecycle-ignore-changes-admonition.rst
+
+Behavior of Effective Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Overall, effective fields behaviour falls into one of three scenarios:
+
+.. collapsible::
+  :heading: Effective fields and auto-scaling are enabled
+  :sub_heading: Spec fields store your last node configuration, while effective fields show the values
+   after latest auto-scaling event. Click to see a code example of this scenario.
+  :expanded: false
+
+  .. note::
+     We recommend enabling effective fields as a best practice.
+
+  .. code-block:: json
+      :copyable: true
+
+      {
+      "replicationSpecs": [
+        {
+          "regionConfigs": [
+            {
+              "analyticsAutoScaling": {
+                "compute": {
+                  "maxInstanceSize": "M30",
+                  "minInstanceSize": "M10",
+                  "enabled": true,
+                  "scaleDownEnabled": true
+                },
+                "diskGB": {
+                  "enabled": true
+                }
+              },
+              "autoScaling": {
+                "compute": {
+                  "maxInstanceSize": "M30",
+                  "minInstanceSize": "M10",
+                  "enabled": true,
+                  "scaleDownEnabled": true
+                },
+                "diskGB": {
+                  "enabled": true
+                }
+              },
+              "effectiveAnalyticsSpecs": {
+                "instanceSize": "M30",
+                "diskIOPS": 3000,
+                "diskSizeGB": 100.0,
+                "ebsVolumeType": "STANDARD",
+                "nodeCount": 0
+              },
+              "effectiveElectableSpecs": {
+                "instanceSize": "M30",
+                "diskIOPS": 3000,
+                "diskSizeGB": 100.0,
+                "ebsVolumeType": "STANDARD",
+                "nodeCount": 3
+              },
+              "effectiveReadOnlySpecs": {
+                "instanceSize": "M30",
+                "diskIOPS": 3000,
+                "diskSizeGB": 100.0,
+                "ebsVolumeType": "STANDARD",
+                "nodeCount": 0
+              },
+              "electableSpecs": {
+                "instanceSize": "M20",
+                "diskSizeGB": 50.0,
+                "nodeCount": 3
+              },
+              "priority": 7,
+              "providerName": "AWS",
+              "regionName": "US_EAST_1"
+            }
+          ],
+          "zoneId": "6924a70c67695449ba5625ce",
+          "zoneName": "Zone 1"
+        }
+      ]
+    }
+
+.. collapsible::
+  :heading: Effective fields are enabled and auto-scaling is disabled
+  :sub_heading: Spec fields store your last node configuration, while effective
+   fields show the values that Atlas stores internally. Click to see a code example of
+   this scenario.
+  :expanded: false
+
+  .. note::
+     We recommend enabling effective fields as a best practice.
+
+  .. code-block:: json
+      :copyable: true
+
+      {
+      "replicationSpecs": [
+        {
+          "regionConfigs": [
+            {
+              "effectiveAnalyticsSpecs": {
+                "instanceSize": "M30",
+                "diskIOPS": 3000,
+                "diskSizeGB": 100.0,
+                "ebsVolumeType": "STANDARD",
+                "nodeCount": 0
+              },
+              "effectiveElectableSpecs": {
+                "instanceSize": "M30",
+                "diskIOPS": 3000,
+                "diskSizeGB": 100.0,
+                "ebsVolumeType": "STANDARD",
+                "nodeCount": 3
+              },
+              "effectiveReadOnlySpecs": {
+                "instanceSize": "M30",
+                "diskIOPS": 3000,
+                "diskSizeGB": 100.0,
+                "ebsVolumeType": "STANDARD",
+                "nodeCount": 0
+              },
+              "electableSpecs": {
+                "instanceSize": "M30",
+                "diskSizeGB": 100.0,
+                "nodeCount": 3
+              },
+              "priority": 7,
+              "providerName": "AWS",
+              "regionName": "US_EAST_1"
+            }
+          ],
+          "zoneId": "6924a70c67695449ba5625ce",
+          "zoneName": "Zone 1"
+        }
+      ]
+    }
+
+.. collapsible::
+  :heading: Effective fields are disabled and auto-scaling is enabled (Not recommended)
+  :sub_heading: Effective field values always match exactly those set in the corresponding
+   specifications. Click to see a code example of this scenario.
+  :expanded: false
+
+  .. include:: /includes/facts/lifecycle-ignore-changes-admonition.rst
+
+  .. code-block:: json
+      :copyable: true
+
+      {
+        "replicationSpecs": [
+          {
+            "regionConfigs": [
+              {
+                "analyticsAutoScaling": {
+                  "compute": {
+                    "maxInstanceSize": "M30",
+                    "minInstanceSize": "M10",
+                    "enabled": true,
+                    "scaleDownEnabled": true
+                  },
+                  "diskGB": {
+                    "enabled": true
+                  }
+                },
+                "autoScaling": {
+                  "compute": {
+                    "maxInstanceSize": "M30",
+                    "minInstanceSize": "M10",
+                    "enabled": true,
+                    "scaleDownEnabled": true
+                  },
+                  "diskGB": {
+                    "enabled": true
+                  }
+                },
+                "effectiveAnalyticsSpecs": {
+                  "instanceSize": "M30",
+                  "diskIOPS": 3000,
+                  "diskSizeGB": 100.0,
+                  "ebsVolumeType": "STANDARD",
+                  "nodeCount": 0
+                },
+                "effectiveElectableSpecs": {
+                  "instanceSize": "M30",
+                  "diskIOPS": 3000,
+                  "diskSizeGB": 100.0,
+                  "ebsVolumeType": "STANDARD",
+                  "nodeCount": 3
+                },
+                "effectiveReadOnlySpecs": {
+                  "instanceSize": "M30",
+                  "diskIOPS": 3000,
+                  "diskSizeGB": 100.0,
+                  "ebsVolumeType": "STANDARD",
+                  "nodeCount": 0
+                },
+                "analyticsSpecs": {
+                  "instanceSize": "M30",
+                  "diskIOPS": 3000,
+                  "diskSizeGB": 100.0,
+                  "ebsVolumeType": "STANDARD",
+                  "nodeCount": 0
+                },
+                "electableSpecs": {
+                  "instanceSize": "M30",
+                  "diskIOPS": 3000,
+                  "diskSizeGB": 100.0,
+                  "ebsVolumeType": "STANDARD",
+                  "nodeCount": 3
+                },
+                "readOnlySpecs": {
+                  "instanceSize": "M30",
+                  "diskIOPS": 3000,
+                  "diskSizeGB": 100.0,
+                  "ebsVolumeType": "STANDARD",
+                  "nodeCount": 0
+                },
+                "priority": 7,
+                "providerName": "AWS",
+                "regionName": "US_EAST_1"
+              }
+            ],
+            "zoneId": "6924a70c67695449ba5625ce",
+            "zoneName": "Zone 1"
+          }
+        ]
+        }
+
+Adjust the Auto-Scaling Range with Effective Fields
+`````````````````````````````````````````````````````````
+
+If you enable :ref:`effective fields <effective-fields>`,
+|service| validates any new auto-scaling range against the
+{+cluster+}'s current effective instance size. |service| rejects
+a request that sets a range that doesn't contain the current
+effective instance size. This behavior applies to
+:term:`operational nodes <operational node>` and
+:term:`analytics nodes <analytics node>` that use auto-scaling.
+
+The request fails with a validation error in either of these
+cases:
+
+- The new minimum instance size is larger than the effective
+  instance size.
+
+- The new maximum instance size is smaller than the effective
+  instance size.
+
+If the new range still contains the current effective instance
+size, you can change the bounds in a single request.
+
+If the current effective instance size falls outside the new
+range, use the following procedure to move it into the new range
+before you change the bounds. If you update the instance size in
+the same request as the range change, |service| doesn't apply the
+new instance size while auto-scaling is enabled with effective
+fields, so the request still fails.
+
+.. tabs::
+
+  .. tab:: API
+    :tabid: api
+
+    .. procedure::
+       :style: normal
+
+       .. step:: Disable compute auto-scaling.
+
+          Set ``compute.enabled`` to ``false``.
+
+       .. step:: Set the instance size to a value inside the intended new range.
+
+          Set ``instanceSize`` to the target value, then send the
+          request.
+
+       .. step:: Re-enable compute auto-scaling.
+
+          Set ``compute.enabled`` to ``true``.
+
+       .. step:: Set the new range bounds.
+
+          Set ``minInstanceSize`` and ``maxInstanceSize`` to the
+          new bounds, then send the request.
+
+  .. tab:: Terraform
+    :tabid: terraform
+
+    To adjust the auto-scaling range with {+terraform+}, see
+    `Adjusting the Auto-Scaling Range with use_effective_fields
+    <https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#adjusting-the-auto-scaling-range-with-use_effective_fields>`__
+    in the {+terraform+} provider documentation.
+
+.. _mongodb-support-autoscaling:
+
+MongoDB Support for |service| Auto-Scaling
+-------------------------------------------
+
+If you have any questions or concerns, :ref:`contact support <request-support>`.

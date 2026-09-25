@@ -7,7 +7,7 @@ key. To enable customer key management, |service| uses the following encryption 
    Customer-managed keys are encryption keys that you create, own, 
    and manage in |cloud-kms|. You create the |cmk| in |cloud-kms| and 
    connect it to |service| at the :ref:`Project <projects>` level.
-   To learn more about the |cmk|\s used in |cloud-kms|, see the |cmk-link|.
+   To learn more about the |cmk|\s used in |cloud-kms|, see |cmk-link|.
 
    |service| uses this key only to encrypt the MongoDB Master Keys.
 

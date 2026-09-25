@@ -1,13 +1,8 @@
 .. procedure::
    :style: normal
         
-   .. step:: Create a database user in the source replica set.
-      
-      .. important:: Optional
-      
-         If your source cluster *doesn't* enforce authentication, skip
-         this step.
-      
+   .. step:: Optional. Create a database user in the source replica set.
+
       If the source deployment enforces authentication, you must provide a
       database user with privileges to read any database as part of this
       procedure. To learn more about database user privileges, see
@@ -74,7 +69,7 @@
       Do not run this command yet. Proceed to the next step once you have
       modified the template.
       
-   .. step:: Set up database user in the target |service| cluster.
+   .. step:: Set up database user in the destination |service| cluster.
       
       To run :binary:`mongorestore` against an |service| cluster, you
       must specify a database user in the |service| cluster
@@ -115,9 +110,9 @@
         specify the password for that user in ``password``.
       
       - Add :option:`--nsExclude <mongorestore.--nsExclude>` and set its value to ``"admin.system.*"``.
-      
+
       - Add :option:`--archive <mongorestore.--archive>`.
-      
+
       Based on the type of connection string you use, your template should resemble one of the following commands:
       
       .. tabs::

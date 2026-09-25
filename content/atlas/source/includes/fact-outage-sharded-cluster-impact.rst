@@ -1,7 +1,7 @@
-A regional outage or regional outage simulation that affects the
-highest priority regions in a sharded {+cluster+} could cause the
-{+cluster+} to become inoperable for read operations. To restore the config
-servers, do the following:
+On {+atlas-core-cluster+}s, a regional outage or regional outage
+simulation that affects the highest priority regions in a sharded
+{+cluster+} might cause the {+cluster+} to become inoperable for read
+operations. To restore the config servers, do the following steps:
 
 - Configure a :manual:`read preference </core/read-preference/>` that is
   suitable for querying secondary nodes for reads. 

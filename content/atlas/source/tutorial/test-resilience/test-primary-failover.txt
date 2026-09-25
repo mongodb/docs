@@ -22,10 +22,25 @@ Test Primary Failover
 
 .. include:: /includes/fact-atlas-free-tier-limits.rst
 
-|service| conducts :manual:`replica set elections
-</core/replica-set-elections/>` when it makes configuration changes,
-such as patch updates, scaling events, and when failures occur. Your
-applications should handle replica set elections without any downtime.
+Your applications should handle a change of primary without any
+downtime.
+
+On {+atlas-core-cluster+}s:
+
+- |service| conducts :ref:`replica set elections
+  <replica-set-elections>` when it makes configuration changes, such as
+  patch updates and scaling events, and when failures occur.
+
+On {+atlas-infinite-cluster+}s:
+
+- The storage layer coordinates failover instead of an election among
+  the compute nodes. A standby compute node becomes the primary node
+  without oplog replay or a cold start.
+- The primary node can change during operating system or VM
+  maintenance, vertical scaling up or down, MongoDB version upgrades,
+  and failures.
+- |service| maintains availability during rolling restarts.
+
 To learn how to build a resilient application, see
 :ref:`resilient-application`. 
 
@@ -78,7 +93,7 @@ a failover event. During this process:
 a. |service| shuts down the current :term:`primary`.
 
 #. The members of the replica set hold an
-   :manual:`election </core/replica-set-elections/>` to choose which
+   :ref:`election <replica-set-elections>` to choose which
    of the secondaries will become the new primary. On average, an
    election takes approximately five seconds.
 
@@ -90,12 +105,15 @@ a. |service| shuts down the current :term:`primary`.
 The following statements describe |service| behavior during rollovers
 and when testing failover in sharded clusters: 
 
-- If the original primary accepted write operations that had not
-  been successfully replicated to the secondaries when the
-  primary stepped down, the primary rolls back those write
-  operations when it re-joins the replica set and begins
-  synchronizing. To learn more, see
+- On {+atlas-core-cluster+}s, the original primary might have accepted
+  write operations that weren't successfully replicated to the
+  secondaries before it stepped down. When that primary re-joins the
+  replica set and begins synchronizing, it rolls back those
+  unreplicated writes. To learn more, see
   :ref:`atlas-replica-set-rollbacks`.
+- On {+atlas-infinite-cluster+}s, rollbacks don't occur. The storage
+  layer commits write operations, so a former primary node has no
+  unreplicated writes to revert.
 - Only the :binary:`~bin.mongos` processes that are on the same 
   instances as the primaries of the replica sets in the sharded cluster 
   are restarted. 

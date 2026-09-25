@@ -1,0 +1,206 @@
+.. _atlas-encryption-at-rest-overview:
+
+=================================
+Atlas Encryption at Rest Overview
+=================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: aes-256, disk encryption, database-level encryption, customer-managed keys, byok, infinite, atlas infinite
+   :description: Learn how Atlas encrypts data at rest, which encryption layer each database edition uses, understand MongoDB-managed and customer-managed keys, and key rotation.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+|service| encrypts your data at rest using Advanced Encryption Standard
+(AES)-256. Encryption at rest is always enabled and you can't disable
+it.
+
+The encryption layer that |service| uses, and the keys that protect your
+data, depend on your :ref:`database edition
+<atlas-editions>` and on whether you bring your own
+encryption key.
+
+Encryption Layers by Database Edition
+-------------------------------------
+
+Whichever edition of |service| you choose, your data is always encrypted
+by default. 
+
+.. _atlas-core-encryption-at-rest:
+
+{+atlas-core-full+} Encryption
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For :term:`{+atlas-core-full+}`, your cloud provider encrypts
+the storage volumes that hold your {+cluster+} data. The cloud provider
+automates this disk encryption and manages the encryption keys in a
+|kms|. This default volume-level disk encryption requires no
+configuration, is always on, and cannot be disabled. You can add another
+layer of security by enabling database-level encryption at rest with
+customer-managed keys.
+
+When you configure encryption at rest with customer-managed keys,
+|service| adds database-level encryption on top of the default disk
+encryption. To learn how to configure customer-managed keys, see
+:ref:`security-kms-encryption`.
+
+.. _atlas-infinite-encryption-at-rest:
+
+{+atlas-infinite-full+} Encryption
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With :term:`{+atlas-infinite-full+}`, encryption at rest is
+enabled by default and is always applied to your entire database. Your
+{+cluster+} runs on a shared storage layer, and therefore encryption at
+rest cannot be configured at the volume level or disabled. MongoDB
+manages one unique default encryption key for each |service|
+organization and rotates it automatically every 90 days. This rotation
+is transparent and requires no action from you. Keys are never shared
+between customers. In addition, you can apply an additional encryption
+layer with customer-managed keys. When you configure encryption at rest
+with customer-managed keys, |service| adds database-level encryption on
+top of the default encryption.
+
+|service| encrypts your data at the database level, on the
+:term:`compute node` before the data reaches the storage layer in the
+{+atlas-infinite-cluster+}.
+
+Database-level encryption differs from the default volume-level disk
+encryption that {+atlas-core-full+} uses. For {+atlas-core-full+}, your
+cloud provider encrypts the storage volumes. For
+{+atlas-infinite-full+}, |service| encrypts the data before it
+leaves the compute node, and stores the data encrypted.
+
+Because MongoDB manages a separate key for each organization, for
+{+clusters+} that use default encryption, |service| doesn't support
+cross-organization restores, and only supports cross-project restores
+within the same organization.
+
+To learn more about the {+atlas-infinite-full+} architecture, see
+:ref:`atlas-infinite-edition`.
+
+.. _atlas-ear-customer-managed-keys:
+
+Customer-Managed Keys
+---------------------
+
+With customer-managed keys (CMK), also known as bring your own key
+(BYOK), you own and control the encryption keys. In {+atlas-core-full+},
+you can use one or more of the following key management providers:
+
+- :ref:`Amazon Web Services Key Management Service <security-aws-kms>`
+- :ref:`Azure Key Vault <security-azure-kms>`
+- :ref:`Google Cloud Platform Key Management Service <security-gcp-kms>`
+
+For {+atlas-infinite-full+} in public preview, |service| supports
+customer-managed keys only through :ref:`AWS KMS <security-aws-kms>`.
+Azure Key Vault and Google Cloud KMS are not supported during public
+preview. In addition, cross-project and cross-organization restores
+are not supported for customer-managed keys.
+
+If your customer-managed key becomes invalid, |service| shuts down
+your cluster on its next scheduled |kms| validity check. To learn how
+|service| validates your key configuration, see
+:ref:`atlas-ear-validate-kms-config`.
+
+How Customer Key Management Works ({+atlas-core-full+})
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-customer-managed-keys.rst
+
+Key Rotation
+~~~~~~~~~~~~
+
+|service| can't rotate customer-managed encryption keys. See your
+key management provider's documentation for guidance on key rotation.
+When you set customer key management in a project, |service| creates a
+:ref:`90-day key rotation alert <alert-conditions-encryption-at-rest>`.
+
+For {+atlas-core-full+}, |service| rotates the MongoDB Master Keys that
+your customer-managed key encrypts:
+
+.. include:: /includes/fact-atlas-key-rotation.rst
+
+For {+atlas-infinite-full+}, |service| rotates the default encryption
+key automatically every 90 days.
+
+Migrate Between Key Types ({+atlas-infinite-full+})
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For {+atlas-infinite-full+}, you can migrate between default encryption
+and a customer-managed key in either direction.
+{+atlas-infinite-full+} treats the migration as a key rotation. Your
+cluster stays available during the migration, and the previous key
+stays valid until the migration completes.
+
+Encrypted Backups ({+atlas-core-full+})
+---------------------------------------
+
+Atlas encrypts all snapshot volumes. This secures your {+cluster+} data
+on disk. Using your cloud provider's |kms|, you can:
+
+- Encrypt your snapshot storage volumes where you store your backups.
+- Encrypt the data files in your snapshots.
+- Access encrypted snapshots. To learn more, see
+  :ref:`access-encrypted-snapshot`.
+- Restore snapshots with the key that was active at the time the
+  snapshot was taken.
+- Encrypt |pit| restore :term:`oplog` data.
+
+You can't restore snapshots encrypted with keys that have become
+invalid.
+
+You can specify a :ref:`base snapshot schedule
+<cloud-provider-retention-policy>` that backs up every 6 hours.
+
+.. note::
+
+   .. include:: /includes/fact-download-encrypted-snapshots.rst
+
+   To learn how to download snapshots, see
+   :ref:`restore-from-local-file`.
+
+Preserved Security Controls
+---------------------------
+
+All |service| security controls apply to both {+atlas-core-full+} and
+{+atlas-infinite-full+}, including:
+
+- :ref:`PrivateLink <private-endpoint>`
+- :ref:`IP access lists <access-list>`
+- :ref:`IAM and single sign-on (SSO) <atlas-federated-authentication>`
+- :ref:`Auditing <set-up-database-auditing>`
+- :ref:`Field-level encryption (FLE) <manual-csfle-feature>`
+- :ref:`Network peering <vpc-peering>`
+
+Get Started
+-----------
+
+- To configure a key management provider and enable customer key
+  management, see :ref:`security-kms-encryption`.
+- To require customer-managed keys on all clusters and dedicated search
+  deployments in a project, see
+  :ref:`Atlas Resource Policies <atlas-resource-policies-overview>`.
+
+Learn More
+----------
+
+- :ref:`encrypted-cloud-provider-snapshot`
+- :ref:`access-encrypted-snapshot`
+- :ref:`restore-from-ear`
+- :ref:`arch-center-data-encryption-recs`
+- :ref:`data-validation-kms-usage`
+
+.. Provider-neutral values for the substitutions that
+   fact-customer-managed-keys.rst expects. The provider pages
+   (security-aws-kms, security-azure-kms, security-gcp-kms) define
+   provider-specific values for these.
+
+.. |cloud-kms| replace:: your key management provider
+.. |envelope-encryption| replace:: envelope encryption
+.. |cmk-link| replace:: your key management provider's documentation

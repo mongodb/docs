@@ -7,6 +7,6 @@ set to :guilabel:`On`, |service| automatically enables
 {+bcp+}. |service| automatically modifies the backup to meet the 
 minimum requirements of the {+bcp+}.
 
-If you deployed Search Nodes separately, |service| rebuilds the |fts| 
-indexes to restore the data on the Search Nodes that it deleted when you 
-paused the |service| {+cluster+}.
+On {+atlas-core-cluster+}s, if you deploy Search Nodes separately,
+|service| rebuilds the |fts| indexes to restore the data on the Search
+Nodes that it deleted when you paused the |service| {+cluster+}.

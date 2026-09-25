@@ -1,0 +1,371 @@
+.. _cluster-autoscaling-compute-infinite:
+
+===============================================
+Compute Auto-Scaling on {+atlas-infinite-full+}
+===============================================
+
+.. meta::
+   :keywords: atlas ui, atlas cli, atlas admin api, {+atlas-infinite-cluster+}
+   :description: Learn how {+atlas-infinite-full+} clusters scale compute through reactive and predictive auto-scaling, including eligibility, opting out, and the effect on storage performance.
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This page covers cluster tier auto-scaling on
+{+atlas-infinite-cluster+}s, which support both reactive and
+predictive cluster tier auto-scaling. To learn how each mechanism
+works, see :ref:`cluster-autoscaling-reactive-overview-infinite`
+and :ref:`predictive-autoscaling-overview-infinite`.
+
+.. _cluster-tier-autoscaling-predictive-and-reactive-infinite:
+
+Cluster Tier Auto-Scaling
+--------------------------
+
+|service| uses reactive and predictive auto-scaling for cluster tiers.
+|service| chooses its auto-scaling mechanism based on your cluster's type,
+tier, and workload pattern.
+
+- Reactive auto-scaling. |service| uses thresholds, and not prediction,
+  to trigger scaling events based on current resource usage. Reactive
+  auto-scaling occurs **after** sustained high or low resource usage.
+  To learn more, see :ref:`cluster-autoscaling-reactive-overview-infinite`.
+
+- Predictive auto-scaling. |service| uses machine learning to
+  anticipate future scaling needs based on historical usage patterns
+  and attempts to trigger scaling events **before** the forecasted workload
+  spike arrives.
+
+  Predictive auto-scaling is an extension of cluster tier auto-scaling and
+  falls back to reactive auto-scaling. |service| continues to rely on
+  reactive auto-scaling to manage **unexpected** spikes in workload that
+  aren't cyclical or predictable. |service| uses predictive auto-scaling
+  for :ref:`eligible clusters <eligible-clusters-predictive-autoscaling-infinite>`.
+  To learn more, see :ref:`predictive-autoscaling-overview-infinite`.
+
+.. _cluster-autoscaling-reactive-overview-infinite:
+
+Reactive Auto-Scaling for Cluster Tier
+----------------------------------------
+
+.. include:: /includes/fact-reactive-autoscaling.rst
+
+You can configure the {+cluster+} tier ranges that |service| uses to
+automatically scale your {+cluster+} tier in response to
+{+cluster+} usage.
+
+To optimize resource utilization and improve cost profile, |service|
+reactive auto-scaling detects sustained higher demand and short-term peak
+traffic and adjusts {+cluster+} tier based on real-time resource usage.
+
+To help control costs, you can specify a range of maximum and minimum
+{+cluster+} sizes that your {+cluster+} can automatically scale to.
+
+Reactive auto-scaling works on a rolling basis, and the process doesn't incur any
+downtime. {+service+} maintains a primary node during this process, but
+the  nodes are upgraded one-by-one and are unavailable while being upgraded.
+
+To learn about recommendations for scalability, including avoiding resource
+drift when using infrastructure as code tools with reactive auto-scaling,
+see :ref:`arch-center-scalability-recs` in the {+atlas-arch-center+}.
+
+.. _eligible-clusters-reactive-autoscaling-infinite:
+
+Eligible Clusters for Reactive Auto-Scaling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-auto-scaling-availability.rst
+
+.. _howitworks-scale-cluster-tier-infinite:
+.. _system-memory-calculation-infinite:
+
+How |service| Scales {+Cluster+} Tier
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+On {+atlas-infinite-cluster+}s, scaling the {+cluster+} tier also
+changes the storage |iops| and storage throughput available to the
+{+cluster+}. To review the storage performance values for each tier, see
+:ref:`atlas-infinite-storage-iops-throughput-values`.
+
+.. note::
+
+   You can't update the storage performance values of a given tier. To
+   change storage performance, change the {+cluster+} tier.
+
+The local storage on a compute node is separate from {+cluster+}
+storage. To learn how much local storage each {+cluster+} tier
+provides for query spilling, see :ref:`atlas-infinite-query-spilling`.
+
+.. include:: /includes/how-atlas-scales-cluster-tier.rst
+
+.. _predictive-autoscaling-overview-infinite:
+
+Predictive Auto-Scaling for Cluster Tier
+-----------------------------------------
+
+.. include:: /includes/autoscaling/predictive-overview.rst
+
+Behavior of Predictive Auto-Scaling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/autoscaling/predictive-behavior.rst
+
+.. _eligible-clusters-predictive-autoscaling-infinite:
+
+Eligible Clusters for Predictive Auto-Scaling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| uses predictive auto-scaling for eligible clusters.
+Eligible clusters for predictive auto-scaling must meet **all**  of the following criteria:
+
+- Belong to :guilabel:`General` and :guilabel:`Low-CPU` cluster classes.
+- Have a tier that is ``M30`` or greater.
+- Have auto-scaling enabled. If you enable down-scaling, auto-scaling
+  minimum instance size must be equal to or greater than ``M30``.
+- Have been active for at least two weeks.
+
+{+atlas-infinite-cluster+}s at the ``M30`` tier and larger run on
+:ref:`AWS Gen2 <aws-gen2-clusters>` hardware. Predictive auto-scaling
+supports these {+clusters+}.
+
+In addition, the following criteria affect whether |service| uses
+predictive auto-scaling for an eligible cluster:
+
+- Predictive auto-scaling applies only to electable and read-only nodes.
+  |service|  **doesn't** use predictive auto-scaling for search or analytics nodes.
+- Predictive auto-scaling might not be able to predict non-cyclical and highly
+  dynamic workload spikes in any eligible cluster. In these cases, |service|
+  relies on reactive auto-scaling.
+
+.. _downward-scaling-considerations-infinite:
+
+Considerations for Downward Scaling of Cluster Tier
+---------------------------------------------------
+
+You can manually reduce your {+cluster+} tier from the :ref:`Edit Cluster <scale-cluster>` page. The following considerations apply when you manually
+scale down your {+cluster+} tier:
+
+- Estimate your deployment's range of workloads and then set the
+  :guilabel:`Minimum Cluster Size` value to the {+cluster+} tier that
+  has enough capacity to handle your deployment's workload. Account for
+  any possible spikes or dips in {+cluster+} activity.
+
+- You can't scale to a {+cluster+} tier smaller than ``M10``.
+
+.. _configure-autoscaling-options-infinite:
+
+Configure Auto-Scaling Options
+------------------------------
+
+You can configure auto-scaling options when you
+:ref:`create <create-new-cluster>` or :ref:`modify <scale-cluster>` a
+{+cluster+}. |service| recommends compute auto-scaling for
+{+atlas-infinite-cluster+}s. You choose whether to use it when you
+create or modify a {+cluster+}.
+
+You can do one of the following:
+
+- Review and adjust the upper and lower {+cluster+} tiers that |service|
+  should use when auto-scaling your {+cluster+}, or
+- :ref:`Opt out <opt-out-autoscaling-infinite>` of using auto-scaling.
+
+|service| displays auto-scaling options in the :guilabel:`Auto-scale`
+section of the {+cluster+} builder for :guilabel:`General` and
+:guilabel:`Low-CPU` tier {+clusters+}.
+
+.. _enable-autoscaling-example-cli-api-infinite:
+
+Enable Auto-Scaling with {+atlas-cli+} and {+atlas-admin-api+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can enable compute auto-scaling when you create or update a
+{+cluster+} using the :atlascli:`{+atlas-cli+} </>` or
+{+atlas-admin-api+}. The following examples show how to enable compute
+auto-scaling for both electable nodes and analytics nodes. Replace the
+cluster tiers and provider settings with the ones you need.
+
+.. tabs::
+
+   .. tab:: {+atlas-cli+}
+      :tabid: atlascli
+
+      To configure auto-scaling with the {+atlas-cli+}, create a JSON file
+      that contains the auto-scaling configuration and then specify it in the :atlascli:`atlas api clusters updateCluster </command/atlas-api-clusters-updateCluster/>` command.
+
+      .. collapsible::
+         :heading: clusters updateCluster
+         :sub_heading: Enable auto-scaling with the updateCluster command
+         :expanded: false
+
+         Use the :atlascli:`atlas api clusters updateCluster </command/atlas-api-clusters-updateCluster/>`
+         command to directly call the API and enable auto-scaling settings
+         on an existing cluster. To enable auto-scaling when creating a new
+         cluster, use the :atlascli:`atlas api clusters createCluster </command/atlas-api-clusters-createCluster/>` command.
+
+         .. procedure::
+            :style: normal
+
+            .. step:: Create the payload file.
+
+               Create a ``payload.json`` file with the following content. Replace the placeholder values with your specific cluster configuration:
+
+               .. code-block:: json
+                  :copyable: true
+                  :emphasize-lines: 17, 29
+
+                  {
+                    "replicationSpecs": [
+                      {
+                        "regionConfigs": [
+                          {
+                            "providerName": "{CLOUD-PROVIDER}",
+                            "regionName": "{REGION-NAME}",
+                            "priority": 7,
+                            "electableSpecs": {
+                              "instanceSize": "{INSTANCE-SIZE}",
+                              "nodeCount": 2
+                            },
+                            "analyticsSpecs": {
+                              "instanceSize": "{ANALYTICS-INSTANCE-SIZE}",
+                              "nodeCount": 1
+                            },
+                            "autoScaling": {
+                              "compute": {
+                                "enabled": true,
+                                "scaleDownEnabled": true,
+                                "minInstanceSize": "{MIN-INSTANCE-SIZE}",
+                                "maxInstanceSize": "{MAX-INSTANCE-SIZE}"
+                              }
+                            },
+                            "analyticsAutoScaling": {
+                              "compute": {
+                                "enabled": true,
+                                "scaleDownEnabled": true,
+                                "minInstanceSize": "{MIN-ANALYTICS-INSTANCE-SIZE}",
+                                "maxInstanceSize": "{MAX-ANALYTICS-INSTANCE-SIZE}"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+
+            .. step:: Run the update command.
+
+               After creating the ``payload.json`` file, run the following command to enable auto-scaling on an existing cluster and specify the JSON file with the ``--file`` flag:
+
+               .. code-block:: bash
+                  :copyable: true
+                  :emphasize-lines: 5
+
+                  atlas api clusters updateCluster \
+                    --version 2024-10-23 \
+                    --clusterName {CLUSTER-NAME} \
+                    --groupId {GROUP-ID} \
+                    --file payload.json
+
+   .. tab:: {+atlas-admin-api+}
+      :tabid: api
+
+      You can use the {+atlas-admin-api+} to enable auto-scaling by specifying
+      the auto-scaling configuration in the request body.
+
+      .. collapsible::
+         :heading: Update One Cluster in One Project
+         :sub_heading: Enable auto-scaling with the Atlas Administration API
+         :expanded: false
+
+         Use the :oas-bump-atlas-op:`Update One Cluster in One Project <updategroupcluster>`
+         endpoint to enable auto-scaling by including the ``autoScaling`` object.
+
+         .. include:: /includes/fact-service-accounts-first.rst
+
+         .. code-block:: bash
+            :copyable: true
+            :emphasize-lines: 18, 33
+
+            curl --header "Authorization: Bearer {ACCESS-TOKEN}" \
+                 --header "Accept: application/vnd.atlas.2025-03-12+json" \
+                 --header "Content-Type: application/json" \
+                 --include \
+                 --request PATCH "https://cloud.mongodb.com/api/atlas/v2/groups/{GROUP-ID}/clusters/{CLUSTER-NAME}" \
+                 --data '{
+                 "replicationSpecs": [
+                   {
+                     "regionConfigs": [
+                       {
+                         "providerName": "{CLOUD-PROVIDER}",
+                         "regionName": "{REGION-NAME}",
+                         "priority": 7,
+                         "electableSpecs": {
+                           "instanceSize": "{INSTANCE-SIZE}",
+                           "nodeCount": 2
+                         },
+                         "autoScaling": {
+                           "compute": {
+                             "enabled": true,
+                             "scaleDownEnabled": true,
+                             "minInstanceSize": "{MIN-INSTANCE-SIZE}",
+                             "maxInstanceSize": "{MAX-INSTANCE-SIZE}"
+                           }
+                         },
+                         "analyticsSpecs": {
+                           "instanceSize": "{ANALYTICS-INSTANCE-SIZE}",
+                           "nodeCount": 1
+                         },
+                         "analyticsAutoScaling": {
+                           "compute": {
+                             "enabled": true,
+                             "scaleDownEnabled": true,
+                             "minInstanceSize": "{MIN-ANALYTICS-INSTANCE-SIZE}",
+                             "maxInstanceSize": "{MAX-ANALYTICS-INSTANCE-SIZE}"
+                           }
+                         }
+                       }
+                     ]
+                   }
+                 ]'
+
+Review the {+Cluster+} Tier Auto-Scaling Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To review the enabled auto-scaling options for {+cluster+} tier:
+
+.. procedure::
+  :style: normal
+
+  .. step:: Review the cluster tier values.
+
+     In the selected :guilabel:`Auto-Scale` checkbox, review the :guilabel:`Maximum Cluster Size` and :guilabel:`Minimum Cluster Size` values, and adjust them if needed.
+
+  .. step:: Review the :guilabel:`Allow cluster to be scaled down` option.
+
+     Review the :guilabel:`Allow cluster to be scaled down` option that is checked by default when you create a new {+cluster+} in the {+atlas-ui+}.
+
+
+.. _opt-out-autoscaling-infinite:
+
+Opt Out of {+Cluster+} Tier Auto-Scaling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To opt out of {+cluster+} auto-scaling (increasing the cluster tier),
+when :ref:`creating a new cluster <create-new-cluster>`, navigate to the
+:guilabel:`Cluster Tier` menu, and un-check the
+:guilabel:`Compute Auto-Scale` checkbox in the :guilabel:`Auto-scale`
+section.
+
+To opt out of {+cluster+} auto-scaling (decreasing the cluster tier),
+when :ref:`creating a new cluster <create-new-cluster>`, navigate to
+:guilabel:`Cluster Tier` menu, and un-check the
+:guilabel:`Allow cluster to be scaled down` checkbox in the
+:guilabel:`Auto-scale` section.

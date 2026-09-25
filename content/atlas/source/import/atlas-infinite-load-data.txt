@@ -1,0 +1,277 @@
+.. _atlas-infinite-load-data:
+
+=================================================
+Load Data into an {+atlas-infinite-full+} Cluster
+=================================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: atlas infinite, load data, mongodump, mongorestore, mongoimport, bulk write
+   :description: Load data into an Atlas Infinite cluster from an existing MongoDB deployment, from a JSON or CSV file, or from an application, using mongodump, mongoimport, or bulk writes.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+To load your own data into an {+atlas-infinite-cluster+}, use one of the
+following methods:
+
+- **mongodump and mongorestore**: |mongodump| creates a binary export of
+  the data from an existing MongoDB standalone or replica set, including
+  an {+atlas-core-cluster+}, and |mongorestore| loads the data into an
+  {+atlas-infinite-cluster+}. Use this method when your source data is
+  in a MongoDB deployment. To learn how, see
+  :ref:`atlas-infinite-load-deployment`.
+- **mongoimport**: |mongoimport| loads documents from a ``JSON`` or
+  ``CSV`` file into an {+atlas-infinite-cluster+}. Use this method when
+  your source data is in a file external to MongoDB. The file can come
+  from :binary:`~bin.mongoexport` or from a third-party export tool. To
+  learn how, see :ref:`atlas-infinite-load-file`.
+- **Bulk write operations**: MongoDB database methods write batches of
+  documents into an {+atlas-infinite-cluster+}. Use this method when you
+  generate or transform the documents yourself from an application,
+  {+mongosh+}, {+atlas-ui+}, or another interface. To learn how, see
+  :ref:`atlas-infinite-load-application`.
+
+Each of these methods consumes write capacity on the destination
+{+atlas-infinite-cluster+}. To limit the effect on your applications,
+run large data loads during non-peak system usage or a scheduled
+maintenance window.
+
+Prerequisites
+-------------
+
+Complete the following prerequisites:
+
+- Create a destination {+atlas-infinite-cluster+}. To learn more, see
+  :ref:`create-new-cluster`.
+- To use |mongodump|, |mongorestore|, or |mongoimport|, install the
+  latest stable release version of the MongoDB Database Tools on that
+  host. To learn how, see the :dbtools:`MongoDB Database Tools
+  installation guide </installation/>`.
+
+.. _atlas-infinite-load-deployment:
+
+Restore Data from a MongoDB Deployment
+--------------------------------------
+
+|mongodump| creates a binary export of an existing MongoDB standalone or
+replica set, and |mongorestore| loads that export into an
+{+atlas-infinite-cluster+}. The export includes data, metadata, and
+indexes from the source deployment. For guidance on copying data from an
+existing MongoDB sharded cluster, see :ref:`request-support`.
+
+You can also use this procedure to migrate data from a {+Free-cluster+}
+or {+Flex-cluster+} on {+atlas-core-full+} to a {+dedicated-cluster+} on
+{+atlas-infinite-full+}. To scale a {+Free-cluster+} or {+Flex-cluster+}
+in place instead of migrating data, see :ref:`scale-free-flex-cluster`.
+
+This procedure requires downtime. Stop writes to your source deployment,
+run |mongodump| and |mongorestore|, then cut over your applications to
+the {+atlas-infinite-cluster+}.
+
+Considerations
+~~~~~~~~~~~~~~
+
+Before you run this procedure, consider the following behaviors:
+
+- **Data consistency**: To avoid losing data, pause writes to your source
+  deployment before you run |mongodump|. If you run |mongodump| from a
+  :term:`secondary` member, pause writes and then wait for the secondary
+  to catch up to the primary before you start the dump.
+- **Users and roles**: |service| manages database users, so
+  |mongorestore| can't migrate existing database users or roles to the
+  destination cluster. Create the database users that your applications
+  need in the destination {+atlas-infinite-cluster+}. To learn more, see
+  :ref:`mongodb-users`.
+- **Excluded namespaces**: The ``admin`` and ``config`` directories in
+  the dump hold user information that |mongorestore| can't add to an
+  {+atlas-infinite-cluster+}, so the procedure excludes ``admin.*`` and
+  ``config.*``.
+- **Host resources**: |mongodump| runs on a host with network access to
+  your source deployment, and |mongorestore| runs on a host with access
+  to the archive file and network access to your destination deployment.
+  Both tools use CPU and memory on the host, which can affect that
+  host's performance.
+
+Steps
+~~~~~
+
+.. include:: /includes/steps-migrate-to-infinite-mongorestore.rst
+
+.. _atlas-infinite-load-file:
+
+Import Data from a JSON or CSV File
+-----------------------------------
+
+|mongoimport| reads a ``JSON`` or ``CSV`` file and inserts each record
+into a collection in an {+atlas-infinite-cluster+}. The file can come
+from a third-party export tool. To restore data from a MongoDB
+deployment into an {+atlas-infinite-cluster+}, see
+:ref:`atlas-infinite-load-deployment`.
+
+Considerations
+~~~~~~~~~~~~~~
+
+Before you run this procedure, consider the following behaviors:
+
+- **Extended JSON**: |mongoimport| uses :ref:`strict mode representation
+  <mongodb-extended-json-v2>` for certain BSON types.
+- **Documents only**: Unlike |mongorestore|, |mongoimport| loads
+  documents only, not collection options or index definitions. Create
+  indexes on the destination {+atlas-infinite-cluster+} after the import
+  completes.  
+- **Host resources**: |mongoimport| runs on the host that holds your
+  file and uses CPU and memory on that host.
+- **Other interfaces**: To load a file without the command line, use
+  :ref:`MongoDB Compass <compass-import-export>`, which imports ``JSON``
+  and ``CSV`` files, or :ref:`the {+atlas-ui+}
+  <atlas-ui-insert-documents>`, which inserts ``JSON`` documents that
+  you paste or type.
+
+Steps
+~~~~~
+
+.. include:: /includes/steps-import-files-using-mongoimport.rst
+
+.. _atlas-infinite-load-application:
+
+Write Data That You Generate 
+----------------------------
+
+Bulk write operations send many writes to an {+atlas-infinite-cluster+}
+in a single request, which reduces network round trips and increases
+write throughput. Choose this method to write documents that you
+generate into an {+atlas-infinite-cluster+}, instead of copying data
+from an existing deployment or file.
+
+Considerations
+~~~~~~~~~~~~~~
+
+Before you run this procedure, consider the following behaviors:
+
+- **Bulk write behavior**: The write operations and options that you
+  specify in a bulk write request determine how MongoDB orders write
+  operations, handles errors, and reports results for a request. To
+  learn how these choices affect bulk write behavior, see the
+  :method:`~db.collection.bulkWrite()` reference page.
+- **Other interfaces**: To write a small number of documents without
+  batching logic, use :method:`~db.collection.insertMany()` or
+  :method:`~db.collection.insertOne()` from {+mongosh+} or a MongoDB
+  driver, or :ref:`the {+atlas-ui+} <atlas-ui-insert-documents>`, which
+  inserts ``JSON`` documents that you paste or type.
+
+Steps
+~~~~~
+
+.. procedure::
+   :style: normal
+
+   .. step:: Connect to your {+atlas-infinite-cluster+}.
+
+      To run the bulk write operations in this procedure, connect to
+      your cluster with {+mongosh+}. To learn how, see
+      :ref:`atlas-connect-to-deployment`.
+
+      You can also run bulk write operations from application code with
+      a MongoDB driver, from the {+atlas-ui+}, or from any other
+      interface that connects to your cluster. To learn about the
+      equivalent operations in each interface, see :ref:`Bulk Write
+      Operations <bulk-write-operations>`.
+
+   .. step:: Run the bulk write operation.
+
+      To write to a single collection, run
+      :method:`~db.collection.bulkWrite()`. To learn more about write
+      operation types and bulk write options, see
+      :method:`~db.collection.bulkWrite()`.
+      
+      For example, the following command
+      inserts two documents into the ``inventory`` collection:
+
+      .. code-block:: javascript
+
+         db.inventory.bulkWrite( [
+            { insertOne: { document: {
+               _id: ObjectId("68b1c2d3e4f5a6b7c8d9e0f1"),
+               item: "notebook",
+               qty: 50
+            } } },
+            { insertOne: { document: {
+               _id: ObjectId("68b1c2d3e4f5a6b7c8d9e0f2"),
+               item: "pencil",
+               qty: 100
+            } } }
+         ] )
+
+      To write to multiple collections or databases in one request, run
+      :method:`~Mongo.bulkWrite()` and specify the namespace for each
+      operation. For example, the following command inserts one document
+      into the ``sales.inventory`` collection and one document into the
+      ``supplies.inventory`` collection:
+
+      .. code-block:: javascript
+
+         db.getMongo().bulkWrite( [
+            {
+               namespace: "sales.inventory",
+               name: "insertOne",
+               document: { item: "notebook", qty: 50 }
+            },
+            {
+               namespace: "supplies.inventory",
+               name: "insertOne",
+               document: { item: "pencil", qty: 100 }
+            }
+         ] )
+
+      By default, bulk write operations run in order and stop at the
+      first error. To learn how to configure run order, see
+      :ref:`bulkwrite-write-operations-executionofoperations`.
+
+   .. step:: Verify the results.
+
+      Review the counts that the operation returns and confirm the
+      document count in each target collection. To learn more, see
+      :ref:`bulkWrite-output`.
+
+      To learn how to handle errors for bulk write operations, see
+      :ref:`bulkWrite-error-handling`. 
+
+Limitations 
+-----------
+
+{+atlas-infinite-full+} has a full list of public preview limitations in
+:ref:`atlas-infinite-availability`. The following limitations apply when
+you load data into an {+atlas-infinite-cluster+}:
+
+- **No oplog replay**: {+atlas-infinite-full+} doesn't support oplog
+  replay. Don't use the :option:`mongodump --oplog <mongodump --oplog>`
+  option or the :option:`mongorestore --oplogReplay
+  <mongorestore.--oplogReplay>` option with {+atlas-infinite-cluster+}s.
+- **Queryable Encryption and Client-Side Field Level Encryption**: You
+  can't use |mongodump| or |mongorestore| with a collection that uses
+  :manual:`Queryable Encryption </core/queryable-encryption/>` or
+  :manual:`Client-Side Field Level Encryption </core/csfle/>`.
+- **Cross-edition live migration and restore**: {+atlas-infinite-full+}
+  doesn't support live migration or backup and restore between
+  {+atlas-core-full+} and {+atlas-infinite-cluster+}s. Architectural
+  differences between the two deployment options make snapshots and live
+  migrations incompatible.
+
+Learn More
+----------
+
+- :ref:`atlas-infinite-edition`
+- :ref:`import-strategies`
+- :binary:`mongodump reference page <bin.mongodump>`
+- :binary:`mongorestore reference page <bin.mongorestore>`
+- :binary:`mongoimport reference page <bin.mongoimport>`
+- :dbcommand:`bulkWrite`

@@ -8,7 +8,6 @@ for a given cloud provider. To learn more, see:
 
 |service| limits the total number of nodes in other regions in one
 project to a total of 100, **not** including:
-
 - |gcp| regions communicating with each other 
 - {+Free-clusters+}
 - {+Flex-clusters+}

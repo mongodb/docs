@@ -22,8 +22,8 @@
       If you have a :ref:`{+bcp+} enabled <backup-compliance-policy>` and 
       you terminate a {+cluster+}, |service| automatically maintains all 
       existing snapshots after the termination according to the backup 
-      policy. |service| retains the :term:`oplog` for 
-      :ref:`restoring a point in time with {+pit-restore+} 
+      policy. On an {+atlas-core-cluster+}, |service| retains the 
+      :term:`oplog` for :ref:`restoring a point in time with {+pit-restore+} 
       <recover-pit-continuous-cloud-backup>` in a static state until 
       |service| can no longer use them for {+pit-restore+}.
       

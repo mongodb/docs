@@ -13,7 +13,7 @@
    #. In the sidebar, click :guilabel:`Database & Network Access` under 
       the :guilabel:`Security` heading.
 
-   The `Database & Network Access <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fsecurity%2Fdatabase>`__ page 
-   displays.
+   The `Database & Network Access <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fsecurity%2Fdatabase>`__ page
+   displays after you complete the preceding steps.
 
 .. :snippet-end:

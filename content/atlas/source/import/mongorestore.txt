@@ -15,6 +15,12 @@ Seed with ``mongorestore``
    :name: genre
    :values: tutorial
 
+.. note::
+
+   This page applies to {+atlas-core-cluster+}s. To use |mongodump|
+   and |mongorestore| to load data into an {+atlas-infinite-cluster+},
+   see :ref:`atlas-infinite-load-deployment`.
+
 You can use |mongodump| and |mongorestore| to seed |service-fullname|
 {+cluster+} with data from an existing MongoDB standalone or replica set.
 For guidance on seeding data from an existing MongoDB sharded {+cluster+},
@@ -50,6 +56,22 @@ can stop all writes to your source {+cluster+}. Any write operations issued to
 the source {+cluster+} after the |mongodump| portion of the procedure completes
 are not migrated to the destination {+cluster+}.
 
+If you can't stop writes for the entire duration of the |mongodump|, run
+:option:`mongodump --oplog <mongodump --oplog>` with
+:option:`mongorestore --oplogReplay <mongorestore.--oplogReplay>` to
+capture and replay writes that occur during the dump. This restores a
+snapshot of the source deployment as of the moment that |mongodump|
+completed. The ``--oplog`` option can only be used with a replica set.
+
+.. note::
+
+   |mongorestore| fails when you combine :option:`--oplogReplay
+   <mongorestore.--oplogReplay>` with ``--nsExclude``. If you use
+   ``--oplogReplay``, omit ``--nsExclude`` from the ``mongorestore``
+   command and delete the ``admin`` and ``config`` directories from the
+   ``dump`` directory that you created with :option:`mongodump --oplog
+   <mongodump --oplog>` instead.
+
 After |mongorestore| completes data restoration, you must cut-over your
 applications to the destination |service| {+cluster+} before resuming
 write operations. To connect to |a-service| {+cluster+}, see
@@ -74,13 +96,11 @@ Cluster Security
 
 - Allow read access to the primary.
 - If you want to use :binary:`mongorestore <bin.mongorestore>` with the
-  :option:`--oplogReplay <mongorestore.--oplogReplay>` option, you must delete
-  the ``admin`` and ``config`` directories from the ``dump`` directory that
-  :binary:`mongodump <bin.mongodump>` creates. The ``admin`` and ``config``
-  directories contain database user information that you can't add to
-  |a-service| {+cluster+} with ``mongorestore``. Use the |mongorestore|
-  :option:`--nsExclude <mongorestore.--nsExclude>` to exclude the
-  ``admin.system.*`` namespace.
+  :option:`--oplogReplay <mongorestore.--oplogReplay>` option, you must
+  delete the ``admin`` and ``config`` directories from the ``dump``
+  directory that :binary:`mongodump <bin.mongodump>` creates. The
+  ``admin`` and ``config`` directories contain database user information
+  that you can't add to |a-service| {+cluster+} with ``mongorestore``.
 
 You can't migrate any existing user or role information to |service|.
 For the destination |service| {+cluster+}, create the appropriate database

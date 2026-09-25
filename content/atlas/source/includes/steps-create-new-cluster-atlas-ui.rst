@@ -1,5 +1,3 @@
-.. include:: /includes/admonitions/tips/tip-ai-cluster-assistant.rst
-
 When you create your first |service| {+cluster+} using the
 {+atlas-ui+}, you can either:
 
@@ -9,8 +7,10 @@ When you create your first |service| {+cluster+} using the
 - Specify advanced configuration options.
 
 Whether you use a template or specify advanced configuration, you can
-:ref:`modify all configuration options <scale-cluster>` after you create
-the {+cluster+}.
+:ref:`modify an {+atlas-core-cluster+} <scale-cluster>` or :ref:`modify an
+{+atlas-infinite-cluster+} <atlas-infinite-modify-cluster>` after you create
+the {+cluster+}. To use a different edition, create a new {+cluster+} and
+select the edition at creation time.
 
 .. note::
 

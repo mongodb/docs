@@ -1,0 +1,200 @@
+.. _cluster-autoscaling-storage:
+
+=====================================
+Auto-Scaling for Cluster Storage
+=====================================
+
+.. meta::
+   :keywords: atlas ui, atlas infinite, atlas core
+   :description: Learn how Atlas automatically scales cluster storage on Atlas Core clusters, and how cluster storage grows and is limited on an Atlas Infinite cluster tier.
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page covers cluster storage on each database edition. How
+storage grows depends on the edition. On an {+atlas-core-cluster+},
+|service| auto-scales the storage attached to each node. On an
+{+atlas-infinite-cluster+}, storage grows with your data.
+
+For cluster tier auto-scaling, which applies to both database
+editions, see :ref:`cluster-autoscaling-compute-core` and
+:ref:`cluster-autoscaling-compute-infinite`.
+
+.. _cluster-autoscaling-storage-atlas-core:
+
+Cluster Storage Auto-Scaling on {+atlas-core-full+}
+---------------------------------------------------
+
+|service| uses storage auto-scaling to help you automatically increase
+your {+cluster+} storage capacity. The following sections describe how
+|service| scales storage on an {+atlas-core-cluster+} and how storage
+scaling can change the {+cluster+} tier.
+
+.. _howitworks-scale-cluster-storage:
+
+How Atlas Scales Cluster Storage on {+atlas-core-full+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This section applies to {+atlas-core-cluster+}s. On an
+{+atlas-core-cluster+}, cluster storage is the disk
+attached to each node, and ``diskSizeGB`` sets its size.
+|service| enables {+cluster+} storage auto-scaling by default.
+|service| automatically increases {+cluster+} storage when disk space used
+reaches 90% for *any* node in the {+cluster+}.
+
+To opt out of cluster storage scaling, un-check the
+:guilabel:`Storage Scaling` checkbox in the :guilabel:`Auto-scale`
+section.
+
+The following considerations apply:
+
+- |service| auto-scales {+cluster+} storage up only. You can manually
+  reduce your {+cluster+} storage from the :ref:`Edit Cluster <scale-cluster>` page.
+
+- On :ref:`AWS <amazon-aws>`, :ref:`Azure <microsoft-azure>`, and
+  :ref:`GCP <google-gcp>` {+clusters+}, |service| increases {+cluster+}
+  storage capacity to achieve 70% disk space used. To learn more, see
+  :ref:`change-storage-capacity-aws`, :ref:`change-storage-capacity-azure`,
+  and :ref:`change-storage-capacity-gcp`.
+
+- Avoid high-speed write activity if you plan to scale up {+clusters+}.
+  Scaling up a {+cluster+} to greater storage capacity requires sufficient
+  time to  prepare and copy data to new disks. If a {+cluster+} receives
+  a burst of high-speed write activity, such as a bulk insert, automatic
+  scaling might not occur due to a temporary spike in disk storage capacity.
+  To reduce the risk of running out of disk  storage, plan to scale up
+  {+clusters+} in advance of bulk inserts and other instances of high-speed
+  write activity.
+
+- |service| disables disk auto-scaling if you specify one cluster tier
+  class for the base nodes and another, different cluster tier class for
+  the analytics nodes. For example, if you specify a :guilabel:`General`
+  cluster class for :term:`operational nodes <operational node>` in
+  the :guilabel:`Base Tier`, and a :guilabel:`Low-CPU` cluster class for
+  analytics nodes in the :guilabel:`Analytics Tier`, |service| disables
+  disk auto-scaling with the following error message: ``Disk auto-scaling
+  is not yet available for clusters with mixed instance classes``.
+
+- After disk auto-scaling triggers, subsequent disk auto-scaling and
+  manual disk scaling may be unavailable for a few hours.
+
+Cluster Tier and Cluster Storage Might Scale in Parallel on {+atlas-core-full+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   This section applies to {+atlas-core-full+} only.
+
+This section describes {+atlas-core-cluster+} behavior. Because
+storage doesn't scale on {+atlas-infinite-cluster+}s, this parallel
+scaling behavior doesn't apply to them. To learn more, see
+:ref:`cluster-autoscaling-compute-infinite`.
+
+When |service| attempts to automatically scale your {+cluster+} storage
+capacity as part of auto-scaling, it might need to scale your storage outside of the bounds that
+your current {+cluster+} tier supports. To help ensure that your {+cluster+}
+doesn't experience any downtime, |service| scales your {+cluster+} tier
+(in addition to {+cluster+} storage) to accommodate the new storage capacity.
+
+.. note::
+
+  In an auto-scaling event, |service| might increase the {+cluster+} tier even if
+  :guilabel:`Cluster Tier Scaling` is disabled, if the current tier doesn't have
+  the required storage capacity.
+
+
+On |azure|, if you enable auto-scaling on a {+cluster+} deployed in one of
+the :ref:`regions that support Extended Storage/IOPS <microsoft-azure-storage-supported-regions>`,
+and the current |iops| is lower than the default |iops| for the auto-scaled
+disk size, |service| increases the alloted number of |iops| in
+the :guilabel:`IOPS` slider and notifies you in the UI. To learn more, see
+:ref:`Configure Extended Storage/IOPS on Azure <extend-iops-azure-steps>`.
+
+.. example::
+
+   The maximum storage capacity for an ``M30`` {+cluster+} is 480 GB. If
+   you have an ``M30`` {+cluster+} with the maximum storage allocated and
+   your disk space used reaches 90%, a storage auto-scaling event requires
+   raising your storage capacity to 600 GB. In this case, |service| scales
+   your {+cluster+} tier up to ``M40`` because this is the lowest {+cluster+}
+   tier that can support the new required storage capacity. On |azure|,
+   if you deployed the {+cluster+} in one of the :ref:`regions that support Extended Storage/IOPS <microsoft-azure-storage-supported-regions>`,
+   |service| also automatically increases |iops| to match the |iops| level
+   for that tier's {+cluster+}. To learn more, see
+   :ref:`Configure Extended Storage/IOPS on Azure <extend-iops-azure-steps>`.
+
+In the event that your specified maximum {+cluster+} tier can't support
+the new storage capacity, |service|:
+
+1. Raises your maximum {+cluster+} tier to the next lowest tier that can
+   accommodate the new storage capacity.
+
+#. Scales your {+cluster+} tier to that new maximum tier.
+
+.. note::
+
+   When |service| overrides your maximum {+cluster+} tier, it also disables
+   your {+cluster+} from automatically scaling down. To re-enable downward
+   auto-scaling, configure it in :ref:`Cluster Settings <scale-cluster>`.
+   See also :ref:`downward-scaling-considerations`.
+
+If |service| attempts to scale your {+cluster+} tier down and the target
+tier can't support your current disk capacity, provisioned |iops|, or both,
+|service| doesn't scale your {+cluster+} down. In this scenario, |service|
+updates your auto-scaling settings based on the relationship between your
+current {+cluster+} tier and the configured maximum {+cluster+} tier:
+
+- If the {+cluster+} is currently at the configured maximum {+cluster+}
+  tier, |service| disables the {+cluster+} from automatically scaling
+  down because all smaller tiers wouldn't be able to accommodate
+  the necessary storage settings. If you want to re-enable downward
+  auto-scaling, you must do so manually from your :ref:`Cluster
+  Settings <scale-cluster>`.
+
+- If the {+cluster+} isn't currently at the configured maximum {+cluster+}
+  tier, |service| raises the minimum {+cluster+} tier to the current {+cluster+}
+  tier. In this case, |service| doesn't disable downward auto-scaling.
+
+This auto-scaling logic reduces the downtime in cases when your storage
+settings don't match your workload.
+
+.. _oplog-considerations:
+
+Oplog Considerations on {+atlas-core-full+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+On an {+atlas-core-cluster+}, depending on whether you choose to
+use storage auto-scaling, |service| manages the oplog entries based
+on either the minimum oplog retention window, or the oplog size. To
+learn more, see :ref:`Oplog Size Behavior <oplog-size-behavior>`.
+|service| enables storage auto-scaling by default.
+
+.. _cluster-autoscaling-storage-atlas-infinite:
+
+Cluster Storage on {+atlas-infinite-full+}
+------------------------------------------
+
+Storage on an {+atlas-infinite-cluster+} grows with your data, so
+there is no storage auto-scaling to configure or opt out of. To
+control costs, you set a maximum storage size when you create or
+modify the {+cluster+}. |service| blocks writes when the {+cluster+}
+reaches that limit.
+
+.. important::
+
+   .. include:: /includes/infinite/fact-public-preview-write-throttling.rst
+
+- To learn how cluster storage works on an
+  {+atlas-infinite-cluster+}, including how to set the maximum
+  storage size, see :ref:`atlas-infinite-max-storage-limit`.
+- To review the storage |iops| and throughput values for each
+  {+cluster+} tier, see :ref:`atlas-infinite-storage-iops-throughput-values`.

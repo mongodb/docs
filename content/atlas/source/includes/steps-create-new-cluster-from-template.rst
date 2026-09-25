@@ -1,10 +1,18 @@
+.. important::
+
+   This procedure uses a template, which creates an
+   {+atlas-core-cluster+}. To create an {+atlas-infinite-cluster+},
+   navigate to the bottom of the page and click :guilabel:`Go to
+   Advanced Configuration`. You can't change the database edition
+   after you create the {+cluster+}.
+
 .. procedure::
    :style: normal
       
    .. include:: /includes/nav/steps-create-new-cluster.rst
       
    .. step:: Select a {+cluster+} type.
-      
+
       .. include:: /includes/steps-choose-deployment-type-from-template.rst
       
    .. step:: Select your preferred :guilabel:`Cloud Provider & Region`.

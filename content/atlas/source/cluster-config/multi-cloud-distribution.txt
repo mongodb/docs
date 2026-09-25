@@ -1,6 +1,6 @@
 .. meta::
    :keywords: atlas cli, atlas api, atlas ui
-   :description: Configure multi-cloud MongoDB deployments in Atlas to enhance availability and workload isolation using different cloud providers and regions.
+   :description: Configure multi-cloud MongoDB deployments in Atlas Core and Infinite to enhance availability and workload isolation using different cloud providers and regions.
 
 .. _create-cluster-multi-region:
 
@@ -22,20 +22,31 @@ Configure High Availability and Workload Isolation
 
 .. tip::
 
-   You can create multi-cloud MongoDB deployments in |service| using any
-   combination of cloud providers: |aws|, |azure|, and |gcp|.
+   On {+atlas-core-cluster+}s, you can create multi-cloud MongoDB
+   deployments in |service| using any combination of cloud providers:
+   |aws|, |azure|, and |gcp|. {+atlas-infinite-cluster+}s don't support
+   multi-cloud {+clusters+} in public preview.
 
-You can set the nodes in your MongoDB deployment to use different:
+On {+atlas-core-cluster+}s, you can set the nodes in your {+cluster+}
+to use different:
 
-- Cloud providers
-- Geographic regions
-- Workload priorities
-- Replication configurations
+- **Cloud providers**: Deploy nodes on |aws|, |azure|, or |gcp|. You
+  can deploy all nodes in one cloud provider or deploy a multi-cloud
+  {+cluster+} with nodes across different cloud providers.
+- **Geographic regions**: Deploy nodes in one or more cloud provider
+  regions, and set which region {+service+} prioritizes for primary
+  eligibility. The regions can be in the same cloud provider or across
+  different cloud providers.
+- **Workload purposes**: Deploy electable, read-only, analytics, and
+  Search Nodes.
 
-Using these options allows you to improve the availability and workload
-balancing of your cluster.
+On {+atlas-infinite-cluster+}s in public preview, {+service+} deploys
+all nodes in one region on |aws|. You can deploy read-only and analytics
+nodes to isolate workloads from your primary node. To learn more, see
+:ref:`atlas-infinite-workload-isolation`.
 
-To configure node-specific options for your cluster:
+To configure cloud provider, region, and workload isolation options for
+your {+atlas-core-cluster+}, see the following procedure:
 
 .. procedure::
    :style: normal
@@ -52,16 +63,15 @@ To configure node-specific options for your cluster:
       :guilabel:`Multi-Cloud, Multi-Region & Workload Isolation (M10+ clusters)`
       to :guilabel:`On`.
 
-A cluster may be hosted in:
-
-- Multiple regions within a single cloud provider.
-- Multiple regions across multiple cloud providers.
-
-As each cloud provider has its own set of regions, multi-cloud
-clusters are also multi-region clusters.
-
 Considerations
 --------------
+
+The considerations that reference multiple regions, multiple cloud
+providers, or sharded clusters apply to {+atlas-core-cluster+}s only.
+{+atlas-infinite-cluster+}s don't support these configurations in
+public preview. To learn which workload isolation options apply to
+{+atlas-infinite-cluster+}s, see
+:ref:`atlas-infinite-workload-isolation`.
 
 - .. include:: /includes/cluster-settings/node-type-topology-warning.rst
 
@@ -82,9 +92,12 @@ Considerations
   long distances may lead to long election times or replication lag.
 
 - A cluster change that adds, removes, or modifies voting members will take longer, since
-  |service| adds, removes, or modifies :manual:`voting members </core/replica-set-elections/#voting-members>` one at a time on a :ref:`rolling basis <high-availability>`.
+  |service| adds, removes, or modifies :ref:`voting members <replica-set-voting-members>` one at a time on a :ref:`rolling basis <high-availability>`.
 
 - .. include:: /includes/facts/cross-region-limits.rst
+
+- |service| limits the number of nodes between any two regions in a
+  project. To learn more, see :ref:`faq-cross-region`.
 
 - |service| provides built-in custom write concerns for multi-region
   clusters. Use these write concerns to ensure your write operations
@@ -113,6 +126,8 @@ Electable Nodes for High Availability
 -------------------------------------
 
 .. include:: /includes/cluster-settings/multicloud/electable-nodes-high-avail.rst
+
+.. include:: /includes/infinite/banner-not-applicable.rst
 
 Each electable node can:
 
@@ -452,6 +467,13 @@ You can set the nodes in your {+database-deployment+} to run only the |fts|
 separately, you improve the availability and workload balancing of the
 ``mongot`` process. To learn more, see :ref:`what-is-search-node`.
 
+.. important::
+
+   Dedicated Search Nodes are not supported on
+   {+atlas-infinite-cluster+}s clusters during public preview. For the
+   features supported in public preview, see
+   :ref:`atlas-infinite-availability`.
+
 .. |search-type| replace:: |fts| and {+avs+}
 
 .. composable-tutorial::
@@ -702,9 +724,45 @@ separately, you improve the availability and workload balancing of the
 
    .. include:: /includes/fts/extracts/fts-migrate-delete-search-nodes.rst 
 
+.. _atlas-infinite-workload-isolation:
+
+Workload Isolation on {+atlas-infinite-cluster+}s
+-------------------------------------------------
+
+During public preview, {+atlas-infinite-cluster+}s support the
+following workload isolation options:
+
+- :ref:`Read-only nodes <deploy-read-only-replicas>`
+- :ref:`Analytics nodes <deploy-analytics-nodes>`
+- :ref:`Cluster tier for your analytics nodes
+  <select-analytics-nodes-tier>`
+
+To add these nodes to an {+atlas-infinite-cluster+}, specify the
+number of :guilabel:`Nodes` for each node type. {+service+} deploys the
+nodes in the same region as the {+atlas-infinite-cluster+}, so you
+don't select a cloud provider or region for them. To learn which
+regions {+atlas-infinite-cluster+}s support, see the
+:guilabel:`{+atlas-infinite-full+} Support` column in the :ref:`Amazon
+Web Services (AWS) regions table <atlas-infinite-aws-regions>`.
+
+Limitations
+~~~~~~~~~~~
+
+For the full list of features that {+atlas-infinite-full+} supports in
+public preview, see :ref:`atlas-infinite-availability`. The following
+limitations apply to workload isolation:
+
+- {+atlas-infinite-cluster+}s don't support multi-region {+clusters+}.
+- {+atlas-infinite-cluster+}s don't support multi-cloud {+clusters+}.
+- {+atlas-infinite-cluster+}s don't support adding additional electable
+  nodes.
+- {+atlas-infinite-cluster+}s don't support Search Nodes.
+
 .. _multi-cloud-limitation:
 
 Connections to Multi-Cloud Deployments
 --------------------------------------
+
+.. include:: /includes/infinite/banner-not-applicable.rst
 
 .. include:: /includes/fact-multi-cloud-connection-limitation.rst

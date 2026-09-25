@@ -7,7 +7,7 @@ Encryption at Rest using Customer Key Management
 .. default-domain:: mongodb
 
 .. meta::
-   :keywords: encryption, keys, cloud provider credentials, aws kms, gcp kms, azure vault
+   :keywords: keys, cloud provider credentials, aws kms, gcp kms, azure vault, infinite, atlas infinite
    :description: Enable encryption at rest in Atlas using your cloud provider's Key Management Service. Configure customer-managed keys with AWS KMS, Azure Key Vault, or Google Cloud KMS for enhanced security.
 
 .. contents:: On this page
@@ -16,13 +16,18 @@ Encryption at Rest using Customer Key Management
    :depth: 1
    :class: singlecol
 
+.. include:: /includes/infinite/banner-same-as-core.rst
+
 .. dismissible-skills-card::
    :skill: Encryption At Rest Operations
    :url: https://learn.mongodb.com/skills?openTab=security
 
-.. include:: /includes/flex-dont-use.rst
-
-.. include:: /includes/fact-encryption-at-rest.rst
+You can add another layer of security to your data by enabling
+database-level Encryption at Rest with Customer-Managed Keys. You own
+and control the encryption keys, which are stored in your cloud
+provider's |kms|. To learn how |service| encrypts your data at rest and
+how the available key types differ, see
+:ref:`atlas-encryption-at-rest-overview`.
 
 Configuring Encryption at Rest using your Key Management incurs
 extra charges for the |service| project. To learn more, see
@@ -38,6 +43,8 @@ on all clusters and dedicated search deployments in a project, use
 You can use resource policies to require CMK before you create or
 change clusters or search deployments.
 
+.. include:: /includes/flex-dont-use.rst
+
 You can use one or more of the following customer key management
 providers when configuring Encryption at Rest for the |service| project:
 
@@ -45,10 +52,30 @@ providers when configuring Encryption at Rest for the |service| project:
 - :ref:`Azure Key Vault <security-azure-kms>`
 - :ref:`Google Cloud Platform Key Management Service <security-gcp-kms>`
 
+.. note::
+
+   Some {+atlas-infinite-full+} public preview limitations apply to
+   customer key management. For the complete list, see
+   :ref:`public preview limitations <atlas-infinite-availability>`.
+
+   In public preview, |service| supports customer-managed keys on
+   {+atlas-infinite-full+} only through :ref:`AWS KMS
+   <security-aws-kms>`. Azure Key Vault and Google Cloud KMS are not
+   supported. When an {+atlas-infinite-cluster+} uses customer-managed
+   keys, you restore a snapshot within the project that created it;
+   cross-project and cross-organization restores are not supported.
+
 After configuring at least one key management provider for the
 |service| project, you can enable customer key management for each
 |service| cluster for which they require encryption. The key management
 provider doesn't have to match the cluster cloud service provider.
+
+On an {+atlas-infinite-cluster+}, you can migrate between default
+encryption and a customer-managed key in either direction.
+{+atlas-infinite-full+} treats the migration as a key rotation: your
+cluster stays available, and the previous key stays valid until the
+migration completes. To learn more, see
+:ref:`atlas-infinite-encryption-at-rest`.
 
 .. note::
 
@@ -63,14 +90,9 @@ enables |service| to securely communicate with your |akv| over |azure|'s
 private network interfaces. To learn more, see
 :ref:`security-azure-kms`.
 
-|service| can't rotate customer-managed encryption keys. See your
-key management provider's documentation for guidance on key rotation.
-When you set customer key management in a project, |service| creates a
-:ref:`90-day key rotation alert <alert-conditions-encryption-at-rest>`.
-
 If your |kms| provider becomes unavailable, this doesn't disable your
-cluster while it still runs. If you decide to restart your cluster, the
-lack of a |kms| provider disables your cluster.
+cluster while it still runs. If you decide to restart such a cluster, |service|
+disables it if its key is revoked.
 
 To learn about recommendations for encryption, including data classification levels and the types of encryption to use, see
 :ref:`arch-center-data-encryption-recs` in the {+atlas-arch-center+}.
@@ -172,6 +194,8 @@ Add Nodes to an Encrypted |service| Cluster
 -------------------------------------------
 
 .. include:: /includes/steps/add-nodes-to-encrypted-cluster.rst
+
+.. _atlas-ear-validate-kms-config:
 
 Validate your KMS Configuration
 -------------------------------
@@ -350,37 +374,13 @@ To configure IP allowlists for your |kms|:
 
 To learn more about data validation, see :ref:`data-validation`.
 
-Encrypted Backups
------------------
+Learn More
+----------
 
-Atlas encrypts all snapshot volumes. This secures your {+cluster+} data on
-disk. Using your cloud provider's |kms|, you can:
-
-- Encrypt your snapshot storage volumes where you store your backups.
-- Encrypt the data files in your snapshots.
-- Access encrypted snapshots. To learn more, see :ref:`access-encrypted-snapshot`.
-- Restore snapshots with the key that was active at the time the 
-  snapshot was taken.
-- Encrypt |pit| restore :term:`oplog` data.
-
-You can't restore snapshots encrypted with keys that have become
-invalid.
-
-You can specify a :ref:`base snapshot schedule
-<cloud-provider-retention-policy>` that backs up every 6 hours.
-
-.. note::
-    
-   .. include:: /includes/fact-download-encrypted-snapshots.rst
-   
-   To learn how to download snapshots, see :ref:`restore-from-local-file`.
-
-To learn more about customer key management and {+Cloud-Backup+}s,
-see:
-
+- :ref:`atlas-encryption-at-rest-overview`
 - :ref:`encrypted-cloud-provider-snapshot`
 - :ref:`access-encrypted-snapshot`
-- :ref:`restore-from-ear`.
+- :ref:`restore-from-ear`
 
 .. toctree::
    :titlesonly:

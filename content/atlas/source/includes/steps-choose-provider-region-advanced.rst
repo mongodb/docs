@@ -13,6 +13,11 @@ dedicated geographic regions for localized reads, thereby improving
 performance. To learn how to deploy a multi-region cluster, see
 :ref:`create-cluster-multi-region`.
 
+During public preview, {+atlas-infinite-cluster+}s don't support
+multi-cloud clusters. On an {+atlas-infinite-cluster+}, you can
+configure read-only nodes and analytics nodes for workload isolation.
+To learn more, see :ref:`atlas-infinite-workload-isolation`.
+
 If you choose :guilabel:`Multi-Cloud, Multi-Region & Workload Isolation`, 
 you can also choose to configure:
 

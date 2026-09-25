@@ -3,9 +3,9 @@
       
    .. include:: /includes/nav/steps-db-access.rst
 
-   .. step:: Set up a database user in the target |service| cluster.
+   .. step:: Set up a database user in the destination |service| cluster.
       
-      To run |mongoimport| to write to |service| cluster, you
+      To run |mongoimport| to write to an |service| cluster, you
       must specify a database user that has :manual:`readWrite
       </reference/built-in-roles/#readWrite>` privileges in the database
       into which to import data.
@@ -41,7 +41,7 @@
         (or a subnet) or the peer |vpc|\'s Security Group, if you chose
         |aws| as your cloud provider.
       
-   .. step:: Copy the target cluster URI / host information.
+   .. step:: Copy the destination cluster URI / host information.
       
       .. include:: /includes/extracts/uri-connection-mongoimport.rst
       

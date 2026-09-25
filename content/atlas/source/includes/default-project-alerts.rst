@@ -4,7 +4,22 @@ project:
 - :alert:`Cluster is missing an active mongos`
 - :alert:`Connections % of configured limit is`, ``above 80``
 - :alert:`Credit card is about to expire`
-- :alert:`Disk space % used on Data Partition is`, ``above 90`` 
+- :alert:`Disk space % used on Data Partition is`, ``above 90``
+
+  .. note::
+
+     This alert doesn't apply to {+atlas-infinite-cluster+}s, where
+     |service| manages storage independently of the compute nodes.
+     {+atlas-infinite-cluster+}s use the
+     :alert:`Atlas Infinite: Storage Space Used % is` default alert
+     instead.
+
+- :alert:`Atlas Infinite: Storage Space Used % is`, ``above 90``
+
+  Applies to {+atlas-infinite-cluster+}s only. Raised when the
+  cluster's :ref:`logical data size <atlas-logical-data-size>` exceeds
+  90% of its :ref:`max storage limit <atlas-infinite-max-storage-limit>`.
+  To learn more, see :ref:`atlas-infinite-storage`.
 - :alert:`Host has index suggestions`
 - :alert:`Query Targeting: Scanned Objects / Returned`, ``above 1000``
      

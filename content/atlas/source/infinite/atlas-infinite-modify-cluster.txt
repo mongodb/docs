@@ -1,0 +1,307 @@
+.. meta::
+   :keywords: atlas ui, atlas cli, atlas infinite
+   :description: Modify an Atlas Infinite cluster by changing the cluster tier or additional settings. Review considerations, limitations, and the access required to change a cluster.
+
+.. _atlas-infinite-modify-cluster:
+
+=========================================
+Modify an {+atlas-infinite-full+} Cluster
+=========================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can change the configuration of an {+atlas-infinite-cluster+} after
+you create it. To modify an {+atlas-core-cluster+}, see
+:ref:`scale-cluster`.
+
+.. _atlas-infinite-modify-options:
+
+Configuration Options Summary
+------------------------------
+
+You can change the following options of your
+{+atlas-infinite-cluster+} from :guilabel:`Clusters` >
+:guilabel:`Edit Configuration`:
+
+.. list-table::
+   :widths: 25 40 35
+   :header-rows: 1
+
+   * - Setting
+     - Action
+     - Limitations
+
+   * - :ref:`Cluster Tier <atlas-infinite-modify-tier>`
+
+     - Change the amount of compute available to your
+       {+atlas-infinite-cluster+}.
+
+     - During public preview, {+atlas-infinite-cluster+}s support the
+       ``M10`` through ``M60`` :guilabel:`General` cluster tiers and
+       the ``M40`` through ``M60`` :guilabel:`Low-CPU` cluster tiers.
+
+   * - :ref:`Add or Remove Analytics and Read-Only Nodes
+       <atlas-infinite-modify-nodes>`
+
+     - Add or remove nodes that isolate workloads from your
+       {+atlas-infinite-cluster+}'s electable nodes.
+
+     - You can't select a different cloud provider or region for these nodes.
+
+   * - :ref:`Set a Max Storage Limit
+       <atlas-infinite-modify-storage-limit>`
+
+     - Set the maximum logical data size for your
+       {+atlas-infinite-cluster+}.
+
+     - {+service+} blocks writes when your data exceeds this
+       limit.
+
+   * - :ref:`Additional Settings <atlas-infinite-modify-settings>`
+
+     - Change your {+atlas-infinite-cluster+}'s additional settings,
+       including backup, termination protection, encryption keys, and
+       :guilabel:`More Configuration Options`.
+
+     - {+atlas-infinite-cluster+}s don't support every setting that
+       {+atlas-core-cluster+}s support. For the settings that apply, see
+       :ref:`atlas-infinite-modify-settings`.
+
+.. _atlas-infinite-modify-considerations:
+
+Considerations
+--------------
+
+On {+atlas-infinite-cluster+}s, compute and storage scale
+independently. Changing the cluster tier changes the compute available
+to your {+atlas-infinite-cluster+}, and {+service+} expands storage
+as your data grows.
+
+Billing
+~~~~~~~
+
+{+atlas-infinite-full+} meters compute, storage, and backup as
+independent dimensions, so each one bills on its own as you change your
+{+atlas-infinite-cluster+}. To learn more, see
+:ref:`atlas-infinite-billing`.
+
+Backup
+~~~~~~
+
+{+atlas-infinite-cluster+}s include a 24 hour continuous
+{+Cloud-Backup+} window at no additional cost, and {+service+} enables
+:guilabel:`Additional Backup Retention` by default. To learn more, see
+:ref:`atlas-infinite-backup-options`. To learn how to restore an
+{+atlas-infinite-cluster+}, see :ref:`atlas-infinite-restore`.
+
+.. _atlas-infinite-modify-limitations:
+
+Limitations
+-----------
+
+{+atlas-infinite-full+} has a full list of public preview limitations in
+:ref:`atlas-infinite-availability`. The following limitations apply when
+you modify an {+atlas-infinite-cluster+}:
+
+- You can't change the database edition of a cluster after you create
+  it, in either direction between {+atlas-core-full+} and
+  {+atlas-infinite-full+}. To learn how to select the database edition
+  when you scale a {+Free-cluster+} or {+Flex-cluster+} to a
+  {+dedicated-cluster+}, see :ref:`scale-free-flex-cluster`.
+
+- During public preview, you can't change the cloud provider or region
+  of your {+atlas-infinite-cluster+}. Choose from the
+  :ref:`supported AWS regions <atlas-infinite-aws-regions>` when you
+  create your {+atlas-infinite-cluster+}.
+
+- During public preview, {+atlas-infinite-cluster+}s don't support
+  sharded clusters.
+
+- {+atlas-infinite-cluster+}s don't support global clusters.
+
+.. _atlas-infinite-modify-access:
+
+Required Access
+---------------
+
+To modify a cluster, you must have at least
+:authrole:`Project Cluster Manager` access to the project.
+
+.. _atlas-infinite-edit-cluster:
+
+Edit a Cluster
+--------------
+
+.. tabs::
+
+   .. tab:: {+atlas-admin-api+}
+      :tabid: api
+
+      To change the settings of an {+atlas-infinite-cluster+}, send a
+      ``PATCH`` request to
+      :oas-bump-atlas-op:`/groups/{groupId}/clusters/{clusterName}
+      <updategroupcluster>` with the ``Accept`` header set to
+      ``application/vnd.atlas.2024-08-05+json`` or later.
+
+      You can't change the database edition. You can change every
+      other setting on this page.
+
+      To confirm which edition a {+cluster+} runs on, send a ``GET``
+      request to the same endpoint. {+service+} returns
+      ``databaseEdition`` and the read-only
+      ``effectiveDatabaseEdition``.
+
+   .. tab:: {+atlas-cli+}
+      :tabid: atlascli
+
+      Don't use ``atlas clusters update`` on an
+      {+atlas-infinite-cluster+}. That command accepts a fixed set of
+      options that doesn't include {+atlas-infinite-full+} fields. Use
+      ``atlas api clusters updateCluster`` instead, which sends your
+      request body to the {+atlas-admin-api+} unchanged:
+
+      .. code-block:: sh
+         :copyable: true
+
+         atlas api clusters updateCluster \
+           --version 2024-08-05 \
+           --clusterName {CLUSTER-NAME} \
+           --groupId {GROUP-ID} \
+           --file payload.json
+
+      You can't change the database edition. You can change every
+      other setting on this page.
+
+      Edit Advanced Settings
+      ~~~~~~~~~~~~~~~~~~~~~~
+
+      To change the advanced configuration settings of an
+      {+atlas-infinite-cluster+}, run the following command:
+
+      .. code-block:: sh
+         :copyable: true
+
+         atlas api clusters updateClusterAdvancedConfiguration \
+           --version 2024-08-05 \
+           --clusterName {CLUSTER-NAME} \
+           --groupId {GROUP-ID} \
+           --file payload.json
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      You can modify any of the cluster settings on this page using
+      the {+atlas-ui+}.
+
+      .. procedure::
+         :style: normal
+
+         .. include:: /includes/nav/steps-db-deployments-page.rst
+
+         .. step:: Edit the configuration
+
+            For the cluster you want to modify, click the
+            :icon-fa5:`ellipsis-h` icon, and then select
+            :guilabel:`Edit Configuration`.
+
+      Alternatively, if you are already viewing the specific cluster,
+      click the :guilabel:`Configuration` button.
+
+.. _atlas-infinite-modify-tier:
+
+Modify the Cluster Tier
+-----------------------
+
+The cluster tier determines the compute resources available to your
+{+atlas-infinite-cluster+}. During public preview,
+{+atlas-infinite-cluster+}s support the ``M10`` through ``M60``
+:guilabel:`General` cluster tiers and the ``M40`` through ``M60``
+:guilabel:`Low-CPU` cluster tiers. {+atlas-infinite-cluster+}s don't
+support ``M80`` and larger cluster tiers in either cluster class.
+
+{+service+} expands the storage of your {+atlas-infinite-cluster+} as
+your data grows, so you don't change the cluster tier to add storage.
+To learn how
+{+service+} handles storage on {+atlas-infinite-cluster+}s, see
+:ref:`atlas-infinite-storage`.
+
+.. _atlas-infinite-modify-nodes:
+
+Add or Remove Analytics and Read-Only Nodes
+-------------------------------------------
+
+Analytics and read-only nodes isolate workloads from your
+{+atlas-infinite-cluster+}'s electable nodes. You can add or remove
+these nodes after you create your {+atlas-infinite-cluster+}.
+
+An {+atlas-infinite-cluster+} supports up to 5 read-only and analytics
+nodes combined, in addition to its 2 electable nodes, for a maximum of
+7 nodes.
+
+{+atlas-infinite-cluster+}s deploy analytics and read-only nodes in
+the same region as the {+atlas-infinite-cluster+}, so you can't select
+an additional cloud provider or region for these nodes. To learn more, see
+:ref:`atlas-infinite-workload-isolation`.
+
+.. _atlas-infinite-modify-storage-limit:
+
+Modify the Max Storage Limit
+----------------------------
+
+The max storage limit sets the maximum logical data size for your
+{+atlas-infinite-cluster+}, from 1 GB to 128 TB. When your data
+exceeds this limit, {+service+} blocks writes to your
+{+atlas-infinite-cluster+}. You can increase or decrease this limit
+after you create your {+atlas-infinite-cluster+}.
+
+To learn more, see :ref:`atlas-infinite-max-storage-limit`.
+
+.. _atlas-infinite-modify-settings:
+
+Modify Additional Settings
+--------------------------
+
+The following additional settings apply to
+{+atlas-infinite-cluster+}s in public preview. {+service+} groups them
+under :guilabel:`Additional Settings` and under
+:guilabel:`Additional Settings` >
+:guilabel:`More Configuration Options`:
+
+.. include:: /includes/infinite/list-atlas-infinite-additional-settings.rst
+
+For a full list, see :ref:`create-cluster-additional-settings`.
+
+.. _atlas-infinite-modify-cluster-details:
+
+Modify :guilabel:`Cluster Details`
+--------------------------------------
+
+Add tags, view existing tags, and manage tags. To learn more, see
+:ref:`manage-tags-modify-cluster`.
+
+.. include:: /includes/fact-sensitive-info-resource-tags.rst
+
+.. _atlas-infinite-review-apply-cluster-changes:
+
+Review and Apply Your Changes
+-----------------------------
+
+Click :guilabel:`Review Changes` to review the changes you have made.
+
+The :guilabel:`Review Changes` page displays a side-by-side summary of
+the modified attributes, with any warnings or notes about the changes.
+It lists the original settings on the left and the new settings, with
+pricing changes, on the right.
+
+Once you have reviewed the changes, click :guilabel:`Apply Changes` to
+apply them to your {+atlas-infinite-cluster+}.

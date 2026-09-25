@@ -12,6 +12,9 @@ you to enable :ref:`Search Node Data Encryption <enable-search-node-encryption>`
 so you can encrypt both database data and search indexes with the same
 customer-managed keys for comprehensive encryption coverage.
 
+Dedicated Search Nodes are not supported on {+atlas-infinite-cluster+}s
+clusters in public preview.
+
 .. note::
 
    Database nodes and Search Nodes use different encryption methods

@@ -17,6 +17,24 @@ export const toc: L1TocItem[] = [
             url: '/docs/atlas/',
           },
           {
+            label: 'Atlas Infinite Edition',
+            contentSite: 'cloud-docs',
+            collapsible: true,
+            url: '/docs/atlas/infinite/atlas-infinite-landing',
+            items: [
+              {
+                label: 'Atlas Infinite Edition Architecture',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/infinite/atlas-infinite-architecture',
+              },
+            ],
+          },
+          {
+            label: 'Atlas Core Edition',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/atlas-core-edition',
+          },
+          {
             label: 'Atlas Users',
             contentSite: 'cloud-docs',
             collapsible: true,
@@ -250,11 +268,21 @@ export const toc: L1TocItem[] = [
                 url: '/docs/atlas/manage-clusters',
                 items: [
                   {
+                    label: 'Modify an Atlas Infinite Cluster',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/infinite/atlas-infinite-modify-cluster',
+                  },
+                  {
                     label: 'Storage',
                     contentSite: 'cloud-docs',
                     collapsible: true,
                     url: '/docs/atlas/customize-storage',
                     items: [
+                      {
+                        label: 'Atlas Encryption at Rest Overview',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/security-encryption-at-rest-overview',
+                      },
                       {
                         label: 'Encryption at Rest',
                         contentSite: 'cloud-docs',
@@ -314,6 +342,11 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/core/gridfs',
                       },
+                      {
+                        label: 'Atlas Infinite Storage',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/infinite/atlas-infinite-storage',
+                      },
                     ],
                   },
                   {
@@ -327,9 +360,32 @@ export const toc: L1TocItem[] = [
                     url: '/docs/atlas/transition-to-dedicated-config-servers',
                   },
                   {
-                    label: 'Auto-Scaling',
+                    label: 'Auto-Scaling for Atlas Clusters',
                     contentSite: 'cloud-docs',
+                    collapsible: true,
                     url: '/docs/atlas/cluster-autoscaling',
+                    items: [
+                      {
+                        label: 'Compute Auto-Scaling on Atlas Core',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/cluster-autoscaling-compute-core',
+                      },
+                      {
+                        label: 'Compute Auto-Scaling on Atlas Infinite',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/cluster-autoscaling-compute-infinite',
+                      },
+                      {
+                        label: 'Auto-Scaling for Cluster Storage',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/cluster-autoscaling-storage',
+                      },
+                      {
+                        label: 'Auto-Scaling Operations and Alerts',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/cluster-autoscaling-operations',
+                      },
+                    ],
                   },
                   {
                     label: 'Write-Blocking',
@@ -342,7 +398,7 @@ export const toc: L1TocItem[] = [
                     url: '/docs/atlas/cluster-additional-settings',
                   },
                   {
-                    label: 'Modify a Cluster',
+                    label: 'Modify an Atlas Core Cluster',
                     contentSite: 'cloud-docs',
                     collapsible: true,
                     url: '/docs/atlas/scale-cluster',
@@ -358,6 +414,11 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/reconfigure-replica-set-during-regional-outage',
                       },
                     ],
+                  },
+                  {
+                    label: 'Scale a Free or Flex Cluster to a Dedicated Cluster',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/scale-free-flex-cluster',
                   },
                   {
                     label: 'MongoDB Versions in Atlas',
@@ -602,6 +663,11 @@ export const toc: L1TocItem[] = [
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/backup/cloud-backup/restore-from-cloud-manager',
                   },
+                  {
+                    label: 'Restore an Atlas Infinite Cluster',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/backup/cloud-backup/atlas-infinite-restore',
+                  },
                 ],
               },
               {
@@ -687,6 +753,11 @@ export const toc: L1TocItem[] = [
                 label: 'Import Sample Data',
                 contentSite: 'cloud-docs',
                 url: '/docs/atlas/import/load-sample-data',
+              },
+              {
+                label: 'Load Data into an Atlas Infinite Cluster',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/import/atlas-infinite-load-data',
               },
               {
                 label: 'Monitor Migrations',
@@ -1062,6 +1133,11 @@ export const toc: L1TocItem[] = [
                 label: 'Cluster Configuration',
                 contentSite: 'cloud-docs',
                 url: '/docs/atlas/billing/cluster-configuration-costs',
+              },
+              {
+                label: 'Atlas Infinite Edition Cluster Costs',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/billing/atlas-infinite-costs',
               },
               {
                 label: 'Atlas Flex Costs',

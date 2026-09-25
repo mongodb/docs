@@ -1,0 +1,199 @@
+.. _atlas-infinite-restore:
+.. _atlas-infinite-backup:
+
+==========================================
+Restore an {+atlas-infinite-full+} Cluster
+==========================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas infinite, snapshot, mmk, cmk, byok, key management
+   :description: Restore an Atlas Infinite cluster from a snapshot with MongoDB-managed keys or customer-managed keys, and review which restore scenarios each key type supports.
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+{+atlas-infinite-full+} always :ref:`encrypts your data at rest
+<atlas-infinite-encryption-at-rest>`. Because encryption is always in
+effect, the restore process that you follow depends on which type of
+encryption your {+atlas-infinite-cluster+} uses:
+
+- **Default encryption**: |service| creates and manages the
+  encryption keys for your {+atlas-infinite-cluster+}.
+- **Customer-managed keys (CMK/BYOK)**: You manage the encryption keys
+  for your {+atlas-infinite-cluster+}.
+
+Each encryption type supports a different set of restore scenarios and uses a
+different procedure. To restore an {+atlas-core-cluster+} instead,
+see :ref:`restore-overview`.
+
+Supported Restore Scenarios
+---------------------------
+
+The following table shows which restore scenarios
+{+atlas-infinite-full+} supports in public preview.
+
+In this table, the encryption option (default or CMK) refers to how
+the data you want to restore was encrypted:
+
+- For snapshot restores, this is the encryption option that the source
+  {+cluster+} used when {+service+} took the snapshot. This might not
+  be the encryption option that the source {+cluster+} uses now.
+- For {+PIT-Restore+} restores, this is the encryption option that
+  the source {+cluster+} used when {+service+} took the base
+  snapshot, and every encryption option that the source {+cluster+}
+  used between that snapshot and the point in time you restore to.
+  For example, if the {+cluster+} changed encryption keys during that
+  period, each of those encryption options applies.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 30 30
+
+   * - Restore Scenario
+     - Default Encryption
+     - Customer-Managed Keys
+
+   * - Same project
+     - Supported
+     - Supported
+
+   * - Different project, same organization
+     - Supported
+     - Supported\*
+
+\*Only if the target {+cluster+} uses or used the same CMK.
+
+You can restore a default encryption snapshot to a {+cluster+} that
+uses customer-managed keys, and a customer-managed key snapshot to a
+{+cluster+} that uses default encryption. In both cases, the target
+{+cluster+} must have access to the key that encrypted the backup,
+either because it uses that key or used it before.
+
+{+atlas-infinite-full+} supports both snapshot restores and
+{+pit-restore+} restores. You can't restore a backup to an
+{+atlas-infinite-cluster+} that runs in a different region, cloud
+provider, or organization.
+
+Restore Considerations
+----------------------
+
+For the full list of limitations for {+atlas-infinite-full+} on
+public preview, see :ref:`<atlas-infinite-availability>`. 
+
+In addition to the :ref:`prerequisites <restore-prereq>`, consider the
+following restore-specific requirements and limitations:
+
+.. include:: /includes/fact-restore-reqs.rst
+
+
+Restore with Default Encryption
+-------------------------------
+
+If you are using the |service|-managed default encryption, follow this
+process to restore an {+atlas-infinite-cluster+} from a snapshot or
+from a {+pit-restore+}.
+
+Required Access
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/atlas-roles/restore-and-watch.rst
+
+Procedure
+~~~~~~~~~
+
+Select the restore type and the interface that you want to use:
+
+.. composable-tutorial::
+   :options: restore-type, interface-default-atlas-cli
+   :defaults: snapshot, atlas-cli
+
+   .. selected-content::
+      :selections: snapshot, atlas-cli
+
+      .. include:: /includes/extracts/atlas-backups-restores-start-and-watch.rst
+
+   .. selected-content::
+      :selections: snapshot, admin-api
+
+      .. include:: /includes/backup/restore-snapshot-api-cluster.rst
+
+   .. selected-content::
+      :selections: snapshot, atlas-ui
+
+      .. include:: /includes/backup/snapshot-cluster-restore.rst
+
+   .. selected-content::
+      :selections: continuous, atlas-cli
+
+      .. include:: /includes/extracts/atlas-backups-restores-start-and-watch.rst
+
+   .. selected-content::
+      :selections: continuous, admin-api
+
+      .. include:: /includes/backup/restore-continuous-api-cluster.rst
+
+   .. selected-content::
+      :selections: continuous, atlas-ui
+
+      .. include:: /includes/backup/restore-continuous-ui-cluster.rst
+
+Restore with Customer-Managed Keys
+----------------------------------
+
+Follow this process when you manage the encryption keys for your
+{+atlas-infinite-cluster+}. With customer-managed keys, you can restore
+only to a {+atlas-infinite-cluster+} in the same project.
+
+Required Access
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/atlas-roles/restore.rst
+
+Procedure
+~~~~~~~~~
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-backup-details.rst
+
+   .. step:: Select the :guilabel:`Restore` action.
+
+      In the :guilabel:`Actions` column, expand the
+      :icon-fa5:`ellipsis-v` :guilabel:`Actions` menu, and click
+      :guilabel:`Restore` for the snapshot that you want to restore.
+
+   .. step:: Select the target |service| :guilabel:`Project`.
+
+      From the :guilabel:`Restore` dialog box, select the target
+      |service| :guilabel:`Project` to which you want to restore. With
+      customer-managed keys, you must select the same project that
+      contains the source {+atlas-infinite-cluster+}. The
+      authenticated |service| user must have the
+      :authrole:`Project Owner` role for that project.
+
+   .. step:: Select the :guilabel:`Cluster` to restore to.
+
+      The target {+atlas-infinite-cluster+} must run the same or
+      greater version of MongoDB as the :guilabel:`MongoDB Version` of
+      the snapshot.
+
+      After the restoration procedure, |service| triggers a key
+      rotation for the MongoDB encryption key. |service| then encrypts
+      the new MongoDB encryption keys based on the configured
+      {+encrypt-at-rest+} provider for the target
+      {+atlas-infinite-cluster+}.
+
+   .. step:: Restart your application.
+
+      Ensure your application uses the new target
+      {+atlas-infinite-cluster+}.

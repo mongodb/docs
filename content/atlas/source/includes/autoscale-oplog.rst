@@ -1,70 +1,84 @@
 |service| manages the {+cluster+}'s :manual:`oplog size </core/replica-set-oplog/#oplog-size>`
-and its entries differently, depending on whether :ref:`storage auto-scaling <howitworks-scale-cluster-storage>`
-is enabled for the {+cluster+}.
+and its entries differently, depending on the cluster's database
+edition.
 
-- |service| enables {+cluster+} storage auto-scaling by default. If you
-  choose to use storage auto-scaling, |service| manages the oplog entries
-  based on the :manual:`minimum oplog retention window (oplogMinRetentionHours) </core/replica-set-oplog/#minimum-oplog-retention-period>`
-  setting. The oplog entries are time-stamped. The oplog window is the
-  time difference between the newest and the oldest timestamps in the oplog.
+- On an {+atlas-infinite-cluster+}, |service| stores the oplog in
+  the storage layer, and :term:`Atlas Core storage auto-scaling`
+  doesn't manage cluster storage. To learn more, see
+  :ref:`atlas-infinite-oplog`.
 
-  By default, |service| sets the minimum oplog retention window to 24 hours.
-  This means that, unless you set the minimum oplog retention window to
-  a particular custom value, the |mongod| for the |service| {+cluster+} retains all
-  oplog entries for at least 24 hours and until the oplog reaches the maximum
-  size that MongoDB best practices permit. 
+- On an {+atlas-core-cluster+}, oplog management depends on whether
+  :ref:`storage auto-scaling <howitworks-scale-cluster-storage>` is
+  enabled for the cluster:
 
-  You can :ref:`set the minimum oplog retention window <set-oplog-min-window>`
-  to a particular value in the |service| UI. For storage auto-scaling to
-  complete successfully, |service| requires the :manual:`minimum oplog retention window (oplogMinRetentionHours)
-  </core/replica-set-oplog/#minimum-oplog-retention-period>` up to (60 seconds) * (GB of disk space configured).
+  - |service| enables cluster storage auto-scaling by default. If you
+    choose to use storage auto-scaling, |service| manages the oplog entries
+    based on the :ref:`minimum oplog retention window (oplogMinRetentionHours) <replica-set-minimum-oplog-size>`
+    setting. The oplog entries are time-stamped. The oplog window is the
+    time difference between the newest and the oldest timestamps in the oplog.
 
-  If the {+cluster+}'s storage capacity decreases, |service|
-  automatically scales the oplog size down to ensure it fits in the
-  decreased storage size.
+    By default, |service| sets the minimum oplog retention window to 24 hours.
+    This means that, unless you set the minimum oplog retention window to
+    a particular custom value, the |mongod| for the |service| cluster retains all
+    oplog entries for at least 24 hours and until the oplog reaches the maximum
+    size that MongoDB best practices permit. 
 
-  .. note::
+    You can :ref:`set the minimum oplog retention window <set-oplog-min-window>`
+    to a particular value in the |service| UI. For storage auto-scaling to
+    complete successfully, |service| requires the :ref:`minimum oplog retention window (oplogMinRetentionHours)
+    <replica-set-minimum-oplog-size>` to be up to (60 seconds) * (GB of
+    disk space configured).
 
-     In some high-volume bulk write scenarios, such as migrations, the 
-     {+cluster+} might not maintain the configured minimum oplog retention window. Plan 
-     :ref:`migrations <import-strategies>` and other write-intensive operations accordingly. 
+    If the cluster's storage capacity decreases, |service|
+    automatically scales the oplog size down to ensure it fits in the
+    decreased storage size.
 
-- You can opt out of {+cluster+} storage auto-scaling by un-checking the
-  :guilabel:`Storage Scaling` checkbox in the :guilabel:`Auto-scale`
-  section. If you opt out of storage auto-scaling, |service| manages
-  the oplog size as follows:
+    .. note::
 
-  - If you don't specify the oplog size in the UI, |service| sets the oplog
-    size to:
+       In some high-volume bulk write scenarios, such as
+       migrations, the cluster might not maintain the
+       configured minimum oplog retention window. Plan
+       :ref:`migrations <import-strategies>` and other
+       write-intensive operations accordingly.
+
+  - You can opt out of cluster storage auto-scaling by de-selecting the
+    :guilabel:`Storage Scaling` checkbox in the :guilabel:`Auto-scale`
+    section. If you opt out of storage auto-scaling, |service| manages
+    the oplog size as follows:
+
+    - If you don't specify the oplog size in the UI, |service| sets the oplog
+      size to:
     
-    - 5% of the disk size when you create a {+cluster+}, for
-      :guilabel:`General` and :guilabel:`Low-CPU` {+clusters+}
-    - 10% of the disk size for {+clusters+} with :ref:`NVMe storage <nvme-storage>`.
+      - 5% of the disk size when you create a cluster, for
+        :guilabel:`General` and :guilabel:`Low-CPU` clusters
+      - 10% of the disk size for clusters with :ref:`NVMe storage <nvme-storage>`.
 
-    For dedicated {+clusters+} that use EBS (non-NVMe) storage, |service|
-    automatically scales the oplog size to match the new disk size when
-    you change the storage size. For {+clusters+} with :ref:`NVMe storage
-    <nvme-storage>`, oplog size is tied to the instance size rather than
-    the disk size, since NVMe storage can't be resized independently.
-    |service| automatically syncs the oplog size with the new instance
-    size when you change your {+cluster+}'s tier.
+      For dedicated clusters that use EBS (non-NVMe) storage, |service|
+      automatically scales the oplog size to match the new disk size when
+      you change the storage size. For clusters with :ref:`NVMe storage
+      <nvme-storage>`, oplog size is tied to the instance size rather than
+      the disk size, since NVMe storage can't be resized independently.
+      |service| automatically syncs the oplog size with the new instance
+      size when you change your cluster's tier.
 
-  - You may choose to scale up the oplog size when you scale up the
-    {+cluster+}'s storage. In this case, manually :ref:`set the oplog size <set-oplog-size>`
-    to a particular value when you create a {+cluster+}. |service|
-    automatically scales the oplog size when you increase the {+cluster+}'s
-    storage, as follows:
+    - You may choose to scale up the oplog size when you scale up the
+      cluster's storage. In this case, manually :ref:`set the oplog size <set-oplog-size>`
+      to a particular value when you create a cluster. |service|
+      automatically scales the oplog size when you increase the cluster's
+      storage, as follows:
 
-    - For :guilabel:`General` and :guilabel:`Low-CPU` {+clusters+}, the
-      oplog size scales up to remain at 5% of the storage capacity, not to
-      exceed a certain maximum determined according to MongoDB best practices.
+      - For :guilabel:`General` and :guilabel:`Low-CPU` clusters, the
+        oplog size scales up to remain at 5% of the storage capacity, not to
+        exceed a certain maximum determined according to MongoDB best practices.
 
-    - For {+clusters+} with NVMe storage, the oplog size scales up to
-      remain at 10% of the storage capacity, not to exceed a certain
-      maximum determined according to MongoDB best practices.
+      - For clusters with NVMe storage, the oplog size scales up to
+        remain at 10% of the storage capacity, not to exceed a certain
+        maximum determined according to MongoDB best practices.
 
-  - If you scale down the {+cluster+}'s storage, |service| uses the previous oplog-to-disk
-    ratio to scale down the oplog proportionately. For example, if you scale 
-    from 100 GB to 50 GB with an oplog of 25 GB (ratio of 0.25), the new oplog size 
-    would also have a ratio of 0.25, which would make it 12.5 GB. The only exception is if 
-    the new oplog size is less than 5% of the storage capacity (or less than 10% for NVMe storage). In that case, |service| uses the higher value for the oplog size, which would be 5% of the storage capacity (10% for NVMe storage). 
+    - If you scale down the cluster's storage, |service| uses the previous oplog-to-disk
+      ratio to scale down the oplog proportionately. For example, if you scale 
+      from 100 GB to 50 GB with an oplog of 25 GB (ratio of 0.25), the new oplog size 
+      would also have a ratio of 0.25, which would make it 12.5 GB. The only exception is if 
+      the new oplog size is less than 5% of the storage capacity (or less than 10% for NVMe storage). In that case, |service| uses the higher value for the oplog size, which would be 5% of the storage capacity (10% for NVMe storage).
+
+.. include:: /includes/fact-oplog-auto-scaling-interaction.rst

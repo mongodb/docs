@@ -11,23 +11,24 @@
    :class: singlecol
 
 .. meta::
-   :keywords: atlas cli, atlas ui
-   :description: Create an Atlas cluster by choosing a cloud provider, configuring your cluster tier and settings, and deploying it as a replica set or sharded cluster.
+   :keywords: atlas cli, atlas ui, atlas infinite, atlas core
+   :description: Create a cluster in Atlas Infinite or in Atlas Core. Deploy a replica set on Atlas Infinite, or deploy a replica set or a sharded cluster on Atlas Core.
 
 .. _create-new-cluster:
 
-================
-Create a Cluster
-================
-
-.. include:: /includes/shared-to-atlas-flex-migration.rst
+==============================================
+Create an Atlas Infinite or Atlas Core Cluster
+==============================================
 
 This tutorial takes you through the steps to create a new |service| 
-cluster. To learn how to modify an existing |service|
-cluster, see :ref:`scale-cluster`.
+cluster. To learn how to modify an existing {+atlas-core-cluster+},
+see :ref:`scale-cluster`. To learn how to modify an existing
+{+atlas-infinite-cluster+}, see :ref:`atlas-infinite-modify-cluster`.
 
-:ref:`Clusters <ref-deployment-types>` can be either a :term:`replica set` or a
-:term:`sharded {+cluster+}`. This tutorial walks you through creating a replica set.
+A :ref:`cluster <ref-deployment-types>` on {+atlas-infinite-full+} is a
+:term:`replica set`. A cluster on {+atlas-core-full+} can be a
+replica set or a :term:`sharded {+cluster+}`. This tutorial
+walks you through creating a replica set.
 
 To learn about recommendations for {+clusters+}, see
 :ref:`arch-center-orgs-projects-clusters-recs` in the
@@ -47,13 +48,96 @@ To create a cluster, you must have
 Considerations
 --------------
 
-.. include:: /includes/fact-create-advanced-cluster-considerations.rst
+To learn about the differences between |service| database editions, see
+:ref:`Database Editions <atlas-editions>`. The following
+considerations apply when you create a cluster:
+
+Considerations That Apply to Both Editions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following considerations apply to both {+atlas-infinite-full+} and
+{+atlas-core-full+}:
+
+- To minimize network latency and data transfer costs, and to
+  increase overall stability and security, use the same cloud
+  provider and region to host your application and {+cluster+}
+  when possible.
+
+- .. include:: /includes/fact-database-deployment-project-limit-lettered.rst
+
+- If your |service| project contains a
+  :ref:`custom role <mongodb-roles>` that uses actions introduced
+  in a specific MongoDB version, you must delete that role before
+  creating clusters with an earlier MongoDB version.
+
+- New clusters use |tls| version 1.3 by default, and support 1.2
+  if you set it explicitly.
+
+  .. include:: /includes/tls-deprecation.rst
+
+- When you create a cluster, |service| creates a
+  :oas-bump-atlas-op:`network container
+  <creategroupcontainer>` in the project for the cloud provider to
+  which you deploy the cluster if one does not already exist.
+
+- If you have a :ref:`{+bcp+} enabled <backup-compliance-policy>`,
+  all new and existing {+clusters+} have {+Cloud-Backup+}
+  automatically enabled and use the project-level {+bcp+}.
+  |service| augments any preexisting {+cluster+}-level policies to
+  meet the minimum requirements of the {+bcp+}. All new
+  {+clusters+} use the {+bcp+} unless the mininum requirements of
+  the :ref:`{+cluster+}-level backup policy <configure-backup-policy>`
+  expand beyond the mininum requirements of the {+bcp+}.
+
+- We recommend ``M30`` and higher clusters for production
+  environments.
+
+.. _create-infinite-cluster-considerations:
+
+Considerations for {+atlas-infinite-cluster+}s Only
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- To create an {+atlas-infinite-cluster+} in the {+atlas-ui+},
+  click :guilabel:`Go to Advanced Configuration` and select
+  :guilabel:`{+atlas-infinite-full+}`. You can also use the
+  {+atlas-cli+}, the {+atlas-admin-api+}, or {+terraform+}.
+
+- You can't change the database edition after you create the
+  {+cluster+}, so to use a different edition, create a new
+  {+cluster+}.
+
+- {+atlas-infinite-cluster+}s have several public preview
+  limitations; see :ref:`atlas-infinite-availability` for the full
+  list.
+
+- You can set a max storage limit that caps the logical data size of
+  your {+atlas-infinite-cluster+}. To learn more, see
+  :ref:`atlas-infinite-max-storage-limit`.
+
+- To learn how {+atlas-infinite-full+} manages cluster storage, see
+  :ref:`atlas-infinite-storage`.
+
+.. _create-core-cluster-considerations:
+
+Considerations for {+atlas-core-cluster+}s Only
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Multi-region and multi-cloud clusters are subject to
+  cross-region node limits. To learn more, see
+  :ref:`create-cluster-multi-region`.
+
+- When you create a cluster, cluster tier auto-scaling is enabled
+  by default in the {+atlas-ui+} and disabled by default in the
+  {+atlas-admin-api+}. To learn more, see
+  :ref:`cluster-autoscaling`.
+
+- The {+cluster-ai-assist+} can help you configure a cluster while
+  you create it. To learn more, see
+  :ref:`AI Cluster Assistant <atlas-ai-cluster-assistant>`.
 
 .. _create-cluster-open-dialog:
 
 .. _create-new-cluster-procedure:
-
-.. include:: /includes/mongosync-minor-version-compatibility-restriction.rst
 
 Procedure
 ---------
@@ -65,18 +149,74 @@ Procedure
    .. selected-content::
       :selections: atlas-cli, None
 
-      .. include:: /includes/admonitions/tips/tip-ai-cluster-assistant.rst
+      Create an {+atlas-core-cluster+}
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       .. include:: /includes/extracts/atlas-clusters-create-and-watch.rst
 
+      Don't use ``atlas clusters create`` to create an
+      {+atlas-infinite-cluster+}. That command has no edition option,
+      so it creates an {+atlas-core-cluster+}.
+
+      Create an {+atlas-infinite-cluster+}
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      During public preview, {+atlas-infinite-cluster+}s support
+      :ref:`select AWS regions <atlas-infinite-aws-regions>`. To create
+      an {+atlas-infinite-cluster+}, create a ``payload.json`` file that
+      sets ``databaseEdition`` to ``INFINITE``. Replace the other values
+      with your {+cluster+} configuration:
+
+      .. code-block:: json
+         :copyable: true
+         :emphasize-lines: 3
+
+         {
+           "name": "{CLUSTER-NAME}",
+           "databaseEdition": "INFINITE",
+           "clusterType": "REPLICASET",
+           "replicationSpecs": [
+             {
+               "regionConfigs": [
+                 {
+                   "providerName": "AWS",
+                   "regionName": "{REGION-NAME}",
+                   "priority": 7,
+                   "electableSpecs": {
+                     "instanceSize": "M10",
+                     "nodeCount": 2
+                   }
+                 }
+               ]
+             }
+           ]
+         }
+
+      Then run the following command:
+
+      .. code-block:: sh
+         :copyable: true
+
+         atlas api clusters createCluster \
+           --version 2024-08-05 \
+           --groupId {GROUP-ID} \
+           --file payload.json
+
+      To confirm which database edition your {+cluster+} runs on, run
+      ``atlas api clusters getCluster``. {+service+} returns
+      ``databaseEdition`` and the read-only
+      ``effectiveDatabaseEdition``.
+
       View Available Regions
-      ``````````````````````
+      ~~~~~~~~~~~~~~~~~~~~~~
+
       .. include:: /includes/extracts/atlas-clusters-availableRegions-list.rst
+
+      This command returns all regions that |service| supports. During
+      public preview, {+atlas-infinite-cluster+}s support select |aws|
+      regions. To learn more, see :ref:`atlas-infinite-availability`.
 
    .. selected-content::
       :selections: atlas-ui, None
 
       .. include:: /includes/steps-create-new-cluster-atlas-ui.rst
-
-
-.. include:: /includes/footnote-databearing.rst

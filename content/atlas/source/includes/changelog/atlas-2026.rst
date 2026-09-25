@@ -3,6 +3,11 @@
 September 2026
 --------------
 
+- Public Preview: Releases {+atlas-infinite-full+}, an |service|
+  database edition that separates compute from storage into
+  independent layers. To learn more, see
+  :ref:`atlas-infinite-edition`.
+
 - Adds support for streaming :ref:`Activity Feed events
   <export-events>` to external tools. You can export events from
   the Project Activity Feed to |aws| |s3|, {+az-bs+}, Datadog,
@@ -43,7 +48,6 @@ August 2026
   :ref:`connection rate limits <connection-rate-limits>`, so you can
   identify when your clients are offering more new connections than
   your cluster can process and act before connections are dropped.
-
 
 .. _atlas_2026_07:
 

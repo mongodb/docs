@@ -1,0 +1,286 @@
+.. _atlas-infinite-storage:
+
+===========================================
+Manage Storage on an Atlas Infinite Cluster
+===========================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: atlas ui, atlas admin api, atlas infinite, code example
+   :description: Learn how storage works on an Atlas Infinite cluster, including how storage capacity scales, how to set a max storage limit, and how to view storage usage and limits.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+
+{+atlas-infinite-full+} manages storage as a layer that is independent
+of the compute nodes that run your workload. The two layers scale
+separately, so you don't provision a disk for each node or resize that
+disk as your data grows. Instead, {+service+} expands storage as your
+data grows. You can set a max storage limit on how much data the
+{+atlas-infinite-cluster+} can hold.
+
+This page describes how {+atlas-infinite-full+} manages storage, how to
+set and change the max storage limit for an {+atlas-infinite-cluster+},
+and how to view storage usage and limits.
+
+.. _atlas-infinite-storage-capacity:
+
+Storage Capacity and Cluster Tiers
+----------------------------------
+
+An {+atlas-infinite-cluster+} provides storage for up to 128 TB of
+logical data. During public preview, {+atlas-infinite-full+} supports
+the ``M10`` through ``M60`` cluster tiers in the :guilabel:`General`
+cluster class, and the ``M40 Low-CPU`` through ``M60 Low-CPU`` tiers in
+the :guilabel:`Low-CPU` class.
+
+The cluster tier sets the compute available to your
+{+atlas-infinite-cluster+}, not its storage capacity. Every supported
+cluster tier has access to the same storage capacity, and you can change
+the tier without changing how much data your {+atlas-infinite-cluster+}
+can hold. To change the cluster tier, see
+:ref:`atlas-infinite-modify-tier`.
+
+.. note::
+
+   The ``M10`` and ``M20`` cluster tiers provide limited compute
+   resources, which can degrade the performance of your cluster under
+   heavy load. If you have a large data set, especially one with a large
+   number of collections, deploy to a higher cluster tier.
+
+.. _atlas-infinite-storage-model:
+
+How Storage Scales
+------------------
+
+Storage on an {+atlas-infinite-cluster+} is shared and independent of
+the compute nodes, so it behaves differently than storage on an
+{+atlas-core-cluster+}. On an {+atlas-infinite-cluster+},
+{+service+} handles storage as follows:
+
+- {+service+} expands storage as your data grows, up to the max storage
+  limit that caps the :ref:`logical data size <atlas-logical-data-size>`
+  of the {+atlas-infinite-cluster+}. You don't select a disk size or
+  enable storage auto-scaling.
+- {+service+} keeps how much data you can store independent of your
+  cluster tier. Adding data within the max storage limit doesn't
+  require you to scale the tier, and scaling the tier doesn't change
+  how much data your {+atlas-infinite-cluster+} can hold.
+- {+service+} scales throughput with the cluster tier. A higher tier
+  gives your {+atlas-infinite-cluster+} more throughput and, as a
+  result, more IOPS. No node owns a volume, so you don't select a
+  storage class, set provisioned IOPS, or enable IOPS auto-scaling. For
+  the {+atlas-core-cluster+} storage options that these settings apply
+  to, see :ref:`create-cluster-storage`.
+- {+service+} maintains multiple copies of your data in the storage
+  layer for high availability. If you scale the cluster tier or a
+  compute node fails and triggers a failover, {+service+} keeps your
+  data in the storage layer instead of copying it to the new compute
+  nodes.
+- {+service+} meters storage as its own billing dimension, separate from
+  compute and backup. To learn more, see :ref:`atlas-infinite-billing`.
+
+To learn how the compute and storage layers fit together, see
+:ref:`atlas-infinite-architecture`.
+
+.. _atlas-logical-data-size:
+
+Logical Data Size
+-----------------
+
+{+atlas-infinite-full+} measures the data that an
+{+atlas-infinite-cluster+} holds as logical data size. Logical data size
+is the uncompressed size of the collections and indexes on your
+{+atlas-infinite-cluster+}. This represents the size of your data, not
+the physical storage that {+service+} provisions to hold it.
+
+.. _atlas-infinite-max-storage-limit:
+
+Max Storage Limit
+-----------------
+
+To cap your {+atlas-infinite-cluster+} below 128 TB of logical data, you
+can set a max storage limit on the cluster. The max storage limit sets
+the maximum :ref:`logical data size <atlas-logical-data-size>` of the
+entire {+atlas-infinite-cluster+}. The max storage limit accepts a value
+from 1 GB to 128 TB. When the logical data size of an
+{+atlas-infinite-cluster+} approaches the max storage limit, {+service+}
+blocks writes on the cluster but continues to serve reads.
+
+To warn you before writes are blocked, |service| raises an alert by
+default when the logical data size of an {+atlas-infinite-cluster+}
+exceeds 90% of its max storage limit. To configure this alert, see
+:ref:`Atlas Infinite: Storage Space Used % is
+<atlas-infinite-alerts>`.
+
+If you don't set a max storage limit on your {+atlas-infinite-cluster+},
+the cluster can store up to 128 TB of logical data.
+
+.. note::
+
+   .. include:: /includes/infinite/fact-public-preview-write-throttling.rst
+
+To set or view the max storage limit for your
+{+atlas-infinite-cluster+}, select your preferred interface and follow
+the instructions in the sections below:
+
+.. composable-tutorial::
+   :options: interface
+   :defaults: atlas-ui
+
+   .. _atlas-infinite-set-max-storage-limit:
+
+   Set the Max Storage Limit
+   ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   .. selected-content::
+      :selections: atlas-ui
+
+      You can set the max storage limit from the cluster configuration
+      page in the {+atlas-ui+}. Open the cluster configuration page when
+      you :ref:`create <create-new-cluster>` or :ref:`modify
+      <atlas-infinite-modify-cluster>` an {+atlas-infinite-cluster+},
+      and then expand the :guilabel:`Cluster Tier` section to display
+      the :guilabel:`Set a max storage limit` checkbox.
+
+      To set the limit, select the checkbox and move the slider to your
+      preferred value. To change the unit, select :guilabel:`GB` or
+      :guilabel:`TB` from the drop-down menu next to the displayed
+      value. If you don't set a limit, the cluster can store up to 128
+      TB of logical data.
+
+   .. selected-content::
+      :selections: atlas-api
+
+      To set the max storage limit when you provision an
+      {+atlas-infinite-cluster+}, send a ``POST`` request to the
+      :oas-atlas-op:`Create One Cluster </createGroupCluster>`
+      endpoint. To change the limit on an existing
+      {+atlas-infinite-cluster+}, send a ``PATCH`` request to the
+      :oas-atlas-op:`Update One Cluster </updateGroupCluster>`
+      endpoint.
+
+      In the request body, set the ``shardSizeLimitGB`` field in each
+      region configuration's ``autoScaling.storageConfig`` object, under
+      ``replicationSpecs[].regionConfigs[]``. This field takes the max
+      storage limit in gigabytes, as a value from ``1`` (1 GB) to
+      ``131072`` (128 TB).
+
+      If you don't set ``shardSizeLimitGB`` when you create an
+      {+atlas-infinite-cluster+}, the cluster can store up to 128 TB of
+      logical data. If you omit ``shardSizeLimitGB`` when you update an
+      existing {+atlas-infinite-cluster+}, {+service+} leaves the
+      current max storage limit unchanged.
+
+      .. note::
+
+         Each entry in ``replicationSpecs[]`` represents a :term:`shard`
+         in an {+service+} cluster, and each entry in
+         ``regionConfigs[]`` represents a region configuration in that
+         shard. During public preview, {+atlas-infinite-cluster+}s
+         support single-region replica set deployments only, so
+         ``replicationSpecs[]`` and ``regionConfigs[]`` each contain a
+         single entry. You therefore set ``shardSizeLimitGB`` once, and
+         it applies to the entire cluster.
+
+      For example, the following request body to the
+      :oas-atlas-op:`Create One Cluster </createGroupCluster>` endpoint
+      provisions an {+atlas-infinite-cluster+} with a max storage limit
+      of 98,304 GB (96 TB). The request body also sets the cluster tier
+      to ``M50`` and deploys the cluster in the ``US_EAST_1`` region.
+
+      .. code-block:: json
+         :caption: Example Request Body
+
+          {
+            "clusterType": "REPLICASET",
+            "databaseEdition": "INFINITE",
+            "name": "myCluster",
+            "replicationSpecs": [
+              {
+                "regionConfigs": [
+                  {
+                    "autoScaling": {
+                      "storageConfig": {
+                        "shardSizeLimitGB": 98304
+                      }
+                    },
+                    "electableSpecs": {
+                      "instanceSize": "M50",
+                      "nodeCount": 2
+                    },
+                    "priority": 7,
+                    "providerName": "AWS",
+                    "regionName": "US_EAST_1"
+                  }
+                ]
+              }
+            ]
+          }
+
+   .. _atlas-infinite-view-max-storage-limit:
+
+   View the Max Storage Limit
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   .. selected-content::
+      :selections: atlas-ui
+
+      To view storage usage and limits for each
+      {+atlas-infinite-cluster+} in the {+atlas-ui+}:
+
+      .. procedure::
+         :style: normal
+
+         .. include:: /includes/nav/steps-db-deployments-page.rst
+
+         .. step:: View the storage chart on the {+cluster+} card.
+
+            The cluster card for your {+atlas-infinite-cluster+}
+            displays a :guilabel:`Data Size` chart that plots your
+            :ref:`logical data size <atlas-logical-data-size>` against
+            the max storage limit that {+service+} enforces.
+
+            The cluster card also displays a warning as your data
+            approaches the ceiling that the chart measures against.
+
+            .. note::
+
+               The :guilabel:`Data Size` chart only appears for
+               {+atlas-infinite-cluster+}s. For {+atlas-core-cluster+}s,
+               the cluster card displays a :guilabel:`Disk Usage` chart
+               instead, which plots the disk space used on your primary
+               node's data volumes against the storage capacity of those
+               volumes. To learn more about how storage works on an
+               {+atlas-core-cluster+}, see
+               :ref:`create-cluster-storage`.
+
+   .. selected-content::
+      :selections: atlas-api
+
+      To view the max storage limit for one
+      {+atlas-infinite-cluster+}, send a ``GET`` request to the
+      :oas-atlas-op:`Return One Cluster </getGroupCluster>` endpoint.
+      To view the max storage limit for every {+cluster+} in a project,
+      send a ``GET`` request to the :oas-atlas-op:`Return All Clusters
+      in One Project </listGroupClusters>` endpoint.
+
+      If you set a limit, {+service+} returns that value in the
+      following field of the response body. If you don't set a limit,
+      {+service+} omits the ``storageConfig`` object from
+      ``replicationSpecs[]``:
+
+      ``replicationSpecs[].regionConfigs[].autoScaling.storageConfig.shardSizeLimitGB``
+
+      {+service+} always reports the current, enforced max storage limit
+      in the following field of the response body. If you don't set a
+      limit, this field reports ``131072`` (128 TB):
+
+      ``effectiveReplicationSpecs[].regionConfigs[].autoScaling.storageConfig.shardSizeLimitGB``

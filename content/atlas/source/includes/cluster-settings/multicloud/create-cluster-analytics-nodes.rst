@@ -9,6 +9,8 @@ use :ref:`pre-defined replica set tags <replica-set-tags>`.
    You can deploy analytics nodes for dedicated (``M10`` or higher) clusters only. 
    You can't add analytics nodes on {+Free-clusters+} or {+Flex-clusters+}.
 
-Click :guilabel:`Add a region` to select a region in which to
-deploy analytics nodes. Specify the desired number of
-:guilabel:`Nodes` for the region.
+For {+atlas-infinite-cluster+}s in public preview, specify the number
+of :guilabel:`Nodes`. {+service+} deploys them in the same region as
+the {+atlas-infinite-cluster+}. For {+atlas-core-cluster+}s, click
+:guilabel:`Add a region` to select a region, then specify the number
+of :guilabel:`Nodes` for that region.

@@ -13,9 +13,10 @@ limitations. You can also
 
 - Cross-region support is available only if all regions in which you
   deploy your cluster support Gen2 clusters on your chosen cloud provider.
-- ``M10`` and ``M20`` clusters are generation-agnostic. You don't
-  select a :term:`cluster generation` when deploying an ``M10`` and
-  ``M20`` cluster.
+- On {+atlas-core-cluster+}s and {+atlas-infinite-cluster+}s, ``M10``
+  and ``M20`` clusters are generation-agnostic. You don't select a
+  :term:`cluster generation` when you deploy an ``M10`` or ``M20``
+  cluster.
 - All nodes within a cluster must be of the same generation. You
   can't mix Gen1 and Gen2 nodes within the same cluster.
 - {+gen-2-clusters-short+} support only reactive auto-scaling, not predictive

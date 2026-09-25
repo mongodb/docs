@@ -109,6 +109,10 @@ After presenting the completion summary, wait for explicit user instruction befo
 - Before checking content for source constant substitution opportunities, read .github/prompts/source-constant-substitution-check.prompt.md.
 - To perform a targeted style-check pass on existing content, use .github/prompts/style-guide-check.prompt.md.
 
+# REFERENCE FILES
+
+If you are working on a feature branch, look for reference and rules files under `.claude/reference/` and `.claude/rules/` on that branch, and read them before you draft or escalate. A feature branch can carry verified product facts and conventions that do not exist on main.
+
 # WHEN WORKING ON CONTENT (`content/`)
 
 ## Project Structure

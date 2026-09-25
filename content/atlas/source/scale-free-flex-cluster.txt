@@ -1,0 +1,208 @@
+.. meta::
+   :keywords: atlas ui, atlas infinite, atlas core
+   :description: Scale a Free or Flex cluster tier to a dedicated cluster. Review the required access, the downtime this requires, and the database edition considerations that apply.
+
+.. _scale-free-flex-cluster:
+
+===================================================
+Scale a Free or Flex Cluster to a Dedicated Cluster
+===================================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can scale the cluster tier of a {+Free-cluster+} or a
+{+Flex-cluster+} to a {+dedicated-cluster+}.
+
+Required Access
+---------------
+
+To scale the cluster tier, you must have at least the
+:authrole:`Project Cluster Manager` role for the project.
+
+.. _scale-free-flex-cluster-editions:
+
+Database Editions
+-----------------
+
+You selected either {+atlas-core-full+} or {+atlas-infinite-full+} when
+you created the {+Free-cluster+} or {+Flex-cluster+}. {+service+} stored
+that selection and didn't apply it to the {+Free-cluster+} or
+{+Flex-cluster+} itself, so it didn't change how that {+cluster+} works.
+
+To learn about each edition, see :ref:`atlas-infinite-edition`
+and :ref:`atlas-core-edition`.
+
+When you scale the cluster tier to a {+dedicated-cluster+},
+{+service+} uses the edition that you already specified and that
+{+service+} stored. If you want, you can select the other edition at
+that point.
+
+Selecting {+atlas-infinite-full+} is opt in. By default, {+service+}
+scales the cluster tier to a {+dedicated-cluster+} on
+{+atlas-core-full+}, unless you selected {+atlas-infinite-full+} when
+you created the {+Free-cluster+} or {+Flex-cluster+}.
+
+Considerations
+--------------
+
+- Scaling a {+Free-cluster+} or a {+Flex-cluster+} to a
+  {+dedicated-cluster+} requires downtime. To prevent data corruption,
+  halt write operations for the duration of the scale operation.
+
+- You can't scale a {+dedicated-cluster+} back to a {+Free-cluster+} or
+  a {+Flex-cluster+}.
+
+- You can't change the database edition of a {+cluster+} after you
+  create it, in either direction between {+atlas-core-full+} and
+  {+atlas-infinite-full+}.
+
+Procedure
+---------
+
+.. tabs::
+
+   .. tab:: {+atlas-admin-api+}
+      :tabid: api
+
+      To scale a {+Free-cluster+} or a {+Flex-cluster+} to a
+      {+dedicated-cluster+}, send a request to the tenant upgrade
+      endpoint for your source {+cluster+} type. The ``databaseEdition``
+      field in the request body sets the database edition of the
+      resulting {+dedicated-cluster+}. If you omit ``databaseEdition``,
+      {+service+} scales the {+cluster+} to a {+dedicated-cluster+} on
+      {+atlas-core-full+}.
+
+      Set the ``Accept`` header to the resource version for the
+      endpoint that you call:
+      ``application/vnd.atlas.2023-01-01+json`` for the
+      {+Free-cluster+} endpoint, and
+      ``application/vnd.atlas.2024-11-13+json`` for the
+      {+Flex-cluster+} endpoint.
+
+      - To scale to a {+dedicated-cluster+} on {+atlas-infinite-full+},
+        set ``databaseEdition`` to ``INFINITE`` in the request body:
+
+        - For a {+Free-cluster+}, send a ``POST`` request to
+          :oas-bump-atlas-op:`/groups/{groupId}/clusters/tenantUpgrade
+          <upgradegroupclustertenantupgrade>`.
+        - For a {+Flex-cluster+}, send a ``POST`` request to
+          :oas-bump-atlas-op:`/groups/{groupId}/flexClusters:tenantUpgrade
+          <tenantgroupflexclusterupgrade>`.
+
+      - To scale to a {+dedicated-cluster+} on {+atlas-core-full+}, omit
+        ``databaseEdition`` or set it to ``CORE``:
+
+        - For a {+Free-cluster+}, send a ``POST`` request to
+          :oas-bump-atlas-op:`/groups/{groupId}/clusters/tenantUpgrade
+          <upgradegroupclustertenantupgrade>`.
+        - For a {+Flex-cluster+}, send a ``POST`` request to
+          :oas-bump-atlas-op:`/groups/{groupId}/flexClusters:tenantUpgrade
+          <tenantgroupflexclusterupgrade>`.
+
+   .. tab:: {+atlas-cli+}
+      :tabid: atlascli
+
+      .. include:: /includes/extracts/atlas-clusters-upgrade.rst
+
+      During the public preview, ``atlas clusters upgrade`` does not
+      support scaling to an {+atlas-infinite-cluster+}. That command
+      has no database edition option, so it always scales a
+      {+Free-cluster+} or a {+Flex-cluster+} to a
+      {+dedicated-cluster+} on {+atlas-core-full+}. If you set
+      ``databaseEdition`` in a configuration file, the command drops
+      the field and returns a warning instead of an error.
+
+      Use an ``atlas api`` command instead. These commands send your
+      request body to the {+atlas-admin-api+} unchanged, so
+      {+service+} applies ``databaseEdition``.
+
+      Create a ``payload.json`` file that sets ``databaseEdition`` to
+      ``INFINITE``. Replace the other values with your {+cluster+}
+      configuration:
+
+      .. code-block:: json
+         :copyable: true
+         :emphasize-lines: 3
+
+         {
+           "name": "{CLUSTER-NAME}",
+           "databaseEdition": "INFINITE",
+           "providerSettings": {
+             "providerName": "AWS",
+             "instanceSizeName": "M10",
+             "regionName": "US_EAST_1"
+           }
+         }
+
+      To scale a {+Free-cluster+}, run the following command:
+
+      .. code-block:: sh
+         :copyable: true
+
+         atlas api clusters upgradeTenantUpgrade \
+           --version 2023-01-01 \
+           --groupId {GROUP-ID} \
+           --file payload.json
+
+      To scale a {+Flex-cluster+}, run the following command:
+
+      .. code-block:: sh
+         :copyable: true
+
+         atlas api flexClusters tenantUpgrade \
+           --version 2024-11-13 \
+           --groupId {GROUP-ID} \
+           --file payload.json
+
+      If you omit ``databaseEdition``, {+service+} uses the edition
+      that you chose when you created the {+Free-cluster+} or
+      {+Flex-cluster+}.
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      .. procedure::
+         :style: normal
+
+         .. include:: /includes/nav/steps-db-deployments-page.rst
+
+         .. step:: Open the cluster configuration.
+
+            For the {+cluster+} you want to scale, click
+            :guilabel:`Edit Config`.
+
+         .. step:: Select the :guilabel:`Dedicated` tab.
+
+            At the top of your configuration settings, click the
+            :guilabel:`Dedicated` tab.
+
+         .. step:: Select the database edition.
+
+            To scale the cluster tier to a {+dedicated-cluster+} on
+            {+atlas-infinite-full+}, turn on the
+            :guilabel:`Try the new edition: Atlas Infinite` toggle. To use
+            {+atlas-core-full+}, leave the toggle off.
+
+         .. step:: Select the cluster tier.
+
+            Select the tier for your {+dedicated-cluster+}. During
+            public preview, {+atlas-infinite-cluster+}s support the
+            ``M10`` through ``M60`` cluster tiers.
+            {+atlas-core-cluster+}s support ``M10`` and larger cluster
+            tiers.
+
+         .. step:: Apply your changes.
+
+            Click :guilabel:`Apply changes`. {+service+} displays the
+            downtime required to scale the cluster tier before it applies
+            your changes.

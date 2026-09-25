@@ -11,7 +11,7 @@ Get Started with Terraform and the MongoDB Atlas Provider
    :values: tutorial
 
 .. meta:: 
-   :description: Learn how to use the MongoDB Atlas Terraform provider to create, modify, and destroy Atlas clusters as code, including service account authentication.
+   :description: Learn how to use the MongoDB Atlas Terraform provider to create and destroy Atlas clusters as infrastructure code, with service account authentication.
    :keywords: atlas terraform provider, terraform
 
 .. contents:: On this page
@@ -25,9 +25,8 @@ code with the |service| Terraform provider. The |service| Terraform
 provider automates infrastructure deployments by simplifying the process
 to provision, manage, and control |service| infrastructure as code.
 
-This guide teaches you how to create, modify, and destroy
-|service| clusters in an existing MongoDB |service| organization and
-project.
+This guide teaches you how to create and destroy
+|service| clusters in an existing MongoDB |service| organization.
 
 .. note::
 
@@ -40,6 +39,10 @@ Once you have configured a test environment, continue to experiment with
 a Terraform-managed infrastructure with 
 :ref:`additional resources <additional-resources-atlas-terraform>`
 from MongoDB and HashiCorp.
+
+{+atlas-infinite-cluster+}s support the |service| Terraform
+provider. To learn more about {+atlas-infinite-full+}, see
+:ref:`atlas-infinite-edition`.
 
 Prerequisites
 -------------
@@ -84,21 +87,101 @@ Deploy MongoDB |service| with Terraform
          touch main.tf provider.tf variables.tf versions.tf
 
    .. step:: Populate supporting files.
-      
-      See the `atlas-basic module
-      <https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-basic/mongodbatlas/latest/examples/tenant_cluster>`__
-      and copy the content over to the files you created in the previous step 
-      (click the link at the :guilabel:`Source Code` to see the content).
-      
-      .. note:: 
 
-          Your |service| public key and private key are secrets.
-          Consider storing them as `environment variables 
+      Add the following content to ``provider.tf``:
+
+      .. code-block:: terraform
+
+         provider "mongodbatlas" {
+           client_id     = var.client_id
+           client_secret = var.client_secret
+         }
+
+      Add the following content to ``variables.tf``:
+
+      .. code-block:: terraform
+
+         variable "client_id" {
+           description = "Atlas Service Account client ID"
+           type        = string
+         }
+
+         variable "client_secret" {
+           description = "Atlas Service Account client secret"
+           type        = string
+           sensitive   = true
+         }
+
+         variable "org_id" {
+           description = "Atlas organization ID"
+           type        = string
+         }
+
+      Add the following content to ``versions.tf``:
+
+      .. code-block:: terraform
+
+         terraform {
+           required_providers {
+             mongodbatlas = {
+               source  = "mongodb/mongodbatlas"
+               version = "~> 2.2"
+             }
+           }
+           required_version = "~> 1.0"
+         }
+
+      .. note::
+
+          Your |service| Service Account client ID and client
+          secret are secrets. Consider storing them as `environment
+          variables
           <https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs#environment-variables>`__.
 
    .. step:: Configure ``main.tf`` contents.
 
-       Update the following fields in your ``main.tf`` file:
+       .. note::
+
+          The following example uses the `project module
+          <https://registry.terraform.io/modules/terraform-mongodbatlas-modules/project/mongodbatlas/latest>`__
+          to create the project, and the `mongodbatlas_advanced_cluster
+          <https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster>`__
+          resource to create a Free cluster.
+
+       Add the following content to your ``main.tf`` file: 
+
+       .. code-block:: terraform
+
+          module "project" {
+            source = "terraform-mongodbatlas-modules/project/mongodbatlas"
+            name   = "tenant-example-project"
+            org_id = var.org_id
+          }
+
+          resource "mongodbatlas_advanced_cluster" "this" {
+            project_id   = module.project.id
+            name         = "TenantCluster"
+            cluster_type = "REPLICASET"
+
+            replication_specs = [
+              {
+                region_configs = [
+                  {
+                    provider_name         = "TENANT"
+                    backing_provider_name = "AWS"
+                    region_name           = "US_EAST_1"
+                    priority              = 7
+                    electable_specs = {
+                      instance_size = "M0"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+
+       If you work with a different cloud provider or region, 
+       you can update the following fields to match your environment. 
        
        .. list-table::
           :widths: 50 50
@@ -107,16 +190,104 @@ Deploy MongoDB |service| with Terraform
           * - Field
             - New Value
 
-          * - ``instance_size``
-            - ``"M0"``
-
           * - ``backing_provider_name``
-            - Your provider. 
+            - Your provider.
               Possible values are: ``"AWS"``, ``"AZURE"``, or ``"GCP"``.
 
           * - ``region_name``
             - See :ref:`create-cluster-cloud-provider-region` for all
               the regions you can use.
+
+       .. important::
+
+          You can set ``database_edition`` on the
+          ``mongodbatlas_advanced_cluster`` resource when you
+          create a dedicated cluster. You can't change it
+          afterward, and you can't scale a dedicated cluster back
+          to a Free or Flex cluster. ``database_edition`` is
+          unavailable for Free clusters, such as the ``M0``
+          cluster in this example, and for Flex clusters.
+
+       The ``mongodbatlas_advanced_cluster`` resource, and both
+       the singular (``mongodbatlas_advanced_cluster``) and plural
+       (``mongodbatlas_advanced_clusters``) data sources, expose
+       ``database_edition`` and the read-only
+       ``effective_database_edition`` attribute. Because
+       ``database_edition`` is optional, use
+       ``effective_database_edition`` to confirm which
+       edition |service| assigned, even if you didn't set
+       it yourself.
+
+       To create a dedicated cluster on {+atlas-infinite-full+},
+       set ``database_edition`` to ``"INFINITE"`` and set
+       ``compute_enabled`` in ``auto_scaling``, as the following
+       example shows:
+
+       .. code-block:: terraform
+
+          resource "mongodbatlas_advanced_cluster" "infinite" {
+            project_id       = module.project.id
+            name             = "InfiniteCluster"
+            cluster_type     = "REPLICASET"
+            database_edition = "INFINITE"
+
+            replication_specs = [
+              {
+                region_configs = [
+                  {
+                    provider_name = "AWS"
+                    priority      = 7
+                    region_name   = "US_EAST_1"
+                    electable_specs = {
+                      instance_size = "M10"
+                      node_count    = 2
+                    }
+                    auto_scaling = {
+                      compute_enabled           = true
+                      compute_max_instance_size = "M60_GEN_2"
+                      storage_config = {
+                        shard_size_limit_gb = 10240
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+
+       Dedicated {+atlas-infinite-cluster+}s support the
+       ``REPLICASET`` cluster type only.
+
+       ``compute_max_instance_size`` is required when
+       ``compute_enabled`` is ``true``. ``M30+``
+       {+atlas-infinite-cluster+}s are available on |aws| Gen2
+       only, so append ``_GEN_2`` to the tier name, as in
+       ``M60_GEN_2``. To learn more, see
+       :ref:`Gen2 Dedicated Clusters <gen2-clusters>`.
+
+       An {+atlas-infinite-cluster+} has two electable compute
+       nodes, a primary and a standby, so set ``node_count`` to
+       ``2``. To learn more, see :ref:`atlas-infinite-replication`.
+
+       To serve more reads or to isolate analytics queries from
+       your operational workload, add read-only or analytics
+       nodes by setting ``read_only_specs`` or ``analytics_specs``
+       alongside ``electable_specs`` in the same
+       ``region_configs`` object. To learn more, see
+       :ref:`atlas-infinite-workload-isolation`.
+
+       ``storage_config.shard_size_limit_gb`` is required only if
+       you include ``storage_config``. If you omit
+       ``storage_config``, |service| applies the default maximum
+       storage limit. To learn more, see
+       :ref:`atlas-infinite-max-storage-limit`.
+
+       .. note::
+
+          ``storage_config.shard_size_limit_gb`` sets the maximum
+          amount of data the cluster can store. To learn more,
+          see the `Terraform provider documentation
+          <https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster>`__.
 
    .. step:: (Optional) Display parameters.
 
@@ -203,13 +374,8 @@ Next Steps
 
 After you deploy your cluster, you can:
 
-- **Create an organization and project**: If you are new to
-  |service|, see :atlas:`Manage Organizations and Projects
-  </organizations-projects/>`.
-
-- **Explore advanced configurations**: Review the
-  `atlas-basic module
-  <https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-basic/mongodbatlas/latest>`__
+- **Scale to a dedicated cluster**: Review the `cluster module
+  <https://registry.terraform.io/modules/terraform-mongodbatlas-modules/cluster/mongodbatlas/latest>`__
   and the
   :github:`Atlas Terraform Provider documentation
   </mongodb/terraform-provider-mongodbatlas/blob/master/README.md>`

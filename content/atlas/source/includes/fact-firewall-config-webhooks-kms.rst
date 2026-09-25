@@ -7,11 +7,11 @@ add |service| IP addresses to your network's IP access list:
 
   .. note::
 
-     If you enable the :ref:`Encryption at Rest <scale-cluster-enable-encryption>`
-     feature, you must allow access from public IPs for all your hosts
-     in your deployment, including :ref:`CSRS (Config Server Replica
-     Sets) <replset-config-servers>` if you are using :term:`sharded
-     clusters <sharded cluster>`.
+     If you enable the :ref:`Encryption at Rest
+     <scale-cluster-enable-encryption>` feature, you must allow access
+     from public IPs for all your hosts in your deployment, including
+     :ref:`CSRS (Config Server Replica Sets) <replset-config-servers>`
+     if you are using :term:`sharded clusters <sharded cluster>`.
 
 .. _atlas-fetch-control-plane-ips:
 
