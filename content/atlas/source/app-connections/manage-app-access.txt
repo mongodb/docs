@@ -1,0 +1,322 @@
+.. _manage-app-access:
+
+:orphan:
+
+.. this page appears in the unified toc. the orphan tag suppresses
+   snooty parser warnings because it is not yet referenced in any
+   Atlas toctree.
+
+======================================
+Manage Third-Party App Access to Atlas
+======================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: oauth, delegated access, app connections, offboarding
+   :description: Learn how Atlas organization owners enable or disable third-party app connections through Atlas App Connections, and understand cleanup responsibilities when offboarding an app.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+|service-fullname| App Connections lets third-party
+applications act on behalf of |service| users through
+user-delegated access. As an organization owner, you control
+whether applications can connect to your organization.
+
+This page describes how to:
+
+- Enable or disable third-party app connections for your
+  organization.
+- Set the maximum refresh token lifetime for authorized
+  applications.
+- View the applications that users have authorized.
+- Understand what cleanup remains your responsibility when you
+  disable an application's access.
+
+.. _app-connections-delegated-access:
+
+How Delegated Access Works
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When a user authorizes an application, the application acts on
+behalf of that user. The application
+receives tokens that let it call the {+atlas-admin-api+} with the
+**same permissions the user holds** in their |service|
+organizations and projects. If the user cannot perform an
+action, the application cannot perform it on their behalf either.
+
+Because access is delegated from the user's own permissions:
+
+- The application's effective permissions change automatically
+  when the user's roles change.
+- Operations against your organization succeed only when your
+  organization allows third-party app connections *and* the
+  authorizing user holds the required role for the operation.
+
+Applications use the OAuth 2.1 Authorization Code flow
+with Proof Key for Code Exchange (PKCE) to obtain delegated
+access. To learn how applications integrate with this
+flow, see :ref:`partner-integration-guide`.
+
+.. _app-connections-enable-disable:
+
+Enable or Disable Third-Party App Connections
+---------------------------------------------
+
+Whether third-party app connections are enabled by default
+depends on when your organization was created:
+
+- **Existing organizations**, and organizations created before
+  Atlas App Connections launched, have third-party app
+  connections **disabled by default**. An organization owner must
+  enable them.
+- **New organizations that a user creates when they sign up** for
+  |service| after Atlas App Connections launched have third-party
+  app connections **enabled by default**. This does not apply to
+  users who join an existing organization.
+
+While third-party app connections are disabled, any delegated
+access token that an application obtains receives a
+``403 Forbidden`` response when it calls the {+atlas-admin-api+}
+for your organization.
+
+When you disable third-party app connections for an organization
+that previously allowed them, the change takes effect
+**immediately**: {+atlas-admin-api+} calls that target your
+organization through user delegation begin returning
+``403 Forbidden``.
+
+Disabling third-party app connections stops applications from
+accessing the **control plane** through user delegation. It does
+**not** revoke other access an application might already have:
+
+- **Data plane access continues.** Database users and connection
+  strings that an application created keep working, so existing
+  MongoDB driver or connection-pool sessions remain active.
+- **Other control plane credentials continue.** If an application
+  created service accounts or API keys, those retain control
+  plane access until you remove them.
+
+To fully remove an application's access, you must clean up these
+resources yourself. See :ref:`app-connections-limitations`.
+
+To allow or restrict third-party app connections, complete the
+following steps:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Open the App Connections tab.
+
+      In the |service| UI, open your organization settings, then
+      select the :guilabel:`App Connections` tab.
+
+   .. step:: Set the Third-Party Apps toggle.
+
+      In the :guilabel:`Third-Party Apps` section, turn
+      :guilabel:`Allow users to connect third-party apps` on or
+      off.
+
+   .. step:: Confirm the change.
+
+      |service| prompts you to confirm. To allow connections,
+      click :guilabel:`Allow`. To restrict them, click
+      :guilabel:`Restrict`.
+
+The :guilabel:`Third-Party Apps` section lists the applications
+that can connect to your organization. Each application shows an
+:guilabel:`ALLOWED` or :guilabel:`RESTRICTED` badge that reflects
+the current setting. When connections are allowed, a
+:guilabel:`View connections` button takes you to the applications
+that users have authorized.
+
+This setting controls access for third-party applications. To
+learn about the separate setting that controls access through the
+Remote MCP Server, see
+:ref:`remote-mcp-manage-ai-client-access`.
+
+.. _app-connections-refresh-token-lifetime:
+
+Set the Maximum Refresh Token Lifetime
+--------------------------------------
+
+Authorized applications use refresh tokens to obtain new access
+tokens without prompting the user to re-authorize. As an
+organization owner, you can set the maximum refresh token
+lifetime for applications authorized in your organization.
+
+Two limits govern refresh tokens:
+
+- **Maximum lifetime** is the longest a refresh token remains
+  valid. When a token reaches this limit, the user must
+  re-authorize the application, regardless of activity. The
+  default is 30 days.
+- **Idle lifetime** is how long a refresh token remains valid
+  without use. A token that is not used within this period
+  expires. The default is 7 days. The idle lifetime can never
+  exceed the maximum lifetime.
+
+In the |service| UI, an organization owner can adjust the maximum
+lifetime. You can customize the idle lifetime only through the
+{+atlas-admin-api+}, not the |service| UI.
+
+.. note::
+
+   Default lifetimes are configured per OAuth client, so the
+   default that applies depends on the client that connects.
+
+To set the maximum refresh token lifetime, complete the following
+steps:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Open the App Connections tab.
+
+      In the |service| UI, open your organization settings, then
+      select the :guilabel:`App Connections` tab.
+
+   .. step:: Open the Maximum refresh token lifetime setting.
+
+      In the :guilabel:`Maximum refresh token lifetime` section,
+      click :guilabel:`Set max lifetime`.
+
+   .. step:: Choose a lifetime.
+
+      Select one of the preset values: :guilabel:`8 hours`,
+      :guilabel:`12 hours`, :guilabel:`24 hours`,
+      :guilabel:`3 days`, :guilabel:`7 days`, or
+      :guilabel:`30 days`. To enter a different value, select
+      :guilabel:`Custom`, then type a number and select
+      :guilabel:`HOUR(S)` or :guilabel:`DAY(S)`. A custom value
+      must be 365 days or fewer.
+
+   .. step:: Click :guilabel:`Save`.
+
+After you save, the section displays the current maximum lifetime.
+To change the value, click the edit icon.
+
+Unlike the setting that allows or restricts third-party app
+connections, the maximum refresh token lifetime is a single
+organization-wide setting. It applies to every app connection in
+your organization, including clients that connect through the
+Remote MCP Server. To learn about those clients, see
+:ref:`remote-mcp-manage-ai-client-access`.
+
+.. _app-connections-clear-refresh-token-lifetime:
+
+Clear the Maximum Refresh Token Lifetime
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To remove the maximum refresh token lifetime that you set for your
+organization, click the delete icon next to the current value,
+then click :guilabel:`Clear` to confirm. After you clear the
+setting, the effective lifetime returns to the default for each
+client.
+
+.. _app-connections-view-authorized-apps:
+
+View Authorized Applications
+----------------------------
+
+You can review the third-party applications that users in your
+organization have authorized, with metadata about each
+connection.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Open the Applications page.
+
+      In the |service| UI, click :guilabel:`Applications` under
+      :guilabel:`Identity & Access`.
+
+   .. step:: Open the Connected Apps tab.
+
+      Select the :guilabel:`Connected Apps` tab.
+
+   .. step:: Review the connected applications.
+
+      The :guilabel:`Connected Third-Party Apps` section lists
+      each authorized application, its publisher, and how many
+      organization members have connected to it.
+
+   .. step:: View the members connected to an application.
+
+      Click :guilabel:`View all` next to an application to open
+      its connections page.
+
+The connections page for an application lists each connected
+member with the following details:
+
+- :guilabel:`Users`: the |service| user who authorized the
+  application.
+- :guilabel:`Last used`: when the application most recently acted
+  on that user's behalf.
+- :guilabel:`Last authorized`: when the user most recently
+  authorized the application.
+
+.. _app-connections-limitations:
+
+Limitations and Responsibilities
+--------------------------------
+
+.. important::
+
+   Disabling an application's access does not remove resources
+   the application created. |service| does **not** automatically
+   delete database users, service accounts, API keys, or other
+   resources when you disable access. Cleaning up these resources
+   is your responsibility. Until you remove them, these
+   credentials remain active in your |service| account and can
+   retain data plane or control plane access.
+
+When you disable an application's access, be aware of the
+following:
+
+- |service| does **not** automatically delete database users that
+  an application created on behalf of your users. These database
+  users, and their connection strings, keep working after you
+  disable access.
+- |service| does **not** automatically delete service accounts or
+  API keys that an application created. These credentials retain
+  control plane access until you remove them.
+- |service| does **not** automatically delete other resources
+  that an application created, such as clusters or projects.
+- Existing data plane connections remain active until they close
+  through normal connection lifecycle events.
+
+To fully offboard an application, see
+:ref:`app-connections-offboarding`.
+
+.. _app-connections-offboarding:
+
+Offboarding Best Practices
+--------------------------
+
+When you stop using an application, disabling its access is
+only the first step. To fully offboard an application and
+protect your data, complete the following cleanup:
+
+- Delete any database users the application created on behalf of
+  your users if no other application or workload depends on them.
+- Before deleting a database user, confirm that its connection
+  string is not shared by another application or workload that
+  still needs access.
+- Delete any service accounts or API keys the application
+  created, which otherwise retain control plane access.
+- Review and remove any clusters, projects, or other resources
+  the application provisioned that are no longer needed.
+
+Learn More
+----------
+
+- :ref:`partner-integration-guide`
+- :ref:`api-authentication`
