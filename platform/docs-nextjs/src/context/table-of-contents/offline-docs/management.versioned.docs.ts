@@ -388,11 +388,6 @@ export const toc: L1TocItem[] = [
                     ],
                   },
                   {
-                    label: 'Write-Blocking',
-                    contentSite: 'cloud-docs',
-                    url: '/docs/atlas/cluster-blocking-writes/',
-                  },
-                  {
                     label: 'Additional Settings',
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/cluster-additional-settings',
@@ -501,6 +496,11 @@ export const toc: L1TocItem[] = [
                         label: 'Simulate Regional Outage',
                         contentSite: 'cloud-docs',
                         url: '/docs/atlas/tutorial/test-resilience/simulate-regional-outage',
+                      },
+                      {
+                        label: 'Test Cluster Load Shedding',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/tutorial/test-resilience/test-load-shedding',
                       },
                     ],
                   },
@@ -1500,6 +1500,19 @@ export const toc: L1TocItem[] = [
                 label: 'Cluster Sizing and Tiers',
                 contentSite: 'cloud-docs',
                 url: '/docs/atlas/sizing-tier-selection',
+              },
+              {
+                label: 'Intelligent Workload Management',
+                contentSite: 'cloud-docs',
+                collapsible: true,
+                url: '/docs/atlas/intelligent-workload-management',
+                items: [
+                  {
+                    label: 'Overload Errors',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/overload-errors',
+                  },
+                ],
               },
               {
                 label: 'Build a Resilient Application',

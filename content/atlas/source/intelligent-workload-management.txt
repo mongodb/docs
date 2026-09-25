@@ -1,0 +1,300 @@
+.. _intelligent-workload-management:
+
+===============================
+Intelligent Workload Management
+===============================
+
+.. meta::
+   :description: Learn how Atlas Intelligent Workload Management protects cluster availability by queuing, prioritizing, and shedding operations during overload, and how to control it.
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Modern applications must stay available even when traffic spikes and
+expensive queries consume more resources than expected. 
+**Intelligent Workload Management (IWM)** is the MongoDB |service|-managed
+availability capability that keeps your clusters responsive and
+predictable, even under overload.
+
+Overload occurs when your cluster receives more operations than its
+resources can process. Overload can develop faster than your
+infrastructure can scale. Even if you enable :ref:`auto-scaling
+<cluster-autoscaling-reactive-overview>`, |service| requires time to
+provision additional capacity. This opens a window during which a
+cluster can become unstable if it treats all operations the same way.
+IWM closes that window by monitoring and reacting to workload spikes and
+resource pressure in real time.
+
+IWM is the overload protection system that |service| applies to all
+{+Dedicated-clusters+} running MongoDB 9.0 or later. IWM includes the
+following protections:
+
+- **Always-on protections** queue, slow down, and prioritize operations
+  to prevent them from overwhelming the cluster. These protections form
+  a baseline of defense against overload. To learn more, see
+  :ref:`iwm-always-on-protections`.
+- **Load Shedding** is an optional protection that rejects incoming
+  database operations in response to sustained overload. To learn more,
+  see :ref:`iwm-load-shedding`.
+
+|service| applies a subset of these protections to each cluster, based
+on the cluster's tier, topology, MongoDB version, and :ref:`Load
+Shedding configuration <configure-iwm>`. To learn more, see
+:ref:`iwm-protection-cluster-eligibility`.
+
+.. _iwm-always-on-protections:
+
+Always-On Protections
+---------------------
+
+Always-on protections are the baseline set of IWM protections that
+|service| applies to absorb overload and maintain availability. These
+protections run at all times, even when :ref:`Load Shedding
+<iwm-load-shedding>` is disabled, and you can't turn them off. To learn
+which of these protections apply to your cluster, see
+:ref:`iwm-protection-cluster-eligibility`.
+
+- **Ingress queueing**: |service| runs an ingress request rate limiter
+  on each |mongod| process in your {+cluster+}, which determines how
+  quickly each process admits operations for execution. When a traffic
+  spike outlasts your cluster's reserved capacity, the rate limiter adds
+  excess incoming operations to an ingress queue instead of letting them
+  compete for resources with running operations. If resource use stays
+  high, the rate limiter admits operations at a slower rate, so more
+  operations wait in the queue. The rate limiter rejects operations only
+  if you enable :ref:`Load Shedding <iwm-load-shedding>` on your
+  cluster.
+
+  If :ref:`reactive auto-scaling
+  <cluster-autoscaling-reactive-overview>` is enabled on your cluster,
+  |service| uses the rate of queued operations to determine when to
+  scale your cluster up. |service| reports this rate as :ref:`Operation
+  Rate Limiting: Queued operations <metrics-operation-rate-limiting>` in
+  |service| metrics. To learn more, see
+  :ref:`howitworks-scale-cluster-tier`.
+
+- **Execution control prioritization**: |service| runs critical reads
+  and writes and internal cluster activity, such as elections, ahead of
+  background jobs and expensive queries. Under pressure, |service| slows
+  expensive, long-running, or low-priority operations first.
+
+- **Cache eviction and memory tuning**: |service| tunes how
+  your cluster uses memory and evicts cached data. When memory
+  runs low, your cluster slows down in a controlled way instead
+  of running out of memory or repeatedly clearing the data it
+  needs most.
+
+- **Connection rate limiting**: During connection storms,
+  |service| admits new client connections at a safe rate and
+  rejects excess connection requests while preserving existing connections.
+  To learn more, see :ref:`connection-rate-limits`.
+
+- **Write-blocking**: When free disk space runs critically low on the
+  primary node of a replica set, |service| blocks write operations on
+  the replica set, while continuing to serve reads. Blocked write
+  operations include delete operations, because deleting documents can
+  temporarily increase used disk space. On :term:`sharded clusters
+  <sharded cluster>`, |service| blocks only writes routed to the
+  affected shard. 
+  
+  A node's total disk size determines the thresholds |service| applies.
+  The following table lists the thresholds for each disk size range:
+
+  .. list-table::
+    :widths: 25 75
+    :header-rows: 1
+
+    * - Total Disk Size
+      - Thresholds
+    * - **8 GiB to 20 GiB**
+      - |service| blocks writes when free disk space drops below 600 MiB.
+        |service| unblocks writes when free disk space exceeds 900 MiB.
+    * - **20 GiB to 1.25 TiB**
+      - |service| blocks writes when free disk space drops below 4% of
+        total disk size. |service| unblocks writes when free disk space
+        exceeds 6% of total disk size.
+    * - **1.25 TiB or greater**
+      - |service| blocks writes when free disk space drops below 50 GiB.
+        |service| unblocks writes when free disk space exceeds 75 GiB.
+
+  To recover disk space, :ref:`increase cluster storage <scale-cluster>`
+  or :ref:`enable storage auto-scaling <cluster-autoscaling>`.
+
+.. _iwm-load-shedding:
+
+Load Shedding
+-------------
+
+**Load Shedding** is an IWM protection that rejects incoming database
+operations as early as possible to limit their impact on the cluster.
+Unlike IWM's :ref:`always-on protections <iwm-always-on-protections>`,
+Load Shedding is optional, so you can control whether |service| applies
+it to your {+cluster+}. When enabled, Load Shedding engages only during
+sustained overload, after other protections can't relieve enough
+pressure.
+
+As part of IWM's always-on protections, |service| runs an ingress
+request rate limiter on each |mongod| process in your {+cluster+}. This
+rate limiter admits operations into the process at a controlled rate,
+and adds any operation requests that arrive faster than this rate to an
+ingress queue on that process.
+
+When Load Shedding is **enabled**, |service| bounds the size of the
+ingress queue on each ``mongod`` process in the cluster. If an operation
+arrives while a process's queue is full, |service| rejects the operation
+with an :ref:`overload error <atlas-overload-errors>`. This prevents the
+queue from growing too large during sustained overload.
+
+When Load Shedding is **disabled**, |service| doesn't bound the size of
+the ingress queue on any |mongod| process in your cluster or reject any
+operations that arrive faster than the rate limiter's admission rate.
+During sustained overload, each ``mongod`` process continues to add an
+unbounded number of operations to its queue, so operations take longer
+to complete.
+
+If :ref:`reactive auto-scaling <cluster-autoscaling-reactive-overview>`
+is enabled on your cluster, |service| uses the rate of operations that
+Load Shedding rejects to determine when to scale your cluster up.
+|service| reports this rate as :guilabel:`Rejected Operations` under
+:ref:`Operation Rate Limiting <metrics-operation-rate-limiting>` in
+|service| metrics. To learn more, see
+:ref:`howitworks-scale-cluster-tier`.
+
+.. _configure-iwm:
+
+Configure Load Shedding
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Load Shedding is available only on ``M30+`` replica set clusters running
+MongoDB 9.0 or later. By default, |service| sets the value of the
+:ref:`Load Shedding setting <load-shedding-setting>` to :guilabel:`Atlas
+Managed`, which lets |service| control the effective state of Load
+Shedding for your {+cluster+}. On MongoDB 9.0, that state is
+:guilabel:`Disabled`.
+
+.. important::
+
+   When enabled, Load Shedding can increase the number of overload
+   errors on your cluster. To learn how to handle these errors, see
+   :ref:`atlas-overload-errors`.
+
+To configure :guilabel:`Load Shedding` on your {+cluster+}, use the
+{+atlas-ui+} or {+atlas-admin-api+}:
+
+.. composable-tutorial::
+   :options: interface
+   :defaults: atlas-ui
+
+   .. selected-content::
+      :selections: atlas-ui
+
+      .. include:: /includes/configure-load-shedding-ui.rst
+
+   .. selected-content::
+      :selections: atlas-api
+
+      .. include:: /includes/configure-load-shedding-api.rst
+
+.. _iwm-protection-cluster-eligibility:
+
+Cluster and Version Requirements
+--------------------------------
+
+Intelligent Workload Management (IWM) is active on all
+{+Dedicated-clusters+} running MongoDB 9.0 or later. IWM is not
+available on {+Free-clusters+} or {+Flex-clusters+}.
+
+When IWM is active on a cluster, |service| applies a subset of IWM
+protections based on the cluster's tier, topology, MongoDB version, and
+:ref:`Load Shedding configuration <configure-iwm>`. The following table
+lists the protections that |service| applies to each combination of
+cluster tier and topology on MongoDB 9.0 and later:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 34 22 22 22
+
+   * - IWM protection
+     - ``M10`` and ``M20`` clusters
+     - ``M30+`` replica set clusters
+     - ``M30+`` sharded clusters
+
+   * - Ingress queueing
+     - No
+     - Yes
+     - No
+
+   * - Execution control prioritization
+     - No
+     - Yes
+     - No
+
+   * - Cache eviction and memory tuning
+     - Yes
+     - Yes
+     - Yes
+
+   * - Connection rate limiting
+     - Yes
+     - Yes
+     - Yes
+
+   * - Write blocking
+     - Yes
+     - Yes
+     - Yes
+
+   * - Load Shedding
+     - No
+     - Yes, when :ref:`enabled <configure-iwm>`
+     - No
+
+.. note:: Exceptions to MongoDB 9.0 Version Requirement.
+
+   The following IWM protections are active on clusters running MongoDB
+   versions earlier than 9.0:
+
+   - **Write blocking** is active on ``M10+`` clusters running MongoDB
+     8.0 or later.
+
+   - **Connection rate limiting** is active on ``M10`` and ``M20``
+     clusters running the following MongoDB versions:
+
+     - 7.0.23 and later 7.0.x releases
+     - 8.0.12 and later 8.0.x releases
+     - 8.1.2 and later 8.1.x releases
+
+.. _monitor-iwm:
+
+Monitor IWM
+-----------
+
+|service| provides several observability surfaces that show when
+IWM protects your cluster and what operations |service| delayed
+or rejected:
+
+- To review IWM-related queuing and query admission metrics, see the
+  following |service| metrics:
+
+  - :ref:`Operation Rate Limiting <metrics-operation-rate-limiting>` 
+  - :ref:`Connection Rate Limiting <metrics-connection-rate-limiting>`
+
+- To configure and review IWM-related alerts, see
+  :ref:`alert-conditions-iwm` in the Alert Conditions documentation.
+- To review IWM-related events, such as changes to Load Shedding,
+  see :ref:`view-activity-feed`.
+
+.. toctree::
+   :titlesonly:
+
+   Overload Errors </overload-errors>

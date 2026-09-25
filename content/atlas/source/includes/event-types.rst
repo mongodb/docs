@@ -1454,7 +1454,7 @@ Cluster Event Types
    * - ``CLUSTER_BLOCK_WRITE``
      - .. _atlas_event_cluster_block_write:
 
-       Writes have been blocked on your cluster due to critically low disk space
+       Writes have been blocked on your cluster due to critically low available storage
      - yes
 
    * - ``CLUSTER_CANCELING_CONFIG_SERVER_TRANSITION_REQUESTED``

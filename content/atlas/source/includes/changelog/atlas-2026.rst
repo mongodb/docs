@@ -286,7 +286,7 @@ March 2026
   developer content and documentation have been retired.
 
 - Improves Intelligent Workload Management
-  :ref:`write blocking <write-blocking-thresholds>`
+  :ref:`write blocking <iwm-always-on-protections>`
   to use dynamic range-based thresholds instead of static values,
   reducing unnecessary write blocking during disk scaling operations.
 

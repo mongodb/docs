@@ -10,10 +10,12 @@
 
       .. code-block:: javascript
 
-         function isRetryableError(error: unknown): boolean {
-            return error instanceof MongoError && error.hasErrorLabel('SystemOverloadedError') && error.hasErrorLabel('RetryableError');
-         }
+         const RETRYABLE_ERROR_LABEL = 'RetryableError';
+         const SYSTEM_OVERLOADED_ERROR = 'SystemOverloadedError';
 
+         function isSystemOverloadedError(error: unknown): error is MongoError {
+         return error instanceof MongoError && error.hasErrorLabel(SYSTEM_OVERLOADED_ERROR);
+         }
    
    .. step:: Implement operation "retry" logic using exponential backoff and jitter
 
@@ -21,9 +23,6 @@
       want to protect. The function does the following: 
          
       - Retries only overload errors that are safe to retry.
-        
-        .. include:: /includes/admonitions/importants/query-sentinel-retryable.rst
-
       - Waits longer between each attempt using `exponential backoff <https://en.wikipedia.org/wiki/Exponential_backoff>`_ 
         with `jitter <https://en.wikipedia.org/wiki/Jitter>`_.
 
@@ -36,30 +35,52 @@
       .. code-block:: javascript
 
          import { setTimeout } from 'node:timers/promises';
+         import { MongoServerError } from 'mongodb';
 
          const BASE_BACKOFF_MS = 100;
          const MAX_BACKOFF_MS = 10_000;
 
-         function calculateExponentialBackoff(attempt: number): number {
-            return Math.random() * Math.min(MAX_BACKOFF_MS, BASE_BACKOFF_MS * 2 ** (attempt - 1));
+         // Only an overload error that is also labelled retryable is safe to retry.
+         function isRetryableOverloadError(error: unknown): boolean {
+         return isSystemOverloadedError(error) && error.hasErrorLabel(RETRYABLE_ERROR_LABEL);
+         }
+
+         // The server may attach a positive `baseBackoffMS` to an overload error to replace
+         // the default base backoff. A value of 0 means "use your own default".
+         function getBaseBackoffMS(error: unknown): number {
+         // `errorResponse` exposes the raw server reply. It was added in driver 6.5.0, so guard
+         // for it -- on older drivers the property is simply absent.
+         if (!(error instanceof MongoServerError) || error.errorResponse == null) {
+            return BASE_BACKOFF_MS;
+         }
+
+         // `baseBackoffMS` is an int64 on the wire, so its runtime type depends on your BSON
+         // options: `number` by default, `Long` under `promoteLongs: false`, `bigint` under
+         // `useBigInt64: true`. `Number()` handles all three, and yields NaN when absent.
+         const baseBackoffMS = Number(error.errorResponse.baseBackoffMS);
+         return Number.isFinite(baseBackoffMS) && baseBackoffMS > 0 ? baseBackoffMS : BASE_BACKOFF_MS;
          }
 
          async function executeWithRetries<T>(fn: () => Promise<T>, maxAttempts = 2): Promise<T> {
-            let lastError: unknown;
-            for (let attempt = 0; attempt < maxAttempts; attempt++) {
-               if (attempt > 0) {
-                  await setTimeout(calculateExponentialBackoff(attempt));
-               }
+         let lastError: unknown;
 
-               try {
-                  return await fn();
-               } catch (error) {
-                  lastError = error;
-                  const canRetry = isRetryableError(error) && attempt + 1 < maxAttempts;
-                  if (!canRetry) throw error;
-               }
+         for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            try {
+               return await fn();
+            } catch (error) {
+               lastError = error;
+
+               if (!isRetryableOverloadError(error) || attempt + 1 >= maxAttempts) throw error;
+
+               const baseBackoffMS = getBaseBackoffMS(error);
+               const backoffMS =
+               Math.random() * Math.min(MAX_BACKOFF_MS, baseBackoffMS * 2 ** (attempt + 1));
+
+               await setTimeout(backoffMS);
             }
-            throw lastError;
+         }
+
+         throw lastError;
          }
 
    .. step:: Use the retrier for collection operations

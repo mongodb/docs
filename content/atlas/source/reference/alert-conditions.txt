@@ -186,32 +186,93 @@ To learn how |service| scales a {+cluster+} up or down, see :ref:`cluster-autosc
 Write-Blocking
 ~~~~~~~~~~~~~~~
 
-The following alert conditions apply to :ref:`write-blocking behavior <cluster-blocking-writes>`
+The following alert conditions apply to :ref:`write-blocking behavior <iwm-always-on-protections>`
 in |service|.
 
-.. alert:: Writes have been blocked on your cluster due to critically low disk space
+.. alert:: Writes have been blocked on your cluster due to critically low available storage
 
    Raised when the percentage of used disk on the primary node has exceeded
-   :ref:`write-blocking policy thresholds <write-blocking-thresholds>`.
-   |service| :ref:`blocks writes <cluster-blocking-writes>` to the cluster
+   :ref:`write-blocking thresholds <iwm-always-on-protections>`.
+   |service| :ref:`blocks writes <iwm-always-on-protections>` to the cluster
    node to maintain read availability.
 
    To resolve this alert, increase your cluster's storage capacity manually
    or by enabling storage auto-scaling. To learn more, see :ref:`Disk Space % Used Alert Resolution <disk-space-used>`.
 
    To prevent future write-blocking events, we recommend that you monitor
-   your cluster's disk usage. To learn more, see :ref:`Preventing Write-Blocking <write-blocking-prevention>`.
+   your cluster's disk usage. To learn more, see :ref:`Preventing Write-Blocking <iwm-always-on-protections>`.
+
+.. alert:: Writes have been blocked on <shard-a> in your cluster due to critically low available storage
+
+   Raised when the percentage of used disk on the primary nodes of the
+   affected shards in a :term:`sharded cluster <sharded cluster>` has
+   exceeded :ref:`write-blocking thresholds <iwm-always-on-protections>`. |service|
+   :ref:`blocks writes <iwm-always-on-protections>` to the affected shards to maintain
+   read availability.
+
+   To resolve this alert, increase your cluster's storage capacity manually
+   or by enabling storage auto-scaling. To learn more, see :ref:`Disk Space % Used Alert Resolution <disk-space-used>`.
+
+   To prevent future write-blocking events, we recommend that you monitor
+   your cluster's disk usage. To learn more, see :ref:`Preventing Write-Blocking <iwm-always-on-protections>`.
 
 .. alert:: Writes have been unblocked on your cluster
 
    Raised when the percentage of used disk on the primary node has fallen below the
-   :ref:`unblocking thresholds <write-blocking-thresholds>`, and |service|
-   automatically :ref:`unblocks writes <unblocking-writes>` to the cluster.
+   :ref:`unblocking thresholds <iwm-always-on-protections>`, and |service|
+   automatically :ref:`unblocks writes <iwm-always-on-protections>` to the cluster.
 
    You can view disk metrics through :ref:`Real-Time Performance Panel Set <real-time-metrics-status-tab>`.
    This is an information-only alert that doesn't require any action on your part.
    However, to prevent future write-blocking events, we recommend that you
-   monitor your cluster's disk usage. To learn more, see :ref:`Preventing Write-Blocking <write-blocking-prevention>`.
+   monitor your cluster's disk usage. To learn more, see :ref:`Preventing Write-Blocking <iwm-always-on-protections>`.
+
+.. _alert-conditions-iwm:
+
+Intelligent Workload Management
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following alert conditions measure :ref:`Intelligent Workload
+Management (IWM) <intelligent-workload-management>` protections that
+protect your cluster from overload. |service| enables these alerts by
+default for all {+Dedicated-clusters+} running MongoDB 9.0 or later. 
+
+|service| manages the conditions, thresholds, and durations for
+these alerts. You can't change them. You can change the notification
+recipients and delivery methods, and you can disable the alert
+setting. To learn more, see :ref:`configure-alerts`.
+
+.. alert:: Sustained load shedding
+
+   Raised if |service| rejects operations or connections for at
+   least 10 minutes to protect the cluster from sustained overload.
+   |service| evaluates operations and connections independently, and
+   raises the alert when rejected admissions in a rolling 60-second
+   window are both at least 100 and at least 5% of attempted
+   admissions.
+
+   To resolve this alert, review cluster load, client retry
+   behavior, connection or operation storms, and capacity. Consider
+   enabling or increasing :ref:`auto-scaling <cluster-autoscaling>`.
+   To learn configure the Load Shedding setting, see
+   :ref:`load-shedding-setting`.
+
+.. alert:: Sustained ingress queue pressure
+
+   Raised if incoming operations wait an average of 50 milliseconds
+   or more in the ingress queue for at least 10 minutes.
+
+   To resolve this alert, review client retry behavior and traffic
+   bursts, reduce unnecessary background load, or add capacity.
+
+.. alert:: Sustained execution-control queue pressure
+
+   Raised if the 95th percentile of time that operations wait in
+   execution-control queues is 100 milliseconds or more for at least
+   10 minutes.
+
+   To resolve this alert, reduce background or expensive work,
+   investigate slow operations, or add capacity.
 
 .. _alert-conditions-atlas-search:
 
@@ -597,6 +658,27 @@ monitoring <monitor-cluster-metrics>`.
 
    Raised if the number of open connections to the host exceeds
    the specified percentage.
+
+.. alert:: Connection rate limiting is active
+
+   Raised when the cluster experiences sustained connection rejections
+   due to :ref:`Intelligent Workload Management <intelligent-workload-management>`
+   connection rate limiting. This alert indicates that the rate of
+   incoming connection requests exceeds the cluster's configured limits,
+   and the system is protecting itself from overload.
+
+   When this alert triggers, consider the following actions:
+
+   - Throttle connection establishment in your application code.
+   - Reduce the ``maxPoolSize`` setting in your connection string to
+     limit concurrent connections per client.
+   - Scale up your cluster tier to increase connection capacity.
+
+   To monitor connection rate limiting metrics, view the
+   :guilabel:`Connection Rate Limiting` charts in the
+   :ref:`cluster metrics view <monitor-cluster-metrics>`. You can also
+   track these metrics through :ref:`DataDog integration <datadog-integration>`
+   or other third-party integrations.
 
 .. _queues:
 

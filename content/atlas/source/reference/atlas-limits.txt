@@ -80,15 +80,16 @@ Connection Limits and Cluster Tier
 ----------------------------------
 
 |service| sets the :setting:`limits for concurrent incoming connections
-<net.maxIncomingConnections>` based on the {+cluster+} tier and
-:ref:`class<storage-class-ui>`. |service| connection limits apply per node. For
-:manual:`sharded {+clusters+} </sharding/>`, |service| connection limits apply per
-:manual:`mongos </core/sharded-cluster-query-router/>` router. The number of
-:manual:`mongos </core/sharded-cluster-query-router/>` routers is equal to
-the number of replica set nodes across all shards. 
+<net.maxIncomingConnections>` based on the tier and :ref:`class
+<storage-class-ui>` of your {+cluster+}. The
+``net.maxIncomingConnections`` setting caps the total number of incoming
+connections that a node holds open at one time.
 
-Your :manual:`read preference </core/read-preference/>` also contributes to the
-total number of connections |service| can allocate for a given query.
+|service| connection limits apply per node. For :manual:`sharded
+{+clusters+} </sharding/>`, |service| connection limits apply per
+:manual:`mongos </core/sharded-cluster-query-router/>` router. The
+number of :manual:`mongos </core/sharded-cluster-query-router/>` routers
+is equal to the number of replica set nodes across all shards. 
 
 The following example describes an {+atlas-core-cluster+}. An
 {+atlas-infinite-cluster+} has two electable nodes, so the number of
@@ -106,26 +107,29 @@ tiers, so the limits for larger tiers don't apply to them.
   </core/read-preference/#mongodb-readmode-secondary>`, |service| can read from
   the two secondary nodes for a combined 2980 connection limit.
 
-  The cluster connection limits are enforced for AWS only when connecting over 
-  private link for clusters on the supported versions:
-  
-  - 8.1 and v8.1.0+
-  - 8.0 and v8.0.10+
-  - 7.0 and v7.0.22+
+For example, if you have a three-node ``M10`` cluster with a 1500
+connection limit per node, |service| reserves 10 connections per node.
+If you set your :manual:`read preference </core/read-preference/>` to
+:manual:`secondary </core/read-preference/#mongodb-readmode-secondary>`,
+|service| can read from the two secondary nodes for a combined 2980
+connection limit.
 
-Increase Connection Limit
-~~~~~~~~~~~~~~~~~~~~~~~~~
+The cluster connection limits are enforced for AWS only when connecting
+over private link for clusters on the supported versions:
+   
+- 8.1 and v8.1.0+
+- 8.0 and v8.0.10+
+- 7.0 and v7.0.22+
 
 .. note::
 
-  Atlas scales on memory and compute use, not on connections. However, increased active connections may increase load, which may create need to scale your cluster if other solutions are not viable.
+   |service| reserves a small number of connections to each |service|
+   {+cluster+} for supporting |service| services. To learn more about
+   |service| reserved connections, contact |service|
+   :ref:`support<atlas-support>`.
 
-If you are nearing or have reached the maximum number of connections your |service| cluster can handle, you have several options available to redistribute connections or increase your limit:
-
-- :ref:`Tune your application <performance-tuning>` to optimize connection usage.
-- :ref:`Enable connection pooling <connection-pool-overview>` in your application.
-- :ref:`Enable cluster auto-scaling <cluster-autoscaling>` to automatically scale your application as needed. This option is particularly helpful if your application dynamically creates additional connections. An elastic database worker pool would be an example of such an application. 
-- Permanently scale your :ref:`cluster tier <scale-cluster-instance>`. 
+Choose your cloud provider to view the connection limits for each
+cluster tier and :ref:`class <storage-class-ui>`:
 
 .. composable-tutorial::
    :options: cloud-provider
@@ -218,43 +222,61 @@ If you are nearing or have reached the maximum number of connections your |servi
 
       .. include:: /includes/limits/connections-azure-gcp.rst
 
+Increase Connection Limit
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. note::
 
-   |service| reserves a small number of connections to each |service|
-   {+cluster+} for supporting |service| services. To learn more about
-   |service| reserved connections, contact |service| :ref:`support<atlas-support>`.
+   |service| scales on memory and compute use, not on connections.
+   However, increased active connections may increase load, which may
+   create need to scale your cluster if other solutions are not viable.
+
+If you are nearing or have reached the maximum number of connections
+your |service| cluster can handle, choose one of the following options
+to redistribute connections or increase your limit:
+
+- :ref:`Tune your application <performance-tuning>` to optimize connection usage.
+- :ref:`Enable connection pooling <connection-pool-overview>` in your application.
+- :ref:`Enable cluster auto-scaling <cluster-autoscaling>` to
+  automatically scale your application as needed. This option is
+  particularly helpful if your application dynamically creates
+  additional connections. An elastic database worker pool would be an
+  example of such an application.
+- Permanently scale your :ref:`cluster tier <scale-cluster-instance>`. 
 
 .. _connection-rate-limits:
 
 Connection Rate Limits
 ----------------------
 
-|service| applies connection rate limits to protect cluster availability and
-ensure optimal performance. These limits restrict the number of new connections
-that each node in the cluster processes per second.
+|service| applies connection rate limits to protect cluster availability
+and ensure optimal performance. A connection rate limit restricts the
+number of new incoming connections that each node in the cluster can
+accept per second. This limit is separate from the maximum number of
+connections that a node can hold open at one time, which is described in
+:ref:`connection-limits`.
 
-.. list-table::
-   :header-rows: 1
+When a node reaches its connection rate limit, |service| queues new
+connection attempts. If the period of overload is sustained, |service|
+drops some connections. This behavior maintains cluster availability by
+preventing connection overload.
 
-   * - {+Cluster+} Tier
-     - Maximum New Connections Per Second Per Node
+Whether connection rate limits apply depends on your cluster tier and
+MongoDB version:
 
-   * - ``M10``
-     - 15
+- ``M10`` and ``M20`` cluster tiers: always on.
+- ``M30`` and higher cluster tiers running MongoDB 9.0 or later: always on.
+- ``M30`` and higher cluster tiers running MongoDB versions earlier than
+  9.0: always off.
 
-   * - ``M20``
-     - 15
+The following tables outline the connection rate limits for each cluster
+tier and :ref:`storage class <storage-class-ui>` across all cloud
+providers:
 
-.. note::
+.. include:: /includes/limits/connection-rate-limits.rst
 
-   Connection rate limits apply only to ``M10`` and ``M20`` cluster tiers. Other cluster
-   tiers don't have connection rate limits. Connection rate limits don't include
-   connections from |service| internal services.
-
-   If the connection rate limit is exceeded, new connection attempts are queued,
-   and if the period of overload is sustained, some connections are dropped.
-   This feature helps maintain cluster availability by preventing connection
-   overload on these cluster tiers.
+Connection rate limits don't include connections from |service|
+internal services.
 
 .. _cluster-collection-limits:
 
@@ -424,8 +446,7 @@ Label Limits
      - 250
      - 
 
-.. [1] If you have :ref:`peering-only mode enabled 
-       <atlas-faq-azure-gcp-peering-only>`, the {+cluster+} name
+.. [1] If you have :ref:`peering-only mode enabled <atlas-faq-azure-gcp-peering-only>`, the {+cluster+} name
        character limit is 23.
 
 .. [2] |service| uses the first *23 characters* of a {+cluster+} name.

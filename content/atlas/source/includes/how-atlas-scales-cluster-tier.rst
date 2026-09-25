@@ -1,29 +1,3 @@
-.. *** MERGE CONFLICT RESOLUTION INSTRUCTIONS ***
-   Context:
-      PRS for IWM and Infinite both modify auto-scaling content:
-      - Infinite PR #23625 (https://github.com/10gen/docs-mongodb-internal/pull/23625)
-        converts the auto-scaling page into a landing page with children
-        pages for each auto-scaling concept.      
-      - IWM PR #23478 (http://github.com/10gen/docs-mongodb-internal/pull/23478)
-        documents how IWM metrics are used for autoscaling decisions and 
-        integrates this information into the auto-scaling criteria. It 
-        moves all auto-scaling criteria content into a single include 
-        file (`how-atlas-scales-cluster-tier.rst`) and refactors the 
-        content to make it more readable. The new file structure is 
-        replicated in the Infinite feature branch in PR #24080 to help
-        avoid merge conflicts.
-   The IWM feature branch will be merged into Infinite before 9/29/2026.
-   There will be 2 merge conflicts. Resolve them by keeping the version
-   from the branch listed below, whether your editor labels that side
-   Current or Incoming (check the branch name on the conflict markers):
-      1. content/atlas/source/cluster-autoscaling.txt:
-         keep DOCSP-60728-atlas-infinite (the hub/landing page).
-      2. content/atlas/source/includes/how-atlas-scales-cluster-tier.rst:
-         keep feature/IWM-9.0 (adds the IWM metrics content).
-   Check: after resolving, this include contains the IWM metrics
-   content, `cluster-autoscaling.txt` contains the Infinite landing page,
-   and this TODO block is gone.
-
 |service| relies on host ping data for autoscaling decisions. Dedicated
 cluster data nodes continuously send this ping data to the control plane
 regardless of whether autoscaling is enabled. When you enable
@@ -54,9 +28,10 @@ admission control concepts to determine when to scale your {+cluster+}
 up or down:
 
 - **Absolute System CPU Utilization**: Total CPU usage of all processes
-  on the node. Visible as System CPU in |service| metrics.
+  on the node. Visible as :ref:`System CPU <metrics-system-cpu>` in
+  |service| metrics.
 
-- **Relative System CPU Utilization**: The value |service| uses for
+- **Relative System CPU Utilization**: Value |service| uses for
   autoscaling decisions on ``M10`` and ``M20`` clusters. This is
   calculated as:
 
@@ -68,9 +43,10 @@ up or down:
   Where: 
 
   - **Normalized System CPU**: Total CPU usage summed across all cores,
-    normalized to the baseline CPU utilization. Visible as Normalized
-    System CPU in |service| metrics.
-  - **Baseline CPU Utilization**: The fraction of full CPU guaranteed to
+    normalized to the baseline CPU utilization. Visible as
+    :ref:`Normalized System CPU <metrics-normalized-system-cpu>` in
+    |service| metrics.
+  - **Baseline CPU Utilization**: Fraction of full CPU guaranteed to
     your instance by the cloud provider, typically 20%-50% for burstable
     instance types. Not visible in |service| metrics. To learn more, see
     :term:`baseline CPU utilization <baseline CPU utilization>`.
@@ -78,7 +54,8 @@ up or down:
     For example, using 20% as a lower-end estimate for the
     :guilabel:`Baseline CPU Utilization`, the following
     :guilabel:`Relative System CPU Utilization` values correspond to
-    these Normalized System CPU values in |service| metrics:
+    these :ref:`Normalized System CPU <metrics-normalized-system-cpu>`
+    values in |service| metrics:
 
     - ``75%`` :term:`relative system CPU utilization` equals ``15%``
       :guilabel:`Normalized System CPU` (75% of 20%).
@@ -100,9 +77,9 @@ up or down:
 
   Where:
 
-  - **Memory Used**: The number of bytes of physical memory currently in
-    use on the host. Visible as System Memory: Memory Used (bytes) in
-    |service| metrics.
+  - **Memory Used**: Number of bytes of physical memory currently in
+    use on the host. Visible as :ref:`System Memory: Memory Used (bytes)
+    <metrics-system-memory>` in |service| metrics.
   - **Total Memory**: Total physical memory available to the node, as
     reported by the operating system. |service| does not display this
     value as a separate metric. Not visible in |service| metrics.
@@ -114,6 +91,35 @@ up or down:
      shown in the |service| metrics panel. If a scale-down does not
      occur when :guilabel:`System Memory Utilization` appears low,
      contact |mdb-support|.
+
+- **Queued or Rejected Operations**: Combined rate of operations
+  that |service| queues or rejects to protect your {+cluster+} from
+  overload as part of :ref:`Intelligent Workload Management (IWM)
+  <intelligent-workload-management>`. |service| calculates this as:
+
+  .. code-block:: none
+     :copyable: false
+
+     Queued or Rejected Operations = Queued Operations + Rejected Operations
+  
+  Where:
+
+  - **Queued Operations**: Average rate per minute of incoming
+    operations that |service| adds to the ingress request rate limiter
+    queue to wait for admission into the cluster. The per-second rate is
+    visible as :ref:`Operation Rate Limiting: Queued operations
+    <metrics-operation-rate-limiting>` in |service| metrics.
+  - **Rejected Operations**: Average rate per minute of incoming
+    operations that |service| rejects because the cluster is overloaded
+    and :ref:`Load Shedding <configure-iwm>` is active. The per-second
+    rate is visible as :ref:`Operation Rate Limiting: Rejected
+    operations <metrics-operation-rate-limiting>` in |service| metrics.
+
+  To learn how IWM works to queue or reject operations in response to
+  cluster overload, see :ref:`intelligent-workload-management`.
+
+  A combined value above zero means that your {+cluster+} is under
+  overload.
 
 The following sections describe how |service| uses these metrics to
 determine when to scale your {+cluster+} up or down.
@@ -132,9 +138,11 @@ avoids scaling up the {+cluster+} to the next tier if:
   minutes or one hour, depending on thresholds.
 - The ``M30+`` {+cluster+} has been scaled up in the past 10 minutes or
   one hour, depending on thresholds.
+- The {+cluster+} has been scaled up in the past 10 minutes, for the
+  :guilabel:`Queued or Rejected Operations` criterion.
 
 For example, if the cluster tier has not been changed since ``12:00``,
-|service| scales an ``M30+`` {+cluster+} at ``12:10``, if the
+|service| will scale an ``M30+`` {+cluster+} at ``12:10``, if the
 {+cluster+}'s current normalized System CPU Utilization is greater than
 90%.
 
@@ -150,7 +158,9 @@ following criteria is true for *any* {+cluster+} node of this type.
    |service| scales them up to the next tier if the average
    :guilabel:`Normalized System CPU` or the :guilabel:`System Memory
    Utilization` has exceeded 75% of resources available to any
-   {+cluster+} node for the past one hour.
+   {+cluster+} node for the past one hour. |service| doesn't apply the
+   :guilabel:`Queued or Rejected Operations` criterion to analytics
+   nodes.
 
 The following list groups the criteria by {+cluster+} tier. Within each
 tier, CPU-related criteria appear first, followed by memory-related
@@ -204,6 +214,23 @@ every dedicated tier and appears last.
   - The average :guilabel:`System Memory Utilization` has exceeded 75%
     of resources available to the {+cluster+} for the past one hour.
 
+- All {+Dedicated-clusters+}, ``M10+``:
+
+  - :guilabel:`Queued or Rejected Operations` remains above zero for
+    every sample in the past 10 minutes.
+
+    |service| requires the rate to stay above zero for the entire
+    10-minute window rather than averaging it, so a brief burst of
+    queueing or rejecting operations during a short traffic spike
+    doesn't scale your {+cluster+}. Sustained load shedding indicates
+    that your workload exceeds what the current tier can admit, so
+    |service| scales up to relieve the overload.
+
+    .. note::
+
+       This criterion measures whether |service| shed load, not how
+       much. Any sustained rate above zero meets the threshold.
+
 These thresholds ensure that your {+cluster+} scales up quickly in
 response to high loads, maintaining its performance and reliability.
 
@@ -243,21 +270,21 @@ Evaluating the conditions:
 <relative system CPU utilization>` > 90% for 20 minutes
 AND average :term:`CPU steal` > 30% for 3 minutes.
 
-- Relative CPU: 60% ÷ 20% = 300%, capped at 100%. **First threshold met.**
-- CPU steal is 10%, which doesn't exceed 30%. **Second threshold not met.**
-- **Result: Condition 1 Not Met.** Both thresholds must be true.
+- Relative CPU: 60% ÷ 20% = 300%, capped at 100%. First threshold met.
+- CPU steal is 10%, which doesn't exceed 30%. Second threshold not met.
+- Result: Condition 1 Not Met. Both thresholds must be true.
 
 **Condition 2**: Requires average :guilabel:`Normalized System CPU` >
 90% for 20 minutes.
 
 - Normalized System CPU is 60%, which doesn't exceed 90%.
-- **Result: Condition 2 Not Met.**
+- Result: Condition 2 Not Met.
 
 **Condition 3**: Requires average :term:`Relative System CPU Utilization
 <relative system CPU utilization>` > 75% for 1 hour.
 
 - Relative CPU: 60% ÷ 20% = 300%, capped at 100%.
-- **Result: Condition 3 Met.** |service| triggers auto-scaling.
+- Result: Condition 3 Met. |service| triggers auto-scaling.
 
 Conditions for Scaling Down
 ---------------------------
@@ -315,9 +342,9 @@ to the next lowest tier if *all* of the following criteria are true for
     **AND** the last 4 hours.
 
     To calculate :guilabel:`Projected Memory Utilization`, |service|
-    starts with the current memory usage, visible as System Memory:
-    Memory Used (bytes) in |service| metrics. |service| subtracts the
-    current :manual:`WiredTiger cache
+    starts with the current memory usage, visible as :ref:`System
+    Memory: Memory Used (bytes) <metrics-system-memory>` in |service|
+    metrics. |service| subtracts the current :manual:`WiredTiger cache
     </reference/command/serverStatus/#serverstatus.wiredTiger.cache>`
     usage, adds 80% of the maximum WiredTiger cache size on the **new**
     lower tier, then divides the result by that tier's total RAM.

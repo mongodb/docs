@@ -31,6 +31,14 @@ Cluster and Operation Metrics
      - Rate at which new connection requests are added to the ingress
        session establishment queue.
 
+   * - | ``INGRESS_SESSION_ESTABLISHMENT_ATTEMPTED_ADMISSIONS``
+       | (mongodb.atlas.queues.ingressSessionEstablishment.attemptedAdmissions)
+     - Process
+     - Rate per second at which new connection requests are offered to
+       the ingress session establishment rate limiter for admission.
+       This represents the total connection establishment workload
+       offered to the system.
+
    * - | ``INGRESS_SESSION_ESTABLISHMENT_REMOVED_FROM_QUEUE``
        | (mongodb.atlas.queues.ingressSessionEstablishment.removedFromQueue)
      - Process
@@ -84,6 +92,40 @@ Cluster and Operation Metrics
        | (mongodb.atlas.network.num.requests)
      - Process
      - Average rate of requests sent to the database server per second.
+
+   * - | ``INGRESS_REQUEST_RATE_LIMITER_ATTEMPTED_ADMISSIONS``
+       | (mongodb.atlas.network.ingressRequestRateLimiter.attemptedAdmissions)
+     - Process
+     - Rate per second at which operations are offered to the ingress
+       request rate limiter for admission. This represents the total
+       operation workload offered to the system.
+
+   * - | ``INGRESS_REQUEST_RATE_LIMITER_SUCCESSFUL_ADMISSIONS``
+       | (mongodb.atlas.network.ingressRequestRateLimiter.successfulAdmissions)
+     - Process
+     - Rate per second at which operations successfully pass through the
+       ingress request rate limiter and are admitted for execution.
+
+   * - | ``INGRESS_REQUEST_RATE_LIMITER_REJECTED_ADMISSIONS``
+       | (mongodb.atlas.network.ingressRequestRateLimiter.rejectedAdmissions)
+     - Process
+     - Rate per second at which the ingress request rate limiter rejects
+       operations. A non-zero value means the rate limiter is actively
+       rejecting operations because the system is overloaded.
+
+   * - | ``INGRESS_REQUEST_RATE_LIMITER_AVERAGE_TIME_QUEUED_MICROS``
+       | (mongodb.atlas.network.ingressRequestRateLimiter.averageTimeQueuedMicros)
+     - Process
+     - Average time in microseconds that operations spend waiting in the
+       ingress request rate limiter queue before admission.
+
+   * - | ``INGRESS_REQUEST_RATE_LIMITER_TOTAL_TIME_QUEUED_MICROS``
+       | (mongodb.atlas.network.ingressRequestRateLimiter.totalTimeQueuedMicros)
+     - Process
+     - Cumulative time in microseconds that all operations have spent
+       waiting in the ingress request rate limiter queue since the
+       server started. Use this metric to understand the total queuing
+       impact on your workload over time.
 
    * - | ``OPCOUNTER_CMD``
        | (mongodb.atlas.opcounters.command)

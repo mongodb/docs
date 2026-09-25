@@ -66,6 +66,16 @@ For a full list of |fts| alerts, see :ref:`Alert Conditions for {+fts+} <alert-c
 
 - :alert:`Stream Processor State is failed <Stream Processor State is failed>`
 
+|service| provides the following default :ref:`Intelligent Workload
+Management <intelligent-workload-management>` alerts for projects that
+contain {+Dedicated-clusters+} running MongoDB 9.0 or later:
+
+- :alert:`Sustained load shedding`
+- :alert:`Sustained ingress queue pressure`
+- :alert:`Sustained execution-control queue pressure`
+
+To learn more, see :ref:`Load Shedding <alert-conditions-iwm>`.
+
 |service| provides default alerts for projects with clusters that experience
 auto-scaling events. To learn more about all auto-scaling alert events, see
 :ref:`Auto-scaling <alert-conditions-autoscaling>`.

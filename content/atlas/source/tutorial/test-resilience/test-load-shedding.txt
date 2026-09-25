@@ -1,0 +1,147 @@
+.. _test-load-shedding:
+
+==========================
+Test Cluster Load Shedding
+==========================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Run an Atlas Load Shedding test to validate that your drivers, observability setup, and operational workflow are ready before you rely on active protection in production.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/fact-cluster-overload-definition.rst
+
+:ref:`Intelligent Workload Management <intelligent-workload-management>`
+(IWM) helps |service| keep clusters usable during overload. Load
+Shedding is a setting that controls the IWM behaviors that reject
+operations during prolonged overload. When Load
+Shedding is on, |service| can reject operations. 
+To configure Load Shedding for your cluster, see 
+:ref:`the cluster additional settings <load-shedding-setting>`.
+
+.. important::
+
+   The Load Shedding setting doesn't control all IWM activity 
+   on your cluster. If you disable Load Shedding on your cluster, 
+   |service| continues to run other supported IWM behaviors that 
+   do not reject operations. To learn more, see 
+   :ref:`intelligent-workload-management`.
+
+You can run a Load Shedding test to validate that your drivers, 
+observability setup, and operational workflow are ready before you rely 
+on active protection in production. 
+
+Test Behavior
+-------------
+
+During the test, |service| turns on Load Shedding for the
+duration that you select, then returns the setting to its earlier
+value. While Load Shedding is active, |service| rejects a small
+percent of operations, selected at random, regardless of the load on
+your cluster.
+
+Run the test to checker whether your drivers and applications handle 
+overload errors without passing failures to your users. For driver 
+compatibility with Load Shedding, see :ref:`atlas-overload-errors`.
+
+.. note::
+
+   Random rejection of a small percent of operations happens only
+   during Load Shedding tests. When you enable Load Shedding outside
+   of a test,
+   |service| rejects operations only when the cluster is overloaded.
+
+Required Access
+---------------
+
+To run an Load Shedding test, you must have
+:authrole:`Project Cluster Manager` access to the project.
+
+Before You Begin
+----------------
+
+Ensure that your |service| cluster meets the following requirements:
+
+- The cluster is an ``M30`` or larger replica set running MongoDB
+  9.0 or later.
+- The cluster has no pending changes. Any changes that you make to the
+  cluster configuration must finish deploying before you start the
+  test.
+- The cluster isn't already running an Load Shedding test. You
+  can run only one Load Shedding test on a cluster at a time.
+
+Consider the following before you start the test:
+
+- When |service| rejects operations during the test, your
+  application can receive overload errors. To learn more about these
+  errors, see :ref:`atlas-overload-errors`.
+- Run the test on a test or development cluster, not on a production
+  cluster. Drivers and applications that don't handle overload errors
+  can surface failures to your users.
+
+Test Load Shedding Process
+--------------------------
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-db-deployments-page.rst
+
+   .. step:: Go to the :guilabel:`Test Resilience` modal.
+
+      a. For the cluster you want to test, click the :icon-mms:`ellipsis` icon.
+
+      #. Click :guilabel:`Test Resilience`.
+
+      #. Select :guilabel:`Load Shedding`.
+
+   .. step:: Configure the Load Shedding test.
+
+      a. From the :guilabel:`Test Duration` dropdown, select a
+         duration. You can choose 15 minutes (recommended), 1 hour,
+         8 hours, or 1 day. |service| ends the test when the selected
+         time elapses, or you can stop the tests at any point before then.
+
+      #. To confirm the test, type the name of the cluster in the
+         confirmation field.
+
+      #. Click :guilabel:`Begin Load Shedding`.
+
+   .. step:: Observe how your cluster responds.
+
+      While the test runs, |service| rejects a small percent of
+      operations, selected at random.
+
+      In the {+atlas-ui+} metrics view, review the
+      :guilabel:`Operation Throttling` chart to see how many operations
+      |service| rejects to relieve pressure. To learn
+      more, see :ref:`review-available-metrics`.
+
+      To stop the test before the selected duration elapses, click
+      :guilabel:`End Test Now`.
+
+   .. step:: Monitor the test on your cluster.
+
+      While the test runs, |service| displays an
+      :guilabel:`Load Shedding Test in Progress` banner at the
+      top of the cluster. The banner shows the time the test ends
+      and links to the :guilabel:`Metrics` view.
+
+   .. step:: Review the test results.
+
+      After the test ends, |service| shows the number of operations
+      rejected during the test and whether your cluster's Load
+      Shedding intervention metrics changed as expected.
+
+      If your drivers' compatibility with Load Shedding is unknown,
+      mixed, or includes an unsupported version, |service| recommends
+      that you upgrade your drivers. To learn more, see
+      :ref:`atlas-overload-errors`.
