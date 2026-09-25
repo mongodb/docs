@@ -1,0 +1,1121 @@
+.. _partner-integration-guide:
+
+=============================================
+Integrate Your App with Atlas App Connections
+=============================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: oauth, pkce, authorization code, atlas app connections, atlas admin api, delegated access, code example
+   :description: Integrate your application with Atlas App Connections using the OAuth 2.1 Authorization Code flow with PKCE to obtain delegated access and act on behalf of Atlas users.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. banner::
+   :variant: info
+
+   This guide is for approved design partners and is not
+   publicly available. To become a partner, submit the
+   `Become a Partner <https://www.mongodb.com/company/partners/>`__
+   form and include "Partner API" in the
+   :guilabel:`More Information` field.
+
+Overview
+--------
+
+Atlas App Connections is the |service-fullname| OAuth 2.1 platform
+that enables your application to act on behalf of |service| users
+through user-delegated access. When a user authorizes your
+application, your application receives a set of tokens it can use to
+call
+the {+atlas-admin-api+} with the same permissions the user holds
+in their |service| organizations. For an overview of the
+platform and how organizations manage connected
+applications, see :ref:`atlas-app-connections`.
+
+This guide covers the full integration:
+
+- Initiating the OAuth 2.1 Authorization Code flow with Proof
+  Key for Code Exchange (PKCE)
+- Exchanging authorization codes for tokens and refreshing
+  tokens
+- Using the {+atlas-admin-api+} with delegated access
+- Understanding the scope and limits of delegated access
+- Configuring network access and managing database users
+- Handling revocation and errors
+
+Key Concepts
+~~~~~~~~~~~~
+
+**Delegated access**
+   Your application acts on behalf of an |service| user, not as
+   itself. The user's own organization roles and project
+   permissions determine what operations succeed. If the user
+   cannot perform an action, your application cannot perform it
+   on their behalf either.
+
+**Organization delegation settings**
+   Each |service| organization controls whether third-party app
+   connections are allowed. Even when a user authorizes your
+   application, operations against a specific organization
+   succeed only if that organization has third-party app
+   connections enabled. Delegation is disabled by default for
+   existing organizations. Because a user can belong to
+   multiple organizations, a single authorization can succeed
+   for some of the user's organizations and fail for others,
+   depending on each organization's delegation setting.
+
+**Proof Key for Code Exchange (PKCE)**
+   A security extension to the OAuth 2.1 Authorization Code
+   flow that protects against authorization code interception
+   attacks. PKCE requires the client to generate a random
+   ``code_verifier``, derive a ``code_challenge`` from it, and
+   send the challenge with the authorization request. The client
+   then proves it originated the request by sending the original
+   ``code_verifier`` when exchanging the authorization code for
+   tokens.
+
+Prerequisites
+-------------
+
+Before you begin, confirm that you have:
+
+- Approved design partner status.
+- A registered OAuth application. MongoDB provides you with a
+  ``client_id`` during onboarding. Confidential clients
+  (server-side web applications) also receive a ``client_secret``.
+  Public clients (native and single-page applications) authenticate
+  with only the ``client_id`` and do not receive a secret.
+- A redirect URI registered with your OAuth application.
+  Redirect URIs must use HTTPS except for loopback addresses
+  (``localhost``, ``127.0.0.1``, ``::1``), which may use HTTP
+  on any port. Redirect URIs must not contain fragments
+  (``#``).
+- Familiarity with the OAuth 2.1 Authorization Code flow
+  and Proof Key for Code Exchange (PKCE).
+
+.. _partner-branding-guidelines:
+
+Branding Guidelines
+-------------------
+
+If you need MongoDB branding assets for your integration, such as
+the MongoDB logo, see the `MongoDB Brand Resources
+<https://www.mongodb.com/company/newsroom/brand-resources>`__ page.
+
+Base URLs
+---------
+
+Develop and launch your integration against production.
+|service| does not provide separate partner environments.
+
+All OAuth and API endpoints use two production base URLs:
+
+.. list-table::
+   :widths: 40 60
+   :header-rows: 1
+
+   * - Base
+     - URL
+
+   * - Authorization base (``{OAUTH_BASE}``)
+     - ``https://authorize.mongodb.com``
+
+   * - Cloud base (``{CLOUD_BASE}``)
+     - ``https://cloud.mongodb.com``
+
+Throughout this guide, these names stand in for the URLs
+above. For example, the token endpoint is
+``{OAUTH_BASE}/tokens``.
+
+The authorization endpoint where users log in and grant
+access is hosted on the cloud base
+(``{CLOUD_BASE}/oauth/authorize``), while the token and other
+OAuth endpoints are hosted on the authorization base
+(``{OAUTH_BASE}``). This split is intentional. The
+{+atlas-admin-api+} is hosted on the cloud base
+(``{CLOUD_BASE}/api/atlas``).
+
+.. tip:: Discover Endpoints Automatically
+
+   |service| publishes OAuth 2.1 server metadata at
+   ``{OAUTH_BASE}/.well-known/oauth-authorization-server``.
+   Many OAuth client libraries and SDKs can
+   read this endpoint to discover and configure the
+   authorization, token, and related endpoints automatically,
+   which avoids hardcoding endpoint URLs.
+
+OAuth 2.1 Authorization Code Flow with PKCE
+-------------------------------------------
+
+Atlas App Connections uses the OAuth 2.1 Authorization Code
+flow with Proof Key for Code Exchange (PKCE). This flow
+requires user interaction: the user logs in to |service| and
+approves the permissions your application requests.
+
+Flow Overview
+~~~~~~~~~~~~~
+
+.. figure:: /images/partners-api-high-level-flow.png
+   :figwidth: 700px
+   :alt: Sequence diagram showing the OAuth 2.1 Authorization
+         Code flow with PKCE between your application, the
+         user's browser, the MongoDB authorization endpoint,
+         the MongoDB token endpoint, and the Atlas Admin API.
+
+The flow proceeds in three steps:
+
+#. Your application generates a PKCE code verifier and
+   challenge, redirects the user to the |service|
+   authorization endpoint, and the user approves access
+   on the consent screen.
+#. Your application exchanges the authorization code for an
+   access token and a refresh token.
+#. Your application uses the access token to call the
+   {+atlas-admin-api+} and uses the refresh token to obtain
+   new access tokens before they expire.
+
+Step 1: Authorization Request
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Direct the user to the |service| authorization endpoint
+(``https://cloud.mongodb.com/oauth/authorize``) with the
+following parameters. You control how your application
+presents this endpoint: a redirect within the existing
+window, a new browser window, or a pop-up.
+
+.. list-table::
+   :widths: 25 15 60
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Parameter
+     - Required
+     - Description
+
+   * - ``response_type``
+     - Required
+     - Must be ``code``.
+
+   * - ``client_id``
+     - Required
+     - Your application's client ID, provided by MongoDB
+       during onboarding.
+
+   * - ``redirect_uri``
+     - Required
+     - The HTTPS URI where |service| sends the authorization
+       code after user approval. Must match a URI registered
+       with your OAuth application.
+
+   * - ``code_challenge``
+     - Required
+     - The PKCE code challenge derived from your
+       ``code_verifier``. Generate a random 43- to
+       128-character string as the ``code_verifier``, then
+       compute ``BASE64URL(SHA256(code_verifier))``.
+
+   * - ``code_challenge_method``
+     - Required
+     - Must be ``S256``. The ``plain`` method is not
+       supported and is rejected.
+
+   * - ``state``
+     - Required
+     - An opaque value your application uses to maintain
+       state between the authorization request and the
+       callback. Use this to protect against cross-site
+       request forgery (CSRF) attacks and to restore
+       application state after the redirect.
+
+Send only the parameters in the preceding table. The
+authorization endpoint doesn't require a ``resource``
+parameter, so omit it from the authorization request even
+though the OAuth 2.1 specification defines one.
+
+The following example breaks the URL across lines for
+readability. Send it as a single line:
+
+.. code-block:: text
+
+   https://cloud.mongodb.com/oauth/authorize
+     ?response_type=code
+     &client_id=<YOUR_CLIENT_ID>
+     &redirect_uri=https://yourapp.example.com/callback
+     &code_challenge=<CODE_CHALLENGE>
+     &code_challenge_method=S256
+     &state=<RANDOM_STATE_VALUE>
+
+Consent Screen
+^^^^^^^^^^^^^^
+
+After the user logs in to |service|, they see a consent screen
+that lists the permissions your application is requesting:
+
+- Know which Atlas resources you have access to
+- Act on your behalf in Atlas organizations
+
+The consent screen also displays the following notice to
+the user:
+
+.. blockquote::
+
+   By authorizing an application:
+
+   - You are allowing it to access and take actions in your
+     MongoDB Atlas resources just as you can, using your
+     account's permissions.
+   - You can revoke access at any time.
+
+If the user clicks :guilabel:`Authorize`, |service| redirects
+to your ``redirect_uri`` with an authorization ``code``,
+the ``state`` value you provided, and an ``iss`` parameter.
+If the user clicks :guilabel:`Decline`, |service| redirects
+with an ``error`` parameter.
+
+Your callback handler must:
+
+#. Verify ``state`` matches the value you sent in the
+   authorization request to prevent CSRF attacks.
+#. Verify ``iss`` matches the authorization base
+   (``https://authorize.mongodb.com``) to prevent
+   authorization server mix-up attacks.
+#. Check for an ``error`` parameter and handle denial
+   gracefully before attempting to use the ``code``.
+
+Authorization codes are single-use and expire within 10
+minutes. Exchange them promptly.
+
+.. _partner-token-exchange:
+
+Step 2: Token Exchange
+~~~~~~~~~~~~~~~~~~~~~~
+
+Exchange the authorization code for tokens by making a
+``POST`` request to the |service| token endpoint:
+
+.. code-block:: http
+
+   POST https://authorize.mongodb.com/tokens
+
+.. list-table::
+   :widths: 25 15 60
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Body Parameter
+     - Required
+     - Description
+
+   * - ``grant_type``
+     - Required
+     - Must be ``authorization_code``.
+
+   * - ``code``
+     - Required
+     - The authorization code received from the redirect.
+
+   * - ``redirect_uri``
+     - Required
+     - The same redirect URI used in the authorization
+       request.
+
+   * - ``code_verifier``
+     - Required
+     - The original PKCE code verifier string.
+
+   * - ``client_id``
+     - Required
+     - Your application's client ID.
+
+   * - ``client_secret``
+     - Conditional
+     - Your application's client secret. Required only for
+       confidential clients (server-side web applications). Public
+       clients (native and single-page applications) authenticate
+       with only the ``client_id`` and omit this parameter.
+
+Example request:
+
+.. code-block:: sh
+
+   curl --request POST \
+     --url https://authorize.mongodb.com/tokens \
+     --header 'Content-Type: application/x-www-form-urlencoded' \
+     --data 'grant_type=authorization_code' \
+     --data 'code=<AUTHORIZATION_CODE>' \
+     --data 'code_verifier=<CODE_VERIFIER>' \
+     --data 'redirect_uri=https://yourapp.example.com/callback' \
+     --data 'client_id=<YOUR_CLIENT_ID>' \
+     --data 'client_secret=<YOUR_CLIENT_SECRET>'
+
+The response includes:
+
+.. list-table::
+   :widths: 25 15 60
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``access_token``
+     - string
+     - Bearer token for authenticating {+atlas-admin-api+}
+       requests. Short-lived. Rely on the ``expires_in``
+       value to determine when to refresh rather than
+       hardcoding a lifetime.
+
+   * - ``refresh_token``
+     - string
+     - Token used to obtain a new access token when the
+       current one expires. Store this securely.
+
+   * - ``token_type``
+     - string
+     - Always ``Bearer``.
+
+   * - ``expires_in``
+     - integer
+     - Access token lifetime in seconds. Currently ``600``
+       (10 minutes). Rely on this value to determine when to
+       refresh rather than hardcoding a lifetime, as the
+       default may change.
+
+Step 3: Refreshing Access Tokens
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Access tokens are short-lived (currently 10 minutes). Before
+making {+atlas-admin-api+} calls after expiry, exchange your
+refresh token for a new access token:
+
+.. code-block:: sh
+
+   curl --request POST \
+     --url https://authorize.mongodb.com/tokens \
+     --header 'Content-Type: application/x-www-form-urlencoded' \
+     --data 'grant_type=refresh_token' \
+     --data 'refresh_token=<YOUR_REFRESH_TOKEN>' \
+     --data 'client_id=<YOUR_CLIENT_ID>' \
+     --data 'client_secret=<YOUR_CLIENT_SECRET>'
+
+The response always returns a new ``access_token`` and a
+new ``refresh_token``. The previous refresh token is
+immediately invalidated. Always replace both stored values.
+
+.. important::
+
+   Refresh tokens expire after 7 days of inactivity (the
+   idle lifetime). Regardless of activity, users must
+   re-authenticate every 30 days (the maximum lifetime).
+   Organization owners can configure stricter limits. When a
+   refresh token expires, the user must re-authorize your
+   application. Design your application to handle this
+   gracefully by prompting the user to reconnect.
+
+Using the Atlas Admin API with Delegated Access
+-----------------------------------------------
+
+After obtaining an access token, use it to make
+{+atlas-admin-api+} requests by including it in the
+``Authorization`` header:
+
+.. code-block:: http
+
+   Authorization: Bearer <ACCESS_TOKEN>
+
+Example request:
+
+.. code-block:: sh
+
+   curl --request GET \
+     --url 'https://cloud.mongodb.com/api/atlas/v2/orgs' \
+     --header 'Authorization: Bearer <ACCESS_TOKEN>' \
+     --header 'Accept: application/vnd.atlas.2023-01-01+json'
+
+Your application acts with the same permissions the
+authorizing user holds at the time of each request. If the
+user's roles change after authorization, your application's
+effective permissions change accordingly.
+
+.. _partner-permissions-delegation:
+
+Permissions and Organization Delegation Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Operations against a specific |service| organization succeed
+only when both of the following are true:
+
+- The organization has third-party app connections enabled.
+  Organization owners configure this setting in
+  :guilabel:`Organization Settings` > :guilabel:`App Connections`.
+  To learn more about these settings, see
+  :ref:`atlas-app-connections`.
+- The authorizing user has the required role for the
+  operation within that organization or project.
+
+If delegation is disabled for an organization after a user
+has already authorized your application, API calls targeting
+that organization return a ``403 Forbidden`` response.
+
+A completed authorization doesn't guarantee that
+{+atlas-admin-api+} calls succeed. |service| evaluates the
+organization's delegation setting and the user's roles on every
+request, not once at authorization time, so the OAuth flow and
+consent screen can complete cleanly while requests still return
+``403 Forbidden``.
+
+Checking Organization Access
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Call ``GET /api/atlas/v2/orgs`` after authorization to determine
+which organizations your application can act on. |service|
+returns only the organizations that allow third-party app
+connections, so an empty list means that no organization the
+user belongs to has enabled them.
+
+An empty list is a setup step, not a failure. Prompt the user to
+ask an Organization Owner to enable app connections for the
+organization, and point them to :ref:`atlas-app-connections`.
+Avoid presenting the empty list as an authorization or
+authentication error, because the user's credentials and consent
+are valid.
+
+.. note:: Early Access Allowlist
+
+   During early access, |service| also maintains an allowlist of
+   the organizations your application can reach. An organization
+   that has enabled third-party app connections but is not on your
+   allowlist does not appear in the response. Contact MongoDB to
+   have your test organizations added.
+
+Because delegated access carries the authorizing user's own
+permissions, write operations also depend on that user's roles.
+Common provisioning operations require the following roles:
+
+- To create a project, the user needs the
+  :authrole:`Organization Owner` or
+  :authrole:`Organization Project Creator` role.
+- To create a cluster, the user needs the
+  :authrole:`Project Owner` or
+  :authrole:`Project Cluster Creator` role on the target
+  project.
+
+A user who holds only the :authrole:`Organization Member` role
+can read the resources they have access to, but write operations
+return ``403 Forbidden``. Name the required role in your error
+handling so the user can request the correct role. To learn about
+all available roles, see :ref:`user-roles`.
+
+When your application creates an organization on a user's
+behalf, the new organization doesn't allow third-party app
+connections yet. Enabling them is a manual step: contact
+MongoDB to have the organization allowlisted. Until then,
+your application can't act on the organization, even though the
+user authorized your application.
+
+Blocked and Filtered Endpoints
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Delegated access reaches most {+atlas-admin-api+} endpoints,
+but |service| treats some endpoints differently regardless of
+the authorizing user's permissions.
+
+**Blocked endpoints** return a ``403 Forbidden`` response even
+when the authorizing user holds a role that would normally
+permit the operation. |service| blocks the federation
+settings endpoints, which read and modify federation and
+single sign-on (SSO) configuration. Identity provider
+configuration is shared across every organization in a
+federation, so delegated access to it could expose or
+disrupt organizations that never authorized your
+application.
+
+**Filtered endpoints** accept the call but constrain what it
+can see or change, based on which organizations have opted in
+to third-party app connections. Your application can reach
+only those organizations, and |service| blocks access to the
+resources of an organization that has not opted in.
+
+Endpoints that span organizations, such as those that list
+every organization, project, or cluster the user can access,
+return only organizations that allow third-party app
+connections. For requests that create resources, |service|
+validates the target organization and rejects the call when
+that organization has not opted in.
+
+An organization owner opts in from
+:guilabel:`Organization Settings` > :guilabel:`App
+Connections`. To learn more, see
+:ref:`partner-permissions-delegation`.
+
+|service| may block or filter additional endpoints for
+delegated access over time.
+
+Control Plane versus Data Plane
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The {+atlas-admin-api+} provides **control plane** access:
+you can create, configure, and manage |service| resources such
+as organizations, projects, clusters, and users. It does
+not provide direct **data plane** access (reading or writing
+documents in your databases).
+
+To access data in |service| clusters, retrieve the cluster
+connection string through the {+atlas-admin-api+} and connect
+using a database user and the MongoDB driver or shell. The
+connection string and database credentials are separate from
+the OAuth bearer token.
+
+Revocation affects control plane and data plane access
+differently. See :ref:`partner-revocation-data-plane`.
+
+.. _partner-service-accounts:
+
+Continuous Access with Service Accounts
+---------------------------------------
+
+Delegated access ties your application's tokens to the
+authorizing user. If that user's roles change, the user is
+offboarded, or the user doesn't re-authenticate within the
+refresh token lifetime, your application loses the
+permissions it needs even though your integration itself is
+still active.
+
+If your integration needs continuous {+atlas-admin-api+}
+access that doesn't depend on a specific user staying
+authorized, for example resizing clusters or changing
+deployment regions on an ongoing basis, create a service
+account for the customer's organization and project instead
+of relying on delegated access for that workflow.
+
+A service account authenticates using the OAuth 2.0 Client
+Credentials flow rather than the Authorization Code flow, so
+it doesn't depend on a user's ongoing session. Each service
+account belongs to one organization, and you can grant it
+access to any number of projects within that organization.
+|service| :ref:`roles <user-roles>` limit which operations
+the service account's access tokens can authenticate, the
+same way roles limit a user. A service account can't sign in
+to the {+atlas-ui+} and, like delegated access, doesn't
+provide data plane access.
+
+To create a service account for a customer's organization,
+see :ref:`service-accounts-overview` and
+:ref:`create-service-account-org`.
+
+.. _partner-provisioning-workflow:
+
+Provisioning Resources for a User
+---------------------------------
+
+Most partner integrations provision |service| resources on
+behalf of the authorizing user. The following sequence covers
+the common path from an authorized connection to a usable
+connection string. Each request uses the bearer token from
+:ref:`partner-token-exchange`.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Identify the target organization and project.
+
+      Call ``GET /api/atlas/v2/orgs`` to list the
+      organizations the authorizing user can access, then
+      ``GET /api/atlas/v2/orgs/{orgId}/groups`` to list the
+      projects within an organization.
+
+      Only organizations that allow third-party app
+      connections appear as usable targets. To learn more, see
+      :ref:`partner-permissions-delegation`.
+
+   .. step:: Create a project, if your integration needs one.
+
+      Call ``POST /api/atlas/v2/groups`` with the project
+      name and the ``orgId`` of the target organization.
+      |service| validates the ``orgId`` in the request body
+      and returns ``403 Forbidden`` when that organization
+      does not allow third-party app connections.
+
+   .. step:: Create a cluster.
+
+      Call ``POST /api/atlas/v2/groups/{groupId}/clusters``
+      with the cluster name, cluster type, and replication
+      specification. Cluster creation is asynchronous. Poll
+      ``GET /api/atlas/v2/groups/{groupId}/clusters/{clusterName}``
+      until the cluster's ``stateName`` is ``IDLE``.
+
+   .. step:: Create a database user.
+
+      Call
+      ``POST /api/atlas/v2/groups/{groupId}/databaseUsers``
+      to create the identity your application uses for data
+      plane access. For role and lifecycle guidance, see
+      :ref:`partner-database-user-lifecycle`.
+
+   .. step:: Configure network access.
+
+      Add your application's outbound IP addresses to the
+      project access list, or configure a private
+      connectivity option. To learn more, see
+      :ref:`partner-network-configuration`.
+
+   .. step:: Retrieve the connection string.
+
+      Read the ``connectionStrings`` field from the cluster
+      resource, then connect with a MongoDB driver
+      using the database user you created. The connection
+      string and database credentials are separate from the
+      OAuth bearer token.
+
+For the full request and response schemas for each endpoint,
+see the `Atlas Administration API Specification
+<https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/>`__.
+
+.. _partner-network-configuration:
+
+Network Configuration and IP Allowlisting
+-----------------------------------------
+
+The {+atlas-admin-api+} is available over the public
+internet only. It is not available through virtual private
+cloud (VPC) peering or private endpoints. Your application
+must be able to reach ``cloud.mongodb.com`` on port 443.
+
+.. note::
+
+   Delegated access to the {+atlas-admin-api+} bypasses any
+   control plane API access list (API key IP allowlist)
+   restrictions the customer has configured. Access is
+   governed by the authorizing user's permissions and the
+   organization's delegation settings, not by control plane
+   IP restrictions. To learn more, see
+   :ref:`atlas-app-connections-known-limitations`.
+
+For data plane access, the |service| cluster you are connecting
+to may have an IP access list configured. Your application's
+outbound IP addresses must be added to the cluster's IP
+access list, or you must configure network peering or a
+private endpoint appropriate for your deployment.
+
+Connectivity patterns in the initial release:
+
+- Your application is responsible for configuring IP
+  allowlisting for data plane access. This is not handled
+  automatically by the Atlas App Connections platform.
+- For each cluster your application provisions or accesses,
+  add your outbound IPs or Classless Inter-Domain Routing
+  (CIDR) ranges to the cluster's IP
+  access list using the
+  ``POST /api/atlas/v2/groups/{groupId}/accessList``
+  endpoint.
+- Never expose the data plane to the public internet. Always
+  restrict data plane access with IP access lists or private
+  connections such as network peering or private endpoints.
+
+.. _partner-database-user-lifecycle:
+
+Database User Lifecycle
+-----------------------
+
+Your application may need to create and manage database
+users when provisioning |service| clusters on behalf of users.
+The following patterns are supported in the initial release.
+
+Creating Database Users
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Create database users through the {+atlas-admin-api+} endpoint
+``POST /api/atlas/v2/groups/{groupId}/databaseUsers``
+using the bearer token of the authorizing user. The user
+must hold a project role that permits database user
+management.
+
+Recommended Practices
+~~~~~~~~~~~~~~~~~~~~~
+
+- **Stay within the database user limit.** |service| enforces
+  a default limit of 100 database users per project. Reuse
+  existing database users where possible instead of creating
+  a new user for each operation, and deprovision users you no
+  longer need to avoid reaching the limit.
+- **Use scoped roles.** Create database users with the
+  minimum database roles required for your use case rather
+  than ``atlasAdmin``.
+- **Deprovision users when no longer needed.** When a user
+  revokes access to your application, delete any database
+  users your application created on their behalf. |service| does
+  not automatically remove database users when access is
+  revoked.
+- **Rotate credentials on a defined schedule.** If your
+  application stores database user passwords, rotate them
+  regularly using the
+  ``PATCH /api/atlas/v2/groups/{groupId}/databaseUsers/
+  {databaseName}/{username}`` endpoint.
+
+.. important::
+
+   |service| does not automatically delete database users or
+   other resources your application created when a user
+   revokes access. Your application is responsible for
+   cleaning up resources it created. Failure to deprovision
+   database users leaves credentials active in the user's
+   |service| account after they disconnect your application.
+   To learn more, see
+   :ref:`atlas-app-connections-known-limitations`.
+
+If |service| rotates the credentials for a resource your
+application provisioned, such as a database user's password,
+it can notify your application through an optional webhook
+rather than requiring you to update the credentials yourself.
+This is unrelated to rotating your OAuth ``client_secret``;
+for that, see :ref:`partner-token-secret-storage`. To
+implement the webhook, see :ref:`partner-credential-rotation`.
+
+Security Best Practices
+-----------------------
+
+This section describes the minimum security requirements for
+handling credentials and sensitive information in your
+integration. These practices reduce the blast radius of a
+security incident and are required for design partners.
+
+Encrypting Credentials at Rest
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Your application handles several categories of sensitive
+information that must be encrypted at rest:
+
+- **Connection strings.** |service| connection strings contain
+  embedded credentials or reference database users. Encrypt
+  any stored connection strings using Advanced Encryption
+  Standard (AES)-256 or equivalent
+  encryption. Do not store connection strings in plaintext in
+  configuration files, environment variable stores, or
+  databases.
+- **OAuth tokens.** Refresh tokens are long-lived credentials.
+  Store them in an encrypted secrets manager (for example,
+  HashiCorp Vault, Amazon Web Services (AWS) Secrets Manager,
+  or Azure Key Vault).
+  Do not store refresh tokens in your application database
+  without encryption.
+- **Client secrets.** Your ``client_secret`` is equivalent to
+  a password. Store it in a secrets manager and rotate it if
+  you suspect it has been exposed.
+
+.. tip:: Prefer Secret-less Authentication
+
+   |service| supports secret-less authentication using PKCE,
+   which removes the need to manage a ``client_secret``
+   altogether. Where your client type allows it, use
+   secret-less authentication as the most secure option
+   rather than provisioning and storing a client secret.
+
+Connection String Handling
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When your application retrieves connection strings from the
+{+atlas-admin-api+} on behalf of a user:
+
+- Retrieve connection strings at the time they are needed
+  rather than storing them long-term where possible.
+- If your application must persist a connection string, store
+  only what is required (for example, the hostname and port)
+  separately from the credentials.
+- Do not log connection strings or include them in error
+  messages or stack traces.
+
+.. _partner-token-secret-storage:
+
+Token and Secret Storage
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Do not commit tokens or secrets to source control.
+- Do not log access tokens, refresh tokens, or client secrets.
+  If your application logs {+atlas-admin-api+} requests for
+  debugging, redact the ``Authorization`` header.
+- Scope access to secrets in your secrets manager to only the
+  services that require them.
+- Rotate your ``client_secret`` periodically and immediately
+  if a suspected compromise occurs. Contact MongoDB to rotate
+  the secret associated with your OAuth application.
+
+Revocation and Error Handling
+-----------------------------
+
+Understanding revocation behavior is important for designing
+a resilient integration. Revocation can be triggered in
+several ways and affects control plane and data plane access
+differently.
+
+Revocation Triggers
+~~~~~~~~~~~~~~~~~~~
+
+Revocation can occur through any of the following actions:
+
+- **User revokes access** from the |service| UI
+  (:guilabel:`User Settings` > :guilabel:`Connected Apps`).
+- **Organization owner restricts third-party app connections** 
+  for the entire organization from :guilabel:`Organization Settings`.
+- **Refresh token expires** because the organization's
+  maximum refresh token lifetime was reached or the token
+  was idle beyond the idle lifetime limit.
+- **Your application revokes its own tokens** when it no
+  longer needs access.
+
+.. important::
+
+   The triggers above revoke tokens issued through the OAuth
+   flow. They don't affect a service account you created for
+   continuous access (see :ref:`partner-service-accounts`),
+   because a service account isn't tied to any individual
+   user's authorization.
+
+   Don't revoke or delete a customer's service account
+   credentials solely because an individual user revokes
+   delegated access or is offboarded from the organization.
+   The service account represents your integration's ongoing
+   authorization, not that user's individual access.
+
+   Revoke the service account's credentials when the customer
+   deletes or disconnects your integration from their
+   account, according to whatever that action means in your
+   product.
+
+.. _partner-revoking-tokens:
+
+Revoking Tokens from Your Application
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When a user disconnects your application from your own
+interface, or your integration otherwise no longer needs
+access, revoke the tokens rather than letting them expire.
+Send a ``POST`` request to the revocation endpoint:
+
+.. code-block:: sh
+
+   curl --request POST \
+     --url https://authorize.mongodb.com/tokens/revoke \
+     --header 'Content-Type: application/x-www-form-urlencoded' \
+     --user '<YOUR_CLIENT_ID>:<YOUR_CLIENT_SECRET>' \
+     --data 'token=<REFRESH_OR_ACCESS_TOKEN>' \
+     --data 'token_type_hint=refresh_token'
+
+.. list-table::
+   :widths: 25 15 60
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Parameter
+     - Required
+     - Description
+
+   * - ``token``
+     - Required
+     - The access token or refresh token to revoke.
+
+   * - ``token_type_hint``
+     - Optional
+     - Either ``access_token`` or ``refresh_token``. Helps
+       the server optimize the token lookup.
+
+Revoking a refresh token also invalidates every access token
+issued from it. The endpoint returns ``200 OK`` whether or
+not the token was valid, so treat a success response as
+confirmation that the token is no longer usable rather than
+as proof that it existed.
+
+.. _partner-revocation-control-plane:
+
+Control Plane Effects
+~~~~~~~~~~~~~~~~~~~~~
+
+How quickly revocation takes effect depends on who revokes
+access:
+
+- **An organization owner restricts third-party app
+  connections:** the {+atlas-admin-api+} checks the
+  organization's delegation settings on every call, so
+  requests against that organization begin returning
+  ``403 Forbidden`` immediately.
+- **A user revokes your application's access:** the refresh
+  token is invalidated immediately, but any access token
+  already issued remains valid until it expires. Because
+  access tokens are short-lived, your application may
+  continue to make successful calls for up to 10 minutes.
+  After that, calls return ``401 Unauthorized``.
+- **MongoDB deletes your OAuth client:** revocation cascades
+  across every organization your application is connected to,
+  which takes up to 15 minutes to complete.
+
+Design your application to handle ``401`` and ``403``
+responses proactively rather than relying on immediate
+propagation.
+
+.. _partner-revocation-data-plane:
+
+Data Plane Effects
+~~~~~~~~~~~~~~~~~~
+
+Revoking {+atlas-admin-api+} access does not immediately
+terminate existing data plane connections. Your application
+reaches the data plane through the database users it created,
+authenticating with credentials that are independent of your
+OAuth tokens. Revoking a token does not invalidate those
+credentials. Open MongoDB driver sessions and connection pool
+connections remain active until they are closed by normal
+connection lifecycle events, such as a timeout, an idle
+close, or an explicit close by your application.
+
+Because revocation does not remove the database users your
+application created, clean them up as part of your
+disconnect flow. To learn more, see
+:ref:`partner-database-user-lifecycle`.
+
+Error Scenarios
+~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 30 12 58
+   :header-rows: 1
+
+   * - Scenario
+     - Status
+     - Recommended Action
+
+   * - Access token expired
+     - ``401``
+     - Use the refresh token to obtain a new access token.
+
+   * - Access token revoked
+     - ``401``
+     - Prompt the user to re-authorize. The refresh token
+       is also invalidated.
+
+   * - Refresh token expired or revoked
+     - ``400``
+     - Prompt the user to re-authorize. Restart the
+       Authorization Code flow.
+
+   * - Invalid client credentials
+     - ``401``
+     - Verify your ``client_id`` and ``client_secret``.
+
+   * - Delegation disabled for organization
+     - ``403``
+     - Inform the user that their |service| organization does
+       not allow third-party app connections. Direct them
+       to their organization owner.
+
+   * - Blocked endpoint
+     - ``403``
+     - The requested endpoint is not available through
+       delegated access. Remove the call from your
+       integration.
+
+   * - User lacks required role
+     - ``403``
+     - The authorizing user does not have the role required
+       for this operation. Inform the user and suggest they
+       request the necessary role from their organization
+       owner.
+
+OAuth Error Responses
+~~~~~~~~~~~~~~~~~~~~~
+
+Errors from the authorization and token endpoints follow the
+standard OAuth structure:
+
+.. code-block:: json
+
+   {
+     "error": "error_code",
+     "error_description": "Human-readable explanation"
+   }
+
+The following table lists common ``error`` values:
+
+.. list-table::
+   :widths: 30 40 30
+   :header-rows: 1
+
+   * - Error Code
+     - When
+     - Recommended Action
+
+   * - ``invalid_request``
+     - A required parameter is missing or malformed.
+     - Check required parameters and formatting.
+
+   * - ``invalid_client``
+     - Client authentication failed.
+     - Verify your ``client_id`` and ``client_secret``.
+
+   * - ``invalid_grant``
+     - The authorization code expired or was already used, or
+       the refresh token is invalid.
+     - Restart the Authorization Code flow.
+
+   * - ``unauthorized_client``
+     - The client is not authorized for this grant type.
+     - Verify that your client registration includes
+       ``authorization_code``.
+
+   * - ``access_denied``
+     - The user denied consent.
+     - Inform the user. Do not retry automatically.
+
+   * - ``invalid_target``
+     - The ``resource`` parameter is invalid or missing.
+     - Verify that the resource is registered for your client.
+
+   * - ``unsupported_token_type``
+     - The ``token_type_hint`` value is invalid.
+     - Use ``access_token`` or ``refresh_token``.
+
+If the same authorization code is presented more than once,
+the server invalidates all tokens associated with that grant
+as a security measure against code interception. When this
+occurs, the user must re-authorize from the start.
+
+.. _partner-disabled-clients:
+
+Disabled Clients
+~~~~~~~~~~~~~~~~
+
+MongoDB can disable a registered client, for example during
+incident response or partner offboarding. While your client
+is disabled, the server refuses to start new authorization
+flows or issue new tokens:
+
+- The authorization endpoint redirects the user to your
+  ``redirect_uri`` with ``error=access_denied`` and an
+  ``error_description`` of ``client is disabled``.
+- The token endpoint returns ``401`` with ``invalid_client``
+  and the same description. This applies to every grant type,
+  including ``refresh_token``, so your application cannot
+  exchange existing refresh tokens while it is disabled.
+
+Access tokens issued before the client was disabled remain
+valid until they expire. Disabling a client blocks new tokens
+rather than invalidating existing ones.
+
+A disabled client cannot recover on its own. Treat
+``client is disabled`` as a terminal condition: stop
+retrying, surface the failure, and contact the MongoDB
+partner team to have the client re-enabled.
+
+Additional Resources
+--------------------
+
+- :ref:`atlas-app-connections`
+- `Atlas Administration API Specification
+  <https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/>`__
+- :ref:`api-authentication`
+- :ref:`atlas-admin-api-access`

@@ -14,7 +14,20 @@ export const toc: L1TocItem[] = [
           {
             label: 'Atlas App Connections',
             contentSite: 'cloud-docs',
+            collapsible: true,
             url: '/docs/atlas/app-connections',
+            items: [
+              {
+                label: 'Integrate Your App with Atlas App Connections',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/app-connections/partner-integration-guide',
+              },
+              {
+                label: 'Implement the Credential Rotation Webhook',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/app-connections/credential-rotation-webhook',
+              },
+            ],
           },
         ],
       },
