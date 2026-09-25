@@ -7,6 +7,7 @@ import type { Docset, RemoteMetadata } from '@/types/data';
 import { assertTrailingSlash } from './assert-trailing-slash';
 import { normalizePath } from './normalize-path';
 import type { Environments } from './env-config';
+import { parseBooleanEnv } from './parse-boolean-env';
 import { generateVersionedPrefix } from './generate-versioned-prefix';
 import type { MDXFrontmatter } from '@/types/ast';
 
@@ -44,7 +45,12 @@ export const getPageMetadata = ({
   const canonical = getCanonicalUrl({ metadata: snootyMetadata, metaCanonical, docset, slug });
   const noIndexing = docset.branches.find((br) => br.gitBranchName === snootyMetadata.branch)?.noIndexing ?? false;
   const nosnippet = !!robots?.includes('nosnippet');
-  const isProduction = process.env.DB_ENV === 'dotcomprd';
+  // DB_ENV is a UI-managed variable that is not scoped per deploy context, so
+  // branch deploys and previews inherit 'dotcomprd'. NEXT_PUBLIC_ALLOW_INDEXING
+  // is set only in netlify.toml's production context, so every other context
+  // fails closed.
+  const isProduction =
+    process.env.DB_ENV === 'dotcomprd' && parseBooleanEnv(process.env.NEXT_PUBLIC_ALLOW_INDEXING);
   const noindex = !isProduction || noIndexing || !!robots?.includes('noindex');
 
   const metadata = {
