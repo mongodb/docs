@@ -8,12 +8,41 @@ September 2026
   independent layers. To learn more, see
   :ref:`atlas-infinite-edition`.
 
+- General Availability: Adds
+  :ref:`Intelligent Workload Management <intelligent-workload-management>`,
+  which protects cluster availability during overload by queuing
+  operations, prioritizing critical work, and shedding excess
+  operations as a last resort. To adjust the protections that apply
+  to your cluster, see :ref:`configure-iwm`.
+
+- General Availability: Adds support for connecting
+  `Atlas SQL <https://www.mongodb.com/docs/sql-interface/>`__
+  directly to a {+Dedicated-cluster+}, so you can use the SQL
+  interface without configuring {+adf+}.
+
 - Adds support for streaming :ref:`Activity Feed events
   <export-events>` to external tools. You can export events from
   the Project Activity Feed to |aws| |s3|, {+az-bs+}, Datadog,
   {+gcs+}, Splunk, or any OpenTelemetry-compatible destination, and
   events from the Organization Activity Feed to
   OpenTelemetry-compatible destinations.
+
+- Adds support for write operations in
+  :ref:`Query Shape Insights <query-shape-insights>`, which
+  previously covered only ``find`` and ``aggregate`` commands. You
+  can now diagnose the performance of ``update``, ``insert``, and
+  ``delete`` commands.
+
+- Improves throughput for operations that require an optimized
+  initial sync on {+aws+}, such as adding or replacing nodes, adding
+  regions, and creating or rebuilding shards. To learn more, see
+  :ref:`disk-pre-warming`.
+
+- Removes the option to enable the BI Connector for new and existing
+  {+clusters+} ahead of its end of life. To query your data with
+  SQL, use
+  `Atlas SQL <https://www.mongodb.com/docs/sql-interface/>`__
+  instead.
 
 - Publishes the :ref:`end-of-life plan <pble-eol>` for
   :ref:`Push-Based Log Export <mongodb-logs-push>`, which reaches
