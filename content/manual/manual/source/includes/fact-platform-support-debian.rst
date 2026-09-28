@@ -2,7 +2,7 @@ MongoDB {+version+} Community Edition supports the following
 :red:`64-bit` Debian releases on 
 :ref:`x86_64 <prod-notes-supported-platforms-x86_64>` architecture:
 
-- Debian 12 "Bookworm"
+- Debian 13 "Trixie"
 
 MongoDB only supports the 64-bit versions of these platforms.
 

@@ -15,7 +15,7 @@ Aggregation Pipeline Optimization
    :values: reference
 
 .. meta:: 
-   :description: Aggregation pipeline operations have an optimization phase which attempts to reshape the pipeline for improved performance.
+   :description: Aggregation pipeline operations have an optimization phase that reshapes and reorders pipeline stages to improve query performance. Learn how the MongoDB query optimizer transforms your pipeline.
 
 .. contents:: On this page
    :local:
@@ -39,7 +39,7 @@ This page also describes how to improve performance using
 .. |page-topic| replace:: :atlas:`run aggregation pipelines in the UI </atlas-ui/agg-pipeline>`
 
 .. cta-banner::
-   :url: https://www.mongodb.com/docs/atlas/atlas-ui/agg-pipeline
+   :url: https://www.mongodb.com/docs/atlas/atlas-ui/agg-pipeline/
    :icon: Cloud
 
    .. include:: /includes/fact-atlas-compatible.rst
@@ -166,6 +166,50 @@ After optimization, the filter ``{ name: "Joe Schmoe" }`` is in a
 :pipeline:`$match` stage at the beginning of the pipeline. This has the
 added benefit of allowing the aggregation to use an index on the
 ``name`` field when initially querying the collection.
+
+.. _agg-computation-hoisting-optimization:
+
+Computed Field + ``$match`` Sequence Optimization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 9.0
+
+When a :pipeline:`$set`, :pipeline:`$addFields`, or
+:pipeline:`$project` stage computes a field and a later
+:pipeline:`$match` filters on that computed field, MongoDB can move
+the ``$match`` together with the computation to an earlier point in
+the pipeline, ahead of expensive stages such as :pipeline:`$lookup`.
+
+MongoDB moves the computation before any earlier stages that the
+computation does not depend on, and moves the ``$match`` with it. If
+the stage computes multiple fields and only some are independent of
+the earlier stages, MongoDB moves only the independent computation and
+leaves the rest in place.
+
+Consider a pipeline with the following stages:
+
+.. code-block:: javascript
+
+   { $lookup: { from: "inventory", localField: "sku",
+       foreignField: "sku", as: "inventory" } },
+   { $set: { total: { $add: [ "$price", "$tax" ] } } },
+   { $match: { total: { $lt: 100 } } }
+
+The ``total`` field does not depend on the :pipeline:`$lookup` stage,
+so the optimizer produces the following *optimized* pipeline:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { $set: { total: { $add: [ "$price", "$tax" ] } } },
+   { $match: { total: { $lt: 100 } } },
+   { $lookup: { from: "inventory", localField: "sku",
+       foreignField: "sku", as: "inventory" } }
+
+By filtering documents before the :pipeline:`$lookup` stage, this
+optimization can reduce the work done by later stages.
+
+This optimization can change the field order of output documents.
 
 .. _agg-sort-match-optimization:
 

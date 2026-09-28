@@ -3,7 +3,10 @@
    .. step:: Install a compatible driver version
             
       To use {+qe+} with the :driver:`.NET/C# </csharp>` driver, install version 2.20.0 or later.
-         
+
+      To use prefix, suffix, or substring queries, install the
+      :driver:`.NET/C# </csharp>` driver version 3.10.0 or later.
+
    .. step:: For driver versions 3.0 or later, install the ``MongoDB.Driver.Encryption`` package
       
       Install the `MongoDB.Driver.Encryption <https://www.nuget.org/packages/MongoDB.Driver.Encryption>`__ 

@@ -7,7 +7,7 @@ encryptedFields := bson.M{
 			"bsonType": "string",
 			"queries": []bson.M{
 				{
-					"queryType":          "prefixPreview",
+					"queryType":          "prefix",
 					"strMinQueryLength":  3,
 					"strMaxQueryLength":  10,
 					"caseSensitive":      true,

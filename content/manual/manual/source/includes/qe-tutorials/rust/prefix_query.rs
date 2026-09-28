@@ -5,7 +5,7 @@ let encrypted_fields = doc! {
             "path":     "patientRecord.ssn",
             "bsonType": "string",
             "keyId":    Bson::Null,
-            "queries": { "queryType": "prefixPreview",
+            "queries": { "queryType": "prefix",
                          "strMinQueryLength": 3,
                          "strMaxQueryLength": 10,
                          "caseSensitive": true,

@@ -1,0 +1,302 @@
+================================
+$replaceRoot (aggregation stage)
+================================
+
+.. meta::
+   :description: Replace the input document with a specified document using `$replaceRoot` in MongoDB aggregation, promoting embedded documents or creating new ones as the new root.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $replaceRoot
+
+   Replaces the input document with the specified document. The
+   operation replaces all existing fields in the input document,
+   including the ``_id`` field. You can promote an existing
+   embedded document to the top level, or create a new document
+   for promotion (see
+   :ref:`example<new-replacement-doc>`).
+
+   .. note::
+
+      You can also use the :pipeline:`$replaceWith` stage. The
+      :pipeline:`$replaceWith` stage peforms the same action as the
+      :pipeline:`$replaceRoot` stage, but the stages have different forms.
+
+   The :pipeline:`$replaceRoot` stage has the following form:
+
+   .. code-block:: javascript
+
+      { $replaceRoot: { newRoot: <replacementDocument> } }
+
+   The replacement document can be any valid :ref:`expression
+   <aggregation-expressions>` that resolves to a document. The stage
+   errors and fails if ``<replacementDocument>`` is not a document. For
+   more information on expressions, see :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+If the ``<replacementDocument>`` is not a document,
+:pipeline:`$replaceRoot` errors and fails.
+
+If the ``<replacementDocument>`` resolves to a missing document (i.e.
+the document does not exist), :pipeline:`$replaceRoot` errors and
+fails. For example, create a collection with the following
+documents:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-root/behavior-insert.snippet.insert-collection.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
+
+Then the following :pipeline:`$replaceRoot` operation fails because one
+of the documents does not have the ``name`` field:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-root/behavior-error.snippet.replace-root-error-missing-name.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
+
+To avoid the error, you can use :expression:`$mergeObjects` to merge
+the ``name`` document into some default document; for example:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-root/behavior-merge-objects.snippet.replace-root-merge-name.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-root/behavior-merge-objects-output.sh
+      :language: javascript
+
+Alternatively, you can skip the documents that are missing the ``name`` field by
+including a :pipeline:`$match` stage to check for existence of the
+document field before passing documents to the :pipeline:`$replaceRoot`
+stage:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-root/behavior-match.snippet.replace-root-match-name.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-root/behavior-match-output.sh
+      :language: javascript
+
+Or, you can use :expression:`$ifNull` expression to specify some other
+document to be root; for example:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-root/behavior-ifnull.snippet.replace-root-ifnull-name.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-root/behavior-ifnull-output.sh
+      :language: javascript
+
+
+Examples
+--------
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: shell
+
+      .. _replace-with-match:
+
+      ``$replaceRoot`` with an Embedded Document Field
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      A collection named ``people`` contains the following documents:
+
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-root/people-insert.snippet.insert-people.js
+         :language: javascript
+         :copyable: true
+         :category: usage example
+
+
+      The following operation uses the :pipeline:`$replaceRoot` stage to
+      replace each input document with the result of a
+      :expression:`$mergeObjects` operation. The :expression:`$mergeObjects`
+      expression merges the specified default document with the ``pets``
+      document.
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-root/people-merge-pets.snippet.replace-root-merge-pets.js
+            :language: javascript
+            :category: usage example
+
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-root/people-merge-pets-output.sh
+            :language: javascript
+
+      ``$replaceRoot`` with a Document Nested in an Array
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      A collection named ``students`` contains the following documents:
+
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-root/students-insert.snippet.insert-students.js
+         :language: javascript
+         :copyable: true
+         :category: usage example
+
+      The following operation promotes the embedded document(s) with the
+      ``grade`` field greater than or equal to ``90`` to the top level:
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-root/students-promote-grades.snippet.replace-root-promote-grades.js
+            :language: javascript
+            :category: usage example
+
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-root/students-promote-grades-output.sh
+            :language: javascript
+
+      .. _new-replacement-doc:
+
+      ``$replaceRoot`` with a newly created document
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      You can also create new documents as part of the
+      ``$replaceRoot`` stage and use them to replace all the other fields.
+
+      A collection named ``contacts`` contains the following documents:
+
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-root/contacts-full-name-insert.snippet.insert-contacts-full-name.js
+         :language: javascript
+         :copyable: true
+         :category: usage example
+
+      The following operation creates a new document out of the
+      ``first_name`` and ``last_name`` fields.
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-root/contacts-full-name.snippet.replace-root-full-name.js
+            :language: javascript
+            :category: usage example
+
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-root/contacts-full-name-output.sh
+            :language: javascript
+
+      ``$replaceRoot`` with a New Document Created from ``$$ROOT`` and a Default Document
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      A collection named ``contacts`` contains the following documents:
+
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-root/contacts-insert.snippet.insert-contacts.js
+         :language: javascript
+         :copyable: true
+         :category: usage example
+
+      The following operation uses :pipeline:`$replaceRoot` with
+      :expression:`$mergeObjects` to output current documents with default
+      values for missing fields:
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-root/contacts-defaults.snippet.replace-root-defaults.js
+            :language: javascript
+            :category: usage example
+
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-root/contacts-defaults-output.sh
+            :language: javascript
+
+   .. tab::
+      :tabid: csharp
+
+      .. sharedinclude:: dbx/csharp/aggregation/rst-files/sample-data-mflix-intro.rst
+
+      The following ``Movie`` class models the documents in the
+      ``sample_mflix.movies`` collection:
+
+      .. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/Builders/Movie.snippet.movie-class.cs
+         :language: csharp
+
+      The following ``ImdbData`` class models the embedded
+      ``imdb`` document:
+
+      .. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/Builders/Movie.snippet.imdb-data-class.cs
+         :language: csharp
+
+      .. sharedinclude:: dbx/csharp/aggregation/rst-files/method-intro.rst
+
+         .. replacement:: stage-name
+
+            ``$replaceRoot``
+
+         .. replacement:: method-name-and-link
+
+            `ReplaceRoot() <{+csharp-api-docs+}/MongoDB.Driver/MongoDB.Driver.PipelineStageDefinitionBuilder.ReplaceRoot.html>`__
+
+         .. replacement:: stage-specific-info
+
+         .. replacement:: method-description
+
+            filters for ``Movie`` documents that have an ``imdb`` field,
+            sorts them by title, limits the result to five documents, and
+            replaces each document with its embedded
+            ``ImdbData`` document:
+
+         .. replacement:: more-method-description
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /code-examples/tested/csharp/driver/Aggregation/Builders/ReplaceRoot.snippet.replace-root.cs
+            :language: csharp
+            :category: usage example
+
+         .. output:: /code-examples/tested/csharp/driver/Aggregation/Builders/OutputFiles/ReplaceRootOutput.txt
+            :language: json
+            :visible: false
+
+   .. tab::
+      :tabid: nodejs
+
+      .. include:: /includes/driver-examples/node/aggregation/sample-mflix.rst
+  
+      .. include:: /includes/driver-examples/node/aggregation/stage-intro.rst
+
+         .. replacement:: stage-name
+
+            ``$replaceRoot`` 
+        
+         .. replacement:: stage-specific-info
+         
+         .. replacement:: method-description
+
+            replaces each input ``movie`` document with the document stored
+            in its ``imdb`` property
+
+         .. replacement:: more-method-description
+
+      .. literalinclude:: /includes/driver-examples/node/aggregation/examples.js
+         :start-after: //start replaceRoot
+         :end-before: //end replaceRoot
+         :language: javascript
+         :dedent: 2
+
+Learn More
+----------
+
+To learn more about related pipeline stages, see the :pipeline:`$replaceRoot` guide.
+

@@ -133,7 +133,7 @@ assign the required configuration variables.
 
    .. step:: Assign your configuration variables.
 
-      Each of your project files use variables from a configuration
+      Each of your project files uses variables from a configuration
       class. Create a file named ``Config.java`` in your
       base package directory and paste the following code:
 

@@ -1,2 +1,2 @@
 .. Prerequisite to Install MongoDB Community on Debian
-.. include:: /includes/deploy/code/community-prereq-debian12.rst
+.. include:: /includes/deploy/code/community-prereq-debian13.rst

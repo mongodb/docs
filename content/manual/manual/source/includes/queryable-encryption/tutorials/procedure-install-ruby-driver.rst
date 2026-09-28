@@ -2,14 +2,20 @@
 
    .. step:: Install a compatible driver version
             
-      To use {+qe+} with the :driver:`Ruby</ruby>` driver, install version 
+      To use {+qe+} with the :driver:`Ruby</ruby>` driver, install version
       2.19 or later.
+
+      To use prefix, suffix, or substring queries, install the
+      :driver:`Ruby</ruby>` driver version 2.26 or later.
 
    .. step:: Install the ``libmongocrypt-helper`` package
 
-      Install `libmongocrypt-helper <https://rubygems.org/gems/libmongocrypt-helper/>`__ 
+      Install `libmongocrypt-helper <https://rubygems.org/gems/libmongocrypt-helper/>`__
       version 1.8.0 or later.
-   
+
+      To use prefix, suffix, or substring queries, install
+      ``libmongocrypt-helper`` version 1.20.0 or later.
+
    .. step:: Start a MongoDB Atlas Cluster or Enterprise instance.
 
       .. include:: /includes/see-get-started.rst

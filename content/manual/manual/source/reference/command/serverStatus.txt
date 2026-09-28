@@ -585,6 +585,11 @@ changeStreamPreImages
          maxStartWallTimeMillis : <num>,
          timeElapsedMillis : <num>,
       },
+      markerCreation : {
+         totalPass : <num>,
+         scannedInternalCollections : <num>,
+         timeElapsedMillis : <num>,
+      },
       expireAfterSeconds : <num>
    }
 
@@ -613,11 +618,26 @@ A document that reports metrics related to
         - Total number of deletion passes completed by the purging job. 
 
       * - ``docsDeleted``
-        - Cumulative number of pre-image documents deleted by the purging job.
+        - Cumulative number of pre-image documents deleted by the
+          purging job.
+
+          .. versionchanged:: 9.0
+
+          Starting in MongoDB 9.0, when size and count information is
+          not available for the ``config.system.preimages`` collection,
+          MongoDB reports this value as an estimate rather than an
+          exact count.
 
       * - ``bytesDeleted``
-        - Cumulative size in bytes of all deleted documents from all 
-          pre-image collections by the purging job. 
+        - Cumulative size in bytes of all deleted documents from all
+          pre-image collections by the purging job.
+
+          .. versionchanged:: 9.0
+
+          Starting in MongoDB 9.0, when size and count information is
+          not available for the ``config.system.preimages`` collection,
+          MongoDB reports this value as an estimate rather than an
+          exact size in bytes.
 
       * - ``scannedCollections``
         - Cumulative number of pre-image collections scanned by the purging job. 
@@ -644,6 +664,42 @@ A document that reports metrics related to
       * - ``timeElapsedMillis``
         - Cumulative time in milliseconds of all deletion passes by the 
           purging job.
+
+.. serverstatus:: changeStreamPreImages.markerCreation
+
+   A document that reports metrics related to sampling the
+   pre-images collection. MongoDB samples pre-images to build the
+   initial truncation information that governs pre-image removal.
+   To control the number of samples MongoDB draws from each
+   collection, use the
+   :parameter:`changeStreamPreImagesSamplePointsPerUUID` parameter.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: changeStreamPreImages.markerCreation.totalPass
+
+   Total number of pre-image sampling passes completed. MongoDB
+   performs pre-image sampling shortly after a node starts, on both
+   primary and secondary nodes. MongoDB typically samples pre-images
+   once during the lifetime of a node.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: changeStreamPreImages.markerCreation.scannedInternalCollections
+
+   Cumulative number of user collection UUID ranges sampled in the
+   pre-images collection. Each sampling pass increases this value by
+   the number of user collections that have change stream pre-images
+   enabled and contain active pre-images.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: changeStreamPreImages.markerCreation.timeElapsedMillis
+
+   Cumulative time in milliseconds spent on pre-image sampling
+   passes.
+
+   .. versionadded:: 9.0
 
 .. serverstatus:: changeStreamPreImages.expireAfterSeconds
 
@@ -1495,6 +1551,19 @@ indexStats
          ttl: { count: Long("<num>"), accesses: Long("<num>") },
          unique: { count: Long("<num>"), accesses: Long("<num>") },
          wildcard: { count: Long("<num>"), accesses: Long("<num>") }
+      },
+      multikey: {
+         newPaths: {
+            ordinary: {
+               inTransaction: Long("<num>"),
+               outsideTransaction: Long("<num>")
+            },
+            wildcard: {
+               inTransaction: Long("<num>"),
+               outsideTransaction: Long("<num>")
+            }
+         },
+         sideTransactions: Long("<num>")
       }
    }
 
@@ -1521,6 +1590,53 @@ indexStats
    index.
 
    .. versionadded:: 6.0
+
+.. serverstatus:: indexStats.multikey
+
+   A document that reports observability metrics for multikey path
+   changes on both ordinary indexes and :ref:`wildcard indexes
+   <wildcard-index-core>`.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: indexStats.multikey.newPaths.ordinary.inTransaction
+
+   The number of new multikey metadata paths recorded for ordinary
+   indexes while recording the path during a multi-document
+   transaction.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: indexStats.multikey.newPaths.ordinary.outsideTransaction
+
+   The number of new multikey metadata paths recorded for ordinary
+   indexes while recording the path outside a multi-document
+   transaction.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: indexStats.multikey.newPaths.wildcard.inTransaction
+
+   The number of new multikey metadata paths recorded for
+   :ref:`wildcard indexes <wildcard-index-core>` while recording the
+   path during a multi-document transaction.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: indexStats.multikey.newPaths.wildcard.outsideTransaction
+
+   The number of new multikey metadata paths recorded for
+   :ref:`wildcard indexes <wildcard-index-core>` while recording the
+   path outside a multi-document transaction.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: indexStats.multikey.sideTransactions
+
+   The number of side transactions used to record multikey path
+   changes for ordinary indexes.
+
+   .. versionadded:: 9.0
 
 .. _server-status-instance-information:
 
@@ -1931,9 +2047,77 @@ metrics
          <aggregation stage> : Long("<num>")
       },
       changeStreams: {
+         cursor: {
+            batchesReturned: Long("<num>"),
+            bytesRead: Long("<num>"),
+            bytesReturned: Long("<num>"),
+            docsExamined: Long("<num>"),
+            docsReturned: Long("<num>"),
+            lifespan: {
+               average: <num>,
+               totalCount: Long("<num>")
+            },
+            open: {
+               pinned: Long("<num>"),
+               total: Long("<num>")
+            },
+            totalOpened: Long("<num>")
+         },
          largeEventsFailed: Long("<num>"),
          largeEventsSplit: Long("<num>"),
-         showExpandedEvents: Long("<num>")
+         option: {
+            fullDocument: {
+               required: Long("<num>"),
+               updateLookup: Long("<num>"),
+               whenAvailable: Long("<num>")
+            },
+            fullDocumentBeforeChange: {
+               required: Long("<num>"),
+               whenAvailable: Long("<num>")
+            },
+            ignoreRemovedShards: Long("<num>"),
+            matchCollectionUUIDForUpdateLookup: Long("<num>"),
+            resumeAfter: Long("<num>"),
+            showExpandedEvents: Long("<num>"),
+            showMigrationEvents: Long("<num>"),
+            showRawUpdateDescription: Long("<num>"),
+            showSystemEvents: Long("<num>"),
+            startAfter: Long("<num>"),
+            startAtOperationTime: Long("<num>"),
+            cursor: {
+               batchSize: {
+                  "(-inf, 1)": { count: Long("<num>") },
+                  "[1, 10)": { count: Long("<num>") },
+                  "[10, 100)": { count: Long("<num>") },
+                  "[100, 1000)": { count: Long("<num>") },
+                  "[1000, 10000)": { count: Long("<num>") },
+                  "[10000, inf)": { count: Long("<num>") },
+                  totalCount: Long("<num>")
+               },
+               maxTimeMS: {
+                  "(-inf, 100)": { count: Long("<num>") },
+                  "[100, 200)": { count: Long("<num>") },
+                  "[200, 500)": { count: Long("<num>") },
+                  "[500, 1000)": { count: Long("<num>") },
+                  "[1000, 2000)": { count: Long("<num>") },
+                  "[2000, 5000)": { count: Long("<num>") },
+                  "[5000, 10000)": { count: Long("<num>") },
+                  "[10000, 20000)": { count: Long("<num>") },
+                  "[20000, 50000)": { count: Long("<num>") },
+                  "[50000, 100000)": { count: Long("<num>") },
+                  "[100000, 200000)": { count: Long("<num>") },
+                  "[200000, 500000)": { count: Long("<num>") },
+                  "[500000, 1000000)": { count: Long("<num>") },
+                  "[1000000, inf)": { count: Long("<num>") },
+                  totalCount: Long("<num>")
+               }
+            }
+         },
+         scope: {
+            cluster: Long("<num>"),
+            collection: Long("<num>"),
+            db: Long("<num>")
+         }
       },
       commands: {
          <command>: {
@@ -2025,6 +2209,8 @@ metrics
          scanAndOrder : Long("<num>"),
          totalTimeWaitingBeforeConnectionTimeoutMillis : Long("<num>"),  // Added in MongoDB 6.3
          unsendableCompletedResponses : Long("<num>"),  // Added in MongoDB 7.1
+         writeConflictRetryLimitHit : Long("<num>"),  // Added in MongoDB 9.0
+         writeConflictRetryWaiters : Long("<num>"),  // Added in MongoDB 9.0
          writeConflicts : Long("<num>")
       },
       operatorCounters : {
@@ -2037,6 +2223,9 @@ metrics
       },
       query: {
          allowDiskUseFalse: Long("<num>"),
+         configuredMaxMemoryUsageBytesPerOperation: Long("<num>"),
+         operationsFailedDueToMemoryLimit: Long("<num>"),
+         peakMemoryUsageOperation: Long("<num>"),
          cbr: {
             choseWinningPlan: Long("<num>"),
             count: Long("<num>"),
@@ -2077,6 +2266,15 @@ metrics
             hashLookup: Long("<num>"),
             hashLookupSpillToDisk: Long("<num>"),
             indexedLoopJoin: Long("<num>"),
+            nestedLoopJoin: Long("<num>")
+         },
+         lookupUnwind: {
+            dynamicIndexedLoopJoin: Long("<num>"),
+            hashLookup: Long("<num>"),
+            indexedLoopJoin: Long("<num>"),
+            localCollscan: Long("<num>"),
+            localComplex: Long("<num>"),
+            localIxscanFetch: Long("<num>"),
             nestedLoopJoin: Long("<num>")
          },
          multiPlanner: {
@@ -2413,18 +2611,402 @@ metrics
 
    .. versionadded:: 7.0 (*Also available in 6.0.9 and 5.0.19*)
 
-.. serverstatus:: metrics.changeStreams.showExpandedEvents
+.. serverstatus:: metrics.changeStreams.option
 
-   The number of change stream cursors with the :ref:`showExpandedEvents 
+   A document that reports process-level counters for the
+   :pipeline:`$changeStream` options set on opened change streams. These
+   counters are tracked on both :binary:`~bin.mongod` and
+   :binary:`~bin.mongos`.
+
+   Each counter reports the number of change streams opened with the
+   corresponding option and increments once per change stream. Counters
+   don't increment for change streams that omit the option or set it to
+   its default value.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.option.showExpandedEvents
+
+   The number of change stream cursors with the :ref:`showExpandedEvents
    <change-streams-expanded-events>` option set to ``true``.
 
-   The counter for ``showExpandedEvents`` increments when you: 
-   
+   The counter for ``showExpandedEvents`` increments when you:
+
    - Open a change stream cursor.
-   
+
    - Run the :dbcommand:`explain` command on a change stream cursor.
 
-   .. versionadded:: 7.1
+   .. versionchanged:: 9.0
+
+      Renamed from ``metrics.changeStreams.showExpandedEvents`` to
+      ``metrics.changeStreams.option.showExpandedEvents``.
+
+.. serverstatus:: metrics.changeStreams.option.showMigrationEvents
+
+   The number of change streams opened with the internal
+   ``showMigrationEvents`` option set to ``true``.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.option.showSystemEvents
+
+   The number of change streams opened with the internal
+   ``showSystemEvents`` option set to ``true``.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.option.showRawUpdateDescription
+
+   The number of change streams opened with the
+   ``showRawUpdateDescription`` option set to ``true``.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.option.ignoreRemovedShards
+
+   The number of change streams opened with the
+   :pipeline:`$changeStream` ``ignoreRemovedShards`` option set to
+   ``true``.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.option.matchCollectionUUIDForUpdateLookup
+
+   The number of change streams opened with the internal
+   ``matchCollectionUUIDForUpdateLookup`` option set to ``true``.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.option.resumeAfter
+
+   The number of change streams opened with the
+   :pipeline:`$changeStream` ``resumeAfter`` option set. The counter
+   only increments when the client sets the option.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.option.startAfter
+
+   The number of change streams opened with the
+   :pipeline:`$changeStream` ``startAfter`` option set. The counter only
+   increments when the client sets the option.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.option.startAtOperationTime
+
+   The number of change streams opened with the
+   :pipeline:`$changeStream` ``startAtOperationTime`` option set. The
+   counter only increments when the client sets the option.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.option.fullDocument
+
+   A document that reports the number of change streams opened with
+   each :pipeline:`$changeStream` ``fullDocument`` value. Change streams
+   that use the default value of ``default`` aren't counted.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.option.fullDocument.required
+
+   The number of change streams opened with ``fullDocument`` set to
+   ``required``.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.option.fullDocument.updateLookup
+
+   The number of change streams opened with ``fullDocument`` set to
+   ``updateLookup``.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.option.fullDocument.whenAvailable
+
+   The number of change streams opened with ``fullDocument`` set to
+   ``whenAvailable``.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.option.fullDocumentBeforeChange
+
+   A document that reports the number of change streams opened with
+   each :pipeline:`$changeStream` ``fullDocumentBeforeChange`` value.
+   Change streams that use the default value of ``off`` aren't counted.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.option.fullDocumentBeforeChange.required
+
+   The number of change streams opened with
+   ``fullDocumentBeforeChange`` set to ``required``.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.option.fullDocumentBeforeChange.whenAvailable
+
+   The number of change streams opened with
+   ``fullDocumentBeforeChange`` set to ``whenAvailable``.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.option.cursor
+
+   A document that reports process-level histograms of the cursor
+   options set on change stream :dbcommand:`aggregate` and
+   :dbcommand:`getMore` commands. These histograms are tracked on both
+   :binary:`~bin.mongod` and :binary:`~bin.mongos`.
+
+   Each histogram groups command values into buckets. Each bucket
+   reports the ``count`` of commands with a value in that bucket's
+   range, and ``totalCount`` reports the total number of commands
+   counted across all buckets.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.option.cursor.batchSize
+
+   A histogram of the ``batchSize`` cursor option values set on change
+   stream :dbcommand:`aggregate` and :dbcommand:`getMore` commands, with
+   bucket boundaries at 1, 10, 100, 1000, and 10000.
+
+   For :dbcommand:`getMore` commands, the histogram is only incremented
+   when a ``batchSize`` value is set on the command. For
+   :dbcommand:`aggregate` commands that don't set a ``batchSize`` value,
+   the server applies a backfill value and increments the corresponding
+   bucket.
+
+   .. note::
+
+      Don't rely on the specific backfill value, which may change
+      between versions.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.option.cursor.maxTimeMS
+
+   A histogram of the ``maxTimeMS`` cursor option values set on change
+   stream :dbcommand:`aggregate` and :dbcommand:`getMore` commands, with
+   bucket boundaries at 100, 200, 500, 1000, 2000, 5000, 10000, 20000,
+   50000, 100000, 200000, 500000, and 1000000.
+
+   The histogram is only incremented for commands that set a
+   ``maxTimeMS`` value.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.scope
+
+   A document that reports the number of change streams opened on this
+   process, categorized by the scope that the change stream watches.
+   These counters are tracked on both :binary:`~bin.mongod` and
+   :binary:`~bin.mongos`.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.scope.cluster
+
+   The number of change streams opened against an entire deployment.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.scope.db
+
+   The number of change streams opened against a single database.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.scope.collection
+
+   The number of change streams opened against a single collection.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.cursor
+
+   A document that reports throughput and cursor statistics for the
+   change stream cursors that this process maintains.
+
+   The throughput counters update once per :dbcommand:`aggregate` or
+   :dbcommand:`getMore` command run against a change stream cursor. The
+   ``open`` values report the number of cursors open at the time
+   :dbcommand:`serverStatus` runs. The ``totalOpened`` value is
+   cumulative, and the ``lifespan`` values cover cursors that have
+   closed.
+
+   All metrics in this document are reported on both
+   :binary:`~bin.mongod` and :binary:`~bin.mongos`. On
+   :binary:`~bin.mongos`, the ``docsExamined`` and ``bytesRead``
+   counters are aggregated from the shards that serve the change
+   stream. The remaining metrics aren't aggregated from shards and
+   count only the change stream cursors that the :binary:`~bin.mongos`
+   maintains.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.cursor.batchesReturned
+
+   The cumulative number of batches returned by all change stream
+   cursors.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.cursor.bytesRead
+
+   The cumulative amount, in bytes, of oplog scanned by all change
+   stream cursors.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.cursor.bytesReturned
+
+   The cumulative amount, in bytes, returned by all change stream
+   cursors.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.cursor.docsExamined
+
+   The cumulative number of oplog entries scanned by all change
+   stream cursors.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.cursor.docsReturned
+
+   The cumulative number of change stream events returned by all
+   change stream cursors.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.cursor.lifespan
+
+   A document that reports the lifespans of the change stream cursors
+   that have closed in this process. A cursor lifespan is the duration
+   between the time the cursor opens and the time the cursor closes.
+
+   The values update when a cursor closes and don't account for cursors
+   that are still open.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.cursor.lifespan.average
+
+   The exponential moving average lifespan, in microseconds, of the
+   change stream cursors that have closed in this process. Recent
+   cursors contribute more to this value than earlier cursors.
+
+   A low average can indicate that applications resume change streams
+   more often than expected.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.cursor.lifespan.totalCount
+
+   The total number of change stream cursors that have closed in this
+   process.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.cursor.open
+
+   A document that reports the number of change stream cursors
+   currently open in this process.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.cursor.open.pinned
+
+   The number of open change stream cursors that are pinned. A pinned
+   cursor is one that an operation is actively using.
+
+   This value is always less than or equal to
+   :serverstatus:`metrics.changeStreams.cursor.open.total`, because
+   open cursors can be idle. Compare the two values to see how change
+   stream activity divides between active and idle cursors.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.cursor.open.total
+
+   The number of change stream cursors currently open in this process,
+   including both idle and pinned cursors.
+
+   This point-in-time value is distinct from
+   :serverstatus:`metrics.changeStreams.cursor.totalOpened`, which is a
+   cumulative count. Use this value to assess how heavily change
+   streams use this process.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.cursor.totalOpened
+
+   The cumulative number of change stream cursors opened in this
+   process, including cursors that have since closed. The value
+   increases when a cursor opens, including when a change stream
+   resumes, and doesn't decrease when a cursor closes.
+
+   Use changes in this value to calculate the rate at which the process
+   opens change stream cursors. A consistently high rate can indicate
+   that applications resume change streams more often than expected.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.error
+
+   A document that reports the number of errors encountered by
+   change stream cursors, categorized by whether the errors are
+   retriable.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.error.nonRetriable.changeStreamHistoryLost
+
+   The number of times a change stream cursor failed to resume
+   because the requested resume point is no longer available in the
+   oplog.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.error.nonRetriable.changeStreamFatalError
+
+   The number of times a change stream cursor encountered a fatal,
+   non-resumable error. For example, this counter increments when a
+   pipeline stage removes the ``_id`` field from change stream
+   events.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.error.nonRetriable.bsonObjectTooLarge
+
+   The number of times a change stream event exceeded the 16 MB BSON
+   document size limit. To prevent this error, see
+   :pipeline:`$changeStreamSplitLargeEvent`.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.error.nonRetriable.other
+
+   The number of non-retriable change stream errors not covered by
+   another counter under ``metrics.changeStreams.error.nonRetriable``.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.error.retriable.interruptedDueToReplStateChange
+
+   The number of times a replica set state change, such as a primary
+   stepping down, interrupted a change stream cursor.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.error.retriable.other
+
+   The number of retriable change stream errors not covered by
+   another ``metrics.changeStreams.error.retriable`` counter.
+
+   .. versionadded:: 9.0
 
 .. serverstatus:: metrics.commands
 
@@ -2830,6 +3412,20 @@ metrics
    did not send their response to the client because 
    the connection between the client and server failed or disconnected.
 
+.. serverstatus:: metrics.operation.writeConflictRetryLimitHit
+
+   .. versionadded:: 9.0
+
+   Total number of operations that returned the
+   :error:`WriteConflictRetryLimitExceeded <512>` error after
+   exceeding the adaptive write conflict retry limit.
+
+.. serverstatus:: metrics.operation.writeConflictRetryWaiters
+
+   .. versionadded:: 9.0
+
+   Number of operations currently retrying because of write conflicts.
+
 .. serverstatus:: metrics.operation.writeConflicts
 
    The total number of queries that encountered write conflicts.
@@ -2941,6 +3537,15 @@ metrics
 
    .. versionadded:: 8.3.3
 
+.. serverstatus:: metrics.query.configuredMaxMemoryUsageBytesPerOperation
+
+   Current configured value of the maximum amount of memory in
+   bytes that all memory-tracked stages of a single query
+   operation may collectively use. Use this metric to
+   correlate failures with the configured memory limit.
+
+   .. versionadded:: 9.0
+
 .. serverstatus:: metrics.query.lookup
 
    A document that provides detailed data on the use of the  :pipeline:`$lookup` 
@@ -2948,7 +3553,49 @@ metrics
 
    These metrics are primarily intended for internal use by MongoDB.
 
-   *New in version 6.1* 
+   *New in version 6.1*
+
+.. serverstatus:: metrics.query.lookupUnwind
+
+   A document that provides detailed data on the use of the
+   :pipeline:`$lookup` stage followed by the :pipeline:`$unwind` stage
+   with the |sbe|. To learn more, see
+   :ref:`agg-lookup-optimization-sbe`.
+
+   These metrics are primarily intended for internal use by MongoDB.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.query.maxEstimatedScanBytes
+
+   A document that holds counters for queries affected by the
+   :parameter:`maxEstimatedScanBytes` parameter.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.query.maxEstimatedScanBytes.rejected
+
+   The number of queries that the server rejected for exceeding the
+   threshold that the :parameter:`maxEstimatedScanBytes` parameter sets.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.query.maxEstimatedScanBytes.rejectedAndOverridden
+
+   The number of queries that exceeded the threshold that the
+   :parameter:`maxEstimatedScanBytes` parameter sets but that the server
+   ran anyway because a ``$natural`` hint overrode the rejection.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.query.maxEstimatedScanBytes.dryRunWouldReject
+
+   The number of queries that the server would have rejected for
+   exceeding the threshold that the :parameter:`maxEstimatedScanBytes`
+   parameter sets, but that ran because the
+   :parameter:`maxEstimatedScanBytesDryRun` parameter is ``true``.
+
+   .. versionadded:: 9.0
 
 .. serverstatus:: metrics.query.multiPlanner
 
@@ -2958,7 +3605,86 @@ metrics
 
    These metrics are primarily intended for internal use by MongoDB.
 
-   *New in version 6.0.0 and 5.0.9* 
+   *New in version 6.0.0 and 5.0.9*
+
+.. serverstatus:: metrics.query.nonLeadingPushdown
+
+   A document that provides metrics on aggregation pipelines that
+   have at least one non-leading stage pushed down to the |sbe|. For
+   more information on the |sbe|, see :ref:`sbe-pipeline-optimizations`.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.query.nonLeadingPushdown.match
+
+   The number of queries with a non-leading :pipeline:`$match` stage
+   pushed down to the |sbe|.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.query.nonLeadingPushdown.project
+
+   The number of queries with a non-leading :pipeline:`$project`
+   stage pushed down to the |sbe|.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.query.nonLeadingPushdown.addFields
+
+   The number of queries with a non-leading :pipeline:`$addFields`
+   stage pushed down to the |sbe|.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.query.nonLeadingPushdown.replaceRoot
+
+   The number of queries with a non-leading :pipeline:`$replaceRoot`
+   stage pushed down to the |sbe|.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.query.operationsFailedDueToMemoryLimit
+
+   Number of times since startup that a query operation failed
+   because it exceeded memory-tracking limits. Use this metric to 
+   determine whether the memory limit is too low for
+   your workload.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.query.pathArrayness
+
+   A document that provides metrics on queries where the |sbe| uses
+   path arrayness data to optimize leading filters. Path arrayness
+   data indicates whether a query path can contain an array, and
+   comes from :ref:`multikey index <index-type-multikey>` metadata.
+   For more information on the |sbe|, see
+   :ref:`sbe-pipeline-optimizations`.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.query.pathArrayness.leadingFilter
+
+   Number of queries with at least one leading filter that the
+   |sbe| can simplify using path arrayness data.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.query.pathArrayness.leadingFilterSimplified
+
+   Number of queries with at least one leading filter that the
+   |sbe| simplified using path arrayness data. The |sbe| simplifies
+   a filter when path arrayness data shows that the filter path
+   cannot contain an array, which lets the |sbe| skip array
+   traversal for that path.
+
+.. serverstatus:: metrics.query.peakMemoryUsageOperation
+
+   Largest amount of memory in bytes tracked for a single
+   operation since startup. Use this metric to determine
+   an appropriate per-operation memory limit for your workload.
+
+   .. versionadded:: 9.0
 
 .. serverstatus:: metrics.query.sort
 
@@ -3341,6 +4067,17 @@ metrics
 
    :serverstatus:`metrics.repl.network.bytes` reports the total
    amount of data read from the replication sync source.
+
+.. serverstatus:: metrics.repl.network.bytesSent
+
+   :serverstatus:`metrics.repl.network.bytesSent` reports the
+   total amount of data sent by this server to members using it
+   as a replication sync source.
+
+   This metric does not include :term:`oplog` reads used by
+   backup cursors, change streams, or :program:`mongodump`.
+
+   .. versionadded:: 9.0
 
 .. serverstatus:: metrics.repl.network.getmores
 
@@ -4224,8 +4961,8 @@ opLatencies
    instances.
 
    Starting in MongoDB 7.0, each category document includes
-   ``queryableEncryptionLatencyMicros``, the total latency, in
-   microseconds, attributable to {+qe+} operations.
+   ``queryableEncryptionLatencyMicros`` which represents the total latency in
+   microseconds attributable to {+qe+} operations.
 
    To include the histogram in the ``opLatencies`` output, run the following 
    command: 
@@ -4734,7 +5471,8 @@ opcounters
       update : Long("<num>"),  
       delete : Long("<num>"),  
       getmore : Long("<num>"), 
-      command : Long("<num>"), 
+      command : Long("<num>"),
+      aggregate : Long("<num>"),
    },
 
 .. serverstatus:: opcounters
@@ -4758,23 +5496,22 @@ opcounters
 
 .. serverstatus:: opcounters.insert
 
-   The total number of insert operations received since the
+   The total number of :dbcommand:`insert` operations received since the
    :binary:`~bin.mongod` instance last started.
 
 .. serverstatus:: opcounters.query
 
    The total number of queries received since the :binary:`~bin.mongod`
-   instance last started. Starting in MongoDB 7.1, aggregations 
-   count as query operations and increment this value.
+   instance last started.
 
 .. serverstatus:: opcounters.update
 
-   The total number of update operations received since the
+   The total number of :dbcommand:`update` operations received since the
    :binary:`~bin.mongod` instance last started.
 
 .. serverstatus:: opcounters.delete
 
-   The total number of delete operations since the :binary:`~bin.mongod`
+   The total number of :dbcommand:`delete` operations since the :binary:`~bin.mongod`
    instance last started.
 
 .. serverstatus:: opcounters.getmore
@@ -4796,6 +5533,13 @@ opcounters
    - :dbcommand:`update`
    - :dbcommand:`delete`
    - :dbcommand:`aggregate`
+
+.. serverstatus:: opcounters.aggregate
+
+   .. versionadded:: 9.0
+
+   The total number of :dbcommand:`aggregate` operations since the 
+   :binary:`~bin.mongod` instance last started.
 
 .. serverstatus:: opcounters.deprecated
 
@@ -6210,9 +6954,10 @@ readPreferenceCounters
    The ``tagged`` sub-field refers to any read preference passed in 
    with a :ref:`tag <replica-set-read-preference-tag-sets>`.
 
-   User-initiated operations that run through :program:`mongos`
-   increment ``internal`` counters and not ``external``
-   counters.
+   Starting in MongoDB 9.0, user-initiated operations that run
+   through :program:`mongos` only increment ``external``
+   counters. In previous releases, these operations only
+   incremented ``internal`` counters.
 
 .. serverstatus:: readPreferenceCounters.executedOnPrimary 
 
@@ -6708,12 +7453,42 @@ shardingStatistics
                   totalTimeActiveCatchupMillis : Long("<num>"), 
                   totalTimeActiveCommitMillis : Long("<num>")
                },
-               databaseVersionUpdateCounters : {  // Added in MongoDB 8.3
-                  durableChanges : Long("<num>"),
-                  inMemoryClears : Long("<num>"), 
-                  inMemorySets : Long("<num>"), 
-                  inMemoryAccessTypeChanges : Long("<num>"), 
-                  movePrimariesInProgerss : Long("<num>")
+               databaseShardingMetadataStatistics : {  // Added in MongoDB 9.0
+                  countShardCatalogDatabaseWrites : Long("<num>"),
+                  countDatabaseMetadataCacheClears : Long("<num>"),
+                  countDatabaseMetadataCacheSets : Long("<num>"),
+                  countDatabaseMetadataAccessorAccessTypeChanges : Long("<num>"),
+                  movePrimariesInProgress : Long("<num>"),
+                  countCreateDatabaseMetadataOplogEntriesApplied : Long("<num>"),
+                  countDropDatabaseMetadataOplogEntriesApplied : Long("<num>"),
+                  countDbVersionMismatchWaits : Long("<num>"),
+                  totalDbVersionMismatchWaitMillis : Long("<num>"),
+                  countInvalidateAllDatabaseMetadataOplogEntriesApplied : Long("<num>"),
+                  countLocalDatabaseMetadataCommits : Long("<num>"),
+                  countLocalDatabaseMetadataClones : Long("<num>"),
+                  countLocalDatabaseMetadataDrops : Long("<num>")
+               },
+               collectionShardingMetadataStatistics : {  // Added in MongoDB 9.0
+                  countMetadataSynchronizersCreated : Long("<num>"),
+                  countDiskRecoveriesPerformed : Long("<num>"),
+                  countVersionMismatchResolutions : Long("<num>"),
+                  countPostRecoveryWaitsResolvedByConfigTime : Long("<num>"),
+                  countPostRecoveryWaitsResolvedByVersionChange : Long("<num>"),
+                  totalPostRecoveryWaitMillis : Long("<num>"),
+                  totalDiskRecoveryMillis : Long("<num>"),
+                  totalDiskRecoveryChunksRead : Long("<num>"),
+                  countInvalidateCollectionMetadataOplogEntriesApplied : Long("<num>"),
+                  countInvalidateCollectionMetadataOplogEntriesForDroppedCollections : Long("<num>"),
+                  countUpdateCollectionMetadataOplogEntriesApplied : Long("<num>"),
+                  countUpdateCollectionMetadataChangedChunksApplied : Long("<num>"),
+                  countSetAllowChunkOperationsOplogEntriesApplied : Long("<num>"),
+                  countCollectionMetadataCacheClears : Long("<num>"),
+                  countCollectionMetadataCacheSets : Long("<num>"),
+                  countInvalidateAllCollectionMetadataOplogEntriesApplied : Long("<num>"),
+                  countLocalCollectionMetadataCommits : Long("<num>"),
+                  countLocalCollectionMetadataClones : Long("<num>"),
+                  countLocalCollectionMetadataDrops : Long("<num>"),
+                  countLocalCollectionMetadataRenames : Long("<num>")
                },
                catalogCache : {
                   numDatabaseEntries : Long("<num>"),
@@ -6726,6 +7501,18 @@ shardingStatistics
                   countFullRefreshesStarted : Long("<num>"),
                   countFailedRefreshes : Long("<num>")
                },
+               checkMetadataConsistencyStatistics : {
+                  numberOfInconsistenciesFound : Long("<num>"),
+                  numberOfDatabasesChecked : Long("<num>"),
+                  numberOfCollectionsChecked : Long("<num>"),
+                  numberOfChunksChecked : Long("<num>"),
+                  activeDdlLocksHeldForDatabase : Long("<num>"),
+                  activeDdlLocksHeldForDatabaseDurationMillis : Long("<num>"),
+                  activeDdlLocksHeldForCollection : Long("<num>"),
+                  activeDdlLocksHeldForCollectionDurationMillis : Long("<num>"),
+                  ddlLockHeldForDatabaseDurationMillis : Long("<num>"),
+                  ddlLockHeldForCollectionDurationMillis : Long("<num>")
+               },
                rangeDeleterTasks : <num>,
                configServerInShardCache : <boolean>, // Added in MongoDB 8.0
                resharding : {
@@ -6733,6 +7520,7 @@ shardingStatistics
                    countSucceeded : Long("1"),
                    countFailed : Long("0"),
                    countCanceled : Long("0"),
+                   countSearchIndexAborts: Long("0"),
                    lastOpEndingChunkImbalance : Long("0"),
                    active : {
                            documentsCopied : Long("0"),
@@ -6850,13 +7638,6 @@ shardingStatistics
                   totalTimeActiveCatchupMillis : Long("<num>"), 
                   totalTimeActiveCommitMillis : Long("<num>")
                },
-               databaseVersionUpdateCounters : { 
-                  durableChanges : Long("<num>"),
-                  inMemoryClears : Long("<num>"), 
-                  inMemorySets : Long("<num>"), 
-                  inMemoryAccessTypeChanges : Long("<num>"), 
-                  movePrimariesInProgerss : Long("<num>")
-               },
                catalogCache : {
                   numDatabaseEntries : Long("<num>"),
                   numCollectionEntries : Long("<num>"),
@@ -6867,7 +7648,7 @@ shardingStatistics
                   numActiveFullRefreshes : Long("<num>"),
                   countFullRefreshesStarted : Long("<num>"),
                   countFailedRefreshes : Long("<num>")
-               }, 
+               },
                configServerInShardCache : <boolean> // Added in MongoDB 8.0
             }
 
@@ -7079,22 +7860,174 @@ shardingStatistics
 .. serverstatus:: shardingStatistics.collectionCriticalSectionStatistics
 
    A document with statistics about the critical sections for
-   collections, including counts of how many operations hold the critical section, 
+   collections, including counts of how many operations hold the critical section,
    how many are waiting, and how long they have waited.
-
-   .. versionadded:: 8.3
-
-.. serverstatus:: shardingStatistics.databaseVersionUpdateCounters
-
-   A document with counters that track updates to the sharding database
-   version, including information on how many sets, clears, access
-   changes, and durable changes have been made since the server started.
 
    .. versionadded:: 8.3
 
 .. serverstatus:: shardingStatistics.catalogCache
 
    A document with statistics about the cluster's routing information cache.
+
+.. serverstatus:: shardingStatistics.collectionShardingMetadataStatistics
+
+   A document with statistics about the collection sharding metadata
+   that the shard maintains, including recovery of metadata from
+   disk, resolution of shard version mismatches, updates to its
+   in-memory metadata cache, metadata oplog entries it applies, and
+   commits to its durable shard catalog.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.collectionShardingMetadataStatistics.countCollectionMetadataCacheClears
+
+   Number of times the shard cleared the in-memory collection
+   sharding metadata cache since the server started.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.collectionShardingMetadataStatistics.countCollectionMetadataCacheSets
+
+   Number of times the shard set the in-memory collection sharding
+   metadata cache since the server started.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.collectionShardingMetadataStatistics.countDiskRecoveriesPerformed
+
+   Number of completed recoveries of collection sharding metadata
+   from the shard's durable shard catalog since the server started.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.collectionShardingMetadataStatistics.countInvalidateAllCollectionMetadataOplogEntriesApplied
+
+   Number of ``invalidateAllCollectionMetadata`` :term:`oplog` entries
+   applied by this node since the server started. Applying this entry
+   clears in-memory collection sharding metadata for all collections
+   on the shard.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.collectionShardingMetadataStatistics.countInvalidateCollectionMetadataOplogEntriesApplied
+
+   Number of ``invalidateCollectionMetadata`` :term:`oplog` entries
+   applied by this node since the server started.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.collectionShardingMetadataStatistics.countInvalidateCollectionMetadataOplogEntriesForDroppedCollections
+
+   Number of applied ``invalidateCollectionMetadata`` :term:`oplog`
+   entries that cleared metadata for dropped or untracked collections
+   since the server started. This value is a subset of the
+   :serverstatus:`~shardingStatistics.collectionShardingMetadataStatistics.countInvalidateCollectionMetadataOplogEntriesApplied`
+   server status.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.collectionShardingMetadataStatistics.countLocalCollectionMetadataClones
+
+   Number of collection metadata entries cloned into the shard's
+   local catalog during feature compatibility version (FCV) upgrade
+   since the server started.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.collectionShardingMetadataStatistics.countLocalCollectionMetadataCommits
+
+   Number of collection metadata commits made to the shard's local
+   catalog since the server started, such as when the cluster shards
+   a collection or during resharding operations.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.collectionShardingMetadataStatistics.countLocalCollectionMetadataDrops
+
+   Number of collection metadata entries dropped from the shard's
+   local catalog since the server started.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.collectionShardingMetadataStatistics.countLocalCollectionMetadataRenames
+
+   Number of collection metadata entries renamed in the shard's local
+   catalog since the server started.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.collectionShardingMetadataStatistics.countMetadataSynchronizersCreated
+
+   Number of metadata synchronizers the shard created to recover
+   collection sharding metadata since the server started.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.collectionShardingMetadataStatistics.countPostRecoveryWaitsResolvedByConfigTime
+
+   Number of post-recovery waits that completed when the cluster's
+   config time advanced since the server started.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.collectionShardingMetadataStatistics.countPostRecoveryWaitsResolvedByVersionChange
+
+   Number of post-recovery waits that completed when the collection's
+   placement version changed since the server started.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.collectionShardingMetadataStatistics.countSetAllowChunkOperationsOplogEntriesApplied
+
+   Number of ``setAllowChunkOperations`` :term:`oplog` entries that
+   this node has applied since the server started.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.collectionShardingMetadataStatistics.countUpdateCollectionMetadataChangedChunksApplied
+
+   Total number of changed chunks merged by the
+   ``updateCollectionMetadata`` :term:`oplog` entries that this node
+   has applied since the server started.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.collectionShardingMetadataStatistics.countUpdateCollectionMetadataOplogEntriesApplied
+
+   Number of ``updateCollectionMetadata`` :term:`oplog` entries that
+   this node has applied since the server started.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.collectionShardingMetadataStatistics.countVersionMismatchResolutions
+
+   Number of shard version mismatches that the shard resolved since
+   the server started, whether from cached metadata, after recovery
+   from disk, or after a config time wait.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.collectionShardingMetadataStatistics.totalDiskRecoveryChunksRead
+
+   Total number of chunks read from the shard's durable shard catalog
+   across all collection sharding metadata recoveries since the
+   server started.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.collectionShardingMetadataStatistics.totalDiskRecoveryMillis
+
+   Cumulative time, in milliseconds, that the shard spent recovering
+   collection sharding metadata from disk since the server started.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.collectionShardingMetadataStatistics.totalPostRecoveryWaitMillis
+
+   Cumulative time, in milliseconds, that the shard spent in
+   post-recovery waits since the server started.
+
+   .. versionadded:: 9.0
 
 .. serverstatus:: shardingStatistics.catalogCache.numDatabaseEntries
 
@@ -7138,7 +8071,91 @@ shardingStatistics
 
    The cumulative number of full or incremental refreshes that have failed.
 
-.. serverstatus:: shardingStatistics.countTransitionToDedicatedConfigServerStarted 
+.. serverstatus:: shardingStatistics.checkMetadataConsistencyStatistics
+   
+   A document with statistics about :dbcommand:`checkMetadataConsistency`
+   command executions, including check counts and time spent holding
+   DDL locks.
+
+   *Only present when run on a shard member.*
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.checkMetadataConsistencyStatistics.numberOfInconsistenciesFound
+
+   The cumulative number of metadata inconsistencies that
+   :dbcommand:`checkMetadataConsistency` has found.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.checkMetadataConsistencyStatistics.numberOfDatabasesChecked
+
+   The cumulative number of databases that
+   :dbcommand:`checkMetadataConsistency` has checked.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.checkMetadataConsistencyStatistics.numberOfCollectionsChecked
+
+   The cumulative number of collections that
+   :dbcommand:`checkMetadataConsistency` has checked.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.checkMetadataConsistencyStatistics.numberOfChunksChecked
+
+   The cumulative number of chunks that
+   :dbcommand:`checkMetadataConsistency` has checked.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.checkMetadataConsistencyStatistics.activeDdlLocksHeldForDatabase
+
+   The current number of database DDL locks that
+   :dbcommand:`checkMetadataConsistency` holds.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.checkMetadataConsistencyStatistics.activeDdlLocksHeldForDatabaseDurationMillis
+
+   The total time, in milliseconds, that the currently active
+   database DDL locks counted in ``activeDdlLocksHeldForDatabase``
+   have been held.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.checkMetadataConsistencyStatistics.activeDdlLocksHeldForCollection
+
+   The current number of collection DDL locks that
+   :dbcommand:`checkMetadataConsistency` holds.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.checkMetadataConsistencyStatistics.activeDdlLocksHeldForCollectionDurationMillis
+
+   The total time, in milliseconds, that the currently active
+   collection DDL locks counted in ``activeDdlLocksHeldForCollection``
+   have been held.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.checkMetadataConsistencyStatistics.ddlLockHeldForDatabaseDurationMillis
+
+   The cumulative time, in milliseconds, that
+   :dbcommand:`checkMetadataConsistency` has held database DDL
+   locks.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.checkMetadataConsistencyStatistics.ddlLockHeldForCollectionDurationMillis
+
+   The cumulative time, in milliseconds, that
+   :dbcommand:`checkMetadataConsistency` has held collection DDL
+   locks.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.countTransitionToDedicatedConfigServerStarted
 
    Number of times the :dbcommand:`transitionToDedicatedConfigServer` command 
    has started. 
@@ -7164,6 +8181,119 @@ shardingStatistics
    *Only present when run on a config server node.*
 
    .. versionadded:: 8.0
+
+.. serverstatus:: shardingStatistics.databaseShardingMetadataStatistics
+
+   A document with statistics about the database sharding metadata
+   that the shard maintains, including writes to its durable shard
+   catalog, updates to its in-memory metadata cache, metadata oplog
+   entries it applies, and waits after database version mismatches.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.databaseShardingMetadataStatistics.countCreateDatabaseMetadataOplogEntriesApplied
+
+   Number of ``createDatabaseMetadata`` :term:`oplog` entries that this
+   node has applied since the server started.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.databaseShardingMetadataStatistics.countDatabaseMetadataAccessorAccessTypeChanges
+
+   Number of transitions between read and write access on database
+   metadata since the server started.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.databaseShardingMetadataStatistics.countDatabaseMetadataCacheClears
+
+   Number of times the shard cleared the in-memory database
+   sharding metadata cache since the server started.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.databaseShardingMetadataStatistics.countDatabaseMetadataCacheSets
+
+   Number of times the shard set the in-memory database sharding
+   metadata cache since the server started.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.databaseShardingMetadataStatistics.countDbVersionMismatchWaits
+
+   Number of times the shard waited for a received database
+   version to become majority-committed after a database version
+   mismatch since the server started.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.databaseShardingMetadataStatistics.countDropDatabaseMetadataOplogEntriesApplied
+
+   Number of ``dropDatabaseMetadata`` :term:`oplog` entries that this node
+   applied since the server started.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.databaseShardingMetadataStatistics.countInvalidateAllDatabaseMetadataOplogEntriesApplied
+
+   Number of ``invalidateAllDatabaseMetadata`` :term:`oplog` entries
+   applied by this node since the server started. Applying this entry
+   clears in-memory database sharding metadata for all databases on
+   the shard.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.databaseShardingMetadataStatistics.countLocalDatabaseMetadataClones
+
+   Number of database metadata entries cloned into the shard's
+   local catalog during feature compatibility version (FCV) upgrade
+   since the server started.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.databaseShardingMetadataStatistics.countLocalDatabaseMetadataCommits
+
+   Number of database metadata commits made to the shard's local
+   catalog since the server started, such as when the cluster creates
+   a database or during :dbcommand:`movePrimary` operations.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.databaseShardingMetadataStatistics.countLocalDatabaseMetadataDrops
+
+   Number of database metadata entries dropped from the shard's
+   local catalog since the server started.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.databaseShardingMetadataStatistics.countShardCatalogDatabaseWrites
+
+   Number of persisted writes (inserts, updates, and deletes) made
+   to the shard catalog's databases collection since the server
+   started.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.databaseShardingMetadataStatistics.movePrimariesInProgress
+
+   Current number of databases on the shard with a
+   :dbcommand:`movePrimary` operation in progress.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.databaseShardingMetadataStatistics.totalDbVersionMismatchWaitMillis
+
+   Cumulative time in milliseconds that the shard spent waiting
+   after database version mismatches since the server started.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: shardingStatistics.databaseVersionUpdateCounters
+
+   .. deprecated:: 9.0
+
+      The ``databaseVersionUpdateCounters`` server status is renamed to
+      :serverstatus:`~shardingStatistics.databaseShardingMetadataStatistics`.
 
 .. serverstatus:: shardingStatistics.rangeDeleterTasks
 
@@ -7243,6 +8373,14 @@ shardingStatistics
    *Only present when run on a shard or config server.*
 
    .. versionadded:: 5.0
+
+.. serverstatus:: shardingStatistics.resharding.countSearchIndexAborts
+
+   Number of :ref:`resharding operations <sharding-resharding>`
+   canceled due to the presence of a :ref:`search index
+   <atlas-search>`.
+
+   .. versionadded:: 9.0
 
 .. serverstatus:: shardingStatistics.resharding.active.documentsCopied
 
@@ -8994,9 +10132,11 @@ wiredTiger
       }
    }
 
-.. note::
+.. important::
 
-   The following is not an exhaustive list.
+   Available WiredTiger statistics may change between MongoDB releases.
+   You may see a different list of statistics when running the
+   ``serverStatus`` command.
 
 .. serverstatus:: wiredTiger.uri
 

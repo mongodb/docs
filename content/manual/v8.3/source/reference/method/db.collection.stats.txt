@@ -1,0 +1,332 @@
+======================================
+db.collection.stats() (mongosh method)
+======================================
+
+.. meta::
+   :description: Retrieve collection statistics using `db.collection.stats()` with options for scaling and index details.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: includes/wayfinding/mongosh-method-stats.rst
+
+
+.. include:: /includes/fact-mongosh-shell-method-alt
+
+Definition
+----------
+
+.. method:: db.collection.stats(<option>)
+
+   .. |dbcommand| replace:: :dbcommand:`collStats` command
+
+   Returns statistics about the collection.
+
+   :returns: A :term:`document` that contains statistics on the specified
+      collection. See :dbcommand:`collStats` for a breakdown of the returned
+      statistics.
+
+.. note:: 
+
+   :method:`db.collection.stats()` internally calls the 
+   :pipeline:`$collStats` aggregation stage by default. 
+
+Syntax
+------
+
+The method has the following format:
+   
+.. code-block:: javascript
+
+   db.collection.stats({
+      scale: <num>,                   // Optional
+      indexDetails: <boolean>,        // Optional
+      indexDetailsKey: <document>,    // Optional
+      indexDetailsName: <string>.     // Optional
+   })
+
+Fields
+------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+   
+   * - Field
+   
+     - Type
+   
+     - Description
+   
+   * - ``scale``
+   
+     - number
+   
+     - Optional. The scale factor for the various size data. The ``scale`` defaults
+       to 1 to return size data in bytes. To display kilobytes rather than
+       bytes, specify a ``scale`` value of ``1024``.
+       
+       If you specify a non-integer scale factor, MongoDB uses the integer
+       part of the specified factor. For example, if you specify a scale
+       factor of ``1023.999``, MongoDB uses ``1023`` as the scale factor.
+       
+       .. include:: /includes/extracts/4.2-changes-stats-scaleFactor.rst
+
+
+   * - ``indexDetails``
+   
+     - boolean
+   
+     - Optional. If ``true``, :method:`db.collection.stats()` returns 
+       :data:`index details <collStats.indexDetails>`
+       in addition to the collection stats. 
+       
+       Only works for :ref:`WiredTiger<storage-wiredtiger>` storage engine.
+       
+       Defaults to ``false``.
+
+
+   * - ``indexDetailsKey``
+   
+     - document
+   
+     - Optional. If ``indexDetails`` is ``true``, you can use ``indexDetailsKey`` to filter 
+       index details by specifying the index key specification. 
+       Only the index that exactly matches ``indexDetailsKey`` will be returned.
+       
+       If no match is found, :data:`~collStats.indexDetails` will display 
+       statistics for all indexes.
+       
+       Use :method:`~db.collection.getIndexes()` to discover index keys. You cannot 
+       use ``indexDetailsKey`` with ``indexDetailsName``.
+
+   
+   * - ``indexDetailsName``
+   
+     - string
+   
+     - Optional. If ``indexDetails`` is ``true``, you can use ``indexDetailsName`` to 
+       filter index details by specifying the index ``name``. 
+       Only the index name that exactly 
+       matches ``indexDetailsName`` will be returned.
+       
+       If no match is found, :data:`~collStats.indexDetails` will display 
+       statistics for all indexes.
+       
+       Use :method:`~db.collection.getIndexes()` to discover index names. You cannot 
+       use ``indexDetailsName`` with ``indexDetailsField``.
+
+To specify just the ``scale`` factor, MongoDB supports the legacy
+format:
+   
+.. code-block:: javascript
+
+   db.collection.stats(<number>)
+
+Compatibility 
+-------------
+
+This method is available in deployments hosted in the following environments:
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-all.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+Behavior
+--------
+
+Scaled Sizes
+~~~~~~~~~~~~
+
+Unless otherwise specified by the metric name (such as ``"bytes
+currently in the cache"``), values related to size are displayed in
+bytes and can be overridden by ``scale``.
+
+The scale factor rounds the affected size values to whole numbers.
+
+Storage Engine
+~~~~~~~~~~~~~~
+
+Depending on the storage engine, the data returned may differ. For details on
+the fields, see :ref:`output details <collStats-output>`.
+
+Accuracy after Unexpected Shutdown
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. |cmd| replace:: :method:`db.collection.stats()`
+.. |opt| replace:: count and size
+
+.. include:: /includes/fact-unexpected-shutdown-accuracy.rst
+
+Replica Set Member State Restriction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.4-changes-repl-state-restrictions-operation.rst
+
+.. |operations| replace:: :dbcommand:`collStats`
+
+Index Filter Behavior
+~~~~~~~~~~~~~~~~~~~~~
+
+Filtering on ``indexDetails`` using either ``indexDetailsKey`` or
+``indexDetailsName`` will only return a single matching index.
+If no exact match is found, ``indexDetails`` will show information
+on all indexes for the collection.
+
+The ``indexDetailsKey`` field takes a document of the following form:
+
+.. code-block:: javascript
+
+    { '<string>' : <value>, '<string>' : <value>, ... }
+
+Where ``<string>>`` is the field that is indexed and ``<value>`` is either
+the direction of the index, or the special index type such as ``text`` or
+``2dsphere``. See :ref:`index types <index-types>` for the full list of
+index types.
+
+.. include:: /includes/persistent-query-settings-avoid-index-filters-intro.rst
+
+Unexpected Shutdown and Count
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For MongoDB instances using the :ref:`WiredTiger <storage-wiredtiger>`
+storage engine, after an unclean shutdown, statistics on size and count
+may off by up to 1000 documents as reported by :dbcommand:`collStats`,
+:dbcommand:`dbStats`, :dbcommand:`count`. To restore the correct
+statistics for the collection, run :dbcommand:`validate` on the
+collection.
+
+
+In-Progress Indexes
+~~~~~~~~~~~~~~~~~~~
+
+The :method:`db.collection.stats` includes information on indexes currently 
+being built. For details, see:
+
+- :data:`collStats.nindexes`
+- :data:`collStats.indexDetails`
+- :data:`collStats.indexBuilds`
+- :data:`collStats.totalIndexSize`
+- :data:`collStats.indexSizes`
+
+Examples
+--------
+
+.. include:: /includes/sample-data-usage.rst
+
+Basic Stats Lookup
+~~~~~~~~~~~~~~~~~~
+
+The following operation returns stats on the ``movies`` collection in
+the ``sample_mflix`` database:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.stats/stats-basic.snippet.stats-basic.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.stats/stats-basic-output.sh
+      :language: javascript
+
+If you do not specify a ``scale`` parameter, all size values are in
+``bytes``.
+
+
+Stats Lookup With Scale
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation returns the size values in ``kilobytes``
+instead of ``bytes`` by specifying a ``scale`` of ``1024``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.stats/stats-scale.snippet.stats-scale.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.stats/stats-scale-output.sh
+      :language: javascript
+
+Statistics Lookup With Index Details
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation returns an ``indexDetails`` field that
+contains information related to each of the indexes within the
+collection:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.stats/stats-index-details.snippet.stats-index-details.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.stats/stats-index-details-output.sh
+      :language: javascript
+
+
+Statistics Lookup With Filtered Index Details
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To filter the indexes in the :data:`~collStats.indexDetails` field,
+specify the index keys with the ``indexDetailsKey`` option or the
+index name with the ``indexDetailsName`` option. To discover the index
+keys and names, use :method:`db.collection.getIndexes()`.
+
+Given the following index:
+
+.. code-block:: javascript
+
+   {
+      "ns" : "sample_mflix.movies",
+      "v" : 2,
+      "key" : {
+         "_fts" : "text",
+         "_ftsx" : 1
+      },
+      "name" : "cast_text_fullplot_text_genres_text_title_text",
+      "weights" : {
+         "cast" : 1,
+         "fullplot" : 1,
+         "genres" : 1,
+         "title" : 1
+      },
+      "default_language" : "english",
+      "language_override" : "language",
+      "textIndexVersion" : 3
+   }
+
+The following operation filters the ``indexDetails`` document to a
+single index using the ``indexDetailsKey`` option.
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.stats/stats-index-details-key.snippet.stats-index-details-key.js
+   :language: javascript
+   :category: usage example
+
+The following operation filters the ``indexDetails`` document to a
+single index using the ``indexDetailsName`` option.
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.stats/stats-index-details-name.snippet.stats-index-details-name.js
+   :language: javascript
+   :category: usage example
+
+Both operations return the same output:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.stats/stats-index-details-key-output.sh
+   :language: javascript
+   :copyable: false
+
+For an explanation of the output, see
+:ref:`output details<collStats-output>`.
+
+.. seealso::
+
+   :pipeline:`$collStats`

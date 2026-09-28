@@ -60,9 +60,15 @@ The following limitations apply only to deployments hosted in
      - 7
 
    * - :atlas:`Cluster tier </manage-clusters/#select-cluster-tier>`
-       for the :ref:`Config server <sharding-config-server>` (minimum
-       and maximum)
+       for the :ref:`Config server <sharding-config-server>` (default/minimum 
+       tier)
      - ``M30``
+
+.. note::
+
+   Increases above ``M30`` for the Config server tier require the
+   :atlas:`MongoDB Support Team </support>`, rather than default
+   self-service autoscaling.
 
 {+atlas+} Connection Limits and Cluster Tier
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -200,7 +206,7 @@ tiers:
          * - ``M80``
            - 64000
 
-         * - ``M140`` [#f1]_
+         * - ``M140``
            - 96000
 
          * - ``M200``
@@ -208,8 +214,6 @@ tiers:
 
          * - ``M300``
            - 128000
-
-      .. [#f1] The ``M140`` cluster tier is not available for {+azure+} clusters.
 
 .. note::
 
@@ -821,11 +825,29 @@ Operations
 
    .. include:: /includes/fact-agg-memory-limit.rst
 
+.. limit:: Per-Operation Memory
+
+   .. include:: /includes/fact-per-operation-memory-limit.rst
+
 .. limit:: Aggregation and Read Concern
 
    - .. include:: /includes/extracts/4.2-changes-out-linearizable.rst
    
    - .. include:: /includes/extracts/4.2-changes-linearizable-merge-restriction.rst
+
+.. limit:: Empty Field Name $group Restriction
+
+   The :pipeline:`$group` stage cannot include an accumulator
+   expression with an empty field name.
+
+   For example, the following operation is invalid:
+
+   .. code-block:: javascript
+      :copyable: false
+
+      db.inventory.aggregate( [
+         { $group: { _id: null, "": { $avg: "$a" } } }
+      ] )
 
 .. limit:: 2d Geospatial queries cannot use the $or operator
 

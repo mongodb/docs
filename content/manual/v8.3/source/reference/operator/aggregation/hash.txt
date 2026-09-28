@@ -1,0 +1,190 @@
+==============================
+$hash (aggregation expression)
+==============================
+
+.. meta::
+   :description: Use the $hash aggregation expression in MongoDB to generate a binary hash value from a UTF-8 string or binary data using the MD5, SHA-256, or XXH64 algorithm.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. versionadded:: 8.3
+
+.. expression:: $hash
+
+   Generates and returns a binary hash value
+   (:bsontype:`BinData <Binary>`) from a UTF-8 string or binary
+   data. Use ``$hash`` in an aggregation pipeline to compute
+   binary hashes for storage, verification, or comparison. To
+   get a hexadecimal string instead of binary data, use
+   :expression:`$hexHash`.
+
+Syntax
+------
+
+``$hash`` has the following syntax:
+
+.. code-block:: javascript
+
+   {
+      $hash: {
+         input: <expression>,
+         algorithm: <string>
+      }
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``input``
+     - :ref:`Expression <aggregation-expressions>`
+     - Required. The value to calculate the hash for. Must resolve to a
+       valid UTF-8 string or :bsontype:`BinData <Binary>`.
+
+   * - ``algorithm``
+     - String
+     - Required. The hashing algorithm. Accepted values:
+
+       - ``"md5"``
+       - ``"sha256"``
+       - ``"xxh64"``
+
+Behavior
+--------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 30 35
+
+   * - ``input`` Value
+     - Result
+     - Notes
+
+   * - UTF-8 string
+     - :bsontype:`BinData <Binary>`
+     - Input must be a valid UTF-8 string.
+
+   * - :bsontype:`BinData <Binary>`
+     - :bsontype:`BinData <Binary>`
+     -
+
+   * - ``null``, undefined, or missing field
+     - ``null``
+     -
+
+If ``input`` resolves to ``null`` or undefined, or refers to a
+missing field, ``$hash`` returns ``null``.
+
+If ``input`` resolves to a type other than a UTF-8 string or
+:bsontype:`BinData <Binary>`, ``$hash`` returns an error.
+
+If ``algorithm`` is not one of the accepted values, ``$hash``
+returns an error.
+
+.. important::
+
+   MD5 is not a cryptographically secure algorithm and is not
+   suitable for security-sensitive applications. If you are
+   hashing sensitive data, use ``"sha256"`` instead.
+
+   MD5 is also disabled in FIPS mode. If your deployment runs
+   with FIPS mode enabled, use ``"sha256"`` or ``"xxh64"``
+   instead.
+
+Examples
+--------
+
+The following examples use a collection named ``files`` with
+these documents:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/hash/hash-field-value/load-data.js
+   :language: javascript
+   :category: usage example
+
+Hash a Field Value
+~~~~~~~~~~~~~~~~~~
+
+The following example computes the SHA-256 hash of the
+``filename`` field for each document:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/expressions/hash/hash-field-value/hash-field-value.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/expressions/hash/hash-field-value/output.sh
+      :language: javascript
+
+Hash a Literal String
+~~~~~~~~~~~~~~~~~~~~~
+
+The following example hashes a literal string value:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/expressions/hash/hash-literal-string/hash-literal-string.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/expressions/hash/hash-literal-string/output.sh
+      :language: javascript
+
+Hash BinData
+~~~~~~~~~~~~
+
+The following example computes the SHA-256 hash of a binary
+data field:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/hash/hash-bindata/load-data.js
+   :language: javascript
+   :category: usage example
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/expressions/hash/hash-bindata/hash-bindata.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/expressions/hash/hash-bindata/output.sh
+      :language: javascript
+
+Null or Missing Input
+~~~~~~~~~~~~~~~~~~~~~
+
+If ``input`` is ``null`` or refers to a missing field, ``$hash``
+returns ``null``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/expressions/hash/null-missing/null-missing.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/expressions/hash/null-missing/output.sh
+      :visible: true
+      :language: javascript
+
+Learn More
+----------
+
+- :expression:`$hexHash`
+- :expression:`$toHashedIndexKey`
+- :expression:`$convert`

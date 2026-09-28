@@ -4,12 +4,12 @@ available:
 
 .. code-block:: bash
 
-     sudo apt install gnupg curl
+     sudo apt-get install gnupg curl
 
 To import the MongoDB public GPG key, run the following command:
 
 .. code-block:: bash
 
-   curl -fsSL https://pgp.mongodb.com/server-8.0.asc | \
-      sudo gpg -o /usr/share/keyrings/mongodb-server-8.0.gpg \
+   curl -fsSL https://pgp.mongodb.com/server-{+pgp-version+}.asc | \
+      sudo gpg -o /usr/share/keyrings/mongodb-server-{+pgp-version+}.gpg \
       --dearmor

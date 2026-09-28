@@ -68,11 +68,6 @@ Prerequisites
 
       .. include:: /includes/extracts/install-mongodb-community-manually-ubuntu-22.rst
 
-   .. tab:: Ubuntu 20.04 (Focal)
-      :tabid: ubuntu-20-focal
-
-      .. include:: /includes/extracts/install-mongodb-community-manually-ubuntu-20.rst
-
 Procedure
 ~~~~~~~~~
 

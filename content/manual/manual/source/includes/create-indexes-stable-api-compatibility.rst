@@ -21,6 +21,6 @@ following exceptions:
 
   .. code-block::
      :copyable: false
-   
-     planner returned error :: caused by :: hint provided does not 
+
+     planner returned error :: caused by :: hint provided does not
      correspond to an existing index

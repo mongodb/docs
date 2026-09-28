@@ -1145,6 +1145,18 @@ Authentication Parameters
    For more information on X.509 certificate validity, see `RFC 5280
    4.1.2.5 <https://tools.ietf.org/html/rfc5280#section-4.1.2.5>`__.
 
+.. parameter:: useInternalAuthzForX509
+
+   |both|
+
+   *Default*: ``false``
+
+   .. versionadded:: 9.0
+
+   .. include:: /includes/fact-use-internal-authz-for-x509.rst
+
+   .. include:: /includes/fact-runtime-startup-parameter
+      
 .. parameter:: userCacheInvalidationIntervalSecs
 
    |mongos-only|
@@ -1619,6 +1631,84 @@ General Parameters
       mongod \
         --setParameter "ingressRequestRateLimiterApplicationExemptions={\"appNames\":[\"MongoDB Internal Client\"]}"
 
+.. parameter:: internalOperationResponseMaxMS
+
+   .. versionadded:: 9.0
+
+   |mongod-only|
+
+   *Type*: integer
+
+   *Default*: 0
+
+   Sets an approximate time limit, in milliseconds, that a
+   :ref:`change stream <changeStreams>` :dbcommand:`aggregate` or
+   :dbcommand:`getMore` command can spend scanning the oplog before it
+   returns the results accumulated so far, along with an updated
+   :ref:`resume token <change-stream-resume-token>`.
+
+   By default, ``internalOperationResponseMaxMS`` is ``0``, which means
+   that change stream oplog scans are not time-limited and do not return
+   an updated resume token until the command fills a batch or the change
+   stream reaches the end of the oplog. This setting preserves the
+   behavior of MongoDB versions earlier than 9.0. The feature is
+   strictly opt-in.
+
+   When you set ``internalOperationResponseMaxMS`` to a value greater
+   than ``0``, change stream oplog scans periodically check whether the
+   time limit is exceeded. If the limit is exceeded, the command returns
+   the accumulated results with an updated resume token, even if the
+   scan has not reached the end of the oplog or filled a batch. An
+   updated resume token lets change stream consumers observe progress
+   during a long scan. If an error occurs, consumers can resume from a
+   later point instead of restarting the scan from the beginning.
+
+   Setting ``internalOperationResponseMaxMS`` requires
+   :ref:`feature compatibility version <view-fcv>` (fCV) ``9.0`` or
+   later.
+
+   .. note::
+
+      Although the name of the ``internalOperationResponseMaxMS``
+      parameter suggests broad applicability, the parameter currently
+      affects only change stream queries. Setting the parameter has no
+      effect on other query types.
+
+   Consider the following behavior when you set this parameter:
+
+   - The time limit is checked only when the query yields, so treat the
+     value as approximate. The limit is not enforced after the change
+     stream reaches the end of the oplog and is waiting for new writes.
+
+   - Set the value substantially higher than the change stream's
+     ``maxTimeMS`` or ``maxAwaitTimeMS`` value, but lower than the
+     network timeout value. A value that is too low causes oplog scans
+     to bail out too frequently, which limits the progress that each
+     command makes and can cause the change stream to fall behind the
+     write workload.
+
+   To override the parameter for an individual change stream, pass the
+   ``operationResponseMaxMS`` query knob in the change stream's initial
+   :dbcommand:`aggregate` command:
+
+   .. code-block:: javascript
+
+      { querySettings: { queryKnobs: { operationResponseMaxMS: <value> } } }
+
+   The following command sets ``internalOperationResponseMaxMS`` to
+   ``5000`` milliseconds:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, internalOperationResponseMaxMS: 5000 } )
+
+   The following startup command sets
+   ``internalOperationResponseMaxMS`` to ``5000`` milliseconds:
+
+   .. code-block:: bash
+
+      mongod --setParameter internalOperationResponseMaxMS=5000
+
 .. parameter:: overloadAwareServerSelectionEnabled
 
    .. versionadded:: 8.3
@@ -1659,8 +1749,105 @@ General Parameters
 
    .. include:: /includes/fact-runtime-startup-parameter
 
+.. parameter:: maxEstimatedScanBytes
+
+   .. versionadded:: 9.0
+
+   |mongod-only|
+
+   *Type*: integer
+
+   *Default*: -1 (disabled)
+
+   Specifies the maximum data size that a collection scan reads. At
+   planning time, MongoDB rejects a query if the query plan requires an
+   unbounded collection scan on a collection whose uncompressed logical
+   data size exceeds this threshold. MongoDB measures the threshold in
+   uncompressed logical bytes, which is equivalent to the ``size`` field
+   that the :dbcommand:`collStats` command returns, and not the
+   compressed on-disk size.
+
+   Use ``maxEstimatedScanBytes`` as a more production-suitable
+   alternative to :parameter:`notablescan`. When MongoDB rejects a query,
+   the server returns a ``NoQueryExecutionPlans`` error. To learn more
+   about this error, see :ref:`Error Codes <error-codes>`.
+
+   MongoDB doesn't reject the following queries, even when the collection
+   exceeds the threshold:
+
+   - Queries that use the ``limit`` option
+
+   - Queries that use an indexed plan
+
+   - Queries against internal namespaces, such as ``system.*``
+     collections and internal databases
+
+   - Bounded clustered collection scans that specify ``min`` and ``max``
+     record bounds
+
+   For :pipeline:`$lookup` operations, MongoDB rejects all join
+   strategies that aren't indexed nested loop joins when the foreign
+   collection exceeds the threshold.
+
+   To bypass rejection for a specific query, add a ``$natural`` hint to
+   the query.
+
+   To log queries that exceed the threshold without rejecting them, see
+   :parameter:`maxEstimatedScanBytesDryRun`.
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   The following example shows the syntax for setting
+   ``maxEstimatedScanBytes`` at startup:
+
+   .. code-block:: bash
+
+      mongod --setParameter maxEstimatedScanBytes=<int>
+
+   To set the parameter at run time, use the :dbcommand:`setParameter`
+   command:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, maxEstimatedScanBytes: <int> } )
+
+.. parameter:: maxEstimatedScanBytesDryRun
+
+   .. versionadded:: 9.0
+
+   |mongod-only|
+
+   *Type*: boolean
+
+   *Default*: false
+
+   Enables dry-run mode for the :parameter:`maxEstimatedScanBytes` parameter.
+   When set to ``true``, MongoDB runs queries that the server would otherwise
+   reject and instead logs the queries and increments the
+   :serverstatus:`metrics.query.maxEstimatedScanBytes.dryRunWouldReject`
+   counter.
+
+   Use dry-run mode to evaluate the impact of a threshold before you
+   enforce it.
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   The following example shows the syntax for setting
+   ``maxEstimatedScanBytesDryRun`` at startup:
+
+   .. code-block:: bash
+
+      mongod --setParameter maxEstimatedScanBytesDryRun=true
+
+   To set the parameter at run time, use the :dbcommand:`setParameter`
+   command:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, maxEstimatedScanBytesDryRun: true } )
+
 .. parameter:: maxIndexBuildMemoryUsageMegabytes
-   
+
    |mongod-only|
 
    | *Default (absolute)*: 200
@@ -2783,6 +2970,28 @@ The following parameters support diagnostic data capture (FTDC):
    :parameter:`diagnosticDataCollectionPeriodMillis` is ``100``
    milliseconds.
 
+.. parameter:: procFileSizeLimit
+
+   .. versionadded:: 8.0.21
+
+   |both|
+
+   *Type*: integer
+
+   *Default*: 1048576
+
+   If the size of a ``procfs`` file (tabular text files under ``/proc``) exceeds
+   this limit, Full-Time Diagnostic Data Capture skips reading the file. 
+    
+   .. include:: /includes/fact-startup-parameter
+
+   The following example sets ``procFileSizeLimit`` to ``1000000`` at startup:
+
+   .. code-block:: bash
+
+      mongod --setParameter procFileSizeLimit=1000000
+
+
 Replication and Consistency
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -3762,7 +3971,7 @@ Replication and Consistency
 
    Maximum number of threads to use to apply replicated operations in
    parallel. Values can range from 1 to 256 inclusive. However, the
-   maximum number of threads used is capped at twice the number of
+   maximum number of threads used is capped at four times the number of
    available cores.
 
    :parameter:`replWriterThreadCount` must be greater than or equal
@@ -3798,6 +4007,38 @@ Replication and Consistency
    roughly 68 years.
 
    .. include:: /includes/fact-runtime-startup-parameter
+
+.. parameter:: sessionCatalogPartitions
+
+   |mongod-only|
+
+   .. versionadded:: 9.0.1
+
+   *Type*: integer
+
+   *Default*: 0
+
+   Specifies the number of partitions in the session catalog.
+   Partitioning the session catalog reduces lock contention when there are 
+   a large number of sessions.
+
+   The default value of ``0`` sets the number of partitions to twice
+   the number of cores available to the :binary:`~bin.mongod`
+   process, up to a maximum of ``64``. If you set a value greater than
+   ``0``, MongoDB uses that value as the number of partitions.
+
+   .. important::
+
+      Changing the default value is not recommended.
+
+   .. include:: /includes/fact-startup-parameter
+
+   For example, to set :parameter:`sessionCatalogPartitions` for a
+   :binary:`~bin.mongod` instance to ``16``:
+
+   .. code-block:: bash
+
+      mongod --setParameter sessionCatalogPartitions=16
 
 .. parameter:: TransactionRecordMinimumLifetimeMinutes
 
@@ -5878,6 +6119,49 @@ Health Manager Parameters
 Storage Parameters
 ~~~~~~~~~~~~~~~~~~
 
+.. parameter:: changeStreamPreImagesSamplePointsPerUUID
+
+   |mongod-only|
+
+   .. versionadded:: 9.0
+
+   *Type*: integer
+
+   *Default*: 10
+
+   Controls the number of samples that MongoDB draws from each user
+   collection that has change stream pre-images enabled. The minimum
+   value is ``1``.
+
+   MongoDB uses these samples to build the initial truncation
+   information that governs pre-image removal. Sampling documents in
+   the pre-images collection can be I/O-intensive if the pre-image
+   data is not cached. The total number of document lookups
+   depends on the number of user collections with pre-images enabled:
+   for each collection with pre-images enabled, MongoDB draws up to
+   :parameter:`changeStreamPreImagesSamplePointsPerUUID` samples from
+   the pre-images collection.
+
+   Lower this value to reduce I/O usage if pre-image sampling
+   consumes too many I/O resources. Lowering the value also reduces
+   the accuracy of the initial truncation information, which means
+   that already-expired pre-images may be removed later than
+   expected. This applies only to pre-images that already exist at
+   the time of sampling. Pre-images inserted after sampling always
+   have accurate expiration information.
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   The following example sets
+   :parameter:`changeStreamPreImagesSamplePointsPerUUID` to ``5``:
+
+   .. code-block:: javascript
+
+      db.adminCommand( {
+         setParameter: 1,
+         changeStreamPreImagesSamplePointsPerUUID: 5
+      } )
+
 .. parameter:: enableAutoCompaction
 
    |both|
@@ -6190,6 +6474,58 @@ Storage Parameters
       db.adminCommand( { setParameter: 1, temporarilyUnavailableMaxRetries: 5 } )
 
    .. versionadded:: 6.1.0
+
+.. parameter:: throughputProbingStallEscalationThreshold
+
+   |mongod-only|
+
+   .. versionadded:: 9.0
+
+   *Type*: integer
+
+   *Default*: 3
+
+   Specifies the number of consecutive throughput probing intervals
+   with zero throughput and at least one operation waiting for a ticket
+   that must elapse before MongoDB forcibly increases concurrency to
+   break the stall. This threshold guards against reacting to transient
+   measurement noise.
+
+   The parameter accepts:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+
+      * - Value
+        - Description
+
+      * - ``integer >= 1``
+
+        - The number of consecutive stalled intervals that must elapse
+          before concurrency is increased. A value of ``1`` reacts on
+          the first detected interval.
+
+      * - ``0``
+
+        - Disables stall breaking entirely.
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   To set a new value, use :method:`db.adminCommand()`:
+
+   .. code-block:: javascript
+
+      db.adminCommand( {
+         setParameter: 1,
+         throughputProbingStallEscalationThreshold: 3
+      } )
+
+   .. seealso::
+
+      - :parameter:`storageEngineConcurrentReadTransactions`
+      - :parameter:`storageEngineConcurrentWriteTransactions`
+      - :serverstatus:`queues.execution`
 
 .. parameter:: upsertMaxRetryAttemptsOnDuplicateKeyError
 
@@ -6612,6 +6948,49 @@ Transaction Parameters
 
       mongod --setParameter internalSessionsReapThreshold=500
 
+.. parameter:: maxConcurrentMultiDocumentTransactions
+
+   .. versionadded:: 9.0 *(also available in 8.3.7)*
+
+   |mongod-only|
+
+   *Type*: integer
+
+   *Default*: 10000
+
+   The maximum number of concurrently open :ref:`multi-document
+   transactions <transactions-atomicity>` that the server allows for
+   external clients at one time. When this limit is reached, the
+   server rejects new multi-document transactions from external
+   clients and returns a ``TooManyOpenTransactions`` error.
+
+   The count of open transactions is server-wide. Process-internal
+   transactions are exempt from rejection, but still contribute to the
+   total count when the server enforces the limit for external
+   clients.
+
+   Limiting the number of concurrent multi-document transactions can
+   help prevent high numbers of idle transactions from degrading
+   system performance.
+
+   Set this parameter to ``0`` to disable the limit. The minimum value
+   is ``0``.
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   The following example sets
+   ``maxConcurrentMultiDocumentTransactions`` to ``5000`` at runtime:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, maxConcurrentMultiDocumentTransactions: 5000 } )
+
+   You can also set this parameter at startup. For example:
+
+   .. code-block:: bash
+
+      mongod --setParameter maxConcurrentMultiDocumentTransactions=5000
+
 .. parameter:: transactionLifetimeLimitSeconds
 
    |mongod-only|
@@ -6849,4 +7228,70 @@ Database Profiler Parameters
 
       mongod --setParameter internalProfilingMaxAbandonedWritesPerSecondPerDb=2000
 
-   
+.. _query-stats-parameters:
+
+Query Stats Parameters
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. parameter:: internalQueryStatsSampleRate
+
+   *Type*: float
+
+   *Default*: 0.01
+
+   .. versionchanged:: 9.0
+
+   The fraction of read operations that MongoDB samples for
+   :pipeline:`$queryStats`. The value must be between ``0.0`` and
+   ``1.0``. To sample all read operations, set the value to ``1.0``. To
+   stop sampling read operations, set the value to ``0``.
+
+   In MongoDB 9.0, the default value changes from ``0`` to ``0.01``, which 
+   enables query stats collection for read operations at a default sampling rate 
+   of 1%.
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   The following command sets ``internalQueryStatsSampleRate`` to
+   ``0.05`` at runtime:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, internalQueryStatsSampleRate: 0.05 } )
+
+   The following command sets ``internalQueryStatsSampleRate`` to
+   ``0.05`` at startup:
+
+   .. code-block:: bash
+
+      mongod --setParameter internalQueryStatsSampleRate=0.05
+
+.. parameter:: internalQueryStatsWriteCmdSampleRate
+
+   *Type*: float
+
+   *Default*: 0.01
+
+   .. versionadded:: 9.0
+
+   The fraction of write operations that MongoDB samples for
+   :pipeline:`$queryStats`. The value must be between ``0.0`` and
+   ``1.0``. To sample all write operations, set the value to ``1.0``.
+   To stop sampling write operations, set the value to ``0``.
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   The following command sets
+   ``internalQueryStatsWriteCmdSampleRate`` to ``0.05`` at runtime:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, internalQueryStatsWriteCmdSampleRate: 0.05 } )
+
+   The following command sets
+   ``internalQueryStatsWriteCmdSampleRate`` to ``0.05`` at startup:
+
+   .. code-block:: bash
+
+      mongod --setParameter internalQueryStatsWriteCmdSampleRate=0.05
+

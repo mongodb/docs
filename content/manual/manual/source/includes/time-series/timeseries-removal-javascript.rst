@@ -68,3 +68,5 @@ set ``expireAfterSeconds`` to ``off``:
    :language: javascript
    :category: syntax example
    :emphasize-lines: 3
+
+.. include:: /includes/time-series/timeseries-removal-note.rst

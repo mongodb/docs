@@ -1,0 +1,182 @@
+.. _restore-sharded-dumps:
+
+==========================================================
+Restore a Self-Managed Sharded Cluster from Database Dumps
+==========================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: on-prem, mongorestore, sharded cluster, backup
+   :description: Restore a self-managed sharded cluster from a mongodump backup by stopping the balancer, pre-sharding collections, and running mongorestore against mongos.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+:program:`mongorestore` is a tool that reads :program:`mongodump`
+binary exports and restores the data to a MongoDB deployment. Use
+:program:`mongorestore` to restore a sharded cluster from a
+:program:`mongodump` backup.
+
+Before you Begin
+----------------
+
+Ensure you have a :program:`mongodump` backup of your source
+cluster. To create one, see :ref:`backup-sharded-dumps`. If you
+have file system snapshots, see :ref:`restore-sharded-cluster`.
+
+Steps
+-----
+
+.. procedure::
+   :style: normal
+
+   .. step:: Stop the balancer.
+
+      To prevent chunk migrations from disrupting the restore,
+      connect to :program:`mongos` and stop the balancer:
+
+      .. code-block:: javascript
+
+         sh.stopBalancer()
+
+      To verify that you stopped the balancer, run:
+
+      .. code-block:: javascript
+
+         use config
+         while( sh.isBalancerRunning().mode != "off" ) {
+            print( "Waiting for Balancer to stop..." );
+            sleep( 1000 );
+         }
+
+   .. step:: Pre-shard collections on the destination cluster.
+
+      For each sharded collection in the source cluster, create
+      the collection on the destination cluster and shard it
+      using the same shard key before restoring data.
+
+      To find the shard key for each collection, query
+      the live source cluster:
+
+      .. code-block:: javascript
+
+         use config
+         db.collections.find()
+
+      Alternatively, you can use :binary:`bsondump` to inspect the
+      ``config/collections.bson`` file from your dump directory:
+
+      .. io-code-block::
+
+         .. input::
+            :language: bash
+
+            bsondump /path/to/dump/config/collections.bson
+
+         .. output::
+            :language: json
+
+            {
+              "_id": "<database>.<collection>",
+              ...
+              "key": { "<shardKeyField>": "<key>" },
+              ...
+            }
+
+      .. note::
+
+         Valid shard key values are ``1`` or ``"hashed"``.
+
+      For each sharded collection, shard the collection on the
+      destination cluster using the same shard key:
+
+      .. code-block:: javascript
+
+         sh.shardCollection(
+            "<database-name>.<collection-name>",
+            { <shardKeyField>: <key> }
+         )
+
+   .. step:: Restore the cluster.
+
+      Use :program:`mongorestore` to connect to
+      :program:`mongos` and restore the cluster. Exclude the
+      ``config`` database to preserve the destination cluster's
+      existing configuration:
+
+      .. code-block:: bash
+
+         mongorestore \
+            --host <host> \
+            --port 27017 \
+            --username <username> \
+            --password "<password>" \
+            --authenticationDatabase admin \
+            --nsExclude='config.*' \
+            /path/to/backup
+
+      .. important::
+
+         The ``--drop`` option drops the collection before
+         restoring. If you use ``--drop`` after pre-sharding
+         collections, :program:`mongorestore` removes the
+         sharding configuration.
+
+   .. step:: Restart the balancer.
+
+      After the restore completes, restart the balancer:
+
+      .. code-block:: javascript
+
+         sh.startBalancer()
+
+      To confirm that the balancer is running:
+
+      .. io-code-block::
+
+         .. input::
+            :language: javascript
+
+            sh.isBalancerRunning().mode
+
+         .. output::
+            :language: javascript
+
+            full
+
+   .. step:: Validate cluster accessibility.
+
+      Connect to :program:`mongos` and run
+      :method:`sh.status()` to check the overall cluster
+      status:
+
+      .. code-block:: javascript
+
+         sh.status()
+
+      To confirm that all shards are accessible and
+      communicating, insert a test document into a temporary
+      collection:
+
+      .. code-block:: javascript
+
+         db.testRestore.insertOne({ test: 1 })
+
+      Then connect to each shard primary and run
+      :method:`db.collection.find()` to confirm that the
+      document is present:
+
+      .. code-block:: javascript
+
+         db.testRestore.find()
+
+Learn More
+----------
+
+- :ref:`backup-restore-sharded-clusters`
+- :ref:`backup-sharded-dumps`
+- :ref:`restore-sharded-cluster`

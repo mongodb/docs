@@ -1,0 +1,1 @@
+You cannot use an array index with the :pipeline:`$project` stage.

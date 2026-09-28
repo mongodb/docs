@@ -1,0 +1,156 @@
+.. _qe-fundamentals-manual-encryption:
+
+=============================================
+{+qe+} with {+manual-enc-title+}
+=============================================
+
+.. meta::
+   :description: Configure explicit encryption for fine-grained control over field security in MongoDB, using ClientEncryption and specifying encryption algorithms.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+.. include:: /includes/queryable-encryption/qe-csfle-manual-enc-overview.rst
+
+{+manual-enc-first+} is available in the following MongoDB products:
+
+- MongoDB Community Server
+- MongoDB Enterprise Advanced
+- MongoDB Atlas
+
+Use {+manual-enc-title+}
+------------------------
+
+.. _qe-fundamentals-manual-encryption-client-enc:
+
+Create a ClientEncryption Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``ClientEncryption`` is an abstraction used across drivers and
+:binary:`~bin.mongosh` that encapsulates the {+key-vault-long+}
+and {+kms-abbr+} operations involved in {+manual-enc+}.
+
+To create a ``ClientEncryption`` instance, specify:
+
+- A ``kmsProviders`` object configured with access to the
+  {+kms-abbr+} provider hosting your {+cmk-long+}
+- The namespace of your {+key-vault-long+}
+- If you use MongoDB Community Server, set the ``bypassQueryAnalysis``
+  option to ``True``
+- A ``MongoClient`` instance with access to your {+key-vault-long+}
+
+For more ``ClientEncryption`` options, see :ref:`qe-reference-mongo-client`. 
+
+.. _qe-fundamentals-manual-encryption-update-operations:
+
+Encrypt Fields in Read and Write Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You must update read and write operations throughout your application
+such that your application encrypts fields before performing
+read and write operations.
+
+To encrypt fields, use the ``encrypt`` method of your ``ClientEncryption``
+instance. Specify the following:
+
+- The value to be encrypted
+- The ID of the {+dek-long+}
+- The algorithm
+
+  - ``unindexed``: for non-queryable encrypted fields.
+  - ``indexed``: supports equality queries. 
+  - ``range``: supports range queries.
+  - ``text``: supports prefixPreview, suffixPreview, and substringPreview
+    queries.
+  
+- For read operations on queryable encrypted fields, specify the 
+  :ref:`queryType <qe-query-types>`. All algorithms below require an index on
+  the server, which is created when you specify the ``encryptedFields`` option
+  during :method:`db.createCollection()`.
+- For read operations on queryable encrypted fields, specify any additional
+  options, such as the minimum and maximum queryable values for range fields.
+
+.. _qe-fundamentals-man-enc-algorithm-choice:
+
+Algorithms and QueryTypes
+`````````````````````````
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 25 55
+   
+   * - algorithm
+     - queryType
+     - Additional Parameters
+
+   * - ``indexed``
+     - ``equality``
+     - - :ref:`contention factor <qe-contention>`.
+
+   * - ``range``
+     - ``range``
+     - - :ref:`min and max <qe-field-min-max>` queryable values.
+       - :ref:`contention factor <qe-contention>`.
+
+   * - ``text``
+     - ``prefixPreview``, ``suffixPreview``, or ``substringPreview``
+     - - :ref:`strMinQueryLength, strMaxQueryLength, caseSensitive, diacriticSensitive <qe-substring-parameters>`.
+       - :ref:`contention factor <qe-contention>`.
+       - ``substringPreview`` only: :ref:`strMaxLength <qe-substring-parameters>`
+
+.. note:: 
+
+   .. include:: /includes/rangePreview-deprecated.rst
+
+.. _qe-fundamentals-manual-encryption-automatic-decryption:
+
+Automatic Decryption
+~~~~~~~~~~~~~~~~~~~~
+
+To decrypt fields automatically, configure your ``MongoClient`` 
+instance as follows:
+
+- Specify a ``kmsProviders`` object
+- Specify your {+key-vault-long+}
+- If you use MongoDB Community Server, set the ``bypassQueryAnalysis``
+  option to ``True``
+
+.. note:: Automatic Decryption in MongoDB Community Server
+
+   Automatic decryption is available in MongoDB Community Server. 
+   Automatic encryption requires MongoDB Enterprise or MongoDB
+   Atlas. 
+
+.. _qe-fundamentals-manual-encryption-server-side-schema:
+
+Server-Side Field Level Encryption Enforcement
+----------------------------------------------
+
+:ref:`qe-specify-fields-for-encryption` to enforce 
+encryption of specific fields in a collection.
+
+``Indexed`` and ``Range`` fields require an index on the server. The 
+index is created by specifying the ``encryptedFields`` option in 
+:method:`db.createCollection()`.
+
+If your MongoDB instance enforces the encryption of specific fields, any
+client performing {+qe+} with {+manual-enc+} must encrypt those fields
+as specified. To learn how to set up server-side {+qe+}
+enforcement, see :ref:`qe-fundamentals-encrypt-query`.
+
+Learn More
+----------
+
+To learn more about {+key-vault-long+}s, {+dek-long+}s, and {+cmk-long+}s,
+see :ref:`qe-reference-keys-key-vaults`.
+
+To learn more about {+kms-abbr+} providers and ``kmsProviders`` objects,
+see :ref:`qe-fundamentals-kms-providers`.

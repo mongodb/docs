@@ -1,0 +1,308 @@
+=======================================
+$deserializeEJSON (expression operator)
+=======================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. meta::
+  :description: Converts Extended JSON to native BSON values, preserving original data types after parsing JSON strings. Parse entire documents or specific document fields. 
+
+Definition
+----------
+
+.. expression:: $deserializeEJSON
+
+   .. versionadded:: 8.3
+
+   Converts Extended JSON (EJSON) format to native BSON values. You can
+   use this expression to transform EJSON type wrappers into their
+   corresponding BSON types after you parse a JSON string with
+   :expression:`$convert`. 
+
+Syntax
+------
+
+.. code-block:: javascript
+
+   {
+      $deserializeEJSON: {
+         input: <expression>,
+         onError: <expression>
+      }
+   }
+
+``$deserializeEJSON`` takes a document with the following fields:
+
+.. list-table::
+   :widths: 20 15 15 60
+   :header-rows: 1
+
+   * - Field
+     - Type
+     - Necessity
+     - Description
+
+   * - ``input``
+     - Expression
+     - Required
+     - The Extended JSON value to convert to native BSON format. This
+       should be a BSON document containing EJSON type wrappers.
+
+   * - ``onError``
+     - Expression
+     - Optional
+     - Value to return if the operation encounters an error during conversion.
+       
+       If unspecified, when an error occurs, the operation throws an
+       error and stops.
+
+Behavior
+--------
+
+Type Wrapper Parsing
+~~~~~~~~~~~~~~~~~~~~~
+
+``$deserializeEJSON`` converts Extended JSON type wrappers to their
+corresponding BSON types:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 25 40
+
+   * - Extended JSON Type Wrapper
+     - BSON Type
+     - Example
+
+   * - ``{"$numberInt": "42"}``
+     - Int32
+     - ``42``
+
+   * - ``{"$numberLong": "42"}``
+     - Int64
+     - ``NumberLong(42)``
+
+   * - ``{"$numberDouble": "42.5"}``
+     - Double
+     - ``42.5``
+
+   * - ``{"$oid": "507f1f77bcf86cd799439011"}``
+     - ObjectId
+     - ``ObjectId("507f1f77bcf86cd799439011")``
+
+   * - ``{"$date": "2021-01-01T00:00:00.000Z"}``
+     - Date
+     - ``ISODate("2021-01-01T00:00:00.000Z")``
+
+   * - ``{"$date": {"$numberLong": "1609459200000"}}``
+     - Date
+     - ``ISODate("2021-01-01T00:00:00.000Z")``
+
+   * - ``{"$binary": {"base64": "AQIDBA==", "subType": "00"}}``
+     - Binary
+     - ``BinData(0, "AQIDBA==")``
+
+   * - ``{"$regularExpression": {"pattern": "abc", "options": "i"}}``
+     - Regular Expression
+     - ``/abc/i``
+
+Null and Missing Values
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the ``input`` value is null or missing, ``$deserializeEJSON``
+returns null.
+
+Examples
+--------
+
+.. include:: /includes/sample-data-usage.rst
+
+Deserialize Extended JSON Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example deserializes an Extended JSON document back to native
+BSON types:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: javascript
+
+      db.movies.aggregate([
+        {
+          $match: { title: "Inception" }
+        },
+        {
+          $project: {
+            original: "$$ROOT",
+            serialized: { $serializeEJSON: { input: "$$ROOT" } }
+          }
+        },
+        {
+          $project: {
+            title: "$original.title",
+            deserialized: { $deserializeEJSON: { input: "$serialized" } }
+          }
+        }
+      ])
+
+   .. output::
+      :language: javascript
+
+      {
+        _id: ObjectId("573a1398f29313caabcea974"),
+        title: "Inception",
+        deserialized: {
+          _id: ObjectId("573a1398f29313caabcea974"),
+          title: "Inception",
+          year: 2010,
+          runtime: 148,
+          released: ISODate("2010-07-16T00:00:00.000Z"),
+          cast: [
+            "Leonardo DiCaprio",
+            "Joseph Gordon-Levitt",
+            "Ellen Page",
+            "Tom Hardy"
+          ],
+          genres: [ "Action", "Sci-Fi", "Thriller" ],
+          directors: [ "Christopher Nolan" ]
+        }
+      }
+
+Parse JSON String and Deserialize
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example combines :expression:`$convert` with
+``$deserializeEJSON`` to parse a JSON string and convert EJSON type
+wrappers to BSON:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: javascript
+
+      db.aggregate([
+        {
+          $documents: [
+            {
+              jsonData: '{"_id":{"$oid":"507f1f77bcf86cd799439011"},' +
+                '"title":"The Matrix",' +
+                '"year":{"$numberInt":"1999"},' +
+                '"rating":{"$numberDouble":"8.7"}}'
+            }
+          ]
+        },
+        {
+          $project: {
+            parsed: { 
+              $convert: { 
+                input: "$jsonData", 
+                to: "object" 
+              }
+            }
+          }
+        },
+        {
+          $project: {
+            movie: { $deserializeEJSON: { input: "$parsed" } }
+          }
+        }
+      ])
+
+   .. output::
+      :language: javascript
+
+      {
+        _id: ObjectId("..."),
+        movie: {
+          _id: ObjectId("507f1f77bcf86cd799439011"),
+          title: "The Matrix",
+          year: 1999,
+          rating: 8.7
+        }
+      }
+
+Deserialize Specific Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can deserialize specific fields containing EJSON type wrappers:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: javascript
+
+      db.movies.aggregate([
+        {
+          $match: { title: "Inception" }
+        },
+        {
+          $project: {
+            title: 1,
+            serializedMetadata: {
+              $serializeEJSON: {
+                input: {
+                  releaseDate: "$released",
+                  runtime: "$runtime",
+                  rating: "$imdb.rating"
+                }
+              }
+            }
+          }
+        },
+        {
+          $project: {
+            title: 1,
+            metadata: { $deserializeEJSON: { input: "$serializedMetadata" } }
+          }
+        }
+      ])
+
+   .. output::
+      :language: javascript
+
+      {
+        _id: ObjectId("573a1398f29313caabcea974"),
+        title: "Inception",
+        metadata: {
+          releaseDate: ISODate("2010-07-16T00:00:00.000Z"),
+          runtime: 148,
+          rating: 8.8
+        }
+      }
+
+Use onError for Error Handling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses ``onError`` to provide a fallback value if
+deserialization fails:
+
+.. code-block:: javascript
+
+   db.data.aggregate([
+     {
+       $project: {
+         result: { 
+           $deserializeEJSON: { 
+             input: "$ejsonField",
+             onError: { error: "Invalid EJSON format" }
+           }
+         }
+       }
+     }
+   ])
+
+Learn More
+----------
+
+- :expression:`$serializeEJSON`
+- :expression:`$convert`
+- :expression:`$toString`
+- The MongoDB Shell provides built-in methods to help work with
+  Extended JSON. To learn more, see :ref:`mongosh-ejson`.

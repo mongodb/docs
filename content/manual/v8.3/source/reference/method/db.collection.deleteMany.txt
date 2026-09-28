@@ -1,0 +1,340 @@
+===========================================
+db.collection.deleteMany() (mongosh method)
+===========================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Use the mongosh db.collection.deleteMany() method to delete all documents that match a filter from a MongoDB collection. Learn about syntax and parameters.
+
+.. facet::
+   :name: programming_language 
+   :values: shell
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/wayfinding/mongosh-method-deleteMany.rst
+
+Definition
+----------
+
+.. method:: db.collection.deleteMany()
+
+   .. |dbcommand| replace:: :dbcommand:`delete` command
+
+   Removes all documents that match the ``filter`` from a collection.
+   
+   :returns:
+      
+     A document containing:
+      
+     - A boolean ``acknowledged`` as ``true`` if the operation ran with 
+       :term:`write concern` or ``false`` if write concern was disabled
+    
+     - ``deletedCount`` containing the number of deleted documents
+
+.. include:: /includes/note-drop-faster-than-delete-for-large-collections.rst
+
+Compatibility
+-------------
+
+.. |operator-method| replace:: ``db.collection.deleteMany()``
+
+This method is available in deployments hosted in the following environments:
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-all.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+Syntax
+------
+
+``db.collection.deleteMany()`` has the following
+syntax:
+
+.. code-block:: javascript
+
+   db.collection.deleteMany(
+      <filter>,
+      {
+         writeConcern: <document>,
+         collation: <document>,
+         hint: <document>|<string>,
+         maxTimeMS: <int>,
+         let: <document>
+      }
+   )
+
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+   
+   * - Parameter
+     - Type
+     - Description
+   
+   * - :ref:`filter <deleteMany-filter>`
+     - document
+     - .. _deleteMany-filter:
+        
+       Specifies deletion criteria using :ref:`query operators
+       <query-selectors>`. 
+          
+       To delete all documents in a collection, pass in an empty
+       document (``{ }``).
+
+   * - :ref:`writeConcern <deleteMany-wc>`
+     - document
+     - .. _deleteMany-wc:
+        
+       Optional. A document expressing the :ref:`write concern
+       <write-concern>`. Omit to use the default write concern.
+          
+       .. include:: /includes/extracts/transactions-operations-write-concern.rst
+
+   * - :ref:`collation <deleteMany-collation>`
+     - document
+     - .. _deleteMany-collation:
+        
+       Optional. 
+          
+       .. include:: /includes/extracts/collation-option.rst
+
+   * - :ref:`hint <deleteMany-hint>`
+     - document
+     - .. _deleteMany-hint:
+
+       Optional. A document or string that specifies the index 
+       to use to support the :ref:`query predicate
+       <deleteMany-filter>`.
+          
+       The option can take an index specification document or the
+       index name string.
+          
+       If you specify an index that does not exist, the operation
+       errors.
+
+       For an example, see :ref:`ex-deleteMany-hint`.
+
+   * - :ref:`maxTimeMS <deleteMany-maxTimeMS>`
+     - integer
+     - .. _deleteMany-maxTimeMS:
+        
+       Optional. Specifies the time limit in milliseconds for the
+       delete operation to run before timing out.
+
+   * - :ref:`let <deleteMany-let>`
+     
+     - Document
+
+     - .. _deleteMany-let:
+     
+       Optional.
+
+       .. include:: /includes/let-variables-syntax.rst
+ 
+       .. include:: /includes/let-variables-syntax-note.rst
+
+       For a complete example using ``let`` and variables,
+       see :ref:`updateMany-let-example`.
+
+Behavior
+--------
+
+Sharded Collections
+~~~~~~~~~~~~~~~~~~~
+
+.. |method| replace:: ``deleteMany()``
+
+.. include:: /includes/method-targets-all-shards-if-no-txn.rst
+
+.. warning:: 
+   
+   Due to concurrent chunk migrations, |method| might run without deleting all 
+   documents that match the specified filter. To ensure you delete all matching 
+   documents, perform one of the following operations: 
+   
+   - Run the |method| method iteratively until the corresponding find query with 
+     the same filter returns no documents.
+     
+   - Run |method| within a transaction. 
+   
+   - Schedule the :ref:`balancing window <sharding-schedule-balancing-window>` 
+     so chunk migrations only occur at specific times, and run any |method| 
+     operations outside of the specified window. 
+
+.. _deleteMany-delete-multiple-documents:
+
+Delete a Single Document
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To delete a single document, use :method:`db.collection.deleteOne()` instead. 
+
+Alternatively, use a field that is a part of a :term:`unique index` such as 
+``_id``. 
+
+Transactions
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-supported-operation.rst
+
+.. include:: /includes/extracts/transactions-operations-write-concern.rst
+
+.. include:: /includes/extracts/transactions-usage.rst
+
+.. |operation| replace:: ``deleteMany()``
+
+Primary Node Failure
+~~~~~~~~~~~~~~~~~~~~
+
+``deleteMany()`` deletes documents one at a time.
+If the primary node fails during a ``deleteMany()``
+operation, documents that were not yet deleted from secondary nodes are
+not deleted from the collection.
+
+Oplog Entries
+~~~~~~~~~~~~~
+
+If a ``db.collection.deleteMany()`` operation successfully deletes one
+or more documents, the operation adds an entry for each deleted document
+on the :term:`oplog` (operations log). If the operation fails or does
+not find any documents to delete, the operation does not add an entry on
+the oplog. 
+
+
+Examples
+--------
+
+.. include:: /includes/sample-data-usage.rst
+
+.. _deleteMany-example-delete-multiple-document:
+
+Delete Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation deletes all documents where
+``year`` is earlier than ``1910``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.deleteMany/delete-by-year.snippet.delete-by-year.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.deleteMany/delete-by-year-output.sh
+      :language: javascript
+
+Similarly, this operation deletes all documents where ``rated``
+equals ``"G"`` and ``year`` is earlier than ``1950``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.deleteMany/delete-by-rated-year.snippet.delete-by-rated-year.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.deleteMany/delete-by-rated-year-output.sh
+      :language: javascript
+
+deleteMany() with a Timeout and Query Variables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation deletes all documents where ``year`` is earlier than the
+``cutoffYear`` variable. The example also sets a time limit of 3 seconds:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.deleteMany/delete-with-let.snippet.delete-with-let.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.deleteMany/delete-with-let-output.sh
+      :language: javascript
+
+.. _deleteMany-example-update-with-write-concern:
+
+deleteMany() with Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Given a three member replica set, the following operation specifies a
+``w`` of ``majority`` and ``wtimeout`` of ``100``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.deleteMany/write-concern.snippet.delete-with-write-concern.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.deleteMany/write-concern-output.sh
+      :language: javascript
+
+If the acknowledgment takes longer than the ``wtimeout`` limit, MongoDB throws a
+write concern error. 
+
+Specify Collation
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/collation-description.rst
+
+The following operation uses the :ref:`collation <collation>` option with
+English locale and ``strength: 2``. The filter ``rated: "g"`` matches documents
+with ``rated: "G"`` stored in the collection:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.deleteMany/collation-delete.snippet.delete-with-collation.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.deleteMany/collation-delete-output.sh
+      :language: javascript
+
+.. _ex-deleteMany-hint:
+
+Specify ``hint`` for Delete Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create indexes on the ``rated`` and ``metacritic`` fields:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.deleteMany/hint-create-index.snippet.hint-create-indexes.js
+   :language: javascript
+   :category: usage example
+
+The following delete operation explicitly hints to use the index
+``{ rated: 1 }``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.deleteMany/hint-delete.snippet.delete-with-hint.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.deleteMany/hint-delete-output.sh
+      :language: javascript
+
+.. note::
+
+   If you specify an index that does not exist, the operation errors.
+
+To view the indexes used, you can use the :pipeline:`$indexStats`
+pipeline:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.deleteMany/index-stats.snippet.index-stats.js
+   :language: javascript
+   :category: usage example
+
+The ``accesses.ops`` field in the :pipeline:`$indexStats` output
+indicates the number of operations that used the index.

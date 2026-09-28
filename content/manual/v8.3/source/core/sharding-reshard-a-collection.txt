@@ -1,0 +1,148 @@
+.. _sharding-resharding:
+
+====================
+Reshard a Collection
+====================
+
+.. meta::
+   :description: Reshard a MongoDB sharded collection to change its shard key or redistribute data across shards, improving data distribution, query performance, and cluster balance.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+
+The ideal shard key allows MongoDB to distribute documents evenly
+throughout the cluster while facilitating common query patterns. A
+suboptimal shard key can lead to performance or scaling issues due to
+uneven data distribution. You can change the shard key for a collection to
+change the distribution of your data across a cluster.
+
+Starting in MongoDB 8.0, you can reshard a collection on the same shard key,
+allowing you to redistribute data to include new shards or to different zones
+without changing your shard key. To reshard to the same shard key, set
+:ref:`forceRedistribution <forceRedistribution-field>` to ``true``.
+
+.. include:: /includes/time-series/reshard-timeseries.rst
+
+.. note::
+
+   Before resharding your collection, read
+   :ref:`shardkey-troubleshoot-shard-keys` for information on common
+   performance and scaling issues and advice on how to fix them.
+
+.. _resharding-limitations:
+
+About this Task
+---------------
+
+.. include:: /includes/sharding/resharding-limitations.rst
+
+.. _reshard-requirements:
+
+Before you Begin
+----------------
+
+.. |operation| replace:: resharding
+.. |op| replace:: reshard
+.. include:: /includes/fact-reshard-considerations.rst
+
+.. include:: /includes/resharding-oplog-note.rst
+
+Two-Phase Write Protocol
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Queries that don't include the full shard key in the query filter may
+require a two-phase write protocol. This protocol broadcasts the query
+to multiple shards and can significantly reduce performance.
+
+- Queries that provide the old shard key instead of the new shard key
+  use the two-phase write protocol.
+
+- The :method:`~db.collection.deleteOne` method uses the two phase write
+  protocol when the query filter doesn't use the full shard key or the
+  ``_id`` field.
+
+- The :method:`~db.collection.replaceOne` and
+  :method:`~db.collection.updateOne` methods:
+
+  - When the query provides the full shard key, the two phase protocol is
+    never used.
+
+  - When the query doesn't provide the full shard key but provides the
+    ``_id`` field, the use of the two phase write protocol depends on
+    the value of ``upsert``. If ``upsert`` is set to ``true``, the two
+    phase write protocol is used. If ``upsert`` is ``false``, the two
+    phase write protocol is not used.
+
+  - When the query provides neither the full shard key nor the ``_id``
+    field, the two phase write protocol is always used.
+
+- The following methods use the two-phase write protocol when the query
+  filter doesn't use the full shard key:
+
+  - :method:`~db.collection.findAndModify`
+  - :method:`~db.collection.findOneAndDelete`
+  - :method:`~db.collection.findOneAndReplace`
+  - :method:`~db.collection.findOneAndUpdate`
+
+For optimal performance, update your application after the resharding
+operation completes to use the new shard key in query filters for
+these operations.
+
+.. _resharding_process:
+
+Steps
+-----
+
+.. important::
+
+   We strongly recommend that you check the
+   :ref:`resharding-limitations` and read the :ref:`resharding_process`
+   section in full before resharding your collection.
+
+.. include:: /includes/reshard-collection-introduction.rst
+
+.. include:: /includes/steps/reshard-a-collection.rst
+
+Behavior
+--------
+
+Minimum Duration of a Resharding Operation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The minimum duration of a resharding operation is always 5 minutes.
+
+Retryable Writes
+~~~~~~~~~~~~~~~~
+
+:ref:`Retryable writes <retryable-writes>` initiated before or during
+resharding can be retried during and after the collection has been
+resharded for up to 5 minutes. After 5 minutes you may be unable to find
+the definitive result of the write and subsequent attempts to retry the
+write fail with an ``IncompleteTransactionHistory`` error.
+
+Reshard Limitations
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-reshard-limitations.rst
+
+Error Case
+----------
+
+Duplicate ``_id`` Values
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The resharding operation fails if ``_id`` values are not globally unique
+to avoid corrupting collection data. Duplicate ``_id`` values can also
+prevent successful chunk migration. If you have documents with duplicate
+``_id`` values, copy the data from each into a new document, and then
+delete the duplicate documents.

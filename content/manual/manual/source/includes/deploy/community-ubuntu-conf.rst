@@ -16,8 +16,3 @@ your version of Ubuntu.
 
       .. include:: /includes/deploy/code/community-ubuntu22-conf
 
-   .. tab:: Ubuntu 20.04 (Focal)
-      :tabid: focal
-
-      .. include:: /includes/deploy/code/community-ubuntu20-conf
-

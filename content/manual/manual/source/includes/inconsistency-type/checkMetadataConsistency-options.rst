@@ -1,7 +1,7 @@
 
 .. list-table::
    :header-rows: 1
-   :widths: 20 15 60
+   :widths: 45 15 60
 
    * - Field
      - Type
@@ -22,6 +22,21 @@
 
    * - ``cursor.batchSize``
      - integer
-     - Maximum number of sharding metadata inconsistency documents 
+     - Maximum number of sharding metadata inconsistency documents
        to include in each batch.
 
+   * - ``performStrictChunkChecksIfBelowThreshold``
+     - integer
+     
+     - .. versionadded:: 9.0
+
+       Optional. Chunk-count threshold that determines how
+       thoroughly the command compares a shard's chunk metadata
+       for the checked collection.
+
+       The default value is ``1152921504606846975`` (2\ :sup:`60` - 1)
+       chunks, which means that by default, the command always performs
+       the strict check with full comparison.
+
+       For more information, see
+       :ref:`checkMetadataConsistency-chunk-check-threshold`.

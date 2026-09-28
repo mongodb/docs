@@ -23,7 +23,7 @@ same collection.
    * - Threat
      - TLS/SSL Transport Encryption
      - Encryption at Rest (EaR)
-     - {+qe+} (Equality) + TLS/SSL + EaR
+     - {+qe+} + TLS/SSL + EaR
      - {+csfle-abbrev+} + TLS/SSL + EaR
    * - Network Snooping (attacker has access to network traffic)
      - Reveals :term:`operation metadata`

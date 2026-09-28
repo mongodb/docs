@@ -5,7 +5,7 @@ let encrypted_fields = doc! {
             "path":     "patientRecord.ssn",
             "bsonType": "string",
             "keyId":    Bson::Null,
-            "queries": { "queryType": "substringPreview",
+            "queries": { "queryType": "substring",
                          "strMaxLength": 12,
                          "strMinQueryLength": 3,
                          "strMaxQueryLength": 6,

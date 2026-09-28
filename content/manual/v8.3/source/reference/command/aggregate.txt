@@ -1,0 +1,468 @@
+.. _aggregate-database-command:
+
+============================
+aggregate (database command)
+============================
+
+.. meta::
+   :description: Perform data aggregation using the aggregation pipeline with options such as collation, read concern, index hints, write concern, and custom let variables.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: aggregate
+
+   Performs an aggregation operation using the :ref:`aggregation pipeline
+   <aggregation-pipeline>`. The pipeline lets you process data from a
+   collection or other source through a sequence of stages.
+
+   .. |method| replace:: :method:`db.aggregate` and 
+      :method:`db.collection.aggregate` helper methods or with the
+      :method:`~db.collection.watch` helper method
+   .. include:: /includes/fact-dbcommand-tip
+
+Compatibility
+-------------
+
+This command is available in deployments hosted in the following environments: 
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-limited-free.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+Syntax
+------
+
+.. versionchanged:: 5.0
+
+The command has the following syntax:
+
+.. code-block:: javascript
+   
+   db.runCommand(
+      {
+        aggregate: "<collection>" || 1,
+        pipeline: [ <stage>, <...> ],
+        explain: <boolean>,
+        allowDiskUse: <boolean>,
+        cursor: <document>,
+        maxTimeMS: <int>,
+        bypassDocumentValidation: <boolean>,
+        readConcern: <document>,
+        collation: <document>,
+        hint: <string or document>,
+        comment: <any>,
+        writeConcern: <document>,
+        let: <document> // Added in MongoDB 5.0
+      }
+   )
+
+Command Fields
+~~~~~~~~~~~~~~
+
+The :dbcommand:`aggregate` command takes the following fields as
+arguments:
+
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Field
+
+     - Type
+
+     - Description
+
+   * - ``aggregate``
+
+     - string
+
+     - The name of the collection or view that acts as the input for the
+       aggregation pipeline. Use ``1`` for collection agnostic commands.
+
+
+   * - ``pipeline``
+
+     - array
+
+     - An array of aggregation pipeline stages that process and
+       transform the document stream as part of the aggregation
+       pipeline.
+
+   * - ``explain``
+
+     - boolean
+
+     - Optional. Specifies to return the information on the processing of the pipeline.
+
+       Not available in :ref:`multi-document transactions <transactions>`.
+
+   * - .. _aggregate-cmd-allowDiskUse:
+
+       ``allowDiskUse``
+
+     - boolean
+
+     - Optional.
+
+       .. include:: /includes/fact-allowDiskUse-option-6.0.rst
+
+       .. include:: /includes/extracts/4.2-changes-usedDisk.rst
+
+
+
+   * - ``cursor``
+
+     - document
+
+     - Specify a document that contains options that control the creation
+       of the cursor object.
+
+       .. include:: /includes/deprecation-aggregate-wo-cursor.rst
+
+   * - ``maxTimeMS``
+
+     - non-negative integer
+
+     - Optional.
+
+       .. include:: /includes/maxTimeMS-description.rst
+
+   * - ``bypassDocumentValidation``
+
+     - boolean
+
+     - Optional. Applicable only if you specify the :pipeline:`$out` or :pipeline:`$merge` aggregation
+       stages.
+
+       Enables :dbcommand:`aggregate` to bypass schema validation
+       during the operation. This lets you insert documents that do not
+       meet the validation requirements.
+
+   * - ``readConcern``
+
+     - document
+
+     - Optional. Specifies the :term:`read concern`.
+
+       .. include:: /includes/fact-readConcern-syntax.rst
+
+       .. include:: /includes/fact-readConcern-option-description.rst
+
+       .. include:: /includes/extracts/4.2-changes-out-linearizable.rst
+
+       .. include:: /includes/extracts/4.2-changes-linearizable-merge-restriction.rst
+
+   * - ``collation``
+
+     - document
+
+     - Optional.
+
+       .. include:: /includes/extracts/collation-option.rst
+
+   * - ``hint``
+
+     - string or document
+
+     - Optional. The index to use for the aggregation. The index is on
+       the initial collection or view against which the aggregation
+       is run.
+
+       Specify the index either by the index name or by the index
+       specification document.
+
+       The ``hint`` does not apply to :pipeline:`$lookup` and
+       :pipeline:`$graphLookup` stages.
+
+   * - ``comment``
+
+     - any
+
+     - .. include:: /includes/extracts/comment-content.rst
+
+       .. |comment-include-command| replace:: ``aggregate``
+
+       .. include:: /includes/comment-option-getMore-inheritance.rst
+
+   * - ``writeConcern``
+
+     - document
+
+     - Optional. A document that expresses the :ref:`write concern <write-concern>`
+       to use with the :pipeline:`$out` or :pipeline:`$merge` stage. 
+
+       Omit to use the default write concern with the :pipeline:`$out` or
+       :pipeline:`$merge` stage.
+
+   * - ``let``
+
+     - document
+
+     - .. _aggregate-let-option:
+
+       Optional.
+
+       .. include:: /includes/let-variables-syntax.rst
+
+       .. include:: /includes/let-variables-aggregate-syntax-note.rst
+
+       For a complete example using ``let`` and variables, see
+       :ref:`aggregate-let-example`.
+
+       .. versionadded:: 5.0
+
+
+.. include:: /includes/deprecation-aggregate-wo-cursor.rst
+
+For more information about the aggregation pipeline, see:
+
+- :ref:`aggregation-pipeline`
+- :doc:`/reference/aggregation`
+- :doc:`/core/aggregation-pipeline-limits`
+
+Sessions
+--------
+
+For cursors created inside a session, you cannot call
+:dbcommand:`getMore` outside the session.
+
+Similarly, for cursors created outside of a session, you cannot call
+:dbcommand:`getMore` inside a session.
+
+Session Idle Timeout
+~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/sessions-cursor-timeout.rst
+
+If the cursor may be idle for longer than 30 minutes, issue the
+operation within an explicit session using
+:method:`Mongo.startSession()`. Periodically refresh the session
+using the :dbcommand:`refreshSessions` command. See
+:limit:`Session Idle Timeout` for more information.
+
+Transactions
+------------
+
+.. include:: /includes/extracts/transactions-supported-operation.rst
+
+However, the following stages are not allowed within transactions:
+
+- :pipeline:`$collStats`
+- :pipeline:`$currentOp`
+- :pipeline:`$indexStats`
+- :pipeline:`$listLocalSessions`
+- :pipeline:`$listSessions`
+- :pipeline:`$merge`
+- :pipeline:`$out`
+- :pipeline:`$planCacheStats`
+- :pipeline:`$unionWith`
+
+You also cannot specify the ``explain`` option.
+
+.. include:: /includes/extracts/transactions-operations-getMore.rst
+
+.. include:: /includes/extracts/transactions-usage.rst
+
+.. |operation| replace:: :dbcommand:`aggregate`
+
+Client Disconnection
+~~~~~~~~~~~~~~~~~~~~~
+
+For :dbcommand:`aggregate` operations that do not include the
+:pipeline:`$out` or :pipeline:`$merge` stages:
+
+.. include:: /includes/extracts/4.2-changes-disconnect.rst
+
+Query Settings
+--------------
+
+.. include:: /includes/persistent-query-settings-info-for-queries.rst
+
+.. _aggregate-command-stable-api-support:
+
+Stable API
+----------
+
+When using :ref:`Stable API <stable-api>` V1, the
+:dbcommand:`aggregate` command is supported with the following
+exceptions:
+
+- The following aggregation stages are not available in Stable
+  API V1:
+
+  .. include:: /includes/aggregation/stable-api-unsupported-stages.rst
+
+- The ``explain`` field is not available in Stable API V1. If
+  you include it, the server returns an
+  :ref:`APIStrictError <api-strict-resp>` error.
+
+- When using the :pipeline:`$collStats` stage, only the ``count``
+  field is available. All other :pipeline:`$collStats` fields are
+  not available in Stable API V1.
+
+Example
+-------
+
+.. include:: /includes/deprecation-aggregate-wo-cursor.rst
+
+Instead of running the :dbcommand:`aggregate` command directly,
+use the :method:`db.collection.aggregate()` helper in
+:binary:`~bin.mongosh` or the equal helper in your driver.
+
+Except for the first two examples that demonstrate the command
+syntax, the examples on this page use the
+:method:`db.collection.aggregate()` helper.
+
+.. include:: /includes/sample-data-usage.rst
+
+Aggregate Data with Multi-Stage Pipeline
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``movies`` collection in the ``sample_mflix`` database contains documents 
+like these:
+
+.. include:: /includes/sample-data-additional-fields-note.rst
+
+.. include:: /includes/agg-sample-documents.rst
+
+The following example aggregates the ``movies`` collection to
+calculate the count of each distinct genre:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/run-cmd-pipeline/run-pipeline.snippet.run-cmd-pipeline.js
+   :language: javascript
+   :category: usage example
+
+In :binary:`~bin.mongosh`, run the same aggregation using the
+:method:`db.collection.aggregate()` helper:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/project-unwind-group/run-pipeline.snippet.project-unwind-group.js
+   :language: javascript
+   :category: usage example
+
+Use $currentOp on an Admin Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example runs a two-stage pipeline on the admin
+database. The first stage executes the :pipeline:`$currentOp`
+operation, and the second stage filters the results.
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/currentOp/run-pipeline.snippet.current-op-agg.js
+   :language: javascript
+   :category: usage example
+
+.. note::
+
+   The :dbcommand:`aggregate` command does not specify a collection
+   and instead takes the form ``{aggregate: 1}``. The initial
+   :pipeline:`$currentOp` stage does not draw input from a
+   collection. The stage produces its own data for the rest of the
+   pipeline to use.
+
+   The :method:`db.aggregate()` helper supports collectionless
+   aggregations such as this. Run the above aggregation like
+   :ref:`this <admin-pipeline-currentOp>` example.
+
+   
+Return Information on the Aggregation Operation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example sets ``explain`` to ``true`` to return
+information about the aggregation.
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/explain-field/run-pipeline.snippet.agg-explain-field.js
+   :language: javascript
+   :category: usage example
+
+.. note:: The ``explain`` output is subject to change between releases.
+
+
+
+Interaction with ``allowDiskUseByDefault``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-allowDiskUseByDefault.rst
+
+.. include:: /includes/extracts/4.2-changes-usedDisk.rst
+
+
+
+Aggregate Data Specifying Batch Size
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To set an *initial* batch size, include the ``batchSize`` in the
+``cursor`` field:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/batch-size/run-pipeline.snippet.agg-batch-size.js
+   :language: javascript
+   :category: usage example
+      
+.. include:: /includes/batch-size-aggregate.rst
+
+Specify a Collation
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/collation-description.rst
+
+.. include:: /includes/collation-agg-example.rst
+   
+For descriptions of the collation fields, see
+:ref:`collation-document-fields`.
+
+Hint an Index
+~~~~~~~~~~~~~
+
+.. include:: /includes/hint-index-agg-example.rst
+
+Override Default Read Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/override-readconcern-agg.rst
+
+.. _aggregate-let-example:
+
+Use Variables in ``let`` 
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. |let-option| replace:: :ref:`let <aggregate-let-option>`
+
+.. include:: /includes/let-variables-match-note.rst
+
+The ``movies`` collection in the ``sample_mflix`` database contains documents 
+like this one:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      title: "The Shawshank Redemption", 
+      year: 1994,
+      rated: "R",
+      imdb: { rating: 9.3, votes: 1513145, id: 111161 },
+      runtime: 142
+   }
+
+The following example uses the ``let`` option to define variables
+for the pipeline. The example finds movies with high ratings and
+long runtimes:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/let-option-run-cmd/run-pipeline.snippet.let-opt-run-cmd.js
+   :language: javascript
+   :category: usage example
+
+Learn More
+----------
+
+- :method:`db.collection.aggregate()`
+- :ref:`agg-pipeline-limits`

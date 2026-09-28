@@ -121,7 +121,6 @@ assign the required configuration variables.
       The ``config.py`` file instructs your application to
       store data encryption keys in the ``encryption.__keyVault`` namespace.
 
-.. _field-level-encryption-data-key-create:
 .. _csfle-quick-start-configure:
 
 Configure Encryption

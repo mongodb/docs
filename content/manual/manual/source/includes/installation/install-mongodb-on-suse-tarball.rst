@@ -56,7 +56,17 @@ Prerequisites
 
 .. include:: /includes/fact-tarball-dependencies.rst
 
-.. include:: /includes/extracts/install-mongodb-community-manually-suse-15.rst
+.. tabs::
+
+   .. tab:: SLES 16
+      :tabid: sles16
+
+      .. include:: /includes/extracts/install-mongodb-community-manually-suse-16.rst
+
+   .. tab:: SLES 15
+      :tabid: sles15
+
+      .. include:: /includes/extracts/install-mongodb-community-manually-suse-15.rst
 
 Procedure
 ~~~~~~~~~

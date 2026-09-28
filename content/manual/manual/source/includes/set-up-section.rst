@@ -13,8 +13,7 @@ Before you begin this tutorial, complete the following prerequisite steps:
 
       The {+shared-library+} is a preferred alternative to ``mongocryptd`` and
       does not require spawning a new process to perform automatic encryption.
-      This tutorial uses the {+shared-library+}, but ``mongocryptd`` is still
-      supported.
+      This tutorial uses the {+shared-library+}. 
 
 2. Configure a MongoDB Atlas cluster or a local replica set deployment, and save your
    connection string for future use. To learn more, see the :ref:`unified-get-started`

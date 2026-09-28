@@ -1,0 +1,104 @@
+.. _manual-create-unique-index-sharded:
+
+====================================================
+Create a Unique Index on Existing Sharded Collection
+====================================================
+
+.. meta::
+   :description: Learn how to create a new unique index on an existing sharded collection in MongoDB by including the shard key as a prefix of the compound index that you create.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can create a new unique index on a collection that is already
+sharded, but only if the index includes the shard key as a prefix.
+
+About this Task
+---------------
+
+The uniqueness constraint on an index ensures that documents in the
+collection have a unique value for the indexed field. For a sharded
+collection, MongoDB enforces uniqueness only when the index is the
+shard key or includes the shard key as a prefix.
+
+For an already-sharded collection, you cannot create a unique index on
+other fields unless the shard key is included as the prefix. If the
+index doesn't include the shard key as a prefix, MongoDB returns an
+error when you run the :dbcommand:`createIndexes` command.
+
+To learn how to maintain uniqueness on a field that is not part of the
+shard key, see :ref:`shard-key-arbitrary-uniqueness`.
+
+Before You Begin
+----------------
+
+- Identify the shard key for the collection. To view the shard key,
+  run the :method:`sh.status()` method and locate the collection in the
+  output.
+
+- Confirm that no existing documents violate the uniqueness constraint
+  for the field. If a shard contains documents with duplicate values,
+  the create index operation may succeed on the shards without
+  duplicates but fail on the shard with duplicates, leaving
+  inconsistent indexes across shards.
+
+Steps
+-----
+
+The following example creates a unique index on the ``email`` field of
+the ``accounts.names`` collection, which is sharded on the
+``region_id`` field.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Verify the shard key
+
+      Run the :method:`sh.status()` method and locate the
+      ``accounts.names`` collection in the output to confirm that the
+      shard key is ``region_id``:
+
+      .. code-block:: javascript
+
+         sh.status()
+
+   .. step:: Create the unique index
+
+      Connect :binary:`~bin.mongosh` to a :binary:`~bin.mongos`
+      instance and create the unique index. Include the shard key
+      ``region_id`` as a prefix of the compound index:
+
+      .. io-code-block::
+
+         .. input::
+            :language: javascript
+
+            db.names.createIndex(
+               { region_id: 1, email: 1 },
+               { unique: true }
+            )
+
+         .. output::
+            :language: javascript
+
+            region_id_1_email_1
+
+Learn More
+----------
+
+- :ref:`index-type-unique`
+
+- :ref:`manual-shard-collection-with-unique`
+
+- :ref:`sharding-shard-key-unique`
+
+- :ref:`shard-key-arbitrary-uniqueness`
+
+- :dbcommand:`createIndexes`
+
+- :method:`db.collection.createIndex`

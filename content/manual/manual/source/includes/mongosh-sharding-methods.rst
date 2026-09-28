@@ -107,6 +107,12 @@
    * - :method:`sh.getShardedDataDistribution()`
      - .. include:: /includes/sharding/getShardedDataDistribution-shell-helper-method-summary.rst
 
+   * - :method:`sh.getTransitionToDedicatedConfigServerStatus()`
+     - Returns the draining status of the config shard during a
+       transition to a dedicated config server.
+
+       .. versionadded:: 9.0
+
    * - :method:`sh.help()`
      - Returns help text for the ``sh`` methods.
 
@@ -162,6 +168,12 @@
 
    * - :method:`sh.shardCollection()`
      - Enables sharding for a collection.
+
+   * - :method:`sh.shardDrainingStatus()`
+     - Returns the draining status of a specific shard, or of all
+       draining shards if no shard is specified.
+
+       .. versionadded:: 9.0
 
    * - :method:`sh.splitAt()`
      - Divides an existing :term:`chunk` into two chunks 

@@ -1,0 +1,174 @@
+.. _monitor-defragmentation-sharded-collection:
+
+===============================================
+Monitor Defragmentation of a Sharded Collection
+===============================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+To monitor defragmentation of a sharded collection, use the
+:dbcommand:`balancerCollectionStatus` command.
+
+You can see the current defragmentation state and the number of
+remaining chunks to process. This shows you the defragmentation
+progress.
+
+About this Task
+---------------
+
+.. include:: /includes/defragment-sharded-collections-status.rst
+
+.. include:: /includes/defragment-sharded-collections-example.rst
+
+In the procedure for this task, you monitor the phases and see the
+defragmentation progress.
+
+Before you Begin
+----------------
+
+- Start defragmenting a sharded collection. For details, see
+  :ref:`start-defragmenting-sharded-collection`.
+- Connect to :binary:`~bin.mongos`.
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Monitor defragmentation
+
+      Run:
+
+      .. code-block:: javascript
+
+         db.adminCommand(
+            {
+               balancerCollectionStatus: "test.ordersShardedCollection"
+            }
+         )
+
+   .. step:: Examine output document
+
+      The previous command returns a document with information about
+      defragmentation status, current phase, and the defragmentation
+      work remaining. For example:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         {
+            "balancerCompliant": false,
+            "firstComplianceViolation": "defragmentingChunks",
+            "details": {
+               "currentPhase": "moveAndMergeChunks",
+               "progress": { "remainingChunksToProcess": 1 }
+            }
+         }
+
+      The following table describes the document fields.
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 20 20 60
+
+         * - Field
+           - Type
+           - Description
+
+         * - ``balancerCompliant``
+           - Boolean
+           - ``false`` if collection chunks must be moved. Otherwise,
+             ``true``.
+
+         * - ``firstComplianceViolation``
+           - String
+           - Indicates the reason that chunks for the namespace must be
+             moved or merged. Only returned if ``balancerCompliant`` is
+             ``false``.
+
+         * - ``details``
+           - Object
+           - Addtional information about the current defragmentation
+             state. Only returned if ``firstComplianceViolation`` is
+             ``defragmentingChunks``.
+
+         * - ``currentPhase``
+           - String
+           - Current defragmentation phase:
+
+             - For phase one, ``currentPhase`` is
+               ``mergeAndMeasureChunks``.
+
+               Phase one merges contiguous chunks located on the same
+               shard and calculates the data size for those chunks.
+
+             - For phase two, ``currentPhase`` is
+               ``moveAndMergeChunks``.
+
+               After phase one is complete, there might be some small
+               chunks remaining. Phase two migrates those small chunks
+               to other shards and merges the chunks on those shards.
+
+         * - ``remainingChunksToProcess``
+           - Integer
+           - Number of remaining chunks to process in the current phase.
+                  
+      For additional information about the returned document fields, see
+      the :ref:`balancer collection status output document
+      <cmd-balancer-CollectionStatus-output>`.
+
+   .. step:: Confirm that defragmentation is complete
+
+      After defragmentation completes, the command returns either:
+
+      - ``balancerCompliant: true`` if your collection is balanced.
+      - ``balancerCompliant: false`` with ``firstComplianceViolation``
+        set to a string other than ``defragmentingChunks`` if
+        your collection is not balanced.
+      
+      Example output for a balanced collection after defragmentation
+      completes:
+
+      .. code-block:: javascript
+         :copyable: false
+         :emphasize-lines: 3
+
+         {
+            chunkSize: 0.2,
+            balancerCompliant: true,
+            ok: 1,
+            '$clusterTime': {
+               clusterTime: Timestamp({ t: 1677543079, i: 1 }),
+               signature: {
+                  hash: Binary(Buffer.from("0000000000000000000000000000000000000000", "hex"), 0),
+                  keyId: Long("0")
+               }
+            },
+            operationTime: Timestamp({ t: 1677543079, i: 1 })
+         }
+
+Next Steps
+----------
+
+If defragmentation has not yet completed, you can stop it. For details,
+see :ref:`stop-defragmenting-sharded-collection`.
+
+Learn More
+----------
+
+- :ref:`Start defragmenting a sharded collection
+  <start-defragmenting-sharded-collection>`
+- :ref:`Stop defragmenting a sharded collection
+  <stop-defragmenting-sharded-collection>`
+- To view the balancer collection status output document, see
+  :ref:`Balancer collection status output document
+  <cmd-balancer-CollectionStatus-output>`
+
+.. include:: /includes/defragment-sharded-collections-learn-more.rst

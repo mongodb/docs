@@ -1,3 +1,3 @@
 .. figure:: /images/index-multikey.bakedsvg.svg
-   :alt: Diagram of a multikey index on addr.zip where addr is an array containing the zip field.
+   :alt: Multikey index on the ``addr.zip`` field within an array of address documents.
    :figwidth: 760px

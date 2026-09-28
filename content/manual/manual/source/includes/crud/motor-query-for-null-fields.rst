@@ -30,11 +30,34 @@ the ``item`` field.
 
 The query returns both documents in the collection.
 
+.. note:: Dotted Paths That Traverse Arrays
+
+   Starting in MongoDB 9.0, a dotted path that does not resolve to a
+   non-null value evaluates as ``null``. The behavior applies when a
+   field in the path holds an empty array, an array of scalar values,
+   or an array that contains a nested array. For example, the
+   ``{ "item.name": null }`` query matches a document where ``item``
+   holds the array ``[ 1 ]``. Because MongoDB does not traverse into
+   nested arrays, the query also matches a document where ``item``
+   holds the array ``[ [ { name: "notebook" } ] ]``. In earlier
+   versions, the query does not match either document. For details,
+   see :ref:`9.0-compatibility`.
+
 Non-Equality Filter
 -------------------
 
 To query for fields that **exist** and are **not null**, use the
 ``{ $ne : null }`` filter.
+
+.. note:: Dotted Paths That Traverse Arrays
+
+   Starting in MongoDB 9.0, the ``{ $ne : null }`` filter excludes
+   documents where a dotted path does not resolve to a non-null
+   value. The behavior applies when a field in the path holds an
+   empty array, an array of scalar values, or an array that contains
+   a nested array. In earlier versions, the filter matches those
+   documents, which returns documents that ``{ $exists: true }``
+   excludes. For details, see :ref:`9.0-compatibility`.
 
 The ``{ item : { $ne : null } }`` query matches
 documents where the ``item`` field exists **and** has a
@@ -109,6 +132,11 @@ have a non-null value for ``a.b``. The document with ``_id: 6``
 contains an object with a ``b`` value of ``3``, but the query does
 not return that document, because the array also contains an object
 where ``b`` is missing.
+
+The empty array and the arrays of scalar values are the cases that
+changed in MongoDB 9.0. In earlier versions, the documents with
+``_id`` values ``2``, ``3``, and ``4`` did not match. For details,
+see :ref:`9.0-compatibility`.
 
 Type Check
 ----------

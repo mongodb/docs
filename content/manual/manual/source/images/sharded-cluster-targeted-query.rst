@@ -1,3 +1,3 @@
 .. figure:: /images/sharded-cluster-targeted-query.bakedsvg.svg
-   :alt: Targeted read where ``mongos`` routes to specific shards based on the shard key in the query.
+   :alt: Targeted query: ``mongos`` routes to specific shards when the shard key is included.
    :figwidth: 400px

@@ -11,7 +11,7 @@ var encryptedFields = new BsonDocument
                 { "bsonType", "string" },
                 { "queries", new BsonDocument
                     {
-                        { "queryType", "prefixPreview" },
+                        { "queryType", "prefix" },
                         { "strMinQueryLength", 3 },
                         { "strMaxQueryLength", 10 },
                         { "caseSensitive", true },
@@ -25,13 +25,8 @@ var encryptedFields = new BsonDocument
 // end-enable-prefix
 
 // start-query-prefix
-var filter = new BsonDocument("$expr", new BsonDocument("$encStrStartsWith", 
-    new BsonDocument
-    {
-        { "input", "$patientRecord.ssn" },
-        { "prefix", "987" }
-    }));
+var filter = Builders<Patient>.Filter.EncStrStartsWith("patientRecord.ssn", "987");
 
-var findResult = await encryptedCollection.Find(filter).ToCursorAsync();
-Console.WriteLine(findResult.FirstOrDefault().ToJson());
+var findResult = encryptedCollection.Find(filter).FirstOrDefault();
+Console.WriteLine(findResult.ToJson());
 // end-query-prefix

@@ -7,7 +7,7 @@ encryptedFields := bson.M{
 			"bsonType": "string",
 			"queries": []bson.M{
 				{
-					"queryType":          "substringPreview",
+					"queryType":          "substring",
 					"strMaxLength":       12,
 					"strMinQueryLength":  3,
 					"strMaxQueryLength":  6,

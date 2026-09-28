@@ -1,0 +1,1 @@
+You cannot use |command| for :ref:`Queryable Encryption <qe-manual-feature-qe>` collections. 

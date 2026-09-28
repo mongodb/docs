@@ -6,8 +6,6 @@ MongoDB {+version+} Community Edition supports the following
 
 - 22.04 :abbr:`LTS (Long Term Support)` ("Jammy")
 
-- 20.04 :abbr:`LTS (Long Term Support)` ("Focal")
-
 MongoDB only supports the 64-bit versions of these platforms. To
 determine which Ubuntu release your host is running, run the following
 command on the host's terminal:

@@ -1,0 +1,181 @@
+================================
+$toString  (expression operator)
+================================
+
+.. meta::
+   :description: Convert values to strings using `$toString` in MongoDB aggregation, with examples of input types and conversion results.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $toString
+
+   Converts a value to a string. If the value cannot be converted
+   to a string, :expression:`$toString` errors. If the value is null or
+   missing, :expression:`$toString` returns null.
+
+   :expression:`$toString` has the following syntax:
+
+   .. code-block:: javascript
+
+      {
+         $toString: <expression>
+      }
+
+   The :expression:`$toString` takes any valid :ref:`expression
+   <aggregation-expressions>`.
+
+   The :expression:`$toString` is a shorthand for the following
+   :expression:`$convert` expression:
+
+   .. code-block:: javascript
+
+      { $convert: { input: <expression>, to: "string" } }
+
+   .. seealso::
+
+      - :expression:`$convert`
+      - :expression:`$dateToString`
+
+Behavior
+--------
+
+.. include:: /includes/convert-string-types.rst
+
+.. include:: /includes/strings-to-non-decimal.rst
+
+The following table lists some conversion to string examples:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - Example
+     - Results
+
+   * - ``{ $toString: true }``
+     - ``"true"``
+
+   * - ``{ $toString: false }``
+     - ``"false"``
+
+   * - ``{ $toString: 2.5 }``
+     - ``"2.5"``
+
+   * - ``{ $toString: Int32(2) }``
+     - ``"2"``
+
+   * - ``{ $toString: Long(1000) }``
+     - ``"1000"``
+
+   * - ``{ $toString: ObjectId("5ab9c3da31c2ab715d421285") }``
+     - ``"5ab9c3da31c2ab715d421285"``
+
+   * - ``{ $toString:  ISODate("2018-03-27T16:58:51.538Z") }``
+     - ``"2018-03-27T16:58:51.538Z"``
+
+   * - ``{ $toString: BinData(4, "hn3f") }``
+     - ``"hn3f"``
+
+   * - ``{ $toString: /^ABC/i }``
+     - ``"/^ABC/i"``
+
+       .. versionadded:: 8.3
+
+   * - ``{ $toString: new Timestamp(1565545664, 1) }``
+     - ``"Timestamp(1565545664, 1)"``
+
+       .. versionadded:: 8.3
+
+   * - ``{ $toString:  [["pizza", {type: "cheese"}]] }``
+     - ``"[\"pizza\",{\"type\":\"cheese\"}]"``
+
+       .. versionadded:: 8.3
+
+   * - ``{ $toString: {pizza: {type: "cheese"}} }``
+     - ``"{\"pizza\":{\"type\":\"cheese\"}}"``
+
+       .. versionadded:: 8.3
+
+   * - ``{ $toString: MinKey }``
+     - ``"MinKey"``
+
+       .. versionadded:: 8.3
+
+   * - ``{ $toString: MaxKey }``
+     - ``"MaxKey"``
+
+       .. versionadded:: 8.3
+
+Example
+-------
+
+Create a collection ``orders`` with the following documents:
+
+.. code-block:: javascript
+
+   db.orders.insertMany( [
+      { _id: 1, item: "apple",  qty: 5, zipcode: 93445 },
+      { _id: 2, item: "almonds", qty: 2, zipcode: "12345-0030" },
+      { _id: 3, item: "peaches",  qty: 5, zipcode: 12345 },
+   ] )
+
+The following aggregation operation on the ``orders`` collection
+converts the ``zipcode`` to string before sorting by the string value:
+
+.. code-block:: javascript
+
+   // Define stage to add convertedZipCode field with the converted zipcode value
+
+   zipConversionStage = {
+      $addFields: {
+         convertedZipCode: { $toString: "$zipcode" }
+      }
+   };
+
+   // Define stage to sort documents by the converted zipcode
+
+   sortStage = {
+      $sort: { "convertedZipCode": 1 }
+   };
+
+   db.orders.aggregate( [
+     zipConversionStage,
+     sortStage
+   ] )
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+
+   {
+     _id: 3,
+     item: 'peaches',
+     qty: 5,
+     zipcode: 12345,
+     convertedZipCode: '12345'
+   },
+   {
+     _id: 2,
+     item: 'almonds',
+     qty: 2,
+     zipcode: '12345-0030',
+     convertedZipCode: '12345-0030'
+   },
+   {
+     _id: 1,
+     item: 'apple',
+     qty: 5,
+     zipcode: 93445,
+     convertedZipCode: '93445'
+   }
+
+.. include:: /includes/note-conversion-error-use-convert.rst

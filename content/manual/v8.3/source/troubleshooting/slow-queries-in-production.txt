@@ -1,0 +1,250 @@
+.. _manual-troubleshooting-slow-queries-in-production:
+
+=======================================
+Troubleshoot Slow Queries in Production
+=======================================
+
+.. meta::
+   :description: Learn to identify, diagnose, and resolve slow query issues in MongoDB for on-premises and Atlas deployments, including issues with indexing and resource allocation.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+ 
+This page covers common causes and resolutions for slow queries. 
+If you need additional support after going through the following sections, 
+contact :ref:`technical-support`.
+
+Prerequisite Checks
+-------------------
+
+To confirm your deployment is encountering issues with slow queries, check the 
+following:
+
+Confirm Slow Queries
+~~~~~~~~~~~~~~~~~~~~
+
+To confirm that queries are actually slow, compare current query latency to 
+historical baselines or service level objectives. Identify whether slowness is 
+constant or occurs during specific load patterns, such as load spikes, batch 
+jobs, or maintenance windows.
+
+Identify Slow Queries
+~~~~~~~~~~~~~~~~~~~~~
+
+Use the :ref:`database profiler <database-profiler>` and :ref:`slow query logs 
+<manual-find-slow-queries-with-database-profiler>` to identify specific 
+operations by namespace, pattern, and latency.
+
+For Atlas, use the :ref:`Performance Advisor <performance-advisor>` and the
+:ref:`Query Profiler <profile-database>` to find queries with high 
+execution time.
+
+Check Deployment Health
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Confirm cluster and node health. Check for issues with:
+
+- Primary/secondary state
+- Replication lag
+- Frequent elections
+- Node availability
+- Failovers
+- Node restarts
+- Storage errors that occur at the same time as slow query periods
+
+Check Resource Utilization
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Inspect CPU, memory, disk I/O, and disk utilization on each node, confirming 
+there is no sustained saturation. For details, see :ref:`monitoring-for-mdb`.
+
+On Atlas, :ref:`review metrics <monitor-cluster-metrics>` dashboards for spikes
+in CPU, IOPS, connections, and page faults around the time of slow queries.
+
+Confirm Recent Changes
+~~~~~~~~~~~~~~~~~~~~~~
+
+Determine whether any recent changes occurred at the same time as the slow
+queries, such as:
+
+- Releasing an application
+- Index changes
+- Schema migrations
+- Deployment resizing
+- Parameter changes
+
+Common Issues and Resolutions
+------------------------------
+
+The following sections describe common causes of slow queries and
+how to resolve them.
+
+Indexing Issues
+~~~~~~~~~~~~~~~
+
+The following indexing issues can cause slow queries.
+
+Missing or Suboptimal Indexes
+`````````````````````````````
+
+Queries that perform collection scans or use non-selective indexes can cause 
+high latency under production load. Identify queries that don't use
+the expected index by using :dbcommand:`explain` with the ``"executionStats"`` or 
+``“allPlansExecution”`` option for high verbosity. 
+These options show execution metrics for all the plans during the evaluation phase. 
+Create or refine indexes for the fields used to filter and sort query results.
+
+Sorts Without Supporting Indexes
+````````````````````````````````
+
+Queries with :method:`~cursor.sort()` that can't use an index require an in-memory sort. 
+This is especially slow on large result sets. You can improve performance by:
+
+- Creating :ref:`compound indexes <index-type-compound>` that match the query 
+  filter and sort patterns
+- Reducing the result set size before sort
+
+Inefficient Aggregation Pipelines
+`````````````````````````````````
+
+Aggregation pipelines should use :pipeline:`$match`, :pipeline:`$sort`, or 
+other selective stages early, to filter the dataset and avoid processing large
+volumes of data in memory. If your pipeline has late ``$match`` or ``$sort``
+stages, move them earlier whenever possible.
+
+You can also improve performance by creating indexes on fields used 
+in early pipeline stages.
+
+Schema and Query Design Issues
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following schema and query design issues can cause slow queries.
+
+Schema and Document Size Issues
+```````````````````````````````
+
+Very large documents, unbounded arrays, and highly nested structures increase 
+I/O and CPU per operation. You can increase performance by identifying 
+collections with unusually large documents or wide arrays and updating the 
+schema to use :ref:`bucketing <group-data-bucket-pattern>` or 
+:ref:`referencing <data-modeling-referencing>` where possible.
+
+Unbounded Queries and Collection Scans
+``````````````````````````````````````
+
+Queries that scan large collections or time ranges are slower than
+those that enforce tight filters and limits. You can improve query performance by: 
+
+- Adding selective filters and indexing queried fields
+- Using pagination patterns instead of large :method:`~cursor.skip()` or
+  :method:`~cursor.limit()` combinations
+- Narrowing time windows for time-series data, or adjusting the 
+  granularity of the underlying collection itself if it's too fine.
+
+Inefficient Query Operators or Patterns
+```````````````````````````````````````
+
+Some query operators and patterns prevent MongoDB from using indexes efficiently:
+
+- :query:`$regex` with a leading wildcard
+- :query:`$nin`
+- Very large :query:`$in` lists
+- Excessive :query:`$or` branches
+- :query:`$ne` negation equations that negatively impact index scan
+
+To improve performance, rewrite predicates to be index-friendly. Consider :ref:`anchored 
+regex <regex-query-options>` and precomputed fields where possible..
+
+Resource Saturation
+~~~~~~~~~~~~~~~~~~~
+
+Slow queries might be caused by contention for underlying hardware resources 
+under production load. Check if there's a correlation between query latency 
+spikes and metrics for CPU, IOPS, and cache utilization. Consider vertical 
+and/or horizontal scaling or workload redistribution if queries are already 
+optimized.
+
+Contended Workloads and Concurrency Issues
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Long-running operations can block or interfere
+with other queries. For example:
+
+- Large index builds
+- Collection scans
+- Heavy writes
+
+Use :pipeline:`$currentOp` to identify blocking or long-running operations. 
+Consider scheduling heavy operations during maintenance windows. For example,
+consider running index builds on large collections during maintenance windows.
+
+Topology or Read Preference Misconfiguration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Queries routed to secondaries with replication lag or less capable hardware can
+cause slower responses. Review driver read preferences and write concerns.
+Ensure latency-critical queries are directed to appropriate nodes.
+
+Verify Resolution
+-----------------
+
+- Re-run representative queries and compare latency against previous 
+  results and desired goals.
+- Confirm that ``explain("executionStats")`` shows reduced work, such as fewer 
+  documents examined and improved index usage.
+- Review profiler and slow query logs to verify either:
+
+  - Previous slow queries no longer appear.
+  - Query times and resource usage have decreased.
+
+- For Atlas deployments, confirm that query- and cluster-level metrics have
+  returned to normal ranges after changes.
+
+Collect Additional Diagnostics for MongoDB Support
+--------------------------------------------------
+
+If you require additional support, collect the following information:
+
+- Sample slow queries with full filter and any applicable projection, sort, and 
+  options, including:
+
+  - Approximate frequency
+  - Expected latency vs. observed latency
+
+- ``explain("executionStats")`` output for representative slow queries
+- Relevant log excerpts and profiler samples covering the period where slowness 
+  occurs
+- Recent changes to:
+
+  - Schema or indexes
+  - Deployment size, tier, or topology
+  - Application release or query patterns
+
+- Cluster metrics or host-level stats showing CPU, memory, disk I/O, and 
+  connection usage around the time of slow queries.
+- Details about deployment environment:
+
+  - Atlas vs. self-managed 
+  - Hardware profile
+  - Sharding configuration
+  - Replication configuration
+
+Related Issues
+--------------
+
+- :ref:`manual-troubleshooting-replication-lag`
+- :ref:`manual-troubleshooting-frequent-elections` 
+
+Learn More
+----------
+
+- :dbcommand:`explain`
+- :ref:`server-diagnose-queries`
+- :ref:`database-profiler` 
+- :ref:`manual-find-slow-queries-with-database-profiler`
+- :ref:`monitoring-for-mdb`
+- :ref:`performance-advisor`
+- :ref:`profile-database`
