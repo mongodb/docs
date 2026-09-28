@@ -6,7 +6,7 @@
 
 .. meta::
    :keywords: connect, sql, mongodb
-   :description: Configure the MongoDB SQL Interface for Atlas or self-managed EA. Includes steps for driver selection and installing the SQL Schema Builder.
+   :description: Configure the MongoDB SQL Interface on an Atlas dedicated cluster, an Atlas federated database instance, or a self-managed Enterprise Advanced deployment to accept SQL connections.
 .. default-domain:: mongodb
 
 .. facet::
@@ -16,49 +16,50 @@
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
-You can use the MongoDB {+sql-interface+} with {+service+} {+fdi+}s or self-managed 
-{+ea+} databases.
+You can use the MongoDB {+sql-interface+} with an {+service+}
+{+dedicated-cluster+}, an {+service+} {+fdi+}, or a self-managed
+{+ea+} database.
 Choose your deployment type to get started: 
 
 .. composable-tutorial::
-   :options: deployment-type
-   :defaults: atlas
-
-   Prerequisites
-   -------------
-
-   - A :ref:`MongoDB database user <mongodb-users>` with which to connect.
-
-   Procedure
-   ---------
+   :options: deployment-type, atlas-deployment
+   :defaults: atlas, dedicated
 
    .. selected-content::
-      :selections: atlas
+      :selections: atlas, federated
+
+      Prerequisites
+      -------------
+
+      - A :ref:`MongoDB database user <mongodb-users>` with which to
+        connect.
+
+      Procedure
+      ---------
+
+      You get the {+sql-interface+} connection string for a {+fdi+}
+      from the connection dialog box on the {+fdi+} card. This is the
+      only place to get it.
 
       .. procedure::
          :style: normal
 
-         .. include:: /includes/nav/steps-db-deployments-page.rst
+         .. include:: /includes/nav/steps-data-federation.rst
 
-         .. step:: On the cluster card, click :guilabel:`Connect`.   
-            
+         .. note::
+
+            Before you can query data, you must have a schema. To
+            generate one, see :ref:`sql-schema-adf`.
+
+         .. step:: On the federated database card, click :guilabel:`Connect`.
+
             A connection dialog box opens.
 
          .. step:: In the connection dialog box, click :guilabel:`Atlas SQL`.
 
-            If this is your first time, leave
-            the :guilabel:`Quick Start` option selected. {+service+} automatically
-            creates and manages a {+fdi+} in the background to
-            support the SQL connection. The {+fdi+} uses {+aws+} as the cloud provider.
-            You cannot modify this {+fdi+}.
-
-            The :guilabel:`Advanced` option lets you specify the :ref:`data store <config-adf>` 
-            and cloud provider, but you'll need to create and manage the {+fdi+} yourself.
-            To learn more, see :ref:`gst-deploy-adf`.
-             
          .. step:: Select your driver.
 
             From the :guilabel:`Select your driver` dropdown, select the
@@ -76,9 +77,311 @@ Choose your deployment type to get started:
             #. Click :guilabel:`Done`. 
 
    .. selected-content::
-      :selections: self
+      :selections: atlas, dedicated
 
-      For local or self-managed deployments, you must generate a schema by 
+      Prerequisites
+      -------------
+
+      - A :ref:`MongoDB database user <mongodb-users>` with which to
+        connect.
+
+      - To enable the {+sql-interface+} on an {+service+}
+        {+dedicated-cluster+}, an {+service+} user with the
+        :authrole:`Project Cluster Manager` or
+        :authrole:`Project Replica Set Manager` role.
+
+      - A {+dedicated-cluster+}, ``M10`` and above, running MongoDB 6.0
+        or later. To review every requirement, see
+        :ref:`connect-with-sql-overview`.
+
+      - To generate a schema, a database user with the ``read``
+        privilege on the ``__mdb_internal_sqlinterface`` database. The
+        {+schema-builder+} CLI reads this database before it processes
+        any schema and exits if the read fails. To review every
+        privilege that the CLI requires, see
+        :ref:`sql-schema-builder-cli`.
+
+      Procedure
+      ---------
+
+      Enable the {+sql-interface+} on the {+cluster+} before you
+      connect. Enabling is per {+cluster+}.
+
+      You can enable the {+sql-interface+} from the {+atlas-ui+} or with
+      the {+atlas-admin-api+}. To use the API, skip to
+      :ref:`sql-dedicated-enable-api`.
+
+      Enable in the {+atlas-ui+}
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. procedure::
+         :style: normal
+
+         .. include:: /includes/nav/steps-db-deployments-page.rst
+
+         .. step:: On the {+cluster+} card, click :guilabel:`Connect`.
+
+            A connection dialog box opens.
+
+         .. step:: In the connection dialog box, click :guilabel:`Atlas SQL`.
+
+         .. step:: Click :guilabel:`Configure Atlas SQL`.
+
+            This button appears when the {+sql-interface+} is off. It
+            opens the same {+cluster+} configuration form as
+            :guilabel:`Edit Configuration`.
+
+         .. step:: Expand :guilabel:`Additional Settings`.
+
+            Under :guilabel:`Advanced Settings`, set
+            :guilabel:`Enable Atlas SQL Interface (M10 and up)` to on.
+
+            The toggle appears only for eligible {+clusters+}. If you
+            don't see it, confirm that the {+cluster+} is a
+            {+dedicated-cluster+}, ``M10`` and above, running MongoDB
+            6.0 or later.
+
+         .. step:: Click :guilabel:`Review Changes`, then apply the change.
+
+            The review page lists :guilabel:`Atlas SQL Interface` with
+            its original and new state, :guilabel:`Disabled` and
+            :guilabel:`Enabled`.
+
+            .. note::
+
+               Enabling can take a few minutes to take effect.
+
+      .. _sql-dedicated-enable-api:
+
+      Enable with the {+atlas-admin-api+}
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. note::
+
+         The endpoints are in preview and require the
+         ``Accept: application/vnd.atlas.preview+json`` header. To learn
+         more about resource versions, see
+         :ref:`api-versioning-overview`. For the full reference, see
+         `{+atlas-admin-api+} v2 <https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/>`__.
+
+      To enable the {+sql-interface+} using the {+atlas-admin-api+}, use
+      the following procedure. Authenticate with a service account
+      access token; to generate one, see
+      :ref:`generate-oauth2-token-atlas`.
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Confirm the {+cluster+} is supported.
+
+            Send a ``GET`` request to read the current status:
+
+            .. code-block:: shell
+
+               curl --include --header "Authorization: Bearer ${ACCESS_TOKEN}" \
+                 --header "Accept: application/vnd.atlas.preview+json" \
+                 -X GET "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/sqlInterface"
+
+            For a supported {+cluster+}, the response resembles the
+            following:
+
+            .. code-block:: json
+
+               {
+                 "status": "OFF",
+                 "supported": true
+               }
+
+            {+service+} omits ``unsupportedReason`` when the
+            {+cluster+} supports the {+sql-interface+}. If
+            ``supported`` is ``false``, the field is present and
+            explains why. To learn what each value means, see
+            :ref:`sql-dedicated-enablement-reference`.
+
+         .. step:: Turn on the {+sql-interface+}.
+
+            Send a ``PATCH`` request with ``status`` set to ``ON``:
+
+            .. code-block:: shell
+
+               curl --include --header "Authorization: Bearer ${ACCESS_TOKEN}" \
+                 --header "Accept: application/vnd.atlas.preview+json" \
+                 --header "Content-Type: application/vnd.atlas.preview+json" \
+                 --data '{ "status": "ON" }' \
+                 -X PATCH "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/sqlInterface"
+
+            A successful request returns the updated status. Status
+            propagation is asynchronous, so use the ``GET`` endpoint to
+            confirm the state {+service+} has applied.
+
+            To turn the {+sql-interface+} off, send the same ``PATCH``
+            request with ``status`` set to ``OFF``.
+
+      Generate a Schema
+      ~~~~~~~~~~~~~~~~~
+
+      {+Dedicated-clusters+} manage schemas with the
+      {+schema-builder+} CLI only, the same way self-managed {+ea+}
+      deployments do. After you enable the {+sql-interface+}, download
+      and run the CLI to generate a schema for the collections that you
+      want to query. To learn more, see :ref:`sql-schema-builder-cli`.
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Download the {+schema-builder+}.
+
+            Download the {+schema-builder+} for your operating system from the `MongoDB download center <https://www.mongodb.com/try/download/sql-schema-builder/>`__.
+
+         .. step:: Run the {+schema-builder+}.
+
+            .. tabs::
+
+               .. tab:: Linux/MacOS
+                  :tabid: linux-macos
+
+                  a. Move the downloaded file to a directory of your
+                     choice and rename it to ``mongodb-schema-manager``.
+
+                  #. Go to the directory where you placed the file and
+                     run the following command to make the
+                     {+schema-builder+} executable:
+
+                     .. code-block:: bash
+
+                        chmod +x mongodb-schema-manager
+
+                  #. Run the {+schema-builder+} with the connection
+                     string that you copy from the {+atlas-ui+}. This
+                     command generates or regenerates the schema for
+                     your collections within the database.
+
+                     .. code-block:: bash
+
+                        ./mongodb-schema-manager --uri 'mongodb+srv://<db_username>:<db_password>@<cluster-host>/<database>'
+
+                  #. Look for the ``__sql_schemas`` collection in your
+                     database to verify the created SQL schema. Inside
+                     this collection, there is a document for each
+                     collection with its schema map and data type
+                     assignments.
+
+               .. tab:: Windows
+                  :tabid: windows
+
+                  a. Move the downloaded file to a directory of your
+                     choice and rename it to
+                     ``mongodb-schema-manager.exe``.
+
+                  #. Run the {+schema-builder+} with the connection
+                     string that you copy from the {+atlas-ui+}. This
+                     command generates or regenerates the schema for
+                     your collections within the database.
+
+                     .. code-block:: bash
+
+                        ./mongodb-schema-manager.exe --uri 'mongodb+srv://<db_username>:<db_password>@<cluster-host>/<database>'
+
+                  #. Verify the created SQL schema by looking for the
+                     ``__sql_schemas`` collection in your database.
+                     Inside this collection, there is a document for
+                     each collection with its schema map and data type
+                     assignments.
+
+      .. _sql-dedicated-enablement-reference:
+
+      {+Dedicated-Cluster+} Considerations
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      The following applies only to {+sql-interface+} on {+dedicated-clusters+}.
+
+      - {+service+} allows schema generation and refresh for the
+        {+cluster+} through the {+schema-builder+} CLI. To learn more, see
+        :ref:`sql-schema-management`.
+
+      - Client applications, including |odbc| and |jdbc| driver
+        connections, can connect to the {+cluster+} through the
+        {+sql-interface+} after you enable it for the {+cluster+} and a
+        schema exists. To install a driver, see
+        :ref:`install-sql-interface-driver`. To connect a |bi| tool, see
+        :ref:`sql-connect`.
+
+      - {+service+} uses the reserved
+        :ref:`internal database <cloud-system-databases>`
+        ``__mdb_internal_sqlinterface``. Don't modify or drop it.
+
+      - When you turn the {+sql-interface+} off, client applications
+        lose access and schemas can't be updated or used until you turn
+        the {+sql-interface+} back on.
+
+      {+atlas-admin-api+} Error Codes
+      ````````````````````````````````````
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 12 38 50
+
+         * - Status
+           - Error Code
+           - Cause and Resolution
+
+         * - ``400``
+           - ``CLUSTER_INVALID_STATE``
+           - The {+cluster+} is in a state that cannot accept
+             {+sql-interface+} changes, such as ``CREATING``, ``UPDATING``,
+             ``DELETING``, ``REPAIRING``, or ``PAUSED``. Wait for the
+             {+cluster+} to become idle, then retry the request.
+
+         * - ``409``
+           - ``TENANT_SQL_INTERFACE_NOT_SUPPORTED``
+           - The {+cluster+}'s version, tier, or type does not support the
+             {+sql-interface+}. Use the ``GET`` endpoint to read
+             ``unsupportedReason``, then resolve the underlying constraint.
+
+         * - ``409``
+           - ``SQL_INTERFACE_DISABLED_FOR_CLUSTER``
+           - The {+sql-interface+} is ``OFF`` for the {+cluster+}. Enable
+             the {+sql-interface+} before you request schema metadata.
+
+      Unsupported Reasons
+      ```````````````````
+
+      When ``supported`` is ``false``, the ``unsupportedReason`` field
+      contains one of the following values:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 42 58
+
+         * - Value
+           - Meaning
+
+         * - ``UNSUPPORTED_TIER``
+           - The {+cluster+} tier does not support the {+sql-interface+}. The
+             feature requires a {+dedicated-cluster+}, ``M10`` and above.
+
+         * - ``UNSUPPORTED_TYPE``
+           - The {+cluster+} type does not support the
+             {+sql-interface+}. {+Flex-clusters+} return this value. Use
+             a {+dedicated-cluster+} instead.
+
+         * - ``UNSUPPORTED_MONGODB_VERSION``
+           - The {+cluster+} runs a MongoDB version earlier than 6.0. Upgrade
+             the {+cluster+} to MongoDB 6.0 or later.
+
+   .. selected-content::
+      :selections: self, None
+
+      Prerequisites
+      -------------
+
+      - A :ref:`MongoDB database user <mongodb-users>` with which to
+        connect.
+
+      Procedure
+      ---------
+
+      For local or self-managed deployments, you must generate a schema by
       downloading and running the {+schema-builder+}. To learn more, see `the {+schema-builder+} README <https://translators-connectors-releases.s3.amazonaws.com/mongodb-schema-manager/docs/MongoDB_Schema_Manager-overview.pdf>`__.
 
       .. procedure::
@@ -86,7 +389,7 @@ Choose your deployment type to get started:
 
          .. step:: Download the {+schema-builder+}.
 
-            Download the {+schema-builder+} for your operating system from the `MongoDB download center <https://www.mongodb.com/try/download/sql-schema-builder>`__.
+            Download the {+schema-builder+} for your operating system from the `MongoDB download center <https://www.mongodb.com/try/download/sql-schema-builder/>`__.
 
          .. step:: Run the {+schema-builder+}.
             

@@ -46,5 +46,5 @@
    Driver = /usr/local/lib/mongoodbc/bin/libatsql.so
    Database = sample_mflix
    User = your_username
-   Uri = mongodb://datalake.region.a.query.mongodb.net/?ssl=true
+   Uri = mongodb://<hostname>:<port>/?ssl=true
    UnicodeTranslationOption = utf16

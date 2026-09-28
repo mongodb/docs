@@ -1,5 +1,8 @@
 .. note::
 
-    You can get your connection information from the 
-    :ref:`Connect using the Atlas SQL Interface <sql-connect>` modal. 
+    For an {+service+} {+dedicated-cluster+} or {+fdi+}, get your
+    connection information from the {+service+} UI: click
+    :guilabel:`Connect`, then select :guilabel:`Atlas SQL Interface`.
+    For a self-managed {+ea+} deployment, use your MongoDB deployment
+    |uri|. To learn more, see :ref:`sql-connect`.
     

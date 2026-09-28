@@ -2,91 +2,23 @@
    :style: normal
 
    .. include:: /includes/nav/steps-data-federation.rst
-   
-   .. step:: Click :guilabel:`Connect` to open the {+fdi+} connection modal.
 
-   .. step:: Select :guilabel:`{+asql+}`.
+   .. step:: On the federated database card, click
+      :guilabel:`Connect`.
 
-   .. step:: Select :guilabel:`JDBC Driver`.
+      A connection dialog box opens.
+
+   .. step:: Click :guilabel:`Atlas SQL`.
+
+   .. step:: Select your driver.
+
+      From :guilabel:`Select your driver`, select
+      :guilabel:`JDBC Driver`.
 
    .. step:: Copy your connection information.
 
-      {+adf+} provides a connection string to connect to your 
-      {+fdi+}. You'll need this in a later step.
+      Select a database from the :guilabel:`Database` dropdown,
+      then click :icon-lg:`Copy` to copy the connection string.
+      You'll need this in a later step.
 
-   .. step:: Open your `DBeaver <https://dbeaver.io/>`__ application.
-
-   .. step:: Add a driver to DBeaver.
-
-      a. In DBeaver, click :guilabel:`Database` and select  
-         :guilabel:`Driver Manager` from the dropdown menu.
-            
-      #. Click :guilabel:`New` to open the 
-         :guilabel:`Create new driver` modal.
-
-      #. In the :guilabel:`Settings` tab, specify the following 
-         information:
-
-         .. list-table::
-            :stub-columns: 1
-            :widths: 10 20
-               
-            * - Driver Name
-              - ``MongoSQL``
-                    
-            * - Class Name
-              - ``com.mongodb.jdbc.MongoDriver``
-
-      #. In the :guilabel:`Libraries` tab, click 
-         :guilabel:`Add File` and add your JDBC driver 
-         ``all.jar`` file.
-
-         Click :guilabel:`Find Class`.
-
-      #. Click :guilabel:`OK`. The 
-         :guilabel:`Create new driver` modal closes.
-         
-   .. step:: Create a database connection.
-
-      a. In DBeaver, click :guilabel:`Database` and select  
-         :guilabel:`New Database Connection` from the dropdown 
-         menu to open the :guilabel:`Connect to a database` modal.
-
-      #. From the list of databases, select the ``MongoDB`` 
-         database driver that you created in the previous step.
-
-         If you don't see ``MongoDB``, select 
-         the :guilabel:`All` category inside the modal.
-
-         Click :guilabel:`Next`.
-
-      #. In the :guilabel:`Main` tab, enter the following 
-         information: 
-
-         .. list-table::
-            :stub-columns: 1
-            :widths: 10 20
-               
-            * - JDBC URL
-              - Connection string obtained from a previous step.
-
-            * - Username
-              - MongoDB user authorized for the connection.
-
-            * - Password
-              - Password associated with the MongoDB user.
-
-      #. In the :guilabel:`Driver properties` tab, expand 
-         :guilabel:`User Properties`. Add the following key-value 
-         properties:
-
-         .. list-table::
-            :stub-columns: 1
-            :widths: 10 20
-
-            * - database
-              - The name of your virtual database.
-
-            * - user
-              - The MongoDB user to connect with. Not required if 
-                you entered a ``Username`` in the previous step.
+   .. include:: /includes/configure-dbeaver-steps.rst

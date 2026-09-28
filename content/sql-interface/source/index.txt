@@ -39,51 +39,119 @@ MongoDB {+sql-interface+} Overview
 
 .. |interface| replace:: SQL Interface
 
-The {+sql-interface+} for {+service+} and {+ea+} 
-lets non-developers query MongoDB data from the SQL tools they already use. 
-It provides live, read-only access over standard |odbc| and |jdbc| connections, 
-eliminating the need to learn {+mql+} or move data out of MongoDB for analytics. 
-This simplifies operational reporting, accelerates insights, and ensures data 
-remains accurate and consistent. 
+The {+sql-interface+} for {+service+} and {+ea+}
+lets non-developers query MongoDB data from the SQL tools they already use.
+It provides live, read-only access over standard |odbc| and |jdbc| connections,
+eliminating the need to learn {+mql+} or move data out of MongoDB for analytics.
+This simplifies operational reporting, accelerates insights, and ensures data
+remains accurate and consistent.
 
-Supported Versions
-------------------
+You can deploy the {+sql-interface+} three ways: directly on an
+{+service+} {+dedicated-cluster+}, through an {+service+} {+fdi+}, or
+on a self-managed {+ea+} deployment. For direct SQL access to a single
+{+service+} {+cluster+}, use a {+dedicated-cluster+}. This is the
+recommended path for most {+service+} connections, and it requires no
+{+fdi+}. Use a {+fdi+} when a single SQL query must span more than one
+data source, such as multiple {+clusters+} or |s3| buckets.
 
-The {+sql-interface+} supports connections from:
+Compare Deployment Options
+--------------------------
 
-- **{+service+} Clusters:** MongoDB 5.0 and later.
+.. list-table::
+   :header-rows: 1
+   :widths: 16 28 28 28
 
-- **Self-Managed EA Clusters:** MongoDB 6.0 and later.
+   * -
+     - Dedicated Cluster (Recommended for {+service+})
+     - Federated Database Instance
+     - On-Premises (EA)
+
+   * - **Best for**
+     - SQL access to the data in one {+service+} {+cluster+}.
+     - A single SQL query that spans more than one data source.
+     - SQL access to a self-managed deployment you run yourself.
+
+   * - **Data sources**
+     - One {+dedicated-cluster+}.
+     - Multiple {+service+} {+clusters+}, {+adf+} collections, and
+       storage objects including |aws| |s3| buckets, |azure| Blob
+       Storage containers, |gcp| storage buckets, HTTP URLs, and
+       {+service+} Online Archives.
+     - One self-managed {+ea+} deployment.
+
+   * - **Deployment requirement**
+     - {+Dedicated-cluster+}, ``M10`` and above. Not available on
+       {+Free-clusters+}, {+Flex-clusters+}, or ``M2`` and ``M5``
+       shared {+clusters+}.
+     - A {+fdi+}. No {+cluster+} tier requirement.
+     - A `MongoDB Enterprise
+       <https://www.mongodb.com/products/self-managed/enterprise-advanced/>`__
+       cluster. Community clusters are not supported.
+
+   * - **MongoDB version**
+     - 6.0 and later.
+     - 5.0 and later.
+     - 6.0 and later.
+
+   * - **Database edition**
+     - {+atlas-core-full+} and {+atlas-infinite-full+}.
+     - {+atlas-core-full+} and {+atlas-infinite-full+}.
+     - Not applicable.
+
+   * - **Schema management**
+     - {+schema-builder+} CLI.
+     - {+adf+} SQL schema management, built into the
+       {+atlas-ui+}.
+     - {+schema-builder+} CLI.
+
+   * - **Architecture**
+     - Connects directly to the {+cluster+}.
+     - Shared and multi-tenant. The {+adf+} query engine retrieves
+       data from all underlying data sources to aggregate them.
+     - Runs in your own environment.
+
+   * - **Connection and query limits**
+     - Follow the {+cluster+} itself.
+     - The {+fdi+} enforces its own simultaneous connection and query
+       limits.
+     - Follow the deployment itself.
+
+All three options provide live, read-only access and use the
+{+asql+} dialect, which is SQL-92 compatible. You cannot use the
+{+sql-interface+} to insert, update, or delete documents on any
+deployment, and the {+sql-interface+} does not support other SQL
+dialects.
 
 {+sql-interface+} Components
 ----------------------------
 
 The {+sql-interface+} deployment consists of four components:
 
-- Your |bi| visualization and reporting tool used to analyze data, such as 
-  `Tableau <https://www.tableau.com/>`__ or 
+- Your |bi| visualization and reporting tool used to analyze data, such as
+  `Tableau <https://www.tableau.com/>`__ or
   `Power BI <https://www.microsoft.com/en-us/power-platform/products/power-bi>`__.
 
-- A |jdbc| or |odbc| driver that connects your |bi| tool to your MongoDB database. 
-  The driver you select depends on your |bi| tool. 
+- A |jdbc| or |odbc| driver that connects your |bi| tool to your MongoDB database.
+  The driver you select depends on your |bi| tool.
 
-- The {+schema-builder+} that manages the JSON schema required to translate SQL 
-  queries between your |bi| tool and MongoDB database. In {+service+}, the {+schema-builder+}
-  is built-in to the {+atlas-ui+}. For self-managed EA deployments, you download 
-  the {+schema-builder+} as a CLI tool.
+- JSON schema are required to translate SQL queries between your |bi| tool
+  and MongoDB database. For {+fdi+}s, schema management is built into the
+  {+atlas-ui+}. For {+dedicated-clusters+} and for self-managed {+ea+}
+  deployments, you download the {+schema-builder+} as a CLI tool. To learn
+  more, see :ref:`sql-schema-management`.
 
-- A MongoDB database where your data resides, either an {+service+} cluster or a 
+- A MongoDB database where your data resides, either an {+service+} cluster or a
   self-managed EA database.
 
 
-Key Benefits of the MongoDB SQL Interface
+Key Benefits of the {+sql-interface-full+}
 -----------------------------------------
 
 **Schema Improvements**
-   Experience significantly improved schema computations that adapt to your 
-   data. There's no need for cumbersome schema files as MongoSQL dynamically 
-   derives schemas on-the-fly and stores them in the database for easy retrieval. 
-   The schema mapping is very accurate with no sampling.
+   Experience significantly improved schema integration. Schema
+   computations adapt to your data and represent your collections
+   natively. Schemas aren't cached and you can refresh them at any time
+   without impacting connectivity.
 
 **Simple & Secure** 
    Enjoy a simplified setup with no complex proxy configurations, allowing you 
@@ -93,19 +161,19 @@ Key Benefits of the MongoDB SQL Interface
 **First-class SQL Experience**
    Leverage rich objects and arrays with native driver support, enhancing your 
    data interactions. Server restarts are seamless, ensuring uninterrupted 
-   operations and high availability. The interface uses MongoSQL, a 
+   operations and high availability. The interface uses {+asql+}, a 
    MongoDB-Native SQL-92 compatible dialect, which supports complex transformations 
    like flattening nested objects and unwinding arrays directly within SQL queries.
 
 **Unified Access**
-   Provides the same drivers, connectors, and schema mapping for Atlas Cloud, 
-   Atlas Data Federation, and self-managed EA databases.
+   Provides the same drivers, connectors, and schema mapping for {+fdi+}s,
+   {+dedicated-clusters+}, and self-managed EA databases.
 
 **BI Tool Integration**
-   The Power BI Connector is certified by Microsoft and the Tableau Connector 
-   is developed in partnership with Tableau. It supports Power BI with 
-   DirectQuery and Tableau Desktop, Tableau Server, and Tableau Prep. Tableau 
-   Cloud support is expected in the first half of 2025.
+   The Power BI Connector is certified by Microsoft and the Tableau Connector
+   is developed in partnership with Tableau. It supports Power BI with
+   DirectQuery and Tableau Desktop, Tableau Server, Tableau Prep, and
+   Tableau Cloud. Tableau Cloud supports SCRAM authentication only.
 
 MongoDB {+sql-interface+} Compatibility Considerations
 ------------------------------------------------------
@@ -128,10 +196,9 @@ your setup is compatible and up-to-date:
   performance enhancements, and long-term compatibility. To see the latest versions, 
   go to the `MongoDB download center <https://www.mongodb.com/try/download/sql-interface>`__.
 
-* Later versions of {+sql-interface+} components might drop support for earlier 
-  MongoDB server versions 
-  or specific language runtimes, such as Node.js versions. We recommend reviewing 
-  the :ref:`sql-release-notes` to stay informed about compatibility changes and 
+* Later versions of {+sql-interface+} components might drop support for earlier
+  MongoDB server versions. We recommend reviewing
+  the :ref:`sql-release-notes` to stay informed about compatibility changes and
   upgrade requirements.
 
 Legacy Options

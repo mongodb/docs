@@ -38,7 +38,7 @@ export const toc: L1TocItem[] = [
                 url: '/docs/sql-interface/install-driver',
               },
               {
-                label: 'Connect BI Tool',
+                label: 'Connect SQL Tool',
                 contentSite: 'sql-interface',
                 url: '/docs/sql-interface/connect',
               },
@@ -99,11 +99,6 @@ export const toc: L1TocItem[] = [
             label: 'Private Endpoint',
             contentSite: 'sql-interface',
             url: '/docs/sql-interface/connect/private-endpoint',
-          },
-          {
-            label: 'MongoDB Shell',
-            contentSite: 'sql-interface',
-            url: '/docs/sql-interface/connect/shell',
           },
           {
             label: 'Changelog',

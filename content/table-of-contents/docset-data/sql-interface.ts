@@ -33,7 +33,7 @@ const tocData: TocItem[] = [
             url: '/docs/sql-interface/install-driver',
           },
           {
-            label: 'Connect BI Tool',
+            label: 'Connect SQL Tool',
             contentSite: 'sql-interface',
             url: '/docs/sql-interface/connect',
           },
@@ -94,11 +94,6 @@ const tocData: TocItem[] = [
         label: 'Private Endpoint',
         contentSite: 'sql-interface',
         url: '/docs/sql-interface/connect/private-endpoint',
-      },
-      {
-        label: 'MongoDB Shell',
-        contentSite: 'sql-interface',
-        url: '/docs/sql-interface/connect/shell',
       },
       {
         label: 'Changelog',

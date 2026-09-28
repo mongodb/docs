@@ -5,34 +5,22 @@ MongoDB SQL Schema Builder CLI
 ==============================
 
 .. meta::
-   :description: Understand how the MongoDB SQL Schema Builder CLI generates schemas for the SQL Interface in Enterprise Advanced self-managed deployments, and learn which flags it accepts.
+   :description: Learn how the MongoDB SQL Schema Builder CLI generates and manages SQL Interface schemas for Enterprise Advanced self-managed deployments and Atlas dedicated clusters.
 
 .. default-domain:: mongodb
 
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 2
+   :depth: 3
    :class: singlecol
 
-The {+schema-builder+} CLI is the schema-management tool for
-Enterprise Advanced (EA) self-managed deployments of the
-{+sql-interface+}. You download and run the CLI against your cluster
-to produce the JSON schema. The {+sql-interface+} uses that
-schema to translate SQL queries into MongoDB operations.
-
-This page explains what the tool is, what you need to run it, how you
-invoke it, and the flags it accepts. For the schema-management
-overview and the other supported deployment types, see
-:ref:`sql-schema-management`.
-
-Use Cases
----------
-
-Use the {+schema-builder+} CLI when you run the {+sql-interface+} in
-an EA self-managed deployment and need to generate or update the
-schema for your collections. The CLI is the supported
-schema-management path for this deployment type.
+The {+schema-builder+} CLI is the schema-management tool for the
+{+sql-interface+} on {+ea+} self-managed deployments and on
+{+service+} {+dedicated-clusters+} (``M10`` and above).
+You download and run the CLI against your cluster to generate or
+update the schema for your collections. The {+sql-interface+} uses
+those schemas to translate SQL queries into MongoDB operations.
 
 The CLI does not sample your data. Instead, it analyzes every
 document in each collection it processes, so the generated schema
@@ -44,7 +32,9 @@ Schema regeneration is always user-initiated. The CLI does not
 refresh a schema automatically or on a schedule. You should
 regenerate a schema whenever the shape of your underlying data
 changes, so that the {+sql-interface+} operates on the provided
-schema information.
+schema information. If you need periodic updates, you can automate
+this by setting up a cron job to run the regeneration command on a
+schedule.
 
 Prerequisites
 -------------
@@ -52,12 +42,29 @@ Prerequisites
 Before you run the {+schema-builder+} CLI, ensure that you meet the
 following requirements:
 
-- Your deployment is a MongoDB Enterprise cluster. The CLI does not
-  support MongoDB Community clusters.
+- Your deployment is either a MongoDB Enterprise cluster
+  ({+ea+} self-managed) or a {+dedicated-cluster+} (``M10`` and
+  above) running MongoDB 6.0 or later ({+service+}). The CLI does not
+  support MongoDB Community clusters, {+Free-clusters+},
+  {+Flex-clusters+}, or ``M2`` and ``M5`` shared {+service+}
+  {+clusters+}.
+
+- On a {+dedicated-cluster+}, the {+sql-interface+} is enabled for
+  each {+cluster+} that you want to query with SQL. To learn more,
+  see :ref:`connect-with-sql-composable`.
+
+- The {+schema-builder+} CLI is compatible with your operating
+  system and architecture:
+
+  - Windows ``x86_64``.
+
+  - Linux ``x86_64`` and ``arm64``: OpenSSL 1.0 with glibc 2.26 or
+    later, OpenSSL 1.1 with glibc 2.28 or later, or OpenSSL 3.0 with
+    glibc 2.28 or later. MongoDB recommends OpenSSL 3.0 or later for
+    secure connections.
 
 - You can connect to the cluster from the machine where you run the
-  CLI, either with a connection string (``--uri``) or a
-  configuration file (``--file``).
+  CLI with a connection string.
 
 - The database user that the CLI authenticates as has, at minimum:
 
@@ -71,6 +78,9 @@ following requirements:
     schema with an upsert, so the ``update`` privilege is required
     even on the first run.
 
+  - On a {+dedicated-cluster+}, the ``read`` privilege on the
+    ``__mdb_internal_sqlinterface`` database.
+
 You can supply credentials with the ``--username`` and ``--password``
 flags or include them in the connection string. If you do not provide
 credentials, the CLI attempts to connect without authentication and
@@ -83,50 +93,94 @@ You run the {+schema-builder+} CLI from the command line against your
 cluster to generate or update a schema. The binary is named
 ``mongodb-schema-manager``.
 
-The following example analyzes every collection in the ``sales``
-database and writes trace logs to a ``logs`` directory:
+.. composable-tutorial::
+   :options: deployment-type, atlas-deployment
+   :defaults: atlas, dedicated
 
-.. code-block:: sh
+   Obtain a Connection String
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   mongodb-schema-manager \
-      --uri "mongodb://<host>:<port>" \
-      --ns-include "sales.*" \
-      --logpath ./logs \
-      --verbosity info
+   The CLI needs a connection string (``--uri``) to connect to your
+   cluster. You can also provide a configuration file (``--file``) so
+   that you don't have to retype arguments on each run.
 
-When the run completes, the CLI prints the databases and namespaces
-for which it created or modified a schema. If any namespace has a
-level of polymorphism too great for meaningful use, it is deemed
-unstable. The CLI lists those namespaces. For more information, see
-:ref:`sql-schema-builder-unstable`.
+   .. selected-content::
+      :selections: self, None
 
-.. _sql-schema-builder-tls:
+      Use the connection string for your EA self-managed
+      deployment, in the same form you use to connect with
+      ``mongosh`` or a driver.
 
-Connect with TLS
-----------------
+   .. selected-content::
+      :selections: atlas, dedicated
 
-The {+schema-builder+} CLI does not provide command-line flags for
-TLS. To connect to a TLS-enabled cluster, specify the TLS options in
-the connection string that you pass to ``--uri``.
+      .. procedure::
+         :style: normal
 
-Percent-encode any option value that contains reserved characters,
-including the ``/`` characters in a file path. For example, the path
-``/etc/certs/ca.pem`` becomes ``%2Fetc%2Fcerts%2Fca.pem``.
+         .. include:: /includes/nav/steps-db-deployments-page.rst
 
-The following example enables TLS and specifies a Certificate
-Authority file:
+         .. step:: On the cluster card, click :guilabel:`Connect`.
 
-.. code-block:: sh
+            A connection dialog box opens.
 
-   mongodb-schema-manager \
-      --uri "mongodb://<host>:<port>/?tls=true&tlsCAFile=%2Fetc%2Fcerts%2Fca.pem" \
-      --ns-include "sales.*"
+         .. step:: Select a connection method and copy the
+            connection string.
 
-If your deployment requires client certificates, also set
-``tlsCertificateKeyFile``, and ``tlsCertificateKeyFilePassword`` if
-the key file is encrypted. For the full list of TLS connection string
-options, see :manual:`TLS Options
-</reference/connection-string-options/#std-label-uri-options-tls>`.
+            Choose the driver or shell connection option that
+            matches how you plan to authenticate, then click
+            :guilabel:`Copy` to copy the connection string. You'll
+            use this string as the CLI's ``--uri`` value.
+
+   The following example analyzes every collection in the ``sales``
+   database and writes trace logs to a ``logs`` directory:
+
+   .. code-block:: sh
+
+      mongodb-schema-manager \
+         --uri "mongodb://<host>:<port>" \
+         --ns-include "sales.*" \
+         --logpath ./logs \
+         --verbosity info
+
+   When the run completes, the CLI prints the databases and namespaces
+   for which it created or modified a schema. If any namespace has a
+   level of polymorphism too great for meaningful use, it is deemed
+   unstable. The CLI lists those namespaces. For more information,
+   see :ref:`sql-schema-builder-unstable`.
+
+   .. selected-content::
+      :selections: self, None
+
+      .. _sql-schema-builder-tls:
+
+      Connect with TLS
+      ^^^^^^^^^^^^^^^^
+
+      If your self-managed {+ea+} deployment requires TLS, specify
+      the TLS options in the connection string that you pass to
+      ``--uri``. The {+schema-builder+} CLI does not provide
+      command-line flags for TLS.
+
+      Percent-encode any option value that contains reserved
+      characters, including the ``/`` characters in a file path. For
+      example, the path ``/etc/certs/ca.pem`` becomes
+      ``%2Fetc%2Fcerts%2Fca.pem``.
+
+      The following example enables TLS and specifies a Certificate
+      Authority file:
+
+      .. code-block:: sh
+
+         mongodb-schema-manager \
+            --uri "mongodb://<host>:<port>/?tls=true&tlsCAFile=%2Fetc%2Fcerts%2Fca.pem" \
+            --ns-include "sales.*"
+
+      If your deployment requires client certificates, also set
+      ``tlsCertificateKeyFile``, and
+      ``tlsCertificateKeyFilePassword`` if the key file is
+      encrypted. For the full list of TLS connection string options,
+      see :manual:`TLS Options
+      </reference/connection-string-options/#std-label-uri-options-tls>`.
 
 .. _sql-schema-builder-storage:
 
@@ -158,7 +212,7 @@ full schema body, run the following pipeline in ``mongosh``:
 
 .. code-block:: javascript
 
-   db.__sql_schemas.aggregate([
+   db.getCollection("__sql_schemas").aggregate([
       { $project: { _id: 0, namespace: "$_id", type: 1, lastUpdated: 1, unstable: 1 } },
       { $sort: { namespace: 1 } }
    ])
@@ -167,7 +221,7 @@ To view the full schema for a specific collection, match on its name:
 
 .. code-block:: javascript
 
-   db.__sql_schemas.aggregate([
+   db.getCollection("__sql_schemas").aggregate([
       { $match: { _id: "<collection-name>" } },
       { $project: { _id: 0, namespace: "$_id", type: 1, lastUpdated: 1, unstable: 1, schema: 1 } }
    ])
@@ -306,7 +360,6 @@ Learn More
 
 - :ref:`sql-schema-management`
 - :ref:`install-sql-interface-landing`
-- :ref:`query-with-sql`
 - :ref:`connect-with-sql-overview`
 - `MongoDB Schema Manager Overview
   <https://translators-connectors-releases.s3.amazonaws.com/mongodb-schema-manager/docs/MongoDB_Schema_Manager-overview.pdf>`__
