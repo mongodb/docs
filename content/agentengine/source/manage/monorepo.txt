@@ -1,0 +1,271 @@
+.. _agentic-platform-set-up-monorepo:
+
+=================
+Set Up a Monorepo
+=================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Learn how to use a monorepo to manage multiple agents in one repository. See how to define the file structure, configure the monorepo, and initialize the monorepo.
+   :keywords: workspace, agent, setup, multi-agent, agent.yaml
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to set up a **monorepo** to manage multiple
+agents from a single repository. A monorepo uses an ``agent.yaml`` file
+at the repository root that lists each agent's name and subdirectory path.
+The CLI automatically detects the monorepo format when the root ``agent.yaml`` contains
+an ``agents`` key instead of an ``entrypoint`` key.
+
+Before setting up a monorepo, ensure that you :ref:`install and authenticate
+<agentic-platform-set-up-install-authenticate>` the {+mdb-ai-platform+}.
+
+Directory Structure
+-------------------
+
+A monorepo requires a root ``agent.yaml`` and a single-agent
+``agent.yaml`` in each agent's subdirectory. The following example
+shows the file structure for a monorepo containing two agents:
+
+.. code-block:: text
+   :copyable: false
+
+   my-repo/
+   ├── agent.yaml           # Monorepo root file
+   ├── .env                 # Shared secrets for the local dev stack
+   ├── pyproject.toml       # Shared Python dependencies (optional)
+   ├── agents/
+   │   ├── chat/
+   │   │   ├── agent.yaml   # Per-agent configuration file with entrypoint
+   │   │   ├── pyproject.toml
+   │   │   ├── .env         # Per-agent secrets
+   │   │   └── src/
+   │   └── search/
+   │       ├── agent.yaml   # Per-agent configuration file with entrypoint
+   │       ├── pyproject.toml
+   │       ├── .env         # Per-agent secrets
+   │       └── src/
+   └── shared/              # Shared libraries, included in all builds
+
+Configure the Monorepo
+----------------------
+
+The following steps show how to configure the required monorepo files
+and initialize the monorepo.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Configure the root ``agent.yaml`` file.
+
+      .. _agentic-platform-monorepo-agent-yaml:
+      
+      Create an ``agent.yaml`` file at the repository root. Use an ``agents`` list
+      to declare each agent's name and path. Do not include an ``entrypoint`` field
+      in the root file.
+
+      Each entry in the ``agents`` list requires the following fields:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 20 15 65
+
+         * - Field
+           - Required
+           - Description
+         * - ``name``
+           - yes
+           - Agent identifier. Set this field to a lowercase alphanumeric value with hyphens. Do
+             not use leading or trailing hyphens, and ensure that the name is unique within the monorepo.
+         * - ``path``
+           - yes
+           - Relative path from the repository root to the agent's directory. The path cannot
+             be absolute or escape the repository root by using ``../``.
+
+      The following sample ``agent.yaml`` file configures a monorepo with two agents
+      named ``chat`` and ``search``:
+
+      .. code-block:: yaml
+
+         agents:
+           - name: chat
+             path: agents/chat
+           - name: search
+             path: agents/search
+
+   .. step:: Configure each agent's ``agent.yaml`` file.
+
+      In each agent subdirectory, create an ``agent.yaml`` file that uses the
+      single-agent format. The file must include an ``entrypoint`` field that
+      points to the agent's application object, and a ``sandboxes`` field that
+      defines what the agents tools run and which secrets they can access. To
+      view all available fields, see the :ref:`list of agent.yaml fields
+      <agentic-platform-agent-yaml-config>` in the Create a Project guide.
+
+      The following sample ``agent.yaml`` file configures the ``chat`` agent:
+
+      .. code-block:: yaml
+
+         entrypoint: chat_agent.graph:app
+         name: chat
+         sandboxes:
+           agent:
+             secrets: ["*"]
+             tools: []
+           tool:
+             secrets: ["*"]
+             tools: []
+
+      The following sample ``agent.yaml`` file configures the ``search`` agent:
+
+      .. code-block:: yaml
+
+         entrypoint: search_agent.graph:app
+         name: search
+         sandboxes:
+           agent:
+             secrets: ["*"]
+             tools: []
+           tool:
+             secrets: ["*"]
+             tools: []
+
+      The ``agent`` sandbox is for tools that must run on the agent, such as
+      interrupt tools. The ``tool`` sandbox is for tools that run separately
+      from the agent. List the tools for each sandbox under its ``tools`` field.
+      Configure secret access under each sandbox's ``secrets`` field. Replace
+      ``["*"]`` with a list of specific secret names when the sandbox should
+      receive only selected secrets.
+
+      .. important::
+
+         Each subdirectory must also contain a ``pyproject.toml`` file
+         that declares the agent's Python dependencies. The file must
+         set the ``[project].name`` key and include a ``[build-system]`` table
+         that sets the ``requires`` and ``build-backend`` keys. To generate
+         a file that meets these requirements, run ``uv init --package``
+         in the agent subdirectory.
+
+   .. step:: Create the ``.env`` files.
+
+      A monorepo uses two types of ``.env`` files: a root ``.env`` for secrets that
+      the local dev stack shares across all agents, and a per-agent
+      ``.env`` in each agent subdirectory for that agent's own secrets. Create them
+      manually before you start the local environment.
+
+      In the repository root, create a ``.env`` file that contains the
+      secrets the orchestration engine and every agent consume during local
+      development, as shown in the following example:
+
+      .. code-block:: none
+         :caption: .env
+
+         MONGODB_URI=<your-mongodb-connection-string>
+         <PROVIDER>_API_KEY=<your-api-key>
+
+      In each agent subdirectory, create a ``.env`` file for the secrets
+      that only that agent consumes, such as agent-specific API keys.
+
+      .. important::
+
+         Do not commit your secrets to version control.
+
+   .. step:: Initialize the monorepo.
+
+      Run the following command from the repository root to register each agent and
+      generate local development files:
+
+      .. code-block:: bash
+
+         agentengine init
+
+      The CLI detects the monorepo format automatically and registers each agent
+      listed in the root ``agent.yaml`` as a separate workspace on the {+platform-short+}.
+
+Migrate from a Single Agent to a Monorepo
+-----------------------------------------
+
+To convert an existing single-agent repository to a
+monorepo, move your agent files into a subdirectory and re-initialize the
+project.
+
+The following steps show how to migrate to a monorepo.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create the agent subdirectory and move your files.
+
+      Run the following commands to create a subdirectory for your agent
+      and move the following files into it:
+
+      .. code-block:: bash
+
+         mkdir -p agents/<agent-name>
+         mv agent.yaml pyproject.toml .env src/ agents/<agent-name>/
+
+      Replace the ``<agent-name>`` placeholder with the name of your agent.
+
+      .. note:: Directory Structure
+
+         The preceding example creates a subdirectory in the ``agents/`` directory.
+         You can use a different directory structure, but the ``path`` value in the root
+         ``agent.yaml`` must specify the corresponding relative path.
+
+   .. step:: Move the ``.agentengine/`` directory to the agent subdirectory.
+
+      When you run ``agentengine init``, the CLI generates a hidden ``.agentengine/``
+      directory that contains workspace registration state in the
+      ``.agentengine/state.json`` file. In a monorepo, each agent requires its own
+      ``.agentengine/`` directory.
+      
+      Run the following command to move the existing directory into the agent
+      subdirectory, which preserves the agent's workspace registration:
+
+      .. code-block:: bash
+
+         mv .agentengine/ agents/<agent-name>/.agentengine/
+
+      .. important::
+
+         If you do not move the ``.agentengine/`` directory, running ``agentengine init``
+         registers a new workspace for your agent and orphans the previous
+         workspace registration.
+
+   .. step:: Create the root ``agent.yaml`` file.
+
+      In the repository root, create a new ``agent.yaml`` that lists your agent
+      using the ``agents`` key, as described in the previous :ref:`Configure the Monorepo <agentic-platform-monorepo-agent-yaml>`
+      section.
+
+   .. step:: Initialize the monorepo.
+
+      Run the following command from the repository root to initialize the monorepo:
+
+      .. code-block:: bash
+
+         agentengine init
+
+      The CLI detects the monorepo format, generates per-agent dev-container artifacts,
+      and registers any agents that don’t already have an ``.agentengine/state.json`` file.
+      Agents with an existing ``state.json`` retain their current workspace
+      registration.
+
+Next Steps
+----------
+
+After setting up your monorepo, you can build and deploy your agents. To learn
+how, see the following guides:
+
+- :ref:`Build the Agent Image <agentic-platform-deploy-agent-image>`
+- :ref:`Deploy Your Build <agentic-platform-deploy-build>`

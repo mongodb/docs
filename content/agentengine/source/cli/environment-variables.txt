@@ -1,0 +1,104 @@
+.. _environment-variables:
+
+Environment variables
+=====================
+
+The ``agentengine`` CLI reads a small set of environment variables that
+change how the CLI itself behaves. This page documents those inputs.
+Variables that configure a deployed agent, the local development stack,
+or the generated containers are documented with those features.
+
+When a command exposes a flag for the same setting, the flag takes
+precedence over the environment variable.
+
+Update check
+------------
+
+Released binaries check for a newer version and print a notice to stderr
+when one exists. The check runs at most once every 24 hours and records
+its state in ``~/.agentengine/update-check.json``.
+
+Set ``AGENTENGINE_NO_UPDATE_CHECK=1`` to disable the check. The check is
+also skipped when the ``CI`` environment variable is set and when the
+binary is a local development build.
+
+Telemetry
+---------
+
+The CLI has two independent reporting channels. Both are on by default
+in released binaries and off in development builds and whenever ``CI``
+is set.
+
+- ``AGENTENGINE_TELEMETRY_ENABLED`` controls product-usage analytics
+  sent to the Agent Engine gateway.
+- ``AGENTENGINE_SENTRY_ENABLED`` controls crash and error reports sent
+  to Sentry. Reporting also requires a Sentry DSN embedded at build
+  time, which release builds include.
+
+Set either variable to ``0``, ``false``, ``no``, or ``off`` to disable
+that channel.
+
+For Sentry specifically, the CLI withholds the DSN embedded in release
+builds, so the containers it starts do not report until you opt in.
+Container reporting requires both ``AGENTENGINE_SENTRY_ENABLED=1`` and
+an explicit ``AGENTENGINE_SENTRY_DSN`` in the environment, which the
+generated stacks translate into the names the containers read.
+
+Logging
+-------
+
+The CLI writes a session log to a file under the platform log directory.
+The following variables control that log. The flags ``--log-level``,
+``--log-file``, and ``--no-log`` set the same behavior and take
+precedence when both are present.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 15 15 45
+
+   * - Variable
+     - Flag
+     - Default
+     - Effect
+   * - ``AGENTENGINE_LOG_LEVEL``
+     - ``--log-level``
+     - ``info``
+     - File verbosity: ``error``, ``warn`` (or ``warning``), ``info``, or ``debug`` (case-insensitive; an unrecognized value is treated as ``info``)
+   * - ``AGENTENGINE_LOG_FILE``
+     - ``--log-file``
+     - timestamped path in the platform log directory
+     - Write the log to this path
+   * - ``AGENTENGINE_NO_LOG``
+     - ``--no-log``
+     - unset
+     - Disable file logging
+   * - ``AGENTENGINE_LOG_MAX_FILES``
+     - —
+     - ``20``
+     - Number of log files to retain before the oldest are pruned
+   * - ``AGENTENGINE_NO_LOG_PRUNE``
+     - —
+     - unset
+     - Disable automatic log pruning
+
+Both of these booleans accept ``1``, ``true``, ``yes``, or ``on`` as
+true, case-insensitive. Any other value, including an unset variable, is
+false. The other variables on this page each state their own accepted
+values above.
+
+Platform feature flags
+----------------------
+
+Commands that resolve an artifact source read an environment-wide
+feature flag from the platform. Set ``AGENTENGINE_SKIP_PLATFORM_FLAGS``
+to any value other than ``0`` or ``false`` to skip that read entirely. A
+skipped read resolves to the built-in defaults, which keeps the CLI
+usable on a machine with no route to the platform.
+
+Command output
+--------------
+
+Most commands print a context line at the top of their output showing
+the organization, project, workspace, and environment the command will
+act on. Set ``AGENTENGINE_NO_BREADCRUMB`` to any non-empty value to
+suppress that line, which suits scripts that parse command output.

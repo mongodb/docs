@@ -13,7 +13,7 @@ import { navigateToDocsPath } from '@/utils/navigate-to-docs-path';
 
 const NAV_TABS = [
   { label: 'Database', path: '/docs' },
-  // { label: 'Agentic Platform', path: '/docs/agentic-platform' },
+  { label: 'Atlas Agent Engine', path: '/docs/agentengine' },
   { label: 'VoyageAI Models', path: '/docs/voyageai' },
 ] as const;
 
@@ -86,7 +86,12 @@ export const ProductTabs = ({ slug }: { slug: string }) => {
   const router = useRouter();
   const { isTabletOrMobile } = useScreenSize();
 
-  const activeIndex = (slug?.startsWith('docs/voyageai') || slug?.startsWith('/docs/voyageai')) ? 1 : 0;
+  const activeIndex =
+    slug?.startsWith('docs/agentengine') || slug?.startsWith('/docs/agentengine')
+      ? 1
+      : slug?.startsWith('docs/voyageai') || slug?.startsWith('/docs/voyageai')
+      ? 2
+      : 0;
 
   if (isOfflineBuild) return (
     <Body className={cx(mobileTitleStyling)}>Documentation</Body>

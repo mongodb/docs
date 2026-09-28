@@ -1,0 +1,334 @@
+.. _agentic-platform-human-in-the-loop:
+
+=================================
+Human-in-the-Loop Agent Execution
+=================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn how the Atlas Agent Engine pauses an agent run for human review, what reviewers see, and how to resume a suspended execution from the API, CLI, or UI.
+   :keywords: hitl, suspend, resume, review, decision, checkpoint, replay, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Human-in-the-loop (HITL) execution allows an agent to pause mid-run and wait
+for a human to review its work before continuing. When an agent
+calls a human-review tool defined in the agent code, it suspends the
+execution, surfaces context for a reviewer, and resumes only after the
+reviewer submits a decision.
+
+On the {+mdb-ai-platform+}, HITL is built into the execution pipeline.
+The suspend, review, and resume execution pipeline lifecycle applies
+whether you invoke the agent from the {+platform-short+} API, the ``agentengine`` CLI, or the
+{+platform-short+} UI. This guide explains the stages of the HITL lifecycle
+and how to submit decisions about the suspended execution.
+
+.. _agentic-platform-hitl-lifecycle:
+
+Suspend, Review, and Resume Lifecycle
+-------------------------------------
+
+An agent enters human review when it calls a human-review tool during an
+execution. To enable human review, add this tool to the agent code by
+using the LangGraph adapter's ``interrupt()`` function.
+
+.. tip::
+
+   To learn more about the ``interrupt()`` function, see the `LangGraph documentation
+   <https://reference.langchain.com/python/langgraph/types/interrupt>`__.
+
+Then, the {+platform-short+} moves the execution through the following
+lifecycle:
+
+1. **Suspend**: The agent calls a human-review tool, which pauses the
+   run. The agent sandbox saves a checkpoint of the
+   agent's state and reports the ``suspended`` status to the
+   Orchestration Engine (OE).
+#. **Notify**: The UI surfaces the paused execution and notifies a
+   human reviewer. The suspended execution carries the context that the agent
+   provided at the interruption point.
+#. **Review**: A reviewer inspects the surfaced context and submits a
+   decision, such as an approval or a rejection. The decision travels
+   through the API Gateway to the OE.
+#. **Resume**: The OE sends the execution back to the agent sandbox with the
+   reviewer's decision. The outcome of the decision depends on the agent code.
+   Either way, the agent sandbox restores the agent from its checkpoint and
+   re-runs the graph.
+#. **Complete**: After the agent finishes any remaining work, the OE
+   marks the execution as ``completed``. An execution can suspend and resume
+   multiple times before it reaches a terminal status.
+
+Execution Status Lifecycle
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The {+platform-short+} reports the current status in the ``status`` field
+of each execution API response. An execution that does not require human
+review moves through the following statuses:
+
+- ``pending``
+- ``running``
+- ``completed`` or ``error``
+
+When an execution suspends for human review, it moves through the
+following statuses:
+
+- ``pending``
+- ``running``
+- ``suspended``
+- ``resuming``
+- ``completed`` or ``error``
+
+Replay Guarantee
+~~~~~~~~~~~~~~~~
+
+When the OE resumes an execution, it returns cached results for every
+step that completed before the suspend. The agent re-runs the same
+code path, but the OE serves stored results instead of running previous
+steps again. Only steps that come after the review point run for the
+first time.
+
+This replay guarantee prevents duplicate actions. For example, if an
+agent sends an email before it suspends for review, the resumed execution
+does not send that email a second time.
+
+Review the Suspend Context
+--------------------------
+
+When an agent suspends, it provides a ``suspend_context`` object that
+describes what to review. The agent defines the fields in this object
+at the interruption point, so the exact contents vary by agent. For example,
+a refund approval agent might surface a claim ID and a description of the requested
+action.
+
+The ``suspend_context`` object might also include an ``allowed_decisions`` list
+that constrains which decisions a reviewer can submit. If this list is
+present and non-empty, the OE rejects any decision that is not in the
+list.
+
+Reviewer Decisions
+~~~~~~~~~~~~~~~~~~
+
+After the agent suspends, a reviewer submits a decision about the
+suspended execution. To submit this decision, provide the following inputs:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 20 55
+
+   * - Input
+     - Required
+     - Description
+
+   * - Decision
+     - Yes
+     - Reviewer decision for the suspended execution, such as
+       ``approve`` or ``reject``. Valid values are not a fixed set. The
+       agent declares them in the ``allowed_decisions`` list when it
+       suspends, and the OE validates your decision against that list
+       without regard to case.
+
+   * - Reviewer notes
+     - No
+     - Free-form context that accompanies the decision.
+
+The :ref:`following section <agentic-platform-hitl-resume>` describes
+the different ways you can provide these inputs.
+
+.. _agentic-platform-hitl-resume:
+
+Resume a Suspended Execution
+----------------------------
+
+You can resume a suspended execution from the {+platform-short+} API,
+the ``agentengine`` CLI, or the {+platform-short+} UI. 
+
+.. important::
+
+   To resume a suspended execution, you must have the ``PROJECT_OWNER`` role.
+
+.. _agentic-platform-hitl-resume-api:
+
+Use the API
+~~~~~~~~~~~
+
+To resume a suspended execution by using the API, send a ``POST`` request to the
+``/api/v1/projects/{project_id}/executions/{execution_id}/resume?workspace_id={workspace_id}``
+API endpoint. The request body includes the reviewer decision, as shown in
+:ref:`agentic-platform-resume-request-body`. The execution endpoints
+are scoped to a project. Replace the project ID, execution ID, and
+workspace ID placeholders with your own values.
+
+.. note::
+
+   The {+platform-short+} does not persist custom headers across a
+   suspended execution. Resend any ``X-Mdb-Agent-Engine-Custom-`` headers on the
+   resume request, or the agent does not receive them. To learn more, see
+   :ref:`agentic-platform-forward-custom-headers`.
+
+Select the tab for your preferred tool to see an example POST request
+that resumes a suspended execution. The
+``X-Mdb-Agent-Engine-Custom-Authorization`` header in each example
+shows how to resend a custom header:
+
+.. tabs::
+
+   .. tab:: cURL
+      :tabid: resume-curl
+
+      .. code-block:: bash
+
+         curl -X POST "https://agentengine.mongodb.com/api/v1/projects/$PROJECT_ID/executions/$EXECUTION_ID/resume?workspace_id=$WORKSPACE_ID" \
+           -H "Authorization: Bearer $API_KEY" \
+           -H "X-Mdb-Agent-Engine-Custom-Authorization: my-user-id" \
+           -H "Content-Type: application/json" \
+           -d '{"decision": "approve", "reviewer_notes": "optional context"}'
+
+   .. tab:: Python
+      :tabid: resume-python
+
+      .. code-block:: python
+
+         import httpx
+
+         response = httpx.post(
+             f"https://agentengine.mongodb.com/api/v1/projects/{project_id}/executions/{execution_id}/resume",
+             params={"workspace_id": workspace_id},
+             headers={
+                 "Authorization": f"Bearer {api_key}",
+                 "X-Mdb-Agent-Engine-Custom-Authorization": "my-user-id",
+                 "Content-Type": "application/json",
+             },
+             json={"decision": "approve", "reviewer_notes": "optional context"},
+         )
+
+.. _agentic-platform-resume-request-body:
+
+Resume Request Body
+```````````````````
+
+The resume request body is a JSON object that includes the ``decision`` field
+and an optional ``reviewer_notes`` field. The request body resembles
+the following example:
+
+.. code-block:: json
+   :copyable: false
+
+   {"decision": "approve", "reviewer_notes": "approved after verifying customer identity"}
+
+The valid ``decision`` values come from the ``allowed_decisions`` list
+that the agent declares when it suspends, not from a fixed set. If the
+decision you send is not in that list, the OE returns a ``400`` error
+message that includes the allowed values.
+
+.. important::
+
+   The API Gateway accepts only the flat request body shown in the
+   preceding example. If you nest the decision inside a ``human_review``
+   object, the API Gateway rejects the request by returning a ``400`` error
+   message.
+
+.. _agentic-platform-hitl-resume-cli:
+
+Use the CLI
+~~~~~~~~~~~
+
+When you run the ``agentengine invoke`` command without a message in an interactive
+terminal, the CLI starts a streaming chat session. In this interactive
+mode, the CLI automatically presents an inline review prompt when the
+agent suspends an invocation for human review.
+
+The CLI prints the suspend context that the agent provided and a numbered
+list of allowed decisions. The CLI output resembles the following example:
+
+.. code-block:: none
+   :copyable: false
+
+   --- Execution suspended for human review ---
+
+     claim_id: CLM-4821
+     task_description: Approve refund of $240 for order #98765
+
+   Select a decision:
+     1) approve
+     2) reject
+   Select [1-2]:
+
+After you select a decision, the CLI prompts for optional reviewer notes,
+as shown in the following example:
+
+.. code-block:: none
+   :copyable: false
+
+   Reviewer notes (optional): [default: ]
+
+Then, the CLI resumes the execution and prints ``Execution resumed.`` The
+session stays open, and you can send a follow-up message to retrieve the
+agent's post-resume output.
+
+.. note::
+
+   Interactive HITL review is available only in interactive mode. It does
+   not work if you use the ``--json`` flag, the piped ``stdin`` operator,
+   or the ``--file`` flag.
+
+To learn more about the ``agentengine invoke`` command, see
+:ref:`agentic-platform-invoke-cli`.
+
+Use the UI
+~~~~~~~~~~
+
+The {+platform-short+} UI displays suspended executions on the
+:guilabel:`Pending Reviews` page, where you can inspect a paused
+execution and submit a decision. To resume a suspended execution from
+the UI, complete the following steps:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Open the Pending Reviews page.
+
+      The :guilabel:`Pending Reviews` page lists the executions that are
+      awaiting review. If no executions are suspended, the page shows a
+      message that no pending reviews exist.
+
+   .. step:: Open the review for a suspended execution.
+
+      The :guilabel:`Review Request` window displays details about the
+      suspended execution, including the execution ID, the time it was
+      submitted, the original message, the suspend reason, and the
+      context that the agent provided for review.
+
+   .. step:: Select a decision.
+
+      From the :guilabel:`Decision` list, select a decision. The
+      available decisions come from the ``allowed_decisions`` values that
+      the agent provided for the suspended execution.
+
+   .. step:: Add optional reviewer notes.
+
+      In the :guilabel:`Reviewer Notes` field, add any context about your
+      decision. This step is optional.
+
+   .. step:: Submit the decision.
+
+      Click :guilabel:`Submit Decision` to resume the execution with your
+      decision.
+
+Learn More
+----------
+
+To learn more about resuming an execution, see the
+`API documentation. <https://mongodbcom-cdn.staging.corp.mongodb.com/docs/api/doc/agentic-platform-api/operation/operation-post-api-v1-projects-parameter-executions-parameter-resume>`__
+
+To learn more about invoking agents, see the :ref:`agentic-platform-invoke-agent`
+guide.

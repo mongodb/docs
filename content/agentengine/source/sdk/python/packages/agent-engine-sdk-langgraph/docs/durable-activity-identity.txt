@@ -1,0 +1,134 @@
+.. _python-packages-agent-engine-sdk-langgraph-docs-durable-activity-identity:
+
+Durable activity identity
+=========================
+
+LangGraph-specific identity rules for Durable Workflow. Platform
+concepts (session, execution, attempt, event, step, branch, enablement,
+restrictions): `Durable
+Workflow <../../../../../../docs/orchestration-engine/durable-workflow/>`__.
+
+Durable replay covers LLM and Tool effects that follow Atlas Agent
+Engine’s complete secure-wrapper path:
+
+.. code:: text
+
+   LangGraph node
+     -> app.llm(...) or app.deep_agent(...)
+     -> secure LLM wrapper
+     -> ordered AIMessage.tool_calls
+     -> LangGraph ToolNode
+     -> tool returned by app.get_tools()
+     -> secure Tool wrapper
+     -> Orchestration Engine record or replay
+
+The secure LLM wrapper records the model effect and reserves the
+returned Tool calls in list order. The secure Tool wrapper records or
+replays each Tool effect. Arbitrary Python work and external effects
+outside these wrappers are outside the durable replay contract.
+
+What identifies one effect
+--------------------------
+
+An OE activity position contains:
+
+.. code:: text
+
+   operation path + workflow step ordinal + activity ordinal
+
+The operation path identifies the logical graph or subagent occurrence.
+The step ordinal identifies the durable graph step. Within that path and
+step, a ToolCall ID is the stable allocator key used to choose the Tool
+activity ordinal.
+
+For example, a secure LLM returns:
+
+.. code:: text
+
+   1. call-policy   -> lookup_policy
+   2. call-customer -> lookup_customer
+
+The LLM proxy reserves ``call-policy`` as Tool ordinal 1 and
+``call-customer`` as Tool ordinal 2 before ToolNode starts either
+worker. Even if the customer worker starts first, the resulting
+positions remain:
+
+.. code:: text
+
+   agent/1, step 2, Tool ordinal 1 -> lookup_policy
+   agent/1, step 2, Tool ordinal 2 -> lookup_customer
+
+On replacement, the same ordered LLM result reserves the same ordinals.
+Each secure Tool reaches the same OE position and receives the recorded
+result instead of executing again.
+
+Nested execution models
+-----------------------
+
+The adapter supports two distinct ways to identify a nested occurrence:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Model
+     - Public framework signal
+     - Detailed flow
+   * - Compiled subgraph
+     - LangGraph’s active ``checkpoint_ns``
+     - `Durable compiled subgraphs <durable-subgraphs.md>`__
+   * - Deep Agent delegation
+     - Deep Agent’s ``task`` ToolCall and middleware hooks
+     - `Durable Deep Agent delegation <durable-deep-agent.md>`__
+
+A compiled-subgraph graph is materialized up front. At each secure
+effect, its resolver reads the current namespace and converts statically
+known compiled children into durable operation boundaries.
+
+A Deep Agent uses its public ``task`` ToolCall as the delegated subagent
+boundary. The middleware preserves the secure LLM’s ordered task batch
+across LangChain’s internal ``Send`` routing, then scopes each ToolNode
+worker before the delegated subagent reaches a secure effect.
+
+One durable graph chooses one nesting model. A mixed graph is rejected
+because the public LangGraph and Deep Agent contracts do not define how
+their separate occurrence identities compose.
+
+Application-authored LangGraph
+```Send`` <https://docs.langchain.com/oss/python/langgraph/graph-api#send>`__
+fan-out is not a supported durable-workflow API. Graphs created by
+``app.deep_agent()`` permit LangChain’s internal ``Send`` routing as an
+opaque implementation detail; the detailed Deep Agent document explains
+that private compatibility boundary.
+
+Root effect call sites
+----------------------
+
+.. list-table::
+   :header-rows: 1
+
+   * - Responsibility
+     - Call site
+   * - Create the secure model and ToolNode tools
+     - ```runtime.py`` <../src/agent_engine_sdk_langgraph/runtime.py>`__
+   * - Adapt LangChain model calls
+     - ```secure_llm.py`` <../src/agent_engine_sdk_langgraph/secure_llm.py>`__
+   * - Record or replay the LLM and reserve ordered Tool calls
+     - ```secure_llm_proxy.py`` <../../agent-engine-runner-shared/src/agent_engine_runner_shared/secure_llm_proxy.py>`__
+   * - Record or replay the Tool
+     - ```secure_wrapper.py`` <../../agent-engine-runner-shared/src/agent_engine_runner_shared/secure_wrapper.py>`__
+   * - Resolve the current operation path
+     - ```context.py`` <../../agent-engine-runner-shared/src/agent_engine_runner_shared/workflow/context.py>`__
+   * - Build and start the OE activity
+     - ```activity.py`` <../../agent-engine-runner-shared/src/agent_engine_runner_shared/workflow/activity.py>`__
+
+The two detailed lifecycle documents extend this root path only by
+supplying the nested operation boundary used at secure-effect admission.
+
+Maintenance
+-----------
+
+When upgrading LangGraph, LangChain, or Deep Agent, revalidate the
+public contracts linked from the detailed documents and run the focused
+tests and registered qualifications listed there. Framework-specific
+discovery remains inside this adapter; agent-engine-runner-shared
+consumes only framework-neutral child boundaries.

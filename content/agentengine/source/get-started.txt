@@ -1,0 +1,407 @@
+.. _agentic-platform-get-started:
+
+=======================================
+Get Started with the Atlas Agent Engine
+=======================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: quickstart, tutorial, code example, setup, install,
+      deploy, ai, agent, anthropic, hello world
+   :description: Learn how to install the agentengine CLI, scaffold a Hello World agent, run it locally, and deploy it to the MongoDB Atlas Agent Engine using the Anthropic LLM.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this tutorial, you create and deploy a Hello World agent on the
+{+mdb-ai-platform+}. You install the ``agentengine`` CLI and scaffold
+a project from a starter template. Then, you run the agent locally,
+register it, and build and deploy it to the {+platform-short+}.
+
+The tutorial uses Anthropic as the large language model (LLM) provider
+and macOS as the operating system.
+
+Prerequisites
+-------------
+
+Ensure that you have the following prerequisites before you begin:
+
+- A macOS machine. To view Windows and Linux setup instructions, see the
+  :ref:`agentic-platform-set-up-install-authenticate` guide.
+- Git
+- `Docker Desktop <https://www.docker.com/products/docker-desktop/>`__
+  running on your machine
+- `Python 3.11 or later <https://www.python.org/downloads/>`__
+- An Atlas account with access to at least one Atlas organization
+- An API key for your chosen LLM provider. This tutorial uses Anthropic,
+  but you can use any provider.
+
+Procedure
+---------
+
+Complete the following steps to install the ``agentengine`` CLI,
+scaffold a Hello World agent, run it locally, and deploy it to the
+{+platform-short+}.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Install the ``agentengine`` CLI.
+
+      Sign in to the {+platform-short+}, then download the CLI from the
+      `CLI download page
+      <https://agentengine.mongodb.com/download-cli>`__. The
+      :guilabel:`Version` dropdown is pre-filled with the latest CLI
+      version, and the :guilabel:`Platform` dropdown is pre-filled with
+      your detected operating system.
+
+      Click the :guilabel:`Download for <your platform>` button.
+      Save the SHA-256 checksum value displayed on the page for use in the
+      following step.
+
+   .. step:: Complete the CLI installation.
+
+      In your terminal, navigate to your downloads directory and run the
+      following command:
+
+      .. code-block:: bash
+
+         shasum -a 256 agentengine
+
+      The output must match the SHA-256 value that you saved.
+      If the values don't match, delete the binary and download it again.
+
+      Run the following commands to mark the binary as executable and
+      move it to the ``~/.local/bin`` directory:
+
+      .. code-block:: bash
+
+         chmod +x ./agentengine
+         mkdir -p ~/.local/bin
+         mv ./agentengine ~/.local/bin/agentengine
+
+      Confirm that ``~/.local/bin`` is on your ``PATH``. Installing the
+      binary in a user-writable directory lets you run the
+      ``agentengine self-update`` command without using the ``sudo``
+      command.
+
+      To learn more, see :ref:`agentic-platform-install-agentic-cli`.
+
+   .. step:: Sign in to the {+platform-short+}.
+
+      Run the following command to authenticate the CLI:
+
+      .. code-block:: bash
+
+         agentengine auth login
+
+      Follow the browser-based sign-in flow to complete the
+      authentication.
+
+   .. step:: Create an agent project.
+
+      Run the following command to scaffold a Hello World agent project:
+
+      .. code-block:: bash
+
+         agentengine create
+
+      When prompted by the CLI, choose the following values:
+
+      - **Template**: Hello World Agent
+      - **LLM provider**: Anthropic Claude
+      - **API key**: your Anthropic API key
+      - **Enable memory**: no
+
+      The command creates a project root directory that contains a
+      ``project-config.yaml`` configuration file and an ``agents/``
+      directory. Your agent's files, which include the ``agent.yaml``
+      configuration file, a ``.env`` file with your API key, and a
+      ``pyproject.toml`` file, are in a subdirectory of ``agents/``.
+      The following example shows the structure that the command
+      creates:
+
+      .. code-block:: none
+         :copyable: false
+
+         my-project/
+         ├── project-config.yaml
+         └── agents/
+             └── my-agent/
+                 ├── agent.yaml
+                 ├── pyproject.toml
+                 ├── .env
+                 └── src/
+
+      Run all subsequent ``agentengine`` commands from your agent
+      directory, which is ``my-agent/`` in this example.
+
+   .. step:: Run the agent locally.
+
+      Local development requires access to the runner-base image hosted
+      in MongoDB's container image registry. The CLI pulls the image by
+      using your ``agentengine auth login`` session, so you don't need a
+      separate registry login.
+
+      a. Navigate to your agent directory and run the following command
+         to start the local development environment:
+
+         .. code-block:: bash
+
+            agentengine dev up
+
+         The CLI builds a Docker image and starts the full agent
+         stack. When the stack starts successfully, the command
+         output resembles the following:
+
+         .. code-block:: none
+            :copyable: false
+
+            ◆ Workspace  <your organization>  /  Default Project  /  <your project>
+
+            ✓ Created .agentengine/docker-compose.dev.yml
+            ✓ Created .agentengine/Dockerfile.dev
+            ✓ Created .agentengine/Dockerfile.dev.dockerignore
+            ✓ Created .agentengine/dev-entrypoint.py
+            ✓ Created .agentengine/entrypoint.py
+            ✓ Created .devcontainer/devcontainer.json
+            ✓ Reused existing .agentengineignore
+            [+] Building 1.6s (17/17) FINISHED
+            [+] up 5/5
+             ✔ Container <your-project>-mongodb-1  Healthy
+             ✔ Container <your-project>-oe-1       Healthy
+             ✔ Container <your-project>-app-1      Started
+
+            ✓ Stack running (hot-reload)
+
+              oe       http://localhost:51331
+              mongo    mongodb://localhost:51333
+              ui       http://localhost:3000
+
+              Invoke:  curl -X POST 'http://localhost:3000/invoke' \
+                         -H 'Content-Type: application/json' \
+                         -d '{"message": "Hello"}'
+
+              Next:    Open VS Code and run "Dev Containers: Reopen in Container"
+                       for editing and debugging inside the running app container
+              Restart: from this workspace dir, run
+                       agentengine dev restart
+              Logs:    agentengine dev logs
+              Stop:    agentengine dev stop
+              Clean:   agentengine dev clean
+
+         When all services are ready, open the
+         ``http://localhost:3000`` URL in your browser to chat with
+         your agent.
+
+         .. note::
+
+            The UI might run on a different port than the default port
+            ``3000``. To view your URL, check the ``ui`` field in the
+            ``agentengine dev up`` command output.
+            
+         The following example shows a successful exchange with your
+         agent:
+
+         .. figure:: /images/get-started-local-agent-success-v2.png
+            :alt: Local Dev UI showing a chat exchange with the agent
+               and the corresponding execution trace in the Traces
+               panel.
+            :figwidth: 720px
+
+      #. To stop the local environment, run the following command:
+
+         .. code-block:: bash
+
+            agentengine dev stop
+
+   .. step:: Register on the platform.
+
+      Run the following command to register your project with the
+      {+platform-short+} before you deploy it:
+
+      .. code-block:: bash
+
+         agentengine init
+
+      This command links your local project to the
+      {+platform-short+} and creates a workspace for your agent.
+
+   .. step:: Set up Atlas resources.
+
+      The {+platform-short+} requires an Atlas cluster to store
+      execution state, checkpoints, and history. The CLI supports
+      Atlas service account credentials only. Atlas user account
+      logins and legacy Atlas API public and private keys are not
+      supported.
+
+      .. important:: Atlas Billing
+
+         In this step, you can select an existing Atlas cluster or
+         create a new one. If you create a new cluster, the CLI
+         provisions a paid Atlas Flex cluster by default. Atlas charges
+         you for cluster operations until you terminate the cluster.
+         To clean up the resources created in this tutorial, see
+         :ref:`Clean Up Resources <agentic-platform-get-started-cleanup>`.
+
+      a. In the Atlas UI, create or select a service account:
+
+         #. Open the Atlas project that you want to use.
+         #. Go to **Applications** in the **Project Identity & Access** menu
+            and create or select a service account.
+         #. Grant the service account the **Project Owner**
+            permission. To learn why this role is required, see
+            :ref:`agentic-platform-atlas-agent-roles`.
+
+      #. Run the following command to set up and provision a cluster:
+
+         .. code-block:: bash
+
+            agentengine atlas setup
+
+         When prompted, enter your Atlas service account client ID
+         and secret. The CLI provisions a cluster, configures
+         network access, and stores the ``MONGODB_URI`` as a
+         platform secret. To learn more about Atlas resources, see
+         :ref:`agentic-platform-deploy-atlas-setup`.
+
+   .. step:: Set cloud secrets.
+
+      Your deployed agent requires secrets to invoke the LLM and
+      connect to Atlas.
+
+      Run the following command to set the Anthropic API key.
+      The CLI prompts you for the value.
+
+      .. code-block:: bash
+
+         agentengine secret set ANTHROPIC_API_KEY
+
+      To learn more about managing secrets, see
+      :ref:`agentic-platform-deploy-provision-secrets`.
+
+   .. step:: Build and deploy the agent.
+
+      Run the following command to build the agent image and deploy it
+      in one step:
+
+      .. code-block:: bash
+
+         agentengine deploy --auto
+
+      The command bundles your agent code, starts a remote build job,
+      and monitors the deployment that the build triggers. The build
+      takes 5 to 10 minutes, and the deployment takes another 5 to 10
+      minutes. During deployment, the output might show
+      ``Agent Sandbox: waiting`` and ``Tool Sandbox: waiting`` for
+      several minutes. When the deployment succeeds, the command
+      output resembles the following:
+
+      .. code-block:: none
+         :copyable: false
+
+         Waiting for auto-deploy to start...
+         ✓ Auto-deploy started (deployment_id: <deployment-id>)
+
+         ✓ Deployment succeeded
+           version: v0.1.0
+           components:
+             Orchestration Engine      ready (2 replicas)
+             Agent Sandbox             ready (3 replicas)
+             Tool Sandbox              ready (4 replicas)
+           url: https://agentengine.mongodb.com/project/<project-id>/deployments/<deployment-id>
+
+      Your agent is now running on the {+mdb-ai-platform+}.
+
+      The ``--auto`` flag applies to single-agent projects only. To
+      build and deploy in separate steps, or to deploy a specific build,
+      run ``agentengine build`` and then ``agentengine deploy``. To
+      learn more, see :ref:`agentic-platform-deploy-build-start`.
+
+Troubleshooting a Failed Deployment
+-----------------------------------
+
+The most common causes of deployment failures are:
+
+- Misconfigured secrets
+- An Atlas cluster whose IP access list is not configured to allow
+  traffic from the {+platform-short+}
+
+To debug a failed deployment, run the following commands to see
+{+platform-short+} logs:
+
+.. code-block:: bash
+
+   # View deployment logs
+   agentengine deploy logs
+
+   # View deployed agent workspace logs
+   agentengine logs
+
+For more information about each command, see the
+:ref:`agentic-platform-deploy-build-logs` and
+:ref:`agentic-platform-monitor-runtime-logs-cli` guides.
+
+.. _agentic-platform-get-started-cleanup:
+
+Clean Up Resources
+------------------
+
+This tutorial provisions resources that persist until you remove them.
+When you no longer need these resources, remove them in the following ways:
+
+- **Atlas cluster:** To terminate a cluster, open your Atlas project's
+  :guilabel:`Clusters` page, click the ellipsis (``...``)
+  next to the cluster, and then click :guilabel:`Terminate`. If you
+  selected an existing cluster, the tutorial does not create a new
+  one, so you can leave it unchanged.
+
+- **Workspace:** The ``agentengine init`` command creates a workspace on
+  the {+platform-short+} that contains your deployed agent. To find
+  the workspace ID, run the following command:
+
+  .. code-block:: bash
+
+     agentengine workspace list
+
+  Then, run the following command to delete the workspace:
+
+  .. code-block:: bash
+
+     agentengine workspace delete <workspace-id> --yes
+
+- **Database user:** The setup flow creates a database user that your
+  agent uses to connect to Atlas. In the Atlas UI, open
+  :guilabel:`Database & Network Access` and click the delete icon next
+  to the database user.
+
+- **Voyage AI API key:** The setup flow creates a Voyage AI API key to
+  support memory features for your agent. In the Atlas UI, open
+  :guilabel:`AI Model APIs` and click the delete icon next to the API
+  key.
+
+- **Platform secrets:** The setup flow asks whether to store your
+  ``MONGODB_URI`` and ``VOYAGE_API_KEY`` values as platform secrets.
+  If you choose to store these secrets, you can remove them by
+  following the instructions in :ref:`Delete a Secret <agentic-platform-secret-delete>`.
+
+Next Steps
+----------
+
+After deploying your agent, see the following pages for additional resources:
+
+- To authenticate and call your deployed agent, see
+  :ref:`Invoke an Agent <agentic-platform-invoke-agent>`.
+- To test the agent and iterate on your code, see
+  :ref:`Test the Agent <agentic-platform-test>`.
+- To monitor agent executions in the platform UI, see
+  :ref:`Monitor <agentic-platform-monitor>`.

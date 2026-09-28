@@ -1,0 +1,472 @@
+.. _agentic-platform-policy-engine:
+
+=============
+Policy Engine
+=============
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn how to use the MongoDB Atlas Agent Engine Policy Engine to apply runtime controls over agent execution at the project level, including policy types, propagation, and enforcement behavior.
+   :keywords: policy, governance, authorized tools, authorized models, execution limits, runtime controls, ai, agent, agentic
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+The {+platform-short+} Policy Engine gives organization admins runtime
+control over agent execution. Admins author policies within the
+organization scope, the project scope, or both. The control plane merges
+the policies that apply to a project into a single effective
+configuration, and the Orchestration Engine (OE) enforces that
+configuration per execution.
+
+Policies control the *actions* an agent takes, such as which tools and
+models it invokes and how much work a single run performs. Policies
+fall into two categories:
+
+- **Allowlists** restrict which tools and models the agent can call.
+- **Execution budgets** cap the resources a single execution can consume,
+  such as the number of tool calls, the number of large language model
+  (LLM) calls, and the execution duration.
+
+To control the *content* that passes through an agent, see
+:ref:`agentic-platform-guardrails`.
+
+.. _agentic-platform-policy-types:
+
+Policy Types
+------------
+
+Each policy type has a *kind*, which describes the shape of the
+policy's value. The kind determines how the Policy Engine merges
+organization and project policies. The following policy types are
+available:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 15 50
+
+   * - Policy Type
+     - Kind
+     - Description
+
+   * - ``AUTHORIZED_TOOLS``
+     - Allowlist
+     - The set of tools the agent can call. The OE evaluates this policy
+       before each tool call. If the agent calls a tool that the list
+       omits, the OE halts the execution and returns a policy denial
+       error.
+
+   * - ``AUTHORIZED_MODELS``
+     - Allowlist
+     - The set of models the agent can invoke. The OE evaluates this
+       policy before each LLM call. If the agent invokes a model that the
+       list omits, the OE halts the execution and returns a policy
+       denial error.
+
+   * - ``MAX_TOOL_CALLS_PER_EXECUTION``
+     - Numeric cap
+     - The maximum number of tool calls an agent can make in a single
+       execution. If the agent attempts a tool call after the execution
+       reaches the cap, the OE halts the execution and returns a policy
+       denial error.
+
+   * - ``MAX_LLM_CALLS_PER_EXECUTION``
+     - Numeric cap
+     - The maximum number of LLM calls an agent can make in a single
+       execution. If the agent attempts an LLM call after the execution
+       reaches the cap, the OE halts the execution and returns a policy
+       denial error.
+
+   * - ``MAX_EXECUTION_DURATION_MS``
+     - Numeric cap
+     - The maximum elapsed time in milliseconds for a single execution.
+       The OE checks the elapsed time before each tool call and LLM
+       call. If the execution has reached the limit, the OE halts the
+       execution and returns a policy denial error. The OE doesn't stop
+       a call that is already in progress.
+
+   * - ``MAX_TOKENS_PER_EXECUTION``
+     - Numeric cap
+     - The maximum number of LLM tokens that a single execution can
+       consume. If the agent attempts an LLM call after the execution
+       reaches the cap, the OE halts the execution and returns a policy
+       denial error.
+
+   * - ``MAX_TOKENS_PER_SESSION``
+     - Numeric cap
+     - The maximum number of LLM tokens that one session can consume
+       across every execution in that session. If the agent attempts an
+       LLM call after the session reaches the cap, the OE halts the
+       execution and returns a policy denial error.
+
+To learn about the policy denial error, see
+:ref:`agentic-platform-policy-enforcement`.
+
+Token totals accumulate after each model response rather than before an
+LLM call. For more information, see
+:ref:`agentic-platform-policy-limitations`.
+
+If an agent delegates a task to a child agent, the child inherits the
+parent's root session, so both agents run in the same session. Their
+combined tokens count toward one ``MAX_TOKENS_PER_SESSION`` total rather
+than a separate total per agent. To learn more about agent-to-agent
+delegation, see :ref:`agentic-platform-agent-to-agent`.
+
+.. _agentic-platform-policy-tool-matching:
+
+Tool and Catalog Matching
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An ``AUTHORIZED_TOOLS`` allowlist entry matches either the name of a
+tool or the identifier of the catalog that publishes the tool, such as
+``stripe/payments``. A catalog identifier allowlists every tool that the
+catalog publishes, including the tools that the catalog adds later.
+
+Tools that carry no catalog identifier, including custom tools, match by
+tool name only. To allow one of those tools, add its name to the
+allowlist.
+
+.. _agentic-platform-policy-scope:
+
+Policy Scope and Inheritance
+----------------------------
+
+You can author a policy within the organization scope or the project
+scope. An organization policy applies to every project in the
+organization. Every project policy must be at least as restrictive as
+the organization policy of the same kind. When two scopes define the
+same policy type, the Policy Engine merges them into one effective
+value for the project.
+
+The merge rule depends on the policy kind. The following table lists
+each policy kind and its corresponding merge rule:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 40 40
+
+   * - Policy Kind
+     - Merge Rule
+     - Project Constraint
+
+   * - Allowlist
+     - The effective value is the intersection of the organization
+       allowlist and the project allowlist.
+     - A project cannot add a value that the organization allowlist
+       omits.
+
+   * - Numeric cap
+     - The effective value is the lower of the organization cap and the
+       project cap.
+     - A project cannot set a cap higher than the organization cap.
+
+If you save a project policy that is less restrictive than the
+organization policy of the same kind, the {+platform-short+} rejects the
+request. To raise a limit or widen an allowlist for a project, an
+organization admin must first change the organization policy.
+
+.. _agentic-platform-policy-enforcement:
+
+Enforcement
+-----------
+
+The OE evaluates the effective policies at specific checkpoints during
+each execution:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Checkpoint
+     - Policies Evaluated
+
+   * - Pre-tool-call
+     - ``AUTHORIZED_TOOLS``, ``MAX_TOOL_CALLS_PER_EXECUTION``,
+       ``MAX_EXECUTION_DURATION_MS``
+
+   * - Pre-LLM-call
+     - ``AUTHORIZED_MODELS``, ``MAX_LLM_CALLS_PER_EXECUTION``,
+       ``MAX_EXECUTION_DURATION_MS``, ``MAX_TOKENS_PER_EXECUTION``,
+       ``MAX_TOKENS_PER_SESSION``
+
+When a policy check fails, the OE halts the execution and returns a
+policy denial error to the caller. The error includes an
+``error_code`` of ``policy_denied`` and a message in the form
+``Policy denied: <reason>`` that identifies the reason for the denial.
+
+.. note::
+
+   When no policy of a given type applies to an execution, the OE does
+   not restrict the corresponding action. A project with no effective
+   policies runs without policy restrictions.
+
+.. _agentic-platform-policy-propagation:
+
+Policy Propagation
+------------------
+
+After you create, update, or delete a policy, the {+platform-short+}
+applies the change within approximately one minute. The
+{+platform-short+} first rebuilds the effective configuration for each
+affected project, and then delivers that configuration to the OE that
+runs the project's agents.
+
+Each execution takes a snapshot of the effective policies when it starts
+and uses that snapshot for its entire lifetime. Policy changes apply
+only to executions that start after the change propagates. Policy
+changes do not affect in-flight executions.
+
+If the {+platform-short+} cannot deliver a change, the OE continues to
+enforce the last configuration that it received. To check which projects
+have not received a change, see :ref:`agentic-platform-policy-rollout`.
+
+.. _agentic-platform-policy-create:
+
+Create and Edit Policies
+------------------------
+
+You can create and edit policies from the platform UI or the REST API.
+
+.. tabs::
+
+   .. tab:: Platform UI
+      :tabid: ui
+
+      To manage project policies, navigate to :guilabel:`Manage` >
+      :guilabel:`Policies` in your project. To manage organization
+      policies, navigate to :guilabel:`Policies` in your organization
+      settings. From either page, you can create, read, update, and
+      delete policies for each policy type. You can enable or disable
+      project policies from the project :guilabel:`Policies` page. The
+      platform UI doesn't support enabling or disabling organization
+      policies.
+
+   .. tab:: REST API
+      :tabid: api
+
+      .. note::
+
+         The customer-facing REST API exposes policy operations.
+         Requests require bearer authentication by a user that holds
+         the required role for the operation. To learn more about user
+         roles in the {+platform-short+}, see
+         :ref:`agentic-platform-manage-project` and
+         :ref:`agentic-platform-manage-org`.
+
+      The following table lists the available project endpoints:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 10 40 25 25
+
+         * - Method
+           - Endpoint
+           - Required Role
+           - Reference
+
+         * - ``GET``
+           - ``/api/v1/projects/{projectId}/policies``
+           - ``PROJECT_OWNER`` or ``PROJECT_READ_ONLY``
+           - `List policies <https://mongodbcom-cdn.staging.corp.mongodb.com/docs/api/doc/agentic-platform-api/operation/operation-get-api-v1-projects-parameter-policies>`__
+
+         * - ``POST``
+           - ``/api/v1/projects/{projectId}/policies``
+           - ``PROJECT_OWNER``
+           - `Create policy <https://mongodbcom-cdn.staging.corp.mongodb.com/docs/api/doc/agentic-platform-api/operation/operation-post-api-v1-projects-parameter-policies>`__
+
+         * - ``GET``
+           - ``/api/v1/projects/{projectId}/policies/{policyId}``
+           - ``PROJECT_OWNER`` or ``PROJECT_READ_ONLY``
+           - `Get policy <https://mongodbcom-cdn.staging.corp.mongodb.com/docs/api/doc/agentic-platform-api/operation/operation-get-api-v1-projects-parameter-policies-parameter>`__
+
+         * - ``PUT``
+           - ``/api/v1/projects/{projectId}/policies/{policyId}``
+           - ``PROJECT_OWNER``
+           - `Update policy, including its enabled state <https://mongodbcom-cdn.staging.corp.mongodb.com/docs/api/doc/agentic-platform-api/operation/operation-put-api-v1-projects-parameter-policies-parameter>`__
+
+         * - ``DELETE``
+           - ``/api/v1/projects/{projectId}/policies/{policyId}``
+           - ``PROJECT_OWNER``
+           - `Delete policy <https://mongodbcom-cdn.staging.corp.mongodb.com/docs/api/doc/agentic-platform-api/operation/operation-delete-api-v1-projects-parameter-policies-parameter>`__
+
+      The following table lists the available organization endpoints:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 10 40 25 25
+
+         * - Method
+           - Endpoint
+           - Required Role
+           - Reference
+
+         * - ``GET``
+           - ``/api/v1/organizations/{orgId}/policies``
+           - ``ORG_OWNER`` or ``ORG_READ_ONLY``
+           - `List policies <https://mongodbcom-cdn.staging.corp.mongodb.com/docs/api/doc/agentic-platform-api/operation/operation-get-api-v1-organizations-parameter-policies>`__
+
+         * - ``POST``
+           - ``/api/v1/organizations/{orgId}/policies``
+           - ``ORG_OWNER``
+           - `Create policy <https://mongodbcom-cdn.staging.corp.mongodb.com/docs/api/doc/agentic-platform-api/operation/operation-post-api-v1-organizations-parameter-policies>`__
+
+         * - ``GET``
+           - ``/api/v1/organizations/{orgId}/policies/{policyId}``
+           - ``ORG_OWNER`` or ``ORG_READ_ONLY``
+           - `Get policy <https://mongodbcom-cdn.staging.corp.mongodb.com/docs/api/doc/agentic-platform-api/operation/operation-get-api-v1-organizations-parameter-policies-parameter>`__
+
+         * - ``PUT``
+           - ``/api/v1/organizations/{orgId}/policies/{policyId}``
+           - ``ORG_OWNER``
+           - `Update policy, including its enabled state <https://mongodbcom-cdn.staging.corp.mongodb.com/docs/api/doc/agentic-platform-api/operation/operation-put-api-v1-organizations-parameter-policies-parameter>`__
+
+         * - ``DELETE``
+           - ``/api/v1/organizations/{orgId}/policies/{policyId}``
+           - ``ORG_OWNER``
+           - `Delete policy <https://mongodbcom-cdn.staging.corp.mongodb.com/docs/api/doc/agentic-platform-api/operation/operation-delete-api-v1-organizations-parameter-policies-parameter>`__
+
+.. _agentic-platform-policy-preview:
+
+Preview an Organization Allowlist
+---------------------------------
+
+Because an allowlist merges as an intersection, removing values from an
+organization allowlist can leave a project with no permitted values.
+Before you save changes to an organization policy, call the following
+endpoint with the ``ORG_OWNER`` role:
+
+.. code-block:: none
+
+   POST /api/v1/organizations/{orgId}/policies/preview
+
+The API response names each project whose effective allowlist becomes
+empty and shows the allowlist that the project currently enforces. To
+learn more, see `Preview affected projects
+<https://mongodbcom-cdn.staging.corp.mongodb.com/docs/api/doc/agentic-platform-api/operation/operation-post-api-v1-organizations-parameter-policies-preview>`__.
+
+.. _agentic-platform-policy-enable-disable:
+
+Enable and Disable Policies
+---------------------------
+
+The {+platform-short+} skips disabled policies when it builds the
+effective configuration. Both organization and project policies have
+an ``enabled`` flag. To enable or disable a policy, call the ``PUT``
+API endpoint for the policy's scope and set the ``enabled`` flag. You
+can also enable or disable project policies from the platform UI. To
+learn more, see :ref:`agentic-platform-policy-create`.
+
+When you disable a policy, the {+platform-short+} preserves the
+configuration and history of the policy. If you reenable the policy, the
+{+platform-short+} restores the same configuration.
+
+.. _agentic-platform-policy-effective:
+
+View Effective Policies
+-----------------------
+
+The effective view shows how the organization and project scopes resolve
+for a project. To retrieve the effective view, use the following project
+endpoint with the project read role:
+
+.. code-block:: none
+
+   GET /api/v1/projects/{projectId}/policies/effective
+
+The API response lists every policy type, the merged effective value
+that the OE enforces, the value that each scope defines, and the scope
+or scopes in force. The {+platform-short+} reads the organization values
+on your behalf, so you can see the inherited baseline without holding an
+organization role. To learn more, see `List effective policies
+<https://mongodbcom-cdn.staging.corp.mongodb.com/docs/api/doc/agentic-platform-api/operation/operation-get-api-v1-projects-parameter-policies-effective>`__.
+
+.. _agentic-platform-policy-rollout:
+
+Check Organization Policy Rollout
+---------------------------------
+
+In the {+platform-short+}, projects receive a policy change one at a
+time rather than together. While an organization policy rollout is in
+progress, some projects enforce the new policy while others still
+enforce the previous one. To see the progress of an organization policy
+rollout, use the following endpoint with the ``ORG_OWNER`` or
+``ORG_READ_ONLY`` role:
+
+.. code-block:: none
+
+   GET /api/v1/organizations/{orgId}/policies/rollout
+
+The API response identifies each delayed project, the reason that the
+project has not rebuilt or received the effective configuration, and the
+number of attempts that the {+platform-short+} has made to rebuild or
+receive the effective configuration. The API response omits the
+underlying error text, which the {+platform-short+} records in its logs.
+To learn more, see `See organization policy rollout status
+<https://mongodbcom-cdn.staging.corp.mongodb.com/docs/api/doc/agentic-platform-api/operation/operation-get-api-v1-organizations-parameter-policies-rollout>`__.
+
+When a project does not receive a saved policy, the {+platform-short+}
+retries delivering the policy to that project and leaves the projects
+that already received the change untouched. If the failure can't be
+resolved by retrying the build, such as an invalid policy value, the
+{+platform-short+} immediately stops trying to build that project. If
+the failure is transient, such as an unreachable project, the
+{+platform-short+} retries to build the project with increasing delay
+between attempts. The {+platform-short+} stops retrying to build the
+project after 10 failed attempts.
+
+The attempt count resets the next time a user edits the policy. If the
+{+platform-short+} stops retrying a project, correct the policy and save
+it again to return the project to the rollout queue.
+
+.. _agentic-platform-policy-monitor:
+
+Monitor Policy Denials
+----------------------
+
+The platform UI reports how often policies deny calls in your
+organization and projects. To learn how to read the Platform UI metrics,
+see
+:ref:`agentic-platform-monitor-policy-denials`.
+
+.. _agentic-platform-policy-limitations:
+
+Limitations
+-----------
+
+The Policy Engine has the following limitations:
+
+- **A new or updated policy takes up to one minute to take effect.** A
+  policy applies only to executions that start after it propagates.
+  Guardrails take effect almost immediately.
+- **The OE can exceed a cap by one call.** The OE checks duration and
+  token use before each call. If the call hasn't reached the
+  ``MAX_EXECUTION_DURATION_MS`` or ``MAX_TOKENS_PER_EXECUTION`` limit, it
+  makes the next call, even if the call exceeds these limits.
+- **The OE can exceed a session token cap by more than one call.** One
+  session runs several executions at the same time. The {+platform-short+}
+  checks the session caps only after all in-flight calls finish. The
+  ``MAX_TOKENS_PER_SESSION`` value might exceed the configured maximum
+  value by the combined tokens of those calls.
+- **Token caps exclude memory extraction.** Tokens that memory
+  extraction consumes do not count toward the
+  ``MAX_TOKENS_PER_EXECUTION`` or ``MAX_TOKENS_PER_SESSION`` values.
+- **Denial counts exclude model denials.** The
+  :ref:`agentic-platform-monitor-policy-denials` metric doesn't count
+  denials from when a requested model is not defined in the
+  ``AUTHORIZED_MODELS`` policy type.
+- **Tools without a catalog match by name only.** A tool that carries no
+  catalog identifier, such as a custom tool, matches
+  ``AUTHORIZED_TOOLS`` policy type entries by tool name only. To learn
+  more, see :ref:`agentic-platform-policy-tool-matching`.
+- **Network egress is governed separately.** The Policy Engine doesn't
+  control network egress. To learn how to configure network egress
+  restrictions, see :ref:`agentic-platform-network-egress`.

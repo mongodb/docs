@@ -1,0 +1,776 @@
+.. _agentic-platform-agent-contract:
+
+========================
+Agent Contract Reference
+========================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn the minimum requirements for running an agent on the Atlas Agent Engine, including required files, the agent.yaml schema, and supported frameworks.
+   :keywords: agent.yaml, entrypoint, deploy, framework, LLM, invocation, schema, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn the minimum requirements for running an
+agent on the {+mdb-ai-platform+}. This guide covers the files the
+{+platform-short+} needs to discover and run your agent, the
+``agent.yaml`` schema, and compatible frameworks and LLM providers.
+
+Agents do not implement their own HTTP endpoint. The
+{+platform-short+} imports the agent inside the same process as the
+agent sandbox.
+
+Minimal Deployable Agent
+------------------------
+
+A minimal deployable agent consists of two files:
+
+- ``my_agent/main.py``: defines the ``App`` object and the graph.
+- ``agent.yaml``: points to the ``App`` object defined in
+  ``my_agent/main.py``.
+
+The following example shows a minimal ``main.py`` file that defines an
+``App`` object named ``my-agent`` and builds an agent graph:
+
+.. code-block:: python
+   :caption: my_agent/main.py
+
+   from agent_engine_sdk_langgraph import App
+   from langgraph.graph import StateGraph, MessagesState
+   from langgraph.prebuilt import ToolNode
+   from langchain_openai import ChatOpenAI
+
+   app = App(app_name="my-agent")
+
+   @app.tool()
+   def lookup(query: str) -> str:
+       """Search the knowledge base."""
+       return f"result for {query}"
+
+   @app.entrypoint
+   def build_agent():
+       llm = app.llm(ChatOpenAI(model="gpt-4o-mini"))
+       tools = app.get_tools()
+
+       def call_model(state: MessagesState):
+           return {"messages": [llm.invoke(state["messages"])]}
+
+       graph = StateGraph(MessagesState)
+       graph.add_node("agent", call_model)
+       graph.add_node("tools", ToolNode(tools))
+       graph.set_entry_point("agent")
+       graph.add_edge("tools", "agent")
+       return graph.compile(checkpointer=app.checkpointer())
+
+   app.run()
+
+The following example shows a minimal ``agent.yaml`` file:
+
+.. code-block:: yaml
+   :caption: agent.yaml
+
+   entrypoint: my_agent.main:app
+
+In the ``main.py`` file, you must execute the following components:
+
+- Define an ``App`` object at the module level, usually named ``app``.
+- Register an entrypoint to the app with the ``@app.entrypoint``
+  function.
+- Register tools with the ``@app.tool(...)`` function.
+- Call the ``app.run()`` function at the bottom of the module.
+
+In the ``agent.yaml`` file, you must set the ``entrypoint`` YAML key to
+the ``App`` object using the format ``<module.path>:<attribute>``.
+
+Agent Guidelines
+----------------
+
+Follow these guidelines to ensure your agent works correctly with
+platform features such as audit logging, policy enforcement, and
+suspend or resume agent executions:
+
+- **Route tool and LLM calls through** the ``app.tool(...)`` **and**
+  ``app.llm(...)`` **functions**.
+
+  The {+platform-short+} uses these wrappers for audit logging, policy
+  enforcement, and replaying tools and LLM calls when you resume a
+  suspended execution. Calls made outside these wrappers are not
+  audited by the {+platform-short+} and do not replay correctly after
+  resuming an execution.
+
+- **Keep your graph state JSON/BSON-serializable.**
+
+  Agent sandboxes are ephemeral, so the {+platform-short+} saves checkpoint
+  states to MongoDB between suspend and resume actions. Every value in
+  your graph state must be serializable to JSON or BSON for the
+  checkpoint to succeed, such as primitives, lists, dicts,
+  ``datetime``, ``Enum``, and LangChain ``BaseMessage`` subclasses. Do
+  not store lambdas, closures, file handles, database connections, or
+  custom classes in your graph state without serialization support.
+
+- **Call the** ``app.llm(...)`` **function only while your entrypoint
+  is on the call stack.**
+
+  When you call ``app.llm(...)`` from module top-level code, a tool
+  body, or any other function that your entrypoint does not invoke,
+  the {+platform-short+} generates an error that identifies the file
+  and line with the invalid call. To learn more, see
+  :ref:`agentic-platform-agent-contract-lifecycle`.
+
+.. _agentic-platform-agent-contract-lifecycle:
+
+Execution Lifecycle
+-------------------
+
+The {+platform-short+} loads and runs your agent code at defined points
+in the lifecycle of the following processes:
+
+- **Agent Sandbox**, which runs your agent code and builds your
+  graph.
+- **Tool Sandbox**, which runs remote tool bodies in a separate
+  process from the agent sandbox.
+
+.. note::
+
+   This execution lifecycle is the same across the Python and TypeScript
+   SDKs.
+
+This section describes when individual parts of your agent code run
+in each process, and uses the following terms:
+
+- **Module top-level code** is code in your agent's source files that
+  runs at import time, outside of any function body.
+- The **entrypoint** is the function you decorate with
+  ``@app.entrypoint``.
+- A **local tool** runs only inside the agent sandbox's own process.
+  By default, every tool that you register with the ``@app.tool()``
+  decorator is a local tool.
+- A **remote tool** is a tool that you assign to the tool sandbox by
+  listing it in the ``sandboxes.tool.tools`` field of your
+  ``agent.yaml`` file. The agent sandbox interprets remote tools, but
+  remote tool bodies run in the tool sandbox.
+
+Startup
+~~~~~~~
+
+In both the agent sandbox and the tool sandbox processes, the
+{+platform-short+} performs the following actions at startup:
+
+- Loads your agent's source files.
+- Runs your module top-level code.
+
+The platform does **not** perform the following actions at startup:
+
+- Run your entrypoint.
+- Run your tool bodies. The {+platform-short+} interprets tool
+  definitions to register their signatures, but does not run them.
+
+Module top-level code can access process-wide secrets, such as
+:ref:`MONGODB_URI <agentic-platform-contract-env>`, and MCP OAuth
+credentials, because these values are available for the lifetime of
+the process. The {+platform-short+} also sets the secrets that you
+declare for a sandbox, including LLM API keys, when the sandbox
+starts. As a result, module top-level code in a sandbox can access
+that sandbox's secrets.
+
+Agent Sandbox Invocation
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the agent sandbox, the {+platform-short+} performs the following
+actions during an invocation:
+
+- Runs your entrypoint once.
+- Executes local tool bodies in the agent sandbox's own process.
+
+The platform does **not** perform the following actions during an
+agent sandbox invocation:
+
+- Run remote tool bodies. The agent sandbox interprets them, then
+  dispatches the call to the tool sandbox.
+
+Tool Sandbox Invocation
+~~~~~~~~~~~~~~~~~~~~~~~
+
+In the tool sandbox, the {+platform-short+} performs the following
+actions during an invocation:
+
+- Loads your entrypoint lazily, exactly once per sandbox lifetime,
+  triggered by the first ``invoke_llm`` call. This loading only
+  discovers your ``app.llm(...)`` registrations.
+- Interprets remote tool bodies, then runs them on demand
+  when the Orchestration Engine routes a tool call to the sandbox.
+
+The {+platform-short+} does **not** perform the following actions during
+a tool sandbox invocation:
+
+- Execute your graph.
+- Run local tool bodies.
+
+The {+platform-short+} delivers the secrets that you declare in the
+``sandboxes.tool.secrets`` field as environment variables in the tool
+sandbox. Every remote tool body that runs in the tool sandbox can read
+these environment variables. To learn more about how sandboxes share
+secrets between tools, see :ref:`agentic-platform-limitations`.
+
+Lifecycle Summary
+~~~~~~~~~~~~~~~~~
+
+The following table summarizes when each part of your code runs in each
+execution process and phase:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 12 15 25 18 15
+
+   * - Phase
+     - Process
+     - Top-level code
+     - Entrypoint
+     - Remote tool body
+     - Local tool body
+
+   * - Startup
+     - Agent Sandbox
+     - Executed
+     - Not executed
+     - Interpreted only
+     - Interpreted only
+
+   * - Startup
+     - Tool Sandbox
+     - Executed
+     - Not executed
+     - Interpreted only
+     - Interpreted only
+
+   * - Per invocation
+     - Agent Sandbox
+     - Not executed
+     - Executed once
+     - Interpreted, dispatched to Tool Sandbox
+     - Executed
+
+   * - First ``invoke_llm`` call
+     - Tool Sandbox
+     - Not executed
+     - Executed once, to register ``app.llm(...)`` calls
+     - Not executed
+     - Not executed
+
+   * - Per tool call
+     - Tool Sandbox
+     - Not executed
+     - Not executed
+     - Executed on demand
+     - Not executed
+
+.. _agentic-platform-agent-contract-yaml:
+
+Agent YAML Schema
+-----------------
+
+The ``agent.yaml`` file configures how the {+platform-short+} discovers
+and runs your agent. It supports two formats: a single-agent manifest
+for repositories that contain one agent, and a monorepo manifest for
+repositories that contain multiple agents.
+
+Single-Agent Manifest
+~~~~~~~~~~~~~~~~~~~~~
+
+The following table describes the fields available for a single-agent
+``agent.yaml`` file. The :guilabel:`Required` column indicates whether
+a field is required for a minimal ``agent.yaml`` file.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 15 20 30
+
+   * - Field
+     - Type
+     - Required
+     - Description and Restrictions
+
+   * - ``entrypoint``
+     - string
+     - yes
+     - Module path and attribute in ``module.path:attribute`` format.
+       Must match the regex pattern ``^[\w.]+:[\w]+$``, where the left
+       side is the dot-separated module path and the right side is the
+       attribute name.
+
+   * - ``name``
+     - string
+     - no
+     - Name of the agent. Must only contain lowercase alphanumeric and
+       hyphen characters. No leading or trailing hyphen.
+
+   * - ``description``
+     - string
+     - no
+     - Description of the agent. Up to 500 characters.
+
+   * - ``agent_card.summary``
+     - string
+     - no
+     - Summary of the agent's purpose. Shown in the UI.
+
+   * - ``agent_card.capabilities``
+     - list[string]
+     - no
+     - Labels that describe what the agent can do. Shown in the UI.
+
+   * - ``features.guardrails``
+     - bool
+     - no
+     - When ``true``, enables guardrails integration.
+
+   * - ``features.memory``
+     - bool
+     - no
+     - When ``true``, starts a memory server as a separate service.
+       Agents access memory through the ``app.memory`` client. Requires
+       ``VOYAGE_API_KEY`` to be set.
+
+   * - ``features.deep_agent``
+     - bool
+     - no
+     - When ``true``, enables the deep agent factory method. A graph that
+       calls ``app.deep_agent()`` or ``app.deepAgent()`` must set this
+       field, or the method raises an error at build time. To learn more,
+       see :ref:`agentic-platform-build-deep-agent`.
+
+   * - ``features.playground``
+     - bool
+     - no
+     - When ``false``, the {+platform-short+} does not provision the
+       Playground UI for the agent. Use this field for agents that
+       produce no conversational output to preview, and invoke them
+       by using the API instead. Defaults to ``true``.
+
+   * - ``features.use_custom_parser``
+     - bool
+     - no
+     - When ``true``, enables custom stream output. Requires an
+       ``OutputParser`` registered with the ``@app.output_parser`` decorator.
+       If you set this field to ``true`` without registering a parser, an
+       invocation fails when the agent starts. To learn more, see
+       :ref:`agentic-platform-add-custom-output`.
+
+   * - ``mcp.servers.<name>.transport``
+     - string
+     - when ``mcp.servers.<name>`` is defined
+     - Transport protocol for a remote MCP server connection. Accepted
+       value: ``streamable_http``. To learn more, see
+       :ref:`agentic-platform-remote-mcp`.
+
+   * - ``mcp.servers.<name>.url``
+     - string
+     - when ``mcp.servers.<name>`` is defined
+     - URL of the remote MCP server endpoint.
+
+   * - ``mcp.servers.<name>.headers``
+     - map[string, string]
+     - no
+     - Static HTTP headers sent with every request to the MCP server.
+
+   * - ``mcp.servers.<name>.auth.type``
+     - string
+     - yes
+     - Authentication type. Accepted values are ``bearer_env`` and
+       ``oauth``.
+
+   * - ``mcp.servers.<name>.auth.token_env``
+     - string
+     - when ``auth.type`` is ``bearer_env``
+     - Name of the environment variable that holds the bearer token.
+       The variable must be set in your ``.env`` file.
+
+   * - ``mcp.servers.<name>.auth.scope``
+     - string
+     - when ``auth.type`` is ``oauth``
+     - Space-separated OAuth scopes to request during the
+       authorization flow.
+
+   * - ``mcp.servers.<name>.auth.client_name``
+     - string
+     - no
+     - Human-readable name for the OAuth client shown on
+       the consent screen.
+
+   * - ``mcp.servers.<name>.allowed_tools``
+     - list[string]
+     - no
+     - Allowlist of remote MCP tool names to expose to the agent.
+       When set, the platform registers only the listed tools and
+       ignores all other tools the server returns. When omitted, the
+       platform exposes all tools the server returns. Use this field
+       to limit the tool surface to only the tools your agent requires.
+
+   * - ``mcp.servers.<name>.timeout_seconds``
+     - int
+     - no
+     - Request timeout in seconds for each MCP tool call.
+       Defaults to ``30``.
+
+   * - ``scaling.replicas``
+     - int
+     - no
+     - Static pod count for the deployment. The {+platform-short+} applies this
+       value separately to the agent sandbox and the tool sandbox. Each session
+       reserves one agent sandbox and, if configured, one tool sandbox, so this
+       value is the number of concurrent sessions the deployment can serve.
+       Accepts a value from 1 to 512. Defaults to 4 when omitted.
+
+   * - ``scaling.agent_idle_ttl_seconds``
+     - int
+     - no
+     - How long, in seconds, an idle session keeps its reserved agent
+       sandbox before the {+platform-short+} reclaims it for other
+       sessions. Accepts a value from 1 to 86400. Defaults to 600 when
+       omitted. ``scaling.agent_idle_ttl_seconds`` is a legacy alias for
+       this field.
+
+   * - ``scaling.tool_idle_ttl_seconds``
+     - int
+     - no
+     - How long, in seconds, an idle session keeps its reserved tool
+       sandbox before the {+platform-short+} reclaims it. Accepts a
+       value from 1 to 86400. Defaults to the
+       ``scaling.agent_idle_ttl_seconds`` value.
+
+   * - ``sandboxes``
+     - mapping
+     - yes
+     - Configures the named sandboxes that run your agent and its tools. The
+       {+platform-short+} supports two named sandboxes: ``agent`` and ``tool``.
+       You cannot define additional sandboxes, and the {+platform-short+}
+       rejects a tool that is assigned to more than one sandbox. To learn
+       how sandboxes share secrets and egress destinations between tools,
+       see :ref:`agentic-platform-limitations`.
+
+   * - ``sandboxes.agent``
+     - mapping
+     - yes
+     - Configuration for the agent sandbox, the hardware-isolated
+       sandbox that runs your agent code.
+
+   * - ``sandboxes.agent.secrets``
+     - list[string]
+     - no
+     - List of secret names, or glob patterns that match secret names,
+       available to the agent sandbox. You can use ``*`` to match all
+       secrets. :ref:`MONGODB_URI <agentic-platform-contract-env>` is
+       automatically available and does not need to be declared.
+
+   * - ``sandboxes.agent.tools``
+     - list[string]
+     - no
+     - List of tool names, or glob patterns that match tool names, to
+       run in the agent sandbox. You can use ``*`` to match all tools.
+       Tools that match no sandbox run in the agent sandbox by default.
+
+   * - ``sandboxes.agent.network``
+     - mapping
+     - no
+     - Network policy, including outbound egress rules, for the agent
+       sandbox. To learn more, see
+       :ref:`agentic-platform-network-egress`.
+
+   * - ``sandboxes.tool``
+     - mapping
+     - no
+     - Configuration for the tool sandbox, the hardware-isolated
+       sandbox that runs remote tool bodies.
+
+   * - ``sandboxes.tool.secrets``
+     - list[string]
+     - no
+     - List of secret names, or glob patterns that match secret names,
+       available to the tool sandbox. You can use ``*`` to match all
+       secrets. :ref:`MONGODB_URI <agentic-platform-contract-env>` is
+       automatically available and does not need to be declared.
+
+   * - ``sandboxes.tool.tools``
+     - list[string]
+     - no
+     - List of tool names, or glob patterns that match tool names, to
+       run in the tool sandbox. You can use ``*`` to match all tools.
+       To call an LLM from a tool body, include the ``invoke_llm`` tool
+       in this list and declare your LLM provider API key under
+       ``sandboxes.tool.secrets``.
+
+   * - ``artifact_repositories``
+     - list[mapping]
+     - no
+     - Declares private package registries for managed builds. Each
+       entry maps a registry index name to a {+platform-short+}
+       secret that holds its credential. The {+platform-short+}
+       injects the credential at build time only and does not expose
+       it to running pods. Registry URLs live in your project
+       tooling (``pyproject.toml``, ``package.json``, or ``.npmrc``),
+       not in this block. If you omit this field, the
+       {+platform-short+} resolves dependencies from public
+       registries using your existing tooling configuration
+       unchanged.
+
+   * - ``artifact_repositories[].name``
+     - string
+     - yes
+     - Unique identifier for the entry. For PyPI entries, must match a
+       ``[[tool.uv.index]]`` name in ``pyproject.toml``. For npm
+       entries, validation matches ``npm_scope`` against the scoped
+       registry in ``.npmrc`` first, then falls back to ``name``. Must
+       match ``^[a-z][a-z0-9-]*$`` and be unique in the list.
+
+   * - ``artifact_repositories[].type``
+     - string
+     - yes
+     - Repository type. Accepted values are ``pypi`` and ``npm``.
+
+   * - ``artifact_repositories[].secret``
+     - string
+     - yes
+     - Name of the {+platform-short+} secret that holds the
+       credential. Must match ``^[A-Z][A-Z0-9_]{0,127}$``.
+
+   * - ``artifact_repositories[].scope``
+     - string
+     - no
+     - Secret scope. Accepted values are ``project`` and
+       ``workspace``. Defaults to ``project``.
+
+   * - ``artifact_repositories[].auth``
+     - string
+     - no
+     - Authentication method. Accepted values are ``token`` and
+       ``basic``. Defaults to ``token``.
+
+   * - ``artifact_repositories[].username``
+     - string
+     - no
+     - Username for registry authentication. Required when ``auth`` is
+       ``basic``. For PyPI token auth with this field omitted, the
+       default is ``__token__``. npm token auth does not use a
+       username.
+
+   * - ``artifact_repositories[].npm_scope``
+     - string
+     - no
+     - npm scope that maps to this registry, such as ``@acme``. When
+       supplied, it is the key that matches the scoped registry in
+       ``.npmrc``. Valid only when ``type`` is ``npm``.
+
+``artifact_repositories`` credentials are resolved at build time only. To learn
+how private artifact repositories work in cloud builds and local development,
+see :ref:`Build the Agent Image <agentic-platform-build-artifact-repositories>`
+and :ref:`Run Agents Locally <agentic-platform-build-local-artifact-repos>`.
+
+Each session reserves its own agent and tool sandboxes for its lifetime, and
+the {+platform-short+} resets a sandbox before it
+assigns the sandbox to a new session. As a result, artifacts that one
+session writes to a sandbox are not visible to later sessions.
+
+The {+platform-short+} snapshots ``scaling`` values at build time, so
+changes take effect on the next build and deploy. A change to the
+platform default doesn't resize a workspace that is already deployed.
+The workspace keeps the hardware-isolated sandbox count from its most
+recent build until you build and deploy it again. The idle
+time-to-live (TTL) values apply project-wide. When several agents in
+one project set different values, the project applies the values from
+the most recently deployed agent.
+
+.. note::
+
+   You must configure local development settings in a separate
+   ``dev.yaml`` file in the same directory as the ``agent.yaml`` file,
+   not in ``agent.yaml`` itself. To learn more, see
+   :ref:`agentic-platform-build-local-dev-yaml`.
+
+The following example shows an ``agent.yaml`` file with service port
+overrides, feature flags, secret access restrictions, and a private
+artifact repository:
+
+.. code-block:: yaml
+
+   name: my-agent
+   entrypoint: my_agent.main:app
+
+   features:
+     guardrails: true
+
+   scaling:
+     replicas: 4
+     agent_idle_ttl_seconds: 900
+     tool_idle_ttl_seconds: 300
+
+   sandboxes:
+     agent:
+       secrets: ["*"]
+       tools: []
+     tool:
+       secrets:
+         - SEARCH_API_KEY
+         - ANTHROPIC_API_KEY
+       tools:
+         - my_search_tool
+         - invoke_llm
+
+   artifact_repositories:
+     - name: corps-pypi
+       type: pypi
+       secret: ARTIFACT_REPO_CORPS_PYPI_TOKEN
+       username: aws
+       scope: project
+
+Monorepo Manifest
+~~~~~~~~~~~~~~~~~
+
+If your repository contains multiple agents, define them in a single
+``agent.yaml`` file by using a top-level ``agents:`` list. The
+{+platform-short+} detects this list and treats the file as a monorepo
+manifest instead of a single-agent configuration. The following
+``agent.yaml`` file is an example of a monorepo manifest with multiple
+agents:
+
+.. code-block:: yaml
+
+   agents:
+     - name: chat
+       path: agents/chat
+     - name: research
+       path: agents/research
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 15 10 50
+
+   * - Field
+     - Type
+     - Required
+     - Description
+
+   * - ``agents[].name``
+     - string
+     - yes
+     - Name of the agent. Must only contain lowercase alphanumeric and
+       hyphen characters. No leading or trailing hyphen. Must be unique
+       within the list.
+
+   * - ``agents[].path``
+     - string
+     - yes
+     - Path to the agent's subdirectory, relative to the repository
+       root. The path cannot reference locations outside the
+       repository.
+
+Each agent subdirectory must contain its own single-agent
+``agent.yaml`` file.
+
+.. _agentic-platform-contract-env:
+
+.env Requirements
+~~~~~~~~~~~~~~~~~
+
+You must set the ``MONGODB_URI`` environment variable in your ``.env``
+file to deploy your agent successfully, if ``services.mongodb.local``
+is set to ``false`` in your ``dev.yaml`` file.
+
+Your agent also requires an LLM API key in the ``.env`` file to process
+requests at runtime. The platform itself does not validate or require
+specific LLM credentials, but the agent will fail at runtime without
+them. Use the ``<PROVIDER>_API_KEY`` syntax to set the environment
+variable for your LLM provider.
+
+Frameworks and LLM Providers
+----------------------------
+
+This section describes the frameworks and LLM providers you can use with
+the {+platform-short+}.
+
+.. _agentic-platform-agent-contract-frameworks:
+
+Frameworks
+~~~~~~~~~~
+
+The {+platform-short+} supports LangGraph and LangChain through the
+``agent-engine-sdk-langgraph`` package. The framework adapter handles
+the following integration points:
+
+- ``interrupt()`` for pausing the agent execution for human review
+  before it continues
+- ``MongoDBSaver`` for saving the agent's graph state to MongoDB so it
+  can be restored when a suspended execution is resumed
+- ``LangChainInstrumentor`` for recording LLM and tool calls during
+  execution for debugging and monitoring
+
+LLM Providers
+~~~~~~~~~~~~~
+
+You can use any LLM provider with your agent. To use a model, construct
+a LangChain ``BaseChatModel`` for the provider and pass it to the
+``app.llm()`` method. The {+platform-short+} routes that call through
+the Orchestration Engine.
+
+The following table shows common provider examples with their
+environment key and LangChain class:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 35 45
+
+   * - Provider
+     - Environment Key
+     - LangChain Class
+
+   * - OpenAI
+     - ``OPENAI_API_KEY``
+     - ``ChatOpenAI``
+
+   * - Anthropic
+     - ``ANTHROPIC_API_KEY``
+     - ``ChatAnthropic``
+
+   * - Gemini
+     - ``GEMINI_API_KEY`` (optional: ``GEMINI_MODEL``)
+     - ``ChatGoogleGenerativeAI``
+
+   * - Cerebras
+     - ``CEREBRAS_API_KEY`` (optional: ``CEREBRAS_MODEL``)
+     - ``ChatCerebras``
+
+The following code examples show how to configure each provider for the
+``app.llm()`` method:
+
+.. code-block:: python
+
+   # OpenAI
+   from langchain_openai import ChatOpenAI
+   llm = app.llm(ChatOpenAI(model="gpt-4o-mini"))
+
+   # Anthropic
+   from langchain_anthropic import ChatAnthropic
+   llm = app.llm(ChatAnthropic(model="claude-sonnet-4-5"))
+
+   # Gemini
+   from langchain_google_genai import ChatGoogleGenerativeAI
+   llm = app.llm(ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite"))
+
+   # Cerebras
+   from langchain_cerebras import ChatCerebras
+   llm = app.llm(ChatCerebras(model="qwen-3-235b-a22b-instruct-2507"))
+
+Next Steps
+----------
+
+To learn how to authenticate and invoke a deployed agent, see the
+:ref:`Invoke an Agent <agentic-platform-invoke-agent>` guide.

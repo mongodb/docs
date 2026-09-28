@@ -1,0 +1,190 @@
+.. _agentic-platform-memory-extraction:
+
+=================
+Memory Extraction
+=================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn how the memory extraction pipeline turns conversation turns into long-term memory and how to configure which extraction types run.
+   :keywords: ai, agents, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Agent conversations and sessions produce knowledge in two forms:
+**short-term memory** and **long-term memory**. Short-term memory
+holds the turn-by-turn conversation. Long-term memory holds knowledge
+distilled from that conversation, either through **memory extraction**
+or as a direct write from an agent or application. To learn about the
+differences between the two memory layers, see :ref:`Agent Memory
+<agentic-platform-memory>`.
+
+.. _agentic-platform-extraction-pipeline:
+
+The Memory Extraction Pipeline
+------------------------------
+
+The {+platform-short+} runs extraction in the background across
+four stages:
+
+#. It stores conversation turns in the configured MongoDB cluster. For
+   platform-deployed agents, this happens automatically when memory
+   is enabled.
+#. A platform-owned process monitors these writes per session and,
+   based on configurable size and time parameters, bundles them into
+   snapshots.
+#. An LLM extracts long-term memories from each snapshot. You can
+   configure which memory types it extracts in the project's memory
+   configuration.
+#. It reconciles each extracted memory against what it already knows.
+
+.. _agentic-platform-extraction-turns-snapshots:
+
+Turn Recording and Session Snapshots
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The platform stores conversation turns in the configured MongoDB
+cluster as they occur. For platform-deployed agents, this happens
+automatically when memory is enabled. A conversation's turns
+accumulate in short-term memory until the platform promotes them into
+a session snapshot. A session becomes eligible for promotion when it
+reaches a maximum message count or sits idle for a configured period.
+
+Once eligible, a session's unrecorded turns are promoted together.
+Each snapshot covers a contiguous run of the conversation as a single
+bounded unit. A long session produces a series of snapshots as new
+turns accumulate. Every extraction pass reads from a snapshot, not
+from individual turns.
+
+.. _agentic-platform-extraction-async:
+
+Asynchronous Extraction
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Recording a turn is a fast write to short-term memory. The platform
+doesn't run extraction during that write.
+
+A platform-owned background process runs asynchronously, checking
+sessions for promotion eligibility and periodically scanning for idle
+sessions. A background worker picks up this work and runs the enabled
+extraction handlers against each newly promoted snapshot.
+
+The agent never waits on this work. Knowledge learned in one
+conversation becomes available in the next conversation, rather than
+on the current conversation's next turn. Recent turns remain
+available through short-term memory. Extracted long-term knowledge
+appears after extraction finishes.
+
+.. _agentic-platform-extraction-pass:
+
+LLM Extraction Pass
+~~~~~~~~~~~~~~~~~~~
+
+Extraction distills a snapshot into four types of long-term memory.
+When a snapshot is ready, each enabled memory type's extraction
+handler reads it independently. A handler doesn't classify a turn as
+belonging to one type over another. Instead, it prompts an LLM to
+look for its specific kind of knowledge in the snapshot. Each handler
+extracts and stores a different result:
+
+- **Semantic**: facts, reconciled against what the platform already
+  knows
+- **Episodic**: events and their participants, each stored with a
+  summarized account of what happened
+- **Procedural**: reusable procedures that the conversation
+  demonstrated
+- **Taxonomic**: domain terms and their definitions
+
+Extracted memories receive an embedding at extraction time, which
+lets the platform find them through semantic search in later
+conversations. An embedding is a numeric representation of a memory's
+meaning. The semantic extraction handler uses embeddings to compare a
+new fact against what it already knows.
+
+To learn about each long-term memory type, see :ref:`Long-Term Memory
+Types <agentic-platform-memory-types>`.
+
+.. _agentic-platform-extraction-reconciliation:
+
+Memory Reconciliation
+~~~~~~~~~~~~~~~~~~~~~
+
+Every extraction handler reconciles new memories against what the
+platform already knows, so repeated or evolving information doesn't
+create duplicate or contradictory records. Each handler applies one
+of three actions to an extracted memory:
+
+- ``ADD``: The extracted memory doesn't match an existing record in
+  the caller's scope, so the handler creates a new document.
+- ``UPDATE``: The extracted memory supersedes an existing record, such
+  as a user reporting a new home airport. The handler writes a new
+  document version and marks the previous version as superseded.
+- ``REINFORCE``: The extracted memory restates an existing record. The
+  handler doesn't create a duplicate. Instead, it strengthens the
+  existing record. For example, it increments a semantic fact's
+  reinforcement count, or merges new evidence into an existing
+  taxonomic term.
+
+Reconciliation keeps long-term memory current while preserving the
+history of how each memory was learned and reinforced.
+
+.. _agentic-platform-extraction-configure:
+
+Configure Extraction Types
+--------------------------
+
+You can configure which long-term memory types the platform
+automatically extracts in your project's ``project-config.yaml``
+file:
+
+.. code-block:: yaml
+
+   memory:
+     extraction:
+       enabled:
+         - semantic
+         - episodic
+         - procedural
+         - taxonomic
+
+The platform delivers the ``enabled`` list to the memory server as the
+``MONGOMEM_ENABLED_EXTRACTIONS`` environment variable. Removing a
+type from the list only disables its automatic background extraction.
+Your application can still save that memory type directly through the
+software development kit (SDK).
+
+After you edit the list, run ``agentengine memory configure`` to
+upload the configuration, then run ``agentengine memory apply --wait``
+to deliver the configuration and restart the memory server, waiting
+until it reports as ready. Run ``agentengine memory status`` to
+confirm the change took effect. To learn about the full configuration
+workflow, see :ref:`Configure Memory <agentic-platform-manage-memory>`.
+
+The memory server requires both an embedding provider and an LLM
+provider key to become ready, regardless of which extraction types
+are enabled. If the project has no LLM provider key configured, the
+platform fails deployment before the memory server starts. To learn
+about these prerequisites, see the Prerequisites section of :ref:`Add
+Memory to Your Agent <agentic-platform-add-memory>`.
+
+Next Steps
+----------
+
+After you understand how extraction works, you can explore the
+following guides:
+
+- To enable memory for your agent, see :ref:`Add Memory to Your Agent
+  <agentic-platform-add-memory>`.
+- To record and recall conversation turns from an MCP client, see
+  :ref:`Connect an MCP Client to Memory
+  <agentic-platform-memory-mcp>`.

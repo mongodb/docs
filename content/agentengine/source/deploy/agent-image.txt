@@ -1,0 +1,405 @@
+.. _agentic-platform-deploy-agent-image:
+
+=====================
+Build the Agent Image
+=====================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn how to build an image for your agent to prepare it for deployment. See the syntax for the build command, along with command flags and management commands.
+   :keywords: docker, ai, container, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to **build the agent image** from the CLI.
+The build process uploads your agent source code to cloud storage and starts
+a remote build job that produces a Docker image.
+
+Build Command Syntax and Options
+--------------------------------
+
+Use the following syntax to build the agent image:
+
+.. code-block:: bash
+
+   agentengine build [--label <str>] [--no-wait] [--context <name>] [--workspace <name>] [--all] [--json] [--upload-build-secrets]
+
+This command packages the agent source as a ``tar.gz`` file, uploads it to a Simple
+Storage Service (S3) bucket through a presigned URL, and then starts an AWS CodeBuild
+job to produce a Docker image in the Elastic Container Registry (ECR).
+
+Command Flags
+~~~~~~~~~~~~~
+
+When building the agent image, you can use the following optional flags:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Flag
+     - Description
+   * - ``--label``
+     - The build label. By default, this value is read from your local git repository in the format ``branch@sha12``.
+   * - ``--no-wait``
+     - Instructs the CLI to return immediately after starting the build job without polling for the build status.
+   * - ``--context``
+     - The named local context from the ``.agentengine/state.json``
+       file.
+   * - ``--workspace``
+     - *(Monorepo only)* Builds a specific workspace by name, as defined in the root ``agent.yaml``. This flag is
+       mutually exclusive with ``--all``.
+   * - ``--all``
+     - *(Monorepo only)* Builds all workspaces sequentially. The CLI creates the source archive once, then runs the
+       upload and build steps for each workspace. After all builds start, it polls each build until it reaches a terminal
+       status. This flag is mutually exclusive with ``--workspace``.
+   * - ``--json``
+     - Outputs a single machine-readable build result.
+   * - ``--upload-build-secrets``
+     - Uploads each ``artifact_repositories[].secret`` declared in
+       ``agent.yaml`` from an environment variable of the same name
+       before the build starts. Opt in for short-lived registry
+       tokens that expire between builds. To learn more, see
+       :ref:`agentic-platform-build-artifact-repositories`.
+
+.. _agentic-platform-build-archive-contents:
+
+Archive Contents
+----------------
+
+Before uploading your agent source, the CLI builds the ``tar.gz``
+archive referenced in the preceding section. This section describes
+which directory the archive packages and which files it excludes.
+
+Archive Root
+~~~~~~~~~~~~
+
+By default, the ``agentengine build`` command packages only the agent
+directory. The command packages from the workspace or monorepo root
+instead if the workspace or monorepo configuration file lists the
+agent directory as a member. The listing requirement depends on the
+workspace type, as described in the following table:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Workspace Type
+     - Membership Requirement
+   * - uv workspace
+     - The agent directory must match a
+       ``[tool.uv.workspace].members`` pattern, must not be excluded
+       from the workspace, and must have its own ``pyproject.toml``
+       file. In the members patterns, ``*`` matches a single
+       directory level and ``**`` is not supported. List deeper
+       members explicitly, such as ``agents/*`` and ``agents/*/*``.
+   * - Monorepo
+     - The agent directory must appear exactly as written in the
+       ``agents[].path`` list in the root ``agent.yaml`` file. A
+       directory nested under a listed path is not a member.
+
+To find the workspace or monorepo root, the CLI searches upward
+through the agent directory's parent directories for a file that
+marks a root. The search stops at the git repository's root directory
+and never continues into your home directory, so the command cannot
+package files from outside the repository.
+
+If the agent directory is a git submodule or a linked worktree, the
+search does not stop at that boundary. The search continues into the
+parent repository, and the membership rules described in the
+preceding table determine which directory the command packages from.
+
+Excluded Files
+~~~~~~~~~~~~~~
+
+A project-level ``.agentengineignore`` file at the archive root controls
+which files the CLI packs into the archive. This file uses standard
+``.gitignore`` syntax, including globs, ``**``, and ``!`` negation.
+The ``agentengine init`` command creates the file with the following
+default patterns:
+
+- ``.git``
+- ``.venv*``
+- ``__pycache__``
+- ``.pytest_cache``
+- ``.mypy_cache``
+- ``.ruff_cache``
+- ``node_modules``
+- ``dist``
+- ``build``
+- ``.agentengine``
+- ``*.pyc``
+- ``.env``
+- ``.env.*``
+- ``.DS_Store``
+- ``*.pem``
+- ``*.key``
+
+If the file is absent, the CLI uses the same default patterns
+as the ``agentengine init`` command.
+
+The following files are always excluded, and you cannot use a ``!``
+negation in the ``.agentengineignore`` file to override that:
+
+- ``.env`` and ``.env.*`` files
+- ``*.pem`` and ``*.key`` files
+- Common OpenSSH private keys: ``id_rsa``, ``id_dsa``, ``id_ecdsa``,
+  ``id_ed25519``, and ``id_ed448``
+- ``.git`` directory
+- Cloud and tooling credential stores: ``.aws``, ``.kube``, ``.ssh``,
+  ``.netrc``, ``.git-credentials``, ``.azure``, ``.config/gh``,
+  ``.docker/config.json``, and ``.config/gcloud``
+
+A project-level ``.npmrc`` file is not part of this set of excluded
+files. The platform build reads the ``.npmrc`` file from the archive
+to resolve declared private npm registries. The build also reads
+``pyproject.toml`` to resolve declared private PyPI registries. To
+learn how to configure private registry credentials for the build,
+see :ref:`agentic-platform-build-artifact-repositories`.
+
+.. warning::
+
+   Because the build includes your ``.npmrc`` and ``pyproject.toml``
+   files, do not store registry tokens or credentials in those files.
+   Instead, declare credentials in ``artifact_repositories`` in your
+   ``agent.yaml`` file. To learn more, see
+   :ref:`agentic-platform-build-artifact-repositories`.
+
+.. _agentic-platform-build-artifact-repositories:
+
+Private Artifact Repositories
+-----------------------------
+
+If your agent depends on packages hosted in private artifact
+repositories such as AWS CodeArtifact, declare those repositories in
+the ``artifact_repositories`` block of your ``agent.yaml`` file. The
+{+platform-short+} resolves the registry credentials at build time
+from the {+platform-short+} secret named in each entry and injects
+them into the build environment. The credentials are not stored in
+your source files and are not exposed to running pods. If you do not
+declare any repositories, the {+platform-short+} resolves dependencies
+from public registries using your existing tooling configuration,
+unchanged.
+
+Registry URLs live in your project tooling, not in ``agent.yaml``.
+For Python agents, declare each private index in a
+``[[tool.uv.index]]`` entry in ``pyproject.toml``. The ``name`` field
+in ``agent.yaml`` must match the index name. For TypeScript agents,
+declare each private scoped registry in an ``.npmrc`` file. Set
+``npm_scope`` in ``agent.yaml`` to the scope that maps to the registry.
+The following examples show the matching tooling file and
+``agent.yaml`` entry for each language:
+
+.. tabs::
+
+   .. tab:: Python
+      :tabid: artifact-repos-python
+
+      .. code-block:: toml
+         :caption: pyproject.toml
+
+         [[tool.uv.index]]
+         name = "corps-pypi"
+         url = "https://<domain>-<account>.d.codeartifact.<region>.amazonaws.com/pypi/<repo>/simple/"
+         explicit = true
+
+      .. code-block:: yaml
+         :caption: agent.yaml
+
+         artifact_repositories:
+           - name: corps-pypi
+             type: pypi
+             secret: ARTIFACT_REPO_CORPS_PYPI_TOKEN
+             username: aws
+             scope: project
+
+   .. tab:: TypeScript
+      :tabid: artifact-repos-typescript
+
+      .. code-block:: ini
+         :caption: .npmrc
+
+         @acme:registry=https://npm.pkg.github.com/
+
+      .. code-block:: yaml
+         :caption: agent.yaml
+
+         artifact_repositories:
+           - name: corp-npm
+             type: npm
+             secret: ARTIFACT_REPO_CORP_NPM_TOKEN
+             npm_scope: "@acme"
+             scope: project
+
+To learn about the full ``artifact_repositories`` schema, see
+:ref:`agentic-platform-agent-contract-yaml`.
+
+Before the build starts, the {+platform-short+} validates declared
+repositories against your project tooling. If validation fails, the
+build stops with an actionable error. To catch issues before building,
+run ``agentengine agent validate`` locally. To learn more, see
+:ref:`agentic-platform-build-validate`.
+
+Each declared ``artifact_repositories[].secret`` must exist at the
+declared scope in your {+platform-short+} secrets before the build
+starts. For short-lived registry tokens that expire between builds,
+use the ``--upload-build-secrets`` flag to upload each secret from an
+environment variable of the same name. The following example mints an
+AWS CodeArtifact token and uploads it in one build command:
+
+.. code-block:: bash
+
+   export ARTIFACT_REPO_CORPS_PYPI_TOKEN="$(aws codeartifact get-authorization-token \
+     --domain my-domain --query authorizationToken --output text)"
+   agentengine build --upload-build-secrets
+
+For long-lived credentials, set each secret once with
+``agentengine secret set`` and build without the flag. To learn more
+about provisioning secrets, see
+:ref:`agentic-platform-deploy-provision-secrets`.
+
+Build Management Commands
+-------------------------
+
+The following table describes the build management commands you can use to
+monitor and manage your agent builds:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Command
+     - Description
+   * - ``agentengine build logs <build_id>``
+     - Streams build logs to ``stdout`` for a specified build.
+   * - ``agentengine build list``
+     - Lists all builds for the workspace in a table format. The table includes the build ID, status, label, and creation time.
+   * - ``agentengine build cancel <build_id>``
+     - Cancels a specified running or queued build. This command returns an error if the build has already succeeded or failed.
+   * - ``agentengine build promote <source_build_id>``
+     - Promotes a successful build image into another workspace without
+       rebuilding the image from source. To learn more, see
+       :ref:`agentic-platform-promote-build`.
+   * - ``agentengine build promote get <promotion_id>``
+     - Returns the status of a specified build promotion. The output includes the target
+       build ID and the failure reason, if the promotion failed.
+
+.. tip:: Command Flags
+
+   Each build management command accepts the ``--workspace-id`` and ``--project-id``
+   flags to specify the workspace and project. If not provided, the CLI reads
+   these values from the ``.agentengine/state.json`` file.
+
+.. _agentic-platform-promote-build:
+
+Promote a Build
+~~~~~~~~~~~~~~~
+
+When you promote a build, the {+platform-short+} copies a tested build image
+from one workspace into another workspace without rebuilding the image
+from source. Because the promoted image is byte-identical to the source image,
+the agent that runs in the target workspace is the same one you tested in the source
+workspace.
+
+.. note::
+
+   The platform UI build detail page does not show a
+   :guilabel:`Build Logs` section for a promoted build, because a
+   promotion reuses an existing image rather than running a new build.
+
+By default, the source build must have at least one successful
+deployment, which confirms that the image is deployable. To bypass this
+requirement, use the ``--force`` flag.
+
+Use the following syntax to promote a build:
+
+.. code-block:: bash
+
+   agentengine build promote <source_build_id> [--workspace <name>] [--workspace-id <id>] [--project-id <id>] [--context <name>] [--force] [--yes] [--json]
+
+The CLI identifies the source build by ID and resolves it within your
+current organization. You cannot promote a build to a project in a
+different organization.
+
+When promoting a build, you can use the following flags:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Flag
+     - Description
+   * - ``--workspace``
+     - *(Monorepo only)* The destination workspace name, as defined in
+       the root ``agent.yaml`` file.
+   * - ``--workspace-id``
+     - The destination platform workspace ID.
+   * - ``--project-id``
+     - The destination platform project ID.
+   * - ``--context``
+     - The named local context from the ``.agentengine/state.json``
+       file.
+   * - ``--force``
+     - Bypasses the successful deployment requirement. This flag
+       requires the ``PROJECT_OWNER`` role in the target project.
+   * - ``--yes``
+     - Skips the interactive confirmation prompt. Use this flag when you
+       run the command in a CI pipeline or another non-interactive
+       environment. Without it, the command fails outside of an
+       interactive terminal.
+   * - ``--json``
+     - Outputs the promotion result as JSON.
+
+.. warning::
+
+   Promotion does not copy runtime or project configuration from the
+   source workspace. Secrets, Atlas connection configuration, and egress
+   policies do not transfer to the target workspace. Before you deploy
+   the promoted build, configure these settings on the target project and
+   workspace.
+
+After the promotion succeeds, deploy the promoted build in the target
+workspace. To learn how to deploy a build, see :ref:`agentic-platform-deploy-build`.
+
+Example
+-------
+
+The following command builds the agent image without polling for the build status
+and then lists the build information:
+
+.. code-block:: bash
+
+   agentengine build --no-wait && agentengine build list
+
+If the build is successful, the command output resembles the following example:
+
+.. code-block:: none
+   :copyable: false
+
+   Initialising build...
+   build_id: <build_id>
+   Creating archive...
+   Uploading archive...
+   Starting build...
+   ✓ Build started (build_id: ...)
+   URL: https://agentengine.mongodb.com/api/v1/workspaces/<workspace_id>/builds/<build_id>
+
+   BUILD_ID                              STATUS   LABEL              CREATED_AT
+   <build_id>                            running  main@abc123def456  2026-04-01T10:30:00Z
+
+Next Steps
+----------
+
+After building the agent image, you can deploy the agent to production.
+To learn how to deploy the agent, see the :ref:`Deploy Your Build <agentic-platform-deploy-build>`
+guide.

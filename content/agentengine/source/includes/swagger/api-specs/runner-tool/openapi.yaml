@@ -1,0 +1,1037 @@
+openapi: 3.1.0
+info:
+  title: Runner Tool Pod Server
+  description: Tool execution and LLM invocation HTTP API for the MongoDB Agentic
+    Platform.
+  version: 1.0.0
+paths:
+  /health:
+    get:
+      summary: Health Check
+      description: 'Check component health and readiness.
+
+
+        Returns the component''s health status, runtime mode, version, and
+
+        mode-specific details (e.g. registered tools, graph builder state).
+
+        Used by Kubernetes liveness and readiness probes.'
+      operationId: health_check_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /:
+    get:
+      summary: Root
+      description: Return basic service identity and status.
+      operationId: root__get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties:
+                  type: string
+                type: object
+                title: Response Root  Get
+  /metrics:
+    get:
+      summary: Get Metrics
+      description: 'Return collected execution metrics for this component.
+
+
+        Includes per-operation timing, error counts, and invocation totals
+
+        aggregated since the last pod restart.'
+      operationId: get_metrics_metrics_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Get Metrics Metrics Get
+  /execute:
+    post:
+      summary: Execute Tool
+      description: 'Execute a registered tool function in this isolated pod.
+
+
+        Runs the named tool with the provided arguments. Tools are registered
+
+        via the Runner SDK ``app.tool()`` decorator and execute with the pod''s
+
+        network and secret access.'
+      operationId: execute_tool_execute_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ToolPodExecuteRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ToolPodExecuteResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /invoke_llm:
+    post:
+      summary: Invoke Llm
+      description: 'Invoke an LLM and return the complete response.
+
+
+        Collects the full streaming response from the configured LLM provider,
+
+        including token usage. Used by SecureWrappedLLM when streaming is not
+
+        needed by the caller.'
+      operationId: invoke_llm_invoke_llm_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LLMPodInvokeRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LLMPodInvokeResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /invoke_llm/stream:
+    post:
+      summary: Invoke Llm Stream
+      description: 'Stream an LLM response from this tool pod via Server-Sent Events.
+
+
+        Returns a streaming response of ``LLMPodStreamEvent`` JSON objects,
+
+        one per SSE ``data:`` line. The final event has ``done=true`` and
+
+        includes token usage and timing metadata.'
+      operationId: invoke_llm_stream_invoke_llm_stream_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LLMPodInvokeRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /guardrails/check:
+    post:
+      summary: Check Guardrails
+      description: Evaluate selected guardrail policies for OE-controlled runtime
+        content.
+      operationId: check_guardrails_guardrails_check_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GuardrailCheckRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuardrailCheckResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /tools:
+    get:
+      summary: List Tools
+      description: 'List all tools registered with this Tool Pod instance.
+
+
+        Returns the tool definitions that were registered via the Runner SDK
+
+        ``app.tool()`` decorator during agent initialization.'
+      operationId: list_tools_tools_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ToolsListResponse'
+components:
+  schemas:
+    DocumentBlock:
+      properties:
+        type:
+          type: string
+          const: document
+          title: Type
+          default: document
+        url:
+          type: string
+          title: Url
+        mime_type:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Mime Type
+        filename:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Filename
+      type: object
+      required:
+      - url
+      title: DocumentBlock
+      description: Document/file content block.
+    GuardrailCheckContext:
+      properties:
+        org_id:
+          type: string
+          title: Org Id
+          description: Organization ID
+        project_id:
+          type: string
+          title: Project Id
+          description: Project ID
+        workspace_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Workspace Id
+          description: Workspace ID
+        session_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Session Id
+          description: Session ID
+        user_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: User Id
+          description: User ID
+        thread_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Thread Id
+          description: Thread ID
+      type: object
+      required:
+      - org_id
+      - project_id
+      title: GuardrailCheckContext
+      description: Execution context for a guardrail check.
+    GuardrailCheckDecision:
+      type: string
+      enum:
+      - allow
+      - block
+      - modify
+      - require_review
+      - log_only
+      title: GuardrailCheckDecision
+      description: Decision returned by the Tool Pod guardrails evaluator.
+    GuardrailCheckEvidence:
+      properties:
+        policy_id:
+          type: string
+          title: Policy Id
+          description: Triggered policy identifier
+        message:
+          type: string
+          title: Message
+          description: Human-readable evidence summary
+          default: ''
+        metadata:
+          additionalProperties:
+            $ref: '#/components/schemas/JsonValue'
+          type: object
+          title: Metadata
+          description: Evaluator-specific evidence metadata
+      type: object
+      required:
+      - policy_id
+      title: GuardrailCheckEvidence
+      description: Evidence explaining why a guardrail policy triggered.
+    GuardrailCheckInput:
+      properties:
+        text:
+          type: string
+          title: Text
+          description: Text content to evaluate
+        metadata:
+          additionalProperties:
+            $ref: '#/components/schemas/JsonValue'
+          type: object
+          title: Metadata
+          description: Runtime metadata such as model, tool name, or source
+      type: object
+      required:
+      - text
+      title: GuardrailCheckInput
+      description: Runtime content and metadata to evaluate.
+    GuardrailCheckRequest:
+      properties:
+        execution_id:
+          type: string
+          title: Execution Id
+          description: Execution identifier
+        stage:
+          $ref: '#/components/schemas/GuardrailRuntimeStage'
+          description: Runtime stage being evaluated
+        input:
+          $ref: '#/components/schemas/GuardrailCheckInput'
+          description: Content to evaluate
+        context:
+          $ref: '#/components/schemas/GuardrailCheckContext'
+          description: Execution context
+        policies:
+          items:
+            $ref: '#/components/schemas/GuardrailRuntimePolicy'
+          type: array
+          title: Policies
+          description: OE-selected policies to evaluate
+      type: object
+      required:
+      - execution_id
+      - stage
+      - input
+      - context
+      title: GuardrailCheckRequest
+      description: Request from OE to Tool Pod to evaluate selected guardrail policies.
+    GuardrailCheckResponse:
+      properties:
+        decision:
+          $ref: '#/components/schemas/GuardrailCheckDecision'
+          description: Guardrails decision
+        allowed:
+          type: boolean
+          title: Allowed
+          description: Whether execution may continue
+        transformed_text:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Transformed Text
+          description: Modified text when decision is modify, or original text for
+            allow/no-op
+        triggered_policy_ids:
+          items:
+            type: string
+          type: array
+          title: Triggered Policy Ids
+          description: Policy IDs that triggered
+        evidence:
+          items:
+            $ref: '#/components/schemas/GuardrailCheckEvidence'
+          type: array
+          title: Evidence
+          description: Policy trigger evidence
+        reason:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Reason
+          description: Decision reason
+        metadata:
+          additionalProperties:
+            $ref: '#/components/schemas/JsonValue'
+          type: object
+          title: Metadata
+          description: Evaluator-specific response metadata
+      type: object
+      required:
+      - decision
+      - allowed
+      title: GuardrailCheckResponse
+      description: Decision returned by the Tool Pod guardrails evaluator.
+    GuardrailRuntimePolicy:
+      properties:
+        id:
+          type: string
+          title: Id
+          description: Guardrail policy identifier
+        type:
+          type: string
+          title: Type
+          description: Guardrail policy type
+        status:
+          type: string
+          title: Status
+          description: Guardrail policy status
+          default: active
+        action:
+          type: string
+          title: Action
+          description: Action requested when the policy triggers
+        stage_filter:
+          items:
+            type: string
+          type: array
+          title: Stage Filter
+          description: Runtime stages this policy applies to; empty means all stages
+        config:
+          additionalProperties:
+            $ref: '#/components/schemas/JsonValue'
+          type: object
+          title: Config
+          description: Evaluator-specific policy configuration
+      type: object
+      required:
+      - id
+      - type
+      - action
+      title: GuardrailRuntimePolicy
+      description: OE-selected guardrail policy sent to the Tool Pod for evaluation.
+    GuardrailRuntimeStage:
+      type: string
+      enum:
+      - llm_input
+      - llm_output
+      - tool_input
+      - tool_output
+      title: GuardrailRuntimeStage
+      description: Runtime stage where OE is asking the Tool Pod to evaluate guardrails.
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    HealthResponse:
+      properties:
+        status:
+          $ref: '#/components/schemas/HealthStatus'
+          description: Health status
+        component:
+          type: string
+          title: Component
+          description: Component name
+        mode:
+          type: string
+          title: Mode
+          description: Runtime mode
+        version:
+          type: string
+          title: Version
+          description: Component version
+          default: 1.0.0
+        details:
+          additionalProperties: true
+          type: object
+          title: Details
+          description: Additional details
+      type: object
+      required:
+      - status
+      - component
+      - mode
+      title: HealthResponse
+      description: Health check response.
+    HealthStatus:
+      type: string
+      enum:
+      - healthy
+      - unhealthy
+      - degraded
+      title: HealthStatus
+      description: Health status of a component.
+    ImageBlock:
+      properties:
+        type:
+          type: string
+          const: image
+          title: Type
+          default: image
+        url:
+          type: string
+          title: Url
+        mime_type:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Mime Type
+      type: object
+      required:
+      - url
+      title: ImageBlock
+      description: Image content block.
+    InvokeLLMRequestArguments:
+      properties:
+        model:
+          type: string
+          title: Model
+          description: Model name (e.g. 'gpt-4o-mini', 'gemini-2.5-flash')
+        messages:
+          items:
+            $ref: '#/components/schemas/Message'
+          type: array
+          title: Messages
+          description: Conversation in sdk-core Message wire format
+        temperature:
+          type: number
+          title: Temperature
+          description: Temperature for generation
+          default: 0.0
+        stop_sequences:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Stop Sequences
+          description: Stop sequences forwarded to the underlying LLM provider
+        tools:
+          anyOf:
+          - items:
+              $ref: '#/components/schemas/LLMToolSchema'
+            type: array
+          - type: 'null'
+          title: Tools
+          description: Serialized tool schemas for bind_tools
+        options:
+          anyOf:
+          - $ref: '#/components/schemas/LLMInvocationOptions'
+          - type: 'null'
+          description: Explicit provider/model invocation options (for example max_tokens)
+        stream:
+          type: boolean
+          title: Stream
+          description: Whether OE should approve and route a real streaming invoke_llm
+            call
+          default: false
+      type: object
+      required:
+      - model
+      - messages
+      title: InvokeLLMRequestArguments
+      description: Typed invoke_llm arguments forwarded through OE and tool pods.
+    JsonValue: {}
+    LLMInvocationOptions:
+      properties:
+        max_tokens:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Max Tokens
+        response_format:
+          anyOf:
+          - $ref: '#/components/schemas/JsonValue'
+          - type: 'null'
+        top_p:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Top P
+        top_k:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Top K
+        frequency_penalty:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Frequency Penalty
+        presence_penalty:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Presence Penalty
+        seed:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Seed
+        timeout:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Timeout
+        parallel_tool_calls:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Parallel Tool Calls
+        reasoning_effort:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Reasoning Effort
+      additionalProperties: true
+      type: object
+      title: LLMInvocationOptions
+      description: Explicit provider/model options passed with an LLM invocation.
+    LLMPodInvokeRequest:
+      properties:
+        execution_id:
+          type: string
+          title: Execution Id
+          description: Execution identifier
+        arguments:
+          $ref: '#/components/schemas/InvokeLLMRequestArguments'
+          description: Typed invoke_llm arguments
+      type: object
+      required:
+      - execution_id
+      - arguments
+      title: LLMPodInvokeRequest
+      description: Request to invoke LLM on a tool executor pod.
+    LLMPodInvokeResponse:
+      properties:
+        status:
+          type: string
+          title: Status
+          description: 'Execution status: success, error'
+        result:
+          anyOf:
+          - $ref: '#/components/schemas/LLMResponse'
+          - type: 'null'
+          description: LLM result with content, tool_calls, and usage
+        error:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Error
+          description: Error message if failed
+        pod_name:
+          type: string
+          title: Pod Name
+          description: Hostname/pod name where LLM was executed
+        duration_ms:
+          type: number
+          title: Duration Ms
+          description: Execution duration in milliseconds
+        usage:
+          anyOf:
+          - $ref: '#/components/schemas/LLMTokenUsage'
+          - type: 'null'
+          description: Token usage (input_tokens, output_tokens, total_tokens)
+      type: object
+      required:
+      - status
+      - pod_name
+      - duration_ms
+      title: LLMPodInvokeResponse
+      description: Response from LLM invocation on a tool executor pod.
+    LLMResponse:
+      properties:
+        content:
+          type: string
+          title: Content
+        tool_calls:
+          anyOf:
+          - items:
+              $ref: '#/components/schemas/LLMToolCall'
+            type: array
+          - type: 'null'
+          title: Tool Calls
+        metadata:
+          additionalProperties:
+            $ref: '#/components/schemas/JsonValue'
+          type: object
+          title: Metadata
+        usage:
+          anyOf:
+          - $ref: '#/components/schemas/LLMTokenUsage'
+          - type: 'null'
+        id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Id
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+        additional_kwargs:
+          anyOf:
+          - additionalProperties:
+              $ref: '#/components/schemas/JsonValue'
+            type: object
+          - type: 'null'
+          title: Additional Kwargs
+        response_metadata:
+          anyOf:
+          - additionalProperties:
+              $ref: '#/components/schemas/JsonValue'
+            type: object
+          - type: 'null'
+          title: Response Metadata
+      type: object
+      required:
+      - content
+      title: LLMResponse
+      description: Framework-neutral LLM response.
+    LLMTokenUsage:
+      properties:
+        input_tokens:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Input Tokens
+        output_tokens:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Output Tokens
+        prompt_tokens:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Prompt Tokens
+        completion_tokens:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Completion Tokens
+        total_tokens:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Total Tokens
+        model:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Model
+      additionalProperties: true
+      type: object
+      title: LLMTokenUsage
+      description: Typed token-usage metadata for LLM calls.
+    LLMToolCall:
+      properties:
+        id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Id
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+        args:
+          anyOf:
+          - $ref: '#/components/schemas/JsonValue'
+          - type: 'null'
+        type:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Type
+        index:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Index
+      additionalProperties: true
+      type: object
+      title: LLMToolCall
+      description: Typed final tool call requested by an LLM.
+    LLMToolSchema:
+      properties:
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Description
+        parameters:
+          anyOf:
+          - $ref: '#/components/schemas/JsonValue'
+          - type: 'null'
+        type:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Type
+        strict:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Strict
+        function:
+          anyOf:
+          - $ref: '#/components/schemas/JsonValue'
+          - type: 'null'
+      additionalProperties: true
+      type: object
+      title: LLMToolSchema
+      description: Serializable bound-tool schema forwarded with an LLM call.
+    Message:
+      properties:
+        role:
+          type: string
+          enum:
+          - user
+          - assistant
+          - tool
+          - system
+          title: Role
+        content:
+          anyOf:
+          - type: string
+          - items:
+              anyOf:
+              - $ref: '#/components/schemas/TextBlock'
+              - $ref: '#/components/schemas/ImageBlock'
+              - $ref: '#/components/schemas/DocumentBlock'
+            type: array
+          title: Content
+        tool_calls:
+          anyOf:
+          - items:
+              $ref: '#/components/schemas/LLMToolCall'
+            type: array
+          - type: 'null'
+          title: Tool Calls
+        tool_call_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Tool Call Id
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+        id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Id
+        additional_kwargs:
+          anyOf:
+          - additionalProperties:
+              $ref: '#/components/schemas/JsonValue'
+            type: object
+          - type: 'null'
+          title: Additional Kwargs
+        response_metadata:
+          anyOf:
+          - additionalProperties:
+              $ref: '#/components/schemas/JsonValue'
+            type: object
+          - type: 'null'
+          title: Response Metadata
+      type: object
+      required:
+      - role
+      - content
+      title: Message
+      description: 'Framework-neutral message.
+
+
+        Content can be a simple string for text-only messages, or a list of
+
+        content blocks for multimodal content (images, documents, etc.).'
+    TextBlock:
+      properties:
+        type:
+          type: string
+          const: text
+          title: Type
+          default: text
+        text:
+          type: string
+          title: Text
+      type: object
+      required:
+      - text
+      title: TextBlock
+      description: Text content block.
+    ToolPodExecuteRequest:
+      properties:
+        execution_id:
+          type: string
+          title: Execution Id
+          description: Execution identifier
+        tool_name:
+          type: string
+          title: Tool Name
+          description: Name of the tool
+        arguments:
+          additionalProperties: true
+          type: object
+          title: Arguments
+          description: Tool arguments
+        tool_call_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Tool Call Id
+          description: Tool call ID from LLM
+        session_id:
+          type: string
+          minLength: 1
+          title: Session Id
+          description: Session ID for memory context. For LangGraph applications,
+            this is the LangGraph thread ID.
+        user_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: User Id
+          description: User ID for context
+        oe_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Oe Url
+          description: OE callback URL for memory and other operations
+        custom_headers:
+          anyOf:
+          - additionalProperties:
+              type: string
+            type: object
+          - type: 'null'
+          title: Custom Headers
+          description: Caller-provided custom headers
+        metadata:
+          additionalProperties: true
+          type: object
+          title: Metadata
+          description: 'Tool execution metadata forwarded by OE. Recognized keys:
+            mcp_server (str), mcp_tool (str).'
+          default: {}
+      type: object
+      required:
+      - execution_id
+      - tool_name
+      - arguments
+      - session_id
+      title: ToolPodExecuteRequest
+      description: Request to execute a tool in a Tool Pod.
+    ToolPodExecuteResponse:
+      properties:
+        status:
+          type: string
+          title: Status
+          description: 'Execution status: success, error'
+        result:
+          anyOf:
+          - {}
+          - type: 'null'
+          title: Result
+          description: Tool result
+        error:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Error
+          description: Error message if failed
+        pod_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Pod Name
+          description: Hostname/pod name where tool was executed
+        kind:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Kind
+          description: Explicit observability kind
+        metadata:
+          additionalProperties: true
+          type: object
+          title: Metadata
+          description: Observability metadata
+      type: object
+      required:
+      - status
+      title: ToolPodExecuteResponse
+      description: Response from Tool Pod execution.
+    ToolsListResponse:
+      properties:
+        tools:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          title: Tools
+          description: Registered tool definitions with name and metadata
+        count:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Count
+          description: Number of registered tools (included by Tool Pod)
+      type: object
+      required:
+      - tools
+      title: ToolsListResponse
+      description: Response from /tools endpoint listing registered tools.
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError

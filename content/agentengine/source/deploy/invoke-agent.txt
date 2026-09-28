@@ -1,0 +1,897 @@
+.. _agentic-platform-invoke-agent:
+
+===============
+Invoke an Agent
+===============
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Learn how to invoke a deployed agent on the Atlas Agent Engine by using the CLI or the invocation API. See how to forward custom headers and handle human-in-the-loop review.
+   :keywords: headers, platform, invocation, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to invoke a deployed agent on the
+{+mdb-ai-platform+}. The guide shows how to call the invocation API,
+invoke an agent from the CLI, forward custom headers to your agent,
+and resume suspended executions.
+
+To generate the API key or service account credentials that these
+requests use, see :ref:`agentic-platform-api-keys-service-accounts`.
+
+.. _agentic-platform-invocation-api:
+
+Invocation API
+--------------
+
+The invocation API is the API that clients use to call a deployed agent.
+The {+platform-short+} exposes these endpoints on behalf of the
+agent, so your agent code does not need to define any HTTP routes or
+start a web server.
+
+Invoke Your Agent
+~~~~~~~~~~~~~~~~~
+
+To invoke an agent, send a ``POST`` request to the
+``/api/v1/projects/{project_id}/workspaces/{workspace_id}/invoke``
+API endpoint. The response returns the execution result and the
+execution status. The platform returns the session ID in the
+``X-Session-ID`` response header.
+
+The following ``curl`` example uses these placeholders:
+
+- ``$API_KEY``: Your {+platform-short+} API key
+- ``$PROJECT_ID``: Your project ID
+- ``$WORKSPACE_ID``: Your workspace ID
+
+Select the tab for your preferred language to view a sample invoke
+request:
+
+.. tabs::
+
+   .. tab:: cURL
+      :tabid: invoke-curl
+
+      .. code-block:: bash
+
+         curl -s "https://agentengine.mongodb.com/api/v1/projects/$PROJECT_ID/workspaces/$WORKSPACE_ID/invoke" \
+           -X POST \
+           -H "Authorization: Bearer $API_KEY" \
+           -H "Content-Type: application/json" \
+           -d '{"message": "Hello, agent!"}'
+
+   .. tab:: Python
+      :tabid: invoke-python
+
+      .. code-block:: python
+
+         import httpx
+
+         response = httpx.post(
+             f"https://agentengine.mongodb.com/api/v1/projects/{project_id}/workspaces/{workspace_id}/invoke",
+             headers={"Authorization": f"Bearer {api_key}"},
+             json={"message": "Hello, agent!"},
+             timeout=60.0,
+         )
+         result = response.json()
+
+The response resembles the following output:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "success": true,
+     "response": "<agent output>",
+     "execution_id": "string",
+     "status": "completed"
+   }
+
+If the execution suspends for human review, the response also includes
+``suspend_reason`` and ``suspend_context`` fields. To learn more, see
+:ref:`agentic-platform-hitl-lifecycle` in the Human-in-the-Loop guide.
+
+.. _agentic-platform-invoke-agent-stream:
+
+Stream Your Agent's Output
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To stream an agent's output as it's produced, send a ``POST`` request to
+the ``/api/v1/projects/{project_id}/workspaces/{workspace_id}/invokeStream``
+API endpoint. The platform returns the response as a stream of
+Server-Sent Events (SSE) frames. The stream keeps the connection open
+until the run completes or fails.
+
+Each SSE frame begins with the ``data:`` prefix and contains a single
+JSON object. The following example shows the format of a streaming
+frame:
+
+.. code-block:: json
+   :copyable: false
+
+   data: {"chunk_type": "text", "content": "Hello, agent!", "metadata": {}, "execution_id": "string"}
+
+A frame can include the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Field
+     - Description
+
+   * - ``chunk_type``
+     - Identifies the type of chunk. The :ref:`following section
+       <agentic-platform-invoke-chunk-types>` lists the possible values.
+
+   * - ``content``
+     - The chunk payload. For ``text`` chunks, this field holds an
+       increment of the agent's generated output.
+
+   * - ``metadata``
+     - Structured metadata that describes the chunk.
+
+   * - ``execution_id``
+     - Identifies the execution that produced the chunk. The platform
+       includes this field when the execution ID is available.
+
+.. _agentic-platform-invoke-chunk-types:
+
+Chunk Types
+```````````
+
+The following table describes the chunk types that a stream can carry:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Chunk type
+     - Description
+
+   * - ``text``
+     - An increment of the agent's generated output.
+
+   * - ``step``
+     - A progress update that a tool emits during execution.
+
+   * - ``subagent_start``
+     - Marks the start of a subagent execution. The platform emits this
+       chunk only when guardrails are disabled.
+
+   * - ``subagent_end``
+     - Marks the end of a subagent execution. The platform emits this
+       chunk only when guardrails are disabled.
+
+   * - ``done``
+     - Marks the end of the stream after the run completes.
+
+   * - ``error``
+     - Marks the end of the stream after the run fails. The frame also
+       carries the error message.
+
+If the run fails, the stream sends an ``error`` chunk that includes
+the error message. Then, the stream closes.
+
+Custom Output for Opted-In Agents
+`````````````````````````````````
+
+If you set the ``features.use_custom_parser`` flag to ``true`` in your
+``agent.yaml`` file, the stream carries only the custom events that the
+agent's output parser or its ``emit_custom_event()`` calls produce.
+The platform forwards each custom event as a single ``data:``
+frame, so the frame contains exactly the JSON object that the agent
+emitted. The stream does not include the standard chunks such as
+``text``, ``step``, or ``done`` frames, and it closes when the
+run completes.
+
+The platform delivers custom events only on the ``invokeStream``
+endpoint. The synchronous ``invoke`` endpoint returns the agent's
+final output instead.
+
+When this feature flag is not enabled, the stream uses the
+chunk format described earlier in this section. The stream does not
+deliver custom events, and an ``emit_custom_event()`` call in agent
+code raises an error.
+
+Other Endpoints
+~~~~~~~~~~~~~~~
+
+The {+platform-short+} also exposes the following API endpoints for
+streaming, polling, resuming, and stopping executions:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Method and Path
+     - Purpose
+
+   * - ``POST /api/v1/projects/{project_id}/workspaces/{workspace_id}/invokeStream``
+     - Streams the agent's output incrementally as it is produced by
+       using the Server-Sent Events protocol.
+
+   * - ``GET /api/v1/projects/{project_id}/executions/{execution_id}?workspace_id={workspace_id}``
+     - Polls execution status and result.
+
+   * - ``POST /api/v1/projects/{project_id}/executions/{execution_id}/resume?workspace_id={workspace_id}``
+     - Resumes a suspended execution. The request body carries the
+       reviewer decision. To learn more, see
+       :ref:`agentic-platform-hitl-resume-api` in the Human-in-the-Loop guide.
+
+   * - ``POST /api/v1/projects/{project_id}/executions/{execution_id}/cancel?workspace_id={workspace_id}``
+     - Cancels an in-progress execution, stops its server-side work,
+       and releases the session's compute. To learn more, see
+       :ref:`agentic-platform-invoke-agent-cancel`.
+
+   * - ``POST /api/v1/projects/{project_id}/executions/{execution_id}/interrupt?workspace_id={workspace_id}``
+     - Interrupts in-flight tool or LLM calls without ending the session.
+       To learn more, see
+       :ref:`agentic-platform-invoke-agent-interrupt`.
+
+Every ``executions/**`` endpoint requires the ``workspace_id`` query
+parameter. The gateway uses this value to route the request to the
+owning workspace's Orchestration Engine.
+
+.. note::
+
+   Cancelling or interrupting an execution that already reached a
+   terminal status is idempotent. The request response reports that
+   the request made no change.
+   
+Execution Status Lifecycle
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An execution moves through the statuses ``pending``, ``running``, and
+then ``completed`` or ``error``.
+
+If the execution suspends for human review, it moves through additional
+statuses before it completes. To learn about the suspend and resume
+lifecycle, see :ref:`agentic-platform-hitl-lifecycle` in the Human-in-the-Loop guide.
+
+If you cancel an execution, it reaches the ``cancelled`` status. This
+status is distinct from ``completed`` and ``error``, so API and UI
+clients can distinguish a deliberately stopped execution from one that
+finished or failed. To learn more, see
+:ref:`agentic-platform-invoke-agent-cancel`.
+
+.. _agentic-platform-invoke-pool-full:
+
+Pool-Full Errors
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/limitations/scaling-concurrency.rst
+
+Because the {+platform-short+} snapshots ``scaling`` values at build
+time, you must build and deploy the agent again for a change to take
+effect. To learn more about these fields, see
+:ref:`agentic-platform-agent-contract`. To review all limitations that
+apply during Public Preview, see :ref:`agentic-platform-limitations`.
+
+.. _agentic-platform-forward-custom-headers:
+
+Forward Custom Headers
+----------------------
+
+In this section, you can learn how to pass custom HTTP headers, such as
+user IDs, from your application to an agent running on the
+{+platform-short+}. Your agent can then read those headers at runtime by
+using the ``get_current_custom_headers()`` method.
+
+How It Works
+~~~~~~~~~~~~
+
+On an invoke or resume request, the API Gateway processes HTTP headers
+with the prefix ``X-Mdb-Agent-Engine-Custom-`` by performing the
+following steps:
+
+1. The API Gateway extracts the header.
+#. The gateway strips the prefix and makes the header name lowercase.
+   For example, ``X-Mdb-Agent-Engine-Custom-Authorization`` becomes
+   ``authorization``.
+#. The gateway forwards the headers to the agent as a dictionary.
+
+Headers are forwarded in-memory through the execution pipeline, never
+persisted to the database, and discarded by the pipeline when the
+execution completes.
+
+.. note::
+
+   The {+platform-short+} does not persist custom headers. Your
+   application must resend them on every request, including resume
+   requests.
+
+.. _agentic-platform-custom-headers-limits:
+
+Limits
+``````
+
+The following table shows the limits for custom headers:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 60 40
+
+   * - Limit
+     - Value
+
+   * - Maximum number of custom headers
+     - 50
+
+   * - Maximum size per header
+     - 8 KiB
+
+Send Custom Headers
+~~~~~~~~~~~~~~~~~~~
+
+Add ``X-Mdb-Agent-Engine-Custom-`` prefixed headers to your invoke
+request. The API Gateway strips the prefix before the agent receives
+them.
+
+The following examples use the same placeholders as the
+:ref:`invocation API examples <agentic-platform-invocation-api>`. They
+also use placeholders for the custom headers that you want to forward.
+
+Select the tab for your preferred language to see an example
+invoke request with custom headers:
+
+.. tabs::
+
+   .. tab:: cURL
+      :tabid: custom-headers-curl
+
+      .. code-block:: bash
+
+         curl -s "https://agentengine.mongodb.com/api/v1/projects/$PROJECT_ID/workspaces/$WORKSPACE_ID/invoke" \
+           -X POST \
+           -H "Authorization: Bearer $API_KEY" \
+           -H "X-Mdb-Agent-Engine-Custom-Authorization: my-user-id" \
+           -H "X-Mdb-Agent-Engine-Custom-Tenant-Id: acme-corp" \
+           -H "Content-Type: application/json" \
+           -d '{"message": "Hello, agent!"}'
+
+   .. tab:: Python
+      :tabid: custom-headers-python
+
+      .. code-block:: python
+
+         import httpx
+
+         response = httpx.post(
+             f"https://agentengine.mongodb.com/api/v1/projects/{project_id}/workspaces/{workspace_id}/invoke",
+             headers={
+                 "Authorization": f"Bearer {api_key}",
+                 "X-Mdb-Agent-Engine-Custom-Authorization": "my-user-id",
+                 "X-Mdb-Agent-Engine-Custom-Tenant-Id": "acme-corp",
+             },
+             json={"message": "Hello, agent!"},
+         )
+
+The agent receives the following dictionary after you run the preceding
+code:
+
+.. code-block:: json
+   :copyable: false
+
+   {"authorization": "my-user-id", "tenant-id": "acme-corp"}
+
+Read Headers in Your Agent
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the ``get_current_custom_headers()`` method from
+``agent_engine_runner_shared`` inside any tool to access the headers
+that the API Gateway forwarded to the agent. The following Python code
+shows how to use ``get_current_custom_headers()`` to access the
+forwarded headers:
+
+.. code-block:: python
+
+   from agent_engine_sdk_langgraph import App
+   from agent_engine_runner_shared import get_current_custom_headers
+
+   app = App(app_name="My Agent")
+
+   @app.tool(is_local=True)
+   def call_external_api(query: str) -> str:
+       """Call an external API using the caller's user ID."""
+       headers = get_current_custom_headers()
+       user_id = headers.get("authorization", "")
+       tenant = headers.get("tenant-id", "")
+
+       response = httpx.get(
+           "https://api.example.com/data",
+           headers={"Authorization": user_id, "X-Tenant-Id": tenant},
+           params={"q": query},
+       )
+       return response.text
+
+The ``get_current_custom_headers()`` method returns a
+``dict[str, str]``. If the gateway did not send any custom headers, the
+method returns an empty dictionary.
+
+.. _agentic-platform-invoke-agent-resume:
+
+Resume Requests
+~~~~~~~~~~~~~~~
+
+Forwarding custom headers also works with resume requests. Because the
+{+platform-short+} does not persist custom headers, you must resend the
+same ``X-Mdb-Agent-Engine-Custom-`` headers when you resume a
+suspended execution. For an example resume request that forwards custom
+headers, see :ref:`agentic-platform-hitl-resume-api` in the
+Human-in-the-Loop guide.
+
+.. _agentic-platform-invoke-agent-stop:
+
+Stop a Running Agent
+--------------------
+
+Cancelling a request from your client closes only your side of the
+connection. The execution keeps running on the server until you stop it
+through the {+platform-short+}.
+
+The {+platform-short+} provides the following ways to stop work that
+is already running:
+
+- Cancel the session to end the execution and release its compute. To
+  learn more, see :ref:`agentic-platform-invoke-agent-cancel`.
+- Stop the run from the Playground UI. To learn more, see
+  :ref:`agentic-platform-invoke-agent-stop-playground`.
+- Interrupt a single in-progress tool or LLM call and let the agent
+  continue the run. To learn more, see
+  :ref:`agentic-platform-invoke-agent-interrupt`.
+- Mark the session finished from your agent code when the agent does
+  not need it anymore. To learn more, see
+  :ref:`agentic-platform-invoke-agent-finish-session`.
+
+.. _agentic-platform-invoke-agent-cancel:
+
+Cancel a Session
+~~~~~~~~~~~~~~~~
+
+To cancel an in-progress execution, send a ``POST`` request to the
+``/api/v1/projects/{project_id}/executions/{execution_id}/cancel``
+endpoint and set the ``workspace_id`` query parameter. The request
+does not take a body.
+
+Select the tab for your preferred language to see an example of
+cancelling an execution:
+
+.. tabs::
+
+   .. tab:: cURL
+      :tabid: cancel-curl
+
+      .. code-block:: bash
+
+         curl -X POST "https://agentengine.mongodb.com/api/v1/projects/$PROJECT_ID/executions/$EXECUTION_ID/cancel?workspace_id=$WORKSPACE_ID" \
+           -H "Authorization: Bearer $API_KEY"
+
+   .. tab:: Python
+      :tabid: cancel-python
+
+      .. code-block:: python
+
+         import httpx
+
+         response = httpx.post(
+             f"https://agentengine.mongodb.com/api/v1/projects/{project_id}/executions/{execution_id}/cancel",
+             params={"workspace_id": workspace_id},
+             headers={"Authorization": f"Bearer {api_key}"},
+         )
+
+The response resembles the following output:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "execution_id": "string",
+     "cancelled": true,
+     "status": "cancelled"
+   }
+
+The ``cancelled`` field reports whether this request set the
+execution status to ``cancelled``. The field value is ``true`` for a
+``cancelled`` execution and ``false`` when the request did not
+transition the execution because it had already reached a terminal
+status, including ``cancelled`` from an earlier request. When the field
+value is ``false``, the ``status`` field reports the recorded terminal
+status instead.
+
+When you cancel an execution, the {+platform-short+} does the
+following:
+
+- Cancels in-progress tool or LLM calls and tears down the session's
+  agent sandbox and tool sandbox, and releases the capacity slot. A new execution
+  can reuse the slot.
+- Cancels every other live execution on the same session, including
+  deep-agent and agent-to-agent executions that are children of the
+  target execution.
+- Ends an open response stream instead of leaving the stream open until
+  it times out.
+- Bills the runtime that the session accrued until cancellation.
+
+.. note::
+
+   You cannot resume a cancelled execution. To send another message to
+   the agent, invoke the agent again. The request starts a new
+   execution instead of resuming the cancelled one.
+
+.. _agentic-platform-invoke-agent-stop-playground:
+
+Stop a Run in the Playground
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can also stop a run from the Playground UI instead of calling the
+``cancel`` API endpoint. Stopping a run from the Playground has the same
+effect as cancelling the session. To learn more, see
+:ref:`agentic-platform-invoke-agent-cancel`.
+
+To stop a run from the Playground, perform the following steps:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Open the Playground.
+
+      Go to the playground UI URL for your deployment.
+
+   .. step:: Click the stop button.
+
+      While the run is in progress, click the red stop button in the
+      chat bar to open the confirmation dialog.
+
+   .. step:: Confirm that you want to stop the run.
+
+      In the dialog, click :guilabel:`Stop run`. This stops the run
+      and releases the session's compute resources.
+
+.. _agentic-platform-invoke-agent-interrupt:
+
+Interrupt a Tool or LLM Call
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Interrupting a tool or LLM call stops that call only. The session stays
+active and the agent continues its run from the interrupted result.
+Interrupt a call when a single call is stuck or unwanted and you don't
+want to cancel the whole session.
+
+To interrupt a call, send a ``POST`` request to the
+``/api/v1/projects/{project_id}/executions/{execution_id}/interrupt``
+API endpoint. The request takes the following parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 15 13 52
+
+   * - Parameter
+     - Type
+     - Required
+     - Description
+
+   * - ``workspace_id``
+     - Query parameter
+     - Yes
+     - The workspace that owns the execution. The
+       {+platform-short+} uses this value to route the interrupt
+       request to that workspace's Orchestration Engine. If you omit
+       this parameter, the request fails with a ``400`` error message.
+
+   * - ``step_number``
+     - Body field
+     - No
+     - The execution step of the single call to interrupt. If you omit
+       this field, the {+platform-short+} interrupts every call that is
+       in progress.
+
+Select the tab for your preferred language to see an example of
+interrupting a tool or LLM call:
+
+.. tabs::
+
+   .. tab:: cURL
+      :tabid: interrupt-curl
+
+      .. code-block:: bash
+
+         curl -X POST "https://agentengine.mongodb.com/api/v1/projects/$PROJECT_ID/executions/$EXECUTION_ID/interrupt?workspace_id=$WORKSPACE_ID" \
+           -H "Authorization: Bearer $API_KEY" \
+           -H "Content-Type: application/json" \
+           -d '{"step_number": 12}'
+
+   .. tab:: Python
+      :tabid: interrupt-python
+
+      .. code-block:: python
+
+         import httpx
+
+         response = httpx.post(
+             f"https://agentengine.mongodb.com/api/v1/projects/{project_id}/executions/{execution_id}/interrupt",
+             params={"workspace_id": workspace_id},
+             headers={"Authorization": f"Bearer {api_key}"},
+             json={"step_number": 12},
+         )
+
+The response resembles the following output:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "execution_id": "string",
+     "interrupted": true,
+     "interrupted_steps": [ 12 ],
+     "pending": false,
+     "outcome": "aborted"
+   }
+
+The ``outcome`` field describes the result of the interrupt request and
+returns one of the following values:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Value
+     - Description
+
+   * - ``aborted``
+     - The {+platform-short+} stopped an in-progress call. The
+       ``interrupted_steps`` field lists the steps that it stopped.
+
+   * - ``armed``
+     - There was no in-progress call, so the {+platform-short+} applies
+       the interrupt request to the execution's next tool or LLM call.
+       The ``pending`` field is ``true``.
+
+   * - ``already_armed``
+     - An unexpired prepared interrupt request already existed. The
+       {+platform-short+} did not extend its expiration.
+
+   * - ``noop_terminal``
+     - The execution already reached a terminal status.
+
+   * - ``noop``
+     - The ``step_number`` value you provided matched no call in
+       flight. The {+platform-short+} does not prepare an interrupt
+       request.
+
+Interrupting a call is idempotent and does not change the execution
+status. If you interrupt every call in a step, the agent ends that
+turn instead of retrying the calls. If you interrupt only some of the
+calls in a step, the agent continues normally.
+
+.. note::
+
+   The {+platform-short+} can interrupt an I/O-bound call, such as an
+   LLM call or a network tool call. However, a tool that runs a
+   CPU-bound local computation might not stop until it finishes.
+
+.. _agentic-platform-invoke-agent-finish-session:
+
+Mark a Session Finished from Your Agent
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A session holds its agent sandbox and tool sandbox until the idle timeout
+expires. If you mark a session as finished, your agent can
+release that compute immediately instead of waiting for the timeout.
+
+Select the tab for your preferred language to see an example of
+marking a session finished from your agent:
+
+.. tabs::
+
+   .. tab:: Python
+      :tabid: finish-session-python
+
+      .. code-block:: python
+
+         status = app.finish_session()
+
+   .. tab:: TypeScript
+      :tabid: finish-session-typescript
+
+      .. code-block:: typescript
+
+         const status = app.finishSession();
+
+The current turn keeps running and returns its result. After
+the turn completes, the {+platform-short+} cancels any live sub-agent
+executions and releases the session's pods.
+
+The method returns one of the following values:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 30 40
+
+   * - Python
+     - TypeScript
+     - Description
+
+   * - ``REQUESTED``
+     - ``requested``
+     - The {+platform-short+} accepted the request.
+
+   * - ``ALREADY_REQUESTED``
+     - ``already_requested``
+     - The agent already requested that the {+platform-short+} finish
+       this session.
+
+   * - ``UNAVAILABLE``
+     - ``unavailable``
+     - There is no session to finish. The method returns this value
+       when you call it outside of an agent run, such as from a local
+       script or a tool sandbox, or after the turn ends.
+
+The method does not raise an error or throw an exception when there is
+no session to finish.
+
+A turn that suspends for human review or fails keeps its resources so
+that you can resume and diagnose it. That session falls back to the
+idle timeout. To learn more about idle timeouts, see
+:ref:`agentic-platform-invoke-pool-full`.
+
+.. _agentic-platform-invoke-cli:
+
+Invoke an Agent from the CLI
+----------------------------
+
+The ``agentengine invoke`` command invokes a deployed agent from the
+terminal without writing any HTTP client code. It reads the workspace
+from the current directory's ``.agentengine/state.json`` file by
+default.
+
+If you run the command without a message in an interactive terminal, it
+starts a streaming chat session and reuses the returned session ID
+across turns. In this interactive mode, the CLI automatically presents
+an inline review prompt when the agent suspends invocation for
+human-in-the-loop (HITL) review.
+
+Command Syntax
+~~~~~~~~~~~~~~
+
+.. code-block:: bash
+
+   agentengine invoke [message] [flags]
+   agentengine invoke --file <path> [flags]
+
+The following table describes the available flags:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Flag
+     - Description
+
+   * - ``--stream``
+     - Stream response chunks as they arrive. To learn how the
+       platform formats streamed output, see
+       :ref:`agentic-platform-invoke-agent-stream`.
+
+   * - ``--session <id>``
+     - Conversation session ID to resume or reuse across turns.
+
+   * - ``--user-id <id>``
+     - User ID to pass to the deployed agent.
+
+   * - ``--file <path>``
+     - Read the message from a file instead of a positional argument.
+
+   * - ``--payload <json>``
+     - JSON metadata object forwarded to the agent alongside the
+       message. You must specify a valid JSON object. This flag can be
+       combined with ``--file`` or a positional message argument.
+
+   * - ``--resume <json>``
+     - JSON ``resume_map`` for continuing a suspended session. Requires
+       ``--session``. This flag is mutually exclusive with a positional
+       message, ``--file``, and stdin input.
+
+   * - ``--json``
+     - Output raw JSON, including session ID and streamed chunks.
+
+   * - ``--workspace``
+     - *(Monorepo only)* Invoke a specific workspace by name.
+
+   * - ``--workspace-id <id>``
+     - Platform workspace ID, which bypasses local workspace resolution.
+
+   * - ``--project-id <id>``
+     - Platform project ID.
+
+   * - ``--org-id <id>``
+     - Organization ID.
+
+   * - ``--base-url <url>``
+     - Platform API base URL.
+
+   * - ``--context <name>``
+     - Named local context from ``.agentengine/state.json``. This cannot
+       be combined with ``--workspace-id``, ``--project-id``,
+       ``--org-id``, or ``--base-url``.
+
+   * - ``--timeout <duration>``
+     - Maximum time to wait for each invoke request. The default value
+       is ``10m``.
+
+Examples
+~~~~~~~~
+
+The following command invokes the agent with a single message:
+
+.. code-block:: bash
+
+   agentengine invoke "What can you do?"
+
+The following command streams the agent's response as it is produced:
+
+.. code-block:: bash
+
+   agentengine invoke --stream "Draft a release note"
+
+The following command resumes or continues a named session:
+
+.. code-block:: bash
+
+   agentengine invoke --session my-session "Follow up question"
+
+The following command reads a message from a file and outputs raw JSON:
+
+.. code-block:: bash
+
+   cat prompt.txt | agentengine invoke --json
+
+Interactive Payload Commands
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When running ``agentengine invoke`` in interactive mode, you can manage
+the payload between turns by using one of the following commands:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Input
+     - Behavior
+
+   * - ``/payload <json>``
+     - Sets the current payload to the given JSON object. The CLI
+       forwards the payload with each subsequent message until you
+       clear it.
+
+   * - ``/payload``
+     - Displays the current payload as formatted JSON or prints
+       ``(no payload set)`` if no payload is set.
+
+   * - ``/payload clear``
+     - Clears the current payload.
+
+Interactive HITL Review
+~~~~~~~~~~~~~~~~~~~~~~~
+
+When an agent suspends for human-in-the-loop (HITL) review in
+interactive mode, the CLI prints the suspend context and prompts you for
+a decision inline. To learn how the CLI presents the review prompt and
+how to resume the execution, see :ref:`agentic-platform-hitl-resume-cli`
+in the Human-in-the-Loop guide.
+
+Next Steps
+----------
+
+After you invoke an agent, you can monitor your agent's performance
+and activity. To learn more, see the
+:ref:`Monitor <agentic-platform-monitor>` guide.

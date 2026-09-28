@@ -1,0 +1,2017 @@
+.. _javascript-packages-agent-engine-sdk-langgraph-docs-api:
+
+@mongodb-js/agent-engine-sdk-langgraph
+======================================
+
+Table of Contents
+-----------------
+
+- **Classes**
+
+  - `AgentEngineToolPodBackend <#agentenginetoolpodbackend>`__
+
+    - `downloadFiles() <#downloadfiles>`__
+    - `edit() <#edit>`__
+    - `execute() <#execute>`__
+    - `glob() <#glob>`__
+    - `grep() <#grep>`__
+    - `ls() <#ls>`__
+    - `read() <#read>`__
+    - `readRaw() <#readraw>`__
+    - `uploadFiles() <#uploadfiles>`__
+    - `write() <#write>`__
+
+  - `App <#app>`__
+
+    - `checkpointer() <#checkpointer>`__
+    - `close() <#close>`__
+    - `deepAgent() <#deepagent>`__
+    - `entrypoint() <#entrypoint>`__
+    - `finishSession() <#finishsession>`__
+    - `getAgent() <#getagent>`__
+    - `getCurrentSessionId() <#getcurrentsessionid>`__
+    - `getCurrentUserId() <#getcurrentuserid>`__
+    - `getToolDefinitions() <#gettooldefinitions>`__
+    - `getTools() <#gettools>`__
+    - `getToolSchemas() <#gettoolschemas>`__
+    - `llm() <#llm>`__
+    - `prepareAgentInput() <#prepareagentinput>`__
+    - `ready() <#ready>`__
+    - `resolveThreadId() <#resolvethreadid>`__
+    - `run() <#run>`__
+    - `suspend() <#suspend>`__
+    - `tool() <#tool>`__
+    - `tools() <#tools>`__
+    - `warmUp() <#warmup>`__
+
+  - `LangGraphBaseAgent <#langgraphbaseagent>`__
+
+    - `execute() <#execute-1>`__
+    - `invoke() <#invoke>`__
+    - `resume() <#resume>`__
+    - `stream() <#stream>`__
+
+  - `LangGraphQueryPlugin <#langgraphqueryplugin>`__
+
+    - `getMessagesForSession() <#getmessagesforsession>`__
+    - `getSummariesForSessions() <#getsummariesforsessions>`__
+
+- **Interfaces**
+
+  - `CreateAgentEngineDeepAgentOptions <#createagentenginedeepagentoptions>`__
+  - `DeepAgentOptions <#deepagentoptions>`__
+  - `LangGraphQueryPluginParams <#langgraphquerypluginparams>`__
+
+- **Type Aliases**
+
+  - `PrepareAgentInput <#prepareagentinput-1>`__
+  - `ResolveThreadId <#resolvethreadid-2>`__
+  - `SessionFinishStatus <#sessionfinishstatus>`__
+
+- **Variables**
+
+  - `MAX_SUBAGENT_NESTING_DEPTH <#max_subagent_nesting_depth>`__
+
+- **Functions**
+
+  - `createAgentEngineDeepAgent() <#createagentenginedeepagent>`__
+  - `getCallAbortSignal() <#getcallabortsignal>`__
+  - `validateSubagentTree() <#validatesubagenttree>`__
+  - `withCallInterruptSupport() <#withcallinterruptsupport>`__
+
+- **References**
+
+  - `AgentEngineToolSandboxBackend <#agentenginetoolsandboxbackend>`__
+
+Classes
+-------
+
+AgentEngineToolPodBackend
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Backend that routes every operation through Atlas Agent Engine’s secure
+path. Each method delegates to ``SecureToolWrapper.executeTool``, which
+sends the request to the OE for policy approval and audit logging before
+it runs in the Tool Pod.
+
+Implements
+^^^^^^^^^^
+
+- ``SandboxBackendProtocolV2``
+
+Constructor
+^^^^^^^^^^^
+
+.. code:: ts
+
+   new AgentEngineToolPodBackend(): AgentEngineToolPodBackend;
+
+**Returns**
+
+```AgentEngineToolPodBackend`` <#agentenginetoolpodbackend>`__
+
+Properties
+^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+
+   * - Property
+     - Modifier
+     - Type
+     - Default value
+     - Description
+   * - ``id``
+     - ``readonly``
+     - ``"agent-engine-toolpod"``
+     - ``"agent-engine-toolpod"``
+     - Unique identifier for the sandbox backend instance
+
+Methods
+^^^^^^^
+
+downloadFiles()
+'''''''''''''''
+
+.. code:: ts
+
+   downloadFiles(paths): Promise<FileDownloadResponse[]>;
+
+Download files via the audited ``filesystem_download`` handler — one
+call per path so each is policy-checked and logged independently — then
+base64-decode the ``content_base64`` field into raw bytes. Responses
+preserve input order; on failure ``content`` is null and ``error``
+carries a classified message.
+
+Native-mode batches fan out on a bounded worker pool so skills loading
+pays one round-trip of latency instead of a sum. Durable attempts stay
+sequential: unkeyed activities are exclusive under the attempt gate, and
+overlapping them raises CONFLICT.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``paths``
+     - ``string``\ []
+
+**Returns**
+
+``Promise``\ <``FileDownloadResponse``\ []>
+
+**Implementation of**
+
+.. code:: ts
+
+   SandboxBackendProtocolV2.downloadFiles
+
+edit()
+''''''
+
+.. code:: ts
+
+   edit(
+      filePath,
+      oldString,
+      newString,
+      replaceAll?
+   ): Promise<EditResult>;
+
+Edit a file by replacing string occurrences.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Default value
+     - Description
+   * - ``filePath``
+     - ``string``
+     - ``undefined``
+     - Absolute file path
+   * - ``oldString``
+     - ``string``
+     - ``undefined``
+     - String to find and replace
+   * - ``newString``
+     - ``string``
+     - ``undefined``
+     - Replacement string
+   * - ``replaceAll``
+     - ``boolean``
+     - ``false``
+     - If true, replace all occurrences (default: false)
+
+**Returns**
+
+``Promise``\ <``EditResult``>
+
+EditResult with error, path, filesUpdate, and occurrences
+
+**Implementation of**
+
+.. code:: ts
+
+   SandboxBackendProtocolV2.edit
+
+execute()
+'''''''''
+
+.. code:: ts
+
+   execute(command): Promise<ExecuteResponse>;
+
+Execute a command in the sandbox.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Description
+   * - ``command``
+     - ``string``
+     - Full shell command string to execute
+
+**Returns**
+
+``Promise``\ <``ExecuteResponse``>
+
+ExecuteResponse with combined output, exit code, and truncation flag
+
+**Implementation of**
+
+.. code:: ts
+
+   SandboxBackendProtocolV2.execute
+
+glob()
+''''''
+
+.. code:: ts
+
+   glob(pattern, path?): Promise<GlobResult>;
+
+Structured glob matching returning FileInfo objects.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Default value
+     - Description
+   * - ``pattern``
+     - ``string``
+     - ``undefined``
+     - Glob pattern (e.g., ``*.py``, ``**/*.ts``)
+   * - ``path``
+     - ``string``
+     - ``"/"``
+     - Base path to search from (default: “/”)
+
+**Returns**
+
+``Promise``\ <``GlobResult``>
+
+GlobResult with list of FileInfo objects matching the pattern on success
+or error on failure
+
+**Implementation of**
+
+.. code:: ts
+
+   SandboxBackendProtocolV2.glob
+
+grep()
+''''''
+
+.. code:: ts
+
+   grep(
+      pattern,
+      path?,
+      glob?
+   ): Promise<GrepResult>;
+
+Search file contents for a literal text pattern.
+
+Binary files (determined by MIME type) are skipped.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Description
+   * - ``pattern``
+     - ``string``
+     - Literal text pattern to search for
+   * - ``path?``
+     - ``string`` \| ``null``
+     - Base path to search from (default: null)
+   * - ``glob?``
+     - ``string`` \| ``null``
+     - Optional glob pattern to filter files (e.g., “\*.py”)
+
+**Returns**
+
+``Promise``\ <``GrepResult``>
+
+GrepResult with matches on success or error on failure
+
+**Implementation of**
+
+.. code:: ts
+
+   SandboxBackendProtocolV2.grep
+
+ls()
+''''
+
+.. code:: ts
+
+   ls(path): Promise<LsResult>;
+
+Structured listing with file metadata.
+
+Lists files and directories in the specified directory (non-recursive).
+Directories have a trailing / in their path and is_dir=true.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Description
+   * - ``path``
+     - ``string``
+     - Absolute path to directory
+
+**Returns**
+
+``Promise``\ <``LsResult``>
+
+LsResult with list of FileInfo objects on success or error on failure
+
+**Implementation of**
+
+.. code:: ts
+
+   SandboxBackendProtocolV2.ls
+
+read()
+''''''
+
+.. code:: ts
+
+   read(
+      filePath,
+      offset?,
+      limit?
+   ): Promise<ReadResult>;
+
+Read file content.
+
+For text files, content is paginated by line offset/limit. For binary
+files, the full raw Uint8Array content is returned.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Default value
+     - Description
+   * - ``filePath``
+     - ``string``
+     - ``undefined``
+     - Absolute file path
+   * - ``offset``
+     - ``number``
+     - ``0``
+     - Line offset to start reading from (0-indexed), default 0
+   * - ``limit``
+     - ``number``
+     - ``2000``
+     - Maximum number of lines to read, default 500
+
+**Returns**
+
+``Promise``\ <``ReadResult``>
+
+ReadResult with content on success or error on failure
+
+**Implementation of**
+
+.. code:: ts
+
+   SandboxBackendProtocolV2.read
+
+readRaw()
+'''''''''
+
+.. code:: ts
+
+   readRaw(filePath): Promise<ReadRawResult>;
+
+Raw read is not backed by a dedicated wire handler; the Tool Pod exposes
+only line-oriented ``filesystem_read``. We wrap its text content in a v2
+FileData so binary-unaware callers still work. Genuine binary reads
+should use ``downloadFiles``, which carries raw bytes base64-encoded.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``filePath``
+     - ``string``
+
+**Returns**
+
+``Promise``\ <``ReadRawResult``>
+
+**Implementation of**
+
+.. code:: ts
+
+   SandboxBackendProtocolV2.readRaw
+
+uploadFiles()
+'''''''''''''
+
+.. code:: ts
+
+   uploadFiles(files): Promise<FileUploadResponse[]>;
+
+Upload multiple files. Optional - backends that don’t support file
+upload can omit this.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Description
+   * - ``files``
+     - [``string``, ``Uint8Array``\ <``ArrayBufferLike``>][]
+     - List of [path, content] tuples to upload
+
+**Returns**
+
+``Promise``\ <``FileUploadResponse``\ []>
+
+List of FileUploadResponse objects, one per input file
+
+**Implementation of**
+
+.. code:: ts
+
+   SandboxBackendProtocolV2.uploadFiles
+
+write()
+'''''''
+
+.. code:: ts
+
+   write(filePath, content): Promise<WriteResult>;
+
+Create a new file.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Description
+   * - ``filePath``
+     - ``string``
+     - Absolute file path
+   * - ``content``
+     - ``string``
+     - File content as string
+
+**Returns**
+
+``Promise``\ <``WriteResult``>
+
+WriteResult with error populated on failure
+
+**Implementation of**
+
+.. code:: ts
+
+   SandboxBackendProtocolV2.write
+
+--------------
+
+App
+~~~
+
+LangChain SDK for the Atlas Agent Engine.
+
+Example
+^^^^^^^
+
+.. code:: ts
+
+   import { App } from '@mongodb-js/agent-engine-sdk-langgraph';
+
+   const app = new App({ appName: 'My Agent' });
+
+   app.tool()((args: { query: string }) => 'result');
+
+   app.entrypoint(() => {
+     const llm = app.llm(chatModel);
+     const checkpointer = app.checkpointer();
+     const tools = app.getTools();
+     // Build LangGraph...
+     return graph;
+   });
+
+Extends
+^^^^^^^
+
+- ``BaseApp``
+
+.. _constructor-1:
+
+Constructor
+^^^^^^^^^^^
+
+.. code:: ts
+
+   new App(options): App;
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``options``
+     - ``AppOptions``
+
+**Returns**
+
+```App`` <#app>`__
+
+**Overrides**
+
+.. code:: ts
+
+   BaseApp.constructor
+
+.. _properties-1:
+
+Properties
+^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+
+   * - Property
+     - Modifier
+     - Type
+     - Inherited from
+   * - ``llmWrapper``
+     - ``public``
+     - ``unknown``
+     - ``BaseApp.llmWrapper``
+   * - ``name``
+     - ``readonly``
+     - ``string``
+     - ``BaseApp.name``
+   * - ``toolWrapper``
+     - ``public``
+     - ``unknown``
+     - ``BaseApp.toolWrapper``
+
+Accessors
+^^^^^^^^^
+
+agentConfig
+'''''''''''
+
+**Get Signature**
+
+.. code:: ts
+
+   get agentConfig(): RuntimeAgentConfig;
+
+**Returns**
+
+``RuntimeAgentConfig``
+
+memory
+''''''
+
+**Get Signature**
+
+.. code:: ts
+
+   get memory(): Memory;
+
+Unified memory facade over app-bound adapters.
+
+Lazily constructed on first access and cached (a long-lived singleton
+over per-request context). Operations resolve the end-user and session
+from the ambient execution context, so agent code calls
+``app.memory.saveSemantic(...)`` without threading identity through.
+Requests route through the OE memory proxy; memory is reachable only
+while handling a platform request.
+
+**Returns**
+
+``Memory``
+
+.. _methods-1:
+
+Methods
+^^^^^^^
+
+checkpointer()
+''''''''''''''
+
+.. code:: ts
+
+   checkpointer(): PlatformCheckpointer | null;
+
+Get the platform checkpointer for LangGraph.
+
+Lazily constructs and wraps a ``MongoDBSaver`` on first call in AER
+mode. Native sessions use that saver through the request-scoped platform
+wrapper. The underlying ``MongoClient`` is closed by ``App.close()``.
+
+The database name is read from ``CHECKPOINT_DB_NAME`` when set (exact
+override, no project scoping). Otherwise the existing
+``MDB_AGENTIC_STORE_DB`` / per-project store resolution is used
+(default: ``"mdb_store"``). The URI comes from ``MONGODB_URI`` — the
+same source ``TenantRuntime`` uses internally.
+
+Mirrors Python ``runtime.py:checkpointer()``.
+
+**Returns**
+
+``PlatformCheckpointer`` \| ``null``
+
+close()
+'''''''
+
+.. code:: ts
+
+   close(): Promise<void>;
+
+Release resources held by this App instance.
+
+**Returns**
+
+``Promise``\ <``void``>
+
+deepAgent()
+'''''''''''
+
+.. code:: ts
+
+   deepAgent(llm, options?): DeepAgent<DeepAgentTypeConfig<ResponseFormatUndefined, undefined, InteropZodObject, readonly [AgentMiddleware<ZodObject<{
+   }, "strip", ZodTypeAny, {
+   }, {
+   }>, undefined, unknown, readonly [DynamicStructuredTool<ZodObject<{
+   }, "strip", ZodTypeAny, {
+   }, {
+   }>, {
+   }, {
+   }, Command<unknown, {
+   }, string>, unknown, "write_todos">]>, AgentMiddleware<StateSchema<{
+   }>, undefined, unknown, (
+     | DynamicStructuredTool<ZodObject<{
+   }, $strip>, {
+   }, {
+   }, string, unknown, "ls">
+     | DynamicStructuredTool<ZodObject<{
+   }, $strip>, {
+   }, {
+   }, object[] | object[], unknown, "read_file">
+     | DynamicStructuredTool<ZodObject<{
+   }, $strip>, {
+   }, {
+   },
+     | string
+     | ToolMessage<MessageStructure<MessageToolSet>>
+     | Command<unknown, {
+   }, string>, unknown, "write_file">
+     | DynamicStructuredTool<ZodObject<{
+   }, $strip>, {
+   }, {
+   },
+     | string
+     | ToolMessage<MessageStructure<MessageToolSet>>
+     | Command<unknown, {
+   }, string>, unknown, "edit_file">
+     | DynamicStructuredTool<ZodObject<{
+   }, $strip>, {
+   }, {
+   }, string, unknown, "glob">
+     | DynamicStructuredTool<ZodObject<{
+   }, $strip>, {
+   }, {
+   }, string, unknown, "grep">
+     | DynamicStructuredTool<ZodObject<{
+   }, $strip>, {
+   }, {
+   }, string, unknown, "execute">)[]>, AgentMiddleware<undefined, undefined, unknown, readonly [DynamicStructuredTool<ZodObject<{
+   }, $strip>, {
+   }, {
+   },
+     | string
+     | Command<unknown, Record<string, unknown>, string>, unknown, "task">]>, AgentMiddleware<ZodObject<{
+   }, $strip>, undefined, unknown, readonly (ClientTool | ServerTool)[]>, AgentMiddleware<undefined, undefined, unknown, readonly (ClientTool | ServerTool)[]>, AgentMiddleware<any, any, any, readonly (ClientTool | ServerTool)[]>], readonly (ClientTool | ServerTool)[], readonly AnySubAgent[], readonly () => StreamTransformer<any>[]>>;
+
+Build a deepagents graph pre-wired for Atlas Agent Engine AER.
+
+Wraps ``llm`` in ``SecureWrappedLLM``, resolves relative skill paths,
+validates the subagent tree (string models are rejected — they would
+bypass OE routing), then delegates to deepagents’ ``createDeepAgent``.
+
+Each ``skills`` entry is a parent source directory. At runtime,
+deepagents lists it through the configured backend and treats each
+immediate child directory containing ``SKILL.md`` as one skill;
+discovery is not recursive. deepagents skips unreadable or unparsable
+frontmatter and skills missing ``name`` or ``description``; it warns but
+may still load Agent Skills naming or directory-name violations.
+
+Mirrors Python ``runtime.py:App.deep_agent()``.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``llm``
+     - ``BaseChatModel``
+   * - ``options``
+     - ```DeepAgentOptions`` <#deepagentoptions>`__
+
+**Returns**
+
+``DeepAgent``\ <``DeepAgentTypeConfig``\ <``ResponseFormatUndefined``,
+``undefined``, ``InteropZodObject``, readonly
+[``AgentMiddleware``\ <``ZodObject``\ <{ }, ``"strip"``, ``ZodTypeAny``,
+{ }, { }>, ``undefined``, ``unknown``, readonly
+[``DynamicStructuredTool``\ <``ZodObject``\ <{ }, ``"strip"``,
+``ZodTypeAny``, { }, { }>, { }, { }, ``Command``\ <``unknown``, { },
+``string``>, ``unknown``, ``"write_todos"``>]>,
+``AgentMiddleware``\ <``StateSchema``\ <{ }>, ``undefined``,
+``unknown``, ( \| ``DynamicStructuredTool``\ <``ZodObject``\ <{ },
+``$strip``>, { }, { }, ``string``, ``unknown``, ``"ls"``> \|
+``DynamicStructuredTool``\ <``ZodObject``\ <{ }, ``$strip``>, { }, { },
+``object``\ [] \| ``object``\ [], ``unknown``, ``"read_file"``> \|
+``DynamicStructuredTool``\ <``ZodObject``\ <{ }, ``$strip``>, { }, { },
+\| ``string`` \|
+``ToolMessage``\ <``MessageStructure``\ <``MessageToolSet``>> \|
+``Command``\ <``unknown``, { }, ``string``>, ``unknown``,
+``"write_file"``> \| ``DynamicStructuredTool``\ <``ZodObject``\ <{ },
+``$strip``>, { }, { }, \| ``string`` \|
+``ToolMessage``\ <``MessageStructure``\ <``MessageToolSet``>> \|
+``Command``\ <``unknown``, { }, ``string``>, ``unknown``,
+``"edit_file"``> \| ``DynamicStructuredTool``\ <``ZodObject``\ <{ },
+``$strip``>, { }, { }, ``string``, ``unknown``, ``"glob"``> \|
+``DynamicStructuredTool``\ <``ZodObject``\ <{ }, ``$strip``>, { }, { },
+``string``, ``unknown``, ``"grep"``> \|
+``DynamicStructuredTool``\ <``ZodObject``\ <{ }, ``$strip``>, { }, { },
+``string``, ``unknown``, ``"execute"``>)[]>,
+``AgentMiddleware``\ <``undefined``, ``undefined``, ``unknown``,
+readonly [``DynamicStructuredTool``\ <``ZodObject``\ <{ }, ``$strip``>,
+{ }, { }, \| ``string`` \| ``Command``\ <``unknown``,
+``Record``\ <``string``, ``unknown``>, ``string``>, ``unknown``,
+``"task"``>]>, ``AgentMiddleware``\ <``ZodObject``\ <{ }, ``$strip``>,
+``undefined``, ``unknown``, readonly (``ClientTool`` \|
+``ServerTool``)[]>, ``AgentMiddleware``\ <``undefined``, ``undefined``,
+``unknown``, readonly (``ClientTool`` \| ``ServerTool``)[]>,
+``AgentMiddleware``\ <``any``, ``any``, ``any``, readonly
+(``ClientTool`` \| ``ServerTool``)[]>], readonly (``ClientTool`` \|
+``ServerTool``)[], readonly ``AnySubAgent``\ [], readonly () =>
+``StreamTransformer``\ <``any``>[]>>
+
+**Throws**
+
+``features.deep_agent`` is not enabled, or a subagent spec uses a string
+model, or nesting exceeds the recursion cap.
+
+entrypoint()
+''''''''''''
+
+.. code:: ts
+
+   entrypoint<F>(fn): F;
+
+Mark the graph builder function.
+
+**Type Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Type Parameter
+   * - ``F`` *extends* () => ``unknown``
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``fn``
+     - ``F``
+
+**Returns**
+
+``F``
+
+**Overrides**
+
+.. code:: ts
+
+   BaseApp.entrypoint
+
+finishSession()
+'''''''''''''''
+
+.. code:: ts
+
+   finishSession(): SessionFinishStatus;
+
+Mark this session finished so the platform frees its compute now.
+
+Call it when the agent is done with the session. The current turn keeps
+running and returns its result normally; once it completes, the platform
+cancels any live sub-agent runs and releases the session’s AER and tool
+pods instead of holding them until the idle timeout expires.
+
+Safe to call more than once: the first call returns “requested”, later
+ones “already_requested”. Outside an agent run (local scripts, tool
+pods) there is no session to finish and the call returns “unavailable”
+without throwing. Calling it after the turn has already ended -
+e.g. from a setTimeout or a floating promise scheduled during the turn
+but resolving after it - also returns “unavailable”: by then nothing is
+listening for the request anymore, so reporting “requested” would
+promise a release that will never happen.
+
+A turn that suspends for human review, or that fails, keeps its
+resources so it stays resumable and diagnosable; the session then falls
+back to the idle timeout.
+
+**Returns**
+
+```SessionFinishStatus`` <#sessionfinishstatus>`__
+
+getAgent()
+''''''''''
+
+.. code:: ts
+
+   getAgent(opts?): LangGraphBaseAgent;
+
+Build and return a ``LangGraphBaseAgent`` instance.
+
+Matches ``GraphBuilderLike.getAgent({ callbacks? })`` —
+agent-engine-runner-shared’s ``TenantRuntime.registerAndRun``
+introspects this method to compile the graph. Accepts an options object
+with an optional ``callbacks`` array, each wrapped in
+``LangGraphCallbackAdapter`` before being passed to the graph.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``opts?``
+     - { ``callbacks?``: readonly ``unknown``\ []; }
+   * - ``opts.callbacks?``
+     - readonly ``unknown``\ []
+
+**Returns**
+
+```LangGraphBaseAgent`` <#langgraphbaseagent>`__
+
+getCurrentSessionId()
+'''''''''''''''''''''
+
+.. code:: ts
+
+   getCurrentSessionId(): string | null;
+
+**Returns**
+
+``string`` \| ``null``
+
+getCurrentUserId()
+''''''''''''''''''
+
+.. code:: ts
+
+   getCurrentUserId(): string | null;
+
+**Returns**
+
+``string`` \| ``null``
+
+getToolDefinitions()
+''''''''''''''''''''
+
+.. code:: ts
+
+   getToolDefinitions(): object[];
+
+Returns all registered tool definitions. Used by the OE to obtain tool
+execution information.
+
+**Returns**
+
+``object``\ []
+
+**Overrides**
+
+.. code:: ts
+
+   BaseApp.getToolDefinitions
+
+getTools()
+''''''''''
+
+.. code:: ts
+
+   getTools(): readonly StructuredTool<ToolInputSchemaBase, any, any, any, unknown>[];
+
+Get wrapped tools for LangGraph’s ``ToolNode``.
+
+In AER mode, every tool is wrapped with ``SecureToolWrapper`` (via
+``createSecureToolFunction``) so executions route through OE for logging
+and policy enforcement. In other modes, the raw LangChain tools are
+returned unchanged.
+
+**Returns**
+
+readonly ``StructuredTool``\ <``ToolInputSchemaBase``, ``any``, ``any``,
+``any``, ``unknown``>[]
+
+getToolSchemas()
+''''''''''''''''
+
+.. code:: ts
+
+   getToolSchemas(): readonly unknown[];
+
+Get tool schemas for ``llm.bindTools()``. Always the unwrapped LangChain
+tools.
+
+**Returns**
+
+readonly ``unknown``\ []
+
+llm()
+'''''
+
+.. code:: ts
+
+   llm(llm, llmId?): BaseChatModel;
+
+Wrap a LangChain LLM for audited I/O through the Orchestration Engine.
+
+In AER mode the LLM is wrapped in ``SecureWrappedLLM``. In TOOL mode the
+raw LLM is returned unwrapped (the tool pod is the execution end of the
+chain).
+
+For agents with a single LLM, call without ``llmId``. For agents with
+multiple LLMs every call must supply a unique ``llmId``: const fast =
+app.llm(ChatOpenAI(“gpt-5.4-mini”), “fast”) const primary =
+app.llm(ChatOpenAI(“gpt-5.4”), “primary”) Unnamed calls register under
+the sentinel id ``"__default__"``; a second unnamed call therefore
+raises the same duplicate-id error as a second named call with the same
+id.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``llm``
+     - ``BaseChatModel``
+   * - ``llmId?``
+     - ``string``
+
+**Returns**
+
+``BaseChatModel``
+
+prepareAgentInput()
+'''''''''''''''''''
+
+.. code:: ts
+
+   prepareAgentInput<F>(fn): F;
+
+Register a hook that builds the graph’s starting input from the caller’s
+``AgentInput`` and ``RequestContext`` for a fresh execution. Resume
+stays platform-managed. Returns the function unchanged so it can be used
+as a decorator. Equivalent to the Python SDK’s ``@app.prepare_agent_input``.
+
+**Type Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Type Parameter
+   * - ``F`` *extends* ```PrepareAgentInput`` <#prepareagentinput-1>`__
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``fn``
+     - ``F``
+
+**Returns**
+
+``F``
+
+ready()
+'''''''
+
+.. code:: ts
+
+   ready(): Promise<void>;
+
+Resolved once configured MCP servers have been discovered and registered
+as tools. ``TenantRuntime.runAsync()`` awaits this (via
+``GraphBuilderLike.ready()``) before starting the server.
+
+**Returns**
+
+``Promise``\ <``void``>
+
+resolveThreadId()
+'''''''''''''''''
+
+.. code:: ts
+
+   resolveThreadId<F>(fn): F;
+
+Register a hook that builds the LangGraph checkpoint ``thread_id``.
+
+Callers manage Atlas Agent Engine ``session_id`` (and authenticated
+``user_id``). The agent owns how those map to the LangGraph checkpoint
+key. When registered, the hook’s return value is used verbatim on every
+invocation — fresh and resume — with no workspace suffix appended. When
+no hook is registered, the adapter derives ``session_id:workspace_id``
+as today.
+
+Custom keys are invisible to Atlas Agent Engine session-history queries
+(``/query/sessions*``), which still look up only the default
+session/workspace-derived keys. Agents that bypass workspace scoping
+also own collision isolation within the checkpoint database.
+
+Equivalent to the Python SDK’s ``@app.resolve_thread_id``.
+
+**Type Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Type Parameter
+   * - ``F`` *extends* ```ResolveThreadId`` <#resolvethreadid-2>`__
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``fn``
+     - ``F``
+
+**Returns**
+
+``F``
+
+**Example**
+
+.. code:: ts
+
+   app.resolveThreadId((ctx) => `${ctx.sessionId}__${actorFrom(ctx.userId)}`);
+
+run()
+'''''
+
+.. code:: ts
+
+   run(options?): Promise<void>;
+
+Start the agent service.
+
+Async because the per-project store-DB name is resolved against the live
+cluster (an async listDatabases round trip in the Node driver) before
+the query plugin and checkpointer are wired, so AER writes land in the
+same database the OE reads. The synchronous framework hooks are still
+registered before the first ``await``, preserving their ordering
+relative to startup.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``options``
+     - ``Record``\ <``string``, ``unknown``>
+
+**Returns**
+
+``Promise``\ <``void``>
+
+suspend()
+'''''''''
+
+.. code:: ts
+
+   suspend(reason, context): string;
+
+Generate a suspend command. If a tool should suspend, return the result
+of this method instead of completing normally.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``reason``
+     - ``string``
+   * - ``context``
+     - ``Record``\ <``string``, ``unknown``>
+
+**Returns**
+
+``string``
+
+tool()
+''''''
+
+.. code:: ts
+
+   tool(options?): <F>(fn) => F;
+
+Register a tool function.
+
+Returns a function that, when applied to a tool function, registers it
+and returns the function unchanged. Mirrors Python’s ``@app.tool()``
+shape.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``options``
+     - ``ToolDecoratorOptions``
+
+**Returns**
+
+<``F``>(``fn``) => ``F``
+
+**Overrides**
+
+.. code:: ts
+
+   BaseApp.tool
+
+tools()
+'''''''
+
+.. code:: ts
+
+   tools(): unknown[];
+
+Returns a list of wrapped, framework-specific tools.
+
+**Returns**
+
+``unknown``\ []
+
+**Overrides**
+
+.. code:: ts
+
+   BaseApp.tools
+
+warmUp()
+''''''''
+
+.. code:: ts
+
+   warmUp(): void;
+
+Build and cache the graph when explicitly requested. The TypeScript AER
+intentionally leaves construction on the existing lazy ``/execute``
+path: this synchronous builder cannot run during standby warming without
+blocking the Node event loop and server health.
+
+**Returns**
+
+``void``
+
+--------------
+
+LangGraphBaseAgent
+~~~~~~~~~~~~~~~~~~
+
+LangGraph adapter implementing the BaseAgent protocol.
+
+.. _implements-1:
+
+Implements
+^^^^^^^^^^
+
+- ``BaseAgent``
+
+.. _constructor-2:
+
+Constructor
+^^^^^^^^^^^
+
+.. code:: ts
+
+   new LangGraphBaseAgent(
+      graph,
+      callbacks?,
+      prepareInput?,
+      resolveThreadId?
+   ): LangGraphBaseAgent;
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``graph``
+     - ``CompiledStateGraph``\ <``unknown``, ``unknown``>
+   * - ``callbacks?``
+     - readonly ``unknown``\ []
+   * - ``prepareInput?``
+     - ```PrepareAgentInput`` <#prepareagentinput-1>`__ \| ``null``
+   * - ``resolveThreadId?``
+     - ```ResolveThreadId`` <#resolvethreadid-2>`__ \| ``null``
+
+**Returns**
+
+```LangGraphBaseAgent`` <#langgraphbaseagent>`__
+
+.. _accessors-1:
+
+Accessors
+^^^^^^^^^
+
+compiledGraph
+'''''''''''''
+
+**Get Signature**
+
+.. code:: ts
+
+   get compiledGraph(): CompiledStateGraph<unknown, unknown>;
+
+The wrapped compiled graph (Python ``compiled_graph`` parity).
+
+**Returns**
+
+``CompiledStateGraph``\ <``unknown``, ``unknown``>
+
+.. _resolvethreadid-1:
+
+resolveThreadId
+'''''''''''''''
+
+**Get Signature**
+
+.. code:: ts
+
+   get resolveThreadId(): ResolveThreadId | null;
+
+The tenant thread-id hook, or null (Python ``_resolve_thread_id``
+parity).
+
+**Returns**
+
+```ResolveThreadId`` <#resolvethreadid-2>`__ \| ``null``
+
+.. _methods-2:
+
+Methods
+^^^^^^^
+
+.. _execute-1:
+
+execute()
+'''''''''
+
+.. code:: ts
+
+   execute(ctx, input): ExecutionResult;
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``ctx``
+     - ``RequestContext``
+   * - ``input``
+     - ``AgentInput``
+
+**Returns**
+
+``ExecutionResult``
+
+**Implementation of**
+
+.. code:: ts
+
+   BaseAgent.execute
+
+invoke()
+''''''''
+
+.. code:: ts
+
+   invoke(ctx, input): Promise<AgentOutput>;
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``ctx``
+     - ``RequestContext``
+   * - ``input``
+     - ``AgentInput``
+
+**Returns**
+
+``Promise``\ <``AgentOutput``>
+
+resume()
+''''''''
+
+.. code:: ts
+
+   resume(
+      ctx,
+      input,
+      decision
+   ): Promise<AgentOutput>;
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``ctx``
+     - ``RequestContext``
+   * - ``input``
+     - ``AgentInput``
+   * - ``decision``
+     - ``string``
+
+**Returns**
+
+``Promise``\ <``AgentOutput``>
+
+stream()
+''''''''
+
+.. code:: ts
+
+   stream(ctx, input): AsyncIterable<StreamEvent>;
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``ctx``
+     - ``RequestContext``
+   * - ``input``
+     - ``AgentInput``
+
+**Returns**
+
+``AsyncIterable``\ <``StreamEvent``>
+
+--------------
+
+LangGraphQueryPlugin
+~~~~~~~~~~~~~~~~~~~~
+
+AERQueryPlugin backed by LangGraph’s MongoDBSaver.
+
+.. _constructor-3:
+
+Constructor
+^^^^^^^^^^^
+
+.. code:: ts
+
+   new LangGraphQueryPlugin(params): LangGraphQueryPlugin;
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``params``
+     - ```LangGraphQueryPluginParams`` <#langgraphquerypluginparams>`__
+
+**Returns**
+
+```LangGraphQueryPlugin`` <#langgraphqueryplugin>`__
+
+.. _methods-3:
+
+Methods
+^^^^^^^
+
+getMessagesForSession()
+'''''''''''''''''''''''
+
+.. code:: ts
+
+   getMessagesForSession(sessionId): Promise<{
+     messages: object[];
+   }>;
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``sessionId``
+     - ``string``
+
+**Returns**
+
+``Promise``\ <{ ``messages``: ``object``\ []; }>
+
+getSummariesForSessions()
+'''''''''''''''''''''''''
+
+.. code:: ts
+
+   getSummariesForSessions(sessionIds): Promise<{
+     sessions: object[];
+   }>;
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``sessionIds``
+     - ``string``\ []
+
+**Returns**
+
+``Promise``\ <{ ``sessions``: ``object``\ []; }>
+
+Interfaces
+----------
+
+CreateAgentEngineDeepAgentOptions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _properties-2:
+
+Properties
+^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+
+   * - Property
+     - Type
+     - Description
+   * - ``checkpointer?``
+     - ``boolean`` \| ``BaseCheckpointSaver``\ <``number``>
+     - LangGraph checkpointer for state persistence, HITL, and multi-turn.
+   * - ``middleware?``
+     - readonly ``AgentMiddleware``\ <``any``, ``any``, ``any``, readonly (``ClientTool`` \| ``ServerTool``)[]>[]
+     - Additional middleware, appended after the default durable middleware.
+   * - ``skills?``
+     - ``string``\ []
+     - Parent directories for deepagents’ one-level skill discovery.
+   * - ``skillsBaseDir?``
+     - ``string``
+     - Base directory for relative skill paths (set by ``App.deepAgent()``).
+   * - ``store?``
+     - ``BaseStore``
+     - LangGraph store for skills and shared data.
+   * - ``subagents?``
+     - readonly ``AnySubAgent``\ []
+     - SubAgent specs. Plain specs with a ``model`` field must use a model instance, not a string — string models bypass OE routing.
+   * - ``systemPrompt?``
+     - ``string``
+     - Custom system instructions.
+   * - ``tools?``
+     - ``StructuredTool``\ <``ToolInputSchemaBase``, ``any``, ``any``, ``any``, ``unknown``>[]
+     - Additional tools for the deep agent.
+
+--------------
+
+DeepAgentOptions
+~~~~~~~~~~~~~~~~
+
+Options for `App.deepAgent <#deepagent>`__.
+
+.. _extends-1:
+
+Extends
+^^^^^^^
+
+- ``Omit``\ <```CreateAgentEngineDeepAgentOptions`` <#createagentenginedeepagentoptions>`__,
+  ``"checkpointer"`` \| ``"skillsBaseDir"``>
+
+.. _properties-3:
+
+Properties
+^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+
+   * - Property
+     - Type
+     - Description
+     - Inherited from
+   * - ``backend?``
+     - ``AnyBackendProtocol``
+     - Backend for filesystem/shell ops. Defaults to ``AgentEngineToolPodBackend``, so every op is OE-audited and sandboxed in the Tool Pod. Pass a custom backend (e.g. deepagents’ in-memory ``StateBackend``) to override — note that doing so bypasses the OE audit path.
+     - -
+   * - ``checkpointer?``
+     - ``boolean`` \| ``BaseCheckpointSaver``\ <``number``>
+     - Checkpointer selection. Omitted (``undefined``) resolves to ``app.checkpointer()`` (MongoDB when configured, else none). ``false`` disables checkpointing. A ``BaseCheckpointSaver`` instance is used directly. Note the mapping differs from Python (``None`` disables there): in TS, “disable” is ``false``, and “use the default” is simply leaving it out.
+     - -
+   * - ``middleware?``
+     - readonly ``AgentMiddleware``\ <``any``, ``any``, ``any``, readonly (``ClientTool`` \| ``ServerTool``)[]>[]
+     - Additional middleware, appended after the default durable middleware.
+     - ```CreateAgentEngineDeepAgentOptions`` <#createagentenginedeepagentoptions>`__.\ ```middleware`` <#property-middleware>`__
+   * - ``skills?``
+     - ``string``\ []
+     - Parent directories for deepagents’ one-level skill discovery.
+     - ```CreateAgentEngineDeepAgentOptions`` <#createagentenginedeepagentoptions>`__.\ ```skills`` <#property-skills>`__
+   * - ``store?``
+     - ``BaseStore``
+     - LangGraph store for skills and shared data.
+     - ```CreateAgentEngineDeepAgentOptions`` <#createagentenginedeepagentoptions>`__.\ ```store`` <#property-store>`__
+   * - ``subagents?``
+     - readonly ``AnySubAgent``\ []
+     - SubAgent specs. Plain specs with a ``model`` field must use a model instance, not a string — string models bypass OE routing.
+     - ```CreateAgentEngineDeepAgentOptions`` <#createagentenginedeepagentoptions>`__.\ ```subagents`` <#property-subagents>`__
+   * - ``systemPrompt?``
+     - ``string``
+     - Custom system instructions.
+     - ```CreateAgentEngineDeepAgentOptions`` <#createagentenginedeepagentoptions>`__.\ ```systemPrompt`` <#property-systemprompt>`__
+   * - ``tools?``
+     - ``StructuredTool``\ <``ToolInputSchemaBase``, ``any``, ``any``, ``any``, ``unknown``>[]
+     - Additional tools for the deep agent.
+     - ```CreateAgentEngineDeepAgentOptions`` <#createagentenginedeepagentoptions>`__.\ ```tools`` <#property-tools>`__
+
+--------------
+
+LangGraphQueryPluginParams
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _properties-4:
+
+Properties
+^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+
+   * - Property
+     - Type
+   * - ``client``
+     - ``MongoClient``
+   * - ``dbName``
+     - ``string``
+   * - ``saver``
+     - ``MongoDBSaver``
+   * - ``workspaceId?``
+     - ``string``
+   * - ``workspaceIdResolver?``
+     - () => ``string`` \| ``null`` \| ``undefined``
+
+Type Aliases
+------------
+
+.. _prepareagentinput-1:
+
+PrepareAgentInput
+~~~~~~~~~~~~~~~~~
+
+.. code:: ts
+
+   type PrepareAgentInput = (input, ctx) => unknown;
+
+Parameters
+^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``input``
+     - ``AgentInput``
+   * - ``ctx``
+     - ``RequestContext``
+
+Returns
+^^^^^^^
+
+``unknown``
+
+--------------
+
+.. _resolvethreadid-2:
+
+ResolveThreadId
+~~~~~~~~~~~~~~~
+
+.. code:: ts
+
+   type ResolveThreadId = (ctx) => string;
+
+.. _parameters-1:
+
+Parameters
+^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``ctx``
+     - ``RequestContext``
+
+.. _returns-1:
+
+Returns
+^^^^^^^
+
+``string``
+
+--------------
+
+SessionFinishStatus
+~~~~~~~~~~~~~~~~~~~
+
+.. code:: ts
+
+   type SessionFinishStatus = "requested" | "already_requested" | "unavailable";
+
+Variables
+---------
+
+MAX_SUBAGENT_NESTING_DEPTH
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code:: ts
+
+   const MAX_SUBAGENT_NESTING_DEPTH: 10 = 10;
+
+Recursion is bounded so an adversarial spec (or an accidental cycle)
+can’t blow the stack at agent-construction time.
+
+Functions
+---------
+
+createAgentEngineDeepAgent()
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code:: ts
+
+   function createAgentEngineDeepAgent(
+      secureLlm,
+      backend,
+      options?
+   ): DeepAgent<DeepAgentTypeConfig<ResponseFormatUndefined, undefined, InteropZodObject, readonly [AgentMiddleware<ZodObject<{
+   }, "strip", ZodTypeAny, {
+   }, {
+   }>, undefined, unknown, readonly [DynamicStructuredTool<ZodObject<{
+   }, "strip", ZodTypeAny, {
+   }, {
+   }>, {
+   }, {
+   }, Command<unknown, {
+   }, string>, unknown, "write_todos">]>, AgentMiddleware<StateSchema<{
+   }>, undefined, unknown, (
+     | DynamicStructuredTool<ZodObject<{
+   }, $strip>, {
+   }, {
+   }, string, unknown, "ls">
+     | DynamicStructuredTool<ZodObject<{
+   }, $strip>, {
+   }, {
+   }, object[] | object[], unknown, "read_file">
+     | DynamicStructuredTool<ZodObject<{
+   }, $strip>, {
+   }, {
+   },
+     | string
+     | ToolMessage<MessageStructure<MessageToolSet>>
+     | Command<unknown, {
+   }, string>, unknown, "write_file">
+     | DynamicStructuredTool<ZodObject<{
+   }, $strip>, {
+   }, {
+   },
+     | string
+     | ToolMessage<MessageStructure<MessageToolSet>>
+     | Command<unknown, {
+   }, string>, unknown, "edit_file">
+     | DynamicStructuredTool<ZodObject<{
+   }, $strip>, {
+   }, {
+   }, string, unknown, "glob">
+     | DynamicStructuredTool<ZodObject<{
+   }, $strip>, {
+   }, {
+   }, string, unknown, "grep">
+     | DynamicStructuredTool<ZodObject<{
+   }, $strip>, {
+   }, {
+   }, string, unknown, "execute">)[]>, AgentMiddleware<undefined, undefined, unknown, readonly [DynamicStructuredTool<ZodObject<{
+   }, $strip>, {
+   }, {
+   },
+     | string
+     | Command<unknown, Record<string, unknown>, string>, unknown, "task">]>, AgentMiddleware<ZodObject<{
+   }, $strip>, undefined, unknown, readonly (ClientTool | ServerTool)[]>, AgentMiddleware<undefined, undefined, unknown, readonly (ClientTool | ServerTool)[]>, AgentMiddleware<any, any, any, readonly (ClientTool | ServerTool)[]>], readonly (ClientTool | ServerTool)[], readonly AnySubAgent[], readonly () => StreamTransformer<any>[]>>;
+
+Create a deep-agent graph pre-configured for Atlas Agent Engine AER.
+Resolves relative skill paths, validates the subagent tree, then
+delegates to deepagents’ ``createDeepAgent``.
+
+.. _parameters-2:
+
+Parameters
+^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Description
+   * - ``secureLlm``
+     - ``BaseChatModel``
+     - A ``SecureWrappedLLM`` instance — every LLM call is OE-audited.
+   * - ``backend``
+     - ``AnyBackendProtocol`` \| ``undefined``
+     - Backend for filesystem/shell ops; resolved by ``App.deepAgent()``.
+   * - ``options``
+     - ```CreateAgentEngineDeepAgentOptions`` <#createagentenginedeepagentoptions>`__
+     - -
+
+.. _returns-2:
+
+Returns
+^^^^^^^
+
+``DeepAgent``\ <``DeepAgentTypeConfig``\ <``ResponseFormatUndefined``,
+``undefined``, ``InteropZodObject``, readonly
+[``AgentMiddleware``\ <``ZodObject``\ <{ }, ``"strip"``, ``ZodTypeAny``,
+{ }, { }>, ``undefined``, ``unknown``, readonly
+[``DynamicStructuredTool``\ <``ZodObject``\ <{ }, ``"strip"``,
+``ZodTypeAny``, { }, { }>, { }, { }, ``Command``\ <``unknown``, { },
+``string``>, ``unknown``, ``"write_todos"``>]>,
+``AgentMiddleware``\ <``StateSchema``\ <{ }>, ``undefined``,
+``unknown``, ( \| ``DynamicStructuredTool``\ <``ZodObject``\ <{ },
+``$strip``>, { }, { }, ``string``, ``unknown``, ``"ls"``> \|
+``DynamicStructuredTool``\ <``ZodObject``\ <{ }, ``$strip``>, { }, { },
+``object``\ [] \| ``object``\ [], ``unknown``, ``"read_file"``> \|
+``DynamicStructuredTool``\ <``ZodObject``\ <{ }, ``$strip``>, { }, { },
+\| ``string`` \|
+``ToolMessage``\ <``MessageStructure``\ <``MessageToolSet``>> \|
+``Command``\ <``unknown``, { }, ``string``>, ``unknown``,
+``"write_file"``> \| ``DynamicStructuredTool``\ <``ZodObject``\ <{ },
+``$strip``>, { }, { }, \| ``string`` \|
+``ToolMessage``\ <``MessageStructure``\ <``MessageToolSet``>> \|
+``Command``\ <``unknown``, { }, ``string``>, ``unknown``,
+``"edit_file"``> \| ``DynamicStructuredTool``\ <``ZodObject``\ <{ },
+``$strip``>, { }, { }, ``string``, ``unknown``, ``"glob"``> \|
+``DynamicStructuredTool``\ <``ZodObject``\ <{ }, ``$strip``>, { }, { },
+``string``, ``unknown``, ``"grep"``> \|
+``DynamicStructuredTool``\ <``ZodObject``\ <{ }, ``$strip``>, { }, { },
+``string``, ``unknown``, ``"execute"``>)[]>,
+``AgentMiddleware``\ <``undefined``, ``undefined``, ``unknown``,
+readonly [``DynamicStructuredTool``\ <``ZodObject``\ <{ }, ``$strip``>,
+{ }, { }, \| ``string`` \| ``Command``\ <``unknown``,
+``Record``\ <``string``, ``unknown``>, ``string``>, ``unknown``,
+``"task"``>]>, ``AgentMiddleware``\ <``ZodObject``\ <{ }, ``$strip``>,
+``undefined``, ``unknown``, readonly (``ClientTool`` \|
+``ServerTool``)[]>, ``AgentMiddleware``\ <``undefined``, ``undefined``,
+``unknown``, readonly (``ClientTool`` \| ``ServerTool``)[]>,
+``AgentMiddleware``\ <``any``, ``any``, ``any``, readonly
+(``ClientTool`` \| ``ServerTool``)[]>], readonly (``ClientTool`` \|
+``ServerTool``)[], readonly ``AnySubAgent``\ [], readonly () =>
+``StreamTransformer``\ <``any``>[]>>
+
+Throws
+^^^^^^
+
+A subagent spec uses a string model, or nesting exceeds the cap.
+
+--------------
+
+getCallAbortSignal()
+~~~~~~~~~~~~~~~~~~~~
+
+.. code:: ts
+
+   function getCallAbortSignal(): AbortSignal | undefined;
+
+The per-call stop signal for the in-flight callback-routed tool call.
+Defined only inside a tool body that declared call-interrupt support; a
+cooperative body checks it (or forwards it to ``fetch`` etc.) to stop at
+its next checkpoint. Undefined everywhere else.
+
+.. _returns-3:
+
+Returns
+^^^^^^^
+
+``AbortSignal`` \| ``undefined``
+
+--------------
+
+validateSubagentTree()
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code:: ts
+
+   function validateSubagentTree(subagents): void;
+
+Walk the subagent tree, throwing on any string-model spec.
+
+String model specs would bypass OE routing because deepagents’
+``resolveModel`` instantiates a raw provider client with no
+``SecureToolWrapper``. Only model instances (e.g. ``SecureWrappedLLM``)
+are accepted.
+
+Spec kinds handled: - ``CompiledSubAgent`` (``runnable`` set) —
+pre-built graph; the model is already bound and unreadable here.
+Skipped. - ``AsyncSubAgent`` (``graphId`` set) — remote graph we can’t
+validate in-process. Logged at WARNING and skipped — the receiving end
+must route through the OE. - Plain ``SubAgent`` — validated; a string
+``model`` throws.
+
+The depth counter is held in a closure rather than a public parameter so
+callers cannot start recursion mid-tree and bypass the cap.
+
+.. _parameters-3:
+
+Parameters
+^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``subagents``
+     - readonly ``AnySubAgent``\ [] \| ``undefined``
+
+.. _returns-4:
+
+Returns
+^^^^^^^
+
+``void``
+
+.. _throws-1:
+
+Throws
+^^^^^^
+
+A subagent spec uses a string ``model``, or nesting exceeds
+`MAX_SUBAGENT_NESTING_DEPTH <#max_subagent_nesting_depth>`__.
+
+--------------
+
+withCallInterruptSupport()
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code:: ts
+
+   function withCallInterruptSupport<T>(tool): T;
+
+Brand a tool as supporting per-call interrupt. The body must honor the
+signal from ``getCallAbortSignal()`` — check ``signal.aborted`` between
+steps or pass the signal to APIs that accept one (``fetch``, streams).
+
+Returns the same tool for chaining at definition time.
+
+Type Parameters
+^^^^^^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+
+   * - Type Parameter
+   * - ``T``
+
+.. _parameters-4:
+
+Parameters
+^^^^^^^^^^
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``tool``
+     - ``T``
+
+.. _returns-5:
+
+Returns
+^^^^^^^
+
+``T``
+
+References
+----------
+
+AgentEngineToolSandboxBackend
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Renames and re-exports
+`AgentEngineToolPodBackend <#agentenginetoolpodbackend>`__

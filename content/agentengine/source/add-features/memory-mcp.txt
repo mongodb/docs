@@ -1,0 +1,243 @@
+.. _agentic-platform-memory-mcp:
+
+===============================
+Connect an MCP Client to Memory
+===============================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: mcp, model context protocol, claude code, codex, record_turn, build_context, search_memories, code example
+   :description: Learn how to connect a Model Context Protocol client, such as Claude Code or Codex, to memory on the Agentic Platform without using the agentic-platform-memory SDK to record and recall turns.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Any Model Context Protocol (MCP) client, such as Claude Code or
+Codex, can connect directly to memory without using the
+:ref:`agentic-platform-memory <agentic-platform-memory-only>` SDK.
+Use this MCP connection to give that client memory, instead of
+writing Python code against the SDK yourself. In this guide, you
+can learn how to connect an MCP client to memory and record and
+recall conversation turns.
+
+.. tip::
+
+   To learn more about memory, see :ref:`How Memory Works
+   <agentic-platform-memory-architecture>` in the Add Memory to Your
+   Agent guide.
+
+The MCP server exposes three tools:
+
+- ``record_turn``: Records one short-term conversation turn. This is
+  the only write operation among the three tools.
+- ``build_context``: Retrieves memory relevant to a query and formats
+  it as context.
+- ``search_memories``: Searches long-term memory by type.
+
+A background process extracts :ref:`long-term memories
+<agentic-platform-memory-architecture>` from recorded turns
+asynchronously. To create a long-term memory directly instead of
+waiting for extraction, use the ``agentic-platform-memory`` SDK
+described in :ref:`agentic-platform-memory-only`.
+
+Prerequisites
+-------------
+
+Ensure that you have the following prerequisites before you begin:
+
+- A project on the {+platform-short+}. To find your project ID, see
+  :ref:`agentic-platform-manage-projects`.
+- Memory enabled on that project, which requires the following components:
+
+  - The ``MONGODB_URI``, ``VOYAGE_API_KEY``, and an LLM API key (such
+    as ``ANTHROPIC_API_KEY``) uploaded as project secrets.
+  - A running memory runtime. If you don't have a runtime,
+    run the ``agentengine memory apply --wait`` command to
+    provision the runtime. Wait until the runtime
+    reports as ready before you continue.
+
+  To learn how to configure these prerequisites, see
+  :ref:`agentic-platform-manage-memory`.
+
+- A project service account with the ``PROJECT_OWNER`` role. Run
+  the following command to create one, replacing ``<name>`` with a
+  name for the service account:
+
+  .. code-block:: bash
+
+     agentengine service-account create <name> --role PROJECT_OWNER
+
+  .. important::
+
+     Save the client ID and client secret that the command returns.
+     The {+platform-short+} shows the client secret only once.
+
+Get an Access Token
+-------------------
+
+To obtain an access token, run the following command, replacing ``<client-id>``
+with your service account's client ID:
+
+.. code-block:: bash
+
+   read -r -p "Client ID: " CLIENT_ID
+   curl --fail-with-body --silent --show-error --user "$CLIENT_ID" \
+     --data grant_type=client_credentials \
+     https://agentengine.mongodb.com/api/v1/oauth/token
+
+``curl`` prompts for the client secret without echoing it to the
+terminal. Copy the ``access_token`` field's value from the returned JSON
+object for use in the next section.
+
+.. important::
+
+   The access token expires after one hour. If you hard-code the token
+   in your MCP client configuration, the connection stops working
+   after expiration. To restore the connection, rerun the preceding
+   command to obtain a new token, and then update the configuration.
+
+Connect Your MCP Client
+-----------------------
+
+Any MCP client that supports `Streamable HTTP transport
+<https://modelcontextprotocol.io/specification/latest/basic/transports/streamable-http>`__
+can connect to memory by using the following URL. Replace
+``<project_id>`` with your project ID.
+
+.. code-block:: none
+   :copyable: false
+
+   https://agentengine.mongodb.com/api/v1/projects/<project_id>/mcp
+
+Send the access token from the previous section as an
+``Authorization: Bearer <access-token>`` header.
+
+Select the tab that corresponds to your MCP client for an example
+of sending the access token when you add the server:
+
+.. tabs::
+
+   .. tab:: Claude Code
+      :tabid: memory-mcp-claude-code
+
+      Run the following command to add memory as an MCP server,
+      replacing ``<project_id>`` and ``<access-token>`` with your
+      project ID and access token. The ``--scope user`` flag makes
+      the server available in every project.
+
+      .. code-block:: bash
+
+         claude mcp add --scope user --transport http project-memory \
+           https://agentengine.mongodb.com/api/v1/projects/<project_id>/mcp \
+           --header "Authorization: Bearer <access-token>"
+
+      Alternatively, add the following configuration to
+      ``~/.claude.json``, which the Claude Code CLI and the Claude
+      Code VS Code extension share:
+
+      .. code-block:: json
+
+         {
+           "mcpServers": {
+             "project-memory": {
+               "type": "http",
+               "url": "https://agentengine.mongodb.com/api/v1/projects/<project_id>/mcp",
+               "headers": {
+                 "Authorization": "Bearer <access-token>"
+               }
+             }
+           }
+         }
+
+   .. tab:: Codex
+      :tabid: memory-mcp-codex
+
+      Codex sends the bearer token from an environment variable
+      instead of a header on the ``add`` command. Export the access token
+      in the environment that launches Codex, and then run the following
+      command to add memory as an MCP server. Replace
+      ``<project_id>`` with your project ID.
+
+      .. code-block:: bash
+
+         export AGENTIC_MEMORY_TOKEN=<access-token>
+         codex mcp add project-memory \
+           --url https://agentengine.mongodb.com/api/v1/projects/<project_id>/mcp \
+           --bearer-token-env-var AGENTIC_MEMORY_TOKEN
+
+      Alternatively, add the following table to
+      ``~/.codex/config.toml``, replacing ``<project_id>`` with your
+      project ID:
+
+      .. code-block:: toml
+
+         [mcp_servers.project-memory]
+         url = "https://agentengine.mongodb.com/api/v1/projects/<project_id>/mcp"
+         bearer_token_env_var = "AGENTIC_MEMORY_TOKEN"
+
+Verify the Connection
+---------------------
+
+After you add the MCP server, restart your MCP client and confirm
+that it lists the three memory tools and that a recorded turn
+becomes searchable.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Confirm that the client lists the memory tools.
+
+      Open your MCP client and confirm that it lists exactly three
+      tools from the ``project-memory`` server: ``record_turn``,
+      ``build_context``, and ``search_memories``.
+
+   .. step:: Record a conversation turn.
+
+      Call ``record_turn`` twice with a distinctive fact, a
+      ``user_id``, and a ``session_id``. Record a ``user`` role turn
+      followed by an ``assistant`` role turn. The following example
+      records a fact about a home airport:
+
+      .. code-block:: text
+         :copyable: false
+
+         record_turn(user_id="user_1", session_id="session_1", role="user", content="I always fly out of Boston.")
+         record_turn(user_id="user_1", session_id="session_1", role="assistant", content="Got it, Boston is saved as your home airport.")
+
+   .. step:: Retrieve the recorded turn as context.
+
+      Call ``build_context`` with the same ``user_id`` and
+      ``session_id`` that you used in the preceding step,
+      and a query that matches the recorded fact. The
+      recorded turn appears immediately, because ``build_context``
+      includes recent short-term turns:
+
+      .. code-block:: text
+         :copyable: false
+
+         build_context(user_id="user_1", session_id="session_1", query="Where should the flight book from?")
+
+   .. step:: Search long-term memory for the extracted fact.
+
+      Wait a few minutes for the background extraction process to
+      consolidate the recorded turn into a long-term memory. Then,
+      call ``search_memories`` with the same ``user_id``, a matching
+      query, and a memory type:
+
+      .. code-block:: text
+         :copyable: false
+
+         search_memories(user_id="user_1", query="home airport", type="semantic")
+
+      If the fact does not appear, wait longer and search again.
+      Extraction runs asynchronously and might not finish immediately
+      after you record a turn.

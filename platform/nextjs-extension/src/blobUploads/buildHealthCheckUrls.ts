@@ -21,7 +21,7 @@ const SITEMAP_INDEX_URL = `${DOCS_BASE_URL}sitemap-index-full.xml`;
  */
 const HEALTH_CHECK_PREFIX_DENYLIST = new Set([
   '404',
-  'agentic-platform',
+  'agentengine',
   'csfle-merge',
   'docs-platform',
   'magenta',

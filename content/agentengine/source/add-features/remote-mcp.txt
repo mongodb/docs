@@ -1,0 +1,553 @@
+.. _agentic-platform-remote-mcp:
+
+======================
+Use Remote MCP Servers
+======================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Learn how to configure remote MCP servers for agents on the Atlas Agent Engine, including bearer token authentication, OAuth authentication, and writing agent code.
+   :keywords: mcp, model context protocol, tools, bearer, oauth, agent.yaml, streamable http, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to connect your agent to remote
+`Model Context Protocol (MCP) <https://modelcontextprotocol.io/>`__
+servers. The {+platform-short+} discovers tools from configured MCP
+servers at startup and makes them available to your agent code. 
+
+MCP server configuration is identical for Python and TypeScript agents.
+Only the agent code differs. Python agents access tools by using the
+``app.get_tools()`` method and don't require any ``@app.tool()`` decorators.
+TypeScript agents access tools by using the ``app.getTools()`` method. 
+
+The {+platform-short+} supports the Streamable HTTP MCP transport and
+provides two methods to authenticate with remote MCP servers:
+
+- **Bearer token** (``bearer_env`` value): The platform reads a static
+  token from an environment variable and attaches it as an
+  ``Authorization: Bearer`` header on every request.
+- **OAuth 2.1** (``oauth`` value): The platform uses a token cache
+  populated by the ``agentengine dev mcp auth login`` command and
+  refreshes access tokens automatically when they expire.
+
+You can use either or both authentication methods in the same file. Each server in
+the ``mcp.servers`` section specifies its own authentication method
+independently, so you can connect to a bearer-authenticated server and
+an OAuth-authenticated server in the same ``agent.yaml`` file.
+
+Prerequisites
+-------------
+
+Before you begin, ensure that you have the following:
+
+- The ``agentengine`` CLI installed and authenticated. To learn more, see the
+  :ref:`agentic-platform-set-up-install-authenticate` guide.
+- A valid agent project with an ``agent.yaml`` file. To learn more,
+  see the :ref:`agentic-platform-set-up-create-project` guide.
+- Credentials for your remote MCP server: a personal access token for
+  bearer token authentication, or an account with OAuth access for
+  OAuth authentication.
+
+Configure Bearer Token Authentication
+-------------------------------------
+
+Use bearer token authentication when the MCP server accepts a static
+personal access token.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Add your token to the ``.env`` file.
+
+      Add the bearer token to your ``.env`` file with the variable
+      name you will reference in the ``agent.yaml`` file. The following example shows how to add a token to your ``.env`` file:
+
+      .. code-block:: text
+
+         GITHUB_MCP_TOKEN=<your-personal-access-token>
+
+      .. important::
+
+         Do not commit secrets to version control. Add the ``.env``
+         file to your ``.gitignore`` file.
+
+   .. step:: Configure the MCP server in the ``agent.yaml`` file.
+
+      Add an ``mcp.servers`` section to your ``agent.yaml`` file. Set
+      the ``auth.type`` field to the ``bearer_env`` value and the
+      ``auth.token_env`` field to the name of the environment variable
+      that holds the token. The following example shows how to configure a GitHub MCP server in your ``agent.yaml`` file:
+
+      .. code-block:: yaml
+
+         mcp:
+           servers:
+             github:
+               transport: streamable_http
+               url: https://api.githubcopilot.com/mcp/
+               headers:
+                 X-MCP-Readonly: "true"
+                 X-MCP-Toolsets: repos,issues,pull_requests,actions
+               auth:
+                 type: bearer_env
+                 token_env: GITHUB_MCP_TOKEN
+               timeout_seconds: 30
+
+   .. step:: Start the local environment.
+
+      From your agent project directory, run the following command.
+      The platform connects to the MCP server at startup and registers
+      its tools automatically:
+
+      .. code-block:: sh
+
+         agentengine dev up
+
+Configure OAuth Authentication
+------------------------------
+
+Use OAuth authentication when the MCP server supports OAuth 2.1. You
+must run the ``agentengine dev mcp auth login`` command to populate the
+token cache before starting the agent stack.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Configure the MCP server in the ``agent.yaml`` file.
+
+      Add an ``mcp.servers`` section to your ``agent.yaml`` file. Set
+      the ``auth.type`` field to the ``oauth`` value and provide the
+      required OAuth scope. The following example shows how to configure an MCP server in your ``agent.yaml`` file:
+
+      .. code-block:: yaml
+
+         mcp:
+           servers:
+             sentry:
+               transport: streamable_http
+               url: https://mcp.sentry.dev/mcp
+               auth:
+                 type: oauth
+                 scope: "org:read project:read team:read event:read"
+               timeout_seconds: 30
+
+   .. step:: Authenticate with the MCP server.
+
+      From your agent project directory, run the
+      ``agentengine dev mcp auth login`` command with the server name
+      you defined in the ``agent.yaml`` file. The command opens the
+      OAuth consent flow in your browser and writes the token cache to
+      the ``~/.agentengine/mcp-oauth`` directory:
+
+      .. code-block:: sh
+
+         agentengine dev mcp auth login sentry
+
+      The token cache is separate for each project and each MCP
+      endpoint. Logging in from one project does not log you in for
+      another project, so you must run the ``agentengine dev mcp auth login``
+      command once per project.
+
+      During login, the CLI discovers the server's OAuth
+      authorization endpoint. This endpoint must use the ``https``
+      scheme. If the server advertises an authorization endpoint that
+      uses any other scheme, the ``agentengine dev mcp auth login``
+      command stops and generates a
+      ``Refused to open unauthorized MCP OAuth URL`` error.
+
+      .. note::
+
+         You must run the ``agentengine dev mcp auth login`` command
+         **before** running the ``agentengine dev up`` command. The
+         runtime mounts the token cache at startup and cannot
+         authenticate after the environment is running.
+
+   .. step:: Start the local environment.
+
+      From your agent project directory, run the following command.
+      The platform connects to the MCP server and registers its tools
+      automatically:
+
+      .. code-block:: sh
+
+         agentengine dev up
+
+Write Agent Code
+----------------
+
+You don't need to define custom tools for agents that use remote MCP
+servers. Instead, use the following methods to access the tools
+discovered from all configured MCP servers:
+
+- Python: ``app.get_tools()`` and ``app.get_tool_schemas()`` methods
+- TypeScript: ``app.getTools()`` and ``app.getToolSchemas()`` methods
+
+The following examples show a minimal deployable agent
+that uses remote MCP tools. The agent uses a LangGraph ``StateGraph``
+to route messages between the LLM and the MCP tools. The LLM decides
+which tool to call, the ``ToolNode`` class executes the tool call, and the result is passed
+back to the LLM until no further tool calls are needed.
+
+Select the tab for your agent's language to view the corresponding example:
+
+.. tabs::
+
+   .. tab:: Python
+      :tabid: remote-mcp-python
+
+      .. code-block:: python
+
+         from typing import Annotated, TypedDict
+
+         from langchain_core.messages import BaseMessage
+         from langchain_openai import ChatOpenAI
+         from langgraph.graph import END, START, StateGraph
+         from langgraph.graph.message import add_messages
+         from langgraph.prebuilt import ToolNode
+         from agent_engine_sdk_langgraph import App
+
+         app = App(app_name="my-mcp-agent")
+
+
+         class AgentState(TypedDict):
+             messages: Annotated[list[BaseMessage], add_messages]
+
+
+         @app.entrypoint
+         def build_agent():
+             llm = app.llm(ChatOpenAI(model="gpt-4o-mini"))
+             tools = app.get_tools()
+             llm_with_tools = llm.bind_tools(app.get_tool_schemas())
+
+             def call_model(state: AgentState):
+                 return {"messages": [llm_with_tools.invoke(state["messages"])]}
+
+             def should_continue(state: AgentState):
+                 last = state["messages"][-1]
+                 return "tools" if getattr(last, "tool_calls", None) else "end"
+
+             graph = StateGraph(AgentState)
+             graph.add_node("agent", call_model)
+             graph.add_node("tools", ToolNode(tools))
+             graph.add_edge(START, "agent")
+             graph.add_conditional_edges(
+                 "agent", should_continue, {"tools": "tools", "end": END}
+             )
+             graph.add_edge("tools", "agent")
+             return graph.compile(checkpointer=app.checkpointer())
+
+
+         app.run()
+
+   .. tab:: TypeScript
+      :tabid: remote-mcp-typescript
+
+      .. code-block:: typescript
+
+         import "dotenv/config";
+
+         import { BaseMessage } from "@langchain/core/messages";
+         import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
+         import { ToolNode } from "@langchain/langgraph/prebuilt";
+         import { ChatOpenAI } from "@langchain/openai";
+         import { App } from "@mongodb-js/agent-engine-sdk-langgraph";
+
+         export const app = new App({ appName: "my-mcp-agent" });
+
+         const AgentStateAnnotation = Annotation.Root({
+           messages: Annotation<BaseMessage[]>({
+             reducer: (left, right) => left.concat(right),
+             default: () => [],
+           }),
+         });
+         type AgentState = typeof AgentStateAnnotation.State;
+
+         export const buildAgent = app.entrypoint(() => {
+           const llm = app.llm(new ChatOpenAI({ model: "gpt-4o-mini" }));
+           const tools = [...app.getTools()];
+           const llmWithTools = llm.bindTools([...app.getToolSchemas()]);
+
+           const callModel = async (state: AgentState) => {
+             const response = await llmWithTools.invoke(state.messages);
+             return { messages: [response] };
+           };
+
+           const shouldContinue = (state: AgentState) => {
+             const last = state.messages[state.messages.length - 1];
+             const toolCalls = (last as { tool_calls?: unknown[] }).tool_calls;
+             return Array.isArray(toolCalls) && toolCalls.length > 0
+               ? "tools"
+               : END;
+           };
+
+           return new StateGraph(AgentStateAnnotation)
+             .addNode("agent", callModel)
+             .addNode("tools", new ToolNode(tools))
+             .addEdge(START, "agent")
+             .addConditionalEdges("agent", shouldContinue, {
+               tools: "tools",
+               [END]: END,
+             })
+             .addEdge("tools", "agent")
+             .compile({ checkpointer: app.checkpointer() });
+         });
+
+         app.run();
+
+      Set the ``language`` field in your ``agent.yaml`` file to the
+      ``typescript`` value and point the ``entrypoint`` field at the
+      exported ``app`` object, as in the
+      ``remote_mcp_ts.github:app`` value.
+
+.. _agentic-platform-mcp-server-naming:
+
+Server Naming Rules
+-------------------
+
+A server name is a key under the ``mcp.servers`` section. A name can
+contain up to 128 characters of printable UTF-8-encoded text,
+including non-ASCII characters and dotted names. A name cannot be
+empty or contain the following elements:
+
+- Whitespace-only text
+- Leading or trailing whitespace
+- Control, zero-width, byte order mark (BOM), or bidirectional
+  characters
+- Path separators (``/`` or ``\``)
+- ``..``
+
+The ``agentengine agent validate`` command validates names against
+these rules. To learn more, see
+:ref:`agentic-platform-build-validate`.
+
+MCP Server Configuration Schema
+-------------------------------
+
+The following table describes the fields available in the
+``mcp.servers`` section of your ``agent.yaml`` file:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 15 20 30
+
+   * - Field
+     - Type
+     - Required
+     - Description
+
+   * - ``mcp.servers.<name>``
+     - object
+     - no
+     - Defines a named MCP server connection. The name is used as the
+       server identifier when running the
+       ``agentengine dev mcp auth login <name>`` command. To view the
+       naming requirements, see the :ref:`Server Naming Rules
+       <agentic-platform-mcp-server-naming>` section.
+
+   * - ``mcp.servers.<name>.transport``
+     - string
+     - no
+     - Transport protocol for the MCP connection. Currently, the
+       only supported value is ``streamable_http``. This is
+       also the default value.
+
+   * - ``mcp.servers.<name>.url``
+     - string
+     - yes
+     - URL of the remote MCP server endpoint. You must specify an absolute
+       ``http`` or ``https`` URL. If the ``auth.type`` field is set to any
+       value other than ``none``, the URL must use ``https``.
+
+   * - ``mcp.servers.<name>.headers``
+     - map[string, string]
+     - no
+     - Static HTTP headers to include with every request to the MCP
+       server. Use this for server-specific options such as filtering
+       the available tool sets.
+
+   * - ``mcp.servers.<name>.auth.type``
+     - string
+     - no
+     - Authentication type. Accepted values are ``none``,
+       ``bearer_env``, ``oauth``, and ``client_credentials``.
+       Defaults to ``none``.
+
+   * - ``mcp.servers.<name>.auth.token_env``
+     - string
+     - when ``auth.type`` is ``bearer_env``
+     - Name of the environment variable that holds the bearer token.
+       The variable must be set in your ``.env`` file.
+
+   * - ``mcp.servers.<name>.auth.scope``
+     - string
+     - no
+     - Space-separated OAuth scopes to request. You can set
+       this field only when ``auth.type`` is set to ``oauth``
+       or ``client_credentials``.
+
+   * - ``mcp.servers.<name>.auth.client_name``
+     - string
+     - no
+     - Human-readable name for the OAuth client. Some servers display
+       this name on the authorization consent screen. You can set this
+       field only when ``auth.type`` is set to ``oauth``.
+
+   * - ``mcp.servers.<name>.auth.redirect_uri``
+     - string
+     - no
+     - Loopback redirect URI used by the interactive OAuth login.
+       You can set this field only when ``auth.type`` is set to ``oauth``.
+
+   * - ``mcp.servers.<name>.auth.client_id_env``
+     - string
+     - yes, if ``auth.type`` is set to ``client_credentials``
+     - Name of the environment variable that holds the OAuth client
+       ID.
+
+   * - ``mcp.servers.<name>.auth.client_secret_env``
+     - string
+     - yes, if ``auth.type`` is set to ``client_credentials``
+     - Name of the environment variable that holds the OAuth client
+       secret.
+
+   * - ``mcp.servers.<name>.auth.token_url``
+     - string
+     - no
+     - OAuth token endpoint used to request an access token for
+       client credentials authentication. You must specify an absolute
+       ``https`` URL. You can set this field only when ``auth.type`` is
+       ``client_credentials``.
+
+   * - ``mcp.servers.<name>.allowed_tools``
+     - list[string]
+     - no
+     - Allowlist of remote MCP tool names to expose to the agent.
+       When set, the platform registers only the listed tools and
+       ignores all other tools the server returns. When omitted, the
+       platform exposes all tools the server returns. Use this field
+       to limit the tool surface to only the tools your agent requires.
+
+   * - ``mcp.servers.<name>.timeout_seconds``
+     - int
+     - no
+     - Request timeout in seconds applied to each MCP tool call.
+       Defaults to ``30``.
+
+Connect Multiple MCP Servers
+-----------------------------
+
+You can define multiple servers within the ``mcp.servers`` section in a
+single ``agent.yaml`` file. The {+platform-short+} connects to all
+configured servers at startup and merges their tools into the agent's
+tool surface. The following example connects GitHub, Sentry, and Glean servers
+simultaneously in a single ``agent.yaml`` file:
+
+.. code-block:: yaml
+
+   mcp:
+     servers:
+       github:
+         transport: streamable_http
+         url: https://api.githubcopilot.com/mcp/
+         headers:
+           X-MCP-Readonly: "true"
+           X-MCP-Toolsets: repos,issues,pull_requests,actions
+         auth:
+           type: bearer_env
+           token_env: GITHUB_MCP_TOKEN
+         timeout_seconds: 30
+       sentry:
+         transport: streamable_http
+         url: https://mcp.sentry.dev/mcp
+         auth:
+           type: oauth
+           scope: "org:read project:read team:read event:read"
+         timeout_seconds: 30
+       glean:
+         transport: streamable_http
+         url: https://mongodb-be.glean.com/mcp/default
+         auth:
+           type: oauth
+           scope: "SEARCH DOCUMENTS ENTITIES"
+           client_name: My Glean MCP Agent
+         timeout_seconds: 30
+
+When you connect to multiple servers with OAuth authentication, you must run the
+``agentengine dev mcp auth login <name>`` command for each OAuth server **before** starting the environment. The following example shows the commands to run from your agent project directory to authenticate with both the Sentry and Glean servers before starting the environment:
+
+.. code-block:: sh
+
+   agentengine dev mcp auth login sentry
+   agentengine dev mcp auth login glean
+   agentengine dev up
+
+Provision MCP Credentials for Deployment
+----------------------------------------
+
+The ``.env`` file and the local OAuth token cache are only available
+during local development with the ``agentengine dev up`` command. Before
+you deploy your agent, you must provision MCP credentials as workspace
+secrets so the deployed runtime can authenticate with each MCP server.
+
+The following sections describe how to provision secrets for each
+authentication type. To learn more about provisioning secrets, see the
+:ref:`agentic-platform-deploy-provision-secrets` guide.
+
+Bearer Token Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For each bearer-authenticated server, provision the token environment variable
+as a workspace secret. Use the following command to provision the secret and
+include the ``--workspace-scope`` flag to target the current workspace:
+
+.. code-block:: sh
+
+   agentengine secret set GITHUB_MCP_TOKEN --workspace-scope
+
+To provision the secret and sync it to running deployments in a single
+step, use the ``--sync`` flag:
+
+.. code-block:: sh
+
+   agentengine secret set GITHUB_MCP_TOKEN --workspace-scope --sync
+
+Run this command for each bearer-authenticated server before deploying.
+
+OAuth Authentication
+~~~~~~~~~~~~~~~~~~~~
+
+For each OAuth server, upload the local token cache to the workspace
+using the ``agentengine dev mcp auth upload`` command:
+
+.. code-block:: sh
+
+   agentengine dev mcp auth upload sentry
+
+To upload and sync to running deployments in a single step, use the
+``--sync`` flag:
+
+.. code-block:: sh
+
+   agentengine dev mcp auth upload sentry --sync
+
+Run this command for each OAuth server before deploying.
+
+Next Steps
+----------
+
+After your agent is connected to remote MCP servers, you can test it
+locally and then deploy it. To learn more about testing your agent locally and deploying it, see the following guides in the {+platform-short+} documentation:
+
+- :ref:`agentic-platform-test`
+- :ref:`agentic-platform-deploy`

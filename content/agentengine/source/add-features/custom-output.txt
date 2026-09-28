@@ -1,0 +1,163 @@
+.. _agentic-platform-add-custom-output:
+
+======================================
+Add Custom Stream Output to Your Agent
+======================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: output parser, custom events, streaming, agent.yaml, features, code example
+   :description: Learn how to add custom stream output to your agent on the Agentic Platform, including registering an output parser and emitting custom events from your agent code.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+You can configure custom stream output to instruct your agent to emit
+structured, machine-readable output for streaming invocations in
+addition to plain text. The {+platform-short+} sends this output to
+clients as custom events.
+
+This guide shows how to perform the following tasks:
+
+- :ref:`agentic-platform-enable-custom-output`: Set the
+  ``features.use_custom_parser: true`` flag in your ``agent.yaml`` file.
+- :ref:`agentic-platform-register-output-parser`: Register an
+  ``OutputParser`` subclass on your app.
+- :ref:`agentic-platform-emit-custom-events`: Emit custom events from
+  your agent code.
+
+Prerequisites
+-------------
+
+Before you begin, ensure that you have a registered agent with an
+``agent.yaml`` file. To learn more, see
+:ref:`agentic-platform-get-started`.
+
+.. _agentic-platform-enable-custom-output:
+
+Enable Custom Stream Output
+---------------------------
+
+To enable custom stream output for your agent, add the following code
+to your ``agent.yaml`` file:
+
+.. code-block:: yaml
+
+   features:
+     use_custom_parser: true
+
+If you set the ``features.use_custom_parser`` flag to ``true`` but
+do not :ref:`register an output parser <agentic-platform-register-output-parser>`,
+the agent fails when an invocation starts and returns a ``RuntimeError``.
+
+.. _agentic-platform-register-output-parser:
+
+Register an Output Parser
+-------------------------
+
+Register an ``OutputParser`` subclass on your app by using the
+``@app.output_parser`` decorator. The {+platform-short+} validates the
+class at decoration time, so passing a class that is not an
+``OutputParser`` subclass fails when the module imports.
+
+For LangGraph agents, subclass the ``LangGraphOutputParser`` class.
+Set the ``stream_modes`` class attribute to the LangGraph stream
+modes that you want to convert to custom events. Then, implement
+the ``parse()`` and ``on_stream_error()`` methods.
+
+The following example registers an output parser for
+a LangGraph agent:
+
+.. code-block:: python
+
+   from magenta_sdklanggraph.output_parser import LangGraphOutputParser
+
+   @app.output_parser
+   class BriefParser(LangGraphOutputParser):
+       stream_modes = ("messages", "values")
+
+       async def parse(self, item, ctx):
+           ...
+           yield {"event": "brief", "data": new_brief}
+
+       async def on_stream_error(self, ctx, error):
+           ...
+           return {"event": "error"}
+
+The following table describes the ``LangGraphOutputParser`` members:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Member
+     - Description
+
+   * - ``stream_modes``
+     - Sequence of LangGraph stream mode names, such as
+       ``("messages", "values")``. The {+platform-short+} passes a
+       normalized stream item for each listed mode to the ``parse()``
+       method.
+
+   * - ``parse(item, ctx)``
+     - Determines the custom events to emit for one stream item.
+       Implement ``parse()`` as an asynchronous method that yields
+       JSON-serializable objects. To skip an item, return without
+       yielding a value.
+
+   * - ``on_stream_error(ctx, error)``
+     - Returns an optional JSON-serializable custom event to emit
+       before the platform surfaces a stream error.
+
+If the ``parse()`` or ``on_stream_error()`` method raises an error,
+the stream fails rather than silently dropping the output.
+
+.. _agentic-platform-emit-custom-events:
+
+Emit Custom Events
+------------------
+
+During a streaming invocation, you can use the ``emit_custom_event()``
+function to emit custom events directly from LangGraph nodes, tools,
+or any other code that runs in the execution. Pass a JSON object
+containing string keys to ``emit_custom_event()``, as shown in the
+following example:
+
+.. code-block:: python
+
+   from runner_shared import emit_custom_event
+
+   await emit_custom_event({"event": "todo", "items": ["a", "b"]})
+
+The {+platform-short+} forwards the JSON object unchanged and does not
+impose a schema, so you can define the payload's structure to match
+what your client expects.
+
+When calling the ``emit_custom_event()`` function, the following
+rules apply: 
+
+- Call the method only from a streaming invocation. Calling it from
+  the synchronous ``invoke`` path raises an error.
+
+- Enable the ``features.use_custom_parser`` flag in the
+  ``agent.yaml`` file. If the flag is disabled, the platform raises an
+  error.
+
+- Await the method from asynchronous code. From synchronous code,
+  use ``emit_custom_event_sync()`` instead.
+
+Next Steps
+----------
+
+To learn how a client receives the streamed output, see
+:ref:`Stream Your Agent's Output <agentic-platform-invoke-agent-stream>`
+in the Invoke an Agent guide.

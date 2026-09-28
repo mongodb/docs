@@ -1,0 +1,596 @@
+.. _agentic-platform-deploy-atlas-setup:
+
+======================
+Set Up Atlas Resources
+======================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Learn how to provision Atlas resources for your agent deployment, including service accounts, clusters, database users, secrets, and IP access lists, by using the agentengine atlas setup command.
+   :keywords: service account, cluster, database user, ip access, ai, agent, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to provision Atlas resources for
+your agent deployment by using the ``agentengine atlas`` commands. These
+commands use a locally stored service account profile to call the Atlas
+Admin API directly, and do not require Atlas CLI installation.
+
+The ``agentengine atlas`` surface provides two setup paths:
+
+- **Guided setup**: The ``agentengine atlas setup`` command prompts you
+  to select an Atlas organization, project, cluster, database user, and
+  Voyage API key interactively. Pass the ``--yes`` flag to create all
+  resources automatically without prompts.
+
+- **Manual setup**: The ``agentengine atlas profile``,
+  ``agentengine atlas cluster``, ``agentengine atlas database-user``,
+  and ``agentengine atlas voyage-api-key`` commands provide
+  non-interactive subcommands for scripting and desktop tooling.
+
+Before you begin, ensure that you have an Atlas account, access to
+at least one Atlas organization, and an initialized agent project.
+You must run ``agentengine atlas`` commands from within an agent project
+directory that contains an ``agent.yaml`` file. To set up a project,
+see :ref:`Set Up Your Agent Project <agentic-platform-set-up-project>`.
+To learn which Atlas role you need to complete this setup, see
+:ref:`agentic-platform-atlas-agent-roles`.
+
+.. important::
+
+   If your agent uses memory, select or create an Atlas Flex
+   (minimum requirement), ``M10``, ``M20``, or higher (recommended)
+   tier cluster to store your memory data. To learn more, see
+   :ref:`agentic-platform-add-memory`.
+
+Atlas Auth Profile
+------------------
+
+The ``agentengine atlas setup`` command authenticates with Atlas by
+using credentials stored in the ``~/.agentengine/atlas.json`` file. This
+file stores one or more named profiles for use with different
+environments or service accounts. The command uses the ``default``
+profile unless you specify a different one by using the ``--profile``
+flag.
+
+If no stored profile or environment variables exist when you run
+``agentengine atlas setup`` from within a valid agent project, the CLI
+prompts you to enter your service account client ID and secret and
+saves them as the ``default`` profile in ``~/.agentengine/atlas.json``.
+You can also create the file manually before running the command by
+using the schema below.
+
+.. include:: /includes/oauth-delegation.rst
+
+Profile File Schema
+~~~~~~~~~~~~~~~~~~~
+
+The ``~/.agentengine/atlas.json`` file has the following structure:
+
+.. code-block:: json
+
+   {
+     "version": 1,
+     "profiles": {
+       "default": {
+         "base_url": "https://cloud.mongodb.com",
+         "client_id": "<service-account-client-id>",
+         "client_secret": "<service-account-client-secret>"
+       }
+     }
+   }
+
+You can add multiple named profiles to use with different Atlas
+environments or service accounts. To use a non-default profile, pass
+the ``--profile`` flag as shown in the following example:
+
+.. code-block:: bash
+
+   agentengine atlas setup --profile <profile-name>
+
+Environment Variables
+~~~~~~~~~~~~~~~~~~~~~
+
+You can supply or override credentials by using the following environment variables
+without editing the profile file directly:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Variable
+     - Description
+   * - ``MONGODB_ATLAS_ACCESS_TOKEN``
+     - Pre-obtained OAuth access token. Takes highest priority.
+       Valid for 12 hours.
+   * - ``MONGODB_ATLAS_CLIENT_ID``
+     - Service account client ID. Use together with
+       ``MONGODB_ATLAS_CLIENT_SECRET``.
+   * - ``MONGODB_ATLAS_CLIENT_SECRET``
+     - Service account client secret. Use together with
+       ``MONGODB_ATLAS_CLIENT_ID``.
+   * - ``MONGODB_ATLAS_BASE_URL``
+     - Override the Atlas base URL stored in the profile.
+
+The command resolves credentials in the following order:
+
+1. ``MONGODB_ATLAS_ACCESS_TOKEN``, if set
+#. ``MONGODB_ATLAS_CLIENT_ID`` and ``MONGODB_ATLAS_CLIENT_SECRET``,
+   if both are set
+#. Stored profile in ``~/.agentengine/atlas.json``
+#. Interactive prompt, if a terminal is attached
+
+Command Syntax and Options
+--------------------------
+
+Use the following syntax for the ``agentengine atlas setup`` command:
+
+.. code-block:: bash
+
+   agentengine atlas setup [--yes] [--context <name>] [--workspace <name>] [--env <name>] [--profile <name>] [--force] [--org-id <id>] [--project-id <id>] [--workspace-id <id>]
+
+Command Flags
+~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Flag
+     - Description
+   * - ``--yes``, ``-y``
+     - Runs the automatic non-interactive setup path. The command creates an
+       Atlas cluster, database user, and Voyage API key by using
+       workspace-ID-derived names when no matching resources exist.
+   * - ``--context <name>``
+     - Targets a named local context from the ``.agentengine/state.json`` file.
+   * - ``--workspace <name>``
+     - Targets a specific workspace by name in a monorepo project.
+   * - ``--env <name>``
+     - Selects the Atlas environment.
+       The CLI saves the selected environment with the Atlas state
+       and reuses it for later Atlas commands in the same workspace
+       context.
+   * - ``--profile <name>``
+     - Selects the Atlas service account profile from
+       ``~/.agentengine/atlas.json``. If omitted, the setup uses the
+       environment default.
+   * - ``--force``
+     - Resets the saved Atlas link and reruns the guided setup flow.
+       Use this flag to update your configuration or provision
+       resources in a new environment.
+   * - ``--org-id <id>``
+     - Targets a specific organization ID directly.
+   * - ``--project-id <id>``
+     - Targets a specific project ID directly.
+   * - ``--workspace-id <id>``
+     - Targets a specific workspace ID directly.
+
+Interactive Flow
+~~~~~~~~~~~~~~~~
+
+When you run ``agentengine atlas setup``, the CLI guides you through the
+following steps:
+
+1. **Organization**: Lists your Atlas organizations with a numbered
+   menu. Select an existing organization or create a new one.
+#. **Project**: Lists the projects in the selected organization.
+   Select an existing project or create a new one. New projects
+   receive a project-scoped service account.
+#. **Cluster**: Lists the clusters in the selected project. Select
+   an existing cluster or, if your service account has cluster
+   creator permissions, create a new cluster.
+#. **Database user**: Creates a database user with the credentials
+   that the agent uses to connect to the cluster.
+#. **Voyage AI API key**: Provisions a Voyage AI API key for the
+   agent's memory features.
+#. **Secrets**: Saves ``MONGODB_URI`` and ``VOYAGE_API_KEY``
+   as {+platform-short+} secrets so that deployed agents can connect
+   to your Atlas cluster and Voyage AI.
+#. **IP access list**: Adds the {+platform-short+} data plane IP
+   addresses to the cluster's
+   :atlas:`IP access list </security/ip-access-list/>`.
+
+After the flow completes, the CLI displays the provisioning status
+for each resource.
+
+.. note::
+
+   The options available at each step depend on your Atlas roles. If
+   your service account lacks a required permission, the CLI omits
+   the option to create a new resource and lists only existing resources.
+
+Automatic Setup
+~~~~~~~~~~~~~~~
+
+To create all Atlas resources automatically without interactive prompts,
+pass the ``--yes`` flag to the ``agentengine atlas setup`` command. When
+the workspace has not been initialized, the
+``agentengine atlas setup --yes`` command runs ``agentengine init``
+first, then creates the following resources by using names based on the
+workspace ID:
+
+- Atlas cluster
+- Database user named ``magenta-<workspace-id>``
+- Voyage API key named ``magenta-<workspace-id>``
+
+Automatic setup stops when it finds saved metadata or existing Atlas
+resources that match those generated names. To create a fresh set of
+resources, remove the conflicting resources and pass ``--force``.
+
+Automatic setup uses the saved Atlas project when present. Otherwise,
+it requires exactly one visible Atlas organization and one visible
+Atlas project to proceed without prompts.
+
+You can override the default cluster configuration by setting the
+following environment variables before running the command:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Variable
+     - Description
+   * - ``AGENTENGINE_ATLAS_CLUSTER_PROVIDER``
+     - Cloud provider for the new cluster. Default: ``AWS``.
+   * - ``AGENTENGINE_ATLAS_CLUSTER_REGION``
+     - Cloud region for the new cluster. Default: ``US_EAST_1``.
+   * - ``AGENTENGINE_ATLAS_CLUSTER_TIER``
+     - Cluster tier. Default: ``FLEX``.
+
+Setup Status
+~~~~~~~~~~~~
+
+The ``agentengine atlas setup`` command displays the provisioning status
+of all resources at the end of each run. To recheck the current state
+or rerun the full setup flow, run the following command:
+
+.. code-block:: bash
+
+   agentengine atlas setup --force
+
+Set Up IP Access
+----------------
+
+Use the following command to add {+platform-short+} data
+plane IP addresses to the Atlas project IP access list without
+running the full guided setup flow:
+
+.. code-block:: bash
+
+   agentengine atlas setup-ip-access [--context <name>] [--workspace <name>] [--env <name>] [--profile <name>] [--json] [--org-id <id>] [--project-id <id>] [--workspace-id <id>]
+
+The command adds the IP addresses required for {+platform-short+}
+connections to the saved Atlas project's IP access list. Pass the ``--json``
+flag to receive a machine-readable ``{"configured": true}`` response.
+
+.. tip:: Prerequisites
+
+   This command requires a saved Atlas project. Run
+   ``agentengine atlas setup`` or ``agentengine atlas profile save``
+   first to select a project.
+
+Finalize Atlas Setup
+--------------------
+
+Use the following command to complete an automation-driven setup flow after all
+resource commands have run:
+
+.. code-block:: bash
+
+   agentengine atlas setup finalize [--context <name>] [--workspace <name>] [--env <name>] [--profile <name>] [--org-id <id>] [--project-id <id>] [--workspace-id <id>] --json
+
+The command validates that the selected cluster, database user,
+Voyage API key, ``MONGODB_URI``, and ``VOYAGE_API_KEY`` are all
+present, configures Atlas IP access for {+platform-short+}, and marks
+the workspace Atlas state as linked. The output does not contain secret
+values.
+
+Atlas Profile Commands
+----------------------
+
+The ``agentengine atlas profile`` subcommands manage service account
+profiles and Atlas project selection for automation workflows. These
+commands are non-interactive and require the ``--json`` flag.
+
+List Profiles
+~~~~~~~~~~~~~
+
+Use the following command to return the saved profiles from the
+``~/.agentengine/atlas.json`` file:
+
+.. code-block:: bash
+
+   agentengine atlas profile list --json
+
+The following example shows the output format:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "schema_version": "1",
+     "status": "ok",
+     "profiles": [
+       {"name": "default", "base_url": "https://cloud.mongodb.com"}
+     ]
+   }
+
+Verify a Profile
+~~~~~~~~~~~~~~~~
+
+Use the following command to validate service account
+credentials and return accessible organizations and projects:
+
+.. code-block:: bash
+
+   agentengine atlas profile verify --json --input -
+
+Pass a JSON request object through ``stdin`` by passing ``-`` to the
+``--input`` flag. The command returns the selected profile name, base URL, and lists of
+accessible organizations and projects. The output does not include
+access tokens and secrets.
+
+Save a Profile
+~~~~~~~~~~~~~~
+
+Use the following command to persist the selected Atlas
+organization and project into the workspace context:
+
+.. code-block:: bash
+
+   agentengine atlas profile save [--context <name>] [--workspace <name>] --json --input -
+
+Pass a JSON request object through ``stdin`` by passing ``-`` to the
+``--input`` flag. The command saves the Atlas environment, profile, organization, and
+project to the workspace's ``.agentengine/state.json`` file. If the
+organization and project selection does not change, the command
+preserves any existing cluster, database user, and Voyage API key
+selections.
+
+Atlas Cluster Commands
+----------------------
+
+The ``agentengine atlas cluster`` subcommands list Atlas clusters and
+save the cluster selection for the workspace. Run
+``agentengine atlas profile save`` first to select an Atlas project.
+
+List Clusters
+~~~~~~~~~~~~~
+
+Use the following command to return the clusters in the
+saved Atlas project:
+
+.. code-block:: bash
+
+   agentengine atlas cluster list [--context <name>] [--workspace <name>] --json
+
+The following example shows the output format:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "schema_version": "1",
+     "status": "ok",
+     "atlas_state": {},
+     "clusters": [
+       {
+         "name": "my-cluster",
+         "kind": "REPLICASET",
+         "state_name": "IDLE",
+         "is_flex": false
+       }
+     ],
+     "create_defaults": {
+       "name": "my-agent",
+       "provider": "AWS",
+       "region": "US_EAST_1",
+       "tier": "FLEX",
+       "label": "Flex"
+     },
+     "can_create": true,
+     "warnings": []
+   }
+
+The ``create_defaults`` object provides the suggested configuration
+for a new cluster. The ``can_create`` field indicates whether the service
+account has permission to create a cluster in the selected project.
+
+Save a Cluster
+~~~~~~~~~~~~~~
+
+Use the following command to select an existing cluster or
+create a new one:
+
+.. code-block:: bash
+
+   agentengine atlas cluster save [--context <name>] [--workspace <name>] --json --input -
+
+Pass a JSON request object through ``stdin`` by passing ``-`` to the
+``--input`` flag. To select an existing cluster:
+
+.. code-block:: json
+
+   {"mode": "existing", "name": "my-cluster"}
+
+To create a new cluster:
+
+.. code-block:: json
+
+   {
+     "mode": "create",
+     "name": "my-agent",
+     "provider": "AWS",
+     "region": "US_EAST_1",
+     "tier": "FLEX"
+   }
+
+If you omit the ``name`` field in create mode, the CLI generates a name from
+the workspace ID. Creating a cluster requests provisioning in Atlas
+and returns immediately. Atlas may take several minutes to finish
+provisioning the cluster.
+
+Atlas Database User Commands
+----------------------------
+
+The ``agentengine atlas database-user`` subcommands list Atlas database
+users and save the user selection for the workspace. Run the
+``agentengine atlas cluster save`` command first to select a cluster.
+
+List Database Users
+~~~~~~~~~~~~~~~~~~~
+
+Use the following command to return the database users
+in the saved Atlas project:
+
+.. code-block:: bash
+
+   agentengine atlas database-user list [--context <name>] [--workspace <name>] --json
+
+The following example shows the output format:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "schema_version": "1",
+     "status": "ok",
+     "atlas_state": {},
+     "users": [
+       {"username": "my-user", "database_name": "admin"}
+     ],
+     "create_defaults": {"username": "magenta-<workspace-id>"},
+     "can_create": true,
+     "warnings": []
+   }
+
+When the command finds an existing user whose name matches the
+generated default for the workspace, it saves that user to the
+``.agentengine/state.json`` file automatically. This keeps local state current
+when resources were provisioned outside the current session.
+
+Save a Database User
+~~~~~~~~~~~~~~~~~~~~
+
+Use the following command to select an existing user
+or create a new one:
+
+.. code-block:: bash
+
+   agentengine atlas database-user save [--context <name>] [--workspace <name>] --json --input -
+
+Pass a JSON request object through ``stdin`` by passing ``-`` to the
+``--input`` flag. To select an existing user, include the password
+as shown in the following example:
+
+.. code-block:: json
+
+   {"mode": "existing", "username": "my-user", "password": "my-password"}
+
+To create a new user, pass the following object:
+
+.. code-block:: json
+
+   {"mode": "create", "username": "my-user"}
+
+If you omit the ``username`` field in create mode, the CLI generates a name
+from the workspace ID. For new users, the CLI generates a password
+automatically. The generated password is not included in the command
+output.
+
+After saving, the command writes ``MONGODB_URI`` as a project-scoped
+{+platform-short+} secret. It does not write to a local file.
+
+Atlas Voyage API Key Commands
+-----------------------------
+
+The ``agentengine atlas voyage-api-key`` subcommands list Atlas Voyage
+API keys and save the key selection for the workspace. Run
+``agentengine atlas database-user save`` first to select a database
+user.
+
+List Voyage API Keys
+~~~~~~~~~~~~~~~~~~~~
+
+Use the following command to return the Voyage API
+keys in the saved Atlas project:
+
+.. code-block:: bash
+
+   agentengine atlas voyage-api-key list [--context <name>] [--workspace <name>] --json
+
+The following example shows the output format:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "schema_version": "1",
+     "status": "ok",
+     "atlas_state": {},
+     "keys": [
+       {
+         "id": "key-id",
+         "name": "magenta-<workspace-id>",
+         "masked_secret": "voy...xxxx"
+       }
+     ],
+     "create_defaults": {"name": "magenta-<workspace-id>"},
+     "can_create": true,
+     "warnings": []
+   }
+
+When the command finds an existing key whose name matches the
+generated default for the workspace, it saves that key to the
+``.agentengine/state.json`` file automatically.
+
+Save a Voyage API Key
+~~~~~~~~~~~~~~~~~~~~~
+
+Use the following command to select an existing key
+or create a new one:
+
+.. code-block:: bash
+
+   agentengine atlas voyage-api-key save [--context <name>] [--workspace <name>] --json --input -
+
+Pass a JSON object through ``stdin`` by passing ``-`` to the
+``--input`` flag. To select an existing key, use the following format:
+
+.. code-block:: json
+
+   {"mode": "existing", "name": "my-key", "value": "<api-key-value>"}
+
+To create a new key, use the following format:
+
+.. code-block:: json
+
+   {"mode": "create", "name": "my-key"}
+
+If you omit the ``name`` field in create mode, the CLI generates a name from
+the workspace ID. When you create a key, the CLI uses the
+Atlas-returned secret value directly.
+
+After saving, the command writes ``VOYAGE_API_KEY`` as a project-scoped
+{+platform-short+} secret. It does not write to a local file. For lower
+Atlas environments, the command also writes the ``VOYAGE_URL``
+variable the same way.
+
+Next Steps
+----------
+
+After provisioning your Atlas resources, you can set secrets for your
+agent deployment, including LLM provider API keys. To learn how, see
+the :ref:`Provision Cloud Secrets
+<agentic-platform-deploy-provision-secrets>` guide.

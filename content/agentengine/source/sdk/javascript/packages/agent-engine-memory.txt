@@ -1,0 +1,156 @@
+.. _javascript-packages-agent-engine-memory:
+
+@mongodb-js/agent-engine-sdk-memory
+===================================
+
+
+Unified **Memory** facade for Atlas Agent Engine (TypeScript). The
+counterpart of the Python ``agent-engine-sdk-memory`` package:
+TypeScript agents read from and write to the Memory Server through the
+same routes, with memory that persists across turns and sessions.
+
+Install
+-------
+
+.. code-block:: bash
+
+   npm install @mongodb-js/agent-engine-sdk-memory
+
+The ``Memory`` facade
+---------------------
+
+``Memory`` exposes every memory type behind one transport-agnostic
+surface:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Type
+     - Write
+     - Read
+   * - Conversation turns (STM)
+     - ``recordTurn``
+     - (feeds ``buildContext``)
+   * - Semantic (facts)
+     - ``saveSemantic``
+     - ``searchSemantic``, ``getSemantic``
+   * - Episodic (conversations)
+     - ``saveEpisode``
+     - ``searchEpisodes``, ``listEpisodes``
+   * - Taxonomic (knowledge base)
+     - ``saveTaxonomic``
+     - ``searchTaxonomic``, ``getTaxonomicTerm``, ``listDomains``
+   * - Procedural (how-tos)
+     - ``saveProcedure``
+     - ``discoverProcedures``, ``getProcedure``
+   * - Custom types (declared per project)
+     - ``save``
+     - ``retrieve``
+   * - Unified
+     - —
+     - ``buildContext``, ``search``
+
+All methods are async. Identity (``userId`` / ``sessionId``) is resolved
+per call — from the argument, then a bound context, then the runtime’s
+ambient context. The custom-type operations are the exception: they
+carry no identity fields — the platform stamps org, project, and user
+from the request — so they do not resolve client-side identity, and they
+require a backend that can stamp it (project-scoped Gateway routes, or
+an execution-scoped runtime).
+
+Two modes
+---------
+
+The facade is the same in both; only how the URL, auth, and identity are
+supplied differs.
+
+HTTP-direct (standalone / off-platform)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A self-contained client for scripts, tests, and code running outside the
+platform. Configure via constructor args or ``AGENTIC_MEMORY_*`` env
+vars.
+
+.. code:: ts
+
+   import { Memory } from "@mongodb-js/agent-engine-sdk-memory";
+
+   const memory = new Memory({
+     serviceAccountToken: process.env.AGENTIC_MEMORY_SERVICE_ACCOUNT_TOKEN, // service-account access token
+     projectId: "my-project",                    // set => project-scoped Gateway routes
+   });                                            // unset => flat OE routes
+
+   await memory.saveSemantic({
+     text: "favorite color is teal",
+     label: "favorite_color",
+     userId: "u1",
+     metadata: { channel: "web", priority: "high" }, // optional caller-supplied metadata
+   });
+   const hits = await memory.searchSemantic({ query: "color", userId: "u1" });
+   await memory.close();
+
+.. list-table::
+   :header-rows: 1
+
+   * - Env var
+     - Purpose
+   * - ``AGENTIC_MEMORY_SERVICE_ACCOUNT_TOKEN``
+     - Service-account access token (falls back to the hosted Gateway URL when set). ``AGENTIC_MEMORY_API_KEY`` is a deprecated alias: it still works, prints a ``DeprecationWarning``, and conflicts with the new variable (setting both throws). Mint a token with ``agentengine service-account create`` plus the OAuth token exchange shown in the Python SDK README.
+   * - ``AGENTIC_MEMORY_BASE_URL``
+     - Backend address.
+   * - ``AGENTIC_MEMORY_PROJECT_ID``
+     - Set => project-scoped Gateway routes; empty => flat OE routes.
+
+App-bound (inside a deployed agent)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Agent code uses ``app.memory`` (from
+``@mongodb-js/agent-engine-sdk-langgraph``). Identity comes from the
+ambient request context and calls route through the Orchestration
+Engine’s memory proxy — no tokens to manage, no ``userId`` threading:
+
+.. code:: ts
+
+   // inside a tool or entrypoint
+   await app.memory.saveSemantic({ text: "prefers email over SMS", label: "contact_pref" });
+   const context = await app.memory.buildContext({ query: "how does the user like to be contacted?" });
+
+App-bound memory is reachable only while handling a platform request (it
+needs the execution context’s ``OE_URL``).
+
+Context token budget
+~~~~~~~~~~~~~~~~~~~~
+
+``buildContext({ maxTokens })`` sets an optional gross
+context-construction budget (not a fetch cost). After retrieval and
+ranking, the server subtracts a 500-token formatting reserve, then
+greedily selects whole memory chunks that fit in the remainder. Positive
+values at or below 500 leave no budget for memories. Values above 500
+can still yield empty context when no chunk fits.
+``metadata.token_count`` reports formatted output only and excludes the
+reserve. Omit ``maxTokens`` to keep the server default.
+
+Errors
+------
+
+Typed errors let callers branch on failure mode: ``MemoryAuthError``
+(401/403), ``MemoryRouteNotFoundError`` (404 with a route-shape hint),
+``MemoryBadRequestError``, ``MemoryServerError`` (5xx / bad body),
+``MemoryConnectionError``, ``MemoryNotSupportedError`` (capability gap),
+and ``MemoryIdentityError`` (a required identity field could not be
+resolved). ``MemoryNotSupportedError`` covers both client-side gaps and,
+on the custom-type routes, capability gaps only the platform can report:
+a bare 404/405 (platform too old to serve the route) or the gateway’s
+structured 400 reporting custom memory types disabled on the deployment.
+A structured unknown-type 404 raises ``MemoryBadRequestError``.
+Transport retries 502/503/504 up to three times.
+
+Development
+-----------
+
+.. code:: bash
+
+   npm install
+   npm test      # vitest
+   npm run build # tsc
+

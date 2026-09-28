@@ -1,0 +1,689 @@
+.. _agentic-platform-monitor:
+
+=================
+Monitor the Agent
+=================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Learn how to monitor your agent's health, performance, and activity by using deployment event logs, the agentengine CLI, and the platform user interface dashboard.
+   :keywords: observability, metrics, dashboard, deploy events, event log, logs, health, workspace health, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to monitor your agent's performance and
+your deployment's health. 
+
+Agent sandboxes produce logs during execution that you can use to
+monitor agent behavior and diagnose issues. You can retrieve these logs
+in the following ways:
+
+- :ref:`Use the API or CLI agent logs <agentic-platform-monitor-runtime-logs>`: Retrieve
+  agent runtime logs including stdout/stderr output, ``print()`` statements, and
+  framework debug output.
+
+- :ref:`Use the API for deployment event logs <agentic-platform-monitor-deploy-events>`: Access structured
+  deployment event logs to trace deployment behavior, investigate failures,
+  and verify lifecycle transitions.
+
+To check the :ref:`live health of your deployed agent
+<agentic-platform-monitor-workspace-health>`, use the ``agentengine status`` command or the
+workspace health card in the platform UI.
+
+To debug latency or unexpected behavior in a specific agent run, see
+:ref:`agentic-platform-inspect-traces`.
+
+.. _agentic-platform-monitor-runtime-logs:
+
+View Agent Runtime Logs
+-----------------------
+
+The {+mdb-ai-platform+} captures stdout/stderr output, ``print()``
+statements, ``logging`` calls, and framework debug output from
+your deployed agents and stores them in S3. You can retrieve these logs
+by using the platform UI, the API, or the CLI.
+
+.. _agentic-platform-monitor-runtime-logs-ui:
+
+Use the UI
+~~~~~~~~~~
+
+To view logs on the UI, perform the following steps:
+
+1. Select :guilabel:`Workspaces` from the left navigation bar
+   and click the workspace you want to view.
+#. Click the :guilabel:`Logs` tab to open an interactive log
+   viewer.
+#. Adjust the period of time you want to view by selecting the
+   :guilabel:`15m`, :guilabel:`1h`, or :guilabel:`6h` button.
+   You can also change the time zone by using the time zone selector.
+   To view logs for a longer period of time, use the
+   :ref:`log export feature <agentic-platform-monitor-log-export>`.
+#. Select options from the :guilabel:`Level`, :guilabel:`Source`, and
+   :guilabel:`Service` dropdown menus to filter the logs. Then, click
+   :guilabel:`Search` to apply the filters. Level and source
+   filters return exact matches, so selecting ``INFO`` returns only
+   ``INFO`` entries, not ``INFO`` and higher severities.
+
+.. _agentic-platform-monitor-runtime-logs-api:
+
+Use the API
+~~~~~~~~~~~
+
+Query agent runtime logs by using the following endpoint:
+
+.. code-block:: none
+
+   GET /api/v1/projects/{id}/agent-logs
+
+Pass the object ID of the project to query as the ``{id}`` value.
+The caller must belong to that project's organization.
+
+The following query parameters are available:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 15 65
+
+   * - Parameter
+     - Required
+     - Description
+   * - ``workspace_id``
+     - Yes
+     - Workspace identifier to retrieve logs for.
+   * - ``start_time``
+     - No
+     - RFC3339 start time. Defaults to one hour ago. The range between
+       ``start_time`` and ``end_time`` cannot exceed six hours.
+   * - ``end_time``
+     - No
+     - RFC3339 end time. Defaults to now.
+   * - ``level``
+     - No
+     - Log level to match exactly. This parameter accepts
+       ``DEBUG``, ``INFO``, ``WARNING``, or ``ERROR``.
+   * - ``execution_id``
+     - No
+     - Filter by execution ID (exact match).
+   * - ``session_id``
+     - No
+     - Filter by session ID (exact match).
+   * - ``source``
+     - No
+     - Filter by log source: ``stdout``, ``stderr``,
+       ``python-logging``, or ``node-logging``.
+   * - ``service``
+     - No
+     - Filter by service: ``agent`` or ``tool``.
+   * - ``search``
+     - No
+     - Case-insensitive substring match on the ``message`` or ``bootId``
+       field.
+   * - ``limit``
+     - No
+     - Maximum number of entries to return. Defaults to ``500``, maximum ``5000``.
+   * - ``cursor``
+     - No
+     - Opaque pagination cursor returned by a previous response.
+   * - ``order``
+     - No
+     - Sort order for results. This parameter accepts ``asc`` or
+       ``desc``. Defaults to ``asc``.
+   * - ``tail``
+     - No
+     - Boolean that specifies whether to return the most recent entries
+       instead of paginating from the start of the time range. Cannot be
+       combined with the ``cursor`` parameter.
+
+Results are paginated by using a cursor. Each response includes a
+``nextCursor`` field, unless the response is the last page,
+and a ``hasMore`` boolean. To retrieve the following page, pass the
+value of ``nextCursor`` as the ``cursor`` parameter in your next
+request.
+
+Each log entry in the ``logs`` array contains the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Field
+     - Description
+   * - ``timestamp``
+     - Time the log entry was recorded, in RFC3339 format.
+   * - ``level``
+     - Log level: ``DEBUG``, ``INFO``, ``WARNING``, or ``ERROR``.
+   * - ``message``
+     - Log message content.
+   * - ``source``
+     - Origin of the log: ``stdout``, ``stderr``, ``python-logging``, or
+       ``node-logging``.
+   * - ``service``
+     - Service that produced the log.
+   * - ``tenantId``
+     - Tenant that owns the running agent.
+   * - ``executionId``
+     - Execution associated with the log entry.
+   * - ``sessionId``
+     - Session associated with the log entry.
+   * - ``workspaceId``
+     - Workspace associated with the log entry.
+   * - ``traceId``
+     - Trace identifier associated with the log entry.
+   * - ``bootId``
+     - Identifier for the pod boot that produced the log entry.
+   * - ``logger``
+     - Logger name, if the log originated from a ``logging`` call.
+   * - ``podName``
+     - Kubernetes pod that produced the log.
+   * - ``fields``
+     - Additional structured key-value fields attached to the log entry.
+
+.. _agentic-platform-monitor-runtime-logs-cli:
+
+Use the CLI
+~~~~~~~~~~~
+
+Use the following CLI command to retrieve agent runtime logs:
+
+.. code-block:: sh
+
+   agentengine logs [flags]
+
+The command resolves the workspace from the current directory's
+``.agentengine/`` state file. To target a different workspace,
+pass either the ``--context`` flag with a named context, or pass
+the ``--workspace-id`` flag together with ``--project-id``,
+``--org-id``, and ``--base-url``. For more information about
+managing workspaces, see :ref:`agentic-platform-manage-workspaces`.
+
+The following flags are available:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Flag
+     - Description
+   * - ``--session-id``
+     - Filter by session ID.
+   * - ``--execution-id``
+     - Filter by execution ID.
+   * - ``--source``
+     - Filter by source sandbox: ``agent`` or ``tool``. Accepts a
+       comma- or space-separated list.
+   * - ``--level``
+     - Log level to match exactly: ``debug``, ``info``, ``warn``, or
+       ``error``. Accepts a comma- or space-separated list.
+   * - ``--grep``
+     - Case-insensitive substring search on log messages. Not a glob or regex.
+   * - ``--since``
+     - Start time as a duration (for example, ``30m``, ``2h``) or RFC3339 timestamp.
+       Defaults to ``1h``. Maximum ``6h``.
+   * - ``--until``
+     - End time as a duration or RFC3339 timestamp. Defaults to now.
+   * - ``--tail``
+     - Maximum number of most-recent entries to return. Defaults to ``500``.
+       Capped at ``5000``, but you can use ``--all`` to retrieve all log entries in
+       the time range.
+   * - ``--all``
+     - Fetch all logs in the time range, auto-paginating through all pages.
+   * - ``-f``, ``--follow``
+     - Continuously poll for new logs.
+   * - ``--json``
+     - Output logs as JSON instead of human-readable format.
+   * - ``--workspace-id``
+     - Workspace ID to target. Must be combined with ``--project-id``,
+       ``--org-id``, and ``--base-url``, or used in a directory with a
+       registered workspace.
+   * - ``--project-id``
+     - Project ID. Used with ``--workspace-id``.
+   * - ``--org-id``
+     - Organization ID. Used with ``--workspace-id``.
+   * - ``--base-url``
+     - Platform base URL. Used with ``--workspace-id``.
+   * - ``--workspace``
+     - In a monorepo, selects a specific workspace by name from the root
+       ``agent.yaml``.
+   * - ``--context``
+     - Named platform target to use instead of a workspace ID. Run
+       ``agentengine context list`` to see your available contexts.
+
+Examples
+````````
+
+This section provides example CLI commands for common log retrieval tasks.
+
+The following command retrieves logs from the last hour:
+
+.. code-block:: sh
+
+   agentengine logs
+
+The following command tails live logs as they are written:
+
+.. code-block:: sh
+
+   agentengine logs --follow
+
+The following command retrieves only error-level logs from the agent sandbox
+service:
+
+.. code-block:: sh
+
+   agentengine logs --source agent --level error
+
+The following command searches for a substring in logs from the last 30 minutes:
+
+.. code-block:: sh
+
+   agentengine logs --grep "connection refused" --since 30m
+
+The following command retrieves all logs from the last six hours:
+
+.. code-block:: sh
+
+   agentengine logs --all --since 6h
+
+.. _agentic-platform-monitor-log-export:
+
+Export Raw Runtime Logs
+-----------------------
+
+To view runtime logs for a period longer than six hours,
+you can export the raw logs for either the agent or tool service.
+Exported logs include up to 24 hours of data, and you can
+download them as a gzip-compressed JSON Lines file.
+
+Use the UI
+~~~~~~~~~~
+
+To export raw runtime logs from the UI, perform the following
+steps:
+
+1. Select :guilabel:`Workspaces` from the left navigation bar
+   and click the workspace you want to view.
+#. Click the :guilabel:`Logs` tab to open an interactive log
+   viewer.
+#. Click :guilabel:`Export` to open the raw export dialog.
+#. From the :guilabel:`Service` dropdown menu, select :guilabel:`Agent`
+   or :guilabel:`Tool`.
+#. From the :guilabel:`Time period` dropdown menu, select a preset
+   range of the previous 6, 12, or 24 hours, or specify a custom
+   range. A custom range cannot exceed 24 hours. Then, choose
+   your time zone from the :guilabel:`Time zone` dropdown menu.
+#. Click :guilabel:`Export` to download the log file.
+
+Use the CLI
+~~~~~~~~~~~
+
+Use the following CLI command to export raw runtime logs:
+
+.. code-block:: sh
+
+   agentengine logs export --service <agent|tool> [flags]
+
+The following flags are available:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Flag
+     - Description
+   * - ``--service``
+     - *(Required)* Runtime service to export. You can specify ``agent`` or ``tool``.
+   * - ``--since``
+     - Start time, which you can pass as a duration or RFC3339
+       timestamp. Defaults to ``24h``. The range between the ``--since``
+       and ``--until`` values cannot exceed 24 hours.
+   * - ``--until``
+     - End time as a duration or RFC3339 timestamp. Defaults to the current time.
+   * - ``-o``, ``--output``
+     - Output file path. Defaults to
+       ``agent-logs-<service>-<end-time>.jsonl.gz``. The command does
+       not overwrite an existing file at this path.
+   * - ``--workspace-id``
+     - Workspace ID to target. Must be combined with ``--project-id``,
+       ``--org-id``, and ``--base-url``, or used in a directory with a
+       registered workspace.
+   * - ``--project-id``
+     - Project ID. Used with ``--workspace-id``.
+   * - ``--org-id``
+     - Organization ID. Used with ``--workspace-id``.
+   * - ``--base-url``
+     - Platform base URL. Used with ``--workspace-id``.
+   * - ``--workspace``
+     - In a monorepo, selects a specific workspace by name from the root
+       ``agent.yaml``.
+   * - ``--context``
+     - Named platform target to use instead of a workspace ID. Run
+       ``agentengine context list`` to see your available contexts.
+
+The command writes the download atomically, so an unsuccessful or
+interrupted export does not leave a partial file at the destination.
+
+The following command exports the previous 24 hours of agent service logs:
+
+.. code-block:: sh
+
+   agentengine logs export --service agent
+
+The following command exports six hours of tool service logs to a
+specified file:
+
+.. code-block:: sh
+
+   agentengine logs export --service tool --since 6h --output logs.jsonl.gz
+
+.. _agentic-platform-monitor-log-format:
+
+Log Format
+----------
+
+Agent sandboxes emit logs as structured JSON records. The
+following table describes the fields in each record:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Field
+     - Description
+
+   * - ``timestamp``
+     - ISO 8601 timestamp that indicates when the log was emitted
+
+   * - ``level``
+     - Log severity level, such as ``DEBUG``, ``INFO``, ``WARNING``, or ``ERROR``
+
+   * - ``logger``
+     - Name of the Python logger that emitted the record
+
+   * - ``message``
+     - Human-readable log message text
+
+   * - ``service``
+     - Source of the log, which can be ``agent`` or ``tool``
+
+   * - ``tenantId``
+     - Identifier for the tenant that owns the running agent
+
+   * - ``workspaceId``
+     - Identifier for the workspace where the agent is deployed
+
+   * - ``executionId``
+     - Identifier for the current agent execution run
+
+   * - ``sessionId``
+     - Identifier for the current session
+
+   * - ``podName``
+     - Kubernetes pod name of the container that emitted the log
+
+   * - ``source``
+     - Stream that produced the log entry, which can be ``stdout`` or ``stderr``
+
+   * - ``fields``
+     - Map of key-value pairs containing structured metadata about the log event
+
+The following example shows the format of a single structured log record:
+
+.. code-block:: json
+
+   {
+     "timestamp": "2025-10-15T14:32:07.123456Z",
+     "level": "INFO",
+     "logger": "agent.executor",
+     "message": "Tool call completed",
+     "service": "tool",
+     "tenantId": "t-abc123",
+     "workspaceId": "ws-def456",
+     "executionId": "exec-789xyz",
+     "sessionId": "sess-uvw012",
+     "podName": "tool-ws-def456-5b8d9f-jklmn",
+     "source": "stdout",
+     "fields": {
+       "toolName": "search",
+       "durationMs": 243
+     }
+   }
+
+.. _agentic-platform-monitor-deploy-events:
+
+View Deployment Events
+----------------------
+
+The {+mdb-ai-platform+} records a structured event log for each deployment,
+capturing every state transition from creation through completion. You can use
+the deploy event log to trace deployment behavior, investigate failures, and
+verify that expected lifecycle transitions occurred. You can access the event
+log by using the platform UI, the CLI, or the API.
+
+Each event contains the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Field
+     - Description
+   * - ``category``
+     - The category or stage of the lifecycle transition that triggered the
+       event. Possible values are: ``lifecycle``, ``secret_sync``,
+       ``cr_create``, ``oe_rollout``, ``aer_rollout``, ``tool_pod_rollout``,
+       ``memory_rollout``, ``deploy_diagnostic``, and
+       ``post_deploy_health``.
+   * - ``component``
+     - The deployment component associated with the event.
+   * - ``reason``
+     - A machine-readable reason code for the event.
+   * - ``message``
+     - A human-readable description of the event.
+   * - ``condition_ref``
+     - The condition associated with the event, such as ``Available`` or ``SecretsReady``.
+
+Use the UI
+~~~~~~~~~~
+
+The platform UI shows an **Event Log** tab on the Deployment page
+for all deployments, both active and completed.
+
+- For **active deployments**, which are ``pending``, ``in_progress``, or
+  ``cleaning_up``, events stream in real time through SSE.
+- For **completed deployments**, the card loads the full event history from the
+  REST endpoint.
+
+Each event row displays the UTC timestamp, severity level (``info``,
+``success``, ``warn``, or ``error``), lifecycle stage, component, and message. You can
+filter events by level and by stage to narrow the view.
+
+Use the CLI
+~~~~~~~~~~~
+
+To view the event log for a specific deployment by, use the
+``agentengine deploy logs`` command. To learn more, see
+:ref:`agentic-platform-deploy-build-logs`.
+
+You can also stream events in real time during an active deployment by using the
+``-f`` flag with ``agentengine deploy get``. To learn more, see
+:ref:`agentic-platform-deploy-build-status`.
+
+Use the API
+~~~~~~~~~~~
+
+To query deployment events directly, use the following API endpoint:
+
+.. code-block:: none
+
+   GET /api/v1/projects/{project_id}/deployments/{deployment_id}/events
+
+Results are paginated by using a cursor. Use the ``after`` and
+``limit`` query parameters to control pagination. ``limit`` defaults
+to ``100`` and cannot exceed ``100``.
+
+.. _agentic-platform-monitor-workspace-health:
+
+Check Workspace Health
+----------------------
+
+After a deployment succeeds, you can check the live health of your deployed
+agent at any time. The workspace health view shows the current readiness of
+each agent component, the number of ready replicas, and a timestamp indicating
+when the health was last checked.
+
+Use the UI
+~~~~~~~~~~
+
+The workspace overview page in the platform UI includes a **Live Deployment
+Health** card. The card shows per-component health, including status, ready
+replicas, and reason. You can click **Refresh** to re-fetch the current health
+at any time. A **Last checked at** timestamp shows when the health was last
+retrieved.
+
+Use the CLI
+~~~~~~~~~~~
+
+To view the live health of your deployed agent, run the following command:
+
+.. code-block:: bash
+
+   agentengine status
+
+The command calls the workspace health endpoint and renders the
+results as a summary, as shown in the following example:
+
+.. code-block:: none
+   :copyable: false
+
+   ✓ my-agent is ready
+
+   summary
+     deployment:  deploy-55996f39 (succeeded 21h ago)
+     readiness:   4/4 components ready
+     health:      healthy (checked just now)
+     invoke:      https://<base-url>/api/v1/projects/<project-id>/workspaces/<workspace-id>/invoke
+     stream:      https://<base-url>/api/v1/projects/<project-id>/workspaces/<workspace-id>/invokeStream
+     dashboard:   https://<base-url>/project/<project-id>/workspaces/<workspace-id>/deployments
+
+   components
+     Orchestration Engine      healthy (2 replicas)  [scope: project]
+     Agent Sandbox             healthy (4 replicas)  [scope: workspace]
+     Tool Sandbox              healthy (4 replicas)  [scope: workspace]
+     Secrets                   healthy  [scope: workspace]
+
+Pass the ``--verbose`` flag to include additional deployment and
+runtime details, or pass ``--json`` to output the full status as JSON.
+
+.. _agentic-platform-monitor-policy-denials:
+
+View Policy Denials
+-------------------
+
+The :guilabel:`Observability` page in the platform UI includes a
+:guilabel:`Policy denials` tile. The tile shows how many calls the
+:ref:`Policy Engine <agentic-platform-policy-engine>` denied over a time
+window that you select. You can use the tile to find agents that a policy blocks
+repeatedly, which indicates that the agent attempted unauthorized work
+or that a policy is too restrictive for the workload. The tile shows
+data for your organization and projects only.
+
+The tile counts the denials that the ``AUTHORIZED_TOOLS`` policy type
+produces and the denials that the execution and session budget policies
+produce. The tile does not count the denials that the
+``AUTHORIZED_MODELS`` policy type produces. To learn more about each
+policy type, see :ref:`agentic-platform-policy-types`.
+
+.. _agentic-platform-monitor-cli-logs:
+
+View CLI Debug Logs
+-------------------
+
+Every ``agentengine`` command writes a structured JSON log file to a
+platform-specific directory on your machine. The CLI retains the 20 most
+recent log files. When a command is unsuccessful, the final ``stderr`` line
+includes the path to the log file for that command.
+
+The following table lists the log locations by platform:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Platform
+     - Path
+
+   * - macOS
+     - ``~/Library/Logs/agentengine/agentengine-<timestamp>-<pid>.log``
+
+   * - Linux
+     - ``${XDG_STATE_HOME:-~/.local/state}/agentengine/logs/``
+
+   * - Windows
+     - ``%LOCALAPPDATA%\agentengine\Logs\``
+
+To override the log file path, use the ``--log-file`` flag or
+the ``AGENTENGINE_LOG_FILE`` environment variable. The following
+environment variables also control logging behavior:
+
+- ``AGENTENGINE_LOG_LEVEL`` sets file verbosity
+- ``AGENTENGINE_NO_LOG`` disables file logging
+- ``AGENTENGINE_LOG_MAX_FILES`` sets the number of retained log
+  files
+- ``AGENTENGINE_NO_LOG_PRUNE`` disables automatic retention
+  pruning
+
+List CLI Log Files
+~~~~~~~~~~~~~~~~~~
+
+To list all CLI log files, sorted by most recent first, run the
+following command:
+
+.. code-block:: bash
+
+   agentengine debug logs list [--json]
+
+Each row shows the filename and the command that was run. Pass the ``--json``
+flag to receive a machine-readable object with ``schema_version``, ``status``,
+and a ``logs`` array. Each entry in the array includes ``name``, ``path``,
+``modified_at``, ``size_bytes``, and ``command``.
+
+View a CLI Log File
+~~~~~~~~~~~~~~~~~~~
+
+To print the contents of a log file, run the following command:
+
+.. code-block:: bash
+
+   agentengine debug logs get [<logfile>] [--last] [--pretty]
+
+Pass the log filename shown by ``agentengine debug logs list``, or use
+``--last`` to print the most recent log. The output is formatted as
+raw JSON lines by default. Pass the ``--pretty`` flag to format and
+colorize each record.
+
+The following example uses the ``agentengine debug logs`` commands to
+list and view log files:
+
+.. code-block:: bash
+
+   agentengine debug logs list
+   agentengine debug logs get agentengine-2026-05-13T11-43-57Z-12345.log
+   agentengine debug logs get --last --pretty
+
+Additional Resources
+--------------------
+
+To learn more about the API endpoints discussed in this guide, see
+the `API documentation <https://dochub.mongodb.org/core/agentic-platform-api>`__.
+

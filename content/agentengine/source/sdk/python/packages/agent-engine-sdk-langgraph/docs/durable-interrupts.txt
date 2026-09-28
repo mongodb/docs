@@ -1,0 +1,237 @@
+.. _python-packages-agent-engine-sdk-langgraph-docs-durable-interrupts:
+
+Durable LangGraph interrupt and resume
+======================================
+
+Durable workflows use LangGraph’s native ``interrupt()`` and
+``Command(resume=...)`` control flow while the Orchestration Engine (OE)
+owns the durable suspension state. LangGraph checkpoints are
+attempt-local scratch and are rebuilt after replacement; they are never
+the durable resume authority.
+
+Two identities participate in the flow:
+
+- The native LangGraph interrupt id belongs to the current scratch
+  attempt and can change during replay.
+- The OE activity position is stable across attempts. A local-tool
+  interrupt keeps the Tool activity’s existing position. A direct
+  graph-node interrupt gets a synthetic ``langgraph.interrupt`` position
+  from LangGraph’s root checkpoint task path and its order in that
+  checkpoint write. OE returns a stable activity id for that position,
+  which is the public suspend/resume id.
+
+Direct graph-node interrupts and interrupts inside registered local
+tools are supported. The local-tool callback runs in-process in AER,
+where LangGraph’s active configuration is available. Remote Tool Pod
+interrupts are not supported by the durable adapter.
+
+End-to-end flow
+---------------
+
+.. code:: mermaid
+
+   sequenceDiagram
+       participant Graph as LangGraph
+       participant Node as Graph node / local tool
+       participant Checkpointer as Platform checkpointer
+       participant Agent as LangGraphBaseAgent
+       participant Session as DurableSession
+       participant OE as Orchestration Engine
+
+       Agent->>Graph: invoke original turn input
+       Graph->>Node: execute node
+       Node->>Node: interrupt(value) raises GraphInterrupt(id A)
+       Node-->>Graph: preserve native control flow
+       Graph->>Checkpointer: write typed interrupt at root task path
+       Checkpointer->>Checkpointer: reuse Tool P or synthesize node P
+       Graph-->>Agent: checkpoint exposes interrupt A
+       Agent->>Session: handle pending interrupt
+       Session->>OE: FinalizeStep(activity P suspended)
+       alt first attempt
+           OE-->>Session: SUSPENDED + stable activity id
+           Session-->>Agent: public suspend output
+       else replacement after resume
+           OE-->>Session: resolved outcome for position P
+           Session-->>Agent: Command(resume={id B: answer})
+           Agent->>Graph: invoke Command(resume=...)
+           Note over Graph,Agent: id B was regenerated during replay
+       end
+
+1. A graph node or local tool reaches ``interrupt()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The secure wrapper starts the tool’s normal durable activity before
+executing its body. OE approval returns ``route_to=callback``, so the
+registered callback runs on the active AER stack and can call
+LangGraph’s native ``interrupt()``.
+
+``GraphInterrupt`` is framework control flow, not a failed or completed
+tool result.
+```run_serial_activity`` <../../agent-engine-runner-shared/src/agent_engine_runner_shared/workflow/activity.py>`__
+therefore leaves the activity ``STARTED``, remembers the exact
+``ActivityCommand`` that admitted it, and re-raises the original
+LangGraph exception. The command contains the stable OE position,
+activity kind, name, and semantic input needed to record that same
+activity in the suspension frontier later. Tool semantic input contains
+only the application arguments; platform routing, placement, policy, and
+framework bookkeeping do not change durable identity.
+
+A direct graph node does not cross the secure Tool wrapper and therefore
+has no pre-existing activity. When LangGraph writes the typed
+``Interrupt`` to the root checkpoint, ``PlatformCheckpointer`` records a
+synthetic ``langgraph.interrupt`` activity. Its position uses the root
+``task_path``, which is stable across replacement attempts, plus the
+interrupt’s order in that root checkpoint write. The attempt-local
+native interrupt id is never used as the durable position. Nested
+checkpoint writes are ignored until LangGraph projects the interrupt to
+the root checkpoint, preventing duplicate synthetic activities. If a
+resumed task reaches another direct ``interrupt()`` before it can commit
+a root checkpoint, the adapter rejects it explicitly because one
+graph-task invocation does not yet assign stable positions to sequential
+direct interrupts. This is separate from a later durable activity
+establishing a new suspension frontier in the same open root step.
+
+LangGraph catches the exception, pauses the task, and writes its native
+interrupt to scratch. The durable session uses synchronous checkpoint
+durability so state inspection cannot race that write.
+
+Before ToolNode fans out a secure LLM response’s
+``AIMessage.tool_calls`` batch, the secure LLM wrapper reserves sibling
+Tool activities in response order.
+
+2. The adapter finalizes the complete suspension frontier
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After graph invocation,
+```pending_interrupts_from_state`` <../src/agent_engine_sdk_langgraph/checkpoint_branch.py>`__
+reads native interrupts from the root snapshot and nested subgraph
+snapshots. Parent snapshots can repeat a child’s interrupt, so
+collection deduplicates by the current native id.
+
+```settle_interrupts`` <../src/agent_engine_sdk_langgraph/durable_session.py>`__
+joins each checkpoint interrupt to the local-tool or synthetic
+``ActivityCommand`` recorded during that attempt. The native id performs
+the attempt-local join; the command’s activity position is the durable
+join key sent to OE.
+
+The adapter builds one ``StepSuspensionEntry`` for each interrupted
+activity and sends the complete batch with
+```finalize_current_step_suspensions_command`` <../../agent-engine-runner-shared/src/agent_engine_runner_shared/workflow/attempt.py>`__.
+OE’s ``activities.suspended`` model records the whole started frontier
+atomically: parallel local-tool interrupts suspend together, and no
+partial frontier can be published or resumed.
+
+Each ``activities.suspended`` event contains only the activities that
+suspended together at that boundary. After that set is resolved and
+replayed, a later activity may create another suspension event in the
+same still-open root step. OE matches those frontiers in event order; it
+does not merge them into one step-wide suspension set.
+
+On the first attempt, ``FinalizeStep`` returns suspended outcomes with
+stable activity ids. Those ids and the native interrupt values are
+exposed through the same suspend output used by native sessions.
+
+The enclosing root step is now interrupted but remains uncommitted. Its
+ordinal does not advance, and ``FinalizeStep`` has not sealed it.
+
+3. Resume reconstructs native control flow
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The caller resolves the stable activity ids as one atomic batch. A
+replacement attempt then rebuilds the original turn and reaches the same
+tool activity position.
+
+OE resolves the suspended activity before dispatching the replacement,
+so ``StartActivity`` returns the recorded answer as a terminal replay
+outcome. The replacement’s ``resume_map`` contains the stable activity
+ids OE resolved in the atomic batch; those ids select exactly which
+local callbacks must reconstruct native control flow. Ordinary terminal
+activity replay returns its recorded result without executing the body,
+while
+```run_serial_activity`` <../../agent-engine-runner-shared/src/agent_engine_runner_shared/workflow/activity.py>`__
+re-enters a framework-interrupted local activity so LangGraph can call
+``interrupt()`` again. The new scratch attempt may assign a different
+native id.
+
+When the reconstructed checkpoint is inspected, ``settle_interrupts``
+submits the same stable activity position to ``FinalizeStep``. OE
+validates the exact frontier and returns the already-resolved outcome
+without adding another history event. If the root step has suspended
+more than once, replay consumes those recorded frontier events in the
+same order before reaching new work. The adapter correlates that outcome
+by position and returns:
+
+.. code:: python
+
+   Command(resume={new_native_interrupt_id: durable_outcome})
+
+```LangGraphBaseAgent._invoke_inner`` <../src/agent_engine_sdk_langgraph/agent.py>`__
+invokes the graph again with that command. The reconstructed
+``interrupt()`` now returns the durable answer and the tool continues
+normally. ``ResolveActivities`` already made the activity position
+terminal, so the wrapper does not report a second activity outcome. The
+resumed LangGraph checkpoint records the state produced after
+``interrupt()`` returned. When LangGraph later writes the next root loop
+checkpoint, ``FinalizeStep`` commits and seals that same root step.
+
+For a resolved direct graph-node interrupt, the adapter also
+acknowledges the synthetic activity through the same durable Memory
+synchronization protocol used by Tool activities. This happens with OE’s
+resolved activity id and the winning attempt fence. The Memory command
+is idempotent, so replacement replay cannot duplicate the recorded turn.
+
+The invoke loop exists specifically for this immediate durable resume.
+Streaming uses the same protocol; an internal signal ends the current
+async-generator iteration before the next iteration invokes the resume
+command.
+
+Scope and unsupported shapes
+----------------------------
+
+- Each interrupted durable activity invocation must raise one native
+  interrupt. If its callback reaches another interrupt after the
+  recorded answer is supplied, reconstruction fails before another
+  frontier or outcome is written.
+- A graph task may expose only one sequential direct interrupt before
+  its root checkpoint commits. Reaching another after consuming a resume
+  value fails explicitly rather than extending the recorded suspension
+  frontier.
+- A later graph task, including another node in the same compiled child
+  graph, may establish another suspension frontier in the still-open
+  root step after the earlier frontier resolves.
+- Parallel interrupted activities are supported as one atomic frontier.
+- Generic durable workflow values must be JSON-safe so they can be
+  represented exactly across the protobuf boundary.
+- Remote Tool Pod interrupts and static ``interrupt_before`` /
+  ``interrupt_after`` pauses are rejected for durable workflows.
+- The legacy ``app.suspend`` path remains separate while migration to
+  framework native interrupts is in progress.
+
+Call-site map
+-------------
+
+.. list-table::
+   :header-rows: 1
+
+   * - Responsibility
+     - Call site
+   * - Run an approved local tool on the active graph stack
+     - ```secure_wrapper.py`` <../../agent-engine-runner-shared/src/agent_engine_runner_shared/secure_wrapper.py>`__
+   * - Preserve native control flow and retain the activity command
+     - ```activity.py`` <../../agent-engine-runner-shared/src/agent_engine_runner_shared/workflow/activity.py>`__
+   * - Register direct node interrupts at a stable synthetic position
+     - ```platform_checkpointer.py`` <../src/agent_engine_sdk_langgraph/platform_checkpointer.py>`__
+   * - Call LangGraph’s native interrupt hook
+     - ```runtime.py`` <../src/agent_engine_sdk_langgraph/runtime.py>`__
+   * - Inspect checkpoint interrupts
+     - ```checkpoint_branch.py`` <../src/agent_engine_sdk_langgraph/checkpoint_branch.py>`__
+   * - Finalize or replay the durable frontier
+     - ```durable_session.py`` <../src/agent_engine_sdk_langgraph/durable_session.py>`__
+   * - Re-invoke the graph with a resolved command
+     - ```agent.py`` <../src/agent_engine_sdk_langgraph/agent.py>`__
+   * - Reserve secure LLM ToolCall sibling positions before fan-out
+     - ```secure_llm_proxy.py`` <../../agent-engine-runner-shared/src/agent_engine_runner_shared/secure_llm_proxy.py>`__
+   * - Build the atomic suspension ``FinalizeStep`` request
+     - ```attempt.py`` <../../agent-engine-runner-shared/src/agent_engine_runner_shared/workflow/attempt.py>`__
+   * - Shape shared suspend outputs and events
+     - ```suspend.py`` <../src/agent_engine_sdk_langgraph/suspend.py>`__

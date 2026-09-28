@@ -1,0 +1,541 @@
+.. _agentic-platform-build-local:
+
+===============================
+Run and Test Your Agent Locally
+===============================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: development, ai, docker, hot-reload, agentengine dev, code example
+   :description: Learn how to build and run your AI agent locally using the agentengine CLI. Configure hot-reload mode for fast iteration or isolated mode for production testing.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to start a local development
+environment for your {+platform-short+} agent. The ``agentengine dev``
+command builds a Docker image that includes your application code and
+starts the full agent stack, including the orchestrator, agent sandbox,
+tool sandbox, and a local MongoDB instance, on your machine. When the
+environment is running, the CLI prints the service URLs so you can
+develop and test your agent.
+
+.. _agentic-platform-build-local-prereqs:
+
+Prerequisites
+-------------
+
+Before you begin, ensure that you install the ``agentengine`` CLI. To
+learn more about how to install the CLI, authenticate, and register the
+project, see
+:ref:`agentic-platform-set-up-install-authenticate`.
+
+Optional Configuration Settings
+-------------------------------
+
+This section describes optional settings you can use to configure your local
+development environment.
+
+.. _magenta-build-local-memory:
+
+Enable Memory
+~~~~~~~~~~~~~
+
+If you set ``features.memory: true`` in your ``agent.yaml`` file, then add the
+following variables to your ``.env`` file before starting the local environment:
+
+- ``VOYAGE_API_KEY``: Required for generating memory embeddings.
+- ``MONGOMEM_DB_NAME``: Optional. The MongoDB database name the memory server writes to.
+  Defaults to ``mdb_memory_<project-id>``.
+  
+.. _agentic-platform-build-local-dev-yaml:
+
+Configure Local Development Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use a ``dev.yaml`` file to override local service port
+assignments and turn the local MongoDB instance on or off during
+development. Place your ``dev.yaml`` file in the same directory as your
+``agent.yaml`` file. This file is optional and the platform does not
+add it to your ``.gitignore`` file, so you can commit and share the settings.
+
+The following table describes the fields you can include in the ``dev.yaml``
+file:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 15 20 30
+
+   * - Field
+     - Type
+     - Required
+     - Description
+
+   * - ``services.<svc>.port``
+     - int (1–65535)
+     - no
+     - Port override for a platform service. Valid service names
+       are: ``oe``, ``aer``, ``tool``, ``playground``,
+       ``guardrails``, ``mongodb``, and ``grpc``.
+
+   * - ``services.mongodb.local``
+     - bool
+     - no
+     - Whether to start a local MongoDB instance as part of the
+       development stack. Defaults to ``true``. If ``false``, you
+       must set ``MONGODB_URI`` in your ``.env`` file to point to
+       an external MongoDB instance.
+
+   * - ``services.mongodb.port``
+     - int
+     - no
+     - Port MongoDB listens on when running locally. Defaults
+       to ``27017``.
+
+The following example shows a ``dev.yaml`` file that sets all available
+fields:
+
+.. code-block:: yaml
+   :caption: dev.yaml
+
+   services:
+     playground:
+       port: 3000
+     oe:
+       port: 8000
+     aer:
+       port: 8001
+     tool:
+       port: 8002
+     mongodb:
+       local: true
+       port: 27017
+
+.. _agentic-platform-build-local-start:
+
+Start Local Development
+-----------------------
+
+The ``agentengine dev`` command supports two startup modes: **hot-reload mode**
+for active development and **isolated mode** for testing a
+production-like topology.
+
+.. _agentic-platform-build-local-hot-reload:
+
+Hot-Reload Mode (Recommended)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Hot-reload mode runs all agent services inside a single app container
+and mounts your source code directly into it. When you edit a file,
+`watchfiles <https://watchfiles.helpmanual.io/>`__ detects the change
+and automatically reloads the affected service without requiring a full
+rebuild.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Start the local environment.
+
+      Run the following command from the root of your project:
+
+      .. code-block:: sh
+
+         agentengine dev up
+
+      The CLI builds your Docker image, starts the stack, and
+      prints the service URLs when all services are ready.
+
+   .. step:: (Optional) Attach VS Code as a Dev Container.
+
+      If you use Visual Studio (VS) Code, perform the following steps to
+      attach directly to the running container. This provides an integrated
+      development experience with full IntelliSense and debugging support.
+
+      a. Install the
+         `Dev Containers extension <https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers>`__
+         in VS Code.
+
+      #. While the stack is running, open the :guilabel:`Command Palette` and select
+         :guilabel:`Dev Containers:/ Reopen in Container`.
+
+      VS Code connects to the app container and reloads the
+      workspace inside it.
+
+.. _agentic-platform-build-local-isolated:
+
+Isolated Mode
+~~~~~~~~~~~~~
+
+You can use the ``--isolated`` flag to start the local environment in isolated
+mode. Isolated mode starts each agent service in a separate container, mirroring
+the production topology. Use this mode to validate behavior across service
+boundaries or to reproduce production-specific issues. Because code is not
+mounted from your host, you must rebuild the images after making code changes.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Start the local environment in isolated mode.
+
+      Run the following command from the root of your project:
+
+      .. code-block:: sh
+
+         agentengine dev up --isolated
+
+      The CLI builds separate images for each service and starts
+      the full stack.
+
+   .. step:: Rebuild after making code changes.
+
+      Because isolated mode does not mount source files, you must
+      stop the stack, rebuild, and restart it after every code change:
+
+      .. code-block:: sh
+
+         agentengine dev stop
+         agentengine dev up --isolated
+
+.. _agentic-platform-build-local-manage:
+
+Manage the Local Environment
+----------------------------
+
+Use the following ``agentengine dev`` commands to manage your running
+environment.
+
+.. _agentic-platform-build-local-logs:
+
+View Logs
+~~~~~~~~~
+
+To stream logs from all running services, run the following command:
+
+.. code-block:: sh
+
+   agentengine dev logs
+
+To stream logs from a specific service, pass the service name as a
+positional argument:
+
+.. code-block:: sh
+
+   agentengine dev logs <service>
+
+In a monorepo, pass ``--all`` to stream logs for the shared
+all-workspaces stack:
+
+.. code-block:: sh
+
+   agentengine dev logs --all
+
+.. _agentic-platform-build-local-status:
+
+Check Local Stack Status
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``agentengine dev status`` command shows the current state of the
+local compose stack, including per-service status and the published host
+URLs. The following example shows the command syntax:
+
+.. code-block:: sh
+
+   agentengine dev status [--workspace <name>] [--all] [--json]
+
+The following table describes the available flags:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Flag
+     - Description
+
+   * - ``--workspace <name>``
+     - *(Monorepo only)* Targets a specific agent by name, as defined in the root ``agent.yaml``.
+
+   * - ``--all``
+     - *(Monorepo only)* Targets the all-workspaces stack.
+
+   * - ``--json``
+     - Prints a machine-readable status object to stdout. Includes
+       ``schema_version``, ``status``, ``mode``, ``running``, ``total``,
+       ``services``, and a ``context`` object. Each ``services`` object includes
+       ``name``, ``status``, ``running``, and a local
+       ``url`` when available.
+
+.. _agentic-platform-build-local-restart:
+
+Restart Services
+~~~~~~~~~~~~~~~~
+
+The ``agentengine dev restart`` command restarts the hot-reload ``app``
+and ``oe`` containers without rebuilding the image. Use this after
+changing dependencies on the host. The following example shows the
+command syntax:
+
+.. code-block:: sh
+
+   agentengine dev restart [--workspace <name>]
+
+This command targets the hot-reload stack only. It does not support
+``--all`` or isolated mode.
+
+Add New Dependencies
+~~~~~~~~~~~~~~~~~~~~
+
+When you add a dependency to your ``pyproject.toml`` file, the local
+development stack might not install it if a ``uv.lock`` file already
+exists. When a ``uv.lock`` file is present, the development entrypoint
+syncs the environment with the ``--frozen`` flag, which resolves
+dependencies from the lockfile instead of from the ``pyproject.toml`` file.
+
+To install the new dependency, run the following commands to delete the
+``uv.lock`` file and restart the stack:
+
+.. code-block:: sh
+
+   rm uv.lock
+   agentengine dev stop
+   agentengine dev up
+
+Alternatively, you can run the following commands to update the lockfile
+before you restart the stack:
+
+.. code-block:: sh
+
+   uv lock
+   agentengine dev stop
+   agentengine dev up
+
+.. _agentic-platform-build-local-artifact-repos:
+
+Use Private Artifact Repositories
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your agent depends on packages hosted in private artifact
+repositories, such as a private PyPI or npm registry on AWS
+CodeArtifact, declare them in the ``artifact_repositories`` block of
+your ``agent.yaml`` file. In hot-reload mode, the ``agentengine dev up``
+and ``agentengine dev restart`` commands automatically configure the
+registry credentials for ``type: pypi`` entries. The CLI does not
+auto-configure npm entries. For npm private dependencies, authenticate
+through your local npm configuration, such as a project-level ``.npmrc``
+file.
+
+For each declared PyPI repository, provide a credential through one of
+the following:
+
+- A ``UV_INDEX_<NAME>_PASSWORD`` (and optionally ``_USERNAME``)
+  variable in your process environment or ``.env`` file. For example,
+  for an index named ``corps-pypi``, set
+  ``UV_INDEX_CORPS_PYPI_PASSWORD``.
+- The declared ``secret`` field, read from your ``.env`` file.
+- For an AWS CodeArtifact index, a token minted from your active AWS
+  profile or SSO session.
+
+If no credential resolves for a declared repository, the CLI fails and
+names the repository and the sources to check.
+
+To skip auto-configuration and manage ``UV_INDEX_*`` variables
+yourself, run the following command:
+
+.. code-block:: sh
+
+   agentengine dev up --no-artifact-auth
+
+.. note::
+
+   If you declare a ``type: pypi`` entry and start in ``--isolated``
+   or ``--all`` mode, the CLI returns an error rather than starting
+   containers that fail at dependency installation.
+
+To learn about the ``artifact_repositories`` schema, see
+:ref:`agentic-platform-agent-contract-yaml`. To learn how private
+artifact repositories work in cloud builds, see
+:ref:`agentic-platform-build-artifact-repositories`.
+
+.. _agentic-platform-build-local-stop:
+
+Stop Services
+~~~~~~~~~~~~~
+
+To pause the local environment without removing containers, run the
+following command:
+
+.. code-block:: sh
+
+   agentengine dev stop [--workspace <name>] [--all]
+
+The command stops containers without removing them. Run
+``agentengine dev up`` again to resume the containers without a rebuild.
+
+.. _agentic-platform-build-local-clean:
+
+Reset Local State
+~~~~~~~~~~~~~~~~~
+
+To stop all containers and remove all associated volumes and generated
+runtime files, run the following command:
+
+.. code-block:: sh
+
+   agentengine dev clean [--workspace <name>] [--all]
+
+.. warning::
+
+   Running ``agentengine dev clean`` permanently deletes all local data
+   stored in the MongoDB Atlas Local volume. Back up any data you need
+   before running this command.
+
+After cleaning, run ``agentengine dev up`` to regenerate files and start
+fresh local containers.
+
+.. _agentic-platform-build-local-mcp-auth:
+
+Authenticate Remote MCP Servers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``agentengine dev mcp auth`` commands manage OAuth credentials for
+remote MCP servers configured in your ``agent.yaml`` file under
+``mcp.servers``. The commands write login credentials to the dev
+credential cache at ``~/.agentengine/mcp-oauth``, and generated
+``agentengine dev up`` stacks mount that directory automatically.
+
+The cache is separate for each project and each MCP endpoint. Logging
+in from one project does not log you in for another project, so you must
+run the ``agentengine dev mcp auth login`` command once per project. To learn
+about the naming requirements for MCP servers, see
+:ref:`agentic-platform-mcp-server-naming`.
+
+auth login
+``````````
+
+Use the ``agentengine dev mcp auth login`` command to open the provider authorization flow for a server
+and save credentials in the dev cache, as shown in the following example:
+
+.. code-block:: sh
+
+   agentengine dev mcp auth login <server> [--no-browser]
+
+The ``--no-browser`` flag prints the login URL instead of opening
+the URL in a browser.
+
+The authorization URL that the server advertises must use the
+``https`` scheme. If the server advertises an authorization
+endpoint that uses any other scheme, the command stops and generates
+a ``Refused to open unauthorized MCP OAuth URL`` error.
+
+auth status
+```````````
+
+Use the ``agentengine dev mcp auth status`` command to check whether cached credentials exist for a
+server, as shown in the following example:
+
+.. code-block:: sh
+
+   agentengine dev mcp auth status [server] [--check]
+
+The ``--check`` flag uses the cached credentials to connect to the MCP server
+and calls the tools list endpoint to confirm that the server accepts them.
+
+auth upload
+```````````
+
+Use the ``agentengine dev mcp auth upload`` command to base64-encode the local OAuth cache for a server
+and store it as a workspace secret named
+``AGENTIC_MCP_OAUTH_B64_<SERVER>``. This command exposes the authorization credentials
+to deployed agents.
+
+The following example shows the command syntax:
+
+.. code-block:: sh
+
+   agentengine dev mcp auth upload <server> [--workspace-id <id>] [--sync]
+
+The ``--workspace-id`` flag specifies the workspace ID, and the``--sync`` flag reloads
+secrets in active deployments immediately after upload.
+
+Before uploading, the CLI checks that the server URL recorded in the
+cache matches the URL in your ``agent.yaml`` file. If the cache was
+recorded for a different endpoint, the CLI refuses the upload and
+prompts you to run the ``agentengine dev mcp auth login`` command again.
+
+.. _agentic-platform-build-validate:
+
+Validate Configuration
+----------------------
+
+The ``agentengine agent validate`` command lints your ``agent.yaml``
+file locally with the same parser and validator that the build
+pipeline uses. Run it before building to catch typos, invalid
+values, and network policy errors.
+
+The following example shows the command syntax:
+
+.. code-block:: bash
+
+   agentengine agent validate [path] [--strict]
+
+The default path is ``./agent.yaml``. Pass an explicit path to validate a
+file in a different location, such as a monorepo workspace.
+
+The command returns the following exit codes:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 85
+
+   * - Exit code
+     - Meaning
+
+   * - ``0``
+     - ``agent.yaml`` is valid.
+
+   * - ``1``
+     - Validation failed. The output identifies the invalid fields.
+
+   * - ``2``
+     - File or I/O error. The file could not be read.
+
+The command does not require authentication and can run in CI without a
+valid token.
+
+When ``artifact_repositories`` is non-empty, the command cross-checks
+declared index names against your project tooling in the same
+directory as ``agent.yaml``. For Python agents, it reads
+``pyproject.toml`` and ``uv.lock``. For TypeScript agents, it reads
+``package.json``, ``.npmrc``, and ``package-lock.json``. Undeclared
+private URLs in lockfiles are allowed, because credential injection
+is opt-in. The same hard errors that block cloud builds stop
+validation and return exit code ``1``.
+
+When you are logged in, the command also prints non-blocking warnings
+for missing or mis-scoped ``artifact_repositories[].secret`` values,
+including ``WORKSPACE_CONTEXT_NEEDED`` when a workspace-scoped entry
+is declared without an active ``agentengine init`` context. Pass
+``--strict`` to treat these warnings as exit code ``1``. To learn how
+private artifact repositories work in cloud builds, see
+:ref:`agentic-platform-build-artifact-repositories`.
+
+.. note::
+
+   The ``agentengine agent validate`` command is experimental. Its
+   flags, output format, and exit codes may change as the
+   validator expands to cover more ``agent.yaml`` fields.
+
+Next Steps
+----------
+
+After your local environment is running, you can test the agent and
+iterate on your code. To learn how to manually test the agent and apply
+code changes, see :ref:`Test the Agent <agentic-platform-test>`.

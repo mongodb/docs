@@ -1,0 +1,522 @@
+.. _agentic-platform-memory:
+
+============
+Agent Memory
+============
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn about agent memory on the MongoDB Agentic AI Platform, including the four long-term memory types, how extraction works, and how to retrieve memory.
+   :keywords: ai, agents, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Standard AI interactions are stateless: once a session concludes, the
+model loses all context about the conversation. Agent memory transforms
+stateless interactions into stateful, adaptive workflows by giving
+agents a persistent knowledge store that spans multiple conversations.
+An agent learns from its environment, updates this store,
+and recalls necessary information for subsequent tasks.
+
+Unlike a temporary context window that resets after each session, agent
+memory ensures your agent does not revert to a blank slate. Without it,
+an agent cannot remember returning users, prior decisions, or
+established workflows.
+
+{+mdb-ai-platform+} introduces a dedicated memory service to manage
+this persistence across your projects. The service parses
+conversations in the background to capture durable information, while
+letting applications write memories to the store.
+
+.. _agentic-platform-memory-architecture:
+.. _agentic-platform-memory-how-works:
+
+How Memory Works
+----------------
+
+Memory operates in two distinct layers distinguished by data lifespan
+and structure: short-term memory and long-term memory. A background
+extraction pipeline processes short-term conversation
+into long-term knowledge.
+
+.. _agentic-platform-memory-short-term:
+
+Short-Term Memory
+~~~~~~~~~~~~~~~~~
+
+Short-term memory (STM) stores raw conversation history in
+chronological order. The platform records each turn in real time as
+it occurs. When your agent requires immediate conversational context
+from recent turns, it reads from STM.
+
+.. _agentic-platform-memory-from-turns:
+
+From Conversation Turns to Memory
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The {+platform-short+} converts conversational turns into durable memory
+through a three-stage lifecycle:
+
+- **Turn recording**: As the agent interacts with users, the platform
+  records each turn to short-term memory.
+- **Snapshot generation**: When a session reaches a configured message
+  count or idle threshold, a background process compiles the
+  conversation history into a summarized snapshot.
+- **LLM extraction**: A large language model (LLM) analyzes the snapshot
+  and extracts durable knowledge into the appropriate long-term
+  memory types.
+
+Because extraction runs asynchronously, recording turns never blocks
+the agent's response. Knowledge extracted from a session becomes
+available in long-term memory for subsequent conversations rather
+than on the immediate next turn. Recent turns remain
+immediately available through short-term memory, and extracted
+knowledge appears shortly afterward.
+
+.. _agentic-platform-memory-long-term:
+
+Long-Term Memory
+~~~~~~~~~~~~~~~~
+
+Long-term memory persists across sessions and holds durable knowledge
+distilled from conversations. The platform creates long-term memory
+either by distilling short-term memory or through direct writes.
+
+For platform-deployed agents, the platform automatically records
+conversations as short-term memory and distills long-term memory from
+it, though agents can write long-term memory directly when needed.
+External applications typically write short-term memory using the
+software development kit (SDK) for platform distillation. They can
+also write long-term memory directly, through the SDK or the memory
+Model Context Protocol (MCP).
+
+.. _agentic-platform-memory-types:
+
+Long-Term Memory Types
+----------------------
+
+The platform organizes long-term memory into four specialized types:
+
+- **Semantic memory**: Stores labeled facts.
+- **Episodic memory**: Stores past interactions and conversations as
+  discrete episodes.
+- **Procedural memory**: Stores reusable, step-by-step instructions
+  and workflows.
+- **Taxonomic memory**: Stores domain terms and their definitions.
+
+The following sections describe each type in detail.
+
+.. _agentic-platform-memory-semantic:
+
+Semantic Memory
+~~~~~~~~~~~~~~~
+
+Semantic memory stores labeled facts about a user or an
+application. A fact is knowledge that stays relevant beyond the
+conversation that produced it. For example, a fact can capture a
+user's home airport or their preference for window seats.
+
+The {+platform-short+} creates semantic memory through background
+extraction and direct writes:
+
+- **Background extraction**: Extracts facts from conversation snapshots
+  and consolidates duplicate or updated information over time.
+- **Direct writes**: Save a fact with
+  ``save_semantic(label=..., text=...)``.
+
+To retrieve a fact, use ``get_semantic`` to look it up by label or
+``search_semantic`` to find facts by meaning. Semantic memory is
+included by default in ``build_context``, so the relevant facts appear
+in the context your agent retrieves.
+
+The following example saves a fact, retrieves it by label, and searches
+the chat by meaning:
+
+.. code-block:: python
+
+   from agentic_platform_memory import (
+       Memory,
+       MemoryRequestContext,
+   )
+
+   memory = Memory(
+       api_key="<your-access-token>",
+       project_id="<your-project-id>",
+   )
+   chat = memory.bind(
+       MemoryRequestContext(
+           user_id="user_1",
+           session_id="thread_123",
+       )
+   )
+
+   chat.save_semantic(
+       label="home-airport",
+       text="The user's home airport is Boston.",
+   )
+   fact = chat.get_semantic("home-airport")
+   hits = chat.search_semantic("home airport")
+
+.. _agentic-platform-memory-episodic:
+
+Episodic Memory
+~~~~~~~~~~~~~~~
+
+Episodic memory stores past conversations as summarized episodes. An
+episode captures what happened in a conversation, including the
+decisions made and the outcomes that followed. Episodic memory answers
+what an agent should know about a user's past interactions.
+
+The {+platform-short+} creates episodic memory through background
+extraction and direct writes:
+
+- **Background extraction**: Extracts episodes and their participants
+  from conversation snapshots.
+- **Direct writes**: Save an episode with
+  ``save_episode(title=..., content=...)``.
+
+Episodes persist across conversations. An agent can recall what
+happened in one conversation during a later conversation.
+
+To retrieve episodes, use ``search_episodes`` to find them by meaning or
+``list_episodes`` to list a user's episodes. Episodic memory is one of
+the default sources in ``build_context``, so relevant episodes are
+included.
+
+The following example saves an episode, searches for it, and lists a
+user's episodes:
+
+.. code-block:: python
+
+   from agentic_platform_memory import (
+       Memory,
+       MemoryRequestContext,
+   )
+
+   memory = Memory(
+       api_key="<your-access-token>",
+       project_id="<your-project-id>",
+   )
+   chat = memory.bind(
+       MemoryRequestContext(
+           user_id="user_1",
+           session_id="thread_123",
+       )
+   )
+
+   chat.save_episode(
+       title="Vacation planning",
+       content="Planned a summer trip to Lisbon.",
+   )
+   episodes = chat.search_episodes("trip to Lisbon")
+   recent = chat.list_episodes()
+
+.. _agentic-platform-memory-procedural:
+
+Procedural Memory
+~~~~~~~~~~~~~~~~~
+
+Procedural memory stores reusable procedures: the step-by-step
+workflows an agent follows to complete a specific task. A procedure
+captures how to do something, such as comparing flight options or
+processing a refund request.
+
+The {+platform-short+} creates procedural memory through background
+extraction and direct writes:
+
+- **Background extraction**: Extracts reusable procedures from
+  conversation snapshots.
+- **Direct writes**: Save a procedure with
+  ``save_procedure(procedure=..., description=..., content=...)``.
+
+To retrieve procedures, use ``discover_procedures`` to find candidates
+by query or ``get_procedure`` to load the full procedure by name.
+Procedural memory requires explicit opt-in in ``build_context``, not
+the semantic and episodic defaults.
+
+The following example saves a procedure and retrieves it:
+
+.. code-block:: python
+
+   from agentic_platform_memory import (
+       Memory,
+       MemoryRequestContext,
+   )
+
+   memory = Memory(
+       api_key="<your-access-token>",
+       project_id="<your-project-id>",
+   )
+   chat = memory.bind(
+       MemoryRequestContext(
+           user_id="user_1",
+           session_id="thread_123",
+       )
+   )
+
+   chat.save_procedure(
+       procedure="compare-flights",
+       description="Compare flight options.",
+       content="Rank flights by price, stops, and total travel time.",
+   )
+   candidates = chat.discover_procedures("compare flights")
+   full = chat.get_procedure("compare-flights")
+
+.. _agentic-platform-memory-taxonomic:
+
+Taxonomic Memory
+~~~~~~~~~~~~~~~~
+
+Taxonomic memory stores domain terms and their definitions. A term
+defines the meaning of a word within a domain, such as what a
+``red-eye`` is in travel management. Unlike user-scoped memories,
+taxonomic memory is shared domain knowledge available across all
+users and conversations in a project.
+
+The {+platform-short+} creates taxonomic memory through background
+extraction and direct writes:
+
+- **Background extraction**: Extracts terms and their domains from
+  conversation snapshots.
+- **Direct writes**: Save a term with
+  ``save_taxonomic(domain=..., term=..., definition=...)``.
+
+To retrieve a term, use ``get_taxonomic_term`` to look it up by domain
+and term, or ``search_taxonomic`` to find terms by meaning. Use
+``list_domains`` to list the domains your project has. Taxonomic memory
+requires explicit opt-in in ``build_context``.
+
+The following example saves a term, reads it, and searches for it:
+
+.. code-block:: python
+
+   from agentic_platform_memory import (
+       Memory,
+       MemoryRequestContext,
+   )
+
+   memory = Memory(
+       api_key="<your-access-token>",
+       project_id="<your-project-id>",
+   )
+   chat = memory.bind(
+       MemoryRequestContext(
+           user_id="user_1",
+           session_id="thread_123",
+       )
+   )
+
+   chat.save_taxonomic(
+       domain="airline",
+       term="red-eye",
+       definition="An overnight flight that lands the next morning.",
+   )
+   definition = chat.get_taxonomic_term("airline", "red-eye")
+   matches = chat.search_taxonomic("overnight flight", domain="airline")
+   domains = chat.list_domains()
+
+.. _agentic-platform-memory-choose-type:
+
+Choosing a Memory Type
+----------------------
+
+Once you determine that information must persist beyond a single
+conversation, select a long-term memory type based on the shape and
+intended use of the data.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 30 25 25
+
+   * - Memory Type
+     - What It Stores
+     - Scope
+     - Key Question
+   * - **Semantic**
+     - Persistent labeled facts
+     - User
+     - What does the agent know to be true?
+   * - **Episodic**
+     - Summarized interaction histories and outcomes
+     - User
+     - What happened in past conversations?
+   * - **Procedural**
+     - Reusable step-by-step workflows
+     - User
+     - How should the agent perform this task?
+   * - **Taxonomic**
+     - Domain terms and definitions
+     - Project-wide (shared)
+     - What does this domain term mean?
+
+.. _agentic-platform-memory-choose-boundaries:
+
+Distinguishing Between Types
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If information appears to span multiple categories, evaluate where it
+falls along these operational boundaries:
+
+- **Fact versus Event (Semantic versus Episodic)**: Semantic memory
+  stores a current state or truth, such as a traveler's preferred seat
+  or home airport. Episodic memory stores the historical narrative of
+  the interaction where that preference was discussed or used, such as
+  a past flight booking conversation.
+- **Knowledge versus Execution (Semantic versus Procedural)**: Semantic
+  memory provides facts the agent recalls, such as baggage allowance
+  limits. Procedural memory provides instructions the agent executes,
+  such as the sequence of steps required to search and compare flights.
+- **User Context versus Domain Standards (Semantic versus Taxonomic)**:
+  Semantic memory tracks user-specific details, such as a traveler's
+  frequent flyer tier. Taxonomic memory defines the standard
+  terminology shared across the entire project, such as what
+  qualifying criteria define an elite tier or a red-eye flight.
+
+.. _agentic-platform-memory-combining:
+
+Combining Memory Types
+~~~~~~~~~~~~~~~~~~~~~~
+
+Memory types are complementary rather than mutually exclusive. A
+single agent often queries multiple memory types within the same
+workflow. For example, a travel booking agent might reference:
+
+- **Semantic memory** to recall a traveler's home airport, seating
+  preference, and frequent flyer number.
+- **Episodic memory** to review discussions, booked itineraries, and
+  canceled flights from past trips.
+- **Procedural memory** to execute the step-by-step workflow for
+  comparing flight options or rebooking a canceled connection.
+- **Taxonomic memory** to interpret airline industry terminology,
+  such as ``open-jaw routing``, ``layover``, or ``red-eye``.
+
+If your data doesn't fit any of the four built-in types, you can
+declare custom memory types instead. To learn how, see
+:ref:`Declare Custom Memory Types <agentic-platform-custom-memory-types>`
+in the Add Memory to Your Agent guide.
+
+.. _agentic-platform-memory-configure-extraction:
+
+Configure Memory Extraction
+---------------------------
+
+Background extraction runs for the memory types that are enabled
+in the ``memory.extraction`` block of ``project-config.yaml``. To
+extract a memory type, add it to the ``enabled`` list:
+
+.. code-block:: yaml
+
+   memory:
+     extraction:
+       enabled:
+         - semantic
+         - episodic
+         - procedural
+         - taxonomic
+
+Each enabled type runs its own extraction handler, which distills that
+kind of memory from conversation snapshots.
+
+The ``enabled`` list applies to automatic background extraction.
+Your application can still save any built-in memory type with the SDK,
+even when automatic extraction for that type is turned off.
+
+
+To enable the memory service and apply extraction configuration to a
+deployed project, see the
+:ref:`Add Memory to Your Agent <agentic-platform-add-memory>` guide.
+
+.. _agentic-platform-memory-retrieve:
+
+Retrieve Memory
+---------------
+
+Your agent queries and reads memory through two distinct retrieval
+modes: assembled context or raw records.
+
+- **Assembled context**: Formats a single, prompt-ready text block for
+  your agent. The ``build_context`` and ``build_context_from_sources``
+  methods query selected memory types, rank and de-duplicate matches,
+  and trim results to your token budget.
+- **Raw records**: Returns structured data objects for custom
+  application logic. Use ``search`` or the per-type search methods to
+  inspect or filter records in code.
+
+By default, the context builders search episodic and semantic
+memory. To include short-term, procedural, or taxonomic memory, list
+those sources in ``enabled_sources``.
+
+The following example builds context for a chat session, including
+procedural memory:
+
+.. code-block:: python
+
+   from agentic_platform_memory import (
+       Memory,
+       MemoryRequestContext,
+   )
+
+   memory = Memory(
+       api_key="<your-access-token>",
+       project_id="<your-project-id>",
+   )
+   chat = memory.bind(
+       MemoryRequestContext(
+           user_id="user_1",
+           session_id="thread_123",
+       )
+   )
+
+   context = chat.build_context(
+       query="What is relevant to the next trip-planning task?",
+       enabled_sources={"episodic", "semantic", "procedural"},
+   )
+
+.. note::
+
+   A platform-deployed agent receives a pre-wired ``app.memory`` client
+   with its identity already set by the runtime. A standalone
+   application constructs ``Memory`` and binds a ``user_id`` and
+   ``session_id`` itself.
+
+.. _agentic-platform-memory-scoping:
+
+Memory Scoping and Visibility
+-----------------------------
+
+All memory records are isolated to the project in which they are
+created. Data never crosses project boundaries. Within a project, the
+platform controls record access with two visibility scopes:
+
+- **Private**: Accessible only to the user identity associated with
+  the record. Semantic, episodic, and procedural memories default to
+  ``private``.
+- **Org**: Accessible to any user in the project. Taxonomic memory
+  defaults to ``org`` because domain definitions and terminology are
+  meant to be shared across the project.
+
+When an agent executes a read or search, the platform restricts reads
+to the caller's project and user scope, so results only contain
+records the caller can read.
+
+.. _agentic-platform-memory-next-steps:
+
+Next Steps
+----------
+
+To learn how to enable memory for your agent, see :ref:`Add Memory to
+Your Agent <agentic-platform-add-memory>`.
+
+To learn how to use memory without a full agent deployment, see
+:ref:`Use the Standalone Memory Service
+<agentic-platform-memory-only>`.

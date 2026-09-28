@@ -1,0 +1,525 @@
+.. _agentic-platform-memory-only:
+
+=================================
+Use the Standalone Memory Service
+=================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: ai, memory, anthropic, voyage
+   :description: Learn how to use the agent-engine-sdk-memory Python SDK to record and retrieve conversation context from an external application using the Atlas Agent Engine memory service as a standalone integration.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+The {+mdb-ai-platform+} memory service can run as a standalone
+service, separate from a full agent deployment. Use this guide to
+provision the memory server for a memory project and use the
+``agent-engine-sdk-memory`` Python Software Development Kit (SDK) to
+record and retrieve conversation context from an external
+application.
+
+You can run the memory service in one of the following modes:
+
+- **Hosted**: The memory server runs on the {+platform-short+}, and
+  your application connects to it by using a service account access
+  token. Use this mode for a deployed application.
+- **Local**: The memory server runs in local Docker containers
+  managed by the ``agentengine`` CLI, and your application connects to it
+  directly. Use this mode to develop and test locally.
+
+Hosted Memory Service
+~~~~~~~~~~~~~~~~~~~~~
+
+In hosted mode, the ``agent-engine-sdk-memory`` SDK connects to
+the hosted memory gateway by using a service account access token.
+The gateway reads the organization and project from the service
+account. For each conversation, you pass ``user_id`` and
+``session_id`` values to the SDK to scope the conversation's memory to
+that user and session.
+
+.. tip::
+
+   To learn more about memory, see the :ref:`Agent Memory
+   <agentic-platform-memory>` guide.
+
+The following features are available in hosted mode:
+
+- ``record_turn()``, ``build_context()``, and ``search()`` SDK methods
+  for recording and retrieving conversation context
+- Semantic, episodic, procedural, and taxonomic search
+- Direct create and read operations, in the form of ``save_*``, ``get_*``
+  or ``list_*``
+- Custom memory types, by using the generic ``save()`` and
+  ``retrieve()`` methods
+
+Local Memory Service
+~~~~~~~~~~~~~~~~~~~~
+
+In local mode, the ``agentic-platform-memory`` SDK connects
+directly to a local Orchestration Engine (``oe``) proxy that
+the ``agentengine dev up`` command starts on your machine. You must
+set the ``base_url`` value to the local ``oe`` URL. Do not set
+``project_id`` or an access token for the connection.
+
+The following features are available in local mode:
+
+- ``record_turn()``, ``build_context()``, and ``search()`` SDK methods
+  for recording and retrieving conversation context
+- Semantic, episodic, procedural, and taxonomic search
+- Direct create and read operations, in the form of ``save_*``, ``get_*``
+  or ``list_*``
+
+You cannot use custom memory types in local mode.
+
+To learn more about the different memory types, see the
+:ref:`Agent Memory <agentic-platform-memory>` guide.
+
+Configure the Hosted Memory Service
+-----------------------------------
+
+This section shows how to create a memory-only project hosted
+on the {+platform-short+}.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+Before you begin this tutorial, ensure that you have the following
+resources:
+
+- The ``agentengine`` CLI installed and authenticated. To learn more,
+  see
+  :ref:`agentic-platform-set-up-install-authenticate`.
+- Access to the {+platform-short+} by running
+  ``agentengine auth login``.
+- A Voyage AI API key for generating memory embeddings.
+- An API key for a large language model (LLM) provider,
+  such as ``ANTHROPIC_API_KEY``.
+- ``pip`` or ``uv`` installed to install the Python SDK.
+- An Atlas Flex (minimum requirement), ``M10``, ``M20``, or later tier cluster (recommended) to store
+  your memory data. To provision a cluster, see
+  :ref:`agentic-platform-deploy-atlas-setup`.
+  
+  -  This guide requires a connection string for your Atlas cluster.
+     To learn how to retrieve your connection string, see the
+     :atlas:`Connect to a Cluster </connect-to-database-deployment>` guide.
+
+  -  We recommend deploying a dedicated ``M10`` or later tier cluster
+     to accommodate your memory data and index count as they grow.
+     Atlas Flex is the lowest cluster tier that can support the memory
+     service.
+
+  -  Your cluster's :atlas:`IP access list
+     </security/ip-access-list/>` must allow traffic from the
+     {+platform-short+} data plane. To learn how to add the data
+     plane IP addresses, see the
+     :ref:`agentic-platform-atlas-ip-allowlist` section.
+
+.. note::
+
+   If the linked Atlas cluster can't create the Search and Vector
+   Search indexes that memory requires, the {+platform-short+} stops deployment at the
+   ``Memory: waiting`` stage and might time out with an
+   ``Error: context deadline exceeded`` error message.
+
+Steps
+~~~~~
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create a memory-only project.
+
+      Run the following command to scaffold a memory-only project.
+      Replace ``"My Project"`` with your project name.
+
+      .. code-block:: bash
+
+         agentengine create --memory-only --name "My Project"
+
+      The command generates a project directory that contains only a
+      ``project-config.yaml`` file, with no ``agent.yaml`` file or
+      workspace.
+
+   .. step:: Create and select the project on the platform.
+
+      a. Run the following command to register the project. The
+         command prints the new project ID:
+
+         .. code-block:: bash
+
+            agentengine project create "My Project"
+
+      #. Select the new project as active. Replace
+         ``<project-id>`` with the project ID printed by the previous
+         command:
+
+         .. code-block:: bash
+
+            agentengine auth login --project-id <project-id>
+
+   .. step:: Configure memory settings.
+
+      a. Open the ``project-config.yaml`` file and set your secret names
+         and the extraction provider under the ``memory:`` block.
+
+      #. Run the following commands to set the required secrets for your project:
+
+         .. code-block:: bash
+
+            agentengine secret set MONGODB_URI --value "<value>" --project-id <project-id>
+            agentengine secret set VOYAGE_API_KEY --value "<value>" --project-id <project-id>
+            agentengine secret set ANTHROPIC_API_KEY --value "<value>" --project-id <project-id>
+
+         Replace the following placeholder values:
+
+         - ``<value>``: Value of the secret.
+
+           -  ``MONGODB_URI``: Connection string of your Atlas cluster.
+           -  ``VOYAGE_API_KEY``: Your Voyage AI key.
+           -  ``ANTHROPIC_API_KEY``: Your LLM provider key.
+         - ``<project-id>``: Project object ID returned by
+           the ``agentengine project create`` command. This flag
+           is required because the memory-only workflow does not include an ``agents.yaml``
+           file.
+
+         Replace ``ANTHROPIC_API_KEY`` with the key name for your LLM
+         provider if you use a different provider.
+
+      #. Store the memory configuration:
+
+         .. code-block:: bash
+
+            agentengine memory configure
+
+      .. note::
+
+         Provisioning fails if you do not set a ``MONGODB_URI`` secret 
+         or if the memory service cannot reach the cluster
+         that your connection string points to. If provisioning
+         fails, confirm that your cluster's IP access list includes
+         the {+platform-short+} data plane IP addresses.
+
+   .. step:: Provision the memory server.
+
+      Start the memory runtime and wait until it is ready:
+
+      .. code-block:: bash
+
+         agentengine memory apply --wait
+
+   .. _agentic-platform-memory-service-account:
+
+   .. step:: Create a service account and retrieve an access token.
+
+      a. Run the following command to create a service account for
+         the project:
+
+         .. code-block:: bash
+
+            agentengine service-account create memory-service --project-id <project-id> --role PROJECT_OWNER
+
+         Replace the ``<project-id>`` placeholder with your project ID.
+         Save the client ID and client secret from the command
+         output. The {+platform-short+} shows the client secret
+         only once.
+
+      #. Run the following command to exchange the client ID and client secret
+         for an access token:
+
+         .. code-block:: bash
+
+            export ACCESS_TOKEN=$(curl --fail-with-body --silent --show-error \
+              --user <client-id> \
+              --data grant_type=client_credentials \
+              "https://agentengine.mongodb.com/api/v1/oauth/token" | jq -er .access_token)
+
+         Replace the ``<client-id>`` placeholder with your client ID.
+         ``curl`` prompts for the client secret without echoing it.
+
+         .. tip::
+
+            The access token is valid for one hour. Request a new
+            token before the current one expires.
+   
+   .. _agentic-platform-memory-install:
+
+   .. step:: Install the Python SDK.
+
+      Install the ``agent-engine-sdk-memory`` package from the
+      platform's private registry, using the access token that you
+      exported in the previous step:
+
+      .. code-block:: bash
+
+         pip install agent-engine-sdk-memory \
+           --extra-index-url "https://ignore:$ACCESS_TOKEN@agentengine.mongodb.com/api/v1/packages/python/simple"
+
+      .. code-block:: bash
+
+         uv pip install agent-engine-sdk-memory \
+           --extra-index-url "https://ignore:$ACCESS_TOKEN@agentengine.mongodb.com/api/v1/packages/python/simple"
+
+      The URL uses ``username:password`` format. ``ignore`` is a
+      placeholder username, because the registry authenticates using only the
+      access token in the password field. ``$ACCESS_TOKEN`` resolves to
+      the access token that you exported in the previous step.
+
+   .. step:: Record and retrieve conversation context.
+
+      In your application, add the following code to create a client,
+      bind a user identity, record turns as they happen, and retrieve
+      relevant context in later conversations:
+
+      .. code-block:: python
+
+         from agent_engine_sdk_memory import (
+             Memory,
+             MemoryRequestContext,
+         )
+
+         # Create the client using your access token.
+         memory = Memory(service_account_token="<your-access-token>")
+
+         # Bind the user and session for this conversation.
+         chat = memory.bind(
+             MemoryRequestContext(
+                 user_id="user_1",
+                 session_id="thread_123",
+             )
+         )
+
+         # Record turns as they happen.
+         chat.record_turn(
+             role="user",
+             content="I always fly out of Boston.",
+         )
+         chat.record_turn(
+             role="assistant",
+             content="Got it, Boston is saved as your home airport.",
+         )
+
+         # In a later conversation, recall what matters.
+         later = memory.bind(
+             MemoryRequestContext(
+                 user_id="user_1",
+                 session_id="thread_456",
+             )
+         )
+         context = later.build_context(
+             query="Where should the flight book from?"
+         )
+         hits = later.search("home airport", top_k=5)
+
+      .. note::
+
+         Recording a turn does not immediately produce a long-term
+         memory. The memory service consolidates turns into
+         long-term memories asynchronously. A recorded turn
+         may not appear in ``search()`` or ``build_context()`` results
+         immediately after the write.
+
+Update Memory Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To update the memory configuration without reprovisioning the server,
+perform the following steps:
+
+1. Edit the ``memory:`` block in your ``project-config.yaml`` file.
+#. From your project directory, run ``agentengine memory configure`` to
+   upload the memory configuration.
+#. Run ``agentengine memory apply`` to apply the configuration.
+
+To learn how to configure memory on the platform,
+see :ref:`Configure Memory <agentic-platform-manage-memory>`.
+
+Configure the Local Memory Service
+----------------------------------
+
+This section shows how to scaffold, start, and connect to a
+local memory stack.
+
+.. _agentic-platform-memory-only-local-prereqs:
+
+Prerequisites
+~~~~~~~~~~~~~
+
+Before you begin this tutorial, ensure that you have the following
+resources:
+
+- The ``agentengine`` CLI installed. To learn more, see
+  :ref:`agentic-platform-set-up-install-authenticate`.
+- A Voyage AI API key for generating memory embeddings.
+- An API key for a large language model (LLM) provider,
+  such as ``ANTHROPIC_API_KEY``, if you enable background extraction.
+- ``pip`` or ``uv`` installed to install the Python SDK.
+
+Steps 
+~~~~~
+
+.. procedure::
+   :style: normal
+
+   .. step:: Scaffold a local memory project.
+
+      Run the following command to scaffold a memory-only project for
+      local development. Replace ``"My Project"`` with your project
+      name:
+
+      .. code-block:: bash
+
+         agentengine create --memory-only --name "My Project"
+
+      The command writes a ``project-config.yaml`` file that
+      sets ``memory_only`` to ``true`` and specifies the memory
+      configuration schema.
+      
+      This command does not generate an ``agent.yaml`` file, an
+      ``agents/`` directory, or agent runtime code. You cannot
+      combine the ``--memory-only`` flag with the ``--template``,
+      ``--llm``, ``--memory``, or ``--open-egress`` flags.
+
+   .. step:: Configure environment variables.
+
+      Create an ``.env`` file in your project directory, and then set the following
+      variables in the file:
+
+      - ``VOYAGE_API_KEY``: Required for Voyage AI embeddings
+      - LLM provider key, such as ``ANTHROPIC_API_KEY``: Required
+        if background extraction is enabled in
+        ``project-config.yaml``
+
+      You don't need to set the ``MONGODB_URI`` variable. The
+      ``agentengine dev up`` command provisions and connects to the
+      bundled local MongoDB container automatically. If you want to
+      use an external MongoDB instance instead, set this variable.
+
+   .. step:: Start the local stack.
+
+      From the project directory, run the following command to
+      start the local memory stack:
+
+      .. code-block:: bash
+
+         agentengine dev up
+
+      For a memory-only project, this command starts only the
+      following containers:
+
+      - ``mongodb``: A local Atlas-compatible MongoDB instance
+      - ``memory-server``: The memory runtime service
+      - ``oe``: The local Orchestration Engine proxy that the SDK
+        connects through
+
+      The command output includes the URLs for the local ``oe`` and
+      ``memory-server`` services. Copy the ``oe`` URL to use in a
+      future step.
+
+      Use the following commands to manage the local stack:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 30 70
+
+         * - Command
+           - Description
+
+         * - ``agentengine dev status``
+           - Shows the status of the local stack.
+
+         * - ``agentengine dev logs``
+           - Streams logs for all services. Pass ``memory-server``
+             as an argument to stream logs for that service only.
+
+         * - ``agentengine dev stop``
+           - Stops the local stack without removing containers.
+
+         * - ``agentengine dev clean``
+           - Stops the local stack and removes containers and
+             volumes.
+
+   .. step:: Install the ``agentic-platform-memory`` package.
+
+      Run the following command to install the ``agentic-platform-memory``
+      package:
+
+      .. code-block:: bash
+
+         pip install agentic-platform-memory
+
+   .. step:: Connect the SDK to the local stack.
+
+      Navigate to your Python application directory. This directory
+      can be separate from the project directory that you created in
+      the first step.
+      
+      Then, connect to the local stack by adding the following code
+      to your application. Replace ``http://localhost:<oe-port>`` with
+      the URL that you copied from the ``agentengine dev up`` command output.
+
+      .. code-block:: python
+
+         from agentic_platform_memory import Memory, MemoryRequestContext
+
+         # Set the base_url to the local oe URL printed by "agentengine dev up".
+         memory = Memory(base_url="http://localhost:<oe-port>")
+
+         # Bind conversation identity.
+         session = memory.bind(
+             MemoryRequestContext(
+                 user_id="user_123",
+                 session_id="session_456",
+             )
+         )
+
+         # Record a turn.
+         session.record_turn(role="user", content="I prefer window seats on flights.")
+
+         # Build context.
+         context = session.build_context(
+             query="What seat preferences are known?",
+             enabled_sources={"stm", "semantic", "episodic"},
+         )
+         print(context.formatted_context)
+
+Troubleshoot Local Connection Errors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When running a local memory stack, you might see a ``MemoryRouteNotFoundError``
+(404) error. To address this error, ensure that you do not set
+the ``project_id`` value.
+
+The SDK uses your ``project_id`` value to identify the URL path
+that receives requests. When ``project_id`` is not set, as is the case
+for local connections, the SDK sends requests to a path that the local ``oe``
+proxy serves. When ``project_id`` is set, the SDK sends
+requests to a project-scoped path that only the hosted
+{+platform-short+} serves. A local stack does not serve the
+project-scoped path, so a request sent to this path generates an
+error.
+
+If a stale ``AGENTIC_MEMORY_PROJECT_ID`` environment variable is
+set in your shell from the hosted workflow, the SDK requests a
+project-scoped route, which returns a ``MemoryRouteNotFoundError``
+against a local stack. Before connecting to a local stack, unset
+this variable by running the following command:
+
+.. code-block:: bash
+
+   unset AGENTIC_MEMORY_PROJECT_ID
+   
+Next Steps
+----------
+
+To enable memory for an agent that runs on the {+platform-short+},
+see the :ref:`Add Memory to Your Agent <agentic-platform-add-memory>`
+guide.

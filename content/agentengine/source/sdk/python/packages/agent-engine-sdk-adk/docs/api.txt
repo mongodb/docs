@@ -1,0 +1,275 @@
+.. _python-packages-agent-engine-sdk-adk-docs-api:
+
+Table of Contents
+=================
+
+- `agent_engine_sdk_adk.runtime <#agent_engine_sdk_adk.runtime>`__
+
+  - `App <#agent_engine_sdk_adk.runtime.App>`__
+
+    - `\__init\_\_`
+    - `memory <#agent_engine_sdk_adk.runtime.App.memory>`__
+    - `get_current_user_id <#agent_engine_sdk_adk.runtime.App.get_current_user_id>`__
+    - `tools <#agent_engine_sdk_adk.runtime.App.tools>`__
+    - `tool <#agent_engine_sdk_adk.runtime.App.tool>`__
+    - `entrypoint <#agent_engine_sdk_adk.runtime.App.entrypoint>`__
+    - `llm <#agent_engine_sdk_adk.runtime.App.llm>`__
+    - `get_agent <#agent_engine_sdk_adk.runtime.App.get_agent>`__
+    - `run <#agent_engine_sdk_adk.runtime.App.run>`__
+
+- `agent_engine_sdk_adk.agent <#agent_engine_sdk_adk.agent>`__
+
+  - `ADKBaseAgent <#agent_engine_sdk_adk.agent.ADKBaseAgent>`__
+
+- `agent_engine_sdk_adk.runner <#agent_engine_sdk_adk.runner>`__
+
+  - `DurableADKRunner <#agent_engine_sdk_adk.runner.DurableADKRunner>`__
+
+    - `rewind_async <#agent_engine_sdk_adk.runner.DurableADKRunner.rewind_async>`__
+
+- `agent_engine_sdk_adk.rewind <#agent_engine_sdk_adk.rewind>`__
+
+  - `RewindBranchError <#agent_engine_sdk_adk.rewind.RewindBranchError>`__
+  - `create_rewind_branch <#agent_engine_sdk_adk.rewind.create_rewind_branch>`__
+
+Google ADK adapter runtime for Atlas Agent Engine.
+
+App
+---
+
+.. code:: python
+
+   class App(BaseApp)
+
+Google ADK SDK for Atlas Agent Engine.
+
+**Example**:
+
+.. code:: python
+
+   from agent_engine_sdk_adk import App
+   from google.adk.agents import LlmAgent
+   from google.adk.models.google_llm import Gemini
+
+   app = App(app_name="My Agent")
+
+   @app.tool()
+   def my_tool(query: str) -> str:
+       """Search the database."""
+       return "result"
+
+   @app.entrypoint
+   def build_agent():
+       return LlmAgent(
+           model=app.llm(Gemini(model="gemini-3-flash-preview")),
+           tools=app.tools(),
+           name="my_agent",
+       )
+
+\__init\_\_
+^^^^^^^^^^^
+
+.. code:: python
+
+   def __init__(app_name: str,
+                app_version: str = "1.0.0",
+                mongodb_uri: str | None = None,
+                database_name: str | None = None,
+                enable_tracing: bool | None = None,
+                traces_collection_name: str = "traces",
+                enable_memory: bool | None = None,
+                org_id: str | None = None) -> None
+
+Initialize the App.
+
+**Arguments**:
+
+- ``app_name`` - Application name
+- ``app_version`` - Application version
+- ``mongodb_uri`` - MongoDB URI
+- ``database_name`` - Database name
+- ``enable_tracing`` - Deprecated. Tracing is always enabled.
+- ``traces_collection_name`` - Collection name for trace storage
+- ``enable_memory`` - Deprecated. Use agent.yaml features.memory
+  instead.
+- ``org_id`` - Deprecated and ignored. The org is taken from the
+  ``ORG_ID`` environment variable, which the platform injects. Passing
+  this argument raises a DeprecationWarning and will be removed in a
+  future release.
+
+memory
+^^^^^^
+
+.. code:: python
+
+   @property
+   def memory() -> Memory
+
+Return the unified Memory facade over app-bound adapters.
+
+The return type is ``agent_engine_sdk_memory.Memory``. Methods return
+typed results (``Create*Result``, ``MemoryChunk``, ``ContextResponse``).
+Identity is supplied via per-call args, ``bind``, or ambient execution
+contextvars.
+
+get_current_user_id
+^^^^^^^^^^^^^^^^^^^
+
+.. code:: python
+
+   def get_current_user_id() -> str | None
+
+Return the user id of the currently-executing request, if any.
+
+Backed by the request-scoped context agent-engine-runner-shared sets on
+the AER before invoking the agent, so tools can attribute writes to the
+caller.
+
+tools
+^^^^^
+
+.. code:: python
+
+   def tools() -> list[Any]
+
+Return tool callables ready for an ADK agent builder.
+
+In AER mode, wrap each tool with SecureToolWrapper. Authors apply native
+ADK HITL constructors to these returned callables:
+``FunctionTool(fn, require_confirmation=True)`` and
+``LongRunningFunctionTool(fn)``. Do not wrap the raw ``@app.tool``
+function; that has not gone through the secure wrapper yet.
+
+tool
+^^^^
+
+.. code:: python
+
+   def tool(
+       is_local: bool = True,
+       *,
+       network: list[str] | None = None,
+       timeout: int = 30,
+       redact_fields: list[str] | None = None
+   ) -> Callable[[Callable[..., Any]], Callable[..., Any]]
+
+Register a tool function with the platform.
+
+entrypoint
+^^^^^^^^^^
+
+.. code:: python
+
+   def entrypoint(fn: Callable[..., Any]) -> Callable[..., Any]
+
+Mark the ADK agent builder function.
+
+llm
+^^^
+
+.. code:: python
+
+   def llm(llm: BaseLlm, llm_id: str | None = None) -> BaseLlm
+
+Wrap an ADK LLM for audited I/O through the Orchestration Engine.
+
+**Arguments**:
+
+- ``llm`` - ADK BaseLlm instance.
+- ``llm_id`` - Unique identifier for this LLM.
+
+**Returns**:
+
+SecureLlm in AER mode; the raw *llm* in TOOL mode.
+
+get_agent
+^^^^^^^^^
+
+.. code:: python
+
+   def get_agent(callbacks: list[Any] | None = None) -> Any
+
+Build and return an ADKBaseAgent wrapping the registered entrypoint.
+
+run
+^^^
+
+.. code:: python
+
+   def run(**kwargs: Any) -> None
+
+Start the agent service.
+
+Durable Google ADK adapter over the framework-neutral BaseAgent
+protocol.
+
+``agent.py`` is the orchestrator. Durable setup lives on
+``DurableSession``. Suspend and resume: see the package README.
+
+.. code-block:: text
+
+   agent.py
+   ├── execution_session.py   durable run (attempt, original input, Runner)
+   ├── platform_session.py    scratch BaseSessionService + OE snapshot
+   ├── stream.py              tokens / suspend / result
+   ├── suspend.py             native ADK wait shapes
+   └── workflow.py            OE finalize_step / complete
+
+ADKBaseAgent
+------------
+
+.. code:: python
+
+   class ADKBaseAgent(BaseAgent)
+
+Run one ADK 2 agent with OE as its only durable authority.
+
+Public runner for Google ADK applications on MongoDB.
+
+DurableADKRunner
+----------------
+
+.. code:: python
+
+   class DurableADKRunner()
+
+Run durable ADK turns and create immutable rewind branches.
+
+rewind_async
+^^^^^^^^^^^^
+
+.. code:: python
+
+   async def rewind_async(
+           *,
+           user_id: str,
+           session_id: str,
+           rewind_before_invocation_id: str,
+           run_config: RunConfig | None = None) -> SessionForkResponse
+
+Fork a session immediately before one completed ADK invocation.
+
+Unlike Google’s native implementation, this leaves ``session_id``
+unchanged and returns the new branch identity.
+
+Turn-level Google ADK rewind backed by an OE branch.
+
+RewindBranchError
+-----------------
+
+.. code:: python
+
+   class RewindBranchError(RuntimeError)
+
+OE could not create the requested rewind branch.
+
+create_rewind_branch
+^^^^^^^^^^^^^^^^^^^^
+
+.. code:: python
+
+   async def create_rewind_branch(
+           *, execution_id: str, oe_url: str,
+           rewind_before_invocation_id: str) -> SessionForkResponse
+
+Create a new session from the turn before one ADK invocation.

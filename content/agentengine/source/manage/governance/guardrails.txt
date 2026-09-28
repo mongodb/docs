@@ -1,0 +1,321 @@
+.. _agentic-platform-guardrails:
+
+======================
+Use Content Guardrails
+======================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn how to use the Atlas agent engine guardrails to apply content controls over agent input and output at the project level, including types, propagation, and behavior.
+   :keywords: governance, content controls, output validation, runtime controls, ai, agent, agentic
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+{+platform-short+} guardrails allow project administrators to control the
+content that passes into and out of an agent's model calls. Administrators
+set guardrails within a project, and the Orchestration Engine (OE) enforces
+the guardrails by blocking or modifying matching input and output content.
+
+To apply a guardrail to one or more workspaces, specify the workspaces
+in the guardrail's ``workspace_ids`` field. If you don't specify this field,
+the guardrail applies to every workspace in the project.
+
+Guardrails complement the :ref:`agentic-platform-policy-engine`. Guardrails
+control the *content* that passes into and out of a model, while the Policy
+Engine controls the *actions* an agent can take, such as which tools and
+models it can call.
+
+.. _agentic-platform-guardrail-types:
+
+Guardrail Types
+---------------
+
+Each guardrail has a **type**, which determines what content it
+evaluates, and an **action**, which determines what happens when
+the guardrail triggers.
+
+Currently, the {+platform-short+} supports only the ``output_validation``
+guardrail type. You can use guardrails of this type to evaluate an agent's
+output against a set of regular expression patterns. Define these patterns
+in the guardrail's ``config.match_patterns`` field.
+
+Each guardrail specifies one of the following actions:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Action
+     - Description
+
+   * - ``block``
+     - Denies the call. The execution halts and returns an error to the
+       caller.
+
+   * - ``modify``
+     - Removes or transforms the matched content and allows the execution
+       to proceed with the modified content.
+
+   * - ``log_only``
+     - Records that the guardrail triggered and allows the execution to
+       proceed with the original content.
+
+   * - ``require_review``
+     - Suspends the execution for human review. The execution proceeds
+       only after a reviewer approves it.
+
+.. _agentic-platform-guardrail-stages:
+
+Guardrail Stages
+----------------
+
+A guardrail's stage filter determines whether it evaluates content
+going into the model, coming out of the model, or both. A guardrail
+with no stage filter applies to all stages.
+
+The following table describes the available stages:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 30 50
+
+   * - Stage
+     - Evaluates What
+     - Triggers When
+
+   * - ``llm_input``
+     - The user content reaching the model
+     - Before a model call
+
+   * - ``llm_output``
+     - The model's response
+     - Before the response returns to the user
+
+.. _agentic-platform-guardrail-fields:
+
+Guardrail Fields
+----------------
+
+The following table describes the fields that define a guardrail. You
+can set these fields in the platform UI, or in the JSON request body of
+a ``create`` or ``update`` API request.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 35 40
+
+   * - Field
+     - Possible values
+     - Description
+
+   * - ``name``
+     - Any string
+     - *(Required)* Display name for the guardrail.
+
+   * - ``description``
+     - Any string
+     - Description of the guardrail's purpose.
+
+   * - ``type``
+     - ``output_validation``
+     - *(Required)* Guardrail type.
+
+   * - ``action``
+     - ``block``, ``modify``, ``log_only``,
+       ``require_review``
+     - *(Required)* Action to take when the guardrail triggers.
+
+   * - ``status``
+     - ``active``, ``inactive``
+     - Whether the {+platform-short+} enforces the guardrail. The
+       {+platform-short+} enforces guardrails whose status is ``active``.
+
+   * - ``stage_filter``
+     - ``llm_input``, ``llm_output``
+     - Array of the stages at which the guardrail evaluates content.
+       To evaluate both stages, list both ``llm_input`` and
+       ``llm_output``.
+
+   * - ``workspace_ids``
+     - Array of workspace IDs
+     - Array of the workspaces that the guardrail applies to. To apply
+       the guardrail to every workspace in the project, leave this array
+       empty.
+
+   * - ``config.match_patterns``
+     - Array of regex patterns
+     - Array of the patterns that the guardrail matches content against.
+       Each pattern sets a ``type`` of ``regex`` and a ``value`` that
+       contains the regular expression.
+
+   * - ``config.on_fail``
+     - ``fix``, ``noop``, ``log_only``, ``block``
+     - Behavior to apply to content that matches a pattern. This field
+       applies only when ``action`` is set to ``modify``.
+
+To view an example request body that sets these fields, see
+the :guilabel:`REST API` tab in the :ref:`following section
+<agentic-platform-guardrail-create>`.
+
+.. _agentic-platform-guardrail-create:
+
+Create and Edit Guardrails
+--------------------------
+
+You can create and edit guardrails by using the platform UI or the REST API.
+To view instructions, select the tab for your preferred method:
+
+.. tabs::
+
+   .. tab:: Platform UI
+      :tabid: ui
+
+      Navigate to :guilabel:`Manage` → :guilabel:`Policies`, and then select
+      the :guilabel:`Guardrails` tab.
+      
+      Then, create a guardrail by clicking the :guilabel:`Create guardrail` button
+      and configuring the fields in the :guilabel:`Create guardrail` dialog.
+      To update a guardrail, click the guardrail's :guilabel:`Edit` icon. To delete
+      a guardrail, click its :guilabel:`Delete` icon.
+
+   .. tab:: REST API
+      :tabid: api
+
+      .. note::
+
+         The customer-facing REST API exposes guardrail operations.
+         Requests require bearer authentication and appropriate project
+         permissions. To learn more about project roles, see
+         :ref:`agentic-platform-manage-project`.
+
+      The following table lists the available endpoints:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 15 45 40
+
+         * - Method
+           - Endpoint
+           - Reference
+
+         * - ``GET``
+           - ``/api/v1/projects/{projectId}/guardrails``
+           - `List guardrails <https://mongodbcom-cdn.staging.corp.mongodb.com/docs/api/doc/agentic-platform-api/operation/operation-get-api-v1-projects-parameter-guardrails>`__
+
+         * - ``POST``
+           - ``/api/v1/projects/{projectId}/guardrails``
+           - `Create guardrail <https://mongodbcom-cdn.staging.corp.mongodb.com/docs/api/doc/agentic-platform-api/operation/operation-post-api-v1-projects-parameter-guardrails>`__
+
+         * - ``GET``
+           - ``/api/v1/projects/{projectId}/guardrails/{guardrailId}``
+           - `Get guardrail <https://mongodbcom-cdn.staging.corp.mongodb.com/docs/api/doc/agentic-platform-api/operation/operation-get-api-v1-projects-parameter-guardrails-parameter>`__
+
+         * - ``PUT``
+           - ``/api/v1/projects/{projectId}/guardrails/{guardrailId}``
+           - `Update guardrail <https://mongodbcom-cdn.staging.corp.mongodb.com/docs/api/doc/agentic-platform-api/operation/operation-put-api-v1-projects-parameter-guardrails-parameter>`__
+
+         * - ``DELETE``
+           - ``/api/v1/projects/{projectId}/guardrails/{guardrailId}``
+           - `Disable guardrail <https://mongodbcom-cdn.staging.corp.mongodb.com/docs/api/doc/agentic-platform-api/operation/operation-delete-api-v1-projects-parameter-guardrails-parameter>`__
+
+      When calling the create and update endpoints, pass the guardrail's
+      fields as a JSON request body. The following example request body
+      creates a guardrail that redacts any three consecutive digits from the
+      content that reaches the model in a single workspace:
+
+      .. code-block:: json
+
+         {
+           "name": "Test guardrail",
+           "description": "Redacts three-digit sequences",
+           "type": "output_validation",
+           "action": "modify",
+           "status": "active",
+           "stage_filter": ["llm_input"],
+           "workspace_ids": ["ws-6a885deac97e9d280fa88cf3"],
+           "config": {
+             "match_patterns": [
+               {
+                 "type": "regex",
+                 "value": "\\d{3}"
+               }
+             ],
+             "on_fail": "fix"
+           }
+         }
+
+Guardrail Propagation
+~~~~~~~~~~~~~~~~~~~~~
+
+After you create, update, or delete a guardrail, the change takes effect
+on the next execution that the OE handles. A guardrail
+write reloads the OE's cached guardrails, so the change
+is effective on the next request.
+
+Guardrail changes do not affect in-flight executions.
+
+.. _agentic-platform-guardrail-enforcement:
+
+Enforcement
+-----------
+
+During each execution, the OE evaluates the content at each stage against
+the guardrails that apply to the current project. The following table
+describes the stages and the corresponding evaluated content:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Stage
+     - Content evaluated
+
+   * - ``llm_input``
+     - The user content is evaluated before a model call.
+
+   * - ``llm_output``
+     - The model's response is evaluated before it returns to the user.
+
+When a guardrail with a ``block`` action triggers, the OE
+halts the execution and returns an error to the caller. The error
+identifies the guardrail that caused the block. When a guardrail with a
+``modify`` action triggers, the execution proceeds with the modified
+content.
+
+When more than one guardrail matches the same content, the most
+restrictive action applies. The actions rank in the following order,
+from most to least restrictive:
+
+1. ``block``
+#. ``require_review``
+#. ``modify``
+#. ``log_only``
+
+For example, if one guardrail returns ``modify`` and
+another returns ``block``, the OE blocks the call.
+
+.. _agentic-platform-guardrail-limitations:
+
+Limitations
+-----------
+
+Guardrails have the following limitations:
+
+- **Future executions only**: Guardrail changes apply only to executions
+  that start after the change takes effect. Executions already in progress
+  continue with the guardrails they started with.
+
+- **Content controls only**: Guardrails control content that passes into and
+  out of a model. To control the actions an agent can take, such as which
+  tools and models it can call, use the
+  :ref:`agentic-platform-policy-engine`.

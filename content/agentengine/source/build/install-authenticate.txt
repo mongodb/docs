@@ -1,0 +1,421 @@
+.. _agentic-platform-set-up-install-authenticate:
+
+========================
+Install and Authenticate
+========================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Learn how to install and update the agentengine CLI, authenticate your account, check authentication status, and log out of the MongoDB Atlas Agent Engine.
+   :keywords: setup, ai, agent, credentials, download, CLI, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+This tutorial shows you how to install and authenticate your account with
+the {+mdb-ai-platform+}. You will verify your system dependencies,
+install the ``agentengine`` CLI, verify the runner-base image,
+and authenticate your account against the {+platform-short+} API Gateway.
+
+.. _agentic-platform-verify-dependencies:
+
+Prerequisites
+-------------
+
+Ensure that you have the following components installed and configured before
+you start this tutorial:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Prerequisite
+     - Notes
+
+   * - Supported operating system
+     - The following operating systems are supported:
+
+       - **macOS** on Apple Silicon or Intel
+       - **Linux** on arm64 or x86_64
+       - **Windows** through the Windows Subsystem for Linux (WSL). On
+         WSL, use the Linux binary inside your WSL distribution.
+
+   * - Container engine
+     - Use `Docker Desktop <https://www.docker.com/products/docker-desktop/>`__
+       or `Docker Engine <https://docs.docker.com/engine/install/>`__ with
+       Docker Compose v2 actively running on your machine. The {+platform-short+}
+       supports Podman on a best-effort basis, and the
+       CLI prints a compatibility notice when it detects the ``podman-compose``
+       tool.
+
+   * - `Python <https://www.python.org/downloads/>`__
+     - Use version 3.11 or later.
+
+   * - MongoDB cluster
+     - The deployed agent uses this cluster, so you must retrieve its
+       connection string. Local testing starts its own MongoDB container.
+
+   * - Network access
+     - Your network must allow outbound access to the following hosts:
+
+       - ``https://agentengine.mongodb.com``, the {+platform-short+}
+         API Gateway
+       - MongoDB's private Amazon ECR registry, which provides the
+         agent runtime images
+       - ``docker.io``, which provides the local MongoDB container
+
+       The CLI prints the container registry host when you run the
+       ``agentengine dev up`` command. Your MongoDB representative can provide the
+       host name if you must add it to a firewall allowlist.
+
+       For air-gapped or egress-restricted networks, you can source
+       the CLI binary and agent runtime images from hosts you control.
+       To learn how to configure a custom artifact source, see
+       :ref:`agentic-platform-custom-artifact-source`.
+
+.. _agentic-platform-custom-artifact-source:
+
+Use a Custom Artifact Source
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can configure the ``agentengine`` CLI to download the binary and
+pull agent runtime images from your own hosts instead of the
+MongoDB-hosted registry. Run ``agentengine agent source setup`` to
+generate a ``source.yaml`` file, or run ``agentengine agent source
+template`` to write a commented template you can edit. Run these
+commands after you install the ``agentengine`` CLI.
+
+By default, the CLI reads ``source.yaml`` from
+``~/.agentengine/source.yaml``. To use a different location, set the
+``AGENTENGINE_IMAGE_SOURCE_FILE`` environment variable to the file
+path.
+
+Export ``AGENTENGINE_IMAGE_SOURCE=custom`` to route ``agentengine dev up``
+and ``agentengine self-update`` to your custom host. The following
+sample ``source.yaml`` mirrors both the CLI binary and the agent
+runtime images:
+
+.. code-block:: yaml
+
+   base: internal
+   release:
+     type: static
+     url: https://artifactory.example.com/agentic-cli/manifest.json
+   registry:
+     prefix: artifactory.example.com/acme-docker
+
+The ``release`` block directs CLI binary downloads to your host, and
+the ``registry.prefix`` block directs agent runtime image pulls to
+your registry. If you mirror only one of these, the CLI uses the
+``base`` source, ``internal`` by default, for the other.
+
+With ``type: static``, the manifest at ``release.url`` must match
+the following structure, with one entry in ``assets`` for each OS
+and architecture. Otherwise, ``agentengine self-update`` fails and the
+CLI doesn't display update notifications.
+
+.. code-block:: json
+
+   {
+     "releases": [
+       {
+         "version": "1.4.2",
+         "assets": [
+           {
+             "os": "darwin",
+             "arch": "arm64",
+             "url": "https://artifactory.example.com/acme-generic/agentic-cli/1.4.2/agentic_darwin_arm64",
+             "sha256": "9f2b...e1"
+           }
+         ]
+       }
+     ]
+   }
+
+To read releases from a GitHub Enterprise releases API instead of
+a manifest, set ``release.type`` to ``github`` and ``release.url``
+to the API endpoint, such as
+``https://ghe.example.internal/api/v3/repos/acme/agentic-cli/releases``.
+
+If your image registry requires authentication, log in before you
+run ``agentengine dev up``. For example, run ``docker login <registry>``
+or, for Amazon ECR, run the following command:
+
+.. code-block:: bash
+
+   aws ecr get-login-password --region <region> | docker login --username AWS --password-stdin <aws_account_id>.dkr.ecr.<region>.amazonaws.com
+
+.. _agentic-platform-install-agentic-cli:
+
+Install the ``agentengine`` CLI
+-------------------------------
+
+The ``agentengine`` CLI is the primary tool for local development with
+the {+mdb-ai-platform+}. It generates the Docker Compose configuration
+needed to run your agent's three services locally.
+
+The following steps describe how to download the CLI from the {+platform-short+}
+UI.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Open the **Install CLI** page.
+
+      Sign in to the {+platform-short+}, then download the CLI from the
+      `CLI download page
+      <https://agentengine.mongodb.com/download-cli>`__.
+
+      The page displays a :guilabel:`Version` dropdown, which is pre-filled
+      with the latest CLI version. It also displays a :guilabel:`Platform` dropdown
+      pre-filled with your detected operating system. To change these default
+      values, choose a different version or platform from the dropdown selectors.
+
+   .. step:: Download the binary.
+
+      After you select a version and platform, click the :guilabel:`Download for <your platform>`
+      button. Save the SHA-256 checksum value that the page displays for use in the
+      following step.
+
+   .. step:: Verify the download.
+
+      In your terminal, navigate to your downloads directory.
+      Select the tab corresponding to your operating system and run
+      the following command:
+
+      .. tabs::
+
+         .. tab:: macOS / Linux
+            :tabid: macos-linux
+
+            .. code-block:: bash
+
+               shasum -a 256 agentengine
+
+         .. tab:: Windows
+            :tabid: windows
+
+            .. code-block:: bash
+
+               certutil -hashfile agentengine.exe SHA256
+
+      The output must match the SHA-256 value that you saved.
+      If the values don't match, delete the binary and download it again.
+
+   .. step:: Mark the binary as executable.
+
+      Select the tab corresponding to your operating system and run
+      the following command to mark the binary as executable:
+
+      .. tabs::
+
+         .. tab:: macOS / Linux
+            :tabid: macos-linux
+
+            .. code-block:: bash
+
+               chmod +x agentengine
+
+         .. tab:: Windows
+            :tabid: windows
+
+            Windows binaries are executable when downloaded. Skip this
+            step.
+
+   .. step:: Add the binary to your ``PATH``.
+
+      Select the tab corresponding to your operating system to view
+      instructions for adding the binary to your ``PATH``.
+
+      .. tabs::
+
+         .. tab:: macOS / Linux
+            :tabid: macos-linux
+
+            From your downloads directory, run the following command:
+
+            .. code-block:: bash
+
+               mkdir -p ~/.local/bin
+               mv agentengine ~/.local/bin/agentengine
+
+            Confirm that ``~/.local/bin`` is on your ``PATH``.
+            Installing the binary in a user-writable directory lets you
+            run the ``agentengine self-update`` command without using 
+            the ``sudo`` command.
+
+         .. tab:: Windows
+            :tabid: windows
+
+            Move the ``.exe`` file into a directory that is already on
+            your ``PATH``, or add its directory to
+            :guilabel:`System Properties` -> :guilabel:`Environment
+            Variables` -> :guilabel:`Path` in the Windows GUI.
+            
+            To use ``agentengine`` commands, rename the binary to ``agentengine.exe``.
+
+   .. step:: Verify the installation.
+
+      Confirm the CLI is installed by checking its version:
+
+      .. code-block:: bash
+
+         agentengine version
+
+      The output resembles the following:
+
+      .. code-block:: none
+         :copyable: false
+
+         {+version+} (commit: <hash>)
+         image registry: ECR
+         runner-base: <registry-host>/runner-base:{+version+}
+         runner-base-typescript-langgraph: <registry-host>/runner-base-typescript-langgraph:{+version+}
+         playground-ui: <registry-host>/playground-ui:{+version+}
+         orchestrator: <registry-host>/orchestration-engine:<version>
+         memory-server: <registry-host>/memory-server:<version>
+
+To learn how to update an installed CLI to a newer version, see
+:ref:`agentic-platform-update-cli`.
+
+.. _agentic-platform-verify-runner-base:
+
+Verify the Runner-Base Image
+----------------------------
+
+The runner-base image is the container image that the
+{+platform-short+} uses to run each of your agent's three services locally. If Docker cannot pull this image when
+you first run an agent, your agent fails to start. Verifing the Docker base image
+allows you to catch and fix any network issues before
+you run your agent project. Verifying your runner-base image is optional, but recommended.
+
+Local development pulls the runner-base image from MongoDB's hosted
+container image registry. You don't need GitHub access or a separate
+registry login. The CLI uses your ``agentengine auth login`` session to
+retrieve the image, and prints the registry host when you run the
+``agentengine dev up`` command.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Get the runner-base image reference.
+
+      Run the ``agentengine version`` command to retrieve the
+      default runner-base image:
+
+      .. code-block:: bash
+
+         agentengine version
+
+      Copy the ``runner-base:`` value from the output.
+
+   .. step:: Authenticate to the platform image registry.
+
+      Run the following command to log your local Docker
+      installation into the platform image registry:
+
+      .. code-block:: bash
+
+         agentengine dev login
+
+      The ``agentengine dev up`` command runs this flow automatically,
+      so this step is only required when you pull an image directly.
+
+   .. step:: Pull the runner-base image.
+
+      Run the following command to pull the runner-base image, and
+      replace ``<runner-base-image>`` with the value that you copied
+      from the ``agentengine version`` output:
+ 
+      .. code-block:: bash
+
+         docker pull <runner-base-image>
+
+      A successful pull ends with a ``Status:`` line that reads either
+      ``Downloaded newer image`` or ``Image is up to date``. 
+
+.. _agentic-platform-authenticate:
+
+Authenticate Your Account
+-------------------------
+
+The ``agentengine auth login`` command starts a browser-based OIDC login flow
+against the {+platform-short+} API Gateway and saves local authentication
+state for future CLI commands.
+
+.. include:: /includes/oauth-delegation.rst
+
+.. procedure::
+   :style: connected
+
+   .. step:: Log in to the {+platform-short+}.
+
+      From your terminal, run the following command:
+
+      .. code-block:: bash
+
+         agentengine auth login
+
+      By default, this opens a browser against the production API Gateway at
+      ``https://agentengine.mongodb.com``. You can pass ``--base-url`` to the command
+      to target a different gateway, or pass ``--no-browser`` to print the login
+      URL without opening a browser. The following code shows the format for the command:
+
+      .. code-block:: bash
+
+         agentengine auth login [--base-url <url>] [--no-browser] [--timeout <duration>]
+
+      After you complete sign-in, the CLI reads your project memberships from
+      the API and persists the selected project ID ``project_id`` as well as your auth token.
+
+   .. step:: Select a project.
+
+      If your account belongs to a single project, it's selected
+      automatically. If your account belongs to multiple projects, the CLI prompts you
+      to pick one interactively. If you don't have a preference, select
+      your default project. The CLI saves your selection as a default
+      that you can override with the ``--project-id`` flag.
+
+   .. step:: Verify your authentication status.
+
+      To check whether your authentication succeeded, run the following command:
+
+      .. code-block:: bash
+
+         agentengine auth status
+
+      This command prints your current local auth context without contacting
+      the platform, and its output reflects the saved login state on disk. You can pass
+      the ``--json`` flag to the command to output a JSON object with separate
+      ``auth``, ``command_defaults``, and ``directory_context`` fields.
+
+      Until you register an agent directory by running the ``agentengine init``
+      command, the ``Directory context`` field reports ``none found``.
+      A successful login still displays your account, base URL, and
+      default organization and project.
+
+.. tip::
+
+   If your auth token expires, log out and log back in to refresh it:
+
+   .. code-block:: bash
+
+      agentengine auth logout
+      agentengine auth login
+
+.. _agentic-platform-install-authenticate-next-steps:
+
+Next Steps
+----------
+
+After installing and authenticating your account with the {+mdb-ai-platform+}, you can create
+a project. To learn how to perform these next steps, see the :ref:`agentic-platform-set-up-create-project`
+guide.

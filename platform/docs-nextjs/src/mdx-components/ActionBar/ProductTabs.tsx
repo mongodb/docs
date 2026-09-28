@@ -12,8 +12,8 @@ import { palette } from '@leafygreen-ui/palette';
 
 const NAV_TABS = [
   { label: 'Database', path: '/docs' },
-  // { label: 'Agentic Platform', path: '/docs/agentic-platform' },
-  { label: 'Voyage AI Models', path: '/docs/voyageai' },
+  { label: 'Atlas Agent Engine', path: '/docs/agentengine' },
+  { label: 'Voyage AI Models', path: '/docs/voyageai' }
 ] as const;
 
 const containerStyling = css`
@@ -86,7 +86,11 @@ export const ProductTabs = ({ slug }: { slug: string }) => {
   const { isTabletOrMobile } = useScreenSize();
 
   const activeIndex =
-    slug?.startsWith('docs/voyageai') || slug?.startsWith('/docs/voyageai') ? 1 : 0;
+    slug?.startsWith('docs/agentengine') || slug?.startsWith('/docs/agentengine')
+      ? 1
+      : slug?.startsWith('docs/voyageai') || slug?.startsWith('/docs/voyageai')
+        ? 2
+        : 0;
 
   if (isOfflineBuild) return (
     <Body className={cx(mobileTitleStyling)}>Documentation</Body>

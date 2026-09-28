@@ -1,0 +1,69 @@
+agent-engine-runner-shared
+==========================
+
+Runner SDK (TypeScript) conventions that extend the root
+`AGENTS.md <../../../../../AGENTS.md>`__. This file is auto-loaded by AI
+agents when working under
+``client-libraries/packages/javascript/packages/agent-engine-runner-shared/``.
+
+This package is the TypeScript counterpart of
+```../../../python/packages/agent-engine-runner-shared/`` <../../../python/packages/agent-engine-runner-shared/>`__.
+It implements a subset of the Python SDK surface, and that subset grows
+over time — the code itself, not any documented feature list, is the
+authoritative record of what is implemented here.
+
+Cross-language parity with ``runner-shared``
+--------------------------------------------
+
+Features that exist on both sides must stay behaviorally in sync
+(e.g. ``launcher.ts`` ↔ ``launcher.py``, ``agent_config.ts`` ↔
+``agent_config.py``). When you change a shared contract here — a
+launcher env-var name (``AGENT_ENTRYPOINT``,
+``AGENTIC_AGENT_CONFIG_PATH``), a runtime config key, an entrypoint
+convention, a default, or a behavioral/security invariant — check
+``../../../python/packages/agent-engine-runner-shared/`` for the
+equivalent module (same base filename) or symbol and make the same
+change there in the same PR, or note in the PR why parity does not
+apply. When porting a new feature from the Python side into this
+package, port its observable contract exactly. Language-idiomatic
+differences (TS types vs Python typing, ``npm``/``.tgz`` vs
+``uv``/wheels) are expected; the observable contract must match. See
+`Cross-language
+parity <../../../../../docs/coding-standards.md#cross-language-parity-python--typescript>`__.
+
+The Python-side security invariants in
+```../../../python/packages/agent-engine-runner-shared/AGENTS.md`` <../../../python/packages/agent-engine-runner-shared/AGENTS.md>`__
+apply equally to the framework code here wherever the corresponding
+feature is implemented: the audited I/O path, serializable state, and
+the paired request-isolation invariants — request-scoped credentials
+must not overlap through process-global state (``process.env``
+mutation), disconnect/cancellation paths must clean up acquired request
+state, tool result content must never act as an approval/resume/control
+signal (control decisions come from authenticated typed messages only),
+and session/workspace identity must remain request-local. When one
+side’s invariant implementation changes, make the matching change here
+or in ``../../../python/packages/agent-engine-runner-shared/`` in the
+same PR.
+
+For the owner-callback POST policy (Python invariant #9), the required
+TS helper is ``ownerDelivered`` in
+```src/owner_callback.ts`` <src/owner_callback.ts>`__ — do not hand-roll
+owner pre-attempt fetches.
+
+Logging levels
+--------------
+
+Runner SDK lifecycle and implementation diagnostics that are useful only
+to platform operators or SDK maintainers must use ``DEBUG``, not
+``INFO``. Reserve ``INFO`` and higher for customer-authored output and
+platform messages customers can act on. Keep levels aligned with the
+Python counterpart for shared diagnostics.
+
+npm workspace root
+------------------
+
+SDK packages (``agent-engine-sdk``, ``agent-engine-runner-shared``,
+``agent-engine-sdk-langgraph``, ``agent-engine-memory``) share the npm
+workspace root at ``client-libraries/packages/javascript/``. Run
+``npm ci`` / ``npm run build --workspace=@mongodb-js/agent-engine-sdk``
+from there, not the monorepo root.

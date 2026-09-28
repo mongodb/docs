@@ -1,0 +1,84 @@
+.. _agentengine_build:
+
+agentengine build
+-----------------
+
+Package and build the agent image on the platform.
+
+Synopsis
+~~~~~~~~
+
+Create a source archive from the current directory, upload it, and
+trigger a CodeBuild build that produces an ECR image.
+
+The command needs a local agent directory because it uploads the source
+archive; --workspace-id alone does not replace it. To rebuild a release
+with no local source, use ‘agentengine build --version --workspace-id ’.
+The workspace ID otherwise comes from .agentengine/state.json, written
+by ‘agentengine init’.
+
+``--upload-build-secrets`` is opt-in. It reads each agent.yaml
+artifact_repositories[].secret from the same-named environment variable,
+uploads it at the declared scope before the build starts, and never
+reads an environment variable agent.yaml does not declare. Without it,
+store the credential once with ``agentengine secret set``. Uploading a
+project-scoped secret requires PROJECT_OWNER or ORG_ADMIN; a
+workspace-scoped secret requires PROJECT_OWNER or AGENT_DEVELOPER.
+
+.. code-block:: bash
+
+   export ARTIFACT_REPO_CORPS_PYPI_TOKEN=“$(aws codeartifact get-authorization-token …)” 
+   agentengine build --upload-build-secrets 
+
+.. code-block:: bash
+
+   agentengine build [flags]
+
+Options
+~~~~~~~
+
+.. code-block:: bash
+
+         --all                    Monorepo: build all workspaces sequentially
+         --base-url string        Platform base URL
+         --context string         Named context to target (see 'agentengine context list')
+     -h, --help                   help for build
+         --json                   Output build result as JSON
+         --label string           Human-readable build label (default: git branch@sha12)
+         --no-wait                Return immediately after starting the build without polling
+         --org-id string          Organization ID
+         --project-id string      Project ID
+         --release                Mark this build as a release of the version declared in agent.yaml, addressable by 'agentengine deploy --version'
+         --upload-build-secrets   Optional: before building, upload each agent.yaml artifact_repositories[].secret from the same-named environment variable
+     -v, --verbose                Print every file added to the source archive
+         --version string         Always start a new build of the release for this declared agent.yaml version, at its pinned commit and skipping archive upload (mutually exclusive with --workspace/--all)
+         --workspace string       Monorepo: build a specific workspace by name (from root agent.yaml)
+         --workspace-id string    Workspace ID
+
+Options inherited from parent commands
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: bash
+
+         --log-file string    override log file path
+         --log-level string   file log verbosity (error|warn|info|debug) (default "info")
+         --no-log             disable file logging
+     -q, --quiet              silence stderr below error
+
+SEE ALSO
+~~~~~~~~
+
+- :ref:`agentengine <agentengine>` - Agent Engine local development CLI.
+- :ref:`agentengine build cancel <agentengine_build_cancel>` - Cancel a
+  running or queued build.
+- :ref:`agentengine build list <agentengine_build_list>` - List builds
+  for a workspace.
+- :ref:`agentengine build logs <agentengine_build_logs>` - Stream build
+  logs to stdout.
+- :ref:`agentengine build promote <agentengine_build_promote>` - Promote
+  a succeeded build into another workspace.
+
+Further reading
+~~~~~~~~~~~~~~~
+
+- :ref:`Artifact registry validation <artifact-registry-validate>`

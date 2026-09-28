@@ -1,0 +1,388 @@
+.. _agentic-platform-deploy-build:
+
+=================
+Deploy Your Build
+=================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn how to deploy your agent to production after building it. See available command options, view deployment history and status, inspect event logs, and cancel in-flight deployments.
+   :keywords: production, ai, agent, release, deploy list, deploy status, deploy logs, event log, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to **deploy your agent build** to production
+from the CLI. Before deploying, ensure that you :ref:`build the agent image
+<agentic-platform-deploy-agent-image>`.
+
+Command Syntax and Options
+--------------------------
+
+Use the following commands to manage your deployment:
+
+-  :ref:`agentengine deploy <agentic-platform-deploy-build-start>`
+-  :ref:`agentengine deploy list <agentic-platform-deploy-build-list>`
+-  :ref:`agentengine deploy get \<deployment_id\> <agentic-platform-deploy-build-status>`
+-  :ref:`agentengine deploy logs \<deployment_id\> <agentic-platform-deploy-build-logs>`
+-  :ref:`agentengine deploy cancel \<deployment_id\> <agentic-platform-deploy-build-cancel>`
+
+.. _agentic-platform-deploy-build-start:
+
+Start a Deployment
+~~~~~~~~~~~~~~~~~~
+
+Use the following syntax to deploy your agent build:
+
+.. code-block:: bash
+
+   agentengine deploy [--auto] [--build-id <id>] [--version <version>] [--workspace-id <id>] [--project-id <id>] [--org-id <id>] [--base-url <url>] [--context <name>] [--no-wait] [--timeout <duration>] [--workspace <name>] [--all] [--json] [--yes]
+
+This command starts a deployment of your last successful build or a specific build if
+you provide a build ID. The command polls deployment status every 5 seconds until the deployment
+has a ``succeeded``, ``failed``, or ``rolled_back`` status, or the timeout value is reached.
+
+.. important:: Filesystem Access
+
+   After deploying your agent, ensure that you write local files only
+   under the ``/tmp`` or ``/scratch`` directories. Do not use other paths such as
+   ``/var`` or home directories, because they might not be writable in the runtime
+   environment. 
+
+Command Flags
+`````````````
+
+When deploying your build, you can use the following optional flags:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Flag
+     - Description
+   * - ``--auto``
+     - Builds the agent and monitors the deployment that the build triggers. This flag applies to
+       single-agent projects only. Use this flag to build and deploy in one step instead
+       of running the two commands separately.
+   * - ``--build-id``
+     - The build ID to deploy. By default, the command deploys the workspace's last successful build.
+       This flag is mutually exclusive with ``--version``.
+   * - ``--version``
+     - Deploys the release build for this declared ``agent.yaml`` version. This flag is mutually
+       exclusive with ``--build-id``.
+   * - ``--workspace-id``
+     - The platform workspace ID. By default, the CLI reads this value from the ``.agentengine/state.json`` file.
+   * - ``--project-id``
+     - The platform project ID. By default, the CLI reads this value from the ``.agentengine/state.json`` file.
+   * - ``--org-id``
+     - The organization ID. By default, the CLI reads this value from your locally stored
+       authentication state.
+   * - ``--base-url``
+     - The platform API base URL.
+   * - ``--context``
+     - The named local context from the ``.agentengine/state.json`` file.
+   * - ``--no-wait``
+     - Instructs the CLI to return immediately after starting the deployment without polling for status.
+   * - ``--timeout``
+     - The maximum time to wait for the deployment to complete. By default, the deployment times out after 30 minutes.
+   * - ``--workspace``
+     - *(Monorepo only)* Deploys a specific workspace by name, as defined in the root ``agent.yaml``.
+       This flag is mutually exclusive with ``--all``.
+   * - ``--all``
+     - *(Monorepo only)* Deploys all workspaces sequentially. This flag is mutually exclusive
+       with ``--workspace``.
+   * - ``--json``
+     - Outputs the deployment result as JSON.
+   * - ``--yes``
+     - Accepts billed Flex defaults and Atlas IP access-list changes when the deploy command
+       runs the Atlas setup.
+
+.. _agentic-platform-deploy-build-list:
+
+List Deployments
+~~~~~~~~~~~~~~~~
+
+To view the deployment history for your workspace, run the following command:
+
+.. code-block:: bash
+
+   agentengine deploy list [--workspace <name>] [--workspace-id <id>] [--project-id <id>] [--org-id <id>] [--base-url <url>] [--context <name>] [--status <status>] [--limit <n>] [--offset <n>] [--json]
+
+This command displays all deployments for the current workspace, including the
+deployment ID, status, executor, build ID, image, creation time, version, and error message.
+
+Command Flags
+`````````````
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Flag
+     - Description
+   * - ``--workspace``
+     - *(Monorepo only)* Selects a specific workspace by name, as defined in the
+       root ``agent.yaml``.
+   * - ``--workspace-id``
+     - The platform workspace ID. By default, the CLI reads this value from the
+       ``.agentengine/state.json`` file.
+   * - ``--project-id``
+     - The platform project ID. By default, the CLI reads this value from the
+       ``.agentengine/state.json`` file.
+   * - ``--org-id``
+     - The organization ID. By default, the CLI reads this value from your
+       locally stored authentication state.
+   * - ``--base-url``
+     - The platform API base URL.
+   * - ``--context``
+     - The named local context from the ``.agentengine/state.json`` file.
+   * - ``--status``
+     - Filters results by deployment status, for example ``succeeded``,
+       ``failed``, or ``in_progress``.
+   * - ``--limit``
+     - The maximum number of deployments to return.
+   * - ``--offset``
+     - The number of deployments to skip.
+   * - ``--json``
+     - Outputs the deployment list as JSON.
+
+.. _agentic-platform-deploy-build-status:
+
+Check Deployment Status
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To view the detailed status of a deployment, run the following command:
+
+.. code-block:: bash
+
+   agentengine deploy get [<deployment_id>] [-f] [--workspace <name>] [--workspace-id <id>] [--project-id <id>] [--org-id <id>] [--base-url <url>] [--context <name>] [--json]
+
+By default, this command returns a point-in-time snapshot of the most recent
+deployment. Provide a deployment ID to check a specific deployment. The output
+includes the deployment status, build ID, version, image, conditions, component
+readiness, and live health information.
+
+Command Flags
+`````````````
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Flag
+     - Description
+   * - ``-f``, ``--follow``
+     - Stream deployment events in real time by using Server-Sent Events (SSE)
+       until the deployment reaches a terminal state. If the deployment is
+       already in a terminal state, the command reports that there is
+       nothing to stream.
+   * - ``--workspace``
+     - *(Monorepo only)* Selects a specific workspace by name.
+   * - ``--workspace-id``
+     - The platform workspace ID. By default, the CLI reads this value from the
+       ``.agentengine/state.json`` file.
+   * - ``--project-id``
+     - The platform project ID. By default, the CLI reads this value from the
+       ``.agentengine/state.json`` file.
+   * - ``--org-id``
+     - The organization ID. By default, the CLI reads this value from your
+       locally stored authentication state.
+   * - ``--base-url``
+     - The platform API base URL.
+   * - ``--context``
+     - The named local context from the ``.agentengine/state.json`` file.
+   * - ``--json``
+     - Outputs the deployment status as JSON.
+
+.. _agentic-platform-deploy-build-logs:
+
+View Deployment Event Log
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To view the structured event log for a deployment, run the following command:
+
+.. code-block:: bash
+
+   agentengine deploy logs [<deployment_id>] [-f] [--severity <level>] [--category <category>] [--limit <n>] [--workspace <name>] [--workspace-id <id>] [--project-id <id>] [--org-id <id>] [--base-url <url>] [--context <name>] [--json]
+
+This command retrieves the event log for the specified deployment, showing each
+state transition from creation through completion. If you do not provide a
+deployment ID, the command shows the event log for the most recent deployment.
+You can use the event log to trace deployment behavior, investigate failures,
+and verify that expected lifecycle transitions occurred.
+
+When a deployment does not succeed, the event for the failing
+component includes both an exit code and a brief reason for the
+failure.
+
+.. note::
+
+   The ``--json`` flag cannot be combined with the ``--follow``, ``--severity``, or
+   ``--category`` flags.
+
+Command Flags
+`````````````
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Flag
+     - Description
+   * - ``-f``, ``--follow``
+     - Polls for new events until the deployment reaches a terminal state.
+   * - ``--severity``
+     - Filters events by severity level: ``info``, ``success``, ``warn``, or
+       ``error``.
+   * - ``--category``
+     - Filters events by category, for example ``agent_rollout`` or
+       ``tool_rollout``.
+   * - ``--limit``
+     - The maximum number of events to return per page. Defaults to 100.
+   * - ``--workspace``
+     - *(Monorepo only)* Selects a specific workspace by name.
+   * - ``--workspace-id``
+     - The platform workspace ID. By default, the CLI reads this value from the
+       ``.agentengine/state.json`` file.
+   * - ``--project-id``
+     - The platform project ID. By default, the CLI reads this value from the
+       ``.agentengine/state.json`` file.
+   * - ``--org-id``
+     - The organization ID. By default, the CLI reads this value from your
+       locally stored authentication state.
+   * - ``--base-url``
+     - The platform API base URL.
+   * - ``--context``
+     - The named local context from the ``.agentengine/state.json`` file.
+   * - ``--json``
+     - Outputs the event log as JSON.
+
+.. _agentic-platform-deploy-build-cancel:
+
+Cancel a Deployment
+~~~~~~~~~~~~~~~~~~~
+
+To cancel a deployment that's in progress, use the following command:
+
+.. code-block:: bash
+
+   agentengine deploy cancel <deployment_id> [--workspace <name>] [--workspace-id <id>] [--project-id <id>] [--org-id <id>] [--base-url <url>] [--context <name>]
+
+This command returns an error if the deployment is already in a
+``succeeded``, ``failed``, or ``rolled_back`` state.
+
+Command Flags
+`````````````
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Flag
+     - Description
+   * - ``--workspace``
+     - *(Monorepo only)* Selects a specific workspace by name, as defined in the
+       root ``agent.yaml`` file.
+   * - ``--workspace-id``
+     - The platform workspace ID. By default, the CLI reads this value from the
+       ``.agentengine/state.json`` file.
+   * - ``--project-id``
+     - The platform project ID. By default, the CLI reads this value from the
+       ``.agentengine/state.json`` file.
+   * - ``--org-id``
+     - The organization ID. By default, the CLI reads this value from your
+       locally stored authentication state.
+   * - ``--base-url``
+     - The platform API base URL.
+   * - ``--context``
+     - The named local context from the ``.agentengine/state.json`` file.
+
+Build Limits
+------------
+
+.. include:: /includes/limitations/build-limits.rst
+
+To review all limitations that apply during Public Preview, see
+:ref:`agentic-platform-limitations`.
+
+Example
+-------
+
+The following example shows how to deploy the last successful build,
+check the status of that deployment, and then cancel it.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Start a deployment.
+
+      Run the following command to deploy the last successful build and return
+      immediately without polling for status:
+
+      .. code-block:: bash
+
+         agentengine deploy --no-wait
+
+      If the deployment starts successfully, the output resembles the following:
+
+      .. code-block:: none
+         :copyable: false
+
+         Deploying last successful build...
+         ✓ Deployment started (deployment_id: deploy-9fb9e685)
+
+   .. step:: Check the status of the deployment.
+
+      Run the following command to check the deployment status by using the deployment ID
+      from the previous step:
+
+      .. code-block:: bash
+
+         agentengine deploy get deploy-9fb9e685
+
+      The output resembles the following:
+
+      .. code-block:: none
+         :copyable: false
+
+         Deployment: deploy-9fb9e685
+         Status:     in_progress (started 45s ago)
+         Trigger:    build
+         Build:      bld_01...
+         Version:    v0.1.0 (r1)
+
+         Conditions:
+           Available      False  NotAvailable — One or more components are not available.
+
+         Components:
+           Orchestration Engine   0/1 not ready
+           Agent Sandbox          1/1 ready
+           Tool Sandbox           1/1 ready
+
+         Health: unavailable
+
+   .. step:: Cancel the deployment.
+
+      Finally, run the following command to cancel the deployment:
+
+      .. code-block:: bash
+
+         agentengine deploy cancel deploy-9fb9e685
+
+Next Steps
+----------
+
+After deploying your agent, you can monitor its performance and activity.
+To learn how to monitor your agent, see the :ref:`Monitor <agentic-platform-monitor>` guide.
+
+To learn about the minimum requirements for running an agent on the {+platform-short+},
+see the :ref:`Agent Contract <agentic-platform-agent-contract>` section of the {+mdb-ai-platform+} documentation.

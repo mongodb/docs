@@ -193,6 +193,7 @@ export interface ActiveVersions {
 
 export type DocSite =
   | 'atlas-architecture'
+  | 'agentengine'
   | 'charts'
   | 'atlas-cli'
   | 'atlas-operator'

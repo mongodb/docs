@@ -1,0 +1,330 @@
+openapi: 3.1.0
+info:
+  title: Runner AER Server
+  description: Agent Execution Runtime HTTP API for the MongoDB Agentic Platform.
+  version: 1.0.0
+paths:
+  /health:
+    get:
+      summary: Health Check
+      description: 'Check component health and readiness.
+
+
+        Returns the component''s health status, runtime mode, version, and
+
+        mode-specific details (e.g. registered tools, graph builder state).
+
+        Used by Kubernetes liveness and readiness probes.'
+      operationId: health_check_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /:
+    get:
+      summary: Root
+      description: Return basic service identity and status.
+      operationId: root__get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties:
+                  type: string
+                type: object
+                title: Response Root  Get
+  /metrics:
+    get:
+      summary: Get Metrics
+      description: 'Return collected execution metrics for this component.
+
+
+        Includes per-operation timing, error counts, and invocation totals
+
+        aggregated since the last pod restart.'
+      operationId: get_metrics_metrics_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Get Metrics Metrics Get
+  /execute:
+    post:
+      summary: Execute
+      description: 'Execute an agent workflow via the BaseAgent protocol.
+
+
+        Accepts an execution request from the Orchestration Engine, runs the
+
+        agent graph with SecureToolWrapper for tool/LLM routing, and reports
+
+        completion or HITL suspension back to the OE via callback.'
+      operationId: execute_execute_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExecuteRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AERExecuteResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /tools:
+    get:
+      summary: List Tools
+      description: 'List all tools registered with this AER instance.
+
+
+        Returns the tool definitions that were registered via the Runner SDK
+
+        ``app.tool()`` decorator during agent initialization.'
+      operationId: list_tools_tools_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ToolsListResponse'
+  /executions:
+    post:
+      summary: Create Execution
+      operationId: create_execution_executions_post
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+components:
+  schemas:
+    AERExecuteResponse:
+      properties:
+        status:
+          type: string
+          title: Status
+          description: 'Execution outcome: ''completed'' or ''suspended'''
+          examples:
+          - completed
+          - suspended
+        result:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Result
+          description: Final agent response text (present when status is 'completed')
+        suspend_reason:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Suspend Reason
+          description: Why the agent suspended (present when status is 'suspended')
+        checkpoint_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Checkpoint Id
+          description: Checkpoint for resuming execution (present when status is 'suspended')
+      type: object
+      required:
+      - status
+      title: AERExecuteResponse
+      description: 'Response from AER /execute endpoint.
+
+
+        Returned on both normal completion and HITL suspension.'
+    ExecuteRequest:
+      properties:
+        execution_id:
+          type: string
+          title: Execution Id
+          description: Unique execution identifier
+        message:
+          type: string
+          title: Message
+          description: User message
+        platform_api_url:
+          type: string
+          title: Platform Api Url
+          description: URL of the OE for callbacks
+        resume:
+          type: boolean
+          title: Resume
+          description: Whether this is a resume after SUSPEND
+          default: false
+        resume_from_step:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Resume From Step
+          description: Step to resume from
+        checkpoint_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Checkpoint Id
+          description: LangGraph checkpoint ID for resume
+        resume_data:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Resume Data
+          description: Data to inject on resume
+        org_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Org Id
+          description: Organization ID for multi-tenant isolation
+        user_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: User Id
+          description: User ID for personalization
+        thread_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Thread Id
+          description: Thread ID for conversation continuity
+        workspace_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Workspace Id
+          description: Workspace identifier for cost tracking
+        project_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Project Id
+          description: Project ID for project-level scoping
+        custom_headers:
+          anyOf:
+          - additionalProperties:
+              type: string
+            type: object
+          - type: 'null'
+          title: Custom Headers
+          description: Caller-provided custom headers
+      type: object
+      required:
+      - execution_id
+      - message
+      - platform_api_url
+      title: ExecuteRequest
+      description: Request to execute an agent in AER.
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    HealthResponse:
+      properties:
+        status:
+          $ref: '#/components/schemas/HealthStatus'
+          description: Health status
+        component:
+          type: string
+          title: Component
+          description: Component name
+        mode:
+          type: string
+          title: Mode
+          description: Runtime mode
+        version:
+          type: string
+          title: Version
+          description: Component version
+          default: 1.0.0
+        details:
+          additionalProperties: true
+          type: object
+          title: Details
+          description: Additional details
+      type: object
+      required:
+      - status
+      - component
+      - mode
+      title: HealthResponse
+      description: Health check response.
+    HealthStatus:
+      type: string
+      enum:
+      - healthy
+      - unhealthy
+      - degraded
+      title: HealthStatus
+      description: Health status of a component.
+    ToolsListResponse:
+      properties:
+        tools:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          title: Tools
+          description: Registered tool definitions with name and metadata
+        count:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Count
+          description: Number of registered tools (included by Tool Pod)
+      type: object
+      required:
+      - tools
+      title: ToolsListResponse
+      description: Response from /tools endpoint listing registered tools.
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError

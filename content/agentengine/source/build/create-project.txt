@@ -1,0 +1,680 @@
+.. _agentic-platform-set-up-create-project:
+
+================
+Create a Project
+================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Learn how to scaffold a new local agent project from a starter template by using the agentengine create command and quickly configure your local development environment.
+   :keywords: create, template, agent, setup, local environment, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to create and register a new agent project by using the
+following commands:
+
+1. :ref:`agentengine create <agentic-platform-agentic-create>`: Fetches a starter template,
+   rewrites project identity fields, and writes a personalized environment file
+   that uses your configuration values.
+
+2. :ref:`agentengine init <agentic-platform-agentic-init>`: Registers your agent on
+   the {+platform-short+} and generates local development files.
+
+If you prefer to create the project files manually instead of using a
+starter template, see the :ref:`agentic-platform-set-up-project` section.
+
+.. _agentic-platform-agentic-create:
+
+Scaffold a Project
+------------------
+
+This section shows how to scaffold a new project by using the
+``agentengine create`` command.
+
+The ``agentengine create`` command does not require ``agentengine auth login`` and does not
+register your project on the {+platform-short+}. You can manually customize the
+scaffolding files before you run and test your agent locally.
+
+Command Syntax
+~~~~~~~~~~~~~~
+
+Use the following command to scaffold a new project:
+
+.. code-block:: bash
+
+   agentengine create [--template <template-id>] [--name <display-name>] [--dir <path>] [--llm <provider>] [--llm-base-url <url>] [--llm-model <model>] [--llm-auth-header <header>] [--memory] [--yes]
+
+Depending on the flags you specify, the CLI prompts you to configure your
+project.
+
+This command creates a project directory that contains a
+``project-config.yaml`` file, and scaffolds your agent's workspace
+directory in a ``<project-directory>/agents/<slug>`` subdirectory. The
+``<slug>`` value is a lowercase, hyphenated version of the ``--name`` value.
+The workspace directory holds ``agent.yaml``, ``.env``, and the other
+agent-specific files described in future sections.
+
+Command Flags
+~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Flag
+     - Description
+   * - ``--template``
+     - Optional. Starter template ID.  Supported values: ``hello-world-agent``,
+       ``hello-world-agent-adk``, ``hello-world-agent-ts``, ``insurance-agent``,
+       ``insurance-agent-adk``, ``insurance-agent-ts``, or ``chatbot-client``.
+       See the
+       :ref:`Supported Templates
+       <agentic-platform-agentic-create-templates>` section for
+       template descriptions. Defaults to
+       ``insurance-agent``.
+   * - ``--name``
+     - Application display name. Required when ``--yes`` is set. For
+       the characters you can use, see the :ref:`Display Name
+       Restrictions <agentic-platform-agentic-create-name-rules>`
+       section.
+   * - ``--dir``
+     - Optional. Target project directory. Your agent's workspace files
+       are scaffolded in an ``agents/<slug>`` subdirectory of this
+       path. Defaults to ``./<slug>``.
+   * - ``--llm``
+     - Conditional (required if ``--yes`` is set). LLM connection for the
+       starter template. Supported values: ``openai``, ``anthropic``,
+       ``gemini``, ``openrouter``, ``openai-compatible``,
+       ``anthropic-compatible``, or ``custom`` (configure in code).
+   * - ``--llm-auth-header``
+     - Conditional (required if ``--yes`` is set and the CLI cannot
+       infer the header). Header that carries the API key, such as
+       ``authorization``, ``api-key``, or ``x-api-key``. Only valid
+       when you use the ``openai-compatible`` and ``anthropic-compatible``
+       connections. The CLI errors otherwise. When you use
+       ``authorization``, the CLI sends the key as ``Bearer <key>``.
+   * - ``--llm-base-url``
+     - Conditional (required for an ``openai-compatible`` or
+       ``anthropic-compatible`` connection). Base URL for an
+       ``openai-compatible`` or ``anthropic-compatible`` connection. Its host is
+       added to ``network.egress``.
+   * - ``--llm-model``
+     - Conditional (required for OpenRouter and
+       compatible connections). Model or deployment name.
+   * - ``--memory``
+     - Optional. Enable memory for agent starter templates and prompt for a ``VOYAGE_API_KEY``.
+       When you select a supported LLM provider, the CLI configures memory extraction to
+       reuse the agent's LLM connection and credential.
+   * - ``--memory-only``
+     - Optional. Scaffold a memory-only project that generates only
+       ``project-config.yaml`` and does not create an agent. Cannot be combined
+       with ``--template``, ``--llm``, ``--llm-base-url``, ``--llm-model``,
+       ``--llm-auth-header``, ``--memory``, or ``--open-egress`` flags.
+   * - ``--open-egress``
+     - Optional. Allow open outbound access for agent and tool instead of
+       listing the selected LLM hosts. Writes ``network.egress_mode: allow_all``
+       into the ``project-config.yaml`` file and prints a warning. This mode is
+       not the default. Cannot be combined with ``--memory-only`` or
+       ``--template chatbot-client``.
+   * - ``--yes``
+     - Optional. Accept defaults for all optional prompts, including detected local
+       environment variable values.
+   * - ``-h, --help``
+     - Optional. Standard CLI help flag that displays usage information for the command.
+
+.. _agentic-platform-agentic-create-name-rules:
+
+Display Name Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The CLI copies the display name into the generated source
+files. The name cannot contain the following characters:
+
+- Double quotes (``"``)
+- Backslashes (``\``)
+- Backticks
+- Control, line-break, or text-direction characters
+
+If you enter an invalid name when using the interactive CLI, the CLI
+displays an error and prompts you again. If you pass an invalid name
+to the ``--name`` flag, the command fails with an
+error that names the disallowed character or character category.
+
+.. _agentic-platform-agentic-create-templates:
+
+Supported Templates
+~~~~~~~~~~~~~~~~~~~
+
+The following table describes the starter templates you can pass to the
+``agentengine create`` command:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 20 55
+
+   * - Template
+     - Type
+     - Use Case
+   * - ``hello-world-agent``
+     - Agent starter
+     - A minimal {+platform-short+} agent with optional memory.
+   * - ``hello-world-agent-adk``
+     - Agent starter
+     - A minimal agent built with the Google Agent Development Kit (ADK).
+   * - ``hello-world-agent-ts``
+     - Agent starter
+     - A minimal TypeScript LangGraph agent which supports human-in-the-loop
+       functionality and IANA timezones.
+   * - ``insurance-agent``
+     - Agent starter
+     - A realistic agent with tools, policies, claims, optional memory, and human review.
+   * - ``insurance-agent-adk``
+     - Agent starter
+     - An insurance-domain agent built with the Google ADK.
+   * - ``insurance-agent-ts``
+     - Agent starter
+     - A full-featured TypeScript agent that combines a deep agent
+       orchestrator, a subagent, and memory-backed tools.
+   * - ``chatbot-client``
+     - Client app
+     - A Next.js and Vercel AI SDK chat UI for an existing deployed agent.
+
+Local Environment Defaults
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you choose an LLM connection from the provider catalog, ``agentengine create``
+prompts you for the connection details it needs, such as an API key. If
+``LLM_API_KEY`` is set in your shell environment, the command offers it as the
+default. When you confirm the value, the command writes it to the generated
+``.env`` file as ``LLM_API_KEY``. You do not need to configure this value
+manually.
+
+.. tip::
+
+   To route your agent's LLM calls through a gateway, see the :ref:`LLM
+   Gateway Configuration
+   <agentic-platform-create-project-custom-gateway>` section.
+
+When memory is enabled, ``agentengine create`` detects ``VOYAGE_API_KEY`` from your
+local environment and offers it as a default. Confirming the value
+writes it to the generated ``.env``.
+
+When you run ``agentengine create`` with the ``--yes`` flag, the command
+doesn't prompt for detected environment values. For every provider
+catalog option except ``custom``, you must set ``LLM_API_KEY`` in your
+environment before you run the command. When you also pass ``--memory
+--yes``, you must set ``VOYAGE_API_KEY`` in your environment before you
+run the command, or the command fails.
+
+.. note::
+
+   When you select a supported LLM provider, the CLI writes your
+   LLM credential to the generated ``.env`` file under the shared
+   ``LLM_API_KEY`` variable name, and uses the same ``LLM_API_KEY``
+   value as the ``api_key_secret`` for memory extraction in
+   ``project-config.yaml``. This lets the agent and memory extraction
+   share one uploaded secret. To learn more, see :ref:`agentic-platform-add-memory`.
+
+The ``chatbot-client`` template generates a ``.env.local`` file instead of a
+``.env`` file. Before you run the app, you must manually populate the
+``.env.local`` file with the following values:
+
+- Your deployed agent's API URL
+- Your :ref:`project ID <agentic-platform-manage-projects>`
+- Your :ref:`workspace ID <agentic-platform-manage-workspaces>`
+- Your :ref:`service account <agentic-platform-manage-service-accounts>` access token
+
+Customize Your Scaffolded Agent
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After ``agentengine create`` completes, navigate into your agent's workspace
+directory at ``<project-directory>/agents/<slug>`` and review the generated files.
+
+All generated agents include the ``atlas-agent-engine`` skill at
+``.agents/skills/atlas-agent-engine`` (for Codex, Copilot, and other agents) or
+``.claude/skills/atlas-agent-engine`` (for Claude Code).
+
+When you use an agent starter template, review the generated agent source and
+``.env`` file to confirm that the LLM connection meets your requirements. The
+LLM client, model, endpoint, and authentication behavior are configured in the
+generated agent source code.
+
+For catalog options that configure an LLM connection, the generated ``.env``
+file contains the shared credential as ``LLM_API_KEY``. If you choose ``Manual
+setup``, configure the LLM connection in your agent code and add any secrets
+that code requires to the ``.env`` file. To learn more, see
+:ref:`agentic-platform-create-project-gateway-code`.
+
+When you use the ``chatbot-client`` template, review the ``.env.local`` file and
+confirm that you correctly set your deployed agent's API URL, project ID, workspace
+ID, and service account access token. There is no ``agent.yaml``
+file in a chatbot client app.
+
+.. note::
+
+   Templates are fetched by using your local Git credentials. The generated
+   project directory is initialized as a Git repository automatically.
+
+.. _agentic-platform-set-up-project:
+
+Set Up an Agent Manually
+------------------------
+
+Instead of scaffolding an agent by using the ``agentengine create`` command,
+you can create the required files yourself. Each agent requires the
+following files together in one directory:
+
+- ``agent.yaml``: Agent configuration describing how the platform runs your agent
+- ``.env``: Runtime secrets and environment variables
+- ``pyproject.toml``: Defines Python project metadata, including the ``[project].name``
+  field
+
+This directory is your workspace directory, and you run ``agentengine``
+commands from it. When you later run the ``agentengine init`` command,
+the {+platform-short+} registers this directory as a workspace.
+
+The following steps describe how to set up an agent manually.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Bootstrap a Python project.
+
+      If you are starting from an empty directory, install the `uv <https://docs.astral.sh/uv/>`__ tool and
+      initialize a new project:
+
+      .. code-block:: bash
+
+         mkdir my-agent && cd my-agent
+         uv init
+
+   .. step:: Add required dependencies to ``pyproject.toml``.
+
+      The {+platform-short+} requires two packages: ``agent-engine-runner-shared``
+      and ``agent-engine-sdk-langgraph``. Run the following command to add them to
+      your project:
+
+      .. code-block:: bash
+
+         uv add agent-engine-runner-shared agent-engine-sdk-langgraph
+
+   .. step:: Create an ``agent.yaml`` file.
+
+      .. _agentic-platform-agent-yaml-config:
+
+      Create an ``agent.yaml`` file in your workspace directory. The
+      ``entrypoint`` and ``sandboxes`` fields are required.
+
+      The following table describes the available ``agent.yaml`` fields:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 20 15 65
+
+         * - Field
+           - Required
+           - Description
+         * - ``entrypoint``
+           - Yes
+           - Python import path to the App instance, in ``module.path:attribute`` format.
+         * - ``sandboxes``
+           - Yes
+           - Configures the ``agent`` and ``tool`` sandboxes that run
+             your agent and its tools. Each sandbox declares which
+             secrets and tools it can access. When you declare
+             ``sandboxes``, ``sandboxes.agent`` is required and
+             ``sandboxes.tool`` is optional. To learn more about this
+             field, see :ref:`agentic-platform-agent-contract`.
+         * - ``name``
+           - No
+           - Agent name used as the Docker Compose service and network name prefix.
+             Use a lowercase alphanumeric value with hyphens, but do not include leading or trailing hyphens.
+         * - ``description``
+           - No
+           - Human-readable description of the agent. Use a maximum of 500 characters.
+         * - ``framework``
+           - No
+           - Framework identifier, such as ``langgraph`` or ``custom``.
+         * - ``language``
+           - No
+           - Agent language. Supported values are ``python`` and
+             ``typescript``. Defaults to ``python`` when omitted.
+         * - ``version``
+           - No
+           - Agent version. Accepts a strict semver value, ``auto`` to
+             delegate to the language manifest (``pyproject.toml`` or
+             ``package.json``), or an empty value for an unversioned
+             agent.
+         * - ``mcp``
+           - No
+           - Remote MCP server configuration. To learn more, see
+             :ref:`agentic-platform-remote-mcp`.
+         * - ``agent_card``
+           - No
+           - Agent capabilities displayed in the platform UI. The field accepts a ``summary``
+             string and a ``capabilities`` list of strings.
+         * - ``services``
+           - No
+           - Deprecated. Move local service port overrides to a
+             ``dev.yaml`` file in the same directory as the
+             ``agent.yaml`` file. To learn more, see
+             :ref:`agentic-platform-build-local-dev-yaml`.
+         * - ``features``
+           - No
+           - Feature flags. The block accepts ``guardrails`` and ``memory`` as boolean values.
+         * - ``artifact_repositories``
+           - No
+           - Declares private package registries for managed builds.
+             To learn more, see
+             :ref:`agentic-platform-agent-contract-yaml`.
+
+      The following example shows a minimal ``agent.yaml`` configuration:
+
+      .. code-block:: yaml
+
+         entrypoint: my_agent.graph:app
+         name: my-agent
+         framework: langgraph
+         sandboxes:
+          agent:
+            secrets: ["*"]
+            tools: []
+          tool:
+            secrets:
+              - ANTHROPIC_API_KEY
+            tools:
+              - invoke_llm
+
+   .. step:: Create a ``.env`` file.
+
+      Create a ``.env`` file in your workspace directory to provide secrets
+      required by your agent code. Add the secret variables required by your LLM
+      client to this file. 
+      
+      Configure the LLM provider, model, endpoint, and authentication behavior
+      in your agent code, not in ``agent.yaml``. The ``.env`` file is for
+      secrets only, such as API keys. To learn more about the ``agent.yaml``
+      file, see the :ref:`agentic-platform-agent-contract` guide.
+
+      The following table lists the required and
+      optional variables for a ``.env`` file:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 35 15 50
+
+         * - Variable
+           - Required
+           - Description
+
+         * - ``MONGODB_URI``
+           - Yes
+           - MongoDB connection string
+
+         * - ``<PROVIDER>_API_KEY``
+           - No
+           - LLM provider key. The platform does not require a specific provider or
+             validate LLM credentials, but your agent fails at runtime without one.
+             Common keys include ``OPENAI_API_KEY``, ``ANTHROPIC_API_KEY``,
+             ``GEMINI_API_KEY``, and ``CEREBRAS_API_KEY``.
+
+      .. important::
+
+         The ``.env`` file is the only source of secrets validated at
+         runtime. Host environment variables are intentionally ignored by the container.
+         The container only mounts ``.env`` at runtime, so any key missing
+         from the file is also missing inside the container. Do not commit any
+         real secrets to your version control system.
+
+.. _agentic-platform-create-project-custom-gateway:
+
+LLM Gateway Configuration
+-------------------------
+
+How your agent makes and authenticates LLM calls is determined entirely in your
+code. Instructions to set environment variables or to select LLM options in
+``agentengine create`` apply only to the example starter templates. The
+{+platform-short+} doesn't host or manage your LLM connection.
+
+There are two ways to set up an LLM gateway:
+
+- :ref:`Use a starter template
+  <agentic-platform-create-project-gateway-template>` to scaffold a working LLM
+  connection into a generated agent.
+- :ref:`Set up the gateway in code
+  <agentic-platform-create-project-gateway-code>`, which works for any agent,
+  including ones you do not build from a starter template.
+
+.. _agentic-platform-create-project-gateway-template:
+
+Set Up an LLM Gateway from a Starter Template
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you run the ``agentengine create`` command, the command prompts you to choose
+an LLM connection, similar to the following example:
+
+.. code-block:: text
+   :copyable: false
+
+   Which LLM connection do you want to use?
+     1) OpenAI
+     2) Anthropic
+     3) Google Gemini
+     4) OpenRouter
+     5) OpenAI-compatible - AWS Bedrock, Azure Foundry
+     6) Anthropic-compatible - AWS Bedrock, Azure Foundry
+     7) Manual setup - implement the LLM client in code
+
+If you choose a provider from this catalog, the ``agentengine create`` command
+prompts for details required by the connection, which might include the
+following:
+
+- Base URL
+- Model or deployment name
+- API key
+- Authentication header for connections when the host isn't recognized
+
+The command writes the selected LLM client to the generated agent source and
+stores the shared credential in the generated ``.env`` file as ``LLM_API_KEY``.
+
+The command also prompts you to choose how Agent and Tool access external hosts:
+
+- Apply the recommended ``network.egress`` configuration. If no gateway host is
+  available, such as when you choose ``Manual setup`` (``custom``), this option
+  instructs you to configure LLM egress later.
+- Allow all outbound access.
+
+.. important::
+
+   The provider you select configures only the starter project created by this
+   ``agentengine create`` command. It does not automatically configure other agents
+   that you create later.
+
+If your LLM connection is not one of the listed options, choose ``Manual setup``
+and :ref:`set up the gateway in code
+<agentic-platform-create-project-gateway-code>`. This option creates a
+model-builder stub so you can configure the connection in your agent code.
+
+.. _agentic-platform-create-project-gateway-code:
+
+Set Up an LLM Gateway in Code
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To connect an LLM to your agent, create a framework-specific model and pass the
+resulting model instance to the ``app.llm(...)`` method from your agent's
+entrypoint. You can put the model-building code in any file in your agent code, but
+starter templates place a stub in a language-specific file. If you don't use a
+starter template, you can define the model elsewhere, as long as
+``app.llm(...)`` receives a supported model object.
+
+The following table describes the conventions for setting up an LLM gateway in
+code across different runtimes:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 30 35
+
+   * - Runtime
+     - File
+     - What you return
+   * - LangGraph Python
+     - ``src/<module>/llm.py`` (``build_llm``)
+     - A LangChain ``BaseChatModel``
+   * - LangGraph TypeScript
+     - ``src/<module>/llm.ts`` (``buildLLM``)
+     - A LangChain ``BaseChatModel``
+   * - ADK Python
+     - ``src/<module>/llm.py`` (``build_llm``)
+     - An ADK ``BaseLlm`` (``Gemini``, ``LiteLlm``, and so on)
+
+The constructor is what sets the endpoint, authentication headers, and model
+name. For example, the LangGraph Python ``insurance-agent`` template defines
+``build_llm()`` in ``src/<module>/llm.py`` and returns a LangChain
+``BaseChatModel``. The agent entrypoint imports ``build_llm()`` and passes the
+returned model to ``app.llm(...)``.
+
+Allow the gateway host so your agent can reach it. Add the custom gateway host
+and port to the ``network.egress`` block in the ``agent.yaml`` file. For
+example, to add ``gateway.example.com:443`` to the Tool sandbox's existing
+egress allowlist, run the following command:
+
+.. code-block:: bash
+
+   agentengine agent egress add --component tool gateway.example.com:443
+
+To learn more about configuring network egress for your agent, see the
+:ref:`agentic-platform-network-egress-get-started` guide.
+
+.. _agentic-platform-agentic-init:
+
+Register Your Agent
+-------------------
+
+After scaffolding your agent, you can **register your agent and generate local
+development files** by using the ``agentengine init`` command. Before running this
+command, perform the following prerequisite tasks:
+
+- :ref:`Install and authenticate <agentic-platform-set-up-install-authenticate>` the
+  {+mdb-ai-platform+}.
+
+- Create an agent workspace directory containing ``agent.yaml``, ``.env``, and
+  either ``pyproject.toml`` or ``package.json``. The :ref:`agentengine create
+  <agentic-platform-agentic-create>` command scaffolds this directory
+  at ``<project-directory>/agents/<slug>``, or you can create it by :ref:`setting up
+  an agent manually <agentic-platform-set-up-project>`.
+
+Command Syntax
+~~~~~~~~~~~~~~
+
+From your agent workspace directory, run the following command to register
+the agent and generate local files:
+
+.. code-block:: bash
+
+   agentengine init [--force] [--workspace-id <id>] [--project-id <id>] [--org-id <id>] [--base-url <url>] [--context <name>]
+
+This command interactively selects or creates an organization and project,
+generates local dev files, and registers your agent as a workspace on the
+Atlas Agent Engine.
+
+Command Flags
+~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Flag
+     - Description
+   * - ``--force``
+     - (Optional) Overwrites existing generated files and re-registers the workspace.
+   * - ``--workspace-id``
+     - (Optional) Links this directory to an existing workspace instead of
+       creating one.
+   * - ``--project-id``
+     - (Optional) Project ID to use without prompting.
+   * - ``--org-id``
+     - (Optional) Organization ID to use without prompting.
+   * - ``--base-url``
+     - (Optional) Overrides the {+platform-short+} API base URL.
+   * - ``--context``
+     - (Optional) Named local context to create or update.
+
+Interactive Flow
+~~~~~~~~~~~~~~~~
+
+When you run ``agentengine init``, the CLI guides you through the following steps:
+
+1. Lists your organizations with a numbered menu, including a
+   ``"Create a new organization..."`` option. If no organizations exist,
+   the CLI prompts you to enter a name to create one.
+2. Lists your projects with a numbered menu once you choose an organization, including a
+   ``"Create a new project..."`` option. If no projects exist, the CLI prompts
+   you to enter a name to create one.
+3. Saves the selected project as your active ``project_id`` in local auth state.
+4. Generates the following local dev files in your agent directory:
+
+   - ``docker-compose.yml``
+   - ``.agentengine/Dockerfile``
+   - ``.agentengine/entrypoint.py``
+   - ``.dockerignore``
+   - ``.gitignore``
+
+5. Registers the agent as a workspace on the platform and creates the
+   ``.agentengine/state.json`` file with the ``workspace_id``, ``org_id``, and
+   ``project_id`` specified.
+
+.. note::
+
+   If the ``.agentengine/state.json`` file already exists, the CLI skips workspace
+   registration. Run ``agentengine init --force`` to re-register. If the workspace
+   name already exists on the platform, the existing ``workspace_id`` is reused.
+
+Next Steps
+----------
+
+The following sections describe how to start local development for each
+template type. To learn more about local development and testing, see
+:ref:`agentic-platform-build-local` and :ref:`agentic-platform-test`.
+
+Agent Starter Templates
+~~~~~~~~~~~~~~~~~~~~~~~
+
+If you are using a TypeScript template, install Node.js dependencies before
+starting your agent locally: 
+
+.. code-block:: bash
+
+   pnpm install
+
+After reviewing your scaffolded agent, run ``agentengine dev up`` to start
+your agent locally:
+
+.. code-block:: bash
+
+   agentengine dev up
+
+
+Chatbot Client Template
+~~~~~~~~~~~~~~~~~~~~~~~
+
+After setting your necessary values in the ``.env.local`` file, install dependencies and
+start the development server:
+
+.. code-block:: bash
+
+   pnpm install
+   pnpm run dev
+
+Open ``http://localhost:3000`` in your browser to use the chat UI.

@@ -1,0 +1,682 @@
+.. _python-packages-agent-engine-runner-shared:
+
+Runner SDK - Technical Architecture
+===================================
+
+Framework-agnostic Tenant Runtime SDK for the Atlas Agent Engine.
+
+.. blockquote::
+
+   This is an internal core package; agents don't install it directly. Install a
+   framework SDK (``agent-engine-sdk-langgraph`` or ``agent-engine-sdk-adk``), which depends on it.
+
+Architecture Overview
+---------------------
+
+The Runner SDK provides the **AER**, **Tool Pod**, and **Memory Server**
+integration components of the platform architecture. The Orchestration
+Engine is a separate Atlas Agent Engine service.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Component
+     - Port
+     - Trust Level
+     - Network Access
+     - Secrets Access
+     - Purpose
+   * - **AER** (Agent Execution Runtime)
+     - 8001
+     - Medium
+     - LLM APIs only
+     - LLM keys only
+     - Execution plane - runs agent logic
+   * - **Tool**
+     - 8002
+     - Varies
+     - As needed
+     - As needed
+     - Data plane - isolated tool execution
+   * - **Memory Server**
+     - 8081
+     - Medium
+     - MongoDB
+     - DB creds
+     - Memory service for semantic/episodic/taxonomic memory
+
+Runner-shared auto-detects the listener bind at startup: ``::`` (IPv6
+dual-stack — uvicorn renders this as ``http://[::]:port`` in URL form)
+when the kernel has IPv6 enabled with ``IPV6_V6ONLY=0``, otherwise
+``0.0.0.0``. No configuration required — production deploys on
+IPv6-first networks (cell tenant namespaces) get ``::`` automatically
+and local Docker dev (where bridge IPv6 is often disabled) falls back to
+``0.0.0.0``. The probe-resolved host is logged at startup
+(``listener bind resolved: host=...``) so post-deploy verification
+doesn’t have to infer from uvicorn’s own startup line.
+
+Set ``APP_HOST`` in the environment to override the probe — needed in
+containers where the kernel reports IPv6 as available but the
+surrounding network only routes IPv4 (e.g. Docker port forwarding with
+``host_ip: 127.0.0.1``). The integration test compose templates set
+``APP_HOST=0.0.0.0`` for this reason.
+
+The listener uses the fixed default port for the active ``RUNNER_MODE``
+(``8001``/``8002``/``8081``). ``RUNNER_MODE`` is required and injected
+by the platform runtime; local dev ignores user ``.env`` overrides for
+it, and workspace secrets reserve the name entirely.
+
+Startup logging
+~~~~~~~~~~~~~~~
+
+The image ``CMD`` is ``python -m agent_engine_runner_shared.launcher``
+(TypeScript: ``node …/launcher.js``). The launcher installs logging
+**before** it imports ``AGENT_ENTRYPOINT``, so an import-time crash or
+an exception from the entrypoint function is an ``ERROR`` record
+(structured JSON when ``STRUCTURED_LOGGING=true``) rather than a raw
+traceback that workspace logs would show as ``INFO``. ``TenantRuntime``
+still calls ``setup_logging`` / ``setupLogging`` later; that second
+install is idempotent. Failures that happen before the launcher process
+starts (interpreter/image errors) still rely on the API Gateway
+read-path heuristic documented in
+```docs/api-gateway/README.md`` <../../../../../docs/api-gateway/README.md#agent--operator-logs-s3-read-path>`__.
+
+Why Three Components?
+~~~~~~~~~~~~~~~~~~~~~
+
+This separation enables: - **Audit logging** - OE sees every tool/LLM
+call without executing them - **Policy enforcement** - OE can block
+calls before execution - **Least privilege** - Each component only has
+access it needs - **Replay** - OE can return cached results for
+deterministic resume
+
+--------------
+
+Execution lifecycle & where your secrets are available
+------------------------------------------------------
+
+Full normative contract:
+```docs/runner/README.md`` <../../../../../docs/runner/README.md#execution-lifecycle--secret-availability>`__.
+The rules an agent author needs to write correct code:
+
+- **Module top-level code** (anything outside a function body) runs once
+  at process startup, in both the AER and the Tool Pod. It can rely on
+  MCP OAuth configuration and tenant-deliverable startup secrets,
+  including ``MONGODB_URI`` and LLM API keys. Invocation sessions and
+  delegated request credentials are not available during startup. MCP
+  OAuth cache writes (``~/.agentic/mcp-oauth/<server>.json``, or
+  ``AGENTIC_MCP_OAUTH_DIR`` in deployed runtimes) serialize on an
+  advisory ``<server>.json.lock`` file so concurrent token refreshes for
+  the same server cannot clobber each other.
+- **Tool application construction** attempts the ``@app.entrypoint``
+  function during startup to discover every ``app.llm(llm_id=...)``
+  registration. Model requests reuse the prepared registry. Construction
+  uses static startup configuration and must not execute a business
+  turn, model call, or tool body. Failed construction warns and restores
+  prior registrations, leaving a later model request able to retry.
+  Successful construction is cached even without named LLMs. AER graph
+  caching and warm-up remain framework-owned.
+- **``app.llm(llm, llm_id=...)`` must be called while your entrypoint is
+  on the call stack** — directly in its body, or in a helper function it
+  calls. Calling it from anywhere outside that (module top level, a tool
+  body, a helper invoked from somewhere other than the entrypoint)
+  raises ``RuntimeError`` immediately, naming the offending call site.
+- **Local tool bodies** (``is_local=True``) run only in the AER’s own
+  process. Both AER and Tool workloads receive tenant-deliverable
+  secrets at startup.
+- **Remote tool bodies** (``is_local=False``, or tools requiring
+  delegated credentials) run only in the Tool Pod, on demand, when OE
+  routes a call to them — never during construction.
+  ``required_secrets`` declarations document secret requirements; they
+  do not narrow the startup secret environment.
+- **Credentialed tools remain remote** even if the SDK supplied its
+  local default, because delegated authorization and tool-scoped secret
+  injection happen only on the Tool Pod route.
+
+--------------
+
+Execution Flow
+--------------
+
+Normal Execution (Start → Complete)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: text
+
+   ┌────────┐                    ┌─────┐                    ┌─────┐
+   │ Client │                    │ OE  │                    │ AER │
+   └───┬────┘                    └──┬──┘                    └──┬──┘
+       │                            │                          │
+       │ POST /invoke               │                          │
+       │ ──────────────────────────►│                          │
+       │                            │                          │
+       │                            │ Create Execution (PENDING)
+       │                            │                          │
+       │                            │ POST /execute            │
+       │                            │─────────────────────────►│
+       │                            │                          │
+       │                            │                          │ Build LangGraph
+       │                            │                          │ Start ainvoke()
+       │                            │                          │
+       │    ┌───────────────────────┼──────────────────────────┼───────────────┐
+       │    │ LOOP: For each tool/LLM call                     │               │
+       │    │                       │                          │               │
+       │    │                       │ POST /tool/execute       │               │
+       │    │                       │◄─────────────────────────│               │
+       │    │                       │ {tool, args, step}       │               │
+       │    │                       │                          │               │
+       │    │                       │ Log + Policy Check       │               │
+       │    │                       │                          │               │
+       │    │                       │ {proceed, route_to}      │               │
+       │    │                       │─────────────────────────►│               │
+       │    │                       │                          │               │
+       │    │                       │                          │ Execute tool  │
+       │    │                       │                          │               │
+       │    │                       │ POST /tool/result        │               │
+       │    │                       │◄─────────────────────────│               │
+       │    │                       │ {result, status}         │               │
+       │    └───────────────────────┼──────────────────────────┼───────────────┘
+       │                            │                          │
+       │                            │                          │ Graph completes
+       │                            │                          │
+       │                            │ POST /executor/callback  │
+       │                            │◄─────────────────────────│
+       │                            │ {COMPLETED, result}      │
+       │                            │                          │
+       │ GET /execution/{id}        │                          │
+       │ ──────────────────────────►│                          │
+       │                            │                          │
+       │ {status: completed, result}│                          │
+       │ ◄──────────────────────────│                          │
+       │                            │                          │
+
+Human-in-the-Loop (SUSPEND/RESUME)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: text
+
+   ┌────────┐                    ┌─────┐                    ┌─────┐
+   │ Client │                    │ OE  │                    │ AER │
+   └───┬────┘                    └──┬──┘                    └──┬──┘
+       │                            │                          │
+       │ POST /invoke               │                          │
+       │ ──────────────────────────►│                          │
+       │                            │                          │
+       │                            │ POST /execute            │
+       │                            │─────────────────────────►│
+       │                            │                          │
+       │                            │    ... tool calls ...    │
+       │                            │                          │
+       │                            │                          │ app.suspend(reason)
+       │                            │                          │ → tool pod reports
+       │                            │                          │   status: "suspend"
+       │                            │                          │   (out-of-band, not
+       │                            │                          │    result content)
+       │                            │                          │
+       │                            │                          │ interrupt() on the
+       │                            │                          │ OE-confirmed status
+       │                            │                          │ Save checkpoint
+       │                            │                          │
+       │                            │ POST /executor/callback  │
+       │                            │◄─────────────────────────│
+       │                            │ {SUSPENDED, metadata}    │
+       │                            │                          │
+       │ GET /execution/{id}        │                          │
+       │ ──────────────────────────►│                          │
+       │ {status: suspended}        │                          │
+       │ ◄──────────────────────────│                          │
+       │                            │                          │
+       ╠════════════════════════════╬══════════════════════════╣
+       ║     ⏸️  WAITING FOR HUMAN - Reviews and Approves      ║
+       ╠════════════════════════════╬══════════════════════════╣
+       │                            │                          │
+       │ POST /resume/{id}          │                          │
+       │ {decision: "approved"}     │                          │
+       │ ──────────────────────────►│                          │
+       │                            │                          │
+       │                            │ Store human decision     │
+       │                            │                          │
+       │                            │ POST /execute            │
+       │                            │ {resume: true}           │
+       │                            │─────────────────────────►│
+       │                            │                          │
+       │                            │                          │ Resume from checkpoint
+       │                            │                          │
+       │    ┌───────────────────────┼──────────────────────────┼───────────────┐
+       │    │ Replayed steps return CACHED results             │               │
+       │    │                       │                          │               │
+       │    │                       │ POST /tool/execute       │               │
+       │    │                       │◄─────────────────────────│               │
+       │    │                       │                          │               │
+       │    │                       │ {cached_result}          │               │
+       │    │                       │─────────────────────────►│               │
+       │    └───────────────────────┼──────────────────────────┼───────────────┘
+       │                            │                          │
+       │                            │                          │ Continue execution
+       │                            │                          │ (new steps)
+       │                            │                          │
+       │                            │ POST /executor/callback  │
+       │                            │◄─────────────────────────│
+       │                            │ {COMPLETED, result}      │
+       │                            │                          │
+       │ GET /execution/{id}        │                          │
+       │ ──────────────────────────►│                          │
+       │ {status: completed}        │                          │
+       │ ◄──────────────────────────│                          │
+       │                            │                          │
+
+.. note::
+
+   **Resume via the API Gateway:** The diagram above uses the OE’s
+   internal ``/resume/{id}`` path for brevity. Developers call the API
+   Gateway at
+   ``POST /api/v1/projects/{project_id}/executions/{execution_id}/resume``
+   with a **flat** JSON body:
+
+   .. code:: json
+
+      {"decision": "approved", "reviewer_notes": "optional context"}
+
+   The wrapped ``{"human_review": {"decision": "..."}}`` shape is the
+   OE’s internal endpoint contract; the gateway rejects it with HTTP
+   400.
+
+Execution drain (cancellation)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When the OE durably cancels an execution it POSTs ``/drain`` to the
+Tool/AER runtime that owns it. The receiver contract (pinned by the
+shared fixture in
+``client-libraries/test-fixtures/drain/contract.json``):
+
+- ``POST /drain {request_id, execution_id, reason, deadline_at_ms, workspace_id}``
+  — on a workspace-scoped runtime (``APP_ID`` set, i.e. every managed
+  runtime) ``workspace_id`` is mandatory and must match exactly: the
+  bearer token authenticates the caller but does not prove the named
+  execution belongs to this runtime.
+- ``202 {"outcome": "accepted"}`` while draining; ``200`` with the final
+  outcome (``completed`` / ``timed_out`` / ``delivery_failed``)
+  afterwards. ``accepted`` is HTTP-level acceptance only — ``completed``
+  is the only quiescence signal.
+- Idempotent on ``request_id``, one drain per execution: a retry
+  re-reads the recorded outcome instead of re-running side effects.
+- ``deadline_at_ms`` is absolute and never extended; the runtime rejects
+  deadlines beyond ``RUNNER_DRAIN_MAX_DEADLINE_MS`` (default 60s).
+  Finalized records survive ``RUNNER_DRAIN_RECORD_TTL_S`` (default 900s)
+  so caller retries stay idempotent through their reconciliation window
+  — keep it at or above the caller’s retry window (OE retries a drain
+  for 15 minutes): a shorter TTL evicts the record while the caller is
+  still retrying, and late resends get ``execution_not_found`` instead
+  of the recorded outcome.
+- An execution this runtime never served answers ``delivery_failed``
+  with ``reason_code=execution_not_found`` — one execution can span AER
+  and Tool runtimes independently, so exact OE targeting does not make a
+  false ``completed`` safe.
+
+Per-language limits are part of the contract, not an implementation
+detail. Python cancels the tracked asyncio tasks, so cooperative work
+settles as ``completed``. A promise has no cancellation, so the
+TypeScript runtime (``agent-engine-runner-shared``, which mirrors this
+contract and must change together with it) aborts only registered
+``AbortController``\ s — the AER turn and LLM streams — while plain tool
+functions receive no signal: they are tracked and admission-blocked, and
+outliving the deadline is an honest ``timed_out``. State is
+process-local by design: a restarted runtime has lost its active work
+and answers ``delivery_failed``; reconciliation across restarts belongs
+to the caller’s durable record, not this registry.
+
+Per-call interrupt
+~~~~~~~~~~~~~~~~~~
+
+``POST /interrupt/call`` is the surgical sibling of the drain: the OE’s
+per-call interrupt names one call by ``{execution_id, step_number}`` and
+the runtime aborts exactly that call’s tracked handle — Python cancels
+the asyncio task, the TS runtime aborts the call’s ``AbortController`` —
+while the execution stays open and later calls proceed (no admission
+latch, ever). Always 200 with an outcome: ``interrupted`` (signalled, or
+recorded to fire at attach), ``not_found`` (no such in-flight call),
+``already_settled`` (the call ended first), ``not_cancellable`` (tracked
+work with no signal channel — a sync tool body on a thread, a plain TS
+tool function — reported honestly, never claimed abandoned). Workspace
+scoping matches the drain route’s, and the shared vectors live in
+``client-libraries/test-fixtures/interrupt-call/contract.json``.
+
+--------------
+
+Key Components
+--------------
+
+How Intercepted Calls Route Through OE
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Intercepted tool calls and ``invoke_llm`` now use the same OE-owned
+execution flow. When the agent running in AER needs to call a tool or an
+LLM, the wrapper sends the intercepted request to OE and waits for OE to
+return the final outcome. OE routes tool calls through
+``Tool Pod /execute`` and LLM calls through ``Tool Pod /invoke_llm``,
+then returns the final success, suspend, or error result back to AER.
+
+**Sequence Diagram:**
+
+.. code-block:: text
+
+   ┌─────┐                    ┌─────┐                    ┌──────────┐
+   │ AER │                    │ OE  │                    │ Tool Pod │
+   └──┬──┘                    └──┬──┘                    └────┬─────┘
+      │                          │                            │
+      │ 1. POST /tool/execute    │                            │
+      │ ────────────────────────►│                            │
+      │ {name or invoke_llm,     │                            │
+      │  args/messages, step}    │                            │
+      │                          │                            │
+      │                          │ Log + Policy Check         │
+      │                          │                            │
+      │                          │ 2a. Replay cache hit       │
+      │ 2a. Final cached result  │                            │
+      │ ◄────────────────────────│                            │
+      │ {status, result,         │                            │
+      │  from_cache}             │                            │
+      │                          │                            │
+      ├──────────────────────────┼────────────────────────────┤
+      │  if OE must execute the tool                          │
+      │                          │                            │
+      │                          │ 2b. POST /execute or       │
+      │                          │     /invoke_llm            │
+      │                          │ ───────────────────────────────────────►
+      │                          │ via Tool Pod                           │
+      │                          │ ◄───────────────────────────────────────
+      │                          │ {status, result}                       │
+      │                          │                            │
+      ├──────────────────────────┼────────────────────────────┤
+      │                          │                            │
+      │ 3. Final OE-owned result │                            │
+      │ ◄────────────────────────│                            │
+      │ {status, result, error,  │                            │
+      │  duration_ms, pod_name}  │                            │
+      │                          │                            │
+
+**Key Points:**
+
+1. **Every intercepted tool or LLM call crosses OE first** for policy,
+   logging, and replay ownership.
+2. **OE owns routing** — remote tools use ``Tool Pod /execute``;
+   approved local tools return to the original AER call stack so
+   framework-native context remains live; intercepted LLM calls use
+   ``Tool Pod /invoke_llm``.
+3. **Replay uses cached results** — On resume after SUSPEND, OE returns
+   the stored final outcome to prevent duplicate side effects.
+4. **Suspend still unwinds through the wrapper** — OE returns the
+   serialized suspend payload, then ``SecureToolWrapper`` converts it
+   back into the framework interrupt.
+5. **``invoke_llm`` now matches the tool contract** — OE returns the
+   final ``status/result/error`` payload instead of asking AER to
+   execute after approval.
+6. **LLM stream chunks preserve final message metadata** — ``id``,
+   ``name``, ``additional_kwargs``, and ``response_metadata`` travel
+   through the typed stream event and are collected back into the same
+   final response shape used for replay.
+
+``agent.yaml`` environment-variable interpolation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Runtime config loading now supports ``${VAR}`` interpolation for a
+narrow allowlist of tenant-owned ``agent.yaml`` paths, currently
+``mcp.servers.*.url``.
+
+**How it works:**
+
+- ``load_runtime_agent_config(env_vars=...)`` substitutes ``${VAR}``
+  references only at allowlisted paths.
+- The runtime passes ``tenant_env_vars()`` rather than raw
+  ``os.environ``, so platform-owned env vars and secrets are excluded
+  from substitution.
+- If an allowlisted path references an unset variable, or contains a
+  malformed ``${...}`` marker, the loader raises a clear validation
+  error.
+- ``mcp.servers.*.auth.token_env`` must not point at a platform-owned
+  env var.
+
+Example:
+
+.. code:: yaml
+
+   mcp:
+     servers:
+       tableau:
+         url: https://${TABLEAU_HOST}/mcp
+
+At runtime, ``${TABLEAU_HOST}`` is resolved from the tenant-owned
+environment subset. A reference such as ``${OPENAI_API_KEY}`` is
+rejected because that variable is platform-owned and filtered out before
+interpolation.
+
+SecureToolWrapper (``secure_wrapper.py``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The **central security component** that intercepts tool calls:
+
+.. code:: python
+
+   # Every tool call goes through this flow:
+   def execute_tool(tool_name, arguments):
+       # 1. Send the intercepted tool call to OE
+       response = request_oe_approval(oe_url, execution_id, tool_name, arguments)
+
+       # 2. Check for policy denial
+       if not response.proceed:
+           raise PolicyDeniedException(response.reason)
+
+       # 3. OE either returns a final outcome or routes the call back in process
+       if response.route_to == "callback":
+           result = local_executor()
+           report_oe_result(result)
+           return result
+       if response.status == "error":
+           raise ToolExecutionError(response.error)
+       if response.status == "suspend":
+           interrupt(response.result)
+       return response.result
+
+**Key invariant**: No tool or LLM call executes without OE knowing about
+it.
+
+--------------
+
+Features
+--------
+
+Policy Enforcement
+~~~~~~~~~~~~~~~~~~
+
+OE can block tool/LLM calls based on policy rules:
+
+Policy enforcement is handled by the Go OE. See
+``docs/orchestration-engine/README.md``.
+
+Replay Caching
+~~~~~~~~~~~~~~
+
+When an agent resumes after SUSPEND, the LangGraph execution replays
+from the beginning. Without caching, this would re-execute tools and LLM
+calls, causing duplicate side effects (e.g., sending notifications
+twice).
+
+**How it works:**
+
+1. **OE tracks all steps** - Every tool/LLM call is logged with its step
+   number, name, and result
+2. **On resume, agent replays** - LangGraph re-runs from start, making
+   the same calls in order
+3. **OE returns cached results** - Instead of re-executing, OE returns
+   the stored result
+
+.. code-block:: text
+
+   Original Execution:
+     Step 1: lookup_policy("POL-123")     → executed, result stored
+     Step 2: query_mongogpt(...)          → executed, result stored
+     Step 3: human_review(...)            → SUSPEND (waiting for human)
+
+   Resume Execution:
+     Step 1: lookup_policy("POL-123")     → CACHED (returns stored result)
+     Step 2: query_mongogpt(...)          → CACHED (returns stored result)
+     Step 3: human_review(...)            → CACHED (returns human's decision)
+     Step 4: send_notification(...)       → executed (new step)
+
+Replay caching is handled by the Go OE. The AER/SecureToolWrapper
+handles cached responses transparently:
+
+**AER/SecureToolWrapper handling:**
+
+.. code:: python
+
+   # In secure_wrapper.py - OE already returns the final replay outcome
+   response = await request_oe_approval(...)
+   if response.from_cache:
+       log_cached_result(tool_name, step)
+   return response.result
+
+This ensures **deterministic resume** - the agent sees exactly the same
+results it saw before suspending, preventing duplicate side effects.
+
+Checkpointing
+~~~~~~~~~~~~~
+
+Supports both in-memory and MongoDB checkpointers:
+
+.. code:: python
+
+   # In runtime.py
+   def get_checkpointer(self):
+       if mongodb_uri:
+           return MongoDBSaver(client, db_name)
+       return MemorySaver()  # Development only
+
+--------------
+
+File Structure
+--------------
+
+.. code-block:: text
+
+   src/agent_engine_runner_shared/
+   ├── runtime.py           # TenantRuntime - main SDK entry point
+   ├── secure_wrapper.py    # SecureToolWrapper, SecureWrappedLLM
+   ├── models.py            # Pydantic models for all API contracts
+   ├── context.py           # Per-execution context (contextvars)
+   ├── metrics.py           # Metrics collection and @with_metrics decorator
+   ├── utils.py             # Logging utilities, env helpers
+   ├── logging.py           # Durable execution logging (JSONL + MongoDB)
+   ├── memory.py            # MemoryEngine integration, MemoryWriter
+   ├── voyage.py            # VoyageService for embeddings
+   ├── events.py            # SSE event streaming, observability
+   ├── types.py             # Protocol definitions (MemoryEngineProtocol)
+   ├── tracing/             # OpenTelemetry tracing
+   │   ├── setup.py         # setup_tracing(), get_current_trace_context()
+   │   └── exporters.py     # JSONLSpanExporter, MongoDBSpanExporter
+   └── server/
+       ├── base.py          # BaseServer abstract class
+       ├── aer.py           # AER implementation
+       ├── tool.py          # Tool Pod implementation
+       └── memory.py        # Memory Server implementation
+
+--------------
+
+Design Decisions
+----------------
+
+Why Route Everything Through OE?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Even though it adds latency, routing through OE provides: 1. **Complete
+audit trail** - Every call is logged 2. **Policy enforcement point** -
+Single place to block calls 3. **Replay capability** - OE can return
+cached results for resume 4. **Framework agnostic** - OE doesn’t know
+about LangGraph
+
+Why Separate AER and Tool?
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- **AER** needs LLM API access but shouldn’t have database credentials
+- **Tool** might need database access but shouldn’t have LLM keys
+- Different tools can run in different Tools with different permissions
+
+--------------
+
+Feature Parity with agent-runtime
+---------------------------------
+
+The Runner SDK now provides feature parity with the monolithic
+``agent-runtime``:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Feature
+     - agent-runtime
+     - Runner SDK
+   * - @app.tool decorator
+     - ✅
+     - ✅
+   * - Explicit network/timeout metadata
+     - ✅
+     - ✅
+   * - Field redaction
+     - ✅
+     - ✅
+   * - MongoDB Checkpointing
+     - ✅
+     - ✅
+   * - Execution Logging (JSONL + MongoDB)
+     - ✅
+     - ✅
+   * - OpenTelemetry Tracing
+     - ✅
+     - ✅
+   * - Memory Integration
+     - ✅
+     - ✅
+   * - Voyage AI Embeddings
+     - ✅
+     - ✅
+   * - Multi-tenant (org_id/user_id)
+     - ✅
+     - ✅
+   * - SSE Event Streaming
+     - ✅
+     - ✅
+   * - gRPC Server
+     - ✅
+     - ✅
+   * - Streaming Support
+     - ✅
+     - ✅
+   * - Human-in-the-loop
+     - ❌
+     - ✅
+   * - Three-component architecture
+     - ❌
+     - ✅
+   * - Replay caching
+     - ❌
+     - ✅
+
+Optional Dependencies
+~~~~~~~~~~~~~~~~~~~~~
+
+Install features as needed. Use ``uv add`` if your project is managed
+with uv, or ``pip install`` otherwise:
+
+.. code:: bash
+
+   # uv projects
+   uv add agent-engine-runner-shared
+   uv add "agent-engine-runner-shared[mongodb,tracing]"
+   uv add "agent-engine-runner-shared[tracing]"
+   uv add "agent-engine-runner-shared[mongodb]"
+
+   # pip
+   pip install agent-engine-runner-shared
+   pip install "agent-engine-runner-shared[mongodb,tracing]"
+   pip install "agent-engine-runner-shared[tracing]"
+   pip install "agent-engine-runner-shared[mongodb]"

@@ -1,0 +1,168 @@
+.. _agentic-platform-test:
+
+===============
+Test Your Agent
+===============
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Learn how to manually test your agent locally by using the agentengine CLI to inspect responses, debug unexpected behaviors, and iterate on your code before deploying to the platform.
+   :keywords: verify, iterate, ai, code example, development
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to manually test your {+platform-short+} agent
+in a local development environment. After you start the environment by using the
+``agentengine dev`` command, the CLI prints URLs for the app and the local MongoDB
+instance so that you can drive requests, inspect responses, and debug issues
+before you build and deploy the agent to the cloud.
+
+Prerequisites
+-------------
+
+Before you begin, ensure that you complete the following tasks:
+
+- Install and configure the agentengine CLI.
+- Start a local development environment by following the steps in the
+  :ref:`agentic-platform-build-local` guide.
+
+To learn more about how to install the CLI, authenticate, and register the
+project, see :ref:`agentic-platform-set-up-install-authenticate`.
+
+Access Local Services
+---------------------
+
+When you run ``agentengine dev up`` in either hot-reload or isolated
+mode, the CLI builds the Docker image for your agent and starts the full
+stack. When all services are ready, the CLI prints URLs for the app and
+the local MongoDB instance.
+
+Use the following URLs to perform your manual tests:
+
+- **App endpoint URL**: Use a browser, API client, or command-line tools to send
+  requests to your agent.
+- **MongoDB Atlas Local URL**: Connect by using ``mongosh`` or another MongoDB
+  client to inspect or seed test data.
+
+For example, you can use these URLs to perform the following tests:
+
+- Send a chat or HTTP request that exercises a specific tool call.
+- Insert test documents into the local database and verify how the agent uses
+  them.
+- Inspect responses for correctness, latency, and error handling.
+
+Test in Hot-Reload Mode
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Hot-reload mode mounts your source code into the app container and
+reloads your agent process each time you save a change. Use the
+following workflow to test and iterate without rebuilding the stack.
+
+To learn how to start the environment in hot-reload mode or attach
+VS Code to the running container, see :ref:`agentic-platform-build-local-hot-reload` in
+the Build Your Local Environment guide.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Exercise the agent.
+
+      Use the app or playground UI URL to send requests that cover the
+      behavior you want to test.
+
+   .. step:: Edit the agent code.
+
+      Change your Python code, prompts, or tool wiring in your project
+      source. The file watcher inside the container detects changes and
+      reloads the affected services without a full rebuild.
+
+   .. step:: Re-run the same scenario.
+
+      Re-send the same request and verify that your changes produce the
+      expected behavior.
+
+Test in Isolated Mode
+~~~~~~~~~~~~~~~~~~~~~
+
+Use isolated mode when you want to validate behavior that depends on
+service boundaries, container restarts, or network interactions.
+
+To learn how to start the environment in isolated mode, see
+:ref:`agentic-platform-build-local-isolated` in the Build Your Local Environment guide.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Run end-to-end scenarios.
+
+      Use the app and playground UI URLs to exercise your agent as you
+      would in production.
+
+   .. step:: Apply code changes.
+
+      Because isolated mode does not mount your source code from the host,
+      you must rebuild images after code changes. Run the following commands to
+      apply your changes:
+
+      .. code-block:: sh
+
+         agentengine dev stop
+         agentengine dev up --isolated
+
+      The first command stops the running containers. The second rebuilds
+      and restarts the isolated stack with your updated code.
+
+Inspect Logs and Troubleshoot
+-----------------------------
+
+While you test, use ``agentengine dev`` commands to inspect logs and
+reset state as needed.
+
+View Logs
+~~~~~~~~~
+
+To stream logs from all running services, run the following command:
+
+.. code-block:: sh
+
+   agentengine dev logs
+
+Use this output to debug errors, verify tool calls, and inspect trace
+messages emitted by your agent.
+
+Reset Local State
+~~~~~~~~~~~~~~~~~
+
+If you encounter persistent errors related to the local MongoDB
+replica set or data, you can reset the local state by running the following commands:
+
+.. code-block:: sh
+
+   agentengine dev clean
+   agentengine dev up
+
+This sequence removes all local volumes and starts a fresh stack.
+
+.. warning::
+
+   Running ``agentengine dev clean`` permanently deletes all local data
+   stored in the MongoDB Atlas Local volume. Back up any data you need
+   before you run this command.
+
+Next Steps
+----------
+
+After you validate your agent locally, you can build and deploy it to
+the {+platform-short+} cloud environment. To learn how to package your
+agent image and deploy it to a workspace, see the
+:ref:`Deploy the Agent <agentic-platform-deploy-provision-secrets>` section.

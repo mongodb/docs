@@ -1,0 +1,262 @@
+.. _python-packages-agent-engine-runner-shared-src-agent_engine_runner_shared-connectors-generate:
+
+OpenAPI generator atlas
+=======================
+
+This package translates a messy OpenAPI 3 document into the two
+connector files the rest of the platform already understands. Its job is
+to absorb OpenAPI variation at authoring time. Runtime code never parses
+OpenAPI and does not need a second request plan.
+
+The boundary
+------------
+
+.. code:: text
+
+   OpenAPI document + optional endpoint/auth overrides
+     generate/
+       load and resolve the source document
+       discover operations and authentication
+       project inputs onto supported HTTP wire shapes
+       validate the complete stable definition
+     tool_defs.yaml          complete generated catalog
+     tool.yaml               developer-owned binding and exposure policy
+       existing materializer, loader, and ConnectorExecutor
+
+``tool_defs.yaml`` is the producer output and the runtime contract. It
+contains tool names and descriptions, JSON input schemas, HTTP method
+and path, argument placement, request-body encoding, and secret-free
+provenance. It may describe every supported operation in a large API.
+
+The generated catalog and connector runtime are one version-aligned
+contract. A newer generator does not promise that catalogs using its
+contract will load in an older agent-engine-runner-shared version.
+
+``tool.yaml`` is the consumer-owned wiring. It selects which tools an
+agent exposes and binds the catalog to the deployed endpoint and tenant
+secret environment names. The generator may scaffold this file, but
+regeneration preserves it. A generated file opens with a comment naming
+the endpoint destination and credential secret the agent must declare in
+``agent.yaml``; the comment reports requirements only and enables no
+platform policy.
+
+This separation is intentional:
+
+- OpenAPI complexity stops in the producer.
+- The catalog can be generated once and published independently.
+- Different agents can use the same catalog with different endpoints,
+  credentials, and tool allow-lists.
+- The loader and executor operate on one stable definition format
+  regardless of where that definition came from.
+
+How compilation works
+---------------------
+
+Compilation has five stages:
+
+1. ``spec.py`` loads a local UTF-8 JSON or YAML document, validates the
+   small OpenAPI 3 envelope the compiler needs, and resolves local
+   references.
+2. ``catalog.py`` discovers HTTP operations and determines the
+   catalog-wide credential presentation.
+3. ``parameters.py`` converts each operation’s parameters and request
+   body into a JSON input schema plus compact wire-placement metadata.
+4. ``naming.py`` assigns deterministic, MCP-safe tool names.
+5. ``definitions.py`` validates the finished ``ToolDefinitions`` object
+   through the same contract used when runtime loads ``tool_defs.yaml``.
+
+An invalid document-wide premise, such as a malformed ``paths`` map,
+rejects the whole document. An unsupported operation-local shape raises
+an error naming that operation. With ``skip_unsupported=True``,
+compilation omits those operations and records every reason in catalog
+provenance. It never silently repairs a malformed declaration.
+
+Base URL
+~~~~~~~~
+
+A connector has exactly one base URL:
+
+1. An explicit caller override wins.
+2. Otherwise, the first non-templated document-level server is used.
+3. If neither exists, generation asks the caller for an explicit base
+   URL.
+
+Path-level and operation-level ``servers`` entries are ignored. They
+often describe sample, regional, or deployment-specific endpoints, while
+``tool.yaml`` must point the connector at the service the agent can
+actually reach. They never create separate runtime origins per tool.
+
+Authentication
+~~~~~~~~~~~~~~
+
+OpenAPI security declarations describe how a credential appears on the
+wire, not how the platform obtains or owns it. ``security.py`` therefore
+reduces them to secret-free presentation metadata:
+
+- no authentication;
+- Bearer tokens, including the presentation of OAuth 2 and OpenID
+  Connect access tokens;
+- API keys in a header, query parameter, cookie, or base-URL path
+  placeholder;
+- HTTP Basic authentication;
+- multiple required API-key headers and constant non-secret headers.
+
+An explicit authoring override replaces the document’s security choice
+for the whole catalog. The generated ``tool.yaml`` binds the selected
+presentation to tenant secret environment names. Credential fields are
+removed from model arguments so the model cannot supply or override
+them.
+
+Without an override, the first supported authenticated operation selects
+the catalog presentation. Compatibility mode records operations
+requiring another presentation as unsupported; strict mode rejects the
+document. Anonymous operations remain available unless one of their
+normal parameters would collide with the catalog credential.
+
+OAuth consent, authorization-code exchange, token acquisition, refresh,
+and revocation are not implemented here. Session login, request-signing
+schemes such as OAuth 1 or SigV4, mTLS-only authentication, and
+arbitrary custom authentication code are also out of scope.
+
+Parameter translation
+---------------------
+
+Every accepted parameter needs both a JSON Schema understood by the
+model and one deterministic HTTP spelling understood by the executor.
+
+The generator supports:
+
+- scalar path parameters using OpenAPI ``simple`` serialization;
+- scalar and scalar-array query parameters using form serialization,
+  including repeated keys and comma-joined arrays;
+- deep-object query values using bracketed field names;
+- JSON-valued query parameters declared through parameter ``content``;
+- scalar and scalar-array headers using HTTP comma-separated values;
+- scalar cookies;
+- nullable schemas and plain ``anyOf`` / ``oneOf`` unions when every
+  possible branch is serializable in the same parameter location.
+  Optional null values are omitted; JSON-valued query parameters use the
+  JSON literal ``null``.
+
+Unsupported styles and value shapes reject the operation instead of
+guessing. Path placeholders must have matching parameter declarations;
+the compiler does not invent a missing schema. Required nullable values
+in non-JSON parameter encodings have no unambiguous spelling, and
+``allowReserved: true`` is not represented by the stable wire contract;
+both are unsupported.
+
+Request-body translation
+------------------------
+
+The compiler chooses one supported media type and records the
+corresponding encoding:
+
+.. list-table::
+   :header-rows: 1
+
+   * - OpenAPI media type
+     - Generated/runtime behavior
+   * - ``application/json``
+     - JSON body; simple object properties may become top-level tool arguments
+   * - ``application/*+json``
+     - JSON body with the declared vendor media type
+   * - ``application/x-www-form-urlencoded``
+     - Wrapped ``body`` object with repeated, comma, or bracketed fields
+   * - ``multipart/form-data``
+     - Wrapped ``body`` object with scalar or JSON-valued parts
+   * - ``text/plain``
+     - Wrapped string body
+   * - ``application/octet-stream``
+     - Wrapped base64 string decoded before dispatch
+
+JSON properties are flattened only when doing so preserves body presence
+and all object-level validation. Otherwise the original schema stays
+under one ``body`` argument. Form and multipart bodies always stay
+wrapped, which keeps nested schemas, unions, and required-property
+relationships together instead of rebuilding them as synthetic
+arguments.
+
+Local recursive schemas become self-contained JSON Schema ``$defs``.
+External references are not fetched. Multipart file parts and
+unrecognized media types are unsupported. Required nullable form and
+multipart values are also unsupported because their encoders would omit
+them. Required nullable text bodies have no distinct null spelling and
+are unsupported. Response schemas are not compiled; the existing
+executor returns bounded UTF-8 response text to the tool caller.
+
+Files and responsibilities
+--------------------------
+
+.. list-table::
+   :header-rows: 1
+
+   * - File
+     - Owns
+     - Does not own
+   * - ``__init__.py``
+     - Public generator exports
+     - Compilation logic
+   * - ``modes.py``
+     - Compile, scaffold, and regenerate workflows
+     - OpenAPI semantics
+   * - ``spec.py``
+     - Strict loading, envelope validation, safe errors, local references
+     - Parameter or auth policy
+   * - ``catalog.py``
+     - Operation discovery, one base URL/auth choice, skip provenance
+     - Wire serialization details
+   * - ``parameters.py``
+     - Parameter and request-body projection
+     - File writing or credential values
+   * - ``security.py``
+     - OpenAPI security-to-presentation mapping
+     - OAuth lifecycle or secret binding
+   * - ``naming.py``
+     - Stable tool names and collision handling
+     - Operation filtering
+   * - ``authoring.py``
+     - Safe ``tool.yaml`` construction and output containment
+     - Catalog compilation
+   * - ``../definitions.py``
+     - Stable serialized contract and shared validation
+     - OpenAPI parsing
+   * - ``../executor.py``
+     - Mechanical request construction and bounded HTTP execution
+     - OpenAPI interpretation
+
+Public workflows
+----------------
+
+``compile_catalog(...)`` reads one local OpenAPI document and creates
+``tool_defs.yaml`` plus a new ``tool.yaml``. It refuses to overwrite
+either file.
+
+``scaffold_tool_yaml(...)`` validates an existing local catalog and
+creates only its consumer wiring. It does not copy or modify the
+catalog.
+
+``regenerate_catalog(...)`` follows the local OpenAPI reference recorded
+in an existing ``tool.yaml``, rewrites only the generated catalog, and
+preserves endpoint, credential, and exposure choices.
+
+Downloading OpenAPI documents or hosted catalogs belongs to the CLI. The
+Python generator accepts local files so network policy and file
+generation remain separate concerns.
+
+Acceptance corpus
+-----------------
+
+``tests/corpus/manifest.json`` pins 100 real-world APIs.guru documents
+by URL and SHA-256. The set contains 10,059 declared operations and
+requires at least 9,512 generated tools overall, at least 80% for every
+API, and named Pinecone data-plane operations. The current
+implementation produces 9,880 tools (98.22%) for the pinned inputs.
+
+``./scripts/test.sh agent-engine-runner-shared-corpus`` downloads the
+exact documents, verifies their digests, enforces a per-document compile
+timeout, and runs every coverage floor. The documents themselves stay
+untracked. A lower floor requires a reviewed explanation that the
+previously generated operation could not be represented faithfully.
+Selected corpus documents are also compiled without authentication
+overrides so source projection remains covered independently from the
+normal override-based coverage gate.

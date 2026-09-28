@@ -1,0 +1,425 @@
+.. _agentic-platform-build-deep-agent:
+
+==================
+Build a Deep Agent
+==================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn how to build deep agents using App.deep_agent(), skill manifests, and the tool sandbox backend on the MongoDB Atlas Agent Engine to enable secure tool execution in an isolated environment.
+   :keywords: deep agent, sdk, skills, tool sandbox, ai, App.deep_agent, skill manifest, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+The {+mdb-ai-platform+} SDK provides a developer-facing surface for
+building deep agents. Deep agents are AI agents capable of filesystem operations,
+shell execution, and multi-step reasoning, with all input and output routed through
+the platform's audited security layer.
+
+.. tip::
+
+   To learn more about deep agents, see `Deep Agents overview
+   <https://docs.langchain.com/oss/python/deepagents/overview>`__
+   in the LangChain documentation.
+
+Agent authors interact with three primary SDK components:
+
+- :ref:`App.deep_agent() <agentic-platform-app-deep-agent>`: The factory method
+  for defining and wiring a deep agent.
+- :ref:`Skill manifests <agentic-platform-skill-manifests>`: Instruction sets
+  that the agent can discover and invoke at runtime.
+- :ref:`Tool sandbox backend <agentic-platform-toolsandbox-backend>`: The backend that
+  routes all tool calls through the platform's secure execution path.
+
+Prerequisites
+-------------
+
+Before you build a deep agent, you must add the ``deepagents`` dependency to your
+``pyproject.toml`` file and enable deep agent features in your ``agent.yaml`` file.
+
+Update Dependencies
+~~~~~~~~~~~~~~~~~~~
+
+To create a deep agent, add the ``deepagents`` package to your project's ``pyproject.toml`` file:
+
+.. code-block:: toml
+
+   dependencies = [
+       "deepagents==0.5.3",
+       ... # other dependencies
+   ]
+
+The ``deepagents`` package is an optional dependency of the
+``agent-engine-sdk-langgraph`` package. The SDK imports the ``deepagents`` package only when the app calls the
+``App.deep_agent()`` function, so you must declare it explicitly in
+your project.
+
+Update Feature Flags
+~~~~~~~~~~~~~~~~~~~~
+
+Enable deep agent features in your ``agent.yaml`` by adding the following flag to your ``agent.yaml`` file:
+
+.. code-block:: yaml
+
+   features:
+     deep_agent: true
+     ... # other features
+
+This flag instructs the tool sandbox to register the built-in filesystem
+and shell handlers that deep agents rely on.
+
+.. note::
+
+   TypeScript agents build deep agents with the equivalent
+   ``app.deepAgent()`` factory method, which requires the same
+   ``features.deep_agent: true`` setting. The examples on this page use
+   Python.
+
+.. _agentic-platform-app-deep-agent:
+
+deep_agent() Method
+-------------------
+
+The ``App.deep_agent()`` method is the primary entry point for agent authors. It
+creates a compiled LangChain graph that integrates with the platform's
+gRPC and SSE streaming path, MongoDB-backed checkpointing, and the
+``AgentEngineToolSandboxBackend`` class for sandbox tool execution.
+
+The method performs the following tasks automatically:
+
+- Uses the ``AgentEngineToolSandboxBackend`` class as the default sandbox
+- Wraps the top-level LLM and all ``SubAgent`` models in
+  the ``SecureWrappedLLM`` class to enforce the platform's audited LLM path
+- Threads the MongoDB checkpointer for durable execution state
+- Returns a compiled graph compatible with the existing gRPC/SSE
+  streaming path and the ``POST /api/v1/executions/{execution_id}/resume``
+  API request
+
+Parameters
+~~~~~~~~~~
+
+The ``App.deep_agent()`` method accepts the following parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 15 15 50
+
+   * - Parameter
+     - Type
+     - Required
+     - Description
+   * - ``llm``
+     - LLM
+     - Yes
+     - The language model instance to use as the agent's primary
+       model. The platform wraps this in the ``SecureWrappedLLM``
+       class automatically.
+   * - ``tools``
+     - list
+     - No
+     - A list of LangChain-compatible tool objects available to the
+       agent. To learn more about LangChain tools, see the `LangChain
+       documentation
+       <https://docs.langchain.com/oss/python/langchain/tools>`__.
+   * - ``subagents``
+     - list
+     - No
+     - A list of ``SubAgent`` class instances. Each ``SubAgent.model``
+       attribute must be an LLM instance, not a string.
+       String-based model references bypass the ``SecureWrappedLLM``
+       class and are rejected at validation time.
+   * - ``skills``
+     - list[str]
+     - No
+     - A list of paths to skill directories. Each directory must
+       contain a valid ``SKILL.md`` file. Each path must be a
+       ``str``, not a ``pathlib.Path`` object. To learn more about SKILL.md
+       files, see the :ref:`Skill manifests
+       <agentic-platform-skill-manifests>` section.
+   * - ``system_prompt``
+     - string
+     - No
+     - Custom system instructions for the deep agent. If omitted, the
+       agent uses the default prompt from the ``deepagents`` library.
+   * - ``middleware``
+     - list
+     - No
+     - Additional middleware, which runs after the SDK's default
+       interrupt-recovery and durable-nesting middleware.
+   * - ``checkpointer``
+     - any
+     - No
+     - LangGraph checkpointer for state persistence. Defaults to
+       ``app.checkpointer()``. Pass ``None`` to
+       disable checkpointing, or a ``BaseCheckpointSaver`` instance to
+       use a custom checkpointer.
+   * - ``store``
+     - any
+     - No
+     - LangGraph store used for skills and other shared data.
+   * - ``backend``
+     - any
+     - No
+     - Backend for filesystem and shell operations. Defaults to the
+       ``AgentEngineToolSandboxBackend`` class. A custom backend bypasses the
+       platform's audited I/O path. To learn more, see
+       :ref:`agentic-platform-toolsandbox-backend`.
+
+Create a Deep Agent with Skills
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To create a deep agent that invokes skills, pass a list of skill directory
+paths to the ``skills`` parameter of the ``App.deep_agent()`` method.
+
+The following example modifies the ``@app.entrypoint``-decorated function
+to create a deep agent with a single tool and a skill directory:
+
+.. code-block:: python
+
+   from agent_engine_sdk_langgraph import App
+
+   app = App()
+
+   @app.entrypoint
+   def build_agent():
+       return app.deep_agent(
+           llm=my_llm,
+           tools=[my_tool],
+           subagents=[],
+           skills=["skills/security-review"],
+       )
+
+.. important::
+
+   Do not wrap your LLM instance with the ``app.llm()`` method before you pass it to
+   the ``app.deep_agent()`` method. The ``deep_agent()`` method wraps the LLM in
+   the ``SecureWrappedLLM`` class internally. Calling the ``app.llm()`` method
+   first registers the ``__default__`` LLM ID twice and the agent fails to start.
+
+Security Validations
+~~~~~~~~~~~~~~~~~~~~
+
+At initialization time, the ``App.deep_agent()`` method runs the
+following checks and raises an error if either fails: 
+
+- Check for string model references in the ``SubAgent`` class: Each ``SubAgent.model``
+  attribute must be an LLM instance and not a string. String model names
+  bypass the ``SecureWrappedLLM`` class and the platform rejects the agent. The method
+  checks up to 10 levels of nesting.
+- Check for a manually supplied ``backend`` parameter: The platform owns the sandbox and enforces the
+  ``AgentEngineToolSandboxBackend`` class as the backend. Supplying a custom backend bypasses the platform's sandbox and the platform rejects the backend.
+
+.. note::
+
+   The ``App.deep_agent()`` method runs the preceding checks before the
+   LangChain ``deepagents`` library compiles the agent graph. If either
+   of the checks fail, the agent doesn't start.
+
+In addition to these checks, the ``App.deep_agent()`` method
+automatically wraps the LLM instance passed to the ``llm`` parameter and all
+``SubAgent.model`` attributes in the ``SecureWrappedLLM`` class before
+the ``deepagents`` library compiles the graph.
+
+.. _agentic-platform-skill-manifests:
+
+Skill Manifests
+---------------
+
+Skills are reusable instruction sets that you provide to a deep agent.
+Each skill lives in its own subdirectory and is described by a
+``SKILL.md`` file with YAML frontmatter. The platform reads the
+frontmatter at agent startup to validate and expose the skill
+to the LLM.
+
+Skill Directory Structure
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Skills are located within the following directory structure, where the directory name matches
+the ``name`` field in the frontmatter:
+
+.. code-block:: none
+
+   <workspace-directory>/
+   └── skills/
+       └── <skill-name>/
+           └── SKILL.md
+
+Skill paths passed to the ``skills`` parameter are relative to your agent's
+workspace directory, which is the directory containing your ``agent.yaml`` file.
+
+SKILL.md Format
+~~~~~~~~~~~~~~~
+
+A valid ``SKILL.md`` file must begin with YAML frontmatter. The following example
+is a template for a valid ``SKILL.md`` file:
+
+.. code-block:: yaml
+
+   ---
+   name: <skill-name>
+   description: <one-sentence description for LLM discovery>
+   ---
+
+   # Skill Title
+
+   Detailed instructions or reference material for the agent...
+
+You must include the following fields in the YAML frontmatter:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 15 65
+
+   * - Field
+     - Required
+     - Description
+   * - ``name``
+     - Yes
+     - The name of the skill. Must match the parent directory
+       name exactly.
+   * - ``description``
+     - Yes
+     - The LLM uses this short description to decide when to invoke the
+       skill. Skills missing a ``description`` are skipped by the platform with a
+       warning at agent startup and are not available to the agent.
+
+.. note::
+
+   The ``SKILL.md`` file must contain only valid UTF-8 characters. Files
+   that cannot be read as UTF-8 by the platform are skipped at agent startup
+   without causing a crash.
+
+Passing Skills to the Agent
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example passes a list of skill directory paths to the ``App.deep_agent()`` method:
+
+.. code-block:: python
+
+   agent = app.deep_agent(
+       llm=my_llm,
+       tools=[],
+       skills=["skills/security-review", "skills/style-guide"],
+   )
+
+.. _agentic-platform-toolsandbox-backend:
+
+Tool Sandbox Backend
+--------------------
+
+The ``AgentEngineToolSandboxBackend`` class implements the
+``SandboxBackendProtocol`` protocol. The backend routes all filesystem and shell
+tool calls from the deep agent graph through the platform's tool sandbox
+handler by using the ``SecureToolWrapper`` class. You do not need to
+instantiate or configure the ``AgentEngineToolSandboxBackend`` class directly, because the
+``App.deep_agent()`` method injects it automatically.
+
+.. note::
+
+   The ``AgentEngineToolSandboxBackend`` class is an optional dependency and is not
+   re-exported from the package root. If you need to reference it
+   directly, import it explicitly. The following example demonstrates how to import the class:
+
+   .. code-block:: python
+
+      from agent_engine_sdk_langgraph.backends.tool_sandbox import AgentEngineToolSandboxBackend
+
+Supported Operations
+~~~~~~~~~~~~~~~~~~~~
+
+The ``AgentEngineToolSandboxBackend`` class operations are invoked automatically
+by the agent at runtime and are not called directly by agent authors.
+The ``AgentEngineToolSandboxBackend`` class supports the following operations,
+each exposed to the LLM as a corresponding ``filesystem_*`` or 
+``shell_execute`` tool:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Operation
+     - Description
+   * - ``ls``
+     - Lists files and directories at a given path
+   * - ``read``
+     - Reads the contents of a file
+   * - ``write``
+     - Writes content to a file
+   * - ``edit``
+     - Applies an edit to an existing file
+   * - ``glob``
+     - Finds files matching a glob pattern
+   * - ``grep``
+     - Searches for a pattern within files
+   * - ``execute``
+     - Runs a shell command in the sandbox
+   * - ``download_files``
+     - Downloads files from the sandbox to the caller
+
+Error Handling
+~~~~~~~~~~~~~~
+
+The backend classifies all errors before surfacing them to the agent
+graph so the agent can decide whether to retry the operation. The
+following table shows possible error classifications and their causes:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Classification
+     - Example Causes
+   * - Retryable
+     - Transient network or input and output errors such as ``ConnectionError``,
+       ``OSError``, or ``TimeoutError``.
+   * - Non-retryable
+     - ``PolicyDeniedException``: the operation was denied by the
+       platform's security policy. The agent cannot retry the operation.
+
+       ``RuntimeError``: the backend was used outside a valid agent
+       sandbox context, such as in a local script or test. This error
+       prevents infinite retry loops on misconfiguration.
+
+The platform strips all internal workspace paths from all error messages before
+they are surfaced to the agent.
+
+Filesystem Sandbox
+~~~~~~~~~~~~~~~~~~
+
+Deep agents operate inside a sandboxed filesystem. The sandbox contains the following layers:
+
+- **Writable workspace** (``WORKSPACE_DIR``): Defaults to the
+  ``/tmp/agent-workspace`` directory. During agent sandbox sessions, the sandbox limits the agent's access
+  to the ``WORKSPACE_DIR/.sessions/<session-hash>/`` path so that concurrent
+  sessions stay isolated. Use relative paths or paths under the ``/tmp`` directory
+  for generated files.
+- **Read-only resource roots** (``READONLY_RESOURCE_ROOTS``):
+  Populated from the ``AGENTIC_AGENT_WORKDIR`` environment variable and the ``skills/`` directory. This layer
+  allows the agent to read ``SKILL.md`` files inside and outside the
+  per-session workspace, so it can load skill content on demand.
+
+.. important::
+
+   Do not set the ``WORKSPACE_DIR`` environment variable to your agent source directory, such as
+   the ``/app`` directory. If you set the ``WORKSPACE_DIR`` variable to your agent source directory,
+   the agent makes skill files inaccessible at runtime and throws a
+   ``Path escapes workspace sandbox`` error.
+
+   To change the workspace
+   directory, set the ``AGENTIC_AGENT_WORKDIR`` environment variable instead:
+
+   .. code-block:: bash
+
+      # .env
+      AGENTIC_AGENT_WORKDIR=/app
+      # Do NOT add: WORKSPACE_DIR=/app

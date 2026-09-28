@@ -1,0 +1,115 @@
+.. _python-packages-agent-engine-runner-shared-src-agent_engine_runner_shared-connectors:
+
+Compiled connector core
+=======================
+
+This Python-only package implements definition loading, synchronous HTTP
+execution and opt-in registration. It is not exposed through the CLI.
+Connector tools use the existing AER → OE → Tool Pod execution path.
+
+Runtime integration follows the platform’s config → discover → register
+flow: each process derives its own view from the same manifest.
+Resolution order in ``resolve_runtime_bundle``:
+
+1. A pre-materialized bundle published by the platform build, located
+   via the platform-owned ``AGENTIC_CONNECTOR_BUNDLE_PATH`` environment
+   variable (the deployment contract for hosted builds).
+2. Otherwise, the ``connectors`` entries in ``agent.yaml`` are
+   materialized in memory at startup: each entry names a ``tool.yaml``
+   (resolved relative to ``agent.yaml``) that selects operations from a
+   local catalog file (resolved relative to the ``tool.yaml``, contained
+   within the agent workspace) and binds the endpoint and credential
+   environment reference. Catalogs are local files only — HTTPS catalog
+   references fail; there is no network fetch.
+3. With neither configured, loading is an immediate no-op without
+   filesystem or network access.
+
+.. code:: yaml
+
+   version: 1
+   connectors:
+     - source: connectors/jiradc/tool.yaml
+
+Each ``source`` points at the connector’s ``tool.yaml`` (resolved
+relative to ``agent.yaml``); that authoring file names the catalog and
+carries the binding:
+
+.. code:: yaml
+
+   name: jiradc
+   tool_defs: tool_defs.yaml
+   source:
+     type: openapi
+     base_url: https://jira.example.com/rest
+   expose:
+     allow: [jiradc_getComments]
+   auth:
+     type: bearer
+     env: JIRA_TOKEN
+
+The pre-materialized index paths are relative to the index and must
+remain inside its directory. AER loads the schemas as ordinary remote
+tools. Tool Pod startup loads the same materialized view and owns one
+``ConnectorExecutor`` per connector.
+
+``load_tool_defs(path)`` reads a local compiled YAML artifact into
+``ToolDefinitions``. ``tool_schemas()`` returns detached name,
+description and ``inputSchema`` dictionaries. ``write(path)`` serializes
+the compiled data.
+
+Own one ``ConnectorExecutor(definitions)`` per connector in a Tool Pod
+process. Call ``execute(tool_name, arguments, env=tenant_secrets)``
+after authorization; the environment mapping is request-local and
+defaults to the tenant-owned process environment. Close the executor at
+shutdown after in-flight calls finish, or use it as a context manager.
+
+The compiled format is the stable ``source``, ``auth``, ``tools``,
+``params`` and ``inputSchema`` contract. ``externalize`` and source
+fingerprints are inert provenance/authoring data. No connector version
+or digest pin is enforced here.
+
+Authoring-time generation lives in this package too:
+``compile_catalog``, ``scaffold_tool_yaml`` and ``regenerate_catalog``
+produce these artifacts from OpenAPI 3.0 documents and existing local
+catalogs. The generator reads local files only — document and catalog
+downloads, with their transport policy, belong to the CLI. See the
+`OpenAPI generator atlas <generate/README.md>`__ for the translation
+pipeline, file responsibilities, supported wire shapes, authentication
+boundary, and explicit non-goals.
+
+The selected connector base URL is authoritative for every operation;
+nested OpenAPI server declarations do not create runtime routing. Secret
+values are never part of a published catalog. The stable definition
+supports the parameter, body, and static credential presentations
+documented in the generator atlas.
+
+Unknown top-level tool arguments are ignored; arbitrary keys within a
+wrapped body are preserved according to its schema. Compiled schemas
+must contain strict JSON values so their published tool descriptions are
+serializable. The generated top-level argument envelope supports only
+``type``, ``properties`` and ``required``; full JSON Schema composition
+remains available inside mapped properties such as a wrapped ``body``.
+OAuth token acquisition and Broker credential flows are outside this
+package.
+
+Responses are capped at 200,000 decoded bytes and marked when truncated.
+Redirects remain on the same origin; connectors with path credentials
+reject redirects because a redirect target cannot prove the credential
+stayed in its intended path position. Only GET, HEAD and OPTIONS retry
+429/503, at most three times; ``Retry-After`` is capped at 30 seconds.
+Each invocation carries a 30-second budget between requests, redirects,
+response chunks and retry waits. Every request uses its remaining budget
+for HTTPX’s standard connect, read, write and pool timeouts; the read
+timeout bounds each blocking read, as defined by HTTPX.
+
+HTTP failures, including rejected provider redirects, use
+``httpx.HTTPStatusError``, and transport failures use the existing
+timeout/connection exception types recognized by
+``classify_tool_api_error``. An HTTP error may retain a bounded provider
+error body (at most 4 KB) so the shared classifier can surface the
+provider’s own explanation. The retained body is never logged; the
+classifier applies rudimentary hygiene to the extracted explanation —
+control characters dropped, URL-shaped text rejected, exact credential
+values redacted, result bounded. This is best-effort, not a guarantee.
+Oversized bodies, redirect locations, and credential-bearing request
+objects are never retained.

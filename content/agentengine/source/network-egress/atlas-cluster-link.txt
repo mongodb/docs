@@ -1,0 +1,204 @@
+.. _agentic-platform-atlas-egress-link:
+
+==========================================
+Link Your Atlas Cluster for Network Egress
+==========================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Learn how to link an Atlas cluster to your workspace so that your deployed agent can reach the cluster through the platform base egress policy, and how to verify the link.
+   :keywords: service account, allowlist, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Your workspace's linked Atlas cluster is part of the platform base
+egress policy. After you link a cluster, your agent can reach it in
+both the ``deny_all`` and ``allow_list`` modes, and you do not need to
+add the cluster as an egress destination.
+
+In this guide, you can learn how to link an Atlas cluster to your
+workspace by using the ``agentengine`` CLI, verify the link, and change
+the linked cluster later.
+
+Linking a cluster also adds the {+platform-short+} connection IP
+addresses to the cluster's :atlas:`IP access list
+</security/ip-access-list/>`. You do not need to add these IP
+addresses manually.
+
+To learn how to allow the destinations that the base policy does not
+cover, such as LLM provider APIs and other third-party services, see
+the :ref:`agentic-platform-network-egress` guide.
+
+Prerequisites
+-------------
+
+Before you begin, ensure that you meet the following prerequisites:
+
+- You have the ``agentengine`` CLI version 0.1.54-alpha or later installed, and
+  it is available on your ``PATH`` environment variable. To learn more, see the
+  :ref:`agentic-platform-set-up-install-authenticate` guide.
+- You can authenticate to the platform by using the ``agentengine auth login`` command.
+- You have an Atlas project that contains the cluster you want to
+  link, or permission to create a cluster in that project.
+
+Create an Atlas Service Account
+-------------------------------
+
+The ``agentengine`` CLI authenticates to Atlas by using a service
+account. Create a service account in the Atlas project that holds your
+cluster, and then grant it either of the following role configurations:
+
+- ``Project Owner`` role
+- ``Cluster Creator``, ``Cluster Manager``, ``Database Access
+  Admin``, and ``Network Access Manager`` roles
+
+To learn how the CLI stores and resolves service account credentials,
+see the :ref:`agentic-platform-deploy-atlas-setup` guide.
+
+Link the Cluster
+----------------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Run the guided setup.
+
+      Run the following command, where ``<cloud-env>`` is your Atlas
+      cloud environment. Omit the ``--env`` flag for commercial cloud.
+
+      .. code-block:: bash
+
+         agentengine atlas setup --env <cloud-env>
+
+   .. step:: Select or create a cluster.
+
+      When the CLI prompts you, select the cluster that you want to
+      link. To create a cluster instead, choose the option to create
+      one. New clusters default to the Flex tier.
+
+      .. note::
+
+         Do not use the ``M0`` or shared tiers. To learn more about
+         cluster tier requirements, see the
+         :ref:`agentic-platform-deploy-atlas-setup` guide.
+
+   .. step:: Deploy your agent.
+
+      Run the following command to apply the link to your deployment:
+
+      .. code-block:: bash
+
+         agentengine deploy
+
+Verify the Link
+---------------
+
+The CLI reports two different views of your Atlas configuration: the local CLI
+state and the platform state. Because these states can differ, check both when
+you troubleshoot a connection problem.
+
+Local CLI State
+~~~~~~~~~~~~~~~
+
+To review the Atlas setup recorded on your machine, run the following
+command:
+
+.. code-block:: bash
+
+   agentengine atlas setup
+
+This command reads the local state that the CLI stores in the
+``.agentengine/state.json`` file. On a new checkout or a different
+machine, the command might prompt you to run the full setup again, even
+when your workspace is already linked. This behavior is expected and
+does not unlink your cluster.
+
+Platform State
+~~~~~~~~~~~~~~
+
+To review the link that {+platform-short+} recorded, run the following command:
+
+.. code-block:: bash
+
+   agentengine atlas status
+
+This command reports the linked Atlas environment and project ID, the
+egress synchronization status, and the time of the last successful
+synchronization. The following table describes the synchronization
+status values:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Status
+     - Description
+   * - ``ok``
+     - {+platform-short+} has the current cluster policy.
+   * - ``syncing``
+     - {+platform-short+} is applying a policy change.
+   * - ``error``
+     - {+platform-short+} cannot retrieve the cluster policy.
+
+Change the Linked Cluster
+-------------------------
+
+To link a different cluster, run the ``agentengine atlas setup`` command
+again and select the new cluster. This command re-points the egress
+link and configures the new cluster's Atlas IP access list.
+
+.. note::
+
+   If the new cluster belongs to a different Atlas project, your service account
+   must have the ``Project Owner`` role in that project as well.
+
+Troubleshooting
+---------------
+
+This section describes problems that you might encounter when linking an
+Atlas cluster.
+
+Setup Fails With a Permission Error
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Confirm that your Atlas service account has the ``Project Owner`` role in the
+Atlas project that holds your cluster.
+
+Setup Cannot Link Your Atlas Project
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``agentic atlas setup`` command links your Atlas project to your
+workspace automatically. If the link fails, the command prints a note
+and completes. To retry the link, run ``agentic atlas link``, then run
+``agentic atlas status`` to confirm that the link succeeded.
+
+Your Agent Cannot Reach a Cluster That You Did Not Link
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The base policy covers only the linked cluster. To reach another MongoDB
+cluster, add it as an egress destination on port ``27017``. To learn more, see
+the :ref:`agentic-platform-network-egress` guide.
+
+Your Agent Does Not Use Memory but Still Cannot Reach Atlas
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Disabling memory does not remove the Atlas requirement. If your
+workspace connects to Atlas at all, link the cluster as described in
+this guide.
+
+Next Steps
+----------
+
+After you link your cluster, allow the other destinations that your
+agent calls, such as LLM provider APIs. To learn how, see the
+:ref:`agentic-platform-network-egress-get-started` tutorial.

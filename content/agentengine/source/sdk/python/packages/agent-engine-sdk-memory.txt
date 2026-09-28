@@ -1,0 +1,1172 @@
+.. _python-packages-agent-engine-sdk-memory:
+
+agent-engine-sdk-memory
+=======================
+
+
+The standalone Python SDK for Atlas Agent Engine Memory — long-term
+memory for AI agents, usable inside or outside Atlas Agent Engine.
+
+It gives an agent one object, ``Memory``, to record conversation turns
+and recall relevant context later: facts it has learned (semantic), past
+conversations (episodic), domain knowledge (taxonomic), and reusable
+procedures. The package installs on its own and depends only on
+``pydantic`` and ``httpx``, so it drops into any agent without pulling
+in the platform stack.
+
+**Platform-deployed agents use this same SDK.** They do not construct it
+— the runtime hands the agent an ``agent_engine_sdk_memory.Memory``,
+already wired to the in-cluster transport and to the identity of the
+invocation it is handling. It is the same class and the same method
+signatures; only the transport underneath differs. So the code you write
+against an external agent runs unchanged when you deploy it onto the
+platform, and what you learn from this README applies in both places.
+
+Two things do differ: where identity comes from (see
+`connecting <#connecting>`__), and a handful of calls that the app-bound
+transport cannot serve and which raise ``MemoryNotSupportedError`` —
+listed in `what each connection
+supports <#what-each-connection-supports>`__.
+
+Start with `how memory works <#how-memory-works>`__ if this is new to
+you — the shape of the system explains most of the API. Then integrating
+it is three steps: `install <#install>`__, `connecting <#connecting>`__,
+and `use it <#use-it>`__. Server-side settings are covered in
+`configuring the memory server <#configuring-the-memory-server>`__.
+Reference material on `identity <#how-identity-is-resolved>`__,
+`errors <#errors>`__, and `models <#models>`__ follows, with package
+`internals <#internals>`__ last.
+
+Contents
+--------
+
+- `How memory works <#how-memory-works>`__
+
+  - `The problem it solves <#the-problem-it-solves>`__
+  - `Two layers <#two-layers>`__
+  - `How writes become memory <#how-writes-become-memory>`__
+  - `When extraction fails <#when-extraction-fails>`__
+  - `How reading works <#how-reading-works>`__
+  - `What scopes a memory <#what-scopes-a-memory>`__
+  - ``user_id and visibility`` answer different
+    questions <#user_id-and-visibility-answer-different-questions>`__
+
+- `Install <#install>`__
+- `Connecting <#connecting>`__
+
+  - `The hosted platform <#the-hosted-platform>`__
+  - `Local development <#local-development>`__
+  - `Inside a platform agent
+    (app-bound) <#inside-a-platform-agent-app-bound>`__
+  - `Env vars are a fallback <#env-vars-are-a-fallback>`__
+  - `How routing works <#how-routing-works>`__
+  - `Advanced: authenticated direct
+    backend <#advanced-authenticated-direct-backend>`__
+  - `What each connection supports <#what-each-connection-supports>`__
+
+- `Use it <#use-it>`__
+- `Configuring the memory server <#configuring-the-memory-server>`__
+
+  - `Settings you cannot change
+    later <#settings-you-cannot-change-later>`__
+
+- `How identity is resolved <#how-identity-is-resolved>`__
+
+  - `Setting visibility on a write <#setting-visibility-on-a-write>`__
+  - `Scoping a read <#scoping-a-read>`__
+
+- `Errors <#errors>`__
+- `Models <#models>`__
+
+  - `Reading back your own metadata <#reading-back-your-own-metadata>`__
+
+- `Internals <#internals>`__
+
+  - `Package layout <#package-layout>`__
+  - `Dependency denylist <#dependency-denylist>`__
+  - `Who uses it <#who-uses-it>`__
+
+How memory works
+----------------
+
+The problem it solves
+~~~~~~~~~~~~~~~~~~~~~
+
+Memory gives an agent a persistent store of the facts, conversations,
+procedures and vocabulary that matter — and fills that store itself, by
+extracting durable learned facts from the conversations your agent has
+with an LLM. The extraction itself is done by an LLM you configure.
+
+For a platform-deployed agent, none of this needs wiring. The runtime
+records each conversation turn to short-term memory as the agent
+workflow runs, and promotion and extraction then proceed asynchronously
+in the background, so nothing blocks a response while a fact is
+distilled. An agent that already knows something durable does not have
+to wait for extraction to find it — it can write the fact directly with
+``save_semantic`` and the other typed writes.
+
+Reading it back works either way round. An agent can go after one kind
+of fact at a time — ``search_semantic`` for what it has learned,
+``search_episodes`` for what happened before, ``search_taxonomic`` for
+what a term means, ``discover_procedures`` for how something is done —
+and handle the results itself.
+
+Or it can hand the whole job over. ``build_context_from_sources`` takes
+one spec per source, each declaring its own retrieval mode, filter and
+candidate count, then retrieves from every source on its own terms,
+ranks and de-duplicates the results together, trims them to a token
+budget, and returns a single block of context to drop into the next
+prompt. ``build_context`` does the same with one mode and one filter for
+every source; reach for the per-source form when they need to differ.
+
+Two layers
+~~~~~~~~~~
+
+Memory is split by how long things live and how they are shaped.
+
+**Short-term memory (STM)** is the raw conversation: one record per
+turn, scoped to a session, written as it happens. It is cheap to write
+and complete — everything said, in order.
+
+**Long-term memory** is what survives the conversation, distilled into
+four shapes because they answer different questions:
+
+.. list-table::
+   :header-rows: 1
+
+   * - type
+     - holds
+     - answers
+   * - ``semantic``
+     - a labelled fact
+     - “what do I know about this?”
+   * - ``episodic``
+     - a summarised episode
+     - “what happened before?”
+   * - ``procedural``
+     - a reusable procedure
+     - “how do I do this?”
+   * - ``taxonomic``
+     - a term and its definition
+     - “what does this word mean here?”
+
+Projects can also declare **custom types** for domain records the four
+shapes do not fit.
+
+How writes become memory
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+You do not write long-term memory by hand, though you can. The normal
+path is:
+
+.. code-block:: text
+
+   record_turn(...)          you write turns as the conversation happens
+         │
+         ▼   turns accumulate into a session
+      snapshot                a contiguous run of turns, summarised
+         │
+         ▼   an LLM reads the snapshot and extracts what is durable
+     semantic · episodic · procedural · taxonomic
+
+Extraction is asynchronous and runs in the background, so
+``record_turn`` stays a fast write. A fact learned in one conversation
+is therefore available to the next one, not to the next turn.
+
+The consequence worth designing around: **recent turns are visible
+immediately through STM, extracted knowledge appears a little later.**
+Ask for ``stm`` when you need what was just said.
+
+When extraction fails
+~~~~~~~~~~~~~~~~~~~~~
+
+Background extraction depends on an embedding service, an extraction
+LLM, and the database, and any of them can fail. Your writes are
+insulated from that: ``record_turn`` succeeded when it returned,
+whatever happens downstream.
+
+Behind the scenes, a failed step is classified by one question — can the
+condition change without the request changing? Environmental failures
+(network errors, provider outages, rate limits, an API key mid-rotation)
+are retried automatically with backoff, paced to the failure: a network
+blip retries within seconds, a credential problem more slowly, since
+keys are rotated by humans. Content-determined failures are not retried,
+because a retry cannot change the outcome; they are recorded server-side
+where operators can see them, rather than looping forever.
+
+This applies to the whole extraction path, not only its outer edges. A
+step that fails no longer quietly produces an empty result: it either
+retries, or is recorded where operators can act on it.
+
+**One unusable item does not discard the rest.** If a single memory
+cannot be embedded — its content is too long for the model, or the
+provider rejects it — that memory is still *stored*, and the others in
+the same batch are unaffected. What the stored memory lacks is a vector.
+In practice:
+
+- It is still found by ``text`` search, and by ``hybrid`` — hybrid
+  combines both rankings, so the text side still surfaces it.
+- It is **not** found by ``semantic`` search, which compares vectors
+  only.
+
+This is a good reason to prefer ``hybrid`` as your default retrieval
+mode. It is already the better choice for exact identifiers and rare
+words, and it also means a memory that could not be embedded still
+reaches you.
+
+What this means for an agent:
+
+- A provider outage delays extracted knowledge; it does not lose your
+  turns. STM is written synchronously and is unaffected — keep asking
+  for ``stm`` when you need what was just said.
+- Retries are bounded: a dependency outage that outlasts them stops
+  retrying rather than looping indefinitely, and the failure is recorded
+  rather than discarded.
+- None of this surfaces through the SDK as an error. Extraction failures
+  are a server-side concern; the SDK-visible signal is extracted
+  memories not (yet) appearing in retrieval, or appearing through text
+  and hybrid but not semantic search.
+
+How reading works
+~~~~~~~~~~~~~~~~~
+
+Assembled prose, or the records themselves — two different questions.
+
+**``build_context_from_sources(...)``** is the one to reach for by
+default. You give it a query and a token budget; it retrieves across the
+memory types you name, ranks the results together, drops
+near-duplicates, trims to the budget, and returns something you can put
+straight into a prompt. It is the whole retrieval pipeline behind one
+call, and it takes one spec per source, so modes and filters are set per
+source rather than once for all of them.
+
+Retrieval can match three ways. ``semantic`` compares embeddings and
+finds things that *mean* the same; ``text`` matches words and finds
+things that *say* the same; ``hybrid`` runs both and fuses the rankings.
+Hybrid is usually the right default — vector search alone misses exact
+identifiers and rare words, text search alone misses paraphrases.
+
+**``build_context(...)``** is the simpler builder: same pipeline, but
+one mode and one filter apply to every source it reads.
+
+**``search(...)``** and the per-type searches (``search_semantic``,
+``search_episodes`` and so on) return ranked records instead of
+assembled prose, for when you want to inspect or post-process them
+yourself.
+
+What scopes a memory
+~~~~~~~~~~~~~~~~~~~~
+
+Every record carries the identity it was written under, and every read
+is filtered by that identity in the database query rather than
+afterwards. The fields are: organization, user, project, session, and
+optionally the agent, plus a visibility that decides whether a record is
+private to its user or readable more widely.
+
+This matters for a practical reason: a search or ``build_context``
+scoped to a user will not surface another user’s private memory, because
+the constraint is part of the query rather than a filter applied to its
+results. So ``bind(...)`` is not a convenience — it is how you declare
+the scope that subsequent reads and writes operate within, and getting
+it wrong writes one user’s memory under another’s identity.
+
+``user_id`` and ``visibility`` answer different questions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``user_id`` is *whose* memory a record is. ``visibility`` is *how far it
+reaches*:
+
+.. list-table::
+   :header-rows: 1
+
+   * - visibility
+     - who can read it
+   * - ``private``
+     - only the user named in ``user_id``
+   * - ``shared``
+     - any user in the project — **deprecated**, see below
+   * - ``org``
+     - any user in the project
+
+No visibility value reaches outside the project the record was written
+in. Memory is stored per project, so a project boundary is not something
+visibility can cross — ``org`` is a historical name, and it means “not
+restricted to one user”, not “visible to other projects”.
+
+.. warning::
+
+   **⚠️ ``shared`` is deprecated and will be removed in a future
+   release.** Use ``org`` for knowledge meant to reach beyond a single
+   user, and ``private`` for anything scoped to its owner. Because both
+   ``shared`` and ``org`` already resolve to the same reach, switching
+   an existing record from ``shared`` to ``org`` does not change who can
+   read it. Records already written as ``shared`` continue to read back
+   for now.
+
+The two are independent, and on a read they combine as **and**, never as
+**or**. Each field you supply adds one more equality condition to the
+query; each field you omit leaves that dimension unconstrained:
+
+.. list-table::
+   :header-rows: 1
+
+   * - you scope the read by
+     - you get back
+   * - ``user_id`` only
+     - everything that user owns, at any visibility
+   * - ``visibility`` only
+     - every record at that visibility, whoever owns it
+   * - both
+     - only records matching **both** — the narrowest read
+   * - neither
+     - everything in the project
+
+The third row is the one that surprises people.
+``search_semantic(query, user_id="user_1", visibility="org")`` does not
+mean “user_1’s memories plus the org’s”. It means “the org-visible
+memories that user_1 owns”, which is smaller than either constraint
+alone. There is no union: to read shared knowledge *and* a user’s own
+private memory, make two calls and merge the results yourself.
+
+Install
+-------
+
+.. code:: bash
+
+   pip install agent-engine-sdk-memory
+
+.. code:: python
+
+   from agent_engine_sdk_memory import Memory, MemoryRequestContext
+
+Connecting
+----------
+
+Where your agent runs decides how it connects, and the difference is
+mostly about who supplies the identity.
+
+.. list-table::
+   :header-rows: 1
+
+   * - your agent runs
+     - you construct
+     - identity comes from
+     - see
+   * - **on the platform**
+     - nothing — the runtime injects ``memory``
+     - the runtime, per invocation
+     - `inside a platform agent <#inside-a-platform-agent-app-bound>`__
+   * - **anywhere else**
+     - ``Memory(service_account_token=..., project_id=...)``
+     - your service-account token, plus what you ``bind``
+     - `hosted platform <#the-hosted-platform>`__
+   * - **locally, in development**
+     - ``Memory(base_url=...)``
+     - whatever you ``bind``
+     - `local development <#local-development>`__
+
+The API is identical in all three. Code written against an externally
+deployed agent runs unchanged when moved onto the platform — you delete
+the constructor call, and the runtime supplies the object instead.
+
+**Platform-deployed agents get identity for free, and that is the
+substantive difference.** The runtime already knows the organization,
+project, user and session for the invocation it is handling, so it binds
+them for you. An external agent knows only what its service-account
+token implies — the project — so it must tell memory which user and
+session each call belongs to. Get that wrong and you are writing one
+user’s memory under another user’s identity, which is why the external
+path requires you to be explicit.
+
+The hosted platform
+~~~~~~~~~~~~~~~~~~~
+
+The managed service. Pass a service-account access token and your
+project id.
+
+Mint the token with the ``agentengine`` CLI. Create a service account once —
+the client secret is shown only once, so save it immediately:
+
+.. code-block:: bash
+
+   agentengine service-account create my-agent --project-id <your-project-id> --role AGENT_DEVELOPER
+
+Then exchange the client ID and secret for a short-lived (1-hour) access
+token (curl prompts for the client secret so it stays out of shell
+history):
+
+.. code-block:: bash
+
+   ACCESS_TOKEN=$(curl --fail-with-body --silent --show-error      --user <client-id>      --data grant_type=client_credentials      https://agentengine.mongodb.com/api/v1/oauth/token | jq -er .access_token)
+
+.. code:: python
+
+   memory = Memory(service_account_token="<your-access-token>", project_id="<your-project-id>")
+
+.. list-table::
+   :header-rows: 1
+
+   * - Input
+     - Falls back to
+     - Notes
+   * - ``service_account_token``
+     - ``AGENTIC_MEMORY_SERVICE_ACCOUNT_TOKEN``
+     - Service-account access token, sent as the bearer credential. Re-mint when it expires.
+   * - ``project_id``
+     - ``AGENTIC_MEMORY_PROJECT_ID``
+     - The project to read and write. Required for the hosted service.
+   * - ``base_url``
+     - ``AGENTIC_MEMORY_BASE_URL``
+     - Optional. Overrides the host to target a non-production stack.
+
+The platform pins your credential to its project, so a ``project_id``
+that does not match is rejected. A blank ``service_account_token``
+raises ``ValueError``.
+
+``api_key`` (and ``AGENTIC_MEMORY_API_KEY``) remain accepted as a
+deprecated alias and emit a ``DeprecationWarning``; passing both the new
+and the legacy input raises ``ValueError``. Project API keys can no
+longer be minted over HTTP, so new integrations must use a
+service-account token.
+
+Local development
+~~~~~~~~~~~~~~~~~
+
+Point at a backend you run yourself, such as the stack
+``agentengine dev up`` starts.
+
+.. code:: python
+
+   memory = Memory(base_url="http://localhost:8080")
+
+.. list-table::
+   :header-rows: 1
+
+   * - Input
+     - Falls back to
+     - Notes
+   * - ``base_url``
+     - ``AGENTIC_MEMORY_BASE_URL``
+     - Your backend’s URL.
+   * - ``service_account_token``
+     - ``AGENTIC_MEMORY_SERVICE_ACCOUNT_TOKEN``
+     - Optional. Omit it for local development. (``api_key`` / ``AGENTIC_MEMORY_API_KEY`` are deprecated aliases.)
+
+Leave ``project_id`` empty for local development.
+
+Inside a platform agent (app-bound)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When your agent runs *on* Atlas Agent Engine, you don’t construct or
+connect ``Memory`` at all — the platform injects a ready, pre-wired
+instance, with identity, tenancy, and transport already bound.
+Application code passes none of the inputs above; it uses the handle the
+runtime hands it. Identity (user, session, org, project) resolves from
+the ambient runtime context, so operations can be called directly:
+
+.. code:: python
+
+   # `memory` is supplied by the platform runtime — do not construct it.
+   memory.record_turn(role="user", content="I'm allergic to penicillin.")
+   context = memory.build_context(query="What medications should I avoid?")
+
+   # bind(...) is still available to scope a call chain to a specific identity.
+
+The app-bound path has a few capability gaps (tool-call / model turn
+metadata and some list-style reads); see the App-bound column in `What
+each connection supports <#what-each-connection-supports>`__ and
+```docs/capability-matrix.md`` <docs/capability-matrix.md>`__.
+
+Env vars are a fallback
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Each input also falls back to an ``AGENTIC_MEMORY_*`` environment
+variable when you omit the argument. An explicit argument always wins.
+``Memory()`` with no arguments reads all three from the environment.
+
+How routing works
+~~~~~~~~~~~~~~~~~
+
+``project_id`` decides where calls go. Auth never does.
+
+- Set ``project_id``, and the SDK calls your project’s routes,
+  ``/api/v1/projects/{project_id}/memory/*``.
+- Leave it empty, and the SDK calls the backend directly,
+  ``/api/v1/memory/*``.
+
+If ``project_id`` is set but the backend has no matching route, such as
+a local backend, the call raises
+```MemoryRouteNotFoundError`` <#errors>`__ with a hint to unset it. The
+reverse also holds. Target the hosted service with no ``project_id`` and
+the call 404s with a hint to set it.
+
+Advanced: authenticated direct backend
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Auth and routing are independent, so you can pass a
+``service_account_token`` with ``project_id`` empty. The SDK then sends
+authenticated calls straight to the backend at ``base_url``, on the
+direct routes, skipping the project path. This suits a hosted
+Orchestration Engine (OE) reached directly.
+
+What each connection supports
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Capabilities follow where the call is routed, not auth.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Operation
+     - Hosted (project_id set)
+     - Direct (project_id empty)
+     - App-bound
+   * - ``record_turn``, ``build_context``
+     - ✓
+     - ✓
+     - ✓
+   * - ``build_context_from_sources``
+     - ✓
+     - ✓
+     - ✓
+   * - ``record_turn`` with tool-call / model metadata
+     - ✓
+     - ✓
+     - ✗
+   * - ``search_episodes`` (and ``search`` over episodic)
+     - ✓
+     - ✓
+     - ✓
+   * - ``search_semantic``, ``discover_procedures``
+     - ✓
+     - ✓
+     - ✓
+   * - ``search_taxonomic``
+     - ✓
+     - ✓
+     - ✓
+   * - type-specific CRUD (``save_*``, ``get_*``, ``list_*``)
+     - ✓
+     - ✓
+     - ✓ with gaps
+   * - custom-type ``save`` / ``retrieve``
+     - ✓ (flag-gated)
+     - ✗ without execution context
+     - ✓
+
+An unsupported call raises ```MemoryNotSupportedError`` <#errors>`__ —
+before any network request for known per-backend gaps, or after the
+response for capability gaps only the platform can report (see
+`Errors <#errors>`__) — never a silent failure or a raw HTTP error. The
+full per-backend reference, including app-bound gaps on type-specific
+CRUD, is in
+```docs/capability-matrix.md`` <docs/capability-matrix.md>`__.
+
+App-bound agents are the exception to all of the above. Inside a
+deployed platform agent, the platform injects a ready ``runtime``, so
+application code passes none of these inputs.
+
+Use it
+------
+
+A complete round trip: construct memory, bind a conversation identity,
+record a turn, and retrieve context.
+
+.. code:: python
+
+   from agent_engine_sdk_memory import Memory, MemoryRequestContext
+
+   memory = Memory(service_account_token="<your-access-token>", project_id="<your-project-id>")
+
+   # Scope every call to a user and conversation.
+   session = memory.bind(MemoryRequestContext(user_id="user_1", session_id="thread_123"))
+
+   # Record what happened.
+   session.record_turn(role="user", content="I'm allergic to penicillin.")
+   session.record_turn(role="assistant", content="Noted — I'll avoid it.")
+
+   # Later, pull back the relevant context for a new prompt. Include "stm"
+   # to surface the turns just recorded (the default is episodic, semantic).
+   # max_tokens is an optional gross context-construction budget.
+   context = session.build_context(
+       query="What medications should I avoid?",
+       enabled_sources={"stm", "episodic", "semantic"},
+       max_tokens=2048,
+   )
+   # context is a ContextResponse — inject its content into the next prompt.
+
+``bind(ctx)`` returns a new handle scoped to ``ctx`` without mutating
+the original, so one ``Memory`` can serve many users and sessions
+concurrently.
+
+**``build_context`` default sources.** Omitted ``enabled_sources``
+defaults to ``episodic`` and ``semantic``; ``stm``, ``taxonomic``, and
+``procedural`` require an explicit set.
+
+**``max_tokens``.** Optional positive gross context-construction budget.
+It is not a fetch cost or a promised output size: after retrieval and
+ranking, the server subtracts a 500-token formatting reserve, then
+greedily selects whole memory chunks that fit in the remainder. Positive
+values at or below 500 leave no budget for memories. Values above 500
+can still yield empty context when no chunk fits.
+``metadata.token_count`` reports formatted output only and excludes the
+reserve. Omit ``max_tokens`` to keep prior behavior.
+
+**``format_style`` and ``include_memories``.** ``build_context`` and
+``build_context_from_sources`` accept two response-shaping options.
+``format_style`` (``"openai"``, ``"claude"``, or ``"jinja2"``; the
+``FormatStyle`` enum is exported for type annotations) selects the
+format of ``formatted_context``, and invalid values raise ``ValueError``
+locally. Omitted, the server infers the format from its configured
+model. One caveat: the server currently re-infers when the explicit
+value matches its default model type, so an explicit ``"openai"`` is
+honored verbatim only on servers with an OpenAI-family model configured;
+``"claude"`` and ``"jinja2"`` are always honored.
+``include_memories=True`` populates the response’s ``selected_memories``
+with the post-budget ``MemoryChunk`` list, so you can inspect exactly
+which memories were selected. Both require a hosted or direct HTTP
+connection; app-bound mode raises ``MemoryNotSupportedError`` when
+either is set.
+
+**Per-source context — ``build_context_from_sources``.** Where
+``build_context`` applies one filter and semantic retrieval to every
+source, this method lets each source declare its own retrieval ``mode``
+(``text``, ``semantic``, or ``hybrid``), ``metadata_filter``, and
+``top_k`` via a ``SourceSpec``. Results are merged and de-duplicated
+across sources, optionally reordered by a relevance ``rerank``, then
+formatted and budgeted like ``build_context``.
+``metadata.ranking_strategy`` and ``metadata.source_outcomes`` report
+how the final order was produced and how each source fared. ``sources``
+must be non-empty and may list each source at most once, and each
+source’s ``top_k`` must be between 1 and 200; ``session_id`` is only
+required when the ``stm`` source is included.
+
+Hybrid is usually the right default for text-bearing sources: vector
+search alone misses exact identifiers and rare words, text search alone
+misses paraphrases. ``mode`` defaults to ``semantic`` when a spec omits
+it.
+
+**Declaring filterable metadata.** A ``metadata_filter`` can only name
+metadata your project has *declared*, because the filter is applied
+inside the search index rather than over its results. Declare the
+attributes, and the index legs that must serve them, in
+``project-config.yaml``:
+
+.. code:: yaml
+
+   metadata_partition_key:            # Filterable metadata attributes (max 10)
+     - name: tier
+       type: string                   # string | number | boolean | date
+     - name: confidence
+       type: number
+   metadata_partition_index:
+     semantic: [both]                 # both legs, so a hybrid source can filter
+     short_term: [both]               # stm is searchable only once listed here
+   short_term:
+     embed_on_write: true             # required to give stm a vector leg
+
+.. note::
+
+   **Requires memory-server 0.0.81 or newer.** Partition keys are only
+   honored by a runtime that supports them, and the memory server reads
+   its configuration at startup — storing a config is not applying it.
+   After editing ``project-config.yaml``, upload it with
+   ``agentengine memory configure``, then roll the runtime onto the
+   current image:
+
+   .. code-block:: bash
+
+      agentengine memory apply --upgrade
+
+   ``--upgrade`` moves the runtime to the image your environment
+   currently pins, which is how you pick up a newer memory-server;
+   without it the runtime keeps the image it is already on.
+   ``agentengine memory apply --dry-run`` reports the image in use if
+   you want to check before changing anything, and ``--wait`` blocks
+   until the runtime reports ready.
+
+Four consequences worth knowing before you write a filter:
+
+- **The filter key is the qualified index path, not the declared name.**
+  An attribute declared as ``tier`` is indexed at ``metadata.tier``, and
+  that is what the filter must say — nothing is prefixed for you.
+- **A key is filterable only on the legs you list.**
+  ``metadata_partition_index`` maps a source to ``[vector]``,
+  ``[text]``, or ``[both]``, and a ``hybrid`` source needs ``[both]``: a
+  filter its text leg cannot serve is rejected before the query runs
+  rather than silently returning less.
+- **A wrong key fails loudly.** Unlike ``build_context``\ ’s single
+  top-level ``metadata_filter``, per-source keys are validated against
+  the declared set. An undeclared or misspelled path raises
+  ``MemoryBadRequestError`` whose message lists the paths that are
+  accepted, so a typo fails at the call instead of quietly returning a
+  narrowed result set.
+- **Short-term memory has no index of its own.** It is filterable — and
+  searchable by this method at all — only once the project lists
+  ``short_term`` in ``metadata_partition_index``. Until then an ``stm``
+  source **fails** rather than returning nothing: the search errors, and
+  the source is reported with an ``error`` in
+  ``metadata.source_outcomes``. If ``stm`` was the only source
+  requested, every source has failed and the call returns **503** rather
+  than an empty context, because an empty result would be
+  indistinguishable from a healthy search over an empty corpus. Giving
+  it a vector leg (``[vector]`` or ``[both]``) also requires
+  ``short_term.embed_on_write: true``, and the configuration is rejected
+  without it, because a vector index over turns that are never embedded
+  would be dead weight. The text leg needs no embeddings.
+
+The declared ``type`` sets the matching semantics. A ``string`` key is
+indexed as a token, so a match is whole-value and case-sensitive:
+``"gold"`` matches neither ``Gold`` nor ``gold-tier``. Range operators
+require a ``number`` or ``date`` key.
+
+Supported clauses: equality; ``$gt`` / ``$gte`` / ``$lt`` / ``$lte``,
+with combined bounds fusing into one range; ``$in`` / ``$nin`` for sets;
+``$ne``; ``$exists``; and ``$and`` / ``$or`` / ``$nor`` for composition.
+
+``agent_id`` is filterable without being declared. The tenancy fields
+``org_id``, ``user_id``, ``project_id``, ``session_id``, ``visibility``,
+``deleted``, ``is_latest``, and ``has_embedding`` are reserved for
+access control and cannot be filtered by callers.
+
+**Putting it together.** With the configuration above:
+
+.. code:: python
+
+   from agent_engine_sdk_memory import SourceSpec
+
+   context = session.build_context_from_sources(
+       query="what did we decide about the refund policy?",
+       sources=[
+           # Exact match on a string key, and a range on a numeric one.
+           SourceSpec(
+               source=MemorySource.SEMANTIC,
+               mode=RetrievalMode.HYBRID,
+               metadata_filter={
+                   "metadata.tier": "gold",
+                   "metadata.confidence": {"$gt": 0.8},
+               },
+               top_k=20,
+           ),
+           # Sources without a filter are unrestricted.
+           SourceSpec(source=MemorySource.EPISODIC, mode=RetrievalMode.HYBRID, top_k=5),
+           SourceSpec(source=MemorySource.STM, mode=RetrievalMode.TEXT, top_k=10),
+       ],
+       rerank=True,
+   )
+
+This method reaches the backend on all three connection modes. On the
+hosted project route (``project_id`` set), the Gateway proxies to the
+same per-source handler, stamping org/project from the authenticated
+session; on the direct route (``project_id`` empty) the OE proxy
+forwards it; on the on-platform (app-bound) runtime, the platform stamps
+tenancy and carries the full response back through the durable
+execution.
+
+Beyond ``record_turn`` and ``build_context``, the ``Memory`` object
+exposes:
+
+- **Search** — ``search(query, sources=[...])`` fans out across memory
+  types and returns one ranked ``list[MemoryChunk]``;
+  ``search_semantic``, ``search_episodes``, ``search_taxonomic``, and
+  ``discover_procedures`` target a single type.
+- **Type-specific writes and reads** (where the connection supports
+  CRUD) — ``save_semantic`` / ``get_semantic``, ``save_episode`` /
+  ``list_episodes``, ``save_taxonomic`` / ``get_taxonomic_term`` /
+  ``list_domains``, and ``save_procedure`` / ``get_procedure``.
+- **Custom memory types** — ``save(memory_type, content, tags=...)`` and
+  ``retrieve(memory_type, query, tags=..., top_k=...)`` operate on types
+  declared in the project’s memory configuration. Built-in type names
+  are rejected — use the dedicated methods above. These calls carry no
+  identity fields; the platform stamps org, project, and user from the
+  request. On a platform that does not serve custom-type routes, or one
+  where the feature is disabled, the call raises
+  ```MemoryNotSupportedError`` <#errors>`__.
+
+A short example using the bound ``session`` from above — write a fact,
+read it back by label, and search across types:
+
+.. code:: python
+
+   # Save a semantic fact (user_id is inherited from the bound session).
+   session.save_semantic(text="Prefers window seats on flights.", label="seat-preference")
+
+   # Read it straight back by label.
+   fact = session.get_semantic("seat-preference")
+
+   # Search across memory types; returns one ranked list[MemoryChunk].
+   hits = session.search("travel preferences", sources=["semantic", "episodic"], top_k=5)
+
+``Memory`` is also a context manager;
+``with Memory(service_account_token=...) as memory:`` releases the
+underlying transport on exit.
+
+Configuring the memory server
+-----------------------------
+
+The SDK reads and writes memory; it does not configure the server.
+Settings — embeddings, the extraction LLM, which memory types are
+extracted, filterable metadata — live in the ``memory:`` block of your
+project’s ``project-config.yaml`` and are applied with the CLI. Only
+that sub-document is uploaded; the rest of the file is ignored.
+
+.. code:: bash
+
+   agentengine memory configure      # store the memory: block for this project
+   agentengine memory apply --wait   # roll the memory server so it takes effect
+
+**Storing is not applying.** ``configure`` saves the config and the
+platform delivers it to your project’s memory server on its own, but the
+server reads its configuration *only at startup*. Until a pod restarts,
+the new settings are sitting on disk unread.
+``agentengine memory apply`` performs that restart — and provisions the
+memory runtime first if the project does not have one yet.
+
+``agentengine memory apply --upgrade`` additionally moves the runtime to
+the memory-server image your environment currently pins, which is how
+you pick up a newer server. Without ``--upgrade`` the image is left
+alone. ``agentengine memory status`` reports the runtime state at any
+time; ``--wait`` on ``apply`` blocks until it is ready.
+
+Settings you cannot change later
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some parts of the config are effectively write-once, so decide them
+before you start writing memories:
+
+- **Metadata partition keys** — the declared filterable attributes. A
+  key cannot be removed or have its type changed once declared.
+- **Custom memory type declarations** — once a type is accepted, its
+  collection and tag set cannot be edited or removed through the config
+  API; declare a new type name instead.
+- **Search indexes** — provisioned only when they do not already exist.
+  Adding a partition key after the server has started does not rebuild
+  the existing index; the drift is logged, and a filter on the new key
+  then fails at the database rather than being silently ignored.
+  Recreating the index is a manual operation.
+
+Log level, extraction LLM and the enabled extraction types can be
+changed and re-applied. Changing the embedding model or dimension
+requires migrating and re-embedding existing memories; dimension changes
+also require rebuilding the vector search indexes.
+
+How identity is resolved
+------------------------
+
+Memory operations are scoped by ``user_id``, ``agent_id``, and
+``session_id``, carried in a ``MemoryRequestContext``. For each call,
+every field resolves through three tiers, highest precedence first:
+
+1. **Call argument** — a value passed directly to the method (e.g.
+   ``search_semantic(query, user_id="user_2")``).
+2. **Bound context** — the ``MemoryRequestContext`` passed to
+   ``bind(...)``.
+3. **Runtime context** — ambient identity supplied by the runtime, used
+   by the app-bound path.
+
+Blank or whitespace-only values count as unset at every tier;
+``agent_id`` is always optional. Identity is validated client-side only
+for the type-specific writes: ``save_semantic``, ``save_taxonomic``, and
+``save_procedure`` require a ``user_id``, and ``save_episode`` requires
+both ``user_id`` and ``session_id`` — each raises
+``MemoryIdentityError`` when the field cannot be resolved. The workflow
+operations (``record_turn``, ``build_context``, the searches) and the
+``get_*`` / ``list_*`` reads do not enforce identity locally; they
+forward whatever resolves to the backend, which may reject the request
+as a transport error.
+
+**``session_id`` is scoped by operation.** It identifies a conversation,
+so it is inherited (from ``bind``/runtime) only for conversation I/O:
+``record_turn`` and the short-term-memory leg of ``build_context``.
+Episodic and semantic search do **not** inherit it —
+``search_episodes``, ``list_episodes``, and the episodic leg of
+``search()`` resolve ``session_id`` from the call argument only.
+Episodic memory is stored session-unscoped (consolidated episodes carry
+``session_id: null``), so a bound session would otherwise silently
+filter out every durable memory and return an empty list with no error.
+Pass ``session_id=`` explicitly on the search call when you do want a
+session-scoped episodic read. (This brings the SDK in line with the
+platform ``agent-engine-sdk-langgraph`` / ``TenantRuntime`` path, which
+already requires an explicit ``session_id`` on episodic search.)
+``user_id`` and ``agent_id`` are unaffected and still inherit from
+``bind``/runtime on reads.
+
+Setting visibility on a write
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Every write takes a ``visibility``. The default differs by memory type,
+because the types are used differently:
+
+.. list-table::
+   :header-rows: 1
+
+   * - write
+     - default visibility
+   * - ``save_semantic``, ``save_episode``, ``save_procedure``
+     - ``private``
+   * - ``save_taxonomic``
+     - ``org``
+
+Taxonomic memory defaults to ``org`` because a domain vocabulary is
+shared by definition — a term and its meaning are rarely one user’s
+private business. Everything else defaults to ``private``, so a fact you
+save is scoped to the user it was learned from unless you say otherwise.
+
+``record_turn`` is the exception: it takes no ``visibility``, and no
+``user_id`` either. A conversation turn is always written under the
+bound user and session, so ``bind(...)`` before recording turns — there
+is no per-call way to set the user on a turn.
+
+.. code:: python
+
+   # Private to user_1 — the default.
+   session.save_semantic(text="Prefers window seats.", label="seat-preference")
+
+   # Readable across the whole organization.
+   session.save_semantic(
+       text="Refunds over $500 need manager approval.",
+       label="refund-policy",
+       visibility="org",
+   )
+
+Scoping a read
+~~~~~~~~~~~~~~
+
+Reads leave ``visibility`` unset, so they are constrained only by the
+identity that resolves — usually the bound ``user_id``. That is the
+right default for personalization: you get everything that user owns, at
+any visibility.
+
+To reach shared knowledge you pass a visibility, and here the **and**
+rule bites. A handle bound to ``user_id="user_1"`` still contributes
+that ``user_id``, so this reads only the org-visible records user_1
+owns:
+
+.. code:: python
+
+   session = memory.bind(MemoryRequestContext(user_id="user_1", session_id="thread_123"))
+   session.search_semantic("refund policy", visibility="org")   # user_1 AND org
+
+Passing ``user_id=None`` does **not** widen it. A ``None`` or blank
+argument counts as “not supplied” at every tier, so it falls through to
+the bound value. Read across all users with a handle that has no
+``user_id`` bound:
+
+.. code:: python
+
+   # The original handle is unbound, so it carries no user_id.
+   memory.search_semantic("refund policy", visibility="org")
+
+   # Or bind only the parts you want.
+   thread = memory.bind(MemoryRequestContext(session_id="thread_123"))
+   thread.search_semantic("refund policy", visibility="org")
+
+So an assistant that needs both the user’s own history and the team’s
+shared knowledge issues two reads and merges them:
+
+.. code:: python
+
+   personal = session.search_semantic(query, top_k=5)                       # user_1, any visibility
+   shared = memory.search_semantic(query, visibility="org", top_k=5)        # org-wide, any owner
+
+Errors
+------
+
+Errors fall into two families. Client-side errors subclass
+``ValueError`` and are usually raised before any network call:
+
+- ``MemoryClientError`` — base for usage errors.
+- ``MemoryIdentityError`` — a required identity field could not be
+  resolved. Subclasses ``ValueError`` directly (a sibling of
+  ``MemoryClientError``, so it is not caught by
+  ``except MemoryClientError``).
+- ``MemoryNotSupportedError`` — the operation is unavailable for the
+  active connection (see `Connecting <#connecting>`__). The message
+  names the operation and the reason. For the custom-type methods
+  (``save`` / ``retrieve``) it can also be raised after the HTTP call,
+  when the response shows the platform lacks the capability: a bare
+  404/405 (platform too old to serve the route) or the gateway’s
+  structured 400 reporting custom memory types disabled on the
+  deployment. A structured unknown-type 404 is a request error, not a
+  capability gap, and raises ``MemoryBadRequestError``.
+
+Transport errors derive from ``MemoryAPIError`` and carry the HTTP
+``status`` and response body:
+
+- ``MemoryAuthError`` — authentication or authorization failed
+  (401/403).
+- ``MemoryBadRequestError`` — the request was rejected (a 4xx other than
+  auth or not-provisioned).
+- ``MemoryRouteNotFoundError`` — a core-loop request 404’d, so the route
+  shape likely does not match the backend. The message gives a
+  directional hint to set or unset ``project_id``. Subclasses
+  ``MemoryBadRequestError``.
+- ``MemoryNotProvisionedError`` — the project’s memory runtime is not
+  reachable yet.
+- ``MemoryServerError`` — the backend errored (5xx) or returned an
+  unparseable or unexpected body.
+- ``MemoryConnectionError`` — the backend could not be reached.
+
+Models
+------
+
+Request and response types are exported from the package root and
+re-exported from ``agent_engine_sdk_memory.models``. Retrieval returns
+``MemoryChunk`` and ``ContextResponse``; writes return typed results
+such as ``WriteTurnResult``, ``CreateSemanticResult``, and
+``CreateEpisodicResult``. ``SearchSource`` enumerates the searchable
+types. Context building is configured with kwargs on
+``Memory.build_context`` (for example ``enabled_sources`` and
+``max_tokens``), not a separate config model. Import these from
+``agent_engine_sdk_memory``, not from ``agent_engine_sdk`` — the models
+used to live there and have moved here.
+
+Reading back your own metadata
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``record_turn`` takes an optional ``metadata`` dict, and short-term
+retrieval returns it in its own slot on the chunk:
+``chunk.metadata["metadata"]``. Your keys are kept apart from the
+platform’s turn fields (``session_id``, ``role``, ``turn_seq``, …)
+rather than mixed in with them, so a key of yours never collides with
+one of theirs — you can name a key ``role`` or ``session_id`` and read
+your own value back.
+
+Two limits that collision-safety does not cover. Values have to survive
+the round trip, so they must be JSON-serializable and of a sane size.
+And to be *filterable* a key additionally has to be declarable as a
+metadata partition key: each dot-separated segment must match
+``^[a-z][a-z0-9_]{0,63}$``, at most one dot is allowed, and a few names
+are reserved (``org_id``, ``project_id``, ``user_id``, ``agent_id``,
+``content``, ``embedding``, ``embedding_model_id``, ``created_at``). A
+key outside that shape — ``Tier``, ``$foo``, ``a.b.c`` — is still stored
+and returned, it just cannot be filtered on.
+
+An empty dict is treated as no metadata: ``metadata={}`` records the
+turn without a ``metadata`` slot on the chunk, so read it with
+``chunk.metadata.get("metadata", {})`` if the caller might not have
+supplied any. Semantic memory behaves identically, which is what lets
+one read path cover both. Episodic, taxonomic and procedural behave the
+same way: the dict you write comes back under
+``chunk.metadata["metadata"]``, and an empty one means no slot at all.
+Episodic is the one exception: a compatibility filter drops the whole
+dict, unrelated keys included, if it happens to contain
+``citation_score``, ``llm_confidence_score`` and ``combined_score``
+together, since that shape also matches a pre-migration internal blob.
+Retrieval may also carry ``chunk.metadata["contextual_metadata"]`` —
+that is the platform’s own extraction artifact, not your data, and it is
+not part of any contract you should depend on.
+
+Short-term memory is scoped to a session, so the write and the read have
+to name the same one — bind it once and pass it through:
+
+.. code:: python
+
+   from agent_engine_sdk_memory import (
+       Memory,
+       MemoryRequestContext,
+       MemorySource,
+       RetrievalMode,
+       SourceSpec,
+   )
+
+   session_id = "session-42"
+   memory = Memory(base_url="http://localhost:8080").bind(
+       MemoryRequestContext(user_id="user-1", session_id=session_id)
+   )
+
+   memory.record_turn(
+       role="user",
+       content="The engagement is green and the rollout continues.",
+       metadata={"engagement_id": "eng-alpha", "tier": 2},
+   )
+
+   context = memory.build_context_from_sources(
+       query="what is the engagement status?",
+       sources=[
+           SourceSpec(
+               source=MemorySource.STM,
+               mode=RetrievalMode.HYBRID,
+               metadata_filter={"metadata.engagement_id": "eng-alpha"},
+           )
+       ],
+       session_id=session_id,
+       include_memories=True,
+   )
+   for chunk in context.selected_memories or []:
+       print(chunk.metadata["metadata"]["engagement_id"])
+
+Atlas Search indexes the write asynchronously, so a read issued
+immediately after may not see the turn yet.
+
+One spelling difference to know: you **read** the bare name inside the
+nested dict, ``chunk.metadata["metadata"]["engagement_id"]``, but you
+**filter** on the qualified index path,
+``{"metadata.engagement_id": ...}``. Both acknowledge the nesting — the
+filter addresses the stored document, where your dict really does live
+under ``metadata``.
+
+Filtering on the bare name is rejected with an error listing the
+accepted paths, so that mistake tells you the answer.
+
+Filterable metadata has to be declared for the project first:
+``engagement_id`` above has to appear under ``metadata_partition_key``,
+with ``short_term`` listed in ``metadata_partition_index``. See
+**Declaring filterable metadata** under `Use it <#use-it>`__.
+
+Internals
+---------
+
+The sections below describe how the package is built. They are not
+needed to use it.
+
+Package layout
+~~~~~~~~~~~~~~
+
+.. code-block:: text
+
+   agent_engine_sdk_memory/
+   ├── memory.py        # Memory — the public, transport-free facade
+   ├── protocol.py      # MemoryRequestContext, MemoryRuntime + MemoryCrudClient seams
+   ├── identity.py      # resolve_identity — call arg > bind ctx > runtime ctx
+   ├── errors.py        # MemoryIdentityError + the typed transport-error family
+   ├── models.py        # Pydantic models for memory requests/responses
+   ├── validation.py    # require_positive_max_tokens — public build_context guard
+   ├── _transport.py    # _HttpTransport — shared retry / error-mapping / lifecycle
+   ├── _http_runtime.py # _HttpMemoryRuntime — the workflow ops + per-backend profiles
+   ├── _direct_crud.py  # empty-tenancy MemoryCrudClient over the shared transport
+   ├── _wire.py         # custom-type request-body builders shared by the CRUD clients
+   ├── _tag_syntax.py   # client-side custom-type name + tag-syntax checks
+   ├── _client.py       # MemoryClient — internal HTTP client for the Memory Server API
+   └── _denylist.py     # do-not-add dependency denylist (see below)
+
+``Memory`` is transport-free: it delegates the workflow operations
+(``record_turn``, ``build_context``, the searches,
+``discover_procedures``) to an injected ``MemoryRuntime``, and the
+type-specific CRUD to an injected ``MemoryCrudClient``. The public
+surface is frozen by a snapshot test in
+``tests/test_package_contract.py``; ``MemoryClient`` stays internal.
+Per-call tenancy (``org_id``, body-level ``project_id``) never appears
+in a public signature; the only ``project_id`` on the public surface is
+the optional constructor route-shape selector, which goes into the URL,
+not a request body.
+
+Dependency denylist
+~~~~~~~~~~~~~~~~~~~
+
+The ``pydantic`` + ``httpx``-only constraint is enforced, not
+aspirational. ``_denylist.py`` lists known-heavy distributions and
+import names (langchain, fastapi, pymongo, …), and
+``tests/test_package_contract.py`` fails if importing the package pulls
+any of them into ``sys.modules``.
+
+Who uses it
+~~~~~~~~~~~
+
+``agent-engine-runner-shared`` declares this package as a workspace
+dependency and constructs the internal ``MemoryClient`` in
+``agent_engine_runner_shared/memory.py``, passing its execution-context
+lookup as an ``execution_id_provider`` callable so per-request
+execution-id headers work without this package importing any platform
+code.
+

@@ -136,8 +136,9 @@ const findPageParent = (tree: TocItem[], targetUrl: string): [boolean, TocItem |
   return [false, null];
 };
 
-const getActiveNavSection = (pathname: string | null): 'docs' | 'voyageai' => {
+const getActiveNavSection = (pathname: string | null): 'docs' | 'voyageai' | 'agentengine' => {
   if (pathname?.startsWith('/docs/voyageai')) return 'voyageai';
+  if (pathname?.startsWith('/docs/agentengine')) return 'agentengine';
   return 'docs';
 };
 
@@ -154,7 +155,7 @@ export const UnifiedSidenav = () => {
 
   const fullTree = useProcessedUnifiedToc();
   const activeNavSection = getActiveNavSection(pathname);
-  const isAccordionOnly = activeNavSection === 'voyageai';
+  const isAccordionOnly = activeNavSection === 'voyageai' || activeNavSection === 'agentengine';
   const tree = fullTree.filter((item) => (item.navSection ?? 'docs') === activeNavSection);
 
   const [isDriver, currentL2List] = findPageParent(tree, slug);

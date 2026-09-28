@@ -1,0 +1,627 @@
+.. _agentic-platform-manage-project:
+
+==============================================
+Manage Organizations, Projects, and Workspaces
+==============================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn how to use the agentengine CLI to view organizations and projects, manage workspaces and service accounts, and update the CLI.
+   :keywords: service accounts, ai, agent, agentic, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to manage your {+mdb-ai-platform+}
+organizations, projects, and workspaces. This guide describes the
+following management commands:
+
+- :ref:`agentengine organization <agentic-platform-manage-org>`: List
+  and view organizations.
+- :ref:`agentengine project <agentic-platform-manage-projects>`: List
+  and view projects.
+- :ref:`agentengine workspace <agentic-platform-manage-workspaces>`:
+  Create and manage workspaces for a deployed agent.
+- :ref:`agentengine service-account <agentic-platform-manage-service-accounts>`:
+  Create and manage service accounts for your project or organization.
+- :ref:`agentengine version <agentic-platform-manage-cli>`: Manage the
+  CLI version.
+
+Prerequisites
+-------------
+
+Before you begin, ensure that you install and authenticate the
+``agentengine`` CLI. To learn more, see the
+:ref:`agentic-platform-set-up-install-authenticate` guide.
+
+.. _agentic-platform-manage-org:
+
+View Organizations
+------------------
+
+Organizations are the top-level grouping for your teams and resources
+on the {+mdb-ai-platform+}. The ``agentengine`` CLI can list and view
+organizations, but it can't change them. To change an Atlas-backed
+organization, use MongoDB Atlas:
+
+- To create, update, or delete an organization, see the
+  :atlas:`Manage Organizations </access/orgs-create-view-edit-delete>`
+  guide.
+- To add, update, or remove organization users, see the
+  :atlas:`Manage Organization Users </access/manage-org-users>` guide.
+
+If your organization isn't MongoDB Atlas-backed, use the
+{+platform-short+} UI to change your organization.
+
+List All Organizations
+~~~~~~~~~~~~~~~~~~~~~~
+
+To list all organizations your account belongs to, run the following
+command:
+
+.. code-block:: bash
+
+   agentengine organization list
+
+Get Organization Details
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To retrieve details for a specific organization, run the following
+command. Replace ``<org-id>`` with your organization ID:
+
+.. code-block:: bash
+
+   agentengine organization get <org-id>
+
+.. _agentic-platform-manage-projects:
+
+View Projects
+-------------
+
+Projects exist within an organization and group the resources for a
+specific agent or team. The ``agentengine`` CLI can list and view
+projects, but it can't change them. To change an Atlas-backed project,
+use MongoDB Atlas:
+
+- To create, update, or delete a project, see the
+  :atlas:`Manage Projects </tutorial/manage-projects>` guide.
+- To add, update, or remove project users, see the
+  :atlas:`Manage Access to a Project </access/manage-project-access>`
+  guide.
+
+If your project isn't MongoDB Atlas-backed, use the
+{+platform-short+} UI to change your project.
+
+List All Projects
+~~~~~~~~~~~~~~~~~
+
+To list all projects in your organization, run the following command:
+
+.. code-block:: bash
+
+   agentengine project list [--org-id <org-id>]
+
+You can use the ``--org-id`` flag to specify the organization ID. By
+default, the CLI reads this value from your locally stored
+authentication state.
+
+Get Project Details
+~~~~~~~~~~~~~~~~~~~
+
+To retrieve details for a specific project, run the following command.
+Replace ``<project-id>`` with your project ID:
+
+.. code-block:: bash
+
+   agentengine project get <project-id>
+
+.. _agentic-platform-manage-workspaces:
+
+Manage Workspaces
+-----------------
+
+A workspace is the runtime environment for a deployed agent within a project.
+Use the following commands to create and manage workspaces. The examples in this
+section use the ``<workspace-id>`` placeholder. Replace this placeholder with
+your workspace ID.
+
+List All Workspaces
+~~~~~~~~~~~~~~~~~~~
+
+To list all workspaces in your project, run the following command:
+
+.. code-block:: bash
+
+   agentengine workspace list [--project-id <id>] [--org-id <id>] [--base-url <url>] [--json]
+
+The following table describes the available flags:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Flag
+     - Description
+
+   * - ``--project-id``
+     - | Project ID
+       |
+       | Default: Uses the project from your locally stored authentication state.
+
+   * - ``--org-id``
+     - | Organization ID for multi-org routing
+       |
+       | Default: Uses the project from your locally stored authentication state.
+
+   * - ``--base-url``
+     - | Platform API base URL
+       |
+       | Default: Uses the project from your locally stored authentication state.
+
+   * - ``--json``
+     - Output raw JSON instead of a human-readable table
+
+Get Workspace Details
+~~~~~~~~~~~~~~~~~~~~~
+
+To retrieve details for a specific workspace, run the ``agentengine workspace get`` command:
+
+.. code-block:: bash
+
+   agentengine workspace get <workspace-id> [--project-id <id>] [--org-id <id>] [--base-url <url>] [--json]
+
+The following table describes the available flags:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Flag
+     - Description
+
+   * - ``--project-id``
+     - | Project ID
+       |
+       | Default: Value taken from locally stored authentication state.
+
+   * - ``--org-id``
+     - | Organization ID for multi-org routing
+       |
+       | Default: Value taken from locally stored authentication state.
+
+   * - ``--base-url``
+     - | Platform API base URL
+       |
+       | Default: Value taken from locally stored authentication state.
+
+   * - ``--json``
+     - Output raw JSON instead of human-readable key-value pairs
+
+Create a Workspace
+~~~~~~~~~~~~~~~~~~
+
+The ``agentengine workspace create`` command creates a new workspace on
+the platform. Run this command from an agent directory that contains an
+``agent.yaml`` file that includes the ``name`` and ``entrypoint``
+fields.
+
+The command automatically reads ``description``, ``framework``, ``features``,
+and ``agent_card`` from ``agent.yaml`` and auto-detects GitOps fields from the
+local git repository, if present. Use the ``--description`` and ``--framework``
+flags to override values from ``agent.yaml``.
+
+If a workspace already exists for the project, the command prints the existing
+workspace ID and exits successfully.
+
+.. code-block:: bash
+
+   agentengine workspace create [--description <desc>] [--framework <fw>] [--project-id <id>] [--org-id <id>] [--base-url <url>] [--json]
+
+The following table describes the available flags:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Flag
+     - Description
+
+   * - ``--description``
+     - Workspace description. Overrides the value from ``agent.yaml``.
+
+   * - ``--framework``
+     - Agent framework (for example, ``langgraph``). Overrides the value from ``agent.yaml``.
+
+   * - ``--project-id``
+     - | Project ID
+       |
+       | Default: Value taken from locally stored authentication state.
+
+   * - ``--org-id``
+     - | Organization ID for multi-org routing
+       |
+       | Default: Value taken from locally stored authentication state.
+
+   * - ``--base-url``
+     - | Platform API base URL
+       |
+       | Default: Value taken from locally stored authentication state.
+
+   * - ``--json``
+     - Output JSON with ``workspace_id`` and ``created`` fields
+
+Update a Workspace
+~~~~~~~~~~~~~~~~~~
+
+The ``agentengine workspace update`` command partially updates an
+existing workspace. Only flags that are explicitly provided are included
+in the update request.
+
+.. code-block:: bash
+
+   agentengine workspace update <workspace-id> [flags]
+
+The following table describes the available flags:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Flag
+     - Description
+
+   * - ``--name``
+     - Workspace display name
+
+   * - ``--description``
+     - Workspace description
+
+   * - ``--framework``
+     - Agent framework
+
+   * - ``--model``
+     - LLM model name
+
+   * - ``--enabled-tools``
+     - Enabled tools (comma-separated)
+
+   * - ``--guardrails``
+     - Enable or disable guardrails (``--guardrails=true`` or ``--guardrails=false``)
+
+   * - ``--memory``
+     - Enable or disable memory (``--memory=true`` or ``--memory=false``)
+
+   * - ``--agent-card-summary``
+     - Agent card summary text
+
+   * - ``--agent-card-capabilities``
+     - Agent card capabilities (comma-separated)
+
+   * - ``--gitops-provider``
+     - GitOps provider
+
+   * - ``--gitops-repo-url``
+     - GitOps repository URL
+
+   * - ``--gitops-branch``
+     - GitOps branch
+
+   * - ``--gitops-manifest-path``
+     - GitOps manifest path
+
+   * - ``--gitops-connection-ref``
+     - GitOps connection reference
+
+   * - ``--project-id``
+     - | Project ID
+       |
+       | Default: Value taken from locally stored authentication state.
+
+   * - ``--org-id``
+     - | Organization ID for multi-org routing
+       |
+       | Default: Value taken from locally stored authentication state.
+
+   * - ``--base-url``
+     - | Platform API base URL
+       |
+       | Default: Value taken from locally stored authentication state.
+
+Manage Workspaces by Using the API
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The workspace commands call the {+platform-short+} API. To manage
+workspaces programmatically, call these endpoints directly.
+
+Each workspace endpoint is scoped to a single project. If you're
+calling endpoints in more than one project, include the project ID
+in the request.
+
+The following table describes the available endpoints. Replace
+``{project-id}`` with your project ID and ``{workspace-id}`` with your
+workspace ID:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 55 45
+
+   * - Endpoint
+     - Description
+
+   * - ``GET /api/v1/projects/{project-id}/workspaces``
+     - Lists the workspaces in the project.
+
+   * - ``POST /api/v1/projects/{project-id}/workspaces``
+     - Creates a workspace in the project.
+
+   * - ``GET /api/v1/projects/{project-id}/workspaces/{workspace-id}``
+     - Returns the details for a single workspace.
+
+   * - ``PATCH /api/v1/projects/{project-id}/workspaces/{workspace-id}``
+     - Updates the fields that you include in the request body.
+
+   * - ``DELETE /api/v1/projects/{project-id}/workspaces/{workspace-id}``
+     - Deletes the workspace.
+
+.. _agentic-platform-manage-service-accounts:
+
+Manage Service Accounts
+-----------------------
+
+A service account is a programmatic identity that belongs to a
+project or an organization instead of a person.
+Use the following commands to create, list, rotate, and delete
+service accounts.
+
+To retrieve your service account access token, pass
+your client ID and secret in a ``POST`` request to the
+``/api/v1/oauth/token`` endpoint. To learn more, see
+:ref:`agentic-platform-invoke-agent`.
+
+The examples in this section use the following placeholders:
+
+- ``<name>``: The service account name.
+- ``<role>``: The role to grant the service account. For a project
+  account, use ``PROJECT_OWNER`` or ``PROJECT_READ_ONLY``. For an
+  organization account, use ``ORG_GROUP_CREATOR`` or
+  ``ORG_READ_ONLY``.
+- ``<client-id>``: The service account's client ID.
+
+Create a Service Account
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To create a new service account, run the following command:
+
+.. code-block:: bash
+
+   agentengine service-account create <name> --role <role> [--org-id <id> | --project-id <id>] [--description <text>] [--secret-expires-in <duration>] [--ip-access-list <ip-or-cidr>,...] [--json]
+
+The command outputs the plaintext client secret and the service
+account's details, as shown in the following example:
+
+.. code-block:: text
+   :copyable: false
+
+   Client Secret: agp_sa_sk_...
+   Client ID:     agp_sa_id_...
+   Name:          ci-pipeline
+   ...
+
+.. important::
+
+   Save the client secret when it is displayed. It is only shown once.
+
+The following table describes the available flags:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Flag
+     - Description
+
+   * - ``--role``
+     - Required. Role granted to the service account.
+
+   * - ``--org-id``
+     - | Organization ID for an organization-scoped account.
+       |
+       | Mutually exclusive with the ``--project-id`` flag.
+
+   * - ``--project-id``
+     - | Project ID for a project-scoped account.
+       |
+       | Default: Value retrieved from the locally stored authentication
+         state. Mutually exclusive with the ``--org-id`` flag.
+
+   * - ``--description``
+     - Human-readable description.
+
+   * - ``--secret-expires-in``
+     - | Secret lifetime in hours, such as ``720h``.
+       |
+       | Default: 2160 hours (90 days). Maximum: 17520 hours (two years).
+
+   * - ``--ip-access-list``
+     - | IP addresses or CIDR blocks allowed to use the credential.
+       | Default: Unrestricted.
+
+   * - ``--json``
+     - Outputs the created service account, the one-time client
+       secret, and resolved context as JSON. Warnings do not appear
+       in stdout.
+
+List Service Accounts
+~~~~~~~~~~~~~~~~~~~~~
+
+To list all service accounts for the current project or organization,
+run the following command:
+
+.. code-block:: bash
+
+   agentengine service-account list [--org-id <id>] [--project-id <id>] [--limit <n>]
+
+The command displays a table with the client ID, name, roles, active
+status, secret expiry, secret last-used date, and description for
+each service account.
+
+By default, the command lists service accounts for the project in
+your locally stored authentication state. Use the ``--org-id`` or
+``--project-id`` flag to list service accounts for a different
+organization or project.
+
+Rotate a Service Account Secret
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To issue a new client secret for a service account, run the
+following command:
+
+.. code-block:: bash
+
+   agentengine service-account rotate <client-id> [--org-id <id>] [--project-id <id>] [--secret-expires-in <duration>]
+
+The command outputs the new plaintext client secret. The previous
+secret remains valid for up to seven days or until its own
+expiration, whichever comes first.
+
+.. tip::
+
+   To immediately revoke the previous secret, rotate the secret a
+   second time or delete the service account.
+
+Delete a Service Account
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To permanently delete a service account, run the following command:
+
+.. code-block:: bash
+
+   agentengine service-account delete <client-id> [--org-id <id>] [--project-id <id>]
+
+After you delete a service account, it can no longer request access
+tokens, and any token it already holds fails on its next use.
+
+.. _agentic-platform-manage-cli:
+
+Manage CLI Versions
+-------------------
+
+This section describes the commands you can use to retrieve and update your CLI
+version.
+
+Check the CLI Version
+~~~~~~~~~~~~~~~~~~~~~
+
+The ``agentengine version`` command prints the CLI release version, the
+git commit the binary was built from, and the default container image
+tags used by the local development stack.
+
+To retrieve the CLI version, run the following command:
+
+.. code-block:: bash
+
+   agentengine version [--json] 
+
+.. tip::
+
+   By default, this command prints a human-readable plain-text string.
+   Pass the ``--json`` flag to print a stable, machine-readable JSON
+   object that includes the ``schema_version``, ``status``, ``version``,
+   ``git_commit``, ``build``, and embedded ``images`` fields.
+
+The output resembles the following:
+
+.. code-block:: none
+   :copyable: false
+
+   {+version+} (commit: <hash>)
+   image registry: ECR
+   runner-base: <registry>/runner-base:{+version+}
+   runner-base-typescript-langgraph: <registry>/runner-base-typescript-langgraph:{+version+}
+   playground-ui: <registry>/playground-ui:{+version+}
+   orchestrator: <registry>/orchestration-engine:<version>
+   memory-server: <registry>/memory-server:<version>
+
+.. _agentic-platform-update-cli:
+
+Update the CLI
+~~~~~~~~~~~~~~
+
+The ``agentengine self-update`` command downloads the latest matching release
+asset for your current OS and architecture, verifies the SHA-256
+checksum of that asset, and replaces the existing binary at its current
+installation path.
+
+When you are logged in to the {+platform-short+}, the CLI retrieves the
+list of available releases from the platform API Gateway.
+
+.. note::
+
+   The ``agentengine self-update`` command downloads the new binary
+   into the directory that holds your current binary, so you must
+   have write access to that directory. If you don't have write
+   access, prefix the command with ``sudo`` or reinstall the CLI
+   to a different directory.
+
+To update the CLI, run the following command:
+
+.. code-block:: bash
+
+   agentengine self-update [--force] [--auto[=true|false]]
+
+The following table describes the available flags:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Flag
+     - Description
+
+   * - ``--force``
+     - Download and install the latest release even if the current CLI is
+       already up to date.
+
+   * - ``--auto``
+     - Enable automatic self-updates before most commands run. Pass the
+       ``--auto=false`` flag to turn automatic updates off. Automatic updates
+       are not available on Windows.
+
+When you run most ``agentengine`` commands, the CLI prints a one-line
+notice to ``stderr`` if a newer release is available. The CLI runs the
+update check once every 24 hours. To disable the check entirely, set the
+``AGENTENGINE_NO_UPDATE_CHECK=1`` environment variable in your shell.
+
+.. note::
+
+   On Windows, the ``agentengine self-update`` command downloads the updated binary for
+   manual replacement because a running ``agentengine.exe`` cannot be replaced
+   in place.
+
+.. _ap-proj-workspace-limits:
+
+Resource Limits
+---------------
+
+.. include:: /includes/limitations/org-limits.rst
+
+.. include:: /includes/limitations/project-limits.rst
+
+To review all limitations that apply during Public Preview, see
+:ref:`agentic-platform-limitations`.
+
+Next Steps
+----------
+
+After you set up your organizations, projects, and workspaces, you can build
+and run your agent locally. To learn how, see
+:ref:`Build Your Local Environment <agentic-platform-build-local>`.

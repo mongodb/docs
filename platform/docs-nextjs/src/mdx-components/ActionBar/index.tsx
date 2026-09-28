@@ -4,6 +4,7 @@ import type { PageTemplateType } from '@/types/ast';
 import actionBarStyling from '@/mdx-components/ActionBar/action-bar.module.scss';
 import { SearchInput } from '@/mdx-components/ActionBar/SearchInput';
 import { ActionsContainer } from '@/mdx-components/ActionBar/ActionsContainer';
+import { ProductTabs } from '@/mdx-components/ActionBar/ProductTabs';
 import { Suspense } from 'react';
 import { Overline } from '@leafygreen-ui/typography';
 import Icon from '@leafygreen-ui/icon';

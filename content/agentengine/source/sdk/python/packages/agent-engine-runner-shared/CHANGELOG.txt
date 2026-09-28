@@ -1,0 +1,80 @@
+Changelog
+=========
+
+All notable changes to this package will be documented in this file.
+
+The format is based on `Keep a
+Changelog <https://keepachangelog.com/en/1.1.0/>`__, and this project
+adheres to `Semantic
+Versioning <https://semver.org/spec/v2.0.0.html>`__.
+
+[Unreleased]
+------------
+
+Fixed
+~~~~~
+
+- Uncaught exceptions in agent code now emit one filterable
+  ``level=ERROR`` record instead of only ``WARNING``. Ordinary stderr
+  writes with no associated exception (deprecation warnings, retry
+  banners) stay ``WARNING``, and the existing line-by-line traceback
+  capture is unchanged — this adds a summary record rather than
+  replacing anything.
+
+- The Launcher now validates ``RUNNER_MODE``, falling back to ``aer``
+  when it is unset or unrecognized. An unrecognized value previously
+  reached the ``service`` field verbatim, and ``/agent-logs`` drops any
+  record outside ``{agent-execution-runtime, tool-executor}`` — so the
+  crash log vanished.
+
+- Launcher installs logging before importing ``AGENT_ENTRYPOINT`` and
+  emits ``ERROR`` (with traceback metadata) for import and entrypoint
+  failures, so workspace logs no longer show those crashes as ``INFO``.
+
+- ``build_uvicorn_log_config()`` now routes
+  ``uvicorn``/``uvicorn.error``/ ``uvicorn.access`` through the
+  structured JSON pipeline when ``STRUCTURED_LOGGING=true``. An
+  unhandled exception in a route handler previously arrived as
+  ``level=WARNING`` with ``"ERROR:    "`` baked into the message text
+  and no ``fields.exc_traceback``.
+
+  For uvicorn/FastAPI records only (agent-emitted records are
+  unaffected), four fields change: ``level`` now carries the real
+  severity, ``source`` becomes ``python-logging`` instead of ``stderr``,
+  ``logger`` becomes the real origin instead of ``root``, and the
+  ``"ERROR:    "`` prefix is gone from ``message``. A multi-line
+  traceback now arrives as one ``ERROR`` record with the trace in
+  ``fields.exc_traceback`` rather than several ``WARNING`` lines.
+
+  **Migration:** saved queries or dashboards filtering on
+  ``source=stderr`` or ``logger=root`` to find these lines will stop
+  matching — re-target ``logger``
+  (``uvicorn``/``uvicorn.error``/``uvicorn.access``) or ``level=ERROR``.
+
+Changed
+~~~~~~~
+
+- **Behavioral change (fail closed):** Managed runtimes that require
+  project- scoped storage now require ``APP_ID`` when resolving
+  checkpoint workspace scope. A missing ``APP_ID`` raises instead of
+  trusting the wire workspace or using a bare session key. Intentionally
+  unscoped local runtimes retain the wire fallback and bare-key
+  behavior.
+- **Behavioral change (fail closed):**
+  ``agent_engine_runner_shared.server.metadata.applied_metadata_env``
+  now raises ``RuntimeError`` — before touching ``os.environ`` — when a
+  region overlaps a concurrent secret-bearing region: either another
+  region already has secrets applied, or this region carries secrets
+  while any region is active. Previously overlap was silent and could
+  swap one request’s secrets into another’s. In-repo call sites
+  (``/execute``, ``/invoke_llm``, ``/invoke_llm/stream``) are serialized
+  by the ToolServer’s per-instance execute gate and are unaffected; a
+  downstream consumer calling ``applied_metadata_env`` directly, or a
+  second in-process call site, must be prepared to handle the exception
+  per request.
+- A region entered while another region is active now performs a
+  *delete-only* restore: keys it added are removed, but overwritten
+  values are no longer reverted, since its snapshot is tainted with the
+  other region’s request-scoped state. Regions entered on a quiet
+  environment (the serialized production flow) keep the full snapshot
+  restore.

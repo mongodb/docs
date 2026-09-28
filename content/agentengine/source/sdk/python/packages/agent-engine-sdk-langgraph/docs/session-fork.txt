@@ -1,0 +1,109 @@
+.. _python-packages-agent-engine-sdk-langgraph-docs-session-fork:
+
+Session fork vs LangGraph time-travel
+=====================================
+
+LangGraph time-travel stays on one thread. ``graph.update_state`` and a
+historical ``checkpoint_id`` write the next checkpoint on that same
+``thread_id``. The conversation you patched is the conversation you keep
+using.
+
+The platform treats a conversation as a **session**. A fork is therefore
+a new session, not a write onto the source conversation.
+Native-checkpoint sessions copy the selected checkpoint into a new
+LangGraph thread. Durable workflow sessions submit the selected
+committed step and its reconstructed state to OE, which creates a
+dormant session branch and validates the state against the committed
+marker. Both paths leave the source unchanged.
+
+One helper, two callers
+-----------------------
+
+``fork_native_session`` creates the native branch session
+(``CreateBranch``), copies the selected completed root checkpoint onto
+the empty dest thread, and applies an optional dest ``update_state``
+patch. The durable path creates an OE-owned branch directly from fenced
+scratch. Both are used by:
+
+1. In-app ``graph.update_state`` / ``aupdate_state`` (wrapped when the
+   ``LangGraphBaseAgent`` is constructed)
+2. The AER fork plugin (HTTP registration is a follow-up)
+
+Empty-thread native ``update_state`` remains ordinary checkpoint
+initialization. A native dest patch after copy is not intercepted
+either: dest config has no source ``request_context``.
+
+In-app ``update_state`` fork uses the default
+``session_id:workspace_id`` thread key so the destination ``session_id``
+is recoverable. Custom ``@app.resolve_thread_id`` is rejected on that
+path; use the AER fork plugin when a custom key is required.
+
+CreateBranch is posted with the **in-flight** source execution id. OE
+binds the LangGraph branch point to that session’s latest **completed**
+native checkpoint (the wrap pins ``checkpoint_id`` to that root). Roll
+that OE before the new AER/SDK: the adapter now sends ``checkpoint_id``,
+and an old OE returns HTTP 400 for unknown fields. Omitting the field
+does not help in-app fork during a live turn — old OE still rejects a
+running source. The copy replay plan is validated before CreateBranch.
+Dest must be empty: copy, then optional dest patch. If dest is already
+occupied, copy fails, or the patch fails, the fork raises and dest is
+left as-is. Fork again into a new session rather than recovering that
+dest.
+
+A later dest invoke may still send the source coordinate. If dest
+already has checkpoints, the adapter does not copy again.
+
+Public fork does not take ``as_node``. If a dest state patch omits it, a
+single-node graph fills it in; a multi-node graph, or an explicit node
+the graph does not have, fails before any branch is created instead of
+guessing.
+
+Durable workflow branches
+-------------------------
+
+Within a fenced durable attempt, ``get_state_history`` /
+``aget_state_history`` iterate only that attempt’s scratch checkpoints.
+Scratch remains temporary and request-scoped; OE activity history and
+committed step markers remain the durable authority. Calling
+``update_state(config, None)`` or its async form on a selected root-loop
+checkpoint reconstructs application state from scratch and posts its OE
+step ordinal and state to ``CreateBranch``. OE uses its own issued
+tenant, workspace, session, and execution identity and rejects a state
+whose hash does not match the selected marker.
+
+``PlatformCheckpointer`` records the absolute OE ordinal in each
+committed root scratch checkpoint’s metadata. LangGraph’s relative
+``step`` value is not used for this mapping because its offset changes
+when a new attempt is seeded from previous session state. On a branch
+attempt, OE initializes the step counter after
+``branch_lineage.source_step_ordinal``, so the recorded value already
+includes the inherited cutoff.
+
+The returned config identifies the new session’s thread coordinate. It
+does not carry the source ``RequestContext``; the future branch
+invocation receives its own request-scoped context. No LangGraph
+checkpoint is copied: the durable runtime seeds a fresh attempt from the
+branch state when that session is first invoked. A non-empty
+``update_state`` patch is rejected at the caller boundary before branch
+creation because the current OE contract binds the exact source state;
+applying a patch as a branch-local transition is separate work.
+
+First dest invoke after in-app ``update_state``
+-----------------------------------------------
+
+After a native fork, dest already holds the copied conversation. Atlas
+Agent Engine then invokes dest. The payload often has ``message=""``
+because there is no new user turn yet.
+
+``NativeSession.build_graph_input`` would otherwise wrap that as
+``HumanMessage("")`` and append an empty user message onto the copy. For
+the dest thread of a fork that just happened **in this process**, that
+first invoke consumes a one-shot mark: a blank payload becomes
+``ainvoke(None)`` so the graph continues from the copied checkpoint. A
+non-blank first dest turn still consumes the mark so a later empty
+``message`` is a real empty user turn.
+
+A dest execution that starts in a new process does not see the mark;
+that invoke uses whatever payload OE sends. Unused marks are a bounded
+LRU in this process; an evicted dest behaves the same as that
+new-process case.

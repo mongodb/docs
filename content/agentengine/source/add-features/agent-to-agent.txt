@@ -1,0 +1,738 @@
+.. _agentic-platform-agent-to-agent:
+
+================================
+Use Agent-to-Agent Communication
+================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Learn how to use agent-to-agent communication on the Atlas Agent Engine to enable agents to discover and invoke each other, including an example router agent.
+   :keywords: a2a, agent-to-agent, agent.yaml, sdk, discover, invoke, a2a_tools, access control, custom headers, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Agent-to-agent (A2A) communication lets one agent discover and invoke
+other agents in the same project at runtime. The Orchestration Engine
+(OE) brokers every call by performing the following actions:
+
+- Validates access
+- Creates a child execution
+- Dispatches the request to the target agent
+- Returns the result
+
+Human-in-the-loop (HITL) guarantees apply end-to-end. A target agent that
+suspends for human review pauses the call instead of returning a failure.
+
+A2A follows this sequence when you enable it:
+
+1. You add an ``a2a:`` block to your ``agent.yaml`` file. On its first
+   execution, the platform registers the agent's configuration with the
+   OE, making the agent discoverable and callable by other agents in
+   the same project.
+2. When the OE dispatches an execution to your agent, it injects a
+   short-lived token into the execution context. Your agent uses that
+   token transparently when calling other agents.
+3. From your agent code, you expose A2A as LLM tools with
+   ``app.a2a_tools()`` (recommended) or call the A2A client directly
+   through ``app._runtime.a2a`` for deterministic routing.
+4. The OE enforces access control, links the child execution to the
+   parent, dispatches to the target, and returns the result.
+
+Enable A2A in agent.yaml
+------------------------
+
+Add an ``a2a:`` section to your ``agent.yaml`` file to make your agent
+discoverable and callable. If you omit this section, or set
+``a2a.enabled`` to ``false``, your agent remains invisible to A2A callers
+and is fully backward compatible with existing deployments.
+
+.. note::
+
+   To test A2A locally, set the ``A2A_JWT_SECRET`` environment variable
+   to the same value in the ``.env`` file of every agent that calls or
+   is called through A2A.
+
+The following example shows a fully configured ``a2a:`` section:
+
+.. code-block:: yaml
+
+   name: insurance-agent
+   entrypoint: insurance_agent.main:app
+
+   a2a:
+     enabled: true
+     allowed_callers:
+       - "ws-router-002"
+     skills:
+       - name: policy-lookup
+         description: Look up insurance policy details
+         example_input: '{"policy_id": "POL-123"}'
+         example_output: '{"status": "active", "premium": 240}'
+       - name: get-quote
+         description: Generate an insurance quote
+     input_modes:
+       - "text/plain"
+     output_modes:
+       - "text/plain"
+
+A2A Fields
+~~~~~~~~~~
+
+The following table describes the fields in the ``a2a:`` section of the ``agent.yaml`` file:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 15 15 40
+
+   * - Field
+     - Type
+     - Default
+     - Description
+
+   * - ``a2a.enabled``
+     - bool
+     - ``false``
+     - Makes the agent discoverable and callable through A2A. When
+       ``false``, all other ``a2a`` fields are ignored.
+
+   * - ``a2a.allowed_callers``
+     - list[str]
+     - ``[]``
+     - Workspace IDs permitted to invoke this agent. An empty list
+       allows any A2A-enabled agent in the same project. A non-empty
+       list acts as an allowlist.
+
+   * - ``a2a.skills``
+     - list[object]
+     - ``[]``
+     - Skills the agent advertises for discovery. Each entry requires
+       a ``name`` and a ``description``. The ``example_input`` and
+       ``example_output`` fields are optional. Clear, specific
+       descriptions help other agents decide whether this agent
+       matches their needs.
+
+   * - ``a2a.input_modes``
+     - list[str]
+     - ``[]``
+     - Multipurpose Internet Mail Extensions (MIME) types the agent accepts, for
+       example ``text/plain`` or ``application/json``. Used as a discovery
+       filter.
+
+   * - ``a2a.output_modes``
+     - list[str]
+     - ``[]``
+     - MIME types the agent produces. Used as a discovery filter.
+
+.. note::
+
+   The agent's ``name``, ``skills``, ``input_modes``, ``output_modes``, and
+   ``allowed_callers`` are automatically pushed to the OE at startup. The
+   free-text description and capabilities tags that appear in discovery results
+   come from the workspace's AgentCard that you configure through the API
+   Gateway workspace endpoints, not from ``agent.yaml``.
+
+Call Other Agents
+-----------------
+
+You can call other agents from your agent code in two ways: by exposing A2A as
+LLM tools (recommended), or by using the A2A client directly. Both use the same
+underlying client. Choose your approach based on whether you want the LLM to
+drive the routing decision or whether you need deterministic control.
+
+Use A2A as LLM Tools
+~~~~~~~~~~~~~~~~~~~~
+
+The ``app.a2a_tools()`` method returns two LangChain ``StructuredTool`` objects:
+``discover_available_agents`` and ``invoke_a2a_agent``. These objects let the LLM
+discover and call other agents autonomously. Bind them alongside your existing
+tools so the model can route to other agents on its own.
+
+The ``app.a2a_tools()`` method returns an empty list when ``a2a.enabled`` is
+``false`` in your ``agent.yaml`` file, so it is safe to include in all agents.
+
+The following example binds A2A tools alongside existing tools:
+
+.. code-block:: python
+
+   from agent_engine_sdk_langgraph import App
+   from langchain_openai import ChatOpenAI
+   from langgraph.graph import StateGraph
+   from langgraph.prebuilt import ToolNode
+
+   app = App(app_name="router-agent")
+
+   @app.entrypoint
+   def build_agent():
+       llm = app.llm(ChatOpenAI(model="gpt-5.4"))
+       a2a = app.a2a_tools()
+
+       llm_with_tools = llm.bind_tools(
+           app.get_tool_schemas() + a2a
+       )
+       tool_node = ToolNode(app.get_tools() + a2a)
+
+       graph = StateGraph(...)
+       return graph.compile(checkpointer=app.checkpointer())
+
+When bound to the LLM, the model calls the two tools by name. The tools expose
+the following function signatures:
+
+- ``discover_available_agents()`` returns a JSON list of agents visible
+  to the calling agent. Each entry includes ``agent_id``, ``name``,
+  ``description``, ``skills``, and ``capabilities``. The calling agent
+  is filtered from its own results.
+- ``invoke_a2a_agent(agent_id, message, custom_headers="")`` invokes
+  the target agent and returns the result as JSON. If you provide
+  ``custom_headers``, pass them as a JSON string, for example
+  ``'{"x-tenant": "acme"}'``.
+
+Call the A2A Client Directly
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you want to use deterministic routing, you can access the ``AgentToAgent``
+client directly through ``runtime.a2a``, an attribute that exposes the client.
+
+The following example discovers agents by skill and invokes the first
+match:
+
+.. code-block:: python
+
+   agents = app._runtime.a2a.discover_agents(
+       skills=["policy-lookup"],
+       limit=10,
+   )
+   if agents:
+       resp = app._runtime.a2a.invoke_agent(
+           agent_id=agents[0].agent_id,
+           message="Look up policy POL-123",
+           skill="policy-lookup",
+           timeout=120,
+       )
+       if resp.status == "completed":
+           print(resp.result)
+
+The ``runtime.a2a`` attribute returns ``None`` when A2A is not available. To
+learn when this occurs, see :ref:`agentic-platform-a2a-considerations`. Always
+check for this case before calling client methods, as shown in the following
+example:
+
+.. code-block:: python
+
+   a2a = app._runtime.a2a
+   if a2a is None:
+       ...
+
+.. note::
+
+   Access ``runtime.a2a`` in agent code through ``app._runtime.a2a``.
+   No public ``app.a2a`` or ``app.runtime`` accessor exists. For most
+   use cases, ``app.a2a_tools()`` is the recommended alternative
+   because it does not rely on a private attribute.
+
+A2A Client SDK Reference
+------------------------
+
+In this section, you can learn about the A2A client SDK, which provides methods
+to discover and invoke agents programmatically from your agent code.
+
+To use the client SDK, import A2A types from
+``agent_engine_runner_shared.a2a``, as shown in the following example:
+
+.. code-block:: python
+
+   from agent_engine_runner_shared.a2a import (
+       AgentToAgent,
+       DiscoveredAgent,
+       AgentSkill,
+       AgentResponse,
+   )
+
+AgentToAgent Class
+~~~~~~~~~~~~~~~~~~
+
+``AgentToAgent`` is an HTTP client that communicates with the OE
+``/a2a/discover`` and ``/a2a/invoke`` endpoints. In agent code, use
+the pre-authenticated instance from ``runtime.a2a`` rather than
+constructing this class directly.
+
+The following example shows the constructor and its parameters:
+
+.. code-block:: python
+
+   AgentToAgent(oe_url: str, auth_token: str = "")
+
+The following table describes the ``AgentToAgent`` constructor parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Argument
+     - Description
+
+   * - ``oe_url``
+     - OE HTTP base URL, for example ``http://localhost:8000``.
+
+   * - ``auth_token``
+     - A2A JSON Web Token (JWT) sent as
+       ``Authorization: Bearer <token>``. Provided automatically
+       when you use ``runtime.a2a``.
+
+discover_agents() Method
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``discover_agents()`` method returns agents that the caller is
+permitted to see. When you pass multiple values in a single filter
+parameter, an agent matches if it satisfies any one of those values.
+For example, ``skills=["a", "b"]`` returns agents advertising either
+skill. When you pass multiple filter parameters, an agent must satisfy
+all of them. Agents that are not A2A-enabled and exclude the caller
+through ``allowed_callers`` are never returned.
+
+The following example shows this method and its parameters:
+
+.. code-block:: python
+
+   discover_agents(
+       project_id: str = "",
+       skills: list[str] | None = None,
+       capabilities: list[str] | None = None,
+       input_modes: list[str] | None = None,
+       limit: int = 50,
+   ) -> list[DiscoveredAgent]
+
+The following table describes the parameters for the ``discover_agents()`` method:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 15 60
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - ``project_id``
+     - str
+     - Project to search. An empty string uses the caller's project.
+
+   * - ``skills``
+     - list[str]
+     - Filter by skill name. Returns agents that have any of the
+       listed skills.
+
+   * - ``capabilities``
+     - list[str]
+     - Filter by capability tag. Returns agents that have any of
+       the listed capabilities.
+
+   * - ``input_modes``
+     - list[str]
+     - Filter by accepted MIME type. Returns agents that accept
+       any of the listed MIME types.
+
+   * - ``limit``
+     - int
+     - Maximum number of results to return. Defaults to ``50``.
+
+invoke_agent() Method
+~~~~~~~~~~~~~~~~~~~~~
+
+The ``invoke_agent()`` method invokes a target agent and waits for the result.
+The OE validates the token, checks access control, creates a child execution,
+and polls until the agent finishes, suspends for human review, or times out.
+
+The following example shows this method and its parameters:
+
+.. code-block:: python
+
+   invoke_agent(
+       agent_id: str,
+       message: str,
+       skill: str = "",
+       timeout: float | None = None,
+       custom_headers: dict[str, str] | None = None,
+   ) -> AgentResponse
+
+The following table describes the parameters for the ``invoke_agent()`` method:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 15 60
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - ``agent_id``
+     - str
+     - Target workspace ID. Obtain from ``discover_agents()``.
+
+   * - ``message``
+     - str
+     - Prompt or message to send to the target agent.
+
+   * - ``skill``
+     - str
+     - Optional skill hint for agents that advertise many skills.
+
+   * - ``timeout``
+     - float | None
+     - Seconds to wait before timing out. ``None`` uses the OE
+       default of 300 seconds. 300 seconds is the maximum timeout.
+
+   * - ``custom_headers``
+     - dict[str, str] | None
+     - Key-value headers forwarded to the target agent's execution
+       context. Keys must not use the reserved ``a2a-`` prefix. To
+       learn more, see
+       :ref:`agentic-platform-a2a-custom-headers`.
+
+Response Data Classes
+~~~~~~~~~~~~~~~~~~~~~
+
+The following table lists the response types, which are all are immutable
+dataclasses:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Class
+     - Fields
+
+   * - ``DiscoveredAgent``
+     - ``agent_id``, ``name``, ``description``, ``project_id``,
+       ``skills: list[AgentSkill]``, ``capabilities: list[str]``,
+       ``input_modes: list[str]``, ``output_modes: list[str]``
+
+   * - ``AgentSkill``
+     - ``name``, ``description``, ``example_input`` (optional),
+       ``example_output`` (optional)
+
+   * - ``AgentResponse``
+     - ``status``, ``result`` (optional), ``error`` (optional),
+       ``execution_id``
+
+Handle AgentResponse Status
+```````````````````````````
+
+The following table describes each possible value for the
+``AgentResponse.status`` field:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 40 40
+
+   * - Status
+     - Meaning
+     - What to do
+
+   * - ``completed``
+     - The target agent finished successfully.
+     - Read ``result``.
+
+   * - ``failed``
+     - The target agent returned an error.
+     - Read ``error``.
+
+   * - ``input-required``
+     - The target agent suspended for human review.
+     - Surface the pause to your user or flow. Do not treat this as
+       a failure.
+
+Network and HTTP-level errors, such as timeouts or 4xx and 5xx responses from
+the OE, raise a ``httpx.HTTPError`` from the ``discover_agents()`` and
+``invoke_agent()`` methods. An ``AgentResponse`` that has a ``status`` value of
+``failed`` indicates that the call reached the OE, but the target agent itself
+failed. To handle both network errors and agent failures, wrap calls in
+``try/except`` blocks and check the ``status`` value.
+
+The following example handles all three status values:
+
+.. code-block:: python
+
+   resp = app._runtime.a2a.invoke_agent(
+       agent_id="ws-billing-001",
+       message="Process the payment",
+   )
+
+   if resp.status == "completed":
+       handle(resp.result)
+   elif resp.status == "input-required":
+       notify_user(
+           "The billing agent needs human approval before continuing."
+       )
+   else:
+       log.error("A2A call failed: %s", resp.error)
+
+.. _agentic-platform-a2a-custom-headers:
+
+Forward Custom Headers
+----------------------
+
+You can use A2A to attach arbitrary key-value headers to an agent invocation
+to propagate request-scoped context, such as a tenant ID, a trace tag,
+or a delegated OAuth token.
+
+Pass Headers to a Called Agent
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To attach headers to a called agent, pass a ``dict`` by using the
+``custom_headers`` parameter of ``invoke_agent()``. When using the
+``invoke_a2a_agent`` LLM tool, pass headers as a JSON string.
+
+The following example passes custom headers by using the direct client:
+
+.. code-block:: python
+
+   app._runtime.a2a.invoke_agent(
+       agent_id="ws-billing-001",
+       message="Charge the customer",
+       custom_headers={
+           "x-tenant": "acme",
+           "oauth-token": "<delegated-token>",
+       },
+   )
+
+The following example passes custom headers by using the LLM tool:
+
+.. code-block:: python
+
+   invoke_a2a_agent(
+       agent_id="ws-billing-001",
+       message="Charge the customer",
+       custom_headers='{"x-tenant": "acme"}',
+   )
+
+Header keys must not use the reserved ``a2a-`` case-insensitive prefix. The OE
+rejects requests with a ``400 Bad Request`` response if any key starts with
+``a2a-``. The ``a2a-`` prefix is reserved for platform routing and identity
+headers such as ``a2a-token`` and ``a2a-caller-workspace``.
+
+Read Headers from a Caller
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To read custom headers forwarded by a calling agent, use the
+``get_current_custom_headers()`` method from the
+``agent_engine_runner_shared.context`` class. The following example
+calls this method:
+
+.. code-block:: python
+
+   from agent_engine_runner_shared.context import get_current_custom_headers
+
+   headers = get_current_custom_headers()
+   tenant = headers.get("x-tenant")
+
+``get_current_custom_headers()`` returns a ``dict[str, str]``. The
+method strips all ``a2a-`` platform headers before returning, so your
+agent code never sees A2A tokens or routing metadata. If the caller sends no custom
+headers, the method returns an empty dictionary.
+
+Configure Access Control
+------------------------
+
+The ``a2a.allowed_callers`` field in your ``agent.yaml`` file controls
+which agents can discover yours through the following behavior:
+
+- **Empty list** (default): Any A2A-enabled agent in the same project
+  can invoke your agent and see it in discovery results.
+- **Non-empty list**: Only the listed workspace IDs can invoke your
+  agent. All other agents receive a ``403`` response and cannot see
+  your agent in discovery results.
+
+The OE checks the calling agent's identity against your
+``allowed_callers`` list before dispatching. No code changes are
+required in your agent. The following example restricts invocation to
+a single router agent:
+
+.. code-block:: yaml
+
+   a2a:
+     enabled: true
+     allowed_callers:
+       - "ws-router-002"
+
+View A2A Calls in the UI
+------------------------
+
+Every A2A call appears in the session's trace panel automatically. No
+instrumentation is required. The target agent's activity appears nested
+within the same session trace, so you can follow the full cross-agent
+call tree in one place.
+
+Each invocation renders as a subagent node labeled
+``A2A: <target agent name>``, falling back to the target's workspace
+ID when it has no display name. The node shows the call's status and
+duration. The status begins as ``running``, then changes to ``done``
+on success or ``error`` on failure. Selecting a node opens a detail
+panel showing the name, status, duration, dispatch description,
+streamed output, and any errors.
+
+The target agent's own tool calls, LLM steps, and memory operations
+appear nested under the subagent node, reconstructing the complete
+call tree across agents.
+
+.. _agentic-platform-a2a-considerations:
+
+Considerations
+--------------
+
+When runtime.a2a Returns None
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``runtime.a2a`` returns a client only when all of the following
+conditions are true:
+
+1. The agent code is running in the agent sandbox. A2A is not available from
+   code that runs in the tool sandbox.
+#. An OE URL is present in the execution context.
+#. An ``a2a-token`` is present in the incoming headers. The OE injects
+   this token automatically on every dispatch when A2A is configured.
+
+When any condition is not met, ``runtime.a2a`` returns ``None``. When
+using ``app.a2a_tools()``, the tools return a structured error JSON
+instead of raising an exception.
+
+Token Lifetime
+~~~~~~~~~~~~~~
+
+The A2A token expires after 5 minutes by default. For typical
+request-and-response flows this is sufficient. Agents that run longer
+than the token lifetime may receive a ``401`` response on A2A calls.
+Automatic token refresh is not yet implemented. Treat a ``401``
+response from a long-running call as a transient failure.
+
+Self-Discovery Filter
+~~~~~~~~~~~~~~~~~~~~~
+
+The ``discover_available_agents`` LLM tool filters the calling agent's
+own workspace from results so the model does not call itself. If you
+use the raw ``discover_agents()`` client method, the OE may include
+your own agent in results. Filter it out yourself if needed.
+
+Intra-Project Scope
+~~~~~~~~~~~~~~~~~~~
+
+In the current release, A2A discovery and invocation are limited to
+agents in the same project. Cross-project routing is not yet
+implemented.
+
+Observability
+~~~~~~~~~~~~~
+
+The platform logs and links every A2A call automatically. You do not
+need to add instrumentation. The target runs as a child execution
+linked to the caller through ``parent_execution_id``. A shared
+``root_session_id`` groups the full cross-agent call tree under the
+originating user session.
+
+Example: Router Agent
+---------------------
+
+The following example shows a router agent that uses the LLM to find
+and delegate to a specialist agent. The ``agent.yaml`` file enables
+A2A and declares a ``route`` skill:
+
+.. code-block:: yaml
+   :caption: agent.yaml
+
+   name: router-agent
+   entrypoint: router_agent.main:app
+
+   a2a:
+     enabled: true
+     skills:
+       - name: route
+         description: Route a user request to the best specialist agent
+
+The following agent code binds the A2A tools alongside its own tools
+and lets the LLM handle routing:
+
+.. code-block:: python
+   :caption: main.py
+
+   from agent_engine_sdk_langgraph import App
+   from langchain_openai import ChatOpenAI
+   from langgraph.graph import StateGraph, MessagesState
+   from langgraph.prebuilt import ToolNode
+
+   app = App(app_name="router-agent")
+
+   @app.entrypoint
+   def build_agent():
+       llm = app.llm(ChatOpenAI(model="gpt-5.4"))
+       a2a = app.a2a_tools()
+       llm_with_tools = llm.bind_tools(
+           app.get_tool_schemas() + a2a
+       )
+
+       def call_model(state: MessagesState):
+           return {
+               "messages": [llm_with_tools.invoke(state["messages"])]
+           }
+
+       graph = StateGraph(MessagesState)
+       graph.add_node("model", call_model)
+       graph.add_node("tools", ToolNode(app.get_tools() + a2a))
+       graph.set_entry_point("model")
+       graph.add_conditional_edges(
+           "model",
+           lambda s: (
+               "tools"
+               if s["messages"][-1].tool_calls
+               else "__end__"
+           ),
+       )
+       graph.add_edge("tools", "model")
+       return graph.compile(checkpointer=app.checkpointer())
+
+At runtime, the LLM discovers a specialist agent advertising a
+matching skill, calls it through ``invoke_a2a_agent``, and the OE
+brokers the call while enforcing access control and logging both sides
+of the invocation.
+
+To route deterministically instead of relying on the LLM, call the
+client directly inside a graph node:
+
+.. code-block:: python
+
+   def delegate(state):
+       a2a = app._runtime.a2a
+       if a2a is None:
+           return {"messages": [("ai", "A2A is unavailable.")]}
+       resp = a2a.invoke_agent(
+           agent_id="ws-insurance-001",
+           message=state["messages"][-1].content,
+           skill="policy-lookup",
+           custom_headers={"x-request-source": "router-agent"},
+       )
+       text = (
+           resp.result
+           if resp.status == "completed"
+           else f"({resp.status}) {resp.error}"
+       )
+       return {"messages": [("ai", text)]}
+
+Next Steps
+----------
+
+After enabling agent-to-agent communication, you can explore the following
+guides to learn more about related tasks:
+
+- To monitor your agent's performance and your deployment's health, see
+  :ref:`Monitor the Agent <agentic-platform-monitor>`.
+- To authenticate and invoke a deployed agent, see :ref:`Invoke an Agent
+  <agentic-platform-invoke-agent>`.
+- To test your agent and iterate on your code, see :ref:`Test Your Agent
+  <agentic-platform-test>`.

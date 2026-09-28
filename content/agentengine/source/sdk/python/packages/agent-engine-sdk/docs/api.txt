@@ -1,0 +1,577 @@
+.. _python-packages-agent-engine-sdk-docs-api:
+
+Table of Contents
+=================
+
+- `agent_engine_sdk.app <#agent_engine_sdk.app>`__
+
+  - `BaseApp <#agent_engine_sdk.app.BaseApp>`__
+
+    - `get_tool_definitions <#agent_engine_sdk.app.BaseApp.get_tool_definitions>`__
+    - `tools <#agent_engine_sdk.app.BaseApp.tools>`__
+    - `tool <#agent_engine_sdk.app.BaseApp.tool>`__
+    - `entrypoint <#agent_engine_sdk.app.BaseApp.entrypoint>`__
+
+- `agent_engine_sdk.interfaces <#agent_engine_sdk.interfaces>`__
+
+  - `ExecutionResult <#agent_engine_sdk.interfaces.ExecutionResult>`__
+  - `BaseAgent <#agent_engine_sdk.interfaces.BaseAgent>`__
+  - `BaseLLM <#agent_engine_sdk.interfaces.BaseLLM>`__
+  - `BaseExecutionCallback <#agent_engine_sdk.interfaces.BaseExecutionCallback>`__
+  - `NullExecutionCallback <#agent_engine_sdk.interfaces.NullExecutionCallback>`__
+
+- `agent_engine_sdk.models <#agent_engine_sdk.models>`__
+
+  - `MappingCompatModel <#agent_engine_sdk.models.MappingCompatModel>`__
+  - `ToolDefinition <#agent_engine_sdk.models.ToolDefinition>`__
+  - `TextBlock <#agent_engine_sdk.models.TextBlock>`__
+  - `ImageBlock <#agent_engine_sdk.models.ImageBlock>`__
+  - `DocumentBlock <#agent_engine_sdk.models.DocumentBlock>`__
+  - `LLMTokenUsage <#agent_engine_sdk.models.LLMTokenUsage>`__
+
+    - `to_langchain_usage_metadata <#agent_engine_sdk.models.LLMTokenUsage.to_langchain_usage_metadata>`__
+
+  - `LLMToolCall <#agent_engine_sdk.models.LLMToolCall>`__
+
+    - `to_langchain_dict <#agent_engine_sdk.models.LLMToolCall.to_langchain_dict>`__
+
+  - `LLMToolSchema <#agent_engine_sdk.models.LLMToolSchema>`__
+
+    - `to_langchain_dict <#agent_engine_sdk.models.LLMToolSchema.to_langchain_dict>`__
+
+  - `LLMInvocationOptions <#agent_engine_sdk.models.LLMInvocationOptions>`__
+
+    - `to_model_kwargs <#agent_engine_sdk.models.LLMInvocationOptions.to_model_kwargs>`__
+
+  - `Message <#agent_engine_sdk.models.Message>`__
+  - `MessageArtifact <#agent_engine_sdk.models.MessageArtifact>`__
+  - `MessageArtifactMetadata <#agent_engine_sdk.models.MessageArtifactMetadata>`__
+
+    - `to_message_metadata <#agent_engine_sdk.models.MessageArtifactMetadata.to_message_metadata>`__
+
+  - `collect_message_artifact_metadata <#agent_engine_sdk.models.collect_message_artifact_metadata>`__
+  - `LLMResponse <#agent_engine_sdk.models.LLMResponse>`__
+  - `ToolCallChunk <#agent_engine_sdk.models.ToolCallChunk>`__
+  - `LLMStreamChunk <#agent_engine_sdk.models.LLMStreamChunk>`__
+  - `AgentInput <#agent_engine_sdk.models.AgentInput>`__
+  - `AgentOutput <#agent_engine_sdk.models.AgentOutput>`__
+  - `StreamEvent <#agent_engine_sdk.models.StreamEvent>`__
+  - `OutputParser <#agent_engine_sdk.models.OutputParser>`__
+
+    - `parse <#agent_engine_sdk.models.OutputParser.parse>`__
+    - `on_stream_error <#agent_engine_sdk.models.OutputParser.on_stream_error>`__
+
+  - `RequestContext <#agent_engine_sdk.models.RequestContext>`__
+  - `SessionSummary <#agent_engine_sdk.models.SessionSummary>`__
+  - `SessionsSummaryResponse <#agent_engine_sdk.models.SessionsSummaryResponse>`__
+  - `SessionMessage <#agent_engine_sdk.models.SessionMessage>`__
+  - `SessionMessagesResponse <#agent_engine_sdk.models.SessionMessagesResponse>`__
+  - `SessionForkResponse <#agent_engine_sdk.models.SessionForkResponse>`__
+
+Base application class for framework-specific SDKs.
+
+BaseApp
+-------
+
+.. code:: python
+
+   class BaseApp(ABC)
+
+Abstract base class for framework-specific SDK integrations.
+
+Each framework SDK (LangGraph, CrewAI, etc.) subclasses ``BaseApp`` and
+implements the abstract methods using framework-native constructs.
+
+The platform runtime sets ``tool_wrapper`` and ``llm_wrapper`` on the
+instance before calling ``entrypoint()`` so that tools and LLMs are
+routed through the secure execution layer.
+
+get_tool_definitions
+^^^^^^^^^^^^^^^^^^^^
+
+.. code:: python
+
+   @abstractmethod
+   def get_tool_definitions() -> list[ToolDefinition]
+
+Return all registered tool definitions.
+
+Used by the OE to obtain tool execution information.
+
+tools
+^^^^^
+
+.. code:: python
+
+   @abstractmethod
+   def tools() -> Any
+
+Return a list of wrapped, framework-specific tools.
+
+tool
+^^^^
+
+.. code:: python
+
+   @abstractmethod
+   def tool(*args: Any, **kwargs: Any) -> Any
+
+Decorator that registers a tool on this app.
+
+entrypoint
+^^^^^^^^^^
+
+.. code:: python
+
+   @abstractmethod
+   def entrypoint(fn: Any) -> Any
+
+Decorator that registers the agent builder function.
+
+Called by runtimes to obtain a ``BaseAgent``.
+
+Framework-neutral protocols for Atlas Agent Engine.
+
+ExecutionResult
+---------------
+
+.. code:: python
+
+   @runtime_checkable
+   class ExecutionResult(AsyncIterable[StreamEvent], Protocol)
+
+Result of an agent execution.
+
+Await for the final result, or async-iterate for streaming events.
+
+Usage
+
+.. code-block:: python
+
+   # Non-streaming
+   output = await agent.execute(ctx, input)
+
+   # Streaming
+   async for event in agent.execute(ctx, input):
+       handle(event)
+
+BaseAgent
+---------
+
+.. code:: python
+
+   @runtime_checkable
+   class BaseAgent(Protocol)
+
+The contract between agent code and runtimes.
+
+Agents expose a single ``execute()`` method that returns a
+``ExecutionResult``. Callers choose the execution mode:
+
+- ``await agent.execute(ctx, input)`` for a final result (JSON-style)
+- ``async for event in agent.execute(ctx, input)`` for streaming
+  (SSE-style)
+
+BaseLLM
+-------
+
+.. code:: python
+
+   @runtime_checkable
+   class BaseLLM(Protocol)
+
+Framework-neutral LLM protocol.
+
+Used at runtime by the ToolPod.
+
+BaseExecutionCallback
+---------------------
+
+.. code:: python
+
+   @runtime_checkable
+   class BaseExecutionCallback(Protocol)
+
+Framework-neutral callback for observability during agent execution.
+
+Replaces LangChain’s ``BaseCallbackHandler``. The AER injects an
+implementation that forwards node events to the OE for logging.
+Framework adapters (e.g. sdk-langgraph) bridge from the framework’s
+native callback system to this protocol.
+
+Prefer subclassing ``NullExecutionCallback`` over implementing this
+Protocol directly — it provides no-op defaults for all methods including
+optional extensions (e.g. ``on_node_suspend``) so new methods never
+break existing implementations.
+
+NullExecutionCallback
+---------------------
+
+.. code:: python
+
+   class NullExecutionCallback()
+
+Concrete base class with no-op defaults for all BaseExecutionCallback
+methods.
+
+Subclass this instead of implementing BaseExecutionCallback directly so
+that new methods added to the protocol are automatically satisfied — you
+only override the events you care about.
+
+**Example**:
+
+.. code:: python
+
+   class MyCallback(NullExecutionCallback):
+       def on_node_start(self, node_name, inputs, *, run_id, **kwargs):
+           print(f"starting {node_name}")
+
+Framework-neutral Pydantic models for Atlas Agent Engine.
+
+MappingCompatModel
+------------------
+
+.. code:: python
+
+   class MappingCompatModel(BaseModel)
+
+Pydantic model with light dict-like compatibility helpers.
+
+Equality to dicts is intentionally one-directional compatibility for
+older call sites that compare ``model == dict``. Prefer explicit
+``model_dump()`` comparisons in new code.
+
+ToolDefinition
+--------------
+
+.. code:: python
+
+   class ToolDefinition(BaseModel)
+
+Framework-neutral tool definition.
+
+TextBlock
+---------
+
+.. code:: python
+
+   class TextBlock(BaseModel)
+
+Text content block.
+
+ImageBlock
+----------
+
+.. code:: python
+
+   class ImageBlock(BaseModel)
+
+Image content block.
+
+DocumentBlock
+-------------
+
+.. code:: python
+
+   class DocumentBlock(BaseModel)
+
+Document/file content block.
+
+LLMTokenUsage
+-------------
+
+.. code:: python
+
+   class LLMTokenUsage(MappingCompatModel)
+
+Typed token-usage metadata for LLM calls.
+
+to_langchain_usage_metadata
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code:: python
+
+   def to_langchain_usage_metadata() -> dict[str, int]
+
+Return LangChain’s expected usage-metadata keys.
+
+LLMToolCall
+-----------
+
+.. code:: python
+
+   class LLMToolCall(MappingCompatModel)
+
+Typed final tool call requested by an LLM.
+
+to_langchain_dict
+^^^^^^^^^^^^^^^^^
+
+.. code:: python
+
+   def to_langchain_dict() -> dict[str, JsonValue]
+
+Return a LangChain-compatible tool-call dict.
+
+LLMToolSchema
+-------------
+
+.. code:: python
+
+   class LLMToolSchema(MappingCompatModel)
+
+Serializable bound-tool schema forwarded with an LLM call.
+
+.. _to_langchain_dict-1:
+
+to_langchain_dict
+^^^^^^^^^^^^^^^^^
+
+.. code:: python
+
+   def to_langchain_dict() -> dict[str, JsonValue]
+
+Return the schema in the shape LangChain bind_tools expects.
+
+LLMInvocationOptions
+--------------------
+
+.. code:: python
+
+   class LLMInvocationOptions(BaseModel)
+
+Explicit provider/model options passed with an LLM invocation.
+
+to_model_kwargs
+^^^^^^^^^^^^^^^
+
+.. code:: python
+
+   def to_model_kwargs() -> dict[str, Any]
+
+Convert to kwargs for underlying model invocation.
+
+Message
+-------
+
+.. code:: python
+
+   class Message(MappingCompatModel)
+
+Framework-neutral message.
+
+Content can be a simple string for text-only messages, or a list of
+content blocks for multimodal content (images, documents, etc.).
+
+MessageArtifact
+---------------
+
+.. code:: python
+
+   class MessageArtifact(MappingCompatModel)
+
+Structured artifact attached to an assistant message.
+
+Attach artifacts through
+``MessageArtifactMetadata.to_message_metadata()`` on
+``Message.additional_kwargs``. Platform and custom frontends can render
+the same transported artifact payloads. Artifact fields must be
+JSON-safe; binary data should be represented as a URL or an encoded
+string.
+
+MessageArtifactMetadata
+-----------------------
+
+.. code:: python
+
+   class MessageArtifactMetadata(MappingCompatModel)
+
+Typed metadata contract for message-scoped artifacts.
+
+to_message_metadata
+^^^^^^^^^^^^^^^^^^^
+
+.. code:: python
+
+   def to_message_metadata() -> dict[str, JsonValue]
+
+Return the dict to attach to ``Message.additional_kwargs``.
+
+collect_message_artifact_metadata
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code:: python
+
+   def collect_message_artifact_metadata(
+           source: Mapping[str, Any] | None) -> MessageArtifactMetadata | None
+
+Collect message artifact metadata from ``Message.additional_kwargs``.
+
+LLMResponse
+-----------
+
+.. code:: python
+
+   class LLMResponse(MappingCompatModel)
+
+Framework-neutral LLM response.
+
+ToolCallChunk
+-------------
+
+.. code:: python
+
+   class ToolCallChunk(BaseModel)
+
+Partial tool call during streaming.
+
+All fields are optional since chunks may contain partial data (e.g.,
+just the start of arguments, or just the tool name).
+
+LLMStreamChunk
+--------------
+
+.. code:: python
+
+   class LLMStreamChunk(BaseModel)
+
+Rich streaming chunk following OpenAI/Anthropic patterns.
+
+All fields are optional since different chunks contain different data: -
+Content chunks: text deltas during generation - Tool call chunks:
+partial tool calls being built up - Usage chunks: token counts at end of
+stream
+
+AgentInput
+----------
+
+.. code:: python
+
+   class AgentInput(BaseModel)
+
+Input for an agent execution. Payload is an opaque JSON value.
+
+AgentOutput
+-----------
+
+.. code:: python
+
+   class AgentOutput(BaseModel)
+
+Output from an agent execution. Response is an opaque JSON value.
+
+StreamEvent
+-----------
+
+.. code:: python
+
+   class StreamEvent(BaseModel)
+
+Event streamed back to the caller during execution.
+
+OutputParser
+------------
+
+.. code:: python
+
+   class OutputParser(ABC, Generic[StreamItemT])
+
+Author-supplied map from raw stream items to consumer-facing events.
+
+Framework-neutral: ``StreamItemT`` is the type of one item pulled from
+the underlying stream, which a framework binding fixes when it
+subclasses this. Both methods are abstract, so a subclass that omits
+either cannot be instantiated.
+
+A yielded ``BaseModel`` is serialized to JSON by the producer before it
+populates ``StreamEvent.custom_event`` (typed ``JsonValue``); yielding a
+plain JSON value populates it directly.
+
+parse
+^^^^^
+
+.. code:: python
+
+   @abstractmethod
+   async def parse(item: StreamItemT,
+                   ctx: RequestContext) -> AsyncIterator[BaseModel | JsonValue]
+
+Yield zero or more custom events for ``item``.
+
+on_stream_error
+^^^^^^^^^^^^^^^
+
+.. code:: python
+
+   @abstractmethod
+   async def on_stream_error(
+           ctx: RequestContext,
+           error: BaseException) -> BaseModel | JsonValue | None
+
+Return a final custom event before the stream closes on error, or None.
+
+RequestContext
+--------------
+
+.. code:: python
+
+   class RequestContext(BaseModel)
+
+Request-scoped context passed to every agent execution.
+
+Carries framework-neutral execution identity and platform plumbing. The
+caller’s invocation input lives in ``AgentInput.payload``, not here.
+Suspend/resume state is opaque to the platform: ``metadata`` is a
+framework-owned blob that the platform forwards unchanged on resume.
+
+SessionSummary
+--------------
+
+.. code:: python
+
+   class SessionSummary(BaseModel)
+
+Per-session summary sourced from framework-specific persistence.
+
+Returned by the AER’s session-enrichment endpoint. The platform layer
+(OE) merges this with its own tenant fields (user_id, project_id,
+workspace_id, visibility) when assembling the public sessions list.
+
+SessionsSummaryResponse
+-----------------------
+
+.. code:: python
+
+   class SessionsSummaryResponse(BaseModel)
+
+Response for the AER’s session-summary enrichment endpoint.
+
+SessionMessage
+--------------
+
+.. code:: python
+
+   class SessionMessage(BaseModel)
+
+A single message in a session’s conversation history.
+
+``role`` uses the same vocabulary as ``Message`` (“user”, “assistant”,
+“tool”, “system”). ``name`` carries the tool name on tool messages.
+
+SessionMessagesResponse
+-----------------------
+
+.. code:: python
+
+   class SessionMessagesResponse(BaseModel)
+
+Response for the AER’s session-messages endpoint.
+
+SessionForkResponse
+-------------------
+
+.. code:: python
+
+   class SessionForkResponse(BaseModel)
+
+Response for forking a session into a new independent session.

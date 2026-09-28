@@ -1,0 +1,620 @@
+.. _agentic-platform-add-memory:
+
+========================
+Add Memory to Your Agent
+========================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Learn how to configure and enable memory for your agent on the MongoDB Atlas Agent Engine, including how to set memory flags in agent.yaml and provide the required Voyage API key.
+   :keywords: ai, vector search, voyage
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Memory on the {+mdb-ai-platform+} is configured at the project
+level. All agents in a project share the same memory service,
+store, and settings. You can enable or disable memory for
+individual agents in their ``agent.yaml`` file.
+
+To configure memory, edit the ``memory:`` block in your
+``project-config.yaml`` file, upload the required API keys as
+project secrets, and deploy your agent. After the initial
+deployment, you can update memory settings without redeploying.
+
+To learn more about memory, including how it's stored and
+extracted during conversations, see the :ref:`Agent Memory
+<agentic-platform-memory>` guide.
+
+Prerequisites
+-------------
+
+Ensure that you have the following prerequisites before you begin:
+
+- An ``agent.yaml`` file and a deployed agent. To get started,
+  see :ref:`agentic-platform-get-started`.
+- The ``agentengine`` CLI installed and authenticated. To learn
+  more, see :ref:`agentic-platform-set-up-install-authenticate`.
+- An Atlas Flex (minimum requirement), ``M10``, ``M20``, or higher tier cluster (recommended) to store
+  your memory data. To provision a cluster, see
+  :ref:`agentic-platform-deploy-atlas-setup`.
+
+  -  We recommend deploying a dedicated ``M10`` or higher tier cluster
+     to accommodate your memory data and index count as they grow.
+     Atlas Flex is the lowest cluster tier that can support the memory
+     service.
+
+.. note::
+
+   If the linked Atlas cluster can't create the Search and Vector
+   Search indexes that memory requires, the {+platform-short+} stops deployment at the
+   ``Memory: waiting`` stage and might time out with an
+   ``Error: context deadline exceeded`` error message.
+
+.. _agentic-build-local-memory:
+
+Enable Memory
+-------------
+
+To enable memory for your agent, set ``features.memory: true`` in your ``agent.yaml`` file, then add the
+following variables to your ``.env`` file before starting the local
+environment:
+
+- ``VOYAGE_API_KEY``: Required for generating memory embeddings.
+- ``MONGOMEM_DB_NAME``: Optional. The MongoDB database name the memory
+  server writes to. Defaults to ``mdb_memory_<project-id>``.
+
+Memory requires the two-level project structure described in the
+following section. If you use the ``agentengine create`` command to scaffold your
+project, the CLI generates this structure for you.
+
+.. note::
+
+   TypeScript agents enable memory by using the same method. A
+   TypeScript agent accesses the ``app.memory`` client only while it
+   handles a platform request. To read or write memory outside of
+   that context, use the ``Memory`` client from the
+   ``@mongodb-js/agent-engine-sdk-memory`` package, which connects to
+   the memory server directly over HTTP.
+
+.. _agentic-platform-build-local-memory-structure:
+
+Project Structure for Memory
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Your project root has a ``project-config.yaml`` file that stores
+the memory configuration. Each workspace, which contains an
+``agent.yaml`` file, is a subfolder of the project root. The following
+example shows the expected project structure for memory configuration:
+
+.. code-block:: none
+   :copyable: false
+
+   my-project/
+   ├── project-config.yaml
+   └── my-workspace/
+       └── agent.yaml
+
+The ``project-config.yaml`` file has a ``memory:`` section that
+configures the memory server for your project. The following example
+shows the available memory configuration options and their default options:
+
+.. code-block:: yaml
+
+   memory:
+     # Memory-server log level. One of: debug | info | warning | error |
+     # critical.
+     log_level: info
+
+     # Voyage AI embeddings.
+     # The Voyage API key is NOT set here — upload it as a project
+     # secret with:
+     #   agentengine secret set VOYAGE_API_KEY <value>
+     voyage:
+       model: "voyage-4-large"
+       dimension: 1024
+
+     # Short-term memory write-path behavior.
+     short_term:
+       # Embed each turn's content when it is written (only when the
+       # caller supplies no embedding), so it is searchable by
+       # relevance immediately instead of waiting for background
+       # embedding. Adds embedding latency to the write.
+       embed_on_write: false
+
+     # LLM used for background extraction.
+     # The API key is NOT set here — upload it as a project secret. If
+     # your agent already uses a supported LLM connection, upload that
+     # same key under the shared LLM_API_KEY name so the agent and
+     # extraction reuse one secret:
+     #   agentengine secret set LLM_API_KEY <value>
+     # Otherwise, upload a provider-named key instead, for example:
+     #   agentengine secret set OPENAI_API_KEY <value>
+     extraction_llm:
+       provider: openai  # one of: openai | anthropic | gemini | cerebras
+       model: null       # overrides the provider's default model
+       base_url: null    # optional: route requests through a gateway
+                          # or proxy instead of the provider's default
+                          # endpoint. Required only for gateway
+                          # connections; omit to call the provider
+                          # directly.
+       api_key_secret: null  # optional: the name of the project secret
+                              # that holds the extraction LLM's API key.
+                              # One of: LLM_API_KEY, OPENAI_API_KEY,
+                              # ANTHROPIC_API_KEY, GEMINI_API_KEY, or
+                              # CEREBRAS_API_KEY. If omitted, extraction
+                              # checks provider-named keys before
+                              # LLM_API_KEY.
+       auth_header: null  # optional: the header the gateway expects for
+                           # the API key. One of: authorization (Bearer)
+                           # or api-key. Omit for native provider
+                           # authentication.
+
+     background_extraction:
+       snapshot:
+         max_messages: 20
+         stale_minutes: 3
+         embed_stm_before_promotion: true
+         topic_shift_enabled: false
+         topic_shift_threshold: 0.35
+         delete_promoted: false
+         ttl_days: 30
+
+     # Extraction pipeline. Add memory types to the 'enabled' list to
+     # turn extraction on, for example:
+     #   enabled:
+     #     - semantic
+     #     - episodic
+     # Valid types: semantic, episodic, taxonomic, entity, preferences,
+     # procedural.
+     # NOTE: Removing the 'enabled' line entirely re-enables ALL types.
+     # Keep it as [] to extract nothing.
+     extraction:
+       enabled: []
+
+To upload and sync memory configuration for a deployed project, see
+:ref:`agentic-platform-manage-memory`.
+
+.. _agentic-platform-build-local-memory-migrate:
+
+Migrate Project Structure
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your project uses a flat structure with ``agent.yaml`` at the
+project root, migrate to the two-level structure before enabling
+memory. The flat structure is deprecated.
+
+To migrate your flat structure, perform the following steps:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create a workspace folder inside the project root.
+
+      The following example creates a folder named ``my-workspace``:
+
+      .. code-block:: sh
+
+         mkdir my-workspace
+
+   .. step:: Move your workspace files into the new folder.
+
+      Run the following commands to move the ``agent.yaml`` file, your agent source files, and the
+      ``.env`` file into the workspace folder:
+
+      .. code-block:: sh
+
+         mv agent.yaml my-workspace/
+         mv .env my-workspace/
+
+   .. step:: Create a ``project-config.yaml`` file at the project root.
+
+      The following sample file ``project-config.yaml`` shows the ``memory:`` section configuration:
+
+      .. code-block:: yaml
+
+         memory:
+           log_level: info
+           voyage:
+             model: "voyage-4-large"
+             dimension: 1024
+           short_term:
+             embed_on_write: false
+           extraction_llm:
+             provider: openai
+             model: null
+             base_url: null
+             api_key_secret: null
+
+   .. step:: Confirm the updated structure.
+
+      Confirm that your project matches the following structure:
+
+      .. code-block:: none
+
+         my-project/
+         ├── project-config.yaml
+         └── my-workspace/
+             └── agent.yaml
+
+   .. step:: Start the local environment.
+
+      Run the following command from the project root:
+
+      .. code-block:: sh
+
+         agentengine dev up
+
+.. _agentic-platform-manage-memory:
+
+Configure Memory
+----------------
+
+Use the ``agentengine memory`` commands to upload and sync your
+project's memory configuration for deployed projects. Memory
+configuration is project-scoped: one configuration document applies to
+all agents in the project.
+
+To configure memory for local development, see
+:ref:`agentic-build-local-memory`.
+
+Configuration Command Syntax
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``agentengine memory configure`` command reads a
+``project-config.yaml`` file from your agent directory, extracts the
+``memory:`` section, and uploads it to the {+platform-short+}. The
+command confirms the target project before uploading.
+
+.. important::
+
+   A future release will remove support for the ``agentengine memory configure``
+   command. Instead, the platform will support memory management through
+   the UI.
+
+The following example shows the command syntax to upload memory configuration:
+
+.. code-block:: bash
+
+   agentengine memory configure <path> [--project-id <id> --org-id <id> --base-url <url>]
+
+Alternatively, you can use the ``agentic memory configure`` command and pass
+only the ``--context`` flag, as shown in the following example:
+
+.. code-block:: bash
+
+   agentengine memory configure <path> [--context <name>]
+
+.. warning::
+
+   If the ``project-config.yaml`` file does not contain a ``memory:``
+   key, the command returns an error. A missing ``memory:`` key does
+   not remove an existing configuration.
+
+The following table describes the available flags:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Flag
+     - Description
+
+   * - ``--context``
+     - The name of a saved context that identifies the target
+       platform base URL, organization, and project. To view your
+       saved contexts, run ``agentic context list``.
+
+   * - ``--project-id``
+     - | Project ID. If omitted, the command uses the
+         project from your local authentication state. If you set
+         this flag, you must also set the ``--org-id`` and
+         ``--base-url`` flags.
+
+   * - ``--org-id``
+     - Organization ID. Required if you use the ``--project-id`` flag.
+
+   * - ``--base-url``
+     - Platform base URL. Required if you use the ``--project-id`` flag.
+
+   * - ``--yes``
+     - Skip the confirmation prompt. Use this flag in Continuous
+       Integration (CI) environments.
+
+.. note::
+
+   Memory configuration is not a secret store. Store only non-secret
+   settings in the ``project-config.yaml`` file. Use the
+   ``agentengine secret set`` command for API keys, connection strings,
+   and other credentials. The {+platform-short+} rejects uploads that
+   contain values matching common secret patterns.
+
+Initial Memory Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Before your first deployment with memory enabled, perform the
+following steps:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Edit the ``memory:`` block in your ``project-config.yaml`` file.
+
+      Open ``project-config.yaml`` at the project root and configure
+      the memory settings. To view the available options, see
+      :ref:`agentic-platform-build-local-memory-structure`.
+
+   .. step:: Upload the required secrets.
+
+      Run the following commands to upload the secrets, and
+      include the ``--project-scope`` flag to target project-scoped
+      secrets:
+
+      .. code-block:: bash
+
+         agentengine secret set VOYAGE_API_KEY --project-scope
+         agentengine secret set LLM_API_KEY --project-scope
+
+      If you scaffolded your project with the ``agentic create --llm
+      <provider> --memory`` command and selected a supported LLM
+      provider, the CLI already added
+      ``extraction_llm.api_key_secret: LLM_API_KEY`` to your
+      ``project-config.yaml`` file. This is the same secret name your
+      agent's ``.env`` file uses, so uploading it once supplies the
+      key to both the agent and memory extraction.
+
+      .. note::
+
+         You can still use provider-named keys, such as ``OPENAI_API_KEY``
+         or ``ANTHROPIC_API_KEY``. Without an explicit
+         ``api_key_secret`` value, extraction checks provider-named
+         keys before ``LLM_API_KEY``. Set the ``api_key_secret`` field
+         explicitly if memory requires a separate credential from your
+         agent, or if you have keys for multiple providers and want to
+         select one.
+
+         If you set ``api_key_secret`` to a value other than
+         ``LLM_API_KEY``, replace ``LLM_API_KEY`` in the preceding
+         command with that name instead.
+
+   .. step:: Store the memory configuration.
+
+      From your project root, run the following command to upload the ``memory:`` block from your
+      ``project-config.yaml`` file to the {+platform-short+}:
+
+      .. code-block:: bash
+
+         agentengine memory configure
+
+   .. step:: Deploy the agent.
+
+      Run the following command to deploy the agent and provision the
+      memory server:
+
+      .. code-block:: bash
+
+         agentengine deploy
+
+      The deploy command syncs the pending memory configuration and
+      provisions the memory server as part of the project runtime.
+
+Update Memory Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Memory configuration changes don't require redeploying the agent. To
+apply updated memory settings to a running deployment, perform the
+following steps:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Edit the ``memory:`` block in your ``project-config.yaml`` file with your new memory settings.
+
+      Open ``project-config.yaml`` at the project root and configure
+      the memory settings. To view the available options, see
+      :ref:`agentic-platform-build-local-memory-structure`.
+
+   .. step:: Store the updated configuration.
+
+      Run the following command from your project root:
+
+      .. code-block:: bash
+
+         agentengine memory configure
+
+   .. step:: Apply the configuration.
+
+      .. code-block:: bash
+
+         agentengine memory apply
+
+      The ``agentengine memory apply`` command restarts the memory
+      server so it registers the new configuration. The platform
+      delivers configuration changes asynchronously and the changes
+      take effect when the pod restarts
+      or when the updated configuration is applied on startup. If the
+      stored configuration is not yet synced, the ``agentengine deploy``
+      command syncs the configuration as part of the next deploy
+      process.
+
+.. _agentic-platform-custom-memory-types:
+
+Declare Custom Memory Types
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Custom memory types store domain-specific records that don't correspond
+to the four built-in memory types. To declare and use custom memory
+types, perform the following steps:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Declare your custom types.
+
+      Add a ``custom_memory_types:`` block to the ``memory:`` section
+      of your ``project-config.yaml`` file. The following example
+      creates a custom ``customer_profile`` type:
+
+      .. code-block:: yaml
+
+         memory:
+           custom_memory_types:           # Custom memory types (max 5)
+             - name: customer_profile
+               collection: profiles
+               tags:
+                 - name: location
+                 - name: tier
+                 - name: profile.location  # One level of nested tag keys
+
+      Each custom memory type has the following fields:
+
+      - ``name``: *(Required)* The type name. The value must start
+        with a lowercase letter and contain only lowercase letters,
+        numbers, and underscores. It cannot use any of the built-in
+        type names or exceed 64 characters in length.
+      - ``collection``: *(Required)* The collection in the project's
+        memory database that stores the type's records.
+      - ``tags``: *(Optional)* Filterable tag keys, up to ten per
+        type. A tag key can use dot notation to nest up to one level, such
+        as ``profile.location``. Tag values must be non-empty
+        strings, numbers, or booleans.
+
+   .. step:: Provision the new types.
+
+      Run the following commands to upload the updated configuration
+      and apply it to the memory server, which provisions each new type:
+
+      .. code-block:: bash
+
+         agentengine memory configure
+         agentengine memory apply
+
+      .. note::
+
+         After you upload a configuration that declares a custom memory type,
+         you cannot edit or remove the type's collection or tag set. To
+         change a type, declare a new type name instead.
+
+   .. step:: Read and write custom memory records.
+
+      In your application, use the ``save()`` and ``retrieve()``
+      methods to write and read custom memory records:
+
+      .. code-block:: python
+
+         memory.save(
+             memory_type="customer_profile",
+             content="Prefers direct vendor onboarding contact.",
+             tags={"tier": "gold"},
+         )
+         hits = memory.retrieve(
+             memory_type="customer_profile",
+             query="How should we onboard this customer?",
+             tags={"tier": "gold"},
+             top_k=5,
+         )
+
+.. _agentic-platform-access-memory:
+
+Access Memory From Your Agent
+-----------------------------
+
+When you deploy an agent with memory enabled, the platform provides the
+``app.memory`` client on the application object. Use this client to
+read and write memory from your agent. The platform resolves the
+current user and session from the runtime context, so you don't need to pass
+``user_id`` or ``session_id`` arguments explicitly to ``app.memory``.
+
+To access memory from an ``agent-engine-sdk-langgraph`` agent, perform the
+following steps. Every {+platform-short+} agent template uses
+the ``agent-engine-sdk-langgraph`` package, so these steps apply regardless of your
+agent's use case.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Access the ``app.memory`` client.
+
+      In your agent code, retrieve the ``app.memory``  client and use it to read
+      and write memory. The following example shows how to access this client:
+
+      .. code-block:: python
+
+         from agent_engine_sdk_langgraph import App
+
+         app = App(app_name="support-agent")
+
+         @app.entrypoint
+         def build_graph():
+             # Your LangGraph state machine.
+             ...
+
+         # Later, in a request handler for a conversation turn:
+         memory = app.memory
+
+   .. step:: Retrieve context that is relevant to the user's message.
+
+      Use the ``app.memory.build_context()`` method to retrieve
+      memory that is relevant to a message and format it as context,
+      as shown in the following example:
+
+      .. code-block:: python
+
+         def handle_turn(user_message: str) -> str:
+             ctx = memory.build_context(
+                 query=user_message,
+                 max_tokens=2000,
+             )
+             prompt = f"{ctx.formatted_context}\n\nUser: {user_message}"
+             return prompt
+
+   .. step:: Write a long-term memory directly.
+
+      Use a ``save_*`` method to store a fact in memory directly.
+      The following example writes a semantic memory:
+
+      .. code-block:: python
+
+         memory.save_semantic(
+             text="Prefers email over phone for support follow-ups.",
+             label="contact_preference",
+         )
+
+   .. step:: Search for relevant memory.
+
+      Use a ``search_*`` method to retrieve memory that matches a query. The
+      following example runs a semantic memory query:
+
+      .. code-block:: python
+
+         chunks = memory.search_semantic(
+             query="How should we contact this customer?",
+             top_k=5,
+         )
+
+.. note::
+
+   For a deployed agent, the platform records conversation turns
+   automatically. You do not need to call ``record_turn()`` to save
+   conversation turns.
+
+Next Steps
+----------
+
+After enabling memory for your agent, you can test the agent locally
+and deploy it. To learn how to test your agent, see
+:ref:`Test the Agent <agentic-platform-test>`. To learn how to deploy
+your agent, see :ref:`Deploy <agentic-platform-deploy>`.
+
+To use memory from an application that runs outside the
+{+platform-short+}, see the :ref:`Use the Standalone Memory Service
+App <agentic-platform-memory-only>` guide.

@@ -1,3 +1,4 @@
+import AgenticPlatformData from './L1-data/agentengine';
 import AtlasArchData from './L1-data/atlas-architecture-center';
 import ClientLibData from './L1-data/client-libraries';
 import DeploymentData from './L1-data/deployment';
@@ -75,5 +76,13 @@ export const toc: L1TocItem[] = [
       'Includes well-architected framework, solutions library and partners library.',
     items: AtlasArchData,
     navSection: 'docs',
+  },
+  {
+    label: 'Atlas Agent Engine',
+    contentSite: 'agentengine',
+    url: '/docs/agentengine',
+    subTitle: 'Use Atlas Agent Engine by MongoDB.',
+    items: AgenticPlatformData,
+    navSection: 'agentengine',
   },
 ];

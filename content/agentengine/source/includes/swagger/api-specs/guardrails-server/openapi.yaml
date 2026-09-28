@@ -1,0 +1,847 @@
+openapi: 3.1.0
+info:
+  title: Guardrails Server
+  description: Guardrail configuration, validation, and audit logging API for the
+    MongoDB Agentic Platform.
+  version: 0.3.0
+paths:
+  /guardrails/stats:
+    get:
+      summary: Get Guardrail Stats
+      description: Get aggregate statistics for guardrails.
+      operationId: get_guardrail_stats_guardrails_stats_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuardrailStatsResponse'
+  /guardrails/logs:
+    get:
+      summary: List Guardrail Logs
+      description: List guardrail audit logs, scoped to an org.
+      operationId: list_guardrail_logs_guardrails_logs_get
+      parameters:
+      - name: guardrail_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Guardrail Id
+      - name: session_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Session Id
+      - name: org_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Org Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuardrailLogsListResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /guardrails/logs/{log_id}:
+    get:
+      summary: Get Guardrail Log
+      description: Get a single guardrail log by its MongoDB _id, scoped to an org.
+      operationId: get_guardrail_log_guardrails_logs__log_id__get
+      parameters:
+      - name: log_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Log Id
+      - name: org_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Org Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /guardrails/{guardrail_id}/logs:
+    get:
+      summary: List Guardrail Specific Logs
+      description: List logs for a specific guardrail, scoped to an org.
+      operationId: list_guardrail_specific_logs_guardrails__guardrail_id__logs_get
+      parameters:
+      - name: guardrail_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Guardrail Id
+      - name: org_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Org Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuardrailLogsListResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /guardrails/test:
+    post:
+      summary: Test Guardrail
+      description: 'Test a guardrail configuration against sample text (playground).
+
+
+        This mirrors what the UI sends: a config object and test_text.
+
+        Internally delegates to the entity block validator.'
+      operationId: test_guardrail_guardrails_test_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestGuardrailRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestGuardrailResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /validate:
+    post:
+      summary: Validate
+      description: "Validate text using configured guardrails.\n\nArgs:\n    request:\
+        \ Validation request with text and org_id\n\nReturns:\n    Validation result\
+        \ with validated output and any errors"
+      operationId: validate_validate_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ValidateRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidateResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /refresh/{org_id}:
+    post:
+      summary: Refresh
+      description: "Reload guardrails configuration from MongoDB.\n\nArgs:\n    org_id:\
+        \ Organization ID\n\nReturns:\n    Number of active validators after refresh"
+      operationId: refresh_refresh__org_id__post
+      parameters:
+      - name: org_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Org Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /guardrails:
+    get:
+      summary: List Guardrails
+      description: List all guardrails with optional filters.
+      operationId: list_guardrails_guardrails_get
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Status
+      - name: type
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Type
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuardrailsListResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      summary: Create Guardrail
+      description: Create a new guardrail.
+      operationId: create_guardrail_guardrails_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGuardrailRequest'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuardrailResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /guardrails/{guardrail_id}:
+    get:
+      summary: Get Guardrail
+      description: Get a single guardrail by guardrail_id.
+      operationId: get_guardrail_guardrails__guardrail_id__get
+      parameters:
+      - name: guardrail_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Guardrail Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuardrailResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    put:
+      summary: Update Guardrail
+      description: Update a guardrail.
+      operationId: update_guardrail_guardrails__guardrail_id__put
+      parameters:
+      - name: guardrail_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Guardrail Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateGuardrailRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuardrailResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      summary: Delete Guardrail
+      description: Delete a guardrail.
+      operationId: delete_guardrail_guardrails__guardrail_id__delete
+      parameters:
+      - name: guardrail_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Guardrail Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuardrailResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+components:
+  schemas:
+    CreateGuardrailRequest:
+      properties:
+        name:
+          type: string
+          title: Name
+          description: Human-readable guardrail name
+        description:
+          type: string
+          title: Description
+          description: Guardrail purpose and behavior description
+          default: ''
+        type:
+          type: string
+          title: Type
+          description: Guardrail type (e.g. 'entity_block', 'keyword_block', 'pii_redact')
+        status:
+          type: string
+          title: Status
+          description: 'Activation status: ''active'' or ''inactive'''
+          default: inactive
+        action:
+          type: string
+          title: Action
+          description: 'Action on trigger: ''block'' or ''redact'''
+        conditions:
+          items:
+            $ref: '#/components/schemas/GuardrailConditionModel'
+          type: array
+          title: Conditions
+          description: Trigger conditions
+        agent_ids:
+          items:
+            type: string
+          type: array
+          title: Agent Ids
+          description: Agent/workspace IDs this guardrail applies to
+        stage_filter:
+          items:
+            $ref: '#/components/schemas/Stage'
+          type: array
+          title: Stage Filter
+          description: Validation stages this rule applies to (empty means all stages)
+        config:
+          anyOf:
+          - $ref: '#/components/schemas/GuardrailConfigModel'
+          - type: 'null'
+          description: Type-specific configuration
+        org_id:
+          type: string
+          title: Org Id
+          description: Organization ID (uses default if empty)
+          default: ''
+      type: object
+      required:
+      - name
+      - type
+      - action
+      title: CreateGuardrailRequest
+      description: Request to create a guardrail.
+    GuardrailConditionModel:
+      properties:
+        field:
+          type: string
+          title: Field
+          description: Field name to evaluate (e.g. 'input', 'output')
+          default: ''
+        operator:
+          type: string
+          title: Operator
+          description: Comparison operator (e.g. 'contains', 'equals')
+          default: ''
+        value:
+          title: Value
+          description: Value to compare against
+      type: object
+      title: GuardrailConditionModel
+      description: A condition for triggering a guardrail.
+    GuardrailConfigModel:
+      properties:
+        blocked_entities:
+          items:
+            type: string
+          type: array
+          title: Blocked Entities
+          description: Named entities to block (e.g. competitors, brands)
+        on_fail:
+          type: string
+          title: On Fail
+          description: 'Action on validation failure: ''fix'' (redact blocked content)
+            or ''noop'' (report only)'
+          default: fix
+      type: object
+      title: GuardrailConfigModel
+      description: Type-specific configuration for a guardrail.
+    GuardrailLogsListResponse:
+      properties:
+        success:
+          type: boolean
+          title: Success
+          description: Whether the request succeeded
+          default: true
+        logs:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          title: Logs
+          description: Audit log entries
+        count:
+          type: integer
+          title: Count
+          description: Number of log entries returned
+          default: 0
+      type: object
+      title: GuardrailLogsListResponse
+      description: List of guardrail logs.
+    GuardrailResponse:
+      properties:
+        success:
+          type: boolean
+          title: Success
+          description: Whether the request succeeded
+          default: true
+        guardrail:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Guardrail
+          description: Guardrail document
+        error:
+          type: string
+          title: Error
+          description: Error message if request failed
+          default: ''
+      type: object
+      title: GuardrailResponse
+      description: Single guardrail response.
+    GuardrailStatsModel:
+      properties:
+        total_rules:
+          type: integer
+          title: Total Rules
+          description: Total number of guardrail rules
+          default: 0
+        active_rules:
+          type: integer
+          title: Active Rules
+          description: Number of active guardrail rules
+          default: 0
+        total_triggers:
+          type: integer
+          title: Total Triggers
+          description: Total number of guardrail triggers
+          default: 0
+        triggers_by_type:
+          additionalProperties:
+            type: integer
+          type: object
+          title: Triggers By Type
+          description: Trigger counts grouped by guardrail type
+        triggers_by_action:
+          additionalProperties:
+            type: integer
+          type: object
+          title: Triggers By Action
+          description: Trigger counts grouped by action taken
+        top_triggered_rules:
+          items:
+            $ref: '#/components/schemas/TopTriggeredRule'
+          type: array
+          title: Top Triggered Rules
+          description: Top 5 most-triggered guardrail rules
+      type: object
+      title: GuardrailStatsModel
+      description: Aggregate statistics for guardrails.
+    GuardrailStatsResponse:
+      properties:
+        success:
+          type: boolean
+          title: Success
+          description: Whether the request succeeded
+          default: true
+        stats:
+          anyOf:
+          - $ref: '#/components/schemas/GuardrailStatsModel'
+          - type: 'null'
+          description: Aggregate statistics
+        error:
+          type: string
+          title: Error
+          description: Error message if request failed
+          default: ''
+      type: object
+      title: GuardrailStatsResponse
+      description: Guardrail statistics response.
+    GuardrailsListResponse:
+      properties:
+        success:
+          type: boolean
+          title: Success
+          description: Whether the request succeeded
+          default: true
+        guardrails:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          title: Guardrails
+          description: Guardrail documents
+        count:
+          type: integer
+          title: Count
+          description: Number of guardrails returned
+          default: 0
+      type: object
+      title: GuardrailsListResponse
+      description: List of guardrails.
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    RefreshResponse:
+      properties:
+        org_id:
+          type: string
+          title: Org Id
+          description: Organization ID that was refreshed
+        active_validators:
+          type: integer
+          title: Active Validators
+          description: Number of active validators after refresh
+      type: object
+      required:
+      - org_id
+      - active_validators
+      title: RefreshResponse
+      description: Response from /refresh endpoint.
+    Stage:
+      type: string
+      enum:
+      - input
+      - output
+      title: Stage
+      description: 'Validation stage: pre-dispatch (input) or post-result (output).'
+    TestGuardrailRequest:
+      properties:
+        config:
+          anyOf:
+          - $ref: '#/components/schemas/GuardrailConfigModel'
+          - type: 'null'
+          description: Guardrail configuration to test
+        test_text:
+          type: string
+          title: Test Text
+          description: Sample text to validate against the configuration
+          default: ''
+      type: object
+      title: TestGuardrailRequest
+      description: Request to test a guardrail configuration.
+    TestGuardrailResponse:
+      properties:
+        success:
+          type: boolean
+          title: Success
+          description: Whether the request succeeded
+          default: true
+        validation_passed:
+          type: boolean
+          title: Validation Passed
+          description: Whether the test text passed validation
+          default: true
+        original_text:
+          type: string
+          title: Original Text
+          description: Original test text
+          default: ''
+        validated_text:
+          type: string
+          title: Validated Text
+          description: Text after validation (may be redacted)
+          default: ''
+        errors:
+          items:
+            type: string
+          type: array
+          title: Errors
+          description: Validation error messages
+        duration_ms:
+          type: number
+          title: Duration Ms
+          description: Validation duration in milliseconds
+          default: 0.0
+        matched_items:
+          items:
+            type: string
+          type: array
+          title: Matched Items
+          description: Entities or patterns that matched
+      type: object
+      title: TestGuardrailResponse
+      description: Response from testing a guardrail.
+    TopTriggeredRule:
+      properties:
+        id:
+          type: string
+          title: Id
+          description: Guardrail ID
+          default: ''
+        name:
+          type: string
+          title: Name
+          description: Guardrail name
+          default: ''
+        trigger_count:
+          type: integer
+          title: Trigger Count
+          description: Number of times triggered
+          default: 0
+      type: object
+      title: TopTriggeredRule
+      description: A top-triggered guardrail rule.
+    UpdateGuardrailRequest:
+      properties:
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+          description: Human-readable guardrail name
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Description
+          description: Guardrail purpose and behavior description
+        type:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Type
+          description: Guardrail type
+        status:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Status
+          description: 'Activation status: ''active'' or ''inactive'''
+        action:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Action
+          description: 'Action on trigger: ''block'' or ''redact'''
+        conditions:
+          anyOf:
+          - items:
+              $ref: '#/components/schemas/GuardrailConditionModel'
+            type: array
+          - type: 'null'
+          title: Conditions
+          description: Trigger conditions
+        agent_ids:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Agent Ids
+          description: Agent/workspace IDs
+        stage_filter:
+          anyOf:
+          - items:
+              $ref: '#/components/schemas/Stage'
+            type: array
+          - type: 'null'
+          title: Stage Filter
+          description: Validation stages
+        config:
+          anyOf:
+          - $ref: '#/components/schemas/GuardrailConfigModel'
+          - type: 'null'
+          description: Type-specific configuration
+      type: object
+      title: UpdateGuardrailRequest
+      description: Request to update a guardrail (all fields optional).
+    ValidateRequest:
+      properties:
+        text:
+          type: string
+          title: Text
+          description: Text to validate
+        org_id:
+          type: string
+          title: Org Id
+          description: Organization ID for multi-tenant isolation
+        session_id:
+          type: string
+          title: Session Id
+          description: Session/thread ID for audit trail
+          default: ''
+        execution_id:
+          type: string
+          title: Execution Id
+          description: Execution ID for audit trail
+          default: ''
+        user_id:
+          type: string
+          title: User Id
+          description: User ID for audit trail
+          default: ''
+        project_id:
+          type: string
+          title: Project Id
+          description: Project ID for rule targeting
+          default: ''
+        workspace_id:
+          type: string
+          title: Workspace Id
+          description: Workspace (agent) ID for rule targeting
+          default: ''
+        stage:
+          $ref: '#/components/schemas/Stage'
+          description: 'Validation stage: pre-dispatch (input) or post-result (output)'
+          default: output
+      type: object
+      required:
+      - text
+      - org_id
+      title: ValidateRequest
+      description: Request body for /validate endpoint.
+    ValidateResponse:
+      properties:
+        validation_passed:
+          type: boolean
+          title: Validation Passed
+          description: Whether the text passed all validators
+        validated_output:
+          type: string
+          title: Validated Output
+          description: Text after validation (may be redacted)
+        raw_output:
+          type: string
+          title: Raw Output
+          description: Original text before validation
+        errors:
+          items:
+            type: string
+          type: array
+          title: Errors
+          description: Validation error messages from triggered validators
+        validator_name:
+          type: string
+          title: Validator Name
+          description: Comma-separated names of validators that ran
+        duration_ms:
+          type: number
+          title: Duration Ms
+          description: Total validation duration in milliseconds
+          default: 0.0
+      type: object
+      required:
+      - validation_passed
+      - validated_output
+      - raw_output
+      - errors
+      - validator_name
+      title: ValidateResponse
+      description: Response from /validate endpoint.
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError

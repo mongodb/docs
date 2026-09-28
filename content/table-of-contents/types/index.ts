@@ -78,7 +78,7 @@ type TocItemBase = {
 export type L1TocItem = TocItemBase & {
   contentSite: DocSite;
   url: string;
-  navSection?: 'docs' | 'voyageai';
+  navSection?: 'docs' | 'voyageai' | 'agentengine';
   versions?: never;
   collapsible?: never;
   group?: never;
@@ -207,6 +207,7 @@ export interface ActiveVersions {
 
 export type DocSite =
   | 'atlas-architecture'
+  | 'agentengine'
   | 'charts'
   | 'atlas-cli'
   | 'atlas-operator'

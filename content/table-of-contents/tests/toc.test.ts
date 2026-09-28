@@ -3,6 +3,7 @@ import type { TocItem } from '../types';
 
 const DocSitesTesting = [
   'atlas-architecture',
+  'agentengine',
   'charts',
   'atlas-cli',
   'atlas-operator',
@@ -48,6 +49,7 @@ const DocSitesTesting = [
   'pymongo',
   'ruby-driver',
   'rust',
+  'search',
   'scala',
   'search',
   'docs',

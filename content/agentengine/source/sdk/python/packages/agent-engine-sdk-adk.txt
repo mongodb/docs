@@ -1,0 +1,323 @@
+.. _python-packages-agent-engine-sdk-adk:
+
+Agent Engine SDK ADK
+====================
+
+
+Google ADK 2 adapter for the MongoDB Atlas Agent Engine SDK.
+
+The adapter is durable-only in AER mode. Set
+``features.durable_workflow: true`` in ``agent.yaml``. Omitted or
+``false`` does not fall back to a native ADK session; the first invoke
+fails. The Orchestration Engine owns the cross-turn state and supplies
+it to each attempt; the adapter does not maintain a separate ADK session
+database. Platform concepts, enablement, and the identity rule behind
+the topology limits below: `Durable
+Workflow <../../../../../docs/orchestration-engine/durable-workflow/>`__.
+Atlas Agent Engine ``ctx.resume`` is not an ADK checkpoint resume.
+Parallel ADK routes may suspend together; the adapter collects them
+through runner quiescence and commits one atomic OE wait frontier. Once
+that frontier is answered, its step is committed and ADK may continue
+into another serial or parallel frontier.
+
+Suspend and resume
+------------------
+
+Authors compose native ADK waits at the agent builder with the official
+constructors
+```FunctionTool(..., require_confirmation=True)`` <https://adk.dev/graphs/human-input/#tool-confirmation-approval-prompts-in-llm-agents>`__
+and ``LongRunningFunctionTool``. Pass the callables from
+``app.tools()``, not the raw ``@app.tool`` function: ``@app.tool`` only
+registers the tool; ``app.tools()`` is what applies the Atlas Agent
+Engine secure wrapper. Atlas Agent Engine records each wait as one OE
+activity and finalizes the complete frontier in one command. The Atlas
+Agent Engine interrupt ids are those activity ids, not the ADK
+function-call ids. Continue requires one full ``resume_map``; it is a
+new attempt that walks the original user message again; OE returns the
+recorded answer; the adapter feeds ADK one batch of ``FunctionResponse``
+parts keyed by this run’s function-call ids. There is no Atlas Agent
+Engine ``app.suspend()``. A confirmation answer is ADK’s
+``{confirmed: true|false}`` object. A RequestInput answer is whatever
+ADK’s ``FunctionResponse.response`` dict accepts: a JSON object, or a
+non-null scalar/array that the adapter wraps as ``{result: ...}``. JSON
+``null`` is not an answer.
+
+.. code-block:: text
+
+   attempt 1: original message → ADK runs to quiescence → OE frontier 1 SUSPENDED
+   attempt 2: replay frontier 1 → COMPLETED → commit step 1 → continue ADK
+              → frontier 2 SUSPENDED
+   attempt 3: replay step 1 → replay frontier 2 → COMPLETED → commit step 2 → continue
+
+.. list-table::
+   :header-rows: 1
+
+   * - Site
+     - Role
+   * - ```agent.py`` <src/agent_engine_sdk_adk/agent.py>`__
+     - ``invoke`` / ``stream`` orchestrator
+   * - ```runner.py`` <src/agent_engine_sdk_adk/runner.py>`__
+     - Stable public ADK runner and immutable ``rewind_async`` bridge
+   * - ```execution_session.py`` <src/agent_engine_sdk_adk/execution_session.py>`__
+     - Bind the OE attempt, rebuild the original message, and identify the current resume frontier
+   * - ```stream.py`` <src/agent_engine_sdk_adk/stream.py>`__ ``AdkTurn.stream``
+     - Walk ``Runner.run_async`` through quiescence and collect every wait
+   * - ```stream.py`` <src/agent_engine_sdk_adk/stream.py>`__ ``stream_invocation``
+     - Continue through resolved frontiers until the next fresh wait or completion
+   * - ```route.py`` <src/agent_engine_sdk_adk/route.py>`__
+     - Bind canonical ADK node paths to shared durable operation paths
+   * - ```agent_route.py`` <src/agent_engine_sdk_adk/agent_route.py>`__
+     - Reserve configured sub-agent transfers under their canonical parent paths
+   * - ```suspend.py`` <src/agent_engine_sdk_adk/suspend.py>`__
+     - Map native waits to one ordered frontier and build the response batch
+   * - ```workflow.py`` <src/agent_engine_sdk_adk/workflow.py>`__ ``resolve_wait_frontier``
+     - Finalize all waits atomically and match OE outcomes by durable position
+   * - ```runtime.py`` <src/agent_engine_sdk_adk/runtime.py>`__
+     - ``@app.tool`` registers; ``app.tools()`` applies the Atlas Agent Engine secure wrapper; Tool Pod ``request_confirmation`` is blocked
+   * - ```secure_llm.py`` <src/agent_engine_sdk_adk/secure_llm.py>`__ / ``@app.tool``
+     - Prefix LLM and tools are Atlas Agent Engine activities, so continue does not re-run those side effects
+
+The adapter accepts either an ADK ``BaseAgent`` or an ADK 2
+``Workflow``. ADK does not define a LangGraph-style superstep lifecycle.
+Atlas Agent Engine therefore introduces a step only at a quiescent
+coordination frontier: all waits in that frontier join atomically, the
+resolved frontier commits its step, and the next ``Runner.run_async``
+continuation begins the next step.
+
+Workflow and agent paths
+------------------------
+
+ADK exposes ``Workflow`` composition and agent collaboration through
+different configuration APIs, but configured executions meet at the same
+runtime primitive: both Workflow nodes and agents are ``BaseNode``
+instances, and ADK assigns each run one canonical ``Context.node_path``.
+The adapter maps that one path to the OE operation path; it does not
+reconstruct agent ancestry from model text or session events.
+
+The durable adapter requires the complete Workflow and agent topology at
+application construction. This is the same static-topology constraint as
+the durable LangGraph graph adapter: arbitrary runtime control flow
+cannot be treated as a durable graph boundary after its external work
+has already started.
+
+.. list-table::
+   :header-rows: 1
+
+   * - ADK feature
+     - Durable support
+   * - Plain ``BaseAgent`` root
+     - Supported
+   * - Statically configured ``Workflow`` nodes
+     - Supported
+   * - Nested serial and parallel ``Workflow`` graphs
+     - Supported
+   * - Configured ``sub_agents`` selected by ``transfer_to_agent``
+     - Supported
+   * - Workflow agent nodes with configured transfers
+     - Supported when the owning agent uses ``mode="chat"``
+   * - Public ``AgentTool`` children
+     - Rejected before execution; use configured ``sub_agents`` and ``transfer_to_agent``
+   * - Model, tool, and wait activity inside configured nodes
+     - Supported
+   * - Application-created nodes passed to ``Context.run_node()`` at runtime
+     - Rejected before the dynamic child runs
+   * - ``NodeTool``
+     - Rejected before its child runs
+   * - Runtime-created targets passed to ``ToolContext.run_node()``
+     - Rejected before the dynamic child runs
+   * - Ordinary ``BaseToolset`` tools
+     - Supported; resolved ``AgentTool`` or ``NodeTool`` children are rejected before the parent model runs
+
+Before running a node, ADK assigns it a canonical ``Context.node_path``.
+ADK uses that same value for Workflow bookkeeping and records it on
+emitted events as ``Event.node_info.path``. The adapter wraps the public
+``BaseNode.run`` boundary so model and tool activity admission can use
+the path before an event exists.
+
+.. code:: text
+
+   ADK node path: outer@1/inner@1/review@1
+   OE path:       agent -> inner -> review
+
+The configured ADK root (``outer@1``) maps to OE’s existing ``agent``
+root. The remaining segments become child boundaries, and their complete
+ADK prefixes remain the occurrence keys:
+
+.. code:: text
+
+   inner occurrence:  outer@1/inner@1
+   review occurrence: outer@1/inner@1/review@1
+
+For a parallel ``left`` and ``right``, each node wrapper binds its own
+canonical path in a request-local context, so completion order cannot
+exchange their OE identities. A tool called by ``review`` inherits the
+``review`` scope. If ``review`` emits a wait, its event carries the same
+path and the suspension records the same boundaries after the live node
+scope ends. Equal leaf names under different Workflow ancestors remain
+distinct because identity comes from the complete path, not a global
+name lookup. Malformed node paths and wait events without a node path
+fail explicitly.
+
+Configured sub-agents
+~~~~~~~~~~~~~~~~~~~~~
+
+A transfer is a runtime selection of an already configured
+``sub_agents`` edge. The model response tells ADK which child to run,
+but the adapter waits for ADK to enter that child and uses the canonical
+path ADK assigned to the execution. For example:
+
+.. code:: text
+
+   configured: router -> reviewer -> specialist
+   ADK path:   router@1/reviewer@1/specialist@1
+   OE path:    agent -> reviewer -> specialist
+
+Repeated transfers receive new ADK run IDs. The adapter reserves the
+selected child boundary when ADK enters it, so two visits to
+``specialist`` become ``specialist`` ordinals 1 and 2 even if the same
+configured agent object runs both times.
+
+A configured agent tree is supported as the application root or inside a
+Workflow node. A Workflow agent that owns ``sub_agents`` must explicitly
+use ``mode="chat"``. ADK otherwise defaults that node to
+``single_turn``, which runs a transfer once inside the agent and again
+from the containing Workflow. The adapter rejects that lifecycle during
+durable-session construction rather than allowing duplicate child
+effects. In local development this error appears on the first playground
+invocation, before model or tool activity starts.
+
+In chat mode, every configured transfer stays in ADK’s one public node
+lifecycle. The adapter binds the complete canonical node path, including
+Workflow ancestry and the active agent chain, before model, tool, or
+suspension activity starts. ADK clones agent nodes while entering the
+Workflow, so routing is installed on the public ``BaseNode.run``
+boundary and selected through request-local adapter state. Configured
+templates carry only opaque provenance that ADK copies into its clones,
+allowing the adapter to reject a same-name, same-type node created
+dynamically at runtime.
+
+On resume, cached configured transfers stay inside ADK’s transfer loop,
+and a resolved waiting transfer target runs to completion. This
+preserves the final agent response instead of exposing the raw resume
+value as Workflow output.
+
+An agent collaboration tree may start at any statically configured agent
+node in a nested, serial, or parallel Workflow graph. This does not
+admit agents or other nodes created dynamically through
+``Context.run_node()``; those remain rejected before their execution
+begins.
+
+.. code:: text
+
+   agent root:       router agent -> reviewer -> specialist
+   composed:  outer Workflow -> router agent -> reviewer -> specialist
+
+Transfers remain inside the configured agent tree rooted at that
+Workflow node, subject to ADK’s agent-transfer rules; a Workflow is not
+a transfer target. When the agent tree finishes, control returns to the
+Workflow scheduler and continues along the configured graph.
+
+``AgentTool`` is intentionally outside this feature. ADK runs its child
+through a private Runner, so the child does not inherit the caller’s
+canonical node path or outer wait frontier. Supporting that lifecycle
+requires a separate durable bridge; the current adapter fails before
+execution instead of inferring a path.
+
+Turn-level rewind
+-----------------
+
+``App.runner`` is Atlas Agent Engine’s stable, public ADK runner. Its
+``rewind_async()`` method keeps Google’s documented argument names and
+maps ``rewind_before_invocation_id`` directly to an OE session branch:
+
+.. code:: python
+
+   branch = await app.runner.rewind_async(
+       user_id="user-1",
+       session_id="session-1",
+       rewind_before_invocation_id="execution-3",
+   )
+
+One ADK invocation is one OE execution, so rewind targets only whole
+turns. The call must run inside an active durable invocation, and
+``session_id`` must name that invocation’s session. The SDK sends the
+current execution ID through OE’s existing execution-callback route. OE
+loads that execution to derive its organization, project, workspace, and
+session; the client does not send those coordinates or attempt
+credentials. The execution ID has the same role it has for stream,
+tool-result, and executor callbacks: it routes a request already inside
+the workload-to-OE callback trust boundary and is not a public
+management credential. In one transaction, OE verifies that the
+execution still has an active durable lease, resolves the first
+execution to exclude in the same session, and copies the preceding
+turn’s terminal state into a new dormant session. To rewind a turn in an
+ancestor session, invoke that ancestor session and request its fork
+directly; the child session does not inherit authority to modify
+ancestor history. The response contains the new ``session_id`` and
+pending ``execution_id``; the next ordinary invoke on that session
+claims the pending execution with the replacement user request.
+
+This intentionally extends ADK’s return contract. Native ADK mutates the
+specified session and returns ``None``; Atlas Agent Engine keeps that
+session immutable and returns ``SessionForkResponse`` so the caller can
+continue using the new ``session_id`` and ``execution_id``. The method
+name and arguments remain ADK’s documented interface, but ``app.runner``
+is an Atlas Agent Engine-owned type with the correct return annotation.
+Google’s Runner remains a private, attempt-scoped execution detail.
+Ordinary turns still enter through the platform invocation interface;
+the public runner does not create an alternate execution path.
+
+The adapter does not scan ADK events, keep an execution catalog,
+calculate a step ordinal, submit snapshot bytes, or choose a branch key.
+Rewinding before the first turn, naming an event id, or targeting a turn
+owned by another session fails. Calling ``rewind_async()`` outside an
+active durable invocation also fails; out-of-turn administrative rewind
+is not supported. Each retry is a new branch request; there is no client
+idempotency key.
+
+Quick Start
+-----------
+
+Installation
+~~~~~~~~~~~~
+
+.. code:: bash
+
+   pip install agent-engine-sdk-adk
+
+Or in a uv project:
+
+.. code:: bash
+
+   uv add agent-engine-sdk-adk
+
+Development
+-----------
+
+Requirements
+~~~~~~~~~~~~
+
+- Python >= 3.11
+- Google ADK >= 2.4.0, < 3
+- `uv <https://docs.astral.sh/uv/>`__
+
+Dev Setup
+~~~~~~~~~
+
+.. code:: bash
+
+   uv sync --extra dev
+
+Testing
+~~~~~~~
+
+.. code:: bash
+
+   ./scripts/test.sh agent-engine-sdk-adk
+
+The repository-owned suite syncs the workspace package and runs Ruff,
+Pyright, and pytest using the same path as CI.
+
+Copyright 2026 MongoDB, Inc. Licensed under the Apache License, Version
+2.0.
+

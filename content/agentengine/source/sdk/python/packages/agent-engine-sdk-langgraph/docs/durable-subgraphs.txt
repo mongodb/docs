@@ -1,0 +1,234 @@
+.. _python-packages-agent-engine-sdk-langgraph-docs-durable-subgraphs:
+
+Durable compiled subgraphs
+==========================
+
+Atlas Agent Engine supports statically compiled LangGraph child graphs
+as durable operation boundaries. The adapter discovers the compiled
+topology once when the agent is materialized. Later, when a secure LLM
+or Tool is admitted, it translates LangGraph’s documented
+```checkpoint_ns`` <https://docs.langchain.com/oss/python/langgraph/persistence#checkpoint-namespace>`__
+runtime config into the active compiled-child path. LangGraph also
+publishes
+```get_config()`` <https://reference.langchain.com/python/langgraph/config/get_config>`__
+as the runtime accessor used by the adapter.
+
+The checkpointer persists graph state, but it does not participate in
+subgraph identity discovery. There is no producer-side handoff: each
+secure wrapper reads the namespace that LangGraph has already placed in
+its current runtime config.
+
+End-to-end flow
+---------------
+
+.. code:: mermaid
+
+   sequenceDiagram
+       participant App as App.get_agent
+       participant Resolver as DurableSubgraphResolver
+       participant Session as DurableSession
+       participant LangGraph as LangGraph runtime
+       participant Wrapper as Secure LLM or Tool wrapper
+       participant Paths as Runner-shared path allocator
+       participant OE as Orchestration Engine
+
+       Note over App,Session: Materialize and validate once
+       App->>Resolver: Discover compiled-child topology
+       App->>Session: Attach resolver to the agent session
+       Session->>Resolver: Validate supported topology
+
+       Note over Session,LangGraph: Bind for each invoke or stream iteration
+       Session->>LangGraph: Enter durable identity scope
+       LangGraph->>LangGraph: Enter compiled child graph
+       LangGraph->>LangGraph: Expose active checkpoint_ns
+
+       Note over Wrapper,OE: Resolve only when a secure effect is admitted
+       LangGraph->>Wrapper: Invoke secure LLM or Tool
+       Wrapper->>Paths: Build durable activity command
+       Paths->>Resolver: Resolve current operation path
+       Resolver->>LangGraph: Read checkpoint_ns from runtime config
+       LangGraph-->>Resolver: Compiled-child occurrence namespace
+       Resolver-->>Paths: Ordered child boundaries
+       Paths->>Paths: Assign stable child ordinals
+       Paths->>OE: Start activity at resolved position
+       OE-->>Wrapper: Recorded outcome or newly executed result
+
+Concrete example
+----------------
+
+Consider this compiled graph:
+
+.. code:: text
+
+   root graph
+     -> case_investigation (compiled child graph)
+          -> policy_analysis (compiled child graph)
+               -> review_policy (ordinary node)
+                    -> secure Tool lookup_policy
+
+While ``review_policy`` runs, LangGraph exposes a namespace with one
+segment per active graph task, similar to:
+
+.. code:: text
+
+   case_investigation:task-a|policy_analysis:task-b|review_policy:task-c
+
+```DurableSubgraphResolver.resolve_namespace`` <../src/agent_engine_sdk_langgraph/durable_subgraphs.py>`__
+walks the topology and namespace together:
+
+1. ``case_investigation`` is a compiled child, so it contributes
+   ``ChildOperationBoundary("case_investigation", "task-a")``.
+2. ``policy_analysis`` is a compiled child inside it, so it contributes
+   ``ChildOperationBoundary("policy_analysis", "task-b")``.
+3. ``review_policy`` is an ordinary node. It is validated as the
+   rightmost namespace segment and does not contribute a child boundary.
+
+Runner-shared uses each occurrence key to assign an ordinal under its
+parent:
+
+.. code:: text
+
+   agent/1 / case_investigation/1 / policy_analysis/1
+
+The ``task-a`` and ``task-b`` strings come directly from the text after
+``:`` in LangGraph’s namespace. Atlas Agent Engine treats them as opaque
+allocator keys. The final operation path contains stable ordinals rather
+than LangGraph’s raw task IDs.
+
+The secure LLM and every secure Tool reached from ``review_policy``
+resolve the same compiled-child prefix. Their activity kind, workflow
+step, and activity ordinal then distinguish the individual effects
+beneath that prefix.
+
+Discover the static topology
+----------------------------
+
+```App.get_agent`` <../src/agent_engine_sdk_langgraph/runtime.py>`__
+creates a ``DurableSubgraphResolver`` when the materialized graph uses
+the platform checkpointer. The resolver recursively inspects
+``CompiledStateGraph`` nodes and stores only:
+
+- every node name at each graph level, for namespace validation; and
+- each directly compiled child graph, for operation boundaries.
+
+```DurableSession`` <../src/agent_engine_sdk_langgraph/durable_session.py>`__
+validates the saved topology before durable execution begins. Cyclic
+compiled topology and a compiled child with its own checkpointer fail
+explicitly. A supported child uses ``checkpointer=None`` and inherits
+the root platform checkpointer.
+
+Discovery does not assign activity identities and does not persist
+runtime task IDs. It records the structural map needed to interpret
+LangGraph’s active namespace later.
+
+Bind the resolver to execution
+------------------------------
+
+Invoke and stream execution bind the same resolver through
+agent-engine-runner-shared’s
+```operation_path_resolver_scope`` <../../agent-engine-runner-shared/src/agent_engine_runner_shared/workflow/context.py>`__:
+
+- ```ExecutionSession.invoke_scopes`` <../src/agent_engine_sdk_langgraph/execution_session.py>`__
+  covers a complete ``invoke`` call.
+- ```scoped_anext`` <../src/agent_engine_sdk_langgraph/stream_scope.py>`__
+  rebinds the scope for each stream iteration because an async generator
+  may resume in a different asyncio task.
+
+The scope installs the resolver through agent-engine-runner-shared’s
+```operation_path_resolver_scope`` <../../agent-engine-runner-shared/src/agent_engine_runner_shared/workflow/context.py>`__.
+This is the adapter boundary: agent-engine-runner-shared knows only that
+a callback can return ordered child boundaries; it does not know
+LangGraph namespaces or graph types.
+
+Resolve at the secure effect boundary
+-------------------------------------
+
+Secure LLM and Tool wrappers eventually call
+```run_serial_activity`` <../../agent-engine-runner-shared/src/agent_engine_runner_shared/workflow/activity.py>`__
+to build an OE activity. During command construction,
+```current_operation_path`` <../../agent-engine-runner-shared/src/agent_engine_runner_shared/workflow/context.py>`__
+invokes the scoped ``DurableSubgraphResolver``.
+
+The resolver then:
+
+1. Calls LangGraph’s public ``get_config()`` while the node is active.
+2. Reads ``configurable.checkpoint_ns``.
+3. Parses each ``name:occurrence-key`` segment from left to right.
+4. Requires every segment to match the topology discovered at
+   construction.
+5. Returns a boundary for each compiled child and omits the final
+   ordinary node.
+
+An ordinary node may appear only as the rightmost segment. A namespace
+that continues beneath an ordinary node cannot be explained by the
+compiled topology and is rejected. This prevents an unfamiliar framework
+path from silently collapsing onto a valid durable identity.
+
+Runner-shared combines the returned boundaries with the fixed
+``agent/1`` root, the current workflow step, and the effect’s activity
+ordinal. That complete position is what OE uses for record or replay.
+
+Replay
+------
+
+On replacement, LangGraph enters the same compiled-child occurrence and
+exposes the corresponding namespace. The adapter reconstructs the same
+ordered child boundaries, agent-engine-runner-shared assigns the same
+ordinals, and the secure effect asks OE for the same activity position.
+OE returns the recorded outcome instead of executing the external effect
+again.
+
+Only secure LLM and Tool wrappers trigger this resolution. Ordinary
+graph work can move through compiled children without creating OE
+activities.
+
+Supported boundary
+------------------
+
+Durable compiled-subgraph identity supports statically materialized
+child graphs that inherit the root platform checkpointer. It does not
+support application-authored LangGraph ``Send`` fan-out. Fixed edges and
+compiled child graphs are the supported ways for application graphs to
+express nested durable work.
+
+Call-site map
+-------------
+
+.. list-table::
+   :header-rows: 1
+
+   * - Responsibility
+     - Call site
+   * - Materialize the graph and create the resolver
+     - ```runtime.py`` <../src/agent_engine_sdk_langgraph/runtime.py>`__
+   * - Discover and translate compiled topology
+     - ```durable_subgraphs.py`` <../src/agent_engine_sdk_langgraph/durable_subgraphs.py>`__
+   * - Validate the topology before durable execution
+     - ```durable_session.py`` <../src/agent_engine_sdk_langgraph/durable_session.py>`__
+   * - Bind identity during ``invoke``
+     - ```execution_session.py`` <../src/agent_engine_sdk_langgraph/execution_session.py>`__
+   * - Bind identity during each stream iteration
+     - ```stream_scope.py`` <../src/agent_engine_sdk_langgraph/stream_scope.py>`__
+   * - Convert child boundaries into an operation path
+     - ```context.py`` <../../agent-engine-runner-shared/src/agent_engine_runner_shared/workflow/context.py>`__
+   * - Admit secure LLM effects
+     - ```secure_llm_proxy.py`` <../../agent-engine-runner-shared/src/agent_engine_runner_shared/secure_llm_proxy.py>`__
+   * - Admit secure Tool effects
+     - ```secure_wrapper.py`` <../../agent-engine-runner-shared/src/agent_engine_runner_shared/secure_wrapper.py>`__
+   * - Build and start the OE activity
+     - ```activity.py`` <../../agent-engine-runner-shared/src/agent_engine_runner_shared/workflow/activity.py>`__
+
+Verification and maintenance
+----------------------------
+
+When upgrading LangGraph:
+
+1. Revalidate the public ``checkpoint_ns`` and ``get_config()``
+   contracts linked above.
+2. Run topology, namespace parsing, invalid-shape, and invocation-scope
+   scenarios in
+   ```test_durable_subgraphs.py`` <../tests/test_durable_subgraphs.py>`__.
+3. Run compiled-child replay and sibling identity scenarios in
+   ```test_durable_subgraphs_integration.py`` <../tests/test_durable_subgraphs_integration.py>`__.
+4. Run invoke and stream coverage in
+   ```test_agent.py`` <../tests/test_agent.py>`__.

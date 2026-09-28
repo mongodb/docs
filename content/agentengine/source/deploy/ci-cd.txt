@@ -1,0 +1,633 @@
+.. _agentengine-deploy-ci-cd:
+
+==================================
+Build from Your Own CI/CD Pipeline
+==================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn how to build and deploy an agent from your own CI/CD system by calling platform endpoints to upload source, build, and deploy images.
+   :keywords: continuous integration, ci/cd, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to **build and deploy an agent from
+your own CI/CD system**. You can use this approach instead of the
+{+platform-short+} GitHub webhook pipeline.
+
+You can deploy from any CI/CD system that can send an HTTPS request with a
+header, including Drone, GitHub Actions, GitLab CI, and Jenkins.
+
+The {+platform-short+} does not require a vendor-specific integration or the
+``agentengine`` CLI to build and deploy. Your pipeline implements the same build and
+deploy sequence as the CLI by using a project-scoped API key as its credential.
+
+.. tip::
+
+   To build and deploy an agent from the CLI instead, see
+   :ref:`agentic-platform-deploy-agent-image` and
+   :ref:`agentic-platform-deploy-build`.
+
+Gateway Hosts
+~~~~~~~~~~~~~
+
+Most endpoints in this guide are scoped by project and workspace, in
+the following format:
+
+.. code-block:: none
+   :copyable: false
+
+   https://<gateway-host>/api/v1/projects/<project-id>/workspaces/<workspace-id>/...
+
+Replace ``<gateway-host>`` with the host for your environment. The
+following table lists the gateway hosts for each environment:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Environment
+     - Gateway host
+
+   * - Development
+     - ``agentengine-dev.mongodb.com``
+
+   * - QA
+     - ``agentengine-qa.mongodb.com``
+
+   * - Production
+     - ``agentengine.mongodb.com``
+
+Before You Begin
+----------------
+
+Your pipeline uploads the agent source as an archive, which requires a
+workspace whose source type is ``archive``. A GitHub-connected
+workspace rejects the first call in the sequence with a ``409
+UNSUPPORTED_SOURCE_TYPE`` error. A push triggers the builds for that
+workspace, not an uploaded archive.
+
+To create an archive-source workspace, run the following command from
+your agent's directory:
+
+.. code-block:: bash
+
+   agentengine init --org-id <org-id> --project-id <project-id>
+
+The ``agentengine init`` command registers a new workspace and scaffolds
+local development tooling. Use the workspace ID that it prints in the
+path of every endpoint in this guide. To learn more about this
+command, see :ref:`agentic-platform-agentic-init`.
+
+If the agent already has a GitHub-connected workspace, you do not need
+to migrate it. You have the following options:
+
+- Continue to use the webhook pipeline for that workspace.
+- Create a second, archive-source workspace for the same agent and target it
+  from your pipeline. You can maintain both workspaces simultaneously.
+
+.. _agentengine-ci-cd-credentials:
+
+Set Up Pipeline Credentials
+---------------------------
+
+Every request in this guide, except the archive upload, authenticates
+by using a project-scoped API key. Include the key in the
+``Authorization`` header of each request, in the following format:
+
+.. code-block:: none
+   :copyable: false
+
+   Authorization: Bearer <api-key>
+
+Replace the ``<api-key>`` placeholder with your API key. The API key is the bearer
+token, so you don't exchange it for a separate credential.
+
+To create an API key, run the following command:
+
+.. code-block:: bash
+
+   agentengine api-key create --project-id <project-id> --description "CI pipeline" --expires-in 90
+
+You can use the ``--expires-in`` flag to specify the key's lifetime. To avoid a
+long-lived credential in your CI/CD system, you can rotate the key on a schedule
+that you define. To learn more about this command and its flags, see
+:ref:`agentic-platform-api-keys-service-accounts`.
+
+.. important::
+
+   The command displays the plaintext key only once. You can't
+   retrieve it again. If you lose the key, revoke it and create a new
+   one.
+
+Store the key as a secret in your CI/CD system, such as a Drone secret
+or a GitHub Actions repository secret. Do not write the key inline in
+a pipeline file or commit it to source control.
+
+Rotate Pipeline Credentials
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The {+platform-short+} doesn't rotate API keys automatically, and no
+command renews an existing key. To rotate the key that your pipeline
+uses, create a new key and update the secret in your CI/CD system.
+Revoke the old key after you confirm that the new key works.
+
+Keep both keys active during the changeover. Otherwise, your pipeline
+has no valid key for the period between the revocation and the
+update.
+
+Example Pipeline
+----------------
+
+Regardless of your CI/CD system, the pipeline has the following shape.
+You can implement every step by using ``curl`` and ``jq``:
+
+.. code-block:: none
+   :copyable: false
+
+   check out your repository
+     -> archive your agent directory
+     -> POST builds/archive-init      (save build_id and upload_url)
+     -> PUT upload_url                (the archive)
+     -> POST builds/<build-id>/start
+     -> GET builds/<build-id>         (until the status is terminal)
+     -> POST deployments              (with build_id)
+
+.. _agentengine-ci-cd-sequence:
+
+Build and Deploy Sequence
+-------------------------
+
+A build and deploy sequence includes the following steps:
+
+- Checking out and archiving your agent source
+- Initializing the build archive
+- Uploading the agent source
+- Starting the build
+- Polling the build status
+- Deploying the build
+
+In this section, you can learn how to implement each request in your pipeline.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Check out and archive your agent source.
+
+      Check out the commit or branch that you want to build, then
+      create a ``tar.gz`` archive of your agent directory. The
+      {+platform-short+} builds exactly the archive that you upload, so
+      this step determines what the build contains.
+
+      The following example uses the ``tar`` command to create an archive named
+      ``agent.tar.gz``. The example excludes local development artifacts from
+      the archive, including the ``.venv``, ``__pycache__``, and ``.agentengine``
+      directories and the ``.env`` file.
+
+      .. code-block:: bash
+
+         tar --exclude='.venv' --exclude='__pycache__' \
+           --exclude='.agentengine' --exclude='.env' \
+           -czf agent.tar.gz -C <agent-directory> .
+
+   .. step:: Initialize the build archive.
+
+      Before running the following commands, set these environment variables in
+      your CI/CD job:
+
+      .. code-block:: bash
+
+        export PROJECT_ID="<project-id>"
+        export WORKSPACE_ID="<workspace-id>"
+        export GATEWAY_HOST="agentengine-qa.mongodb.com"
+        export API_KEY="$CI_API_KEY"
+        export COMMIT_SHA="<commit-sha>"
+
+      Use the project ID for your {+platform-short+} project. Use the workspace ID
+      returned by ``agentengine init``. Set ``GATEWAY_HOST`` to the host for your
+      environment, as listed in the table above. Store the API key in your CI/CD
+      system's secret store and expose it as ``CI_API_KEY``. Set ``COMMIT_SHA``
+      to the commit that you pass in ``git_info.commit_sha``.
+
+      To create a build record and get a presigned URL for the source
+      upload, send a ``POST`` request to the ``builds/archive-init``
+      endpoint by running the following ``curl`` command:
+
+      .. code-block:: bash
+
+         curl -s -X POST \
+           "https://$GATEWAY_HOST/api/v1/projects/$PROJECT_ID/workspaces/$WORKSPACE_ID/builds/archive-init" \
+           -H "Authorization: Bearer $API_KEY" \
+           -H "Content-Type: application/json" \
+           -d '{
+                 "label": "my-ci-build-123",
+                 "git_info": {
+                   "commit_sha": "<commit-sha>",
+                   "branch": "<branch-name>",
+                   "dirty": false
+                 },
+                 "build_target": { "subdirectory": "" },
+                 "auto_deploy": false
+               }'
+
+      All fields in the request body are optional. To make the build
+      reproducible, always pass the ``git_info.commit_sha`` property.
+      Without it, the {+platform-short+} tags the resulting image
+      ``build-<random-id>`` instead of ``sha-<commit-sha>``.
+
+      To have a successful build deploy itself and skip the final
+      step, set ``auto_deploy`` to ``true``.
+
+      If the request succeeds, the endpoint returns a ``201 Created``
+      response that resembles the following:
+
+      .. code-block:: json
+         :copyable: false
+
+         {
+           "build_id": "bld_01ABC...",
+           "upload_url": "https://<presigned-s3-url>",
+           "upload_expires_at": "2026-01-01T00:05:00Z",
+           "source_type": "archive"
+         }
+
+   .. step:: Upload the agent source.
+
+      To upload your agent directory, send a ``PUT`` request that includes the
+      archive as a ``tar.gz`` file to the ``upload_url`` value returned from the
+      preceding step by running the following ``curl`` command:
+
+      .. code-block:: bash
+
+         curl -s -X PUT \
+           --upload-file agent.tar.gz \
+           -H "Content-Type: application/gzip" \
+           "$UPLOAD_URL"
+
+      Do not send an ``Authorization`` header on this request. The presigned URL
+      is the credential, and it expires at the time given by the
+      ``upload_expires_at`` value returned by ``archive-init``. If the upload
+      URL expires before you use it, call ``archive-init`` again to get a new
+      upload URL.
+
+      If the upload succeeds, the endpoint returns a ``200 OK``
+      response.
+
+   .. step:: Start the build.
+
+      To confirm that the upload arrived and to queue the build job, send
+      a ``POST`` request with no body to the ``builds/<build-id>/start``
+      endpoint and save the response by running the following ``curl``
+      command:
+
+      .. code-block:: bash
+
+         RESPONSE=$(curl -s -X POST \
+           "https://$GATEWAY_HOST/api/v1/projects/$PROJECT_ID/workspaces/$WORKSPACE_ID/builds/$BUILD_ID/start" \
+           -H "Authorization: Bearer $API_KEY")
+
+         echo "$RESPONSE"
+
+      If the request succeeds, the endpoint returns a ``202 Accepted``
+      response that resembles the following:
+
+      .. code-block:: json
+         :copyable: false
+
+         { "build_id": "bld_01ABC...", "status": "accepted" }
+
+      If a build for the same commit is already running, this endpoint
+      returns a ``409 BUILD_ALREADY_ACTIVE`` error. The error is a
+      duplicate build guard rather than a transient failure.
+
+      When available, the response includes the ID and status of the
+      active build in the ``details`` object:
+
+      .. code-block:: json
+         :copyable: false
+
+         {
+           "success": false,
+           "code": "BUILD_ALREADY_ACTIVE",
+           "details": {
+             "existing_build_id": "bld_01ABC...",
+             "existing_status": "in_progress"
+           }
+         }
+
+      Set ``BUILD_ID`` to the ``details.existing_build_id`` value and
+      poll that build instead of initializing another build archive:
+
+      .. code-block:: bash
+
+         BUILD_ID=$(printf '%s' "$RESPONSE" |
+           jq -r '.details.existing_build_id // empty')
+
+      If the response does not include ``existing_build_id``, list the
+      workspace builds and select the active build for the same commit:
+
+      .. code-block:: bash
+
+         BUILD_ID=$(curl -s \
+           "https://$GATEWAY_HOST/api/v1/projects/$PROJECT_ID/workspaces/$WORKSPACE_ID/builds?limit=100" \
+           -H "Authorization: Bearer $API_KEY" |
+           jq -r --arg commit "$COMMIT_SHA" '
+             .builds[]
+             | select(.commit_sha == $commit)
+             | select(
+                 .status == "queued" or
+                 .status == "in_progress" or
+                 .status == "waiting"
+               )
+             | .build_id' |
+           head -n 1)
+
+   .. step:: Poll the build status.
+
+      To wait for the build to finish, poll the ``builds/<build-id>``
+      endpoint on a regular interval until the build reaches a terminal
+      status. The following example polls every five seconds and fails
+      the pipeline after 30 minutes, so that a build stuck in the
+      ``queued`` or ``waiting`` state can't keep your CI/CD job running
+      indefinitely:
+
+      .. code-block:: bash
+
+         TIMEOUT_SECONDS=1800
+         INTERVAL_SECONDS=5
+         ELAPSED=0
+
+         while true; do
+           STATUS=$(curl -s \
+             "https://$GATEWAY_HOST/api/v1/projects/$PROJECT_ID/workspaces/$WORKSPACE_ID/builds/$BUILD_ID" \
+             -H "Authorization: Bearer $API_KEY" \
+             | jq -r '.status')
+
+           if [ "$STATUS" = "succeeded" ]; then
+             break
+           elif [ "$STATUS" = "failed" ] || [ "$STATUS" = "cancelled" ]; then
+             echo "Build $BUILD_ID ended with status: $STATUS" >&2
+             exit 1
+           elif [ "$ELAPSED" -ge "$TIMEOUT_SECONDS" ]; then
+             echo "Timed out after ${TIMEOUT_SECONDS}s waiting for build $BUILD_ID" >&2
+             exit 1
+           fi
+
+           sleep "$INTERVAL_SECONDS"
+           ELAPSED=$((ELAPSED + INTERVAL_SECONDS))
+         done
+
+      When the build reaches ``succeeded``, the loop exits and the
+      pipeline continues to the next step. When it reaches ``failed`` or
+      ``cancelled``, or when the timeout elapses, the example exits with
+      a nonzero status so the pipeline fails. Adjust
+      ``TIMEOUT_SECONDS`` and ``INTERVAL_SECONDS`` to match your build
+      duration and your CI/CD system's tolerance for API calls.
+
+      While the build is in progress, the endpoint returns a response that resembles the following:
+
+      .. code-block:: json
+         :copyable: false
+
+         {
+           "build_id": "bld_01ABC...",
+           "status": "in_progress",
+           "executor_type": "vm",
+           "image_uri": null,
+           "lockfile_mode": null,
+           "error_message": null
+         }
+
+      The following table describes the ``status`` values:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 25 75
+
+         * - Status
+           - Description
+
+         * - ``queued``
+           - The build is waiting to start. Continue polling.
+
+         * - ``in_progress``
+           - The build is running. Continue polling.
+
+         * - ``waiting``
+           - Another build currently holds the workspace build slot.
+             Continue polling.
+
+         * - ``succeeded``
+           - The build completed and ``image_uri`` contains the image.
+             Continue to the next step.
+
+         * - ``failed``
+           - The build did not complete. The ``error_message`` field
+             identifies the root cause where the {+platform-short+}
+             can determine it, such as an out-of-date lock file.
+
+         * - ``cancelled``
+           - A user or the {+platform-short+} canceled the build.
+
+      The ``lockfile_mode`` field reports whether the
+      {+platform-short+} honored a committed lock file. To learn more,
+      see :ref:`agentengine-ci-cd-dependencies`.
+
+   .. step:: Deploy the build.
+
+      To deploy the image that the build produced, send a ``POST`` request to
+      the ``deployments`` endpoint by running the following ``curl`` command:
+
+      .. code-block:: bash
+
+         curl -s -X POST \
+           "https://$GATEWAY_HOST/api/v1/projects/$PROJECT_ID/workspaces/$WORKSPACE_ID/deployments" \
+           -H "Authorization: Bearer $API_KEY" \
+           -H "Content-Type: application/json" \
+           -d '{ "build_id": "'"$BUILD_ID"'" }'
+
+      The ``build_id`` field is optional. If you omit it, the
+      {+platform-short+} deploys the most recent successful build in
+      the workspace.
+
+      If the request succeeds, the endpoint returns a ``202 Accepted``
+      response that resembles the following:
+
+      .. code-block:: json
+         :copyable: false
+
+         { "deployment_id": "deploy-abc123" }
+
+      The response confirms only that the {+platform-short+} accepted the
+      deployment. To confirm that the deployment is running correctly, poll the
+      ``deployments/current`` endpoint, as shown in the following example:
+
+      .. code-block:: bash
+
+         curl -s \
+           "https://$GATEWAY_HOST/api/v1/projects/$PROJECT_ID/workspaces/$WORKSPACE_ID/deployments/current" \
+           -H "Authorization: Bearer $API_KEY"
+
+      The endpoint returns the workspace's active deployment, including
+      its status, the readiness of each component that the deployment
+      runs, and the deployment's overall health. The following response
+      is trimmed to the fields that a scripted check needs:
+
+      .. code-block:: json
+         :copyable: false
+
+         {
+           "deployment_id": "deploy-abc123",
+           "status": "successful",
+           "components": [
+             {
+               "name": "agent",
+               "available": true,
+               "replicas": 1,
+               "ready_replicas": 1
+             }
+           ],
+           "health": {
+             "available": true,
+             "checked_at": "2026-01-01T00:10:00Z"
+           }
+         }
+
+      In a healthy deployment, ``status`` is ``successful``, every entry
+      in the ``components`` array has ``available`` set to ``true`` with
+      ``ready_replicas`` equal to ``replicas``, and the ``health``
+      object's ``available`` field is ``true``.
+
+.. _agentengine-ci-cd-git-info:
+
+How the Platform Uses git_info
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``git_info`` object stores metadata describing the
+source you already checked out. It does not tell the
+{+platform-short+} what to build. The archive sequence never clones or
+checks out a repository, and it does not contact GitHub. The
+{+platform-short+} builds exactly the archive that you upload.
+
+Selecting the commit or branch to build happens entirely in your pipeline,
+before you initialize the build archive. Your pipeline checks out the target
+ref, archives that working directory, and passes ``commit_sha`` and ``branch``
+to label the resulting build. These values have the following effects:
+
+- ``commit_sha`` determines the image tag and enables the duplicate
+  build guard that the build start request applies.
+- ``branch`` is recorded for display.
+
+.. _agentengine-ci-cd-dependencies:
+
+Manage Dependencies
+-------------------
+
+If you commit a ``uv.lock`` file, the {+platform-short+} installs
+exactly that locked dependency set and does not re-resolve
+dependencies. The build response reports ``lockfile_mode`` as
+``honored``. If the lock file is out of date or cannot be honored, the
+build fails with an actionable ``error_message`` value rather than
+silently installing different versions. To resolve this failure, run
+``uv lock`` locally, commit the updated lock file, and build again.
+
+If you do not commit a lock file, the {+platform-short+} resolves
+dependencies on every build and reports ``lockfile_mode`` as
+``re-resolved``. This behavior is not an error.
+
+.. note:: Lock File Limitation
+
+   The {+platform-short+} does not yet honor a committed lock file for
+   VM-optimized executor builds. Those builds always re-resolve
+   dependencies, regardless of a committed lock file. To check whether
+   this limitation applies to your build, inspect the ``executor_type``
+   field in the build-status response. A value of ``vm`` indicates a
+   VM-optimized executor build. A value of ``container`` indicates a
+   container executor.
+
+Do Not Declare the SDK Packages
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Do not list the {+platform-short+} SDK packages as dependencies in
+your ``pyproject.toml`` file, including the following packages:
+
+- ``agentengine-langgraph``
+- ``agentengine-core``
+- ``runner-shared``
+- ``agentengine-memory``
+
+These packages are not published to a package index. Declaring one
+causes ``uv lock`` to fail with a ``not found in the package
+registry`` error. The {+platform-short+} always installs these
+packages into your agent's environment as prebuilt wheels in a
+separate step, regardless of what your ``pyproject.toml`` file
+declares. Your agent can import them at runtime without declaring
+them. Declare only your agent's own dependencies.
+
+Troubleshooting
+---------------
+
+The following table describes errors that you might encounter when you
+build and deploy from your own pipeline:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Error
+     - Likely cause
+
+   * - ``409 UNSUPPORTED_SOURCE_TYPE`` on ``archive-init``
+     - The workspace is GitHub-connected rather than archive-source.
+       Create an archive-source workspace.
+
+   * - ``409 BUILD_ALREADY_ACTIVE`` on ``start``
+     - A build for this commit is already running. Use
+       ``details.existing_build_id`` from the error response as
+       ``BUILD_ID``. If the response does not include that field, list
+       the workspace builds and select the active build for the same
+       commit. Poll that build instead of calling ``archive-init`` again.
+
+   * - ``403`` on every write request
+     - The account that created the API key doesn't have sufficient
+       rights on the project. Create the key from an account with
+       deployment management rights.
+
+   * - ``403`` with a project mismatch reason
+     - The API key's project doesn't match the project ID in the
+       request path.
+
+   * - ``400 INVALID_BUILD_STATE`` on ``deployments``
+     - The referenced build has not succeeded, or it doesn't exist.
+
+   * - ``409 DEPLOY_IN_PROGRESS`` on ``deployments``
+     - A deployment is already in progress for this workspace.
+
+   * - ``403`` or an expired-URL error on the archive upload
+     - The presigned URL expired. Call ``archive-init`` again to get a
+       new URL.
+
+   * - A build failure that reports an out-of-date ``uv.lock`` file
+     - Run ``uv lock`` locally, commit the updated lock file, and
+       build again.
+
+   * - ``magenta-sdklanggraph was not found in the package registry``
+     - Remove the SDK package from the dependencies in your
+       ``pyproject.toml`` file.
+
+Next Steps
+----------
+
+After deploying your agent, you can monitor its performance and
+activity. To learn how to monitor your agent, see the
+:ref:`Monitor <agentic-platform-monitor>` guide.

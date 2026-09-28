@@ -1,0 +1,195 @@
+.. _agentic-platform-migrate:
+
+===================================
+Migrate an Existing LangGraph Agent
+===================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Learn how to migrate a LangGraph agent to the MongoDB Atlas Agent Engine by adding the SDK, wrapping your code with the App class, and registering your project.
+   :keywords: migration, wrap, sdk, langgraph, tutorial, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this tutorial, you can learn how to migrate an existing LangGraph agent to
+the {+mdb-ai-platform+}. The tutorial shows how to add the {+mdb-ai-platform+} SDK to your
+project, wrap your agent code with the ``App`` class, create the required
+configuration files, and register your project on the
+{+platform-short+}.
+
+Prerequisites
+-------------
+
+Before you begin, perform the following prerequisite tasks:
+
+- Install the ``agentengine`` CLI and authenticate your account. To
+  learn more, see
+  :ref:`agentic-platform-set-up-install-authenticate`.
+- Open the ``pyproject.toml`` file within your existing LangGraph agent project.
+- Confirm that your ``pyproject.toml`` file has a ``[build-system]``
+  block that sets the ``requires`` and ``build-backend`` keys. The
+  ``agentengine init`` command requires this block. You can run
+  ``uv init --package`` in your project root to generate
+  a file that meets this requirement.
+- Install `uv <https://docs.astral.sh/uv/getting-started/installation/>`__.
+- Run `Docker Desktop <https://www.docker.com/products/docker-desktop/>`__
+  or `Docker Engine <https://docs.docker.com/engine/install/>`__
+  on your machine.
+
+Tutorial
+--------
+
+Complete the following steps to add the platform SDK, update your
+agent code, and register your project on the {+platform-short+}.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Add the SDK dependencies to your project.
+
+      Navigate to your ``pyproject.toml`` file, then run the following
+      command from your project root to add the SDK dependencies:
+
+      .. code-block:: bash
+
+         uv add agent-engine-runner-shared agent-engine-sdk-langgraph
+
+   .. step:: Wrap your agent with the ``App`` class.
+
+      Update your agent's entry module to use the platform SDK
+      by making the following changes:
+
+      - Import ``App`` from ``agent_engine_sdk_langgraph`` and create an
+        ``App`` instance at the module level.
+      - Register each tool by using the ``@app.tool()`` decorator.
+      - Add the ``@app.entrypoint`` decorator to your agent build function.
+      - Wrap your LLM with the ``app.llm()`` method to route LLM calls through
+        the platform's audited execution path.
+      - Replace your checkpointer with ``app.checkpointer()`` to use
+        the platform's MongoDB-backed checkpointer.
+      - Call the ``app.run()`` method at the bottom of the module.
+
+      The following example shows a complete migrated agent module:
+
+      .. code-block:: python
+         :caption: my_agent/main.py
+
+         from agent_engine_sdk_langgraph import App
+         from langgraph.graph import StateGraph, MessagesState
+         from langgraph.prebuilt import ToolNode
+         from langchain_openai import ChatOpenAI
+
+         app = App(app_name="my-agent")
+
+         @app.tool()
+         def lookup(query: str) -> str:
+             """Search the knowledge base."""
+             return f"result for {query}"
+
+         @app.entrypoint
+         def build_agent():
+             llm = app.llm(ChatOpenAI(model="gpt-4o-mini"))
+             tools = app.get_tools()
+
+             def call_model(state: MessagesState):
+                 return {"messages": [llm.invoke(state["messages"])]}
+
+             graph = StateGraph(MessagesState)
+             graph.add_node("agent", call_model)
+             graph.add_node("tools", ToolNode(tools))
+             graph.set_entry_point("agent")
+             graph.add_edge("tools", "agent")
+             return graph.compile(checkpointer=app.checkpointer())
+
+         app.run()
+
+   .. step:: Create an ``agent.yaml`` file.
+
+      In your project root, create an ``agent.yaml`` file that
+      contains the  ``entrypoint`` field, as shown in the following code:
+
+      .. code-block:: yaml
+         :caption: agent.yaml
+
+         entrypoint: my_agent.main:app
+         name: my-agent
+         framework: langgraph
+
+      The ``entrypoint`` field must point to the ``App``
+      instance in ``module.path:attribute`` format.
+
+      .. tip::
+
+         To view all available ``agent.yaml`` fields, see
+         :ref:`agentic-platform-agent-contract`.
+
+   .. step:: Create a ``.env`` file.
+
+      In your project root, create a ``.env`` file that
+      specifies your MongoDB connection string and LLM provider API key,
+      as shown in the following code:
+
+      .. code-block:: none
+         :caption: .env
+
+         MONGODB_URI=<your-mongodb-connection-string>
+         <PROVIDER>_API_KEY=<your-api-key>
+
+      .. important::
+
+         The container reads secrets only from the ``.env`` file at
+         runtime. Do not commit your secrets to your version
+         control system.
+
+   .. step:: Register your project on the platform.
+
+      From your project root, run the following
+      command to register your project and generate local development
+      files:
+
+      .. code-block:: bash
+
+         agentengine init
+
+      The CLI guides you through selecting or creating an organization
+      and project, then generates local development files.
+
+   .. step:: Run the agent locally.
+
+      To confirm that your migrated agent runs correctly,
+      start the local development environment by running the following
+      command:
+
+      .. code-block:: bash
+
+         agentengine dev up
+
+      When the stack is ready, open ``http://localhost:3000`` in your
+      browser to interact with your agent.
+
+      .. note::
+
+         The UI might run on a different port than the default port
+         ``3000``. To view your URL, check the ``ui`` field in the
+         ``agentengine dev up`` command output.
+
+Next Steps
+----------
+
+After confirming that your migrated agent runs locally, you can perform
+the following tasks:
+
+- To provision secrets and build the agent image, see
+  :ref:`agentic-platform-deploy-provision-secrets`.
+- To add platform features such as memory and guardrails, see
+  :ref:`agentic-platform-add-memory`.

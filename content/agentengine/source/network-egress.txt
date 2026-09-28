@@ -1,0 +1,415 @@
+.. _agentic-platform-network-egress:
+
+==============================
+Manage Network Egress Policies
+==============================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Learn how to control your agent's outbound traffic by declaring egress destinations, setting outbound-access, and applying the policy by deploying your agent.
+   :keywords: allowlist, deny_all, allow_list, allow_all, firewall, agent.yaml, network.egress, fqdn, egress_mode, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Network egress policies control which external hosts your agent's runtime
+pods can reach. Egress policy is declared in your agent file and applied
+when you deploy your agent. Every workspace starts in ``deny_all`` mode,
+which means the runtime permits no outbound connections beyond the
+{+platform-short+} base policy. In this guide, you learn how to declare
+the destinations your agent needs and set the outbound-access posture.
+You configure both for each sandbox in the ``sandboxes`` block of your
+agent file.
+
+Each sandbox's egress policy has two parts: the destinations you declare
+in ``network.egress``, and the egress mode set by
+``network.egress_mode``. The mode determines how the platform enforces
+those destinations (``allow_list``, ``deny_all``, or ``allow_all``).
+
+The base policy always permits outbound traffic to the following
+destinations:
+
+- DNS
+- Services in the same namespace
+- The Atlas cluster linked to your workspace
+
+Because the base policy covers these destinations, you do not add any
+of them as egress destinations.
+
+.. tip::
+
+   To learn how to link an Atlas cluster to your workspace, see the
+   :ref:`agentic-platform-atlas-egress-link` guide.
+
+You manage egress policy in the following ways:
+
+- Before the first deploy, your agent file must declare an egress policy.
+  Declare the policy for each sandbox under ``sandboxes.agent.network``
+  and ``sandboxes.tool.network`` in your ``agent.yaml`` file. The
+  ``egress`` block lists destinations, and ``egress_mode`` sets the
+  mode.
+- Deploy the agent to apply the egress policy. Deploy requires the ``Project
+  Owner`` role.
+- You can update the egress policy after the initial deploy. Use
+  ``agentengine agent egress add`` and
+  ``agentengine agent egress remove`` to edit each sandbox's
+  ``network.egress`` block, and use ``agentengine agent egress mode`` to
+  set its ``network.egress_mode``. Redeploy the agent for those changes
+  to take effect.
+- Use ``agentengine egress`` or the workspace outbound-access UI to inspect the
+  currently deployed policy. These views do not edit the policy.
+
+.. note::
+
+   The {+platform-short+} uses the following egress IP addresses
+   for destinations outside of Atlas:
+   
+   - ``34.196.57.85``
+   - ``54.227.181.25``
+   
+   If your agent calls external services, such as Salesforce, the
+   external service's allowlist must include these addresses.
+
+Prerequisites
+-------------
+
+Before you begin, ensure that you meet the following prerequisites:
+
+- You have the ``agentengine`` CLI version 0.1.54-alpha or later installed and
+  it is available on your ``PATH`` environment variable. To learn more, see the
+  :ref:`agentic-platform-set-up-install-authenticate` guide.
+- You can authenticate to the platform by using the ``agentengine auth login`` command.
+- You have the **Project Owner** role to deploy the agent and apply egress policy changes.
+
+How Egress Policies Work
+------------------------
+
+The following sections describe the sandboxes, modes, and behaviors that
+make up an egress policy.
+
+Sandboxes
+~~~~~~~~~
+
+Egress is scoped per sandbox. You control the agent sandbox and the
+tool sandbox independently:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Sandbox
+     - Description
+
+   * - ``agent``
+     - agent sandbox. The main agent process.
+
+   * - ``tool``
+     - tool sandbox. Runs the tools that you configure to run in the
+       tool sandbox. By default, tools run in the agent sandbox.
+
+In ``agent.yaml``, declare each sandbox's policy under
+``sandboxes.agent.network`` or ``sandboxes.tool.network``. For CLI
+commands, use ``--component agent`` or ``--component tool``.
+
+Tools in the same sandbox can reach all egress destinations that you
+allow for that sandbox. To learn how sandboxes share secrets and
+network access between tools, see :ref:`agentic-platform-limitations`.
+
+.. _agentic-platform-network-egress-modes:
+
+Modes
+~~~~~
+
+Each sandbox operates in one of the following modes, which you set with
+the sandbox's ``network.egress_mode`` field in your agent file:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Mode
+     - Behavior
+
+   * - ``deny_all``
+     - Locked. Only the platform base policy is active. No user-defined
+       destinations are reachable.
+
+   * - ``allow_list``
+     - The platform base policy is active, and the destinations listed in
+       ``network.egress`` are reachable.
+
+   * - ``allow_all``
+     - Open. The runtime permits outbound traffic to any host, in addition
+       to the base policy.
+
+You cannot combine ``allow_all`` with a destination list for the same
+sandbox. If you set ``allow_all`` for a sandbox that also lists
+destinations, the agent file fails validation.
+
+How Deploy Applies Egress Policy
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Your ``agent.yaml`` file is the source of truth for the egress policy applied
+when you deploy. Before your first deploy, declare an egress policy in the
+file by setting ``network.egress_mode`` for your sandboxes. For an
+``allow_list``, also declare the destinations in ``network.egress``.
+Deploy is refused if the file does not declare an egress policy.
+
+When you deploy, the platform applies the policy to your workspace. A mode
+declared in the file takes precedence over the sandbox's existing mode.
+
+After deployment, use ``agentengine egress`` or the workspace outbound-access UI to
+view the settings that were applied.
+
+.. note::
+
+   If your agent uses MCP servers, ensure that each server's hostname is
+   listed in the ``network.egress`` block of the sandbox that calls it.
+   Listing a server under the ``mcp.servers`` block does not open
+   outbound access on its own.
+
+.. _agentic-platform-network-egress-rbac:
+
+Role-Based Access Control
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use Role-Based Access Control (RBAC) to specify access. Egress
+operations require the following roles:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 60 40
+
+   * - Operation
+     - Required Role
+
+   * - Inspect the deployed egress policy
+       (``agentengine egress`` or the workspace outbound-access UI)
+     - Project Member (read)
+
+   * - Edit the egress policy in the local agent file
+       (``agentengine agent egress add``, ``agentengine agent egress remove``,
+       ``agentengine agent egress mode``)
+     - No role required locally
+
+   * - Deploy the agent to apply the file's egress policy
+     - Project Owner
+
+Users with the **Project Member (read)** role can inspect the deployed policy.
+Editing the local agent file does not require a role, but deploying the agent
+to apply those changes requires the **Project Owner** role.
+
+Set Egress Policy in the Agent File
+-----------------------------------
+
+You configure egress policy for each sandbox in the ``network`` block
+under ``sandboxes.agent`` and ``sandboxes.tool`` in your agent file.
+Changes to your agent file take effect only after you deploy the agent.
+
+Use a sandbox's ``network.egress`` block to allow an external hostname
+for that sandbox. The following example allows only the tool sandbox to
+reach several hosts:
+
+.. code-block:: yaml
+
+   sandboxes:
+     agent:
+       network:
+         egress_mode: deny_all
+     tool:
+       network:
+         egress:
+           - fqdn: api.openai.com
+             ports: [443]
+           - fqdn: "*.googleapis.com"
+             ports: [443]
+           - fqdn: db.example.com
+             # Omit ports, or use an empty list, to allow all ports to
+             # this destination.
+
+To allow a host for both sandboxes, list it under each sandbox.
+
+Use a sandbox's ``network.egress_mode`` field to set its posture. The
+valid values are ``deny_all``, ``allow_list``, and ``allow_all``. If you
+omit ``egress_mode``, a sandbox that lists destinations automatically
+uses ``allow_list``.
+
+The following rules apply to the ``sandboxes`` block:
+
+- When you declare ``sandboxes``, you must include ``sandboxes.agent``.
+- If either sandbox declares egress, a sandbox that declares no egress
+  uses ``deny_all``.
+- Declare Atlas clusters in the top-level ``network.atlas_clusters``
+  block, not inside a sandbox.
+
+.. tip::
+
+   If your agent file declares ``egress`` or ``egress_mode`` in a
+   top-level ``network`` block, run ``agentengine migrate sandboxes``
+   from your agent project directory to move the policy into the
+   ``sandboxes`` block.
+
+.. note::
+
+   Redeploy your agent after any agent file change for the new policy to
+   take effect. The platform applies egress policy at deploy time, not at
+   runtime.
+
+.. _agentic-platform-fqdn-rules:
+
+Fully Qualified Domain Name (FQDN) Rules
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The platform accepts the following destinations:
+
+- Hostnames, such as ``api.openai.com`` or ``storage.googleapis.com``
+- Leading-label wildcards with one subdomain level, such as
+  ``*.example.com``
+- Leading-label wildcards with two subdomain levels, such as
+  ``*.*.example.com``
+- Recursive wildcards that match all subdomain levels, such as
+  ``**.example.com``. The platform also accepts patterns such as ``**.com``.
+
+The platform rejects the following destinations:
+
+- IP literals, such as ``1.2.3.4``
+- CIDR ranges, such as ``10.0.0.0/8``
+- ``localhost``, ``*.local``, and ``*.svc.cluster.local``
+- Cloud metadata endpoints, such as ``*.metadata.google.internal`` and
+  ``169.254.169.254``
+- Bare wildcards, such as ``*`` and ``**``
+- Non-leading wildcards, such as ``api.*.com``
+- Patterns with more than two single-label wildcards, such as
+  ``*.*.*.example.com``
+- Reserved suffixes, such as ``.arpa``, ``.test``, ``.example``, and
+  ``.invalid``
+
+If a destination violates any of these rules, validation fails and the
+destination is not applied. You can run ``agentengine agent validate`` to catch the
+error locally. The platform applies the same validation during the build
+path. The error identifies the reason, such as ``fqdn_ip_literal`` or
+``fqdn_wildcard_misuse``, for example:
+
+.. code-block:: text
+
+   IP addresses are not allowed; declare a hostname such as api.example.com
+
+Each destination supports a port range of 1 through 65535, a maximum of 10
+ports per destination, and a maximum of 50 destinations per workspace.
+
+If you omit the ports for a destination, the platform allows all ports to
+that destination and returns a non-blocking warning.
+
+.. note::
+
+   The platform accepts Atlas cluster hostnames, such as
+   ``*.mongodb.net``, but returns a warning when you save one, because an
+   egress destination does not configure Atlas access. To grant your agent
+   access to an Atlas cluster, use the ``agentengine atlas`` commands or the
+   ``network.atlas_clusters`` block in your ``agent.yaml`` file.
+
+Configure Egress with the CLI
+-----------------------------
+
+Use the ``agentengine egress`` commands from your agent project directory to
+edit the agent file and to inspect the deployed policy. The commands never
+change the running policy directly.
+
+View the Deployed Policy
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To view the current policy for both sandboxes, you can use the
+``agentengine egress`` command. Use the ``--workspace`` flag to view the
+policy for a specific workspace. The following example shows these
+commands:
+
+.. code-block:: sh
+
+   # View the deployed policy for both sandboxes
+   agentengine egress
+
+   # View the policy for a specific workspace
+   agentengine egress --workspace my-workspace
+
+The ``agentengine egress`` command is view-only. To change the file-based policy,
+edit ``agent.yaml``, or use ``agentengine agent egress add`` and
+``agentengine agent egress remove``, and then redeploy the agent.
+
+Add or Remove a Destination
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``agentengine agent egress add`` and ``agentengine agent egress remove`` commands
+edit each sandbox's ``network.egress`` block in your local agent file.
+They change one destination at a time and leave the rest of the list
+unchanged. Use the ``--component`` flag to target one sandbox. If you
+omit the flag, the commands update both sandboxes. These local edits do
+not change the deployed policy until you deploy the agent. Use these
+commands to change a single destination:
+
+.. code-block:: sh
+
+   # Add a destination for both sandboxes
+   agentengine agent egress add api.openai.com:443
+
+   # Add a destination with multiple ports for the tool sandbox only
+   agentengine agent egress add --component tool '*.mongodb.net:443,27017'
+
+   # Stop allowing a destination
+   agentengine agent egress remove api.openai.com
+
+Pass a bare FQDN with no port to ``agentengine agent egress remove``. After you
+deploy the agent, use the ``agentengine egress`` command or the workspace
+outbound-access UI to view the new settings. 
+
+The commands behave as follows:
+
+- If the target sandbox is in ``deny_all``, ``add`` switches it to
+  ``allow_list`` and prints ``mode: deny_all → allow_list``.
+- If the target sandbox is in ``allow_all``, ``add`` leaves the file
+  unchanged, because destinations have no effect in ``allow_all`` mode.
+  To add destinations, first set the mode to ``allow_list`` by using the
+  ``agentengine agent egress mode`` command.
+- If ``remove`` removes the last destination for a sandbox, the sandbox
+  returns to ``deny_all`` and prints ``no destinations remain; mode set to
+  deny_all``.
+- Adding an exact duplicate, meaning the same FQDN and the same ports, has no
+  effect.
+
+Update the Egress Mode
+~~~~~~~~~~~~~~~~~~~~~~
+
+Use ``agentengine agent egress mode`` to set each sandbox's
+``network.egress_mode`` value in your local agent file. Use the
+``--component`` flag to target one sandbox. Deploy the agent for these
+changes to take effect.
+
+The following examples show how to update the egress mode:
+
+.. code-block:: sh
+
+   # Set allow-list mode
+   agentengine agent egress mode allow_list
+
+   # Set deny-all mode
+   agentengine agent egress mode deny_all
+
+   # Set allow-all mode
+   agentengine agent egress mode allow_all --confirm-allow-all
+
+The ``agentengine agent egress mode`` command edits your local agent file only.
+Deploy the agent for the change to take effect.
+
+Next Steps
+----------
+
+To learn how to configure network egress in a step-by-step tutorial, see
+the :ref:`agentic-platform-network-egress-get-started` guide.
