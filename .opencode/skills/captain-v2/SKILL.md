@@ -2,14 +2,14 @@
 name: captain-v2
 internal: true
 description: |
-  Batch workflow for completing small DOCSP Jira tickets via sage-bot-beta. Selects tickets, hands them off to sage-bot-beta for implementation, polls for the resulting draft PRs, and adds staging links. Use this skill whenever the user wants to work through multiple small DOCSP Jira tickets or pick up batch work. Trigger phrases: "start tickets", "captain tickets", "do some tickets", "work on backlog", "bug tickets", "bug bash".
+  Batch workflow for completing small DOCSP Jira tickets via sage-bot. Selects tickets, hands them off to sage-bot for implementation, polls for the resulting draft PRs, and adds staging links. Use this skill whenever the user wants to work through multiple small DOCSP Jira tickets or pick up batch work. Trigger phrases: "start tickets", "captain tickets", "do some tickets", "work on backlog", "bug tickets", "bug bash".
 ---
 
-# Jira Ticket Workflow (sage-bot-beta orchestration)
+# Jira Ticket Workflow (sage-bot orchestration)
 
-This skill batches DOCSP tickets through sage-bot-beta. Captain-v2 selects tickets and adds staging links; sage-bot-beta does the research, edits, and draft PR.
+This skill batches DOCSP tickets through sage-bot. Captain-v2 selects tickets and adds staging links; sage-bot does the research, edits, and draft PR.
 
-**What is sage-bot-beta?** It's an internal MongoDB tool that takes a Jira ticket, spins up an AI agent in Argo (MongoDB's workflow infrastructure), and automatically opens a draft GitHub PR with the documentation changes. You trigger it by adding two labels to a Jira ticket; it typically produces a PR within 10–20 minutes.
+**What is sage-bot?** It's an internal MongoDB tool that takes a Jira ticket, spins up an AI agent in Argo (MongoDB's workflow infrastructure), and automatically opens a draft GitHub PR with the documentation changes. You trigger it by adding two labels to a Jira ticket; it typically produces a PR within 10–20 minutes.
 
 ## Prerequisites
 
@@ -20,7 +20,7 @@ This skill batches DOCSP tickets through sage-bot-beta. Captain-v2 selects ticke
 
 ## Phase 1: Ticket Selection
 
-1. Ask the user how many tickets (1–10) they want to start. More is fine — each runs in its own sage-bot-beta job, so they progress in parallel.
+1. Ask the user how many tickets (1–10) they want to start. More is fine — each runs in its own sage-bot job, so they progress in parallel.
 
 2. Use `/jira` to search for candidate tickets:
 
@@ -34,13 +34,13 @@ This skill batches DOCSP tickets through sage-bot-beta. Captain-v2 selects ticke
 
 4. Ask the user to approve the list or swap out specific tickets.
 
-5. Remind the user to refine any ticket's description that needs more direct, specific guidance on what changes to make. The more explicit the description (exact wording, target file, intended outcome), the more efficiently sage-bot-beta can complete the work without ambiguity.
+5. Remind the user to refine any ticket's description that needs more direct, specific guidance on what changes to make. The more explicit the description (exact wording, target file, intended outcome), the more efficiently sage-bot can complete the work without ambiguity.
 
 Do NOT proceed to Phase 2 until the user confirms.
 
 ---
 
-## Phase 2: Hand off to sage-bot-beta
+## Phase 2: Hand off to sage-bot
 
 For each approved ticket:
 
@@ -50,11 +50,11 @@ For each approved ticket:
    - Story Points Estimate: existing value, or `1` if unset
    - Transition: `In Progress` — pass this exact string. Do NOT use `"Start Progress"` or any other variant.
 
-2. **Add labels.** Use `/jira` to add labels in two steps. Order matters — sage-bot-beta validates `repo:...` at trigger time:
+2. **Add labels.** Use `/jira` to add labels in two steps. Order matters — sage-bot validates `repo:...` at trigger time:
 
    - Step 1 — add label: `repo:10gen/docs-mongodb-internal`
    - Pause 2 seconds
-   - Step 2 — add label: `sage-bot-beta` (keep `repo:10gen/docs-mongodb-internal` present)
+   - Step 2 — add label: `sage-bot` (keep `repo:10gen/docs-mongodb-internal` present)
 
 3. Tell the user which tickets were dispatched. Don't spawn anything; the bot runs in Argo.
 
@@ -62,11 +62,11 @@ For each approved ticket:
 
 ## Phase 3: Wait for PRs
 
-sage-bot-beta typically creates PRs within 10–20 minutes of being triggered. Wait 7 minutes, check once, and immediately start adding staging links to whatever PRs are ready.
+sage-bot typically creates PRs within 10–20 minutes of being triggered. Wait 7 minutes, check once, and immediately start adding staging links to whatever PRs are ready.
 
 ### Step 3a: Tell the user they have a break
 
-After dispatching, tell the user they have 7 minutes while sage-bot-beta runs in Argo, and suggest using the time to read through the dispatched tickets and form expectations for the fix before the PRs land.
+After dispatching, tell the user they have 7 minutes while sage-bot runs in Argo, and suggest using the time to read through the dispatched tickets and form expectations for the fix before the PRs land.
 
 ### Step 3b: Wait and check
 
@@ -89,7 +89,7 @@ PR_MISSING DOCSP-BBBBB
 |--------|--------|
 | `PR_FOUND` for all tickets | Collect PR URLs and proceed to Phase 4. |
 | `PR_FOUND` for some, `PR_MISSING` for others | Start Phase 4 immediately for ready PRs. After Phase 4, do one final check for missing tickets. If still missing at 65 min from dispatch, treat as timeout. |
-| Timeout for a ticket | Use `/jira` to show the most recent comment on that ticket — sage-bot-beta posts an error comment on failure. Surface it verbatim and move on; do not retry the label. |
+| Timeout for a ticket | Use `/jira` to show the most recent comment on that ticket — sage-bot posts an error comment on failure. Surface it verbatim and move on; do not retry the label. |
 
 Do NOT inspect PR diffs — the user reviews the draft PRs themselves.
 
@@ -130,7 +130,7 @@ For each ticket, show:
 
 Before signing off, remind the user:
 
-> ⚠️ **Before you review:** These PRs were written by sage-bot-beta, an AI agent — they will look polished and professional. That's exactly what makes them risky — a wrong fact, a missed scope requirement, or a subtly incorrect procedure can be hard to spot when the formatting and prose are clean. Compare each PR against the original ticket and your own expectations, not just against itself. You are responsible for everything that merges under your name.
+> ⚠️ **Before you review:** These PRs were written by sage-bot, an AI agent — they will look polished and professional. That's exactly what makes them risky — a wrong fact, a missed scope requirement, or a subtly incorrect procedure can be hard to spot when the formatting and prose are clean. Compare each PR against the original ticket and your own expectations, not just against itself. You are responsible for everything that merges under your name.
 
 This is the end of the workflow.
 
@@ -138,5 +138,5 @@ This is the end of the workflow.
 
 ## Notes
 
-- Branch naming is sage-bot-beta's responsibility — captain-v2 does not specify a branch ref in the `repo:...` label.
-- Captain-v2 does not run `git` commands locally in this flow. There is no worktree, no fetch, no branch creation — sage-bot-beta handles all of it in Argo.
+- Branch naming is sage-bot's responsibility — captain-v2 does not specify a branch ref in the `repo:...` label.
+- Captain-v2 does not run `git` commands locally in this flow. There is no worktree, no fetch, no branch creation — sage-bot handles all of it in Argo.

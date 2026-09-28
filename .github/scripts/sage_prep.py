@@ -1,9 +1,9 @@
 """
-sage_prep.py — prepares a slack-request DOCSP ticket for sage-bot-beta.
+sage_prep.py — prepares a slack-request DOCSP ticket for sage-bot.
 
 Reads a thin Jira ticket created by JIP Quick Create, rewrites it into a
 sage-ready brief, resolves target file paths via GitHub search, sets the
-assignee to the reacting user, and applies the two sage-bot-beta labels in
+assignee to the reacting user, and applies the two sage-bot labels in
 the required order.
 
 Required env vars:
@@ -721,13 +721,13 @@ def main():
     print("Applying repo label...")
     add_label(ISSUE_KEY, "repo:10gen/docs-mongodb-internal")
 
-    # sage-bot-beta validates the repo label at trigger time — wait before adding
+    # sage-bot validates the repo label at trigger time — wait before adding
     time.sleep(10)
 
-    print("Applying sage-bot-beta label...")
-    add_label(ISSUE_KEY, "sage-bot-beta")
+    print("Applying sage-bot label...")
+    add_label(ISSUE_KEY, "sage-bot")
 
-    print("Done. sage-bot-beta will open a PR within ~10–20 minutes.")
+    print("Done. sage-bot will open a PR within ~10–20 minutes.")
 
 
 if __name__ == "__main__":

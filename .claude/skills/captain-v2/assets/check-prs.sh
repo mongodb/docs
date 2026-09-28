@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Usage: check-prs.sh DOCSP-AAAAA DOCSP-BBBBB ...
-# Waits 7 minutes, then checks for PRs opened by sage-bot-beta for each ticket.
+# Waits 7 minutes, then checks for PRs opened by sage-bot for each ticket.
 # Outputs PR_FOUND <ticket>: <json> or PR_MISSING <ticket> per ticket.
 
 REPO="10gen/docs-mongodb-internal"

@@ -62,7 +62,7 @@ Skills for triage duty and batch ticket completion.
 
 | Skill | What it does |
 |---|---|
-| `/captain-v2` | Batch workflow for completing small DOCSP Jira tickets via sage-bot-beta |
+| `/captain-v2` | Batch workflow for completing small DOCSP Jira tickets via sage-bot |
 | `/mercury-fix` | Turn a Mercury mismatch ticket into a reviewable docs edit |
 | `/triage` | Run triage duty for CET/Cloud, Server, or Drivers/DBX |
 
