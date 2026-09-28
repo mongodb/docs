@@ -9,11 +9,30 @@ const tocData: TocItem[] = [
     collapsible: true,
     items: [
       {
-        label: '9.0 (Upcoming)',
+        label: '9.1 (Upcoming)',
+        contentSite: 'docs',
+        url: '/docs/:version/release-notes/9.1',
+        collapsible: true,
+        versions: { includes: ['upcoming'] },
+        items: [
+          {
+            label: 'Compatibility Changes',
+            contentSite: 'docs',
+            url: '/docs/:version/release-notes/9.1-compatibility',
+          },
+          {
+            label: 'Changelog',
+            contentSite: 'docs',
+            url: '/docs/:version/release-notes/9.1-changelog',
+          },
+        ],
+      },
+      {
+        label: '9.0 (Stable Release)',
         contentSite: 'docs',
         url: '/docs/:version/release-notes/9.0',
         collapsible: true,
-        versions: { includes: ['upcoming'] },
+        versions: { excludes: manualVersions.before('v9.0') },
         items: [
           {
             label: 'Compatibility Changes',
@@ -120,7 +139,7 @@ const tocData: TocItem[] = [
         ],
       },
       {
-        label: '8.3 (Stable Release)',
+        label: '8.3',
         contentSite: 'docs',
         url: '/docs/:version/release-notes/8.3',
         collapsible: true,
@@ -227,56 +246,6 @@ const tocData: TocItem[] = [
             label: 'Changelog',
             contentSite: 'docs',
             url: '/docs/:version/release-notes/8.3-changelog',
-          },
-        ],
-      },
-      {
-        label: '8.2',
-        contentSite: 'docs',
-        url: '/docs/:version/release-notes/8.2',
-        collapsible: true,
-        // Removed from v8.3 as part of the 8.2 sunset. Still present in
-        // v8.2 and v9.0 (upcoming). Note v8.3 is the named version
-        // 'manual' at runtime -- excluding 'v8.3' would be a no-op.
-        versions: { excludes: [...manualVersions.before('v8.2'), 'manual'] },
-        items: [
-          {
-            label: 'Compatibility Changes',
-            contentSite: 'docs',
-            url: '/docs/:version/release-notes/8.2-compatibility',
-          },
-          {
-            label: 'Upgrade 8.0 to 8.2',
-            contentSite: 'docs',
-            url: '/docs/:version/release-notes/8.2-upgrade',
-            collapsible: true,
-            items: [
-              {
-                label: 'Standalone',
-                contentSite: 'docs',
-                url: '/docs/:version/release-notes/8.2-upgrade-standalone',
-              },
-              {
-                label: 'Replica Set',
-                contentSite: 'docs',
-                url: '/docs/:version/release-notes/8.2-upgrade-replica-set',
-              },
-              {
-                label: 'Sharded Cluster',
-                contentSite: 'docs',
-                url: '/docs/:version/release-notes/8.2-upgrade-sharded-cluster',
-              },
-            ],
-          },
-          {
-            label: 'Downgrade 8.2 to 8.0',
-            contentSite: 'docs',
-            url: '/docs/:version/release-notes/8.2-downgrade',
-          },
-          {
-            label: 'Changelog',
-            contentSite: 'docs',
-            url: '/docs/:version/release-notes/8.2-changelog',
           },
         ],
       },

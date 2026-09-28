@@ -28,5 +28,4 @@
    rc-available, ga-rollout, or minor-release includes directly in
    release notes.
 
-.. include:: /includes/ga-rollout.rst
-
+.. include:: /includes/in-dev.rst

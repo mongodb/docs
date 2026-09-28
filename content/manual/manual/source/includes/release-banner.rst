@@ -27,6 +27,3 @@
    while release notes should remain static. Use the in-dev,
    rc-available, ga-rollout, or minor-release includes directly in
    release notes.
-
-.. include:: /includes/ga-rollout.rst
-
