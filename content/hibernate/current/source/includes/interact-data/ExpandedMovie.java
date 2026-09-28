@@ -17,14 +17,16 @@ public class Movie {
 	private int year;
 	private int runtime;
 	private List<String> cast;
+	private List<String> directors;
 
 
-	public Movie(String title, String plot, int year, int runtime, List<String> cast) {
+	public Movie(String title, String plot, int year, int runtime, List<String> cast, List<String> directors) {
  		this.title = title;
 		this.plot = plot;
 		this.year = year;
 		this.runtime = runtime;
 		this.cast = cast;
+		this.directors = directors;
  	}
 
 	public Movie() {
@@ -70,8 +72,16 @@ public class Movie {
 	public List<String> getCast() {
 		return cast;
 	}
-	
+
 	public void setCast(List<String> cast) {
 		this.cast = cast;
+	}
+
+	public List<String> getDirectors() {
+		return directors;
+	}
+
+	public void setDirectors(List<String> directors) {
+		this.directors = directors;
 	}
 }

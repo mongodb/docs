@@ -16,6 +16,7 @@ Perform CRUD Operations
 
 .. meta::
    :keywords: insert, modify, read, write, code example
+   :description: Learn how to use the {+extension-long+} to perform create, read, update, and delete operations on MongoDB collections, including bulk updates that use computed expressions in the SET clause.
 
 Overview
 ---------
@@ -304,6 +305,157 @@ to the database:
             :visible: false
 
             Number of movies updated: 2
+
+The ``SET`` clause of a bulk update statement can also use an
+expression instead of a literal value. The expression can reference
+the field being updated or another field on the entity.
+
+The following example uses an arithmetic expression to increment the
+``year`` value of documents that have a ``title`` value of
+``"The 3 Stooges"``:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/interact-data/Crud.java
+      :start-after: start-update-expression-arithmetic
+      :end-before: end-update-expression-arithmetic
+      :language: java
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      Number of movies updated: 2
+
+The following example uses a field reference to set the ``plot``
+value to match the ``title`` value for documents that have a
+``year`` value of ``1920``:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/interact-data/Crud.java
+      :start-after: start-update-expression-field-reference
+      :end-before: end-update-expression-field-reference
+      :language: java
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      Number of movies updated: 4
+
+.. _hibernate-crud-upsert:
+
+Upsert Documents
+----------------
+
+An upsert operation updates a document if a matching document exists,
+or inserts a new document if no match exists. To perform an upsert, use
+the ``upsert()`` or ``upsertMultiple()`` method. These methods are
+available only on Hibernate's ``StatelessSession`` API.
+
+.. note::
+
+   A ``StatelessSession`` instance does not track changes to the
+   entities it retrieves. To save changes to an entity, pass it to
+   another write method. Use ``StatelessSession`` for bulk write
+   workflows.
+
+Entity Requirements
+~~~~~~~~~~~~~~~~~~~
+
+The {+extension-short+} creates the filter for an upsert operation from
+your entity's identifier, so your application must assign the
+identifier value before you call ``upsert()``.
+
+The ``upsert()`` method does not generate identifier values, even if
+your entity uses the ``@ObjectIdGenerator`` annotation. If you do not
+assign an identifier value, the {+extension-short+} stores the
+document with a ``null`` ``_id`` value.
+
+You can use the ``@Column(updatable = false)`` annotation to protect a
+field from updates during an upsert operation. The following ``Movie``
+entity definition annotates the ``released`` field with
+``@Column(updatable = false)``, which instructs the
+{+extension-short+} to write to the field when it inserts a document
+but to omit the field when it updates an existing document:
+
+.. code-block:: java
+
+   @Entity
+   @Table(name = "movies")
+   public class Movie {
+      @Id
+      @ObjectIdGenerator
+      private ObjectId id;
+
+      private String title;
+      private int year;
+
+      @Column(updatable = false)
+      private Instant released;
+
+      // Getters and setters omitted
+   }
+
+The {+extension-short+} sends fields that are both insertable and
+updatable in the ``$set`` operator of the generated update statement.
+It sends insertable-only fields, such as fields annotated with
+``@Column(updatable = false)``, in the ``$setOnInsert`` operator. 
+
+.. _hibernate-crud-upsert-one:
+
+Upsert One Example
+~~~~~~~~~~~~~~~~~~
+
+The following example creates a ``Movie`` entity instance and passes it
+to the ``upsert()`` method. If a document that has the specified
+``ObjectId`` value exists, the {+extension-short+} updates the
+``title`` and ``year`` values of that document. Otherwise, the
+{+extension-short+} inserts a new document:
+
+.. literalinclude:: /includes/interact-data/Crud.java
+   :start-after: start-upsert-one
+   :end-before: end-upsert-one
+   :language: java
+   :dedent:
+
+.. _hibernate-crud-upsert-many:
+
+Upsert Multiple Example
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To upsert several entity instances in one operation, pass a list of
+instances to the ``upsertMultiple()`` method. The following example
+upserts two ``Movie`` entity instances:
+
+.. literalinclude:: /includes/interact-data/Crud.java
+   :start-after: start-upsert-multiple
+   :end-before: end-upsert-multiple
+   :language: java
+   :dedent:
+
+.. _hibernate-crud-upsert-limitations:
+
+Upsert Limitations
+~~~~~~~~~~~~~~~~~~
+
+The following entity mappings are unsupported in upsert operations.
+When you upsert an entity that uses one of these mappings, the
+{+extension-short+} throws a ``FeatureNotSupportedException``:
+
+- Entities that have a field annotated with ``@Version``.
+
+- Entities that have a field annotated with
+  ``@Column(insertable = false)``. MongoDB Query Language provides no
+  way to write a field only when an operation matches an existing
+  document.
+
+- Entities whose only persistent attribute is the identifier. An
+  upsert on this type of entity has no fields to update, so the
+  {+extension-short+} rejects the operation.
 
 .. _hibernate-crud-delete:
 

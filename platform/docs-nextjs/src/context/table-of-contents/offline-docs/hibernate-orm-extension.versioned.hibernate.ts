@@ -27,9 +27,6 @@ export const toc: L1TocItem[] = [
             contentSite: 'hibernate',
             collapsible: true,
             url: '/docs/languages/java/mongodb-hibernate/:version/spring-boot',
-            versions: {
-              includes: ['upcoming'],
-            },
             items: [
               {
                 label: 'Get Started with the Spring Boot Starter',
@@ -58,6 +55,11 @@ export const toc: L1TocItem[] = [
                 contentSite: 'hibernate',
                 url: '/docs/languages/java/mongodb-hibernate/:version/model-data/inheritance',
               },
+              {
+                label: 'Indexes',
+                contentSite: 'hibernate',
+                url: '/docs/languages/java/mongodb-hibernate/:version/model-data/indexes',
+              },
             ],
           },
           {
@@ -74,9 +76,6 @@ export const toc: L1TocItem[] = [
                 label: 'Find Documents',
                 contentSite: 'hibernate',
                 url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/find-documents',
-                versions: {
-                  includes: ['upcoming'],
-                },
               },
               {
                 label: 'Specify a Query',
@@ -87,25 +86,16 @@ export const toc: L1TocItem[] = [
                 label: 'Datetime Functions in Queries',
                 contentSite: 'hibernate',
                 url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/datetime-functions',
-                versions: {
-                  includes: ['upcoming'],
-                },
               },
               {
                 label: 'Join Entities Across Collections',
                 contentSite: 'hibernate',
                 url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/join-entities',
-                versions: {
-                  includes: ['upcoming'],
-                },
               },
               {
                 label: 'Modify Query Results',
                 contentSite: 'hibernate',
                 url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/modify-query-results',
-                versions: {
-                  includes: ['upcoming'],
-                },
               },
               {
                 label: 'Perform Native Queries',
@@ -123,9 +113,6 @@ export const toc: L1TocItem[] = [
             label: 'Security',
             contentSite: 'hibernate',
             collapsible: true,
-            versions: {
-              includes: ['upcoming'],
-            },
             items: [
               {
                 label: 'Validate Hibernate Extension Artifact Signatures',
@@ -162,12 +149,12 @@ export const toc: L1TocItem[] = [
               {
                 label: 'Hibernate ORM',
                 isExternal: true,
-                url: 'https://docs.hibernate.org/orm/6.6/javadocs/',
+                url: 'https://docs.hibernate.org/orm/7.4/javadocs/',
               },
               {
                 label: 'Jakarta Persistence',
                 isExternal: true,
-                url: 'https://jakarta.ee/specifications/persistence/3.1/apidocs/jakarta.persistence/module-summary.html',
+                url: 'https://jakarta.ee/specifications/persistence/3.2/apidocs/jakarta.persistence/module-summary.html',
               },
             ],
           },

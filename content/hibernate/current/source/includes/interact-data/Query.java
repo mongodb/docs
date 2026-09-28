@@ -2,6 +2,7 @@ import org.hibernate.Transaction;
 
 import java.util.List;
 
+import org.example.Restaurant;
 import org.hibernate.Session;
 
 public class Query {
@@ -125,6 +126,170 @@ public class Query {
             System.out.println("Title: " + m.getTitle());
         }
         // end-comparison-query-em
+
+        // Retrieves documents that match a "title" and "year" pair using a session
+        // start-row-value-query-session
+        var rowValueResult = session.createQuery("from Movie where (title, year) = (:t, :y)", Movie.class)
+                                    .setParameter("t", "Jurassic World")
+                                    .setParameter("y", 2015)
+                                    .getResultList();
+        for (var m : rowValueResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-row-value-query-session
+
+        // Retrieves documents that match a "title" and "year" pair using an entity manager
+        // start-row-value-query-em
+        var rowValueResult = entityManager.createQuery("select m from Movie m where (m.title, m.year) = (:t, :y)", Movie.class)
+                                          .setParameter("t", "Jurassic World")
+                                          .setParameter("y", 2015)
+                                          .getResultList();
+        for (var m : rowValueResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-row-value-query-em
+
+        // Retrieves documents that match either of two "title" and "year" pairs using a session
+        // start-row-value-in-query-session
+        var rowValueInResult = session.createQuery(
+                        "from Movie where (title, year) in (('Jurassic World', 2015), ('Ex Machina', 2015))", Movie.class)
+                .getResultList();
+        for (var m : rowValueInResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-row-value-in-query-session
+
+        // Retrieves documents that match either of two "title" and "year" pairs using an entity manager
+        // start-row-value-in-query-em
+        var rowValueInResult = entityManager.createQuery(
+                        "select m from Movie m where (m.title, m.year) in (('Jurassic World', 2015), ('Ex Machina', 2015))", Movie.class)
+                .getResultList();
+        for (var m : rowValueInResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-row-value-in-query-em
+
+        // Retrieves documents that have a "year" value between 2012 and 2013, inclusive, using a session
+        // start-between-query-session
+        var betweenResult = session.createQuery("from Movie where year between :start and :end", Movie.class)
+                                   .setParameter("start", 2012)
+                                   .setParameter("end", 2013)
+                                   .getResultList();
+        for (var m : betweenResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-between-query-session
+
+        // Retrieves documents that have a "year" value between 2012 and 2013, inclusive, using an entity manager
+        // start-between-query-em
+        var betweenResult = entityManager.createQuery("select m from Movie m where m.year between :start and :end", Movie.class)
+                                         .setParameter("start", 2012)
+                                         .setParameter("end", 2013)
+                                         .getResultList();
+        for (var m : betweenResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-between-query-em
+
+        // Retrieves documents that have a "year" value of 1994 or 1996 using a session
+        // start-in-query-session
+        var inResult = session.createQuery("from Movie where year in (:first, :second)", Movie.class)
+                              .setParameter("first", 1994)
+                              .setParameter("second", 1996)
+                              .getResultList();
+        for (var m : inResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-in-query-session
+
+        // Retrieves documents that have a "year" value of 1994 or 1996 using an entity manager
+        // start-in-query-em
+        var inResult = entityManager.createQuery("select m from Movie m where m.year in (:first, :second)", Movie.class)
+                                    .setParameter("first", 1994)
+                                    .setParameter("second", 1996)
+                                    .getResultList();
+        for (var m : inResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-in-query-em
+
+        // Retrieves the first ten documents that do not have a "title" value of "Romeo and Juliet" or "Best in Show" using a session
+        // start-notin-query-session
+        var notInResult = session.createQuery("from Movie where title not in (:first, :second)", Movie.class)
+                                 .setParameter("first", "Romeo and Juliet")
+                                 .setParameter("second", "Best in Show")
+                                 .setMaxResults(10)
+                                 .getResultList();
+        for (var m : notInResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-notin-query-session
+
+        // Retrieves the first ten documents that do not have a "title" value of "Romeo and Juliet" or "Best in Show" using an entity manager
+        // start-notin-query-em
+        var notInResult = entityManager.createQuery("select m from Movie m where m.title not in (:first, :second)", Movie.class)
+                                       .setParameter("first", "Romeo and Juliet")
+                                       .setParameter("second", "Best in Show")
+                                       .setMaxResults(10)
+                                       .getResultList();
+        for (var m : notInResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-notin-query-em
+        
+        // Retrieves documents that have a null or missing "cast" value using a session
+        // start-null-comparison-query-session
+        var nullComparisonResult = session.createQuery("from Movie where cast = null", Movie.class)
+                .getResultList();
+        for (var m : nullComparisonResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-null-comparison-query-session
+
+        // Retrieves documents that have a null or missing "cast" value using an entity manager
+        // start-null-comparison-query-em
+        var nullComparisonResult = entityManager.createQuery("select m from Movie m where m.cast = null", Movie.class)
+                .getResultList();
+        for (var m : nullComparisonResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-null-comparison-query-em
+
+        // Retrieves documents that do not have a "cast" value using a session
+        // start-isnull-query-session
+        var isNullResult = session.createQuery("from Movie where cast is null", Movie.class)
+                .getResultList();
+        for (var m : isNullResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-isnull-query-session
+
+        // Retrieves documents that do not have a "cast" value using an entity manager
+        // start-isnull-query-em
+        var isNullResult = entityManager.createQuery("select m from Movie m where m.cast is null", Movie.class)
+                .getResultList();
+        for (var m : isNullResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-isnull-query-em
+
+        // Retrieves documents that have a "directors" value using a session
+        // start-isnotnull-query-session
+        var isNotNullResult = session.createQuery("from Movie where directors is not null", Movie.class)
+                .getResultList();
+        for (var m : isNotNullResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-isnotnull-query-session
+
+        // Retrieves documents that have a "directors" value using an entity manager
+        // start-isnotnull-query-em
+        var isNotNullResultEm = entityManager.createQuery("select m from Movie m where m.directors is not null", Movie.class)
+                .getResultList();
+        for (var m : isNotNullResultEm) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-isnotnull-query-em
 
         // Retrieves a document that has a "title" of "The Godfather" and a "year" of 1972 using a session
         // start-logical-query-session
@@ -268,6 +433,53 @@ public class Query {
         }
         // end-retrieve-embedded-em
 
+        // Retrieves the title and year of the "Hairspray" movie that has more than 10 award wins using a session
+        // start-retrieve-nested-field-session
+        var matchingDocument = session.createQuery("from Movie where title = :title and awards.wins > :minWins", Movie.class)
+                .setParameter("title", "Hairspray")
+                .setParameter("minWins", 10)
+                .getResultList();
+        for (var m : matchingDocument) {
+            System.out.println("Title: " + m.getTitle() + ", Year: " + m.getYear());
+        }
+        // end-retrieve-nested-field-session
+
+        // Retrieves the title and year of the "Hairspray" movie that has more than 10 award wins using an entity manager
+        // start-retrieve-nested-field-em
+        var matchingDocument = entityManager.createQuery("select m from Movie m where m.title = :title and m.awards.wins > :minWins", Movie.class)
+                .setParameter("title", "Hairspray")
+                .setParameter("minWins", 10)
+                .getResultList();
+        for (var m : matchingDocument) {
+            System.out.println("Title: " + m.getTitle() + ", Year: " + m.getYear());
+        }
+        // end-retrieve-nested-field-em
+        // Retrieves documents that have a matching "grades" array element using a session
+        // start-retrieve-exists-session
+        var existsResult = session.createQuery(
+                        "from Restaurant r where exists (select g.grade from r.grades g where g.grade = :grade and g.score = :score)",
+                        Restaurant.class)
+                .setParameter("grade", "B")
+                .setParameter("score", 12)
+                .getResultList();
+        for (var r : existsResult) {
+            System.out.println("Name: " + r.getName());
+        }
+        // end-retrieve-exists-session
+
+        // Retrieves documents that have a matching "grades" array element using an entity manager
+        // start-retrieve-exists-em
+        var existsResultEm = entityManager.createQuery(
+                        "select r from Restaurant r where exists (select g.grade from r.grades g where g.grade = :grade and g.score = :score)",
+                        Restaurant.class)
+                .setParameter("grade", "B")
+                .setParameter("score", 12)
+                .getResultList();
+        for (var r : existsResultEm) {
+            System.out.println("Name: " + r.getName());
+        }
+        // end-retrieve-exists-em
+
         // Retrieves documents that have a "cast" array that contains "Kathryn Hahn" using a session
         // start-retrieve-array-session
         var arrayResult = session.createQuery("from Movie where array_contains(cast, :actor)", Movie.class)
@@ -287,6 +499,105 @@ public class Query {
             System.out.println("Title: " + m.getTitle());
         }
         // end-retrieve-array-em
+
+        // Projects the age of the "Hairspray" movies by using a session
+        // start-arithmetic-projection-session
+        var arithmeticResult = session.createQuery(
+                        "select title, :currentYear - year as age from Movie where title = :title",
+                        Object[].class)
+                .setParameter("currentYear", 2026)
+                .setParameter("title", "Hairspray")
+                .getResultList();
+        for (var row : arithmeticResult) {
+            System.out.println("Title: " + row[0] + ", Age: " + row[1]);
+        }
+        // end-arithmetic-projection-session
+
+        // Projects the age of the "Hairspray" movies by using an entity manager
+        // start-arithmetic-projection-em
+        var arithmeticResult = entityManager.createQuery(
+                        "select m.title, :currentYear - m.year as age from Movie m where m.title = :title",
+                        Object[].class)
+                .setParameter("currentYear", 2026)
+                .setParameter("title", "Hairspray")
+                .getResultList();
+        for (var row : arithmeticResult) {
+            System.out.println("Title: " + row[0] + ", Age: " + row[1]);
+        }
+        // end-arithmetic-projection-em
+
+        // Retrieves "Hairspray" movies released less than 20 years before 2026 using a session
+        // start-computed-filter-session
+        var computedFilterResult = session.createQuery(
+                        "from Movie where title = :title and :currentYear - year < 20", Movie.class)
+                .setParameter("title", "Hairspray")
+                .setParameter("currentYear", 2026)
+                .getResultList();
+        for (var m : computedFilterResult) {
+            System.out.println("Title: " + m.getTitle() + ", Year: " + m.getYear());
+        }
+        // end-computed-filter-session
+
+        // Retrieves "Hairspray" movies released less than 20 years before 2026 using an entity manager
+        // start-computed-filter-em
+        var computedFilterResult = entityManager.createQuery(
+                        "select m from Movie m where m.title = :title and :currentYear - m.year < 20",
+                        Movie.class)
+                .setParameter("title", "Hairspray")
+                .setParameter("currentYear", 2026)
+                .getResultList();
+        for (var m : computedFilterResult) {
+            System.out.println("Title: " + m.getTitle() + ", Year: " + m.getYear());
+        }
+        // end-computed-filter-em
+
+        // Projects whether each "Hairspray" movie was released after 2000 using a session
+        // start-comparison-projection-session
+        var comparisonResult = session.createQuery(
+                        "select title, year > 2000 as isRecent from Movie where title = :title",
+                        Object[].class)
+                .setParameter("title", "Hairspray")
+                .getResultList();
+        for (var row : comparisonResult) {
+            System.out.println("Title: " + row[0] + ", Recent: " + row[1]);
+        }
+        // end-comparison-projection-session
+
+        // Projects whether each "Hairspray" movie was released after 2000 using an entity manager
+        // start-comparison-projection-em
+        var comparisonResult = entityManager.createQuery(
+                        "select m.title, m.year > 2000 as isRecent from Movie m where m.title = :title",
+                        Object[].class)
+                .setParameter("title", "Hairspray")
+                .getResultList();
+        for (var row : comparisonResult) {
+            System.out.println("Title: " + row[0] + ", Recent: " + row[1]);
+        }
+        // end-comparison-projection-em
+
+        // Groups movies released between 1920 and 1924 by year and returns a count and total runtime for years with more than 300 minutes of runtime using a session
+        // start-aggregate-group-by-session
+        var aggregateResult = session.createQuery(
+                        "select year, count(*), sum(runtime) from Movie where year between 1920 and 1924 "
+                        + "group by year having sum(runtime) > 300 order by year",
+                        Object[].class)
+                .getResultList();
+        for (var row : aggregateResult) {
+            System.out.println("Year: " + row[0] + ", Count: " + row[1] + ", Total runtime: " + row[2]);
+        }
+        // end-aggregate-group-by-session
+
+        // Groups movies released between 1920 and 1924 by year and returns a count and total runtime for years with more than 300 minutes of runtime using an entity manager
+        // start-aggregate-group-by-em
+        var aggregateResult = entityManager.createQuery(
+                        "select m.year, count(m), sum(m.runtime) from Movie m where m.year between 1920 and 1924 "
+                        + "group by m.year having sum(m.runtime) > 300 order by m.year",
+                        Object[].class)
+                .getResultList();
+        for (var row : aggregateResult) {
+            System.out.println("Year: " + row[0] + ", Count: " + row[1] + ", Total runtime: " + row[2]);
+        }
+        // end-aggregate-group-by-em
 
         entityManager.getTransaction().commit();
         entityManager.close(); 

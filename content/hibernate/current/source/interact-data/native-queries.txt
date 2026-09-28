@@ -16,6 +16,7 @@ Perform Native Database Queries
 
 .. meta::
    :keywords: number, amount, estimation, code example
+   :description: Learn how to run native MongoDB queries with the {+extension-short+}. Use MQL aggregation pipelines with $match, $sort, $project, and $search stages in createNativeQuery() calls.
 
 Overview
 ---------
@@ -24,11 +25,11 @@ In this guide, you can learn how to use the {+extension-long+} to run
 native queries on your MongoDB database. Instead of Hibernate Query Language (HQL)
 or Jakarta Persistence Query Language (JPQL), native queries allow you to
 use MongoDB Query Language (MQL) to specify your query. MQL is a query syntax
-designed for interacting with MongoDB's document-based model.
+designed for interacting with the MongoDB document-based model.
 
 .. tip:: MongoDB Query Language
 
-   To learn more about MQL's syntax and functionality, see :ref:`mql-reference`
+   To learn more about MQL syntax and functionality, see :ref:`mql-reference`
    in the {+mdb-server+} manual.
 
 {+orm+}'s ``createQuery()`` method does not support some MongoDB query features.
@@ -95,17 +96,28 @@ MQL statements have the following format:
 
    The aggregation pipeline in your MQL statement must include a :pipeline:`$project` stage.
    To return the query documents as entity instances, you must specify each entity
-   field other than the primary key field in the ``$project`` stage.
+   field in the ``$project`` stage, including the ``_id`` field. The {+extension-short+}
+   returns the fields you project and suppresses ``_id`` when you omit it. An
+   entity-bound query that omits ``_id`` can fail with ``Unknown column label [_id]``
+   because the entity identifier maps to ``_id``. To keep the identifier available,
+   project ``_id: 1``.
 
-Then, pass the MQL statement to the ``createNativeQuery()`` method.
-You cannot run native queries that use parameter values. Instead, specify
-your search terms within the MQL statement.
+Then, pass the MQL statement to the ``createNativeQuery()`` method. 
 
 You can use native queries to perform the following operations:
 
 - :ref:`hibernate-native-filter-sort`
 - :ref:`hibernate-native-arithmetic`
 - :ref:`hibernate-native-search`
+
+.. important:: Extended JSON Syntax Required
+
+   You must write native queries in :ref:`Extended JSON v2
+   <mongodb-extended-json-v2>` format. The {+extension-short+} does
+   not support single quotes or the {+mdb-server+} shell regular
+   expression syntax (``/pattern/``) in native queries. For example,
+   to query with a regular expression, use the ``$regularExpression``
+   Extended JSON type instead of ``/pattern/``.
 
 .. _hibernate-native-filter-sort:
 
@@ -140,18 +152,12 @@ specifies the following aggregation pipeline stages:
 Use Arithmetic Operators
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-The {+extension-short+} does not currently support HQL or JPQL statements
-that use arithmetic operators. However, you can perform arithmetic operations
-on your data by using MongoDB's arithmetic operators in an MQL statement.
+.. note::
 
-.. tip:: Arithmetic Operators
-
-   To learn more about Hibernate and MongoDB arithmetic operators, see
-   the following resources:
-
-   - `Numeric arithmetic <{+query-guide+}#numeric-arithmetic>`__ in the {+orm+}
-     query guide
-   - :ref:`agg-quick-ref-operator-arithmetic` in the {+mdb-server+} manual
+   Native queries are best for arithmetic operations that are unsupported 
+   by the {+extension-short+}. To learn more about which arithmetic operators the 
+   {+extension-short+} supports, see the :ref:`hibernate-query-support` section of the 
+   Feature Compatibility page.
 
 The following example runs a native query on the ``sample_mflix.movies`` collection
 that performs the following actions:
@@ -162,7 +168,7 @@ that performs the following actions:
 - Uses the ``$divide`` arithmetic operator to convert the ``runtime`` value from minutes to hours
   for the new ``runtimeHours`` field
 - Specifies a ``$project`` stage to return each document field defined in the ``Movie`` entity,
-  other than the primary key field
+  including the ``_id`` field
 - Prints the ``title`` value of each updated document
 
 .. io-code-block::
@@ -184,6 +190,15 @@ that performs the following actions:
       Added field to movie: The Dancer Upstairs
       Added field to movie: Fantastic Four
       ...
+
+.. tip:: Arithmetic Operators
+
+   To learn more about Hibernate and MongoDB arithmetic operators, see
+   the following resources:
+
+   - `Numeric arithmetic <{+query-guide+}#numeric-arithmetic>`__ in the {+orm+}
+     query guide
+   - :ref:`agg-quick-ref-operator-arithmetic` in the {+mdb-server+} manual
 
 .. _hibernate-native-search:
 
@@ -217,7 +232,7 @@ actions:
 - Queries for documents whose ``plot`` values contain the string
   ``"whirlwind romance"`` with no more than ``3`` words between them
 - Specifies a ``$project`` stage to return each document field defined in the ``Movie`` entity,
-  other than the primary key field
+  including the ``_id`` field
 - Prints the ``title`` and ``plot`` values of the matching documents
   
 .. io-code-block::
@@ -238,6 +253,51 @@ actions:
       Title: Ek Hasina Thi, Plot: A woman falls for a charming and mysterious businessman. The whirlwind romance turns sour when she is framed for his underworld crimes. Now, finally out of prison she is ready for sweet revenge.
       Title: Kick, Plot: An adrenaline junkie walks away from a whirlwind romance and embraces a new life as a thief, though he soon finds himself pursued by veteran police officer and engaged in a turf war with a local gangster.
       Title: A Tale of Winter, Plot: Felicie and Charles have a serious if whirlwind holiday romance. Due to a mix-up on addresses they lose contact, and five years later at Christmas-time Felicie is living with her mother in ...
+
+Use Parameters in Native Queries
+````````````````````````````````
+
+You can use named (``:name``) or ordinal (``?1``) parameters to specify values in your MQL statement. 
+The following example demonstrates how to provide the ``title`` parameter value as either 
+a named or ordinal parameter and then supply the parameter value with ``setParameter()``:
+
+.. tabs::
+
+   .. tab:: Named
+      :tabid: named
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/NativeQuery.java
+            :start-after: start-named-parameters
+            :end-before: end-named-parameters
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: The Parent Trap, Year: 1998
+            Title: The Parent Trap, Year: 1961
+
+   .. tab:: Ordinal
+      :tabid: ordinal
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/NativeQuery.java
+            :start-after: start-ordinal-parameters
+            :end-before: end-ordinal-parameters
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: The Parent Trap, Year: 1998
+            Title: The Parent Trap, Year: 1961
 
 .. _hibernate-native-mongoclient:
 

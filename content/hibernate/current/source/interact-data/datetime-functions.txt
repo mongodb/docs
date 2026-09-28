@@ -1,0 +1,353 @@
+.. _hibernate-query-datetime-functions:
+
+=================================
+Use Datetime Functions in Queries
+=================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: date, time, extract, format, code example
+   :description: Learn how to call the Hibernate Query Language extract() and format() functions to return part of a datetime value or render a datetime value as a string in MongoDB.
+
+Overview
+--------
+
+In this guide, you can learn how to call the Hibernate Query Language
+(HQL) ``extract()`` and ``format()`` functions on a datetime field by
+using the {+extension-long+}. You can use ``extract()`` to return part of a
+datetime value and ``format()`` to render a datetime value as a string.
+
+The {+extension-short+} translates each call to a MongoDB aggregation
+expression in the ``$project`` stage. You can call either function on
+a datetime field in a ``SELECT`` clause.
+
+.. note:: Time Zone
+
+   The {+extension-short+} resolves each datetime function in the
+   default time zone of the JVM that runs the application. It passes
+   that zone to MongoDB as the ``timezone`` argument of the generated
+   operator. The same query can return different values on hosts
+   configured with different time zones.
+
+Because the {+extension-short+} does not support function calls as
+operands of a computed expression, you cannot combine a datetime
+function with an arithmetic operator. To learn more, see the
+:ref:`hibernate-query-expressions` section of the Specify a Query
+guide.
+
+Sample Data
+~~~~~~~~~~~
+
+.. include:: /includes/sample-data.rst
+
+The examples in this guide use the ``Movie`` entity's ``released``
+field, which stores an ``Instant`` value.
+
+.. _hibernate-query-extract:
+
+Extract a Datetime Field
+------------------------
+
+You can use the ``extract()`` function to return a specific part of a datetime value, 
+such as the year, month, or day.
+
+The ``extract(field from x)`` function returns a single field of a
+datetime value. The {+extension-short+} supports the following
+values for the ``field``:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Field
+     - MongoDB Translation
+
+   * - ``year``
+     - ``$year``
+
+   * - ``quarter``
+     - Computed by dividing ``$month`` by ``3`` and rounding up
+
+   * - ``month``
+     - ``$month``
+
+   * - ``week``
+     - ``$isoWeek``, which returns the ISO-8601 week number
+
+   * - ``week of year``
+     - Computed from ``$dayOfYear`` and ``$dayOfWeek`` as a
+       Sunday-based week number
+
+   * - ``week of month``
+     - Computed from ``$dayOfMonth`` and ``$dayOfWeek`` as a
+       Sunday-based week number
+
+   * - ``day``, ``day of month``
+     - ``$dayOfMonth``
+
+   * - ``day of week``
+     - ``$dayOfWeek``
+
+   * - ``day of year``
+     - ``$dayOfYear``
+
+   * - ``hour``
+     - ``$hour``
+
+   * - ``minute``
+     - ``$minute``
+
+   * - ``second``
+     - Computed from ``$second`` and ``$millisecond`` as a fractional
+       number of seconds
+
+   * - ``nanosecond``
+     - Computed from ``$second`` and ``$millisecond``
+
+   * - ``epoch``
+     - Computed as the number of whole seconds since the Unix epoch
+
+The following example returns the title of each ``"Hairspray"`` movie
+in the ``sample_mflix.movies`` collection and the year in which the
+movie was released:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Datetime.java
+            :start-after: start-extract-datetime-session
+            :end-before: end-extract-datetime-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Hairspray, Release Year: 1988
+            Title: Hairspray, Release Year: 2007
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Datetime.java
+            :start-after: start-extract-datetime-em
+            :end-before: end-extract-datetime-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Hairspray, Release Year: 1988
+            Title: Hairspray, Release Year: 2007
+
+The {+extension-short+} translates the preceding query to the
+following ``$project`` stage, in which ``America/New_York`` is the
+default time zone of the JVM:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$project": {
+       "title": true,
+       "releaseYear": {
+         "$year": {
+           "date": "$released",
+           "timezone": { "$literal": "America/New_York" }
+         }
+       },
+       "_id": 0
+     }
+   }
+
+.. important:: Day of Week Numbering
+
+   The ``day of week`` field returns the MongoDB ``$dayOfWeek``
+   value, which numbers days from ``1`` for Sunday through ``7`` for
+   Saturday. This differs from the Java ``DayOfWeek`` enum, which
+   numbers days from ``1`` for Monday through ``7`` for Sunday.
+
+The {+extension-short+} does not support the ``date``, ``time``,
+``offset``, ``timezone_hour``, and ``timezone_minute`` fields. A query
+that extracts an unsupported field throws a
+``FeatureNotSupportedException``.
+
+.. _hibernate-query-format:
+
+Format a Datetime as a String
+-----------------------------
+
+The ``format(x as pattern)`` function renders a datetime value as a
+string. The {+extension-short+} translates the call to the MongoDB
+:manual:`$dateToString </reference/operator/aggregation/dateToString>`
+operator and maps each pattern code to the equivalent MongoDB format
+specifier. You can also call the function as ``format(x, pattern)``
+and pass MongoDB format specifiers directly.
+
+The {+extension-short+} supports the following pattern codes:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 40 30
+
+   * - Pattern Code
+     - Description
+     - MongoDB Specifier
+
+   * - ``yyyy``
+     - Four-digit year
+     - ``%Y``
+
+   * - ``YYYY``
+     - Four-digit ISO-8601 week-based year
+     - ``%G``
+
+   * - ``MM``
+     - Two-digit month
+     - ``%m``
+
+   * - ``MMM``
+     - Abbreviated month name
+     - ``%b``
+
+   * - ``MMMM``
+     - Full month name
+     - ``%B``
+
+   * - ``ww``
+     - Two-digit ISO-8601 week number
+     - ``%V``
+
+   * - ``dd``
+     - Two-digit day of the month
+     - ``%d``
+
+   * - ``DDD``
+     - Day of the year
+     - ``%j``
+
+   * - ``HH``
+     - Two-digit hour on a 24-hour clock
+     - ``%H``
+
+   * - ``mm``
+     - Two-digit minute
+     - ``%M``
+
+   * - ``ss``
+     - Two-digit second
+     - ``%S``
+
+   * - ``SSS``
+     - Three-digit millisecond
+     - ``%L``
+
+   * - ``Z``, ``ZZ``, ``ZZZ``, ``xx``
+     - UTC offset
+     - ``%z``
+
+MongoDB returns month and day names in the US locale. Characters that
+you enclose in single quotation marks pass through to the output
+without being interpreted as pattern codes.
+
+The following example returns the title of each ``"Hairspray"`` movie
+and its release date as a ``yyyy-MM-dd`` string:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Datetime.java
+            :start-after: start-format-datetime-session
+            :end-before: end-format-datetime-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Hairspray, Release Date: 1988-02-25
+            Title: Hairspray, Release Date: 2007-07-19
+
+      If you want to use MongoDB format specifiers instead, 
+      you can call the function as 
+      ``format(released, '%Y-%m-%d')``.
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Datetime.java
+            :start-after: start-format-datetime-em
+            :end-before: end-format-datetime-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Hairspray, Release Date: 1988-02-25
+            Title: Hairspray, Release Date: 2007-07-19
+
+      If you want to use MongoDB format specifiers instead, 
+      you can call the function as ``format(m.released, '%Y-%m-%d')``.
+
+The {+extension-short+} translates the preceding query to the
+following ``$project`` stage:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$project": {
+       "title": true,
+       "releaseDate": {
+         "$dateToString": {
+           "date": "$released",
+           "format": { "$literal": "%Y-%m-%d" },
+           "timezone": { "$literal": "America/New_York" }
+         }
+       },
+       "_id": 0
+     }
+   }
+
+A query that uses a pattern code outside the preceding table throws a
+``FeatureNotSupportedException``. This includes single-character and
+variable-width codes such as ``y``, ``M``, ``d``, ``H``, ``h``, ``m``,
+``s``, and ``a``, because MongoDB has no equivalent specifier for
+them. A repeated time zone code of more than three characters, such as
+``ZZZZZZZ``, is ambiguous and also throws an exception.
+
+Additional Information
+----------------------
+
+To learn more about creating query filters and using operators in your
+query statements, see the :ref:`hibernate-specify-query` guide.
+
+To learn more about using HQL and JPQL to run queries, see `A Guide to Hibernate Query Language
+<{+query-guide+}>`__ in the {+orm+} documentation.

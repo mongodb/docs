@@ -1,0 +1,231 @@
+.. _hibernate-spring-boot-configure:
+
+=================================
+Configure the Spring Boot Starter
+=================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn how to configure the MongoDB Hibernate ORM Spring Boot starter, including JPA properties, connection settings, field naming, and errors.
+   :keywords: properties, naming, client, code example
+
+Overview
+--------
+
+In this guide, you can learn how to configure the Spring Boot starter
+that the {+extension-long+} provides. To learn how to install the
+starter and create an application that uses it,
+see :ref:`hibernate-spring-boot-get-started`.
+
+.. _hibernate-spring-boot-activate:
+
+Activate the Starter
+--------------------
+
+To activate the starter, set the ``spring.jpa.database-platform``
+property to ``MongoDB`` in your application's
+``application.properties`` file, as shown in the following example:
+
+.. code-block:: properties
+
+   spring.jpa.database-platform=MongoDB
+
+The starter uses this standard Spring Boot property and requires no
+dedicated configuration of its own. When the property has any other
+value or is unset, the starter remains inactive. An inactive starter
+does not affect your application.
+
+.. _hibernate-spring-boot-connection:
+
+Configure the Connection
+------------------------
+
+The starter reuses the ``MongoClient`` instance that Spring Boot
+creates from the ``spring.mongodb.*`` properties. The starter does not
+create a client of its own and does not manage the client's lifecycle,
+so your application uses one connection pool for Java Persistence API
+(JPA) persistence, health checks, metrics, and any other component
+that uses the client.
+
+The starter uses the database name set in the
+``spring.mongodb.database`` property. If you do not set that property,
+the starter uses the database name in the connection string that you
+set in the ``spring.mongodb.uri`` property.
+
+To customize this client, declare a
+`MongoClientSettingsBuilderCustomizer
+<{+spring-api-root+}/mongodb/autoconfigure/MongoClientSettingsBuilderCustomizer.html>`__
+bean. This interface customizes the ``MongoClientSettings.Builder``
+instance before Spring Boot creates the client.
+
+.. _hibernate-spring-boot-jpa-properties:
+
+Set JPA Properties
+------------------
+
+The starter uses the standard ``spring.jpa.*`` properties. The
+following table describes commonly used properties:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Property
+     - Description
+
+   * - ``spring.jpa.hibernate.ddl-auto``
+     - Specifies the schema management action that {+orm+} performs at
+       startup. The default value for MongoDB-backed persistence units
+       is ``none``.
+
+   * - ``spring.jpa.show-sql``
+     - Specifies whether {+orm+} logs the statements that it
+       generates.
+
+   * - ``spring.jpa.properties.*``
+     - Passes {+orm+} configuration properties directly to
+       {+orm+}.
+
+   * - ``spring.jpa.open-in-view``
+     - Specifies whether the persistence context stays open for the
+       duration of a web request. This property is enabled by default
+       in servlet web applications.
+
+   * - ``spring.data.jpa.repositories.enabled``
+     - Specifies whether the starter enables Spring Data JPA
+       repository scanning. This property is enabled by default.
+
+You can also declare `HibernatePropertiesCustomizer
+<{+spring-api-root+}/hibernate/autoconfigure/HibernatePropertiesCustomizer.html>`__
+and `EntityManagerFactoryBuilderCustomizer
+<{+spring-api-root+}/jpa/autoconfigure/EntityManagerFactoryBuilderCustomizer.html>`__
+beans to modify the configuration that the starter builds. The
+``HibernatePropertiesCustomizer`` interface customizes the {+orm+}
+properties that the starter passes to the ``EntityManagerFactory``,
+and the ``EntityManagerFactoryBuilderCustomizer`` interface
+customizes the builder that creates it.
+
+.. _hibernate-spring-boot-entities-repositories:
+
+Scan for Entities and Repositories
+----------------------------------
+
+The starter scans for entities in the packages that you register by
+using the `@EntityScan
+<{+spring-api-root+}/persistence/autoconfigure/EntityScan.html>`__
+annotation. If you register no packages, the starter scans the
+package of your ``@SpringBootApplication`` class and its subpackages.
+
+Declare the ``@EntityScan`` annotation on your main application
+class, as shown in the following example:
+
+.. code-block:: java
+
+   @SpringBootApplication
+   @EntityScan("org.example.model")
+   
+   public class MovieApplication {
+       // ...
+   }
+
+The starter enables Spring Data JPA repositories in the same package
+scope. If you declare the ``@EnableJpaRepositories`` annotation
+yourself, your declaration takes precedence over the starter's.
+
+The starter enables these repositories without a SQL ``DataSource``
+and brings no SQL connection pool. A MongoDB-only application
+therefore requires no ``spring.datasource.url`` property, and Spring
+Boot does not use its ``DataSourceAutoConfiguration`` class.
+
+.. _hibernate-spring-boot-naming:
+
+Configure Field Naming
+----------------------
+
+Unlike a SQL Spring Boot application, which maps entity properties to
+``snake_case`` column names by default, the starter maps each entity
+property to a document field of the same name. An entity that you
+bootstrap through the starter persists the same way as an entity that
+you bootstrap through {+orm+} directly.
+
+To use a different naming strategy, set the strategy explicitly in
+your application's ``application.properties`` file, as shown in the
+following example:
+
+.. code-block:: properties
+
+   spring.jpa.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.PhysicalNamingStrategySnakeCaseImpl
+
+.. warning:: Migrate Documents Before Changing the Naming Strategy
+
+   Changing the naming strategy affects only documents that your
+   application writes after the strategy change. MongoDB does not
+   migrate existing documents, so a collection can contain documents
+   that use multiple types of field names. Migrate your existing
+   documents before you change the naming strategy.
+
+.. _hibernate-spring-boot-troubleshoot:
+
+Troubleshoot Startup Errors
+---------------------------
+
+When the starter is active but cannot configure a persistence unit, it
+reports the error at startup. The following table describes these
+errors:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Error
+     - Resolution
+
+   * - No ``MongoClient`` is available for the starter to use.
+     - Add the ``spring-boot-mongodb`` dependency and set the
+       ``spring.mongodb.*`` properties, or declare a ``MongoClient``
+       bean in your application.
+
+   * - No database name is available.
+     - Add the database name to the connection string in the
+       ``spring.mongodb.uri`` property, set the
+       ``spring.mongodb.database`` property, or set the name by using
+       a ``MongoConfigurationContributor`` bean.
+
+.. _hibernate-spring-boot-advanced:
+
+Use a Dedicated Client
+----------------------
+
+To connect through a client that only the starter uses, such as a
+client with different credentials, declare a
+``MongoConfigurationContributor`` bean that sets the client and the
+database name. When you declare this bean, the starter uses your
+client instead of the Spring-managed client.
+
+If you declare more than one ``MongoConfigurationContributor`` bean,
+the starter applies them in the order that you specify by using the
+``@Order`` annotation, and the last bean that sets a value determines
+that value.
+
+.. _hibernate-spring-boot-limitations:
+
+Limitations
+-----------
+
+The starter has the following limitations:
+
+- The ``@DataJpaTest`` annotation is not supported. To test against
+  MongoDB, use the ``@SpringBootTest`` annotation, which loads your
+  full application context.
+- The starter configures a single persistence unit. To use more than
+  one persistence unit, configure the additional units yourself.
+

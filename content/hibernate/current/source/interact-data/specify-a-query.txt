@@ -1,4 +1,5 @@
 .. _hibernate-specify-query:
+.. _hibernate-query-filter:
 
 ===============
 Specify a Query
@@ -45,297 +46,50 @@ Sample Data
 
 .. include:: /includes/sample-data.rst
 
+The code examples on this page also use the following ``Awards`` ``@Struct`` aggregate embeddable:
+
+.. literalinclude:: /includes/interact-data/Awards.java
+   :language: java
+   :start-after: start-awards-struct
+   :end-before: end-awards-struct
+
 .. include:: /includes/persistence-contexts.rst
    
    .. replacement:: additional-information
 
       Use HQL to define session queries, and use JPQL to define entity manager queries.
 
-Run a Query
------------
+.. _hibernate-null-semantics:
 
-To query your MongoDB data, call the ``createQuery()`` method on a 
-session or an entity manager. Then, specify your matching criteria in a
-Hibernate Query Language (HQL) or Jakarta Persistence Query Language
-(JPQL) statement.
+Required Null Semantics Configuration Property
+----------------------------------------------
 
-This section describes how to perform the following query operations:
+Before you can create a ``SessionFactory`` instance, you must set the
+``com.mongodb.hibernate.semantics.nulls`` configuration property to
+``MQL``. This property is required, has no default value, and currently
+accepts no other value. If you omit the property, or set it to another
+value, the {+extension-short+} throws a ``HibernateException``.
 
-- :ref:`hibernate-query-retrieve-all`
-- :ref:`hibernate-query-retrieve-matching`
-- :ref:`hibernate-query-retrieve-one`
-- :ref:`hibernate-query-criteria-api`
-- :ref:`hibernate-query-native`
+When you set ``com.mongodb.hibernate.semantics.nulls`` to ``MQL``, the property
+declares that null-related behavior follows the MongoDB Query Language (MQL) that the
+{+extension-short+} produces during translation, not the
+three-valued logic defined by SQL null semantics.
 
-.. _hibernate-query-retrieve-all:
+Because the {+extension-short+} does not guarantee a specific
+translation, the results of null-related behavior can change
+between releases.
 
-Retrieve All Documents
-~~~~~~~~~~~~~~~~~~~~~~
+The following example sets the ``com.mongodb.hibernate.semantics.nulls`` 
+property in your ``hibernate.properties`` file:
 
-To retrieve all documents from a collection, pass a basic select statement
-to the ``createQuery()`` method. In this statement, specify the entity
-that represents the collection you want to query.
+.. code-block:: none
 
-The following example retrieves the ``title`` values of all documents from the ``sample_mflix.movies``
-collection by querying the ``Movie`` entity:
-
-.. tabs::
-
-   .. tab:: Session
-      :tabid: session
-
-      .. io-code-block::
-         :copyable:
-
-         .. input:: /includes/interact-data/Query.java
-            :start-after: start-retrieve-all-session
-            :end-before: end-retrieve-all-session
-            :language: java
-            :dedent:
-
-         .. output::
-            :visible: false
-
-            Title: A Corner in Wheat
-            Title: Gertie the Dinosaur
-            Title: The Perils of Pauline
-            Title: Civilization
-            Title: Where Are My Children?
-            ...
-
-   .. tab:: EntityManager
-      :tabid: entitymanager
-
-      .. io-code-block::
-         :copyable:
-
-         .. input:: /includes/interact-data/Query.java
-            :start-after: start-retrieve-all-em
-            :end-before: end-retrieve-all-em
-            :language: java
-            :dedent:
-
-         .. output::
-            :visible: false
-
-            Title: A Corner in Wheat
-            Title: Gertie the Dinosaur
-            Title: The Perils of Pauline
-            Title: Civilization
-            Title: Where Are My Children?
-            ...
-
-.. _hibernate-query-retrieve-matching:
-
-Retrieve Matching Documents
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To retrieve documents that match specific criteria, pass a select statement
-with a ``where`` clause to the ``createQuery()`` method. In this statement,
-specify the entity that represents the collection you want to query and
-the matching criteria.
-
-The following example retrieves documents that have a ``title`` value
-of ``"Romeo and Juliet"`` from the ``sample_mflix.movies`` collection:
-
-.. tabs::
-
-   .. tab:: Session
-      :tabid: session
-
-      .. io-code-block::
-         :copyable:
-
-         .. input:: /includes/interact-data/Query.java
-            :start-after: start-retrieve-matching-session
-            :end-before: end-retrieve-matching-session
-            :language: java
-            :dedent:
-
-         .. output::
-            :visible: false
-
-            Title: Romeo and Juliet, Year: 1936
-            Title: Romeo and Juliet, Year: 1968
-
-   .. tab:: EntityManager
-      :tabid: entitymanager
-
-      .. io-code-block::
-         :copyable:
-
-         .. input:: /includes/interact-data/Query.java
-            :start-after: start-retrieve-matching-em
-            :end-before: end-retrieve-matching-em
-            :language: java
-            :dedent:
-
-         .. output::
-            :visible: false
-
-            Title: Romeo and Juliet, Year: 1936
-            Title: Romeo and Juliet, Year: 1968
-
-.. _hibernate-query-retrieve-one:
-
-Retrieve One Document
-~~~~~~~~~~~~~~~~~~~~~
-
-To retrieve a single document that matches specific criteria, chain the
-``getSingleResult()`` method to the ``createQuery()`` method.
-
-The following example retrieves a single document that has a ``title`` value
-of ``"Best in Show"`` from the ``sample_mflix.movies`` collection:
-
-.. tabs::
-
-   .. tab:: Session
-      :tabid: session
-
-      .. io-code-block::
-         :copyable:
-
-         .. input:: /includes/interact-data/Query.java
-            :start-after: start-retrieve-one-session
-            :end-before: end-retrieve-one-session
-            :language: java
-            :dedent:
-
-         .. output::
-            :visible: false
-
-            Title: Best in Show, Year: 2000
-
-   .. tab:: EntityManager
-      :tabid: entitymanager
-
-      .. io-code-block::
-         :copyable:
-
-         .. input:: /includes/interact-data/Query.java
-            :start-after: start-retrieve-one-em
-            :end-before: end-retrieve-one-em
-            :language: java
-            :dedent:
-
-         .. output::
-            :visible: false
-
-            Title: Best in Show, Year: 2000
-
-
-.. important:: NonUniqueResultException Errors
-
-   If your query matches multiple documents, the ``getSingleResult()`` method
-   throws a ``NonUniqueResultException`` error. To avoid this error, ensure that
-   your query matches only one document or :ref:`limit your query results <hibernate-query-limit>` to
-   one document.
-
-.. _hibernate-query-criteria-api:
-
-Run Criteria API Queries
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-Instead of using HQL or JPQL statements to create query filters,
-you can use the Jakarta Persistence Criteria API to build type-safe queries
-programmatically.
-
-To create a query by using the Criteria API, perform the following
-actions:
-
-1. Create a ``CriteriaBuilder`` object from a session or an entity manager.
-#. Create a ``CriteriaQuery`` object from the builder and specify the entity to query.
-#. Use query methods provided by the ``CriteriaQuery`` class to specify your query criteria.
-
-.. tip::
-
-   To learn more about the Criteria API, see `Using the Criteria API to Create Queries
-   <https://jakarta.ee/learn/docs/jakartaee-tutorial/current/persist/persistence-criteria/persistence-criteria.html>`__
-   in the Jakarta EE documentation.
-
-The following example uses the Criteria API to retrieve all documents
-that have a ``year`` value of ``1925`` from the ``sample_mflix.movies``
-collection:
-
-.. tabs::
-
-   .. tab:: Session
-      :tabid: session
-
-      .. io-code-block::
-         :copyable:
-
-         .. input:: /includes/interact-data/Query.java
-            :start-after: start-criteria-api-session
-            :end-before: end-criteria-api-session
-            :language: java
-            :dedent:
-
-         .. output::
-            :visible: false
-
-            Lady Windermere's Fan
-            Clash of the Wolves
-            Grass: A Nation's Battle for Life
-
-   .. tab:: EntityManager
-      :tabid: entitymanager
-
-      .. io-code-block::
-         :copyable:
-
-         .. input:: /includes/interact-data/Query.java
-            :start-after: start-criteria-api-em
-            :end-before: end-criteria-api-em
-            :language: java
-            :dedent:
-
-         .. output::
-            :visible: false
-
-            Lady Windermere's Fan
-            Clash of the Wolves
-            Grass: A Nation's Battle for Life
-
-.. _hibernate-query-native:
-
-Run Native Queries
-~~~~~~~~~~~~~~~~~~
-
-To run MongoDB queries that are not currently supported by the {+extension-short+},
-you can pass your query as a MongoDB Query Language (MQL) statement to the
-``createNativeQuery()`` method.
-
-To learn how to run native queries, see the :ref:`Perform Native Queries <hibernate-native-queries>` guide.
-
-.. _hibernate-query-filter:
-
-Customize Your Query Filter
----------------------------
-
-This section describes how to use operators to create the following
-types of query filters:
-
-- :ref:`Comparison filters <hibernate-query-comparison>`
-- :ref:`Logical filters <hibernate-query-logical>`
-
-.. tip::
-
-   This section does not describe all available query operators.
-   To view a complete list of query operators, see `Operator expressions
-   <{+query-guide+}#_operator_expressions>`__ in the {+orm+} query guide.
+   com.mongodb.hibernate.semantics.nulls=MQL
 
 .. _hibernate-query-comparison:
 
-Use Comparison Filters
-~~~~~~~~~~~~~~~~~~~~~~
-
-.. note::
-
-   The {+extension-short+} does not support all comparison operators, including
-   ``LIKE`` and ``BETWEEN``. To learn more about support limitations, see
-   :ref:`Query Support <hibernate-query-support>` on the Feature Compatibility
-   page.
+Use Comparison Operators
+------------------------
 
 You can use the following operators in your query statements
 to compare field values to specified query values:
@@ -405,17 +159,941 @@ collection:
             Title: Aloha
             ...
 
+.. _hibernate-query-row-value:
+
+Compare Multiple Fields at Once
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A **row-value predicate** compares a parenthesized list of fields to a
+parenthesized list of values in a single expression. The
+{+extension-short+} supports row-value predicates that use the following
+operators:
+
+- ``=``: Equality matching
+- ``<>``: Inequality matching
+- ``IN`` and ``NOT IN``: Matching against a list of value rows
+
+You can supply the values as bound parameters or as literals, and each
+list must contain the same number of components.
+
+The following example retrieves documents that have a ``title`` value of
+``"Jurassic World"`` and a ``year`` value of ``2015`` from the
+``sample_mflix.movies`` collection:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-row-value-query-session
+            :end-before: end-row-value-query-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Jurassic World
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-row-value-query-em
+            :end-before: end-row-value-query-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Jurassic World
+
+The {+extension-short+} compares each pair of components separately. The
+preceding row-value predicate translates to the following ``$match``
+stage:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$match": {
+       "$and": [
+         { "title": { "$eq": "Jurassic World" } },
+         { "year": { "$eq": 2015 } }
+       ]
+     }
+   }
+
+A row-value predicate that uses the ``<>`` operator translates to the
+same ``$and`` expression wrapped in a ``$nor`` expression.
+
+If you compare the fields to another list of fields, as in
+``where (title1, year1) = (title2, year2)``, the
+{+extension-short+} translates the predicate to a ``$expr`` expression
+instead.
+
+You can use a row-value predicate in a ``SELECT`` clause. The predicate 
+evaluates to a boolean value in the projection.
+
+.. note:: Null Semantics
+
+   Row-value predicates follow MongoDB Query Language null semantics
+   rather than {+orm+} ternary logic, so a ``<>`` predicate matches
+   documents in which a component is null or missing. To learn more, see
+   the :ref:`hibernate-query-null-comparison` section of this guide.
+
+Match a List of Value Rows
+``````````````````````````
+
+To match a row of fields against multiple rows of values, use the ``IN``
+operator. The following example retrieves documents that match either of
+two ``title`` and ``year`` pairs:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-row-value-in-query-session
+            :end-before: end-row-value-in-query-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Jurassic World
+            Title: Ex Machina
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-row-value-in-query-em
+            :end-before: end-row-value-in-query-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Jurassic World
+            Title: Ex Machina
+
+The preceding row-value predicate translates to the following ``$match``
+stage:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$match": {
+       "$or": [
+         { "$and": [
+             { "title": { "$eq": "Jurassic World" } },
+             { "year": { "$eq": 2015 } }
+         ] },
+         { "$and": [
+             { "title": { "$eq": "Ex Machina" } },
+             { "year": { "$eq": 2015 } }
+         ] }
+       ]
+     }
+   }
+
+If the list contains only one row of values, the predicate translates to
+the ``$and`` expression alone. A ``NOT IN`` predicate translates to the
+``$or`` expression wrapped in a ``$nor`` expression.
+
+.. important:: Ordering Comparisons
+
+   The {+extension-short+} does not support row-value predicates that
+   use the ``>``, ``>=``, ``<``, or ``<=`` operator. These predicates
+   cause the {+extension-short+} to throw a
+   ``FeatureNotSupportedException``.
+
+.. _hibernate-query-null-comparison:
+
+Compare Field Values to Null
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you compare a field to ``null`` by using a comparison operator,
+the {+extension-short+} applies MongoDB Query Language null semantics
+instead of the ternary logic that {+orm+} defines.
+
+.. note:: Hibernate Ternary Logic for ``null``
+
+   {+orm+} v6.3 and later evaluate a comparison to ``null`` as
+   ``null``, which a predicate treats as ``false``. The
+   {+extension-short+} does not implement this behavior. To learn more
+   about which features the {+extension-short+} supports, see
+   :ref:`Data Type Support <hibernate-data-support>` on the Feature
+   Compatibility page.
+
+MongoDB comparison operators evaluate both a missing field and a field
+that stores an explicit ``null`` value to ``null``. As a result, a
+``= null`` comparison matches documents in which the field stores
+``null`` and documents in which the field is absent. A ``<> null`` or
+``!= null`` comparison matches documents in which the field stores any
+other value.
+
+The following example uses the ``=`` operator to retrieve documents
+that have a ``null`` or missing ``cast`` value from the
+``sample_mflix.movies`` collection:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-null-comparison-query-session
+            :end-before: end-null-comparison-query-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: Song of Lahore
+            Title: A Sinner in Mecca
+            Title: Very Semi-Serious
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-null-comparison-query-em
+            :end-before: end-null-comparison-query-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: Song of Lahore
+            Title: A Sinner in Mecca
+            Title: Very Semi-Serious
+
+The {+extension-short+} translates this query to the
+following ``$match`` stage:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$match": {
+       "cast": { "$eq": null }
+     }
+   }
+
+Comparisons that use the ``>``, ``>=``, ``<``, and ``<=`` operators
+follow the :ref:`MongoDB BSON comparison order <bson-types-comparison-order>`
+for non-existent fields. Because ``null`` is its own BSON type,
+A ``>= null`` or ``<= null`` comparison matches documents in which the field stores
+``null`` or is missing. A ``> null`` or ``< null`` comparison matches no documents.
+
+To match ``null`` and missing values by using a predicate instead of a
+comparison operator, see the :ref:`hibernate-query-is-null` and
+:ref:`hibernate-query-is-not-null` sections of this guide.
+
+.. _hibernate-query-expressions:
+
+Use Computed Expressions
+------------------------
+
+You can compute a value from field values, literals, and query
+parameters. You can then return that value in a ``SELECT`` clause or
+compare it in a ``WHERE`` clause. The {+extension-short+}
+translates a computed expression to a MongoDB aggregation
+expression.
+
+The {+extension-short+} supports the following arithmetic operators
+in computed expressions:
+
+- ``+``: Addition, which translates to ``$add``
+- ``-``: Subtraction, which translates to ``$subtract``
+- ``*``: Multiplication, which translates to ``$multiply``
+- ``/``: Division, which translates to ``$divide``
+- Unary ``-`` and ``+``
+
+.. note:: Division Always Returns an Integer
+
+   The {+orm+} translates division in a MongoDB aggregation pipeline to 
+   the MongoDB ``$divide`` operator, which always returns a double. The
+   {+extension-short+} truncates the result by wrapping ``$divide`` in
+   ``$toInt``, or ``$toLong`` if the result type is ``BIGINT``. This
+   behavior applies to the ``/`` operator and the
+   Criteria API ``quot()`` method, regardless of whether you enable the
+   {+orm+} ``PORTABLE_INTEGER_DIVISION`` setting.
+
+   The ``div`` operator is not supported.
+
+You can also use the comparison operators described in the
+:ref:`hibernate-query-comparison` section within computed
+expressions.
+
+.. important:: Operand Limitations
+
+   An operand of a computed expression must be a field reference, a
+   literal, or a query parameter. The {+extension-short+} does not
+   support function calls as operands. 
+   
+   Because {+orm+} rewrites the HQL ``%`` operator to a ``mod()`` function call, 
+   ``%`` is also unsupported. To perform a modulo operation, use the Criteria API
+   ``CriteriaBuilder.mod()`` method, which translates to the MongoDB
+   ``$mod`` operator. 
+   
+   The Criteria API ``CriteriaBuilder.quot()``
+   method behaves identically to the ``/`` operator.
+
+.. _hibernate-query-arithmetic:
+
+Perform Arithmetic in a Projection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you select a computed expression, the {+extension-short+} adds
+the computed value to the ``$project`` stage. If you assign the
+expression an alias by using the ``AS`` keyword, the
+{+extension-short+} uses the alias as the projection key. Otherwise,
+it generates a key in the form ``#c_<n>``.
+
+The following example computes the age of each ``"Hairspray"`` movie
+in the ``sample_mflix.movies`` collection by subtracting the ``year``
+field value from a query parameter:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-arithmetic-projection-session
+            :end-before: end-arithmetic-projection-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Hairspray, Age: 38
+            Title: Hairspray, Age: 19
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-arithmetic-projection-em
+            :end-before: end-arithmetic-projection-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Hairspray, Age: 38
+            Title: Hairspray, Age: 19
+
+The {+extension-short+} translates the preceding computed expression
+to the following ``$project`` stage:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$project": {
+       "title": true,
+       "age": { "$subtract": [ 2026, "$year" ] },
+       "_id": 0
+     }
+   }
+
+.. _hibernate-query-computed-filter:
+
+Filter on a Computed Expression
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the ``WHERE`` clause, you can compare a computed expression to a value
+or compare two field values to each other. When either
+side of a comparison is not a direct field reference or value, the
+{+extension-short+} wraps the comparison in the MongoDB
+:manual:`$expr </reference/operator/query/expr>` operator. Comparisons
+between a field and a value continue to use the compact
+``{ field: { operator: value } }`` form.
+
+The following example retrieves ``"Hairspray"`` movies released fewer
+than 20 years before 2026:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-computed-filter-session
+            :end-before: end-computed-filter-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Hairspray, Year: 2007
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-computed-filter-em
+            :end-before: end-computed-filter-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Hairspray, Year: 2007
+
+The {+extension-short+} translates the preceding query to the
+following ``$match`` stage, in which the ``title`` comparison uses
+the compact form and the computed comparison uses ``$expr``:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$match": {
+       "$and": [
+         { "title": { "$eq": "Hairspray" } },
+         { "$expr": { "$lt": [ { "$subtract": [ 2026, "$year" ] }, 20 ] } }
+       ]
+     }
+   }
+
+.. _hibernate-query-comparison-projection:
+
+Project a Comparison Result
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use a comparison in a ``SELECT`` statement to return its boolean result 
+instead of using the comparison as a filter.
+
+The following example returns the title of each ``"Hairspray"`` movie
+and whether the movie was released after 2000:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-comparison-projection-session
+            :end-before: end-comparison-projection-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Hairspray, Recent: false
+            Title: Hairspray, Recent: true
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-comparison-projection-em
+            :end-before: end-comparison-projection-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Hairspray, Recent: false
+            Title: Hairspray, Recent: true
+
+The {+extension-short+} translates the preceding comparison to the
+following ``$project`` stage:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$project": {
+       "title": true,
+       "isRecent": { "$gt": [ "$year", 2000 ] },
+       "_id": 0
+     }
+   }
+
+.. _hibernate-predicate-comparison-operators:
+
+Use Predicate Operators
+-----------------------
+
+The {+extension-short+} supports the following predicate comparison operators in your query statements:
+
+- :ref:`EXISTS <hibernate-query-exists>`
+- :ref:`BETWEEN <hibernate-query-between>`
+- :ref:`IN <hibernate-query-in>`
+- :ref:`NOT IN <hibernate-query-not-in>`
+- :ref:`IS NULL <hibernate-query-is-null>`
+- :ref:`IS NOT NULL <hibernate-query-is-not-null>`
+
+.. note::
+
+   The {+extension-short+} does not support all comparison operators. 
+   To learn more about support limitations, see :ref:`Query Support <hibernate-query-support>` on
+   the Feature Compatibility page.
+
+.. _hibernate-query-exists:
+
+EXISTS
+~~~~~~
+
+The ``EXISTS`` predicate matches documents that have a specific field 
+and returns only one result for each matching parent
+document, regardless of how many array elements match.
+
+.. note:: EXISTS Subquery Limitations
+
+   The {+extension-short+} supports ``EXISTS`` subqueries only over an
+   array field of the parent entity, and only in the ``WHERE`` clause.
+   The {+extension-short+} does not support ``EXISTS`` subqueries that:
+   
+   - Query over an entity without first specifying a field
+   - Compare fields in the same parent document
+   - Appear in the ``SELECT`` clause 
+
+For a full example, see the 
+:ref:`hibernate-query-elements-embedded-array` section of this guide.
+
+.. _hibernate-query-between:
+
+BETWEEN
+~~~~~~~
+
+The ``BETWEEN`` predicate matches documents that have a field value within a specified range. 
+
+The following example uses the ``BETWEEN`` predicate to retrieves documents that have a ``year`` value
+between ``2012`` and ``2013``, inclusive, from the ``sample_mflix.movies`` collection:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-between-query-session
+            :end-before: end-between-query-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: Absent Minded
+            Title: The Disappearance of Eleanor Rigby: Her
+            Title: Thread of Lies
+
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-between-query-em
+            :end-before: end-between-query-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: Absent Minded
+            Title: The Disappearance of Eleanor Rigby: Her
+            Title: Thread of Lies
+
+The {+extension-short+} translates the preceding ``BETWEEN`` predicate to
+the following ``$match`` stage:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$match": {
+       "year": { "$gte": 2012, "$lte": 2013 }
+     }
+   }
+
+.. _hibernate-query-in:
+
+IN
+~~~
+
+The ``IN`` predicate matches documents where a field value equals any
+value in a specified list. You can supply the list values as literals,
+named parameters, or positional parameters.
+
+The following example uses the ``IN`` predicate to retrieve documents
+that have a ``year`` value of either ``1994`` or ``1996`` from the
+``sample_mflix.movies`` collection:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-in-query-session
+            :end-before: end-in-query-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: Kadhal Kottai
+            Title: Gotti
+            Title: It's Just a Ride
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-in-query-em
+            :end-before: end-in-query-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: Kadhal Kottai
+            Title: Gotti
+            Title: It's Just a Ride
+
+The {+extension-short+} translates the preceding ``IN`` predicate to the
+following ``$match`` stage:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$match": {
+       "year": { "$in": [ 1994, 1996 ] }
+     }
+   }
+
+An empty list is valid, but it never matches any documents. For example, 
+``year in ()`` matches no documents.
+
+.. note:: IN Predicate Limitations
+
+   The {+extension-short+} supports the ``IN`` predicate only when the
+   value to the left of ``IN`` is a field path. The
+   {+extension-short+} does not support ``IN`` predicates that:
+
+   - Take a subquery as the list of values.
+   - Test a value against an array-valued expression, as in
+     ``:value in m.cast``. To match a value against an array field, use
+     the ``array_contains()`` function instead. 
+   
+   To learn more about querying an array, see the :ref:`hibernate-query-array` 
+   section of this guide.
+
+.. _hibernate-query-not-in:
+
+NOT IN
+~~~~~~
+
+The ``NOT IN`` predicate matches documents in which a field value does
+not equal any value in a specified list. ``NOT IN`` accepts the same
+list forms and has the same limitations as the ``IN`` predicate.
+
+The following example uses the ``NOT IN`` predicate to retrieve
+documents that have a ``title`` value other than ``"Romeo and Juliet"``
+or ``"Best in Show"`` from the ``sample_mflix.movies`` collection.
+Because ``NOT IN`` excludes only the listed values, the example calls
+the ``setMaxResults()`` method to limit the result set to ten documents:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-notin-query-session
+            :end-before: end-notin-query-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: 'R Xmas
+            Title: 'Round Midnight
+            Title: 'Til Madness Do Us Part
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-notin-query-em
+            :end-before: end-notin-query-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: 'R Xmas
+            Title: 'Round Midnight
+            Title: 'Til Madness Do Us Part
+
+The {+extension-short+} translates the preceding ``NOT IN`` predicate to
+the following ``$match`` stage:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$match": {
+       "title": { "$nin": [ "Romeo and Juliet", "Best in Show" ] }
+     }
+   }
+
+Because ``$nin`` matches every document against an empty list of values,
+``title not in ()`` matches all documents.
+
+.. note:: NOT IN Limitations
+
+   The {+extension-short+} supports the ``NOT IN`` predicate only when the
+   value to the left of ``NOT IN`` is a field path. The
+   {+extension-short+} does not support ``NOT IN`` predicates that:
+
+   - Take a subquery as the list of values.
+   - Test a value against an array-valued expression, as in
+     ``:value not in m.cast``. 
+
+.. note:: Null Semantics
+
+   Row-value predicates follow MongoDB Query Language null semantics
+   rather than {+orm+} ternary logic, so a ``NOT IN`` predicate matches
+   documents in which a component is null or missing. To learn more, see
+   the :ref:`hibernate-query-null-comparison` section of this guide.
+
+.. _hibernate-query-is-null:
+
+IS NULL
+~~~~~~~
+
+The ``IS NULL`` predicate matches documents that have a specific field with a null or missing value.
+
+To compare a field to ``null`` by using a comparison operator instead
+of a predicate, see the :ref:`hibernate-query-null-comparison` section
+of this guide.
+
+The following example uses the ``IS NULL`` predicate to retrieve documents that have a missing or 
+``null`` ``cast`` value from the ``sample_mflix.movies`` collection:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-isnull-query-session
+            :end-before: end-isnull-query-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: Tom Swift and His Electric Rifle
+            Title: A Sinner in Mecca
+            Title: Very Semi-Serious
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-isnull-query-em
+            :end-before: end-isnull-query-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: Tom Swift and His Electric Rifle
+            Title: A Sinner in Mecca
+            Title: Very Semi-Serious
+
+The {+extension-short+} translates the preceding ``IS NULL`` predicate to
+the following ``$match`` stage, which matches documents where the field
+is explicitly ``null`` or missing:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$match": {
+       "cast": { "$eq": null }
+     }
+   }
+
+.. _hibernate-query-is-not-null:
+
+IS NOT NULL
+~~~~~~~~~~~
+
+The ``IS NOT NULL`` predicate matches documents that have a field with a non-null or non-missing value.
+
+The following example uses the ``IS NOT NULL`` predicate to retrieve
+documents that have a ``directors`` value from the ``sample_mflix.movies``
+collection:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-isnotnull-query-session
+            :end-before: end-isnotnull-query-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: Our Loved Ones
+            Title: No Home Movie
+            Title: Scenes of a Sexual Nature
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-isnotnull-query-em
+            :end-before: end-isnotnull-query-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: Our Loved Ones
+            Title: No Home Movie
+            Title: Scenes of a Sexual Nature
+
+The {+extension-short+} translates the preceding ``IS NOT NULL`` predicate
+to the following ``$match`` stage, which matches documents where the
+field exists and is not explicitly ``null``:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$match": {
+       "directors": { "$ne": null }
+     }
+   }
+
 .. _hibernate-query-logical:
 
 Use Logical Filters
-~~~~~~~~~~~~~~~~~~~
+-------------------
 
 You can use the following operators in your query statements
 to combine multiple query criteria:
 
 - ``and``: Match all criteria
 - ``or``: Match any criteria
-- ``not``: Invert criteria
+- ``not``: Does not match criteria
 
 The following example retrieves a document that has a ``title`` value
 of ``"The Godfather"`` and a ``year`` value of ``1972`` from the
@@ -457,211 +1135,10 @@ of ``"The Godfather"`` and a ``year`` value of ``1972`` from the
 
             Title: The Godfather
 
-.. _hibernate-query-modify:
-
-Modify Query Results
---------------------
-
-This section describes how to modify your query
-results in the following ways:
-
-- :ref:`hibernate-query-sort`
-- :ref:`hibernate-query-skip`
-- :ref:`hibernate-query-limit`
-
-.. _hibernate-query-sort:
-
-Sort Results
-~~~~~~~~~~~~
-
-You can sort query results by the value of a specified field
-by using the ``order by`` clause in your query statement. By default,
-the ``order by`` clause sorts documents in ascending order. To sort
-documents in descending order, append the ``desc`` keyword to the field name.
-
-The following example retrieves matching documents from the ``sample_mflix.movies``
-collection and sorts them by the ``year`` field in descending order:
-
-.. tabs::
-
-   .. tab:: Session
-      :tabid: session
-
-      .. io-code-block::
-         :copyable:
-
-         .. input:: /includes/interact-data/Query.java
-            :start-after: start-sort-session
-            :end-before: end-sort-session
-            :language: java
-            :dedent:
-
-         .. output::
-            :visible: false
-
-            Title: Cinderella, Year: 2015
-            Title: Cinderella, Year: 1997
-            Title: Cinderella, Year: 1950
-
-   .. tab:: EntityManager
-      :tabid: entitymanager
-
-      .. io-code-block::
-         :copyable:
-
-         .. input:: /includes/interact-data/Query.java
-            :start-after: start-sort-em
-            :end-before: end-sort-em
-            :language: java
-            :dedent:
-
-         .. output::
-            :visible: false
-
-            Title: Cinderella, Year: 2015
-            Title: Cinderella, Year: 1997
-            Title: Cinderella, Year: 1950
-
-.. _hibernate-query-skip:
-
-Skip Results
-~~~~~~~~~~~~
-
-You can skip a specified number of documents in your query results
-by chaining the ``setFirstResult()`` method to the query. Pass the number
-of initial documents to skip as an argument to this method.
-
-The following example runs the same query as the :ref:`preceding example <hibernate-query-sort>`
-but skips the first matching document in the results:
-
-.. tabs::
-
-   .. tab:: Session
-      :tabid: session
-
-      .. io-code-block::
-         :copyable:
-
-         .. input:: /includes/interact-data/Query.java
-            :start-after: start-skip-session
-            :end-before: end-skip-session
-            :language: java
-            :dedent:
-
-         .. output::
-            :visible: false
-
-            Title: Cinderella, Year: 1997
-            Title: Cinderella, Year: 1950
-
-   .. tab:: EntityManager
-      :tabid: entitymanager
-
-      .. io-code-block::
-         :copyable:
-
-         .. input:: /includes/interact-data/Query.java
-            :start-after: start-skip-em
-            :end-before: end-skip-em
-            :language: java
-            :dedent:
-
-         .. output::
-            :visible: false
-
-            Title: Cinderella, Year: 1997
-            Title: Cinderella, Year: 1950
-
-.. _hibernate-query-limit:
-
-Limit Results
-~~~~~~~~~~~~~
-
-You can limit the number of documents that your query returns
-by chaining the ``setMaxResults()`` method to the query. Pass the maximum
-number of documents to return as an argument to this method.
-
-The following example runs the same query as the :ref:`sort example <hibernate-query-sort>`
-but returns up to two matching documents in the results:
-
-.. tabs::
-
-   .. tab:: Session
-      :tabid: session
-
-      .. io-code-block::
-         :copyable:
-
-         .. input:: /includes/interact-data/Query.java
-            :start-after: start-limit-session
-            :end-before: end-limit-session
-            :language: java
-            :dedent:
-
-         .. output::
-            :visible: false
-
-            Title: Cinderella, Year: 2015
-            Title: Cinderella, Year: 1997
-
-   .. tab:: EntityManager
-      :tabid: entitymanager
-
-      .. io-code-block::
-         :copyable:
-
-         .. input:: /includes/interact-data/Query.java
-            :start-after: start-limit-em
-            :end-before: end-limit-em
-            :language: java
-            :dedent:
-
-         .. output::
-            :visible: false
-
-            Title: Cinderella, Year: 2015
-            Title: Cinderella, Year: 1997
-
-Alternatively, you can use a ``limit`` clause in your HQL or JPQL statement
-to restrict the number of documents that your query returns, as shown
-in the following code:
-
-.. tabs::
-
-   .. tab:: Session
-      :tabid: session
-
-      .. literalinclude:: /includes/interact-data/Query.java
-         :start-after: start-limit-clause-session
-         :end-before: end-limit-clause-session
-         :language: java
-         :dedent:
-
-   .. tab:: EntityManager
-      :tabid: entitymanager
-
-      .. literalinclude:: /includes/interact-data/Query.java
-         :start-after: start-limit-clause-em
-         :end-before: end-limit-clause-em
-         :language: java
-         :dedent:
-
-.. _hibernate-query-advanced-fields:
-
-Advanced Field Queries
-----------------------
-
-This section describes how to run queries on the
-following fields:
-
-- :ref:`Primary key fields <hibernate-query-primary-key>`
-- :ref:`Embedded fields <hibernate-query-embedded>`
-- :ref:`Array fields <hibernate-query-array>`
-
 .. _hibernate-query-primary-key:
 
 Query a Primary Key Field
-~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------
 
 To retrieve a document based on its ``ObjectId`` value, you can
 pass this value as an argument to the ``get()`` method, if you're
@@ -692,12 +1169,11 @@ collection by its ``ObjectId`` value:
 
 .. _hibernate-query-embedded:
 
-Query an Embedded Field
-~~~~~~~~~~~~~~~~~~~~~~~
+Query an Embedded Document
+---------------------------
 
 You can represent MongoDB embedded documents by creating
-``@Struct`` aggregate embeddables. You cannot
-create query filters on individual embeddable values, but you can
+``@Struct`` aggregate embeddables. You can then
 use the {+extension-short+} to fetch ``@Struct`` aggregate embeddables
 associated with specific parent entities.
 
@@ -705,11 +1181,6 @@ associated with specific parent entities.
 
    To learn more about representing embedded documents, see
    :ref:`Embedded Data <hibernate-entities-embedded-data>` in the Create Entities guide.
-
-.. important:: Query Limitations
-
-   To learn more about the query limitations for embeddables, see :ref:`Hibernate Query Support <hibernate-query-support>`
-   on the Feature Compatibility page.
 
 The following example retrieves documents that have a ``title`` value
 of ``"Hairspray"`` from the ``sample_mflix.movies`` collection. Then,
@@ -753,11 +1224,205 @@ aggregate embeddable, and prints the ``wins`` field of the ``Awards`` embeddable
 
             Award wins: 0
             Award wins: 21
+            
+Query a Field on an Embedded Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can reference a field on an embeddable type by using a dotted path expression in the 
+``SELECT``, ``WHERE``, ``ORDER BY``, and ``UPDATE`` clauses of an 
+HQL or JPQL query. You can also chain
+multiple embeddable names in a path expression to reference a
+field on a nested embeddable within another embeddable.
+
+.. important:: Query Limitations
+
+   Path expressions do not support embeddable fields that
+   use the ``@ColumnTransformer`` annotation to define a 
+   custom read expression.
+
+   The {+extension-short+} also rejects the following
+   ``@Struct`` aggregate embeddable mappings when it builds the
+   entity model:
+
+   - A ``@Struct`` aggregate embeddable used as an ``@Id`` field
+   - A polymorphic ``@Struct`` aggregate embeddable hierarchy
+
+   You can't use a path expression to reference a field on these types.
+   
+The following example uses a path expression to filter documents
+in the ``sample_mflix.movies`` collection. There are two ``"Hairspray"`` movies
+in the ``sample_mflix.movies`` collection. One ``"Hairspray"`` movie is from 1998, 
+and the other is from 2007. The query matches documents that have a ``title`` value 
+of ``"Hairspray"`` and an ``awards.wins`` value greater than ``10``:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-retrieve-nested-field-session
+            :end-before: end-retrieve-nested-field-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Hairspray, Year: 2007
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-retrieve-nested-field-em
+            :end-before: end-retrieve-nested-field-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Hairspray, Year: 2007
+
+.. _hibernate-query-elements-embedded-array:
+
+Query on Elements of an Embedded Array
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When a field of your entity stores an array of ``@Struct`` aggregate
+embeddables, you can use an ``EXISTS`` subquery to match parent
+documents in which at least one element of that array meets your
+criteria. The {+extension-short+} translates the subquery to the
+MongoDB :manual:`$elemMatch </reference/operator/query/elemMatch>`
+operator, which applies all criteria to the same array element.
+
+Sample Data
+```````````
+.. note:: Use the ``sample_restaurants`` Database for This Section
+
+   The examples in this section use the
+   ``sample_restaurants.restaurants`` collection rather than the
+   ``sample_mflix.movies`` collection used elsewhere in this guide.
+
+   To run these examples, connect to the ``sample_restaurants`` database in 
+   your connection string. To learn more about the ``sample_restaurants``
+   database, see the :atlas:`Atlas sample datasets </sample-data>`.
+
+The following ``Restaurant`` entity maps to the ``restaurants``
+collection and stores a list of ``Grade`` embeddables in its
+``grades`` field:
+
+.. literalinclude:: /includes/interact-data/Restaurant.java
+   :language: java
+   :dedent:
+   :copyable: true
+
+The following ``Grade`` ``@Struct`` aggregate embeddable represents
+each element of the ``grades`` array:
+
+.. literalinclude:: /includes/interact-data/Grade.java
+   :language: java
+   :dedent:
+   :copyable: true
+
+.. tip::
+
+   To learn more about arrays of embeddables, see
+   :ref:`Embedded Data <hibernate-entities-embedded-data>` in the
+   Create Entities guide.
+
+Documents in the ``restaurants`` collection resemble the following:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "_id": { "$oid": "5eb3d668b31de5d588f4292a" },
+     "name": "Morris Park Bake Shop",
+     "borough": "Bronx",
+     "cuisine": "Bakery",
+     "grades": [
+       { "date": { "$date": 1393804800000 }, "grade": "A", "score": 2 },
+       { "date": { "$date": 1299715200000 }, "grade": "B", "score": 14 }
+     ]
+   }
+
+Example
+```````
+
+The following example retrieves restaurants that have at least one
+``grades`` array element with a ``grade`` value of ``"B"`` and a
+``score`` value equal to ``12``. Because both criteria appear in
+the same subquery, they must match the same array element:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-retrieve-exists-session
+            :end-before: end-retrieve-exists-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Name: Sam'S Restaurant
+            Name: Nb. National Bakery
+            Name: Sapporo Ichiban
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-retrieve-exists-em
+            :end-before: end-retrieve-exists-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Name: Sam'S Restaurant
+            Name: Nb. National Bakery
+            Name: Sapporo Ichiban
+
+The {+extension-short+} translates the preceding ``EXISTS`` subquery to
+the following ``$match`` stage:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$match": {
+       "grades": {
+         "$elemMatch": {
+           "grade": { "$eq": "B" },
+           "score": { "$eq": 12 }
+         }
+       }
+     }
+   }
 
 .. _hibernate-query-array:
 
 Query an Array Field
-~~~~~~~~~~~~~~~~~~~~
+---------------------
 
 The {+extension-short+} supports the following functions for
 querying array fields:
@@ -822,11 +1487,88 @@ from the ``sample_mflix.movies`` collection:
             Title: Afternoon Delight
             Title: The D Train
 
+.. _hibernate-query-aggregate:
+
+Use Aggregate Functions
+-----------------------
+
+You can use aggregate functions in HQL and JPQL queries to group and
+summarize query results, or to filter grouped results by using a
+``HAVING`` clause. HQL and JPQL support the following aggregate
+functions:
+
+- ``count()``
+- ``sum()``
+- ``avg()``
+- ``min()``
+- ``max()``
+
+.. note:: GROUP BY Requirements
+
+   Aggregate functions require a ``GROUP BY`` clause. A query that uses
+   an aggregate function without grouping results, such as
+   ``select count(*) from Movie``, is not supported yet. Non-aggregate
+   fields in the ``SELECT`` clause must also appear in the ``GROUP BY``
+   clause.
+
+The following example groups movies released between 1920 and 1924
+by year. For each year, it returns the number of movies and the total
+runtime for all movies. The ``HAVING`` clause includes only the years
+whose movies have a total runtime greater than 300 minutes, and orders
+the results by year.
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-aggregate-group-by-session
+            :end-before: end-aggregate-group-by-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Year: 1921, Count: 5, Total runtime: 430
+            Year: 1922, Count: 3, Total runtime: 332
+            Year: 1924, Count: 6, Total runtime: 675
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-aggregate-group-by-em
+            :end-before: end-aggregate-group-by-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Year: 1921, Count: 5, Total runtime: 430
+            Year: 1922, Count: 3, Total runtime: 332
+            Year: 1924, Count: 6, Total runtime: 675
+
 Additional Information
 ----------------------
 
 To learn more about performing other operations on your MongoDB data,
 see the :ref:`hibernate-crud` guide.
+
+To learn how to query across entities that are linked by an
+association, see the :ref:`hibernate-query-joins` guide.
+
+To learn how to return part of a datetime value or render a datetime
+value as a string, see the
+:ref:`hibernate-query-datetime-functions` guide.
 
 To learn more about using HQL and JPQL to run queries, see `A Guide to Hibernate Query Language
 <{+query-guide+}>`__ in the {+orm+} documentation.
