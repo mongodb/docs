@@ -90,6 +90,10 @@
      - :icon-fa5:`check`
      - :icon-fa5:`check`
 
+   * - Gen2 Clusters [#gen2-clusters]_
+     - :icon-fa5:`check`
+     - :icon-fa5:`check`
+
    * - ``M10`` clusters
      - :icon-fa5:`check`
      -
@@ -141,3 +145,8 @@
    
    You can enable Global Writes on an |service| cluster by 
    :atlas:`creating a Global Cluster </tutorial/create-global-cluster/>`.
+
+.. [#gen2-clusters]
+
+   Commercial |service| supports Gen2 clusters on both |aws| and |gcp|.
+   AtlasGov supports Gen2 clusters on only |aws|.
