@@ -1,3 +1,12 @@
+.. _fts20260929:
+
+29 September 2026 Release
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Adds support for computing :ref:`min, max, sum, avg, first and last <fts-facet-aggregation>` for 
+  facet buckets and grouping results across multiple fields with 
+  :ref:`nested facets <fts-facet-nested>`.
+
 .. _fts20260729: 
 
 29 July 2026 Release

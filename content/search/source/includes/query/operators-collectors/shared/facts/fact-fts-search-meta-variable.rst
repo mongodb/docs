@@ -3,7 +3,9 @@ stores the metadata results in the ``$$SEARCH_META`` variable and
 returns only the search results. You can use the ``$$SEARCH_META`` 
 variable in all the supported :manual:`aggregation pipeline stages 
 </reference/operator/aggregation-pipeline/>` to view the metadata 
-results for your :pipeline:`$search` query.
+results for your :pipeline:`$search` query. You can also use the 
+``$$SEARCH_META`` variable with :ref:`facet.aggregations 
+<fts-facet-aggregation>`.
 
 MongoDB recommends using the ``$$SEARCH_META`` variable only if you 
 need both the search results and the metadata results. Otherwise, use 

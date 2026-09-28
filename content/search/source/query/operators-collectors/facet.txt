@@ -34,17 +34,18 @@ Definition
    with the :pipeline:`$searchMeta` stage to retrieve metadata results 
    only for the query. To retrieve metadata results and query results 
    using the :pipeline:`$search` stage, you must use the 
-   ``$$SEARCH_META`` aggregation variable. See 
-   :ref:`fts-facet-aggregation-variable` to learn more. 
+   ``$$SEARCH_META`` aggregation variable. To learn more, see
+   :ref:`fts-facet-aggregation-variable`.
    
-   If you define :ref:`storedSource <fts-stored-source-definition>` in your
-   :ref:`embeddedDocuments <bson-data-types-embedded-documents>` field
-   type definition, you can use :ref:`returnScope <fts-return-scope>`
-   with :ref:`returnStoredSource <fts-return-stored-source-option>` to
-   facet on nested fields inside an array of objects. Otherwise, you can
-   only facet on the root :ref:`embeddedDocuments
-   <bson-data-types-embedded-documents>` type field. For an example of
-   faceting on: 
+   If you define :ref:`storedSource <fts-stored-source-definition>`
+   in your :ref:`embeddedDocuments
+   <bson-data-types-embedded-documents>` field type definition, you
+   can use :ref:`returnScope <fts-return-scope>` with
+   :ref:`returnStoredSource <fts-return-stored-source-option>` to
+   facet on nested fields inside an array of objects. Otherwise, you
+   can only facet on the root :ref:`embeddedDocuments
+   <bson-data-types-embedded-documents>` type field. For an example
+   of faceting on: 
   
    - Nested fields inside an array of objects, see :ref:`returnScope
      Example <fts-facet-egs>`.
@@ -97,16 +98,52 @@ Fields
    * - ``facets``
      - document
      - yes
-     - :ref:`Information <fts-facet-definition>` for bucketing the data 
-       for each facet. You must specify at least one 
-       :ref:`fts-facet-definition`.    
+     - :ref:`Information <fts-facet-definition>` for bucketing the data
+       for each facet. You must specify at least one
+       :ref:`fts-facet-definition`. Each facet definition can also
+       specify :ref:`fts-facet-aggregation` to compute metrics for each
+       bucket.
 
    * - ``operator``
      - document
      - no
-     - :ref:`Operator <operators-ref>` to use to perform the facet over. 
-       If omitted, |fts| performs the facet over all documents in 
+     - :ref:`Operator <operators-ref>` to use to perform the facet over.
+       If omitted, |fts| performs the facet over all documents in
        the collection.
+
+.. _fts-facet-memory:
+
+Memory Requirements
+-------------------
+
+Facet queries are memory-intensive, regardless of your cluster tier.
+Queries that specify :ref:`fts-facet-aggregation` or :ref:`nested
+facets <fts-facet-nested>` require more memory and disk than other
+facet queries. Before you use facets in production, confirm that
+your cluster has enough memory for your workload. To learn more, see
+:ref:`Search Memory Management <fts-search-memory-management>`. To
+get sizing guidance for your workload, :ref:`request support
+<atlas-support>`.
+
+The memory that a facet query requires depends on the number of unique
+values in the field that you facet on, not the number of buckets that
+you request using ``numBuckets`` or ``boundaries``. For example, a
+facet that requests ``20`` buckets on a field with five million unique 
+values still counts every unique value to determine the top ``20`` 
+buckets.
+
+For :ref:`nested facets <fts-facet-nested>`, the total unique values 
+computed in a query multiply based on the unique values across each 
+level of nesting. Even when each individual field has low cardinality, 
+the combination of values across nested paths can produce a large
+number of unique buckets. To learn more about how nested facets
+multiply buckets, see :ref:`Nested Facets <fts-facet-nested>`.
+
+|fts| tracks bucket counts separately for each query, so total memory
+use scales with the number of concurrent facet queries. On a sharded
+cluster, |fts| also requires memory to merge the buckets from each
+shard, which scales with the number of shards and the number of
+buckets.
 
 .. _fts-facet-definition:
 
@@ -131,8 +168,8 @@ String Facets
 
 .. include:: /includes/query/operators-collectors/facet/facts/fact-fts-facet-type-deprecation.rst
 
-String facets allow you to narrow down |fts| results based on the most  
-frequent string values in the specified string field. Note that the 
+String facets allow you to narrow down |fts| results based on the
+most frequent string values in the specified string field. The
 string field must be indexed as :ref:`token
 <bson-data-types-token>`. To facet on string fields in embedded
 documents, you must also index the parent fields as the :ref:`document
@@ -186,7 +223,7 @@ Options
        Value must be less than or equal to ``10000``. If specified,
        |fts| may return fewer categories than requested if the data is
        grouped into fewer categories than your requested number. If
-       omitted, defaults to ``10``, which means that |fts| will return
+       omitted, defaults to ``10``, which means that |fts| returns
        only the top ``10`` facet categories by count.
      - no
 
@@ -230,7 +267,7 @@ Example
         }
       }
 
-   The query  uses the :pipeline:`$searchMeta` stage to search the 
+   The query uses the :pipeline:`$searchMeta` stage to search the 
    ``year`` field in the ``movies`` collection for movies from 2000 to 
    2015 and retrieve a count of the number of movies in each genre.
 
@@ -299,17 +336,18 @@ Numeric Facets
 
 .. important::
 
-   :ref:`numberFacet <bson-data-types-number-facet>` is now outdated. Use
-   :ref:`number <bson-data-types-number>` instead, which provides improved
-   faceting.
+   :ref:`numberFacet <bson-data-types-number-facet>` is now outdated.
+   Use :ref:`number <bson-data-types-number>` instead, which provides
+   improved faceting.
 
    To learn more about the differences between the updated and outdated
    field types for facet, see :ref:`fts-facet-type-differences`.
 
-Numeric facets allow you to determine the frequency of numeric values 
-in your search results by breaking the results into separate ranges of 
-numbers. When you facet on numbers in arrays or embedded documents, |fts| returns facet
-counts based on the number of matching root documents. 
+Numeric facets allow you to determine the frequency of numeric values
+in your search results by breaking the results into separate ranges
+of numbers. When you facet on numbers in arrays or embedded
+documents, |fts| returns facet counts based on the number of matching
+root documents.
 
 .. _fts-numeric-facet-syntax:
 
@@ -354,12 +392,12 @@ Options
 
    * - ``boundaries``
      - array of numbers
-     - List of numeric values in ascending order that specify the boundaries
-       for your buckets. You must specify between two and ten thousand
-       (``[2, 10000]``) boundary values. Each adjacent pair of values defines a
-       bucket with an inclusive lower bound and an exclusive upper bound. You
-       can specify any combination of values of the following
-       :ref:`BSON types <bson-types>`: 
+     - List of numeric values in ascending order that specify the
+       boundaries for your buckets. You must specify between two and
+       ten thousand (``[2, 10000]``) boundary values. Each adjacent
+       pair of values defines a bucket with an inclusive lower bound
+       and an exclusive upper bound. You can specify any combination
+       of values of the following :ref:`BSON types <bson-types>`:
 
        - 32-bit integer (``int32``)
        - 64-bit integer (``int64``)
@@ -415,10 +453,10 @@ Example
         }
       }
 
-   The query  uses the :pipeline:`$searchMeta` stage to search the 
-   ``year`` field in the ``movies`` collection for movies between  
-   the years ``1980`` to ``2000`` and retrieve metadata results for the 
-   query. The query specifies three buckets: 
+   The query uses the :pipeline:`$searchMeta` stage to search the 
+   ``year`` field in the ``movies`` collection for movies between 
+   the years ``1980`` and ``2000`` and retrieve metadata results for
+   the query. The query specifies three buckets: 
    
    - ``1980``, inclusive lower bound for this bucket
    - ``1990``, exclusive upper bound for the ``1980`` bucket and 
@@ -496,9 +534,9 @@ Date Facets
    To learn more about the differences between the updated and outdated
    field types for facet, see :ref:`fts-facet-type-differences`.
 
-Date facets allow you to narrow down search results based on a 
-date. When you facet on dates in arrays or embedded documents, |fts| returns facet counts
-based on the number of matching root documents.
+Date facets allow you to narrow down search results based on a date.
+When you facet on dates in arrays or embedded documents, |fts|
+returns facet counts based on the number of matching root documents.
 
 .. _fts-date-facet-syntax:
 
@@ -602,10 +640,10 @@ Example
         }
       }
 
-   The query  uses the :pipeline:`$searchMeta` stage to search the 
-   ``released`` field in the ``movies`` collection for movies between  
-   the years ``2000`` to ``2015`` and retrieve metadata results for the 
-   query string. The query specifies four buckets: 
+   The query uses the :pipeline:`$searchMeta` stage to search the 
+   ``released`` field in the ``movies`` collection for movies between 
+   the years ``2000`` and ``2015`` and retrieve metadata results for
+   the query. The query specifies four buckets: 
    
    - ``2000-01-01``, inclusive lower bound for this bucket
    - ``2005-01-01``, exclusive upper bound for the ``2000-01-01`` 
@@ -686,9 +724,10 @@ Example
 Comparing Field Types for Facet
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The updated |fts| field types provide improved functionality to support faceting
-compared to the outdated types (``stringFacet``, ``numberFacet``, ``dateFacet``). 
-The following table outlines the key differences in functionality:
+The updated |fts| field types provide improved functionality to
+support faceting compared to the outdated types (``stringFacet``,
+``numberFacet``, ``dateFacet``). The following table outlines the key
+differences in functionality:
 
 .. list-table::
    :header-rows: 1
@@ -703,17 +742,19 @@ The following table outlines the key differences in functionality:
      - :ref:`token <bson-data-types-token>`
      - :ref:`stringFacet <bson-data-types-string-facet>` (outdated)
      - **Normalizer Support**: The ``token`` type supports normalizers
-       that transform facet buckets. For example, with ``normalizer: lowercase``,
-       "ADIDAS" and "adidas" count towards the same bucket while
-       ``stringFacet`` treats them as separate buckets.
+       that transform facet buckets. For example, with
+       ``normalizer: lowercase``, "ADIDAS" and "adidas" count towards
+       the same bucket while ``stringFacet`` treats them as separate
+       buckets.
 
    * - Numeric
      - :ref:`number <bson-data-types-number>`
      - :ref:`numberFacet <bson-data-types-number-facet>` (outdated)
      - **Array Support**: The ``number`` type considers values within
-       arrays for facet buckets. For example, a document with an array value ``[0, 10]``
-       counts towards both buckets ``[1, 5]`` and ``[6, 10]`` while
-       ``numberFacet`` ignores array values completely.
+       arrays for facet buckets. For example, a document with an
+       array value ``[0, 10]`` counts towards both buckets ``[1, 5]``
+       and ``[6, 10]`` while ``numberFacet`` ignores array values
+       completely.
 
    * - Date
      - :ref:`date <bson-data-types-date>`
@@ -729,6 +770,270 @@ The following table outlines the key differences in functionality:
    defined for the same field, the outdated facet types take precedence.
    For example, if both ``token`` and ``stringFacet`` are defined for a
    field, the facet calculation uses the ``stringFacet`` mapping.
+
+.. _fts-facet-aggregation:
+
+Facet Aggregations
+------------------
+
+.. important::
+
+   Facet aggregations is in Preview. The feature and corresponding 
+   documentation might change at any time during the Preview period. To 
+   learn more, see `Preview Features 
+   <https://www.mongodb.com/docs/preview-features/>`__.
+
+To compute metrics for each facet bucket, add an ``aggregations``
+document to a facet definition. |fts| computes the metrics from the
+|fts| index, so it is much more efficient than running a 
+:pipeline:`$group` stage later in your pipeline.
+
+For each facet bucket, ``aggregations`` allows you to compute the
+following values:
+
+- sum
+- average
+- minimum
+- maximum 
+- first
+- last
+
+When using ``aggregations``, you must:
+
+- Index the field that you specify in the ``path`` for each metric as 
+  ``token``, ``number``, or ``date``.
+- Explicitly include the ``count`` metric if you want the bucket count.
+- Only specify ``aggregations`` at the leaf-level of nested facets. 
+
+  If you want to compute metrics for an intermediate grouping, specify 
+  that grouping as a separate top-level facet with ``aggregations`` and 
+  no nested facet.
+
+|fts| computes ``aggregations`` over the data in the |fts| index, which
+is :ref:`eventually consistent <index-perf>`.
+
+.. note:: Memory Requirements
+
+   Facet queries that specify ``aggregations`` or :ref:`nested facets
+   <fts-facet-nested>` increase the memory and disk that your |fts|
+   index requires beyond the requirements for other facet queries. To
+   learn more, see :ref:`Memory Requirements <fts-facet-memory>`.
+
+.. _fts-facet-aggregation-syntax:
+
+Syntax
+~~~~~~
+
+``aggregations`` has the following syntax:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 8-13
+
+   {
+     "$searchMeta": {
+       "facet": {
+         "facets": {
+           "<facet-name>": {
+             "type": "<facet-type>",
+             "path": "<field-path>",
+             "aggregations": {
+               "<aggregation-name>": {
+                 "type": "sum" | "min" | "max" | "avg" | "first" | "last",
+                 "path": "<field-path>"
+               }
+             }
+           }
+         }
+       }
+     }
+   }
+
+Each key in the ``aggregations`` document is an aggregation name that
+you specify. |fts| returns each aggregation in the bucket documents
+under the name that you specify.
+
+.. _fts-facet-aggregation-options:
+
+Options
+~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 15 65 10
+
+   * - Option
+     - Type
+     - Description
+     - Required?
+
+   * - ``path``
+     - string
+     - Field path to compute the metric over. This is required for all 
+       metric types except ``count``, which doesn't accept a ``path``. 
+       Every other metric type computes a value from a second field, so 
+       you must name that field. For example, to return the average
+       rating of the documents in a bucket, specify ``avg`` with a
+       ``path`` of ``rating``. The ``count`` metric counts the documents
+       in the bucket, so it doesn't need a second field.
+     - conditional
+
+   * - ``type``
+     - string
+     - Type of metric to compute. Value can be one of the following:
+
+       - ``count``
+       - ``sum``
+       - ``avg``
+       - ``min``
+       - ``max``
+       - ``first``
+       - ``last``
+
+       To learn more about each metric type, see
+       :ref:`fts-facet-metric-types`.
+     - yes
+
+.. _fts-facet-metric-types:
+
+Metric Types
+~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 25 65
+
+   * - Type
+     - Field Requirements
+     - Description
+
+   * - ``count``
+     - None
+     - Counts the documents in the bucket. Don't specify a ``path`` for
+       this metric type. If you omit ``aggregations`` from a facet
+       definition, |fts| returns a ``count`` metric for the bucket. If
+       you specify ``aggregations``, |fts| returns a ``count`` metric
+       only if you specify ``count`` in the ``aggregations`` document.
+
+   * - ``sum``
+     - :ref:`number <bson-data-types-number>`
+     - Adds the values of the specified field for the documents in the
+       bucket.
+
+   * - ``avg``
+     - :ref:`number <bson-data-types-number>`
+     - Returns the average of the values of the specified field for the
+       documents in the bucket. If no document in the bucket has a
+       value for the field, |fts| returns ``null``. 
+
+   * - ``min``
+     - None
+     - Returns the lowest value of the specified field for the
+       documents in the bucket.
+
+   * - ``max``
+     - None
+     - Returns the highest value of the specified field for the
+       documents in the bucket.
+
+   * - ``first``
+     - None
+     - Returns the value of the specified field for the first document
+       in the bucket, according to the order that the query
+       :ref:`sort <sort-ref>` option defines. If the query doesn't
+       specify a sort, the order is arbitrary. To learn how to
+       specify a sort, see :ref:`sort-ref`.
+
+   * - ``last``
+     - None
+     - Returns the value of the specified field for the last document
+       in the bucket, according to the order that the query
+       :ref:`sort <sort-ref>` option defines. If the query doesn't
+       specify a sort, the order is arbitrary. To learn how to
+       specify a sort, see :ref:`sort-ref`.
+
+.. important::
+
+   ``min`` and ``max`` support all field types, including ``token``.
+   When |fts| computes these metrics, it skips any document in which
+   the field resolves to an unsupported type. |fts| doesn't return an
+   error when it skips a document. To determine whether |fts| skipped
+   documents in a bucket, add a ``count`` metric to the same
+   ``aggregations`` document and compare it to the number of documents
+   that you expect.
+
+   For values that |fts| doesn't skip, ``min`` selects the smallest
+   value in the bucket and ``max`` selects the largest. If the values
+   aren't all of the same type, |fts| applies :ref:`BSON type
+   comparison order <bson-types-comparison-order>` to determine which
+   value is smallest or largest.
+
+.. _fts-facet-aggregation-arrays:
+
+Array Considerations
+````````````````````
+
+Each metric type handles a field that resolves to more than one value,
+such as an array, differently:
+
+- ``sum`` and ``avg`` skip the document.
+- ``min`` and ``max`` select the lowest and highest value in the array 
+  to use as a representative element for the document.
+- ``first`` and ``last`` return all of the values as an array.
+
+For ``first`` and ``last``, the returned array differs from the source
+document in the following ways:
+
+- The order of the values might differ. |fts| reads the values from the
+  index, which doesn't preserve the order of the source document. For
+  example, if a document contains ``["red", "blue", "green"]``, |fts|
+  might return ``["blue", "green", "red"]``.
+- |fts| returns only one instance of a duplicate value.
+- |fts| returns every value at the path, including values of a type
+  that you can't facet on. For example, if an array contains both
+  strings and a boolean, |fts| returns the boolean with the strings.
+
+To return the values exactly as the source document contains them,
+define :ref:`storedSource <fts-stored-source-definition>` for the field
+in your index definition and set :ref:`returnStoredSource
+<fts-return-stored-source-option>` to ``true`` in your query. 
+
+.. _fts-facet-nested:
+
+Nested Facets
+-------------
+
+.. important::
+
+   Nested facets is in Preview. The feature and corresponding 
+   documentation might change at any time during the Preview period. To 
+   learn more, see `Preview Features 
+   <https://www.mongodb.com/docs/preview-features/>`__.
+
+To group the documents in each bucket by additional fields, add a
+``facets`` document to an existing facet definition. Each nested facet 
+definition uses the same syntax as a top-level facet definition, so you 
+can nest facets to build a tree of groupings. |fts| returns the buckets 
+for a nested facet inside each bucket of its parent facet. You can
+nest facets without limit on the number of levels. However, the
+following restrictions apply:
+
+- You can specify ``aggregations`` only on a leaf facet in a nested
+  facet tree. A facet definition that specifies ``facets`` can't
+  also specify ``aggregations``. To compute metrics for an
+  intermediate grouping, specify that grouping as a separate
+  top-level facet with ``aggregations`` and no nested facet.
+- The total number of unique buckets that a query can return can't
+  exceed ``100000``. To calculate the buckets that one facet tree
+  produces, multiply the number of buckets at each level of its
+  nesting branch.
+  The number of buckets at a level is ``numBuckets`` for a string facet
+  or the number of buckets that ``boundaries`` and ``default`` define
+  for a number or date facet. For example, a facet that requests ``20``
+  buckets and contains a nested facet that requests ``20`` buckets
+  produces ``400`` unique buckets. Because each level multiplies this
+  total, requesting more buckets at each level reduces the number of
+  levels that you can nest.
 
 .. _fts-facet-results:
 
@@ -754,10 +1059,17 @@ array has the following fields:
      - Unique identifier that identifies this facet bucket. This value 
        matches the type of data that is being faceted on.
 
-   * - ``count`` 
-     - int 
-     - Count of documents in this facet bucket. To learn more about the 
+   * - ``count``
+     - int
+     - Count of documents in this facet bucket. To learn more about the
        ``count`` field, see :ref:`count-ref`.
+
+If the facet definition specifies :ref:`fts-facet-aggregation`, each
+bucket document contains the metrics that you name in the
+``aggregations`` document instead of the ``count`` field. If the facet
+definition specifies :ref:`nested facets <fts-facet-nested>`, each
+bucket document contains a ``facet`` field with the results for the
+nested facet.
 
 .. _fts-facet-multi-select:
 
@@ -786,11 +1098,11 @@ for all facets.
    - ``super_strict_30``
    - ``super_strict_60``
 
-   Each have their own result counts. When you search for the
+   Each bucket has its own result count. When you search for the
    ``moderate`` ``cancellation_policy``, the counts for the four other
    buckets go to ``0``. Additionally, the counts for buckets in the
-   ``room_type`` and ``accommodates`` facets reduce to the number of results
-   in each bucket that also have a ``flexible``
+   ``room_type`` and ``accommodates`` facets reduce to the number of
+   results in each bucket that also have a ``flexible``
    ``cancellation_policy``.
 
 In scenarios where you need more granular control of how facets affect
@@ -798,15 +1110,34 @@ search result counts, enable multi-select faceting with the
 ``doesNotAffect`` property in your faceted queries. These facets still
 filter results, but the query doesn't alter their result counts.
 
+You can specify ``doesNotAffect`` in the following operators:
+
+- :ref:`compound <compound-ref>`
+- :ref:`equals <equals-ref>`
+- :ref:`in <in-ref>`
+- :ref:`range <range-ref>`
+
+To exclude multiple facets, specify an array of facet names. Most use
+cases exclude only the facet that shares a path with the filter. For
+example, an ``equals`` filter on the ``rating`` field specifies the
+name of the facet that uses ``rating`` as its path.
+
+.. note::
+
+   The ``doesNotAffect`` option doesn't work with facets that specify
+   :ref:`aggregations <fts-facet-aggregation>`. To learn more, see
+   :ref:`fts-facet-limitations`.
+
 .. example::
    
-   Consider a query against the ``sample_airbnb.listings`` collection
-   for documents with a ``moderate`` ``cancellation_policy``. If you
-   specify a ``doesNotAffect`` value of ``cancellation_policy``, the
-   counts for buckets in the ``cancellation_policy`` facet don't
-   change, but the result counts for the buckets of other facets
-   reduce to the number of results in each bucket which also have a
-   ``moderate`` ``cancellation_policy``.
+   Consider a query against the ``sample_airbnb.listingsAndReviews``
+   collection for documents with a ``moderate``
+   ``cancellation_policy``. If you specify a ``doesNotAffect`` value
+   of ``cancellation_policy``, the counts for buckets in the
+   ``cancellation_policy`` facet don't change, but the result counts
+   for the buckets of other facets reduce to the number of results in
+   each bucket that also have a ``moderate``
+   ``cancellation_policy``.
 
    For more information, see the :ref:`Multi-Select Faceting example
    <fts-facet-egs>`.
@@ -819,18 +1150,18 @@ glance which selections narrow options more or less quickly.
 
 .. example::
 
-   Consider a query against the ``sample_airbnb.listings`` collection
-   for documents with an ``accommodates`` value of ``3``. If you
-   specify a ``doesNotAffect`` value of ``cancellation_policy``, the
-   result counts for the ``room_type`` buckets reduce to the number of
-   results in each bucket which also accommodate ``3`` people, but the
-   result counts for the buckets in ``cancellation_policy`` are
-   unaffected.
+   Consider a query against the ``sample_airbnb.listingsAndReviews``
+   collection for documents with an ``accommodates`` value of ``3``.
+   If you specify a ``doesNotAffect`` value of ``cancellation_policy``,
+   the result counts for the ``room_type`` buckets reduce to the
+   number of results in each bucket that also accommodate ``3``
+   people, but the result counts for the buckets in
+   ``cancellation_policy`` are unaffected.
 
    For more information, see the :ref:`Inter-Facet Filter Exclusion
    example <fts-facet-egs>`.
 
-.. _fts-facet-aggregation-variable: 
+.. _fts-facet-aggregation-variable:
 
 ``SEARCH_META`` Aggregation Variable
 ------------------------------------
@@ -842,10 +1173,26 @@ glance which selections narrow options more or less quickly.
 Limitations 
 -----------
 
-The following limitations apply: 
+The following limitations apply to :ref:`fts-facet-aggregation`:
 
-- You can run facet queries on a single field only. You can't run 
-  facet queries on groups of fields.
+- You can't use the following options with ``aggregations``: 
+
+  - :ref:`returnScope <fts-return-scope>`
+  - ``doesNotAffect`` for :ref:`fts-facet-multi-select`
+
+- You can't facet or compute aggregations on the following
+  :ref:`BSON types <bson-types>`:
+
+  - ``binData``
+  - ``bool``
+  - ``decimal``
+  - ``null``
+  - ``objectId``
+  - ``timestamp``
+
+  To compute metrics over one of these types, use a :ref:`view
+  <views-landing-page>` to convert the field to a supported type
+  before you index it.
 
 .. _fts-facet-egs:
 
@@ -860,7 +1207,9 @@ demonstrates how to run a :pipeline:`$search` query with ``facet`` and
 the ``$SEARCH_META`` aggregation variable to retrieve both the search
 and metadata results. The ``returnScope`` example demonstrates how to
 facet on nested fields in an array of objects dynamically indexed using
-the ``embeddedDocuments`` type.
+the ``embeddedDocuments`` type. The nested facet example demonstrates
+how to group results by a second field and compute metrics for each
+bucket.
 
 .. collapsible::
    :heading: Metadata Results Example
@@ -906,8 +1255,8 @@ the ``embeddedDocuments`` type.
       }
 
    The following query searches for movies released between January 
-   01, 2000 and January 31, 2015. It requests metadata on the 
-   ``directors`` and ``year`` field.
+   01, 2000 and January 31, 2015. It requests metadata on the
+   ``directors`` and ``year`` fields.
 
    .. io-code-block:: 
       :copyable: true
@@ -1028,7 +1377,8 @@ the ``embeddedDocuments`` type.
    the following sub-pipeline stages:
 
    - :pipeline:`$project` stage to exclude all fields in the 
-     documents except the ``title`` and ``released`` fields in the ``docs`` output field  
+     documents except the ``title`` and ``released`` fields in the
+     ``docs`` output field
 
    - :pipeline:`$limit` stage to do the following: 
   
@@ -1147,6 +1497,8 @@ the ``embeddedDocuments`` type.
 
    To learn more about these results, see :ref:`fts-facet-results`.
 
+.. _fts-facet-returnscope-eg:
+
 .. collapsible::
    :heading: returnScope Example
    :sub_heading: Search using facet and facet on child fields in embeddedDocuments.
@@ -1182,7 +1534,7 @@ the ``embeddedDocuments`` type.
 
    The following query:
 
-   - Uses the :ref:`text-ref` to search for funds raised in ``USD`` .
+   - Uses the :ref:`text-ref` to search for funds raised in ``USD``.
    - Uses :ref:`returnScope <fts-return-scope>` options to set the
      query context to the ``embeddedDocuments`` field named
      ``funding_rounds``. To use ``returnScope``, the query:
@@ -1254,6 +1606,8 @@ the ``embeddedDocuments`` type.
    In the preceding |fts| results, the facet counts are based on the
    embedded child documents and not the parents.
 
+.. _fts-multi-select-facet-eg:
+
 .. collapsible::
    :heading: Multi-Select Faceting Example
    :sub_heading: Search with doesNotAffect for more granular control over facet filtering.
@@ -1284,11 +1638,11 @@ the ``embeddedDocuments`` type.
 	}
       }
 
-   The following query uses the :pipeline:`$searchMeta` stage to perform the
-   following actions:
+   The following query uses the :pipeline:`$searchMeta` stage to
+   perform the following actions:
 
-   - Facet on the ``cancellation_policy``, ``roomType`` and ``accommodates``
-     fields.
+   - Facet on the ``cancellation_policy``, ``roomType``, and
+     ``accommodates`` fields.
 
      The ``cancellation_policy`` facet has the following buckets:
 
@@ -1412,18 +1766,20 @@ the ``embeddedDocuments`` type.
            }
          ]
 
-   Observe that the counts for buckets in ``cancellationFacet`` are
-   not reduced to zero despite the query filtering on a value of
-   ``moderate``.
+   The counts for buckets in ``cancellationFacet`` are not reduced to
+   zero even though the query filters on a value of ``moderate``.
+
+.. _fts-inter-facet-filter-exclusion-eg:
 
 .. collapsible::
    :heading: Inter-Facet Filter Exclusion Example 
    :sub_heading: Search with doesNotAffect on a facet other than the queried field.
    :expanded: false
 
-   The following index definition on the ``sample_airbnb.listingsAndReviews``
-   collection indexes the ``cancellation_policy``, ``room_type``, and
-   ``price`` fields, enabling faceted search on them.
+   The following index definition on the
+   ``sample_airbnb.listingsAndReviews`` collection indexes the
+   ``cancellation_policy``, ``room_type``, and ``price`` fields,
+   enabling faceted search on them.
 
    .. code-block:: json 
 
@@ -1446,13 +1802,13 @@ the ``embeddedDocuments`` type.
 
    The following query:
 
-   - Searches for listings that include the text ``new york city`` in
-     their ``description`` and which have a ``cancellation_policy`` of
-     ``moderate``.     
-   - Facets on the ``cancellation_policy``, ``roomType`` and ``accommodates``
-     fields.
+   - Search for listings that include the text ``new york city`` in
+     their ``description`` and that have a ``cancellation_policy`` of
+     ``moderate``.
+   - Facet on the ``cancellation_policy``, ``roomType``, and
+     ``accommodates`` fields.
 
-     Each of the ``cancellation_policy`` and ``roomType`` facets have
+     Each of the ``cancellation_policy`` and ``roomType`` facets has
      three buckets, corresponding to the three unique values of these
      fields across the collection. The query breaks the ``accommodates``
      facet into buckets for:
@@ -1464,7 +1820,7 @@ the ``embeddedDocuments`` type.
        inclusive lower bound for this bucket.
      - ``8``, exclusive upper bound for the ``4`` bucket
 
-   - Sets the ``doesNotAffect`` property in the ``equals`` operator of
+   - Set the ``doesNotAffect`` property in the ``equals`` operator of
      the ``compound.filter`` to ``accommodatesFacet``. This excludes
      the buckets within the ``accommodates`` facet from
      filtering. As a result, filtering on the ``moderate``
@@ -1559,6 +1915,365 @@ the ``embeddedDocuments`` type.
            }
          ]
 
+.. _fts-facet-aggregation-egs:
+
+.. collapsible::
+   :heading: Aggregation Example
+   :sub_heading: Search with facet aggregations.
+   :expanded: false
+
+   The following example uses an index named ``default`` on the
+   ``sample_airbnb.listingsAndReviews`` collection. The
+   ``property_type`` and ``amenities`` fields in the collection are
+   indexed as the :ref:`token <bson-data-types-token>` type and the
+   ``accommodates`` field is indexed as the :ref:`number
+   <bson-data-types-number>` type.
+
+   .. code-block:: json
+
+      {
+        "mappings": {
+          "dynamic": false,
+          "fields": {
+            "property_type": [
+              {
+                "type": "token"
+              }
+            ],
+            "amenities": [
+              {
+                "type": "token"
+              }
+            ],
+            "accommodates": [
+              {
+                "type": "number"
+              }
+            ]
+          }
+        }
+      }
+
+   The query uses the :pipeline:`$searchMeta` stage to find the
+   listings that offer at least one of the specified amenities and
+   group them by ``property_type``. For each property type, the query
+   computes the number of listings and the smallest and largest number
+   of guests that a listing accommodates.
+
+   .. io-code-block::
+      :copyable: true
+
+      .. input::
+         :language: json
+
+         db.listingsAndReviews.aggregate([
+           {
+             "$searchMeta": {
+               "facet": {
+                 "operator": {
+                   "in": {
+                     "path": "amenities",
+                     "value": ["Wifi", "Pets allowed", "Wheelchair accessible"]
+                   }
+                 },
+                 "facets": {
+                   "propertyTypeFacet": {
+                     "type": "string",
+                     "path": "property_type",
+                     "aggregations": {
+                       "listingCount": {
+                         "type": "count"
+                       },
+                       "minAccommodates": {
+                         "type": "min",
+                         "path": "accommodates"
+                       },
+                     "maxAccommodates": {
+                         "type": "max",
+                         "path": "accommodates"
+                       }
+                     }
+                   }
+                 }
+               }
+             }
+           }
+         ])
+
+    .. output::
+       :language: shell
+       :visible: false
+ 
+       [
+         {
+           count: { lowerBound: Long('5355') },
+           facet: {
+             propertyTypeFacet: {
+               buckets: [
+                 {
+                   _id: 'Apartment',
+                   listingCount: Long('3488'),
+                   minAccommodates: 1,
+                   maxAccommodates: 16
+                 },
+                 {
+                   _id: 'House',
+                   listingCount: Long('584'),
+                   minAccommodates: 1,
+                   maxAccommodates: 16
+                 },
+                 {
+                   _id: 'Condominium',
+                   listingCount: Long('386'),
+                   minAccommodates: 1,
+                   maxAccommodates: 12
+                 },
+                 {
+                   _id: 'Serviced apartment',
+                   listingCount: Long('182'),
+                   minAccommodates: 1,
+                   maxAccommodates: 16
+                 },
+                 {
+                   _id: 'Loft',
+                   listingCount: Long('139'),
+                   minAccommodates: 1,
+                   maxAccommodates: 16
+                 },
+                 {
+                   _id: 'Townhouse',
+                   listingCount: Long('104'),
+                   minAccommodates: 1,
+                   maxAccommodates: 16
+                 },
+                 {
+                   _id: 'Guest suite',
+                   listingCount: Long('79'),
+                   minAccommodates: 1,
+                   maxAccommodates: 8
+                 },
+                 {
+                   _id: 'Bed and breakfast',
+                   listingCount: Long('64'),
+                   minAccommodates: 1,
+                   maxAccommodates: 16
+                 },
+                 {
+                   _id: 'Boutique hotel',
+                   listingCount: Long('51'),
+                   minAccommodates: 1,
+                   maxAccommodates: 16
+                 },
+                 {
+                   _id: 'Guesthouse',
+                   listingCount: Long('49'),
+                   minAccommodates: 1,
+                   maxAccommodates: 8
+                 }
+               ]
+             }
+           }
+         }
+       ]
+
+.. _fts-nested-facet-eg:
+
+.. collapsible::
+   :heading: Nested Facet Example
+   :sub_heading: Search with nested facets.
+   :expanded: false
+
+   The following example uses an index named ``default`` on the
+   ``sample_airbnb.listingsAndReviews`` collection. The
+   ``property_type`` field in the collection is indexed as the
+   :ref:`token <bson-data-types-token>` type and the ``bedrooms`` and
+   ``accommodates`` fields are indexed as the :ref:`number
+   <bson-data-types-number>` type.
+
+   .. code-block:: json
+
+      {
+        "mappings": {
+          "dynamic": false,
+          "fields": {
+            "property_type": [
+              {
+                "type": "token"
+              }
+            ],
+            "bedrooms": [
+              {
+                "type": "number"
+              }
+            ],
+            "accommodates": [
+              {
+                "type": "number"
+              }
+            ]
+          }
+        }
+      }
+
+   The query groups the listings by ``property_type``, and then groups
+   the listings in each property type by number of bedrooms. The query
+   computes the number of listings and the largest number of guests
+   that a listing accommodates for each bedroom range.
+
+   .. io-code-block::
+      :copyable: true
+
+      .. input::
+         :language: json
+
+         db.listingsAndReviews.aggregate([
+           {
+             "$searchMeta": {
+               "facet": {
+                 "facets": {
+                   "propertyTypeFacet": {
+                     "type": "string",
+                     "path": "property_type",
+                     "facets": {
+                       "bedroomsFacet": {
+                         "type": "number",
+                         "path": "bedrooms",
+                         "boundaries": [0, 2, 4],
+                         "default": "other",
+                         "aggregations": {
+                           "listingCount": {
+                             "type": "count"
+                           },
+                           "maxAccommodates": {
+                             "type": "max",
+                             "path": "accommodates"
+                           }
+                         }
+                       }
+                     }
+                   }
+                 }
+               }
+             }
+           }
+         ])
+
+      .. output::
+         :language: shell
+         :visible: false
+
+         [
+           {
+             count: { lowerBound: Long('5555') },
+             facet: {
+               propertyTypeFacet: {
+                 buckets: [
+                   {
+                     _id: 'Apartment',
+                     bedroomsFacet: {
+                       buckets: [
+                         { _id: 0, listingCount: Long('2534'), maxAccommodates: 12 },
+                         { _id: 2, listingCount: Long('1006'), maxAccommodates: 13 },
+                         { _id: 'other', listingCount: Long('86'), maxAccommodates: 16 }
+                       ]
+                     }
+                   },
+                   {
+                     _id: 'House',
+                     bedroomsFacet: {
+                       buckets: [
+                         { _id: 0, listingCount: Long('312'), maxAccommodates: 16 },
+                         { _id: 2, listingCount: Long('183'), maxAccommodates: 16 },
+                         { _id: 'other', listingCount: Long('111'), maxAccommodates: 16 }
+                       ]
+                     }
+                   },
+                   {
+                     _id: 'Condominium',
+                     bedroomsFacet: {
+                       buckets: [
+                         { _id: 0, listingCount: Long('256'), maxAccommodates: 10 },
+                         { _id: 2, listingCount: Long('138'), maxAccommodates: 11 },
+                         { _id: 'other', listingCount: Long('5'), maxAccommodates: 12 }
+                       ]
+                     }
+                   },
+                   {
+                     _id: 'Serviced apartment',
+                     bedroomsFacet: {
+                       buckets: [
+                         { _id: 0, listingCount: Long('128'), maxAccommodates: 7 },
+                         { _id: 2, listingCount: Long('53'), maxAccommodates: 12 },
+                         { _id: 'other', listingCount: Long('4'), maxAccommodates: 16 }
+                       ]
+                     }
+                   },
+                   {
+                     _id: 'Loft',
+                     bedroomsFacet: {
+                       buckets: [
+                         { _id: 0, listingCount: Long('123'), maxAccommodates: 16 },
+                         { _id: 2, listingCount: Long('15'), maxAccommodates: 6 },
+                         { _id: 'other', listingCount: Long('4'), maxAccommodates: 16 }
+                       ]
+                     }
+                   },
+                   {
+                     _id: 'Townhouse',
+                     bedroomsFacet: {
+                       buckets: [
+                         { _id: 0, listingCount: Long('59'), maxAccommodates: 8 },
+                         { _id: 2, listingCount: Long('42'), maxAccommodates: 10 },
+                         { _id: 'other', listingCount: Long('7'), maxAccommodates: 16 }
+                       ]
+                     }
+                   },
+                   {
+                     _id: 'Guest suite',
+                     bedroomsFacet: {
+                       buckets: [
+                         { _id: 0, listingCount: Long('68'), maxAccommodates: 7 },
+                         { _id: 2, listingCount: Long('12'), maxAccommodates: 6 },
+                         { _id: 'other', listingCount: Long('1'), maxAccommodates: 8 }
+                       ]
+                     }
+                   },
+                   {
+                     _id: 'Bed and breakfast',
+                     bedroomsFacet: {
+                       buckets: [
+                         { _id: 0, listingCount: Long('61'), maxAccommodates: 12 },
+                         { _id: 2, listingCount: Long('6'), maxAccommodates: 9 },
+                         { _id: 'other', listingCount: Long('2'), maxAccommodates: 16 }
+                       ]
+                     }
+                   },
+                   {
+                     _id: 'Boutique hotel',
+                     bedroomsFacet: {
+                       buckets: [
+                         { _id: 0, listingCount: Long('47'), maxAccommodates: 16 },
+                         { _id: 2, listingCount: Long('5'), maxAccommodates: 6 },
+                         { _id: 'other', listingCount: Long('1'), maxAccommodates: 15 }
+                       ]
+                     }
+                   },
+                   {
+                     _id: 'Guesthouse',
+                     bedroomsFacet: {
+                       buckets: [
+                         { _id: 0, listingCount: Long('43'), maxAccommodates: 8 },
+                         { _id: 2, listingCount: Long('7'), maxAccommodates: 6 },
+                         { _id: 'other', listingCount: Long('0'), maxAccommodates: null }
+                       ]
+                     }
+                   }
+                 ]
+               }
+             }
+           }
+         ]
+
 Continue Learning 
 -----------------
 
@@ -1575,10 +2290,10 @@ Learn with Courses
 
 To learn more about using facets in |fts|, take Unit 9 of the
 :mdbu-course:`Intro To MongoDB Course on MongoDB University 
-</courses/mongodb-atlas-search>`. The 1.5 hour unit includes an overview 
-of |fts| and lessons on creating |fts| indexes, running 
-:pipeline:`$search` queries using compound operators,
-and grouping results using ``facet``.
+</courses/mongodb-atlas-search>`. The 1.5 hour unit includes an
+overview of |fts| and lessons on creating |fts| indexes, running 
+:pipeline:`$search` queries using compound operators, and grouping
+results using ``facet``.
 
 .. _facet-tutorial-video:
 
