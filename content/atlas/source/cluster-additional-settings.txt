@@ -747,35 +747,53 @@ The default transaction lifetime for {+clusters+} is 60 seconds.
 Enable or Disable Fast Disk Pre-Warming 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To enable fast :aws:`disk pre-warming </AWSEC2/latest/UserGuide/ebs-initialize.html>`
-for a {+cluster+}, toggle :guilabel:`Allow Fast Disk Pre-Warming` to :guilabel:`Yes`.
+To enable fast :aws:`disk pre-warming
+</AWSEC2/latest/UserGuide/ebs-initialize.html>` for a {+cluster+},
+toggle :guilabel:`Allow Fast Disk Pre-Warming` to :guilabel:`Yes`.
+|service| enables fast disk pre-warming by default.
 
 To disable fast disk pre-warming for a {+cluster+}, toggle
 :guilabel:`Allow Fast Disk Pre-Warming` to :guilabel:`No`.
 
 Due to the design of the underlying cloud provider infrastructure, disk
-pre-warming occurs whenever |service| needs to provision a new node in a
-{+cluster+}, such as when you add a new node to an existing region. Disk 
-pre-warming temporarily uses a :manual:`hidden secondary node
-</core/replica-set-hidden-member>`.
+pre-warming occurs whenever |service| performs a :ref:`{+cis+}
+<cloud-based-initial-sync>`, such as when |service| adds a new node to
+an existing region in your cluster. During a {+cis+}, |service|
+temporarily :ref:`hides <replica-set-hidden-members>` the new node to
+prevent it from serving reads until it is ready.
 
-Fast disk pre-warming is quicker than background disk warming. By
-default, |service| enables fast disk pre-warming for your deployment. When
-disk pre-warming is enabled, |service| hides the node and this prevents
-this node from running read operations.
+Fast disk pre-warming is quicker than background disk warming. When fast
+disk pre-warming is enabled, the new node consumes most of its
+provisioned |iops| while it pre-warms, so |service| keeps the node
+hidden until pre-warming completes. When fast disk pre-warming is
+disabled, |service| unhides the node as soon as the node is ready and
+warms the disk in the background, so the node becomes visible sooner.
+
+On ``M40+`` |aws| clusters that don't use :ref:`NVMe storage
+<nvme-storage>`, |service| temporarily provisions a higher-performance
+|aws| storage volume to support fast disk pre-warming during a {+cis+}.
+After disk pre-warming is complete, |service| modifies the volume back
+to the node's original storage settings. This modification uses one of
+the four EBS volume modifications that |aws| allows for each EBS volume
+in any 24-hour period. To learn more about the EBS volume modification
+limit, see :ref:`change-storage-capacity-aws`.
+
+Provisioning a higher-performance temporary storage volume can
+temporarily increase the storage costs of your cluster on your monthly
+|service| bill. To learn more, see :ref:`storage-capacity`.
 
 Consider the following recommendations:
 
-- If you have workloads that seek consistent query latency, enable
-  this setting.
+- If you have workloads that seek consistent query latency, enable this
+  setting.
 - If you have workloads that seek maximum availability guarantees over
   consistent query performance, and you require that the newly added or
   replaced node is immediately active and visible, disable this setting,
-  and :ref:`use a custom
-  connection string with tags <reduce-secondary-disk-warming-example>` for
-  the node that undergoes pre-warming, until the pre-warming process completes.
-  Using this connection string prevents reads on the node while most of
-  its |iops| are utilized by the pre-warming process.
+  and :ref:`use a custom connection string with tags
+  <reduce-secondary-disk-warming-example>` for the node that undergoes
+  pre-warming, until the pre-warming process completes. Using this
+  connection string prevents reads on the node while most of its |iops|
+  are utilized by the pre-warming process.
 
 .. _default-timeout-read-operations:
 
