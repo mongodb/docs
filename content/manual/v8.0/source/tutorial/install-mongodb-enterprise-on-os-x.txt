@@ -1,3 +1,7 @@
+.. meta::
+   :keywords: on-prem
+   :description: Install MongoDB Enterprise on macOS with the Homebrew package manager, then start, stop, and verify the `mongod` process as a macOS service or a background process.
+
 .. _install-enterprise-macos:
 
 ===================================
@@ -17,30 +21,21 @@ Install MongoDB Enterprise on macOS
 .. |distro-name| replace:: macOS
 .. |package-manager| replace:: ``brew``
 .. |executable-name| replace:: ``mongod``
-.. |mdb-download-link| replace:: `MongoDB Download Center <https://www.mongodb.com/try/download/enterprise>`__
+.. |mdb-download-link| replace:: `MongoDB Download Center <https://www.mongodb.com/try/download/enterprise/>`__
 
 Overview
 --------
 
-Use this tutorial to manually install MongoDB {+version+} |edition|
-Edition on macOS using a downloaded ``.tgz`` tarball.
+Use this tutorial to install MongoDB {+version+} |edition| Edition on
+macOS using the third-party `Homebrew <https://brew.sh>`__
+package manager.
 
-:products:`MongoDB Enterprise Edition</mongodb-enterprise-advanced>`
-is available on select platforms and contains support for features
-related to security and monitoring.
-
-MongoDB Version
-~~~~~~~~~~~~~~~
-
-.. include:: /includes/fact-install-past-mongodb.rst
+Installing MongoDB through Homebrew also installs the :dbtools:`MongoDB
+Database Tools </>`. See :ref:`brew-installs-dbtools` for more
+information.
 
 Considerations
 --------------
-
-MongoDB Shell, ``mongosh``
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/fact-have-to-install-mongosh-tgz.rst
 
 Platform Support
 ~~~~~~~~~~~~~~~~
@@ -52,37 +47,211 @@ Production Notes
 
 .. include:: /includes/fact-see-production-notes.rst
 
+Before You Begin
+----------------
+
+Ensure your system meets each of the following prerequisites. You only
+need to perform each prerequisite step once on your system. If you
+have already performed the prerequisite steps as part of an earlier
+MongoDB installation using Homebrew, you can skip to the
+:ref:`installation procedure <install-mdb-enterprise>`.
+
+Install Xcode Command-line Tools
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Homebrew requires the Xcode command-line tools from Apple's Xcode.
+
+To install the Xcode command-line tools, run the following command:
+
+.. code-block:: zsh
+
+   xcode-select --install
+
+Install Homebrew
+~~~~~~~~~~~~~~~~
+
+macOS does not include the Homebrew ``brew`` package by default.
+
+To install Homebrew, use the official `Homebrew
+<https://brew.sh/#install>`_ installation instructions.
+
+
 Install MongoDB Enterprise Edition
 ----------------------------------
 
-To manually install MongoDB |edition| Edition from the ``.tgz``, select the tab 
-that corresponds with your Mac's processor and complete the following steps:
+To install MongoDB |edition| Edition using Homebrew, complete the
+following steps:
 
-.. tabs:: 
-
-   .. tab:: Intel 
-      :tabid: intel
-      
-      .. include:: /includes/install-mongodb-enterprise-on-os-x.rst
-
-   .. tab:: Apple Silicon
-      :tabid: apple
-
-      .. include:: /includes/install-mongodb-enterprise-on-os-x-apple-silicon.rst
+.. include:: /includes/deploy/enterprise-brew.rst
 
 Run MongoDB Enterprise Edition
 ------------------------------
 
-ulimit Considerations
-   .. include:: /includes/fact-installation-ulimit.rst
-
-Procedure
-~~~~~~~~~
-
 Follow these steps to run MongoDB |edition| Edition. These instructions
 assume that you are using the default settings.
 
-.. include:: /includes/steps-run-mongodb-enterprise-on-osx.rst
+You can run MongoDB as a macOS service using ``brew``, or you can run
+MongoDB manually as a background process.
+
+.. note::
+
+   .. include:: /includes/installation/ulimit-macos-brew-note.rst
+
+   See :ref:`Ulimit Settings <ulimit-settings>` for more information.
+
+- To run MongoDB (that is, the :binary:`~bin.mongod` process) **as a
+  macOS service**, run:
+
+  .. code-block:: bash
+
+     brew services start mongodb-enterprise@{+version+}
+
+  To stop a :binary:`~bin.mongod` running as a macOS service, use the
+  following command as needed:
+
+  .. code-block:: bash
+
+     brew services stop mongodb-enterprise@{+version+}
+
+- To run :binary:`~bin.mongod` **manually as a background process**
+  using a config file:
+
+  - If your deployment does not use :ref:`TLS connections
+    <configure-mongod-mongos-for-tls-ssl>`, use the ``--fork`` option:
+
+    - For macOS running on Intel processors, run:
+
+      .. code-block:: bash
+
+         mongod --config /usr/local/etc/mongod.conf --fork
+
+    - For macOS running on `Apple Silicon processors
+      <https://support.apple.com/en-us/HT211814>`__, run:
+
+      .. code-block:: bash
+
+         mongod --config /opt/homebrew/etc/mongod.conf --fork
+
+  - If your deployment uses :ref:`TLS connections
+    <configure-mongod-mongos-for-tls-ssl>`, use `GNU Screen
+    <https://www.gnu.org/software/screen/>`_.
+
+    - For macOS running on Intel processors:
+
+      .. procedure::
+         :style: normal 
+
+         .. step:: Start your screen.
+
+            .. code-block:: bash
+
+               screen -S <name-of-screen>
+
+         .. step:: Start ``mongod``.
+
+            .. code-block:: bash
+
+               mongod --config /usr/local/etc/mongod.conf 
+
+         .. step:: Detach from screen.
+
+            Detach from your screen by typing ``Ctrl+a``, then
+            clicking ``d``.
+
+         .. step:: View all active screens.
+
+            .. code-block:: bash
+
+               screen -ls
+
+    - For macOS running on `Apple Silicon processors
+      <https://support.apple.com/en-us/HT211814>`__:
+
+      .. procedure::
+         :style: normal 
+
+         .. step:: Start your screen.
+
+            .. code-block:: bash
+
+               screen -S <name-of-screen>
+
+         .. step:: Start ``mongod``.
+
+            .. code-block:: bash
+
+               mongod --config /opt/homebrew/etc/mongod.conf
+
+         .. step:: Detach from screen.
+
+            Detach from your screen by typing ``Ctrl+a``, then
+            clicking ``d``.
+
+         .. step:: View all active screens.
+
+            .. code-block:: bash
+
+               screen -ls
+
+- To run ``mongod`` **manually as a background process** specifying 
+  :option:`--dbpath <mongod --dbpath>` and :option:`--logpath
+  <mongod --logpath>` on the command line, run:
+
+  .. code-block:: bash
+
+     mongod --dbpath /path/to/dbdir --logpath /path/to/mongodb.log --fork
+
+  To stop a :binary:`~bin.mongod` running as a background process,
+  connect to the :binary:`~bin.mongod` using :mongosh:`mongosh </>`,
+  and issue the :dbcommand:`shutdown` command as needed.
+
+Both methods use the :file:`mongod.conf` file created
+during the install. You can add your own MongoDB
+:doc:`configuration options </reference/configuration-options>` to
+this file as well.
+
+.. note:: macOS Prevents ``mongod`` From Opening
+
+   .. include:: /includes/extracts/macos-prevent-launch-mongod.rst
+
+To verify that MongoDB is running, perform one of the following:
+
+- If you started MongoDB **as a macOS service**:
+
+  .. code-block:: bash
+
+     brew services list
+
+  You should see the service ``mongodb-enterprise`` listed as
+  ``started``.
+
+- If you started MongoDB **manually as a background process**:
+
+  .. code-block:: bash
+
+     ps aux | grep -v grep | grep mongod
+
+  You should see your ``mongod`` process in the output.
+
+You can also view the log file to see the current status of your
+``mongod`` process: ``/usr/local/var/log/mongodb/mongo.log``.
+
+Connect and Use MongoDB
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To begin using MongoDB, connect :binary:`~bin.mongosh` to the
+running instance. From a new terminal, issue the following:
+
+.. code-block:: bash
+
+   mongosh
+
+For information on CRUD (Create, Read, Update, Delete) operations, see:
+
+- :ref:`write-op-insert`
+- :ref:`read-operations-queries`
+- :ref:`write-op-update`
+- :ref:`write-op-delete`
 
 Additional Information
 ----------------------
@@ -91,3 +260,59 @@ Localhost Binding by Default
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/fact-installation-bind-ip-default-in-config.rst
+
+.. toctree::
+   :hidden:
+
+   Install using .tgz Tarball </tutorial/install-mongodb-enterprise-on-os-x-tarball>
+
+Included Binaries
+~~~~~~~~~~~~~~~~~
+
+The installation includes the following binaries:
+
+- The :binary:`~bin.mongod` server
+- The :binary:`~bin.mongos` sharded cluster query router
+- The MongoDB Shell, :binary:`~bin.mongosh`
+
+.. note::
+
+   The installation also includes the :dbtools:`MongoDB Database Tools
+   </>`. See :ref:`brew-installs-dbtools` for more information.
+
+File Paths
+~~~~~~~~~~
+
+In addition, the installation creates the following files and
+directories at the location specified below, depending on your Apple
+hardware:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 30 30
+
+   * -
+     - Intel Processor
+     - Apple Silicon Processor
+
+   * - :doc:`configuration file </reference/configuration-options>`
+     - ``/usr/local/etc/mongod.conf``
+     - ``/opt/homebrew/etc/mongod.conf``
+
+   * - :setting:`log directory <systemLog.path>`
+     - ``/usr/local/var/log/mongodb``
+     - ``/opt/homebrew/var/log/mongodb``
+
+   * - :setting:`data directory <storage.dbPath>`
+     - ``/usr/local/var/mongodb``
+     - ``/opt/homebrew/var/mongodb``
+
+See `Apple's documentation <https://support.apple.com/en-us/HT211814>`__
+for the current list of Apple hardware using the Apple Silicon processor. You 
+can also run the following command to check where ``brew`` has installed
+these files and directories:
+
+.. code-block:: bash
+
+   brew --prefix
+
