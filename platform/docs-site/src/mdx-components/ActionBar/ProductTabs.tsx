@@ -28,6 +28,10 @@ const labelStyling = css`
   padding-top: 5px;
 `;
 
+const forceNoWrapStyling = css`
+  white-space: nowrap;
+`;
+
 const productTabsStyling = css`
   flex-shrink: 0;
   align-self: flex-end;
@@ -93,28 +97,20 @@ export const ProductTabs = ({ slug }: { slug: string }) => {
       ? 2
       : 0;
 
-  if (isOfflineBuild) return (
-    <Body className={cx(mobileTitleStyling)}>Documentation</Body>
-  );
+  if (isOfflineBuild) return <Body className={cx(mobileTitleStyling, forceNoWrapStyling)}>Documentation</Body>;
 
   if (isTabletOrMobile) {
     return (
       <div className={cx(mobileListStyling)}>
-        <Body className={cx(mobileTitleStyling)}>Documentation</Body>
+        <Body className={cx(mobileTitleStyling, forceNoWrapStyling)}>Documentation</Body>
         <hr className={cx(mobileDividerStyling)} />
         {NAV_TABS.map(({ label, path }, index) => {
           const isActive = index === activeIndex;
           return (
             <div key={label}>
               <div className={cx(mobileItemStyling)} onClick={() => navigateToDocsPath(router, path)}>
-                {isActive ? (
-                  <Icon glyph="Checkmark" color={palette.blue.base} />
-                ) : (
-                  <div style={{ width: 16 }} />
-                )}
-                <Body weight={isActive ? 'semiBold' : 'regular'}>
-                  {label}
-                </Body>
+                {isActive ? <Icon glyph="Checkmark" color={palette.blue.base} /> : <div style={{ width: 16 }} />}
+                <Body weight={isActive ? 'semiBold' : 'regular'}>{label}</Body>
               </div>
               {index < NAV_TABS.length - 1 && <hr className={cx(mobileDividerStyling)} />}
             </div>
@@ -126,7 +122,7 @@ export const ProductTabs = ({ slug }: { slug: string }) => {
 
   return (
     <div className={cx(containerStyling)}>
-      <Body className={cx(labelStyling)}>Documentation</Body>
+      <Body className={cx(labelStyling, forceNoWrapStyling)}>Documentation</Body>
       <LeafyTabs
         className={cx(productTabsStyling)}
         selected={activeIndex}
