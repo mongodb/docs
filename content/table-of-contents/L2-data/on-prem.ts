@@ -192,6 +192,14 @@ const tocData: TocItem[] = [
             label: 'Install on macOS',
             contentSite: 'docs',
             url: '/docs/:version/tutorial/install-mongodb-enterprise-on-os-x',
+            collapsible: true,
+            items: [
+              {
+                label: 'Install using .tgz Tarball',
+                contentSite: 'docs',
+                url: '/docs/:version/tutorial/install-mongodb-enterprise-on-os-x-tarball',
+              },
+            ],
           },
           {
             label: 'Install on Windows',
