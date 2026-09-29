@@ -36,27 +36,31 @@
 
    * - auth.mechanism
      - string
-     - Conditional
+     - Optional
      - Authentication method that |onprem| uses to connect to
-       HashiCorp Vault. Required when you update the ``auth`` object.
-       |onprem| accepts the following values:
+       HashiCorp Vault. Provide this field only when you change the
+       authentication method. If you omit this field, |onprem| keeps
+       the stored mechanism. |onprem| accepts the following values:
 
        - ``TOKEN``
        - ``JWT``
 
    * - auth.secret
      - string
-     - Optional
+     - Conditional
      - Credential that |onprem| uses to authenticate to HashiCorp
-       Vault.
+       Vault. Required when you change ``auth.mechanism``, because
+       |onprem| cannot reuse a credential across authentication
+       methods.
 
        When ``auth.mechanism`` is ``TOKEN``, set this value to the
        Vault token. When ``auth.mechanism`` is ``JWT``, set this value
        to the |pem|-formatted RSA private key that signs the |jwt|.
 
-       To keep the stored credential, omit this field or send the
-       redacted value that |onprem| returns. |onprem| encrypts this
-       value at rest and redacts it in API responses.
+       When you don't change ``auth.mechanism``, omit this field or
+       send the redacted value that |onprem| returns to keep the
+       stored credential. |onprem| encrypts this value at rest and
+       redacts it in API responses.
 
    * - auth.jwtClaims
      - object
