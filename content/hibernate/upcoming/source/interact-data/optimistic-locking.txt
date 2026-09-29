@@ -1,0 +1,245 @@
+.. _hibernate-optimistic-locking:
+
+===================================================
+Prevent Conflicting Updates with Optimistic Locking
+===================================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, concurrency, version, conflict
+   :description: Learn how to use optimistic locking in the MongoDB Extension for Hibernate ORM to detect concurrent modifications, handle version conflicts, and retry failed writes.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+extension-long+} to
+perform **optimistic locking**. Optimistic locking allows concurrent
+sessions to read the same entity, then detects a conflict when more
+than one session tries to write to that entity.
+
+When you turn on optimistic locking, the {+extension-short+} generates
+a MongoDB Query Language (MQL) statement for each update or delete
+operation. The statement filters on the version value that the session read,
+in addition to the primary key. If another session modified the
+document first, the filter matches no document, and the {+orm+} throws
+an ``OptimisticLockException``.
+
+The {+extension-short+} does not support pessimistic locking.
+Pessimistic locking locks an entity when a session reads it, which
+blocks other sessions from modifying the entity until the session
+releases the lock.
+
+.. _hibernate-optimistic-locking-version:
+
+Add a Version Field
+-------------------
+
+To turn on optimistic locking for an entity, add a field annotated
+with ``@Version`` to the entity class.
+
+Define a getter for the field if your application reads the version
+value, but don't define a setter. The {+orm+} assigns the value
+itself, and setting the field in your application code might cause the
+{+extension-short+} to generate a filter that doesn't match the stored
+document.
+
+The examples in this guide use the following ``Product`` entity, which
+maps to the ``products`` collection. Don't initialize the ``version``
+field, because the {+orm+} assigns its initial value when you first
+persist the entity:
+
+.. literalinclude:: /includes/interact-data/Locking.java
+   :start-after: start-entity
+   :end-before: end-entity
+   :language: java
+   :emphasize-lines: 10-11
+   :dedent:
+
+The {+extension-short+} supports the following types for a
+``@Version`` field:
+
+- ``int`` and ``Integer``
+- ``long`` and ``Long``
+- ``Instant``
+
+A numeric version field starts at ``0`` and increments by ``1`` on
+each write. An ``Instant`` version field stores the time of the write.
+
+.. _hibernate-optimistic-locking-update:
+
+Update a Versioned Entity
+-------------------------
+
+When you persist a new entity, the {+orm+} sets the version field to
+``0``. When you then modify the entity and commit the transaction, the
+{+extension-short+} generates an update statement that filters on both
+the primary key and the version value that the session read. The
+statement also sets the new version value.
+
+The following example inserts a new ``Product`` entity, then updates
+its ``quantity`` field to increment the version:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/interact-data/Locking.java
+      :start-after: start-insert-and-update
+      :end-before: end-insert-and-update
+      :language: java
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Version after insert: 0
+      Version after update: 1
+
+The update in the preceding example generates a statement similar to
+the following MQL:
+
+.. code-block:: json
+
+   {
+     "update": "products",
+     "updates": [
+       {
+         "q": { "$and": [ { "_id": { "$eq": "..." } }, { "version": { "$eq": 0 } } ] },
+         "u": { "$set": { "quantity": 75, "version": 1 } }
+       }
+     ]
+   }
+
+Delete operations use the same filter. Because the version value is
+part of the filter, a write succeeds only if the document still holds
+the version that the session read.
+
+.. _hibernate-optimistic-locking-conflict:
+
+Handle a Version Conflict
+-------------------------
+
+If another session modifies a document after your session reads it,
+the version value in your filter no longer matches the stored value,
+and the {+orm+} throws an ``OptimisticLockException``. To recover, catch 
+the exception and either reload the entity and retry the write, or return 
+an error that notifies your application's user of the conflict.
+
+The following example uses two sessions to read the same document. The
+second session commits first, so the commit in the first session
+throws an ``OptimisticLockException``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/interact-data/Locking.java
+      :start-after: start-conflict
+      :end-before: end-conflict
+      :language: java
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Update failed: Another session modified this document
+
+.. note::
+
+   Depending on how your application loads the entity, the {+orm+}
+   might throw a ``StaleObjectStateException`` instead. This exception
+   is the {+orm+} native equivalent of ``OptimisticLockException``.
+
+.. _hibernate-optimistic-locking-increment:
+
+Increment a Version Without Changing Data
+-----------------------------------------
+
+To increment the version of an entity that your session did not
+modify, pass the entity and the ``LockMode.OPTIMISTIC_FORCE_INCREMENT``
+lock mode to the ``lock()`` method on your ``Session``. Use this lock
+mode when a change to related data must invalidate other sessions'
+copies of the entity.
+
+The following example increments the version of a ``Product``
+document:
+
+.. literalinclude:: /includes/interact-data/Locking.java
+   :start-after: start-force-increment
+   :end-before: end-force-increment
+   :language: java
+   :emphasize-lines: 9
+   :dedent:
+
+If another session incremented the version first, the commit throws an
+``OptimisticLockException``.
+
+.. _hibernate-optimistic-locking-versionless:
+
+Lock Without a Version Field
+----------------------------
+
+You can also detect conflicts without adding a version field. To do
+so, annotate your entity with ``@OptimisticLocking`` and specify one
+of the following types:
+
+- ``OptimisticLockType.DIRTY``: The {+extension-short+} filters on the
+  previous values of only the fields that the session modified.
+- ``OptimisticLockType.ALL``: The {+extension-short+} filters on the
+  previous values of all the entity's fields.
+
+Both types require the ``@DynamicUpdate`` annotation.
+
+The following example uses the ``DIRTY`` type:
+
+.. literalinclude:: /includes/interact-data/Locking.java
+   :start-after: start-versionless
+   :end-before: end-versionless
+   :language: java
+   :emphasize-lines: 3-4
+   :dedent:
+
+To exclude a field from optimistic locking in a versioned entity,
+annotate the field with ``@OptimisticLock(excluded = true)``. Changes
+to an excluded field do not increment the version:
+
+.. literalinclude:: /includes/interact-data/Locking.java
+   :start-after: start-excluded-field
+   :end-before: end-excluded-field
+   :language: java
+   :emphasize-lines: 8-9
+   :dedent:
+
+.. _hibernate-optimistic-locking-limitations:
+
+Limitations
+-----------
+
+Optimistic locking has the following limitations:
+
+- The {+extension-short+} does not support pessimistic locking. To learn 
+  more about locking support, see the
+  :ref:`hibernate-mongo-transactions-concurrency-support` section of
+  the Feature Compatibility page.
+
+- You cannot pass an entity that has a ``@Version`` field to the
+  ``StatelessSession.upsert()`` method. The {+extension-short+} throws
+  an ``UnsupportedFeatureException`` for this operation.
+
+Additional Information
+----------------------
+
+To learn more about optimistic locking, see `Optimistic Locking
+<{+user-guide+}#locking-optimistic>`__ in the {+orm+} documentation.
+
+To learn more about running write operations in a transaction, see the
+:ref:`hibernate-transactions` guide.

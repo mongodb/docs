@@ -110,6 +110,11 @@ export const toc: L1TocItem[] = [
                 contentSite: 'hibernate',
                 url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/transactions',
               },
+              {
+                label: 'Optimistic Locking',
+                contentSite: 'hibernate',
+                url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/optimistic-locking',
+              },
             ],
           },
           {
