@@ -446,6 +446,253 @@ BSON distinguishes between ``NULL`` and ``MISSING``.
 In the case of ``NULL`` there is a field with the literal value ``NULL``,
 whereas in the case of ``MISSING``, the field is gone.
 
+.. _asql-array-functions:
+
+Array Functions
+---------------
+
+Starting in {+asql+} 2.0.0, array functions let you operate on array
+values natively in your queries. The ``MAP``, ``FILTER``, and
+``REDUCE`` functions correspond to the :manual:`$map
+</reference/operator/aggregation/map>`, :manual:`$filter
+</reference/operator/aggregation/filter>`, and :manual:`$reduce
+</reference/operator/aggregation/reduce>` aggregation pipeline
+operators. {+asql+} also supports utility functions that cover
+common uses of these three functions.
+
+Like the corresponding aggregation pipeline operators, these
+functions use the ``"this"`` variable to refer to the array element
+that they process. ``REDUCE`` also uses the ``"value"`` variable to
+refer to the accumulated value. {+asql+} doesn't support custom
+names for these variables. Use ``"this"`` and ``"value"``.
+
+MAP
+~~~
+
+``MAP(array, function)`` applies a function to each element in an
+array and returns the transformed array. ``MAP`` takes the following
+arguments:
+
+- Array expression
+- Expression that specifies how to transform each element of the
+  array
+
+To refer to the element that ``MAP`` processes, the second argument
+must use the ``"this"`` variable. If the array is empty, ``MAP``
+returns an empty array.
+
+``MAP`` can return an ``ARRAY`` or ``NULL``. The following
+requirements apply to the arguments:
+
+- The first argument must statically have type ``ARRAY`` or
+  ``NULL``, and might evaluate to ``MISSING``. If the first argument
+  is ``NULL`` or ``MISSING``, ``MAP`` returns ``NULL``. The type of
+  the array elements must satisfy the uses of ``"this"`` in the
+  second argument.
+
+- The second argument can be any expression that is statically
+  semantically valid. The type that the second argument returns is
+  the type of the elements in the array that ``MAP`` returns.
+
+The following query multiplies each element of the array by ``2``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: sql
+
+      SELECT MAP([1, 2, 3], "this" * 2) AS doubled_values
+
+   .. output::
+      :language: none
+
+      { '': { 'doubled_values': [2, 4, 6] } }
+
+FILTER
+~~~~~~
+
+``FILTER(array, function)`` applies a condition to each element in
+an array and returns an array that contains only the elements for
+which the condition evaluates to ``true``, in their original order.
+``FILTER`` takes the following arguments:
+
+- Array expression
+- Expression that specifies the condition to test against each
+  element of the array
+
+To refer to the element that ``FILTER`` processes, the second
+argument must use the ``"this"`` variable. If the array is empty,
+``FILTER`` returns an empty array.
+
+``FILTER`` can return an ``ARRAY`` or ``NULL``. Because ``FILTER``
+doesn't transform elements, the elements in the array that
+``FILTER`` returns have the same type as the elements in the input
+array. The following requirements apply to the arguments:
+
+- The first argument must statically have type ``ARRAY`` or
+  ``NULL``, and might evaluate to ``MISSING``. If the first argument
+  is ``NULL`` or ``MISSING``, ``FILTER`` returns ``NULL``. The type
+  of the array elements must satisfy the uses of ``"this"`` in the
+  second argument.
+
+- The second argument can be any expression that is statically
+  semantically valid and that returns ``BOOL`` or ``NULL``.
+
+The following query retains only the odd-valued elements of the
+array:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: sql
+
+      SELECT FILTER([1, 2, 3], MOD("this", 2) = 1) AS odd_values
+
+   .. output::
+      :language: none
+
+      { '': { 'odd_values': [1, 3] } }
+
+REDUCE
+~~~~~~
+
+``REDUCE(array, initialValue, function)`` applies a function to each
+element in an array and combines the elements into a single value,
+starting with an initial value. ``REDUCE`` takes the following
+arguments:
+
+- Array expression
+- Initial value expression
+- Expression that specifies how to combine each element of the
+  array with the accumulated result of the previous elements
+
+The accumulated result starts as the initial value. To refer to the
+element that ``REDUCE`` processes, the third argument must use the
+``"this"`` variable. To refer to the accumulated value, the third
+argument must use the ``"value"`` variable. If the array is empty,
+``REDUCE`` returns the initial value.
+
+``REDUCE`` returns a value of the same type that the third argument
+returns, a value of the type of the initial value, or both. This
+can be any {+asql+} type, including ``NULL``. The following
+requirements apply to the arguments:
+
+- The first argument must statically have type ``ARRAY`` or
+  ``NULL``, and might evaluate to ``MISSING``. If the first argument
+  is ``NULL`` or ``MISSING``, ``REDUCE`` returns ``NULL``. The type
+  of the array elements must satisfy the uses of ``"this"`` in the
+  third argument.
+
+- The second argument must satisfy the uses of ``"value"`` in the
+  third argument.
+
+- The third argument can be any expression that is statically
+  semantically valid and that satisfies its own uses of ``"value"``.
+  The type that the third argument returns must be the same as, a
+  superset of, or a subset of the second argument. The two types can
+  differ if {+asql+} detects no schema conflicts between the uses of
+  ``"value"`` in the third argument and the type of the second
+  argument.
+
+The following query adds the elements of the array together,
+starting with ``0``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: sql
+
+      SELECT REDUCE([1, 2, 3], 0, "value" + "this") AS summed_value
+
+   .. output::
+      :language: none
+
+      { '': { 'summed_value': 6 } }
+
+Named Function Arguments
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Instead of an expression, you can pass a named function as the final
+argument to ``MAP``, ``FILTER``, and ``REDUCE``. Named functions are
+shorthand for expressions that use a single built-in function or
+operator. For example, instead of ``MAP("array", LOWER("this"))``,
+you can write ``MAP("array", LOWER)``. Instead of ``REDUCE("array",
+0, "value" + "this")``, you can write ``REDUCE("array", 0, +)``.
+
+You can use a named function argument with any unary or binary
+operator and with any scalar function that accepts one or two
+arguments.
+
+Additional Array Functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+asql+} supports the following array functions, which are syntactic
+aliases for common uses of ``MAP``, ``FILTER``, and ``REDUCE``:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 40 40
+
+   * - Name
+     - Description
+     - Example
+
+   * - ``ARRAY_CAST``
+     - Casts all elements of the array to the target type.
+     - ``ARRAY_CAST(['1', '2', '3'], INT)`` returns ``[1, 2, 3]``.
+
+   * - ``ARRAY_EXTRACT``
+     - Extracts the value at a field path from each element of the
+       array.
+     - ``ARRAY_EXTRACT([{'a': 1, 'b': 10}, {'a': 2, 'b': '20'}], a)``
+       returns ``[1, 2]``.
+
+   * - ``ARRAY_COMPACT``
+     - Removes ``NULL`` and ``MISSING`` values from the array.
+     - ``ARRAY_COMPACT([1, NULL, 2, NULL, 3])`` returns
+       ``[1, 2, 3]``.
+
+   * - ``ARRAY_REMOVE``
+     - Removes all instances of a value from the array.
+     - ``ARRAY_REMOVE([1, 2, 2, 3, 2], 2)`` returns ``[1, 3]``.
+
+   * - ``ARRAY_COUNT_IF``
+     - Returns the number of elements in the array that match a
+       predicate. The predicate refers to the element that it tests
+       with the ``"this"`` variable.
+     - ``ARRAY_COUNT_IF([1, 2, 3, 4, 5], "this" > 3)`` returns
+       ``2``.
+
+   * - ``ARRAY_SUM``
+     - Returns the sum of an array of numbers.
+     - ``ARRAY_SUM([1, 2, 3])`` returns ``6``.
+
+   * - ``ARRAY_PRODUCT``
+     - Returns the product of an array of numbers.
+     - ``ARRAY_PRODUCT([4, 5, 6])`` returns ``120``.
+
+   * - ``ARRAY_AVG``
+     - Returns the average of an array of numbers.
+     - ``ARRAY_AVG([1, 2, 3])`` returns ``2``.
+
+   * - ``ARRAY_ALL``
+     - Returns the conjunction of an array of booleans.
+     - ``ARRAY_ALL([true, false, true])`` returns ``false``.
+
+   * - ``ARRAY_ANY``
+     - Returns the disjunction of an array of booleans.
+     - ``ARRAY_ANY([false, false, true])`` returns ``true``.
+
+   * - ``ARRAY_JOIN``
+     - Returns the concatenation of an array of strings. The
+       separator argument is optional and defaults to an empty
+       string.
+     - ``ARRAY_JOIN(['a', 'b', 'c'])`` returns ``'abc'``.
+       ``ARRAY_JOIN(['a', 'b', 'c'], '-')`` returns ``'a-b-c'``.
+
 Comments
 --------
 
