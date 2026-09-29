@@ -8,14 +8,13 @@
 #  ${CUSTOM_DOMAIN}
 #  ${DNS_ZONE}
 
-export S3_OPLOG_BUCKET_NAME=s3-oplog-store
-export S3_SNAPSHOT_BUCKET_NAME=s3-snapshot-store
-
-# If you use your own S3 storage - set the values accordingly.
-# By default we install Minio to handle S3 storage and here are set the default credentials.
-export S3_ENDPOINT="minio.tenant-tiny.svc.cluster.local"
-export S3_ACCESS_KEY="console"
-export S3_SECRET_KEY="console123"
+# Defaults for the RustFS setup module and the MongoDBOpsManager backup stores.
+# If you use your own S3 storage - override any of these.
+export S3_OPLOG_BUCKET_NAME="${S3_OPLOG_BUCKET_NAME:-s3-oplog-store}"
+export S3_SNAPSHOT_BUCKET_NAME="${S3_SNAPSHOT_BUCKET_NAME:-s3-snapshot-store}"
+export S3_ENDPOINT="${S3_ENDPOINT:-rustfs.rustfs.svc.cluster.local}"
+export S3_ACCESS_KEY="${S3_ACCESS_KEY:-rustfsadmin}"
+export S3_SECRET_KEY="${S3_SECRET_KEY:-rustfsadmin123}"
 
 export OPS_MANAGER_VERSION="8.0.5"
 export APPDB_VERSION="8.0.5-ent"

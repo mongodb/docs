@@ -2,6 +2,6 @@ kubectl --context "${K8S_CLUSTER_0_CONTEXT_NAME}" -n "${OM_NAMESPACE}" create se
   --from-literal=accessKey="${S3_ACCESS_KEY}" \
   --from-literal=secretKey="${S3_SECRET_KEY}"
 
-# minio TLS secrets are signed with the default k8s root CA
+# RustFS serves a cert-manager certificate; OM must trust the CA that signed it.
 kubectl --context "${K8S_CLUSTER_0_CONTEXT_NAME}" -n "${OM_NAMESPACE}" create secret generic s3-ca-cert \
-  --from-literal=ca.crt="$(kubectl --context "${K8S_CLUSTER_0_CONTEXT_NAME}" -n kube-system get configmap kube-root-ca.crt -o jsonpath="{.data.ca\.crt}")"
+  --from-literal=ca.crt="$(kubectl --context "${K8S_CLUSTER_0_CONTEXT_NAME}" -n "${RUSTFS_NAMESPACE}" get secret rustfs-tls -o jsonpath="{.data['ca\.crt']}" | base64 --decode)"
