@@ -132,7 +132,7 @@ Backup
      - Project, Global
      - yes
 
-   * - .. alert:: CLUSTER_DENYLIST_UPDATED_AUDIT
+   * - .. alert:: CLUSTER_DENYLIST_UPDATED_AUDIT 
      - Excluded namespaces were modified for cluster
      - Project, Global
      - yes
@@ -222,7 +222,7 @@ Backup
      - Project, Global
      - yes
 
-   * - .. alert:: RS_DENYLIST_UPDATED_AUDIT
+   * - .. alert:: RS_DENYLIST_UPDATED_AUDIT 
      - Excluded namespaces were modified for replica set
      - Project, Global
      - yes

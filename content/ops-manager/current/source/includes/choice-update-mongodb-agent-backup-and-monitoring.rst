@@ -2,11 +2,11 @@ Select your operating system and architecture to update to the
 {+mdbagent+}.
 
 .. composable-tutorial::
-   :options: operating-system-om, arch-ubuntu, arch-rhel, rhel-version, package-rhel, package-rhel-ppc
-   :defaults: ubuntu, intel, None, None, rpm, None
+   :options: operating-system-om, arch-ubuntu, arch-rhel, rhel-version, package-rhel, package-rhel-ppc, package-rhel-suse16
+   :defaults: ubuntu, intel, None, None, rpm, None, rpm
 
    .. selected-content::
-      :selections: windows, None, None, None, None, None
+      :selections: windows, None, None, None, None, None, None
 
       Use this procedure to update to the {+mdbagent+} on x86_64
       architecture running Microsoft Windows:
@@ -14,7 +14,7 @@ Select your operating system and architecture to update to the
       .. include:: /includes/steps/update-backup-to-mongodb-agent-on-windows.rst
 
    .. selected-content::
-      :selections: ubuntu, intel, None, None, None, None
+      :selections: ubuntu, intel, None, None, None, None, None
 
       On x86_64 architecture running Debian 9, Ubuntu 18.04,
       Ubuntu 20.04, Ubuntu 22.04, or Ubuntu 24.04:
@@ -22,7 +22,7 @@ Select your operating system and architecture to update to the
       .. include:: /includes/steps/update-backup-to-mongodb-agent-amd64.ubuntu1604-deb.rst
 
    .. selected-content::
-      :selections: ubuntu, intel, None, None, rpm, None
+      :selections: ubuntu, intel, None, None, rpm, None, rpm
 
       On x86_64 architecture running Debian 9, Ubuntu 18.04,
       Ubuntu 20.04, Ubuntu 22.04, or Ubuntu 24.04:
@@ -30,72 +30,75 @@ Select your operating system and architecture to update to the
       .. include:: /includes/steps/update-backup-to-mongodb-agent-amd64.ubuntu1604-deb.rst
 
    .. selected-content::
-      :selections: ubuntu, ibm, None, None, None, None
+      :selections: rhel, None, intel, v6, None, None, None
 
-      On zSeries architecture running Ubuntu 18.04 using a
-      ``deb`` package:
-
-      .. include:: /includes/steps/update-backup-to-mongodb-agent-s390x.ubuntu1804-deb.rst
-
-   .. selected-content::
-      :selections: rhel, None, intel, v6, None, None
-
-      Running RHEL / CentOS 6.x using an ``rpm`` package:
+      Running RHEL 6.x using an ``rpm`` package:
 
       .. include:: /includes/steps/update-backup-to-mongodb-agent-x86-64-rpm.rst
 
    .. selected-content::
-      :selections: rhel, None, intel, v7, rpm, None
+      :selections: rhel, None, intel, v7, rpm, None, None
 
-      For RHEL (7.x, 8.x, or 9.x) or CentOS (7.x or 8.x),
-      SUSE12, SUSE15, or Amazon Linux 2, using an ``rpm``
-      package:
+      For RHEL (7.x, 8.x, or 9.x), SUSE12, SUSE15, or
+      Amazon Linux 2, using an ``rpm`` package:
 
       .. include:: /includes/steps/update-backup-to-mongodb-agent-x86-64.rhel7-rpm.rst
 
    .. selected-content::
-      :selections: rhel, None, intel, v7, tar, None
+      :selections: rhel, None, intel, v7, tar, None, None
 
-      For RHEL (7.x, 8.x, or 9.x) or CentOS (7.x or 8.x),
-      SUSE12, SUSE15, or Amazon Linux 2, using a ``tar``
-      archive:
+      For RHEL (7.x, 8.x, or 9.x), SUSE12, SUSE15, or
+      Amazon Linux 2, using a ``tar`` archive:
 
       .. include:: /includes/steps/update-backup-to-mongodb-agent-rhel7-x86-64-tar.rst
 
    .. selected-content::
-      :selections: rhel, None, powerpc, None, None, rpm
+      :selections: rhel, None, intel, suse16, None, None, rpm
 
-      On RHEL / CentOS (7.x) on PowerPC architecture (managing
-      MongoDB 3.4 or later deployments):
+      For SUSE 16, using an ``rpm`` package:
+
+      .. include:: /includes/steps/update-backup-to-mongodb-agent-x86-64.suse16-rpm.rst
+
+   .. selected-content::
+      :selections: rhel, None, intel, suse16, None, None, tar
+
+      For SUSE 16, using a ``tar`` archive:
+
+      .. include:: /includes/steps/update-backup-to-mongodb-agent-suse16-x86-64-tar.rst
+
+   .. selected-content::
+      :selections: rhel, None, powerpc, None, None, rpm, None
+
+      On RHEL (7.x) on PowerPC architecture (managing MongoDB
+      3.4 or later deployments):
 
       Using an ``rpm`` package:
 
       .. include:: /includes/steps/update-backup-to-mongodb-agent-ppc641e.rhel7-rpm.rst
 
    .. selected-content::
-      :selections: rhel, None, powerpc, None, None, tar
+      :selections: rhel, None, powerpc, None, None, tar, None
 
-      On RHEL / CentOS (7.x) on PowerPC architecture (managing
-      MongoDB 3.4 or later deployments):
+      On RHEL (7.x) on PowerPC architecture (managing MongoDB
+      3.4 or later deployments):
 
       Using a ``tar`` archive:
 
       .. include:: /includes/steps/update-backup-to-mongodb-agent-rhel7-ppc64le-tar.rst
 
    .. selected-content::
-      :selections: rhel, None, ibm, None, None, None
+      :selections: rhel, None, ibm, None, None, None, None
 
       On zSeries architecture (managing MongoDB 3.4 or later
-      deployments), use RHEL (7.x, 8.x, or 9.x) or CentOS
-      (7.x or 8.x):
+      deployments), use RHEL (7.x, 8.x, or 9.x):
 
-      Running RHEL (7.x, 8.x, or 9.x) or CentOS (7.x or 8.x)
-      using the ``rpm`` package manager:
+      Running RHEL (7.x, 8.x, or 9.x) using the ``rpm``
+      package manager:
 
       .. include:: /includes/steps/update-backup-to-mongodb-agent-s390x.rhel7-rpm.rst
 
    .. selected-content::
-      :selections: linux, None, None, None, None, None
+      :selections: linux, None, None, None, None, None, None
 
       Use this procedure to update to the {+mdbagent+} on
       Linux systems that do not use ``deb`` or ``rpm`` packages.

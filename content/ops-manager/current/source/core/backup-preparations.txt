@@ -2,6 +2,9 @@
 Backup Preparations
 ===================
 
+.. meta::
+   :description: Prepare for backups by considering data protection requirements, backup architectures, and snapshot frequency and retention policies.
+
 .. default-domain:: mongodb
 
 .. contents:: On this page
@@ -132,19 +135,15 @@ Backup Method Features
      - Lower
      - Medium
 
-***** To perform an incremental backup to a
-:term:`File System Store`, the {+mdbagent+}
-slices each :ref:`storage engine <storage-engines>`
-file in the path specified for backup into block(s) of
-data and transfers only changed block(s) to |onprem|.
-|onprem| creates a new :term:`snapshot` from received
-block(s) and copies the remaining unchanged block(s)
-from the previous full backup snapshot. Each incremental
-backup snapshot stored to a file system saves
-network I/O. Each such backup snapshot contains a full
-copy of all required files from a backed up MongoDB
-deployment and does not :term:`de-duplicate <deduplication>`
-records.
+***** To perform an incremental backup to a :term:`File System Store`,
+the {+mdbagent+} slices each :ref:`storage engine <storage-engines>` file in the path specified for backup into
+block(s) of data and transfers only changed block(s) to |onprem|.
+|onprem| creates a new :term:`snapshot` from received block(s) and
+copies the remaining unchanged block(s) from the previous backup
+snapshot. Each incremental backup snapshot stored to a file system
+saves network I/O. Each such backup snapshot contains a full copy of
+all required files from a backed up MongoDB deployment and does not
+:term:`de-duplicate <deduplication>` records.
 
 .. note:: **When Do You Use a Particular Backup Method?**
 
@@ -268,7 +267,7 @@ expiration date.
 
 .. note::
 
-   Monthly snapshots are full snapshots by default, not incremental snapshots. 
+   Monthly snapshots are full snapshots by default, not incremental snapshots.
 
    |mms| always preserves at least one restorable snapshot for a backed-up 
    deployment. In practice, this means that if a series of backup jobs fail 
@@ -416,16 +415,8 @@ scheduled snapshot time.
 
 .. include:: /release-notes/release-advisories/advisories-v4.2-backup.rst
 
-Incremental Backups
-~~~~~~~~~~~~~~~~~~~
-
-|mms| creates handles for each file in the database during  incremental backups. Ensure
-that the :ref:`open file limit <recommended-ulimit-settings>` is greater than the number of
-files before taking an incremental backup. Alternatively, take a full backup instead of an
-incremental backup.
-
 Shared File System
-~~~~~~~~~~~~~~~~~~
+++++++++++++++++++
 
 .. include:: /includes/fact-shared-file-system-reqs.rst
 
@@ -481,16 +472,16 @@ to back up. You can apply a namespace filter to any database except
 
    If you apply namespace filters to a snapshot, you can't query that snapshot.
 
-You create either a :guilabel:`Deny List` of the collections to
-exclude or a :guilabel:`Allow List` of the collections to include. You make your
+You create either a :guilabel:`Deny List` of those to
+exclude or a :guilabel:`Access List` of those to include. You make your
 selections when starting a backup and can later edit them as needed.
 
 Use the deny list to prevent backup of collections that contain logging
 data, caches, or other ephemeral data. Excluding these kinds of
 databases and collections will allow you to reduce backup time and
-costs. Using a deny list is often preferable to using an allow list as an
-allow list requires you to intentionally opt in to every namespace you
-want to back up.
+costs. Using a deny list is often preferable to using an access list as a
+access list requires you to intentionally opt in to every namespace you
+want backed up.
 
 .. include:: /includes/facts/namespace-filter-version.rst
 
@@ -511,17 +502,9 @@ If your current backing databases use MMAPv1, upgrade to WiredTiger:
 With WiredTiger, |mms| limits backups to deployments with fewer than
 100,000 files. Files includes collections and indexes.
 
-MongoDB 4.2 removes MMAPv1 storage. To learn more about storage
+MongoDB 6.0 removes MMAPv1 storage. To learn more about storage
 engines, see :ref:`Storage Engines <storage-engines>` in the MongoDB
 manual.
-
-- Run a :term:`sharded cluster`, and move chunks
-  from a particular shard.
-
-- Switch storage engines, if you want |mms| to provide snapshots
-  in the new storage engine format.
-
-- :ref:`Build an Index on a replica set in a rolling fashion <index-build-on-replica-sets>`.
 
 Snapshots when Agent Can't Contact a ``mongod``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

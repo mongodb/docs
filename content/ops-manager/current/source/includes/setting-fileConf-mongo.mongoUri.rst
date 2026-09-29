@@ -2,19 +2,19 @@
 
    *Type*: string
 
-   
+
    :ref:`connection string <mongodb-uri>` used
    to access the |application| Database. If applicable, the connection
    string **must** include the authentication credentials for the
    :parameter:`authentication mechanism <authenticationMechanisms>`
    used on the |application| database.
-   
+
    How you format your connection string depends on:
-   
+
    - the type of cluster you deployed for your backing databases,
    - the protocol you use, and
    - the authentication method you use.
-   
+
    .. composable-tutorial::
       :options: deployment-type, conn-string-type, auth-type
       :defaults: replica, standard, no-auth
@@ -23,7 +23,7 @@
          :selections: replica, standard, no-auth
 
          .. include:: /includes/app-database-replica-standard-connection.rst
-         
+
          .. code-block:: ini
 
             mongo.mongoUri=mongodb://mongos1.example.com:40000,mongos2.example.com:40000
@@ -45,7 +45,7 @@
          :selections: replica, standard, x509
 
          .. include:: /includes/app-database-replica-standard-connection.rst
-         
+
          .. include:: /includes/tabsets/connstring/format-auth-x509.rst
 
          .. code-block:: ini
@@ -82,7 +82,7 @@
          :selections: replica, dns-list, no-auth
 
          .. include:: /includes/app-database-replica-dnslist-connection-.rst
-         
+
          .. code-block:: ini
 
             mongo.mongoUri=mongodb+srv://db.example.com:40000
@@ -104,7 +104,7 @@
 
       .. selected-content::
          :selections: replica, dns-list, x509
-         
+
          .. include:: /includes/app-database-replica-dnslist-connection-.rst
 
          .. include:: /includes/tabsets/connstring/format-auth-x509.rst
@@ -118,7 +118,7 @@
          :selections: replica, dns-list, ldap
 
          .. include:: /includes/app-database-replica-dnslist-connection-.rst
-         
+
          .. include:: /includes/tabsets/connstring/format-auth-ldap.rst
 
          .. code-block:: ini
@@ -154,7 +154,7 @@
 
          .. include:: /includes/app-database-sharded-standard-connection.rst
 
-         
+
          .. include:: /includes/tabsets/connstring/format-auth-scram.rst
 
          .. code-block:: ini
@@ -240,7 +240,7 @@
          :selections: sharded, dns-list, ldap
 
          .. include:: /includes/app-database-sharded-dnslist-connection.rst
-         
+
          .. include:: /includes/tabsets/connstring/format-auth-ldap.rst
 
          .. code-block:: ini
@@ -252,7 +252,7 @@
          :selections: sharded, dns-list, kerberos
 
          .. include:: /includes/app-database-sharded-dnslist-connection.rst
-         
+
          .. include:: /includes/tabsets/connstring/format-auth-kerberos.rst
 
          .. code-block:: ini
@@ -261,6 +261,6 @@
 
          .. include:: /includes/tabsets/connstring/fact-kerberos-settings.rst
 
-   
-   
+
+
 

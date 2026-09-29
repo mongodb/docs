@@ -1,0 +1,250 @@
+.. _api-re-election-jobs-get-all:
+
+=====================================
+Get All Replica Set Re-Election Jobs
+=====================================
+
+.. meta::
+   :description: Use the Ops Manager API to retrieve every replica set re-election job for a specific replica set, including each job status, target process, and action.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/fact-groups-projects-synonyms.rst
+
+Use this endpoint to retrieve every re-election job for a specific
+replica set.
+
+.. include:: /includes/api/base-api-uri.rst
+
+Resource
+--------
+
+.. code-block:: http
+   :copyable: false
+
+   GET /groups/{GROUP-ID}/replicaSets/{RS-ID}/reElectionJobs
+
+Required Roles
+--------------
+
+The API key that makes this request must have the ``Project
+Automation Admin`` role.
+
+Request Path Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 14 11 55
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Necessity
+     - Description
+
+   * - GROUP-ID
+     - string
+     - Required
+     - Unique 24-hexadecimal digit string that identifies your
+       project.
+
+   * - RS-ID
+     - string
+     - Required
+     - Name of the replica set whose re-election jobs you want to
+       list.
+
+Request Query Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/base-query-parameters.rst
+
+Request Body Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-body-parameters.rst
+
+Response
+--------
+
+The response includes an array of re-election job objects and the
+total number of job objects retrieved.
+
+.. list-table::
+   :widths: 20 14 66
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Description
+
+   * - results
+     - array
+     - Array of re-election jobs, sorted from most recently created
+       to least recently created. See ``results`` embedded document.
+
+   * - totalCount
+     - number
+     - Total number of items in the result set. This can exceed the
+       number of items in ``results`` when the response is paginated.
+
+``results`` Embedded Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each element of ``results`` represents one re-election job.
+
+.. list-table::
+   :widths: 20 14 66
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Description
+
+   * - id
+     - string
+     - Unique 24-hexadecimal digit string that identifies the
+       re-election job.
+
+   * - groupId
+     - string
+     - Unique 24-hexadecimal digit string that identifies the
+       project.
+
+   * - action
+     - string
+     - Action that this job performs. Returns one of the following
+       values: ``STEP_DOWN`` or ``STEP_UP``.
+
+   * - replicaSetName
+     - string
+     - Name of the target replica set.
+
+   * - hostname
+     - string
+     - Hostname of the target process.
+
+   * - port
+     - integer
+     - Port of the target process.
+
+   * - status
+     - string
+     - Status of the job. Returns one of the following values:
+       ``QUEUED``, ``RUNNING``, ``COMPLETED``, ``FAILED``, or
+       ``EXPIRED``.
+
+   * - noOp
+     - boolean
+     - Flag that indicates whether the operation completed as a
+       no-op.
+
+   * - message
+     - string
+     - Human-readable detail about the job. |mms| populates this
+       field after the agent reports a result.
+
+   * - created
+     - string
+     - Timestamp, in ISO 8601 UTC format, when |mms| created the job.
+
+   * - lastUpdated
+     - string
+     - Timestamp, in ISO 8601 UTC format, when |mms| last updated the
+       job.
+
+   * - expires
+     - string
+     - Timestamp, in ISO 8601 UTC format, after which an Automation
+       Agent no longer picks up this job.
+
+Example Request
+---------------
+
+.. code-block:: sh
+   :linenos:
+
+   curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+        --header "Accept: application/json" \
+        --include \
+        --request GET "https://{+opsmgr-url+}/api/public/v1.0/groups/{GROUP-ID}/replicaSets/{RS-ID}/reElectionJobs?pretty=true"
+
+Example Response
+----------------
+
+Response Header
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/api-headers/401.rst
+
+.. include:: /includes/api/api-headers/200.rst
+
+Response Body
+~~~~~~~~~~~~~
+
+.. code-block:: json
+   :copyable: false
+   :linenos:
+
+   {
+     "results": [
+       {
+         "id": "665a1234567890abcdef5678",
+         "groupId": "5c8100bcf2a30b12ff88258f",
+         "action": "STEP_UP",
+         "replicaSetName": "rs0",
+         "hostname": "node2.example.com",
+         "port": 27017,
+         "status": "COMPLETED",
+         "noOp": false,
+         "message": null,
+         "created": "2026-08-11T05:40:00Z",
+         "lastUpdated": "2026-08-11T05:41:15Z",
+         "expires": "2026-08-11T05:45:00Z"
+       },
+       {
+         "id": "665a1234567890abcdef1234",
+         "groupId": "5c8100bcf2a30b12ff88258f",
+         "action": "STEP_DOWN",
+         "replicaSetName": "rs0",
+         "hostname": "node1.example.com",
+         "port": 27017,
+         "status": "COMPLETED",
+         "noOp": false,
+         "message": null,
+         "created": "2026-08-11T05:37:59Z",
+         "lastUpdated": "2026-08-11T05:38:30Z",
+         "expires": "2026-08-11T05:42:59Z"
+       }
+     ],
+     "totalCount": 2
+   }
+
+Response Codes
+--------------
+
+.. list-table::
+   :widths: 14 26 60
+   :header-rows: 1
+
+   * - HTTP Status
+     - Error Code
+     - Description
+
+   * - 200
+     - --
+     - Returns the array of re-election jobs.
+
+   * - 401
+     - USER_UNAUTHORIZED
+     - The API key does not have the ``Project Automation Admin``
+       role.

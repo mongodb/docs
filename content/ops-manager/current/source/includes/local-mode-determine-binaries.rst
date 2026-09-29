@@ -38,9 +38,9 @@ for:
 
   .. example::
 
-     If you are running a MongoDB replica set on MongoDB 3.6.8 on a
+     If you are running a MongoDB replica set on MongoDB 6.0 on a
      set of Ubuntu hosts and running |onprem| on Windows, you must
-     download and store archived binaries of MongoDB 3.6.8 for Ubuntu
+     download and store archived binaries of MongoDB 6.0 for Ubuntu
      (``.tgz``) and for Windows (``.zip``).
 
 - If you are running :doc:`queryable backups
@@ -49,10 +49,10 @@ for:
 
   .. example::
 
-     If you are running a MongoDB replica set on MongoDB 3.6.8 on a
+     If you are running a MongoDB replica set on MongoDB 6.0 on a
      set of Ubuntu hosts and want to query backups from an |onprem|
      install on Windows, you must download and store archived
-     binaries of MongoDB Community 3.6.8 for Ubuntu (``.tgz``) and
+     binaries of MongoDB Community 6.0 for Ubuntu (``.tgz``) and
      MongoDB Enterprise 3.6.8 Windows (``.zip``).
 
 MongoDB Database Tools

@@ -1,9 +1,9 @@
 The version of your existing |onprem| installation determines the
-upgrade path you must take to upgrade to |onprem| 4.4 or later.
+upgrade path you must take to upgrade to |onprem| 6.0 or later.
 
 .. important::
 
-   - If you have an |onprem| 4.2 or later installation with more than one |onprem|
+   - If you have an |onprem| 6.0 or later installation with more than one |onprem|
      host pointing to the same Application Database, you can upgrade
      |onprem| without incurring monitoring
      downtime. During this upgrade, |onprem| enters a state known as **Upgrade Mode**. 
@@ -14,7 +14,7 @@ upgrade path you must take to upgrade to |onprem| 4.4 or later.
      for your existing version to perform necessary database migrations.
 
    - To protect your data, |onprem| refuses to start direct upgrades
-     from versions 1.8.x and 2.0.x to version 3.4 or later.
+     from versions 1.8.x and 2.0.x to version 6.0 or later.
 
    - There are no supported downgrade paths for |onprem|.
 

@@ -106,7 +106,7 @@
      - Optional
      - Flag that indicates whether object lock is enabled to prevent 
        the objects in an S3 bucket from being deleted.
-
+   
    * - oidc
      - object
      - Optional

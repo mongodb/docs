@@ -663,7 +663,7 @@ export const toc: L1TocItem[] = [
                     contentSite: 'ops-manager',
                     url: '/docs/ops-manager/:version/tutorial/otel-integration',
                     versions: {
-                      includes: ['upcoming'],
+                      excludes: ['v7.0', 'v8.0'],
                     },
                   },
                   {
@@ -774,7 +774,7 @@ export const toc: L1TocItem[] = [
                     contentSite: 'ops-manager',
                     url: '/docs/ops-manager/:version/tutorial/take-on-demand-snapshots',
                     versions: {
-                      includes: ['upcoming'],
+                      excludes: ['v7.0', 'v8.0'],
                     },
                   },
                 ],
@@ -843,7 +843,7 @@ export const toc: L1TocItem[] = [
                 contentSite: 'ops-manager',
                 url: '/docs/ops-manager/:version/core/backup-direct-to-s3',
                 versions: {
-                  includes: ['upcoming'],
+                  excludes: ['v7.0', 'v8.0'],
                 },
               },
               {
@@ -851,7 +851,7 @@ export const toc: L1TocItem[] = [
                 contentSite: 'ops-manager',
                 url: '/docs/ops-manager/:version/core/third-party-backup',
                 versions: {
-                  includes: ['current', 'upcoming', 'v8.0'],
+                  excludes: ['v7.0'],
                 },
               },
             ],
@@ -922,7 +922,7 @@ export const toc: L1TocItem[] = [
                 contentSite: 'ops-manager',
                 url: '/docs/ops-manager/:version/core/oidc-backing-db-overview',
                 versions: {
-                  includes: ['upcoming', 'current', 'v8.0'],
+                  excludes: ['v7.0'],
                 },
               },
               {
@@ -1459,7 +1459,7 @@ export const toc: L1TocItem[] = [
                     contentSite: 'ops-manager',
                     url: '/docs/ops-manager/:version/tutorial/vault-snapshot-store-credentials',
                     versions: {
-                      includes: ['current', 'upcoming', 'v8.0'],
+                      excludes: ['v7.0'],
                     },
                   },
                   {
@@ -1467,7 +1467,7 @@ export const toc: L1TocItem[] = [
                     contentSite: 'ops-manager',
                     url: '/docs/ops-manager/:version/tutorial/configure-key-vault',
                     versions: {
-                      includes: ['current', 'upcoming', 'v8.0'],
+                      excludes: ['v7.0'],
                     },
                   },
                   {
@@ -2727,7 +2727,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/restorejobs/get-restorable-time-ranges-for-one-cluster',
                             versions: {
-                              includes: ['current', 'upcoming', 'v8.0'],
+                              excludes: ['v7.0'],
                             },
                           },
                           {
@@ -2821,7 +2821,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/automation-config/get-audit-log-rotate-config',
                             versions: {
-                              includes: ['current', 'upcoming', 'v8.0'],
+                              excludes: ['v7.0'],
                             },
                           },
                           {
@@ -2829,7 +2829,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/automation-config/update-audit-log-rotate-config',
                             versions: {
-                              includes: ['current', 'upcoming', 'v8.0'],
+                              excludes: ['v7.0'],
                             },
                           },
                           {
@@ -2837,7 +2837,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/automation-config/get-system-log-rotate-config',
                             versions: {
-                              includes: ['current', 'upcoming', 'v8.0'],
+                              excludes: ['v7.0'],
                             },
                           },
                           {
@@ -2845,7 +2845,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/automation-config/update-system-log-rotate-config',
                             versions: {
-                              includes: ['current', 'upcoming', 'v8.0'],
+                              excludes: ['v7.0'],
                             },
                           },
                         ],
@@ -3275,7 +3275,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/ops-manager/:version/reference/api/admin/backup/s3-blockstore-config-v2',
                         versions: {
-                          includes: ['current', 'upcoming', 'v8.0'],
+                          excludes: ['v7.0'],
                         },
                         items: [
                           {
@@ -3283,7 +3283,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/admin/backup/snapshot/s3Configs-v2/get-one-s3-blockstore-configuration-by-id',
                             versions: {
-                              includes: ['current', 'upcoming', 'v8.0'],
+                              excludes: ['v7.0'],
                             },
                           },
                           {
@@ -3291,7 +3291,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/admin/backup/snapshot/s3Configs-v2/get-all-s3-blockstore-configurations',
                             versions: {
-                              includes: ['current', 'upcoming', 'v8.0'],
+                              excludes: ['v7.0'],
                             },
                           },
                           {
@@ -3299,7 +3299,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/admin/backup/snapshot/s3Configs-v2/create-one-s3-blockstore-configuration',
                             versions: {
-                              includes: ['current', 'upcoming', 'v8.0'],
+                              excludes: ['v7.0'],
                             },
                           },
                           {
@@ -3307,7 +3307,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/admin/backup/snapshot/s3Configs-v2/update-one-s3-blockstore-configuration',
                             versions: {
-                              includes: ['current', 'upcoming', 'v8.0'],
+                              excludes: ['v7.0'],
                             },
                           },
                           {
@@ -3315,7 +3315,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/admin/backup/snapshot/s3Configs-v2/delete-one-s3-blockstore-configuration',
                             versions: {
-                              includes: ['current', 'upcoming', 'v8.0'],
+                              excludes: ['v7.0'],
                             },
                           },
                         ],
@@ -3499,7 +3499,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/ops-manager/:version/reference/api/admin/keyVault-config',
                         versions: {
-                          includes: ['current', 'upcoming', 'v8.0'],
+                          excludes: ['v7.0'],
                         },
                         items: [
                           {
@@ -3507,7 +3507,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/admin/keyVault/get-one-key-vault-configuration-by-id',
                             versions: {
-                              includes: ['current', 'upcoming', 'v8.0'],
+                              excludes: ['v7.0'],
                             },
                           },
                           {
@@ -3515,7 +3515,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/admin/keyVault/get-all-key-vault-configurations',
                             versions: {
-                              includes: ['current', 'upcoming', 'v8.0'],
+                              excludes: ['v7.0'],
                             },
                           },
                           {
@@ -3523,7 +3523,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/admin/keyVault/create-one-key-vault-configuration',
                             versions: {
-                              includes: ['current', 'upcoming', 'v8.0'],
+                              excludes: ['v7.0'],
                             },
                           },
                           {
@@ -3531,7 +3531,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/admin/keyVault/update-one-key-vault-configuration',
                             versions: {
-                              includes: ['current', 'upcoming', 'v8.0'],
+                              excludes: ['v7.0'],
                             },
                           },
                           {
@@ -3539,7 +3539,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/admin/keyVault/delete-one-key-vault-configuration',
                             versions: {
-                              includes: ['current', 'upcoming', 'v8.0'],
+                              excludes: ['v7.0'],
                             },
                           },
                         ],

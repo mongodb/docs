@@ -30,5 +30,5 @@
    .. include:: /includes/list-table-server-types.rst
 
    Corresponds to :setting:`Default Ops Manager MongoDB Server Type`.
-
+   
 

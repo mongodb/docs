@@ -1,0 +1,273 @@
+.. _otel-integration-mms:
+
+====================================
+Send Metrics to OpenTelemetry (OTel)
+====================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: otlp, code example, integration, monitoring agent, third-party observability
+   :description: Configure the MongoDB Agent to export deployment metrics to a third-party OpenTelemetry (OTel) collector or backend, in addition to Ops Manager, using Automation Configuration settings.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+|mms| can emit deployment metrics collected by {+mdbagent+} in
+OpenTelemetry (OTel) format to a third-party observability backend
+while |mms| continues to receive these metrics. This feature enables
+you to integrate your MongoDB deployments into an existing
+observability stack or any other platform that accepts the
+OpenTelemetry Protocol (OTLP). You do not need custom pipelines,
+sidecar processes, or additional collection agents.
+
+OTel export is additive and is disabled by default. Metrics
+delivery to |mms| is not altered in any way: every signal continues
+to be carried on the existing |mms| path unchanged. Any failure on
+the OTel export path, such as an unreachable endpoint, is isolated
+so that reporting to |mms| is never interrupted.
+
+When you enable this feature, {+mdbagent+} pushes metrics over
+OTLP/HTTP to your configured endpoint on a configurable cadence (the
+default is 30 seconds). Each cycle sends one OTLP request per
+monitored process, plus one request for the agent's own self-health,
+so your backend receives several small requests per interval rather
+than one large batch. Your endpoint can be one of the following:
+
+- An OpenTelemetry `Collector
+  <https://opentelemetry.io/docs/collector/>`__, which can process
+  metrics and route them onward to multiple destinations.
+- An observability platform that accepts OTLP natively (for example,
+  Datadog, Grafana, Dynatrace).
+
+You configure this feature through the
+:ref:`Automation Configuration <automation-configuration-sample-entity>`.
+{+mdbagent+} collects the exported metrics on its
+existing collection cycle, so this feature places no extra load on
+your monitored MongoDB processes.
+
+How OTel Export Differs from the Prometheus Integration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The OTel export path is not a drop-in replacement for the existing
+:ref:`Prometheus integration <prometheus-integration-mms>`. Whereas the
+Prometheus integration is pull-based, and {+mdbagent+} exposes a
+``/metrics`` endpoint that your Prometheus server scrapes. The OTel
+path is push-based, and {+mdbagent+} sends metrics to your configured
+OTLP endpoint on a timer. 
+
+OTel metrics also use different names, types, and units that follow
+OpenTelemetry semantic conventions for MongoDB, so you cannot reuse
+your existing Prometheus dashboards. You must create new dashboards,
+alerts, and queries in your target observability platform against the
+exported metrics.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+Before you configure OTel export, ensure that you meet the following
+requirements:
+
+- You must enable monitoring for your deployment before you can
+  configure OTel export. OTel export reuses the samples that
+  {+mdbagent+} already collects for monitoring. To learn how to
+  install {+mdbagent+} and enable monitoring, see
+  :ref:`Install the {+mdbagent+} to Monitor or Back Up Deployments <automation-agent-install-steps-monitor>`.
+- Ensure your OTLP endpoint is reachable from every host
+  where {+mdbagent+} runs. {+mdbagent+} pushes metrics directly to
+  the endpoint. Verify your firewall rules and egress policies before you enable this feature.
+- Confirm you have :authrole:`Project Automation Admin` access to update the
+  Automation Configuration through the |mms| |api|. To learn more
+  about project roles, see :ref:`user-roles`. To learn about the
+  Automation Configuration |api|, see
+  :ref:`automation-configuration-resource`.
+- Ensure your OTLP endpoint supports OTLP/HTTP as a receiver protocol.
+  To learn about configuring an OTLP/HTTP receiver, see the
+  `OpenTelemetry Protocol specification
+  <https://opentelemetry.io/docs/specs/otlp/>`__.
+
+.. _otel-integration-mms-enable:
+
+Enable OTel Export
+~~~~~~~~~~~~~~~~~~
+
+You configure OTel export through the :ref:`Automation Configuration
+<automation-configuration-sample-entity>`. All settings are carried in
+a single ``otelConfig`` key under the monitoring module's
+``additionalParams``. You can apply this configuration through the
+existing custom configuration flow in the |mms| interface, described
+in :ref:`monitoring-agent-connection-settings`. You can also
+apply this configuration through the public Automation Configuration
+|api|.
+
+The following example shows an ``additionalParams`` entry that
+enables OTel export:
+
+.. code-block:: json
+   :linenos:
+
+   "additionalParams": {
+     "otelConfig": "{\"enabled\":true,\"metricsExportIntervalSec\":30,\"backends\":[{\"endpoint\":\"https://collector.example.com:4318\",\"headers\":\"Authorization=Bearer <token>\",\"caCertPath\":\"/etc/ssl/ca.pem\"}]}"
+   }
+
+For the full list of ``otelConfig`` fields, see
+:ref:`monitoring-agent-otel-settings`.
+
+.. important::
+
+   A misconfigured ``otelConfig`` fails loudly rather than being
+   silently ignored. If the configuration is invalid, {+mdbagent+}
+   prevents the monitoring module from starting. {+mdbagent+} retries
+   the configuration every 30 seconds until it receives a valid
+   configuration. An invalid ``otelConfig`` therefore affects
+   monitoring as a whole, not only the OTel path. The agent logs
+   this failure with an ``Otel:`` prefix and surfaces it in the
+   agent's status reporting to |mms|.
+
+Configuration changes take effect the next time the monitoring
+module restarts. |mms| triggers this restart automatically when you
+change the relevant Automation Configuration properties.
+
+.. warning::
+
+   If you configure an ``http://`` endpoint, {+mdbagent+} sends
+   metrics over an unencrypted connection. |mms| cannot detect
+   whether an endpoint is a production destination, so no guardrail
+   prevents insecure export in production. Use an ``https://``
+   endpoint for production deployments.
+
+Kubernetes Deployments
+~~~~~~~~~~~~~~~~~~~~~~
+
+For deployments managed by `MongoDB Controllers for Kubernetes (MCK)
+<https://www.mongodb.com/docs/kubernetes/current/>`__,
+OTel export uses the same Automation Configuration mechanism. The
+operator maintains the Automation Configuration. The operator writes
+your OTel settings to the agent hosts through custom resource
+updates. You do not need any separate Kubernetes-specific
+configuration.
+
+Exported Metrics
+~~~~~~~~~~~~~~~~
+
+This feature exports the metric groups in the following table over
+OTLP. Metric names, types, and units follow OpenTelemetry semantic
+conventions for MongoDB, using a consistent ``mongodb.*`` naming
+pattern.
+
+.. list-table::
+   :widths: 25 25 50
+   :header-rows: 1
+
+   * - Metric Group
+     - Source
+     - Coverage
+
+   * - Server status
+     - ``serverStatus``
+     - Operation counters (including replicated), operation
+       latencies, connections, memory, network, cursors, documents
+       inserted, updated, deleted, and returned, WiredTiger cache
+       statistics, tickets and queue depth, lock acquire, wait, and
+       deadlock counts, active reads and writes, asserts, flow
+       control, query targeting, time-to-live (TTL) deletes, page
+       faults, uptime, and health.
+
+   * - Database statistics
+     - ``dbStats``
+     - Per-database storage, data size, object, index, and view
+       statistics.
+
+   * - Collection activity
+     - ``top``
+     - Per-operation aggregated time.
+
+   * - Replication
+     - ``replSetGetStatus`` and the oplog
+     - Oplog size and window, replication lag, and member health.
+
+   * - Sharding
+     - Config metadata
+     - Chunk counts and data distribution across shards.
+
+   * - Agent self-health
+     - Agent runtime
+     - {+mdbagent+} uptime, memory, and goroutines, published under
+       the dedicated ``mongodb.mms.*`` namespace.
+
+This feature exports counter metrics as cumulative values with a start
+timestamp derived from ``mongod`` uptime. A ``mongod`` restart is
+surfaced as a standard counter reset, so rate calculations remain
+correct across restarts.
+
+Staleness and Series Lifetime
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- {+mdbagent+} re-exports counter series unchanged while a process is
+  temporarily unreachable, so a collection gap is not misread as a
+  counter reset.
+- {+mdbagent+} exports point-in-time series, such as
+  ``mongodb.health``, only while they are fresh, so an unreachable
+  process goes silent instead of holding a stale value.
+- {+mdbagent+} drops a series after 20 minutes without a new sample,
+  and the series disappears from your backend. Account for this
+  behavior when you build alerts based on missing data.
+
+Set Up Dashboards in Your Observability Platform
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You must create new dashboards in your target observability platform
+against the exported metrics. |mms| does not ship pre-built
+dashboards, and you can't reuse existing dashboards created for the
+Prometheus integration, the |mms| interface, or another third-party
+MongoDB integration.
+
+Consider this guidance when you set up dashboards:
+
+- **Create new dashboards instead of porting existing ones.** Metric
+  names emitted over OTLP follow a ``mongodb.*`` naming convention
+  that differs from the Prometheus exporter's names and from |mms|
+  internal metric identifiers.
+- **Use resource attributes for filtering and grouping.** Every
+  metric carries resource attributes that identify the monitored
+  process and the project. Use these attributes as the primary
+  dimensions for dashboard panels, alerts, and grouping.
+- **Apply rate functions to counter metrics.** Counters are
+  cumulative. Apply functions such as ``rate()`` or ``increase()``,
+  or their equivalents in your platform, to counter-type metrics.
+- **Recreate your alerts.** OTel export does not carry over
+  existing alert rules defined in Prometheus, |mms|, or another
+  third-party integration. Define new alert rules in your target
+  platform against the OTel metric names and resource attributes.
+
+Limitations
+~~~~~~~~~~~
+
+- **One backend per deployment.** This feature supports exactly one
+  OTLP backend. Configuring more than one backend results in a hard
+  error. To fan metrics out to many destinations, configure an
+  OpenTelemetry Collector as your export target, and route to more
+  backends through its pipeline configuration.
+
+- **Metrics only.** This feature exports only metrics over OTLP. The OTel export
+  path does not include the following signals, which continue to flow to |mms| unchanged:
+
+  - Logs (profiler entries, host logs, and agent logs) and traces
+  - MongoDB Search process metrics
+  - Host-level system metrics (CPU, memory, disk, and network)
+  - Per-collection latency histograms
+
+- **No buffering for unreachable destinations.** {+mdbagent+} retries
+  or drops a failed export according to the exporter's policy. This
+  feature provides no store-and-forward queue. Delivery to |mms| is
+  unaffected in all cases.
+
+Learn More
+~~~~~~~~~~
+
+- :ref:`Integrate with Prometheus <prometheus-integration-mms>`
+- :ref:`monitoring-agent-connection-settings`
+- :ref:`automation-config-encryption`
