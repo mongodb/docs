@@ -5,6 +5,8 @@ command. The ``querySettings`` document accepts the following fields:
 - ``queryFramework``
 - ``reject``
 - ``comment``
+- ``queryKnobs``
+- ``maxTimeMS``
 
 For descriptions of these fields, see :ref:`setQuerySettings-fields`.
 
