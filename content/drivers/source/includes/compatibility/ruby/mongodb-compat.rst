@@ -6,6 +6,7 @@ The following table shows compatibility between the Ruby driver and {+mdb-server
    :class: compatibility-large no-padding
 
    * - Ruby Driver
+     - MongoDB 9.0
      - MongoDB 8.0
      - MongoDB 7.0
      - MongoDB 6.0
@@ -19,9 +20,20 @@ The following table shows compatibility between the Ruby driver and {+mdb-server
      - ✓
      - ✓
      - ✓
+     - ✓
      - ✗
 
-   * - 2.21 to 2.25
+   * - 2.24 to 2.25
+     - ⊛
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+
+   * - 2.21 to 2.23
+     -
      - ✓
      - ✓
      - ✓
@@ -30,6 +42,7 @@ The following table shows compatibility between the Ruby driver and {+mdb-server
      - ✓
 
    * - 2.19 to 2.20
+     -
      - ⊛
      - ✓
      - ✓
@@ -38,6 +51,7 @@ The following table shows compatibility between the Ruby driver and {+mdb-server
      - ✓
 
    * - 2.18
+     -
      - ⊛
      - ⊛
      - ✓
@@ -46,6 +60,7 @@ The following table shows compatibility between the Ruby driver and {+mdb-server
      - ✓
 
    * - 2.16 to 2.17
+     -
      - ⊛
      - ⊛
      - ⊛
@@ -54,6 +69,7 @@ The following table shows compatibility between the Ruby driver and {+mdb-server
      - ✓
 
    * - 2.14 to 2.15
+     -
      - ⊛
      - ⊛
      - ⊛
@@ -62,6 +78,7 @@ The following table shows compatibility between the Ruby driver and {+mdb-server
      - ✓
 
    * - 2.13
+     -
      - ⊛
      - ⊛
      - ⊛
@@ -70,6 +87,7 @@ The following table shows compatibility between the Ruby driver and {+mdb-server
      - ✓
 
    * - 2.12
+     -
      - ⊛
      - ⊛
      - ⊛
@@ -78,6 +96,7 @@ The following table shows compatibility between the Ruby driver and {+mdb-server
      - ✓
 
    * - 2.11
+     -
      - ⊛
      - ⊛
      - ⊛
@@ -86,6 +105,7 @@ The following table shows compatibility between the Ruby driver and {+mdb-server
      - ✓ [#client-side-encryption]_
 
    * - 2.10
+     -
      - ⊛
      - ⊛
      - ⊛

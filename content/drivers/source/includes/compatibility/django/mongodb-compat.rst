@@ -6,6 +6,7 @@ The following table shows compatibility between Django MongoDB Backend and {+mdb
    :class: compatibility-large
 
    * - Django MongoDB Backend Version
+     - MongoDB 9.0
      - MongoDB 8.0
      - MongoDB 7.0
      - MongoDB 6.0
@@ -13,14 +14,17 @@ The following table shows compatibility between Django MongoDB Backend and {+mdb
    * - 6.1
      - ✓
      - ✓
+     - ✓
      -
 
    * - 6.0
      - ✓
      - ✓
+     - ✓
      -
 
    * - 5.2
-     - ✓ 
-     - ✓ 
+     - ✓
+     - ✓
+     - ✓
      - ✓

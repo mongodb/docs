@@ -6,6 +6,7 @@ The following table shows compatibility between the C driver and {+mdb-server+}:
    :class: compatibility-large
 
    * - C Driver Version
+     - MongoDB 9.0
      - MongoDB 8.0
      - MongoDB 7.0
      - MongoDB 6.0
@@ -13,7 +14,26 @@ The following table shows compatibility between the C driver and {+mdb-server+}:
      - MongoDB 4.4
      - MongoDB 4.2
 
-   * - 1.28 to 2.5
+   * - 2.5
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+
+   * - 2.3 to 2.4
+     - ⊛
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+
+   * - 1.28 to 2.2
+     -
      - ✓
      - ✓
      - ✓
@@ -22,6 +42,7 @@ The following table shows compatibility between the C driver and {+mdb-server+}:
      - ✓
 
    * - 1.24 to 1.27
+     -
      - ⊛
      - ✓
      - ✓
@@ -30,6 +51,7 @@ The following table shows compatibility between the C driver and {+mdb-server+}:
      - ✓
 
    * - 1.22 to 1.23
+     -
      - ⊛
      - ⊛
      - ✓
@@ -38,6 +60,7 @@ The following table shows compatibility between the C driver and {+mdb-server+}:
      - ✓
 
    * - 1.19 to 1.21
+     -
      - ⊛
      - ⊛
      - ⊛
@@ -46,6 +69,7 @@ The following table shows compatibility between the C driver and {+mdb-server+}:
      - ✓
 
    * - 1.18
+     -
      - ⊛
      - ⊛
      - ⊛
@@ -54,6 +78,7 @@ The following table shows compatibility between the C driver and {+mdb-server+}:
      - ✓
   
    * - 1.17
+     -
      - ⊛
      - ⊛
      - ⊛
@@ -62,6 +87,7 @@ The following table shows compatibility between the C driver and {+mdb-server+}:
      - ✓
   
    * - 1.15 to 1.16
+     -
      - ⊛
      - ⊛
      - ⊛
@@ -70,6 +96,7 @@ The following table shows compatibility between the C driver and {+mdb-server+}:
      - ✓
   
    * - 1.11 to 1.14
+     -
      - ⊛
      - ⊛
      - ⊛

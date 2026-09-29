@@ -6,6 +6,7 @@ The following table shows compatibility between the C++ driver and {+mdb-server+
    :class: compatibility-large
 
    * - C++ Driver Version
+     - MongoDB 9.0
      - MongoDB 8.0
      - MongoDB 7.0
      - MongoDB 6.0
@@ -13,7 +14,26 @@ The following table shows compatibility between the C++ driver and {+mdb-server+
      - MongoDB 4.4
      - MongoDB 4.2
 
-   * - 4.2 to 4.5
+   * - 4.6
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     -
+
+   * - 4.3 to 4.5
+     - ⊛
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     -
+
+   * - 4.2
+     -
      - ✓
      - ✓
      - ✓
@@ -22,6 +42,7 @@ The following table shows compatibility between the C++ driver and {+mdb-server+
      -
 
    * - 3.11 to 4.1
+     -
      - ✓
      - ✓
      - ✓
@@ -30,6 +51,7 @@ The following table shows compatibility between the C++ driver and {+mdb-server+
      - ✓
 
    * - 3.8 to 3.10
+     -
      - ⊛
      - ✓
      - ✓
@@ -38,6 +60,7 @@ The following table shows compatibility between the C++ driver and {+mdb-server+
      - ✓
 
    * - 3.7
+     -
      - ⊛
      - ⊛
      - ⊛
@@ -46,6 +69,7 @@ The following table shows compatibility between the C++ driver and {+mdb-server+
      - ✓
 
    * - 3.6
+     -
      - ⊛
      - ⊛
      - ⊛
@@ -54,6 +78,7 @@ The following table shows compatibility between the C++ driver and {+mdb-server+
      - ✓
 
    * - 3.4 to 3.5
+     -
      - ⊛
      - ⊛
      - ⊛

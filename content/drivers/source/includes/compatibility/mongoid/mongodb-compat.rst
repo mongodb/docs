@@ -6,6 +6,7 @@ The following table shows compatibility between Mongoid and {+mdb-server+}:
    :class: compatibility-large
 
    * - Mongoid Version
+     - MongoDB 9.0
      - MongoDB 8.0
      - MongoDB 7.0
      - MongoDB 6.0
@@ -14,6 +15,7 @@ The following table shows compatibility between Mongoid and {+mdb-server+}:
      - MongoDB 4.2
 
    * - 9.0 to 9.1
+     - ⊛
      - ✓
      - ✓
      - ✓
@@ -22,6 +24,7 @@ The following table shows compatibility between Mongoid and {+mdb-server+}:
      - ✓
 
    * - 8.0 to 8.1
+     -
      -
      - ✓
      - ✓

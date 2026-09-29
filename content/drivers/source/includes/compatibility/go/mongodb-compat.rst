@@ -6,6 +6,7 @@ The following table shows compatibility between the Go driver and {+mdb-server+}
    :class: compatibility-large
 
    * - Go Driver Version
+     - MongoDB 9.0
      - MongoDB 8.0
      - MongoDB 7.0
      - MongoDB 6.1
@@ -21,9 +22,21 @@ The following table shows compatibility between the Go driver and {+mdb-server+}
      - ✓
      - ✓
      - ✓
+     - ✓
      -
 
-   * - 2.1 to 2.8
+   * - 2.6 to 2.8
+     - ⊛
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+
+   * - 2.1 to 2.5
+     -
      - ✓
      - ✓
      - ✓
@@ -33,6 +46,7 @@ The following table shows compatibility between the Go driver and {+mdb-server+}
      - ✓
 
    * - 1.12 to 2.0
+     -
      - ⊛ [#8.0-support]_
      - ✓
      - ✓
@@ -42,6 +56,7 @@ The following table shows compatibility between the Go driver and {+mdb-server+}
      - ✓
 
    * - 1.11
+     -
      - ⊛
      - ⊛
      - ✓

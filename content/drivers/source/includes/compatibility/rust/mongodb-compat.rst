@@ -6,6 +6,7 @@ The following table shows compatibility between the Rust driver and {+mdb-server
    :class: compatibility-large
 
    * - Rust Driver Version
+     - MongoDB 9.0
      - MongoDB 8.0
      - MongoDB 7.0
      - MongoDB 6.0
@@ -19,9 +20,20 @@ The following table shows compatibility between the Rust driver and {+mdb-server
      - ✓
      - ✓
      - ✓
+     - ✓
      - ⊛
 
-   * - 3.1 to 3.8 [#2.5-onwards-limitation]_
+   * - 3.6 to 3.8 [#2.5-onwards-limitation]_
+     - ⊛
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+
+   * - 3.1 to 3.5 [#2.5-onwards-limitation]_
+     -
      - ✓
      - ✓
      - ✓
@@ -30,6 +42,7 @@ The following table shows compatibility between the Rust driver and {+mdb-server
      - ✓
 
    * - 2.6 to 3.0 [#2.5-onwards-limitation]_
+     -
      - ⊛
      - ✓
      - ✓
@@ -38,6 +51,7 @@ The following table shows compatibility between the Rust driver and {+mdb-server
      - ✓
 
    * - 2.5 [#2.5-onwards-limitation]_
+     -
      - ⊛
      - ⊛
      - ⊛
@@ -46,6 +60,7 @@ The following table shows compatibility between the Rust driver and {+mdb-server
      - ✓
 
    * - 2.4 [#2.4-limitation]_
+     -
      - ⊛
      - ⊛
      - ⊛
@@ -54,6 +69,7 @@ The following table shows compatibility between the Rust driver and {+mdb-server
      - ✓
 
    * - 2.2 to 2.3 [#2.2-2.3-limitation]_
+     -
      - ⊛
      - ⊛
      - ⊛
@@ -62,6 +78,7 @@ The following table shows compatibility between the Rust driver and {+mdb-server
      - ✓
 
    * - 2.1 [#2.1-limitation]_
+     -
      - ⊛
      - ⊛
      - ⊛
@@ -70,6 +87,7 @@ The following table shows compatibility between the Rust driver and {+mdb-server
      - ✓
 
    * - 2.0 [#2.0-limitation]_
+     -
      - ⊛
      - ⊛
      - ⊛

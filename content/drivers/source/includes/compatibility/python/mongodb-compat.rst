@@ -6,6 +6,7 @@ The following table shows compatibility between PyMongo and {+mdb-server+}:
    :class: compatibility-large
 
    * - PyMongo Version
+     - MongoDB 9.0
      - MongoDB 8.0
      - MongoDB 7.0
      - MongoDB 6.0
@@ -20,12 +21,24 @@ The following table shows compatibility between PyMongo and {+mdb-server+}:
      - ✓
      - ✓
      - ✓
+     - ✓
      -
      -
 
-   * - 4.14 to 4.17
-     - ✓ 
-     - ✓ 
+   * - 4.17
+     - ⊛
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     -
+
+   * - 4.14 to 4.16
+     -
+     - ✓
+     - ✓
      - ✓
      - ✓
      - ✓
@@ -33,8 +46,9 @@ The following table shows compatibility between PyMongo and {+mdb-server+}:
      -
 
    * - 4.9 to 4.13
-     - ✓ 
-     - ✓ 
+     -
+     - ✓
+     - ✓
      - ✓
      - ✓
      - ✓
@@ -42,6 +56,7 @@ The following table shows compatibility between PyMongo and {+mdb-server+}:
      - ✓
 
    * - 4.4 to 4.8
+     -
      - ⊛
      - ✓
      - ✓
@@ -51,6 +66,7 @@ The following table shows compatibility between PyMongo and {+mdb-server+}:
      - ✓
 
    * - 4.2 to 4.3
+     -
      - ⊛
      - ⊛
      - ✓
@@ -60,6 +76,7 @@ The following table shows compatibility between PyMongo and {+mdb-server+}:
      - ✓
 
    * - 3.7 to 4.1
+     -
      - ⊛
      - ⊛
      - ⊛

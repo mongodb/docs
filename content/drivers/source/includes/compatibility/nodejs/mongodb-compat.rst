@@ -6,6 +6,7 @@ The following table shows compatibility between the Node.js driver and {+mdb-ser
    :class: compatibility-large
 
    * - Node.js Driver Version
+     - MongoDB 9.0
      - MongoDB 8.0
      - MongoDB 7.0
      - MongoDB 6.0
@@ -13,7 +14,8 @@ The following table shows compatibility between the Node.js driver and {+mdb-ser
      - MongoDB 4.4
      - MongoDB 4.2
 
-   * - 7.6
+   * - 7.6 to 7.7
+     - ✓
      - ✓
      - ✓
      - ✓
@@ -21,7 +23,17 @@ The following table shows compatibility between the Node.js driver and {+mdb-ser
      - ✓
      -
 
-   * - 6.9 to 7.5
+   * - 7.3 to 7.5
+     - ⊛
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+
+   * - 6.9 to 7.2
+     -
      - ✓
      - ✓
      - ✓
@@ -30,6 +42,7 @@ The following table shows compatibility between the Node.js driver and {+mdb-ser
      - ✓
 
    * - 5.7 to 6.8
+     -
      - ⊛
      - ✓
      - ✓
@@ -38,6 +51,7 @@ The following table shows compatibility between the Node.js driver and {+mdb-ser
      - ✓
 
    * - 5.0 to 5.6
+     -
      - ⊛
      - ⊛
      - ✓
@@ -47,6 +61,7 @@ The following table shows compatibility between the Node.js driver and {+mdb-ser
 
    * - 4.8 to 4.17
      -
+     -
      - ⊛
      - ✓
      - ✓
@@ -54,6 +69,7 @@ The following table shows compatibility between the Node.js driver and {+mdb-ser
      - ✓
 
    * - 4.0 to 4.7
+     -
      -
      - ⊛
      - ⊛
@@ -63,7 +79,8 @@ The following table shows compatibility between the Node.js driver and {+mdb-ser
 
    * - 3.7 [#3.7-note]_
      -
-     - 
+     -
+     -
      - ⊛
      - ✓
      - ✓
@@ -71,7 +88,8 @@ The following table shows compatibility between the Node.js driver and {+mdb-ser
 
    * - 3.6
      -
-     - 
+     -
+     -
      - ⊛
      - ⊛
      - ✓

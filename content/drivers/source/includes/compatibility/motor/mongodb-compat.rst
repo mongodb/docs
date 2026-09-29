@@ -6,6 +6,7 @@ The following table shows compatibility between Motor and {+mdb-server+}:
    :class: compatibility
 
    * - Motor Driver Version
+     - MongoDB 9.0
      - MongoDB 8.0
      - MongoDB 7.0
      - MongoDB 6.0
@@ -16,6 +17,7 @@ The following table shows compatibility between Motor and {+mdb-server+}:
      - MongoDB 3.6
 
    * - 3.7
+     - ⊛
      - ✓
      - ✓
      - ✓
@@ -23,8 +25,9 @@ The following table shows compatibility between Motor and {+mdb-server+}:
      - ✓
      - ✓
      - ✓
-     - 
+     -
    * - 3.6
+     -
      - ✓
      - ✓
      - ✓
@@ -34,6 +37,7 @@ The following table shows compatibility between Motor and {+mdb-server+}:
      - ✓
      - ✓
    * - 3.2 to 3.5
+     -
      - ⊛
      - ✓
      - ✓
@@ -43,6 +47,7 @@ The following table shows compatibility between Motor and {+mdb-server+}:
      - ✓
      - ✓
    * - 3.1
+     -
      - ⊛
      - ⊛
      - ✓
@@ -52,6 +57,7 @@ The following table shows compatibility between Motor and {+mdb-server+}:
      - ✓
      - ✓
    * - 3.0
+     -
      - ⊛
      - ⊛
      - ⊛
