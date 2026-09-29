@@ -105,7 +105,9 @@ In the following syntax, you provide:
          }, ... ],
          queryFramework: <string>,
          reject: <boolean>,
-         comment: <BSON type>
+         comment: <BSON type>,
+         queryKnobs: <document>,
+         maxTimeMS: <non-negative integer>
       }
    } )
 
@@ -128,7 +130,9 @@ You can provide an existing query shape hash string in
          }, ... ],
          queryFramework: <string>,
          reject: <boolean>,
-         comment: <BSON type>
+         comment: <BSON type>,
+         queryKnobs: <document>,
+         maxTimeMS: <non-negative integer>
       }
    } )
 
@@ -147,7 +151,8 @@ You can provide an existing query shape hash string in
 Command Fields
 --------------
 
-The command takes these fields:
+The ``settings`` document in the ``setQuerySettings`` command takes the 
+following fields:
 
 .. list-table::
    :widths: 20 10 10 50
@@ -259,7 +264,100 @@ The command takes these fields:
        <explain-results>`, and the :ref:`slow query logs
        <log-message-slow-ops>`.
 
-       Available starting in MongoDB 8.1 (and 8.0.4).
+       .. versionadded:: 8.1 (and 8.0.4).
+
+   * - ``queryKnobs``
+     - document
+     - Optional
+     - A document of ``{ <knobName>: <value> }`` pairs that override
+       internal server parameters for this query shape only, instead of
+       instance-wide with :dbcommand:`setParameter`. Each knob keeps the
+       type, bounds, and default of its underlying server parameter.
+
+       Unlike the other ``setQuerySettings`` fields, which replace the
+       entire value when set, ``queryKnobs`` merges with existing knob
+       values. ``setQuerySettings`` changes the knobs you include in
+       the ``queryKnobs`` document, and leaves all other knobs
+       unchanged.
+
+       ``queryKnobs: {}`` results in a no-op. To remove a single knob
+       without affecting the others, set that knob's value to ``null``.
+
+       .. versionadded:: 9.0
+
+   * - ``maxTimeMS``
+     - non-negative integer
+     - Optional
+     - Sets a time limit in milliseconds for executions of the
+       :ref:`query shape <query-shapes>`. Use this setting to cap a
+       single regressed shape or lift an over-tight client timeout
+       without changing application code.
+
+       If you omit ``maxTimeMS`` from query settings, the operation's
+       timeout follows the command-level ``maxTimeMS`` option and the
+       :parameter:`defaultMaxTimeMS` cluster parameter. Setting
+       ``maxTimeMS`` to ``0`` clears the ``maxTimeMS`` query setting,
+       and the operation falls back to the command-level and cluster
+       default values.
+
+       A ``maxTimeMS`` value set with ``setQuerySettings`` takes
+       precedence over a ``maxTimeMS`` value supplied in the command.
+
+       .. versionadded:: 9.0
+
+.. _setQuerySettings-query-knobs:
+
+Query Knobs
+~~~~~~~~~~~
+
+.. versionadded:: 9.0
+
+Starting in MongoDB 9.0, you can use the ``queryKnobs`` setting to override 
+internal server parameters for a single :ref:`query shape <query-shapes>` 
+instead of the whole instance. Set the ``queryKnobs`` field for targeted 
+queries to mitigate the impact of one regressed shape without changing
+behavior for other workloads on the same deployment.
+
+For example, you can override the :parameter:`notablescan` server
+parameter for a single query shape instead of the whole instance by
+setting ``queryKnobs`` to ``{ noTableScan: true }``.
+
+Each knob keeps the type, bounds, and default of its underlying server
+parameter, and ``setQuerySettings`` runs the same validation that
+:dbcommand:`setParameter` runs. ``setQuerySettings`` rejects the following 
+values:  
+
+- Unknown knobs
+- Knobs that are not marked as settable through query settings
+- Wrong BSON types
+- Invalid enum strings
+- Out-of-range values 
+- Knobs whose minimum FCV requirement exceeds the cluster FCV
+
+The effective value of a knob follows this precedence, from highest to
+lowest:
+
+#. Per-shape value set with ``queryKnobs``
+#. Instance-wide value set with :dbcommand:`setParameter`
+#. Compiled-in default value
+
+Query knobs are part of the hashed query settings, so they are also part of
+the :ref:`plan cache key <plan-cache-key>`. If you change a knob value, MongoDB
+produces a new plan cache key, so the planner creates a fresh plan
+instead of reusing a stale cached plan.
+
+Unlike :dbcommand:`setParameter`, which applies per process and can
+differ between nodes, MongoDB applies the same ``queryKnobs`` values
+across the whole cluster for the matching query shape.
+
+.. important::
+
+   When you downgrade the FCV from ``9.0`` to an earlier version, a
+   migration updates the stored query settings. The migration removes
+   every knob whose minimum FCV exceeds the target version and deletes any
+   settings entry that still contains only default values. Re-upgrading
+   to ``9.0`` does not restore the removed knobs. You must re-apply them
+   with ``setQuerySettings``.
 
 Examples
 --------
