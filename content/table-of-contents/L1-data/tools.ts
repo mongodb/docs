@@ -37,6 +37,16 @@ const tocData: TocItem[] = [
             contentSite: 'cloud-docs',
             url: '/docs/atlas/app-connections/credential-rotation-webhook',
           },
+          {
+            label: 'Manage App Access',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/app-connections/manage-app-access',
+          },
+          {
+            label: 'Connect an App to Your Atlas Account',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/app-connections/connect-app',
+          },
         ],
       },
     ],
@@ -228,29 +238,6 @@ const tocData: TocItem[] = [
         label: 'Azure',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/reference/partner-integrations/azure',
-      },
-    ],
-  },
-  {
-    label: 'Atlas App Connections',
-    contentSite: 'cloud-docs',
-    url: '/docs/atlas/app-connections',
-    collapsible: true,
-    items: [
-      {
-        label: 'Integrate Your App with Atlas App Connections',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/app-connections/partner-integration-guide',
-      },
-      {
-        label: 'Connect an App to Your Atlas Account',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/app-connections/connect-app',
-      },
-      {
-        label: 'Manage App Access',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/app-connections/manage-app-access',
       },
     ],
   },
