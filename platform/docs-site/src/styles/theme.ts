@@ -82,6 +82,10 @@ const colorPreference = {
   dark: '(prefers-color-scheme: dark)',
 };
 
+/**
+ * @deprecated Avoid using `theme` in new code. Migrate to the SCSS variables
+ * in `src/styles/global-theme.scss` instead. See UXE-1113.
+ */
 export const theme = {
   breakpoints,
   fontSize,
