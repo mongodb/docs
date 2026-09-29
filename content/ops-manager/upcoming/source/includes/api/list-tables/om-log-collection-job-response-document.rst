@@ -50,6 +50,7 @@
        - ``APPLICATION``
        - ``HTTP_ACCESS``
        - ``MIGRATION``
+       - ``DAEMON``
 
    * - ``sizeRequestedPerFileBytes``
      - number

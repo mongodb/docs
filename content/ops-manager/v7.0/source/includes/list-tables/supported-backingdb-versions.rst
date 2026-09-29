@@ -1,28 +1,49 @@
 .. list-table:: Supported Versions of MongoDB for Each Version of |onprem|
    :header-rows: 1
    :stub-columns: 1
-   :widths: 40 15 15 15 15
+   :widths: 15 12 12 12 12 12
 
    * - |onprem| Release
+     - MongoDB 4.2
      - MongoDB 4.4
      - MongoDB 5.0
      - MongoDB 6.0
      - MongoDB 7.0
 
    * - |onprem| 7.0
-     - 
+     - EOL
+     - EOL
      - Deprecated
      - Supported
      - Supported
-     
+
    * - |onprem| 6.0
+     - EOL
      - Deprecated
      - Supported
      - Supported
-     - 
+     - N/A
+
+   * - |onprem| 5.0
+     - Deprecated
+     - Supported
+     - Supported
+     - N/A
+     - N/A
+
+   * - |onprem| 4.4
+     - Supported
+     - Supported
+     - N/A
+     - N/A
+     - N/A
+
+   * - |onprem| 4.2
+     - Supported
+     - N/A
+     - N/A
+     - N/A
+     - N/A
 
 .. include:: /includes/deprecated-definition.rst
-
-.. important::
-
-   .. include:: /includes/facts/fact-backing-db-minor-release-unsupported.rst
+  

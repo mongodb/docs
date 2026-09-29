@@ -13,7 +13,18 @@ Manage S3-Compatible Oplog Storage
    :depth: 1
    :class: singlecol
 
-.. include:: /includes/backup/oplog-introduction.rst
+Throughout the lifecycle of a backup, {+mdbagent+} tails the
+:term:`oplog` of each :term:`replica set` and sends new oplog entries
+to |onprem|. The Agent sends the oplog entries in compressed bundles of
+approximately 10 MB in size called :term:`oplog slices <oplog slice>`.
+These oplog slices are stored in one or more storage systems called
+:opsmgr:`oplog stores  </reference/glossary/#std-term-Oplog-Store-Database>`. Every |onprem| deployment
+needs at least one oplog store.
+
+When you enable backups, |mms| prompts you to create your first oplog
+store. This can be a local oplog store or an |s3os|. Once you create
+the first oplog store, you manage it separately from your snapshot
+stores. You can create additional oplog stores.
 
 This tutorial covers creating additional |s3os|\s to store oplog
 entries. Like any MongoDB instance, an |s3os| can exist on any host
@@ -25,8 +36,23 @@ Considerations
 
 .. include:: /includes/considerations-requires-dedicated-bucket-oplog.rst
 
+Use an Unversioned Bucket for Standard Oplog Stores
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For standard |s3os|\s, use an unversioned bucket. |onprem| doesn't
+check if the bucket you use for a standard |s3os| has versioning or
+Object Lock enabled. If you use a versioned or Object-Lock-enabled
+bucket for a standard |s3os|, |onprem| ignores the bucket's S3
+version ID for that store and can fail to :term:`groom` the store's
+data.
+
+The only time you need a versioned, Object-Lock-enabled bucket for
+the oplog store is when you use it for immutable oplog backups. For
+the requirements, configuration, and behavior of an immutable oplog
+store, see :ref:`om-immutable-s3-snapshots`.
+
 Can't Move the S3-Compatible Oplog Store
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 After you create an |s3os|, you can't move it. Instead, you can 
 create a new |s3os| in a separate |s3| bucket within the same |aws| 
@@ -133,7 +159,7 @@ contains the settings for each local and |s3os|.
 .. _assign-s3-oplog-store-to-backup-job:
 
 Assign an S3-Compatible Oplog Store to a Backup Job
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When multiple clusters share one |onprem| project, each cluster's
 backup job can be routed to a distinct |s3os|. |onprem| assigns a

@@ -1,21 +1,47 @@
 .. list-table:: Supported Versions of MongoDB for Each Version of |onprem|
    :header-rows: 1
    :stub-columns: 1
-   :widths: 34 33 33
+   :widths: 15 12 12 12 12 12
 
    * - MongoDB Version
      - |onprem| 7.0
      - |onprem| 6.0
+     - |onprem| 5.0
+     - |onprem| 4.4
+     - |onprem| 4.2
 
    * - MongoDB 7.0
      - Supported
-     - 
+     - N/A
+     - N/A
+     - N/A
+     - N/A
 
    * - MongoDB 6.0
      - Supported
      - Supported
+     - N/A
+     - N/A
+     - N/A
 
    * - MongoDB 5.0
+     - Supported
+     - Supported
+     - Supported
+     - N/A
+     - N/A
+
+   * - MongoDB 4.4
+     - Supported
+     - Supported
+     - Supported
+     - Supported
+     - N/A
+
+   * - MongoDB 4.2
+     - Deprecated
+     - Supported
+     - Supported
      - Supported
      - Supported
 

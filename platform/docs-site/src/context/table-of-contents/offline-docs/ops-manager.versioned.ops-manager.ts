@@ -659,6 +659,14 @@ export const toc: L1TocItem[] = [
                     url: '/docs/ops-manager/:version/tutorial/mms-integrate-with-microsoft-teams',
                   },
                   {
+                    label: 'OpenTelemetry (OTel)',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/tutorial/otel-integration',
+                    versions: {
+                      includes: ['upcoming'],
+                    },
+                  },
+                  {
                     label: 'PagerDuty',
                     contentSite: 'ops-manager',
                     url: '/docs/ops-manager/:version/tutorial/pagerduty-integration',
@@ -826,6 +834,17 @@ export const toc: L1TocItem[] = [
                 label: 'Immutable Snapshots',
                 contentSite: 'ops-manager',
                 url: '/docs/ops-manager/:version/tutorial/immutable-s3-snapshots',
+                versions: {
+                  excludes: ['v7.0'],
+                },
+              },
+              {
+                label: 'Direct to S3 Backup',
+                contentSite: 'ops-manager',
+                url: '/docs/ops-manager/:version/core/backup-direct-to-s3',
+                versions: {
+                  includes: ['upcoming'],
+                },
               },
               {
                 label: 'Third-Party Platforms',
@@ -1395,7 +1414,30 @@ export const toc: L1TocItem[] = [
               {
                 label: 'Manage Backup Daemon',
                 contentSite: 'ops-manager',
+                collapsible: true,
+                versions: {
+                  excludes: ['v7.0'],
+                },
+                items: [
+                  {
+                    label: 'Manage Backup Daemon',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/tutorial/manage-backup-daemon',
+                  },
+                  {
+                    label: 'Move Job from Lost Backup Daemon',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/tutorial/move-jobs-to-new-backup-daemon',
+                  },
+                ],
+              },
+              {
+                label: 'Manage Backup Daemon',
+                contentSite: 'ops-manager',
                 url: '/docs/ops-manager/:version/tutorial/manage-backup-daemon',
+                versions: {
+                  includes: ['v7.0'],
+                },
               },
               {
                 label: 'Manage Snapshot Storage',
@@ -1437,11 +1479,17 @@ export const toc: L1TocItem[] = [
                     label: 'Oplog Storage',
                     contentSite: 'ops-manager',
                     url: '/docs/ops-manager/:version/tutorial/manage-oplog-storage',
+                    versions: {
+                      includes: ['v7.0'],
+                    },
                   },
                   {
                     label: 'Manage S3 Oplog Storage',
                     contentSite: 'ops-manager',
                     url: '/docs/ops-manager/:version/tutorial/manage-s3-oplog-storage',
+                    versions: {
+                      includes: ['v7.0'],
+                    },
                   },
                   {
                     label: 'Configure Block Size',
@@ -1452,6 +1500,29 @@ export const toc: L1TocItem[] = [
                     label: 'Move Job from Lost Backup Daemon',
                     contentSite: 'ops-manager',
                     url: '/docs/ops-manager/:version/tutorial/move-jobs-to-new-backup-daemon',
+                    versions: {
+                      includes: ['v7.0'],
+                    },
+                  },
+                ],
+              },
+              {
+                label: 'Manage Oplog Storage',
+                contentSite: 'ops-manager',
+                collapsible: true,
+                versions: {
+                  excludes: ['v7.0'],
+                },
+                items: [
+                  {
+                    label: 'Oplog Storage',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/tutorial/manage-oplog-storage',
+                  },
+                  {
+                    label: 'Manage S3 Oplog Storage',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/tutorial/manage-s3-oplog-storage',
                   },
                 ],
               },
@@ -1599,6 +1670,34 @@ export const toc: L1TocItem[] = [
                             label: 'Update',
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/clusters/clusters-update-one',
+                          },
+                        ],
+                      },
+                      {
+                        label: 'Re-Election Jobs',
+                        contentSite: 'ops-manager',
+                        collapsible: true,
+                        url: '/docs/ops-manager/:version/reference/api/re-election-jobs',
+                        items: [
+                          {
+                            label: 'Step Down a Primary',
+                            contentSite: 'ops-manager',
+                            url: '/docs/ops-manager/:version/reference/api/re-election-jobs/re-election-jobs-step-down',
+                          },
+                          {
+                            label: 'Step Up a Secondary',
+                            contentSite: 'ops-manager',
+                            url: '/docs/ops-manager/:version/reference/api/re-election-jobs/re-election-jobs-step-up',
+                          },
+                          {
+                            label: 'Get One',
+                            contentSite: 'ops-manager',
+                            url: '/docs/ops-manager/:version/reference/api/re-election-jobs/re-election-jobs-get-one',
+                          },
+                          {
+                            label: 'Get All',
+                            contentSite: 'ops-manager',
+                            url: '/docs/ops-manager/:version/reference/api/re-election-jobs/re-election-jobs-get-all',
                           },
                         ],
                       },

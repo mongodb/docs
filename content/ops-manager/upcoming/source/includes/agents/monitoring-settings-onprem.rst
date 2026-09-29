@@ -56,6 +56,102 @@ HTTP Proxy Settings
 
       httpProxy=http://proxy.example.com:8080
 
+.. _monitoring-agent-otel-settings:
+
+OpenTelemetry (OTel) Export Settings
+`````````````````````````````````````
+
+Specify this setting to send deployment metrics to a third-party
+OpenTelemetry (OTel) backend, in addition to |mms|. To learn more,
+see :ref:`otel-integration-mms`.
+
+.. msetting:: otelConfig
+
+   *Type*: string (JSON-encoded)
+
+   Specifies the OTel export configuration as a single JSON-encoded
+   string. The JSON object has the following fields:
+
+   .. list-table::
+      :widths: 25 12 15 48
+      :header-rows: 1
+
+      * - Field
+        - Type
+        - Necessity
+        - Description
+
+      * - ``enabled``
+        - boolean
+        - Optional
+        - Enables or disables the OTel export path. Defaults to
+          ``false``.
+
+      * - ``metricsExportIntervalSec``
+        - integer
+        - Optional
+        - Export cadence in seconds. Defaults to ``30``.
+
+      * - ``backends``
+        - array
+        - Required when ``enabled`` is ``true``
+        - Array of OTLP metric backends. Exactly one backend is
+          supported in this release. Configuring more than one
+          backend results in a hard error.
+
+      * - ``backends[].endpoint``
+        - string
+        - Required when ``enabled`` is ``true``
+        - OTLP/HTTP endpoint |url|. Must include an ``http://`` or
+          ``https://`` scheme. The scheme determines whether
+          {+mdbagent+} uses |tls|.
+
+      * - ``backends[].headers``
+        - string
+        - Optional
+        - Comma-separated ``key=value`` request headers, such as
+          authentication tokens required by the backend. Values can
+          be encrypted at rest. To learn more, see
+          :ref:`automation-config-encryption`.
+
+      * - ``backends[].compression``
+        - string
+        - Optional
+        - Payload compression for export requests: ``none`` or
+          ``gzip``. Defaults to ``none``.
+
+      * - ``backends[].caCertPath``
+        - string
+        - Optional
+        - Path to a |certauth| certificate |pem| file used to verify
+          the endpoint's |tls| certificate, such as a self-signed
+          Collector certificate.
+
+      * - ``backends[].clientCertPath``
+        - string
+        - Optional
+        - Path to a client certificate |pem| file for mutual |tls|
+          (mTLS). Must be set together with
+          ``backends[].clientKeyPath``.
+
+      * - ``backends[].clientKeyPath``
+        - string
+        - Optional
+        - Path to the client private key |pem| file for mutual |tls|
+          (mTLS). Must be set together with
+          ``backends[].clientCertPath``.
+
+      * - ``backends[].clientKeyPassword``
+        - string
+        - Optional
+        - Password used to decrypt the client private key |pem|
+          file, if encrypted. Requires ``backends[].clientCertPath``
+          and ``backends[].clientKeyPath`` to be set.
+
+   .. code-block:: ini
+
+      otelConfig={"enabled":true,"metricsExportIntervalSec":30,"backends":[{"endpoint":"https://collector.example.com:4318","headers":"Authorization=Bearer <token>","caCertPath":"/etc/ssl/ca.pem"}]}
+
 MongoDB Kerberos Settings
 `````````````````````````
 

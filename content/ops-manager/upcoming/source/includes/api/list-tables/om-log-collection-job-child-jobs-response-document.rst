@@ -20,6 +20,7 @@
        - ``APPLICATION``
        - ``HTTP_ACCESS``
        - ``MIGRATION``
+       - ``DAEMON``
 
    * - ``childJobs[n].status``
      - string
@@ -55,5 +56,5 @@
 
    * - ``childJobs[n].uncompressedDiskspaceBytes``
      - number
-     - Total uncompressed disk space, in bytes, that this child
-       job uses.
+     - Total uncompressed disk space, in bytes, used by this child
+       job.
