@@ -1,0 +1,227 @@
+.. _api-om-log-collections-submit:
+
+=========================================
+Create an |mms| Server Log Collection Job
+=========================================
+
+.. meta::
+   :description: Create an Ops Manager log collection job. Ops Manager gathers APPLICATION, HTTP_ACCESS, and MIGRATION logs from the requested servers in the background.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+When you create an |mms| server log collection job, |mms| starts
+background tasks to collect the requested logs from the target
+servers. Each server collects its logs locally, compresses and
+encrypts them, and stores the result in the Application Database.
+Use this endpoint to create a new job.
+
+.. include:: /includes/api/base-api-uri.rst
+
+Resource
+--------
+
+.. code-block:: http
+
+   POST /admin/omLogCollectionJobs
+
+Required Roles
+--------------
+
+.. include:: /includes/api/roles/global-roles.rst
+   :start-after: START_GLOBAL_OWNER
+   :end-before: END_GLOBAL_OWNER
+
+Request Parameters
+------------------
+
+Request Path Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-path-parameters.rst
+
+Request Query Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-query-single-parameters.rst
+
+Request Body Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 14 11 55
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Necessity
+     - Description
+
+   * - ``servers``
+     - array of strings
+     - Optional
+     - List of ``serverId`` values returned by
+       :ref:`api-om-log-collections-list-servers`. If you omit
+       this field or pass an empty array, |mms| collects logs from
+       every active server.
+
+   * - ``logTypes``
+     - array of strings
+     - Optional
+     - Log types to collect. Each element must be one of the
+       following values:
+
+       - ``APPLICATION``
+       - ``HTTP_ACCESS``
+       - ``MIGRATION``
+
+       If you omit this field or pass an empty array, |mms|
+       collects every log type.
+
+   * - ``sizeRequestedPerFileBytes``
+     - number
+     - Optional
+     - Maximum uncompressed size, in bytes, per log type per
+       server. Must be greater than 0. If you omit this field,
+       |mms| auto-allocates the remaining configured storage
+       across the requested servers and log types.
+
+   * - ``logCollectionFromDate``
+     - string
+     - Optional
+     - Start of the time range to collect, in ISO 8601 UTC format.
+       If you set this field, you must also set
+       ``logCollectionToDate``.
+
+   * - ``logCollectionToDate``
+     - string
+     - Optional
+     - End of the time range to collect, in ISO 8601 UTC format.
+       If you set this field, you must also set
+       ``logCollectionFromDate``.
+
+.. note::
+
+   When you combine a size limit and a time range, |mms| applies
+   the size limit as a safety cap. If the logs in the time range
+   exceed the size limit, |mms| returns the most recent logs up to
+   the size limit and sets ``sizeLimitHit`` to ``true`` on the
+   affected child jobs. If you omit ``sizeRequestedPerFileBytes``
+   alongside a time range, |mms| auto-allocates the remaining
+   configured storage across the requested servers and log types.
+
+|mms| rejects a create request that violates one of these rules:
+
+.. list-table::
+   :widths: 50 30 20
+   :header-rows: 1
+
+   * - Rule
+     - Error code
+     - HTTP status
+
+   * - ``sizeRequestedPerFileBytes`` must be greater than 0.
+     - ``INVALID_LOG_REQUEST_SIZE``
+     - 400
+
+   * - ``logCollectionFromDate`` and ``logCollectionToDate`` must
+       be set together.
+     - ``OM_LOG_INCOMPLETE_TIME_RANGE``
+     - 400
+
+   * - ``logCollectionFromDate`` must precede
+       ``logCollectionToDate``.
+     - ``OM_LOG_INVALID_TIME_RANGE``
+     - 400
+
+   * - ``logCollectionFromDate`` must not be in the future.
+     - ``OM_LOG_TIME_RANGE_IN_FUTURE``
+     - 400
+
+   * - The time range must not exceed 7 days.
+     - ``OM_LOG_TIME_RANGE_TOO_LARGE``
+     - 400
+
+   * - The time range must not start earlier than the maximum log
+       history that the |mms| administrator has configured.
+     - ``OM_LOG_TIME_RANGE_TOO_OLD``
+     - 400
+
+   * - Each value in ``servers`` must identify a registered,
+       active |mms| server.
+     - ``INACTIVE_SERVER`` or ``INVALID_SERVER``
+     - 400
+
+   * - The number of concurrent jobs must not exceed 4.
+     - ``TOO_MANY_OM_LOG_JOBS``
+     - 429
+
+   * - The estimated storage must not exceed the storage limit
+       that the |mms| administrator has configured for log
+       collection.
+     - ``OM_LOG_STORAGE_LIMIT_EXCEEDED``
+     - 413
+
+Response
+--------
+
+.. list-table::
+   :widths: 20 14 66
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Description
+
+   * - ``id``
+     - string
+     - Unique identifier of the new |mms| server log collection
+       job.
+
+Example Request
+---------------
+
+.. code-block:: sh
+
+   curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+        --header "Accept: application/json" \
+        --header "Content-Type: application/json" \
+        --include \
+        --request POST \
+        "https://{+opsmgr-url+}/api/public/v1.0/admin/omLogCollectionJobs?pretty=true" \
+        --data '
+          {
+            "servers": [
+              "om-server-1.example.com",
+              "om-server-2.example.com"
+            ],
+            "logTypes": ["APPLICATION", "HTTP_ACCESS"],
+            "sizeRequestedPerFileBytes": 5242880,
+            "logCollectionFromDate": "2026-04-13T10:00:00Z",
+            "logCollectionToDate": "2026-04-14T10:00:00Z"
+          }'
+
+Example Response
+----------------
+
+Response Header
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/api-headers/401.rst
+
+.. include:: /includes/api/api-headers/201.rst
+
+Response Body
+~~~~~~~~~~~~~
+
+.. code-block:: json
+   :copyable: false
+
+   { "id": "675a1234567890abcdef1234" }

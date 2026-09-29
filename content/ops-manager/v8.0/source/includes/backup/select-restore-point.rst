@@ -1,0 +1,50 @@
+.. list-table::
+   :widths: 20 50 30
+   :header-rows: 1
+
+   * - Restore Type
+
+     - Description
+
+     - Action
+
+   * - :guilabel:`Snapshot`
+
+     - Allows you to choose one :term:`stored snapshot <snapshot>`.
+
+     - Select an existing :term:`snapshot` to restore.
+
+   * - :guilabel:`Point In Time`
+
+     - Creates a custom snapshot that includes all operations up to but
+       not including the selected time. By default, the Oplog Store
+       stores 24 hours of data.
+
+       .. include:: /includes/fact-restore-doesnt-include-selected-time.rst
+
+       The restore dialog also shows the :guilabel:`restorable time
+       ranges` for the deployment. You can only choose a time that
+       falls within one of these ranges. If the time you want is not
+       available, an oplog gap exists for that period.
+
+     - Select a :guilabel:`Date` and :guilabel:`Time`.
+
+   * - :guilabel:`Oplog Timestamp`
+
+     - Creates a custom snapshot that includes all operations up to and
+       including the entered Oplog timestamp. The Oplog Timestamp contains two fields:
+
+       .. list-table::
+          :widths: 30 70
+
+          * - :guilabel:`Timestamp`
+            - |epoch-time|
+
+          * - :guilabel:`Increment`
+            - Order of operation applied in that second as a
+              32-bit ordinal.
+
+     - Type an Oplog :guilabel:`Timestamp` and :guilabel:`Increment`.
+
+       Run a query against ``local.oplog.rs`` on your
+       :term:`replica set` to find the desired timestamp.

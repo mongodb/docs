@@ -1,0 +1,143 @@
+.. _oidc-backing-db-overview:
+
+==========================================
+OIDC Authentication for Backing Databases
+==========================================
+
+.. meta::
+   :description: Configure OpenID Connect (OIDC) authentication so Ops Manager and the Backup Daemon can connect to the Application Database, snapshot stores, oplog stores, and sync stores.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+|onprem| and the Backup Daemon can authenticate to all supported
+backing databases using |oidc|. This includes the |application|
+Database, the snapshot store, the oplog store, and the sync store,
+including the metadata databases for S3-backed snapshot and oplog
+stores. |oidc| authentication is available in addition to the
+existing authentication mechanisms that |onprem| supports. Enabling
+|oidc| for a backing database does not disable or replace any other
+authentication mechanism that you already configured.
+
+This page describes the |oidc| authentication modes that |onprem|
+supports for backing databases, the prerequisites for enabling
+|oidc|, and the limitations of this feature. |oidc| authentication
+covered on this page applies only to connections that |onprem| and
+the Backup Daemon make to backing databases. It does not cover
+:ref:`end-user authentication to Ops Manager itself <security-oidc>`.
+
+Supported OIDC Modes
+--------------------
+
+|onprem| supports two |oidc| authentication modes for backing
+databases.
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Mode
+     - Description
+
+   * - Custom callback
+     - Use the client credentials flow to request access tokens
+       from any |oidc|-compliant |idp|, such as Keycloak, Okta, or
+       Azure. This mode requires a client ID and client secret.
+
+   * - Built-in environment authentication
+     - Use a workload identity provided by the deployment
+       environment for Azure, GCP, or Kubernetes. The MongoDB
+       driver obtains a workload identity token from the
+       environment automatically, and this mode does not require
+       a client secret.
+
+Prerequisites
+-------------
+
+Before you enable |oidc| authentication for a backing database,
+confirm the following prerequisites.
+
+- The backing database must run MongoDB 7.0.11 or later.
+
+- MongoDB must be configured to allow the ``MONGODB-OIDC``
+  authentication mechanism and to define ``oidcIdentityProviders``
+  for the |idp| that you intend to use.
+
+- For the custom callback mode, you need an |idp| client with the
+  client credentials flow enabled, and the |idp|'s token and JWKS
+  endpoints must be reachable over HTTPS.
+
+- For built-in environment authentication, the deployment
+  environment must already provide a valid workload identity for
+  Azure, GCP, or Kubernetes.
+
+- The |onprem| server host and the Backup Daemon host must both
+  trust the |idp|'s TLS certificate in the JVM or OS trust store. If
+  the |idp| endpoint uses a private certificate authority or a
+  self-signed certificate, and that certificate is not trusted,
+  |onprem| and the Backup Daemon fail to acquire tokens with a TLS
+  handshake error.
+
+Limitations
+-----------
+
+- |onprem| exposes |oidc| configuration for the |application|
+  Database only through ``conf-mms.properties``. The Admin
+  interface does not include a UI for |application| Database |oidc|
+  configuration.
+
+- The |oidc| authentication described on this page applies only to
+  connections that |onprem| and the Backup Daemon make to backing
+  databases. It does not apply to end-user authentication to
+  |onprem|.
+
+Version Validation
+------------------
+
+|onprem| validates the target MongoDB version before it applies an
+|oidc| configuration. The validation differs by connection type:
+
+- For a backing store, creating or updating the store through the
+  Admin interface or the API with a target MongoDB version earlier
+  than 7.0.11 fails.
+
+- For the |application| Database, |onprem| blocks startup if
+  |oidc| is enabled and the |application| Database runs a MongoDB
+  version earlier than 7.0.11.
+
+Restart Requirements
+--------------------
+
+.. important::
+
+   Changing |application| Database |oidc| settings requires
+   restarting |onprem|. Because the Backup Daemon reads the same
+   ``conf-mms.properties`` file at startup, restart the Backup
+   Daemon as well.
+
+Changing |oidc| settings for a backing store, such as the snapshot
+store, oplog store, or sync store, also requires restarting
+|onprem| and the Backup Daemon. This matches the existing behavior
+when you change a backing store's username or password.
+
+Fallback and Rollback
+---------------------
+
+If you need to roll back |oidc| authentication for a backing
+database, use the applicable procedure.
+
+- For the |application| Database, set
+  :setting:`mms.oidcEnabled` to ``false`` in ``conf-mms.properties``,
+  restore a non-|oidc| authentication mechanism in the connection
+  configuration, and restart |onprem| and the Backup Daemon.
+
+- For a backing store, disable |oidc| through the Admin interface or
+  the API. If you use the API, submit ``oidc: {enabled: false}``
+  with a non-|oidc| authentication configuration for that store, and
+  restart |onprem| and the Backup Daemon.

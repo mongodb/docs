@@ -1,0 +1,203 @@
+.. _api-om-log-collections-get-one:
+
+=======================================
+Get One |mms| Server Log Collection Job
+=======================================
+
+.. meta::
+   :description: Retrieve a single Ops Manager server log collection job by job ID, including status, configuration, total size, download URL, and optional child details.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Use this endpoint to retrieve a single |mms| server log collection
+job by its identifier.
+
+.. include:: /includes/api/base-api-uri.rst
+
+Resource
+--------
+
+.. code-block:: http
+
+   GET /admin/omLogCollectionJobs/{JOB-ID}
+
+Required Roles
+--------------
+
+.. include:: /includes/api/roles/global-roles.rst
+   :start-after: START_GLOBAL_READ_ONLY
+   :end-before: END_GLOBAL_READ_ONLY
+
+Request Parameters
+------------------
+
+Request Path Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 14 11 55
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Necessity
+     - Description
+
+   * - ``JOB-ID``
+     - string
+     - Required
+     - Unique 24-hexadecimal digit string that identifies the
+       |mms| server log collection job. To find a job ID, call
+       :ref:`api-om-log-collections-get-all`.
+
+Request Query Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 15 10 11 49 15
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Necessity
+     - Description
+     - Default
+
+   * - ``verbose``
+     - boolean
+     - Optional
+     - Flag that indicates whether to include all child jobs in
+       the response.
+     - ``false``
+
+   * - ``pretty``
+     - boolean
+     - Optional
+     - Flag indicating whether the response body should be in a
+       :wikipedia:`prettyprint <Prettyprint?oldid=791126873>` format.
+     - ``false``
+
+   * - ``envelope``
+     - boolean
+     - Optional
+     - Flag that indicates whether to wrap the response in an
+       envelope. Some |api| clients cannot access the |http|
+       response headers or status code. To remediate this, set
+       ``envelope=true`` in the query.
+     - ``false``
+
+Request Body Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-body-parameters.rst
+
+Response
+--------
+
+The response returns a single |mms| server log collection job.
+
+.. include:: /includes/api/list-tables/om-log-collection-job-response-document.rst
+
+childJobs Embedded Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each child job represents the log collection task for one server
+and one log type.
+
+.. include:: /includes/api/list-tables/om-log-collection-job-child-jobs-response-document.rst
+
+Example Request
+---------------
+
+.. code-block:: sh
+
+   curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+        --header "Accept: application/json" \
+        --include \
+        --request GET \
+        "https://{+opsmgr-url+}/api/public/v1.0/admin/omLogCollectionJobs/{JOB-ID}?verbose=true&pretty=true"
+
+Example Response
+----------------
+
+Response Header
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/api-headers/401.rst
+
+.. include:: /includes/api/api-headers/200.rst
+
+Response Body
+~~~~~~~~~~~~~
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "id": "675a1234567890abcdef1234",
+     "status": "SUCCESS",
+     "creationDate": "2026-04-13T10:00:00Z",
+     "expirationDate": "2026-04-20T10:00:00Z",
+     "finishDate": "2026-04-13T10:02:30Z",
+     "servers": [
+       "om-server-1.example.com",
+       "om-server-2.example.com"
+     ],
+     "logTypes": ["APPLICATION", "HTTP_ACCESS", "MIGRATION"],
+     "sizeRequestedPerFileBytes": 5242880,
+     "logCollectionFromDate": "2026-04-12T00:00:00Z",
+     "logCollectionToDate": "2026-04-13T00:00:00Z",
+     "uncompressedSizeTotalBytes": 15728640,
+     "sizeLimitHit": false,
+     "downloadUrl": "https://{+opsmgr-url+}/api/public/v1.0/admin/omLogCollectionJobs/675a1234567890abcdef1234:download",
+     "childJobs": [
+       {
+         "serverId": "om-server-1.example.com",
+         "logCollectionType": "APPLICATION",
+         "status": "SUCCESS",
+         "startDate": "2026-04-13T10:00:05Z",
+         "finishDate": "2026-04-13T10:01:30Z",
+         "errorMessage": null,
+         "sizeLimitHit": false,
+         "uncompressedDiskspaceBytes": 2621440
+       },
+       {
+         "serverId": "om-server-1.example.com",
+         "logCollectionType": "HTTP_ACCESS",
+         "status": "SUCCESS",
+         "startDate": "2026-04-13T10:00:05Z",
+         "finishDate": "2026-04-13T10:02:00Z",
+         "errorMessage": null,
+         "sizeLimitHit": false,
+         "uncompressedDiskspaceBytes": 1310720
+       },
+       {
+         "serverId": "om-server-1.example.com",
+         "logCollectionType": "MIGRATION",
+         "status": "SUCCESS",
+         "startDate": "2026-04-13T10:00:05Z",
+         "finishDate": "2026-04-13T10:01:15Z",
+         "errorMessage": null,
+         "sizeLimitHit": false,
+         "uncompressedDiskspaceBytes": 524288
+       },
+       {
+         "serverId": "om-server-2.example.com",
+         "logCollectionType": "APPLICATION",
+         "status": "SUCCESS",
+         "startDate": "2026-04-13T10:00:10Z",
+         "finishDate": "2026-04-13T10:02:30Z",
+         "errorMessage": null,
+         "sizeLimitHit": false,
+         "uncompressedDiskspaceBytes": 3145728
+       }
+     ]
+   }

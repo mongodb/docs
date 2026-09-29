@@ -1,0 +1,273 @@
+.. _manage-s3-snapshot-store:
+
+=====================================
+Manage S3-Compatible Snapshot Storage
+=====================================
+
+.. meta::
+   :description: Manage S3-compatible snapshot storage in Ops Manager, including setup, configuration, and editing of S3-compatible snapshot stores for MongoDB backups.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/backup/snapshot-store-options.rst
+
+This tutorial covers backing up your MongoDB databases as snapshots
+stored in |s3| and |s3|\-compatible buckets. |mms| stores the metadata
+for :opsmgr:`S3 snapshot stores  </reference/glossary/#std-term-S3-Snapshot-Store>` in a MongoDB
+database.
+
+.. warning::
+
+   .. include:: /includes/backup/aws-sdkv2-s3-compatibility-note.rst
+
+Considerations
+--------------
+
+Requires a Dedicated Bucket
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|mms| must be the only manager on the |s3| bucket that you use for
+snapshots. You also need to configure the |s3| bucket to avoid using
+features that |mms| does not support.
+
+When configuring the |s3| bucket:
+
+- Do not create subfolders in the |s3| buckets that you use with |mms|.
+  |mms| only supports using entire |s3| buckets.
+
+- Do not create |s3| lifecycle rules. Lifecycle rules that expire or
+  transition current versions of |mms| snapshot objects to archives
+  result in incomplete snapshots that you can't use to restore the
+  configuration.
+
+Requires an Unversioned Bucket for Standard Snapshots
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For standard |s3| snapshot stores, you must disable versioning. The only
+time the snapshot store requires a versioned bucket is when it's used
+for :ref:`immutable backups <om-immutable-s3-snapshots>`.
+
+If you are configuring immutable backups, note the following:
+
+- Immutable backups require |onprem| version 8.0.19 or later.
+
+- You must enable versioning and Object Lock on an |s3| bucket that is
+  used for immutable backups.
+
+.. warning::
+
+   When versioning and Object Lock are enabled, groom jobs sometimes
+   aren't able to clean up the store. In addition, incorrect
+   configuration might result in data corruption or data loss.
+
+.. include:: /includes/backup/add-capacity-using-multiple-stores.rst
+
+Requires Support for S3-Compatible Storage |api|\s
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Ensure that the |s3| vendor supports the following |s3| |api|\s:
+
+- :aws-docs:`CopyObject </AmazonS3/latest/API/API_CopyObject.html>`
+- :aws-docs:`DeleteObject </AmazonS3/latest/API/API_DeleteObject.html>`
+- :aws-docs:`DeleteObjects </AmazonS3/latest/API/API_DeleteObjects.html>`
+- :aws-docs:`PutObject </AmazonS3/latest/API/API_PutObject.html>`
+- :aws-docs:`HeadObject </AmazonS3/latest/API/API_HeadObject.html>`
+- :aws-docs:`HeadBucket </AmazonS3/latest/API/API_HeadBucket.html>`
+- :aws-docs:`GetObject </AmazonS3/latest/API/API_GetObject.html>`
+- :aws-docs:`ListObjects </AmazonS3/latest/API/API_ListObjects.html>`
+
+Can't Move the S3-Compatible Snapshot Store
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After you create an |s3ss|, you cannot move it to another |s3| bucket.
+If you need to use a different |s3| bucket to host your |s3ss|, you
+must create a new |s3ss| in that |s3| bucket.
+
+Supports the Storage API
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _Cloud Object Storage API: https://cloud.ibm.com/apidocs/cos/cos-compatibility
+
+MongoDB supports endpoints that are compatible with AWS S3 APIs from any vendor.
+|mms| attempts to validate
+these endpoints when you save the |s3ss| setup. If validation
+passes, |mms| saves the configuration. If validation fails, |mms|
+displays an error and doesn't save the configuration.
+
+.. include:: /includes/backup/s3-consistency-requirement.rst
+
+Prerequisites
+-------------
+
+Metadata Storage Prerequisites
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- :doc:`Deploy the dedicated MongoDB instance(s) </tutorial/prepare-backing-mongodb-instances>`
+  to serve the :opsmgr:`S3 snapshot store  </reference/glossary/#std-term-S3-Snapshot-Store>` metadata
+  and :opsmgr:`Oplog Store  </reference/glossary/#std-term-Oplog-Store-Database>`. Serve these
+  instances on separate hosts from the |onprem| host and the
+  application database to avoid performance and backup issues. Attach one or more
+  storage volumes with enough capacity to store the databases these
+  instances manage.
+
+- Ensure the host serving the |onprem| :opsmgr:`Backup Daemon </reference/glossary/#std-term-backup-daemon>` service
+  has enough capacity to store queryable restores in the
+  :term:`head directory`.
+
+  .. note::
+
+     If you have not previously set the :term:`head directory`,
+     set it in the :guilabel:`Head Directory` box.
+
+- Secure the instance that stores your
+  :opsmgr:`S3 snapshot store  </reference/glossary/#std-term-S3-Snapshot-Store>` metadata database
+  using :ref:`authentication` and
+  :ref:`TLS <configure-mongod-mongos-for-tls-ssl>`. |s3ss| metadata databases
+  support :urioption:`all authentication mechanisms <authMechanism>`.
+
+AWS S3 Storage Prerequisites
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. Verify that you have an
+   :aws:`IAM user </IAM/latest/UserGuide/id_users_create.html>`
+   on |aws|.
+
+#. Create your own
+   :aws:`AWS access keys </IAM/latest/UserGuide/id_credentials_access-keys.html>`
+   for your |iam| user. This allows you to create |s3| buckets and
+   store snapshot files in them. MongoDB does not create or issue |aws|
+   access keys.
+
+#. Create your own :aws:`S3 bucket </AmazonS3/latest/dev/UsingBucket.html#create-bucket-intro>`
+   to store your :opsmgr:`S3 snapshot store  </reference/glossary/#std-term-S3-Snapshot-Store>`
+   snapshots.
+
+   .. note::
+   
+      The |iam| user that you created the |aws| access keys for must
+      have at least the following :aws:`read and write permissions </AmazonS3/latest/user-guide/set-bucket-permissions.html>`
+      for the |s3| Bucket:
+
+      - ``s3:PutObject``
+      - ``s3:GetObject``
+      - ``s3:ListBucket``
+      - ``s3:DeleteObject``
+
+#. (Optional) If you serve your |onprem| instance on |aws| EC2,
+   :aws:`create an IAM Role </AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html#create-iam-role>`
+   to handle authorization.
+
+   This role needs:
+
+   - :guilabel:`AWS service` as the trusted entity.
+   - :guilabel:`EC2` as the use case.
+   - Permissions to read and write access to your |s3| bucket.
+
+   To learn more, see:
+
+   - :aws:`Attach IAM role </AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html#attach-iam-role>`
+
+   - :aws:`Set up S3 bucket access </IAM/latest/UserGuide/reference_policies_examples_s3_deny-except-bucket.html>`
+
+Other S3-Compatible Storage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Other |s3| endpoints can be used. |mms| attempts to validate
+these endpoints when you save the configuration. If validation passes,
+the configuration, |mms| saves it. If validation fails, |mms| displays
+an error and doesn't save the configuration.
+
+Procedures
+----------
+
+.. include:: /includes/tabsets/storage-settings-selection.rst
+
+.. _add-s3-blockstore:
+
+Add One S3-Compatible Snapshot Store
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   If you have not configured a backing store before, |onprem|
+   initially displays a simplified setup screen. Click
+   :guilabel:`Advanced Setup` on that screen to access the full
+   configuration options, including |oidc| authentication.
+
+.. include:: /includes/steps/admin-add-s3-blockstore.rst
+
+.. _edit-s3-blockstore:
+
+Edit One Existing S3-Compatible Snapshot Store
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|onprem| lists |s3ss|\s in a table on the
+:ref:`Snapshot Storage page <blockstores-page>`. Each row contains the
+settings for one |s3ss|.
+
+.. include:: /includes/steps/admin-edit-s3-blockstore.rst
+
+.. _assign-s3-snapshot-store-to-backup-job:
+
+Assign an S3-Compatible Snapshot Store to a Backup Job
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When multiple clusters share one |onprem| project, each cluster's
+backup job can be routed to a distinct |s3ss|. |onprem| assigns a
+new backup job to a store that has :guilabel:`Assignment Enabled`
+selected. You can route each job to a specific store by selecting 
+which stores have assignment enabled before you start each backup job.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create a separate |s3ss| for each backup job.
+
+      Follow the :ref:`add-s3-blockstore` procedure to create
+      one |s3ss| for each backup job that you want to route to a
+      distinct store.
+
+   .. step:: Enable assignment on the target store and disable
+      it on all other stores.
+
+      For each |s3ss|, use the :ref:`edit-s3-blockstore`
+      procedure:
+
+      a. For the store to assign to the first backup job, select
+         :guilabel:`Assignment Enabled`.
+      b. For all other stores, clear
+         :guilabel:`Assignment Enabled`.
+
+   .. step:: Start the first backup job.
+
+      |onprem| assigns the enabled store to this backup job.
+
+   .. step:: Repeat for each additional backup job.
+
+      For each remaining backup job:
+
+      a. Select :guilabel:`Assignment Enabled` for the target
+         store.
+      b. Clear :guilabel:`Assignment Enabled` for all other
+         stores.
+      c. Start the backup job.
+
+   .. step:: (Optional) Re-enable assignment on all stores.
+
+      After assigning all backup jobs, re-enable
+      :guilabel:`Assignment Enabled` on all stores. This allows
+      |onprem| to distribute future backup jobs across all
+      available stores.
+
+.. _delete-s3-blockstore:
+
+Delete One S3-Compatible Snapshot Store
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/steps/admin-delete-s3-blockstore.rst

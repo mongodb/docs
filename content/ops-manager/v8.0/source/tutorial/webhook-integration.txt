@@ -1,0 +1,231 @@
+.. meta::
+   :keywords: webhook, code example
+   :description: Configure Ops Manager webhook integration to receive alert notifications via HTTP POST requests for programmatic processing. Customize webhook templates using FreeMarker syntax.
+
+.. _webhook-integration:
+
+======================================
+Integrate with Webhooks in Ops Manager
+======================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can configure |mms| to send alert notifications to a webhook
+endpoint as |http| POST requests for programmatic processing.
+Webhooks allow you to integrate |mms| alerts with custom
+monitoring systems, incident management platforms, or automation
+workflows.
+
+Required Access
+---------------
+
+To integrate |mms| with webhooks, you must have
+:authrole:`Project Monitoring Admin` access to the project.
+
+Configure a Webhook Integration
+-------------------------------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Navigate to the :guilabel:`Project Integrations` page.
+
+      a. If it is not already displayed, select the
+         organization that contains your desired project from
+         the |ui-org-menu| in the navigation bar.
+
+      #. If it is not already displayed, select your desired
+         project from the :guilabel:`Projects` menu in the
+         navigation bar.
+
+      #. Click :guilabel:`Integrations` in the left navigation
+         panel under the :guilabel:`Settings` heading.
+
+   .. step:: Click :guilabel:`Configure` for :guilabel:`Webhook Settings`.
+
+   .. step:: Enter the webhook URL.
+
+      In the :guilabel:`Webhook URL` field, enter the endpoint
+      |url| where |mms| should send alert notifications.
+
+   .. step:: (Optional) Enter a webhook secret.
+
+      In the :guilabel:`Webhook Secret` field, enter a secret
+      key. |mms| uses this secret to generate the
+      ``X-MMS-Signature`` header for request verification.
+
+   .. step:: Click :guilabel:`Save`.
+
+To send alerts to your webhook, configure alert notifications.
+To learn more, see :ref:`configure-alerts`.
+
+Request Headers
+---------------
+
+|mms| includes the following |http| headers with each webhook
+request:
+
+.. include:: /includes/facts/alert-webhook-mms-event-header.rst
+
+Request Body
+------------
+
+The request body contains a |json| document that uses the same
+format as the |mms| |api|
+:doc:`Alerts resource </reference/api/alerts>`. The payload
+includes key fields such as:
+
+- ``id``: Unique identifier for the alert.
+- ``eventTypeName``: Type of event that triggered the alert.
+- ``created``: Timestamp when the alert was created.
+- ``status``: Current status of the alert (for example, ``OPEN``,
+  ``CLOSED``).
+- ``humanReadable``: Human-readable description of the alert.
+
+For a complete list of fields, refer to the
+:doc:`Get One Alert </reference/api/alerts-get-alert>`
+endpoint documentation.
+
+Example Webhook Payload
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example shows a sample webhook payload for a
+metric threshold alert:
+
+.. code-block:: json
+
+   {
+     "id": "5d1b6f8e8c2e4e2d3c4a5b6c",
+     "groupId": "5d1b6f8e8c2e4e2d3c4a5b6d",
+     "eventTypeName": "OUTSIDE_METRIC_THRESHOLD",
+     "status": "OPEN",
+     "created": "2024-01-15T10:30:00Z",
+     "updated": "2024-01-15T10:30:00Z",
+     "lastNotified": "2024-01-15T10:30:00Z",
+     "humanReadable": "Disk space used on data partition is
+       95.2%.",
+     "metricName": "DISK_PARTITION_SPACE_USED_DATA",
+     "currentValue": {
+       "number": 95.2,
+       "units": "RAW"
+     }
+   }
+
+Customize Webhook Templates
+---------------------------
+
+You can customize the request headers and body content using
+FreeMarker templates. For detailed information about webhook
+templating, including available template variables, regex
+helpers, and examples, see
+:doc:`Configure Webhook Templating
+</tutorial/webhook-templating>`.
+
+Authenticate Webhook Requests
+-----------------------------
+
+The :guilabel:`Webhook Secret` field stores a secret that |mms|
+uses solely to generate the ``X-MMS-Signature`` header for
+request verification. |mms| does not send the secret directly
+as an authentication header or bearer token.
+
+If your webhook endpoint requires authentication, you must
+handle it independently using one of the following methods:
+
+- **Query Parameters**: Include authentication credentials in
+  the :guilabel:`Webhook URL` as query parameters. For example:
+  ``https://example.com/webhook?token=your-auth-token``
+
+- **IP Access List**: Configure your webhook endpoint to accept
+  requests only from your |mms| instance's IP addresses.
+
+- **Reverse Proxy or API Gateway**: Use a reverse proxy or
+  |api| gateway that handles authentication before forwarding
+  requests to your webhook endpoint.
+
+Verify Webhook Requests
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To verify that a webhook request originated from |mms|,
+validate the ``X-MMS-Signature`` header:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Retrieve the ``X-MMS-Signature`` header value from the incoming request.
+
+   .. step:: Calculate the Base64-encoded |hmac|-SHA-1 signature of the request body using your webhook secret.
+
+   .. step:: Compare your calculated signature with the ``X-MMS-Signature`` header value.
+
+      If they match, the request is authentic.
+
+Limitations
+-----------
+
+When you use webhook integrations, consider the following
+limitations:
+
+Alert Severity Not Included
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The webhook payload does not include the alert severity level
+that you configure in |mms|. To retrieve the configured
+severity, make an additional call to the
+:doc:`Get One Alert Configuration
+</reference/api/alert-configurations-get-config>` endpoint using
+the ``alertConfigId`` from the webhook payload.
+
+No Manual Test Alerts
+~~~~~~~~~~~~~~~~~~~~~
+
+|mms| does not provide a way to trigger test alerts manually.
+To test your webhook endpoint, you can temporarily set up an
+alert with conditions that are easy to trigger, such as:
+
+- A low disk space threshold on a test deployment.
+- A connection count threshold that you can trigger by opening
+  multiple connections.
+- A replication lag threshold on a test replica set.
+
+After you confirm your webhook receives alerts correctly, you
+can delete the test alert configuration.
+
+Firewall Configuration
+----------------------
+
+Since |mms| is self-hosted, ensure your network allows
+outbound |http| requests from the |mms| server to your
+webhook endpoint. If your webhook endpoint is behind a
+firewall, add the |mms| server's IP address to the
+endpoint's IP access list.
+
+Troubleshoot Webhook Delivery Issues
+-------------------------------------
+
+If your webhook does not receive alerts:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Verify that the webhook URL is correct and accessible from the |mms| server.
+
+   .. step:: Check that your firewall allows outbound requests from the |mms| server to the webhook endpoint.
+
+   .. step:: Ensure your webhook endpoint returns a 2xx HTTP status code.
+
+      |mms| considers other status codes as failures.
+
+   .. step:: Review your alert configuration to ensure alerts are enabled and the webhook is selected as a notification method.
+
+   .. step:: Check the :guilabel:`Activity Feed` in the |mms| UI for any webhook delivery errors.

@@ -1,0 +1,137 @@
+.. _om-api-update-global-app-settings:
+
+==========================
+Update Global App Settings
+==========================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Update global application settings for an |onprem| installation. Include only the settings you want to change; all other settings remain unchanged. Requires the Global Owner role.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Updates the global application settings for an |onprem|
+installation. Include only the settings you want to change.
+|onprem| leaves all other settings unchanged.
+
+Required Roles
+--------------
+
+To successfully call this endpoint, your |api| key must have
+the :authrole:`Global Owner` role.
+
+Request
+-------
+
+.. include:: /includes/api/base-api-uri.rst
+
+.. code-block:: http
+
+   PATCH /admin/settings
+
+Request Path Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-path-parameters.rst
+
+Request Query Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/base-query-single-parameters.rst
+
+Request Body Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+   :stub-columns: 1
+
+   * - Field
+     - Type
+     - Necessity
+     - Description
+
+   * - ``dbProperties``
+     - object
+     - Required
+     - Key-value pairs of global app settings to update or
+       add. Settings not included in the request remain
+       unchanged. To remove a setting, set its value to
+       ``null``.
+
+.. important::
+
+   |onprem| rejects any request that includes
+   ``mms.app.upgradeMode``, regardless of value. These
+   requests return a 400 error with the
+   ``INVALID_SETTINGS_EXCEPTION`` error code.
+
+   Validation runs against the merged set of existing and
+   submitted settings, not just the submitted properties. A
+   request can fail on a field you didn't include if that
+   field is a dependency of a setting you submitted and
+   isn't already configured. For example, submitting
+   ``{"mms.emailDaoClass": "SIMPLE_MAILER"}`` fails with
+   ``detail: "mms.mail.hostname must not be blank"`` if
+   ``mms.mail.hostname`` has no existing value.
+
+Response
+--------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 15 55
+   :stub-columns: 1
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``restartRequired``
+     - boolean
+     - Indicates whether you must restart |onprem| for the
+       updated settings to take effect.
+
+Example Request
+---------------
+
+.. code-block:: sh
+
+   curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+        --header "Accept: application/json" \
+        --header "Content-Type: application/json" \
+        --include \
+        --request PATCH \
+        "https://{+opsmgr-url+}/api/public/v1.0/admin/settings?pretty=true" \
+        --data '{
+          "dbProperties": {
+            "mms.centralUrl": "https://ops-manager.example.com"
+          }
+        }'
+
+Example Response
+----------------
+
+Response Header
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/api-headers/401.rst
+
+.. include:: /includes/api/api-headers/200.rst
+
+Response Body
+~~~~~~~~~~~~~
+
+.. code-block:: json
+   :copyable: false
+   :linenos:
+
+   {
+     "restartRequired": false
+   }

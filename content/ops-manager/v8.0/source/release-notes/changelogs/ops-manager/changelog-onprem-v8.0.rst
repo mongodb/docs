@@ -1,0 +1,1612 @@
+.. _opsmgr-server-8.0.26:
+
+|onprem| Server 8.0.26
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2026-08-12*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to
+  :ref:`108.0.26.9062-1 <mongodb-108.0.26.9062-1>`.
+- Adds support for the MongoDB Connector for BI 2.14.29.
+- Supports :dbtools:`MongoDB Database Tools 100.17.0
+  </release-notes/dbtools-100.17.0-changelog>`.
+- Updates JDK to `jdk-21.0.12+8
+  <https://adoptium.net/temurin/release-notes/?version=jdk-21.0.12+8>`__.
+- Enables in-place TLS certificate rotation for MongoDB 5.0 and
+  later deployments, allowing certificate updates without
+  downtime. To learn more, see :ref:`rotate-tls-certificates`.
+- Updates {+mongosh+} to 2.9.1 for all supported environments.
+- Updates the bundled MongoDB Java Driver from 4.9.1 to 5.4.0.
+  This driver update removes support for MongoDB Server 3.6.
+- Uses ``majority`` write concern by default for durable writes to
+  the application database and to backup metadata stores, improving
+  durability on 5-node and 7-node deployments. For write concern
+  details for backing databases, see :ref:`write concern for backing
+  databases <backing-database-write-concern>`.
+- Improves hybrid-mode deployments by ensuring agent binary
+  download URLs correctly use the hybrid base URL when available.
+- Adds support for OIDC authentication to AppDB and all backing
+  databases, including UI and public APIs support. To learn
+  more, see :ref:`oidc-backing-db-overview`.
+- Streams log uploads to AppDB as they arrive instead of
+  buffering them in temporary files on the |onprem| server.
+  This removes ``/tmp`` disk usage during large or concurrent
+  log collection operations, reducing the risk of server
+  crashes from temporary-storage exhaustion and the need to
+  provision oversized temporary volumes.
+- Supports cancelling in-progress log collection jobs so
+  cancelled work stops immediately, reducing wasted network,
+  CPU, and storage resources when a job is deleted.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes a critical backup corruption issue where a static abort
+  flag could cause unrelated backup jobs to be permanently marked
+  as broken, halting backups for other tenants until manual
+  intervention.
+- Prevents cross-project backup data access by ensuring imported
+  snapshot restores are properly scoped to the correct project.
+- Fixes a bug where the :guilabel:`Restore` page in the Admin UI
+  could error if a restore job pointed to a deleted import
+  deployment job, and cleans up orphaned restore jobs.
+- Corrects sharded cluster restore validation to match snapshot
+  components to target shards by replica set ID instead of list
+  position.
+- Fixes a regression where major or minor MongoDB version changes
+  could be blocked by spurious ``lastErrorModes`` changes.
+- Ensures that the AppDB SSL toggle in monitoring settings updates
+  correctly in the UI.
+- Fixes a bug where automated restore jobs stalled if the
+  deployment used ``net.tls.clusterAuthX509.attributes``.
+- Prevents misleading errors when importing deployments with
+  matching TLS settings by only rejecting on actual mismatches.
+- Fixes an issue where config backup persist failures could block
+  goal-state reporting even when encryption is disabled.
+- Fixes an issue where disk metrics weren't reported by the agent
+  when the database data resided on a dynamically mounted volume.
+- Fixes a UI issue where the left navigation highlight jumped to
+  the :guilabel:`Support` tab when the :guilabel:`Backup` tab was
+  selected.
+- Fixes a bug where LDAP configuration changes required an
+  |onprem| restart.
+- Fixes a bug where the backup daemon diagnostics page was
+  vulnerable to stored XSS through unescaped replica set names.
+- Prevents credential exposure by redacting AWS and backup
+  database credentials in S3 blockstore admin APIs and public
+  admin API reads.
+- Prevents credential exposure by redacting agent API keys and
+  certificate passwords in backup module startup error logs.
+- Prevents credential exposure by redacting the backup restore
+  verification token in agent logs during point-in-time restore
+  retries or failures.
+- Prevents credential exposure by redacting pre-signed S3 URLs in
+  agent logs on backup block download failures.
+- Prevents cross-tenant checkpoint writes by scoping agent
+  checkpoint mutations to the owning cluster.
+- Prevents persistent backup daemon denial of service from a
+  forged Snappy length in stored oplog slices by adding a maximum
+  size check.
+- Fixes a bug where new files in FileSystemStore incremental
+  backup could wedge the finish step, leaving snapshots
+  incomplete.
+- Fixes a bug where the login password appeared in plaintext in
+  browser DevTools by base64-encoding the password before sending
+  it to the server.
+- Fixes a bug where the oldest supported {+mdbagent+} version
+  wasn't updated, which could cause patch failures due to missing
+  S3 artifacts.
+- Fixes a bug where the agent couldn't resolve MongoDB Tools or
+  {+mongosh+} download URLs for ``ppc64le_rhel9`` platforms.
+- Fixes a bug where the agent couldn't resolve MongoDB Tools
+  download URLs for RHEL 8 (``s390x``) hosts.
+- Fixes the following |cve|\s:
+
+  - `CVE-2026-55223 <https://nvd.nist.gov/vuln/detail/CVE-2026-55223>`__
+  - `CVE-2026-67214 <https://nvd.nist.gov/vuln/detail/CVE-2026-67214>`__
+  - `CVE-2026-67213 <https://nvd.nist.gov/vuln/detail/CVE-2026-67213>`__
+  - `CVE-2026-40181 <https://nvd.nist.gov/vuln/detail/CVE-2026-40181>`__
+  - `CVE-2026-42338 <https://nvd.nist.gov/vuln/detail/CVE-2026-42338>`__
+  - `CVE-2026-69192 <https://nvd.nist.gov/vuln/detail/CVE-2026-69192>`__
+  - `CVE-2026-69153 <https://nvd.nist.gov/vuln/detail/CVE-2026-69153>`__
+  - `CVE-2026-13676 <https://nvd.nist.gov/vuln/detail/CVE-2026-13676>`__
+  - `CVE-2026-16221 <https://nvd.nist.gov/vuln/detail/CVE-2026-16221>`__
+  - `CVE-2026-18446 <https://nvd.nist.gov/vuln/detail/CVE-2026-18446>`__
+  - `CVE-2026-12590 <https://nvd.nist.gov/vuln/detail/CVE-2026-12590>`__
+  - `CVE-2026-10050 <https://nvd.nist.gov/vuln/detail/CVE-2026-10050>`__
+  - `CVE-2026-8384 <https://nvd.nist.gov/vuln/detail/CVE-2026-8384>`__
+  - `CVE-2026-59901 <https://nvd.nist.gov/vuln/detail/CVE-2026-59901>`__
+  - `CVE-2026-56745 <https://nvd.nist.gov/vuln/detail/CVE-2026-56745>`__
+  - `CVE-2026-55831 <https://nvd.nist.gov/vuln/detail/CVE-2026-55831>`__
+  - `CVE-2026-55833 <https://nvd.nist.gov/vuln/detail/CVE-2026-55833>`__
+  - `CVE-2026-59898 <https://nvd.nist.gov/vuln/detail/CVE-2026-59898>`__
+  - `CVE-2026-59899 <https://nvd.nist.gov/vuln/detail/CVE-2026-59899>`__
+  - `CVE-2026-59921 <https://nvd.nist.gov/vuln/detail/CVE-2026-59921>`__
+  - `CVE-2026-33750 <https://nvd.nist.gov/vuln/detail/CVE-2026-33750>`__
+  - `CVE-2026-13149 <https://nvd.nist.gov/vuln/detail/CVE-2026-13149>`__
+  - `CVE-2026-27903 <https://nvd.nist.gov/vuln/detail/CVE-2026-27903>`__
+  - `CVE-2026-27904 <https://nvd.nist.gov/vuln/detail/CVE-2026-27904>`__
+  - `CVE-2026-25896 <https://nvd.nist.gov/vuln/detail/CVE-2026-25896>`__
+  - `CVE-2026-25128 <https://nvd.nist.gov/vuln/detail/CVE-2026-25128>`__
+  - `CVE-2026-26278 <https://nvd.nist.gov/vuln/detail/CVE-2026-26278>`__
+  - `CVE-2026-27942 <https://nvd.nist.gov/vuln/detail/CVE-2026-27942>`__
+  - `CVE-2025-69873 <https://nvd.nist.gov/vuln/detail/CVE-2025-69873>`__
+  - `CVE-2026-41907 <https://nvd.nist.gov/vuln/detail/CVE-2026-41907>`__
+
+.. _opsmgr-server-8.0.25:
+
+|onprem| Server 8.0.25
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2026-07-03*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to
+  :ref:`108.0.25.9029-1 <mongodb-108.0.25.9029-1>`.
+- Adds HashiCorp Vault support, including key vault CRUD APIs,
+  UI-based key vault and S3 configuration, and secret caching
+  improvements.
+  To learn more, see :ref:`om-vault-snapshot-store-credentials`.
+- Deletes completed on-demand log collection jobs immediately,
+  freeing storage space.
+- Improves snapshot immutability logging by including additional
+  error code details when S3 error codes don't match the
+  configured regex.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes a cross-tenant backup metadata vulnerability that let an
+  authenticated tenant read or modify another tenant's backup
+  sync record when the sync ID was known.
+- Fixes a cross-project backup state vulnerability by requiring
+  the requester's group ID to match the cluster's group ID
+  before allowing backup state changes.
+- Fixes an issue where the
+  ``wiredTiger.engineConfig.zstdCompressionLevel`` setting
+  didn't persist in the automation config.
+- Updates the Queryable Restore UI panels to reference
+  ``mongosh`` instead of ``mongo``.
+- Fixes an issue where retrying a failed log collection child
+  job silently failed because the cloned job inherited a
+  terminal status.
+- Enforces log collection storage quotas on the server side,
+  ensuring that oversized log requests through the public API
+  can't bypass configured storage limits.
+- Fixes a bug that caused incremental backup to write zero-byte
+  files for new files.
+- Fixes a documentation link in the |onprem| provisioning prep
+  page to point to the correct installation options URL.
+- Restores logging of HTTP access log entries in
+  ``mms-hosted-access.log`` after a logback upgrade.
+- Fixes a security issue where a project's agent API key could
+  send a ``POST`` request to ``/fileList`` with malicious path
+  components. |onprem| now validates input and write
+  destinations to prevent arbitrary file writes.
+- Fixes a pre-flight check failure that occurred when you
+  restarted |onprem| with a ``mongot`` deployment present.
+- Fixes the following |cve|\s:
+
+  - `CVE-2026-54512 <https://nvd.nist.gov/vuln/detail/CVE-2026-54512>`__
+  - `CVE-2026-54513 <https://nvd.nist.gov/vuln/detail/CVE-2026-54513>`__
+  - `CVE-2026-54514 <https://nvd.nist.gov/vuln/detail/CVE-2026-54514>`__
+  - `CVE-2026-54515 <https://nvd.nist.gov/vuln/detail/CVE-2026-54515>`__
+  - `CVE-2026-55602 <https://nvd.nist.gov/vuln/detail/CVE-2026-55602>`__
+  - `CVE-2026-45292 <https://nvd.nist.gov/vuln/detail/CVE-2026-45292>`__
+  - `CVE-2026-40181 <https://nvd.nist.gov/vuln/detail/CVE-2026-40181>`__
+  - `CVE-2026-44456 <https://nvd.nist.gov/vuln/detail/CVE-2026-44456>`__
+  - `CVE-2026-44457 <https://nvd.nist.gov/vuln/detail/CVE-2026-44457>`__
+  - `CVE-2026-44455 <https://nvd.nist.gov/vuln/detail/CVE-2026-44455>`__
+  - `CVE-2026-44458 <https://nvd.nist.gov/vuln/detail/CVE-2026-44458>`__
+  - `CVE-2026-44459 <https://nvd.nist.gov/vuln/detail/CVE-2026-44459>`__
+  - `CVE-2026-9277 <https://nvd.nist.gov/vuln/detail/CVE-2026-9277>`__
+  - `CVE-2026-53632 <https://nvd.nist.gov/vuln/detail/CVE-2026-53632>`__
+  - `CVE-2026-45205 <https://nvd.nist.gov/vuln/detail/CVE-2026-45205>`__
+  - `CVE-2026-41417 <https://nvd.nist.gov/vuln/detail/CVE-2026-41417>`__
+  - `CVE-2026-42587 <https://nvd.nist.gov/vuln/detail/CVE-2026-42587>`__
+  - `CVE-2026-42584 <https://nvd.nist.gov/vuln/detail/CVE-2026-42584>`__
+  - `CVE-2026-42585 <https://nvd.nist.gov/vuln/detail/CVE-2026-42585>`__
+  - `CVE-2026-42580 <https://nvd.nist.gov/vuln/detail/CVE-2026-42580>`__
+  - `CVE-2026-42581 <https://nvd.nist.gov/vuln/detail/CVE-2026-42581>`__
+  - `CVE-2026-50020 <https://nvd.nist.gov/vuln/detail/CVE-2026-50020>`__
+  - `CVE-2026-45416 <https://nvd.nist.gov/vuln/detail/CVE-2026-45416>`__
+  - `CVE-2026-44249 <https://nvd.nist.gov/vuln/detail/CVE-2026-44249>`__
+  - `CVE-2026-47244 <https://nvd.nist.gov/vuln/detail/CVE-2026-47244>`__
+  - `CVE-2026-53550 <https://nvd.nist.gov/vuln/detail/CVE-2026-53550>`__
+  - `CVE-2026-6402 <https://nvd.nist.gov/vuln/detail/CVE-2026-6402>`__
+  - `CVE-2026-12143 <https://nvd.nist.gov/vuln/detail/CVE-2026-12143>`__
+  - `CVE-2026-9828 <https://nvd.nist.gov/vuln/detail/CVE-2026-9828>`__
+  - `CVE-2026-55760 <https://guide.sonatype.com/vulnerability/CVE-2026-55760>`__
+
+.. _opsmgr-server-8.0.24:
+
+|onprem| Server 8.0.24
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2026-06-11*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to
+  :ref:`108.0.24.9016-1 <mongodb-108.0.24.9016-1>`.
+- Supports :dbtools:`MongoDB Database Tools 100.17.0
+  </release-notes/dbtools-100.17.0-changelog>`.
+- Adds support for the MongoDB Connector for BI 2.14.28.
+- Adds support for MongoDB on RHEL 9 (``ppc64le``) in the
+  |onprem| UI.
+- Expands Search Nodes support in |onprem| with the following
+  improvements:
+
+  - Adds sharded cluster topology awareness, including per-shard
+    grouping and drill-down in the UI.
+  - Adds overview sparkline charts to the Search Nodes cluster
+    overview page for at-a-glance health metrics.
+  - Adds an actions menu for Search Nodes clusters in the
+    Deployment Topology view for tasks such as removing a
+    cluster from |onprem| or renaming a sharded cluster.
+  - Integrates the LeafyGreen Search icon across Search cluster
+    cards and related UI surfaces.
+  - Adds ``mongot`` metric charts for CPU, memory, disk, index,
+    search, and vector search metrics, plus Search node metadata
+    such as hostname, version, port, RAM, OS, and health.
+  - Surfaces ``mongot`` hosts and metrics across the |onprem| UI,
+    including the Servers tab, Processes tab, Deployment
+    Topology view, and the MongoDB Usage page for license
+    reporting.
+
+- Adds OAuth 2.0 client credentials authentication for webhook
+  alert notifications. |onprem| automatically fetches, attaches,
+  and refreshes short-lived bearer tokens for webhook deliveries.
+- Clarifies the write concern description in the |onprem| UI to
+  note that the default write concern applies only to replica
+  sets and sharded clusters.
+- Raises the oldest supported {+mdbagent+} version to
+  107.0.16.8756 to prevent patch failures caused by missing S3
+  artifacts.
+- Adds validation of the ``gen.key`` before running database
+  migrations to prevent an incorrect key from triggering
+  unintended migrations.
+
+Improvements in Public Preview
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Introduces Restoration Mode, a supported disaster-recovery
+  path for |onprem|, which uses a secondary |onprem| instance to
+  back up the primary's AppDB. When you restore that AppDB to an
+  earlier point in time, |onprem| automatically detects the
+  restore, converges all automation agents on the restored
+  configuration, and resumes normal operation. Restoration Mode
+  includes the following capabilities:
+
+  - Shows UI banners and applies API and UI guardrails that
+    block deployment modifications until reconciliation
+    completes.
+  - Provides a retry action that resets the reconciliation
+    failure counter and re-runs reconciliation without exiting
+    Restoration Mode.
+  - Adds a Status API that exposes the current Restoration Mode
+    state, trigger reason, and timestamps for each project, plus
+    an explicit force-exit option for stuck states.
+
+  To learn more, see :ref:`back-up-ops-manager`.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes a bug where |onprem| could return an internal server
+  error (HTTP 500) for a backup rollback request on a cluster
+  with no active backup status, such as a terminated cluster.
+  |onprem| now returns a clear ``JOB_NOT_FOUND`` response.
+- Fixes an issue where the |onprem| UI allowed setting a proxy
+  username without a password, or a password without a username,
+  which could cause server startup failures.
+- Fixes an issue where the ``DeploymentDiscoverySvc`` could silently
+  drop replica sets from the deployment cache when discovery
+  probes failed. |onprem| now logs clear warnings for these
+  failures.
+- Removes the deprecated ping ``v1/{key}`` endpoint to prevent
+  agent API keys from appearing in access logs.
+- Fixes an issue where the {+mdbagent+} flooded logs with local
+  database errors during ``fileCopyBased`` initial sync on standard
+  deployments.
+- Fixes the :guilabel:`Security Settings` page to stop sending stored
+  credentials to the browser.
+- Fixes the following |cve|\s:
+
+  - `CVE-2025-7339 <https://nvd.nist.gov/vuln/detail/CVE-2025-7339>`__
+  - `CVE-2026-33532 <https://nvd.nist.gov/vuln/detail/CVE-2026-33532>`__
+  - `CVE-2024-4067 <https://nvd.nist.gov/vuln/detail/CVE-2024-4067>`__
+  - `CVE-2024-10491 <https://nvd.nist.gov/vuln/detail/CVE-2024-10491>`__
+  - `CVE-2023-44270 <https://nvd.nist.gov/vuln/detail/CVE-2023-44270>`__
+  - `CVE-2025-54798 <https://nvd.nist.gov/vuln/detail/CVE-2025-54798>`__
+  - `CVE-2024-55565 <https://nvd.nist.gov/vuln/detail/CVE-2024-55565>`__
+  - `CVE-2025-57352 <https://nvd.nist.gov/vuln/detail/CVE-2025-57352>`__
+  - `CVE-2025-69873 <https://nvd.nist.gov/vuln/detail/CVE-2025-69873>`__
+  - `CVE-2025-68157 <https://nvd.nist.gov/vuln/detail/CVE-2025-68157>`__
+  - `CVE-2025-68458 <https://nvd.nist.gov/vuln/detail/CVE-2025-68458>`__
+  - `CVE-2026-2391 <https://nvd.nist.gov/vuln/detail/CVE-2026-2391>`__
+  - `CVE-2025-53864 <https://nvd.nist.gov/vuln/detail/CVE-2025-53864>`__
+  - `GHSA-xffm-g5w8-qvg7 <https://github.com/advisories/GHSA-xffm-g5w8-qvg7>`__
+  - `GHSA-6475-r3vj-m8vf <https://github.com/advisories/GHSA-6475-r3vj-m8vf>`__
+  - `GHSA-952p-6rrq-rcjv <https://github.com/advisories/GHSA-952p-6rrq-rcjv>`__
+  - `GHSA-7fh5-64p2-3v2j <https://github.com/advisories/GHSA-7fh5-64p2-3v2j>`__
+  - `GHSA-2g4f-4pwh-qvx6 <https://github.com/advisories/GHSA-2g4f-4pwh-qvx6>`__
+  - `GHSA-xwmg-2g98-w7v9 <https://github.com/advisories/GHSA-xwmg-2g98-w7v9>`__
+  - `GHSA-qqpg-mvqg-649v <https://github.com/advisories/GHSA-qqpg-mvqg-649v>`__
+  - `GHSA-rx8g-88g5-qh64 <https://github.com/advisories/GHSA-rx8g-88g5-qh64>`__
+  - `GHSA-w5hq-g745-h8pq <https://github.com/advisories/GHSA-w5hq-g745-h8pq>`__
+
+.. _opsmgr-server-8.0.23:
+
+|onprem| Server 8.0.23
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2026-05-04*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to
+  :ref:`108.0.23.8997-1 <mongodb-108.0.23.8997-1>`.
+- Enables MongoDB Server 8.3 for production use for MongoDB
+  deployments managed by |onprem| 8.0. MongoDB 8.3 is not supported
+  for |onprem| 8.0 backing databases, including the Application
+  Database.
+- Adds the following platform support for the {+mdbagent+}:
+
+  - Publishes dedicated Ubuntu 20.04 deb packages.
+  - Publishes dedicated Amazon Linux 2 ``x86_64`` binaries for
+    the {+mdbagent+} and backup tools.
+  - Enables the {+mdbagent+} to support MongoDB on RHEL 9
+    (``ppc64le``).
+
+- Encrypts automation configuration backup files to protect
+  sensitive deployment data, including credentials and topology
+  details, when stored on disk. To learn more, see
+  :ref:`automation-config-encryption`.
+- Adds the ability to fetch and download |onprem| logs from the
+  {+admin-api+} and the |onprem| UI. This release supports
+  application logs, migration logs, and HTTP access logs.
+  Backup Daemon log downloads are not yet available. To learn
+  more, see :ref:`request-om-server-logs`.
+- Persists backup daemon Prometheus metrics, ensuring consistent
+  monitoring and diagnostics.
+- Makes ``--server_env=hosted`` the default server environment
+  for |onprem|.
+- Releases MongoDB Shell
+  `2.8.1 <https://github.com/mongodb-js/mongosh/releases/tag/v2.8.1>`__
+  to |onprem|, including security updates for third-party packages.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes Direct S3 Restore presigned URL generation for
+  S3-compatible endpoints, resolving HTTP 403 errors during
+  block downloads.
+- Fixes Direct S3 Restore presigned URL generation for
+  S3-compatible endpoints, ensuring correct endpoint and
+  path-style addressing.
+- Removes credentials from the imported S3 bucket GET endpoint,
+  ensuring sensitive fields are redacted in API responses.
+- Adds the custom certificate field as an option for imported S3
+  buckets, allowing you to specify a custom certificate for the
+  S3 import blockstore.
+- Fixes {+mdbagent+} custom role creation on standalone
+  deployments.
+- Removes the reference to a non-existent script in the
+  :guilabel:`Unmanage All` dialog, preventing user confusion.
+- Fixes log redaction to prevent corruption of JSON |mongod|
+  log lines, ensuring downloaded logs remain valid and
+  uncorrupted.
+- Fixes a remote code execution vulnerability
+  (`CVE-2026-8431 <https://nvd.nist.gov/vuln/detail/CVE-2026-8431>`__)
+  in webhook Freemarker templates.
+- Fixes the following |cve|\s:
+
+  - `CVE-2026-8431 <https://nvd.nist.gov/vuln/detail/CVE-2026-8431>`__
+  - `CVE-2026-2332 <https://nvd.nist.gov/vuln/detail/CVE-2026-2332>`__
+  - `CVE-2026-33871 <https://nvd.nist.gov/vuln/detail/CVE-2026-33871>`__
+  - `CVE-2026-33870 <https://nvd.nist.gov/vuln/detail/CVE-2026-33870>`__
+  - `CVE-2026-33891 <https://nvd.nist.gov/vuln/detail/CVE-2026-33891>`__
+  - `CVE-2026-33895 <https://nvd.nist.gov/vuln/detail/CVE-2026-33895>`__
+  - `CVE-2026-33894 <https://nvd.nist.gov/vuln/detail/CVE-2026-33894>`__
+  - `CVE-2026-33896 <https://nvd.nist.gov/vuln/detail/CVE-2026-33896>`__
+  - `CVE-2025-50537 <https://nvd.nist.gov/vuln/detail/CVE-2025-50537>`__
+  - `CVE-2026-33937 <https://nvd.nist.gov/vuln/detail/CVE-2026-33937>`__
+  - `CVE-2026-33941 <https://nvd.nist.gov/vuln/detail/CVE-2026-33941>`__
+  - `CVE-2026-33938 <https://nvd.nist.gov/vuln/detail/CVE-2026-33938>`__
+  - `CVE-2026-33940 <https://nvd.nist.gov/vuln/detail/CVE-2026-33940>`__
+  - `CVE-2026-33939 <https://nvd.nist.gov/vuln/detail/CVE-2026-33939>`__
+  - `CVE-2026-33916 <https://nvd.nist.gov/vuln/detail/CVE-2026-33916>`__
+  - `CVE-2026-4867 <https://nvd.nist.gov/vuln/detail/CVE-2026-4867>`__
+  - `CVE-2026-33186 <https://nvd.nist.gov/vuln/detail/CVE-2026-33186>`__
+
+.. _opsmgr-server-8.0.22:
+
+|onprem| Server 8.0.22
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2026-04-09*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to
+  :ref:`108.0.22.8983-1 <mongodb-108.0.22.8983-1>`.
+- Enables the {+mdbagent+} to use OIDC tokens to authenticate
+  with your existing IdP, including for Workload Federation,
+  replacing long-lived database usernames and passwords with
+  short-lived tokens from your IdP (Okta, Azure AD, GCP, and
+  others) for stronger, centralized security.
+  To learn more, see :ref:`configure-agent-oidc`.
+- Makes the {+mdbagent+} available as a supported binary for
+  IBM Z (s390x) on RHEL 8 and RHEL 9.
+- Improves log output for full snapshot enforcement reasons.
+- Makes the following improvements to the {+admin-api+}:
+
+  - Adds endpoints to create, retrieve, update, and delete S3 import
+    block store configurations.
+
+- Makes the following security improvements:
+
+  - Adds a Content-Security-Policy header to responses.
+  - Encrypts |aws| S3 credentials at rest in AppDB.
+  - Fixes an open redirect bypass via backslash in the login redirect.
+  - Replaces MD5-based session ID generation with a 256-bit secure
+    value.
+  - Fixes cleartext storage of sensitive database credentials.
+  - Fixes a Cross-Site Request Forgery vulnerability in the snapshot
+    and clustershot extend endpoints.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes a bug where third-party restores could be permanently blocked
+  by a stale draft automation config (``CONCURRENT_RESTORES``).
+- Fixes the :guilabel:`View More Details` button in the Query
+  Profiler to correctly display extended query details in Edge
+  and Chrome.
+- Fixes a bug where automation could get stuck in AdjustUsers when
+  creating a user with duplicate roles in x.509 mode.
+- Fixes a bug where the :guilabel:`Delete` button for an imported
+  S3 bucket was incorrectly disabled when no imported snapshots
+  were present.
+- Fixes S3 blockstore URI formatting to include credentials when
+  appropriate.
+- Fixes |onprem| not displaying the arbiter version in
+  monitoring-only mode with authentication enabled for MongoDB
+  server versions prior to 8.1.0. Arbiter version information
+  remains unavailable for MongoDB 8.1.0 and later.
+- Fixes a bug where the Content Security Policy ``connect-src``
+  directive blocked version manifest fetches.
+- Fixes a silent {+mdbagent+} crash caused by a panic in the
+  monitoring module during restart.
+- Fixes the following |cve|\s:
+
+  - `CVE-2023-50570 <https://nvd.nist.gov/vuln/detail/CVE-2023-50570>`__
+  - `CVE-2026-27727 <https://nvd.nist.gov/vuln/detail/CVE-2026-27727>`__
+  - `GHSA-m2cm-222f-qw44 <https://github.com/advisories/GHSA-m2cm-222f-qw44>`__
+  - `CVE-2026-27830 <https://nvd.nist.gov/vuln/detail/CVE-2026-27830>`__
+  - `GHSA-5476-xc4j-rqcv <https://github.com/advisories/GHSA-5476-xc4j-rqcv>`__
+  - `CVE-2026-29074 <https://nvd.nist.gov/vuln/detail/CVE-2026-29074>`__
+  - `GHSA-xpqw-6gx7-v673 <https://github.com/advisories/GHSA-xpqw-6gx7-v673>`__
+  - `CVE-2026-27601 <https://nvd.nist.gov/vuln/detail/CVE-2026-27601>`__
+  - `GHSA-qpx9-hpmf-5gmw <https://github.com/advisories/GHSA-qpx9-hpmf-5gmw>`__
+  - `CVE-2026-27942 <https://nvd.nist.gov/vuln/detail/CVE-2026-27942>`__
+  - `GHSA-fj3w-jwp8-x2g3 <https://github.com/advisories/GHSA-fj3w-jwp8-x2g3>`__
+  - `CVE-2026-25896 <https://nvd.nist.gov/vuln/detail/CVE-2026-25896>`__
+  - `GHSA-m7jm-9gc2-mpf2 <https://github.com/advisories/GHSA-m7jm-9gc2-mpf2>`__
+  - `GHSA-jmr7-xgp7-cmfj <https://github.com/advisories/GHSA-jmr7-xgp7-cmfj>`__
+  - `CVE-2026-25128 <https://nvd.nist.gov/vuln/detail/CVE-2026-25128>`__
+  - `CVE-2026-26278 <https://nvd.nist.gov/vuln/detail/CVE-2026-26278>`__
+  - `GHSA-3ppc-4f35-3m26 <https://github.com/advisories/GHSA-3ppc-4f35-3m26>`__
+  - `GHSA-23c5-xmqv-rm74 <https://github.com/advisories/GHSA-23c5-xmqv-rm74>`__
+  - `GHSA-7r86-cg39-jmmj <https://github.com/advisories/GHSA-7r86-cg39-jmmj>`__
+  - `CVE-2026-26996 <https://nvd.nist.gov/vuln/detail/CVE-2026-26996>`__
+  - `CVE-2026-27903 <https://nvd.nist.gov/vuln/detail/CVE-2026-27903>`__
+  - `CVE-2026-27904 <https://nvd.nist.gov/vuln/detail/CVE-2026-27904>`__
+  - `CVE-2026-33228 <https://nvd.nist.gov/vuln/detail/CVE-2026-33228>`__
+  - `GHSA-rf6f-7fwh-wjgh <https://github.com/advisories/GHSA-rf6f-7fwh-wjgh>`__
+  - `CVE-2026-32141 <https://nvd.nist.gov/vuln/detail/CVE-2026-32141>`__
+  - `GHSA-25h7-pfq9-p65f <https://github.com/advisories/GHSA-25h7-pfq9-p65f>`__
+  - `CVE-2023-43646 <https://nvd.nist.gov/vuln/detail/CVE-2023-43646>`__
+  - `GHSA-4q6p-r6v2-jvc5 <https://github.com/advisories/GHSA-4q6p-r6v2-jvc5>`__
+  - `GHSA-73rr-hh4g-fpgx <https://github.com/advisories/GHSA-73rr-hh4g-fpgx>`__
+  - `CVE-2026-24001 <https://nvd.nist.gov/vuln/detail/CVE-2026-24001>`__
+  - `CVE-2025-43865 <https://nvd.nist.gov/vuln/detail/CVE-2025-43865>`__
+  - `CVE-2025-43864 <https://nvd.nist.gov/vuln/detail/CVE-2025-43864>`__
+  - `CVE-2025-68470 <https://nvd.nist.gov/vuln/detail/CVE-2025-68470>`__
+  - `GHSA-9jcx-v3wj-wh4m <https://github.com/advisories/GHSA-9jcx-v3wj-wh4m>`__
+  - `CVE-2024-39249 <https://nvd.nist.gov/vuln/detail/CVE-2024-39249>`__
+  - `CVE-2024-45296 <https://nvd.nist.gov/vuln/detail/CVE-2024-45296>`__
+  - `GHSA-9wv6-86v2-598j <https://github.com/advisories/GHSA-9wv6-86v2-598j>`__
+  - `CVE-2026-4800 <https://nvd.nist.gov/vuln/detail/CVE-2026-4800>`__
+  - `GHSA-r5fr-rjxr-66jc <https://github.com/advisories/GHSA-r5fr-rjxr-66jc>`__
+  - `CVE-2026-2950 <https://nvd.nist.gov/vuln/detail/CVE-2026-2950>`__
+  - `GHSA-f23m-r3pf-42rh <https://github.com/advisories/GHSA-f23m-r3pf-42rh>`__
+  - `GHSA-2w69-qvjg-hvjx <https://github.com/advisories/GHSA-2w69-qvjg-hvjx>`__
+  - `CVE-2023-45133 <https://nvd.nist.gov/vuln/detail/CVE-2023-45133>`__
+  - `GHSA-67hx-6x53-jw92 <https://github.com/advisories/GHSA-67hx-6x53-jw92>`__
+  - `GHSA-5c6j-r48x-rmvq <https://github.com/advisories/GHSA-5c6j-r48x-rmvq>`__
+
+.. _opsmgr-server-8.0.21:
+
+|onprem| Server 8.0.21
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2026-03-17*
+
+.. important:: IBM Z (s390x)
+
+  If you run |onprem| on IBM Z (s390x), do not upgrade to 8.0.21.
+  The updated 8.0.21 {+mdbagent+} binaries for this architecture
+  are not yet available. IBM Z deployments on earlier versions
+  continue to run as before. All other architectures are fully
+  supported in this release.
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to :ref:`108.0.21.8971-1 <mongodb-108.0.21.8971-1>`.
+- Removes support for the following platforms from the {+mdbagent+}:
+
+  - RHEL 7 (all minor and major versions)
+  - Debian 9.2
+  - Debian 10
+  - Ubuntu 16.04
+  - Ubuntu 18.04
+
+- Supports :dbtools:`MongoDB Database Tools 100.15.0 </release-notes/dbtools-100.15.0-changelog/>`.
+- Sets a Content-Security-Policy (CSP) header to strengthen
+  protection against malicious browser-side code and unauthorized
+  content attacks.
+- Improves logging and alerting for metric rollup issues.
+- Displays the status of ``mongos`` instances on the
+  :guilabel:`Overview` and :guilabel:`Servers` pages.
+- Makes the following improvements to backups:
+
+  - Adds an ``appSetting`` to allow validation bypass when using object lock on
+    an S3 bucket that is not configured in |onprem|.
+  - Adds a backup alert that triggers when multiple consecutive snapshot
+    attempts for a replica set or sharded cluster are aborted. You can
+    configure how many aborted attempts trigger the alert using the
+    ``backupAppSetting`` setting (default: 3).
+  - Automatically pins the last successful snapshot when scheduled snapshots
+    or |pitr| backups are failing, preventing retention policies from deleting 
+    the only available good backup until a new successful backup completes.
+
+Bug Fixes
+~~~~~~~~~
+
+- Updates ``bcpkix-fips`` package to version 1.0.8 to address a
+  security vulnerability.
+- Upgrades Jetty-related packages to 12.0.32 to remediate resource
+  allocation vulnerability CWE-770.
+- Fixes the following |cve|\s:
+
+  - `CVE-2026-1605 <https://nvd.nist.gov/vuln/detail/CVE-2026-1605>`__
+  - `CVE-2025-68121 <https://nvd.nist.gov/vuln/detail/CVE-2025-68121>`__
+
+- Fixes a restore failure caused by starting, stopping, and starting
+  |mongod| within the same second.
+- Fixes misleading dialog boxes when enabling Operational Monitoring
+  for the Application Database in |onprem|.
+
+.. _opsmgr-server-8.0.20:
+
+|onprem| Server 8.0.20
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2026-02-19*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to :ref:`108.0.20.8953-1 <mongodb-108.0.20.8953-1>`.
+- Supports :dbtools:`MongoDB Database Tools 100.14.1 </release-notes/dbtools-100.14.1-changelog/>`.
+- Releases MongoDB Shell `2.6.0 <https://github.com/mongodb-js/mongosh/releases/tag/v2.6.0>`__ to |onprem|.
+- Updates JDK to `jdk-21.0.10+7 <https://adoptium.net/temurin/release-notes/?version=jdk-21.0.10+7>`__.
+- Adds the ``description`` field to the ``activityFeed.json`` file in the Diagnostics archive.
+- Removes |service-short|-related entries from the |onprem| activity feed.
+- Removes legacy users when upgrading from the 3-agent system to
+  the single agent system.
+- Improves logic for Ubuntu LTS version mapping.
+- Adds cache ratio metrics to |onprem| monitoring, alerting,
+  and the Measurements API.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes an issue where Ops Manager job worker threads could become stuck waiting on a lock to fetch data, which could cause scheduled jobs to stop progressing.
+- Fixes an issue where the Patch User API did not work for global roles.
+- Fixes an issue where some snapshot details did not display on the
+  :guilabel:`Snapshots` admin page, although the underlying data
+  was present.
+- Fixes an issue where the :guilabel:`All Clusters` page does not load 
+  all clusters unless a filter is set.
+- Fixes KMIP key rotation issues with custom ``kmip.keyIdentifier``.
+- Fixes an incorrect IAM role value for object-locked (immutable) imports of snapshots from S3-compatible storage.
+- Fixes the following |cve|\s:
+
+  - `CVE-2022-25883 <https://nvd.nist.gov/vuln/detail/CVE-2022-25883>`__
+  - `GHSA-c2qf-rxjj-qqgw <https://github.com/advisories/GHSA-c2qf-rxjj-qqgw>`__
+  - `CVE-2024-10491 <https://nvd.nist.gov/vuln/detail/CVE-2024-10491>`__
+  - `CVE-2024-51999 <https://nvd.nist.gov/vuln/detail/CVE-2024-51999>`__
+
+.. _opsmgr-server-8.0.19:
+
+|onprem| Server 8.0.19
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2026-01-15*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to :ref:`108.0.19.8941-1 <mongodb-108.0.19.8941-1>`.
+- Re-enables the Agent to download {+mongosh+} on RHEL 9 s390x.
+- Improves error handling in ``NotLoggedInFilter`` by preserving 
+  exception stack traces for SAML PEM file loading failures to improve 
+  diagnosability for SAML configuration.
+- Adds support for |s3| Object Lock for snapshots, enabling immutable snapshots that 
+  protect against accidental or malicious deletion and automatically storing snapshot 
+  metadata in |s3| so snapshots can be imported into new |onprem| instances.
+  To learn more, see :ref:`om-immutable-s3-snapshots`.
+- Enables direct restore of snapshots from |s3| storage to MongoDB nodes, 
+  bypassing the |onprem| server in the data path to avoid |onprem| as a potential 
+  bottleneck, removing the need to scale |onprem| infrastructure for high-volume 
+  restore traffic, and resolving a previous issue in 8.0.16 where the UI 
+  checkbox for this feature was visible before the feature was enabled.
+  To learn more, see :ref:`om-direct-s3-restore`.
+- Removes the |kmip| certificate check from the allow backup and change sequence 
+  process after investigating and updating the |kmip| path requirement to start backup.
+- Updates the Slack integration in |onprem| to address upcoming deprecation 
+  and leverage the new integration used by |service-short|.
+- Reloads backup status for filesystem jobs before the abandonment 
+  check to prevent incorrect cancellation of active filesystem snapshots.
+- Upgrades the ``bc-fips`` library to version 1.0.2.6 and adds pre-flight 
+  validation checks for certificates and PEM files referenced via ``appsettings`` 
+  to prevent breaking upgrades.
+- Addresses a security finding by updating the ``qs`` package to version 6.14.1.
+- Removes the back button from the restore-from-snapshot workflow and updates 
+  logic related to ``restoreRange`` and ``deleteAt``.
+- Uses a regular expression pattern for non-proxy host configuration in the |s3| client v2.  
+- Adds validation to ensure ``net.tls`` parameters are removed when disabling 
+  TLS to prevent user error.
+- Removes the direct |s3| restore UI checkbox behind a feature flag.
+- Makes the following changes to the |onprem| Administration API to enable 
+  restores of volume-based snapshots through third-party platforms:
+
+  - Skips delete operations during third-party restores so data is not deleted 
+    by the Automation Agent prematurely.    
+  - Adds a flag in the Create Restore API for full volume restore.    
+  - Allows ``RECOVERY_IN_PROGRESS`` to revert to ``COPY_FILES``.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes a bug where a metadata or retention job could be scheduled twice for 
+  the same ``snapshotId``.
+- Runs object lock checks only when object lock is enabled, 
+  resolving a blocker for |s3| oplog store addition.
+- Fixes termination job failures caused by retention-protected metadata file 
+  deletion errors by deleting object lock metadata files asynchronously.
+- Fixes non-proxy endpoint configuration to properly compare ``nonProxyHosts`` 
+  regular expressions in the |s3| client v2 and match v1 behavior.
+- Validates removal of ``net.tls`` parameters when TLS is disabled and raises 
+  a validation exception to prevent accidental misconfiguration.
+- Gates the direct |s3| restore UI checkbox behind a feature flag to ensure correct feature rollout.
+- Introduces the following fixes related to certificate validation and security 
+  vulnerabilities:
+
+  - Adds a preflight check that scans the following customer certificates, when 
+    present, and prevents |onprem| from starting if any are affected by 
+    `CVE-2025-8885 <https://github.com/bcgit/bc-java/wiki/CVE%E2%80%902025%E2%80%908885>`__:
+
+    - ``mongodb.ssl.PEMKeyFile``
+    - ``mms.https.PEMKeyFile``
+    - ``mms.ldap.ssl.PEMKeyFile``
+    - ``mms.saml.ssl.PEMKeyFile``
+    - ``brs.queryable.pem``
+    - ``mongodb.ssl.CAFile``
+    - ``mms.https.CAFile``
+    - ``mms.ldap.ssl.CAFile``
+    - ``backup.kmip.server.ca.file``
+    - ``mms.saml.x509.cert``
+
+  - Fixes the following CVEs:
+
+    - `CVE-2025-8885 <https://github.com/bcgit/bc-java/wiki/CVE%E2%80%902025%E2%80%908885>`__
+    - `CVE-2024-29371 <https://nvd.nist.gov/vuln/detail/CVE-2024-29371>`__
+    - `CVE-2025-15284 <https://nvd.nist.gov/vuln/detail/CVE-2025-15284>`__
+    - `CVE-2025-58056 <https://nvd.nist.gov/vuln/detail/CVE-2025-58056>`__
+    - `CVE-2025-67735 <https://nvd.nist.gov/vuln/detail/CVE-2025-67735>`__
+    - `GHSA-fghv-69vj-qj49 <https://github.com/advisories/GHSA-fghv-69vj-qj49>`__
+
+.. _opsmgr-server-8.0.18:
+
+|onprem| Server 8.0.18
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-12-16*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to :ref:`108.0.18.8921-1 <mongodb-108.0.18.8921-1>`.
+- Adds support for |oidc| user authentication custom CA certificates.
+- Introduces a new ``mms.user.bypassInviteForUsers`` flag to allow invites to be bypassed 
+  for new and existing users, and deprecates ``mms.user.bypassInviteForExistingUsers``.
+- Updates the Project Read Only role to grant access to the :guilabel:`Real Time` 
+  metrics tab.
+- Backports the ``mms-automation`` upgrade to go1.24 for ops-manager branches.
+- Improves log rotation to handle files with incorrect permissions and prevent the 
+  log rotator from becoming unresponsive.
+
+Bug Fixes
+~~~~~~~~~
+
+- Prevents agent versions from being sent back to |onprem| to reduce configuration 
+  size and network issues.
+- Fixes an issue where ``MakeBackupDataAvailable`` does not delete copied files.
+- Fixes the following |cve|\s:
+
+  - `CVE-2025-53864 <https://nvd.nist.gov/vuln/detail/CVE-2025-53864>`__
+  - `CVE-2025-11226 <https://nvd.nist.gov/vuln/detail/CVE-2025-11226>`__
+  - `GHSA-25qh-j22f-pwp8 <https://github.com/advisories/GHSA-25qh-j22f-pwp8>`__
+  - `CVE-2025-64718 <https://nvd.nist.gov/vuln/detail/CVE-2025-64718>`__
+
+.. _opsmgr-server-8.0.17:
+
+|onprem| Server 8.0.17
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-12-08*
+
+Improvements
+~~~~~~~~~~~~
+
+- Implement APIs for organization and project role mappings.
+- Implements a :ref:`Telemetry <om-telemetry-overview>` report to collect and send 
+  |onprem| usage data to MongoDB, with controls to enable or disable telemetry 
+  through the |onprem| UI or API.
+- Adds |oidc| support for |onprem| user authentication.
+- Addresses `CVE-2025-12383 <https://www.cve.org/CVERecord?id=CVE-2025-12383>`__ by updating the Jersey libraries to 3.1.10.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes an issue where tooltips were not displayed in |onprem|.
+- Fixes an issue in the Agent where disabling |ldap| authorization did not cause 
+  a rolling restart.
+- Fixes an issue where destination targets did not load when restoring an 
+  imported snapshot from the snapshot list.
+- Fixes an issue where snapshots were duplicated in the snapshots list.
+- Resolves blocked automation configuration changes when ``mms.mail.transport`` 
+  is present.
+- Accounts for deleted but retained snapshots when performing dead bytes calculation.
+- Fixes an issue where |ftdc| logs generated through the :guilabel:`Request Logs` button in the |mms| UI were 
+  corrupted and unusable, causing ``bsondump`` to fail with ``invalid BSONSize`` 
+  errors.
+
+.. _opsmgr-server-8.0.16:
+
+|onprem| Server 8.0.16
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-11-06*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to :ref:`108.0.16.8895-1 <mongodb-108.0.16.8895-1>`.
+- Adds support for |bic-full| 2.14.25.
+- Updates JDK to `jdk-21.0.9+10 <https://adoptium.net/temurin/release-notes/?version=jdk-21.0.9+10>`__.
+- Upgrades the Jetty library to 11.0.26.
+- Introduces an app setting to bypass on-demand snapshots triggered by FCV change detection.
+- Updates the power build process to use rhel8 and removes rhel7 support in Ops Manager versions 8.0 and later.
+- Updates ``golangci-lint`` to 2.5.0.
+- Ensures correct collection of CPU metrics when using host mapping aliases in deployments.
+- Implements a general-purpose admin settings API that supports programmatic authentication setup.
+- Adds ``restartRequired`` flags for appropriate admin settings exposed through the public API.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes intermittent failures in ``GetProcessConfigJobSuite.TestGetProcessConfigJob``.
+- Fixes the time range filter functionality in the Ops Manager :guilabel:`Activity Feed` tab.
+- Fixes a race condition that occurred during clustershot startup and shutdown.
+- Fixes failures in unsupported MongoDB version checks caused by missing or invalid host versions.
+- Suppresses alerts and exceptions for invalid host versions in unsupported checks.
+- Makes server-side admin settings validation identical to UI validation, enforcing comprehensive validation and pre-flight checks.
+- Removes app setting validation for ``mms.mongoDbUsage.defaultUsageType`` to prevent breaking existing customer setups.
+- Addresses `CVE-2025-5115 <https://www.cve.org/CVERecord?id=CVE-2025-5115>`__ by updating Jetty to 11.0.26.
+
+.. _opsmgr-server-8.0.15:
+
+|onprem| Server 8.0.15
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-10-19*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to :ref:`108.0.15.8882-1 <mongodb-108.0.15.8882-1>`.
+- Supports :dbtools:`MongoDB Database Tools 100.13.0 </release-notes/dbtools-100.13.0-changelog/>`.
+
+- Makes the following improvements to the |onprem| UI:
+
+  - Removes the :guilabel:`Preview` tag from :ref:`OIDC <enable-oidc-auth>` 
+    options in the UI and documentation.
+  - Adds an :guilabel:`Options` menu to the :ref:`Logs <mongodb-logs>` page
+    for ``mongos`` instances in sharded clusters.
+  - Adds server list to the :guilabel:`Shutdown` dialog for replica sets to 
+    show all affected servers.
+  - Adds alerts for detecting stale workloads through :guilabel:`OpCounter` 
+    in :ref:`Available Metrics <review-available-metrics>`.
+
+- Makes the following improvements to the {+admin-api+}:
+
+  - Supports updating :ref:`project settings <manage-group-settings>` in the 
+    {+admin-api+}.
+  - Adds LDAP configuration validation support to the Admin Settings API.
+    To learn more, see :ref:`Manage LDAP Authentication <enable-ldap-auth>`.
+
+- Makes the following improvements to |s3| blockstore backups:
+
+  - Adds support for conditional writes on |s3| blockstore objects.
+  - Improves log handling in :ref:`groom jobs <grooms-page>`. Verifies block
+    existence before logging exceptions, checks the destination cluster's |s3|
+    blockstore to reduce failed-to-copy-block log noise, and skips
+    ``NoSuchKey`` errors when the |s3| blockstore exists.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes an issue where upgrading |onprem| to version 8.0.12+ couldn't complete
+  due to failed or incomplete upgrade steps. |onprem| now re-applies
+  migration steps as needed to complete the upgrade.
+- Adds information logging for ``RollingRestartArgs`` to aid 
+  troubleshooting.
+- Fixes an issue where the :guilabel:`Copy` button in the Prometheus integration 
+  interface was misaligned.
+- Fixes an issue where invalid metric types prevented the |onprem| global alert 
+  configuration from rendering.
+- Fixes an issue where backups couldn't start for unmanaged clusters.
+
+.. _opsmgr-server-8.0.14:
+
+|onprem| Server 8.0.14
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-09-17*
+
+Improvements
+~~~~~~~~~~~~
+
+- Prevents the clean-up of the database path after restore operations, 
+  improving backup and restore reliability.
+- Enables MongoDB Server 8.2 for production use for MongoDB deployments
+  managed by Ops Manager 8.0. MongoDB 8.2 is not supported for Ops
+  Manager 8.0 backing databases, including AppDB.
+
+  This minor release provides early access to new features and
+  improvements before the next Long-Term Support (LTS) version.
+  
+  - Minor releases like 8.2 are not LTS and follow a 6-month release
+    cadence. To receive ongoing bug and security fixes, you must stay on the
+    LTS version or upgrade to the latest available minor release.
+    Patches are not backported to previous minor versions (for example,
+    once 8.3 is released, 8.2 no longer receives patches).
+  - Choosing the minor release path requires a commitment to perform
+    sequential upgrades through each subsequent release. Skipping
+    minor versions is not supported when upgrading.
+  - Upgrading to a new minor version requires updating the Feature
+    Compatibility Version (FCV). This step is critical in the upgrade
+    process and follows the same logic as a :doc:`major version upgrade </tutorial/change-mongodb-version>`.
+  - You have a 2-month grace period after the next release becomes
+    available to complete your upgrade and remain supported.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes potential confusion caused by a hardcoded slow query threshold message 
+  by updating the UI to display either the configured threshold or a generic 
+  non-misleading message.
+- Migrates deprecated ``eslint-plugin-class-property`` to ``eslint-plugin-babel`` 
+  to eliminate dependency deprecation warnings and improve maintainability.
+- Fixes failures in the grouped ``MonitoringTest`` tasks for |onprem| automation 
+  by updating relevant build variants and automation logic.
+
+.. _opsmgr-server-8.0.13:
+
+|onprem| Server 8.0.13
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-09-10*
+
+Improvements
+~~~~~~~~~~~~
+
+- Adds support for API import of existing deployments into automation 
+  management by |mms|. For more information, see 
+  :doc:`Import Deployments </reference/api/import-deployments>`.
+- Adds MongoDB 8.2 deployment support as a preview, not for production use.
+  Full support will be available in |onprem| 8.0.14
+- Updates the {+mdbagent+} to :ref:`108.0.13.8870-1 <mongodb-108.0.13.8870-1>`
+- Supports MongoDB Database Tools 100.13.0
+- Logs ``mongod.lock`` contents in unexpected cases for improved diagnostics
+- Removes the ``oplogEnd`` field from the {+mdbagent+} backup cursor parsing to 
+  simplify backup logic
+- The {+mdbagent+} detects the absence of the AVX instruction set and logs a warning 
+  to improve supportability for MongoDB 5+
+- Updates shard metadata in the config server for ``config.system.sharding_ddl_coordinators`` 
+  on restores for MongoDB 8.2+
+- Allows specifying the maximum supported automation version for "special LTS" version filtering
+- Shows restore job IDs in the ``CONCURRENT_RESTORES_JOB_IDS`` error code
+- Specifies button type for table paginator buttons to prevent unintended form submissions
+- Makes additional SAML fields (Service Provider Base URL, Entity ID, and SLS/logout redirect) 
+  configurable on the Admin Configuration page
+- Adds a ``New Server`` option in the ``Hostname`` dropdown for Standalone deployments; 
+  includes search
+- Improves logic for third-party restore targeting for replica sets that were previously 
+  configured as shards
+
+Bug fixes
+~~~~~~~~~
+
+- Resolves an issue where MMS automation config failed validation if ``enableMajorityReadConcern`` 
+  was set in MongoDB 8.2+
+- ``AdjustRoles`` now accounts for role dependencies when creating roles, ensuring 
+  proper ordering
+- The {+mdbagent+} no longer attempts to take down two data-bearing nodes at once 
+  for PSSSA replica set configurations during global update operations
+- Fixes a memory spike when iterating the logs directory by using chunked, non-blocking 
+  iteration and improved logging
+- Fixes ``GetProcessConfigJob`` failing on arbiters when using a non-localhost build command; 
+  now respects the localhost exception
+- Upgrades deprecated ``@babel/plugin-proposal-*`` dependencies to recommended packages
+- Removes deprecated ``@types/react-select`` and ``@types/classnames`` dependencies
+- Improves Javadoc for the ``CanonicalHost`` class
+- Updates checkpoint targeting logic to execute when an on-demand snapshot is initialized, 
+  ensuring snapshots proceed after {+mdbagent+} session renewals
+- Fixes imported deployments with LDAP and x509 that were stuck waiting for goal state 
+  by reverting to ``AuthAndTlsSettingsSvc``
+- Upgrades deprecated ``puppeteer`` dependency to a supported version
+- Upgrades deprecated ``sinon`` package to the latest minor version
+- Diagnostics archive per group now includes disabled hosts
+- Fixes generation of outdated Java dependencies reporting
+- Bell icon in navigation now links to the Project Alerts page
+- Tidies optime data endpoint arithmetic logic and variable naming
+- Disables TRACE requests for the embedded Prometheus server
+- Fixes NetSPI 2024 Phase 2 Issue 4 and Issue 6 for sensitive information disclosure in 
+  server responses, eliminating exposure of secrets in API responses
+- Fixes the following |cve|\s:
+
+  - `CVE-2025-5115 <https://nvd.nist.gov/vuln/detail/CVE-2025-5115>`__
+  - `CVE-2025-55163 <https://nvd.nist.gov/vuln/detail/CVE-2025-55163>`__
+
+.. _opsmgr-server-8.0.12:
+
+|onprem| Server 8.0.12
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-08-07*
+
+Improvements
+~~~~~~~~~~~~
+- Adds MongoDB 8.2 deployment support as a preview, not for production use. 
+  Full support available in Ops Manager 8.0.13.
+- Updates the MongoDB Agent to :ref:`108.0.12.8846-1
+  <mongodb-108.0.12.8846-1>`.
+- Supports |bic-full| 2.14.24.
+- Updates JDK to ``jdk-21.0.8+9``.
+- Updates {+mongosh+} to 2.5.6.
+- Updates PACKAGE_OPS_MANAGER to stub out ``sign_artifact`` when
+  Garasign credentials aren't available, allowing patch builds without
+  Garasign.
+- Adds ``pendingRangeDeletion`` state to shard removal Automation Status
+  logs.
+- Adds {+mdbagent+}, Automation, and UI support for MongoDB on RHEL 9
+  (s390x).
+- Implements skip migration logic when |onprem| version is not changing.
+- Allows custom/development/quarterly server builds for easier
+  integration of new features like Live Restore, behind config params.
+- Removes ``AutomationConfigDeploymentView`` and
+  ``AutomationConfigDeploymentMapper`` as part of code clean-up.
+- Updates and generates new certificates for KMIP server and re-enables
+  related tests.
+- Documents and provides clear messages when ``OplogSnapshot`` fails due
+  to missing oplogs.
+- Adds a retry loop around deletion operations in the filesystem groom,
+  improving success on async/lazy filesystems.
+- Adds timeout handling to SMTP connections, preventing hung job threads
+  and easier diagnostics.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes a bug where ``auditLog.auditEncryptionKeyIdentifier`` could not
+  be set through the UI.
+- Fixes a bug where the Miscellaneous |onprem| Config tab always showed
+  a "Changes you made may not be saved" warning, even when no changes
+  were made.
+- Fixes an Agent bug that caused crashes when modifying a process's
+  storage fields. Now includes ENCRYPTION_CIPHER_MODE  in removed fields
+  for ephemeral standalone instances to prevent crashes.
+- Adds a retry loop when setting group config to inactive during
+  terminate job operations to enhance reliability.
+- Fixes the following |cve|\s:
+
+  - `CVE-2025-48924 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-48924>`__
+  - `CVE-2025-7783 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-7783>`__
+
+.. _opsmgr-server-8.0.11:
+
+|onprem| Server 8.0.11
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-07-16*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the MongoDB Agent to :ref:`108.0.11.8830-1
+  <mongodb-108.0.11.8830-1>`.
+- Improves MongoDB Usage logic to represent licensing needs more 
+  accurately and splits RAM Pool category into RAM Pool (Prod) and RAM 
+  Pool (Test/QA).
+- Optimizes queries by avoiding empty array queries on
+  ``_id: {"$in": []}``.
+- Adds S3 key/bucket information to log messages for slow S3 
+  investigation.
+- Starts shard/replset queryable with 
+  wiredTigerSkipTableLoggingChecksOnStartup, improving startup 
+  reliability and performance.
+- Introduces an application setting to control S3 client chunked 
+  encoding in AWS SDK v2, allowing compatibility with S3-compatible 
+  vendors that do not support chunked uploads.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes cross-project validation for destination clusters and falls 
+  back to showing all valid clusters when switching projects during a 
+  point-in-time restore.
+- During partial sharded cluster upgrades to 8.0, only 8.0 processes 
+  now set security.javascriptEnabled to false, avoiding a rolling 
+  restart to all shard nodes.
+- Fixes the following CVE:
+  
+  - `CVE-2025-48976 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-48976>`__
+
+.. _opsmgr-server-8.0.10:
+
+|onprem| Server 8.0.10
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-07-03*
+
+Improvements
+~~~~~~~~~~~~
+
+- Customizable webhooks – Adds webhook headers and body templating support to project and global alert webhooks.
+
+- Adds validation and disables ongoing backups for S3 snapshot stores with slashes in the bucket name, as required by the AWS S3 SDK update. Existing backups remain accessible to prevent data loss.
+
+- Updates {+mongosh+} to 2.5.3.
+
+Bug fixes
+~~~~~~~~~
+
+- Adds validation to ensure the head directory path ends in a slash.
+
+- Fixes an error that occurs when a shard is split out from a sharded cluster to run as a standalone replica set.
+
+- Fixes a bug that causes S3 stores to ignore host machine environment variables for region configuration. Defaults to ``us-east-1`` if not defined.
+
+- Fixes an issue causing DNS resolution failures for S3 endpoints using HTTP.
+
+.. _opsmgr-server-8.0.9:
+
+|onprem| Server 8.0.9
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-06-24*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the MongoDB Agent to :ref:`108.0.9.8826-1 
+  <mongodb-108.0.9.8826-1>`.
+- Supports :dbtools:`MongoDB Database Tools 100.12.2 
+  </release-notes/database-tools-changelog>`.
+- Tests and releases :dbtools:`MongoDB Database Tools 100.12.2 
+  </release-notes/database-tools-changelog>` in {+mdbagent+}, 
+  |cloud-short|, and |onprem|.
+- Release of cloud-automation-ops-manager-8.0 108.0.9.8826-1 and 
+  108.0.9.8818-1 to Ops Manager 8.0.
+- Adds a cap to the retryability of ``moveCollection`` for each 
+  collection, returning an error code upon continual failure.
+- MongoDB Agent now attempts to abort currently active 
+  ``moveCollection`` commands via ``abortMoveCollection`` when a shard 
+  removal is canceled.
+- Auto extends the queryable restore job expiry to account for long 
+  queryable mounting times.
+- Improves agent job logging for better debugging.
+- Improves TP oplog snapshotting to avoid removing the wrong oplog files
+  in a gap.
+- Improves agent discovery to avoid project-wide failures after config
+  node is removed.
+- Ops Manager now allows users to download logs for a specific time range 
+  via UI, CLI, and API
+
+Bug Fixes 
+~~~~~~~~~
+
+- Disallows KMIP key rotation via the OM UI when ``kmip.keyIdentifier``
+  is specified. Users must clear the value or rotate manually.
+- Ensures SSL socket factory is recomputed for new S3 store configs by
+  using the current timestamp.
+- Defaults S3 v2 client to ``us-east-1`` region when region is not 
+  provided for bucket access with keys.
+- Fixes a failure when connecting to S3 buckets via IAM roles and via 
+  keys.
+- Disallows key rotation when ``kmip.keyIdentifier`` is specified in the
+  UI.
+- Fixes issue with reporting failure status in the ``ADD_NODE`` job when
+  a host cannot be reached.
+- Ensures the abort snapshot logic sets ``lastSnapshotTimestamp`` 
+  correctly when a shard snapshot is aborted.
+- Fixes project-wide discovery failures after config node removal from a
+  sharded cluster.
+- Fixes ``minBlockSize`` stored as double, which could cause 
+  ``ClassCastException``.
+- Fixes the following CVEs:
+  
+  - `CVE-2025-48734 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-48734>`__
+  - `CVE-2025-30360 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-30360>`__
+  - `CVE-2025-30359 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-30359>`__
+  - `CVE-2025-5889 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-5889>`__
+
+.. _opsmgr-server-8.0.8:
+
+|onprem| Server 8.0.8
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-06-05*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the MongoDB Agent to :ref:`108.0.8.8817-1 
+  <mongodb-108.0.8.8817-1>`.
+- Supports :bic:`MongoDB Connector for BI </>` 2.14.23.
+- Supports :dbtools:`MongoDB Database Tools 100.12.1 </release-notes/database-tools-changelog>`.
+- Updates {+mongosh+} to 2.5.2.
+- Introduces |aws| SDK v2 as default |aws| SDK version. |aws| SDK v1 is
+  still available, but must be set manually in the |onprem|
+  configuration.
+
+  .. note ::
+
+    .. include:: /includes/backup/aws-sdkv2-s3-compatibility-note.rst
+
+- Ubuntu 24.04 Agent binaries are now included in Ops Manager 8.0.
+- Improves indication and reporting when Feature Compatibility Version 
+  (FCV) is undergoing a transition.
+- Removes unsupported ``ctime`` option from the ``timeStampFormat`` 
+  parameter in Advanced Configuration Options.
+- When starting backup, if automation config is available, it is now 
+  validated to ensure the ``hostCluster`` contains all shards.
+- Updates ``lastTopology`` for third party backup if cluster topology 
+  changes after management but before preferred nodes are set.
+- Handles deduplication of third party backup oplog metadata.
+- Switches S3 custom keystore creation logging from info to debug and 
+  improves cache handling.
+- Improves reliability of E2E test automation for local ATM deployments 
+  and incremental backup tests.
+- Sets ``readAndWriteBlocks`` as the default for file system snapshot 
+  stores for higher reliability.
+- Increases default ``queryableMongodStartTimeoutMs`` timeout to at 
+  least 4 hours.
+- Fixes excessive logging and logging errors for ``fileDiffs`` and null 
+  ``StreamingOutput`` entities.
+
+Bug Fixes
+~~~~~~~~~
+
+- The ``Connect to this instance`` shell command in the UI now 
+  defaults to ``mongosh`` for MongoDB 6.0 and above deployments.
+- Resolves failure when verifying TLS connections with stand-alone 
+  deployments.
+- Fixes a backup resource usage CSV download failure due to malformed 
+  S3 blockstore JSON structures.
+- Fixes an issue where user login would fail after resetting the 
+  password post-upgrade, by ensuring password version consistency.
+- Deprecated MongoDB version verification is now performed during 
+  migration instead of at pre-flight, improving upgrade experience.
+- Fixes the following CVEs:
+ 
+  - `CVE-2025-27789 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-27789>`__
+  - `CVE-2025-32996 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-32996>`__
+  - `CVE-2025-32997 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-32997>`__
+
+.. _opsmgr-server-8.0.7:
+
+|onprem| Server 8.0.7
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-05-03*
+
+Improvements
+`````````````
+
+- Updates the {+mdbagent+} to :ref:`108.0.7.8810 
+  <mongodb-108.0.7.8810>`.
+- Supports MongoDB Database Tools 100.12.0.
+- Updates JDK to ``jdk-21.0.7+6``. 
+- Supports copying file blocks for incremental snapshot using the
+  filesystem store. 
+- Adds a validation on the cluster topology when starting backup for
+  clusters that are managed by automation agent.
+
+Bug Fixes 
+`````````
+ 
+- Updates ``automationConfig`` validations for ``lastErrorMode`` and
+  ``lastErrorDefaults`` to eliminate false positives due to Map
+  ordering.
+- Fixes a bug to ensure that the indexes created on the oplog store
+  metadata database exist and are properly functioning on |s3| oplog
+  store. 
+- Makes |kmip| proxy's ``custodian.Stop()`` command to wait until the server
+  is fully stopped. 
+- Fixes the following |cve|\s:
+
+  - `CVE-2023-26159 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2023-26159>`__.
+  - `CVE-2023-42282 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2023-42282>`__.
+  - `CVE-2024-11831 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-11831>`__.
+  - `CVE-2024-12905 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-12905>`__.
+  - `CVE-2024-28849 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-28849>`__.
+  - `CVE-2025-27789 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-27789>`__.
+
+.. _opsmgr-server-8.0.6:
+
+|onprem| Server 8.0.6
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-04-03*
+
+- Updates the {+mdbagent+} to :ref:`108.0.6.8796-1 
+  <mongodb-108.0.6.8796-1>`.
+- Upgrades Jetty library to 11.0.25.
+- Reduces the maximum session length (:setting:`mms.session.maxHours`)
+  from two months to one week to improve security.
+- Adds a new ``mms.cookies.sameSite`` setting to configure cookie behavior:
+
+  - ``Lax`` allows top-level navigation cookies.
+  - ``Strict`` restricts cookies to same-site requests.
+  - ``None`` permits all cross-site cookies over HTTPS.
+
+  All cookies are now ``httpOnly`` and marked as secure when
+  using HTTPS.
+
+- Adds the ability to :ref:`transition between S3-compatible snapshot stores <transition-s3>`
+  without terminating the previous backups.
+
+- Adds :guilabel:`restorable time ranges` to the point-in-time restore
+  dialog so you can see which time periods have a complete oplog history
+  before submitting a restore request. You can also retrieve restorable
+  time ranges programmatically using the
+  :ref:`Get Restorable Time Ranges <get-restorable-time-ranges-for-one-cluster>`
+  API endpoint. To learn more, see
+  :ref:`restore-http-point`.
+
+- Fixes the following issues:
+
+  - Fixes possibly innacurate |fcv| change timestamp warnings.
+  - Fixes incorrect redirection to an |idp-full|\s entity ID for 
+    |idp-full|\s that don't have single logout (SLO) configured.
+
+    After logging out of |mms|, users are now reminded to also log out of the
+    |idp-full| to complete the logout process.
+
+  - Fixes possibly inaccurate restore job statuses when cancelled.
+
+  - Fixes an issue where the user interface passes incorrect values
+    for ``pemFilePwd`` for the ``verifyTLSCertificate`` job.
+
+  - Fixes an issue where the {+mdbagent+} ignores the Windows 
+    {+mdbagent+} Certificate File information and uses the Linux path instead.
+
+- Fixes the following |cve|\s:
+
+  - `CVE-2021-32050 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2021-32050>`__.
+  - `CVE-2023-26159 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2023-26159>`__.
+  - `CVE-2023-42282 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2023-42282>`__.
+  - `CVE-2024-11831 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-11831>`__.
+  - `CVE-2024-12905 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-12905>`__.
+  - `CVE-2024-21536 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-21536>`__.
+  - `CVE-2024-21538 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-21538>`__.
+  - `CVE-2024-28849 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-28849>`__.
+  - `CVE-2024-29180 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-29180>`__.
+  - `CVE-2024-37890 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-37890>`__.
+  - `CVE-2024-47535 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-47535>`__.
+  - `CVE-2025-22868 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-22868>`__.
+  - `CVE-2025-22869 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-22869>`__.
+  - `CVE-2025-22870 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-22870>`__.
+  - `CVE-2025-24970 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-24970>`__.
+  - `CVE-2025-27789 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-27789>`__.
+  - `CVE-2025-30204 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2025-30204>`__.
+
+.. _opsmgr-server-8.0.5:
+
+|onprem| Server 8.0.5
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-03-06*
+
+Improvements
+`````````````
+
+- Adds support for |bic-full| 2.14.22.
+  
+- Compatible with :dbtools:`MongoDB Database Tools 100.11.0 </release-notes/database-tools-changelog>`.
+
+- Releases {+mongosh+} 2.3.9, which addresses {+mongosh+} |cve|\s, to |onprem|. To learn more, see {+mongosh+} 
+  Release Notes.
+
+- Adds support for configuring multiple passwords in the :setting:`security.ldap.bind.queryPassword` 
+  configuration file option so that users can ensure MongoDB doesn't disconnect from |ldap| 
+  after a restart when performing an |ldap| credential rotation. To learn more, see :ref:`enable-ldap-auth`.
+
+- Improves handling of misconfigured core and maximum connection pool sizes.
+
+- Adds ability for |onprem| to recognize a dash (``-``) in the deployment name.
+
+- Exports all stored telemetry data into the related files of the diagnostic logs.
+
+- Improves error handling to avoid ``mongodb-mms stop`` crashing from ``Mongodb-mms-backup-daemon`` 
+  errors when the PID file does not exist.
+
+Bug Fixes
+```````````
+
+Fixes the following issues:
+
+- Broken documentation link when adding an access list entry.
+
+- Error when saving custom parameter settings due to ``mms.mail.transport``.
+
+.. _opsmgr-server-8.0.4:
+
+|onprem| Server 8.0.4
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-02-06*
+
+Improvements
+`````````````
+
+- Updates the {+mdbagent+} to :ref:`108.0.4.8770-1 <mongodb-108.0.4.8770-1>`.
+  
+- Updates JDK to ``jdk-21.0.6+7``.
+  
+- Adds support for |bic-full| 2.14.21.
+  
+- Improves error handling for the ``FileSystemSnapshotStore`` in the event the 
+  job directory does not exist.
+
+Bug Fixes
+```````````
+
+Fixes the following issues:
+
+- Deployment IDs were not filtered out when multi-region backups were enabled.
+
+- ``bytesReclaimed`` reported compressed size for filesystems
+  instead of showing ``fileSize``.
+
+- Downloading logs failed for systems using :term:`syslog` in some cases.
+
+- Upgrades from MongoDB 6.0.x to 7.0.x with |oidc| configured 
+  and a pinned FCV became stuck.
+
+.. _opsmgr-server-8.0.3:
+
+|onprem| Server 8.0.3
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-01-10*
+
+Improvements
+`````````````
+
+- Hardens the algorithm used for two-way encryption in AppDB. 
+
+- Adds a trigger so that changes to the feature compatibility version (FCV) triggers
+  a snapshot.
+
+- Adds an AppDB health check to the |onprem| upgrade process to ensure a successful upgrade.
+
+- Improves {+mdbagent+} connection handling during server overload.
+
+- Adds ``clusterID`` to the |onprem| logs for each snapshot.
+
+- Includes deleted groups in the diagnostic archive for better debugging.
+
+- Adds 320 character limit for :guilabel:`Email Address` and :guilabel:`Mobile Phone Number` 
+  fields in the user profile UI.
+
+- Fixes `CVE-2024-52046 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-52046>`__. 
+
+Bug Fixes
+```````````
+
+Fixes the following issues:
+
+- Labels did not appear on the 
+  :guilabel:`Backup Job Config` page in the Admin UI.
+
+- Configuring or updating :guilabel:`Blockstore Max Capacity (GB)`
+  in the UI caused an error.
+
+- The {+mdbagent+} tried to set the |oidc| parameter ``supportHumanFlows`` on 
+  MongoDB clusters with FCV 6.0.
+
+- Unsupported mail transport protocol appeared as an option in the Admin UI.
+
+- The Admin UI redirected back to the logs page after viewing.
+
+- The link to the MongoDB Deployment Authentication Mechanism documentation in 
+  the UI was incorrect.
+
+.. _opsmgr-server-8.0.2:
+
+|onprem| Server 8.0.2
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2024-12-05*
+
+Improvements
+`````````````
+
+- Updates the {+mdbagent+} to :ref:`108.0.2.8729-1 <mongodb-108.0.2.8729-1>`.
+- Adds support for |bic-full| 2.14.19.
+- Adds {+mdbagent+} support for Ubuntu 24.04 on x86_64 architectures.
+- Adds support for deploying |onprem| on Ubuntu 24.04 on x86_64 architectures.
+- Updates the password hashing algorithm to ``pbkdf2``. Old passwords are migrated
+  automatically without any user impact. New passwords cannot exceed 256
+  characters. Users with passwords longer than 256 characters must migrate their passwords.
+- Adds a new custom configuration :setting:`mms.user.passwordHashIterations`.
+  to dynamically modify the number of iterations for the hashing algorithm.
+- Adds the following fields to the :ref:`snapshot APIs <snapshots-api>`:
+  ``machineId``, ``name``, ``completedTime``, ``fcv``, and ``replicaState``.
+- Adds ability to cancel a failed queryable restore for sharded clusters.
+
+
+Bug Fixes
+```````````
+
+Fixes the following issues:
+
+- User invite API didn't respect the :setting:`mms.user.bypassInviteForExistingUsers` settings.
+- Deployments from deleted groups caused MongoDB version validation to fail and prevented the |onprem| upgrade.
+- Arbiter nodes caused the :guilabel:`Edit Namespace filter` option in the UI to not be visible.
+- Topology change requests couldn't be processed when backup wasn't enabled.
+- The {+mdbagent+} couldn't download the correct |bic-full| versions on certain platforms.
+- When deploying |onprem| in hybrid mode, ``.tmp`` files could be left behind unintentionally.
+- The {+mdbagent+} could incorrectly report that goal state was reached
+  while encountering a transient error.
+
+.. _opsmgr-server-8.0.1:
+
+|onprem| Server 8.0.1
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2024-11-01*
+
+- Updates JDK to ``jdk-21.0.5+11``.
+- Supports :ref:`Workload Identity Federation <om-oidc-authentication-workload>` on top of the already existing Workforce Identity Federation. 
+- Supports configuring separate SAML signature validation for responses and assertions so that only one is 
+  required through the :setting:`mms.saml.signedAssertions` and :setting:`mms.saml.signedMessages` settings.
+- Supports ability to set a custom idle session timeout using new app settings, :guilabel:`Idle Session Timeout Mode` and :guilabel:`Idle Session Timeout Max Minutes`.
+- Removes the |onprem| version number from the login page.
+- Updates the MongoDB Agent to :ref:`108.0.1.8718-1 <mongodb-108.0.1.8718-1>`.
+- Adds support for |bic-full| 2.14.17.
+- Upgrades Jetty library to 11.0.23.
+- Fixes an issue where the {+mdbagent+} gets stuck because indexes are set to the ``CANCEL`` action.
+- Fixes `CVE-2024-8184 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-8184>`__.
+- Fixes broken ``rpm`` package for |onprem| version 8.0.0 
+  containing incorrect version information that could cause standard 
+  upgrades to fail. If upgrading from this version to 
+  version 8.0.1 or greater, upgrade the package using the 
+  ``--oldpackage`` flag:
+
+  .. code-block:: sh
+
+      sudo rpm -Uvh --oldpackage mongodb-mms-<version>.x86_64.rpm
+
+
+.. _opsmgr-server-8.0.0:
+
+|onprem| Server 8.0.0
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2024-9-30*
+
+.. note::
+
+   The following list contains features and improvements 
+   that have been added since |onprem| 7.0.0, many of which 
+   are also included in later minor releases of |onprem| 7.0.
+   For details, see :ref:`Ops Manager 7.0 releases <opsmgr-server-7.0>`.
+
+- Updates the {+mdbagent+} to :ref:`108.0.1
+  <mongodb-108.0.1>`.
+- Increases the default memory allocation for the Java Heap Starting Memory 
+  (``-Xms``) and the Java Heap Maximum Memory (``-Xmx``) for the |onprem| 
+  application from 4,352 :abbr:`MB (Megabytes)` (``4352m``) to 8,096 
+  :abbr:`MB (Megabytes)` (``8096m``). To learn more, 
+  see :ref:`Troubleshooting Out of Memory Issues on Hosts <host-issue-outofmemoryerror>`.
+
+MongoDB Cluster Management
+``````````````````````````
+
+- Supports managing, monitoring, and backing up MongoDB 8.0 deployments.
+- Supports MongoDB 8.0 as a deployment option.
+- Supports deployments that use :ref:`config shards <sharded-cluster-config-server-config-shards>`.
+  
+  .. note::
+
+     :ref:`Queryable backups <restore-from-queryable-backup>` 
+     are not supported when you use config shards.
+
+- Deprecates support for MongoDB 4.4 and MongoDB 5.0 deployments.
+- Deprecates support for MongoDB Server 6.0 as a :ref:`backing database <om-install-backing-dbs>`.
+- Removes support for MongoDB 4.2 deployments.
+
+Backup
+``````
+
+- Supports performing :ref:`on-demand snapshots <on-demand-snapshots>` 
+  in addition to scheduled snapshots.
+- Supports enabling and configuring :ref:`regional backups <regional-backup>`.
+- Supports parsing multiple certificates, or a chain, from PEM
+  files for |s3| backup store configuration.
+- Adds additional snapshot history metadata for block tracking,
+  incremental updates for data and indexes, transfer speed, and duration in the
+  :guilabel:`Admin` interface and :guilabel:`Diagnostic Archive`.
+- Adds additional snapshot metrics to the snapshot summary table.
+- Adds ability to track restore block download performance.
+- Enhances logging for MongoDB blockstores groom progress and checks 
+  that grooms have enough space to run before starting.
+
+Automation
+``````````
+
+- Improves the redaction of sensitive fields.
+- Supports ``net.tls.clusterAuthX509`` parameter in MongoDB 7.0 for
+  ``clusterAuthMode`` set to ``x509``. 
+- Adds ability to configure the :setting:`net.tls.clusterCAFile` parameter.
+- Adds API support for project-level MongoDB log rotation settings.
+- Adds automation support for :ref:`at-rest encryption <security-encryption-at-rest>` of
+  :ref:`audit logs <deployment-advanced-options-audit-log>` in MongoDB
+  6.0 and later versions.
+  
+|onprem| Platform Support
+```````````````````````````
+
+- Removes |onprem| support for RedHat Enterprise Linux 7.
+- Removes |onprem| support for SUSE Linux Enterprise Server 12.
+- Removes |onprem| support for Ubuntu 20.04 LTS.
+- Deprecates |onprem| support for Amazon Linux v2 LTS.
+- Deprecates |onprem| support for Debian 11.

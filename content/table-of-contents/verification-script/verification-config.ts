@@ -98,7 +98,7 @@ export const config: Map<string, string[]> = new Map([
       'v6.9',
     ],
   ],
-  ['ops-manager', ['upcoming', 'current', 'v7.0']],
+  ['ops-manager', ['upcoming', 'current', 'v8.0', 'v7.0']],
   ['php-library', ['current', 'upcoming', 'v1.x']],
   [
     'pymongo-arrow',

@@ -1,0 +1,190 @@
+==================================
+Manage S3-Compatible Oplog Storage
+==================================
+
+.. meta::
+   :description: Manage S3-compatible oplog storage in Ops Manager, including creating, editing, and deleting oplog stores that support point-in-time restores for MongoDB backups.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/backup/oplog-introduction.rst
+
+This tutorial covers creating additional |s3os|\s to store oplog
+entries. Like any MongoDB instance, an |s3os| can exist on any host
+running MongoDB and |s3| bucket (without subfolders) that the |onprem|
+application can access.
+
+Considerations
+--------------
+
+.. include:: /includes/considerations-requires-dedicated-bucket-oplog.rst
+
+Can't Move the S3-Compatible Oplog Store
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After you create an |s3os|, you can't move it. Instead, you can 
+create a new |s3os| in a separate |s3| bucket within the same |aws| 
+region. The |s3| snapshot bucket must be different than the oplog |s3| 
+bucket.
+
+Supports the Storage API
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _Cloud Object Storage API: https://cloud.ibm.com/apidocs/cos/cos-compatibility
+
+MongoDB supports endpoints that are compatible with AWS S3 APIs from any vendor.
+|mms| attempts to validate
+these endpoints when you save the |s3os| setup. If validation
+passes, |mms| saves the configuration. If validation fails, |mms|
+displays an error and doesn't save the configuration.
+
+.. include:: /includes/backup/s3-consistency-requirement.rst
+
+Prerequisites
+-------------
+
+Metadata Storage Prerequisites
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- :doc:`Deploy the dedicated MongoDB instance(s) </tutorial/prepare-backing-mongodb-instances>`
+  to serve the |s3os| metadata and
+  :opsmgr:`Oplog Store  </reference/glossary/#std-term-Oplog-Store-Database>`. Serve these instances on
+  the same hosts as the |onprem| host, the :term:`backing databases`,
+  or snapshot stores. Attach one or more storage volumes with enough
+  capacity to store the databases these instances manage.
+
+- Secure the instance that stores your |s3os| metadata database
+  using :ref:`authentication` and
+  :ref:`TLS <configure-mongod-mongos-for-tls-ssl>`. |s3os| metadata databases
+  support :urioption:`all authentication mechanisms <authMechanism>`.
+
+AWS S3 Storage Prerequisites
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. Make sure you have an
+   :aws:`IAM user </IAM/latest/UserGuide/id_users_create.html>`
+   on |aws|.
+
+#. Create your own
+   :aws:`AWS access keys </IAM/latest/UserGuide/id_credentials_access-keys.html>`
+   for your |iam| user. This allows you to create |s3| buckets and
+   store oplog files in them. MongoDB does not create or issue |aws|
+   access keys.
+
+#. Create your own :aws:`S3 bucket </AmazonS3/latest/dev/UsingBucket.html#create-bucket-intro>`
+   to store your |s3os|\s.
+
+   .. note::
+      
+      The |iam| user for which you created the |aws| access keys must
+      :aws:`own </AmazonS3/latest/user-guide/set-bucket-permissions.html>`
+      the |s3| bucket.
+
+IBM Cloud Object Storage Prerequisites
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. Create an Access Key and Secret Key using IBM credential tools.
+#. Create your own |s3| bucket.
+
+Dell EMC Elastic Cloud Storage Prerequisites
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. Create an Access Key and Secret Key from your
+   `ECS User ID <https://www.delltechnologies.com/en-us/storage/ecs/index.htm>`__.
+#. Create your own |s3| bucket.
+
+Other S3-Compatible Storage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Other |s3| endpoints can be used. |mms| attempts to validate
+these endpoints when you save the configuration. If validation passes,
+the configuration, |mms| saves it. If validation fails, |mms| displays
+an error and doesn't save the configuration.
+
+Procedures
+----------
+
+.. include:: /includes/tabsets/storage-settings-selection.rst
+
+.. _add-s3-oplogstore:
+
+Add One S3-Compatible Oplog Store
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/steps/admin-add-s3-oplogstore.rst
+
+.. _edit-s3-oplogstore:
+
+Edit One Existing S3-Compatible Oplog Store
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|onprem| lists :opsmgr:`oplog stores  </reference/glossary/#std-term-Oplog-Store-Database>` in a table
+on the :ref:`Oplog Storage page <oplog-stores-page>`. Each row
+contains the settings for each local and |s3os|.
+
+.. include:: /includes/steps/admin-edit-s3-oplogstore.rst
+
+.. _assign-s3-oplog-store-to-backup-job:
+
+Assign an S3-Compatible Oplog Store to a Backup Job
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When multiple clusters share one |onprem| project, each cluster's
+backup job can be routed to a distinct |s3os|. |onprem| assigns a
+new backup job to a store that has :guilabel:`Assignment Enabled`
+selected. You can route each job to a specific store by selecting 
+which stores have assignment enabled before you start each backup job.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create a separate |s3os| for each backup job.
+
+      Follow the :ref:`add-s3-oplogstore` procedure to create
+      one |s3os| for each backup job that you want to route to a
+      distinct store.
+
+   .. step:: Enable assignment on the target store and disable
+      it on all other stores.
+
+      For each |s3os|, use the :ref:`edit-s3-oplogstore`
+      procedure:
+
+      a. For the store to assign to the first backup job, select
+         :guilabel:`Assignment Enabled`.
+      b. For all other stores, clear
+         :guilabel:`Assignment Enabled`.
+
+   .. step:: Start the first backup job.
+
+      |onprem| assigns the enabled store to this backup job.
+
+   .. step:: Repeat for each additional backup job.
+
+      For each remaining backup job:
+
+      a. Select :guilabel:`Assignment Enabled` for the target
+         store.
+      b. Clear :guilabel:`Assignment Enabled` for all other
+         stores.
+      c. Start the backup job.
+
+   .. step:: (Optional) Re-enable assignment on all stores.
+
+      After assigning all backup jobs, re-enable
+      :guilabel:`Assignment Enabled` on all stores. This allows
+      |onprem| to distribute future backup jobs across all
+      available stores.
+
+.. _delete-s3-oplogstore:
+
+Delete One S3-Compatible Oplog Store
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/steps/admin-delete-s3-oplogstore.rst

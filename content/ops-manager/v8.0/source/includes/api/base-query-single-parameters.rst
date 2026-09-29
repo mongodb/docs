@@ -1,0 +1,35 @@
+.. list-table::
+   :widths: 20 14 11 45 10
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Necessity
+     - Description
+     - Default
+
+   * - pretty
+     - boolean
+     - Optional
+     - Flag indicating whether the response body is in a
+       :wikipedia:`prettyprint <Prettyprint?oldid=791126873>` format.
+     - ``false``
+
+   * - envelope
+     - boolean
+     - Optional
+     - Flag that indicates whether to wrap the response in an
+       envelope.
+
+       Some |api| clients cannot access the |http| response headers or
+       status code. To remediate this, set **envelope=true** in the
+       query.
+
+       For endpoints that return one result, the response body
+       includes:
+
+       - ``status``: |http| response code
+       - ``content``: Expected response body
+
+     - ``false``

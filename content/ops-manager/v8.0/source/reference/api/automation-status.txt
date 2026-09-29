@@ -1,0 +1,183 @@
+====================================
+Get Automation Status of Latest Plan
+====================================
+
+.. meta::
+   :description: Retrieve the latest automation plan for MongoDB processes, including the current and last achieved configuration versions, using the specified API endpoint.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/fact-groups-projects-synonyms.rst
+
+Overview
+--------
+
+Retrieves the latest plan for MongoDB processes. Plans are a 
+set of actions required to get a MongoDB deployment to the 
+``goalVersion``.
+
+The endpoint returns the ``goalVersion`` field to 
+report the current version of the automation configuration and the 
+``lastGoalVersionAchieved`` field to report the versions of the 
+configuration running on each server.
+
+.. include:: /includes/api/base-api-uri.rst
+
+Resource
+--------
+
+.. code-block:: http
+
+   GET /groups/{PROJECT-ID}/automationStatus
+
+Request Parameters
+------------------
+
+Request Path Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 20 60
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - PROJECT-ID
+     - string
+     - *(Required.)* The unique identifier for the project.
+
+Request Query Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-query-single-parameters.rst
+
+Request Body Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-body-parameters.rst
+
+Response
+--------
+
+.. list-table::
+   :widths: 20 10 80
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+   * - goalVersion
+     - number
+     - The version of the most recently submitted :ref:`automation
+       configuration <automation-configuration-sample-entity>`. If there is a
+       :ref:`conflict in submissions of automation configurations
+       <concurrent-cluster-config>`, this field lists the winning
+       configuration.
+   * - processes
+     - array
+     - The project's deployed MongoDB instances.
+   * - process.errorCode
+     - integer
+     - The error code. Returns ``0`` if the process has no errors.
+   * - process.errorCodeDescription
+     - string
+     - Detailed error description. Returns an empty string if the 
+       process has no errors.
+   * - process.errorCodeHumanReadable
+     - string
+     - Short error description. Returns an empty string if the 
+       process has no errors.
+   * - process.errorString
+     - string
+     - Output of the log line that contains the error. Examine this
+       field for additional error context. 
+       Returns an empty string if the process has no errors.
+   * - processes.hostname
+     - string
+     - The fully qualified domain name (retrieved by issuing ``hostname -f``)
+       of the server on which the MongoDB process and {+aagent+} are
+       hosted.
+   * - processes.name
+     - string
+     - The process name as specified in the automation configuration.
+   * - processes.lastGoalVersionAchieved
+     - number
+     - The last version of the automation configuration with which this
+       process had deployed as configured. If the ``processes.lastGoalVersionAchieved``
+       number is not equal to the ``goalVersion`` number, the process has
+       not yet deployed according to the current configuration.
+   * - processes.plan
+     - array
+     - Describes how a process that is not yet up-to-date with the
+       configuration will achieve the goal state.
+
+Example Request
+---------------
+
+.. code-block:: sh
+
+   curl --user '{PUBLIC-KEY}:{PRIVATE-KEY}' --digest \
+   --header 'Accept: application/json' \
+   --include \
+   --request GET "https://{opsManagerHost}:{port}/api/public/v1.0/groups/{PROJECT-ID}/automationStatus"
+
+Example Response
+~~~~~~~~~~~~~~~~
+
+Response Header
++++++++++++++++
+
+.. include:: /includes/api/api-headers/401.rst
+
+.. include:: /includes/api/api-headers/200.rst
+
+Response Body
++++++++++++++
+
+.. code-block:: json
+
+   {
+   	"goalVersion": 11,
+   	"processes": [{
+   		"errorCode": 0,
+   		"errorCodeDescription": "",
+   		"errorCodeHumanReadable": "",
+   		"errorString": "",
+   		"hostname": "example.net",
+   		"lastGoalVersionAchieved": 11,
+   		"name": "myReplicaSet_3",
+   		"plan": ["Download",
+   			"WaitRsInit",
+   			"WaitFeatureCompatibilityVersionCorrect"
+   		]
+   	}, {
+   		"errorCode": 100,
+   		"errorCodeDescription": "There is an issue with file permissions for this process",
+   		"errorCodeHumanReadable": "File Permissions Error",
+   		"errorString": "<myReplicaSet_1> [13:11:33.348] Failed to compute states : <myReplicaSet_1> [13:11:33.348] Error calling ComputeState : <myReplicaSet_1> [13:11:33.348] Error getting fickle state for current state : <myReplicaSet_1> [13:11:33.348] Error checking if process is running from dbpath = /data/0 : <myReplicaSet_1> [13:11:33.348] Error getting file contents of /data/0/mongod.lock as string : <myReplicaSet_1> [13:11:33.348] Error reading file from /data/0/mongod.lock : open /data/0/mongod.lock: permission denied",
+   		"hostname": "example.net",
+   		"lastGoalVersionAchieved": 1,
+   		"name": "myReplicaSet_1",
+   		"plan": ["Download"]
+   	}, {
+   		"errorCode": 0,
+   		"errorCodeDescription": "",
+   		"errorCodeHumanReadable": "",
+   		"errorString": "",
+   		"hostname": "example.net",
+   		"lastGoalVersionAchieved": 11,
+   		"name": "myReplicaSet_2",
+   		"plan": ["WaitRsInit",
+   			"WaitFeatureCompatibilityVersionCorrect"
+   		]
+   	}]
+   }

@@ -1,0 +1,222 @@
+.. _api-om-log-collections-list-servers:
+
+=========================
+List Active |mms| Servers
+=========================
+
+.. meta::
+   :description: List the active Ops Manager servers eligible for log collection. Returns each server's ID, type, and last heartbeat timestamp so you can target a request.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Returns a list of all active |mms| servers. |mms| considers a
+server active if it sent a heartbeat to the Application Database
+within the last 20 seconds. Use this endpoint to discover valid
+``serverId`` values before you submit a log collection request.
+
+.. include:: /includes/api/base-api-uri.rst
+
+Resource
+--------
+
+.. code-block:: http
+
+   GET /admin/servers
+
+Required Roles
+--------------
+
+.. include:: /includes/api/roles/global-roles.rst
+   :start-after: START_GLOBAL_READ_ONLY
+   :end-before: END_GLOBAL_READ_ONLY
+
+Request Parameters
+------------------
+
+Request Path Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-path-parameters.rst
+
+Request Query Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 15 10 11 49 15
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Necessity
+     - Description
+     - Default
+
+   * - ``pageNum``
+     - number
+     - Optional
+     - One-based integer that returns a subsection of results.
+     - ``1``
+
+   * - ``itemsPerPage``
+     - number
+     - Optional
+     - Number of items to return per page, up to a maximum of 500.
+     - ``100``
+
+   * - ``type``
+     - string
+     - Optional
+     - Server type to filter by. Pass this parameter multiple times
+       to include several types (``?type=VALUE_1&type=VALUE_2``).
+       The currently supported value is ``MMS_SERVER``, which
+       represents the |mms| application server. If you omit this
+       parameter, |mms| returns all types (currently only
+       ``MMS_SERVER``).
+     - All types
+
+   * - ``status``
+     - string
+     - Optional
+     - Server status to filter by. Currently the only valid value
+       is ``active``. Any other value returns
+       ``400 INVALID_SERVER_STATUS``. If you omit this parameter,
+       |mms| returns active servers.
+     - ``active``
+
+   * - ``pretty``
+     - boolean
+     - Optional
+     - Flag indicating whether the response body should be in a
+       :wikipedia:`prettyprint <Prettyprint?oldid=791126873>` format.
+     - ``false``
+
+   * - ``envelope``
+     - boolean
+     - Optional
+     - Flag that indicates whether to wrap the response in an
+       envelope. Some |api| clients cannot access the |http|
+       response headers or status code. To remediate this, set
+       ``envelope=true`` in the query.
+     - ``false``
+
+Request Body Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-body-parameters.rst
+
+Response
+--------
+
+The response includes an array of server objects, an array of
+link objects, and the total number of server objects retrieved.
+
+.. list-table::
+   :widths: 25 14 61
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Description
+
+   * - ``results``
+     - array
+     - Array of active |mms| servers. See
+       :ref:`api-om-log-collections-list-servers-results`.
+
+   * - ``links``
+     - array
+     - Array of one or more links to sub-resources or related
+       resources. The relations between URLs follow `Web Linking
+       Specification (RFC 5988)
+       <https://www.rfc-editor.org/rfc/rfc5988>`__.
+
+   * - ``totalCount``
+     - number
+     - Total number of items in the result set. May exceed the
+       size of ``results`` when paginated.
+
+.. _api-om-log-collections-list-servers-results:
+
+results Embedded Document
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each ``results`` element represents one active |mms| server.
+
+.. list-table::
+   :widths: 30 14 56
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Description
+
+   * - ``results[n].serverId``
+     - string
+     - Identifier of the active |mms| server.
+
+   * - ``results[n].serverType``
+     - string
+     - Type of server. Currently always returns ``MMS_SERVER``.
+
+   * - ``results[n].lastPing``
+     - string
+     - Timestamp, in ISO 8601 UTC format, when the server last sent
+       a heartbeat.
+
+Example Request
+---------------
+
+.. code-block:: sh
+
+   curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+        --header "Accept: application/json" \
+        --include \
+        --request GET \
+        "https://{+opsmgr-url+}/api/public/v1.0/admin/servers?pretty=true"
+
+Example Response
+----------------
+
+Response Header
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/api-headers/401.rst
+
+.. include:: /includes/api/api-headers/200.rst
+
+Response Body
+~~~~~~~~~~~~~
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "links": [
+       {
+         "href": "https://{+opsmgr-url+}/api/public/v1.0/admin/servers?pageNum=1&itemsPerPage=100",
+         "rel": "self"
+       }
+     ],
+     "results": [
+       {
+         "serverId": "om-server-1.example.com",
+         "serverType": "MMS_SERVER",
+         "lastPing": "2026-04-13T10:00:15Z"
+       },
+       {
+         "serverId": "om-server-2.example.com",
+         "serverType": "MMS_SERVER",
+         "lastPing": "2026-04-13T10:00:12Z"
+       }
+     ],
+     "totalCount": 2
+   }
