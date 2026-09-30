@@ -45,26 +45,19 @@ Procedure
 
       .. tabs::
 
+         .. tab:: Ubuntu 24.04 (Noble)
+            :tabid: ent-noble
+
+            .. code-block:: sh
+
+               echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.com/apt/ubuntu noble/mongodb-enterprise/8.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
+
          .. tab:: Ubuntu 22.04 (Jammy)
             :tabid: ent-jammy
 
             .. code-block:: sh
 
                echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-{+mdbVersion+}.gpg ] https://repo.mongodb.com/apt/ubuntu jammy/mongodb-enterprise/{+mdbVersion+} multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
-
-         .. tab:: Ubuntu 20.04 (Focal)
-            :tabid: ent-focal
-
-            .. code-block:: sh
-
-               echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-{+mdbVersion+}.gpg ] https://repo.mongodb.com/apt/ubuntu focal/mongodb-enterprise/{+mdbVersion+} multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
-
-         .. tab:: Ubuntu 18.04 (Bionic)
-            :tabid: ent-bionic
-
-            .. code-block:: sh
-
-               echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-{+mdbVersion+}.gpg ] https://repo.mongodb.com/apt/ubuntu bionic/mongodb-enterprise/{+mdbVersion+} multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
 
    .. step:: Refresh the package database.
 

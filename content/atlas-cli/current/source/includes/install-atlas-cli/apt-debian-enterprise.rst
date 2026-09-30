@@ -45,12 +45,19 @@ Procedure
 
       .. tabs::
 
-         .. tab:: Debian 11 (Bullseye)
-            :tabid: ent-deb-11
+         .. tab:: Debian 13 (Trixie)
+            :tabid: ent-deb-13
 
             .. code-block:: sh
 
-               echo "deb http://repo.mongodb.com/apt/debian bullseye/mongodb-enterprise/{+mdbVersion+} main" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
+               echo "deb http://repo.mongodb.com/apt/debian trixie/mongodb-enterprise/{+mdbVersion+} main" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
+
+         .. tab:: Debian 12 (Bookworm)
+            :tabid: ent-deb-12
+
+            .. code-block:: sh
+
+               echo "deb http://repo.mongodb.com/apt/debian bookworm/mongodb-enterprise/{+mdbVersion+} main" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
 
    .. step:: Refresh the package database.
 

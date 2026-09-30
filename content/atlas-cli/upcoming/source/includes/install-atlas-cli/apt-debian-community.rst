@@ -46,19 +46,19 @@ Procedure
 
       .. tabs::
 
+         .. tab:: Debian 13 (Trixie)
+            :tabid: comm-deb-13
+
+            .. code-block:: sh
+
+               echo "deb http://repo.mongodb.org/apt/debian trixie/mongodb-org/{+mdbVersion+} main" | sudo tee /etc/apt/sources.list.d/mongodb-org-{+mdbVersion+}.list
+
          .. tab:: Debian 12 (Bookworm)
             :tabid: comm-deb-12
 
             .. code-block:: sh
 
                echo "deb http://repo.mongodb.org/apt/debian bookworm/mongodb-org/{+mdbVersion+} main" | sudo tee /etc/apt/sources.list.d/mongodb-org-{+mdbVersion+}.list
-
-         .. tab:: Debian 11 (Bullseye)
-            :tabid: comm-deb-11
-
-            .. code-block:: sh
-
-               echo "deb http://repo.mongodb.org/apt/debian bullseye/mongodb-org/{+mdbVersion+} main" | sudo tee /etc/apt/sources.list.d/mongodb-org-{+mdbVersion+}.list
 
    .. step:: Refresh the package database.
 
