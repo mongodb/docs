@@ -1,7 +1,6 @@
 'use client';
 
-import styled from '@emotion/styled';
-import { theme } from '@/styles/theme';
+import styles from './drivers-index.module.scss';
 import Breadcrumbs from '@/mdx-components/Breadcrumbs';
 import MainColumn from './main-column';
 import type { BaseTemplateProps } from '.';
@@ -11,23 +10,12 @@ import { usePageContext } from '@/context/page-context';
 import { useVersionContext } from '@/context/version-context';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
 
-const DocumentContainer = styled('div')`
-  display: grid;
-  grid-template-areas: 'main right';
-  grid-template-columns: minmax(${theme.size.xlarge}, auto) 1fr;
-`;
-
-const StyledMainColumn = styled(MainColumn)`
-  grid-area: main;
-  max-width: 800px;
-`;
-
 const DriversIndexTemplate = ({ children }: BaseTemplateProps) => {
   const { siteBasePrefixWithVersion } = useVersionContext();
   const { slug: pageSlug } = usePageContext();
   return (
-    <DocumentContainer>
-      <StyledMainColumn>
+    <div className={styles.documentContainer}>
+      <MainColumn className={styles.mainColumn}>
         <div className="body">
           {isOfflineBuild && (
             <OfflineBanner
@@ -38,8 +26,8 @@ const DriversIndexTemplate = ({ children }: BaseTemplateProps) => {
           <Breadcrumbs />
           {children}
         </div>
-      </StyledMainColumn>
-    </DocumentContainer>
+      </MainColumn>
+    </div>
   );
 };
 

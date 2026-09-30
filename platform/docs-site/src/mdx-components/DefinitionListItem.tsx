@@ -1,15 +1,6 @@
 'use client';
 
-import { theme } from '@/styles/theme';
-import styled from '@emotion/styled';
-
-const HeaderBuffer = styled.div`
-  display: inline;
-  margin-top: -${theme.header.navbarScrollOffset};
-  position: absolute;
-  // Add a bit of padding to help headings be more accurately set as "active" on FF and Safari
-  padding-bottom: 2px;
-`;
+import styles from './definition-list-item.module.scss';
 
 export type DefinitionListItemProps = {
   children?: React.ReactNode;
@@ -19,7 +10,7 @@ export type DefinitionListItemProps = {
 export const DefinitionListItem = ({ targetId, children }: DefinitionListItemProps) => {
   return (
     <>
-      {targetId && <HeaderBuffer id={targetId} />}
+      {targetId && <div id={targetId} className={styles.headerBuffer} />}
       {children}
     </>
   );
