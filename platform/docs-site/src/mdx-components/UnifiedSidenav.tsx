@@ -43,7 +43,7 @@ export const NavTopContainer = (isTabletOrMobile: boolean) => LeafyCSS`
   ${!isTabletOrMobile && 'background-color: var(--background-color-primary)'};
   position: absolute;
   top: -0px;
-  height: ${isTabletOrMobile ? '145px' : '60px'};
+  height: ${isTabletOrMobile ? '190px' : '60px'};
   width: 100%;
   border-bottom: 1px solid var(--sidenav-border-bottom-color);
   z-index: 1;

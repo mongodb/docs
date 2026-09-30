@@ -39,7 +39,7 @@ const panelStyling = LeafyCSS`
     }
 
     @media ${theme.screenSize.upToLarge} {
-      top: 145px;
+      top: 190px;
       height: calc(100% - 205px);
     }
 `;
