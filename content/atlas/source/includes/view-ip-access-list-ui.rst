@@ -3,7 +3,8 @@
 
    .. include:: /includes/nav/steps-network-access.rst
 
-   .. step:: Click the :guilabel:`IP Access List` tab.
+   .. step:: Click :guilabel:`IP Access List` in the left
+      navigation, under the :guilabel:`Network Access` heading.
 
       .. list-table::
          :widths: 20 80

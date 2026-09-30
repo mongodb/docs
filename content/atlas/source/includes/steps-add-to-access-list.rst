@@ -3,49 +3,50 @@
       
    .. include:: /includes/nav/steps-network-access.rst
 
-   .. step:: Go to :guilabel:`IP Access List` view.
-      
-      a. If it isn't already displayed, click the
-         :guilabel:`IP Access List` tab.
-      
+   .. step:: Go to :guilabel:`IP Access List`.
+
+      a. If it isn't already displayed, click
+         :guilabel:`IP Access List` in the left navigation, under
+         the :guilabel:`Network Access` heading.
+
       #. Click :icon-fa5:`plus` :guilabel:`Add IP Address`.
-      
+
    .. step:: Enter an IP address, |cidr| block, or Security Group ID.
-      
+
       .. important::
-         
+
          Ensure that you add the IP address you will use to
          access MongoDB as the ``admin`` user.
-      
+
       Enter the desired IP address or |cidr|-notated range of addresses:
-      
+
       .. list-table::
          :header-rows: 1
          :widths: 40 60
-      
+
          * - Entry
-      
+
            - Grants
-      
+
          * - An IP address
-      
+
            - Access from that address.
-      
+
          * - A |cidr|\-notated range of IP addresses
-      
+
            - Access from the designated range of addresses.
-      
+
              For peer |vpc| connections, you can specify the |cidr| block
              (or a subset) or the associated Security Group.
-      
+
              The Internet provides online tools for converting a range of
              IP addresses to |cidr|, such as
              `<http://www.ipaddressguide.com/cidr>`_.
 
          * - Security Group ID (AWS Only)
-      
+
            - Access via Security Group membership from a peered VPC.
-      
+
              :gold:`IMPORTANT:` |service| does not support adding |aws| security groups to
              IP access lists in projects with |vpc| peering connections
              in multiple regions.
@@ -53,6 +54,11 @@
       .. include:: /includes/fact-nested-wildcard-ip.rst
 
       .. include:: /includes/security/fact-unrestricted-ip-access.rst
+
+   .. step:: (Optional) Add a comment.
+
+      In the :guilabel:`Comment` field, optionally enter a
+      description of the access list entry.
 
    .. step:: (Optional) Set the IP access list as temporary.
       
@@ -77,4 +83,4 @@
          You cannot set |aws| security groups as temporary access list
          entries.
       
-   .. step:: Click :guilabel:`Save and Close`.
+   .. step:: Click :guilabel:`Confirm`.
