@@ -1,0 +1,344 @@
+.. _om-direct-s3-backup:
+
+==================================
+Direct to S3 Backup in Ops Manager
+==================================
+
+.. meta::
+   :description: Enable Direct to S3 Backup in Ops Manager so MongoDB Agents upload snapshot blocks directly to S3 using pre-signed URLs, reducing load on Ops Manager during backups.
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+When you enable Direct to S3 Backup, the {+mdbagent+} uploads snapshot
+blocks directly to S3 using pre-signed URLs that {+onprem+} provides.
+{+onprem+} handles only the metadata for the upload, such as
+generating pre-signed URLs, tracking the block manifest, and
+signaling completion. The snapshot data path bypasses {+onprem+}
+and no longer flows through the {+onprem+} server. This
+removes the proxy bottleneck for large deployments and frequent
+backup schedules.
+
+This topic explains how to enable Direct to S3 Backup and how to
+configure its optional settings.
+
+.. important::
+
+   Direct to S3 Backup requires {+onprem+} 9.0.0 or later, or
+   {+onprem+} 8.0.27 or later, and a minimum {+mdbagent+} version on
+   every host that runs the backup:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 40 60
+
+      * - {+onprem+} Version
+        - Minimum {+mdbagent+} Version
+
+      * - 9.0
+        - ``109.0.0.9279-1``
+
+      * - 8.0
+        - ``108.0.27.9088-1``
+
+How Direct to S3 Backup Works
+-----------------------------
+
+When Direct to S3 Backup is enabled on a backup job and the
+{+mdbagent+} on the deployment meets the minimum version
+requirement, {+onprem+} performs the following actions:
+
+- {+onprem+} generates pre-signed upload URLs using the S3 credentials
+  configured for the snapshot blockstore. The URLs point to the same
+  S3 bucket that the blockstore uses.
+- {+onprem+} sets ``uploadPath=AGENT_DIRECT_S3`` in the backup cursor
+  description. The {+mdbagent+} reads this value, freezes the upload
+  path for the job, and uploads snapshot blocks directly to S3 using
+  those pre-signed URLs.
+- {+onprem+} tracks upload completion through the block manifest
+  APIs. No ``/dataBlocks`` proxy upload calls occur.
+
+Because the {+mdbagent+} uploads snapshot data directly to S3,
+{+onprem+} no longer sits in the data path for backups. {+onprem+}
+remains responsible for backup metadata only.
+
+.. _om-direct-s3-backup-coexistence:
+
+Coexistence and Fallback
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Direct to S3 Backup and standard backups that stream data through
+{+onprem+} can coexist. 
+
+On a job where you enable Direct to S3 Backup, {+onprem+} falls
+back to the standard path when the {+mdbagent+} version is below
+the minimum. The fallback lasts until you upgrade the
+{+mdbagent+}. Mixed-version fleets continue to back up
+successfully:
+
+- Deployments that meet the version requirement use Direct to S3 Backup.
+- Deployments that do not meet the version requirement use the standard
+  data path. The job automatically switches to Direct to S3 Backup on
+  the first snapshot after you upgrade the {+mdbagent+}, with no
+  further action required. A snapshot that is already in progress
+  completes on its original upload path.
+
+Additionally, you can manually enable or disable Direct to S3 Backup
+for a job, as described below.
+
+.. note::
+
+   Direct to S3 Backup applies only to snapshot block data. Oplog
+   data for point-in-time recovery continues to use the standard
+   backup path through the configured oplog store.
+
+Prerequisites
+-------------
+
+Before you enable Direct to S3 Backup:
+
+- Ensure you are running {+onprem+} 9.0.0 or later, or {+onprem+}
+  8.0.27 or later.
+- :ref:`Ensure <view-agent-status>` a {+mdbagent+} version of at
+  least ``109.0.0.9279-1`` for {+onprem+} 9.0 deployments, or
+  ``108.0.27.9088-1`` for {+onprem+} 8.0 deployments, on every host
+  that runs the backup.
+- Ensure the deployment has :ref:`an S3 snapshot store
+  <manage-s3-snapshot-store>` (blockstore). {+onprem+} uses the
+  same S3 bucket and credentials that the blockstore uses.
+
+Backup Host Network Access
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each host that runs a backup must be able to:
+
+- Resolve the DNS name of the S3 or S3-compatible endpoint
+- Establish outbound HTTPS connections to that endpoint
+- Upload data using the S3 pre-signed URLs that {+onprem+} generates
+
+When you enable Direct to S3 Backup, the high-volume upload path
+moves from the {+onprem+} application servers to every host that
+runs a {+mdbagent+}. Previously, only the {+onprem+} servers needed
+network access to S3. Verify outbound connectivity from a backup
+host to the S3 endpoint before you enable the feature.
+
+{+mdbagent+}\s do not require S3 access keys or |iam| roles.
+{+onprem+} generates all pre-signed URLs using the S3 credentials
+configured for the snapshot store. Those credentials must permit
+pre-signed ``PUT`` operations on the bucket, not only reads.
+
+Enable Direct to S3 Backup
+--------------------------
+
+To enable Direct to S3 Backup, complete the following steps.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Enable the Direct to S3 Backup feature flag.
+
+      a. In the {+onprem+} :guilabel:`Admin` console, click
+         :guilabel:`General` and :guilabel:`Ops Manager Config`.
+
+      #. Click the :guilabel:`Custom` tab.
+
+      #. Add one of the following key and value pairs to enable
+         Direct to S3 Backup at the global or project level:
+
+         .. list-table::
+            :header-rows: 1
+            :widths: 20 40 40
+
+            * - Access Level
+              - Key
+              - Value
+
+            * - Project
+              - ``mms.featureFlag.backup.d2s3``
+              - ``controlled``
+
+            * - Global
+              - ``mms.featureFlag.backup.d2s3``
+              - ``enabled``
+
+      #. Click :guilabel:`Save`.
+
+   .. step:: (Conditional) Enable Direct to S3 Backup in the
+      project.
+
+      If you set the flag to ``controlled`` in the previous step,
+      enable the feature in your project settings:
+
+      a. In your {+onprem+} project, click :guilabel:`Settings`.
+
+      #. Click the :guilabel:`Beta Features` tab, and click
+         :guilabel:`Backup D2s3`.
+
+   .. step:: (Conditional) Enable Direct to S3 Backup on existing
+      backup jobs.
+
+      In a project where you enabled Direct to S3 Backup, new backup
+      jobs start with Direct to S3 Backup already enabled. The first
+      snapshot of each new job uploads directly to S3, and no
+      per-job action is required.
+
+      Backup jobs that existed before you enabled the feature keep
+      their existing setting. You can also enable or disable Direct
+      to S3 Backup on any job. To change the setting for a job:
+
+      a. Click :guilabel:`Admin`, :guilabel:`Backup`, then
+         :guilabel:`Jobs`.
+
+      #. For the target job, locate the :guilabel:`Direct S3 Backup`
+         row. The row appears only when the job's snapshot store is
+         an S3 blockstore.
+
+      #. Set :guilabel:`Direct S3 Backup` to :guilabel:`Enabled` or
+         :guilabel:`Disabled`.
+
+      #. For sharded clusters, select :guilabel:`Apply to all
+         cluster members` to enable the feature on every shard and
+         the config server.
+
+      #. Click :guilabel:`Save`.
+
+   .. step:: Verify the agent version on every host.
+
+      :ref:`Check the version <view-agent-status>` of every
+      {+mdbagent+} that runs the backup and ensure it meets the
+      minimum version for your {+onprem+} deployment.
+
+The following table summarizes when a backup job uses Direct to S3
+Backup:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - Scenario
+     - Upload path
+
+   * - Job created after you enabled the feature in the project
+     - Direct to S3 Backup, starting with the first snapshot
+
+   * - Job created before you enabled the feature in the project
+     - Standard path until you enable Direct to S3 Backup on the job
+
+   * - Job with Direct to S3 Backup enabled and a {+mdbagent+}
+       below the minimum version
+     - Standard path until you upgrade the {+mdbagent+}. The job
+       switches to Direct to S3 Backup on the first snapshot after
+       the upgrade.
+
+
+Manage Optional Settings
+------------------------
+
+The following optional settings tune Direct to S3 Backup upload
+performance.
+
+``mms.backup.d2s3.transfer.numWorkers``
+   Number of parallel upload workers that the {+mdbagent+} uses for
+   Direct to S3 Backup uploads. Default: ``2``. You can also set a
+   per-job override.
+
+   Configure this setting in the {+onprem+} configuration file
+   alongside the other ``mms.backup.*`` properties. If you set this
+   property, the {+mdbagent+} uses that exact number of workers and
+   skips its own auto-tuning. If you leave it unset, the
+   {+mdbagent+} sizes the worker count based on the host's CPU and
+   memory.
+
+``mms.backup.d2s3.transfer.maxNumUnitOfWorkBlocks``
+   Maximum number of blocks per work unit for the Direct to S3
+   upload path. When unset, the {+mdbagent+} falls back to an
+   internal default of ``100``.
+
+   Configure this setting using one of the following:
+
+   - Apply global {+onprem+} configuration settings in the
+     :ref:`{+onprem+} interface <opsmgr-config-backup-tab>`.
+   
+   - Apply :ref:`job-specific configuration
+     <configure-wtcheckpoint-settings>` using the
+     :guilabel:`WTCheckpoint Config` dialog on the
+     :guilabel:`Jobs` page.
+
+.. note::
+
+   The number of concurrent connections to S3 increases with the
+   number of backup jobs that run at the same time. If your
+   deployment runs many backup jobs concurrently, the total number
+   of S3 connections may be high.
+
+Operational Considerations
+--------------------------
+
+Performance and Sizing
+~~~~~~~~~~~~~~~~~~~~~~
+
+- **Ops Manager load:** {+onprem+} application servers no longer
+  carry snapshot block payloads, but they still handle pre-signing,
+  manifest validation, job state, and metadata writes. Size
+  {+onprem+} for control-plane workloads.
+
+- **Agent host sizing:** Direct to S3 Backup moves compression,
+  hashing, |tls|, and parallel S3 uploads from {+onprem+} servers to
+  each host that runs a {+mdbagent+}. Before enabling the feature,
+  make sure these hosts have enough CPU, memory, and outbound
+  network capacity for the additional workload. Capture a baseline
+  snapshot duration and resource usage so you can compare the impact
+  after enabling Direct to S3.
+
+  - When ``mms.backup.d2s3.transfer.numWorkers`` is not set, the
+    {+mdbagent+} automatically sizes the number of backup workers
+    based on the CPU and memory the host is allowed to use. It
+    starts at roughly one worker per 4 vCPUs of that allowance, up
+    to a maximum of 16 workers. Each worker can use about one CPU
+    core at peak, so plan to keep at least 25% of the host's allowed
+    CPU capacity for backup.
+
+  - During snapshots, monitor {+mdbagent+} CPU usage and database
+    latency. If the {+mdbagent+} is CPU-bound or database latency
+    increases, consider adding capacity or reducing ``numWorkers``.
+
+- **Network path:** Total backup throughput is the aggregate of
+  every {+mdbagent+}-to-S3 path. Confirm that your S3 endpoint,
+  |vpc| endpoint, or proxy can handle the expected concurrency
+  across all hosts backing up simultaneously.
+
+Security and |iam|
+~~~~~~~~~~~~~~~~~~
+
+- **{+onprem+} permissions:** The S3 credentials configured for the
+  snapshot store must permit pre-signed ``PUT`` operations on the
+  bucket and prefixes used for snapshots.
+
+- **{+mdbagent+} permissions:** {+mdbagent+}\s do not have S3
+  credentials. {+onprem+} generates pre-signed URLs for every block
+  upload and verification.
+
+- **Immutability:** Direct to S3 Backup is compatible with S3 Object
+  Lock. Object version IDs required by immutable snapshots are
+  recorded in the block manifest.
+
+Learn More
+----------
+
+- To learn about the companion feature that downloads snapshot data
+  directly from S3 during restores, see :ref:`Direct from S3 Restore
+  <om-direct-s3-restore>`.
+- To learn how backups work in {+onprem+}, see
+  :ref:`Backup Process <backup-overview>`.
+- To learn about required Backup resources, see
+  :ref:`Manage S3-Compatible Snapshot Storage
+  <manage-s3-snapshot-store>`.

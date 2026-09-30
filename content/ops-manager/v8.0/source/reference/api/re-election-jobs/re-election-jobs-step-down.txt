@@ -1,0 +1,304 @@
+.. _api-re-election-jobs-step-down:
+
+========================================
+Request a Replica Set Primary Step Down
+========================================
+
+.. meta::
+   :description: Use the Ops Manager API to request that the current primary of a replica set step down, triggering a new election, without connecting directly to the deployment host.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/fact-groups-projects-synonyms.rst
+
+Use this endpoint to request that the current primary of a replica
+set step down, triggering a new election. |mms| queues a background
+job for the target host's Automation Agent to run on its next
+check-in.
+
+If the target process is not the writable primary when the agent
+runs the job, the job completes as a no-op rather than failing. After
+the primary steps down, it remains ineligible for re-election for the
+duration specified by ``stepDownSecs``.
+
+.. include:: /includes/api/base-api-uri.rst
+
+Resource
+--------
+
+.. code-block:: http
+   :copyable: false
+
+   POST /groups/{GROUP-ID}/replicaSets/{RS-ID}/process/{HOST-PORT}:stepDown
+
+Required Roles
+--------------
+
+The API key that makes this request must have the ``Project
+Automation Admin`` role.
+
+Request Path Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 14 11 55
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Necessity
+     - Description
+
+   * - GROUP-ID
+     - string
+     - Required
+     - Unique 24-hexadecimal digit string that identifies your
+       project.
+
+   * - RS-ID
+     - string
+     - Required
+     - Name of the replica set that contains the target process.
+
+   * - HOST-PORT
+     - string
+     - Required
+     - Target process, as ``hostname:port``. This process must
+       currently be the replica set's primary.
+
+Request Query Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-query-single-parameters.rst
+
+Request Body Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The request body accepts the following optional tunables. If you
+send an empty body, use ``{}``.
+
+.. list-table::
+   :widths: 20 14 55 11
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Description
+     - Default
+
+   * - stepDownSecs
+     - integer
+     - Number of seconds the stepped-down primary remains ineligible
+       for re-election. Must be greater than ``0``.
+     - ``60``
+
+   * - secondaryCatchUpPeriodSecs
+     - integer
+     - Number of seconds to wait for a lagging secondary to catch up
+       before the primary steps down. Must be greater than or equal
+       to ``0``. If you omit this field, ``mongod`` applies its own
+       default.
+     - None
+
+   * - expiresAfterSeconds
+     - integer
+     - Number of seconds the request stays queued for an Automation
+       Agent to pick up before the job expires. Must be greater than
+       ``0``.
+     - ``300``
+
+Response
+--------
+
+|mms| returns ``202 Accepted`` with a ``Location`` header that points
+to the :ref:`get one re-election job
+<api-re-election-jobs-get-one>` endpoint,
+and the re-election job document in the response body.
+
+.. list-table::
+   :widths: 20 14 66
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Description
+
+   * - id
+     - string
+     - Unique 24-hexadecimal digit string that identifies the
+       re-election job.
+
+   * - groupId
+     - string
+     - Unique 24-hexadecimal digit string that identifies the
+       project.
+
+   * - action
+     - string
+     - Action that this job performs. Returns ``STEP_DOWN``.
+
+   * - replicaSetName
+     - string
+     - Name of the target replica set.
+
+   * - hostname
+     - string
+     - Hostname of the target process.
+
+   * - port
+     - integer
+     - Port of the target process.
+
+   * - status
+     - string
+     - Status of the job. Returns one of the following values:
+       ``QUEUED``, ``RUNNING``, ``COMPLETED``, ``FAILED``, or
+       ``EXPIRED``.
+
+   * - noOp
+     - boolean
+     - Flag that indicates whether the operation completed as a
+       no-op. Returns ``true`` if the target process was already a
+       secondary when the agent ran the job.
+
+   * - message
+     - string
+     - Human-readable detail about the job. |mms| populates this
+       field after the agent reports a result.
+
+   * - created
+     - string
+     - Timestamp, in ISO 8601 UTC format, when |mms| created the job.
+
+   * - lastUpdated
+     - string
+     - Timestamp, in ISO 8601 UTC format, when |mms| last updated the
+       job.
+
+   * - expires
+     - string
+     - Timestamp, in ISO 8601 UTC format, after which an Automation
+       Agent no longer picks up this job.
+
+Example Request
+---------------
+
+.. code-block:: sh
+   :linenos:
+
+   curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+        --header "Accept: application/json" \
+        --header "Content-Type: application/json" \
+        --include \
+        --request POST "https://{+opsmgr-url+}/api/public/v1.0/groups/{GROUP-ID}/replicaSets/{RS-ID}/process/{HOST-PORT}:stepDown?pretty=true" \
+        --data '{
+          "stepDownSecs": 60,
+          "secondaryCatchUpPeriodSecs": 10
+        }'
+
+Example Response
+----------------
+
+Response Header
+~~~~~~~~~~~~~~~~
+
+.. code-block:: http
+   :copyable: false
+
+   HTTP/1.1 202 Accepted
+   Vary: Accept-Encoding
+   Content-Type: application/json
+   Location: https://{+opsmgr-url+}/api/public/v1.0/groups/{GROUP-ID}/replicaSets/{RS-ID}/reElectionJobs/{REELECTION-JOB-ID}
+   Strict-Transport-Security: max-age=300
+   Date: {dateInUnixFormat}
+   Connection: keep-alive
+   Content-Length: {requestLengthInBytes}
+   X-MongoDB-Service-Version: gitHash={gitHash}; versionString={ApplicationVersion}
+
+Response Body
+~~~~~~~~~~~~~
+
+.. code-block:: json
+   :copyable: false
+   :linenos:
+
+   {
+     "id": "665a1234567890abcdef1234",
+     "groupId": "5c8100bcf2a30b12ff88258f",
+     "action": "STEP_DOWN",
+     "replicaSetName": "rs0",
+     "hostname": "node1.example.com",
+     "port": 27017,
+     "status": "QUEUED",
+     "noOp": false,
+     "message": null,
+     "created": "2026-08-11T05:37:59Z",
+     "lastUpdated": "2026-08-11T05:37:59Z",
+     "expires": "2026-08-11T05:42:59Z"
+   }
+
+Response Codes
+--------------
+
+.. list-table::
+   :widths: 14 26 60
+   :header-rows: 1
+
+   * - HTTP Status
+     - Error Code
+     - Description
+
+   * - 202
+     - --
+     - Request accepted. Returns the re-election job document.
+
+   * - 400
+     - INVALID_PARAMETER
+     - A tunable is out of range, or the request body includes
+       ``freezeSecs``.
+
+   * - 400
+     - AUTOMATION_AGENT_VERSION_NOT_SUPPORTED
+     - The target host's Automation Agent is older than
+       ``109.0.0.9226-1``.
+
+   * - 401
+     - USER_UNAUTHORIZED
+     - The API key does not have the ``Project Automation Admin``
+       role.
+
+   * - 401
+     - USER_CANNOT_ACCESS_ORG
+     - The caller is outside the project's organization.
+
+   * - 404
+     - AUTOMATION_CONFIG_NOT_FOUND
+     - The project has no published automation configuration.
+
+   * - 404
+     - CLUSTER_NOT_FOUND
+     - ``RS-ID`` does not match a replica set in the project's
+       deployment.
+
+   * - 404
+     - PROCESS_NOT_IN_CLUSTER
+     - ``HOST-PORT`` is not a member of the named replica set.
+
+   * - 409
+     - REELECTION_AGENT_NOT_RESPONDING
+     - The target host's Automation Agent has not pinged |mms|
+       recently.
+
+   * - 409
+     - REELECTION_ALREADY_IN_PROGRESS
+     - A re-election job is already queued or running for this
+       replica set.

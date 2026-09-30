@@ -833,7 +833,7 @@ const tocData: TocItem[] = [
             label: 'Direct to S3 Backup',
             contentSite: 'ops-manager',
             url: '/docs/ops-manager/:version/core/backup-direct-to-s3',
-            versions: { excludes: ['v7.0', 'v8.0'] },
+            versions: { excludes: ['v7.0'] },
           },
           {
             label: 'Third-Party Platforms',
@@ -1647,6 +1647,7 @@ const tocData: TocItem[] = [
                     contentSite: 'ops-manager',
                     url: '/docs/ops-manager/:version/reference/api/re-election-jobs',
                     collapsible: true,
+                    versions: { excludes: ['v7.0'] },
                     items: [
                       {
                         label: 'Step Down a Primary',

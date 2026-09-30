@@ -322,6 +322,9 @@ export const toc: L1TocItem[] = [
                 label: 'Manage BI Connector',
                 contentSite: 'ops-manager',
                 url: '/docs/ops-manager/:version/tutorial/manage-bi-connector',
+                versions: {
+                  includes: ['v7.0'],
+                },
               },
               {
                 label: 'Use Suggested Indexes',
@@ -846,7 +849,7 @@ export const toc: L1TocItem[] = [
                 contentSite: 'ops-manager',
                 url: '/docs/ops-manager/:version/core/backup-direct-to-s3',
                 versions: {
-                  excludes: ['v7.0', 'v8.0'],
+                  excludes: ['v7.0'],
                 },
               },
               {
@@ -1681,6 +1684,9 @@ export const toc: L1TocItem[] = [
                         contentSite: 'ops-manager',
                         collapsible: true,
                         url: '/docs/ops-manager/:version/reference/api/re-election-jobs',
+                        versions: {
+                          excludes: ['v7.0'],
+                        },
                         items: [
                           {
                             label: 'Step Down a Primary',

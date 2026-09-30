@@ -8,6 +8,12 @@ copying process.
 The backup process works in this manner regardless of how snapshots are
 stored.
 
+If you enabled :ref:`Direct to S3 Backup <om-direct-s3-backup>`,
+{+mdbagent+} uploads snapshot blocks directly to S3 instead of
+sending them through |onprem|. |onprem| provides the pre-signed URLs
+for the upload and handles only the snapshot metadata. Direct to S3
+Backup is available starting in |onprem| 8.0.27.
+
 .. note::
 
    The Backup process no longer uses initial syncs. Without initial

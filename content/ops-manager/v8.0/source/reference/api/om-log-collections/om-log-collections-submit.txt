@@ -80,9 +80,19 @@ Request Body Parameters
        - ``APPLICATION``
        - ``HTTP_ACCESS``
        - ``MIGRATION``
+       - ``DAEMON``
 
-       If you omit this field or pass an empty array, |mms|
-       collects every log type.
+       The ``DAEMON`` log type can be collected only from
+       ``BACKUP_DAEMON`` servers. The ``APPLICATION``,
+       ``HTTP_ACCESS``, and ``MIGRATION`` log types can be
+       collected only from ``MMS_SERVER`` servers. If you omit
+       this field or pass an empty array, |mms| resolves the log
+       types based on each selected server's type. If you specify
+       a log type that is not valid for a selected server, |mms|
+       returns an error.
+
+       The ``DAEMON`` log type is available only when backup daemon
+       log collection is enabled.
 
    * - ``sizeRequestedPerFileBytes``
      - number
@@ -168,6 +178,21 @@ Request Body Parameters
      - ``OM_LOG_STORAGE_LIMIT_EXCEEDED``
      - 413
 
+   * - ``DAEMON`` log type requested when backup daemon log
+       collection is disabled.
+     - ``OM_LOG_DAEMON_DISABLED``
+     - 400
+
+   * - A log type in ``logTypes`` is not valid for one or more
+       servers in ``servers``.
+     - ``OM_LOG_INVALID_SERVER_LOG_TYPE_COMBINATION``
+     - 400
+
+   * - Requested per-file size exceeds the remaining storage after
+       allocating to other tasks.
+     - ``OM_LOG_INSUFFICIENT_STORAGE_PER_FILE``
+     - 413
+
 Response
 --------
 
@@ -206,6 +231,27 @@ Example Request
             "sizeRequestedPerFileBytes": 5242880,
             "logCollectionFromDate": "2026-04-13T10:00:00Z",
             "logCollectionToDate": "2026-04-14T10:00:00Z"
+          }'
+
+Example Request (Mixed OM and Backup Daemon Servers)
+----------------------------------------------------
+
+.. code-block:: sh
+
+   curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+        --header "Accept: application/json" \
+        --header "Content-Type: application/json" \
+        --include \
+        --request POST \
+        "https://{+opsmgr-url+}/api/public/v1.0/admin/omLogCollectionJobs?pretty=true" \
+        --data '
+          {
+            "servers": [
+              "om-server-1.example.com",
+              "daemon-host-1.example.com"
+            ],
+            "logTypes": ["APPLICATION", "DAEMON"],
+            "sizeRequestedPerFileBytes": 5242880
           }'
 
 Example Response
