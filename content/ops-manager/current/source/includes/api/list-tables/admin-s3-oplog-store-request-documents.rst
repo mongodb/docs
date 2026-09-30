@@ -61,11 +61,12 @@
 
    * - disableProxyS3
      - boolean
-     - Optional
-     - Flag that indicates whether to use the
-       :doc:`HTTP proxy </tutorial/use-with-http-proxy>`
-       when connecting to |s3|. You don't need to set this value
-       unless you configured |onprem| to use the HTTP proxy.
+     - Required
+     - When connecting to |s3|, indicates whether to use the
+       :doc:`HTTP proxy </tutorial/use-with-http-proxy>`. You must
+       include this field in every request to create or update an
+       |s3| oplog store, even if you haven't configured |onprem|
+       to use the HTTP proxy.
 
    * - encryptedCredentials
      - boolean
