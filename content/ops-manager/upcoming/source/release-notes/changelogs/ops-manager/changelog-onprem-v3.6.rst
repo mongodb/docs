@@ -343,8 +343,8 @@ Fixes
 Automation
 ``````````
 
-- Added support for management of the :doc:`MongoDB Connector for
-  Business Intelligence </tutorial/deploy-bi-connector>`. The MongoDB
+- Added support for management of the MongoDB Connector for
+  Business Intelligence. The MongoDB
   Connector for Business Intelligence allows you to query a MongoDB
   database using SQL commands to aid in data analysis. It translates
   SQL queries from data analysis tools to MongoDB aggregation pipelines

@@ -55,12 +55,7 @@
                   - :manual:`mongos </reference/program/mongos/>` auditing
                     logs. Note: this option only appears if your sharded cluster
                     has auditing enabled.
-      
-                * - ``mongosqld``
-                  - :ref:`BI Connector <bi-connection>` logs. Note: this option
-                    only appears if you have BI Connector enabled for your
-                    cluster.
-      
+
          * - Select server
            - Select the server in the cluster whose logs you want to retrieve.
       

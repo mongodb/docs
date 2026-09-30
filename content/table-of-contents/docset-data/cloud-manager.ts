@@ -102,11 +102,6 @@ const tocData: TocItem[] = [
             ],
           },
           {
-            label: 'Deploy a BI Connector Instance',
-            contentSite: 'cloud-manager',
-            url: '/docs/cloud-manager/tutorial/deploy-bi-connector',
-          },
-          {
             label: 'Connect to MongoDB',
             contentSite: 'cloud-manager',
             url: '/docs/cloud-manager/tutorial/connect-to-mongodb',
@@ -161,11 +156,6 @@ const tocData: TocItem[] = [
             label: 'Edit Configuration',
             contentSite: 'cloud-manager',
             url: '/docs/cloud-manager/tutorial/edit-deployment',
-          },
-          {
-            label: 'Manage BI Connector',
-            contentSite: 'cloud-manager',
-            url: '/docs/cloud-manager/tutorial/manage-bi-connector',
           },
           {
             label: 'Calculate Suggested Indexes',

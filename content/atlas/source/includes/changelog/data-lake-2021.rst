@@ -192,7 +192,7 @@
 16 February 2021 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Adds :ref:`SQL schema generation <query-with-sql>` for wildcard
+- Adds :ref:`SQL schema generation <connect-with-sql-overview>` for wildcard
   collections.
 - Fixes stability and performance issues.
 

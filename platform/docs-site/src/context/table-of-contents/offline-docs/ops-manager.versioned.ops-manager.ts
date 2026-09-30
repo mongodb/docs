@@ -258,6 +258,9 @@ export const toc: L1TocItem[] = [
                 label: 'Deploy BI Connector Instance',
                 contentSite: 'ops-manager',
                 url: '/docs/ops-manager/:version/tutorial/deploy-bi-connector',
+                versions: {
+                  includes: ['v7.0'],
+                },
               },
               {
                 label: 'Connect to a Process',

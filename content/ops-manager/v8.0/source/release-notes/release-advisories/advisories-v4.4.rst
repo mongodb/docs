@@ -74,6 +74,6 @@ BI Connector
 ~~~~~~~~~~~~
 
 If you use an |onprem|-managed 
-:ref:`BI Connector <deploy-bi-connector>`, the BI Connector version 
+BI Connector, the BI Connector version 
 is upgraded when you upgrade |onprem|. You cannot select a different 
 version.

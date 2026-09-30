@@ -107,11 +107,6 @@ export const toc: L1TocItem[] = [
                 ],
               },
               {
-                label: 'Deploy a BI Connector Instance',
-                contentSite: 'cloud-manager',
-                url: '/docs/cloud-manager/tutorial/deploy-bi-connector',
-              },
-              {
                 label: 'Connect to MongoDB',
                 contentSite: 'cloud-manager',
                 url: '/docs/cloud-manager/tutorial/connect-to-mongodb',

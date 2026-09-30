@@ -253,6 +253,7 @@ const tocData: TocItem[] = [
             label: 'Deploy BI Connector Instance',
             contentSite: 'ops-manager',
             url: '/docs/ops-manager/:version/tutorial/deploy-bi-connector',
+            versions: { includes: ['v7.0'] },
           },
           {
             label: 'Connect to a Process',
@@ -314,6 +315,7 @@ const tocData: TocItem[] = [
             label: 'Manage BI Connector',
             contentSite: 'ops-manager',
             url: '/docs/ops-manager/:version/tutorial/manage-bi-connector',
+            versions: { includes: ['v7.0'] },
           },
           {
             label: 'Use Suggested Indexes',

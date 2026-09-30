@@ -18,6 +18,7 @@ export const EXCLUDED_PROJECTS = new Set([
   // Deprecated but still present in the monorepo.
   'app-services',
   'realm',
+  'bi-connector',
 ]);
 
 /**
