@@ -1,3 +1,13 @@
+
+.. _fts20260930:
+
+30 September 2026 Release
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Supports faceting on only the matching children of an
+  :ref:`embeddedDocuments <bson-data-types-embedded-documents>`
+  array. To learn more, see :ref:`fts-facet-embedded-scoped`.
+
 .. _fts20260929:
 
 29 September 2026 Release
@@ -8,6 +18,7 @@
   :ref:`nested facets <fts-facet-nested>`.
 
 .. _fts20260729: 
+
 
 29 July 2026 Release
 ~~~~~~~~~~~~~~~~~~~~
