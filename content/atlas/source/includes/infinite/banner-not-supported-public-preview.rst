@@ -1,5 +1,5 @@
 .. :snippet-start: atlas-infinite-not-supported
-.. :snippet-output: content/search/source/includes/shared/facts/atlas-infinite-not-supported.rst, content/vector-search/source/includes/shared/facts/atlas-infinite-not-supported.rst, content/mcp-server/source/includes/banner-not-supported-public-preview.rst
+.. :snippet-output: content/search/source/includes/shared/facts/atlas-infinite-not-supported.rst, content/vector-search/source/includes/shared/facts/atlas-infinite-not-supported.rst, content/mcp-server/source/includes/banner-not-supported-public-preview.rst, content/mongodb-vscode/source/includes/banner-not-supported-public-preview.rst, content/charts/source/includes/banner-not-supported-public-preview.rst
 
 .. important::
 
