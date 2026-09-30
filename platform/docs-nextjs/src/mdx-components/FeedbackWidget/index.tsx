@@ -36,10 +36,21 @@ const FeedbackRating = ({ className, classNameContainer, position = 'right colum
     <FeedbackProvider page={feedbackData} position={position}>
       <FeedbackContainer className={classNameContainer}>
         <FeedbackForm className={className} />
-        <RatingView />
+        <IdleRatingPrompt />
       </FeedbackContainer>
     </FeedbackProvider>
   );
+};
+
+// The widget's permanent, always-mounted entry point. Once a rating is
+// selected, `FeedbackForm` takes over showing the rest of the flow (comment,
+// submitted, etc.) in its own modal — this must hide, or it stays visible
+// underneath/alongside that modal (most noticeable on mobile, where the
+// modal is portaled elsewhere in the DOM instead of replacing this in place).
+const IdleRatingPrompt = () => {
+  const { view } = useFeedbackContext();
+  if (view !== 'waiting') return null;
+  return <RatingView />;
 };
 
 export { FeedbackRating, FeedbackProvider, useFeedbackContext, useFeedbackData, FeedbackForm, FeedbackContainer };

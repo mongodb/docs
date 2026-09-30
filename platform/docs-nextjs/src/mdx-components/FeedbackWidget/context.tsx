@@ -6,10 +6,11 @@ import { getViewport } from '@/hooks/use-viewport';
 import type { SnootyEnv } from '@/types/data';
 import { reportAnalytics } from '@/utils/report-analytics';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
-import type { FeedbackUser } from './upsert-feedback';
-import { useBrowserUser } from './upsert-feedback';
+import type { FeedbackUser } from './submit-feedback';
+import { useBrowserUser } from './submit-feedback';
 import type { FeedbackPageData } from './use-feedback-data';
-import { upsertFeedback } from './upsert-feedback';
+import { submitFeedback } from './submit-feedback';
+import { retrieveDataUri } from './handle-screenshot';
 
 type SubmitAllFeedbackProps = {
   comment?: string;
@@ -42,7 +43,6 @@ export type FeedbackPayload = {
   rating: number;
   snootyEnv: SnootyEnv;
   comment?: string;
-  feedback_id?: string;
 };
 
 export type FeedbackContextType = {
@@ -54,10 +54,11 @@ export type FeedbackContextType = {
   initializeFeedback: (nextView: FeedbackViewType) => { newFeedback: Feedback };
   setProgress: Dispatch<SetStateAction<boolean[]>>;
   submitAllFeedback: (props: SubmitAllFeedbackProps) => void;
-  abandon: () => void;
+  abandon: (options?: { keepGuard?: boolean }) => void;
+  exitAndSubmit: () => void;
   selectedRating: number | undefined;
   setSelectedRating: Dispatch<SetStateAction<number | undefined>>;
-  selectInitialRating: (rating: number) => Promise<void>;
+  selectInitialRating: (rating: number) => void;
   isScreenshotButtonClicked: boolean;
   setIsScreenshotButtonClicked: Dispatch<SetStateAction<boolean>>;
   detachForm: boolean;
@@ -93,9 +94,10 @@ const initialValue: FeedbackContextType = {
   setProgress: () => {},
   submitAllFeedback: () => {},
   abandon: () => {},
+  exitAndSubmit: () => {},
   selectedRating: undefined,
   setSelectedRating: () => {},
-  selectInitialRating: async () => {},
+  selectInitialRating: () => {},
   isScreenshotButtonClicked: false,
   setIsScreenshotButtonClicked: () => {},
   detachForm: false,
@@ -127,7 +129,6 @@ export function FeedbackProvider({ page, test, position = 'right column', ...pro
   const [feedback, setFeedback] = useState<Feedback | undefined>(
     () => (hasExistingFeedback && test.feedback) || undefined,
   );
-  const [feedbackId, setFeedbackId] = useState<string | undefined>(() => undefined);
   const [detachForm, setDetachForm] = useState(false);
   const [selectedRating, setSelectedRating] = useState<number | undefined>(test?.feedback?.rating || undefined);
   const [view, setView] = useState<FeedbackViewType>(test?.view || 'waiting');
@@ -142,7 +143,16 @@ export function FeedbackProvider({ page, test, position = 'right column', ...pro
   // deterrent against repeated automated submissions, complementing the
   // server-side rate limits.
   const [hasSubmitted, setHasSubmitted] = useState(false);
-  // `feedbackId` above is the persisted document id, not a DOM id.
+  // Guards against a submission firing more than once for a single attempt
+  // (Submit double-click, Submit racing an exit trigger, or a new rating
+  // being started while a previous exit-triggered submission is still in
+  // flight in the background). Set the instant either submitAllFeedback or
+  // exitAndSubmit begins real work. submitAllFeedback clears it via
+  // abandon(); exitAndSubmit closes the modal immediately via
+  // abandon({ keepGuard: true }) but holds this true until its own
+  // background request actually finishes, so the guard outlives the
+  // optimistic close.
+  const submissionStartedRef = useRef(false);
   const cardId = `feedback-card-${useId()}`;
   const formRef = useRef<HTMLDivElement>(null);
   const savedCardPosition = useRef<DOMRect | null>(null);
@@ -181,13 +191,10 @@ export function FeedbackProvider({ page, test, position = 'right column', ...pro
           viewport,
         };
       }
-      if (feedbackId) {
-        res.feedback_id = feedbackId;
-      }
 
       return res;
     },
-    [feedbackId, page.docs_property, page.slug, page.title, page.url, snootyEnv, test?.feedback, user],
+    [page.docs_property, page.slug, page.title, page.url, snootyEnv, test?.feedback, user],
   );
 
   // Create a new feedback document
@@ -202,9 +209,12 @@ export function FeedbackProvider({ page, test, position = 'right column', ...pro
     return { newFeedback };
   };
 
-  const selectInitialRating = async (ratingValue: number) => {
-    // Block starting a new submission once one has been submitted on this page.
-    if (hasSubmitted) return;
+  const selectInitialRating = (ratingValue: number) => {
+    // Block starting a new submission once one has been submitted on this
+    // page, or while a previous exit-triggered submission is still in
+    // flight in the background (the modal may already look closed at that
+    // point — see submissionStartedRef).
+    if (hasSubmitted || submissionStartedRef.current) return;
     reportAnalytics('Click', {
       position: position,
       position_context: 'Rating',
@@ -215,13 +225,6 @@ export function FeedbackProvider({ page, test, position = 'right column', ...pro
     setSelectedRating(ratingValue);
     setView('comment');
     setProgress([false, true, false]);
-    const payload = createFeedbackPayload(ratingValue);
-    try {
-      const res = await upsertFeedback(payload);
-      setFeedbackId(res);
-    } catch (e) {
-      console.error('Error while creating new feedback', e);
-    }
   };
 
   // Create a placeholder sentiment based on the selected rating to avoid any breaking changes from external dependencies
@@ -240,7 +243,7 @@ export function FeedbackProvider({ page, test, position = 'right column', ...pro
       const newUser = await reassignCurrentUser();
       if (newUser) {
         newFeedback.user.id = newUser.id;
-        await upsertFeedback(newFeedback);
+        await submitFeedback(newFeedback);
         setFeedback(newFeedback);
       }
     } catch (e) {
@@ -249,6 +252,10 @@ export function FeedbackProvider({ page, test, position = 'right column', ...pro
   };
 
   const submitAllFeedback = async ({ comment = '', email = '', dataUri, viewport }: SubmitAllFeedbackProps) => {
+    // Guard against a double-click, or racing an exit-triggered submission.
+    if (submissionStartedRef.current) return;
+    submissionStartedRef.current = true;
+
     // Route the user to their "next steps"
     setProgress([false, false, true]);
     setView('submitted');
@@ -258,7 +265,7 @@ export function FeedbackProvider({ page, test, position = 'right column', ...pro
     // Submit the full feedback document
     const newFeedback = createFeedbackPayload(selectedRating, email, dataUri, viewport, comment);
     try {
-      await upsertFeedback(newFeedback);
+      await submitFeedback(newFeedback);
     } catch (err) {
       // This catch block will most likely only be hit after Next API route attempts internal retry logic
       // after access token is refreshed
@@ -269,7 +276,6 @@ export function FeedbackProvider({ page, test, position = 'right column', ...pro
       }
     } finally {
       setFeedback(undefined);
-      setFeedbackId(undefined);
       setComment('');
       setEmail('');
       // Mark this page's widget as spent; it will hide once the "submitted"
@@ -279,18 +285,82 @@ export function FeedbackProvider({ page, test, position = 'right column', ...pro
   };
 
   // Stop giving feedback (if in progress) and reset the widget to the
-  // initial state.
-  const abandon = useCallback(() => {
+  // initial state. Pass { keepGuard: true } to close the modal without
+  // clearing submissionStartedRef — used by exitAndSubmit to close
+  // instantly while its background submission is still in flight.
+  const abandon = useCallback((options?: { keepGuard?: boolean }) => {
+    if (!options?.keepGuard) {
+      submissionStartedRef.current = false;
+    }
     setView('waiting');
     setFeedback(undefined);
     setSelectedRating(undefined);
-    setFeedbackId(undefined);
     setIsScreenshotButtonClicked(false);
     setDetachForm(false);
     setScreenshotElement(null);
     setComment('');
     setEmail('');
   }, []);
+
+  // Fired when the user exits the widget on the same page/tab (click outside,
+  // Escape, or the close button) without pressing Submit. If a rating was
+  // selected, this is treated as a real submission carrying whatever fields
+  // were filled in so far, rather than discarding it. Switching browser tabs
+  // is deliberately not covered here — nothing detects that today, and we're
+  // not adding a listener for it.
+  const exitAndSubmit = useCallback(async () => {
+    // A submission via Submit already completed and is showing the
+    // confirmation view — just dismiss it, no need to resubmit.
+    if (view === 'submitted') {
+      abandon();
+      return;
+    }
+
+    // A submission is already in flight (e.g. Submit was already clicked
+    // and hasn't resolved yet) — do nothing and let that attempt finish
+    // undisturbed.
+    if (submissionStartedRef.current) return;
+
+    // Nothing to submit — just reset back to the idle state.
+    if (selectedRating === undefined) {
+      abandon();
+      return;
+    }
+
+    submissionStartedRef.current = true;
+
+    // Capture everything the payload needs before closing the modal below —
+    // abandon() resets this state, but the background request still needs
+    // the values as they were at the moment of exit.
+    const ratingAtExit = selectedRating;
+    const commentAtExit = comment;
+    const emailAtExit = email;
+    const shouldCaptureScreenshot = screenshotTaken;
+    const screenshotElementAtExit = screenshotElement;
+
+    // Close the modal immediately instead of waiting on the screenshot
+    // capture and network request below — those can take long enough that
+    // waiting for them made the modal feel stuck. Keep the guard held so a
+    // new rating can't be started (and double-submitted) while this
+    // request is still in flight.
+    abandon({ keepGuard: true });
+
+    try {
+      let dataUri: string | undefined;
+      let viewport: Viewport | undefined;
+      if (shouldCaptureScreenshot) {
+        viewport = getViewport();
+        dataUri = await retrieveDataUri(screenshotElementAtExit);
+      }
+      const payload = createFeedbackPayload(ratingAtExit, emailAtExit, dataUri, viewport, commentAtExit);
+      await submitFeedback(payload);
+      setHasSubmitted(true);
+    } catch (err) {
+      console.error('Error while submitting feedback on exit', err);
+    } finally {
+      submissionStartedRef.current = false;
+    }
+  }, [view, selectedRating, comment, email, screenshotTaken, screenshotElement, createFeedbackPayload, abandon]);
 
   const value = {
     feedback,
@@ -302,6 +372,7 @@ export function FeedbackProvider({ page, test, position = 'right column', ...pro
     setProgress,
     submitAllFeedback,
     abandon,
+    exitAndSubmit,
     selectedRating,
     setSelectedRating,
     selectInitialRating,

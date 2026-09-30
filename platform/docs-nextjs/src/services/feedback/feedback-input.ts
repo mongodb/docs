@@ -3,7 +3,7 @@ import type { Page, FeedbackSentiment } from './feedback-types';
 
 /**
  * Validation and sanitization for the public, unauthenticated feedback
- * upsert payload (DOP-7023).
+ * submission payload (DOP-7023).
  */
 
 const MAX_COMMENT_LENGTH = 5000;

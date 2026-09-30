@@ -8,9 +8,9 @@ jest.mock('next/navigation', () => ({
   usePathname: () => '/test-page',
 }));
 
-jest.mock('@/mdx-components/FeedbackWidget/upsert-feedback', () => ({
+jest.mock('@/mdx-components/FeedbackWidget/submit-feedback', () => ({
   useBrowserUser: () => ({ user: { id: 'test-user' }, reassignCurrentUser: jest.fn() }),
-  upsertFeedback: jest.fn(),
+  submitFeedback: jest.fn(),
 }));
 
 const page = {

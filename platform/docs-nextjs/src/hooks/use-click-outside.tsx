@@ -1,16 +1,19 @@
 import { useEffect } from 'react';
 
 /**
- * This hook fires an onClickOutside handler if the given node ref is clicked
- * outside of or the escape key is pressed
- * @param {*} ref a node which we will fire the onClickOutside handler if clicked
- * outside of
+ * This hook fires an onClickOutside handler if all of the given node refs are
+ * clicked outside of, or the escape key is pressed.
+ * @param {*} refs an array of node refs, all of which must be clicked outside
+ * of for the handler to fire. Accepting more than one ref lets a caller cover
+ * content that's portaled elsewhere in the DOM (e.g. a modal rendered via
+ * createPortal) alongside its own container.
  * @param {*} onClickOutside a callback handler
  */
-export default function useClickOutside(ref: React.RefObject<HTMLElement>, onClickOutside: () => void) {
+export default function useClickOutside(refs: React.RefObject<HTMLElement>[], onClickOutside: () => void) {
   useEffect(() => {
+    const isOutsideAll = (target: Node) => refs.every((ref) => !ref.current || !ref.current.contains(target));
     const handleClickOutside = (e: MouseEvent) => {
-      if (ref.current && e.target instanceof Node && !ref.current.contains(e.target)) {
+      if (e.target instanceof Node && isOutsideAll(e.target)) {
         onClickOutside();
       }
     };
@@ -27,5 +30,5 @@ export default function useClickOutside(ref: React.RefObject<HTMLElement>, onCli
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEscape);
     };
-  }, [onClickOutside, ref]);
+  }, [refs, onClickOutside]);
 }

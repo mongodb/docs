@@ -44,13 +44,13 @@ export type FeedbackCardProps = {
 };
 
 const FeedbackCard = ({ isOpen, children }: FeedbackCardProps) => {
-  const { abandon } = useFeedbackContext();
+  const { exitAndSubmit } = useFeedbackContext();
   // Ensure FeedbackCard can be fullscreen size
   const { isMobile } = useScreenSize();
   useNoScroll(isMobile);
 
   const onClose = () => {
-    abandon();
+    exitAndSubmit();
   };
 
   return (

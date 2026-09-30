@@ -1,4 +1,4 @@
-import { ObjectId, type UpdateResult } from 'mongodb';
+import { ObjectId, type InsertOneResult } from 'mongodb';
 import { type NextRequest, NextResponse } from 'next/server';
 import { withCORS } from '@/app/lib/with-cors';
 import { type ScreenshotAttachment, getAttachment } from '@/services/feedback/handle-screenshot-feedback';
@@ -19,7 +19,6 @@ export type FeedbackPayload = {
   rating: keyof typeof starRating;
   snootyEnv: SnootyEnv;
   comment?: string;
-  feedback_id?: string;
 };
 
 export async function OPTIONS() {
@@ -27,9 +26,9 @@ export async function OPTIONS() {
 }
 
 // Per-page cap: a single visitor should only ever leave a handful of distinct
-// feedback submissions on one page. Only *new* submissions (requests without a
-// feedback_id) count toward this, so the widget's multi-step update flow for a
-// single submission is never penalized.
+// feedback submissions on one page. Every request creates a brand-new
+// document (there is no update-by-id capability on this endpoint — see
+// DOP-7209), so this now applies unconditionally to every request.
 const PER_PAGE_LIMIT = 5;
 const PER_PAGE_WINDOW_SEC = 3600;
 
@@ -38,7 +37,7 @@ export async function POST(request: NextRequest) {
 
   // Global per-IP limit: sheds high-velocity automated traffic across all pages
   // on this public, unauthenticated endpoint. Checked first, before any work.
-  const rateLimit = await checkRateLimit({ key: `feedback-upsert:${clientIp}` });
+  const rateLimit = await checkRateLimit({ key: `feedback-submit:${clientIp}` });
   if (!rateLimit.allowed) {
     const response = NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
     response.headers.set('Retry-After', String(rateLimit.retryAfterSec));
@@ -52,7 +51,7 @@ export async function POST(request: NextRequest) {
     return withCORS(NextResponse.json({ error: 'Request body is required and must be valid JSON' }, { status: 400 }));
   }
 
-  const { page, user, attachment, comment, category, rating, snootyEnv, feedback_id } = body;
+  const { page, user, attachment, comment, category, rating, snootyEnv } = body;
 
   const validRatings = Object.keys(starRating).map(Number);
   if (typeof rating !== 'number' || !validRatings.includes(rating)) {
@@ -73,33 +72,29 @@ export async function POST(request: NextRequest) {
   }
   const { page: cleanPage, comment: sanitizedComment } = validation;
 
-  // Per-page limit on new submissions only (feedback_id absent == a new
-  // feedback). Updates to an in-progress submission carry a feedback_id and are
-  // never blocked. Complements the per-IP limit above; page.url is
-  // client-supplied, but a scanner spoofing it is still caught by that limit.
-  if (!feedback_id) {
-    const pageKey = String(page?.url ?? 'unknown')
-      .split('#')[0]
-      .split('?')[0]
-      .toLowerCase();
-    const perPageLimit = await checkRateLimit({
-      key: `feedback-upsert:page:${clientIp}:${pageKey}`,
-      limit: PER_PAGE_LIMIT,
-      windowSec: PER_PAGE_WINDOW_SEC,
-    });
-    if (!perPageLimit.allowed) {
-      const response = NextResponse.json(
-        { error: 'Too many feedback submissions for this page. Please try again later.' },
-        { status: 429 },
-      );
-      response.headers.set('Retry-After', String(perPageLimit.retryAfterSec));
-      return withCORS(response);
-    }
+  // Per-page limit on every request. page.url is client-supplied, but a
+  // scanner spoofing it is still caught by the global per-IP limit above.
+  const pageKey = String(page?.url ?? 'unknown')
+    .split('#')[0]
+    .split('?')[0]
+    .toLowerCase();
+  const perPageLimit = await checkRateLimit({
+    key: `feedback-submit:page:${clientIp}:${pageKey}`,
+    limit: PER_PAGE_LIMIT,
+    windowSec: PER_PAGE_WINDOW_SEC,
+  });
+  if (!perPageLimit.allowed) {
+    const response = NextResponse.json(
+      { error: 'Too many feedback submissions for this page. Please try again later.' },
+      { status: 429 },
+    );
+    response.headers.set('Retry-After', String(perPageLimit.retryAfterSec));
+    return withCORS(response);
   }
 
   const fingerprint = constructFingerprint(request);
 
-  const id = feedback_id ? new ObjectId(feedback_id.toString()) : new ObjectId();
+  const id = new ObjectId();
 
   const feedback: FeedbackDocument = {
     _id: id,
@@ -134,47 +129,56 @@ export async function POST(request: NextRequest) {
     return withCORS(
       NextResponse.json(
         {
-          error: `Unable to add attachment to ${feedback_id} feedback document, error: ${error}`,
+          error: `Unable to add attachment to feedback document ${feedback._id}, error: ${error}`,
         },
         { status: 400 },
       ),
     );
   }
 
+  let insertResult: InsertOneResult<FeedbackDocument>;
   try {
-    const updateOneRes = await insertFeedbackDocument(feedback);
-
-    if (feedback_id) {
-      await feedback_actions(feedback);
-    }
-    return withCORS(NextResponse.json(updateOneRes));
+    insertResult = await insertFeedbackDocument(feedback);
   } catch (error) {
     console.error('Unable to insert new feedback document', error);
     return withCORS(
       NextResponse.json(
         {
-          error: `Unable to insert new feedback document with id: ${feedback_id}. Error: ${error}`,
+          error: `Unable to insert new feedback document with id: ${feedback._id}. Error: ${error}`,
         },
         { status: 400 },
       ),
     );
   }
-}
 
-async function insertFeedbackDocument(feedback: FeedbackDocument): Promise<UpdateResult<FeedbackDocument>> {
-  const feedbackCollection = await getFeedbackResponsesCollection(feedback.snootyEnv);
-
-  const updateOneRes = await feedbackCollection.updateOne({ _id: feedback._id }, { $set: feedback }, { upsert: true });
-
-  if (updateOneRes.modifiedCount > 0) {
-    console.log(`Updated feedback document with id ${feedback._id}`);
-  } else if (updateOneRes.upsertedCount > 0) {
-    console.log(`inserted feedback document with id ${feedback._id}`);
-  } else {
-    console.error('No feedback document was inserted or updated');
+  // The document is already durably saved at this point — a Slack/Jira
+  // notification failure shouldn't turn into an error response the client
+  // has to handle, since there's nothing for the client to retry (retrying
+  // only creates another document; see DOP-7209). Surface it via the
+  // response body and logs instead of failing the request.
+  let notificationFailed = false;
+  try {
+    await feedback_actions(feedback);
+  } catch (error) {
+    console.error('Unable to send feedback notifications', error);
+    notificationFailed = true;
   }
 
-  return updateOneRes;
+  return withCORS(NextResponse.json({ ...insertResult, notificationFailed }));
+}
+
+async function insertFeedbackDocument(feedback: FeedbackDocument): Promise<InsertOneResult<FeedbackDocument>> {
+  const feedbackCollection = await getFeedbackResponsesCollection(feedback.snootyEnv);
+
+  const insertResult = await feedbackCollection.insertOne(feedback);
+
+  if (insertResult.acknowledged) {
+    console.log(`Inserted feedback document with id ${feedback._id}`);
+  } else {
+    console.error('No feedback document was inserted');
+  }
+
+  return insertResult;
 }
 
 function constructFingerprint(request: NextRequest): Fingerprint {

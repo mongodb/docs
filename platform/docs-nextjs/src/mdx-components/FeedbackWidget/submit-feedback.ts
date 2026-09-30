@@ -70,10 +70,10 @@ export function isValidWindow() {
 }
 
 // Feedback Widget Functions
-export async function upsertFeedback({ page, user, attachment, ...rest }: FeedbackPayload): Promise<string> {
-  const { viewport, comment, category, rating, snootyEnv, feedback_id } = rest;
+export async function submitFeedback({ page, user, attachment, ...rest }: FeedbackPayload): Promise<void> {
+  const { viewport, comment, category, rating, snootyEnv } = rest;
 
-  const res = await fetch('/docs/platform/api/feedback/upsert/', {
+  await fetch('/docs/platform/api/feedback/submit/', {
     method: 'POST',
     body: JSON.stringify({
       page,
@@ -84,9 +84,6 @@ export async function upsertFeedback({ page, user, attachment, ...rest }: Feedba
       category,
       rating,
       snootyEnv,
-      feedback_id,
     }),
   });
-  const updateOneRes = await res.json();
-  return updateOneRes.upsertedId?.toString() || '';
 }

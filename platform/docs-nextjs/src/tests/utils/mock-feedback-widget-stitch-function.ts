@@ -1,12 +1,10 @@
-import * as feedbackWidget from '@/mdx-components/FeedbackWidget/upsert-feedback';
+import * as feedbackWidget from '@/mdx-components/FeedbackWidget/submit-feedback';
 
 export const stitchFunctionMocks: Record<string, jest.SpyInstance> = {};
 export function mockStitchFunctions() {
-  stitchFunctionMocks['upsertFeedback'] = jest
-    .spyOn(feedbackWidget, 'upsertFeedback')
-    .mockImplementation(({ page, user, ...rest }) => {
-      return Promise.resolve(rest.feedback_id || 'mock-feedback-id');
-    });
+  stitchFunctionMocks['submitFeedback'] = jest
+    .spyOn(feedbackWidget, 'submitFeedback')
+    .mockImplementation(() => Promise.resolve());
 
   stitchFunctionMocks['useBrowserUser'] = jest.spyOn(feedbackWidget, 'useBrowserUser').mockImplementation(() => {
     return {

@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 import { useRef } from 'react';
 import { cx } from '@leafygreen-ui/emotion';
 import useClickOutside from '@/hooks/use-click-outside';
-import useScreenSize from '@/hooks/use-screen-size';
 import { useFeedbackContext } from './context';
 
 export type FeedbackContainerProps = {
@@ -12,12 +11,14 @@ export type FeedbackContainerProps = {
 
 const FeedbackContainer = ({ children, className }: FeedbackContainerProps) => {
   const ref = useRef<HTMLDivElement>(null);
-  const { abandon, isScreenshotButtonClicked, hasSubmitted, view } = useFeedbackContext();
-  const { isMobile } = useScreenSize();
+  const { exitAndSubmit, isScreenshotButtonClicked, hasSubmitted, view, formRef } = useFeedbackContext();
 
-  useClickOutside(ref, () => {
-    if (!isMobile && !isScreenshotButtonClicked) {
-      abandon();
+  // formRef points at the actual rendered card even when it's portaled to
+  // document.body on mobile/tablet (feedback-form.tsx) — passing both refs
+  // means a tap inside the portaled card still counts as "inside" here.
+  useClickOutside([ref, formRef], () => {
+    if (!isScreenshotButtonClicked) {
+      exitAndSubmit();
     }
   });
 

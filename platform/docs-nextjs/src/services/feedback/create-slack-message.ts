@@ -59,7 +59,6 @@ export async function createSlackMessagePayload(feedback: FeedbackDocument): Pro
     .map((channel: string) => {
       const slackPayload: SlackAction = {
         type: 'slack',
-        feedback_id: feedback._id,
         channel,
         message,
       };

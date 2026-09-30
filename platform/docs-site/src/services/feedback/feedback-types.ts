@@ -1,5 +1,4 @@
 import type { Viewport } from '@/types/data';
-import type { ObjectId } from 'mongodb';
 
 export interface SlackBlock {
   type: string;
@@ -8,7 +7,6 @@ export interface SlackBlock {
 
 interface Action {
   type: 'slack';
-  feedback_id: ObjectId;
 }
 
 export interface SlackPayload {
