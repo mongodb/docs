@@ -26,8 +26,6 @@ run ra-06_0320_ops_manager_add_second_cluster.sh
 run_for_output ra-06_0321_ops_manager_wait_for_pending_state.sh
 run_for_output ra-06_0322_ops_manager_wait_for_running_state.sh
 
-run ra-06_0400_install_minio_s3.sh
-run ra-06_0500_ops_manager_prepare_s3_backup_secrets.sh
 run ra-06_0510_ops_manager_enable_s3_backup.sh
 run_for_output ra-06_0522_ops_manager_wait_for_running_state.sh
 

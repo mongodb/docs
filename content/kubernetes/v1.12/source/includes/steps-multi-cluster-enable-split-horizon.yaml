@@ -1,0 +1,172 @@
+---
+title: ":ref:`Deploy a Multi-Kubernetes Cluster Replica Set <multi-cluster-quick-start-ref>`."
+stepnum: 1
+level: 4
+ref: pre-deploy-replicaset
+content: |
+
+---
+title: ":ref:`Secure the Multi-Kubernetes Cluster with TLS <multi-cluster-secure-tls>`."
+level: 4
+stepnum: 2
+ref: enable-tls-replicaset
+content: |
+
+  Provide values for:
+
+  - The |tls| secret in :setting:`spec.security.certsSecretPrefix`.
+  - The custom |certauth| certificate in :setting:`spec.security.tls.ca`.
+
+---
+ref: create-external-services-multi-cluster
+stepnum: 3
+inherit:
+  file: steps-create-external-services.yaml
+  ref: create-external-services
+replacement:
+  podType: "the MongoDB Pods"
+  k8sResource: "multi-Kubernetes-cluster deployment"
+  annotations: ":ref:`spec.externalAccess.externalService.annotations <multi-spec-externalaccess-externalservice-annotations>`"
+  overrides: ":ref:`spec.externalAccess.externalService.spec <multi-spec-externalaccess-externalservice-spec>`"
+---
+title: "Configure an external service for cluster members."
+level: 4
+stepnum: 4
+optional: true
+ref: external-services-override-replicaset
+content: | 
+  
+  If you need to configure settings for a specific cluster member, 
+  such as when you're hosting members on different cloud providers, 
+  you can override the global :ref:`spec.externalAccess <multi-spec-externalaccess>` 
+  settings for a specific member by using the :ref:`spec.clusterSpecList.externalAccess.externalService
+  <multi-spec-clusterspeclist-externalservice>` setting. 
+  
+  To add values to the service or override the default values for a 
+  cluster member, specify:
+  
+  - Annotations specific to the cloud provider for the cluster member, in 
+    :ref:`spec.clusterSpecList.externalAccess.externalService.annotations 
+    <multi-spec-clusterspeclist-annotations>`.
+
+  - Overrides specific to the cluster member, in :ref:`spec.clusterSpecList.externalAccess.externalService.spec 
+    <multi-spec-clusterspeclist-spec>`.
+
+  For example, the following file configures your |multi-cluster| to 
+  create load balancer services that expose the |multi-cluster| for 
+  cluster members deployed in |gke| and |aws| :aws:`EKS </eks/latest/userguide/what-is-eks>`.
+
+  .. note:: 
+
+     The following example doesn't configure overrides, so the external services 
+     use the default values from the :ref:`spec.externalAccess <multi-spec-externalaccess>` 
+     setting.
+
+  .. code-block:: yaml
+
+     clusterSpecList:
+       - clusterName: gke-cluster-0.mongokubernetes.com
+         members: 2
+         externalAccess: 
+           externalService: 
+             annotations:
+               "cloud.google.com/l4-rbs": "enabled"  
+       - clusterName: eks-cluster-1.mongokubernetes.com
+         members: 2
+         externalAccess: 
+           externalService: 
+             annotations:
+               "service.beta.kubernetes.io/aws-load-balancer-type": "external",
+               "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type": "instance",
+               "service.beta.kubernetes.io/aws-load-balancer-scheme": "internet-facing"
+
+---
+title: "Add Subject Alternate Names to your |tls| certificate."
+level: 4
+stepnum: 5
+ref: add-san-to-cert
+content: |
+
+  Add each external |dns| name to the certificate |san-dns|.
+
+---
+stepnum: 6
+ref: verify-external-services-multi-cluster
+inherit:
+  file: steps-create-external-services.yaml
+  ref: verify-external-services
+replacement:
+  deployment: each cluster
+  format: <pod-name>-<cluster-idx>-<pod-idx>-svc-external
+  example: <my-replica-set>-0-0-svc-external
+  spec: :ref:`external service specification <multi-spec-externalaccess-externalservice>`
+---
+title: "Update your replica set resource |yaml| file."
+level: 4
+stepnum: 7
+ref: update-replset-resource-mc-split-horizon
+content: |
+
+  Set the hostnames and ports in :setting:`spec.connectivity.replicaSetHorizons`
+  to the external service values that you created in the previous step.
+
+  Confirm that you specified the correct external hostnames. External
+  hostnames should match the |dns| names of |k8s| worker nodes.
+  These can be *any* nodes in the |k8s| cluster. If the Pod runs on another
+  node, |k8s| nodes use internal routing.
+
+  .. code-block:: sh
+
+     apiVersion: mongodb.com/v1
+      kind: MongoDBMultiCluster
+      metadata:
+       name: multi-cluster-replica-set
+       namespace: mongodb
+      spec:
+       clusterSpecList:
+        - clusterName: e2e.cluster1.example.com
+          members: 1
+        - clusterName: e2e.cluster2.example.com
+          members: 1
+        - clusterName: e2e.cluster3.example.com
+          members: 1
+       connectivity:
+        replicaSetHorizons:
+        - sample-horizon: web1.example.com:30907
+        - sample-horizon: web2.example.com:30907
+        - sample-horizon: web3.example.com:30907
+       credentials: my-credentials
+       duplicateServiceObjects: false
+       opsManager:
+        configMapRef:
+         name: my-project
+       persistent: true
+       security:
+        certsSecretPrefix: clustercert
+        tls:
+          ca: ca-issuer
+       type: ReplicaSet
+       version: 8.0.0"
+
+---
+title: "Apply the updated replica set file."
+level: 4
+stepnum: 8
+ref: apply-crd
+content: |
+
+  In each cluster, run this command to apply the updated replica set file:
+
+  .. code-block:: sh
+
+     $ Kubectl apply -f <file_name.yaml>
+
+---
+level: 4
+stepnum: 9
+ref: k8s-ext-rs-test-conn-horizon-mc
+inherit:
+  file: steps-source-deploy-k8s-resource.yaml
+  ref: k8s-ext-rs-test-conn
+
+...

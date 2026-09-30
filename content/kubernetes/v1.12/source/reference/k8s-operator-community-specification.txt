@@ -1,0 +1,383 @@
+.. _k8s-community-specification:
+
+==========================================
+MongoDBCommunity Resource Specification
+==========================================
+
+.. meta::
+   :description: Configure and deploy MongoDB Community Edition replica sets in Kubernetes using the `MongoDBCommunity` custom resource.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecols
+
+The ``MongoDBCommunity`` custom resource lets you deploy and manage
+MongoDB Community Edition replica sets in |k8s|. The |k8s-op-short|
+uses this resource to create |k8s-statefulsets|, services, and other
+|k8s| resources required to run MongoDB Community deployments.
+
+To learn more, see the `MongoDB Community Operator documentation
+<https://github.com/mongodb/mongodb-kubernetes/tree/master/docs/mongodbcommunity>`__.
+
+Example
+-------
+
+The following example shows a resource specification for a
+``MongoDBCommunity`` custom resource:
+
+.. code-block:: yaml
+   :linenos:
+
+   apiVersion: mongodbcommunity.mongodb.com/v1
+   kind: MongoDBCommunity
+   metadata:
+     name: my-mongodb-community
+   spec:
+     version: "8.0.0"
+     type: ReplicaSet
+     members: 3
+     security:
+       tls:
+         enabled: true
+         certificateKeySecretRef:
+           name: mongodb-tls-cert
+         caConfigMapRef:
+           name: mongodb-ca
+       authentication:
+         ignoreUnknownUsers: true
+         modes:
+           - SCRAM
+     agent:
+       logLevel: DEBUG
+     statefulSet:
+       spec:
+         template:
+           spec:
+             containers:
+               - name: mongod
+                 resources:
+                   limits:
+                     cpu: "2"
+                     memory: 2Gi
+                   requests:
+                     cpu: "1"
+                     memory: 1Gi
+               - name: mongodb-agent
+                 resources:
+                   limits:
+                     cpu: "1"
+                     memory: 2Gi
+                   requests:
+                     cpu: "0.5"
+                     memory: 1Gi
+     users:
+       - name: mdb-admin
+         db: admin
+         passwordSecretRef:
+           name: mdb-admin-user-password
+         scramCredentialsSecretName: mdb-admin-user
+         roles:
+           - name: root
+             db: admin
+
+Required ``MongoDBCommunity`` Resource Settings
+-----------------------------------------------
+
+This section describes settings that you must use for all
+``MongoDBCommunity`` resources.
+
+.. _mdbc-api-version:
+
+``apiVersion``
+  *Type*: string
+
+  Version of the MongoDB |k8s| resource schema. Set the value to
+  ``mongodbcommunity.mongodb.com/v1``.
+
+.. _mdbc-kind-spec:
+
+``kind``
+  *Type*: string
+
+  Kind of MongoDB |k8s| resource to create. Set this to ``MongoDBCommunity``.
+
+.. _mdbc-metadata-name:
+
+``metadata.name``
+  *Type*: string
+
+  Human-readable name so you can identify this particular
+  ``MongoDBCommunity`` resource.
+
+  Resource names must be 44 characters or less.
+
+.. _mdbc-spec-version:
+
+``spec.version``
+  *Type*: string
+
+  Version of MongoDB Community to deploy. For example, ``"8.0.0"``.
+
+.. _mdbc-spec-type:
+
+``spec.type``
+  *Type*: string
+
+  Type of MongoDB deployment to create. The accepted value is
+  ``ReplicaSet``.
+
+.. _mdbc-spec-members:
+
+``spec.members``
+  *Type*: integer
+
+  Number of replica set members. This determines how many ``mongod``
+  pods the |k8s-op-short| creates in the |k8s-statefulset|.
+
+Optional ``MongoDBCommunity`` Resource Settings
+-----------------------------------------------
+
+The ``MongoDBCommunity`` custom resource can use the following settings:
+
+Security Settings
+~~~~~~~~~~~~~~~~~
+
+.. _mdbc-spec-security:
+
+``spec.security``
+  *Type*: object
+
+  Security configuration for the ``MongoDBCommunity`` resource. Contains
+  TLS and authentication settings.
+
+.. _mdbc-spec-security-tls:
+
+``spec.security.tls``
+  *Type*: object
+
+  :abbr:`TLS (Transport Layer Security)` settings for the MongoDB
+  deployment.
+
+.. _mdbc-spec-security-tls-enabled:
+
+``spec.security.tls.enabled``
+  *Type*: boolean
+
+  Flag to enable or disable TLS for the MongoDB deployment. Set to
+  ``true`` to enable TLS-encrypted connections.
+
+.. _mdbc-spec-security-tls-certificatekeysecretref:
+
+``spec.security.tls.certificateKeySecretRef.name``
+  *Type*: string
+
+  Name of the |k8s| |k8s-secret| that contains the TLS server
+  certificate and private key for the MongoDB deployment.
+
+.. _mdbc-spec-security-tls-caconfigmapref:
+
+``spec.security.tls.caConfigMapRef.name``
+  *Type*: string
+
+  Name of the |k8s| |k8s-configmap| that contains the Certificate
+  Authority (CA) certificate used to verify TLS connections.
+
+.. _mdbc-spec-security-authentication:
+
+``spec.security.authentication``
+  *Type*: object
+
+  Authentication configuration for the MongoDB deployment.
+
+.. _mdbc-spec-security-authentication-modes:
+
+``spec.security.authentication.modes``
+  *Type*: array of strings
+
+  List of authentication mechanisms to enable on the MongoDB deployment.
+  Accepted values include:
+
+  - ``SCRAM``
+
+.. _mdbc-spec-security-authentication-ignoreunknownusers:
+
+``spec.security.authentication.ignoreUnknownUsers``
+  *Type*: boolean
+
+  If ``true``, the |k8s-op-short| doesn't report an error for users
+  that exist in the MongoDB deployment but are not defined in the
+  ``MongoDBCommunity`` resource specification.
+
+  Default: ``false``.
+
+Agent Settings
+~~~~~~~~~~~~~~
+
+.. _mdbc-spec-agent:
+
+``spec.agent``
+  *Type*: object
+
+  Configuration settings for the {+mdbagent+}.
+
+.. _mdbc-spec-agent-loglevel:
+
+``spec.agent.logLevel``
+  *Type*: string
+
+  Verbosity level of the {+mdbagent+} logs. Accepted values include:
+
+  - ``DEBUG``
+  - ``INFO``
+  - ``WARN``
+  - ``ERROR``
+
+StatefulSet Settings
+~~~~~~~~~~~~~~~~~~~~
+
+.. _mdbc-spec-statefulset:
+
+``spec.statefulSet``
+  *Type*: object
+
+  Specification for the |k8s-statefulset| created by the |k8s-op-short|
+  for your ``MongoDBCommunity`` resource. Use this to override default
+  container resource requests and limits.
+
+.. _mdbc-spec-statefulset-spec:
+
+``spec.statefulSet.spec``
+  *Type*: object
+
+  |k8s-statefulset| specification that the |k8s-op-short| merges with
+  generated defaults. Follows the standard |k8s| `StatefulSet spec
+  <https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#statefulsetspec-v1-apps>`__.
+
+.. _mdbc-spec-statefulset-containers:
+
+``spec.statefulSet.spec.template.spec.containers``
+  *Type*: array of objects
+
+  List of container overrides. You can override resource requests and
+  limits for the following containers:
+
+  - ``mongod`` — The MongoDB database container.
+  - ``mongodb-agent`` — The {+mdbagent+} sidecar container.
+
+  .. code-block:: yaml
+     :copyable: false
+
+     containers:
+       - name: mongod
+         resources:
+           limits:
+             cpu: "2"
+             memory: 2Gi
+           requests:
+             cpu: "1"
+             memory: 1Gi
+       - name: mongodb-agent
+         resources:
+           limits:
+             cpu: "1"
+             memory: 2Gi
+           requests:
+             cpu: "0.5"
+             memory: 1Gi
+
+User Settings
+~~~~~~~~~~~~~
+
+.. _mdbc-spec-users:
+
+``spec.users``
+  *Type*: array of objects
+
+  List of MongoDB database users to create for this deployment. Each
+  user object defines the credentials and roles for a database user.
+
+.. _mdbc-spec-users-name:
+
+``spec.users[*].name``
+  *Type*: string
+
+  Username for the MongoDB database user.
+
+.. _mdbc-spec-users-db:
+
+``spec.users[*].db``
+  *Type*: string
+
+  Authentication database for the user. The default is ``admin``.
+
+.. _mdbc-spec-users-passwordsecretref:
+
+``spec.users[*].passwordSecretRef.name``
+  *Type*: string
+
+  Name of the |k8s| |k8s-secret| that contains the password for this
+  database user.
+
+.. _mdbc-spec-users-scramcredentialssecretname:
+
+``spec.users[*].scramCredentialsSecretName``
+  *Type*: string
+
+  Name of the |k8s-secret| where the |k8s-op-short| stores the
+  generated SCRAM credentials for this user.
+
+.. _mdbc-spec-users-roles:
+
+``spec.users[*].roles``
+  *Type*: array of objects
+
+  List of `roles <https://www.mongodb.com/docs/manual/reference/built-in-roles/>`__
+  to assign to this database user.
+
+.. _mdbc-spec-users-roles-name:
+
+``spec.users[*].roles[*].name``
+  *Type*: string
+
+  Name of the role to assign. For example, ``root``, ``readWrite``,
+  ``readAnyDatabase``, or ``searchCoordinator``.
+
+.. _mdbc-spec-users-roles-db:
+
+``spec.users[*].roles[*].db``
+  *Type*: string
+
+  Database on which the role applies. For example, ``admin``.
+
+Integration with MongoDBSearch
+------------------------------
+
+You can deploy |text-search| and |vector-search| alongside a
+``MongoDBCommunity`` resource using the ``MongoDBSearch`` |crd|.
+To enable search functionality, create a ``search-sync-source`` user
+with the ``searchCoordinator`` role:
+
+.. code-block:: yaml
+   :copyable: false
+
+   users:
+     - name: search-sync-source
+       db: admin
+       passwordSecretRef:
+         name: my-resource-search-sync-source-password
+       scramCredentialsSecretName: my-resource-search-sync-source
+       roles:
+         - name: searchCoordinator
+           db: admin
+
+.. note::
+
+   For MongoDB 8.2 and later, ``searchCoordinator`` is a built-in role.
+   For earlier versions, the |k8s-op-short| creates the
+   ``searchCoordinator`` custom role automatically.
+
+To learn more, see :ref:`k8s-deploy-search-resources`.

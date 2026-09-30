@@ -1,0 +1,396 @@
+.. _om-multi-k8s:
+.. _arch-multi-cluster:
+.. _om-multi-k8s-diagram:
+.. _om-nw-lb-mesh:
+.. _om-performance:
+.. _multi-cluster-arch-ref:
+
+==========================================
+Multi-Cluster Architecture
+==========================================
+
+.. meta::
+   :description: Multi-cluster deployment architecture for the MongoDB Controllers for Kubernetes Operator, including deployment modes, limitations, networking, load balancing, service mesh, and performance considerations.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The |k8s-op-short| supports deploying both MongoDB database resources and
+|onprem| resources across multiple |k8s| clusters. This provides
+geographic redundancy, disaster recovery capabilities, and improved
+resilience.
+
+.. important::
+
+   You can't convert an existing |onprem| deployment from single- to
+   multi-cluster topology. You must start over and redeploy if you begin
+   in single-cluster mode. Plan your topology before the initial
+   deployment.
+
+.. _arch-multi-cluster-modes:
+.. _mode-multi-or-single:
+
+Single- and Multi-Cluster Mode
+-------------------------------
+
+You can control the mode in which you deploy the MongoDB resources with
+the |k8s-op-short| with the following settings:
+
+- ``spec.topology`` — controls the mode for the |onprem| application.
+- ``spec.applicationDatabase.topology`` — controls the mode for the
+  {+appdb+}.
+
+If you set both ``spec.topology`` and
+``spec.applicationDatabase.topology`` to ``MultiCluster``, this enables
+multi-cluster mode for the |onprem| resource and its {+appdb+}, as
+shown in the following example:
+
+.. code-block:: yaml
+
+   spec:
+     topology: MultiCluster
+     applicationDatabase:
+       topology: MultiCluster
+
+In multi-cluster mode, you can start with a single member cluster and
+scale as needed. Specifically:
+
+- **Single member cluster start**: A deployment can begin with one
+  member cluster.
+- **Minimum {+appdb+} replica set**: A minimum 3-member {+appdb+}
+  replica set can run on a single member cluster, then expand across
+  clusters later.
+- **Single |application| instance**: A single |application| instance
+  can run on one cluster, with additional clusters added later.
+
+In single-cluster mode (the default), omit the topology setting or set
+it to ``SingleCluster``.
+
+.. _arch-multi-cluster-limitations:
+.. _om-multi-k8s-limitations:
+.. _multi-cluster-limitations:
+
+Multi-Cluster Deployment Limitations
+--------------------------------------
+
+The following limitations apply to multi-cluster deployments:
+
+- Use |onprem| versions later than 5.0.7.
+- Use only |k8s-secrets| for secret storage. |hashicorp-vault| isn't
+  supported.
+- For deployments where the |k8s-op-short| doesn't manage both the
+  ``MongoDBOpsManager`` and ``MongoDB`` resources, you must manually
+  configure :ref:`KMIP <configure-kmip-backup-encryption>` backup
+  encryption settings in |onprem|.
+- Don't add a ServiceMonitor to ``MongoDBMultiCluster`` resources.
+  Prometheus integration isn't supported.
+- You can't migrate existing single-cluster MongoDB resources to
+  multi-cluster resources.
+
+.. _arch-multi-cluster-diffs:
+.. _multi-vs-single-om-diffs:
+
+Differences Between Single and Multi-Cluster Deployments
+---------------------------------------------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 20 30
+
+   * - Capability or Requirement
+     - Single-Cluster
+     - Multi-Cluster
+
+   * - Operator must be in the same cluster as |onprem| and {+appdb+}
+     - Yes
+     - No
+
+   * - Service mesh required for |onprem| and {+appdb+} clusters
+     - No
+     - Yes
+
+   * - |hashicorp-vault| supported
+     - Yes
+     - No
+
+   * - All backup mechanisms supported
+     - Yes
+     - No. S3-compatible oplog/snapshot only.
+
+   * - KMIP encryption
+     - Yes
+     - With :ref:`limitations <kmip-limitations>`
+
+.. _arch-multi-cluster-mdb-diagrams:
+.. _multi-cluster-diagram:
+.. _multi-cluster-diagram-with-service-mesh:
+.. _multi-cluster-diagram-no-service-mesh:
+.. _multi-cluster-capabilities:
+
+Multi-Cluster MongoDB Database Resource Deployment Diagrams
+-------------------------------------------------------------
+
+You can create multi-cluster MongoDB deployments with or without a
+service mesh.
+
+In both cases, the |k8s-op-short|:
+
+- Watches for the ``MongoDBMultiCluster`` spec on the operator cluster.
+- Uses the mounted ``kubeconfig`` to communicate with member clusters.
+- Creates ConfigMaps, Secrets, Services, and StatefulSets in each
+  member cluster.
+- Deploys MongoDB replica set members to the appropriate clusters.
+- Watches for operator cluster and member cluster events.
+- Reconciles resources to confirm the desired state.
+
+.. include:: /includes/facts/fact-central-member-clusters.rst
+
+.. note::
+
+   If the operator cluster fails, you can't use the |k8s-op-short| to
+   change your deployment until you restore access or redeploy the
+   |k8s-op-short| to another cluster. See :ref:`disaster-recovery-ref`.
+
+**With a Service Mesh**
+
+The service mesh manages MongoDB node discovery across clusters and
+handles inter-member communication. The following diagram illustrates
+a multi-cluster deployment with a service mesh:
+
+.. figure:: /images/multi-cluster-arch-with-service-mesh.svg
+   :alt: Diagram showing multi-cluster deployment with a service mesh
+   :figwidth: 600px
+
+**Without a Service Mesh**
+
+External domains and DNS zones handle cross-cluster communication. See
+:ref:`dns-and-external-domain`. The following diagram illustrates a
+multi-cluster deployment without a service mesh:
+
+.. figure:: /images/multi-cluster-arch-no-service-mesh.svg
+   :alt: Diagram showing multi-cluster deployment without a service mesh
+   :figwidth: 600px
+
+.. _arch-multi-cluster-om-diagram:
+.. _om-multi-k8s-diagram-detail:
+
+Multi-Cluster |onprem| Resource Deployment Diagram
+----------------------------------------------------
+
+The following diagram shows the |application|, {+appdb+}, and Backup
+Daemon deployed on multiple |k8s| clusters:
+
+.. figure:: /images/om-multicluster-arch.svg
+   :alt: Diagram showing multi-cluster Ops Manager deployment
+   :figwidth: 100%
+
+Key elements of a multi-cluster |onprem| deployment:
+
+1. **Operator cluster** (for example, Member Cluster 0) stores the
+   ``kubeconfig`` secret
+   (``mongodb-enterprise-operator-multi-cluster-kubeconfig``) and
+   cluster-mapping ConfigMaps used to manage all member clusters.
+
+2. **Cluster-mapping ConfigMaps** track the relationship between cluster
+   names and indexes:
+
+   - ``<om_resource_name>-cluster-mapping`` — maps
+     ``spec.clusterSpecList`` entries to cluster indexes.
+   - ``<om_resource_name>-db-cluster-mapping`` — maps
+     ``spec.applicationDatabase.clusterSpecList`` entries to cluster
+     indexes.
+   - ``<om_resource_name>-db-member-spec`` — records replica count per
+     cluster for disaster recovery.
+
+3. **Application StatefulSets** are named
+   ``<om_resource_name>-<cluster_index>`` on each cluster. The operator
+   creates a ``ClusterIP`` service
+   (``<om_resource_name>-svc``) containing all local Pods, plus an
+   optional ``LoadBalancer`` service
+   (``<om_resource_name>-svc-ext``) for external access.
+
+4. **{+appdb+} StatefulSets** are named
+   ``<om_resource_name>-db-<cluster_index>``. Per-Pod services
+   (``<om_resource_name>-db-<cluster_index>-<pod_index>-svc``) enable
+   individual ``mongod`` addressability across the service mesh.
+
+5. **Backup Daemon StatefulSets** are named
+   ``<om_resource_name>-backup-daemon-<cluster_index>``, created if
+   ``spec.backup.enabled`` is ``true``.
+
+.. _arch-multi-cluster-networking:
+
+Multi-Cluster Networking
+-------------------------
+
+.. _arch-networking-overview:
+.. _om-networking-overview:
+
+Networking Overview for Multi-Cluster Deployments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following table describes the types of clients and services that
+connect to the |application| in multi-cluster deployments, and the
+URLs they use:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 35 50
+
+   * - Origin
+     - Purpose
+     - URL
+
+   * - |k8s-op-short|
+     - Configures |onprem|, enables monitoring
+     - Default FQDN
+       ``<om_resource_name>-svc.<namespace>.svc.cluster.local``
+       or ``spec.opsManagerURL``
+
+   * - |k8s-op-short|
+     - Configures a specific MongoDB deployment
+     - Project ConfigMap (from :ref:`create-k8s-project`)
+
+   * - {+mdbagent+} in {+appdb+}
+     - Receives automation configuration from |onprem|
+     - Headless mode (no |onprem| connection needed)
+
+   * - {+monitoring-agent+} in {+appdb+}
+     - Sends monitoring data to |onprem|
+     - Default FQDN or ``spec.opsManagerURL``
+
+   * - {+mdbagent+} in ``MongoDB`` resources
+     - Receives automation configuration from |onprem|, including
+       backup and restore instructions
+     - Project ConfigMap
+
+   * - User
+     - Accesses |onprem| UI or API
+     - External domain via ``spec.externalConnectivity``
+
+.. _arch-service-mesh:
+.. _om-service-mesh:
+
+Service Mesh Requirements for Multi-Cluster |onprem| Deployments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For multi-cluster |onprem| deployments, add the |k8s| clusters
+hosting the {+appdb+} and the |application| to the same service mesh.
+This enables:
+
+- Network connectivity between deployed components across clusters.
+- Cross-cluster DNS resolution for per-Pod service FQDNs.
+
+In addition, we also recommend adding the operator cluster to the
+same service mesh, which allows it to host |application| and {+appdb+}
+instances directly.
+
+Configure the service mesh for the following clusters:
+
+- The operator cluster (where you install the |k8s-op-short|)
+- All member |k8s| clusters hosting |application| instances
+- All member |k8s| clusters hosting {+appdb+} instances
+
+The service mesh ensures that each |onprem| instance can connect to
+every {+appdb+} instance, even across clusters. After deployment, each
+|onprem| API endpoint must be able to directly connect to every
+{+appdb+} member.
+
+.. _arch-load-balancing:
+.. _om-networking-and-load-balancing:
+.. _diagram-om-mc-ext-lb:
+.. _diagram-om-mc-mesh-lb-proxy:
+
+Load Balancing for Multi-Cluster |onprem| Deployments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For multi-cluster |onprem| deployments, each cluster can expose its
+|application| Pods individually using a ``LoadBalancer``-type service.
+Create this service using ``spec.externalConnectivity`` and point an
+external domain to its external IP address. To learn more about
+configuring load balancing in multi-cluster deployments, see
+:ref:`arch-service-mesh`.
+
+Since the |k8s-op-short| doesn't support cross-cluster load balancing
+natively, you must configure load balancing externally. The following
+approaches exist for enabling cross-cluster load balancing for |onprem|
+deployments:
+
+- **External Load Balancer**: Configure an external network load
+  balancer (passthrough proxy) for all clusters hosting the
+  |application|. The load balancer forwards traffic to each cluster's
+  ``LoadBalancer`` service in round-robin fashion. The following diagram
+  illustrates this approach:
+
+.. figure:: /images/om-multicluster-external-lb.svg
+   :alt: Multi-cluster deployment with external load balancer
+   :figwidth: 600px
+
+- **Service Mesh with Proxy**: Use the service mesh's cross-cluster
+  load balancing. Deploy a proxy (such as Nginx or HAProxy) on one
+  cluster, expose it externally, and configure TCP passthrough to
+  ``<om_resource_name>-svc.<namespace>.svc.cluster.local``. The
+  following diagram illustrates this approach:
+
+.. figure:: /images/om-multicluster-lb-from-mesh-with-proxy.svg
+   :alt: Multi-cluster deployment with service mesh load balancing
+   :figwidth: 600px
+
+.. _arch-performance:
+
+Multi-Cluster Performance Considerations for |onprem| Deployments
+-------------------------------------------------------------------
+
+The geographical distribution of {+appdb+} and |onprem| instances
+can impact the performance of the |application| and backup/restore
+processes. See
+:opsmgr:`Performance in Multi-Region Deployments </tutorial/configure-application-high-availability/#performance-in-multi-region-deployments>`.
+
+To maximize the benefits of multi-cluster resilience and availability,
+deploy all components in the same geographical area when possible.
+
+Sources of possible performance degradation include:
+
+- Increased network latency between the |application| and the primary
+  {+appdb+} node.
+- Increased latency between MongoDB database nodes and the
+  |application| performing backup jobs.
+
+If you plan geographically distant deployments, contact |mdb-support|
+for assistance.
+
+.. _arch-multi-cluster-db-capabilities:
+.. _multi-cluster-connection-string:
+.. _multi-cluster-security-db-users:
+.. _multi-cluster-queryable-backups-for-om:
+
+Multi-Cluster MongoDB Database Resource Capabilities
+------------------------------------------------------
+
+The following multi-cluster capabilities use the same procedures as
+single-cluster deployments:
+
+- **Connect with DNS SRV Records**: Use the
+  ``connectionString.standardSrv`` DNS seed list connection string from
+  the |k8s-secret| that the |k8s-op-short| creates. See
+  :ref:`connect-from-inside-k8s` and select the
+  :guilabel:`Using the Kubernetes Secret` tab.
+
+- **Manage Security for Database Users**: Use the same LDAP, SCRAM,
+  X.509, and OIDC authentication procedures as single-cluster
+  deployments, with the following exceptions:
+
+  - Multi-cluster procedures apply to replica sets only (sharded
+    clusters aren't supported).
+  - In ``mongodbResourceRef``, specify the multi-cluster replica set
+    name.
+
+- **Queryable Backups (Single-Cluster |onprem| Only)**: If |onprem| is
+  deployed on a single cluster, you can configure
+  :ref:`queryable backups <configure-om-queryable-backups>`. Queryable
+  backups aren't supported for multi-cluster |onprem| deployments.

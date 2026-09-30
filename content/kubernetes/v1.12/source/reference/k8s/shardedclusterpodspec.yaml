@@ -1,0 +1,142 @@
+---
+apiVersion: mongodb.com/v1
+kind: MongoDB
+metadata:
+  name: my-sharded-cluster
+spec:
+  shardCount: 2
+  mongodsPerShardCount: 3
+  mongosCount: 2
+  configServerCount: 3
+  version: "8.0.0"
+  service: my-service
+  type: ShardedCluster
+
+  ## Please Note: The default Kubernetes cluster name is
+  ## `cluster.local`.
+  ## If your cluster has been configured with another name, you can
+  ## specify it with the `clusterDomain` attribute.
+
+  opsManager: # Alias of cloudManager
+    configMapRef:
+      name: my-project
+  credentials: my-credentials
+
+  persistent: true
+  configSrvPodSpec:
+
+    # if "persistence" element is omitted then Operator uses the
+    # default size (5Gi) for mounting single Persistent Volume
+
+    podTemplate:
+      spec:
+        affinity:
+          podAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              - labelSelector:
+                  matchExpressions:
+                    - key: security
+                      operator: In
+                      values:
+                        - S1
+                topologyKey: failure-domain.beta.kubernetes.io/zone
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: kubernetes.io/e2e-az-name
+                      operator: In
+                      values:
+                        - e2e-az1
+                        - e2e-az2
+          podAntiAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                topologyKey: nodeId
+  mongosPodSpec:
+    podTemplate:
+      spec:
+        affinity:
+          podAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              - labelSelector:
+                  matchExpressions:
+                    - key: security
+                      operator: In
+                      values:
+                        - S1
+                topologyKey: failure-domain.beta.kubernetes.io/zone
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: kubernetes.io/e2e-az-name
+                      operator: In
+                      values:
+                        - e2e-az1
+                        - e2e-az2
+          podAntiAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                topologyKey: nodeId
+  shardPodSpec:
+    persistence:
+      multiple:
+        # if the child of "multiple" is omitted then the default size will be used.
+        # 16GB for "data", 1GB for "journal", 3GB for "logs"
+        data:
+          storage: "20Gi"
+        logs:
+          storage: "4Gi"
+          storageClass: standard
+    podTemplate:
+      spec:
+        affinity:
+          podAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              - labelSelector:
+                  matchExpressions:
+                    - key: security
+                      operator: In
+                      values:
+                        - S1
+                topologyKey: failure-domain.beta.kubernetes.io/zone
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: kubernetes.io/e2e-az-name
+                      operator: In
+                      values:
+                        - e2e-az1
+                        - e2e-az2
+          podAntiAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                topologyKey: nodeId
+  mongos:
+    additionalMongodConfig:
+      systemLog:
+        logAppend: true
+        verbosity: 4
+  configSrv:
+    additionalMongodConfig:
+      operationProfiling:
+        mode: slowOp
+  shard:
+    additionalMongodConfig:
+      storage:
+        journal:
+          commitIntervalMs: 50
+  security:
+    certsSecretPrefix: "prefix"
+    tls:
+     ca: custom-ca
+    authentication:
+      enabled: true
+      modes: ["X509"]
+      internalCluster: "X509"
+  statefulSet:
+    spec:
+      serviceName: my-service
+...

@@ -1,0 +1,146 @@
+.. _reference-architectures-multi-cluster-ops-manager-no-mesh:
+
+================================================
+Multi-Cluster Ops Manager Without a Service Mesh
+================================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The Ops Manager is responsible for facilitating workloads such as backing up 
+data, monitoring database performance and more. To make your multi-cluster Ops 
+Manager and the Application Database deployment resilient to entire data center 
+or zone failures, deploy the Ops Manager Application and the Application 
+Database on multiple Kubernetes clusters.
+
+Prerequisites
+-------------
+
+Before you begin the following procedure, perform the following actions:
+
+- Install ``kubectl``.
+- Complete the :ref:`GKE Clusters procedure <reference-architectures-gke-clusters>` or the equivalent.
+- Complete the :ref:`TLS Certificates procedure <reference-architectures-ca-certs>` or the equivalent.
+- Complete the :ref:`ExternalDNS procedure <reference-architectures-external-dns-no-mesh>` or the equivalent.
+- Complete the :ref:`Deploy the MongoDB Operator <reference-architectures-deploy-operator>` procedure.
+- Set the required environment variables as follows:
+
+.. literalinclude:: /includes/code-examples/reference-architectures/ra-10-ops-manager-mc-no-mesh/env_variables.sh
+   :language: bash
+   :copyable: true
+
+Source Code
+-----------
+
+You can find all included source code in the :github:`MongoDB Kubernetes Operator repository </mongodb/mongodb-kubernetes/tree/{+github-branch+}/public/architectures/ops-manager-multi-cluster>`.
+
+Procedure
+----------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Generate TLS certificates.
+
+      .. literalinclude:: /includes/code-examples/reference-architectures/ra-10-ops-manager-mc-no-mesh/code_snippets/ra-10_0100_generate_certs.sh
+         :language: sh
+
+   .. step:: Add TLS certificate to GCP.
+
+      .. literalinclude:: /includes/code-examples/reference-architectures/ra-10-ops-manager-mc-no-mesh/code_snippets/ra-10_0110_add_cert_to_gcp.sh
+         :language: sh
+
+   .. step:: Create the required |k8s| components for a load balancer.
+
+      This load balancer distributes traffic between all the replicas of 
+      |onprem| across all 3 clusters.
+
+      .. io-code-block:: 
+
+         .. input:: /includes/code-examples/reference-architectures/ra-10-ops-manager-mc-no-mesh/code_snippets/ra-10_0150_om_load_balancer.sh
+            :language: sh
+
+         .. output:: /includes/code-examples/outputs/test_gke_multi_cluster_no_mesh_snippets/ra-10_0150_om_load_balancer.out
+
+   .. step:: Add an "A" record to your DNS zone with your external domain.
+
+      .. literalinclude:: /includes/code-examples/reference-architectures/ra-10-ops-manager-mc-no-mesh/code_snippets/ra-10_0160_add_dns_record.sh
+         :language: sh
+
+   .. step:: Create credentials for the |onprem| admin user.
+
+      .. literalinclude:: /includes/code-examples/reference-architectures/ra-10-ops-manager-mc-no-mesh/code_snippets/ra-10_0300_ops_manager_create_admin_credentials.sh
+         :language: sh
+
+   .. step:: Deploy |onprem|. 
+
+      .. literalinclude:: /includes/code-examples/reference-architectures/ra-10-ops-manager-mc-no-mesh/code_snippets/ra-10_0320_ops_manager_no_mesh.sh
+         :language: sh
+
+
+   .. step:: Wait for the |k8s-op-short| to enter a pending state.
+         
+      Wait for both the {+appdb+} and |onprem| deployments to complete.
+
+      .. io-code-block:: 
+
+         .. input:: /includes/code-examples/reference-architectures/ra-10-ops-manager-mc-no-mesh/code_snippets/ra-10_0321_ops_manager_wait_for_pending_state.sh
+            :language: sh
+
+         .. output:: /includes/code-examples/outputs/test_gke_multi_cluster_no_mesh_snippets/ra-10_0321_ops_manager_wait_for_pending_state.out
+
+   .. step:: Set up load balancer services.
+
+      .. literalinclude:: /includes/code-examples/reference-architectures/ra-10-ops-manager-mc-no-mesh/code_snippets/ra-10_0325_set_up_lb_services.sh
+         :language: sh
+
+      .. literalinclude:: /includes/code-examples/reference-architectures/ra-10-ops-manager-mc-no-mesh/code_snippets/ra-10_0326_set_up_lb_services.sh
+         :language: sh
+
+   .. step:: Wait for |onprem| to enter a running state.
+
+      .. io-code-block:: 
+
+         .. input:: /includes/code-examples/reference-architectures/ra-10-ops-manager-mc-no-mesh/code_snippets/ra-10_0330_ops_manager_wait_for_running_state.sh
+            :language: sh
+
+         .. output:: /includes/code-examples/outputs/test_gke_multi_cluster_no_mesh_snippets/ra-10_0330_ops_manager_wait_for_running_state.out
+
+   .. step:: Install Minio. 
+
+      .. literalinclude:: /includes/code-examples/reference-architectures/ra-10-ops-manager-mc-no-mesh/code_snippets/ra-10_0400_install_minio_s3.sh
+         :language: sh
+   
+   .. step:: Configure |k8s| Secrets for |onprem| backups.
+
+      .. literalinclude:: /includes/code-examples/reference-architectures/ra-10-ops-manager-mc-no-mesh/code_snippets/ra-10_0500_ops_manager_prepare_s3_backup_secrets.sh
+         :language: sh
+
+   .. step:: Enable S3 (Minio) backups in |onprem|. 
+
+      .. literalinclude:: /includes/code-examples/reference-architectures/ra-10-ops-manager-mc-no-mesh/code_snippets/ra-10_0510_ops_manager_enable_s3_backup.sh
+         :language: sh
+
+   .. step:: Wait for |onprem| to enter a running state.
+
+      .. io-code-block:: 
+
+         .. input:: /includes/code-examples/reference-architectures/ra-10-ops-manager-mc-no-mesh/code_snippets/ra-10_0522_ops_manager_wait_for_running_state.sh
+            :language: sh
+
+         .. output:: /includes/code-examples/outputs/test_gke_multi_cluster_no_mesh_snippets/ra-10_0522_ops_manager_wait_for_running_state.out
+
+   .. step:: Create MongoDB Organization and get credentials. 
+
+      To configure credentials, you must create an |onprem| organization,
+      generate programmatic API keys in the |onprem| UI, and create a |k8s-secret| 
+      with your Load Balancer IP. See :ref:`create-k8s-credentials` to learn more.

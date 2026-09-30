@@ -1,0 +1,257 @@
+.. _k8s-fts-vs-planning-sizing:
+
+===================================================
+Search & Vector Search Resource Planning and Sizing
+===================================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Confirm that your planned MongoDB Server, mongot, and MongoDB Controllers for Kubernetes Operator versions are supported before you deploy Vector Search on Kubernetes.
+   :keywords: vector search, compatibility, requirements, mongot, mongod, version, code example
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page describes how to size the ``mongot`` pods that serve
+|text-search| and |vector-search| in your |k8s| cluster. Use it to
+choose initial values for ``spec.clusters[].resourceRequirements``,
+``spec.clusters[].jvmFlags``, and ``spec.clusters[].persistence`` on the
+``MongoDBSearch`` resource, and to plan persistent volume capacity
+for index growth.
+
+Before you size ``mongot``, review the deployment model and topology
+that you plan to run:
+
+- For the |text-search| deployment model, see :ref:`arch-search`.
+
+- For the |vector-search| deployment model, see
+  :ref:`arch-vector-search`.
+
+For the full schema of each setting referenced on this page, see
+:ref:`k8s-fts-vs-settings`.
+
+Resource Sizing
+---------------
+
+Choose a Workload Class
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The CPU-to-memory ratio you allocate depends on your search workload
+profile.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 25 55
+
+   * - Workload class
+     - RAM-to-CPU ratio
+     - Use when
+
+   * - High-CPU
+     - 2:1
+     - You run general-purpose full-text search where query
+       performance is CPU-intensive.
+
+   * - Low-CPU
+     - 8:1
+     - You run vector search workloads at lower data volumes, where
+       memory matters more than raw CPU.
+
+For most general use cases, a small or medium High-CPU configuration
+is a balanced starting point.
+
+Pick a Starting Size
+~~~~~~~~~~~~~~~~~~~~
+
+Size your ``mongot`` pods by expected vector data volume (Low-CPU)
+or by queries-per-second (High-CPU).
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 40 40
+
+   * - Size
+     - Low-CPU (vector search)
+     - High-CPU (full-text)
+
+   * - Small
+     - Up to 10 GB of vectors
+     - 20 to 40 QPS, light indexing
+
+   * - Medium
+     - 10 GB to 50 GB of vectors
+     - 80 to 160 QPS
+
+   * - Large
+     - 50 GB of vectors or more
+     - 320 to 480 QPS, heavy indexing
+
+For example, if you expect to handle 100 queries per second for a
+full-text search application, start with a Medium High-CPU
+configuration.
+
+Configure CPU and Memory
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Set the CPU and memory for ``mongot`` pods in
+``spec.clusters[].resourceRequirements``. The ``requests`` field
+reserves capacity on the node; the ``limits`` field caps how much
+the pod can consume.
+
+.. code-block:: yaml
+
+   spec:
+     clusters:
+       - resourceRequirements:
+           requests:
+             cpu: "2"
+             memory: 4Gi
+           limits:
+             cpu: "3"
+             memory: 5Gi
+
+If you omit ``spec.clusters[].resourceRequirements``, the
+|k8s-op-short| uses the following defaults:
+
+- ``requests.cpu``: ``2``
+- ``requests.memory``: ``4Gi``
+- No ``limits`` — the pod can consume the node's full available
+  resources.
+
+Set ``limits`` to match your workload. A pod without limits can
+saturate the node and impact other workloads.
+
+Configure the JVM Heap
+~~~~~~~~~~~~~~~~~~~~~~
+
+When you don't specify ``-Xms`` or ``-Xmx`` in ``spec.clusters[].jvmFlags``,
+the |k8s-op-short| auto-calculates the JVM heap by setting both
+flags to half of ``spec.clusters[].resourceRequirements.requests.memory``.
+
+To override the heap explicitly, set ``-Xms`` and ``-Xmx`` in
+``spec.clusters[].jvmFlags``. The |k8s-op-short| does not modify any flags
+you provide and appends them after operator-computed flags.
+
+.. code-block:: yaml
+
+   spec:
+     clusters:
+       - jvmFlags:
+           - -Xms2g
+           - -Xmx2g
+
+Persistent Volume Sizing
+------------------------
+
+Each ``mongot`` pod has its own persistent volume that holds the
+search and vector indexes. Plan the volume to hold the index plus
+headroom for rebuilds.
+
+Estimate Index Size
+~~~~~~~~~~~~~~~~~~~
+
+A collection's size and the resulting search index's size are not
+always correlated. Index size depends on the fields you map and the
+features (such as autocomplete) that you enable on the index. To
+estimate the index size for your workload:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Insert a representative sample.
+
+      Insert 1 to 2 GB of data, or create a small collection with
+      :pipeline:`$out`.
+
+   .. step:: Build a search index.
+
+      Create the search index with the field mappings you plan to
+      use in production.
+
+   .. step:: Observe the resulting ratio.
+
+      Compare the index size to the collection size. Extrapolate
+      from this ratio to estimate index size at production scale.
+      For example, a 1 GB collection that produces a 250 MB index
+      (a 0.25:1 ratio) implies that a 12 GB collection produces
+      approximately a 3 GB index.
+
+Size the Persistent Volume to be Deployed 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Allocate **double the disk space your index requires**. The extra
+space allows ``mongot`` to rebuild indexes when needed. ``mongot``
+becomes read-only when disk usage reaches 90%.
+
+Set the volume size in ``spec.clusters[].persistence.single.storage``
+using binary quantity suffixes:
+
+.. code-block:: yaml
+
+   spec:
+     clusters:
+       - persistence:
+           single:
+             storage: 60Gi
+             storageClass: local-nvme
+
+If you omit ``spec.clusters[].persistence``, the |k8s-op-short|
+provisions a default volume of 16 GB. For a 30 GB index, set
+``spec.clusters[].persistence.single.storage`` to ``60Gi`` to
+leave room for index rebuilds.
+
+Choose a Storage Class
+~~~~~~~~~~~~~~~~~~~~~~
+
+Reference the ``StorageClass`` for the volume in
+``spec.clusters[].persistence.single.storageClass``. Pick a class
+that meets the following guidance:
+
+- **Disk type**: Use general-purpose SSD-backed storage. Both read
+  and write IOPS are important for ``mongot`` performance.
+  Replication involves disk writes for new index segments and disk
+  reads when ``mongot`` merges old segments into larger ones.
+
+- **Read-only threshold**: When a volume reaches 90% usage,
+  ``mongot`` enters read-only mode and stops write operations. To
+  resume writes, delete index data to bring usage below 85%.
+
+Monitor Resource Usage
+----------------------
+
+After deployment, monitor the following thresholds to confirm that
+your initial sizing is adequate and to know when to scale.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 35 45
+
+   * - Resource
+     - Threshold
+     - Action
+
+   * - CPU
+     - Sustained above 80% usage
+     - Increase CPU in
+       ``spec.clusters[].resourceRequirements.requests`` and
+       ``limits``.
+
+   * - Memory
+     - ``mongot_system_process_majorPageFaults_operations``
+       sustained above 1000 per second
+     - Increase memory in
+       ``spec.clusters[].resourceRequirements.requests`` and the
+       JVM heap in ``spec.clusters[].jvmFlags``.
+
+   * - Disk
+     - Usage above 90%
+     - Reduce index size to bring usage below the threshold.
+       ``mongot`` becomes read-only at this threshold.

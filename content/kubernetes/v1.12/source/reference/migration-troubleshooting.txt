@@ -1,0 +1,238 @@
+.. _k8s-migration-troubleshooting:
+
+=======================================
+Troubleshoot a Migration to Kubernetes
+=======================================
+
+.. meta::
+   :description: Diagnose and resolve common problems when migrating
+      a self-managed replica set or sharded cluster from virtual
+      machines into Kubernetes under the Kubernetes Operator.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page helps you diagnose problems that can occur while you
+migrate a self-managed replica set or sharded cluster from
+virtual machines into Kubernetes under |k8s-op-short|, including
+plugin import failures, dry-run and connectivity problems,
+authentication mismatches, and validation errors. For background
+on the migration workflow, see
+:ref:`k8s-migration-om-to-kubernetes`.
+
+Where Am I in the Migration?
+-----------------------------
+
+Read the ``reason`` field of the
+``status.conditions[type=Migrating]`` condition first.
+
+.. include:: /includes/facts/fact-migration-condition-reasons.rst
+
+- If the reason stays ``Extending``, the Kubernetes members that
+  |k8s-op-short| is adding are still provisioning. Wait for them
+  to reach goal state.
+- If the reason stays ``InProgress`` and the external member count
+  is unchanged, your last edit to the resource was a no-op:
+  |k8s-op-short| did not detect a change that requires action.
+
+Plugin Import Failures
+------------------------
+
+The ``kubectl mongodb migrate-to-mck`` plugin validates the
+source automation config before it generates any resource. It
+exits with an error, rather than generating an incomplete or
+incorrect resource, in each of the following cases:
+
+- The |mms| or Cloud Manager project has more than one deployment.
+- The project has more than one sharded cluster.
+- The project has replica sets that are not part of the sharded
+  cluster.
+- The project has no replica sets or sharded clusters. The plugin
+  can migrate only replica set and sharded cluster deployments.
+- The automation config has no processes.
+- A shard in the sharded cluster is backed by the same replica set
+  as the config server. This embedded-config-server topology is
+  not supported for migration.
+- The plugin cannot find a voting, priority-eligible member in a
+  replica set, so it cannot determine the source process for that
+  replica set.
+- A process has a ``processType`` other than ``mongod`` or
+  ``mongos``.
+
+Non-Configurable Path and Setting Mismatches
+-----------------------------------------------
+
+The plugin flags the following automation config settings when
+they do not match what |k8s-op-short| expects:
+
+- ``auth.keyFile`` differs from the path that |k8s-op-short|
+  derives from :setting:`spec.downloadBase`.
+- ``auth.keyFileWindows`` is set.
+- ``monitoringAgentConfig.logPath`` or
+  ``backupAgentConfig.logPath`` is set to a non-default path.
+- A process has an ``authSchemaVersion`` that differs from the
+  |k8s-op-short| default.
+
+Authentication Errors
+-----------------------
+
+- ``auth.autoUser`` is empty while authentication is enabled.
+- ``auth.autoUser`` has no matching entry in
+  ``auth.usersWanted`` for its database. Without a matching entry,
+  agent authentication fails after migration.
+- ``MONGODB-X509`` agent authentication requires ``tls.autoPEMKeyFilePath``
+  to be set in the automation config. See
+  :setting:`spec.security.authentication.agents.autoPEMKeyFilePath`.
+- An LDAP ``bindMethod`` other than ``simple`` is not supported for
+  migration.
+
+Member Heterogeneity
+----------------------
+
+|k8s-op-short| takes :setting:`spec.additionalMongodConfig` and
+``spec.agent.mongod.systemLog`` from a single source process. If
+your replica set members have different configurations, review all
+members and reconcile the differences before you migrate — the
+generated resource applies one configuration to all Kubernetes
+members.
+
+Warnings Worth Acting On
+--------------------------
+
+The following per-process automation config settings do not carry
+over to new Kubernetes members. Plan for them before you migrate:
+
+- ``secondaryDelaySecs``
+- Hidden members
+- ``buildIndexes: false``
+
+If your source deployment has analytics nodes or delayed nodes,
+plan how you want to represent them in Kubernetes before you
+start.
+
+Additional items to review:
+
+- The plugin skips a disabled process; it does not appear as an
+  external member.
+- If a process has no TLS configured, set ``net.tls.mode`` to
+  ``disabled`` in |mms| or Cloud Manager, on the existing virtual
+  machine deployment, before you migrate. Do not set this on the
+  generated ``MongoDB`` resource. Otherwise the Kubernetes
+  member's TLS setting does not match the source process, and
+  migration causes an unplanned deployment change.
+- If a process's ``logRotate`` or ``auditLogRotate`` setting
+  differs from the project-level configuration, |k8s-op-short|
+  uses the project-level value.
+
+Version Mismatch
+------------------
+
+The ``mongodb.com/migrate-tool-version`` annotation records the
+``kubectl mongodb migrate-to-mck`` plugin version that generated
+the resource. |k8s-op-short| validates this annotation against its
+own version on every reconcile, including during the dry run. If
+the versions are incompatible, regenerate the resource with a
+compatible plugin version.
+
+Dry Run Problems
+-------------------
+
+The Dry Run Appears Stuck
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Delete the ``<resourceName>-connectivity-check`` Job. The
+next reconcile re-creates it.
+
+If the Job never gets created, check that your Kubernetes RBAC
+permissions include ``batch/jobs``. Missing ``batch/jobs``
+permissions prevent |k8s-op-short| from creating the connectivity
+validator Job.
+
+Connectivity Failures
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/facts/fact-migration-connectivity-conditions.rst
+
+Pre-Job Failures
+~~~~~~~~~~~~~~~~~~
+
+|k8s-op-short| can fail before the connectivity validator Job
+starts, with one of these reasons:
+
+- ``OperatorImageUnknown``
+- ``BuildStatefulSetOptions``
+- ``AgentCertSecretFailed``
+- ``AgentCertSubject``
+
+TLS CA Mismatch
+------------------
+
+The Kubernetes members' certificates must be issued by the same
+certificate authority that signed the virtual machine members'
+certificates. If they are not, connectivity validation and
+replication between the virtual machine and Kubernetes members
+fail.
+
+``memberConfig`` Problems
+----------------------------
+
+- ``spec.memberConfig`` has fewer entries than :setting:`spec.members`.
+  Add one entry per member.
+- |k8s-op-short| ignores the top-level ``spec.memberConfig`` field
+  for sharded clusters.
+
+.. include:: /includes/admonitions/warning-migration-member-config.rst
+
+Naming Problems
+------------------
+
+The resource name or replica set name is too long, or is not a
+valid `RFC 1123 <https://www.rfc-editor.org/rfc/rfc1123>`__ name.
+Use :setting:`spec.replicaSetNameOverride` or
+``--resource-name-override`` to provide a valid Kubernetes name.
+
+Validation Surprises
+------------------------
+
+- Validations can fire while the dry-run annotation
+  (``mongodb.com/migration-dry-run``) is set, not only after you
+  start the real migration.
+- The voting-member limit validation can surface on reconcile,
+  rather than at admission time, if a change that would exceed the
+  limit is applied indirectly.
+- Batching too many changes into a single edit can cause the
+  deployment to lose quorum. Make only one kind of change at a
+  time: add Kubernetes members, prune external members, or change
+  votes and priority.
+
+Diagnostics to Collect
+------------------------
+
+If the issue persists after you work through the sections above,
+collect the following before you contact support:
+
+- The ``MongoDB`` resource YAML, including ``status.conditions``:
+
+  .. code-block:: sh
+
+     kubectl get mdb <resource-name> -n <namespace> -o yaml
+
+- The ``MongoDBUser`` resources for the deployment.
+- |k8s-op-short| logs.
+- The connectivity validator Job's pod logs.
+- The automation config JSON from |mms| or Cloud Manager.
+
+Then, contact :ref:`Technical Support <technical-support>`.
+
+Learn More
+----------
+
+- :ref:`k8s-migration-om-to-kubernetes`
+- :ref:`k8s-migration-om-to-k8s-replica-set`
+- :ref:`k8s-migration-crd-settings`
+- :ref:`k8s-migrate-to-mck-plugin-reference`

@@ -41,8 +41,6 @@ run ra-10_0326_set_up_lb_services.sh
 
 run_for_output ra-10_0330_ops_manager_wait_for_running_state.sh
 
-run ra-10_0400_install_minio_s3.sh
-run ra-10_0500_ops_manager_prepare_s3_backup_secrets.sh
 run ra-10_0510_ops_manager_enable_s3_backup.sh
 run_for_output ra-10_0522_ops_manager_wait_for_running_state.sh
 

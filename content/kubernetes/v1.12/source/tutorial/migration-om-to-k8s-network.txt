@@ -1,0 +1,126 @@
+.. _k8s-migration-om-to-k8s-network:
+
+===================================
+Network Requirements for Migration
+===================================
+
+.. meta::
+   :description: Understand the network connectivity, external access, and DNS requirements for migrating a self-managed MongoDB deployment into Kubernetes under the Kubernetes Operator.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Migrating a deployment that |mms| or Cloud Manager manages on
+virtual machines into Kubernetes under |k8s-op-short| requires
+bidirectional network connectivity between the virtual machine
+hosts and the Kubernetes Pods. You, not |k8s-op-short|, provision
+this connectivity.
+
+This connectivity is fully dependent on your own networking setup,
+including your network topology, firewall rules, DNS
+configuration, and cloud provider. Because of this, concrete
+universal guidance is not possible. The rest of this page describes
+what |k8s-op-short| checks automatically, what it does not check,
+and the configuration you use to expose Kubernetes Pods to your
+virtual machines.
+
+What the Dry Run Validates
+---------------------------
+
+The dry-run connectivity validator Job checks whether the virtual
+machine members are reachable **from** the Kubernetes environment.
+It does not check the reverse direction, from the virtual machines
+to Kubernetes. You must verify that direction yourself, using the
+setup-dependent checklist later on this page.
+
+Configure External Access
+--------------------------
+
+To let virtual machine nodes reach the Kubernetes Pods, use
+:setting:`spec.externalAccess`. This is the same external-access
+mechanism that |k8s-op-short| uses outside of migration: it
+creates a LoadBalancer or NodePort for each Pod, exposing the Pods
+outside the Kubernetes cluster.
+
+Optionally, set :setting:`spec.externalAccess.externalDomain` to a
+hostname that the virtual machine nodes can resolve. You own DNS
+setup for this hostname; |k8s-op-short| does not create or manage
+DNS records for you.
+
+.. important::
+
+   Don't set ``externalDomain`` if you use |fts| or
+   |vector-search| with this deployment. ``MongoDBSearch`` does
+   not support a ``MongoDB`` resource that sets
+   ``externalDomain``. Use ``spec.externalAccess`` on its own
+   instead. To learn more, see
+   :ref:`k8s-migration-om-to-k8s-search`.
+
+.. warning::
+
+   You cannot remove ``externalDomain`` after you create the
+   cluster. Confirm your hostname and DNS strategy before you set
+   this field.
+
+Kubernetes member hostnames follow the pattern
+``<metadata.name>-0.<spec.externalAccess.externalDomain>``, where
+the numeric index increments by one for each additional member.
+
+Verification Checklist
+-----------------------
+
+No single command can guarantee that connectivity is correctly
+configured in both directions. Use this checklist to review your
+setup, and adapt each item to your own network:
+
+- Confirm that the hostnames of your Kubernetes members are
+  resolvable from the virtual machine members.
+
+- Confirm that the Kubernetes node or LoadBalancer IP addresses are
+  reachable from the virtual machines.
+
+Sharded Clusters
+-----------------
+
+For a sharded cluster, you configure external access per
+component:
+
+- :setting:`spec.externalAccess` configures ``mongos`` only.
+
+- ``spec.mongos.externalAccess`` supersedes the root-level field
+  for ``mongos``.
+
+- ``spec.shard.externalAccess`` and ``spec.configSrv.externalAccess``
+  each must be set to expose every Pod of the shards and the config
+  server replica set.
+
+Connection String Secret
+--------------------------
+
+|k8s-op-short| automatically generates a connection string
+``Secret`` named ``<metadata.name>-cluster-connection-string``.
+This ``Secret`` contains no credentials, and |k8s-op-short| keeps
+it in sync with the active nodes as membership changes during
+migration.
+
+Point your applications at this ``Secret`` instead of a hardcoded
+connection string. Doing so means that membership changes during
+migration do not require a hard cutover for your applications.
+
+Ordering
+--------
+
+Configure external access and ``externalDomain`` before you extend
+the deployment into Kubernetes. |k8s-op-short| does not support
+adding these settings after migration is already underway.
+
+Learn More
+----------
+
+- :ref:`k8s-migration-om-to-kubernetes`
+- :ref:`k8s-migration-om-to-k8s-replica-set`

@@ -15,8 +15,6 @@ set -u
 
 prepare_snippets
 
-run ra-06_9100_delete_backup_namespaces.sh &
-run ra-06_9200_delete_om.sh &
-wait
+run ra-06_9200_delete_om.sh
 
 popd
