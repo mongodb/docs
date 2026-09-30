@@ -1,5 +1,5 @@
-The following table shows the default values for 
-``maxNumActiveUserIndexBuilds`` based on Atlas tiers:
+Atlas deployments use cluster-tier default values that you cannot
+change, as shown in the following table:
 
 .. list-table:: Atlas Tier Defaults for maxNumActiveUserIndexBuilds
    :widths: 50 50
