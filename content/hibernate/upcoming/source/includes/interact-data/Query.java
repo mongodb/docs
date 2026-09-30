@@ -291,6 +291,82 @@ public class Query {
         }
         // end-isnotnull-query-em
 
+        // Retrieves documents that have a "title" value that matches the pattern of "W", a single character, and "r" using a session
+        // start-like-query-session
+        var likeResult = session.createQuery("from Movie where title like 'W_r%'", Movie.class)
+                                .getResultList();
+        for (var m : likeResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-like-query-session
+
+        // Retrieves documents that have a "title" value that matches the pattern of "W", a single character, and "r" using an entity manager
+        // start-like-query-em
+        var likeResultEm = entityManager.createQuery("select m from Movie m where m.title like 'W_r%'", Movie.class)
+                                        .getResultList();
+        for (var m : likeResultEm) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-like-query-em
+
+        // Retrieves documents that have a "title" value that does not start with "The" using a session
+        // start-notlike-query-session
+        var notLikeResult = session.createQuery("from Movie where title not like 'The%'", Movie.class)
+                                   .setMaxResults(5)
+                                   .getResultList();
+        for (var m : notLikeResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-notlike-query-session
+
+        // Retrieves documents that have a "title" value that does not start with "The" using an entity manager
+        // start-notlike-query-em
+        var notLikeResultEm = entityManager.createQuery("select m from Movie m where m.title not like 'The%'", Movie.class)
+                                           .setMaxResults(5)
+                                           .getResultList();
+        for (var m : notLikeResultEm) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-notlike-query-em
+
+        // Retrieves documents that have a "title" value that contains "Star" regardless of case using a session
+        // start-ilike-query-session
+        var ilikeResult = session.createQuery("from Movie where title ilike '%Star%'", Movie.class)
+                                 .getResultList();
+        for (var m : ilikeResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-ilike-query-session
+
+        // Retrieves documents that have a "title" value that contains "Star" regardless of case using an entity manager
+        // start-ilike-query-em
+        var ilikeResultEm = entityManager.createQuery("select m from Movie m where m.title ilike '%Star%'", Movie.class)
+                                         .getResultList();
+        for (var m : ilikeResultEm) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-ilike-query-em
+
+        // Retrieves documents that have a "title" value that does not contain "The" regardless of case using a session
+        // start-notilike-query-session
+        var notIlikeResult = session.createQuery("from Movie where title not ilike '%The%'", Movie.class)
+                                    .setMaxResults(5)
+                                    .getResultList();
+        for (var m : notIlikeResult) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-notilike-query-session
+
+        // Retrieves documents that have a "title" value that does not contain "The" regardless of case using an entity manager
+        // start-notilike-query-em
+        var notIlikeResultEm = entityManager.createQuery("select m from Movie m where m.title not ilike '%The%'", Movie.class)
+                                            .setMaxResults(5)
+                                            .getResultList();
+        for (var m : notIlikeResultEm) {
+            System.out.println("Title: " + m.getTitle());
+        }
+        // end-notilike-query-em
+
         // Retrieves a document that has a "title" of "The Godfather" and a "year" of 1972 using a session
         // start-logical-query-session
         var logicalResult = session.createQuery("from Movie where title = :t and year = :y", Movie.class)

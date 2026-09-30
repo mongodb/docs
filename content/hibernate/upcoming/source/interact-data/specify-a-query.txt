@@ -681,6 +681,10 @@ The {+extension-short+} supports the following predicate comparison operators in
 - :ref:`NOT IN <hibernate-query-not-in>`
 - :ref:`IS NULL <hibernate-query-is-null>`
 - :ref:`IS NOT NULL <hibernate-query-is-not-null>`
+- :ref:`LIKE <hibernate-query-pattern-matching>`
+- :ref:`NOT LIKE <hibernate-query-not-like>`
+- :ref:`ILIKE <hibernate-query-ilike>`
+- :ref:`NOT ILIKE <hibernate-query-not-ilike>`
 
 .. note::
 
@@ -1080,6 +1084,333 @@ field exists and is not explicitly ``null``:
    {
      "$match": {
        "directors": { "$ne": null }
+     }
+   }
+
+.. _hibernate-query-pattern-matching:
+
+LIKE
+~~~~
+
+The ``LIKE`` predicate is case-sensitive and matches documents where a
+field value matches a specified pattern. The pattern is matched against
+the entire value of the field and can use the following wildcard
+characters:
+
+- ``%``: Matches zero or more characters.
+- ``_``: Matches exactly one character.
+
+To match a prefix, include ``%`` at the end of the pattern. To
+match a suffix, include ``%`` at the beginning of the pattern.
+
+.. tip:: Escape Wildcard Characters
+
+   If you want to match ``%`` or ``_`` as a literal character, use the
+   ``ESCAPE`` clause. For example, ``title like '100!%' escape '!'``
+   matches the value ``"100%"``. You can use ``ESCAPE`` with ``%``,
+   ``_``, or the escape character itself. If you use it with any other
+   character, or leave it at the end of the pattern, the {+extension-short+}
+   throws an ``IllegalArgumentException``.
+
+The following example uses the ``LIKE`` predicate to retrieve documents
+that have a ``title`` value that begins with ``"W"``, followed by any
+single character and then ``"r"``, from the ``sample_mflix.movies``
+collection:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-like-query-session
+            :end-before: end-like-query-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: War and Peace
+            Title: Warlock
+            Title: Warrendale
+            Title: WarGames
+            Title: Working Girl
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-like-query-em
+            :end-before: end-like-query-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: War and Peace
+            Title: Warlock
+            Title: Warrendale
+            Title: WarGames
+            Title: Working Girl
+
+The {+extension-short+} translates the preceding ``LIKE`` predicate to
+the following ``$match`` stage:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$match": {
+       "title": { "$regex": /^W.r.*$/s }
+     }
+   }
+
+.. note:: LIKE Predicate Limitations
+
+   The value you compare with ``LIKE`` must be a string literal, such as
+   ``'%War%'``. The {+extension-short+} doesn't support a bound
+   parameter (``like :pattern``), another field (``like m.plot``), or a
+   computed value (``like concat('War', '%')``) for the pattern, and
+   throws a ``FeatureNotSupportedException`` if you use one.
+
+To learn more about the HQL ``LIKE`` predicate, see `A Guide to
+Hibernate Query Language <{+query-guide+}#like-predicate>`__ in the
+{+orm+} documentation.
+
+.. _hibernate-query-not-like:
+
+NOT LIKE
+~~~~~~~~
+
+The ``NOT LIKE`` predicate matches documents in which a field value
+does not match the specified pattern. The {+extension-short+} negates
+the ``$regex`` filter that the ``LIKE`` predicate produces and uses
+the same pattern-matching behavior and restrictions as the
+:ref:`LIKE <hibernate-query-pattern-matching>` predicate.
+
+The following example uses the ``NOT LIKE`` predicate to retrieve
+documents that have a ``title`` value that does not begin with
+``"The"`` from the ``sample_mflix.movies`` collection. Because the
+predicate matches most documents, the example calls the
+``setMaxResults()`` method to limit the result set to five documents:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-notlike-query-session
+            :end-before: end-notlike-query-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: Civilization
+            Title: Grass: A Nation's Battle for Life
+            Title: Beau Geste
+            Title: Upstream
+            Title: Storm Over Asia
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-notlike-query-em
+            :end-before: end-notlike-query-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: Civilization
+            Title: Grass: A Nation's Battle for Life
+            Title: Beau Geste
+            Title: Upstream
+            Title: Storm Over Asia
+
+The {+extension-short+} translates the preceding ``NOT LIKE`` predicate
+to the following ``$match`` stage:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$match": {
+       "$nor": [
+         { "title": { "$regex": /^The.*$/s } }
+       ]
+     }
+   }
+
+.. _hibernate-query-ilike:
+
+ILIKE
+~~~~~
+
+The ``ILIKE`` predicate is the case-insensitive form of the ``LIKE``
+predicate. The {+extension-short+} marks the ``$regex`` filter that the
+``LIKE`` predicate produces as case-insensitive and uses the same
+pattern-matching behavior and restrictions as the
+:ref:`LIKE <hibernate-query-pattern-matching>` predicate.
+
+The following example uses the ``ILIKE`` predicate to retrieve
+documents that have a ``title`` value containing ``"Star"`` from the
+``sample_mflix.movies`` collection:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-ilike-query-session
+            :end-before: end-ilike-query-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: The Stars Look Down
+            Title: A Star Is Born
+            Title: The Tin Star
+            Title: Marjorie Morningstar
+            Title: It Started in Naples
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-ilike-query-em
+            :end-before: end-ilike-query-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: The Stars Look Down
+            Title: A Star Is Born
+            Title: The Tin Star
+            Title: Marjorie Morningstar
+            Title: It Started in Naples
+
+The {+extension-short+} translates the preceding ``ILIKE`` predicate to
+the following ``$match`` stage:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$match": {
+       "title": { "$regex": /^.*Star.*$/is }
+     }
+   }
+
+.. _hibernate-query-not-ilike:
+
+NOT ILIKE
+~~~~~~~~~
+
+The ``NOT ILIKE`` predicate is the case-insensitive form of the
+``NOT LIKE`` predicate. The {+extension-short+} negates the
+case-insensitive ``$regex`` filter that the ``ILIKE`` predicate
+produces and uses the same pattern-matching behavior and restrictions
+as the :ref:`LIKE <hibernate-query-pattern-matching>` predicate.
+
+The following example uses the ``NOT ILIKE`` predicate to retrieve
+documents that have a ``title`` value that does not contain ``"The"``
+from the ``sample_mflix.movies`` collection. Because the predicate
+matches most documents, the example calls the ``setMaxResults()`` method
+to limit the result set to five documents:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-notilike-query-session
+            :end-before: end-notilike-query-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: Civilization
+            Title: Grass: A Nation's Battle for Life
+            Title: Beau Geste
+            Title: Upstream
+            Title: Storm Over Asia
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-notilike-query-em
+            :end-before: end-notilike-query-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            ...
+            Title: Civilization
+            Title: Grass: A Nation's Battle for Life
+            Title: Beau Geste
+            Title: Upstream
+            Title: Storm Over Asia
+
+The {+extension-short+} translates the preceding ``NOT ILIKE`` predicate
+to the following ``$match`` stage:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$match": {
+       "$nor": [
+         { "title": { "$regex": /^.*The.*$/is } }
+       ]
      }
    }
 
