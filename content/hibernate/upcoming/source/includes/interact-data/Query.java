@@ -651,6 +651,32 @@ public class Query {
         }
         // end-comparison-projection-em
 
+        // Projects an era label for each "Hairspray" movie by using a CASE expression in a session
+        // start-case-projection-session
+        var caseResult = session.createQuery(
+                        "select title, case when year > 2000 then 'Modern' else 'Classic' end as era "
+                                + "from Movie where title = :title",
+                        Object[].class)
+                .setParameter("title", "Hairspray")
+                .getResultList();
+        for (var row : caseResult) {
+            System.out.println("Title: " + row[0] + ", Era: " + row[1]);
+        }
+        // end-case-projection-session
+
+        // Projects an era label for each "Hairspray" movie by using a CASE expression in an entity manager
+        // start-case-projection-em
+        var caseResult = entityManager.createQuery(
+                        "select m.title, case when m.year > 2000 then 'Modern' else 'Classic' end as era "
+                                + "from Movie m where m.title = :title",
+                        Object[].class)
+                .setParameter("title", "Hairspray")
+                .getResultList();
+        for (var row : caseResult) {
+            System.out.println("Title: " + row[0] + ", Era: " + row[1]);
+        }
+        // end-case-projection-em
+      
         // Groups movies released between 1920 and 1924 by year and returns a count and total runtime for years with more than 300 minutes of runtime using a session
         // start-aggregate-group-by-session
         var aggregateResult = session.createQuery(

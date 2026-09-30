@@ -121,6 +121,16 @@ public class Crud {
         System.out.println("Number of movies updated: " + updateResult);
         // end-update-expression-field-reference
 
+        // Sets the "plot" value based on the "year" value by using a CASE expression in the SET clause
+        // start-update-expression-case
+        var updateResult = session.createMutationQuery(
+            "update Movie m set m.plot = case when m.year > 2000 then 'Modern release' "
+                + "else 'Classic release' end where m.title = :title")
+            .setParameter("title", "The 3 Stooges")
+            .executeUpdate();
+        System.out.println("Number of movies updated: " + updateResult);
+        // end-update-expression-case
+        
         // Upserts a document that has the specified ObjectId value
         // start-upsert-one
         try (StatelessSession statelessSession = sf.openStatelessSession()) {

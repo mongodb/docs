@@ -668,6 +668,116 @@ following ``$project`` stage:
      }
    }
 
+.. _hibernate-query-case:
+
+Use Case Expressions for Conditional Logic
+-------------------------------------------
+
+A ``CASE`` expression returns a different value for each condition
+that you specify. The {+extension-short+} supports both HQL and JPQL
+simple and searched ``CASE`` expressions:
+
+- Simple case: The expression after the ``CASE`` keyword is
+  compared for equality to the value in each ``WHEN`` clause. An example
+  of a simple case expression is
+  ``case year when 2000 then 'Modern' else 'Classic' end``.
+
+- Searched case: Each ``WHEN`` clause specifies a predicate.
+  An example of a searched case expression is
+  ``case when year > 2000 then 'Modern' else 'Classic' end``.
+
+The {+extension-short+} translates a ``CASE`` expression to the
+MongoDB :manual:`$switch </reference/operator/aggregation/switch>`
+operator, which creates a branch for each ``WHEN`` clause and
+evaluates the branches in the order that you specify them. The
+``ELSE`` clause becomes the ``default`` value of ``$switch``. If you
+omit the ``ELSE`` clause, the expression returns ``null`` when no
+branch matches.
+
+A ``CASE`` expression can return a computed expression, and you can
+use a ``CASE`` expression in the following positions:
+
+- A ``SELECT`` clause, as shown in the following example.
+- An operand of a comparison in a ``WHERE`` clause, which the
+  {+extension-short+} wraps in the MongoDB ``$expr`` operator.
+- The ``SET`` clause of a bulk update statement. To view an example,
+  see the :ref:`hibernate-crud-modify-conditional-logic` section in the Perform
+  CRUD Operations guide.
+
+The following example returns the title of each ``"Hairspray"`` movie
+and a label that depends on the movie's ``year`` value:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-case-projection-session
+            :end-before: end-case-projection-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Hairspray, Era: Classic
+            Title: Hairspray, Era: Modern
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-case-projection-em
+            :end-before: end-case-projection-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Hairspray, Era: Classic
+            Title: Hairspray, Era: Modern
+
+The {+extension-short+} translates the preceding ``CASE`` expression
+to the following ``$project`` stage:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$project": {
+       "title": true,
+       "era": {
+         "$switch": {
+           "branches": [
+             { "case": { "$gt": [ "$year", 2000 ] }, "then": "Modern" }
+           ],
+           "default": "Classic"
+         }
+       },
+       "_id": 0
+     }
+   }
+
+.. important:: CASE Expression Limitations
+
+   Because a ``CASE`` expression produces a MongoDB aggregation
+   expression, you cannot use one in a position that requires a field
+   reference or a literal value. The {+extension-short+} raises a
+   ``FeatureNotSupportedException`` if you use a ``CASE`` expression:
+   
+   - in an ``ORDER BY`` clause, unless the same ``CASE`` expression is a ``GROUP BY`` key.
+   - as the match expression of a ``LIKE`` predicate.
+   - as the test expression of an ``IN`` or ``IS NULL`` predicate.
+   - as a ``WHERE`` clause predicate rather than an operand of one.
+
 .. _hibernate-predicate-comparison-operators:
 
 Use Predicate Operators
