@@ -163,6 +163,23 @@ run_command() {
     fi
   fi
 
+  # Format each generated .go file, trying gofmt first and falling back to the
+  # normalizer only for snippet fragments. Runs after both snip and copy as the
+  # copy command can also drop an import spec behind a :state-remove-start:
+  # gate, leaving double blank lines in the published project-copy .go files.
+  #
+  # The gofmt-first/fallback decision lives in collapse-import-blanks.js
+  # (--gofmt), not here, so this wrapper and snip.js share one implementation
+  # instead of drifting apart. The CLI walks the directory in a single
+  # invocation, reports per-file failures on stderr, and exits nonzero when any
+  # file could not be normalized — including when the directory cannot be read,
+  # so an unreadable output directory still fails the run rather than looking
+  # like an empty one.
+  if ! node "$PROJECT/code-example-tests/go/collapse-import-blanks.js" --gofmt "$OUTPUT_DIR"; then
+    echo "Error: formatting pass over $OUTPUT_DIR failed; see the errors above." >&2
+    exit 1
+  fi
+
   echo "=== Completed $cmd command ==="
   echo
 }
@@ -258,6 +275,7 @@ echo "Formatting Go code (goimports, go fmt) in $INPUT_DIR ..."
 
 # Run both commands
 run_command "snip"
+
 run_command "copy"
 
 echo "=== All commands completed successfully ==="

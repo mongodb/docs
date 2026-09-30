@@ -1,5 +1,6 @@
 import { processFiles } from "../../processFiles.js";
-import { exec, execSync, spawnSync } from 'child_process';
+import { collapseImportBlocksInDir, formatGoTargets } from "../collapse-import-blanks.js";
+import { execSync, spawnSync } from 'child_process';
 import path from 'path';
 
 // ------ CONFIGURATION: Set these values for your language/project ----------
@@ -53,25 +54,6 @@ function isGoInstalled() {
   }
 }
 
-// Helper to run Go formatting tools on the output directory
-function runGoFormatter(directory) {
-  return new Promise((resolve, reject) => {
-    // Use find to locate all .go files that are NOT snippet files and format them individually
-    // Snippet files (*.snippet.*.go) are code fragments and don't need formatting
-    const command = `find "${directory}" -name "*.go" ! -name "*.snippet.*.go" -exec go fmt {} \\;`;
-    exec(command, (error, stdout, stderr) => {
-      if (error) {
-        console.error(`Error running go fmt: ${error.message}`);
-        reject(error);
-      } else if (stderr) {
-        console.error(`go fmt Errors:\n${stderr}`);
-      }
-      console.log(`Go formatting completed on: ${directory}`);
-      resolve();
-    });
-  });
-}
-
 // Snip code example files, and then run Go formatting tools on the output
 async function main() {
   // First, confirm the user has Bluehawk installed. If not, exit early.
@@ -86,17 +68,54 @@ async function main() {
     // Snip the code example files to the output directory
     await processFiles(START_DIRECTORY, OUTPUT_DIRECTORY, IGNORE_PATTERNS);
 
+    const resolvedOutputDirectory = resolvePathFromGitRoot(OUTPUT_DIRECTORY);
+
     // If the person running the script has Go installed, use it to run the
-    // formatting tools on the resolved output directory.
+    // formatting tools on the resolved output directory. The pass itself lives
+    // in collapse-import-blanks.js so this wrapper and the shell wrappers share
+    // one implementation instead of one copy each.
     const goInstalled = isGoInstalled();
     if (goInstalled) {
-      const resolvedOutputDirectory = resolvePathFromGitRoot(OUTPUT_DIRECTORY);
       console.log(
         `Processing Completed.\nRunning Go formatter on output directory: ${resolvedOutputDirectory}`
       );
-      await runGoFormatter(resolvedOutputDirectory);
+      const stats = formatGoTargets([resolvedOutputDirectory]);
+      if (stats.normalized > 0) {
+        console.log(`Normalized import blocks in ${stats.normalized} file(s).`);
+      }
+      if (stats.failed > 0) {
+        // Every file has been attempted, so failing here does not abandon the
+        // rest of the run. A file the normalizer could not rewrite still ships
+        // with its double blank lines, so the run must not report success — the
+        // completion line is withheld and this rejection is turned into a
+        // nonzero exit by the catch below.
+        throw new Error(
+          `${stats.failed} file(s) under ${resolvedOutputDirectory} could not be normalized.`
+        );
+      }
+      // gofmt rejects an unparseable snippet fragment, which is the case this
+      // fallback exists for, so a nonzero count is not an error by itself.
+      // Reporting it still matters: without the count, a run where gofmt failed
+      // on *every* file (broken toolchain, bad PATH) announces unqualified
+      // success while the snippets keep whatever formatting only gofmt would
+      // have applied.
+      const gofmtNote =
+        stats.gofmtFailed > 0
+          ? ` — gofmt did not process ${stats.gofmtFailed} of ${stats.files} file(s)`
+          : "";
+      console.log(
+        `Go formatting completed on: ${resolvedOutputDirectory}${gofmtNote}`
+      );
       console.log('Go formatting completed.');
     } else {
+      // Without Go there is no gofmt to try first, so apply the import-block
+      // normalizer directly to keep a `:remove:`'d import from leaving two
+      // blank lines in the extracted snippets.
+      const normalized = collapseImportBlocksInDir(resolvedOutputDirectory);
+      if (normalized > 0) {
+        console.log(`Normalized import blocks in ${normalized} file(s).`);
+      }
+
       // If the user does not have Go installed, snip files directly to
       // the output directory without formatting them.
       console.log(
@@ -105,6 +124,10 @@ async function main() {
     }
   } catch (error) {
     console.error("Error during processing or formatting:", error);
+    // A run that could not process or format the output must not exit 0. The
+    // failure would otherwise show up only as a line of log output, and the
+    // stale or unformatted snippets would ship as if the run had succeeded.
+    process.exitCode = 1;
   }
 }
 
