@@ -1,27 +1,13 @@
-.. list-table::
-   :header-rows: 1
-   :widths: 40 60
+- ``0``: Generic binary subtype
 
-   * - Value
-     - Description
+- ``1``: Function
 
-   * - 0
-     - Generic binary subtype
+- ``2``: Byte array (deprecated)
 
-   * - 1
-     - Function
+- ``3``: Old UUID (deprecated)
 
-   * - 2
-     - Byte array (deprecated)
+- ``4``: UUID
 
-   * - 3
-     - Old UUID (deprecated)
+- ``5``: MD5
 
-   * - 4
-     - UUID
-
-   * - 5
-     - MD5
-
-   * - 128 through 255
-     - User defined
+- ``128`` through ``255``: User defined
