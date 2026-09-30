@@ -314,6 +314,208 @@ that includes the following information:
    class definition, see the :ref:`hibernate-entities-mongodb-fields`
    section of this guide.
 
+.. _hibernate-entities-sequence-generated-ids:
+
+Sequence-Generated IDs
+----------------------
+
+The {+extension-short+} can assign increasing numeric IDs to your entities
+automatically. Some numbers may be missing if a transaction is rolled back
+or if an application does not use all the IDs it reserved.
+
+The {+extension-short+} supports sequence-generated IDs for the ``short``,
+``int``, and ``long`` types, and for the boxed ``Short``, ``Integer``, and
+``Long`` types.
+
+.. _hibernate-entities-sequence-add-entity:
+
+Add Sequence-Generated IDs to Your Entity
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the ``@GeneratedValue`` and ``@SequenceGenerator``
+annotations to add sequence-generated IDs to your entity. The following
+example reserves IDs in blocks of 50 from the ``movies_SEQ`` counter:
+
+.. code-block:: java
+   :copyable: true
+
+   @Id
+   @GeneratedValue(
+       strategy = GenerationType.SEQUENCE,
+       generator = "movies_SEQ"
+   )
+   @SequenceGenerator(
+       name = "movies_SEQ",
+       sequenceName = "movies_SEQ",
+       allocationSize = 50
+   )
+   private Long id;
+
+The annotations control how the {+extension-short+} creates the ID:
+
+- ``@GeneratedValue`` tells the {+extension-short+} to create the value
+  of the ``id`` field. Its ``strategy`` and ``generator`` attributes
+  define how the extension creates the ID:
+
+  - ``strategy``: ``AUTO`` or ``SEQUENCE``. With ``AUTO``, the
+    {+extension-short+} uses a sequence, and you don't have to declare a
+    ``@SequenceGenerator``. With ``SEQUENCE``, the {+extension-short+} uses
+    the sequence generator named by the ``generator`` attribute.
+  - ``generator``: The name of the ``@SequenceGenerator`` to use. If you omit
+    this attribute, the {+extension-short+} names the sequence after the
+    entity's table, such as ``movies_SEQ`` for the ``movies`` table.
+
+- ``@SequenceGenerator`` defines the sequence generator:
+
+  - ``name``: The name that the ``@GeneratedValue`` ``generator`` attribute
+    references.
+  - ``sequenceName``: The name of the counter document. If you omit it, the
+    {+extension-short+} uses the generator's ``name``.
+  - ``initialValue``: The value that the first generated ID starts from.
+    Defaults to ``1``.
+  - ``allocationSize``: The number of IDs reserved in each block.
+
+.. _hibernate-entities-sequence-storage:
+
+Where IDs Are Stored
+~~~~~~~~~~~~~~~~~~~~
+
+The {+extension-short+} stores counter documents in a fixed collection named
+``hibernate_sequences``. Each sequence uses one counter document that has
+the following fields:
+
+- ``_id`` is the sequence name.
+- ``next_value`` is the counter value that the {+extension-short+} advances
+  to produce the next IDs. It must match the ``initialValue`` of the
+  sequence generator, which defaults to ``1``.
+- ``increment`` is the number of IDs reserved at one time. It must match the
+  sequence generator's ``allocationSize`` value. If it doesn't, the
+  ``SessionFactory`` fails to start.
+
+The {+extension-short+} gets IDs in blocks. This reduces the number of times it
+must contact the database. Requests made at the same time each receive a
+different ID.
+
+.. important:: Counter Document Requirements
+
+   Both ``next_value`` and ``increment`` must be 64-bit integers
+   (BSON ``Int64``). A counter document that is missing either field,
+   or that stores a value as a 32-bit integer, cannot allocate IDs. If
+   schema management is disabled, you must create a counter document for
+   each sequence before your application can allocate IDs.
+
+.. _hibernate-entities-sequence-schema-management:
+
+Enable Schema Management
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Schema management is {+orm+}'s way of creating the database objects that your
+entities need. The {+extension-short+} uses it to create the counter documents
+for sequence-generated IDs.
+
+To enable schema management, set the
+``jakarta.persistence.schema-generation.database.action`` property in
+your ``hibernate.properties`` or ``persistence.xml`` file. Use one of the
+following values:
+
+- ``create``: Creates the counter documents and keeps them when the
+  ``SessionFactory`` closes.
+- ``create-drop``: Creates the counter documents when the ``SessionFactory``
+  opens and drops them when it closes.
+
+The following example uses ``create``:
+
+.. code-block:: properties
+   :copyable:
+
+   jakarta.persistence.schema-generation.database.action=create
+
+.. _hibernate-entities-sequence-manual:
+
+Disable Schema Management and Manual Counter Setup
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you prefer to turn off schema management, you can manually create
+counter documents for sequence-generated IDs. Set the following property:
+
+.. code-block:: properties
+   :copyable:
+
+   jakarta.persistence.schema-generation.database.action=none
+
+Then create one counter document in the ``hibernate_sequences`` collection
+for each sequence. The ``_id`` of the counter document must match the
+``sequenceName`` of the sequence generator.
+
+The following example uses the MongoDB Java driver to insert the
+``movies_SEQ`` counter document into the ``hibernate_sequences``
+collection of the database that you indicate:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/model-data/CounterDocument.java
+      :start-after: start-insert-counter
+      :end-before: end-insert-counter
+      :language: java
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      {
+        "_id": "movies_SEQ",
+        "next_value": 1,
+        "increment": 50
+      }
+
+The insert creates the counter document shown. Set ``next_value`` to the
+generator's ``initialValue`` and ``increment`` to its ``allocationSize``.
+
+.. _hibernate-entities-save-entity:
+
+Save an Entity and Read Its Generated ID
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example saves a new ``Movie`` entity and prints its generated
+ID. The ID depends on the starting point of the sequence. For a new counter
+that starts at 1, the output is:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/model-data/SaveMovie.java
+      :start-after: start-save-movie
+      :end-before: end-save-movie
+      :language: java
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      Movie created with ID: 1
+
+.. _hibernate-entities-sequence-unsupported:
+
+Unsupported Configurations
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The {+extension-short+} does not support the following sequence-related
+strategies, types, and configurations:
+
+- ``IDENTITY`` and ``TABLE`` generation strategies
+- ``BigInteger`` and ``BigDecimal`` generated identifier types
+- Sequence names or schemas that contain a ``.`` character
+- Sequence names qualified by a catalog, such as a three-part name or
+  the ``catalog`` attribute
+- Sequence ``options``
+- ``@GenericGenerator`` and ``@TableGenerator`` generators, custom
+  generators that use an ``@IdGeneratorType`` annotation, and named
+  legacy generators such as ``identity``, ``table``, or ``increment``
+- Mapping an entity onto the ``hibernate_sequences`` collection
+- ``insert ... select`` statements that require inline allocation of
+  generated IDs
+
 .. _hibernate-entities-composite-keys:
 
 Composite Primary Keys
