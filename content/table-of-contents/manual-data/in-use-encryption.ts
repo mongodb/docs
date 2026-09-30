@@ -1,4 +1,5 @@
 import type { TocItem } from '../types';
+import manualVersions from '../version-arrays/server-docs/manual';
 
 const tocData: TocItem[] = [
   {
@@ -58,6 +59,12 @@ const tocData: TocItem[] = [
             label: 'Fields & Queries',
             contentSite: 'docs',
             url: '/docs/:version/core/queryable-encryption/fundamentals/encrypt-and-query',
+          },
+          {
+            label: 'Estimate Storage Impact',
+            contentSite: 'docs',
+            url: '/docs/:version/core/queryable-encryption/qe-estimate-storage-impact',
+            versions: { excludes: manualVersions.before('v9.0') },
           },
           {
             label: 'Create a Schema',
