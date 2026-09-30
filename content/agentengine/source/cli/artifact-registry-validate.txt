@@ -1,23 +1,17 @@
 .. _artifact-registry-validate:
 
-Artifact registry validation in the CLI (AP-3985)
-=================================================
+Artifact registry validation in the CLI
+=======================================
 
 Flag reference:
 :ref:`agentengine agent validate <agentengine_agent_validate>`,
 :ref:`agentengine build <agentengine_build>`.
 
 **Audience:** CLI users running ``agentengine agent validate`` or
-``agentengine build``. For ECP build-start hook placement, secret
-metadata lookup, and GitHub/archive file loading, see operator
-documentation at ``docs/executor/artifact-registry-validation.md`` in
-the agentic-platform monorepo (not shipped in the client-libraries
-mirror).
+``agentengine build``.
 
-The Agentic CLI runs the same **declared-index** artifact registry
-checks as ECP build-start validation, locally and before archive upload.
-Shared logic lives in ``client-libraries/agent-config/agentconfig/``
-(``ValidateArtifactRegistry``, ``LoadProjectFilesFromDir``).
+The CLI runs the same **declared-index** artifact registry checks as ECP
+build-start validation, locally and before archive upload.
 
 --------------
 
@@ -38,11 +32,10 @@ Commands
      - Always when client is available; non-blocking
    * - ``agentengine build --upload-build-secrets``
      - Same
-     - Uploads declared secrets from the environment first — see `below <#uploading-declared-secrets-before-a-build-ap-3986>`__
+     - Uploads declared secrets from the environment first — see `below <#uploading-declared-secrets-before-a-build>`__
 
 Both commands read tooling files from the **same directory as
-``agent.yaml``** (not the monorepo root unless the manifest lives
-there).
+``agent.yaml``**.
 
 --------------
 
@@ -76,11 +69,10 @@ Opt-in model (not errors)
 Secret warnings (online)
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Mirrors ECP AP-3980 scope rules using ``ListSecrets`` /
-``ListWorkspaceSecrets``. In the CLI these are **warnings** unless
-``agentengine agent validate --strict`` (exit 1). ECP build-start treats
-a missing secret as a **hard failure** (``MISSING_BUILD_SECRET`` before
-CodeBuild).
+Mirrors ECP scope rules for secret lookup. In the CLI these are
+**warnings** unless ``agentengine agent validate --strict`` (exit 1).
+ECP build-start treats a missing secret as a **hard failure**
+(``MISSING_BUILD_SECRET`` before CodeBuild).
 
 .. list-table::
    :header-rows: 1
@@ -188,8 +180,8 @@ Strict mode
 
 --------------
 
-Uploading declared secrets before a build (AP-3986)
----------------------------------------------------
+Uploading declared secrets before a build
+-----------------------------------------
 
 ``agentengine build --upload-build-secrets`` is an **opt-in**
 convenience for short-lived registry tokens. It reads each
@@ -237,41 +229,8 @@ failing upload is scrubbed via the same path as
 
 --------------
 
-Local testing
--------------
-
-.. code:: bash
-
-   # Shared agentconfig library
-   go test ./client-libraries/agent-config/agentconfig/... -run 'LoadProjectFilesFromDir|ArtifactRegistry'
-
-   # CLI unit tests
-   go test ./client-libraries/agentengine-cli/internal/cmd/... -run 'ArtifactRegistry|RunValidate_Artifact'
-
-   # Build pre-check
-   go test ./client-libraries/agentengine-cli/internal/cmd/... -run 'RunBuild_InvalidArtifactRegistry'
-
-Manual smoke test
-~~~~~~~~~~~~~~~~~
-
-1. Create a temp agent dir with ``agent.yaml``, ``pyproject.toml``, and
-   optional ``uv.lock``.
-2. Run
-   ``go run ./client-libraries/agentengine-cli/cmd/agentengine agent validate``
-   from that directory (or pass the manifest path).
-3. Add a bad ``artifact_repositories`` entry and confirm exit 1 before
-   any build upload.
-4. Log in and run ``agentengine agent validate`` to see secret warnings;
-   repeat with ``--strict``.
-
---------------
-
 Related docs
 ------------
 
-- ECP build-start validation:
-  ``docs/executor/artifact-registry-validation.md`` in the
-  agentic-platform monorepo (operator documentation; not shipped in the
-  client-libraries mirror)
 - ``artifact_repositories`` field reference and setup:
-  `client-libraries/docs/agent-yaml.md <../../docs/agent-yaml.md#artifact_repositories-optional>`__
+  `agent-yaml.md <../../docs/agent-yaml.md#artifact_repositories-optional>`__

@@ -365,62 +365,6 @@ const tocData: TocItem[] = [
                   },
                 ],
               },
-            ],
-          },
-          {
-            label: 'completion',
-            contentSite: 'agentengine',
-            url: '/docs/agentengine/cli/agentengine_completion',
-            collapsible: true,
-            items: [
-              {
-                label: 'bash',
-                contentSite: 'agentengine',
-                url: '/docs/agentengine/cli/agentengine_completion_bash',
-              },
-              {
-                label: 'fish',
-                contentSite: 'agentengine',
-                url: '/docs/agentengine/cli/agentengine_completion_fish',
-              },
-              {
-                label: 'powershell',
-                contentSite: 'agentengine',
-                url: '/docs/agentengine/cli/agentengine_completion_powershell',
-              },
-              {
-                label: 'zsh',
-                contentSite: 'agentengine',
-                url: '/docs/agentengine/cli/agentengine_completion_zsh',
-              },
-            ],
-          },
-          {
-            label: 'context',
-            contentSite: 'agentengine',
-            url: '/docs/agentengine/cli/agentengine_context',
-            collapsible: true,
-            items: [
-              {
-                label: 'create',
-                contentSite: 'agentengine',
-                url: '/docs/agentengine/cli/agentengine_context_create',
-              },
-              {
-                label: 'current',
-                contentSite: 'agentengine',
-                url: '/docs/agentengine/cli/agentengine_context_current',
-              },
-              {
-                label: 'delete',
-                contentSite: 'agentengine',
-                url: '/docs/agentengine/cli/agentengine_context_delete',
-              },
-              {
-                label: 'list',
-                contentSite: 'agentengine',
-                url: '/docs/agentengine/cli/agentengine_context_list',
-              },
               {
                 label: 'agent-engine-sdk-langgraph',
                 contentSite: 'agentengine',

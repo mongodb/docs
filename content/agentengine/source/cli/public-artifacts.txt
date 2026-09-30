@@ -32,7 +32,7 @@ renamed or retired while any CLI depending on it is still in use.
 What changes
 ------------
 
-Three things, all at once:
+Two things, all at once:
 
 .. list-table::
    :header-rows: 1
@@ -46,9 +46,6 @@ Three things, all at once:
    * - Default when unset
      - ``internal``
      - ``public``
-   * - ``public`` resolves to
-     - ``mongodb/atlasap`` for releases and images, ``mongodb/agent-engine-examples`` for templates
-     - ``mongodb/agent-engine-client-libraries`` for releases and images, ``mongodb/agent-engine-examples`` for templates
 
 The accepted **values** do not change. ``internal``, ``public`` and
 ``custom`` mean the same thing under either variable name, so renaming
@@ -98,9 +95,9 @@ Serving an expired answer matters more than it looks. Once the flag is
 on, falling back to ``false`` is itself a silent reroute — the default
 source drops to ``internal``, the ECR remap re-engages, and
 ``agentengine dev up`` hard-fails with ``not logged in`` for exactly the
-public-preview users who have no session. A brief DNS or gateway blip
-should not do that, so a stale answer from the platform is preferred
-over an answer it never gave.
+users who have no session. A brief DNS or gateway blip should not do
+that, so a stale answer from the platform is preferred over an answer it
+never gave.
 
 A failed read is also remembered for a minute, so a host that blackholes
 rather than refuses costs one timeout per minute instead of one per
@@ -130,7 +127,7 @@ binary but no session.
        B -->|no| G["Git path"]
        C --> D{"logged in?"}
        D -->|no| E["error: not logged in"]
-       D -->|yes| F["GET archive from API Gateway<br/>(10gen/magenta-examples)"]
+       D -->|yes| F["GET archive from API Gateway<br/>(mongodb/agent-engine-examples)"]
        G --> I["git clone mongodb/agent-engine-examples"]
        F --> J["scaffold + git init"]
        I --> J
@@ -193,120 +190,6 @@ login requirement entirely.
        F --> G["docker compose up"]
        D --> G
 
-When a public repository is not ready
--------------------------------------
-
-The flag and the repositories it points at are owned by different
-things. The flag is environment-wide and flips in an instant; a
-repository becomes public, or gets a mirror of a given release, on its
-own schedule. When they disagree, the CLI falls back to what ``public``
-meant before public preview rather than failing.
-
-.. code:: mermaid
-
-   flowchart TD
-       A["public source"] --> B{"flag on?"}
-       B -->|no| L["mongodb/atlasap releases+images<br/>mongodb/agent-engine-examples templates"]
-       B -->|yes| C{"preview repository<br/>readable?"}
-       C -->|yes| P["agent-engine-client-libraries<br/>agent-engine-examples"]
-       C -->|no| L
-
-Two properties hold throughout:
-
-- **It never demotes to ``internal``.** Falling back to the internal
-  source would turn a missing repository into a login prompt, and the
-  users this exists for have no session to offer. Demotion moves only
-  where ``public`` points; it never changes which source is selected.
-  Note this is not the same routing as turning the flag off: with the
-  flag off an unset override defaults to ``internal``, so flag-off and
-  demoted differ for anyone who has not named a source.
-- **It says so, once.** The first surface to discover the fallback
-  prints a single line —
-  ``note: public preview artifacts are unavailable; using the previously published public artifacts instead``
-  — and nothing repeats it for the rest of the process. It names no
-  repository: which pair of locations is live is a rollout detail, and
-  the actionable part is that the artifacts did not come from the
-  documented place.
-
-**The fallback is a better chance, not a guarantee.** The pre-preview
-coordinates are not verified readable. As of this writing every package
-under ``ghcr.io/mongodb/atlasap`` answers an anonymous token request
-with ``401``, so an anonymous user demoted onto them still cannot pull.
-The fallback helps whoever can read the older location and not the newer
-one, and that uncertainty is exactly why it announces itself instead of
-rerouting in silence: a pull that fails anyway has to be traceable to
-the repository it actually failed against.
-
-Detection differs per artifact because only one of them fails somewhere
-the CLI cannot observe:
-
-.. list-table::
-   :header-rows: 1
-
-   * - Artifact
-     - How it is detected
-   * - Images
-     - An anonymous registry check before compose artifacts are generated
-   * - Templates
-     - The clone fails, and it is retried once
-   * - CLI releases
-     - The release fetch fails, and it is retried once
-
-Images are decided up front because the pull happens inside
-``docker compose``, whose output the CLI does not capture when attached
-to a terminal, and because the runner base is a Dockerfile ``FROM``
-argument rather than an overridable compose ``image:`` — so the
-coordinates have to be settled before anything is written.
-
-The images are probed concurrently, and one probe is at most three
-sequential requests — manifest, bearer token, manifest again — each
-bounded by the same short per-request timeout, so a slow registry delays
-the start of a stack by that much and no more. The answer is cached in
-``~/.agentengine/artifact-reachability.json``, keyed by the exact set of
-refs so that a CLI upgrade re-checks rather than trusting an answer
-about different tags. A positive answer is reused for hours, since a
-public repository stays public; a negative one for minutes, so that a
-repository going public is picked up the same session.
-``AGENTENGINE_SKIP_PLATFORM_FLAGS=1`` stops this check as well as the
-flag read.
-
-**Only a definitive refusal demotes — for images and releases.** A
-private package or an unpublished tag is an answer; a timeout, a DNS
-failure, or a rate limit is not, since the fallback location is the same
-host and an outage is no reason to believe it would do any better. The
-registry check demotes on ``401``, ``403`` and ``404`` only, and release
-resolution on the same three — except that GitHub also answers an
-exhausted *unauthenticated* rate limit with ``403``, and these users are
-unauthenticated by definition, so a ``403`` carrying rate-limit headers
-is read as throttling rather than as a missing repository. The template
-clone is the exception in the other direction: ``git`` does not hand
-back a status the CLI can classify that finely, so any failed clone or
-fetch of the preview repository is retried against the older one. Only
-the clone and the fetch, though — a local failure such as an unwritable
-temporary directory, or an interrupted command, is not retried.
-
-**One bit, two surfaces.** When the registry check or a template clone
-discovers the fallback, the rest of the process follows it: the registry
-prefix, the templates repository and the release host all move together.
-That is deliberate, so a project cannot be built from one generation’s
-images and another’s templates, but it does mean a failed template clone
-also reroutes images for the remainder of the command.
-
-Release resolution follows that bit but never sets it. It is the one
-surface that also runs on the detached update-check goroutine the root
-command starts, concurrently with whatever the user typed; a demotion
-installed from there would decide the registry for a build it was never
-asked about — skipping the probe, and skipping the notice — and could
-land mid-command, after part of a stack had already been generated
-against the other generation. Self-update quietly serves its own request
-from the older host and leaves the process alone.
-
-**Known limitation.** The pre-preview artifacts are not anonymously
-readable today (see above), so a logged-out external user whose preview
-repository is unavailable has no readable fallback either and sees the
-original error. Recovering that case would require a platform session,
-which this fallback deliberately does not use.
-
 Migrating
 ---------
 
@@ -346,12 +229,8 @@ currently means, so a custom source that omits a ``registry`` or
 ``release`` block will follow the flag for that block.
 ``agentengine create``\ ’s template repo always follows ``base:``, since
 ``source.yaml`` has no templates field. Pin ``registry.prefix`` to be
-unaffected. A pinned prefix also skips the reachability probe outright,
-including when it names the preview registry itself: the probe exists to
-choose between coordinates, and a pin has already chosen. A ``registry``
-block pins only the images — the templates repository and the release
-host keep following ``base:``, so each reaches the older generation
-through its own fallback rather than through the probe.
+unaffected. A ``registry`` block pins only the images; the templates
+repository and the release host keep following ``base:``.
 
 Diagnostics
 -----------
@@ -365,26 +244,13 @@ internal invocation is not printed. A read that failed or was disabled
 is always reported, because it is the one case where routing can differ
 from what you configured with no other signal.
 
-It does **not** report a fallback to the pre-preview artifacts. That is
-discovered by the command that hits it — ``agentengine dev up``,
-``agentengine create`` — and lives only in that process;
-``agentengine version --full`` neither probes the registry nor clones a
-template, so it has nothing to report and says nothing rather than
-implying the question was asked. The fallback is visible where it
-happens: the notice on the terminal, and the full detail (which image
-refused, why, whether the answer was cached) in the debug log.
+Rollout and rollback
+--------------------
 
-Operating the flag
-------------------
-
-The flag is defined in MMS Config Service under the ``agentic-platform``
-namespace and served to the CLI on the gateway’s unauthenticated global
-feature-flags route. Enable it one environment tier at a time with the
-`Feature Rollout <https://www.mongodb.com/docs/operations/feature-rollout>`__
-runbook.
-
-Rollback is turning the flag off: the next flag read on each machine
-restores the previous behavior, bounded by the cache TTL. No CLI release
+The flag is environment-wide and served to the CLI on the gateway’s
+unauthenticated global feature-flags route, so a change reaches every
+machine on its next flag read. Turning the flag off restores the
+previous behavior the same way, bounded by the cache TTL. No CLI release
 is involved in either direction.
 
 Point a CLI at a non-production platform’s flag with
