@@ -242,6 +242,11 @@ export const toc: L1TocItem[] = [
                 url: '/docs/atlas/tutorial/create-new-cluster',
               },
               {
+                label: 'Create an Ephemeral Cluster (Agent Workflow)',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/tutorial/create-ephemeral-cluster',
+              },
+              {
                 label: 'AI Cluster Assistant',
                 contentSite: 'cloud-docs',
                 url: '/docs/atlas/ai-cluster-assistant',
@@ -1941,7 +1946,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/:version/administration/install-on-linux',
                     versions: {
-                      excludes: ['manual', 'upcoming'],
+                      excludes: ['v8.3', 'manual', 'upcoming'],
                     },
                     items: [
                       {
@@ -1984,7 +1989,7 @@ export const toc: L1TocItem[] = [
                     contentSite: 'docs',
                     url: '/docs/:version/tutorial/install-mongodb-on-os-x',
                     versions: {
-                      excludes: ['manual', 'upcoming'],
+                      excludes: ['v8.3', 'manual', 'upcoming'],
                     },
                   },
                   {
@@ -1992,7 +1997,7 @@ export const toc: L1TocItem[] = [
                     contentSite: 'docs',
                     url: '/docs/:version/tutorial/install-mongodb-on-windows',
                     versions: {
-                      excludes: ['manual', 'upcoming'],
+                      excludes: ['v8.3', 'manual', 'upcoming'],
                     },
                   },
                   {
@@ -2000,7 +2005,7 @@ export const toc: L1TocItem[] = [
                     contentSite: 'docs',
                     url: '/docs/:version/tutorial/install-mongodb-community-with-docker',
                     versions: {
-                      excludes: ['manual', 'upcoming'],
+                      excludes: ['v8.3', 'manual', 'upcoming'],
                     },
                   },
                   {
@@ -2008,7 +2013,7 @@ export const toc: L1TocItem[] = [
                     contentSite: 'docs',
                     url: '/docs/:version/reference/installation-ubuntu-community-troubleshooting',
                     versions: {
-                      includes: ['manual', 'upcoming'],
+                      includes: ['v8.3', 'manual', 'upcoming'],
                     },
                   },
                 ],
@@ -2095,7 +2100,15 @@ export const toc: L1TocItem[] = [
                   {
                     label: 'Install on macOS',
                     contentSite: 'docs',
+                    collapsible: true,
                     url: '/docs/:version/tutorial/install-mongodb-enterprise-on-os-x',
+                    items: [
+                      {
+                        label: 'Install using .tgz Tarball',
+                        contentSite: 'docs',
+                        url: '/docs/:version/tutorial/install-mongodb-enterprise-on-os-x-tarball',
+                      },
+                    ],
                   },
                   {
                     label: 'Install on Windows',
@@ -2543,7 +2556,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/reference/cluster-parameters/fleDisableSubstringPreviewParameterLimits',
                         versions: {
-                          excludes: ['v7.0', 'v8.0', 'upcoming'],
+                          excludes: ['v7.0', 'v8.0', 'manual', 'upcoming'],
                         },
                       },
                     ],
@@ -2911,7 +2924,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/reference/inconsistency-type/ShardCatalogCacheCollectionMetadataMismatch/',
                         versions: {
-                          excludes: ['v7.0', 'v8.0', 'upcoming'],
+                          excludes: ['v7.0', 'v8.0', 'manual', 'upcoming'],
                         },
                       },
                       {

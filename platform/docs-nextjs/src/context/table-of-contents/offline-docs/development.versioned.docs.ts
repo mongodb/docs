@@ -4099,7 +4099,7 @@ export const toc: L1TocItem[] = [
                     contentSite: 'docs',
                     url: '/docs/:version/core/sharding-shard-a-collection',
                     versions: {
-                      excludes: ['manual', 'upcoming'],
+                      excludes: ['v8.3', 'manual', 'upcoming'],
                     },
                   },
                   {
@@ -6517,7 +6517,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/reference/method/sh.getTransitionToDedicatedConfigServerStatus',
                         versions: {
-                          excludes: ['v7.0', 'v8.0', 'manual'],
+                          excludes: ['v7.0', 'v8.0', 'v8.3'],
                         },
                       },
                       {
@@ -6600,7 +6600,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/reference/method/sh.shardDrainingStatus',
                         versions: {
-                          excludes: ['v7.0', 'v8.0', 'manual'],
+                          excludes: ['v7.0', 'v8.0', 'v8.3'],
                         },
                       },
                       {
@@ -9594,12 +9594,33 @@ export const toc: L1TocItem[] = [
             url: '/docs/:version/release-notes',
             items: [
               {
-                label: '9.0 (Upcoming)',
+                label: '9.1 (Upcoming)',
+                contentSite: 'docs',
+                collapsible: true,
+                url: '/docs/:version/release-notes/9.1',
+                versions: {
+                  includes: ['upcoming'],
+                },
+                items: [
+                  {
+                    label: 'Compatibility Changes',
+                    contentSite: 'docs',
+                    url: '/docs/:version/release-notes/9.1-compatibility',
+                  },
+                  {
+                    label: 'Changelog',
+                    contentSite: 'docs',
+                    url: '/docs/:version/release-notes/9.1-changelog',
+                  },
+                ],
+              },
+              {
+                label: '9.0 (Stable Release)',
                 contentSite: 'docs',
                 collapsible: true,
                 url: '/docs/:version/release-notes/9.0',
                 versions: {
-                  includes: ['upcoming'],
+                  excludes: ['v7.0', 'v8.0', 'v8.3'],
                 },
                 items: [
                   {
@@ -9707,7 +9728,7 @@ export const toc: L1TocItem[] = [
                 ],
               },
               {
-                label: '8.3 (Stable Release)',
+                label: '8.3',
                 contentSite: 'docs',
                 collapsible: true,
                 url: '/docs/:version/release-notes/8.3',
@@ -9816,55 +9837,6 @@ export const toc: L1TocItem[] = [
                     label: 'Changelog',
                     contentSite: 'docs',
                     url: '/docs/:version/release-notes/8.3-changelog',
-                  },
-                ],
-              },
-              {
-                label: '8.2',
-                contentSite: 'docs',
-                collapsible: true,
-                url: '/docs/:version/release-notes/8.2',
-                versions: {
-                  excludes: ['v7.0', 'v8.0', 'manual'],
-                },
-                items: [
-                  {
-                    label: 'Compatibility Changes',
-                    contentSite: 'docs',
-                    url: '/docs/:version/release-notes/8.2-compatibility',
-                  },
-                  {
-                    label: 'Upgrade 8.0 to 8.2',
-                    contentSite: 'docs',
-                    collapsible: true,
-                    url: '/docs/:version/release-notes/8.2-upgrade',
-                    items: [
-                      {
-                        label: 'Standalone',
-                        contentSite: 'docs',
-                        url: '/docs/:version/release-notes/8.2-upgrade-standalone',
-                      },
-                      {
-                        label: 'Replica Set',
-                        contentSite: 'docs',
-                        url: '/docs/:version/release-notes/8.2-upgrade-replica-set',
-                      },
-                      {
-                        label: 'Sharded Cluster',
-                        contentSite: 'docs',
-                        url: '/docs/:version/release-notes/8.2-upgrade-sharded-cluster',
-                      },
-                    ],
-                  },
-                  {
-                    label: 'Downgrade 8.2 to 8.0',
-                    contentSite: 'docs',
-                    url: '/docs/:version/release-notes/8.2-downgrade',
-                  },
-                  {
-                    label: 'Changelog',
-                    contentSite: 'docs',
-                    url: '/docs/:version/release-notes/8.2-changelog',
                   },
                 ],
               },

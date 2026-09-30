@@ -202,7 +202,6 @@ export const toc: L1TocItem[] = [
             label: 'Data Formats',
             contentSite: 'kotlin-sync',
             collapsible: true,
-            url: '/docs/languages/kotlin/kotlin-sync-driver/:version/data-formats',
             items: [
               {
                 label: 'Custom Types',
@@ -379,7 +378,6 @@ export const toc: L1TocItem[] = [
             label: 'API Documentation',
             contentSite: 'kotlin-sync',
             collapsible: true,
-            url: '/docs/languages/kotlin/kotlin-sync-driver/:version/api',
             items: [
               {
                 label: 'Kotlin Sync Driver',

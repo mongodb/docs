@@ -200,7 +200,6 @@ const tocData: TocItem[] = [
       {
         label: 'Data Formats',
         contentSite: 'kotlin-sync',
-        url: '/docs/languages/kotlin/kotlin-sync-driver/:version/data-formats',
         collapsible: true,
         items: [
           {
@@ -378,7 +377,6 @@ const tocData: TocItem[] = [
       {
         label: 'API Documentation',
         contentSite: 'kotlin-sync',
-        url: '/docs/languages/kotlin/kotlin-sync-driver/:version/api',
         collapsible: true,
         items: [
           {
