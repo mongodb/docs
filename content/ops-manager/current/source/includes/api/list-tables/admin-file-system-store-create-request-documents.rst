@@ -42,9 +42,9 @@
 
    * - mmapv1CompressionSetting
      - string
-     - Conditional
+     - Required
      - Compression setting if you use the MMAPv1 storage engine for
-       your snaphots.
+       your snapshots.
 
        |mms| accepts ``NONE`` or ``GZIP``.
 
@@ -65,9 +65,9 @@
 
    * - wtCompressionSetting
      - string
-     - Conditional
+     - Required
      - Compression setting if you use the WiredTiger storage engine for
-       your snaphots.
+       your snapshots.
 
        |mms| accepts ``NONE`` or ``GZIP``.
 
