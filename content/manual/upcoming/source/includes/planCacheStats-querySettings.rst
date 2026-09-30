@@ -17,37 +17,18 @@ A document that contains query settings previously set using
 
 ``querySettings`` fields:
 
-.. list-table::
-   :header-rows: 1
-   :widths: 30 20 50
+- ``indexHints.ns`` (document): Namespace for index hints.
 
-   * - Field
-     - Type
-     - Description
+  - ``db`` (string): Name of the database for index hints.
 
-   * - ``indexHints.ns``
-     - document
-     - Namespace for index hints.
+  - ``coll`` (string): Name of the collection for index hints.
 
-       .. list-table::
-          :widths: 25 25 60
+- ``indexHints.allowedIndexes`` (array): Array of indexes for index
+  hints. For more details, see :ref:`indexes` and
+  :method:`~cursor.hint()`.
 
-          * - ``db`` 
-            - string
-            - Name of the database for index hints.
+- ``queryFramework`` (string): :term:`Query framework <query framework>`
+  string can be:
 
-          * - ``coll``
-            - string
-            - Name of the collection for index hints.
-
-   * - ``indexHints.allowedIndexes``
-     - array
-     - Array of indexes for index hints. For more details, see
-       :ref:`indexes` and :method:`~cursor.hint()`.
-
-   * - ``queryFramework`` 
-     - string
-     - :term:`Query framework <query framework>` string can be:
-
-       - ``classic`` for the classic engine.
-       - ``sbe`` for {+sbe+}. For details, see :ref:`sbe-landing`.
+  - ``classic`` for the classic engine.
+  - ``sbe`` for {+sbe+}. For details, see :ref:`sbe-landing`.
