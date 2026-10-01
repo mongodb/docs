@@ -197,28 +197,26 @@ extension.addBuildEventHandler(
 		const gitChangedFiles = utils.git.modifiedFiles;
 
 		if (ENVS_TO_RUN.includes(configEnvironment.ENV ?? "")) {
-			// this should only run on prod build
-			console.log("Generating offline docs ...");
-			await handleOfflineDownloads(
-				allContentData,
-				gitChangedFiles,
-				utils,
-				dbEnvVars,
-				configEnvironment,
-			);
-
 			console.log(
 				`Generating search manifest for version ${JSON.stringify(
 					allContentData.pathsToBuild,
 				)} (from nextjs SSG Netlify extension)`,
 			);
 
-			await handleSearchManifests({
-				allContentData,
-				run: utils.run,
-				dbEnvVars,
-				configEnvironment,
-			});
+			// A failed search upload must not skip llms.txt or offline docs.
+			try {
+				await handleSearchManifests({
+					allContentData,
+					run: utils.run,
+					dbEnvVars,
+					configEnvironment,
+				});
+			} catch (error) {
+				console.error(
+					"[search-manifest] Failed to generate search manifests:",
+					error,
+				);
+			}
 
 			// A stale llms.txt is never a reason to fail a deploy: the
 			// weekly root llms.txt pass and a manual `pnpm publish-project`
@@ -228,6 +226,16 @@ extension.addBuildEventHandler(
 			} catch (error) {
 				console.error("[llms-txt] Failed to publish llms.txt:", error);
 			}
+
+			// this should only run on prod build
+			console.log("Generating offline docs ...");
+			await handleOfflineDownloads(
+				allContentData,
+				gitChangedFiles,
+				utils,
+				dbEnvVars,
+				configEnvironment,
+			);
 		} else {
 			console.log(
 				"Skipping search manifest, offline docs, and llms.txt generation for env ",

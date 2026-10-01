@@ -145,10 +145,8 @@ export const handleSearchManifests = async ({
         allContentData.atlasProjectDocuments[bundleData.projectName]
           ?.reposBranchesEntry;
       const branch: BranchEntry | undefined = repoEntry.branches.find(
-        (branch: BranchEntry): boolean =>
-          branch.name === bundleData.versionName,
+        (branch: BranchEntry): boolean => branch.urlSlug === bundleData.versionName,
       );
-
       if (!branch) {
         console.error(
           `Branch ${bundleData.versionName} not found for repo ${repoEntry.repoName}`,
@@ -157,12 +155,12 @@ export const handleSearchManifests = async ({
       }
 
       // TODO: do we NEVER rebuild for inactive versions? or just the ones that don't need to be rebuilt
-      if (!bundleData.shouldRebuild) {
-        console.log('skipping handleSearchManifests for branch: ', branch);
+      if (bundleData.projectDirName !== process.env.DOCS_PROJECT) {
+        console.log('skipping handleSearchManifests for branch: ', branch, 'and project: ', bundleData.projectDirName);
         return;
       }
 
-      console.log('handling handleSearchManifests for branch: ', branch);
+      console.log('handling handleSearchManifests for branch: ', branch, 'and project: ', bundleData.projectDirName);
       const { contentDir } = getRepoPaths();
       const pathToBundle = path.join(contentDir, contentPath, 'bundle.zip');
       console.log(`pathToBundle: ${pathToBundle}`);
