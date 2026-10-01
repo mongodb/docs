@@ -3348,6 +3348,14 @@ export const toc: L1TocItem[] = [
                         url: '/docs/:version/core/queryable-encryption/fundamentals/encrypt-and-query',
                       },
                       {
+                        label: 'Estimate Storage Impact',
+                        contentSite: 'docs',
+                        url: '/docs/:version/core/queryable-encryption/qe-estimate-storage-impact',
+                        versions: {
+                          excludes: ['v7.0', 'v8.0', 'v8.3'],
+                        },
+                      },
+                      {
                         label: 'Create a Schema',
                         contentSite: 'docs',
                         url: '/docs/:version/core/queryable-encryption/qe-create-encryption-schema',

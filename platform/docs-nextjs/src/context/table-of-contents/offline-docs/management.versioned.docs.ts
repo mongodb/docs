@@ -3186,7 +3186,7 @@ export const toc: L1TocItem[] = [
                 url: '/docs/:version/core/security-users',
                 items: [
                   {
-                    label: 'Authentication',
+                    label: 'User Authentication',
                     contentSite: 'docs',
                     collapsible: true,
                     url: '/docs/:version/core/authentication',
@@ -3292,48 +3292,42 @@ export const toc: L1TocItem[] = [
                           {
                             label: 'Workforce (Humans)',
                             contentSite: 'docs',
-                            collapsible: true,
                             url: '/docs/:version/core/oidc/workforce',
-                            items: [
-                              {
-                                label: 'Configure an External Identity Provider for Workforce Authentication',
-                                contentSite: 'docs',
-                                url: '/docs/:version/core/oidc/workforce/workforce-external-provider',
-                              },
-                              {
-                                label: 'Configure MongoDB with Workforce Identity Federation',
-                                contentSite: 'docs',
-                                url: '/docs/:version/core/oidc/workforce/configure-oidc',
-                              },
-                              {
-                                label: 'Authorize Users with Workforce Identity Federation',
-                                contentSite: 'docs',
-                                url: '/docs/:version/core/oidc/workforce/database-user-workforce',
-                              },
-                            ],
+                          },
+                          {
+                            label: 'Configure an External Identity Provider for Workforce Authentication',
+                            contentSite: 'docs',
+                            url: '/docs/:version/core/oidc/workforce/workforce-external-provider',
+                          },
+                          {
+                            label: 'Configure MongoDB with Workforce Identity Federation',
+                            contentSite: 'docs',
+                            url: '/docs/:version/core/oidc/workforce/configure-oidc',
+                          },
+                          {
+                            label: 'Authorize Users with Workforce Identity Federation',
+                            contentSite: 'docs',
+                            url: '/docs/:version/core/oidc/workforce/database-user-workforce',
                           },
                           {
                             label: 'Workload (Applications)',
                             contentSite: 'docs',
-                            collapsible: true,
                             url: '/docs/:version/core/oidc/workload',
-                            items: [
-                              {
-                                label: 'Configure an External Identity Provider for Workload Authentication',
-                                contentSite: 'docs',
-                                url: '/docs/:version/core/oidc/workload/workload-external-provider',
-                              },
-                              {
-                                label: 'Configure MongoDB with Workload Identity Federation',
-                                contentSite: 'docs',
-                                url: '/docs/:version/core/oidc/workload/configure-mongodb-workload',
-                              },
-                              {
-                                label: 'Authorize Users with Workload Identity Federation',
-                                contentSite: 'docs',
-                                url: '/docs/:version/core/oidc/workload/database-user-workload',
-                              },
-                            ],
+                          },
+                          {
+                            label: 'Configure an External Identity Provider for Workload Authentication',
+                            contentSite: 'docs',
+                            url: '/docs/:version/core/oidc/workload/workload-external-provider',
+                          },
+                          {
+                            label: 'Configure MongoDB with Workload Identity Federation',
+                            contentSite: 'docs',
+                            url: '/docs/:version/core/oidc/workload/configure-mongodb-workload',
+                          },
+                          {
+                            label: 'Authorize Users with Workload Identity Federation',
+                            contentSite: 'docs',
+                            url: '/docs/:version/core/oidc/workload/database-user-workload',
                           },
                         ],
                       },
@@ -3418,7 +3412,7 @@ export const toc: L1TocItem[] = [
                     ],
                   },
                   {
-                    label: 'Authorization',
+                    label: 'User Authorization',
                     contentSite: 'docs',
                     collapsible: true,
                     url: '/docs/:version/core/authorization',

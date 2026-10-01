@@ -163,11 +163,6 @@ export const toc: L1TocItem[] = [
                 url: '/docs/cloud-manager/tutorial/edit-deployment',
               },
               {
-                label: 'Manage BI Connector',
-                contentSite: 'cloud-manager',
-                url: '/docs/cloud-manager/tutorial/manage-bi-connector',
-              },
-              {
                 label: 'Calculate Suggested Indexes',
                 contentSite: 'cloud-manager',
                 url: '/docs/cloud-manager/tutorial/suggest-indexes',

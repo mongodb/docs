@@ -1257,7 +1257,7 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
-            label: 'Authentication',
+            label: 'User Authentication',
             contentSite: 'docs',
             url: '/docs/:version/core/authentication',
             collapsible: true,
@@ -1364,53 +1364,45 @@ const tocData: TocItem[] = [
                     label: 'Workforce (Humans)',
                     contentSite: 'docs',
                     url: '/docs/:version/core/oidc/workforce',
-                    collapsible: true,
-                    items: [
-                      {
-                        label:
-                          'Configure an External Identity Provider for Workforce Authentication',
-                        contentSite: 'docs',
-                        url: '/docs/:version/core/oidc/workforce/workforce-external-provider',
-                      },
-                      {
-                        label:
-                          'Configure MongoDB with Workforce Identity Federation',
-                        contentSite: 'docs',
-                        url: '/docs/:version/core/oidc/workforce/configure-oidc',
-                      },
-                      {
-                        label:
-                          'Authorize Users with Workforce Identity Federation',
-                        contentSite: 'docs',
-                        url: '/docs/:version/core/oidc/workforce/database-user-workforce',
-                      },
-                    ],
+                  },
+                  {
+                    label:
+                      'Configure an External Identity Provider for Workforce Authentication',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/oidc/workforce/workforce-external-provider',
+                  },
+                  {
+                    label:
+                      'Configure MongoDB with Workforce Identity Federation',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/oidc/workforce/configure-oidc',
+                  },
+                  {
+                    label: 'Authorize Users with Workforce Identity Federation',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/oidc/workforce/database-user-workforce',
                   },
                   {
                     label: 'Workload (Applications)',
                     contentSite: 'docs',
                     url: '/docs/:version/core/oidc/workload',
-                    collapsible: true,
-                    items: [
-                      {
-                        label:
-                          'Configure an External Identity Provider for Workload Authentication',
-                        contentSite: 'docs',
-                        url: '/docs/:version/core/oidc/workload/workload-external-provider',
-                      },
-                      {
-                        label:
-                          'Configure MongoDB with Workload Identity Federation',
-                        contentSite: 'docs',
-                        url: '/docs/:version/core/oidc/workload/configure-mongodb-workload',
-                      },
-                      {
-                        label:
-                          'Authorize Users with Workload Identity Federation',
-                        contentSite: 'docs',
-                        url: '/docs/:version/core/oidc/workload/database-user-workload',
-                      },
-                    ],
+                  },
+                  {
+                    label:
+                      'Configure an External Identity Provider for Workload Authentication',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/oidc/workload/workload-external-provider',
+                  },
+                  {
+                    label:
+                      'Configure MongoDB with Workload Identity Federation',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/oidc/workload/configure-mongodb-workload',
+                  },
+                  {
+                    label: 'Authorize Users with Workload Identity Federation',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/oidc/workload/database-user-workload',
                   },
                 ],
               },
@@ -1495,7 +1487,7 @@ const tocData: TocItem[] = [
             ],
           },
           {
-            label: 'Authorization',
+            label: 'User Authorization',
             contentSite: 'docs',
             url: '/docs/:version/core/authorization',
             collapsible: true,
