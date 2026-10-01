@@ -15,7 +15,6 @@ export const initializeTrackJS = () => {
   if (typeof window !== 'undefined') {
     try {
       TrackJS.install(trackjsConfig);
-      console.log('TrackJS initialized successfully');
     } catch (error) {
       console.error('Failed to initialize TrackJS:', error);
     }
