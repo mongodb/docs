@@ -28,19 +28,25 @@ This skill covers products whose public surface is declared in code: CLI flags, 
 
 One argument: a property name. Two cases:
 
-- **Manifest exists** (`references/manifests/<property>.yaml` in the `docs-drift` skill directory): use its `source.repos` and `source.surface_hints` as the reading guide.
+- **Manifest exists** (`references/<property>.yaml` in the `docs-drift` skill directory): use its `source.repos` and `source.surface_hints` as the reading guide, and its `source.hidden_surface` and `triage.intent_markers` to identify intentionally hidden surface.
 - **No manifest yet**: ask the user for a repo URL and a brief description of where the public surface lives before proceeding. Use these ad-hoc hints as the reading guide; do not scaffold a manifest (that is Discovery mode in `docs-drift`).
+
+## Get the source
+
+Fetch each repo at `source.repos[].ref`, or at the default branch if no ref is set or the hints are ad-hoc. For a large monorepo, check out only the directories the hints name.
+
+If a fetch fails (bad URL, no access, stale ref), stop and tell the writer which repo failed and why. Do not summarize from partial source: a summary with missing sections reads as complete. Ask the writer for a corrected URL or ref. Do not edit the manifest; manifest corrections belong to `docs-drift`.
 
 ## What to read
 
-Guided by `source.surface_hints` (or the ad-hoc hints provided), read the source exhaustively — do not sample. Walk every surface location the hints point to:
+Guided by `source.surface_hints` (or the ad-hoc hints provided), read every location the hints point to — do not sample within a hint's scope, and do not read outside it unless a follow-up question requires it. If a hint names a directory or package, read every file in it that matches the declaration pattern the hint describes. If the hint names a directory without a declaration pattern, ask the writer what identifies public surface there before reading. Walk every surface location in scope:
 
 - Every CLI flag / config option definition site
 - Every public API request/response struct and its fields
 - Every enum and state declaration
 - Every conditional default and behavioral constraint enforced in source
 
-Also note anything marked with an intent marker (e.g. `// internal`, `// external-only`) — these are intentionally undocumented and worth flagging to the writer so they are not confused by their absence from the docs.
+Also read every `source.hidden_surface` location, and note anything that carries a `triage.intent_markers` substring. With ad-hoc hints, look for common markers such as `// internal` or `// external-only`. This surface is intentionally undocumented. Flag it to the writer so its absence from the docs doesn't confuse them.
 
 ## Output
 
