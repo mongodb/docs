@@ -83,6 +83,14 @@ const tocData: TocItem[] = [
         label: 'Plan Your Enterprise Advanced Deployment',
         contentSite: 'landing',
         url: '/docs/enterprise-advanced-deployment',
+        collapsible: true,
+        items: [
+          {
+            label: 'Choose Your Platform: VMs or Kubernetes',
+            contentSite: 'landing',
+            url: '/docs/enterprise-advanced-deployment/choose-your-platform-vms-or-kubernetes',
+          },
+        ],
       },
       {
         label: 'Enterprise Platform Support',

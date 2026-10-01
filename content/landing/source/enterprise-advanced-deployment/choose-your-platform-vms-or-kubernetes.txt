@@ -1,0 +1,189 @@
+:orphan:
+
+.. _enterprise-advanced-choose-platform-vms-kubernetes:
+
+=======================================
+Choose Your Platform: VMs or Kubernetes
+=======================================
+
+.. meta::
+   :description: This page explains the differences between deploying MongoDB Enterprise Advanced on virtual machines or physical servers versus Kubernetes, and how to choose the right platform for your deployment.
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The first architectural decision you make when planning an
+Enterprise Advanced deployment is *where* MongoDB runs: on virtual
+machines, physical servers, or on Kubernetes.
+
+This page explains why this decision matters, when each platform is
+the right fit, and summarizes the key differences between the
+platforms. It does not cover installation. After you choose a
+platform, the `Ops Manager
+<https://www.mongodb.com/docs/ops-manager/current/>`__ and `MongoDB
+Controllers for Kubernetes (MCK)
+<https://www.mongodb.com/docs/kubernetes/current/>`__
+documentation walk you through the installation and setup process.
+
+Why the Choice Matters
+----------------------
+
+VMs, physical servers, and Kubernetes are all fully supported
+platforms for Enterprise Advanced deployments, but they differ in
+notable ways. The platform you choose determines the level of
+automation MongoDB provides, the features you can use, and how hard
+the choice is to change later.
+
+Choose Your Platform
+--------------------
+
+Kubernetes
+~~~~~~~~~~
+
+On this path, MCK, the MongoDB Kubernetes operator, manages both
+infrastructure and MongoDB configuration declaratively. That means
+that one or a small number of configuration files defines a MongoDB
+deployment and MongoDB automation results in management of the
+infrastructure and MongoDB configuration.
+
+**How it works**:
+
+- You declare the deployment you want. MCK then deploys and manages
+  the Kubernetes resources that MongoDB uses, such as StatefulSets,
+  pods, storage, and networking. MCK coordinates with Ops Manager
+  and configures the deployment.
+- Ops Manager is still required for automation, backups, and
+  monitoring. MCK and Ops Manager work together. MCK automates the
+  infrastructure, and Ops Manager delivers the services needed to run
+  MongoDB as a service. They are not alternatives.
+
+**Trade-offs and benefits**:
+
+- Deployments, scaling, sharding changes, and upgrades become
+  declarative configuration changes rather than requiring in-house
+  coordination of infrastructure and Ops Manager operations.
+- Deployments and upgrades do not require installation or
+  reinstallation of binaries across hosts.
+- Multi-region deployments: members of a replica set or sharded
+  cluster can span multiple Kubernetes clusters in different
+  locations, ensuring resilience and high availability across
+  Kubernetes clusters and geographic regions. If one cluster or site
+  goes down, members can be recreated in another through automated
+  creation of new MongoDB nodes in other Kubernetes clusters.
+- Required for Enterprise Advanced Search nodes. If Search is in
+  scope, Kubernetes must be part of the deployment for at least the
+  Search nodes but not necessarily the database nodes.
+- Kubernetes is the only platform where MongoDB can deliver
+  infrastructure-layer automation. For example, the automatic
+  provisioning of load balancing for Search nodes.
+- As with VMs, you remain responsible for the underlying
+  infrastructure and its architecture and setup. This includes
+  provisioning stateful storage for your Kubernetes clusters and the
+  support of any relevant internal teams who manage and maintain the
+  Kubernetes infrastructure. Depending
+  on your requirements for running MongoDB, this can extend to
+  concerns such as connectivity between Kubernetes clusters if you
+  want to deploy individual MongoDB deployments across multiple
+  locations, and therefore multiple Kubernetes clusters.
+
+**When it's the right choice**:
+
+- Organizations looking to run "MongoDB as a Service" with minimal
+  operational overhead.
+- New Enterprise Advanced deployments.
+- Teams that want a unified interface for infrastructure and database
+  management, and full Enterprise Advanced feature access including
+  Search.
+
+VMs or Physical Servers
+~~~~~~~~~~~~~~~~~~~~~~~
+
+On this path, infrastructure lifecycle management for your MongoDB
+deployments is your responsibility. The MongoDB Agent runs on each
+host and allows you to configure MongoDB through Ops Manager.
+
+**How it works**:
+
+- You provision the VMs or physical servers yourself. MongoDB does
+  not manage infrastructure at the VM layer. You can use
+  automation or existing tooling to provision the VMs or servers.
+- You install the MongoDB Agent on each host and point it at Ops
+  Manager.
+- Ops Manager handles configuration, backup, and monitoring for the
+  deployments running on those hosts.
+
+**Trade-offs and benefits**:
+
+- Running on VMs allows you to reuse any already-familiar
+  infrastructure provisioning tooling to create hosts for MongoDB.
+- However, this does mean that any operation involving changes to
+  both infrastructure and MongoDB configuration is a two-step
+  operation, including deploying or scaling. You provision or resize
+  infrastructure, such as adding VMs or adding RAM and CPU, and you
+  make the corresponding configuration change in Ops Manager. Two
+  systems control different parts of the same deployment,
+  infrastructure and configuration, and you keep them aligned.
+  Keeping the two systems aligned is your responsibility, and you
+  must automate and maintain that alignment if needed.
+- MongoDB cannot recover infrastructure for you. For example, if a
+  site goes down, recreating replica set or shard members in another
+  location means you must provision new hosts, configure the agent,
+  and reattach them to the cluster.
+
+**When it's the right choice**:
+
+- Established VM estates with existing infrastructure tooling and VM
+  automation.
+- Organizations where Kubernetes adoption is not possible.
+
+VM-based deployment is fully supported, and many large Enterprise
+Advanced customers run this way today. It is not a legacy or
+deprecated path and there is ongoing MongoDB investment to reduce
+the overhead and complexities of self-hosting MongoDB no matter
+the underlying platform.
+
+.. note::
+
+   Search requires Kubernetes even if your database runs on VMs. If
+   you add Search later, you introduce a Kubernetes environment for
+   the Search tier. Your database and Ops Manager do not need to
+   move.
+
+Recap
+-----
+
+VMs, physical servers, and Kubernetes are all fully supported
+platforms for running MongoDB. Kubernetes provides the highest
+level of automation, including infrastructure provisioning and
+lifecycle management on your clusters, and it is the only platform
+that supports Search. You also remain responsible for providing
+and managing the underlying Kubernetes clusters and any stateful
+storage.
+
+If Kubernetes is not in scope for your organization, VM-based
+deployment with Ops Manager is fully supported. The core value of
+Enterprise Advanced, including backup, monitoring, orchestration,
+and support, remains available.
+
+.. Hidden until the Pre-Deployment Decisions and Reference
+   Architectures pages exist. To restore, remove the leading comment
+   marker and re-indent the following content one level to the left.
+
+   Next Steps
+   ----------
+
+   Once you've chosen a platform:
+
+   - Work through the Pre-Deployment Decisions, covering identity and
+     authentication, backing databases, backup storage, and monitoring,
+     before you install Ops Manager.
+   - Review the Reference Architectures for a deploy-ready configuration
+     matching your platform, which you can adopt as-is or customize.
+
