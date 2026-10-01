@@ -149,6 +149,11 @@ const tocData: TocItem[] = [
             contentSite: 'mcp-server',
             url: '/docs/mcp-server/remote-mcp/access-models',
           },
+          {
+            label: 'Rate Limits',
+            contentSite: 'mcp-server',
+            url: '/docs/mcp-server/remote-mcp/rate-limits',
+          },
         ],
       },
     ],
