@@ -1,5 +1,5 @@
 .. :snippet-start: sample-mongot-conf-docker
-.. :snippet-output: /content/search/source/includes/tutorial/procedures/sample-mongot-conf-docker.rst, /content/vector-search/source/includes/quick-start/procedures/sample-mongot-conf-docker.rst
+.. :snippet-output: /content/search/source/includes/tutorial/code-snippets/rst/sample-mongot-conf-docker.rst, /content/vector-search/source/includes/quick-start/code-snippets/rst/sample-mongot-conf-docker.rst
 
 .. code-block:: yaml
 

@@ -99,7 +99,7 @@
       To create your configuration file, save the following code to ``mongod.conf``
       or your preferred location.
 
-      .. include:: /includes/sample-mongod-conf-docker.rst
+      .. include:: /includes/tutorial/code-snippets/rst/sample-mongod-conf-docker-snippet-from-self-managed-search.rst
 
    .. step:: Start your ``mongod``.
 
@@ -184,7 +184,7 @@
       For example, you can adapt the settings to your local
       configuration as shown below:
 
-      .. include:: /includes/sample-mongot-conf-docker.rst
+      .. include:: /includes/tutorial/code-snippets/rst/sample-mongot-conf-docker-snippet-from-self-managed-search.rst
 
       Save your file to ``mongot.config`` or your preferred file location.
 
@@ -262,5 +262,5 @@
       - Starts the container on the ``search-community`` Docker
         network with a container named ``mongot-community``.
 
-   .. include:: /includes/verify-mongot-health.rst
+   .. include:: /includes/tutorial/procedures/verify-mongot-health-snippet-from-self-managed-search.rst
 
