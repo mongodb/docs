@@ -1,23 +1,20 @@
 'use client';
 
-import { cx, css } from '@leafygreen-ui/emotion';
-import { Overline } from './Overline';
-import { theme } from '@/styles/theme';
-
-export const kickerBaseStyle = css`
-  grid-column: 2;
-  @media ${theme.screenSize.upToSmall} {
-    padding-top: 56px;
-  }
-  @media ${theme.screenSize.upToXSmall} {
-    padding-top: ${theme.size.large};
-  }
-`;
+import type { ReactNode } from 'react';
+import { Text, TextStyle } from '@via-ds/components/typography';
+import styles from './kicker.module.scss';
 
 type KickerProps = {
-  children: React.ReactNode;
+  children?: ReactNode;
 };
 
+// A Kicker is a visual label, not a document heading, so it renders as a p. With no children it is only a spacer, so it renders an empty div.
 export const Kicker = ({ children }: KickerProps) => {
-  return <Overline className={cx(kickerBaseStyle)}>{children}</Overline>;
+  if (!children) return <div className={styles.kicker} />;
+
+  return (
+    <Text elementType="p" textStyle={TextStyle.heading6} className={styles.kicker}>
+      {children}
+    </Text>
+  );
 };
