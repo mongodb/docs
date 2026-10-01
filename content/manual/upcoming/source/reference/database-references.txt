@@ -1,17 +1,15 @@
 .. _database-references:
 
-===================
-Database References
-===================
-
-.. default-domain:: mongodb
+=================================================
+Database References: Manual References and DBRefs
+=================================================
 
 .. facet::
    :name: programming_language 
    :values: shell
 
 .. meta::
-   :keywords: drivers
+   :keywords: drivers, code example
    :description: MongoDB database references store related information in separate documents in different collections or databases. Learn about manual references and DBRefs.
 
 .. contents:: On this page
@@ -38,30 +36,16 @@ This page outlines alternative procedures that predate the
 
 MongoDB applications use one of two methods to relate documents:
 
-- :ref:`Manual references <document-references>` save the
-  ``_id`` field of one document in another document as a reference.
-  Your application runs a second query to return the related
-  data. These references are straightforward and sufficient for most
-  use cases.
+- :ref:`Manual references <document-references>` save the ``_id`` field
+  of one document in another document as a reference. Your application
+  runs a second query to return the related data. Manual references work
+  for most use cases and should generally be preferred over DBRefs.
 
-- :ref:`DBRefs <dbref-explanation>` are references from one document
-  to another using the value of the first document's ``_id`` field,
-  collection name, and, optionally, its database name, and any
-  other fields. DBRefs let you reference documents stored in multiple
-  collections or databases.
-
-To resolve DBRefs, your application must perform additional queries to
-return the referenced documents. Some :driver:`MongoDB drivers </>`
-provide helper methods that resolve DBRefs into documents, but
-resolution is not automatic.
-
-DBRefs provide a common format and type to represent relationships
-among documents. The format also provides common semantics for
-representing links between documents when your database interacts
-with multiple frameworks and tools.
-
-Unless you have a compelling reason to use DBRefs, use manual
-references instead.
+- :ref:`DBRefs <dbref-explanation>` are references from one document to
+  another using the value of the first document's ``_id`` field,
+  collection name, and, optionally, its database name, and any other
+  fields. Unless your application explicitly needs to use DBRefs, use
+  manual references instead.
 
 .. _document-references:
 
@@ -126,7 +110,9 @@ To create a manual reference in the {+atlas+} UI, follow these steps:
                 "$oid": "651aebeb70299b120736f443"
               },
               "name": "Erin",
-              "places_id": "651aea5870299b120736f442"
+              "places_id": {
+                "$oid": "651aea5870299b120736f442"
+              },
               "url": "bc.example.net/Erin"
             }
 
@@ -177,10 +163,6 @@ two documents, use :ref:`manual references
 application
 can resolve them as needed.
 
-Manual references do not convey the database and collection names.
-If documents in a single collection relate to documents in more than
-one collection, consider using DBRefs.
-
 .. _dbref-explanation:
 
 DBRefs
@@ -197,6 +179,11 @@ value from the ``_id`` field.
 Optionally, DBRefs can include any number of other fields. Extra
 field names must follow the :ref:`rules for field names
 <limit-restrictions-on-field-names>` imposed by the server version.
+
+To resolve DBRefs, your application must perform additional queries to
+return the referenced documents. Some :driver:`MongoDB drivers </>`
+provide helper methods that resolve DBRefs into documents, but
+resolution is not automatic.
 
 Format
 ~~~~~~
@@ -220,34 +207,35 @@ DBRefs have the following fields:
    Contains the name of the database where the referenced document
    resides.
 
-.. example::
+Example
+~~~~~~~
 
-   DBRef documents resemble the following document:
+DBRef documents resemble the following document:
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      { "$ref" : <value>, "$id" : <value>, "$db" : <value> }
+   { "$ref" : <value>, "$id" : <value>, "$db" : <value> }
 
-   Consider a document from a collection that stored a DBRef in a
-   ``creator`` field:
+Consider a document from a collection that stored a DBRef in a
+``creator`` field:
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      {
-        "_id" : ObjectId("5126bbf64aed4daf9e2ab771"),
-        // .. application fields
-        "creator" : {
-                        "$ref" : "creators",
-                        "$id" : ObjectId("5126bc054aed4daf9e2ab772"),
-                        "$db" : "users",
-                        "extraField" : "anything"
-                     }
-      }
+   {
+     "_id" : ObjectId("5126bbf64aed4daf9e2ab771"),
+     // .. application fields
+     "creator" : {
+       "$ref" : "creators",
+       "$id" : ObjectId("5126bc054aed4daf9e2ab772"),
+       "$db" : "users",
+       "extraField" : "anything"
+     }
+   }
 
-   The DBRef in this example points to a document in the ``creators``
-   collection of the ``users`` database that has
-   ``ObjectId("5126bc054aed4daf9e2ab772")`` in its ``_id`` field. It also contains
-   an optional field.
+The DBRef in this example points to a document in the ``creators``
+collection of the ``users`` database that has
+``ObjectId("5126bc054aed4daf9e2ab772")`` in its ``_id`` field. It also contains
+an optional field.
 
 .. note::
 
@@ -342,10 +330,3 @@ Driver Support for DBRefs
      - Not Supported
 
      - You can traverse references manually.
-
-Use
-~~~
-
-In most cases, use :ref:`manual references <document-references>` to
-connect two or more related documents. If you need to reference
-documents from multiple collections, consider using DBRefs.
