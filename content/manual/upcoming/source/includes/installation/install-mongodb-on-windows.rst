@@ -1,8 +1,6 @@
 .. meta::
    :description: Install MongoDB Community Edition on Windows using the default installation wizard.
 
-.. _install-mdb-community-windows:
-
 ============================================
 Install MongoDB Community Edition on Windows
 ============================================

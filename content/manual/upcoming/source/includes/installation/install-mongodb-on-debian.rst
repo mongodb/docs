@@ -1,8 +1,6 @@
 .. meta::
    :description: Install MongoDB Community Edition on Debian using the apt package manager.
 
-.. _install-mdb-community-debian:
-
 ===========================================
 Install MongoDB Community Edition on Debian
 ===========================================

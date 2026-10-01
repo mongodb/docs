@@ -47,8 +47,6 @@ Official MongoDB Packages
 See :ref:`ubuntu-package-content` for the complete list of official
 packages.
 
-.. _install-community-ubuntu-pkg:
-
 Install MongoDB Community Edition
 ---------------------------------
 

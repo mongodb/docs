@@ -1,10 +1,6 @@
 .. meta::
    :keywords: on-prem
 
-.. _install-mdb-community-redhat-centos:
-.. _install-mdb-community-edition-linux:
-
-
 ======================================================
 Install MongoDB Community Edition on Red Hat or CentOS
 ======================================================
