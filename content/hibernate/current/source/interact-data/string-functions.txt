@@ -1,0 +1,661 @@
+.. _hibernate-query-string-functions:
+
+===============================
+Use String Functions in Queries
+===============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: text, length, substring, concatenate, trim, pad, code example
+   :description: Learn how to call Hibernate Query Language string functions such as length(), substring(), trim(), concat(), and pad() on a string field to reformat query results in MongoDB.
+
+Overview
+--------
+
+In this guide, you can learn how to call Hibernate Query Language
+(HQL) string functions on a string field by using the
+{+extension-long+}. String functions let you measure, reformat, and
+combine string values as part of a query.
+
+You can call each function in a ``SELECT`` clause. The {+extension-short+} translates each 
+function call to a MongoDB aggregation expression in the ``$project`` stage. 
+Because the {+extension-short+} does not support function 
+calls as operands of a computed expression, you cannot combine a string
+function with an arithmetic operator. 
+
+The {+extension-short+} supports the following string functions:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Function
+     - MongoDB Translation
+
+   * - ``length()``, ``character_length()``, ``char_length()``
+     - :manual:`$strLenCP </reference/operator/aggregation/strLenCP/>`
+
+   * - ``upper()``
+     - :manual:`$toUpper </reference/operator/aggregation/toUpper/>`
+
+   * - ``lower()``
+     - :manual:`$toLower </reference/operator/aggregation/toLower/>`
+
+   * - ``concat()``, ``||``
+     - :manual:`$concat </reference/operator/aggregation/concat/>`
+
+   * - ``substring()``
+     - :manual:`$substrCP </reference/operator/aggregation/substrCP/>`
+
+   * - ``locate()``
+     - :manual:`$indexOfCP </reference/operator/aggregation/indexOfCP/>`
+
+   * - ``replace()``
+     - :manual:`$replaceAll </reference/operator/aggregation/replaceAll/>`
+
+   * - ``trim()``
+     - :manual:`$trim </reference/operator/aggregation/trim/>`,
+       :manual:`$ltrim </reference/operator/aggregation/ltrim/>`, or
+       :manual:`$rtrim </reference/operator/aggregation/rtrim/>`,
+       depending on the specified trim direction
+
+   * - ``pad()``, ``lpad()``, ``rpad()``
+     - Computed from
+       :manual:`$strLenCP </reference/operator/aggregation/strLenCP/>`,
+       :manual:`$substrCP </reference/operator/aggregation/substrCP/>`,
+       and :manual:`$concat </reference/operator/aggregation/concat/>`
+
+   * - ``repeat()``
+     - Computed from
+       :manual:`$range </reference/operator/aggregation/range/>` and
+       :manual:`$reduce </reference/operator/aggregation/reduce/>`
+
+.. note:: Unsupported String Functions
+
+   The {+extension-short+} does not support the HQL ``position()``,
+   ``overlay()``, ``left()``, ``right()``, and ``collate()`` string
+   functions. A query that calls one of these functions throws a
+   ``FeatureNotSupportedException``. 
+   
+   To use an unsupported string function, call the ``createNativeQuery()`` method 
+   and include the relevant operator in your MongoDB Query Language statement. To learn more, see
+   the :ref:`hibernate-native-queries` guide.
+
+Sample Data
+~~~~~~~~~~~
+
+.. include:: /includes/sample-data.rst
+
+The examples in this guide use the ``Movie`` entity's ``title``
+field, which stores a ``String`` value.
+
+.. _hibernate-query-string-length:
+
+Measure the Length of a String
+------------------------------
+
+The ``length(str)`` function returns the number of characters in a
+string. You can also call this function as ``character_length(str)``
+or ``char_length(str)``, which are aliases for the same function.
+Because the {+extension-short+} translates the call to the
+:manual:`$strLenCP </reference/operator/aggregation/strLenCP/>`
+operator, the function counts Unicode code points rather than bytes.
+
+The following example returns the title of the
+``"The Hunger Games"`` movie in the ``sample_mflix.movies``
+collection and the length of the title:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/StringFunctions.java
+            :start-after: start-length-session
+            :end-before: end-length-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: The Hunger Games, Length: 16
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/StringFunctions.java
+            :start-after: start-length-em
+            :end-before: end-length-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: The Hunger Games, Length: 16
+
+The {+extension-short+} translates the preceding query to the
+following ``$project`` stage:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$project": {
+       "title": true,
+       "titleLength": {
+         "$strLenCP": "$title"
+       },
+       "_id": 0
+     }
+   }
+
+.. _hibernate-query-string-case:
+
+Change the Case of a String
+---------------------------
+
+The ``upper(str)`` and ``lower(str)`` functions convert a string to
+uppercase or lowercase.
+
+The following example returns the title of the
+``"The Hunger Games"`` movie in uppercase:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/StringFunctions.java
+            :start-after: start-upper-session
+            :end-before: end-upper-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Uppercase Title: THE HUNGER GAMES
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/StringFunctions.java
+            :start-after: start-upper-em
+            :end-before: end-upper-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Uppercase Title: THE HUNGER GAMES
+
+The {+extension-short+} translates the preceding query to the
+following ``$project`` stage:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$project": {
+       "upperTitle": {
+         "$toUpper": "$title"
+       },
+       "_id": 0
+     }
+   }
+
+.. _hibernate-query-string-concat:
+
+Concatenate Strings
+-------------------
+
+The ``concat(x, y)`` function joins two or more values into a single
+string. The {+extension-short+} converts each operand to a string
+before joining, so you can concatenate numeric values or 
+concatenate a numeric value to a string value.
+
+The following example appends an exclamation point to the title of
+the ``"The Hunger Games"`` movie:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/StringFunctions.java
+            :start-after: start-concat-session
+            :end-before: end-concat-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Concatenated Title: The Hunger Games!
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/StringFunctions.java
+            :start-after: start-concat-em
+            :end-before: end-concat-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Concatenated Title: The Hunger Games!
+
+.. tip::
+
+   You can also use the double pipe operator (``||``) to join
+   two values. The following query is equivalent to the preceding
+   example:
+
+   .. code-block:: java
+      :copyable: false
+
+      "select title || '!' as excitedTitle from Movie where title = :title"
+
+The {+extension-short+} translates the preceding query to the
+following ``$project`` stage:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$project": {
+       "excitedTitle": {
+         "$concat": [
+           { "$toString": "$title" },
+           { "$toString": "!" }
+         ]
+       },
+       "_id": 0
+     }
+   }
+
+.. _hibernate-query-string-substring:
+
+Extract a Substring
+-------------------
+
+The ``substring(str, start)`` function returns the part of a string
+that begins at the ``start`` position. The ``start`` position is
+one-based, so the first character in the string is at position ``1``. 
+To limit the result to a fixed number of characters, call the function as
+``substring(str, start, length)``.
+
+If you pass a ``start`` position of ``0`` or a negative value, the
+{+extension-short+} reads from the beginning of the string. If you
+also pass a ``length``, the extension subtracts the characters before
+the first position from the returned length. For example,
+``substring(str, -1, 3)`` returns one character, and
+``substring(str, 0, 3)`` returns two characters.
+
+The following example returns the first six characters of the title
+of the ``"The Hunger Games"`` movie:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/StringFunctions.java
+            :start-after: start-substring-session
+            :end-before: end-substring-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title Prefix: The Hu
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/StringFunctions.java
+            :start-after: start-substring-em
+            :end-before: end-substring-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title Prefix: The Hu
+
+.. _hibernate-query-string-locate:
+
+Locate a Substring
+------------------
+
+The ``locate(pattern, str)`` function returns the one-based position of
+the first occurrence of ``pattern`` in the string, or ``0`` if the string
+does not contain the pattern. 
+
+To begin the search at a specific position, call the function as 
+``locate(pattern, str, start)``. Because the ``start`` position is one-based, 
+the first character in the string is at position ``1``.  A ``start`` value of 
+``0`` or a negative number starts the search at position ``1``.
+
+The following example returns the position of the substring
+``"Hunger"`` in the title of the ``"The Hunger Games"`` movie:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/StringFunctions.java
+            :start-after: start-locate-session
+            :end-before: end-locate-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Position: 5
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/StringFunctions.java
+            :start-after: start-locate-em
+            :end-before: end-locate-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Position: 5
+
+.. _hibernate-query-string-replace:
+
+Replace a Substring
+-------------------
+
+The ``replace(str, pattern, replacement)`` function replaces every
+occurrence of ``pattern`` in the string with ``replacement``. The
+{+extension-short+} translates the call to the
+:manual:`$replaceAll </reference/operator/aggregation/replaceAll/>`
+operator. All three arguments must be strings.
+
+The following example replaces the substring ``"Hunger"`` with
+``"Video"`` in the title of the ``"The Hunger Games"`` movie:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/StringFunctions.java
+            :start-after: start-replace-session
+            :end-before: end-replace-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            New Title: The Video Games
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/StringFunctions.java
+            :start-after: start-replace-em
+            :end-before: end-replace-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            New Title: The Video Games
+
+.. _hibernate-query-string-trim:
+
+Trim Characters from a String
+-----------------------------
+
+The ``trim(str)`` function removes leading and trailing spaces from a
+string. To remove characters from only one end of the string, use
+``trim(leading char from str)`` or ``trim(trailing char from str)``. To remove a
+character other than a space from both ends of the string, specify it by using the ``both``
+and ``from`` keywords, as in ``trim(both char from str)``.
+
+The following example removes the leading ``"T"`` character from the
+title of the ``"The Hunger Games"`` movie:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/StringFunctions.java
+            :start-after: start-trim-session
+            :end-before: end-trim-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Trimmed Title: he Hunger Games
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/StringFunctions.java
+            :start-after: start-trim-em
+            :end-before: end-trim-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Trimmed Title: he Hunger Games
+
+The {+extension-short+} translates the preceding query to the
+following ``$project`` stage:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "$project": {
+       "trimmedTitle": {
+         "$ltrim": {
+           "chars": "T",
+           "input": "$title"
+         }
+       },
+       "_id": 0
+     }
+   }
+
+.. _hibernate-query-string-pad:
+
+Pad a String
+------------
+
+The ``pad(str with length leading)`` and
+``pad(str with length trailing)`` functions extend a string to the
+specified ``length`` by adding spaces to the start or end of the string ``str``.
+To use a character other than a space, specify the character
+after the direction, as in ``pad(str with 20 leading char)``.
+
+You can also call the ``lpad(str, length, padding)`` and
+``rpad(str, length, padding)`` functions, which pad a string with a
+value that can contain more than one character. The
+{+extension-short+} repeats the padding value as many times as needed
+and truncates it to reach the target length. For example,
+``lpad('x', 6, 'ab')`` returns ``"ababax"``.
+
+Padding behaves as follows in these cases:
+
+- If the target length is shorter than the string, the
+  {+extension-short+} truncates the string to the target length
+  by removing the trailing characters after the target length.
+- If the target length is negative, the function returns an empty
+  string.
+- If the padding value is an empty string, the function returns the
+  original string.
+
+The following example uses leading asterisks to pad the title
+of the ``"The Hunger Games"`` movie to 20 characters:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/StringFunctions.java
+            :start-after: start-pad-session
+            :end-before: end-pad-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Padded Title: ****The Hunger Games
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/StringFunctions.java
+            :start-after: start-pad-em
+            :end-before: end-pad-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Padded Title: ****The Hunger Games
+
+.. _hibernate-query-string-repeat:
+
+Repeat a String
+---------------
+
+The ``repeat(str, count)`` function returns a string that contains
+``count`` copies of ``str``.
+
+The following example returns the title of the
+``"The Hunger Games"`` movie, repeated twice:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/StringFunctions.java
+            :start-after: start-repeat-session
+            :end-before: end-repeat-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Repeated Title: The Hunger GamesThe Hunger Games
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/StringFunctions.java
+            :start-after: start-repeat-em
+            :end-before: end-repeat-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Repeated Title: The Hunger GamesThe Hunger Games
+
+Additional Information
+----------------------
+
+To learn more about creating query filters and using operators in your
+query statements, see the :ref:`hibernate-specify-query` guide.
+
+To learn how to call datetime functions in a query, see the
+:ref:`hibernate-query-datetime-functions` guide.
+
+To learn more about using HQL and JPQL to run queries, see `A Guide to Hibernate Query Language
+<{+query-guide+}>`__ in the {+orm+} documentation.

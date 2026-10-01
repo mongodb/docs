@@ -88,6 +88,11 @@ export const toc: L1TocItem[] = [
                 url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/datetime-functions',
               },
               {
+                label: 'String Functions in Queries',
+                contentSite: 'hibernate',
+                url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/string-functions',
+              },
+              {
                 label: 'Join Entities Across Collections',
                 contentSite: 'hibernate',
                 url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/join-entities',
