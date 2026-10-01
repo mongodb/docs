@@ -27,8 +27,15 @@ Improvements
   Debian 13, and SUSE Linux Enterprise Server 16. To learn more,
   see :ref:`ops-manager-os-compatibility`.
 - Updates JDK to Java 25.0.3+9.0.LTS.
-- BI Connector reaches end of life. The BI Connector binary is
-  no longer available from the MongoDB Download Center. Existing
-  BI Connectors remain available and manageable, but |onprem| no
-  longer supports adding new ones. To learn more, see
+- Ends support for the |bic-short-no-link|, which reached end of life
+  on September 30, 2026. The binary is no longer available from the
+  MongoDB Download Center.
+
+  - |onprem| no longer supports adding new |bic-short-no-link|
+    instances.
+  - Your existing |bic-short-no-link| instances remain available and
+    manageable.
+
+  MongoDB recommends using the :ref:`SQL Interface
+  <connect-with-sql-overview>` instead. To learn more, see
   :ref:`manage-bi-connector`.

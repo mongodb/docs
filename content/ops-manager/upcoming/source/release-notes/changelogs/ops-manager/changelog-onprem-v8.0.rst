@@ -1,3 +1,226 @@
+.. _opsmgr-server-8.0.27:
+
+|onprem| Server 8.0.27
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2026-09-30*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to
+  :ref:`108.0.27.9089-1 <mongodb-108.0.27.9089-1>`.
+- Updates JDK to `jdk-21.0.12.1+1
+  <https://adoptium.net/temurin/release-notes/?version=jdk-21.0.12.1+1>`__.
+- Makes the following improvements to the {+admin-api+}:
+
+  - Adds APIs for replica-set re-election, allowing external
+    control planes to trigger a primary step-down or secondary
+    step-up and to list re-election jobs. To learn more, see
+    :ref:`api-re-election-jobs`.
+  - Enables |s3| ObjectLock retention configuration
+    (``objectRetentionDays``, ``objectRetentionMode``, and
+    ``objectLockEnabledAt``) through the ``s3Configs`` API.
+
+- Upgrades the MongoDB Go Driver in the automation agent to
+  `v2.9.0 <https://github.com/mongodb/mongo-go-driver/releases/tag/v2.9.0>`__.
+- Adds :ref:`Direct-to-S3 (D2S3) backup support
+  <om-direct-s3-backup>`, allowing the agent to upload backup
+  blocks directly to |s3| instead of routing through the |onprem|
+  proxy. Includes configuration APIs, presigned URL generation,
+  metadata ingestion, and project-level enablement so new jobs
+  start on D2S3 from the first snapshot.
+- Adds backup daemon log retrieval through the Admin UI and API,
+  allowing administrators to request and download daemon logs
+  alongside existing |onprem| application logs. To learn more, see
+  :ref:`manage-ops-manager-logs`.
+- Prevents deletion of a snapshot or oplog store configuration
+  while it's still assigned to a project's backup group
+  configuration. The error message now names the projects that
+  reference the store.
+- Adds a ``tlsDisableCertificateRevocationCheck`` option for
+  backup agent connections, working around a Go TLS OCSP parser
+  defect that rejected valid stapled responses from certain PKI
+  responders.
+- Updates the bundled {+mongosh+} version to 2.10.0.
+- Upgrades the bundled Node.js version from 22 to 24 on the v8.0
+  branch.
+- Supports RHEL 10 on x86_64 and ARM64 architectures for the
+  {+mdbagent+}.
+- Adds support for the |bic-full| 2.14.31. The |bic-short-no-link| is
+  deprecated and reached end of life on September 30, 2026.
+
+  - |onprem| no longer supports adding new |bic-short-no-link|
+    instances.
+  - Your existing |bic-short-no-link| instances remain available and
+    manageable.
+
+  MongoDB recommends using the :ref:`SQL Interface
+  <connect-with-sql-overview>` instead. To learn more, see
+  :ref:`manage-bi-connector`.
+
+Bug Fixes
+~~~~~~~~~
+
+- Corrects the WTCheckpoint 429 backpressure log message to
+  report available leases, pool size, and per-request demand as
+  separate numbers instead of presenting the request batch count
+  as the free-thread count.
+- Fixes a race condition where cancelling an in-progress
+  automated restore while the mongod is in read-only mode could
+  leave the deployment unrecoverable because the automation
+  agent failed to write to the local database.
+- Fixes a leak in the backup daemon where a ``MongoClient`` and
+  its background monitor thread aren't closed when a
+  queryable-restore mongod exits before the startup socket probe
+  succeeds, causing stale TLS certificate validation errors
+  against later jobs that reuse the same port.
+- Redacts backup restore credentials (verification key, restore
+  URLs, job ID) from the project-member-visible automation
+  config, preventing the lowest-privilege project role from
+  reading them.
+- Fixes a vulnerability where backup admin responses returned
+  the OIDC client secret in plaintext and wrote it into
+  diagnostic archives. The secret is now redacted on all read
+  paths.
+- Fixes a DOM-based cross-site scripting vulnerability in the
+  backup admin job log view where an unvalidated job ID in the
+  URL could execute arbitrary JavaScript in an administrator's
+  session.
+- Fixes a stored-request rerouting vulnerability in the
+  automated restore cancel flow where a crafted restore-target
+  name containing path-traversal segments could redirect an
+  authenticated DELETE to an attacker-chosen same-origin path.
+- Fixes a path-traversal vulnerability in the filesystem snapshot
+  store's purge and groom paths where a crafted replica-set name
+  could cause cross-tenant data destruction. Rejects traversal
+  names at ingestion and enforces containment checks before
+  deletion.
+- Fixes an unbounded ``applyOps`` recursion vulnerability in
+  oplog replay where a crafted nested oplog record could
+  crash-loop the shared backup daemon. Caps nesting depth and
+  fails the job with a resync instead of killing the daemon.
+- Fixes a pre-authentication resource exhaustion vulnerability in
+  the queryable-backup proxy where stalled TLS handshakes could
+  spawn unbounded threads. A configurable handshake timeout and
+  a connection semaphore now bound pending connections.
+- Fixes a denial-of-service vulnerability in the backup pricing
+  estimate endpoint where a zero or negative interval in a
+  schedule parameter could cause an infinite loop, pinning web
+  worker threads and denying service to all tenants.
+- Fixes a persistent heap-exhaustion vulnerability in the backup
+  agent session endpoint where unlimited session documents could
+  be created per group. Session count is now capped, reads are
+  bounded, and input values are validated.
+- Encodes backup job identifiers in {+admin-api+} request paths,
+  preventing a crafted replica-set name from retargeting an
+  admin PUT request to a different endpoint.
+- Fixes a privilege escalation vulnerability where an at-sign in
+  a role name could be exploited in the MongoDB user editor.
+- Fixes an arbitrary code execution vulnerability where a
+  shell-interpolated ``dbPath`` in a storage-change backup copy
+  could be exploited.
+- Fixes a server-side template injection vulnerability by
+  improving webhook alert template security for user-supplied
+  webhook FreeMarker templates.
+- Fixes an account takeover vulnerability where the password
+  reset token was leaked in the error response for an
+  empty-password login attempt.
+- Removes the password reset ``tempId`` from audit events,
+  preventing a read-only global administrator from extracting
+  live reset tokens from the audit feed.
+- Removes sensitive credential logging in ``DigestAuthenticator``,
+  which previously logged the full raw Authorization header and
+  MD5 response hash at DEBUG and INFO levels.
+- Stops logging decrypted slow-query log lines in Performance
+  Advisor. Log statements now use the redaction-safe
+  metadata-only format.
+- Fixes a cross-tenant write vulnerability through body-trusted
+  group IDs in legacy proxy batch ping endpoints by removing the
+  three unused Atlas MTM proxy ping endpoints from |onprem|.
+- Fixes a Server-Side Request Forgery (SSRF) vulnerability where
+  alert webhook URLs could target non-public addresses. Webhook
+  URLs are now validated to block requests to internal networks.
+- Enables HTTP Strict Transport Security (HSTS) enforcement by
+  setting ``mms.security.hstsMaxAgeSeconds`` to ``31536000``
+  (1 year) in the shipped configuration, correcting the previous
+  ``max-age=0`` that disabled HSTS.
+- Removes the legacy UI IP access list filter, an Atlas-only
+  feature that caused an unauthenticated heap exhaustion
+  vulnerability through unbounded request-body buffering.
+- Fixes the ``OplogSliceIntegrityCheckJobRunner`` worker thread
+  being misnamed as ``OplogPruneJob Worker`` when idle, which
+  caused confusion in thread dumps.
+- Upgrades ``js-yaml`` from 4.3.1 to 4.3.2 and from 3.15.1 to
+  3.15.2 to address a CPU exhaustion vulnerability through
+  empty-mapping merge keys.
+- Upgrades ``netty-handler`` (and family) from 4.1.136.Final to
+  4.1.137.Final to address an SNI routing bypass that could
+  escalate to an mTLS bypass, and a medium-severity TLS handling
+  issue.
+- Upgrades ``fast-uri`` from 3.1.5 to 3.1.6 to address multiple
+  URI parsing vulnerabilities that could allow authority
+  injection and header injection through percent-encoded scheme
+  components.
+- Upgrades ``browserslist`` to 4.28.7 to address prototype
+  pollution and unbounded cache memory consumption
+  vulnerabilities.
+- Upgrades ``svgo`` from 3.3.4 to 3.3.5 to address cross-site
+  scripting through unremoved executable HTML content inside
+  SVG ``foreignObject`` elements.
+- Upgrades ``bc-fips`` from 1.0.2.6 to 1.0.2.7, ``bcpg-fips``
+  from 1.0.7.1 to 1.0.13, and ``bcpkix-fips`` from 1.0.8 to
+  1.0.12 to address multiple Bouncy Castle FIPS vulnerabilities.
+- Upgrades ``grpc-go`` to address a server panic caused by
+  missing ``:authority`` and ``Host`` headers, and a memory
+  exhaustion vulnerability through fragmented HTTP/2 DATA
+  frames.
+- Upgrades the MongoDB Go Driver to address a heap
+  out-of-bounds read in the GSSAPI (Kerberos) CGo bindings.
+- Migrates to Cypress 16 and drops the ``extract-zip``
+  dependency to remove a symlink path-traversal vulnerability in
+  ``extract-zip@2.0.1``, for which no upstream fix exists.
+- Upgrades ``less`` from 4.1.3 to 4.7.0 to drop the vulnerable
+  ``image-size@0.5.5`` dependency, which was susceptible to a
+  denial-of-service infinite loop when parsing crafted images.
+- Fixes the following |cve|\s:
+
+  - `CVE-2026-84375 <https://nvd.nist.gov/vuln/detail/CVE-2026-84375>`__
+  - `CVE-2026-75595 <https://nvd.nist.gov/vuln/detail/CVE-2026-75595>`__
+  - `CVE-2026-75596 <https://nvd.nist.gov/vuln/detail/CVE-2026-75596>`__
+  - `GHSA-fccg-mwvh-qqg4 <https://github.com/advisories/GHSA-fccg-mwvh-qqg4>`__
+  - `CVE-2026-75975 <https://nvd.nist.gov/vuln/detail/CVE-2026-75975>`__
+  - `CVE-2026-75931 <https://nvd.nist.gov/vuln/detail/CVE-2026-75931>`__
+  - `CVE-2026-75899 <https://nvd.nist.gov/vuln/detail/CVE-2026-75899>`__
+  - `CVE-2026-76172 <https://nvd.nist.gov/vuln/detail/CVE-2026-76172>`__
+  - `CVE-2026-73088 <https://nvd.nist.gov/vuln/detail/CVE-2026-73088>`__
+  - `CVE-2026-73089 <https://nvd.nist.gov/vuln/detail/CVE-2026-73089>`__
+  - `CVE-2026-84370 <https://nvd.nist.gov/vuln/detail/CVE-2026-84370>`__
+  - `CVE-2026-84369 <https://nvd.nist.gov/vuln/detail/CVE-2026-84369>`__
+  - `CVE-2026-13506 <https://nvd.nist.gov/vuln/detail/CVE-2026-13506>`__
+  - `CVE-2026-13586 <https://nvd.nist.gov/vuln/detail/CVE-2026-13586>`__
+  - `CVE-2026-14682 <https://nvd.nist.gov/vuln/detail/CVE-2026-14682>`__
+  - `CVE-2026-58059 <https://nvd.nist.gov/vuln/detail/CVE-2026-58059>`__
+  - `CVE-2026-58061 <https://nvd.nist.gov/vuln/detail/CVE-2026-58061>`__
+  - `CVE-2026-58063 <https://nvd.nist.gov/vuln/detail/CVE-2026-58063>`__
+  - `CVE-2026-8763 <https://nvd.nist.gov/vuln/detail/CVE-2026-8763>`__
+  - `CVE-2026-12817 <https://nvd.nist.gov/vuln/detail/CVE-2026-12817>`__
+  - `CVE-2026-59640 <https://nvd.nist.gov/vuln/detail/CVE-2026-59640>`__
+  - `CVE-2026-59648 <https://nvd.nist.gov/vuln/detail/CVE-2026-59648>`__
+  - `CVE-2026-59649 <https://nvd.nist.gov/vuln/detail/CVE-2026-59649>`__
+  - `CVE-2026-59642 <https://nvd.nist.gov/vuln/detail/CVE-2026-59642>`__
+  - `CVE-2026-59647 <https://nvd.nist.gov/vuln/detail/CVE-2026-59647>`__
+  - `CVE-2026-12802 <https://nvd.nist.gov/vuln/detail/CVE-2026-12802>`__
+  - `CVE-2026-15055 <https://nvd.nist.gov/vuln/detail/CVE-2026-15055>`__
+  - `CVE-2026-59639 <https://nvd.nist.gov/vuln/detail/CVE-2026-59639>`__
+  - `CVE-2026-84445 <https://nvd.nist.gov/vuln/detail/CVE-2026-84445>`__
+  - `CVE-2026-84304 <https://nvd.nist.gov/vuln/detail/CVE-2026-84304>`__
+  - `CVE-2026-2303 <https://nvd.nist.gov/vuln/detail/CVE-2026-2303>`__
+  - `CVE-2026-56876 <https://nvd.nist.gov/vuln/detail/CVE-2026-56876>`__
+  - `GHSA-7pqw-9j4j-h8q3 <https://github.com/advisories/GHSA-7pqw-9j4j-h8q3>`__
+  - `CVE-2025-71329 <https://nvd.nist.gov/vuln/detail/CVE-2025-71329>`__
+  - `CVE-2025-71330 <https://nvd.nist.gov/vuln/detail/CVE-2025-71330>`__
+
 .. _opsmgr-server-8.0.26:
 
 |onprem| Server 8.0.26

@@ -47,9 +47,17 @@ Improvements
   branch.
 - Supports RHEL 10 on x86_64 and ARM64 architectures for the
   {+mdbagent+}.
-- Adds support for the MongoDB Connector for BI 2.14.31.
-  Existing BI Connectors remain available and manageable, but
-  Ops Manager no longer supports adding new ones.
+- Adds support for the |bic-full| 2.14.31. The |bic-short-no-link| is
+  deprecated and reached end of life on September 30, 2026.
+
+  - |onprem| no longer supports adding new |bic-short-no-link|
+    instances.
+  - Your existing |bic-short-no-link| instances remain available and
+    manageable.
+
+  MongoDB recommends using the :ref:`SQL Interface
+  <connect-with-sql-overview>` instead. To learn more, see
+  :ref:`manage-bi-connector`.
 
 Bug Fixes
 ~~~~~~~~~
