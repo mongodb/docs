@@ -1,8 +1,7 @@
-import { parseBooleanEnv } from '@/utils/parse-boolean-env';
-
-const EAI_SERVER_BASE_URL = parseBooleanEnv(process.env.NEXT_PUBLIC_IS_PROD)
-  ? 'https://knowledge.mongodb.com/api/v1'
-  : 'https://knowledge-dev.mongodb.com/api/v1';
+const EAI_SERVER_BASE_URL =
+  process.env.NEXT_PUBLIC_IS_PROD === 'false'
+    ? 'https://knowledge-dev.mongodb.com/api/v1'
+    : 'https://knowledge.mongodb.com/api/v1';
 
 export type RelatedLink = {
   title: string;

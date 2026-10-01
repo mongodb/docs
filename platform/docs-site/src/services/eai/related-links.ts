@@ -2,9 +2,9 @@ import type { Environments } from '@/utils/env-config';
 
 const env = process.env.NEXT_PUBLIC_ENV as Environments;
 
-const EAI_SERVER_BASE_URL = ['dotcomprd', 'production'].includes(env)
-  ? 'https://knowledge.mongodb.com/api/v1'
-  : 'https://knowledge-dev.mongodb.com/api/v1';
+const EAI_SERVER_BASE_URL = ['dotcomstg', 'staging', 'development'].includes(env)
+  ? 'https://knowledge-dev.mongodb.com/api/v1'
+  : 'https://knowledge.mongodb.com/api/v1';
 
 export type RelatedLink = {
   title: string;

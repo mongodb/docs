@@ -27,9 +27,9 @@ const ActionsContainer = () => {
   const { setChatbotClicked } = useChatbotModal();
   const env = process.env.NEXT_PUBLIC_ENV as Environments;
 
-  const CHATBOT_SERVER_BASE_URL = ['dotcomprd', 'production'].includes(env)
-    ? 'https://knowledge.mongodb.com/api/v1'
-    : 'https://knowledge-dev.mongodb.com/api/v1';
+  const CHATBOT_SERVER_BASE_URL = ['dotcomstg', 'staging', 'development'].includes(env)
+    ? 'https://knowledge-dev.mongodb.com/api/v1'
+    : 'https://knowledge.mongodb.com/api/v1';
 
   const openChatbot = () => {
     reportAnalytics('CTA Click', {

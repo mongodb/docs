@@ -24,12 +24,12 @@ export const getFeedbackDbName = (env: SnootyEnv) => {
     case 'dotcomstg':
     case 'staging':
       return 'feedback_stage';
+    case 'development':
+      return 'feedback_test';
     case 'production':
     case 'dotcomprd':
-      return 'feedback_prod';
-    case 'development':
     default:
-      return 'feedback_test';
+      return 'feedback_prod';
   }
 };
 
