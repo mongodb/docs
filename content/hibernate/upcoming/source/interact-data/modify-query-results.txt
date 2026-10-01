@@ -16,12 +16,12 @@ Modify Query Results
  
 .. meta::
    :keywords: code examples, read, search, cursor
-   :description: Learn how to sort, skip, and limit the results of a query by using methods or clauses in the {+extension-long+}.
+   :description: Learn how to sort, skip, limit, and group the results of a query by using methods or clauses in the {+extension-long+}.
 
 Overview
 --------
 
-In this guide, you can learn how to sort, skip, and limit the results of a query by using the {+extension-long+}. 
+In this guide, you can learn how to sort, skip, limit, and group the results of a query by using the {+extension-long+}.
 
 .. _hibernate-query-sort:
 
@@ -199,6 +199,261 @@ in the following code:
          :end-before: end-limit-clause-em
          :language: java
          :dedent:
+
+.. _hibernate-query-group:
+
+Group Results
+-------------
+
+You can collapse documents that share a value into a single
+result row by using the ``group by`` clause in your query statement.
+The {+extension-short+} translates the ``group by`` clause to a
+MongoDB :manual:`$group </reference/operator/aggregation/group>`
+stage, in which each grouping key becomes a sub-field of the ``_id``
+field.
+
+.. important:: Grouping Key Requirement
+
+   Every field that you reference in the ``select``, ``having``, or
+   ``order by`` clause of a grouped query must be a grouping key or
+   part of one. If you reference a field that the ``$group`` stage
+   does not produce, the {+extension-short+} throws a
+   ``FeatureNotSupportedException``.
+
+   A grouped query also cannot use the ``distinct`` keyword.
+
+.. _hibernate-query-group-fields:
+
+Group by Field Values
+~~~~~~~~~~~~~~~~~~~~~
+
+To group results by the value of one or more fields, list the fields
+in the ``group by`` clause. To group by multiple fields, separate the
+field names with commas.
+
+This example performs the following operations:
+
+- Retrieves documents that have a ``title`` value of ``"Hairspray"`` from the ``sample_mflix.movies`` collection.
+- Groups the movies by the ``year`` field, which returns one row for each distinct release year.
+- Sorts the results by their ``year`` values in ascending order. 
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-group-session
+            :end-before: end-group-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Year: 1988
+            Year: 2007
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-group-em
+            :end-before: end-group-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Year: 1988
+            Year: 2007
+
+The {+extension-short+} translates this query to the
+following pipeline. The ``where`` clause becomes a ``$match`` stage
+that runs before the grouping. The ``order by`` clause becomes a
+``$sort`` stage that sorts on the grouping key:
+
+.. code-block:: json
+   :copyable: false
+
+   [
+     { "$match": { "title": { "$eq": "Hairspray" } } },
+     { "$group": { "_id": { "year": "$year" } } },
+     { "$sort": { "_id.year": 1 } },
+     { "$project": { "_id#year": "$_id.year", "_id": 0 } }
+   ]
+
+.. _hibernate-query-group-expression:
+
+Group by a Computed Expression
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A grouping key can be a computed expression instead of a field
+reference. The {+extension-short+} stores the expression in a
+generated ``_id`` sub-field named ``k<n>``. When you write the same
+expression in the ``select`` or ``having`` clause, the
+{+extension-short+} resolves it to that sub-field rather than
+recomputing it.
+
+The {+extension-short+} matches an expression to a grouping key only
+when you write the two identically. For example, a key of
+``year + 1`` does not match an occurrence of ``1 + year``.
+
+You can also order by a computed expression key. Write the expression
+in the ``order by`` clause exactly as you write it in the ``group by``
+clause.
+
+The following example groups documents that have a ``title`` of ``"Hairspray"`` 
+by the decade in which they were released and sorts the results in ascending order:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-group-expression-session
+            :end-before: end-group-expression-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Decade: 1980
+            Decade: 2000
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-group-expression-em
+            :end-before: end-group-expression-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Decade: 1980
+            Decade: 2000
+
+The {+extension-short+} translates this query to the
+following pipeline, in which the ``$sort`` and ``$project`` stages
+read the grouping key from ``_id.k0`` instead of recomputing the
+expression:
+
+.. code-block:: json
+   :copyable: false
+
+   [
+     { "$match": { "title": { "$eq": "Hairspray" } } },
+     {
+       "$group": {
+         "_id": {
+           "k0": {
+             "$multiply": [
+               { "$toInt": { "$divide": [ "$year", 10 ] } },
+               10
+             ]
+           }
+         }
+       }
+     },
+     { "$sort": { "_id.k0": 1 } },
+     { "$project": { "#c_1": "$_id.k0", "_id": 0 } }
+   ]
+
+You can also select a computed expression that contains a grouping
+key. In this case, the {+extension-short+} groups by the key and
+computes the expression from the key in the ``$project`` stage.
+
+To learn more about computed expressions, see the
+:ref:`hibernate-query-expressions` section in the Specify a Query
+guide.
+
+.. _hibernate-query-group-having:
+
+Filter Grouped Results
+~~~~~~~~~~~~~~~~~~~~~~
+
+To remove groups from the results, use the ``having`` clause. The
+{+extension-short+} uses the ``having`` clause to filter on the grouping
+key. You can combine multiple conditions by using the ``and`` and
+``or`` operators.
+
+This example performs the following operations:
+
+- Retrieves the ``"Hairspray"`` movies from the ``sample_mflix.movies`` collection.
+- Groups the movies by the ``year`` field, which returns one row for each distinct release year.
+- Filters the groups to only include ``year`` values greater than ``2000``.
+- Sorts the results by year in ascending order. 
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-group-having-session
+            :end-before: end-group-having-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Year: 2007
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-group-having-em
+            :end-before: end-group-having-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Year: 2007
+
+The {+extension-short+} translates this query to the
+following pipeline. The ``where`` clause becomes a ``$match`` stage
+that runs before the grouping. The ``having`` clause becomes a
+second ``$match`` stage that runs after the grouping and filters on the
+grouping key:
+
+.. code-block:: json
+   :copyable: false
+
+   [
+     { "$match": { "title": { "$eq": "Hairspray" } } },
+     { "$group": { "_id": { "year": "$year" } } },
+     { "$match": { "_id.year": { "$gt": 2000 } } },
+     { "$sort": { "_id.year": 1 } },
+     { "$project": { "_id#year": "$_id.year", "_id": 0 } }
+   ]
 
 Additional Information
 ----------------------

@@ -700,6 +700,78 @@ public class Query {
             System.out.println("Year: " + row[0] + ", Count: " + row[1] + ", Total runtime: " + row[2]);
         }
         // end-aggregate-group-by-em
+        
+        // Groups the "Hairspray" movies by the "year" field using a session
+        // start-group-session
+        var groupResult = session.createQuery(
+                        "select year from Movie where title = :title group by year order by year",
+                        Integer.class)
+                .setParameter("title", "Hairspray")
+                .getResultList();
+        for (var year : groupResult) {
+            System.out.println("Year: " + year);
+        }
+        // end-group-session
+
+        // Groups the "Hairspray" movies by the "year" field using an entity manager
+        // start-group-em
+        var groupResult = entityManager.createQuery(
+                        "select m.year from Movie m where m.title = :title group by m.year order by m.year",
+                        Integer.class)
+                .setParameter("title", "Hairspray")
+                .getResultList();
+        for (var year : groupResult) {
+            System.out.println("Year: " + year);
+        }
+        // end-group-em
+
+        // Groups the "Hairspray" movies by a computed decade value using a session
+        // start-group-expression-session
+        var groupExpressionResult = session.createQuery(
+                        "select year / 10 * 10 from Movie where title = :title group by year / 10 * 10 order by year / 10 * 10",
+                        Integer.class)
+                .setParameter("title", "Hairspray")
+                .getResultList();
+        for (var decade : groupExpressionResult) {
+            System.out.println("Decade: " + decade);
+        }
+        // end-group-expression-session
+
+        // Groups the "Hairspray" movies by a computed decade value using an entity manager
+        // start-group-expression-em
+        var groupExpressionResult = entityManager.createQuery(
+                        "select m.year / 10 * 10 from Movie m where m.title = :title group by m.year / 10 * 10 order by m.year / 10 * 10",
+                        Integer.class)
+                .setParameter("title", "Hairspray")
+                .getResultList();
+        for (var decade : groupExpressionResult) {
+            System.out.println("Decade: " + decade);
+        }
+        // end-group-expression-em
+
+        // Returns only the groups that represent a year after 2000 using a session
+        // start-group-having-session
+        var havingResult = session.createQuery(
+                        "select year from Movie where title = :title group by year having year > 2000 order by year",
+                        Integer.class)
+                .setParameter("title", "Hairspray")
+                .getResultList();
+        for (var year : havingResult) {
+            System.out.println("Year: " + year);
+        }
+        // end-group-having-session
+
+        // Returns only the groups that represent a year after 2000 using an entity manager
+        // start-group-having-em
+        var havingResult = entityManager.createQuery(
+                        "select m.year from Movie m where m.title = :title group by m.year having m.year > 2000 order by m.year",
+                        Integer.class)
+                .setParameter("title", "Hairspray")
+                .getResultList();
+        for (var year : havingResult) {
+            System.out.println("Year: " + year);
+        }
+        // end-group-having-em
 
         entityManager.getTransaction().commit();
         entityManager.close(); 
