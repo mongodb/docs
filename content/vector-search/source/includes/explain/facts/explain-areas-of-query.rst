@@ -12,21 +12,16 @@ Statistics are available for the following areas of query:
        are two tasks whose invocation counts are enumerated in this 
        area: 
       
-       .. list-table:: 
-          :widths: 20 80 
+       - ``createScorer``: Scorer iterates over documents and
+         generates a score for each document. Invocations of
+         ``createScorer`` create the object responsible for scoring.
+         Note that time associated with this task is not time spent
+         actually scoring documents. Count includes the number of
+         ``scorerSupplier`` invocations.
 
-          * - ``createScorer``
-            - Scorer iterates over documents and generates a score for 
-              each document. Invocations of ``createScorer`` create the 
-              object responsible for scoring. Note that time associated 
-              with this task is not time spent actually scoring 
-              documents. Count includes the number of 
-              ``scorerSupplier`` invocations.
-
-          * - ``createWeight``
-            - Weight stores state associated with a query and 
-              ``IndexSearcher``. Count includes the number of 
-              ``createWeight`` invocations.
+       - ``createWeight``: Weight stores state associated with a query
+         and ``IndexSearcher``. Count includes the number of
+         ``createWeight`` invocations.
       
        The |timing-ref| spent in this area is related 
        to the structure of the query, and is not based on the number of 
@@ -53,23 +48,19 @@ Statistics are available for the following areas of query:
        There are two tasks whose invocation counts are enumerated in 
        this area: 
 
-       .. list-table:: 
-          :widths: 20 80 
+       - ``nextDoc``: Requests to advance to the next document of the
+         result set. This involves identifying and moving past skips,
+         or other tasks necessary to find the next match. Count
+         includes the number of ``nextDoc`` and ``advance``
+         invocations.
 
-          * - ``nextDoc`` 
-            - Requests to advance to the next document of the result 
-              set. This involves identifying and moving past skips, or 
-              other tasks necessary to find the next match. Count 
-              includes the number of ``nextDoc`` and ``advance`` 
-              invocations.
-
-          * - ``refineRoughMatch`` 
-            - Performs a more thorough match. Some queries execute in a 
-              two-phase process where a document is first "roughly" 
-              matched, and is checked with a second, more thorough 
-              phase only after satisfying the first rough match. The 
-              ``refineRoughMatch`` task is the second phase of the 
-              two-phase process. Count includes the number of ``refineRoughMatch`` invocations.
+       - ``refineRoughMatch``: Performs a more thorough match. Some
+         queries execute in a two-phase process where a document is
+         first "roughly" matched, and is checked with a second, more
+         thorough phase only after satisfying the first rough match.
+         The ``refineRoughMatch`` task is the second phase of the
+         two-phase process. Count includes the number of
+         ``refineRoughMatch`` invocations.
 
        For example: 
 
@@ -89,20 +80,15 @@ Statistics are available for the following areas of query:
        are two tasks whose invocation counts are enumerated in this 
        area:
 
-       .. list-table:: 
-          :widths: 20 80 
+       - ``score``: Scores each document in the result set. Count
+         includes the number of ``score`` invocations.
 
-          * - ``score``
-            - Scores each document in the result set. Count includes 
-              the number of ``score`` invocations.
-
-          * - ``setMinCompetitiveScore``
-            - Ignores documents whose score is less than the given 
-              value. Indicates that a query may have been able to 
-              reduce the number of scoring operations performed by 
-              ignoring documents with scores below some uncompetitive 
-              threshold. Count includes the number of 
-              ``setMinCompetitiveScore`` invocations.
+       - ``setMinCompetitiveScore``: Ignores documents whose score is
+         less than the given value. Indicates that a query may have
+         been able to reduce the number of scoring operations
+         performed by ignoring documents with scores below some
+         uncompetitive threshold. Count includes the number of
+         ``setMinCompetitiveScore`` invocations.
 
        For example: 
 
