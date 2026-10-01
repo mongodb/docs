@@ -6,25 +6,18 @@ an `Olson Timezone Identifier
 `UTC Offset <https://en.wikipedia.org/wiki/List_of_UTC_time_offsets>`_.
 If no ``timezone`` is provided, the result is in UTC.
 
-.. list-table::
-   :header-rows: 1
-   :widths: 30 70
+- ``Olson Timezone Identifier``:
 
-   * - Format
-     - Examples
+  .. code-block:: none
 
-   * - ``Olson Timezone Identifier``
+     "America/New_York"
+     "Europe/London"
+     "GMT"
 
-     - .. code-block:: none
+- ``UTC Offset``:
 
-         "America/New_York"
-         "Europe/London"
-         "GMT"
+  .. code-block:: none
 
-   * - ``UTC Offset``
-
-     - .. code-block:: none
-
-         +/-[hh]:[mm], e.g. "+04:45"
-         +/-[hh][mm], e.g. "-0530"
-         +/-[hh], e.g. "+03"
+     +/-[hh]:[mm], e.g. "+04:45"
+     +/-[hh][mm], e.g. "-0530"
+     +/-[hh], e.g. "+03"
