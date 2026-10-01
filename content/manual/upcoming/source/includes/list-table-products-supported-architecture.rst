@@ -17,13 +17,6 @@ version of MongoDB products:
      - MongoDB Enterprise only
      - |checkmark|
 
-
-   * - :bic:`BI Connector </>`
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - 
-
    * - :compass:`Compass </>`
      - |checkmark|
      -

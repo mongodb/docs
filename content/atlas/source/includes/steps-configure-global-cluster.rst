@@ -341,7 +341,6 @@
       
       - :ref:`create-cluster-version`
       - :ref:`create-cluster-backups`
-      - :ref:`create-cluster-enable-bi`
       - :ref:`create-cluster-enable-encryption`
       - :ref:`create-cluster-more-configuration-options`
       
