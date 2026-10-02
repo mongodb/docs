@@ -7,9 +7,8 @@
 .. default-domain:: mongodb
 
 .. meta::
-   :keywords: atlas stream processing, tiers, tier size, tier selection
-   :description: Learn how to determine which Atlas Stream Processing
-                 tiers best suit your stream processors.
+   :keywords: atlas stream processing, tiers, tier size, tier selection, parallelism
+   :description: Learn how to determine which Atlas Stream Processing tiers best suit your stream processors, including how parallelism and Kafka source partition limits affect tier selection.
 
 .. contents:: On this page
    :local:
@@ -29,7 +28,7 @@ Resource Allocation
 -------------------
 
 Each tier provides a fixed allocation of processing power, memory,
-bandwidth, parallelism, and—in the case of processors with {+kafka+}
+bandwidth, parallelism, and—for processors with {+kafka+}
 sources—partitions.
 
 .. list-table::
@@ -84,6 +83,95 @@ sources—partitions.
      - Unlimited
      - 50
 
+.. _atlas-sp-tier-guide-parallelism:
+
+Parallelism
+-----------
+
+Parallelism determines how many threads or concurrent requests a
+stream processor can use to read, enrich, and write data. You
+configure parallelism on individual pipeline stages, but {+atlas-sp+}
+enforces it across the processor as a whole against the maximum for
+the processor's tier shown in the preceding table.
+
+.. _atlas-sp-tier-guide-parallelism-stages:
+
+Stages That Support Parallelism
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following stages accept a ``parallelism`` value. Each defaults to
+``1``.
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Stage
+     - Effect of Higher Values
+
+   * - :pipeline:`$source`
+     - The ``initialSync.parallelism`` field sets the parallelism of
+       the ``initialSync`` operation. If ``coll`` names more than one
+       collection, the value applies to the collection list as a whole
+       rather than to each collection.
+
+   * - :ref:`$lookup <atlas-sp-agg-lookup>`
+     - Increases the maximum number of parallel requests made to the
+       ``$lookup`` target, which can increase throughput but also uses
+       more resources on the target {+cluster+}. Must be an integer
+       between ``1`` and ``64``.
+
+   * - :ref:`$merge <atlas-sp-agg-merge>`
+     - Increases the number of threads across which {+atlas-sp+}
+       distributes write operations, which requires both the stream
+       processor and the {+cluster+} it writes to use more
+       computational resources.
+
+   * - :ref:`$emit <atlas-sp-agg-emit>`
+     - Increases the number of internal write threads that the sink
+       operator uses, distributing write operations across those
+       threads. For sinks that support the ``partitionBy`` field, the
+       hash of that expression determines which thread processes each
+       document.
+
+   * - :ref:`$externalFunction <atlas-sp-agg-external-function>`
+     - Increases the maximum number of parallel requests made to the
+       external function, which requires more computational resources.
+
+.. _atlas-sp-tier-guide-parallelism-cumulative:
+
+Cumulative Parallelism
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/atlas-stream-processing/atlas-sp-max-parallel.rst
+
+.. _atlas-sp-tier-guide-parallelism-partitions:
+
+Kafka Source Partitions
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Processors that read from {+kafka+} are also bound by the source
+partition limit of their tier. The SP2 tier limits a processor to 32
+source partitions and the SP5 tier limits a processor to 64. The SP10
+tier and above impose no partition limit.
+
+A processor that exceeds the partition limit of its tier fails, and
+you must scale it up to support the additional partitions.
+Because a topic can gain partitions while a processor runs, choose a
+tier with headroom for the partition growth you anticipate. To learn
+more about Kafka source behavior, see :ref:`<atlas-sp-limitations>`.
+
+.. _atlas-sp-tier-guide-parallelism-monitor:
+
+Monitor Configured Parallelism
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To compare the parallelism you configured against the parallelism
+available to your processor's tier, use the ``stats.addedParallelism``
+field that :ref:`processor statistics <atlas-sp-stats-output-fields>`
+return. {+atlas-sp+} returns this field only if at least one stage
+sets a ``parallelism`` value greater than ``1``.
+
 .. _atlas-sp-tier-guide-workload:
 
 Workload Selection
@@ -102,7 +190,7 @@ different stages and scales of project.
    * - SP2
      - *Development, Trial Deployment*
 
-       The lowest-cost option, capable of supporting simple workloads with
+       The lowest-cost option, capable of supporting basic workloads with
        limited resource requirements.
 
    * - SP5
@@ -125,7 +213,7 @@ different stages and scales of project.
      - *Complex Production Deployment*
 
        A high-performance option designed for memory-intensive
-       stateul operations. SP30 supports pipelines that use
+       stateful operations. SP30 supports pipelines that use
        long-duration windows, multiple lookups, and stages that
        require large RAM buffers for data enrichment at scale.
 
@@ -150,10 +238,10 @@ Initialization Surge
 ~~~~~~~~~~~~~~~~~~~~
 
 A stream processor might require more resources during its initial run
-than during regular operations. For example, if the processor performs
-an ``initialSync`` against a large {+service+} collection, that
-processor needs to support heavy I/O and computation for the duration
-of the synchronization.
+than during regular operations. For example, a processor that performs
+an ``initialSync`` against a large {+service+} collection needs to
+support heavy I/O and computation for the duration of the
+synchronization.
 
 To absorb such elevated demand, select a higher tier temporarily, and
 scale the processor down when the synchronization is complete and the
@@ -174,7 +262,7 @@ consumption.
 - *Compounding Complexity*: Additional stateful or computationally complex stages
    introduce more potential variation in resource demand. Maintaining
    surplus capacity ensures consistent throughput even during
-   consuption spikes.
+   consumption spikes.
 
 .. _atlas-sp-tier-guide-infrastructure:
 
@@ -193,7 +281,7 @@ processor's overhead.
 - *Coordination*: In complex deployments orchestrating many sources
    and sinks, stream processors can serve as hubs that route the flow
    of data between each of these nodes. Such processors benefit from
-   the higher throughput of the SP30 an SP50 tiers.
+   the higher throughput of the SP30 and SP50 tiers.
 
 Conversely, high-throughput stream processing workloads can increase
 demand on connected resources.
@@ -213,7 +301,7 @@ Performance and Latency
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 Performance goals may require a higher-tier processor even when the
-processing logic is simple.
+processing logic is minimal.
 
 - *High Throughput*: Higher-tier processors better support streams
    that produce events at a high rate.
