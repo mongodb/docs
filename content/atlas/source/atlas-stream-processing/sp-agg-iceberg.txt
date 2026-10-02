@@ -7,8 +7,8 @@
 .. default-domain:: mongodb
 
 .. meta::
-   :keywords: atlas stream processing, $iceberg aggregation pipeline stage 
-   :description: Use the $iceberg aggregation stage in Atlas Stream Processing to write processed stream data Apache Iceberg tables on AWS S3 buckets.
+   :keywords: atlas stream processing, $iceberg aggregation pipeline stage, code example
+   :description: Use the $iceberg aggregation stage in Atlas Stream Processing to write processed stream data to Apache Iceberg tables in AWS S3 buckets, with inferred table schemas.
 
 .. facet::
    :name: genre
@@ -62,6 +62,9 @@ The ``$iceberg`` pipeline stage has the following prototype form:
        },
        "catalog": {
          "type": "hadoop" | "glue"
+       },
+       "schemaInference": {
+         "mode": "json" | "nested"
        }
      }
    }
@@ -147,6 +150,11 @@ The ``$iceberg`` stage takes a document with the following fields:
        transform to use. The first partition transform must be against
        ``idFieldName``.
 
+       To partition on a field nested inside a ``struct`` column,
+       specify the dot-qualified path to the field, for example
+       ``outer.inner.key_field``. The path can't include a ``list``
+       column at any level.
+
        The partition transform value of a given field must be one of
        the following:
 
@@ -169,6 +177,22 @@ The ``$iceberg`` stage takes a document with the following fields:
        <https://iceberg.apache.org/docs/latest/catalog-properties>`__
        to use. Must be a document containing the ``type`` field with a
        value of either ``"hadoop"`` or ``"glue"``.
+
+   * - ``schemaInference``
+     - document
+     - Optional
+     - Document that configures how ``$iceberg`` infers the table
+       schema. Must be a document containing the ``mode`` field with
+       one of the following values:
+
+       - ``"json"`` causes {+atlas-sp+} to write ``object`` and
+         ``array`` fields as JSON string columns.
+       - ``"nested"`` causes {+atlas-sp+} to write ``object`` fields
+         as ``struct`` columns and ``array`` fields as ``list``
+         columns.
+
+       Defaults to ``"json"``. To learn more, see
+       :ref:`atlas-sp-agg-iceberg-conversion`.
 
 .. _atlas-sp-agg-iceberg-behavior:
 
@@ -207,8 +231,8 @@ determines the maximum number of tables supported for dynamic routing:
 
 The ``$iceberg`` stage infers the schema of the resulting {+iceberg+}
 table from the schema of the stream processor's output data. As
-{+atlas-sp+} observes new fields in the stream, the table schema
-evolves accordingly.
+{+atlas-sp+} observes new fields in the stream, including fields
+within ``struct`` columns, the table schema evolves accordingly.
 
 If you specify a table that doesn't already exist, {+iceberg+}
 creates the table when it receives the first message that targets it.
@@ -290,15 +314,58 @@ tables in the ``$iceberg`` stage.
      - UTC time, measure to the microsecond
 
    * - ``object``
-     - ``string``
-     - Serialized as a :ref:`Basic JSON <atlas-sp-agg-emit-basic-json>` string
+     - ``string`` or ``struct``
+     - Serialized as a :ref:`Basic JSON <atlas-sp-agg-emit-basic-json>`
+       string by default. In ``nested`` mode, becomes a ``struct``
+       column. To learn more, see
+       :ref:`atlas-sp-agg-iceberg-nested-types`.
 
    * - ``array``
-     - ``string``
-     - Serialized as a :ref:`Basic JSON <atlas-sp-agg-emit-basic-json>` string   
+     - ``string`` or ``list``
+     - Serialized as a :ref:`Basic JSON <atlas-sp-agg-emit-basic-json>`
+       string by default. In ``nested`` mode, becomes a ``list``
+       column. To learn more, see
+       :ref:`atlas-sp-agg-iceberg-nested-types`.
 
 Other BSON types are unsupported. {+atlas-sp+} sends documents with
 unsupported BSON types to the :ref:`DLQ <atlas-sp-dlq>`.
+
+.. _atlas-sp-agg-iceberg-nested-types:
+
+Object and Array Fields
+```````````````````````
+
+The ``schemaInference.mode`` field determines how {+atlas-sp+} writes
+``object`` and ``array`` fields to {+iceberg+} tables:
+
+- In ``json`` mode, {+atlas-sp+} serializes ``object`` and ``array``
+  fields as :ref:`Basic JSON <atlas-sp-agg-emit-basic-json>` strings
+  and writes them to ``string`` columns. ``json`` is the default mode.
+
+- In ``nested`` mode, {+atlas-sp+} infers `Iceberg nested types
+  <https://iceberg.apache.org/spec/#nested-types>`__ from ``object``
+  and ``array`` fields:
+
+  - Each ``object`` field becomes a ``struct`` column. {+atlas-sp+}
+    infers the type of each field in the struct from the corresponding
+    field in the object. This applies at every level of nesting.
+  - Each ``array`` field becomes a ``list`` column. {+atlas-sp+} infers
+    the list element type from the non-null elements of the array.
+    Primitive elements must all be the same type. If the elements are
+    objects, the element type is a ``struct`` that contains the fields
+    of all the objects.
+
+The mode applies only to fields that don't have a matching column in
+the target table. If the column already exists, {+atlas-sp+} ignores
+the mode and writes the field based on the column type:
+
+- If the column is a ``string``, {+atlas-sp+} serializes the field as a
+  :ref:`Basic JSON <atlas-sp-agg-emit-basic-json>` string.
+- If the column is a ``struct`` or ``list``, {+atlas-sp+} writes the
+  field as that nested type.
+
+If the input contains new ``object`` or ``array`` fields, {+atlas-sp+}
+uses the mode to infer the types of the new columns.
 
 .. _atlas-sp-agg-iceberg-example:
 
