@@ -16,12 +16,12 @@ function toJSON(object $document): string
 
 // Creates a GridFS bucket or references an existing one
 // start-create-bucket
-$bucket = $client->db->selectGridFSBucket();
+$bucket = $client->db->getGridFSBucket();
 // end-create-bucket
 
 // Creates or references a GridFS bucket with a custom name
 // start-create-custom-bucket
-$customBucket = $client->db->selectGridFSBucket(
+$customBucket = $client->db->getGridFSBucket(
     ['bucketName' => 'myCustomBucket'],
 );
 // end-create-custom-bucket
