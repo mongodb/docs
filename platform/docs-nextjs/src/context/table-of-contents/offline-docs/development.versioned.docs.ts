@@ -3391,48 +3391,37 @@ export const toc: L1TocItem[] = [
                       {
                         label: 'Enable',
                         contentSite: 'docs',
-                        collapsible: true,
                         url: '/docs/:version/core/queryable-encryption/overview-enable-qe',
-                        items: [
-                          {
-                            label: 'Install a Driver',
-                            contentSite: 'docs',
-                            url: '/docs/:version/core/queryable-encryption/install',
-                          },
-                          {
-                            label: 'Install and Configure a Query Analysis Component',
-                            contentSite: 'docs',
-                            url: '/docs/:version/core/queryable-encryption/install-library',
-                          },
-                          {
-                            label: 'Create a Customer Master Key',
-                            contentSite: 'docs',
-                            url: '/docs/:version/core/queryable-encryption/qe-create-cmk',
-                          },
-                          {
-                            label: 'Create an Application',
-                            contentSite: 'docs',
-                            url: '/docs/:version/core/queryable-encryption/qe-create-application',
-                          },
-                        ],
                       },
                       {
-                        label: 'Create & Query',
+                        label: 'Install a Driver',
                         contentSite: 'docs',
-                        collapsible: true,
-                        url: '/docs/:version/core/queryable-encryption/overview-use-qe',
-                        items: [
-                          {
-                            label: 'Create a Collection',
-                            contentSite: 'docs',
-                            url: '/docs/:version/core/queryable-encryption/qe-create-encrypted-collection',
-                          },
-                          {
-                            label: 'Query',
-                            contentSite: 'docs',
-                            url: '/docs/:version/core/queryable-encryption/qe-retrieve-encrypted-document',
-                          },
-                        ],
+                        url: '/docs/:version/core/queryable-encryption/install',
+                      },
+                      {
+                        label: 'Install and Configure a Query Analysis Component',
+                        contentSite: 'docs',
+                        url: '/docs/:version/core/queryable-encryption/install-library',
+                      },
+                      {
+                        label: 'Create a Customer Master Key',
+                        contentSite: 'docs',
+                        url: '/docs/:version/core/queryable-encryption/qe-create-cmk',
+                      },
+                      {
+                        label: 'Create an Application',
+                        contentSite: 'docs',
+                        url: '/docs/:version/core/queryable-encryption/qe-create-application',
+                      },
+                      {
+                        label: 'Create a Collection',
+                        contentSite: 'docs',
+                        url: '/docs/:version/core/queryable-encryption/qe-create-encrypted-collection',
+                      },
+                      {
+                        label: 'Query',
+                        contentSite: 'docs',
+                        url: '/docs/:version/core/queryable-encryption/qe-retrieve-encrypted-document',
                       },
                       {
                         label: 'Use Explicit Encryption',
