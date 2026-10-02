@@ -89,10 +89,25 @@ String` or :guilabel:`MongoClientSettings` tab to see the options available:
            </reference/glossary/#std-term-seed-list>`. You must use the
            :manual:`DNS Seed List Connection Format
            </reference/connection-string/#dns-seed-list-connection-format>` in
-           your :ref:`connection URI <connection-uri>` to use this option.  
-            
+           your :ref:`connection URI <connection-uri>` to use this option.
+
            *Default*: ``mongodb``
-    
+
+       * - ``srvAllowedHostsSuffix``
+         - string
+         - Specifies the domain suffix that the driver uses to validate
+           the host names returned by the SRV record lookup. When you
+           set this option, the driver validates host names against the
+           specified suffix instead of the domain inferred from the SRV
+           host name. If the value doesn't begin with a period (``.``),
+           the driver adds one.
+
+           You can use this option only with the ``mongodb+srv``
+           connection string format.
+
+           *Default*: ``null``. The driver validates host names against
+           the domain inferred from the SRV host name.
+
     This example connects the driver directly to a server,
     regardless of the type of MongoDB cluster it's a part of:
 
@@ -100,7 +115,18 @@ String` or :guilabel:`MongoClientSettings` tab to see the options available:
 
       ConnectionString connectionString = "mongodb://<host>:<port>/?directConnection=true"
       MongoClient mongoClient = MongoClients.create(connectionString)
-    
+
+    .. warning::
+
+       Changing the default SRV host name validation can create
+       security vulnerabilities, because it relaxes a built-in
+       safeguard against DNS spoofing. Specify the narrowest suffix
+       that covers the hosts in your deployment. For example, if your
+       SRV host name is ``cluster.test.internal.example.com``, set
+       ``srvAllowedHostsSuffix`` to ``.internal.example.com``. Do not
+       set it to ``.example.com``, which accepts any host in the
+       ``example.com`` domain.
+  
     For more information about these parameters, see the `ConnectionString
     <{+core-api+}/ConnectionString.html>`__
     API documentation.
@@ -181,6 +207,13 @@ String` or :guilabel:`MongoClientSettings` tab to see the options available:
            
            Throws an exception if you are not using the SRV connection protocol.
 
+       * - ``srvAllowedHostsSuffix()``
+         - Sets the domain suffix that the driver uses to validate the
+           host names returned by the SRV record lookup, instead of the
+           domain inferred from the SRV host name. If the value doesn't
+           begin with a period (``.``), the driver adds one. The driver
+           uses this setting only with the SRV connection protocol.
+
     This example connects the driver directly to a server,
     regardless of the type of MongoDB cluster it's a part of:
 
@@ -196,6 +229,17 @@ String` or :guilabel:`MongoClientSettings` tab to see the options available:
        This is analogous to the ``directConnection`` parameter you can specify
        in your connection URI. See the Connection String tab for more
        information.
+
+    .. warning::
+
+       Changing the default SRV host name validation can create
+       security vulnerabilities, because it relaxes a built-in
+       safeguard against DNS spoofing. Specify the narrowest suffix
+       that covers the hosts in your deployment. For example, if your
+       SRV host name is ``cluster.test.internal.example.com``, pass
+       ``".internal.example.com"`` to ``srvAllowedHostsSuffix()``. Do
+       not pass ``".example.com"``, which accepts any host in the
+       ``example.com`` domain.
 
     For more information about the chained methods, see the `MongoClientSettings.Builder
     <{+core-api+}/MongoClientSettings.Builder.html>`__
