@@ -36,6 +36,16 @@ that occurred on ``cluster1`` after ``mongosync`` reached
 ``canWrite=true``.  To check the ``canWrite`` status during
 sync, use the :ref:`/progress <c2c-api-progress>` endpoint.
 
+To complete a reverse sync, call the :ref:`/commit
+<c2c-api-commit>` endpoint to complete the reverse sync process.
+
+.. warning::
+
+   Do not use the original source cluster until you commit the reverse
+   sync. If you call the ``reverse`` endpoint without
+   :ref:`/commit <c2c-api-commit>`, the original source cluster remains
+   in an unusable, intermediate state.
+
 For more information and a tutorial on using the ``reverse`` endpoint,
 see :ref:`c2c-reverse-process`. 
 
@@ -190,6 +200,29 @@ If the ``reverse`` sync is successful, ``mongosync`` enters the
 ``RUNNING`` state. The synchronization continues in the reverse
 direction from the original sync job. You do not need to restart the
 entire sync process to copy the original data.
+
+After you call the ``reverse`` endpoint, commit the sync to finalize
+the reverse data migration. Committing a reverse sync works the same
+way as committing the initial sync.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Confirm that the reverse sync is ready to commit.
+
+      Call the :ref:`/progress <c2c-api-progress>` endpoint and
+      confirm the following values:
+
+      - ``lag.overallLagSeconds`` is close to ``0``.
+      - The state is ``RUNNING``.
+      - ``canCommit`` is ``true``.
+
+   .. step:: Call the ``/commit`` endpoint.
+
+      Send a request to the :ref:`/commit <c2c-api-commit>` endpoint.
+      After the request succeeds, ``mongosync`` enters the
+      ``COMMITTED`` state. For the full procedure, see
+      :ref:`c2c-cutover-process`.
 
 To view the mapping direction for the synchronization of the source and
 destination clusters, use the :ref:`progress <c2c-api-progress>`
