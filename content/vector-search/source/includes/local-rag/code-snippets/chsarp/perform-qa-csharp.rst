@@ -7,20 +7,20 @@
       a. Add a new ``PerformVectorQuery()`` method in the file named
          ``MongoDBDataService.cs``:
 
-         .. literalinclude:: /includes/local-rag/code-snippets/chsarp/MongoDBDataService-perform-vector-query.cs
+         .. literalinclude:: /code-examples/tested/csharp/driver/VectorSearch/LocalRag/MongoDbDataService.snippet.mongodb-data-service.cs
             :language: csharp
-            :emphasize-lines: 28-64
             :caption: MongoDBDataService.cs
+            :category: usage example
 
          This code performs a vector query on your cluster.
 
       #. Create another file called ``PerformTestQuery.cs`` and paste the
          following code into it:
 
-         .. literalinclude:: /includes/local-rag/code-snippets/chsarp/PerformTestQuery.cs
+         .. literalinclude:: /code-examples/tested/csharp/driver/VectorSearch/LocalRag/PerformTestQuery.snippet.perform-test-query.cs
             :language: csharp
             :caption: PerformTestQuery.cs
-            :linenos:
+            :category: usage example
 
          This code contains the logic to:
 
@@ -64,10 +64,10 @@
       a. Add some new static members to your ``OllamaAIService.cs`` class, for
          use in a new ``SummarizeAnswer`` async Task:
 
-         .. literalinclude:: /includes/local-rag/code-snippets/chsarp/OllamaAIService-summarize-answer.cs
+         .. literalinclude:: /code-examples/tested/csharp/driver/VectorSearch/LocalRag/OllamaAiService.snippet.ollama-ai-service.cs
             :language: csharp
-            :emphasize-lines: 10-11, 18-30
             :caption: OllamaAIService.cs
+            :category: usage example
       
          This prompts the LLM and returns the response. The generated response
          might vary.
@@ -78,9 +78,10 @@
          - Retrieve matching documents from the ``MongoDBDataService``.
          - Use the LLM to summarize the response.
 
-         .. literalinclude:: /includes/local-rag/code-snippets/chsarp/PerformQuestionAnswer.cs
+         .. literalinclude:: /code-examples/tested/csharp/driver/VectorSearch/LocalRag/PerformQuestionAnswer.snippet.perform-question-answer.cs
             :language: csharp
-            :caption: AIService.cs
+            :caption: PerformQuestionAnswer.cs
+            :category: usage example
 
       #. Replace the contents of ``Program.cs`` with a new block to perform the
          task:

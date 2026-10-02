@@ -6,10 +6,10 @@
       Add a new ``CreateVectorIndex()`` method in the file named
       ``MongoDBDataService.cs`` to define the search index:
 
-      .. literalinclude:: /includes/local-rag/code-snippets/chsarp/MongoDBDataService-create-index.cs
+      .. literalinclude:: /code-examples/tested/csharp/driver/VectorSearch/LocalRag/MongoDbDataService.snippet.mongodb-data-service.cs
          :language: csharp
-         :emphasize-lines: 23-63
          :caption: MongoDBDataService.cs
+         :category: usage example
 
       This index definition indexes the ``embeddings`` field
       in an index of the :ref:`vectorSearch <avs-types-vector-search>` type

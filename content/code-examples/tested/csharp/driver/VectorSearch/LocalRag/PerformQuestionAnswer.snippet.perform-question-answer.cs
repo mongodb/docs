@@ -1,11 +1,11 @@
 namespace MyCompany.RAG.Local;
 
-public class PerformTestQuery
+public class PerformQuestionAnswer
 {
     private readonly MongoDBDataService _dataService = new();
     private readonly OllamaAIService _ollamaAiService = new();
 
-    public async Task<string> GetQueryResults(string question)
+    public async Task<string> SummarizeResults(string question)
     {
         // Get the vector embedding for the query
         var query = question;
@@ -26,6 +26,6 @@ public class PerformTestQuery
         {
             return "No matching documents found.";
         }
-        return sb.ToString();
+        return await _ollamaAiService.SummarizeAnswer(sb.ToString());
     }
 }
