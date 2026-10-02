@@ -1,154 +1,125 @@
-.. tabs-platforms::
+Select the operating system, architecture, and package type of the
+host where you are installing the {+mdbagent+}.
 
-   .. tab::
-      :tabid: windows
+.. composable-tutorial::
+   :options: install-agent-platform, install-debian-arch, install-rhel-arch, install-rhel-x86-version, install-rhel-ppc-package, install-rhel-arm64-package
+   :defaults: windows, None, None, None, None, None
+
+   .. selected-content::
+      :selections: windows, None, None, None, None, None
 
       Use this procedure to install the {+mdbagent+} on x86_64
       architecture running Microsoft Windows:
 
       .. include:: /includes/steps-install-mongodb-agent-monitor-on-windows.rst
 
-   .. tab::
-      :tabid: debian
+   .. selected-content::
+      :selections: debian, x86, None, None, None, None
 
-      Use this procedure to install the {+mdbagent+}:
+      .. include:: /includes/agents/binaries-removed-from-path.rst
 
-      .. tabs::
+      Use this procedure to install the {+mdbagent+} on x86_64
+      architecture running Debian 8, Debian 9, Ubuntu 18.04,
+      Ubuntu 20.04, or Ubuntu 22.04:
 
-         .. tab:: Intel/AMD
-            :tabid: x86
+      .. include:: /includes/steps/install-mongodb-agent-monitor-amd64.ubuntu1604-deb.rst
 
-            .. include:: /includes/agents/binaries-removed-from-path.rst
+   .. selected-content::
+      :selections: debian, s390x, None, None, None, None
 
-            On x86_64 architecture running Debian 8, Debian 9, Ubuntu 18.04,
-            Ubuntu 20.04, or Ubuntu 22.04:
+      .. include:: /includes/agents/binaries-removed-from-path.rst
 
-            .. include:: /includes/steps/install-mongodb-agent-monitor-amd64.ubuntu1604-deb.rst
+      Use this procedure to install the {+mdbagent+} on zSeries
+      architecture running Ubuntu 18.04 using a ``deb`` package:
 
-         .. tab:: IBM ZSeries
-            :tabid: s390x
+      .. include:: /includes/steps/install-mongodb-agent-monitor-s390x.ubuntu1804-deb.rst
 
-            .. include:: /includes/agents/binaries-removed-from-path.rst
+   .. selected-content::
+      :selections: rhel, None, x86, v6, None, None
 
-            On zSeries architecture running Ubuntu 18.04 using a
-            ``deb`` package:
+      .. include:: /includes/agents/binaries-removed-from-path.rst
 
-            .. include:: /includes/steps/install-mongodb-agent-monitor-s390x.ubuntu1804-deb.rst
+      Use this procedure to install the {+mdbagent+} on x86_64
+      architecture running Amazon Linux using an ``rpm`` package:
 
-   .. tab::
-      :tabid: rhel
+      .. include:: /includes/steps/install-mongodb-agent-monitor-x86-64-rpm.rst
 
-      Use this procedure to install the {+mdbagent+}:
+   .. selected-content::
+      :selections: rhel, None, x86, v7-rpm, None, None
 
-      .. tabs::
+      .. include:: /includes/agents/binaries-removed-from-path.rst
 
-         .. tab:: Intel/AMD
-            :tabid: x86
+      Use this procedure to install the {+mdbagent+} on x86_64
+      architecture running RHEL / CentOS 7.x, SUSE12, SUSE15, or
+      Amazon Linux 2 using an ``rpm`` package:
 
-            On x86_64 architecture:
+      .. include:: /includes/steps/install-mongodb-agent-monitor-x86-64.rhel7-rpm.rst
 
-            .. tabs::
+   .. selected-content::
+      :selections: rhel, None, x86, v7-tar, None, None
 
-               .. tab:: Amazon Linux
-                  :tabid: v6
+      Use this procedure to install the {+mdbagent+} on x86_64
+      architecture running RHEL / CentOS 7.x, SUSE12, SUSE15, or
+      Amazon Linux 2 using a ``tar`` archive:
 
-                  .. include:: /includes/agents/binaries-removed-from-path.rst
+      .. include:: /includes/steps/install-mongodb-agent-monitor-rhel7-x86-64-tar.rst
 
-                  Running Amazon Linux using an ``rpm`` package:
+   .. selected-content::
+      :selections: rhel, None, ppc, None, rpm, None
 
-                  .. include::
-                     /includes/steps/install-mongodb-agent-monitor-x86-64-rpm.rst
+      .. include:: /includes/agents/binaries-removed-from-path.rst
 
-               .. tab:: RHEL/CentOS (7.x/8.x), SUSE12/15, Amazon Linux 2
-                  :tabid: v7
+      Use this procedure to install the {+mdbagent+} on RHEL /
+      CentOS (7.x) on PowerPC architecture (managing MongoDB 4.2 or
+      later deployments) using an ``rpm`` package:
 
-                  Running RHEL / CentOS 7.x, SUSE12, SUSE15, or
-                  Amazon Linux 2:
+      .. include:: /includes/steps/install-mongodb-agent-monitor-ppc641e.rhel7-rpm.rst
 
-                  .. tabs::
+   .. selected-content::
+      :selections: rhel, None, ppc, None, tar, None
 
-                     .. tab:: RPM package
-                        :tabid: rpm
+      Use this procedure to install the {+mdbagent+} on RHEL /
+      CentOS (7.x) on PowerPC architecture (managing MongoDB 4.2 or
+      later deployments) using a ``tar`` archive:
 
-                        .. include:: /includes/agents/binaries-removed-from-path.rst
+      .. include:: /includes/steps/install-mongodb-agent-monitor-rhel7-ppc64le-tar.rst
 
-                        Using an ``rpm`` package:
+   .. selected-content::
+      :selections: rhel, None, s390x, None, None, None
 
-                        .. include:: /includes/steps/install-mongodb-agent-monitor-x86-64.rhel7-rpm.rst
+      Use this procedure to install the {+mdbagent+} on zSeries
+      architecture (managing MongoDB 4.0 or later deployments)
+      running RHEL / CentOS 7.x/8.x using the ``rpm`` package
+      manager:
 
-                     .. tab:: TAR archive
-                        :tabid: tar
+      .. include:: /includes/agents/binaries-removed-from-path.rst
 
-                        Using a ``tar`` archive:
+      .. include:: /includes/steps/install-mongodb-agent-monitor-s390x.rhel7-rpm.rst
 
-                        .. include:: /includes/steps/install-mongodb-agent-monitor-rhel7-x86-64-tar.rst
+   .. selected-content::
+      :selections: rhel, None, arm64, None, None, rpm
 
-         .. tab:: PowerPC
-            :tabid: ppc
+      .. include:: /includes/agents/binaries-removed-from-path.rst
 
-            On RHEL / CentOS (7.x) on PowerPC architecture
-            (managing MongoDB 4.2 or later deployments):
+      Use this procedure to install the {+mdbagent+} on ARM64
+      architecture running RHEL 8.x/9.x or Amazon Linux 2 using the
+      ``rpm`` package manager:
 
-            .. tabs::
+      .. include:: /includes/steps/install-mongodb-agent-monitor-arm64.rhel8-rpm.rst
 
-               .. tab:: RPM package
-                  :tabid: rpm
+   .. selected-content::
+      :selections: rhel, None, arm64, None, None, tar
 
-                  .. include:: /includes/agents/binaries-removed-from-path.rst
+      Use this procedure to install the {+mdbagent+} on ARM64
+      architecture running RHEL 8.x/9.x or Amazon Linux 2 using a
+      ``tar`` archive:
 
-                  Using an ``rpm`` package:
+      .. include:: /includes/steps/install-mongodb-agent-monitor-rhel8-arm64-tar.rst
 
-                  .. include:: /includes/steps/install-mongodb-agent-monitor-ppc641e.rhel7-rpm.rst
+   .. selected-content::
+      :selections: linux, None, None, None, None, None
 
-               .. tab:: TAR archive
-                  :tabid: tar
-
-                  Using a ``tar`` archive:
-
-                  .. include:: /includes/steps/install-mongodb-agent-monitor-rhel7-ppc64le-tar.rst
-
-         .. tab:: IBM ZSeries
-            :tabid: s390x
-
-            On zSeries architecture (managing MongoDB 4.0 or
-            later deployments):
-
-            Running RHEL / CentOS 7.x/8.x using the ``rpm`` package manager:
-
-            .. include:: /includes/agents/binaries-removed-from-path.rst
-
-            .. include:: /includes/steps/install-mongodb-agent-monitor-s390x.rhel7-rpm.rst
-
-         .. tab:: ARM64
-            :tabid: arm64
-
-            On ARM64 architecture running RHEL 8.x/9.x or Amazon Linux 2:
-
-            .. tabs::
-
-               .. tab:: RPM package
-                  :tabid: rpm
-
-                  .. include:: /includes/agents/binaries-removed-from-path.rst
-
-                  Running RHEL 8.x/9.x or Amazon Linux 2 using the ``rpm``
-                  package manager:
-
-                  .. include:: /includes/steps/install-mongodb-agent-monitor-arm64.rhel8-rpm.rst
-
-               .. tab:: TAR archive
-                  :tabid: tar
-
-                  Running RHEL 8.x/9.x or Amazon Linux 2 using a ``tar``
-                  archive:
-
-                  .. include:: /includes/steps/install-mongodb-agent-monitor-rhel8-arm64-tar.rst
-
-   .. tab::
-      :tabid: linux
-
-      Use this procedure to install Linux systems that do not use
-      ``deb`` or ``rpm`` packages.
+      Use this procedure to install the {+mdbagent+} on Linux
+      systems that do not use ``deb`` or ``rpm`` packages.
 
       .. include:: /includes/steps/install-mongodb-agent-monitor-linux-x86-64-tar.rst
-
