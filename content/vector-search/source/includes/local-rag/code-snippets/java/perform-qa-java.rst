@@ -35,8 +35,10 @@
             context information. You should remove this line in a production
             environment.
 
-      .. literalinclude:: /includes/local-rag/code-snippets/java/LocalLLM.java
+      .. literalinclude:: /code-examples/tested/java/driver-sync/vectorSearch/localRag/LocalLLM.snippet.local-llm.java
          :language: java
+         :copyable: true
+         :category: usage example
          :caption: LocalLLM.java
 
    .. step:: Download the local LLM model.

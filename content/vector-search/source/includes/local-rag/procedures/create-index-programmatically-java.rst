@@ -17,8 +17,10 @@
       - Enforce ``768`` vector dimensions and measure similarity between
         vectors using ``cosine``.
 
-      .. literalinclude:: /includes/local-rag/code-snippets/java/VectorIndex.java
+      .. literalinclude:: /code-examples/tested/java/driver-sync/vectorSearch/localRag/VectorIndex.snippet.vector-index.java
          :language: java
+         :copyable: true
+         :category: usage example
          :caption: VectorIndex.java
 
    .. step:: Create the {+avs+} index.

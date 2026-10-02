@@ -1,3 +1,14 @@
+//	:replace-start: {
+//	  "terms": {
+//      "public String createVectorIndex()": "public static void main(String[] args)",
+//      "CONNECTION_STRING": "MONGODB_URI",
+//      "local_rag_java_index": "vector_index",
+//      "embeddings_java": "embeddings"
+//	  }
+//	}
+package vectorSearch.localRag;
+
+// :snippet-start: vector-index
 import com.mongodb.MongoException;
 import com.mongodb.client.ListSearchIndexesIterable;
 import com.mongodb.client.MongoClient;
@@ -7,19 +18,18 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.SearchIndexModel;
 import com.mongodb.client.model.SearchIndexType;
+import java.util.Collections;
+import java.util.List;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
-import java.util.Collections;
-import java.util.List;
-
 public class VectorIndex {
 
-    public static void main(String[] args) {
+    public String createVectorIndex() {
 
-        String uri = System.getenv("MONGODB_URI");
+        String uri = System.getenv("CONNECTION_STRING");
         if (uri == null || uri.isEmpty()) {
-            throw new IllegalStateException("MONGODB_URI env variable is not set or is empty.");
+            throw new IllegalStateException("CONNECTION_STRING env variable is not set or is empty.");
         }
 
         // establish connection and set namespace
@@ -28,18 +38,14 @@ public class VectorIndex {
             MongoCollection<Document> collection = database.getCollection("listingsAndReviews");
 
             // define the index details for the index model
-            String indexName = "vector_index";
+            String indexName = "local_rag_java_index";
             Bson definition = new Document(
                     "fields",
-                    Collections.singletonList(
-                            new Document("type", "vector")
-                                    .append("path", "embeddings")
-                                    .append("numDimensions", 768)
-                                    .append("similarity", "cosine")));
-            SearchIndexModel indexModel = new SearchIndexModel(
-                    indexName,
-                    definition,
-                    SearchIndexType.vectorSearch());
+                    Collections.singletonList(new Document("type", "vector")
+                            .append("path", "embeddings_java")
+                            .append("numDimensions", 768)
+                            .append("similarity", "cosine")));
+            SearchIndexModel indexModel = new SearchIndexModel(indexName, definition, SearchIndexType.vectorSearch());
 
             // create the index using the defined model
             try {
@@ -53,7 +59,7 @@ public class VectorIndex {
             System.out.println("Polling to confirm the index has completed building.");
             System.out.println("It may take up to a minute for the index to build before you can query using it.");
             waitForIndexReady(collection, indexName);
-
+            return indexName; // :remove:
 
         } catch (MongoException me) {
             throw new RuntimeException("Failed to connect to MongoDB ", me);
@@ -65,7 +71,8 @@ public class VectorIndex {
     /**
      * Polls the collection to check whether the specified index is ready to query.
      */
-    public static void waitForIndexReady(MongoCollection<Document> collection, String indexName) throws InterruptedException {
+    public static void waitForIndexReady(MongoCollection<Document> collection, String indexName)
+            throws InterruptedException {
         ListSearchIndexesIterable<Document> searchIndexes = collection.listSearchIndexes();
         while (true) {
             try (MongoCursor<Document> cursor = searchIndexes.iterator()) {
@@ -85,3 +92,5 @@ public class VectorIndex {
         }
     }
 }
+// :snippet-end:
+// :replace-end:

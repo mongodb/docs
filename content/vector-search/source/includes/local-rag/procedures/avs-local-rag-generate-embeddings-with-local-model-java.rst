@@ -34,8 +34,10 @@
          your vector data. The method converts the API-provided array of floats
          to a BSON array of doubles to use when querying your collection.
 
-      .. literalinclude:: /includes/local-rag/code-snippets/java/OllamaModels.java
+      .. literalinclude:: /code-examples/tested/java/driver-sync/vectorSearch/localRag/OllamaModels.snippet.ollama-models.java
          :language: java
+         :copyable: true
+         :category: usage example
          :caption: OllamaModels.java
 
    .. step:: Write a script that generates embeddings from the sample data.
@@ -62,8 +64,10 @@
       #. Update each document with a new ``embedding`` field that contains the
          corresponding embedding value.
 
-      .. literalinclude:: /includes/local-rag/code-snippets/java/EmbeddingGenerator.java
+      .. literalinclude:: /code-examples/tested/java/driver-sync/vectorSearch/localRag/EmbeddingGenerator.snippet.generate-embeddings.java
          :language: java
+         :copyable: true
+         :category: usage example
          :caption: EmbeddingGenerator.java
 
    .. step:: Generate embeddings.

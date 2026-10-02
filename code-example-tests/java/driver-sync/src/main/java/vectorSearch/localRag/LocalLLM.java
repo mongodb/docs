@@ -1,23 +1,16 @@
-import com.mongodb.MongoException;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.search.FieldSearchPath;
-import dev.langchain4j.data.message.AiMessage;
-import dev.langchain4j.model.input.Prompt;
-import dev.langchain4j.model.input.PromptTemplate;
-import dev.langchain4j.model.ollama.OllamaChatModel;
-import org.bson.BsonArray;
-import org.bson.BsonValue;
-import org.bson.Document;
-import org.bson.conversions.Bson;
+//	:replace-start: {
+//	  "terms": {
+//      "public String runLocalLlm()": "public static void main(String[] args)",
+//      "return createPrompt(question, collection);": "createPrompt(question, collection);",
+//      "public static String createPrompt": "public static void createPrompt",
+//      "CONNECTION_STRING": "MONGODB_URI",
+//      "local_rag_java_index": "vector_index",
+//      "embeddings_java": "embeddings"
+//	  }
+//	}
+package vectorSearch.localRag;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+// :snippet-start: local-llm
 import static com.mongodb.client.model.Aggregates.project;
 import static com.mongodb.client.model.Aggregates.vectorSearch;
 import static com.mongodb.client.model.Projections.exclude;
@@ -28,16 +21,35 @@ import static com.mongodb.client.model.search.SearchPath.fieldPath;
 import static com.mongodb.client.model.search.VectorSearchOptions.exactVectorSearchOptions;
 import static java.util.Arrays.asList;
 
+import com.mongodb.MongoException;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.search.FieldSearchPath;
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.model.input.Prompt;
+import dev.langchain4j.model.input.PromptTemplate;
+import dev.langchain4j.model.ollama.OllamaChatModel;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.bson.BsonArray;
+import org.bson.BsonValue;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+
 public class LocalLLM {
 
     // User input: the question to answer
     static String question = "Can you recommend me a few AirBnBs that are beach houses? Include a link to the listings.";
 
-    public static void main(String[] args) {
+    public String runLocalLlm() {
 
-        String uri = System.getenv("MONGODB_URI");
+        String uri = System.getenv("CONNECTION_STRING");
         if (uri == null || uri.isEmpty()) {
-            throw new IllegalStateException("MONGODB_URI env variable is not set or is empty.");
+            throw new IllegalStateException("CONNECTION_STRING env variable is not set or is empty.");
         }
 
         // establish connection and set namespace
@@ -49,7 +61,7 @@ public class LocalLLM {
             System.out.println("Question: " + question);
 
             try {
-                createPrompt(question, collection);
+                return createPrompt(question, collection);
             } catch (Exception e) {
                 throw new RuntimeException("An error occurred while generating the response: ", e);
             }
@@ -77,23 +89,17 @@ public class LocalLLM {
             }
 
             // define the pipeline stages for the vector search index
-            String indexName = "vector_index";
-            FieldSearchPath fieldSearchPath = fieldPath("embeddings");
+            String indexName = "local_rag_java_index";
+            FieldSearchPath fieldSearchPath = fieldPath("embeddings_java");
             int limit = 5;
 
             List<Bson> pipeline = asList(
-                    vectorSearch(
-                            fieldSearchPath,
-                            queryEmbedding,
-                            indexName,
-                            limit,
-                            exactVectorSearchOptions()),
-                    project(
-                            fields(
-                                    exclude("_id"),
-                                    include("listing_url"),
-                                    include("summary"),
-                                    metaVectorSearchScore("score"))));
+                    vectorSearch(fieldSearchPath, queryEmbedding, indexName, limit, exactVectorSearchOptions()),
+                    project(fields(
+                            exclude("_id"),
+                            include("listing_url"),
+                            include("summary"),
+                            metaVectorSearchScore("score"))));
 
             // run the query and return the matching documents
             List<Document> matchingDocuments = new ArrayList<>();
@@ -110,16 +116,18 @@ public class LocalLLM {
      * Creates a templated prompt using the question and retrieved documents, then generates
      * a response using the local Ollama chat model.
      */
-    public static void createPrompt(String question, MongoCollection<Document> collection) {
+    public static String createPrompt(String question, MongoCollection<Document> collection) {
 
         // Retrieve documents matching the user's question
         List<Document> retrievedDocuments = retrieveDocuments(question, collection);
 
         if (retrievedDocuments.isEmpty()) {
             System.out.println("No relevant documents found. Unable to generate a response.");
-            return;
-        } else
-            System.out.println("Generating a response from the retrieved documents. This may take a few moments.");
+            return ""; // :remove:
+            // :uncomment-start:
+            // return;
+            // :uncomment-end:
+        } else System.out.println("Generating a response from the retrieved documents. This may take a few moments.");
 
         // Create a prompt template
         OllamaChatModel ollamaChatModel = OllamaModels.getChatModel();
@@ -136,8 +144,11 @@ public class LocalLLM {
             Document doc = retrievedDocuments.get(i);
             String listingUrl = doc.getString("listing_url");
             String summary = doc.getString("summary");
-            informationBuilder.append("Listing URL: ").append(listingUrl)
-                    .append("\nSummary: ").append(summary)
+            informationBuilder
+                    .append("Listing URL: ")
+                    .append(listingUrl)
+                    .append("\nSummary: ")
+                    .append(summary)
                     .append("\n\n");
         }
         String information = informationBuilder.toString();
@@ -158,5 +169,8 @@ public class LocalLLM {
         System.out.println(prompt.text());
         System.out.println("______________________");
         System.out.println("Number of documents in context: " + retrievedDocuments.size());
+        return response.text(); // :remove:
     }
 }
+// :snippet-end:
+// :replace-end:

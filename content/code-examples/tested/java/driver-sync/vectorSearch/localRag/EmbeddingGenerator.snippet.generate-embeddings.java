@@ -11,12 +11,11 @@ import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.model.WriteModel;
+import java.util.ArrayList;
+import java.util.List;
 import org.bson.BsonArray;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class EmbeddingGenerator {
 
@@ -34,8 +33,7 @@ public class EmbeddingGenerator {
 
             // define parameters for the find() operation
             // NOTE: this example uses a limit to reduce processing time
-            Bson projectionFields = Projections.fields(
-                    Projections.include("_id", "summary"));
+            Bson projectionFields = Projections.fields(Projections.include("_id", "summary"));
             Bson filterSummary = Filters.ne("summary", "");
             int limit = 250;
 
@@ -84,7 +82,8 @@ public class EmbeddingGenerator {
     /**
      * Performs a bulk write operation on the specified collection.
      */
-    private static int performBulkWrite(List<WriteModel<Document>> updateDocuments, MongoCollection<Document> collection) {
+    private static int performBulkWrite(
+            List<WriteModel<Document>> updateDocuments, MongoCollection<Document> collection) {
 
         if (updateDocuments.isEmpty()) {
             return 0;

@@ -1,14 +1,16 @@
+package vectorSearch.localRag;
+
+// :snippet-start: ollama-models
+import static java.time.Duration.ofSeconds;
+
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.ollama.OllamaChatModel;
 import dev.langchain4j.model.ollama.OllamaEmbeddingModel;
 import dev.langchain4j.model.output.Response;
+import java.util.List;
 import org.bson.BsonArray;
 import org.bson.BsonDouble;
-
-import java.util.List;
-
-import static java.time.Duration.ofSeconds;
 
 public class OllamaModels {
 
@@ -52,16 +54,13 @@ public class OllamaModels {
      */
     public static List<BsonArray> getEmbeddings(List<String> texts) {
 
-        List<TextSegment> textSegments = texts.stream()
-                .map(TextSegment::from)
-                .toList();
+        List<TextSegment> textSegments =
+                texts.stream().map(TextSegment::from).toList();
 
         Response<List<Embedding>> response = getEmbeddingModel().embedAll(textSegments);
         return response.content().stream()
                 .map(e -> new BsonArray(
-                        e.vectorAsList().stream()
-                                .map(BsonDouble::new)
-                                .toList()))
+                        e.vectorAsList().stream().map(BsonDouble::new).toList()))
                 .toList();
     }
 
@@ -72,8 +71,7 @@ public class OllamaModels {
     public static BsonArray getEmbedding(String text) {
         Response<Embedding> response = getEmbeddingModel().embed(text);
         return new BsonArray(
-                response.content().vectorAsList().stream()
-                        .map(BsonDouble::new)
-                        .toList());
+                response.content().vectorAsList().stream().map(BsonDouble::new).toList());
     }
 }
+// :snippet-end:
