@@ -35,18 +35,9 @@
        For endpoints that return one result, response body
        includes:
 
-       .. list-table::
-          :widths: 30 70
-          :header-rows: 1
-          :stub-columns: 1
+       - ``status``: |http| response code
 
-          * - Name
-            - Description
-
-          * - ``status``
-            - |http| response code
-          * - ``content``
-            - Expected response body
+       - ``content``: Expected response body
 
        For endpoints that return a list of results, the ``results``
        object is an envelope. |mms| adds the ``status`` field to the

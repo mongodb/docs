@@ -76,20 +76,11 @@
      - boolean
      - Flag that indicates the style of this endpoint.
 
-       .. list-table::
-          :widths: 20 40 40
-          :header-rows: 1
-          :stub-columns: 1
+       - ``true``: Path-style |url| endpoint. Example:
+         ``s3.amazonaws.com/<bucket>``
 
-          * - Value
-            - S3 Oplog Store Endpoint Style
-            - Example
-          * - ``true``
-            - Path-style |url| endpoint
-            - ``s3.amazonaws.com/<bucket>``
-          * - ``false``
-            - Virtual-host-style |url| endpoint
-            - ``<bucket>.s3.amazonaws.com``
+       - ``false``: Virtual-host-style |url| endpoint. Example:
+         ``<bucket>.s3.amazonaws.com``
 
        To review the |s3| bucket |url| conventions, see the
        :aws:`AWS S3 documentation </AmazonS3/latest/dev/UsingBucket.html#access-bucket-intro>`.
