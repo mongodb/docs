@@ -240,14 +240,14 @@
 
    * - ``estimatedSecondsToCEACatchup``
      - integer
-     - Estimated time in seconds remaining in the :ref:`Change Event Application 
-       <c2c-cea>` (CEA) phase, based on how much ``lagTimeSeconds`` has 
-       decreased over a recent interval.
+     - Estimated time in seconds remaining in the :ref:`Change Event
+       Application <c2c-cea>` (CEA) phase, based on how much
+       ``lag.overallLagSeconds`` has decreased over a recent interval.
 
-       ``/progress`` does not report ``estimatedSecondsToCEACatchup`` 
-       if ``mongosync`` is not in CEA, or if ``lagTimeSeconds`` has increased 
-       or stayed the same over the most recent interval. In this case, 
-       wait 30 minutes and then try again.
+       ``/progress`` does not report ``estimatedSecondsToCEACatchup``
+       if ``mongosync`` is not in CEA, or if ``lag.overallLagSeconds``
+       has increased or stayed the same over the most recent interval.
+       In this case, wait 30 minutes and then try again.
 
        .. versionadded:: 1.14
 
