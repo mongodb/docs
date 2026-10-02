@@ -75,6 +75,26 @@ class QueryBuilderTest extends TestCase
         $this->assertInstanceOf(\Illuminate\Support\Collection::class, $result);
     }
 
+    public function testWhereArrayValues(): void
+    {
+        // begin query where array values
+        // 2-argument form: MongoDB applies the operator to the field
+        $operator = DB::connection('mongodb')
+            ->table('movies')
+            ->where('rated', ['$ne' => 'G'])
+            ->get();
+
+        // 3-argument form: MongoDB compares the value as a literal
+        $literal = DB::connection('mongodb')
+            ->table('movies')
+            ->where('rated', '=', ['$ne' => 'G'])
+            ->get();
+        // end query where array values
+
+        $this->assertInstanceOf(\Illuminate\Support\Collection::class, $operator);
+        $this->assertInstanceOf(\Illuminate\Support\Collection::class, $literal);
+    }
+
     public function testOrWhere(): void
     {
         // begin query orWhere

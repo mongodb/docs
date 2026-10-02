@@ -48,6 +48,10 @@ and use them:
 - :ref:`Cross-database relationships <laravel-relationship-cross-database>`,
   required when you want to create relationships between MongoDB and SQL models
 
+After you define a relationship, you can calculate counts and other aggregate
+values for the related models, as described in the
+:ref:`laravel-relationship-aggregates` section of this guide.
+
 .. _laravel-eloquent-relationship-one-to-one:
 
 One to One Relationship
@@ -564,3 +568,155 @@ to see the data created by running the code:
         }
       ]
 
+.. _laravel-relationship-aggregates:
+
+Aggregate Related Models
+------------------------
+
+This section describes how to calculate aggregate values for related models
+without loading those models. Use a ``with...()`` aggregate method to
+calculate the aggregate when you query the parent model, or use the
+corresponding ``load...()`` method to calculate it on a model instance that
+you already retrieved. The following table describes these methods:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 18 18 40 24
+
+   * - Query Method
+     - Instance Method
+     - Description
+     - Return Value If No Related Models
+
+   * - ``withCount()``
+     - ``loadCount()``
+     - Counts the related models
+     - ``0``
+
+   * - ``withExists()``
+     - ``loadExists()``
+     - Indicates whether any related model exists
+     - ``false``
+
+   * - ``withSum()``
+     - ``loadSum()``
+     - Adds the values of the specified field across the related models
+     - ``null``
+
+   * - ``withAvg()``
+     - ``loadAvg()``
+     - Calculates the mean of the specified field across the related
+       models
+     - ``null``
+
+   * - ``withMin()``
+     - ``loadMin()``
+     - Returns the lowest value of the specified field across the
+       related models
+     - ``null``
+
+   * - ``withMax()``
+     - ``loadMax()``
+     - Returns the highest value of the specified field across the
+       related models
+     - ``null``
+
+Each method adds an attribute to the parent model. The attribute name
+combines the relationship name, the aggregate function, and, for the
+``withSum()``, ``withAvg()``, ``withMin()``, and ``withMax()`` methods,
+the field name. For example, ``withCount('moons')`` adds a
+``moons_count`` attribute. To set your own attribute name, add an alias
+to the relationship name, as shown in the
+:ref:`example <laravel-relationship-aggregates-ex>` in this section.
+
+.. tip::
+
+   To learn more about these methods, see
+   `Aggregating Related Models <https://laravel.com/docs/{+laravel-docs-version+}/eloquent-relationships#aggregating-related-models>`__
+   in the Laravel documentation.
+
+Aggregation Behavior and Limitations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you store related models in their own collection, the
+{+odm-short+} cannot calculate the aggregate in the same query that
+retrieves the parent models. Instead, it runs one extra query for each
+aggregate that you request and assigns each result to the parent model
+that it belongs to. Consider the following alternatives
+for queries that must scale:
+
+- Store the aggregated value in the parent document. For example, store
+  a ``moons_count`` field in each document in the ``planets``
+  collection and update it when you add or remove a moon.
+- Use the ``$lookup`` aggregation stage to join the collections in a
+  single query. To learn more, see the
+  :ref:`Aggregation Operations <laravel-aggregation-lookup-example>` guide.
+
+The {+odm-short+} calculates aggregates on embedded relationships, such as
+those defined by the ``embedsOne()`` and ``embedsMany()`` methods,
+from the parent document without running an extra query.
+
+The {+odm-short+} does not support the following aggregation behaviors
+and raises an exception if you use them:
+
+- Sorting query results by an aggregate attribute
+- Aggregating a :ref:`cross-database relationship
+  <laravel-relationship-cross-database>`
+- Aggregating a ``MorphTo`` relationship
+- Applying constraints, including limits, to an embedded relationship
+
+.. _laravel-relationship-aggregates-ex:
+
+Aggregate Example
+~~~~~~~~~~~~~~~~~
+
+This example uses the ``Planet`` and ``Moon`` models defined in
+the :ref:`laravel-eloquent-relationship-one-to-many` section to retrieve
+the following information for the first planet in the collection:
+
+- Whether the planet has any moons
+- Number of orbiting moons
+- Longest orbital period of its moons
+
+.. io-code-block::
+
+   .. input:: /includes/eloquent-models/relationships/RelationshipsExamplesTest.php
+      :language: php
+      :dedent:
+      :start-after: begin relation aggregate example
+      :end-before: end relation aggregate example
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Has moons: yes
+      Number of moons: 2
+      Longest orbital period: 7.15
+
+The following example uses an alias to store the count in a
+``total_moons`` attribute instead of the default ``moons_count``
+attribute:
+
+.. literalinclude:: /includes/eloquent-models/relationships/RelationshipsExamplesTest.php
+   :language: php
+   :dedent:
+   :start-after: begin relation aggregate alias example
+   :end-before: end relation aggregate alias example
+
+The following example uses the ``loadCount()`` method to compute the
+count on a model instance that the code already retrieved:
+
+.. io-code-block::
+
+   .. input:: /includes/eloquent-models/relationships/RelationshipsExamplesTest.php
+      :language: php
+      :dedent:
+      :start-after: begin relation aggregate load example
+      :end-before: end relation aggregate load example
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Number of moons: 2
