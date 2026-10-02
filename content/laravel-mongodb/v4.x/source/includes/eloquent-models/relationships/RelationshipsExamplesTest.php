@@ -187,6 +187,8 @@ class RelationshipsExamplesTest extends TestCase
      */
     public function testEmbedsMany(): void
     {
+        $this->markTestSkipped('Known issue: the $with property breaks attach() on embedded models. See https://jira.mongodb.org/browse/PHPLARA-304');
+
         require_once __DIR__ . '/embeds/Cargo.php';
         require_once __DIR__ . '/embeds/SpaceShip.php';
 

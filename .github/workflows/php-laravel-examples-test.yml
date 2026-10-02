@@ -1,0 +1,61 @@
+name: Laravel MongoDB Code Examples - Test Against Local/Docker
+
+on:
+  pull_request:
+    paths:
+      - 'content/laravel-mongodb/**/*.php'
+      - 'content/laravel-mongodb/**/phpunit.xml.dist'
+      - 'content/laravel-mongodb/**/composer.json'
+      - '.github/workflows/php-laravel-examples-test.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      TZ: UTC
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - dir: current
+            php: '8.5'
+          - dir: upcoming
+            php: '8.5'
+          - dir: v4.x
+            php: '8.4'
+
+    name: ${{ matrix.dir }}
+
+    services:
+      mongodb:
+        image: mongodb/mongodb-atlas-local:latest
+        env:
+          VOYAGE_API_KEY: ${{ secrets.VOYAGE_API_KEY }}
+          EMBEDDING_PROVIDER_ENDPOINT: https://api.voyageai.com/v1/embeddings
+        ports:
+          - 27017:27017
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: curl,mbstring,mongodb
+          coverage: none
+
+      - name: Install dependencies
+        uses: ramsey/composer-install@v3
+        with:
+          working-directory: content/laravel-mongodb/${{ matrix.dir }}
+          dependency-versions: highest
+
+      - name: Run tests
+        working-directory: content/laravel-mongodb/${{ matrix.dir }}
+        run: ./vendor/bin/phpunit
