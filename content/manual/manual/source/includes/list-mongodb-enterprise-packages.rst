@@ -14,25 +14,15 @@ repository, and contains the following officially-supported packages:
 
   * - ``{+package-name-enterprise+}-database``
     - A ``metapackage`` that automatically installs the component
-      packages listed below.
+      packages listed below:
 
-      .. list-table::
-         :header-rows: 1
-         :widths: 50 50
-
-         * - Package Name
-           - Description
-
-         * - ``{+package-name-enterprise+}-server``
-           - Contains the :binary:`~bin.mongod` daemon and associated
-             configuration and init scripts.
-
-         * - ``{+package-name-enterprise+}-mongos``
-           - Contains the :binary:`~bin.mongos` daemon.
-
-         * - ``{+package-name-enterprise+}-cryptd``
-           - Contains the :ref:`mongocryptd <csfle-encryption-components>`
-             binary
+      - ``{+package-name-enterprise+}-server``: contains the
+        :binary:`~bin.mongod` daemon and associated configuration and
+        init scripts.
+      - ``{+package-name-enterprise+}-mongos``: contains the
+        :binary:`~bin.mongos` daemon.
+      - ``{+package-name-enterprise+}-cryptd``: contains the
+        :ref:`mongocryptd <csfle-encryption-components>` binary.
 
   * - ``{+package-name+}-mongosh``
     - Contains the MongoDB Shell (:binary:`~bin.mongosh`).
@@ -45,29 +35,22 @@ repository, and contains the following officially-supported packages:
     - A ``metapackage`` that automatically installs the component
       packages listed below:
 
-      .. list-table::
-         :header-rows: 1
-         :widths: 50 50
+      - ``mongodb-database-tools``: contains the following MongoDB
+        database tools:
 
-         * - Package Name
-           - Description
+        - :binary:`~bin.mongodump`
+        - :binary:`~bin.mongorestore`
+        - :binary:`~bin.bsondump`
+        - :binary:`~bin.mongoimport`
+        - :binary:`~bin.mongoexport`
+        - :binary:`~bin.mongostat`
+        - :binary:`~bin.mongotop`
+        - :binary:`~bin.mongofiles`
 
-         * - ``mongodb-database-tools``
-           - Contains the following MongoDB database tools:
+      - ``{+package-name-enterprise+}-database-tools-extra``: contains
+        the following MongoDB support tools:
 
-             - :binary:`~bin.mongodump`
-             - :binary:`~bin.mongorestore`
-             - :binary:`~bin.bsondump`
-             - :binary:`~bin.mongoimport`
-             - :binary:`~bin.mongoexport`
-             - :binary:`~bin.mongostat`
-             - :binary:`~bin.mongotop`
-             - :binary:`~bin.mongofiles`
-
-         * - ``{+package-name-enterprise+}-database-tools-extra``
-           - Contains the following MongoDB support tools:
-
-             - :binary:`~bin.mongoldap`
-             - :binary:`~bin.mongokerberos`
-             - :ref:`install-compass` script
-             - ``mongodecrypt`` binary
+        - :binary:`~bin.mongoldap`
+        - :binary:`~bin.mongokerberos`
+        - :ref:`install-compass` script
+        - ``mongodecrypt`` binary

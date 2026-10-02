@@ -47,22 +47,15 @@ following fields:
 
         Each document has the following fields:
 
-        .. list-table::
+        - ``micros``: the inclusive lower bound of the current latency
+          range, in microseconds.
 
-           * - Field Name
-             - Description
+          The document's range spans between the previous document's
+          ``micros`` value, exclusive, and this document's ``micros``
+          value, inclusive.
 
-           * - ``micros``
-             - The inclusive lower bound of the current latency range, in
-               microseconds.
-
-               The document's range spans between the previous document's
-               ``micros`` value, exclusive, and this document's
-               ``micros`` value, inclusive.
-
-           * - ``count``
-             - The number of operations with latency less than or equal to 
-               ``micros``.
+        - ``count``: the number of operations with latency less than or
+          equal to ``micros``.
 
         For example, if ``collStats`` returns the following histogram:
 
