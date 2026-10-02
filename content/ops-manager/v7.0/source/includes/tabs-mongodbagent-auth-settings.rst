@@ -48,55 +48,51 @@
       The required values depend upon whether you are connecting to a
       Linux-served |kdc| or Windows Active Directory Server.
 
-      .. tabs::
+      **Linux KDC:**
 
-         .. tab:: Linux KDC
-            :tabid: linux
+      .. list-table::
+         :header-rows: 1
+         :widths: 30 70
 
-            .. list-table::
-               :header-rows: 1
-               :widths: 30 70
+         * - Setting
+           - Value
 
-               * - Setting
-                 - Value
+         * - :guilabel:`Monitoring Kerberos Principal`
+           - Kerberos Principal.
 
-               * - :guilabel:`Monitoring Kerberos Principal`
-                 - Kerberos Principal.
+         * - :guilabel:`Monitoring Keytab Path`
+           - Absolute file path to the MongoDB Agent's Keytab.
 
-               * - :guilabel:`Monitoring Keytab Path`
-                 - Absolute file Ppath to the MongoDB Agent's Keytab.
+         * - :guilabel:`Monitoring LDAP Group DN`
+           - Enter the Distinguished Name for the MongoDB Agent's
+             |ldap| Group.
 
-               * - :guilabel:`Monitoring LDAP Group DN`
-                 - Enter the Distinguished Name for the MongoDB Agent's
-                   |ldap| Group.
+             The |ldap| Group DN is then created as a role in
+             MongoDB to grant the MongoDB Agent the appropriate
+             privileges.
 
-                   The |ldap| Group DN is then created as a role in
-                   MongoDB to grant the MongoDB Agent the appropriate
-                   privileges.
+             You only need to provide the LDAP Group DN if
+             you use LDAP Authorization.
 
-                   You only need to provide the LDAP Group DN if
-                   you use LDAP Authorization.
+      **Windows Active Directory:**
 
-         .. tab:: Windows Active Directory
-            :tabid: windows
+      .. list-table::
+         :header-rows: 1
+         :widths: 30 70
 
-            .. list-table::
-               :header-rows: 1
-               :widths: 30 70
+         * - Setting
+           - Value
 
-               * - Setting
-                 - Value
+         * - :guilabel:`MongoDB Agent Username`
+           - Active Directory user name.
 
-               * - :guilabel:`MongoDB Agent Username`
-                 - Active Directory user name.
+         * - :guilabel:`MongoDB Agent Password`
+           - Active Directory password.
 
-               * - :guilabel:`MongoDB Agent Password`
-                 - Active Directory password.
+         * - :guilabel:`Domain`
 
-               * - :guilabel:`Domain`
-
-                 - NetBIOS name of a domain in Active Directory
-                   Domain Services. Must be in all capital letters.
+           - NetBIOS name of a domain in Active Directory
+             Domain Services. Must be in all capital letters.
 
    .. tab:: X.509
       :tabid: x509
