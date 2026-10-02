@@ -1,0 +1,68 @@
+name: Daily merge main into feature/DOCSP-64511-search-node-sizing
+
+on:
+  schedule:
+    - cron: "0 16 * * *"  # 9am PT / 12pm ET daily
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/DOCSP-64511-search-node-sizing
+          fetch-depth: 0
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge main into the feature branch
+        id: merge
+        run: |
+          git fetch origin main
+
+          if git merge origin/main --no-edit; then
+            echo success | tee merge_status.txt
+          else
+            echo conflict | tee merge_status.txt
+            git diff --name-only --diff-filter=U | tee conflicts.txt
+            git merge --abort
+          fi
+
+      - name: Push the merged branch
+        run: |
+          if [ "$(cat merge_status.txt)" = "success" ]; then
+            git push origin feature/DOCSP-64511-search-node-sizing
+          fi
+
+      - name: Report the merge result
+        if: always()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SIZING_SEARCH_NODES }}
+          SLACK_CHANNEL: "#sizing-search-nodes"
+        run: |
+          status="$(cat merge_status.txt 2>/dev/null || echo failure)"
+
+          if [ "$status" = "success" ]; then
+            message="Daily merge of main into feature/DOCSP-64511-search-node-sizing completed successfully."
+          elif [ "$status" = "conflict" ]; then
+            conflicts="$(cat conflicts.txt 2>/dev/null || echo 'Unable to list conflicting files.')"
+            message="Merge conflict on feature/DOCSP-64511-search-node-sizing. Manual resolution is needed. Conflicting files: ${conflicts}"
+          else
+            message="The daily merge workflow for feature/DOCSP-64511-search-node-sizing failed. Check the GitHub Actions run for details."
+          fi
+
+          jq -n --arg text "$message" --arg channel "$SLACK_CHANNEL" '{text: $text, channel: $channel}' \
+            | curl -s -X POST "$SLACK_WEBHOOK_URL" \
+              -H "Content-Type: application/json" \
+              -d @-

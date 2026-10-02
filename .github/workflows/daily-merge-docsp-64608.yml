@@ -1,0 +1,67 @@
+name: Daily merge main into DOCSP-64608
+
+on:
+  schedule:
+    - cron: "0 16 * * *"  # 9am PT / 12pm ET daily
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: DOCSP-64608
+          fetch-depth: 0
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge main into the feature branch
+        id: merge
+        run: |
+          git fetch origin main
+
+          if git merge origin/main --no-edit; then
+            echo success | tee merge_status.txt
+          else
+            echo conflict | tee merge_status.txt
+            git diff --name-only --diff-filter=U | tee conflicts.txt
+            git merge --abort
+          fi
+
+      - name: Push the merged branch
+        run: |
+          if [ "$(cat merge_status.txt)" = "success" ]; then
+            git push origin DOCSP-64608
+          fi
+
+      - name: Report the merge result
+        if: always()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.DOC_RESYNC_NOTIFICATIONS }}
+        run: |
+          status="$(cat merge_status.txt 2>/dev/null || echo failure)"
+
+          if [ "$status" = "success" ]; then
+            message="Daily merge of main into DOCSP-64608 completed successfully."
+          elif [ "$status" = "conflict" ]; then
+            conflicts="$(cat conflicts.txt 2>/dev/null || echo 'Unable to list conflicting files.')"
+            message="Merge conflict on DOCSP-64608. Manual resolution is needed. Conflicting files: ${conflicts}"
+          else
+            message="The daily merge workflow for DOCSP-64608 failed. Check the GitHub Actions run for details."
+          fi
+
+          jq -n --arg text "$message" '{text: $text}' \
+            | curl -s -X POST "$SLACK_WEBHOOK_URL" \
+              -H "Content-Type: application/json" \
+              -d @-
