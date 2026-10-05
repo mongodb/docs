@@ -51,16 +51,16 @@
        When you sign in, you are taken to a Slack landing
        page where you may select a workspace and configure permissions.
        After configuring Slack to connect to |mms|, your API token
-       is automatically generated and maintained. You will be
-       redirected back to the :guilabel:`Integrations page`.
+       is automatically generated and maintained. You are redirected
+       back to the :guilabel:`Integrations page`.
 
        After initially configuring Slack with |mms|, you can
        :guilabel:`Edit` or :guilabel:`Remove` the integration. Editing
-       the integration will display your team name and |api| token, and
-       allow you to change your channel name.
+       the integration displays your team name and |api| token, and
+       allows you to change your channel name.
 
-       :gold:`IMPORTANT:` Legacy tokens are deprecated and will be
-       removed in a future version of |mms|. You cannot edit a legacy
+       :gold:`IMPORTANT:` Legacy tokens are deprecated and scheduled
+       for removal in a future version of |mms|. You cannot edit a legacy
        token integration. Instead, you must reconfigure your Slack
        integration with OAuth2.
 
@@ -126,17 +126,16 @@
          :gold:`IMPORTANT:` If the health status is ``1`` but no other
          metrics appear in Datadog, the replica set might be down.
 
-       .. note::
+       To allow |mms| to send deployment metrics to Datadog, an
+       admin must set ``mms.featureFlag.monitoring.dataDogMetrics =
+       enabled`` in the ``conf-mms.properties`` file, or in the
+       :ref:`custom configuration <admin-console-general-om-config>`.
 
-          To allow |mms| to send deployment metrics to Datadog, 
-          an admin must set ``mms.featureFlag.monitoring.dataDogMetrics = enabled`` 
-          in the ``conf-mms.properties`` file, or 
-          in the :ref:`custom configuration <admin-console-general-om-config>`.
-          
-          This feature flag is not enabled by default. 
+       This feature flag is not enabled by default.
 
-          If you update this parameter via |mms| Admin Panel UI, 
-          you do not need to restart |mms| Application to be in effect.
+       If you update this parameter through the |mms| Admin Panel UI,
+       the change takes effect without restarting the |mms|
+       Application.
 
    * - Webhook Settings
 
@@ -189,9 +188,7 @@
        invalid, |service| sends an email to the project owner and
        eventually removes the credentials.
 
-       Enter the following information from your CA Flowdock account. If
-       you do not have an existing CA Flowdock account, you can
-       `sign up <https://www.flowdock.com/signup>`__.
+       Enter the following information from your CA Flowdock account.
 
        - Org Name
        - Flow Name
