@@ -1,0 +1,155 @@
+===============================
+$mergeObjects (window function)
+===============================
+
+.. meta::
+   :description: Use $mergeObjects as a window function in $setWindowFields to return a merged document from documents in a window. Only non-removable windows are supported.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. |operatorName| replace:: ``$mergeObjects``
+
+Definition
+----------
+
+.. window:: $mergeObjects
+
+   .. versionadded:: 8.3
+
+.. include:: /includes/window-functions/mergeObjects-definition.rst
+
+.. note:: Disambiguation
+
+   This page describes ``$mergeObjects`` when used as a **window
+   function**.
+
+   You can also use ``$mergeObjects`` in these other contexts:
+
+   - :group:`$mergeObjects (accumulator) <$mergeObjects>`, which
+     returns a merged document across a group of input documents.
+   - :expression:`$mergeObjects (expression) <$mergeObjects>`,
+     which merges an array of documents into a single document.
+
+Syntax
+------
+
+.. code-block:: javascript
+   :copyable: false
+   :category: syntax example
+
+   {
+      $setWindowFields: {
+         output: {
+            <outputField>: {
+               $mergeObjects: <document>,
+               window: {
+                  <documents|range>: [ "unbounded", <upper> ]
+               }
+            }
+         }
+      }
+   }
+
+.. note::
+
+   The :ref:`sortBy <setWindowFields-sortBy>` option in ``$setWindowFields``
+   is optional when the upper window bound is ``"unbounded"`` or
+   when ``window`` is omitted. ``sortBy`` is required when the upper
+   window bound is not ``"unbounded"``, such as ``"current"``.
+
+   When you omit ``sortBy``, the order in which ``$mergeObjects``
+   resolves conflicting field names is not guaranteed.
+
+Command Fields
+~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 17 17 51
+
+   * - Field
+     - Type
+     - Necessity
+     - Description
+
+   * - ``<document>``
+     - Expression
+     - Required
+     - A field name or expression that evaluates to a document.
+       |operatorName| merges the document values from all
+       documents in the window.
+
+   * - ``window``
+     - Document
+     - Optional
+     - Specifies the window of documents over which |operatorName|
+       operates. The lower bound must be ``"unbounded"``. If omitted,
+       the window includes all documents in the partition.
+
+Behavior
+--------
+
+Non-Removable Windows
+~~~~~~~~~~~~~~~~~~~~~
+
+``$mergeObjects`` only supports non-removable windows, meaning the lower
+bound is ``"unbounded"``. If you specify a window where the lower bound
+is not ``"unbounded"``, the operation returns an error.
+
+Null Input Handling
+~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/expressions/mergeObjects/null-handling.rst
+
+Field Overwrite Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/expressions/mergeObjects/field-overwrite.rst
+
+Example
+-------
+
+Create a ``productUpdates`` collection:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/mergeObjects/load-data.js
+   :language: javascript
+   :category: usage example
+
+Each document represents a product update that adds new
+specification fields. Because each update contributes
+different field names to the ``specs`` sub-document,
+``$mergeObjects`` can accumulate a complete specification
+profile as the window expands.
+
+The following pipeline uses ``$mergeObjects`` in
+:pipeline:`$setWindowFields` to return a list of
+product specifications that updates cumulatively as new specifications
+are added to the window. For each document,
+``cumulativeSpecs`` contains the merged specifications from
+all updates up to and including the current document:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/mergeObjects/cumulative-specs.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/mergeObjects/cumulative-specs-output.sh
+      :visible: false
+      :language: javascript
+
+In the preceding pipeline:
+
+- :pipeline:`$setWindowFields` partitions documents by
+  ``product`` and sorts by ``date`` in ascending order.
+- ``$mergeObjects`` uses an ``unbounded`` to ``current``
+  window to merge all ``specs`` documents from the beginning
+  of each partition up to the current document, producing
+  a running accumulated specification.
+- :pipeline:`$sort` sorts the final results by ``product``
+  and ``date`` in ascending order.

@@ -1,0 +1,217 @@
+======================
+$setUnion (expression)
+======================
+
+.. meta::
+   :description: Use the $setUnion expression to combine two or more arrays into a single array of unique elements, treating each input array as a set and ignoring duplicates.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+Definition
+----------
+
+.. expression:: $setUnion
+
+Takes two or more arrays and returns a single array containing the
+unique elements that appear in any input array.
+
+.. note:: Disambiguation
+
+   This page describes ``$setUnion`` when used as an **expression**,
+   which combines two or more arrays into a single array of unique
+   elements.
+
+   You can also use ``$setUnion`` in these other contexts:
+
+   - :group:`$setUnion (accumulator) <$setUnion>`, which returns a
+     single array of the unique elements in the array values across a
+     group of documents.
+
+   - :window:`$setUnion (window function) <$setUnion>`, which is used
+     in the :pipeline:`$setWindowFields` stage to return a single array
+     of the unique elements in the array values in a window.
+
+Syntax
+------
+
+.. code-block:: javascript
+   :copyable: false
+   :category: syntax example
+
+   {
+      $setUnion: [ <expression1>, <expression2>, ... ]
+   }
+
+Behavior
+--------
+
+.. |set-operator-name| replace:: ``$setUnion``
+
+.. include:: /includes/important-set-operator-semantics.rst
+
+.. include:: /includes/args-can-be-expressions.rst
+
+.. include:: /includes/fact-setUnion-non-recursive.rst
+
+The following table shows the results that ``$setUnion`` returns for
+different inputs:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 30 40
+   :class: border-table
+
+   * - Example
+     - Result
+     - Notes
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $setUnion: [
+            [ "a", "c" ],
+            [ "a", "b" ]
+          ] }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          [ "a", "c", "b" ]
+
+     - All elements from both arrays are combined and duplicate
+       elements removed.
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $setUnion: [
+            [ "a", "c" ],
+            [ "a", "b", "c" ]
+          ] }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          [ "a", "c", "b" ]
+
+     - All elements from both arrays are combined and duplicate
+       elements removed.
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $setUnion: [
+            [ "a", "b", "a" ],
+            [ "b", "a" ]
+          ] }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          [ "a", "b" ]
+
+     - All elements from both arrays are combined and duplicate
+       elements removed.
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $setUnion: [
+            [ "a", "b" ],
+            [ [ "a", "b" ] ]
+          ] }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          [ "a", "b", [ "a", "b" ] ]
+
+     - The result includes ``"a"`` and ``"b"`` as individual string
+       elements and the array ``[ "a", "b" ]`` as a unique element.
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $setUnion: [
+            [ ],
+            [ "a", "b" ]
+          ] }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          [ "a", "b" ]
+
+     - The result consists of the unique elements in the second array
+       because the first array is empty.
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $setUnion: [
+            [ "a", "a" ],
+            [ "a", "b" ]
+          ] }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          [ "a", "b" ]
+
+     - All elements from both arrays are combined and duplicate
+       elements removed.
+
+Example
+-------
+
+.. include:: /includes/sample-data-usage.rst
+
+This example uses ``$setUnion`` to combine the ``cast`` and
+``directors`` arrays into a single array of the people credited on each
+movie:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/expressions/setUnion/setUnion-expression-example.snippet.expression-example.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/expressions/setUnion/setUnion-expression-example-output.sh
+      :visible: false
+      :language: javascript
+
+The preceding pipeline:
+
+- Uses :pipeline:`$match` to filter for two movies.
+
+- Uses :pipeline:`$project` with ``$setUnion`` to combine ``cast`` and
+  ``directors`` into the ``keyContributors`` field.
+
+- Uses :pipeline:`$sort` to sort results by ``title``.
+
+For ``Annie Hall``, Woody Allen appears in both ``cast`` and
+``directors`` but appears only once in ``keyContributors``, because
+``$setUnion`` removes duplicate elements.
+
+Limitations
+-----------
+
+- ``$setUnion`` only supports arrays and expressions that resolve to an
+  array.
+
+Learn More
+----------
+
+- :ref:`aggregation-expressions`
+- :expression:`$setIntersection`
+- :expression:`$setDifference`
+- :ref:`read-operations-arrays`

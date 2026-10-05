@@ -1,0 +1,127 @@
+=======================
+$maxN (window function)
+=======================
+
+.. meta::
+   :description: Use `$maxN` to return the maximum `n` elements from a window in setWindowFields operations.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. window:: $maxN
+
+.. include:: /includes/window-functions/maxN-definition.rst
+
+.. note:: Other Uses of ``$maxN``
+
+   This page describes ``$maxN`` when used as a **window function**.
+
+   You can also use ``$maxN`` in these other contexts:
+
+   - :group:`$maxN (accumulator) <$maxN>`, which returns the maximum
+     ``n`` values within a group.
+
+   - :expression:`$maxN (expression) <$maxN>`, which returns the
+     largest ``n`` values from an array.
+
+Syntax
+------
+
+.. code-block:: javascript
+   :category: syntax example
+   :copyable: false
+
+   {
+      $setWindowFields: {
+         ...
+         output: {
+            <field>: {
+               $maxN: {
+                  input: <expression>,
+                  n: <expression>
+               },
+               window: {
+                  documents: [ <lower boundary>, <upper boundary> ]
+               }
+            }
+         }
+      }
+   }
+
+Options
+~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :class: border-table
+   :widths: 10 15 75
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``input``
+     - Expression
+     - The expression evaluated over each document in the window.
+       ``$maxN`` returns the maximum ``n`` values.
+
+   * - ``n``
+     - Expression
+     - The number of elements that ``$maxN`` returns from the
+       window. Must resolve to a positive integer.
+
+       If the window contains fewer than ``n`` elements, ``$maxN``
+       returns all elements in the window.
+
+Behavior
+--------
+
+Null and Missing Values
+~~~~~~~~~~~~~~~~~~~~~~~
+
+``$maxN`` filters out null and missing values.
+
+Example
+-------
+
+.. include:: /includes/sample-data-usage.rst
+
+This example uses ``$maxN`` in :pipeline:`$setWindowFields` to return
+the three highest-rated movies for each year. The window spans the
+entire partition, so every document in the same year receives the same
+``topThreeRatedInYear`` value.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/maxN/top-three-per-year.js
+      :language: javascript
+      :category: syntax example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/maxN/top-three-per-year-output.sh
+      :visible: false
+      :language: javascript
+
+The preceding pipeline:
+
+- Uses :pipeline:`$match` to filter for movies released in ``1999``
+  or ``2001`` with an IMDb rating of ``8.5`` or higher.
+- Uses :pipeline:`$setWindowFields` to partition movies by ``year``
+  and sort them by ``imdb.rating`` in descending order. The stage
+  uses ``$maxN`` with ``n: 3`` to create ``topThreeRatedInYear``
+  from a window spanning the entire partition
+  (``documents: ["unbounded", "unbounded"]``).
+- Uses :pipeline:`$project` to include only the ``title``, ``year``,
+  ``imdb.rating``, and ``topThreeRatedInYear`` fields in the output.
+- Uses :pipeline:`$sort` to sort the results by year ascending and rating descending.
+
+Learn More
+----------
+
+- :ref:`agg-pipeline-limits`

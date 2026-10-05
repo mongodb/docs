@@ -1,0 +1,132 @@
+=============================
+$stdDevSamp (window function)
+=============================
+
+.. meta::
+   :description: Use the $stdDevSamp window function in $setWindowFields to calculate the sample standard deviation of values in a window.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+Definition
+----------
+
+.. window:: $stdDevSamp
+
+.. include:: /includes/window-functions/stdDevSamp-definition.rst
+
+.. note:: Disambiguation
+
+   This page describes ``$stdDevSamp`` when used as a **window
+   function**.
+
+   You can also use ``$stdDevSamp`` in these other contexts:
+
+   - :group:`$stdDevSamp (accumulator) <$stdDevSamp>`, which
+     calculates the sample standard deviation of values across a
+     group of documents.
+
+   - :expression:`$stdDevSamp (expression) <$stdDevSamp>`, which
+     calculates the sample standard deviation of numeric values in an
+     array.
+
+Syntax
+------
+
+.. code-block:: javascript
+   :copyable: false
+   :category: syntax example
+
+   {
+      $setWindowFields: {
+         ...
+         output: {
+            <field>: {
+               $stdDevSamp: <expression>
+            }
+         }
+      }
+   }
+
+Behavior
+--------
+
+Result Type
+~~~~~~~~~~~
+
+.. include:: /includes/expressions/stdDevSamp/result-type.rst
+
+Non-Numeric and Missing Values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``$stdDevSamp`` window function ignores non-numeric values,
+including missing values. If the window contains no numeric values,
+``$stdDevSamp`` returns ``null``.
+
+Single Value
+~~~~~~~~~~~~
+
+If the window contains only one document, ``$stdDevSamp`` returns
+``null``.
+
+Example
+-------
+
+.. include:: /includes/sample-data-usage.rst
+
+This example uses :pipeline:`$setWindowFields` to calculate a running
+sample standard deviation field for each Musical movie from 2009 and
+2010. Each document receives the ``$stdDevSamp`` value computed from the
+beginning of its yearly partition through the current document.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/stdDevSamp/stdDevSamp-window-example.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/stdDevSamp/stdDevSamp-window-example-output.sh
+      :visible: false
+      :language: javascript
+
+The preceding pipeline:
+
+- Uses :pipeline:`$match` to filter for Musical movies from 2009
+  and 2010 with a numeric IMDb rating.
+
+- Uses :pipeline:`$setWindowFields` to partition movies by ``year`` and
+  sort them by ``title``. The stage uses ``$stdDevSamp`` with a
+  :ref:`documents <setWindowFields-documents>` window of ``[
+  "unbounded", "current" ]`` to create the following fields for each
+  document:
+
+  - ``stdDevSampRatingInYear``: the running sample standard deviation
+    of ``imdb.rating``.
+
+  - ``rankInYear``: a per-partition row number assigned by
+    ``$documentNumber``.
+
+  The first document in each partition has only one value in
+  its window, so ``stdDevSampRatingInYear`` is ``null``. Each
+  subsequent document adds one more value to the window.
+
+- Uses :pipeline:`$project` to include ``title``, ``year``,
+  ``imdb``, ``stdDevSampRatingInYear``, and ``rankInYear``
+  in the output.
+
+- Uses :pipeline:`$sort` to sort results by year and title.
+
+Learn More
+----------
+
+- :ref:`aggregation`
+- :ref:`aggregation-expressions`
+- :ref:`window-functions-ref`

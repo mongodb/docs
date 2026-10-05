@@ -1,0 +1,161 @@
+==========================
+$mergeObjects (expression)
+==========================
+
+.. meta::
+   :description: Use $mergeObjects as an aggregation expression to merge an array of documents into a single document. When fields conflict, the value from the last document in the array takes precedence.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $mergeObjects
+
+Merges an array of documents into a single document.
+
+.. note:: Disambiguation
+
+   This page describes ``$mergeObjects`` when used as an
+   **expression**, which merges an array of documents.
+
+   You can also use ``$mergeObjects`` in these other contexts:
+
+   - :group:`$mergeObjects (accumulator) <$mergeObjects>`, which
+     returns a merged document across a group of input documents.
+   - :window:`$mergeObjects (window function) <$mergeObjects>`,
+     which is used in the :pipeline:`$setWindowFields` stage to
+     return a merged document from documents in a window.
+
+Syntax
+------
+
+When used as an expression, ``$mergeObjects`` has this syntax:
+
+.. code-block:: none
+   :copyable: false
+   :category: syntax example
+
+   { $mergeObjects: <expression> }
+
+The ``<expression>`` operand can be either:
+
+- A single expression that evaluates to an array of documents to merge.
+  For example, ``$blogPosts`` where the document field ``blogPosts``
+  contains an array of documents.
+
+- An array of expressions, each of which evaluates to a document. For
+  example, ``[ "$doc1", "$doc2", "$doc3" ]`` where each document field
+  contains a single document.
+
+Behavior
+--------
+
+.. include:: /includes/expressions/mergeObjects/null-handling.rst
+
+.. include:: /includes/expressions/mergeObjects/field-overwrite.rst
+
+.. list-table::
+   :header-rows: 1
+   :widths: 65 35
+   :class: border-table
+
+   * - Example
+     - Results
+
+   * - .. code-block:: json
+          :copyable: false
+
+          { $mergeObjects: [ { a: 1 }, null ] }
+
+     - .. code-block:: json
+          :copyable: false
+
+          { a: 1 }
+
+   * - .. code-block:: json
+          :copyable: false
+
+          { $mergeObjects: [ null, null ] }
+
+     - .. code-block:: json
+          :copyable: false
+
+          { }
+
+   * - .. code-block:: json
+          :copyable: false
+
+          {
+             $mergeObjects: [
+                { a: 1 },
+                { a: 2, b: 2 },
+                { a: 3, c: 3 }
+             ]
+          }
+
+     - .. code-block:: json
+          :copyable: false
+
+          { a: 3, b: 2, c: 3 }
+
+   * - .. code-block:: json
+          :copyable: false
+
+          {
+            $mergeObjects: [
+              { a: 1 },
+              { a: 2, b: 2 },
+              { a: 3, b: null, c: 3 }
+            ]
+          }
+
+     - .. code-block:: json
+          :copyable: false
+
+          { a: 3, b: null, c: 3 }
+
+Example
+-------
+
+.. include:: /includes/sample-data-usage.rst
+
+The following pipeline uses ``$mergeObjects`` in
+:pipeline:`$replaceWith` to merge each movie's ``imdb`` and
+``tomatoes.critic`` sub-documents into a single ``ratings`` document.
+Both sub-documents contain a ``rating`` field, so ``$mergeObjects``
+overwrites the ``imdb`` rating with the ``tomatoes.critic`` rating.
+Unique fields from each sub-document are preserved in the result.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/expressions/mergeObjects/merge-critic-ratings.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/expressions/mergeObjects/merge-critic-ratings-output.sh
+      :visible: false
+      :language: javascript
+
+In the preceding pipeline:
+
+- :pipeline:`$match` filters to Action movies from 2010 with an
+  existing ``imdb.rating`` and ``tomatoes.critic.rating``.
+- :pipeline:`$sort` sorts documents alphabetically by ``title``.
+- :pipeline:`$limit` restricts the output to 5 documents to improve
+  readability.
+- :pipeline:`$replaceWith` uses ``$mergeObjects`` to merge
+  ``$imdb`` and ``$tomatoes.critic`` into a ``ratings`` field.
+
+  - Because both sub-documents contain a ``rating`` field,
+    ``$mergeObjects`` uses the value from ``tomatoes.critic`` (the last
+    argument).
+  
+  - The unique fields ``votes`` and ``id`` from ``imdb``, and
+    ``numReviews`` and ``meter`` from ``tomatoes.critic``, are all
+    preserved.

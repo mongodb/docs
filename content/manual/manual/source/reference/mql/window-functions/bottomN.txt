@@ -1,0 +1,121 @@
+==========================
+$bottomN (window function)
+==========================
+
+.. meta::
+   :description: Use `$bottomN` to return the bottom `n` elements from a window in `setWindowFields` operations, based on the specified sort order.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. window:: $bottomN
+
+.. include:: /includes/window-functions/bottomN-definition.rst
+
+.. note:: Disambiguation
+
+   This page describes ``$bottomN`` when used as a **window function**.
+
+   You can also use :group:`$bottomN (accumulator) <$bottomN>`, which
+   returns the bottom ``n`` elements within a group according to the
+   specified sort order.
+
+Syntax
+------
+
+.. code-block:: none
+   :copyable: false
+
+   {
+      $setWindowFields: {
+         ...
+         output: {
+            <field>: {
+               $bottomN: {
+                  n: <expression>,
+                  output: <expression>,
+                  sortBy: { <field1>: <sort order>, <field2>: <sort order> ... }
+               },
+               window: {
+                  documents: [ <lower boundary>, <upper boundary> ]
+               }
+            }
+         }
+      }
+   }
+
+Options
+~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 15 70
+
+   * - Field
+     - Necessity
+     - Description
+
+   * - ``n``
+     - Required
+     - Number of results to return. Must resolve to a positive integral
+       value.
+
+       If the window contains fewer than ``n`` elements, ``$bottomN``
+       returns all elements in the window.
+
+   * - ``output``
+     - Required
+     - Determines the output for each document in the window. Can be any
+       expression.
+
+   * - ``sortBy``
+     - Required
+     - Defines the ranking order of elements within the window, with
+       syntax similar to :pipeline:`$sort`. Does not affect the order of
+       documents in pipeline output.
+
+Example
+-------
+
+.. include:: /includes/sample-data-usage.rst
+
+Find the Three Lowest Rated Movies in a Window
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example uses the ``$bottomN`` window function to return each movie
+along with the three lowest-rated movies released in the same year.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/bottomN/bottom-three-movies-per-year.js
+      :language: shell
+      :category: syntax example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/bottomN/bottom-three-movies-per-year-output.sh
+      :visible: false
+      :language: shell
+
+In the preceding example:
+
+- :pipeline:`$unwind` deconstructs the ``genres`` array so each movie
+  document only contains a single genre.
+- :pipeline:`$match` restricts the input to ``Action`` movies that are
+  rated ``PG-13``, have an ``imdb.rating`` value of 5 or less, and were
+  released in 2000, 2001, or 2002.
+- :pipeline:`$setWindowFields` partitions the documents by ``year``.
+- ``window: { documents: [ "unbounded", "unbounded" ] }`` spans the
+  entire year partition, so ``$bottomN`` considers all documents in the
+  year when determining the three lowest-rated movies.
+- ``$bottomN`` uses ``sortBy: { "imdb.rating": -1, title: 1 }`` to rank
+  movies by IMDb score and uses ``title`` as a tie-breaker. Every
+  document in the same year receives the same ``lowestThreeMovies``
+  value.
+- :pipeline:`$project` removes unneeded fields to highlight the window
+  function result.

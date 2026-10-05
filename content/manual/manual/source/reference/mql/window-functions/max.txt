@@ -1,0 +1,115 @@
+======================
+$max (window function)
+======================
+
+.. meta::
+   :description: Use the $max window function in MongoDB to return the maximum value from documents in a defined partition or window range in the $setWindowFields stage.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. window:: $max
+
+.. include:: /includes/window-functions/max-definition.rst
+
+.. note:: Disambiguation
+
+   This page describes ``$max`` when used as a **window
+   function**.
+
+   You can also use ``$max`` in these other contexts:
+
+   - :group:`$max (accumulator) <$max>`, which returns the
+     maximum value across a group of input documents.
+
+   - :expression:`$max (expression) <$max>`, which returns the
+     maximum value from an array or a list of values.
+
+Syntax
+------
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      $setWindowFields: {
+         ...
+         output: {
+            <field>: {
+               $max: <expression>
+            }
+         }
+      }
+   }
+
+Behavior
+--------
+
+Result Type
+~~~~~~~~~~~
+
+.. include:: /includes/expressions/max/result-type.rst
+
+Null and Missing Values
+~~~~~~~~~~~~~~~~~~~~~~~
+
+If some, **but not all**, documents in the window have a ``null`` value for the
+field or are missing the field, ``$min`` ignores them. It
+considers only the non-null and non-missing values.
+
+If **all** documents in the window have a ``null`` value for the
+field or are missing the field, ``$min`` returns ``null``.
+
+Array Operand
+~~~~~~~~~~~~~
+
+In the :pipeline:`$setWindowFields` stage, if the expression
+resolves to an array, ``$max`` does not traverse the array and
+compares the array as a whole.
+
+Example
+-------
+
+.. include:: /includes/sample-data-usage.rst
+
+This example uses ``$max`` in the :pipeline:`$setWindowFields`
+stage to output the highest IMDb rating for highly-rated movies
+in 1999 and 2000. For each movie, the pipeline adds a field
+containing the highest IMDb rating across all movies in that
+year:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/max/running-max-rating-per-year.js
+      :language: javascript
+      :category: syntax example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/max/running-max-rating-per-year-output.sh
+      :visible: false
+      :language: javascript
+
+In the preceding pipeline:
+
+- :pipeline:`$match` filters for movies from 1999 and 2000 with
+  an IMDb rating of 8.5 or higher.
+
+- :pipeline:`$setWindowFields` partitions movies by ``year`` and
+  sorts them by ``imdb.rating`` in ascending order within each
+  partition. The ``$max`` window function uses a
+  :ref:`documents <setWindowFields-documents>` window with
+  ``unbounded`` lower and upper limits, spanning the entire
+  partition. ``$max`` returns the highest ``imdb.rating``
+  across all documents in each year's partition.
+
+- :pipeline:`$project` limits the output to ``title``, ``year``,
+  ``imdb.rating``, and the computed ``highestRatingInYear`` field.
+
+- :pipeline:`$sort` orders results by year and then by IMDb
+  rating in ascending order.

@@ -7,8 +7,6 @@ $bottom (accumulator operator)
 .. meta::
    :description: Use the `$bottom` accumulator to return the lowest element in a group based on a specified sort order in MongoDB aggregation.
 
-.. default-domain:: mongodb
-
 .. contents:: On this page
   :local:
   :backlinks: none
@@ -20,15 +18,29 @@ Definition
 
 .. group:: $bottom
 
-   .. versionadded:: 5.2
+.. include:: /includes/accumulators/bottom-definition.rst
 
-   Returns the bottom element within a group according to the specified 
-   sort order.
+Available in these stages:
+
+- :pipeline:`$bucket`
+- :pipeline:`$bucketAuto`
+- :pipeline:`$group`
 
 .. note:: Disambiguation
 
-   This page describes the ``$bottom`` accumulator operator. For the ``$bottom``
-   expression operator, see :ref:`$bottom (expression operator) <bottom_expression_operator>`. 
+   This page describes ``$bottom`` when used as an **accumulator**.
+   Accumulators return a single aggregated value across a group of input
+   documents.
+
+   You can also use ``$bottom`` in these other contexts:
+
+   - :expression:`$bottom (expression operator) <$bottom>`, which
+     returns the last element of an array based on a specified sort
+     order.
+
+   - :window:`$bottom (window function) <$bottom>`, used in the
+     :pipeline:`$setWindowFields` stage to return the
+     bottom element from documents in a particular window.
 
 Syntax
 ------
@@ -56,8 +68,9 @@ Syntax
 
      - Required
 
-     - Specifies the order of results, with syntax similar to 
-       :pipeline:`$sort`.
+     - Defines the ranking order of elements within each group, with
+       syntax similar to :pipeline:`$sort`. Does not affect the order of
+       documents in pipeline output.
 
    * - output
 
@@ -72,40 +85,55 @@ Behavior
 Null and Missing Values
 ~~~~~~~~~~~~~~~~~~~~~~~
 
+``$bottom`` does not filter out null values, and ``$bottom`` converts
+missing values to null.
+
 Consider the following aggregation that returns the bottom 
 document from a group of scores:
 
-- ``$bottom`` does not filter out null values.
-- ``$bottom`` converts missing values to null.
+.. io-code-block::
+   :copyable: true
 
-.. code-block:: javascript
-   :emphasize-lines: 7,8
+   .. input::
+      :language: javascript
+      :emphasize-lines: 7,8
 
-   db.aggregate( [
-      {
-         $documents: [
-            { playerId: "PlayerA", gameId: "G1", score: 1 },
-            { playerId: "PlayerB", gameId: "G1", score: 2 },
-            { playerId: "PlayerC", gameId: "G1", score: 3 },
-            { playerId: "PlayerD", gameId: "G1"},
-            { playerId: "PlayerE", gameId: "G1", score: null }
-         ]
-      },
-      {
-         $group:
-         {  
-            _id: "$gameId",
-            playerId:
-               { 
-                  $bottom:
-                     {    
-                        output: [ "$playerId", "$score" ],
-                        sortBy: { "score": -1 }
-                     }
-               }
+      db.aggregate( [
+         {
+            $documents: [
+               { playerId: "PlayerA", gameId: "G1", score: 1 },
+               { playerId: "PlayerB", gameId: "G1", score: 2 },
+               { playerId: "PlayerC", gameId: "G1", score: 3 },
+               { playerId: "PlayerD", gameId: "G1"},
+               { playerId: "PlayerE", gameId: "G1", score: null }
+            ]
+         },
+         {
+            $group:
+            {
+               _id: "$gameId",
+               playerId:
+                  {
+                     $bottom:
+                        {
+                           output: [ "$playerId", "$score" ],
+                           sortBy: { "score": -1 }
+                        }
+                  }
+            }
          }
-      }
-   ] )
+      ] )
+
+   .. output::
+      :language: javascript
+      :visible: true
+
+      [
+         {
+            _id: 'G1',
+            playerId: [ 'PlayerD', null ]
+         }
+      ]
 
 In this example:
 
@@ -115,35 +143,14 @@ In this example:
   example has only one ``gameId``, ``G1``.
 - ``PlayerD`` has a missing score and ``PlayerE`` has a
   null ``score``. These values are both considered as null.
-- The ``playerId`` and ``score`` fields are specified as 
+- The ``playerId`` and ``score`` fields are specified as
   ``output : ["$playerId"," $score"]`` and returned as array values.
-- Specify the sort order with ``sortBy: { "score": -1 }``.
-- ``PlayerD`` and ``PlayerE`` tied for the bottom element. ``PlayerD`` 
+- Specify the ranking order with ``sortBy: { "score": -1 }``.
+- ``PlayerD`` and ``PlayerE`` tied for the bottom element. ``PlayerD``
   is returned as the bottom ``score``.
-- To have more deterministic tie breaking behavior for multiple null 
-  values, add more fields to ``sortBy``.
-
-.. code-block:: javascript
-   :copyable: false
-
-   [
-      {
-         _id: 'G1',
-         playerId: [ 'PlayerD', null ]
-      }
-   ]
 
 Restrictions
 ------------
-
-Window Function and Aggregation Expression Support
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-``$bottom`` is not supported as a 
-:ref:`aggregation expression <aggregation-expressions>`.
-
-``$bottom`` is supported as a 
-:pipeline:`window operator <$setWindowFields>`.
 
 Memory Limit Considerations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -156,104 +163,62 @@ with an error.
 Examples
 --------
 
-Consider a ``gamescores`` collection with the following documents:
+.. include:: /includes/sample-data-usage.rst
 
-.. code-block:: javascript
+Find the Bottom Rating in a Genre
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   db.gamescores.insertMany([
-      { playerId: "PlayerA", gameId: "G1", score: 31 },
-      { playerId: "PlayerB", gameId: "G1", score: 33 },
-      { playerId: "PlayerC", gameId: "G1", score: 99 },
-      { playerId: "PlayerD", gameId: "G1", score: 1 },
-      { playerId: "PlayerA", gameId: "G2", score: 10 },
-      { playerId: "PlayerB", gameId: "G2", score: 14 },
-      { playerId: "PlayerC", gameId: "G2", score: 66 },
-      { playerId: "PlayerD", gameId: "G2", score: 80 }
-   ])
+You can use the ``$bottom`` accumulator to find the lowest-rated movie
+in a single genre.
 
-Find the Bottom ``Score``
-~~~~~~~~~~~~~~~~~~~~~~~~~
+.. io-code-block::
+   :copyable: true
 
-You can use the ``$bottom`` accumulator to find the bottom score in a 
-single game.
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/accumulators/bottom/find-bottom-rating-genre.snippet.find-bottom-rating-genre.js
+      :language: javascript
+      :category: usage example
 
-.. code-block:: javascript
-
-   db.gamescores.aggregate( [
-      {
-         $match : { gameId : "G1" }
-      },
-      {
-         $group:
-            {
-               _id: "$gameId",
-               playerId:
-                  {
-                     $bottom:
-                     {
-                        output: [ "$playerId", "$score" ],
-                        sortBy: { "score": -1 }
-                     }
-                  }
-            }
-      }
-   ] )
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/accumulators/bottom/find-bottom-rating-genre-output.sh
+      :language: javascript
+      :visible: false
 
 The example pipeline:
 
-- Uses :pipeline:`$match` to filter the results on a single ``gameId``. 
-  In this case, ``G1``.
-- Uses :pipeline:`$group` to group the results by ``gameId``. In this 
-  case, ``G1``.
+- Uses :pipeline:`$match` to filter the results on a single genre. 
+  In this case, ``Comedy``.
+- Uses :pipeline:`$group` to group all Comedy movies under a
+  single ``"Comedy"`` group key.
 - Specifies the fields that are output for ``$bottom`` with
-  ``output : ["$playerId"," $score"]``.
-- Uses ``sortBy: { "score": -1 }`` to sort the scores in descending order.
-- Uses ``$bottom`` to return the bottom score for the game.
+  ``output : ["$title", "$imdb.rating"]``.
+- Uses ``sortBy: { "imdb.rating": -1 }`` to define the bottom element in
+  each group as the one with the lowest rating.
+- Uses ``$bottom`` to return the lowest-rated movie for the genre.
 
-The operation returns the following results:
+Find the Bottom Rating Across Multiple Years
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: javascript
-   :copyable: false
+You can use the ``$bottom`` accumulator to find the lowest-rated movie
+for each year.
 
-   [ { _id: 'G1', playerId: [ 'PlayerD', 1 ] } ]
+.. io-code-block::
+   :copyable: true
 
-Finding the Bottom ``Score`` Across Multiple Games
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/accumulators/bottom/find-bottom-rating-years.snippet.find-bottom-rating-years.js
+      :language: javascript
+      :category: usage example
+         
 
-You can use the ``$bottom`` accumulator to find the bottom ``score``
-in each game.
-
-.. code-block:: javascript
-
-   db.gamescores.aggregate( [
-         {
-            $group:
-            { _id: "$gameId", playerId:
-               {
-                  $bottom:
-                     {
-                        output: [ "$playerId", "$score" ],
-                        sortBy: { "score": -1 }
-                     }
-               }
-            }
-         }
-   ] )
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/accumulators/bottom/find-bottom-rating-years-output.sh
+      :language: javascript
+      :visible: false
 
 The example pipeline:
 
-- Uses ``$group`` to group the results by ``gameId``.
-- Uses ``$bottom`` to return the bottom ``score`` for each game.
+- Uses :pipeline:`$match` to filter for movies from 2010-2012 that have an IMDb rating.
+- Uses :pipeline:`$group` to group the results by ``year``.
+- Uses ``$bottom`` to return the lowest-rated movie for each year.
 - Specifies the fields that are output for ``$bottom`` with
-  ``output : ["$playerId", "$score"]``.
-- Uses ``sortBy: { "score": -1 }`` to sort the scores in descending order.
-
-The operation returns the following results:
-
-.. code-block:: javascript
-   :copyable: false
-
-   [
-      { _id: 'G2', playerId: [ 'PlayerA', 10 ] },
-      { _id: 'G1', playerId: [ 'PlayerD', 1 ] }
-   ]
+  ``output : ["$title", "$imdb.rating"]``.
+- Uses ``sortBy: { "imdb.rating": -1 }`` to define the bottom element in
+  each group as the one with the lowest rating.
+- Uses :pipeline:`$sort` to sort the results by year in ascending order.

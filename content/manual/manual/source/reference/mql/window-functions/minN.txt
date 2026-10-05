@@ -1,0 +1,126 @@
+=======================
+$minN (window function)
+=======================
+
+.. meta::
+   :description: Use `$minN` as a window function to return the minimum `n` values from documents in a specified window in `$setWindowFields`. Partition results and track running minimums per group.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. Substitution used in includes and in the body of this text
+.. |operatorName| replace:: ``$minN``
+.. |operatorOrder| replace:: lowest
+
+Definition
+----------
+
+.. window:: $minN
+
+Returns the ``n`` minimum values from documents in a specified window.
+
+.. note:: Disambiguation
+
+   This page describes ``$minN`` when used as a **window function**.
+
+   You can also use ``$minN`` in these other contexts:
+
+   - :group:`$minN (accumulator) <$minN>`, which returns
+     the minimum ``n`` values for each group.
+   - :expression:`$minN (expression) <$minN>`, which returns the ``n``
+     minimum values in an array.
+
+Syntax
+------
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      $setWindowFields: {
+         ...
+         output: {
+            <field>: {
+               $minN: { input: <expression>, n: <expression> }
+            }
+         }
+      }
+   }
+
+.. list-table::
+   :header-rows: 1
+   :class: border-table
+   :widths: 10 15 75
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``input``
+     - Expression
+     - The ``input`` expression is evaluated over each
+       document in the window, and the minimum ``n``
+       results are preserved.
+
+   * - ``n``
+     - Expression
+     - The number of elements that ``$minN`` returns from
+       the window. Must resolve to a positive integer.
+
+       If the window contains fewer than ``n`` elements,
+       ``$minN`` returns all elements in the window.
+
+Behavior
+--------
+
+Type Comparison Order
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/agg-expression-bson-order-return-behavior.rst
+
+Null and Missing Values
+~~~~~~~~~~~~~~~~~~~~~~~
+
+``$minN`` filters out null and missing values.
+
+Example
+-------
+
+.. include:: /includes/sample-data-usage.rst
+
+This example uses the ``$minN`` window function to return the two
+lowest IMDb ratings for each year.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/minN/lowest-two-ratings-per-year.js
+      :language: javascript
+      :category: syntax example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/minN/lowest-two-ratings-per-year-output.sh
+      :visible: false
+      :language: javascript
+
+The preceding pipeline:
+
+- Uses :pipeline:`$match` to filter to movies from 1999 or 2001
+  with an IMDb rating of 3.8 or lower and greater than 0.
+
+- Uses :pipeline:`$setWindowFields` to partition movies by
+  ``year``. The stage uses ``$minN`` with ``n: 2`` to create
+  ``lowestTwoRatingsInYear`` from a
+  :ref:`window <setWindowFields-window>` defined as
+  ``documents: [ "unbounded", "unbounded" ]``. The window covers
+  all documents in the partition, so ``lowestTwoRatingsInYear``
+  shows the two lowest ratings for the entire year.
+
+- Uses :pipeline:`$project` to include only the ``title``,
+  ``year``, ``imdb.rating``, and ``lowestTwoRatingsInYear``
+  fields in the output.
+
+- Uses :pipeline:`$sort` to order results by year and
+  ``imdb.rating`` in ascending order.
