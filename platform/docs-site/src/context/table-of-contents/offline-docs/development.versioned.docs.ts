@@ -7607,6 +7607,11 @@ export const toc: L1TocItem[] = [
                         url: '/docs/:version/reference/operator/aggregation/atanh',
                       },
                       {
+                        label: '$avg',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/expression/avg',
+                      },
+                      {
                         label: '$binarySize',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/binarySize',
@@ -7654,7 +7659,7 @@ export const toc: L1TocItem[] = [
                       {
                         label: '$concatArrays',
                         contentSite: 'docs',
-                        url: '/docs/:version/reference/operator/aggregation/concatArrays',
+                        url: '/docs/:version/reference/expression/concatArrays',
                       },
                       {
                         label: '$cond',
@@ -7832,6 +7837,16 @@ export const toc: L1TocItem[] = [
                         url: '/docs/:version/reference/operator/aggregation/filter',
                       },
                       {
+                        label: '$first',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/expression/first',
+                      },
+                      {
+                        label: '$firstN',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/expression/firstN',
+                      },
+                      {
                         label: '$floor',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/floor',
@@ -7933,6 +7948,16 @@ export const toc: L1TocItem[] = [
                         url: '/docs/:version/reference/operator/aggregation/isoWeekYear',
                       },
                       {
+                        label: '$last',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/expression/last',
+                      },
+                      {
+                        label: '$lastN',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/expression/lastN',
+                      },
+                      {
                         label: '$let',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/let',
@@ -7988,9 +8013,19 @@ export const toc: L1TocItem[] = [
                         url: '/docs/:version/reference/operator/aggregation/map',
                       },
                       {
+                        label: '$max',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/expression/max',
+                      },
+                      {
                         label: '$maxN-array-element',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/maxN-array-element',
+                      },
+                      {
+                        label: '$mergeObjects',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/expression/mergeObjects',
                       },
                       {
                         label: '$meta',
@@ -7998,9 +8033,24 @@ export const toc: L1TocItem[] = [
                         url: '/docs/:version/reference/operator/aggregation/meta',
                       },
                       {
+                        label: '$median',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/expression/median',
+                      },
+                      {
+                        label: '$min',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/expression/min',
+                      },
+                      {
                         label: '$minN-array-element',
                         contentSite: 'docs',
-                        url: '/docs/:version/reference/operator/aggregation/minN-array-element',
+                        url: '/docs/:version/reference/expression/min',
+                      },
+                      {
+                        label: '$minN',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/expression/minN-array-element',
                       },
                       {
                         label: '$minMaxScaler',
@@ -8051,6 +8101,11 @@ export const toc: L1TocItem[] = [
                         label: '$or',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/or',
+                      },
+                      {
+                        label: '$percentile',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/expression/percentile',
                       },
                       {
                         label: '$pow',
@@ -8165,7 +8220,7 @@ export const toc: L1TocItem[] = [
                       {
                         label: '$setUnion',
                         contentSite: 'docs',
-                        url: '/docs/:version/reference/operator/aggregation/setUnion',
+                        url: '/docs/:version/reference/expression/setUnion',
                       },
                       {
                         label: '$shift',
@@ -8240,6 +8295,16 @@ export const toc: L1TocItem[] = [
                         url: '/docs/:version/reference/operator/aggregation/sqrt',
                       },
                       {
+                        label: '$stdDevPop',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/expression/stdDevPop',
+                      },
+                      {
+                        label: '$stdDevSamp',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/expression/stdDevSamp',
+                      },
+                      {
                         label: '$strcasecmp',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/strcasecmp',
@@ -8281,6 +8346,11 @@ export const toc: L1TocItem[] = [
                         versions: {
                           excludes: ['v7.0', 'v8.0'],
                         },
+                      },
+                      {
+                        label: '$sum',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/expression/sum',
                       },
                       {
                         label: '$switch',
@@ -8361,7 +8431,10 @@ export const toc: L1TocItem[] = [
                       {
                         label: '$topN',
                         contentSite: 'docs',
-                        url: '/docs/:version/reference/operator/aggregation/topN',
+                        url: '/docs/:version/reference/expression/topN',
+                        versions: {
+                          excludes: ['v7.0', 'v8.0'],
+                        },
                       },
                       {
                         label: '$toString',
@@ -8485,6 +8558,14 @@ export const toc: L1TocItem[] = [
                         url: '/docs/:version/reference/operator/aggregation/bottomN',
                       },
                       {
+                        label: '$concatArrays',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/operator/aggregation/concatArrays',
+                        versions: {
+                          excludes: ['v7.0', 'v8.0'],
+                        },
+                      },
+                      {
                         label: '$count',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/count-accumulator',
@@ -8548,6 +8629,14 @@ export const toc: L1TocItem[] = [
                         label: '$push',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/push',
+                      },
+                      {
+                        label: '$setUnion',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/operator/aggregation/setUnion',
+                        versions: {
+                          excludes: ['v7.0', 'v8.0'],
+                        },
                       },
                       {
                         label: '$stdDevPop',
@@ -8715,6 +8804,143 @@ export const toc: L1TocItem[] = [
                             url: '/docs/:version/reference/operator/update/unset',
                           },
                         ],
+                      },
+                    ],
+                  },
+                  {
+                    label: 'Window Functions',
+                    contentSite: 'docs',
+                    collapsible: true,
+                    url: '/docs/:version/reference/mql/window-functions',
+                    items: [
+                      {
+                        label: '$addToSet',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/addToSet',
+                      },
+                      {
+                        label: '$avg',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/avg',
+                      },
+                      {
+                        label: '$bottom',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/bottom',
+                      },
+                      {
+                        label: '$bottomN',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/bottomN',
+                      },
+                      {
+                        label: '$count',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/count',
+                      },
+                      {
+                        label: '$concatArrays',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/concatArrays',
+                        versions: {
+                          excludes: ['v7.0', 'v8.0'],
+                        },
+                      },
+                      {
+                        label: '$first',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/first',
+                      },
+                      {
+                        label: '$firstN',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/firstN',
+                      },
+                      {
+                        label: '$last',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/last',
+                      },
+                      {
+                        label: '$lastN',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/lastN',
+                      },
+                      {
+                        label: '$max',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/max',
+                      },
+                      {
+                        label: '$maxN',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/maxN',
+                      },
+                      {
+                        label: '$median',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/median',
+                      },
+                      {
+                        label: '$mergeObjects',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/mergeObjects',
+                        versions: {
+                          excludes: ['v7.0', 'v8.0'],
+                        },
+                      },
+                      {
+                        label: '$min',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/min',
+                      },
+                      {
+                        label: '$minN',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/minN',
+                      },
+                      {
+                        label: '$percentile',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/percentile',
+                      },
+                      {
+                        label: '$push',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/push',
+                      },
+                      {
+                        label: '$setUnion',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/setUnion',
+                        versions: {
+                          excludes: ['v7.0', 'v8.0'],
+                        },
+                      },
+                      {
+                        label: '$stdDevPop',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/stdDevPop',
+                      },
+                      {
+                        label: '$stdDevSamp',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/stdDevSamp',
+                      },
+                      {
+                        label: '$sum',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/sum',
+                      },
+                      {
+                        label: '$top',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/top',
+                      },
+                      {
+                        label: '$topN',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/topN',
                       },
                     ],
                   },

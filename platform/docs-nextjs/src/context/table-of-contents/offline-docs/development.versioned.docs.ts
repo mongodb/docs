@@ -7659,7 +7659,7 @@ export const toc: L1TocItem[] = [
                       {
                         label: '$concatArrays',
                         contentSite: 'docs',
-                        url: '/docs/:version/reference/operator/aggregation/concatArrays',
+                        url: '/docs/:version/reference/expression/concatArrays',
                       },
                       {
                         label: '$cond',
@@ -8013,6 +8013,11 @@ export const toc: L1TocItem[] = [
                         url: '/docs/:version/reference/operator/aggregation/map',
                       },
                       {
+                        label: '$max',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/expression/max',
+                      },
+                      {
                         label: '$maxN-array-element',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/maxN-array-element',
@@ -8215,7 +8220,7 @@ export const toc: L1TocItem[] = [
                       {
                         label: '$setUnion',
                         contentSite: 'docs',
-                        url: '/docs/:version/reference/operator/aggregation/setUnion',
+                        url: '/docs/:version/reference/expression/setUnion',
                       },
                       {
                         label: '$shift',
@@ -8426,7 +8431,10 @@ export const toc: L1TocItem[] = [
                       {
                         label: '$topN',
                         contentSite: 'docs',
-                        url: '/docs/:version/reference/operator/aggregation/topN',
+                        url: '/docs/:version/reference/expression/topN',
+                        versions: {
+                          excludes: ['v7.0', 'v8.0'],
+                        },
                       },
                       {
                         label: '$toString',
@@ -8550,6 +8558,14 @@ export const toc: L1TocItem[] = [
                         url: '/docs/:version/reference/operator/aggregation/bottomN',
                       },
                       {
+                        label: '$concatArrays',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/operator/aggregation/concatArrays',
+                        versions: {
+                          excludes: ['v7.0', 'v8.0'],
+                        },
+                      },
+                      {
                         label: '$count',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/count-accumulator',
@@ -8613,6 +8629,14 @@ export const toc: L1TocItem[] = [
                         label: '$push',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/push',
+                      },
+                      {
+                        label: '$setUnion',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/operator/aggregation/setUnion',
+                        versions: {
+                          excludes: ['v7.0', 'v8.0'],
+                        },
                       },
                       {
                         label: '$stdDevPop',
@@ -8815,6 +8839,14 @@ export const toc: L1TocItem[] = [
                         url: '/docs/:version/reference/mql/window-functions/count',
                       },
                       {
+                        label: '$concatArrays',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/concatArrays',
+                        versions: {
+                          excludes: ['v7.0', 'v8.0'],
+                        },
+                      },
+                      {
                         label: '$first',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/mql/window-functions/first',
@@ -8835,6 +8867,16 @@ export const toc: L1TocItem[] = [
                         url: '/docs/:version/reference/mql/window-functions/lastN',
                       },
                       {
+                        label: '$max',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/max',
+                      },
+                      {
+                        label: '$maxN',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/maxN',
+                      },
+                      {
                         label: '$median',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/mql/window-functions/median',
@@ -8843,6 +8885,9 @@ export const toc: L1TocItem[] = [
                         label: '$mergeObjects',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/mql/window-functions/mergeObjects',
+                        versions: {
+                          excludes: ['v7.0', 'v8.0'],
+                        },
                       },
                       {
                         label: '$min',
@@ -8865,6 +8910,14 @@ export const toc: L1TocItem[] = [
                         url: '/docs/:version/reference/mql/window-functions/push',
                       },
                       {
+                        label: '$setUnion',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/setUnion',
+                        versions: {
+                          excludes: ['v7.0', 'v8.0'],
+                        },
+                      },
+                      {
                         label: '$stdDevPop',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/mql/window-functions/stdDevPop',
@@ -8878,6 +8931,16 @@ export const toc: L1TocItem[] = [
                         label: '$sum',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/mql/window-functions/sum',
+                      },
+                      {
+                        label: '$top',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/top',
+                      },
+                      {
+                        label: '$topN',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/mql/window-functions/topN',
                       },
                     ],
                   },

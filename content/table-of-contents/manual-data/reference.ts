@@ -4060,6 +4060,7 @@ const tocData: TocItem[] = [
             label: '$topN',
             contentSite: 'docs',
             url: '/docs/:version/reference/expression/topN',
+            versions: { excludes: manualVersions.before('v8.3') },
           },
           {
             label: '$toString',
@@ -4186,6 +4187,7 @@ const tocData: TocItem[] = [
             label: '$concatArrays',
             contentSite: 'docs',
             url: '/docs/:version/reference/operator/aggregation/concatArrays',
+            versions: { excludes: manualVersions.before('v8.1') },
           },
           {
             label: '$count',
@@ -4256,6 +4258,7 @@ const tocData: TocItem[] = [
             label: '$setUnion',
             contentSite: 'docs',
             url: '/docs/:version/reference/operator/aggregation/setUnion',
+            versions: { excludes: manualVersions.before('v8.1') },
           },
           {
             label: '$stdDevPop',
@@ -4461,6 +4464,7 @@ const tocData: TocItem[] = [
             label: '$concatArrays',
             contentSite: 'docs',
             url: '/docs/:version/reference/mql/window-functions/concatArrays',
+            versions: { excludes: manualVersions.before('v8.1') },
           },
           {
             label: '$first',
@@ -4501,6 +4505,7 @@ const tocData: TocItem[] = [
             label: '$mergeObjects',
             contentSite: 'docs',
             url: '/docs/:version/reference/mql/window-functions/mergeObjects',
+            versions: { excludes: manualVersions.before('v8.3') },
           },
           {
             label: '$min',
@@ -4526,6 +4531,7 @@ const tocData: TocItem[] = [
             label: '$setUnion',
             contentSite: 'docs',
             url: '/docs/:version/reference/mql/window-functions/setUnion',
+            versions: { excludes: manualVersions.before('v8.1') },
           },
           {
             label: '$stdDevPop',
