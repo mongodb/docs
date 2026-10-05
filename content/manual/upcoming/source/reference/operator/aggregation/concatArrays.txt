@@ -1,11 +1,9 @@
-===================================
-$concatArrays (expression operator)
-===================================
+====================================
+$concatArrays (accumulator operator)
+====================================
 
 .. meta::
-   :description: Concatenate arrays using `$concatArrays` in MongoDB aggregation, returning `null` if any argument is `null` or missing.
-
-.. default-domain:: mongodb
+   :description: Use the $concatArrays accumulator operator in MongoDB aggregation to concatenate the array values of a field across the documents in a group, returning a single concatenated array.
 
 .. contents:: On this page
    :local:
@@ -13,179 +11,87 @@ $concatArrays (expression operator)
    :depth: 1
    :class: singlecol
 
+.. facet::
+   :name: genre
+   :values: reference
+
 Definition
 ----------
 
-Returns a single array that concatenates two or more arrays. 
-``$concatArrays`` can be used as an aggregation accumulator or an 
-array operator.
-
-Aggregation Accumulator
------------------------
 .. group:: $concatArrays
 
-``$concatArrays`` is available as an accumulator in these stages:
+Returns a single array that concatenates the array values of a field
+across a group of documents.
+
+The ``$concatArrays`` accumulator is available in these stages:
 
 - :pipeline:`$bucket`
 - :pipeline:`$bucketAuto`
 - :pipeline:`$group`
-- :pipeline:`$setWindowFields`
 
-.. _concatArrays-syntax:
+.. note:: Disambiguation
+
+   This page describes ``$concatArrays`` when used as an **accumulator**.
+   Accumulators return a single aggregated value across a group of input
+   documents.
+
+   You can also use ``$concatArrays`` in these other contexts:
+
+   - :expression:`$concatArrays (expression) <$concatArrays>`, which
+     concatenates two or more arrays into a single array within a
+     single document.
+
+   - :window:`$concatArrays (window function) <$concatArrays>`, which
+     is used in the :pipeline:`$setWindowFields` stage to concatenate
+     the array values from a field across a window of documents.
 
 Syntax
-~~~~~~
-
-When used as an aggregation accumulator, ``$concatArrays`` has the 
-following syntax:
+------
 
 .. code-block:: javascript
+   :copyable: false
+   :category: syntax example
 
    { $concatArrays: "<array field>" }
 
-.. _concatArrays-behavior:
-
 Behavior
-~~~~~~~~
+--------
 
 .. include:: /includes/fact-agg-accumulator-null-missing-behavior.rst
 
 Example
-~~~~~~~
+-------
 
-.. include:: /includes/concatArrays-setUnion-accum-example-setup.rst
+.. include:: /includes/sample-data-usage-singular.rst
 
-This example shows how you can use ``$concatArrays`` as an 
-accumulator. This example combines the elements of all ``items`` arrays 
-when grouping on the ``location`` field:
+The example uses ``$concatArrays`` to concatenate the ``genres`` arrays
+of movies grouped by release year:
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.sales.aggregate( [ 
-      {
-         $group: {
-            _id: "$location",
-            array: { "$concatArrays": "$items" }
-         }
-      }
-   ] )
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/accumulators/concatArrays/concatArrays-group-example.snippet.group-example.js
+      :language: javascript
+      :category: usage example
 
-The operation returns the following result:
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/accumulators/concatArrays/concatArrays-group-example-output.sh
+      :visible: false
+      :language: javascript
 
-.. code-block:: javascript
-   :copyable: false
-
-   [
-      {
-         "_id": "NYC",
-         "array": [
-             "laptop", "tablet", "phone", "tablet", "desktop",
-             { "accessories": [ "mouse", "keyboard"] }
-         ]
-      }
-   ]
-
-Array Operator
---------------
-
-.. expression:: $concatArrays
-
-Syntax
-~~~~~~
-
-When used as an array operator, ``$concatArrays`` has the following
-syntax:
-
-.. code-block:: javascript
-
-   { $concatArrays: [ <expression1>, <expression2>, ... ] }
-
-Behavior
-~~~~~~~~
-
-.. include:: /includes/fact-array-expr.rst
-
-If any argument resolves to a value of ``null`` or refers to a field
-that is missing, :expression:`$concatArrays` returns ``null``.
-
-.. list-table::
-   :header-rows: 1
-   :widths: 60 40
-   :class: border-table
-
-   * - Example
-     - Results
-
-   * - .. code-block:: javascript
-          :copyable: false
-
-          { $concatArrays: [ 
-             [ "hello", " "], [ "world" ]
-          ] }
-
-     - .. code-block:: javascript
-          :copyable: false
-
-          [ "hello", " ", "world" ]
-
-   * - .. code-block:: javascript
-          :copyable: false
-
-          { $concatArrays: [ 
-             [ "hello", " "], 
-             [ [ "world" ], "again"] 
-          ] }
-
-     - .. code-block:: javascript
-          :copyable: false
-
-          [ "hello", " ", [ "world" ], "again" ]
-
-Example
-~~~~~~~
-
-Create a collection named ``warehouses`` with the following documents:
-
-.. code-block:: javascript
-
-   db.warehouses.insertMany( [
-      { _id : 1, instock: [ "chocolate" ], ordered: [ "butter", "apples" ] },
-      { _id : 2, instock: [ "apples", "pudding", "pie" ] },
-      { _id : 3, instock: [ "pears", "pecans" ], ordered: [ "cherries" ] },
-      { _id : 4, instock: [ "ice cream" ], ordered: [ ] }
-   ] )
-
-The following example concatenates the ``instock`` and the ``ordered``
-arrays:
-
-.. code-block:: javascript
-
-   db.warehouses.aggregate( [
-      { $project: { items: { $concatArrays: [ "$instock", "$ordered" ] } } }
-   ] )
-
-The operation returns the following results:
-
-.. code-block:: javascript
-   :copyable: false
-   
-   [
-      { _id : 1, items : [ "chocolate", "butter", "apples" ] },
-      { _id : 2, items : null },
-      { _id : 3, items : [ "pears", "pecans", "cherries" ] },
-      { _id : 4, items : [ "ice cream" ] }
-   ]
+The operation uses :pipeline:`$match` to select movies released in 1928
+and 1929, then groups the results by ``year``. The ``combinedGenres``
+field concatenates the ``genres`` arrays of all movies in each year
+group.
 
 Limitations
 -----------
 
-``$concatArrays`` only supports arrays and expressions that resolve to 
+``$concatArrays`` only supports arrays and expressions that resolve to
 an array.
 
 Learn More
 ----------
 
-- :pipeline:`$bucket`
-- :pipeline:`$bucketAuto`
+- :ref:`accumulators-ref`
+- :expression:`$concatArrays`
 - :pipeline:`$group`
-- :pipeline:`$setWindowFields`

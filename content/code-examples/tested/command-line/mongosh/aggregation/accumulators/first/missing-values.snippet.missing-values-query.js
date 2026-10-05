@@ -1,0 +1,9 @@
+db.badData.aggregate( [
+   { $sort: { item: 1, price: 1 } },
+   {
+      $group: {
+         _id: "$item",
+         inStock: { $first: "$quantity" }
+      }
+   }
+] )

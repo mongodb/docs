@@ -1,0 +1,117 @@
+========================
+$percentile (expression)
+========================
+
+.. meta::
+   :description: Use $percentile as an expression to return an array of percentile values computed from a numeric input array.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $percentile
+
+Returns one or more percentile values computed over an array of numbers.
+
+.. note:: Disambiguation
+
+   This page describes ``$percentile`` when used as an **expression**,
+   which calculates percentile values over an array of input values.
+
+   You can also use ``$percentile`` in these other contexts:
+
+   - :group:`$percentile (accumulator) <$percentile>`, which returns
+     percentile values by aggregating across a group of input documents.
+
+   - :window:`$percentile (window function) <$percentile>`, which is
+     used in the :pipeline:`$setWindowFields` stage to return an array
+     of percentile values for documents in a particular window.
+
+Syntax
+------
+
+.. code-block:: javascript
+   :copyable: false
+   :category: syntax example
+
+   {
+      $percentile: {
+         input: <expression>,
+         p: [ <expression1>, <expression2>, ... ],
+         method: <string>
+      }
+   }
+
+Options
+~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``input``
+     - Array
+     - Can be either:
+
+       - An expression that resolves to an array. For example,
+         ``$scores``, where the document field ``$scores`` contains
+         an array of numeric values.
+       - An array of expressions, each of which evaluates to a
+         numeric value. For example,
+         ``[ "$field1", "$field2", "$field3" ]``.
+
+       ``$percentile`` calculates percentile values across all numeric
+       values in the array. Non-numeric values are ignored.
+
+   * - ``p``
+     - Expression
+     - .. include:: /includes/aggregation/percentile/opt-p.rst
+
+   * - ``method``
+     - String
+     - .. include:: /includes/aggregation/percentile/opt-method.rst
+
+Behavior
+--------
+
+When used as an expression, ``$percentile`` always uses an accurate
+percentile calculation algorithm rather than an approximate one, even
+when ``method: 'approximate'`` is specified. This is because
+expressions operate over arrays of bounded size where it is
+acceptable to keep all of the input values in memory.
+
+Example
+-------
+
+Create a ``testScores`` collection:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/percentile/load-data.js
+   :language: javascript
+   :category: usage example
+
+The following pipeline uses ``$percentile`` to calculate the 25th,
+50th, and 75th percentile test scores for each student:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/expressions/percentile/score-percentiles-per-student.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/expressions/percentile/score-percentiles-per-student-output.sh
+      :visible: false
+      :language: javascript
+
+In the preceding pipeline, :pipeline:`$project` with ``$percentile``
+computes the 25th, 50th, and 75th percentile of each student's
+``scores`` array and returns them as ``testPercentiles``.

@@ -7,7 +7,7 @@ These operators can be used with the :pipeline:`$setWindowFields` stage:
   :group:`$count`, :group:`$covariancePop`, :group:`$covarianceSamp`, 
   :group:`$derivative`, :group:`$expMovingAvg`, :group:`$firstN`, 
   :group:`$integral`, :group:`$lastN`, :group:`$max`, :group:`$maxN`,
-  :group:`$median`, :expression:`$mergeObjects`, :group:`$min`, :group:`$minN`, 
+  :group:`$median`, :window:`$mergeObjects`, :group:`$min`, :group:`$minN`, 
   :group:`$percentile`, :group:`$push`, :group:`$setUnion`, :group:`$stdDevSamp`, 
   :group:`$stdDevPop`, :group:`$sum`, :group:`$top`, :group:`$topN`.
 

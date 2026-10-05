@@ -1,0 +1,91 @@
+=======================
+$last (window function)
+=======================
+
+.. meta::
+   :description: Use $last as a window function in the $setWindowFields stage to return the value of an expression for the last document in a specified window.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. window:: $last
+
+.. include:: /includes/window-functions/last-definition.rst
+
+.. note:: Disambiguation
+
+   This page describes ``$last`` when used as a **window function**.
+
+   You can also use ``$last`` in these other contexts:
+
+   - :group:`$last (accumulator) <$last>`, used in grouping to return
+     a value for the last document in each group.
+   - :expression:`$last (expression) <$last>`, which returns the
+     last element of an array.
+
+Syntax
+------
+
+.. code-block:: none
+   :copyable: false
+   :category: syntax example
+
+   {
+      $setWindowFields: {
+         ...
+         output: {
+            <field>: {
+               $last: <expression>
+            }
+         }
+      }
+   }
+
+Behavior
+--------
+
+The ``$last`` window function has the following behaviors for null and missing values:
+
+- ``$last`` converts missing field values to ``null``.
+- ``$last`` returns ``null`` for empty windows.
+
+Example
+-------
+
+.. include:: /includes/sample-data-usage.rst
+
+This example uses :pipeline:`$setWindowFields` to partition low-rated
+movies by ``year``, sort them by ``imdb.rating`` in descending order,
+and identify the lowest-rated movie in each year. Each document includes
+a field showing the title of the lowest-rated movie in that year's
+partition:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/last/lowest-rated-movie-per-year.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/last/lowest-rated-movie-per-year-output.sh
+      :visible: false
+      :language: javascript
+
+In the preceding pipeline:
+
+- :pipeline:`$match` filters for movies released between 1999 and 2001
+  with an IMDb rating of 3.5 or lower.
+- :pipeline:`$setWindowFields` partitions movies by ``year`` and sorts
+  them by ``imdb.rating`` in descending order, with ``title`` as a
+  tiebreaker. The stage uses ``$last`` with a window defined as
+  ``documents: [ "unbounded", "unbounded" ]`` to return the title of
+  the lowest-rated movie in each year's partition.
+- :pipeline:`$project` includes only ``title``, ``year``,
+  ``imdb.rating``, and ``lowestRatedMovieInYear`` in the output.
+- :pipeline:`$sort` sorts the results by year, rating, and title.

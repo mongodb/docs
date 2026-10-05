@@ -1,0 +1,131 @@
+==============================
+$percentile (window function)
+==============================
+
+.. meta::
+   :description: Use $percentile as a window function in the $setWindowFields stage to calculate and return an array of percentile values for documents within a specified window.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. window:: $percentile
+
+.. include:: /includes/window-functions/percentile-definition.rst
+
+.. note:: Disambiguation
+
+   This page describes ``$percentile`` when used as a **window
+   function**.
+
+   You can also use ``$percentile`` in these other contexts:
+
+   - :group:`$percentile (accumulator) <$percentile>`, which returns
+     an aggregated array of percentile values across a group of input
+     documents.
+
+   - :expression:`$percentile (expression) <$percentile>`, which
+     calculates percentile values over an array of input values.
+
+Syntax
+------
+
+.. code-block:: javascript
+   :copyable: false
+   :category: syntax example
+
+   {
+      $setWindowFields: {
+         ...
+         output: {
+            <field>: {
+               $percentile: {
+                  input: <expression>,
+                  p: [ <expression1>, <expression2>, ... ],
+                  method: <string>
+               },
+            }
+         }
+      }
+   }
+
+Options
+~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``input``
+     - Expression
+     - The field over which ``$percentile`` calculates percentile
+       values. ``input`` must be an expression that evaluates to a
+       numeric type. If the expression does not evaluate to a numeric
+       type, the ``$percentile`` calculation ignores that value.
+
+   * - ``p``
+     - Expression
+     - .. include:: /includes/aggregation/percentile/opt-p.rst
+
+   * - ``method``
+     - String
+     - .. include:: /includes/aggregation/percentile/opt-method.rst
+
+Behavior
+--------
+
+In ``$setWindowFields``, ``$percentile`` returns a result for each
+document, but the results are computed over a window of documents.
+
+Calculation Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When used as a window function, ``$percentile`` always uses an
+accurate percentile calculation algorithm rather than an approximate
+one, even when ``method: 'approximate'`` is specified.
+
+Example
+-------
+
+.. include:: /includes/sample-data-usage.rst
+
+The following example uses ``$percentile`` in a
+:pipeline:`$setWindowFields` stage to find Action movies in the top
+10% of IMDB ratings for each year from 2002 to 2004.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/percentile/top-rating-percentile-by-year.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/percentile/top-rating-percentile-by-year-output.sh
+      :visible: false
+      :language: javascript
+
+The preceding pipeline:
+
+- Uses :pipeline:`$match` to filter for Action movies released in
+  2002, 2003, or 2004 with at least 5,000 IMDB votes.
+- Uses :pipeline:`$setWindowFields` to partition movies by ``year``.
+  Within each partition, the ``$percentile`` operator computes the
+  90th percentile IMDB rating using ``p: [0.9]`` and an unbounded
+  window, stored in ``top10PctRatingForYear``.
+- Uses :pipeline:`$match` with :query:`$expr` to filter for
+  movies whose IMDB rating is greater than or equal to the 90th
+  percentile rating for their year.
+- Uses :pipeline:`$project` to include the ``title``, ``year``,
+  ``imdb_rating``, and ``top10PctRatingForYear`` fields in the
+  output.
+- Uses :pipeline:`$sort` to order the results by year ascending, then
+  by IMDB rating descending.

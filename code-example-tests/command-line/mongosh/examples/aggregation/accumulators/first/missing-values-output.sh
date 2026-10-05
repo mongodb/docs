@@ -1,0 +1,6 @@
+[
+  { _id: null, inStock: 5 },
+  { _id: 'album', inStock: '' },
+  { _id: 'cd', inStock: null },
+  { _id: 'tape', inStock: 4 }
+]

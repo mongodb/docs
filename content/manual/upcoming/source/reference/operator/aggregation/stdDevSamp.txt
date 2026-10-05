@@ -3,9 +3,7 @@ $stdDevSamp (accumulator operator)
 ==================================
 
 .. meta::
-   :description: Calculate the sample standard deviation of input values using `$stdDevSamp` in various aggregation stages, ignoring non-numeric values.
-
-.. default-domain:: mongodb
+   :description: Use the $stdDevSamp accumulator operator to calculate the sample standard deviation of values across a group of documents.
 
 .. contents:: On this page
    :local:
@@ -13,59 +11,53 @@ $stdDevSamp (accumulator operator)
    :depth: 1
    :class: singlecol
 
+.. facet::
+   :name: genre
+   :values: reference
+
 Definition
 ----------
 
 .. group:: $stdDevSamp
 
-.. versionchanged:: 5.0
+Calculates the sample standard deviation of values across a group of
+documents.
 
-Calculates the sample standard deviation of the input values. Use if
-the values encompass a sample of a population of data from which
-to generalize about the population. :group:`$stdDevSamp` ignores
-non-numeric values. 
-
-If the values represent the entire population of data or you do not
-wish to generalize about a larger population, use
+Use ``$stdDevSamp`` if the input values represent a sample of a
+population of data from which you want to generalize about the
+population. If the values represent the entire population of data, use
 :group:`$stdDevPop` instead.
 
-.. include:: /includes/extracts/fact-aggregation-accumulator-stdDevSamp.rst
+The ``$stdDevSamp`` accumulator is available in these stages:
+
+- :pipeline:`$bucket`
+- :pipeline:`$bucketAuto`
+- :pipeline:`$group`
+
+.. note:: Disambiguation
+
+   This page describes ``$stdDevSamp`` when used as an **accumulator**.
+   Accumulators return an aggregated value across a group of input
+   documents.
+
+   You can also use ``$stdDevSamp`` in these other contexts:
+
+   - :expression:`$stdDevSamp (expression) <$stdDevSamp>`, which
+     returns the sample standard deviation of numeric values in an
+     array.
+
+   - :window:`$stdDevSamp (window function) <$stdDevSamp>`, which
+     is used in the :pipeline:`$setWindowFields` stage to calculate
+     the sample standard deviation of values in a window.
 
 Syntax
 ------
 
-When used in the :pipeline:`$bucket`, :pipeline:`$bucketAuto`,
-:pipeline:`$group`, and :pipeline:`$setWindowFields` stages,
-:group:`$stdDevSamp` has this syntax:
-
-.. code-block:: none
+.. code-block:: javascript
    :copyable: false
+   :category: syntax example
 
    { $stdDevSamp: <expression> }
-   
-When used in other supported stages, :group:`$stdDevSamp` has one of
-two syntaxes:
-
-- :group:`$stdDevSamp` has one specified expression as its operand:
-
-  .. code-block:: none
-     :copyable: false
-
-     { $stdDevSamp: <expression> }
-
-- :group:`$stdDevSamp` has a list of specified expressions as its
-  operand:
-
-  .. code-block:: none
-     :copyable: false
-
-     { $stdDevSamp: [ <expression1>, <expression2> ... ]  }
-
-The argument for :group:`$stdDevSamp` can be any :ref:`expression
-<aggregation-expressions>` as long as it resolves to an array.
-   
-For more information on expressions, see
-:ref:`aggregation-expressions`.
 
 Behavior
 --------
@@ -73,134 +65,55 @@ Behavior
 Result Type
 ~~~~~~~~~~~
 
-``$stdDevSamp`` returns the sample standard deviation of the 
-input values as a :bsontype:`double <Double>`.
+.. include:: /includes/expressions/stdDevSamp/result-type.rst
 
-Non-numeric Values
+Non-Numeric Values
 ~~~~~~~~~~~~~~~~~~
 
-:group:`$stdDevSamp` ignores non-numeric values. If all operands for a
-sum are non-numeric, :group:`$stdDevSamp` returns ``null``.
+.. include:: /includes/expressions/stdDevSamp/non-numeric-values.rst
 
 Single Value
 ~~~~~~~~~~~~
 
-If the sample consists of a single numeric value, :group:`$stdDevSamp`
-returns ``null``.
+If the input consists of a single numeric value, ``$stdDevSamp`` returns
+``null``.
 
-Array Operand
-~~~~~~~~~~~~~
+Example
+-------
 
-In the :pipeline:`$group` and :pipeline:`$setWindowFields` stages,
-if the expression resolves to an array, :group:`$stdDevSamp` treats the
-operand as a non-numerical value.
+.. include:: /includes/sample-data-usage.rst
 
-.. include:: /includes/extracts/fact-agg-accumulator-array-operand-in-project-stdDevSamp.rst
+This example returns the five directors with the most varied IMDb
+ratings among directors with at least 10 movies.
 
-Window Values
-~~~~~~~~~~~~~
-
-.. include:: /includes/stdDev-behavior.rst
-
-Examples
---------
-
-Use in ``$group`` Stage
-~~~~~~~~~~~~~~~~~~~~~~~
-
-A collection ``users`` contains documents with the following fields:
-
-.. code-block:: javascript
+.. io-code-block::
    :copyable: true
 
-   db.users.insertMany( [
-      { _id: 0, username: "user0", age: 20 },
-      { _id: 1, username: "user1", age: 42 },
-      { _id: 2, username: "user2", age: 28 }
-   ] )
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/accumulators/stdDevSamp/stdDevSamp-group-example.js
+      :language: javascript
+      :category: usage example
 
-To calculate the standard deviation of a sample of users, following
-aggregation operation first uses the :pipeline:`$sample` pipeline to
-sample 100 users, and then uses :group:`$stdDevSamp` calculates the
-standard deviation for the sampled users.
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/accumulators/stdDevSamp/stdDevSamp-group-example-output.sh
+      :visible: false
+      :language: javascript
 
-.. code-block:: javascript
+The preceding pipeline:
 
-   db.users.aggregate(
-      [
-         { $sample: { size: 100 } },
-         { $group: { _id: null, ageStdDev: { $stdDevSamp: "$age" } } }
-      ]
-   )
+- Uses :pipeline:`$match` to filter for movies that have a
+  ``directors`` field and a numeric ``imdb.rating``.
+- Uses :pipeline:`$unwind` to create a separate document for each
+  director credit.
+- Uses :pipeline:`$group` to group by director, counts the movies
+  with ``$sum``, and computes ``stdDevSampRating`` using
+  ``$stdDevSamp`` on ``imdb.rating``.
+- Uses a second :pipeline:`$match` to keep only directors with at
+  least 10 movies.
+- Uses :pipeline:`$sort` to sort by ``stdDevSampRating`` descending.
+- Uses :pipeline:`$limit` to return the top 5 results.
 
-The operation returns a result like the following:
+Learn More
+----------
 
-.. code-block:: javascript
-   :copyable: false
-
-   { _id: null, ageStdDev: 7.811258386185771 }
-
-Use in ``$setWindowFields`` Stage
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionadded:: 5.0
-
-.. include:: /includes/setWindowFields-example-collection.rst
-
-This example uses :group:`$stdDevSamp` in the
-:pipeline:`$setWindowFields` stage to output the sample standard
-deviation of the ``quantity`` values of the cake sales for each
-``state``:
-
-.. code-block:: javascript
-
-   db.cakeSales.aggregate( [
-      {
-         $setWindowFields: {
-            partitionBy: "$state",
-            sortBy: { orderDate: 1 },
-            output: {
-               stdDevSampQuantityForState: {
-                  $stdDevSamp: "$quantity",
-                  window: {
-                     documents: [ "unbounded", "current" ]
-                  }         
-               }
-            }
-         }
-      }
-   ] )
-
-In the example:
-
-.. include:: /includes/setWindowFields-partition-sort-date.rst
-
-- ``output`` sets the ``stdDevSampQuantityForState`` field to the sample
-  standard deviation of the ``quantity`` values using
-  :group:`$stdDevSamp` that is run in a :ref:`documents
-  <setWindowFields-documents>` window.
-  
-  The :ref:`window <setWindowFields-window>` contains documents between
-  an ``unbounded`` lower limit and the ``current`` document in the
-  output. This means :group:`$stdDevSamp` returns the sample standard
-  deviation of the ``quantity`` values for the documents between the
-  beginning of the partition and the current document.
-
-In this output, the sample standard deviation ``quantity`` value for
-``CA`` and ``WA`` is shown in the ``stdDevSampQuantityForState`` field:
-
-.. code-block:: javascript
-   :copyable: false
-
-   { _id: 4, type: "strawberry", orderDate: ISODate("2019-05-18T16:09:01Z"),
-     state: "CA", price: 41, quantity: 162, stdDevSampQuantityForState: null }
-   { _id: 0, type: "chocolate", orderDate: ISODate("2020-05-18T14:10:30Z"),
-     state: "CA", price: 13, quantity: 120, stdDevSampQuantityForState: 29.698484809834994 }
-   { _id: 2, type: "vanilla", orderDate: ISODate("2021-01-11T06:31:15Z"),
-     state: "CA", price: 12, quantity: 145, stdDevSampQuantityForState: 21.1266025033211 }
-   { _id: 5, type: "strawberry", orderDate: ISODate("2019-01-08T06:12:03Z"),
-     state: "WA", price: 43, quantity: 134, stdDevSampQuantityForState: null }
-   { _id: 3, type: "vanilla", orderDate: ISODate("2020-02-08T13:13:23Z"),
-     state: "WA", price: 13, quantity: 104, stdDevSampQuantityForState: 21.213203435596427 }
-   { _id: 1, type: "chocolate", orderDate: ISODate("2021-03-20T11:30:05Z"),
-     state: "WA", price: 14, quantity: 140, stdDevSampQuantityForState: 19.28730152198591 }
+- :ref:`accumulators-ref`
+- :group:`$stdDevPop`
+- :ref:`aggregation-expressions`

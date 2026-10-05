@@ -1,0 +1,112 @@
+============================
+$stdDevPop (window function)
+============================
+
+.. meta::
+   :description: Use the $stdDevPop window function in the $setWindowFields stage to calculate the population standard deviation of values from documents in a window.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. window:: $stdDevPop
+
+.. include:: /includes/window-functions/stdDevPop-definition.rst
+
+.. note:: Disambiguation
+
+   This page describes ``$stdDevPop`` when used as a **window
+   function**.
+
+   You can also use ``$stdDevPop`` in these other contexts:
+
+   - :group:`$stdDevPop (accumulator) <$stdDevPop>`, which returns the
+     population standard deviation of values across a group of
+     documents.
+
+   - :expression:`$stdDevPop (expression) <$stdDevPop>`, which returns
+     the population standard deviation of numeric values in an array.
+
+Syntax
+------
+
+.. code-block:: javascript
+   :copyable: false
+   :category: syntax example
+
+   {
+      $setWindowFields: {
+         ...
+         output: {
+            <field>: {
+               $stdDevPop: <expression>
+            }
+         }
+      }
+   }
+
+Behavior
+--------
+
+Result Type
+~~~~~~~~~~~
+
+.. include:: /includes/expressions/stdDevPop/result-type.rst
+
+Non-Numeric Values
+~~~~~~~~~~~~~~~~~~
+
+The ``$stdDevPop`` window function ignores non-numeric values. If the
+window contains no numeric values, ``$stdDevPop`` returns ``null``.
+
+Single Value
+~~~~~~~~~~~~
+
+If the input consists of a single numeric value, ``$stdDevPop``
+returns ``0``.
+
+Example
+-------
+
+.. include:: /includes/sample-data-usage.rst
+
+This example uses :pipeline:`$setWindowFields` to add to each
+document a field that contains the running population standard
+deviation of IMDb ratings for Musicals from 2009 and 2010.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/stdDevPop/stdDevPop-window-example.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/stdDevPop/stdDevPop-window-example-output.sh
+      :visible: false
+      :language: javascript
+
+The preceding pipeline:
+
+- Uses :pipeline:`$match` to filter for Musicals from 2009
+  and 2010 with a numeric IMDb rating.
+
+- Uses :pipeline:`$setWindowFields` to partition movies by ``year``
+  and sort them by ``title``. The stage uses ``$stdDevPop`` with a
+  :ref:`documents <setWindowFields-documents>` window of
+  ``[ "unbounded", "current" ]`` to create
+  ``stdDevPopRatingInYear``. The ``stdDevPopRatingInYear`` field
+  holds the running population standard deviation of ``imdb.rating``
+  from the start of the partition to the current document.
+  ``$documentNumber`` assigns a per-partition row number
+  (``rankInYear``) to each document.
+
+- Uses :pipeline:`$project` to include ``title``, ``year``,
+  ``imdb``, ``stdDevPopRatingInYear``, and ``rankInYear`` in the
+  output.
+
+- Uses :pipeline:`$sort` to sort the results by year and title.
