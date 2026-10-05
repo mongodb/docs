@@ -1,0 +1,119 @@
+========================
+$lastN (window function)
+========================
+
+.. meta::
+   :description: Use $lastN as a window function in $setWindowFields to return an array containing the last n values from documents within a specified window.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. window:: $lastN
+
+.. include:: /includes/window-functions/lastN-definition.rst
+
+.. note:: Disambiguation
+
+   This page describes ``$lastN`` when used as a **window function**.
+
+   You can also use ``$lastN`` in these other contexts:
+
+   - :group:`$lastN (accumulator) <$lastN>`, used in grouping to
+     return the last ``n`` elements from each group.
+
+   - :expression:`$lastN (expression) <$lastN>`, which returns the
+     specified number of elements from the end of an array.
+
+Syntax
+------
+
+.. code-block:: none
+   :copyable: false
+   :category: syntax example
+
+   {
+      $setWindowFields: {
+         ...
+         output: {
+            <field>: {
+               $lastN: {
+                  input: <expression>,
+                  n: <expression>
+               }
+            }
+         }
+      }
+   }
+
+Options
+~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``input``
+     - Expression
+     - The ``input`` expression is evaluated over each document in the
+       window, and the last ``n`` results are preserved.
+
+   * - ``n``
+     - Expression
+     - The number of elements that ``$lastN`` returns from the
+       window. Must resolve to a positive integer.
+
+       If the window contains fewer than ``n`` elements, ``$lastN``
+       returns all elements in the window.
+
+Behavior
+--------
+
+``$lastN`` has the following behaviors for null and missing values:
+
+- ``$lastN`` does not filter out null values.
+- ``$lastN`` converts missing values to null.
+
+Example
+-------
+
+.. include:: /includes/sample-data-usage.rst
+
+This example uses :pipeline:`$setWindowFields` to partition movies by
+``year``, sort them by ``imdb.rating`` in descending order, and return
+the three lowest-rated movies from each year.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/lastN/last-three-movies-per-year.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/lastN/last-three-movies-per-year-output.sh
+      :visible: false
+      :language: javascript
+
+The preceding pipeline:
+
+- Uses the :pipeline:`$match` stage to filter the results to movies
+  released in 1979, 1985, and 1992 with an IMDb rating of 4.5 or
+  lower.
+- Uses :pipeline:`$setWindowFields` to partition movies by ``year`` and
+  sort them by ``imdb.rating`` in descending order with ``title`` as a
+  tiebreaker. The stage uses ``$lastN`` with ``n: 3`` to create
+  ``lowestRatedThreeMoviesInYear`` from a
+  :ref:`window <setWindowFields-window>` defined as ``documents: [
+  "unbounded", "unbounded" ]``.
+- Uses :pipeline:`$project` to include only the ``title``, ``year``,
+  ``imdb.rating``, and ``lowestRatedThreeMoviesInYear`` fields in the output.
+- Uses :pipeline:`$sort` to sort the results by year, rating, and title.

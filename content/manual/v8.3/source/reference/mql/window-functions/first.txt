@@ -1,0 +1,91 @@
+========================
+$first (window function)
+========================
+
+.. meta::
+   :description: Use $first in setWindowFields to return the expression value for the first document in a window.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. window:: $first
+
+.. include:: /includes/window-functions/first-definition.rst
+
+.. note:: Disambiguation
+
+   This page describes ``$first`` when used as a **window function**.
+
+   You can also use ``$first`` in these other contexts:
+
+   - :group:`$first (accumulator) <$first>`, used in grouping to return
+     the first value from each group.
+
+   - :expression:`$first (expression) <$first>`, which returns the
+     first element of an array.
+
+Syntax
+------
+
+.. code-block:: none
+   :copyable: false
+
+   {
+      $setWindowFields: {
+         ...
+         output: {
+            <field>: {
+               $first: <expression>
+            }
+         }
+      }
+   }
+
+Behavior
+--------
+
+The ``$first`` window function has the following behaviors for null and
+missing values:
+
+- ``$first`` converts missing field values to ``null``.
+- ``$first`` returns ``null`` for empty windows.
+
+Example
+-------
+
+.. include:: /includes/sample-data-usage.rst
+
+This example uses :pipeline:`$setWindowFields` to partition movies by
+``year``, sort them by ``imdb.rating`` in descending order, and identify
+the highest-rated movie in each year. Each document includes a field
+showing the title of the highest-rated movie released in that year:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/first/top-rated-movie-per-year.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/first/top-rated-movie-per-year-output.sh
+      :visible: false
+      :language: javascript
+
+In the preceding pipeline:
+
+- :pipeline:`$match` filters for movies from 1999-2001 with an
+  IMDb rating of 8.5 or higher.
+- :pipeline:`$setWindowFields` partitions movies by ``year`` and
+  sorts them by ``imdb.rating`` in descending order. The stage uses
+  ``$first`` with a window defined as ``documents: [ "unbounded",
+  "unbounded" ]`` to return the title of the highest-rated movie in
+  each year's partition.
+- :pipeline:`$project` includes only ``title``, ``year``,
+  ``imdb.rating``, and ``topRatedMovieInYear`` in the output.
+- :pipeline:`$sort` sorts the results by year and rating.

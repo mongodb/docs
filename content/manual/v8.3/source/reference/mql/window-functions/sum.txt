@@ -1,0 +1,118 @@
+======================
+$sum (Window Function)
+======================
+
+.. meta::
+   :description: Use the $sum window function in $setWindowFields to calculate the cumulative sum of numeric values in a defined window of documents within a partition.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. window:: $sum
+
+.. include:: /includes/window-functions/sum-definition.rst
+
+.. note:: Other Uses of ``$sum``
+
+   This page describes ``$sum`` when used as a **window function**.
+
+   You can also use ``$sum`` in these other contexts:
+
+   - :group:`$sum (accumulator) <$sum>`, which returns the
+     collective sum of numeric values across a group of documents.
+
+   - :expression:`$sum (expression) <$sum>`, which returns the
+     sum of numeric values in an array.
+
+Syntax
+------
+
+.. code-block:: javascript
+   :copyable: false
+   :category: syntax example
+
+   {
+      $setWindowFields: {
+         ...
+         output: {
+            <field>: {
+               $sum: <expression>
+            }
+         }
+      }
+   }
+
+Behavior
+--------
+
+Result Type
+~~~~~~~~~~~
+
+.. include:: /includes/expressions/sum/result-type.rst
+
+Null or Missing Values
+~~~~~~~~~~~~~~~~~~~~~~
+
+If some documents in the window have a ``null`` value for the
+field or are missing the field, ``$sum`` ignores those values
+and sums the remaining values.
+
+If **all** documents in the window have a ``null`` value for the
+field or are missing the field, ``$sum`` returns ``0``.
+
+Example
+-------
+
+.. include:: /includes/sample-data-usage.rst
+
+This example uses :pipeline:`$setWindowFields` to calculate a
+running cumulative vote total for each Musical movie from 2009
+and 2010. Each document receives the ``$sum`` value computed from
+the beginning of its yearly partition through the current document.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/sum/sum-window-example.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/sum/sum-window-example-output.sh
+      :visible: false
+      :language: javascript
+
+The preceding pipeline:
+
+- Uses :pipeline:`$match` to filter for Musical movies from 2009
+  and 2010 with a numeric IMDb rating and at least one vote.
+
+- Uses :pipeline:`$setWindowFields` to partition movies by
+  ``year`` and sort them by ``title``. The stage uses ``$sum``
+  with a :ref:`documents <setWindowFields-documents>` window of
+  ``[ "unbounded", "current" ]`` to create the following fields
+  for each document:
+
+  - ``cumulativeVotesInYear``: the running cumulative sum of
+    ``imdb.votes``.
+
+  - ``rankInYear``: a per-partition row number assigned by
+    ``$documentNumber``.
+
+- Uses :pipeline:`$project` to include ``title``, ``year``,
+  ``imdb.votes``, ``cumulativeVotesInYear``, and ``rankInYear``
+  in the output.
+
+- Uses :pipeline:`$sort` to sort results by year and title.
+
+Learn More
+----------
+
+- :ref:`window-functions-ref`
+- :ref:`read-operations-projection`
+- :ref:`agg-pipeline-limits`

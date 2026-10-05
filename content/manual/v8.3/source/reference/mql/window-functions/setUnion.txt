@@ -1,0 +1,119 @@
+===========================
+$setUnion (window function)
+===========================
+
+.. meta::
+   :description: Use the $setUnion window function in $setWindowFields to combine the array values of documents in a window into a single array of unique elements, ignoring duplicates.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+Definition
+----------
+
+.. window:: $setUnion
+
+.. include:: /includes/window-functions/setUnion-definition.rst
+
+.. versionadded:: 8.1
+
+.. note:: Disambiguation
+
+   This page describes ``$setUnion`` when used as a **window
+   function**.
+
+   You can also use ``$setUnion`` in these other contexts:
+
+   - :group:`$setUnion (accumulator) <$setUnion>`, which returns a
+     single array of the unique elements in the array values across a
+     group of documents.
+
+   - :expression:`$setUnion (expression) <$setUnion>`, which combines
+     two or more arrays into a single array of unique elements.
+
+Syntax
+------
+
+.. code-block:: javascript
+   :copyable: false
+   :category: syntax example
+
+   {
+      $setWindowFields: {
+         ...
+         output: {
+            <field>: {
+               $setUnion: <array field>
+            }
+         }
+      }
+   }
+
+Behavior
+--------
+
+.. |set-operator-name| replace:: ``$setUnion``
+
+.. include:: /includes/important-set-operator-semantics.rst
+
+.. include:: /includes/fact-setUnion-non-recursive.rst
+
+To see how ``$setUnion`` treats nested array elements, see the
+examples in the :expression:`$setUnion (expression) <$setUnion>`
+section.
+
+.. include:: /includes/fact-agg-accumulator-null-missing-behavior.rst
+
+Example
+-------
+
+.. include:: /includes/sample-data-usage.rst
+
+This example uses :pipeline:`$setWindowFields` to show how the genres
+in a director's filmography accumulate over time. Each document
+receives the unique genres from the earliest movie through the current
+movie.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/setUnion/setUnion-window-example.snippet.window-example.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/setUnion/setUnion-window-example-output.sh
+      :visible: false
+      :language: javascript
+
+The preceding pipeline:
+
+- Uses :pipeline:`$match` to filter for movies directed by Christopher
+  Nolan.
+
+- Uses :pipeline:`$setWindowFields` to sort movies by ``year`` and
+  apply ``$setUnion`` to the ``genres`` field over a :ref:`documents
+  <setWindowFields-documents>` window of ``[ "unbounded", "current"
+  ]``. The ``genresSoFar`` field holds the unique genres from the
+  first movie in the sort order through the current movie.
+
+- Uses :pipeline:`$project` to include ``title``, ``year``,
+  ``genres``, and ``genresSoFar`` in the output.
+
+The ``genresSoFar`` array grows as each movie contributes genres that
+have not yet appeared. ``The Dark Knight Rises`` and ``Interstellar``
+add no new genres, so their windows return the same set as
+``Inception``.
+
+Learn More
+----------
+
+- :ref:`aggregation`
+- :ref:`window-functions-ref`
+- :pipeline:`$setWindowFields`

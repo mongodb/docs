@@ -1,0 +1,106 @@
+===============================
+$concatArrays (window function)
+===============================
+
+.. meta::
+   :description: Use the $concatArrays window function in the $setWindowFields stage to concatenate the array values from the documents in a window, accumulating them in each partition document.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+Definition
+----------
+
+.. window:: $concatArrays
+
+.. include:: /includes/window-functions/concatArrays-definition.rst
+
+.. note:: Disambiguation
+
+   This page describes ``$concatArrays`` when used as a **window
+   function**.
+
+   You can also use ``$concatArrays`` in these other contexts:
+
+   - :group:`$concatArrays (accumulator) <$concatArrays>`, which
+     concatenates the array values from a field across a group of
+     documents.
+
+   - :expression:`$concatArrays (expression) <$concatArrays>`, which
+     concatenates two or more arrays into a single array within a
+     single document.
+
+Syntax
+------
+
+.. code-block:: javascript
+   :copyable: false
+   :category: syntax example
+
+   {
+      $setWindowFields: {
+         ...
+         output: {
+            <field>: {
+               $concatArrays: "<array field>"
+            }
+         }
+      }
+   }
+
+Behavior
+--------
+
+.. include:: /includes/fact-agg-accumulator-null-missing-behavior.rst
+
+Example
+-------
+
+.. include:: /includes/sample-data-usage-singular.rst
+
+The example uses :pipeline:`$setWindowFields` to partition movies by
+release year and concatenate the ``genres`` arrays within each
+partition, sorted by title. Each document receives the concatenation of
+the ``genres`` arrays from the first movie in its partition through the
+current document:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/concatArrays/concatArrays-window-example.snippet.window-example.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/concatArrays/concatArrays-window-example-output.sh
+      :visible: false
+      :language: javascript
+
+The preceding pipeline:
+
+- Uses :pipeline:`$setWindowFields` to partition movies by ``year``
+  with ``partitionBy`` and sort each partition by ``title``. The stage
+  applies ``$concatArrays`` to the ``genres`` field over a
+  :ref:`documents <setWindowFields-documents>` window of ``[
+  "unbounded", "current" ]``. The ``combinedGenres`` field holds the
+  concatenated genres from the first movie in the partition through
+  the current document.
+
+- Uses :pipeline:`$project` to include ``year``, ``title``, and
+  ``combinedGenres`` in the output.
+
+The ``combinedGenres`` array grows within each partition as each
+document contributes its ``genres`` array.
+
+Learn More
+----------
+
+- :ref:`aggregation`
+- :ref:`window-functions-ref`
+- :pipeline:`$setWindowFields`

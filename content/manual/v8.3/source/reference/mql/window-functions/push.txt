@@ -1,0 +1,108 @@
+=======================
+$push (window function)
+=======================
+
+.. meta::
+   :description: Use $push as a window function in $setWindowFields to return an array of all values, including duplicate values, from documents within a specified window.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. window:: $push
+
+.. include:: /includes/window-functions/push-definition.rst
+
+.. note:: Disambiguation
+
+   This page describes ``$push`` when used as a **window function**.
+
+   You can also use ``$push`` in these other contexts:
+
+   - :group:`$push (accumulator) <$push>`, which returns the resulting
+     array after applying an expression to each document in a group.
+   - :update:`$push (update operator) <$push>`, which appends a value
+     to an array field in a document.
+
+Syntax
+------
+
+.. code-block:: none
+   :copyable: false
+   :category: syntax example
+
+   {
+      $setWindowFields: {
+         ...
+         output: {
+            <field>: {
+               $push: <expression>
+            }
+         }
+      }
+   }
+
+Behavior
+--------
+
+``$push`` includes all values in the window, including duplicates. The
+order of elements in the output array corresponds to the sort order
+specified in the :pipeline:`$setWindowFields` ``sortBy`` field.
+
+Example
+-------
+
+.. include:: /includes/sample-data-usage.rst
+
+This example uses the ``$push`` window function to build a running list
+of genres across movies from 2002. For each movie, ``$push`` adds the
+movie's primary genre to ``genresSeenSoFar``, retaining all values
+including duplicates.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/push/run-pipeline.snippet.push-window-example.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/push/output.sh
+      :visible: false
+      :language: javascript
+
+In the example:
+
+- The :pipeline:`$match` stage filters to movies from 2002 with genre
+  information.
+
+- The :pipeline:`$addFields` stage adds a ``primaryGenre`` field that
+  contains the first element in the ``genres`` array.
+
+- The :pipeline:`$setWindowFields` stage uses :window:`$push` with an
+  ``unbounded`` to ``current`` :ref:`window <setWindowFields-window>`
+  to accumulate all genres from the beginning of the result set up to
+  the current document.
+
+- The :pipeline:`$project` stage reshapes the output and calculates
+  ``totalGenreCount`` to show how the array grows with each document.
+
+- The :pipeline:`$limit` stage restricts output to 8 documents
+  to improve readability.
+
+``totalGenreCount`` increases by one with every document. The seventh
+document (``'3 Extremes II'``) has genre ``Horror``, which was already
+in the array, so ``Horror`` appears twice in ``genresSeenSoFar``. This
+demonstrates that ``$push`` includes duplicate values, unlike
+:window:`$addToSet <$addToSet>`, which adds only unique values.
+
+Learn More
+----------
+
+- :ref:`window-functions-ref`
+- :window:`$addToSet`
+- :ref:`agg-pipeline-limits`

@@ -1,0 +1,119 @@
+==========================
+$firstN (window function)
+==========================
+
+.. meta::
+   :description: Use `$firstN` to return the first `n` elements from a window in setWindowFields operations.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. window:: $firstN
+
+.. include:: /includes/window-functions/firstN-definition.rst
+
+.. note:: Disambiguation
+
+   This page describes ``$firstN`` when used as a **window function**.
+
+   You can also use ``$firstN`` in these other contexts:
+
+   - :group:`$firstN (accumulator) <$firstN>`, used in grouping to
+     return the first ``n`` elements from each group.
+
+   - :expression:`$firstN (expression) <$firstN>`, which returns the 
+     specified number of elements from the beginning of an array.
+
+Syntax
+------
+
+.. code-block:: none
+   :copyable: false
+
+   {
+      $setWindowFields: {
+         ...
+         output: {
+            <field>: {
+               $firstN: {
+                  input: <expression>,
+                  n: <expression>
+               }
+            }
+         }
+      }
+   }
+
+Options
+~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``input``
+     - Expression
+     - The ``input`` expression is evaluated over each document in the
+       window, and the first ``n`` results are preserved.
+
+   * - ``n``
+     - Expression
+     - The number of elements that ``$firstN`` returns from the
+       window. Must resolve to a positive integer.
+
+       If the window contains fewer than ``n`` elements, ``$firstN``
+       returns all elements in the window.
+
+Behavior
+--------
+
+Null and Missing Values
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- ``$firstN`` does not filter out null values.
+- ``$firstN`` converts missing values to null.
+
+Example
+-------
+
+.. include:: /includes/sample-data-usage.rst
+
+This example uses :pipeline:`$setWindowFields` to partition movies by
+``year``, sort them by ``imdb.rating`` in descending order, and return
+the first three movies from each year. Each movie also includes a field
+that shows the three highest-rated movie titles released in that year:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/firstN/first-three-movies-per-year.js
+      :language: shell
+      :category: syntax example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/firstN/first-three-movies-per-year-output.sh
+      :visible: false
+      :language: shell
+
+The preceding pipeline:
+
+- Uses the :pipeline:`$match` stage to filter the results to movies
+  released between the years 
+  1999 and 2001 with an IMDb rating of 8.5 or higher.
+- Uses :pipeline:`$setWindowFields` to partition movies by ``year`` and
+  sort them by ``imdb.rating`` in descending order. The stage uses
+  ``$firstN`` with ``n: 3`` to create ``topThreeMoviesInYear`` from a
+  :ref:`window <setWindowFields-window>` defined as ``documents: [
+  "unbounded", "unbounded" ]``.
+- Uses :pipeline:`$project` to include only the ``title``, ``year``, 
+  ``imdb.rating``, and ``topThreeMoviesInYear`` fields in the output.
+- Uses :pipeline:`$sort` to sort the results by year and rating.

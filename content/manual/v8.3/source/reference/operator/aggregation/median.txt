@@ -5,9 +5,7 @@ $median (accumulator operator)
 ==============================
 
 .. meta::
-   :description: Calculate the median using the `$median` operator in MongoDB aggregation stages, supporting approximate methods for large data sets.
-
-.. default-domain:: mongodb
+   :description: Use $median in $group, $bucket, and $bucketAuto stages to return the approximate median (50th percentile) across a group of input documents. Added in MongoDB 7.0.
 
 .. contents:: On this page
   :local:
@@ -25,20 +23,34 @@ Definition
 
    .. versionadded:: 7.0
 
-   .. include:: /includes/aggregation/fact-return-median.rst
+   .. include:: /includes/aggregation/fact-return-median-accumulator.rst
 
-   You can use |operatorName| as an :ref:`accumulator
-   <accumulators-group>` in the :pipeline:`$group <$group>` stage or as
-   an :ref:`aggregation expression <aggregation-expressions>`.
+The ``$median`` accumulator is available in these stages:
 
+- :pipeline:`$bucket`
+- :pipeline:`$bucketAuto`
+- :pipeline:`$group`
+
+.. note:: Disambiguation
+
+   This page describes ``$median`` when used as an **accumulator**.
+   Accumulators return an aggregated value across a group of input
+   documents.
+
+   You can also use ``$median`` in these other contexts:
+
+   - :expression:`$median (expression) <$median>`, which returns
+     the median of an array of values within a single document.
+   - :window:`$median (window function) <$median>`, which is used in
+     the :pipeline:`$setWindowFields` stage to return the median
+     value from documents in a window.
 
 Syntax
 ------
 
-The syntax for |operatorName| is:
-
 .. code-block:: javascript
    :copyable: false
+   :category: syntax example
 
    {
       $median: {
@@ -48,7 +60,7 @@ The syntax for |operatorName| is:
    }
 
 Command Fields
---------------
+~~~~~~~~~~~~~~
 
 |operatorName| takes the following fields:
 
@@ -64,10 +76,11 @@ Command Fields
    * - ``input``
      - Expression
      - Required
-     - |operatorName| calculates the 50th percentile value of this data.
-       ``input`` must be a field name or an expression that evaluates to
-       a numeric type. If the expression cannot be converted to a
-       numeric type, the |operatorName| calculation ignores it.
+     - |operatorName| calculates the 50th percentile over the values
+       returned by this expression. ``input`` must be an expression
+       that evaluates to a numeric type. If the expression does not
+       evaluate to a numeric type, the |operatorName| calculation
+       ignores that value.
 
    * - ``method``
      - String
@@ -78,181 +91,53 @@ Command Fields
 Behavior
 --------
 
-.. include:: /includes/aggregation/fact-behavior-percent-median.rst
+When used as an accumulator, ``$median``:
 
-Type of Operation
-~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/aggregation/fact-type-of-operation.rst
+- Calculates a single result for all the documents in the group.
+- Uses the `t-digest <https://arxiv.org/abs/1902.04023>`__ algorithm for
+  calculation of approximate percentiles. Approximation is necessary to
+  calculate the median using a data structure of bounded size.
 
 Calculation Considerations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/aggregation/fact-calc-considerations.rst
+When used as an accumulator, ``$median`` always uses an approximation
+algorithm. As a result, the computed percentiles ``$median`` returns on
+the same data set might differ on each run, due to pseudorandomness in
+the t-digest approximation algorithm. Additionally, ``$median`` may
+return a value that differs slightly from the true statistical median.
 
-Array Input
-~~~~~~~~~~~
+Example
+-------
 
-If you use |operatorName| as an aggregation expression in a
-:pipeline:`$project <$project>` stage, you can use an array as input.
-|operatorName| ignores non-numeric array values.
+.. include:: /includes/sample-data-usage.rst
 
-The syntax is:
+The following example uses ``$median`` to calculate the median IMDb
+rating of Action movies per year from 2000 to 2004:
 
-.. code-block:: javascript
-   :copyable: false
+.. io-code-block::
+   :copyable: true
 
-   {
-      $median:
-         {
-            input: [ <expression1, <expression2>, ..., <expressionN> ], 
-            method: <string>
-         }
-   }
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/accumulators/median/median-rating-by-year.js
+      :language: shell
+      :category: usage example
 
-Window Functions
-~~~~~~~~~~~~~~~~
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/accumulators/median/median-rating-by-year-output.sh
+      :visible: false
+      :language: shell
 
-.. include:: /includes/aggregation/fact-setwindowfield.rst
+In the preceding pipeline:
 
-Examples
---------
-
-.. include:: /includes/aggregation/example-setup-01.rst
-
-Use |operatorName| as an Accumulator
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Create an accumulator that calculates the median value:
-
-.. code-block:: javascript
-
-   db.testScores.aggregate( [
-      {
-         $group: {
-            _id: null,
-            test01_median: {
-               $median: {
-                  input: "$test01",
-                  method: 'approximate'
-               }
-            }
-         }
-      }
-   ] )
-
-Output:
-
-.. code-block:: javascript
-   :copyable: false
-
-   { _id: null, test01_median: 62 }
-
-The ``_id`` field value is ``null`` so ``$group`` selects all the
-documents in the collection.
-
-The |operatorName| accumulator takes its input from the ``test01``
-field. |operatorName| calculates the median value for the field, ``62``
-in this example.
-
-Use |operatorName| in a ``$project`` Stage
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-In a ``$group`` stage, |operatorName| is an accumulator and calculates
-a single value for all documents. In a ``$project`` stage,
-|operatorName| is an aggregation expression and calculates values for
-each document.
-
-You can use a field name or an array as input in a ``$project`` stage.
-
-.. code-block:: javascript
-
-   db.testScores.aggregate( [
-      {
-         $project: {
-            _id: 0,
-            studentId: 1,
-            testMedians: {
-               $median: {
-                  input: [ "$test01", "$test02", "$test03" ],
-                  method: 'approximate'
-               }
-            }
-         }
-      }
-   ] )
-
-Output:
-
-.. code-block:: javascript
-   :copyable: false
-
-   { studentId: '2345', testMedians: 80 },
-   { studentId: '2356', testMedians: 79 },
-   { studentId: '2358', testMedians: 78 },
-   { studentId: '2367', testMedians: 72 },
-   { studentId: '2369', testMedians: 60 }
-
-When |operatorName| is an aggregation expression there is a result for
-each ``studentId``.
-
-Use |operatorName| in a ``$setWindowField`` Stage
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To base your percentile values on local data trends, use |operatorName|
-in a ``$setWindowField`` aggregation pipeline stage.
-
-This example creates a window to filter scores:
-
-.. code-block:: javascript
-
-   db.testScores.aggregate( [
-      {
-         $setWindowFields: {
-            sortBy: { test01: 1 },
-            output: {
-               test01_median: {
-                  $median: {
-                     input: "$test01",
-                     method: 'approximate'
-                  },
-                  window: {
-                     range: [ -3, 3 ]
-                  }
-               }
-            }
-         }
-      },
-      {
-         $project: {
-            _id: 0,
-            studentId: 1,
-            test01_median: 1
-         }
-      }
-   ] )
-
-Output:
-
-.. code-block:: javascript
-   :copyable: false
-
-   { studentId: '2356', test01_median: 60 },
-   { studentId: '2369', test01_median: 60 },
-   { studentId: '2345', test01_median: 60 },
-   { studentId: '2367', test01_median: 64 },
-   { studentId: '2358', test01_median: 64 }
-
-In this example, the median calculation for each document also
-incorporates data from the three documents before and after it.
+- :pipeline:`$match` filters for Action movies released between 2000
+  and 2004 with a valid IMDb rating.
+- :pipeline:`$group` groups documents by ``year`` and uses ``$median``
+  to calculate the median ``imdb.rating`` across all Action movies in
+  each year.
+- :pipeline:`$sort` sorts the results by year in ascending order.
 
 Learn More
 ----------
 
-The :group:`$percentile <$percentile>` operator is a more general
-version of the |operatorName| operator that allows you to set one or
-more percentile values.
-
-For more information on window functions, see:
-:pipeline:`$setWindowFields`.
-
+- :expression:`$median (expression) <$median>`
+- :window:`$median (window function) <$median>`
+- :group:`$percentile`
