@@ -1,0 +1,32 @@
+import { defineDocset } from "../define";
+
+export default defineDocset({
+	project: "csharp",
+	displayName: "C#/.NET Driver",
+	prefix: "docs/drivers/csharp",
+	search: { categoryTitle: "C# Driver" },
+	versions: [
+		{ name: "upcoming", noIndexing: true },
+		{ name: "current", label: "v3.x (current)", stable: true },
+		{ name: "v2.x" },
+		{ name: "v3.6", active: false },
+		{ name: "v3.5", active: false },
+		{ name: "v3.4", active: false },
+		{ name: "v3.3", active: false },
+		{ name: "v3.2", active: false },
+		{ name: "v3.1", active: false },
+		{ name: "v3.0", active: false },
+		{ name: "v2.30", active: false },
+		{ name: "v2.29", active: false, eol: "download" },
+		{ name: "v2.28", active: false, eol: "download" },
+		{ name: "v2.27", active: false, eol: "download" },
+		{ name: "v2.26", active: false, eol: "download" },
+		{ name: "v2.25", active: false, eol: "download" },
+		{ name: "v2.24", active: false, eol: "download" },
+		{ name: "v2.23", active: false, eol: "download" },
+		{ name: "v2.22", active: false, eol: "download" },
+		{ name: "v2.21", active: false, eol: "download" },
+		{ name: "v2.20", active: false, eol: "download" },
+		{ name: "v2.19", active: false, eol: "download" },
+	],
+});

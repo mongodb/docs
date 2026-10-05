@@ -1,0 +1,32 @@
+import { defineDocset } from "../define";
+
+export default defineDocset({
+	project: "kafka-connector",
+	displayName: "Kafka Connector",
+	prefix: "docs/kafka-connector",
+	search: { categoryTitle: "Kafka Connector" },
+	versions: [
+		{ name: "upcoming", noIndexing: true },
+		{ name: "current", label: "v3.0 (current)", stable: true },
+		{ name: "v2.2" },
+		{ name: "v2.1" },
+		{ name: "v2.0" },
+		{ name: "v1.16", active: false, eol: "link" },
+		{ name: "v1.15", active: false, eol: "link" },
+		{ name: "v1.14", active: false, eol: "link" },
+		{ name: "v1.13", active: false, eol: "link" },
+		{ name: "v1.12", active: false, eol: "download" },
+		{ name: "v1.11", active: false, eol: "download" },
+		{ name: "v1.10", active: false, eol: "download" },
+		{ name: "v1.9", active: false, eol: "download" },
+		{ name: "v1.8", active: false, eol: "download" },
+		{ name: "v1.7", active: false, eol: "download" },
+		{ name: "v1.6", active: false, eol: "download" },
+		{ name: "v1.5", active: false, eol: "download" },
+		{ name: "v1.4", active: false, eol: "download" },
+		{ name: "v1.3", active: false, eol: "download" },
+		{ name: "v1.2", active: false, eol: "download" },
+		{ name: "v1.1", active: false, eol: "download" },
+		{ name: "v1.0", active: false, eol: "download" },
+	],
+});
