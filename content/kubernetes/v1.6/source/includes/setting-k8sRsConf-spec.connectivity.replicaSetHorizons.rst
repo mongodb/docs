@@ -25,10 +25,10 @@
    
    .. example::
    
-      In this example, the replica set members communicate amongst
-      themselves on the ``example-localhost`` horizon. Clients
-      communicate with the replica set using the ``example-website``
-      horizon.
+      Replica-set members communicate with one another using the hostnames 
+      configured in the replication configuration (``members[n].host``). 
+      The ``example-website`` horizon provides alternate addresses for clients 
+      connecting through that horizon.
 
       The names of the stated horizons are arbitrary for the purposes of this 
       example. You can name your horizon anything, but make sure the horizon
