@@ -64,6 +64,8 @@ pnpm upload -- --execute           # actually upload
 pnpm upload -- --bucket docs-mongodb-org-prd --execute
 ```
 
+The bucket is `$S3_OFFLINE_BUCKET`, which must be set; override with `--bucket`.
+
 `--execute` needs AWS credentials: copy `.env.sample` to `.env` and fill in
 `AWS_S3_ACCESS_KEY_ID` / `AWS_S3_SECRET_ACCESS_KEY` (same values used in
 `platform/nextjs-extension/src/s3Connection/s3connector.ts` /
@@ -96,9 +98,8 @@ and uploaded.
 
 Generated files go to `llms-build-output/<project>/` (gitignored) rather
 than `llms-output/`, so a publish never dirties the committed copies. The
-bucket defaults to `$S3_OFFLINE_BUCKET` (the variable Netlify already sets
-for offline docs), then `docs-mongodb-org-dotcomstg`;
-override with `--bucket`.
+bucket is `$S3_OFFLINE_BUCKET` (the variable Netlify already sets for
+offline docs), which must be set; override with `--bucket`.
 
 The root llms.txt is deliberately excluded from this path: it is
 hand-maintained in git and published only from a merged change. If the

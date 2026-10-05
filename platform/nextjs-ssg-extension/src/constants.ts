@@ -9,6 +9,3 @@
 
 /** The Next.js app this extension always builds against. */
 export const APP_DIR = 'docs-site';
-
-/** Fallback for S3_OFFLINE_BUCKET, the bucket both onSuccess uploads target. */
-export const DEFAULT_S3_BUCKET = 'docs-mongodb-org-dotcomstg';

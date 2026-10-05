@@ -15,7 +15,7 @@
  *   --for-project <name>   Content directory, or a DOCS_PROJECT value like
  *                          "pymongo-driver/current" (defaults to $DOCS_PROJECT)
  *   --output-dir <dir>     Directory to generate into (default: llms-build-output/<project>)
- *   --bucket <name>        S3 bucket (default: $S3_OFFLINE_BUCKET, else docs-mongodb-org-dotcomstg)
+ *   --bucket <name>        S3 bucket (default: $S3_OFFLINE_BUCKET, which is required)
  *   --execute              Actually upload (default: dry run)
  *
  * Examples:
@@ -32,8 +32,6 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolveMonorepoPath } from './monorepo.js';
 import { contentDirFromDocsProject, defaultBuildOutputDir, publishProject } from './publishProject.js';
-
-const DEFAULT_BUCKET = 'docs-mongodb-org-dotcomstg';
 
 interface CliArgs {
   monorepoPath?: string;
@@ -92,7 +90,7 @@ Usage:
 Flags:
   --for-project <name>   Content directory, or a DOCS_PROJECT value like "pymongo-driver/current" (default: $DOCS_PROJECT)
   --output-dir <dir>     Directory to generate into (default: llms-build-output/<project>)
-  --bucket <name>        S3 bucket (default: $S3_OFFLINE_BUCKET, else ${DEFAULT_BUCKET})
+  --bucket <name>        S3 bucket (default: $S3_OFFLINE_BUCKET, which is required)
   --execute              Actually perform the upload (default: dry run, prints the plan only)`);
 }
 
@@ -109,11 +107,16 @@ async function main(): Promise<void> {
   const monorepoPath = await resolveMonorepoPath(args.monorepoPath, __dirname);
   const packageRoot = path.join(__dirname, '..');
 
+  const bucket = (args.bucket ?? process.env.S3_OFFLINE_BUCKET)?.trim();
+  if (!bucket) {
+    throw new Error('No S3 bucket: pass --bucket <name> or set S3_OFFLINE_BUCKET.');
+  }
+
   await publishProject({
     monorepoPath,
     project,
     outputDir: args.outputDir ?? defaultBuildOutputDir(project),
-    bucket: args.bucket ?? process.env.S3_OFFLINE_BUCKET ?? DEFAULT_BUCKET,
+    bucket,
     descriptionsPath: path.join(packageRoot, 'llms-descriptions.json'),
     rootLlmsPath: path.join(packageRoot, 'llms-output', 'llms.txt'),
     dryRun: !args.execute,

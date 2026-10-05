@@ -20,11 +20,11 @@
  *
  * Flags:
  *   --output-dir <dir>   Directory generated llms.txt files were written to (default: llms-output)
- *   --bucket <name>      S3 bucket to upload to (default: docs-mongodb-org-dotcomstg)
+ *   --bucket <name>      S3 bucket to upload to (default: $S3_OFFLINE_BUCKET, which is required)
  *   --execute            Actually perform the upload (default: dry run, prints the plan only)
  *
  * Examples:
- *   pnpm upload                       # dry run against the default bucket
+ *   pnpm upload                       # dry run
  *   pnpm upload -- --execute          # actually upload
  *   pnpm upload -- --bucket docs-mongodb-org-prd --execute
  */
@@ -41,19 +41,17 @@ import { putTextFile } from './s3Client.js';
 import { buildUploadManifest, rootLlmsUploadEntry, type UploadEntry } from './uploadManifest.js';
 
 const DEFAULT_OUTPUT_DIR = 'llms-output';
-const DEFAULT_BUCKET = 'docs-mongodb-org-dotcomstg';
 
 interface CliArgs {
   monorepoPath?: string;
   outputDir: string;
-  bucket: string;
+  bucket?: string;
   execute: boolean;
 }
 
 function parseArgs(argv: string[]): CliArgs {
   const args: CliArgs = {
     outputDir: DEFAULT_OUTPUT_DIR,
-    bucket: DEFAULT_BUCKET,
     execute: false,
   };
 
@@ -99,7 +97,7 @@ Usage:
 
 Flags:
   --output-dir <dir>   Directory generated llms.txt files were written to (default: ${DEFAULT_OUTPUT_DIR})
-  --bucket <name>      S3 bucket to upload to (default: ${DEFAULT_BUCKET})
+  --bucket <name>      S3 bucket to upload to (default: $S3_OFFLINE_BUCKET, which is required)
   --execute            Actually perform the upload (default: dry run, prints the plan only)`);
 }
 
@@ -117,6 +115,10 @@ async function main(): Promise<void> {
   // `pnpm upload -- --execute` can leak a literal "--" through to us.
   const argv = process.argv.slice(2).filter((arg) => arg !== '--');
   const args = parseArgs(argv);
+  const bucket = (args.bucket ?? process.env.S3_OFFLINE_BUCKET)?.trim();
+  if (!bucket) {
+    throw new Error('No S3 bucket: pass --bucket <name> or set S3_OFFLINE_BUCKET.');
+  }
   const __filename = fileURLToPath(import.meta.url);
   const monorepoPath = await resolveMonorepoPath(args.monorepoPath, path.dirname(__filename));
 
@@ -131,16 +133,16 @@ async function main(): Promise<void> {
   ].sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
 
   if (!args.execute) {
-    printPlan(entries, args.bucket, false);
+    printPlan(entries, bucket, false);
     return;
   }
 
   for (const entry of entries) {
     const body = await fs.readFile(entry.localPath, 'utf-8');
-    await putTextFile({ bucket: args.bucket, key: entry.key, body });
-    console.log(`Uploaded ${entry.localPath} -> s3://${args.bucket}/${entry.key}`);
+    await putTextFile({ bucket, key: entry.key, body });
+    console.log(`Uploaded ${entry.localPath} -> s3://${bucket}/${entry.key}`);
   }
-  console.log(`\nUploaded ${entries.length} file(s) to s3://${args.bucket}.`);
+  console.log(`\nUploaded ${entries.length} file(s) to s3://${bucket}.`);
 }
 
 main().catch((error: unknown) => {

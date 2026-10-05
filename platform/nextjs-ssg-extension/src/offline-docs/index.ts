@@ -12,7 +12,7 @@ import { createOfflineTarball } from '../../../nextjs-extension/src/offline-docs
 import { upload } from '../../../nextjs-extension/src/s3Connection/s3connector';
 import { createReadStream } from 'node:fs';
 import { join } from 'node:path/posix';
-import { APP_DIR, DEFAULT_S3_BUCKET } from '../constants';
+import { APP_DIR } from '../constants';
 
 // docs-site-specific copy of nextjs-extension/src/offline-docs/index.ts.
 // Always builds offline bundles against docs-site (not docs-nextjs), since that's
@@ -39,11 +39,13 @@ const SKIPPED_OFFLINE_BUNDLES = new Set(['client-libraries.ts', 'tools.ts']);
 const runOfflineBuild = async ({
   bundleStem,
   version,
+  bucketName,
   tocDir = 'offline-docs',
   run,
 }: {
   bundleStem: string;
   version: string;
+  bucketName: string;
   tocDir?: string;
   run: NetlifyPluginUtils['run'];
 }): Promise<void> => {
@@ -78,7 +80,6 @@ const runOfflineBuild = async ({
 
   console.log(`[offline-docs] Tarball written to ${tarballPath}`);
 
-  const bucketName = process.env.S3_OFFLINE_BUCKET ?? DEFAULT_S3_BUCKET;
   const s3Prefix = 'docs/offline/';
   console.log('... uploading to AWS S3 ', bucketName, process.env.S3_OFFLINE_BUCKET, s3Prefix, tarballName);
   const fileStream = createReadStream(tarballPath);
@@ -151,6 +152,11 @@ export const handleOfflineDownloads = async (
     return;
   }
 
+  const bucketName = process.env.S3_OFFLINE_BUCKET?.trim();
+  if (!bucketName) {
+    throw new Error('[offline-docs] S3_OFFLINE_BUCKET is not set.');
+  }
+
   if (bundleEntries.length > 0) {
     // TODO: remove this check once all the content-mdx lives in the repo
     console.log(`[offline-docs] Bundles to rebuild: ${JSON.stringify(bundlesToRebuild, null, 2)}`);
@@ -168,6 +174,7 @@ export const handleOfflineDownloads = async (
       await runOfflineBuild({
         bundleStem,
         version,
+        bucketName,
         tocDir: LEGACY_TOC_DIR,
         run: netlifyPluginUtils.run,
       });
@@ -182,7 +189,7 @@ export const handleOfflineDownloads = async (
 
     for (const version of buildVersions) {
       try {
-        await runOfflineBuild({ bundleStem, version, run: netlifyPluginUtils.run });
+        await runOfflineBuild({ bundleStem, version, bucketName, run: netlifyPluginUtils.run });
       } catch (err) {
         console.error(`[offline-docs] Failed to build ${bundleStem}@${version}:`, err);
       }

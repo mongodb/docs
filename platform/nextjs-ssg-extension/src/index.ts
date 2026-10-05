@@ -29,7 +29,7 @@ import { getDirNameToPrefix } from "../../nextjs-extension/src/blobUploads/mapFi
 import { resolvePathsToBuild } from "./util/resolvePathsToBuild";
 import { handleSearchManifests } from "../../nextjs-extension/src/searchManifests/index";
 import { handleOfflineDownloads } from "./offline-docs/index";
-import { handleLlmsTxt } from "./llms-txt/index";
+import { handleLlmsTxt, handleRootLlmsTxt } from "./llms-txt/index";
 import { APP_DIR } from "./constants";
 
 import path from "node:path";
@@ -223,6 +223,7 @@ extension.addBuildEventHandler(
 			// both recover from a skipped publish.
 			try {
 				await handleLlmsTxt(utils, configEnvironment);
+				await handleRootLlmsTxt(utils, configEnvironment, gitChangedFiles);
 			} catch (error) {
 				console.error("[llms-txt] Failed to publish llms.txt:", error);
 			}
