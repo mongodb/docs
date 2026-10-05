@@ -60,7 +60,9 @@ describeWithSampleData("db.collection.insertMany() - with _id", () => {
 
 // ---- insertMany unordered with duplicate _id values ----
 // Uses makeTempFileForTesting with validateOutput: false to avoid printjson()
-// wrapping, which is incompatible with try/catch statements.
+// wrapping, which is incompatible with try/catch statements. The captured
+// stdout is a MongoBulkWriteError dump that slightly changes between runs,
+// so assert on the stable parts of the output instead of the whole dump.
 describeWithSampleData("db.collection.insertMany() - unordered with duplicates", () => {
   backupAndRestore("movies_insertmany_unordered_bak");
 
@@ -81,5 +83,8 @@ describeWithSampleData("db.collection.insertMany() - unordered with duplicates",
 
     expect(stdout).toContain("insertedCount: 5");
     expect(stdout).toContain("11000");
+    // The two duplicate documents are at positions 2 and 5 in the input array.
+    expect(stdout).toContain("index: 2");
+    expect(stdout).toContain("index: 5");
   });
 }, "sample_mflix");

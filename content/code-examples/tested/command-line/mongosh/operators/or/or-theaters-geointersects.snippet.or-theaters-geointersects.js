@@ -16,3 +16,4 @@ db.theaters.find( {
       { "location.address.state": "NY" }
    ]
 } )
+.sort({ theaterId: 1 }).limit(5)

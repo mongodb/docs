@@ -38,7 +38,7 @@ describeWithSampleData("$nin operator example tests", () => {
         "query/operators/nin/nin-update.js"
       ])
       .withDbName(dbName)
-      .shouldMatch("query/operators/nin/nin-update-test-output.sh");
+      .shouldMatch("query/operators/nin/nin-update-output.sh");
 
     runCleanup(
       `db = db.getSiblingDB("${dbName}"); db.movies.updateMany( { exclude: true }, { $unset: { exclude: "" } } )`,

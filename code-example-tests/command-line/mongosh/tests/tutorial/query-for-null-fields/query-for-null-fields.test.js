@@ -11,11 +11,7 @@ describeWithSampleData("query for null or missing fields example tests", () => {
     await Expect
       .outputFromExampleFiles(["tutorial/query-for-null-fields/find-null-or-missing.js"])
       .withDbName(dbName)
-      .shouldResemble("tutorial/query-for-null-fields/find-null-or-missing-output.sh")
-      .withSchema({
-        count: 5,
-        requiredFields: ["_id", "title"],
-      });
+      .shouldMatch("tutorial/query-for-null-fields/find-null-or-missing-output.sh");
   });
 
   test("Should return documents where metacritic exists and is not null", async () => {
@@ -33,22 +29,14 @@ describeWithSampleData("query for null or missing fields example tests", () => {
     await Expect
       .outputFromExampleFiles(["tutorial/query-for-null-fields/find-null-type.js"])
       .withDbName(dbName)
-      .shouldResemble("tutorial/query-for-null-fields/find-null-type-output.sh")
-      .withSchema({
-        count: 0,
-        requiredFields: [],
-      });
+      .shouldMatch("tutorial/query-for-null-fields/find-null-type-output.sh");
   });
 
   test("Should return documents where metacritic field does not exist", async () => {
     await Expect
       .outputFromExampleFiles(["tutorial/query-for-null-fields/find-missing-field.js"])
       .withDbName(dbName)
-      .shouldResemble("tutorial/query-for-null-fields/find-missing-field-output.sh")
-      .withSchema({
-        count: 5,
-        requiredFields: ["_id", "title"],
-      });
+      .shouldMatch("tutorial/query-for-null-fields/find-missing-field-output.sh");
   });
 
 }, dbName);

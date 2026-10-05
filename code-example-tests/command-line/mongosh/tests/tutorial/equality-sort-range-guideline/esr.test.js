@@ -84,11 +84,7 @@ describeWithSampleData("mongosh esr guideline tutorial tests", () => {
          "tutorial/equality-sort-range-guideline/find-range-ne/run.js"
       ])
       .withDbName(dbName)
-      .shouldResemble("tutorial/equality-sort-range-guideline/find-range-ne/output.sh")
-      .withSchema({
-        count: 5,
-        requiredFields: ["_id", "title", "year", "type"],
-      });
+      .shouldMatch("tutorial/equality-sort-range-guideline/find-range-ne/output.sh");
   });
 
   test("Should find documents in the movies collection where 'directors' is David Lynch, 'runtime' is less than 130 minutes, sorted by year, asc", async () => {

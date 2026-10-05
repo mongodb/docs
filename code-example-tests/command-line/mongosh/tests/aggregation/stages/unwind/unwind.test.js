@@ -22,11 +22,7 @@ describeWithSampleData("mongosh tests for $unwind aggregation stage", () => {
 				"aggregation/stages/unwind/missing-values.js"
 			])
 			.withDbName(dbName)
-			.shouldResemble("aggregation/stages/unwind/missing-values-output.sh")
-			.withSchema({
-   	    		count: 6,
-   	    		requiredFields: ['genres', 'title'],
-   			});
+			.shouldMatch("aggregation/stages/unwind/missing-values-output.sh");
 	});
 
 	test("Should preserve documents with missing genres using preserveNullAndEmptyArrays", async () => {
@@ -35,11 +31,7 @@ describeWithSampleData("mongosh tests for $unwind aggregation stage", () => {
 				"aggregation/stages/unwind/preserve-null.js"
 			])
 			.withDbName(dbName)
-			.shouldResemble("aggregation/stages/unwind/preserve-null-output.sh")
-			.withSchema({
-   	    		count: 8,
-   	    		requiredFields: ['title'],
-   			});
+			.shouldMatch("aggregation/stages/unwind/preserve-null-output.sh");
 	});
 
 	test("Should include array index with includeArrayIndex option", async () => {

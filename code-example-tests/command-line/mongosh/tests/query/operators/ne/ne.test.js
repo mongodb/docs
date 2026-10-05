@@ -61,7 +61,7 @@ describeWithSampleData("$ne operator example tests", () => {
         "query/operators/ne/ne-update.js"
       ])
       .withDbName(dbName)
-      .shouldMatch("query/operators/ne/ne-update-test-output.sh");
+      .shouldMatch("query/operators/ne/ne-update-output.sh");
 
     runCleanup(
       `db = db.getSiblingDB("${dbName}"); db.movies.updateMany( { highestRated: false }, { $unset: { highestRated: "" } } )`,
