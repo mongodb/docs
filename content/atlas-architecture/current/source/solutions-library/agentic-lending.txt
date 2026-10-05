@@ -1,0 +1,558 @@
+:orphan:
+
+.. _arch-center-is-agentic-lending:
+
+============================
+Agentic Lending with MongoDB
+============================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: lending, Atlas, agentic AI, MongoDB
+   :description: Build an end-to-end digital lending workflow with agentic AI and MongoDB to streamline origination, underwriting, and renewal in real time.
+
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+**Use cases:** `Artificial Intelligence
+<https://www.mongodb.com/solutions/use-cases/artificial-intelligence>`__, `AI Agents
+<https://www.mongodb.com/solutions/use-cases/agents>`__
+
+**Industries:** `Financial Services
+<https://www.mongodb.com/industries/financial-services>`__
+
+**MongoDB Products:** `MongoDB Atlas <http://mongodb.com/atlas>`__, 
+`MongoDB Vector Search <https://www.mongodb.com/products/platform/atlas-vector-search>`__,
+`Change Streams <https://www.mongodb.com/docs/manual/changeStreams/>`__,
+`MongoDB Time Series collections <https://www.mongodb.com/docs/php-library/current/databases-collections/time-series/>`__,
+`MongoDB Aggregation Pipeline <https://www.mongodb.com/docs/manual/core/aggregation-pipeline/>`__ 
+
+**Partners:** `Amazon Bedrock <https://cloud.mongodb.com/ecosystem/amazon-bedrock>`__, `LangChain <https://cloud.mongodb.com/ecosystem/langchain>`__ 
+
+Solution Overview
+-----------------
+
+Traditional lending systems rely on disconnected legacy applications
+that were not built for real-time data, automation, or digital-first
+customer experiences. Customers now expect instant decisions and full
+transparency, while lenders manage rising risk, regulatory pressure, and
+growing data complexity.
+
+This solution shows you how to build a modern digital lending system. It
+replaces a linear, paper-heavy process with a data-driven, real-time
+workflow that connects origination, underwriting, approval, funding, and
+servicing into one pipeline.
+
+Why MongoDB?
+~~~~~~~~~~~~~~~
+
+Agentic workflows generate several distinct types of state: operational
+records, embeddings, activity metrics, and the agents' own memory.
+Separate systems for each type add infrastructure and create consistency
+problems between them. |service-fullname| stores all of these in one modern data 
+platform with one query language, which reduces the integration work.
+
+**Schema flexibility and the document model**
+
+- A loan application accumulates detail through its lifecycle from borrowers,
+  documents, credit data, risk metrics, and decisions. It stays one document
+  that grows, instead of an entity spread across a dozen tables joined on
+  every read.
+
+- Polymorphic detail fits naturally in this model. Employment income and
+  self-employment income carry different fields inside the same array,
+  with no nullable columns and no subtype tables.
+
+- Agent-generated fields appear without migrations. When the underwriter
+  agent adds a new metric, it writes the field directly with no coordinated
+  schema change, and no deployment ordering.
+
+**Atlas Vector Search for Semantic Understanding**
+
+- Embeddings live on the documents they describe. One query returns a
+  semantic match together with its business data, which removes the need
+  to keep a database and a separate vector index in sync.
+
+- Pre-filtering scopes a search to a single application. This keeps one
+  borrower's documents out of another's results, turning an access-control
+  requirement into a search parameter instead of application logic.
+
+**Aggregation Pipelines for Explainable Scoring**
+
+- Risk scoring runs where the data lives. One pipeline joins credit and
+  income records, derives the ratios, and returns a bounded score, with no
+  data transfer to application code.
+
+- Because the calculation is declarative, the solution exposes each stage
+  to the interface. Explainability becomes part of the implementation, not
+  a separate reporting effort.
+
+**Change Streams for Real-Time Interfaces**
+
+- The officer queue, the borrower status tracker, and the activity log all
+  read change events from the database. No separate message broker sits
+  between a committed write and the interface that shows it.
+
+- Streams resume from a stored position after a connection failure, so a
+  transient network fault does not create a gap in the audit feed.
+
+**LangGraph MongoDB Checkpointer for Agent Memory**
+
+- Workflow state persists to Atlas at each step. An application paused for
+  human review survives restarts and redeployments, and resumes with full
+  context.
+
+Together, these capabilities let a single platform carry an agentic
+lending workflow end to end, from document intake through underwriting,
+human review, and portfolio monitoring, without the integration surface
+a multi-database architecture requires.
+
+
+Reference Architectures
+-----------------------
+
+The solution consists of the following:
+
+- **Frontend**: The experience layer: Borrower Portal, Loan Officer
+  Dashboard, Demo Flow, and Renewal Dashboard.
+
+- **Backend**: A FastAPI service that hosts the LangGraph agent pipeline
+  and exposes it over REST, SSE, and WebSocket.
+
+- **MongoDB Atlas**: The intelligent data platform for operational records,
+  vectors, time series metrics, real-time change events, and agent memory.
+
+- **AI and observability**: Amazon Bedrock (Claude Haiku 4, tool use for
+  structured output), and Voyage AI (multimodal embeddings).
+
+
+.. figure:: /includes/images/industry-solutions/agentic-lending-architecture.svg
+   :alt: Agentic Lending with MongoDB Reference Architecture
+   :lightbox:
+
+   Figure 1. High-level architecture: Agentic Lending with MongoDB. 
+
+Agents
+~~~~~~~
+
+The LangGraph Agent Pipeline is composed by the following:
+
+.. figure:: /includes/images/industry-solutions/agentic-lending-flow.svg
+   :alt: Agentic Flow
+   :lightbox:
+
+   Figure 2. Agentic Flow. 
+
+- **Supervisor**: Inspects workflow state after every step and decides
+  what happens next: fan out to gather data, proceed to underwriting,
+  escalate to a human, or complete. It owns the retry policy and the pause
+  condition when an application is blocked on borrower input.
+
+- **Document verifier**: Checks completeness against required document
+  types, flags failed extractions, detects duplicate uploads by hashing
+  extracted text, and cross-checks applicant names across documents.
+
+- **Credit puller**: Retrieves bureau records for each borrower on the
+  application and attaches the scores to workflow state.
+
+- **Loan application agent**: Synthesizes gathered documents and credit
+  data into a coherent application narrative and advances the
+  application's status.
+
+- **Underwriter**: Runs the risk aggregation, computes affordability
+  ratios and the stress test, retrieves governing policy through vector
+  search, and produces a structured recommendation: approve, decline, or
+  escalate.
+
+- **Application assistant agent**: Operates outside the pipeline and
+  answers borrower questions using context from their own file and the
+  policy corpus.
+
+The supervisor dispatches the document verifier and credit puller
+concurrently. Document extraction and credit retrieval have no
+dependency on each other, so overlapping them removes the largest
+sequential wait in the pipeline.
+
+.. figure:: /includes/images/industry-solutions/agentic-lending-agents.svg
+  :alt: Agentic Flow Diagrams
+  :lightbox: 
+
+  Figure 3. LangGraph Agent Pipeline.
+
+
+Autonomy and human oversight (HITL)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The supervisor runs under one of four autonomy modes: observe, suggest,
+bounded, or auto. The default, bounded, lets the pipeline act
+autonomously within policy limits and escalates to an officer when a
+threshold trips — for example, a purchase price above $500K or GDS/TDS
+ratios past policy limits. Every officer decision (approve, decline, or
+modify and continue) carries the officer's ID and writes to an immutable
+audit collection. The pipeline resumes through the LangGraph
+checkpointer, so a human review does not lose workflow state.
+
+
+Data Model Approach
+-------------------
+
+The workflow produces the following types of data, and MongoDB Atlas
+stores all of them:
+
+- **Structured operational records**: Each record evolves through the
+  loan lifecycle as one growing document instead of a fixed row joined
+  across tables.
+
+  - Collections: applications, borrowers, credit_reports, chat history,
+    officers, renewals. 
+   
+    .. code-block:: JSON
+       
+       {
+         _id: ObjectId('67500c01000000000000a002'),
+         id: ObjectId('67500c01000000000000a002'),
+         loansId: 'APP-2026-00011',
+         borrowerIds: [
+           ObjectId('67500b01000000000000f002')
+         ],
+         borrowerNames: [
+           'Grace Hopper'
+         ],
+         loanAmount: NumberInt('595000'),
+         purchasePrice: NumberInt('850000'),
+         downPayment: NumberInt('255000'),
+         product: '7yr Fixed (30yr Amort)',
+         property: {
+           address: '226 W 108th St, New York City, NY 10025',
+           type: 'Detached',
+           purchasePrice: NumberInt('850000'),
+           annualTax: NumberInt('11200')
+         },
+         incomeSummary: {
+           combinedGross: NumberInt('110400'),
+           primary: NumberInt('110400'),
+           coApplicant: null
+         },
+         existingMonthlyDebt: NumberInt('0'),
+         status: 'approved',
+         statusHistory: [
+           {
+             status: 'submitted',
+             timestamp: ISODate('2026-03-05T14:32:11.000Z'),
+             detail: 'Application received'
+           },
+           {
+             status: 'underReview',
+             timestamp: ISODate('2026-03-07T10:00:00.000Z'),
+             detail: 'Bureau pull complete; in underwriting'
+           },
+           {
+             status: 'conditionallyApproved',
+             timestamp: ISODate('2026-03-12T15:30:00.000Z'),
+             detail: 'Conditional approval pending appraisal'
+           },
+           {
+             status: 'approved',
+             timestamp: ISODate('2026-03-20T11:15:00.000Z'),
+             detail: 'Final approval issued'
+           }
+         ],
+         createdAt: ISODate('2026-03-05T14:32:11.000Z'),
+         updatedAt: ISODate('2026-03-20T11:15:00.000Z'),
+         seedComplete: true
+       }
+ 
+    
+- **Unstructured content with vectors**: Extracted PDF text and its
+  1024-dimension embedding (voyage-multimodal-3.5) live on the same
+  document, so one query returns the semantic match and its business data
+  together.
+
+  - Collections: documents, policies.
+   
+    .. code-block:: JSON
+       
+       {
+         _id: ObjectId('69deb9600e702ecf5ed0b9c5'),
+         application_id: 'APP-2026-00002',
+         doc_type: 'government_id',
+         filename: '01_government_id.pdf',
+         extracted_text: 'This is a British Columbia Government Identification Card document package issued by ServiceBC Registry Services on March 1, 2024 (Document Reference: SA-2024-BC-00847). The package contains identification cards for two individuals: Jane Marie Doe (applicant), born March 14...',
+         structured_data: {
+           persons: [
+             {
+               full_name: 'Jane Marie Doe',
+               date_of_birth: '1992-03-14',
+               gender: 'F',
+               height: '5\'7"',
+               address: null,
+               id_number: 'BC-7241-5583-JMD',
+               expiry_date: '2029-03-14'
+             },
+             {
+               full_name: 'John Robert Doe',
+               date_of_birth: '1990-08-22',
+               gender: 'M',
+               height: '5\'10"',
+               address: null,
+               id_number: 'BC-8392-6147-JRD',
+               expiry_date: '2029-08-22'
+             }
+           ],
+           text_summary: 'This is a British Columbia Government Identification Card document package issued by ServiceBC Registry Services on March 1, 2024 (Document Reference: SA-2024-BC-00847). The package contains identification cards for two individuals: Jane Marie Doe (applicant), born March 14, 1992, female...',
+           issuing_authority: 'ServiceBC -- Registry Services',
+           issuing_address: 'Service BC, 4946 Canada Way, Burnaby, BC V5G 4J6',
+           issue_date: '2024-03-01',
+           document_reference: 'SA-2024-BC-00847',
+           document_type: 'Government Identification Card',
+           jurisdiction: 'British Columbia, Canada',
+           note: 'SYNTHETIC DOCUMENT -- FOR DEMONSTRATION PURPOSES ONLY'
+         },
+         embedding: [
+           Double('0.0546875'),
+           Double('-0.00074005126953125'),
+           Double('-0.03955078125'),
+           Double('0.018798828125'),
+          ......
+         ],
+         embedding_type: 'multimodal',
+         embedding_pages: NumberInt('1'),
+         status: 'parsed',
+         created_at: ISODate('2026-04-14T22:02:08.271Z')
+       }
+ 
+   
+- **Agent memory**: LangGraph state per thread, so a paused workflow
+  resumes exactly where it stopped. 
+
+  - Collections: checkpoints, checkpoint_writes, checkpoint_metadata.
+   
+    .. code-block:: JSON
+    
+       {
+         _id: ObjectId('69deb00d938a6c352b22f83c'),
+         thread_id: 'APP-2026-00002',
+         idx: NumberInt('0'),
+         checkpoint_id: '1f138480-5fd5-6ee2-bfff-20577a825d23',
+         checkpoint_ns: '',
+         task_path: '~__pregel_pull, __start__',
+         task_id: 'd8f52fef-26db-0a3b-e30d-67652af78130',
+         channel: 'messages',
+         type: 'msgpack',
+         value: BinData(0, 'kA==')
+       }
+
+
+- **Coordination and audit records**: Blocking conditions, officer
+  decisions, and distributed locks stored as documents, with the same
+  query language as the rest of the data — no separate audit system to
+  maintain. 
+
+  - Collections: interventions, hitl_audit, pipeline_locks. 
+
+    **HITL_audit**
+ 
+    .. code-block:: python
+    
+       {
+         _id: ObjectId('6a85cf398ec04b841ebc2a71'),
+         application_id: 'APP-BA96654D',
+         officer_id: 'officer-001',
+         action: 'decline',
+         notes: 'Declined after manual review',
+         conditions: [],
+         overrides: {},
+         timestamp: ISODate('2026-08-19T15:43:53.719Z')
+       }
+ 
+   
+- **Interventions**: Stores typed, agent-generated action items with
+  internal risk context and borrower-safe guidance. Blocking items pause
+  workflows until resolved and trigger re-evaluation.  
+   
+  .. code-block:: python
+  
+     {
+       _id: ObjectId('6a8c34e671e78aca4e8ca9ae'),
+       application_id: 'APP-4E8CA981',
+       type: 'stress_test_failure',
+       status: 'pending',
+       internal_context: {
+         source_node: 'underwriter',
+         risk_flag: 'osfi_b20_failure',
+         severity: 'blocking',
+         stress_gds: Double('0.6876'),
+         stress_tds: Double('0.9604'),
+         stress_rate: Double('0.0689'),
+         gds_limit: Double('0.39'),
+         tds_limit: Double('0.44'),
+         is_insured: false
+       },
+       borrower_context: {
+         summary: 'Your application did not pass the OSFI B-20 mortgage stress test at the qualifying rate of 6.89%.',
+         action_required: 'The stress test ensures you can afford payments if rates rise. You may improve your result by increasing your down payment, reducing existing debts, or choosing a less expensive property.',
+         document_types_accepted: []
+       },
+       resolution: null,
+       created_at: ISODate('2026-08-24T12:11:18.585Z'),
+       resolved_at: null
+     }
+
+   
+Keeping these together is what makes the solution manageable. A
+conventional stack places the operational records in a relational
+database, the vectors in a dedicated vector store, the metrics in a time
+series database, and the agent state in a cache — then spends most of
+its engineering effort keeping four systems consistent.
+
+
+Build the Solution
+------------------
+
+This section shows you how to implement the agentic lending solution.
+For the full implementation guide, clone the repository and follow the
+setup instructions in the `GitHub README
+<https://github.com/mongodb-industry-solutions/fsi-agentic-lending>`__.
+
+Building this solution follows these steps:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Provision the data platform. 
+      
+      - Create an Atlas cluster and the collections listed in S3. 
+      - Build a vector search index over the policy and document
+        embeddings, add TTL indexes for the pipeline lock collection. 
+      - Configure the payments and agent activity collections as time
+        series.
+
+
+   .. step:: Connect the AI providers.
+
+      - Wire Amazon Bedrock for LLM calls (Claude Haiku 4 with tool use for
+        structured output) and Voyage AI for multimodal embeddings. 
+      
+
+   .. step:: Build the agent pipeline in LangGraph.
+
+      - Implement the supervisor and its routing logic, the parallel
+        document-verifier and credit-puller nodes, the underwriter's
+        seven-stage risk aggregation, and the HITL interrupt/resume gate
+        backed by MongoDBSaver checkpoints. 
+
+        - Checkpoints also work as a forensic record. You can reconstruct what the agents knew at the
+          moment of a decision, a different artifact from a log of what they said. 
+
+        - Since a mortgage application is a long-running,
+          multi-day process with human-in-the-loop steps (underwriter
+          review, document re-submission, conditional approval).
+          MongoDBSaver persists the entire graph state after each execution.
+          That means an application can sit paused for 3 days waiting on a
+          borrower's pay stub, and when it resumes, the graph picks up
+          exactly where it left off with full state intact.
+
+          An example setup:
+
+          .. code-block:: python
+
+             from langgraph.checkpoint.mongodb import MongoDBSaver 
+             from langgraph.graph import StateGraph 
+             from pymongo import MongoClient 
+             
+             client = MongoClient(ATLAS_URI) 
+             checkpointer = MongoDBSaver(client, db_name="lendflow") 
+             
+             graph = StateGraph(MortgageState) 
+             # ... add_node(intake), add_node(document_verification), 
+             # add_node(underwriting), add_node(human_review) ... 
+             app = graph.compile(checkpointer=checkpointer)
+        
+          If the graph hits an interrupt() at the human-review node,
+          invoke returns with state paused. FastAPI can return a 202 to
+          the client immediately. When the underwriter approves via a
+          separate endpoint days later, you just invoke again with the
+          same config and new input, and LangGraph resumes from the last
+          checkpoint, not from scratch.
+
+
+   .. step:: Expose the pipeline through FastAPI.
+
+      - Add REST endpoints for application and officer actions, SSE for
+        status and activity streams, and a WebSocket channel for the
+        officer queue.
+
+   .. step:: Frontend set up.
+
+      - Build the frontend experiences in Next.js.
+
+   .. step:: Seed demo data and run.
+
+      - Generate the seeded borrower profiles and their synthetic documents.
+      - Run locally with Docker Compose or deploy to Kubernetes for staging and production.
+ 
+.. note:: 
+
+   This demo implementation ships a Canadian mortgage configuration,
+   including an OSFI B-20 style stress test and GDS/TDS affordability
+   ratios. The rules live in one function and one collection, so you
+   reconfigure the solution for a different market by changing the
+   underlying configuration-as-data MongoDB document rather than rewriting
+   the code. 
+
+
+Key Learnings
+-------------
+
+- **Unify agent state with a single platform, MongoDB Atlas**: Agentic
+  workflows produce operational records, embeddings, and checkpointed
+  memory. Storing all four in Atlas removes the integration and
+  consistency work of a four-database stack.
+
+- **Model the loan as one evolving document with the Flexible Document
+  Model**: The document model lets borrower, credit, and risk data
+  accumulate on a single record through the whole lifecycle, so new
+  agent-written fields and polymorphic income types need no schema
+  migration.
+
+- **Query vectors next to the data they describe with Atlas Vector
+  Search**: MongoDB stores each embedding as a field on the document it
+  describes, and Atlas Vector Search queries it there. One query returns
+  the semantic match and its business data together, and scoping the
+  search to a single application keeps one borrower's documents out of
+  another's results.
+
+- **Make risk scoring explainable and configurable by design with the
+  Aggregation Framework**: Running the risk calculation as a declarative
+  aggregation pipeline exposes every stage of the score, so explainability
+  comes from the implementation rather than a separate reporting layer.
+
+- **Persist agent memory for reliable human review with the LangGraph
+  MongoDB Checkpointer**: The checkpointer lets a workflow paused for
+  officer review survive restarts and resume with full context, and
+  doubles as an audit trail of what the agents knew when they made a
+  decision.
+
+
+Authors
+-------
+
+- Peyman Parsi
+- Mehar Grewal
+- Andrea Alaman Calderon
+
+Learn More
+----------
+
+Learn more about how `MongoDB and agentic AI power an end-to-end digital
+lending journey
+<https://www.mongodb.com/company/blog/innovation/digital-lending-journey-powered-by-mongodb-and-agentic-ai>`__
+that streamlines workflows, reduces risk, and elevates borrower
+experiences.
