@@ -1,0 +1,222 @@
+.. _triggers-billing:
+
+==================================
+Atlas Triggers Usage-Based Billing
+==================================
+
+.. meta::
+   :description: Learn how MongoDB Atlas bills Atlas Triggers usage, including trigger executions, compute time, and data transfer rates, the shared daily free tier thresholds, and invoicing.
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+|service| bills :ref:`Atlas Triggers <atlas-triggers>` according to how
+much they're used on a daily basis. Three independently-measured usage
+types determine how much you pay each day:
+
+- :ref:`Requests <triggers-billing-requests>`, which measures the number
+  of trigger executions.
+
+- :ref:`Compute <triggers-billing-compute>`, which measures the runtime
+  and memory usage of trigger executions.
+
+- :ref:`Data Transfer <triggers-billing-data-transfer>`, which measures
+  the amount of data that triggers send to external services.
+
+.. _triggers-billing-free-tier:
+
+Daily Free Tier
+---------------
+
+All Triggers in a |service| project have a daily free tier. |service|
+doesn't bill usage below the following daily free tier thresholds:
+
+- 50,000 :ref:`requests <triggers-billing-requests>`
+- 25 hours of :ref:`compute <triggers-billing-compute>`
+- 0.5 GB of :ref:`data transfer <triggers-billing-data-transfer>`
+
+.. _triggers-billing-invoicing:
+
+Invoicing and Payment
+---------------------
+
+Your |service-fullname| bill includes a line item for Triggers.
+|service| sends invoices monthly that include all costs incurred from
+going over the daily free tier thresholds.
+
+You can pay for Triggers with all payment methods that work with
+|service|, including prepaid |service| Credits. |service| bills any
+costs associated with a linked |service| cluster, such as database
+operations and backup, separately from Triggers.
+
+To learn more, see :ref:`Manage Billing <atlas-billing>`.
+
+Usage Types
+-----------
+
+.. _triggers-billing-requests:
+
+Requests
+~~~~~~~~
+
+|service| counts each fired trigger as a request. A trigger can fire
+when a document is inserted, changed, or deleted (database trigger) or
+according to a schedule (scheduled trigger). The trigger request
+includes all operations that the trigger invokes, including functions
+and {+aws+} EventBridge forwarding.
+
+**Price:** Tiered daily rates based on the number of requests:
+
+- $2.00 / 1,000,000 requests ($0.000002 / request) for the first
+  25,000,000 requests
+- $1.00 / 1,000,000 requests ($0.000001 / request) for requests
+  25,000,001 to 250,000,000
+- $0.75 / 1,000,000 requests ($0.00000075 / request) for requests
+  above 250,000,000
+
+**Free Tier Threshold:** 50,000 requests
+
+.. _triggers-billing-compute:
+
+Compute
+~~~~~~~
+
+|service| counts the total time and memory that each request takes to
+process. Compute is billed at a set rate for each millisecond of
+runtime. For large requests, this rate is multiplied by a factor that
+reflects the amount of memory the request used.
+
+The memory multiplier begins at 1, which doesn't affect your billing
+rate. The multiplier increases by 1 for every 32 MB of memory that a
+request uses.
+
+**Price:** $10.00 / 500 runtime hours (~$0.000000005 / ms)
+
+**Formula:** (Number of Requests) * (Runtime (ms)) * (Memory (MB) /
+32 MB) * $0.000000005 / ms
+
+**Free Tier Threshold:** 25 hours
+
+.. _triggers-billing-data-transfer:
+
+Data Transfer
+~~~~~~~~~~~~~
+
+|service| measures the total amount of data that your triggers send to
+external services. Data transfer is billed at a set rate for each
+gigabyte of data egress.
+
+**Price:** $0.12 per GB
+
+**Formula:** (Data Sent to External Services (GB)) * ($0.12 / GB)
+
+**Free Tier Threshold:** 0.5 GB
+
+.. note:: |service| Data Transfer
+
+   |service| bills data transfer from a linked |service| cluster to
+   Triggers as an |service| Data Egress charge. To learn more about
+   |service| egress rates, see :ref:`Data Transfer Costs
+   <data-transfer-costs>`.
+
+Example
+-------
+
+An international restaurant chain uses Atlas Triggers to handle orders
+for all of its locations:
+
+- The chain has 18,000 locations, and each location gets about 400
+  orders each day.
+
+- The locations operate for 16 hours each day.
+
+- For each order, a database trigger sends the customer an email
+  receipt. Another trigger sends text message updates to the customer
+  when their order is received, when it's sent out for delivery, and
+  when it's about to be delivered.
+
+- A scheduled trigger runs every 5 minutes to monitor delivery times.
+  If a delivery takes too long, it sends a text message update to the
+  customer. About 10% of all deliveries take too long.
+
+- Orders vary in size but are no larger than 4 KB.
+
+The following calculations approximate the cost of running these
+triggers for one day:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 85
+
+   * - Usage Type
+     - Calculation
+
+   * - :ref:`Requests <triggers-billing-requests>`
+     - - (18,000 locations) * (400 orders / location) = 7,200,000 orders
+
+       - (7,200,000 orders) * ((1 email + 3.10 texts + 3 scheduled
+         triggers) / order) = 51,120,000 requests
+
+       - (51,120,000 requests) - (50,000 free tier requests) =
+         51,070,000 billable requests
+
+       - (25,000,000 requests) * ($0.000002 / request) = $50.00
+
+       - (26,070,000 requests) * ($0.000001 / request) = $26.07
+
+       - $50.00 + $26.07 = **$76.07**
+
+   * - :ref:`Compute <triggers-billing-compute>`
+     - - (51,120,000 requests) * (300 ms / request) * 1 =
+         15,336,000,000 ms
+
+         - *300 ms is a runtime estimate for the trigger function. To
+           get a better estimate, create a proof-of-concept function and
+           test how long it takes to connect to external services.*
+         - *4 KB is well under 32 MB, so the memory multiplier is 1.*
+
+       - (15,336,000,000 ms) - (90,000,000 free tier ms) =
+         15,246,000,000 ms
+
+       - (15,246,000,000 ms) * ($0.000000005 / ms) = **$76.23**
+
+   * - :ref:`Data Transfer <triggers-billing-data-transfer>`
+     - - (51,120,000 requests) * (0.000004 GB / request) = 204.48 GB
+
+       - (204.48 GB) - (0.50 free tier GB) = 203.98 GB
+
+       - (203.98 GB) * ($0.12 / GB) = **$24.48**
+
+   * - **TOTAL**
+     - $76.07 (requests) + $76.23 (compute) + $24.48 (data transfer) =
+       **$176.78 for the day**
+
+.. note:: Free Tier Usage
+
+   The way that free tier usage affects your bill depends on your
+   consumption each day. Consumption can look different on any
+   individual day.
+
+   The example usage exceeds the requests, compute, and data transfer
+   free tier thresholds. The free tier would cover the following usage
+   in each area:
+
+   - **Requests:** 50,000 requests
+   - **Compute:** 25 hours
+   - **Data Transfer:** 0.5 GB
+
+Learn More
+----------
+
+- :ref:`Atlas Triggers <atlas-triggers>`
+- :ref:`Manage Billing <atlas-billing>`
+- :ref:`Data Transfer Costs <data-transfer-costs>`

@@ -1190,6 +1190,11 @@ export const toc: L1TocItem[] = [
                 url: '/docs/atlas/billing/search-node',
               },
               {
+                label: 'Triggers',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/billing/triggers',
+              },
+              {
                 label: 'AWS Marketplace',
                 contentSite: 'cloud-docs',
                 url: '/docs/atlas/billing/aws-self-serve-marketplace',
