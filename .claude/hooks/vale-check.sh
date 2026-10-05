@@ -17,9 +17,35 @@ input=$(cat)
 file=$(printf '%s' "$input" | jq -r '.tool_input.file_path // ""')
 
 if [[ "$file" =~ \.(txt|rst)$ ]] && [[ "$file" == content/* || "$file" == ./content/* || "$file" == */content/* ]] && [[ "$file" != */content/code-examples/* ]]; then
-    output=$(cd "$REPO_ROOT" && vale --config vale.ini --minAlertLevel suggestion "$file" 2>/dev/null)
+    cd "$REPO_ROOT" || exit 0
+    [ -f "$file" ] || exit 0
+
+    # Report only findings on lines that differ from HEAD, so the agent fixes
+    # its own copy rather than rewriting existing content on the page. An
+    # untracked file is new, so every line counts as changed.
+    if git ls-files --error-unmatch -- "$file" &>/dev/null; then
+        changed=$(git diff -U0 HEAD -- "$file" | awk '
+            /^@@/ {
+                split($3, a, ",")
+                start = substr(a[1], 2)
+                count = (a[2] == "") ? 1 : a[2]
+                for (i = 0; i < count; i++) printf "%d\n", start + i
+            }' | jq -s '.')
+    else
+        changed=null
+    fi
+
+    output=$(vale --config vale.ini --minAlertLevel suggestion --output=JSON "$file" 2>/dev/null |
+        jq -r --argjson changed "$changed" '
+            to_entries[0].value // []
+            | map(select($changed == null or (.Line as $l | $changed | index($l))))
+            | .[]
+            | "\(.Line):\(.Span[0]) \(.Severity) \(.Check): \(.Message)"' 2>/dev/null)
     if [ -n "$output" ]; then
-        message="Vale lint results for ${file}:\n${output}"
+        message="Vale lint results for the lines you changed in ${file}:
+${output}
+
+Fix every error and warning before you finish, or tell the user why a finding doesn't apply. Review each suggestion and fix the ones that apply in context."
         printf '%s' "$message" | jq -Rs '{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":.}}'
     fi
 fi

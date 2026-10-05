@@ -334,7 +334,7 @@ The following are already handled — skip them entirely:
 *Nested components linter:* admonitions or tables nested inside each other
 *404 linter:* broken external links
 
-*Vale (all 53 active rules — do not re-flag any of these):*
+*Vale (all 58 active rules — do not re-flag any of these):*
 - Abbreviations: unspelled-out acronyms on first use
 - AbbreviationsPeriods: periods in acronyms/initialisms
 - Accessibility: non-descriptive link text
@@ -346,20 +346,19 @@ The following are already handled — skip them entirely:
 - AvoidFirstPerson: first-person pronouns ("I", "we", "our") — except the approved "we recommend" phrasing required by Rule 8, which is an intentional exception and must not be flagged
 - AvoidFutureTense: future tense ("will + verb")
 - AvoidObscure: Latin abbreviations ("i.e.", "e.g.", "etc.")
-- AvoidPastTense: past tense in descriptive content
+- AvoidPastTense: simple past tense forms ("was", "took", "wrote")
 - AvoidSubjunctive: subjunctive mood ("would", "should", "could" expressing uncertainty)
 - AvoidSupported: unsupported claims about supported software
 - AvoidTerms: specific banned terms
-- AvoidWithSubstitution: word substitutions ("argument" → "option", etc.)
+- AvoidWithSubstitution: context-dependent word substitutions ("argument" → "option", "launch" → "start", "wrong" → "incorrect", etc.)
 - But: paragraphs starting with "But"
-- Careful: terms requiring verified usage ("following", "on", etc.)
+- Capitalization: case-only substitutions ("boolean" → "Boolean", "kubernetes" → "Kubernetes")
 - ClickHereLinks: "click here" as link text
 - Colons: colons after incomplete sentences
-- CommaNonRestrictiveClause: missing comma with non-restrictive clauses
 - CommaOxford: missing Oxford comma
 - CommaQuotation: comma placement with embedded quotations
 - CommaRestrictiveClause: comma before restrictive "that" clauses
-- ComplexWords: complex word substitutions ("modify" → "change", etc.)
+- ComplexWords: complex word substitutions ("utilize" → "use", etc.)
 - ConciseTerms: wordy phrases ("in order to" → "to", "is able to" → "can", "a number of" → "several", etc.)
 - ConsistencyEarlierLater: "8.0 or higher" → "8.0 or later" in version references
 - Contractions: non-standard or obscure contractions
@@ -368,7 +367,7 @@ The following are already handled — skip them entirely:
 - DashesSpaces: whitespace around dashes
 - Dates: non-standard date formatting
 - Ellipsis: ellipses in prose
-- ExpletiveConstruct: "It is", "There is", "There are" constructions
+- ExpletiveConstruct: "There is/are" anywhere, and "It is" only before an adjective and a that/to clause ("It is important to") — flag other dummy-subject "It is" yourself
 - GenderBias: gendered pronouns
 - Girls: "girls" or "boys" used to describe adults
 - GlobalAudienceIdioms: idiomatic expressions unfamiliar to global audiences
@@ -377,15 +376,21 @@ The following are already handled — skip them entirely:
 - Hyphen: missing hyphens with "self-" prefix
 - Interjections: exclamation points in documentation
 - NegativeWords: negative framing where positive phrasing is preferred
+- NumberRanges: "between" or "from" mixed with a dash ("between 1-5")
 - Numbers: number formatting (numerals vs. spelled-out)
+- NumbersParentheses: spelled-out number followed by a numeral ("two (2)")
+- Plurals: "(s)" and "(es)" plural forms
 - PossessiveAbbreviations: apostrophes in plural abbreviations
 - ProductNames: incorrect MongoDB product name formatting
+- RestrictedTerms: specific misuses of restricted terms ("information on", "see above", "allows you to", "default to", "the following.", "a given", verb "impact", "leverage", "please", bare "dialog", "PC", etc.) — flag other misuses of restricted terms yourself
 - Semicolons: semicolons in prose
 - SentenceLength: sentences over 25 words
-- Simplicity: "simply", "easy", "easily", "just"
+- Simplicity: "simply", "easy", "easily", "obviously"
 - SingleQuotes: single quotes in prose
 - Slashes: slashes where "or" should be used
-- ThatWhich: "which" in restrictive clauses, "that" in non-restrictive clauses
+- Terms: unconditional glossary swaps ("click on" → "click", "make sure" → "ensure", "backwards" → "backward", etc.)
+- ThatWhich: "which" with no preceding comma (restrictive clause or missing comma)
+- Time: "a.m."/"p.m.", missing space before AM/PM, and "12 AM"/"12 PM"
 - TitlesEnd: punctuation at the end of headings
 - Wordiness: nominalization ("perform an installation" → "install", etc.)
 
@@ -456,7 +461,7 @@ The rules are organized into groups for navigation only. The grouping does not c
 - **Actionable**: Every comment must have a clear, specific fix
 - **Concise**: One sentence for the issue, one sentence for the fix
 - **No duplicates**: Report each distinct issue once per file, even if the same pattern recurs. If the same pattern recurs, note the recurrence in the single comment rather than filing multiple comments.
-- **Never re-flag Vale rules**: The Simplicity rule covers "simply", "easy", "easily", "just" — never flag these words regardless of context. The full list of 53 Vale rules above are off-limits even when they appear alongside other issues.
+- **Never re-flag Vale rules**: The Simplicity rule covers "simply", "easy", "easily", "just" — never flag these words regardless of context. The full list of 58 Vale rules above are off-limits even when they appear alongside other issues.
 - **Check ALL files in the PR** - the writer requested this review
 - **Report every violation you are certain about, skip everything you are not** — do not artificially limit your findings, but do not flag anything you are uncertain about.
 - **Stay strictly within the numbered rules**: Every comment MUST correspond to exactly one of the 42 numbered rules above, and you must apply that rule only as literally written — matching its exact trigger words, phrases, and conditions. Do not generalize a rule beyond its stated scope, do not combine rules into a broader principle, and do not invent new categories or labels (for example "weak opener", "awkward phrasing", "could be clearer", "wordy"). If a passage bothers you but does not literally match a numbered rule's stated conditions, do NOT comment on it. Begin each comment's \`issue\` field with the matched rule number in the form "(Rule N)" so the mapping is auditable.
