@@ -1,115 +1,117 @@
-Refreshing Terraform state in-memory prior to plan...
-The refreshed state will be used to calculate this plan, but will not be
-persisted to local or remote state storage.
- 
- 
-------------------------------------------------------------------------
- 
-An execution plan has been generated and is shown below.
-Resource actions are indicated with the following symbols:
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
   + create
- 
+
 Terraform will perform the following actions:
- 
-  # mongodbatlas_cluster.my_cluster will be created
-  + resource "mongodbatlas_cluster" "my_cluster" {
-      + advanced_configuration       = (known after apply)
-      + auto_scaling_disk_gb_enabled = false
-      + backing_provider_name        = "AWS"
-      + backup_enabled               = false
-      + bi_connector                 = (known after apply)
-      + cluster_id                   = (known after apply)
-      + cluster_type                 = (known after apply)
-      + connection_strings           = (known after apply)
-      + disk_size_gb                 = 2
-      + encryption_at_rest_provider  = (known after apply)
-      + id                           = (known after apply)
-      + mongo_db_major_version       = "9.0"
-      + mongo_db_version             = (known after apply)
-      + mongo_uri                    = (known after apply)
-      + mongo_uri_updated            = (known after apply)
-      + mongo_uri_with_options       = (known after apply)
-      + name                         = "atlasClusterName"
-      + num_shards                   = 1
-      + paused                       = (known after apply)
-      + pit_enabled                  = (known after apply)
-      + project_id                   = (known after apply)
-      + provider_backup_enabled      = false
-      + provider_disk_iops           = (known after apply)
-      + provider_disk_type_name      = (known after apply)
-      + provider_encrypt_ebs_volume  = (known after apply)
-      + provider_name                = "TENANT"
-      + provider_region_name         = "providerRegionName"
-      + provider_volume_type         = (known after apply)
-      + replication_factor           = (known after apply)
-      + snapshot_backup_policy       = (known after apply)
-      + srv_address                  = (known after apply)
-      + state_name                   = (known after apply)
- 
-      + labels {
-          + key   = (known after apply)
-          + value = (known after apply)
-        }
- 
-      + replication_specs {
-          + id         = (known after apply)
-          + num_shards = (known after apply)
-          + zone_name  = (known after apply)
- 
-          + regions_config {
-              + analytics_nodes = (known after apply)
-              + electable_nodes = (known after apply)
-              + priority        = (known after apply)
-              + read_only_nodes = (known after apply)
-              + region_name     = (known after apply)
-            }
-        }
+
+  # mongodbatlas_advanced_cluster.my_cluster will be created
+  + resource "mongodbatlas_advanced_cluster" "my_cluster" {
+      + advanced_configuration                                 = (known after apply)
+      + backup_enabled                                         = (known after apply)
+      + bi_connector_config                                    = (known after apply)
+      + cluster_id                                             = (known after apply)
+      + cluster_type                                           = "REPLICASET"
+      + config_server_management_mode                          = (known after apply)
+      + config_server_type                                     = (known after apply)
+      + connection_strings                                     = (known after apply)
+      + create_date                                            = (known after apply)
+      + delete_on_create_timeout                               = true
+      + encryption_at_rest_provider                           = (known after apply)
+      + global_cluster_self_managed_sharding                   = (known after apply)
+      + mongo_db_major_version                                 = (known after apply)
+      + mongo_db_version                                       = (known after apply)
+      + name                                                   = "atlasClusterName"
+      + paused                                                 = (known after apply)
+      + pit_enabled                                           = (known after apply)
+      + project_id                                             = (known after apply)
+      + redact_client_log_data                                 = (known after apply)
+      + replica_set_scaling_strategy                           = (known after apply)
+      + replication_specs                                      = [
+          + {
+              + container_id   = (known after apply)
+              + external_id    = (known after apply)
+              + region_configs = [
+                  + {
+                      + analytics_auto_scaling = (known after apply)
+                      + analytics_specs        = (known after apply)
+                      + auto_scaling           = (known after apply)
+                      + backing_provider_name  = "AWS"
+                      + electable_specs        = (known after apply)
+                      + priority               = 7
+                      + provider_name          = "FLEX"
+                      + read_only_specs        = (known after apply)
+                      + region_name            = "US_EAST_1"
+                    },
+                ]
+              + zone_id        = (known after apply)
+              + zone_name      = (known after apply)
+            },
+        ]
+      + root_cert_type                                         = (known after apply)
+      + state_name                                             = (known after apply)
+      + termination_protection_enabled                         = (known after apply)
+      + use_aws_time_based_snapshot_copy_for_fast_initial_sync = (known after apply)
+      + version_release_system                                 = (known after apply)
     }
- 
+
   # mongodbatlas_database_user.my_user will be created
   + resource "mongodbatlas_database_user" "my_user" {
       + auth_database_name = "admin"
+      + aws_iam_type       = "NONE"
       + id                 = (known after apply)
+      + ldap_auth_type     = "NONE"
+      + oidc_auth_type     = "NONE"
       + password           = (sensitive value)
+      + password_wo        = (write-only attribute)
       + project_id         = (known after apply)
-      + username           = "jww"
+      + username           = "myUser"
       + x509_type          = "NONE"
- 
-      + labels {
-          + key   = (known after apply)
-          + value = (known after apply)
-        }
- 
+
       + roles {
-          + collection_name = (known after apply)
-          + database_name   = "admin"
-          + role_name       = "atlasAdmin"
+          + database_name = "admin"
+          + role_name     = "atlasAdmin"
         }
     }
- 
+
   # mongodbatlas_project.my_project will be created
   + resource "mongodbatlas_project" "my_project" {
-      + cluster_count = (known after apply)
-      + created       = (known after apply)
-      + id            = (known after apply)
-      + name          = "atlasProjectName"
-      + org_id        = "5d3716bfcf09a21576d7983e"
+      + cluster_count                                           = (known after apply)
+      + created                                                 = (known after apply)
+      + id                                                      = (known after apply)
+      + ip_addresses                                            = (known after apply)
+      + is_cluster_ai_assistant_enabled                         = (known after apply)
+      + is_collect_database_specifics_statistics_enabled        = (known after apply)
+      + is_data_explorer_enabled                                = (known after apply)
+      + is_data_explorer_gen_ai_features_enabled                = (known after apply)
+      + is_data_explorer_gen_ai_sample_document_passing_enabled = (known after apply)
+      + is_extended_storage_sizes_enabled                       = (known after apply)
+      + is_native_reranking_enabled                             = (known after apply)
+      + is_performance_advisor_enabled                          = (known after apply)
+      + is_realtime_performance_panel_enabled                   = (known after apply)
+      + is_schema_advisor_enabled                               = (known after apply)
+      + is_slow_operation_thresholding_enabled                  = (known after apply)
+      + name                                                    = "atlasProjectName"
+      + org_id                                                  = "5d3716bfcf09a21576d7983e"
+      + region_usage_restrictions                               = (known after apply)
+      + with_default_alerts_settings                            = true
     }
- 
-  # mongodbatlas_project_ip_whitelist.my_ipaddress will be created
-  + resource "mongodbatlas_project_ip_whitelist" "my_ipaddress" {
+
+  # mongodbatlas_project_ip_access_list.my_ipaddress will be created
+  + resource "mongodbatlas_project_ip_access_list" "my_ipaddress" {
       + aws_security_group = (known after apply)
       + cidr_block         = (known after apply)
       + comment            = "My IP Address"
       + id                 = (known after apply)
-      + ip_address         = "204.210.139.18"
+      + ip_address         = "203.0.113.10"
       + project_id         = (known after apply)
     }
- 
+
 Plan: 4 to add, 0 to change, 0 to destroy.
- 
-------------------------------------------------------------------------
- 
-Note: You didn't specify an "-out" parameter to save this plan, so Terraform
-can't guarantee that exactly these actions will be performed if
-"terraform apply" is subsequently run.
+
+Changes to Outputs:
+  + connection_strings = (known after apply)
+
+─────────────────────────────────────────────────────────────────────────────
+
+Note: You didn't use the -out option to save this plan, so Terraform can't
+guarantee to take exactly these actions if you run "terraform apply" now.
