@@ -3,11 +3,7 @@ $sum (Accumulator Operator)
 ===========================
 
 .. meta::
-<<<<<<< HEAD
-   :description: Learn how to use the MongoDB $sum aggregation operator to calculate the sum of numeric values across documents. $sum ignores non-numeric and non-existent fields.
-=======
    :description: Use the $sum accumulator operator to return the total of numeric values across a group of documents. Available in the $bucket, $bucketAuto, and $group aggregation pipeline stages.
->>>>>>> origin/feature/DOCSP-46440-distinguish-expressions
 
 .. contents:: On this page
    :local:
@@ -47,31 +43,11 @@ The ``$sum`` accumulator is available in these stages:
 Syntax
 ------
 
-<<<<<<< HEAD
-When used as an :ref:`accumulator <agg-operators-group-accumulators>`,  
-``$sum`` has this syntax:
-
-.. code-block:: none
-=======
 .. code-block:: javascript
->>>>>>> origin/feature/DOCSP-46440-distinguish-expressions
    :copyable: false
    :category: syntax example
 
    { $sum: <expression> }
-<<<<<<< HEAD
-   
-When not used as an accumulator, ``$sum`` has this syntax:
-
-.. code-block:: none
-   :copyable: false
-
-   { $sum: [ <expression1>, <expression2> ... ]  }
-
-For more information on expressions, see
-:ref:`aggregation-expressions`.
-=======
->>>>>>> origin/feature/DOCSP-46440-distinguish-expressions
 
 Behavior
 --------
@@ -88,13 +64,8 @@ When you use ``$sum`` on a field that contains both numeric and
 non-numeric values, ``$sum`` ignores the non-numeric values and returns
 the sum of the numeric values.
 
-<<<<<<< HEAD
-If used on a field that does not exist in any document,
-:group:`$sum` returns ``0`` for that field.
-=======
 When you use ``$sum`` on a field that does not exist in any document in
 the collection, ``$sum`` returns ``0`` for that field.
->>>>>>> origin/feature/DOCSP-46440-distinguish-expressions
 
 Example
 -------
@@ -104,52 +75,18 @@ Example
 The following example groups movies by content rating and returns
 the total number of IMDb votes for each group.
 
-<<<<<<< HEAD
-In the :pipeline:`$group` stage, if the expression resolves to an array,
-:group:`$sum` treats the operand as a non-numeric value.
-
-.. include:: /includes/extracts/fact-agg-accumulator-array-operand-in-project-sum.rst
-
-For example, when not used in a ``$group`` stage:
-
-- If the ``$sum`` operand is ``[ 2, 2 ]``, ``$sum`` adds the array
-  elements and returns 4.
-
-- If the ``$sum`` operand is ``[ 2, [ 3, 4 ] ]``, ``$sum`` returns 2
-  because it treats the nested array ``[ 3, 4 ]`` as a non-numeric
-  value.
-
-Examples
---------
-
-.. _sum-group-example:
-
-Use in $group Stage
-~~~~~~~~~~~~~~~~~~~
-
-Consider a ``sales`` collection with the following documents:
-
-.. code-block:: javascript
-=======
 .. io-code-block::
->>>>>>> origin/feature/DOCSP-46440-distinguish-expressions
    :copyable: true
 
    .. input:: /code-examples/tested/command-line/mongosh/aggregation/accumulators/sum/sum-group-example.js
       :language: javascript
       :category: usage example
 
-<<<<<<< HEAD
-The following operation groups documents by day and year of the
-``date`` field, then uses :group:`$sum` to compute the total amount
-and count for each group:
-=======
    .. output:: /code-examples/tested/command-line/mongosh/aggregation/accumulators/sum/sum-group-example-output.sh
       :visible: false
       :language: javascript
 
 The preceding pipeline:
->>>>>>> origin/feature/DOCSP-46440-distinguish-expressions
 
 - Uses :pipeline:`$match` to filter for movies with a ``rated``
   value of ``G``, ``PG``, ``PG-13``, or ``R`` and an integer
@@ -162,149 +99,6 @@ The preceding pipeline:
 Learn More
 ----------
 
-<<<<<<< HEAD
-The operation returns:
-
-.. code-block:: javascript
-   :copyable: false
-
-   { "_id" : { "day" : 46, "year" : 2014 }, "totalAmount" : 150, "count" : 2 }
-   { "_id" : { "day" : 34, "year" : 2014 }, "totalAmount" : 45, "count" : 2 }
-   { "_id" : { "day" : 1, "year" : 2014 }, "totalAmount" : 20, "count" : 1 }
-
-Using :group:`$sum` on a non-existent field returns a value of ``0``.
-The following operation attempts to :group:`$sum` on ``qty``:
-
-.. code-block:: javascript
-
-   db.sales.aggregate(
-      [
-        {
-          $group:
-            {
-              _id: { day: { $dayOfYear: "$date"}, year: { $year: "$date" } },
-              totalAmount: { $sum: "$qty" },
-              count: { $sum: 1 }
-            }
-        }
-      ]
-   )
-
-The operation returns:
-
-.. code-block:: javascript
-   :copyable: false
-
-   { "_id" : { "day" : 46, "year" : 2014 }, "totalAmount" : 0, "count" : 2 }
-   { "_id" : { "day" : 34, "year" : 2014 }, "totalAmount" : 0, "count" : 2 }
-   { "_id" : { "day" : 1, "year" : 2014 }, "totalAmount" : 0, "count" : 1 }
-
-You can use the :group:`$count` accumulator in place of
-``{ $sum : 1 }`` in the :pipeline:`$group` stage.
-
-.. seealso:: 
-   
-   :group:`$count (aggregation accumulator) <$count>`
-
-.. _sum-project-example:
-
-Use in $project Stage
-~~~~~~~~~~~~~~~~~~~~~
-
-A collection ``students`` contains the following documents:
-
-.. code-block:: javascript
-
-   { "_id": 1, "quizzes": [ 10, 6, 7 ], "labs": [ 5, 8 ], "final": 80, "midterm": 75 }
-   { "_id": 2, "quizzes": [ 9, 10 ], "labs": [ 8, 8 ], "final": 95, "midterm": 80 }
-   { "_id": 3, "quizzes": [ 4, 5, 5 ], "labs": [ 6, 5 ], "final": 78, "midterm": 70 }
-
-The following example uses :group:`$sum` in the
-:pipeline:`$project` stage to calculate total quiz scores,
-total lab scores, and the combined final and midterm score:
-
-.. code-block:: javascript
-
-   db.students.aggregate([
-      {
-        $project: {
-          quizTotal: { $sum: "$quizzes"},
-          labTotal: { $sum: "$labs" },
-          examTotal: { $sum: [ "$final", "$midterm" ] }
-        }
-      }
-   ])
-
-The operation returns:
-
-.. code-block:: javascript
-   :copyable: false
-
-   { "_id" : 1, "quizTotal" : 23, "labTotal" : 13, "examTotal" : 155 }
-   { "_id" : 2, "quizTotal" : 19, "labTotal" : 16, "examTotal" : 175 }
-   { "_id" : 3, "quizTotal" : 14, "labTotal" : 11, "examTotal" : 148 }
-
-.. _sum-window-example:
-
-Use in $setWindowFields Stage
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionadded:: 5.0
-
-.. include:: /includes/setWindowFields-example-collection.rst
-
-This example uses :group:`$sum` in the :pipeline:`$setWindowFields`
-stage to output the sum of the ``quantity`` of cakes sold in each
-``state``:
-
-.. code-block:: javascript
-
-   db.cakeSales.aggregate( [
-      {
-         $setWindowFields: {
-            partitionBy: "$state",
-            sortBy: { orderDate: 1 },
-            output: {
-               sumQuantityForState: {
-                  $sum: "$quantity",
-                  window: {
-                     documents: [ "unbounded", "current" ]
-                  }         
-               }
-            }
-         }
-      }
-   ] )
-
-In the example:
-
-.. include:: /includes/setWindowFields-partition-sort-date.rst
-
-- ``output`` sets ``sumQuantityForState`` to the sum of ``quantity``
-  values in a :ref:`documents <setWindowFields-documents>` window
-  that spans from the beginning of the partition (``unbounded``) to
-  the ``current`` document.
-
-In this output, the ``sumQuantityForState`` field shows the running
-sum of ``quantity`` values for ``CA`` and ``WA``:
-
-.. code-block:: javascript
-   :copyable: false
-
-   { "_id" : 4, "type" : "strawberry", "orderDate" : ISODate("2019-05-18T16:09:01Z"),
-     "state" : "CA", "price" : 41, "quantity" : 162, "sumQuantityForState" : 162 }
-   { "_id" : 0, "type" : "chocolate", "orderDate" : ISODate("2020-05-18T14:10:30Z"),
-     "state" : "CA", "price" : 13, "quantity" : 120, "sumQuantityForState" : 282 }
-   { "_id" : 2, "type" : "vanilla", "orderDate" : ISODate("2021-01-11T06:31:15Z"),
-     "state" : "CA", "price" : 12, "quantity" : 145, "sumQuantityForState" : 427 }
-   { "_id" : 5, "type" : "strawberry", "orderDate" : ISODate("2019-01-08T06:12:03Z"),
-     "state" : "WA", "price" : 43, "quantity" : 134, "sumQuantityForState" : 134 }
-   { "_id" : 3, "type" : "vanilla", "orderDate" : ISODate("2020-02-08T13:13:23Z"),
-     "state" : "WA", "price" : 13, "quantity" : 104, "sumQuantityForState" : 238 }
-   { "_id" : 1, "type" : "chocolate", "orderDate" : ISODate("2021-03-20T11:30:05Z"),
-     "state" : "WA", "price" : 14, "quantity" : 140, "sumQuantityForState" : 378 }
-=======
 - :ref:`accumulators-ref`
 - :group:`$count (aggregation accumulator) <$count>`
 - :ref:`agg-pipeline-limits`
->>>>>>> origin/feature/DOCSP-46440-distinguish-expressions
