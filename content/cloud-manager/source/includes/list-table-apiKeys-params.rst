@@ -37,4 +37,34 @@
      - The name of the role. The ``users`` resource returns all the roles the
        user has in either |service| or |mms|. Possible values are:
 
-       .. include:: /includes/org-and-project-roles.rst
+       - Organization Roles
+
+         - ``ORG_OWNER``: :authrole:`Organization Owner`
+
+         - ``ORG_MEMBER``: :authrole:`Organization Member`
+
+         - ``ORG_GROUP_CREATOR``: :authrole:`Organization Project
+           Creator`
+
+         - ``ORG_BILLING_ADMIN``: :authrole:`Organization Billing
+           Admin`
+
+         - ``ORG_READ_ONLY``: :authrole:`Organization Read Only`
+
+         - ``ORG_BILLING_READ_ONLY``: :authrole:`Organization
+           Billing Viewer`
+
+       - Project Roles
+
+         Groups and projects are synonymous terms.
+
+         - ``GROUP_OWNER``
+         - ``GROUP_READ_ONLY``
+         - ``GROUP_DATA_ACCESS_ADMIN``
+         - ``GROUP_DATA_ACCESS_READ_WRITE``
+         - ``GROUP_DATA_ACCESS_READ_ONLY``
+         - ``GROUP_AUTOMATION_ADMIN``
+         - ``GROUP_BACKUP_ADMIN``
+         - ``GROUP_MONITORING_ADMIN``
+         - ``GROUP_OWNER``
+         - ``GROUP_USER_ADMIN``
