@@ -251,6 +251,11 @@ const tocData: TocItem[] = [
         url: '/docs/agentengine/reference/limitations',
       },
       {
+        label: 'Sample Application Templates',
+        url: 'https://github.com/mongodb/agent-engine-examples',
+        isExternal: true,
+      },
+      {
         label: 'Platform API Reference',
         url: 'https://dochub.mongodb.org/core/agentic-platform-api',
         isExternal: true,
