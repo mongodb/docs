@@ -103,6 +103,46 @@ function parseAhaFeatureUrl(url: string): { domain: string; featureId: string } 
 // field key configured in Aha.
 const AHA_WHATS_NEW_POST_FIELD_KEY = 'whats_new_post_url';
 
+/**
+ * Reads the current value of the What's New post field on an Aha feature.
+ * Throws if the field cannot be read, so callers can distinguish "field is
+ * empty" from "we don't know what the field holds".
+ */
+async function getAhaFeatureWhatsNewPost(domain: string, featureId: string): Promise<string | null> {
+  const apiKey = envConfig.AHA_API_KEY;
+
+  if (!apiKey) {
+    throw new Error('AHA_API_KEY is not set in environment variables');
+  }
+
+  const apiUrl = `https://${domain}.aha.io/api/v1/features/${featureId}`;
+
+  const response = await fetch(apiUrl, {
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Aha API request failed: ${response.status} ${response.statusText}. ${errorText}`);
+  }
+
+  const responseBody = await response.json();
+
+  if (!responseBody.feature) {
+    throw new Error('Aha API response missing feature data');
+  }
+
+  const customFields: Array<{ key: string; value: unknown }> = Array.isArray(responseBody.feature.custom_fields)
+    ? responseBody.feature.custom_fields
+    : [];
+  const value = customFields.find((field) => field.key === AHA_WHATS_NEW_POST_FIELD_KEY)?.value;
+
+  return typeof value === 'string' && value.length > 0 ? value : null;
+}
+
 async function updateAhaFeatureWhatsNewPost(domain: string, featureId: string, whatsNewPostUrl: string): Promise<void> {
   const apiKey = envConfig.AHA_API_KEY;
 
@@ -245,6 +285,40 @@ export async function POST(request: NextRequest) {
           { status: 400 },
         ),
       );
+    }
+
+    // A staging publish must never clobber a production URL: once a post is
+    // live, re-staging the entry would otherwise leave Aha (and everything
+    // reading the field) pointing at a non-public link. Production publishes
+    // still overwrite unconditionally.
+    if (environmentName === STAGING_ENVIRONMENT) {
+      let existingUrl: string | null;
+      try {
+        existingUrl = await getAhaFeatureWhatsNewPost(parsedUrl.domain, parsedUrl.featureId);
+      } catch (err) {
+        // Skip rather than fall through: a transient read failure must not be
+        // able to overwrite a production URL with a staging one.
+        console.error('Failed to read existing Aha What\'s New post URL; skipping staging write:', err);
+        return withCORS(
+          NextResponse.json(
+            {
+              error: 'Failed to read existing Aha feature field',
+              details: err instanceof Error ? err.message : String(err),
+            },
+            { status: 500 },
+          ),
+        );
+      }
+
+      if (existingUrl && !existingUrl.startsWith(STAGING_BASE_URL)) {
+        console.info('Skipped staging write: Aha field already holds a published URL', {
+          featureId: parsedUrl.featureId,
+          existingUrl,
+        });
+        return withCORS(
+          NextResponse.json({ success: true, message: 'Skipped: Aha field already holds a published URL' }),
+        );
+      }
     }
 
     // Update the Aha feature with the What's New post URL
