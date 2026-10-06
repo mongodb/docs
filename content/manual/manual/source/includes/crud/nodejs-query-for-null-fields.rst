@@ -31,16 +31,9 @@ The query returns both documents in the collection.
 
 .. note:: Dotted Paths That Traverse Arrays
 
-   Starting in MongoDB 9.0, a dotted path that does not resolve to a
-   non-null value evaluates as ``null``. The behavior applies when a
-   field in the path holds an empty array, an array of scalar values,
-   or an array that contains a nested array. For example, the
-   ``{ "item.name": null }`` query matches a document where ``item``
-   holds the array ``[ 1 ]``. Because MongoDB does not traverse into
-   nested arrays, the query also matches a document where ``item``
-   holds the array ``[ [ { name: "notebook" } ] ]``. In earlier
-   versions, the query does not match either document. For details,
-   see :ref:`9.0-compatibility`.
+   A dotted path can produce results you might not expect when the
+   path traverses an array. For details, see
+   :ref:`null-semantics-arrays`.
 
 Non-Equality Filter
 -------------------
@@ -50,13 +43,10 @@ To query for fields that **exist** and are **not null**, use the
 
 .. note:: Dotted Paths That Traverse Arrays
 
-   Starting in MongoDB 9.0, the ``{ $ne : null }`` filter excludes
-   documents where a dotted path does not resolve to a non-null
-   value. The behavior applies when a field in the path holds an
-   empty array, an array of scalar values, or an array that contains
-   a nested array. In earlier versions, the filter matches those
-   documents, which returns documents that ``{ $exists: true }``
-   excludes. For details, see :ref:`9.0-compatibility`.
+   The ``{ $ne : null }`` filter on a dotted path can match a
+   document even when ``{ path : { $exists: true } }`` does not,
+   when the path traverses an array. For details, see
+   :ref:`null-semantics-arrays`.
 
 The ``{ item : { $ne : null } }`` query matches
 documents where the ``item`` field exists **and** has a
@@ -110,34 +100,35 @@ including the document that holds an empty array.
 Equality on a Dotted Path
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Starting in MongoDB 9.0, the ``{ "a.b": null }`` query matches a
-document in any of these cases:
+The ``{ "a.b": null }`` query matches a document in any of these
+cases:
 
-- The ``a`` field holds a value that is neither an object nor an
-  array.
+- The ``a`` field is missing, or holds a value that is neither an
+  object nor an array.
 - The ``a`` field holds an object where ``b`` is missing or ``null``.
-- The ``a`` field holds an empty array.
-- The ``a`` field holds an array of scalar values.
 - The ``a`` field holds an array with at least one object where ``b``
   is missing or ``null``.
 
 Against the sample documents, the query matches the ``_id`` values
-``1``, ``2``, ``3``, ``4``, ``6``, and ``7``. The document with
-``_id: 5`` does not match, because every object in the array has a
-non-null ``b`` value.
+``1``, ``6``, and ``7``. The document with ``_id: 6`` matches because
+one of its array elements, ``{ }``, is missing ``b``, even though the
+other element has a non-null ``b`` value.
 
-The ``{ "a.b": { $ne: null } }`` query returns the documents that
-``{ "a.b": null }`` does not return, which is only the document with
-``_id: 5``. That result is not the same as the set of documents that
-have a non-null value for ``a.b``. The document with ``_id: 6``
-contains an object with a ``b`` value of ``3``, but the query does
-not return that document, because the array also contains an object
-where ``b`` is missing.
+An empty array, an array of scalar values, and an array that
+contains a literal ``null`` do not match, because none of these
+array shapes contains an object for ``b`` to be missing from. The
+documents with ``_id`` values ``2``, ``3``, and ``4`` do not match
+for this reason. The document with ``_id: 5`` does not match either,
+because every object in its array has a non-null ``b`` value.
 
-The empty array and the arrays of scalar values are the cases that
-changed in MongoDB 9.0. In earlier versions, the documents with
-``_id`` values ``2``, ``3``, and ``4`` did not match. For details,
-see :ref:`9.0-compatibility`.
+The ``{ "a.b": { $ne: null } }`` query returns the complement, which
+is every document that ``{ "a.b": null }`` does not match: the
+documents with ``_id`` values ``2``, ``3``, ``4``, and ``5``. That
+result is not the same as the set of documents that have a non-null
+value for ``a.b``. Neither ``_id: 2`` nor ``_id: 3`` has any value
+at ``a.b``, yet the ``{ $ne: null }`` filter still matches them. A
+``{ $ne: null }`` filter on a dotted path does not necessarily
+return the same documents as an :query:`$exists` check on that path.
 
 Type Check
 ----------
