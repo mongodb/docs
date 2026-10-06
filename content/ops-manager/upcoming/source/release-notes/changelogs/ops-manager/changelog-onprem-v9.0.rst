@@ -1,3 +1,27 @@
+.. _opsmgr-server-9.0.1:
+
+|onprem| Server 9.0.1
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2026-10-05*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to
+  :ref:`109.0.1.9309-1 <mongodb-109.0.1.9309-1>`.
+- Updates JDK to jdk-25.0.4.1+1.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes an unbounded backup-agent session tag vulnerability where a
+  caller could create unlimited persistent session documents per
+  group, potentially exhausting the heap of the |onprem| web or
+  alert-processing JVM. |onprem| now adds a per-group session cap, a
+  read limit, and input validation for the ``tag``, ``ah``, and
+  ``sk`` parameters.
+
 .. _opsmgr-server-9.0.0:
 
 |onprem| Server 9.0.0
