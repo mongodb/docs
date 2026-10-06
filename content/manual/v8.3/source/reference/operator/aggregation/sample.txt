@@ -33,6 +33,9 @@ Definition
 Behavior
 --------
 
+Pseudo-Random Cursor Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 If all of the following conditions are true, :pipeline:`$sample` uses a
 pseudo-random cursor to select the ``N`` documents:
 
@@ -42,7 +45,7 @@ pseudo-random cursor to select the ``N`` documents:
   .. note:: 
 
      You can't configure the threshold that :pipeline:`$sample` uses to
-     determine when to scan the entire collection. The thresholds is 5%.
+     determine when to scan the entire collection. The threshold is 5%.
      If the size is greater than 5% of the total number of documents in
      the collection, :pipeline:`$sample` performs a 
      :ref:`top-k <sort-limit-results>` sort by a generated random value.
@@ -51,20 +54,41 @@ pseudo-random cursor to select the ``N`` documents:
 
 - The collection contains more than 100 documents.
 
+The pseudo-random cursor doesn't guarantee a uniform random sample. It
+selects documents by descending the collection's internal B-tree
+structure at random, so the results can skew toward some parts of the
+collection. Skew is more likely when:
+
+- The documents in the collection aren't uniformly distributed, which
+  leads to an unbalanced tree structure.
+- The collection has a high number of deleted documents.
+- A high number of documents aren't visible to the cursor's
+  transaction.
+
+If your use case requires a uniform sample, avoid the pseudo-random
+cursor. To do so, run :pipeline:`$sample` after another stage, or set
+``N`` to more than 5% of the documents in the collection.
+
+Random Sort Behavior
+~~~~~~~~~~~~~~~~~~~~
+
 If any of the previous conditions are false, :pipeline:`$sample`:
 
 - Reads all documents that are output from a preceding aggregation
   stage or a collection scan.
-- Performs a random sort to select ``N`` documents. Random sorts are 
+- Performs a random sort to select ``N`` documents. Random sorts are
   subject to the :ref:`sort memory restrictions <sort-memory-limit>`.
 
   .. note::
 
-     :ref:`Views <views-landing-page>` are the result of aggregation 
+     :ref:`Views <views-landing-page>` are the result of aggregation
      pipelines. When you use ``$sample`` on a view, MongoDB appends the stage
-     to the end of the view's aggregation pipeline syntax. Therefore, the 
-     ``$sample`` stage on a view is never the first stage and always 
+     to the end of the view's aggregation pipeline syntax. Therefore, the
+     ``$sample`` stage on a view is never the first stage and always
      results in a collection scan.
+
+Sharded Clusters
+~~~~~~~~~~~~~~~~
 
 If you use ``$sample`` in a :term:`sharded cluster`, each shard performs
 the sample operation independently. :binary:`~bin.mongos` samples
