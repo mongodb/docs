@@ -9,7 +9,7 @@ import ToolsData from './L1-data/tools';
 import VoyageData from './L1-data/voyageai';
 import type { L1TocItem } from './types';
 
-// The L1 Items for the Unified Toc
+// The L1 Items for the Unified ToC
 export const toc: L1TocItem[] = [
   {
     label: 'Get Started',
