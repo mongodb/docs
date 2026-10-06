@@ -1,3 +1,14 @@
+.. _atlas-sp-20260923:
+
+23 September 2026 Release
+-------------------------
+
+- Shows the outbound |aws| account IDs that you use to set up private
+  networking in the {+atlas-ui+}.
+- Fixes a bug where Streams Monitoring showed ``0`` for processor
+  message metrics when no metrics data was available. Streams
+  Monitoring now shows that no data is available instead of ``0``.
+
 .. _atlas-sp-20260910:
 
 10 September 2026 Release
