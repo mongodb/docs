@@ -14,7 +14,7 @@
            "$search": {
              "index": "default",
              "text": {
-               "query": "week",
+               "query": "ekly",
                "path": "title"
              }
            }

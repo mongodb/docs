@@ -9,7 +9,7 @@
         {
           "$search": {
             "text": {
-              "query": "week",
+              "query": "ekly",
               "path": "title"
             }
           }
