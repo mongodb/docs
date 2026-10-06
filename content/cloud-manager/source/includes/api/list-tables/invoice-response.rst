@@ -16,9 +16,10 @@
      - number
      - Amount paid for this invoice, in USD cents. 
 
-   * - ``created`` 
+   * - ``created``
      - string
-     - Timestamp in `ISO 8601
+     - Timestamp in `International Organization for
+       Standardization (ISO) 8601
        <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
        and time format in :abbr:`UTC (Coordinated Universal Time)` when
        this invoice was created.
@@ -44,8 +45,8 @@
 
    * - ``groupId``
      - string
-     - Unique identifier of the project with which the invoice is associated. *Does not
-       appear on all invoices.*
+     - Unique identifier of the project associated with this invoice.
+       *Doesn't appear in all invoices.*
 
    * - ``orgId`` 
      - string
@@ -54,7 +55,7 @@
 
    * - ``salesTaxCents`` 
      - number
-     - Amount of taxes levied on **subtotalCents**. 
+     - Amount of taxes applied to **subtotalCents**.
 
    * - ``startDate`` 
      - string
@@ -63,11 +64,31 @@
        and time format in :abbr:`UTC (Coordinated Universal Time)` of
        the starting date for this invoice.
 
-   * - ``statusName`` 
+   * - ``statusName``
      - string
      - State of this invoice. Accepted values are:
 
-       .. include:: /includes/api/list-tables/statusName.rst
+       - ``CLOSED``: All charges for the subscription cycle have been
+         finalized, the balance is more than zero, and the customer
+         hasn't been charged yet.
+
+       - ``FAILED``: Charging the credit card for the amount due
+         failed.
+
+       - ``FORGIVEN``: The customer has been charged, but the charge
+         has been forgiven.
+
+       - ``FREE``: The amount turned out to be zero, so the customer
+         isn't charged.
+
+       - ``PAID``: The funds have been transferred to MongoDB, Inc.
+
+       - ``PENDING``: Includes charges for the current subscription
+         cycle. A customer should never have more than one invoice in
+         this state.
+
+       - ``PREPAID``: The customer has a prepaid plan, so the customer
+         isn't charged.
 
    * - ``subtotalCents`` 
      - number

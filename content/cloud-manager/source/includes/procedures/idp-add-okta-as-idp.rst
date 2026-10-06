@@ -147,9 +147,6 @@
             * - :guilabel:`Audience URI (SP Entity ID)`
               - :guilabel:`Audience URI` from the |cloud| FMC.
 
-            * - :guilabel:`Default RelayState`
-              - .. include:: /includes/optional-idp-relay-state-step.rst
-
             * - :guilabel:`Name ID format`
               - Unspecified
 
@@ -158,6 +155,10 @@
 
             * - :guilabel:`Update application username on`
               - Create and update
+
+         To set the :guilabel:`Default RelayState` field:
+
+         .. include:: /includes/optional-idp-relay-state-step.rst
 
       #. Click the :guilabel:`Click Show Advanced Settings` link in the
          Okta configuration page and ensure that the following values are

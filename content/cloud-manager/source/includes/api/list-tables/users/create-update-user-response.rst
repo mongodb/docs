@@ -27,8 +27,8 @@
      - object array
      - Links to related sub-resources. All ``links`` arrays in
        responses include at least one link called self. The
-       relationship between URLs are explained in the
-       :rfc:`Web Linking Specification <5988>`.
+       :rfc:`Web Linking Specification <5988>` explains these link
+       relationships.
 
    * - ``mobileNumber``
      - string
@@ -41,24 +41,56 @@
    * - | ``roles``
        | ``.groupId``
      - string
-     - Unique identifier for the project in which the user has the
+     - Unique identifier for the project where the user has the
        specified role.
 
    * - | ``roles``
        | ``.orgId``
      - string
-     - Unique identifier for the organization in which the user has
-       the specified role.
+     - Unique identifier for the organization where the user has the
+       specified role.
 
    * - | ``roles``
        | ``.roleName``
      - string
      - Name of the role. The ``users`` resource returns all the roles
-       the user has in both |mms| and |service|.
+       the user has in |mms| and |service|.
      
        Accepted values are:
 
-       .. include:: /includes/list-tables/api-user-roles-cloud.rst
+       - ``ORG_MEMBER``: :authrole:`Organization Member`
+
+       - ``ORG_READ_ONLY``: :authrole:`Organization Read Only`
+
+       - ``ORG_BILLING_ADMIN``: ``Organization Billing Admin``
+
+       - ``ORG_GROUP_CREATOR``: :authrole:`Organization Project
+         Creator`
+
+       - ``ORG_OWNER``: :authrole:`Organization Owner`
+
+       - ``GROUP_AUTOMATION_ADMIN``: :authrole:`Project Automation
+         Admin`
+
+       - ``GROUP_BACKUP_ADMIN``: :authrole:`Project Backup Admin`
+
+       - ``GROUP_MONITORING_ADMIN``: :authrole:`Project Monitoring
+         Admin`
+
+       - ``GROUP_OWNER``: :authrole:`Project Owner`
+
+       - ``GROUP_READ_ONLY``: :authrole:`Project Read Only`
+
+       - ``GROUP_USER_ADMIN``: :authrole:`Project User Admin`
+
+       - ``GROUP_DATA_ACCESS_ADMIN``: :authrole:`Project Data Access
+         Admin`
+
+       - ``GROUP_DATA_ACCESS_READ_ONLY``: :authrole:`Project Data
+         Access Read Only`
+
+       - ``GROUP_DATA_ACCESS_READ_WRITE``: :authrole:`Project Data
+         Access Read/Write`
 
    * - ``username``
      - string
