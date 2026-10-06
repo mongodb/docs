@@ -1,0 +1,118 @@
+name: Netlify config check
+
+# Runs on every PR (no paths: filter) so the required "Netlify config check"
+# status always reports. A path-filtered workflow would leave the required
+# check Pending on PRs that don't match, which blocks the merge. Same
+# always-run + aggregate-status pattern as platform-ci.yml and toc-test.yml.
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  changes:
+    name: Detect changed paths
+    runs-on: ubuntu-latest
+    outputs:
+      netlify: ${{ steps.filter.outputs.netlify }}
+      index_ts: ${{ steps.filter.outputs.index_ts }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for netlify.toml / index.ts changes
+        id: filter
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "netlify=true" >> "$GITHUB_OUTPUT"
+            echo "index_ts=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          MERGE_BASE=$(git merge-base \
+            "${{ github.event.pull_request.base.sha }}" \
+            "${{ github.event.pull_request.head.sha }}") || exit 1
+          CHANGED_FILES=$(git diff --name-only \
+            "$MERGE_BASE" \
+            "${{ github.event.pull_request.head.sha }}") || exit 1
+          if echo "$CHANGED_FILES" | grep -qE '^platform/docs-site/netlify\.toml$|^platform/docs-nextjs/netlify\.toml$|^\.github/workflows/netlify-config-check\.yml$'; then
+            echo "netlify=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "netlify=false" >> "$GITHUB_OUTPUT"
+          fi
+          if echo "$CHANGED_FILES" | grep -qE '^platform/nextjs-ssg-extension/src/index\.ts$'; then
+            echo "index_ts=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "index_ts=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # Blocking: a leftover Basic-Auth header password-protects the whole site.
+  auth:
+    name: Check for netlify auth headers
+    needs: changes
+    if: needs.changes.outputs.netlify == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Check netlify.toml files for Basic-Auth headers
+        run: |
+          FOUND=0
+          for FILE in platform/docs-site/netlify.toml platform/docs-nextjs/netlify.toml; do
+            if grep -Ein '^[[:space:]]*Basic-Auth[[:space:]]*=' "$FILE"; then
+              echo "::error file=$FILE::A Basic-Auth header is set in $FILE. Merging this would password-protect the site. Remove it before merging to main."
+              FOUND=1
+            fi
+          done
+          if [ "$FOUND" = "1" ]; then
+            exit 1
+          fi
+          echo "No netlify auth headers found."
+
+  extension:
+    name: Check for enabled staging flags
+    needs: changes
+    if: needs.changes.outputs.netlify == 'true' || needs.changes.outputs.index_ts == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Check netlify.toml and index.ts for staging flags
+        run: |
+          FOUND=0
+
+          if grep -Ei '^[A-Z_]*STAGING[A-Z_0-9]*\s*=\s*"true"' platform/docs-site/netlify.toml; then
+            echo "::error file=platform/docs-site/netlify.toml::A staging extension flag is set to \"true\". Flip it back before merging to main."
+            FOUND=1
+          fi
+
+          if grep -Eq 'isEnabled:\s*envVarToBool\(process\.env\.[A-Z_]*STAGING[A-Z_0-9]*\)' platform/nextjs-ssg-extension/src/index.ts; then
+            echo "::error file=platform/nextjs-ssg-extension/src/index.ts::isEnabled is wired to a staging extension flag. Point it back at the non-staging flag before merging to main."
+            FOUND=1
+          fi
+
+          if [ "$FOUND" = "1" ]; then
+            exit 1
+          fi
+          echo "No staging extension flags left enabled."
+
+  status:
+    name: Netlify config check
+    needs: [changes, auth, extension]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report status
+        run: |
+          if [[ "${{ needs.changes.result }}" == "failure" || \
+                "${{ needs.changes.result }}" == "cancelled" || \
+                "${{ needs.auth.result }}" == "failure" || \
+                "${{ needs.auth.result }}" == "cancelled" || \
+                "${{ needs.extension.result }}" == "failure" || \
+                "${{ needs.extension.result }}" == "cancelled" ]]; then
+            echo "Netlify config check failed (changes: ${{ needs.changes.result }}, auth: ${{ needs.auth.result }}, extension: ${{ needs.extension.result }})."
+            exit 1
+          fi
+          echo "Netlify config check passed (auth: ${{ needs.auth.result }}, extension: ${{ needs.extension.result }})"
