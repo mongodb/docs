@@ -1,15 +1,13 @@
 import type { NetlifyPluginUtils } from '@netlify/build';
 import type { ExecaError } from 'execa';
-import path from 'node:path';
 import { MutError } from '../util/errorClasses';
-import { cacheParserFiles } from './handleParserCaching';
+import { getParserBinaryPath } from '../github/getParser';
 
 export type ParserCommandArgs = {
   parserPath: string;
   parsedOutputPath: string;
   version: string;
   contentPath: string;
-  poetryCommand?: string;
   cacheDirectoryPath?: string;
 };
 
@@ -18,7 +16,6 @@ export const parse = async ({
   parsedOutputPath,
   version,
   contentPath,
-  poetryCommand,
   netlifyPluginUtils: { run, cache },
 }: ParserCommandArgs & {
   netlifyPluginUtils: Pick<NetlifyPluginUtils, 'run' | 'cache'>;
@@ -33,7 +30,7 @@ export const parse = async ({
     console.log('Executing parser command...');
 
     const { all, stdout, stderr } = await run.command(
-      `python3 -m poetry run snooty build ${contentPath} --no-caching --output=${parsedOutputPath}.zip --branch=${version}`,
+      `${getParserBinaryPath(parserPath)} build ${contentPath} --no-caching --output=${parsedOutputPath}.zip --branch=${version}`,
       {
         cwd: parserPath,
         all: true,

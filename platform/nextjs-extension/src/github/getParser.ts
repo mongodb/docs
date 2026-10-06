@@ -1,23 +1,67 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import AdmZip from 'adm-zip';
 import type { NetlifyPluginUtils } from '@netlify/build';
 import {
   type Environments,
   MONGODB_ORG,
   PARSER_SITE_NAME,
 } from '../util/databaseConnection/types';
-import fsExists from 'fs.promises.exists';
-import {
-  handlePoetryDeps,
-  getPoetryPaths,
-  restorePoetry,
-} from './handlePoetryDeps';
-import { repoVersionMatchesExpected } from './checkRepoVersion';
 import { getRepoPaths } from '../paths';
 
-/** Find the parser and updates or clones as needed
- * @param run - the run object from the Netlify plugin utils
- * @param cache - the cache object from the Netlify plugin utils
- * @param expectedParserVersion - the expected parser version
- * @param environment - the environment the build is running in
+const VERSION_MARKER = '.snooty-version';
+
+/** Absolute path of the snooty executable inside the release archive. */
+export const getParserBinaryPath = (parserDir: string) =>
+  path.join(parserDir, 'snooty', 'snooty');
+
+interface ReleasePlatform {
+  platform?: NodeJS.Platform;
+  arch?: string;
+}
+
+export const getReleasePlatform = ({ platform = process.platform, arch = process.arch }: ReleasePlatform): string => {
+  if (platform === 'linux' && arch === 'x64') return 'linux_x86_64';
+  if (platform === 'darwin' && arch === 'arm64') return 'darwin_arm64';
+  if (platform === 'darwin' && arch === 'x64') return 'darwin_x86_64';
+  throw new Error(`No snooty-parser release binary for ${platform}/${arch}`);
+};
+
+export const getReleaseUrl = (version: string, releasePlatform: string) =>
+  `https://github.com/${MONGODB_ORG}/${PARSER_SITE_NAME}/releases/download/${version}/snooty-${version}-${releasePlatform}.zip`;
+
+const readInstalledVersion = async (parserDir: string) => {
+  try {
+    await fs.access(getParserBinaryPath(parserDir));
+    return (await fs.readFile(path.join(parserDir, VERSION_MARKER), 'utf-8')).trim();
+  } catch {
+    return undefined;
+  }
+};
+
+const downloadParser = async (parserDir: string, version: string) => {
+  const url = getReleaseUrl(version, getReleasePlatform({}));
+  console.log(`Downloading parser ${version} from ${url} ...`);
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(
+      `Failed to download parser ${version} (${response.status} ${response.statusText}) from ${url}. PARSER_VERSION must be a snooty-parser release tag.`,
+    );
+  }
+  const archive = Buffer.from(await response.arrayBuffer());
+
+  await fs.rm(parserDir, { recursive: true, force: true });
+  await fs.mkdir(parserDir, { recursive: true });
+  new AdmZip(archive).extractAllTo(parserDir, true, true);
+
+  const binaryPath = getParserBinaryPath(parserDir);
+  await fs.chmod(binaryPath, 0o755);
+  await fs.writeFile(path.join(parserDir, VERSION_MARKER), version);
+  console.log(`Installed parser ${version} to ${binaryPath}`);
+};
+
+/** Installs the snooty-parser release binary for the expected version,
+ *  restoring it from the build cache when possible.
  * @returns true if the current parser version is valid for given env, false otherwise
  */
 export const getParser = async ({
@@ -31,145 +75,45 @@ export const getParser = async ({
   expectedParserVersion: string;
   environment: Environments;
 }): Promise<boolean> => {
-  const { parserDir: parserPath } = getRepoPaths();
-  const parserExists = await fsExists(parserPath);
+  if (!expectedParserVersion) {
+    throw new Error('PARSER_VERSION is not set');
+  }
+  const { parserDir } = getRepoPaths();
 
-  const { localBinDir, localLibDir, poetryPath } = getPoetryPaths();
-  const poetryRestored = await restorePoetry({
-    localBinDir,
-    localLibDir,
-    cache,
-  });
+  if ((await readInstalledVersion(parserDir)) === undefined) {
+    await cache.restore(parserDir);
+  }
+  const installedVersion = await readInstalledVersion(parserDir);
 
-  if (parserExists) {
-    const parserVersionMatchesExpected = await repoVersionMatchesExpected({
-      run,
-      repoPath: parserPath,
-      repoName: PARSER_SITE_NAME,
-      expectedRepoVersion: expectedParserVersion,
-    });
-
-    if (parserVersionMatchesExpected) {
-      console.log(
-        `Parser version ${expectedParserVersion} already installed, skipping update`,
-      );
-
-      if (!poetryRestored) {
-        await handlePoetryDeps({
-          parserPath,
-          run,
-          cache,
-          poetryPath,
-          localBinDir,
-          localLibDir,
-        });
-      } else {
-        console.log('Installing parser dependencies with poetry...');
-        await run.command('python3 -m poetry install', {
-          cwd: parserPath,
-          stdout: 'ignore',
-        });
-      }
-      // Return early if the parser version is correct, no need to update or re-install poetry
-      const validParserModuleCache = true;
-      return validParserModuleCache;
-    }
-    // If parser head does not match expected version, update the parser version
-    await updateParserVersion({
-      run,
-      expectedParserVersion,
-      parserPath,
-    });
-  } else {
-    // Clone parser if it doesn't already exist
+  if (installedVersion === expectedParserVersion) {
     console.log(
-      `No snooty-parser directory found in ${parserPath}, will re-clone parser`,
+      `Parser version ${expectedParserVersion} already installed, skipping download`,
     );
-    await cloneParser({ run, expectedParserVersion });
+    return true;
   }
 
-  // Install poetry and parser dependencies if parser didn't exist or did not match the expected version
-  await handlePoetryDeps({
-    parserPath,
-    run,
-    cache,
-    poetryPath,
-    localBinDir,
-    localLibDir,
-  });
+  console.log(
+    `Installed parser version is ${installedVersion ?? 'none'}, expected ${expectedParserVersion}`,
+  );
+  await downloadParser(parserDir, expectedParserVersion);
 
-  let validParserModuleCache = false;
+  const { stdout } = await run.command(
+    `${getParserBinaryPath(parserDir)} --help`,
+    { stdout: 'pipe', stderr: 'pipe' },
+  );
+  if (!stdout.includes('snooty build')) {
+    throw new Error(`Downloaded parser at ${parserDir} did not run correctly`);
+  }
+  await cache.save(parserDir);
+
   if (environment !== 'dotcomstg' && environment !== 'dotcomprd') {
-    validParserModuleCache = true;
     console.log(
       `Parser did not exist or did not match the expected version. However, "Environment = ${environment}", so cache will not be invalidated`,
     );
-  } else {
-    console.log(
-      `Parser did not exist or did not match the expected version. "Environment = ${environment}", entire cache will be invalidated`,
-    );
+    return true;
   }
-  return validParserModuleCache;
-};
-
-export const cloneParser = async ({
-  run,
-  expectedParserVersion,
-}: {
-  run: NetlifyPluginUtils['run'];
-  expectedParserVersion: string;
-}) => {
-  const { repoRoot } = getRepoPaths();
-  const parserRepoUrl = `https://github.com/${MONGODB_ORG}/snooty-parser.git`;
-  console.log(`Downloading parser from ${parserRepoUrl} ...`);
-
-  await run.command(
-    `git -c advice.detachedHead=false clone --depth 1 --branch ${expectedParserVersion} ${parserRepoUrl}`,
-    { cwd: repoRoot },
+  console.log(
+    `Parser did not exist or did not match the expected version. "Environment = ${environment}", entire cache will be invalidated`,
   );
-};
-
-const updateParserVersion = async ({
-  run,
-  expectedParserVersion,
-  parserPath,
-}: {
-  run: NetlifyPluginUtils['run'];
-  expectedParserVersion: string;
-  parserPath: string;
-}) => {
-  try {
-    await run.command(
-      `git fetch -f --depth 1 --tags origin ${expectedParserVersion}`,
-      {
-        cwd: parserPath,
-        stdout: 'ignore',
-      },
-    );
-    await run.command('git -c advice.detachedHead=false checkout FETCH_HEAD', {
-      cwd: parserPath,
-      stdout: 'ignore',
-    });
-
-    // Verify the checkout was successful
-    const { stdout: currentSha } = await run.command('git rev-parse HEAD', {
-      cwd: parserPath,
-      stdout: 'pipe',
-    });
-
-    const { stdout: currentTag } = await run.command(
-      'git tag --points-at HEAD',
-      {
-        cwd: parserPath,
-        stdout: 'pipe',
-      },
-    );
-    console.log(
-      `Parser version updated successfully in ${parserPath}. Parser HEAD now points to sha: ${currentSha.trim()}, tag: ${currentTag?.trim() ?? 'No tag found at current HEAD'}`,
-    );
-  } catch (e) {
-    throw new Error(
-      `Failed to checkout parser version ${expectedParserVersion} in ${parserPath}: ${e}`,
-    );
-  }
+  return false;
 };
