@@ -1,0 +1,132 @@
+.. _topN_window_function:
+
+========================
+$topN (window function)
+========================
+
+.. meta::
+   :description: Use $topN in $setWindowFields to return the top n elements within a window partition based on a specified sort order.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. window:: $topN
+
+.. include:: /includes/window-functions/topN-definition.rst
+
+.. note:: Other Uses of ``$topN``
+
+   This page describes ``$topN`` when used as a **window function**.
+
+   You can also use the :group:`$topN (accumulator) <$topN>`, which
+   returns the top ``n`` elements within a group according to the
+   specified sort order.
+
+Syntax
+------
+
+.. code-block:: none
+   :copyable: false
+
+   {
+      $setWindowFields: {
+         ...
+         output: {
+            <field>: {
+               $topN: {
+                  n: <expression>,
+                  output: <expression>,
+                  sortBy: {
+                     <field1>: <sort order>,
+                     <field2>: <sort order>, ...
+                  }
+               }
+            }
+         }
+      }
+   }
+
+Options
+~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 15 70
+
+   * - Field
+     - Necessity
+     - Description
+
+   * - ``n``
+     - Required
+     - Number of results to return. Must resolve to a positive
+       integral value.
+
+       If the window contains fewer than ``n`` elements, ``$topN``
+       returns all elements in the window.
+
+   * - ``output``
+     - Required
+     - Determines the output for each document in the window. Can
+       be any expression.
+
+   * - ``sortBy``
+     - Required
+     - Defines the ranking order of elements within the window,
+       with syntax similar to :pipeline:`$sort`. Does not affect
+       the order of documents in pipeline output.
+
+Behavior
+--------
+
+Null and Missing Values
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- ``$topN`` does not filter out null values.
+- ``$topN`` converts missing values to null.
+
+Example
+-------
+
+.. include:: /includes/sample-data-usage.rst
+
+Find the Three Highest Rated Movies in a Window
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example uses ``$topN`` in :pipeline:`$setWindowFields` to
+return each movie with the three highest-rated movies
+released in the same year.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/topN/top-three-movies-per-year.js
+      :language: javascript
+      :category: syntax example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/topN/top-three-movies-per-year-output.sh
+      :visible: false
+      :language: javascript
+
+In the preceding example:
+
+- :pipeline:`$match` filters for movies released in ``1999`` or
+  ``2001`` with an IMDb rating of at least ``8.5``.
+- :pipeline:`$setWindowFields` partitions the documents by ``year``.
+- ``window: { documents: [ "unbounded", "unbounded" ] }`` spans the
+  entire year partition, so ``$topN`` considers all documents in the
+  year when determining the three highest-rated movies.
+- ``$topN`` uses ``sortBy: { "imdb.rating": -1, title: 1 }`` to rank
+  movies by IMDb score and uses ``title`` as a tie-breaker. Every
+  document in the same year receives the same ``topThreeRatedInYear``
+  value.
+- :pipeline:`$project` removes unneeded fields to highlight the
+  window function result.
+- :pipeline:`$sort` sorts the output by year ascending and rating
+  descending.

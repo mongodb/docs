@@ -1,0 +1,97 @@
+===========================
+$addToSet (window function)
+===========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. window:: $addToSet
+
+.. include:: /includes/window-functions/addToSet-definition.rst
+
+.. note:: Disambiguation
+
+   This page describes ``$addToSet`` when used as a **window function**.
+
+   You can also use ``$addToSet`` in these other contexts:
+
+   - :group:`$addToSet (accumulator) <$addToSet>`, which returns a single
+     aggregated value based on a variable number of input documents.
+   - :update:`$addToSet (update operator) <$addToSet>`, which adds elements
+     to an array field in a document.
+
+Syntax
+------
+
+.. code-block:: none
+   :copyable: false
+
+   {
+      $setWindowFields: {
+         ...
+         output: {
+            <field>: {
+               $addToSet: <expression>
+            }
+         }
+      }
+   }
+
+Behavior
+--------
+
+.. include:: /includes/addToSet-behavior.rst
+
+Example
+-------
+
+.. include:: /includes/sample-data-usage.rst
+
+This example uses the ``$addToSet`` window function to show how unique
+genres accumulate across movies over time. Movies are sorted
+alphabetically by title, and the window function tracks all unique
+genres that have appeared in movies from the beginning of the result set
+up to and including the current movie.
+
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/addToSet/run-pipeline.snippet.addToSet-window-example.js
+      :language: shell
+      :category: syntax example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/addToSet/output.sh
+      :visible: false
+      :language: shell
+
+In the example:
+
+- The :pipeline:`$match` stage filters to movies from 2002 with genre
+  information.
+
+- The :pipeline:`$group` stage groups by year, title, and the first
+  genre in the ``genres`` array.
+
+- The :pipeline:`$setWindowFields` stage uses :window:`$addToSet` with an
+  ``unbounded`` to ``current`` :ref:`window <setWindowFields-window>` to
+  accumulate unique genres from the beginning of the result set up to the
+  current document.
+
+- The :pipeline:`$project` stage reshapes the output and calculates
+  ``uniqueGenreCount`` to show how the set size grows.
+
+- The :pipeline:`$limit` stage restricts output to 8 documents.
+
+The output demonstrates how ``$addToSet`` accumulates unique genres
+across documents. Notice that ``genresSeenSoFar`` grows from 1 genre to
+7 genres as each movie adds its genre to the set. The seventh document
+(``'3 Extremes II'``) has the same ``uniqueGenreCount`` as the sixth
+because its genre (Horror) was already in the set. This demonstrates
+that ``$addToSet`` only adds unique values and ignores duplicates.

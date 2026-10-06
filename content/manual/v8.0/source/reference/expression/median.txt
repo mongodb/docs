@@ -1,0 +1,130 @@
+====================
+$median (expression)
+====================
+
+.. meta::
+   :description: Use $median as an aggregation expression to return the median (the 50th percentile) of an array of numeric values in a single document. Added in MongoDB 7.0.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. |operatorName| replace:: ``$median``
+.. |context| replace:: an expression
+
+Definition
+----------
+
+.. expression:: $median
+
+   .. versionadded:: 7.0
+
+   .. include:: /includes/aggregation/fact-return-median-expression.rst
+
+.. note:: Disambiguation
+
+   This page describes ``$median`` when used as an **expression**,
+   which calculates the median of an array of values.
+
+   You can also use ``$median`` in these other contexts:
+
+   - :group:`$median (accumulator) <$median>`, used in grouping to
+     return the median value across a group of input documents.
+   - :window:`$median (window function) <$median>`, used in the
+     :pipeline:`$setWindowFields` stage to return the median value from
+     documents in a window.
+
+Syntax
+------
+
+.. code-block:: javascript
+   :copyable: false
+   :category: syntax example
+
+   {
+      $median: {
+         input: <expression>,
+         method: <string>
+      }
+   }
+
+Command Fields
+~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 17 17 51
+
+   * - Field
+     - Type
+     - Necessity
+     - Description
+
+   * - ``input``
+     - Array
+     - Required
+     - Can be either:
+     
+       - An expression that resolves to an array. For example, ``$grades``, where
+         the document field ``$grades`` contains an array of numeric values.
+       - An array of expressions, each of which evaluates to a numeric
+         value. For example, ``[ "$field1", "$field2", "$field3" ]``.
+         
+       ``$median`` calculates the median across all values in
+       the array. Non-numeric values are ignored.
+
+   * - ``method``
+     - String
+     - Required
+     - The method that MongoDB uses to calculate the median value.
+       The method must be ``'approximate'``.
+
+Behavior
+--------
+
+.. include:: /includes/aggregation/fact-accurate-calculation-median.rst
+
+This is because expressions operate over arrays of bounded size where
+it is acceptable to keep all of the input values in memory.
+
+Example
+-------
+
+The following example uses a ``testScores`` collection to demonstrate
+the array input form of ``$median``.
+
+Create the ``testScores`` collection:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/median/load-data.js
+   :language: javascript
+   :category: usage example
+
+The following pipeline uses ``$median`` to calculate the median test
+score for each student:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/expressions/median/median-test-scores.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/expressions/median/median-test-scores-output.sh
+      :visible: false
+      :language: javascript
+
+In the preceding pipeline:
+
+- :pipeline:`$project` with ``$median`` finds the median value in the
+  ``scores`` array for each document and returns it as ``testMedians``.
+- Each result reflects the median score across that student's
+  recorded test scores.
+
+Learn More
+----------
+
+- :group:`$median (accumulator) <$median>`
+- :window:`$median (window function) <$median>`
+- :group:`$percentile`

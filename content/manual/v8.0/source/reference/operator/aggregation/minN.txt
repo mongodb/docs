@@ -2,13 +2,16 @@
 $minN (aggregation accumulator)
 ===============================
 
+.. meta::
+   :description: Use `$minN` to aggregate the minimum `n` values within a group, filtering out null and missing values, with dynamic `n` based on group keys.
+
 .. default-domain:: mongodb
 
 .. contents:: On this page
-  :local:
-  :backlinks: none
-  :depth: 1
-  :class: singlecol
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
 
 .. Substitution used in includes and in the body of this text
 .. |operatorName| replace:: ``$minN``
@@ -19,16 +22,29 @@ Definition
 
 .. group:: $minN
 
-   .. versionadded:: 5.2
+Returns the minimum ``n`` values within a group. If the group
+contains fewer than ``n`` elements, ``$minN`` returns all elements
+in the group.
 
-   Returns an aggregation of the minimum value ``n`` elements within a 
-   group. If the group contains fewer than ``n`` elements, ``$minN`` 
-   returns all elements in the group.
+.. note:: Disambiguation
+
+   This page describes ``$minN`` when used as an **accumulator**.
+   Accumulators return an aggregated value like sum, maximum, or
+   minimum across a group of input documents.
+
+   You can also use ``$minN`` in these other contexts:
+
+   - :expression:`$minN (expression) <$minN>`, which returns the ``n``
+     minimum values in an array.
+
+   - :window:`$minN (window function) <$minN>`, which is used in the
+     :pipeline:`$setWindowFields` stage to return the minimum ``n``
+     values from documents in a particular window.
 
 Syntax
 ------
 
-.. code-block:: none
+.. code-block:: javascript
    :copyable: false
 
    {
@@ -39,12 +55,25 @@ Syntax
          }
    }
 
-- ``input`` specifies an expression that is the input to ``$minN``. It 
-  is evaluated for each element in the group and ``$minN`` preserves the 
-  minimum ``n`` values.
-- ``n`` limits the number of results per group and ``n`` has to be a
-  positive integral expression that is either a constant or depends on 
-  the ``_id`` value for :pipeline:`$group`.
+.. list-table::
+   :header-rows: 1
+   :class: border-table
+   :widths: 10 15 75
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``input``
+     - Expression
+     - An expression evaluated for each input document to
+       determine the input values. The smallest ``n`` such
+       values are retained for each group.
+
+   * - ``n``
+     - Expression
+     - Determines the maximum number of results returned per group.
+       ``n`` must evaluate to a positive integer.
 
 Behavior
 --------
@@ -57,10 +86,10 @@ Result Type
 Null and Missing Values
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-- ``$minN`` filters out null and missing values.
+``$minN`` filters out null and missing values.
 
 Consider the following aggregation that returns the minimum ``n`` 
-documents from a group:
+values from a group:
 
 .. code-block:: javascript
    :emphasize-lines: 7,8
@@ -99,10 +128,10 @@ In this example:
   example has only one ``gameId``, ``G1``.
 - ``PlayerD`` has a missing score and ``PlayerE`` has a
   null ``score``. These values are both ignored.
-- The ``minimumThreeScores`` field is specified as :group:`$minN` 
+- The ``minimumThreeScores`` field is specified as ``$minN``
   with ``input : "$score"`` and returned as an array.
-- Since there are only 3 documents with ``scores`` ``minN`` returns 
-  the minimum 3  ``score`` fields even though ``n = 4``.
+- Since there are only 3 documents with ``scores``, ``$minN`` returns
+  the minimum 3 ``score`` fields even though ``n = 4``.
 
 .. code-block:: javascript
    :copyable: false
@@ -114,206 +143,110 @@ In this example:
       } 
    ]
 
-Comparison of ``$minN`` and ``$bottomN`` Accumulators
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Comparison of $minN and $bottomN Accumulators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Both :group:`$minN` and :group:`$bottomN` accumulators can accomplish 
-similar results.
+Both ``$minN`` and :group:`$bottomN` accumulators return ``n``
+values from a group, but they differ in how they determine which
+values to return.
 
-In general:
+- Use ``$minN`` when the values you want to compare are the
+  same values you want to return. ``$minN`` selects the ``n``
+  smallest values by comparing inputs directly.
 
-- :group:`$minN` has the advantage of finding minimum values 
-  in no particular sort order. If you want to know the 
-  minimum values for ``n`` documents use :group:`$minN`.
-
-- If guaranteing a particular sort order is a requirement 
-  use :group:`$bottomN`. 
-
-- Use :group:`$bottomN` if you don't intend on sorting on the output 
-  values.
-
-Restrictions
-------------
-
-Window Function and Aggregation Expression Support
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can use :group:`$minN` as an accumulator.
-
-:group:`$minN` is supported as an
-:ref:`aggregation expression <aggregation-expressions>`.
-
-:group:`$minN` is supported as a 
-:pipeline:`window operator <$setWindowFields>`.
-
-Memory Limit Considerations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Aggregation pipelines which call ``$minN`` are subject to the
-:ref:`100 MB limit <agg-memory-restrictions>`. If this
-limit is exceeded for an individual group, the aggregation fails
-with an error.
+- Use :group:`$bottomN` when you want to define the sort order
+  separately from the output. ``$bottomN`` lets you specify a
+  ``sortBy`` key to determine which documents are "bottom" and
+  an ``output`` expression to control what values to return.
 
 Examples
 --------
 
-Consider a ``gamescores`` collection with the following documents:
+.. include:: /includes/sample-data-usage.rst
 
-.. code-block:: javascript
+Find the Minimum Three Ratings for a Single Genre
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   db.gamescores.insertMany([
-      { playerId: "PlayerA", gameId: "G1", score: 31 },
-      { playerId: "PlayerB", gameId: "G1", score: 33 },
-      { playerId: "PlayerC", gameId: "G1", score: 99 },
-      { playerId: "PlayerD", gameId: "G1", score: 1 },
-      { playerId: "PlayerA", gameId: "G2", score: 10 },
-      { playerId: "PlayerB", gameId: "G2", score: 14 },
-      { playerId: "PlayerC", gameId: "G2", score: 66 },
-      { playerId: "PlayerD", gameId: "G2", score: 80 }
-   ])
+You can use the ``$minN`` accumulator to find the three lowest IMDb
+ratings in a single genre.
 
-Find the Minimum Three ``Scores`` for a Single Game
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. io-code-block::
+   :copyable: true
 
-You can use the ``$minN`` accumulator to find the minimum three scores
-in a single game.
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/accumulators/minN/find-minimum-three-single-genre.js
+      :language: javascript
+      :category: syntax example
 
-.. code-block:: javascript
-
-   db.gamescores.aggregate( [
-      {
-         $match : { gameId : "G1" }
-      },
-      {
-         $group:
-            {
-               _id: "$gameId",
-               minScores:
-                  {
-                     $minN:
-                     {
-                        input: ["$score","$playerId"],
-                        n:3
-                     }
-                  }
-            }
-      }
-   ] )
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/accumulators/minN/find-minimum-three-single-genre-output.sh
+      :visible: false
+      :language: javascript
 
 The example pipeline:
 
-- Uses :pipeline:`$match` to filter the results on a single ``gameId``. 
-  In this case, ``G1``.
-- Uses :pipeline:`$group` to group the results by ``gameId``. In this 
-  case, ``G1``.
-- Specifies the fields that are input for ``$minN`` with
-  ``input : ["$score","$playerId"]``.
-- Uses ``$minN`` to return the first three score elements
-  for the ``G1`` game with ``n : 3``.
+- Uses :pipeline:`$match` to filter the results to movies where
+  ``Horror`` is included in the ``genres`` array.
+- Uses :pipeline:`$group` to group all matching documents into a
+  single group.
+- Specifies the input for ``$minN`` with
+  ``input: "$imdb.rating"``.
+- Uses ``$minN`` to return the three lowest IMDb rating entries
+  for the ``Horror`` genre with ``n: 3``.
 
-The operation returns the following results:
-
-.. code-block:: javascript
-   :copyable: false
-
-   [
-      {
-         _id: 'G1',
-         minScores: [ [ 1, 'PlayerD' ], [ 31, 'PlayerA' ], [ 33, 'PlayerB' ] ]
-      }
-   ]
-
-Finding the Minimum Three Documents Across Multiple Games
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can use the ``$minN`` accumulator to find the minimum ``n``
-scores in each game.
-
-.. code-block:: javascript
-
-   db.gamescores.aggregate( [
-      {
-         $group:
-         { 
-            _id: "$gameId", 
-            minScores:
-               {
-                  $minN:
-                     {
-                        input: ["$score","$playerId"],
-                        n: 3
-                     }
-               }
-         }
-      }
-   ] )
-   
-The example pipeline:
-
-- Uses ``$group`` to group the results by ``gameId``.
-- Uses ``$minN`` to return the minimum three score elements
-  for each game with ``n: 3``.
-- Specifies the fields that are input for ``$minN`` with
-  ``input: ["$score","$playerId"]``.
-
-The operation returns the following results:
-
-.. code-block:: javascript
-   :copyable: false
-
-   [
-      {
-         _id: 'G2',
-         minScores: [ [ 10, 'PlayerA' ], [ 14, 'PlayerB' ], [ 66, 'PlayerC' ] ]
-      },
-      {
-         _id: 'G1',
-         minScores: [ [ 1, 'PlayerD' ], [ 31, 'PlayerA' ], [ 33, 'PlayerB' ] ]
-      }
-   ]
-
-Computing ``n`` Based on the Group Key for ``$group``
+Find the Minimum Three Ratings Across Multiple Genres
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can also assign the value of ``n`` dynamically. In this example,
-the :expression:`$cond` expression is used on the ``gameId`` field.
+You can use the ``$minN`` accumulator to find the minimum ``n``
+IMDb ratings in each genre.
 
-.. code-block:: javascript
-   :emphasize-lines: 11
+.. io-code-block::
+   :copyable: true
 
-   db.gamescores.aggregate([
-      {
-         $group:
-         {
-            _id: {"gameId": "$gameId"},
-            gamescores:
-               {
-                  $minN:
-                     {
-                        input: ["$score","$playerId"],
-                        n: { $cond: { if: {$eq: ["$gameId","G2"] }, then: 1, else: 3 } }
-                     }
-               }
-         }
-      }
-   ] )
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/accumulators/minN/find-minimum-three-across-genres.js
+      :language: javascript
+      :category: syntax example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/accumulators/minN/find-minimum-three-across-genres-output.sh
+      :visible: false
+      :language: javascript
 
 The example pipeline:
 
-- Uses ``$group`` to group the results by ``gameId``.
-- Specifies the fields that input for ``$minN`` with
-  ``input : ["$score","$playerId"]``.
-- If the ``gameId`` is ``G2`` then ``n`` is 1, otherwise ``n`` is 3.
+- Uses :pipeline:`$unwind` to create a separate document for each genre
+  in the ``genres`` array.
+- Uses :pipeline:`$group` to group the results by ``genres``.
+- Uses ``$minN`` to return the three lowest IMDb rating entries
+  for each genre with ``n: 3``.
+- Specifies the input for ``$minN`` with
+  ``input: "$imdb.rating"``.
+- Uses :pipeline:`$sort` to sort the results alphabetically by
+  genre.
+- Limits the output to five documents to improve readability.
 
-The operation returns the following results:
+Set n Dynamically Based on the Group Key
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: javascript
-   :copyable: false
+You can assign the value of ``n`` dynamically. In this example,
+the :expression:`$cond` expression is used on the ``rated`` field.
 
-   [
-      { _id: { gameId: 'G2' }, gamescores: [ [ 10, 'PlayerA' ] ] },
-      {
-         _id: { gameId: 'G1' },
-         gamescores: [ [ 1, 'PlayerD' ], [ 31, 'PlayerA' ], [ 33, 'PlayerB' ] ]
-      }
-   ]
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/accumulators/minN/compute-n-based-on-group-key.js
+      :language: javascript
+      :category: syntax example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/accumulators/minN/compute-n-based-on-group-key-output.sh
+      :visible: false
+      :language: javascript
+
+The example pipeline:
+
+- Filters for movies with ratings of ``G``, ``PG``, ``PG-13``, or ``R``.
+- Groups movies by ``rated`` (the content rating).
+- Specifies the input for ``$minN`` with
+  ``input: "$imdb.rating"``.
+- Uses the ``$cond`` expression to return ``3`` minimum entries for
+  ``R``-rated movies and ``1`` minimum entry for all other ratings.
+
+In the output, the ``R`` rating returns 3 entries, while ``G``,
+``PG``, and ``PG-13`` ratings each return 1 entry.

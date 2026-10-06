@@ -4,6 +4,9 @@
 $maxN (expression operator)
 ===========================
 
+.. meta::
+   :description: Retrieve the largest `n` values from an array using the `$maxN` operator in MongoDB aggregation.
+
 .. default-domain:: mongodb
 
 .. contents:: On this page
@@ -17,113 +20,95 @@ Definition
 
 .. expression:: $maxN
 
-   .. versionadded:: 5.2
-
    Returns the ``n`` largest values in an array.
 
-.. seealso::
+.. note:: Other Uses of ``$maxN``
 
-   :expression:`$minN`
+   This page describes ``$maxN`` when used as an **expression**,
+   which returns the largest ``n`` values from an array.
+
+   You can also use ``$maxN`` in these other contexts:
+
+   - :group:`$maxN (accumulator) <$maxN>`, which returns the maximum
+     ``n`` values within a group.
+
+   - :window:`$maxN (window function) <$maxN>`, which is used in the
+     :pipeline:`$setWindowFields` stage to return the largest ``n``
+     values from documents in a particular window.
 
 Syntax
 ------
 
-:expression:`$maxN` has the following syntax:
-
 .. code-block:: javascript
+   :category: syntax example
+   :copyable: false
 
    { $maxN: { n: <expression>, input: <expression> } }
 
 .. list-table::
    :header-rows: 1
    :class: border-table
+   :widths: 10 15 75
 
    * - Field
+     - Type
      - Description
 
    * - ``n``
-     - An :ref:`expression <aggregation-expressions>` that resolves to a 
-       positive integer. The integer specifies the number of array elements
-       that :expression:`$maxN` returns. 
+     - Expression
+     - Specifies the number of elements to return. Must resolve to a
+       positive integer.
 
    * - ``input``
-     - An :ref:`expression <aggregation-expressions>` that resolves to the 
-       array from which to return the maximal ``n`` elements.
+     - Expression
+     - Specifies the input array from which to return the maximum ``n`` elements.
 
 Behavior
 --------
 
-- You cannot specify a value of ``n`` less than ``1``.
+- ``$maxN`` filters out ``null`` values.
 
-- :expression:`$maxN` filters out ``null`` values found in the ``input`` 
-  array.
+- If the ``input`` array contains fewer than ``n`` elements,
+  ``$maxN`` returns all elements in the array.
 
-- If the specified ``n`` is greater than or equal to the number of elements 
-  in the ``input`` array, :expression:`$maxN` returns all elements in the 
-  ``input`` array.
+- If ``input`` resolves to a non-array value, the operation returns
+  an error.
 
-- If ``input`` resolves to a non-array value, the aggregation 
-  operation errors.
-
-- If ``input`` contains both numeric and string elements, the string elements 
-  are sorted before numeric elements according to the 
-  :ref:`BSON comparison order <bson-types-comparison-order>`. 
+- If ``input`` contains both numeric and string elements, string
+  elements are sorted before numeric elements according to the
+  :ref:`BSON comparison order <bson-types-comparison-order>`.
 
 Example
 -------
 
-Create a ``scores`` collection with the following documents:
+.. include:: /includes/sample-data-usage.rst
 
-.. code-block:: javascript
+The following example uses ``$maxN`` to return the two alphabetically
+last cast members for each movie, stored in a new ``topTwoCast``
+field created by :pipeline:`$addFields`.
+
+.. io-code-block::
    :copyable: true
 
-   db.scores.insertMany([
-       { "playerId" : 1, "score" : [ 1, 2, 3 ] },
-       { "playerId" : 2, "score" : [ 12, 90, 7, 89, 8 ] },
-       { "playerId" : 3, "score" : [ null ] },
-       { "playerId" : 4, "score" : [ ] }
-       { "playerId" : 5, "score" : [ 1293, "2", 3489, 9 ]}
-   ])
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/expressions/maxN/top-two-cast-members.js
+      :language: javascript
+      :category: syntax example
 
-The following example uses the :expression:`$maxN` operator to retrieve the two 
-highest scores for each player. The highest scores are returned in the new field 
-``maxScores`` created by :pipeline:`$addFields`. 
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/expressions/maxN/top-two-cast-members-output.sh
+      :visible: false
+      :language: javascript
 
-.. code-block:: javascript
-   :copyable: true
+The preceding pipeline:
 
-   db.scores.aggregate([
-      { $addFields: { maxScores: { $maxN: { n: 2, input: "$score" } } } }
-   ])
+- Uses :pipeline:`$match` to filter for three specific movies.
+- Uses :pipeline:`$addFields` with ``$maxN`` to create a new field
+  ``topTwoCast`` containing the two alphabetically last values from
+  the ``cast`` array with ``n: 2``.
+- Uses :pipeline:`$project` to include only the ``title``, ``cast``,
+  and ``topTwoCast`` fields in the output.
+- Uses :pipeline:`$sort` to sort the results by title.
 
-The operation returns the following results:
+Learn More
+----------
 
-.. code-block:: javascript
-   :copyable: true
-   :emphasize-lines: 4, 9, 14, 19, 24
-
-   [{
-     "playerId": 1,
-     "score": [ 1, 2, 3 ],
-     "maxScores": [ 3, 2 ]
-   },
-   {
-     "playerId": 2,
-     "score": [ 12, 90, 7, 89, 8 ],
-     "maxScores": [ 90, 89 ]
-   },
-   {
-     "playerId": 3,
-     "score": [ null ],
-     "maxScores": [ ]
-   },
-   {
-     "playerId": 4,
-     "score": [ ],
-     "maxScores": [ ]
-   },
-   { 
-     "playerId": 5,
-     "score": [ 1293, "2", 3489, 9 ],
-     "maxScores": [ "2", 3489 ]
-   }]
+- :ref:`agg-pipeline-limits`

@@ -1,0 +1,134 @@
+=========================
+$median (window function)
+=========================
+
+.. meta::
+   :description: Use $median as a window function in $setWindowFields to return the median (50th percentile) of values from documents in a range-based or document-based window. Added in MongoDB 7.0.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. |operatorName| replace:: ``$median``
+.. |context| replace:: a window function
+
+Definition
+----------
+
+.. window:: $median
+
+   .. versionadded:: 7.0
+
+.. include:: /includes/window-functions/median-definition.rst
+
+.. note:: Disambiguation
+
+   This page describes ``$median`` when used as a **window function**.
+
+   You can also use ``$median`` in these other contexts:
+
+   - :group:`$median (accumulator) <$median>`, used in grouping to
+     return the median value across a group of input documents.
+   - :expression:`$median (expression) <$median>`, which returns the
+     median of an array of values.
+
+Syntax
+------
+
+.. code-block:: javascript
+   :copyable: false
+   :category: syntax example
+
+   {
+      $setWindowFields: {
+         ...
+         output: {
+            <field>: {
+               $median: {
+                  input: <expression>,
+                  method: <string>
+               }
+            }
+         }
+      }
+   }
+
+Command Fields
+~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 17 17 51
+
+   * - Field
+     - Type
+     - Necessity
+     - Description
+
+   * - ``input``
+     - Expression
+     - Required
+     - Returns the values over which the median is calculated.
+       ``input`` must be an expression that evaluates to a number.
+       If the expression does not evaluate to a number, the
+       ``$median`` calculation ignores that value.
+
+   * - ``method``
+     - String
+     - Required
+     - The method that ``mongod`` uses to calculate the median value.
+       The method must be ``'approximate'``.
+
+Behavior
+--------
+
+Calculation Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/aggregation/fact-accurate-calculation-median.rst
+
+Example
+-------
+
+.. include:: /includes/sample-data-usage.rst
+
+This example uses :pipeline:`$setWindowFields` to compute the median
+IMDb rating for each movie that belongs to all three of the Adventure,
+Comedy, and Drama genres. The window spans the previous year, the same
+year, and the following year (range ``[ -1, 1 ]``):
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/median/local-median-rating.js
+      :language: shell
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/median/local-median-rating-output.sh
+      :visible: false
+      :language: shell
+
+In the preceding pipeline:
+
+- :pipeline:`$match` filters for movies that belong to all three of
+  the Adventure, Comedy, and Drama genres, released between 2000 and
+  2005.
+- :pipeline:`$setWindowFields` sorts by ``year`` in ascending order
+  and applies ``$median`` with a range-based window of ``[ -1, 1 ]``.
+  Each movie's ``medianRatingByYear`` is the median ``imdb.rating``
+  of movies in all three genres released within one year of it.
+- :pipeline:`$project` includes only the ``title``, ``year``,
+  ``genres``, ``imdb.rating``, and ``medianRatingByYear`` fields.
+- :pipeline:`$sort` sorts the results by ``year`` in ascending order,
+  then by ``imdb.rating`` in descending order.
+- :pipeline:`$limit` restricts the output to 10 results to improve
+  readability.
+
+Learn More
+----------
+
+- :group:`$percentile`
+- :ref:`projection-operators-ref`
+- :ref:`agg-pipeline-limits`

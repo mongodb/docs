@@ -1,0 +1,120 @@
+=========================
+$bottom (window function)
+=========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. window:: $bottom
+
+   .. versionadded:: 5.2
+
+.. include:: /includes/window-functions/bottom-definition.rst
+
+.. note:: Disambiguation
+
+   This page describes ``$bottom`` when used as a **window function**.
+   You can also use the :group:`$bottom (accumulator) <$bottom>`, which
+   returns the bottom element within a group according to the specified
+   sort order.
+
+Syntax
+------
+
+.. code-block:: none
+   :copyable: false
+
+   {
+      $setWindowFields: {
+         ...
+         output: {
+            <field>: {
+               $bottom: {
+                  sortBy: { <field1>: <sort order>, <field2>: <sort order> ... },
+                  output: <expression>
+               }
+            }
+         }
+      }
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 15 70
+
+   * - Field
+     - Necessity
+     - Description
+
+   * - sortBy
+
+     - Required
+
+     - Defines the ranking order of elements within the window, with
+       syntax similar to :pipeline:`$sort`. Does not affect the order of
+       documents in pipeline output.
+
+   * - output
+
+     - Required
+
+     - Specifies the output for each element in the window. Can be any
+       expression.
+
+Behavior
+--------
+
+Null and Missing Values
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- ``$bottom`` does not filter out null values.
+- ``$bottom`` converts missing values to null.
+
+Example
+-------
+
+.. include:: /includes/sample-data-usage.rst
+
+Compute Relative Rating to Lowest-Rated Movie Over a Window
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example uses ``$bottom`` as a window function to compute the rating
+of the current document relative to the lowest-rated movie in the same
+year. Each movie document contains that movie's rating and a calculated
+field showing how much higher the movie's rating is compared to the
+lowest-rated movie from the same year.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/bottom/lowest-rated-in-year.snippet.lowest-rated-in-year.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/bottom/lowest-rated-in-year-output.sh
+      :language: javascript
+      :visible: false
+
+In this example:
+
+- The :pipeline:`$match` stage filters for PG-rated Family movies from
+  1980-1982.
+- :pipeline:`$setWindowFields` partitions the documents by ``year``.
+- The :ref:`window <setWindowFields-window>` spans from ``unbounded`` to
+  ``unbounded``, meaning ``$bottom`` considers all documents in the
+  partition when determining the lowest-rated movie.
+- ``$bottom`` returns the lowest-rated movie in each partition as an
+  embedded document containing the ``title`` and ``rating`` fields.
+- :pipeline:`$project` computes ``ratingAboveWorst`` by subtracting the
+  lowest rating from each movie's rating, showing how much each movie is
+  rated above the worst performer in its year.
+- :pipeline:`$limit` limits the output to 10 documents.
+
+This approach preserves all individual movie documents and includes a
+comparison for each to the worst performer in its year.

@@ -1,0 +1,111 @@
+=================
+$avg (expression)
+=================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $avg
+
+Returns the average of numeric array elements.
+
+.. note:: Disambiguation
+
+   This page describes ``$avg`` when used as an **expression**, which
+   returns the average of numeric elements in an array.
+
+   You can also use ``$avg`` in these other contexts:
+
+   - :group:`$avg (accumulator) <$avg>`, which returns a single
+     aggregated value based on a variable number of input documents.
+
+   - :window:`$avg (window function) <$avg>`, which is used in the
+     :pipeline:`$setWindowFields` stage to return the average of values
+     from documents in a particular window.
+
+Syntax
+------
+
+When used as an expression, ``$avg`` has one of these syntaxes:
+
+.. code-block:: none
+   :copyable: false
+
+   { $avg: <expression> }
+
+In this syntax, the operand is a single expression that resolves to an
+array. ``$avg`` traverses the array and returns the average of the
+array's numeric values. For example, ``{ $avg: "$testScores" }`` returns
+the average of numeric values in the ``testScores`` array field.
+
+.. code-block:: none
+   :copyable: false
+
+   { $avg: [ <expression1>, <expression2> ... ]  }
+
+In this syntax, each expression in the input array is a single numeric
+value. ``$avg`` returns the average of the individual input values. If
+any of the input expressions resolve to an array, ``$avg`` does **not**
+traverse the array and instead treats the array as a non-numeric value.
+
+Behavior
+--------
+
+Result Type
+~~~~~~~~~~~
+
+.. include:: /includes/expressions/avg/result-type.rst
+
+Non-numeric or Missing Values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/expressions/avg/non-numeric-values.rst
+
+Example
+-------
+
+Create a ``students`` collection with the following documents:
+
+.. code-block:: javascript
+
+   db.students.insertMany( [
+      { _id: 1, quizzes: [ 10, 6, 7 ], labs: [ 5, 8 ], final: 80, midterm: 75 },
+      { _id: 2, quizzes: [ 9, 10 ], labs: [ 8, 8 ], final: 95, midterm: 80 },
+      { _id: 3, quizzes: [ 4, 5, 5 ], labs: [ 6, 5 ], final: 78, midterm: 70 }
+   ] )
+
+The following operation uses ``$avg`` in the :pipeline:`$project` stage
+to calculate averages for the following fields:
+
+- ``quizzes``
+- ``labs``
+- Combined average of ``final`` and ``midterm``
+
+.. code-block:: javascript
+
+   db.students.aggregate( [
+      {
+         $project: {
+            quizAvg: { $avg: "$quizzes"},
+            labAvg: { $avg: "$labs" },
+            examAvg: { $avg: [ "$final", "$midterm" ] }
+         }
+      }
+   ] )
+
+Output
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      { _id: 1, quizAvg: 7.666666666666667, labAvg: 6.5, examAvg: 77.5 },
+      { _id: 2, quizAvg: 9.5, labAvg: 8, examAvg: 87.5 },
+      { _id: 3, quizAvg: 4.666666666666667, labAvg: 5.5, examAvg: 74 }
+   ]
