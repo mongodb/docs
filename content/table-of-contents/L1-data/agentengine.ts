@@ -256,7 +256,7 @@ const tocData: TocItem[] = [
         isExternal: true,
       },
       {
-        label: 'Platform API Reference',
+        label: 'Atlas Agent Engine API Reference',
         url: 'https://dochub.mongodb.org/core/agentic-platform-api',
         isExternal: true,
       },
