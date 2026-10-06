@@ -1,11 +1,14 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { usePathname } from 'next/navigation';
+import { TrackJS } from 'trackjs';
 import { NotFoundBody } from './NotFoundBody';
 import { getRelatedLinks } from '@/services/eai/related-links';
 
 jest.mock('@/services/eai/related-links', () => ({
   getRelatedLinks: jest.fn(),
 }));
+
+jest.mock('trackjs');
 
 // The "thinking" copy has a decorative animated-dots span alongside it, so
 // assert on textContent rather than screen.getByText's default text-node match.
@@ -16,7 +19,7 @@ const thinkingElement = () =>
 
 describe('NotFoundBody', () => {
   beforeEach(() => {
-    (usePathname as jest.Mock).mockReturnValue('/docs/manuall/');
+    (usePathname as jest.Mock).mockReturnValue('/docs/manual/');
   });
 
   it('shows the thinking state, then resolves into suggested links', async () => {
@@ -43,5 +46,20 @@ describe('NotFoundBody', () => {
       expect(thinkingElement()).not.toBeInTheDocument();
     });
     expect(screen.queryByText('The MongoDB Assistant suggests the following pages instead:')).not.toBeInTheDocument();
+  });
+
+  it('reports a single stable page_not_found event with the URL as metadata', async () => {
+    (getRelatedLinks as jest.Mock).mockResolvedValue([]);
+
+    render(<NotFoundBody />);
+
+    await waitFor(() => {
+      expect(TrackJS.track).toHaveBeenCalledWith('page_not_found');
+    });
+    expect(TrackJS.addMetadata).toHaveBeenCalledWith(
+      'from_url',
+      expect.stringContaining('/docs/manual/'),
+    );
+    expect(TrackJS.removeMetadata).toHaveBeenCalledWith('from_url');
   });
 });

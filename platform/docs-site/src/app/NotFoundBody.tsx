@@ -31,9 +31,10 @@ export const NotFoundBody = () => {
   const [results, setResults] = useState<RelatedLink[]>([]);
 
   useEffect(() => {
-    if (fromURL) {
-      TrackJS.track(`page_not_found - fromURL: ${fromURL}`);
-    }
+    if (!fromURL) return;
+    TrackJS.addMetadata('from_url', fromURL);
+    TrackJS.track('page_not_found');
+    TrackJS.removeMetadata('from_url');
   }, [fromURL]);
 
   useEffect(() => {
