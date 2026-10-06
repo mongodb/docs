@@ -112,4 +112,3 @@ func exportInvoicesToCSV(details []billing.Detail, outDir, prefix string) error 
 	fmt.Printf("Exported billing data to %s\n", csvPath)
 	return nil
 }
-

@@ -177,4 +177,3 @@ func main() {
 	}
 	fmt.Println("Scaling analysis and operations completed.")
 }
-

@@ -67,4 +67,3 @@ func main() {
 
 	log.Println("Response: ", completion)
 }
-

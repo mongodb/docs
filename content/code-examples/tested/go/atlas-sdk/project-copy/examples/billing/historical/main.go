@@ -112,4 +112,3 @@ func exportInvoicesToCSV(invoices *admin.PaginatedApiInvoiceMetadata, outDir, pr
 	fmt.Printf("Exported invoice data to %s\n", csvPath)
 	return nil
 }
-

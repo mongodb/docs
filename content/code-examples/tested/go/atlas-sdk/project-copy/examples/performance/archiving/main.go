@@ -123,4 +123,3 @@ func main() {
 
 	fmt.Println("Archive analysis and configuration completed.")
 }
-

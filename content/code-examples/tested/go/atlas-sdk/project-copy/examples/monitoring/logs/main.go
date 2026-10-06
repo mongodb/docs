@@ -70,4 +70,3 @@ func main() {
 	}
 	fmt.Println("Uncompressed log to", txtPath)
 }
-

@@ -115,4 +115,3 @@ type Listing struct {
 	Reviews              []Review        `bson:"reviews"`
 	Embeddings           []float32       `bson:"embeddings,omitempty"`
 }
-

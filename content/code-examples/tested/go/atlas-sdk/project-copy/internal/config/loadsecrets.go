@@ -49,4 +49,3 @@ func LoadSecrets() (Secrets, error) {
 	}
 	return s, nil
 }
-

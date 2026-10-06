@@ -81,4 +81,3 @@ func RetrieveDocuments(query string) []schema.Document {
 
 	return docs
 }
-

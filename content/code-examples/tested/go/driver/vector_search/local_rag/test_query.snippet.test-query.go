@@ -42,4 +42,3 @@ func main() {
 	fmt.Printf("\nThe constructed context for the QA follows:\n\n")
 	fmt.Print(textDocuments.String())
 }
-

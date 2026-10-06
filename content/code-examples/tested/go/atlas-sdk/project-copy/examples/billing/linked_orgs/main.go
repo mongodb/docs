@@ -62,4 +62,3 @@ func displayLinkedOrganizations(invoices map[string][]admin.BillingInvoiceMetada
 		fmt.Printf("  %d. Organization ID: %s\n", i+1, orgID)
 	}
 }
-
