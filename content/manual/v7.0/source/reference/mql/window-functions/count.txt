@@ -1,0 +1,109 @@
+========================
+$count (window function)
+========================
+
+.. meta::
+   :description: Use `$count` to count documents in each `setWindowFields` window, including cumulative counts within partitions.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. window:: $count
+
+.. include:: /includes/window-functions/count-definition.rst
+
+.. note:: Disambiguation
+
+   This page describes ``$count`` when used as a **window function**.
+
+   You can also use ``$count`` in these other contexts:
+
+   - :group:`$count (accumulator) <$count>`, which returns the number of
+     documents in a group.
+
+   - :pipeline:`$count (aggregation stage) <$count>`, which returns the
+     number of input documents.
+
+Syntax
+------
+
+.. code-block:: none
+   :copyable: false
+
+   {
+      $setWindowFields: {
+         ...
+         output: {
+            <field>: {
+               $count: {},
+               window: {
+                  documents: [ <lower boundary>, <upper boundary> ]
+               }
+            }
+         }
+      }
+   }
+
+``$count`` does not accept any parameters.
+
+.. tip::
+
+   ``$count`` is functionally equivalent to using ``{ $sum: 1 }`` in the
+   :pipeline:`$setWindowFields` stage.
+
+Example
+-------
+
+.. include:: /includes/sample-data-usage.rst
+
+Count Movies with a Similar Rating
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example uses the ``$count`` window function with a range-based
+window to count how many Action movies from 2000 have an IMDb rating
+within 0.5 points of each movie's rating.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/count/running-count-high-rated-movies-by-genre.js
+      :language: shell
+      :category: syntax example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/count/running-count-high-rated-movies-by-genre-output.sh
+      :visible: false
+      :language: shell
+
+In the preceding example:
+
+- ``$match`` filters for Action movies released in 2000 that have an
+  ``imdb.rating`` value.
+
+- ``sortBy: { "imdb.rating": 1 }`` sorts documents by IMDb rating in
+  ascending order. A ``sortBy`` is required when using a range-based
+  window.
+
+- ``output`` uses ``$count`` to set the ``moviesWithSimilarRating``
+  field to the number of movies whose IMDb rating falls within the
+  current window.
+
+  The :ref:`window <setWindowFields-window>` uses
+  ``range: [ -0.5, 0.5 ]``, which includes all documents whose
+  ``imdb.rating`` is within 0.5 points of the current document's
+  rating.
+
+- ``$project`` includes the ``title``, ``imdb.rating``, and
+  ``moviesWithSimilarRating`` fields in the output.
+
+- ``$sort`` and ``$limit`` return the 10 highest-rated movies for
+  readability.
+
+The output shows that Gladiator (8.5), with a relatively unique
+rating, has a lower ``moviesWithSimilarRating`` count than movies
+with more common ratings such as 7.4.

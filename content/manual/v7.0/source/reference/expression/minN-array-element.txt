@@ -1,0 +1,111 @@
+.. _minN:
+
+===========================
+$minN (expression operator)
+===========================
+
+.. meta::
+   :description: Use the `$minN` expression operator in MongoDB aggregation to retrieve the `n` smallest values from an array. Supports mixed-type inputs and ignores missing values.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $minN
+
+Returns the ``n`` smallest values in an array.
+
+.. note:: Disambiguation
+
+   This page describes ``$minN`` when used as an **expression**, which
+   returns the ``n`` minimum values in an array.
+
+   You can also use ``$minN`` in these other contexts:
+
+   - :group:`$minN (accumulator) <$minN>`, which returns an
+     aggregated value based on a variable number of input documents.
+
+   - :window:`$minN (window function) <$minN>`, which is used in the
+     :pipeline:`$setWindowFields` stage to return the minimum ``n``
+     values from documents in a particular window.
+
+Syntax
+------
+
+.. code-block:: javascript
+
+   { $minN: { n: <expression>, input: <expression> } }
+
+.. list-table::
+   :header-rows: 1
+   :class: border-table
+   :widths: 20 80
+
+   * - Field
+     - Description
+
+   * - ``n``
+     - An :ref:`expression <aggregation-expressions>` that evaluates to a
+       positive integer. The integer specifies the number of array elements
+       that ``$minN`` returns.
+
+   * - ``input``
+     - An :ref:`expression <aggregation-expressions>` that evaluates to the
+       array from which to return the minimum ``n`` elements.
+
+Behavior
+--------
+
+- You cannot specify a value of ``n`` less than ``1``.
+
+- ``$minN`` filters out ``null`` values found in the ``input`` 
+  array.
+
+- If the specified ``n`` is greater than or equal to the number of elements 
+  in the ``input`` array, ``$minN`` returns all elements in the 
+  ``input`` array.
+
+- If ``input`` resolves to a non-array value, the expression 
+  produces an error.
+
+- If ``input`` contains elements of different types, comparisons across types follow the
+  :ref:`BSON comparison order <bson-types-comparison-order>`.
+
+Example
+-------
+
+.. include:: /includes/sample-data-usage.rst
+
+The following example uses the ``$minN`` operator to return
+the two alphabetically-first genres for each movie. The results are
+returned in the new field ``firstAlphabeticalGenres`` created by
+:pipeline:`$addFields`.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/expressions/minN/min-two-genres.js
+      :language: javascript
+      :category: syntax example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/expressions/minN/min-two-genres-output.sh
+      :visible: false
+      :language: javascript
+
+The preceding pipeline:
+
+- Uses :pipeline:`$match` to filter for movies that have at least three
+  genres.
+- Uses :pipeline:`$addFields` to create a ``firstAlphabeticalGenres`` field.
+  ``$minN`` with ``n: 2`` returns the two alphabetically-first values
+  from the ``genres`` array.
+- Uses :pipeline:`$project` to return only the ``title``, ``genres``,
+  and ``firstAlphabeticalGenres`` fields.
+- Uses :pipeline:`$limit` to return five documents to improve readability.

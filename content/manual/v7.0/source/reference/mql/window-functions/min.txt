@@ -1,0 +1,110 @@
+======================
+$min (Window Function)
+======================
+
+.. meta::
+   :description: Use the $min window function in $setWindowFields to return the minimum value from documents in a defined window. Supports document-based and range-based window types.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. window:: $min
+
+.. include:: /includes/window-functions/min-definition.rst
+
+.. note:: Disambiguation
+
+   This page describes ``$min`` when used as a **window
+   function**.
+
+   You can also use ``$min`` in these other contexts:
+
+   - :group:`$min (accumulator) <$min>`, used in grouping to return the
+     minimum value from a group of documents.
+
+   - :expression:`$min (expression) <$min>`, which returns the
+     minimum value from an array.
+
+Syntax
+------
+
+.. code-block:: none
+   :copyable: false
+   :category: syntax example
+
+   {
+      $setWindowFields: {
+         ...
+         output: {
+            <field>: {
+               $min: <expression>
+            }
+         }
+      }
+   }
+
+Behavior
+--------
+
+Result Type
+~~~~~~~~~~~
+
+.. include:: /includes/expressions/min/result-type.rst
+
+Null or Missing Values
+~~~~~~~~~~~~~~~~~~~~~~
+
+If some documents in the window have a ``null`` value for the
+field or are missing the field, ``$min`` ignores them. It
+considers only the non-null and non-missing values.
+
+If **all** documents in the window have a ``null`` value for the
+field or are missing the field, ``$min`` returns ``null``.
+
+Example
+-------
+
+.. include:: /includes/sample-data-usage.rst
+
+This example uses :pipeline:`$setWindowFields` to add a field
+to each document containing the IMDb rating of the
+worst-rated movie released in the same year:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/min/minimum-rating-in-year.js
+      :language: shell
+      :category: syntax example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/min/minimum-rating-in-year-output.sh
+      :visible: false
+      :language: shell
+
+The preceding pipeline:
+
+- Uses :pipeline:`$match` to filter to movies from 1999,
+  2000, and 2001 with an IMDb rating of 3.0 or lower.
+
+- Uses :pipeline:`$setWindowFields` to partition movies by
+  ``year`` and sort them by ``title``. The stage uses
+  ``$min`` with a
+  :ref:`documents <setWindowFields-documents>` window of
+  ``[ "unbounded", "unbounded" ]`` to create
+  ``minimumRatingInYear``, which holds the minimum
+  ``imdb.rating`` across the entire partition, and
+  ``$documentNumber`` to assign a per-partition row number
+  (``rankInYear``) to each document.
+
+- Uses :pipeline:`$project` to include ``title``, ``year``,
+  ``imdb``, ``minimumRatingInYear``, and ``rankInYear``
+  in the output.
+
+- Uses :pipeline:`$sort` to sort the results by year and
+  title.

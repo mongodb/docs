@@ -1,6 +1,11 @@
+.. _top_accumulator_operator:
+
 ===========================
 $top (accumulator operator)
 ===========================
+
+.. meta::
+   :description: Use the ``$top`` accumulator in a ``$group`` stage to return the top element within each group according to a specified sort order in a MongoDB aggregation pipeline.
 
 .. default-domain:: mongodb
 
@@ -15,10 +20,18 @@ Definition
 
 .. group:: $top
 
-   .. versionadded:: 5.2
+Returns the top element within a group according to the specified 
+sort order. 
 
-   Returns the top element within a group according to the specified 
-   sort order. 
+.. note:: Disambiguation
+
+   This page describes ``$top`` when used as an **accumulator**.
+   Accumulators return a single aggregated value across a group of
+   input documents.
+
+   You can also use the :window:`$top (window function) <$top>` in the
+   :pipeline:`$setWindowFields` stage to return the top element from
+   documents in a particular window.
 
 Syntax
 ------
@@ -68,34 +81,16 @@ from a group of scores:
 - ``$top`` does not filter out null values.
 - ``$top`` converts missing values to null.
 
-.. code-block:: javascript
-   :emphasize-lines: 7,8
+.. io-code-block::
+   :copyable: true
 
-   db.aggregate( [
-      {
-         $documents: [
-            { playerId: "PlayerA", gameId: "G1", score: 1 },
-            { playerId: "PlayerB", gameId: "G1", score: 2 },
-            { playerId: "PlayerC", gameId: "G1", score: 3 },
-            { playerId: "PlayerD", gameId: "G1"},
-            { playerId: "PlayerE", gameId: "G1", score: null }
-         ]
-      },
-      {
-         $group:
-         {  
-            _id: "$gameId",
-            playerId:
-               { 
-                  $top:
-                     {    
-                        output: [ "$playerId", "$score" ],
-                        sortBy: { "score": 1 }
-                     }
-               }
-         }
-      }
-   ] )
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/accumulators/top/null-missing-values.snippet.null-missing-values.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/accumulators/top/null-missing-values-output.sh
+      :language: javascript
+      :visible: false
 
 In this example:
 
@@ -105,146 +100,115 @@ In this example:
   example has only one ``gameId``, ``G1``.
 - ``PlayerD`` has a missing score and ``PlayerE`` has a
   null ``score``. These values are both considered as null.
-- The ``playerId`` and ``score`` fields are specified as 
-  ``output : ["$playerId"," $score"]`` and returned as array values. 
+- The ``playerId`` and ``score`` fields are specified as
+  ``output : ["$playerId"," $score"]`` and returned as array values.
 - Specify the sort order with ``sortBy: { "score": 1 }``.
-- ``PlayerD`` and ``PlayerE`` tied for the top element. ``PlayerD`` 
+- ``PlayerD`` and ``PlayerE`` tied for the top element. ``PlayerD``
   is returned as the top ``score``.
-- To have more deterministic tie breaking behavior for multiple null 
+- To have more deterministic tie breaking behavior for multiple null
   values, add more fields to ``sortBy``.
 
-.. code-block:: javascript
-   :copyable: false
+BSON Data Type Sort Ordering
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   [
-      {
-         _id: 'G1',
-         playerId: [ 'PlayerD', null ]
-      }
-   ]
+When sorting different types, the order of :ref:`BSON data types
+<bson_sort_order>` is used to determine ordering. As an example,
+consider a collection whose values consist of strings and numbers.
 
+- In an ascending sort, string values are sorted after numeric values.
+- In a descending sort, string values are sorted before numeric
+  values.
 
-Restrictions
-------------
+In this example:
 
-Window Function and Aggregation Expression Support
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- ``PlayerA`` has an integer score.
+- ``PlayerB`` has a string ``"2"`` score.
+- ``PlayerC`` has an empty string score.
 
-``$top`` is not supported as a 
-:ref:`aggregation expression <aggregation-expressions>`.
+Because the sort is in descending ``{ "score": -1 }``, string values
+are sorted before ``PlayerA``'s numeric score. ``$top`` returns
+the first element after sorting, which is ``PlayerB``:
 
-``$top`` is supported as a 
-:pipeline:`window operator <$setWindowFields>`.
+.. io-code-block::
+   :copyable: true
 
-Memory Limit Considerations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/accumulators/top/bson-sort-ordering.snippet.bson-sort-ordering.js
+      :language: javascript
+      :category: usage example
 
-Aggregation pipelines which call ``$top`` are subject to the
-:ref:`100 MB limit <agg-memory-restrictions>`. If this
-limit is exceeded for an individual group, the aggregation fails
-with an error.
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/accumulators/top/bson-sort-ordering-output.sh
+      :language: javascript
+      :visible: false
 
 Examples
 --------
 
-Consider a ``gamescores`` collection with the following documents:
+.. include:: /includes/sample-data-usage.rst
 
-.. code-block:: javascript
+Find the Top Rating in a Genre
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   db.gamescores.insertMany([
-      { playerId: "PlayerA", gameId: "G1", score: 31 },
-      { playerId: "PlayerB", gameId: "G1", score: 33 },
-      { playerId: "PlayerC", gameId: "G1", score: 99 },
-      { playerId: "PlayerD", gameId: "G1", score: 1 },
-      { playerId: "PlayerA", gameId: "G2", score: 10 },
-      { playerId: "PlayerB", gameId: "G2", score: 14 },
-      { playerId: "PlayerC", gameId: "G2", score: 66 },
-      { playerId: "PlayerD", gameId: "G2", score: 80 }
-   ])
+You can use the ``$top`` accumulator to find the highest-rated
+movie in a genre.
 
-Find the Top ``Score``
-~~~~~~~~~~~~~~~~~~~~~~
+.. io-code-block::
+   :copyable: true
 
-You can use the ``$top`` accumulator to find the top score in a 
-single game.
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/accumulators/top/find-top-rating-genre.snippet.find-top-rating-genre.js
+      :language: javascript
+      :category: usage example
 
-.. code-block:: javascript
-
-   db.gamescores.aggregate( [
-      {
-         $match : { gameId : "G1" }
-      },
-      {
-         $group:
-            {
-               _id: "$gameId",
-               playerId:
-                  {
-                     $top:
-                     {
-                        output: [ "$playerId", "$score" ],
-                        sortBy: { "score": -1 }
-                     }
-                  }
-            }
-      }
-   ] )
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/accumulators/top/find-top-rating-genre-output.sh
+      :language: javascript
+      :visible: false
 
 The example pipeline:
 
-- Uses :pipeline:`$match` to filter the results on a single ``gameId``. 
-  In this case, ``G1``.
-- Uses :pipeline:`$group` to group the results by ``gameId``. In this 
-  case, ``G1``.
+- Uses :pipeline:`$match` to filter for Comedy movies with a
+  positive IMDb rating.
+- Uses :pipeline:`$group` to group all Comedy movies under a
+  single ``"Comedy"`` group key.
 - Specifies the fields that are output for ``$top`` with
-  ``output : ["$playerId"," $score"]``.
-- Uses ``sortBy: { "score": -1 }`` to sort the scores in descending order.
-- Uses ``$top`` to return the top score in the game.
+  ``output : ["$title", "$imdb.rating"]``.
+- Uses ``sortBy: { "imdb.rating": -1 }`` to rank movies within
+  the group by IMDb rating in descending order, which determines
+  the movie that ``$top`` returns.
 
-The operation returns the following results:
+Find the Top Rating Across Multiple Ratings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: javascript
-   :copyable: false
+You can use the ``$top`` accumulator to find the highest-rated
+movie for each movie rating category.
 
-   [ { _id: 'G1', playerId: [ 'PlayerC', 99 ] } ]
+.. io-code-block::
+   :copyable: true
 
-Find the Top ``Score`` Across Multiple Games
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/accumulators/top/find-top-rating-rated.snippet.find-top-rating-rated.js
+      :language: javascript
+      :category: usage example
 
-You can use the ``$top`` accumulator to find the top ``score``
-in each game.
-
-.. code-block:: javascript
-
-   db.gamescores.aggregate( [
-         {
-            $group:
-            { _id: "$gameId", playerId:
-               {
-                  $top:
-                     {
-                        output: [ "$playerId", "$score" ],
-                        sortBy: { "score": -1 }
-                     }
-               }
-            }
-         }
-   ] )
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/accumulators/top/find-top-rating-rated-output.sh
+      :language: javascript
+      :visible: false
 
 The example pipeline:
 
-- Uses ``$group`` to group the results by ``gameId``.
-- Uses ``$top`` to return top ``score`` for each game.
+- Uses :pipeline:`$match` to filter for movies in the ``G``,
+  ``PG``, ``PG-13``, and ``R`` categories with a positive
+  IMDb rating.
+- Uses :pipeline:`$group` to group the results by ``rated``.
+- Uses ``$top`` to return the highest-rated movie for each
+  category.
 - Specifies the fields that are output for ``$top`` with
-  ``output : ["$playerId", "$score"]``.
-- Uses ``sortBy: { "score": -1 }`` to sort the scores in descending order.
+  ``output : ["$title", "$imdb.rating"]``.
+- Uses ``sortBy: { "imdb.rating": -1 }`` to rank movies within
+  each group by IMDb rating in descending order, which determines
+  the movie that ``$top`` returns.
+- Uses :pipeline:`$sort` to sort the results alphabetically by
+  rating category.
 
-The operation returns the following results:
+Learn More
+----------
 
-.. code-block:: javascript
-   :copyable: false
-
-   [
-      { _id: 'G2', playerId: [ 'PlayerD', 80 ] },
-      { _id: 'G1', playerId: [ 'PlayerC', 99 ] }
-   ]
+- :ref:`agg-pipeline-limits`
+- :ref:`bson-types-comparison-order`

@@ -1,0 +1,120 @@
+=======================
+$top (window function)
+=======================
+
+.. meta::
+   :description: Use the $top window function in $setWindowFields to return the top element from documents in a window based on a specified sort order in MongoDB aggregation.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. window:: $top
+
+.. include:: /includes/window-functions/top-definition.rst
+
+.. note:: Disambiguation
+
+   This page describes ``$top`` when used as a **window function**.
+   You can also use the :group:`$top (accumulator) <$top>`, which
+   returns the top element within a group according to the specified
+   sort order.
+
+Syntax
+------
+
+.. code-block:: none
+   :copyable: false
+
+   {
+      $setWindowFields: {
+         ...
+         output: {
+            <field>: {
+               $top: {
+                  sortBy: { <field1>: <sort order>, <field2>: <sort order> ... },
+                  output: <expression>
+               }
+            }
+         }
+      }
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 15 70
+
+   * - Field
+     - Necessity
+     - Description
+
+   * - sortBy
+
+     - Required
+
+     - Defines the ranking order of elements within the window, with
+       syntax similar to :pipeline:`$sort`. Does not affect the order
+       of documents in pipeline output.
+
+   * - output
+
+     - Required
+
+     - Specifies the output for each element in the window. Can be
+       any expression.
+
+Behavior
+--------
+
+The ``$top`` window function has the following behaviors for null and missing values:
+
+
+- ``$top`` does not filter out null values.
+- ``$top`` converts missing values to null.
+
+Example
+-------
+
+.. include:: /includes/sample-data-usage.rst
+
+Find the Highest-Rated Movie Per Year Over a Window
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example uses ``$top`` as a window function to identify
+the highest-rated movie in the same year for each movie document.
+The dataset is filtered to include only PG-rated Family movies
+from 1980–1982.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/top/highest-rated-in-year.snippet.highest-rated-in-year.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/top/highest-rated-in-year-output.sh
+      :language: javascript
+      :visible: false
+
+In this example:
+
+- The :pipeline:`$match` stage filters for PG-rated Family movies
+  from 1980-1982 to produce a small, focused result set.
+- :pipeline:`$setWindowFields` partitions the documents by ``year``.
+- The :ref:`window <setWindowFields-window>` spans from
+  ``unbounded`` to ``unbounded``, meaning ``$top`` considers all
+  documents in the partition when determining the highest-rated
+  movie.
+- ``$top`` returns the highest-rated movie in each partition as an
+  embedded document containing the ``title`` and ``rating`` fields.
+- :pipeline:`$project` includes only the ``title``, ``year``,
+  ``rating``, and ``highestRatedInYear`` fields in the output.
+- :pipeline:`$limit` limits the output to 10 documents.
+
+This approach preserves all individual movie documents and includes
+a reference to the top performer in each year.
