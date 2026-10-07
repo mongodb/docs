@@ -38,17 +38,13 @@
    * - :guilabel:`Oplog Timestamp`
 
      - Creates a custom snapshot that includes all operations up to and
-       including the entered Oplog timestamp. The Oplog Timestamp contains two fields:
+       including the entered Oplog timestamp. The Oplog Timestamp
+       contains two fields:
 
-       .. list-table::
-          :widths: 30 70
+       - :guilabel:`Timestamp`: |epoch-time|
 
-          * - :guilabel:`Timestamp`
-            - |epoch-time|
-
-          * - :guilabel:`Increment`
-            - Order of operation applied in that second as a
-              32-bit ordinal.
+       - :guilabel:`Increment`: Order of operation applied in that
+         second as a 32-bit ordinal.
 
      - Type an Oplog :guilabel:`Timestamp` and :guilabel:`Increment`.
 

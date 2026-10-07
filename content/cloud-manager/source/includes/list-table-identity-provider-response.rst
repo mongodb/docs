@@ -23,7 +23,7 @@
 
    * - ``audienceUri``
      - string
-     - Identifier for the intended audience of the `SAML Assertion <http://saml.xml.org/assertions>`__.
+     - Identifier for the intended audience of the SAML assertion.
 
    * - ``displayName``
      - string
@@ -31,7 +31,7 @@
 
    * - ``issuerUri``
      - string
-     - Identifier for the issuer of the `SAML Assertion <http://saml.xml.org/assertions>`__.
+     - Identifier for the issuer of the SAML assertion.
 
    * - ``oktaIdpId``
      - string 
@@ -39,27 +39,17 @@
 
    * - ``pemFileInfo``
      - array
-     - List that contains the file information, including: start date, and expiration date for the identity
-       provider's |pem|-encoded public key certificate.
+     - List that contains the file information, including: start date,
+       and expiration date for the identity provider's |pem|-encoded
+       public key certificate.
 
-       .. list-table::
-          :header-rows: 1
-          :widths: 30 30 40
-          :stub-columns: 1
+       - ``certificates`` (array): List that contains the start date
+         and expiration date for the identity provider's |pem|-encoded
+         public key certificate.
 
-          * - Name
-            - Type
-            - Description
-  
-          * - certificates
-            - array
-            - List that contains the start date and expiration date for the identity
-              provider's |pem|-encoded public key certificate.
-
-          * - fileName
-            - string 
-            - Label that identifies the file containing the identity
-              provider's |pem|-encoded public key certificate.
+       - ``fileName`` (string): Label that identifies the file
+         containing the identity provider's |pem|-encoded public key
+         certificate.
 
    * - ``requestBinding``
      - string

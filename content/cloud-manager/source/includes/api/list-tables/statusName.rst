@@ -1,35 +1,20 @@
-.. list-table::
-   :widths: 30 70
-   :header-rows: 1
-   :stub-columns: 1
+- ``CLOSED``: All charges for the subscription cycle have been
+  finalized, the balance is more than zero, and the customer has not
+  been charged yet.
 
-   * - Status
-     - Description
+- ``FAILED``: An attempt to charge the credit card for the amount due
+  failed.
 
-   * - ``CLOSED``
-     - All charges for the subscription cycle have been 
-       finalized, the balance is more than zero, and the 
-       customer has not been charged yet.
+- ``FORGIVEN``: The customer has been charged, but the charge has been
+  forgiven.
 
-   * - ``FAILED``
-     - An attempt to charge the credit card for the amount due 
-       failed.
+- ``FREE``: The amount turned out to be zero, so the customer is not
+  charged.
 
-   * - ``FORGIVEN``
-     - The customer has been charged, but the charge has been 
-       forgiven.
+- ``PAID``: The funds have been transferred to MongoDB, Inc.
 
-   * - ``FREE``
-     - The amount turned out to be zero, so the customer is not 
-       charged.
+- ``PENDING``: Includes charges for the current subscription cycle. A
+  customer should never have more than one invoice in this state.
 
-   * - ``PAID``
-     - The funds have been transferred to MongoDB, Inc.
-
-   * - ``PENDING``
-     - Includes charges for the current subscription cycle. A customer 
-       should never have more than one invoice in this state.
-
-   * - ``PREPAID``
-     - The customer is on a prepaid plan, so the customer is not
-       charged.
+- ``PREPAID``: The customer is on a prepaid plan, so the customer is
+  not charged.
