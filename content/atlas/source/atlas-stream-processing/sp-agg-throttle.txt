@@ -1,0 +1,225 @@
+.. _atlas-sp-agg-throttle:
+
+===================================================
+``$throttle`` Aggregation Stage (Stream Processing)
+===================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas stream processing, $throttle stage, rate limit, code example
+   :description: Learn how to use the $throttle stage to rate-limit a
+                 stream processor pipeline and cap the bytes and
+                 messages that downstream systems receive each second.
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _atlas-sp-agg-throttle-def:
+
+Definition
+----------
+
+.. pipeline:: $throttle
+
+The ``$throttle`` stage limits the rate at which a stream processor
+passes data to the stages that follow it. Use ``$throttle`` to protect
+downstream systems from bursts of traffic and to stay within the rate
+limits that those systems enforce.
+
+Bursts can occur when a stream processor takes an initial snapshot of
+a large data set, recovers after an outage, or reprocesses historical
+data. Without a rate limit, these bursts can overwhelm the target
+system, force it to scale up, or exceed a third-party API quota.
+
+.. _atlas-sp-agg-throttle-syntax:
+
+Syntax
+------
+
+A ``$throttle`` stage has the following prototype form:
+
+.. code-block:: json
+
+   {
+     $throttle: {
+       bytesPerSec: <integer>,
+       messagesPerSec: <integer>
+     }
+   }
+
+The ``$throttle`` stage takes a document with the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 15 15 50
+
+   * - Field
+     - Type
+     - Necessity
+     - Description
+
+   * - ``bytesPerSec``
+     - integer
+     - Optional
+     - Maximum number of bytes per second that the stage passes to
+       downstream stages. Must be a positive integer.
+
+   * - ``messagesPerSec``
+     - integer
+     - Optional
+     - Maximum number of messages per second that the stage passes to
+       downstream stages. Each document counts as one message. Must be
+       a positive integer.
+
+You must specify at least one of ``bytesPerSec`` or
+``messagesPerSec``. If you specify neither, {+atlas-sp+} returns the
+following error:
+
+.. code-block:: none
+   :copyable: false
+
+   $throttle requires at least one of 'bytesPerSec' or 'messagesPerSec'
+
+.. _atlas-sp-agg-throttle-behavior:
+
+Behavior
+--------
+
+{+atlas-sp+} tracks a separate rate limit for each field that you
+set. Each limit regains capacity continuously at the rate that you
+configure, and {+atlas-sp+} tracks each limit independently of the
+others.
+
+Messages can flow past a ``$throttle`` stage only when every
+configured limit has available capacity for them. If you set both
+fields, both limits must have capacity. When more than one limit is
+exhausted, the stage waits for the time that the most exhausted limit
+requires. All limits regain capacity during that wait, so a limit
+with a smaller shortfall recovers before the wait ends.
+
+The stage doesn't wait for a full second before it passes more data.
+It processes the next messages as soon as every configured limit has
+enough capacity for them.
+
+If a single document is larger than the ``bytesPerSec`` limit, the
+stage doesn't hold the document until enough capacity accumulates.
+Instead, the stage passes the document to the next stage and then
+waits one second before it passes more data.
+
+You can use more than one ``$throttle`` stage in a single pipeline.
+Each stage limits only the data that flows through it, which lets you
+apply different limits to different parts of your pipeline.
+
+You can use ``$throttle`` only in the main pipeline. You can't nest
+``$throttle`` inside another stage.
+
+Backpressure
+~~~~~~~~~~~~
+
+Throttling slows the flow of data through your pipeline, which creates
+backpressure on the stages that precede the ``$throttle`` stage. If
+your source produces data faster than your throttle limit allows, the
+processor falls behind the source and lag grows over time.
+
+To avoid unbounded lag, set limits that match the sustained throughput
+of your source rather than only its peak. Monitor
+``stats.changeStreamTimeDifferenceSecs`` and the throttle statistics
+described in :ref:`atlas-sp-agg-throttle-monitoring` to confirm that
+your processor keeps up with its source.
+
+.. _atlas-sp-agg-throttle-monitoring:
+
+Monitoring
+----------
+
+{+atlas-sp+} reports the following statistics for stream processors
+that use ``$throttle``:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Statistic
+     - Description
+
+   * - ``throttle.throttledTimeMs``
+     - Cumulative time in milliseconds that the processor spent
+       actively throttling.
+
+   * - ``throttle.throttleEvents``
+     - Number of times that the stage delayed messages to stay
+       within the configured rate limits.
+
+{+atlas-sp+} reports both statistics at the processor level and for
+each stage. When a pipeline contains more than one ``$throttle``
+stage, the processor-level values are the sum of the per-stage values.
+The per-stage statistics are
+``stats.operatorStats.throttle.throttledTimeMs`` and
+``stats.operatorStats.throttle.throttleEvents``.
+
+To learn more about stream processor statistics, see
+:ref:`atlas-sp-monitoring`.
+
+.. _atlas-sp-agg-throttle-examples:
+
+Examples
+--------
+
+The following pipeline limits the data that a stream processor writes
+to a Kafka topic to 5 MiB and 50 messages per second:
+
+.. code-block:: json
+   :copyable: true
+
+   {
+     $throttle: {
+       bytesPerSec: 5242880,
+       messagesPerSec: 50
+     }
+   },
+   {
+     $emit: {
+       connectionName: "ordersTopic"
+     }
+   }
+
+Consider a batch of 20 documents totaling 2 MiB. Recent traffic has
+used some of the capacity of both limits:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 16 16 16 16 16
+
+   * - Limit
+     - Capacity needed
+     - Capacity available
+     - Shortfall
+     - Recovery rate
+     - Required wait
+
+   * - ``messagesPerSec``
+     - 20
+     - 15
+     - 5
+     - 50/sec
+     - 100 ms
+
+   * - ``bytesPerSec``
+     - 2,097,152
+     - 1,048,576
+     - 1,048,576
+     - 5,242,880/sec
+     - 200 ms
+
+The stage can't proceed until both limits have enough capacity, so it
+waits 200 ms, the longer of the two wait times. Because both limits
+regain capacity during that wait, the ``messagesPerSec`` limit, which
+needed only 100 ms, has already recovered when the wait ends.
