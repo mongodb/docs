@@ -1,3 +1,11 @@
+.. _atlas-sp-20261006:
+
+6 October 2026 Release
+----------------------
+
+- Adds nested schema inference to the ``$iceberg`` stage. To learn
+  more, see :ref:`$iceberg <atlas-sp-agg-iceberg>`.
+
 .. _atlas-sp-20260923:
 
 23 September 2026 Release
