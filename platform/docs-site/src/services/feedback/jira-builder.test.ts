@@ -7,7 +7,7 @@ import type { FeedbackDocument } from '@/services/db/feedback';
 // JIRA_USERNAME/PASSWORD env vars aren't set, so it's mocked out here.
 jest.mock('@/utils/jira-client', () => ({ jiraClientWithAuth: {} }));
 
-import { buildJiraDescription } from './jira-builder';
+import { buildJiraDescription, createJiraPayload, JIRA_CONSTS } from './jira-builder';
 
 // Wiki-markup injection regression tests (DOP-7289 §7); see
 // stripJiraWikiMarkup in jira-builder.ts for the rationale.
@@ -86,5 +86,47 @@ describe('buildJiraDescription', () => {
     const feedback = buildFeedback({ comment: 'nice page !https://attacker.example/x.png!' });
     const description = buildJiraDescription(feedback);
     expect(description).not.toContain('!https://attacker.example/x.png!');
+  });
+});
+
+describe('createJiraPayload', () => {
+  it('strips wiki-markup characters from an attacker-controlled page.url', () => {
+    const feedback = buildFeedback({
+      page: {
+        slug: 'docs/tutorial',
+        title: 'Tutorial',
+        url: 'https://www.mongodb.com/docs/tutorial|[{malicious}]!',
+        docs_property: 'manual',
+      },
+    });
+    const payload = createJiraPayload({ jiraInput: JIRA_CONSTS, feedback });
+    expect(payload.fields.description).not.toMatch(/[|[\]{}!]/);
+  });
+
+  it('strips wiki-markup characters from comment', () => {
+    const feedback = buildFeedback({ comment: 'nice page{but}here is a [link|https://attacker.example]!' });
+    const payload = createJiraPayload({ jiraInput: JIRA_CONSTS, feedback });
+    expect(payload.fields.description).not.toContain('[link|https://attacker.example]');
+    expect(payload.fields.description).not.toMatch(/[|[\]{}!]/);
+  });
+
+  it('strips wiki-markup characters from the reporter email', () => {
+    const feedback = buildFeedback();
+    const payload = createJiraPayload({ jiraInput: JIRA_CONSTS, feedback, reporter: 'a@example.com|[spoofed]' });
+    expect(payload.fields.description).not.toContain('[spoofed]');
+  });
+
+  it('does not throw when comment is null/undefined', () => {
+    const feedback = buildFeedback({ comment: undefined });
+    expect(() => createJiraPayload({ jiraInput: JIRA_CONSTS, feedback })).not.toThrow();
+    const payload = createJiraPayload({ jiraInput: JIRA_CONSTS, feedback });
+    expect(payload.fields.description).toContain('Description: undefined');
+  });
+
+  it('preserves ordinary comment text containing a shell pipe', () => {
+    const feedback = buildFeedback({ comment: 'run docker ps | grep mongod' });
+    const payload = createJiraPayload({ jiraInput: JIRA_CONSTS, feedback });
+    expect(payload.fields.description).toContain('run docker ps');
+    expect(payload.fields.description).toContain('grep mongod');
   });
 });

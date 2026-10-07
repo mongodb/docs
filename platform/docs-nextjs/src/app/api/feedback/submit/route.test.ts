@@ -144,6 +144,22 @@ describe('POST /api/feedback/submit', () => {
     expect(mockFeedbackActions).not.toHaveBeenCalled();
   });
 
+  it('rejects an unknown snootyEnv with 400 and makes no writes', async () => {
+    const response = await POST(buildRequest(buildBody({ snootyEnv: 'feedback_prod' })));
+
+    expect(response.status).toBe(400);
+    expect(mockInsertOne).not.toHaveBeenCalled();
+    expect(mockFeedbackActions).not.toHaveBeenCalled();
+  });
+
+  it('rejects a non-PNG screenshot dataUri with 400 and makes no writes', async () => {
+    const attachment = { type: 'screenshot', dataUri: 'data:text/html;base64,PHNjcmlwdD4=', viewport: {} };
+    const response = await POST(buildRequest(buildBody({ attachment })));
+
+    expect(response.status).toBe(400);
+    expect(mockInsertOne).not.toHaveBeenCalled();
+  });
+
   it('rejects malformed page data with 400 and makes no writes', async () => {
     const response = await POST(buildRequest(buildBody({ page: { ...VALID_PAGE, slug: "'; DROP TABLE" } })));
 

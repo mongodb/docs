@@ -1,4 +1,4 @@
-import { validateFeedbackInput } from './feedback-input';
+import { isValidScreenshotDataUri, isValidSnootyEnv, validateFeedbackInput } from './feedback-input';
 
 /**
  * Security regression tests for the feedback input hardening (DOP-7023):
@@ -319,5 +319,122 @@ describe('validateFeedbackInput', () => {
     });
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.comment).toBe('line one\nline two\r\nline three');
+  });
+
+  it('accepts a real generated user.id (DOP-7290)', () => {
+    const result = validateFeedbackInput({
+      page: validPage,
+      user: { id: 'user_1700000000000_abc123xyz', email: 'a@example.com' },
+      category: 'Positive',
+    });
+    expect(result.ok).toBe(true);
+  });
+
+  it('rejects a user.id containing a path separator or dot', () => {
+    const payloads = ['c:/windows/win.ini', 'user/../../etc', '../secret', 'a.b'];
+    for (const id of payloads) {
+      const result = validateFeedbackInput({
+        page: validPage,
+        user: { id, email: 'a@example.com' },
+        category: 'Positive',
+      });
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.error).toBe('Invalid user data');
+    }
+  });
+
+  it('rejects a user.id containing script/markup injection characters', () => {
+    const payloads = [
+      '\'"()&%<zzz><ScRiPt >QW33(9925)</ScRiPt>',
+      '<script>alert(1)</script>',
+      'user id with spaces',
+      '"quoted"',
+      "'quoted'",
+    ];
+    for (const id of payloads) {
+      const result = validateFeedbackInput({
+        page: validPage,
+        user: { id, email: 'a@example.com' },
+        category: 'Positive',
+      });
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.error).toBe('Invalid user data');
+    }
+  });
+
+  it('rejects a user.id longer than 128 characters', () => {
+    const result = validateFeedbackInput({
+      page: validPage,
+      user: { id: 'a'.repeat(129), email: 'a@example.com' },
+      category: 'Positive',
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toBe('Invalid user data');
+  });
+
+  it('accepts a user.id exactly 128 characters long', () => {
+    const result = validateFeedbackInput({
+      page: validPage,
+      user: { id: 'a'.repeat(128), email: 'a@example.com' },
+      category: 'Positive',
+    });
+    expect(result.ok).toBe(true);
+  });
+
+  it('accepts a missing, null, or empty user.email', () => {
+    for (const email of [undefined, null, '']) {
+      const result = validateFeedbackInput({ page: validPage, user: { id: 'u1', email }, category: 'Positive' });
+      expect(result.ok).toBe(true);
+    }
+  });
+
+  it('rejects a non-string user.email', () => {
+    for (const email of [123, { $ne: null }, ['a@example.com']]) {
+      const result = validateFeedbackInput({ page: validPage, user: { id: 'u1', email }, category: 'Positive' });
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.error).toBe('Invalid user data');
+    }
+  });
+
+  it('rejects a user.email longer than 254 characters or containing control characters', () => {
+    for (const email of [`${'a'.repeat(250)}@example.com`, 'a@example.com\nBcc: b@example.com']) {
+      const result = validateFeedbackInput({ page: validPage, user: { id: 'u1', email }, category: 'Positive' });
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.error).toBe('Invalid user data');
+    }
+  });
+});
+
+describe('isValidSnootyEnv', () => {
+  it('accepts the five known environments', () => {
+    for (const env of ['dotcomprd', 'production', 'dotcomstg', 'staging', 'development']) {
+      expect(isValidSnootyEnv(env)).toBe(true);
+    }
+  });
+
+  it('rejects unknown, empty, and non-string values', () => {
+    for (const env of ['feedback_prod', 'prod', '', undefined, null, { $ne: null }]) {
+      expect(isValidSnootyEnv(env)).toBe(false);
+    }
+  });
+});
+
+describe('isValidScreenshotDataUri', () => {
+  it('accepts a PNG base64 data URI', () => {
+    expect(isValidScreenshotDataUri('data:image/png;base64,iVBORw0KGgo=')).toBe(true);
+  });
+
+  it('rejects other types, missing prefix, non-base64 bodies, and non-strings', () => {
+    const invalid = [
+      'data:text/html;base64,PHNjcmlwdD4=',
+      'data:image/svg+xml;base64,PHN2Zz4=',
+      'iVBORw0KGgo=',
+      'data:image/png;base64,',
+      'data:image/png;base64,not base64!',
+      { length: 1 },
+    ];
+    for (const dataUri of invalid) {
+      expect(isValidScreenshotDataUri(dataUri)).toBe(false);
+    }
   });
 });

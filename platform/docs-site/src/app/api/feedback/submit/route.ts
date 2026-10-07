@@ -6,7 +6,7 @@ import type { Viewport, SnootyEnv } from '@/types/data';
 import { feedback_actions } from '@/services/feedback/feedback-actions';
 import { getFeedbackResponsesCollection, type FeedbackDocument } from '@/services/db/feedback';
 import { checkRateLimit, getClientIp } from '@/services/rate-limit/rate-limit';
-import { validateFeedbackInput } from '@/services/feedback/feedback-input';
+import { isValidScreenshotDataUri, isValidSnootyEnv, validateFeedbackInput } from '@/services/feedback/feedback-input';
 import type { Page, User, Attachment, Fingerprint, FeedbackSentiment } from '@/services/feedback/feedback-types';
 import { starRating } from '@/services/feedback/feedback-types';
 
@@ -71,6 +71,14 @@ export async function POST(request: NextRequest) {
     return withCORS(NextResponse.json({ error: validation.error }, { status: 400 }));
   }
   const { page: cleanPage, comment: sanitizedComment } = validation;
+
+  // snootyEnv selects the database (and Slack channel) the submission lands in.
+  if (!isValidSnootyEnv(snootyEnv)) {
+    return withCORS(NextResponse.json({ error: 'Invalid environment' }, { status: 400 }));
+  }
+  if (attachment?.dataUri && !isValidScreenshotDataUri(attachment.dataUri)) {
+    return withCORS(NextResponse.json({ error: 'Invalid attachment' }, { status: 400 }));
+  }
 
   // Per-page limit on every request. page.url is client-supplied, but a
   // scanner spoofing it is still caught by the global per-IP limit above.

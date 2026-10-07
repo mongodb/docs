@@ -313,7 +313,7 @@ async function createSlackMessage(
       elements: [
         {
           type: 'mrkdwn',
-          text: `*User Email:* ${user.email}`,
+          text: `*User Email:* ${escapeSlackMrkdwn(user.email)}`,
         },
       ],
     });

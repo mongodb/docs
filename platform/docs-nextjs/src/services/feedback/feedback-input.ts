@@ -1,4 +1,5 @@
 import sanitizeHtml from 'sanitize-html';
+import type { SnootyEnv } from '@/types/data';
 import type { Page, FeedbackSentiment } from './feedback-types';
 
 /**
@@ -12,6 +13,12 @@ const MAX_SLUG_LENGTH = 256;
 const VALID_CATEGORIES: FeedbackSentiment[] = ['Negative', 'Suggestion', 'Positive', ' '];
 
 const SLUG_CHARSET = /^[A-Za-z0-9/_.-]+$/;
+// Narrower than SLUG_CHARSET: user.id should never contain "/" or ".".
+const USER_ID_CHARSET = /^[A-Za-z0-9_-]+$/;
+const MAX_USER_ID_LENGTH = 128;
+const MAX_EMAIL_LENGTH = 254;
+const VALID_SNOOTY_ENVS: SnootyEnv[] = ['dotcomprd', 'production', 'dotcomstg', 'staging', 'development'];
+const SCREENSHOT_DATA_URI = /^data:image\/png;base64,[A-Za-z0-9+/]+={0,2}$/;
 const CONTROL_CHARS = /[\x00-\x1F]/;
 // Excludes \n/\r so the multi-line comment Textarea isn't rejected.
 const COMMENT_CONTROL_CHARS = /[\x00-\x08\x0B\x0C\x0E-\x1F]/;
@@ -62,6 +69,26 @@ function isValidTitle(title: string): boolean {
   return title.length <= MAX_TITLE_LENGTH && !CONTROL_CHARS.test(title);
 }
 
+function isValidUserId(id: string): boolean {
+  return id.length <= MAX_USER_ID_LENGTH && USER_ID_CHARSET.test(id);
+}
+
+// Unset is allowed: the widget omits the email when the user doesn't give one.
+function isValidEmail(email: unknown): boolean {
+  if (email === undefined || email === null) return true;
+  return isString(email) && email.length <= MAX_EMAIL_LENGTH && !CONTROL_CHARS.test(email);
+}
+
+export function isValidSnootyEnv(env: unknown): env is SnootyEnv {
+  return VALID_SNOOTY_ENVS.includes(env as SnootyEnv);
+}
+
+// The widget always sends canvas.toDataURL('image/png'), and the upload
+// stores the bytes as image/png.
+export function isValidScreenshotDataUri(dataUri: unknown): boolean {
+  return isString(dataUri) && SCREENSHOT_DATA_URI.test(dataUri);
+}
+
 export type FeedbackInput = {
   page: unknown;
   user: unknown;
@@ -92,7 +119,13 @@ export function validateFeedbackInput({ page, user, comment, category }: Feedbac
     return { ok: false, error: 'Invalid page data' };
   }
 
-  if (typeof user !== 'object' || user === null || !isString((user as { id: unknown }).id)) {
+  if (
+    typeof user !== 'object' ||
+    user === null ||
+    !isString((user as { id: unknown }).id) ||
+    !isValidUserId((user as { id: string }).id) ||
+    !isValidEmail((user as { email?: unknown }).email)
+  ) {
     return { ok: false, error: 'Invalid user data' };
   }
 

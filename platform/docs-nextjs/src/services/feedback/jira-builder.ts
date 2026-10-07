@@ -97,7 +97,10 @@ export function createJiraPayload({
   reporter?: string;
 }): JiraPayload {
   const summary = `[Docs Feedback]: ${feedback.page.title}`;
-  const description = `URL: ${feedback.page.url} \n Sentiment: ${feedback.category} \n Description: ${feedback.comment} \n User Email: ${reporter}.`;
+  const safeUrl = stripJiraWikiMarkup(feedback.page.url);
+  const safeComment = feedback.comment ? stripJiraWikiMarkup(feedback.comment) : feedback.comment;
+  const safeReporter = reporter ? stripJiraWikiMarkup(reporter) : reporter;
+  const description = `URL: ${safeUrl} \n Sentiment: ${feedback.category} \n Description: ${safeComment} \n User Email: ${safeReporter}.`;
   return {
     fields: {
       project: { id: jiraInput.projectId },
