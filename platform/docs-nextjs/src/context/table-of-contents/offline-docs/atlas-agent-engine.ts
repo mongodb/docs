@@ -256,9 +256,14 @@ export const toc: L1TocItem[] = [
             url: '/docs/agentengine/reference/limitations',
           },
           {
-            label: 'Platform API Reference',
+            label: 'Sample Application Templates',
             isExternal: true,
-            url: 'https://dochub.mongodb.org/core/agentic-platform-api',
+            url: 'https://github.com/mongodb/agent-engine-examples',
+          },
+          {
+            label: 'Atlas Agent Engine API Reference',
+            isExternal: true,
+            url: 'https://www.mongodb.com/docs/api/doc/agentengine',
           },
           {
             label: 'Atlas Agent Engine SDK',
