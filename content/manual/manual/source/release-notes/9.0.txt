@@ -622,6 +622,36 @@ status.
        deployment.
      - Open.
 
+   * - 9.0.0 and later
+     - :issue:`SERVER-89953`: At |fcv| 9.0, :dbcommand:`listIndexes`
+       reports ``collation: { locale: "simple" }`` for indexes that use
+       simple collation. Some object-document mappers (ODMs) interpret
+       this metadata as a difference from an index definition that does
+       not explicitly specify a collation.
+
+       In Mongoose, this issue causes the ``syncIndexes()`` method to
+       drop and rebuild otherwise unchanged indexes each time it runs.
+       Applications that call ``syncIndexes()`` at startup might
+       experience temporarily missing indexes, degraded performance, or
+       service unavailability. If index rebuilds are slow, applications
+       might enter a restart loop.
+
+       This issue can also affect Doctrine ODM and Beanie. For Beanie,
+       this issue applies when ``allow_index_dropping`` is ``true``.
+
+       As a workaround, stop calling ``syncIndexes()`` at
+       application startup. Instead, use ``createIndexes()`` or run
+       index synchronization as an explicit deployment step. Before
+       running index operations in any environment, you can use
+       ``diffIndexes()`` to preview which indexes would be created or
+       dropped.
+
+       If you use Mongoose, upgrade to Mongoose 9.10.4 or 8.24.5, which
+       treat an index definition that does not specify a collation as
+       equivalent to ``{ locale: "simple" }``. With these versions,
+       ``syncIndexes()`` no longer drops unchanged indexes.
+     - Fix targeted for a future 9.0 patch release.
+
 .. toctree::
    :titlesonly:
    :hidden:
