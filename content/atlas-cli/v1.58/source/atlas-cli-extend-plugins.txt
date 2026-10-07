@@ -1,0 +1,262 @@
+.. _atlas-cli-extend-plugins:
+
+=====================================================
+Extend the {+atlas-cli+} with Custom Plugins
+=====================================================
+
+.. meta::
+   :description: Learn how to create custom plugins for the Atlas CLI using any programming language. Follow this step-by-step guide to extend CLI functionality and streamline your MongoDB workflows.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The {+atlas-cli+} supports plugins that let you extend its functionality
+with custom commands. You can develop plugins in any programming language
+that compiles to a standalone binary.
+
+This tutorial walks you through creating your first {+atlas-cli+} plugin
+using `Go <https://go.dev/>`__ and the `Cobra
+<https://github.com/spf13/cobra>`__ library.
+
+To learn more about installing and managing existing plugins, see
+:ref:`atlas-plugin`.
+
+How Plugins Work
+----------------
+
+Each {+atlas-cli+} plugin consists of two components:
+
+- A ``manifest.yml`` file that describes the plugin and its commands
+- An executable binary that the {+atlas-cli+} invokes when a user runs a plugin command
+
+When you run a plugin command, the {+atlas-cli+} reads the manifest
+file, identifies the correct binary, and executes it with the
+appropriate arguments. The plugin binary handles all command logic
+independently.
+
+.. _atlas-cli-extend-plugins-prereqs:
+
+Prerequisites
+-------------
+
+Before you begin, ensure you have the following installed:
+
+- `Go <https://go.dev/dl/>`__ 1.21 or later
+- `Git <https://git-scm.com/downloads>`__
+- The {+atlas-cli+}. See :ref:`install-atlas-cli`.
+
+Create Your First Plugin
+------------------------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Clone the example plugin repository.
+
+      MongoDB provides an example plugin repository that you can use as
+      a starting point:
+
+      .. code-block:: bash
+
+         git clone https://github.com/mongodb/atlas-cli-plugin-example.git
+         cd atlas-cli-plugin-example
+
+   .. step:: Explore the project structure.
+
+      The example plugin has the following structure:
+
+      .. code-block:: none
+
+         atlas-cli-plugin-example/
+         ├── cmd/
+         │   └── plugin/
+         │       └── main.go
+         ├── internal/
+         ├── manifest.template.yml
+         ├── go.mod
+         ├── go.sum
+         ├── Makefile
+         ├── .goreleaser.yaml
+         └── .github/
+             └── workflows/
+                 └── release.yml
+
+   .. step:: Review the manifest file.
+
+      Open ``manifest.template.yml`` to see the plugin configuration:
+
+      .. code-block:: yaml
+
+         name: atlas-cli-plugin-example
+         description: this is an example plugin
+         version: $VERSION
+         github:
+             owner: $GITHUB_REPOSITORY_OWNER
+             name: $GITHUB_REPOSITORY_NAME
+         binary: $BINARY
+         commands:
+             example:
+                 description: Root command of the atlas cli plugin example
+                 aliases:
+                     - example-alias-1
+                     - example-alias-2
+
+      ``manifest.template.yml`` defines the manifest file for the plugin.
+      The manifest tells the {+atlas-cli+} which commands the plugin
+      provides and which binary to execute.
+
+   .. step:: Review the plugin code.
+
+      Open ``cmd/plugin/main.go`` to see the plugin implementation:
+
+      .. code-block:: go
+
+         package main
+
+         import (
+             "fmt"
+             "os"
+
+             "github.com/spf13/cobra"
+         )
+
+         func main() {
+             rootCmd := &cobra.Command{
+                 Use:   "example",
+                 Short: "An example Atlas CLI plugin",
+                 Run: func(cmd *cobra.Command, args []string) {
+                     fmt.Println("Hello from the Atlas CLI plugin!")
+                 },
+             }
+
+             if err := rootCmd.Execute(); err != nil {
+                 os.Exit(1)
+             }
+         }
+
+      The plugin uses `Cobra <https://github.com/spf13/cobra>`__ to
+      define commands. When the {+atlas-cli+} runs the plugin, it
+      passes the command name and arguments to the binary.
+
+   .. step:: Build and install the plugin.
+
+      From the root of the repository, build the plugin binary and
+      generate the manifest file:
+
+      .. code-block:: bash
+
+         go build -o bin/binary ./cmd/plugin
+         BINARY=binary VERSION=1.0.0 \
+           GITHUB_REPOSITORY_OWNER=$(git remote get-url origin | sed 's/.*[:/]\(.*\)\/.*/\1/') \
+           GITHUB_REPOSITORY_NAME=$(basename -s .git $(git remote get-url origin)) \
+           envsubst < manifest.template.yml > manifest.yml
+
+      Create the plugin directory and copy the files. The default
+      plugin directory depends on your operating system:
+
+      .. tabs::
+
+         .. tab:: macOS
+            :tabid: macos
+
+            .. code-block:: bash
+
+               PLUGIN_DIR=~/Library/Application\ Support/atlascli/plugins/atlas-cli-plugin-example
+               mkdir -p "$PLUGIN_DIR"
+               cp manifest.yml bin/binary "$PLUGIN_DIR/"
+
+         .. tab:: Linux
+            :tabid: linux
+
+            .. code-block:: bash
+
+               PLUGIN_DIR=~/.config/atlascli/plugins/atlas-cli-plugin-example
+               mkdir -p "$PLUGIN_DIR"
+               cp manifest.yml bin/binary "$PLUGIN_DIR/"
+
+   .. step:: Run the plugin command.
+
+      Verify that the plugin works:
+
+      .. code-block:: bash
+
+         atlas example
+
+      The output resembles the following:
+
+      .. code-block:: none
+
+         Hello from the Atlas CLI plugin!
+
+Customize Your Plugin
+---------------------
+
+To create your own plugin, modify the example or start from scratch:
+
+1. Update ``manifest.template.yml`` with your plugin's name, description, and
+   commands.
+
+2. Implement your command logic in Go (or any language that compiles
+   to a standalone binary).
+
+3. Ensure your binary name matches the ``binary`` field in
+   ``manifest.template.yml``.
+
+.. important::
+
+   Command names in your manifest must not conflict with existing
+   {+atlas-cli+} commands or commands from other installed plugins.
+
+Distribute Your Plugin
+----------------------
+
+To distribute your plugin so that others can install it with the
+``atlas plugin install`` command, follow these steps:
+
+1. Host your plugin in a GitHub repository.
+
+2. Use `GoReleaser <https://goreleaser.com/>`__ or a similar tool to
+   create GitHub releases with compiled binaries for multiple platforms.
+   The example repository includes a ``.goreleaser.yaml`` configuration
+   and a GitHub Actions workflow for automated releases.
+
+3. Create a release tag following `semantic versioning
+   <https://semver.org/>`__ (for example, ``v1.0.0``).
+
+After you create a GitHub release, users can install your plugin:
+
+.. code-block:: bash
+
+   atlas plugin install <github-owner>/<repository-name>
+
+Use a Different Programming Language
+-------------------------------------
+
+While we recommend Go with Cobra, you can write plugins in any
+language that compiles to a standalone executable binary. For an example of a plugin
+written in a different language, see the :github:`example Rust plugin <mongodb-developer/atlas-cli-rust-plugin>`
+repository on GitHub.
+
+Your plugin must meet the following requirements:
+
+- Your binary must accept the command name as the first argument.
+- Your binary must be a standalone executable (no external runtime
+  dependencies).
+- The ``binary`` field in ``manifest.yml`` must match the binary
+  filename.
+
+Learn More
+----------
+
+- :ref:`atlas-plugin` - Manage {+atlas-cli+} plugins.
+- :ref:`atlas-plugin-install` - Install a plugin.
+- :ref:`atlas-plugin-update` - Update a plugin.
+- :ref:`atlas-plugin-uninstall` - Uninstall a plugin.
+- `Atlas CLI plugin example repository <https://github.com/mongodb/atlas-cli-plugin-example>`__
+- `MongoDB Community Forums <https://www.mongodb.com/community/forums/>`__
+

@@ -51,7 +51,7 @@ Options
    * - --commands
      - &
      - false
-     - Retrieve query shape statistics matching specified MongoDB commands. To include multiple commands, pass the parameter multiple times delimited with an ampersand (&) between each command. The currently supported parameters are find, distinct, and aggregate. Omit this parameter to return results for all supported commands.
+     - Retrieve query shape statistics matching specified MongoDB commands. To include multiple commands, pass the parameter multiple times delimited with an ampersand (&) between each command. The currently supported parameters are: find, distinct, aggregate, count, insert, update, and delete. The insert, update, and delete commands return results only for clusters running MongoDB 9.0 or later with write query shape statistics enabled for the project. Omit this parameter to return results for all supported commands.
    * - --envelope
      - envelope
      - false

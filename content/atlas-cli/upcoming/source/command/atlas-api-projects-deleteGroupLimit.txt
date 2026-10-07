@@ -68,7 +68,7 @@ Options
        | atlas.project.deployment.clusters | Limit on the number of clusters in this project | 25 | 100 |
        | ``atlas.project.deployment.nodesPerPrivateLinkRegion`` | Limit on AWS PrivateLink addressable target nodes per region in this project. For sharded clusters using optimized (load-balanced) connection strings, ``currentUsage`` doesn't grow with the number of ``mongos`` — the load balancer is counted as a single addressable target regardless of how many ``mongos`` sit behind it. | 50 | 90 |
        | ``atlas.project.security.databaseAccess.customRoles`` | Limit on the number of custom roles in this project | 100 | 1400 |
-       | ``atlas.project.security.databaseAccess.users`` | Limit on the number of database users in this project | 100 | 100 |
+       | ``atlas.project.security.databaseAccess.users`` | Limit on the number of database users in this project | 100 | 900 |
        | ``atlas.project.security.networkAccess.crossRegionEntries`` | Limit on the number of cross-region network access entries in this project | 40 | 220 |
        | ``atlas.project.security.networkAccess.entries`` | Limit on the number of network access entries in this project | 200 | 20 |
        | ``dataFederation.bytesProcessed.query`` | Limit on the number of bytes processed during a single Data Federation query | N/A | N/A |

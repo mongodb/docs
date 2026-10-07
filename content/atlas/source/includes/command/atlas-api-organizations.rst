@@ -59,10 +59,13 @@ Related Commands
 * :ref:`atlas-api-organizations-getOrg` - Returns one organization to which the requesting Service Account or API Key has access.
 * :ref:`atlas-api-organizations-getOrgDelegationSettings` - Returns the delegation settings for the specified organization.
 * :ref:`atlas-api-organizations-getOrgGroups` - Returns multiple projects in the specified organization.
+* :ref:`atlas-api-organizations-getOrgMaintenanceSettings` - Returns maintenance settings for the specified organization.
 * :ref:`atlas-api-organizations-getOrgSettings` - Returns details about the specified organization's settings.
 * :ref:`atlas-api-organizations-listOrgs` - Returns all organizations to which the requesting Service Account or API Key has access.
+* :ref:`atlas-api-organizations-resetOrgMaintenanceSettings` - Resets maintenance settings for the specified organization to their default values.
 * :ref:`atlas-api-organizations-updateOrg` - Updates one organization.
 * :ref:`atlas-api-organizations-updateOrgDelegationSettings` - Updates the delegation settings for the specified organization.
+* :ref:`atlas-api-organizations-updateOrgMaintenanceSettings` - Updates maintenance settings for the specified organization.
 * :ref:`atlas-api-organizations-updateOrgSettings` - Updates the organization's settings.
 
 
@@ -74,8 +77,11 @@ Related Commands
    getOrg </command/atlas-api-organizations-getOrg>
    getOrgDelegationSettings </command/atlas-api-organizations-getOrgDelegationSettings>
    getOrgGroups </command/atlas-api-organizations-getOrgGroups>
+   getOrgMaintenanceSettings </command/atlas-api-organizations-getOrgMaintenanceSettings>
    getOrgSettings </command/atlas-api-organizations-getOrgSettings>
    listOrgs </command/atlas-api-organizations-listOrgs>
+   resetOrgMaintenanceSettings </command/atlas-api-organizations-resetOrgMaintenanceSettings>
    updateOrg </command/atlas-api-organizations-updateOrg>
    updateOrgDelegationSettings </command/atlas-api-organizations-updateOrgDelegationSettings>
+   updateOrgMaintenanceSettings </command/atlas-api-organizations-updateOrgMaintenanceSettings>
    updateOrgSettings </command/atlas-api-organizations-updateOrgSettings>

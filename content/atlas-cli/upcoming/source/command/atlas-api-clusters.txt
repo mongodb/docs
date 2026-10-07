@@ -57,6 +57,7 @@ Related Commands
 * :ref:`atlas-api-clusters-createCluster` - Creates one cluster in the specified project.
 * :ref:`atlas-api-clusters-deleteCluster` - Removes one cluster from the specified project.
 * :ref:`atlas-api-clusters-getCluster` - Returns the details for one cluster in the specified project.
+* :ref:`atlas-api-clusters-getClusterAdaptiveSettings` - Returns the Adaptive Settings for the specified cluster, including client-provided overrides and the effective settings derived from those overrides and Atlas-managed defaults.
 * :ref:`atlas-api-clusters-getClusterStatus` - Returns the status of all changes that you made to the specified cluster in the specified project.
 * :ref:`atlas-api-clusters-getProcessArgs` - Returns the advanced configuration details for one cluster in the specified project.
 * :ref:`atlas-api-clusters-getSampleDatasetLoad` - Checks the progress of loading the sample dataset into one cluster.
@@ -70,6 +71,7 @@ Related Commands
 * :ref:`atlas-api-clusters-revokeMongoEmployeeAccess` - Revokes a previously granted MongoDB employee cluster access.
 * :ref:`atlas-api-clusters-unpinFeatureCompatibilityVersion` - Unpins the current fixed Feature Compatibility Version (FCV).
 * :ref:`atlas-api-clusters-updateCluster` - Updates the details for one cluster in the specified project.
+* :ref:`atlas-api-clusters-updateClusterAdaptiveSettings` - Updates the client-provided Adaptive Settings overrides for the specified cluster and returns the resulting Adaptive Settings, including the effective settings derived from those overrides and Atlas-managed defaults.
 * :ref:`atlas-api-clusters-updateProcessArgs` - Updates the advanced configuration details for one cluster in the specified project.
 * :ref:`atlas-api-clusters-upgradeTenantUpgrade` - Upgrades a shared-tier cluster to a Flex or Dedicated (M10+) cluster in the specified project.
 
@@ -80,6 +82,7 @@ Related Commands
    createCluster </command/atlas-api-clusters-createCluster>
    deleteCluster </command/atlas-api-clusters-deleteCluster>
    getCluster </command/atlas-api-clusters-getCluster>
+   getClusterAdaptiveSettings </command/atlas-api-clusters-getClusterAdaptiveSettings>
    getClusterStatus </command/atlas-api-clusters-getClusterStatus>
    getProcessArgs </command/atlas-api-clusters-getProcessArgs>
    getSampleDatasetLoad </command/atlas-api-clusters-getSampleDatasetLoad>
@@ -93,5 +96,6 @@ Related Commands
    revokeMongoEmployeeAccess </command/atlas-api-clusters-revokeMongoEmployeeAccess>
    unpinFeatureCompatibilityVersion </command/atlas-api-clusters-unpinFeatureCompatibilityVersion>
    updateCluster </command/atlas-api-clusters-updateCluster>
+   updateClusterAdaptiveSettings </command/atlas-api-clusters-updateClusterAdaptiveSettings>
    updateProcessArgs </command/atlas-api-clusters-updateProcessArgs>
    upgradeTenantUpgrade </command/atlas-api-clusters-upgradeTenantUpgrade>

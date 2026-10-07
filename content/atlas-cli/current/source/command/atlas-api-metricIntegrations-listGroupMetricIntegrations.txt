@@ -59,9 +59,9 @@ Options
      - false
      - help for listGroupMetricIntegrations
    * - --includeCount
-     - totalCount
      - false
-     - Flag that indicates whether the response returns the total number of items (totalCount) in the response.
+     - false
+     - Flag that indicates whether MongoDB Cloud calculates the total number of items for the response. When set to false, MongoDB Cloud may skip an additional count operation. The response may still include ``totalCount`` when the count is available without additional calculation.
    * - --integrationType
      - OTEL
      - false
@@ -93,7 +93,7 @@ Options
    * - --version
      - string
      - false
-     - API version to use when calling the Atlas API endpoints [options: "2025-03-12", "preview"]. If not set by the user, defaults to the latest version or the profile's api_version config value if set. This value defaults to "preview".
+     - API version to use when calling the Atlas API endpoints [options: "2025-03-12"]. If not set by the user, defaults to the latest version or the profile's api_version config value if set. This value defaults to "2025-03-12".
 
 Inherited Options
 -----------------

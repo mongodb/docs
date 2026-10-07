@@ -91,4 +91,3 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
 
    Starting deployment '<Name>'.
-

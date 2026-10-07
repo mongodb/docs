@@ -118,5 +118,5 @@ Inherited Options
 Examples
 --------
 
-.. literalinclude:: /includes/examples/atlas-api-rateLimiting-listRateLimits-preview-default.sh
+.. literalinclude:: /includes/examples/atlas-api-rateLimiting-listRateLimits-2025-03-12-default.sh
    :language: shell

@@ -193,6 +193,7 @@ Related Commands
 * :ref:`atlas-api-dataFederation` - Returns, adds, edits, and removes Federated Database Instances.
 * :ref:`atlas-api-databaseUsers` - Returns, adds, edits, and removes database users.
 * :ref:`atlas-api-encryptionAtRestUsingCustomerKeyManagement` - Returns and edits the Encryption at Rest using Customer Key Management configuration.
+* :ref:`atlas-api-ephemeralClusters` - Create and return Atlas Ephemeral clusters.
 * :ref:`atlas-api-events` - Returns events.
 * :ref:`atlas-api-federatedAuthentication` - Returns, adds, edits, and removes federation-related features such as role mappings and connected organization configurations.
 * :ref:`atlas-api-flexClusters` - Returns, adds, edits, and removes flex clusters.
@@ -251,6 +252,7 @@ Related Commands
    dataFederation </command/atlas-api-dataFederation>
    databaseUsers </command/atlas-api-databaseUsers>
    encryptionAtRestUsingCustomerKeyManagement </command/atlas-api-encryptionAtRestUsingCustomerKeyManagement>
+   ephemeralClusters </command/atlas-api-ephemeralClusters>
    events </command/atlas-api-events>
    federatedAuthentication </command/atlas-api-federatedAuthentication>
    flexClusters </command/atlas-api-flexClusters>

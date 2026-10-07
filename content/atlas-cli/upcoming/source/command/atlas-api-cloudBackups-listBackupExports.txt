@@ -61,9 +61,9 @@ Options
      - false
      - help for listBackupExports
    * - --includeCount
-     - totalCount
      - false
-     - Flag that indicates whether the response returns the total number of items (totalCount) in the response.
+     - false
+     - Flag that indicates whether MongoDB Cloud calculates the total number of items for the response. When set to false, MongoDB Cloud may skip an additional count operation. The response may still include ``totalCount`` when the count is available without additional calculation.
    * - --itemsPerPage
      - int
      - false

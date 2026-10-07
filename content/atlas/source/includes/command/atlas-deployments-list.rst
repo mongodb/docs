@@ -69,4 +69,3 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    NAME     TYPE     MDB VER            STATE
    <Name>   <Type>   <MongoDBVersion>   <StateName>
-
