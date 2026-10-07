@@ -138,6 +138,45 @@ The following stages accept a ``parallelism`` value. Each defaults to
      - Increases the maximum number of parallel requests made to the
        external function, which requires more computational resources.
 
+.. _atlas-sp-tier-guide-parallelism-runtime:
+
+How Parallelism Works at Runtime
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A stream processor moves data through the following sequence:
+
+.. code-block:: none
+   :copyable: false
+
+   Source -> Buffer -> Transform -> Buffer -> Sink
+
+For a {+kafka+} source, {+atlas-sp+} starts one consumer thread for
+each source partition, so a processor can read from many partitions
+at once. The transform stages in the middle of the pipeline still run
+on a single thread and process the buffered data in batches.
+
+When a stage with a ``parallelism`` value greater than ``1`` receives
+a batch, its parallel threads or requests process that batch. The
+batch then moves on to the next stage.
+
+.. _atlas-sp-tier-guide-parallelism-ordering:
+
+Document Distribution and Ordering
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When a stage's ``parallelism`` value is greater than ``1``,
+{+atlas-sp+} distributes documents across threads as follows:
+
+- If you don't specify ``partitionBy``, {+atlas-sp+} assigns documents
+  to threads in round-robin order.
+
+- If you specify ``partitionBy``, {+atlas-sp+} sends all documents
+  that have the same ``partitionBy`` value to the same thread, which
+  processes them in order.
+
+:ref:`$merge <atlas-sp-agg-merge>` is an exception: it uses the fields
+in its ``on`` clause as the partition key.
+
 .. _atlas-sp-tier-guide-parallelism-cumulative:
 
 Cumulative Parallelism
