@@ -22,4 +22,4 @@
 
       Enter a name for your query.
 
-   ..step:: Click :guilabel:`Save`.
+   .. step:: Click :guilabel:`Save`.
