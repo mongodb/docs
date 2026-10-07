@@ -33,4 +33,4 @@
 
    - Replace the ``<api-key>`` placeholder value with your |voyage|
      API key.
-   - .. include:: /includes/shared/facts/find-connection-string.rst
+   - .. include:: /includes/shared/facts/find-connection-string-snippet-from-atlas.rst

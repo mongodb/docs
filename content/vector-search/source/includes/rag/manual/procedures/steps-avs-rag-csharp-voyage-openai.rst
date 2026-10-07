@@ -38,7 +38,7 @@
 
       Replace the placeholder values with your |voyage| and OpenAI API keys.
  
-      .. include:: /includes/shared/facts/find-connection-string.rst
+      .. include:: /includes/shared/facts/find-connection-string-snippet-from-atlas.rst
 
    .. step:: Create a function to generate vector embeddings.
 

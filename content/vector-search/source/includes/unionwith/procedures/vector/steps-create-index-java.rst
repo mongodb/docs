@@ -1,7 +1,7 @@
 .. procedure:: 
    :style: normal
 
-   .. step:: Add the Java driver version 5.2 or higher as a dependency in your project.
+   .. step:: Add the Java driver version 5.2 or later as a dependency in your project.
    
       Select one of the following tabs, depending on your package manager:
 
@@ -60,7 +60,7 @@
 
    .. step:: Specify the ``<connectionString>``.
 
-      .. include:: /includes/shared/facts/find-connection-string.rst
+      .. include:: /includes/shared/facts/find-connection-string-snippet-from-atlas.rst
 
    .. step:: Run the file in your IDE, or execute a command from the command line to run the code.
 

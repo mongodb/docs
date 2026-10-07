@@ -24,7 +24,7 @@
 
       Replace the ``<api-key>`` placeholder value with your Voyage API key.
 
-      .. include:: /includes/shared/facts/find-connection-string.rst
+      .. include:: /includes/shared/facts/find-connection-string-snippet-from-atlas.rst
 
    .. step:: Define a function to generate vector embeddings.
 

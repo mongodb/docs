@@ -118,6 +118,6 @@
 
          .. note::
              
-            .. include:: /includes/shared/facts/find-connection-string.rst
+            .. include:: /includes/shared/facts/find-connection-string-snippet-from-atlas.rst
                
          .. include:: /includes/crud-embeddings/manual/facts/fact-view-embeddings-atlas-ui-new-data.rst

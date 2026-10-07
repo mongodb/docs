@@ -23,7 +23,7 @@
 
       #. Replace the ``<api-key>`` placeholder value with your OpenAI API key.
 
-      #. .. include:: /includes/shared/facts/find-connection-string.rst
+      #. .. include:: /includes/shared/facts/find-connection-string-snippet-from-atlas.rst
 
          .. include:: /includes/shared/facts/note-node-js-env-minimum-requirement.rst
 

@@ -23,7 +23,7 @@
 
       #. Replace the ``<api-key>`` placeholder value with your `Voyage API key <https://docs.voyageai.com/docs/api-key-and-installation>`__.
 
-      #. .. include:: /includes/shared/facts/find-connection-string.rst
+      #. .. include:: /includes/shared/facts/find-connection-string-snippet-from-atlas.rst
 
          .. include:: /includes/shared/facts/note-node-js-env-minimum-requirement.rst
 

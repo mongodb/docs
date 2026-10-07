@@ -21,7 +21,7 @@
          :copyable:
          :linenos:
 
-      .. include:: /includes/shared/facts/find-connection-string.rst
+      .. include:: /includes/shared/facts/find-connection-string-snippet-from-atlas.rst
 
    .. step:: Create the {+avs+} index.
 
@@ -55,7 +55,7 @@
       ``autoEmbed`` field, for which {+avs+} automatically generates 
       embeddings using the ``voyage-4`` embedding model. 
 
-      .. include:: /includes/shared/facts/find-connection-string.rst
+      .. include:: /includes/shared/facts/find-connection-string-snippet-from-atlas.rst
 
    .. step:: Create the {+avs+} index.
 

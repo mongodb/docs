@@ -44,7 +44,7 @@
 
          Replace the placeholder values with your credentials.
 
-         .. include:: /includes/shared/facts/find-connection-string.rst
+         .. include:: /includes/shared/facts/find-connection-string-snippet-from-atlas.rst
 
    .. step:: Create a function to retrieve and process your data.
 

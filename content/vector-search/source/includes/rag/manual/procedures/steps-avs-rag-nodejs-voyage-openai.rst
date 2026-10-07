@@ -48,7 +48,7 @@
             VOYAGE_API_KEY = "<voyage-api-key>"
             OPENAI_API_KEY = "<openai-api-key>"
 
-         .. include:: /includes/shared/facts/find-connection-string.rst
+         .. include:: /includes/shared/facts/find-connection-string-snippet-from-atlas.rst
 
          .. include:: /includes/shared/facts/note-node-js-env-minimum-requirement.rst
 

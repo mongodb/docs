@@ -37,7 +37,7 @@
 
    .. step:: Specify the ``<connectionString>``.
 
-      .. include:: /includes/shared/facts/find-connection-string.rst
+      .. include:: /includes/shared/facts/find-connection-string-snippet-from-atlas.rst
 
    .. step:: Create the index.
 

@@ -25,7 +25,7 @@
 
       .. note::
 
-         .. include:: /includes/shared/facts/find-connection-string.rst
+         .. include:: /includes/shared/facts/find-connection-string-snippet-from-atlas.rst
 
    .. step:: Generate the embeddings and update your documents.
 

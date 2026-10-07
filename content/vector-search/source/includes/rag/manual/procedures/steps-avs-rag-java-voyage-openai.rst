@@ -114,7 +114,7 @@
 
       - Replace the ``<voyage-api-key>`` placeholder value with your |voyage| API key.
       - Replace the ``<openai-api-key>`` placeholder value with your OpenAI API key.
-      - .. include:: /includes/shared/facts/find-connection-string.rst
+      - .. include:: /includes/shared/facts/find-connection-string-snippet-from-atlas.rst
 
    .. step:: Define methods to parse and split the data.
 

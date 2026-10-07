@@ -49,7 +49,7 @@
       In the query file, replace the ``<connectionString>`` placeholder 
       with your connection string.
 
-      .. include:: /includes/shared/facts/find-connection-string.rst
+      .. include:: /includes/shared/facts/find-connection-string-snippet-from-atlas.rst
 
    .. step:: Run the command to query your collection.
 

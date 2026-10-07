@@ -36,7 +36,7 @@
 
    .. step:: Specify the ``<connection string>``.
 
-      .. include:: /includes/quick-start/procedures/steps-connection-string-drivers-hidden.rst
+      .. include:: /includes/shared/facts/find-connection-string-snippet-from-atlas.rst
 
    .. step:: Create the index.
 

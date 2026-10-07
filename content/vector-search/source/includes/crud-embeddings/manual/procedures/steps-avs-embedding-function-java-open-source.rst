@@ -71,7 +71,7 @@
       Update the placeholders with the following values:
 
       - Replace the ``<access-token>`` placeholder value with your Hugging Face access token.
-      - .. include:: /includes/shared/facts/find-connection-string.rst
+      - .. include:: /includes/shared/facts/find-connection-string-snippet-from-atlas.rst
 
    .. step:: Define a method to generate vector embeddings.
 

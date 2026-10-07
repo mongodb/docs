@@ -47,7 +47,7 @@
             MONGODB_URI = "<connection-string>"
             HUGGING_FACE_ACCESS_TOKEN = "<hf-token>"
 
-         .. include:: /includes/shared/facts/find-connection-string.rst
+         .. include:: /includes/shared/facts/find-connection-string-snippet-from-atlas.rst
 
          .. include:: /includes/shared/facts/note-node-js-env-minimum-requirement.rst
 
