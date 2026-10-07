@@ -15,7 +15,7 @@
       :tabid: via-script
 
       To speed up creating |tls| certificates for member |k8s| clusters,
-      we offer the :github:`setup_tls script </mongodb/mongodb-kubernetes/blob/master/scripts/release/kubectl_mongodb/setup_tls.sh>` script. We don't guarantee the
+      we offer the :github:`setup_tls script </mongodb/mongodb-kubernetes/blob/{+dl-version+}/scripts/release/kubectl_mongodb/setup_tls.sh>` script. We don't guarantee the
       script's maintenance. If you choose to use the script,
       test it and adjust it to your needs. The script does the following:
 

@@ -3,7 +3,7 @@ operator cluster in a |multi-cluster|, use one of the following methods:
 
 - Set the :opsmgrkube:`spec.externalConnectivity` to ``true`` and specify
   the |onprem| port in it. Use the :github:`ops-manager-external.yaml
-  </mongodb/mongodb-kubernetes/blob/master/public/samples/ops-manager/ops-manager-external.yaml>`
+  </mongodb/mongodb-kubernetes/blob/{+dl-version+}/public/samples/ops-manager/ops-manager-external.yaml>`
   example script, modify it to your needs, and apply the configuration.
   For example, run:
 
@@ -12,7 +12,7 @@ operator cluster in a |multi-cluster|, use one of the following methods:
      kubectl apply \
       --context "$MDB_CENTRAL_CLUSTER_FULL_NAME" \
       --namespace "mongodb" \
-       -f https://raw.githubusercontent.com/mongodb/mongodb-kubernetes/master/public/samples/ops-manager/ops-manager-external.yaml
+       -f https://raw.githubusercontent.com/mongodb/mongodb-kubernetes/{+dl-version+}/public/samples/ops-manager/ops-manager-external.yaml
 
 - Add the operator cluster and all member clusters to the same service mesh.
   The service mesh establishes communication from the the central and all
