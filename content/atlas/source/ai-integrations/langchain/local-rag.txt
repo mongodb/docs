@@ -110,11 +110,20 @@ manual setup or CLI commands.
 
    .. step:: Install and import dependencies.
 
-      Run the following command in your notebook:
+      Run the following command in your notebook to install `uv
+      <https://docs.astral.sh/uv/>`__:
 
       .. code-block:: python
 
-         pip install --quiet --upgrade pymongo langchain langchain-community langchain-huggingface gpt4all pypdf atlas-local-lib-py
+         %pip install --quiet uv
+
+      Run the following command in your notebook to install the
+      required dependencies:
+
+      .. code-block:: python
+
+         import sys
+         !uv pip install --system --python "{sys.executable}" atlas-local-lib-py pymongo langchain langchain-classic langchain-mongodb langchain-pymupdf4llm langchain-text-splitters gpt4all langchain-huggingface==1.2.2 sentence-transformers==5.7.0 transformers==4.57.6
 
    .. step:: Create or reuse a local Atlas deployment.
 
@@ -126,8 +135,11 @@ manual setup or CLI commands.
 
          from atlas_local import LocalDeployment
 
+         # Create or reuse a local Atlas deployment
          deployment = LocalDeployment.get_or_create(name="local-atlas-deployment")
+         deployment.start()
          MONGODB_URI = deployment.connection_string()
+         print("Local deployment ready:", MONGODB_URI)
 
 Use Your Local Deployment as a Vector Store
 -------------------------------------------
@@ -148,17 +160,22 @@ Copy and paste the following code snippets into your notebook.
       <https://python.langchain.com/docs/modules/data_connection/vectorstores/>`__,
       using the ``langchain_db.local_rag`` namespace.
 
-      This example specifies the `mixedbread-ai/mxbai-embed-large-v1
-      <https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1>`__ model
+      This example specifies the `voyageai/voyage-4-nano
+      <https://huggingface.co/voyageai/voyage-4-nano>`__ model
       from Hugging Face.
 
       .. code-block:: python
-       
+
          from langchain_mongodb import MongoDBAtlasVectorSearch
          from langchain_huggingface import HuggingFaceEmbeddings
 
-         # Load the embedding model (https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1)
-         embedding_model = HuggingFaceEmbeddings(model_name="mixedbread-ai/mxbai-embed-large-v1")
+         # Load the embedding model (https://huggingface.co/voyageai/voyage-4-nano)
+         embedding_model = HuggingFaceEmbeddings(
+            model_name="voyageai/voyage-4-nano",
+            model_kwargs={"trust_remote_code": True, "truncate_dim": 2048},
+            encode_kwargs={"prompt_name": "document"},
+            query_encode_kwargs={"prompt_name": "query"},
+         )
 
          # Instantiate vector store
          vector_store = MongoDBAtlasVectorSearch.from_connection_string(
@@ -170,7 +187,18 @@ Copy and paste the following code snippets into your notebook.
 
    .. step:: Add documents to the vector store.
 
-      Paste and run the following code in your notebook 
+      Run the following code in your notebook to start from a clean
+      ``langchain_db.local_rag`` collection, in case of previous runs
+      of this tutorial:
+
+      .. code-block:: python
+
+         from pymongo import MongoClient
+
+         # Start from a clean collection, in case of previous runs of this tutorial
+         MongoClient(MONGODB_URI)["langchain_db"]["local_rag"].drop()
+
+      Paste and run the following code in your notebook
       to ingest a sample PDF that contains a recent `MongoDB earnings report
       <https://investors.mongodb.com/node/12881/pdf>`__ into the vector store.
 
@@ -181,11 +209,11 @@ Copy and paste the following code snippets into your notebook.
 
       .. code-block:: python
 
-         from langchain_community.document_loaders import PyPDFLoader
          from langchain_text_splitters import RecursiveCharacterTextSplitter
+         from langchain_pymupdf4llm import PyMuPDF4LLMLoader
 
          # Load the PDF
-         loader = PyPDFLoader("https://investors.mongodb.com/node/13176/pdf")
+         loader = PyMuPDF4LLMLoader("https://investors.mongodb.com/node/13176/pdf")
          data = loader.load()
 
          # Split PDF into documents
@@ -208,14 +236,14 @@ Copy and paste the following code snippets into your notebook.
    .. step:: Create the {+avs+} index.
 
       To enable vector search queries on your vector store,
-      create a {+avs+} index on the ``langchain_db.test`` collection.
+      create a {+avs+} index on the ``langchain_db.local_rag`` collection.
       You can create the index using the LangChain helper method:
 
       .. code-block:: python
 
          # Use helper method to create the vector search index
          vector_store.create_vector_search_index(
-            dimensions = 1024 # The dimensions of the vector embeddings to be indexed
+            dimensions = 2048 # The dimensions of the vector embeddings to be indexed
          )
 
       .. include:: /includes/search-shared/fact-index-build-initial-sync.rst
@@ -241,7 +269,7 @@ see `Run models locally <https://python.langchain.com/docs/how_to/local_llms/>`_
          .. button:: Download
             :uri: https://gpt4all.io/models/gguf/mistral-7b-openorca.gguf2.Q4_0.gguf
 
-      #. Move this model into your ``local-rag-mongodb`` project directory.
+      #. Move this model into your ``local-rag-langchain-mongodb`` project directory.
 
       #. Paste the following code in your notebook to configure the |llm|.
          Before running, replace ``<path-to-model>`` with 
@@ -249,8 +277,8 @@ see `Run models locally <https://python.langchain.com/docs/how_to/local_llms/>`_
 
          .. code-block:: python
 
-            from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-            from langchain_community.llms import GPT4All
+            from langchain_core.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+            from langchain_classic.llms import GPT4All
 
             # Configure the LLM
             local_path = "<path-to-model>"
@@ -274,6 +302,7 @@ see `Run models locally <https://python.langchain.com/docs/how_to/local_llms/>`_
             from langchain_core.prompts import PromptTemplate
             from langchain_core.output_parsers import StrOutputParser
             from langchain_core.runnables import RunnablePassthrough
+            import pprint
 
             # Instantiate MongoDB Vector Search as a retriever
             retriever = vector_store.as_retriever()
