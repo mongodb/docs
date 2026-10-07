@@ -191,47 +191,38 @@ Expire Documents with Filter Conditions
 ---------------------------------------
 
 To expire documents with specific filter expressions, you can create
-an index that is both a :ref:`partial <index-type-partial>` 
+an index that is both a :ref:`partial <index-type-partial>`
 and a :ref:`TTL <index-feature-ttl>` index.
 
 Create a partial TTL index:
 
-.. code-block:: javascript
-   :emphasize-lines: 5-6
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/partial/create-partial-ttl-index.snippet.create-partial-ttl-index.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
-   db.foo.createIndex( 
-      { F: 1 }, 
-      { 
-         name: "Partial-TTL-Index", 
-         partialFilterExpression: { D : 1 }, 
-         expireAfterSeconds: 10 
-      }
-   )
+Insert two documents, one of which matches the filter expression
+``{ type: "click" }`` of the ``partialFilterExpression``:
 
-Insert two documents, one of which matches the filter expression 
-``{ D : 1 }`` of the ``partialFilterExpression``:
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/partial/insert-events.snippet.insert-events.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
-.. code-block:: javascript
-   :emphasize-lines: 3
-
-   db.foo.insertMany( [
-      { "F" : ISODate("2019-03-07T20:59:18.428Z"), "D" : 3},
-      { "F" : ISODate("2019-03-07T20:59:18.428Z"), "D" : 1}
-   ] )
-
-Wait for ten seconds then query the ``foo`` collection:
+Wait for the TTL background thread to run, then query the ``events``
+collection:
 
 .. code-block:: javascript
 
-   db.foo.find({}, {_id: 0, F: 1, D: 1})
+   db.events.find( {}, { _id: 0, type: 1 } )
 
-The document that matches the ``partialFilterExpression`` 
-of ``{ D : 1 }`` is deleted (expired). As a result, only 
-one document remains in the ``foo`` collection:
+MongoDB deletes (expires) the document that matches the ``partialFilterExpression`` of
+``{ type: "click" }``. As a result, only the
+document that does not match the filter remains:
 
 .. code-block:: javascript
 
-   { "F" : ISODate("2019-03-07T20:59:18.428Z"), "D" : 3}
+   { type: "view" }
 
 Expire Documents at a Specific Clock Time
 -----------------------------------------
