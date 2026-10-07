@@ -189,7 +189,7 @@ Dead Letter Queue
 {+atlas-sp+} supports the use of an |service| database collection as a 
 :term:`dead letter queue` (DLQ). When {+atlas-sp+} cannot process a 
 document from your data stream, it writes the content of the document 
-to the DLQ along with details of the processing failure. You can assign
+to the DLQ with details of the processing failure. You can assign
 a collection as a DLQ in your stream processor definitions. 
 
 To learn more about enabling DLQs, see :ref:`Create a Stream Processor
@@ -263,16 +263,22 @@ To use failover processors you must:
 - Configure your processor with a :ref:`tier
   <atlas-sp-architecture-tiers>` of ``SP10`` or higher.
 - Configure one or more failover regions in the target {+spw+}. 
-- Configure a multi-region cluster with a node in the failover region
-  within the same project as your {+spw+}.
 - Configure the connections in your {+spw+} to support failover
   regions. You can do this when you :ref:`create the connection
   <atlas-sp-add-connection>`, or you can modify an existing connection
-  to support failover regions.
+  to support failover regions. To learn how each connection type
+  behaves across failover regions, see
+  :ref:`atlas-sp-architecture-failover-connections`.
 - Configure one or more failover processors for your target stream
   processor. You can do this when you :ref:`create
   <atlas-sp-manage-processor-create>` the processor, or you can modify
   an existing processor to use failover processors.
+
+To ensure that your stream processors continue processing after a
+failover, use a multi-region cluster with a node in the failover
+region within the same project as your {+spw+}. {+atlas-sp+} doesn't
+block failover for single-region clusters, but MongoDB recommends
+multi-region clusters.
 
 You can initiate one of three types of failover event:
 
@@ -320,6 +326,47 @@ processors, see :ref:`Limitations <atlas-sp-limitations>`.
 
 To learn about failover processor pricing, see the :ref:`billing
 documentation <atlas-sp-billing>`.
+
+.. _atlas-sp-architecture-failover-connections:
+
+Failover Connections
+~~~~~~~~~~~~~~~~~~~~
+
+Failover doesn't use a separate connection type. Each connection in
+your {+spw+} has a name. For connection types that support regions,
+you can create a region-specific connection that has the same name
+and type as the original connection, with its own region and
+endpoint settings. You can create a region-specific connection only
+in a failover region configured on your {+spw+}.
+
+Connections behave across failover regions as follows:
+
+- **{+service+} cluster connections** are shared across all regions.
+  You can't create a region-specific {+service+} connection.
+
+- **{+kafka+} connections** are the only connection type that
+  supports regions. Whether you need a region-specific connection
+  depends on the connection's networking:
+
+  - If the connection uses public networking, you can use it in
+    every region without a region-specific connection.
+  - If the connection uses Private Link or VPC peering, you must
+    create a region-specific connection in each failover region
+    that points to that region's endpoint. This includes Private
+    Link connections that use mTLS, because the endpoints and
+    keystores differ in each region.
+
+When you add failover regions to an existing {+spw+}, {+atlas-sp+}
+assigns a region to your existing {+kafka+} connections.
+
+You can't modify a connection while any stream processor that uses
+the connection is running.
+
+To create a region-specific connection, use the
+:oas-bump-atlas-op:`Create One Failover Stream Connection
+<creategroupstreamconnectionfailoverconnection>` endpoint, the
+{+atlas-cli+}, Terraform, or the {+atlas-ui+}. You can't create or
+modify connections with {+mongosh+}.
 
 .. _atlas-sp-error-handling:
 
@@ -468,7 +515,7 @@ stream processor.
 field supported in :ref:`Tumbling Windows <tumbling-windows>` and
 :ref:`Hopping Windows <hopping-windows>`. It allows you to create a
 pipeline with a kind of window which accumulates data based on the
-wall clock time of the server. As opposed to :ref:`event time
+wall clock time of the server. Instead of :ref:`event time
 <atlas-sp-event-time>` windows, processing time windows assign each
 event a timestamp based on the wall clock time of the server when it
 arrives at the stream processor.
@@ -506,7 +553,7 @@ Example
 ++++++++
 
 You configure a stream processor with 5-minute windows. You start the
-processor at ``12:00``, so that the first two windows will have
+processor at ``12:00``, so that the first two windows have
 durations of ``12:00-12:05`` and ``12:05-12:10``. The following table
 illustrates which windows will capture which events given varying
 delays, with and without watermarks.
@@ -649,7 +696,7 @@ Idleness Timeout
 Decoupling windowing behavior from processing time by default improves
 stream processing correctness in most cases. However, a streaming data
 source may have periods of extended idleness. In this scenario, a
-window may capture events prior to the period of idleness and be unable
+window may capture events before the period of idleness and be unable
 to return processed results while waiting for the watermark to advance
 enough to close.
 
