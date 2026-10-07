@@ -31,6 +31,7 @@ import { handleSearchManifests } from "../../nextjs-extension/src/searchManifest
 import { handleOfflineDownloads } from "./offline-docs/index";
 import { handleLlmsTxt, handleRootLlmsTxt } from "./llms-txt/index";
 import { APP_DIR } from "./constants";
+import { logDiskMetrics } from "./util/diskMetrics";
 
 import path from "node:path";
 import fs from "node:fs/promises";
@@ -54,6 +55,11 @@ extension.addBuildEventHandler(
 		if (!process.env.BUILD_START_TIME) {
 			process.env.BUILD_START_TIME = Date.now().toString();
 		}
+
+		await logDiskMetrics(
+			"onPreBuild:start",
+			"build start, before any content work",
+		);
 
 		const configEnvironment: ConfigEnvironmentVariables =
 			netlifyConfig.build.environment;
@@ -88,6 +94,8 @@ extension.addBuildEventHandler(
 			environment: configEnvironment.ENV as Environments,
 		});
 
+		await logDiskMetrics("onPreBuild:after-parser", "parser fetched and cached");
+
 		const projectNames: ProjectNames =
 			await getAllProjectNames(contentDirectories);
 		console.log("Retrieved all project names for content paths");
@@ -114,6 +122,11 @@ extension.addBuildEventHandler(
 			allContentData,
 		});
 
+		await logDiskMetrics(
+			"onPreBuild:after-metadata",
+			`content metadata processed; ${allContentData.pathsToBuild.length} content path(s) queued`,
+		);
+
 		if (allContentData.pathsToBuild) {
 			await runPrebuildModules({
 				netlifyPluginUtils: utils,
@@ -126,11 +139,21 @@ extension.addBuildEventHandler(
 				shouldRunPersistence: ENVS_TO_RUN.includes(configEnvironment.ENV ?? ""),
 			});
 
+			await logDiskMetrics(
+				"onPreBuild:after-prebuild-modules",
+				`prebuild modules ran for ${allContentData.pathsToBuild.length} path(s)`,
+			);
+
 			const { mdxOutputDir: mdxOutputPath } = getRepoPaths(undefined, APP_DIR);
 			await runMdxConversionForContentPaths({
 				allContentData,
 				mdxOutputPath,
 			});
+
+			await logDiskMetrics(
+				"onPreBuild:after-mdx-conversion",
+				"AST→MDX conversion complete",
+			);
 
 			// Write prefix-map.json → docs-site/src/generated/
 			const { generatedDir } = getRepoPaths(undefined, APP_DIR);
@@ -185,6 +208,11 @@ extension.addBuildEventHandler(
 		} catch (error) {
 			console.error("[ssg-extension] Error creating tocData export:", error);
 		}
+
+		await logDiskMetrics(
+			"onPreBuild:after-toc",
+			"unified TOC built and toc data written",
+		);
 	},
 );
 
@@ -193,6 +221,11 @@ extension.addBuildEventHandler(
 	async ({ netlifyConfig, utils, dbEnvVars }) => {
 		const configEnvironment = netlifyConfig.build
 			.environment as ConfigEnvironmentVariables;
+
+		await logDiskMetrics(
+			"onSuccess:start",
+			"deploy succeeded; starting post-build publish steps",
+		);
 
 		const gitChangedFiles = utils.git.modifiedFiles;
 
@@ -218,6 +251,11 @@ extension.addBuildEventHandler(
 				);
 			}
 
+			await logDiskMetrics(
+				"onSuccess:after-search-manifest",
+				"search manifests generated",
+			);
+
 			// A stale llms.txt is never a reason to fail a deploy: the
 			// weekly root llms.txt pass and a manual `pnpm publish-project`
 			// both recover from a skipped publish.
@@ -228,6 +266,8 @@ extension.addBuildEventHandler(
 				console.error("[llms-txt] Failed to publish llms.txt:", error);
 			}
 
+			await logDiskMetrics("onSuccess:after-llms-txt", "llms.txt published");
+
 			// this should only run on prod build
 			console.log("Generating offline docs ...");
 			await handleOfflineDownloads(
@@ -236,6 +276,11 @@ extension.addBuildEventHandler(
 				utils,
 				dbEnvVars,
 				configEnvironment,
+			);
+
+			await logDiskMetrics(
+				"onSuccess:end",
+				"all post-build steps complete",
 			);
 		} else {
 			console.log(

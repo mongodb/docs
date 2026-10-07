@@ -13,6 +13,7 @@ import { upload } from '../../../nextjs-extension/src/s3Connection/s3connector';
 import { createReadStream } from 'node:fs';
 import { join } from 'node:path/posix';
 import { APP_DIR } from '../constants';
+import { logDiskMetrics } from '../util/diskMetrics';
 
 // docs-site-specific copy of nextjs-extension/src/offline-docs/index.ts.
 // Always builds offline bundles against docs-site (not docs-nextjs), since that's
@@ -168,6 +169,11 @@ export const handleOfflineDownloads = async (
       configEnvironment,
     });
   }
+
+  await logDiskMetrics(
+    'onSuccess:before-offline-bundle-builds',
+    'offline bundle content converted; starting per-bundle Next.js exports',
+  );
 
   for (const { bundleStem, version } of legacyBundles) {
     try {
