@@ -1,1 +1,0 @@
-$ ls /var/log/mongosync
