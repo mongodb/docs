@@ -32,3 +32,15 @@ export { buildUploadManifest, rootLlmsUploadEntry, isExcludedFromUpload } from '
 export type { UploadEntry, UploadManifestOptions } from './uploadManifest.js';
 export { publishProject, contentDirFromDocsProject, defaultBuildOutputDir } from './publishProject.js';
 export type { PublishProjectOptions, PublishProjectResult } from './publishProject.js';
+export { checkPublished, partitionPublished } from './publishedCheck.js';
+export type { PublishedResult, PublishedState, CheckPublishedOptions } from './publishedCheck.js';
+export { detectDrift, formatDriftReport, extractLinkedUrls, projectForKey, keyToUrl, isDocsUrl } from './rootLlmsDrift.js';
+export { validateRootLlmsUpdate } from './rootLlmsDrift.js';
+export type {
+  DriftReport,
+  ValidateUpdateInput,
+  DetectDriftInput,
+  UnlinkedFile,
+  PartCountMismatch,
+  LandingPageCandidate,
+} from './rootLlmsDrift.js';

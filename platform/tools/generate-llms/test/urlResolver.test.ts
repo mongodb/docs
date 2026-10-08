@@ -135,3 +135,14 @@ describe('computePagePath', () => {
     expect(computePagePath(sourceDir, '/repo/content/atlas/source/core/index.txt')).toBe('core/index');
   });
 });
+
+describe('docs root URLs', () => {
+  it('builds a single-slash URL when there is no slug, version, or page path', () => {
+    expect(buildUrl('https://www.mongodb.com/docs', '', '', '')).toBe('https://www.mongodb.com/docs/');
+  });
+
+  it('resolves the docs root index to /docs/index.md, not /docs//index.md', () => {
+    const rootUrl = buildUrl('https://www.mongodb.com/docs', '', '', '');
+    expect(toMarkdownUrl(rootUrl, true)).toBe('https://www.mongodb.com/docs/index.md');
+  });
+});

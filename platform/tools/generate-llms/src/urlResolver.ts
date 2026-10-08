@@ -98,6 +98,12 @@ export function buildUrl(baseUrl: string, urlSlug: string, version: string, page
   if (pagePath !== '') {
     pathParts.push(pagePath);
   }
+  // With no parts at all (the docs root, i.e. the landing project's own
+  // index) the join is empty, so interpolating it between two slashes
+  // would yield "https://www.mongodb.com/docs//".
+  if (pathParts.length === 0) {
+    return `${trimmedBase}/`;
+  }
   return `${trimmedBase}/${pathParts.join('/')}/`;
 }
 
@@ -108,7 +114,7 @@ export function buildUrl(baseUrl: string, urlSlug: string, version: string, page
  * nested section indexes) resolves to `<page>.md`.
  */
 export function toMarkdownUrl(url: string, isRootIndex: boolean): string {
-  const trimmed = url.replace(/\/$/, '');
+  const trimmed = url.replace(/\/+$/, '');
   return isRootIndex ? `${trimmed}/index.md` : `${trimmed}.md`;
 }
 

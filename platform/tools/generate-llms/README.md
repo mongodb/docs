@@ -110,6 +110,54 @@ above, and the fix belongs in a separate PR against
 Run it by hand for a dry run, or to republish one project without waiting
 for a deploy.
 
+## Check whether the root llms.txt is stale
+
+```bash
+pnpm check-root-llms                       # text report
+pnpm --silent check-root-llms -- --json    # machine-readable (--silent keeps pnpm's banner out of the JSON)
+pnpm check-root-llms -- --fail-on-drift    # exit 1 on drift, for CI
+```
+
+Read-only, and needs no credentials. Generates every project (~7s), asks the
+docs site over HTTP which of those files it actually serves, and compares that
+against the links in `llms-output/llms.txt`, reporting:
+
+- files that are published but not linked (a new project, or new parts
+  after a re-split)
+- links whose file is no longer published
+- `(Part N of M)` labels that disagree with how many parts exist
+- pages in `content/landing` that aren't linked
+
+Only a definitive 404 marks a file as unpublished; a timeout or 5xx leaves it
+treated as published, so a network blip can't cause a live link to be dropped.
+
+Generating needs `dir-name-to-prefix.json`, which a local build writes from the
+docsets database. When that file isn't present (CI, or a fresh clone), the
+check falls back to the committed `dir-name-to-prefix.snapshot.json`. A content
+directory missing from the snapshot can't be generated, and its live link would
+then look dead, so the check names the unmapped directories and exits without
+reporting drift. Refresh the snapshot with `pnpm build:prefix-map` in
+`platform/docs-site` (needs `MONGODB_URI`), then copy
+`src/generated/dir-name-to-prefix.json` over it.
+
+Landing's pages live directly in the root llms.txt rather than in a
+per-project file, and that section is a curated subset, so unlinked
+landing pages are reported as *candidates* and don't by themselves count
+as drift. Everything else does.
+
+## Publish the root llms.txt
+
+```bash
+pnpm publish-root                # dry run
+pnpm publish-root -- --execute   # upload llms-output/llms.txt to docs/llms.txt
+```
+
+Uploads only the root file, nothing else. The landing site's deploy runs
+this automatically when a merge changed `llms-output/llms.txt` (see
+`platform/nextjs-ssg-extension/src/llms-txt/index.ts`), so the root file
+publishes as the result of a merged git change - whether that change came
+from the weekly drift-check PR or from someone editing it by hand.
+
 ## Other commands
 
 ```bash

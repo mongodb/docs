@@ -30,6 +30,7 @@ import { resolvePathsToBuild } from "./util/resolvePathsToBuild";
 import { handleSearchManifests } from "../../nextjs-extension/src/searchManifests/index";
 import { handleOfflineDownloads } from "./offline-docs/index";
 import { handleLlmsTxt, handleRootLlmsTxt } from "./llms-txt/index";
+import { getFileChanges } from "../../nextjs-extension/src/github/processFileChanges";
 import { APP_DIR } from "./constants";
 import { logDiskMetrics } from "./util/diskMetrics";
 
@@ -261,7 +262,14 @@ extension.addBuildEventHandler(
 			// both recover from a skipped publish.
 			try {
 				await handleLlmsTxt(utils, configEnvironment);
-				await handleRootLlmsTxt(utils, configEnvironment, gitChangedFiles);
+				// Netlify's git.modifiedFiles diffs against the last cached
+				// deploy commit and is often empty on landing builds, so read
+				// the merged commit directly.
+				const headCommitFiles = await getFileChanges({
+					run: utils.run,
+					git: utils.git,
+				});
+				await handleRootLlmsTxt(utils, configEnvironment, headCommitFiles);
 			} catch (error) {
 				console.error("[llms-txt] Failed to publish llms.txt:", error);
 			}
