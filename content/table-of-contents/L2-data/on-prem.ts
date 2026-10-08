@@ -102,6 +102,12 @@ const tocData: TocItem[] = [
             versions: { excludes: manualVersions.after('v8.0') },
           },
           {
+            label: 'Packages',
+            contentSite: 'docs',
+            url: '/docs/:version/administration/community-packages',
+            versions: { includes: manualVersions.after('v8.0') },
+          },
+          {
             label: 'Troubleshoot Ubuntu Installation',
             contentSite: 'docs',
             url: '/docs/:version/reference/installation-ubuntu-community-troubleshooting',
