@@ -19,6 +19,14 @@ limitations. You can also
   cluster.
 - All nodes within a cluster must be of the same generation. You
   can't mix Gen1 and Gen2 nodes within the same cluster.
+- When you update a cluster with the :oas-atlas-op:`Update One Cluster
+  in One Project </updateGroupCluster>` endpoint, specify an
+  ``instanceSize`` that matches the cluster's intended generation. For
+  example, ``M200`` is Gen1, while ``M200_GEN_2`` is Gen2. If you
+  specify a Gen1 value for an existing Gen2 cluster, you might
+  unintentionally change the cluster's generation. To keep the cluster
+  on Gen2, specify the corresponding ``_GEN_2`` instance size, such as
+  ``M200_GEN_2``.
 - {+gen-2-clusters-short+} support only reactive auto-scaling, not predictive
   auto-scaling. To learn more, see :ref:`Scaling a Gen2 Dedicated Cluster
   <reactive-autoscaling-gen2-cluster>`.

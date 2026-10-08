@@ -9,6 +9,12 @@ For example, to deploy an ``M30`` tiered cluster:
 - Use ``M30`` for a Gen1 ``M30`` cluster.
 - Use ``M30_GEN_2`` for a Gen2 ``M30`` cluster.
 
+If you update an existing Gen2 cluster with the
+:oas-atlas-op:`Update One Cluster in One Project </updateGroupCluster>`
+endpoint, specify the corresponding ``_GEN_2`` value for the
+``instanceSize`` field. A Gen1 value such as ``M200`` might
+unintentionally change the cluster's generation to Gen1.
+
 For a list of |aws| and |gcp| cluster tiers that support Gen2 clusters, see:
 
 - :ref:`AWS Gen2 Available Cluster Tiers <aws-reference-gen2-cluster-tiers>`.
