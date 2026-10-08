@@ -261,7 +261,7 @@ function extractMetaDescription(content: string, filename: string): DescInfo | n
   const metaBlockMatch = content.match(/\.\.\s+meta::([\s\S]*?)(?=\n\S|\n\n\S|$)/);
   if (metaBlockMatch) {
     const metaBlock = metaBlockMatch[0];
-    const descMatch = metaBlock.match(/:description:\s*(.+(?:\n[ \t]+(?!:).+)*)/);
+    const descMatch = metaBlock.match(/:description:\s*(.+(?:\n[ \t]+(?!:)\S.*)*)/);
     if (descMatch) {
       const desc = descMatch[1].replace(/\n\s+/g, ' ').trim();
       return { desc, line: findLineNumber(content, ':description:'), format: 'meta-directive' };
@@ -323,7 +323,7 @@ function extractAllMetaDescriptions(content: string, filename: string): DescInfo
   //    including indented continuation lines)
   for (const block of content.matchAll(/\.\.\s+meta::([\s\S]*?)(?=\n\S|\n\n\S|$)/g)){
     const blockStart = block.index ?? 0;
-    for (const inner of block[0].matchAll(/:description:\s*(.+(?:\n[ \t]+(?!:).+)*)/g)){
+    for (const inner of block[0].matchAll(/:description:\s*(.+(?:\n[ \t]+(?!:)\S.*)*)/g)){
       add(inner[1], blockStart + (inner.index ?? 0), 'meta-directive');
     }
   }
