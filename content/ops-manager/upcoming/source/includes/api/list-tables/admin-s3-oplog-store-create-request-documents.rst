@@ -102,20 +102,11 @@
      - Required
      - Flag that indicates the style of this endpoint.
 
-       .. list-table::
-          :widths: 20 40 40
-          :header-rows: 1
-          :stub-columns: 1
+       - ``true``: path-style |url| endpoint. For example,
+         ``s3.amazonaws.com/<bucket>``.
 
-          * - Value
-            - S3 Oplog Store Endpoint Style
-            - Example
-          * - ``true``
-            - Path-style |url| endpoint
-            - ``s3.amazonaws.com/<bucket>``
-          * - ``false``
-            - Virtual-host-style |url| endpoint
-            - ``<bucket>.s3.amazonaws.com``
+       - ``false``: virtual-host-style |url| endpoint. For example,
+         ``<bucket>.s3.amazonaws.com``.
 
        To review the |s3| bucket |url| conventions, see the
        :aws:`AWS S3 documentation </AmazonS3/latest/dev/UsingBucket.html#access-bucket-intro>`.
@@ -128,20 +119,15 @@
 
        |onprem| accepts the following values:
 
-       .. list-table::
-          :widths: 20 80
-          :stub-columns: 1
+       - ``KEYS`` or None: |mms| uses **awsAccessKey** and
+         **awsSecretKey** to authorize access to |s3| bucket specified
+         in **s3BucketName**.
 
-          * - ``KEYS`` or None
-            - |mms| uses **awsAccessKey** and **awsSecretKey** to
-              authorize access to |s3| bucket specified in
-              **s3BucketName**.
-          * - ``IAM_ROLE``
-            - |mms| uses an |aws| |iam| role to authorize access to
-              |s3| bucket specified in **s3BucketName**.
-              **awsAccessKey** and **awsSecretKey** fields are
-              ignored. To learn more, see the
-              :aws:`AWS documentation </AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html#attach-iam-role>`
+       - ``IAM_ROLE``: |mms| uses an |aws| |iam| role to authorize
+         access to |s3| bucket specified in **s3BucketName**.
+         **awsAccessKey** and **awsSecretKey** fields are ignored. To
+         learn more, see the
+         :aws:`AWS documentation </AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html#attach-iam-role>`
 
    * - s3BucketEndpoint
      - string

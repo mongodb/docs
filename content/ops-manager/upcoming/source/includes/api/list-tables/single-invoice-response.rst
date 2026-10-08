@@ -9,14 +9,14 @@
 
    * - ``amountBilledCents``
      - number
-     - Amount billed in this invoice, calculated as **subtotalCents** 
-       + **salesTaxCents** - **startingBalanceCents**
+     - Amount billed in this invoice, calculated as
+       **subtotalCents** + **salesTaxCents** - **startingBalanceCents**
 
-   * - ``amountPaidCents`` 
+   * - ``amountPaidCents``
      - number
-     - Amount paid for this invoice. 
+     - Amount paid for this invoice.
 
-   * - ``created`` 
+   * - ``created``
      - string
      - Timestamp in `ISO 8601
        <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
@@ -27,17 +27,17 @@
      - number
      - Amount credited by MongoDB, in USD cents.
 
-   * - ``endDate`` 
+   * - ``endDate``
      - string
      - Timestamp in `ISO 8601
        <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
-       and time format in :abbr:`UTC (Coordinated Universal Time)` 
+       and time format in :abbr:`UTC (Coordinated Universal Time)`
        when the billing period for this invoice ended.
 
    * - ``groupId``
      - string
-     - Unique identifier of the project with which the invoice is associated.
-       *Does not appear on all invoices.*
+     - Unique identifier of the project with which the invoice is
+       associated. *Does not appear on all invoices.*
 
    * - ``id``
      - string
@@ -47,200 +47,148 @@
      - object array
      - Line items in the invoice. This information is also found in the
        :guilabel:`Usage Details` section of the Invoice page in the
-       |mms| UI. 
-       
-       Each object in the array includes
-       the following fields:
-       
-       .. list-table::
-          :widths: 30 70
-          :header-rows: 1
-          :stub-columns: 1
-          
-          * - Item
-            - Description
-          
-          * - ``clusterName``
-            - The name of the cluster that incurred the charge
+       |mms| UI.
 
-          * - ``created`` 
-            - Timestamp in `ISO 8601
-              <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_
-              date and time format in :abbr:`UTC (Coordinated Universal
-              Time)` when the line item was posted to the invoice.
+       Each object in the array includes the following fields:
 
-          * - ``endDate``
-            - Timestamp in `ISO 8601
-              <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_
-              date and time format in :abbr:`UTC (Coordinated Universal
-              Time)` when the period for which the line item applies ended.
+       - ``clusterName``: The name of the cluster that incurred the
+         charge.
 
-          * - ``discountCents``
-            - Amount discounted, in USD cents. *Displays when applicable.*
+       - ``created``: Timestamp in `ISO 8601
+         <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_
+         date and time format in :abbr:`UTC (Coordinated Universal
+         Time)` when the line item was posted to the invoice.
 
-          * - ``groupId``
-            - ID of the project with which the line item is associated.
+       - ``endDate``: Timestamp in `ISO 8601
+         <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_
+         date and time format in :abbr:`UTC (Coordinated Universal
+         Time)` when the period for which the line item applies ended.
 
-          * - ``note``
-            - Note regarding the line item.
+       - ``discountCents``: Amount discounted, in USD cents. *Displays
+         when applicable.*
 
-          * - ``percentDiscount``
-            - Percent of discount. *Displays when applicable.*
+       - ``groupId``: ID of the project with which the line item is
+         associated.
 
-          * - ``quantity``
-            - Number of units of the line item (e.g. GB, hours, etc.).
+       - ``note``: Note regarding the line item.
 
-          * - ``replicaSetName``
-            - Name of the replica set with which the line item is associated.
+       - ``percentDiscount``: Percent of discount. *Displays when
+         applicable.*
 
-          * - ``sku``
-            - Description of the line item. This could be the instance type,
-              a support charge, advanced security, etc.
+       - ``quantity``: Number of units of the line item (such as GB
+         or hours).
 
-          * - ``startDate``
-            - Timestamp in `ISO 8601
-              <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_
-              date and time format in :abbr:`UTC (Coordinated Universal
-              Time)` when the period for which the line item applies began.
+       - ``replicaSetName``: Name of the replica set with which the
+         line item is associated.
 
-          * - ``totalPriceCents``
-            - Total price for the line item, in USD cents. Equal to
+       - ``sku``: Description of the line item. This could be the
+         instance type, a support charge, advanced security, and so
+         on.
 
-              .. code-block:: none
-                 :copyable: false
+       - ``startDate``: Timestamp in `ISO 8601
+         <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_
+         date and time format in :abbr:`UTC (Coordinated Universal
+         Time)` when the period for which the line item applies began.
 
-                  unitPriceDollars * quantity * 100
+       - ``totalPriceCents``: Total price for the line item, in USD
+         cents. Equal to
 
-          * - ``unitPriceDollars``
-            - Cost of the item, in dollars.
-       
+         .. code-block:: none
+            :copyable: false
+
+            unitPriceDollars * quantity * 100
+
+       - ``unitPriceDollars``: Cost of the item, in dollars.
+
    * - ``links``
      - object array
      - .. include:: /includes/links-explanation.rst
 
-   * - ``orgId`` 
+   * - ``orgId``
      - string
-     - Unique identifier for the organization that received this 
+     - Unique identifier for the organization that received this
        invoice.
 
    * - ``payments``
      - object array
-     - Payments applied to the invoice. Objects in the ``payments`` array
-       include the following fields:
-       
-       .. list-table::
-          :widths: 30 70
-          :header-rows: 1
-          :stub-columns: 1
-          
-          * - Field
-            - Description
-            
-          * - ``amountBilledCents``
-            - The amount of the invoice, in USD cents.
+     - Payments applied to the invoice. Objects in the ``payments``
+       array include the following fields:
 
-          * - ``amountPaidCents``
-            - The amount that the customer paid, in USD cents.
+       - ``amountBilledCents``: The amount of the invoice, in USD
+         cents.
 
-          * - ``created``
-            - Timestamp in `ISO 8601
-              <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_
-              date and time format in :abbr:`UTC (Coordinated Universal
-              Time)` of the date the payment was recorded.
+       - ``amountPaidCents``: The amount that the customer paid, in USD
+         cents.
 
-          * - ``id``
-            - Unique identifier of the payment.
+       - ``created``: Timestamp in `ISO 8601
+         <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_
+         date and time format in :abbr:`UTC (Coordinated Universal
+         Time)` of the date the payment was recorded.
 
-          * - ``salesTaxCents``
-            - Amount of sales tax paid, in USD cents.
+       - ``id``: Unique identifier of the payment.
 
-          * - ``statusName``
-            - State of the payment.
+       - ``salesTaxCents``: Amount of sales tax paid, in USD cents.
 
-              .. list-table::
-                 :widths: 30 70
-                 :header-rows: 1
-                 :stub-columns: 1
-                 
-                 * - Status
-                   - Description
-                 
-                 * - ``CANCELLED``
-                   - The payment has been cancelled.
+       - ``statusName``: State of the payment.
 
-                 * - ``FAILED``
-                   - The attempt to charge the credit card failed.
+         - ``CANCELLED``: The payment has been canceled.
 
-                 * - ``FORGIVEN``
-                   - The payment was created, but was subsequently
-                     forgiven.
+         - ``FAILED``: The attempt to charge the credit card failed.
 
-                 * - ``NEW``
-                   - The payment has been created, but no attempt
-                     has been made to charge the credit card.
+         - ``FORGIVEN``: The payment was created, but was subsequently
+           forgiven.
 
-                 * - ``PAID``
-                   - The payment was successful.
+         - ``NEW``: The payment has been created, but no attempt has
+           been made to charge the credit card.
 
-          * - ``subtotalCents``
-            - Sum of all positive invoice line items, in USD cents.
+         - ``PAID``: The payment was successful.
 
-          * - ``updated``
-            - Timestamp in `ISO 8601
-              <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_
-              date and time format in :abbr:`UTC (Coordinated Universal
-              Time)` that the object was last updated.
-   
+       - ``subtotalCents``: Sum of all positive invoice line items, in
+         USD cents.
+
+       - ``updated``: Timestamp in `ISO 8601
+         <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_
+         date and time format in :abbr:`UTC (Coordinated Universal
+         Time)` that the object was last updated.
+
    * - ``refunds``
      - object array
-     - Refunds issued for the invoice. Objects in the ``refunds`` array
-       include the following fields:
+     - Refunds issued for the invoice. Objects in the ``refunds``
+       array include the following fields:
 
-       .. list-table::
-          :widths: 30 70
-          :header-rows: 1
-          :stub-columns: 1
+       - ``amountCents``: The amount of the refund, in USD cents.
 
-          * - Field
-            - Description
+       - ``created``: Timestamp in `ISO 8601
+         <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_
+         date and time format in :abbr:`UTC (Coordinated Universal
+         Time)` of the date the refund was recorded.
 
-          * - ``amountCents``
-            - The amount of the refund, in USD cents.
-         
-          * - ``created``
-            - Timestamp in `ISO 8601
-              <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_
-              date and time format in :abbr:`UTC (Coordinated Universal
-              Time)` of the date the refund was recorded.
+       - ``reason``: Reason for the refund.
 
-          * - ``reason``
-            - Reason for the refund.
+       - ``paymentId``: Unique identifier of the payment.
 
-          * - ``paymentId``
-            - Unique identifier of the payment.
-
-   * - ``salesTaxCents`` 
+   * - ``salesTaxCents``
      - number
-     - Amount of taxes levied on **subtotalCents**. 
+     - Amount of taxes levied on **subtotalCents**.
 
-   * - ``startDate`` 
+   * - ``startDate``
      - string
      - Timestamp in `ISO 8601
        <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
        and time format in :abbr:`UTC (Coordinated Universal Time)` of
        the starting date for this invoice.
 
-   * - ``statusName`` 
+   * - ``statusName``
      - string
      - State of this invoice. Accepted values are:
 
        .. include:: /includes/api/list-tables/statusName.rst
 
-   * - ``subtotalCents`` 
+   * - ``subtotalCents``
      - number
      - Sum of all positive invoice line items in USD cents.
 
-   * - ``updated`` 
+   * - ``updated``
      - string
      - Timestamp in `ISO 8601
        <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
