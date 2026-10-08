@@ -1,4 +1,4 @@
-import { GET } from '@/app/api/markdown-tabs/[...path]/route';
+import { GET } from '@/app/api/markdown-tabs/[[...path]]/route';
 
 const ORIGIN = 'https://www.mongodb.com';
 const BASE_PATH = '/docs';
@@ -34,7 +34,7 @@ const DEFAULT_DOC = '### MongoDB Shell\n';
 
 const call = (search?: string) => GET(fakeRequest(search), { params: { path: DOCS_PATH } });
 
-describe('GET /api/markdown-tabs/[...path]', () => {
+describe('GET /api/markdown-tabs/[[...path]]', () => {
   const originalFetch = global.fetch;
   let fetchSpy: jest.Mock;
 
@@ -136,10 +136,14 @@ describe('GET /api/markdown-tabs/[...path]', () => {
     expect((await call('?tabs=nodejs')).status).toBe(404);
   });
 
-  it('400s when no path segments are given', async () => {
-    const res = await GET(fakeRequest('?tabs=nodejs'), { params: { path: [] } });
+  // The basePath root has no segments (optional catch-all), and its exports sit
+  // at the route's own slash-terminated index rather than at `<route>//`.
+  it.each([[undefined], [[]]])('reads the root exports without a doubled slash when path is %j', async (path) => {
+    serveExports({ all: fakeUpstream(ALL_TABS_DOC) });
 
-    expect(res.status).toBe(400);
-    expect(fetchSpy).not.toHaveBeenCalled();
+    const res = await GET(fakeRequest('?tabs=nodejs'), { params: { path } });
+
+    expect(res.status).toBe(200);
+    expect((fetchSpy.mock.calls[0][0] as URL).pathname).toBe('/docs/api/markdown-all/');
   });
 });

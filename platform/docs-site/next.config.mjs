@@ -158,8 +158,27 @@ const nextConfig = {
   },
   async rewrites() {
     return [
+      // The basePath root has no segment for `/:path*.md` to match, so a
+      // non-versioned docset's root export is served from `<basePath>/index.md`
+      // (the HTML `<basePath>/index/` redirects to the root the same way).
+      // These precede the `/:path*.md` rules below, which would otherwise take
+      // `index.md` for a page named `index`. Same tab-param routing as below.
+      {
+        source: '/index.md',
+        has: [{ type: 'query', key: 'allTabs', value: 'true' }],
+        destination: '/api/markdown-tabs/',
+      },
+      {
+        source: '/index.md',
+        has: [{ type: 'query', key: 'tabs' }],
+        destination: '/api/markdown-tabs/',
+      },
+      {
+        source: '/index.md',
+        destination: '/api/markdown/',
+      },
       // Serve the Markdown export of a page. The routes are prerendered at build
-      // time (see src/app/api/markdown/[...path]/route.ts). basePath prefixes
+      // time (see src/app/api/markdown/[[...path]]/route.ts). basePath prefixes
       // each source, so `/:path*.md` becomes `/docs/<prefix>/:path*.md`.
       //
       // The tab params are resolved here, by rule, rather than in middleware:

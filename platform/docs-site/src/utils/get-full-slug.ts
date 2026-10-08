@@ -16,6 +16,12 @@ export const getFullSlug = (initialSlug: string, pathPrefix: string): string => 
     cleanedSlug = '';
   }
 
+  // The basePath root reaches the server as `<prefix>/index` (the page route
+  // maps its undefined param to `index`), while the browser's URL for it ends
+  // at `<prefix>`. Drop the segment so both sides resolve the same slug,
+  // otherwise the TOC-driven crumbs and nav differ and hydration fails.
+  cleanedSlug = cleanedSlug.replace(/\/index$/, '');
+
   const langArray = getAvailableLanguages(true).map((lang) => lang.localeCode);
   const hasLang = langArray.some((lang) => cleanedSlug?.startsWith(lang + '/'));
   const alreadyCompleteSlug = cleanedSlug?.startsWith('docs/') || hasLang;

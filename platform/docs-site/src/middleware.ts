@@ -22,7 +22,7 @@ function exportRouteFor(searchParams: URLSearchParams): 'markdown-tabs' | 'markd
 export function middleware(request: NextRequest) {
   // Answer CORS preflight here rather than with an OPTIONS handler in the
   // markdown route, which would opt that route out of static generation
-  // (see the note in app/api/markdown/[...path]/route.ts).
+  // (see the note in app/api/markdown/[[...path]]/route.ts).
   if (request.method === 'OPTIONS') {
     return withCORS(new NextResponse(null, { status: 204 }));
   }
@@ -65,16 +65,18 @@ export function middleware(request: NextRequest) {
 
   if (!isExplicitMd && !isOtherApi && wantsMarkdown) {
     // /api/markdown/current/foo or /current/foo/ → current/foo (basePath-
-    // relative; the export routes reconstruct the full blob path).
+    // relative; the export routes reconstruct the full blob path). `/` → ''.
     const docsPath = pathname.replace(/^\/api\/markdown\//, '').replace(/^\/|\/$/g, '');
     const route = exportRouteFor(searchParams);
 
     // Nothing to do when the request already names the route that answers it.
-    if (docsPath && !(isDefaultExportRoute && route === 'markdown')) {
+    // `docsPath` is empty for the basePath root, whose export is the route's
+    // own index.
+    if (!(isDefaultExportRoute && route === 'markdown')) {
       const url = request.nextUrl.clone();
       // The trailing slash is load-bearing: `trailingSlash: true` makes the
       // slashless form answer 308, which the export routes do not survive.
-      url.pathname = `/api/${route}/${docsPath}/`;
+      url.pathname = `/api/${route}/${docsPath ? `${docsPath}/` : ''}`;
       return NextResponse.rewrite(url);
     }
   }

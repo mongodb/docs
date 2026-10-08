@@ -16,7 +16,8 @@ export const dynamic = 'force-dynamic';
 
 interface RouteContext {
   params: {
-    path: string[];
+    // Undefined at the basePath root (optional catch-all route).
+    path?: string[];
   };
 }
 
@@ -25,24 +26,22 @@ interface RouteContext {
  *
  * The MDX this filters cannot be re-rendered at request time — the content-mdx
  * directory it comes from is absent from the deployed output (see
- * api/markdown/[...path]/route.ts) — so the finished export is read back over
+ * api/markdown/[[...path]]/route.ts) — so the finished export is read back over
  * the CDN instead.
  *
  * The trailing slash is load-bearing: `trailingSlash: true` makes the slashless
- * form answer 308, which the caller below reads as a missing export.
+ * form answer 308, which the caller below reads as a missing export. `docsPath`
+ * is empty for the basePath root, which has no segment to terminate.
  */
 function exportUrl(request: Request, route: 'markdown' | 'markdown-all', docsPath: string): URL {
   const url = new URL(request.url);
-  url.pathname = `${getBasePath()}/api/${route}/${docsPath}/`;
+  url.pathname = `${getBasePath()}/api/${route}/${docsPath ? `${docsPath}/` : ''}`;
   url.search = '';
   return url;
 }
 
 export async function GET(request: Request, { params }: RouteContext) {
   const docsPath = (params.path ?? []).join('/');
-  if (!docsPath) {
-    return withCORS(new NextResponse('Path is required', { status: 400 }));
-  }
 
   const fetchExport = (route: 'markdown' | 'markdown-all') =>
     fetch(exportUrl(request, route, docsPath), { headers: { Accept: 'text/markdown' } });

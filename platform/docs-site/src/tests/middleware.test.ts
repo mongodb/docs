@@ -73,11 +73,19 @@ describe('middleware', () => {
     },
   );
 
-  // A zero-segment path has no `.md` export (see generateMarkdownStaticParams),
-  // so the docset root must fall through to the HTML page rather than rewrite
-  // to an export route with an empty path.
-  it('does not rewrite the docset root when Accept prefers markdown', () => {
-    expect(rewriteOf(fakeRequest({ pathname: '/', accept: 'text/markdown' }))).toBeUndefined();
+  // The docset root has a markdown export too (see generateMarkdownStaticParams),
+  // at the export route's own slash-terminated index.
+  it('rewrites the docset root to the markdown route when Accept prefers markdown', () => {
+    expect(rewriteOf(fakeRequest({ pathname: '/', accept: 'text/markdown' }))?.pathname).toBe('/api/markdown/');
+  });
+
+  it('rewrites the docset root with tab params to the tab route', () => {
+    const request = fakeRequest({ pathname: '/', search: '?tabs=nodejs', accept: 'text/markdown' });
+    expect(rewriteOf(request)?.pathname).toBe('/api/markdown-tabs/');
+  });
+
+  it('leaves a bare request for the root export route to the static default export', () => {
+    expect(rewriteOf(fakeRequest({ pathname: '/api/markdown/' }))).toBeUndefined();
   });
 
   it('passes HTML requests through with a Vary: Accept header', () => {
