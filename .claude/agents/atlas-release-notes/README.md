@@ -33,13 +33,13 @@ Start a new Claude Code conversation and paste the following prompt, filling in
 the three values:
 
 ```
-run .github/agents/atlas-release-notes/flow.md. this is for an upcoming release.
+run .claude/agents/atlas-release-notes/flow.md. this is for an upcoming release.
 start date is YYYY-MM-DD, end date is YYYY-MM-DD, version is vYYYYMMDD
 ```
 
 **Example:**
 ```
-run .github/agents/atlas-release-notes/flow.md. this is for an upcoming release.
+run .claude/agents/atlas-release-notes/flow.md. this is for an upcoming release.
 start date is 2026-03-04, end date is 2026-03-25, version is v20260325
 ```
 

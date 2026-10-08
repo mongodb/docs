@@ -107,6 +107,7 @@ For detecting and fixing linter-flagged issues in content/.
 
 | Tool | What it does |
 |---|---|
+| `atlas-release-notes` | Generates the monthly Atlas changelog by pulling features from Aha! and Jira, writing RST entries, and updating the changelog file |
 | `feature-branch` | Deterministic git flow for the feature-branch workflow: create, sync, and start-task |
 | `feature-drafter-agent` | Drafts one page or section from a planner task and opens a PR against the feature branch |
 | `feature-planner-agent` | Turns an approved documentation plan into tasks and delegates drafting to feature-drafter-agent sub-agents |

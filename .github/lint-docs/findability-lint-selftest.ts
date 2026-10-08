@@ -111,7 +111,7 @@ See https://www.mongodb.com/docs/manual/administration for details.
    :name: genre
    :values: novel
 `;
-  const issues = lintFindabilityContent(src, '/repo/.github/agents/foo/SKILL.md');
+  const issues = lintFindabilityContent(src, '/repo/.claude/agents/foo/SKILL.md');
   assert.strictEqual(issues.length, 0, 'agent files should skip');
 }
 

@@ -93,7 +93,7 @@ Run the fetch script:
 
 ```bash
 mkdir -p /tmp/atlas-rn && \
-python .github/agents/atlas-release-notes/fetch_aha_features.py \
+python .claude/agents/atlas-release-notes/fetch_aha_features.py \
   --start-date {START_DATE} --end-date {END_DATE} \
   --output /tmp/atlas-rn/features.json
 ```
@@ -211,7 +211,7 @@ Each subagent receives only what it needs for its one feature:
 <subagent_inputs>
 - Model: `sonnet`
 - Feature data (YAML, derived as below)
-- Skill: content of `.github/agents/atlas-release-notes/write-feature-entry.skill.md`
+- Skill: content of `.claude/agents/atlas-release-notes/write-feature-entry.skill.md`
 - Terminology file: `/tmp/atlas-rn/terminology.txt`
 - Anchor index: `/tmp/atlas-rn/all-anchors.txt`
 </subagent_inputs>

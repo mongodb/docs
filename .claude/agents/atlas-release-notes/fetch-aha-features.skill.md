@@ -48,7 +48,7 @@ JSON file at output_path containing:
 ## Step 1: Execute the Script
 
 ```bash
-python .github/agents/atlas-release-notes/fetch_aha_features.py \
+python .claude/agents/atlas-release-notes/fetch_aha_features.py \
   --start-date {START_DATE} \
   --end-date {END_DATE} \
   --output {OUTPUT_PATH}
@@ -97,7 +97,7 @@ After fetching, verify each feature's readiness:
 <example name="fetch_march_features">
 Command:
 ```bash
-python .github/agents/atlas-release-notes/fetch_aha_features.py \
+python .claude/agents/atlas-release-notes/fetch_aha_features.py \
   --start-date 2026-02-25 \
   --end-date 2026-03-05 \
   --output /tmp/atlas-rn/features.json

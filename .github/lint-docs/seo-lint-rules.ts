@@ -85,12 +85,16 @@ function isIncludeFile(filename: string): boolean {
 }
 
 /**
- * Agent skills and flows under .github/agents/ are internal tooling,
- * not published docs. Skip all checks to avoid noise.
+ * Agent skills and flows under .claude/ (previously .github/agents/) are
+ * internal tooling, not published docs. Skip all checks to avoid noise.
  */
 function isAgentToolingFile(filename: string): boolean {
   const normalizedPath = filename.replace(/\\/g, '/').toLowerCase();
-  return normalizedPath.includes('.github/agents/');
+  return (
+    normalizedPath.includes('.github/agents/') ||
+    normalizedPath.includes('/.claude/') ||
+    normalizedPath.startsWith('.claude/')
+  );
 }
 
 // =============================================================================
