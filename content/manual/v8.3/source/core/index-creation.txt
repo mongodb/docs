@@ -20,10 +20,10 @@ Index Builds on Populated Collections
 
 
 Index builds use an optimized build process that holds an exclusive
-lock on the collection at the beginning and end of the index build.
-The rest of the build process yields to interleaving read and write
-operations. For a detailed description of index build process and
-locking behavior, see :ref:`index-build-process`.
+lock on the collection briefly at the beginning and end of the
+index build. The rest of the build process yields to interleaving
+read and write operations. For a detailed description of index
+build process and locking behavior, see :ref:`index-build-process`.
 
 Index builds on a replica set or sharded cluster build simultaneously across 
 all data-bearing replica set members. The primary requires a minimum number of 
@@ -489,11 +489,15 @@ process:
 
   * - Lock
 
-    - The ``mongod`` upgrades the intent exclusive ``IX`` 
-      lock on the collection to a shared ``S`` lock. This 
+    - The ``mongod`` upgrades the intent exclusive ``IX``
+      lock on the collection to a shared ``S`` lock. This
       blocks all write operations to the collection, including the
       application of any replicated write operations or metadata
       commands that target the collection.
+
+      The ``mongod`` holds the ``S`` lock only while it drains
+      the remaining records in the side writes table, and then
+      releases it.
 
   * - Finish Processing Temporary Side Writes Table
 
@@ -510,12 +514,15 @@ process:
 
   * - Lock
 
-    - The ``mongod`` upgrades the shared ``S`` lock on the 
-      collection to an exclusive ``X`` lock on the collection. This 
-      blocks all read and write operations on the collection, including 
-      the application of any replicated write operations or metadata 
-      commands that target the collection. The ``mongod`` 
-      does not yield this lock. 
+    - After the ``mongod`` releases the ``S`` lock, it later
+      acquires an exclusive ``X`` lock on the collection. This
+      blocks all read and write operations on the collection,
+      including the application of any replicated write
+      operations or metadata commands that target the
+      collection. The ``mongod`` does not yield this lock, but
+      holds it only long enough to complete the final side
+      writes drain, check constraint violations, and commit the
+      index as ready.
 
   * - Drop Side Write Table
 
@@ -564,8 +571,16 @@ process:
 
   * - Lock
 
-    - The ``mongod`` releases the ``X`` lock on the 
-      collection. 
+    - The ``mongod`` releases the ``X`` lock on the
+      collection.
+
+.. note::
+
+   The ``S`` and ``X`` locks at the end of the index build are
+   held only while the ``mongod`` drains the remaining side
+   writes and finalizes the index, so they are typically brief.
+   The duration depends on the number of writes remaining in the
+   side writes table when each stage begins.
 
 .. seealso::
 
