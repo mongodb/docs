@@ -15,8 +15,14 @@ processor of a given tier in a given region.
      - SP10  
      - SP30  
      - SP50  
+   * - asia-south1
+     - $0.0661
+     - $0.1321
+     - $0.2282
+     - $0.4684
+     - $1.8736
    * - europe-west1
-     - $0.0605  
+     - $0.0605
      - $0.1210  
      - $0.2090  
      - $0.4290  
