@@ -80,3 +80,18 @@ Some examples use MongoDB Atlas sample datasets. Each language has a sample data
 | `sample_weatherdata` | data | Time series, large datasets |
 
 See each language's CLAUDE.md for the specific sample data API (e.g., `describeWithSampleData` for JS, `@requires_sample_data` for Python).
+
+## Working Principles
+
+Follow these principles when working in these files:
+
+- If you create debug files, examine them to consider whether they contain any contents worth maintaining as ongoing test coverage to protect against regressions. If yes, add tests that incorporate those patterns or cases, then delete the debug files.
+- If you add debug output to source code to diagnose an issue, remove it when you're done.
+- After you change implementation details, run the entire test suite for that project to ensure you haven't introduced any regressions.
+- Optimize for maintainability. Use language- and framework-idiomatic documentation comments and capture the "why" of design decisions in code comments. Choose simpler solutions over clever ones.
+- Keep the user-facing `utils` APIs as simple as possible. The users of these utilities are technical writers, not developers. Avoid unnecessary configuration or an excessive number of public methods unless key to the requested functionality. Handle those details internally as much as possible.
+- Do not call a partial implementation with a mix of passing and failing tests "complete" or "successful." Don't pepper every file with emojis or print mindless success messages while tests are failing. Iterate until the test failures are resolved.
+
+Some projects have additional documentation for common test patterns and troubleshooting:
+
+- **mongosh**: See `command-line/mongosh/TESTING-PATTERNS.md` for mongosh-specific test patterns, the Expect API, and common failure fixes.

@@ -125,6 +125,13 @@ When searching for include file references, scope your search to the specific ve
 
 For versioned projects, if the user does not specify a target version and no Jira ticket is provided, default to `upcoming` if the docset has an upcoming version, and state this assumption to the user before proceeding. If the docset has no upcoming version, ask which version to target.
 
+# WHEN WORKING ON CODE EXAMPLE TESTS (`code-example-tests/`)
+
+For the directory layout, Grove conventions, and working principles for
+`code-example-tests/`, see `code-example-tests/CLAUDE.md`. The grove skills
+(`grove-create`, `grove-migrate`, `grove-test`, etc.) handle common workflows
+in that directory.
+
 # BACKPORTING
 
 When backporting (only when explicitly requested):
