@@ -303,6 +303,12 @@ const tocData: TocItem[] = [
           },
         ],
       },
+      {
+        label: 'Uninstall',
+        contentSite: 'docs',
+        url: '/docs/:version/administration/uninstall-mongodb-linux',
+        versions: { includes: manualVersions.after('v8.2') },
+      },
     ],
   },
   {

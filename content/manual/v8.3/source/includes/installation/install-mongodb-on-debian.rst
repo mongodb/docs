@@ -101,13 +101,6 @@ package -- not the unofficial ``mongodb`` package provided by
 
       .. include:: /includes/steps/run-mongodb-on-debian.rst
 
-Uninstall MongoDB Community Edition
------------------------------------
-
-.. include:: /includes/fact-uninstall.rst
-
-.. include:: /includes/steps/uninstall-mongodb-on-debian.rst
-
 Additional Information
 ----------------------
 
