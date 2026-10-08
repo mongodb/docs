@@ -23,12 +23,6 @@
     -
     -
 
-  * - Amazon 2013.03+
-    - |checkmark|
-    -
-    -
-    -
-
   * - Debian 12
     - |checkmark|
     -
