@@ -45,28 +45,6 @@ it('renders correctly', () => {
   expect(tree.asFragment()).toMatchSnapshot();
 });
 
-it('renders with "normal" or YAML steps styling', () => {
-  const tree = render(
-    <Procedure style="normal">
-      <Step stepNumber={1}>
-        <Paragraph>
-          Connect to a MongoDB deployment hosted on MongoDB Atlas, or a deployment hosted locally on your own machine.
-        </Paragraph>
-        <Paragraph>
-          <Link to="/connect/#std-label-connect-run-compass">To learn more, see Connect to MongoDB</Link>
-        </Paragraph>
-      </Step>
-      <Step stepNumber={2}>
-        <Paragraph>Import data from CSV or JSON files into your MongoDB database.</Paragraph>
-        <Paragraph>
-          <Link to="/import-export/#std-label-compass-import-export">To learn more, see Import and Export Data</Link>
-        </Paragraph>
-      </Step>
-    </Procedure>,
-  );
-  expect(tree.asFragment()).toMatchSnapshot();
-});
-
 it('renders steps nested in include nodes', () => {
   const tree = render(
     <Procedure>

@@ -20,10 +20,6 @@ export const convertDirectiveProcedure = ({
   depth,
   convertChildren,
 }: ConvertDirectiveProcedureArgs): MdastNode => {
-  const style = (node.options?.style as string) ?? 'connected';
-
-  const attributes: MdastNode[] = [{ type: 'mdxJsxAttribute', name: 'style', value: style }];
-
   const children: MdastNode[] = [];
 
   for (const child of node.children ?? []) {
@@ -37,7 +33,7 @@ export const convertDirectiveProcedure = ({
   return {
     type: 'mdxJsxFlowElement',
     name: 'Procedure',
-    attributes,
+    attributes: [],
     children,
   };
 };
