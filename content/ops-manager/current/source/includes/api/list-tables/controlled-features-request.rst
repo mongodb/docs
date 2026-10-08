@@ -43,39 +43,37 @@
 
        Accepted values are:
 
-       .. list-table::
-          :widths: 40 60
-          :header-rows: 1
-          :stub-columns: 1
+       - ``ExternallyManagedLock``: Users can't use |onprem| to manage
+         other settings given in the ``policies[n].policy`` array.
+         These same users may use a configured external system, such as
+         the |k8s-op-short| to manage these settings.
 
-          * - Value
-            - Purpose
+       - ``DisableUserManagement``: Users can't manage users or
+         roles.
 
-          * - ``ExternallyManagedLock``
-            - Users can't use |onprem| to manage other settings given
-              in the ``policies[n].policy`` array. These same users may
-              use a configured external system, like the |k8s-op-short|
-              to manage these settings.
-          * - ``DisableUserManagement``
-            - Users can't manage users or roles.
-          * - | ``DisableAuthenticationMechanisms``
-            - Users can't change authentication settings.
-          * - | ``DisableSetMongodConfig``
-            - Users can't change any |mongod| settings listed in the
-              ``policies[n].disabledParams`` array.
-          * - | ``DisableSetMongodVersion``
-            - Users can't change the version of any |mongod| or
-              |mongos|.
-          * - ``DisableBackupAgent``
-            - Users can't enable or disable the {+bagent+} agent.
-          * - | ``DisableMongodLogManagement``
-            - Users can't change log management settings.
-          * - | ``DisableImportToAutomation``
-            - Users can't manage deployments using {+aagent+}.
-          * - | ``DisableAgentApiKeyManagement``
-            - Users can't create or update Agent API keys.
-          * - | ``DisableMongodHostManagement``
-            - Users can't change the server type of hosts.
+       - ``DisableAuthenticationMechanisms``: Users can't change
+         authentication settings.
+
+       - ``DisableSetMongodConfig``: Users can't change any |mongod|
+         settings listed in the ``policies[n].disabledParams`` array.
+
+       - ``DisableSetMongodVersion``: Users can't change the version
+         of any |mongod| or |mongos|.
+
+       - ``DisableBackupAgent``: Users can't enable or disable the
+         {+bagent+} agent.
+
+       - ``DisableMongodLogManagement``: Users can't change log
+         management settings.
+
+       - ``DisableImportToAutomation``: Users can't manage deployments
+         using {+aagent+}.
+
+       - ``DisableAgentApiKeyManagement``: Users can't create or
+         update Agent API keys.
+
+       - ``DisableMongodHostManagement``: Users can't change the
+         server type of hosts.
 
    * - | ``policies[n]``
        | ``.disabledParams``

@@ -19,7 +19,7 @@
    * - auth.authoritativeSet
      - boolean
      - Conditional
-     - Sets whether or not |mms| enforces a consistent set of managed
+     - Sets whether |mms| enforces a consistent set of managed
        MongoDB users and roles in all managed deployments in the
        project.
 
@@ -65,27 +65,16 @@
 
        Specify:
 
-       .. list-table::
-          :widths: 30 70
-          :header-rows: 1
+       - ``MONGODB-CR``: :ref:`SCRAM-SHA-1 <authentication-scram-sha-1>`
 
-          * - Value
-            - Authentication Mechanism
+       - ``SCRAM-SHA-256``: :ref:`SCRAM-SHA-256 <authentication-scram>`
 
-          * - MONGODB-CR
-            - :ref:`SCRAM-SHA-1 <authentication-scram-sha-1>`
+       - ``MONGODB-X509``: :ref:`x.509 Client Certificate
+         <security-auth-x509>`
 
-          * - SCRAM-SHA-256
-            - :ref:`SCRAM-SHA-256 <authentication-scram>`
+       - ``PLAIN``: :ref:`LDAP <security-auth-ldap>`
 
-          * - MONGODB-X509
-            - :ref:`x.509 Client Certificate <security-auth-x509>`
-
-          * - PLAIN
-            - :ref:`LDAP <security-auth-ldap>`
-
-          * - GSSAPI
-            - :ref:`Kerberos <security-auth-kerberos>`
+       - ``GSSAPI``: :ref:`Kerberos <security-auth-kerberos>`
 
    * - auth.autoAuthMechanisms
      - array of strings
@@ -100,27 +89,16 @@
 
        Specify:
 
-       .. list-table::
-          :widths: 30 70
-          :header-rows: 1
+       - ``MONGODB-CR``: :ref:`SCRAM-SHA-1 <authentication-scram-sha-1>`
 
-          * - Value
-            - Authentication Mechanism
+       - ``SCRAM-SHA-256``: :ref:`SCRAM-SHA-256 <authentication-scram>`
 
-          * - MONGODB-CR
-            - :ref:`SCRAM-SHA-1 <authentication-scram-sha-1>`
+       - ``MONGODB-X509``: :ref:`x.509 Client Certificate
+         <security-auth-x509>`
 
-          * - SCRAM-SHA-256
-            - :ref:`SCRAM-SHA-256 <authentication-scram>`
+       - ``PLAIN``: :ref:`LDAP <security-auth-ldap>`
 
-          * - MONGODB-X509
-            - :ref:`x.509 Client Certificate <security-auth-x509>`
-
-          * - PLAIN
-            - :ref:`LDAP <security-auth-ldap>`
-
-          * - GSSAPI
-            - :ref:`Kerberos <security-auth-kerberos>`
+       - ``GSSAPI``: :ref:`Kerberos <security-auth-kerberos>`
 
    * - auth.key
      - string

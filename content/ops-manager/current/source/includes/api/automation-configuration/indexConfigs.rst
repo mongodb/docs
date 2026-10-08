@@ -121,22 +121,11 @@ The **indexConfigs** array is optional and defines indexes to be built for speci
      - Optional
      - Flag that indicates how to compare numeric strings.
 
-       .. list-table::
-          :widths: 10 45 45
-          :header-rows: 1
-          :stub-columns: 1
+       - ``true``: numeric strings compared as numbers. For example,
+         **10** > **2**.
 
-          * - Value
-            - Collation Method
-            - Example
-
-          * - true
-            - numeric strings compared as numbers
-            - **10** > **2**.
-
-          * - false
-            - numeric strings compared as strings
-            - **10** < **2**.
+       - ``false``: numeric strings compared as strings. For example,
+         **10** < **2**.
 
        The default is **false**.
 
@@ -161,7 +150,7 @@ The **indexConfigs** array is optional and defines indexes to be built for speci
    * - indexConfigs.collation.normalization
      - boolean
      - Optional
-     - Flag that indicates if the text should be normalized.
+     - Flag that indicates whether to normalize the text.
 
        If you set this parameter to **true**, collation:
 
