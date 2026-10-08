@@ -1,3 +1,7 @@
+.. facet::
+   :name: programming_language
+   :values: shell, csharp
+
 .. _qe-fundamentals-manage-keys:
 
 =================================
@@ -21,12 +25,15 @@ In this guide, you can learn how to manage your encryption keys with a
 Overview
 --------
 
-This procedure shows you how to rotate encryption keys for {+qe+} using
-:binary:`~bin.mongosh`. Rotating DEKs consists of rewrapping them with a
-new {+cmk-long+}, so the terms "rotate" and "rewrap" are sometimes used interchangeably.
+This procedure shows you how to rotate encryption keys for {+qe+}.
 
-After completing this guide, you should be able to rotate your
-{+cmk-long+} ({+cmk-abbr+}) on your {+kms-long+}, and then rewrap 
+.. tip:: Rotate and Rewrap
+
+   Rotating DEKs consists of rewrapping them with a new {+cmk-long+}.
+   This guide uses the terms "rotate" and "rewrap" interchangeably.
+
+After completing this guide, you can rotate your
+{+cmk-long+} ({+cmk-abbr+}) on your {+kms-long+}, and then rewrap
 existing DEKs in your {+key-vault-long+} with your new
 {+cmk-abbr+}.
 
@@ -57,57 +64,94 @@ application with each of the supported {+kms-abbr+} providers, see
 Procedure
 ---------
 
-.. procedure::
-   :style: normal
-   
-   .. step:: Rotate your {+cmk-long+} on your {+kms-long+}
+.. composable-tutorial::
+   :options: language-no-dependencies
+   :defaults: shell
 
-      The process for rotating your {+cmk-abbr+} depends on your
-      {+kms-abbr+} provider. For details, refer to your key provider's
-      documentation:
+   .. selected-content::
+      :selections: shell
 
-      - AWS: `Rotating AWS KMS Keys <https://docs.aws.amazon.com/kms/latest/developerguide/rotate-keys.html>`__
-      - Azure: `Configure cryptographic key auto-rotation in Azure Key
-        Vault <https://learn.microsoft.com/en-us/azure/key-vault/keys/how-to-configure-key-rotation>`__
-      - GCP: `Rotate a key <https://cloud.google.com/kms/docs/rotate-key>`__
+      .. procedure::
+         :style: normal
 
-      Once you rotate the {+cmk-abbr+}, MongoDB uses it to wrap all new
-      DEKs. To re-wrap existing DEKs, continue to the following steps.
-   
-   .. step:: Rotate your {+dek-long+}s using ``KeyVault.rewrapManyDataKey()``
+         .. include:: /includes/fundamentals/manage-keys/rotate-cmk.rst
 
-      The :method:`KeyVault.rewrapManyDataKey()` method automatically
-      decrypts multiple {+dek-long+}s and re-encrypts them using the
-      specified {+cmk-abbr+}. It then updates the keys in the 
-      {+key-vault-long+}.
+         .. step:: Rotate your {+dek-long+}s by using ``KeyVault.rewrapManyDataKey()``
 
-      The method has the following syntax:
+            The :method:`KeyVault.rewrapManyDataKey()` method
+            automatically decrypts multiple {+dek-abbr-no-hover+}s and
+            re-encrypts them by using the specified {+cmk-abbr+}. The
+            method then updates the keys in the {+key-vault-long+}.
 
-      .. code-block:: javascript
+            The method has the following syntax:
 
-         let keyVault = db.getMongo().getKeyVault()
+            .. code-block:: javascript
 
-         keyVault.rewrapManyDataKey(
-            { 
-               "<Query filter document>" 
-            },
-            {
-               provider: "<KMS provider>",
-               masterKey: {
-                  "<dataKeyOpts Key>" : "<dataKeyOpts Value>"
-               }
-            }
-         )
-      
-      #. Specify a query filter document to select the keys to rotate, or omit the argument to rotate all keys in the {+key-vault-long+}
+               let keyVault = db.getMongo().getKeyVault()
 
-         If you specify a :ref:`query filter document <document-query-filter>`, but no keys match, then no keys rotate.
-      
-      #. Specify the {+kms-abbr+} provider
-      
-      #. Specify the ``masterKey`` using the new {+cmk-abbr+}, 
-         or omit the argument to rotate keys using their existing {+cmk-abbr+}
+               keyVault.rewrapManyDataKey(
+                  {
+                     "<Query filter document>"
+                  },
+                  {
+                     provider: "<KMS provider>",
+                     masterKey: {
+                        "<dataKeyOpts Key>" : "<dataKeyOpts Value>"
+                     }
+                  }
+               )
 
-Your DEKs themselves are left unchanged after re-wrapping them
-with the new {+cmk-abbr+}. The key rotation process is seamless, and does
-not interrupt your application.
+            #. Specify a query filter document to select the keys to
+               rotate, or omit the argument to rotate all keys in the
+               {+key-vault-long+}.
+
+               If you specify a
+               :ref:`query filter document <document-query-filter>`,
+               but no keys match, then no keys rotate.
+
+            #. Specify the {+kms-abbr+} provider.
+
+            #. Specify the ``masterKey`` by using the new
+               {+cmk-abbr+}, or omit the argument to rotate keys by
+               using their existing {+cmk-abbr+}.
+
+   .. selected-content::
+      :selections: csharp
+
+      .. procedure::
+         :style: normal
+
+         .. include:: /includes/fundamentals/manage-keys/rotate-cmk.rst
+
+         .. step:: Rotate your {+dek-long+}s by using ``ClientEncryption.RewrapManyDataKey()``
+
+            The ``ClientEncryption.RewrapManyDataKey()`` method
+            automatically decrypts multiple {+dek-abbr-no-hover+}s and
+            re-encrypts them by using the specified {+cmk-abbr+}. The
+            method then updates the keys in the {+key-vault-long+}.
+
+            The following example rewraps the keys that match the specified
+            filter:
+
+            .. literalinclude:: /code-examples/tested/csharp/driver/Encryption/RewrapManyDataKey/RewrapManyDataKey.snippet.rewrap-data-key.cs
+               :language: csharp
+               :category: usage example
+               :copyable: false
+
+            #. Specify a query filter document to select the keys to
+               rotate. To rotate all keys in the {+key-vault-long+}, pass
+               an empty filter.
+
+               If you specify a
+               :ref:`query filter document <document-query-filter>`,
+               but no keys match, then no keys rotate.
+
+            #. Specify the {+kms-abbr+} provider.
+
+            #. Specify the ``masterKey`` by using the new
+               {+cmk-abbr+}, or omit it to rotate keys by using their
+               existing {+cmk-abbr+}.
+
+Your DEKs themselves are left unchanged after rewrapping them
+with the new {+cmk-abbr+}. The key rotation process is seamless,
+and does not interrupt your application.
