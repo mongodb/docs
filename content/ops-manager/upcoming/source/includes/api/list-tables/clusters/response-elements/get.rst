@@ -42,24 +42,13 @@
      - string
      - Cluster type. |mms| may return:
 
-       .. list-table::
-          :header-rows: 1
-          :widths: 50 50
-          :stub-columns: 1
+       - ``REPLICA_SET``: :term:`A replica set <replica set>`.
 
-          * - ``typeName``
-            - Description
+       - ``SHARDED``: A sharded cluster where each shard is a
+         :term:`standalone` instance. No shards are replica sets.
 
-          * - ``REPLICA_SET`` 
-            - :term:`A replica set <replica set>`.
+       - ``SHARDED_REPLICA_SET``: A sharded cluster that contains at
+         least one shard that is a replica set.
 
-          * - ``SHARDED`` 
-            - A sharded cluster where each shard is a :term:`standalone`
-              instance. No shards are replica sets. 
-
-          * - ``SHARDED_REPLICA_SET`` 
-            - A sharded cluster that contains at least one shard that is
-              a replica set. 
-
-          * - ``CONFIG_SERVER_REPLICA_SET`` 
-            - Config servers deployed as a replica set. 
+       - ``CONFIG_SERVER_REPLICA_SET``: Config servers deployed as a
+         replica set.
