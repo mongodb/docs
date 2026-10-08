@@ -262,6 +262,11 @@ const tocData: TocItem[] = [
         url: '/docs/:version/tutorial/verify-mongodb-packages',
       },
       {
+        label: 'Default Directory Paths',
+        contentSite: 'docs',
+        url: '/docs/:version/reference/directory-paths',
+      },
+      {
         label: 'MongoDB Package Components',
         contentSite: 'docs',
         url: '/docs/:version/reference/program',
