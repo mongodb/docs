@@ -699,6 +699,13 @@ const mckLegacy: TocItem[] = [
             label: 'Multi-Cluster Sharded Cluster',
             contentSite: 'mck',
             url: '/docs/kubernetes/:version/reference-architectures/multi-cluster/multi-cluster-sharded-cluster',
+            versions: { excludes: ['v1.8'] },
+          },
+          {
+            label: 'Multi-Cluster Sharded Cluster',
+            contentSite: 'mck',
+            url: '/docs/kubernetes/:version/reference-architectures/multi-cluster/sharded-cluster',
+            versions: { includes: ['v1.8'] },
           },
         ],
       },
@@ -706,6 +713,7 @@ const mckLegacy: TocItem[] = [
         label: 'Multi-Cluster Architecture Without Service Mesh',
         contentSite: 'mck',
         url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/multi-cluster-no-mesh',
+        versions: { excludes: ['v1.8'] },
         collapsible: true,
         items: [
           {
@@ -742,6 +750,52 @@ const mckLegacy: TocItem[] = [
             label: 'Multi-Cluster Sharded Cluster',
             contentSite: 'mck',
             url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/multi-cluster-sharded-cluster-no-mesh',
+          },
+        ],
+      },
+      {
+        // In v1.8 the landing page is named overview and several
+        // child pages use shorter filenames.
+        label: 'Multi-Cluster Architecture Without Service Mesh',
+        contentSite: 'mck',
+        url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/overview',
+        versions: { includes: ['v1.8'] },
+        collapsible: true,
+        items: [
+          {
+            label: 'GKE Clusters',
+            contentSite: 'mck',
+            url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/gke-clusters-no-mesh',
+          },
+          {
+            label: 'External DNS',
+            contentSite: 'mck',
+            url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/external-dns-no-mesh',
+          },
+          {
+            label: 'Deploy the Operator',
+            contentSite: 'mck',
+            url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/deploy-op-no-mesh',
+          },
+          {
+            label: 'TLS Certificates',
+            contentSite: 'mck',
+            url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/ca-certs-no-mesh',
+          },
+          {
+            label: 'Multi-Cluster Ops Manager',
+            contentSite: 'mck',
+            url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/om-no-mesh',
+          },
+          {
+            label: 'Multi-Cluster Replica Sets',
+            contentSite: 'mck',
+            url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/rs-no-mesh',
+          },
+          {
+            label: 'Multi-Cluster Sharded Cluster',
+            contentSite: 'mck',
+            url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/sc-no-mesh',
           },
         ],
       },
@@ -816,6 +870,7 @@ const mckLegacy: TocItem[] = [
         label: 'Search & Vector Search Settings',
         contentSite: 'mck',
         url: '/docs/kubernetes/:version/reference/fts-vs-settings',
+        versions: { excludes: ['v1.1', 'v1.2', 'v1.3'] },
       },
       {
         label: 'Third-Party Integrations',
