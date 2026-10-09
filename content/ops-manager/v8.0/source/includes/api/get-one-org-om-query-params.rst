@@ -26,18 +26,9 @@
        For endpoints that return one result, the response body
        includes:
 
-       .. list-table::
-          :widths: 15 85
-          :header-rows: 1
-          :stub-columns: 1
+       - ``status``: |http| response code
 
-          * - Name
-            - Description
-
-          * - ``status``
-            - |http| response code
-          * - ``content``
-            - Expected response body
+       - ``content``: Expected response body
 
      - ``false``
 
