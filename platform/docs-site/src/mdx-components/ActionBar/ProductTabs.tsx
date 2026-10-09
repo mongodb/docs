@@ -10,6 +10,8 @@ import useScreenSize from '@/hooks/use-screen-size';
 import Icon from '@leafygreen-ui/icon';
 import { palette } from '@leafygreen-ui/palette';
 import { navigateToDocsPath } from '@/utils/navigate-to-docs-path';
+import { useSidenavContext } from '@/context/sidenav-context';
+import { useCallback, useId } from 'react';
 
 const NAV_TABS = [
   { label: 'Database', path: '/docs' },
@@ -32,9 +34,12 @@ const forceNoWrapStyling = css`
   white-space: nowrap;
 `;
 
-const productTabsStyling = css`
+const tabsWrapperStyling = css`
   flex-shrink: 0;
   align-self: flex-end;
+`;
+
+const productTabsStyling = css`
   margin-bottom: 0;
 
   // Hide the empty tab panel area — tabs are navigation only
@@ -89,6 +94,9 @@ const mobileDividerStyling = css`
 export const ProductTabs = ({ slug }: { slug: string }) => {
   const router = useRouter();
   const { isTabletOrMobile } = useScreenSize();
+  const { registerProductTabs } = useSidenavContext();
+  const id = useId();
+  const tabsRef = useCallback((el: HTMLDivElement | null) => registerProductTabs(id, el), [id, registerProductTabs]);
 
   const activeIndex =
     slug?.startsWith('docs/agentengine') || slug?.startsWith('/docs/agentengine')
@@ -123,16 +131,18 @@ export const ProductTabs = ({ slug }: { slug: string }) => {
   return (
     <div className={cx(containerStyling)}>
       <Body className={cx(labelStyling, forceNoWrapStyling)}>Documentation</Body>
-      <LeafyTabs
-        className={cx(productTabsStyling)}
-        selected={activeIndex}
-        setSelected={(index) => navigateToDocsPath(router, NAV_TABS[index].path)}
-        aria-label="Product navigation"
-      >
-        {NAV_TABS.map(({ label }) => (
-          <LeafyTab key={label} name={label} />
-        ))}
-      </LeafyTabs>
+      <div ref={tabsRef} className={cx(tabsWrapperStyling)}>
+        <LeafyTabs
+          className={cx(productTabsStyling)}
+          selected={activeIndex}
+          setSelected={(index) => navigateToDocsPath(router, NAV_TABS[index].path)}
+          aria-label="Product navigation"
+        >
+          {NAV_TABS.map(({ label }) => (
+            <LeafyTab key={label} name={label} />
+          ))}
+        </LeafyTabs>
+      </div>
     </div>
   );
 };
