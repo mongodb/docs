@@ -9,11 +9,18 @@
 
    * - username
      - string
-     - Username of the |mms| user. Validated depending on the 
+     - Username of the |mms| user. Validated depending on the
        value of the :setting:`mms.email.validation` property:
 
-       .. include:: /includes/list-table-api-email-validation-options.rst
-            
+       - ``false``: (**Default**) Username isn't required to be an
+         email address.
+
+       - ``loose``: Username must contain an ``@`` symbol followed by
+         a period.
+
+       - ``strict``: Username must adhere to a strict email address
+         validation regular expression.
+
        See :setting:`mms.email.validation` for details.
 
    * - password
