@@ -2,13 +2,13 @@
 name: fix-nested-components
 internal: true
 description: >-
-  Fix forbidden nested RST components flagged by the nested components linter — callouts inside callouts, callouts inside list-tables, examples inside callouts, examples inside list-tables, and procedures inside procedures. Runs ./lint-docs.sh nested to detect violations, applies the canonical remediation for each, and re-lints to verify. Does NOT handle tabs-in-tabs — use language-tabs-to-composable-scripted for that. Use when the user asks to "fix nested components", "resolve nested component errors", "fix the nested components linter findings", or when the nested linter reports callout/example/procedure nesting.
+  Fix forbidden nested RST components flagged by the nested components linter — callouts inside callouts, callouts inside list-tables, examples inside callouts, examples inside list-tables, procedures inside procedures, and tables inside tables. Runs ./lint-docs.sh nested to detect violations, applies the canonical remediation for each, and re-lints to verify. Does NOT handle tabs-in-tabs — use language-tabs-to-composable-scripted for that. Use when the user asks to "fix nested components", "resolve nested component errors", "fix the nested components linter findings", or when the nested linter reports callout/example/procedure/table nesting.
 argument-hint: "[filepath...]"
 ---
 
 Fix forbidden nested RST components in $ARGUMENTS.
 
-This skill remediates the five judgment-based nested-component violations the deterministic linter detects. It does **not** touch `tabs-in-tabs` (rule 6) — that requires the `language-tabs-to-composable-scripted` skill.
+This skill remediates the six judgment-based nested-component violations the deterministic linter detects. It does **not** touch `tabs-in-tabs` — that requires the `language-tabs-to-composable-scripted` skill.
 
 Rules in scope:
 
@@ -19,6 +19,7 @@ Rules in scope:
 | `example-in-callout` | Remove the `example` directive; introduce with "For example,". |
 | `example-in-table` | Remove the `example` directive; introduce with "For example,". |
 | `procedure-in-procedure` | Convert the nested procedure to an ordered list (a., b., c.). |
+| `table-in-table` | Remove the nested table; restructure its content as bullets, a definition list, or a separate table after the parent. |
 
 The canonical remediation patterns live in `.github/ai-reviewer/nested-components-guide.md`. Read it before editing if you need more detail than the sections below.
 
@@ -50,13 +51,13 @@ If every finding was `tabs-in-tabs`, stop after reporting them — there is noth
 
 Read each affected file in full so you understand the surrounding structure before editing. For every finding, locate the nested inner directive at the reported line and the parent container that encloses it.
 
-Verify the nesting yourself before editing — the linter uses an indentation stack and treats only `list-table` as a table container. Confirm the inner directive is genuinely inside the parent and not a sibling.
+Verify the nesting yourself before editing — the linter uses an indentation stack and treats only directive-based tables (`list-table`, `table`) as table containers. Confirm the inner directive is genuinely inside the parent and not a sibling.
 
 ---
 
 ## Step 3.5: Check whether the nested component comes from a shared include
 
-This check applies to every in-scope rule: the offending inner directive (callout, example, or procedure) may live in a shared include rather than inline on the page. Before editing, determine whether the inner directive is written inline at the flagged location or pulled in through an `.. include::` (or `.. sharedinclude::`) nested inside the parent container (callout, list-table cell, or `.. step::`).
+This check applies to every in-scope rule: the offending inner directive (callout, example, procedure, or table) may live in a shared include rather than inline on the page. Before editing, determine whether the inner directive is written inline at the flagged location or pulled in through an `.. include::` (or `.. sharedinclude::`) nested inside the parent container (callout, list-table or `table` cell, or `.. step::`).
 
 A shared include may be reused in an **un-nested** context, where the directive is valid and must stay as-is. Editing the include in place would silently degrade those usages, so treat it as read-only unless you confirm it has exactly one usage. (If a file composes the whole nesting internally — a parent container with a nested include — fix it there; the linter flags it when it lints that file directly.)
 
@@ -169,6 +170,49 @@ Remove the nested `.. procedure::` and its `.. step::` directives. Convert each 
 ```
 
 If a nested procedure is too complex to flatten into a two-level ordered list without losing structure, stop and ask the user how to restructure it rather than forcing the conversion.
+
+### `table-in-table`
+
+Remove the nested `list-table` (or `table`) directive from the cell and restructure its content so it renders without a second table. Prefer, in order:
+
+1. A nested bullet list inside the cell — best for value/description pairs.
+2. A definition list inside the cell.
+3. Prose in the cell, or a separate sibling table after the parent table.
+
+```rst
+# BEFORE
+.. list-table::
+   :header-rows: 1
+
+   * - Setting
+     - Description
+
+   * - ``strength``
+     - Possible values are:
+
+       .. list-table::
+          :header-rows: 1
+
+          * - Value
+            - Description
+
+          * - ``1``
+            - Primary level of comparison.
+
+# AFTER
+.. list-table::
+   :header-rows: 1
+
+   * - Setting
+     - Description
+
+   * - ``strength``
+     - Possible values are:
+
+       - ``1`` — Primary level of comparison.
+```
+
+If the nested table has too many rows or columns to flatten into a list without losing clarity, stop and ask the user whether to split the parent table or move the nested table out of the cell.
 
 ---
 

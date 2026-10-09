@@ -95,7 +95,7 @@ For detecting and fixing linter-flagged issues in content/.
 |---|---|
 | `/fix-404s` | Detect and fix broken external links (404s) in MongoDB documentation files |
 | `/fix-seo` | Fix SEO issues in MongoDB docs files |
-| `/fix-nested-components` | Fix forbidden nested RST components flagged by the nested components linter — callouts inside callouts, callouts inside list-tables, examples inside callouts, examples inside list-tables, and procedures inside procedures |
+| `/fix-nested-components` | Fix forbidden nested RST components flagged by the nested components linter — callouts inside callouts, callouts inside list-tables, examples inside callouts, examples inside list-tables, procedures inside procedures, and tables inside tables |
 
 ## Other Skills
 

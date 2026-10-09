@@ -17,6 +17,7 @@
  *   4. Example inside list-table
  *   5. Procedure inside procedure
  *   6. Tabs inside tabs
+ *   7. Table inside table (list-table or table directive)
  */
 
 import type { LintIssue } from './seo-lint-rules.js';
@@ -25,12 +26,13 @@ export type { LintIssue };
 
 const CALLOUTS = new Set(['note', 'tip', 'important', 'warning', 'seealso', 'admonition']);
 const CODE_BLOCKS = new Set(['code-block', 'code', 'sourcecode']);
+const TABLES = new Set(['list-table', 'table']);
 
 // Containers whose contents can form a forbidden nesting pair. When an
 // include sits inside one of these, its resolved content is worth scanning.
 const NESTING_CONTAINERS = new Set([
   ...CALLOUTS,
-  'list-table',
+  ...TABLES,
   'procedure',
   'tabs',
   'tab',
@@ -75,6 +77,14 @@ function getViolation(ancestor: string, child: string): Violation | null {
       message: `"${child}" callout nested inside "${ancestor}" callout`,
       suggestion:
         'Remove the nested callout and incorporate its content into the parent callout.',
+    };
+  }
+  if (TABLES.has(ancestor) && TABLES.has(child)) {
+    return {
+      rule: 'table-in-table',
+      message: `"${child}" table nested inside a "${ancestor}" table`,
+      suggestion:
+        'Remove the nested table and restructure its content as rows of the outer table, or as text after the table.',
     };
   }
   if (ancestor === 'list-table' && CALLOUTS.has(child)) {
