@@ -12,4 +12,7 @@ public class Restaurant
 
     [BsonElement("cuisine")]
     public string Cuisine { get; set; } = "";
+
+    [BsonElement("address")]
+    public Address Address { get; set; } = new();
 }
