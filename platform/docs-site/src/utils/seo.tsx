@@ -70,7 +70,7 @@ export const getPageMetadata = ({
     openGraph: {
       title,
       description,
-      url: new URL(DOTCOM_BASE_URL),
+      url: canonical,
       images: [
         {
           url: metaUrl,
