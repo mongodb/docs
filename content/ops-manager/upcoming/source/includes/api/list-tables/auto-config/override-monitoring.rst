@@ -1,49 +1,27 @@
-.. list-table::
-   :widths: 80 20
-   :header-rows: 1
+- :msetting:`mmsGroupId`: string
 
-   * - Setting
-     - Data Type
+- :msetting:`mmsApiKey`: string
 
-   * - :msetting:`mmsGroupId`
-     - string
+- :msetting:`mmsBaseUrl`: string
 
-   * - :msetting:`mmsApiKey`
-     - string
+- :msetting:`httpProxy`: string
 
-   * - :msetting:`mmsBaseUrl`
-     - string
+- :msetting:`krb5Principal`: string
 
-   * - :msetting:`httpProxy`
-     - string
+- :msetting:`krb5Keytab`: string
 
-   * - :msetting:`krb5Principal`
-     - string
+- :msetting:`krb5ConfigLocation`: string
 
-   * - :msetting:`krb5Keytab`
-     - string
+- :msetting:`gssapiServiceName`: string
 
-   * - :msetting:`krb5ConfigLocation`
-     - string
+- :msetting:`useSslForAllConnections`: boolean
 
-   * - :msetting:`gssapiServiceName`
-     - string
+- :msetting:`sslClientCertificate`: string
 
-   * - :msetting:`useSslForAllConnections`
-     - boolean
+- :msetting:`sslClientCertificatePassword`: string
 
-   * - :msetting:`sslClientCertificate`
-     - string
+- :msetting:`sslTrustedServerCertificates`: string
 
-   * - :msetting:`sslClientCertificatePassword`
-     - string
+- :msetting:`sslRequireValidServerCertificates`: boolean
 
-   * - :msetting:`sslTrustedServerCertificates`
-     - string
-
-   * - :msetting:`sslRequireValidServerCertificates`
-     - boolean
-
-   * - ``enableMunin``
-     - boolean
-
+- ``enableMunin``: boolean

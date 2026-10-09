@@ -42,23 +42,15 @@
        collects logs. |service| uses these paths to build the directory
        hierarchy in the compressed archive file.
 
-       .. list-table::
-          :widths: 40 60
-          :header-rows: 1
-          :stub-columns: 1
+       - ``AUTOMATION_AGENT``: ``<hostname>/automation_agent``
 
-          * - logCollectionType
-            - Path
-          * - AUTOMATION_AGENT
-            - ``<hostname>/automation_agent``
-          * - BACKUP_AGENT
-            - ``<hostname>/automation_agent``
-          * - MONITORING_AGENT
-            - ``<hostname>/automation_agent``
-          * - MONGODB
-            - ``<hostname>/<port>/<mongodb>``
-          * - FTDC
-            - ``<hostname>/<port>/<ftdc>``
+       - ``BACKUP_AGENT``: ``<hostname>/automation_agent``
+
+       - ``MONITORING_AGENT``: ``<hostname>/automation_agent``
+
+       - ``MONGODB``: ``<hostname>/<port>/<mongodb>``
+
+       - ``FTDC``: ``<hostname>/<port>/<ftdc>``
 
 
    * - childJobs[n].startDate
