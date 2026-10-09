@@ -10,6 +10,7 @@ import { Caption } from './Caption';
 import { INTERNAL_IMAGE_API_PATH, ONLINE_IMAGE_PREFIX } from '@/constants';
 import { isDevMode } from '@/utils/isDevBuild';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
+import type { ImageAlign } from './types';
 
 const formatImageUrl = (imagePath: string) => {
   const relativePath = imagePath.replace(/^\//, '');
@@ -27,8 +28,27 @@ const figureStyle = (width?: string, maxHeight?: string, hasHeroImageClass?: boo
   ${!hasHeroImageClass ? `max-width: ${width && width !== 'auto' ? `min(${width}, 100%)` : '100%'};` : ''}
   height: auto;
   ${!hasHeroImageClass && maxHeight && maxHeight !== 'auto' ? `max-height: ${maxHeight};` : ''}
+`;
+
+// Wrapper to ensure alignment and bottom margins.
+const wrapperStyle = (align: ImageAlign, hasHeroImageClass?: boolean) => css`
+  display: flex;
+  flex-direction: column;
+  align-items: ${flexAlignment(align)};
+  width: 100%;
   ${!hasHeroImageClass ? `margin-top: ${theme.size.medium}; margin-bottom: ${theme.size.medium};` : ''}
 `;
+
+const flexAlignment = (align: ImageAlign) => {
+  switch (align) {
+    case 'center':
+      return 'center';
+    case 'right':
+      return 'flex-end';
+    default:
+      return 'flex-start';
+  }
+};
 
 const borderStyle = css`
   border-radius: ${theme.size.default};
@@ -45,6 +65,7 @@ export interface ImageProps {
   width?: number | string;
   caption?: string;
   className?: string;
+  align?: ImageAlign;
   height?: number;
   // Intrinsic pixel dimensions injected at MDX compile time by
   // remark-image-dimensions from image-dimensions.json. Required by next/image;
@@ -65,6 +86,7 @@ export const Image = ({
   lightbox,
   caption,
   className,
+  align = 'left',
   intrinsicWidth,
   intrinsicHeight,
 }: ImageProps) => {
@@ -134,12 +156,13 @@ export const Image = ({
         )}
         caption={caption}
         figwidth={normalizeWidth()}
+        align={align}
       />
     );
   }
 
   return (
-    <>
+    <div className={wrapperStyle(align, hasHeroImageClass)}>
       {renderImage(
         cx(
           figureStyle(normalizeWidth(), normalizeHeight(), hasHeroImageClass),
@@ -148,7 +171,7 @@ export const Image = ({
         ),
         openModal,
       )}
-      <Caption caption={caption} />
-    </>
+      <Caption caption={caption} align={align} />
+    </div>
   );
 };

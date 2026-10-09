@@ -8,6 +8,7 @@ import { useState, useCallback, type ComponentType, type ReactNode } from 'react
 import { theme } from '@/styles/theme';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
 import { reportAnalytics } from '@/utils/report-analytics';
+import type { ImageAlign } from './types';
 
 const CAPTION_TEXT = 'click to enlarge';
 const MODAL_PADDING = '64px';
@@ -29,11 +30,15 @@ const StyledModal = styled(Modal as ComponentType<ModalProps>)`
       100vh - ${theme.header.navbarHeight} - ${MODAL_DIALOG_PADDING} - ${MODAL_PADDING} - ${MODAL_PADDING} -
         ${MODAL_DIALOG_PADDING}
     );
-    // Override the inline figwidth-based max-width carried over from figureStyle
-    // so the enlarged image can grow to the dialog width instead of staying
-    // capped at its small inline display width.
+    // Override the inline figwidth-based max-width and intrinsic width: auto
+    // carried over from figureStyle so the enlarged image grows to fill the
+    // dialog instead of staying at its small inline display width. object-fit
+    // keeps the aspect ratio when max-height constrains the box, and centers
+    // the image within it.
+    width: 100%;
     max-width: 100%;
-    width: auto;
+    height: auto;
+    object-fit: contain;
   }
 
   @media ${theme.screenSize.largeAndUp} {
@@ -45,7 +50,9 @@ const StyledModal = styled(Modal as ComponentType<ModalProps>)`
     }
     img {
       max-height: 300px;
+      width: 100%;
       max-width: 100%;
+      object-fit: contain;
     }
   }
 `;
@@ -63,11 +70,13 @@ const LightboxCaption = styled('div')`
   }
 `;
 
-const LightboxWrapper = styled('div')<{ figwidth: string }>`
+const LightboxWrapper = styled('div')<{ figwidth: string; align: ImageAlign }>`
   width: ${({ figwidth }) => figwidth};
   cursor: pointer;
   margin-top: ${theme.size.medium};
   margin-bottom: ${theme.size.medium};
+  ${({ align }) => (align === 'center' ? 'margin-left: auto; margin-right: auto;' : '')}
+  ${({ align }) => (align === 'right' ? 'margin-left: auto;' : '')}
   display: block;
   max-width: 100%;
 `;
@@ -76,9 +85,10 @@ interface LightboxProps {
   figure: ReactNode;
   caption?: string;
   figwidth?: string;
+  align?: ImageAlign;
 }
 
-export const Lightbox = ({ figure, caption, figwidth = 'auto' }: LightboxProps) => {
+export const Lightbox = ({ figure, caption, figwidth = 'auto', align = 'left' }: LightboxProps) => {
   const [open, setOpen] = useState(false);
   const openModal = useCallback(() => {
     reportAnalytics('Click', {
@@ -93,10 +103,10 @@ export const Lightbox = ({ figure, caption, figwidth = 'auto' }: LightboxProps) 
 
   return (
     <>
-      <LightboxWrapper figwidth={figwidth}>
+      <LightboxWrapper figwidth={figwidth} align={align}>
         <div onClick={openModal} role="button" tabIndex={-1}>
           {figure}
-          <Caption caption={caption} />
+          <Caption caption={caption} align={align} />
           <LightboxCaption>{CAPTION_TEXT}</LightboxCaption>
         </div>
       </LightboxWrapper>

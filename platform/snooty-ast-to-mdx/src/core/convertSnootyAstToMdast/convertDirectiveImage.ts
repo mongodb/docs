@@ -42,6 +42,11 @@ export const convertDirectiveImage = ({ node }: ConvertDirectiveImageArgs): Mdas
   const heightAttr = toNumericAttr({ name: 'height', value: node.options?.height });
   if (heightAttr) attrs.push(heightAttr);
 
+  const align = typeof node.options?.align === 'string' ? node.options.align.trim().toLowerCase() : '';
+  if (align === 'left' || align === 'right' || align === 'center') {
+    attrs.push({ type: 'mdxJsxAttribute', name: 'align', value: align } as MdastNode);
+  }
+
   if (node.options?.border !== undefined) {
     attrs.push({ type: 'mdxJsxAttribute', name: 'border', value: null } as MdastNode);
   }
