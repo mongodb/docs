@@ -143,19 +143,14 @@
      - string
      - Current state of the alert. Possible values that can be returned include:
 
-       .. list-table::
-          :widths: 20 80
-          :stub-columns: 1
+       - ``TRACKING``: Alert conditions exist, but the condition
+         hasn't persisted for long enough to trigger an alert.
 
-          * - ``TRACKING``
-            - Alert conditions exist, but the condition hasn't
-              persisted for long enough to trigger an alert.
-          * - ``OPEN``
-            - Alert is open.
-          * - ``CLOSED``
-            - Alert is closed.
-          * - ``CANCELLED``
-            - Alert is cancelled.
+       - ``OPEN``: Alert is open.
+
+       - ``CLOSED``: Alert is closed.
+
+       - ``CANCELLED``: Alert is canceled.
 
    * - ``tags``
      - array of strings

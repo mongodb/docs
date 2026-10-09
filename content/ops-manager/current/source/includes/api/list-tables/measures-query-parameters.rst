@@ -24,20 +24,12 @@
        - ``S`` for *seconds*
 
        For example:
-       
-       .. list-table::
-          :widths: 20 80
-          :header-rows: 1
-             
-          * - Notation
-            - Duration
 
-          * - ``PT30S``
-            - 30 seconds
-          * - ``P1T12H``
-            - 1 day, 12 hours
-          * - ``PT0.5S``
-            - 500 milliseconds
+       - ``PT30S``: 30 seconds
+
+       - ``P1T12H``: 1 day, 12 hours
+
+       - ``PT0.5S``: 500 milliseconds
 
    * - period
      - string
@@ -75,4 +67,4 @@
 
        You must specify measurements that are valid for the host. |mms|
        returns an error if any specified measurements are invalid
-       For available measurements, see :doc:`/reference/api/measures/measurement-types`.
+       For available measurements, see :ref:`om-measurement-types`.
