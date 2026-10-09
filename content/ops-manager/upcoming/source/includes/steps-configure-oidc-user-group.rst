@@ -33,14 +33,11 @@
             * - :guilabel:`Identifier`
               - Required
               - In the :guilabel:`Database` box, enter ``admin``.
-                
-                In the :guilabel:`Name` box, enter your |oidc| |idp| configuration
-                name and the group name from your external identity provider,
-                separated by a slash ``/``:
 
-                .. code-block:: none
-
-                   {configuration_name}/{group_name}
+                In the :guilabel:`Name` box, enter your |oidc| |idp|
+                configuration name and the group name from your external
+                identity provider, separated by a slash (``/``):
+                ``{configuration_name}/{group_name}``
 
             * - :guilabel:`Inherits From`
               - Optional

@@ -8,6 +8,7 @@ Set up {+workload+} with OAuth 2.0
 
 .. meta::
    :keywords: connect
+   :description: Set up Workload Identity Federation with OIDC in Ops Manager. Register an external IdP app with Azure or GCP, configure workload authentication, and grant users or groups access.
 
 .. contents:: On this page
    :local:
@@ -15,36 +16,37 @@ Set up {+workload+} with OAuth 2.0
    :depth: 2
    :class: singlecol
 
-|workload| lets your applications access MongoDB |mms| 
-deployments using external programmatic identities such as Azure Service 
-Principals, Azure Managed Identities and Google Service 
+With |workload|, your applications can access MongoDB |mms|
+deployments using external programmatic identities such as Azure Service
+Principals, Azure Managed Identities, and Google Service
 Accounts.
 
 How it Works
 -------------
 
-|workload| allows your applications access to MongoDB 
-deployments with OAuth 2.0 access tokens. The access tokens can be issued by 
-any external Identity Provider including Azure Entra ID and Google Cloud 
-Platform. |mms| stores the user identifiers and privileges, but 
-not the secrets. This authentication mechanism for your applications 
-is only supported by :ref:`certain MongoDB drivers <om-connect-oidc-workload>`. 
+|workload| allows your applications access to MongoDB
+deployments with OAuth 2.0 access tokens. The access tokens can be
+issued by any external Identity Provider including Azure Entra ID and
+Google Cloud Platform (GCP). |mms| stores the user identifiers and
+privileges, but not the secrets. A :ref:`limited set of MongoDB
+drivers <om-connect-oidc-workload>` offers this authentication
+mechanism for your applications.
 
-MongoDB Drivers support two types of authentication flow for |workload|: 
-Built-in Authentication and Callback Authentication. 
+MongoDB Drivers support two types of authentication flow for |workload|:
+Built-in Authentication and Callback Authentication.
 
 Built-in Authentication
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-You can use built-in authentication if you deploy your application on a 
-supported infrastructure with a supported principal type. Your application 
-can access |mms| deployments without supplying a password or 
-manually requesting a |jwt| from your cloud provider's metadata service. Instead, 
-your chosen MongoDB driver uses your existing principal identifier to request a 
-JWT access token under the hood, which is then passed to the |mms| deployment
-automatically when your application connects. 
+You can use built-in authentication if you deploy your app on a
+compatible infrastructure with a compatible principal type. Your app can
+access |mms| deployments without supplying a password or manually
+requesting a |jwt| from your cloud provider's metadata service. Instead,
+your driver uses the existing principal identifier to request a JSON Web
+Token (JWT) access token. The driver passes the token to the |mms|
+deployment when your app connects.
 
-For more implementation details, see :ref:`your chosen driver's documentation 
+For more implementation details, see :ref:`your driver's documentation
 <om-connect-oidc-workload>`.
 
 **Built-in Authentication Supported Infrastructure and Principal Types**
@@ -61,29 +63,29 @@ For more implementation details, see :ref:`your chosen driver's documentation
      - Compute Engine
      - GCP Service Accounts
 
-   * - 
+   * -
      - App Engine Standard Environment
-     -  
+     -
 
-   * - 
+   * -
      - App Engine Flexible Environment
-     - 
-   
-   * - 
+     -
+
+   * -
      - Cloud Functions
-     - 
+     -
 
-   * - 
+   * -
      - Cloud Run
-     - 
+     -
 
-   * - 
+   * -
      - Google Kubernetes Engine
-     - 
+     -
 
-   * - 
+   * -
      - Cloud Build
-     - 
+     -
 
    * - Azure
      - Azure VM
@@ -92,37 +94,40 @@ For more implementation details, see :ref:`your chosen driver's documentation
 Callback Authentication
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-You can use callback authentication with any service supporting OAuth 2.0 
-access tokens. {+workload+} calls a callback method, in which you can request 
-the required |jwt| from your authorization server or cloud provider that you must 
-pass when your application connects to |mms| with |workload|. 
+You can use callback authentication with any service supporting
+OAuth 2.0 access tokens. {+workload+} calls a callback method where
+you request the required |jwt| from your authorization server or
+cloud provider. You then pass the token to |mms| with |workload| when
+your app connects.
 
-Please review :ref:`your chosen driver's <om-connect-oidc-workload>` 
-documentation for additional implementation details. 
+For more implementation details, review the :ref:`documentation for your
+driver <om-connect-oidc-workload>`.
 
 Security with Azure Managed Identities
 ---------------------------------------
 
-{+workload+} with Azure Managed Identities provides the most secure way to 
-authenticate to MongoDB |mms| deployments running on Azure. This approach offers 
-the following security advantages:
+{+workload+} with Azure Managed Identities provides the most secure
+way to authenticate to MongoDB |mms| deployments running on Azure.
+This approach offers the following security advantages:
 
-- Leverages Managed Identities: This allows your applications running on Azure 
-  services (like Azure VMs, AKS, Azure Functions) to authenticate to MongoDB |mms|
-  using their assigned Azure Managed Identities without needing to 
-  manage separate MongoDB credentials.
+- Leverages Managed Identities: This allows your applications running
+  on Azure services (like Azure VMs, AKS, Azure Functions) to
+  authenticate to MongoDB |mms| using their assigned Azure Managed
+  Identities without needing to manage separate MongoDB credentials.
 
-- Secure "Passwordless" Authentication: Your applications obtain short-lived 
-  OAuth 2.0 access tokens from the Azure metadata server, which MongoDB |mms|
-  then verifies. This eliminates the need to store and manage sensitive database
-  usernames and passwords within your application code or configurations.
+- Secure "Passwordless" Authentication: Your applications obtain
+  short-lived OAuth 2.0 access tokens from the Azure metadata server,
+  which MongoDB |mms| then verifies. This eliminates the need to
+  store and manage sensitive database usernames and passwords within
+  your application code or configurations.
 
-- Centralized Identity Management: You manage the identities of your Azure 
-  workloads within the Azure Entra ID framework, providing a single 
-  source of truth for identity management.     
+- Centralized Identity Management: You manage the identities of your
+  Azure workloads within the Azure Entra ID framework, providing a
+  single source of truth for identity management.
 
-- Enhanced Auditing: Azure provides audit logs for service account activity, 
-  enhancing traceability and security monitoring capabilities.
+- Enhanced Auditing: Azure provides audit logs for service account
+  activity, enhancing traceability and security monitoring
+  capabilities.
 
 Required Access
 ---------------
@@ -133,25 +138,26 @@ To configure {+workload+}, you must have
 Prerequisites
 -------------
 
-You must have the following:
+You must meet these prerequisites:
 
 - MongoDB 7.0 or later.
 - At least one other authentication mechanism with {+mdbagent+} configured.
 
-  .. note:: 
-     
-     The {+mdbagent+} cannot connect to your deployment via |oidc|. You must
-     enable an additional auth mechanism for the {+mdbagent+}. If |mms| 
-     doesn't manage {+magent+} or {+bagent+}, you must manually configure
-     them to use the alternative authentication mechanism.
+  .. note::
+
+     The {+mdbagent+} can't connect to your deployment through
+     |oidc|. You must enable another auth mechanism for the
+     {+mdbagent+}. If |mms| doesn't manage {+magent+} or {+bagent+},
+     you must manually configure them to use the alternative
+     authentication mechanism.
 
 Procedures
 ----------
 
-To configure {+workload+}, complete the following steps:
+To configure {+workload+}, follow these steps:
 
 1. Configure a Workload Identity Provider (one-time setup).
-   
+
    a. :ref:`Configure your external identity provider <om-configure-idp-oidc-workload>`.
 
    b. :ref:`Configure workload Identity Provider in Ops Manager <om-configure-oidc-auth-workload>`.
@@ -160,96 +166,97 @@ To configure {+workload+}, complete the following steps:
 
 3. :ref:`Authenticate to your Ops Manager deployment <om-connect-oidc-workload>`.
 
-.. _om-configure-idp-oidc-workload:
+.. composable-tutorial::
+   :options: workload-idp
+   :defaults: azure
 
-Configure An External Identity Provider Application
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/note-reset-auth.rst
+   .. _om-configure-idp-oidc-workload:
 
-.. tabs::
+   Configure An External Identity Provider Application
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   .. tab:: Azure
-      :tabid: azure-oauth
+   .. include:: /includes/note-reset-auth.rst
 
-      In order to access |mms| deployments with Azure Managed Identities 
-      or Azure Service Principals, you need to register an Azure Entra ID 
-      application. If you have an existing application registration for 
-      :ref:`Workforce <om-oidc-authentication-workforce>` (human user) access,
-      we recommended that you register a separate application for Workload access.
+
+   .. selected-content::
+      :selections: azure
+
+      In order to access |mms| deployments with Azure Managed
+      Identities or Azure Service Principals, you need to register an
+      Azure Entra ID application. If you have an existing application
+      registration for :ref:`Workforce
+      <om-oidc-authentication-workforce>` (human user) access, we
+      recommended that you register a separate application for
+      Workload access.
 
       .. include:: /includes/steps-register-oidc-application-azure-workload.rst
 
-   .. tab:: GCP
-      :tabid: gcp-oauth
+   .. selected-content::
+      :selections: gcp
 
       You don't need to make any configuration changes in your |gcp| account.
 
-.. _om-configure-oidc-auth-workload:
+   .. _om-configure-oidc-auth-workload:
 
-Configure {+workload+} Authentication
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  
-.. note::
+   Configure {+workload+} Authentication
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   {+workload+} supports only JWT for authentication. It doesn't 
-   support opaque access tokens.
+   .. note::
 
-.. tabs::
+      {+workload+} supports only JWT for authentication. It doesn't
+      support opaque access tokens.
 
-   .. tab:: Azure
-      :tabid: azure-oauth
+   .. selected-content::
+      :selections: azure
 
       To configure a {+workload+} |idp-full| with Azure Entra ID in |mms|:
 
       .. include:: /includes/steps-enable-authentication-oidc-workload-azure.rst
 
-      
-   .. tab:: GCP
-      :tabid: GCP-oauth
+   .. selected-content::
+      :selections: gcp
 
       To configure a {+workload+} |idp-full| with |gcp| in |mms|:
 
       .. include:: /includes/steps-enable-authentication-oidc-workload-gcp.rst
 
+   .. _om-create-oidc-user-workload:
 
-.. _om-create-oidc-user-workload:
+   Configure OIDC Authorization
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Configure OIDC Authorization
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   MongoDB does not explicitly create database users for |oidc|. It maps
+   |oidc| users to MongoDB roles based on the configuration.
 
-MongoDB does not explicitly create database users for |oidc|. It maps
-|oidc| users to MongoDB roles based on the configuration.
+   Complete the procedure for the authorization type that you
+   selected when :ref:`configuring OIDC authentication
+   <om-configure-oidc-auth-workload>`.
 
-Select a tab depending on the authorization type that you selected
-when :ref:`configuring OIDC authentication <om-configure-oidc-auth-workload>`.
-            
-.. tabs::
+   User ID
+   ^^^^^^^
 
-   .. tab:: User ID
-      :tabid: user
+   If you selected the ``User ID`` authorization type,
+   create a new user to grant an individual user authorization:
 
-      If you selected the ``User ID`` authorization type, 
-      create a new user to grant an individual user authorization:
+   .. include:: /includes/steps/configure-oidc-user.rst
 
-      .. include:: /includes/steps/configure-oidc-user.rst
+   Group Membership
+   ^^^^^^^^^^^^^^^^
 
-   .. tab:: Group Membership
-      :tabid: group
+   If you selected the ``Group Membership`` authorization type,
+   complete the following steps to create a custom role that grants
+   authorization based on |idp| user group membership:
 
-      If you selected the ``Group Membership`` authorization type,
-      complete the following steps to create a custom role that grants
-      authorization based on |idp| user group membership:
-
-      .. include:: /includes/steps-configure-oidc-user-group.rst
+   .. include:: /includes/steps-configure-oidc-user-group.rst
 
 .. _om-connect-oidc-workload:
 
-Connect an Application to MongoDB with {+workload+}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Connect an App to MongoDB with {+workload+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Use the following MongoDB Drivers to connect an application to MongoDB
-with {+workload+} authentication:
+Use these MongoDB drivers to connect an app to MongoDB with
+{+workload+} authentication:
 
 - :ref:`Java <java-authentication-oidc>`
 - :driver:`C#/.NET </csharp/current/fundamentals/authentication/>`
@@ -264,7 +271,7 @@ Manage an Existing {+workload+} Configuration
 --------------------------------------------------------------
 
 To manage your {+workload+} configuration,
-you can perform the following actions.
+you can perform these actions.
 
 .. _om-revoke-workload-jwks-token:
 
@@ -272,8 +279,8 @@ Revoke JWKS
 ~~~~~~~~~~~~
 
 .. note::
-   
-   Don't use this feature to rotate your signing keys. When you rotate 
+
+   Don't use this feature to rotate your signing keys. When you rotate
    your |oidc| |idp| signing keys, MongoDB fetches the JWKS automatically
    upon expiration of the existing access tokens.
 
@@ -288,7 +295,7 @@ Edit a Configuration
 To edit your {+workload+} configuration:
 
 .. include:: /includes/steps-edit-oidc-configuration.rst
-      
+
 Delete a Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~
 

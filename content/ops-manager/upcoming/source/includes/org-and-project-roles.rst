@@ -1,6 +1,12 @@
 - Organization Roles
 
-  .. include:: /includes/api/lists/org-roles.rst
+  - ``ORG_OWNER``: :authrole:`Organization Owner`
+
+  - ``ORG_MEMBER``: :authrole:`Organization Member`
+
+  - ``ORG_GROUP_CREATOR``: :authrole:`Organization Project Creator`
+
+  - ``ORG_READ_ONLY``: :authrole:`Organization Read Only`
 
 - Project Roles
 
