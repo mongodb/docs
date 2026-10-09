@@ -2,6 +2,7 @@ import type { FindOptions } from 'mongodb';
 import { type NextRequest, NextResponse } from 'next/server';
 import { getClient } from '@/services/db/client';
 import { withCORS } from '@/app/lib/with-cors';
+import { logCaller } from '@/app/lib/document-api-caller';
 
 export async function OPTIONS() {
   return withCORS(new NextResponse(null, { status: 204 }));
@@ -11,6 +12,8 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { dbName, collectionName, query, options } = body;
+
+    logCaller(request, '/api/documents/', body);
 
     const client = getClient();
     const db = client.db(dbName);
