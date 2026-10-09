@@ -1,5 +1,84 @@
 import type { TocItem } from '../types';
 
+// Shared child items for the two Multi-Cluster Architecture entries:
+// the landing page was renamed from multi-cluster(.txt) to overview(.txt)
+// in v1.12, so v1.10 and v1.11 need a version-scoped duplicate entry.
+const multiClusterArchItems: TocItem[] = [
+  {
+    label: 'GKE Clusters',
+    contentSite: 'mck',
+    url: '/docs/kubernetes/:version/reference-architectures/multi-cluster/gke-clusters',
+  },
+  {
+    label: 'Istio Service Mesh',
+    contentSite: 'mck',
+    url: '/docs/kubernetes/:version/reference-architectures/multi-cluster/istio-service-mesh',
+  },
+  {
+    label: 'TLS Certificates',
+    contentSite: 'mck',
+    url: '/docs/kubernetes/:version/reference-architectures/multi-cluster/ca-certs',
+  },
+  {
+    label: 'Deploy the Operator',
+    contentSite: 'mck',
+    url: '/docs/kubernetes/:version/reference-architectures/multi-cluster/deploy-operator',
+  },
+  {
+    label: 'Multi-Cluster Ops Manager',
+    contentSite: 'mck',
+    url: '/docs/kubernetes/:version/reference-architectures/multi-cluster/multi-cluster-om',
+  },
+  {
+    label: 'Multi-Cluster Replica Sets',
+    contentSite: 'mck',
+    url: '/docs/kubernetes/:version/reference-architectures/multi-cluster/multi-cluster-replica-sets',
+  },
+  {
+    label: 'Multi-Cluster Sharded Cluster',
+    contentSite: 'mck',
+    url: '/docs/kubernetes/:version/reference-architectures/multi-cluster/multi-cluster-sharded-cluster',
+  },
+];
+
+const multiClusterNoMeshArchItems: TocItem[] = [
+  {
+    label: 'GKE Clusters',
+    contentSite: 'mck',
+    url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/gke-clusters-no-mesh',
+  },
+  {
+    label: 'External DNS',
+    contentSite: 'mck',
+    url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/external-dns-no-mesh',
+  },
+  {
+    label: 'Deploy the Operator',
+    contentSite: 'mck',
+    url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/deploy-operator-no-mesh',
+  },
+  {
+    label: 'TLS Certificates',
+    contentSite: 'mck',
+    url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/ca-certs-no-mesh',
+  },
+  {
+    label: 'Multi-Cluster Ops Manager',
+    contentSite: 'mck',
+    url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/multi-cluster-om-no-mesh',
+  },
+  {
+    label: 'Multi-Cluster Replica Sets',
+    contentSite: 'mck',
+    url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/multi-cluster-replica-sets-no-mesh',
+  },
+  {
+    label: 'Multi-Cluster Sharded Cluster',
+    contentSite: 'mck',
+    url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/multi-cluster-sharded-cluster-no-mesh',
+  },
+];
+
 const mckUpcoming: TocItem[] = [
   {
     label: 'Quick Start',
@@ -175,21 +254,25 @@ const mckUpcoming: TocItem[] = [
         label: 'Back Up the Application Database',
         contentSite: 'mck',
         url: '/docs/kubernetes/:version/tutorial/om-appdb-backup',
+        versions: { excludes: ['v1.9', 'v1.10', 'v1.11'] },
       },
       {
         label: 'Deploy with an External Application Database',
         contentSite: 'mck',
         url: '/docs/kubernetes/:version/tutorial/deploy-om-external-appdb',
+        versions: { excludes: ['v1.9', 'v1.10', 'v1.11'] },
       },
       {
         label: 'Migrate to an External Application Database',
         contentSite: 'mck',
         url: '/docs/kubernetes/:version/tutorial/migrate-appdb-to-external',
+        versions: { excludes: ['v1.9', 'v1.10', 'v1.11'] },
       },
       {
         label: 'Return to an Internal Application Database',
         contentSite: 'mck',
         url: '/docs/kubernetes/:version/tutorial/migrate-appdb-to-internal',
+        versions: { excludes: ['v1.9', 'v1.10', 'v1.11'] },
       },
       {
         label: 'Upgrade',
@@ -313,6 +396,7 @@ const mckUpcoming: TocItem[] = [
         label: 'Migrate a Self-Managed Deployment to Kubernetes',
         contentSite: 'mck',
         url: '/docs/kubernetes/:version/migration-om-to-kubernetes',
+        versions: { excludes: ['v1.9', 'v1.10', 'v1.11'] },
         collapsible: true,
         items: [
           {
@@ -464,6 +548,7 @@ const mckUpcoming: TocItem[] = [
             label: 'Multi-Cluster Installation',
             contentSite: 'mck',
             url: '/docs/kubernetes/:version/fts-vs/deployment/multi-cluster-installation',
+            versions: { excludes: ['v1.9'] },
           },
           {
             label: 'Verify Package Integrity',
@@ -723,87 +808,33 @@ const mckUpcoming: TocItem[] = [
         label: 'Multi-Cluster Architecture',
         contentSite: 'mck',
         url: '/docs/kubernetes/:version/reference-architectures/multi-cluster/overview',
+        versions: { excludes: ['v1.10', 'v1.11'] },
         collapsible: true,
-        items: [
-          {
-            label: 'GKE Clusters',
-            contentSite: 'mck',
-            url: '/docs/kubernetes/:version/reference-architectures/multi-cluster/gke-clusters',
-          },
-          {
-            label: 'Istio Service Mesh',
-            contentSite: 'mck',
-            url: '/docs/kubernetes/:version/reference-architectures/multi-cluster/istio-service-mesh',
-          },
-          {
-            label: 'TLS Certificates',
-            contentSite: 'mck',
-            url: '/docs/kubernetes/:version/reference-architectures/multi-cluster/ca-certs',
-          },
-          {
-            label: 'Deploy the Operator',
-            contentSite: 'mck',
-            url: '/docs/kubernetes/:version/reference-architectures/multi-cluster/deploy-operator',
-          },
-          {
-            label: 'Multi-Cluster Ops Manager',
-            contentSite: 'mck',
-            url: '/docs/kubernetes/:version/reference-architectures/multi-cluster/multi-cluster-om',
-          },
-          {
-            label: 'Multi-Cluster Replica Sets',
-            contentSite: 'mck',
-            url: '/docs/kubernetes/:version/reference-architectures/multi-cluster/multi-cluster-replica-sets',
-          },
-          {
-            label: 'Multi-Cluster Sharded Cluster',
-            contentSite: 'mck',
-            url: '/docs/kubernetes/:version/reference-architectures/multi-cluster/multi-cluster-sharded-cluster',
-          },
-        ],
+        items: multiClusterArchItems,
+      },
+      {
+        label: 'Multi-Cluster Architecture',
+        contentSite: 'mck',
+        url: '/docs/kubernetes/:version/reference-architectures/multi-cluster/multi-cluster',
+        versions: { includes: ['v1.10', 'v1.11'] },
+        collapsible: true,
+        items: multiClusterArchItems,
       },
       {
         label: 'Multi-Cluster Architecture Without Service Mesh',
         contentSite: 'mck',
         url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/overview',
+        versions: { excludes: ['v1.10', 'v1.11'] },
         collapsible: true,
-        items: [
-          {
-            label: 'GKE Clusters',
-            contentSite: 'mck',
-            url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/gke-clusters-no-mesh',
-          },
-          {
-            label: 'External DNS',
-            contentSite: 'mck',
-            url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/external-dns-no-mesh',
-          },
-          {
-            label: 'Deploy the Operator',
-            contentSite: 'mck',
-            url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/deploy-operator-no-mesh',
-          },
-          {
-            label: 'TLS Certificates',
-            contentSite: 'mck',
-            url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/ca-certs-no-mesh',
-          },
-          {
-            label: 'Multi-Cluster Ops Manager',
-            contentSite: 'mck',
-            url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/multi-cluster-om-no-mesh',
-          },
-          {
-            label: 'Multi-Cluster Replica Sets',
-            contentSite: 'mck',
-            url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/multi-cluster-replica-sets-no-mesh',
-          },
-          {
-            label: 'Multi-Cluster Sharded Cluster',
-            contentSite: 'mck',
-            url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/multi-cluster-sharded-cluster-no-mesh',
-          },
-        ],
+        items: multiClusterNoMeshArchItems,
+      },
+      {
+        label: 'Multi-Cluster Architecture Without Service Mesh',
+        contentSite: 'mck',
+        url: '/docs/kubernetes/:version/reference-architectures/multi-cluster-no-mesh/multi-cluster-no-mesh',
+        versions: { includes: ['v1.10', 'v1.11'] },
+        collapsible: true,
+        items: multiClusterNoMeshArchItems,
       },
     ],
   },
@@ -915,16 +946,19 @@ const mckUpcoming: TocItem[] = [
         label: 'Migration Resource Settings',
         contentSite: 'mck',
         url: '/docs/kubernetes/:version/reference/migration-crd-settings',
+        versions: { excludes: ['v1.9', 'v1.10', 'v1.11'] },
       },
       {
         label: 'migrate-to-mck Plugin Command',
         contentSite: 'mck',
         url: '/docs/kubernetes/:version/reference/kubectl-mongodb-migrate-to-mck',
+        versions: { excludes: ['v1.9', 'v1.10', 'v1.11'] },
       },
       {
         label: 'Migration Troubleshooting',
         contentSite: 'mck',
         url: '/docs/kubernetes/:version/reference/migration-troubleshooting',
+        versions: { excludes: ['v1.9', 'v1.10', 'v1.11'] },
       },
     ],
   },
