@@ -67,22 +67,11 @@
    * - Delivery
      - Information regarding type of delivery. Types include:
 
-       .. list-table::
-          :widths: 40 60
-          :header-rows: 1
-          :stub-columns: 1
+       - ``pull``: Typical snapshot download
 
-          * - Delivery Type
-            - Restore Type
+       - ``query``: Queryable snapshot download
 
-          * - ``pull``
-            - Typical snapshot download
-
-          * - ``query``
-            - Queryable snapshot download
-
-          * - ``client_pit_pull``
-            - Point-in-time snapshot download
+       - ``client_pit_pull``: Point-in-time snapshot download
 
    * - Request Origin
      - Unique identifier of the project that requested the restore and
