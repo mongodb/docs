@@ -67,7 +67,7 @@ ulimit Considerations
 Directories
 ~~~~~~~~~~~
 
-.. include:: /includes/fact-installation-directories.rst
+.. include:: /includes/deploy/dirs.rst
 
 Procedure
 ~~~~~~~~~

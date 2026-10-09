@@ -73,24 +73,7 @@ ulimit Considerations
 Directories
 ~~~~~~~~~~~
 
-If you installed through the package manager, the data directory
-|mongod-datadir| and the log directory ``/var/log/mongodb`` are
-created during the installation.
-
-By default, MongoDB runs using the |mongod-user| user account. If
-you change the user that runs the MongoDB process, you **must** also
-modify the permission to the data and log directories to give this
-user access to these directories.
-
-Configuration File
-~~~~~~~~~~~~~~~~~~
-
-The official MongoDB package includes a :ref:`configuration file
-<conf-file>` (:file:`/etc/mongod.conf`). These settings (such as the
-data directory and log directory specifications) take effect
-upon startup. That is, if you change the configuration file while
-the MongoDB instance is running, you must restart the instance for the
-changes to take effect.
+.. include:: /includes/deploy/dirs.rst
 
 Procedure
 ~~~~~~~~~

@@ -264,6 +264,7 @@ const tocData: TocItem[] = [
       {
         label: 'Default Directory Paths',
         contentSite: 'docs',
+        versions: { excludes: manualVersions.before('v8.3') },
         url: '/docs/:version/reference/directory-paths',
       },
       {

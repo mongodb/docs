@@ -63,15 +63,7 @@ Directory Paths
 To Use Default Directories
 ``````````````````````````
 
-By default, MongoDB runs using the |mongod-user| user account and
-uses the following default directories:
-
-- |mongod-datadir| (the data directory)
-
-- ``/var/log/mongodb`` (the log directory)
-
-The package manager creates the default directories during
-installation. The owner and group name are |mongod-user|.
+.. include:: /includes/deploy/dirs.rst
 
 To Use Non-Default Directories
 ``````````````````````````````
