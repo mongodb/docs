@@ -89,7 +89,14 @@ export const Heading = forwardRef<HTMLDivElement, HeadingProps>(
           })?.id ?? null
         : null;
 
-    const id = useRef(composableId ?? slugger.slug(headingText));
+    // Assign once per mount. An eager `useRef(slugger.slug(...))` evaluates slug() on
+    // every render — in dev StrictMode each component renders twice, so every heading
+    // advances the shared slugger an extra time and all later headings' suffixes shift
+    // away from what the ToC links and the SSR HTML use.
+    const id = useRef('');
+    if (id.current === '') {
+      id.current = composableId ?? slugger.slug(headingText);
+    }
 
     const asHeading = getHeadingTag(headingLevel);
     const isPageTitle = headingLevel === 1;
@@ -161,11 +168,7 @@ export const Heading = forwardRef<HTMLDivElement, HeadingProps>(
                 </div>
               )}
             >
-              <Text
-                textStyle={getHeadingTextStyle(headingLevel)}
-                elementType={asHeading}
-                className={headingClassName}
-              >
+              <Text textStyle={getHeadingTextStyle(headingLevel)} elementType={asHeading} className={headingClassName}>
                 {children}
                 <Permalink ref={ref} id={id.current} description="heading" />
               </Text>

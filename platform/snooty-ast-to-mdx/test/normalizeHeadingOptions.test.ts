@@ -1,4 +1,9 @@
-import { normalizeHeadingOptions } from '../src/core/convertSnootyAstToMdast/normalizeHeadingOptions';
+import type { SnootyNode } from '../src/core/convertSnootyAstToMdast/types';
+import {
+  normalizeHeadingOptions,
+  collectRenderedHeadings,
+  assignRenderedHeadingIds,
+} from '../src/core/convertSnootyAstToMdast/normalizeHeadingOptions';
 
 describe('normalizeHeadingOptions', () => {
   it('strips the abbr expansion from a heading title and recomputes a matching id', () => {
@@ -94,5 +99,72 @@ describe('normalizeHeadingOptions', () => {
 
     expect(heading.title).toEqual([{ type: 'strong', children: [{ type: 'text', value: 'MQL' }] }]);
     expect(heading.id).toBe('mql');
+  });
+});
+
+describe('collectRenderedHeadings', () => {
+  it('collects StepHeading and Collapsible titles, which are not heading nodes in the mdast', () => {
+    const jsx = (name: string, attrs: { name: string; value: unknown }[], children: SnootyNode[] = []): SnootyNode => ({
+      type: 'mdxJsxFlowElement',
+      name,
+      attributes: attrs,
+      children,
+    });
+    const headings = collectRenderedHeadings([
+      { type: 'heading', depth: 2, children: [{ type: 'text', value: 'Overview' }] },
+      jsx(
+        'StepHeading',
+        [{ name: 'headingLevel', value: { type: 'mdxJsxAttributeValueExpression', value: '3' } }],
+        [{ type: 'paragraph', children: [{ type: 'text', value: 'Create the index.' }] }],
+      ),
+      jsx('Collapsible', [
+        { name: 'heading', value: 'Which fields contain search terms?' },
+        { name: 'headingLevel', value: { type: 'mdxJsxAttributeValueExpression', value: '3' } },
+      ]),
+    ]);
+
+    expect(headings).toEqual([
+      { depth: 2, text: 'Overview', matchText: 'Overview' },
+      { depth: 3, text: 'Create the index.', matchText: 'Create the index.' },
+      { depth: 3, text: 'Which fields contain search terms?', matchText: 'Which fields contain search terms?' },
+    ]);
+  });
+});
+
+describe('assignRenderedHeadingIds', () => {
+  it('matches an entry to a StepHeading rendered title so the id counts it', () => {
+    const entry = (depth: number, id: string, title: string) => ({
+      depth,
+      id,
+      selector_ids: {},
+      title: [{ type: 'text', value: title }],
+    });
+    const rendered = [
+      { depth: 3, text: 'Create the index.', matchText: 'Create the index.' },
+      { depth: 3, text: 'Create the index.', matchText: 'Create the index.' },
+    ];
+    const [first, second] = assignRenderedHeadingIds(
+      [entry(3, 'create-the-index.', 'Create the index.'), entry(3, 'create-the-index.-1', 'Create the index.')],
+      rendered,
+    );
+
+    expect(first.id).toBe('create-the-index');
+    expect(second.id).toBe('create-the-index-1');
+  });
+
+  it('slugs an unmatched entry from its title instead of keeping a Snooty id no anchor uses', () => {
+    const [heading] = assignRenderedHeadingIds(
+      [
+        {
+          depth: 2,
+          id: 'what-are-your-users-searching-for-',
+          selector_ids: {},
+          title: [{ type: 'text', value: 'What are your users searching for?' }],
+        },
+      ],
+      [],
+    );
+
+    expect(heading.id).toBe('what-are-your-users-searching-for');
   });
 });

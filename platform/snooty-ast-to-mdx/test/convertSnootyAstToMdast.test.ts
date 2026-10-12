@@ -558,7 +558,9 @@ describe('convertSnootyAstToMdast', () => {
             },
             {
               type: 'paragraph',
-              children: [{ type: 'text', value: 'In-use encryption prevents unauthorized users from viewing plaintext.' }],
+              children: [
+                { type: 'text', value: 'In-use encryption prevents unauthorized users from viewing plaintext.' },
+              ],
             },
           ],
         },
@@ -583,9 +585,7 @@ describe('convertSnootyAstToMdast', () => {
     expect(includeMdx).toMatch(/<Reference\b[^>]*type="replacement"[^>]*\/>/);
     // The nested mongodb-crypt hyperlink must not replace the whole slot.
     expect(includeMdx).not.toMatch(/^\s*\[mongodb-crypt\]/);
-    expect(includeMdx).not.toBe(
-      '[mongodb-crypt](https://mvnrepository.com/artifact/org.mongodb/mongodb-crypt)',
-    );
+    expect(includeMdx).not.toBe('[mongodb-crypt](https://mvnrepository.com/artifact/org.mongodb/mongodb-crypt)');
 
     expect(mdx).toContain('<Include src="/_includes/dbx/encrypt-fields"');
     expect(mdx).toContain('<Replacement name="driver-specific-content">');
@@ -1025,7 +1025,12 @@ describe('convertSnootyAstToMdast', () => {
       type: 'substitution_definition',
       name: 'tool-binary',
       children: [
-        { type: 'ref_role', name: 'binary', target: 'bin.mongofiles', children: [{ type: 'literal', value: 'mongofiles' }] },
+        {
+          type: 'ref_role',
+          name: 'binary',
+          target: 'bin.mongofiles',
+          children: [{ type: 'literal', value: 'mongofiles' }],
+        },
       ],
     });
     // bsondump: plain literal
@@ -1623,7 +1628,9 @@ describe('convertSnootyAstToMdast', () => {
         {
           type: 'substitution_definition',
           refname: 'fts-index',
-          children: [{ type: 'reference', refuri: LINK_URL, children: [{ type: 'text', value: 'MongoDB Search index' }] }],
+          children: [
+            { type: 'reference', refuri: LINK_URL, children: [{ type: 'text', value: 'MongoDB Search index' }] },
+          ],
         },
         descriptionInclude([
           { type: 'reference', refuri: LINK_URL, children: [{ type: 'text', value: 'MongoDB Search index' }] },
@@ -1717,8 +1724,9 @@ describe('convertSnootyAstToMdast', () => {
     expect(mdx).not.toContain('value="Organizations menu"');
     expect(mdx).not.toContain('<Icon');
 
-    const rich = (references as { substitutions: Record<string, { text: string; nodes: SnootyNode[] }> })
-      .substitutions['ui-org-menu'];
+    const rich = (references as { substitutions: Record<string, { text: string; nodes: SnootyNode[] }> }).substitutions[
+      'ui-org-menu'
+    ];
     expect(rich.text).toBe('Organizations menu');
     const richMdx = convertMdastToMdx({ type: 'root', children: [{ type: 'paragraph', children: rich.nodes }] });
     expect(richMdx).toContain('<Icon name="icon-mms">office</Icon>');
@@ -1876,7 +1884,9 @@ describe('convertSnootyAstToMdast', () => {
                       name: 'tab',
                       options: { tabid: 'create-dns' },
                       argument: [{ type: 'text', value: 'Create DNS Record' }],
-                      children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Create a DNS TXT record.' }] }],
+                      children: [
+                        { type: 'paragraph', children: [{ type: 'text', value: 'Create a DNS TXT record.' }] },
+                      ],
                     },
                   ],
                 },
@@ -2020,12 +2030,15 @@ describe('convertSnootyAstToMdast', () => {
     const [heading] = frontmatter.options.headings;
 
     // The heading title node no longer carries the parenthetical expansion...
-    expect(heading.title).toEqual([{ type: 'text', value: 'AWS' }, { type: 'text', value: ' Kinesis Data Stream' }]);
+    expect(heading.title).toEqual([
+      { type: 'text', value: 'AWS' },
+      { type: 'text', value: ' Kinesis Data Stream' },
+    ]);
     // ...and the id is derived from that corrected text, matching the rendered <Abbr> heading's anchor.
     expect(heading.id).toBe('aws-kinesis-data-stream');
   });
 
-  it('leaves options.headings without an abbr role completely untouched, ids included', () => {
+  it('slugs an options.headings entry from its title when the page renders no matching heading', () => {
     const ast: SnootyNode = {
       type: 'root',
       options: {
@@ -2040,9 +2053,76 @@ describe('convertSnootyAstToMdast', () => {
     const frontmatter = yaml.parse(mdx.split('---')[1]);
     const [first, second] = frontmatter.options.headings;
 
-    // No abbr role present, so both headings pass through with their original ids as-is.
-    expect(first.id).toBe('anything');
-    expect(second.id).toBe('anything-2');
+    // The body renders no headings, so neither entry can be matched. Keeping Snooty's ids would
+    // point the ToC at anchors that don't exist, so each is slugged from its own title instead.
+    expect(first.id).toBe('overview');
+    expect(second.id).toBe('overview-1');
+  });
+
+  it('assigns options.headings ids from the full rendered heading sequence, including headings Snooty omits', () => {
+    const section = (title: string, children: SnootyNode[] = []): SnootyNode => ({
+      type: 'section',
+      children: [{ type: 'heading', children: [{ type: 'text', value: title }] }, ...children],
+    });
+    const entry = (depth: number, id: string, title: string) => ({
+      depth,
+      id,
+      selector_ids: {},
+      title: [{ type: 'text', value: title }],
+    });
+    // Snooty lists only the depth 2-3 headings, but the page also renders depth-4 "Syntax" and "Options"
+    // headings first, so Heading.tsx slugs the later depth-3 ones as syntax-4 and options-3.
+    const ast: SnootyNode = {
+      type: 'root',
+      options: {
+        headings: [entry(2, 'syntax', 'Syntax'), entry(3, 'syntax-1', 'Syntax'), entry(3, 'options', 'Options')],
+      },
+      children: [
+        section('Page', [
+          section('Syntax'),
+          section('Facet Definition', [
+            section('String Facets', [section('Syntax'), section('Options')]),
+            section('Numeric Facets', [section('Syntax'), section('Options')]),
+            section('Date Facets', [section('Syntax'), section('Options')]),
+          ]),
+          section('Facet Aggregations', [section('Syntax'), section('Options')]),
+        ]),
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    const frontmatter = yaml.parse(mdx.split('---')[1]);
+    expect(frontmatter.options.headings.map((h: { id: string }) => h.id)).toEqual(['syntax', 'syntax-4', 'options-3']);
+  });
+
+  it('normalizes options.headings ids with punctuation to the rendered github-slugger form', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      options: {
+        headings: [
+          {
+            depth: 2,
+            id: 'create-the-payload-file.',
+            selector_ids: {},
+            title: [{ type: 'text', value: 'Create the payload file.' }],
+          },
+        ],
+      },
+      children: [
+        {
+          type: 'section',
+          children: [
+            { type: 'heading', children: [{ type: 'text', value: 'Page' }] },
+            {
+              type: 'section',
+              children: [{ type: 'heading', children: [{ type: 'text', value: 'Create the payload file.' }] }],
+            },
+          ],
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    const frontmatter = yaml.parse(mdx.split('---')[1]);
+    expect(frontmatter.options.headings[0].id).toBe('create-the-payload-file');
   });
 
   it('injects tabs-selector-position: main into frontmatter when tabs-selector directive is present', () => {
@@ -2981,7 +3061,6 @@ describe('DefinitionTerm inline content rendering', () => {
       expect(mdx).not.toContain('&#xA;');
       expect(mdx).not.toMatch(/caption=\{'[^']*\n/);
     });
-
 
     it('puts source in the fence info string as a single-quoted JSX expression', () => {
       const ast: SnootyNode = {

@@ -60,3 +60,131 @@ export const normalizeHeadingOptions = (headings: HeadingOptionLike[]): HeadingO
     return { ...heading, title: strippedTitle, id: slug };
   });
 };
+
+export interface RenderedHeading {
+  depth: number;
+  text: string;
+  /** Text used to match against Snooty's heading titles. */
+  matchText: string;
+}
+
+const attributeValue = (node: SnootyNode, attrName: string): string | undefined => {
+  const attributes = (node as { attributes?: { name?: string; value?: unknown }[] }).attributes;
+  const found = attributes?.find((a) => a.name === attrName);
+  if (typeof found?.value === 'string') return found.value;
+  // Numeric attributes are stored as expressions: `headingLevel={3}` -> { value: { value: '3' } }
+  const expression = found?.value as { value?: unknown } | undefined;
+  return typeof expression?.value === 'string' ? expression.value : undefined;
+};
+
+const renderedText = (node: SnootyNode): string => {
+  if (node.type === 'text' || node.type === 'inlineCode') return node.value ?? '';
+  if (node.name === 'Reference' && attributeValue(node, 'type') === 'substitution') {
+    return attributeValue(node, 'value') ?? '';
+  }
+  return (node.children ?? []).map(renderedText).join('');
+};
+
+/**
+ * Text used to line a rendered heading up with Snooty's title for it. Snooty records roles such as
+ * `:pipeline:` with empty children, so the title reads "Can I run a query" where the page renders
+ * "Can I run a `$search` query". Dropping role text from both sides lets them match; the id itself
+ * still comes from the full rendered text, so the anchor keeps the resolved wording.
+ */
+const renderedMatchText = (node: SnootyNode): string => {
+  if (node.type === 'text' || node.type === 'inlineCode') return node.value ?? '';
+  if (node.name === 'RefRole') return '';
+  return (node.children ?? []).map(renderedMatchText).join('');
+};
+
+/**
+ * Components that render an `h1`-`h6` through `Heading` but are not `heading` nodes in the mdast:
+ * a step title lives in `StepHeading`'s children, and a collapsible's title is a `heading`
+ * attribute (its children are body content). `Heading.tsx` slugs both at render time.
+ */
+const HEADING_COMPONENTS = new Set(['StepHeading', 'Heading', 'Collapsible']);
+
+const normalizeHeadingText = (text: string): string => text.replace(/\s+/g, ' ').trim();
+
+/**
+ * Collects every heading `Heading.tsx` will slug, in document order, at every depth. A single
+ * slugger runs over them at render time, so ids are only stable if the same sequence is used here.
+ */
+export const collectRenderedHeadings = (nodes: SnootyNode[]): RenderedHeading[] => {
+  const headings: RenderedHeading[] = [];
+  const walk = (node: SnootyNode) => {
+    if (node.type === 'heading') {
+      headings.push({ depth: node.depth ?? 1, text: renderedText(node), matchText: renderedMatchText(node) });
+      return;
+    }
+    if (node.type.startsWith('mdxJsx') && HEADING_COMPONENTS.has(String(node.name))) {
+      const text =
+        node.name === 'Collapsible'
+          ? attributeValue(node, 'heading') ?? ''
+          : renderedText({ type: 'root', children: node.children ?? [] });
+      if (text) {
+        headings.push({
+          depth: Number(attributeValue(node, 'headingLevel')) || 3,
+          text,
+          matchText: text,
+        });
+      }
+      // A collapsible's children are body content that can contain further headings.
+      if (node.name === 'Collapsible') (node.children ?? []).forEach(walk);
+      return;
+    }
+    (node.children ?? []).forEach(walk);
+  };
+  nodes.forEach(walk);
+  return headings;
+};
+
+/**
+ * Snooty's `options.headings` omits some headings (for example depth 4, or step titles rendered by
+ * `StepHeading`) but its ids, and the ids `Heading.tsx` renders, both count them. Slug the full
+ * rendered sequence once, in order, then give each `options.headings` entry the id of the rendered
+ * heading it corresponds to — matched by depth and title, then by title alone, since the depth
+ * Snooty records can differ from the rendered one.
+ *
+ * An entry with no rendered heading at all is slugged from its own title (the pre-PR runtime
+ * behaviour). Keeping Snooty's id instead would leave the ToC pointing at an anchor that the page
+ * never renders.
+ */
+export const assignRenderedHeadingIds = (
+  headings: HeadingOptionLike[],
+  renderedHeadings: RenderedHeading[],
+): HeadingOptionLike[] => {
+  const slugger = new GithubSlugger();
+  const slugs = renderedHeadings.map((h) => slugger.slug(h.text));
+  const consumed = new Set<number>();
+  let cursor = 0;
+
+  const assigned = headings.map((heading) => {
+    const text = normalizeHeadingText(extractInlineDisplayText(heading.title ?? []));
+    for (let i = cursor; i < renderedHeadings.length; i += 1) {
+      const candidate = renderedHeadings[i];
+      if (candidate.depth === heading.depth && normalizeHeadingText(candidate.matchText) === text) {
+        cursor = i + 1;
+        consumed.add(i);
+        return { ...heading, id: slugs[i] };
+      }
+    }
+    for (let i = 0; i < renderedHeadings.length; i += 1) {
+      if (!consumed.has(i) && normalizeHeadingText(renderedHeadings[i].matchText) === text) {
+        consumed.add(i);
+        return { ...heading, id: slugs[i] };
+      }
+    }
+    return null;
+  });
+
+  const fallbackSlugger = new GithubSlugger();
+  return assigned.map((heading, index) => {
+    if (heading) return heading;
+    const unmatched = headings[index];
+    return {
+      ...unmatched,
+      id: fallbackSlugger.slug(normalizeHeadingText(extractInlineDisplayText(unmatched.title ?? []))),
+    };
+  });
+};

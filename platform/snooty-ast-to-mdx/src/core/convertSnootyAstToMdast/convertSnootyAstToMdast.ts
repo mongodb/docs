@@ -24,7 +24,7 @@ import { buildVersionElementParts } from './buildVersionElementParts';
 import { computeComposableTutorialData, buildComposableOptionsFromNode } from './computeComposableTutorialData';
 import { extractInlineDisplayText } from './extractInlineDisplayText';
 import { parseAbbrText } from './parseAbbrText';
-import { normalizeHeadingOptions } from './normalizeHeadingOptions';
+import { normalizeHeadingOptions, assignRenderedHeadingIds, collectRenderedHeadings } from './normalizeHeadingOptions';
 import stableStringify from 'fast-json-stable-stringify';
 
 // Toctree is navigation structure only – not rendered in page content
@@ -2556,8 +2556,9 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
   // roles whose text still includes the "(expansion)" — strip it and re-derive `id` so ToC
   // links and heading anchors agree. See normalizeHeadingOptions for details.
   if (Array.isArray(pageOptions.headings)) {
-    pageOptions.headings = normalizeHeadingOptions(
-      pageOptions.headings as Parameters<typeof normalizeHeadingOptions>[0],
+    pageOptions.headings = assignRenderedHeadingIds(
+      normalizeHeadingOptions(pageOptions.headings as Parameters<typeof normalizeHeadingOptions>[0]),
+      collectRenderedHeadings(contentChildren as SnootyNode[]),
     );
   }
 

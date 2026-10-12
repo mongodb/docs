@@ -44,16 +44,12 @@ export function extractPlainText(nodes: TextNode[]): string {
 const ContentsProvider = ({ children, headingNodes }: { children: ReactNode; headingNodes: HeadingOption[] }) => {
   const [activeSelectorIds, setActiveSelectorIds] = useState<ActiveSelectorIds>({});
 
-  // Both sluggers are fresh per page (re-created when headingNodes changes on navigation).
-  // tocSlugger normalizes Snooty IDs to match github-slugger output for ToC links.
-  // headingSlugger is given to Heading components so their Permalink IDs are generated
-  // from the same fresh state, keeping ToC links and heading anchors in sync.
+  // ToC ids come from the frontmatter, which snooty-ast-to-mdx slugs over every rendered
+  // heading in order. Re-slugging here would only see the headings listed in the frontmatter
+  // and drift from the ids Heading components render. headingSlugger is fresh per page
+  // (re-created when headingNodes changes on navigation) and is given to Heading components.
   const normalizedHeadingNodes = useMemo(() => {
-    const tocSlugger = new Slugger();
-    return headingNodes.map((node) => ({
-      ...node,
-      id: tocSlugger.slug(extractPlainText(node.title)),
-    }));
+    return headingNodes.map((node) => ({ ...node }));
     // activeSelectorIds.composable is included so the IntersectionObserver
     // re-runs after ComposableTutorial sets its initial selections and the
     // composable heading elements first appear in the DOM.
