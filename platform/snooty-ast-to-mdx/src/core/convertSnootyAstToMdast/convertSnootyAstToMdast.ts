@@ -320,9 +320,8 @@ const hoistFlowElementsFromParagraph = (children: MdastNode[]): MdastNode | Mdas
 };
 
 /**
- * Emit a JSX `<ol enumtype="...">` with `<li>` children for non-Arabic ordered lists
- * (loweralpha, upperalpha, lowerroman, upperroman). The MDX component mapping
- * `ol → <List>` and `li → <ListItem>` applies the correct list-style-type at render time.
+ * Emit capitalized `<List enumtype="...">` with `<ListItem>` children for non-Arabic ordered
+ * lists (loweralpha, upperalpha, lowerroman, upperroman).
  */
 const buildEnumeratedListJsx = (
   node: SnootyNode,
@@ -344,11 +343,11 @@ const buildEnumeratedListJsx = (
     .filter((c): c is SnootyNode => !!c && (c.type === 'list_item' || c.type === 'listItem'))
     .map((c) => ({
       type: 'mdxJsxFlowElement',
-      name: 'li',
+      name: 'ListItem',
       attributes: [] as MdastNode[],
       children: convertChildren({ nodes: c.children, depth, ctx }),
     }));
-  return { type: 'mdxJsxFlowElement', name: 'ol', attributes, children: liChildren };
+  return { type: 'mdxJsxFlowElement', name: 'List', attributes, children: liChildren };
 };
 
 /** Convert a single Snooty node to mdast. Certain nodes (e.g. `section`) expand

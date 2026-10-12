@@ -3592,3 +3592,30 @@ describe('DefinitionTerm inline content rendering', () => {
     });
   });
 });
+
+describe('enumerated list rendering (DOP-7298)', () => {
+  const loweralphaList: SnootyNode = {
+    type: 'enumerated_list',
+    enumtype: 'loweralpha',
+    start: 1,
+    children: [
+      { type: 'list_item', children: [{ type: 'paragraph', children: [{ type: 'text', value: 'First' }] }] },
+      { type: 'list_item', children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Second' }] }] },
+    ],
+  };
+
+  // Non-Arabic ordered lists must serialize as capitalized JSX so MDX routes them
+  // through the components map; lowercase <ol>/<li> compiles to intrinsic HTML and
+  // the map is never consulted, dropping the enumtype.
+  test('emits capitalized <List>/<ListItem>', () => {
+    const { mdx } = convertSnootyAst({ ast: loweralphaList });
+    expect(mdx).toContain('<List enumtype="loweralpha">');
+    expect(mdx).toContain('<ListItem>');
+    expect(mdx).not.toContain('<ol');
+  });
+
+  test('passes a non-1 start through as a startat prop', () => {
+    const { mdx } = convertSnootyAst({ ast: { ...loweralphaList, start: 3 } });
+    expect(mdx).toContain('<List enumtype="loweralpha" startat={3}>');
+  });
+});

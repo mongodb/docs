@@ -165,6 +165,8 @@ export const components = (injectedProps?: InjectedProps) =>
       </List>
     ),
     li: ({ children, ...props }) => <ListItem {...props}>{children}</ListItem>,
+    List: ({ children, ...props }) => <List {...props}>{children}</List>,
+    ListItem: ({ children, ...props }) => <ListItem {...props}>{children}</ListItem>,
     code: ({ children }) => <Literal>{children}</Literal>,
     MultiColumn: ({ children }) => <MultiColumn>{children}</MultiColumn>,
     Output: ({ children, ...props }) => <Output {...props}>{children}</Output>,

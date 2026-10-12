@@ -510,7 +510,7 @@ const cases: Array<[string, SnootyNode]> = [
     },
   ],
   [
-    'enumerated_list loweralpha emits JSX ol',
+    'enumerated_list loweralpha emits List',
     {
       type: 'enumerated_list',
       enumtype: 'loweralpha',
@@ -533,7 +533,7 @@ const cases: Array<[string, SnootyNode]> = [
     },
   ],
   [
-    'list with loweralpha enumtype emits JSX ol',
+    'list with loweralpha enumtype emits List',
     {
       type: 'list',
       enumtype: 'loweralpha',
