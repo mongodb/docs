@@ -1,5 +1,5 @@
-import type { NetlifyPluginUtils } from "@netlify/build";
 import { parse, type ParserCommandArgs } from "../parse/parse";
+import type { BuildUtils } from "../util/buildUtils";
 import { runPersistenceModule } from "../persistence/index";
 import type { DocsetsDocument } from "../util/databaseConnection/types";
 import { closeConnections } from "../persistence/index";
@@ -29,7 +29,7 @@ export const getParserVersion = async ({
 };
 
 export type prepAndRunModulesParams = {
-	netlifyPluginUtils: NetlifyPluginUtils;
+	netlifyPluginUtils: BuildUtils;
 	allContentData: AllContentData;
 	branchName: string;
 	atlasProjectDocuments: AtlasProjectDocuments;
@@ -142,7 +142,7 @@ export const runPrebuildModulesPerPath = async ({
 	docsetEntry: DocsetsDocument;
 	parserArgs: ParserCommandArgs;
 	bundlePath: string;
-	netlifyPluginUtils: Pick<NetlifyPluginUtils, "run" | "status" | "cache">;
+	netlifyPluginUtils: BuildUtils;
 	branchName: string;
 	prId?: number;
 	shouldRunPersistence: boolean;

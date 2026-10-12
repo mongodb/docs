@@ -1,7 +1,7 @@
-import type { NetlifyPluginUtils } from '@netlify/build';
 import path, { normalize } from 'node:path';
 import type { StaticEnvVars } from '../util/assertDbEnvVars';
-import type { ConfigEnvironmentVariables } from '../util/extension';
+import type { BuildRunner } from '../util/buildUtils';
+import type { ConfigEnvironmentVariables } from '../util/configEnvironment';
 import {
   getSearchProperties,
   type SearchProperties,
@@ -34,7 +34,7 @@ const generateAndUploadManifests = async ({
   pathToBundle,
 }: {
   configEnvironment: ConfigEnvironmentVariables;
-  run: NetlifyPluginUtils['run'];
+  run: BuildRunner;
   dbEnvVars: StaticEnvVars;
   branchEntry: BranchEntry;
   repoEntry: ReposBranchesDocument;
@@ -127,7 +127,7 @@ const generateAndUploadManifests = async ({
 
 type SearchManifestJobParams = {
   allContentData: AllContentData;
-  run: NetlifyPluginUtils['run'];
+  run: BuildRunner;
   dbEnvVars: StaticEnvVars;
   configEnvironment: ConfigEnvironmentVariables;
 };

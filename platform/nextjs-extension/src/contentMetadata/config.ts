@@ -7,7 +7,7 @@ import type {
   SearchDBName,
 } from '../util/databaseConnection/types';
 import { FrontendEnvironments } from '../util/databaseConnection/types';
-import type { ConfigEnvironmentVariables } from '../util/extension';
+import type { ConfigEnvironmentVariables } from '../util/configEnvironment';
 import type { StaticEnvVars } from '../util/assertDbEnvVars';
 import {
   determineEnvironment,

@@ -1,11 +1,11 @@
-import type { NetlifyPluginUtils } from '@netlify/build';
+import type { BuildRunner } from '../buildUtils';
 import { MutError } from '../errorClasses';
 
 export const buildUnifiedTOC = async ({
   run,
   tableOfContentsCWD,
 }: {
-  run: NetlifyPluginUtils['run'];
+  run: BuildRunner;
   tableOfContentsCWD: string;
 }) => {
   try {

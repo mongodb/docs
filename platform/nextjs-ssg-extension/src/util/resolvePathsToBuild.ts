@@ -1,4 +1,4 @@
-import { envVarToBool } from "../../../nextjs-extension/src/util/extension";
+import { envVarToBool } from "../../../nextjs-extension/src/util/configEnvironment";
 import {
 	type AllContentData,
 	getBranchForContentPath,

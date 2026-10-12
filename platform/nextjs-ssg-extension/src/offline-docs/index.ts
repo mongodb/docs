@@ -1,9 +1,9 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import type { NetlifyPluginUtils } from '@netlify/build';
 import type { AllContentData } from '../../../nextjs-extension/src/contentMetadata/processContentMetadata';
 import type { StaticEnvVars } from '../../../nextjs-extension/src/util/assertDbEnvVars';
-import type { ConfigEnvironmentVariables } from '../../../nextjs-extension/src/util/extension';
+import type { BuildRunner, BuildUtils } from '../../../nextjs-extension/src/util/buildUtils';
+import type { ConfigEnvironmentVariables } from '../../../nextjs-extension/src/util/configEnvironment';
 import { getOfflineBundlesToRebuild } from './offline-bundles-to-rebuild/index';
 import { getLegacyOfflineBundles } from './legacy-bundles-to-rebuild/index';
 import { ensureContentConvertedForBundles } from './ensure-content-converted';
@@ -48,7 +48,7 @@ const runOfflineBuild = async ({
   version: string;
   bucketName: string;
   tocDir?: string;
-  run: NetlifyPluginUtils['run'];
+  run: BuildRunner;
 }): Promise<void> => {
   const label = `${bundleStem}@${version}`;
   console.log(`[offline-docs] Starting build for ${label} (tocDir=${tocDir})`);
@@ -118,7 +118,7 @@ const runOfflineBuild = async ({
 export const handleOfflineDownloads = async (
   allContentData: AllContentData,
   gitChangedFiles: readonly string[],
-  netlifyPluginUtils: NetlifyPluginUtils,
+  netlifyPluginUtils: BuildUtils,
   dbEnvVars: StaticEnvVars,
   configEnvironment: ConfigEnvironmentVariables,
 ): Promise<void> => {

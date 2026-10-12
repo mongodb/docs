@@ -1,6 +1,6 @@
 import path from 'node:path';
-import type { NetlifyPluginUtils } from '@netlify/build';
-import type { ConfigEnvironmentVariables } from '../../../nextjs-extension/src/util/extension';
+import type { BuildRunner } from '../../../nextjs-extension/src/util/buildUtils';
+import type { ConfigEnvironmentVariables } from '../../../nextjs-extension/src/util/configEnvironment';
 import { getRepoPaths } from '../../../nextjs-extension/src/paths';
 import { APP_DIR } from '../constants';
 
@@ -35,7 +35,7 @@ const requireOfflineBucket = (): string => {
  * llms.txt is only ever published as the result of a merged git change.
  */
 export const handleRootLlmsTxt = async (
-  utils: NetlifyPluginUtils,
+  run: BuildRunner,
   configEnvironment: ConfigEnvironmentVariables,
   gitChangedFiles: readonly string[],
 ): Promise<void> => {
@@ -53,7 +53,7 @@ export const handleRootLlmsTxt = async (
 
   console.log(`[llms-txt] Root llms.txt changed; publishing to s3://${bucket}`);
 
-  await utils.run.command(
+  await run.command(
     `pnpm --filter generate-llms run publish-root -- --bucket ${bucket} --execute`,
     { cwd: path.join(repoRoot, GENERATE_LLMS_DIR), env: { DOCS_MONOREPO_ROOT: repoRoot } },
   );
@@ -74,7 +74,7 @@ export const handleRootLlmsTxt = async (
  * shells out to `pnpm run build:offline`.
  */
 export const handleLlmsTxt = async (
-  utils: NetlifyPluginUtils,
+  run: BuildRunner,
   configEnvironment: ConfigEnvironmentVariables,
 ): Promise<void> => {
 
@@ -91,7 +91,7 @@ export const handleLlmsTxt = async (
 
   console.log(`[llms-txt] Publishing llms.txt for ${docsProject} to s3://${bucket}`);
 
-  await utils.run.command(
+  await run.command(
     `pnpm --filter generate-llms run publish-project -- --for-project ${docsProject} --bucket ${bucket} --execute`,
     {
       cwd: path.join(repoRoot, GENERATE_LLMS_DIR),

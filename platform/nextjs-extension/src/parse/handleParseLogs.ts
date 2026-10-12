@@ -1,11 +1,11 @@
-import type { NetlifyPluginUtils } from '@netlify/build';
+import type { BuildStatus } from '../util/buildUtils';
 export const displayParserLogs = async ({
   parserLogs,
   status,
   numVersionsParsed,
 }: {
   parserLogs: string;
-  status: NetlifyPluginUtils['status'];
+  status: BuildStatus;
   numVersionsParsed: number;
 }) => {
   const logsSplit = parserLogs.split('\n');

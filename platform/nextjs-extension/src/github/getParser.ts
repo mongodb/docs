@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import AdmZip from 'adm-zip';
-import type { NetlifyPluginUtils } from '@netlify/build';
+import type { BuildCache, BuildRunner } from '../util/buildUtils';
 import {
   type Environments,
   MONGODB_ORG,
@@ -70,8 +70,8 @@ export const getParser = async ({
   expectedParserVersion,
   environment,
 }: {
-  run: NetlifyPluginUtils['run'];
-  cache: NetlifyPluginUtils['cache'];
+  run: BuildRunner;
+  cache: BuildCache;
   expectedParserVersion: string;
   environment: Environments;
 }): Promise<boolean> => {

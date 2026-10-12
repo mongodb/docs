@@ -6,7 +6,7 @@ import type { StaticEnvVars } from '../util/assertDbEnvVars';
 import { getRepoPaths } from '../paths';
 import { getDocsetsCollection } from '../util/databaseConnection/fetchDocsetsData';
 import { getReposBranchesCollection } from '../util/databaseConnection/fetchReposBranchesData';
-import type { ConfigEnvironmentVariables } from '../util/extension';
+import type { ConfigEnvironmentVariables } from '../util/configEnvironment';
 import type {
   DocsetsDocument,
   ReposBranchesDocument,

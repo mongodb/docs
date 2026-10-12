@@ -80,6 +80,16 @@ function getBuildBasePathEnv() {
 
 const { basePath: BASE_PATH, prefixes: DOCS_PREFIXES, assetBucketSuffix: ASSET_BUCKET_SUFFIX } = getBuildBasePathEnv();
 
+// Same rule as getMarianURL in nextjs-extension/src/contentMetadata/config.ts,
+// resolved here so the search URL depends only on the deploy's ENV.
+function getMarianUrl() {
+  if (process.env.NEXT_PUBLIC_MARIAN_URL) return process.env.NEXT_PUBLIC_MARIAN_URL;
+  if (process.env.ENV === 'stg' || process.env.ENV === 'dotcomstg') {
+    return process.env.MARIAN_STAGING_URL ?? 'https://docs-search-transport.docs.staging.corp.mongodb.com/';
+  }
+  return process.env.MARIAN_URL ?? 'https://docs-search-transport.mongodb.com/';
+}
+
 // Bundle size reporting (UXE-697). Off by default, so normal and Netlify builds
 // produce byte-identical output.
 const BUNDLE_STATS = process.env.BUNDLE_STATS === 'true';
@@ -140,6 +150,8 @@ const nextConfig = {
     // Keep getAssetBucketSuffix() in lockstep with assetPrefix for this build
     // (active vs inactive manual, or empty for every other project).
     NEXT_PUBLIC_DOCS_ASSET_BUCKET_SUFFIX: ASSET_BUCKET_SUFFIX,
+    NEXT_PUBLIC_MARIAN_URL: getMarianUrl(),
+    NEXT_PUBLIC_BUILD_DOCS_PROJECT: process.env.DOCS_PROJECT ?? '',
   },
   compiler: {
     emotion: true,

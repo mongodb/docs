@@ -1,10 +1,10 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import type { NetlifyPluginUtils } from '@netlify/build';
 import type { AllContentData } from '../../../nextjs-extension/src/contentMetadata/processContentMetadata';
 import type { Environments } from '../../../nextjs-extension/src/util/databaseConnection/types';
 import type { StaticEnvVars } from '../../../nextjs-extension/src/util/assertDbEnvVars';
-import type { ConfigEnvironmentVariables } from '../../../nextjs-extension/src/util/extension';
+import type { BuildUtils } from '../../../nextjs-extension/src/util/buildUtils';
+import type { ConfigEnvironmentVariables } from '../../../nextjs-extension/src/util/configEnvironment';
 import { getRepoPaths } from '../../../nextjs-extension/src/paths';
 import { getParser } from '../../../nextjs-extension/src/github/getParser';
 import {
@@ -85,7 +85,7 @@ export const ensureContentConvertedForBundles = async ({
 }: {
   bundlesToRebuild: OfflineBundlesToBuild;
   allContentData: AllContentData;
-  netlifyPluginUtils: NetlifyPluginUtils;
+  netlifyPluginUtils: BuildUtils;
   dbEnvVars: StaticEnvVars;
   configEnvironment: ConfigEnvironmentVariables;
 }): Promise<void> => {

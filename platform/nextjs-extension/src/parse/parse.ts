@@ -1,5 +1,5 @@
-import type { NetlifyPluginUtils } from '@netlify/build';
 import type { ExecaError } from 'execa';
+import type { BuildUtils, BuildRunner } from '../util/buildUtils';
 import { MutError } from '../util/errorClasses';
 import { getParserBinaryPath } from '../github/getParser';
 
@@ -18,7 +18,7 @@ export const parse = async ({
   contentPath,
   netlifyPluginUtils: { run, cache },
 }: ParserCommandArgs & {
-  netlifyPluginUtils: Pick<NetlifyPluginUtils, 'run' | 'cache'>;
+  netlifyPluginUtils: Pick<BuildUtils, 'run' | 'cache'>;
 }): Promise<string> => {
   console.log(
     `=============================== Running parser for content path ${contentPath} with version ${version}... =====================================================================`,
@@ -60,7 +60,7 @@ export const makeExamples = async ({
   run,
 }: {
   contentPath: string;
-  run: NetlifyPluginUtils['run'];
+  run: BuildRunner;
 }) => {
   try {
     await run.command('make examples', {
