@@ -9,9 +9,9 @@ Plan: `docs/superpowers/plans/2026-10-07-translation-evals.md`
 
 ## Status
 
-Scaffold only. The package, config, run-manifest storage, and CLI dispatch
-land first; each of the seven stages arrives in its own PR and registers a
-handler in `src/commands/index.ts`.
+`resolve` is implemented. The remaining six stages (`scrape-prod`, `translate`,
+`serve`, `scrape-local`, `dataset`, `eval`) land in their own PRs, each
+registering its handler in `src/commands/index.ts`.
 
 ## The seven stages
 

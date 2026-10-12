@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { loadConfig } from '../src/config.js';
+import { loadConfig } from './config.js';
 
 describe('loadConfig', () => {
   it('applies defaults and derives paths from the package root', () => {

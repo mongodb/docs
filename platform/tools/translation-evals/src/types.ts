@@ -5,7 +5,7 @@ export interface PageRef {
   slug: string;
   /** Production URL path, e.g. `/docs/atlas/alerts`. */
   urlPath: string;
-  /** Path relative to `content-mdx/<project>`, e.g. `atlas/alerts.mdx`. */
+  /** content-mdx-relative, e.g. `atlas/alerts.mdx`. */
   mdxPath: string;
   /** Composable-variant query string, e.g. `interface=atlas-cli`. */
   query?: string;
@@ -18,9 +18,9 @@ export interface ScrapedPage {
 }
 
 export interface TranslatableSet {
-  /** mdxPaths of the eval pages. */
+  /** Project-relative mdxPaths of the eval pages (relative to `content-mdx/<project>`). */
   pages: string[];
-  /** mdxPaths under `_includes/`, each counted once. */
+  /** Project-relative mdxPaths of reachable files that are not seed pages, each counted once. */
   includes: string[];
   /** Keys from `_references.json` referenced by the closure. */
   substitutions: string[];

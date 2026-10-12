@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { loadConfig } from '../src/config.js';
-import { newRunId, writeManifest, readManifest, setStage } from '../src/run/manifest.js';
+import { loadConfig } from '../config.js';
+import { newRunId, writeManifest, readManifest, setStage } from './manifest.js';
 
 function tmpCfg() {
   const cfg = loadConfig({});

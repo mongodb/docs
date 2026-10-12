@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseArgs } from '../src/cli.js';
+import { parseArgs } from './cli.js';
 
 describe('parseArgs', () => {
   it('parses a subcommand with flags', () => {

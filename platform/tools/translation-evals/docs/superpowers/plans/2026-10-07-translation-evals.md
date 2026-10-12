@@ -13,6 +13,7 @@
 ## Global Constraints
 
 - Package name `translation-evals`; ESM (`"type": "module"`); TypeScript strict; tests with `vitest`.
+- **Unit tests live beside the module under test** (`src/<dir>/<name>.test.ts`), NOT in a `test/` directory.
 - Reuse only current `main` code: `mdx-translation-adapter` and the `translation` service. Do **not** reference or import from `origin/llm-evals`.
 - `content-mdx/` is scratch: never commit generated content; add it to `.gitignore`.
 - Production origin `https://www.mongodb.com`; local origin `http://localhost:3000`. Local and production-English paths are identical; production-localized adds a `/<locale>` prefix.
@@ -67,7 +68,7 @@ git commit -m "docs(translation-evals): verification spike findings"
 - Create: `platform/tools/translation-evals/.gitignore`
 - Create: `platform/tools/translation-evals/src/types.ts`
 - Create: `platform/tools/translation-evals/src/config.ts`
-- Test: `platform/tools/translation-evals/test/config.test.ts`
+- Test: `platform/tools/translation-evals/src/config.test.ts`
 - Modify: `platform/pnpm-workspace.yaml` (add `tools/translation-evals`)
 
 **Interfaces:**
@@ -146,7 +147,7 @@ Append `tools/translation-evals` to the `packages:` list in `platform/pnpm-works
 - [ ] **Step 5: Write the failing test for `loadConfig`**
 
 ```ts
-// test/config.test.ts
+// src/config.test.ts
 import { describe, it, expect } from 'vitest';
 import { loadConfig } from '../src/config.js';
 
@@ -169,7 +170,7 @@ describe('loadConfig', () => {
 
 - [ ] **Step 6: Run test to verify it fails**
 
-Run: `cd platform/tools/translation-evals && npx vitest run test/config.test.ts`
+Run: `cd platform/tools/translation-evals && npx vitest run src/config.test.ts`
 Expected: FAIL — cannot resolve `../src/config.js`.
 
 - [ ] **Step 7: Implement `src/types.ts` and `src/config.ts`**
@@ -252,13 +253,13 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
 
 - [ ] **Step 8: Run test to verify it passes**
 
-Run: `cd platform/tools/translation-evals && npx vitest run test/config.test.ts`
+Run: `cd platform/tools/translation-evals && npx vitest run src/config.test.ts`
 Expected: PASS (2 tests).
 
 - [ ] **Step 9: Commit**
 
 ```bash
-git add platform/tools/translation-evals/package.json platform/tools/translation-evals/tsconfig.json platform/tools/translation-evals/vitest.config.ts platform/tools/translation-evals/.gitignore platform/tools/translation-evals/src/types.ts platform/tools/translation-evals/src/config.ts platform/tools/translation-evals/test/config.test.ts platform/pnpm-workspace.yaml
+git add platform/tools/translation-evals/package.json platform/tools/translation-evals/tsconfig.json platform/tools/translation-evals/vitest.config.ts platform/tools/translation-evals/.gitignore platform/tools/translation-evals/src/types.ts platform/tools/translation-evals/src/config.ts platform/tools/translation-evals/src/config.test.ts platform/pnpm-workspace.yaml
 git commit -m "feat(translation-evals): package scaffold, config, core types"
 ```
 
@@ -268,7 +269,7 @@ git commit -m "feat(translation-evals): package scaffold, config, core types"
 
 **Files:**
 - Create: `platform/tools/translation-evals/src/run/manifest.ts`
-- Test: `platform/tools/translation-evals/test/manifest.test.ts`
+- Test: `platform/tools/translation-evals/src/run/manifest.test.ts`
 
 **Interfaces:**
 - Consumes: `Config`, `RunManifest` (Task 1).
@@ -277,7 +278,7 @@ git commit -m "feat(translation-evals): package scaffold, config, core types"
 - [ ] **Step 1: Write the failing test**
 
 ```ts
-// test/manifest.test.ts
+// src/run/manifest.test.ts
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -309,7 +310,7 @@ describe('manifest', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd platform/tools/translation-evals && npx vitest run test/manifest.test.ts`
+Run: `cd platform/tools/translation-evals && npx vitest run src/run/manifest.test.ts`
 Expected: FAIL — cannot resolve `../src/run/manifest.js`.
 
 - [ ] **Step 3: Implement**
@@ -357,13 +358,13 @@ export function setStage(
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd platform/tools/translation-evals && npx vitest run test/manifest.test.ts`
+Run: `cd platform/tools/translation-evals && npx vitest run src/run/manifest.test.ts`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add platform/tools/translation-evals/src/run/manifest.ts platform/tools/translation-evals/test/manifest.test.ts
+git add platform/tools/translation-evals/src/run/manifest.ts platform/tools/translation-evals/src/run/manifest.test.ts
 git commit -m "feat(translation-evals): run manifest storage"
 ```
 
@@ -374,7 +375,7 @@ git commit -m "feat(translation-evals): run manifest storage"
 **Files:**
 - Create: `platform/tools/translation-evals/src/cli.ts`
 - Create: `platform/tools/translation-evals/src/commands/index.ts`
-- Test: `platform/tools/translation-evals/test/cli.test.ts`
+- Test: `platform/tools/translation-evals/src/cli.test.ts`
 
 **Interfaces:**
 - Consumes: `loadConfig` (Task 1).
@@ -383,7 +384,7 @@ git commit -m "feat(translation-evals): run manifest storage"
 - [ ] **Step 1: Write the failing test**
 
 ```ts
-// test/cli.test.ts
+// src/cli.test.ts
 import { describe, it, expect } from 'vitest';
 import { parseArgs } from '../src/cli.js';
 
@@ -402,7 +403,7 @@ describe('parseArgs', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd platform/tools/translation-evals && npx vitest run test/cli.test.ts`
+Run: `cd platform/tools/translation-evals && npx vitest run src/cli.test.ts`
 Expected: FAIL — cannot resolve `../src/cli.js`.
 
 - [ ] **Step 3: Implement**
@@ -454,13 +455,13 @@ export const COMMANDS: Record<string, CommandHandler> = {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd platform/tools/translation-evals && npx vitest run test/cli.test.ts`
+Run: `cd platform/tools/translation-evals && npx vitest run src/cli.test.ts`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add platform/tools/translation-evals/src/cli.ts platform/tools/translation-evals/src/commands/index.ts platform/tools/translation-evals/test/cli.test.ts
+git add platform/tools/translation-evals/src/cli.ts platform/tools/translation-evals/src/commands/index.ts platform/tools/translation-evals/src/cli.test.ts
 git commit -m "feat(translation-evals): CLI dispatch skeleton"
 ```
 
@@ -470,7 +471,7 @@ git commit -m "feat(translation-evals): CLI dispatch skeleton"
 
 **Files:**
 - Create: `platform/tools/translation-evals/src/resolve/enumerate.ts`
-- Test: `platform/tools/translation-evals/test/enumerate.test.ts`
+- Test: `platform/tools/translation-evals/src/resolve/enumerate.test.ts`
 
 **Interfaces:**
 - Produces: `enumeratePages(projectDir: string): Promise<string[][]>` — arrays of disk path segments (project name first), mirroring `docs-site/src/utils/scan-mdx-files.ts`.
@@ -478,7 +479,7 @@ git commit -m "feat(translation-evals): CLI dispatch skeleton"
 - [ ] **Step 1: Write the failing test**
 
 ```ts
-// test/enumerate.test.ts
+// src/resolve/enumerate.test.ts
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -510,7 +511,7 @@ describe('enumeratePages', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd platform/tools/translation-evals && npx vitest run test/enumerate.test.ts`
+Run: `cd platform/tools/translation-evals && npx vitest run src/resolve/enumerate.test.ts`
 Expected: FAIL — cannot resolve module.
 
 - [ ] **Step 3: Implement** (mirrors `scan-mdx-files.ts`)
@@ -547,13 +548,13 @@ export async function enumeratePages(projectDir: string): Promise<string[][]> {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd platform/tools/translation-evals && npx vitest run test/enumerate.test.ts`
+Run: `cd platform/tools/translation-evals && npx vitest run src/resolve/enumerate.test.ts`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add platform/tools/translation-evals/src/resolve/enumerate.ts platform/tools/translation-evals/test/enumerate.test.ts
+git add platform/tools/translation-evals/src/resolve/enumerate.ts platform/tools/translation-evals/src/resolve/enumerate.test.ts
 git commit -m "feat(translation-evals): page enumeration"
 ```
 
@@ -563,7 +564,7 @@ git commit -m "feat(translation-evals): page enumeration"
 
 **Files:**
 - Create: `platform/tools/translation-evals/src/resolve/urls.ts`
-- Test: `platform/tools/translation-evals/test/urls.test.ts`
+- Test: `platform/tools/translation-evals/src/resolve/urls.test.ts`
 
 **Interfaces:**
 - Consumes: `PageRef` (Task 1).
@@ -572,9 +573,8 @@ git commit -m "feat(translation-evals): page enumeration"
 - [ ] **Step 1: Write the failing test**
 
 ```ts
-// test/urls.test.ts
 import { describe, it, expect } from 'vitest';
-import { buildPageRefs, slugFor } from '../src/resolve/urls.js';
+import { buildPageRefs, slugFor } from './urls.js';
 
 describe('buildPageRefs', () => {
   it('derives basePath from dir-name-to-prefix and expands composable variants', () => {
@@ -600,17 +600,18 @@ describe('slugFor', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd platform/tools/translation-evals && npx vitest run test/urls.test.ts`
+Run: `cd platform/tools/translation-evals && npx vitest run src/resolve/urls.test.ts`
 Expected: FAIL — cannot resolve module.
 
 - [ ] **Step 3: Implement**
 
 ```ts
-// src/resolve/urls.ts
 import type { PageRef } from '../types.js';
 
 export function slugFor(urlPath: string, query?: string): string {
-  const base = urlPath.replace(/^\//, '').replace(/\/$/, '').replace(/\//g, '__').replace(/[^a-zA-Z0-9_-]/g, '_');
+  // The first segment is the site prefix (e.g. `docs`), which is not part of the slug.
+  const segments = urlPath.replace(/^\//, '').replace(/\/$/, '').split('/').slice(1);
+  const base = segments.join('/').replace(/\//g, '__').replace(/[^a-zA-Z0-9_-]/g, '_');
   if (!query) return base || 'index';
   const q = query.replace(/[^a-zA-Z0-9_-]/g, '_');
   return `${base || 'index'}__${q}`;
@@ -632,13 +633,15 @@ export function buildPageRefs(
     const rel = disk.slice(1).join('/');
     const urlPath = `${basePath}${rel ? `/${rel}` : ''}`.toLowerCase();
     const mdxPath = disk.join('/') + '.mdx';
-    refs.push({ slug: slugFor(urlPath), urlPath, mdxPath });
     const variants = siteJson.composablePages?.[rel];
-    if (variants) {
+    if (variants?.length) {
+      // Composable pages exist only in their variants, so no query-less ref is emitted.
       for (const v of variants) {
         const query = Object.entries(v).map(([k, val]) => `${k}=${val}`).join('&');
         refs.push({ slug: slugFor(urlPath, query), urlPath, mdxPath, query });
       }
+    } else {
+      refs.push({ slug: rel.replace(/\//g, '__') || 'index', urlPath, mdxPath });
     }
   }
   return refs;
@@ -647,13 +650,13 @@ export function buildPageRefs(
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd platform/tools/translation-evals && npx vitest run test/urls.test.ts`
+Run: `cd platform/tools/translation-evals && npx vitest run src/resolve/urls.test.ts`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add platform/tools/translation-evals/src/resolve/urls.ts platform/tools/translation-evals/test/urls.test.ts
+git add platform/tools/translation-evals/src/resolve/urls.ts platform/tools/translation-evals/src/resolve/urls.test.ts
 git commit -m "feat(translation-evals): URL derivation and composable variants"
 ```
 
@@ -663,7 +666,7 @@ git commit -m "feat(translation-evals): URL derivation and composable variants"
 
 **Files:**
 - Create: `platform/tools/translation-evals/src/resolve/closure.ts`
-- Test: `platform/tools/translation-evals/test/closure.test.ts`
+- Test: `platform/tools/translation-evals/src/resolve/closure.test.ts`
 
 **Interfaces:**
 - Consumes: `TranslatableSet` (Task 1).
@@ -672,7 +675,7 @@ git commit -m "feat(translation-evals): URL derivation and composable variants"
 - [ ] **Step 1: Write the failing test**
 
 ```ts
-// test/closure.test.ts
+// src/resolve/closure.test.ts
 import { describe, it, expect } from 'vitest';
 import { buildIncludeGraph, computeClosure } from '../src/resolve/closure.js';
 
@@ -696,7 +699,7 @@ describe('computeClosure', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd platform/tools/translation-evals && npx vitest run test/closure.test.ts`
+Run: `cd platform/tools/translation-evals && npx vitest run src/resolve/closure.test.ts`
 Expected: FAIL — cannot resolve module.
 
 - [ ] **Step 3: Implement**
@@ -747,13 +750,13 @@ export function computeClosure(
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd platform/tools/translation-evals && npx vitest run test/closure.test.ts`
+Run: `cd platform/tools/translation-evals && npx vitest run src/resolve/closure.test.ts`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add platform/tools/translation-evals/src/resolve/closure.ts platform/tools/translation-evals/test/closure.test.ts
+git add platform/tools/translation-evals/src/resolve/closure.ts platform/tools/translation-evals/src/resolve/closure.test.ts
 git commit -m "feat(translation-evals): include graph and transitive closure"
 ```
 
@@ -764,22 +767,23 @@ git commit -m "feat(translation-evals): include graph and transitive closure"
 **Files:**
 - Create: `platform/tools/translation-evals/src/resolve/run.ts`
 - Modify: `platform/tools/translation-evals/src/commands/index.ts`
-- Test: `platform/tools/translation-evals/test/resolve-run.test.ts`
+- Test: `platform/tools/translation-evals/src/resolve/run.test.ts`
 
 **Interfaces:**
 - Consumes: `enumeratePages`, `buildPageRefs`, `buildIncludeGraph`, `computeClosure`, manifest helpers, `loadConfig`.
-- Produces: `resolveProject(cfg, project, runId?): Promise<{ runId: string; manifest: RunManifest }>`; registers `resolve` in `COMMANDS`.
+- Produces: `resolveProject(cfg, project, runId?, options?): Promise<{ runId: string; manifest: RunManifest }>`, where `options` is `{ dirNameToPrefix?, pages?, locales? }`; registers `resolve` in `COMMANDS`.
+
+> Reconciliation note: the shipped `src/resolve/run.test.ts` additionally covers `--pages` filtering (by `urlPath` and `mdxPath`), the unmatched-entry error, the `--locales` override, nested/versioned-project rejection, and root/nested `index.mdx` resolution.
 
 - [ ] **Step 1: Write the failing test** (fixture project, asserting manifest contents)
 
 ```ts
-// test/resolve-run.test.ts
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { loadConfig } from '../src/config.js';
-import { resolveProject } from '../src/resolve/run.js';
+import { loadConfig } from '../config.js';
+import { resolveProject } from './run.js';
 
 function setup() {
   const cfg = loadConfig({});
@@ -791,14 +795,14 @@ function setup() {
   fs.writeFileSync(path.join(projDir, 'alerts.mdx'), '<Include src="/_includes/a" />');
   fs.writeFileSync(path.join(projDir, '_includes', 'a.mdx'), 'body');
   fs.writeFileSync(path.join(projDir, '_references.json'), JSON.stringify({ substitutions: { svc: 'Atlas' }, refs: {} }));
-  (cfg as any).contentMdxDir = path.join(root, 'content-mdx');
+  cfg.contentMdxDir = path.join(root, 'content-mdx');
   return { cfg, projDir };
 }
 
 describe('resolveProject', () => {
   it('produces a manifest with pages and the closure', async () => {
     const { cfg } = setup();
-    const { manifest } = await resolveProject(cfg, 'atlas', 'test-run');
+    const { manifest } = await resolveProject(cfg, 'atlas', 'test-run', { dirNameToPrefix: { atlas: 'docs/atlas' } });
     expect(manifest.pages.some((p) => p.urlPath === '/docs/atlas/alerts')).toBe(true);
     expect(manifest.translatable.includes).toContain('_includes/a.mdx');
   });
@@ -807,13 +811,12 @@ describe('resolveProject', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd platform/tools/translation-evals && npx vitest run test/resolve-run.test.ts`
+Run: `cd platform/tools/translation-evals && npx vitest run src/resolve/run.test.ts`
 Expected: FAIL — cannot resolve module.
 
 - [ ] **Step 3: Implement `src/resolve/run.ts`**
 
 ```ts
-// src/resolve/run.ts
 import fs from 'node:fs';
 import path from 'node:path';
 import type { Config } from '../config.js';
@@ -824,7 +827,6 @@ import { buildIncludeGraph, computeClosure } from './closure.js';
 import { newRunId, writeManifest } from '../run/manifest.js';
 
 const REFKEY_RE = /refKey="([^"]+)"/g;
-const INCLUDE_DIR = '_includes';
 
 function walkMdx(dir: string, base: string, out: string[] = []): string[] {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -835,36 +837,115 @@ function walkMdx(dir: string, base: string, out: string[] = []): string[] {
   return out;
 }
 
+/**
+ * `buildPageRefs` derives `mdxPath` from URL segments, so index pages come out as
+ * `atlas.mdx` / `atlas/foo.mdx` rather than the files that actually exist
+ * (`atlas/index.mdx` / `atlas/foo/index.mdx`). Resolve to the real file so the
+ * closure seed matches the include-graph keys and later source reads find the file.
+ */
+function resolveMdxPath(contentMdxDir: string, mdxPath: string): string {
+  if (fs.existsSync(path.join(contentMdxDir, mdxPath))) return mdxPath;
+  const indexMdxPath = mdxPath.replace(/\.mdx$/, '/index.mdx');
+  if (fs.existsSync(path.join(contentMdxDir, indexMdxPath))) return indexMdxPath;
+  throw new Error(
+    `no MDX file found for page "${mdxPath}" under content-mdx/ ` +
+      `(looked for "${mdxPath}" and "${indexMdxPath}")`,
+  );
+}
+
+function readDirNameToPrefix(): Record<string, string> {
+  const p = path.resolve(import.meta.dirname, '../../../../docs-site/src/generated/dir-name-to-prefix.json');
+  if (!fs.existsSync(p)) {
+    throw new Error('dir-name-to-prefix.json not found — run: pnpm --filter docs-site build:prefix-map');
+  }
+  return JSON.parse(fs.readFileSync(p, 'utf8')) as Record<string, string>;
+}
+
+export interface ResolveOptions {
+  /** Injected prefix map; read from docs-site/generated when omitted. */
+  dirNameToPrefix?: Record<string, string>;
+  /**
+   * Eval set: `urlPath`s or `mdxPath`s of the pages to include. When omitted,
+   * every enumerated page is part of the eval set.
+   */
+  pages?: string[];
+  /** Overrides `cfg.locales` in the manifest. */
+  locales?: string[];
+}
+
 export async function resolveProject(
-  cfg: Config, project: string, runId: string = newRunId(),
+  cfg: Config,
+  project: string,
+  runId: string = newRunId(),
+  options: ResolveOptions = {},
 ): Promise<{ runId: string; manifest: RunManifest }> {
+  if (project.includes('/')) {
+    throw new Error(`nested/versioned projects are not supported yet (got "${project}")`);
+  }
   const projectDir = path.join(cfg.contentMdxDir, project);
   if (!fs.existsSync(projectDir)) throw new Error(`content-mdx/${project} not found — run convert:rst-to-mdx first`);
 
-  const dirNameToPrefix = JSON.parse(
-    fs.readFileSync(path.resolve(import.meta.dirname, '../../../../docs-site/src/generated/dir-name-to-prefix.json'), 'utf8'),
-  ) as Record<string, string>;
+  const dirNameToPrefix = options.dirNameToPrefix ?? readDirNameToPrefix();
   const siteJson = JSON.parse(fs.readFileSync(path.join(projectDir, '_site.json'), 'utf8'));
 
   const diskPaths = await enumeratePages(projectDir);
-  const pages: PageRef[] = buildPageRefs(project, diskPaths, dirNameToPrefix, siteJson);
+  let pages: PageRef[] = buildPageRefs(project, diskPaths, dirNameToPrefix, siteJson);
+  // `buildPageRefs` emits URL-derived paths; replace them with the real content-mdx
+  // file paths so index pages resolve to `index.mdx` (see `resolveMdxPath`).
+  pages = pages.map((p) => ({ ...p, mdxPath: resolveMdxPath(cfg.contentMdxDir, p.mdxPath) }));
 
-  const allFiles = walkMdx(projectDir, cfg.contentMdxDir);
-  const read = (f: string) => fs.readFileSync(path.join(cfg.contentMdxDir, f), 'utf8');
-  const graph = buildIncludeGraph(cfg.contentMdxDir, allFiles, read);
+  if (options.pages) {
+    const wanted = new Set(options.pages);
+    const matched = new Set<string>();
+    for (const p of pages) {
+      if (wanted.has(p.urlPath)) matched.add(p.urlPath);
+      if (wanted.has(p.mdxPath)) matched.add(p.mdxPath);
+    }
+    for (const entry of wanted) {
+      if (!matched.has(entry)) {
+        throw new Error(`--pages entry "${entry}" matches no enumerated page in content-mdx/${project}`);
+      }
+    }
+    pages = pages.filter((p) => wanted.has(p.urlPath) || wanted.has(p.mdxPath));
+  }
+
+  // Paths are PROJECT-RELATIVE (relative to content-mdx/<project>, e.g. "alerts.mdx",
+  // "_includes/a.mdx"). This is the canonical convention for the closure and the
+  // TranslatableSet: include srcs like "/_includes/a" resolve to "_includes/a.mdx",
+  // so graph keys and edges must be project-relative to match.
+  const allFiles = walkMdx(projectDir, projectDir);
+  const read = (f: string) => fs.readFileSync(path.join(projectDir, f), 'utf8');
+  const graph = buildIncludeGraph(projectDir, allFiles, read);
 
   const refKeys: Record<string, string[]> = {};
   for (const f of allFiles) refKeys[f] = [...read(f).matchAll(REFKEY_RE)].map((m) => m[1]!);
 
   const refsPath = path.join(projectDir, '_references.json');
   const substitutionKeys = new Set<string>(
-    fs.existsSync(refsPath) ? Object.keys(JSON.parse(fs.readFileSync(refsPath, 'utf8')).substitutions ?? {}) : [],
+    fs.existsSync(refsPath)
+      ? Object.keys(JSON.parse(fs.readFileSync(refsPath, 'utf8')).substitutions ?? {})
+      : [],
   );
 
-  const translatable = computeClosure(pages.map((p) => p.mdxPath), graph, refKeys, substitutionKeys);
+  // PageRef.mdxPath is now the real content-mdx-relative file (e.g. "atlas/alerts.mdx",
+  // "atlas/index.mdx"); strip the project prefix so the closure seed matches the
+  // project-relative include-graph keys.
+  const projectPrefix = `${project}/`;
+  const toSeed = (mdxPath: string): string => {
+    if (!mdxPath.startsWith(projectPrefix)) {
+      throw new Error(`mdxPath "${mdxPath}" is not under content-mdx/${project}/`);
+    }
+    return mdxPath.slice(projectPrefix.length);
+  };
+  const seedPages = [...new Set(pages.map((p) => toSeed(p.mdxPath)))].sort();
+  const translatable = computeClosure(seedPages, graph, refKeys, substitutionKeys);
 
   const manifest: RunManifest = {
-    project, runId, locales: cfg.locales, pages, translatable,
+    project,
+    runId,
+    locales: options.locales ?? cfg.locales,
+    pages,
+    translatable,
     stages: { resolve: { status: 'done', at: new Date().toISOString() } },
   };
   writeManifest(cfg, project, runId, manifest);
@@ -876,29 +957,51 @@ export async function resolveProject(
 
 Add to `src/commands/index.ts`:
 ```ts
+import fs from 'node:fs';
 import { loadConfig } from '../config.js';
 import { resolveProject } from '../resolve/run.js';
 
-export const COMMANDS: Record<string, CommandHandler> = {
-  resolve: async (flags) => {
-    const cfg = loadConfig();
-    const project = String(flags.project ?? '');
-    if (!project) throw new Error('--project is required');
-    const { runId, manifest } = await resolveProject(cfg, project, flags.run ? String(flags.run) : undefined);
-    console.log(`run ${runId}: ${manifest.pages.length} pages, ${manifest.translatable.includes.length} includes`);
-  },
-};
+function readPagesFile(file: string): string[] {
+  return fs
+    .readFileSync(file, 'utf8')
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean);
+}
+
+// inside COMMANDS:
+resolve: async (flags) => {
+  const cfg = loadConfig();
+  const project = String(flags.project ?? '');
+  if (!project) throw new Error('--project is required');
+  const pages = flags.pages !== undefined ? readPagesFile(String(flags.pages)) : undefined;
+  const locales =
+    flags.locales !== undefined
+      ? String(flags.locales)
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : undefined;
+  const { runId, manifest } = await resolveProject(cfg, project, flags.run ? String(flags.run) : undefined, {
+    pages,
+    locales,
+  });
+  console.log(
+    `run ${runId}: ${manifest.translatable.pages.length} eval pages, ` +
+      `${manifest.pages.length} page refs, ${manifest.translatable.includes.length} includes`,
+  );
+},
 ```
 
 - [ ] **Step 5: Run test to verify it passes**
 
-Run: `cd platform/tools/translation-evals && npx vitest run test/resolve-run.test.ts`
+Run: `cd platform/tools/translation-evals && npx vitest run src/resolve/run.test.ts`
 Expected: PASS.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add platform/tools/translation-evals/src/resolve/run.ts platform/tools/translation-evals/src/commands/index.ts platform/tools/translation-evals/test/resolve-run.test.ts
+git add platform/tools/translation-evals/src/resolve/run.ts platform/tools/translation-evals/src/commands/index.ts platform/tools/translation-evals/src/resolve/run.test.ts
 git commit -m "feat(translation-evals): resolve command"
 ```
 
@@ -909,7 +1012,7 @@ git commit -m "feat(translation-evals): resolve command"
 **Files:**
 - Create: `platform/tools/translation-evals/src/scrape/browser.ts`
 - Create: `platform/tools/translation-evals/src/scrape/extract.ts`
-- Test: `platform/tools/translation-evals/test/extract.test.ts`
+- Test: `platform/tools/translation-evals/src/scrape/extract.test.ts`
 
 **Interfaces:**
 - Produces: `scrapeOne(page, url): Promise<ScrapedPage | null>` (returns `null` on 403/404); `withBrowser(fn)` lifecycle helper.
@@ -917,7 +1020,7 @@ git commit -m "feat(translation-evals): resolve command"
 - [ ] **Step 1: Write the failing test** (pure logic only — the browser is exercised in Task 9's smoke)
 
 ```ts
-// test/extract.test.ts
+// src/scrape/extract.test.ts
 import { describe, it, expect } from 'vitest';
 import { jitterMs, isSkippableStatus } from '../src/scrape/browser.js';
 
@@ -936,7 +1039,7 @@ describe('scrape helpers', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd platform/tools/translation-evals && npx vitest run test/extract.test.ts`
+Run: `cd platform/tools/translation-evals && npx vitest run src/scrape/extract.test.ts`
 Expected: FAIL — cannot resolve module.
 
 - [ ] **Step 3: Implement `src/scrape/browser.ts`**
@@ -984,13 +1087,13 @@ export { jitterMs, isSkippableStatus } from './browser.js';
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd platform/tools/translation-evals && npx vitest run test/extract.test.ts`
+Run: `cd platform/tools/translation-evals && npx vitest run src/scrape/extract.test.ts`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add platform/tools/translation-evals/src/scrape/browser.ts platform/tools/translation-evals/src/scrape/extract.ts platform/tools/translation-evals/test/extract.test.ts
+git add platform/tools/translation-evals/src/scrape/browser.ts platform/tools/translation-evals/src/scrape/extract.ts platform/tools/translation-evals/src/scrape/extract.test.ts
 git commit -m "feat(translation-evals): scrape core (browser + helpers)"
 ```
 
@@ -1001,7 +1104,7 @@ git commit -m "feat(translation-evals): scrape core (browser + helpers)"
 **Files:**
 - Create: `platform/tools/translation-evals/src/scrape/prod.ts`
 - Modify: `platform/tools/translation-evals/src/commands/index.ts`
-- Test: `platform/tools/translation-evals/test/scrape-prod.test.ts`
+- Test: `platform/tools/translation-evals/src/scrape/prod.test.ts`
 
 **Interfaces:**
 - Consumes: `readManifest`, `setStage`, `withBrowser`, `scrapeOne`, `Config`, `PageRef`.
@@ -1010,7 +1113,7 @@ git commit -m "feat(translation-evals): scrape core (browser + helpers)"
 - [ ] **Step 1: Write the failing test** (URL construction + skip bookkeeping; no network)
 
 ```ts
-// test/scrape-prod.test.ts
+// src/scrape/prod.test.ts
 import { describe, it, expect } from 'vitest';
 import { prodUrlFor } from '../src/scrape/prod.js';
 import type { PageRef } from '../src/types.js';
@@ -1029,7 +1132,7 @@ describe('prodUrlFor', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd platform/tools/translation-evals && npx vitest run test/scrape-prod.test.ts`
+Run: `cd platform/tools/translation-evals && npx vitest run src/scrape/prod.test.ts`
 Expected: FAIL — cannot resolve module.
 
 - [ ] **Step 3: Implement**
@@ -1091,7 +1194,7 @@ Add a helper `readManifestLatest(cfg, project)` that returns the most recent run
 
 - [ ] **Step 5: Run test to verify it passes**
 
-Run: `cd platform/tools/translation-evals && npx vitest run test/scrape-prod.test.ts`
+Run: `cd platform/tools/translation-evals && npx vitest run src/scrape/prod.test.ts`
 Expected: PASS.
 
 - [ ] **Step 6: Manual smoke (network)**
@@ -1101,7 +1204,7 @@ Run: `cd platform/tools/translation-evals && npx tsx src/cli.ts scrape-prod --pr
 - [ ] **Step 7: Commit**
 
 ```bash
-git add platform/tools/translation-evals/src/scrape/prod.ts platform/tools/translation-evals/src/commands/index.ts platform/tools/translation-evals/test/scrape-prod.test.ts
+git add platform/tools/translation-evals/src/scrape/prod.ts platform/tools/translation-evals/src/commands/index.ts platform/tools/translation-evals/src/scrape/prod.test.ts
 git commit -m "feat(translation-evals): scrape-prod command"
 ```
 
@@ -1111,7 +1214,7 @@ git commit -m "feat(translation-evals): scrape-prod command"
 
 **Files:**
 - Create: `platform/tools/translation-evals/src/translate/batch.ts`
-- Test: `platform/tools/translation-evals/test/batch.test.ts`
+- Test: `platform/tools/translation-evals/src/translate/batch.test.ts`
 
 **Interfaces:**
 - Consumes: `translateMdx` from `mdx-translation-adapter`; `translate`, `createGroveBackend` from `@mongodb-docs/translation-service`.
@@ -1120,7 +1223,7 @@ git commit -m "feat(translation-evals): scrape-prod command"
 - [ ] **Step 1: Write the failing test** (inject a fake translate fn — no network)
 
 ```ts
-// test/batch.test.ts
+// src/translate/batch.test.ts
 import { describe, it, expect } from 'vitest';
 import { translateMdxFile } from '../src/translate/batch.js';
 import { loadConfig } from '../src/config.js';
@@ -1138,7 +1241,7 @@ describe('translateMdxFile', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd platform/tools/translation-evals && npx vitest run test/batch.test.ts`
+Run: `cd platform/tools/translation-evals && npx vitest run src/translate/batch.test.ts`
 Expected: FAIL — cannot resolve module.
 
 - [ ] **Step 3: Implement**
@@ -1177,13 +1280,13 @@ export async function translateMdxFile(
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd platform/tools/translation-evals && npx vitest run test/batch.test.ts`
+Run: `cd platform/tools/translation-evals && npx vitest run src/translate/batch.test.ts`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add platform/tools/translation-evals/src/translate/batch.ts platform/tools/translation-evals/test/batch.test.ts
+git add platform/tools/translation-evals/src/translate/batch.ts platform/tools/translation-evals/src/translate/batch.test.ts
 git commit -m "feat(translation-evals): MDX translation batch"
 ```
 
@@ -1194,7 +1297,7 @@ git commit -m "feat(translation-evals): MDX translation batch"
 **Files:**
 - Create: `platform/tools/translation-evals/src/translate/references.ts`
 - Create: `platform/tools/translation-evals/src/translate/overlay.ts`
-- Test: `platform/tools/translation-evals/test/references.test.ts`
+- Test: `platform/tools/translation-evals/src/translate/references.test.ts`
 
 **Interfaces:**
 - Produces: `translateSubstitutions(subs, keys, cfg, locale, translateFn?)`, `writeOverlay(runDir, locale, files)`.
@@ -1202,7 +1305,7 @@ git commit -m "feat(translation-evals): MDX translation batch"
 - [ ] **Step 1: Write the failing test**
 
 ```ts
-// test/references.test.ts
+// src/translate/references.test.ts
 import { describe, it, expect } from 'vitest';
 import { translateSubstitutions } from '../src/translate/references.js';
 import { loadConfig } from '../src/config.js';
@@ -1222,7 +1325,7 @@ describe('translateSubstitutions', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd platform/tools/translation-evals && npx vitest run test/references.test.ts`
+Run: `cd platform/tools/translation-evals && npx vitest run src/translate/references.test.ts`
 Expected: FAIL.
 
 - [ ] **Step 3: Implement**
@@ -1277,13 +1380,13 @@ export function writeOverlay(runDir: string, locale: string, files: Record<strin
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd platform/tools/translation-evals && npx vitest run test/references.test.ts`
+Run: `cd platform/tools/translation-evals && npx vitest run src/translate/references.test.ts`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add platform/tools/translation-evals/src/translate/references.ts platform/tools/translation-evals/src/translate/overlay.ts platform/tools/translation-evals/test/references.test.ts
+git add platform/tools/translation-evals/src/translate/references.ts platform/tools/translation-evals/src/translate/overlay.ts platform/tools/translation-evals/src/translate/references.test.ts
 git commit -m "feat(translation-evals): references translation and overlay writer"
 ```
 
@@ -1294,7 +1397,7 @@ git commit -m "feat(translation-evals): references translation and overlay write
 **Files:**
 - Create: `platform/tools/translation-evals/src/translate/run.ts`
 - Modify: `platform/tools/translation-evals/src/commands/index.ts`
-- Test: `platform/tools/translation-evals/test/translate-run.test.ts`
+- Test: `platform/tools/translation-evals/src/translate/run.test.ts`
 
 **Interfaces:**
 - Consumes: `readManifest`, `setStage`, `translateMdxFile`, `translateSubstitutions`, `writeOverlay`.
@@ -1303,7 +1406,7 @@ git commit -m "feat(translation-evals): references translation and overlay write
 - [ ] **Step 1: Write the failing test** (fixture with one page + one include, fake translate fn)
 
 ```ts
-// test/translate-run.test.ts
+// src/translate/run.test.ts
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -1339,7 +1442,7 @@ describe('translateRun', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd platform/tools/translation-evals && npx vitest run test/translate-run.test.ts`
+Run: `cd platform/tools/translation-evals && npx vitest run src/translate/run.test.ts`
 Expected: FAIL.
 
 - [ ] **Step 3: Implement**
@@ -1389,13 +1492,13 @@ export async function translateRun(
 
 - [ ] **Step 5: Run test to verify it passes**
 
-Run: `cd platform/tools/translation-evals && npx vitest run test/translate-run.test.ts`
+Run: `cd platform/tools/translation-evals && npx vitest run src/translate/run.test.ts`
 Expected: PASS.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add platform/tools/translation-evals/src/translate/run.ts platform/tools/translation-evals/src/commands/index.ts platform/tools/translation-evals/test/translate-run.test.ts
+git add platform/tools/translation-evals/src/translate/run.ts platform/tools/translation-evals/src/commands/index.ts platform/tools/translation-evals/src/translate/run.test.ts
 git commit -m "feat(translation-evals): translate command"
 ```
 
@@ -1407,7 +1510,7 @@ git commit -m "feat(translation-evals): translate command"
 - Create: `platform/tools/translation-evals/src/serve/materialize.ts`
 - Create: `platform/tools/translation-evals/src/serve/server.ts`
 - Modify: `platform/tools/translation-evals/src/commands/index.ts`
-- Test: `platform/tools/translation-evals/test/materialize.test.ts`
+- Test: `platform/tools/translation-evals/src/serve/materialize.test.ts`
 
 **Interfaces:**
 - Produces: `materialize(cfg, project, runId, locale)`, `startServer(cfg, project, production)` / `stopServer(pid)`.
@@ -1415,7 +1518,7 @@ git commit -m "feat(translation-evals): translate command"
 - [ ] **Step 1: Write the failing test**
 
 ```ts
-// test/materialize.test.ts
+// src/serve/materialize.test.ts
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -1448,7 +1551,7 @@ describe('materialize', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd platform/tools/translation-evals && npx vitest run test/materialize.test.ts`
+Run: `cd platform/tools/translation-evals && npx vitest run src/serve/materialize.test.ts`
 Expected: FAIL.
 
 - [ ] **Step 3: Implement `materialize.ts`**
@@ -1497,7 +1600,7 @@ export function stopServer(child: ChildProcess): void { child.kill('SIGTERM'); }
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd platform/tools/translation-evals && npx vitest run test/materialize.test.ts`
+Run: `cd platform/tools/translation-evals && npx vitest run src/serve/materialize.test.ts`
 Expected: PASS.
 
 - [ ] **Step 5: Register `serve`** — a long-running command: materialize, then start the server and keep it in the foreground until Ctrl-C.
@@ -1505,7 +1608,7 @@ Expected: PASS.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add platform/tools/translation-evals/src/serve/materialize.ts platform/tools/translation-evals/src/serve/server.ts platform/tools/translation-evals/src/commands/index.ts platform/tools/translation-evals/test/materialize.test.ts
+git add platform/tools/translation-evals/src/serve/materialize.ts platform/tools/translation-evals/src/serve/server.ts platform/tools/translation-evals/src/commands/index.ts platform/tools/translation-evals/src/serve/materialize.test.ts
 git commit -m "feat(translation-evals): serve command (materialize + server)"
 ```
 
@@ -1516,7 +1619,7 @@ git commit -m "feat(translation-evals): serve command (materialize + server)"
 **Files:**
 - Create: `platform/tools/translation-evals/src/scrape/local.ts`
 - Modify: `platform/tools/translation-evals/src/commands/index.ts`
-- Test: `platform/tools/translation-evals/test/scrape-local.test.ts`
+- Test: `platform/tools/translation-evals/src/scrape/local.test.ts`
 
 **Interfaces:**
 - Consumes: `readManifest`, `setStage`, `withBrowser`, `scrapeOne`.
@@ -1525,7 +1628,7 @@ git commit -m "feat(translation-evals): serve command (materialize + server)"
 - [ ] **Step 1: Write the failing test**
 
 ```ts
-// test/scrape-local.test.ts
+// src/scrape/local.test.ts
 import { describe, it, expect } from 'vitest';
 import { localUrlFor } from '../src/scrape/local.js';
 
@@ -1537,7 +1640,7 @@ describe('localUrlFor', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails** — Run: `npx vitest run test/scrape-local.test.ts` — Expected: FAIL.
+- [ ] **Step 2: Run test to verify it fails** — Run: `npx vitest run src/scrape/local.test.ts` — Expected: FAIL.
 
 - [ ] **Step 3: Implement**
 
@@ -1577,12 +1680,12 @@ export async function scrapeLocal(
 
 - [ ] **Step 4: Register the command** (same pattern as Task 9).
 
-- [ ] **Step 5: Run test to verify it passes** — Run: `npx vitest run test/scrape-local.test.ts` — Expected: PASS.
+- [ ] **Step 5: Run test to verify it passes** — Run: `npx vitest run src/scrape/local.test.ts` — Expected: PASS.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add platform/tools/translation-evals/src/scrape/local.ts platform/tools/translation-evals/src/commands/index.ts platform/tools/translation-evals/test/scrape-local.test.ts
+git add platform/tools/translation-evals/src/scrape/local.ts platform/tools/translation-evals/src/commands/index.ts platform/tools/translation-evals/src/scrape/local.test.ts
 git commit -m "feat(translation-evals): scrape-local command"
 ```
 
@@ -1593,7 +1696,7 @@ git commit -m "feat(translation-evals): scrape-local command"
 **Files:**
 - Create: `platform/tools/translation-evals/src/dataset/rows.ts`
 - Modify: `platform/tools/translation-evals/src/commands/index.ts`
-- Test: `platform/tools/translation-evals/test/rows.test.ts`
+- Test: `platform/tools/translation-evals/src/dataset/rows.test.ts`
 
 **Interfaces:**
 - Produces: `buildRows(prodEn, prodLocale, localLocale, page, project, run): DatasetRow | null`; `buildDataset(cfg, project, runId)`.
@@ -1601,7 +1704,7 @@ git commit -m "feat(translation-evals): scrape-local command"
 - [ ] **Step 1: Write the failing test**
 
 ```ts
-// test/rows.test.ts
+// src/dataset/rows.test.ts
 import { describe, it, expect } from 'vitest';
 import { buildRows } from '../src/dataset/rows.js';
 
@@ -1626,7 +1729,7 @@ describe('buildRows', () => {
 
 Note: `buildRows` takes the locale as an explicit 7th argument in the implementation; adjust the test signature accordingly.
 
-- [ ] **Step 2: Run test to verify it fails** — Run: `npx vitest run test/rows.test.ts` — Expected: FAIL.
+- [ ] **Step 2: Run test to verify it fails** — Run: `npx vitest run src/dataset/rows.test.ts` — Expected: FAIL.
 
 - [ ] **Step 3: Implement**
 
@@ -1679,12 +1782,12 @@ export function buildDataset(cfg: Config, project: string, runId: string): Datas
 
 - [ ] **Step 4: Register the command** (calls `buildDataset`, logs row count).
 
-- [ ] **Step 5: Run test to verify it passes** — Run: `npx vitest run test/rows.test.ts` — Expected: PASS.
+- [ ] **Step 5: Run test to verify it passes** — Run: `npx vitest run src/dataset/rows.test.ts` — Expected: PASS.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add platform/tools/translation-evals/src/dataset/rows.ts platform/tools/translation-evals/src/commands/index.ts platform/tools/translation-evals/test/rows.test.ts
+git add platform/tools/translation-evals/src/dataset/rows.ts platform/tools/translation-evals/src/commands/index.ts platform/tools/translation-evals/src/dataset/rows.test.ts
 git commit -m "feat(translation-evals): dataset command"
 ```
 
@@ -1695,7 +1798,7 @@ git commit -m "feat(translation-evals): dataset command"
 **Files:**
 - Create: `platform/tools/translation-evals/src/eval/judge/judge.ts`
 - Create: `platform/tools/translation-evals/src/eval/judge/prompt.ts`
-- Test: `platform/tools/translation-evals/test/judge.test.ts`
+- Test: `platform/tools/translation-evals/src/eval/judge/judge.test.ts`
 
 **Interfaces:**
 - Consumes: `resolveGroveConfigFromEnv`, `Transport`/`createGroveTransport` from `@mongodb-docs/translation-service`.
@@ -1704,7 +1807,7 @@ git commit -m "feat(translation-evals): dataset command"
 - [ ] **Step 1: Write the failing test** (inject a fake transport returning a canned JSON body)
 
 ```ts
-// test/judge.test.ts
+// src/eval/judge/judge.test.ts
 import { describe, it, expect } from 'vitest';
 import { judgeTranslation } from '../src/eval/judge/judge.js';
 import { buildJudgePrompt } from '../src/eval/judge/prompt.js';
@@ -1725,7 +1828,7 @@ describe('judge', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails** — Run: `npx vitest run test/judge.test.ts` — Expected: FAIL.
+- [ ] **Step 2: Run test to verify it fails** — Run: `npx vitest run src/eval/judge/judge.test.ts` — Expected: FAIL.
 
 - [ ] **Step 3: Implement `prompt.ts`**
 
@@ -1780,12 +1883,12 @@ export async function judgeTranslation(
 
 Wire the real transport in the scorer (Task 18) using `resolveGroveConfigFromEnv(process.env, { model: cfg.judgeModel })` + `createGroveTransport`.
 
-- [ ] **Step 5: Run test to verify it passes** — Run: `npx vitest run test/judge.test.ts` — Expected: PASS.
+- [ ] **Step 5: Run test to verify it passes** — Run: `npx vitest run src/eval/judge/judge.test.ts` — Expected: PASS.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add platform/tools/translation-evals/src/eval/judge/judge.ts platform/tools/translation-evals/src/eval/judge/prompt.ts platform/tools/translation-evals/test/judge.test.ts
+git add platform/tools/translation-evals/src/eval/judge/judge.ts platform/tools/translation-evals/src/eval/judge/prompt.ts platform/tools/translation-evals/src/eval/judge/judge.test.ts
 git commit -m "feat(translation-evals): Grove judge"
 ```
 
@@ -1795,7 +1898,7 @@ git commit -m "feat(translation-evals): Grove judge"
 
 **Files:**
 - Create: `platform/tools/translation-evals/src/eval/scorers/deterministic.ts`
-- Test: `platform/tools/translation-evals/test/scorers-deterministic.test.ts`
+- Test: `platform/tools/translation-evals/src/eval/scorers/deterministic.test.ts`
 
 **Interfaces:**
 - Produces: `terminologyPreserved(output, terms)`, `referenceSimilarity(output, reference)`.
@@ -1803,7 +1906,7 @@ git commit -m "feat(translation-evals): Grove judge"
 - [ ] **Step 1: Write the failing test**
 
 ```ts
-// test/scorers-deterministic.test.ts
+// src/eval/scorers/deterministic.test.ts
 import { describe, it, expect } from 'vitest';
 import { terminologyPreserved, referenceSimilarity } from '../src/eval/scorers/deterministic.js';
 
@@ -1820,7 +1923,7 @@ describe('deterministic scorers', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails** — Run: `npx vitest run test/scorers-deterministic.test.ts` — Expected: FAIL.
+- [ ] **Step 2: Run test to verify it fails** — Run: `npx vitest run src/eval/scorers/deterministic.test.ts` — Expected: FAIL.
 
 - [ ] **Step 3: Implement**
 
@@ -1850,12 +1953,12 @@ export function referenceSimilarity(output: string, reference: string): number {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes** — Run: `npx vitest run test/scorers-deterministic.test.ts` — Expected: PASS.
+- [ ] **Step 4: Run test to verify it passes** — Run: `npx vitest run src/eval/scorers/deterministic.test.ts` — Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add platform/tools/translation-evals/src/eval/scorers/deterministic.ts platform/tools/translation-evals/test/scorers-deterministic.test.ts
+git add platform/tools/translation-evals/src/eval/scorers/deterministic.ts platform/tools/translation-evals/src/eval/scorers/deterministic.test.ts
 git commit -m "feat(translation-evals): deterministic scorers"
 ```
 
@@ -1867,7 +1970,7 @@ git commit -m "feat(translation-evals): deterministic scorers"
 - Create: `platform/tools/translation-evals/src/eval/scorers/index.ts`
 - Create: `platform/tools/translation-evals/src/eval/eval.ts`
 - Modify: `platform/tools/translation-evals/package.json` (add `braintrust` devDep, `eval` script)
-- Test: `platform/tools/translation-evals/test/scorers-index.test.ts`
+- Test: `platform/tools/translation-evals/src/eval/scorers/index.test.ts`
 
 **Interfaces:**
 - Consumes: `judgeTranslation`, `terminologyPreserved`, `referenceSimilarity`.
@@ -1876,7 +1979,7 @@ git commit -m "feat(translation-evals): deterministic scorers"
 - [ ] **Step 1: Write the failing test** (scorer shapes only)
 
 ```ts
-// test/scorers-index.test.ts
+// src/eval/scorers/index.test.ts
 import { describe, it, expect } from 'vitest';
 import { toEvalScorers } from '../src/eval/scorers/index.js';
 
@@ -1893,7 +1996,7 @@ describe('toEvalScorers', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails** — Run: `npx vitest run test/scorers-index.test.ts` — Expected: FAIL.
+- [ ] **Step 2: Run test to verify it fails** — Run: `npx vitest run src/eval/scorers/index.test.ts` — Expected: FAIL.
 
 - [ ] **Step 3: Implement `scorers/index.ts`**
 
@@ -1963,12 +2066,12 @@ Adjust the exact `Transport`/`createGroveTransport` signatures to the service's 
 ```
 and add `"braintrust": "^3.0.0"` to devDependencies.
 
-- [ ] **Step 6: Run test to verify it passes** — Run: `npx vitest run test/scorers-index.test.ts` — Expected: PASS.
+- [ ] **Step 6: Run test to verify it passes** — Run: `npx vitest run src/eval/scorers/index.test.ts` — Expected: PASS.
 
 - [ ] **Step 7: Commit**
 
 ```bash
-git add platform/tools/translation-evals/src/eval/scorers/index.ts platform/tools/translation-evals/src/eval/eval.ts platform/tools/translation-evals/package.json platform/tools/translation-evals/test/scorers-index.test.ts
+git add platform/tools/translation-evals/src/eval/scorers/index.ts platform/tools/translation-evals/src/eval/eval.ts platform/tools/translation-evals/package.json platform/tools/translation-evals/src/eval/scorers/index.test.ts
 git commit -m "feat(translation-evals): Braintrust scorers and eval entrypoint"
 ```
 

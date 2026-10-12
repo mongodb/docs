@@ -110,7 +110,7 @@ src/
     scorers/             factuality, fluency, terminology, reference-similarity
     judge/               judge prompt/request/response/orchestrator (Grove)
   types.ts
-test/                    vitest
+  **/*.test.ts           unit tests, co-located beside each module (vitest)
 docs/superpowers/specs/  this design
 ```
 
