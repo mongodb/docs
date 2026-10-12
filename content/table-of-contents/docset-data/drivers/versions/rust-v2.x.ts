@@ -192,10 +192,6 @@ const tocData: TocItem[] = inheritContentSite('rust', [
                 label: 'Delete',
                 url: '/docs/drivers/rust/:version/fundamentals/crud/write-operations/delete',
               },
-              {
-                label: 'Bulk Operations',
-                url: '/docs/drivers/rust/:version/fundamentals/crud/write-operations/bulk',
-              },
             ],
           },
           {
@@ -281,10 +277,6 @@ const tocData: TocItem[] = inheritContentSite('rust', [
     ],
   },
   {
-    label: 'Third-Party Integrations',
-    url: '/docs/drivers/rust/:version/integrations',
-  },
-  {
     label: 'API Documentation',
     contentSite: 'rust',
     collapsible: true,
@@ -324,7 +316,6 @@ const tocData: TocItem[] = inheritContentSite('rust', [
   },
   {
     label: 'View the Source',
-    url: '/docs/drivers/rust/:version/view-source',
     collapsible: true,
     items: [
       {

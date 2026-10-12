@@ -644,14 +644,6 @@ export const toc: L1TocItem[] = [
             url: '/docs/languages/cpp/cpp-driver/:version/advanced-installation',
           },
           {
-            label: 'Include & Link the Driver',
-            contentSite: 'cpp-driver',
-            url: '/docs/languages/cpp/cpp-driver/:version/include-link',
-            versions: {
-              excludes: ['v4.0', 'v3.11'],
-            },
-          },
-          {
             label: 'Thread & Fork Safety',
             contentSite: 'cpp-driver',
             url: '/docs/languages/cpp/cpp-driver/:version/thread-safety',

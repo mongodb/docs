@@ -48,6 +48,9 @@ export const toc: L1TocItem[] = [
                     label: 'Network Compression',
                     contentSite: 'c',
                     url: '/docs/languages/c/c-driver/:version/connect/connection-options/network-compression',
+                    versions: {
+                      excludes: ['v1.x'],
+                    },
                   },
                   {
                     label: 'Stable API',

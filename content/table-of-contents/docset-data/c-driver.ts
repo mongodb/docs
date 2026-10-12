@@ -44,6 +44,9 @@ const tocData: TocItem[] = [
                 label: 'Network Compression',
                 contentSite: 'c',
                 url: '/docs/languages/c/c-driver/:version/connect/connection-options/network-compression',
+                versions: {
+                  excludes: [...outdatedVersions],
+                },
               },
               {
                 label: 'Stable API',

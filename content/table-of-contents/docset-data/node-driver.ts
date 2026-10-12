@@ -1,4 +1,5 @@
 import type { TocItem } from '../types';
+import docsVersions from '../version-arrays/drivers/node-versions';
 
 const tocData: TocItem[] = [
   {
@@ -405,11 +406,13 @@ const tocData: TocItem[] = [
             label: 'Deploy an Application on Vercel',
             contentSite: 'node',
             url: '/docs/drivers/node/:version/integrations/next-vercel',
+            versions: { excludes: docsVersions.before('v7.x') },
           },
           {
             label: 'Use MongoDB with Azure Functions',
             contentSite: 'node',
             url: '/docs/drivers/node/:version/integrations/azure-functions',
+            versions: { excludes: docsVersions.before('v7.x') },
           },
         ],
       },

@@ -195,11 +195,6 @@ const tocData: TocItem[] = inheritContentSite('cpp-driver', [
     url: '/docs/languages/cpp/cpp-driver/:version/advanced-installation',
   },
   {
-    label: 'Include & Link the Driver',
-    url: '/docs/languages/cpp/cpp-driver/:version/include-link',
-    versions: { excludes: ['v4.0', 'v3.11'] },
-  },
-  {
     label: 'Thread & Fork Safety',
     url: '/docs/languages/cpp/cpp-driver/:version/thread-safety',
   },

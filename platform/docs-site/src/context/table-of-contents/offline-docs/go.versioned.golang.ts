@@ -712,7 +712,7 @@ export const toc: L1TocItem[] = [
               {
                 label: 'Bulk Operations',
                 contentSite: 'golang',
-                url: '/docs/drivers/go/:version/usage-examples/bulk',
+                url: '/docs/drivers/go/:version/usage-examples/bulkWrite',
               },
               {
                 label: 'Open a Change Stream',

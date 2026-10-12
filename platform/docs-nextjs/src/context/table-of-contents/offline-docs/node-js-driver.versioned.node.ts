@@ -410,11 +410,17 @@ export const toc: L1TocItem[] = [
                 label: 'Deploy an Application on Vercel',
                 contentSite: 'node',
                 url: '/docs/drivers/node/:version/integrations/next-vercel',
+                versions: {
+                  excludes: ['v6.x'],
+                },
               },
               {
                 label: 'Use MongoDB with Azure Functions',
                 contentSite: 'node',
                 url: '/docs/drivers/node/:version/integrations/azure-functions',
+                versions: {
+                  excludes: ['v6.x'],
+                },
               },
             ],
           },

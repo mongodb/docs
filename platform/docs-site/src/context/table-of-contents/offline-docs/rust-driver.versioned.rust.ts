@@ -1130,11 +1130,6 @@ export const toc: L1TocItem[] = [
                         contentSite: 'rust',
                         url: '/docs/drivers/rust/:version/fundamentals/crud/write-operations/delete',
                       },
-                      {
-                        label: 'Bulk Operations',
-                        contentSite: 'rust',
-                        url: '/docs/drivers/rust/:version/fundamentals/crud/write-operations/bulk',
-                      },
                     ],
                   },
                   {
@@ -1239,11 +1234,6 @@ export const toc: L1TocItem[] = [
             ],
           },
           {
-            label: 'Third-Party Integrations',
-            contentSite: 'rust',
-            url: '/docs/drivers/rust/:version/integrations',
-          },
-          {
             label: 'API Documentation',
             contentSite: 'rust',
             collapsible: true,
@@ -1289,7 +1279,6 @@ export const toc: L1TocItem[] = [
             label: 'View the Source',
             contentSite: 'rust',
             collapsible: true,
-            url: '/docs/drivers/rust/:version/view-source',
             items: [
               {
                 label: 'MongoDB Rust Driver',
