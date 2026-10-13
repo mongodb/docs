@@ -49,7 +49,6 @@ import mongocli from "./projects/mongocli";
 import mongodbShell from "./projects/mongodb-shell";
 import mongodbVscode from "./projects/mongodb-vscode";
 import mongoid from "./projects/mongoid";
-import mongoidRailsmdb from "./projects/mongoid-railsmdb";
 import mongosync from "./projects/mongosync";
 import node from "./projects/node";
 import opsManager from "./projects/ops-manager";
@@ -112,7 +111,6 @@ const projects: Docset[] = [
 	mongodbShell,
 	mongodbVscode,
 	mongoid,
-	mongoidRailsmdb,
 	mongosync,
 	node,
 	opsManager,
