@@ -1,5 +1,6 @@
 'use client';
 
+import type { GlyphComponent } from '@via-ds/icons';
 import IconC from './C';
 import IconCompass from './Compass';
 import IconCpp from './Cpp';
@@ -20,7 +21,7 @@ import IconJavascript from './Javascript';
 import IconTypescript from './Typescript';
 import IconDart from './Dart';
 
-export type IconComponent = React.FC<React.SVGProps<SVGSVGElement>>;
+export type IconComponent = React.FC<React.SVGProps<SVGSVGElement>> | GlyphComponent;
 export type DriverMap = Record<string, IconComponent>;
 
 export const DRIVER_ICON_MAP: DriverMap = {
