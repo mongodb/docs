@@ -12,7 +12,7 @@
  * S3 keys mirror each file's production URL path (minus the
  * https://www.mongodb.com host), matching the existing convention of
  * `s3Prefix = 'docs/offline/'` etc. in
- * platform/nextjs-extension/src/offline-docs/index.ts: e.g. the "manual"
+ * platform/nextjs-ssg-extension/src/offline-docs/index.ts: e.g. the "manual"
  * project's part 1 becomes "docs/manual/manual-1-llms.txt".
  *
  * Also warns (doesn't fail) if any file about to be uploaded isn't actually

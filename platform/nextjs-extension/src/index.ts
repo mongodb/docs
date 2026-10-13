@@ -22,8 +22,6 @@ import { getParserVersion } from "./parse/runModules";
 import { runMdxConversionForContentPaths } from "./parse/runMdxConversion";
 import { getRepoPaths } from "./paths";
 import { buildToc } from "./buildTOC/index";
-import { handleOfflineDownloads } from "./offline-docs/index";
-import { handleSearchManifests } from "./searchManifests/index";
 import { writePathPrefixListToFile, writeDirNameToPrefixMapToFile } from "./blobUploads/buildPrefixList";
 import { writeHealthCheckUrlsToBlob } from "./blobUploads/buildHealthCheckUrls";
 import { handleAllBlobUploads } from "./blobUploads/handleAllBlobUploads";
@@ -181,41 +179,6 @@ extension.addBuildEventHandler(
 			allContentData,
 			utils,
 		});
-	},
-);
-
-extension.addBuildEventHandler(
-	"onSuccess",
-	async ({ netlifyConfig, utils: { git, run }, dbEnvVars }) => {
-		const configEnvironment = netlifyConfig.build
-			.environment as ConfigEnvironmentVariables;
-
-		const gitChangedFiles = git.modifiedFiles;
-
-		if (ENVS_TO_RUN.includes(configEnvironment.ENV ?? "")) {
-			// this should only run on prod build
-			console.log("Generating offline docs ...");
-			await handleOfflineDownloads(allContentData, gitChangedFiles, run);
-
-			console.log(
-				`Generating search manifest for version ${JSON.stringify(
-					allContentData.pathsToBuild,
-				)} (from nextjs Netlify extension)`,
-			);
-
-			await handleSearchManifests({
-				allContentData,
-				run,
-				dbEnvVars,
-				configEnvironment,
-			});
-		} else {
-			console.log(
-				"Skipping search manifest and offline docs generation for env ",
-				configEnvironment.ENV,
-			);
-			return;
-		}
 	},
 );
 
