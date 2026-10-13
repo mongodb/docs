@@ -1,8 +1,8 @@
 .. _manage-online-archive:
 
-======================
-Manage Online Archives 
-======================
+===================================
+Manage Online Archives in |service|
+===================================
 
 .. meta::
    :description: Manage online archives in MongoDB Atlas by viewing, editing, querying, and deleting data. Learn about connection strings, performance, and cost factors.
@@ -30,7 +30,7 @@ you can do the following:
 .. important::
 
    {+Online-Archive+} deletes documents from the {+cluster+} by using
-   the ``_id`` and shard key(s), if any. To ensure data loss does not
+   the ``_id`` and any shard keys. To ensure data loss does not
    occur, pause the archive before performing sharding operations,
    refrain from updating documents once they become eligible for
    archival, and ensure ``_id`` uniqueness across all documents in the
@@ -378,3 +378,100 @@ request to the :oas-bump-atlas-tag:`onlineArchives <online-archive>`
 endpoint with the unique ID of the online archive to delete. To learn 
 more about the syntax and options, see :oas-bump-atlas-op:`API 
 <deletegroupclusteronlinearchive>`.
+
+.. _delete-online-archive-closed-time-series-buckets:
+
+Remove Time Series Buckets Marked for Archival
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When {+Online-Archive+} archives a :manual:`time series collection
+</core/timeseries-collections/>`, it first sets the internal
+``control.closed`` field to ``true`` on each bucket that it marks for
+archival. After this field is set, the time series collection doesn't
+allow writes to the bucket. Inserts that would target the bucket write
+to another bucket or open a new one. Updates and deletes through the
+time series collection ignore the bucket.
+
+If you delete the online archive before {+Online-Archive+} removes
+these buckets from the {+cluster+}, the buckets remain on the
+{+cluster+}. Delete operations on the time series collection return a
+``deletedCount`` of ``0`` for the documents that these buckets contain.
+
+To remove these buckets, run a delete operation directly against the
+buckets. To run this operation, your database user must have the
+:authrole:`readWriteAnyDatabase` role. The method depends on your
+MongoDB version:
+
+- For MongoDB versions earlier than 8.2, run the delete on the
+  ``system.buckets.<collection>`` collection.
+- For MongoDB 8.2 and later, run the :dbcommand:`delete` command on the
+  time series collection with the ``rawData: true`` option.
+
+.. warning::
+
+   This procedure permanently deletes data from your {+cluster+}.
+   {+Online-Archive+} might not have copied these buckets to the online
+   archive before you deleted it. Before you delete the
+   buckets, confirm that the data exists in a backup or in your online
+   archive, and verify that the filter matches only the buckets that you
+   intend to delete.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Identify the buckets to delete.
+
+      Run a query with the same filter that you plan to use for the
+      delete operation, and review the results. Replace
+      ``<database>``, ``<collection>``, and ``<timeField>`` with your
+      values, and set ``cutoff`` to the date before which to delete
+      buckets.
+
+      .. code-block:: javascript
+
+         const cutoff = ISODate("2026-03-01T00:00:00Z");
+         db.getSiblingDB("<database>")
+           .getCollection("system.buckets.<collection>")
+           .find({
+             "control.closed": true,
+             "control.max.<timeField>": { $lte: cutoff }
+           })
+           .itcount()
+
+   .. step:: Delete the buckets.
+
+      .. tabs::
+
+         .. tab:: Earlier than 8.2
+            :tabid: pre-8.2
+
+            .. code-block:: javascript
+
+               const cutoff = ISODate("2026-03-01T00:00:00Z");
+               db.getSiblingDB("<database>")
+                 .getCollection("system.buckets.<collection>")
+                 .deleteMany({
+                   "control.closed": true,
+                   "control.max.<timeField>": { $lte: cutoff }
+                 })
+
+         .. tab:: 8.2 and Later
+            :tabid: 8.2-and-later
+
+            .. code-block:: javascript
+
+               const cutoff = ISODate("2026-03-01T00:00:00Z");
+               db.getSiblingDB("<database>").runCommand({
+                 delete: "<collection>",
+                 deletes: [
+                   {
+                     q: {
+                       "control.closed": true,
+                       "control.max.<timeField>": { $lte: cutoff }
+                     },
+                     limit: 0
+                   }
+                 ],
+                 rawData: true
+               })
+
