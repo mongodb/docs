@@ -7,10 +7,10 @@ or sharded cluster host.
    If you need to create a MongoDB host, consider using 
    `MongoDB Atlas <https://www.mongodb.com/cloud/atlas>`__.
    |service| is a cloud-hosted database-as-a-service which requires no 
-   installation, offers a free tier to get started, and provides a 
+   installation, offers a free option to get started, and provides a 
    copyable URI to easily connect |vsce| to your deployment.
 
-   To create a cluster on the |service| free tier, run the command 
+   To create a free cluster on |service|, run the command 
    ``MongoDB: Open Overview Page`` in the |vscode-short| Command 
    Palette and then click :guilabel:`Create free cluster`.
 

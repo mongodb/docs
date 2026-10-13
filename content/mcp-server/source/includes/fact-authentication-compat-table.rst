@@ -30,7 +30,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - MongoDB Atlas (Free Tier)
+   * - MongoDB Atlas (Free)
      - |checkmark|
      - |checkmark|
      -

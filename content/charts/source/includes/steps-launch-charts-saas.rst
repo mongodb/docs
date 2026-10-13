@@ -64,13 +64,13 @@
 
          .. note::
 
-            |service| provides a Free Tier ``M0`` replica set as well as
-            paid ``M10+`` clusters. Free Tier deployments have 
-            restrictions as compared to paid ``M10+`` deployments, but 
-            will work for the purposes of this setup and all 
-            |charts-short| tutorials offered in this documentation. For 
+            |service| provides a free ``M0`` cluster replica set as
+            well as paid ``M10+`` clusters. Free cluster deployments
+            have restrictions as compared to paid ``M10+`` deployments,
+            but will work for the purposes of this setup and all
+            |charts-short| tutorials offered in this documentation. For
             complete documentation on these restrictions, see
-            `Atlas M0 (Free Tier), M2, and M5 Limitations
+            `Atlas M0 (Free Cluster), M2, and M5 Limitations
             <https://docs.atlas.mongodb.com/reference/free-shared-limitations/>`_.
 
       #. The default cluster name is :guilabel:`Cluster0`. If you want 

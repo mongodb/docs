@@ -459,7 +459,7 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/pause-terminate-cluster',
           },
           {
-            label: 'Restore a Free Tier Cluster',
+            label: 'Restore a Free Cluster',
             contentSite: 'cloud-docs',
             url: '/docs/atlas/backup/restore-free-tier-cluster',
           },

@@ -24,7 +24,7 @@ database.
 
    .. step:: Create and populate the synonyms source collections.
 
-      If you are running a free tier cluster or a {+Flex-cluster+},
+      If you are running a {+Free-cluster+} or a {+Flex-cluster+},
       follow the steps in the :guilabel:`Transportation Synonyms` tab to create the collection
       for a single synonym mapping definition in your index. If you have a
       ``M10`` or higher cluster and wish to create multiple synonym
