@@ -1,18 +1,7 @@
-import { css, cx } from '@leafygreen-ui/emotion';
-
 export type HorizontalListProps = {
   children: React.ReactNode;
   columns: number;
 };
-
-const horizontalListStyling = css`
-  table-layout: fixed;
-  width: 100%;
-`;
-
-const tableDataStyling = css`
-  vertical-align: top;
-`;
 
 const chunkArray = (arr: unknown[], n: number) => {
   if (n < 2) return [arr];
@@ -50,11 +39,11 @@ export const HorizontalList = ({ children, columns }: HorizontalListProps) => {
   const ListTag = listType === 'ordered' ? 'ol' : 'ul';
 
   return (
-    <table className={cx(horizontalListStyling, 'hlist')}>
+    <table className="hlist">
       <tbody>
         <tr>
           {columnArray.map((col, colIndex) => (
-            <td className={cx(tableDataStyling)} key={colIndex}>
+            <td key={colIndex}>
               <ListTag className="simple">{col}</ListTag>
             </td>
           ))}
