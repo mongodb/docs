@@ -34,7 +34,7 @@ with your deployment's connection string.
 .. tip::
 
    To learn how to locate your deployment's connection string, see the
-   :driver:`Set Up a Free Tier Cluster in Atlas </csharp/current/quick-start/#set-up-a-free-tier-cluster-in-atlas>`
+   :driver:`Set Up a Free Cluster in Atlas </csharp/current/quick-start/#set-up-a-free-cluster-in-atlas>`
    step of the C# Quick Start guide.
 
 For example, if your connection string is
