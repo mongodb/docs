@@ -2,6 +2,7 @@ import { LeafyGreenProviderWrapper } from '@/app/emotion';
 import { ViaProviderWrapper } from '@/app/via-provider';
 import { DarkModeContextProvider } from '@/context/dark-mode-context';
 import { darkModeScript } from '@/app/lib/dark-mode-script';
+import { ViaColorSchemeScript } from '@via-ds/components/provider';
 import { CookiesProvider } from '@/context/cookies-context';
 
 import mdxLayoutStyles from './layout.module.scss';
@@ -14,6 +15,7 @@ export default function LayoutOffline({ children }: { children: React.ReactNode 
           __html: darkModeScript,
         }}
       />
+      <ViaColorSchemeScript />
       <div className={mdxLayoutStyles.layout}>
         <DarkModeContextProvider>
           <CookiesProvider cookies={{}}>

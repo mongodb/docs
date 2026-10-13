@@ -144,6 +144,23 @@ const DarkModeContextProvider = ({ children }: DarkModeContextProviderProps) => 
     setLocalValue('theme', darkModePref);
   }, [darkModePref, updateDocumentClasslist, darkPref]);
 
+  // Mirror the resolved theme into Via's color-scheme state so Via components
+  // follow the site toggle: ViaProvider resolves from the <html> attribute
+  // (set pre-paint by ViaColorSchemeScript) via a MutationObserver. For
+  // 'system', leave Via's storage key unset so its pre-paint script falls back
+  // to the OS preference on the next load.
+  useEffect(() => {
+    if (!isBrowser) return;
+    const scheme = isDarkMode ? 'dark' : 'light';
+    document.documentElement.style.colorScheme = scheme;
+    document.documentElement.setAttribute('data-via-color-scheme', scheme);
+    if (darkModePref === SYSTEM_THEME_CLASSNAME) {
+      window.localStorage.removeItem('via-color-scheme');
+    } else {
+      window.localStorage.setItem('via-color-scheme', scheme);
+    }
+  }, [darkModePref, isDarkMode]);
+
   return (
     <DarkModeContext.Provider value={{ setDarkModePref, darkModePref, isDarkMode }}>
       {children}

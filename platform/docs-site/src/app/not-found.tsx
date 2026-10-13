@@ -2,6 +2,7 @@
 
 import { ErrorPage } from '@/templates/error-template';
 import { darkModeScript } from '@/app/lib/dark-mode-script';
+import { ViaColorSchemeScript } from '@via-ds/components/provider';
 import { DarkModeContextProvider } from '@/context/dark-mode-context';
 import { LeafyGreenProviderWrapper } from '@/app/emotion';
 import { ViaProviderWrapper } from '@/app/via-provider';
@@ -19,6 +20,7 @@ export default function NotFound() {
   return (
     <>
       <script dangerouslySetInnerHTML={{ __html: darkModeScript }} />
+      <ViaColorSchemeScript />
       <DarkModeContextProvider>
         <LeafyGreenProviderWrapper>
           <ViaProviderWrapper>

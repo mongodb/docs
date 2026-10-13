@@ -1,13 +1,10 @@
 'use client';
 
-import { useContext } from 'react';
 import { ViaProvider } from '@via-ds/components/provider';
 import { Toaster } from '@via-ds/components/toast';
-import { ColorScheme, Size } from '@via-ds/components/types';
+import { Size } from '@via-ds/components/types';
 import '@via-ds/components/index.css';
 import '@via-ds/icons/styles.css';
-
-import { DarkModeContext } from '@/context/dark-mode-context';
 
 /**
  * Mounts the Via design system provider alongside `LeafyGreenProviderWrapper`
@@ -18,14 +15,13 @@ import { DarkModeContext } from '@/context/dark-mode-context';
  * This must be a client component. The layouts that mount it are async server
  * components using `next/headers`, so they cannot participate in React context.
  *
- * `colorScheme` is driven from `DarkModeContext` so that Via components follow
- * the site's dark-mode toggle rather than the reader's OS setting.
+ * No `colorScheme` prop: the scheme resolves from `<html data-via-color-scheme>`,
+ * set before paint by `ViaColorSchemeScript` and kept in sync with the site's
+ * theme toggle by `DarkModeContextProvider`.
  */
 export function ViaProviderWrapper({ children }: { children: React.ReactNode }) {
-  const { isDarkMode } = useContext(DarkModeContext);
-
   return (
-    <ViaProvider colorScheme={isDarkMode ? ColorScheme.Dark : ColorScheme.Light} size={Size.Large}>
+    <ViaProvider size={Size.Large}>
       {children}
       <Toaster />
     </ViaProvider>

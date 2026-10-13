@@ -25,6 +25,18 @@ export const darkModeScript = `
           var x = { "light-theme": "light-theme", "dark-theme": "dark-theme" };
           if (x[e]) d.add(x[e]);
         }
+        // Keep Via's pre-paint script (ViaColorSchemeScript) consistent with
+        // the site theme: it reads this key after this script runs. For
+        // "system", unset it so Via resolves the OS preference.
+        try {
+          if ("dark-theme" === e) {
+            window.localStorage.setItem("via-color-scheme", "dark");
+          } else if ("light-theme" === e) {
+            window.localStorage.setItem("via-color-scheme", "light");
+          } else {
+            window.localStorage.removeItem("via-color-scheme");
+          }
+        } catch (err) {}
       } catch (e) {
         // Silently fail - fallback to light mode
         document.documentElement.classList.add("light-theme");

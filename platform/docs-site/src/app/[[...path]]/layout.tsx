@@ -10,6 +10,7 @@ import { DarkModeContextProvider } from '@/context/dark-mode-context';
 import { getBannerData } from '@/services/db/banner';
 import { Footer } from '@/mdx-components/Footer';
 import { darkModeScript } from '@/app/lib/dark-mode-script';
+import { ViaColorSchemeScript } from '@via-ds/components/provider';
 import { CookiesProvider } from '@/context/cookies-context';
 import { LocaleProvider } from '@/context/locale';
 import { COOKIE_KEY_PREF_LOCALE, getInitialLocaleFromCookie } from '@/utils/locale';
@@ -34,6 +35,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
           __html: darkModeScript,
         }}
       />
+      <ViaColorSchemeScript />
       <div className={mdxLayoutStyles.hiddenDirective}>
         For AI agents: a documentation index is available at https://www.mongodb.com/docs/llms.txt — markdown versions
         of all pages are available by appending .md to any URL path.
