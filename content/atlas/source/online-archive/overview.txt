@@ -1,8 +1,8 @@
 .. _online-archive-overview:
 
-=======================
-Online Archive Overview
-=======================
+=======================================
+Online Archive Overview and Limitations
+=======================================
 
 .. default-domain:: mongodb
 
@@ -12,7 +12,7 @@ Online Archive Overview
 
 .. meta::
    :keywords: atlas online archive, archive standard collection, archive time series collection
-   :description: Manage Online Archive in Atlas to move infrequently accessed data to a read-only Federated Database Instance, optimizing storage and query costs.
+   :description: Manage Online Archive in Atlas to move infrequently accessed data to a read-only Federated Database Instance, optimizing storage and query costs for your clusters.
 
 .. contents:: On this page
    :local:
@@ -93,18 +93,67 @@ Limitations
 - Archiving data below the size of 5 MiB after 7 days. To learn more, see 
   :ref:`Limitations <config-online-archive-limitations>`.
 - :manual:`GridFS </core/gridfs>`.
-- Deleting individual documents.
+- Deleting individual documents, including to respond to a request to
+  delete personal data. To learn more, see
+  :ref:`online-archive-personal-data-erasure`.
 
 .. important::
 
    {+Online-Archive+} inherits all {+adf+} limitations. This includes
    |fts| pipeline stages like :pipeline:`$search` and :pipeline:`$searchMeta`
    and {+avs+} pipeline stage :pipeline:`$vectorSearch`, which are not
-   supported when querying archived data. For a complete list of 
-   unsupported features, see :ref:`df-limitations`. 
+   supported when querying archived data. For a complete list of
+   unsupported features, see :ref:`df-limitations`.
 
-Online Archive & Atlas Data Federation
---------------------------------------
+.. _online-archive-personal-data-erasure:
+
+Personal Data and Right to Erasure
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you archive personal data, you need to plan how you'll respond to
+data subject requests, such as a request to delete personal data under
+the right to erasure in the EU General Data Protection Regulation (GDPR).
+{+Online-Archive+} is read-only and doesn't support deleting individual
+documents from the archive. You can delete archived data only at the
+archive level:
+
+- :ref:`Delete the online archive <delete-online-archive>`. You delete
+  the online archive manually. Five days after you delete the online
+  archive, |service| automatically deletes all the files and metadata
+  on the online archive storage. After |service| deletes this data, you
+  can't restore it.
+- Specify a data retention period for the archive. |service| deletes
+  archived data after the number of days that you specify, from ``7``
+  to ``9125`` days. To learn more, see :ref:`config-online-archive`.
+
+To erase an individual's personal data from archived data, you must
+handle the deletion in your application or operational process. To
+erase individual documents from an online archive, perform the
+following steps:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Restore the affected data to your {+cluster+}.
+
+      To learn how to restore archived data with the
+      :pipeline:`$merge` stage, see :ref:`restore-archived-data`.
+
+   .. step:: Delete the documents from your {+cluster+}.
+
+      To learn more, see :manual:`Delete Documents
+      </tutorial/delete-documents>`.
+
+   .. step:: Delete the online archive.
+
+      To learn more, see :ref:`delete-online-archive`.
+
+   .. step:: Create a new online archive.
+
+      To learn more, see :ref:`config-online-archive`.
+
+Online Archive and Atlas Data Federation
+----------------------------------------
 
 When you configure an {+Online-Archive+} for a collection, 
 |service| uses {+adf+} to create a read-only :ref:`Federated Database Instance <atlas-data-federation>`. 
@@ -202,7 +251,7 @@ through queries. Typical use cases include:
 - :guilabel:`Large-scale historical datasets`: Your cluster stores high volumes of data, 
   such as logs, metrics, or transaction records, and you need to reduce operational 
   storage costs without deleting data. {+Online-Archive+} helps by relocating cold data to 
-  a cheaper cloud object storage while keeping it accessible via queries.
+  a cheaper cloud object storage while keeping it accessible through queries.
 
 - :guilabel:`Time series archiving`: Your application ingests high-frequency time series data 
   from sources like IoT devices, industrial sensors, or financial systems. {+Online-Archive+} allows 
