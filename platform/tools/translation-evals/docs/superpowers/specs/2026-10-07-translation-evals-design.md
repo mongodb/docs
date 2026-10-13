@@ -22,9 +22,9 @@ The loop, for a given docs project and a set of target locales:
 Each step must be runnable independently.
 
 This is a **new tool**. It is not built on `origin/llm-evals` (stale, out of
-scope) and does not build on the planning docs in `translation/` or
+scope) and does not build on the planning docs in `platform/tools/translation-service/` or
 `tools/content-scraper/` (also stale). It reuses only current `main` code:
-the `mdx-translation-adapter` and the `translation` service.
+the `translation-mdx-adapter` and the `translation` service.
 
 ## 2. Non-goals
 
@@ -42,7 +42,7 @@ the `mdx-translation-adapter` and the `translation` service.
 | Translate scope | **Transitive closure** of the eval pages (pages + reachable includes + referenced substitutions) | Measured: a 25-page set needs ~4% of the project's content; whole-project translation is unnecessary and expensive. |
 | Locales (v1) | `pt-br, es, ko-kr, ja-jp, zh-cn` (+ `en` as source) | Matches the existing content-scraper's set; all served in production. |
 | Eval model | **Score pre-computed output** — the Braintrust task echoes stored local text | Matches the step separation (translate → scrape → then eval); scorers re-run cheaply without re-translating; runs are reproducible over a frozen dataset. |
-| Packaging | One new package `platform/tools/translation-evals/`, absorbing `content-scraper` | Single discoverable home; stages as independently-runnable subcommands; reuses `translation/` and `mdx-translation-adapter` as deps. |
+| Packaging | One new package `platform/tools/translation-evals/`, absorbing `content-scraper` | Single discoverable home; stages as independently-runnable subcommands; reuses `platform/tools/translation-service/` and `translation-mdx-adapter` as deps. |
 | Project enumeration | From the project's generated MDX tree (+ composable variants) | We can only build pages we have MDX for; a production crawl would surface pages we can't build. Production URLs are derived by adding the `/<locale>/` prefix. |
 | Serve mode | Default `next dev` on `:3000`; `--production` for SSG `build` + `start` | Dev is cheap and `<main>` text is identical; production build for high-fidelity runs. |
 | Translator / judge | Translator = `translation` service via Grove; judge = a **different** Grove model | Avoids self-preference bias in LLM-as-judge scoring. |
@@ -70,7 +70,7 @@ re-run alone.
 
 `platform/tools/translation-evals/` — a pnpm workspace member.
 TypeScript, run with `tsx`; tests with `vitest` (matches
-`mdx-translation-adapter`). Hand-rolled subcommand parser (matches the
+`translation-mdx-adapter`). Hand-rolled subcommand parser (matches the
 existing tools; no new CLI dependency).
 
 ```

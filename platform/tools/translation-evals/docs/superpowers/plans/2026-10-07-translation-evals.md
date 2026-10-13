@@ -6,7 +6,7 @@
 
 **Architecture:** A pnpm-workspace TypeScript package exposing one subcommand per stage (`resolve`, `scrape-prod`, `translate`, `serve`, `scrape-local`, `dataset`, `eval`). Stages communicate only through a per-run directory on disk. Localization uses **content substitution** — translated MDX is overlaid into `content-mdx/<project>/` and the real `docs-site` is served at production-identical URL paths, so local renders differ from production only by Smartling's CDN rewriting.
 
-**Tech Stack:** TypeScript (ESM, `tsx` for the CLI), `vitest` for tests, Playwright for scraping, `mdx-translation-adapter` (workspace dep) + the repo-root `translation` service (file dep) for translation, the `braintrust` CLI for evals, the `translation` service's Grove seams for the judge.
+**Tech Stack:** TypeScript (ESM, `tsx` for the CLI), `vitest` for tests, Playwright for scraping, `translation-mdx-adapter` (workspace dep) + the repo-root `translation` service (file dep) for translation, the `braintrust` CLI for evals, the `translation` service's Grove seams for the judge.
 
 **Spec:** `platform/tools/translation-evals/docs/superpowers/specs/2026-10-07-translation-evals-design.md`
 
@@ -14,7 +14,7 @@
 
 - Package name `translation-evals`; ESM (`"type": "module"`); TypeScript strict; tests with `vitest`.
 - **Unit tests live beside the module under test** (`src/<dir>/<name>.test.ts`), NOT in a `test/` directory.
-- Reuse only current `main` code: `mdx-translation-adapter` and the `translation` service. Do **not** reference or import from `origin/llm-evals`.
+- Reuse only current `main` code: `translation-mdx-adapter` and the `translation` service. Do **not** reference or import from `origin/llm-evals`.
 - `content-mdx/` is scratch: never commit generated content; add it to `.gitignore`.
 - Production origin `https://www.mongodb.com`; local origin `http://localhost:3000`. Local and production-English paths are identical; production-localized adds a `/<locale>` prefix.
 - v1 locales: `pt-br`, `es`, `ko-kr`, `ja-jp`, `zh-cn` (targets) plus `en` (source).
@@ -38,7 +38,7 @@ Run from `platform/`: `pnpm convert:rst-to-mdx -- atlas`. Then check the output:
 
 - [ ] **Step 2: Confirm Grove model ids**
 
-Read `translation/src/backends/llm/grove/config.ts` for `GROVE_DEFAULTS`. Record the default model id. Ask whoever owns the Grove gateway for the exact model string for the translator (Sonnet 5) and a distinct judge model. Record both in the notes file. **Do not proceed to Task 10 with an unconfirmed model id.**
+Read `platform/tools/translation-service/src/backends/llm/grove/config.ts` for `GROVE_DEFAULTS`. Record the default model id. Ask whoever owns the Grove gateway for the exact model string for the translator (Sonnet 5) and a distinct judge model. Record both in the notes file. **Do not proceed to Task 10 with an unconfirmed model id.**
 
 - [ ] **Step 3: Confirm local dev URL shape**
 
@@ -91,8 +91,8 @@ git commit -m "docs(translation-evals): verification spike findings"
     "lint": "eslint src test --cache"
   },
   "dependencies": {
-    "mdx-translation-adapter": "workspace:*",
-    "@mongodb-docs/translation-service": "file:../../../translation",
+    "translation-mdx-adapter": "workspace:*",
+    "@mongodb-docs/translation-service": "workspace:*",
     "playwright": "^1.44.0"
   },
   "devDependencies": {
@@ -142,7 +142,7 @@ data/
 
 - [ ] **Step 4: Add the workspace entry**
 
-Append `tools/translation-evals` to the `packages:` list in `platform/pnpm-workspace.yaml`. Run `pnpm install` from `platform/` and confirm `node_modules/mdx-translation-adapter` and `node_modules/@mongodb-docs/translation-service` symlinks exist.
+Append `tools/translation-evals` to the `packages:` list in `platform/pnpm-workspace.yaml`. Run `pnpm install` from `platform/` and confirm `node_modules/translation-mdx-adapter` and `node_modules/@mongodb-docs/translation-service` symlinks exist.
 
 - [ ] **Step 5: Write the failing test for `loadConfig`**
 
@@ -1217,7 +1217,7 @@ git commit -m "feat(translation-evals): scrape-prod command"
 - Test: `platform/tools/translation-evals/src/translate/batch.test.ts`
 
 **Interfaces:**
-- Consumes: `translateMdx` from `mdx-translation-adapter`; `translate`, `createGroveBackend` from `@mongodb-docs/translation-service`.
+- Consumes: `translateMdx` from `translation-mdx-adapter`; `translate`, `createGroveBackend` from `@mongodb-docs/translation-service`.
 - Produces: `makeTranslateFn(cfg, targetLocale): TranslateFn`; `translateMdxFile(mdx, cfg, targetLocale, terms): Promise<string>`.
 
 - [ ] **Step 1: Write the failing test** (inject a fake translate fn — no network)
@@ -1248,7 +1248,7 @@ Expected: FAIL — cannot resolve module.
 
 ```ts
 // src/translate/batch.ts
-import { translateMdx, type TranslateFn } from 'mdx-translation-adapter';
+import { translateMdx, type TranslateFn } from 'translation-mdx-adapter';
 import { translate, createGroveBackend } from '@mongodb-docs/translation-service';
 import type { Config } from '../config.js';
 
@@ -1334,7 +1334,7 @@ Expected: FAIL.
 // src/translate/references.ts
 import type { Config } from '../config.js';
 import { makeTranslateFn } from './batch.js';
-import type { TranslateFn } from 'mdx-translation-adapter';
+import type { TranslateFn } from 'translation-mdx-adapter';
 
 type SubValue = string | { text: string; nodes?: unknown[]; url?: string; tooltip?: string };
 
@@ -1451,7 +1451,7 @@ Expected: FAIL.
 // src/translate/run.ts
 import fs from 'node:fs';
 import path from 'node:path';
-import type { TranslateFn } from 'mdx-translation-adapter';
+import type { TranslateFn } from 'translation-mdx-adapter';
 import type { Config } from '../config.js';
 import { readManifest, runDir, setStage } from '../run/manifest.js';
 import { translateMdxFile } from './batch.js';
@@ -2057,7 +2057,7 @@ Eval(cfg.braintrustProject, {
 });
 ```
 
-Adjust the exact `Transport`/`createGroveTransport` signatures to the service's real exports (see `translation/src/backends/llm/grove/transport.ts`).
+Adjust the exact `Transport`/`createGroveTransport` signatures to the service's real exports (see `platform/tools/translation-service/src/backends/llm/grove/transport.ts`).
 
 - [ ] **Step 5: Add the script** to `package.json`:
 

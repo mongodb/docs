@@ -1,4 +1,4 @@
-# mdx-translation-adapter
+# translation-mdx-adapter
 
 Turns an MDX document into a flat `key -> string` payload a translation
 service can handle, then reapplies the translated strings to the original
@@ -26,7 +26,7 @@ pnpm lint
 The one-call path — extract, translate, reconstruct:
 
 ```ts
-import { translateMdx } from 'mdx-translation-adapter';
+import { translateMdx } from 'translation-mdx-adapter';
 
 const translated = await translateMdx(mdxSource, async (payload, terms) => {
   // call your translation service; return { [key]: translatedString | null }
@@ -146,8 +146,8 @@ terms (product names, identifiers) merged with the adapter's own tokens.
 Grove backend from the sibling `translation` package:
 
 ```bash
-pnpm build   # here, and `npm run build` in platform/translation
-node --env-file-if-exists=../../../translation/.env \
+pnpm build   # here, and `pnpm build` in platform/tools/translation-service
+node --env-file-if-exists=../translation-service/.env \
   scripts/run-adapter.mjs ../../../content-mdx/compass/connect.mdx fr
 ```
 

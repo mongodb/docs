@@ -2,6 +2,13 @@
 
 In-house translation service for Docs Platform UI strings
 
+Related packages in `platform/tools/`:
+
+- `translation-mdx-adapter/` flattens MDX documents into the `{ key: string }`
+  payload this service accepts.
+- `translation-evals/` evaluates LLM translations against production
+  translations. Its planned `translate` stage will call this service.
+
 ## What it does
 
 `translate()` accepts a JSON object of source content to translate, shaped
@@ -23,7 +30,7 @@ service itself learn additional payload shapes — Markdown/MDX, nested
 objects — and branch on `content_type` to handle each.
 
 That is not the direction taken. MDX is handled outside the service by
-`platform/tools/mdx-translation-adapter/`, which flattens a document into
+`platform/tools/translation-mdx-adapter/`, which flattens a document into
 the same flat `{ key: string }` payload this service already accepts, and
 reapplies the translated strings to the original document afterwards. The
 service therefore stays format-agnostic: it only ever sees flat strings and
@@ -115,15 +122,16 @@ errors so the response shape stays stable.
 
 ## Development
 
-This directory is standalone (not part of the `platform/` pnpm workspace)
-with its own `npm` lockfile. From `translation/`:
+This is a private `platform/` pnpm workspace package. It is not published.
+Install dependencies once from `platform/`, then run scripts from
+`platform/tools/translation-service/`:
 
 ```sh
-npm install        # once
-npm test           # jest
-npm run test:watch
-npm run typecheck  # tsc --noEmit (src + tests)
-npm run build      # emits dist/ from src only
+pnpm install       # from platform/
+pnpm test          # jest
+pnpm test:watch
+pnpm typecheck     # tsc --noEmit (src + tests)
+pnpm build         # emits dist/ from src only
 ```
 
 ## Live end-to-end test
@@ -134,10 +142,10 @@ It is intentionally kept out of jest so CI stays offline.
 
 ```sh
 cp .env.example .env      # then edit .env and set GROVE_API_KEY
-npm run e2e               # builds dist/, loads .env, calls Grove for real
+pnpm e2e                  # builds dist/, loads .env, calls Grove for real
 ```
 
-`npm run e2e` runs `scripts/e2e-translate.mjs`, which translates a few
+`pnpm e2e` runs `scripts/e2e-translate.mjs`, which translates a few
 sample strings (with a protected product name), prints the response and
 latency, and asserts the invariants that matter: keys preserved, no
 partial failures, protected terms intact, and no leaked `__PROTn__`
