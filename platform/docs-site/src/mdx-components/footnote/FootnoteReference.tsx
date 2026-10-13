@@ -1,19 +1,10 @@
 'use client';
 
 import { useId, useMemo } from 'react';
-import { palette } from '@leafygreen-ui/palette';
-import { css, cx } from '@leafygreen-ui/emotion';
-import { theme } from '@/styles/theme';
+import clsx from 'clsx';
+import { Link, LinkStyle } from '@via-ds/components/typography';
 import { useFootnoteContext } from '@/context/footnote-context';
-
-const refStyles = css`
-  scroll-margin-top: ${theme.header.navbarScrollOffset};
-  color: ${palette.blue.light1};
-
-  &:visited {
-    color: ${palette.purple.base};
-  }
-`;
+import styles from './footnote-reference.module.scss';
 
 export type FootnoteReferenceProps = {
   name?: string;
@@ -36,8 +27,14 @@ export const FootnoteReference = ({ name, index }: FootnoteReferenceProps) => {
   }, [stableId, name, index, getOrCreateRefId, registerReference]);
 
   return (
-    <a className={cx('footnote-reference', refStyles)} href={`#footnote-${footnoteId}`} id={refId}>
+    <Link
+      className={clsx('footnote-reference', styles.footnoteReference)}
+      href={`#footnote-${footnoteId}`}
+      id={refId}
+      linkStyle={LinkStyle.Internal}
+      isStandalone
+    >
       [{label}]
-    </a>
+    </Link>
   );
 };
