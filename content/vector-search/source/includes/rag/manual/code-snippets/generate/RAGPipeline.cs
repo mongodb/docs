@@ -14,16 +14,9 @@ public class RAGPipeline
         var matchingDocuments = _dataService.PerformVectorQuery(queryEmbedding[query]);
         // Construct a string from the query results for performing QA with the LLM
         var sb = new System.Text.StringBuilder();
-        if (matchingDocuments != null)
+        foreach (var doc in matchingDocuments)
         {
-            foreach (var doc in matchingDocuments)
-            {
-                sb.AppendLine($"Text: {doc.GetValue("text").ToString()}");
-            }
-        }
-        else
-        {
-            return "No matching documents found.";
+            sb.AppendLine($"Text: {doc.GetValue("text").ToString()}");
         }
         return await _AiService.GenerateAnswer(question, sb.ToString());
     }

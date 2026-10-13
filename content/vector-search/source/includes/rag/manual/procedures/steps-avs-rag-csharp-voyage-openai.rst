@@ -22,7 +22,6 @@
 
             dotnet add package MongoDB.Driver --version 3.1.0
             dotnet add package PdfPig
-            dotnet add package OpenAI
 
       #. Set your environment variables.
 
@@ -44,13 +43,14 @@
 
       Create a new class named ``AIService`` in a file of the same name by
       pasting the following code. This code defines an async Task named
-      ``GetEmbeddingsAsync()`` to generate a array of embeddings for an array
+      ``GetEmbeddingsAsync()`` to generate an array of embeddings for an array
       of given string inputs. This function uses |voyage|'s
-      ``voyage-3-large`` model to generate an embedding for a given input.
+      ``voyage-4-large`` model to generate an embedding for a given input.
 
-      .. literalinclude:: /includes/rag/manual/code-snippets/ingest/csharp/AIService-GetEmbeddingsAsync-VoyageAI-RAG.cs
+      .. literalinclude:: /code-examples/tested/csharp/driver/VectorSearch/Rag/AIService.snippet.ai-service-class.cs
          :language: csharp
          :copyable:
+         :category: usage example
          :caption: AIService.cs
 
    .. step:: Ingest data into your MongoDB deployment.
@@ -87,9 +87,10 @@
          code stores the embeddings alongside the chunked data in the
          ``rag_db.test`` collection.
 
-         .. literalinclude:: /includes/rag/manual/code-snippets/ingest/csharp/MongoDBDataService-AddDocumentsAsync.cs
+         .. literalinclude:: /code-examples/tested/csharp/driver/VectorSearch/Rag/MongoDBDataService.snippet.mongodb-data-service-class.cs
             :language: csharp
             :copyable:
+            :category: usage example
             :caption: MongoDBDataService.cs
 
       #. Convert the data to vector embeddings.
@@ -152,9 +153,10 @@
          In the ``MongoDBDataService`` class, add the following code to define
          a {+avs+} index on the ``embedding`` field:
 
-         .. literalinclude:: /includes/rag/manual/code-snippets/index/MongoDBDataService-CreateIndex.cs
+         .. literalinclude:: /code-examples/tested/csharp/driver/VectorSearch/Rag/MongoDBDataService.snippet.create-vector-index.cs
             :language: csharp
             :copyable:
+            :category: usage example
 
       #. Create the {+avs+} index.
 
@@ -182,9 +184,23 @@
 
          To learn more, refer to :ref:`return-vector-search-results`.
 
-         .. literalinclude:: /includes/rag/manual/code-snippets/retrieve/MongoDBDataService-PerformVectorQuery.cs
+         .. literalinclude:: /code-examples/tested/csharp/driver/VectorSearch/Rag/MongoDBDataService.snippet.perform-vector-query.cs
             :language: csharp
             :copyable:
+            :category: usage example
+
+      #. Create a class to coordinate the retrieval.
+
+         Paste the following code into a file named ``PerformTestQuery.cs``. This code
+         creates a class named ``PerformTestQuery`` that uses the
+         ``GetEmbeddingsAsync()`` and ``PerformVectorQuery()`` functions that
+         you defined earlier to return matching documents for a query.
+
+         .. literalinclude:: /includes/rag/manual/code-snippets/retrieve/PerformTestQuery.cs
+            :language: csharp
+            :copyable:
+            :category: usage example
+            :caption: PerformTestQuery.cs
 
       #. Test retrieving the data.
 
@@ -220,13 +236,27 @@
          function that prompts the LLM to use the retrieved documents as
          context:
 
-         .. literalinclude:: /includes/rag/manual/code-snippets/generate/OpenAIService-GenerateAnswer.cs
+         .. literalinclude:: /code-examples/tested/csharp/driver/VectorSearch/Rag/AIServiceGenerateAnswer.snippet.generate-answer.cs
             :language: csharp
             :copyable:
+            :category: usage example
+
+      #. Create a class to orchestrate the RAG pipeline.
+
+         Paste the following code into a file named ``RAGPipeline.cs``. This code
+         creates a class named ``RAGPipeline`` that retrieves relevant documents
+         for a question and generates a response by using the functions you
+         defined earlier.
+
+         .. literalinclude:: /includes/rag/manual/code-snippets/generate/RAGPipeline.cs
+            :language: csharp
+            :copyable:
+            :category: usage example
+            :caption: RAGPipeline.cs
 
       #. In the ``Program.cs`` file, replace the existing code with the
-         following code. This example uses the 
-         function you just defined to retrieve matching documents from the 
+         following code. This example uses the
+         function you just defined to retrieve matching documents from the
          database, and additionally:
 
          - Instructs the LLM to include the user's question and retrieved
