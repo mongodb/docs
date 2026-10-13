@@ -31,12 +31,13 @@ const figureStyle = (width?: string, maxHeight?: string, hasHeroImageClass?: boo
 `;
 
 // Wrapper to ensure alignment and bottom margins.
-const wrapperStyle = (align: ImageAlign, hasHeroImageClass?: boolean) => css`
+const wrapperStyle = (align: ImageAlign) => css`
   display: flex;
   flex-direction: column;
   align-items: ${flexAlignment(align)};
   width: 100%;
-  ${!hasHeroImageClass ? `margin-top: ${theme.size.medium}; margin-bottom: ${theme.size.medium};` : ''}
+  margin-top: ${theme.size.medium};
+  margin-bottom: ${theme.size.medium};
 `;
 
 const flexAlignment = (align: ImageAlign) => {
@@ -161,16 +162,17 @@ export const Image = ({
     );
   }
 
+  const image = renderImage(
+    cx(figureStyle(normalizeWidth(), normalizeHeight(), hasHeroImageClass), border ? borderStyle : '', className),
+    openModal,
+  );
+
+  // Landing page CSS targets .hero-img as a direct grid child, so it must not be wrapped.
+  if (hasHeroImageClass) return image;
+
   return (
-    <div className={wrapperStyle(align, hasHeroImageClass)}>
-      {renderImage(
-        cx(
-          figureStyle(normalizeWidth(), normalizeHeight(), hasHeroImageClass),
-          border ? borderStyle : '',
-          className,
-        ),
-        openModal,
-      )}
+    <div className={wrapperStyle(align)}>
+      {image}
       <Caption caption={caption} align={align} />
     </div>
   );
