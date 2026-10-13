@@ -1,4 +1,4 @@
-.. note:: Feature Unavailable in Free-Tier Clusters
+.. note:: Feature Unavailable in Free Clusters
 
    This feature is available for {+Flex-clusters+} and higher. 
    {+Free-clusters+} are designed for learning and small-scale development,

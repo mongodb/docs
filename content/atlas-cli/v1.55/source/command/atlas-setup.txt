@@ -14,7 +14,7 @@ atlas setup
 
 Login, authenticate, create, and access an Atlas cluster.
 
-This command takes you through login, default profile creation, creating your first free tier cluster and connecting to it using MongoDB Shell.
+This command takes you through login, default profile creation, creating your first free cluster, and connecting to it using MongoDB Shell.
 
 Syntax
 ------
