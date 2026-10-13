@@ -1,0 +1,247 @@
+.. _manual-run-mongodb-manual:
+
+================================
+Run the MongoDB Service Manually
+================================
+
+.. meta::
+   :keywords: on-prem
+   :description: Learn how to start the MongoDB service manually by running the mongod process directly from the command line, including common startup and shutdown options.
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+To start the MongoDB service manually, run the :binary:`~bin.mongod`
+process directly from the command line with the options and
+configuration you need.
+
+Syntax
+------
+
+.. code-block:: bash
+
+   mongod [options]
+
+Commands
+~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 20 80
+
+   * - Task
+     - Description
+   * - Start
+     - To manually start the MongoDB process, run the
+       :binary:`~bin.mongod` command.
+   * - Status
+     - To manually check the status of a running MongoDB process, use
+       the :dbcommand:`serverStatus` command.
+   * - Stop
+     - To manually stop the MongoDB process, run the
+       :binary:`~bin.mongod` command with the :option:`--shutdown
+       <mongod --shutdown>` option or connect to the server and use the
+       :method:`db.shutdownServer` method.
+
+For the full list of options, see the :binary:`~bin.mongod` reference.
+
+Compatibility
+-------------
+
+On self-managed deployments of MongoDB Enterprise and MongoDB Community
+installed on Linux-based or macOS operating systems, you can manually
+manage the MongoDB process through :binary:`~bin.mongod`, and other
+commands.
+
+.. note:: Running MongoDB on Windows
+
+   On Windows, you manage MongoDB as a Windows Service rather than by
+   running :binary:`~bin.mongod` directly. Windows does not support the
+   :option:`--fork <mongod --fork>` option. Register the service with
+   :binary:`mongod.exe` rather than starting the process from the
+   command line. To learn more, see :ref:`manual-run-mongodb-windows`.
+
+Behavior
+--------
+
+User Privileges
+~~~~~~~~~~~~~~~
+
+When you manually start the MongoDB process, it executes as the user
+that runs the :binary:`~bin.mongod` command.
+
+This user must have read and write access to the :setting:`data
+<storage.dbPath>` and the :setting:`log <systemLog.path>` directories.
+If MongoDB runs as a user who does not have these privileges, it exits
+with an error.
+
+Data Directory
+~~~~~~~~~~~~~~
+
+Before you start the MongoDB process, ensure that the data and log
+directories exist. To create the ``/path/to/dataDir`` and
+``/path/to/logs`` directories, run the following commands:
+
+.. code-block:: bash
+
+   sudo mkdir -p /path/to/dataDir
+   sudo mkdir -p /path/to/logs
+
+Configuration
+~~~~~~~~~~~~~
+
+You can configure the MongoDB process through :ref:`command-line options
+<mongod>` or through a :ref:`configuration file
+<configuration-options>`. If you plan to run MongoDB for a long period
+of time or need it to always run with specific options, use a
+configuration file.
+
+For example:
+
+.. code-block:: yaml
+
+   storage:
+      dbPath: /path/to/dataDir
+   systemLog:
+      destination: file
+      path: /path/to/logs
+      logAppend: true
+   net:
+      port: 27017
+      bindIp: 127.0.0.1
+
+The user MongoDB runs as must have read access to the configuration file
+and read and write access to the :setting:`~storage.dbPath` and
+:setting:`~systemLog.path` directories.
+
+.. include:: /includes/fact-bind-ip-secure.rst
+
+Examples
+--------
+
+Start MongoDB
+~~~~~~~~~~~~~
+
+To start the :binary:`~bin.mongod` process, run the following command:
+
+.. tabs::
+
+   .. tab:: Configuration
+      :tabid: config
+
+      .. code-block:: bash
+
+         mongod --config /path/to/mongod.conf
+
+   .. tab:: Options
+      :tabid: opts
+
+      .. code-block:: bash
+
+         mongod --dbpath /path/to/dataDir --logpath /path/to/logs
+
+On Linux-based operating systems, you can use the :option:`--fork
+<mongod --fork>` option to start MongoDB as a background process.
+
+Show MongoDB Status
+~~~~~~~~~~~~~~~~~~~
+
+To check the status of a running :binary:`~bin.mongod` process, use
+:binary:`~bin.mongosh` to run the :dbcommand:`serverStatus` command:
+
+.. io-code-block::
+
+   .. input::
+      :language: bash
+
+      mongosh --quiet --eval "db.runCommand( { serverStatus: 1, none: 1, mem: 1 } )"
+
+   .. output::
+      :language: javascript
+
+      {
+        host: 'example',
+        version: '{+release+}',
+        process: 'mongod',
+        pid: Long('71115'),
+        uptime: 61,
+        uptimeMillis: Long('61213'),
+        uptimeEstimate: Long('61'),
+        localTime: ISODate('2026-10-02T16:57:13.762Z'),
+        ok: 1,
+        '$clusterTime': {
+          clusterTime: Timestamp({ t: 1790960233, i: 1 }),
+          signature: {
+            hash: Binary.createFromBase64('AAAAAAAAAAAAAAAAAAAAAAAAAAA=', 0),
+            keyId: Long('0')
+          }
+        },
+        operationTime: Timestamp({ t: 1790960233, i: 1 })
+      }
+
+Stop MongoDB
+~~~~~~~~~~~~
+
+To stop the MongoDB process, run :binary:`~bin.mongod` with the
+:option:`--shutdown <mongod --shutdown>` option, or connect to the
+server with :binary:`~bin.mongosh` and run the
+:method:`db.shutdownServer()` method.
+
+.. tabs::
+
+   .. tab:: Configuration
+      :tabid: config
+
+      If you started :binary:`~bin.mongod` with a configuration file,
+      you also need to use the :option:`--config <mongod --config>`
+      option when shutting it down. This method only works on
+      Linux-based operating systems.
+
+      .. code-block:: bash
+
+         mongod --config /path/to/mongod.conf --shutdown
+
+
+   .. tab:: Options
+      :tabid: opts
+
+      If you started :binary:`~bin.mongod` with the :option:`--dbpath
+      <mongod --dbpath>` option, you also need to use this option when
+      shutting it down. This method only works on Linux-based operating
+      systems.
+
+      .. code-block:: bash
+
+         mongod --dbpath /path/to/dataDir --shutdown
+
+
+   .. tab:: mongosh
+      :tabid: mongosh
+
+      To stop the MongoDB process from :binary:`~bin.mongosh`, run the
+      :method:`db.shutdownServer()` method on the ``admin`` database:
+
+      .. code-block:: bash
+
+         mongosh admin --quiet --eval "db.shutdownServer()"
+
+      On deployments with :setting:`~security.authorization` enabled,
+      you can run :method:`db.shutdownServer()` only when authenticated
+      to the ``admin`` database. On deployments without authentication
+      enabled, you can also run it through the localhost interface.
+
+Learn More
+----------
+
+- :ref:`manage-mongodb-processes`
+- :ref:`configuration-options`
+- :ref:`manual-run-mongodb-systemd`
+- :ref:`manual-run-mongodb-brew`

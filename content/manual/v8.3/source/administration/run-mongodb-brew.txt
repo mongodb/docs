@@ -1,0 +1,366 @@
+.. _manual-run-mongodb-brew:
+
+=====================================
+Run the MongoDB Service with Homebrew
+=====================================
+
+.. meta::
+   :keywords: on-prem
+   :description: Learn how to start the MongoDB service with Homebrew on macOS, including how to run mongod in the background and restart it automatically when you log in.
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+MongoDB provides a Homebrew tap that allows you to install MongoDB
+Enterprise and MongoDB Community through the ``brew`` package manager.
+If you installed MongoDB on your macOS system with these formulae, you
+can also manage the :binary:`~bin.mongod` process as a service through
+the ``brew services`` command.
+
+Syntax
+------
+
+.. tabs::
+
+   .. tab:: Enterprise
+      :tabid: enterprise
+
+      .. code-block:: bash
+
+         brew services <cmd> mongodb-enterprise[@VERSION]
+
+   .. tab:: Community
+      :tabid: community
+
+      .. code-block:: bash
+
+         brew services <cmd> mongodb-community[@VERSION]
+
+Commands
+~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 20 80
+
+   * - Command
+     - Description
+   * - ``info``
+     - Shows the status of the MongoDB service.
+
+   * - ``restart``
+     - Stops the MongoDB service if running, starts it again, and then
+       re-registers it to start at login or boot.
+
+   * - ``run``
+     - Starts the MongoDB service. Does not register it to start at
+       login or boot.
+
+   * - ``start``
+     - Starts the MongoDB service and registers it to start at login or
+       boot.
+
+   * - ``stop``
+     - Stops the MongoDB service and removes it from the registry of
+       services to start at login or boot.
+
+       :gold:`IMPORTANT:`
+
+       To stop the process but keep it registered to start on login or
+       boot, use the ``--keep`` option.
+
+Compatibility
+-------------
+
+On self-managed deployments of MongoDB Enterprise and MongoDB Community
+installed on macOS through Homebrew, you can manage the
+:binary:`~bin.mongod` process as a Homebrew service through the ``brew
+services`` command.
+
+For details on supported platforms, see:
+
+- :ref:`Supported Platforms for MongoDB Enterprise
+  <landing-enterprise-platform-support>`
+- :ref:`Supported Platforms for MongoDB Community
+  <landing-community-platform-support>`
+
+Behavior
+--------
+
+Homebrew Registry
+~~~~~~~~~~~~~~~~~
+
+Some Homebrew services commands, like ``start``, ``stop``, and
+``restart`` interact with a registry that controls persistent services
+through launchd.
+
+Run these commands with user-level privileges to update a per-user
+launchd agent. Use the following command to update the registry for
+the current user and configure it to stop the MongoDB service when
+you log out and restart it when you log back in:
+
+.. code-block:: bash
+
+   brew services start mongodb-community@{+version+}
+
+Use this behavior in development only when one user works on the
+system. In multi-user environments, where every user needs access to
+MongoDB, this configuration prevents other users from reaching the
+database.
+To configure the registry to keep MongoDB running after the user logs
+out and to launch it on startup rather than login, run these commands
+with ``sudo``:
+
+.. code-block:: bash
+
+   sudo brew services start mongodb-community@{+version+}
+
+This configures the registry to start :binary:`~bin.mongod` on boot,
+rather than waiting for a specific user to log in.
+
+Versioned Formula Syntax
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Homebrew allows you to install multiple versions of a particular package
+on an individual system. If you start a service without specifying the
+version, Homebrew starts the latest version available.
+
+.. tabs::
+
+   .. tab:: Enterprise
+      :tabid: enterprise
+
+      .. code-block:: bash
+
+         brew services <cmd> mongodb-enterprise@{+version+}
+
+   .. tab:: Community
+      :tabid: community
+
+      .. code-block:: bash
+
+         brew services <cmd> mongodb-community@{+version+}
+
+Use the versioned formula syntax when you register the MongoDB service
+with launchd. This syntax ensures that Homebrew continues
+to start the MongoDB service with the specified version until you are
+ready to transition to the next major or minor release.
+
+Logging
+~~~~~~~
+
+``brew services`` directs the :binary:`~bin.mongod` log messages to a
+log file in the Homebrew prefix. The default log file is
+``$(brew --prefix)/var/log/mongodb/mongo.log``.
+
+Examples
+--------
+
+.. tabs::
+
+   .. tab:: Enterprise
+      :tabid: enterprise
+
+      The following examples manage the Homebrew service for MongoDB
+      Enterprise {+version+}.
+
+   .. tab:: Community
+      :tabid: community
+
+      The following examples manage the Homebrew service for MongoDB
+      Community {+version+}.
+
+.. _manual-brew-run:
+
+Run MongoDB
+~~~~~~~~~~~
+
+To start the MongoDB service for the current session, run the following
+command:
+
+.. tabs::
+   :hidden:
+
+   .. tab:: Enterprise
+      :tabid: enterprise
+
+      .. code-block:: bash
+
+         brew services run mongodb-enterprise@{+version+}
+
+   .. tab:: Community
+      :tabid: community
+
+      .. code-block:: bash
+
+         brew services run mongodb-community@{+version+}
+
+If you also want to start MongoDB for the current session and ensure
+that it restarts on login, see :ref:`manual-brew-start`.
+
+.. _manual-brew-info:
+
+Show MongoDB Status
+~~~~~~~~~~~~~~~~~~~
+
+To show the status of the MongoDB service, run the following command:
+
+.. tabs::
+   :hidden:
+
+   .. tab:: Enterprise
+      :tabid: enterprise
+
+      .. io-code-block::
+
+         .. input::
+            :language: bash
+
+            brew services info mongodb-enterprise@{+version+}
+
+         .. output::
+            :language: none
+
+            mongodb-enterprise (sh.brew.mongodb-enterprise)
+            Running: true
+            Loaded: true
+            Schedulable: false
+            User: user.name
+            PID: 1845
+
+   .. tab:: Community
+      :tabid: community
+
+      .. io-code-block::
+
+         .. input::
+            :language: bash
+
+            brew services info mongodb-community@{+version+}
+
+         .. output::
+            :language: none
+
+            mongodb-community (sh.brew.mongodb-community)
+            Running: true
+            Loaded: true
+            Schedulable: false
+            User: user.name
+            PID: 1845
+
+.. _manual-brew-stop:
+
+Stop MongoDB
+~~~~~~~~~~~~
+
+To stop the MongoDB service and remove it from the startup registry, run
+the following command:
+
+.. tabs::
+   :hidden:
+
+   .. tab:: Enterprise
+      :tabid: enterprise
+
+      .. code-block:: bash
+
+         brew services stop mongodb-enterprise@{+version+}
+
+   .. tab:: Community
+      :tabid: community
+
+      .. code-block:: bash
+
+         brew services stop mongodb-community@{+version+}
+
+.. _manual-brew-restart:
+
+Restart MongoDB
+~~~~~~~~~~~~~~~
+
+To restart the :binary:`~bin.mongod` process, run the following
+command:
+
+.. tabs::
+   :hidden:
+
+   .. tab:: Enterprise
+      :tabid: enterprise
+
+      .. code-block:: bash
+
+         brew services restart mongodb-enterprise@{+version+}
+
+   .. tab:: Community
+      :tabid: community
+
+      .. code-block:: bash
+
+         brew services restart mongodb-community@{+version+}
+
+This command also re-registers the Homebrew service to start on login.
+
+.. _manual-brew-start:
+
+Start MongoDB on Login
+~~~~~~~~~~~~~~~~~~~~~~
+
+To start the MongoDB service and register it with Homebrew to start on
+login, run the following command:
+
+.. tabs::
+   :hidden:
+
+   .. tab:: Enterprise
+      :tabid: enterprise
+
+      .. code-block:: bash
+
+         brew services start mongodb-enterprise@{+version+}
+
+   .. tab:: Community
+      :tabid: community
+
+      .. code-block:: bash
+
+         brew services start mongodb-community@{+version+}
+
+To start the MongoDB service at boot, run the preceding
+command with ``sudo``.
+
+To start MongoDB only for the current session and have it
+shut down when you log out or reboot, see :ref:`manual-brew-run`.
+
+Show MongoDB Logs
+~~~~~~~~~~~~~~~~~
+
+To show the :binary:`~bin.mongod` log messages, run the following
+command:
+
+.. io-code-block::
+
+   .. input::
+      :language: bash
+
+      tail $(brew --prefix)/var/log/mongodb/mongo.log
+
+   .. output::
+      :language: none
+
+      {"t":{"$date":"2026-09-25T18:08:46.214+00:00"},"s":"I", "c":"STORAGE", "id":4615611, "ctx":"initandlisten", "msg":"MongoDB starting", "attr":{"pid":15432,"port":27017,"dbPath":"/usr/local/var/mongodb","architecture":"64-bit","host":"mac"}}
+      {"t":{"$date":"2026-09-25T18:08:46.214+00:00"},"s":"I", "c":"CONTROL", "id":51765, "ctx":"initandlisten", "msg":"Operating System", "attr":{"os":{"name":"macOS","version":"15.0"}}}
+
+Learn More
+----------
+
+- :ref:`install-enterprise-macos`
+- :ref:`install-community-macos`
+

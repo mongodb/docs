@@ -1,0 +1,358 @@
+.. _manual-run-mongodb-windows:
+
+==================================
+Run the MongoDB Service on Windows
+==================================
+
+.. meta::
+   :keywords: on-prem
+   :description: Learn how to run MongoDB as a Windows Service, including how to register the service, manage it from the command prompt, and remove it when you no longer need it.
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+MongoDB Enterprise and MongoDB Community are available to run on Windows
+as a Windows Service managed with the ``net`` command, through the
+:binary:`mongod.exe` command-line interface, or manually through the
+Services console.
+
+Syntax
+------
+
+.. tabs::
+
+   .. tab:: net Command
+      :tabid: prompt
+
+      .. code-block:: none
+
+         net <command> MongoDB
+
+   .. tab:: Services Console
+      :tabid: console
+
+      Right-click the MongoDB service in the Services console and select
+      the operation you want to perform.
+
+   .. tab:: Manual
+      :tabid: manual
+
+      .. code-block:: none
+
+         "C:\Program Files\MongoDB\Server\{+version+}\bin\mongod.exe" <opts>
+
+Compatibility
+-------------
+
+On self-managed deployments of MongoDB Enterprise and MongoDB
+Community installed on Windows, you can manage the
+:binary:`~bin.mongod` process as a Windows Service.
+
+For more information on supported platforms, see:
+
+- :ref:`Supported Platforms for MongoDB Enterprise
+  <landing-enterprise-platform-support>`
+- :ref:`Supported Platforms for MongoDB Community
+  <landing-community-platform-support>`
+
+Behavior
+--------
+
+User Privileges
+~~~~~~~~~~~~~~~
+
+Most commands that manage a Windows Service require elevated
+privileges. Open the Windows command prompt (``cmd.exe``) as an
+:guilabel:`Administrator` before you run these commands.
+
+By default, the service runs in the context of a local system account.
+To run the service as a specific user, register it with the
+:option:`--serviceUser <mongod.exe --serviceUser>` and
+:option:`--servicePassword <mongod.exe --servicePassword>` options. That
+user must have the :guilabel:`Log on as a service` privilege.
+
+Data Directory
+~~~~~~~~~~~~~~
+
+Before you start the MongoDB process, ensure that the data directory
+exists. To create the default ``\data\db`` data directory, run the
+following commands from the :guilabel:`Command Interpreter`:
+
+.. code-block:: none
+
+   cd C:\
+   md "\data\db"
+
+The default data directory path is the absolute path ``\data\db`` on the
+drive from which you start MongoDB.
+
+Configuration File
+~~~~~~~~~~~~~~~~~~
+
+You can configure the MongoDB process through :ref:`command-line options
+<mongod>` or through a :ref:`configuration file
+<configuration-options>`. If you plan to run MongoDB for a long period
+of time or need it to always run with specific options, use a
+configuration file.
+
+If you installed MongoDB with the Windows installer, the installer
+creates a configuration file for you at ``C:\Program
+Files\MongoDB\Server\{+version+}\bin\mongod.cfg``.
+
+If you installed MongoDB from the ZIP archive, create the file yourself.
+For example:
+
+.. code-block:: yaml
+
+   storage:
+      dbPath: C:\data\db
+   systemLog:
+      destination: file
+      path: C:\data\log.txt
+      logAppend: true
+   net:
+      port: 27017
+      bindIp: 127.0.0.1
+
+The user the service runs as must have read access to the configuration
+file and read and write access to the :setting:`~storage.dbPath` and
+:setting:`~systemLog.path` directories.
+
+.. include:: /includes/fact-bind-ip-secure.rst
+
+Service Registration
+~~~~~~~~~~~~~~~~~~~~
+
+The Windows installer registers the MongoDB service for you, and the
+service starts when the installation succeeds. The service also starts
+when the system boots.
+
+If you installed MongoDB from the ZIP archive, you must register the
+service yourself with the :option:`--install <mongod.exe --install>`
+option before you can manage it with the ``net`` command.
+
+Examples
+--------
+
+.. _manual-windows-install:
+
+Register the MongoDB Service
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To register :binary:`mongod.exe` as a Windows Service, run
+:binary:`mongod.exe` with the :option:`--install <mongod.exe --install>`
+option. Pass the :option:`--config <mongod --config>` option to register
+the service with the configuration file it reads at startup:
+
+.. code-block:: none
+
+   "C:\Program Files\MongoDB\Server\{+version+}\bin\mongod.exe" --config "C:\Program Files\MongoDB\Server\{+version+}\bin\mongod.cfg" --install
+
+The service stores the options you register it with. When you later
+start the service with ``net start MongoDB``, it reads the configuration
+file you specified here.
+
+You need to register the service only once. The Windows installer
+performs this step for you.
+
+Start MongoDB
+~~~~~~~~~~~~~
+
+To start the MongoDB service, use one of the following methods:
+
+.. tabs::
+
+   .. tab:: net Command
+      :tabid: prompt
+
+      .. code-block:: none
+
+         net start MongoDB
+
+   .. tab:: Services Console
+      :tabid: console
+
+      Right-click the MongoDB service in the Services console and click
+      :guilabel:`Start`.
+
+   .. tab:: Manual
+      :tabid: manual
+
+      .. code-block:: none
+
+         "C:\Program Files\MongoDB\Server\{+version+}\bin\mongod.exe" --dbpath="C:\data\db"
+
+      This command runs :binary:`mongod.exe` in the foreground. The
+      :option:`--fork <mongod --fork>` option is not supported on
+      Windows.
+
+Verify MongoDB Is Running
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tabs::
+
+   .. tab:: sc Command
+      :tabid: prompt
+
+      If you started MongoDB as a Windows Service, query the service
+      from the command prompt:
+
+      .. code-block:: none
+
+         sc query MongoDB
+
+      The command returns the service details. The ``STATE`` field
+      reads ``RUNNING`` when the service is running and ``STOPPED``
+      when it is not.
+
+   .. tab:: Services Console
+      :tabid: console
+
+      If you started MongoDB as a Windows Service, locate the
+      MongoDB service in the Services console. You should see the
+      service listed as ``Running`` in the :guilabel:`Status` column.
+
+   .. tab:: Manual
+      :tabid: manual
+
+      If you started MongoDB manually in the foreground, the
+      :guilabel:`Command Interpreter` displays the following line when
+      the database server is running correctly:
+
+      .. code-block:: none
+         :copyable: false
+
+         [initandlisten] waiting for connections
+
+      To show runtime information for the running :binary:`mongod.exe`
+      process, use :binary:`~bin.mongosh` to run the
+      :dbcommand:`serverStatus` command:
+
+      .. io-code-block::
+
+         .. input::
+            :language: none
+
+            mongosh --quiet --eval "db.runCommand( { serverStatus: 1, none: 1, mem: 1 } )"
+
+         .. output::
+            :language: javascript
+
+            {
+              host: 'example',
+              version: '{+release+}',
+              process: 'mongod',
+              pid: Long('71115'),
+              uptime: 61,
+              uptimeMillis: Long('61213'),
+              uptimeEstimate: Long('61'),
+              localTime: ISODate('2026-10-02T16:57:13.762Z'),
+              ok: 1,
+              '$clusterTime': {
+                clusterTime: Timestamp({ t: 1790960233, i: 1 }),
+                signature: {
+                  hash: Binary.createFromBase64('AAAAAAAAAAAAAAAAAAAAAAAAAAA=', 0),
+                  keyId: Long('0')
+                }
+              },
+              operationTime: Timestamp({ t: 1790960233, i: 1 })
+            }
+
+You can also view the log file to see the current status of your
+:binary:`mongod.exe` process. The log file is the path you set with the
+:option:`--logpath <mongod --logpath>` option.
+
+.. _manual-stop-mongod-windows:
+
+Stop MongoDB
+~~~~~~~~~~~~
+
+To stop the MongoDB service, use one of the following methods:
+
+.. tabs::
+
+   .. tab:: net Command
+      :tabid: prompt
+
+      .. code-block:: none
+
+         net stop MongoDB
+
+   .. tab:: Services Console
+      :tabid: console
+
+      Right-click the MongoDB service in the Services console and click
+      :guilabel:`Stop`.
+
+   .. tab:: Manual
+      :tabid: manual
+
+      Connect to the server with :binary:`~bin.mongosh` and run the
+      :method:`db.shutdownServer()` method on the ``admin`` database:
+
+      .. code-block:: none
+
+         mongosh admin --quiet --eval "db.shutdownServer()"
+
+      The :option:`--shutdown <mongod --shutdown>` option is available
+      only on Linux systems. If you started :binary:`mongod.exe` in the
+      foreground, you can also press :kbd:`Ctrl` + :kbd:`C` in the
+      :guilabel:`Command Interpreter` to shut down the process cleanly.
+
+Restart MongoDB
+~~~~~~~~~~~~~~~
+
+To restart the MongoDB service, use one of the following methods:
+
+.. tabs::
+
+   .. tab:: net Command
+      :tabid: prompt
+
+      .. code-block:: none
+
+         net stop MongoDB
+         net start MongoDB
+
+   .. tab:: Services Console
+      :tabid: console
+
+      Right-click the MongoDB service in the Services console and click
+      :guilabel:`Restart`.
+
+   .. tab:: Manual
+      :tabid: manual
+
+      Connect to the server with :binary:`~bin.mongosh` and run the
+      :method:`db.shutdownServer()` method on the ``admin`` database.
+      Then, use :binary:`mongod.exe` to start the server again:
+
+      .. code-block:: none
+
+         mongosh admin --quiet --eval "db.shutdownServer()"
+         "C:\Program Files\MongoDB\Server\{+version+}\bin\mongod.exe" --dbpath="C:\data\db"
+
+Remove the MongoDB Service
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To remove the MongoDB service, first :ref:`stop
+<manual-stop-mongod-windows>` the service, then run the following
+command:
+
+.. code-block:: none
+
+   sc delete MongoDB
+
+Learn More
+----------
+
+- :ref:`install-enterprise-windows`
+- :ref:`install-community-windows`
+
