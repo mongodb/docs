@@ -233,6 +233,38 @@ const tocData: TocItem[] = [
         ],
       },
       {
+        label: 'Run MongoDB',
+        contentSite: 'docs',
+        collapsible: true,
+        versions: { excludes: manualVersions.before('v8.2') },
+        items: [
+          {
+            label: 'systemd',
+            contentSite: 'docs',
+            url: '/docs/:version/administration/run-mongodb-systemd',
+            versions: { excludes: manualVersions.before('v8.2') },
+          },
+          {
+            label: 'Windows',
+            contentSite: 'docs',
+            url: '/docs/:version/administration/run-mongodb-windows',
+            versions: { excludes: manualVersions.before('v8.2') },
+          },
+          {
+            label: 'Homebrew',
+            contentSite: 'docs',
+            url: '/docs/:version/administration/run-mongodb-brew',
+            versions: { excludes: manualVersions.before('v8.2') },
+          },
+          {
+            label: 'Manual',
+            contentSite: 'docs',
+            url: '/docs/:version/administration/run-mongodb-manual',
+            versions: { excludes: manualVersions.before('v8.2') },
+          },
+        ],
+      },
+      {
         label: 'Upgrade Community to Enterprise',
         contentSite: 'docs',
         url: '/docs/:version/administration/upgrade-community-to-enterprise',
