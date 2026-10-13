@@ -1,9 +1,47 @@
 'use client';
 
 import { useId, useMemo } from 'react';
-import { Link, LinkStyle } from '@via-ds/components/typography';
+import { useDarkMode } from '@leafygreen-ui/leafygreen-provider';
+import { palette } from '@leafygreen-ui/palette';
+import { css, cx } from '@leafygreen-ui/emotion';
+import { theme } from '@/styles/theme';
 import { useFootnoteContext } from '@/context/footnote-context';
-import styles from './footnote.module.scss';
+
+const tableStyling = (darkMode: boolean) => css`
+  border: 0;
+  border-collapse: collapse;
+  margin: 24px 0;
+  font-size: ${theme.fontSize.small};
+  line-height: 24px;
+
+  tbody tr td a {
+    font-size: ${theme.fontSize.small};
+  }
+
+  tbody tr td div.highlight pre {
+    background-color: inherit;
+  }
+
+  ${darkMode &&
+  `
+      tbody tr td a {
+        color: ${palette.blue.light1};
+      }
+    `}
+
+  :target {
+    background-color: ${darkMode ? palette.gray.dark2 : '#ffa'};
+  }
+`;
+
+const tdStyling = css`
+  border: 0;
+  padding: 11px 5px 12px;
+`;
+
+const scrollMarginStyles = css`
+  scroll-margin-top: ${theme.header.navbarScrollOffset};
+`;
 
 export type FootnoteProps = {
   children?: React.ReactNode;
@@ -14,6 +52,7 @@ export type FootnoteProps = {
 export const Footnote = ({ children, name }: FootnoteProps) => {
   const stableId = useId();
   const { getOrCreateFootnoteId, registerFootnote, getFootnoteData } = useFootnoteContext();
+  const { darkMode } = useDarkMode();
 
   const id = useMemo(() => {
     return getOrCreateFootnoteId(stableId, name);
@@ -24,29 +63,22 @@ export const Footnote = ({ children, name }: FootnoteProps) => {
   const refIds = data?.refIds ?? [];
 
   const backLinkNodes = refIds.map((refId, index) => (
-    <Link className={styles.backLink} href={`#${refId}`} key={refId} linkStyle={LinkStyle.Internal} isStandalone>
+    <a href={`#${refId}`} key={refId}>
       {index + 1}
-    </Link>
+    </a>
   ));
 
-  const labelCell =
-    refIds.length === 1 ? (
-      <Link className={styles.backLink} href={`#${refIds[0]}`} linkStyle={LinkStyle.Internal} isStandalone>
-        {label}
-      </Link>
-    ) : (
-      label
-    );
+  const labelCell = refIds.length === 1 ? <a href={`#${refIds[0]}`}>{label}</a> : label;
 
   return (
-    <table className={styles.footnote} id={`footnote-${id}`} rules="none">
+    <table className={cx(scrollMarginStyles, tableStyling(darkMode))} id={`footnote-${id}`} rules="none">
       <colgroup>
         <col />
       </colgroup>
       <tbody>
         <tr style={{ verticalAlign: 'top' }}>
-          <td className={styles.cell}>[{labelCell}]</td>
-          <td className={styles.cell}>
+          <td className={cx(tdStyling)}>[{labelCell}]</td>
+          <td className={cx(tdStyling)}>
             {backLinkNodes.length > 1 && (
               <em>
                 (
