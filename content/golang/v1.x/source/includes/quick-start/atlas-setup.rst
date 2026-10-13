@@ -1,10 +1,10 @@
-Set up a Free Tier Cluster in Atlas
+Set up a Free Cluster in Atlas
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 After setting up your Go project dependencies, create a MongoDB cluster
 where you can store and manage your data. Complete the
 `MongoDB Get Started <https://www.mongodb.com/docs/get-started/?language=go>`__ guide to set up a new
-Atlas account, free tier MongoDB cluster, load datasets, and
+Atlas account, free cluster, load datasets, and
 interact with the data.
 
 After completing the steps in the Atlas guide, you should have a new MongoDB

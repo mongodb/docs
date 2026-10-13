@@ -1,17 +1,17 @@
-Set up a Free Tier Cluster in Atlas
+Set up a Free Cluster in Atlas
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can create a free tier MongoDB deployment on MongoDB Atlas to store and
+You can create a free cluster on MongoDB Atlas to store and
 manage your data. MongoDB Altas hosts and manages your MongoDB database in the
 cloud.
 
 .. procedure::
    :style: connected
 
-   .. step:: Create a free tier cluster.
+   .. step:: Create a free cluster.
 
       Complete the `MongoDB Get Started <https://www.mongodb.com/docs/get-started/?language=go>`__ guide to
-      set up a new Atlas account, create a free tier MongoDB cluster, load
+      set up a new Atlas account, create a free cluster, load
       datasets, and interact with the data.
 
    .. step:: Save your credentials.
