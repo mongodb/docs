@@ -5,6 +5,6 @@
     instance, see the :ref:`java-connect-to-mongodb` guide. This example
     also uses the ``movies`` collection in the ``sample_mflix`` database
     included in the :atlas:`Atlas sample datasets </sample-data>`. You
-    can load them into your database on the free tier of MongoDB Atlas
+    can load them into your database on a free cluster in MongoDB Atlas
     by following the :ref:`MongoDB Get Started
     <unified-get-started>`.
