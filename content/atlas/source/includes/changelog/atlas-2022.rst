@@ -45,7 +45,7 @@
 - Introduces the :guilabel:`Local NVMe SSD` storage option in the |service|
   UI for some {+dedicated-clusters+} that run on |azure|. Locally
   attached  ephemeral :ref:`NVMe SSDs <nvme-storage>` offer the highest
-  level of speed and performance. To learn more, see :ref:`nvme-storage`.
+  level of speed and performance. To learn more, see :ref:`NVMe storage <nvme-storage>`.
 - Adds the ``enableSharding`` privilege to custom database roles.
 - Adds the ability to set the 
   `maximum lifetime <https://www.mongodb.com/docs/atlas/cluster-additional-settings/#set-transaction-lifetime>`__

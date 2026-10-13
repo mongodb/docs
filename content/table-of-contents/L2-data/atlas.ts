@@ -344,6 +344,11 @@ const tocData: TocItem[] = [
                 contentSite: 'cloud-docs',
                 url: '/docs/atlas/infinite/atlas-infinite-storage',
               },
+              {
+                label: 'NVMe Storage',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/nvme-storage',
+              },
             ],
           },
           {
