@@ -22,7 +22,7 @@ About This Task
 - This page describes the Docker install instructions for MongoDB Community 
   edition. The `MongoDB Enterprise Docker image 
   <https://hub.docker.com/r/mongodb/mongodb-enterprise-server>`__  
-  and `MongoDB Enterprise Kubernetes Operator <https://www.mongodb.com/docs/kubernetes-operator>`__ 
+  and `MongoDB Controllers for Kubernetes Operator <https://www.mongodb.com/docs/kubernetes/current/>`__ 
   are recommended for production deployments and should be used together.
 
 - This procedure uses the official `MongoDB community image
