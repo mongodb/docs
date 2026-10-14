@@ -1,21 +1,8 @@
 'use client';
 
-import { css, cx } from '@leafygreen-ui/emotion';
-import { palette } from '@leafygreen-ui/palette';
-import { theme } from '@/styles/theme';
+import { clsx } from 'clsx';
 import type { ImageAlign } from './types';
-
-const captionStyle = (align: ImageAlign) => css`
-  color: ${palette.gray.dark1};
-  /* TODO: Remove !important when mongodb-docs.css is removed */
-  margin-top: ${theme.size.default} !important;
-  text-align: ${align};
-
-  /* TODO: Remove when mongodb-docs.css is removed */
-  & > code {
-    color: ${palette.gray.dark1};
-  }
-`;
+import styles from './caption.module.scss';
 
 interface CaptionProps {
   caption?: string;
@@ -24,5 +11,5 @@ interface CaptionProps {
 
 export const Caption = ({ caption, align = 'center' }: CaptionProps) => {
   if (!caption || caption.trim() === '') return null;
-  return <p className={cx(captionStyle(align))}>{caption}</p>;
+  return <p className={clsx(styles.caption, styles[align])}>{caption}</p>;
 };

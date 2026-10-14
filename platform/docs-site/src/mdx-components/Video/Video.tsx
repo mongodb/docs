@@ -2,14 +2,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import ReactPlayerYT from 'react-player/youtube';
 import ReactPlayerWistia from 'react-player/wistia';
-import styled from '@emotion/styled';
-import { css } from '@leafygreen-ui/emotion';
-import { palette } from '@leafygreen-ui/palette';
-import { theme } from '@/styles/theme';
+import { clsx } from 'clsx';
 import { STRUCTURED_DATA_CLASSNAME } from '@/utils/structured-data/structured-data';
 import { VideoObjectSd } from '@/utils/structured-data/video-object-sd';
 import VideoPlayButton from './VideoPlayButton';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
+import styles from './video.module.scss';
 
 // Imported both players to keep bundle size low and rendering the one associated to the URL being passed in
 const REACT_PLAYERS = {
@@ -32,30 +30,6 @@ const REACT_PLAYERS = {
     name: 'wistia' as const,
   },
 };
-
-const ReactPlayerWrapper = styled('div')`
-  position: relative;
-  padding-top: 56.25%;
-  margin: ${theme.size.medium} 0px;
-  border-radius: 16px;
-  overflow: hidden;
-`;
-
-const videoStyling = ({ name }: { name: string }) => css`
-  position: absolute;
-  top: 0;
-  left: 0;
-
-  > div {
-    /* Redefines stacking context, allowing play button animation to stick on top */
-    position: sticky;
-  }
-
-  ${name === 'wistia' &&
-  `video {
-    background: ${palette.white} !important;
-  }`}
-`;
 
 const getSupportedMedia = (url: string) => {
   let supportedType: 'yt' | 'wistia' | null = null;
@@ -126,9 +100,9 @@ export const Video = ({ url }: VideoProps) => {
           dangerouslySetInnerHTML={{ __html: videoObjectSd }}
         />
       )}
-      <ReactPlayerWrapper>
+      <div className={styles.wrapper}>
         <ReactPlayer
-          className={videoStyling(ReactSupportedMedia)}
+          className={clsx(styles.player, ReactSupportedMedia.name === 'wistia' && styles.wistia)}
           config={ReactSupportedMedia.config}
           controls
           url={url}
@@ -138,7 +112,7 @@ export const Video = ({ url }: VideoProps) => {
           playIcon={<VideoPlayButton />}
           light={previewImage}
         />
-      </ReactPlayerWrapper>
+      </div>
     </>
   );
 };
