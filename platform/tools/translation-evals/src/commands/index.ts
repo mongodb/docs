@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 import { loadConfig } from '../config.js';
 import { resolveProject } from '../resolve/run.js';
+import { readManifestLatest } from '../run/manifest.js';
+import { scrapeProd } from '../scrape/prod.js';
 
 export type FlagBag = Record<string, string | boolean>;
 export type CommandHandler = (flags: FlagBag) => Promise<void>;
@@ -40,5 +42,12 @@ export const COMMANDS: Record<string, CommandHandler> = {
       `run ${runId}: ${manifest.translatable.pages.length} eval pages, ` +
         `${manifest.pages.length} page refs, ${manifest.translatable.includes.length} includes`,
     );
+  },
+  'scrape-prod': async (flags) => {
+    const cfg = loadConfig();
+    const project = String(flags.project ?? '');
+    if (!project) throw new Error('--project is required');
+    const runId = flags.run ? String(flags.run) : readManifestLatest(cfg, project);
+    await scrapeProd(cfg, project, runId, flags.locale ? [String(flags.locale)] : undefined);
   },
 };

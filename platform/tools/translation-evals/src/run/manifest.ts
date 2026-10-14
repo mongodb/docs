@@ -17,6 +17,19 @@ function manifestPath(cfg: Config, project: string, runId: string): string {
   return path.join(runDir(cfg, project, runId), 'manifest.json');
 }
 
+export function readManifestLatest(cfg: Config, project: string): string {
+  const projectDir = path.join(cfg.dataDir, project);
+  const runs = fs.existsSync(projectDir)
+    ? fs
+        .readdirSync(projectDir)
+        .filter((id) => fs.existsSync(manifestPath(cfg, project, id)))
+        .map((id) => ({ id, resolvedAt: readManifest(cfg, project, id).stages.resolve?.at ?? '' }))
+        .sort((a, b) => b.resolvedAt.localeCompare(a.resolvedAt))
+    : [];
+  if (!runs[0]) throw new Error(`no runs found for "${project}" — run: pnpm resolve --project ${project}`);
+  return runs[0].id;
+}
+
 export function readManifest(cfg: Config, project: string, runId: string): RunManifest {
   return JSON.parse(fs.readFileSync(manifestPath(cfg, project, runId), 'utf8')) as RunManifest;
 }

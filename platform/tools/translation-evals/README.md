@@ -9,9 +9,9 @@ Plan: `docs/superpowers/plans/2026-10-07-translation-evals.md`
 
 ## Status
 
-`resolve` is implemented. The remaining six stages (`scrape-prod`, `translate`,
-`serve`, `scrape-local`, `dataset`, `eval`) land in their own PRs, each
-registering its handler in `src/commands/index.ts`.
+`resolve` and `scrape-prod` are implemented. The remaining five stages
+(`translate`, `serve`, `scrape-local`, `dataset`, `eval`) land in their own
+PRs, each registering its handler in `src/commands/index.ts`.
 
 ## The seven stages
 
@@ -23,13 +23,13 @@ resolve ─▶ scrape-prod ─▶ translate ─▶ serve ─▶ scrape-local ─
 ```
 
 Each stage is a package script (run from this directory). Stage scripts are
-added as each stage lands. Only `resolve` is runnable today; the other
-commands below are planned and do not exist yet.
+added as each stage lands. Only `resolve` and `scrape-prod` are runnable
+today; the other commands below are planned and do not exist yet.
 
 | Stage | Command | Status |
 |---|---|---|
 | Resolve the project's pages + transitive translatable set | `pnpm resolve --project atlas` | Available |
-| Scrape production (reference + English source) | `pnpm scrape-prod --project atlas` | Not yet implemented |
+| Scrape production (reference + English source) | `pnpm scrape-prod --project atlas` | Available |
 | Translate the closure locally (Grove) | `pnpm translate --project atlas` | Not yet implemented |
 | Serve the translated site locally | `pnpm serve --project atlas --locale es` | Not yet implemented |
 | Scrape the local site | `pnpm scrape-local --project atlas --locale es` | Not yet implemented |
@@ -81,6 +81,16 @@ Run these once before running any stage.
    ```
    pnpm --filter docs-site build:prefix-map
    ```
+
+6. Install the Chromium build that the scraping stages use. From this
+   directory:
+
+   ```
+   pnpm exec playwright install chromium
+   ```
+
+   Re-run this after the `playwright` version changes. Without it,
+   `scrape-prod` fails with `Executable doesn't exist`.
 
 ## Running `resolve`
 
