@@ -1,4 +1,4 @@
-import { Suspense } from 'react';
+import { Children, isValidElement, Suspense, type ReactNode } from 'react';
 import type { MDXComponents } from 'mdx/types';
 import { RefTarget } from '@/mdx-components/RefTarget';
 import { Target } from '@/mdx-components/Target';
@@ -59,6 +59,19 @@ import { Instruqt } from '@/mdx-components/Instruqt';
 import DeprecatedVersionSelector from '@/mdx-components/DeprecatedVersionSelector';
 
 type InjectedProps = Record<string, unknown>;
+
+const MdxTableBody = ({ children }: { children?: ReactNode }) => <TableBody>{children}</TableBody>;
+
+// Counted here because this map runs on the server: once children cross into the client Table,
+// their types arrive as lazy client references and can't be matched against TableBody.
+const countBodyRows = (children: ReactNode) =>
+  Children.toArray(children).reduce<number>(
+    (count, child) =>
+      isValidElement<{ children?: ReactNode }>(child) && child.type === MdxTableBody
+        ? count + Children.count(child.props.children)
+        : count,
+    0,
+  );
 
 export const components = (injectedProps?: InjectedProps) =>
   ({
@@ -210,9 +223,13 @@ export const components = (injectedProps?: InjectedProps) =>
         {children}
       </Admonition>
     ),
-    Table: ({ children, ...props }) => <Table {...props}>{children}</Table>,
+    Table: ({ children, ...props }) => (
+      <Table {...props} bodyRowCount={countBodyRows(children)}>
+        {children}
+      </Table>
+    ),
     TableHead: ({ children }) => <TableHead>{children}</TableHead>,
-    TableBody: ({ children }) => <TableBody>{children}</TableBody>,
+    TableBody: MdxTableBody,
     TableRow: ({ children }) => <TableRow>{children}</TableRow>,
     TableHeaderCell: ({ children }) => <TableHeaderCell>{children}</TableHeaderCell>,
     TableCell: ({ children }) => <TableCell>{children}</TableCell>,

@@ -9,6 +9,16 @@ global.ResizeObserver = class ResizeObserver {
   disconnect() {}
 } as any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
+// Mock IntersectionObserver for JSDOM (used by Via Table's sticky-header detection)
+global.IntersectionObserver = class IntersectionObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+  takeRecords() {
+    return [];
+  }
+} as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+
 // This file runs for every suite, including those that opt into the `node`
 // test environment via a `@jest-environment node` docblock (API route handlers
 // need it, since `next/server` builds on Request/Response rather than DOM

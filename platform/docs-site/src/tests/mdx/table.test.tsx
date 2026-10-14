@@ -1,8 +1,6 @@
 import { render } from '@testing-library/react';
-import { matchers } from '@emotion/jest';
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell } from '@/mdx-components/Table';
-
-expect.extend(matchers);
+import { components } from '@/mdx-components';
 
 describe('when rendering a table directive', () => {
   // Data from table.test.json: header-rows: 1, stub-columns: 1
@@ -74,7 +72,7 @@ describe('when rendering a table directive', () => {
 
   it('displays one header row', () => {
     const wrapper = renderTable();
-    expect(wrapper.getByTestId('leafygreen-ui-header-row')).toBeTruthy();
+    expect(wrapper.getByTestId('via-table-header_row')).toBeTruthy();
   });
 
   it('displays six header columns', () => {
@@ -126,12 +124,84 @@ describe('when rendering a table with fixed widths', () => {
 
   it('displays no header row when none are set', () => {
     const wrapper = renderFixedWidthsTable();
-    expect(wrapper.queryByTestId('leafygreen-ui-header-row')).toBeFalsy();
+    expect(wrapper.queryByTestId('via-table-header_row')).toBeFalsy();
     expect(wrapper.queryByText('name')).not.toBeTruthy();
   });
 
   it('displays no stub columns', () => {
     const wrapper = renderFixedWidthsTable();
     expect(wrapper.queryAllByRole('rowheader')).toHaveLength(0);
+  });
+});
+
+describe('when deciding zebra striping', () => {
+  // Rendered through the MDX components map, which is where body rows are counted
+  const { Table: MdxTable, TableBody: MdxTableBody, TableRow: MdxTableRow, TableCell: MdxTableCell } = components();
+  const isZebra = /Row-module_\w+_zebra/;
+
+  const rows = (count: number, prefix = 'row') =>
+    Array.from({ length: count }, (_, i) => (
+      <MdxTableRow key={i}>
+        <MdxTableCell>{`${prefix}-${i}`}</MdxTableCell>
+      </MdxTableRow>
+    ));
+
+  it('stripes body rows when there are more than four', () => {
+    const wrapper = render(
+      <MdxTable>
+        <MdxTableBody>{rows(5)}</MdxTableBody>
+      </MdxTable>,
+    );
+    expect(wrapper.getAllByTestId('via-table-row')).toHaveLength(5);
+    wrapper.getAllByTestId('via-table-row').forEach((row) => expect(row.className).toMatch(isZebra));
+  });
+
+  it('does not stripe four or fewer body rows', () => {
+    const wrapper = render(
+      <MdxTable>
+        <MdxTableBody>{rows(4)}</MdxTableBody>
+      </MdxTable>,
+    );
+    expect(wrapper.getAllByTestId('via-table-row')).toHaveLength(4);
+    wrapper.getAllByTestId('via-table-row').forEach((row) => expect(row.className).not.toMatch(isZebra));
+  });
+
+  it('does not stripe a nested table', () => {
+    const wrapper = render(
+      <MdxTable>
+        <MdxTableBody>
+          {rows(4)}
+          <MdxTableRow>
+            <MdxTableCell>
+              <MdxTable>
+                <MdxTableBody>{rows(5, 'nested')}</MdxTableBody>
+              </MdxTable>
+            </MdxTableCell>
+          </MdxTableRow>
+        </MdxTableBody>
+      </MdxTable>,
+    );
+    const [outer, inner] = wrapper.getAllByTestId('via-table');
+    const outerRows = outer.querySelectorAll(':scope > tbody > tr');
+    const innerRows = inner.querySelectorAll('tbody > tr');
+    expect(outerRows).toHaveLength(5);
+    expect(innerRows).toHaveLength(5);
+    outerRows.forEach((row) => expect(row.className).toMatch(isZebra));
+    innerRows.forEach((row) => expect(row.className).not.toMatch(isZebra));
+  });
+});
+
+describe('when rendering a table with a width', () => {
+  it('applies the width to the table element', () => {
+    const wrapper = render(
+      <Table width="50%">
+        <TableBody>
+          <TableRow>
+            <TableCell>cell</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>,
+    );
+    expect(wrapper.getByTestId('via-table')).toHaveStyle({ width: '50%' });
   });
 });
