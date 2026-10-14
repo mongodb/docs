@@ -57,6 +57,16 @@ Analyzes and optimizes MongoDB query performance. This skill ensures queries
 are properly indexed, debugs slow queries using Atlas Performance Advisor,
 and provides best practice recommendations for aggregation pipelines. 
 
+Queryable Encryption Size Estimation
+````````````````````````````````````
+
+Estimates the storage and memory impact of encrypting fields in
+collections with Queryable Encryption enabled. This skill calculates
+index storage, total disk storage, and memory from your schema, fields,
+and query types, so you can configure Queryable Encryption without
+scalability and performance issues. For Queryable Encryption only, not
+Client-Side Field Level Encryption (CSFLE).
+
 Search and AI Recommendations
 ``````````````````````````````
 
