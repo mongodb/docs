@@ -50,4 +50,15 @@ export const COMMANDS: Record<string, CommandHandler> = {
     const runId = flags.run ? String(flags.run) : readManifestLatest(cfg, project);
     await scrapeProd(cfg, project, runId, flags.locale ? [String(flags.locale)] : undefined);
   },
+  translate: async (flags) => {
+    const cfg = loadConfig();
+    const project = String(flags.project ?? '');
+    if (!project) throw new Error('--project is required');
+    const runId = flags.run ? String(flags.run) : readManifestLatest(cfg, project);
+    const { translateRun } = await import('../translate/run.js');
+    const summary = await translateRun(cfg, project, runId, flags.locale ? [String(flags.locale)] : undefined);
+    const failed = Object.values(summary.failures).flat().length;
+    console.log(`run ${runId}: ${summary.translated} files translated, ${failed} failed`);
+    if (failed > 0) console.log(`see data/${project}/${runId}/translate-failures.json`);
+  },
 };

@@ -9,8 +9,8 @@ Plan: `docs/superpowers/plans/2026-10-07-translation-evals.md`
 
 ## Status
 
-`resolve` and `scrape-prod` are implemented. The remaining five stages
-(`translate`, `serve`, `scrape-local`, `dataset`, `eval`) land in their own
+`resolve`, `scrape-prod` and `translate` are implemented. The remaining
+four stages (`serve`, `scrape-local`, `dataset`, `eval`) land in their own
 PRs, each registering its handler in `src/commands/index.ts`.
 
 ## The seven stages
@@ -23,14 +23,14 @@ resolve ─▶ scrape-prod ─▶ translate ─▶ serve ─▶ scrape-local ─
 ```
 
 Each stage is a package script (run from this directory). Stage scripts are
-added as each stage lands. Only `resolve` and `scrape-prod` are runnable
+added as each stage lands. Only `resolve`, `scrape-prod` and `translate` are runnable
 today; the other commands below are planned and do not exist yet.
 
 | Stage | Command | Status |
 |---|---|---|
 | Resolve the project's pages + transitive translatable set | `pnpm resolve --project atlas` | Available |
 | Scrape production (reference + English source) | `pnpm scrape-prod --project atlas` | Available |
-| Translate the closure locally (Grove) | `pnpm translate --project atlas` | Not yet implemented |
+| Translate the closure locally (Grove) | `pnpm translate --project atlas` | Available |
 | Serve the translated site locally | `pnpm serve --project atlas --locale es` | Not yet implemented |
 | Scrape the local site | `pnpm scrape-local --project atlas --locale es` | Not yet implemented |
 | Build Braintrust rows | `pnpm dataset --project atlas` | Not yet implemented |
@@ -41,7 +41,8 @@ today; the other commands below are planned and do not exist yet.
 Run these once before running any stage.
 
 1. Use Node 24, the version in `platform/.nvmrc`. Older versions fail with
-   `The "paths[0]" argument must be of type string`.
+   `The "paths[0]" argument must be of type string` or
+   `bad option: --env-file-if-exists=.env`.
 
    ```
    cd platform
@@ -64,7 +65,9 @@ Run these once before running any stage.
    cp .env.example .env
    ```
 
-   See [Environment](#environment) for the variables.
+   The package scripts load `.env` automatically if it exists. Set
+   `GROVE_API_KEY` for `translate`. See [Environment](#environment) for the
+   other variables.
 
 4. Generate the MDX content that `resolve` reads. From `platform/`:
 
@@ -91,6 +94,16 @@ Run these once before running any stage.
 
    Re-run this after the `playwright` version changes. Without it,
    `scrape-prod` fails with `Executable doesn't exist`.
+
+7. Build the packages that `translate` imports. From `platform/`:
+
+   ```
+   pnpm --filter translation-mdx-adapter build
+   ```
+
+   Without it, `translate` fails with `Failed to resolve entry for package
+   "translation-mdx-adapter"`. Turbo does this for you when it runs `test`
+   and `typecheck`.
 
 ## Running `resolve`
 
@@ -185,6 +198,31 @@ The `translate` stage (not yet implemented) will use two sibling packages:
 
 See `.env.example`. Note: the `braintrust` CLI does **not** load a plain
 `.env`; put `BRAINTRUST_API_KEY` in `.env.braintrust` or export it.
+
+The package scripts load `.env` through `--env-file-if-exists`. A variable
+that is already exported in your shell takes precedence over `.env`.
+
+### Grove settings for `translate`
+
+`translate` calls Grove through `translation-service`, which speaks the
+OpenAI Responses API. Set these in `.env`:
+
+```
+GROVE_API_KEY=<your key>
+GROVE_ENDPOINT=https://ai-gateway.corp.mongodb.com/openai/v1/responses
+GROVE_MODEL=gpt-6-astra
+```
+
+- A key from the new AI Gateway only works with the `ai-gateway.corp.mongodb.com`
+  endpoint. The service's built-in default is the legacy Azure gateway
+  (`grove-gateway-prod.azure-api.net`), which rejects those keys with
+  HTTP 401.
+- The model must be one that the gateway serves on the `/openai/v1/responses`
+  path. List them with `GET https://ai-gateway.corp.mongodb.com/openai/v1/models`.
+  Claude models are served on `/anthropic/v1/messages`, a format this service
+  does not support yet, and fail here with HTTP 404.
+- A failed request is recorded in `data/<project>/<runId>/translate-failures.json`
+  with the gateway's error, for example `Grove returned HTTP 401`.
 
 ## Development
 
