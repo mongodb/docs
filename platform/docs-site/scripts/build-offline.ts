@@ -24,7 +24,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Load .env files for local development — Netlify CI provides these as real env vars.
 for (const envFile of ['.env.local', '.env']) {
-  try { process.loadEnvFile(path.resolve(process.cwd(), envFile)); } catch {}
+  try {
+    process.loadEnvFile(path.resolve(process.cwd(), envFile));
+  } catch {}
 }
 
 const OUT_DIR = path.join(process.cwd(), 'out');
@@ -63,9 +65,7 @@ function parseCliArgs(): OfflineBuildArgs {
     if (m?.[1] === 'tocDir') tocDir = m[2].replace(/\/$/, '');
   }
   if (!ALLOWED_TOC_DIRS.has(tocDir)) {
-    console.error(
-      `Error: --tocDir must be one of: ${[...ALLOWED_TOC_DIRS].join(', ')}. Got "${tocDir}".`,
-    );
+    console.error(`Error: --tocDir must be one of: ${[...ALLOWED_TOC_DIRS].join(', ')}. Got "${tocDir}".`);
     process.exit(1);
   }
   return { tocFile, version, tocDir };
@@ -79,9 +79,7 @@ async function validateTocFile(tocFile: string, tocDir: string): Promise<void> {
   } catch {
     const files = await fs.readdir(dir).catch(() => [] as string[]);
     const names = files.filter((f) => f.endsWith('.ts')).map((f) => `  ${f.replace('.ts', '')}`);
-    console.error(
-      `Error: TOC file "${tocFile}" not found in ${tocDir}/.\nAvailable options:\n${names.join('\n')}`,
-    );
+    console.error(`Error: TOC file "${tocFile}" not found in ${tocDir}/.\nAvailable options:\n${names.join('\n')}`);
     process.exit(1);
   }
   console.log(`TOC file: ${tocDir}/${tocFile}`);
@@ -289,15 +287,8 @@ interface OfflineUIModule {
 // they contain (e.g. 'offline-collapsible') to avoid double-injecting styles.
 const OFFLINE_UI_MODULES: OfflineUIModule[] = [
   {
-    detect: 'data-lgid="lg-tabs"',
+    detect: 'data-tabset=',
     jsFile: 'tabs.js',
-    // Override the default LeafyGreen tab activation behavior to show the green underline.
-    headStyle: `<style>
-  [data-lgid="lg-tabs-tab_list"] [role="tab"][aria-selected="true"]::after {
-    background-color: #00A35C;
-    transform: scaleX(1);
-  }
-</style>`,
   },
   {
     detect: 'offline-collapsible-nav',
