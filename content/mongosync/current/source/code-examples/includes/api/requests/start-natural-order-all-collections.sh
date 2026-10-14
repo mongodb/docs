@@ -4,11 +4,11 @@ curl -X POST "http://localhost:27182/api/v1/start" --data '
     "destination": "cluster1",
     "copyInNaturalOrder": [
       {
-        "database": "sales",
+        "database": "sales"
       },
       {
-        "database": "marketing",
-      },
+        "database": "marketing"
+      }
     ]
   }'
 

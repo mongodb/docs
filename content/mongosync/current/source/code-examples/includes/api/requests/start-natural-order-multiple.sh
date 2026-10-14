@@ -7,14 +7,14 @@ curl -X POST "http://localhost:27182/api/v1/start" --data '
         "database": "sales",
         "collections": [
           "accounts",
-          "orders",
+          "orders"
         ]
       },
       {
         "database": "marketing",
         "collections": [
-          "offers",
+          "offers"
         ]
-      },
+      }
     ]
   }'
