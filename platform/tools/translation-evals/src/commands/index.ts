@@ -4,6 +4,7 @@ import { loadConfig } from '../config.js';
 import { resolveProject } from '../resolve/run.js';
 import { readManifestLatest } from '../run/manifest.js';
 import { scrapeProd } from '../scrape/prod.js';
+import { scrapeLocal } from '../scrape/local.js';
 import { materialize } from '../serve/materialize.js';
 import { startServer, stopServer } from '../serve/server.js';
 
@@ -83,5 +84,12 @@ export const COMMANDS: Record<string, CommandHandler> = {
     }
     const code = await new Promise<number | null>((resolve) => child.on('exit', resolve));
     process.exit(code ?? 1);
+  },
+  'scrape-local': async (flags) => {
+    const cfg = loadConfig();
+    const project = String(flags.project ?? '');
+    if (!project) throw new Error('--project is required');
+    const runId = flags.run ? String(flags.run) : readManifestLatest(cfg, project);
+    await scrapeLocal(cfg, project, runId, flags.locale ? [String(flags.locale)] : undefined);
   },
 };
