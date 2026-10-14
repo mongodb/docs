@@ -28,7 +28,7 @@
      - Deprecated
      - Supported
      - Supported
-     - Supported
+     - N/A
 
    * - |onprem| 7.0
      - EOL
