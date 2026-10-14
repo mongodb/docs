@@ -13,6 +13,16 @@ By default, the limit is 1 gigabyte or 20% of the memory available
 to the server process, whichever is greater. MongoDB sets the
 default when the server starts.
 
+To change the per-operation limit, set the
+:parameter:`internalQueryMaxMemoryUsageBytesPerOperation` parameter at startup,
+at runtime, or with query settings.
+
+For memory-intensive expressions that the per-operation limit does not cover,
+MongoDB applies a limit on the maximum memory that a subset of expressions can
+use. The default of this limit is 100 megabytes. To change this limit, set the
+:parameter:`internalQueryMaxSingleExpressionMemoryUsageBytes` parameter at
+startup or at runtime.
+
 The per-operation limit is separate from the 100 megabyte per-stage
 memory limit and doesn't change how stages spill to disk. To learn
 about the per-stage limit, see :ref:`agg-memory-restrictions`.

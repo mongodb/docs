@@ -2098,6 +2098,48 @@ The following example includes:
      }
    }
 
+.. _log-message-query-memory-limit:
+
+Query Memory Limit Exceeded
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 9.0, if a query operation exceeds the
+:ref:`per-operation memory limit <operation-memory-limit>` and cannot
+spill to disk, MongoDB ends the operation with the
+:error:`ExceededMemoryLimit <146>` error. MongoDB also writes the
+following log message:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+     "t": {
+       "$date": "2026-09-02T15:16:17.180+00:00"
+     },
+     "s": "E",
+     "c": "QUERY",
+     "id": 12932700,
+     "ctx": "conn3",
+     "svc": "R",
+     "msg": "Query exceeded the memory limit",
+     "attr": {
+       "error": "expression evaluation needs too much memory. Needs: 1140850688 bytes. Local memory limit: 1073741824 bytes. Global memory used: 1140850688 bytes. Global memory limit: 1073741824 bytes."
+     }
+   }
+
+The ``error`` attribute is a string that contains the details of the
+memory overage. The details include the operation that exceeded the
+limit, the amount of memory in use, and the applicable memory limit.
+MongoDB also returns this string to the client in the
+:error:`ExceededMemoryLimit <146>` error.
+
+MongoDB writes this log message only when an operation exceeds the
+per-operation memory limit and cannot spill to disk. If a stage that
+can spill to disk exceeds the limit and ``allowDiskUse`` is
+``false``, MongoDB ends the operation with the
+:error:`QueryExceededMemoryLimitNoDiskUseAllowed <292>` error and does
+not write this log message.
+
 Linux Syslog Limitations
 ------------------------
 
