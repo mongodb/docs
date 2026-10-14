@@ -36,7 +36,8 @@ annotations in each service for a specific Pod.
        :ref:`spec.clusterSpecList.clusterName 
        <multi-spec-agent-clusterspeclist-clustername>`.
 
-       This value might not reflect the order of the member clusters 
+       This value might not reflect the order of the :ref:`member
+       clusters <central-and-member-clusters>` 
        defined in :ref:`spec.clusterSpecList <multi-spec-clusterspeclist>`. 
        Although you can change the order of
        member clusters in :ref:`spec.clusterSpecList <multi-spec-clusterspeclist>`, 

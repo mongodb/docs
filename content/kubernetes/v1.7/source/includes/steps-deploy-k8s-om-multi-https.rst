@@ -86,7 +86,7 @@
         :linenos:
 
    - On each member cluster, including the member cluster that serves
-     as the operator cluster, create another, separate namespace, ``mongodb``.
+     as the central cluster, create another, separate namespace, ``mongodb``.
      The |k8s-op-short| uses this namespace for |onprem| resources and components.
 
      .. literalinclude:: /includes/code-examples/ops-manager-multi-cluster/code_snippets/0045_create_ops_manager_namespace.sh
@@ -241,7 +241,7 @@
    As stated in the :ref:`om-multi-procedure-overview`, the |k8s-op-short|
    has the configuration for three member clusters that you can use to deploy
    |onprem| MongoDB databases.
-   The first cluster is also used as the operator cluster, where you
+   The first cluster is also used as the central cluster, where you
    install the |k8s-op-short| and deploy the custom resources.
 
    .. io-code-block::
@@ -357,7 +357,7 @@
 
    b. Deploy the simplest ``MongoDBOpsManager`` custom resource possible
       (with |tls| enabled) on a single member cluster, which is also known as
-      the operator cluster.
+      the central cluster.
 
       This deployment is almost the same as for the :ref:`single-cluster mode <mode-multi-or-single>`,
       but with :opsmgrkube:`spec.topology` and :opsmgrkube:`spec.applicationDatabase.topology`

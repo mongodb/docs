@@ -1,5 +1,6 @@
 To connect member clusters to the |onprem| resource's deployment in the
-operator cluster in a |multi-cluster|, use one of the following methods:
+:ref:`central cluster <central-and-member-clusters>` in a
+|multi-cluster|, use one of the following methods:
 
 - Set the :opsmgrkube:`spec.externalConnectivity` to ``true`` and specify
   the |onprem| port in it. Use the :github:`ops-manager-external.yaml
@@ -14,7 +15,8 @@ operator cluster in a |multi-cluster|, use one of the following methods:
       --namespace "mongodb" \
        -f https://raw.githubusercontent.com/mongodb/mongodb-kubernetes/{+dl-version+}/public/samples/ops-manager/ops-manager-external.yaml
 
-- Add the operator cluster and all member clusters to the same service mesh.
+- Add the central cluster and all :ref:`member clusters
+  <central-and-member-clusters>` to the same service mesh.
   The service mesh establishes communication from the the central and all
   member clusters to the |onprem| instance. To learn more, see the
   :ref:`Multi-Kubernetes-Cluster Quick Start <multi-cluster-quick-start-ref>`

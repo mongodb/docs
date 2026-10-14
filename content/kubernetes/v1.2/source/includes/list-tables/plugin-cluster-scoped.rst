@@ -1,3 +1,4 @@
 Optional. Flag that indicates whether to
 create ClusterRole and ClusterRoleBindings
-for member clusters. Default value is ``false``.
+for :ref:`member clusters <central-and-member-clusters>`.
+Default value is ``false``.
