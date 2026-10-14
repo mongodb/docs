@@ -46,6 +46,7 @@ Codex supports the following setup methods:
 {+self-managed-mdb-title+}
 --------------------
 
+.. include:: /includes/get-started/local-mcp-reqs.rst
 
 .. collapsible:: 
    :heading:  {+manual-self-managed-mcp-heading+}

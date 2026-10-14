@@ -57,6 +57,8 @@ Claude Code supports the following setup methods:
 {+self-managed-mdb-title+}
 --------------------
 
+.. include:: /includes/get-started/local-mcp-reqs.rst
+
 .. collapsible:: 
    :heading: {+plugin-self-managed-mcp-heading+}
    :sub_heading: Set up the Plugin for {+local-short+}.

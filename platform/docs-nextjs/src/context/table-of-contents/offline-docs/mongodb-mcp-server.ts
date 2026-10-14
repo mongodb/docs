@@ -37,6 +37,11 @@ export const toc: L1TocItem[] = [
             url: '/docs/mcp-server/tools',
           },
           {
+            label: 'Usage Examples',
+            contentSite: 'mcp-server',
+            url: '/docs/mcp-server/examples',
+          },
+          {
             label: 'Local MCP',
             contentSite: 'mcp-server',
             collapsible: true,
@@ -121,11 +126,6 @@ export const toc: L1TocItem[] = [
                 label: 'Security Best Practices',
                 contentSite: 'mcp-server',
                 url: '/docs/mcp-server/local-mcp/security-best-practices',
-              },
-              {
-                label: 'Usage Examples',
-                contentSite: 'mcp-server',
-                url: '/docs/mcp-server/local-mcp/examples',
               },
               {
                 label: 'Release Notes',
