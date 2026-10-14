@@ -23,15 +23,16 @@ resolve ─▶ scrape-prod ─▶ translate ─▶ serve ─▶ scrape-local ─
 ```
 
 Each stage is a package script (run from this directory). Stage scripts are
-added as each stage lands. Only `resolve`, `scrape-prod` and `translate` are runnable
-today; the other commands below are planned and do not exist yet.
+added as each stage lands. Only `resolve`, `scrape-prod`, `translate` and
+`serve` are runnable today; the other commands below are planned and do not
+exist yet.
 
 | Stage | Command | Status |
 |---|---|---|
 | Resolve the project's pages + transitive translatable set | `pnpm resolve --project atlas` | Available |
 | Scrape production (reference + English source) | `pnpm scrape-prod --project atlas` | Available |
 | Translate the closure locally (Grove) | `pnpm translate --project atlas` | Available |
-| Serve the translated site locally | `pnpm serve --project atlas --locale es` | Not yet implemented |
+| Serve the translated site locally | `pnpm serve --project atlas --locale es` | Available |
 | Scrape the local site | `pnpm scrape-local --project atlas --locale es` | Not yet implemented |
 | Build Braintrust rows | `pnpm dataset --project atlas` | Not yet implemented |
 | Run the eval | `pnpm eval` | Not yet implemented |
