@@ -1,6 +1,8 @@
 MongoDB {+version+} Enterprise Edition supports the following
-:red:`64-bit` Ubuntu LTS (long-term support) releases on 
+:red:`64-bit` Ubuntu LTS (long-term support) releases on
 :ref:`x86_64 <prod-notes-supported-platforms-x86_64>` architecture:
+
+- 26.04 :abbr:`LTS (Long Term Support)` ("Resolute")
 
 - 24.04 :abbr:`LTS (Long Term Support)` ("Noble")
 
@@ -11,7 +13,7 @@ determine which Ubuntu release your host is running, run the following
 command on the host's terminal:
 
 .. code-block:: bash
-    
+
    cat /etc/lsb-release
 
 MongoDB {+version+} Enterprise Edition on Ubuntu also supports the

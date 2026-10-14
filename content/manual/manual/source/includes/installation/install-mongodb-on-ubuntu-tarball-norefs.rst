@@ -56,17 +56,7 @@ Prerequisites
 
 .. include:: /includes/fact-tarball-dependencies.rst
 
-.. tabs::
-
-   .. tab:: Ubuntu 24.04 (Noble)
-      :tabid: noble
-
-      .. include:: /includes/extracts/install-mongodb-community-manually-ubuntu-24.rst
-
-   .. tab:: Ubuntu 22.04 (Jammy)
-      :tabid: ubuntu-22-jammy
-
-      .. include:: /includes/extracts/install-mongodb-community-manually-ubuntu-22.rst
+.. include:: /includes/deploy/community-prereq-ubuntu.rst
 
 Procedure
 ~~~~~~~~~

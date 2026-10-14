@@ -12,7 +12,7 @@
       .. include:: /includes/deploy/community-ubuntu-conf
 
    .. step:: Reload the package database.
-      
+
       .. include:: /includes/deploy/code/apt-update
 
    .. step:: Install MongoDB Community Server.

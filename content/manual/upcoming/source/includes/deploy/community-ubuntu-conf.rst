@@ -6,6 +6,11 @@ your version of Ubuntu.
 
 .. tabs::
 
+   .. tab:: Ubuntu 26.04 (Resolute)
+      :tabid: ubuntu26
+
+      .. include:: /includes/deploy/code/community-ubuntu26-conf
+
    .. tab:: Ubuntu 24.04 (Noble)
       :tabid: noble
 
