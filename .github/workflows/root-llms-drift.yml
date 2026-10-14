@@ -1,0 +1,235 @@
+name: Root llms.txt drift check
+
+# Compares the hand-maintained root llms.txt (llms-output/llms.txt, served
+# at https://www.mongodb.com/docs/llms.txt) against the per-project files
+# the site actually serves, and opens a PR when it has fallen behind.
+#
+# Per-project files republish themselves on every prod/stg deploy (see
+# platform/nextjs-ssg-extension/src/llms-txt/index.ts). This job covers the
+# drift that needs a human: a new project appearing, a project gaining or
+# losing parts when it is re-split, or a link whose file is gone. The PR is
+# never auto-merged, and merging it is what publishes the file.
+
+on:
+  # Mondays at 2 pm UTC. GitHub Actions does not adjust for DST.
+  schedule:
+    - cron: '0 14 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check:
+    if: github.repository == '10gen/docs-mongodb-internal'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        # Matches platform/package.json's packageManager pin; pnpm 9 would
+        # conflict with it and with the lockfile pnpm 10 wrote.
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.27.0
+
+      # Only generate-llms and its dependencies: the rest of the platform
+      # workspace needs CodeArtifact auth this job has no reason to hold.
+      - name: Install generate-llms
+        run: pnpm install --filter generate-llms
+        working-directory: platform
+
+      # Needs no credentials: generates every project (~7s) and asks the
+      # docs site over HTTP which of those files are actually served.
+      - name: Check for drift
+        id: drift
+        run: |
+          set -euo pipefail
+          # --silent: without it pnpm's "> generate-llms@... " banner goes
+          # to stdout and lands in the JSON, breaking jq.
+          pnpm --silent check-root-llms -- --json > "${RUNNER_TEMP}/drift.json"
+          HAS_DRIFT=$(jq -r '.hasDrift' "${RUNNER_TEMP}/drift.json")
+          echo "has_drift=${HAS_DRIFT}" >> "$GITHUB_OUTPUT"
+          jq -r '
+            "Unlinked: \(.unlinkedFiles | length), " +
+            "dead links: \(.deadLinks | length), " +
+            "dead landing links: \(.deadLandingLinks | length), " +
+            "part mismatches: \(.partCountMismatches | length), " +
+            "landing candidates: \(.landingPageCandidates | length)"
+          ' "${RUNNER_TEMP}/drift.json"
+        working-directory: platform/tools/generate-llms
+
+      - name: Update the root llms.txt
+        id: update
+        if: steps.drift.outputs.has_drift == 'true'
+        env:
+          # Grove is how this repo's other CI model callers reach Claude.
+          # Prefers a key issued for this workload; falls back to the
+          # reviewer's key, which already exists, so this runs before a
+          # dedicated one is provisioned.
+          GROVE_API_KEY: ${{ secrets.GROVE_LLMS_INDEX_API_KEY || secrets.GROVE_AI_REVIEWER_API_KEY }}
+        # `pnpm run <name>`, not `pnpm <name>`: pnpm has a built-in
+        # `update` command, and a script whose name collides with a
+        # built-in is silently ignored in favour of it.
+        run: pnpm run update-root-llms "${RUNNER_TEMP}/drift.json"
+        working-directory: platform/tools/generate-llms
+
+      # The updater already verified the drift is resolved. This verifies
+      # the blast radius: nothing outside the root llms.txt may change.
+      - name: Verify only the root llms.txt changed
+        if: steps.drift.outputs.has_drift == 'true'
+        run: |
+          set -euo pipefail
+          CHANGED=$(git diff --name-only)
+          echo "Changed files:"
+          echo "${CHANGED}"
+          UNEXPECTED=$(echo "${CHANGED}" | grep -v '^platform/tools/generate-llms/llms-output/llms.txt$' || true)
+          if [ -n "${UNEXPECTED}" ]; then
+            echo "::error::The updater changed files outside the root llms.txt:"
+            echo "${UNEXPECTED}"
+            exit 1
+          fi
+          if [ -z "${CHANGED}" ]; then
+            echo "::error::Drift was reported but the root llms.txt is unchanged."
+            exit 1
+          fi
+
+      - name: Build PR body
+        if: steps.drift.outputs.has_drift == 'true'
+        id: body
+        run: |
+          set -euo pipefail
+          {
+            echo 'summary<<DRIFT_EOF'
+            jq -r '
+              (if (.unlinkedFiles | length) > 0 then
+                "**Published but not linked** (added):\n" +
+                ([.unlinkedFiles[] | "- `\(.url)`"] | join("\n")) + "\n"
+              else "" end) +
+              (if (.deadLinks | length) > 0 then
+                "\n**Linked but no longer published** (removed):\n" +
+                ([.deadLinks[] | "- `\(.)`"] | join("\n")) + "\n"
+              else "" end) +
+              (if (.deadLandingLinks | length) > 0 then
+                "\n**Landing pages no longer present** (removed):\n" +
+                ([.deadLandingLinks[] | "- `\(.)`"] | join("\n")) + "\n"
+              else "" end) +
+              (if (.partCountMismatches | length) > 0 then
+                "\n**Part counts corrected**:\n" +
+                ([.partCountMismatches[] | "- `\(.project)`: labelled \(.labelledParts), \(.publishedParts) published"] | join("\n")) + "\n"
+              else "" end) +
+              (if (.landingPageCandidates | length) > 0 then
+                "\n**Landing pages not linked** (not changed - that section is curated, listed for information):\n" +
+                ([.landingPageCandidates[] | "- \(.title): `\(.url)`"] | join("\n")) + "\n"
+              else "" end)
+            ' "${RUNNER_TEMP}/drift.json"
+            echo 'DRIFT_EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Close stale drift PRs
+        if: steps.drift.outputs.has_drift == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh pr list \
+            --search "head:auto/root-llms-drift" \
+            --state open \
+            --json number \
+            --jq '.[].number' | \
+          xargs -r -I{} gh pr close {} \
+            --comment "Superseded by a newer drift check run."
+
+      - name: Create branch, commit, and open PR
+        if: steps.drift.outputs.has_drift == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRIFT_SUMMARY: ${{ steps.body.outputs.summary }}
+          UPDATE_STATUS: ${{ steps.update.outputs.status }}
+        run: |
+          set -euo pipefail
+
+          DATE=$(date +%Y%m%d)
+          # Short SHA as well as the date: two runs on one day would
+          # otherwise collide on the branch name.
+          SHORT=$(git rev-parse --short HEAD)
+          BRANCH="auto/root-llms-drift-${DATE}-${SHORT}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git checkout -b "${BRANCH}"
+          git add platform/tools/generate-llms/llms-output/llms.txt
+
+          if [ "${UPDATE_STATUS}" = "manual-update-needed" ]; then
+            # The gateway was unreachable, so the file carries a TODO marker
+            # instead of the fix. Draft, because that marker must never reach
+            # production: whoever picks this up replaces it with a real edit.
+            git commit -m "chore: flag root llms.txt for manual update (${DATE})"
+            git push origin "${BRANCH}"
+
+            cat > "${RUNNER_TEMP}/pr-body.md" <<PREOF
+          ## Root llms.txt needs a manual update
+
+          The weekly drift check found that https://www.mongodb.com/docs/llms.txt no longer matches what is published, but it could not reach the Grove gateway to draft the fix. The file has been marked with a TODO comment describing the outstanding drift.
+
+          **This PR is a draft and must not be merged as is** - the TODO comment would be served to agents. Replace it with the real edit, or close this PR and re-run the workflow once the gateway is reachable.
+
+          ${DRIFT_SUMMARY}
+
+          ### To fix by hand
+
+          Use the \`root-llms-update\` skill, or edit \`platform/tools/generate-llms/llms-output/llms.txt\` directly and verify with \`pnpm check-root-llms\` in \`platform/tools/generate-llms\`.
+
+          ---
+          *Generated by \`.github/workflows/root-llms-drift.yml\`.*
+          PREOF
+
+            gh pr create \
+              --draft \
+              --title "chore: root llms.txt needs a manual update (${DATE})" \
+              --body-file "${RUNNER_TEMP}/pr-body.md" \
+              --head "${BRANCH}" \
+              --base main
+            exit 0
+          fi
+
+          git commit -m "chore: update root llms.txt for published file changes (${DATE})"
+          git push origin "${BRANCH}"
+
+          cat > "${RUNNER_TEMP}/pr-body.md" <<PREOF
+          ## Root llms.txt is behind what's published
+
+          The weekly drift check found that https://www.mongodb.com/docs/llms.txt no longer matches the per-project \`llms.txt\` files the site serves. This PR updates it.
+
+          ${DRIFT_SUMMARY}
+
+          ### What to check
+
+          - Each new link is in a sensible section, and its label reads like the entries around it.
+          - Part labels describe what those parts actually cover.
+          - Nothing unrelated was reworded or reordered.
+
+          Merging this PR is what publishes the file: the landing site's next prd/preprd deploy uploads it to \`docs/llms.txt\`.
+
+          ---
+          *Generated by \`.github/workflows/root-llms-drift.yml\`. Run it on demand from the Actions tab when a new docset lands.*
+          PREOF
+
+          gh pr create \
+            --title "chore: update root llms.txt (${DATE})" \
+            --body-file "${RUNNER_TEMP}/pr-body.md" \
+            --head "${BRANCH}" \
+            --base main
+
+      - name: Report no drift
+        if: steps.drift.outputs.has_drift != 'true'
+        run: echo "Root llms.txt is up to date; nothing to do."

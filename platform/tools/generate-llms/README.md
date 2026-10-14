@@ -126,6 +126,7 @@ against the links in `llms-output/llms.txt`, reporting:
   after a re-split)
 - links whose file is no longer published
 - `(Part N of M)` labels that disagree with how many parts exist
+- landing pages linked from the root file that are no longer present
 - pages in `content/landing` that aren't linked
 
 Only a definitive 404 marks a file as unpublished; a timeout or 5xx leaves it
@@ -144,6 +145,28 @@ Landing's pages live directly in the root llms.txt rather than in a
 per-project file, and that section is a curated subset, so unlinked
 landing pages are reported as *candidates* and don't by themselves count
 as drift. Everything else does.
+
+## Update the root llms.txt when it drifts
+
+`.github/workflows/root-llms-drift.yml` runs `check-root-llms` weekly and, when it finds drift, runs `update-root-llms` to open a PR with the fix. It is never auto-merged. To do the same thing by hand, use the `root-llms-update` skill instead.
+
+```bash
+pnpm --silent check-root-llms -- --json > /tmp/drift.json
+GROVE_API_KEY=... pnpm run update-root-llms /tmp/drift.json
+```
+
+Use `pnpm run`, not `pnpm update-root-llms`: pnpm has a built-in `update` command, and a script whose name collides with a built-in is silently ignored.
+
+1. `check-root-llms --json` produces the drift report. This part is deterministic and needs no credentials.
+2. `src/update-root-llms-cli.ts` sends that report plus the current file to Claude through the Grove gateway and asks for the corrected file.
+3. `validateRootLlmsUpdate`, the same detector that found the drift, checks the result before anything is written. If the drift isn't resolved, or an unrelated link was dropped, the script exits non-zero and no PR is opened.
+4. The workflow verifies that no file outside the root llms.txt changed, then opens the PR.
+
+If the Grove gateway is unreachable, the script appends a `TODO: this page needs manual updates` HTML comment naming the outstanding drift, and the workflow opens a **draft** PR so someone can do the edit by hand. It is a draft because that comment is served verbatim to agents and must never merge as is. Other failures (a truncated response, or an edit that doesn't resolve the drift) exit non-zero and open no PR.
+
+The model is only trusted with editorial judgement (section placement, labels). Every factual claim about what exists is deterministic, and every edit is verified.
+
+It reads `base_url` and `sync_model` from `.github/ai-reviewer/config.yml`, so there's one source of truth for how this repo reaches Claude. It requires `GROVE_API_KEY`. The workflow supplies `GROVE_LLMS_INDEX_API_KEY` if a key has been issued for this workload, falling back to `GROVE_AI_REVIEWER_API_KEY`. For a direct call when running locally, it also accepts `ANTHROPIC_API_KEY` (model defaults to `claude-sonnet-5`, override with `ANTHROPIC_MODEL`); Grove wins if both are set. A report with `hasDrift: false` exits cleanly without calling the model.
 
 ## Publish the root llms.txt
 

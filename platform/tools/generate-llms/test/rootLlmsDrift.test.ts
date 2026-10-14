@@ -165,6 +165,27 @@ describe('validateRootLlmsUpdate', () => {
     ).toEqual([]);
   });
 
+  it('rejects an edit that leaves a dead landing link unresolved', () => {
+    const deadLandingDrift = detectDrift({ rootLlmsContent: ROOT, publishedKeys: PUBLISHED, landingPages: [] });
+    const problems = validateRootLlmsUpdate({
+      before: ROOT,
+      after: ROOT,
+      drift: deadLandingDrift,
+      publishedKeys: PUBLISHED,
+    });
+    expect(problems.join(' ')).toContain('Still links landing pages that no longer exist');
+  });
+
+  it('allows removing a landing link the drift report flagged as dead', () => {
+    const deadLandingDrift = detectDrift({ rootLlmsContent: ROOT, publishedKeys: PUBLISHED, landingPages: [] });
+    const after = ROOT.split('\n')
+      .filter((line) => !line.includes('get-started.md'))
+      .join('\n');
+    expect(
+      validateRootLlmsUpdate({ before: ROOT, after, drift: deadLandingDrift, publishedKeys: PUBLISHED }),
+    ).toEqual([]);
+  });
+
   it('rejects output that is not a markdown document', () => {
     const problems = validateRootLlmsUpdate({
       before: ROOT,

@@ -304,7 +304,13 @@ export function validateRootLlmsUpdate(input: ValidateUpdateInput): string[] {
   // entries being dropped while fixing something else.
   const linksBefore = new Set(before.match(/https:\/\/[^)\s]+/g) ?? []);
   const linksAfter = new Set(after.match(/https:\/\/[^)\s]+/g) ?? []);
-  const removed = [...linksBefore].filter((url) => !linksAfter.has(url) && !drift.deadLinks.includes(url));
+  const unresolvedDeadLandingLinks = drift.deadLandingLinks.filter((url) => linksAfter.has(url));
+  if (unresolvedDeadLandingLinks.length > 0) {
+    problems.push(`Still links landing pages that no longer exist: ${unresolvedDeadLandingLinks.join(', ')}`);
+  }
+
+  const reportedDeadLinks = new Set([...drift.deadLinks, ...drift.deadLandingLinks]);
+  const removed = [...linksBefore].filter((url) => !linksAfter.has(url) && !reportedDeadLinks.has(url));
   if (removed.length > 0) {
     problems.push(`Removed links that are still published: ${removed.join(', ')}`);
   }
