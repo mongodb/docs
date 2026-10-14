@@ -3184,6 +3184,11 @@ const tocData: TocItem[] = [
               },
             ],
           },
+          {
+            label: 'Type Bracketing in Query Predicates',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/mql/query-predicates/type-bracketing',
+          },
         ],
       },
       {
