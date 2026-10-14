@@ -18,13 +18,10 @@ const nextConfig = {
         source: '/products/updates/rss',
         destination: '/api/products/updates/rss',
       },
+      // Canonical public paths for Next.js API routes under /docs/platform/api/*
       {
-        source: '/docs/:path*.md',
-        destination: '/api/markdown/:path*',
-      },
-      {
-        source: '/docs/:path*/objects.inv',
-        destination: '/api/inventory/:path*/objects.inv',
+        source: '/docs/platform/api/:path*',
+        destination: '/api/:path*',
       },
       {
         source: '/docs/:path*/manpages.tar.gz',
@@ -33,15 +30,6 @@ const nextConfig = {
       {
         source: '/docs/sitemap-:n.xml',
         destination: '/api/sitemap/sitemap-:n.xml',
-      },
-      {
-        source: '/docs/:path*/sitemap-:n.xml',
-        destination: '/api/sitemap/:path*/sitemap-:n.xml',
-      },
-      // Canonical public paths for Next.js API routes under /docs/platform/api/*
-      {
-        source: '/docs/platform/api/:path*',
-        destination: '/api/:path*',
       },
     ];
   },
@@ -72,21 +60,4 @@ const nextConfig = {
   },
 };
 
-const staticExportConfig = {
-  output: 'export',
-  trailingSlash: true,
-  // Only files with extension .offline.tsx / .offline.ts are built for static export.
-  // See: https://github.com/vercel/next.js/discussions/51891#discussioncomment-6297178
-  pageExtensions: ['offline.tsx', 'offline.ts'],
-  compiler: {
-    emotion: true,
-  },
-  experimental: {
-    optimizePackageImports: ['@leafygreen-ui/emotion'],
-  },
-  images: {
-    unoptimized: true,
-  },
-};
-
-export default process.env.BUILD_STATIC_PAGES === 'true' ? staticExportConfig : nextConfig;
+export default nextConfig;
