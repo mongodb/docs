@@ -5,6 +5,6 @@ export default defineDocset({
 	displayName: "Realm",
 	prefix: "docs/atlas/device-sdks",
 	versions: [
-		{ name: "main", active: false, stable: true },
+		{ name: "main", active: false, stable: true, eol: "link" },
 	],
 });
