@@ -1,6 +1,7 @@
 - The {+cluster+} is an {+atlas-core-cluster+}.
 - The {+cluster+} is either :guilabel:`General` or :guilabel:`Low-CPU` class
-- The {+cluster+} is single-region.
+- The {+cluster+} is single-region. Extended Storage is not
+  available for multi-region {+clusters+}.
 - Extended storage is available for ``M40`` tier and higher clusters with
   the following limitations:
 
