@@ -1,8 +1,8 @@
 .. note::
    The following web application uses `FastAPI 
-   <https://github.com/tiangolo/fastapi>`__. To create a new application,
+   <https://github.com/fastapi/fastapi>`__. To create a new application,
    use the `FastAPI sample file 
-   <https://github.com/tiangolo/fastapi#example>`__ structure.
+   <https://github.com/fastapi/fastapi#example>`__ structure.
 
 .. code-block:: python
    :linenos:
