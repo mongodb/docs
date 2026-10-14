@@ -171,7 +171,7 @@ export const Image = ({
   if (hasHeroImageClass) return image;
 
   return (
-    <div className={wrapperStyle(align)}>
+    <div className={cx(wrapperStyle(align), 'image-wrapper')}>
       {image}
       <Caption caption={caption} align={align} />
     </div>
