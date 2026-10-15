@@ -7,7 +7,7 @@
 
    .. include:: /includes/shared/list-tables/list-table-configure-index.rst
 
-   :gold:`IMPORTANT: The default index name varies by index type: your
+   :gold:`IMPORTANT:` The default index name varies by index type: your
    MongoDB Search index is named ``default``, your Vector Search index
    is named ``vector_index``, and your Automated Embedding index is
    named ``autoembed_index``. If you are creating multiple indexes, we
