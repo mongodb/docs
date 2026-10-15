@@ -1,3 +1,14 @@
+.. _atlas_2026_10:
+
+October 2026
+------------
+
+- Adds invited federated users directly to your organization as
+  active members when you use SAML federation and their email
+  domain matches a verified domain in your identity provider
+  configuration, so they no longer need to accept an invitation.
+  To learn more, see :ref:`inviting-federated-users`.
+
 .. _atlas_2026_09:
 
 September 2026
@@ -49,6 +60,23 @@ September 2026
   end of life on February 4, 2027 and stops accepting new
   configurations on October 30, 2026. To migrate to external log
   sinks, see :ref:`export-logs-external-sinks`.
+
+- Improves the metrics experience in the {+atlas-ui+} with a uniform
+  interface and consistent controls for metrics charts across all
+  dedicated {+cluster+} architectures, so you can correlate metrics
+  with events and alerts when you monitor your deployment. To learn
+  more, see :ref:`cluster metrics <review-all-cluster-metrics>`.
+
+- General Availability: Adds support for Voyage AI embedding and
+  reranking inference in the Europe Geography, so you can keep
+  inference traffic within the EU for data residency. To learn more,
+  see `Voyage AI Geographies
+  <https://www.mongodb.com/docs/voyageai/geographies/>`__.
+
+- Enables you to use :ref:`LDAP authorization <security-ldaps>`
+  alongside other external authentication mechanisms, including
+  |aws| IAM, X.509, and OIDC, so you can combine authentication
+  mechanisms in a single deployment.
 
 .. _atlas_2026_08:
 
@@ -433,4 +461,4 @@ January 2026
   with data exfiltration prevention policies enabled.
 
 
-.. last-run: 2026-08-19
+.. last-run: 2026-10-14
