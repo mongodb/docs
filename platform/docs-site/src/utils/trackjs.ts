@@ -20,3 +20,19 @@ export const initializeTrackJS = () => {
     }
   }
 };
+
+// Report a caught error to TrackJS. Guarded so a failed/absent TrackJS install
+// never turns one crash into two.
+export const reportError = (error: unknown) => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  try {
+    if (!TrackJS.isInstalled()) {
+      initializeTrackJS();
+    }
+    TrackJS.track(error as Error | string);
+  } catch (e) {
+    console.error('Failed to report error to TrackJS:', e);
+  }
+};
