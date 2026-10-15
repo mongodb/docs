@@ -30,35 +30,33 @@ describe('collapsible component', () => {
     expect(renderResult.getByText('This is collapsible content')).toBeTruthy();
   });
 
-  it('renders the content and correct icon when interacted', async () => {
+  it('renders the heading around the trigger button', () => {
+    const renderResult = render(
+      <Collapsible heading="This is a heading" subHeading="This is a subheading" headingLevel={3}>
+        <Paragraph>This is collapsible content</Paragraph>
+      </Collapsible>,
+    );
+    const heading = renderResult.getByRole('heading', { level: 3 });
+    const button = renderResult.getByRole('button', { name: /This is a heading/ });
+    expect(heading).toContainElement(button);
+    expect(button.querySelector('h1, h2, h3, h4, h5, h6, p, div')).toBeNull();
+  });
+
+  it('expands the content when the trigger is pressed', async () => {
     const renderResult = render(
       <Collapsible heading="This is a heading" subHeading="This is a subheading">
         <Paragraph>This is collapsible content</Paragraph>
-        <Code
-          lang="javascript"
-          copyable={true}
-          emphasize_lines={[]}
-          value="This is code within collapsible content"
-          linenos={false}
-        />
       </Collapsible>,
     );
-    let button = renderResult.getByRole('button');
-    const collapsedContent = renderResult.getByText('This is collapsible content');
-
-    let icon = button.querySelector('[role=img]');
-    expect(icon?.getAttribute('aria-label')).toContain('Chevron');
-    expect(icon?.getAttribute('aria-label')).toContain('Right');
+    const button = renderResult.getByRole('button', { name: /This is a heading/ });
+    expect(button).toHaveAttribute('aria-expanded', 'false');
 
     await act(async () => {
       button.click();
     });
 
-    button = renderResult.getByRole('button');
-    icon = button.querySelector('[role=img]');
-    expect(icon?.getAttribute('aria-label')).toContain('Chevron');
-    expect(icon?.getAttribute('aria-label')).toContain('Down');
-    expect(collapsedContent).toBeVisible();
+    expect(button).toHaveAttribute('aria-expanded', 'true');
+    expect(renderResult.getByText('This is collapsible content')).toBeVisible();
   });
 
   it('opens the collapsible content if hash is found in the URL', async () => {
@@ -68,10 +66,8 @@ describe('collapsible component', () => {
         <Paragraph>This is collapsible content</Paragraph>
       </Collapsible>,
     );
-    const button = renderResult.getByRole('button');
-    const icon = button.querySelector('[role=img]');
-    expect(icon?.getAttribute('aria-label')).toContain('Chevron');
-    expect(icon?.getAttribute('aria-label')).toContain('Down');
+    const button = renderResult.getByRole('button', { name: /This is a heading/ });
+    expect(button).toHaveAttribute('aria-expanded', 'true');
   });
 
   it('is default expanded if expanded option is truthy', async () => {
@@ -80,9 +76,7 @@ describe('collapsible component', () => {
         <Paragraph>This is collapsible content</Paragraph>
       </Collapsible>,
     );
-    const button = renderResult.getByRole('button');
-    const icon = button.querySelector('[role=img]');
-    expect(icon?.getAttribute('aria-label')).toContain('Chevron');
-    expect(icon?.getAttribute('aria-label')).toContain('Down');
+    const button = renderResult.getByRole('button', { name: /This is a heading/ });
+    expect(button).toHaveAttribute('aria-expanded', 'true');
   });
 });

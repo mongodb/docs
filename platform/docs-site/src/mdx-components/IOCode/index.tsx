@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { clsx } from 'clsx';
-import { Disclosure, DisclosureHeader, DisclosurePanel } from '@via-ds/components/disclosure';
-import { Text, TextStyle } from '@via-ds/components/typography';
+import { Disclosure, DisclosureHeader, DisclosurePanel, DisclosureTrigger } from '@via-ds/components/disclosure';
+import { TextStyle } from '@via-ds/components/typography';
 import type { OutputProps } from './Output';
 import styles from './io-code.module.scss';
 
@@ -38,8 +38,8 @@ export const IoCodeBlock = ({ children }: IoCodeBlockProps) => {
         <Disclosure defaultExpanded={initialOutputVisibility}>
           {({ isExpanded }) => (
             <>
-              <DisclosureHeader data-io-toggle className={styles.outputButton}>
-                <Text elementType="span" textStyle={TextStyle.heading5}>{getButtonText(isExpanded)}</Text>
+              <DisclosureHeader data-io-toggle textStyle={TextStyle.heading5}>
+                <DisclosureTrigger className={styles.outputButton}>{getButtonText(isExpanded)}</DisclosureTrigger>
               </DisclosureHeader>
               <DisclosurePanel data-io-output className={styles.outputWrapper}>
                 {outputChild}

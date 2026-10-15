@@ -27,7 +27,7 @@ type ViaHeadingStyle =
   | typeof TextStyle.heading4
   | typeof TextStyle.heading5;
 
-const getHeadingTextStyle = (headingLevel: number): ViaHeadingStyle => {
+export const getHeadingTextStyle = (headingLevel: number): ViaHeadingStyle => {
   switch (headingLevel) {
     case 1:
       return TextStyle.heading2;
@@ -42,9 +42,42 @@ const getHeadingTextStyle = (headingLevel: number): ViaHeadingStyle => {
 
 type HeadingTag = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 
-const getHeadingTag = (n: number) => {
+export const getHeadingTag = (n: number) => {
   if (n >= 1 && n <= 6) return `h${n}` as HeadingTag;
   return 'h6';
+};
+
+/** Slugs heading text into the same id the table of contents links to. */
+export const useHeadingId = (children: React.ReactNode) => {
+  const { slugger, headingNodes } = useContext(ContentsContext);
+  const composableSelections = useContext(ComposableSelectionsContext);
+
+  // When inside a composable variant, the shared slugger counter diverges
+  // from the TOC because non-selected variants don't mount. Look up the
+  // pre-computed stable ID from the heading metadata instead.
+  const headingText = onlyText(children);
+  const composableId =
+    composableSelections !== null
+      ? headingNodes.find((node) => {
+          const nodeSelections = node.selector_ids?.['selected-content'];
+          return (
+            nodeSelections &&
+            Object.keys(nodeSelections).length > 0 &&
+            extractPlainText(node.title) === headingText &&
+            Object.keys(nodeSelections).every((k) => nodeSelections[k] === composableSelections[k])
+          );
+        })?.id ?? null
+      : null;
+
+  // Assign once per mount. An eager `useRef(slugger.slug(...))` evaluates slug() on
+  // every render — in dev StrictMode each component renders twice, so every heading
+  // advances the shared slugger an extra time and all later headings' suffixes shift
+  // away from what the ToC links and the SSR HTML use.
+  const id = useRef('');
+  if (id.current === '') {
+    id.current = composableId ?? slugger.slug(headingText);
+  }
+  return id.current;
 };
 
 export type HeadingProps = {
@@ -69,34 +102,7 @@ export const Heading = forwardRef<HTMLDivElement, HeadingProps>(
       'search',
     ];
 
-    const { slugger, headingNodes } = useContext(ContentsContext);
-    const composableSelections = useContext(ComposableSelectionsContext);
-
-    // When inside a composable variant, the shared slugger counter diverges
-    // from the TOC because non-selected variants don't mount. Look up the
-    // pre-computed stable ID from the heading metadata instead.
-    const headingText = onlyText(children);
-    const composableId =
-      composableSelections !== null
-        ? headingNodes.find((node) => {
-            const nodeSelections = node.selector_ids?.['selected-content'];
-            return (
-              nodeSelections &&
-              Object.keys(nodeSelections).length > 0 &&
-              extractPlainText(node.title) === headingText &&
-              Object.keys(nodeSelections).every((k) => nodeSelections[k] === composableSelections[k])
-            );
-          })?.id ?? null
-        : null;
-
-    // Assign once per mount. An eager `useRef(slugger.slug(...))` evaluates slug() on
-    // every render — in dev StrictMode each component renders twice, so every heading
-    // advances the shared slugger an extra time and all later headings' suffixes shift
-    // away from what the ToC links and the SSR HTML use.
-    const id = useRef('');
-    if (id.current === '') {
-      id.current = composableId ?? slugger.slug(headingText);
-    }
+    const id = useHeadingId(children);
 
     const asHeading = getHeadingTag(headingLevel);
     const isPageTitle = headingLevel === 1;
@@ -170,7 +176,7 @@ export const Heading = forwardRef<HTMLDivElement, HeadingProps>(
             >
               <Text textStyle={getHeadingTextStyle(headingLevel)} elementType={asHeading} className={headingClassName}>
                 {children}
-                <Permalink ref={ref} id={id.current} description="heading" />
+                <Permalink ref={ref} id={id} description="heading" />
               </Text>
             </ConditionalWrapper>
           </ConditionalWrapper>

@@ -1,24 +1,31 @@
 /**
  * Offline collapsible — injected into every HTML page by build-offline.ts.
  *
- * The Collapsible component renders as a <details>/<summary> pair with a
- * React-managed button inside. The <summary> calls e.preventDefault() to
- * suppress the native browser toggle so React state can control open/closed.
- * Because React never hydrates in the offline build, the prevention fires
- * but no state update follows, leaving the toggle inert.
+ * The Collapsible component renders a Via Disclosure whose expanded state
+ * lives in React. Because React never hydrates in the offline build, the
+ * trigger button does nothing.
  *
- * This script restores the behaviour: clicking the button (or anywhere on
- * the summary) toggles the <details> open attribute. CSS handles the chevron
- * direction via a rotate transform on details:not([open]).
+ * This script restores the toggle by mirroring what React Aria sets: the
+ * root's data-expanded (Via's CSS opens the panel and turns the chevron from
+ * it), the button's aria-expanded, and the panel's hidden attribute.
  */
 (function () {
-  document.querySelectorAll('details.offline-collapsible').forEach(function (details) {
-    var summary = details.querySelector('summary');
-    if (!summary) return;
+  document.querySelectorAll('.offline-collapsible').forEach(function (root) {
+    var button = root.querySelector('button[slot="trigger"]');
+    var panel = button && document.getElementById(button.getAttribute('aria-controls'));
+    if (!panel) return;
 
-    summary.addEventListener('click', function (e) {
-      e.preventDefault();
-      details.open = !details.open;
+    button.addEventListener('click', function () {
+      var expand = button.getAttribute('aria-expanded') !== 'true';
+      button.setAttribute('aria-expanded', String(expand));
+      panel.setAttribute('aria-hidden', String(!expand));
+      if (expand) {
+        root.setAttribute('data-expanded', 'true');
+        panel.removeAttribute('hidden');
+      } else {
+        root.removeAttribute('data-expanded');
+        panel.setAttribute('hidden', '');
+      }
     });
   });
 })();

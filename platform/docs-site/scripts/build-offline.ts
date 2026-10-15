@@ -300,16 +300,7 @@ const OFFLINE_UI_MODULES: OfflineUIModule[] = [
   }
 </style>`,
   },
-  {
-    detect: 'offline-collapsible',
-    jsFile: 'collapsible.js',
-    // Rotate the ChevronRight icon 90° clockwise to look like ChevronDown when open.
-    headStyle: `<style>
-  details.offline-collapsible[open] summary button svg {
-    transform: rotate(90deg);
-  }
-</style>`,
-  },
+  { detect: 'offline-collapsible', jsFile: 'collapsible.js' },
   { detect: 'offline-composable', jsFile: 'composable-tutorial.js' },
   { detect: 'data-io-toggle', jsFile: 'io-code.js' },
   { detect: 'data-testid="leafygreen-code-panel"', jsFile: 'code-copy.js' },
