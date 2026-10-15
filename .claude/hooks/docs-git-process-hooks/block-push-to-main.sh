@@ -45,7 +45,7 @@ while IFS= read -r line; do
       ;;
     push|delete)
       if [[ "$branch" == "main" || "$branch" == "master" ]]; then
-        deny "Blocked: pushing directly to '$branch' is prohibited. $branch advances only through reviewed PR merges -- open a pull request from your branch instead. This block has no override."
+        deny "Blocked: pushing to '$branch' is prohibited -- $branch advances only through reviewed PR merges, so open a pull request from your branch instead. Ticket branches track their base branch by design (Docs Team Git Process), so a bare git push resolves to that base; push your own branch explicitly with git push origin <your-branch>. This block has no override."
       fi
       ;;
   esac

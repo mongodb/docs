@@ -159,6 +159,24 @@ PRs reviewable.
   under `code-example-tests/`, and agent tooling under `.claude/` such as
   hooks and skills) are exempt.
 
+# GIT BRANCH TRACKING
+
+A ticket branch tracks the branch it was created from, by design, per the
+Docs Team Git Process:
+
+- Work off main: `git checkout -b DOCSP-12345-short-description origin/main`
+  — the branch tracks `origin/main`.
+- Work off a feature branch:
+  `git checkout -b DOCSP-12345-short-description origin/feature/<name>`
+  — the branch tracks that feature branch.
+
+Either upstream is expected, not a misconfiguration. Do not re-point it (no
+`git branch -u` / `--set-upstream-to`, and do not edit `branch.<name>.merge`).
+
+Because a bare `git push` resolves through the upstream, always push your
+branch explicitly: `git push origin <branch-name>`. Never push to `main` --
+`main` advances only through reviewed PR merges.
+
 # GITHUB INTEGRATION
 
 When the user requests a PR:

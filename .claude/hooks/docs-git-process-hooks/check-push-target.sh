@@ -6,11 +6,15 @@
 # currently on. When the resolved destination differs, the hook asks the user
 # to confirm instead of letting the push through.
 #
-# Why this exists: a ticket branch based on a feature branch (the documented
-# workflow) tracks that base branch. If a push lands on the base instead of on
-# the ticket branch, GitHub sees every commit of an open PR reachable from its
-# base and marks the PR merged -- with no review. The same mistake on a
-# branch that tracks origin/main pushes straight to main.
+# Why this exists: a ticket branch tracks the branch it was created from, by
+# design (Docs Team Git Process): `git checkout -b <name> origin/main` for
+# work off main, or `git checkout -b <name> origin/feature/<name>` for work
+# off a feature branch. Either upstream is expected, not a misconfiguration.
+# A bare `git push` resolves through the upstream, so it pushes to whatever
+# the branch tracks. Pushing a ticket branch's commits onto its base (main, or
+# a shared feature branch) can make GitHub see every commit of an open PR
+# reachable from its base and mark the PR merged -- with no review. The fix is
+# always the same: push the branch explicitly.
 #
 # This hook returns permissionDecision "ask" (a human prompt), not "deny":
 # the goal is to surface the destination to a person, not to make the agent
@@ -54,9 +58,9 @@ while IFS= read -r line; do
     push|delete)
       [[ "$branch" == "$current" ]] && continue
       if [[ "$branch" == "main" || "$branch" == "master" ]]; then
-        ask "This command pushes to '$branch', not the branch you're on ('$current'). Pushing directly to $branch is not part of the docs workflow -- $branch advances only through reviewed PR merges. Confirm you intend to push to $branch."
+        ask "This command resolves to '$branch', not the branch you're on ('$current'). Your ticket branch tracks origin/main by design (Docs Team Git Process), so a bare git push lands on $branch; $branch advances only through reviewed PR merges. To push your own branch instead: git push origin $current. Confirm you intend to push to '$branch'."
       else
-        ask "This command pushes to '$branch', but you're on '$current'. Pushing a branch's commits onto a different branch can make GitHub mark an open PR merged without review. To push your own branch instead: git push origin $current. Confirm you intend to push to '$branch'."
+        ask "This command pushes to '$branch', but you're on '$current'. A ticket branch tracks the branch it was based on by design (Docs Team Git Process) -- for feature-branch work, that is the feature branch -- so a bare git push lands on '$branch'. Pushing a ticket branch's commits onto its base can make GitHub mark an open PR merged without review. To push your own branch instead: git push origin $current. Confirm you intend to push to '$branch'."
       fi
       exit 0
       ;;
