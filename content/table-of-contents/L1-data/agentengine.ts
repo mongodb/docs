@@ -184,7 +184,7 @@ const tocData: TocItem[] = [
         url: '/docs/agentengine/manage/inspect-traces',
       },
       {
-        label: 'API Keys & Service Accounts',
+        label: 'Service Accounts',
         contentSite: 'agentengine',
         url: '/docs/agentengine/api-keys-service-accounts',
       },

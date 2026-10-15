@@ -10,9 +10,6 @@ The following table lists the resource limits for each project:
    * - Workspaces
      - 25
 
-   * - API keys
-     - 100
-
    * - Credential providers
      - 100
 

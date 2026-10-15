@@ -30,7 +30,7 @@ header, including Drone, GitHub Actions, GitLab CI, and Jenkins.
 
 The {+platform-short+} does not require a vendor-specific integration or the
 ``agentengine`` CLI to build and deploy. Your pipeline implements the same build and
-deploy sequence as the CLI by using a project-scoped API key as its credential.
+deploy sequence as the CLI by using a project-scoped service account as its credential.
 
 .. tip::
 
@@ -38,8 +38,8 @@ deploy sequence as the CLI by using a project-scoped API key as its credential.
    :ref:`agentic-platform-deploy-agent-image` and
    :ref:`agentic-platform-deploy-build`.
 
-Gateway Hosts
-~~~~~~~~~~~~~
+Endpoint Format
+~~~~~~~~~~~~~~~
 
 Most endpoints in this guide are scoped by project and workspace, in
 the following format:
@@ -47,26 +47,7 @@ the following format:
 .. code-block:: none
    :copyable: false
 
-   https://<gateway-host>/api/v1/projects/<project-id>/workspaces/<workspace-id>/...
-
-Replace ``<gateway-host>`` with the host for your environment. The
-following table lists the gateway hosts for each environment:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 20 80
-
-   * - Environment
-     - Gateway host
-
-   * - Development
-     - ``agentengine-dev.mongodb.com``
-
-   * - QA
-     - ``agentengine-qa.mongodb.com``
-
-   * - Production
-     - ``agentengine.mongodb.com``
+   https://agentengine.mongodb.com/api/v1/projects/<project-id>/workspaces/<workspace-id>/...
 
 Before You Begin
 ----------------
@@ -101,50 +82,70 @@ to migrate it. You have the following options:
 Set Up Pipeline Credentials
 ---------------------------
 
-Every request in this guide, except the archive upload, authenticates
-by using a project-scoped API key. Include the key in the
+The requests in this guide authenticate by using an access token from
+a project-scoped service account. Include the token in the
 ``Authorization`` header of each request, in the following format:
 
 .. code-block:: none
    :copyable: false
 
-   Authorization: Bearer <api-key>
+   Authorization: Bearer <access-token>
 
-Replace the ``<api-key>`` placeholder with your API key. The API key is the bearer
-token, so you don't exchange it for a separate credential.
-
-To create an API key, run the following command:
+Replace the ``<access-token>`` placeholder with your service account
+access token. To create a service account, run the following command:
 
 .. code-block:: bash
 
-   agentengine api-key create --project-id <project-id> --description "CI pipeline" --expires-in 90
+   agentengine service-account create ci-pipeline \
+     --project-id <project-id> \
+     --role PROJECT_OWNER \
+     --description "CI pipeline" \
+     --secret-expires-in 720h
 
-You can use the ``--expires-in`` flag to specify the key's lifetime. To avoid a
-long-lived credential in your CI/CD system, you can rotate the key on a schedule
-that you define. To learn more about this command and its flags, see
-:ref:`agentic-platform-api-keys-service-accounts`.
+The ``--secret-expires-in`` flag specifies the lifetime of the client
+secret. To avoid use of an exposed credential in your CI/CD system,
+rotate the secret on a schedule that you define. To learn more about
+service accounts, see :ref:`agentic-platform-api-keys-service-accounts`.
 
 .. important::
 
-   The command displays the plaintext key only once. You can't
-   retrieve it again. If you lose the key, revoke it and create a new
-   one.
+   The command displays the client secret only once. You can't
+   retrieve it again. If you lose access to the secret, rotate it to
+   create a new one.
 
-Store the key as a secret in your CI/CD system, such as a Drone secret
-or a GitHub Actions repository secret. Do not write the key inline in
-a pipeline file or commit it to source control.
+Store the client ID and client secret as secrets in your CI/CD system.
+Do not write them inline in a pipeline file or commit them to source
+control.
+
+To obtain an access token from the client ID and client secret, send a
+``POST`` request to the ``/api/v1/oauth/token`` endpoint:
+
+.. code-block:: bash
+
+   curl -s "https://agentengine.mongodb.com/api/v1/oauth/token" \
+     -X POST \
+     -u "$CLIENT_ID:$CLIENT_SECRET" \
+     -d "grant_type=client_credentials"
+
+The response contains an ``access_token`` field. The access token is
+valid for one hour, so request a new token at the start of each
+pipeline run. To learn more, see
+:ref:`agentic-platform-service-account-token`.
 
 Rotate Pipeline Credentials
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The {+platform-short+} doesn't rotate API keys automatically, and no
-command renews an existing key. To rotate the key that your pipeline
-uses, create a new key and update the secret in your CI/CD system.
-Revoke the old key after you confirm that the new key works.
+The {+platform-short+} doesn't rotate service account secrets
+automatically. To rotate your pipeline's secret, run the
+``agentengine service-account rotate`` command and update the secret in
+your CI/CD system.
 
-Keep both keys active during the changeover. Otherwise, your pipeline
-has no valid key for the period between the revocation and the
-update.
+The previous secret remains valid for up to seven days or until its
+expiration, whichever comes first. During that period, your pipeline
+continues to authenticate while you update the secret. To revoke the
+previous secret early, rotate the secret a second time or
+deactivate the service account. To learn more, see
+:ref:`agentic-platform-api-keys-service-accounts`.
 
 Example Pipeline
 ----------------
@@ -209,14 +210,13 @@ In this section, you can learn how to implement each request in your pipeline.
 
         export PROJECT_ID="<project-id>"
         export WORKSPACE_ID="<workspace-id>"
-        export GATEWAY_HOST="agentengine-qa.mongodb.com"
-        export API_KEY="$CI_API_KEY"
+        export ACCESS_TOKEN="$CI_ACCESS_TOKEN"
         export COMMIT_SHA="<commit-sha>"
 
       Use the project ID for your {+platform-short+} project. Use the workspace ID
-      returned by ``agentengine init``. Set ``GATEWAY_HOST`` to the host for your
-      environment, as listed in the table above. Store the API key in your CI/CD
-      system's secret store and expose it as ``CI_API_KEY``. Set ``COMMIT_SHA``
+      returned by ``agentengine init``. Set ``CI_ACCESS_TOKEN`` to the
+      access token that you requested from the service account in your CI/CD
+      job, as described in :ref:`agentengine-ci-cd-credentials`. Set ``COMMIT_SHA``
       to the commit that you pass in ``git_info.commit_sha``.
 
       To create a build record and get a presigned URL for the source
@@ -226,8 +226,8 @@ In this section, you can learn how to implement each request in your pipeline.
       .. code-block:: bash
 
          curl -s -X POST \
-           "https://$GATEWAY_HOST/api/v1/projects/$PROJECT_ID/workspaces/$WORKSPACE_ID/builds/archive-init" \
-           -H "Authorization: Bearer $API_KEY" \
+           "https://agentengine.mongodb.com/api/v1/projects/$PROJECT_ID/workspaces/$WORKSPACE_ID/builds/archive-init" \
+           -H "Authorization: Bearer $ACCESS_TOKEN" \
            -H "Content-Type: application/json" \
            -d '{
                  "label": "my-ci-build-123",
@@ -293,8 +293,8 @@ In this section, you can learn how to implement each request in your pipeline.
       .. code-block:: bash
 
          RESPONSE=$(curl -s -X POST \
-           "https://$GATEWAY_HOST/api/v1/projects/$PROJECT_ID/workspaces/$WORKSPACE_ID/builds/$BUILD_ID/start" \
-           -H "Authorization: Bearer $API_KEY")
+           "https://agentengine.mongodb.com/api/v1/projects/$PROJECT_ID/workspaces/$WORKSPACE_ID/builds/$BUILD_ID/start" \
+           -H "Authorization: Bearer $ACCESS_TOKEN")
 
          echo "$RESPONSE"
 
@@ -339,8 +339,8 @@ In this section, you can learn how to implement each request in your pipeline.
       .. code-block:: bash
 
          BUILD_ID=$(curl -s \
-           "https://$GATEWAY_HOST/api/v1/projects/$PROJECT_ID/workspaces/$WORKSPACE_ID/builds?limit=100" \
-           -H "Authorization: Bearer $API_KEY" |
+           "https://agentengine.mongodb.com/api/v1/projects/$PROJECT_ID/workspaces/$WORKSPACE_ID/builds?limit=100" \
+           -H "Authorization: Bearer $ACCESS_TOKEN" |
            jq -r --arg commit "$COMMIT_SHA" '
              .builds[]
              | select(.commit_sha == $commit)
@@ -369,8 +369,8 @@ In this section, you can learn how to implement each request in your pipeline.
 
          while true; do
            STATUS=$(curl -s \
-             "https://$GATEWAY_HOST/api/v1/projects/$PROJECT_ID/workspaces/$WORKSPACE_ID/builds/$BUILD_ID" \
-             -H "Authorization: Bearer $API_KEY" \
+             "https://agentengine.mongodb.com/api/v1/projects/$PROJECT_ID/workspaces/$WORKSPACE_ID/builds/$BUILD_ID" \
+             -H "Authorization: Bearer $ACCESS_TOKEN" \
              | jq -r '.status')
 
            if [ "$STATUS" = "succeeded" ]; then
@@ -451,8 +451,8 @@ In this section, you can learn how to implement each request in your pipeline.
       .. code-block:: bash
 
          curl -s -X POST \
-           "https://$GATEWAY_HOST/api/v1/projects/$PROJECT_ID/workspaces/$WORKSPACE_ID/deployments" \
-           -H "Authorization: Bearer $API_KEY" \
+           "https://agentengine.mongodb.com/api/v1/projects/$PROJECT_ID/workspaces/$WORKSPACE_ID/deployments" \
+           -H "Authorization: Bearer $ACCESS_TOKEN" \
            -H "Content-Type: application/json" \
            -d '{ "build_id": "'"$BUILD_ID"'" }'
 
@@ -475,8 +475,8 @@ In this section, you can learn how to implement each request in your pipeline.
       .. code-block:: bash
 
          curl -s \
-           "https://$GATEWAY_HOST/api/v1/projects/$PROJECT_ID/workspaces/$WORKSPACE_ID/deployments/current" \
-           -H "Authorization: Bearer $API_KEY"
+           "https://agentengine.mongodb.com/api/v1/projects/$PROJECT_ID/workspaces/$WORKSPACE_ID/deployments/current" \
+           -H "Authorization: Bearer $ACCESS_TOKEN"
 
       The endpoint returns the workspace's active deployment, including
       its status, the readiness of each component that the deployment
@@ -599,13 +599,13 @@ build and deploy from your own pipeline:
        commit. Poll that build instead of calling ``archive-init`` again.
 
    * - ``403`` on every write request
-     - The account that created the API key doesn't have sufficient
-       rights on the project. Create the key from an account with
-       deployment management rights.
+     - The service account doesn't have enough rights on the
+       project. Use a service account with deployment management
+       rights.
 
    * - ``403`` with a project mismatch reason
-     - The API key's project doesn't match the project ID in the
-       request path.
+     - The service account's project doesn't match the project ID in
+       the request path.
 
    * - ``400 INVALID_BUILD_STATE`` on ``deployments``
      - The referenced build has not succeeded, or it doesn't exist.
