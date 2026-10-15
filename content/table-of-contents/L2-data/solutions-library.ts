@@ -470,6 +470,11 @@ const tocData: TocItem[] = [
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/retail-shelf-inventory',
           },
+          {
+            label: 'Tactical Mission Data Sync for ATAK',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/tactical-mission-data-sync',
+          },
         ],
       },
     ],
