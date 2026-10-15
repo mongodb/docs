@@ -69,6 +69,16 @@ def jira_put(path, body):
     r.raise_for_status()
 
 
+def jira_post(path, body):
+    r = requests.post(
+        f"{JIRA_BASE}/rest/api/2{path}",
+        headers=jira_headers,
+        json=body,
+        timeout=TIMEOUT,
+    )
+    r.raise_for_status()
+
+
 # Versioned copies of a page live alongside the current one (content/manual/v6.0/...).
 # A docs fix almost always belongs in the unversioned/current file, so prefer those.
 VERSIONED_PATH_RE = re.compile(r"/v\d+\.\d+/")
@@ -485,6 +495,11 @@ Return only the JSON object, no other text."""
 # into the brief would bury the human guidance the section exists to surface.
 BOT_COMMENT_AUTHORS = {"sage bot", "education bot", "edu.bot"}
 
+# Prefix on prep's own skip comment. Filtered by text rather than author because
+# JIRA_API_TOKEN's account isn't guaranteed to be in BOT_COMMENT_AUTHORS, and a
+# re-run would otherwise read the skip notice back as human guidance.
+SKIP_COMMENT_MARKER = "*sage-prep skipped this ticket.*"
+
 
 def human_comments(issue_key):
     """Return [(author, body)] for human comments, oldest first.
@@ -505,6 +520,8 @@ def human_comments(issue_key):
         if author.lower() in BOT_COMMENT_AUTHORS or name.lower() in BOT_COMMENT_AUTHORS:
             continue
         body = (comment.get("body") or "").strip()
+        if body.startswith(SKIP_COMMENT_MARKER):
+            continue
         if body:
             out.append((author or name or "unknown", body))
     return out
@@ -630,6 +647,27 @@ def add_label(issue_key, new_label):
         jira_put(f"/issue/{issue_key}", {"fields": {"labels": existing + [new_label]}})
 
 
+def post_skip_comment(issue_key, reason):
+    """Tell the ticket why prep stopped; otherwise the reason is only in the run log."""
+    run_url = (
+        f"{os.environ.get('GITHUB_SERVER_URL', 'https://github.com')}/"
+        f"{os.environ.get('GITHUB_REPOSITORY', REPO)}/actions/runs/"
+        f"{os.environ.get('GITHUB_RUN_ID', '')}"
+    )
+    body = "\n".join([
+        SKIP_COMMENT_MARKER,
+        "",
+        f"*Reason:* {reason or '(no reason given)'}",
+        "",
+        "To re-request, add the product, page, and change needed to the "
+        "description, then remove and re-add the {{slack-request}} label.",
+        "",
+        f"[Workflow run|{run_url}]",
+    ])
+    print("Posting skip comment...")
+    jira_post(f"/issue/{issue_key}/comment", {"body": body})
+
+
 def main():
     print(f"Fetching {ISSUE_KEY}...")
     issue = jira_get(f"/issue/{ISSUE_KEY}")
@@ -668,6 +706,7 @@ def main():
     if enriched.get("unactionable"):
         print(f"Ticket is unactionable: {enriched.get('reason', '(no reason given)')}")
         print("Skipping sage labels — manual follow-up required.")
+        post_skip_comment(ISSUE_KEY, enriched.get("reason"))
         return
 
     title = enriched.get("title") or ""
