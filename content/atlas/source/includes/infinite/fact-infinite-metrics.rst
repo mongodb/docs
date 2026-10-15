@@ -46,25 +46,26 @@ available for {+atlas-core-full+}:
        {+atlas-infinite-full+}'s storage layer.
 
    * - :guilabel:`Storage Space`
-     - Use these series to view storage space usage for
-       {+atlas-infinite-full+}:
+     - Use these series to view logical storage space usage against
+       your {+atlas-infinite-full+} cluster's effective storage limit:
 
-       - :guilabel:`Storage Space Free` displays the amount of free storage
-         space in bytes.
+       - :guilabel:`Storage Space Free` displays the remaining storage
+         space, in bytes, before the cluster reaches its data size
+         limit.
 
-       - :guilabel:`Storage Space Percent Free` displays the percentage of
-         storage space that is free.
+       - :guilabel:`Storage Space Percent Free` displays the percentage
+         of the cluster's effective data size limit that remains free.
 
-       - :guilabel:`Storage Space Used` displays the amount of storage space
-         in bytes that is currently in use.
+       - :guilabel:`Total Storage Space Used` displays the total
+         logical size, in bytes, of data stored.
 
-       - :guilabel:`Storage Space Percent Used` displays the percentage of
-         storage space that is in use.
+       - :guilabel:`Storage Space Percent Used` displays the percentage
+         of the cluster's effective data size limit currently in use.
 
    * - :guilabel:`Active Collections and Indexes`
      - Displays the number of active collections and indexes.
 
-   * - :guilabel:`Avg Majority Write Concern Wait`
+   * - :guilabel:`Avg Majority Write Concern Write Wait`
      - The average time write operations in milliseconds wait to satisfy
        their majority write concern. Elevated values indicate replication
        acknowledgement is slow.

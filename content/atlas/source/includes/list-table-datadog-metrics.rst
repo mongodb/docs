@@ -127,6 +127,12 @@ Cluster and Operation Metrics
        server started. Use this metric to understand the total queuing
        impact on your workload over time.
 
+   * - | ``INGRESS_REQUEST_RATE_LIMITER_REMOVED_FROM_QUEUE``
+       | (mongodb.atlas.network.ingressRequestRateLimiter.removedFromQueue)
+     - Process
+     - Rate at which operations are removed from the ingress request
+       rate limiter queue.
+
    * - | ``OPCOUNTER_CMD``
        | (mongodb.atlas.opcounters.command)
        | ``OPCOUNTER_QUERY``
@@ -181,6 +187,14 @@ Cluster and Operation Metrics
      - Process
      - The total number of writes to disk caused by :pipeline:`$sort` stages.
 
+   * - | ``QUERY_FILE_SPILLED_STORAGE_SIZE``
+       | (mongodb.atlas.metrics.query.spilling.fileSpilledStorageSize)
+       | ``SPILL_WIRED_TIGER_STORAGE_SIZE``
+       | (mongodb.atlas.spillWiredTiger.storageSize)
+     - Process
+     - Amount of storage in bytes used by query operations that
+       spilled to disk.
+
    * - | ``TRANSACTIONS_CURRENT_ACTIVE``
        | (mongodb.atlas.transactions.currentActive)
      - Process
@@ -193,6 +207,13 @@ Cluster and Operation Metrics
      - Process
      - Number of currently open transactions (active + inactive) on this
        server. Available on both ``mongod`` and ``mongos`` instances.
+
+   * - | ``TRANSACTIONS_CURRENT_INACTIVE``
+       | (mongodb.atlas.transactions.currentInactive)
+     - Process
+     - Number of open transactions not currently executing an operation
+       on this server. Available on both ``mongod`` and ``mongos``
+       instances.
 
    * - | ``TRANSACTIONS_TOTAL_STARTED``
        | (mongodb.atlas.transactions.totalStarted)
@@ -231,6 +252,16 @@ Cluster and Operation Metrics
      - Process
      - Rate per second at which cross-shard two-phase commit transactions
        are successfully committed. Available on ``mongos`` instances only.
+
+   * - | ``GET_LAST_ERROR_WTIME_TOTAL_MILLIS``
+       | (mongodb.atlas.metrics.getLastError.wtime.totalMillis)
+       | ``GET_LAST_ERROR_WTIME_NUM``
+       | (mongodb.atlas.metrics.getLastError.wtime.num)
+     - Process
+     - Rate of the total time in milliseconds that write operations
+       spent waiting for write concern acknowledgment, and the rate of
+       those write operations. The ratio of these two metrics gives the
+       average majority write concern wait time.
 
    * - | ``REPLICATION_LAG``
        | (mongodb.atlas.replset.replicationlag)
@@ -633,6 +664,15 @@ Host System Metrics
        cache / maximum bytes configured). Available on ``mongod`` instances
        only.
 
+   * - | ``LOAD_CONTROL_READ_LOAD``
+       | (mongodb.atlas.wiredtiger.load_control.read_load_at_the_system_level)
+       | ``LOAD_CONTROL_WRITE_LOAD``
+       | (mongodb.atlas.wiredtiger.load_control.write_load_at_the_system_level)
+     - Process
+     - Read and write load at the system level that WiredTiger load
+       control reports. The cache pressure percentage is the higher of
+       these two values, capped at 100%.
+
    * - | ``TICKETS_AVAILABLE_READS``
        | (mongodb.atlas.wiredtiger.concurrenttransactions.read.available)
        | ``TICKETS_AVAILABLE_WRITES``
@@ -653,6 +693,56 @@ Host System Metrics
        holds on reads, writes, or combined reads and writes.
 
        .. include:: /includes/infinite/limitations/observability-core-only-metrics.rst
+
+   * - | ``DISAGG_STORAGE_READ_IOPS``
+       | (mongodb.atlas.metrics.disaggStorage.pali.readOperations)
+       | ``DISAGG_STORAGE_WRITE_IOPS``
+       | (mongodb.atlas.metrics.disaggStorage.pali.writeOperations)
+     - Process
+     - Rate of read and write I/O operations per second against the
+       {+atlas-infinite-full+} storage layer. Available for
+       {+atlas-infinite-full+} clusters only.
+
+   * - | ``DISAGG_STORAGE_READ_LATENCY``
+       | (mongodb.atlas.metrics.disaggStorage.pali.allReadsLatencyMillis.average)
+       | ``DISAGG_STORAGE_WRITE_LATENCY``
+       | (mongodb.atlas.metrics.disaggStorage.pali.writeLatencyMillis.average)
+     - Process
+     - Average latency in milliseconds for reads from and writes to
+       the {+atlas-infinite-full+} storage layer. Available for
+       {+atlas-infinite-full+} clusters only.
+
+   * - | ``DISAGG_STORAGE_BYTES_READ``
+       | (mongodb.atlas.metrics.disaggStorage.pali.bytesRead)
+       | ``DISAGG_STORAGE_BYTES_WRITTEN``
+       | (mongodb.atlas.metrics.disaggStorage.pali.bytesWritten)
+     - Process
+     - Rate in bytes per second of data read from and written to the
+       {+atlas-infinite-full+} storage layer. Available for
+       {+atlas-infinite-full+} clusters only.
+
+   * - | ``DISAGG_STORAGE_THROUGHPUT_UTILIZATION``
+       | (mongodb.atlas.metrics.disaggStorage.pali.throughputUtilization)
+     - Process
+     - Percentage of consumed throughput to the {+atlas-infinite-full+}
+       storage layer currently in use. Available for
+       {+atlas-infinite-full+} clusters only.
+
+   * - | ``DISAGG_STORAGE_LOGICAL_SIZE_BYTES_COLD``
+       | (mongodb.atlas.metrics.disaggStorage.logicalSize.bytesCold)
+       | ``DISAGG_STORAGE_LOGICAL_SIZE_BYTES_HOT``
+       | (mongodb.atlas.metrics.disaggStorage.logicalSize.bytesHot)
+     - Process
+     - Logical size in bytes of the data stored on the cluster,
+       reported as separate cold and hot values. Available for
+       {+atlas-infinite-full+} clusters only.
+
+   * - | ``DISAGG_STORAGE_ACTIVE_COLLECTIONS_AND_INDEXES``
+       | (mongodb.atlas.metrics.disaggStorage.catalog.activeCollectionsAndIndexes)
+     - Process
+     - Number of collections and indexes that the storage engine
+       considers active. Available for {+atlas-infinite-full+} clusters
+       only.
 
 Database, Query, Search, and Stream Processing Metrics
 ``````````````````````````````````````````````````````
@@ -732,6 +822,8 @@ Database, Query, Search, and Stream Processing Metrics
      - Gauge
      - Sum of the disk space allocated to all collections in the database for
        :term:`document` storage, including free space.
+
+       ``STORAGE_SIZE`` isn't available for {+atlas-infinite-full+}.
 
    * - | ``VIEWS``
        | (mongodb.atlas.dbstats.views)
