@@ -564,6 +564,11 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/backup/cloud-backup/flex-cluster-backup',
           },
           {
+            label: 'Free Cluster',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/backup/cloud-backup/free-cluster-backup',
+          },
+          {
             label: 'Options',
             contentSite: 'cloud-docs',
             url: '/docs/atlas/backup/cloud-backup/scheduling',
