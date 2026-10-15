@@ -9,9 +9,9 @@ Plan: `docs/superpowers/plans/2026-10-07-translation-evals.md`
 
 ## Status
 
-`resolve`, `scrape-prod`, `translate`, `serve` and `scrape-local` are
-implemented. The remaining two stages (`dataset`, `eval`) land in their own
-PRs, each registering its handler in `src/commands/index.ts`.
+`resolve`, `scrape-prod`, `translate`, `serve`, `scrape-local` and `dataset`
+are implemented. The remaining stage (`eval`) lands in its own PR,
+registering its handler in `src/commands/index.ts`.
 
 ## The seven stages
 
@@ -24,8 +24,8 @@ resolve ─▶ scrape-prod ─▶ translate ─▶ serve ─▶ scrape-local ─
 
 Each stage is a package script (run from this directory). Stage scripts are
 added as each stage lands. Only `resolve`, `scrape-prod`, `translate`,
-`serve` and `scrape-local` are runnable today; the other commands below are
-planned and do not exist yet.
+`serve`, `scrape-local` and `dataset` are runnable today; the other command
+below is planned and does not exist yet.
 
 | Stage | Command | Status |
 |---|---|---|
@@ -34,7 +34,7 @@ planned and do not exist yet.
 | Translate the closure locally (Grove) | `pnpm translate --project atlas` | Available |
 | Serve the translated site locally | `pnpm serve --project atlas --locale es` | Available |
 | Scrape the local site | `pnpm scrape-local --project atlas --locale es` | Available |
-| Build Braintrust rows | `pnpm dataset --project atlas` | Not yet implemented |
+| Build Braintrust rows | `pnpm dataset --project atlas` | Available |
 | Run the eval | `pnpm eval` | Not yet implemented |
 
 ## Setup

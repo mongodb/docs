@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { loadConfig } from '../config.js';
+import { buildDataset } from '../dataset/rows.js';
 import { resolveProject } from '../resolve/run.js';
 import { readManifestLatest } from '../run/manifest.js';
 import { scrapeProd } from '../scrape/prod.js';
@@ -91,5 +92,15 @@ export const COMMANDS: Record<string, CommandHandler> = {
     if (!project) throw new Error('--project is required');
     const runId = flags.run ? String(flags.run) : readManifestLatest(cfg, project);
     await scrapeLocal(cfg, project, runId, flags.locale ? [String(flags.locale)] : undefined);
+  },
+  dataset: async (flags) => {
+    const cfg = loadConfig();
+    const project = String(flags.project ?? '');
+    if (!project) throw new Error('--project is required');
+    const runId = flags.run ? String(flags.run) : readManifestLatest(cfg, project);
+    const rows = buildDataset(cfg, project, runId);
+    console.log(
+      `run ${runId}: ${rows.length} dataset rows written to data/${project}/${runId}/dataset/rows.json`,
+    );
   },
 };
