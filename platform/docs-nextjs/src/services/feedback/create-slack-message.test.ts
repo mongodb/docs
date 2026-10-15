@@ -11,7 +11,23 @@
  * vars). `slackLink` itself touches none of that, so these modules are
  * mocked out to isolate the pure function under test.
  */
-jest.mock('@/services/db/docsets', () => ({}));
+jest.mock('@/services/db/docsets', () => ({
+  getDocsetByProject: jest.fn(async () => ({
+    project: 'docs',
+    displayName: 'MongoDB Manual',
+    prefix: 'docs',
+    internalOnly: false,
+    versions: [
+      {
+        versionName: 'manual',
+        active: true,
+        versionSelectorLabel: 'manual',
+        stable: true,
+        noIndexing: false,
+      },
+    ],
+  })),
+}));
 jest.mock('@/services/db/docs-metadata', () => ({}));
 jest.mock('@/services/db/feedback', () => ({}));
 jest.mock('./jira-builder', () => ({ createJiraTicketUrl: jest.fn() }));

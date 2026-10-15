@@ -1,7 +1,9 @@
 import type { TocItem } from '../types';
 import manualVersions from '../version-arrays/server-docs/manual';
 
-const versionsBeforeV8_2 = ['v7.0', 'v8.0', 'v8.1'];
+// 'rapid' is the version formerly addressable as v8.1; version identity is
+// now the versionName, so the gate must name it that way.
+const versionsBeforeV8_2 = ['v7.0', 'v8.0', 'rapid'];
 
 const tocData: TocItem[] = [
   {
@@ -2062,7 +2064,7 @@ const tocData: TocItem[] = [
             label: 'db.collection.getShardLocation',
             contentSite: 'docs',
             url: '/docs/:version/reference/method/db.collection.getShardLocation',
-            versions: { excludes: ['7.0', '8.0'] },
+            versions: { excludes: ['v7.0', 'v8.0'] },
           },
           {
             label: 'sh.abortMoveCollection',

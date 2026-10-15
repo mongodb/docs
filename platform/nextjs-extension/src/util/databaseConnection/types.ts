@@ -19,14 +19,6 @@ export function isBuildEnvironment(obj: unknown): obj is Environments {
   return environments.indexOf(obj) !== -1;
 }
 
-/** Docsets document entry for a project */
-export type DocsetsDocument = {
-  project: string;
-  bucket: string;
-  url: string;
-  prefix: string;
-};
-
 /** Connection info for the cluster zero database */
 export type ClusterZeroConnectionInfo = {
   clusterZeroURI: string;
@@ -41,34 +33,6 @@ export type SearchClusterConnectionInfo = {
   databaseName: SearchDBName;
   collectionName: string;
   extensionName: string;
-};
-
-// TODO: rename this to version entry
-export type BranchEntry = {
-  id?: ObjectId;
-  name?: string;
-  gitBranchName: string;
-  active: boolean;
-  isStableBranch: boolean;
-  urlSlug: string;
-  publishOriginalBranchName: boolean;
-  urlAliases: Array<string>;
-  eol_type?: 'download' | 'link';
-  buildsWithSnooty?: boolean;
-};
-
-/** Repos branches entry for a project */
-export type ReposBranchesDocument = {
-  _id?: ObjectId;
-  repoName: string;
-  project: string;
-  search?: {
-    categoryTitle: string;
-    categoryName?: string;
-  };
-  branches: Array<BranchEntry>;
-  prodDeployable: boolean;
-  internalOnly: boolean;
 };
 
 export type SearchDocument = {
@@ -97,7 +61,6 @@ export type OrganizationName = 'mongodb' | '10gen';
 
 export type SearchDBName = 'search' | 'search-test' | 'search-staging';
 
-export type PoolDBName = 'pool' | 'pool_test';
 
 export type MetadataDBName = 'docs_metadata';
 
@@ -108,4 +71,4 @@ export type SnootyDBName =
   | 'snooty_dotcomstg'
   | 'snooty_dotcomprd';
 
-export type ClusterZeroDBName = PoolDBName | MetadataDBName | SnootyDBName;
+export type ClusterZeroDBName = MetadataDBName | SnootyDBName;

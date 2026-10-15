@@ -1,5 +1,4 @@
 import type { SearchPropertyMapping } from '@/hooks/use-marian-manifests';
-import type { SnootyEnv } from '@/types/data';
 
 /**
  * Fetches SearchPropertyMapping
@@ -10,8 +9,9 @@ import type { SnootyEnv } from '@/types/data';
  *   };
  * }
  */
-export const fetchSearchPropertyMapping = async (snootyEnv: SnootyEnv): Promise<SearchPropertyMapping> => {
-  const isStaging = ['staging', 'development', 'dotcomstg'].includes(snootyEnv);
-  const res = await fetch(`/docs/platform/api/search-mapping/${isStaging ? `?staging=true` : ''}`);
+export const fetchSearchPropertyMapping = async (): Promise<SearchPropertyMapping> => {
+  // Staging vs production is which host you call, not a query parameter: each
+  // deploy serves the catalog from its own git ref.
+  const res = await fetch(`/docs/platform/api/search-mapping/`);
   return res.json();
 };

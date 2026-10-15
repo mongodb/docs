@@ -130,6 +130,9 @@ function bundleStatsPlugin() {
 }
 
 const nextConfig = {
+  // `versioning` ships as TypeScript, not built to JS, so Next has to
+  // compile it like first-party code.
+  transpilePackages: ['versioning'],
   pageExtensions: ['mdx', 'tsx', 'ts'],
   trailingSlash: true,
   // Next treats a last-segment dot as a file and 308s `/foo.bar/` → `/foo.bar`,
@@ -263,6 +266,9 @@ const nextConfig = {
 };
 
 const staticExportConfig = {
+  // `versioning` ships as TypeScript, not built to JS, so Next has to
+  // compile it like first-party code.
+  transpilePackages: ['versioning'],
   output: 'export',
   trailingSlash: true,
   skipTrailingSlashRedirect: true,

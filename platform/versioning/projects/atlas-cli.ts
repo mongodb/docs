@@ -7,7 +7,8 @@ export default defineDocset({
 	search: { categoryTitle: "Atlas CLI" },
 	versions: [
 		{ name: "upcoming" },
-		{ name: "current", label: "current (v1.58.3)", stable: true },
+		{ name: "current", label: "current (v1.59.0)", stable: true },
+		{ name: "v1.58" },
 		{ name: "v1.57" },
 		{ name: "v1.56" },
 		{ name: "v1.55" },

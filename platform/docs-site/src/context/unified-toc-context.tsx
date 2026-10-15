@@ -58,12 +58,10 @@ const updateURLs = ({ tree, contentSite, activeVersions, versionsData }: UpdateU
       if (item.url?.includes(':version') && currentProject) {
         const version = (versionsData[currentProject] || []).find(
           (version) =>
-            version.gitBranchName === activeVersions[currentProject] ||
-            version.urlSlug === activeVersions[currentProject] ||
-            version?.urlAliases?.includes(activeVersions[currentProject]),
+            version.versionName === activeVersions[currentProject],
         );
         // If no version found in local storage use 'current'
-        const currentVersion = isOfflineBuild ? getStaticVersion() : version?.urlSlug ?? activeVersions[currentProject] ?? 'current';
+        const currentVersion = isOfflineBuild ? getStaticVersion() : version?.versionName ?? activeVersions[currentProject] ?? 'current';
         newUrl = item.url.replace(/:version/g, currentVersion);
       }
 

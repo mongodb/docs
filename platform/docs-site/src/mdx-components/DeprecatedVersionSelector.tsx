@@ -9,7 +9,7 @@ import Icon from '@leafygreen-ui/icon';
 import { css, cx } from '@leafygreen-ui/emotion';
 import { palette } from '@leafygreen-ui/palette';
 import { theme } from '@/styles/theme';
-import type { BranchData, Docset } from '@/types/data';
+import type { Version, Docset } from '@/types/data';
 import { useVersionContext } from '@/context/version-context';
 import { isBrowser } from '@/utils/is-browser';
 import { Select } from '@/mdx-components/Select';
@@ -22,7 +22,7 @@ type ProductChoice = {
 export type VersionChoice = {
     text: string;
     value: string;
-    urlSlug: string;
+    versionName: string;
     url?: string;
     icon?: LGGlyph.Element;
 };
@@ -103,10 +103,15 @@ const prefixVersion = (version: string) => {
 };
 
 // Validation for necessary url fields to bypass errors
-const hasValidHostName = (docset: Docset) => {
-    if (!docset?.url?.dotcomprd || !docset?.prefix?.dotcomprd) return false;
-    return true;
-};
+const hasValidHostName = (docset: Docset) => Boolean(docset?.prefix);
+
+/**
+ * A docset has EOL versions when any version is inactive and still surfaced as
+ * end-of-life. Pool stored this as a `hasEolVersions` flag that could drift
+ * from the versions themselves; it is derived now.
+ */
+const hasEolVersions = (docset: Docset) =>
+    docset.versions.some((version) => !version.active && version.eolType);
 
 /**
  *  Order versions in the correct order such that V1.10 and V1.11 are sorted before V1.9
@@ -120,11 +125,11 @@ export const sortVersions = (a: VersionChoice, b: VersionChoice) =>
 
 const DeprecatedVersionSelector = () => {
     const { docsets } = useVersionContext();
-    const reposBranchesBuildData = docsets.filter((docset) => docset.hasEolVersions);
-    const reposBranchesBuildDataMap = keyBy(reposBranchesBuildData, 'project');
+    const eolDocsets = docsets.filter(hasEolVersions);
+    const eolDocsetsMap = keyBy(eolDocsets, 'project');
     const [productName, setProductName] = useState('');
     const [version, setVersion] = useState('');
-    const [reposMap, setReposMap] = useState(reposBranchesBuildDataMap);
+    const [reposMap, setReposMap] = useState(eolDocsetsMap);
 
     const alphabetize = (product1: ProductChoice, product2: ProductChoice) => {
         return product1?.text?.localeCompare(product2?.text);
@@ -160,21 +165,21 @@ const DeprecatedVersionSelector = () => {
 
     const updateVersion = useCallback(({ value }: { value: string }) => setVersion(value), []);
 
-    const generateUrl = useCallback((currentVersion: BranchData, reposObj: Docset) => {
+    const generateUrl = useCallback((currentVersion: Version, reposObj: Docset) => {
         if (!currentVersion) {
             return null;
         }
 
         // Utilizing hardcoded env or aws bucket path because legacy sites are not available on dev/stage
-        if (currentVersion.eol_type === 'download') {
+        if (currentVersion.eolType === 'download') {
             const offlineURL = 'https://www.mongodb.com/docs/offline';
             return currentVersion.offlineUrl?.length
                 ? currentVersion.offlineUrl
-                : `${offlineURL}/${reposObj.project}-${currentVersion.urlSlug}.tar.gz`;
+                : `${offlineURL}/${reposObj.project}-${currentVersion.versionName}.tar.gz`;
         }
         if (hasValidHostName(reposObj)) {
-            const hostName = reposObj.url.dotcomprd + reposObj.prefix.dotcomprd;
-            return `${hostName}/${currentVersion.urlSlug}`;
+            const hostName = 'https://mongodb.com/' + reposObj.prefix;
+            return `${hostName}/${currentVersion.versionName}`;
         }
         console.error(`Invalid hostname, url could not be generated for ${currentVersion}`);
     }, []);
@@ -186,14 +191,14 @@ const DeprecatedVersionSelector = () => {
                 continue;
             }
             res.push(
-                ...reposObj.branches.map((version) => {
-                    //only include versions with an eol_type field
-                    if (version.eol_type && version.versionSelectorLabel) {
+                ...reposObj.versions.map((version) => {
+                    //only include versions with an eolType field
+                    if (version.eolType && version.versionSelectorLabel) {
                         return {
                             text: prefixVersion(version.versionSelectorLabel),
                             value: version.versionSelectorLabel,
-                            urlSlug: version.urlSlug,
-                            icon: version.eol_type === 'download' ? <Icon glyph="Download" /> : null,
+                            versionName: version.versionName,
+                            icon: version.eolType === 'download' ? <Icon glyph="Download" /> : null,
                             url: generateUrl(version, reposObj),
                         };
                     } else return null;
@@ -223,11 +228,8 @@ const DeprecatedVersionSelector = () => {
                 const docsetsResponse = await fetch(`/docs/platform/api/docsets`);
                 const docsets: Docset[] = await docsetsResponse.json();
 
-                const reposBranchesMap = keyBy(
-                    docsets.filter((project) => project.hasEolVersions),
-                    'project',
-                );
-                if (!isEmpty(reposBranchesMap)) setReposMap(reposBranchesMap);
+                const eolDocsetsMap = keyBy(docsets.filter(hasEolVersions), 'project');
+                if (!isEmpty(eolDocsetsMap)) setReposMap(eolDocsetsMap);
             } catch (error) {
                 console.error(`ERROR: could not access docsets for deprecated version dropdown data. `, error);
             }

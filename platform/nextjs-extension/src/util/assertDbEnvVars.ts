@@ -1,6 +1,4 @@
 export type CollectionName =
-  | 'repos_branches'
-  | 'docsets'
   //Search dbs and Snooty dbs both contain collections referred to as 'documents'
   | 'documents'
   | 'entitled'
@@ -16,7 +14,6 @@ export type StaticEnvVars = {
   AWS_S3_ACCESS_KEY_ID: string;
   AWS_S3_SECRET_ACCESS_KEY: string;
   BUILD_TELEMETRY_COLLECTION: CollectionName;
-  DOCSETS_COLLECTION: CollectionName;
   DOCUMENTS_COLLECTION: string;
   GATSBY_PARSER_USER: string;
   GIT_HASH_URL: string;
@@ -24,7 +21,6 @@ export type StaticEnvVars = {
   OAS_FILES_COLLECTION: string;
   PROJECTS_COLLECTION: CollectionName;
   REDOC_CLI_VERSION: string;
-  REPOS_BRANCHES_COLLECTION: CollectionName;
   SLACK_AUTH_TOKEN: string;
   SLACK_SIGNING_SECRET: string;
   S3_SEARCH_BUCKET: string;
@@ -59,8 +55,6 @@ export const getDbConfig = (): StaticEnvVars => {
     BUILD_TELEMETRY_COLLECTION:
       (process.env.BUILD_TELEMETRY_COLLECTION as CollectionName) ??
       'build_telemetry',
-    DOCSETS_COLLECTION:
-      (process.env.DOCSETS_COLLECTION as CollectionName) ?? 'docsets',
     DOCUMENTS_COLLECTION:
       (process.env.DOCUMENTS_COLLECTION as CollectionName) ?? 'documents',
     ENTITLED_COLLECTION:
@@ -76,9 +70,6 @@ export const getDbConfig = (): StaticEnvVars => {
     PROJECTS_COLLECTION:
       (process.env.PROJECTS_COLLECTION as CollectionName) ?? 'projects',
     REDOC_CLI_VERSION: (process.env.REDOC_CLI_VERSION as string) ?? '1.2.3',
-    REPOS_BRANCHES_COLLECTION:
-      (process.env.REPOS_BRANCHES_COLLECTION as CollectionName) ??
-      'repos_branches',
     SLACK_SIGNING_SECRET: process.env.SLACK_SIGNING_SECRET as string,
     SLACK_AUTH_TOKEN: process.env.SLACK_AUTH_TOKEN as string,
     S3_SEARCH_BUCKET:

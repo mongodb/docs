@@ -11,7 +11,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { loadDescriptions, resolveDescription, PLACEHOLDER_DESCRIPTION, type DescriptionsMap } from './descriptions.js';
-import { EXCLUDED_PROJECTS, EXCLUDED_SOURCE_SUBDIRS, INTERNAL_ONLY_PROJECTS } from './exclusions.js';
+import { EXCLUDED_PROJECTS, EXCLUDED_SOURCE_SUBDIRS } from './exclusions.js';
+import { loadInternalOnlyProjects } from './catalog.js';
 import { FORCED_SPLIT_BY_PROJECT } from './projectOverrides.js';
 import { currentSourceDir } from './projectInfo.js';
 import { renderContent, codePointLength } from './render.js';
@@ -69,12 +70,16 @@ function firstPathSegment(pagePath: string): string {
  * the source directory. Returns empty defaults if the file is missing or
  * cannot be parsed.
  */
-async function loadSnootyConfig(
-  sourceDir: string,
-): Promise<{ title: string; constants: Record<string, string>; substitutions: Record<string, string> }> {
+async function loadSnootyConfig(sourceDir: string): Promise<{
+  project: string;
+  title: string;
+  constants: Record<string, string>;
+  substitutions: Record<string, string>;
+}> {
   const snootyTomlPath = path.join(path.dirname(sourceDir), 'snooty.toml');
   const config = await parseSnootyToml(snootyTomlPath);
   return {
+    project: config?.name ?? '',
     title: config?.title ?? '',
     constants: config?.constants ?? {},
     substitutions: config?.substitutions ?? {},
@@ -139,11 +144,15 @@ async function resolveIncludedSubstitutions(
  * against the longest one available for `project` rather than any one
  * part's actual description.
  */
-function maxDescriptionOverhead(project: string, descriptions: DescriptionsMap, withDescriptions: boolean): number {
+function maxDescriptionOverhead(
+  projectDirName: string,
+  descriptions: DescriptionsMap,
+  withDescriptions: boolean,
+): number {
   if (!withDescriptions) {
     return 0;
   }
-  const entry = descriptions[project];
+  const entry = descriptions[projectDirName];
   const candidates =
     entry === undefined
       ? [PLACEHOLDER_DESCRIPTION]
@@ -159,20 +168,32 @@ function maxDescriptionOverhead(project: string, descriptions: DescriptionsMap, 
 }
 
 async function generateProject(
-  project: string,
+  projectDirName: string,
   version: string,
   sourceDir: string,
   dirNameToPrefix: DirNameToPrefix,
   descriptions: DescriptionsMap,
+  internalOnlyProjects: Set<string>,
   options: GenerateOptions,
 ): Promise<ProjectResult | null> {
-  const urlSlug = getUrlSlugForDir(dirNameToPrefix, project);
+  const urlSlug = getUrlSlugForDir(dirNameToPrefix, projectDirName);
   if (urlSlug === undefined) {
-    console.warn(`Skipping project "${project}": no URL prefix found in dir-name-to-prefix.json`);
+    console.warn(`Skipping project "${projectDirName}": no URL prefix found in dir-name-to-prefix.json`);
     return null;
   }
-  const { title: rawTitle, constants, substitutions: projectSubstitutions } = await loadSnootyConfig(sourceDir);
-  const projectTitle = resolveAllSubstitutions(rawTitle, constants, projectSubstitutions) || project;
+  const {
+    project,
+    title: rawTitle,
+    constants,
+    substitutions: projectSubstitutions,
+  } = await loadSnootyConfig(sourceDir);
+
+  // Checked here rather than on the directory name: internalOnly is a property
+  // of the Snooty project, and the two names differ for 17 projects.
+  if (internalOnlyProjects.has(project)) {
+    return null;
+  }
+  const projectTitle = resolveAllSubstitutions(rawTitle, constants, projectSubstitutions) || projectDirName;
   const headerTitle = version ? `${projectTitle} - (${version})` : projectTitle;
 
   const rootIndexPath = path.join(sourceDir, 'index.txt');
@@ -223,12 +244,12 @@ async function generateProject(
   // Representative description used for size-estimation purposes only
   // (deciding whether this project needs to split at all); if it does
   // split, each part below resolves its own description by part index.
-  const indexDescription = resolveDescription(project, 0, descriptions);
+  const indexDescription = resolveDescription(projectDirName, 0, descriptions);
   const charsWithDescriptions = codePointLength(renderContent(headerTitle, indexDescription, pages, true));
   const charsWithoutDescriptions = codePointLength(renderContent(headerTitle, indexDescription, pages, false));
   const singleFileChars = options.noDescriptions ? charsWithoutDescriptions : charsWithDescriptions;
 
-  const projectOutputDir = path.join(options.outputDir, project);
+  const projectOutputDir = path.join(options.outputDir, projectDirName);
   // Remove any previously written files first: otherwise a project whose
   // part count shrinks between runs (e.g. 7 parts down to 5) would leave
   // stale, no-longer-referenced part files (6, 7, ...) behind.
@@ -242,7 +263,7 @@ async function generateProject(
   // otherwise fall back to this project's built-in override, if any. A
   // forced part count always splits, even if the content would otherwise
   // fit in one file.
-  const override = FORCED_SPLIT_BY_PROJECT[project];
+  const override = FORCED_SPLIT_BY_PROJECT[projectDirName];
   const forcedParts =
     options.parts && options.parts > 1 ? options.parts : override?.parts && override.parts > 1 ? override.parts : undefined;
   const forcedSectionParts = options.oversizedSectionParts ?? override?.oversizedSectionParts;
@@ -259,7 +280,7 @@ async function generateProject(
     // chunking), plus its "> description" blockquote.
     const headerOverhead =
       codePointLength(`# ${headerTitle} (Part 999 of 999)\n\n`) +
-      maxDescriptionOverhead(project, descriptions, !options.noDescriptions);
+      maxDescriptionOverhead(projectDirName, descriptions, !options.noDescriptions);
     // Any part still over the limit after the initial (L3) split — e.g. a
     // single section like manual's reference/ or ops-manager's
     // reference/api/ that's larger than the limit on its own — is
@@ -277,7 +298,7 @@ async function generateProject(
     for (let i = 0; i < chunks.length; i++) {
       const partNumber = i + 1;
       const partHeaderTitle = `${headerTitle} (Part ${partNumber} of ${totalParts})`;
-      const partDescription = resolveDescription(project, i, descriptions);
+      const partDescription = resolveDescription(projectDirName, i, descriptions);
       const partContent = renderContent(partHeaderTitle, partDescription, chunks[i].pages, !options.noDescriptions);
       if (codePointLength(partContent) > LLMS_TXT_CHAR_LIMIT) {
         // Only possible when a single section is still larger than the
@@ -289,14 +310,16 @@ async function generateProject(
       // path still *ends* with "llms.txt": the edge proxy routes any request
       // path ending in "llms.txt" straight to the S3 bucket, and a prefix
       // like "llms-manual-3.txt" doesn't match that suffix check.
-      const outputPath = path.join(projectOutputDir, `${project}-${partNumber}-llms.txt`);
+      const outputPath = path.join(projectOutputDir, `${projectDirName}-${partNumber}-llms.txt`);
       await fs.writeFile(outputPath, partContent, 'utf-8');
       outputPaths.push(outputPath);
     }
   }
 
   return {
-    project,
+    // ProjectResult.project is the content directory name, as documented on the
+    // type; it is what output paths and description keys are keyed by.
+    project: projectDirName,
     version,
     pages,
     outputPaths,
@@ -325,6 +348,7 @@ export async function generate(options: GenerateOptions): Promise<ProjectResult[
 
   const dirNameToPrefix = await loadDirNameToPrefixMap(options.monorepoPath);
   const descriptions = await loadDescriptions(options.descriptionsPath);
+  const internalOnlyProjects = await loadInternalOnlyProjects(options.monorepoPath);
 
   // entries is all the directories in the content directory
   const entries = await fs.readdir(contentDir, { withFileTypes: true });
@@ -334,15 +358,15 @@ export async function generate(options: GenerateOptions): Promise<ProjectResult[
     if (!entry.isDirectory()) {
       continue;
     }
-    const project = entry.name;
-    if (EXCLUDED_PROJECTS.has(project) || INTERNAL_ONLY_PROJECTS.has(project)) {
+    const projectDirName = entry.name;
+    if (EXCLUDED_PROJECTS.has(projectDirName)) {
       continue;
     }
-    if (options.forProject && project !== options.forProject) {
+    if (options.forProject && projectDirName !== options.forProject) {
       continue;
     }
 
-    const projectDir = path.join(contentDir, project);
+    const projectDir = path.join(contentDir, projectDirName);
     const found = await currentSourceDir(projectDir);
     if (!found) {
       // No resolvable current source directory; skip.
@@ -350,11 +374,12 @@ export async function generate(options: GenerateOptions): Promise<ProjectResult[
     }
 
     const result = await generateProject(
-      project,
+      projectDirName,
       found.version,
       found.sourceDir,
       dirNameToPrefix,
       descriptions,
+      internalOnlyProjects,
       options,
     );
     if (result) {

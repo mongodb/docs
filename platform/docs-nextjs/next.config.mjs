@@ -1,4 +1,7 @@
 const nextConfig = {
+  // `versioning` is shipped as TypeScript, not built to JS, so Next
+  // has to compile it like first-party code.
+  transpilePackages: ['versioning'],
   pageExtensions: ['mdx', 'tsx', 'ts'],
   trailingSlash: true,
   compiler: {

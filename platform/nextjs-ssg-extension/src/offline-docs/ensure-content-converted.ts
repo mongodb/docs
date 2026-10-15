@@ -150,7 +150,7 @@ export const ensureContentConvertedForBundles = async ({
   await runPrebuildModules({
     netlifyPluginUtils,
     allContentData: contentDataForMissingPaths,
-    atlasProjectDocuments: allContentData.atlasProjectDocuments,
+    docsetsByProject: allContentData.docsetsByProject,
     branchName: configEnvironment.BRANCH as string,
     prId: configEnvironment.REVIEW_ID
       ? Number.parseInt(configEnvironment.REVIEW_ID, 10)

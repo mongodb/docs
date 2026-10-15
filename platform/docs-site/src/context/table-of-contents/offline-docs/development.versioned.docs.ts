@@ -4265,7 +4265,7 @@ export const toc: L1TocItem[] = [
                 contentSite: 'docs',
                 url: '/docs/:version/core/long-running-secondary-reads/',
                 versions: {
-                  excludes: ['v7.0', 'v8.0', 'v8.1'],
+                  excludes: ['v7.0', 'v8.0', 'rapid'],
                 },
               },
             ],
@@ -6401,7 +6401,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/reference/method/db.collection.getShardLocation',
                         versions: {
-                          excludes: ['7.0', '8.0'],
+                          excludes: ['v7.0', 'v8.0'],
                         },
                       },
                       {
@@ -7794,7 +7794,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/encStrContains',
                         versions: {
-                          excludes: ['v7.0', 'v8.0', 'v8.1'],
+                          excludes: ['v7.0', 'v8.0', 'rapid'],
                         },
                       },
                       {
@@ -7802,7 +7802,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/encStrEndsWith',
                         versions: {
-                          excludes: ['v7.0', 'v8.0', 'v8.1'],
+                          excludes: ['v7.0', 'v8.0', 'rapid'],
                         },
                       },
                       {
@@ -7810,7 +7810,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/encStrNormalizedEq',
                         versions: {
-                          excludes: ['v7.0', 'v8.0', 'v8.1'],
+                          excludes: ['v7.0', 'v8.0', 'rapid'],
                         },
                       },
                       {
@@ -7818,7 +7818,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/encStrStartsWith',
                         versions: {
-                          excludes: ['v7.0', 'v8.0', 'v8.1'],
+                          excludes: ['v7.0', 'v8.0', 'rapid'],
                         },
                       },
                       {

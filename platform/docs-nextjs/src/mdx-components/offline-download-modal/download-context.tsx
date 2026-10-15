@@ -16,9 +16,9 @@ export type OfflineVersion = {
 // An OfflineVersion plus the identity fields needed to determine the default ("current") version.
 // Assembled internally, then stripped down to OfflineVersion before being stored on an OfflineObject.
 type VersionEntry = OfflineVersion & {
-  urlSlug: string;
-  gitBranchName: string;
-  urlAliases?: string[] | null;
+  versionName: string;
+  // Carried so getDefaultVersionIndex can pick the version readers land on.
+  stable: boolean;
 };
 
 export type OfflineObject = {
@@ -77,10 +77,9 @@ function collectVersionsFromGroups(
         for (const version of availVersions) {
           versionEntries.push({
             displayName: version.versionSelectorLabel,
-            url: createOfflineUrl(parentLabel, version.urlSlug, item.contentSite),
-            urlSlug: version.urlSlug,
-            gitBranchName: version.gitBranchName,
-            urlAliases: version.urlAliases,
+            url: createOfflineUrl(parentLabel, version.versionName, item.contentSite),
+            versionName: version.versionName,
+            stable: version.stable,
           });
         }
       }
@@ -112,10 +111,9 @@ function findShowSubNavItems(
           for (const version of availVersions) {
             versionEntries.push({
               displayName: version.versionSelectorLabel,
-              url: createOfflineUrl(item.label, version.urlSlug, item.contentSite),
-              urlSlug: version.urlSlug,
-              gitBranchName: version.gitBranchName,
-              urlAliases: version.urlAliases,
+              url: createOfflineUrl(item.label, version.versionName, item.contentSite),
+              versionName: version.versionName,
+              stable: version.stable,
             });
           }
         }
@@ -124,8 +122,9 @@ function findShowSubNavItems(
         versionEntries.push({
           displayName: 'main',
           url: createOfflineUrl(item.label),
-          urlSlug: 'main',
-          gitBranchName: 'main',
+          versionName: 'main',
+          // The only version an unversioned site has, so it is the one to land on.
+          stable: true,
         });
       }
 
@@ -166,10 +165,9 @@ function transformTocToOfflineObjects(tocTree: TocItem[], availableVersions: Ava
         for (const version of availVersions) {
           versionEntries.push({
             displayName: version.versionSelectorLabel,
-            url: createOfflineUrl(l1Item.label, version.urlSlug, l1Item.contentSite),
-            urlSlug: version.urlSlug,
-            gitBranchName: version.gitBranchName,
-            urlAliases: version.urlAliases,
+            url: createOfflineUrl(l1Item.label, version.versionName, l1Item.contentSite),
+            versionName: version.versionName,
+            stable: version.stable,
           });
         }
       }
@@ -182,8 +180,9 @@ function transformTocToOfflineObjects(tocTree: TocItem[], availableVersions: Ava
       versionEntries.push({
         displayName: 'main',
         url: createOfflineUrl(l1Item.label),
-        urlSlug: 'main',
-        gitBranchName: 'main',
+        versionName: 'main',
+        // The only version an unversioned site has, so it is the one to land on.
+        stable: true,
       });
     }
 

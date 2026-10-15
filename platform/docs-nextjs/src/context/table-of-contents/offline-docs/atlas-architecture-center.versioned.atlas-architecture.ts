@@ -351,6 +351,11 @@ export const toc: L1TocItem[] = [
                 collapsible: true,
                 items: [
                   {
+                    label: 'Agentic Lending with MongoDB',
+                    contentSite: 'atlas-architecture',
+                    url: '/docs/atlas/architecture/:version/solutions-library/agentic-lending',
+                  },
+                  {
                     label: 'Assess Business Loan Risks',
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/solutions-library/loan-risk-gen-ai',

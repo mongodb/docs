@@ -4,9 +4,8 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import { MongoMemoryServerStates } from 'mongodb-memory-server-core/lib/MongoMemoryServer';
 
 import metadata from '../data/metadata.json';
-import repoBranches from '../data/repos_branches.json';
-import docsets from '../data/docsets.json';
 
+const TEST_DB_NAME = 'jest';
 const COLLECTIONS = ['queue', 'entitlements'];
 
 export class TestDBManager {
@@ -30,10 +29,8 @@ export class TestDBManager {
         version: '8.0.4',
       },
     });
-    process.env.POOL_DB_NAME = 'jest';
     process.env.JOB_QUEUE_COL_NAME = 'queue';
     process.env.USER_ENTITLEMENT_COL_NAME = 'entitlements';
-    process.env.DOCSETS_COL_NAME = 'docsets';
   }
 
   async start() {
@@ -47,12 +44,11 @@ export class TestDBManager {
     process.env.MONGO_ATLAS_URL = url;
     this.client = new MongoClient(url);
     await this.client.connect();
-    this.db = this.client.db(process.env.POOL_DB_NAME);
+    this.db = this.client.db(TEST_DB_NAME);
     await this.db.createCollection(process.env.JOB_QUEUE_COL_NAME ?? 'queue');
     await this.db.createCollection(
       process.env.USER_ENTITLEMENT_COL_NAME ?? 'entitlements',
     );
-    await this.db.createCollection(process.env.DOCSETS_COL_NAME ?? 'docsets');
   }
 
   async stop() {
@@ -94,12 +90,6 @@ export const setMockDB = async (): Promise<[Db, MongoClient]> => {
   try {
     await dbManager.start();
 
-    await dbManager.db
-      .collection('repos_branches')
-      .insertMany(repoBranches as unknown[] as Document[]);
-    await dbManager.db
-      .collection('docsets')
-      .insertMany(docsets as unknown[] as Document[]);
     await dbManager.db
       .collection('metadata')
       .insertMany(metadata as unknown[] as Document[]);

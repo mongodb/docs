@@ -17,37 +17,30 @@ function buildSitemapIndexXml(sitemapUrls: string[]): string {
   ].join('\n');
 }
 
-// Mirrors hapley's sitemap_index_generator.py: queries docsets and applies the
-// same filtering to produce a cross-project sitemap index.
+// Mirrors hapley's sitemap_index_generator.py: reads the docset catalog and
+// applies the same filtering to produce a cross-project sitemap index.
 async function generateSitemapIndexFull(): Promise<NextResponse> {
-  let docsets;
-  try {
-    docsets = await getAllDocsetsWithVersionsCached();
-  } catch {
-    // DB unavailable — return 503 so crawlers retry rather than de-indexing.
-    return new NextResponse('Service Unavailable', { status: 503 });
-  }
+  const docsets = await getAllDocsetsWithVersionsCached();
   const sitemapUrls: string[] = [];
 
   for (const docset of docsets) {
-    if (docset.internalOnly || !docset.prodDeployable) continue;
-    const prefix = docset.prefix?.dotcomprd;
+    if (docset.internalOnly) continue;
+    const { prefix } = docset;
     if (!prefix) continue;
     // hapley hardcodes https://www.mongodb.com as the base regardless of environment
     const baseUrl = `https://www.mongodb.com/${prefix}`;
 
-    for (const branch of docset.branches ?? []) {
-      if (!branch.active) continue;
-      if (branch.eol_type) continue;
-      if (branch.urlSlug === 'upcoming' || branch.urlSlug === 'beta') continue;
-      if (branch.gitBranchName === 'master' && branch.urlSlug === 'master') continue;
+    // Unversioned sites publish at the prefix with no version segment.
+    const isMultiVersion = docset.versions.length > 1;
 
-      const urlSuffix =
-        branch.urlSlug ||
-        (branch.publishOriginalBranchName ? branch.gitBranchName : '');
-      const extension = branch.buildsWithSnooty !== false ? 'sitemap-0.xml' : 'sitemap.xml.gz';
-      const url = urlSuffix
-        ? `${baseUrl}/${urlSuffix}/${extension}`.toLowerCase()
+    for (const version of docset.versions) {
+      if (!version.active) continue;
+      if (version.eolType) continue;
+      if (version.versionName === 'upcoming' || version.versionName === 'beta') continue;
+
+      const extension = 'sitemap-0.xml';
+      const url = isMultiVersion
+        ? `${baseUrl}/${version.versionName}/${extension}`.toLowerCase()
         : `${baseUrl}/${extension}`.toLowerCase();
 
       sitemapUrls.push(url);

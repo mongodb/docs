@@ -16,7 +16,7 @@ import {
  * `manual-foo`).
  *
  * Inactive versions are included only when ALLOW_INACTIVE_VERSIONS is set
- * and the Atlas branch is eol_type === 'link' (not 'download').
+ * and the Atlas branch is eolType === 'link' (not 'download').
  */
 export function resolvePathsToBuild({
 	contentDirectories,
@@ -77,7 +77,7 @@ const isPathActive = (
 
 /**
  * Active versions always queue. Inactive versions queue only when
- * ALLOW_INACTIVE_VERSIONS is set and Atlas eol_type === 'link' (not 'download').
+ * ALLOW_INACTIVE_VERSIONS is set and Atlas eolType === 'link' (not 'download').
  */
 const shouldQueueForcedPath = (
 	contentPath: string,
@@ -87,14 +87,14 @@ const shouldQueueForcedPath = (
 	if (isPathActive(contentPath, allContentData)) return true;
 	if (!allowInactiveVersions) {
 		console.log(
-			`[ssg-extension] Skipping inactive path (set ALLOW_INACTIVE_VERSIONS to include eol_type=link): ${contentPath}`,
+			`[ssg-extension] Skipping inactive path (set ALLOW_INACTIVE_VERSIONS to include eolType=link): ${contentPath}`,
 		);
 		return false;
 	}
-	const eolType = getBranchForContentPath(contentPath, allContentData)?.eol_type;
+	const eolType = getBranchForContentPath(contentPath, allContentData)?.eolType;
 	if (eolType === "link") return true;
 	console.log(
-		`[ssg-extension] Skipping inactive path ${contentPath}: eol_type is ${eolType ?? "unset"} (ALLOW_INACTIVE_VERSIONS only includes eol_type=link)`,
+		`[ssg-extension] Skipping inactive path ${contentPath}: eolType is ${eolType ?? "unset"} (ALLOW_INACTIVE_VERSIONS only includes eolType=link)`,
 	);
 	return false;
 };

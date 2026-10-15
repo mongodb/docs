@@ -1,12 +1,12 @@
 import { parse, type ParserCommandArgs } from "../parse/parse";
 import type { BuildUtils } from "../util/buildUtils";
 import { runPersistenceModule } from "../persistence/index";
-import type { DocsetsDocument } from "../util/databaseConnection/types";
+import type { Docset } from "../../../versioning/types";
 import { closeConnections } from "../persistence/index";
 import { constructParserLogs, displayParserLogs } from "./handleParseLogs";
 import type { StaticEnvVars } from "../util/assertDbEnvVars";
 import type { AllContentData } from "../contentMetadata/processContentMetadata";
-import type { AtlasProjectDocuments } from "../contentMetadata/fetchAndStoreAtlasData";
+import type { DocsetsByProject } from "../contentMetadata/loadVersioningFromCheckout";
 import { getRepoPaths } from "../paths";
 import { MutError } from "../util/errorClasses";
 
@@ -32,7 +32,7 @@ export type prepAndRunModulesParams = {
 	netlifyPluginUtils: BuildUtils;
 	allContentData: AllContentData;
 	branchName: string;
-	atlasProjectDocuments: AtlasProjectDocuments;
+	docsetsByProject: DocsetsByProject;
 	prId?: number;
 	shouldRunPersistence: boolean;
 };
@@ -41,7 +41,7 @@ export type prepAndRunModulesParams = {
  * @param netlifyPluginUtils - the Netlify plugin utils
  * @param branchName - the name of the branch
  * @param allContentData - allContentData object containing all content data for the build
- * @param atlasProjectDocuments - Atlas document entries for each project
+ * @param docsetsByProject - Atlas document entries for each project
  * @param prId - the pull request id
  * @returns the duration of the parser and persistence module in milliseconds
  */
@@ -49,7 +49,7 @@ export const runPrebuildModules = async ({
 	netlifyPluginUtils,
 	branchName,
 	allContentData,
-	atlasProjectDocuments,
+	docsetsByProject,
 	prId,
 	shouldRunPersistence,
 }: prepAndRunModulesParams): Promise<number> => {
@@ -81,8 +81,7 @@ export const runPrebuildModules = async ({
 				bundlePath,
 				netlifyPluginUtils,
 				docsetEntry:
-					atlasProjectDocuments[projectName]?.docsetsEntry ||
-					({} as DocsetsDocument),
+					docsetsByProject[projectName],
 				branchName,
 				prId,
 				shouldRunPersistence,
@@ -139,7 +138,7 @@ export const runPrebuildModulesPerPath = async ({
 	prId,
 	shouldRunPersistence,
 }: {
-	docsetEntry: DocsetsDocument;
+	docsetEntry: Docset | undefined;
 	parserArgs: ParserCommandArgs;
 	bundlePath: string;
 	netlifyPluginUtils: BuildUtils;

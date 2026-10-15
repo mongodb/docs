@@ -34,10 +34,10 @@ const makeArgs = (pathsToBuild: string[]) => ({
     status: { show: jest.fn() },
   } as unknown as Parameters<typeof runPrebuildModules>[0]['netlifyPluginUtils'],
   branchName: 'main',
-  atlasProjectDocuments: {},
+  docsetsByProject: {},
   shouldRunPersistence: true,
   allContentData: {
-    atlasProjectDocuments: {},
+    docsetsByProject: {},
     pathsToBuild,
     docsPaths: Object.fromEntries(
       pathsToBuild.map((p) => [

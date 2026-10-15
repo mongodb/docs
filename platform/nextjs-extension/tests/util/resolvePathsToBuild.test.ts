@@ -15,8 +15,8 @@ import {
   findContentPathsWithChanges,
 } from '../../src/github/processFileChanges';
 import type { AllContentData, ContentBundleData } from '../../src/contentMetadata/processContentMetadata';
-import type { AtlasProjectDocuments } from '../../src/contentMetadata/fetchAndStoreAtlasData';
-import type { BranchEntry, ReposBranchesDocument } from '../../src/util/databaseConnection/types';
+import type { DocsetsByProject } from '../../src/contentMetadata/loadVersioningFromCheckout';
+import type { Version } from '../../../versioning/types';
 
 const mockGetParser = getParser as jest.MockedFunction<typeof getParser>;
 const mockGetFileChanges = getFileChanges as jest.MockedFunction<typeof getFileChanges>;
@@ -60,35 +60,32 @@ const makeDocsPaths = (
 
 const makeAllContentData = (
   docsPaths: ContentBundleData = makeDocsPaths(),
-  atlasProjectDocuments: AtlasProjectDocuments = {},
+  docsetsByProject: DocsetsByProject = {},
 ): AllContentData => ({
   pathsToBuild: [],
   docsPaths,
-  atlasProjectDocuments,
+  docsetsByProject,
 });
 
-const makeBranch = (
-  overrides: Partial<BranchEntry> & Pick<BranchEntry, 'gitBranchName' | 'urlSlug' | 'active'>,
-): BranchEntry => ({
-  isStableBranch: false,
-  publishOriginalBranchName: false,
-  urlAliases: [],
+const makeVersion = (
+  overrides: Partial<Version> & Pick<Version, 'versionName' | 'active'>,
+): Version => ({
+  stable: false,
+  noIndexing: false,
+  versionSelectorLabel: overrides.versionName,
   ...overrides,
 });
 
 const makeAtlasDocs = (
   project: string,
-  branches: Array<Partial<BranchEntry> & Pick<BranchEntry, 'gitBranchName' | 'urlSlug' | 'active'>>,
-): AtlasProjectDocuments => ({
+  versions: Array<Partial<Version> & Pick<Version, 'versionName' | 'active'>>,
+): DocsetsByProject => ({
   [project]: {
-    reposBranchesEntry: {
-      repoName: project,
-      project,
-      branches: branches.map(makeBranch),
-      prodDeployable: true,
-      internalOnly: false,
-    } as ReposBranchesDocument,
-    docsetsEntry: { project, bucket: '', url: '', prefix: '' },
+    project,
+    displayName: project,
+    prefix: `docs/${project}`,
+    internalOnly: false,
+    versions: versions.map(makeVersion),
   },
 });
 
@@ -432,7 +429,7 @@ describe('resolvePathsToBuild — FORCE_REBUILD_PATHS', () => {
     expect(allContentData.pathsToBuild).not.toContain('manual/v7.0');
   });
 
-  it('includes inactive eol_type=link versions of a forced docset when ALLOW_INACTIVE_VERSIONS is set', async () => {
+  it('includes inactive eolType=link versions of a forced docset when ALLOW_INACTIVE_VERSIONS is set', async () => {
     process.env.FORCE_REBUILD_PATHS = 'manual';
     process.env.ALLOW_INACTIVE_VERSIONS = 'true';
     mockGetParser.mockResolvedValue(true);
@@ -445,8 +442,8 @@ describe('resolvePathsToBuild — FORCE_REBUILD_PATHS', () => {
     const allContentData = makeAllContentData(
       makeDocsPaths({ 'manual/v8.0': true, 'manual/v7.0': false }),
       makeAtlasDocs('manual', [
-        { gitBranchName: 'v8.0', urlSlug: 'v8.0', active: true },
-        { gitBranchName: 'v7.0', urlSlug: 'v7.0', active: false, eol_type: 'link' },
+        { versionName: 'v8.0', active: true },
+        { versionName: 'v7.0', active: false, eolType: 'link' },
       ]),
     );
 
@@ -461,7 +458,7 @@ describe('resolvePathsToBuild — FORCE_REBUILD_PATHS', () => {
     expect(allContentData.pathsToBuild).toContain('manual/v7.0');
   });
 
-  it('does not include inactive eol_type=download versions even when ALLOW_INACTIVE_VERSIONS is set', async () => {
+  it('does not include inactive eolType=download versions even when ALLOW_INACTIVE_VERSIONS is set', async () => {
     process.env.FORCE_REBUILD_PATHS = 'manual';
     process.env.ALLOW_INACTIVE_VERSIONS = 'true';
     mockGetParser.mockResolvedValue(true);
@@ -474,8 +471,8 @@ describe('resolvePathsToBuild — FORCE_REBUILD_PATHS', () => {
     const allContentData = makeAllContentData(
       makeDocsPaths({ 'manual/v8.0': true, 'manual/v5.0': false }),
       makeAtlasDocs('manual', [
-        { gitBranchName: 'v8.0', urlSlug: 'v8.0', active: true },
-        { gitBranchName: 'v5.0', urlSlug: 'v5.0', active: false, eol_type: 'download' },
+        { versionName: 'v8.0', active: true },
+        { versionName: 'v5.0', active: false, eolType: 'download' },
       ]),
     );
 

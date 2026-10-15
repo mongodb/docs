@@ -87,6 +87,7 @@ The first time you run this, ensure the script has permission: `chmod +x ./tools
 - `docs-nextjs/`: Next.js ISR app for shared pages (site search, 404, AI Assistant, Product Updates); writer content is migrating off it onto `docs-site`
 - `snooty-ast-to-mdx/`: Converts Snooty rST to MDX
 - `nextjs-extension/` and `nextjs-ssg-extension/`: Netlify build extensions used in CI
+- `versioning/`: Source of truth for which docs sites and versions exist — add a version here, not in a database. See the [versioning README](versioning/README.md)
 - `tools/`: Various tools and utilities
 
 ## Available Commands

@@ -1,13 +1,10 @@
-import type { AtlasProjectDocuments } from './fetchAndStoreAtlasData';
+import type { DocsetsByProject } from './loadVersioningFromCheckout';
 import type { ProjectNames } from './readSnootyToml';
-import type {
-  BranchEntry,
-  ReposBranchesDocument,
-} from '../util/databaseConnection/types';
+import type { Docset, Version } from '../../../versioning/types';
 
 /** Config object storing all content data for the build */
 export interface AllContentData {
-  atlasProjectDocuments: AtlasProjectDocuments;
+  docsetsByProject: DocsetsByProject;
   /** Content paths to build relative to contentDir, e.g. `atlas` or `c-driver/current` */
   pathsToBuild: string[];
   /** docsPaths object keyed by content path */
@@ -23,7 +20,7 @@ export interface ContentBundleData {
     projectDirName: string;
     /** Name of version or empty string if project is unversioned */
     versionName: string;
-    /** whether this content path corresponds to an active branch in repos_branches.
+    /** whether this content path corresponds to an active version in the docset catalog.
      *  Unversioned projects are treated as active unless their sole branch is marked inactive. */
     active: boolean;
     /** whether the content has changed in the last commit */
@@ -37,29 +34,40 @@ export interface ContentBundleData {
 
 /** Populates docsPaths with structural metadata and initializes shouldRebuild based on clearCache.
  * @param projectNames - list of project names keyed by content path
- * @param atlasProjectDocuments - list of atlas project documents keyed by project name
+ * @param docsetsByProject - the docset catalog keyed by project name
  * @param clearCache - whether to clear the cache
  * @returns the docsPaths object keyed by content path
  */
 export const processContentMetadata = async ({
   projectNames,
-  atlasProjectDocuments,
+  docsetsByProject,
   clearCache,
 }: {
   projectNames: ProjectNames;
-  atlasProjectDocuments: AtlasProjectDocuments;
+  docsetsByProject: DocsetsByProject;
   clearCache: boolean;
 }): Promise<{ docsPaths: ContentBundleData }> => {
   const docsPaths: ContentBundleData = {};
 
   Object.entries(projectNames).map(([contentPath, projectName]) => {
-    const { reposBranchesEntry } = atlasProjectDocuments[projectName];
+    const docset = docsetsByProject[projectName];
+    // The catalog is the only source of versioning truth now, so an
+    // unregistered project cannot be reasoned about: it would be treated as
+    // unversioned and active, quietly producing the wrong paths and prefixes
+    // for what may well be a versioned site. Fail the build instead.
+    if (!docset) {
+      throw new Error(
+        `[processContentMetadata] no docset registered for project "${projectName}" (content path ${contentPath}). ` +
+          'Add platform/versioning/projects/' +
+          `${projectName}.ts and register it in platform/versioning/index.ts.`,
+      );
+    }
     const { projectDirName, versionName } = splitContentPath({
       contentPath,
-      reposBranchesEntry,
+      docset,
     });
 
-    const active = isContentPathActive({ versionName, reposBranchesEntry });
+    const active = isContentPathActive({ versionName, docset });
     const shouldRebuild = active && clearCache;
 
     docsPaths[contentPath] = {
@@ -75,74 +83,61 @@ export const processContentMetadata = async ({
   return { docsPaths };
 };
 
-/** Determines whether the given content path corresponds to an active branch
- *  in its project's repos_branches entry.
+/** Determines whether the given content path corresponds to an active version
+ *  in its project's docset entry.
  *
- *  - Unversioned projects (0 or 1 branch) are active unless their sole branch
- *    is explicitly marked `active: false`.
- *  - Versioned projects match the URL slug of the content path (the trailing
- *    segment of `contentPath`) against `branch.urlSlug` first, then fall back
- *    to `branch.name` and `branch.gitBranchName` for resilience.
+ *  - Unversioned projects (a single stub version) are active unless that
+ *    version is explicitly marked `active: false`.
+ *  - Versioned projects match the trailing segment of `contentPath` against
+ *    `versionName`, the sole identifier a version has.
  */
 export const isContentPathActive = ({
   versionName,
-  reposBranchesEntry,
+  docset,
 }: {
   versionName: string;
-  reposBranchesEntry: ReposBranchesDocument;
+  docset: Docset;
 }): boolean => {
-  const branches = reposBranchesEntry?.branches ?? [];
-  if (branches.length <= 1) {
-    const branch = branches[0];
-    if (branch) {
-      return branch.active === true;
+  const versions = docset.versions;
+  if (versions.length <= 1) {
+    const version = versions[0];
+    if (version) {
+      return version.active === true;
     } else {
       return true;
     }
   }
-  const branch = branches.find(
-    (b: BranchEntry) =>
-      b.urlSlug === versionName ||
-      b.name === versionName ||
-      b.gitBranchName === versionName,
-  );
-  return branch?.active === true;
+  const version = versions.find((v: Version) => v.versionName === versionName);
+  return version?.active === true;
 };
 
-/** Atlas branch for a content path, or undefined if docsPaths / repos_branches has no match. */
+/** Catalog version for a content path, or undefined if there is no match. */
 export const getBranchForContentPath = (
   contentPath: string,
   allContentData: AllContentData,
-): BranchEntry | undefined => {
+): Version | undefined => {
   const bundle = allContentData.docsPaths?.[contentPath];
   if (!bundle?.projectName) return undefined;
-  const branches =
-    allContentData.atlasProjectDocuments[bundle.projectName]?.reposBranchesEntry
-      ?.branches ?? [];
+  const versions = allContentData.docsetsByProject[bundle.projectName]?.versions ?? [];
   if (!bundle.versionName) {
-    return branches.length <= 1 ? branches[0] : undefined;
+    return versions.length <= 1 ? versions[0] : undefined;
   }
-  return branches.find(
-    (b: BranchEntry) =>
-      b.urlSlug === bundle.versionName ||
-      b.name === bundle.versionName ||
-      b.gitBranchName === bundle.versionName,
-  );
+  return versions.find((v) => v.versionName === bundle.versionName);
 };
 
 /** Split the content path, retrieving project directory name and version name
  * @param contentPath - the content path to split (relative to contentDir, e.g. `atlas` or `c-driver/current`)
- * @param reposBranchesEntry - the repos branches entry for the project
+ * @param docset - the docset entry for the project
  * @returns the project directory name and version name
  */
 export const splitContentPath = ({
   contentPath,
-  reposBranchesEntry,
-}: { contentPath: string; reposBranchesEntry: ReposBranchesDocument }): {
+  docset,
+}: { contentPath: string; docset: Docset }): {
   projectDirName: string;
   versionName: string;
 } => {
-  const versioned = reposBranchesEntry?.branches?.length > 1;
+  const versioned = docset.versions.length > 1;
   const versionName = versioned ? (contentPath.split('/').at(-1) ?? '') : '';
   const projectDirName = versioned
     ? (contentPath.split('/').at(-2) ?? '')

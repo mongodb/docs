@@ -1,4 +1,4 @@
-import type { AtlasProjectDocuments } from '../contentMetadata/fetchAndStoreAtlasData.js';
+import type { DocsetsByProject } from '../contentMetadata/loadVersioningFromCheckout.js';
 import { findAllActiveVersionsForProject } from './active-versions-for-project.js';
 import type { ProjectVersionsMap } from './changed-projects-and-versions.js';
 
@@ -8,7 +8,7 @@ import type { ProjectVersionsMap } from './changed-projects-and-versions.js';
  */
 export const filterActiveVersions = (
   changedProjects: ProjectVersionsMap,
-  atlasProjectDocuments: AtlasProjectDocuments,
+  docsetsByProject: DocsetsByProject,
 ): ProjectVersionsMap => {
   const filtered: ProjectVersionsMap = {};
 
@@ -17,7 +17,7 @@ export const filterActiveVersions = (
   )) {
     const activeVersions = findAllActiveVersionsForProject(
       projectName,
-      atlasProjectDocuments,
+      docsetsByProject,
     );
     if (!activeVersions) {
       console.warn(

@@ -12,6 +12,7 @@ export type DocsetSearch = {
 	categoryTitle: string;
 	/**
 	 * Key prefix for search properties (`${categoryName}-${versionName}`).
+	 * 
 	 * Defaults to the docset's `project`. Set it ONLY where the two differ —
 	 * for example the Manual, whose `project` is `docs` but whose
 	 * `categoryName` is `manual`.

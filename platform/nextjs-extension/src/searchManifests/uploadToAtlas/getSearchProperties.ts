@@ -1,8 +1,4 @@
-import type {
-  BranchEntry,
-  ReposBranchesDocument,
-  DocsetsDocument,
-} from '../../util/databaseConnection/types';
+import type { Docset, Version } from '../../../../versioning/types';
 import { assertTrailingSlash } from '../utils';
 
 export interface SearchProperties {
@@ -12,39 +8,33 @@ export interface SearchProperties {
   includeInGlobalSearch: boolean;
 }
 
-const constructUrl = (
-  docsetEntry: DocsetsDocument,
-  branchEntry: BranchEntry,
-) => {
-  const baseUrl = docsetEntry.url;
-  const projectPrefix = docsetEntry.prefix;
-
-  const assembledUrl = `${baseUrl}${projectPrefix}/${branchEntry.urlSlug ?? ''}`;
-  return assertTrailingSlash(assembledUrl);
+/**
+ * The published URL for a version. Unversioned sites publish at their prefix
+ * with no version segment, which is why the segment is conditional.
+ */
+const constructUrl = (docset: Docset, version: Version, baseUrl: string) => {
+  const versionSegment = docset.versions.length > 1 ? `/${version.versionName}` : '';
+  return assertTrailingSlash(`${baseUrl}${docset.prefix}${versionSegment}`);
 };
 
 export const getSearchProperties = async ({
-  branchEntry,
-  docsetEntry,
-  repoEntry,
+  version,
+  docset,
+  baseUrl,
 }: {
-  branchEntry: BranchEntry;
-  docsetEntry: DocsetsDocument;
-  repoEntry: ReposBranchesDocument;
+  version: Version;
+  docset: Docset;
+  baseUrl: string;
 }): Promise<SearchProperties> => {
-  const url = constructUrl(docsetEntry, branchEntry);
+  const url = constructUrl(docset, version, baseUrl);
 
-  const version = branchEntry.urlSlug || branchEntry.gitBranchName;
-
-  const searchProperty = `${repoEntry.search?.categoryName ?? repoEntry.project}-${version}`;
-  const includeInGlobalSearch = branchEntry.isStableBranch ?? false;
-
-  const active = branchEntry.active;
+  const categoryName = docset.search?.categoryName ?? docset.project;
+  const searchProperty = `${categoryName}-${version.versionName}`;
 
   return {
-    active,
+    active: version.active,
     searchProperty,
     url,
-    includeInGlobalSearch,
+    includeInGlobalSearch: version.stable,
   };
 };

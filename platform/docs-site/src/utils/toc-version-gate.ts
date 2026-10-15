@@ -2,29 +2,21 @@ import type { TocItem } from '@/mdx-components/UnifiedSidenav/types';
 import type { ActiveVersions, AvailableVersions } from '@/context/version-context';
 
 /**
- * Every name the active version of a content site can be known by.
+ * The name of the active version of a content site, or null if it cannot be
+ * identified.
  *
- * `activeVersions` holds git branch names, while TOC `versions` gates are
- * written in urlSlug space -- `version-arrays/versions.ts` rewrites named
- * versions, so v8.3 appears in gates as 'manual'. Gates may also name a
- * urlAlias. Comparing against every alias avoids silently missing a gate
- * because it happens to use a different name for the same version.
  */
-const versionNames = (
+const getActiveVersionName = (
   contentSite: string | undefined,
   activeVersions: ActiveVersions,
   availableVersions: AvailableVersions,
-): Set<string> | null => {
+): string | null => {
   if (!contentSite) return null;
 
   const active = activeVersions[contentSite];
-  const branch = (availableVersions[contentSite] || []).find(
-    (version) =>
-      version.gitBranchName === active || version.urlSlug === active || version?.urlAliases?.includes(active),
-  );
-  if (!branch) return null;
+  const version = (availableVersions[contentSite] || []).find((v) => v.versionName === active);
 
-  return new Set([branch.urlSlug, branch.gitBranchName, ...(branch.urlAliases ?? [])].filter(Boolean));
+  return version?.versionName ?? null;
 };
 
 /**
@@ -41,12 +33,12 @@ export const isTocItemAllowedForVersion = (
 ): boolean => {
   if (!item.versions) return true;
 
-  const names = versionNames(item.contentSite, activeVersions, availableVersions);
-  if (!names) return true;
+  const activeVersionName = getActiveVersionName(item.contentSite, activeVersions, availableVersions);
+  if (!activeVersionName) return true;
 
   const { includes, excludes } = item.versions;
-  if (excludes?.some((version) => names.has(version))) return false;
-  if (includes) return includes.some((version) => names.has(version));
+  if (excludes?.includes(activeVersionName)) return false;
+  if (includes) return includes.includes(activeVersionName);
 
   return true;
 };

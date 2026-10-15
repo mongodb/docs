@@ -13,7 +13,7 @@ import {
 	getAllProjectNames,
 	type ProjectNames,
 } from "./contentMetadata/readSnootyToml";
-import { fetchAtlasData } from "./contentMetadata/fetchAndStoreAtlasData";
+import { loadVersioningFromCheckout } from "./contentMetadata/loadVersioningFromCheckout";
 import {
 	processContentMetadata,
 	type AllContentData,
@@ -42,7 +42,7 @@ const extension = new Extension({
 const TOML_SEARCH_MAX_DEPTH = 5;
 
 const allContentData: AllContentData = {
-	atlasProjectDocuments: {},
+	docsetsByProject: {},
 	pathsToBuild: [],
 	docsPaths: {},
 };
@@ -91,13 +91,11 @@ extension.addBuildEventHandler(
 			await getAllProjectNames(contentDirectories);
 		console.log("Retrieved all project names for changed content paths");
 
-		const atlasProjectDocuments = await fetchAtlasData({
-			configEnvironment,
-			dbEnvVars,
-			projectNames,
+		// Must run before anything that resolves paths, prefixes, or search keys:
+		// they all read the catalog this loads.
+		allContentData.docsetsByProject = await loadVersioningFromCheckout({
+			run: utils.run,
 		});
-
-		allContentData.atlasProjectDocuments = atlasProjectDocuments;
 
 		const isMain = process.env.HEAD === MAIN_BRANCH;
 
@@ -109,7 +107,7 @@ extension.addBuildEventHandler(
 			allContentData,
 			await processContentMetadata({
 				projectNames,
-				atlasProjectDocuments: allContentData.atlasProjectDocuments,
+				docsetsByProject: allContentData.docsetsByProject,
 				clearCache: false,
 			}),
 		);
@@ -132,7 +130,7 @@ extension.addBuildEventHandler(
 			await runPrebuildModules({
 				netlifyPluginUtils: utils,
 				allContentData,
-				atlasProjectDocuments: allContentData.atlasProjectDocuments,
+				docsetsByProject: allContentData.docsetsByProject,
 				branchName: configEnvironment.BRANCH as string,
 				prId: configEnvironment.REVIEW_ID
 					? Number.parseInt(configEnvironment.REVIEW_ID, 10)

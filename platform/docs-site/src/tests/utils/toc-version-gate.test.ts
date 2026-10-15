@@ -64,36 +64,35 @@ const buildToc = ({ v7First = false }: { v7First?: boolean } = {}): TocItem[] =>
   ] as TocItem[];
 };
 
-const branch = (gitBranchName: string, urlSlug: string, urlAliases: string[] | null = null) => ({
-  gitBranchName,
-  urlSlug,
-  urlAliases,
+const version = (versionName: string, stable = false) => ({
+  versionName,
+  stable,
   active: true,
-  versionSelectorLabel: urlSlug,
+  versionSelectorLabel: versionName,
   offlineUrl: '',
   noIndexing: false,
 });
 
 const availableVersions = {
-  docs: [branch('v7.0', 'v7.0'), branch('v8.0', 'v8.0'), branch('master', 'v8.3', ['manual', 'current'])],
+  docs: [version('v7.0'), version('v8.0'), version('manual', true)],
 } as unknown as AvailableVersions;
 
-// `activeVersions` holds git branch names, while gates are written in urlSlug
-const activeVersionsFor = (gitBranchName: string): ActiveVersions => ({ docs: gitBranchName });
+// activeVersions and gates are both versionName space now.
+const activeVersionsFor = (versionName: string): ActiveVersions => ({ docs: versionName });
 
 /** Composes the production path: annotate ancestry, resolve with the version gate, fall back unfiltered. */
-const crumbsFor = (tree: TocItem[], gitBranchName: string, urlSlug: string, url = LIMITATIONS_URL) => {
+const crumbsFor = (tree: TocItem[], versionName: string, url = LIMITATIONS_URL) => {
   const withNewUrls = (items: TocItem[]): TocItem[] =>
     items.map((item) => ({
       ...item,
-      newUrl: (item.url ?? '').replace(/:version/g, urlSlug),
+      newUrl: (item.url ?? '').replace(/:version/g, versionName),
       items: item.items ? withNewUrls(item.items) : undefined,
     })) as TocItem[];
 
   const annotated = createParentFromToc(withNewUrls(tree), [])!;
-  const activeVersions = activeVersionsFor(gitBranchName);
+  const activeVersions = activeVersionsFor(versionName);
   const isAllowed = (item: TocItem) => isTocItemAllowedForVersion(item, activeVersions, availableVersions);
-  const slug = url.replace(/:version/g, urlSlug);
+  const slug = url.replace(/:version/g, versionName);
 
   return findParentBreadCrumb(slug, annotated, isAllowed) ?? findParentBreadCrumb(slug, annotated) ?? [];
 };
@@ -101,16 +100,17 @@ const crumbsFor = (tree: TocItem[], gitBranchName: string, urlSlug: string, url 
 const titlesFor = (...args: Parameters<typeof crumbsFor>) => crumbsFor(...args).map((crumb) => crumb.title);
 
 describe('isTocItemAllowedForVersion', () => {
-  it('resolves git branch names against urlSlug-space gates', () => {
-    // activeVersions holds 'master'; the gate names the urlSlug 'v8.3'
-    const item = { versions: { excludes: ['v8.3'] }, contentSite: 'docs' };
-    expect(isTocItemAllowedForVersion(item, activeVersionsFor('master'), availableVersions)).toBe(false);
+  it('matches a gate naming the active versionName', () => {
+    const item = { versions: { excludes: ['manual'] }, contentSite: 'docs' };
+    expect(isTocItemAllowedForVersion(item, activeVersionsFor('manual'), availableVersions)).toBe(false);
   });
 
-  it('matches gates written against a urlAlias', () => {
-    // 'manual' is an alias of the master/v8.3 branch, not its urlSlug
-    const item = { versions: { excludes: ['manual'] }, contentSite: 'docs' };
-    expect(isTocItemAllowedForVersion(item, activeVersionsFor('master'), availableVersions)).toBe(false);
+  it('does not match a gate naming a former urlAlias', () => {
+    // 'v8.3' was an alias of the version now named 'manual'. Aliases are
+    // Netlify redirects rather than catalog data, so the gate no longer
+    // resolves: an excludes gate stops excluding and the item is kept.
+    const item = { versions: { excludes: ['v8.3'] }, contentSite: 'docs' };
+    expect(isTocItemAllowedForVersion(item, activeVersionsFor('manual'), availableVersions)).toBe(true);
   });
 
   describe('fails open rather than hiding real navigation', () => {
@@ -136,7 +136,7 @@ describe('breadcrumbs for a page that moved between versions (DOP-7255)', () => 
   it('resolves v7.0 into the v7 subtree', () => {
     // 'Reference' is absent by design: it is a urlless section header, so
     // createParentFromToc cannot emit a crumb for it.
-    expect(titlesFor(buildToc(), 'v7.0', 'v7.0')).toEqual([
+    expect(titlesFor(buildToc(), 'v7.0')).toEqual([
       'Development',
       'In-Use Encryption ',
       'Client-Side Field Level Encryption',
@@ -144,11 +144,11 @@ describe('breadcrumbs for a page that moved between versions (DOP-7255)', () => 
   });
 
   it('resolves v8.0 into the non-v7 subtree', () => {
-    expect(titlesFor(buildToc(), 'v8.0', 'v8.0')).toEqual(['Development', 'In-Use Encryption', 'Comparing Approaches']);
+    expect(titlesFor(buildToc(), 'v8.0')).toEqual(['Development', 'In-Use Encryption', 'Comparing Approaches']);
   });
 
   it('emits no crumb linking to a page that does not exist in the active version', () => {
-    const paths = crumbsFor(buildToc(), 'v7.0', 'v7.0').map((crumb) => crumb.path);
+    const paths = crumbsFor(buildToc(), 'v7.0').map((crumb) => crumb.path);
     expect(paths.some((path) => path.includes('about-qe-csfle'))).toBe(false);
     expect(paths.filter((path) => path.includes('/core/'))).toEqual([
       '/docs/v7.0/core/security-in-use-encryption',
@@ -157,7 +157,7 @@ describe('breadcrumbs for a page that moved between versions (DOP-7255)', () => 
   });
 
   it('still resolves a page listed only inside a gated-out subtree', () => {
-    expect(titlesFor(buildToc(), 'v7.0', 'v7.0', V8_ONLY_LISTED_URL)).toEqual([
+    expect(titlesFor(buildToc(), 'v7.0', V8_ONLY_LISTED_URL)).toEqual([
       'Development',
       'In-Use Encryption',
       'Comparing Approaches',
@@ -165,7 +165,7 @@ describe('breadcrumbs for a page that moved between versions (DOP-7255)', () => 
   });
 
   it('is independent of the order the subtrees are declared in', () => {
-    expect(titlesFor(buildToc({ v7First: true }), 'v7.0', 'v7.0')).toEqual(titlesFor(buildToc(), 'v7.0', 'v7.0'));
-    expect(titlesFor(buildToc({ v7First: true }), 'v8.0', 'v8.0')).toEqual(titlesFor(buildToc(), 'v8.0', 'v8.0'));
+    expect(titlesFor(buildToc({ v7First: true }), 'v7.0')).toEqual(titlesFor(buildToc(), 'v7.0'));
+    expect(titlesFor(buildToc({ v7First: true }), 'v8.0')).toEqual(titlesFor(buildToc(), 'v8.0'));
   });
 });

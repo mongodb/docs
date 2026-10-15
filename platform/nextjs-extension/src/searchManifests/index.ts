@@ -8,11 +8,10 @@ import {
 } from './uploadToAtlas/getSearchProperties';
 import type {
   SearchDBName,
-  BranchEntry,
-  DocsetsDocument,
-  ReposBranchesDocument,
   SearchClusterConnectionInfo,
 } from '../util/databaseConnection/types';
+import type { Docset, Version } from '../../../versioning/types';
+import { docsUrlForEnv } from '../../../versioning/define';
 import { generateManifest } from './generateManifest/index';
 import { uploadManifest } from './uploadToAtlas/uploadManifest';
 import { deleteStaleProperties } from './uploadToAtlas/deleteStale';
@@ -28,28 +27,25 @@ const generateAndUploadManifests = async ({
   configEnvironment,
   run,
   dbEnvVars,
-  branchEntry,
-  repoEntry,
-  docsetEntry,
+  version,
+  docset,
   pathToBundle,
 }: {
   configEnvironment: ConfigEnvironmentVariables;
   run: BuildRunner;
   dbEnvVars: StaticEnvVars;
-  branchEntry: BranchEntry;
-  repoEntry: ReposBranchesDocument;
-  docsetEntry: DocsetsDocument;
+  version: Version;
+  docset: Docset;
   pathToBundle: string;
 }) => {
   // Get content repo zipfile as AST representation
   await run.command(`unzip -o -q ${pathToBundle}`);
 
-  const branchName = branchEntry.gitBranchName;
-  const repoName = repoEntry.repoName;
-  if (!repoName || !branchName) {
-    // Check that an environment variable for repo name was set
+  const versionName = version.versionName;
+  const projectName = docset.project;
+  if (!projectName || !versionName) {
     throw new Error(
-      `Repo or branch name was not found, manifest for repo ${repoName} and branch ${branchName} cannot be generated`,
+      `Project or version name was not found, manifest for project ${projectName} and version ${versionName} cannot be generated`,
     );
   }
 
@@ -67,12 +63,12 @@ const generateAndUploadManifests = async ({
     searchProperty,
     includeInGlobalSearch,
   }: SearchProperties = await getSearchProperties({
-    branchEntry,
-    docsetEntry,
-    repoEntry,
+    version,
+    docset,
+    baseUrl: docsUrlForEnv(configEnvironment.ENV),
   });
 
-  console.log(`Search properties for ${repoEntry.repoName}: active: ${active}, searchProperty: ${searchProperty}, includeInGlobalSearch: ${includeInGlobalSearch}, url: ${url}}: 
+  console.log(`Search properties for ${docset.project}: active: ${active}, searchProperty: ${searchProperty}, includeInGlobalSearch: ${includeInGlobalSearch}, url: ${url}}: 
     `);
 
   if (!active) {
@@ -141,26 +137,30 @@ export const handleSearchManifests = async ({
 }: SearchManifestJobParams) => {
   const promises = Object.entries(allContentData.docsPaths).map(
     async ([contentPath, bundleData]) => {
-      const repoEntry =
-        allContentData.atlasProjectDocuments[bundleData.projectName]
-          ?.reposBranchesEntry;
-      const branch: BranchEntry | undefined = repoEntry.branches.find(
-        (branch: BranchEntry): boolean => branch.urlSlug === bundleData.versionName,
+      const docset = allContentData.docsetsByProject[bundleData.projectName];
+      if (!docset) {
+        console.error(`Docset not found for project ${bundleData.projectName}`);
+        return;
+      }
+      const version: Version | undefined = docset.versions.find(
+        (v: Version): boolean =>
+          v.versionName === bundleData.versionName,
       );
-      if (!branch) {
+
+      if (!version) {
         console.error(
-          `Branch ${bundleData.versionName} not found for repo ${repoEntry.repoName}`,
+          `Version ${bundleData.versionName} not found for project ${docset.project}`,
         );
         return;
       }
 
       // TODO: do we NEVER rebuild for inactive versions? or just the ones that don't need to be rebuilt
       if (bundleData.projectDirName !== process.env.DOCS_PROJECT) {
-        console.log('skipping handleSearchManifests for branch: ', branch, 'and project: ', bundleData.projectDirName);
+        console.log('skipping handleSearchManifests for branch: ', version, 'and project: ', bundleData.projectDirName);
         return;
       }
 
-      console.log('handling handleSearchManifests for branch: ', branch, 'and project: ', bundleData.projectDirName);
+      console.log('handling handleSearchManifests for branch: ', version, 'and project: ', bundleData.projectDirName);
       const { contentDir } = getRepoPaths();
       const pathToBundle = path.join(contentDir, contentPath, 'bundle.zip');
       console.log(`pathToBundle: ${pathToBundle}`);
@@ -169,15 +169,12 @@ export const handleSearchManifests = async ({
           configEnvironment,
           run,
           dbEnvVars,
-          branchEntry: branch,
-          repoEntry,
-          docsetEntry:
-            allContentData.atlasProjectDocuments[bundleData.projectName]
-              ?.docsetsEntry,
+          version,
+          docset,
           pathToBundle,
         });
       } catch (e) {
-        console.error('Error while creating offline doc for branch: ', branch);
+        console.error('Error while creating offline doc for version: ', version);
         console.error(e);
       }
     },

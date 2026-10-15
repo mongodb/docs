@@ -52,11 +52,8 @@ const makeAllContentData = (
         },
       ]),
     ),
-    atlasProjectDocuments: Object.fromEntries(
-      entries.map((e) => [
-        e.projectName,
-        { docsetsEntry: { prefix: e.prefix } },
-      ]),
+    docsetsByProject: Object.fromEntries(
+      entries.map((e) => [e.projectName, { prefix: e.prefix }]),
     ),
   }) as unknown as AllContentData;
 

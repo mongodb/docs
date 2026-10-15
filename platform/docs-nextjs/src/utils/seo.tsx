@@ -6,7 +6,6 @@ import { getNestedValue } from '@/utils/get-nested-value';
 import type { Docset, RemoteMetadata } from '@/types/data';
 import { assertTrailingSlash } from './assert-trailing-slash';
 import { normalizePath } from './normalize-path';
-import type { Environments } from './env-config';
 import { parseBooleanEnv } from './parse-boolean-env';
 import { generateVersionedPrefix } from './generate-versioned-prefix';
 import type { MDXFrontmatter } from '@/types/ast';
@@ -43,7 +42,7 @@ export const getPageMetadata = ({
   // Retrieves the canonical URL based on certain situations
   // i.e. eol'd, non-eol'd, snooty.toml or ..metadata:: directive (highest priority)
   const canonical = getCanonicalUrl({ metadata: snootyMetadata, metaCanonical, docset, slug });
-  const noIndexing = docset.branches.find((br) => br.gitBranchName === snootyMetadata.branch)?.noIndexing ?? false;
+  const noIndexing = docset.versions.find((v) => v.versionName === snootyMetadata.branch)?.noIndexing ?? false;
   const nosnippet = !!robots?.includes('nosnippet');
   // DB_ENV is a UI-managed variable that is not scoped per deploy context, so
   // branch deploys and previews inherit 'dotcomprd'. NEXT_PUBLIC_ALLOW_INDEXING
@@ -108,11 +107,16 @@ const getCanonicalUrl = ({
     return metaCanonical;
   }
 
-  const urlSlug =
-    docset.branches.find((branch) => branch.gitBranchName === metadata.branch)?.urlSlug ?? metadata.branch;
-  const env = (process.env.DB_ENV ?? 'dev') as Environments;
-  const siteBasePrefix = docset.prefix[getRepoBranchesPrefixEnv(env)];
-  const pathPrefix = generateVersionedPrefix(siteBasePrefix, urlSlug);
+  // metadata.branch is the parser's --branch, which is the versionName.
+  // Unversioned docsets publish at the prefix with no version segment: their
+  // single versionName ("main") is an internal stub, not a URL segment. Same
+  // rule the sitemap route applies in docs-nextjs/src/app/api/sitemap.
+  const versionName =
+    docset.versions.length > 1
+      ? (docset.versions.find((version) => version.versionName === metadata.branch)?.versionName ??
+        metadata.branch)
+      : undefined;
+  const pathPrefix = generateVersionedPrefix(docset.prefix, versionName);
 
   // Strip a trailing "index" path segment (or root "/") so the canonical points
   // to the clean URL (e.g. /docs/ instead of /docs/index/). Only matches "index"
@@ -130,14 +134,4 @@ const getCanonicalUrl = ({
 
   canonical = assertTrailingSlash(canonical);
   return canonical.toLowerCase();
-};
-
-export const getRepoBranchesPrefixEnv = (env: Environments) => {
-  switch (env) {
-    case 'dotcomprd':
-      return 'dotcomprd';
-    case 'dotcomstg':
-    default:
-      return 'dotcomstg';
-  }
 };

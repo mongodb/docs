@@ -123,7 +123,7 @@ const isPathActive = (
 
 /**
  * Active versions always queue. Inactive versions queue only when
- * ALLOW_INACTIVE_VERSIONS is set and Atlas eol_type === 'link' (not 'download').
+ * ALLOW_INACTIVE_VERSIONS is set and Atlas eolType === 'link' (not 'download').
  */
 const shouldQueueForcedPath = (
 	contentPath: string,
@@ -133,14 +133,14 @@ const shouldQueueForcedPath = (
 	if (isPathActive(contentPath, allContentData)) return true;
 	if (!allowInactiveVersions) {
 		console.log(
-			`Skipping inactive path (set ALLOW_INACTIVE_VERSIONS to include eol_type=link): ${contentPath}`,
+			`Skipping inactive path (set ALLOW_INACTIVE_VERSIONS to include eolType=link): ${contentPath}`,
 		);
 		return false;
 	}
-	const eolType = getBranchForContentPath(contentPath, allContentData)?.eol_type;
+	const eolType = getBranchForContentPath(contentPath, allContentData)?.eolType;
 	if (eolType === 'link') return true;
 	console.log(
-		`Skipping inactive path ${contentPath}: eol_type is ${eolType ?? 'unset'} (ALLOW_INACTIVE_VERSIONS only includes eol_type=link)`,
+		`Skipping inactive path ${contentPath}: eolType is ${eolType ?? 'unset'} (ALLOW_INACTIVE_VERSIONS only includes eolType=link)`,
 	);
 	return false;
 };

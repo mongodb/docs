@@ -15,7 +15,7 @@ import {
 	getAllProjectNames,
 	type ProjectNames,
 } from "../../nextjs-extension/src/contentMetadata/readSnootyToml";
-import { fetchAtlasData } from "../../nextjs-extension/src/contentMetadata/fetchAndStoreAtlasData";
+import { loadVersioningFromCheckout } from "../../nextjs-extension/src/contentMetadata/loadVersioningFromCheckout";
 import {
 	processContentMetadata,
 	type AllContentData,
@@ -32,7 +32,7 @@ import { logDiskMetrics } from "./util/diskMetrics";
 const TOML_SEARCH_MAX_DEPTH = 5;
 
 export const createAllContentData = (): AllContentData => ({
-	atlasProjectDocuments: {},
+	docsetsByProject: {},
 	pathsToBuild: [],
 	docsPaths: {},
 });
@@ -93,19 +93,15 @@ export const prepare = async ({
 		await getAllProjectNames(contentDirectories);
 	console.log("Retrieved all project names for content paths");
 
-	const atlasProjectDocuments = await fetchAtlasData({
-		configEnvironment,
-		dbEnvVars,
-		projectNames,
+	allContentData.docsetsByProject = await loadVersioningFromCheckout({
+		run: utils.run,
 	});
-
-	allContentData.atlasProjectDocuments = atlasProjectDocuments;
 
 	Object.assign(
 		allContentData,
 		await processContentMetadata({
 			projectNames,
-			atlasProjectDocuments: allContentData.atlasProjectDocuments,
+			docsetsByProject: allContentData.docsetsByProject,
 			clearCache: false,
 		}),
 	);
@@ -124,7 +120,7 @@ export const prepare = async ({
 		await runPrebuildModules({
 			netlifyPluginUtils: utils,
 			allContentData,
-			atlasProjectDocuments: allContentData.atlasProjectDocuments,
+			docsetsByProject: allContentData.docsetsByProject,
 			branchName: configEnvironment.BRANCH as string,
 			prId: configEnvironment.REVIEW_ID
 				? Number.parseInt(configEnvironment.REVIEW_ID, 10)

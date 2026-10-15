@@ -1,5 +1,5 @@
-import type { WithId } from 'mongodb';
 import type { ASTNode, Root, TextNode, TocTreeEntry } from './ast';
+import type { Docset, EOLType, Group, Version } from 'versioning';
 
 type AppData = {
   page: {
@@ -20,73 +20,7 @@ export type PageFacet = {
   sub_facets: PageFacet[] | null;
 };
 
-type EOLType = 'download' | 'link';
-
-type ReposBranchesDocument = {
-  displayName?: string;
-  project: string;
-  branches: BranchData[];
-  hasEolVersions?: boolean;
-  repoName: string;
-  search?: { categoryTitle: string; categoryName?: string };
-  internalOnly: boolean;
-  prodDeployable: boolean;
-  groups: Group[] | null;
-};
-
-type BranchData = {
-  gitBranchName: string;
-  active: boolean;
-  urlSlug: string;
-  urlAliases?: string[] | null;
-  versionSelectorLabel: string;
-  offlineUrl: string;
-  noIndexing: boolean;
-  eol_type?: EOLType;
-  buildsWithSnooty?: boolean;
-  publishOriginalBranchName?: boolean;
-};
-
-type DocsetDocument = WithId<Document> & {
-  project: string;
-  prefix: Record<SnootyEnv, string>;
-  bucket: Record<SnootyEnv, string>;
-};
-
-type Docset = ReposBranchesDocument & {
-  prefix: {
-    dotcomprd: string;
-    dotcomstg: string;
-    prd: string;
-    stg: string;
-  };
-  url: {
-    dev: string;
-    dotcomprd: string;
-    dotcomstg: string;
-    prd: string;
-    stg: string;
-    regression: string;
-  };
-  bucket: {
-    dev: string;
-    dotcomprd: string;
-    dotcomstg: string;
-    prd: string;
-    stg: string;
-    regression: string;
-  };
-};
-
-type Group = {
-  id?: string;
-  groupLabel: string;
-  includedBranches: string[];
-  sharedSlugPrefix?: string;
-};
-
 type MetadataDatabaseName = 'snooty_stage' | 'snooty_prod' | 'snooty_dotcomstg' | 'snooty_dotcomprd' | 'snooty_dev';
-type ReposDatabaseName = 'pool' | 'pool_test';
 
 type SiteMetadata = {
   commitHash: string;
@@ -96,7 +30,6 @@ type SiteMetadata = {
   patchId: string;
   pathPrefix: string;
   project: string;
-  reposDatabase: ReposDatabaseName;
   siteUrl: string;
   snootyBranch: string;
   snootyEnv: SnootyEnv;
@@ -219,11 +152,9 @@ type Viewport = {
 
 export type {
   AppData,
-  BranchData,
   BreadcrumbType,
   ClientSiteMetadata,
   Docset,
-  DocsetDocument,
   EOLType,
   FacetOption,
   FacetValue,
@@ -238,11 +169,10 @@ export type {
   MetadataDatabaseName,
   MultiPageTutorial,
   RemoteMetadata,
-  ReposBranchesDocument,
-  ReposDatabaseName,
   SiteMetadata,
   SlugToBreadcrumbLabel,
   SlugToTitle,
   SnootyEnv,
+  Version,
   Viewport,
 };

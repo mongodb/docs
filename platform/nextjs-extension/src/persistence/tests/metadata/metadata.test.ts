@@ -13,9 +13,6 @@ let connection: MongoClient;
 let mockDb: Db;
 jest.mock('../../src/services/connector', () => {
   return {
-    pool: jest.fn(() => {
-      return mockDb;
-    }),
     db: jest.fn(async () => {
       return mockDb;
     }),

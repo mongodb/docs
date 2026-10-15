@@ -4,24 +4,26 @@ import type { Docset } from '@/types/data';
 import { getPageMetadata } from '@/utils/seo';
 import { createMockMetadata } from './mock-snooty-metadata';
 
-const makeDocset = (urlSlugByBranch: Record<string, string>, prefix = 'docs'): Docset =>
-  ({
-    project: 'manual',
-    prefix: { dotcomprd: prefix, dotcomstg: prefix, prd: prefix, stg: prefix },
-    branches: Object.entries(urlSlugByBranch).map(([gitBranchName, urlSlug]) => ({
-      gitBranchName,
-      urlSlug,
-      active: true,
-      noIndexing: false,
-    })),
-  } as unknown as Docset);
+const makeDocset = (versionNames: string[], prefix = 'docs'): Docset => ({
+  project: 'manual',
+  displayName: 'MongoDB Manual',
+  prefix,
+  internalOnly: false,
+  versions: versionNames.map((versionName) => ({
+    versionName,
+    versionSelectorLabel: versionName,
+    active: true,
+    stable: false,
+    noIndexing: false,
+  })),
+});
 
-const manualDocset = makeDocset({ master: 'manual', 'v8.0': 'v8.0' });
+const manualDocset = makeDocset(['manual', 'v8.0']);
 
 const getMetadata = ({
   fileId,
   frontmatter = {},
-  branch = 'master',
+  branch = 'manual',
   metadata = {},
   docset = manualDocset,
 }: {
@@ -73,7 +75,13 @@ describe('getPageMetadata', () => {
     });
 
     it('is the docs landing URL, not the site root, for the index page', () => {
-      const result = getMetadata({ fileId: 'index.txt', docset: makeDocset({ master: '' }) });
+      // Mirrors the real `landing` docset: prefix "docs", one version named
+      // "main", published at /docs/ with no version segment.
+      const result = getMetadata({
+        fileId: 'index.txt',
+        branch: 'main',
+        docset: makeDocset(['main']),
+      });
 
       expect(result.openGraph.url).toBe(`${DOTCOM_BASE_URL}/docs/`);
       expect(result.openGraph.url).not.toBe(new URL(DOTCOM_BASE_URL).toString());

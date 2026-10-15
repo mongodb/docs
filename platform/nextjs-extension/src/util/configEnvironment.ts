@@ -1,9 +1,5 @@
 import type {
-	BranchEntry,
-	DocsetsDocument,
 	Environments,
-	PoolDBName,
-	ReposBranchesDocument,
 	SearchDBName,
 	SnootyDBName,
 	ProjectsDocument,
@@ -37,13 +33,9 @@ export type ConfigEnvironmentVariables = Partial<{
 	INCOMING_HOOK_BODY: string;
 	IS_LOCAL_DEVELOPMENT: boolean;
 	ENV: Environments;
-	REPO_ENTRY: ReposBranchesDocument;
-	DOCSET_ENTRY: DocsetsDocument;
-	BRANCH_ENTRY: BranchEntry;
 	// Exposed to Next.js client/build; typically mirrors BRANCH / HEAD
 	NEXT_PUBLIC_GIT_BRANCH: string;
 	PROJECTS_ENTRY: ProjectsDocument;
-	POOL_DB_NAME: PoolDBName;
 	REPOSITORY_URL: string;
 	SEARCH_DB_NAME: SearchDBName;
 	SNOOTY_DB_NAME: SnootyDBName;

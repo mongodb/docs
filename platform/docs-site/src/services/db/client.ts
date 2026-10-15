@@ -33,16 +33,6 @@ export const getFeedbackDbName = (env: SnootyEnv) => {
   }
 };
 
-export const getPoolDbName = (env: Environments) => {
-  switch (env) {
-    case 'dotcomprd':
-      return 'pool';
-    case 'dotcomstg':
-    default:
-      return 'pool_test';
-  }
-};
-
 export const getCollection = async <Type extends Document>(
   dbName: string,
   collectionName: string,

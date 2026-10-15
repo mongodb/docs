@@ -1,13 +1,13 @@
-import type { AtlasProjectDocuments } from '../contentMetadata/fetchAndStoreAtlasData.js';
+import type { DocsetsByProject } from '../contentMetadata/loadVersioningFromCheckout.js';
 
 export const findAllActiveVersionsForProject = (
   projectName: string,
-  atlasProjectDocuments: AtlasProjectDocuments,
+  docsetsByProject: DocsetsByProject,
 ): string[] | undefined => {
-  const projectEntry = atlasProjectDocuments[projectName];
-  if (!projectEntry) return undefined;
+  const docset = docsetsByProject[projectName];
+  if (!docset) return undefined;
 
-  return projectEntry.reposBranchesEntry.branches
-    .filter((branch) => branch.active && branch.gitBranchName !== undefined)
-    .map((branch) => branch.urlSlug as string);
+  return docset.versions
+    .filter((version) => version.active)
+    .map((version) => version.versionName);
 };

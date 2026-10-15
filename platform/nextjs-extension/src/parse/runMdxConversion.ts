@@ -5,7 +5,7 @@ import {
 	convertZipImageFiles,
 } from "../../../snooty-ast-to-mdx/src/index.js";
 import type { AllContentData } from "../contentMetadata/processContentMetadata.js";
-import type { BranchEntry } from "../util/databaseConnection/types.js";
+import type { Version } from "../../../versioning/types";
 import { getRepoPaths } from "../paths.js";
 
 /** Run AST→MDX conversion for each content path using pre-built bundle zips, then list output files. */
@@ -35,20 +35,17 @@ export async function runMdxConversionForContentPaths({
 			const isVersioned = !!docsPath?.versionName;
 			let additionalInvOutputDirectory: string | undefined;
 			if (isVersioned) {
-				const branchEntry = allContentData.atlasProjectDocuments[
+				const versionData = allContentData.docsetsByProject[
 					docsPath.projectName
-				]?.reposBranchesEntry?.branches?.find(
-					(b: BranchEntry) =>
-				b.urlSlug === docsPath.versionName ||
-				b.gitBranchName === docsPath.versionName ||
-				b.urlAliases?.includes(docsPath.versionName),
+				]?.versions?.find(
+					(version: Version) => version.versionName === docsPath.versionName,
 				);
-				if (branchEntry?.isStableBranch && docsPath.projectName !== 'docs') {
-					additionalInvOutputDirectory = path.join(
-						mdxOutputPath,
-						docsPath.projectDirName,
-					);
-				}
+				if (versionData?.stable && docsPath.projectName !== 'docs') {
+          additionalInvOutputDirectory = path.join(
+            mdxOutputPath,
+            docsPath.projectDirName,
+          );
+        }
 			}
 
 			console.log(

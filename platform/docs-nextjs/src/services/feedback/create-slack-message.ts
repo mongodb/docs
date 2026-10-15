@@ -1,7 +1,7 @@
 import type { Collection } from 'mongodb';
 import P from 'leo-profanity';
-import type { SnootyEnv, DocsetDocument } from '@/types/data';
-import { getDocsetsCollection } from '@/services/db/docsets';
+import type { SnootyEnv } from '@/types/data';
+import { getDocsetByProject } from '@/services/db/docsets';
 import {
   getProjectsCollection,
   getTeamsCollection,
@@ -28,7 +28,6 @@ export async function createSlackMessagePayload(feedback: FeedbackDocument): Pro
   const slack_channels = await getSlackChannelsCollection();
   // Pass in "production" as the env to get the production feedback responses collection
   const prod_responses_collection = await getFeedbackResponsesCollection('production');
-  const docsets = await getDocsetsCollection();
 
   const docs_property = feedback.page.docs_property;
 
@@ -49,7 +48,7 @@ export async function createSlackMessagePayload(feedback: FeedbackDocument): Pro
   });
 
   const pageMetrics = await getPageMetrics(feedback, prod_responses_collection);
-  const message = await createSlackMessage(feedback, project, pageMetrics, docsets);
+  const message = await createSlackMessage(feedback, project, pageMetrics);
 
   const actions = channels
     .filter((channel: string) => {
@@ -93,16 +92,14 @@ function checkForLocale(pageUrl: string | null) {
 async function getGithubLink(
   feedback: FeedbackDocument,
   project: ProjectDocument,
-  docsets: Collection<DocsetDocument>,
 ) {
   const { slug, url } = feedback.page;
-  const { snootyEnv } = feedback;
   const { organization, repo, monorepoPath } = project.github;
-  const docset = await docsets.findOne({ project: project.name });
+  const docset = await getDocsetByProject(project.name);
   if (!docset) {
-    throw new Error(`No docset found for project ${project.name} in docsets collection`);
+    throw new Error(`No docset found for project ${project.name} in the docset catalog`);
   }
-  const prefix = docset.prefix[snootyEnv];
+  const { prefix } = docset;
   const pathSuffix = url?.split(prefix)[1]?.replace(/^\//, '')?.replace(/\/$/, '');
   const strippedSlug = slug.replace(/^\//, '').replace(/\/$/, '');
 
@@ -231,7 +228,6 @@ async function createSlackMessage(
   feedback: FeedbackDocument,
   project: ProjectDocument,
   pageMetrics: PageMetrics,
-  docsets: Collection<DocsetDocument>,
 ) {
   const { page, rating, category, comment, submittedAt, user } = feedback;
   const { title, slug, url } = page;
@@ -244,7 +240,7 @@ async function createSlackMessage(
     text,
     blocks: [],
   };
-  const githubUrl = await getGithubLink(feedback, project, docsets);
+  const githubUrl = await getGithubLink(feedback, project);
   message.blocks.push({
     type: 'section',
     text: {

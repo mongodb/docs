@@ -7,7 +7,6 @@ import * as mongodb from 'mongodb';
 import { join } from 'node:path';
 import {
   db as snootyDb,
-  pool as poolDb,
   teardown as closeDBConnection,
 } from './src/services/connector';
 import { insertAndUpdatePages } from './src/services/pages';
@@ -17,14 +16,20 @@ import {
   metadataFromZip,
 } from './src/services/metadata';
 import { upsertAssets } from './src/services/assets';
-import type { DocsetsDocument } from '../util/databaseConnection/types';
+import type { Docset } from '../../../versioning/types';
 
 export const runPersistenceModule = async (
   path: string,
-  docset: DocsetsDocument,
+  docset: Docset | undefined,
   branchName: string,
   prId?: number,
 ) => {
+  if (!docset) {
+    throw new Error(
+      '[persistence] no docset data for this build; cannot save pages without a prefix',
+    );
+  }
+
   try {
     const zip = new AdmZip(path);
     // atomic buildId for all artifacts read by this module - fundamental assumption
@@ -36,7 +41,6 @@ export const runPersistenceModule = async (
     // pass client to persistence module
     // TODO 6508: is there a reason we set this in persistence module (multiple db conncections) as opposed to passing it in?
     await snootyDb();
-    await poolDb();
     await Promise.all([
       insertAndUpdatePages(
         buildId,

@@ -24,7 +24,8 @@ export {
   computePagePath,
 } from './urlResolver.js';
 export type { DirNameToPrefix } from './urlResolver.js';
-export { EXCLUDED_PROJECTS, EXCLUDED_SOURCE_SUBDIRS, INTERNAL_ONLY_PROJECTS } from './exclusions.js';
+export { EXCLUDED_PROJECTS, EXCLUDED_SOURCE_SUBDIRS } from './exclusions.js';
+export { loadInternalOnlyProjects } from './catalog.js';
 export type { PageEntry, ProjectResult, GenerateOptions } from './types.js';
 export { LLMS_TXT_CHAR_LIMIT, PRODUCTION_BASE_URL } from './types.js';
 export { findMonorepoRoot, resolveMonorepoPath } from './monorepo.js';

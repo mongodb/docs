@@ -38,7 +38,7 @@ export const useMarianManifests = () => {
     const fetchMapping = async () => {
       let mapping: SearchPropertyMapping = {};
       try {
-        mapping = await fetchSearchPropertyMapping(snootyEnv);
+        mapping = await fetchSearchPropertyMapping();
         // searchPropertyMapping should be in the form:
         // { 'atlas-master': { categoryTitle: 'Atlas', versionSelectorLabel: 'Latest' } }
         setSearchPropertyMapping(mapping);

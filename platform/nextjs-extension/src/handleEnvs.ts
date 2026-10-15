@@ -1,7 +1,6 @@
 import {
   type Environments,
   isBuildEnvironment,
-  type PoolDBName,
   type SearchDBName,
   type SnootyDBName,
   FRONTEND_SITE_NAME,
@@ -32,34 +31,30 @@ export const determineEnvironment = (): Environments => {
 /** Get the names of the databases associated with given build environment */
 export const getDbNames = (
   env: Environments,
-): { snootyDb: SnootyDBName; searchDb: SearchDBName; poolDb: PoolDBName } => {
+): { snootyDb: SnootyDBName; searchDb: SearchDBName } => {
   switch (env) {
     case 'dotcomstg':
       return {
         snootyDb: 'snooty_dotcomstg',
         searchDb: 'search-staging',
-        poolDb: 'pool_test',
       };
 
     case 'prd':
       return {
         snootyDb: 'snooty_prod',
         searchDb: 'search-test',
-        poolDb: 'pool',
       };
 
     case 'dotcomprd':
       return {
         snootyDb: 'snooty_dotcomprd',
         searchDb: 'search',
-        poolDb: 'pool',
       };
     // Default to 'stg' databases
     default:
       return {
         snootyDb: 'snooty_dev',
         searchDb: 'search-test',
-        poolDb: 'pool_test',
       };
   }
 };

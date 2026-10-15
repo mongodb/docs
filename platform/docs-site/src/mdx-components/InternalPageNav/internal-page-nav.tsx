@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { reportAnalytics } from '@/utils/report-analytics';
 import type { ActiveVersions, AvailableVersions } from '@/context/version-context';
 import { assertTrailingSlash } from '@/utils/assert-trailing-slash';
-import type { BranchData } from '@/types/data';
+import type { Version } from '@/types/data';
 import { useUnifiedToc } from '@/context/unified-toc-context';
 import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
 import { useVersionContext } from '@/context/version-context';
@@ -36,13 +36,13 @@ interface FlatItem {
 }
 
 // Replacing the version in the pathPrefix with `:version` to match toc.json urls
-function replaceVersionInPath(pathPrefix: string, versions?: BranchData[]): string {
+function replaceVersionInPath(pathPrefix: string, versions?: Version[]): string {
   if (!versions) return pathPrefix;
 
   const segments = pathPrefix.split('/');
   const lastSegment = segments[segments.length - 1] || segments[segments.length - 2];
   const matchesVersion = versions.find(
-    (version) => version.urlSlug === lastSegment || (version.urlAliases && version.urlAliases.includes(lastSegment)),
+    (version) => version.versionName === lastSegment,
   );
 
   if (matchesVersion) {
@@ -153,13 +153,11 @@ function getTargetSlug(
   } else {
     const version = (availableVersions[contentSite] || []).find(
       (version) =>
-        version.gitBranchName === activeVersions[contentSite] ||
-        version.urlSlug === activeVersions[contentSite] ||
-        version?.urlAliases?.includes(activeVersions[contentSite]),
+        version.versionName === activeVersions[contentSite],
     );
 
     // If no version found in local storage use 'current'
-    const currentVersion = isOfflineBuild ? getStaticVersion() : version?.urlSlug ?? 'current';
+    const currentVersion = isOfflineBuild ? getStaticVersion() : version?.versionName ?? 'current';
     return canonicalTocHref(fullUrl.replace(/:version/g, currentVersion));
   }
 }
@@ -178,12 +176,10 @@ function isTocItemValidForVersion(
   const contentSite = tocItem.contentSite;
   const activeVersion = (availableVersions[contentSite] || []).find(
     (version) =>
-      version.gitBranchName === activeVersions[contentSite] ||
-      version.urlSlug === activeVersions[contentSite] ||
-      version?.urlAliases?.includes(activeVersions[contentSite]),
+      version.versionName === activeVersions[contentSite],
   );
 
-  const currentVersion = isOfflineBuild ? getStaticVersion() : activeVersion?.urlSlug ?? null;
+  const currentVersion = isOfflineBuild ? getStaticVersion() : activeVersion?.versionName ?? null;
   if (!currentVersion) return true; // no constraints, so valid
 
   // Check excludes first - if active version is excluded, tocItem is invalid

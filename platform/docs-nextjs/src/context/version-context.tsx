@@ -13,35 +13,32 @@ import { useRouter } from 'next/navigation';
 import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
 import { getLocalValue, setLocalValue } from '@/utils/browser-storage';
 import type { Environments } from '@/utils/env-config';
-import type { BranchData, Docset, Group } from '@/types/data';
+import type { Version, Docset, Group } from '@/types/data';
 import { getUrl } from '@/utils/url-utils';
 import { assertTrailingSlash } from '@/utils/assert-trailing-slash';
-import { getRepoBranchesPrefixEnv } from '@/utils/seo';
 
 export type ActiveVersions = Record<string, string>;
-export type AvailableVersions = Record<string, BranchData[]>;
+export type AvailableVersions = Record<string, Version[]>;
 type AvailableGroups = Record<string, Group[]>;
 
-// <-------------- begin helper functions -------------->
-const STORAGE_KEY = 'activeVersions';
-const LEGACY_GIT_BRANCH = 'legacy';
+const STORAGE_KEY = 'activeVersions.v2';
+const LEGACY_VERSION = 'legacy';
 
-type VersionIdentifier = Pick<BranchData, 'urlSlug' | 'gitBranchName' | 'urlAliases'>;
+type VersionIdentifier = Pick<Version, 'versionName' | 'stable'>;
 
-const isCurrentVersion = (branch: VersionIdentifier) =>
-  branch.urlSlug === 'current' || branch.gitBranchName === 'current' || branch.urlAliases?.includes('current');
+const isCurrentVersion = (version: VersionIdentifier) => version.versionName === 'current' || version.versionName === 'manual';
 
-const getInitBranchName = (branches: BranchData[]) => {
-  // Find 'current' branch as first option
-  const currentBranch = branches.find(isCurrentVersion);
-  if (currentBranch) {
-    return currentBranch.gitBranchName;
+const getInitVersionName = (versions: Version[]) => {
+  // Find 'current' version as first option
+  const currentVersion = versions.find(isCurrentVersion);
+  if (currentVersion) {
+    return currentVersion.versionName;
   }
-  const activeBranch = branches.find((b) => b.active);
-  if (activeBranch) {
-    return activeBranch.gitBranchName;
+  const activeVersion = versions.find((v) => v.active);
+  if (activeVersion) {
+    return activeVersion.versionName;
   }
-  return branches[0]?.gitBranchName || null;
+  return versions[0]?.versionName || null;
 };
 
 // Finds the index of the 'current' version; falls back to the first version in the list if not found
@@ -50,22 +47,20 @@ export const getDefaultVersionIndex = (versions: VersionIdentifier[]) => {
   return currentIndex >= 0 ? currentIndex : 0;
 };
 
-const getInitVersions = (branchListByProduct: AvailableVersions) => {
+const getInitVersions = (versionsByProject: AvailableVersions) => {
   const initState: Record<string, string> = {};
   const localStorage = getLocalValue(STORAGE_KEY);
-  for (const productName in branchListByProduct) {
-    initState[productName] = localStorage?.[productName] || getInitBranchName(branchListByProduct[productName]);
+  for (const productName in versionsByProject) {
+    initState[productName] = localStorage?.[productName] || getInitVersionName(versionsByProject[productName]);
   }
   return initState;
 };
 
-const findBranchByGit = (gitBranchName: string, branches?: BranchData[]) => {
-  if (!branches || !branches.length) {
+const findVersionByName = (versionName: string, versions?: Version[]) => {
+  if (!versions || !versions.length) {
     return;
   }
-  return branches.find(
-    (b) => b.urlSlug === gitBranchName || b.gitBranchName === gitBranchName || b?.urlAliases?.includes(gitBranchName),
-  );
+  return versions.find((v) => v.versionName === versionName);
 };
 
 // version state reducer helper fn
@@ -86,21 +81,21 @@ const versionStateReducer = (state: ActiveVersions, newState: Partial<ActiveVers
  *
  * @returns versions{} <product_name: branch_object[]>
  */
-const getBranches = (docsets: Docset[]) => {
+const getVersionsAndGroups = (docsets: Docset[]) => {
   const versions = getDefaultVersionsUnified(docsets);
   const groups = getDefaultGroupsUnified(docsets);
   return { versions, groups };
 };
 
 const getDefaultVersionsUnified = (docsets: Docset[]) => {
-  const versions: { [k: string]: Docset['branches'] } = {};
+  const versions: { [k: string]: Docset['versions'] } = {};
 
   for (const docset of docsets) {
     // Skips non-versioned sites
-    if (!docset.branches || docset.branches.length <= 1) {
+    if (docset.versions.length <= 1) {
       continue;
     }
-    versions[docset.project] = docset.branches.filter((version: { active: boolean }) => version.active === true);
+    versions[docset.project] = docset.versions.filter((version) => version.active);
   }
 
   return versions;
@@ -147,7 +142,7 @@ type VersionContextType = {
   setActiveVersions: Dispatch<Partial<ActiveVersions>>;
   availableVersions: AvailableVersions;
   availableGroups: AvailableGroups;
-  onVersionSelect: (targetProject: string, gitBranchName: string) => void;
+  onVersionSelect: (targetProject: string, versionName: string) => void;
 };
 
 const VersionContext = createContext<VersionContextType>({
@@ -181,12 +176,12 @@ export const VersionContextProvider = ({ docsets, slug, env, children }: Version
   const router = useRouter();
   const mountRef = useRef(true);
 
-  const { versions, groups } = getBranches(docsets);
+  const { versions, groups } = getVersionsAndGroups(docsets);
   const { project, branch } = useSnootyMetadata();
 
   const { metadata, siteBasePrefix, siteBasePrefixWithVersion } = useMemo(() => {
-    const repoBranches = docsets.find((docset) => docset.project === project);
-    const siteBasePrefix = repoBranches?.prefix?.[getRepoBranchesPrefixEnv(env)] ?? '';
+    const docset = docsets.find((docset) => docset.project === project);
+    const siteBasePrefix = docset?.prefix ?? '';
 
     const siteBasePrefixWithVersion = buildSiteBasePrefix(siteBasePrefix, branch);
 
@@ -218,9 +213,9 @@ export const VersionContextProvider = ({ docsets, slug, env, children }: Version
 
   // handler for selecting version on multiple dropdowns
   const onVersionSelect = useCallback(
-    (targetProject: string, gitBranchName: string) => {
+    (targetProject: string, versionName: string) => {
       const updatedVersion: Record<string, string> = {};
-      updatedVersion[targetProject] = gitBranchName;
+      updatedVersion[targetProject] = versionName;
       setActiveVersions(updatedVersion);
 
       // navigate to new URL only if from same project
@@ -228,15 +223,12 @@ export const VersionContextProvider = ({ docsets, slug, env, children }: Version
         return;
       }
 
-      const targetBranch = findBranchByGit(gitBranchName, versions[metadata.project]);
-      if (!targetBranch && gitBranchName !== LEGACY_GIT_BRANCH) {
-        console.error(`target branch not found for git branch <${gitBranchName}>`);
+      const targetVersion = findVersionByName(versionName, versions[metadata.project]);
+      if (!targetVersion && versionName !== LEGACY_VERSION) {
+        console.error(`target version not found for <${versionName}>`);
         return;
       }
-      const target =
-        gitBranchName === LEGACY_GIT_BRANCH
-          ? gitBranchName
-          : targetBranch?.urlSlug || targetBranch?.urlAliases?.[0] || targetBranch?.gitBranchName;
+      const target = versionName === LEGACY_VERSION ? versionName : targetVersion?.versionName;
 
       const pagePath = slug.replace(new RegExp(`^/?${siteBasePrefixWithVersion}/?`), '');
 

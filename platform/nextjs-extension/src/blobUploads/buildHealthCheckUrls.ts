@@ -12,16 +12,9 @@ const SITEMAP_INDEX_URL = `${DOCS_BASE_URL}sitemap-index-full.xml`;
  * Matched against the stripped prefix using exact equality or startsWith so
  * that both root entries (e.g. "docs-platform") and versioned children, if present,
  * are excluded.
- *
- * This denylist is broader than INTERNAL_ONLY_PROJECTS in
- * platform/tools/generate-llms/src/exclusions.ts (which only covers
- * internalOnly content projects that would otherwise get an llms.txt). When
- * you add an internalOnly project here, also update INTERNAL_ONLY_PROJECTS
- * if that project should be excluded from llms.txt generation.
  */
 const HEALTH_CHECK_PREFIX_DENYLIST = new Set([
   '404',
-  'agentengine',
   'csfle-merge',
   'docs-platform',
   'magenta',
@@ -37,7 +30,7 @@ const HEALTH_CHECK_PREFIX_DENYLIST = new Set([
  * buildPrefixList — so the health-check URLs always match the prefix-map.
  *
  * Projects are excluded when:
- *   - marked internalOnly or prodDeployable=false in repos_branches
+ *   - marked internalOnly in the docset catalog
  *   - their stripped prefix matches the denylist
  *   - the content path is inactive or corresponds to the landing project
  *   - the version slug is "upcoming"
@@ -87,15 +80,12 @@ export const buildHealthCheckUrls = (
     // Skip upcoming — no sitemap is generated for those branches
     if (entry.versionName === 'upcoming') continue;
 
-    const projectDocs = allContentData.atlasProjectDocuments[entry.projectName];
+    const projectDocs = allContentData.docsetsByProject[entry.projectName];
     if (!projectDocs) continue;
+    if (!projectDocs.prefix) continue;
+    if (projectDocs.internalOnly) continue;
 
-    const { docsetsEntry, reposBranchesEntry } = projectDocs;
-    if (!docsetsEntry?.prefix) continue;
-    if (reposBranchesEntry?.internalOnly) continue;
-    if (reposBranchesEntry?.prodDeployable === false) continue;
-
-    const stripped = stripDocsPrefix(docsetsEntry.prefix);
+    const stripped = stripDocsPrefix(projectDocs.prefix);
 
     if (stripped) {
       const isDenied = [...HEALTH_CHECK_PREFIX_DENYLIST].some(
@@ -112,20 +102,12 @@ export const buildHealthCheckUrls = (
     const url = `${DOCS_BASE_URL}${projectPath}/`;
     urls.add(url);
 
-    // Only Snooty-built projects generate sitemap-0.xml via the Next.js route.
-    // Non-Snooty projects (buildsWithSnooty: false) used a legacy sitemap.xml.gz
-    // served as a static CDN file — not routed through Next.js and not health-checkable here.
-    const branches = reposBranchesEntry?.branches ?? [];
-    const branch = branches.length > 1
-      ? branches.find((b) =>
-          b.urlSlug === entry.versionName ||
-          b.name === entry.versionName ||
-          b.gitBranchName === entry.versionName,
-        )
-      : branches[0];
-    if (branch?.buildsWithSnooty !== false) {
-      urls.add(`${url}sitemap-0.xml`);
-    }
+    // Every published version is built by the parser, so each gets a
+    // sitemap-0.xml. `buildsWithSnooty` used to gate this: it marked pre-Snooty
+    // versions served by a legacy static sitemap.xml.gz, and it is falsy only on
+    // inactive versions of projects that are not in the catalog. Dropped with
+    // the pool schema; docs-nextjs' sitemap route made the same change.
+    urls.add(`${url}sitemap-0.xml`);
   }
 
   // Landing sitemap (https://www.mongodb.com/docs/sitemap-0.xml) — served by the

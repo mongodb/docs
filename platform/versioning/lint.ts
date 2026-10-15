@@ -6,12 +6,7 @@
  * This covers what it cannot: cross-file uniqueness, agreement with the
  * `projects/` directory, and agreement with `content/`.
  *
- *   pnpm --filter versioning lint:catalog
- *
- * Named `lint:catalog`, not `lint`, while the catalog has no readers: turbo's
- * `lint` task runs in every workspace package, so a plain `lint` script would
- * run this on every platform PR and could fail someone else's work on data
- * drift the catalog cannot yet affect. The cutover renames it back.
+ *   pnpm --filter versioning lint
  *
  * Errors exit non-zero. Warnings do not block builds.
  */

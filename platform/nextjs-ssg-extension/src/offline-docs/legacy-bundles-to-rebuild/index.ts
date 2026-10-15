@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { AllContentData } from '../../../../nextjs-extension/src/contentMetadata/processContentMetadata';
-import type { BranchEntry } from '../../../../nextjs-extension/src/util/databaseConnection/types';
+import type { Version } from '../../../../versioning/types';
 
 export type LegacyOfflineBundle = {
   bundleStem: string;
@@ -10,17 +10,13 @@ export type LegacyOfflineBundle = {
 
 const contentExistsForVersion = (
   projectName: string,
-  branch: BranchEntry,
+  branch: Version,
   allContentData: AllContentData,
 ): boolean =>
   Object.values(allContentData.docsPaths).some((entry) => {
     if (entry.projectName !== projectName) return false;
     if (!entry.versionName) return false;
-    return (
-      entry.versionName === branch.urlSlug ||
-      entry.versionName === branch.gitBranchName ||
-      entry.versionName === branch.name
-    );
+    return entry.versionName === branch.versionName;
   });
 
 const tocFileExists = (legacyDocsDir: string, bundleStem: string): boolean =>
@@ -95,14 +91,14 @@ export const getLegacyOfflineBundles = ({
 
   const bundles: LegacyOfflineBundle[] = [];
 
-  for (const [projectName, { reposBranchesEntry }] of Object.entries(
-    allContentData.atlasProjectDocuments,
+  for (const [projectName, docset] of Object.entries(
+    allContentData.docsetsByProject,
   )) {
     if (!deployProjects.has(projectName)) continue;
 
-    for (const branch of reposBranchesEntry.branches ?? []) {
-      if (branch.eol_type !== 'link') continue;
-      const version = branch.urlSlug || branch.gitBranchName;
+    for (const branch of docset.versions ?? []) {
+      if (branch.eolType !== 'link') continue;
+      const version = branch.versionName;
       if (!version) continue;
       if (!contentExistsForVersion(projectName, branch, allContentData)) {
         console.log(

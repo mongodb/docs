@@ -32,15 +32,15 @@ export const remapFilePath = ({
   return `${stripped}/${rest}`;
 };
 
-/** Build projectDirName → docsetsEntry.prefix map */
+/** Build projectDirName → docset prefix map */
 export const getDirNameToPrefix = (
   allContentData: AllContentData,
 ): Record<string, string> => {
   const dirNameToPrefix: Record<string, string> = {};
   for (const entry of Object.values(allContentData.docsPaths)) {
-    const projectDocs = allContentData.atlasProjectDocuments[entry.projectName];
-    if (projectDocs?.docsetsEntry?.prefix) {
-      dirNameToPrefix[entry.projectDirName] = projectDocs.docsetsEntry.prefix;
+    const projectDocs = allContentData.docsetsByProject[entry.projectName];
+    if (projectDocs?.prefix) {
+      dirNameToPrefix[entry.projectDirName] = projectDocs.prefix;
     }
   }
   return dirNameToPrefix;

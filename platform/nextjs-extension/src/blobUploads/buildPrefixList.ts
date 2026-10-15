@@ -17,14 +17,14 @@ export const getProjectVersionPaths = (
   const paths: Set<string> = new Set<string>();
   let hasLanding = false;
   for (const entry of Object.values(allContentData.docsPaths)) {
-    const projectDocs = allContentData.atlasProjectDocuments[entry.projectName];
+    const projectDocs = allContentData.docsetsByProject[entry.projectName];
     // Landing project is the fallback, has no prefix beyond the general docs/ prefix
     if (entry.projectDirName === 'landing') {
       hasLanding = true;
       continue;
     }
 
-    const prefix = projectDocs?.docsetsEntry?.prefix;
+    const prefix = projectDocs?.prefix;
     if (!prefix) continue;
     const stripped = stripDocsPrefix(prefix);
 

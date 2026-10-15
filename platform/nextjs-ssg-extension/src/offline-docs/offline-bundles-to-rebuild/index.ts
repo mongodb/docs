@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import type { AtlasProjectDocuments } from '../../../../nextjs-extension/src/contentMetadata/fetchAndStoreAtlasData';
+import type { DocsetsByProject } from '../../../../nextjs-extension/src/contentMetadata/loadVersioningFromCheckout';
 import type { AllContentData } from '../../../../nextjs-extension/src/contentMetadata/processContentMetadata';
 import { getRepoPaths } from '../../../../nextjs-extension/src/paths';
 import { filterActiveVersions } from '../../../../nextjs-extension/src/util/filter-active-versions';
@@ -92,7 +92,7 @@ const processFileForProject = (
   offlineDocsPath: string,
   project: string,
   versions: string[],
-  atlasProjectDocuments: AtlasProjectDocuments,
+  docsetsByProject: DocsetsByProject,
   record: OfflineBundlesToBuild,
 ): void => {
   if (filename.includes(`versioned.${project}.`)) {
@@ -126,7 +126,7 @@ const processFileForProject = (
 
   const allVersions = findAllActiveVersionsForProject(
     versionedProject,
-    atlasProjectDocuments,
+    docsetsByProject,
   );
   if (!allVersions) {
     console.error(
@@ -149,7 +149,7 @@ export const getOfflineBundlesToRebuild = (
   allContentData: AllContentData,
   gitChangedFiles: readonly string[],
 ): OfflineBundlesToBuild => {
-  const { atlasProjectDocuments, pathsToBuild, docsPaths } = allContentData;
+  const { docsetsByProject, pathsToBuild, docsPaths } = allContentData;
   const { offlineDocsDir: offlineDocsPath } = getRepoPaths(undefined, APP_DIR);
 
   const changedOfflineDocTocFiles = gitChangedFiles
@@ -160,7 +160,7 @@ export const getOfflineBundlesToRebuild = (
   const changedProjects = getChangedProjectAndVersions(pathsToBuild, docsPaths);
   const activeChangedProjects = filterActiveVersions(
     changedProjects,
-    atlasProjectDocuments,
+    docsetsByProject,
   );
 
   console.log('Changed offline doc TOC files:', changedOfflineDocTocFiles);
@@ -177,7 +177,7 @@ export const getOfflineBundlesToRebuild = (
     }
     const versions = findAllActiveVersionsForProject(
       project,
-      atlasProjectDocuments,
+      docsetsByProject,
     );
     if (!versions) {
       console.warn(
@@ -199,7 +199,7 @@ export const getOfflineBundlesToRebuild = (
         offlineDocsPath,
         project,
         versions,
-        atlasProjectDocuments,
+        docsetsByProject,
         offlineBundlesToRebuild,
       );
     }

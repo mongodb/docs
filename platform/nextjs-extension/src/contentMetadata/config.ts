@@ -2,7 +2,6 @@
 import { createHash } from 'crypto';
 import type {
   Environments,
-  PoolDBName,
   SnootyDBName,
   SearchDBName,
 } from '../util/databaseConnection/types';
@@ -30,13 +29,10 @@ const setDbNames = (
   configEnvironment: ConfigEnvironmentVariables,
 ) => {
   // Get the names of the databases associated with given build environment
-  const { snootyDb, searchDb, poolDb } = getDbNames(buildEnvironment);
+  const { snootyDb, searchDb } = getDbNames(buildEnvironment);
 
   // Check if values for the database names have been set as environment variables through Netlify UI
   // Allows overwriting of database name values for testing
-  configEnvironment.POOL_DB_NAME =
-    (process.env.POOL_DB_NAME as PoolDBName) ?? poolDb;
-
   configEnvironment.SEARCH_DB_NAME =
     (process.env.SEARCH_DB_NAME as SearchDBName) ?? searchDb;
 
@@ -105,8 +101,6 @@ export const logImportantValues = (
   console.info(
     'BUILD ENVIRONMENT: ',
     configEnvironment.ENV,
-    '\n POOL DB NAME: ',
-    configEnvironment.POOL_DB_NAME,
     '\n SEARCH DB NAME: ',
     configEnvironment.SEARCH_DB_NAME,
   );

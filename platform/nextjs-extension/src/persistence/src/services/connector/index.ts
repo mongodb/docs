@@ -5,7 +5,6 @@
 
 import * as mongodb from 'mongodb';
 import type { ObjectId, Db, Document } from 'mongodb';
-import { db as poolDb } from './pool/index';
 
 // We should only ever have one client active at a time.
 const ATLAS_URL = `mongodb+srv://${process.env.MONGO_ATLAS_USERNAME}:${process.env.MONGO_ATLAS_PASSWORD}@${process.env.MONGO_ATLAS_CLUSTER0_HOST}/?retryWrites=true&w=majority&maxPoolSize=20`;
@@ -14,12 +13,6 @@ const client = new mongodb.MongoClient(ATLAS_URL);
 export const teardown = async () => {
   await client.close();
   dbInstance = null;
-};
-
-// Initialize and export our pool connection
-// Try to limit access to pool as much as possible - we mostly want it for just repo_branches.
-export const pool = async () => {
-  return poolDb(client);
 };
 
 // cached db object, so we can handle initial connection process once if unitialized
