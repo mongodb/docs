@@ -15,7 +15,7 @@
 
 	.. procedure::
 
-		.. step:: Assign application variables
+		.. step:: Assign application variables.
 
 			.. include:: /includes/queryable-encryption/tutorials/assign-app-variables-shell.rst
 
@@ -44,7 +44,7 @@
 				`README.md <{+sample-app-url-qe+}/node/README.md>`__ file
 				included in the sample application on GitHub.
 
-		.. step:: Add your KMS credentials
+		.. step:: Add your KMS credentials.
 
 			Create a variable containing the endpoint of your
 			{+kmip-kms-no-hover+} with the following structure:
@@ -70,7 +70,7 @@
 			:gold:`NOTE:` The remaining steps in this tutorial use
 			the default KMS provider string, ``"kmip"``.
 
-		.. step:: Add your CMK credentials
+		.. step:: Add your CMK credentials.
 
 			Create an empty object as shown in the following code example.
 			This prompts your {+kmip-kms+} to generate a new {+cmk-long+}.
@@ -81,7 +81,7 @@
 				:language: javascript
 				:dedent:
 
-		.. step:: Create an encryption client
+		.. step:: Create an encryption client.
 
 			To create a client for encrypting and decrypting data in
 			encrypted collections, instantiate a new ``MongoClient``
@@ -111,7 +111,7 @@
 
 	.. procedure::
 
-		.. step:: Assign application variables
+		.. step:: Assign application variables.
 
 			.. include:: /includes/queryable-encryption/tutorials/assign-app-variables-nodejs.rst
 
@@ -140,7 +140,7 @@
 				`README.md <{+sample-app-url-qe+}/node/README.md>`__ file
 				included in the sample application on GitHub.
 
-		.. step:: Add your KMS credentials
+		.. step:: Add your KMS credentials.
 
 			Create a variable containing the endpoint of your
 			{+kmip-kms-no-hover+} with the following structure:
@@ -166,7 +166,7 @@
 			:gold:`NOTE:` The remaining steps in this tutorial use
 			the default KMS provider string, ``"kmip"``.
 
-		.. step:: Add your CMK credentials
+		.. step:: Add your CMK credentials.
 
 			Create an empty object as shown in the following code example.
 			This prompts your {+kmip-kms+} to generate a new {+cmk-long+}.
@@ -177,7 +177,7 @@
 				:language: javascript
 				:dedent:
 
-		.. step:: Create an encryption client
+		.. step:: Create an encryption client.
 
 			To create a client for encrypting and decrypting data in
 			encrypted collections, instantiate a new ``MongoClient``
@@ -207,7 +207,7 @@
 
 	.. procedure::
 
-		.. step:: Assign application variables
+		.. step:: Assign application variables.
 
 			.. include:: /includes/queryable-encryption/tutorials/assign-app-variables-python.rst
 
@@ -236,7 +236,7 @@
 				`README.md <{+sample-app-url-qe+}/python/README.md>`__ file
 				included in the sample application on GitHub.
 
-		.. step:: Add your KMS credentials
+		.. step:: Add your KMS credentials.
 
 			Create a variable containing the endpoint of your
 			{+kmip-kms-no-hover+} with the following structure:
@@ -262,7 +262,7 @@
 			:gold:`NOTE:` The remaining steps in this tutorial use
 			the default KMS provider string, ``"kmip"``.
 
-		.. step:: Add your CMK credentials
+		.. step:: Add your CMK credentials.
 
 			Create an empty object as shown in the following code example.
 			This prompts your {+kmip-kms+} to generate a new {+cmk-long+}.
@@ -273,7 +273,7 @@
 				:language: python
 				:dedent:
 
-		.. step:: Create an encryption client
+		.. step:: Create an encryption client.
 
 			To create a client for encrypting and decrypting data in
 			encrypted collections, instantiate a new ``MongoClient``
@@ -303,7 +303,7 @@
 
 	.. procedure::
 
-		.. step:: Assign application variables
+		.. step:: Assign application variables.
 
 			.. include:: /includes/queryable-encryption/tutorials/assign-app-variables-java-sync.rst
 
@@ -332,7 +332,7 @@
 				`README.md <{+sample-app-url-qe+}/java/README.md>`__ file
 				included in the sample application on GitHub.
 
-		.. step:: Add your KMS credentials
+		.. step:: Add your KMS credentials.
 
 			Create a variable containing the endpoint of your
 			{+kmip-kms-no-hover+} with the following structure:
@@ -358,7 +358,7 @@
 			:gold:`NOTE:` The remaining steps in this tutorial use
 			the default KMS provider string, ``"kmip"``.
 
-		.. step:: Add your CMK credentials
+		.. step:: Add your CMK credentials.
 
 			Create an empty object as shown in the following code example.
 			This prompts your {+kmip-kms+} to generate a new {+cmk-long+}.
@@ -369,7 +369,7 @@
 				:language: java
 				:dedent:
 
-		.. step:: Create an encryption client
+		.. step:: Create an encryption client.
 
 			To create a client for encrypting and decrypting data in
 			encrypted collections, instantiate a new ``MongoClient``
@@ -399,7 +399,7 @@
 
 	.. procedure::
 
-		.. step:: Assign application variables
+		.. step:: Assign application variables.
 
 			.. include:: /includes/queryable-encryption/tutorials/assign-app-variables-go.rst
 
@@ -428,7 +428,7 @@
 				`README.md <{+sample-app-url-qe+}/go/README.md>`__ file
 				included in the sample application on GitHub.
 
-		.. step:: Add your KMS credentials
+		.. step:: Add your KMS credentials.
 
 			Create a variable containing the endpoint of your
 			{+kmip-kms-no-hover+} with the following structure:
@@ -439,7 +439,7 @@
 				:language: go
 				:dedent:
 
-		.. step:: Add your CMK credentials
+		.. step:: Add your CMK credentials.
 
 			Create an empty object as shown in the following code example.
 			This prompts your {+kmip-kms+} to generate a new {+cmk-long+}.
@@ -450,7 +450,7 @@
 				:language: go
 				:dedent:
 
-		.. step:: Create an encryption client
+		.. step:: Create an encryption client.
 
 			To create a client for encrypting and decrypting data in
 			encrypted collections, instantiate a new ``MongoClient``
@@ -480,7 +480,7 @@
 
 	.. procedure::
 
-		.. step:: Assign application variables
+		.. step:: Assign application variables.
 
 			.. include:: /includes/queryable-encryption/tutorials/assign-app-variables-csharp.rst
 
@@ -509,7 +509,7 @@
 				`README.md <{+sample-app-url-qe+}/csharp/README.md>`__ file
 				included in the sample application on GitHub.
 
-		.. step:: Add your KMS credentials
+		.. step:: Add your KMS credentials.
 
 			Create a variable containing the endpoint of your
 			{+kmip-kms-no-hover+} with the following structure:
@@ -535,7 +535,7 @@
 			:gold:`NOTE:` The remaining steps in this tutorial use
 			the default KMS provider string, ``"kmip"``.
 
-		.. step:: Add your CMK credentials
+		.. step:: Add your CMK credentials.
 
 			Create an empty object as shown in the following code example.
 			This prompts your {+kmip-kms+} to generate a new {+cmk-long+}.
@@ -546,7 +546,7 @@
 				:language: csharp
 				:dedent:
 
-		.. step:: Create an encryption client
+		.. step:: Create an encryption client.
 
 			To create a client for encrypting and decrypting data in
 			encrypted collections, instantiate a new ``MongoClient``
@@ -589,7 +589,7 @@
 
 	.. procedure::
 
-		.. step:: Assign application variables
+		.. step:: Assign application variables.
 
 			.. include:: /includes/queryable-encryption/tutorials/assign-app-variables-rust.rst
 
@@ -618,7 +618,7 @@
 				`README.md <{+sample-app-url-qe+}/rust/README.md>`__ file
 				included in the sample application on GitHub.
 
-		.. step:: Add your KMS credentials
+		.. step:: Add your KMS credentials.
 
 			Create a variable containing the endpoint of your
 			{+kmip-kms-no-hover+} with the following structure:
@@ -643,7 +643,7 @@
 			:gold:`NOTE:` The remaining steps in this tutorial use
 			the default KMS provider string, ``"kmip"``.
 
-		.. step:: Add your CMK credentials
+		.. step:: Add your CMK credentials.
 
 			Create an empty object as shown in the following code example.
 			This prompts your {+kmip-kms+} to generate a new {+cmk-long+}.
@@ -654,7 +654,7 @@
 				:language: rust
 				:dedent:
 
-		.. step:: Create an encryption client
+		.. step:: Create an encryption client.
 
 			To create a client for encrypting and decrypting data in
 			encrypted collections, instantiate a new ``MongoClient``
@@ -684,7 +684,7 @@
 
 	.. procedure::
 
-		.. step:: Assign application variables
+		.. step:: Assign application variables.
 
 			.. include:: /includes/queryable-encryption/tutorials/assign-app-variables-php.rst
 
@@ -713,7 +713,7 @@
 				`README.md <{+sample-app-url-qe+}/php/README.md>`__ file
 				included in the sample application on GitHub.
 
-		.. step:: Add your KMS credentials
+		.. step:: Add your KMS credentials.
 
 			Create a variable containing the endpoint of your
 			{+kmip-kms-no-hover+} with the following structure:
@@ -741,7 +741,7 @@
 			:gold:`NOTE:` The remaining steps in this tutorial use
 			the default KMS provider string, ``'kmip'``.
 
-		.. step:: Add your CMK credentials
+		.. step:: Add your CMK credentials.
 
 			Create an empty object as shown in the following code example.
 			This prompts your {+kmip-kms+} to generate a new {+cmk-long+}.
@@ -752,7 +752,7 @@
 				:language: php
 				:dedent:
 
-		.. step:: Create an encryption client
+		.. step:: Create an encryption client.
 
 			To create a client for encrypting and decrypting data in
 			encrypted collections, instantiate a new ``MongoClient``
@@ -782,7 +782,7 @@
 
 	.. procedure::
 
-		.. step:: Assign application variables
+		.. step:: Assign application variables.
 
 			.. include:: /includes/queryable-encryption/tutorials/assign-app-variables-ruby.rst
 
@@ -811,7 +811,7 @@
 				`README.md <{+sample-app-url-qe+}/ruby/README.md>`__ file
 				included in the sample application on GitHub.
 
-		.. step:: Add your KMS credentials
+		.. step:: Add your KMS credentials.
 
 			Create a variable containing the endpoint of your
 			{+kmip-kms-no-hover+} with the following structure:
@@ -822,7 +822,7 @@
 				:language: ruby
 				:dedent:
 
-		.. step:: Add your CMK credentials
+		.. step:: Add your CMK credentials.
 
 			Create an empty object as shown in the following code example.
 			This prompts your {+kmip-kms+} to generate a new {+cmk-long+}.
@@ -833,7 +833,7 @@
 				:language: ruby
 				:dedent:
 
-		.. step:: Create an encryption client
+		.. step:: Create an encryption client.
 
 			To create a client for encrypting and decrypting data in
 			encrypted collections, instantiate a new ``Mongo::Client``
@@ -844,4 +844,100 @@
 				:start-after: start-create-client
 				:end-before: end-create-client
 				:language: ruby
+				:dedent:
+
+.. selected-content::
+	:selections: kmip, cpp
+
+	Full Application Code
+	~~~~~~~~~~~~~~~~~~~~~
+
+	To see the complete code for the sample application, select your programming
+	language in the language selector.
+
+	`Complete C++ Application <{+sample-app-url-qe+}/cpp/>`__
+
+	Each sample application repository includes a ``README.md``
+	file that you can use to learn how to set up your environment and run
+	the application.
+
+	.. procedure::
+
+		.. step:: Assign application variables.
+
+			.. include:: /includes/queryable-encryption/tutorials/assign-app-variables-cpp.rst
+
+			You can declare these variables by using the following code:
+
+			.. literalinclude:: /includes/qe-tutorials/cpp/queryable_encryption_tutorial.cpp
+				 :start-after: start-setup-application-variables
+				 :end-before: end-setup-application-variables
+				 :language: cpp
+				 :dedent:
+
+			.. important:: {+key-vault-long-title+} Namespace Permissions
+
+				The {+key-vault-long+} is in the ``encryption.__keyVault``
+				namespace. Ensure that the database user your application uses to connect
+				to MongoDB has :ref:`ReadWrite <manual-reference-role-read-write>`
+				permissions on this namespace.
+
+			.. tip:: Environment Variables
+
+				The sample code in this tutorial references environment variables that
+				you need to set. Alternatively, you can replace the values directly in
+				the code.
+
+				To learn how you can setup these environment variables, see the
+				`README.md <{+sample-app-url-qe+}/cpp/README.md>`__ file
+				included in the sample application on GitHub.
+
+		.. step:: Add your KMS credentials.
+
+			Create a variable containing the endpoint of your
+			{+kmip-kms-no-hover+} with the following structure:
+
+			.. literalinclude:: /includes/qe-tutorials/cpp/queryable_encryption_tutorial.cpp
+				:start-after: start-kmip-kms-credentials
+				:end-before: end-kmip-kms-credentials
+				:language: cpp
+				:dedent:
+
+			You can also provide a custom name for your KMS provider by using a
+			document key that includes the name of the KMS provider, followed by a
+			colon and the custom name. Providing a unique name for a KMS provider
+			allows you to specify multiple KMS providers of the same type.
+
+			For example, you can name your KMIP KMS provider "my_kmip_provider" in your KMS
+			credentials variable as shown in the following code:
+
+			.. literalinclude:: /includes/queryable-encryption/tutorials/automatic/kmip/named-kms/named_kms.cpp
+				:language: cpp
+				:dedent:
+
+			:gold:`NOTE:` The remaining steps in this tutorial use
+			the default KMS provider string, ``"kmip"``.
+
+		.. step:: Add your CMK credentials.
+
+			Create an empty document as shown in the following code example.
+			This prompts your {+kmip-kms+} to generate a new {+cmk-long+}.
+
+			.. literalinclude:: /includes/qe-tutorials/cpp/queryable_encryption_tutorial.cpp
+				:start-after: start-kmip-local-cmk-credentials
+				:end-before: end-kmip-local-cmk-credentials
+				:language: cpp
+				:dedent:
+
+		.. step:: Create an encryption client.
+
+			To create a client for encrypting and decrypting data in
+			encrypted collections, instantiate a new ``mongocxx::client``
+			using your connection URI and automatic encryption
+			options.
+
+			.. literalinclude:: /includes/qe-tutorials/cpp/queryable_encryption_tutorial.cpp
+				:start-after: start-create-client
+				:end-before: end-create-client
+				:language: cpp
 				:dedent:
