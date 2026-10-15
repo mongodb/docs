@@ -20,7 +20,8 @@ async function collect(dir: string, base: string): Promise<string[][]> {
   return out;
 }
 
-export async function enumeratePages(projectDir: string): Promise<string[][]> {
-  const base = path.dirname(path.resolve(projectDir)); // include project name as first segment
-  return collect(projectDir, base);
+export async function enumeratePages(siteDir: string, rootDir: string): Promise<string[][]> {
+  // Paths are relative to rootDir so they retain the site path (the project dir
+  // plus any version segment); resolveProject strips that prefix back off.
+  return collect(path.resolve(siteDir), path.resolve(rootDir));
 }

@@ -60,16 +60,30 @@ export async function resolveProject(
   runId: string = newRunId(),
   options: ResolveOptions = {},
 ): Promise<{ runId: string; manifest: RunManifest }> {
-  if (project.includes('/')) {
-    throw new Error(`nested/versioned projects are not supported yet (got "${project}")`);
+  const contentRoot = path.resolve(cfg.contentMdxDir);
+  const siteDir = path.resolve(cfg.contentMdxDir, project);
+  if (siteDir !== contentRoot && !siteDir.startsWith(contentRoot + path.sep)) {
+    throw new Error(`--project "${project}" escapes content-mdx/`);
   }
-  const projectDir = path.join(cfg.contentMdxDir, project);
-  if (!fs.existsSync(projectDir)) throw new Error(`content-mdx/${project} not found — run convert:rst-to-mdx first`);
+  if (!fs.existsSync(siteDir)) throw new Error(`content-mdx/${project} not found — run convert:rst-to-mdx first`);
+  const siteJsonPath = path.join(siteDir, '_site.json');
+  if (!fs.existsSync(siteJsonPath)) {
+    const versions = fs
+      .readdirSync(siteDir, { withFileTypes: true })
+      .filter((e) => e.isDirectory() && fs.existsSync(path.join(siteDir, e.name, '_site.json')))
+      .map((e) => e.name)
+      .sort();
+    throw new Error(
+      versions.length
+        ? `content-mdx/${project} is a versioned project; pass --project ${project}/<version>. Versions: ${versions.join(', ')}`
+        : `content-mdx/${project}/_site.json not found`,
+    );
+  }
 
   const dirNameToPrefix = options.dirNameToPrefix ?? readDirNameToPrefix();
-  const siteJson = JSON.parse(fs.readFileSync(path.join(projectDir, '_site.json'), 'utf8'));
+  const siteJson = JSON.parse(fs.readFileSync(siteJsonPath, 'utf8'));
 
-  const diskPaths = await enumeratePages(projectDir);
+  const diskPaths = await enumeratePages(siteDir, cfg.contentMdxDir);
   let pages: PageRef[] = buildPageRefs(project, diskPaths, dirNameToPrefix, siteJson);
   // `buildPageRefs` emits URL-derived paths; replace them with the real content-mdx
   // file paths so index pages resolve to `index.mdx` (see `resolveMdxPath`).
@@ -94,14 +108,14 @@ export async function resolveProject(
   // "_includes/a.mdx"). This is the canonical convention for the closure and the
   // TranslatableSet: include srcs like "/_includes/a" resolve to "_includes/a.mdx",
   // so graph keys and edges must be project-relative to match.
-  const allFiles = walkMdx(projectDir, projectDir);
-  const read = (f: string) => fs.readFileSync(path.join(projectDir, f), 'utf8');
-  const graph = buildIncludeGraph(projectDir, allFiles, read);
+  const allFiles = walkMdx(siteDir, siteDir);
+  const read = (f: string) => fs.readFileSync(path.join(siteDir, f), 'utf8');
+  const graph = buildIncludeGraph(siteDir, allFiles, read);
 
   const refKeys: Record<string, string[]> = {};
   for (const f of allFiles) refKeys[f] = [...read(f).matchAll(REFKEY_RE)].map((m) => m[1]!);
 
-  const refsPath = path.join(projectDir, '_references.json');
+  const refsPath = path.join(siteDir, '_references.json');
   const substitutionKeys = new Set<string>(
     fs.existsSync(refsPath)
       ? Object.keys(JSON.parse(fs.readFileSync(refsPath, 'utf8')).substitutions ?? {})

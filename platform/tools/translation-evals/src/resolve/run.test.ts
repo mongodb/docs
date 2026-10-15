@@ -56,13 +56,6 @@ describe('resolveProject', () => {
     expect(manifest.locales).toEqual(['fr']);
   });
 
-  it('rejects nested/versioned projects', async () => {
-    const { cfg } = setup();
-    await expect(resolveProject(cfg, 'manual/v8.0', 'test-run', { dirNameToPrefix: PREFIX_MAP })).rejects.toThrow(
-      'nested/versioned projects are not supported yet',
-    );
-  });
-
   it('resolves the project root index page to its real mdx file path', async () => {
     const { cfg, projDir } = setup();
     fs.writeFileSync(path.join(projDir, 'index.mdx'), '# Atlas');
@@ -89,5 +82,41 @@ describe('resolveProject', () => {
     const { manifest } = await resolveProject(cfg, 'atlas', 'test-run', { dirNameToPrefix: PREFIX_MAP });
     expect(manifest.translatable.pages).toContain('index.mdx');
     expect(manifest.translatable.includes).toContain('_includes/b.mdx');
+  });
+
+  it('resolves a versioned site and derives versioned URLs', async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'resolve-v-'));
+    const cfg = loadConfig({});
+    cfg.dataDir = path.join(root, 'data');
+    cfg.contentMdxDir = path.join(root, 'content-mdx');
+    const site = path.join(cfg.contentMdxDir, 'manual', 'v8.0');
+    fs.mkdirSync(site, { recursive: true });
+    fs.writeFileSync(path.join(site, '_site.json'), JSON.stringify({ composablePages: {} }));
+    fs.writeFileSync(path.join(site, 'about.mdx'), '# About');
+    const { manifest } = await resolveProject(cfg, 'manual/v8.0', 'r', { dirNameToPrefix: { manual: 'docs' } });
+    expect(manifest.pages[0]!.urlPath).toBe('/docs/v8.0/about');
+    expect(manifest.translatable.pages).toEqual(['about.mdx']);
+  });
+
+  it('lists versions when a versioned project is passed without one', async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'resolve-v2-'));
+    const cfg = loadConfig({});
+    cfg.dataDir = path.join(root, 'data');
+    cfg.contentMdxDir = path.join(root, 'content-mdx');
+    for (const v of ['v8.0', 'v8.3']) {
+      const d = path.join(cfg.contentMdxDir, 'manual', v);
+      fs.mkdirSync(d, { recursive: true });
+      fs.writeFileSync(path.join(d, '_site.json'), '{}');
+    }
+    await expect(resolveProject(cfg, 'manual', 'r', { dirNameToPrefix: { manual: 'docs' } })).rejects.toThrow(
+      /versioned project.*v8\.0, v8\.3/s,
+    );
+  });
+
+  it('rejects a --project path that escapes content-mdx/', async () => {
+    const { cfg } = setup();
+    await expect(resolveProject(cfg, '../atlas', 'test-run', { dirNameToPrefix: PREFIX_MAP })).rejects.toThrow(
+      /escapes content-mdx/,
+    );
   });
 });

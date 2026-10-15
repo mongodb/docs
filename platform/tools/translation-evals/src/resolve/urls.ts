@@ -15,15 +15,17 @@ export function buildPageRefs(
   dirNameToPrefix: Record<string, string>,
   siteJson: { composablePages?: Record<string, Array<Record<string, string>>> },
 ): PageRef[] {
-  const dirName = project.split('/')[0]!;
+  const siteSegments = project.split('/');
+  const dirName = siteSegments[0]!;
   const rawPrefix = dirNameToPrefix[dirName];
   if (!rawPrefix) throw new Error(`No dir-name-to-prefix entry for "${dirName}"`);
+  const versionSegments = siteSegments.slice(1);
   const basePath = `/${rawPrefix}`;
   const refs: PageRef[] = [];
   for (const disk of diskPaths) {
-    // disk includes the project name as the first segment
-    const rel = disk.slice(1).join('/');
-    const urlPath = `${basePath}${rel ? `/${rel}` : ''}`.toLowerCase();
+    // disk is root-relative and starts with the site path; rel is site-relative.
+    const rel = disk.slice(siteSegments.length).join('/');
+    const urlPath = [basePath, ...versionSegments, rel].filter(Boolean).join('/').toLowerCase();
     const mdxPath = disk.join('/') + '.mdx';
     const variants = siteJson.composablePages?.[rel];
     if (variants?.length) {

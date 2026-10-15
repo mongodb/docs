@@ -168,7 +168,7 @@ Flags:
 
 | Flag | Description |
 |---|---|
-| `--project` | Required. The project directory name under `content-mdx/`, for example `atlas`. Nested or versioned projects are not supported yet. |
+| `--project` | Required. The path under `content-mdx/` to a directory that contains `_site.json`, for example `atlas`. For a versioned docset, pass `<project>/<version>`, for example `manual/v8.0`. Passing a versioned project without a version lists the available versions. |
 | `--pages <file>` | Optional. A file with one URL path or MDX path per line. Restricts the eval set to those pages. Errors if an entry matches no page. Defaults to every page in the project. |
 | `--locales <list>` | Optional. Comma-separated locales, for example `es,ja-jp`. Overrides `TARGET_LOCALES`. The default is `pt-br,es,ko-kr,ja-jp,zh-cn`. |
 | `--run <id>` | Optional. Uses this run ID instead of generating a new one. |

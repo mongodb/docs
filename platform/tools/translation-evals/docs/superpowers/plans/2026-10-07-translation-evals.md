@@ -2137,3 +2137,262 @@ git commit -m "chore(translation-evals): retire content-scraper"
 
 - The `<Reference value>` and rich-substitution gaps (spec §8) are accepted as documented noise in v1.
 - Batching multiple files per translation request (spec §7.3) is noted but not implemented in Task 10 — add as a follow-up optimization once real cost is measured.
+
+---
+
+## Follow-up tasks
+
+Out of scope for the original build; planned as their own PRs. Same task format as above.
+
+### Task 21: Versioned project support (`--project` accepts a site path)
+
+**Context.** `--project` currently accepts only a top-level directory name whose `content-mdx/<project>/_site.json` exists — a *leaf* project such as `atlas`. Versioned docsets (`manual`, `node`, …) store each version in a subdirectory with its own `_site.json` and have **no** `_site.json` at the project root. So `--project manual` dies reading the missing root `_site.json`, and `resolveProject` explicitly rejects a name containing `/`.
+
+This task makes `--project` accept a path to any directory under `content-mdx/` that contains `_site.json` — a *site*. Leaf (`atlas`) and versioned (`manual/v8.0`) are both sites. Only `resolve` and `serve` change; `scrape-prod`, `translate`, `scrape-local` and `dataset` already treat `--project` as an opaque path key (`data/<project>/<runId>`, `content-mdx/<project>`) and need no change.
+
+**URL model (verified against production).** `urlPath = '/' + dirNameToPrefix[topDir] + '/' + versionSegments + '/' + rel`, where `versionSegments` is the site path minus its first segment and `rel` is the page path relative to the site dir. `manual`'s docset prefix is empty (basePath `/docs`), so the version is the first segment: `manual/v8.0/about` → `/docs/v8.0/about`, `manual/manual/about` → `/docs/manual/about`. A versioned project with a real prefix keeps it: `node/current/connect` → `/docs/drivers/node/current/connect`. Leaf is unchanged: `atlas/alerts` → `/docs/atlas/alerts`.
+
+**Files:**
+- Modify: `platform/tools/translation-evals/src/resolve/enumerate.ts`
+- Modify: `platform/tools/translation-evals/src/resolve/urls.ts`
+- Modify: `platform/tools/translation-evals/src/resolve/run.ts`
+- Modify: `platform/tools/translation-evals/src/serve/server.ts`
+- Test: `platform/tools/translation-evals/src/resolve/enumerate.test.ts`
+- Test: `platform/tools/translation-evals/src/resolve/urls.test.ts`
+- Test: `platform/tools/translation-evals/src/resolve/run.test.ts`
+- Modify: `platform/tools/translation-evals/README.md`
+
+**Interfaces:**
+- `enumeratePages(siteDir: string, rootDir: string): Promise<string[][]>` — paths relative to `rootDir`. (Gains `rootDir`; today it derives the base from the site's parent, which drops a version segment.)
+- `buildPageRefs(project, diskPaths, dirNameToPrefix, siteJson): PageRef[]` — unchanged signature; `project` may be `manual/v8.0`.
+- `resolveProject(cfg, project, runId?, options?)` — unchanged signature; `project` may contain `/`.
+- `startServer(platformDir, project, production): ChildProcess` — unchanged signature; derives `DOCS_PROJECT` from the top-level segment.
+
+- [ ] **Step 1: Verify the local versioned URL shape (spike)**
+
+`serve` builds `docs-site`, which derives its own URLs. Confirm which `DOCS_PROJECT` value makes docs-site serve a versioned project at the production shape. Generate a versioned project's content from `platform/` (`pnpm convert:rst-to-mdx -- manual`), then:
+
+```
+DOCS_PROJECT=manual pnpm --filter docs-site dev
+curl -s http://localhost:3000/docs/v8.0/about/ | grep -o '<main[^>]*>' | head -1
+```
+
+Confirm `/docs/v8.0/about/` renders. If it 404s, try `DOCS_PROJECT=manual/v8.0` and record which value produces the versioned path. **Step 10 assumes the top-level name (`manual`); use whatever this spike shows.** Record the result in the commit message.
+
+- [ ] **Step 2: Update the enumeration test**
+
+```ts
+// src/resolve/enumerate.test.ts
+import { describe, it, expect } from 'vitest';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { enumeratePages } from './enumerate.js';
+
+function fixture(): string {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'enum-'));
+  const proj = path.join(root, 'atlas');
+  fs.mkdirSync(path.join(proj, 'v1', '_includes'), { recursive: true });
+  fs.writeFileSync(path.join(proj, '_site.json'), '{}');
+  fs.writeFileSync(path.join(proj, 'index.mdx'), '# Home');
+  fs.writeFileSync(path.join(proj, 'alerts.mdx'), '# Alerts');
+  fs.writeFileSync(path.join(proj, 'v1', '_site.json'), '{}');
+  fs.writeFileSync(path.join(proj, 'v1', 'connect.mdx'), '# Connect');
+  fs.writeFileSync(path.join(proj, 'v1', '_includes', 'x.mdx'), 'nope');
+  return root;
+}
+
+describe('enumeratePages', () => {
+  it('lists pages, skips _includes, and pops trailing index', async () => {
+    const root = fixture();
+    const paths = await enumeratePages(path.join(root, 'atlas'), root);
+    expect(paths.map((p) => p.join('/')).sort()).toEqual(['atlas', 'atlas/alerts', 'atlas/v1/connect']);
+  });
+
+  it('keeps the version segment for a versioned site', async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'enum-v-'));
+    const site = path.join(root, 'manual', 'v8.0');
+    fs.mkdirSync(site, { recursive: true });
+    fs.writeFileSync(path.join(site, '_site.json'), '{}');
+    fs.writeFileSync(path.join(site, 'about.mdx'), '# About');
+    const paths = await enumeratePages(site, root);
+    expect(paths.map((p) => p.join('/'))).toEqual(['manual/v8.0/about']);
+  });
+});
+```
+
+- [ ] **Step 3: Run it — fails**
+
+Run: `cd platform/tools/translation-evals && npx vitest run src/resolve/enumerate.test.ts`
+Expected: FAIL — `enumeratePages` takes one argument.
+
+- [ ] **Step 4: Implement `enumeratePages(siteDir, rootDir)`**
+
+```ts
+export async function enumeratePages(siteDir: string, rootDir: string): Promise<string[][]> {
+  return collect(path.resolve(siteDir), path.resolve(rootDir));
+}
+```
+
+(`collect` is unchanged; only the base it receives changes.)
+
+- [ ] **Step 5: Run it — passes**
+
+Run: `npx vitest run src/resolve/enumerate.test.ts` → PASS.
+
+- [ ] **Step 6: Add the versioned `buildPageRefs` test**
+
+```ts
+// append to src/resolve/urls.test.ts
+describe('buildPageRefs (versioned site)', () => {
+  it('inserts the version segment and keeps the composable key site-relative', () => {
+    const refs = buildPageRefs(
+      'manual/v8.0',
+      [['manual', 'v8.0', 'about'], ['manual', 'v8.0', 'alert-resolutions']],
+      { manual: 'docs' },
+      { composablePages: { 'alert-resolutions': [{ interface: 'atlas-ui' }] } },
+    );
+    expect(refs.find((r) => r.urlPath === '/docs/v8.0/about')).toMatchObject({
+      urlPath: '/docs/v8.0/about',
+      mdxPath: 'manual/v8.0/about.mdx',
+    });
+    // the variant is found: the composable key is rel ('alert-resolutions'), not the root-relative path
+    expect(refs.some((r) => r.urlPath === '/docs/v8.0/alert-resolutions' && r.query === 'interface=atlas-ui')).toBe(true);
+  });
+});
+```
+
+- [ ] **Step 7: Run it — fails; implement `buildPageRefs`; run it — passes**
+
+```ts
+export function buildPageRefs(
+  project: string,
+  diskPaths: string[][],
+  dirNameToPrefix: Record<string, string>,
+  siteJson: { composablePages?: Record<string, Array<Record<string, string>>> },
+): PageRef[] {
+  const siteSegments = project.split('/');
+  const dirName = siteSegments[0]!;
+  const rawPrefix = dirNameToPrefix[dirName];
+  if (!rawPrefix) throw new Error(`No dir-name-to-prefix entry for "${dirName}"`);
+  const versionSegments = siteSegments.slice(1);
+  const basePath = `/${rawPrefix}`;
+  const refs: PageRef[] = [];
+  for (const disk of diskPaths) {
+    // disk is root-relative and starts with the site path; rel is site-relative.
+    const rel = disk.slice(siteSegments.length).join('/');
+    const urlPath = [basePath, ...versionSegments, rel].filter(Boolean).join('/').toLowerCase();
+    const mdxPath = disk.join('/') + '.mdx';
+    const variants = siteJson.composablePages?.[rel];
+    if (variants?.length) {
+      for (const v of variants) {
+        const query = Object.entries(v).map(([k, val]) => `${k}=${val}`).join('&');
+        refs.push({ slug: slugFor(urlPath, query), urlPath, mdxPath, query });
+      }
+    } else {
+      refs.push({ slug: rel.replace(/\//g, '__') || 'index', urlPath, mdxPath });
+    }
+  }
+  return refs;
+}
+```
+
+- [ ] **Step 8: Add the versioned `resolveProject` tests**
+
+```ts
+// append to src/resolve/run.test.ts
+it('resolves a versioned site and derives versioned URLs', async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'resolve-v-'));
+  const cfg = loadConfig({});
+  cfg.dataDir = path.join(root, 'data');
+  cfg.contentMdxDir = path.join(root, 'content-mdx');
+  const site = path.join(cfg.contentMdxDir, 'manual', 'v8.0');
+  fs.mkdirSync(site, { recursive: true });
+  fs.writeFileSync(path.join(site, '_site.json'), JSON.stringify({ composablePages: {} }));
+  fs.writeFileSync(path.join(site, 'about.mdx'), '# About');
+  const { manifest } = await resolveProject(cfg, 'manual/v8.0', 'r', { dirNameToPrefix: { manual: 'docs' } });
+  expect(manifest.pages[0]!.urlPath).toBe('/docs/v8.0/about');
+  expect(manifest.translatable.pages).toEqual(['about.mdx']);
+});
+
+it('lists versions when a versioned project is passed without one', async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'resolve-v2-'));
+  const cfg = loadConfig({});
+  cfg.dataDir = path.join(root, 'data');
+  cfg.contentMdxDir = path.join(root, 'content-mdx');
+  for (const v of ['v8.0', 'v8.3']) {
+    const d = path.join(cfg.contentMdxDir, 'manual', v);
+    fs.mkdirSync(d, { recursive: true });
+    fs.writeFileSync(path.join(d, '_site.json'), '{}');
+  }
+  await expect(resolveProject(cfg, 'manual', 'r', { dirNameToPrefix: { manual: 'docs' } })).rejects.toThrow(
+    /versioned project.*v8\.0, v8\.3/s,
+  );
+});
+```
+
+- [ ] **Step 9: Run them — fail; implement `run.ts`; run them — pass**
+
+In `src/resolve/run.ts`:
+
+1. Delete the `if (project.includes('/')) throw ...` guard.
+2. Replace the unconditional `_site.json` read with a presence check that lists versions:
+
+```ts
+const siteDir = path.join(cfg.contentMdxDir, project);
+if (!fs.existsSync(siteDir)) throw new Error(`content-mdx/${project} not found — run convert:rst-to-mdx first`);
+const siteJsonPath = path.join(siteDir, '_site.json');
+if (!fs.existsSync(siteJsonPath)) {
+  const versions = fs
+    .readdirSync(siteDir, { withFileTypes: true })
+    .filter((e) => e.isDirectory() && fs.existsSync(path.join(siteDir, e.name, '_site.json')))
+    .map((e) => e.name)
+    .sort();
+  throw new Error(
+    versions.length
+      ? `content-mdx/${project} is a versioned project; pass --project ${project}/<version>. Versions: ${versions.join(', ')}`
+      : `content-mdx/${project}/_site.json not found`,
+  );
+}
+const siteJson = JSON.parse(fs.readFileSync(siteJsonPath, 'utf8'));
+```
+
+3. Enumerate against the content-mdx root: `const diskPaths = await enumeratePages(siteDir, cfg.contentMdxDir);`
+4. Rename every remaining `projectDir` reference to `siteDir` (the include graph, `read`, `_references.json`, `walkMdx`). The seed strip already uses `${project}/`, which is the site path — no change.
+
+- [ ] **Step 10: Update `serve/server.ts`**
+
+```ts
+export function startServer(platformDir: string, project: string, production: boolean): ChildProcess {
+  // docs-site builds a whole project; a version is a URL segment, so pass the
+  // top-level dir, not the site path (which may include a version).
+  const docsProject = project.split('/')[0]!;
+  const script = production
+    ? `DOCS_PROJECT=${docsProject} pnpm build && DOCS_PROJECT=${docsProject} pnpm --filter docs-site start`
+    : `DOCS_PROJECT=${docsProject} pnpm --filter docs-site dev`;
+  return spawn('bash', ['-lc', `cd ${platformDir} && ${script}`], { stdio: 'inherit' });
+}
+```
+
+`materialize` is unchanged — it already joins `--project` onto `content-mdx/`, which for `manual/v8.0` targets `content-mdx/manual/v8.0/`.
+
+- [ ] **Step 11: Update the README**
+
+In the `resolve` flags table, change the `--project` row to describe a site path: the path under `content-mdx/` to a directory containing `_site.json`; for a versioned docset pass `<project>/<version>` (for example `manual/v8.0`). Note that running a versioned project without a version lists the available versions.
+
+- [ ] **Step 12: Full suite, typecheck, lint**
+
+Run: `cd platform/tools/translation-evals && pnpm test && pnpm typecheck && pnpm lint` — all clean.
+
+- [ ] **Step 13: Commit**
+
+```bash
+git add platform/tools/translation-evals/src/resolve platform/tools/translation-evals/src/serve/server.ts platform/tools/translation-evals/README.md
+git commit -m "feat(translation-evals): support versioned projects via --project site path"
+```
+
+**Out of scope / notes:**
+- One version segment only (a site one level below the project). Deeper nesting is not supported.
+- `--project` is joined onto `content-mdx/`; reject values whose resolved path escapes `content-mdx/` (e.g. containing `..`) so a run cannot read outside the tree.
+- `serve` builds **all** versions of a versioned project (docs-site renders the whole project), so the local build is heavier than a leaf project's. Only the target version's pages are scraped.
+- The composable-variant key must be `rel` (site-relative). If it were the root-relative path, every variant page would silently drop — hence the assertion in Step 6.

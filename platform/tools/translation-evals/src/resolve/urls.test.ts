@@ -15,6 +15,26 @@ describe('buildPageRefs', () => {
   });
 });
 
+describe('buildPageRefs (versioned site)', () => {
+  it('inserts the version segment and keeps the composable key site-relative', () => {
+    const refs = buildPageRefs(
+      'manual/v8.0',
+      [
+        ['manual', 'v8.0', 'about'],
+        ['manual', 'v8.0', 'alert-resolutions'],
+      ],
+      { manual: 'docs' },
+      { composablePages: { 'alert-resolutions': [{ interface: 'atlas-ui' }] } },
+    );
+    expect(refs.find((r) => r.urlPath === '/docs/v8.0/about')).toMatchObject({
+      urlPath: '/docs/v8.0/about',
+      mdxPath: 'manual/v8.0/about.mdx',
+    });
+    // the variant is found: the composable key is rel ('alert-resolutions'), not the root-relative path
+    expect(refs.some((r) => r.urlPath === '/docs/v8.0/alert-resolutions' && r.query === 'interface=atlas-ui')).toBe(true);
+  });
+});
+
 describe('slugFor', () => {
   it('appends a query hash so variants do not collide', () => {
     expect(slugFor('/docs/atlas/alerts')).toBe('atlas__alerts');
