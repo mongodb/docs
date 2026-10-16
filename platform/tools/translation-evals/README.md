@@ -9,9 +9,7 @@ Plan: `docs/superpowers/plans/2026-10-07-translation-evals.md`
 
 ## Status
 
-`resolve`, `scrape-prod`, `translate`, `serve`, `scrape-local` and `dataset`
-are implemented. The remaining stage (`eval`) lands in its own PR,
-registering its handler in `src/commands/index.ts`.
+All seven stages are implemented.
 
 ## The seven stages
 
@@ -22,20 +20,17 @@ per-run directory on disk:
 resolve ─▶ scrape-prod ─▶ translate ─▶ serve ─▶ scrape-local ─▶ dataset ─▶ eval
 ```
 
-Each stage is a package script (run from this directory). Stage scripts are
-added as each stage lands. Only `resolve`, `scrape-prod`, `translate`,
-`serve`, `scrape-local` and `dataset` are runnable today; the other command
-below is planned and does not exist yet.
+Each stage is a package script (run from this directory).
 
-| Stage | Command | Status |
-|---|---|---|
-| Resolve the project's pages + transitive translatable set | `pnpm resolve --project atlas` | Available |
-| Scrape production (reference + English source) | `pnpm scrape-prod --project atlas` | Available |
-| Translate the closure locally (Grove) | `pnpm translate --project atlas` | Available |
-| Serve the translated site locally | `pnpm serve --project atlas --locale es` | Available |
-| Scrape the local site | `pnpm scrape-local --project atlas --locale es` | Available |
-| Build Braintrust rows | `pnpm dataset --project atlas` | Available |
-| Run the eval | `pnpm eval` | Not yet implemented |
+| Stage | Command |
+|---|---|
+| Resolve the project's pages + transitive translatable set | `pnpm resolve --project atlas` |
+| Scrape production (reference + English source) | `pnpm scrape-prod --project atlas` |
+| Translate the closure locally (Grove) | `pnpm translate --project atlas` |
+| Serve the translated site locally | `pnpm serve --project atlas --locale es` |
+| Scrape the local site | `pnpm scrape-local --project atlas --locale es` |
+| Build Braintrust rows | `pnpm dataset --project atlas` |
+| Score the run in Braintrust | `pnpm eval --project atlas` |
 
 ## Setup
 
@@ -176,6 +171,46 @@ Flags:
 `resolve` fails with `content-mdx/<project> not found` if you skipped setup
 step 4, and with `dir-name-to-prefix.json not found` if you skipped step 5.
 
+## Running `eval`
+
+From this directory:
+
+```
+pnpm eval --project atlas
+```
+
+`eval` scores an existing run's dataset in Braintrust. It runs the
+`braintrust` CLI over `src/eval/eval.ts`, so the CLI creates the experiment
+and reports the results. Run `dataset` first: the stage fails if the run has
+no `dataset/rows.json`.
+
+Flags:
+
+| Flag | Description |
+|---|---|
+| `--project` | Required. The project whose run to score. |
+| `--run <id>` | Optional. Scores this run instead of the most recent one. |
+
+### Scorers
+
+| Scorer | Kind | Compares |
+|---|---|---|
+| `factuality` | LLM judge | The output against the English source, which is ground truth. The production translation calibrates register and terminology only; it is not an answer key. |
+| `fluency` | LLM judge | The output alone, in the target locale. |
+| `terminology_preserved` | Deterministic | The fraction of `TERMS_FILE` terms that survive verbatim. |
+| `reference_similarity` | Deterministic | Character-bigram F1 against the production translation. A calibration signal, not a pass/fail. |
+
+The judge runs once per row and returns both `factuality` and `fluency`. It
+uses `JUDGE_MODEL`, which is required so the judge never falls back to the
+translator model and scores its own output.
+
+### Credentials
+
+`eval` needs `BRAINTRUST_API_KEY` (or a `.env.braintrust` file), plus the same
+`GROVE_API_KEY` and `JUDGE_MODEL` that the judge uses. The `braintrust` CLI
+does not load a plain `.env` on its own; the `eval` stage passes this process's
+environment to the CLI, so a variable in `.env` reaches it.
+
 ## How localization works
 
 `docs-site` has no locale routing — production locales are produced by
@@ -188,7 +223,7 @@ by Smartling's rewriting, which is exactly the comparison we want.
 
 ## Related packages
 
-The `translate` stage (not yet implemented) will use two sibling packages:
+The `translate` stage uses two sibling packages:
 
 - `platform/tools/translation-service/`: the translation service and Grove
   backend. It is a private pnpm workspace package.
@@ -198,7 +233,9 @@ The `translate` stage (not yet implemented) will use two sibling packages:
 ## Environment
 
 See `.env.example`. Note: the `braintrust` CLI does **not** load a plain
-`.env`; put `BRAINTRUST_API_KEY` in `.env.braintrust` or export it.
+`.env`; put `BRAINTRUST_API_KEY` in `.env.braintrust` or export it. The
+`eval` stage passes its own environment to the CLI, so for `pnpm eval` a
+variable in `.env` works too.
 
 The package scripts load `.env` through `--env-file-if-exists`. A variable
 that is already exported in your shell takes precedence over `.env`.

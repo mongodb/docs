@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { loadConfig } from '../config.js';
 import { buildDataset } from '../dataset/rows.js';
+import { runEval } from '../eval/run.js';
 import { resolveProject } from '../resolve/run.js';
 import { readManifestLatest } from '../run/manifest.js';
 import { scrapeProd } from '../scrape/prod.js';
@@ -20,12 +21,7 @@ function readPagesFile(file: string): string[] {
     .filter(Boolean);
 }
 
-/**
- * Stage registry. Each stage PR registers its handler here, e.g.
- *   resolve: async (flags) => { ... },
- * The seven stages are: resolve, scrape-prod, translate, serve,
- * scrape-local, dataset, eval.
- */
+/** Stage registry. The seven stages are: resolve, scrape-prod, translate, serve, scrape-local, dataset, eval. */
 export const COMMANDS: Record<string, CommandHandler> = {
   resolve: async (flags) => {
     const cfg = loadConfig();
@@ -102,5 +98,12 @@ export const COMMANDS: Record<string, CommandHandler> = {
     console.log(
       `run ${runId}: ${rows.length} dataset rows written to data/${project}/${runId}/dataset/rows.json`,
     );
+  },
+  eval: async (flags) => {
+    const cfg = loadConfig();
+    const project = String(flags.project ?? '');
+    if (!project) throw new Error('--project is required');
+    const runId = flags.run ? String(flags.run) : readManifestLatest(cfg, project);
+    process.exit(await runEval(project, runId));
   },
 };
