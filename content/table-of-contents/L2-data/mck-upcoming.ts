@@ -602,7 +602,6 @@ const mckUpcoming: TocItem[] = [
             label: 'Expand MongoDB Search Index Storage',
             contentSite: 'mck',
             url: '/docs/kubernetes/:version/fts-vs/deployment/expand-search-storage',
-            versions: { includes: ['upcoming'] },
           },
         ],
       },
