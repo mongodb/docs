@@ -1,37 +1,8 @@
 # Redirect System
 
-How redirects work in the platform/docs-site app: how they are migrated from Netlify config, and how the app handles redirect matching at request time.
+How redirects work in the platform/docs-site app: how the aggregate is generated, and how the app handles redirect matching at request time.
 
-## Part 1: Redirect migration scripts
-
-### `parse-netlify-redirects.ts`
-
-Parses `content/<product>/netlify.toml` and writes `src/redirects/<product>-redirects.json`.
-
-Run: `pnpm parse:redirects <product>`
-
-### `migrate-redirects.ts`
-
-Sanitizes JSON redirect files for Next.js compatibility. Some Netlify patterns cause infinite loops in Next.js; this script detects and rewrites them.
-
-Run: `pnpm migrate:redirects`
-
-**What it does:**
-
-1. **Rewrite catch-all version redirects** — patterns like:
-   ```
-   source:      /docs/drivers/node/:path*
-   destination: /docs/drivers/node/current/:path*
-   ```
-   loop in Next.js because the new URL still matches the same pattern. The script replaces each with two safer entries:
-   - A bare root redirect: `/docs/drivers/node/` → `/docs/drivers/node/current/`
-   - A regex catch-all excluding version slugs: `/docs/drivers/node/:first((?!current|upcoming|v\d)[^/]+)/:rest*` → `/docs/drivers/node/current/:first/:rest*`
-
-2. **Remove recursive redirects** — entries where source and destination resolve to the same URL.
-
-3. **Deduplicate** — removes exact duplicate entries.
-
-Version slugs (`current`, `upcoming`, `v<digit>...`) are excluded from catch-all matching to prevent loops.
+## Part 1: Redirect aggregate generation
 
 ### `generate-all-redirects.ts`
 
@@ -44,8 +15,6 @@ Auto-generates two aggregates by scanning for all `*-redirects.json` files in th
   `*-redirects.json` file is added or changed.
 
 Run: `pnpm generate:redirects`
-
-**Run all three in sequence:** `pnpm import:redirects <product>`
 
 ---
 
@@ -144,8 +113,6 @@ On Netlify the casing 301 is `netlify/edge-functions/soft-redirects.ts`
 
 | File | Purpose |
 |---|---|
-| `scripts/parse-netlify-redirects.ts` | Parse `netlify.toml` → JSON |
-| `scripts/migrate-redirects.ts` | Sanitize JSON for Next.js |
 | `scripts/generate-all-redirects.ts` | Generate `all-redirects.ts` barrel |
 | `src/redirects/*-redirects.json` | Per-product redirect data (21 files) |
 | `src/redirects/all-redirects.ts` | Auto-generated barrel (app/webpack) — do not edit |
@@ -156,6 +123,5 @@ On Netlify the casing 301 is `netlify/edge-functions/soft-redirects.ts`
 | `netlify/edge-functions/soft-redirects.ts` | Applies soft redirects on 404 and mixed-case 301s at the CDN edge (static host) |
 | `src/app/[[...path]]/page.tsx` | Request handler (renders pages / returns 404; soft redirects handled by the edge function) |
 | `next.config.mjs` | Force redirect registration |
-| `src/tests/scripts/migrate-redirects.test.ts` | Migration tests |
 | `src/tests/redirects/redirect-utils.test.ts` | Matching tests |
 | `src/tests/redirects/soft-redirects.test.ts` | Soft redirect tests |

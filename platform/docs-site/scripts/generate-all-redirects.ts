@@ -5,8 +5,8 @@
  * bundling). next.config.mjs uses readdirSync directly and does not depend on
  * this file.
  *
- * Run this script whenever a new *-redirects.json is added.
- * It is chained automatically by: pnpm import:redirects
+ * Run this script whenever a new *-redirects.json is added. The pre-commit
+ * hook runs it automatically when a *-redirects.json file is staged.
  */
 import fs from 'node:fs';
 import path from 'node:path';

@@ -151,26 +151,8 @@ The design system is moving from [LeafyGreen](https://github.com/mongodb/leafygr
 
 Each content project deploys to its own Netlify site, not a single shared one. Site names generally follow the project — for example, `ops-manager` deploys at [ops-manager-docs](https://app.netlify.com/projects/ops-manager-docs/overview). Check the Netlify dashboard for a project's exact site name.
 
-## Redirect migration script
+## Redirects
 
-TODO: delete once redirects are fully converted to Next.js.
-
-`pnpm import:redirects` converts redirects from `netlify.toml` format
-into Next.js redirect JSON files (`src/redirects/*-redirects.json`):
-
-- `pnpm parse:redirects <product>` converts a product's redirects from its
-  `content/<product>/netlify.toml` into `src/redirects/<product>-redirects.json`.
-- `pnpm migrate:redirects` sanitizes the JSON files for Next.js compatibility:
-  - **Removes** catch-all entries that insert a default version slug (e.g.,
-    `/docs/drivers/node/` → `/docs/drivers/node/current/`).
-  - **Preserves `force: true`** on entries that explicitly had `force = true`
-    in the original `netlify.toml`. These are the only redirects placed in
-    `next.config.mjs` (always fire regardless of page existence).
-  - **Leaves all other entries unchanged** (no `force` field). These are
-    treated as soft redirects — they only fire when no page exists at the
-    source path, replicating Netlify's default behavior.
-- `pnpm import:redirects` runs parse + migrate together.
-
-The non-`force` (soft) redirects are applied at the CDN edge by
+Soft redirects are applied at the CDN edge by
 `netlify/edge-functions/soft-redirects.ts`, which matches them against
 would-be-404 requests; `page.tsx` only returns `notFound()`.
