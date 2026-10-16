@@ -1,3 +1,10 @@
+.. _atlas-sp-20261008:
+
+8 October 2026 Release
+----------------------
+
+- Adds support for ``asia-south1`` in {+gcp+} regions.
+  
 .. _atlas-sp-20261006:
 
 6 October 2026 Release
