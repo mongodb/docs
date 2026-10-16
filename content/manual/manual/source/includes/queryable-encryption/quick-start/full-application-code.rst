@@ -53,3 +53,8 @@
    :selections: ruby
 
    `Complete Ruby Application <{+sample-app-url-qe+}/ruby/>`__
+
+.. selected-content::
+   :selections: cpp
+
+   `Complete C++ Application <{+sample-app-url-qe+}/cpp/>`__

@@ -16,7 +16,7 @@
    .. procedure::
       :style: normal
 
-      .. step:: Assign application variables
+      .. step:: Assign application variables.
 
          .. include:: /includes/queryable-encryption/tutorials/assign-app-variables-shell.rst
 
@@ -47,7 +47,7 @@
 
       .. _qe-tutorials-automatic-encryption-azure-kms-providers:
 
-      .. step:: Add your KMS credentials
+      .. step:: Add your KMS credentials.
 
          Create a variable containing your KMS credentials with the
          following structure. Use the {+azure-kv+} credentials you
@@ -74,7 +74,7 @@
          :gold:`NOTE:` The remaining steps in this tutorial use
          the default KMS provider string, ``"azure"``.
 
-      .. step:: Add your CMK credentials
+      .. step:: Add your CMK credentials.
 
          Create a variable containing your {+cmk-long+} credentials
          with the following structure. Use the CMK details you
@@ -86,7 +86,7 @@
             :language: javascript
             :dedent:
 
-      .. step:: Create an encryption client
+      .. step:: Create an encryption client.
 
          To create a client for encrypting and decrypting data in
          encrypted collections, instantiate a new ``MongoClient``
@@ -117,7 +117,7 @@
    .. procedure::
       :style: normal
 
-      .. step:: Assign application variables
+      .. step:: Assign application variables.
 
          .. include:: /includes/queryable-encryption/tutorials/assign-app-variables-nodejs.rst
 
@@ -146,7 +146,7 @@
             `README.md <{+sample-app-url-qe+}/node/README.md>`__ file
             included in the sample application on GitHub.
 
-      .. step:: Add your KMS credentials
+      .. step:: Add your KMS credentials.
 
          Create a variable containing your KMS credentials with the
          following structure. Use the {+azure-kv+} credentials you
@@ -173,7 +173,7 @@
          :gold:`NOTE:` The remaining steps in this tutorial use
          the default KMS provider string, ``"azure"``.
 
-      .. step:: Add your CMK credentials
+      .. step:: Add your CMK credentials.
 
          Create a variable containing your {+cmk-long+} credentials
          with the following structure. Use the CMK details you
@@ -185,7 +185,7 @@
             :language: javascript
             :dedent:
 
-      .. step:: Create an encryption client
+      .. step:: Create an encryption client.
 
          To create a client for encrypting and decrypting data in
          encrypted collections, instantiate a new ``MongoClient``
@@ -216,7 +216,7 @@
    .. procedure::
       :style: normal
 
-      .. step:: Assign application variables
+      .. step:: Assign application variables.
 
          .. include:: /includes/queryable-encryption/tutorials/assign-app-variables-python.rst
 
@@ -245,7 +245,7 @@
             `README.md <{+sample-app-url-qe+}/python/README.md>`__ file
             included in the sample application on GitHub.
 
-      .. step:: Add your KMS credentials
+      .. step:: Add your KMS credentials.
 
          Create a variable containing your KMS credentials with the
          following structure. Use the {+azure-kv+} credentials you
@@ -272,7 +272,7 @@
          :gold:`NOTE:` The remaining steps in this tutorial use
          the default KMS provider string, ``"azure"``.
 
-      .. step:: Add your CMK credentials
+      .. step:: Add your CMK credentials.
 
          Create a variable containing your {+cmk-long+} credentials
          with the following structure. Use the CMK details you
@@ -284,7 +284,7 @@
             :language: python
             :dedent:
 
-      .. step:: Create an encryption client
+      .. step:: Create an encryption client.
 
          To create a client for encrypting and decrypting data in
          encrypted collections, instantiate a new ``MongoClient``
@@ -315,7 +315,7 @@
    .. procedure::
       :style: normal
 
-      .. step:: Assign application variables
+      .. step:: Assign application variables.
 
          .. include:: /includes/queryable-encryption/tutorials/assign-app-variables-java-sync.rst
 
@@ -344,7 +344,7 @@
             `README.md <{+sample-app-url-qe+}/java/README.md>`__ file
             included in the sample application on GitHub.
 
-      .. step:: Add your KMS credentials
+      .. step:: Add your KMS credentials.
 
          Create a variable containing your KMS credentials with the
          following structure. Use the {+azure-kv+} credentials you
@@ -371,7 +371,7 @@
          :gold:`NOTE:` The remaining steps in this tutorial use
          the default KMS provider string, ``"azure"``.
 
-      .. step:: Add your CMK credentials
+      .. step:: Add your CMK credentials.
 
          Create a variable containing your {+cmk-long+} credentials
          with the following structure. Use the CMK details you
@@ -383,7 +383,7 @@
             :language: java
             :dedent:
 
-      .. step:: Create an encryption client
+      .. step:: Create an encryption client.
 
          To create a client for encrypting and decrypting data in
          encrypted collections, instantiate a new ``MongoClient``
@@ -414,7 +414,7 @@
    .. procedure::
       :style: normal
 
-      .. step:: Assign application variables
+      .. step:: Assign application variables.
 
          .. include:: /includes/queryable-encryption/tutorials/assign-app-variables-go.rst
 
@@ -443,7 +443,7 @@
             `README.md <{+sample-app-url-qe+}/go/README.md>`__ file
             included in the sample application on GitHub.
 
-      .. step:: Add your KMS credentials
+      .. step:: Add your KMS credentials.
 
          Create a variable containing your KMS credentials with the
          following structure. Use the {+azure-kv+} credentials you
@@ -455,7 +455,7 @@
             :language: go
             :dedent:
 
-      .. step:: Add your CMK credentials
+      .. step:: Add your CMK credentials.
 
          Create a variable containing your {+cmk-long+} credentials
          with the following structure. Use the CMK details you
@@ -467,7 +467,7 @@
             :language: go
             :dedent:
 
-      .. step:: Create an encryption client
+      .. step:: Create an encryption client.
 
          To create a client for encrypting and decrypting data in
          encrypted collections, instantiate a new ``MongoClient``
@@ -498,7 +498,7 @@
    .. procedure::
       :style: normal
 
-      .. step:: Assign application variables
+      .. step:: Assign application variables.
 
          .. include:: /includes/queryable-encryption/tutorials/assign-app-variables-csharp.rst
 
@@ -527,7 +527,7 @@
             `README.md <{+sample-app-url-qe+}/csharp/README.md>`__ file
             included in the sample application on GitHub.
 
-      .. step:: Add your KMS credentials
+      .. step:: Add your KMS credentials.
 
          Create a variable containing your KMS credentials with the
          following structure. Use the {+azure-kv+} credentials you
@@ -554,7 +554,7 @@
          :gold:`NOTE:` The remaining steps in this tutorial use
          the default KMS provider string, ``"azure"``.
 
-      .. step:: Add your CMK credentials
+      .. step:: Add your CMK credentials.
 
          Create a variable containing your {+cmk-long+} credentials
          with the following structure. Use the CMK details you
@@ -566,7 +566,7 @@
             :language: csharp
             :dedent:
 
-      .. step:: Create an encryption client
+      .. step:: Create an encryption client.
 
          To create a client for encrypting and decrypting data in
          encrypted collections, instantiate a new ``MongoClient``
@@ -610,7 +610,7 @@
    .. procedure::
       :style: normal
 
-      .. step:: Assign application variables
+      .. step:: Assign application variables.
 
          .. include:: /includes/queryable-encryption/tutorials/assign-app-variables-rust.rst
 
@@ -639,7 +639,7 @@
             `README.md <{+sample-app-url-qe+}/rust/README.md>`__ file
             included in the sample application on GitHub.
 
-      .. step:: Add your KMS credentials
+      .. step:: Add your KMS credentials.
 
          Create a variable containing your KMS credentials with the
          following structure. Use the {+azure-kv+} credentials you
@@ -665,7 +665,7 @@
          :gold:`NOTE:` The remaining steps in this tutorial use
          the default KMS provider string, ``"azure"``.
 
-      .. step:: Add your CMK credentials
+      .. step:: Add your CMK credentials.
 
          Create a variable containing your {+cmk-long+} credentials
          with the following structure. Use the CMK details you
@@ -677,7 +677,7 @@
             :language: rust
             :dedent:
 
-      .. step:: Create an encryption client
+      .. step:: Create an encryption client.
 
          To create a client for encrypting and decrypting data in
          encrypted collections, instantiate a new ``MongoClient``
@@ -708,7 +708,7 @@
    .. procedure::
       :style: normal
 
-      .. step:: Assign application variables
+      .. step:: Assign application variables.
 
          .. include:: /includes/queryable-encryption/tutorials/assign-app-variables-php.rst
 
@@ -737,7 +737,7 @@
             `README.md <{+sample-app-url-qe+}/php/README.md>`__ file
             included in the sample application on GitHub.
 
-      .. step:: Add your KMS credentials
+      .. step:: Add your KMS credentials.
 
          Create a variable containing your KMS credentials with the
          following structure. Use the {+azure-kv+} credentials you
@@ -766,7 +766,7 @@
          :gold:`NOTE:` The remaining steps in this tutorial use
          the default KMS provider string, ``'azure'``.
 
-      .. step:: Add your CMK credentials
+      .. step:: Add your CMK credentials.
 
          Create a variable containing your {+cmk-long+} credentials
          with the following structure. Use the CMK details you
@@ -778,7 +778,7 @@
             :language: php
             :dedent:
 
-      .. step:: Create an encryption client
+      .. step:: Create an encryption client.
 
          To create a client for encrypting and decrypting data in
          encrypted collections, instantiate a new ``MongoClient``
@@ -809,7 +809,7 @@
    .. procedure::
       :style: normal
 
-      .. step:: Assign application variables
+      .. step:: Assign application variables.
 
          .. include:: /includes/queryable-encryption/tutorials/assign-app-variables-ruby.rst
 
@@ -838,7 +838,7 @@
             `README.md <{+sample-app-url-qe+}/ruby/README.md>`__ file
             included in the sample application on GitHub.
 
-      .. step:: Add your KMS credentials
+      .. step:: Add your KMS credentials.
 
          Create a variable containing your KMS credentials with the
          following structure. Use the {+azure-kv+} credentials you
@@ -850,7 +850,7 @@
             :language: ruby
             :dedent:
 
-      .. step:: Add your CMK credentials
+      .. step:: Add your CMK credentials.
 
          Create a variable containing your {+cmk-long+} credentials
          with the following structure. Use the CMK details you
@@ -862,7 +862,7 @@
             :language: ruby
             :dedent:
 
-      .. step:: Create an encryption client
+      .. step:: Create an encryption client.
 
          To create a client for encrypting and decrypting data in
          encrypted collections, instantiate a new ``Mongo::Client``
@@ -873,4 +873,102 @@
             :start-after: start-create-client
             :end-before: end-create-client
             :language: ruby
+            :dedent:
+.. selected-content::
+   :selections: azure, cpp
+
+   Full Application Code
+   ~~~~~~~~~~~~~~~~~~~~~
+
+   To see the complete code for the sample application, select your programming
+   language in the language selector.
+
+   `Complete C++ Application <{+sample-app-url-qe+}/cpp/>`__
+
+   Each sample application repository includes a ``README.md``
+   file that you can use to learn how to set up your environment and run
+   the application.
+
+   .. procedure::
+      :style: normal
+
+      .. step:: Assign application variables.
+
+         .. include:: /includes/queryable-encryption/tutorials/assign-app-variables-cpp.rst
+
+         You can declare these variables by using the following code:
+
+         .. literalinclude:: /includes/qe-tutorials/cpp/queryable_encryption_tutorial.cpp
+             :start-after: start-setup-application-variables
+             :end-before: end-setup-application-variables
+             :language: cpp
+             :dedent:
+
+         .. important:: {+key-vault-long-title+} Namespace Permissions
+
+            The {+key-vault-long+} is in the ``encryption.__keyVault``
+            namespace. Ensure that the database user your application uses to connect
+            to MongoDB has :ref:`ReadWrite <manual-reference-role-read-write>`
+            permissions on this namespace.
+
+         .. tip:: Environment Variables
+
+            The sample code in this tutorial references environment variables that
+            you need to set. Alternatively, you can replace the values directly in
+            the code.
+
+            To learn how you can setup these environment variables, see the
+            `README.md <{+sample-app-url-qe+}/cpp/README.md>`__ file
+            included in the sample application on GitHub.
+
+      .. step:: Add your KMS credentials.
+
+         Create a variable containing your KMS credentials with the
+         following structure. Use the {+azure-kv+} credentials you
+         recorded when you :ref:`registered your application with Azure <qe-register-cmk-azure>`.
+
+         .. literalinclude:: /includes/qe-tutorials/cpp/queryable_encryption_tutorial.cpp
+            :start-after: start-azure-kms-credentials
+            :end-before: end-azure-kms-credentials
+            :language: cpp
+            :dedent:
+
+         You can also provide a custom name for your KMS provider by using a
+         document key that includes the name of the KMS provider, followed by a
+         colon and the custom name. Providing a unique name for a KMS provider
+         allows you to specify multiple KMS providers of the same type.
+
+         For example, you can name your Azure KMS provider "my_azure_provider" in your KMS
+         credentials variable as shown in the following code:
+
+         .. literalinclude:: /includes/queryable-encryption/tutorials/automatic/azure/named-kms/named_kms.cpp
+            :language: cpp
+            :dedent:
+
+         :gold:`NOTE:` The remaining steps in this tutorial use
+         the default KMS provider string, ``"azure"``.
+
+      .. step:: Add your CMK credentials.
+
+         Create a variable containing your {+cmk-long+} credentials
+         with the following structure. Use the CMK details you
+         recorded when you :ref:`created a CMK <qe-create-cmk-azure>`.
+
+         .. literalinclude:: /includes/qe-tutorials/cpp/queryable_encryption_tutorial.cpp
+            :start-after: start-azure-cmk-credentials
+            :end-before: end-azure-cmk-credentials
+            :language: cpp
+            :dedent:
+
+      .. step:: Create an encryption client.
+
+         To create a client for encrypting and decrypting data in
+         encrypted collections, instantiate a new ``mongocxx::client``
+         using your connection URI and automatic encryption
+         options.
+
+         .. literalinclude:: /includes/qe-tutorials/cpp/queryable_encryption_tutorial.cpp
+            :start-after: start-create-client
+            :end-before: end-create-client
+            :language: cpp
             :dedent:

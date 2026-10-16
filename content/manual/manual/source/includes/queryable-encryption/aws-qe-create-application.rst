@@ -16,7 +16,7 @@
    .. procedure::
       :style: normal
 
-      .. step:: Assign application variables
+      .. step:: Assign application variables.
 
              .. include:: /includes/queryable-encryption/tutorials/assign-app-variables-shell.rst
 
@@ -45,7 +45,7 @@
                   `README.md <{+sample-app-url-qe+}/node/README.md>`__ file
                   included in the sample application on GitHub.
 
-      .. step:: Add your KMS credentials
+      .. step:: Add your KMS credentials.
          
          Create a variable containing your KMS credentials with the
          following structure. Use the Access Key ID and Secret Access 
@@ -88,7 +88,7 @@
 
             You cannot automatically retrieve credentials if you are using a named KMS provider.
 
-      .. step:: Add your CMK credentials
+      .. step:: Add your CMK credentials.
 
          Create a variable containing your {+cmk-long+} credentials
          with the following structure. Use the {+aws-arn-abbr+} and
@@ -100,7 +100,7 @@
             :language: javascript
             :dedent:
 
-      .. step:: Set automatic encryption options
+      .. step:: Set automatic encryption options.
 
          .. note:: Automatic Encryption Options
 
@@ -124,7 +124,7 @@
             :language: javascript
             :dedent:
 
-      .. step:: Create a Client to Set Up an Encrypted Collection
+      .. step:: Create a Client to Set Up an Encrypted Collection.
 
          To create a client used to encrypt and decrypt data in
          your collection, instantiate a new ``MongoClient`` by using your
@@ -154,7 +154,7 @@
    .. procedure::
       :style: normal
 
-      .. step:: Assign application variables
+      .. step:: Assign application variables.
 
              .. include:: /includes/queryable-encryption/tutorials/assign-app-variables-nodejs.rst
 
@@ -183,7 +183,7 @@
                   `README.md <{+sample-app-url-qe+}/node/README.md>`__ file
                   included in the sample application on GitHub.
 
-      .. step:: Add your KMS credentials
+      .. step:: Add your KMS credentials.
          
          Create a variable containing your KMS credentials with the
          following structure. Use the Access Key ID and Secret Access 
@@ -226,7 +226,7 @@
 
             You cannot automatically retrieve credentials if you are using a named KMS provider.
 
-      .. step:: Add your CMK credentials
+      .. step:: Add your CMK credentials.
 
          Create a variable containing your {+cmk-long+} credentials
          with the following structure. Use the {+aws-arn-abbr+} and
@@ -238,7 +238,7 @@
             :language: javascript
             :dedent:
 
-      .. step:: Set automatic encryption options
+      .. step:: Set automatic encryption options.
 
          .. note:: Automatic Encryption Options
 
@@ -264,7 +264,7 @@
             :language: javascript
             :dedent:
 
-      .. step:: Create a Client to Set Up an Encrypted Collection
+      .. step:: Create a Client to Set Up an Encrypted Collection.
 
          To create a client used to encrypt and decrypt data in
          your collection, instantiate a new ``MongoClient`` by using your
@@ -294,7 +294,7 @@
    .. procedure::
       :style: normal
 
-      .. step:: Assign application variables
+      .. step:: Assign application variables.
 
              .. include:: /includes/queryable-encryption/tutorials/assign-app-variables-python.rst
 
@@ -323,7 +323,7 @@
                   `README.md <{+sample-app-url-qe+}/python/README.md>`__ file
                   included in the sample application on GitHub.
 
-      .. step:: Add your KMS credentials
+      .. step:: Add your KMS credentials.
          
          Create a variable containing your KMS credentials with the
          following structure. Use the Access Key ID and Secret Access 
@@ -366,7 +366,7 @@
 
             You cannot automatically retrieve credentials if you are using a named KMS provider.
 
-      .. step:: Add your CMK credentials
+      .. step:: Add your CMK credentials.
 
          Create a variable containing your {+cmk-long+} credentials
          with the following structure. Use the {+aws-arn-abbr+} and
@@ -378,7 +378,7 @@
             :language: python
             :dedent:
 
-      .. step:: Set automatic encryption options
+      .. step:: Set automatic encryption options.
 
          .. note:: Automatic Encryption Options
 
@@ -403,7 +403,7 @@
             :language: python
             :dedent:
 
-      .. step:: Create a Client to Set Up an Encrypted Collection
+      .. step:: Create a Client to Set Up an Encrypted Collection.
 
          To create a client used to encrypt and decrypt data in
          your collection, instantiate a new ``MongoClient`` by using your
@@ -433,7 +433,7 @@
    .. procedure::
       :style: normal
 
-      .. step:: Assign application variables
+      .. step:: Assign application variables.
 
              .. include:: /includes/queryable-encryption/tutorials/assign-app-variables-java-sync.rst
 
@@ -462,7 +462,7 @@
                   `README.md <{+sample-app-url-qe+}/java/README.md>`__ file
                   included in the sample application on GitHub.
 
-      .. step:: Add your KMS credentials
+      .. step:: Add your KMS credentials.
          
          Create a variable containing your KMS credentials with the
          following structure. Use the Access Key ID and Secret Access 
@@ -503,7 +503,7 @@
 
             You cannot automatically retrieve credentials if you are using a named KMS provider.
 
-      .. step:: Add your CMK credentials
+      .. step:: Add your CMK credentials.
 
          Create a variable containing your {+cmk-long+} credentials
          with the following structure. Use the {+aws-arn-abbr+} and
@@ -515,7 +515,7 @@
             :language: java
             :dedent:
 
-      .. step:: Set automatic encryption options
+      .. step:: Set automatic encryption options.
 
          .. note:: Automatic Encryption Options
 
@@ -548,7 +548,7 @@
          configuration differs from the parent ``MongoClient`` by setting the
          ``minPoolSize`` to  0 and omitting the ``AutoEncryptionSettings``.
 
-      .. step:: Create a Client to Set Up an Encrypted Collection
+      .. step:: Create a Client to Set Up an Encrypted Collection.
 
          To create a client used to encrypt and decrypt data in
          your collection, instantiate a new ``MongoClient`` by using your
@@ -578,7 +578,7 @@
    .. procedure::
       :style: normal
 
-      .. step:: Assign application variables
+      .. step:: Assign application variables.
 
              .. include:: /includes/queryable-encryption/tutorials/assign-app-variables-go.rst
 
@@ -607,7 +607,7 @@
                   `README.md <{+sample-app-url-qe+}/go/README.md>`__ file
                   included in the sample application on GitHub.
 
-      .. step:: Add your KMS credentials
+      .. step:: Add your KMS credentials.
          
          Create a variable containing your KMS credentials with the
          following structure. Use the Access Key ID and Secret Access 
@@ -635,7 +635,7 @@
 
             You cannot automatically retrieve credentials if you are using a named KMS provider.
 
-      .. step:: Add your CMK credentials
+      .. step:: Add your CMK credentials.
 
          Create a variable containing your {+cmk-long+} credentials
          with the following structure. Use the {+aws-arn-abbr+} and
@@ -647,7 +647,7 @@
             :language: go
             :dedent:
 
-      .. step:: Set automatic encryption options
+      .. step:: Set automatic encryption options.
 
          .. note:: Automatic Encryption Options
 
@@ -674,7 +674,7 @@
             :language: go
             :dedent:
 
-      .. step:: Create a Client to Set Up an Encrypted Collection
+      .. step:: Create a Client to Set Up an Encrypted Collection.
 
          To create a client used to encrypt and decrypt data in
          your collection, instantiate a new ``MongoClient`` by using your
@@ -704,7 +704,7 @@
    .. procedure::
       :style: normal
 
-      .. step:: Assign application variables
+      .. step:: Assign application variables.
 
              .. include:: /includes/queryable-encryption/tutorials/assign-app-variables-csharp.rst
 
@@ -733,7 +733,7 @@
                   `README.md <{+sample-app-url-qe+}/csharp/README.md>`__ file
                   included in the sample application on GitHub.
 
-      .. step:: Add your KMS credentials
+      .. step:: Add your KMS credentials.
          
          Create a variable containing your KMS credentials with the
          following structure. Use the Access Key ID and Secret Access 
@@ -774,7 +774,7 @@
 
             You cannot automatically retrieve credentials if you are using a named KMS provider.
 
-      .. step:: Add your CMK credentials
+      .. step:: Add your CMK credentials.
 
          Create a variable containing your {+cmk-long+} credentials
          with the following structure. Use the {+aws-arn-abbr+} and
@@ -786,7 +786,7 @@
             :language: csharp
             :dedent:
 
-      .. step:: Set automatic encryption options
+      .. step:: Set automatic encryption options.
 
          .. note:: Automatic Encryption Options
 
@@ -813,7 +813,7 @@
             :language: csharp
             :dedent:
 
-      .. step:: Create a Client to Set Up an Encrypted Collection
+      .. step:: Create a Client to Set Up an Encrypted Collection.
 
          To create a client used to encrypt and decrypt data in
          your collection, instantiate a new ``MongoClient`` by using your
@@ -856,7 +856,7 @@
    .. procedure::
       :style: normal
 
-      .. step:: Assign application variables
+      .. step:: Assign application variables.
 
              .. include:: /includes/queryable-encryption/tutorials/assign-app-variables-rust.rst
 
@@ -885,7 +885,7 @@
                   `README.md <{+sample-app-url-qe+}/rust/README.md>`__ file
                   included in the sample application on GitHub.
 
-      .. step:: Add your KMS credentials
+      .. step:: Add your KMS credentials.
          
          Create a variable containing your KMS credentials with the
          following structure. Use the Access Key ID and Secret Access 
@@ -929,7 +929,7 @@
 
             You cannot automatically retrieve credentials if you are using a named KMS provider.
 
-      .. step:: Add your CMK credentials
+      .. step:: Add your CMK credentials.
 
          Create a variable containing your {+cmk-long+} credentials
          with the following structure. Use the {+aws-arn-abbr+} and
@@ -941,7 +941,7 @@
             :language: rust
             :dedent:
 
-      .. step:: Set automatic encryption options
+      .. step:: Set automatic encryption options.
 
          .. note:: Automatic Encryption Options
 
@@ -966,7 +966,7 @@
             :language: rust
             :dedent:
 
-      .. step:: Create a Client to Set Up an Encrypted Collection
+      .. step:: Create a Client to Set Up an Encrypted Collection.
 
          To create a client used to encrypt and decrypt data in
          your collection, instantiate a new ``MongoClient`` by using your
@@ -996,7 +996,7 @@
    .. procedure::
       :style: normal
 
-      .. step:: Assign application variables
+      .. step:: Assign application variables.
 
              .. include:: /includes/queryable-encryption/tutorials/assign-app-variables-php.rst
 
@@ -1025,7 +1025,7 @@
                   `README.md <{+sample-app-url-qe+}/php/README.md>`__ file
                   included in the sample application on GitHub.
 
-      .. step:: Add your KMS credentials
+      .. step:: Add your KMS credentials.
          
          Create a variable containing your KMS credentials with the
          following structure. Use the Access Key ID and Secret Access 
@@ -1070,7 +1070,7 @@
 
             You cannot automatically retrieve credentials if you are using a named KMS provider.
 
-      .. step:: Add your CMK credentials
+      .. step:: Add your CMK credentials.
 
          Create a variable containing your {+cmk-long+} credentials
          with the following structure. Use the {+aws-arn-abbr+} and
@@ -1082,7 +1082,7 @@
             :language: php
             :dedent:
 
-      .. step:: Set automatic encryption options
+      .. step:: Set automatic encryption options.
 
          .. note:: Automatic Encryption Options
 
@@ -1106,7 +1106,7 @@
             :language: php
             :dedent:
 
-      .. step:: Create a Client to Set Up an Encrypted Collection
+      .. step:: Create a Client to Set Up an Encrypted Collection.
 
          To create a client used to encrypt and decrypt data in
          your collection, instantiate a new ``MongoClient`` by using your
@@ -1136,7 +1136,7 @@
    .. procedure::
       :style: normal
 
-      .. step:: Assign application variables
+      .. step:: Assign application variables.
 
              .. include:: /includes/queryable-encryption/tutorials/assign-app-variables-ruby.rst
 
@@ -1165,7 +1165,7 @@
                   `README.md <{+sample-app-url-qe+}/ruby/README.md>`__ file
                   included in the sample application on GitHub.
 
-      .. step:: Add your KMS credentials
+      .. step:: Add your KMS credentials.
 
          Create a variable containing your KMS credentials with the
          following structure. Use the Access Key ID and Secret Access
@@ -1193,7 +1193,7 @@
 
             You cannot automatically retrieve credentials if you are using a named KMS provider.
 
-      .. step:: Add your CMK credentials
+      .. step:: Add your CMK credentials.
 
          Create a variable containing your {+cmk-long+} credentials
          with the following structure. Use the {+aws-arn-abbr+} and
@@ -1205,7 +1205,7 @@
             :language: ruby
             :dedent:
 
-      .. step:: Set automatic encryption options
+      .. step:: Set automatic encryption options.
 
          .. note:: Automatic Encryption Options
 
@@ -1229,7 +1229,7 @@
             :language: ruby
             :dedent:
 
-      .. step:: Create a Client to Set Up an Encrypted Collection
+      .. step:: Create a Client to Set Up an Encrypted Collection.
 
          To create a client used to encrypt and decrypt data in
          your collection, instantiate a new ``Mongo::Client`` by using your
@@ -1239,4 +1239,141 @@
             :start-after: start-create-client
             :end-before: end-create-client
             :language: ruby
+            :dedent:
+.. selected-content::
+   :selections: aws, cpp
+
+   Full Application Code
+   ~~~~~~~~~~~~~~~~~~~~~
+
+   To see the complete code for the sample application, select your programming
+   language in the language selector.
+
+   `Complete C++ Application <{+sample-app-url-qe+}/cpp/>`__
+
+   Each sample application repository includes a ``README.md``
+   file that you can use to learn how to set up your environment and run
+   the application.
+
+   .. procedure::
+      :style: normal
+
+      .. step:: Assign application variables.
+
+             .. include:: /includes/queryable-encryption/tutorials/assign-app-variables-cpp.rst
+
+             You can declare these variables by using the following code:
+
+             .. literalinclude:: /includes/qe-tutorials/cpp/queryable_encryption_tutorial.cpp
+                  :start-after: start-setup-application-variables
+                  :end-before: end-setup-application-variables
+                  :language: cpp
+                  :dedent:
+
+             .. important:: {+key-vault-long-title+} Namespace Permissions
+
+                  The {+key-vault-long+} is in the ``encryption.__keyVault``
+                  namespace. Ensure that the database user your application uses to connect
+                  to MongoDB has :ref:`ReadWrite <manual-reference-role-read-write>`
+                  permissions on this namespace.
+
+             .. tip:: Environment Variables
+
+                  The sample code in this tutorial references environment variables that
+                  you need to set. Alternatively, you can replace the values directly in
+                  the code.
+
+                  To learn how you can setup these environment variables, see the
+                  `README.md <{+sample-app-url-qe+}/cpp/README.md>`__ file
+                  included in the sample application on GitHub.
+
+      .. step:: Add your KMS credentials.
+
+         Create a variable containing your KMS credentials with the
+         following structure. Use the Access Key ID and Secret Access 
+         Key you used in step 2.2 when you :ref:`created an AWS IAM user <qe-create-aws-iam-user>`.
+
+         .. literalinclude:: /includes/qe-tutorials/cpp/queryable_encryption_tutorial.cpp
+            :start-after: start-aws-kms-credentials
+            :end-before: end-aws-kms-credentials
+            :language: cpp
+            :dedent:
+
+         You can also provide a custom name for your KMS provider by using a
+         document key that includes the name of the KMS provider, followed by a
+         colon and the custom name. Providing a unique name for a KMS provider
+         allows you to specify multiple KMS providers of the same type.
+
+         For example, you can name your AWS KMS provider "my_aws_provider" in your KMS
+         credentials variable as shown in the following code:
+
+         .. literalinclude:: /includes/queryable-encryption/tutorials/automatic/aws/named-kms/named_kms.cpp
+            :language: cpp
+            :dedent:
+
+         :gold:`NOTE:` The remaining steps in this tutorial use
+         the default KMS provider string, ``"aws"``.
+
+         .. important:: Reminder: Authenticate with IAM Roles in Production
+
+            To use an {+aws-iam-abbr+} role instead of an {+aws-iam-abbr+} user
+            to authenticate your application,
+            specify an empty document for your credentials in your KMS provider
+            document. This instructs the driver to automatically retrieve the credentials
+            from the environment:
+
+            .. code-block:: cpp
+
+               auto const kms_providers = make_document(kvp("aws", make_document()));
+
+            You cannot automatically retrieve credentials if you are using a named KMS provider.
+
+      .. step:: Add your CMK credentials.
+
+         Create a variable containing your {+cmk-long+} credentials
+         with the following structure. Use the {+aws-arn-abbr+} and
+         Region you recorded in step 1.3 when you :ref:`created a CMK <qe-create-cmk-aws>`.
+
+         .. literalinclude:: /includes/qe-tutorials/cpp/queryable_encryption_tutorial.cpp
+            :start-after: start-aws-cmk-credentials
+            :end-before: end-aws-cmk-credentials
+            :language: cpp
+            :dedent:
+
+      .. step:: Set automatic encryption options.
+
+         .. note:: Automatic Encryption Options
+
+            The automatic encryption options provide configuration
+            information to the {+shared-library+},
+            which modifies the application's behavior when accessing encrypted fields.
+
+            To learn more about the {+shared-library+}, see
+            the :ref:`<qe-reference-shared-library>` page.
+
+         Create a ``mongocxx::options::auto_encryption`` object that sets
+         the following options:
+
+         - The namespace of your {+key-vault-long+}
+         - The ``kms_providers`` document, which
+           contains your AWS KMS credentials
+         - The ``extra_options`` document, which contains the path
+           to your {+shared-library+}
+
+         .. literalinclude:: /includes/qe-tutorials/cpp/queryable_encryption_tutorial.cpp
+            :start-after: start-auto-encryption-options
+            :end-before: end-auto-encryption-options
+            :language: cpp
+            :dedent:
+
+      .. step:: Create a Client to Set Up an Encrypted Collection.
+
+         To create a client used to encrypt and decrypt data in
+         your collection, instantiate a new ``mongocxx::client`` by using your
+         connection URI and your automatic encryption options.
+
+         .. literalinclude:: /includes/qe-tutorials/cpp/queryable_encryption_tutorial.cpp
+            :start-after: start-create-client
+            :end-before: end-create-client
+            :language: cpp
             :dedent:
