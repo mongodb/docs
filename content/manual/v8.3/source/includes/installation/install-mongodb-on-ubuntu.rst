@@ -19,7 +19,7 @@ Overview
 
 Use this tutorial to install MongoDB {+version+} |edition| Edition on
 LTS (long-term support) releases of Ubuntu Linux using the
-|package-manager| package manager.
+APT package manager.
 
 MongoDB Version
 ~~~~~~~~~~~~~~~
@@ -53,7 +53,7 @@ Install MongoDB Community Edition
 ---------------------------------
 
 Follow these steps to install MongoDB |edition| Edition using the
-|package-manager| package manager.
+APT package manager.
 
 .. include:: /includes/deploy/community-ubuntu
 

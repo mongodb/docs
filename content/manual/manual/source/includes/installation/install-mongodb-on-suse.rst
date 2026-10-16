@@ -18,7 +18,7 @@ Overview
 
 Use this tutorial to install MongoDB {+version+} |edition|
 Edition on SUSE Linux Enterprise Server (SLES) using the
-|package-manager| package manager.
+ZYpp package manager.
 
 MongoDB Version
 ~~~~~~~~~~~~~~~
@@ -42,7 +42,7 @@ Install MongoDB Community Edition
 ---------------------------------
 
 Follow these steps to install MongoDB |edition| Edition using the
-|package-manager| package manager.
+ZYpp package manager.
 
 .. include:: /includes/deploy/community-suse.rst
 
