@@ -49,6 +49,24 @@ September 2026
   regions, and creating or rebuilding shards. To learn more, see
   :ref:`disk-pre-warming`.
 
+- General Availability: Adds Gen2 support for ``M30+``
+  {+Dedicated-clusters+} on {+gcp+}, allowing you to scale
+  disk storage capacity and storage performance (|iops| and
+  throughput) independently for improved cost optimization. To learn
+  more, see :ref:`gen2-clusters`.
+
+- Allows you to sign in to |service| from |compass| and approve
+  delegated access, so the
+  :ref:`intelligent assistant <compass-ai-assistant>` can use your
+  existing |service| permissions to inspect |service| metadata and
+  provide targeted troubleshooting when a |compass| connection fails.
+
+- Adds a :ref:`Shell Syntax Mode <atlas-ui-insert-documents>` for
+  inserting and editing documents in the {+atlas-ui+} and |compass|,
+  so you can use consistent MongoDB shell syntax with unquoted field
+  names and type constructors such as ``ObjectId()`` and
+  ``ISODate()`` instead of switching between shell and EJSON syntax.
+
 - Removes the option to enable the BI Connector for new and existing
   {+clusters+} ahead of its end of life. To query your data with
   SQL, use
