@@ -73,7 +73,7 @@ export const Collapsible = ({
             <Text slot="description">{subHeading}</Text>
           </DisclosureTrigger>
         </DisclosureHeader>
-        <Permalink id={id} description="heading" />
+        <Permalink id={id} description="heading" label={heading} />
       </div>
       <DisclosurePanel ref={contentRef}>{children}</DisclosurePanel>
     </Disclosure>

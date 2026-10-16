@@ -16,9 +16,10 @@ import styles from './permalink.module.scss';
 export type PermalinkProps = {
   id: string;
   description: string;
+  label?: string;
 };
 
-export const Permalink = forwardRef<HTMLDivElement, PermalinkProps>(({ id, description }, ref) => {
+export const Permalink = forwardRef<HTMLDivElement, PermalinkProps>(({ id, description, label }, ref) => {
   const { options } = usePageContext();
   const url = isBrowser ? window.location.href.split('#')[0] + '#' + id : '';
 
@@ -37,31 +38,37 @@ export const Permalink = forwardRef<HTMLDivElement, PermalinkProps>(({ id, descr
   };
 
   return (
-    <TooltipRoot isOpen={copied}>
-      {/* TooltipTrigger clones its child and overwrites any ref set directly
+    <>
+      <TooltipRoot isOpen={copied}>
+        {/* TooltipTrigger clones its child and overwrites any ref set directly
           on it, so the anchor ref ClipboardJS needs must be forwarded here
           instead — a ref on the <a> itself would silently never attach. */}
-      <TooltipTrigger ref={headingRef}>
-        <a
-          className={clsx('headerlink', styles.heading, copied && styles.copied)}
-          href={`#${id}`}
-          title={'Permalink to this ' + description}
-          onClick={handleClick}
-        >
-          <LinkIcon className={styles.icon} size={12} />
-          <div
-            className={options?.has_composable_tutorial ? styles.headerBufferComposable : styles.headerBuffer}
-            ref={mergedRef}
-            id={id}
-          />
-        </a>
-      </TooltipTrigger>
-      <Tooltip className={styles.tooltip}>
-        <Text textStyle={TextStyle.body} size={Size.Large} elementType="span" className={styles.tooltipText}>
-          copied
-        </Text>
-      </Tooltip>
-    </TooltipRoot>
+        <TooltipTrigger ref={headingRef}>
+          <a
+            className={clsx('headerlink', styles.heading, copied && styles.copied)}
+            href={`#${id}`}
+            title={'Permalink to this ' + description}
+            aria-label={label && `Permalink to ${label}`}
+            onClick={handleClick}
+          >
+            <LinkIcon className={styles.icon} size={12} role="presentation" aria-hidden />
+            <div
+              className={options?.has_composable_tutorial ? styles.headerBufferComposable : styles.headerBuffer}
+              ref={mergedRef}
+              id={id}
+            />
+          </a>
+        </TooltipTrigger>
+        <Tooltip className={styles.tooltip}>
+          <Text textStyle={TextStyle.body} size={Size.Large} elementType="span" className={styles.tooltipText}>
+            copied
+          </Text>
+        </Tooltip>
+      </TooltipRoot>
+      <span role="status" className={styles.visuallyHidden}>
+        {copied && 'Link copied'}
+      </span>
+    </>
   );
 });
 Permalink.displayName = 'Permalink';

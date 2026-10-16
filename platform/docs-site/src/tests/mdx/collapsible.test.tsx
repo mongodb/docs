@@ -42,6 +42,31 @@ describe('collapsible component', () => {
     expect(button.querySelector('h1, h2, h3, h4, h5, h6, p, div')).toBeNull();
   });
 
+  it('names the permalink after the heading', () => {
+    const renderResult = render(
+      <Collapsible heading="This is a heading" subHeading="This is a subheading">
+        <Paragraph>This is collapsible content</Paragraph>
+      </Collapsible>,
+    );
+    const link = renderResult.getByRole('link', { name: 'Permalink to This is a heading' });
+    expect(link).toHaveAttribute('href', '#this-is-a-heading');
+  });
+
+  it('announces when the permalink is copied', async () => {
+    const renderResult = render(
+      <Collapsible heading="This is a heading" subHeading="This is a subheading">
+        <Paragraph>This is collapsible content</Paragraph>
+      </Collapsible>,
+    );
+    expect(renderResult.getByRole('status')).toBeEmptyDOMElement();
+
+    await act(async () => {
+      renderResult.getByRole('link', { name: 'Permalink to This is a heading' }).click();
+    });
+
+    expect(renderResult.getByRole('status')).toHaveTextContent('Link copied');
+  });
+
   it('expands the content when the trigger is pressed', async () => {
     const renderResult = render(
       <Collapsible heading="This is a heading" subHeading="This is a subheading">
