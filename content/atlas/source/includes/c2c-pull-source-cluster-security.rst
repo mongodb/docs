@@ -1,4 +1,4 @@
-Various built-in roles provide sufficient privileges. For example:
+The migration user needs the following built-in roles, plus a custom role that includes the write-blocking actions:
 
 .. include:: /includes/c2c-required-roles.rst
 
