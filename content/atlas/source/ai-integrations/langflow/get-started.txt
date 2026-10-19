@@ -1,0 +1,335 @@
+.. _langflow-get-started:
+
+=========================================
+Get Started with the Langflow Integration
+=========================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: RAG, retrieval, vector database, vector search, low-code, no-code, visual editor, AI agent
+   :description: Build a self-contained flow in Langflow that ingests a web page into MongoDB Atlas as a vector store, then use an agent to search it and answer questions.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can integrate MongoDB with Langflow to add MongoDB-backed
+retrieval to your AI agents from a visual interface. This tutorial
+builds a flow that configures an agent to use MongoDB. In this
+tutorial, you perform the following tasks:
+
+#. Configure MongoDB as a vector store and ingest a MongoDB blog
+   post into it.
+#. Build an agent that uses your MongoDB collection as a
+   retrieval tool.
+#. Run the flow and ask a question about the blog post content.
+
+Background
+----------
+
+`Langflow <https://www.langflow.org/>`__ is an open-source visual
+framework for building AI pipelines and agents. Instead of writing
+code, you build a flow by dragging and connecting components on a
+canvas. Each component performs a discrete task, such as
+splitting text or querying a language model.
+
+Langflow provides a :guilabel:`MongoDB Atlas` component that uses
+{+avs+} as a vector store. You can connect this component to other
+components in your flow to ingest data, run a similarity search, or
+give an agent a tool to query your collection. The component
+creates a {+avs+} index on your collection the first time you run
+a search, if a matching index doesn't already exist.
+
+.. _langflow-get-started-about:
+
+About the Flow
+--------------
+
+In this tutorial, you build the following flow:
+
+.. code-block:: none
+   :copyable: false
+
+   URL → Split Text  →  ┐
+                        ├──  MongoDB Atlas  →  ┐
+         Embeddings  →  ┘                      ├── Agent → Chat Output
+                                 Chat Input →  ┘
+
+The flow performs the following tasks:
+
+#. The :guilabel:`URL` component fetches the content of a MongoDB
+   blog post, which describes the MongoDB 9.0 release.
+#. The :guilabel:`Split Text` component splits that content into
+   chunks.
+#. The :guilabel:`MongoDB Atlas` component embeds each chunk and
+   writes it to your collection.
+#. When you send a message related to the MongoDB 9.0 blog post, the
+   :guilabel:`Agent` component calls the :guilabel:`MongoDB Atlas`
+   component as a tool to search your collection for relevant chunks.
+#. The agent uses any retrieved chunks to generate a response,
+   which the :guilabel:`Chat Output` component returns.
+
+Prerequisites
+-------------
+
+To complete this tutorial, you must have the following resources:
+
+- Langflow installed on your machine. To learn more, see `Install
+  Langflow <https://docs.langflow.org/get-started-installation>`__
+  in the Langflow documentation.
+
+- .. include:: /includes/avs/shared/avs-requirements-cluster.rst
+
+- API key for an embedding model and a language model provider
+  that Langflow supports, such as OpenAI. To learn more about
+  the supported models, see `Embedding Model
+  <https://docs.langflow.org/components-embedding-models>`__ and
+  `Language Model <https://docs.langflow.org/components-models>`__
+  in the Langflow documentation.
+
+Considerations
+~~~~~~~~~~~~~~
+
+When working with Langflow and MongoDB, consider the following:
+
+- For |service-fullname| users, ensure that you add your Langflow
+  host's IP address to your project's IP access list. To learn
+  more, see :ref:`access-list`.
+
+- The :guilabel:`Embedding` component is required, and you
+  must connect it to the :guilabel:`MongoDB Atlas` component's
+  :guilabel:`Embedding` input. If you don't connect the components,
+  the flow fails when it tries to embed your documents or query.
+  To learn more, see :ref:`langflow`.
+
+- The :guilabel:`MongoDB Atlas` component requires a value in the
+  :guilabel:`Quantization` field before it can create a new
+  {+avs+} index. To learn more, see :ref:`langflow-search-indexes`.
+
+Store Data in MongoDB
+---------------------
+
+In this section, you create a flow that adds blog post data to a
+MongoDB collection and indexes that data for vector search.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Install the MongoDB Atlas component.
+
+      .. tip::
+
+         If you use `Langflow Desktop <https://www.langflow.org/desktop/>`__,
+         you can skip this step.
+
+      In the Python version, the :guilabel:`MongoDB Atlas` component
+      isn't available by default. To install this component, run the
+      following command:
+
+      .. code-block:: shell
+
+         uv pip install "lfx-bundles[mongodb]"
+
+      If you use Docker to run Langflow, use the
+      ``langflowai/langflow-all`` image instead of
+      ``langflowai/langflow``. To learn more, see :ref:`langflow`.
+
+   .. step:: Create a new flow.
+
+      Open Langflow and click the :guilabel:`New Flow` button
+      to create a blank flow. Then, click the :guilabel:`Components`
+      tab on the left navigation bar to start adding components to
+      your flow.
+
+   .. step:: Add a URL component.
+
+      Add the :guilabel:`URL` component to your canvas from the
+      :guilabel:`Data Source` category. Set the :guilabel:`URLs`
+      parameter to the following URL, which links to a
+      blog post about MongoDB 9.0:
+
+      .. code-block:: text
+
+         https://www.mongodb.com/company/blog/product-release-announcements/mongodb-9-0-this-is-what-a-database-should-be
+
+      Leave the :guilabel:`Depth` parameter set to ``1.00``,
+      its default value.
+
+   .. step:: Add a Split Text component.
+
+      To divide the blog post data into chunks,
+      perform the following steps:
+      
+      a. Add the :guilabel:`Split Text` component to your canvas from
+         the :guilabel:`Processing` category.
+      
+      #. Connect the :guilabel:`URL` component's :guilabel:`Extracted Pages`
+         output to the :guilabel:`Split Text` component's :guilabel:`Input`.
+         
+      #. Leave the :guilabel:`Chunk Overlap`, :guilabel:`Chunk Size`,
+         and :guilabel:`Separator` parameters set to their default values.
+
+   .. step:: Add a MongoDB Atlas component.
+
+      Add the :guilabel:`MongoDB Atlas` component to your canvas
+      from the :guilabel:`MongoDB` category, and connect the
+      :guilabel:`Split Text` component's :guilabel:`Chunks` output
+      to the :guilabel:`MongoDB Atlas` component's
+      :guilabel:`Ingest Data` input.
+
+      Configure the following parameters on the :guilabel:`MongoDB
+      Atlas` component:
+
+      .. list-table::
+         :widths: 30 70
+         :header-rows: 1
+
+         * - Parameter
+           - Value
+
+         * - :guilabel:`MongoDB Atlas Cluster URI`
+           - Your MongoDB connection string. To learn how to
+             retrieve your connection string, see :ref:`mongodb-uri`.
+
+         * - :guilabel:`Database Name`
+           - Your database name, such as ``langflow_tutorial``
+
+         * - :guilabel:`Collection Name`
+           - Your collection name, such as ``web_page_chunks``
+
+         * - :guilabel:`Index Name`
+           - Your index name, such as ``langflow_idx``
+
+         * - :guilabel:`Quantization`
+           - The data type the index uses to store vector values, which can
+             be ``scalar`` or ``binary``
+
+      .. tip::
+
+         To configure the **Quantization** parameter, click
+         the **Parameters** button above the **MongoDB Atlas**
+         component. Then, select the **Add** button next
+         to the **Quantization** list item.
+
+   .. step:: Add an embeddings component.
+
+      To configure OpenAI text embeddings, perform the following steps:
+      
+      a. Add the :guilabel:`OpenAI Embeddings` 
+         component from the :guilabel:`OpenAI` category.
+
+      #. Select your preferred model from the :guilabel:`Model`
+         dropdown.
+
+      #. Specify your API key in the component's :guilabel:`API Key`
+         parameter.
+         
+      #. Connect the component to the :guilabel:`MongoDB
+         Atlas` component's :guilabel:`Embedding` input.
+      
+      If you use a different embedding provider, add the
+      corresponding component to your flow.
+
+   .. step:: Build the ingestion path.
+
+      Select the :guilabel:`MongoDB Atlas` component, and then click
+      the play icon to build the :guilabel:`URL` →
+      :guilabel:`Split Text` → :guilabel:`MongoDB Atlas` path. This
+      embeds the page content, writes the content to your collection,
+      and creates the {+avs+} index if it doesn't already exist.
+
+      .. include:: /includes/search-shared/fact-index-build-initial-sync.rst
+
+Build the Agent
+---------------
+
+In this section, you add an agent that uses your MongoDB collection
+as a tool to answer questions about the page you ingested.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Add an Agent component.
+
+      Add the :guilabel:`Agent` component to your canvas from
+      the :guilabel:`Models & Agents` category.
+
+   .. step:: Configure the agent's model.
+
+      To set your agent's language model, perform the following
+      steps:
+
+      a. In the :guilabel:`Agent` component, select
+         :guilabel:`Manage Model Providers` from the
+         :guilabel:`Language Model` dropdown.
+
+      #. If you use OpenAI, select :guilabel:`OpenAI` from the
+         :guilabel:`Model providers` list and enter your OpenAI
+         API key. Then, select your OpenAI language model from
+         the :guilabel:`Language Model` list.
+
+      #. Navigate back to the :guilabel:`Agent` component and
+         select your newly configured language model from the
+         :guilabel:`Language Model` dropdown.
+
+   .. step:: Add chat components.
+
+      From the :guilabel:`Input & Output` category, add the
+      :guilabel:`Chat Input` and :guilabel:`Chat Output`
+      components to your canvas.
+
+      Connect :guilabel:`Chat Input` to the :guilabel:`Agent`
+      component's :guilabel:`Input`, and connect the :guilabel:`Agent`
+      component's :guilabel:`Response` to :guilabel:`Chat Output`.
+
+   .. step:: Connect MongoDB Atlas as a tool.
+
+      a. Select the :guilabel:`MongoDB Atlas` component, and then
+         enable :guilabel:`Tool Mode` in its header menu.
+
+      #. Connect the :guilabel:`MongoDB Atlas` component's
+         :guilabel:`Toolset` output to the :guilabel:`Agent`
+         component's :guilabel:`Tools` input.
+
+      Your flow now has the structure described in
+      the :ref:`langflow-get-started-about` diagram and
+      resembles the following image:
+
+      .. image:: /images/avs/langflow-quickstart-flow.png
+         :alt: The completed flow from this tutorial.
+         :figwidth: 1200px
+
+   .. step:: Run the flow.
+
+      Click :guilabel:`Playground` on the top-right corner of the
+      canvas. Then, ask a question about the blog post, such as
+      ``"Which new queryable encryption features
+      does MongoDB 9.0 introduce?"`` The agent decides
+      whether to call the :guilabel:`MongoDB Atlas` tool to search
+      your collection, and then uses any retrieved chunks to
+      generate its response.
+
+      .. important:: Avoid Re-ingesting Data
+
+         After you connect the **MongoDB Atlas** component
+         to the **Agent** component, Langflow reruns the entire
+         ingestion path each time you send a message.
+
+         In a production flow, freeze the **MongoDB Atlas**
+         component after you build the ingestion path to prevent it
+         from re-running. To learn more, see `Freeze a component
+         <https://docs.langflow.org/concepts-components#freeze-a-component>`__
+         in the Langflow documentation.
+
+Next Steps
+----------
+
+To learn more about the :guilabel:`MongoDB Atlas` component's
+parameters and the {+avs+} index that it creates, see :ref:`langflow`.
