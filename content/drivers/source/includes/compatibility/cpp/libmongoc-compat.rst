@@ -9,7 +9,7 @@ The following table shows the minimum libmongoc version for each version of the 
      - Minimum libmongoc Version
 
    * - 4.6.x
-     - 2.5.3
+     - 2.5.6
 
    * - 4.5.x
      - 2.3.3
