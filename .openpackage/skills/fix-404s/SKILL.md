@@ -97,16 +97,8 @@ Work through the broken URL list one at a time. Run sub-steps in order; stop as 
 curl -sLD - "<broken-url>" -o /dev/null
 ```
 
-`-L` follows redirects; `-D -` prints response headers to stdout; `-o /dev/null` discards the body.
-
 - Final status is 2xx → record the final URL (the last `Location` header in the chain, or the original URL if there was no redirect). Confidence: **high**. Go to Step 3.
-- Final status is 4xx, 5xx, or curl errors → if the URL has query parameters, strip them and retry:
-
-  ```bash
-  curl -sLD - "<url-without-query-params>" -o /dev/null
-  ```
-
-  If the stripped URL returns 2xx, record it as the replacement. Confidence: **high**. Go to Step 3. Otherwise → Step 2c.
+- Final status is 4xx, 5xx, or curl errors → if the URL has query parameters, strip them and retry with the same command. If the stripped URL returns 2xx, record it as the replacement. Confidence: **high**. Go to Step 3. Otherwise → Step 2c.
 
 ### 2c. Check the Wayback Machine
 
@@ -214,15 +206,15 @@ Apply the fix chosen by the user.
 
 ### Locating the URL in the RST file
 
-Use the line number from the linter output to locate the URL. External URLs in docs source appear in several forms — identify which applies and edit accordingly. Read the relevant asset file for the exact syntax:
+Use the line number from the linter output to locate the URL. External URLs in docs source appear in several forms — identify which applies and edit accordingly. The exact syntax for each is shown below and in the referenced asset file:
 
-**Inline hyperlink** (`assets/inline-hyperlink.rst`):
+**Inline hyperlink** (`assets/inline-hyperlink.rst`) — `` `link text <https://old-url.com>`_ ``:
 Replace only the URL inside the angle brackets. Preserve the link text and trailing underscore.
 
-**Standalone hyperlink target** (`assets/standalone-hyperlink-target.rst`):
+**Standalone hyperlink target** (`assets/standalone-hyperlink-target.rst`) — ``.. _label-name: https://old-url.com``:
 Replace only the URL. Preserve the label name and directive syntax.
 
-**Bare URL in prose** (`assets/bare-url.rst`):
+**Bare URL in prose** (`assets/bare-url.rst`) — ``See https://old-url.com for more information.``:
 Replace the bare URL in place.
 
 **Multi-line URL** (line-wrapped in the source file):

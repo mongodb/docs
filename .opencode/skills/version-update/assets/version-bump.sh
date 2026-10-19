@@ -67,7 +67,8 @@ run() {
 }
 
 # Literal string replacement via perl \Q...\E (no regex escaping needed in args).
-# Warns to stderr if the pattern is not found (silent no-op would hide bugs).
+# Exits nonzero if the pattern is not found so set -e stops the script
+# (a silent no-op would hide bugs).
 sub_file() {
     local file="$1" old_str="$2" new_str="$3"
     if $DRY_RUN; then
@@ -75,15 +76,15 @@ sub_file() {
         return
     fi
     if ! grep -qF -- "$old_str" "$file"; then
-        echo "  WARNING: pattern not found, no change made: $(basename "$file")" >&2
+        echo "  ERROR: pattern not found, no change made: $(basename "$file")" >&2
         printf "    '%s'\n" "$old_str" >&2
-        return
+        return 1
     fi
     perl -pi -e "s/\Q${old_str}\E/${new_str}/g" "$file"
 }
 
 # Multi-line replacement (slurps whole file). old_str is a perl regex.
-# Warns to stderr if no substitution was made.
+# Exits nonzero if no substitution was made so set -e stops the script.
 sub_file_ml() {
     local file="$1" pattern="$2" replacement="$3"
     if $DRY_RUN; then
@@ -95,10 +96,10 @@ sub_file_ml() {
     tmp="$(mktemp)"
     perl -0pe "s/${pattern}/${replacement}/g" "$file" > "$tmp"
     if cmp -s "$file" "$tmp"; then
-        echo "  WARNING: multi-line substitution matched nothing in $(basename "$file")" >&2
+        echo "  ERROR: multi-line substitution matched nothing in $(basename "$file")" >&2
         printf "    pattern: %s\n" "$pattern" >&2
         rm "$tmp"
-        return
+        return 1
     fi
     mv "$tmp" "$file"
 }
@@ -293,6 +294,37 @@ update_field() {
     sub_file "$file" "${field} = \"${old_val}\"" "${field} = \"${new_val}\""
 }
 
+# Update the full-version field after a version bump. Some docsets keep the
+# major.minor numbers in the version field and the patch in full-version,
+# whose value is a substitution string, e.g.:
+#     version = "5.12"
+#     full-version = "{+version+}.0"
+# A minor or major release resets the patch to 0; a patch release increments
+# it. The substitution prefix ({+version+}, {+version-number+}, ...) is
+# preserved as-is. Docsets without a full-version field are skipped.
+update_full_version() {
+    local file="$1"
+    if ! grep -qE '^full-version[[:space:]]*=' "$file" 2>/dev/null; then
+        echo "  skip: 'full-version' not found in $(basename "$(dirname "$file")")/snooty.toml"
+        return
+    fi
+    local raw prefix patch new_patch
+    raw="$(grep -E '^full-version[[:space:]]*=' "$file" | head -1 | \
+        sed "s/.*=[[:space:]]*['\"]//; s/['\"].*//")"
+    prefix="${raw%%.*}"
+    patch="${raw##*.}"
+    if ! [[ "$patch" =~ ^[0-9]+$ ]]; then
+        die "Cannot parse the patch number from full-version = \"$raw\" in $file. Update the field manually, then re-run."
+    fi
+    if [[ "$RELEASE_TYPE" == "patch" ]]; then
+        new_patch="$((patch + 1))"
+    else
+        new_patch="0"
+    fi
+    echo "  $(basename "$(dirname "$file")")/snooty.toml  full-version: \"$raw\" → \"$prefix.$new_patch\""
+    sub_file "$file" "full-version = \"${raw}\"" "full-version = \"${prefix}.${new_patch}\""
+}
+
 case "$DOCSET_MODEL" in
     mongosync)
         LATEST_FULL="$(grep -E '^latest-version[[:space:]]*=' "$SNOOTY" | head -1 | \
@@ -337,11 +369,9 @@ case "$DOCSET_MODEL" in
                 CURRENT_SNOOTY="$DOCSET_DIR/current/snooty.toml"
                 if [[ -f "$CURRENT_SNOOTY" ]]; then
                     update_field "$CURRENT_SNOOTY" "$V_FIELD" "$OLD_VERSION" "$NEW_VERSION"
+                    update_full_version "$CURRENT_SNOOTY"
                 else
                     echo "  current/snooty.toml not found — skipping"
-                fi
-                if [[ "$DOCSET" == "entity-framework" ]]; then
-                    echo "  NOTE: verify full-version in current/snooty.toml matches new patch"
                 fi
             fi
         else
@@ -352,6 +382,7 @@ case "$DOCSET_MODEL" in
             else
                 update_field "$SNOOTY" "$V_FIELD" "$CURRENT_VER" "$NEW_VERSION"
             fi
+            update_full_version "$SNOOTY"
             if [[ "$DOCSET" == "kafka-connector" ]]; then
                 PATCH_FIELD="connector_patch_version"
                 OLD_PATCH="$(grep -E "^${PATCH_FIELD}[[:space:]]*=" "$SNOOTY" | head -1 | \
@@ -369,6 +400,7 @@ case "$DOCSET_MODEL" in
         ;;
     *)
         update_field "$SNOOTY" "$V_FIELD" "$OLD_VERSION" "$NEW_VERSION"
+        update_full_version "$SNOOTY"
         ;;
 esac
 

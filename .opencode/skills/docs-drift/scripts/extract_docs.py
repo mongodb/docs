@@ -200,24 +200,44 @@ def extract_page(doc, option_tables=False):
     # Pass 5 (opt-in: --option-tables). Some properties document their option
     # reference as a `list-table` whose first column is the option name (a bold
     # cell) rather than as field-list includes. Pass 3 skips those names as
-    # table scaffolding, so without this pass they read as undocumented. Enabled
+    # table scaffolding, so without this pass they read as undocumented. The
+    # header's "Type" column is screened into each item's `fields["type"]` so
+    # the diff stage can detect type mismatches against source. Enabled
     # per-property via manifest `docs.option_tables: true`; OFF by default so
     # field-list properties (e.g. mongosync) are byte-for-byte unaffected.
     if option_tables:
         opt_name = re.compile(r"^[A-Za-z][A-Za-z0-9._-]*$")
-        for ri, cells, ln, prov in _table_rows(ast, filename):
-            if ri == 0:
-                continue  # header row
+        for ri, cells, ln, prov, header_rows, type_col in _table_rows(
+                ast, filename):
+            if ri < header_rows:
+                # Docutils list-table semantics: only the directive's
+                # `:header-rows:` rows are the header. An absent option
+                # defaults to 0, so the first row is DATA and must not be
+                # dropped — dropping it made first-row options (e.g.
+                # `assignableOnly` on the get-all pages) read as undocumented.
+                continue
             name = text_of(cells[0]).strip().strip("`* ")
             if not opt_name.match(name):
                 continue  # prose header/description cell, not an option name
             if any(it["name"] == name and it["provenance"] == prov
                    for it in items):
                 continue
-            rowtext = " ".join(text_of(c).strip() for c in cells[1:])
+            fields = {}
+            if type_col is not None and type_col < len(cells):
+                typ = text_of(cells[type_col]).strip().strip("`")
+                if typ:
+                    fields["type"] = typ
+            rowtext = " ".join(text_of(c).strip() for i, c in enumerate(cells)
+                               if i != 0 and i != type_col)
+            # Enum values the docs assert are often a bullet list nested inside
+            # the option's description cell; attach them to the field-name item
+            # (not an include-name item) so the diff stage's enum check
+            # compares on the same key as the source surface.
+            values, hedged = _cell_enum_values(cells)
             items.append({
-                "name": name, "provenance": prov, "line": ln, "fields": {},
-                "values": [], "hedged": False, "context": "",
+                "name": name, "provenance": prov, "line": ln,
+                "fields": fields,
+                "values": values, "hedged": hedged, "context": "",
                 "text": rowtext[:1000],
             })
 
@@ -303,9 +323,13 @@ def _first_list(node):
 
 
 def _table_rows(ast, provenance):
-    """Yield (row_index, cells, line, provenance) for each row of every
-    `list-table`/`table` directive. A list-table nests as a rows `list` whose
-    items each contain a cells `list`. `cells` is the list of cell nodes."""
+    """Yield (row_index, cells, line, provenance, header_rows, type_col) for
+    each row of every `list-table`/`table` directive. A list-table nests as a
+    rows `list` whose items each contain a cells `list`; `cells` is the list
+    of cell nodes. `header_rows` honors the directive's `:header-rows:`
+    option (docutils default 0); `type_col` is the header column whose text
+    is "Type", detected from the first header row only (None when the table
+    declares no header row)."""
     for node, prov in walk(ast, provenance):
         if node.get("type") != "directive" or node.get("name") not in (
                 "list-table", "table"):
@@ -313,13 +337,90 @@ def _table_rows(ast, provenance):
         rows = _first_list(node)
         if rows is None:
             continue
+        opts = node.get("options") or {}
+        header_rows = int(opts.get("header-rows", 0))
+        type_col = None
+        if header_rows > 0:
+            # Column roles come from the top header row.
+            first = (rows.get("children", []) or [None])[0]
+            flow = _first_list(first) if isinstance(first, dict) else None
+            if flow is not None:
+                header = [text_of(c).strip().lower()
+                          for c in flow.get("children", []) or []]
+                type_col = next((i for i, h in enumerate(header)
+                                 if h == "type"), None)
         for ri, row in enumerate(rows.get("children", []) or []):
             cells_list = _first_list(row)
             if cells_list is None:
                 continue
             cells = cells_list.get("children", []) or []
             if cells:
-                yield ri, cells, line_of(row), prov
+                yield ri, cells, line_of(row), prov, header_rows, type_col
+
+
+def _cell_enum_values(cells):
+    """Return (values, hedged) for a list-table row: the enumerated values the
+    row's cells assert, and a hedge hint from the prose surrounding them.
+    Writers embed the accepted values as a bullet list inside the option's
+    description cell; those lists are genuine content (nesting depth >= 2),
+    distinct from the rows/cells scaffolding of the table itself (depths 0/1).
+    Only bullets whose paragraph is a single monospace literal are treated as
+    values, so `term: definition` lists (a sub-object's fields, response-body
+    layouts) are never mistaken for accepted-value enumerations."""
+    values = []
+    hedge_ctx = []
+    for c in cells:
+        for node, _prov, scaffolding in _walk_lists(c, "",
+                                                    table_list_depth=2):
+            if scaffolding:
+                continue
+            vals = []
+            for li in node.get("children", []) or []:
+                v = _bare_literal_value(li)
+                if v and v not in vals:
+                    vals.append(v)
+            if not vals:
+                continue
+            for v in vals:
+                if v not in values:
+                    values.append(v)
+            hedge_ctx.append(_cell_prose(c))
+    hedged = any(p in ctx.lower() for p in HEDGE_PHRASES
+                 for ctx in hedge_ctx)
+    return values, hedged
+
+
+def _bare_literal_value(li):
+    """Return the rendered text of a bullet item that is a single monospace
+    literal (the shape an accepted-value enumeration uses), else None."""
+    for c in li.get("children", []) or []:
+        if isinstance(c, dict) and c.get("type") == "paragraph":
+            kids = c.get("children", []) or []
+            if len(kids) == 1 and isinstance(kids[0], dict) \
+                    and kids[0].get("type") == "literal":
+                return text_of(kids[0]).strip()
+    return None
+
+
+def _cell_prose(node):
+    """Concatenate the paragraph prose of a cell, skipping its bullet-list
+    values (so enumerated values don't double as their own hedge context)."""
+    out = []
+
+    def rec(n):
+        if isinstance(n, dict):
+            if n.get("type") == "list":
+                return
+            if n.get("type") == "text":
+                out.append(n.get("value", ""))
+            for c in n.get("children", []) or []:
+                rec(c)
+        elif isinstance(n, list):
+            for c in n:
+                rec(c)
+
+    rec(node)
+    return "".join(out)
 
 
 def _preceding_text(ast, provenance, list_line):
@@ -379,7 +480,7 @@ def main():
         "~/.cache/docs-mongodb-internal/local-build-check/.venv/bin/snooty")
     ap.add_argument("--snooty", default=default_snooty)
     ap.add_argument("--option-tables", action="store_true",
-                    help="capture option names from list-table first columns "
+                    help="capture option names and types from list-table rows "
                          "(set when the manifest has docs.option_tables: true)")
     ap.add_argument("--pages", nargs="+", metavar="GLOB",
                     help="restrict extraction to pages whose filename matches "

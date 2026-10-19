@@ -53,60 +53,33 @@ Collect all findings before proceeding to Step 2.
 
 ---
 
-## Step 2: Classify issues by fix type
+## Step 2: Apply fixes
 
-Group findings by file. For each finding, cross-reference the rule name against the SEO Linter Rules table in `.github/lint-docs/README.md` (loaded in Step 0) to understand what the rule checks and its severity. Then classify it as one of:
+Group findings by file. For each finding, cross-reference the rule name against the SEO Linter Rules table in `.github/lint-docs/README.md` (loaded in Step 0) to understand what the rule checks and its severity. Read each file before generating anything — do not generate content from the linter output alone.
 
-### Content fixes — Claude generates and applies directly
+For all title and description fixes, write changes using the instructions in the format asset file for the file's extension, and apply the title-capitalization and voice guidance in `.github/prompts/style-guide.prompt.md` rather than restating it here. Do not use "simply," "just," or "easy."
 
-**Before acting on `seo-title-length` or `seo-meta-length` findings:** the linter may count markup characters that are not visible to readers, so the reported length can be wrong. Before editing, confirm the true visible length using the length-counting guidance in the format asset file for the file's extension (loaded in Step 0). If the visible length is within range, treat the finding as a false positive and report it to the writer instead of editing the file.
+**Before acting on `seo-title-length` or `seo-meta-length` findings:** the linter counts raw source characters without expanding markup, so the reported length can be wrong. Confirm the true visible length using the length-counting guidance in the format asset file (loaded in Step 0). If the visible length is within range, treat the finding as a false positive and report it to the writer instead of editing the file.
 
-| Rule | What to generate |
-|------|-----------------|
-| `seo-title-missing` | Title from H1 heading, adapted to 30–60 chars |
-| `seo-title-length` (too long) | Shorten existing title to ≤60 chars |
-| `seo-title-length` (too short) | Expand existing title to ≥30 chars |
-| `seo-meta-missing` | 150–200 char description from page intro |
-| `seo-meta-length` (too short) | Expand existing description to ≥150 chars |
-| `seo-meta-length` (too long) | Shorten existing description to ≤200 chars |
-| `seo-meta-duplicate` (identical) | Remove the later description, or the non-`.. meta::` one if the formats differ |
-| `seo-meta-duplicate` (conflicting) | Remove least relevant description |
-| `structure-h1-required` | Generate an H1 from page content and add it |
-| `structure-h1-single` | Identify the correct H1; demote all others to H2 |
-| `structure-h2-before-h1` | Move the H2 content to after the H1 |
-| `image-alt-missing` | Read the image file and generate descriptive alt text (≤125 chars) |
-| `image-alt-length` | Shorten existing alt text to ≤125 chars |
-| `image-png-figwidth` | Read the PNG file to extract width; add `:figwidth:` |
-| `image-svg-dimensions` | Read the SVG file to extract width/height; add to directive |
+### Titles and headings
 
-### Report-only issues — surface to user before applying other fixes
-
-| Rule | Action |
-|------|--------|
-| `seo-low-content` | Present options to writer and wait for instruction before making any changes |
-
----
-
-## Step 3: Apply fixes
-
-### Content fixes
-
-For each file with content fix issues, read the file before generating anything. Do not generate content from the linter output alone.
-
-**Fixing heading structure (`structure-h1-required`, `structure-h1-single`, `structure-h2-before-h1`):**
-
-- `structure-h1-required`: Read the file and generate an H1 from the page content or filename. In RST, an H1 is text between two `====` lines. Place it before any H2s and after the opening metadata/directives.
+- `seo-title-missing` / `structure-h1-required`: Read the file and generate an H1 from the page content or filename, adapted to 30–60 characters. In RST, an H1 is text between two `====` lines. Place it before any H2s and after the opening metadata/directives.
+- `seo-title-length` (too long): Shorten the H1 to 60 characters or fewer. Drop leading qualifiers ("How to", "Introduction to", "Overview of") or trim to the most specific noun phrase.
+- `seo-title-length` (too short): Expand the H1 to 30 characters or more by appending context from the first H2 or opening paragraph. Example: "Atlas" → "Atlas Vector Search Configuration".
+- Do not include "MongoDB" in a title unless the page is a product landing page. Do not restate the title as the description or vice versa.
 - `structure-h1-single`: Identify which H1 is the correct page title (typically the first one). Demote all others: in RST, replace their `====` overline and underline with `----` underline only.
 - `structure-h2-before-h1`: Move the H2 content to after the H1, preserving its heading level.
 
-**Fixing images (`image-alt-missing`, `image-png-figwidth`, `image-svg-dimensions`):**
+### Images
 
 - `image-alt-missing`: Read the image file to understand its visual content, then add a `:alt:` option to the `.. figure::` or `.. image::` directive describing what the image shows. Keep alt text to 125 characters or fewer.
 - `image-alt-length`: Shorten the existing `:alt:` value to 125 characters or fewer. Preserve the key visual information; drop redundant phrases like "Image of" or "Screenshot showing".
 - `image-png-figwidth`: Read the PNG file to extract its pixel width, then add `:figwidth: <width>px` to the directive. If the extracted width exceeds 1200px, do not add `:figwidth:` automatically — report the value to the writer and ask them to confirm the intended display width, since retina/full-resolution screenshots often need to be scaled down.
 - `image-svg-dimensions`: Read the SVG file (it is plain text) and find the `width` and `height` attributes or `viewBox`. Add `:figwidth:` or `:width:` to the directive.
 
-**Low-content pages (`seo-low-content`):**
+### Report-only issue: `seo-low-content`
+
+This issue is surfaced to the writer before applying any other fixes. Present the options and wait for instruction before making any changes.
 
 Report this finding to the writer — do not apply automated fixes. Include the page path and character count from the linter output, and present the following options:
 
@@ -118,41 +91,15 @@ Report this finding to the writer — do not apply automated fixes. Include the 
 
 Wait for the writer to choose before making any changes.
 
-For all title and description fixes, write changes using the instructions in the format asset file for the file's extension. Do not use "simply," "just," or "easy."
+### Meta descriptions (`seo-meta-missing`, `seo-meta-length`, `seo-meta-duplicate`)
 
-**Fixing the title:**
-
-The H1 is the page title.
-
-1. Extract the H1 heading text.
-2. If too long (>60 chars): drop leading qualifiers ("How to", "Introduction to", "Overview of") or trim to the most specific noun phrase.
-3. If too short (<30 chars): append context from the first H2 or opening paragraph. Example: "Atlas" → "Atlas Vector Search Configuration".
-4. Do not include "MongoDB" unless the page is a product landing page.
-5. Use AP headline-style capitalization: capitalize the first, last, and all significant words. Do not capitalize articles, coordinating conjunctions, or prepositions unless they are the first or last word. Do not capitalize literal command names or product/software names that always begin lowercase.
-6. Do not restate the title as the description or vice versa.
-7. After editing the title text, apply any heading-markup and length-counting requirements from the format asset file for the file's extension (loaded in Step 0), including product-name substitution conventions.
-
-**Fixing the meta description:**
-1. If the linter reported `seo-meta-duplicate`, resolve it before any other fixes.
-   - Read the page and find the occurrences of the meta description.
-   - Read each meta description found.
-   - If the meta descriptions are identical:
-      - Remove the later description.
-   - If the meta descriptions are conflicting:
-      - Read the page's content.
-      - Identify which meta description fits the least with the page's content and remove it.
-   - When removing, delete only the `:description:` line. Delete the enclosing `.. meta::` block only if the description was its sole option.
-   - Re-check the length on the remaining description before continuing.
-2. Check whether a description already exists in the file.
-3. If a description exists and is valid (not a null/undefined placeholder), check that it is unique and between 150–200 chars. If it meets both criteria, leave it unchanged. If it is too short or too long, edit it in place — do not rewrite it from scratch.
-4. If no description exists or the existing value is a null/undefined placeholder, generate one from page content:
-   - Read the first body paragraph after the H1 (skip directives, headings, and blank lines to reach prose). If the opening content is code-heavy or table-heavy, scan further.
-   - Draft 150–200 chars: active voice, second person, present tense. Lead with what the page helps the reader accomplish. Do not start with "This page" or repeat the title verbatim.
-   - Target 160 chars — leaves a buffer on both sides of the range.
+- If the linter reported `seo-meta-duplicate`, resolve it before any other fixes. If the descriptions are identical, remove the later one (or the non-`.. meta::` one if the formats differ). If they conflict, remove the one that fits the page's content least. When removing, delete only the `:description:` line; delete the enclosing `.. meta::` block only if the description was its sole option. Re-check the length on the remaining description before continuing.
+- If a description exists and is valid (not a null/undefined placeholder), check that it is unique and between 150–200 chars. If it meets both criteria, leave it unchanged. If it is too short or too long, edit it in place — do not rewrite it from scratch.
+- If no description exists or the existing value is a null/undefined placeholder, generate one 150–200 chars from page content: read the first body paragraph after the H1 (skip directives, headings, and blank lines to reach prose; if the opening content is code-heavy or table-heavy, scan further). Lead with what the page helps the reader accomplish. Do not start with "This page" or repeat the title verbatim. Target 160 chars — leaves a buffer on both sides of the range.
 
 ---
 
-## Step 4: Verify
+## Step 3: Verify
 
 Re-run the SEO linter on the same target after all fixes:
 
@@ -165,13 +112,13 @@ If issues remain (skipped items or new issues introduced), report them. Do not r
 
 ---
 
-## Step 5: Report
+## Step 4: Report
 
 Report to the user in this order:
 
 1. **Fixed**: each issue resolved, with file, rule, and the old → new value so the writer can review what changed before committing.
 2. **Report-only issues**: list any issues that require manual action, with a brief note on what is needed for each.
-3. **Remaining errors**: any issues still present after Step 4.
+3. **Remaining errors**: any issues still present after Step 3.
 
 Then ask: "Ready to commit?"
 

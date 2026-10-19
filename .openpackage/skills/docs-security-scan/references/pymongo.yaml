@@ -1,0 +1,133 @@
+# Security-scan manifest for the PyMongo driver docset. Conforms to
+# references/SCHEMA.md.
+
+docset: pymongo
+# Matches existing PyMongo DOCSP tickets (DOCSP-61572, DOCSP-61808).
+component:
+  - "Pymongo / Arrow / Django"
+  - "Drivers"
+
+docs:
+  path: content/pymongo-driver/upcoming
+
+security_considerations:
+
+  - id: pymongo-tls-disable-needs-caveat
+    rule: >-
+      Connection and TLS examples must not disable TLS or skip certificate
+      validation without a caveat. The insecure options to watch for are
+      tlsInsecure, tlsAllowInvalidCertificates, and tlsAllowInvalidHostnames
+      (set to True). No other option is covered; tlsDisableOCSPEndpointCheck
+      does not skip certificate validation. An example showing any of these is acceptable ONLY when
+      it adjoins a callout flagging them as insecure / not for production
+      (the docset's existing idiom — see exception_markers). Extends universal
+      U-4 to PyMongo's connect and security/tls pages.
+    applies_to: ["connect", "connection-options", "tls", "security"]
+    category: insecure_code_example
+    severity: Medium
+
+  - id: pymongo-csfle-no-hardcoded-key
+    rule: >-
+      In-use encryption (CSFLE / Queryable Encryption) examples must not
+      hardcode a data encryption key or customer master key in source. Examples
+      must obtain keys from a KMS or reference a securely provisioned key. A
+      placeholder or environment-variable reference is acceptable.
+    applies_to: ["in-use-encryption", "encryption", "security"]
+    category: insecure_code_example
+    severity: High
+
+  - id: pymongo-credentials-from-env-not-hardcoded
+    # Grounded in integrations/fastapi-integration.txt ("Security and Environment").
+    rule: >-
+      Connection and integration examples should obtain connection strings and
+      credentials from environment variables, a KMS, or IAM roles, not hardcode
+      them inline in source. An example that inlines a connection string (even
+      with a placeholder) teaches an insecure pattern unless the code itself
+      retrieves it from an environment variable, KMS, or IAM role. Prose that
+      calls a value an environment variable, or says where to copy the string
+      from, does not count. Prose that recommends hardcoding credentials
+      is a counter-best-practice finding. A placeholder-only URI on a
+      non-integration reference page is acceptable. The connection-options
+      page and its child pages (connect/connection-options/*) count as
+      reference pages for this purpose. A localhost URI with no credentials is
+      acceptable on any page. Outside integration pages, a bare placeholder
+      with no credential slots (e.g. uri = "<connection string>") is
+      acceptable.
+    # Excludes authentication pages, which inline credentials to demonstrate
+    # the mechanism.
+    applies_to: ["connect", "integrations", "get-started", "connection-options"]
+    category: counter_best_practice_advice
+    severity: Medium
+
+  - id: pymongo-validate-input-before-json-to-bson
+    rule: >-
+      Examples that convert untrusted JSON to BSON (e.g. via json_util /
+      bson.json) and use the result in a query, update, or command must
+      type-check and validate the input first, or use a typed document builder.
+      Examples must not concatenate untrusted input into a JSON string before
+      conversion. Extends universal U-2 to PyMongo's json_util and CRUD /
+      data-formats examples.
+    applies_to: ["crud", "data-formats", "query", "usage-examples", "write"]
+    category: insecure_code_example
+    severity: High
+
+  - id: pymongo-no-server-side-js-from-user-input
+    rule: >-
+      Examples must not build $where, $function, $accumulator, or mapReduce
+      expressions by concatenating or interpolating untrusted input into a
+      JavaScript string. Extends universal U-3 to PyMongo aggregation and
+      CRUD examples.
+    applies_to: ["crud", "aggregation", "query", "usage-examples"]
+    category: insecure_code_example
+    severity: High
+
+  - id: pymongo-no-unsafe-deserialization
+    # Grounded in https://docs.python.org/3/library/pickle.html and CWE-502.
+    rule: >-
+      Examples must not call pickle.loads() (or another deserializer that can
+      execute code, such as eval) on data read from MongoDB or any other
+      source another party can write to, unless an adjoining callout warns
+      that the data must be trusted. Round-tripping a value the example
+      itself just pickled in memory is acceptable.
+    applies_to: ["data-formats", "custom-types", "type-codecs", "serialization"]
+    category: insecure_code_example
+    severity: Medium
+
+  # Category #3 (absent_consideration) is not assessed yet.
+
+exception_markers:
+  # Taken from callouts in the built PyMongo AST.
+  - directive: warning
+    phrases:
+      - "don't use in production"
+      - "in production"
+      - "insecure"
+      - "makes your application insecure"
+  - directive: important
+    phrases:
+      - "evaluation purposes only"
+      - "not recommended for production"
+      - "purposes only"
+  - directive: note
+    phrases:
+      - "insecure"
+      - "security is not guaranteed"
+      - "not guaranteed until"
+
+validation:
+  known_intentional:
+    - page: security/tls.txt
+      pattern: >-
+        Insecure-TLS tabbed examples setting tlsInsecure,
+        tlsAllowInvalidCertificates, and tlsAllowInvalidHostnames to True
+        (from includes/connect/insecure-tls-tabs.rst and related tab files).
+      caveat: >-
+        Same-page `.. warning:: Don't Use in Production` — "Always set ...
+        to False in production" and "makes your application insecure".
+    - page: data-formats/extended-json.txt
+      pattern: bson.json_util.loads() JSON-to-BSON conversion examples.
+      caveat: >-
+        Page carries the shared json-bson-injection-warning callout —
+        "an attacker can inject operators or unexpected field values ...
+        validate input"; examples use static literals, not untrusted input.
+

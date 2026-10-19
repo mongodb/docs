@@ -48,11 +48,6 @@ from the PR 1 copy. Edit it to the released-manual shape, using
   `- :ref:\`release-notes-{RELEASING}\``.
 - Under `Previous Stable Releases`: prepend
   `- :ref:\`release-notes-{OUTGOING}\`` as the first entry.
-- In the hidden `toctree`:
-  - `{RELEASING} (Upcoming) </release-notes/{RELEASING}>` →
-    `{RELEASING} (Stable Release) </release-notes/{RELEASING}>`
-  - `{OUTGOING} (Stable Release) </release-notes/{OUTGOING}>` →
-    `{OUTGOING} </release-notes/{OUTGOING}>`
 
 ## In-dev cleanup (`upcoming/`)
 

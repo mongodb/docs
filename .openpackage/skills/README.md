@@ -21,7 +21,8 @@ Skills every writer should know, regardless of team.
 | `/staging-preview` | Generate staging preview links for a MongoDB docs PR |
 | `/unified-toc` | Update the unified table of contents when pages are added, removed, or moved |
 | `/version-update` | Create a new version of any versioned MongoDB documentation docset — drivers, providers, or product docsets |
-| `/docs-drift` | Detect drift between a documentation property and its source code, classify each finding (Confirmed / Tracked / Upcoming / Intentional / Needs-eng- confirmation), and draft held DOCSP tickets for confirmed drift only |
+| `/docs-drift` | Detect drift between a documentation property and its source code, classify each finding (Confirmed / Tracked / Upcoming / Intentional / Needs-eng- confirmation / Not-drift), and draft held DOCSP tickets for confirmed drift only |
+| `/docs-security-scan` | Scan a documentation docset for security issues: prose advice that runs counter to security best practices, code examples containing security issues, and absence of critical security considerations on architecture/application topics |
 | `/source-explorer` | Read a product's source code and build a plain-language summary of its public surface — flags, options, API endpoints, states, defaults, and constraints |
 
 ## Grove & Code Examples
@@ -31,6 +32,7 @@ For writers working with tested code examples in the Grove platform.
 | Skill | What it does |
 |---|---|
 | `/grove-create` | Create a new tested code example in the Grove platform |
+| `/grove-debug` | Debug failures in MongoDB code example tests: environment and setup problems, invalid syntax or missing imports, missing or incorrect output files, comparison utility issues, and GitHub Actions/CI failures in the Grove test infrastructure |
 | `/grove-maintain` | Audit, upgrade, and maintain Grove test suites |
 | `/grove-migrate` | Migrate existing untested code into the Grove test suite |
 | `/grove-review` | Review a GitHub PR that adds or changes Grove tested code examples (source files, tests, output files, and the docs pages that reference them via literalinclude/io-code-block) |
@@ -44,6 +46,8 @@ For writers drafting release notes for specific MongoDB products.
 
 | Skill | What it does |
 |---|---|
+| `/atlas-cli-release` | Draft release documentation for a new MongoDB Atlas CLI version: update the atlas-cli-version source constant and changelog, regenerate the CLI command docs, and update the backport and Netlify redirect configuration |
+| `/atlas-sp-release-notes` | Draft Atlas Stream Processing release notes from a DOCSP ticket by fetching the linked internal Confluence wiki page and adding a dated entry to the changelog |
 | `/compass-release-notes` | Draft Compass release notes for a new version by fetching the corresponding release from mongodb-js/compass and formatting them for the docs |
 | `/drivers-release-notes` | Draft MongoDB drivers release notes for a new version by fetching the corresponding release from the driver source code and adding them to the documentation |
 | `/mcp-release-notes` | Draft MongoDB MCP Server release notes for a new version by fetching the corresponding release from mongodb-js/mongodb-mcp-server and formatting them for the docs |
@@ -71,7 +75,9 @@ For specialized content migration tasks.
 
 | Skill | What it does |
 |---|---|
+| `/convert-to-tutorial` | Reformat a MongoDB docs page into the standard composable tutorial template: verify the code samples compile, tighten and simplify the tone, apply the tutorial structure, and produce a changelog of every change |
 | `/language-tabs-to-composable-scripted` | Converts RST pages using language tabs to composable tutorial format |
+| `/snippet-automation` | Generate and sync Bluehawk snippets across MongoDB docsets |
 
 ## Skill Authoring
 
@@ -89,14 +95,21 @@ For detecting and fixing linter-flagged issues in content/.
 |---|---|
 | `/fix-404s` | Detect and fix broken external links (404s) in MongoDB documentation files |
 | `/fix-seo` | Fix SEO issues in MongoDB docs files |
-| `/fix-nested-components` | Fix forbidden nested RST components flagged by the nested components linter — callouts inside callouts, callouts inside list-tables, examples inside callouts, examples inside list-tables, and procedures inside procedures |
+| `/fix-nested-components` | Fix forbidden nested RST components flagged by the nested components linter — callouts inside callouts, callouts inside list-tables, examples inside callouts, examples inside list-tables, procedures inside procedures, and tables inside tables |
+
+## Other Skills
+
+| Skill | What it does |
+|---|---|
+| `/atlas-events` | Update the MongoDB Atlas event type documentation (event-types.rst) by running the event-types-generator script against the Atlas Admin API, then committing only the regenerated list table |
 
 ## Other Tools
 
 | Tool | What it does |
 |---|---|
+| `atlas-release-notes` | Generates the monthly Atlas changelog by pulling features from Aha! and Jira, writing RST entries, and updating the changelog file |
 | `feature-branch` | Deterministic git flow for the feature-branch workflow: create, sync, and start-task |
 | `feature-drafter-agent` | Drafts one page or section from a planner task and opens a PR against the feature branch |
 | `feature-planner-agent` | Turns an approved documentation plan into tasks and delegates drafting to feature-drafter-agent sub-agents |
-| `jira-state-transitions` | PostToolUse hooks that transition DOCSP tickets on branch and PR creation |
+| `jira-state-transitions` | PostToolUse hooks that transition DOCSP tickets on first edit or commit and on PR review readiness |
 | `ops-manager-release-notes` | Generate a versioned patch release entry for Ops Manager by fetching improvements and bug fixes from Aha! and Jira, writing RST entries, and prepending the assembled block to the active changelog file |

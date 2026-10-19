@@ -2,7 +2,7 @@
 name: triage
 internal: true
 description: Run triage duty for CET/Cloud, Server, or Drivers/DBX. Retrieves Needs Triage tickets from Jira, builds a triage plan, and applies changes after human confirmation.
-argument-hint: [cet|server|dbx|--groom-backlog]
+argument-hint: "[cet|server|dbx|--groom-backlog] [auto]"
 context: fork
 ---
 
@@ -246,7 +246,7 @@ If a ticket matches, recommend the squad, component(s), Assigned Teams to set, a
 
 Present the classification plan to the user. For each ticket, show: ticket ID, summary, recommended squad, component(s), Assigned Teams, and rationale. Show the Unclassified list separately at the end.
 
-**STOP HERE.** Ask the user to confirm before applying any changes.
+If `auto` is in `$ARGUMENTS`, skip confirmation and proceed immediately to apply changes. Otherwise: **STOP HERE.** Ask the user to confirm before applying any changes.
 
 Once approved, apply the changes and add the standard routing comment to each classified ticket.
 

@@ -72,7 +72,8 @@ If this returns `first-run`, immediately tell the user:
 
 > First run — Snooty is installing (uv, venv, snooty-parser clone). This
 > will take 1–3 minutes. Subsequent runs are faster: seconds for small
-> projects, ~45s for large ones like Atlas (~4,700 files).
+> projects, ~45s for large ones like Atlas (~4,700 files). They also sync
+> the cached parser with upstream first, which adds a second or two.
 
 **Then**, in the same response turn, fire these three tool calls in parallel —
 the build starts immediately, nothing else blocks it:
@@ -136,12 +137,7 @@ directly without polling for snooty processes. If it still does not appear
 within ~10s, re-check once with a foreground Bash read of the path; do not
 start a `pgrep` polling loop.
 
-This runs the Snooty RST parser against each changed project. It sets up a
-Python venv (using `uv`; installs itself if missing), runs `snooty build` with
-`DIAGNOSTICS_FORMAT=JSON`, and parses the output for `ERROR` and `WARNING`
-diagnostics. A non-zero error count sets `OVERALL_RC=1`. The venv and
-`snooty-parser` clone are cached outside the repo at the path shown in the
-venv check above. To pick up a newer Snooty version, pass `--refresh-snooty`.
+This runs the Snooty RST parser against each changed project. It sets up a Python venv (using `uv`; installs itself if missing), runs `snooty build` with `DIAGNOSTICS_FORMAT=JSON`, and parses the output for `ERROR` and `WARNING` diagnostics. A non-zero error count sets `OVERALL_RC=1`. The venv and `snooty-parser` clone are cached outside the repo at the path shown in the venv check above, and the clone is version-checked on every run (see below).
 
 Snooty catches:
 
@@ -159,6 +155,14 @@ The script writes structured output to `/tmp/local-build-check-<timestamp>.log`
 and prints the path on exit. JSON diagnostics from Snooty are written to a
 separate `/tmp/snooty-diagnostics-<project>-<timestamp>.log`. Read both files
 to extract errors.
+
+### Parser version check
+
+Both cached artifacts are long-lived, so a stale `snooty-parser` clone can report errors the Netlify build does not have — or miss ones it does. Before every build, `check.sh` compares the cached clone against the tip of upstream `main` with a single `git ls-remote` and fast-forwards the cache when upstream has moved. Look for `[snooty] version check:` lines in the log to see which revision the run used.
+
+The check is non-fatal: if upstream is unreachable or the fetch fails, the build proceeds on the cached revision and the log says so. A moved cache is picked up automatically because the install is editable; the package is reinstalled only when `pyproject.toml` changed, since that can add dependencies or move the console-script entry point.
+
+Two flags control this: `--no-update` skips the version check entirely (use for offline or reproducible runs), and `--refresh-snooty` deletes the venv and clone and rebuilds both from scratch.
 
 ## Step 2: Parse errors and propose fixes
 

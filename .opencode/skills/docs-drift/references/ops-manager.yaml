@@ -1,0 +1,128 @@
+# Drift-detection manifest for Ops Manager — DRAFT v2 (Discovery mode).
+# Conforms to references/SCHEMA.md. Uncalibrated: surface hints and intent
+# markers below need human/SME confirmation before `calibrated` is flipped.
+#
+# v2 corrections after review (PR #23753): SOURCE REPO was wrong in v1 —
+# `10gen/mms` is the Atlas/Cloud Manager monorepo. Ops Manager's server is now
+# `10gen/ops-manager` (private). This draft is grounded in the correct repo.
+#
+# ACCESS NOTE (verified 2026-09-09): 10gen/ops-manager is NOT in the devprod
+# git-index MCP (git_search/git_blame), so Stage 2 reads source via gh / the
+# GitHub API (raw contents + code search), not the internal index. This is
+# actually an improvement: gh reaches the real PRs for blame/evidence.
+# No `ref` pinned; live run against default branch `main`.
+
+property: ops-manager
+component: Ops Manager
+calibrated: false
+
+docs:
+  path: content/ops-manager/current
+  # `current` = Ops Manager 8.0 (snooty.toml version); only version dir is v7.0,
+  # so auto-derivation would wrongly anchor at 7.0. Set explicitly.
+  baseline_version: 8.0
+  # API reference documents fields/params as list-table rows whose first column
+  # is the name (verified on every reference/api/* page).
+  option_tables: true
+  # Nested members are documented as dotted names (parent.member) — the default.
+  nested_naming: dotted
+  surface_pages:
+    - "reference/api/*"
+  # FAMILY-SCOPED SOURCE HINTS. Stage 1/2a can be scoped to a single API family
+  # instead of the whole property: `pages` become the `--pages` globs extract_docs.py
+  # applies to bundle filenames (shell-style fnmatch against `reference/api/...`;
+  # `*` crosses `/`, so one glob covers every nested page), and `source_roots` select
+  # the class files backing that family's endpoints (a per-family `--roots` preset
+  # for scan_source.py). Follow the family-scoping recipe in SKILL.md each run;
+  # run with no scoping for full-property audits.
+  families:
+    admin:
+      # Admin audit family = the whole reference/api/admin/ subtree (subgroup dirs
+      # backup/, keyVault/, settings/). Glob matches all 61 admin .txt pages and
+      # nothing else under reference/api.
+      pages:
+        - "reference/api/admin/*"
+      source_roots:
+        # JAX-RS resource classes mounting the admin endpoints:
+        # @Path("/api/public/v1.0/admin/...") — ApiBackupAdminV2Resource is the
+        # /api/public/v2.0/admin/backup variant.
+        - server/src/main/com/xgen/svc/mms/api/res/ApiAdminKeyVaultResource.java
+        - server/src/main/com/xgen/svc/mms/api/res/ApiAdminSettingsResource.java
+        - server/src/main/com/xgen/svc/mms/api/res/ApiBackupAdminResource.java
+        - server/src/main/com/xgen/svc/mms/api/res/ApiBackupAdminV2Resource.java
+        # Api*View model classes whose fields back the admin request/response
+        # tables (backup daemon/data-store/group/FS/S3 configs, keyVault, settings).
+        - server/src/main/com/xgen/svc/mms/api/view/ApiAdminKeyVaultView.java
+        - server/src/main/com/xgen/svc/mms/api/view/ApiAdminSettingsView.java
+        - server/src/main/com/xgen/svc/mms/api/view/ApiBackupDaemonMachineConfigView.java
+        - server/src/main/com/xgen/svc/mms/api/view/ApiBackupDataStoreConfigView.java
+        - server/src/main/com/xgen/svc/mms/api/view/ApiBackupGroupConfigView.java
+        - server/src/main/com/xgen/svc/mms/api/view/ApiFsDataStoreConfigView.java
+        - server/src/main/com/xgen/svc/mms/api/view/ApiS3DataStoreConfigView.java
+        # Payload model declaring the oplogStoreFilter/snapshotStoreFilter nested
+        # classes referenced by ApiBackupGroupConfigView — outside it the scanner's
+        # type map cannot resolve `List<BackupGroupConfig.*>` and the filter members
+        # never emit as dotted names. Their `type` fields are typed by these two
+        # enum classes; without them as roots the allowed_values never attach and
+        # the deterministic enum check cannot fire.
+        - server/src/main/com/xgen/cloud/brs/core/_public/model/BackupGroupConfig.java
+        - server/src/main/com/xgen/cloud/common/brs/_public/model/OplogStoreType.java
+        - server/src/main/com/xgen/cloud/common/brs/_public/model/SnapshotStoreType.java
+        # Shared envelope: ApiView.addLink (the `links` field) IS materialized in
+        # the checkout; ApiBaseResource.handlePagination (pretty / pageNum /
+        # itemsPerPage / results / totalCount) is a dependency-jar base class absent
+        # from sparse checkouts, so it cannot be a root — seed those envelope items
+        # in Stage 2b as the completed admin-family run did.
+        - server/src/main/com/xgen/svc/mms/api/view/common/ApiView.java
+  # external_api_ref omitted: the docs site IS the reference. No whole-property
+  # OpenAPI/spec file exists (only server/openapi/atlas for Atlas pieces).
+
+source:
+  repos:
+    - url: 10gen/ops-manager
+      # PRIVATE repo — read via gh/GitHub API (raw contents, code search).
+      # Pin a ref for reproducible validation.
+      language: java
+  surface_hints:
+    - "Core public API v1.0 endpoints are JAX-RS resource classes under server/src/main/com/xgen/svc/mms/api/res/ (61 resources — e.g. ApiAgentsResource, ApiAgentApiKeysResource, ApiAutomationConfigResource, ApiVersionManifestResource, ApiBackupConfigsResource, ApiMaintenanceWindowConfigsResource, ApiSoftwareComponentsVersionsResource). Each class declares @Path(\"/api/public/v1.0/...\") plus @GET/@POST/@PUT/@PATCH/@DELETE handler methods; enumerate the endpoint surface from these annotations."
+    - "Resource-sharing cloud modules also mount /api/public/v1.0: server/src/main/com/xgen/cloud/group/runtime/res/api/ApiGroupsResource.java, com/xgen/cloud/user/runtime/res/api/ApiUsersResource.java, com/xgen/cloud/alerts/... (alert configurations/alerts), and their *_public/ subpackages. Same @Path/@verb convention."
+    - "Request/response types are Api*View model classes under server/src/main/com/xgen/svc/mms/api/view/ (152 classes — e.g. ApiGroupView, ApiOrganizationView, ApiAppUserView, ApiAgentsView, ApiHostView, ApiSnapshotView) plus cloud-module *_public/view/ packages. Walk all fields including nested and enum-typed fields."
+    - "Query/body parameter decoding, defaults, and enforced validation live in the Api*Resource handler methods (JAX-RS @QueryParam/@PathParam/@DefaultValue binding + surrounding checks). Capture only user-visible enforced restrictions (pagination caps, required/mutually-exclusive), not serialization details."
+    - "API-visible enums/state values (agent states, job/restore states, replica-set states, alert matcher fields) are referenced from the Api*View classes; declare their allowed values from the same or neighbouring packages."
+  hidden_surface:
+    - "Packages named `_private` anywhere under server/src/main/com/xgen/** are intentionally internal; e.g. server/src/main/com/xgen/svc/mms/api/res/_private/ (ApiPrivateGroupsResource, ApiPrivateOrganizationsResource, ApiPrivateUsersResource, ApiAnalyticsResource, ...) and cloud-module `_private/` dirs. Surface found only there is intentionally undocumented."
+    - "Resource classes named ApiPrivate* mark internal surface — verify per-class that they are not mounted on /api/public/v1.0 before treating as hidden."
+
+triage:
+  # Engineering Jira project(s) tracking Ops Manager / Cloud Services API work.
+  # No `OM` key; most eng tracked in CLOUDP, Automation contributions land in
+  # the same repo (their tickets also appear under CLOUDP). MMS = feature requests.
+  eng_project:
+    - CLOUDP
+    - MMS
+  # INTENT MARKERS — v2: OpenAPI-annotation markers (@Hidden/@Parameter(hidden=true),
+  # api_preview/private preview) REMOVED: those are Atlas/Cloud infrastructure and
+  # Ops Manager has no whole-property OpenAPI spec, so they are unreliable here.
+  # The list below is candidates to verify against real Ops Manager code with the
+  # SME before calibrating (comments/idioms, structural markers; @Deprecated is
+  # deliberately excluded — deprecated surface is documented as deprecated).
+  intent_markers:
+    # VERIFIED in 10gen/ops-manager (Java) via code search on 2026-09-09:
+    - "internal use"             # 340 matches — dominant do-not-document comment idiom
+    - "not for external"         # 217 matches
+    - "not documented"           # 12 matches
+    - "do not publicly document" # 1 match — rare but high-precision
+                                 # ("do NOT publicly document this view...")
+  # Structural / SME-confirm candidates:
+    - "_private"                 # package-segment structural marker (see hidden_surface)
+    - "private preview"          # 14 matches — confirm whether Ops Manager preview surface
+                                 # is intentionally undocumented or just gated
+    - "experimental"             # 2 matches
+  # NOT applied to Ops Manager:
+  #   - "@Hidden" (15 matches) / "@Parameter(hidden = true)": present in a few resources
+  #     but NOT reliable intent markers here — Ops Manager has no whole-property OpenAPI
+  #     spec (per review), so OpenAPI-infra annotations don't define the doc surface.
+  #   - "api_preview": 0 matches — mms/Atlas convention, absent in Ops Manager.
+  #   - "@Deprecated"/"deprecated": deliberately excluded — deprecated surface is
+  #     documented as deprecated, not classed as intentionally undocumented.
+  # hedge_phrases: rely on built-in defaults ("include", "for example", ...).

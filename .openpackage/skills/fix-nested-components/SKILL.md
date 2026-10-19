@@ -2,13 +2,13 @@
 name: fix-nested-components
 internal: true
 description: >-
-  Fix forbidden nested RST components flagged by the nested components linter — callouts inside callouts, callouts inside list-tables, examples inside callouts, examples inside list-tables, and procedures inside procedures. Runs ./lint-docs.sh nested to detect violations, applies the canonical remediation for each, and re-lints to verify. Handles the case where the nested component is pulled in from a shared include reused elsewhere in an un-nested context (inlines the fix at the nesting site instead of editing the shared file). Does NOT handle tabs-in-tabs — use language-tabs-to-composable-scripted for that. Use when the user asks to "fix nested components", "resolve nested component errors", "fix the nested components linter findings", or when the nested linter reports callout/example/procedure nesting.
+  Fix forbidden nested RST components flagged by the nested components linter — callouts inside callouts, callouts inside list-tables, examples inside callouts, examples inside list-tables, procedures inside procedures, and tables inside tables. Runs ./lint-docs.sh nested to detect violations, applies the canonical remediation for each, and re-lints to verify. Does NOT handle tabs-in-tabs — use language-tabs-to-composable-scripted for that. Use when the user asks to "fix nested components", "resolve nested component errors", "fix the nested components linter findings", or when the nested linter reports callout/example/procedure/table nesting.
 argument-hint: "[filepath...]"
 ---
 
 Fix forbidden nested RST components in $ARGUMENTS.
 
-This skill remediates the five judgment-based nested-component violations the deterministic linter detects. It does **not** touch `tabs-in-tabs` (rule 6) — that requires the `language-tabs-to-composable-scripted` skill.
+This skill remediates the six judgment-based nested-component violations the deterministic linter detects. It does **not** touch `tabs-in-tabs` — that requires the `language-tabs-to-composable-scripted` skill.
 
 Rules in scope:
 
@@ -19,6 +19,7 @@ Rules in scope:
 | `example-in-callout` | Remove the `example` directive; introduce with "For example,". |
 | `example-in-table` | Remove the `example` directive; introduce with "For example,". |
 | `procedure-in-procedure` | Convert the nested procedure to an ordered list (a., b., c.). |
+| `table-in-table` | Remove the nested table; restructure its content as bullets, a definition list, or a separate table after the parent. |
 
 The canonical remediation patterns live in `.github/ai-reviewer/nested-components-guide.md`. Read it before editing if you need more detail than the sections below.
 
@@ -50,24 +51,22 @@ If every finding was `tabs-in-tabs`, stop after reporting them — there is noth
 
 Read each affected file in full so you understand the surrounding structure before editing. For every finding, locate the nested inner directive at the reported line and the parent container that encloses it.
 
-Verify the nesting yourself before editing — the linter uses an indentation stack and treats only `list-table` as a table container. Confirm the inner directive is genuinely inside the parent and not a sibling.
+Verify the nesting yourself before editing — the linter uses an indentation stack and treats only directive-based tables (`list-table`, `table`) as table containers. Confirm the inner directive is genuinely inside the parent and not a sibling.
 
 ---
 
 ## Step 3.5: Check whether the nested component comes from a shared include
 
-This check applies to **every** in-scope rule — `callout-in-callout`, `callout-in-table`, `example-in-callout`, `example-in-table`, and `procedure-in-procedure`: in any of them, the offending nested directive (callout, example, or procedure) may live in a shared include rather than inline on the page.
+This check applies to every in-scope rule: the offending inner directive (callout, example, procedure, or table) may live in a shared include rather than inline on the page. Before editing, determine whether the inner directive is written inline at the flagged location or pulled in through an `.. include::` (or `.. sharedinclude::`) nested inside the parent container (callout, list-table or `table` cell, or `.. step::`).
 
-Before editing, determine whether the offending inner directive is written inline at the flagged location or pulled in through an `.. include::` (or `.. sharedinclude::`) directive nested inside the parent container (callout, list-table cell, or `.. step::`). When the inner directive is an include, the callout/example/procedure markup lives in that shared file — not in the page you are editing — so you cannot simply strip it inline, and the shared file is often a valid standalone directive that the linter does not flag on its own. (A file that composes the whole nesting internally — a parent container with a nested include — is flagged independently when the linter lints it directly, so fix it there; the case that needs the handling below is a parent that sits inline on the page with only the child reached through a shared include.)
-
-A shared include may be reused elsewhere in an **un-nested** context, where the nested directive is valid and must stay as-is. Editing the include file in place to strip or convert the directive would silently degrade every un-nested usage — that is not an acceptable fix. Treat the include file as read-only for this remediation unless you have confirmed it has exactly one usage.
+A shared include may be reused in an **un-nested** context, where the directive is valid and must stay as-is. Editing the include in place would silently degrade those usages, so treat it as read-only unless you confirm it has exactly one usage. (If a file composes the whole nesting internally — a parent container with a nested include — fix it there; the linter flags it when it lints that file directly.)
 
 Follow this decision path:
 
 1. Resolve the include to its file. For `includes/extracts/...` paths, resolve the `ref:` in the YAML per the include-resolution rules in CLAUDE.md; for a direct `.rst` include, open that file.
 2. Search the target version's `source/` directory for every reference to that include or ref (grep the include path and, for extracts, the `ref:` name). Count the usages.
-3. **If the include is used only at the flagged location:** you may edit the include file directly, applying the normal per-rule remediation from Step 4. No un-nested usage exists to break.
-4. **If the include is used in more than one place:** do not edit the shared file. Instead, at the flagged page, replace the `.. include::` with the remediated content inlined directly into the parent, applying the matching Step 4 pattern to the inlined copy — for `callout-in-callout` merge it into the parent callout (with the `:red:`/`:gold:` severity prefix), for `callout-in-table` place it in the parent list-table cell (with the severity prefix), for `example-in-*` introduce it with "For example,", and for `procedure-in-procedure` convert it to a lettered ordered list inside the parent `.. step::`. Leave the shared include file unchanged so its un-nested usages keep rendering the original directive. If the shared content is long enough that inlining it would create a maintenance burden, stop and ask the user whether to (a) inline it anyway or (b) create a new un-nested include variant for the nested site — do not decide this silently.
+3. **If the include is used only at the flagged location:** edit the include file directly, applying the matching Step 4 remediation. No un-nested usage exists to break.
+4. **If the include is used in more than one place:** do not edit the shared file. At the flagged page, replace the `.. include::` with the remediated content inlined into the parent, applying the matching Step 4 pattern to the inlined copy. Leave the shared include unchanged so its un-nested usages keep rendering the original directive. If the shared content is long enough that inlining it would create a maintenance burden, stop and ask the user whether to (a) inline it anyway or (b) create a new un-nested include variant for the nested site.
 
 Note in your Step 6 summary whenever a fix inlined shared-include content instead of editing the include, and list the other usages you confirmed were left intact.
 
@@ -171,6 +170,49 @@ Remove the nested `.. procedure::` and its `.. step::` directives. Convert each 
 ```
 
 If a nested procedure is too complex to flatten into a two-level ordered list without losing structure, stop and ask the user how to restructure it rather than forcing the conversion.
+
+### `table-in-table`
+
+Remove the nested `list-table` (or `table`) directive from the cell and restructure its content so it renders without a second table. Prefer, in order:
+
+1. A nested bullet list inside the cell — best for value/description pairs.
+2. A definition list inside the cell.
+3. Prose in the cell, or a separate sibling table after the parent table.
+
+```rst
+# BEFORE
+.. list-table::
+   :header-rows: 1
+
+   * - Setting
+     - Description
+
+   * - ``strength``
+     - Possible values are:
+
+       .. list-table::
+          :header-rows: 1
+
+          * - Value
+            - Description
+
+          * - ``1``
+            - Primary level of comparison.
+
+# AFTER
+.. list-table::
+   :header-rows: 1
+
+   * - Setting
+     - Description
+
+   * - ``strength``
+     - Possible values are:
+
+       - ``1`` — Primary level of comparison.
+```
+
+If the nested table has too many rows or columns to flatten into a list without losing clarity, stop and ask the user whether to split the parent table or move the nested table out of the cell.
 
 ---
 
