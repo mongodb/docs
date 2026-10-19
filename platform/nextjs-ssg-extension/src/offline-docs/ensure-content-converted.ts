@@ -1,16 +1,16 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import type { AllContentData } from '../../../nextjs-extension/src/contentMetadata/processContentMetadata';
-import type { Environments } from '../../../nextjs-extension/src/util/databaseConnection/types';
-import type { StaticEnvVars } from '../../../nextjs-extension/src/util/assertDbEnvVars';
-import type { BuildUtils } from '../../../nextjs-extension/src/util/buildUtils';
-import type { ConfigEnvironmentVariables } from '../../../nextjs-extension/src/util/configEnvironment';
-import { getRepoPaths } from '../../../nextjs-extension/src/paths';
-import { getParser } from '../../../nextjs-extension/src/github/getParser';
+import type { AllContentData } from '../contentMetadata/processContentMetadata';
+import type { Environments } from '../util/databaseConnection/types';
+import type { StaticEnvVars } from '../util/assertDbEnvVars';
+import type { BuildUtils } from '../util/buildUtils';
+import type { ConfigEnvironmentVariables } from '../util/configEnvironment';
+import { getRepoPaths } from '../paths';
+import { getParser } from '../github/getParser';
 import {
   getParserVersion,
   runPrebuildModules,
-} from '../../../nextjs-extension/src/parse/runModules';
+} from '../parse/runModules';
 import { runMdxConversionForContentPaths } from '../parse/runMdxConversion';
 import type { OfflineBundlesToBuild } from './offline-bundles-to-rebuild/index';
 import { extractContentSitesWithPages } from './extract-content-sites';

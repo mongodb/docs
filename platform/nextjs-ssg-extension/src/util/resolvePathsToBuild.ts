@@ -1,14 +1,14 @@
-import { envVarToBool } from "../../../nextjs-extension/src/util/configEnvironment";
+import { envVarToBool } from "./configEnvironment";
 import {
 	type AllContentData,
 	getBranchForContentPath,
-} from "../../../nextjs-extension/src/contentMetadata/processContentMetadata";
+} from "../contentMetadata/processContentMetadata";
 
 /**
  * SSG-only path selection: rebuild solely from FORCE_REBUILD_PATHS.
- * Unlike the nextjs-extension resolver, this does not inspect git file
- * changes or expand from DOCS_PROJECT — only paths declared in
- * FORCE_REBUILD_PATHS are added to the build queue.
+ * This does not inspect git file changes or expand from
+ * DOCS_PROJECT — only paths declared in FORCE_REBUILD_PATHS are added
+ * to the build queue.
  *
  * FORCE_REBUILD_PATHS may list a docset root (`manual`) or a specific
  * version (`manual/manual`, `node/current`). Matching uses exact equality

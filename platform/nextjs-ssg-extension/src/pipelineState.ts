@@ -1,9 +1,9 @@
 import path from "node:path";
 import fs from "node:fs/promises";
-import type { ConfigEnvironmentVariables } from "../../nextjs-extension/src/util/configEnvironment";
-import type { HostEnvironment } from "../../nextjs-extension/src/util/hostEnvironment";
-import type { AllContentData } from "../../nextjs-extension/src/contentMetadata/processContentMetadata";
-import { getRepoPaths } from "../../nextjs-extension/src/paths";
+import type { ConfigEnvironmentVariables } from "./util/configEnvironment";
+import type { HostEnvironment } from "./util/hostEnvironment";
+import type { AllContentData } from "./contentMetadata/processContentMetadata";
+import { getRepoPaths } from "./paths";
 import { APP_DIR } from "./constants";
 
 /** Written by `pipeline:prepare` for publish steps that run after `next build`. */

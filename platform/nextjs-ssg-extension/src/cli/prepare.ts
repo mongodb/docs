@@ -1,14 +1,14 @@
 import path from "node:path";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import type { ConfigEnvironmentVariables } from "../../../nextjs-extension/src/util/configEnvironment";
-import { getDbConfig } from "../../../nextjs-extension/src/util/assertDbEnvVars";
+import type { ConfigEnvironmentVariables } from "../util/configEnvironment";
+import { getDbConfig } from "../util/assertDbEnvVars";
 import {
 	applyHostEnvironment,
 	resolveHostEnvironment,
-} from "../../../nextjs-extension/src/util/hostEnvironment";
-import { createLocalBuildUtils } from "../../../nextjs-extension/src/util/localBuildUtils";
-import { getRepoPaths } from "../../../nextjs-extension/src/paths";
+} from "../util/hostEnvironment";
+import { createLocalBuildUtils } from "../util/localBuildUtils";
+import { getRepoPaths } from "../paths";
 import { createAllContentData, prepare } from "../prepare";
 import { APP_DIR } from "../constants";
 import { writePipelineState } from "../pipelineState";

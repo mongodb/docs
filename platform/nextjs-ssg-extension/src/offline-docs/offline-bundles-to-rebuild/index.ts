@@ -1,16 +1,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import type { DocsetsByProject } from '../../../../nextjs-extension/src/contentMetadata/loadVersioningFromCheckout';
-import type { AllContentData } from '../../../../nextjs-extension/src/contentMetadata/processContentMetadata';
-import { getRepoPaths } from '../../../../nextjs-extension/src/paths';
-import { filterActiveVersions } from '../../../../nextjs-extension/src/util/filter-active-versions';
-import { getChangedProjectAndVersions } from '../../../../nextjs-extension/src/util/changed-projects-and-versions';
-import { findAllActiveVersionsForProject } from '../../../../nextjs-extension/src/util/active-versions-for-project';
+import type { DocsetsByProject } from '../../contentMetadata/loadVersioningFromCheckout';
+import type { AllContentData } from '../../contentMetadata/processContentMetadata';
+import { getRepoPaths } from '../../paths';
+import { filterActiveVersions } from '../../util/filter-active-versions';
+import { getChangedProjectAndVersions } from '../../util/changed-projects-and-versions';
+import { findAllActiveVersionsForProject } from '../../util/active-versions-for-project';
 import { APP_DIR } from '../../constants';
 
-// docs-site-specific copy of nextjs-extension/src/offline-docs/offline-bundles-to-rebuild/index.ts.
-// Always scans docs-site's offline-docs TOC directory, since that's the app whose
-// content/TOC data this extension (nextjs-ssg-extension) generates during onPreBuild.
+// Always scans docs-site's offline-docs TOC directory, since that's the app
+// whose content/TOC data this extension generates during onPreBuild.
 
 /** Maps a filename (e.g. `"development.versioned.docs.ts"`) to the list of bundle version names that need to be rebuilt (e.g. `["manual", "upcoming"]`). */
 export type OfflineBundlesToBuild = Record<string, string[]>;

@@ -1,7 +1,7 @@
 import path from 'node:path';
-import type { BuildRunner } from '../../../nextjs-extension/src/util/buildUtils';
-import type { ConfigEnvironmentVariables } from '../../../nextjs-extension/src/util/configEnvironment';
-import { getRepoPaths } from '../../../nextjs-extension/src/paths';
+import type { BuildRunner } from '../util/buildUtils';
+import type { ConfigEnvironmentVariables } from '../util/configEnvironment';
+import { getRepoPaths } from '../paths';
 import { APP_DIR } from '../constants';
 
 const GENERATE_LLMS_DIR = path.join('platform', 'tools', 'generate-llms');
@@ -97,8 +97,8 @@ export const handleLlmsTxt = async (
       cwd: path.join(repoRoot, GENERATE_LLMS_DIR),
       env: {
         DOCS_MONOREPO_ROOT: repoRoot,
-        // The SSG build writes its own copy of this map under docs-site,
-        // not the docs-nextjs path generate-llms defaults to.
+        // generate-llms defaults to a different app's path; this build
+        // writes its map under docs-site.
         LLMS_DIR_NAME_TO_PREFIX_PATH: path.join(generatedDir, 'dir-name-to-prefix.json'),
       },
     },

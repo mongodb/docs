@@ -3,9 +3,12 @@ const config = {
   displayName: 'ssg-extension-unit-tests',
   verbose: false,
   testEnvironment: 'node',
+  testTimeout: 10000,
   maxWorkers: 1,
 
-  testMatch: ['<rootDir>/src/**/*.test.ts'],
+  testMatch: ['<rootDir>/src/**/*.test.ts', '<rootDir>/tests/**/*.test.ts'],
+
+  setupFilesAfterEnv: ['<rootDir>/src/persistence/tests/setupAfterEnv.ts'],
 
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',

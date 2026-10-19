@@ -11,7 +11,7 @@ import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
-import { getRepoPaths } from "../../../nextjs-extension/src/paths";
+import { getRepoPaths } from "../paths";
 import { APP_DIR } from "../constants";
 
 const execFileAsync = promisify(execFile);

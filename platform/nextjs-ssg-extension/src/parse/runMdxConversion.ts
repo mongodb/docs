@@ -3,9 +3,9 @@ import {
 	convertZipFileToMdx,
 	convertZipImageFiles,
 } from "../../../snooty-ast-to-mdx/src/index.js";
-import type { AllContentData } from "../../../nextjs-extension/src/contentMetadata/processContentMetadata.js";
+import type { AllContentData } from "../contentMetadata/processContentMetadata.js";
 import type { Version } from "../../../versioning/types";
-import { getRepoPaths } from "../../../nextjs-extension/src/paths.js";
+import { getRepoPaths } from "../paths.js";
 
 /** Run AST→MDX conversion for each content path using pre-built bundle zips. */
 export async function runMdxConversionForContentPaths({

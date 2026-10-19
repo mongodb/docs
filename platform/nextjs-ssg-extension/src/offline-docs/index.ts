@@ -1,24 +1,22 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import type { AllContentData } from '../../../nextjs-extension/src/contentMetadata/processContentMetadata';
-import type { StaticEnvVars } from '../../../nextjs-extension/src/util/assertDbEnvVars';
-import type { BuildRunner, BuildUtils } from '../../../nextjs-extension/src/util/buildUtils';
-import type { ConfigEnvironmentVariables } from '../../../nextjs-extension/src/util/configEnvironment';
+import type { AllContentData } from '../contentMetadata/processContentMetadata';
+import type { StaticEnvVars } from '../util/assertDbEnvVars';
+import type { BuildRunner, BuildUtils } from '../util/buildUtils';
+import type { ConfigEnvironmentVariables } from '../util/configEnvironment';
 import { getOfflineBundlesToRebuild } from './offline-bundles-to-rebuild/index';
 import { getLegacyOfflineBundles } from './legacy-bundles-to-rebuild/index';
 import { ensureContentConvertedForBundles } from './ensure-content-converted';
-import { getRepoPaths } from '../../../nextjs-extension/src/paths';
-import { createOfflineTarball } from '../../../nextjs-extension/src/offline-docs/offline-utils/convertToTar';
-import { upload } from '../../../nextjs-extension/src/s3Connection/s3connector';
+import { getRepoPaths } from '../paths';
+import { createOfflineTarball } from './offline-utils/convertToTar';
+import { upload } from '../s3Connection/s3connector';
 import { createReadStream } from 'node:fs';
 import { join } from 'node:path/posix';
 import { APP_DIR } from '../constants';
 import { logDiskMetrics } from '../util/diskMetrics';
 
-// docs-site-specific copy of nextjs-extension/src/offline-docs/index.ts.
-// Always builds offline bundles against docs-site (not docs-nextjs), since that's
-// the app whose TOC/prefix-map data this extension (nextjs-ssg-extension) generates
-// during onPreBuild.
+// Always builds offline bundles against docs-site, since that's the app
+// whose TOC/prefix-map data this extension generates during onPreBuild.
 const APP_ROOT_DIR = getRepoPaths(undefined, APP_DIR).docsNextjsDir;
 const OFFLINE_BUNDLE_OUTPUT_DIR = path.resolve(APP_ROOT_DIR, 'offline-bundle-output');
 const LEGACY_TOC_DIR = 'legacy-docs';

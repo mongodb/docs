@@ -1,29 +1,29 @@
 import path from "node:path";
 import fs from "node:fs/promises";
-import type { ConfigEnvironmentVariables } from "../../nextjs-extension/src/util/configEnvironment";
-import type { StaticEnvVars } from "../../nextjs-extension/src/util/assertDbEnvVars";
-import type { BuildUtils } from "../../nextjs-extension/src/util/buildUtils";
-import { updateConfig } from "../../nextjs-extension/src/contentMetadata/config";
-import { findAllContentPaths } from "../../nextjs-extension/src/contentMetadata/findContentPaths";
-import type { Environments } from "../../nextjs-extension/src/util/databaseConnection/types";
-import { getParser } from "../../nextjs-extension/src/github/getParser";
+import type { ConfigEnvironmentVariables } from "./util/configEnvironment";
+import type { StaticEnvVars } from "./util/assertDbEnvVars";
+import type { BuildUtils } from "./util/buildUtils";
+import { updateConfig } from "./contentMetadata/config";
+import { findAllContentPaths } from "./contentMetadata/findContentPaths";
+import type { Environments } from "./util/databaseConnection/types";
+import { getParser } from "./github/getParser";
 import {
 	getParserVersion,
 	runPrebuildModules,
-} from "../../nextjs-extension/src/parse/runModules";
+} from "./parse/runModules";
 import {
 	getAllProjectNames,
 	type ProjectNames,
-} from "../../nextjs-extension/src/contentMetadata/readSnootyToml";
-import { loadVersioningFromCheckout } from "../../nextjs-extension/src/contentMetadata/loadVersioningFromCheckout";
+} from "./contentMetadata/readSnootyToml";
+import { loadVersioningFromCheckout } from "./contentMetadata/loadVersioningFromCheckout";
 import {
 	processContentMetadata,
 	type AllContentData,
-} from "../../nextjs-extension/src/contentMetadata/processContentMetadata";
-import { getRepoPaths } from "../../nextjs-extension/src/paths";
-import { buildUnifiedTOC } from "../../nextjs-extension/src/util/buildTOC/generateJSON";
-import { buildPrefixList } from "../../nextjs-extension/src/blobUploads/buildPrefixList";
-import { getDirNameToPrefix } from "../../nextjs-extension/src/blobUploads/mapFilesToUrlPaths";
+} from "./contentMetadata/processContentMetadata";
+import { getRepoPaths } from "./paths";
+import { buildUnifiedTOC } from "./util/buildTOC/generateJSON";
+import { buildPrefixList } from "./prefix-map/buildPrefixList";
+import { getDirNameToPrefix } from "./prefix-map/mapFilesToUrlPaths";
 import { runMdxConversionForContentPaths } from "./parse/runMdxConversion";
 import { resolvePathsToBuild } from "./util/resolvePathsToBuild";
 import { APP_DIR, ENVS_TO_RUN } from "./constants";

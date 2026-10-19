@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import type { AllContentData } from '../../../../nextjs-extension/src/contentMetadata/processContentMetadata';
+import type { AllContentData } from '../../contentMetadata/processContentMetadata';
 import type { Version } from '../../../../versioning/types';
 
 export type LegacyOfflineBundle = {

@@ -1,0 +1,109 @@
+import type { Db, Document, ObjectId } from 'mongodb';
+import { MongoClient } from 'mongodb';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { MongoMemoryServerStates } from 'mongodb-memory-server-core/lib/MongoMemoryServer';
+
+import metadata from '../data/metadata.json';
+
+const TEST_DB_NAME = 'jest';
+const COLLECTIONS = ['queue', 'entitlements'];
+
+export class TestDBManager {
+  public db!: Db;
+  public client!: MongoClient;
+  protected server: MongoMemoryServer;
+
+  constructor() {
+    // CI has no cache for the mongodb-memory-server binary, so a cold download of it
+    // (~95MB) plus starting mongod can exceed the default 60s hook timeout.
+    jest.setTimeout(120000);
+    this.server = new MongoMemoryServer({
+      instance: {
+        dbName: 'jest',
+        storageEngine: 'wiredTiger',
+        // CI runners can be slow/under contention, so mongod can take longer than
+        // the default 10s to finish starting up.
+        launchTimeout: 60000,
+      },
+      binary: {
+        version: '8.0.4',
+      },
+    });
+    process.env.JOB_QUEUE_COL_NAME = 'queue';
+    process.env.USER_ENTITLEMENT_COL_NAME = 'entitlements';
+  }
+
+  async start() {
+    if (
+      this.server.state === MongoMemoryServerStates.stopped ||
+      this.server.state === MongoMemoryServerStates.new
+    ) {
+      await this.server.start();
+    }
+    const url = this.server.getUri();
+    process.env.MONGO_ATLAS_URL = url;
+    this.client = new MongoClient(url);
+    await this.client.connect();
+    this.db = this.client.db(TEST_DB_NAME);
+    await this.db.createCollection(process.env.JOB_QUEUE_COL_NAME ?? 'queue');
+    await this.db.createCollection(
+      process.env.USER_ENTITLEMENT_COL_NAME ?? 'entitlements',
+    );
+  }
+
+  async stop() {
+    await this.client.close();
+    await this.server.stop();
+  }
+
+  async cleanup() {
+    return await Promise.all(
+      COLLECTIONS.map((c) => this.db.collection(c).deleteMany({})),
+    );
+  }
+
+  async insertDocument(
+    document: Document,
+    collection: string,
+  ): Promise<ObjectId> {
+    const resp = await this.db.collection(collection).insertOne(document);
+    return resp.insertedId;
+  }
+
+  async findJob(id: ObjectId): Promise<unknown> {
+    const query = { _id: id };
+    return await this.db
+      .collection(process.env.JOB_QUEUE_COL_NAME ?? 'queue')
+      .findOne(query);
+  }
+}
+
+const dbManager = new TestDBManager();
+
+/**
+ * mocks a db with test data in ./data collection
+ * designed to set up test modules with fresh db
+ *
+ * @returns [Db, MongoClient]
+ */
+export const setMockDB = async (): Promise<[Db, MongoClient]> => {
+  try {
+    await dbManager.start();
+
+    await dbManager.db
+      .collection('metadata')
+      .insertMany(metadata as unknown[] as Document[]);
+    return [dbManager.db, dbManager.client];
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
+};
+
+/**
+ * Deletes all test data in all collections in documents and closes db connection
+ */
+export const closeDb = async () => {
+  await dbManager.cleanup();
+  await dbManager.stop();
+};
