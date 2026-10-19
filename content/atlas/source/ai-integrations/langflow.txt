@@ -1,0 +1,300 @@
+.. _langflow:
+
+===============================
+Integrate MongoDB with Langflow
+===============================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: RAG, retrieval, vector database, vector search, low-code, no-code, visual editor, AI agent, code example
+   :description: Integrate MongoDB with Langflow to use MongoDB Atlas as a vector store component in your no-code AI workflows, with similarity search and automatic Vector Search index creation.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can integrate MongoDB with `Langflow <https://www.langflow.org/>`__,
+an open-source visual framework for building AI pipelines and agents.
+Langflow provides a :guilabel:`MongoDB Atlas` component that uses
+{+avs+} as a vector store, so you can add MongoDB-backed retrieval to
+your flows without writing code.
+
+The :guilabel:`MongoDB Atlas` component allows you to
+perform the following actions:
+
+- **Ingest Data**: Write documents and their embeddings to your
+  collection.
+
+- **Similarity Search**: Run a similarity search and return matching
+  documents.
+
+- **Configure Agent Tools**: Provide agents access to your MongoDB
+  data.
+
+.. TODO: uncomment once get started is created
+.. Get Started
+.. -----------
+..
+.. To complete a tutorial that configures Langflow to use MongoDB,
+.. see :ref:`langflow-get-started`.
+
+Installation
+------------
+
+The ``lfx-bundles`` package provides optional third-party
+integrations, including the :guilabel:`MongoDB Atlas`
+component. To install the MongoDB dependencies, run the
+following command:
+
+.. code-block:: shell
+
+   uv pip install "lfx-bundles[mongodb]"
+
+Alternatively, to install every bundled provider along with
+Langflow, run the following command:
+
+.. code-block:: shell
+
+   uv pip install "langflow[bundles]"
+
+Usage
+-----
+
+To use MongoDB as a vector store in a flow, add the
+:guilabel:`MongoDB Atlas` component to your canvas from the
+:guilabel:`MongoDB` category, then configure its connection
+and index parameters in the component inspection panel.
+
+The following tabs describe different ways to use the component in
+your flows:
+
+.. tabs::
+
+   .. tab:: Insert Documents
+      :tabid: insert
+
+      To write documents and their embeddings to your collection,
+      connect a data loader and a :guilabel:`Split Text` component to
+      the :guilabel:`Ingest Data` input:
+
+      .. code-block:: text
+
+         File or URL loader → Split Text → MongoDB Atlas
+
+   .. tab:: Similarity Search
+      :tabid: search
+
+      To run a similarity search and return matching documents,
+      connect a :guilabel:`Chat Input` or other text-producing
+      component to the :guilabel:`Search Query` input:
+
+      .. code-block:: text
+
+         Chat Input → MongoDB Atlas → Chat Output
+
+   .. tab:: Agent Tool
+      :tabid: agent-tool
+
+      To give agents access to your collection, enable
+      :guilabel:`Tool Mode` in the :guilabel:`MongoDB Atlas`
+      component's header menu. Then, connect its output to an
+      :guilabel:`Agent` component's :guilabel:`Tools` input:
+
+      .. code-block:: text
+
+         MongoDB Atlas → Agent (Tools)
+
+If you use the :guilabel:`MongoDB Atlas` component to query your
+collection, the component returns results that you can pass to other
+components in your flow as a list of JSON objects or as a tabular
+result. If both formats are available, you can set the format near
+the component's output port in the visual editor.
+
+The first time you run a search, the component checks whether the
+{+avs+} index named in the :guilabel:`Index Name` parameter exists.
+If it doesn't, the component creates the index from the
+:guilabel:`Index Field`, :guilabel:`Number of Dimensions`,
+:guilabel:`Similarity`, and :guilabel:`Quantization` parameters, then
+waits 20 seconds before continuing. Because that wait doesn't
+confirm the index finished building, a query that runs immediately
+after index creation can still return empty results.
+
+.. tip::
+
+   To check whether your index has finished building, view
+   its :guilabel:`Status` in the :ref:`Atlas UI <avs-node-status-ref>`.
+
+Parameters
+~~~~~~~~~~
+
+Some parameters are hidden by default in the visual editor. You can
+view and modify every parameter through the component inspection
+panel that appears when you select the component.
+
+.. collapsible::
+   :heading: MongoDB Atlas Component Parameters
+   :sub_heading: Use these parameters to configure the MongoDB Atlas component.
+   :expanded: false
+
+   .. list-table::
+      :widths: 25 15 60
+      :header-rows: 1
+
+      * - Parameter
+        - Necessity
+        - Description
+
+      * - :guilabel:`MongoDB Atlas Cluster URI`
+        - Required
+        - The connection string for your MongoDB Atlas cluster. To
+          learn more about finding your connection string, see
+          :ref:`connect-via-driver`.
+
+      * - :guilabel:`Enable mTLS`
+        - Optional
+        - Whether to enable mutual TLS authentication. Defaults to
+          ``false``.
+
+      * - :guilabel:`MongoDB Atlas Combined Client Certificate`
+        - Conditional
+        - The client certificate combined with the private key.
+          Required if you enable mTLS.
+
+      * - :guilabel:`Database Name`
+        - Required
+        - The name of the database that contains your collection.
+
+      * - :guilabel:`Collection Name`
+        - Required
+        - The name of the collection that stores your data.
+
+      * - :guilabel:`Index Name`
+        - Required
+        - The name of the {+avs+} index on your collection.
+
+      * - :guilabel:`Ingest Data`
+        - Optional
+        - The documents to write to the collection. Accepts one or
+          more ``Data``, ``DataFrame``, or ``Table`` inputs from an
+          upstream component.
+
+      * - :guilabel:`Insert Mode`
+        - Optional
+        - How the component inserts new documents into the
+          collection. When set to ``append``, the component keeps
+          existing documents and adds the new documents. When set
+          to ``overwrite``, the component removes all
+          existing documents from the collection before inserting the
+          new documents. Defaults to ``append``.
+
+      * - :guilabel:`Embedding`
+        - Required
+        - The embedding model that the component uses to embed your
+          documents and queries. Connect an embedding
+          model component to this input.
+
+      * - :guilabel:`Search Query`
+        - Optional
+        - The text query to run a similarity search with.
+
+      * - :guilabel:`Number of Results`
+        - Optional
+        - The number of results to return from a similarity search.
+          Defaults to ``4``.
+
+      * - :guilabel:`Index Field`
+        - Optional
+        - The field that the {+avs+} index covers. Defaults to
+          ``embedding``.
+
+      * - :guilabel:`Filter Field`
+        - Optional
+        - The field to filter the index on.
+
+      * - :guilabel:`Number of Dimensions`
+        - Optional
+        - The number of dimensions in the embedding vectors. Must
+          match the number of dimensions that your configured
+          embedder produces. Defaults to ``1536``, but ensure
+          that you set this value to match your embedding model's
+          dimensions.
+
+      * - :guilabel:`Similarity`
+        - Optional
+        - The method used to measure similarity between vectors.
+          The options are ``cosine``, ``euclidean``, or
+          ``dotProduct``. Defaults to ``cosine``.
+
+      * - :guilabel:`Quantization`
+        - Conditional
+        - The quantization method that reduces memory costs by
+          converting 32-bit floats to smaller data types. The
+          options are ``scalar`` or ``binary``, and there is no
+          ``none`` option. Required if the {+avs+} index does not
+          already exist. For more information, see the note in the
+          :ref:`langflow-search-indexes` section on this page.
+
+      * - :guilabel:`Cache Vector Store`
+        - Optional
+        - Whether to cache the vector store for the current
+          component run. Defaults to ``true``.
+
+.. _langflow-search-indexes:
+
+Search Indexes
+--------------
+
+The :guilabel:`MongoDB Atlas` component creates a {+avs+} index on
+your collection the first time you run a search, if a matching
+index doesn't already exist. You can also create or inspect this
+index manually. To learn more, see :ref:`avs-create-index`.
+
+The index uses the following definition, where the ``path`` field
+specifies your :guilabel:`Index Field` value, the ``numDimensions``
+field specifies your :guilabel:`Number of Dimensions` value, and
+the ``similarity`` field specifies your :guilabel:`Similarity`
+value:
+
+.. code-block:: json
+
+   {
+     "fields": [
+       {
+         "numDimensions": 1536,
+         "path": "embedding",
+         "quantization": "scalar",
+         "similarity": "cosine",
+         "type": "vector"
+       }
+    ]
+   }
+
+If you set a :guilabel:`Filter Field` value, the component adds a
+``filter`` type field for that path to the index definition.
+
+.. important:: Required Values
+
+   Select a value for **Quantization** before you run a
+   search. If you leave the field unset, index creation fails
+   because the component sets the ``quantization`` field to ``null``
+   instead of omitting the field.
+
+   If your embedding model produces a different number of dimensions
+   than the default ``1536``, ensure that you set the
+   **Number of Dimensions** parameter accordingly.
+
+Additional Resources
+--------------------
+
+To learn more about using Langflow with MongoDB, see the following
+resources:
+
+- `Langflow MongoDB Component <https://docs.langflow.org/bundles-mongodb>`__ documentation
+- :github:`Langflow <langflow-ai/langflow>` GitHub repository

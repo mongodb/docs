@@ -257,6 +257,11 @@ const tocData: TocItem[] = [
               },
             ],
           },
+          {
+            label: 'Langflow',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/ai-integrations/langflow',
+          },
         ],
       },
       {
