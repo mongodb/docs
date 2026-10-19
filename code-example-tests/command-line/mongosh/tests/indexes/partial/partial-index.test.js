@@ -22,6 +22,7 @@ describe("partial index examples", () => {
          try { db.users.dropIndex('name_1'); } catch(e) {}
          try { db.users.dropIndex('email_1'); } catch(e) {}
          try { db.users.deleteMany({ email: { \\$in: ['jon@example.com'] } }); } catch(e) {}
+         try { db.movies.dropIndex('year_gt_2000_partial'); } catch(e) {}
       `;
 
       const command = `mongosh "${mongoUri}" --eval "${cleanupCommands}"`;
@@ -197,7 +198,54 @@ describe("partial index examples", () => {
       await Expect
          .outputFromExampleFiles(exampleFiles)
          .withDbName(dbName)
-         .withIgnoredFields("insertedIds") 
+         .withIgnoredFields("insertedIds")
+         .shouldMatch(outputFile);
+   });
+
+   test("Should return confirmation of a created partial index (create-7)", async () => {
+      const exampleFiles = [
+         "indexes/partial/create-7.js"
+      ]
+      const outputFile = "indexes/partial/create-7-output.sh";
+      await Expect
+         .outputFromExampleFiles(exampleFiles)
+         .withDbName(dbName)
+         .shouldMatch(outputFile);
+   });
+
+   test("Should use the index for an equality condition that satisfies the filter expression (query-8)", async () => {
+      const exampleFiles = [
+         "indexes/partial/create-7.js",
+         "indexes/partial/query-8.js"
+      ]
+      const outputFile = "indexes/partial/query-8-output.sh";
+      await Expect
+         .outputFromExampleFiles(exampleFiles)
+         .withDbName(dbName)
+         .shouldMatch(outputFile);
+   });
+
+   test("Should use the index for a narrower range that satisfies the filter expression (query-9)", async () => {
+      const exampleFiles = [
+         "indexes/partial/create-7.js",
+         "indexes/partial/query-9.js"
+      ]
+      const outputFile = "indexes/partial/query-9-output.sh";
+      await Expect
+         .outputFromExampleFiles(exampleFiles)
+         .withDbName(dbName)
+         .shouldMatch(outputFile);
+   });
+
+   test("Should not use the index for a wider range that matches documents the partial index doesn't include (query-10)", async () => {
+      const exampleFiles = [
+         "indexes/partial/create-7.js",
+         "indexes/partial/query-10.js"
+      ]
+      const outputFile = "indexes/partial/query-10-output.sh";
+      await Expect
+         .outputFromExampleFiles(exampleFiles)
+         .withDbName(dbName)
          .shouldMatch(outputFile);
    });
 
