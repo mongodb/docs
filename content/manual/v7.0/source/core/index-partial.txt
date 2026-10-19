@@ -80,7 +80,8 @@ However, the following query cannot use the partial index on the
 result set. Specifically, the query predicate includes the condition
 ``password: { $exists: false }`` while the index has the filter ``password: { $exists:
 true }``. That is, the query ``{ name: "Ned Stark", password: { $exists: false }
-}`` matches more documents (users without passwords) than the index covers.
+}`` matches documents that the partial index doesn't include (users
+without passwords).
 
 .. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/partial/query-2.js
    :language: javascript
@@ -93,6 +94,54 @@ index would return an incomplete result set.
 .. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/partial/query-3.js
    :language: javascript
    :category: usage example
+
+.. _partial-index-comparison-operators:
+
+Comparison Operators
+~~~~~~~~~~~~~~~~~~~~
+
+For an index that uses a comparison operator such as ``$gt``, a query
+condition satisfies the filter expression if it specifies an equal or
+narrower range of values.
+
+For example, given an index with the filter expression
+``{ year: { $gt: 2000 } }``:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/partial/create-7.snippet.create-comparison-operator-index.js
+   :language: javascript
+   :category: usage example
+
+The following query can use the index because the condition
+``year: 2005`` satisfies a subset of the documents matched by the
+filter expression:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/partial/query-8.snippet.query-equality-condition.js
+   :language: javascript
+   :category: usage example
+
+Similarly, the following query can use the index because the
+condition ``year: { $gt: 2010 }`` matches a narrower range of
+documents than the filter expression:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/partial/query-9.snippet.query-narrower-range.js
+   :language: javascript
+   :category: usage example
+
+However, the following query cannot use the index because the
+condition ``year: { $gt: 1990 }`` matches documents that the
+partial index doesn't include:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/partial/query-10.snippet.query-wider-range.js
+   :language: javascript
+   :category: usage example
+
+.. note::
+
+   Subset matching does not behave identically for every operator
+   supported in a ``partialFilterExpression``. Before relying on a
+   partial index for a query pattern not shown here, use
+   :ref:`explain() <interpret-explain-plan>` to confirm MongoDB
+   selects the index you expect.
 
 .. _partial-sparse-index-comparison:
 
