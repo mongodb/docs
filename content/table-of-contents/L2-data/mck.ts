@@ -9,7 +9,15 @@ const tocData: TocItem[] = [
     versionDropdown: true,
     group: true,
     versions: {
-      excludes: ['upcoming', 'current', 'v1.9', 'v1.10', 'v1.11', 'v1.12'],
+      excludes: [
+        'upcoming',
+        'current',
+        'v1.9',
+        'v1.10',
+        'v1.11',
+        'v1.12',
+        'v1.13',
+      ],
     },
     items: mckLegacy,
   },
@@ -19,7 +27,15 @@ const tocData: TocItem[] = [
     versionDropdown: true,
     group: true,
     versions: {
-      includes: ['upcoming', 'current', 'v1.9', 'v1.10', 'v1.11', 'v1.12'],
+      includes: [
+        'upcoming',
+        'current',
+        'v1.9',
+        'v1.10',
+        'v1.11',
+        'v1.12',
+        'v1.13',
+      ],
     },
     items: mckUpcoming,
   },

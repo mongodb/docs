@@ -1,0 +1,65 @@
+.. _k8s-migration-om-to-k8s-search:
+
+=========================================
+MongoDB Search Interaction with Migration
+=========================================
+
+.. meta::
+   :description: Understand how migrating a self-managed MongoDB deployment into Kubernetes affects an attached MongoDBSearch resource, and how to keep Search working during and after migration.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+If you use |fts| or |vector-search| with the deployment that you are
+migrating, review this page before you begin. |k8s-op-short|
+handles a ``MongoDBSearch`` resource differently depending on
+whether the ``MongoDB`` resource it attaches to uses
+``externalDomain``.
+
+``externalDomain`` Is Not Supported
+------------------------------------
+
+``MongoDBSearch`` does not support ``MongoDB`` resources that use
+:setting:`spec.externalAccess.externalDomain`. If your migration
+plan depends on setting ``externalDomain`` for :ref:`network
+requirements <k8s-migration-om-to-k8s-network>`, and you also use
+|fts| or |vector-search| against this deployment, do not set
+``externalDomain`` on the ``MongoDB`` resource you migrate into.
+Use plain :setting:`spec.externalAccess` (without
+``externalDomain``) to expose Kubernetes Pods to your virtual
+machines instead.
+
+Keep ``MongoDBSearch`` on the External Source
+-----------------------------------------------
+
+To keep a ``MongoDBSearch`` resource attached to the deployment
+throughout the migration, continue using
+``spec.source.external.hostAndPorts`` rather than switching to
+``spec.source.mongodbResourceRef``. As you extend the deployment
+into Kubernetes and prune virtual machine members, manually edit
+``spec.source.external.hostAndPorts`` to add the hostnames of the
+new Kubernetes-hosted ``mongod`` Pods so the seed list stays
+current.
+
+For the full field reference, see :ref:`k8s-search-specification`.
+
+Automatic ``additionalMongodConfig`` Population
+-------------------------------------------------
+
+The ``kubectl mongodb migrate-to-mck`` plugin automatically
+populates :setting:`spec.additionalMongodConfig` on the generated
+``MongoDB`` resource with the values that ``mongot`` needs to
+connect. Verify these values before you apply the generated
+``MongoDB`` resource.
+
+Learn More
+----------
+
+- :ref:`k8s-migration-om-to-k8s-network`
+- :ref:`k8s-migration-om-to-kubernetes`
+- :ref:`k8s-search-specification`

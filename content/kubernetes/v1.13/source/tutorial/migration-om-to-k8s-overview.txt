@@ -1,0 +1,105 @@
+.. _k8s-migration-om-to-k8s-overview:
+
+==================================
+How Migration to Kubernetes Works
+==================================
+
+.. meta::
+   :description: Learn how live, incremental migration moves a self-managed MongoDB deployment from virtual machines into Kubernetes under the Kubernetes Operator without downtime or snapshot restore.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+|k8s-op-short| can migrate a deployment that |mms| or Cloud
+Manager manages on virtual machines or bare metal into Kubernetes.
+The migration is live and incremental. Your deployment keeps
+serving reads and writes throughout the process. You move
+members from the virtual machines to Kubernetes one at a time,
+using normal MongoDB replication.
+
+How the Migration Works
+------------------------
+
+Migration relies on standard MongoDB replication rather than a
+data-copy tool. It proceeds in three phases:
+
+- **Extend.** You add Kubernetes members to the existing replica
+  set. |k8s-op-short| creates the new members as non-voting,
+  and they perform an initial sync from the existing members.
+
+- **Promote.** You shift votes and priority from the virtual
+  machine members onto the Kubernetes members. External members
+  keep whatever votes and priority they already have in the
+  source automation config until you remove them.
+
+- **Prune.** You remove the virtual machine members one at a
+  time, waiting for the replica set to reach goal state between
+  each removal.
+
+Migration is complete when |k8s-op-short| manages 100% of the
+members, ``spec.externalMembers`` is empty, and all data lives in
+Kubernetes persistent volume claims. At that point, no members
+remain on virtual machines.
+
+Why Migration Does Not Use Snapshot Restore or Cluster-to-Cluster Sync
+-----------------------------------------------------------------------
+
+The migration workflow does not restore a snapshot and does not
+use ``mongosync`` or another cluster-to-cluster sync tool.
+Cluster-to-cluster sync tools impose downtime at cutover, lack
+support for time-series collections, and generally require field
+help to run safely. Replication-based migration avoids these
+limitations. Your deployment stays available, the migration
+supports the same collection types as the rest of your
+deployment, and you drive the process yourself with the
+``kubectl mongodb`` plugin.
+
+Availability during Migration
+------------------------------
+
+Reads stay available throughout migration. Writes might briefly
+fail during elections, so your drivers must use retryable writes.
+Read latency can increase if a read target moves, so run the
+Kubernetes cluster in the same region as the virtual machines.
+Long-running cursors against a migrated secondary break, because
+there is no quiesce mode.
+
+Hybrid Operation Is Transient
+------------------------------
+
+While migration is in progress, your deployment runs in a hybrid
+state with members split across virtual machines and Kubernetes.
+|k8s-op-short| supports this hybrid state only as a transient
+condition during an active migration. Migration requires
+permanent bidirectional network connectivity between the two
+environments for the duration. |k8s-op-short| does not support
+running a split-environment deployment indefinitely.
+
+What Migration Does Not Do
+---------------------------
+
+|k8s-op-short| does not:
+
+- Decommission the virtual machines. You retire them yourself
+  after migration completes.
+
+- Roll back a migration. No automated way exists to reverse a
+  migration once it starts.
+
+- Seed or pre-copy data. All data movement happens through
+  MongoDB replication.
+
+- Migrate |mms| or Cloud Manager itself. Only the MongoDB
+  deployment moves into Kubernetes.
+
+Learn More
+----------
+
+- :ref:`k8s-migration-om-to-k8s-limitations`
+- :ref:`k8s-migration-om-to-k8s-prerequisites`
+- :ref:`k8s-migration-om-to-k8s-replica-set`

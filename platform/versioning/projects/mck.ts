@@ -7,7 +7,8 @@ export default defineDocset({
 	search: { categoryTitle: "MongoDB Controllers for Kubernetes" },
 	versions: [
 		{ name: "upcoming", noIndexing: true },
-		{ name: "current", label: "v1.13.0 (current)", stable: true },
+		{ name: "current", label: "v1.14.0 (current)", stable: true },
+		{ name: "v1.13", label: "v1.13.0" },
 		{ name: "v1.12", label: "v1.12.0" },
 		{ name: "v1.11", label: "v1.11.0" },
 		{ name: "v1.10", label: "v1.10.0" },

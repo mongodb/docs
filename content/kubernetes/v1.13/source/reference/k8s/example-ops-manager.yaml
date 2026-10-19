@@ -1,0 +1,62 @@
+apiVersion: mongodb.com/v1
+kind: MongoDBOpsManager
+metadata:
+ name: om
+spec:
+ topology: SingleCluster # optional, SingleCluster by default
+ opsManagerURL: https://link.to.configured.load-balancer.example.com # optional OM URL for the operator
+replicas: 1
+version: "8.0.0"
+ adminCredentials: ops-manager-admin-secret
+ configuration:
+  mms.fromEmailAddr: admin@example.com
+  mms.security.allowCORS: "false"
+ security:
+   tls:
+     ca: issuer-ca
+ backup:
+  enabled: true
+  encryption:
+    kmip:
+      server:
+        url: kmip.corp.mongodb.com:5696
+        ca: mongodb-kmip-certificate-authority-pem
+  headDB:
+   storage: "30Gi"
+   labelSelector:
+    matchLabels:
+     app: my-app
+  opLogStores:
+   - name: oplog1
+                       # Sets labels for the oplog store.
+     assignmentLabels: ["test1", "test2"]
+     mongodbResourceRef:
+      name: my-oplog-db
+     mongodbUserRef:
+      name: my-oplog-user
+  s3Stores:
+   - name: s3store1
+                       # Sets labels for the S3 store.
+     assignmentLabels: ["test1", "test2"]
+                       
+     mongodbResourceRef:
+      name: my-s3-metadata-db
+     mongodbUserRef:
+      name: my-s3-store-user
+     s3SecretRef:
+       name: my-s3-credentials
+     pathStyleAccessEnabled: true
+     s3BucketEndpoint: s3.region.amazonaws.com
+     s3BucketName: my-bucket
+ applicationDatabase:
+   passwordSecretKeyRef:
+    name: om-db-user-secret
+    key: password
+   members: 3
+   topology: SingleCluster
+   version: "7.0.21-ubi8"
+   featureCompatibilityVersion: "6.0" # During upgrade, set this FCV value to your currently deployed AppDB version.
+   security:
+     certsSecretPrefix: appdb
+     tls:
+       ca: issuer-ca

@@ -1,0 +1,149 @@
+.. _k8s-fts-vs-tls-encryption:
+
+============================================
+Secure the Connection from MongoDB to Search
+============================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Configure TLS on mongot's listen server so that mongod (or mongos) connects to MongoDB Search over an encrypted connection when you use the Kubernetes Operator.
+   :keywords: mongot, tls, mtls, certificate, secret, code example
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page describes how to configure :abbr:`TLS (Transport Layer
+Security)` for the connection that ``mongod`` (or ``mongos``) opens to
+``mongot`` when you run |text-search| and |vector-search| with the
+|k8s-op-full|. On this connection, ``mongot`` runs the listen server
+and ``mongod`` is the client. You configure it through the
+``spec.security.tls`` block of the ``MongoDBSearch`` resource.
+
+This page does not cover the connection that ``mongot`` opens *to*
+``mongod`` to source data. For that direction, including how ``mongot``
+authenticates and how it trusts the source ``mongod``'s certificate,
+see :ref:`k8s-fts-vs-authentication-authorization`.
+
+For the full schema of each ``MongoDBSearch`` setting referenced on
+this page, see :ref:`k8s-fts-vs-settings`.
+
+TLS Modes
+---------
+
+The ``mongot`` listen server supports three conceptual modes:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 85
+
+   * - Mode
+     - Behavior
+
+   * - **Disabled**
+     - The listen server accepts plaintext connections only. This is
+       the default when ``spec.security.tls`` is omitted.
+
+   * - **TLS**
+     - The listen server requires TLS-encrypted connections from
+       ``mongod`` and presents a server certificate. Clients validate
+       the certificate but do not present client certificates of
+       their own.
+
+   * - **mTLS**
+     - The listen server requires TLS and also requires the client
+       (``mongod``) to present a certificate that ``mongot``
+       validates against a trusted certificate authority. mTLS is
+       required when ``mongod`` authenticates to ``mongot`` with
+       X.509, because X.509 authentication *is* the client presenting
+       a certificate. See :ref:`k8s-fts-vs-authentication-authorization`.
+
+The |k8s-op-short| surfaces this configuration as a single
+``spec.security.tls`` block. The listen server runs in mTLS mode when
+the source ``mongod`` also uses TLS. In that case, ``mongot``
+validates the client certificate against the source ``mongod``'s CA,
+not against a CA configured on ``spec.security.tls``. To configure
+that trust, see :ref:`k8s-fts-vs-authentication-authorization`.
+
+Configure the Listen Server Certificate
+---------------------------------------
+
+To enable TLS on the ``mongot`` listen server, set
+``spec.security.tls.certsSecretPrefix`` on the ``MongoDBSearch``
+resource. The |k8s-op-short| looks up TLS material from |k8s|
+``Secret`` resources in the same namespace, by name prefix:
+
+.. code-block:: yaml
+
+   spec:
+     security:
+       tls:
+         certsSecretPrefix: my-mongot
+
+With the prefix above, the |k8s-op-short| derives TLS secret
+names by appending fixed suffixes to the prefix. For a replica set,
+it reads the ``tls.crt`` and ``tls.key`` pair from a secret named
+``my-mongot-<name>-search-cert``, where ``<name>`` is
+``metadata.name`` of the ``MongoDBSearch`` resource. For all naming
+patterns, including sharded cluster deployments, see
+:ref:`spec.security.tls.certsSecretPrefix
+<mdbsearch-spec-security-tls-certsSecretPrefix>`. In mTLS mode,
+the CA that ``mongot`` uses to validate ``mongod``'s client
+certificate comes from the source ``mongod``'s TLS configuration, not
+from ``spec.security.tls``. See
+:ref:`k8s-fts-vs-authentication-authorization`.
+
+.. note::
+
+   ``spec.security.tls.certsSecretPrefix`` is the recommended field
+   for new deployments. The legacy
+   ``spec.security.tls.certificateKeySecretRef.name`` field is still
+   supported and takes precedence when both are set on the same
+   ``MongoDBSearch`` resource. Existing deployments on the legacy
+   field continue to work without changes.
+
+Known Limitations
+-----------------
+
+The following limitations apply to ``mongot`` TLS:
+
+- **No configurable cipher suites.** The cipher suites that
+  ``mongot`` negotiates are not configurable through the
+  ``MongoDBSearch`` CRD or the ``mongot`` configuration. The set is
+  fixed at the values ``mongot`` ships with.
+
+- **No FIPS support.** ``mongot`` does not provide a FIPS-validated
+  TLS mode at this release.
+
+- **No hostname or SAN validation on the listen server.** ``mongot``
+  validates that incoming client certificates are signed by a trusted
+  CA, but does not validate the subject hostname or SAN entries on
+  the certificate. Authentication on the listen path relies on the
+  certificate authority and on the X.509 subject DN authorization
+  configured in :ref:`k8s-fts-vs-authentication-authorization`.
+
+- **Minimum TLS version is 1.2.** ``mongot`` does not accept TLS 1.0
+  or 1.1 connections.
+
+Rotating TLS material is the same flow as rotating client
+certificates: update the referenced ``Secret`` and restart the
+``mongot`` pods. See :ref:`k8s-fts-vs-authentication-authorization`
+for the procedure.
+
+.. warning::
+
+   Enabling TLS on a running deployment is a brief but real outage,
+   not a seamless change. ``mongot``'s gRPC listener is binary: it
+   accepts either plaintext or TLS, never both. Switching from
+   disabled to TLS rolls ``mongot`` and ``mongod``'s
+   ``searchTLSMode`` together, and new search queries fail temporarily during the cutover.
+   Rotating certificates on a deployment that already has TLS enabled does
+   not have this gap, because the listener mode does not change.
+   Plan a maintenance window for the initial TLS enablement.

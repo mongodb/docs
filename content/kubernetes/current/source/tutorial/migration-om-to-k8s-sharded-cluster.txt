@@ -63,17 +63,11 @@ You can extend a sharded cluster into Kubernetes in two ways:
   the same number of Kubernetes members.
 
 - **Per shard**, using :setting:`spec.shardOverrides` entries that
-  name the shard and set its member count, either directly or in
-  ``clusterSpecList[]``. Use this when shards are sized
-  differently, when you migrate shard by shard, or when a shard
-  needs its own member layout.
+  name the shard and set its member count. Use this when shards
+  are sized differently, when you migrate shard by shard, or when
+  a shard needs its own member layout.
 
   .. note::
-
-     ``spec.shardOverrides[].memberConfig`` at the entry's top
-     level is ignored. The nested
-     ``spec.shardOverrides[].clusterSpecList[].memberConfig`` is
-     the one that applies.
 
      Do not confuse :setting:`spec.shardOverrides` (per-shard
      configuration) with ``spec.shardNameOverrides`` (automation
@@ -84,6 +78,39 @@ every new Kubernetes member on the relevant component before you
 raise its count:
 
 .. include:: /includes/admonitions/warning-migration-member-config.rst
+
+For example, the following configuration extends a single-cluster
+sharded deployment. The example adds one Kubernetes member to the
+config server, one to each of two shards, and one ``mongos``
+router. Set ``votes: 0`` and ``priority: "0"`` while the new
+members complete initial sync, then promote them with the values
+shown:
+
+.. code-block:: yaml
+
+   spec:
+     configServerCount: 1
+     memberConfig:
+       - votes: 1
+         priority: "10"
+     shardOverrides:
+       - shardNames: ["myclustershard-0"]
+         members: 1
+         memberConfig:
+           - votes: 1
+             priority: "10"
+       - shardNames: ["myclustershard-1"]
+         members: 1
+         memberConfig:
+           - votes: 1
+             priority: "10"
+     mongosCount: 1
+
+In a single-cluster deployment, the top-level
+``spec.memberConfig`` configures the config server members. The
+same configuration applies to the members of every shard without
+a matching :setting:`spec.shardOverrides` entry. ``mongos``
+routers aren't replica set members and take no ``memberConfig``.
 
 TLS Certificates Per Component
 ----------------------------------

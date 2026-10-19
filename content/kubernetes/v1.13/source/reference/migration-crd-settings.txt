@@ -1,0 +1,305 @@
+.. _k8s-migration-crd-settings:
+
+====================================
+MongoDB Migration Resource Settings
+====================================
+
+.. meta::
+   :description: Reference the MongoDB custom resource fields, status
+      conditions, and annotations that support migrating a
+      self-managed deployment into Kubernetes under the Kubernetes
+      Operator.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. important::
+
+   The settings on this page exist to support migrating a
+   self-managed deployment into Kubernetes under |k8s-op-short|.
+   Do not set them on a ``MongoDB`` resource that you deploy
+   directly in Kubernetes without an accompanying migration.
+
+This page documents the ``MongoDB`` resource fields, status
+conditions, and annotations that apply only during a migration
+from a self-managed, virtual-machine deployment into Kubernetes.
+For the full set of ``MongoDB`` resource settings, see
+:ref:`k8s-specification`.
+
+External Members
+-----------------
+
+These fields identify the source virtual machine or bare-metal
+processes that a migration is extending into Kubernetes. They
+apply to the ``MongoDB`` resource, ``apiVersion: mongodb.com/v1``.
+
+.. important::
+
+   These fields exist for migration only. Do not set them on a
+   ``MongoDB`` resource for a greenfield Kubernetes deployment.
+
+.. setting:: spec.externalMembers
+
+   *Type*: array of ``ExternalMember`` objects
+
+   The virtual machine or bare-metal source processes that are
+   part of the migration. This field exists for migration only.
+
+   You may remove entries from this list, but you must never add
+   entries once migration has started. An empty
+   ``spec.externalMembers`` list means the migration is complete.
+
+.. setting:: spec.externalMembers[].processName
+
+   *Type*: string
+
+   *Required*
+
+   This field exists for migration only. The process name exactly
+   as it appears in the ``processes`` array of the automation
+   config.
+
+.. setting:: spec.externalMembers[].hostname
+
+   *Type*: string
+
+   *Required*
+
+   This field exists for migration only. The ``host:port`` value
+   for the process, exactly as it appears in the automation
+   config.
+
+.. setting:: spec.externalMembers[].type
+
+   *Type*: enum: ``mongod`` or ``mongos``
+
+   *Required for sharded clusters*
+
+   This field exists for migration only. A replica set has only
+   ``mongod`` external members.
+
+.. setting:: spec.externalMembers[].replicaSetName
+
+   *Type*: string
+
+   *Optional*
+
+   This field exists for migration only. Required for a
+   sharded-cluster ``mongod`` external member. Identifies whether
+   the process belongs to the config server replica set or to a
+   specific shard's replica set.
+
+Name Overrides
+--------------
+
+These fields exist for migration only, and override the resource
+or automation config name that |k8s-op-short| would otherwise use
+or generate.
+
+.. setting:: spec.replicaSetNameOverride
+
+   *Type*: string
+
+   This field exists for migration only. The automation config
+   replica set name, when it differs from the Kubernetes resource
+   name, or when the automation config replica set name is not a
+   valid Kubernetes name. The ``kubectl mongodb migrate-to-mck``
+   plugin sets this field for you through its
+   ``--resource-name-override`` flag.
+
+.. setting:: spec.configServerNameOverride
+
+   *Type*: string
+
+   This field exists for migration only. The config server replica
+   set name as it appears in the automation config.
+
+.. setting:: spec.shardNameOverrides
+
+   *Type*: array of ``ShardNameOverride`` objects
+
+   This field exists for migration only. Per-shard automation
+   config replica set name and shard ``_id``.
+
+   .. note::
+
+      Do not confuse ``spec.shardNameOverrides`` with
+      :setting:`spec.shardOverrides`. ``spec.shardOverrides``
+      configures per-shard resource settings and is unrelated to
+      migration naming.
+
+   Kubernetes ``StatefulSet`` names are never affected by these
+   overrides.
+
+Configurable Automation Config Paths
+-------------------------------------
+
+|k8s-op-short| previously hard-coded these automation config
+settings. Migration requires them to be configurable so that a
+Kubernetes deployment can match paths already in use on the
+source virtual machines.
+
+.. setting:: spec.downloadBase
+
+   *Type*: string
+
+   *Default*: ``/var/lib/mongodb-mms-automation``
+
+   Directory where the {+mdbagent+} downloads the agent binary.
+   |k8s-op-short| derives the keyfile path from this setting as
+   ``<downloadBase>/keyfile``.
+
+.. setting:: spec.security.tls.caFilePath
+
+   *Type*: string
+
+   *Default*: ``/mongodb-automation/tls/ca/ca-pem``
+
+   Absolute path where |k8s-op-short| projects the CA certificate
+   inside the pod. This path must contain at least two path
+   segments. Not supported for the {+appdb+}.
+
+   .. note::
+
+      If your pod template mounts a volume at or above this path,
+      the mount can shadow the projected CA file. Review your
+      ``podTemplate`` volume mounts before you set a custom value.
+
+.. setting:: spec.security.authentication.agents.autoPEMKeyFilePath
+
+   *Type*: string
+
+   Absolute path of the {+mdbagent+}'s combined PEM file inside
+   database pods. Setting this field sets the |mms| or Cloud
+   Manager ``tls.autoPEMKeyFilePath`` value, and mounts the secret
+   referenced by ``spec.security.authentication.agents.clientCertificateSecretRef``
+   at that path.
+
+   Requires ``spec.security.authentication.agents.clientCertificateSecretRef``.
+
+   Defaults to the hash-derived agent certificate mount path that
+   |k8s-op-short| uses for non-migrated deployments.
+
+Status Conditions
+------------------
+
+.. setting:: status.conditions
+
+   *Type*: array of `Kubernetes Conditions
+   <https://pkg.go.dev/k8s.io/apimachinery/pkg/apis/meta/v1#Condition>`__
+
+   Standard Kubernetes conditions, keyed by ``type``. This field is
+   new on the ``MongoDB`` resource and supports migration.
+
+.. setting:: status.conditions[type=Migrating]
+
+   *Type*: Kubernetes condition
+
+   The top-level indicator of whether a migration is active.
+   ``status`` is ``True`` while :setting:`spec.externalMembers` is
+   non-empty, and flips to ``False`` with reason
+   ``MigrationComplete`` once you remove the last external member.
+
+   .. include:: /includes/facts/fact-migration-condition-reasons.rst
+
+.. setting:: status.conditions[type=NetworkConnectivityVerified]
+
+   *Type*: Kubernetes condition
+
+   The result of the dry-run connectivity check. |k8s-op-short|
+   removes this condition from ``status.conditions`` entirely once
+   no external members remain.
+
+   .. include:: /includes/facts/fact-migration-connectivity-conditions.rst
+
+.. setting:: status.migrationObservedExternalMembersCount
+
+   *Type*: integer
+
+   The number of :setting:`spec.externalMembers` entries that
+   |k8s-op-short| observed on the last reconcile. |k8s-op-short|
+   compares this value against the current
+   ``spec.externalMembers`` count on the next reconcile to detect
+   that you pruned an external member. This field is unset when no
+   external members remain.
+
+   .. note::
+
+      This field also appears in the ``MongoDBOpsManager`` custom
+      resource schema, as a side effect of Go struct embedding. On
+      the ``MongoDBOpsManager`` resource, the field is always null.
+      Ignore it there.
+
+Annotations
+-----------
+
+.. setting:: metadata.annotations.mongodb.com/migration-dry-run
+
+   *Type*: string (boolean value)
+
+   The ``kubectl mongodb migrate-to-mck`` plugin sets this
+   annotation to ``true``. While this annotation is present,
+   |k8s-op-short| makes no automation config changes and performs
+   connectivity validation only. Removing the annotation starts
+   the real migration.
+
+.. setting:: metadata.annotations.mongodb.com/migrate-tool-version
+
+   *Type*: string
+
+   Records the version of the ``kubectl mongodb migrate-to-mck``
+   plugin that generated the resource. |k8s-op-short| validates
+   this annotation against its own version on every reconcile,
+   including during the dry run.
+
+Related Fields That Need Migration-Specific Attention
+------------------------------------------------------
+
+The following existing ``MongoDB`` resource fields are not
+migration-only, but require specific values or review during a
+migration:
+
+- :setting:`spec.members`, :setting:`spec.mongodsPerShardCount`,
+  :setting:`spec.configServerCount`, and
+  :setting:`spec.mongosCount` all start at ``0`` in the resource
+  that the ``kubectl mongodb migrate-to-mck`` plugin generates.
+
+- ``spec.memberConfig[].votes`` (integer, default ``1``) and
+  ``spec.memberConfig[].priority`` (string containing a
+  float, default ``"1"``). You must provide at least as many
+  ``spec.memberConfig`` entries as :setting:`spec.members`.
+  |k8s-op-short| ignores the top-level ``spec.memberConfig`` for
+  sharded clusters. The ``kubectl mongodb migrate-to-mck`` plugin
+  does not generate ``spec.memberConfig``, and |k8s-op-short| does
+  not default new members to non-voting, so the CRD defaults of
+  ``1`` and ``"1"`` are exactly wrong while a new member is
+  syncing.
+
+  .. include:: /includes/admonitions/warning-migration-member-config.rst
+
+- :setting:`spec.shardOverrides`, :setting:`spec.externalAccess`,
+  and :setting:`spec.connectivity.replicaSetHorizons`.
+
+- :setting:`spec.security.certsSecretPrefix` and
+  :setting:`spec.security.tls.ca`.
+
+- Fields that must match the source deployment exactly:
+  :setting:`spec.version`,
+  :setting:`spec.featureCompatibilityVersion`,
+  ``spec.additionalMongodConfig.net.port``,
+  :setting:`spec.security.authentication.modes`, and
+  :setting:`spec.security.authentication.internalCluster`.
+
+Learn More
+----------
+
+- :ref:`k8s-migration-om-to-kubernetes`
+- :ref:`k8s-migration-om-to-k8s-replica-set`
+- :ref:`k8s-migrate-to-mck-plugin-reference`
+- :ref:`k8s-migration-troubleshooting`
+- :ref:`k8s-specification`

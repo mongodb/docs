@@ -1,0 +1,325 @@
+.. _k8s-migration-om-to-k8s-replica-set:
+
+===================================
+Migrate a Replica Set to Kubernetes
+===================================
+
+.. meta::
+   :description: Migrate a replica set managed by Ops Manager or Cloud Manager on virtual machines into Kubernetes under the Kubernetes Operator using a live, incremental workflow.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This procedure migrates any replica set that |mms| or Cloud
+Manager manages into Kubernetes under |k8s-op-short|, using normal
+MongoDB replication. This includes deployments that run on virtual
+machines or bare metal, and deployments already managed by a
+different |k8s-op-short| instance. The migration is live and
+incremental: you extend the replica set into Kubernetes, promote
+the Kubernetes members, and then prune the external members. There
+is no snapshot restore and no ``mongosync`` involved.
+
+Before you Begin
+-----------------
+
+Confirm the following before you migrate a replica set:
+
+.. include:: /includes/facts/fact-migration-prerequisites.rst
+
+You also need:
+
+- An existing replica set that |mms| or Cloud Manager manages.
+
+- Exactly one deployment in the |mms| or Cloud Manager project.
+
+- A Kubernetes cluster with |k8s-op-short| installed.
+
+- The ``kubectl mongodb`` plugin at a version that matches
+  |k8s-op-short|. |k8s-op-short| enforces this match on every
+  reconcile, including the dry run.
+
+- Bidirectional network connectivity and hostname resolution
+  between the virtual machine hosts and the Kubernetes Pods.
+
+- Pre-configured TLS certificates that cover all SANs, if the
+  deployment uses TLS.
+
+- The SCRAM user passwords in hand. You cannot recover them from
+  the automation config.
+
+- A backup taken before you start.
+
+- A deployment that is healthy and at goal state.
+
+.. include:: /includes/facts/fact-migration-golden-rules.rst
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Prepare Ops Manager or Cloud Manager access.
+
+      Create the project ``ConfigMap`` and the API key
+      ``Secret`` described in the prerequisites.
+
+   .. step:: Generate the MongoDB custom resource.
+
+      Run the ``kubectl mongodb migrate-to-mck mongodb``
+      command:
+
+      .. code-block:: sh
+
+         kubectl mongodb migrate-to-mck mongodb \
+           --config-map-name <configmap> \
+           --secret-name <secret> \
+           --namespace <namespace> \
+           -o mongodb-cr.yaml
+
+      Inspect the generated file. It contains:
+
+      - ``spec.externalMembers``, listing the source processes.
+
+      - ``spec.members`` set to ``0``.
+
+      - The ``mongodb.com/migration-dry-run: true`` annotation,
+        which the plugin always adds.
+
+      The command also supports these optional flags:
+
+      - ``--certs-secret-prefix``: required when TLS is enabled.
+        Sets ``spec.security.certsSecretPrefix``.
+
+      - ``--prometheus-secret-name``: use when Prometheus is
+        enabled. The ``Secret`` must already exist and have a
+        ``password`` key.
+
+      - ``--resource-name-override``: sets ``metadata.name`` on
+        the generated resource. The plugin normalizes the
+        replica set name automatically when it is not a valid
+        Kubernetes name, and sets
+        ``spec.replicaSetNameOverride`` for you.
+
+   .. step:: Generate the MongoDBUser custom resources.
+
+      Complete this step only if you want to migrate your
+      database users. The migration does not require it.
+
+      Pre-create one ``Secret`` per SCRAM user, each with a
+      ``password`` key. Run:
+
+      .. code-block:: sh
+
+         kubectl mongodb migrate-to-mck users \
+           --config-map-name <configmap> \
+           --secret-name <secret> \
+           --namespace <namespace> \
+           --users-secrets-file users.csv \
+           -o users-cr.yaml
+
+      The CSV file maps users to Secrets, one per line, in the
+      form ``username:database,secret-name``. Omit
+      ``--users-secrets-file`` to be prompted for each user
+      instead.
+
+      The plugin generates X.509 and LDAP users against the
+      ``$external`` database. It skips the automation agent
+      user.
+
+   .. step:: If the deployment uses TLS, issue the Kubernetes member certificates.
+
+      Issue the Kubernetes member certificates from the same
+      certificate authority that signed the virtual machine
+      certificates.
+
+      |k8s-op-short| expects a ``kubernetes.io/tls`` ``Secret``
+      named ``<certsSecretPrefix>-<resourceName>-cert`` and a CA
+      ``ConfigMap`` named ``<resourceName>-ca`` that contains
+      both a ``ca-pem`` key and an ``mms-ca.crt`` key. The
+      certificates need SANs that cover the per-Pod and Service
+      DNS names, and both server auth and client auth usages.
+
+      If the source deployment does not use TLS, set
+      ``net.tls.mode`` to ``disabled`` in |mms| or Cloud Manager,
+      on the existing virtual machine deployment, before you
+      migrate. You do not need to set anything in the MongoDB
+      custom resource for this case.
+
+      .. note::
+
+         A CA mismatch is caught by the dry run in the next
+         step, by design.
+
+   .. step:: Configure external access.
+
+      Before you run the dry run, configure
+      ``spec.externalAccess`` so that the virtual machine members
+      can reach the Kubernetes Pods. To let those members resolve
+      the Pods by hostname, you can also set
+      ``spec.externalAccess.externalDomain``. To learn about the
+      fields involved and the DNS requirements, see
+      :ref:`k8s-migration-om-to-k8s-network`.
+
+      This setup is user-owned: you configure the LoadBalancers
+      or NodePorts and the DNS records for your environment.
+
+      .. important::
+
+         Don't set ``externalDomain`` if you use |fts| or
+         |vector-search| with this deployment. ``MongoDBSearch``
+         does not support a ``MongoDB`` resource that sets
+         ``externalDomain``, and you can't remove the field after
+         you create the cluster. To learn more, see
+         :ref:`k8s-migration-om-to-k8s-search`.
+
+   .. step:: Run the dry run and check connectivity.
+
+      Apply the generated resource with the
+      ``mongodb.com/migration-dry-run`` annotation still
+      present. While the annotation is set, |k8s-op-short| makes
+      no automation config changes and only validates
+      connectivity.
+
+      |k8s-op-short| creates a Job named
+      ``<resourceName>-connectivity-check``, which dials
+      every external member and authenticates. The Job deletes
+      itself using ``ttlSecondsAfterFinished``, and the next
+      reconcile re-creates it, so re-validation is automatic. You
+      can fix problems in Kubernetes or in the |mms| UI and
+      re-run freely.
+
+      The dry run checks Kubernetes-to-virtual-machine
+      reachability (DNS, TLS, firewalls, and member addresses)
+      and credentials, including the ``__system`` role on the
+      ``local`` database, and the CA when TLS is enabled. It
+      does not check virtual-machine-to-Kubernetes inbound
+      connectivity.
+
+      Because that direction depends entirely on your networking
+      setup, no single command can guarantee it. Instead, work
+      through this checklist:
+
+      - Confirm that the hostnames the Kubernetes members will
+        have, following the pattern
+        ``<metadata.name>-0.<spec.externalAccess.externalDomain>``,
+        are resolvable from the virtual machine members.
+
+      - Confirm that the Kubernetes node or LoadBalancer IPs are
+        reachable from the virtual machines.
+
+      Read the result from
+      ``status.conditions[type=NetworkConnectivityVerified]``:
+
+      .. include:: /includes/facts/fact-migration-connectivity-conditions.rst
+
+   .. step:: Extend the replica set into Kubernetes.
+
+      Remove the dry-run annotation:
+
+      .. code-block:: sh
+
+         kubectl annotate mdb <resourceName> \
+           mongodb.com/migration-dry-run-
+
+      This is the point at which |k8s-op-short| takes ownership
+      of the |mms| project.
+
+      Raise ``spec.members`` and hand-write
+      ``spec.memberConfig`` together.
+
+      .. include:: /includes/admonitions/warning-migration-member-config.rst
+
+      For example, to add three Kubernetes members as
+      non-voting:
+
+      .. code-block:: yaml
+
+         spec:
+           memberConfig:
+             - votes: 0
+               priority: "0"
+             - votes: 0
+               priority: "0"
+             - votes: 0
+               priority: "0"
+
+      Wait for full initial sync and goal state. If you generated
+      MongoDBUser resources in the optional step above, apply
+      them now and confirm each one reaches a ``status.phase`` of
+      ``Updated``.
+
+   .. step:: Promote the Kubernetes members.
+
+      Shift votes and priority onto the Kubernetes members by
+      editing ``spec.memberConfig``. ``votes`` is an integer.
+      ``priority`` is a string containing a float.
+
+      External members keep whatever votes and priority they
+      carry in the source automation config.
+      ``spec.externalMembers`` has no ``votes`` or ``priority``
+      field.
+
+      Wait for goal state.
+
+   .. step:: Prune the external members.
+
+      .. important::
+
+         Remove only one entry from ``spec.externalMembers`` at
+         a time. Wait for goal state after each removal before
+         you remove the next entry.
+
+      For example:
+
+      .. code-block:: sh
+
+         kubectl patch mdb <resourceName> --type=json \
+           -p='[{"op":"remove","path":"/spec/externalMembers/0"}]'
+
+      You can remove entries but never add them once migration
+      has started.
+
+      Watch ``status.conditions[type=Migrating].reason`` move
+      through ``Extending``, ``InProgress``, and ``Pruning``:
+
+      .. include:: /includes/facts/fact-migration-condition-reasons.rst
+
+   .. step:: Verify and finish.
+
+      Migration is complete when ``spec.externalMembers`` is
+      empty, the ``Migrating`` condition is ``False`` with
+      reason ``MigrationComplete``, and all data lives in
+      persistent volume claims:
+
+      .. code-block:: sh
+
+         kubectl wait --for=condition=Migrating=False mdb/<resourceName>
+
+      Update your application connection strings and retire the
+      virtual machines. |k8s-op-short| does not decommission the
+      virtual machines for you.
+
+Connection String Secret
+-------------------------
+
+|k8s-op-short| automatically generates a connection string
+``Secret`` containing no credentials, named
+``<metadata.name>-cluster-connection-string``, and keeps it in
+sync with the active nodes. Point your applications at this
+``Secret`` instead of hardcoding a connection string.
+
+Availability during Migration
+------------------------------
+
+Reads stay available throughout migration. Writes might briefly
+fail during elections, so your drivers must use retryable writes.
+Read latency can increase if a read target moves, so run the
+Kubernetes cluster in the same region as the virtual machines.
+Long-running cursors against a migrated secondary break, because
+there is no quiesce mode.
