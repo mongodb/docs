@@ -232,9 +232,6 @@ export const toc: L1TocItem[] = [
                 label: 'Metrics',
                 contentSite: 'mongosync',
                 url: '/docs/mongosync/:version/reference/metrics/',
-                versions: {
-                  excludes: ['v1.10', 'v1.11', 'v1.12', 'v1.13', 'v1.14', 'v1.15'],
-                },
               },
               {
                 label: 'User Permissions',
@@ -302,7 +299,7 @@ export const toc: L1TocItem[] = [
                 contentSite: 'mongosync',
                 url: '/docs/mongosync/:version/release-notes/1.22',
                 versions: {
-                  excludes: ['v1.10', 'v1.11', 'v1.12', 'v1.13', 'v1.14', 'v1.15', 'v1.16', 'v1.17', 'v1.18', 'v1.19', 'v1.20', 'v1.21'],
+                  excludes: ['v1.20', 'v1.21'],
                 },
               },
               {
@@ -310,88 +307,58 @@ export const toc: L1TocItem[] = [
                 contentSite: 'mongosync',
                 url: '/docs/mongosync/:version/release-notes/1.21',
                 versions: {
-                  excludes: ['v1.10', 'v1.11', 'v1.12', 'v1.13', 'v1.14', 'v1.15', 'v1.16', 'v1.17', 'v1.18', 'v1.19', 'v1.20'],
+                  excludes: ['v1.20'],
                 },
               },
               {
                 label: '1.20',
                 contentSite: 'mongosync',
                 url: '/docs/mongosync/:version/release-notes/1.20',
-                versions: {
-                  excludes: ['v1.10', 'v1.11', 'v1.12', 'v1.13', 'v1.14', 'v1.15', 'v1.16', 'v1.17', 'v1.18', 'v1.19'],
-                },
               },
               {
                 label: '1.19',
                 contentSite: 'mongosync',
                 url: '/docs/mongosync/:version/release-notes/1.19',
-                versions: {
-                  excludes: ['v1.10', 'v1.11', 'v1.12', 'v1.13', 'v1.14', 'v1.15', 'v1.16', 'v1.17', 'v1.18'],
-                },
               },
               {
                 label: '1.18',
                 contentSite: 'mongosync',
                 url: '/docs/mongosync/:version/release-notes/1.18',
-                versions: {
-                  excludes: ['v1.10', 'v1.11', 'v1.12', 'v1.13', 'v1.14', 'v1.15', 'v1.16', 'v1.17'],
-                },
               },
               {
                 label: '1.17',
                 contentSite: 'mongosync',
                 url: '/docs/mongosync/:version/release-notes/1.17',
-                versions: {
-                  excludes: ['v1.10', 'v1.11', 'v1.12', 'v1.13', 'v1.14', 'v1.15', 'v1.16'],
-                },
               },
               {
                 label: '1.16',
                 contentSite: 'mongosync',
                 url: '/docs/mongosync/:version/release-notes/1.16',
-                versions: {
-                  excludes: ['v1.10', 'v1.11', 'v1.12', 'v1.13', 'v1.14', 'v1.15'],
-                },
               },
               {
                 label: '1.15',
                 contentSite: 'mongosync',
                 url: '/docs/mongosync/:version/release-notes/1.15',
-                versions: {
-                  excludes: ['v1.10', 'v1.11', 'v1.12', 'v1.13', 'v1.14'],
-                },
               },
               {
                 label: '1.14',
                 contentSite: 'mongosync',
                 url: '/docs/mongosync/:version/release-notes/1.14',
-                versions: {
-                  excludes: ['v1.10', 'v1.11', 'v1.12', 'v1.13'],
-                },
               },
               {
                 label: '1.13',
                 contentSite: 'mongosync',
                 url: '/docs/mongosync/:version/release-notes/1.13',
-                versions: {
-                  excludes: ['v1.10', 'v1.11', 'v1.12'],
-                },
               },
               {
                 label: '1.12',
                 contentSite: 'mongosync',
                 url: '/docs/mongosync/:version/release-notes/1.12',
-                versions: {
-                  excludes: ['v1.10', 'v1.11'],
-                },
               },
               {
                 label: '1.11',
                 contentSite: 'mongosync',
                 url: '/docs/mongosync/:version/release-notes/1.11',
-                versions: {
-                  excludes: ['v1.10'],
-                },
               },
               {
                 label: '1.10',

@@ -9621,6 +9621,11 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/atlas-stream-processing/sp-agg-setStreamMeta',
                       },
                       {
+                        label: '$throttle',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/atlas-stream-processing/sp-agg-throttle',
+                      },
+                      {
                         label: '$emit',
                         contentSite: 'cloud-docs',
                         url: '/docs/atlas/atlas-stream-processing/sp-agg-emit',

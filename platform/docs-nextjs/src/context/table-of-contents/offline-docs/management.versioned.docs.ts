@@ -467,7 +467,7 @@ export const toc: L1TocItem[] = [
                     url: '/docs/atlas/pause-terminate-cluster',
                   },
                   {
-                    label: 'Restore a Free Tier Cluster',
+                    label: 'Restore a Free Cluster',
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/backup/restore-free-tier-cluster',
                   },
@@ -2019,6 +2019,14 @@ export const toc: L1TocItem[] = [
                     },
                   },
                   {
+                    label: 'Packages',
+                    contentSite: 'docs',
+                    url: '/docs/:version/administration/community-packages',
+                    versions: {
+                      includes: ['v8.3', 'manual', 'upcoming'],
+                    },
+                  },
+                  {
                     label: 'Troubleshoot Ubuntu Installation',
                     contentSite: 'docs',
                     url: '/docs/:version/reference/installation-ubuntu-community-troubleshooting',
@@ -2146,6 +2154,48 @@ export const toc: L1TocItem[] = [
                 ],
               },
               {
+                label: 'Run MongoDB',
+                contentSite: 'docs',
+                collapsible: true,
+                versions: {
+                  excludes: ['v7.0', 'v8.0'],
+                },
+                items: [
+                  {
+                    label: 'systemd',
+                    contentSite: 'docs',
+                    url: '/docs/:version/administration/run-mongodb-systemd',
+                    versions: {
+                      excludes: ['v7.0', 'v8.0'],
+                    },
+                  },
+                  {
+                    label: 'Windows',
+                    contentSite: 'docs',
+                    url: '/docs/:version/administration/run-mongodb-windows',
+                    versions: {
+                      excludes: ['v7.0', 'v8.0'],
+                    },
+                  },
+                  {
+                    label: 'Homebrew',
+                    contentSite: 'docs',
+                    url: '/docs/:version/administration/run-mongodb-brew',
+                    versions: {
+                      excludes: ['v7.0', 'v8.0'],
+                    },
+                  },
+                  {
+                    label: 'Manual',
+                    contentSite: 'docs',
+                    url: '/docs/:version/administration/run-mongodb-manual',
+                    versions: {
+                      excludes: ['v7.0', 'v8.0'],
+                    },
+                  },
+                ],
+              },
+              {
                 label: 'Upgrade Community to Enterprise',
                 contentSite: 'docs',
                 collapsible: true,
@@ -2172,6 +2222,14 @@ export const toc: L1TocItem[] = [
                 label: 'Verify MongoDB Package Integrity',
                 contentSite: 'docs',
                 url: '/docs/:version/tutorial/verify-mongodb-packages',
+                versions: {
+                  excludes: ['v7.0', 'v8.0'],
+                },
+              },
+              {
+                label: 'Default Directory Paths',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/directory-paths',
                 versions: {
                   excludes: ['v7.0', 'v8.0'],
                 },
@@ -2223,6 +2281,14 @@ export const toc: L1TocItem[] = [
                     url: 'https://www.mongodb.com/docs/database-tools/',
                   },
                 ],
+              },
+              {
+                label: 'Uninstall',
+                contentSite: 'docs',
+                url: '/docs/:version/administration/uninstall-mongodb-linux',
+                versions: {
+                  includes: ['v8.3', 'manual', 'upcoming'],
+                },
               },
             ],
           },

@@ -11,7 +11,7 @@ Before you begin, complete the following prerequisites:
 
   .. code-block:: sh
 
-     brew install mongodb-atlas-cli
+     brew install mongodb-atlas
 
   To learn about the {+atlas-cli+} install instructions for other
   operating systems, see :ref:`install-atlas-cli`.

@@ -7,7 +7,7 @@
 
       .. code-block::
 
-         brew install mongodb-atlas-cli
+         brew install mongodb-atlas
             
       For installation instructions on other operating systems,
       see :atlascli:`Install the {+atlas-cli+} </install-atlas-cli/>`

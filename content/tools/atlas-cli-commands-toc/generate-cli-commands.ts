@@ -28,16 +28,20 @@ function parseCommandLineArgs(): CommandLineArgs {
   if (args.length === 0) {
     console.error('Usage: tsx generate-cli-commands.ts <atlas-cli-tag> [--promote-version <version>]');
     console.error('Example: tsx generate-cli-commands.ts atlascli/v1.46.4');
+    console.error('Example: tsx generate-cli-commands.ts v1.59.2');
     console.error('Example: tsx generate-cli-commands.ts atlascli/v1.46.4 --promote-version v1.46');
-    console.error('Note: Use atlas CLI release tags (atlascli/vX.Y.Z), not master branch');
+    console.error('Note: Use atlas CLI release tags (atlascli/vX.Y.Z, or vX.Y.Z starting with v1.59.1), not master branch');
     process.exit(1);
   }
 
   const tagOrBranch = args[0];
-  
-  // Validate that it looks like an atlas CLI tag
-  if (!tagOrBranch.startsWith('atlascli/v') && tagOrBranch !== 'master') {
-    console.error('❌ Error: Please use an Atlas CLI release tag (e.g., atlascli/v1.46.4)');
+
+  // Validate that it looks like an atlas CLI tag. Releases used
+  // atlascli/vX.Y.Z tags through v1.59.1, then switched to bare vX.Y.Z
+  // tags (CLOUDP-453185).
+  const isReleaseTag = tagOrBranch.startsWith('atlascli/v') || /^v\d+\.\d+\.\d+$/.test(tagOrBranch);
+  if (!isReleaseTag && tagOrBranch !== 'master') {
+    console.error('❌ Error: Please use an Atlas CLI release tag (e.g., atlascli/v1.46.4 or v1.59.2)');
     console.error('   You can find available tags at: https://github.com/mongodb/mongodb-atlas-cli/tags');
     process.exit(1);
   }

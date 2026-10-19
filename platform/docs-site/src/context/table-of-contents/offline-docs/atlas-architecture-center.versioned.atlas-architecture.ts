@@ -758,6 +758,11 @@ export const toc: L1TocItem[] = [
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/solutions-library/offline-first-wallet',
                   },
+                  {
+                    label: 'Retail Shelf Inventory Intelligence',
+                    contentSite: 'atlas-architecture',
+                    url: '/docs/atlas/architecture/:version/solutions-library/retail-shelf-inventory',
+                  },
                 ],
               },
             ],

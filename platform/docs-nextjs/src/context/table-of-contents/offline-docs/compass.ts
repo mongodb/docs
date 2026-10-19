@@ -643,7 +643,83 @@ export const toc: L1TocItem[] = [
           {
             label: 'Release Notes',
             contentSite: 'compass',
-            url: '/docs/compass/release-notes',
+            collapsible: true,
+            items: [
+              {
+                label: 'Recent',
+                contentSite: 'compass',
+                group: true,
+                items: [
+                  {
+                    label: '2026',
+                    contentSite: 'compass',
+                    url: '/docs/compass/release-notes',
+                  },
+                  {
+                    label: '2025',
+                    contentSite: 'compass',
+                    url: '/docs/compass/release-notes/2025',
+                  },
+                ],
+              },
+              {
+                label: 'Older',
+                contentSite: 'compass',
+                group: true,
+                items: [
+                  {
+                    label: '2024',
+                    contentSite: 'compass',
+                    url: '/docs/compass/release-notes/2024',
+                  },
+                  {
+                    label: '2023',
+                    contentSite: 'compass',
+                    url: '/docs/compass/release-notes/2023',
+                  },
+                  {
+                    label: '2022',
+                    contentSite: 'compass',
+                    url: '/docs/compass/release-notes/2022',
+                  },
+                  {
+                    label: '2021',
+                    contentSite: 'compass',
+                    url: '/docs/compass/release-notes/2021',
+                  },
+                  {
+                    label: '2020',
+                    contentSite: 'compass',
+                    url: '/docs/compass/release-notes/2020',
+                  },
+                  {
+                    label: '2019',
+                    contentSite: 'compass',
+                    url: '/docs/compass/release-notes/2019',
+                  },
+                  {
+                    label: '2018',
+                    contentSite: 'compass',
+                    url: '/docs/compass/release-notes/2018',
+                  },
+                  {
+                    label: '2017',
+                    contentSite: 'compass',
+                    url: '/docs/compass/release-notes/2017',
+                  },
+                  {
+                    label: '2016',
+                    contentSite: 'compass',
+                    url: '/docs/compass/release-notes/2016',
+                  },
+                  {
+                    label: '2015',
+                    contentSite: 'compass',
+                    url: '/docs/compass/release-notes/2015',
+                  },
+                ],
+              },
+            ],
           },
           {
             label: 'Submit Feedback',
