@@ -65,6 +65,45 @@ applies to requests from a single user.
    separately. To learn about Atlas Administration API rate limits,
    see :ref:`api-rate-limiting`.
 
+.. _remote-mcp-service-account-token-limits:
+
+Service Account Access Token Limits
+-----------------------------------
+
+Atlas limits the number of active access tokens that each service
+account can hold. This limit is separate from the request rate limits
+described on this page. This limit applies to
+:ref:`remote-mcp-access-models-programmatic` because Atlas creates a
+pair of Service Accounts for each MCP configuration.
+
+Each service account supports a maximum of 100 active access tokens,
+and each token is valid for one hour. For details, see
+:ref:`server-atlas-service-accounts-limitations`.
+
+If you exceed the token limit, Atlas sends an HTTP 403 response with
+OAuth error code ``access_denied``. The ``error_description`` contains
+the following error message: 
+
+.. code-block:: none
+
+   Access Token limit reached. Please use the existing Access Tokens
+   or create a new Service Account.
+
+An agent that requests a new access token for each process, host, or
+session can reach this limit even when it stays within the
+request rate limits. Because tokens remain active until they expire or
+you revoke them, an agent that mints tokens faster than they expire
+cannot get a new token until earlier tokens expire.
+
+To avoid hitting the token limit:
+
+- Cache each access token and reuse it until it expires, rather than
+  requesting a new token for each request or each process.
+- Revoke tokens that you no longer need. For details, see
+  :ref:`revoke-oauth2-token-atlas`.
+- Distribute agents across multiple MCP configurations so they do
+  not share a single service account.
+
 What Happens When You Exceed a Rate Limit
 -----------------------------------------
 
