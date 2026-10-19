@@ -34,7 +34,6 @@ The `.github/` folder contains documentation automation tools. Follow these conv
 │   ├── package.json
 │   └── tsconfig.json
 ├── ai-reviewer/        # AI style reviewer
-├── cspell/             # Spell checking config
 └── workflows/          # GitHub Actions
 ```
 
