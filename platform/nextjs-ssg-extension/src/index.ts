@@ -2,13 +2,13 @@ import {
 	Extension,
 	envVarToBool,
 	type ConfigEnvironmentVariables,
-} from "../../nextjs-extension/src/util/extension";
-import { handleSearchManifests } from "../../nextjs-extension/src/searchManifests/index";
+} from "./util/extension";
+import { handleSearchManifests } from "./searchManifests/index";
 import { handleOfflineDownloads } from "./offline-docs/index";
 import { createAllContentData, prepare } from "./prepare";
 import { ENVS_TO_RUN } from "./constants";
 import { handleLlmsTxt, handleRootLlmsTxt } from "./llms-txt/index";
-import { getFileChanges } from "../../nextjs-extension/src/github/processFileChanges";
+import { getFileChanges } from "./github/processFileChanges";
 import { logDiskMetrics } from "./util/diskMetrics";
 
 const extension = new Extension({
