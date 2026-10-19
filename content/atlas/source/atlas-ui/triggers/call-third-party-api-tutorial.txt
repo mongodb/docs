@@ -1,0 +1,306 @@
+.. _tutorial-atlas-trigger-call-third-party-api:
+
+===============================================
+Tutorial: Call a Third-Party API from a Trigger
+===============================================
+
+.. meta::
+   :keywords: code example, external dependencies, aws sdk, s3
+   :description: Learn how to call a third-party API from an Atlas Database Trigger by adding an external npm dependency, storing credentials as Secrets, and writing data to an AWS S3 bucket.
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+In this tutorial, you create a :ref:`Database Trigger
+<atlas-database-trigger>`. The Trigger calls a third-party API when a
+document is inserted into a collection. The Trigger's Function adds
+the official |aws| Software Development Kit (SDK) as an :ref:`external
+dependency <atlas-external-dependencies>`. The Function then uses the
+SDK to write the inserted document to an |s3| bucket as an Extended
+JSON object.
+
+About This Task
+----------------
+
+The |aws| |s3| example in this tutorial illustrates a pattern that
+applies to any third-party service that has a Node.js library: 
+
+- Add the service's npm package as an
+  :ref:`external dependency <atlas-external-dependencies>`.
+- Store any required credentials as
+  :ref:`Secrets <atlas-app-secret>`, and reference them from
+  :ref:`Values <atlas-define-value>` in your Function.
+- Import the package with ``require()`` inside your Function and call
+  it using the credentials you stored.
+
+Before You Begin
+-----------------
+
+To complete this tutorial, you must have:
+
+- An |service| {+cluster+} with a test collection. To get started, see
+  :ref:`create-new-cluster`.
+- An |aws| |s3| bucket. To learn how to create one, see `Create a
+  general purpose bucket
+  <https://docs.aws.amazon.com/AmazonS3/latest/userguide/create-bucket-overview.html>`__
+  in the AWS documentation. Note the following for later use:
+
+  - The full bucket name
+  - The |aws| region
+
+- An |aws| |iam| policy that allows ``s3:PutObject`` on the
+  ``inserted-documents/*`` prefix of your bucket. To learn how to
+  create one, see `Create IAM policies
+  <https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_create-console.html>`__
+  in the AWS documentation.
+- An |aws| |iam| user with the policy attached. To learn how to
+  create one, see `Create an IAM user in your AWS account
+  <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html>`__
+  in the AWS documentation.
+- An access key and secret access key for the |iam| user. To learn how
+  to create them, see `Create access keys
+  <https://docs.aws.amazon.com/IAM/latest/UserGuide/access-key-self-managed.html>`__
+  in the AWS documentation.
+
+Steps
+-----
+
+Store Your AWS Credentials as Values and Secrets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create the following Values and Secrets to store your |aws|
+credentials:
+
+- ``AwsAccessKeyId``: Value that contains your |aws| access key ID.
+- ``AwsSecretAccessKeySecret``: Secret that contains your |aws|
+  secret access key.
+- ``AwsSecretAccessKey``: Value that links to the Secret. This
+  enables you to access the secret access key in your Function,
+  while still keeping it stored securely as a Secret.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Navigate to the Values page.
+
+      .. include:: /includes/nav/list-triggers.rst
+
+      a. Click the :guilabel:`View All Apps` button.
+
+      #. Click the app that you want to create the Trigger in.
+
+      #. In the sidebar, click :guilabel:`Values` under the
+         :guilabel:`Build` heading.
+
+   .. step:: Store the access key ID.
+
+      a. Click :guilabel:`Create a Value`.
+
+      #. Enter ``AwsAccessKeyId`` as the :guilabel:`Value Name`.
+
+      #. Select the :guilabel:`Value` type.
+
+      #. Select the :guilabel:`Custom Content` option and enter your
+         |aws| access key ID.
+
+         .. note::
+
+            You must enter the access key ID as a string value with
+            quotes (``"<accessKeyId>"``).
+
+      #. Click :guilabel:`Save Draft`.
+
+   .. step:: Store the secret access key.
+
+      .. note::
+
+         Secret values cannot be accessed directly, so you must create
+         a second Value that links to the Secret.
+
+      a. Click :guilabel:`Create a Value`.
+
+      #. Enter ``AwsSecretAccessKey`` as the :guilabel:`Value Name`.
+
+      #. Select the :guilabel:`Value` type.
+
+      #. Select the :guilabel:`Link to Secret` option.
+
+      #. Enter ``AwsSecretAccessKeySecret`` and click
+         :guilabel:`Create "AwsSecretAccessKeySecret"` to name the
+         Secret.
+
+         Paste your |aws| secret access key into the field that
+         appears below the Secret name.
+
+      #. Click :guilabel:`Save Draft` to create both the Secret and
+         the Value.
+
+Create the Database Trigger and Its Function
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create a Database Trigger that calls a new Function when a document is
+inserted. You add the ``aws-sdk`` dependency and define the Function
+code in the same form.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Navigate to the Triggers page.
+
+      .. include:: /includes/nav/list-triggers.rst
+
+   .. step:: Create the Trigger.
+
+      a. Click :guilabel:`Add Trigger` to open the Trigger
+         configuration page.
+
+      #. Select the :guilabel:`Database` Trigger type, then configure
+         the Trigger using the following values:
+
+         .. list-table::
+            :header-rows: 1
+            :widths: 25 75
+
+            * - Setting
+              - Value
+
+            * - :guilabel:`Trigger Name`
+              - ``WriteDocumentToS3Trigger``
+
+            * - :guilabel:`Watch Against`
+              - ``Collection``
+
+            * - :guilabel:`Cluster Name`
+              - Name of your test {+cluster+}
+
+            * - :guilabel:`Database Name`
+              - Name of your test database
+
+            * - :guilabel:`Collection Name`
+              - Name of your test collection
+
+            * - :guilabel:`Operation Type`
+              - Select only ``Insert``.
+
+            * - :guilabel:`Event Type`
+              - ``Function``
+
+      #. In the :guilabel:`Function` section, select
+         :guilabel:`+ New Function`.
+
+   .. step:: Add the ``aws-sdk`` dependency.
+
+      a. In the :guilabel:`Function` section, click
+         :guilabel:`Add Dependency`.
+
+      #. In the :guilabel:`Add Dependency` window, enter
+         ``aws-sdk`` as the :guilabel:`Define a Package Name` and
+         leave :guilabel:`Package Version` blank to use the latest
+         version.
+
+      #. Click :guilabel:`Add` to add the package.
+
+   .. step:: Enter the following code to define the Function.
+
+      Replace ``YOUR_AWS_REGION`` and ``YOUR_S3_BUCKET_NAME`` with
+      your own |aws| Region and the full bucket name from the |aws|
+      Management Console.
+
+      .. literalinclude:: /includes/triggers/functions/writeDocumentToS3.js
+         :language: javascript
+         :category: usage example
+         :linenos:
+         :copyable:
+
+      Each time a document is inserted, the Function does the
+      following:
+
+      - Reads the inserted document from the change event's
+        ``fullDocument`` field.
+      - Creates an |s3| client that authenticates with the |aws|
+        credentials stored in your Values.
+      - Writes the document to the ``inserted-documents/`` prefix of
+        your bucket as ``<_id>.json``.
+
+      .. note::
+      
+         The Function uses the document's ``_id`` as part of the |s3|
+         object key. If your documents use an ``_id`` type other than
+         ObjectId, the key might not be what you expect.
+
+   .. step:: Click :guilabel:`Save` to create the Trigger.
+
+      .. important::
+
+         If deployment drafts are enabled for your app, click
+         :guilabel:`Review & Deploy` to deploy the Values, Secrets,
+         dependency, Function, and Trigger. Until you deploy them,
+         the Trigger does not run and the next step fails.
+
+Test the Trigger
+~~~~~~~~~~~~~~~~
+
+Insert a test document into the collection that the Trigger watches.
+Confirm that a corresponding Extended JSON object appears in your
+|s3| bucket under the ``inserted-documents/`` prefix.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Connect to your {+cluster+} with {+mongosh+}.
+
+      To learn how, see :ref:`connect-mongo-shell`.
+
+   .. step:: Insert a document into the collection that the Trigger watches.
+
+      The following example inserts one document into the test
+      collection. Replace ``YOUR_DATABASE_NAME`` and
+      ``YOUR_COLLECTION_NAME`` with the database and collection that
+      you entered when you created the Trigger.
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/triggers/functions/insertTestDocument.js
+            :language: javascript
+            :category: usage example
+
+         .. output::
+            :language: javascript
+            :visible: false
+
+            {
+              acknowledged: true,
+              insertedId: ObjectId('6accda8d1bed071fd18dc505')
+            }
+
+      Note the ``insertedId`` value from your output. The Function
+      uses this value as the name of the |s3| object.
+
+   .. step:: Confirm that the object exists in your |s3| bucket.
+
+      In the |aws| Management Console, open your |s3| bucket and
+      navigate to the ``inserted-documents/`` prefix. An object named
+      ``<insertedId>.json`` appears, where ``<insertedId>`` is the
+      ``insertedId`` value from the previous step.
+      
+      .. note:: 
+      
+         If the object doesn't appear, review the Trigger's execution
+         logs. To learn how, see :ref:`atlas-logs`.
+
+Learn More
+----------
+
+- :ref:`atlas-external-dependencies`
+- :ref:`atlas-app-secret`
+- :ref:`atlas-define-value`
+- :ref:`atlas-database-trigger`
+- :ref:`atlas-mongodb-functions-security`

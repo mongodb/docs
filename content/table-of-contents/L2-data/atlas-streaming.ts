@@ -289,6 +289,14 @@ const tocData: TocItem[] = [
         label: 'Database Triggers',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/atlas-ui/triggers/database-triggers',
+        collapsible: true,
+        items: [
+          {
+            label: 'Tutorial: Call a Third-Party API from a Trigger',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/atlas-ui/triggers/call-third-party-api-tutorial',
+          },
+        ],
       },
       {
         label: 'Scheduled Triggers',
