@@ -16,7 +16,12 @@ export interface Config {
 
 const DEFAULT_LOCALES = ['pt-br', 'es', 'ko-kr', 'ja-jp', 'zh-cn'];
 
-const PKG_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+// The `braintrust` CLI bundles the eval entrypoint as CJS, where
+// `import.meta.url` is empty. The eval stage runs that bundle with its cwd set
+// to the package root (see src/eval/run.ts), so fall back to cwd there.
+const PKG_ROOT = import.meta.url
+  ? path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
+  : process.cwd();
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const raw = (env.TARGET_LOCALES ?? '').trim();
