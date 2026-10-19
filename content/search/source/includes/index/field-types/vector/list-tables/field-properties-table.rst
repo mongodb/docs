@@ -69,7 +69,7 @@ The |fts| |fts-field-type| type takes the following parameters:
          embeddings. Use this setting if you have pre-quantized vectors
          for ingestion. If omitted, this is the default value. 
        - ``scalar`` - Indicates scalar quantization, which transforms
-         values to 1 byte integers.    
+         values to 1 byte integers.  
        - ``binary`` - Indicates binary quantization, which transforms
          values to a single bit. To use this value,
          ``numDimensions`` must be a multiple of 8. 

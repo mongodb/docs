@@ -1,5 +1,6 @@
 {+avs+} supports automatic quantization of your float vector
-embeddings (both 32-bit and 64-bit). 
+embeddings (both 32-bit and 64-bit). {+avs+} also supports automatic
+binary quantization of ``binData(int8)`` vectors that you ingest.
 
 Quantization is the process of shrinking full-fidelity vectors into
 fewer bits. It reduces the amount of main memory required to store each
@@ -46,7 +47,9 @@ comparison between the query vector and indexed binary vectors. It then
 rescores by reevaluating the identified candidates in the binary
 comparison using the original float values associated with those results
 from the binary index to further refine the results. The full fidelity
-vectors are stored in their own data structure on disk, and are only 
+vectors are stored in their own data structure on disk, and are only
 referenced during rescoring when you configure binary quantization or
 when you perform exact search against either binary or scalar quantized
-vectors.  
+vectors. If you ingest ``binData(int8)`` vectors with binary
+quantization, {+avs+} stores and references the ``int8`` vectors,
+rather than ``float32`` vectors, during rescoring.

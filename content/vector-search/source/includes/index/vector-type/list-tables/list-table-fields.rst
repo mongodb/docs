@@ -48,8 +48,11 @@
        For indexing quantized vectors or :ref:`BinData <server-binData-method>`,
        you can specify one of the following values:
 
-       - ``1`` to ``8192`` for ``int8`` vectors for ingestion.
+       - ``1`` to ``8192`` for ``int8`` vectors for ingestion, unless
+         you set ``quantization`` to ``binary``.
        - Multiple of ``8`` for ``int1`` vectors for ingestion.
+       - Multiple of ``8`` for ``binData(int8)`` vectors when you set
+         ``quantization`` to ``binary``.
        - ``1`` to ``8192`` for ``binData(float32)`` and
          ``array(float32)`` vectors for automatic scalar quantization.
        - Multiple of ``8`` for ``binData(float32)`` and
@@ -80,20 +83,21 @@
        | ``quantization``
      - String
      - Optional
-     - Type of automatic vector quantization for your vectors. Use
-       this setting only if your embeddings are ``float`` or ``double``
-       vectors. 
-       
-       You can specify one of the following values:  
+     - Type of automatic vector quantization for your vectors.
+
+       You can specify one of the following values:
 
        - ``none`` - Indicates no automatic quantization for the vector
          embeddings. Use this setting if you have pre-quantized vectors
-         for ingestion. If omitted, this is the default value. 
+         for ingestion. If omitted, this is the default value.
        - ``scalar`` - Indicates scalar quantization, which transforms
-         values to 1 byte integers.    
+         values to 1 byte integers. Use this value only if your
+         embeddings are ``float`` or ``double`` vectors.
        - ``binary`` - Indicates binary quantization, which transforms
-         values to a single bit. To use this value,
-         ``numDimensions`` must be a multiple of 8. 
+         values to a single bit. Use this value if your embeddings are
+         ``float`` or ``double`` vectors, or if you ingest
+         ``binData(int8)`` vectors. To use this value, ``numDimensions``
+         must be a multiple of 8.
          
          If precision is critical, select ``none`` or ``scalar`` instead
          of ``binary``. 

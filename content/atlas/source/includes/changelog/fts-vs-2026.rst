@@ -1,3 +1,10 @@
+.. _avs20261019:
+
+19 October 2026 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Adds support for binary quantization of ``binData(int8)`` vectors
+  for ingestion.
 
 .. _fts20260930:
 

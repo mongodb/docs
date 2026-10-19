@@ -32,7 +32,7 @@ The following table shows the similarity functions for the various types:
      - 
      - 
 
-   * - ``binData(int8)`` :icon-fa5:`star`
+   * - ``binData(int8)`` :icon-fa5:`star` :icon-fa5:`asterisk`
      - √
      - √
      - √

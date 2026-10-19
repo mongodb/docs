@@ -96,10 +96,12 @@ Vector Quantization
            - For ``int8`` Ingestion
            - For Automatic Scalar Quantization
            - For Automatic Binary Quantization
+           - For ``int8`` Ingestion with Automatic Binary Quantization
 
          * - Requires index definition settings
            - No
            - No
+           - Yes
            - Yes
            - Yes
 
@@ -108,6 +110,7 @@ Vector Quantization
            - Yes
            - No
            - No
+           - Yes
 
          * - Storage on mongod
            - ``binData(int1)``
@@ -116,9 +119,13 @@ Vector Quantization
              | ``array(double)``
            - | ``binData(float32)``
              | ``array(double)``
+           - ``binData(int8)``
 
          * - Supported Similarity method
            - ``euclidean``
+           - | ``cosine``
+             | ``euclidean``
+             | ``dotProduct``
            - | ``cosine``
              | ``euclidean``
              | ``dotProduct``
@@ -134,8 +141,10 @@ Vector Quantization
            - 8192
            - 8192
            - 8192
+           - Multiple of 8
 
          * - Supports |ann| and |enn| Search
+           - Yes
            - Yes
            - Yes
            - Yes
@@ -206,14 +215,17 @@ Vector Quantization
             for your :ref:`index definition <avs-index-definition>`:
 
             - ``scalar``: to produce byte vectors from float input vectors.
-            - ``binary``: to produce bit vectors from float input vectors.
-         
-            If you specify automatic quantization on data that is not an 
-            array of float values, {+avs+} silently ignores that vector 
-            instead of indexing it, and those vectors will be skipped. 
-            Since |service| stores float values (both 32-bit and 64-bit) 
-            as the ``double`` type internally, embeddings from models 
-            that output either precision will work with automatic quantization.
+            - ``binary``: to produce bit vectors from float or
+              ``binData(int8)`` input vectors.
+
+            If you specify ``scalar`` quantization on vectors that are
+            *not* ``float`` or ``double`` arrays, ``binData(float32)``,
+            or ``binary`` quantization on ``binData(int1)`` vectors,
+            {+avs+} silently ignores that vector instead of indexing it,
+            and those vectors will be skipped. Since |service| stores
+            float values (both 32-bit and 64-bit) as the ``double`` type
+            internally, embeddings from models that output either
+            precision will work with automatic quantization.
 
          .. step:: Create or update the index.
          
@@ -256,6 +268,11 @@ Vector Quantization
       - You have a large number of float vectors and want to reduce the
         storage and :ref:`WiredTiger <storage-wiredtiger>` footprint
         (such as disk and memory usage) in ``mongod``.
+      - You want binary-quantized search with a smaller ``mongod``
+        storage footprint. Ingesting ``binData(int8)`` vectors and
+        setting ``quantization`` to ``binary`` uses up to 4x less
+        storage on ``mongod`` than binary quantization with
+        ``binData(float32)`` vectors.
 
       Benefits
       ~~~~~~~~
@@ -263,7 +280,8 @@ Vector Quantization
       :ref:`BinData <server-binData-method>` is a |bson| data type 
       that stores binary data. It compresses your vector embeddings and requires 
       about three times less disk space in your cluster compared to embeddings 
-      that use a standard ``float32`` array. To learn more, see :ref:`avs-vector-compression`.
+      that use a standard ``float32`` array. To learn more, see 
+      :ref:`avs-vector-compression`.
 
       This subtype also allows you to index your vectors with
       alternate types such as ``int1`` or ``int8`` vectors, reducing the
@@ -274,9 +292,10 @@ Vector Quantization
 
       If you don't already have ``binData`` vectors, you can convert your
       embeddings to this format by using any supported driver before writing
-      your data to a collection. The following procedure walks you through the steps for
-      converting your embeddings to the :ref:`BinData <server-binData-method>` vectors with ``float32``, 
-      ``int8``, and ``int1`` subtypes.
+      your data to a collection. The following procedure walks you through the 
+      steps for converting your embeddings to the 
+      :ref:`BinData <server-binData-method>` vectors with ``float32``, ``int8``, 
+      and ``int1`` subtypes.
 
       Supported Drivers  
       ~~~~~~~~~~~~~~~~~
@@ -299,7 +318,9 @@ Vector Quantization
       which you can replace with your own database and collection (with or
       without any embeddings). 
 
-      Select whether you want to quantize ``binData`` vectors for new data or for data you already have in your cluster using the :guilabel:`Data Source` dropdown menu below. Select your preferred programming language as well.
+      Select whether you want to quantize ``binData`` vectors for new data or 
+      for data you already have in your cluster using the :guilabel:`Data Source` 
+      dropdown menu below. Select your preferred programming language as well.
 
    .. selected-content::
       :selections: byo, driver, nodejs, new
