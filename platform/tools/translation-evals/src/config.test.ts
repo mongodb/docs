@@ -9,7 +9,7 @@ describe('loadConfig', () => {
     expect(cfg.locales).toEqual(['pt-br', 'es', 'ko-kr', 'ja-jp', 'zh-cn']);
     expect(cfg.contentMdxDir.endsWith('content-mdx')).toBe(true);
     expect(cfg.dataDir.endsWith('translation-evals/data')).toBe(true);
-    expect(cfg.braintrustProject).toBe('docs-translations-rendered');
+    expect(cfg.braintrustProject).toBe('docs-translations');
   });
 
   it('honors TARGET_LOCALES override', () => {

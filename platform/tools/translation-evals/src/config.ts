@@ -36,7 +36,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
       timeoutMs: env.GROVE_TIMEOUT_MS ? Number(env.GROVE_TIMEOUT_MS) : undefined,
     },
     judgeModel: env.JUDGE_MODEL,
-    braintrustProject: env.BRAINTRUST_PROJECT ?? 'docs-translations-rendered',
+    braintrustProject: env.BRAINTRUST_PROJECT ?? 'docs-translations',
     termsFile: env.TERMS_FILE,
   };
 }
