@@ -92,5 +92,5 @@ Inherited Options
 Examples
 --------
 
-.. literalinclude:: /includes/examples/atlas-api-organizations-resetOrgMaintenanceSettings-preview-default.sh
+.. literalinclude:: /includes/examples/atlas-api-organizations-resetOrgMaintenanceSettings-2025-03-12-default.sh
    :language: shell

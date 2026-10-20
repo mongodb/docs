@@ -56,22 +56,29 @@ Related Commands
 
 * :ref:`atlas-api-clusters-createCluster` - Creates one cluster in the specified project.
 * :ref:`atlas-api-clusters-deleteCluster` - Removes one cluster from the specified project.
+* :ref:`atlas-api-clusters-getAutoEmbeddingInference` - Returns the configured and effective inference scope for Auto-Embedding indexes on the specified cluster.
+* :ref:`atlas-api-clusters-getAutoEmbeddingOperation` - Returns one tracked Auto-Embedding inference scope operation.
 * :ref:`atlas-api-clusters-getCluster` - Returns the details for one cluster in the specified project.
 * :ref:`atlas-api-clusters-getClusterAdaptiveSettings` - Returns the Adaptive Settings for the specified cluster, including client-provided overrides and the effective settings derived from those overrides and Atlas-managed defaults.
+* :ref:`atlas-api-clusters-getClusterSqlInterface` - Returns the current SQL Interface status, either ON or OFF, for the specified cluster.
 * :ref:`atlas-api-clusters-getClusterStatus` - Returns the status of all changes that you made to the specified cluster in the specified project.
 * :ref:`atlas-api-clusters-getProcessArgs` - Returns the advanced configuration details for one cluster in the specified project.
 * :ref:`atlas-api-clusters-getSampleDatasetLoad` - Checks the progress of loading the sample dataset into one cluster.
 * :ref:`atlas-api-clusters-grantMongoEmployeeAccess` - Grants MongoDB employee cluster access for the given duration and at the specified level for one cluster.
+* :ref:`atlas-api-clusters-listAutoEmbeddingOperations` - Returns tracked Auto-Embedding inference scope operations for one cluster.
 * :ref:`atlas-api-clusters-listClusterDetails` - Returns the details for all clusters in all projects to which you have access.
 * :ref:`atlas-api-clusters-listClusterProviderRegions` - Returns the list of regions available for the specified cloud provider at the specified tier.
 * :ref:`atlas-api-clusters-listClusters` - Returns the details for all clusters in the specific project to which you have access.
 * :ref:`atlas-api-clusters-pinFeatureCompatibilityVersion` - Pins the Feature Compatibility Version (FCV) to the current MongoDB version and sets the pin expiration date.
 * :ref:`atlas-api-clusters-requestSampleDatasetLoad` - Requests loading the MongoDB sample dataset into the specified cluster.
+* :ref:`atlas-api-clusters-resetAutoEmbeddingInference` - Resets the explicit inference scope so that Atlas manages the Auto-Embedding scope.
 * :ref:`atlas-api-clusters-restartPrimaries` - Starts a failover test for the specified cluster in the specified project.
 * :ref:`atlas-api-clusters-revokeMongoEmployeeAccess` - Revokes a previously granted MongoDB employee cluster access.
 * :ref:`atlas-api-clusters-unpinFeatureCompatibilityVersion` - Unpins the current fixed Feature Compatibility Version (FCV).
+* :ref:`atlas-api-clusters-updateAutoEmbeddingInference` - Updates the explicit inference scope for Auto-Embedding indexes on the specified cluster.
 * :ref:`atlas-api-clusters-updateCluster` - Updates the details for one cluster in the specified project.
 * :ref:`atlas-api-clusters-updateClusterAdaptiveSettings` - Updates the client-provided Adaptive Settings overrides for the specified cluster and returns the resulting Adaptive Settings, including the effective settings derived from those overrides and Atlas-managed defaults.
+* :ref:`atlas-api-clusters-updateClusterSqlInterface` - Enables or disables the SQL Interface for the specified cluster by setting its status to ON or OFF.
 * :ref:`atlas-api-clusters-updateProcessArgs` - Updates the advanced configuration details for one cluster in the specified project.
 * :ref:`atlas-api-clusters-upgradeTenantUpgrade` - Upgrades a shared-tier cluster to a Flex or Dedicated (M10+) cluster in the specified project.
 
@@ -81,21 +88,28 @@ Related Commands
 
    createCluster </command/atlas-api-clusters-createCluster>
    deleteCluster </command/atlas-api-clusters-deleteCluster>
+   getAutoEmbeddingInference </command/atlas-api-clusters-getAutoEmbeddingInference>
+   getAutoEmbeddingOperation </command/atlas-api-clusters-getAutoEmbeddingOperation>
    getCluster </command/atlas-api-clusters-getCluster>
    getClusterAdaptiveSettings </command/atlas-api-clusters-getClusterAdaptiveSettings>
+   getClusterSqlInterface </command/atlas-api-clusters-getClusterSqlInterface>
    getClusterStatus </command/atlas-api-clusters-getClusterStatus>
    getProcessArgs </command/atlas-api-clusters-getProcessArgs>
    getSampleDatasetLoad </command/atlas-api-clusters-getSampleDatasetLoad>
    grantMongoEmployeeAccess </command/atlas-api-clusters-grantMongoEmployeeAccess>
+   listAutoEmbeddingOperations </command/atlas-api-clusters-listAutoEmbeddingOperations>
    listClusterDetails </command/atlas-api-clusters-listClusterDetails>
    listClusterProviderRegions </command/atlas-api-clusters-listClusterProviderRegions>
    listClusters </command/atlas-api-clusters-listClusters>
    pinFeatureCompatibilityVersion </command/atlas-api-clusters-pinFeatureCompatibilityVersion>
    requestSampleDatasetLoad </command/atlas-api-clusters-requestSampleDatasetLoad>
+   resetAutoEmbeddingInference </command/atlas-api-clusters-resetAutoEmbeddingInference>
    restartPrimaries </command/atlas-api-clusters-restartPrimaries>
    revokeMongoEmployeeAccess </command/atlas-api-clusters-revokeMongoEmployeeAccess>
    unpinFeatureCompatibilityVersion </command/atlas-api-clusters-unpinFeatureCompatibilityVersion>
+   updateAutoEmbeddingInference </command/atlas-api-clusters-updateAutoEmbeddingInference>
    updateCluster </command/atlas-api-clusters-updateCluster>
    updateClusterAdaptiveSettings </command/atlas-api-clusters-updateClusterAdaptiveSettings>
+   updateClusterSqlInterface </command/atlas-api-clusters-updateClusterSqlInterface>
    updateProcessArgs </command/atlas-api-clusters-updateProcessArgs>
    upgradeTenantUpgrade </command/atlas-api-clusters-upgradeTenantUpgrade>

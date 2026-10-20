@@ -60,12 +60,14 @@ Related Commands
 * :ref:`atlas-api-streams-createStreamConnection` - Creates one connection for a stream workspace in the specified project.
 * :ref:`atlas-api-streams-createStreamProcessor` - Create one Stream Processor within the specified stream workspace.
 * :ref:`atlas-api-streams-createStreamWorkspace` - Creates one stream workspace in the specified project.
+* :ref:`atlas-api-streams-createWorkspacePrivateEndpoint` - Registers one customer VPC endpoint for Atlas Stream Processing in the specified project.
 * :ref:`atlas-api-streams-deletePrivateLinkConnection` - Deletes one Private Link in the specified project.
 * :ref:`atlas-api-streams-deleteStreamConnection` - Delete one connection of the specified stream workspace.
 * :ref:`atlas-api-streams-deleteStreamFailoverConnection` - Delete one failover connection of the specified stream workspace.
 * :ref:`atlas-api-streams-deleteStreamProcessor` - Delete a Stream Processor within the specified stream workspace.
 * :ref:`atlas-api-streams-deleteStreamWorkspace` - Delete one stream workspace in the specified project.
 * :ref:`atlas-api-streams-deleteVpcPeeringConnection` - Deletes an incoming VPC Peering connection.
+* :ref:`atlas-api-streams-deleteWorkspacePrivateEndpoint` - Removes one private endpoint registered for Atlas Stream Processing in the specified project.
 * :ref:`atlas-api-streams-downloadAuditLogs` - Downloads the audit logs for the specified Atlas Streams Processing workspace or stream processor.
 * :ref:`atlas-api-streams-downloadOperationalLogs` - Downloads the operational logs for the specified Atlas Streams Processing workspace or stream processor.
 * :ref:`atlas-api-streams-getAccountDetails` - Returns the Account ID, and the VPC ID for the group and region specified.
@@ -75,12 +77,14 @@ Related Commands
 * :ref:`atlas-api-streams-getStreamProcessor` - Get one Stream Processor within the specified stream workspace.
 * :ref:`atlas-api-streams-getStreamProcessors` - Returns all Stream Processors within the specified stream workspace, including information on which processors are failover-eligible.
 * :ref:`atlas-api-streams-getStreamWorkspace` - Returns the details of one stream workspace within the specified project.
+* :ref:`atlas-api-streams-getWorkspacePrivateEndpoint` - Returns one private endpoint registered for Atlas Stream Processing in the specified project.
 * :ref:`atlas-api-streams-listActivePeeringConnections` - Returns a list of active incoming VPC Peering Connections.
 * :ref:`atlas-api-streams-listFailoverConnections` - Returns all failover connections for the specified connection in a stream workspace.
 * :ref:`atlas-api-streams-listPrivateLinkConnections` - Returns all Private Link connections for the specified project.
 * :ref:`atlas-api-streams-listStreamConnections` - Returns all connections of the stream instance for the specified project.
 * :ref:`atlas-api-streams-listStreamWorkspaces` - Returns all stream workspaces for the specified project.
 * :ref:`atlas-api-streams-listVpcPeeringConnections` - Returns a list of incoming VPC Peering Connections.
+* :ref:`atlas-api-streams-listWorkspacePrivateEndpoints` - Returns all private endpoints registered for Atlas Stream Processing in the specified project.
 * :ref:`atlas-api-streams-rejectVpcPeeringConnection` - Requests the rejection of an incoming VPC Peering connection.
 * :ref:`atlas-api-streams-startStreamProcessor` - Start a Stream Processor within the specified stream workspace.
 * :ref:`atlas-api-streams-startStreamProcessorWith` - Start a Stream Processor within the specified stream workspace.
@@ -102,12 +106,14 @@ Related Commands
    createStreamConnection </command/atlas-api-streams-createStreamConnection>
    createStreamProcessor </command/atlas-api-streams-createStreamProcessor>
    createStreamWorkspace </command/atlas-api-streams-createStreamWorkspace>
+   createWorkspacePrivateEndpoint </command/atlas-api-streams-createWorkspacePrivateEndpoint>
    deletePrivateLinkConnection </command/atlas-api-streams-deletePrivateLinkConnection>
    deleteStreamConnection </command/atlas-api-streams-deleteStreamConnection>
    deleteStreamFailoverConnection </command/atlas-api-streams-deleteStreamFailoverConnection>
    deleteStreamProcessor </command/atlas-api-streams-deleteStreamProcessor>
    deleteStreamWorkspace </command/atlas-api-streams-deleteStreamWorkspace>
    deleteVpcPeeringConnection </command/atlas-api-streams-deleteVpcPeeringConnection>
+   deleteWorkspacePrivateEndpoint </command/atlas-api-streams-deleteWorkspacePrivateEndpoint>
    downloadAuditLogs </command/atlas-api-streams-downloadAuditLogs>
    downloadOperationalLogs </command/atlas-api-streams-downloadOperationalLogs>
    getAccountDetails </command/atlas-api-streams-getAccountDetails>
@@ -117,12 +123,14 @@ Related Commands
    getStreamProcessor </command/atlas-api-streams-getStreamProcessor>
    getStreamProcessors </command/atlas-api-streams-getStreamProcessors>
    getStreamWorkspace </command/atlas-api-streams-getStreamWorkspace>
+   getWorkspacePrivateEndpoint </command/atlas-api-streams-getWorkspacePrivateEndpoint>
    listActivePeeringConnections </command/atlas-api-streams-listActivePeeringConnections>
    listFailoverConnections </command/atlas-api-streams-listFailoverConnections>
    listPrivateLinkConnections </command/atlas-api-streams-listPrivateLinkConnections>
    listStreamConnections </command/atlas-api-streams-listStreamConnections>
    listStreamWorkspaces </command/atlas-api-streams-listStreamWorkspaces>
    listVpcPeeringConnections </command/atlas-api-streams-listVpcPeeringConnections>
+   listWorkspacePrivateEndpoints </command/atlas-api-streams-listWorkspacePrivateEndpoints>
    rejectVpcPeeringConnection </command/atlas-api-streams-rejectVpcPeeringConnection>
    startStreamProcessor </command/atlas-api-streams-startStreamProcessor>
    startStreamProcessorWith </command/atlas-api-streams-startStreamProcessorWith>

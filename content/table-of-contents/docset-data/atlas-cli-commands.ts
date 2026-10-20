@@ -1,7 +1,7 @@
 /**
  * Atlas CLI Commands Table of Contents
  * Generated automatically from MongoDB Atlas CLI repository
- * Source: mongodb/mongodb-atlas-cli repository (v1.59.2)
+ * Source: mongodb/mongodb-atlas-cli repository (v1.59.3)
  *
  * DO NOT EDIT MANUALLY - this file is auto-generated
  * To regenerate: run the atlas-cli-commands generation script
@@ -9164,6 +9164,22 @@ export const atlasCliCommands: TocItem[] = [
             },
           },
           {
+            label: 'getAutoEmbeddingInference',
+            contentSite: 'atlas-cli',
+            url: '/docs/atlas/cli/:version/command/atlas-api-clusters-getAutoEmbeddingInference/',
+            versions: {
+              includes: ['current', 'upcoming'],
+            },
+          },
+          {
+            label: 'getAutoEmbeddingOperation',
+            contentSite: 'atlas-cli',
+            url: '/docs/atlas/cli/:version/command/atlas-api-clusters-getAutoEmbeddingOperation/',
+            versions: {
+              includes: ['current', 'upcoming'],
+            },
+          },
+          {
             label: 'getCluster',
             contentSite: 'atlas-cli',
             url: '/docs/atlas/cli/:version/command/atlas-api-clusters-getCluster/',
@@ -9183,6 +9199,14 @@ export const atlasCliCommands: TocItem[] = [
             label: 'getClusterAdaptiveSettings',
             contentSite: 'atlas-cli',
             url: '/docs/atlas/cli/:version/command/atlas-api-clusters-getClusterAdaptiveSettings/',
+            versions: {
+              includes: ['current', 'upcoming'],
+            },
+          },
+          {
+            label: 'getClusterSqlInterface',
+            contentSite: 'atlas-cli',
+            url: '/docs/atlas/cli/:version/command/atlas-api-clusters-getClusterSqlInterface/',
             versions: {
               includes: ['current', 'upcoming'],
             },
@@ -9249,6 +9273,14 @@ export const atlasCliCommands: TocItem[] = [
                 'v1.57',
                 'v1.58',
               ],
+            },
+          },
+          {
+            label: 'listAutoEmbeddingOperations',
+            contentSite: 'atlas-cli',
+            url: '/docs/atlas/cli/:version/command/atlas-api-clusters-listAutoEmbeddingOperations/',
+            versions: {
+              includes: ['current', 'upcoming'],
             },
           },
           {
@@ -9332,6 +9364,14 @@ export const atlasCliCommands: TocItem[] = [
             },
           },
           {
+            label: 'resetAutoEmbeddingInference',
+            contentSite: 'atlas-cli',
+            url: '/docs/atlas/cli/:version/command/atlas-api-clusters-resetAutoEmbeddingInference/',
+            versions: {
+              includes: ['current', 'upcoming'],
+            },
+          },
+          {
             label: 'restartPrimaries',
             contentSite: 'atlas-cli',
             url: '/docs/atlas/cli/:version/command/atlas-api-clusters-restartPrimaries/',
@@ -9380,6 +9420,14 @@ export const atlasCliCommands: TocItem[] = [
             },
           },
           {
+            label: 'updateAutoEmbeddingInference',
+            contentSite: 'atlas-cli',
+            url: '/docs/atlas/cli/:version/command/atlas-api-clusters-updateAutoEmbeddingInference/',
+            versions: {
+              includes: ['current', 'upcoming'],
+            },
+          },
+          {
             label: 'updateCluster',
             contentSite: 'atlas-cli',
             url: '/docs/atlas/cli/:version/command/atlas-api-clusters-updateCluster/',
@@ -9399,6 +9447,14 @@ export const atlasCliCommands: TocItem[] = [
             label: 'updateClusterAdaptiveSettings',
             contentSite: 'atlas-cli',
             url: '/docs/atlas/cli/:version/command/atlas-api-clusters-updateClusterAdaptiveSettings/',
+            versions: {
+              includes: ['current', 'upcoming'],
+            },
+          },
+          {
+            label: 'updateClusterSqlInterface',
+            contentSite: 'atlas-cli',
+            url: '/docs/atlas/cli/:version/command/atlas-api-clusters-updateClusterSqlInterface/',
             versions: {
               includes: ['current', 'upcoming'],
             },
@@ -14568,6 +14624,14 @@ export const atlasCliCommands: TocItem[] = [
             },
           },
           {
+            label: 'createWorkspacePrivateEndpoint',
+            contentSite: 'atlas-cli',
+            url: '/docs/atlas/cli/:version/command/atlas-api-streams-createWorkspacePrivateEndpoint/',
+            versions: {
+              includes: ['current', 'upcoming'],
+            },
+          },
+          {
             label: 'deletePrivateLinkConnection',
             contentSite: 'atlas-cli',
             url: '/docs/atlas/cli/:version/command/atlas-api-streams-deletePrivateLinkConnection/',
@@ -14653,6 +14717,14 @@ export const atlasCliCommands: TocItem[] = [
                 'v1.57',
                 'v1.58',
               ],
+            },
+          },
+          {
+            label: 'deleteWorkspacePrivateEndpoint',
+            contentSite: 'atlas-cli',
+            url: '/docs/atlas/cli/:version/command/atlas-api-streams-deleteWorkspacePrivateEndpoint/',
+            versions: {
+              includes: ['current', 'upcoming'],
             },
           },
           {
@@ -14792,6 +14864,14 @@ export const atlasCliCommands: TocItem[] = [
             },
           },
           {
+            label: 'getWorkspacePrivateEndpoint',
+            contentSite: 'atlas-cli',
+            url: '/docs/atlas/cli/:version/command/atlas-api-streams-getWorkspacePrivateEndpoint/',
+            versions: {
+              includes: ['current', 'upcoming'],
+            },
+          },
+          {
             label: 'listActivePeeringConnections',
             contentSite: 'atlas-cli',
             url: '/docs/atlas/cli/:version/command/atlas-api-streams-listActivePeeringConnections/',
@@ -14877,6 +14957,14 @@ export const atlasCliCommands: TocItem[] = [
                 'v1.57',
                 'v1.58',
               ],
+            },
+          },
+          {
+            label: 'listWorkspacePrivateEndpoints',
+            contentSite: 'atlas-cli',
+            url: '/docs/atlas/cli/:version/command/atlas-api-streams-listWorkspacePrivateEndpoints/',
+            versions: {
+              includes: ['current', 'upcoming'],
             },
           },
           {

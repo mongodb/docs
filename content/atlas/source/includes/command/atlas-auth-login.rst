@@ -20,6 +20,8 @@ Note: If you have credentials set in environment variables, they take precedence
 
 To log in non-interactively, set --authType, --output, and the credential flags that type requires (--clientId and --clientSecret for ServiceAccount, or --publicApiKey and --privateApiKey for APIKeys). Using any one of these flags without the others needed to complete the flow returns an error instead of prompting.
 
+Without --orgId or --projectId, a default is saved only if the credentials can access exactly one organization or project.
+
 Syntax
 ------
 
@@ -65,6 +67,10 @@ Options
      -
      - false
      - Don't automatically open a browser session.
+   * - --orgId
+     - string
+     - false
+     - Organization ID to save as the profile default. If set, skips the organization prompt.
    * - -o, --output
      - string
      - false
@@ -73,6 +79,10 @@ Options
      - string
      - false
      - Private API key. Must be set together with --publicApiKey, --authType, and --output. If all are set, skips the credential prompt.
+   * - --projectId
+     - string
+     - false
+     - Project ID to save as the profile default. If set, skips the project prompt.
    * - --publicApiKey
      - string
      - false
@@ -109,6 +119,13 @@ Examples
 
    # Log in non-interactively with a Service Account:
    atlas auth login --authType ServiceAccount --clientId <clientId> --clientSecret <clientSecret> --output plaintext
+
+
+.. code-block::
+   :copyable: false
+
+   # Log in non-interactively with a Service Account and store the default organization and project:
+   atlas auth login --authType ServiceAccount --clientId <clientId> --clientSecret <clientSecret> --output plaintext --orgId <orgId> --projectId <projectId>
 
 
 .. code-block::
