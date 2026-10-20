@@ -17,7 +17,10 @@ import { uploadManifest } from './uploadToAtlas/uploadManifest';
 import { deleteStaleProperties } from './uploadToAtlas/deleteStale';
 import { closeSearchDb } from '../util/databaseConnection/searchClusterConnector';
 import { upload } from '../s3Connection/s3connector';
-import type { AllContentData } from '../contentMetadata/processContentMetadata';
+import {
+  getBranchForContentPath,
+  type AllContentData,
+} from '../contentMetadata/processContentMetadata';
 import { getRepoPaths } from '../paths';
 
 const EXTENSION_NAME = 'search-manifest';
@@ -142,10 +145,7 @@ export const handleSearchManifests = async ({
         console.error(`Docset not found for project ${bundleData.projectName}`);
         return;
       }
-      const version: Version | undefined = docset.versions.find(
-        (v: Version): boolean =>
-          v.versionName === bundleData.versionName,
-      );
+      const version = getBranchForContentPath(contentPath, allContentData);
 
       if (!version) {
         console.error(
