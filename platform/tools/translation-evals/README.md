@@ -192,6 +192,9 @@ set** (also called the closure). `translate` then translates exactly that set,
 and the scrape stages fetch exactly the eval pages. A 25-page eval set is about
 4% of a project's content, so this avoids translating the whole project.
 
+Shared eval page sets are checked in under `pages/`, one file per project.
+`pages/manual.txt` covers the unversioned manual (`--project manual/manual`).
+
 Flags:
 
 | Flag | Required | Description |
@@ -330,16 +333,16 @@ The judge runs once per row and returns both `factuality` and `fluency`.
 
 ## End-to-end example
 
-Evaluate `atlas` in Spanish:
+Evaluate the unversioned manual in Spanish:
 
 ```
-pnpm resolve      --project atlas --pages pages.txt --locales es
-pnpm scrape-prod  --project atlas
-pnpm translate    --project atlas
-pnpm serve        --project atlas --locale es   # terminal 1, leave running
-pnpm scrape-local --project atlas --locale es   # terminal 2
-pnpm dataset      --project atlas
-pnpm eval         --project atlas
+pnpm resolve      --project manual/manual --pages pages/manual.txt --locales es
+pnpm scrape-prod  --project manual/manual
+pnpm translate    --project manual/manual
+pnpm serve        --project manual/manual --locale es   # terminal 1, leave running
+pnpm scrape-local --project manual/manual --locale es   # terminal 2
+pnpm dataset      --project manual/manual
+pnpm eval         --project manual/manual
 ```
 
 Every stage after `resolve` picks up the run `resolve` created, so `--run` is
