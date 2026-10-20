@@ -10,6 +10,11 @@ async function writeFile(filePath: string, content: string): Promise<void> {
   await fs.writeFile(filePath, content, 'utf-8');
 }
 
+// The oversized-fixture tests below each write 200-300 files. On CI that
+// intermittently exceeds vitest's default 5s test timeout (slow runner plus
+// concurrent turbo test packages), so they get a larger budget.
+const HEAVY_FIXTURE_TIMEOUT_MS = 30_000;
+
 describe('generate', () => {
   let monorepoPath: string;
   let outputDir: string;
@@ -377,7 +382,7 @@ Body.
       }
     }
     expect(seen).toEqual(new Set(sections));
-  });
+  }, HEAVY_FIXTURE_TIMEOUT_MS);
 
   it('recurses one level deeper (L4) when a single L3 section is still oversized on its own', async () => {
     // "aaa" is tiny, so the depth-1 split cleanly isolates all of
@@ -444,7 +449,7 @@ Body.
       }
     }
     expect(seen).toEqual(new Set(['one', 'two']));
-  });
+  }, HEAVY_FIXTURE_TIMEOUT_MS);
 
   it('supports --oversized-section-parts to force a specific sub-part count for an oversized section', async () => {
     const padding = 'x'.repeat(400);
@@ -487,7 +492,7 @@ Body.
     expect(results).toHaveLength(1);
     // "aaa" is its own part, plus exactly 2 forced sub-parts for "reference" == 3.
     expect(results[0].outputPaths).toHaveLength(3);
-  });
+  }, HEAVY_FIXTURE_TIMEOUT_MS);
 
   it('supports --parts to force a specific number of part files', async () => {
     const sections = ['alpha', 'beta', 'gamma'];
@@ -534,7 +539,7 @@ Body.
       const content = await fs.readFile(outputPath, 'utf-8');
       expect(content).toMatch(/^# Big Project - \(current\) \(Part \d+ of 3\)\n/);
     }
-  });
+  }, HEAVY_FIXTURE_TIMEOUT_MS);
 
   it('excludes pages under a "meta" subdirectory (error/PDF utility pages, not real content)', async () => {
     await writeFile(
@@ -620,5 +625,5 @@ Body.
       parts: 3,
     });
     expect(explicitlyForced[0].outputPaths).toHaveLength(4);
-  });
+  }, HEAVY_FIXTURE_TIMEOUT_MS);
 });
