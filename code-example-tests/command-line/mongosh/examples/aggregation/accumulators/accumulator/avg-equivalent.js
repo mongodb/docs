@@ -1,0 +1,17 @@
+// :snippet-start: avg-equivalent
+db.movies.aggregate( [
+   {
+      $match: {
+         rated: { $in: [ "G", "PG", "PG-13", "R" ] },
+         "imdb.rating": { $type: "double" }
+      }
+   },
+   {
+      $group: {
+         _id: "$rated",
+         avgRating: { $avg: "$imdb.rating" }
+      }
+   },
+   { $sort: { _id: 1 } }
+] )
+// :snippet-end:
