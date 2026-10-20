@@ -61,7 +61,12 @@ const tocData: TocItem[] = [
             url: '/docs/vector-search/query/explain',
           },
           {
-            label: 'Disable Concurrent Query Execution Across Segments',
+            label: 'Query Load Shedding',
+            contentSite: 'vector-search',
+            url: '/docs/vector-search/query/load-shedding',
+          },
+          {
+            label: 'Concurrent Query Execution Across Segments',
             contentSite: 'vector-search',
             url: '/docs/vector-search/query/concurrent',
           },

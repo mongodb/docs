@@ -2321,7 +2321,15 @@ export const toc: L1TocItem[] = [
                   {
                     label: 'Queries',
                     contentSite: 'search',
+                    collapsible: true,
                     url: '/docs/search/performance/query-performance',
+                    items: [
+                      {
+                        label: 'Query Load Shedding',
+                        contentSite: 'search',
+                        url: '/docs/search/performance/search-overload-protection',
+                      },
+                    ],
                   },
                 ],
               },
@@ -2467,7 +2475,12 @@ export const toc: L1TocItem[] = [
                         url: '/docs/vector-search/query/explain',
                       },
                       {
-                        label: 'Disable Concurrent Query Execution Across Segments',
+                        label: 'Query Load Shedding',
+                        contentSite: 'vector-search',
+                        url: '/docs/vector-search/query/overload-protection',
+                      },
+                      {
+                        label: 'Concurrent Query Execution Across Segments',
                         contentSite: 'vector-search',
                         url: '/docs/vector-search/query/concurrent',
                       },

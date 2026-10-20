@@ -485,6 +485,14 @@ const tocData: TocItem[] = [
         label: 'Queries',
         contentSite: 'search',
         url: '/docs/search/performance/query-performance',
+        collapsible: true,
+        items: [
+          {
+            label: 'Query Load Shedding',
+            contentSite: 'search',
+            url: '/docs/search/performance/load-shedding',
+          },
+        ],
       },
     ],
   },

@@ -1,14 +1,16 @@
 name: Snippet Sync
 
 # Only snippet SOURCE docsets are listed. Destination docsets such as
-# search and vector-search have no snippet-manifest.json and no snip.js, so
-# they have nothing to sync — their generated files are written by the
-# source docset's sync.
+# vector-search have no snippet-manifest.json and no snip.js, so they have
+# nothing to sync — their generated files are written by the source docset's
+# sync.
 on:
   pull_request:
     paths:
       - 'content/atlas/source/includes/**'
       - 'content/atlas/source/snippet-manifest.json'
+      - 'content/search/source/includes/**'
+      - 'content/search/source/snippet-manifest.json'
       - 'content/self-managed-search/current/source/includes/**'
       - 'content/self-managed-search/current/source/snippet-manifest.json'
       - 'content/**/snip.js'
@@ -69,6 +71,9 @@ jobs:
           if echo "$CHANGED_FILES" | grep -q "^content/self-managed-search/current/source/"; then
             DOCSETS="$DOCSETS self-managed-search"
           fi
+          if echo "$CHANGED_FILES" | grep -q "^content/search/source/"; then
+            DOCSETS="$DOCSETS search"
+          fi
           
           echo "docsets=$DOCSETS" >> $GITHUB_OUTPUT
           echo "Detected changed docsets: $DOCSETS"
@@ -90,6 +95,16 @@ jobs:
         if: contains(format(' {0} ', steps.detect.outputs.docsets), ' self-managed-search ')
         run: |
           cd content/self-managed-search/current/source
+          if [ -f snippet-manifest.json ]; then
+            npm run snip -- --sync
+          else
+            echo "No manifest found, skipping sync"
+          fi
+
+      - name: Sync Search snippets
+        if: contains(format(' {0} ', steps.detect.outputs.docsets), ' search ')
+        run: |
+          cd content/search/source
           if [ -f snippet-manifest.json ]; then
             npm run snip -- --sync
           else

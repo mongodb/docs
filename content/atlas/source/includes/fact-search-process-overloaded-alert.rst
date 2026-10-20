@@ -8,7 +8,11 @@ for 5 minutes.
 **Suggested Actions:**
 
 - Upgrade to a :ref:`Search Nodes <what-is-search-node>` tier with more vCPUs.
-  If not using Search Nodes, add them for workload isolation.
+  If you are not using Search Nodes, add them for workload isolation.
 - Reduce concurrent queries or spread queries out over time.
 - Optimize queries by implementing filtering, reducing leading wildcards and
   heavily nested clauses, and retrieving only necessary data.
+
+To learn how |service| queues and rejects search queries during overload,
+and how to handle rejected queries in your application, see
+:ref:`search-load-shedding`.
