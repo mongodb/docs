@@ -1,9 +1,9 @@
-=============================
-$switch (expression operator)
-=============================
+=========================================
+$switch (aggregation expression operator)
+=========================================
 
 .. meta::
-   :description: Evaluate case expressions with `$switch` in MongoDB aggregation, executing the first true case or a default expression if none match.
+   :description: Evaluate case expressions with `$switch` in MongoDB aggregation. The operator executes the first branch whose case expression is true, or returns a default value when no branch matches.
 
 .. default-domain:: mongodb
 
@@ -155,57 +155,22 @@ error:
 Example
 -------
 
-A collection named ``grades`` contains the following documents:
+.. include:: /includes/sample-data-usage-singular.rst
 
-.. code-block:: javascript
+This aggregation operation uses :expression:`$switch` to
+display a particular message based on each movie's rating. The
+:pipeline:`$match` stage limits the results to the three longest
+movies in the sample dataset:
 
-   { "_id" : 1, "name" : "Susan Wilkes", "scores" : [ 87, 86, 78 ] }
-   { "_id" : 2, "name" : "Bob Hanna", "scores" : [ 71, 64, 81 ] }
-   { "_id" : 3, "name" : "James Torrelio", "scores" : [ 91, 84, 97 ] }
+.. io-code-block::
+   :copyable: true
 
-The following aggregation operation uses :expression:`$switch` to
-display a particular message based on each student's average score.
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/expressions/switch/switch-summary.snippet.switch-summary.js
+      :language: javascript
+      :category: usage example
 
-.. code-block:: javascript
-
-   db.grades.aggregate( [
-     {
-       $project: 
-         {
-           "name" : 1,
-           "summary" : 
-           {
-             $switch:
-               {
-                 branches: [
-                   {
-                     case: { $gte : [ { $avg : "$scores" }, 90 ] },
-                     then: "Doing great!"
-                   },
-                   {
-                     case: { $and : [ { $gte : [ { $avg : "$scores" }, 80 ] }, 
-                                      { $lt : [ { $avg : "$scores" }, 90 ] } ] },
-                     then: "Doing pretty well."
-                   },
-                   {
-                     case: { $lt : [ { $avg : "$scores" }, 80 ] },
-                     then: "Needs improvement."
-                   }
-                 ],
-                 default: "No scores found."
-               }
-            }
-         }
-      }
-   ] )
-
-The operation returns the following:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "name" : "Susan Wilkes", "summary" : "Doing pretty well." }
-   { "_id" : 2, "name" : "Bob Hanna", "summary" : "Needs improvement." }
-   { "_id" : 3, "name" : "James Torrelio", "summary" : "Doing great!" }
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/expressions/switch/switch-summary-output.sh
+      :language: javascript
 
 .. seealso::
 

@@ -9,8 +9,8 @@ $convert (expression operator)
    :values: shell
 
 .. meta::
-  :description: Learn how to use an aggregation operator to convert a value to a specified data type.
-  :keywords: data type
+  :description: Learn how to use the $convert aggregation expression operator to convert values between BSON data types, including syntax, type identifiers, and examples.
+  :keywords: data type, code example
 
 .. contents:: On this page
    :local:
@@ -1110,95 +1110,79 @@ The following table lists some conversion to string examples:
 
      - "2018-03-27T16:58:51.538Z"
 
-.. seealso::
+   * - .. code-block:: javascript
+          :copyable: false
 
-   - :expression:`$toString` operator
-   - :expression:`$dateToString`
+          {
+             input: BinData(4, "hn3f"),
+             to: "string",
+             format: "base64"
+          }
 
-Example
--------
+     - 'hn3f'
 
-Create a collection ``orders`` with the following documents:
+   * - .. code-block:: javascript
+          :copyable: false
 
-.. code-block:: javascript
+          {
+             input: 10.5,
+             to: "string",
+             base: 2,
+             onError: "invalid"
+          }
 
-   db.orders.insertMany( [
-      { _id: 1, item: "apple", qty: 5, price: 10 },
-      { _id: 2, item: "pie", qty: 10, price: Decimal128("20.0") },
-      { _id: 3, item: "ice cream", qty: 2, price: "4.99" },
-      { _id: 4, item: "almonds" },
-      { _id: 5, item: "bananas", qty: 5000000000, price: Decimal128("1.25") }
-   ] )
+     - "invalid"
 
-The following aggregation operation on the ``orders`` collection
-converts the ``price`` to a decimal:
+Examples
+--------
 
-.. code-block:: javascript
+.. include:: /includes/sample-data-usage.rst
 
-   // Define stage to add convertedPrice and convertedQty fields with
-   //    the converted price and qty values.
-   // If price or qty values are missing, the conversion returns a
-   //    value of decimal value or int value of 0.
-   // If price or qty values cannot be converted, the conversion returns
-   //    a string
+Base Conversion Example
+~~~~~~~~~~~~~~~~~~~~~~~
 
-   priceQtyConversionStage = { 
-      $addFields: { 
-         convertedPrice: { $convert:
-            {
-               input: "$price",
-               to: "decimal",
-               onError: "Error",
-               onNull: Decimal128("0")
-            } },
-         convertedQty: { $convert:
-            { 
-               input: "$qty",
-               to: "int", 
-               onError:{ $concat:
-                  [
-                     "Could not convert ",
-                     { $toString:"$qty" },
-                     " to type integer."
-                  ]
-               },
-            onNull: Int32("0") 
-         } },
-      }
-   };
+Hexadecimal strings are a compact way to represent integers, and
+many systems exchange identifiers as hexadecimal values. The
+following example converts each movie's numeric ``imdb.id`` to a
+hexadecimal string:
 
-   totalPriceCalculationStage = { 
-      $project: { totalPrice: {
-        $switch: {
-           branches: [
-             { case:
-                { $eq: [ { $type: "$convertedPrice" }, "string" ] },
-                then: "NaN"
-             },
-             { case:
-                { $eq: [ { $type: "$convertedQty" }, "string" ] },
-                then: "NaN"
-             },
-           ],
-           default: { $multiply: [ "$convertedPrice", "$convertedQty" ] }
-        }
-   } } };
+.. io-code-block::
+   :copyable: true
 
-   db.orders.aggregate( [
-      priceQtyConversionStage,
-      totalPriceCalculationStage
-   ])
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/expressions/convert/base-conversion/base-conversion.snippet.base-conversion.js
+      :language: javascript
+      :category: usage example
 
-The operation returns the following documents:
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/expressions/convert/base-conversion/base-conversion-output.sh
+      :language: javascript
 
-.. code-block:: javascript
-   :copyable: false
+To convert a hexadecimal string back to an integer, pass the string
+to ``$convert`` with ``base: 16`` and ``to: "int"``.
 
-  { _id: 1, totalPrice: Decimal128("50") },
-  { _id: 2, totalPrice: Decimal128("200.0") },
-  { _id: 3, totalPrice: Decimal128("9.98") },
-  { _id: 4, totalPrice: Decimal128("0") },
-  { _id: 5, totalPrice: 'NaN' }
+Type Conversion Example
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation operation converts the ``imdb.rating``
+field, which is a double in most documents but an empty string in
+others, to a double. It also converts the ``metacritic`` field,
+which is missing from some documents, to an integer. The
+:pipeline:`$match` stage selects three movies that illustrate each
+conversion outcome:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/expressions/convert/type-conversion/type-conversion.snippet.type-conversion.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/expressions/convert/type-conversion/type-conversion-output.sh
+      :language: javascript
+
+For ``The Danish Girl``, the empty string in ``imdb.rating`` cannot
+convert to a double, so ``onError`` returns ``"Error"``. For
+``Gertie the Dinosaur`` and ``The Danish Girl``, ``metacritic`` is
+missing, so ``onNull`` returns ``0``.
 
 .. note::
 
