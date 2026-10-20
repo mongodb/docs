@@ -2,59 +2,55 @@
 """
 fetch_mongot_release.py
 
-Fetches a mongot GitHub release by version tag and writes structured
-JSON to an output file for downstream normalization.
+Shared by the self-managed and Atlas mongot release-notes agents.
+Fetches a mongot GitHub release by version tag and writes raw JSON in
+the canonical item schema (see schema.py) for the agent-specific
+normalizers.
 
 Usage:
-    python3 fetch_mongot_release.py --version 1.71.0 [--output /tmp/raw_release.json]
+    python3 fetch_mongot_release.py --version 1.71.0 \\
+        [--output /tmp/raw_release.json] [--enrich-prs]
 
 Requirements:
-    - GitHub CLI (gh) installed and authenticated, OR
-    - GITHUB_TOKEN environment variable set
-    - Python 3.9+, standard library only (json, subprocess, argparse, os, sys)
+    - GitHub CLI (gh) installed and authenticated with read access to
+      the private 10gen/mongot repository
+    - Python 3.9+, standard library only
 
-The mongot repository is private (10gen/mongot). The caller must have
-read access via their authenticated gh session or GITHUB_TOKEN.
+--enrich-prs fetches each referenced PR's title, labels, and linked
+Jira keys into the item's evidence block (one API call per PR).
 """
+
+from __future__ import annotations
 
 import argparse
 import json
 import os
 import re
-import subprocess
 import sys
 import tempfile
 
+from evidence import build_evidence
+from github_client import MONGOT_REPO, run_gh_json, run_gh_lines
+from release_metadata import extract_jira_keys
+from risk import detect_rollback_risk, rollback_signals_found
+from schema import (
+    SCHEMA_VERSION,
+    classify_availability,
+    classify_product,
+    flag_for_review,
+    new_item,
+    signal_text,
+)
 
-MONGOT_REPO = "10gen/mongot"
 # Candidate tag formats: v1.71.0, 1.71.0, release-1.71.0, etc.
 TAG_PREFIXES = ["v", "", "release-"]
-
-
-def run_gh(args: list[str]) -> dict | list | None:
-    """Run a gh CLI command and return parsed JSON output, or None on error."""
-    cmd = ["gh"] + args
-    try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        return json.loads(result.stdout)
-    except subprocess.CalledProcessError as exc:
-        sys.stderr.write(f"gh error: {exc.stderr.strip()}\n")
-        return None
-    except json.JSONDecodeError as exc:
-        sys.stderr.write(f"JSON parse error: {exc}\n")
-        return None
 
 
 def fetch_release(version: str) -> dict | None:
     """Try candidate tag formats and return the first matching release."""
     for prefix in TAG_PREFIXES:
         tag = f"{prefix}{version}"
-        data = run_gh([
+        data = run_gh_json([
             "api",
             f"repos/{MONGOT_REPO}/releases/tags/{tag}",
         ])
@@ -78,17 +74,11 @@ def find_previous_tag(version: str) -> str | None:
         except ValueError:
             return (0,)
 
-    # Use subprocess directly to avoid run_gh's JSON parsing (--paginate
-    # with --jq produces newline-separated strings, not a JSON array).
-    try:
-        result = subprocess.run(
-            ["gh", "api", f"repos/{MONGOT_REPO}/tags", "--paginate",
-             "--jq", ".[].name"],
-            capture_output=True, text=True, check=True,
-        )
-        tag_names = [t.strip() for t in result.stdout.splitlines() if t.strip()]
-    except subprocess.CalledProcessError as exc:
-        sys.stderr.write(f"gh error fetching tags: {exc.stderr.strip()}\n")
+    # --paginate with --jq produces newline-separated strings, not a JSON array.
+    tag_names = run_gh_lines(
+        ["api", f"repos/{MONGOT_REPO}/tags", "--paginate", "--jq", ".[].name"]
+    )
+    if tag_names is None:
         return None
 
     # Filter to semver-looking tags only
@@ -111,7 +101,7 @@ def fetch_commits_between_tags(prev_tag: str, this_tag: str) -> list[dict]:
     Use the GitHub compare API to get commits between two tags.
     Returns a list of dicts with 'sha' and 'message' keys.
     """
-    data = run_gh([
+    data = run_gh_json([
         "api",
         f"repos/{MONGOT_REPO}/compare/{prev_tag}...{this_tag}",
     ])
@@ -134,7 +124,8 @@ def build_release_from_commits(
     processed by the same parse_release_body / _build_item pipeline.
 
     Each commit message is turned into a Markdown list item under a
-    section derived from signal words in the message.
+    section derived from signal words in the message. The commit SHA is
+    appended so evidence capture can link the item to its commit.
     """
     feature_lines: list[str] = []
     fix_lines: list[str] = []
@@ -142,13 +133,14 @@ def build_release_from_commits(
 
     for commit in commits:
         msg = commit["message"].splitlines()[0].strip()  # subject line only
+        line = f"- {msg} (commit {commit['sha']})" if commit.get("sha") else f"- {msg}"
         lower = msg.lower()
         if any(k in lower for k in ("fix", "patch", "resolv", "correct", "cve", "upgrade", "backport")):
-            fix_lines.append(f"- {msg}")
+            fix_lines.append(line)
         elif any(k in lower for k in ("rollback", "reindex", "re-index", "on-disk", "compat", "breaking")):
-            compat_lines.append(f"- {msg}")
+            compat_lines.append(line)
         else:
-            feature_lines.append(f"- {msg}")
+            feature_lines.append(line)
 
     sections = []
     if fix_lines:
@@ -177,7 +169,7 @@ def fetch_tag_metadata(version: str) -> dict | None:
     """
     for prefix in TAG_PREFIXES:
         tag = f"{prefix}{version}"
-        data = run_gh([
+        data = run_gh_json([
             "api",
             f"repos/{MONGOT_REPO}/git/refs/tags/{tag}",
         ])
@@ -236,55 +228,17 @@ def classify_item_type(text: str, section_name: str) -> str:
     return "feature"
 
 
-def classify_availability(text: str) -> str:
+def parse_release_body(
+    body: str,
+    release_url: str,
+    source_kind: str = "github_release",
+    enrich_prs: bool = False,
+) -> list[dict]:
     """
-    Classify an item's availability scope.
-
-    Returns: 'atlas_only' | 'enterprise' | 'both' | 'community'
-
-    Heuristics based on path signals described in the plan:
-    - Atlas-only: references to Atlas-specific namespaces/infrastructure
-    - Enterprise: references to enterprise-only paths or explicit enterprise labeling
-    - Default: 'both' (community + enterprise)
-    """
-    lower = text.lower()
-
-    atlas_signals = [
-        "atlas-only", "atlas only", "xgen/atlas", "bazel/atlas",
-        "atlas-managed", "atlas managed", "atlas search atlas",
-    ]
-    enterprise_signals = [
-        "enterprise only", "enterprise-only", "enterprise advanced",
-        "xgen/enterprise", "enterprise edition",
-    ]
-
-    if any(s in lower for s in atlas_signals):
-        return "atlas_only"
-    if any(s in lower for s in enterprise_signals):
-        return "enterprise"
-    return "both"
-
-
-def detect_rollback_risk(text: str) -> bool:
-    """Return True when the text suggests an on-disk format change."""
-    signals = [
-        "on-disk format", "on disk format", "disk format",
-        "reindex", "re-index", "rolling back", "rollback",
-        "codec", "segment format", "lucene format",
-        "OnDiskFormat",
-    ]
-    lower = text.lower()
-    return any(s.lower() in lower for s in signals)
-
-
-def parse_release_body(body: str, version: str) -> list[dict]:
-    """
-    Parse the release body into structured item dicts.
-
-    Each item has the shape expected by normalize_release_items.py.
+    Parse the release body into canonical item dicts (see schema.py).
     """
     sections = extract_sections(body)
-    items: list[dict] = []
+    texts: list[tuple[str, str]] = []
 
     for section_name, lines in sections.items():
         if section_name == "preamble":
@@ -296,54 +250,74 @@ def parse_release_body(body: str, version: str) -> list[dict]:
             stripped = line.strip()
             if stripped.startswith("- ") or stripped.startswith("* "):
                 if current_item_lines:
-                    item_text = " ".join(current_item_lines).strip()
-                    items.append(
-                        _build_item(item_text, section_name, version)
-                    )
+                    texts.append((" ".join(current_item_lines).strip(), section_name))
                 current_item_lines = [stripped[2:].strip()]
             elif stripped and current_item_lines:
                 current_item_lines.append(stripped)
             elif not stripped and current_item_lines:
                 # Blank line ends the current item
-                item_text = " ".join(current_item_lines).strip()
-                items.append(_build_item(item_text, section_name, version))
+                texts.append((" ".join(current_item_lines).strip(), section_name))
                 current_item_lines = []
 
         if current_item_lines:
-            item_text = " ".join(current_item_lines).strip()
-            items.append(_build_item(item_text, section_name, version))
+            texts.append((" ".join(current_item_lines).strip(), section_name))
 
-    return items
+    return [
+        _build_item(i, text, section, release_url, source_kind, enrich_prs)
+        for i, (text, section) in enumerate(texts, start=1)
+    ]
 
 
-def _build_item(text: str, section_name: str, version: str) -> dict:
-    item_type = classify_item_type(text, section_name)
-    availability = classify_availability(text)
-    rollback_risk = detect_rollback_risk(text)
+def _build_item(
+    index: int,
+    text: str,
+    section_name: str,
+    release_url: str,
+    source_kind: str,
+    enrich_prs: bool,
+) -> dict:
+    evidence = build_evidence(text, release_url, enrich_prs=enrich_prs)
+    clean = strip_identifiers(text)
+
+    item = new_item(
+        id=f"item-{index:03d}",
+        type=classify_item_type(clean, section_name),
+        title=_extract_title(clean),
+        description=clean,
+        section=section_name,
+        source_url=release_url,
+        source_kind=source_kind,
+        evidence=evidence,
+    )
+    classify_text = signal_text(item)
+    item["product"] = classify_product(classify_text)
+    item["availability"] = classify_availability(classify_text)
+    item["rollback_risk"] = detect_rollback_risk(classify_text)
+    item["rollback_signals"] = rollback_signals_found(classify_text)
 
     # Force compatibility type when rollback risk detected
-    if rollback_risk and item_type not in ("compatibility", "operational"):
-        item_type = "compatibility"
+    if item["rollback_risk"] and item["type"] not in ("compatibility", "operational"):
+        item["type"] = "compatibility"
 
-    requires_review = (
-        availability == "atlas_only"
-        or "internal" in text.lower()
-        or len(text) < 20  # very short items are likely incomplete
-    )
+    if "internal" in clean.lower():
+        flag_for_review(item, "internal-only signal in source text")
+    if len(clean) < 20:
+        flag_for_review(item, "description too short to publish")
+    if source_kind == "commit_log_fallback":
+        flag_for_review(item, "sourced from commit log, not a release body")
+    return item
 
-    return {
-        "type": item_type,
-        "title": _extract_title(text),
-        "description": text,
-        "source_url": f"https://github.com/{MONGOT_REPO}/releases/tag/v{version}",
-        "source_kind": "github_release",
-        "availability": availability,
-        "rollback_risk": rollback_risk,
-        "requires_manual_review": requires_review,
-        # aha_maturity is populated by normalize_release_items.py
-        "aha_maturity": "unknown",
-        "section": section_name,
-    }
+
+def strip_identifiers(text: str) -> str:
+    """Remove PR refs, commit refs, and Jira keys from item prose."""
+    text = re.sub(r"\(commit [0-9a-f]{7,40}\)", "", text)
+    text = re.sub(r"\((?:#\d+(?:,\s*)?)+\)", "", text)
+    text = re.sub(r"(?<![\w/&])#\d{2,6}\b", "", text)
+    text = re.sub(r"https://github\.com/\S+/pull/\d+", "", text)
+    for key in extract_jira_keys(text):
+        text = re.sub(rf"\[?{re.escape(key)}\]?:?", "", text)
+    text = re.sub(r"\(\s*[,;\s]*\)", "", text)
+    return re.sub(r"\s{2,}", " ", text).strip()
 
 
 def _extract_title(text: str) -> str:
@@ -371,6 +345,11 @@ def main() -> None:
     parser.add_argument(
         "--output",
         help="Path for the output JSON file. Defaults to a temp file.",
+    )
+    parser.add_argument(
+        "--enrich-prs",
+        action="store_true",
+        help="Fetch PR titles, labels, and linked Jira keys into evidence.",
     )
     args = parser.parse_args()
 
@@ -411,9 +390,18 @@ def main() -> None:
             "WARNING: Release body is empty. The output will have no items.\n"
         )
 
-    items = parse_release_body(body, version)
+    release_url = release.get("html_url") or (
+        f"https://github.com/{MONGOT_REPO}/releases/tag/v{version}"
+    )
+    items = parse_release_body(
+        body,
+        release_url,
+        source_kind=release.get("_source", "github_release"),
+        enrich_prs=args.enrich_prs,
+    )
 
     output_data = {
+        "schema_version": SCHEMA_VERSION,
         "version": version,
         "tag_name": release.get("tag_name"),
         "published_at": release.get("published_at"),

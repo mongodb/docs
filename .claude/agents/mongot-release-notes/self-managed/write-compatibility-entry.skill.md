@@ -13,7 +13,12 @@ requirements, breaking configuration changes, or removals.
 
 ## Input
 
-A YAML block with the following fields:
+The orchestrator passes `version` (the current release, e.g. `1.71.0`)
+and a YAML item block from `verified.yaml`. Every item in that file has
+already passed the review gate in Step 3 of `flow.md`, so do not re-check
+review status. Ignore `requires_manual_review`, `review_reasons`, and
+`review_decision` if present; they record the review, not the item's
+current state. The item has the following fields:
 
 ```yaml
 type: compatibility|deprecation|operational
@@ -24,13 +29,6 @@ source_kind: github_release
 availability: both|enterprise
 rollback_risk: true|false
 aha_maturity: ga|preview|unknown
-requires_manual_review: false
-```
-
-If `requires_manual_review` is `true`, stop and return:
-
-```
-REVIEW_REQUIRED: <title>
 ```
 
 ## Output format
@@ -64,7 +62,7 @@ A single RST list-table row with three cells:
 
 - One to four sentences.
 - For breaking config changes: describe what the operator must do
-  before or after upgrading. Use imperative mood:
+  before or after upgrading. Use active voice and imperative mood:
   "Update your configuration file to use the new structure before
   restarting mongot."
 - For deprecations: name what is removed, when it was deprecated, and
@@ -76,21 +74,18 @@ A single RST list-table row with three cells:
 
 ### Rollback / reindex warning (mandatory when rollback_risk is true)
 
-When `rollback_risk` is `true`, you MUST include a warning admonition
-block immediately after the prose description and before the version
-tag:
+When `rollback_risk` is `true`, you MUST add this warning block after
+the prose and before the version tag, indented 7 spaces, with a blank
+line before and after it:
 
 ```rst
        .. warning::
 
           Rolling back to a prior mongot version after upgrading
-          requires re-indexing all affected search indexes. Run
-          ``db.collection.dropSearchIndex()`` and recreate the
-          index after rollback.
+          requires re-indexing affected search indexes.
 ```
 
-Indent the `.. warning::` block by 7 spaces to align it inside the
-list-table cell.
+Use this exact text. Do not add commands or other recovery steps.
 
 ### Version tag
 
@@ -108,8 +103,8 @@ list-table cell.
 | `enterprise` | *(blank)* | `\|checkmark\|` |
 | `community` | `\|checkmark\|` | *(blank)* |
 
-When `availability` is `enterprise`, prepend the prose with
-`**Enterprise Only.** `.
+When `availability` is `enterprise`, start the prose, after the bold
+title, with `**Enterprise Only.** `.
 
 ## Example output — breaking config change with rollback risk
 
@@ -127,16 +122,13 @@ Output:
    * - **Authentication restructured into** ``scramAuth`` **and**
        ``x509`` **blocks.** The sync-source authentication config
        now uses explicit ``scramAuth`` (username/password) and
-       ``x509`` (certificate) sub-blocks. Existing configurations
-       must be migrated to the new structure before restarting
-       ``mongot``.
+       ``x509`` (certificate) sub-blocks. Update your configuration
+       file to use the new structure before restarting ``mongot``.
 
        .. warning::
 
           Rolling back to a prior mongot version after upgrading
-          requires re-indexing all affected search indexes. Run
-          ``db.collection.dropSearchIndex()`` and recreate the
-          index after rollback.
+          requires re-indexing affected search indexes.
 
        *Introduced in v1.71.0.*
      - |checkmark|
@@ -156,9 +148,10 @@ rollback_risk: false
 
 Output:
 ```rst
-   * - **replicaSet.readPreference field removed.** The deprecated
-       ``replicaSet.readPreference`` field has been removed. Use
-       ``syncSource.replicationReader.readPreference`` instead.
+   * - **replicaSet.readPreference field removed.** ``mongot`` no
+       longer accepts the deprecated ``replicaSet.readPreference``
+       field. Use ``syncSource.replicationReader.readPreference``
+       instead.
        *Deprecated in v1.71.0.*
      - |checkmark|
      - |checkmark|
@@ -169,8 +162,8 @@ Output:
 - Do not omit the rollback warning when `rollback_risk` is `true`.
   This is a hard requirement for on-disk format changes.
 - Do not use passive voice to hide the operator action required
-  ("the field was removed" → "the field has been removed and you
-  must update your configuration").
+  ("the field was removed" → "``mongot`` no longer accepts the field.
+  Update your configuration to use ...").
 - Do not write the `.. list-table::` directive or header rows.
 - Do not add section headings.
 - Do not include internal ticket IDs or PR numbers.

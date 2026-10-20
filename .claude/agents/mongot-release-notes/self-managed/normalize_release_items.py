@@ -43,6 +43,11 @@ except ImportError:
         "ERROR: PyYAML is required. Install with: pip install pyyaml"
     )
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "common"))
+from schema import flag_for_review, validate_document  # noqa: E402
+
+EXCLUDED_AVAILABILITY = "atlas_only"
+
 
 # ---------------------------------------------------------------------------
 # Aha! integration
@@ -165,17 +170,12 @@ def refine_type(item: dict) -> str:
     return current
 
 
-def should_flag_for_review(item: dict) -> bool:
-    """Return True when manual review is required before publishing."""
-    if item.get("requires_manual_review"):
-        return True
-    # Any item with no reliable description
-    if not item.get("description", "").strip():
-        return True
-    # Features with unknown Aha! maturity
-    if item.get("type") == "feature" and item.get("aha_maturity") == "unknown":
-        return True
-    return False
+def apply_review_flags(item: dict) -> None:
+    """Flag items that require manual review before publishing."""
+    if not item["description"].strip():
+        flag_for_review(item, "empty description")
+    if item["type"] == "feature" and item["aha_maturity"] == "unknown":
+        flag_for_review(item, "Aha! maturity unknown")
 
 
 # ---------------------------------------------------------------------------
@@ -196,7 +196,7 @@ def normalize(
         availability = refine_availability(raw_item)
 
         # Hard filter: drop Atlas-only items
-        if availability == "atlas_only":
+        if availability == EXCLUDED_AVAILABILITY:
             sys.stderr.write(
                 f"  [DROPPED] Atlas-only: {raw_item.get('title', '(no title)')}\n"
             )
@@ -213,24 +213,19 @@ def normalize(
                 raw_item.get("description", ""),
             )
 
-        item = {
-            "type": item_type,
-            "title": raw_item.get("title", ""),
-            "description": raw_item.get("description", ""),
-            "source_url": raw_item.get("source_url", ""),
-            "source_kind": raw_item.get("source_kind", "github_release"),
-            "availability": availability,
-            "rollback_risk": raw_item.get("rollback_risk", False) or _match(
-                f"{raw_item.get('title', '')} {raw_item.get('description', '')}",
+        item = dict(raw_item)
+        item.update(
+            type=item_type,
+            availability=availability,
+            rollback_risk=raw_item["rollback_risk"] or _match(
+                f"{raw_item['title']} {raw_item['description']}",
                 ROLLBACK_SIGNALS,
             ),
-            "aha_maturity": aha_maturity,
-            "requires_manual_review": False,
-            "section": raw_item.get("section", ""),
-        }
+            aha_maturity=aha_maturity,
+        )
 
         # Final review flag (after Aha! lookup)
-        item["requires_manual_review"] = should_flag_for_review(item)
+        apply_review_flags(item)
 
         normalized.append(item)
 
@@ -249,6 +244,7 @@ def normalize(
         "published_at": raw.get("published_at", ""),
         "item_count": len(normalized),
         "atlas_only_dropped": atlas_only_dropped,
+        "excluded_availability": EXCLUDED_AVAILABILITY,
         "items": normalized,
     }
 
@@ -285,6 +281,9 @@ def main() -> None:
 
     with open(args.input, encoding="utf-8") as fh:
         raw = json.load(fh)
+    errors = validate_document({"version": version, "items": raw.get("items", [])})
+    if errors:
+        sys.exit("ERROR: invalid input document:\n  " + "\n  ".join(errors))
 
     result = normalize(raw, version, args.release_date)
 

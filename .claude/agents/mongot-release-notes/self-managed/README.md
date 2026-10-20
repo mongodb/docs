@@ -18,7 +18,7 @@ Start a new agent session and provide the following prompt:
 
 ```
 Run the self-managed Search release notes agent in
-.claude/agents/self-managed-search-release-notes/flow.md
+.claude/agents/mongot-release-notes/self-managed/flow.md
 
 version: 1.71.0
 release_date: 2026-07-15
@@ -92,22 +92,26 @@ are mandatory and cannot be suppressed.
 ## File layout
 
 ```
-.claude/agents/self-managed-search-release-notes/
-  README.md                          # This file
-  flow.md                            # Orchestration instructions
-  fetch_mongot_release.py            # Fetch GitHub release → raw JSON
-  normalize_release_items.py         # raw JSON → normalized YAML
-  write-feature-entry.skill.md       # Write one feature RST row
-  write-bug-entry.skill.md           # Write one bug fix RST row
-  write-compatibility-entry.skill.md # Write one compat/deprecation row
-  assemble-version-release-notes.skill.md  # Assemble include + update page
+.claude/agents/mongot-release-notes/
+  common/
+    fetch_mongot_release.py          # Fetch GitHub release → raw JSON
+    validation.py                    # Review gate and output checks
+    ...                              # Other shared modules
+  self-managed/
+    README.md                          # This file
+    flow.md                            # Orchestration instructions
+    normalize_release_items.py         # raw JSON → normalized YAML
+    write-feature-entry.skill.md       # Write one feature RST row
+    write-bug-entry.skill.md           # Write one bug fix RST row
+    write-compatibility-entry.skill.md # Write one compat/deprecation row
+    assemble-version-release-notes.skill.md  # Assemble include + update page
 ```
 
 ## Example — mongot 1.71.0
 
 ```
 Run the self-managed Search release notes agent in
-.claude/agents/self-managed-search-release-notes/flow.md
+.claude/agents/mongot-release-notes/self-managed/flow.md
 
 version: 1.71.0
 release_date: 2026-07-15

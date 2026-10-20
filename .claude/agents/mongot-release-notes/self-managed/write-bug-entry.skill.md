@@ -11,7 +11,12 @@ complete RST `* -` row (without the table wrapper).
 
 ## Input
 
-A YAML block with the following fields:
+The orchestrator passes `version` (the current release, e.g. `1.71.0`)
+and a YAML item block from `verified.yaml`. Every item in that file has
+already passed the review gate in Step 3 of `flow.md`, so do not re-check
+review status. Ignore `requires_manual_review`, `review_reasons`, and
+`review_decision` if present; they record the review, not the item's
+current state. The item has the following fields:
 
 ```yaml
 type: fix
@@ -22,16 +27,7 @@ source_kind: github_release
 availability: both|enterprise
 rollback_risk: false
 aha_maturity: unknown
-requires_manual_review: false
 ```
-
-If `requires_manual_review` is `true`, stop immediately and return:
-
-```
-REVIEW_REQUIRED: <title>
-```
-
-Do not write any RST.
 
 ## Output format
 
@@ -77,7 +73,8 @@ A single RST list-table row with exactly three cells:
 ### Version tag
 
 - Format: `*Fixed in v{VERSION}.*`
-- Place after the prose, on its own line or inline if the line stays
+- Place on the line immediately after the prose, with no blank line
+  between them, or inline at the end of the last prose line if it fits
   within 72 characters.
 - Use the `version` value provided by the orchestrator for the current
   release, not any version extracted from source text.
@@ -90,15 +87,23 @@ A single RST list-table row with exactly three cells:
 | `enterprise` | *(leave blank)* | `\|checkmark\|` |
 | `community` | `\|checkmark\|` | *(leave blank)* |
 
-When `availability` is `enterprise`, prepend the prose with
-`**Enterprise Only.** `.
+When `availability` is `enterprise`, start the prose, after the bold
+title, with `**Enterprise Only.** `.
 
-### Rollback / reindex note
+### Rollback / reindex warning
 
-If `rollback_risk` is `true`, append before the version tag:
+If `rollback_risk` is `true`, add this warning block after the prose
+and before the version tag, indented 7 spaces, with a blank line before
+and after it:
 
-> Rollback to a prior mongot version after applying this fix requires
-> re-indexing affected search indexes.
+```rst
+       .. warning::
+
+          Rolling back to a prior mongot version after upgrading
+          requires re-indexing affected search indexes.
+```
+
+Use this exact text. Do not add commands or other recovery steps.
 
 ## Example output (availability: both)
 

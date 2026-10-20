@@ -21,6 +21,7 @@ orchestrator has already:
 | `feature_rows` | List of RST rows from `write-feature-entry` |
 | `fix_rows` | List of RST rows from `write-bug-entry` |
 | `compatibility_rows` | List of RST rows from `write-compatibility-entry` |
+| `verified_count` | Number of items in `verified.yaml` |
 
 If any row list is empty, omit its section entirely from the output.
 
@@ -114,8 +115,7 @@ Before writing the file:
 1. Count the feature rows received.
 2. Count the fix rows received.
 3. Count the compatibility rows received.
-4. Confirm the total matches the verified item count from the
-   orchestrator.
+4. Confirm the total matches `verified_count`.
 
 If the counts do not match, report the discrepancy and stop. Do not
 write a partial file.
@@ -126,7 +126,9 @@ Write the assembled RST to `INCLUDE_FILE`. Create the year directory
 (`{YYYY}/`) if it does not already exist.
 
 After writing, read the file back and confirm:
-- The file is valid RST (no unclosed directives).
+- Each section heading underline is exactly as long as the heading.
+- Every `.. warning::` block inside a cell is indented 7 spaces and
+  has a blank line before and after it.
 - All section headings that have rows are present.
 - The `|checkmark|` substitution appears only in cell content, not in
   headings or table headers.
@@ -177,15 +179,16 @@ After writing both files, verify:
 - [ ] `release-notes.txt` heading shows `mongot v{version}`
 - [ ] `release-notes.txt` date shows the formatted `release_date`
 - [ ] `release-notes.txt` include directive points to the new file
-- [ ] Number of `* -` entries in the include file equals the verified
-      item count
+- [ ] Number of `* -` entries in the include file, excluding the
+      header row of each table, equals `verified_count`
 - [ ] No section heading appears in the file without at least one row
       below it
 - [ ] No internal identifiers (ticket IDs, commit hashes) appear in
       any row
 
 Report the checklist result to the orchestrator before declaring
-completion.
+completion. The orchestrator runs `validation.py check-output` and
+`./lint-docs.sh all` on both files in Step 6 of `flow.md`.
 
 ## RST formatting reference
 

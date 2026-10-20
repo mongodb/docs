@@ -11,7 +11,12 @@ returns one complete RST `* -` row (without the table wrapper).
 
 ## Input
 
-A YAML block with the following fields:
+The orchestrator passes `version` (the current release, e.g. `1.71.0`)
+and a YAML item block from `verified.yaml`. Every item in that file has
+already passed the review gate in Step 3 of `flow.md`, so do not re-check
+review status. Ignore `requires_manual_review`, `review_reasons`, and
+`review_decision` if present; they record the review, not the item's
+current state. The item has the following fields:
 
 ```yaml
 type: feature
@@ -22,16 +27,7 @@ source_kind: github_release
 availability: both|enterprise
 rollback_risk: false
 aha_maturity: ga|preview|unknown
-requires_manual_review: false
 ```
-
-If `requires_manual_review` is `true`, stop immediately and return:
-
-```
-REVIEW_REQUIRED: <title>
-```
-
-Do not write any RST. The orchestrator handles flagged items separately.
 
 ## Output format
 
@@ -79,9 +75,9 @@ inside each `* -` / `  -` cell):
 
 ### Version tag
 
-- Place on its own line immediately after the prose, separated by one
-  blank continuation line (or inline at the end of the last prose line
-  if it fits within 72 chars).
+- Place on the line immediately after the prose, with no blank line
+  between them, or inline at the end of the last prose line if it fits
+  within 72 characters.
 - Format: `*Introduced in v{VERSION}.*`
 - The version in the tag must match the `version` field provided by the
   orchestrator for the current release, not a version from the
@@ -95,16 +91,23 @@ inside each `* -` / `  -` cell):
 | `enterprise` | *(empty — leave the cell blank)* | `\|checkmark\|` |
 | `community` | `\|checkmark\|` | *(empty)* |
 
-When `availability` is `enterprise`, prepend the prose description with
-`**Enterprise Only.** ` (bold, followed by the normal description text).
+When `availability` is `enterprise`, start the prose description, after
+the bold title, with `**Enterprise Only.** `.
 
-### Rollback / reindex note
+### Rollback / reindex warning
 
-If `rollback_risk` is `true`, append a separate sentence at the end of
-the prose (before the version tag):
+If `rollback_risk` is `true`, add this warning block after the prose
+and before the version tag, indented 7 spaces, with a blank line before
+and after it:
 
-> Rollback to a prior mongot version after upgrading requires
-> re-indexing affected search indexes.
+```rst
+       .. warning::
+
+          Rolling back to a prior mongot version after upgrading
+          requires re-indexing affected search indexes.
+```
+
+Use this exact text. Do not add commands or other recovery steps.
 
 ## Example output (availability: both, aha_maturity: ga)
 
@@ -132,10 +135,10 @@ Output:
 ## Example output (availability: enterprise, aha_maturity: preview)
 
 ```rst
-   * - **Enterprise Only.** **Automated field encryption for search
-       indexes.** Search indexes now support automatic encryption of
-       sensitive fields at the index level. This feature is in
-       Public Preview.
+   * - **Automated field encryption for search indexes.**
+       **Enterprise Only.** Search indexes now support automatic
+       encryption of sensitive fields at the index level. This feature
+       is in Public Preview.
        *Introduced in v1.71.0.*
      -
      - |checkmark|
@@ -150,5 +153,6 @@ Output:
   PR numbers) in the output RST.
 - Do not guess the version. Use the `version` value passed by the
   orchestrator.
-- Do not silently default `aha_maturity: unknown` to GA. If the
-  maturity is unknown, stop and return `REVIEW_REQUIRED: <title>`.
+- Do not silently default `aha_maturity: unknown` to GA. Only when the
+  `aha_maturity` field value is `unknown`, stop and return
+  `REVIEW_REQUIRED: <title>`. When it is `ga` or `preview`, use it.

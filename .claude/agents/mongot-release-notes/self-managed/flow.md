@@ -20,6 +20,9 @@ If the user does not provide `version` or `release_date`, ask for them
 before proceeding. Do not guess. Release notes always target `current`
 unless the operator explicitly specifies `upcoming`.
 
+Run every command from `.claude/agents/mongot-release-notes/`. Write
+intermediate files to a temp directory, not the repo.
+
 ## Output targets
 
 | Artifact | Path |
@@ -29,15 +32,14 @@ unless the operator explicitly specifies `upcoming`.
 
 Where:
 - `{YYYY}` is the year from `release_date`
-- `{VERSION_SLUG}` replaces `.` with `-` (e.g. `1.71.0` → `v1-71-0`)
+- `{VERSION_SLUG}` replaces `.` with `-` (e.g. `1.71.0` → `1-71-0`)
 
 ## Step 1 — Fetch the GitHub release
 
 Run `fetch_mongot_release.py` with `--version {version}`:
 
 ```bash
-python3 .claude/agents/self-managed-search-release-notes/fetch_mongot_release.py \
-    --version {version}
+python3 common/fetch_mongot_release.py --version {version}
 ```
 
 The script writes `raw_release.json` to a temp directory and prints the
@@ -51,60 +53,47 @@ Do not proceed with a missing source.
 Run `normalize_release_items.py` on the raw JSON:
 
 ```bash
-python3 .claude/agents/self-managed-search-release-notes/normalize_release_items.py \
+python3 self-managed/normalize_release_items.py \
     --input {raw_release_json_path} \
     --version {version} \
     --release-date {release_date} \
     --output normalized_items.yaml
 ```
 
-The script produces a `normalized_items.yaml` with this schema:
+The script writes items in the canonical schema from
+`common/schema.py`. It:
 
-```yaml
-version: 1.71.0
-release_date: 2026-07-15
-items:
-  - type: feature|fix|compatibility|deprecation|operational
-    title: ...
-    description: ...
-    source_url: ...
-    source_kind: github_release
-    availability: community|enterprise|both
-    requires_manual_review: false
-    aha_maturity: ga|preview|unknown
+- drops Atlas-only items (`availability: atlas_only`),
+- sets `type: compatibility` when it detects rollback or reindex risk,
+- looks up Aha! maturity for features,
+- flags items for review (`requires_manual_review: true`, with
+  `review_reasons`) when the description is empty or a feature's
+  `aha_maturity` is still `unknown`.
+
+## Step 3 — Review gate
+
+```bash
+python3 common/validation.py review --input normalized_items.yaml
 ```
 
-Any item where `requires_manual_review: true` must be surfaced to the
-operator before proceeding. List them and ask whether to include, exclude,
-or flag each one. Do not auto-publish items marked for review.
+Exit code 2 means items need decisions. Present each flagged item to
+the operator with its reasons and source links, and ask for `include`
+or `exclude`. Never default an item with unknown maturity to GA: for
+an included feature with `aha_maturity: unknown`, ask whether it is
+`ga` or `preview` and set `aha_maturity` in `normalized_items.yaml`.
+Write the decisions to `decisions.json`
+(`{"<item id>": "include|exclude"}`), then run:
 
-## Step 3 — Availability and maturity classification
+```bash
+python3 common/validation.py review --input normalized_items.yaml \
+    --decisions decisions.json --output verified.yaml
+```
 
-For every item in the normalized YAML:
-
-### Atlas exclusion (hard filter)
-
-Never include items that are Atlas-only in self-managed Search release
-notes. The `normalize_release_items.py` script sets `availability:
-atlas_only` for items it can classify automatically; remove these
-before writing. If classification is uncertain, flag for manual review.
-
-### Enterprise label
-
-Items with `availability: enterprise` must be labeled **Enterprise
-Only** in the generated RST. The writing skills handle this — pass
-`availability` as a field to each subagent.
-
-### Aha! maturity check (features only)
-
-For every item with `type: feature`, the normalizer sets `aha_maturity`
-based on a best-effort Aha! cross-reference. If `aha_maturity: unknown`,
-add `requires_manual_review: true` before writing. Never default an
-unknown item to GA silently.
+Do not continue until this exits with code 0.
 
 ## Step 4 — Parallel item writing
 
-For each item in the verified YAML, launch one subagent using the
+For each item in `verified.yaml`, launch one subagent using the
 matching skill:
 
 | Item type | Skill |
@@ -114,44 +103,43 @@ matching skill:
 | `compatibility` or `operational` | `write-compatibility-entry.skill.md` |
 | `deprecation` | `write-compatibility-entry.skill.md` |
 
-Pass the full item YAML block to each subagent as input. Each subagent
+Pass each subagent the item's YAML block and `version`. Each subagent
 returns a single RST list-table row (without the table wrapper).
+
+If a subagent returns `REVIEW_REQUIRED: <title>`, return to Step 3 for
+that item.
 
 Collect all returned rows. Count them. If the count does not match the
 number of verified items, stop and report the discrepancy before
 assembling.
 
-## Step 5 — Assemble the include file
+## Step 5 — Assemble the include file and update the page
 
 Run the `assemble-version-release-notes.skill.md` skill with:
 - the collected rows grouped by section
 - `version`
 - `release_date`
+- `docs_version_branch`
+- the number of items in `verified.yaml`
 
-The assembler produces a complete RST include file matching the format
-of `content/self-managed-search/upcoming/source/includes/changelogs/2026/v1-70-0.rst`.
+The assembler writes the include file (matching the format of
+`content/self-managed-search/current/source/includes/changelogs/2026/v1-70-0.rst`)
+and updates the heading, release date, and include directive in
+`release-notes.txt`. Do not edit `release-notes.txt` separately.
 
-Write the output to:
+## Step 6 — Validate and report
+
+Run the output checks from `.claude/agents/mongot-release-notes/`:
+
+```bash
+python3 common/validation.py check-output --input verified.yaml \
+    --rst ../../../content/self-managed-search/{docs_version_branch}/source/includes/changelogs/{YYYY}/v{VERSION_SLUG}.rst
 ```
-content/self-managed-search/{docs_version_branch}/source/includes/changelogs/{YYYY}/v{VERSION_SLUG}.rst
-```
 
-## Step 6 — Update the release notes page
+Then run `./lint-docs.sh all` on the include file and
+`release-notes.txt` from the repo root.
 
-Edit `content/self-managed-search/{docs_version_branch}/source/release-notes.txt`
-to reflect the new release as the topmost entry:
-
-1. Change the heading to `mongot v{version}`.
-2. Change the release date line to `**Release date**: {release_date formatted as "Month D, YYYY"}`.
-3. Change the include directive to the new include path.
-
-This is a deterministic edit. Read the file first and perform a targeted
-find-and-replace for each of the three fields. Do not rewrite the full
-page.
-
-## Step 7 — Validate and report
-
-Run the validation checklist before declaring completion:
+Confirm the validation checklist before declaring completion:
 
 - [ ] Every fetched item was either published or flagged for review
 - [ ] Every published item went through a writing skill (not freehand)
@@ -165,15 +153,15 @@ Run the validation checklist before declaring completion:
 - [ ] No internal ticket IDs or Jira/GitHub issue identifiers appear in
       customer-facing prose
 
-Report any checklist failures to the operator before asking whether to
-commit.
+Report the `check-output` results, the `lint-docs.sh` results, and any
+checklist failures to the operator before asking whether to commit.
 
-## Step 8 — Apply to `upcoming` (conditional)
+## Step 7 — Apply to `upcoming` (conditional)
 
 After `current` is done, ask the operator: "Should I also apply these
 changes to the `upcoming` version directory?"
 
-If yes, use `git diff` and `git apply`:
+If yes, run from the repo root:
 
 ```bash
 git diff HEAD -- content/self-managed-search/current/source/ | \
