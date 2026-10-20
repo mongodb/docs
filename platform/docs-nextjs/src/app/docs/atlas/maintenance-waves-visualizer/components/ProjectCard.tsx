@@ -21,7 +21,7 @@ const DAY_OPTIONS = [
 const WAVE_OPTIONS = [
   { value: '1', label: 'Wave 1' },
   { value: '2', label: 'Wave 2' },
-  { value: '3', label: 'Wave 3' },
+  { value: '3', label: 'Last Wave' },
 ];
 
 interface ProjectCardProps {

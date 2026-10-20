@@ -20,7 +20,7 @@ export const WAVE_COLORS = {
     bg: palette.blue.light3,
     border: palette.blue.dark2,
     textDark: palette.blue.dark3,
-    label: 'Wave 3',
+    label: 'Last Wave',
   },
 } as const;
 

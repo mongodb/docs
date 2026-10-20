@@ -53,7 +53,7 @@ describe('calculateSchedule', () => {
   // Release: Jan 3 Sat 00:00 → w1Min = Jan 5 Mon 00:00
   // Wave 1 (Tue): Jan 6 00:00 (one day past boundary)
   // Wave 2 (Fri): w2Min = Jan 6 + 48h = Jan 8 Thu 00:00 → Jan 9 Fri 00:00
-  // Wave 3 (Mon): w3Min = Jan 9 + 48h = Jan 11 Sun 00:00 → Jan 12 Mon 00:00
+  // Last Wave (Mon): w3Min = Jan 9 + 48h = Jan 11 Sun 00:00 → Jan 12 Mon 00:00
 
   it('schedules wave 1 strictly more than 48h after release on the configured day', () => {
     const entries = calculateSchedule(saturdayMidnight, defaultProjects);
@@ -65,7 +65,7 @@ describe('calculateSchedule', () => {
     expect(entries.find(e => e.wave === 2)!.datetime).toEqual(new Date(2026, 0, 9, 0, 0, 0, 0));
   });
 
-  it('schedules wave 3 strictly more than 48h after the wave 2 latest', () => {
+  it('schedules last wave strictly more than 48h after the wave 2 latest', () => {
     const entries = calculateSchedule(saturdayMidnight, defaultProjects);
     expect(entries.find(e => e.wave === 3)!.datetime).toEqual(new Date(2026, 0, 12, 0, 0, 0, 0));
   });
