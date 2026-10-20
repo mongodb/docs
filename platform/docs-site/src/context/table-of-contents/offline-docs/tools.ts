@@ -71,6 +71,11 @@ export const toc: L1TocItem[] = [
             contentSite: 'landing',
             url: '/docs/gemini',
           },
+          {
+            label: 'Agent Templates',
+            contentSite: 'landing',
+            url: '/docs/agent-templates',
+          },
         ],
       },
       {

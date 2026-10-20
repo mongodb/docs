@@ -1,0 +1,319 @@
+:orphan:
+
+.. _agent-templates:
+
+=========================================
+Build Agents with {+mdb-template+}
+=========================================
+
+.. meta::
+   :description: Use MongoDB Agent Templates to build, configure, and deploy agents that explore MongoDB data and manage Atlas resources on MongoDB Atlas Agent Engine.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+{+mdb-template+} are prebuilt starting points for building 
+agents that work with MongoDB and {+atlas+}. You can run each template
+locally and deploy it to the {+mdb-ai-platform+}. 
+
+Each template includes its own setup and deployment instructions in the
+`MongoDB agents repository <{+agents-github+}>`__. Clone the
+repository at the root level to access the templates and run your
+commands from the template's directory.
+
+.. figure:: /images/agent-template-architecture.png
+   :alt: Workflow from agent template through configuration and deployment to Atlas Agent Engine and its MongoDB Atlas and user surfaces.
+   :figwidth: 720px
+   :align: center
+
+.. note::
+
+  {+mdb-ai-platform+} is in Public Preview. Review the
+  `Agent Engine limitations
+  <https://www.mongodb.com/docs/agentengine/reference/limitations/>`__
+  before you deploy an agent against a production workload.
+
+Available Templates
+-------------------
+
+The MongoDB agents repository includes the following templates:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Template
+     - Description
+
+   * - `MongoDB Atlas Explorer
+       <{+agents-github+}/tree/main/agents/atlas-explorer>`__
+     - A conversational agent for exploring MongoDB data and answering
+       questions about your {+atlas+} environment.
+       MongoDB Atlas Explorer uses MongoDB Atlas Managed Model Context
+       Protocol (MCP) tools and the
+       :ref:`MongoDB Agent Skills <agent-skills>` bundle. It is
+       read-only by default.
+
+   * - `MongoDB Atlas Query Insights
+       <{+agents-github+}/tree/main/agents/atlas-query-insights>`__
+     - A read-only agent that uses the {+atlas+} Performance Advisor to
+       find slow queries and explain the highest-impact query shapes.
+       MongoDB Atlas Query Insights uses MongoDB Atlas Managed MCP
+       tools and MongoDB Agent Skills for query optimization, schema
+       design, search, querying, and connections.
+
+MongoDB Atlas Explorer Slack Bot
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can also talk to MongoDB Atlas Explorer from Slack with a self-hosted bot.
+Every user on the bot's allowlist shares one Atlas identity instead of
+using its own Atlas permissions. To learn how to run the MongoDB Atlas
+Explorer bot locally or deploy it to Vercel, see the
+`MongoDB Atlas Explorer Slack bot README
+<{+agents-github+}/tree/main/apps/atlas-explorer-slack-bot>`__.
+
+Prerequisites
+-------------
+
+Before you use the {+mdb-template+}, you need the following
+prerequisites:
+
+- Node.js 24 or later.
+- pnpm.
+- {+atlas-cli+} 1.58 or later.
+- The ``agentengine`` CLI. To learn how to install the CLI, see
+  `Install and Authenticate
+  <https://www.mongodb.com/docs/agentengine/build/install-authenticate/>`__
+  in the {+mdb-ai-platform+} documentation.
+- A {+atlas+} project that contains the data you want the agent to
+  explore.
+- An API key for your large language model (LLM) provider. By default,
+  the templates use OpenAI.
+
+Configure Credentials and Access
+--------------------------------
+
+{+mdb-template+} connect to your {+atlas+} project through a
+project-level MongoDB MCP configuration. To configure access, use
+the following steps:
+
+1. Create a project-level MCP configuration in {+atlas+} with the
+   {+atlas-cli+}.
+
+   a. Run the following command to create a project-level MCP
+      configuration. Use the ``--groupId`` option to specify your
+      project ID and the ``--file`` option to specify the path to
+      your request file.
+      
+      .. code-block:: none
+      
+        atlas api remoteMcpConfigurations createGroupMcpConfig --groupId <your-group-id> --file <your-request-file-path>  
+
+   #. Assign the least-privilege {+atlas+} roles that the agent needs,
+      such as ``GROUP_DATA_ACCESS_READ_ONLY``.
+
+   #. In the MCP configuration file, add your local public IP address
+      and the IP addresses of {+mdb-ai-platform+}. The two
+      addresses ``34.196.57.85`` and ``54.227.181.25`` are the
+      {+platform-short+} IP addresses. Replace
+      ``YOUR_LOCAL_PUBLIC_IP`` with your own address and keep both
+      {+platform-short+} addresses so that deployed agents can connect.
+      The following example shows a sample request file:
+
+      .. code-block:: json
+
+         {
+           "mcpConfigName": "{template-name-environment}",
+           "roles": [
+             "GROUP_DATA_ACCESS_READ_ONLY"
+           ],
+           "ipAccessList": [
+             {
+               "ipAddress": "YOUR_LOCAL_PUBLIC_IP"
+             },
+             {
+               "ipAddress": "34.196.57.85"
+             },
+             {
+               "ipAddress": "54.227.181.25"
+             }
+           ]
+         }
+
+#. Create a client secret for the MCP configuration. The secret
+   inherits the roles of the configuration.
+
+   a. Run the following command to create a client secret.
+      Use the ``--groupId`` option to specify your project ID,
+      the ``--mcpConfigId`` option to specify the ID of your MCP
+      configuration, and the ``--file`` option to specify the path to
+      your secret metadata file.
+
+      .. code-block:: none
+
+        atlas api remoteMcpConfigurations createGroupMcpSecret --groupId <your-group-id> --mcpConfigId <your-mcp-id> --file <your-metadata-file-path>
+
+   #. In the metadata file, set the secret expiration time. The
+      following example shows a secret metadata file that expires
+      after 8760 hours (one year):
+
+      .. code-block:: json
+
+         {
+           "secretExpiresAfterHours": 8760
+         }
+
+   #. Copy and save the client secret immediately. The command returns
+      the client secret only once.
+
+#. Store the client ID, client secret, and your LLM provider API key.
+
+   a. For local development, store them in a ``.env`` file.
+      For a deployed agent, store them in the {+platform-short+}
+      secret store with the ``agentengine secret set`` command.
+
+Create a separate MCP configuration and secret for each environment,
+such as local development, staging, and production. Do not share
+credentials across environments.
+
+.. important::
+
+   The ``ipAccessList`` field limits the IP addresses that can use the
+   MCP configuration. Use a different IP address allow list for each
+   environment, and include only the addresses that each environment
+   needs.
+
+Everyone who uses the agent shares the same {+atlas+} access, because
+the client secret inherits the roles of the MCP configuration. Therefore,
+grant only the {+atlas+} roles that every user of the agent needs.
+
+For each template's complete commands and configuration files, see the
+`{+mdb-template+} README
+<{+agents-github+}/tree/main?tab=readme-ov-file>`__.
+To learn more about storing secrets in {+platform-short+}, see
+`Provision Secrets
+<https://www.mongodb.com/docs/agentengine/deploy/provision-secrets/>`__
+in the {+mdb-ai-platform+} documentation.
+
+Run and Deploy a Template
+-------------------------
+
+After you configure credentials for an agent, run the template locally
+to test it, then deploy it to {+mdb-ai-platform+}.
+
+Run a Template
+~~~~~~~~~~~~~~
+
+To run a template locally, run the following command from the
+template's directory in the `MongoDB agents repository <{+agents-github+}/tree/main/agents>`__:
+
+  .. code-block:: none
+  
+     agentengine dev up
+ 
+To learn more about how to run the template, see the template
+directory's README.
+
+Deploy a Template
+~~~~~~~~~~~~~~~~~
+
+To deploy a template, run the following command from the
+template's directory in the `MongoDB agents repository <{+agents-github+}/tree/main/agents>`__:
+
+  .. code-block:: none
+  
+     agentengine deploy --auto
+ 
+To learn more about how to deploy an agent, see `Deploy a Build
+<https://www.mongodb.com/docs/agentengine/deploy/deploy-build/>`__
+in the {+mdb-ai-platform+} documentation.
+
+Security and Data
+-----------------
+
+The following list contains security and data considerations for the
+{+mdb-template+}:
+
+- **Read-only by default.** MongoDB Atlas Explorer writes to {+atlas+} only if
+  you grant its MCP configuration write roles and set the
+  ``ALLOW_WRITE_OPERATIONS`` environment variable to ``true``.
+  Every write pauses for human approval. MongoDB Atlas Query Insights
+  can't write to {+atlas+}.
+- **Traces and conversations include your data.** {+mdb-ai-platform+}
+  stores each trace and conversation in your project. Traces
+  and conversations might include database, collection, and field
+  names, and documents the agent reads. Only people with access to
+  your project can see them. You are responsible for governing your
+  data. To learn more, see `Inspect Traces
+  <https://www.mongodb.com/docs/agentengine/manage/inspect-traces/>`__
+  in the {+mdb-ai-platform+} documentation.
+- **Your LLM provider sees prompts and tool results.** This includes
+  query results the agent reads. Choose an LLM provider whose data
+  handling policies fulfill your organization's data policy.
+- **No shell access.** The agents can't run shell commands in their
+  sandbox.
+- **You host any Slack bot.** The Slack bot is an
+  example, not a managed service. You host, secure, and maintain
+  it yourself.
+
+Roll Back or Shut Down
+~~~~~~~~~~~~~~~~~~~~~~
+
+You own your deployment and data. If you find a defect or a security
+problem in your agent, use the following steps to roll back or shut
+down the agent:
+
+1. Stop anything that calls the agent, such as the Slack bot or
+   scheduled jobs. You can also pause the agent in
+   {+mdb-ai-platform+}.
+#. Delete the MCP client secret in {+atlas+}.
+#. Create a new client secret and update the secrets in
+   {+platform-short+}.
+#. Redeploy the last secure build with the
+   ``agentengine deploy --build-id <build-id>`` command.
+#. Use the ``agentengine invoke`` command to confirm the agent works,
+   then restart the callers you stopped.
+
+Limitations
+-----------
+
+{+mdb-template+} have the following limitations:
+
+- **The templates require {+atlas+}.** They don't support MongoDB
+  Enterprise Advanced, on-premises deployments, or {+atlas+} for
+  Government.
+- **Official deployment workflows only support {+mdb-ai-platform+}.**
+  Self-hosted runtimes are not supported.
+- **The agents don't track changes to your {+atlas+}
+  environment over time.**
+- **Each MCP configuration has an hourly capacity limit.** A {+atlas+}
+  service account can have a maximum of 100 active access tokens, and
+  each token lasts one hour. Every workspace and client that uses the
+  same MCP configuration shares that limit. {+mdb-ai-platform+} creates
+  two tokens each time a conversation starts, or resumes after the idle 
+  timeout. Follow-up messages within that window reuse the session's
+  processes and create no tokens. This allows 40 to 50 new or
+  resumed conversations per hour. When the agent reaches the token
+  limit, new conversations fail until older tokens expire, which
+  takes up to one hour. For details, see `access token limits
+  <{+agents-github+}/tree/main/agents/atlas-explorer#access-token-limit>`__
+  in the MongoDB agents repository.
+
+Each template also has individual limitations that this list does not
+cover. For the most up-to-date limitation information, see the 
+`MongoDB agents repository <{+agents-github+}>`__.
+
+Learn More
+----------
+
+To learn more about agents that work with MongoDB, see the following resources:
+
+- `MongoDB Agents Repository <{+agents-github+}>`__
+- :ref:`agent-skills`
+- `MongoDB MCP Server Documentation
+  <https://www.mongodb.com/docs/mcp-server/>`__
+- `{+mdb-ai-platform+} Documentation
+  <https://www.mongodb.com/docs/agentengine/>`__
