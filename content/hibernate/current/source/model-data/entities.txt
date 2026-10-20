@@ -65,8 +65,8 @@ The following table describes supported BSON field types and their
      - | Represents a null value or absence of data.
 
    * - ``Binary``
-     - ``byte[]``
-     - | Stores binary data with subtype 0.
+     - ``byte[]`` or ``java.util.UUID``
+     - | Stores binary data with subtype 0, or UUID values with subtype 4.
 
    * - ``String``
      - ``char``, ``java.lang.Character``, ``java.lang.String``,
@@ -515,6 +515,93 @@ strategies, types, and configurations:
 - Mapping an entity onto the ``hibernate_sequences`` collection
 - ``insert ... select`` statements that require inline allocation of
   generated IDs
+
+.. _hibernate-entities-uuid-generated-ids:
+
+UUID-Generated IDs
+------------------
+
+A :abbr:`UUID (universally unique identifier)` is a
+:rfc:`standardized <rfc9562>` 16-byte unique object identifier that the
+{+extension-short+} can generate for your entities. To generate UUID
+identifiers, annotate your entity's ``@Id`` field with
+the ``@UuidGenerator`` annotation or set the ``strategy``
+element of the ``@GeneratedValue`` annotation to ``UUID``. The
+following example defines an entity with a UUID-generated ID:
+
+.. literalinclude:: /includes/model-data/UuidItem.java
+   :language: java
+   :copyable: true
+
+.. _hibernate-entities-uuid-storage:
+
+Where UUIDs Are Stored
+~~~~~~~~~~~~~~~~~~~~~~
+
+The {+extension-short+} stores a ``java.util.UUID`` value as a BSON
+``Binary`` value with subtype 4. The following example document has an
+``_id`` field with a generated UUID:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "_id": {
+       "$binary": {
+         "base64": "FXvL4sBrQoueEByraiJUmA==",
+         "subType": "04"
+       }
+     },
+     "title": "The Matrix"
+   }
+
+If the ``@Id`` field is a ``String``, the {+extension-short+} stores the
+generated UUID as a BSON ``String`` instead of a BSON ``Binary`` value.
+
+To learn more about BSON field type mappings, see the
+:ref:`hibernate-entities-mongodb-fields` section of this guide.
+
+.. _hibernate-entities-uuid-save-entity:
+
+Save an Entity and Read Its Generated UUID
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example saves a new ``UuidItem`` entity and prints its
+generated ID:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/model-data/SaveUuidItem.java
+      :start-after: start-save-uuid-item
+      :end-before: end-save-uuid-item
+      :language: java
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      UuidItem created with ID: 157bcbe2-c06b-428b-9e10-1cab6a225498
+
+.. _hibernate-entities-uuid-limitations:
+
+UUID Limitations
+~~~~~~~~~~~~~~~~
+
+The {+extension-short+} has the following limitations when you use
+UUID-generated IDs:
+
+- The {+extension-short+} does not support the legacy identifier
+  generator names ``uuid``, ``uuid.hex``, ``uuid2``, and ``guid``. If
+  you specify one of these names, the {+extension-short+} throws a
+  ``FeatureNotSupportedException`` when your application starts. Use
+  ``@UuidGenerator`` or
+  ``@GeneratedValue(strategy = GenerationType.UUID)`` instead.
+
+- If you assign the value of a ``@UuidGenerator`` ``@Id`` field before
+  you persist the entity, the {+extension-short+} throws a
+  ``jakarta.persistence.EntityExistsException``. To assign UUID values
+  yourself, remove the generator annotation from the ``@Id`` field.
 
 .. _hibernate-entities-composite-keys:
 
