@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { BackendError } from "../../../src/backends/llm/errors.js";
+import { BackendError } from "../../src/backends/errors.js";
 
 describe("BackendError", () => {
   it("carries structured failure metadata", () => {

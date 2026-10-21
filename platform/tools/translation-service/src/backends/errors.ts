@@ -1,5 +1,5 @@
 /**
- * Typed error thrown by LLM translation backends for whole-request
+ * Typed error thrown by translation backends for whole-request
  * failures (bad request, provider HTTP error, timeout, unparseable or
  * mis-shaped response). The orchestrator catches these and degrades them
  * to per-key errors, so a throw never breaks the response shape.

@@ -4,14 +4,13 @@
  * any other fetch rejection maps to provider_http_error. fetchImpl is
  * injectable so tests never touch the network.
  */
-import { BackendError } from "../errors.js";
+import { BackendError } from "../../errors.js";
 import type {
   Transport,
   TransportRequest,
   TransportResponse,
 } from "../transport.js";
-
-const PROVIDER = "grove";
+import { GROVE_PROVIDER } from "./config.js";
 
 export function createGroveTransport(
   timeoutMs: number,
@@ -41,7 +40,7 @@ export function createGroveTransport(
       if (controller.signal.aborted) {
         throw new BackendError({
           stage: "provider",
-          provider: PROVIDER,
+          provider: GROVE_PROVIDER,
           reason: "provider_timeout",
           message: `Grove request timed out after ${timeoutMs}ms`,
           cause,
@@ -49,7 +48,7 @@ export function createGroveTransport(
       }
       throw new BackendError({
         stage: "provider",
-        provider: PROVIDER,
+        provider: GROVE_PROVIDER,
         reason: "provider_http_error",
         message: `Grove request failed: ${
           cause instanceof Error ? cause.message : String(cause)

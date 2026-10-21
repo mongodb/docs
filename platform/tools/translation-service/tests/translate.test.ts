@@ -2,7 +2,7 @@ import { describe, expect, it } from "@jest/globals";
 import { translate } from "../src/translate.js";
 import { RequestValidationError } from "../src/validation.js";
 import { StubBackend } from "../src/backends/stub-backend.js";
-import { BackendError } from "../src/backends/llm/errors.js";
+import { BackendError } from "../src/backends/errors.js";
 import type {
   TranslationBackend,
   TranslationBatchRequest,

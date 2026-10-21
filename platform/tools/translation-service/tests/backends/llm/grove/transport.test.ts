@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, jest } from "@jest/globals";
 import { createGroveTransport } from "../../../../src/backends/llm/grove/transport.js";
-import { BackendError } from "../../../../src/backends/llm/errors.js";
+import { BackendError } from "../../../../src/backends/errors.js";
 import type { TransportRequest } from "../../../../src/backends/llm/transport.js";
 
 const request: TransportRequest = {

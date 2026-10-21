@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 import { GroveBackend } from "../../../../src/backends/llm/grove/backend.js";
-import { BackendError } from "../../../../src/backends/llm/errors.js";
+import { BackendError } from "../../../../src/backends/errors.js";
 import type { GroveConfig } from "../../../../src/backends/llm/grove/config.js";
 import type { Transport } from "../../../../src/backends/llm/transport.js";
 import type { TranslationBatchRequest } from "../../../../src/types.js";

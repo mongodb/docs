@@ -1,22 +1,47 @@
 /**
- * Live end-to-end test against the REAL Grove gateway.
+ * Live end-to-end test against a REAL backend, chosen by `--backend`
+ * (default: grove).
  *
- * This is NOT part of the hermetic jest suite — it makes a real network
- * call and needs a real GROVE_API_KEY. It imports the built output in
- * `dist/`, so run `npm run build` first (the `npm run e2e` script does
- * this for you).
+ * This is NOT part of the hermetic jest suite — it makes real network
+ * calls and needs real credentials (GROVE_API_KEY for Grove, AWS
+ * credentials from the SDK's default chain for AWS Translate). It
+ * imports the built output in `dist/`, so run `pnpm build` first (the
+ * `pnpm e2e` script does this for you).
  *
- * Run:  npm run e2e     (after: cp .env.example .env && edit .env)
+ * Run:  pnpm e2e                           (after: cp .env.example .env && edit .env)
+ *       pnpm e2e --backend aws-translate
  *
  * Exits 0 on success, 1 on any failure — so it doubles as a smoke check.
  */
-import { translate, createGroveBackend } from "../dist/index.js";
+import { parseArgs } from "node:util";
+import {
+  translate,
+  createBackend,
+  isBackendName,
+  BACKEND_NAMES,
+} from "../dist/index.js";
 
-if (!process.env.GROVE_API_KEY) {
+const { values: args } = parseArgs({
+  options: { backend: { type: "string", default: "grove" } },
+});
+
+if (!isBackendName(args.backend)) {
   console.error(
-    "GROVE_API_KEY is not set.\n" +
+    `Unknown --backend "${args.backend}". Expected one of: ${BACKEND_NAMES.join(", ")}`,
+  );
+  process.exit(1);
+}
+
+let backend;
+try {
+  backend = createBackend(args.backend);
+} catch (error) {
+  // AWS credentials resolve lazily, so a missing or expired credential
+  // doesn't fail here; it surfaces as BACKEND_ERROR on every key below.
+  console.error(
+    `${error instanceof Error ? error.message : error}\n` +
       "Copy the template and fill it in:  cp .env.example .env\n" +
-      "then run:  npm run e2e",
+      "then run:  pnpm e2e",
   );
   process.exit(1);
 }
@@ -35,14 +60,13 @@ const request = {
 
 const keyCount = Object.keys(request.payload).length;
 console.log(
-  `Translating ${keyCount} strings ${request.source_locale} -> ${request.target_locale} via Grove...\n`,
+  `Translating ${keyCount} strings ${request.source_locale} -> ${request.target_locale} via ${backend.name}...\n`,
 );
 
 const startedAt = Date.now();
 let response;
 try {
-  // createGroveBackend() reads GROVE_API_KEY (+ optional overrides) from env.
-  response = await translate(request, { backend: createGroveBackend() });
+  response = await translate(request, { backend });
 } catch (error) {
   // Request-level failures (e.g. bad request shape) throw. Backend failures
   // (HTTP/timeout/parse) are degraded to per-key errors, not thrown.

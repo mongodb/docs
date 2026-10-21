@@ -103,6 +103,17 @@ describe("validateOutput", () => {
     });
   });
 
+  it("includes the backend's text in the placeholder failure message", () => {
+    const checks = validateOutput(
+      [makeSegment()],
+      makeResult([{ key: "ask_mongodb_ai", status: "ok", text: "Pregúntale AI" }]),
+    );
+    const check = checks[0];
+    expect(check?.status === "error" && check.error.message).toBe(
+      'Protected term token __PROT1__ was modified during translation (expected 1, found 0) in "Pregúntale AI"',
+    );
+  });
+
   it("flags a mangled token as PLACEHOLDER_RESTORATION_FAILED", () => {
     const checks = validateOutput(
       [makeSegment()],

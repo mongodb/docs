@@ -8,6 +8,7 @@
  */
 import type { TranslationBatchResult, TranslationError } from "./types.js";
 import type { ProtectedSegment } from "./protect-segments.js";
+import { excerpt } from "./excerpt.js";
 
 export type OutputCheck =
   | { key: string; status: "ok"; text: string }
@@ -69,7 +70,7 @@ export function validateOutput(
       if (expected !== actual) {
         return fail(segment.key, {
           code: "PLACEHOLDER_RESTORATION_FAILED",
-          message: `Protected term token ${token} was modified during translation (expected ${expected}, found ${actual})`,
+          message: `Protected term token ${token} was modified during translation (expected ${expected}, found ${actual}) in ${excerpt(item.text)}`,
         });
       }
     }

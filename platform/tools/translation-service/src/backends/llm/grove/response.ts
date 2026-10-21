@@ -5,9 +5,8 @@
  * Map. Throws BackendError on any deviation. A Map (not a plain object)
  * keeps untrusted keys like "__proto__" safe.
  */
-import { BackendError } from "../errors.js";
-
-const PROVIDER = "grove";
+import { BackendError } from "../../errors.js";
+import { GROVE_PROVIDER } from "./config.js";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -16,7 +15,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function unparseable(message: string, cause?: unknown): BackendError {
   return new BackendError({
     stage: "parse",
-    provider: PROVIDER,
+    provider: GROVE_PROVIDER,
     reason: "provider_unparseable",
     message,
     cause,
@@ -26,7 +25,7 @@ function unparseable(message: string, cause?: unknown): BackendError {
 function invalidShape(message: string): BackendError {
   return new BackendError({
     stage: "parse",
-    provider: PROVIDER,
+    provider: GROVE_PROVIDER,
     reason: "provider_invalid_shape",
     message,
   });

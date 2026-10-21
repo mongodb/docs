@@ -12,10 +12,10 @@ import type {
   TranslationBatchResult,
   TranslationBatchResultItem,
 } from "../../../types.js";
-import { BackendError } from "../errors.js";
+import { BackendError } from "../../errors.js";
 import type { Transport } from "../transport.js";
 import type { GroveConfig } from "./config.js";
-import { resolveGroveConfigFromEnv } from "./config.js";
+import { GROVE_PROVIDER, resolveGroveConfigFromEnv } from "./config.js";
 import { buildGroveRequest } from "./request.js";
 import { parseGroveResponse } from "./response.js";
 import { createGroveTransport } from "./transport.js";
@@ -26,7 +26,7 @@ export interface GroveBackendOptions {
 }
 
 export class GroveBackend implements TranslationBackend {
-  readonly name = "grove";
+  readonly name = GROVE_PROVIDER;
   readonly #config: GroveConfig;
   readonly #transport: Transport;
 

@@ -9,6 +9,8 @@ export interface GroveConfig {
   timeoutMs: number;
 }
 
+export const GROVE_PROVIDER = "grove";
+
 export const GROVE_DEFAULTS = {
   endpoint:
     "https://grove-gateway-prod.azure-api.net/grove-foundry-prod/openai/v1/responses",

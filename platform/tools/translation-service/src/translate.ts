@@ -19,7 +19,7 @@ import { normalize } from "./normalize.js";
 import { protectSegments } from "./protect-segments.js";
 import { validateOutput } from "./validate-output.js";
 import { buildResponse } from "./build-response.js";
-import { BackendError } from "./backends/llm/errors.js";
+import { BackendError } from "./backends/errors.js";
 
 export interface TranslateOptions {
   backend: TranslationBackend;
