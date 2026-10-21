@@ -1,75 +1,19 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Card from '@leafygreen-ui/card';
-import { Body, Link, Subtitle } from '@leafygreen-ui/typography';
-import Box from '@leafygreen-ui/box';
-import { css, cx } from '@leafygreen-ui/emotion';
-import { palette } from '@leafygreen-ui/palette';
-import { displayNone } from '@/utils/display-none';
-import { theme } from '@/styles/theme';
+import { clsx } from 'clsx';
+import { Card as ViaCard } from '@via-ds/components/card';
+import { Link, LinkStyle, Text, TextStyle } from '@via-ds/components/typography';
+import { Density } from '@via-ds/components/types';
 import { reportAnalytics } from '@/utils/report-analytics';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
 import { CloseButton } from '@/mdx-components/FeedbackWidget/components/close-button';
 import { SkillsBadgeIcon } from '@/mdx-components/svg/SkillsBadgeIcon';
 import { useCookiesContext } from '@/context/cookies-context';
 import { usePageContext } from '@/context/page-context';
+import styles from './dismissible-skills-card.module.scss';
 
 export const DISMISSIBLE_SKILLS_CARD_CLASSNAME = 'dismissible-skills-card';
-
-const containerStyles = css`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 12px;
-
-  ${displayNone.onMobileAndTablet};
-`;
-
-const cardStyles = css`
-  padding: ${theme.fontSize.default};
-  border-radius: 12px;
-  box-shadow: none;
-  background-color: var(--background-color-primary);
-  border-color: ${palette.gray.light2};
-
-  .dark-theme & {
-    border-color: ${palette.gray.dark2};
-  }
-
-  p {
-    line-height: 20px;
-    font-size: ${theme.fontSize.small};
-    color: ${palette.gray.dark1};
-
-    .dark-theme & {
-      color: ${palette.gray.light1};
-    }
-  }
-`;
-
-const titleBoxStyles = css`
-  display: flex;
-  align-items: center;
-  gap: ${theme.size.small};
-  padding-right: 12px;
-
-  svg > path {
-    .dark-theme & {
-      fill: ${palette.white};
-    }
-  }
-`;
-
-const titleStyles = css`
-  color: var(--font-color-primary);
-`;
-
-const hrStyles = css`
-  width: 100%;
-  margin: ${theme.size.small} 0;
-  border-color: ${palette.gray.light2};
-`;
 
 export type DismissibleSkillsCardProps = {
   skill: string;
@@ -124,20 +68,22 @@ const DismissibleSkillsCard = ({ skill, url }: DismissibleSkillsCardProps) => {
   }
 
   return (
-    <Box className={cx(DISMISSIBLE_SKILLS_CARD_CLASSNAME, containerStyles)}>
-      <Card className={cx(cardStyles)}>
-        <Box className={cx(titleBoxStyles)}>
+    <div className={clsx(DISMISSIBLE_SKILLS_CARD_CLASSNAME, styles.container)}>
+      <ViaCard className={styles.card} density={Density.Compact}>
+        <div className={styles.titleRow}>
           <SkillsBadgeIcon />
-          <Subtitle className={titleStyles}>Earn a Skill Badge</Subtitle>
-        </Box>
+          <Text elementType="span" textStyle={TextStyle.heading4}>
+            Earn a Skill Badge
+          </Text>
+        </div>
         <CloseButton onClick={onClose} />
-        <Body>Master &quot;{skill}&quot; for free!</Body>
-        <Link arrowAppearance={'persist'} baseFontSize={13} href={url} onClick={onLinkClick} hideExternalIcon>
+        <Text elementType="p">Master &quot;{skill}&quot; for free!</Text>
+        <Link href={url} linkStyle={LinkStyle.Internal} onClick={onLinkClick}>
           Learn more
         </Link>
-      </Card>
-      <hr className={cx(hrStyles)} />
-    </Box>
+      </ViaCard>
+      <hr className={styles.hr} />
+    </div>
   );
 };
 
