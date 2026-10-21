@@ -1224,6 +1224,11 @@ export const toc: L1TocItem[] = [
                 contentSite: 'cloud-docs',
                 url: '/docs/atlas/billing/international-usage',
               },
+              {
+                label: 'FOCUS Data API',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/billing/focus-api',
+              },
             ],
           },
           {

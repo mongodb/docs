@@ -86,6 +86,18 @@ export const toc: L1TocItem[] = [
             url: '/docs/voyageai/tutorials/rag',
           },
           {
+            label: 'Integrations',
+            contentSite: 'voyageai',
+            collapsible: true,
+            items: [
+              {
+                label: 'LangChain',
+                contentSite: 'voyageai',
+                url: '/docs/voyageai/tutorials/integrations/langchain',
+              },
+            ],
+          },
+          {
             label: 'Optimize Performance',
             contentSite: 'voyageai',
             collapsible: true,
