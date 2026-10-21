@@ -17,7 +17,7 @@ distribute your agents across multiple projects.
 The Orchestration Engine also limits the number of concurrent requests
 that it can serve. As a result, a project might not be able to run 512
 agents at the same time. To learn about this limit, see
-:ref:`agentic-platform-limitations-oe-capacity`.
+:ref:`agent-engine-limitations-oe-capacity`.
 
 If you have capacity issues, choose one of the following options:
 
@@ -52,7 +52,7 @@ If you have capacity issues, choose one of the following options:
      - Requires a change to your agent code. A turn that suspends or
        fails keeps its sandboxes until the idle timeout expires. To
        learn more, see
-       :ref:`agentic-platform-invoke-agent-finish-session`.
+       :ref:`agent-engine-invoke-agent-finish-session`.
 
 A session ID must be 1 to 128 characters long and can contain letters,
 numbers, underscores (``_``), and hyphens (``-``). Pass the session ID

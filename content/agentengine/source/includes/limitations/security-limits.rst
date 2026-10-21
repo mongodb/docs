@@ -63,5 +63,5 @@ releases its tool sandbox. When the session becomes active again, it
 uses a new tool sandbox.
 
 To configure sandbox secrets and egress destinations, see
-:ref:`agentic-platform-agent-contract-yaml` and
-:ref:`agentic-platform-network-egress`.
+:ref:`agent-engine-agent-contract-yaml` and
+:ref:`agent-engine-network-egress`.
