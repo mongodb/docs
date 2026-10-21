@@ -318,4 +318,26 @@ object ConnectionOptionsExamples {
     // end-mcs-local-threshold
     mongoClient.close()
   }
+
+  // SRV configuration examples
+
+  def uriSrvAllowedHostsSuffix(): Unit = {
+    // start-uri-srv-allowed-hosts-suffix
+    val uri = "mongodb+srv://cluster.test.internal.example.com/?srvAllowedHostsSuffix=.internal.example.com"
+    val mongoClient = MongoClient(uri)
+    // end-uri-srv-allowed-hosts-suffix
+    mongoClient.close()
+  }
+
+  def mcsSrvAllowedHostsSuffix(): Unit = {
+    // start-mcs-srv-allowed-hosts-suffix
+    val settings = MongoClientSettings.builder()
+        .applyConnectionString(ConnectionString("mongodb+srv://cluster.test.internal.example.com/"))
+        .applyToClusterSettings(builder =>
+            builder.srvAllowedHostsSuffix(".internal.example.com"))
+        .build()
+    val mongoClient = MongoClient(settings)
+    // end-mcs-srv-allowed-hosts-suffix
+    mongoClient.close()
+  }
 }
