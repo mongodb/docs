@@ -24,7 +24,7 @@
 
       .. important::
 
-         Change ``<release>`` in the following shell command to your platform release (for example "xenial" or "buster").
+         Change ``<release>`` in the following shell command to your platform release (for example "jammy" or "noble").
 
       .. code-block:: sh
 
