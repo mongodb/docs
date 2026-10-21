@@ -98,6 +98,10 @@ Existing indexes that do not meet the new validation requirements
 continue to function, but you cannot create new indexes that don't meet
 these requirements.
 
+Starting in MongoDB 9.1, you cannot upgrade the {+fcv+} to 9.1 while
+an index that does not meet these requirements exists. Drop the index
+before you upgrade. For details, see :ref:`9.1-compatibility`.
+
 When using ``wildcardProjection`` with compound wildcard indexes, the
 following rules apply:
 

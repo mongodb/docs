@@ -4,6 +4,9 @@
 Compatibility Changes in MongoDB 9.1
 ====================================
 
+.. meta::
+   :description: Learn about compatibility changes in MongoDB 9.1, including invalid compound wildcard indexes that block the feature compatibility version (FCV) upgrade to 9.1.
+
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -14,3 +17,66 @@ Compatibility Changes in MongoDB 9.1
 
 MongoDB 9.1 introduces changes that can affect compatibility with
 older versions of MongoDB.
+
+Indexes
+-------
+
+Invalid Compound Wildcard Indexes Block FCV Upgrade
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 9.1, an invalid :ref:`compound wildcard index
+<wildcard-index-compound>` blocks the {+fcv+} upgrade to 9.1. An index
+is invalid if its ``wildcardProjection`` does not meet the
+:ref:`validation rules <wildcard-index-restrictions>`. Earlier versions
+of MongoDB allowed you to create these indexes, and queries that use
+them can cause undefined behavior.
+
+If your deployment contains an invalid index, the
+:dbcommand:`setFeatureCompatibilityVersion` command fails with a
+``CannotUpgrade`` error before the upgrade begins. The {+fcv+} remains
+unchanged. The error message identifies the collection, the index, and
+the validation rule that the index does not meet.
+
+To upgrade a deployment that contains invalid compound wildcard
+indexes, follow these steps:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Check for an invalid index.
+
+      Run the :dbcommand:`setFeatureCompatibilityVersion` command with
+      ``dryRun: true``. The dry run checks for invalid indexes without
+      changing the {+fcv+}. If the dry run finds an invalid index, it
+      returns a ``CannotUpgrade`` error that identifies the first
+      invalid index that it finds.
+
+      .. code-block:: javascript
+
+         db.adminCommand( {
+            setFeatureCompatibilityVersion: "9.1",
+            dryRun: true
+         } )
+
+   .. step:: Drop the invalid index.
+
+      Use the :method:`db.collection.dropIndex()` method to drop the
+      index that the error identifies. If you still need the index,
+      create a replacement index that meets the validation rules.
+
+   .. step:: Repeat the dry run.
+
+      The dry run reports only one invalid index each time it runs.
+      Repeat the previous steps until the dry run succeeds.
+
+   .. step:: Upgrade the {+fcv+}.
+
+      Run the :dbcommand:`setFeatureCompatibilityVersion` command with
+      ``confirm: true``:
+
+      .. code-block:: javascript
+
+         db.adminCommand( {
+            setFeatureCompatibilityVersion: "9.1",
+            confirm: true
+         } )
