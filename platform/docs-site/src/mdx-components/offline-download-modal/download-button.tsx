@@ -1,25 +1,13 @@
 'use client';
 
-import { Button, Size } from '@leafygreen-ui/button';
-import { css } from '@leafygreen-ui/emotion';
-import { Icon } from '@leafygreen-ui/icon';
+import { Button } from '@via-ds/components/button';
+import { Tooltip, TooltipRoot, TooltipTrigger } from '@via-ds/components/tooltip';
+import { Align, Side, Size } from '@via-ds/components/types';
+import DownloadIcon from '@via-ds/icons/Download';
 import { reportAnalytics } from '@/utils/report-analytics';
-import { displayNone } from '@/utils/display-none';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
 import { useOfflineDownloadContext } from './download-context';
-import { Tooltip } from '@leafygreen-ui/tooltip';
-
-const downloadIconStyling = css`
-  width: 32px;
-  height: 22px;
-
-  .dark-theme & {
-    color: var(--white);
-    background-color: var(--gray-dark2);
-  }
-
-  ${displayNone.onMobileAndTablet};
-`;
+import styles from './download-button.module.scss';
 
 export const DownloadButton = () => {
   const { setModalOpen } = useOfflineDownloadContext();
@@ -35,27 +23,22 @@ export const DownloadButton = () => {
   };
 
   return (
-    <Tooltip
-      triggerEvent="hover"
-      align="bottom"
-      justify="middle"
-      darkMode={true}
-      trigger={
+    <TooltipRoot side={Side.Bottom} align={Align.Center}>
+      <TooltipTrigger>
         <Button
           size={Size.Small}
-          className={downloadIconStyling}
+          className={styles.downloadButton}
           aria-label="Download Offline Docs"
-          onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+          onPress={openDownloadModal}
+          onClick={(e) => {
             // required to prevent being used within links
             e.stopPropagation();
-            openDownloadModal();
           }}
         >
-          <Icon size={14} glyph={'Download'} />
+          <DownloadIcon slot="icon" />
         </Button>
-      }
-    >
-      Download the Docs
-    </Tooltip>
+      </TooltipTrigger>
+      <Tooltip>Download the Docs</Tooltip>
+    </TooltipRoot>
   );
 };

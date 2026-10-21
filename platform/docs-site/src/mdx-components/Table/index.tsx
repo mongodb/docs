@@ -91,18 +91,14 @@ export const TableHeaderCell = ({ children }: { children: React.ReactNode }) => 
   }
   // Stub cell in a body row
   return (
-    <Cell
-      className={clsx(styles.cell, styles.bodyCell, styles.stubCell)}
-      contentClassName={styles.cellContainer}
-      role="rowheader"
-    >
+    <Cell className={clsx(styles.cell, styles.bodyCell, styles.stubCell)} role="rowheader">
       <div className={styles.bodyCellContent}>{children}</div>
     </Cell>
   );
 };
 
 export const TableCell = ({ children }: { children: React.ReactNode }) => (
-  <Cell className={clsx(styles.cell, styles.bodyCell)} contentClassName={styles.cellContainer}>
+  <Cell className={clsx(styles.cell, styles.bodyCell)}>
     <div className={styles.bodyCellContent}>{children}</div>
   </Cell>
 );
