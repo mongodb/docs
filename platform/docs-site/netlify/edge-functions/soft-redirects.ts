@@ -6,6 +6,8 @@ import type { Config, Context } from '@netlify/edge-functions';
 import { match, compile, type MatchFunction } from 'https://esm.sh/path-to-regexp@6.3.0';
 import allRedirects from '../../src/redirects/all-redirects.json' with { type: 'json' };
 import { hasUppercase, lowercaseRedirectPath } from '../../src/redirects/case-canonical.ts';
+import { markdownExportRewritePath } from '../../src/redirects/markdown-export.ts';
+import { prefersMarkdown } from '../../src/utils/parse-accept-header.ts';
 
 /**
  * Applies soft (non-force) redirects on the static site, which has no
@@ -114,6 +116,16 @@ export default async function handler(request: Request, context: Context): Promi
       }
     }
     return redirectTo(`${lowerPath}${search}`, 301);
+  }
+
+  // A markdown-preferred `.md` request misses Netlify's static Accept variant
+  // and reaches Next with the suffix still attached to the API route. Rewrite
+  // it to the extensionless page, whose middleware negotiates markdown.
+  const markdownPath = markdownExportRewritePath(pathname, prefersMarkdown(request.headers.get('Accept')));
+  if (markdownPath) {
+    const rewriteUrl = new URL(request.url);
+    rewriteUrl.pathname = markdownPath;
+    return context.next(new Request(rewriteUrl, request));
   }
 
   const res = await context.next();
