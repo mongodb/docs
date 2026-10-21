@@ -28,6 +28,7 @@ This installs Node.js, pnpm, lychee, and all linter dependencies. Re-run anytime
 | **SEO Linter** | Pre-push hook + PR | No (advisory) |
 | **404 Linter** | Pre-push hook + PR | No (advisory) |
 | **Findability Linter** | Pre-push hook + PR | No (advisory; exits 1 only on facet **errors**) |
+| **Composable Tutorial Linter** | Manual (`lint-docs.sh composable`) | No (advisory) |
 | **Redirect Linter** | PR (when redirect files change) | **Yes** |
 
 SEO, 404, and findability linters run on every push and PR as warnings. The redirect linter runs only when redirect files change and **will block the PR** if circular redirects are found.
@@ -93,6 +94,14 @@ npx tsx .github/lint-docs/findability-lint-cli.ts --synonyms /path/to/synonyms.c
 pnpm --dir .github/lint-docs run findability-selftest
 ```
 
+### Composable Tutorial Linter
+
+Checks composable-tutorial syntax, tabs that should be composables, and tutorial complexity.
+
+```bash
+npx tsx .github/lint-docs/composable-lint-cli.ts content/path/to/file.txt
+```
+
 ### Wrapper Script
 
 For convenience, use the wrapper script from anywhere:
@@ -101,8 +110,9 @@ For convenience, use the wrapper script from anywhere:
 ./lint-docs.sh seo content/path/to/file.txt
 ./lint-docs.sh 404 content/path/to/file.txt
 ./lint-docs.sh findability content/path/to/file.txt
+./lint-docs.sh composable content/path/to/file.txt
 ./lint-docs.sh redirects content/atlas/netlify.toml
-./lint-docs.sh all content/path/to/file.txt   # Run SEO + 404 + findability
+./lint-docs.sh all content/path/to/file.txt   # Run SEO + 404 + findability + nested + composable
 ./lint-docs.sh help                           # Show all commands
 ```
 
@@ -164,6 +174,51 @@ Open a PR to `docs-mongodb-internal` with the updated `facet-allowlist.json` aft
 
 **Skipped:**
 - Rewrites with `status = 200` (these are proxies, not redirects)
+
+---
+
+## Composable Tutorial Linter Rules
+
+Checks `.. composable-tutorial::` / `.. selected-content::` usage against the
+[Composable Tutorials Guidance](https://docs.google.com/document/d/1rOJ5RF4xDdw4OBSej9m2nb_U5tIXOLz3sYCB6P4DpcI)
+doc. Detect-only; there is no autofix.
+
+To convert a page that presents language options as tabs into a composable
+tutorial, use the `language-tabs-to-composable-scripted` skill.
+
+| Rule | Severity | Description |
+|------|----------|-------------|
+| `orphan-selected-content` | Error | `selected-content` is not inside a `composable-tutorial` |
+| `composable-empty` | Error | `composable-tutorial` has no `selected-content` (skipped when the body includes a file) |
+| `composable-missing-options` | Error | `composable-tutorial` has no `:options:` |
+| `selected-content-missing-selections` | Error | `selected-content` has no `:selections:` |
+| `defaults-exceed-options` | Error | `:defaults:` has more values than `:options:` has definitions |
+| `selections-exceed-options` | Error | `:selections:` has more values than the parent `:options:` has definitions |
+| `duplicate-ref-in-composable` | Error | The same `.. _ref:` is defined in more than one `selected-content` of one tutorial |
+| `duplicate-custom-composable-id` | Error | A composable id is defined more than once in a docset's `snooty.toml` |
+| `language-tabs-without-composable` | Warning | Language options presented as tabs, but the page has no composable tutorial |
+| `nested-tabs-should-be-composable` | Warning | Nested tabs hold a language/interface/version selector |
+| `content-duplicated-across-selections` | Warning | Identical content appears in every `selected-content` of a tutorial |
+| `multiple-procedures-per-page` | Warning | A single selection shows more than one procedure |
+| `permutations-over-50` | Warning | Permutation count (product of the `:options:` definitions' option counts) exceeds 50 |
+
+Fewer `:defaults:` / `:selections:` values than `:options:` entries is allowed
+(the omitted selector applies regardless); only *more* values are flagged.
+
+`permutations-over-50` and `duplicate-custom-composable-id` read each docset's
+`snooty.toml` (`[[composables]]`), falling back to `composable-allowlist.json`
+(the default definitions listed in the guidance doc's Appendix → Default Selections).
+
+**Deliberate non-rules** (documented so they aren't mistaken for gaps):
+
+- "if a composable tutorial is too complex, consider splitting into separate pages"
+  and "nested pages are a good alternative for too complex composable tutorials" —
+  both hinge on an undefined "too complex"; the first collapses into
+  `permutations-over-50`.
+- `custom-id-collides-with-default` — the guidance says a custom id must be
+  unique from the rstspec.toml defaults, but docsets routinely redefine default
+  ids (`language`, `interface`, …) in their `snooty.toml`, so a literal rule
+  would flag ~40 docsets. Not emitted.
 
 ---
 
@@ -313,6 +368,9 @@ docs-mongodb-internal/
     ├── findability-lint-rules.ts       # Findability linter rules (pure functions)
     ├── findability-lint-selftest.ts    # Findability linter regression tests
     ├── facet-allowlist.json            # Approved facet names and values
+    ├── composable-lint-cli.ts          # Composable tutorial linter CLI
+    ├── composable-lint-rules.ts        # Composable tutorial linter rules (pure functions)
+    ├── composable-allowlist.json       # Default composable definitions (option counts)
     ├── package.json                    # Dependencies
     └── tsconfig.json                   # TypeScript config
 ```

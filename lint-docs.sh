@@ -110,6 +110,9 @@ case "$CMD" in
   nested)
     npx tsx "$LINT_DIR/nested-components-lint-cli.ts" "$@"
     ;;
+  composable)
+    npx tsx "$LINT_DIR/composable-lint-cli.ts" "$@"
+    ;;
   vale)
     if ! command -v vale &> /dev/null; then
       echo "❌ Vale is required but not installed."
@@ -156,6 +159,9 @@ case "$CMD" in
     echo "=== Nested Components Linter ==="
     npx tsx "$LINT_DIR/nested-components-lint-cli.ts" "$@" || exit_code=1
     echo ""
+    echo "=== Composable Tutorial Linter ==="
+    npx tsx "$LINT_DIR/composable-lint-cli.ts" "$@" || exit_code=1
+    echo ""
     echo "=== Vale Prose Linter ==="
     if command -v vale &> /dev/null; then
       _vale_run "$@" || exit_code=1
@@ -175,8 +181,9 @@ case "$CMD" in
     echo "  redirects    Run circular redirect checker"
     echo "  findability  Run findability linter (facets, keywords, docs URLs)"
     echo "  nested       Run nested components linter (forbidden RST directive nesting)"
+    echo "  composable   Run composable tutorial linter (syntax, tabs, complexity)"
     echo "  vale         Run Vale prose linter (requires Vale installed)"
-    echo "  all          Run SEO + 404 + findability + nested + Vale prose linters"
+    echo "  all          Run SEO + 404 + findability + nested + composable + Vale prose linters"
     echo ""
     echo "Examples:"
     echo "  ./lint-docs.sh seo content/manual/source/intro.txt"

@@ -312,6 +312,14 @@ Read the edited file and confirm:
 - No old-format include files were orphaned. If the conversion replaced or inlined nested tabs from an include, grep for the old include path and delete any include that is no longer referenced by any page.
 - No filenames have a doubled extension (for example, `...atlas-api.rst.rst`) introduced during extraction.
 
+Then run the composable linter on the converted file and address any findings before reporting:
+
+```bash
+./lint-docs.sh composable $ARGUMENTS
+```
+
+The linter is advisory, but it is the automated check for `permutations-over-50` — the checklist above does not count permutations — and it re-verifies the composable syntax (`selected-content`, `:options:`, `:defaults:`, `:selections:`) independently of the converter.
+
 Report the final summary of changes to the user.
 
 ---
