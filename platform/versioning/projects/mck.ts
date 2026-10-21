@@ -18,8 +18,8 @@ export default defineDocset({
 		{ name: "v1.6", label: "v1.6.0" },
 		{ name: "v1.5", label: "v1.5.0" },
 		{ name: "v1.4", label: "v1.4.0" },
-		{ name: "v1.3", label: "v1.3.0" },
-		{ name: "v1.2", label: "v1.2.0" },
-		{ name: "v1.1", label: "v1.1.0" },
+		{ name: "v1.3", label: "v1.3.0", active: false, eol: "link" },
+		{ name: "v1.2", label: "v1.2.0", active: false, eol: "link" },
+		{ name: "v1.1", label: "v1.1.0", active: false, eol: "link" },
 	],
 });
