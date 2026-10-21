@@ -41,12 +41,19 @@ them, see :ref:`interpret-explain-plan`.
 Explain Output Structure
 ------------------------
 
-The ``explain`` results present the query plans as a tree of stages. 
-The output structure can differ based on which query engine the 
-operation uses. Operations can use the classic query engine or the 
+The ``explain`` results present the query plans as a tree of stages.
+The output structure can differ based on which query engine the
+operation uses. Operations can use the classic query engine or the
 :ref:`slot-based execution query engine <sbe-landing>`.
 
-To see how the output structure can differ between the two execution 
+This structure applies to :method:`db.collection.find()` and to
+commands that use the same query system, such as :dbcommand:`count`,
+:dbcommand:`distinct`, :dbcommand:`update`, and
+:dbcommand:`findAndModify`. Aggregation operations return a different
+structure that has a top-level ``stages`` array. To learn how to read
+aggregation explain output, see :ref:`explain-output-aggregation`.
+
+To see how the output structure can differ between the two execution
 engines, see the following examples:
 
 .. tabs::
@@ -1093,6 +1100,61 @@ details the indexes; e.g.:
 In previous versions of MongoDB, ``cursor.explain()`` returned the
 ``clauses`` array that detailed the indexes.
 
+.. _explain-output-aggregation:
+
+Aggregation Explain Output
+--------------------------
+
+When you run ``explain`` on an aggregation, the output contains a
+top-level ``stages`` array instead of a single query plan tree. The
+first entry in the array is normally ``$cursor``, which contains the
+data-access portion of the pipeline. The ``$cursor`` entry holds the
+same :ref:`queryPlanner` and :ref:`executionStats` objects that
+``find`` explain output returns. Entries that follow ``$cursor`` run
+in the aggregation framework.
+
+Stages Absorbed into ``$cursor``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``stages`` array often does not match the stages in your pipeline.
+During optimization, MongoDB moves some pipeline work into the query
+system, which can use an index to complete that work more efficiently.
+For example, MongoDB can perform the following optimizations:
+
+- Leading :pipeline:`$match`, :pipeline:`$sort`, and :pipeline:`$limit`
+  stages are absorbed into ``$cursor``. An absorbed
+  :pipeline:`$match` appears as a ``filter`` in the query plan, and an
+  absorbed :pipeline:`$limit` appears as a ``LIMIT`` stage.
+
+- :pipeline:`$group` and :pipeline:`$lookup` can be pushed into the
+  query plan as ``GROUP`` and ``EQ_LOOKUP`` stages. To learn more, see
+  :ref:`agg-group-optimization-sbe` and
+  :ref:`agg-lookup-optimization-sbe`.
+
+- If an index provides the requested sort order, no separate
+  :pipeline:`$sort` entry appears.
+
+- :pipeline:`$project` and other stages can also be pushed into the
+  query plan, depending on the MongoDB version and the query engine
+  in use.
+
+This list is not exhaustive. Which stages MongoDB absorbs or pushes
+down can change between releases. For general information on how
+MongoDB reshapes a pipeline before execution, see
+:ref:`agg-pipeline-optimization`.
+
+As a result, the ``stages`` array can contain fewer entries than the
+pipeline you ran. To see which stages the server ran, compare the
+``stages`` array to the ``command.pipeline`` field in the same output.
+
+Pipelines That Are Optimized Away
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the query system can run every stage in the pipeline, the ``stages``
+array does not appear in the output. Instead, the output contains the
+``explain.queryPlanner.optimizedPipeline`` field set to ``true`` and no
+aggregation stage information.
+
 .. _sort-and-group-executionStats-and-above:
 
 ``$sort`` and ``$group`` Stages
@@ -1178,6 +1240,12 @@ If MongoDB cannot use an index or indexes to obtain the sort order, the
 results include a ``SORT`` stage indicating an in-memory sort operation.
 If the explain plan does not contain an explicit ``SORT`` stage, then MongoDB used
 an index to obtain the sort order.
+
+In aggregation explain output, an in-memory sort can appear as a
+:pipeline:`$sort` entry in the top-level ``stages`` array instead of a
+``SORT`` stage in the query plan. A pipeline can perform an in-memory
+sort even though the query plan contains no ``SORT`` stage. To learn
+more, see :ref:`explain-output-aggregation`.
 
 .. _explain-output-query-shape-hash:
 
