@@ -770,7 +770,7 @@ differences in functionality:
      - :ref:`stringFacet <bson-data-types-string-facet>` (outdated)
      - **Normalizer Support**: The ``token`` type supports normalizers
        that transform facet buckets. For example, with
-       ``normalizer: lowercase``, "ADIDAS" and "adidas" count towards
+       ``normalizer: lowercase``, "ADIDAS" and "adidas" count toward
        the same bucket while ``stringFacet`` treats them as separate
        buckets.
 
@@ -779,7 +779,7 @@ differences in functionality:
      - :ref:`numberFacet <bson-data-types-number-facet>` (outdated)
      - **Array Support**: The ``number`` type considers values within
        arrays for facet buckets. For example, a document with an
-       array value ``[0, 10]`` counts towards both buckets ``[1, 5]``
+       array value ``[0, 10]`` counts toward both buckets ``[1, 5]``
        and ``[6, 10]`` while ``numberFacet`` ignores array values
        completely.
 
@@ -1105,16 +1105,24 @@ Nested Facets
 To group the documents in each bucket by additional fields, add a
 ``facets`` document to an existing facet definition. Each nested facet 
 definition uses the same syntax as a top-level facet definition, so you 
-can nest facets to build a tree of groupings. |fts| returns the buckets 
-for a nested facet inside each bucket of its parent facet. You can
-nest facets without limit on the number of levels. However, the
-following restrictions apply:
+can nest facets to build a tree of groupings. |fts| returns the buckets
+for a nested facet inside each bucket of its parent facet.
+
+For each bucket of a facet that contains a nested facet, |fts| also
+returns a ``count`` field with the number of documents in the bucket.
+You don't need to specify a ``count`` metric for these intermediate
+buckets.
+
+You can nest facets without limit on the number of levels. However,
+the following restrictions apply:
 
 - You can specify ``aggregations`` only on a leaf facet in a nested
   facet tree. A facet definition that specifies ``facets`` can't
   also specify ``aggregations``. To compute metrics for an
   intermediate grouping, specify that grouping as a separate
   top-level facet with ``aggregations`` and no nested facet.
+- You can't name a nested facet ``count``. |fts| reserves ``count``
+  for the document count of intermediate buckets.
 - The total number of unique buckets that a query can return can't
   exceed ``100000``. To calculate the buckets that one facet tree
   produces, multiply the number of buckets at each level of its
@@ -1160,8 +1168,8 @@ If the facet definition specifies :ref:`fts-facet-aggregation`, each
 bucket document contains the metrics that you name in the
 ``aggregations`` document instead of the ``count`` field. If the facet
 definition specifies :ref:`nested facets <fts-facet-nested>`, each
-bucket document contains a ``facet`` field with the results for the
-nested facet.
+bucket document contains a ``count`` field with the number of
+documents in the bucket, and the results for the nested facet.
 
 .. _fts-facet-multi-select:
 
@@ -2392,9 +2400,10 @@ field and compute metrics for each bucket.
       }
 
    The query groups the listings by ``property_type``, and then groups
-   the listings in each property type by number of bedrooms. The query
-   computes the number of listings and the largest number of guests
-   that a listing accommodates for each bedroom range.
+   the listings in each property type by number of bedrooms (``0``,
+   ``2``, or ``4``). The query computes the number of listings and the 
+   largest number of guests that a listing accommodates for each bedroom 
+   range.
 
    .. io-code-block::
       :copyable: true
@@ -2447,6 +2456,7 @@ field and compute metrics for each bucket.
                  buckets: [
                    {
                      _id: 'Apartment',
+                     count: { total: Long('3626') },
                      bedroomsFacet: {
                        buckets: [
                          { _id: 0, listingCount: Long('2534'), maxAccommodates: 12 },
@@ -2457,6 +2467,7 @@ field and compute metrics for each bucket.
                    },
                    {
                      _id: 'House',
+                     count: { total: Long('606') },
                      bedroomsFacet: {
                        buckets: [
                          { _id: 0, listingCount: Long('312'), maxAccommodates: 16 },
@@ -2467,6 +2478,7 @@ field and compute metrics for each bucket.
                    },
                    {
                      _id: 'Condominium',
+                     count: { total: Long('399') },
                      bedroomsFacet: {
                        buckets: [
                          { _id: 0, listingCount: Long('256'), maxAccommodates: 10 },
@@ -2477,6 +2489,7 @@ field and compute metrics for each bucket.
                    },
                    {
                      _id: 'Serviced apartment',
+                     count: { total: Long('185') },
                      bedroomsFacet: {
                        buckets: [
                          { _id: 0, listingCount: Long('128'), maxAccommodates: 7 },
@@ -2487,6 +2500,7 @@ field and compute metrics for each bucket.
                    },
                    {
                      _id: 'Loft',
+                     count: { total: Long('142') },
                      bedroomsFacet: {
                        buckets: [
                          { _id: 0, listingCount: Long('123'), maxAccommodates: 16 },
@@ -2497,6 +2511,7 @@ field and compute metrics for each bucket.
                    },
                    {
                      _id: 'Townhouse',
+                     count: { total: Long('108') },
                      bedroomsFacet: {
                        buckets: [
                          { _id: 0, listingCount: Long('59'), maxAccommodates: 8 },
@@ -2507,6 +2522,7 @@ field and compute metrics for each bucket.
                    },
                    {
                      _id: 'Guest suite',
+                     count: { total: Long('81') },
                      bedroomsFacet: {
                        buckets: [
                          { _id: 0, listingCount: Long('68'), maxAccommodates: 7 },
@@ -2517,6 +2533,7 @@ field and compute metrics for each bucket.
                    },
                    {
                      _id: 'Bed and breakfast',
+                     count: { total: Long('69') },
                      bedroomsFacet: {
                        buckets: [
                          { _id: 0, listingCount: Long('61'), maxAccommodates: 12 },
@@ -2527,6 +2544,7 @@ field and compute metrics for each bucket.
                    },
                    {
                      _id: 'Boutique hotel',
+                     count: { total: Long('53') },
                      bedroomsFacet: {
                        buckets: [
                          { _id: 0, listingCount: Long('47'), maxAccommodates: 16 },
@@ -2537,6 +2555,7 @@ field and compute metrics for each bucket.
                    },
                    {
                      _id: 'Guesthouse',
+                     count: { total: Long('50') },
                      bedroomsFacet: {
                        buckets: [
                          { _id: 0, listingCount: Long('43'), maxAccommodates: 8 },
@@ -2550,6 +2569,14 @@ field and compute metrics for each bucket.
              }
            }
          ]
+
+   |fts| returns the following information for each facet bucket:
+
+   - The number of listings (``count``) in the bucket (such as 
+     ``Apartment``, ``House``, and so on).
+   - The maximum number of guests that a listing in the bucket
+     range (``0`` bedrooms, ``2`` bedrooms, and so on) accommodates  
+     (``maxAccommodates``).
 
 Continue Learning 
 -----------------
