@@ -32,6 +32,86 @@ Required Access
 To integrate |mms| with webhooks, you must have
 :authrole:`Project Monitoring Admin` access to the project.
 
+.. _authenticate-webhook-requests:
+
+Authenticate Webhook Requests
+-----------------------------
+
+You can authenticate webhook requests with the following methods:
+
+- **Webhook secret**: |mms| uses the secret to generate the
+  ``X-MMS-Signature`` header. |mms| doesn't send the secret
+  itself as an authentication header or bearer token. To learn
+  how to verify the signature, see
+  :ref:`verify-webhook-requests`.
+
+- **OAuth 2.0 client credentials**: |mms| obtains a bearer access
+  token from your OAuth 2.0 token endpoint and sends it in the
+  ``Authorization`` header. To configure this method, see
+  :ref:`configure-webhook-integration`.
+
+You can use one method, both, or none. If you configure both, |mms|
+includes the ``Authorization`` and ``X-MMS-Signature`` headers in the
+same request.
+
+|mms| caches the OAuth 2.0 access token and refreshes it when the
+token expires. If your webhook endpoint returns a ``401``
+response, |mms| refreshes the token and retries the request once.
+
+Custom Headers Template Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you configure a custom headers template, it replaces the
+default headers in the request. |mms| doesn't add the
+``X-MMS-Signature`` or ``Authorization`` headers for you. To
+include either header, add it to your template:
+
+- ``"X-MMS-Signature": "${signature}"``
+
+- ``"Authorization": "Bearer ${oauthToken}"``
+
+To learn more about webhook templates, see
+:ref:`om-webhook-templating`.
+
+Other Authentication Methods
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the webhook secret and OAuth 2.0 client credentials don't meet
+your needs, you can handle authentication in one of the following
+ways:
+
+- **Query Parameters**: Include authentication credentials in
+  the :guilabel:`Webhook URL` as query parameters. For example:
+  ``https://example.com/webhook?token=your-auth-token``
+
+- **IP Access List**: Configure your webhook endpoint to accept
+  requests only from your |mms| instance's IP addresses.
+
+- **Reverse Proxy or API Gateway**: Use a reverse proxy or
+  |api| gateway that handles authentication before forwarding
+  requests to your webhook endpoint.
+
+.. _verify-webhook-requests:
+
+Verify Webhook Requests
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To verify that a webhook request originated from |mms|,
+validate the ``X-MMS-Signature`` header:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Retrieve the ``X-MMS-Signature`` header value from the incoming request.
+
+   .. step:: Calculate the Base64-encoded |hmac|-SHA-1 signature of the request body using your webhook secret.
+
+   .. step:: Compare your calculated signature with the ``X-MMS-Signature`` header value.
+
+      If they match, the request is authentic.
+
+.. _configure-webhook-integration:
+
 Configure a Webhook Integration
 -------------------------------
 
@@ -58,11 +138,24 @@ Configure a Webhook Integration
       In the :guilabel:`Webhook URL` field, enter the endpoint
       |url| where |mms| should send alert notifications.
 
-   .. step:: (Optional) Enter a webhook secret.
+   .. step:: Configure authentication.
 
-      In the :guilabel:`Webhook Secret` field, enter a secret
-      key. |mms| uses this secret to generate the
-      ``X-MMS-Signature`` header for request verification.
+      Enter at least one of the following authentication
+      options:
+
+      - :guilabel:`Webhook Secret`: Enter a secret key. |mms|
+        uses this secret to generate the ``X-MMS-Signature``
+        header for request verification.
+
+      - :guilabel:`OAuth2 Token URL`, :guilabel:`OAuth2 Client
+        ID`, and :guilabel:`OAuth2 Client Secret`: Enter the
+        token endpoint that |mms| calls to obtain an access
+        token, and the credentials for the application that you
+        registered with your OAuth 2.0 provider. Set all three
+        values together, or leave all three empty.
+
+      You can use both options together. To learn more, see
+      :ref:`authenticate-webhook-requests`.
 
    .. step:: Click :guilabel:`Save`.
 
@@ -131,45 +224,6 @@ helpers, and examples, see
 :doc:`Configure Webhook Templating
 </tutorial/webhook-templating>`.
 
-Authenticate Webhook Requests
------------------------------
-
-The :guilabel:`Webhook Secret` field stores a secret that |mms|
-uses solely to generate the ``X-MMS-Signature`` header for
-request verification. |mms| does not send the secret directly
-as an authentication header or bearer token.
-
-If your webhook endpoint requires authentication, you must
-handle it independently using one of the following methods:
-
-- **Query Parameters**: Include authentication credentials in
-  the :guilabel:`Webhook URL` as query parameters. For example:
-  ``https://example.com/webhook?token=your-auth-token``
-
-- **IP Access List**: Configure your webhook endpoint to accept
-  requests only from your |mms| instance's IP addresses.
-
-- **Reverse Proxy or API Gateway**: Use a reverse proxy or
-  |api| gateway that handles authentication before forwarding
-  requests to your webhook endpoint.
-
-Verify Webhook Requests
-~~~~~~~~~~~~~~~~~~~~~~~
-
-To verify that a webhook request originated from |mms|,
-validate the ``X-MMS-Signature`` header:
-
-.. procedure::
-   :style: normal
-
-   .. step:: Retrieve the ``X-MMS-Signature`` header value from the incoming request.
-
-   .. step:: Calculate the Base64-encoded |hmac|-SHA-1 signature of the request body using your webhook secret.
-
-   .. step:: Compare your calculated signature with the ``X-MMS-Signature`` header value.
-
-      If they match, the request is authentic.
-
 Limitations
 -----------
 
@@ -191,7 +245,7 @@ No Manual Test Alerts
 
 |mms| does not provide a way to trigger test alerts manually.
 To test your webhook endpoint, you can temporarily set up an
-alert with conditions that are easy to trigger, such as:
+alert with conditions that you can trigger, such as:
 
 - A low disk space threshold on a test deployment.
 - A connection count threshold that you can trigger by opening
