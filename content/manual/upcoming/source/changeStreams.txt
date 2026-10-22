@@ -931,6 +931,83 @@ transform the notifications at will.
       See :ref:`change-stream-output` for more information on the change
       stream response document format.
 
+   .. _change-stream-document-key-filter:
+
+   Use documentKey as a Query Filter
+   ---------------------------------
+
+   You can use the ``documentKey`` field from a change event to query
+   for the document that the event describes. To match each field value
+   literally, wrap every field value in the ``documentKey`` in an
+   :query:`$eq` operator.
+
+   .. note::
+   
+      Without ``$eq``, a query filter treats a regular expression value
+      as a pattern and an embedded document with a ``$``-prefixed field
+      name as a query operator. On a sharded collection, the
+      ``documentKey`` can also omit a shard key field that is missing
+      from the document. In either case, the filter can match documents
+      other than the one that the event describes.
+
+   The following example opens a change stream on the ``orders``
+   collection. For each event, the example builds a filter from the
+   ``documentKey`` and uses it to find the matching document in the
+   ``ordersArchive`` collection:
+
+   .. code-block:: javascript
+
+      const changeStream = db.orders.watch();
+
+      while (changeStream.hasNext()) {
+         const event = changeStream.next();
+
+         // Skip DDL events without a documentKey
+         if (!event.documentKey) {
+            continue;
+         }
+
+         // Wrap each documentKey field value in $eq
+         const filter = {};
+         for (const [field, value] of Object.entries(event.documentKey)) {
+            filter[field] = { $eq: value };
+         }
+
+         printjson(db.ordersArchive.find(filter).toArray());
+      }
+
+   For an event with the following ``documentKey``:
+
+   .. code-block:: javascript
+      :copyable: false
+
+      documentKey: { _id: 1, region: "west" }
+
+   The example builds this filter:
+
+   .. code-block:: javascript
+      :copyable: false
+
+      { _id: { $eq: 1 }, region: { $eq: "west" } }
+
+   .. important::
+
+      In a sharded collection, if a document is missing a shard key
+      field, the ``documentKey`` in the change event omits that field
+      instead of setting it to ``null``. A filter built from that
+      ``documentKey`` does not constrain the omitted field.
+
+      To avoid this, check the collection's shard key. If any shard
+      key field is missing from ``documentKey``, add it to your
+      filter with a value of ``null``:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         // Shard key: { region: 1, _id: 1 }
+         // documentKey from the event: { _id: 1 }
+         { region: { $eq: null }, _id: { $eq: 1 } }
+
    .. _change-stream-resume:
 
    Resume a Change Stream
