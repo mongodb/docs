@@ -35,3 +35,8 @@ If you specify a key in the :guilabel:`Webhook Secret` field,
 header contains the base64-encoded |hmac|-SHA-1 signature of the
 request body. |mms-full| creates the signature using the provided
 secret.
+
+If you configure OAuth 2.0 client credentials, |mms-full| adds the
+``Authorization`` request header. This header contains the bearer
+access token that |mms-full| obtains from your OAuth 2.0 token
+endpoint.
