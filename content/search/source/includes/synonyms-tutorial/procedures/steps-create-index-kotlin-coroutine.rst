@@ -64,7 +64,7 @@ Create the |fts| Index
                :linenos:
                :copyable: 
 
-      .. include:: /includes/index/shared/facts/find-connection-string.rst
+      .. include:: /includes/synonyms-tutorial/facts/connection-string-by-deployment.rst
 
    .. step:: Compile and run the file to create the index.
 

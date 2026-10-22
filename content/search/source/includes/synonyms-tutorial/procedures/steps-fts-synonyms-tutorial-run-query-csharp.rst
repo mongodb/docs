@@ -41,7 +41,7 @@
                   :dedent:
                   :emphasize-lines: 13
 
-            #. .. include:: /includes/index/shared/facts/find-connection-string.rst
+            #. .. include:: /includes/synonyms-tutorial/facts/connection-string-by-deployment.rst
 
             #. Run the query.    
 
@@ -97,7 +97,7 @@
                   :dedent:
                   :emphasize-lines: 13
 
-            #. .. include:: /includes/index/shared/facts/find-connection-string.rst
+            #. .. include:: /includes/synonyms-tutorial/facts/connection-string-by-deployment.rst
 
             #. Run the query.    
 
@@ -173,7 +173,7 @@
                   :dedent:
                   :emphasize-lines: 13
 
-            #. .. include:: /includes/index/shared/facts/find-connection-string.rst
+            #. .. include:: /includes/synonyms-tutorial/facts/connection-string-by-deployment.rst
               
             #. Run the query.
 

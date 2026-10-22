@@ -59,7 +59,7 @@ database.
                :copyable:
                :linenos:
 
-      .. include:: /includes/index/shared/facts/find-connection-string.rst
+      .. include:: /includes/synonyms-tutorial/facts/connection-string-by-deployment.rst
 
    .. step:: Create the index.
    

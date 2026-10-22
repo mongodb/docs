@@ -1,20 +1,13 @@
-.. tabs::
+To learn more about finding your connection string, see
+:ref:`connect-via-driver`.
 
-   .. tab:: Atlas Cluster
-      :tabid: cloud
+.. note::
 
-      .. include:: /includes/shared/facts/fact-connection-string-format-drivers.rst
+   For a local or self-managed deployment, your connection string
+   should use the following format:
 
-      To learn more, see :ref:`connect-via-driver`.
+   .. code-block::
 
-   .. tab:: Local or Self-Managed
-      :tabid: local
+      mongodb://localhost:<port-number>/?directConnection=true
 
-      Your connection string should use the 
-      following format: 
-
-      .. code-block:: 
-
-         mongodb://localhost:<port-number>/?directConnection=true
-      
-      To learn more, see :ref:`Connection Strings <mongodb-uri>`.
+   To learn more, see :ref:`Connection Strings <mongodb-uri>`.
