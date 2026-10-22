@@ -130,13 +130,7 @@ directories:
    If you change the user that runs the MongoDB process, you **must**
    give the new user access to these directories.
 
-#. Configure SELinux if enforced.  See :ref:`install-rhel-configure-selinux`.
-
-Configure SELinux
-~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/fact-selinux-redhat-options.rst
-.. include:: /includes/important-selinux-customizations.rst
+#. Configure SELinux if enforced. See :ref:`install-rhel-configure-selinux`.
 
 .. |mongod-user| replace:: ``mongod``
 .. |mongod-datadir| replace:: ``/var/lib/mongo``

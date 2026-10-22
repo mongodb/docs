@@ -1708,6 +1708,12 @@ const tocData: TocItem[] = [
             contentSite: 'docs',
             url: '/docs/:version/reference/resource-document',
           },
+          {
+            label: 'SELinux',
+            contentSite: 'docs',
+            url: '/docs/:version/tutorial/selinux/mongodb-policy',
+            versions: { excludes: manualVersions.before('v8.3') },
+          },
         ],
       },
       {

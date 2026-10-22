@@ -1,0 +1,170 @@
+.. _install-selinux-data-directory:
+.. _install-rhel-configure-selinux:
+.. _manual-selinux:
+
+====================================
+Configure the MongoDB SELinux Policy
+====================================
+
+.. meta::
+   :description: Install and apply the official MongoDB SELinux policy to secure self-managed MongoDB deployments on Red Hat Enterprise Linux and related distributions.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Security Enhanced Linux (SELinux) is a Linux kernel security module that
+enforces mandatory access control policies. This allows you to confine a
+process to the files, directories, and ports that its policy explicitly
+permits. This can block access even when the standard file permissions
+otherwise grant access.
+
+About This Task
+---------------
+
+Supported Platforms
+~~~~~~~~~~~~~~~~~~~
+
+MongoDB provides an SELinux policy for use with :binary:`~bin.mongod`.
+This is available for MongoDB Enterprise and MongoDB Community on systems
+that use:
+
+- Red Hat Enterprise Linux or related distributions
+
+- MongoDB installed with the package manager
+
+Supported Configuration
+~~~~~~~~~~~~~~~~~~~~~~~
+
+If your MongoDB deployment uses a custom value for any of the
+following settings, you cannot use the MongoDB SELinux policy:
+
+- Connection Ports: :ref:`default-mongodb-port`
+
+- Data Directory: :setting:`~storage.dbPath`
+
+- Log Directory: :setting:`~systemLog.path`
+
+- Process ID Path: :setting:`~processManagement.pidFilePath`
+
+Policy Coverage
+~~~~~~~~~~~~~~~
+
+The MongoDB SELinux policy only covers :binary:`~bin.mongod`. If you
+want to use SELinux on a system that also uses :binary:`~bin.mongos`,
+:program:`mongosh`, or :ref:`mongocryptd <mongocryptd>`, you need to
+configure a custom policy.
+
+Backward Compatibility
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/downgrade-for-SELinux-policy.rst
+
+.. _manual-selinux-custom:
+
+Customize SELinux Policies
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can customize the MongoDB SELinux policy with the ``semanage``
+command. For example, to add port 30000 to ``mongod_port_t``, run the
+following command:
+
+.. code-block:: bash
+
+   sudo semanage port -at mongod_port_t -p tcp 30000
+
+This configures SELinux to allow TCP connections on both the standard
+MongoDB ports and port 30000.
+
+Before You Begin
+----------------
+
+Ensure that you have the prerequisite packages installed on your system:
+
+.. code-block:: bash
+
+   sudo dnf install git make checkpolicy policycoreutils \
+      selinux-policy-devel
+
+Enforcement
+~~~~~~~~~~~
+
+SELinux enforces policies by default, which means it blocks processes
+that violate its configured restrictions. In development environments,
+users sometimes disable SELinux or configure it to log but permit all
+operations. Before you begin, check that SELinux is enforcing its
+policies.
+
+To check which mode SELinux is in, run the following command:
+
+.. io-code-block::
+
+   .. input::
+      :language: bash
+
+      getenforce
+
+   .. output::
+      :language: none
+
+      Enforcing
+
+If the command returns ``Permissive``, you can reset it to enforcing
+with the ``setenforce`` command:
+
+.. code-block:: bash
+
+   sudo setenforce 1
+
+To make the change persistent, set the ``SELINUX`` variable in the
+``/etc/selinux/config`` file:
+
+.. code-block:: none
+
+   SELINUX=enforcing
+
+Steps
+-----
+
+.. procedure::
+   :style: normal
+
+   .. step:: Download the MongoDB SELinux policy.
+
+      To download the MongoDB SELinux policy, use Git to clone the
+      repository:
+
+      .. code-block:: bash
+
+         git clone https://github.com/mongodb/mongodb-selinux
+
+   .. step:: Build the policy.
+
+      To build the policy, change into the ``mongodb-selinux``
+      directory and run ``make``:
+
+      .. code-block:: bash
+
+         cd mongodb-selinux
+         make
+
+   .. step:: Apply the policy to SELinux.
+
+      To apply the policy, run the ``install`` target with
+      ``sudo``:
+
+      .. code-block:: bash
+
+         sudo make install
+
+SELinux now uses the MongoDB policy, allowing you to run
+:binary:`~bin.mongod` while SELinux is in enforcement mode.
+
+Learn More
+----------
+
+- :ref:`manual-dir-paths`
+- :ref:`default-mongodb-port`
+

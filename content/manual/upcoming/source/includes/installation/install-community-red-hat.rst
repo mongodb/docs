@@ -92,40 +92,6 @@ directories:
 
 #. Configure SELinux if enforced.  See :ref:`install-rhel-configure-selinux`.
 
-.. _install-selinux-data-directory:
-
-.. _install-rhel-configure-selinux:
-
-Configure SELinux
-~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/fact-selinux-redhat-with-policy.rst
-
-.. |mongod-user| replace:: ``mongod``
-.. |mongod-datadir| replace:: ``/var/lib/mongo``
-
-Procedure
-~~~~~~~~~
-
-Follow these steps to run MongoDB |edition| Edition on your system.
-These instructions assume that you are using the default settings.
-
-**Init System**
-
-.. include:: /includes/fact-systemd-vs-initd.rst
-
-.. tabs::
-
-   .. tab:: systemd (systemctl)
-      :tabid: systemd-systemctl
-
-      .. include:: /includes/steps/run-mongodb-on-a-linux-distribution-systemd.rst
-
-   .. tab:: System V Init (service)
-      :tabid: systemvinit-service
-
-      .. include:: /includes/steps/run-mongodb-on-a-linux-distribution.rst
-
 Additional Information
 ----------------------
 
