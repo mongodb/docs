@@ -389,7 +389,7 @@ const tocData: TocItem[] = [
       {
         label: 'API Documentation',
         isExternal: true,
-        url: 'https://pymongo.readthedocs.io/en/4.18.3/api/',
+        url: 'https://pymongo.readthedocs.io/en/4.19.0/api/',
       },
       {
         label: 'Issues & Help',
