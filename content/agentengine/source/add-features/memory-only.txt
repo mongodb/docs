@@ -10,12 +10,12 @@ Use the Standalone Memory Service
 
 .. meta::
    :keywords: ai, memory, anthropic, voyage
-   :description: Learn how to use the agent-engine-sdk-memory Python SDK to record and retrieve conversation context from an external application using the Atlas Agent Engine memory service as a standalone integration.
+   :description: Learn how to use the agent-engine-sdk-memory Python SDK to record and retrieve conversation context from an external application using the Agent Engine memory service as a standalone integration.
 
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 Overview
@@ -88,7 +88,17 @@ Configure the Hosted Memory Service
 -----------------------------------
 
 This section shows how to create a memory-only project hosted
-on the {+platform-short+}.
+on the {+platform-short+} by performing the following tasks:
+
+- Save the target project as a CLI context
+- Upload the required project secrets
+- Start the hosted memory runtime
+- Use the Python SDK to call the memory runtime from your application
+
+.. note::
+
+   To create a memory-only project, you don't
+   deploy an agent or create a workspace.
 
 Prerequisites
 ~~~~~~~~~~~~~
@@ -96,33 +106,35 @@ Prerequisites
 Before you begin this tutorial, ensure that you have the following
 resources:
 
-- The ``agentengine`` CLI installed and authenticated. To learn more,
-  see
+- The ``agentengine`` CLI installed and authenticated.
+  Use version ``0.1.120`` or later. To learn more, see
   :ref:`agent-engine-set-up-install-authenticate`.
 - Access to the {+platform-short+} by running
   ``agentengine auth login``.
 - A Voyage AI API key for generating memory embeddings.
-- An API key for a large language model (LLM) provider,
-  such as ``ANTHROPIC_API_KEY``.
-- ``pip`` or ``uv`` installed to install the Python SDK.
-- An Atlas Flex (minimum requirement), ``M10``, ``M20``, or later tier cluster (recommended) to store
-  your memory data. To provision a cluster, see
-  :ref:`agent-engine-deploy-atlas-setup`.
-  
-  -  This guide requires a connection string for your Atlas cluster.
-     To learn how to retrieve your connection string, see the
-     :atlas:`Connect to a Cluster </connect-to-database-deployment>` guide.
+- An API key for the LLM provider that you
+  use for background extraction.
+- ``pip`` or ``uv`` installed, which is required to install the Python SDK.
+- Python 3.11 or later installed.
+- ``curl`` and ``jq`` installed.
+- A provisioned Atlas cluster that meets the following requirements:
 
-  -  We recommend deploying a dedicated ``M10`` or later tier cluster
-     to accommodate your memory data and index count as they grow.
-     Atlas Flex is the lowest cluster tier that can support the memory
-     service.
+  - Your cluster is tier ``M10`` or larger. Free and shared tiers
+    are not supported, since they cannot hold the Atlas Search and Vector Search
+    indexes that memory creates.
 
-  -  Your cluster's :atlas:`IP access list
-     </security/ip-access-list/>` must allow traffic from the
-     {+platform-short+} data plane. To learn how to add the data
-     plane IP addresses, see the
-     :ref:`agent-engine-atlas-ip-allowlist` section.
+  - Your connection string is percent-encoded and includes the
+    database user's username and password. To learn how to retrieve
+    your connection string, see the
+    :atlas:`Connect to a Cluster </connect-to-database-deployment>`
+    guide.
+
+  - Your Atlas user account has the :guilabel:`Project Owner` role
+    on the Atlas project. Save the project ID and organization ID.
+
+  - Your database user has the :atlasrole:`readWriteAnyDatabase`
+    role. Memory creates its own databases, so a user scoped to one
+    database cannot authenticate to all required databases.
 
 .. note::
 
@@ -131,213 +143,429 @@ resources:
    ``Memory: waiting`` stage and might time out with an
    ``Error: context deadline exceeded`` error message.
 
+.. _agent-engine-memory-only-ip-allowlist:
+
+Update Your IP Access List
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Memory connects to your cluster from the {+platform-short+} network,
+not from your local machine. Before you provision memory, complete
+the following steps to add the {+platform-short+} Atlas addresses to
+your Atlas project's IP access list:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Open the Atlas project that contains your cluster.
+
+   .. step:: Navigate to the :guilabel:`IP Access List` page.
+
+      In the left navigation, select :guilabel:`Database & Network Access`
+      in the :guilabel:`Security` section. Then, select :guilabel:`IP Access List`
+      from the sidebar.
+
+   .. step:: Add the required IP addresses.
+   
+      Click the :guilabel:`Add IP Address` button on the top-right corner of
+      the page. Add the following entries in the :guilabel:`Access List Entry`
+      field, click :guilabel:`Confirm`, and wait until Atlas shows both as active
+      in the :guilabel:`Status` column.
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 30 70
+
+         * - CIDR
+           - Description
+
+         * - ``44.214.209.237/32``
+           - {+platform-short+} Atlas access
+
+         * - ``52.44.27.64/32``
+           - {+platform-short+} Atlas access
+
+If you skip these steps, memory never reaches a ready state and
+does not progress past the ``orchestration_engine`` status.
+
+.. important::
+
+   These addresses are the production addresses that the
+   {+platform-short+} uses for Atlas traffic. They differ from the
+   egress addresses described in :ref:`agent-engine-network-egress`,
+   which cover traffic to external services other than Atlas. Do not
+   add ``0.0.0.0/0`` to the IP access list.
+
+.. note::
+
+   The ``agentengine atlas setup`` command adds these IP
+   address entries for you. However, this command requires a workspace,
+   which memory-only projects don't have.
+
 Steps
 ~~~~~
 
 .. procedure::
    :style: normal
 
-   .. step:: Create a memory-only project.
+   .. step:: Sign in and create a context.
 
-      Run the following command to scaffold a memory-only project.
-      Replace ``"My Project"`` with your project name.
+      To sign into the {+platform-short+} and create a context,
+      complete the following steps:
+
+      a. Set the following values in your shell. Replace
+         ``<atlas-organization-id>`` and ``<atlas-project-id>`` with
+         the IDs of the Atlas organization and project that contain
+         your cluster:
+
+         .. code-block:: bash
+
+            export PLATFORM_URL='https://agentengine.mongodb.com'
+            export ORG_ID='<atlas-organization-id>'
+            export PROJECT_ID='<atlas-project-id>'
+            export MEMORY_CONTEXT='my-project'
+
+      #. Run the following commands to sign in and confirm that the
+         project is visible:
+
+         .. code-block:: bash
+
+            agentengine version
+            agentengine auth login --base-url "$PLATFORM_URL"
+            agentengine project list --org-id "$ORG_ID" --base-url "$PLATFORM_URL"
+
+      #. Run the following command to save the target project as a
+         named context:
+
+         .. code-block:: bash
+
+            agentengine context create "$MEMORY_CONTEXT" \
+              --org-id "$ORG_ID" \
+              --project-id "$PROJECT_ID" \
+              --base-url "$PLATFORM_URL"
+
+         A context names the platform, organization, and project. It
+         doesn't require a workspace. Future steps pass
+         ``--context "$MEMORY_CONTEXT"`` to target this project.
+
+   .. step:: Generate the memory configuration.
+
+      Scaffold a memory-only project, and choose the LLM that memory
+      uses for background extraction. 
+
+      To use a provider's public API, such as Anthropic with its
+      default model, run the following command:
 
       .. code-block:: bash
 
-         agentengine create --memory-only --name "My Project"
+         agentengine create --memory-only --name "My Project" --llm anthropic --yes
 
-      The command generates a project directory that contains only a
-      ``project-config.yaml`` file, with no ``agent.yaml`` file or
-      workspace.
+      .. tip::
 
-   .. step:: Create and select the project on the platform.
+         To choose a different provider, you can pass ``--llm openai``
+         or ``--llm gemini``. To choose a different model, you can pass
+         ``--llm-model <model>``.
 
-      a. Run the following command to register the project. The
-         command prints the new project ID:
+      To use an OpenAI-compatible gateway, such as Azure AI Foundry,
+      run the following command:
 
-         .. code-block:: bash
+      .. code-block:: bash
 
-            agentengine project create "My Project"
+         agentengine create --memory-only --name "My Project" \
+           --llm openai-compatible \
+           --llm-base-url '<https-base-url-ending-in-/v1>' \
+           --llm-model '<exact-model-or-deployment-name>' \
+           --llm-auth-header 'api-key' | 'authorization' \
+           --yes
 
-      #. Select the new project as active. Replace
-         ``<project-id>`` with the project ID printed by the previous
-         command:
+      For the ``--llm-auth-header`` flag, choose one of the following
+      values based on the header your gateway expects:
 
-         .. code-block:: bash
+      - ``api-key``: Sends the key in an ``api-key`` header
+      - ``authorization``: Sends ``Authorization: Bearer <key>``
 
-            agentengine auth login --project-id <project-id>
+   .. step:: Verify your ``project-config.yaml`` file structure.
 
-   .. step:: Configure memory settings.
+      Either command from the preceding step creates a ``my-project``
+      directory that contains only a ``project-config.yaml`` file, with
+      no ``agent.yaml``  file or workspace.
+      
+      Navigate to the ``my-project`` directory and open the ``project-config.yaml``
+      file. Confirm that its ``memory:`` block resembles the following example:
 
-      a. Open the ``project-config.yaml`` file and set your secret names
-         and the extraction provider under the ``memory:`` block.
+      .. code-block:: yaml
 
-      #. Run the following commands to set the required secrets for your project:
+         memory_only: true
 
-         .. code-block:: bash
+         memory:
+           voyage:
+             model: "voyage-4-large"
+             dimension: 1024
 
-            agentengine secret set MONGODB_URI --value "<value>" --project-id <project-id>
-            agentengine secret set VOYAGE_API_KEY --value "<value>" --project-id <project-id>
-            agentengine secret set ANTHROPIC_API_KEY --value "<value>" --project-id <project-id>
+           extraction_llm:
+             provider: openai
+             model: <exact-model-or-deployment-name>
+             base_url: <https-base-url-ending-in-/v1>
+             api_key_secret: LLM_API_KEY
+             auth_header: api-key
 
-         Replace the following placeholder values:
+           background_extraction:
+             snapshot:
+               max_messages: 20
+               stale_minutes: 1
 
-         - ``<value>``: Value of the secret.
+           extraction:
+             enabled:
+               - semantic
+               - episodic
+               - taxonomic
+               - procedural
 
-           -  ``MONGODB_URI``: Connection string of your Atlas cluster.
-           -  ``VOYAGE_API_KEY``: Your Voyage AI key.
-           -  ``ANTHROPIC_API_KEY``: Your LLM provider key.
-         - ``<project-id>``: Project object ID returned by
-           the ``agentengine project create`` command. This flag
-           is required because the memory-only workflow does not include an ``agents.yaml``
-           file.
+      If you chose the public API option, the ``extraction_llm``
+      block omits the ``base_url`` and ``auth_header`` fields. When
+      you pass ``--llm openai-compatible``, the CLI stores it in the
+      ``provider`` field as ``provider: openai``.
 
-         Replace ``ANTHROPIC_API_KEY`` with the key name for your LLM
-         provider if you use a different provider.
+      .. note:: LLM Provider Keys 
 
-      #. Store the memory configuration:
+         The ``extraction_llm`` block's ``api_key_secret`` field names
+         the project secret that holds your LLM provider key. Both
+         options set this field to ``LLM_API_KEY``, so upload your key
+         under that name in the next step, not as ``ANTHROPIC_API_KEY``
+         or ``OPENAI_API_KEY``. This secret supplies only the key, and
+         the ``extraction_llm`` block supplies the endpoint and model.
 
-         .. code-block:: bash
+   .. step:: Upload project secrets.
 
-            agentengine memory configure
+      Run the following commands to upload your project secrets
+      and enter the corresponding values when prompted:
+
+      .. code-block:: bash
+
+         agentengine secret set MONGODB_URI --context "$MEMORY_CONTEXT" --project-scope
+         agentengine secret set VOYAGE_API_KEY --context "$MEMORY_CONTEXT" --project-scope
+         agentengine secret set LLM_API_KEY --context "$MEMORY_CONTEXT" --project-scope
+
+      Then, confirm that you successfully uploaded the secrets by running the
+      following command:
+
+      .. code-block:: bash
+
+         agentengine secret list --context "$MEMORY_CONTEXT" --project-scope
+
+      .. important::
+
+         The ``--project-scope`` flag is required when you pass the
+         ``--context`` flag.
+
+      Don't pass secret values by using the ``--value`` flag or as a positional
+      argument. Both are deprecated, because they can expose secrets to
+      other processes on your machine. If you set the secret from a
+      script, pipe the value to the command by using the ``--stdin`` flag.
+
+   .. step:: Start memory.
+
+      From the ``my-project`` directory, run the following commands:
+
+      .. code-block:: bash
+
+         agentengine memory configure ./project-config.yaml --context "$MEMORY_CONTEXT"
+         agentengine memory apply --wait --context "$MEMORY_CONTEXT"
+
+      These commands perform the following actions:
+
+      - ``agentengine memory configure`` stores the configuration.
+      - ``agentengine memory apply`` provisions the memory runtime the first time,
+        delivers the configuration, restarts memory, and waits until
+        the runtime reports ready.
+
+   .. step:: Monitor the memory status.
+
+      The memory runtime's own internal logs aren't visible. Instead,
+      monitor the memory status in the following ways:
+
+      - Run the ``agentengine memory status --context "$MEMORY_CONTEXT"``
+        command.
+      - In the UI, open the project's :guilabel:`Memory` page from
+        the :guilabel:`Manage` section. For a memory-only project,
+        memory appears there, not on the :guilabel:`Workspaces` page.
 
       .. note::
 
-         Provisioning fails if you do not set a ``MONGODB_URI`` secret 
-         or if the memory service cannot reach the cluster
-         that your connection string points to. If provisioning
-         fails, confirm that your cluster's IP access list includes
-         the {+platform-short+} data plane IP addresses.
+         On a new project, the first ``agentengine memory apply`` command can
+         fail with a ``memory-server deployment not found``
+         error. The runtime keeps provisioning in the background.
+         Instead of re-running ``agentengine memory apply``, continue to
+         run the ``agentengine memory status`` command every minute
+         and wait until the ``state`` value reads ``ready``.
 
-   .. step:: Provision the memory server.
-
-      Start the memory runtime and wait until it is ready:
-
-      .. code-block:: bash
-
-         agentengine memory apply --wait
+      If the ``blocked_on`` field remains in your ``memory status``
+      output and your ``state`` value does not progress to ``ready``,
+      contact `MongoDB Support <https://support.mongodb.com/welcome>`__
+      and provide your output.
 
    .. _agent-engine-memory-service-account:
 
    .. step:: Create a service account and retrieve an access token.
+
+      Your application authenticates by using a service account access
+      token, not your CLI login. To retrieve this access token,
+      perform the following steps:
 
       a. Run the following command to create a service account for
          the project:
 
          .. code-block:: bash
 
-            agentengine service-account create memory-service --project-id <project-id> --role PROJECT_OWNER
+            agentengine service-account create memory-client \
+              --context "$MEMORY_CONTEXT" \
+              --role PROJECT_OWNER \
+              --enable-atlas-pairing
 
-         Replace the ``<project-id>`` placeholder with your project ID.
          Save the client ID and client secret from the command
          output. The {+platform-short+} shows the client secret
          only once.
 
-      #. Run the following command to exchange the client ID and client secret
-         for an access token:
+         .. important::
+
+            The ``PROJECT_OWNER`` role requires a paired Atlas service
+            account. The ``--enable-atlas-pairing`` flag enables
+            Atlas service-account pairing for the project, which allows
+            the ``agentengine service-account create`` command to create
+            this service account. Without the flag, non-interactive
+            commands fail with a ``"Atlas service account
+            pairing is disabled for this project"`` message.
+
+      #. Export your client ID, and then run the following command to
+         exchange the client ID and client secret for an access
+         token. ``curl`` prompts for the client secret without
+         echoing it:
 
          .. code-block:: bash
 
-            export ACCESS_TOKEN=$(curl --fail-with-body --silent --show-error \
-              --user <client-id> \
-              --data grant_type=client_credentials \
-              "https://agentengine.mongodb.com/api/v1/oauth/token" | jq -er .access_token)
+            export MEMORY_CLIENT_ID='<client-id>'
 
-         Replace the ``<client-id>`` placeholder with your client ID.
-         ``curl`` prompts for the client secret without echoing it.
+            export ACCESS_TOKEN=$(curl --fail-with-body --silent --show-error \
+              --user "$MEMORY_CLIENT_ID" \
+              --data grant_type=client_credentials \
+              "$PLATFORM_URL/api/v1/oauth/token" | jq -er .access_token)
+
+         In a script or CI pipeline, read the client secret from your
+         secret manager in code instead of relying on the interactive
+         prompt. Don't pass the client secret as a command-line
+         argument.
 
          .. tip::
 
             The access token is valid for one hour. Request a new
-            token before the current one expires.
-   
+            token before the current one expires, and don't print it.
+
    .. _agent-engine-memory-install:
 
    .. step:: Install the Python SDK.
 
-      Install the ``agent-engine-sdk-memory`` package from the
-      platform's private registry, using the access token that you
-      exported in the previous step:
+      Run the following commands to install the ``agent-engine-sdk-memory``
+      package from PyPI, and pin the version:
 
       .. code-block:: bash
 
-         pip install agent-engine-sdk-memory \
-           --extra-index-url "https://ignore:$ACCESS_TOKEN@agentengine.mongodb.com/api/v1/packages/python/simple"
+         python3 -m venv .venv
+         source .venv/bin/activate
+         python -m pip install 'agent-engine-sdk-memory==0.11.8'
 
-      .. code-block:: bash
+      .. important::
 
-         uv pip install agent-engine-sdk-memory \
-           --extra-index-url "https://ignore:$ACCESS_TOKEN@agentengine.mongodb.com/api/v1/packages/python/simple"
-
-      The URL uses ``username:password`` format. ``ignore`` is a
-      placeholder username, because the registry authenticates using only the
-      access token in the password field. ``$ACCESS_TOKEN`` resolves to
-      the access token that you exported in the previous step.
+         Don't install the package from the {+platform-short+}
+         package registry, because it currently serves an older SDK
+         version.
 
    .. step:: Record and retrieve conversation context.
 
       In your application, add the following code to create a client,
-      bind a user identity, record turns as they happen, and retrieve
-      relevant context in later conversations:
+      bind a user identity, record turns, and retrieve relevant
+      context for the same session:
 
       .. code-block:: python
 
-         from agent_engine_sdk_memory import (
-             Memory,
-             MemoryRequestContext,
-         )
+         import json
+         import os
+         import uuid
 
-         # Create the client using your access token.
-         memory = Memory(service_account_token="<your-access-token>")
+         from agent_engine_sdk_memory import Memory, MemoryRequestContext
 
-         # Bind the user and session for this conversation.
-         chat = memory.bind(
-             MemoryRequestContext(
-                 user_id="user_1",
-                 session_id="thread_123",
+         run_id = uuid.uuid4().hex
+         session_id = f"memory-setup-{run_id}"
+
+         with Memory(
+             base_url=os.environ["PLATFORM_URL"],
+             project_id=os.environ["PROJECT_ID"],
+             service_account_token=os.environ["ACCESS_TOKEN"],
+         ) as memory:
+             chat = memory.bind(
+                 MemoryRequestContext(
+                     user_id=f"memory-setup-user-{run_id}",
+                     session_id=session_id,
+                 )
              )
-         )
 
-         # Record turns as they happen.
-         chat.record_turn(
-             role="user",
-             content="I always fly out of Boston.",
-         )
-         chat.record_turn(
-             role="assistant",
-             content="Got it, Boston is saved as your home airport.",
-         )
+             # Record turns.
+             chat.record_turn(role="user", content="My home airport is Boston Logan.")
+             chat.record_turn(role="assistant", content="Understood, I noted your home airport as Boston Logan.")
 
-         # In a later conversation, recall what matters.
-         later = memory.bind(
-             MemoryRequestContext(
-                 user_id="user_1",
-                 session_id="thread_456",
+             # Retrieve context from the same session.
+             context = chat.build_context(
+                 query="What is my home airport?",
+                 enabled_sources={"stm"},
+                 max_tokens=2048,
              )
-         )
-         context = later.build_context(
-             query="Where should the flight book from?"
-         )
-         hits = later.search("home airport", top_k=5)
+             assert "Boston Logan" in json.dumps(context.formatted_context), (
+                 "The recorded turn was not returned"
+             )
+             print("PASS: turn recording and same-session context")
 
-      .. note::
+      To learn more about the SDK, including how identity and context
+      retrieval work, see the :ref:`agent-engine-sdk-memory
+      <python-packages-agent-engine-sdk-memory>` reference.
 
-         Recording a turn does not immediately produce a long-term
-         memory. The memory service consolidates turns into
-         long-term memories asynchronously. A recorded turn
-         may not appear in ``search()`` or ``build_context()`` results
-         immediately after the write.
+      .. tip::
 
-Update Memory Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+         This script retrieves only short-term memory, which is
+         available immediately. Long-term memory, such as the
+         semantic and episodic sources, is extracted asynchronously
+         and can take a minute or two to appear. To learn how
+         extraction works, see :ref:`agent-engine-memory-extraction`.
 
-To update the memory configuration without reprovisioning the server,
-perform the following steps:
+Update Memory Configuration or Rotate a Key
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1. Edit the ``memory:`` block in your ``project-config.yaml`` file.
-#. From your project directory, run ``agentengine memory configure`` to
-   upload the memory configuration.
-#. Run ``agentengine memory apply`` to apply the configuration.
+To change the memory configuration, edit the ``memory:`` block in
+your ``project-config.yaml`` file, and then run the following commands:
+
+.. code-block:: bash
+
+   agentengine memory configure ./project-config.yaml --context "$MEMORY_CONTEXT"
+   agentengine memory apply --wait --context "$MEMORY_CONTEXT"
+
+The ``agentengine memory apply`` command does not reload secrets.
+It restarts memory by using the values memory already has stored. To rotate an
+existing secret, such as your LLM provider key, pass the ``--sync``
+flag instead:
+
+.. code-block:: bash
+
+   agentengine secret set LLM_API_KEY --context "$MEMORY_CONTEXT" --project-scope --sync
+
+If you previously ran ``agentengine secret set`` without ``--sync``, run the
+following command to apply the new value:
+
+.. code-block:: bash
+
+   agentengine secret sync --context "$MEMORY_CONTEXT" --project-scope
+
+For a memory-only project, this command prints a message that there
+are no active deployments to sync, but it still refreshes the secrets
+that memory uses. Wait a few minutes, and then run
+``agentengine memory status`` to confirm that the ``state`` field
+in your output still reads ``ready`` after the rotation.
 
 To learn how to configure memory on the platform,
 see :ref:`Configure Memory <agent-engine-manage-memory>`.
@@ -386,7 +614,9 @@ Steps
       This command does not generate an ``agent.yaml`` file, an
       ``agents/`` directory, or agent runtime code. You cannot
       combine the ``--memory-only`` flag with the ``--template``,
-      ``--llm``, ``--memory``, or ``--open-egress`` flags.
+      ``--memory``, or ``--open-egress`` flags. To choose the extraction
+      provider at scaffold time, you can combine the
+      ``--memory-only`` flag with ``--llm``.
 
    .. step:: Configure environment variables.
 
