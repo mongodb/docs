@@ -104,8 +104,38 @@
    * - objectLockEnabled
      - boolean
      - Optional
-     - Flag that indicates whether object lock is enabled to prevent 
+     - Flag that indicates whether object lock is enabled to prevent
        the objects in an S3 bucket from being deleted.
+
+   * - objectRetentionDays
+     - integer
+     - Optional
+     - Number of days that |onprem| protects this |s3| blockstore's
+       objects with Object Lock. Set this value to match the
+       default retention period configured on the |s3| bucket.
+       When you save a store with ``assignmentEnabled`` set to
+       ``true``, |onprem| validates the bucket's Object Lock
+       behavior using temporary test objects. However, |onprem| does not
+       read the bucket's Object Lock configuration, so it cannot detect
+       a mismatch between this value and the bucket's retention
+       settings.
+
+   * - objectRetentionMode
+     - string
+     - Optional
+     - Object Lock retention mode that |onprem| applies to this
+       |s3| blockstore's objects. Set this value to match the
+       retention mode configured on the |s3| bucket. When you save
+       a store with ``assignmentEnabled`` set to ``true``, |onprem|
+       validates the bucket's Object Lock behavior using temporary
+       test objects. However, |onprem| does not read the bucket's Object Lock
+       configuration, so it cannot detect a mismatch between this
+       value and the bucket's retention settings.
+
+       |onprem| accepts the following values for this option:
+
+       - ``GOVERNANCE``
+       - ``COMPLIANCE``
 
    * - oidc
      - object
@@ -132,7 +162,7 @@
      - Method used to authorize access to the |s3| bucket specified in
        **s3BucketName**.
 
-       Accepted values for this option are:
+       |onprem| accepts the following values for this option:
 
        - ``KEYS`` or None: |mms| uses **awsAccessKey** and
          **awsSecretKey** to authorize access to |s3| bucket specified

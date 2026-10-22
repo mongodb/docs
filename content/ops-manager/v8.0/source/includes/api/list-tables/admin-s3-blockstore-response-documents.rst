@@ -79,8 +79,29 @@
 
    * - objectLockEnabled
      - boolean
-     - Flag that indicates whether object lock is enabled to prevent 
+     - Flag that indicates whether object lock is enabled to prevent
        the objects in an S3 bucket from being deleted.
+
+   * - objectLockEnabledAt
+     - timestamp
+     - Date and time when object lock was enabled for this |s3|
+       blockstore. |onprem| returns this field only in response to
+       ``GET`` requests.
+
+   * - objectRetentionDays
+     - integer
+     - Number of days that |onprem| protects this |s3| blockstore's
+       objects with Object Lock.
+
+   * - objectRetentionMode
+     - string
+     - Object Lock retention mode that |onprem| applies to this
+       |s3| blockstore's objects.
+
+       |onprem| returns one of the following values:
+
+       - ``GOVERNANCE``
+       - ``COMPLIANCE``
 
    * - oidc
      - object
