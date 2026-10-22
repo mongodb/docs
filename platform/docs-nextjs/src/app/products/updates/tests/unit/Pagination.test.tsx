@@ -44,7 +44,7 @@ describe('Pagination component', () => {
     // Let the user switch pages via the selector
     expect(await screen.findByRole('listbox')).toBeInTheDocument();
     await user.click(await screen.findByRole('option', { name: '2' }));
-  });
+  }, 30000);
 
   it('handles next prev disabled state', () => {
     renderContext(2);

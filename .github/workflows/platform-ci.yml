@@ -4,6 +4,7 @@ on:
   pull_request:
   push:
     branches:
+      - main
       - 'backport/**'
   workflow_dispatch:
 
@@ -23,7 +24,13 @@ jobs:
         id: filter
         run: |
           if [ "${{ github.event_name }}" = "push" ]; then
-            echo "platform=false" >> "$GITHUB_OUTPUT"
+            # Runs on main so the mongod binary cache exists on the default
+            # branch, where every PR can restore it.
+            if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+              echo "platform=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "platform=false" >> "$GITHUB_OUTPUT"
+            fi
             exit 0
           fi
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
@@ -82,16 +89,37 @@ jobs:
           echo "::add-mask::$CODEARTIFACT_TOKEN"
           echo "NPM_AWS_AUTH=$CODEARTIFACT_TOKEN" >> "$GITHUB_ENV"
 
-      - name: Cache mongodb-memory-server binaries
-        uses: actions/cache@v4
+      - name: Set mongodb-memory-server download dir
+        run: echo "MONGOMS_DOWNLOAD_DIR=$HOME/.cache/mongodb-binaries" >> "$GITHUB_ENV"
+
+      - name: Restore mongodb-memory-server binaries
+        id: mongod-cache
+        uses: actions/cache/restore@v4
         with:
           path: ~/.cache/mongodb-binaries
-          key: mongodb-binaries-${{ runner.os }}
+          key: mongodb-binaries-8.0.4-${{ runner.os }}
 
-      - name: Install, lint, and test
+      - name: Install dependencies
         run: |
           # Remove --no-frozen-lockfile as soon as possible
           pnpm install --no-frozen-lockfile
+
+      # The persistence tests in nextjs-extension and nextjs-ssg-extension run in
+      # parallel under turbo and both need this binary. Fetch it once, up front.
+      - name: Download mongod for tests
+        if: steps.mongod-cache.outputs.cache-hit != 'true'
+        run: |
+          pnpm --filter nextjs-extension exec node -e "require('mongodb-memory-server-core').MongoBinary.getPath({ version: '8.0.4' }).then(console.log)"
+
+      - name: Save mongodb-memory-server binaries
+        if: steps.mongod-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.cache/mongodb-binaries
+          key: mongodb-binaries-8.0.4-${{ runner.os }}
+
+      - name: Lint and test
+        run: |
           pnpm run lint
           pnpm run test
           pnpm run typecheck
