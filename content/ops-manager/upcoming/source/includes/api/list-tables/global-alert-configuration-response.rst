@@ -204,6 +204,31 @@
        custom body template.
 
    * - | notifications.[n]
+       | .oauth2Config
+     - object
+     - OAuth 2.0 client credentials that |mms| uses to obtain a bearer
+       access token for webhook notifications. |mms| returns this value
+       if you set ``notifications.[n].typeName`` to ``WEBHOOK`` and
+       configure OAuth 2.0 client credentials.
+
+   * - | notifications.[n]
+       | .oauth2Config.tokenUrl
+     - string
+     - Token endpoint that |mms| calls to obtain a bearer access token.
+
+   * - | notifications.[n]
+       | .oauth2Config.clientId
+     - string
+     - Client identifier that |mms| uses when authenticating to the
+       OAuth 2.0 token endpoint.
+
+   * - | notifications.[n]
+       | .oauth2Config.clientSecret
+     - string
+     - Client secret that |mms| uses with the client ID when
+       authenticating to the OAuth 2.0 token endpoint.
+
+   * - | notifications.[n]
        | .id
      - string
      - Unique identifier of the notification configuration.

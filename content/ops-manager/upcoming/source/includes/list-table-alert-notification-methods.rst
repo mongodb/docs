@@ -78,8 +78,10 @@
           :guilabel:`Miscellaneous` tab of the
           :guilabel:`Administration console`.
 
-       2. Update the :setting:`Webhook URL` and
-          :setting:`Webhook Secret` settings.
+       2. Update the :setting:`Webhook URL`, :setting:`Webhook Secret`,
+          :setting:`Webhook OAuth2 Token URL`,
+          :setting:`Webhook OAuth2 Client ID`, and
+          :setting:`Webhook OAuth2 Client Secret` settings.
 
        .. include:: /includes/facts/alert-webhook-mms-event-header.rst
 

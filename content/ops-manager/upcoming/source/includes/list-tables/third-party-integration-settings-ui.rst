@@ -150,6 +150,17 @@
        - :guilabel:`Webhook Secret`: Optional secret key for webhook
          authentication and security.
 
+       - :guilabel:`OAuth2 Token URL`: Optional token endpoint that
+         |mms| calls to obtain an access token before sending the
+         webhook request.
+
+       - :guilabel:`OAuth2 Client ID`: Optional client identifier that
+         |mms| uses when authenticating to the OAuth token endpoint.
+
+       - :guilabel:`OAuth2 Client Secret`: Optional client secret that
+         |mms| uses with the client ID when authenticating to the OAuth
+         token endpoint.
+
        - :guilabel:`Webhook Headers Template`: Optional FreeMarker template
          for customizing HTTP headers sent with webhook requests. You can
          use variables like ``{{eventTypeName}}`` and ``{{groupName}}`` to
@@ -166,7 +177,7 @@
        To send alert notifications to a Webhook, select the Webhook
        notification option when creating or editing an
        :ref:`alert configuration <configure-alerts>`. If you add a Webhook notification and
-       the |url| or optional key becomes invalid, |mms| sends an email
+       the |url|, optional key, or OAuth credentials become invalid, |mms| sends an email
        to the :authrole:`Project Owner` and eventually removes the
        Webhook settings.
 
