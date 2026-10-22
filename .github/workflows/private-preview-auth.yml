@@ -1,0 +1,85 @@
+name: Private preview auth
+
+# Adds a Basic-Auth header to platform/docs-site/netlify.toml when a branch
+# whose name contains "private-preview" is created. The username is
+# "preview" and the password is a random 16-character string. The password
+# is written to the committed netlify.toml and to the run summary.
+#
+# Runs only when the branch is first pushed, never on later pushes, so
+# removing the header before merging to main is not undone. It also never
+# runs on pull requests or on main. If the first run fails, re-run the
+# failed job from the Actions tab. The blocking check that stops the
+# header from reaching main is the "auth" job in netlify-config-check.yml.
+#
+# Does nothing if a Basic-Auth header is already present.
+#
+# Limitation: this works only for branches pushed to this repository.
+# Branches on forks do not get a header, because the fork's push does
+# not run this workflow with write access to this repository.
+#
+# Commits pushed with GITHUB_TOKEN do not trigger other workflows, so the
+# bot commit does not start a CI run on its own.
+
+on:
+  push:
+    branches:
+      - "**private-preview**"
+
+concurrency:
+  group: private-preview-auth-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  add-auth:
+    name: Add Basic-Auth header
+    if: github.event.created == true && github.ref_name != 'main'
+    runs-on: ubuntu-latest
+    env:
+      BRANCH: ${{ github.ref_name }}
+      TOML: platform/docs-site/netlify.toml
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Add header if missing
+        id: add
+        run: |
+          if grep -Eiq '^[[:space:]]*Basic-Auth[[:space:]]*=' "$TOML"; then
+            echo "Basic-Auth header already present in $TOML. Nothing to do."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # 16 characters, TOML-safe: base64 of 12 bytes with + and / swapped out.
+          PASSWORD=$(openssl rand -base64 12 | tr '+/' 'AB')
+
+          {
+            echo ""
+            echo "# Remove before going live"
+            echo "[[headers]]"
+            echo "  for = \"/docs/*\""
+            echo "  [headers.values]"
+            echo "    Basic-Auth = \"preview:${PASSWORD}\""
+          } >> "$TOML"
+
+          {
+            echo "### Private preview credentials"
+            echo ""
+            echo "- Username: \`preview\`"
+            echo "- Password: \`${PASSWORD}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push
+        if: steps.add.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$TOML"
+          git commit -m "Add private preview Basic-Auth header [skip ci]"
+          git push origin "HEAD:${BRANCH}"
