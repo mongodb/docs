@@ -127,12 +127,12 @@ describe("translate", () => {
 
   it("maps a BackendError timeout to BACKEND_TIMEOUT for every key", async () => {
     const timingOut: TranslationBackend = {
-      name: "grove",
+      name: "openai",
       translateBatch() {
         return Promise.reject(
           new BackendError({
             stage: "provider",
-            provider: "grove",
+            provider: "openai",
             reason: "provider_timeout",
             message: "timed out",
           }),
@@ -147,7 +147,7 @@ describe("translate", () => {
 
   it("maps other backend throws to BACKEND_ERROR", async () => {
     const exploding: TranslationBackend = {
-      name: "grove",
+      name: "openai",
       translateBatch(): Promise<never> {
         return Promise.reject(new Error("network exploded"));
       },

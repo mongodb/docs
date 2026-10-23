@@ -7,12 +7,15 @@
 import type { TranslationBackend } from "../types.js";
 import { AwsTranslateBackend } from "./aws-translate/backend.js";
 import { resolveAwsTranslateConfigFromEnv } from "./aws-translate/config.js";
-import { GroveBackend } from "./llm/grove/backend.js";
-import { resolveGroveConfigFromEnv } from "./llm/grove/config.js";
+import { AnthropicBackend } from "./llm/anthropic/backend.js";
+import { resolveAnthropicConfigFromEnv } from "./llm/anthropic/config.js";
+import { OpenAiBackend } from "./llm/openai/backend.js";
+import { resolveOpenAiConfigFromEnv } from "./llm/openai/config.js";
 import { StubBackend } from "./stub-backend.js";
 
 export enum BackendName {
-  Grove = "grove",
+  OpenAI = "openai",
+  Anthropic = "anthropic",
   AwsTranslate = "aws-translate",
   Stub = "stub",
 }
@@ -22,8 +25,10 @@ export const BACKEND_NAMES: readonly BackendName[] = Object.values(BackendName);
 type BackendFactory = (env: NodeJS.ProcessEnv) => TranslationBackend;
 
 const FACTORIES: Record<BackendName, BackendFactory> = {
-  [BackendName.Grove]: (env) =>
-    new GroveBackend({ config: resolveGroveConfigFromEnv(env) }),
+  [BackendName.OpenAI]: (env) =>
+    new OpenAiBackend({ config: resolveOpenAiConfigFromEnv(env) }),
+  [BackendName.Anthropic]: (env) =>
+    new AnthropicBackend({ config: resolveAnthropicConfigFromEnv(env) }),
   [BackendName.AwsTranslate]: (env) =>
     new AwsTranslateBackend({ config: resolveAwsTranslateConfigFromEnv(env) }),
   [BackendName.Stub]: () => new StubBackend(),

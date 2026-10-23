@@ -1,7 +1,8 @@
 /**
  * Provider-neutral HTTP seam. Injecting a Transport into a backend keeps
  * it fully unit-testable with no network. The default fetch-based
- * implementation lives per provider (see grove/transport.ts).
+ * implementation lives in `fetch-transport.ts` and is shared by the
+ * provider backends.
  */
 export interface TransportRequest {
   url: string;

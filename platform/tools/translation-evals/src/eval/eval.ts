@@ -4,7 +4,7 @@ import { Eval } from 'braintrust';
 import { loadConfig } from '../config.js';
 import { readManifestLatest, runDir } from '../run/manifest.js';
 import type { DatasetRow } from '../types.js';
-import { createJudgeOptions } from './judge/grove.js';
+import { createJudgeOptions } from './judge/backend.js';
 import { toEvalScorers } from './scorers/index.js';
 
 function readTerms(termsFile: string | undefined): string[] {
@@ -36,7 +36,7 @@ Eval(cfg.braintrustProject, {
   metadata: {
     project,
     run: runId,
-    translator_model: cfg.grove.model ?? null,
+    translator_model: cfg.translatorModel ?? null,
     judge_model: judgeOpts.model,
   },
 });

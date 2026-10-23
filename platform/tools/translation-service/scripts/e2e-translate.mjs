@@ -1,9 +1,9 @@
 /**
  * Live end-to-end test against a REAL backend, chosen by `--backend`
- * (default: grove).
+ * (default: openai).
  *
  * This is NOT part of the hermetic jest suite — it makes real network
- * calls and needs real credentials (GROVE_API_KEY for Grove, AWS
+ * calls and needs real credentials (AI_GATEWAY_API_KEY for OpenAI, AWS
  * credentials from the SDK's default chain for AWS Translate). It
  * imports the built output in `dist/`, so run `pnpm build` first (the
  * `pnpm e2e` script does this for you).
@@ -22,7 +22,7 @@ import {
 } from "../dist/index.js";
 
 const { values: args } = parseArgs({
-  options: { backend: { type: "string", default: "grove" } },
+  options: { backend: { type: "string", default: "openai" } },
 });
 
 if (!isBackendName(args.backend)) {

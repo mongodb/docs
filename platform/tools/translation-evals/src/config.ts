@@ -8,7 +8,8 @@ export interface Config {
   locales: Locale[];
   contentMdxDir: string;
   dataDir: string;
-  grove: { apiKey?: string; model?: string; endpoint?: string; timeoutMs?: number };
+  /** Translator model. Its family selects the backend (see translate/backend.ts). */
+  translatorModel?: string;
   judgeModel?: string;
   braintrustProject: string;
   termsFile?: string;
@@ -34,13 +35,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     // platform/tools/translation-evals -> repo root -> content-mdx
     contentMdxDir: path.resolve(PKG_ROOT, '..', '..', '..', 'content-mdx'),
     dataDir: path.join(PKG_ROOT, 'data'),
-    grove: {
-      apiKey: env.GROVE_API_KEY,
-      model: env.GROVE_MODEL,
-      endpoint: env.GROVE_ENDPOINT,
-      timeoutMs: env.GROVE_TIMEOUT_MS ? Number(env.GROVE_TIMEOUT_MS) : undefined,
-    },
-    judgeModel: env.JUDGE_MODEL,
+    // `cp .env.example .env` leaves these present but empty, and Node's
+    // `--env-file` loads them as "". Treat a blank as unset so it falls back
+    // to the backend default instead of counting as an override.
+    translatorModel: env.TRANSLATOR_MODEL || undefined,
+    judgeModel: env.JUDGE_MODEL || undefined,
     braintrustProject: env.BRAINTRUST_PROJECT ?? 'docs-translations',
     termsFile: env.TERMS_FILE,
   };

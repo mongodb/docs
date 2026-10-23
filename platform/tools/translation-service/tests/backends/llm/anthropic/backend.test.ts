@@ -1,15 +1,18 @@
 import { describe, expect, it } from "@jest/globals";
-import { GroveBackend } from "../../../../src/backends/llm/grove/backend.js";
+import { AnthropicBackend } from "../../../../src/backends/llm/anthropic/backend.js";
 import { BackendError } from "../../../../src/backends/errors.js";
-import type { GroveConfig } from "../../../../src/backends/llm/grove/config.js";
+import type { AnthropicConfig } from "../../../../src/backends/llm/anthropic/config.js";
 import type { Transport } from "../../../../src/backends/llm/transport.js";
 import type { TranslationBatchRequest } from "../../../../src/types.js";
 
-const config: GroveConfig = {
-  endpoint: "https://example.test/v1/responses",
-  model: "gpt-5.5",
+// Deliberately non-default values (see ANTHROPIC_DEFAULTS): a builder that
+// hardcoded the defaults would fail these assertions.
+const config: AnthropicConfig = {
+  endpoint: "https://example.test/anthropic/v1/messages",
+  model: "claude-test-model",
   apiKey: "secret",
-  timeoutMs: 30000,
+  timeoutMs: 120000,
+  maxTokens: 4096,
 };
 
 function batch(
@@ -32,16 +35,15 @@ function okTransport(translations: Record<string, string>): Transport {
     })),
   });
   const raw = JSON.stringify({
-    output: [
-      { type: "message", content: [{ type: "output_text", text: inner }] },
-    ],
+    content: [{ type: "text", text: inner }],
+    stop_reason: "end_turn",
   });
   return async () => ({ ok: true, status: 200, text: async () => raw });
 }
 
-describe("GroveBackend", () => {
+describe("AnthropicBackend", () => {
   it("returns ok items and reports provider/model meta", async () => {
-    const backend = new GroveBackend({
+    const backend = new AnthropicBackend({
       config,
       transport: okTransport({ docs_home: "Inicio" }),
     });
@@ -51,11 +53,11 @@ describe("GroveBackend", () => {
     expect(result.items).toEqual([
       { key: "docs_home", status: "ok", text: "Inicio" },
     ]);
-    expect(result.meta).toEqual({ provider: "grove", model: "gpt-5.5" });
+    expect(result.meta).toEqual({ provider: "anthropic", model: "claude-test-model" });
   });
 
   it("omits keys the model did not return (validate-output flags them)", async () => {
-    const backend = new GroveBackend({
+    const backend = new AnthropicBackend({
       config,
       transport: okTransport({ a: "A" }),
     });
@@ -68,7 +70,7 @@ describe("GroveBackend", () => {
     expect(result.items.map((item) => item.key)).toEqual(["a"]);
   });
 
-  it("sends endpoint, api-key header, and JSON body to the transport", async () => {
+  it("sends endpoint, x-api-key, anthropic-version, and JSON body", async () => {
     let seenUrl = "";
     let seenHeaders: Record<string, string> = {};
     const transport: Transport = async (req) => {
@@ -76,11 +78,26 @@ describe("GroveBackend", () => {
       seenHeaders = req.headers;
       return okTransport({ a: "A" })(req);
     };
-    const backend = new GroveBackend({ config, transport });
+    const backend = new AnthropicBackend({ config, transport });
     await backend.translateBatch(batch([{ key: "a", text: "A" }]));
     expect(seenUrl).toBe(config.endpoint);
-    expect(seenHeaders["api-key"]).toBe("secret");
+    expect(seenHeaders["x-api-key"]).toBe("secret");
+    expect(seenHeaders["api-key"]).toBeUndefined();
+    expect(seenHeaders["anthropic-version"]).toBe("2023-06-01");
     expect(seenHeaders["Content-Type"]).toBe("application/json");
+  });
+
+  it("sends max_tokens and output_config in the request body", async () => {
+    let seenBody = "";
+    const transport: Transport = async (req) => {
+      seenBody = req.body;
+      return okTransport({ a: "A" })(req);
+    };
+    const backend = new AnthropicBackend({ config, transport });
+    await backend.translateBatch(batch([{ key: "a", text: "A" }]));
+    const parsed = JSON.parse(seenBody);
+    expect(parsed.max_tokens).toBe(4096);
+    expect(parsed.output_config.format.type).toBe("json_schema");
   });
 
   it("throws provider_http_error on a non-2xx response", async () => {
@@ -89,7 +106,7 @@ describe("GroveBackend", () => {
       status: 503,
       text: async () => "unavailable",
     });
-    const backend = new GroveBackend({ config, transport });
+    const backend = new AnthropicBackend({ config, transport });
     try {
       await backend.translateBatch(batch([{ key: "a", text: "A" }]));
       throw new Error("expected throw");

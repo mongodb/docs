@@ -1,7 +1,7 @@
 /**
  * Thin seam over the AWS SDK's TranslateText call. AWS requests are
  * SigV4-signed by the SDK, so this backend can't reuse the fetch-based
- * Transport the Grove backend uses; injecting a TranslateTextFn keeps
+ * Transport the OpenAI backend uses; injecting a TranslateTextFn keeps
  * the backend just as unit-testable with no network or credentials.
  */
 import {

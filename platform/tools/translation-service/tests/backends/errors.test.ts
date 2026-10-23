@@ -5,17 +5,17 @@ describe("BackendError", () => {
   it("carries structured failure metadata", () => {
     const err = new BackendError({
       stage: "provider",
-      provider: "grove",
+      provider: "openai",
       reason: "provider_http_error",
-      message: "Grove returned HTTP 503",
+      message: "OpenAI returned HTTP 503",
       status: 503,
       requestId: "req-123",
     });
     expect(err).toBeInstanceOf(Error);
     expect(err.name).toBe("BackendError");
-    expect(err.message).toBe("Grove returned HTTP 503");
+    expect(err.message).toBe("OpenAI returned HTTP 503");
     expect(err.stage).toBe("provider");
-    expect(err.provider).toBe("grove");
+    expect(err.provider).toBe("openai");
     expect(err.reason).toBe("provider_http_error");
     expect(err.status).toBe(503);
     expect(err.requestId).toBe("req-123");
@@ -25,7 +25,7 @@ describe("BackendError", () => {
     const cause = new Error("boom");
     const err = new BackendError({
       stage: "parse",
-      provider: "grove",
+      provider: "openai",
       reason: "provider_unparseable",
       message: "bad json",
       cause,

@@ -16,4 +16,17 @@ describe('loadConfig', () => {
     const cfg = loadConfig({ TARGET_LOCALES: 'es,ja-jp' });
     expect(cfg.locales).toEqual(['es', 'ja-jp']);
   });
+
+  it('normalises blank env values to undefined, not empty strings', () => {
+    // `cp .env.example .env` leaves these present but empty; Node's
+    // `--env-file` loads them as "". An empty string must not count as an
+    // override, or the backend would send model "" and an empty key.
+    const cfg = loadConfig({
+      AI_GATEWAY_API_KEY: '',
+      TRANSLATOR_MODEL: '',
+      JUDGE_MODEL: '',
+    });
+    expect(cfg.translatorModel).toBeUndefined();
+    expect(cfg.judgeModel).toBeUndefined();
+  });
 });

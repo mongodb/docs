@@ -82,8 +82,9 @@ payload values) throw `RequestValidationError`, which carries every
 
 `src/index.ts` re-exports every module, so pipeline internals
 (`validateRequest`, `normalize`, `protectSegments`, `validateOutput`,
-`buildResponse`), the protection helpers, the `GroveBackend` and
-`AwsTranslateBackend` classes and their helpers, the prompt constants, and all wire types
+`buildResponse`), the protection helpers, the `OpenAiBackend`,
+`AnthropicBackend`, and `AwsTranslateBackend` classes and their helpers, the
+prompt constants, and all wire types
 are importable. Only `translate()`, the backends, and the error classes are
 intended as the stable surface; treat the rest as internal.
 
@@ -104,21 +105,51 @@ The service is provider- and LLM-agnostic: implement the
 deterministic development stand-in that prefixes the target locale and
 supports fault injection (`errorFor`, `omitKeys`, `corruptTokensFor`) for testing failure paths.
 
-`GroveBackend` (`src/backends/llm/grove/backend.ts`) calls the Grove gateway Responses API (`gpt-5.5`) and
+`OpenAiBackend` (`src/backends/llm/openai/backend.ts`) calls the AI Gateway's OpenAI Responses API (`gpt-5.5`) and
 implements the same `TranslationBackend` seam. Create one from the
-environment with `createGroveBackend()`, which reads `GROVE_API_KEY`
-(required) and the optional `GROVE_ENDPOINT`, `GROVE_MODEL`, and
-`GROVE_TIMEOUT_MS` overrides:
+environment with `createOpenAiBackend()`, which reads `AI_GATEWAY_API_KEY`
+(required) and the optional `OPENAI_ENDPOINT`, `OPENAI_MODEL`, and
+`OPENAI_TIMEOUT_MS` overrides:
 
 ```ts
-import { translate, createGroveBackend } from "./src/index.js";
+import { translate, createOpenAiBackend } from "./src/index.js";
 
-const response = await translate(request, { backend: createGroveBackend() });
+const response = await translate(request, { backend: createOpenAiBackend() });
 ```
+
+The key and the endpoint must belong to the same gateway. A key issued
+for a different gateway is rejected with HTTP 401, which looks like an
+auth bug rather than a misconfiguration. Both backends default to the AI
+Gateway; override `OPENAI_ENDPOINT` / `ANTHROPIC_ENDPOINT` if your key is
+for the legacy Azure gateway.
 
 Whole-request failures (HTTP error, timeout, unparseable or mis-shaped
 output) throw `BackendError`; the pipeline degrades them to per-key
 errors so the response shape stays stable.
+
+`AnthropicBackend` (`src/backends/llm/anthropic/backend.ts`) calls the AI
+Gateway's Anthropic Messages API (`claude-sonnet-5-5`) and implements the
+same `TranslationBackend` seam. Create one from the environment with
+`createAnthropicBackend()`, which reads the shared `AI_GATEWAY_API_KEY`
+(required) and the optional `ANTHROPIC_ENDPOINT`, `ANTHROPIC_MODEL`,
+`ANTHROPIC_TIMEOUT_MS`, and `ANTHROPIC_MAX_TOKENS` overrides:
+
+```ts
+import { translate, createAnthropicBackend } from "./src/index.js";
+
+const response = await translate(request, { backend: createAnthropicBackend() });
+```
+
+It differs from `OpenAiBackend` in the wire format: it authenticates with
+the `x-api-key` header (the OpenAI backend sends `api-key`) and sends an
+`anthropic-version: 2023-06-01` header, because the Messages API is
+versioned. The request body carries a required `max_tokens` and asks for
+structured output through `output_config`.
+
+The Anthropic backend requests structured output via
+`output_config.format`. Current Claude models support this; if you select
+an older model and a request fails with HTTP 400, check that the model
+supports structured outputs.
 
 `AwsTranslateBackend` (`src/backends/aws-translate/backend.ts`) calls
 Amazon Translate's `TranslateText` API, a machine-translation baseline
@@ -134,7 +165,7 @@ const response = await translate(request, {
 });
 ```
 
-It differs from `GroveBackend` in a few ways:
+It differs from `OpenAiBackend` in a few ways:
 
 - Credentials come from the AWS SDK default provider chain (for
   example `AWS_PROFILE` with SSO), not from a backend-specific variable.
@@ -171,13 +202,17 @@ unless your AWS account has opted out. See
 To let configuration pick the provider instead of importing a specific
 factory, use the registry (`src/backends/registry.ts`).
 `createBackend(name)` takes a `BackendName` enum member
-(`BackendName.Grove`, `BackendName.AwsTranslate`, `BackendName.Stub`).
+(`BackendName.OpenAI`, `BackendName.Anthropic`, `BackendName.AwsTranslate`,
+`BackendName.Stub`).
 When the name comes from untyped input such as a CLI flag, check it with
 `isBackendName()` first; `BACKEND_NAMES` lists the valid string values
-(`grove`, `aws-translate`, `stub`) for error messages. Each backend still
-reads its own variables (`GROVE_*` or `AWS_TRANSLATE_*`), and its `name`
-always matches its enum value, so `meta.provider` reports what the caller
-selected.
+(`openai`, `anthropic`, `aws-translate`, `stub`) for error messages. The
+OpenAI and Anthropic backends read the shared `AI_GATEWAY_API_KEY` plus
+the optional `OPENAI_*` and `ANTHROPIC_*` endpoint, model, timeout, and
+`ANTHROPIC_MAX_TOKENS` overrides; `AwsTranslateBackend` reads
+`AWS_TRANSLATE_*`.
+Each backend's `name` always matches its enum value, so `meta.provider`
+reports what the caller selected.
 
 ```ts
 import { translate, createBackend, BackendName } from "./src/index.js";
@@ -211,21 +246,24 @@ network). To exercise a real backend, use the e2e script.
 It is intentionally kept out of jest so CI stays offline.
 
 ```sh
-cp .env.example .env              # then edit .env and set GROVE_API_KEY
-pnpm e2e                          # builds dist/, loads .env, calls Grove for real
+cp .env.example .env              # then edit .env and set AI_GATEWAY_API_KEY
+pnpm e2e                          # builds dist/, loads .env, calls OpenAI for real
+pnpm e2e --backend anthropic      # calls the Anthropic Messages path for real
 pnpm e2e --backend aws-translate  # calls AWS Translate with your AWS credentials
 pnpm e2e --backend stub           # offline check of the script and pipeline
 ```
 
-Without `--backend`, the script uses `grove`.
+Without `--backend`, the script uses `openai`.
 
 `pnpm e2e` runs `scripts/e2e-translate.mjs`, which translates a few
 sample strings (with a protected product name), prints the response and
 latency, and asserts the invariants that matter: keys preserved, no
 partial failures, protected terms intact, and no leaked `__PROTn__`
 tokens. It exits non-zero if any check fails, so it doubles as a smoke
-test. Your key comes from `.env` (gitignored); the script reads the same
-`GROVE_*` and `AWS_TRANSLATE_*` variables as `createGroveBackend()` and
+test. Your key comes from `.env` (gitignored); `AI_GATEWAY_API_KEY` is the
+shared key for the `openai` and `anthropic` backends, and the script reads
+the same `OPENAI_*`, `ANTHROPIC_*`, and `AWS_TRANSLATE_*` variables as
+`createOpenAiBackend()`, `createAnthropicBackend()`, and
 `createAwsTranslateBackend()`.
 
 ### AWS credentials for the AWS Translate backend

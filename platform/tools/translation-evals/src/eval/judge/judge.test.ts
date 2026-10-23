@@ -1,9 +1,22 @@
 import { describe, it, expect } from 'vitest';
-import type { Transport, TransportRequest } from '@mongodb-docs/translation-service';
+import {
+  ANTHROPIC_DEFAULTS,
+  type Transport,
+  type TransportRequest,
+} from '@mongodb-docs/translation-service';
 import { loadConfig } from '../../config.js';
-import { createJudgeOptions } from './grove.js';
-import { buildJudgeRequest, judgeTranslation, type JudgeOptions } from './judge.js';
-import { buildJudgePrompt, type JudgeInput } from './prompt.js';
+import { createJudgeOptions } from './backend.js';
+import {
+  buildJudgeRequest,
+  judgeFormatFor,
+  judgeTranslation,
+  type JudgeOptions,
+} from './judge.js';
+import {
+  JUDGE_RESPONSE_SCHEMA,
+  buildJudgePrompt,
+  type JudgeInput,
+} from './prompt.js';
 
 const INPUT: JudgeInput = {
   source: 'Add a user.',
@@ -16,8 +29,15 @@ function envelope(payload: unknown): string {
   return JSON.stringify({ output_text: JSON.stringify(payload) });
 }
 
-function optsReturning(raw: string): JudgeOptions {
-  return { transport: async () => raw, model: 'judge-model' };
+function messagesEnvelope(payload: unknown): string {
+  return JSON.stringify({
+    stop_reason: 'end_turn',
+    content: [{ type: 'text', text: JSON.stringify(payload) }],
+  });
+}
+
+function optsReturning(raw: string, model = 'judge-model'): JudgeOptions {
+  return { transport: async () => raw, model };
 }
 
 describe('buildJudgePrompt', () => {
@@ -26,6 +46,16 @@ describe('buildJudgePrompt', () => {
     expect(prompt).toContain('es');
     expect(prompt).toContain('Add a user.');
     expect(prompt.toLowerCase()).toContain('source');
+  });
+});
+
+describe('judgeFormatFor', () => {
+  it('routes claude-* models to the Messages format', () => {
+    expect(judgeFormatFor('claude-sonnet-5-5')).toBe('messages');
+  });
+
+  it('routes everything else to the Responses format', () => {
+    expect(judgeFormatFor('gpt-5.5')).toBe('responses');
   });
 });
 
@@ -82,11 +112,33 @@ describe('judgeTranslation', () => {
   it('rejects an envelope with no output text', async () => {
     await expect(judgeTranslation(INPUT, optsReturning('{}'))).rejects.toThrow(/no output text/);
   });
+
+  it('parses a Messages reply from a claude-* judge model', async () => {
+    const raw = messagesEnvelope({ category: 'B', rationale: 'extra words', fluency: 3 });
+    const r = await judgeTranslation(INPUT, optsReturning(raw, 'claude-sonnet-5-5'));
+    expect(r.factuality).toBe(0.6);
+    expect(r.fluency).toBe(0.5);
+    expect(r.rationale).toBe('extra words');
+  });
+
+  it('concatenates multiple Messages text blocks', async () => {
+    const payload = JSON.stringify({ category: 'C', rationale: 'ok', fluency: 4 });
+    const raw = JSON.stringify({
+      stop_reason: 'end_turn',
+      content: [
+        { type: 'thinking', thinking: 'considering...' },
+        { type: 'text', text: payload.slice(0, 10) },
+        { type: 'text', text: payload.slice(10) },
+      ],
+    });
+    const r = await judgeTranslation(INPUT, optsReturning(raw, 'claude-sonnet-5-5'));
+    expect(r.fluency).toBe(0.75);
+  });
 });
 
 describe('buildJudgeRequest', () => {
   it('sends the judge model, a system and user message, and a strict schema', () => {
-    const body = JSON.parse(buildJudgeRequest(INPUT, 'judge-model')) as {
+    const body = JSON.parse(buildJudgeRequest(INPUT, { model: 'judge-model' })) as {
       model: string;
       input: Array<{ role: string; content: Array<{ text: string }> }>;
       text: { format: { strict: boolean } };
@@ -96,20 +148,54 @@ describe('buildJudgeRequest', () => {
     expect(body.input[1]!.content[0]!.text).toContain('SOURCE:');
     expect(body.text.format.strict).toBe(true);
   });
+
+  it('sends the Messages shape for a claude-* judge model', () => {
+    const body = JSON.parse(
+      buildJudgeRequest(INPUT, { model: 'claude-sonnet-5-5', maxTokens: 4096 }),
+    ) as {
+      model: string;
+      max_tokens: number;
+      system: string;
+      messages: Array<{ role: string; content: string }>;
+      output_config: { format: { type: string; name?: string; schema: unknown } };
+      input?: unknown;
+      text?: unknown;
+    };
+
+    expect(body.model).toBe('claude-sonnet-5-5');
+    expect(body.max_tokens).toBe(4096);
+    expect(body.system).toContain('bilingual translation evaluator');
+    expect(body.messages).toHaveLength(1);
+    expect(body.messages[0]!.role).toBe('user');
+    expect(body.messages[0]!.content).toContain('SOURCE:');
+    expect(body.output_config.format.type).toBe('json_schema');
+    expect(body.output_config.format).not.toHaveProperty('name');
+    expect(body.output_config.format.schema).toEqual(JUDGE_RESPONSE_SCHEMA);
+    // The Responses-only envelope members must not leak into the Messages body.
+    expect(body.input).toBeUndefined();
+    expect(body.text).toBeUndefined();
+  });
+
+  it('defaults max_tokens for the Messages shape when unset', () => {
+    const body = JSON.parse(buildJudgeRequest(INPUT, { model: 'claude-sonnet-5-5' })) as {
+      max_tokens: number;
+    };
+    expect(body.max_tokens).toBe(ANTHROPIC_DEFAULTS.maxTokens);
+  });
 });
 
 describe('createJudgeOptions', () => {
   const env = {
-    GROVE_API_KEY: 'k',
+    AI_GATEWAY_API_KEY: 'k',
     JUDGE_MODEL: 'judge-model',
-    GROVE_ENDPOINT: 'https://grove.test/v1/responses',
+    OPENAI_ENDPOINT: 'https://grove.test/v1/responses',
   };
 
   it('requires JUDGE_MODEL so the judge never reuses the translator model', () => {
-    expect(() => createJudgeOptions(loadConfig({ GROVE_API_KEY: 'k' }))).toThrow(/JUDGE_MODEL/);
+    expect(() => createJudgeOptions(loadConfig({ AI_GATEWAY_API_KEY: 'k' }))).toThrow(/JUDGE_MODEL/);
   });
 
-  it('posts the judge request to the Grove endpoint with the api-key header', async () => {
+  it('posts the judge request to the OpenAI endpoint with the api-key header', async () => {
     let seen: TransportRequest | undefined;
     const fake: Transport = async (request) => {
       seen = request;
@@ -126,9 +212,40 @@ describe('createJudgeOptions', () => {
     expect(JSON.parse(raw).output_text).toContain('"category":"C"');
   });
 
-  it('throws when Grove responds with a non-ok status', async () => {
+  it('throws when the gateway responds with a non-ok status', async () => {
     const fake: Transport = async () => ({ ok: false, status: 429, text: async () => '' });
     const opts = createJudgeOptions(loadConfig(env), env, fake);
     await expect(opts.transport('{}')).rejects.toThrow(/HTTP 429/);
+  });
+
+  it('posts a claude-* judge request to the Anthropic endpoint with the x-api-key header', async () => {
+    let seen: TransportRequest | undefined;
+    const fake: Transport = async (request) => {
+      seen = request;
+      return { ok: true, status: 200, text: async () => messagesEnvelope({ category: 'C', rationale: '', fluency: 5 }) };
+    };
+
+    const claudeEnv = {
+      AI_GATEWAY_API_KEY: 'k',
+      JUDGE_MODEL: 'claude-sonnet-5-5',
+      ANTHROPIC_ENDPOINT: 'https://grove.test/anthropic/v1/messages',
+    };
+
+    const opts = createJudgeOptions(loadConfig(claudeEnv), claudeEnv, fake);
+    expect(opts.model).toBe('claude-sonnet-5-5');
+    expect(opts.maxTokens).toBe(ANTHROPIC_DEFAULTS.maxTokens);
+
+    await opts.transport('{"probe":true}');
+    expect(seen!.url).toBe('https://grove.test/anthropic/v1/messages');
+    expect(seen!.headers['x-api-key']).toBe('k');
+    expect(seen!.headers['anthropic-version']).toBe('2023-06-01');
+    expect(seen!.headers['api-key']).toBeUndefined();
+  });
+
+  it('labels a claude-* judge HTTP failure as Anthropic', async () => {
+    const fake: Transport = async () => ({ ok: false, status: 500, text: async () => '' });
+    const claudeEnv = { AI_GATEWAY_API_KEY: 'k', JUDGE_MODEL: 'claude-sonnet-5-5' };
+    const opts = createJudgeOptions(loadConfig(claudeEnv), claudeEnv, fake);
+    await expect(opts.transport('{}')).rejects.toThrow(/Anthropic returned HTTP 500/);
   });
 });

@@ -125,39 +125,54 @@ exported in your shell takes precedence over `.env`.
 
 | Variable | Required | Default | Purpose |
 |---|---|---|---|
-| `GROVE_API_KEY` | For `translate` and `eval` | — | Translator backend and judge. |
-| `GROVE_MODEL` | No | `gpt-5.5` | Translator model. |
-| `GROVE_ENDPOINT` | No | Azure gateway | Translator endpoint. |
-| `GROVE_TIMEOUT_MS` | No | `30000` | Request timeout. |
-| `JUDGE_MODEL` | For `eval` | — | Judge model. Must differ from the translator model. |
+| `AI_GATEWAY_API_KEY` | For `translate` and `eval` | — | Shared key for the translator backend and the judge. |
+| `TRANSLATOR_MODEL` | No | `gpt-5.5` | Translator model. A `claude-*` value selects the Anthropic Messages path. |
+| `JUDGE_MODEL` | For `eval` | — | Judge model. Must differ from the translator model. A `claude-*` value uses the Anthropic Messages path; anything else uses the OpenAI Responses path. |
 | `BRAINTRUST_API_KEY` | For `eval` | — | Read by the `braintrust` CLI. |
 | `BRAINTRUST_PROJECT` | No | `docs-translations` | Braintrust project name. |
 | `TARGET_LOCALES` | No | `pt-br,es,ko-kr,ja-jp,zh-cn` | Comma-separated target locales. |
 | `TERMS_FILE` | No | — | Path to a JSON file of non-translatable terms, e.g. `{"terms":["MongoDB","Atlas"]}`. |
 
+The translator model — and therefore which backend runs — is set with
+`TRANSLATOR_MODEL`: a `claude-*` value selects the Anthropic Messages path, and
+the model name is forwarded to that backend.
+
+The translation service reads the per-family endpoint and timeout overrides
+directly, so they are not part of this tool's configuration:
+`OPENAI_ENDPOINT` and `OPENAI_TIMEOUT_MS` (default `30000`) for the OpenAI
+path, and `ANTHROPIC_ENDPOINT` and `ANTHROPIC_TIMEOUT_MS` (default `120000`)
+for the Anthropic path. They apply only once their path is selected.
+
 ### Grove settings
 
 `translate` and the `eval` judge call Grove through `translation-service`,
-which speaks the OpenAI Responses API. Set these in `.env`:
+which speaks either the OpenAI Responses API or the Anthropic Messages API
+depending on the model. Set these in `.env`:
 
 ```
-GROVE_API_KEY=<your key>
-GROVE_ENDPOINT=https://ai-gateway.corp.mongodb.com/openai/v1/responses
-GROVE_MODEL=gpt-6-astra
+AI_GATEWAY_API_KEY=<your key>
+TRANSLATOR_MODEL=gpt-6-astra
 JUDGE_MODEL=<a different model>
 ```
 
-- A key from the new AI Gateway only works with the
-  `ai-gateway.corp.mongodb.com` endpoint. The service's built-in default is the
-  legacy Azure gateway (`grove-gateway-prod.azure-api.net`), which rejects
-  those keys with HTTP 401.
-- The model must be one the gateway serves on the `/openai/v1/responses` path.
-  List them with `GET https://ai-gateway.corp.mongodb.com/openai/v1/models`.
-  Claude models are served on `/anthropic/v1/messages`, a format this service
-  does not support yet, and fail here with HTTP 404.
+No endpoint is needed: both backends default to the AI Gateway.
+
+- Both backends default to the AI Gateway
+  (`ai-gateway.corp.mongodb.com`), so an `AI_GATEWAY_API_KEY` works with no
+  endpoint configuration. A 401 means the key does not belong to the gateway
+  being called: if your key is issued for the legacy Azure gateway, override
+  `OPENAI_ENDPOINT` (or `ANTHROPIC_ENDPOINT` for a `claude-*` model) to point at
+  that gateway.
+- The tool picks the backend from the model name: a `claude-*` model uses the
+  Anthropic Messages path, and any other model uses the OpenAI Responses path.
+  List the available models with
+  `GET https://ai-gateway.corp.mongodb.com/openai/v1/models`.
 - `JUDGE_MODEL` is required and must differ from the translator model. Falling
   back to the translator would reintroduce the self-preference bias the
   separate judge exists to avoid.
+- The judge picks its wire format from the model name the same way the
+  translator does: a `claude-*` judge model uses the Anthropic Messages path,
+  and any other model uses the OpenAI Responses path.
 - Failed requests are recorded in
   `data/<project>/<runId>/translate-failures.json` with the gateway's error,
   for example `Grove returned HTTP 401`.
@@ -352,8 +367,8 @@ only needed to target an older run.
 
 `translate` and the `eval` judge use two sibling packages:
 
-- `platform/tools/translation-service/`: the translation service and Grove
-  backend. A private pnpm workspace package.
+- `platform/tools/translation-service/`: the translation service and its
+  OpenAI and Anthropic backends. A private pnpm workspace package.
 - `platform/tools/translation-mdx-adapter/`: flattens MDX into the strings the
   service translates and reapplies them afterward.
 

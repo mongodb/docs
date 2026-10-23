@@ -1,4 +1,9 @@
 import {
+  ANTHROPIC_DEFAULTS,
+  extractAnthropicText,
+  extractOutputText,
+} from '@mongodb-docs/translation-service';
+import {
   JUDGE_RESPONSE_SCHEMA,
   JUDGE_SYSTEM_PROMPT,
   buildJudgePrompt,
@@ -7,14 +12,26 @@ import {
 
 /**
  * Sends a request body to the judge model and returns the raw response body.
- * Injected so the judge is unit-testable without a network. See `grove.ts` for
- * the Grove-backed implementation.
+ * Injected so the judge is unit-testable without a network. See `backend.ts`
+ * for the gateway-backed implementation.
  */
 export type JudgeTransport = (body: string) => Promise<string>;
 
-export interface JudgeOptions {
-  transport: JudgeTransport;
+/** The gateway wire format a judge model is served on. */
+export type JudgeFormat = 'responses' | 'messages';
+
+export interface JudgeRequestConfig {
   model: string;
+  /**
+   * Required by the Messages envelope, ignored on the Responses path. The
+   * Anthropic config resolver supplies the resolved value; the Messages
+   * branch falls back to the backend default when it is absent.
+   */
+  maxTokens?: number;
+}
+
+export interface JudgeOptions extends JudgeRequestConfig {
+  transport: JudgeTransport;
 }
 
 export interface JudgeResult {
@@ -32,48 +49,38 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 /**
- * Locate the model's structured-output text within the Responses envelope.
- * Mirrors `parseGroveResponse`'s extraction in `translation-service`: prefer
- * the aggregated `output_text`, otherwise dig into the `message`-type output
- * item's `output_text` content part (models can interleave reasoning items).
+ * The judge routes by model family the same way the translator does (see
+ * `translate/backend.ts`): every `anthropic`-type model in the gateway
+ * catalog is named `claude-*`, and everything else is served on the
+ * Responses path.
  */
-function extractOutputText(envelope: unknown): string {
-  if (
-    isRecord(envelope) &&
-    typeof envelope['output_text'] === 'string' &&
-    envelope['output_text'] !== ''
-  ) {
-    return envelope['output_text'];
-  }
-  if (isRecord(envelope) && Array.isArray(envelope['output'])) {
-    for (const message of envelope['output']) {
-      if (
-        !isRecord(message) ||
-        message['type'] !== 'message' ||
-        !Array.isArray(message['content'])
-      ) {
-        continue;
-      }
-      for (const part of message['content']) {
-        if (
-          isRecord(part) &&
-          part['type'] === 'output_text' &&
-          typeof part['text'] === 'string'
-        ) {
-          return part['text'];
-        }
-      }
-    }
-  }
-  throw new Error('Grove response envelope contained no output text');
+export function judgeFormatFor(model: string): JudgeFormat {
+  return model.startsWith('claude-') ? 'messages' : 'responses';
 }
 
-export function buildJudgeRequest(input: JudgeInput, model: string): string {
+export function buildJudgeRequest(
+  input: JudgeInput,
+  config: JudgeRequestConfig,
+): string {
+  const prompt = buildJudgePrompt(input);
+
+  if (judgeFormatFor(config.model) === 'messages') {
+    return JSON.stringify({
+      model: config.model,
+      max_tokens: config.maxTokens ?? ANTHROPIC_DEFAULTS.maxTokens,
+      system: JUDGE_SYSTEM_PROMPT,
+      messages: [{ role: 'user', content: prompt }],
+      output_config: {
+        format: { type: 'json_schema', schema: JUDGE_RESPONSE_SCHEMA },
+      },
+    });
+  }
+
   return JSON.stringify({
-    model,
+    model: config.model,
     input: [
       { role: 'system', content: [{ type: 'input_text', text: JUDGE_SYSTEM_PROMPT }] },
-      { role: 'user', content: [{ type: 'input_text', text: buildJudgePrompt(input) }] },
+      { role: 'user', content: [{ type: 'input_text', text: prompt }] },
     ],
     text: {
       format: {
@@ -90,7 +97,7 @@ export async function judgeTranslation(
   input: JudgeInput,
   opts: JudgeOptions,
 ): Promise<JudgeResult> {
-  const raw = await opts.transport(buildJudgeRequest(input, opts.model));
+  const raw = await opts.transport(buildJudgeRequest(input, opts));
 
   let envelope: unknown;
   try {
@@ -99,7 +106,10 @@ export async function judgeTranslation(
     throw new Error('Judge response body was not valid JSON');
   }
 
-  const outputText = extractOutputText(envelope);
+  const outputText =
+    judgeFormatFor(opts.model) === 'messages'
+      ? extractAnthropicText(envelope)
+      : extractOutputText(envelope);
 
   let parsed: unknown;
   try {
