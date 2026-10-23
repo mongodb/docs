@@ -11,7 +11,7 @@ import remarkGfm from 'remark-gfm';
 import { convertSnootyAst } from './utils';
 import { convertMdastToMdx } from '../src/core/convertMdastToMdx';
 import { buildSubstitutionRefXrefMap } from '../src/core/convertSnootyAstToMdast/convertSnootyAstToMdast';
-import type { SnootyNode } from '../src/core/convertSnootyAstToMdast/types';
+import type { RichSubstitution, SnootyNode } from '../src/core/convertSnootyAstToMdast/types';
 import type { ReferencesArtifact } from '../src/core/convertJsonAstToMdxFiles/buildReferencesArtifacts';
 
 describe('convertSnootyAstToMdast', () => {
@@ -1061,6 +1061,97 @@ describe('convertSnootyAstToMdast', () => {
     expect(mongofilesMdx).toContain('name="bin.mongofiles"');
     expect(bsondumpMdx).toContain('<Replacement name="tool-binary">');
     expect(bsondumpMdx).toContain('`bsondump`');
+  });
+
+  /**
+   * A role is only the substitution's whole value when nothing else in the body carries text.
+   * These cover the `|both| replace:: Available for both :binary:`~bin.mongod` and
+   * :binary:`~bin.mongos`.` shape, where returning the first role dropped the prose and the
+   * second role entirely (manual `reference/parameters` rendered `<RefRole>` alone).
+   */
+  describe('substitution body with a role plus surrounding prose', () => {
+    const binaryRole = (name: string): SnootyNode => ({
+      type: 'ref_role',
+      name: 'binary',
+      target: `bin.${name}`,
+      url: `https://www.mongodb.com/docs/manual/reference/program/${name}/#mongodb-binary-bin.${name}`,
+      children: [{ type: 'literal', value: name }],
+    });
+
+    /** Page with `|x|` defined as `body` and used once in a paragraph. */
+    const convertSubstitution = (body: SnootyNode[]) =>
+      convertSnootyAst({
+        ast: {
+          type: 'root',
+          children: [
+            { type: 'substitution_definition', name: 'x', refname: 'x', children: body },
+            { type: 'paragraph', children: [{ type: 'substitution_reference', refname: 'x', children: body }] },
+          ],
+        },
+      });
+
+    it('keeps prose and every role around a typed :binary: role', () => {
+      const { mdx, references } = convertSubstitution([
+        { type: 'text', value: 'Available for both ' },
+        binaryRole('mongod'),
+        { type: 'text', value: ' and ' },
+        binaryRole('mongos'),
+        { type: 'text', value: '.' },
+      ]);
+
+      // Not the bare first role the unguarded lookup used to emit.
+      expect(mdx).not.toBe('<RefRole type="binary" name="bin.mongod">`mongod`</RefRole>');
+      expect(mdx).toBe('<Reference refKey="x" type="substitution" />');
+
+      const value = (references as ReferencesArtifact).substitutions.x as RichSubstitution;
+      expect(value.text).toBe('Available for both mongod and mongos.');
+      // Both binaries survive, not just the first.
+      expect(convertMdastToMdx({ type: 'root', children: value.nodes } as never)).toContain('bin.mongod');
+      expect(convertMdastToMdx({ type: 'root', children: value.nodes } as never)).toContain('bin.mongos');
+    });
+
+    it('keeps prose around a :ref: role', () => {
+      const { mdx, references } = convertSubstitution([
+        { type: 'text', value: 'See ' },
+        {
+          type: 'ref_role',
+          name: 'label',
+          target: 'some-target',
+          fileid: ['page/x', 'std-label-some-target'],
+          children: [{ type: 'text', value: 'the guide' }],
+        },
+        { type: 'text', value: ' for details.' },
+      ]);
+
+      expect(mdx).toBe('<Reference refKey="x" type="substitution" />');
+      expect((references as ReferencesArtifact).substitutions.x).toMatchObject({
+        text: 'See the guide for details.',
+      });
+    });
+
+    it('keeps prose around a :pipeline: role', () => {
+      const { mdx, references } = convertSubstitution([
+        { type: 'text', value: 'Use the ' },
+        {
+          type: 'ref_role',
+          name: 'pipeline',
+          target: 'vectorSearch',
+          fileid: ['agg/vectorSearch', ''],
+          children: [{ type: 'literal', value: '$vectorSearch' }],
+        },
+        { type: 'text', value: ' stage.' },
+      ]);
+
+      expect(mdx).toBe('<Reference refKey="x" type="substitution" />');
+      expect((references as ReferencesArtifact).substitutions.x).toMatchObject({
+        text: 'Use the $vectorSearch stage.',
+      });
+    });
+
+    it('still emits a bare RefRole when the typed role is the entire body', () => {
+      const { mdx } = convertSubstitution([binaryRole('mongos')]);
+      expect(mdx).toBe('<RefRole type="binary" name="bin.mongos">`mongos`</RefRole>');
+    });
   });
 
   it('emits refKey + refTarget + replacement when substitution_reference is :ref: inside replacement-slot include body', () => {

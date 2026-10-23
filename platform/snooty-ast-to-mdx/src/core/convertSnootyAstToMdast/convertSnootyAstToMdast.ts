@@ -356,11 +356,21 @@ const buildEnumeratedListJsx = (
 const SKIP_P_TAG_PARENTS = new Set(['caption']);
 
 /**
+ * Confirms that a role inside a substitution stands in for the *whole* substitution only when nothing else 
+ * in the substitution body carries text. If not, we continue parsing to find the rest of the substitution.
+ */
+const roleIsWholeSubstitution = (nodes: SnootyNode[] | undefined, role: SnootyNode): boolean => {
+  const substitutionText = extractInlineDisplayText(nodes ?? []).trim();
+  const roleText = extractInlineDisplayText(role.children ?? []).trim();
+  return substitutionText === roleText;
+};
+
+/**
  * DFS for inline `:ref:` / `:doc:` expansion inside substitution content
  * (Snooty may use `ref_role`, `doc`, or a `role` with name `ref`/`doc`; nodes may be wrapped in a paragraph).
  * Snooty often represents resolved `:ref:` as `ref_role` with `name: "label"` (std domain), not `name: "ref"`.
  */
-const findRefOrDocRoleInSubstitution = (nodes: SnootyNode[] | undefined): SnootyNode | null => {
+const findRefOrDocRoleDeep = (nodes: SnootyNode[] | undefined): SnootyNode | null => {
   if (!nodes?.length) return null;
   for (const n of nodes) {
     if (n.type === 'doc') return n;
@@ -379,10 +389,15 @@ const findRefOrDocRoleInSubstitution = (nodes: SnootyNode[] | undefined): Snooty
     if (n.type === 'reference' && typeof n.refuri !== 'string') {
       return n;
     }
-    const nested = findRefOrDocRoleInSubstitution(n.children);
+    const nested = findRefOrDocRoleDeep(n.children);
     if (nested) return nested;
   }
   return null;
+};
+
+const findRefOrDocRoleInSubstitution = (nodes: SnootyNode[] | undefined): SnootyNode | null => {
+  const found = findRefOrDocRoleDeep(nodes);
+  return found && roleIsWholeSubstitution(nodes, found) ? found : null;
 };
 
 /**
@@ -437,7 +452,7 @@ const substitutionHasBlockContent = (nodes: SnootyNode[] | undefined): boolean =
  * `:pipeline:\`$vectorSearch\`` and similar — resolved like xref entries in
  * `buildSubstitutionRefXrefMap` so `|alias|` emits linked {@link Reference} / `refs` (not plain text).
  */
-const findPipelineRoleInSubstitution = (nodes: SnootyNode[] | undefined): SnootyNode | null => {
+const findPipelineRoleDeep = (nodes: SnootyNode[] | undefined): SnootyNode | null => {
   if (!nodes?.length) return null;
   for (const n of nodes) {
     if (n.type === 'ref_role') {
@@ -448,10 +463,15 @@ const findPipelineRoleInSubstitution = (nodes: SnootyNode[] | undefined): Snooty
       const rn = typeof n.name === 'string' ? n.name.toLowerCase() : '';
       if (rn === 'pipeline') return n;
     }
-    const nested = findPipelineRoleInSubstitution(n.children);
+    const nested = findPipelineRoleDeep(n.children);
     if (nested) return nested;
   }
   return null;
+};
+
+const findPipelineRoleInSubstitution = (nodes: SnootyNode[] | undefined): SnootyNode | null => {
+  const found = findPipelineRoleDeep(nodes);
+  return found && roleIsWholeSubstitution(nodes, found) ? found : null;
 };
 
 /**
@@ -459,7 +479,7 @@ const findPipelineRoleInSubstitution = (nodes: SnootyNode[] | undefined): Snooty
  * These roles are distinct from `:ref:` / `:doc:` (handled by {@link findRefOrDocRoleInSubstitution})
  * and `:pipeline:` (handled by {@link findPipelineRoleInSubstitution}).
  */
-const findTypedRefRoleInSubstitution = (nodes: SnootyNode[] | undefined): SnootyNode | null => {
+const findTypedRefRoleDeep = (nodes: SnootyNode[] | undefined): SnootyNode | null => {
   if (!nodes?.length) return null;
   for (const n of nodes) {
     if (n.type === 'ref_role') {
@@ -468,10 +488,15 @@ const findTypedRefRoleInSubstitution = (nodes: SnootyNode[] | undefined): Snooty
         return n;
       }
     }
-    const nested = findTypedRefRoleInSubstitution(n.children);
+    const nested = findTypedRefRoleDeep(n.children);
     if (nested) return nested;
   }
   return null;
+};
+
+const findTypedRefRoleInSubstitution = (nodes: SnootyNode[] | undefined): SnootyNode | null => {
+  const found = findTypedRefRoleDeep(nodes);
+  return found && roleIsWholeSubstitution(nodes, found) ? found : null;
 };
 
 const extractRefTargetKeyFromRefRoleLike = (node: SnootyNode): string | null => {
