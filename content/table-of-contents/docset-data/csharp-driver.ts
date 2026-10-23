@@ -334,6 +334,12 @@ const tocData: TocItem[] = [
             url: '/docs/drivers/csharp/:version/logging-and-monitoring/change-streams',
             versions: { excludes: outdatedVersions },
           },
+          {
+            label: 'OpenTelemetry Tracing',
+            contentSite: 'csharp',
+            url: '/docs/drivers/csharp/:version/logging-and-monitoring/open-telemetry',
+            versions: { excludes: outdatedVersions },
+          },
         ],
       },
       {

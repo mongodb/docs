@@ -1,0 +1,367 @@
+.. _csharp-open-telemetry:
+
+===================================
+Trace Operations with OpenTelemetry
+===================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: tracing, span, activitysource, observability, code example
+   :description: Learn how to enable and configure OpenTelemetry tracing in the MongoDB C#/.NET driver to collect spans and span attributes for your database operations.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use OpenTelemetry tracing with the
+{+driver-short+}. `OpenTelemetry <https://opentelemetry.io/>`__ is an open
+source observability framework that provides a standardized way to
+instrument, generate, collect, and export telemetry data.
+
+The {+driver-short+} emits trace data through
+the `System.Diagnostics.ActivitySource
+<https://learn.microsoft.com/dotnet/api/system.diagnostics.activitysource>`__ API.
+When you subscribe a listener to the driver's ``ActivitySource``, the driver
+creates spans that represent your MongoDB operations, such as queries and
+transactions. These spans include attributes that follow OpenTelemetry
+semantic conventions.
+
+.. note::
+
+   OpenTelemetry tracing is available in {+driver-short+} 3.7 or later.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``sample_mflix.movies`` collection
+from the :atlas:`Atlas sample datasets </sample-data>`. To learn how to
+create a free MongoDB Atlas cluster and load the sample datasets, see
+:ref:`<csharp-get-started>`.
+
+The following code creates a ``MongoClient`` and accesses the
+sample collection:
+
+.. literalinclude:: /code-examples/tested/csharp/driver/Monitoring/OpenTelemetry/OpenTelemetryExamples.snippet.create-client-and-collection.cs
+   :language: csharp
+   :category: usage example
+   :copyable:
+
+Dependencies
+~~~~~~~~~~~~
+
+The driver does not depend on the OpenTelemetry SDK. It emits spans through
+``ActivitySource``, so any listener can collect them, including a
+``System.Diagnostics.ActivityListener`` object.
+
+To use the OpenTelemetry SDK to collect the driver's spans, add the SDK and
+an exporter to your app. The examples on this page use the in-memory exporter
+so you can inspect the spans that the driver produces. Run the following
+commands from your project directory:
+
+.. code-block:: bash
+
+   dotnet add package OpenTelemetry
+   dotnet add package OpenTelemetry.Exporter.InMemory
+
+Enable OpenTelemetry Tracing
+----------------------------
+
+The driver creates spans when a listener is subscribed to the driver's
+``ActivitySource`` and the client has tracing enabled. To disable
+tracing for a client, set the ``TracingOptions.Disabled`` property to
+``true``.
+
+If no listener is subscribed, the driver skips all tracing work and the
+performance impact is negligible.
+
+The driver registers its spans on an ``ActivitySource`` named
+``MongoDB.Driver``. To collect the driver's spans, pass the
+``MongoTelemetry.ActivitySourceName`` constant to the ``AddSource()``
+method when you configure OpenTelemetry.
+
+Subscribe in an App with a Host
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To configure OpenTelemetry in an app that uses the .NET hosting model,
+such as ASP.NET Core or a worker service, add the following package:
+
+.. code-block:: bash
+
+   dotnet add package OpenTelemetry.Extensions.Hosting
+
+If your app already has a host, add the driver's ``ActivitySource`` to
+its OpenTelemetry setup, as shown in the following example:
+
+.. literalinclude:: /code-examples/tested/csharp/driver/Monitoring/OpenTelemetry/OpenTelemetryExamples.snippet.enable-tracing-host.cs
+   :language: csharp
+   :category: usage example
+   :copyable:
+
+The preceding example uses the ``OpenTelemetry.Exporter.InMemory`` package to
+collect the spans. In your app, replace it with the exporter for your tracing
+backend.
+
+Subscribe with a TracerProvider
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your app does not have a host, build a ``TracerProvider``, as shown
+in the following example:
+
+.. literalinclude:: /code-examples/tested/csharp/driver/Monitoring/OpenTelemetry/OpenTelemetryExamples.snippet.enable-tracing.cs
+   :language: csharp
+   :category: usage example
+   :copyable:
+
+The preceding example uses the ``OpenTelemetry.Exporter.InMemory`` package to
+collect the spans. In your app, replace it with the exporter for your tracing
+backend, such as the OpenTelemetry Protocol (OTLP) exporter.
+
+After you subscribe to the ``ActivitySource``, the driver emits spans for the
+operations that your application runs, as shown in the following example:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/csharp/driver/Monitoring/OpenTelemetry/OpenTelemetryExamples.snippet.run-operations.cs
+      :language: csharp
+      :category: usage example
+
+   .. output:: /code-examples/tested/csharp/driver/Monitoring/OpenTelemetry/OutputFiles/OpenTelemetryOutput.txt
+      :language: json
+      :visible: false
+
+Subscribe with an ActivityListener
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you do not want to depend on the OpenTelemetry SDK, you can subscribe to the
+driver's ``ActivitySource`` by using a
+`System.Diagnostics.ActivityListener
+<https://learn.microsoft.com/dotnet/api/system.diagnostics.activitylistener>`__ object.
+The following example registers a listener that receives every span the driver
+emits:
+
+.. literalinclude:: /code-examples/tested/csharp/driver/Monitoring/OpenTelemetry/OpenTelemetryExamples.snippet.enable-tracing-listener.cs
+   :language: csharp
+   :category: usage example
+   :copyable:
+
+Configure Tracing Options
+-------------------------
+
+To configure tracing for an individual client, set the
+``MongoClientSettings.TracingOptions`` property to a ``TracingOptions``
+instance. The ``TracingOptions`` class has the following properties:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 15 55
+
+   * - Property
+     - Type
+     - Description
+  
+   * - ``Disabled``
+     - ``bool``
+     - When set to ``true``, this client does not create spans.
+       Listeners that are subscribed to other clients are not affected.
+
+       **Default:** ``false``
+
+   * - ``QueryTextMaxLength``
+     - ``int``
+     - Specifies the maximum length of query text to include in span
+       attributes. When set to ``0``, the driver omits query text. The
+       query text appears in the ``db.query.text`` attribute.
+
+       **Default:** ``0``
+
+The following example sets ``QueryTextMaxLength`` to ``1024``, which captures
+up to 1024 characters of the command text:
+
+.. literalinclude:: /code-examples/tested/csharp/driver/Monitoring/OpenTelemetry/OpenTelemetryExamples.snippet.configure-tracing-options.cs
+   :language: csharp
+   :category: usage example
+   :copyable:
+
+Operation Tracing
+-----------------
+
+The {+driver-short+} creates the following types of spans:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Span Type
+     - Description
+   * - Operation-level spans
+     - Spans that represent high-level driver operations, such as ``find``,
+       ``insert``, or ``aggregate``. Operation-level spans include the
+       ``db.operation.name`` attribute.
+   * - Command-level spans
+     - Spans that represent individual commands that the driver sends to the
+       server. Command-level spans include the ``db.command.name`` attribute
+       and are nested under their corresponding operation-level span.
+   * - Transaction spans
+     - Spans that encompass all operations that run within an explicit
+       transaction.
+
+For example, a ``find`` operation creates an operation-level span that
+contains a nested command-level span, as shown in the following hierarchy:
+
+.. code-block:: none
+   :copyable: false
+
+   find sample_mflix.movies
+     └── find
+
+Span Attributes
+~~~~~~~~~~~~~~~
+
+The {+driver-short+} follows OpenTelemetry semantic conventions and includes
+attributes that provide context about each operation.
+
+General Attributes
+``````````````````
+
+Spans include the following general attributes:
+
+- ``db.system.name``: Always set to ``mongodb``
+- ``db.operation.name``: Name of the high-level operation (operation
+  spans only)
+- ``db.operation.summary``: Summary of the high-level operation
+  (operation spans only)
+- ``db.command.name``: Name of the MongoDB command (command spans
+  only)
+- ``db.namespace``: Database name
+- ``db.collection.name``: Collection name, when applicable
+- ``db.query.summary``: Summary of the query (command spans only)
+
+Network Attributes
+``````````````````
+
+Command spans include the following network attributes:
+
+- ``server.address``: MongoDB server host
+- ``server.port``: MongoDB server port
+- ``network.transport``: Transport protocol, such as ``tcp`` or ``unix``
+
+Connection Attributes
+`````````````````````
+
+Command spans include the following connection attributes:
+
+- ``db.mongodb.server_connection_id``: Server-assigned connection ID
+- ``db.mongodb.driver_connection_id``: Driver-assigned connection ID
+
+Session and Transaction Attributes
+``````````````````````````````````
+
+When you use sessions or transactions, command spans include the following
+attributes:
+
+- ``db.mongodb.lsid``: Logical session ID (when using sessions)
+- ``db.mongodb.txn_number``: Transaction number (when in a transaction)
+- ``db.mongodb.cursor_id``: Cursor ID (for operations that return cursors)
+
+Query Attributes
+````````````````
+
+When you configure ``QueryTextMaxLength`` with a value greater than ``0``,
+command spans include the following attribute:
+
+- ``db.query.text``: The command text, truncated to the specified maximum
+  length
+
+Error Attributes
+````````````````
+
+When an operation fails, the driver records exception details and includes the
+following attributes:
+
+- ``exception.type``: Type of the exception
+- ``exception.message``: Exception message
+- ``exception.stacktrace``: Exception stack trace
+- ``db.response.status_code``: MongoDB error code (command spans only)
+
+Security and Redaction
+----------------------
+
+The driver applies the following security measures to protect sensitive
+information:
+
+- The driver does not create spans for sensitive commands, such as
+  authentication commands. These commands include ``authenticate``,
+  ``saslStart``, ``saslContinue``, ``getNonce``, ``createUser``,
+  ``updateUser``, ``copyDbSaslStart``, and ``copyDb``. The driver also
+  skips the ``hello`` command when it includes the
+  ``speculativeAuthenticate`` field.
+- The driver disables the ``db.query.text`` attribute by default. Enable
+  this attribute only when necessary.
+- When the driver captures query text, it removes the ``lsid``, ``$db``,
+  ``$clusterTime``, and ``signature`` fields from the command.
+
+.. warning::
+
+   When you enable the ``db.query.text`` attribute, the driver includes
+   the command text in span attributes, and your exporter sends the
+   spans to your tracing backend. The driver removes only session and
+   cluster metadata. The tracing backend still records filter values,
+   query operators, and the contents of inserted or updated documents.
+
+Error Handling
+--------------
+
+When operations fail, the driver records the exception details as span
+attributes that follow OpenTelemetry semantic conventions and sets the
+span status to ``Error``.
+
+For MongoDB command failures, the driver sets the status of both the
+operation span and its command span to ``Error``. The driver records the
+error code in the ``db.response.status_code`` attribute on the command
+span.
+
+Write errors that the server returns in a successful command response,
+such as a duplicate key error, do not set ``db.response.status_code``.
+The driver records these errors as exception attributes on the operation
+span.
+
+Errors do not prevent the driver from raising the exception to your
+application.
+
+Performance Considerations
+--------------------------
+
+Consider the following performance implications when you use OpenTelemetry
+tracing:
+
+- Capturing the ``db.query.text`` attribute adds overhead. Capture command
+  text only when necessary, or set ``QueryTextMaxLength`` to ``0`` to disable
+  it.
+- When no listener is subscribed to the driver's ``ActivitySource``, tracing
+  has negligible performance impact because the driver skips all tracing
+  work.
+
+Additional Information
+----------------------
+
+To learn more about OpenTelemetry tracing, see the `OpenTelemetry .NET
+<https://opentelemetry.io/docs/languages/net/>`__ documentation.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the classes used to trace operations in the driver, see
+the following API documentation:
+
+- `MongoTelemetry <{+api-root+}/MongoDB.Driver/MongoDB.Driver.MongoTelemetry.html>`__
+- `TracingOptions <{+api-root+}/MongoDB.Driver/MongoDB.Driver.Core.Configuration.TracingOptions.html>`__
+- `MongoClientSettings <{+api-root+}/MongoDB.Driver/MongoDB.Driver.MongoClientSettings.html>`__
