@@ -594,6 +594,33 @@ const tocData: TocItem[] = [
         ],
       },
       {
+        label: 'Maintain Uniqueness',
+        contentSite: 'docs',
+        url: '/docs/:version/tutorial/maintain-uniqueness-in-sharded-clusters',
+        versions: { excludes: manualVersions.before('v9.1') },
+        collapsible: true,
+        items: [
+          {
+            label: 'Unique Index on Sharded Collection',
+            contentSite: 'docs',
+            url: '/docs/:version/tutorial/create-unique-index-on-sharded-collection',
+            versions: { excludes: manualVersions.before('v9.1') },
+          },
+          {
+            label: 'Uniqueness on Shard Key Values',
+            contentSite: 'docs',
+            url: '/docs/:version/tutorial/enforce-uniqueness-on-shard-key-values',
+            versions: { excludes: manualVersions.before('v9.1') },
+          },
+          {
+            label: 'Uniqueness on Non-Shard Key Field',
+            contentSite: 'docs',
+            url: '/docs/:version/tutorial/enforce-uniqueness-on-non-shard-key-field',
+            versions: { excludes: manualVersions.before('v9.1') },
+          },
+        ],
+      },
+      {
         label: 'Hashed Sharding',
         contentSite: 'docs',
         url: '/docs/:version/core/hashed-sharding',

@@ -1,0 +1,150 @@
+.. _manual-uniqueness-proxy-collection:
+.. _shard-key-arbitrary-uniqueness:
+
+=======================================================
+Enforce Uniqueness on a Field That Is Not the Shard Key
+=======================================================
+
+.. meta::
+   :description: Enforce a unique constraint on a field that is not part of the shard key in a sharded MongoDB collection by using a proxy collection with a unique index.
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language
+   :values: shell
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+If you cannot use a unique field as the shard key, or if you need to
+enforce uniqueness over multiple fields, create another
+:term:`collection` to act as a proxy collection.
+
+About this Task
+---------------
+
+A sharded cluster enforces a unique constraint across shards only when
+the unique index is on the shard key or includes the shard key as a
+:ref:`prefix <compound-index-prefix>`. A proxy collection works around
+that constraint: the proxy collection contains both a reference to the
+original document and the unique key, and your application writes to
+the proxy collection first.
+
+When you use a proxy collection, consider the following:
+
+- Your application must catch errors when inserting documents into the
+  proxy collection and must enforce consistency between the two
+  collections.
+
+- If the proxy collection requires sharding, you must shard on the
+  single field on which you want to enforce uniqueness.
+
+- Each field requires its own proxy collection. To enforce uniqueness
+  on more than one field using sharded proxy collections, you must
+  have one proxy collection for every field. If you create multiple
+  unique indexes on a single proxy collection, you cannot shard the
+  proxy collection.
+
+- This approach requires creating a unique ID for the ``primary_id``
+  field rather than letting MongoDB create it automatically on
+  document insertion.
+
+For the full set of constraints that apply to unique indexes on
+sharded collections, see :ref:`manual-maintain-uniqueness-sharded`.
+
+Before You Begin
+----------------
+
+- Identify the field that requires a unique constraint but cannot be
+  part of the shard key.
+
+- Confirm that no existing documents violate the uniqueness constraint
+  for the field.
+
+- Connect :binary:`~bin.mongosh` to a :binary:`~bin.mongos` instance.
+
+Steps
+-----
+
+Consider a collection ``records`` that stores user information. The
+field ``email`` is not the shard key, but needs to be unique. The
+``proxy`` collection contains the following fields:
+
+.. code-block:: javascript
+
+   {
+     "_id" : ObjectId("..."),
+     "parent_id" : "<ID>",
+     "email" : "<string>"
+   }
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create the unique index on the proxy collection.
+
+      Create a unique index on the ``email`` field of the ``proxy``
+      collection:
+
+      .. io-code-block::
+
+         .. input::
+            :language: javascript
+
+            db.proxy.createIndex( { "email" : 1 }, { unique : true } )
+
+         .. output::
+            :language: javascript
+
+            email_1
+
+   .. step:: Write to the proxy collection before the main collection.
+
+      Insert a document containing the target field and a generated
+      unique ID into the ``proxy`` collection. If the operation is
+      successful, insert the full document into the ``records``
+      collection:
+
+      .. code-block:: javascript
+
+         records = db.getCollection('records');
+         proxy = db.getCollection('proxy');
+
+         var primary_id = ObjectId();
+
+         proxy.insertOne({
+            "_id" : primary_id,
+            "email" : "example@example.net"
+         })
+
+         // if: the above operation returns successfully,
+         // then continue:
+
+         records.insertOne({
+            "_id" : primary_id,
+            "email": "example@example.net",
+            // additional information...
+         })
+
+Learn More
+----------
+
+- :ref:`manual-maintain-uniqueness-sharded`
+
+- :ref:`manual-create-unique-index-sharded`
+
+- :ref:`manual-uniqueness-shard-key-values`
+
+- :ref:`index-type-unique`
+
+- :ref:`sharding-shard-key-unique`
+
+- :method:`db.collection.createIndex`
