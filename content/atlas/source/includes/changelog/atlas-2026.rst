@@ -3,6 +3,13 @@
 October 2026
 ------------
 
+- Adds user settings to the {+atlas-ui+} :guilabel:`Data Explorer`.
+  You can now configure the time zone for date display, read-only
+  mode, the default ``maxTimeMS`` for queries, and the display format
+  for legacy UUID values. Your settings persist across all of your
+  Data Explorer sessions. To learn more, see
+  :ref:`data-explorer-settings`.
+
 - Adds invited federated users directly to your organization as
   active members when you use SAML federation and their email
   domain matches a verified domain in your identity provider
