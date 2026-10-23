@@ -675,11 +675,87 @@ status. If you interrupt every call in a step, the agent ends that
 turn instead of retrying the calls. If you interrupt only some of the
 calls in a step, the agent continues normally.
 
-.. note::
+Tool Call Interruption Support
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   The {+platform-short+} can interrupt an I/O-bound call, such as an
-   LLM call or a network tool call. However, a tool that runs a
-   CPU-bound local computation might not stop until it finishes.
+LLM calls and other I/O-bound calls are always interruptible. Support
+for tool call interruption depends on the language and tool type, and
+the following behavior applies:
+
+- In Python, tools that you write as asynchronous functions are
+  interruptible by default. The runtime raises a ``CancelledError``
+  inside the tool body when the tool reaches its next ``await``
+  expression. During cleanup, if your tool handles ``CancelledError``
+  exceptions, raise the error again when the cleanup
+  completes. A tool that continues running after the
+  ``CancelledError`` is still reported as interrupted, but the tool
+  runs longer than necessary.
+- In Python, tools that you write as synchronous functions run on a
+  worker thread. The {+platform-short+} cannot interrupt these tools
+  while they run, so the tool reports that it cannot be stopped and
+  runs to completion.
+- In TypeScript, tools are interruptible only when you update them
+  to support interruption. Pass the tool body to the
+  ``withCallInterruptSupport()`` function when you register the tool,
+  and call the ``getCallAbortSignal().throwIfAborted()`` function
+  at each point in a loop where the tool can safely stop. Without the
+  ``withCallInterruptSupport()`` function, the tool reports that it cannot
+  be stopped. If the tool is registered with the
+  ``withCallInterruptSupport()`` function but does not check the signal,
+  the call is still reported as stopped, and the run continues. However, the
+  tool body keeps running until it finishes.
+
+When you stop a single call, the {+platform-short+} displays one of the
+following statuses in the UI:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Status
+     - Description
+
+   * - :guilabel:`Stopped`
+     - The call stopped. The run continues from the interrupted
+       result.
+
+   * - :guilabel:`Cannot be stopped`
+     - The tool does not support interruption, and the call continues
+       to run.
+
+   * - :guilabel:`Unconfirmed`
+     - The runtime did not confirm whether the call stopped, so the
+       stop request might have been lost. Retry the stop, or stop the
+       whole run.
+
+Example
+```````
+
+The following example shows a TypeScript tool that supports
+interruption:
+
+.. code-block:: typescript
+   :copyable: false
+
+   import {
+     withCallInterruptSupport,
+     getCallAbortSignal,
+   } from "@mongodb-js/agent-engine-sdk-langgraph";
+
+   app.tool()(
+     withCallInterruptSupport(async function slowCheck(args) {
+       for (const batch of batches) {
+         // Stop here if the call was interrupted
+         getCallAbortSignal()?.throwIfAborted();
+         await processBatch(batch);
+       }
+     })
+   );
+
+When you stop a call, the model decides what happens next and might
+end the turn itself. To instruct the agent to skip the stopped call
+and continue the remaining work, add that instruction to the system
+prompt in your agent code.
 
 .. _agent-engine-invoke-agent-finish-session:
 
