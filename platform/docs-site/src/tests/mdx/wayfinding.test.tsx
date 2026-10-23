@@ -53,7 +53,9 @@ describe('Wayfinding MDX component', () => {
         ))}
       </Wayfinding>,
     );
-    const visibleLinks = getAllByRole('link').filter((el) => (el as HTMLElement).style.display !== 'none');
+    // Hiding is class-based (CSS module, mocked to identity-obj-proxy), so jsdom
+    // can't see display:none; assert on the class instead of inline style.
+    const visibleLinks = getAllByRole('link').filter((el) => !(el as HTMLElement).classList.contains('hidden'));
     expect(visibleLinks).toHaveLength(MAX_INIT_OPTIONS);
   });
 
@@ -104,7 +106,7 @@ describe('Wayfinding MDX component', () => {
     );
     fireEvent.click(getByText('Show all'));
     fireEvent.click(getByText('Collapse'));
-    const visibleLinks = getAllByRole('link').filter((el) => (el as HTMLElement).style.display !== 'none');
+    const visibleLinks = getAllByRole('link').filter((el) => !(el as HTMLElement).classList.contains('hidden'));
     expect(visibleLinks).toHaveLength(MAX_INIT_OPTIONS);
   });
 

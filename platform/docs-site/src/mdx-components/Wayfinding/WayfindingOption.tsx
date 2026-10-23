@@ -1,32 +1,9 @@
 'use client';
-import { css, cx } from '@leafygreen-ui/emotion';
-import { palette } from '@leafygreen-ui/palette';
+import { clsx } from 'clsx';
 import { DRIVER_ICON_MAP } from '@/mdx-components/Icons/DriverIconMap';
-import { theme } from '@/styles/theme';
 import { reportAnalytics } from '@/utils/report-analytics';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
-
-const optionStyle = ({ hideOption }: { hideOption: boolean }) => css`
-  padding: 6px 12px;
-  text-decoration: none;
-  display: ${hideOption ? 'none' : 'flex'};
-  align-items: center;
-  min-height: 36px;
-  border-radius: ${theme.size.small};
-  border: 1px solid var(--wayfinding-border-color);
-  color: var(--font-color-primary);
-  background-color: var(--background-color-primary);
-  font-size: ${theme.fontSize.small};
-  line-height: 20px;
-
-  :hover {
-    border-color: ${palette.gray.base};
-  }
-`;
-
-const imgStyle = css`
-  margin-right: 12px;
-`;
+import styles from './wayfinding-option.module.scss';
 
 type DriverIconMapKey = keyof typeof DRIVER_ICON_MAP;
 
@@ -43,7 +20,7 @@ export const WayfindingOption = ({ id, href, title, lang, hideOption = false }: 
 
   return (
     <a
-      className={cx(optionStyle({ hideOption }))}
+      className={clsx(styles.option, hideOption && styles.hidden)}
       href={href}
       target={'_self'}
       onClick={() => {
@@ -55,7 +32,7 @@ export const WayfindingOption = ({ id, href, title, lang, hideOption = false }: 
         });
       }}
     >
-      {Icon && <Icon className={imgStyle} width={24} height={24} />}
+      {Icon && <Icon className={styles.icon} width={24} height={24} />}
       <span>{title}</span>
     </a>
   );
