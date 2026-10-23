@@ -107,7 +107,16 @@
   keyfiles are the same on the source and destination clusters. To learn
   more, see :ref:`Authentication Credentials on Source and Destination Clusters
   <auth-creds-on-source-and-destination>`.
-  
+
+- When you import a primary-secondary-arbiter (PSA) replica set, the
+  keyfile contents of the replica set you import must match the keyfile
+  that |mms| manages in the destination project. Otherwise, the import
+  process fails for the arbiter node because of an authentication
+  failure.
+
+  To avoid this issue, you can remove the arbiter before you import the
+  replica set, then re-add the arbiter after the import completes.
+
 - To successfully import an existing replica set to |mms|, 
   the instance must be healthy.
   
