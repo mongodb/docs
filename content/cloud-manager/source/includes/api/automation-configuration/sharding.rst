@@ -7,21 +7,10 @@ clusters.
 
    "sharding" : [
      {
-       "managedSharding" : <boolean>,
+       "managedSharding" : false,
        "name" : "<string>",
        "configServerReplica" : "<string>",
-       "collections" : [
-         {
-           "_id" : "<string>",
-           "key" : [
-             [ "shard key" ],
-             [ "shard key" ],
-             ...
-           ],
-           "unique" : <boolean>
-         },
-         ...
-       ],
+       "collections" : [ ],
        "shards" : [
          {
            "_id" : "<string>",
@@ -30,27 +19,7 @@ clusters.
          },
          ...
        ],
-       "tags" : [
-         {
-           "ns" : "<string>",
-           "min" : [
-             {
-               "parameter" : "<string>",
-               "parameterType" : "<string>",
-               "value" : "<string>"
-             }
-           ],
-           "max" : [
-             {
-               "parameter" : "<string>",
-               "parameterType" : "<string>",
-               "value" : "<string>"
-             }
-           ],
-           "tag" : "<string>"
-         },
-         ...
-       ]
+       "tags" : [ ]
      },
      ...
    ]
@@ -78,10 +47,12 @@ clusters.
 
    * - sharding.managedSharding
      - boolean
-     - Conditional
+     - Optional
      - Flag that indicates whether |mms| Automation manages all
        :ref:`sharded collections <sharding-background>`
-       and :ref:`tags <shards-tag-sets>` in the deployment
+       and :ref:`tags <shards-tag-sets>` in the deployment. |mms|
+       doesn't support managed sharding, so this parameter can
+       never be set to any value other than ``false``.
 
    * - sharding.name
      - string
@@ -110,30 +81,11 @@ clusters.
 
    * - sharding.collections
      - array of objects
-     - Conditional
+     - Optional
      - Objects that define the sharded :term:`collections <collection>`
-       and their :term:`shard keys <shard key>`.
-
-   * - sharding.collections._id
-     - string
-     - Conditional
-     - :term:`namespace` of the sharded collection. The namespace
-       is the combination of the database name and the name of the
-       collection. For example, **testdb.testcoll**.
-
-   * - sharding.collections.key
-     - array of arrays
-     - Conditional
-     - Collection's :term:`shard keys <shard key>`. It contains:
-
-       - One array if your cluster uses one shard key.
-       - Multiple arrays if your cluster uses a compound shard key.
-
-   * - sharding.collections.unique
-     - boolean
-     - Conditional
-     - Flag that indicates whether MongoDB
-       :method:`enforces uniqueness for the shard key <sh.shardCollection>`.
+       and their :term:`shard keys <shard key>`. |mms|
+       doesn't support managed sharding, so this array must always
+       be empty.
 
    * - sharding.shards
      - array of objects
@@ -161,77 +113,9 @@ clusters.
 
    * - sharding.tags
      - array of objects
-     - Conditional
+     - Optional
      - Definition of zones for
        :ref:`zoned sharding <shards-tag-sets>`. Each object in
        this array defines a zone and configures the shard key range
-       for that zone.
-
-   * - sharding.tags.ns
-     - string
-     - Conditional
-     - :term:`Namespace` of the collection that uses zoned
-       sharding. The namespace combines the database name and the name
-       of the collection. For example: ``testdb.testcoll``.
-
-   * - sharding.tags.min
-     - array
-     - Conditional
-     - Minimum value of the shard key range.
-
-       .. include:: /includes/possibleValues-sharding.tags-ranges.rst
-
-   * - sharding.tags.max
-     - array
-     - Conditional
-     - Maximum value of the shard key range.
-
-       .. include:: /includes/possibleValues-sharding.tags-ranges.rst
-
-   * - sharding.tags.tag
-     - string
-     - Conditional
-     - Name of the :ref:`zone <shards-tag-sets>` associated
-       with the shard key range specified by **sharding.tags.min** and
-       **sharding.tags.max**.
-
-.. example:: The **sharding.tags** Array with Compound Shard Key
-
-   The following example configuration defines a compound shard key
-   range with a min value of **{ a : 1, b : ab }** and a max value of
-   **{ a : 100, b : fg }**. The example defines the range on the
-   **testdb.test1** collection and assigns it to zone **zone1**.
-
-   .. code-block:: json
-      :linenos:
-
-      "tags" : [
-        {
-          "ns" : "testdb.test1",
-          "min" : [
-            {
-              "parameter" : "a",
-              "parameterType" : "integer",
-              "value" : "1"
-            },
-            {
-              "parameter" : "b",
-              "parameterType" : "string",
-              "value" : "ab"
-            }
-          ],
-          "max" : [
-            {
-              "parameter" : "a",
-              "parameterType" : "integer",
-              "value" : "100"
-            },
-            {
-              "parameter" : "b",
-              "parameterType" : "string",
-              "value" : "fg"
-            }
-          ],
-          "tag" : "zone1"
-        }
-      ]
+       for that zone. |mms| doesn't support managed sharding, so this 
+       array must always be empty.
