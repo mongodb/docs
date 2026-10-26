@@ -234,7 +234,7 @@ To remove all instances of a specific value from an array, call the
 
        **Data Type:** ``TItem``
 
-The following code example uses the ``Pull()`` method to remove all instances of a
+The following code example uses the ``Pull()`` method to remove all instances of
 a specific ``GradeEntry`` object from the ``Grades`` array in |matching-document-or-documents|:
 
 |pull-code-example-tabs|
