@@ -12,7 +12,7 @@ export default defineDocset({
 		{ name: "v1.57" },
 		{ name: "v1.56" },
 		{ name: "v1.55" },
-		{ name: "v1.54" },
+		{ name: "v1.54", active: false, eol: "download" },
 		{ name: "v1.53", active: false, eol: "download" },
 		{ name: "v1.52", active: false, eol: "download" },
 		{ name: "v1.51", active: false, eol: "download" },

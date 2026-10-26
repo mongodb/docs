@@ -1,1 +1,0 @@
-atlas api databaseUsers getDatabaseUser --version 2023-01-01 --databaseName [databaseName] --groupId 32b6e34b3d91647abb20e7b8 --username SCRAM-SHA: dylan or AWS IAM: arn:aws:iam::123456789012:user/sales/enterprise/DylanBloggs or x.509/LDAP: CN=Dylan Bloggs,OU=Enterprise,OU=Sales,DC=Example,DC=COM or OIDC: IdPIdentifier/IdPGroupName
