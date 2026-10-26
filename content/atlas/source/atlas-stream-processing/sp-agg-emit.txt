@@ -1394,6 +1394,14 @@ that shouldn't appear in the body of the emitted message:
 Examples
 --------
 
+To run the examples in this section, create a stream processing
+workspace and add a connection to your {+atlas-sp+} workspace. To
+learn how, see :ref:`atlas-sp-quickstart` and
+:ref:`atlas-sp-add-connection`.
+
+Write to a Kafka Topic
+~~~~~~~~~~~~~~~~~~~~~~
+
 A streaming data source generates detailed weather reports from
 various locations, conformant to the schema of the :ref:`Sample
 Weather Dataset <sample-weather>`. The following aggregation has three
@@ -1626,3 +1634,84 @@ Documents in the ``stream`` topic take the following form:
 
    The preceding is a representative example. Streaming data are
    not static, and each user sees distinct documents.
+
+Write to a Time Series Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation reads reports from the sample streaming data
+source ``sample_stream_solar`` and writes them to a time series
+collection. This aggregation has three stages:
+
+1. The :pipeline:`$source` stage connects to the
+   ``sample_stream_solar`` source.
+
+#. The :pipeline:`$set` stage converts the ``timestamp`` field of each
+   report from a string to a date using
+   :expression:`$dateFromString`, so that the time series collection
+   can use it as its ``timeField``.
+
+#. The ``$emit`` stage writes each report to the ``solar_ts`` time
+   series collection in the ``solarDb`` database over the
+   ``solar-cluster-connection`` connection. The ``metaField`` option
+   is set to ``device_id``, so reports from the same device are stored
+   together in a bucket. If the ``solar_ts`` collection does not
+   exist, {+atlas-sp+} creates it as a time series collection.
+
+.. code-block:: json
+   :copyable: true
+
+   {
+     "$source": {
+       "connectionName": "sample_stream_solar"
+     }
+   },
+   {
+     "$set": {
+       "timestamp": {
+         "$dateFromString": { "dateString": "$timestamp" }
+       }
+     }
+   },
+   {
+     "$emit": {
+       "connectionName": "solar-cluster-connection",
+       "db": "solarDb",
+       "coll": "solar_ts",
+       "timeseries": {
+         "timeField": "timestamp",
+         "metaField": "device_id"
+       }
+     }
+   }
+
+.. note::
+
+   The ``sample_stream_solar`` source is a test-only connection that
+   produces sample documents every second for rapid prototyping.
+
+Documents in the ``solar_ts`` collection take the following form:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "timestamp": {
+       "$date": "2026-10-22T15:07:49.299Z"
+     },
+     "device_id": "device_0",
+     "max_watts": 450,
+     "_id": {
+       "$oid": "6ada26c5ad54068b03089593"
+     },
+     "obs": {
+       "watts": 135,
+       "temp": 5
+     },
+     "event_type": 0,
+     "group_id": 8
+   }
+
+.. note::
+
+   The preceding is a representative example. Streaming data are not
+   static, and each user sees distinct documents.
