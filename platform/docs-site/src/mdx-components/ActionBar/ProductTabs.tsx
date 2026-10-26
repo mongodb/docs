@@ -16,7 +16,7 @@ import { useCallback, useId } from 'react';
 const NAV_TABS = [
   { label: 'Database', path: '/docs' },
   { label: 'Atlas Agent Engine', path: '/docs/agentengine' },
-  { label: 'VoyageAI Models', path: '/docs/voyageai' },
+  { label: 'Voyage AI Models', path: '/docs/voyageai' },
 ] as const;
 
 const containerStyling = css`
