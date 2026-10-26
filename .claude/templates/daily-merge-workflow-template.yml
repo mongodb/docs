@@ -1,0 +1,73 @@
+# Template for a daily "merge main into a feature branch" GitHub Actions workflow.
+# Do not edit placeholders by hand. Generate a workflow with either:
+#   .github/scripts/create-daily-merge-workflow.sh [options]
+#   .claude/scripts/feature-branch.sh daily-sync [<feature-branch> [<slack-webhook-secret>]] [options]
+# Placeholders: <feature-branch>, <slack-webhook-secret>, <github-token-secret>,
+# <cron>, <cron-comment>
+name: Daily merge main into <feature-branch>
+
+on:
+  schedule:
+    - cron: "<cron>"  # <cron-comment>
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: <feature-branch>
+          fetch-depth: 0
+          token: ${{ secrets.<github-token-secret> }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge main into the feature branch
+        id: merge
+        run: |
+          git fetch origin main
+
+          if git merge origin/main --no-edit; then
+            echo success | tee merge_status.txt
+          else
+            echo conflict | tee merge_status.txt
+            git diff --name-only --diff-filter=U | tee conflicts.txt
+            git merge --abort
+          fi
+
+      - name: Push the merged branch
+        run: |
+          if [ "$(cat merge_status.txt)" = "success" ]; then
+            git push origin <feature-branch>
+          fi
+
+      - name: Report the merge result
+        if: always()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.<slack-webhook-secret> }}
+        run: |
+          status="$(cat merge_status.txt 2>/dev/null || echo failure)"
+
+          if [ "$status" = "success" ]; then
+            message="Daily merge of main into <feature-branch> completed successfully."
+          elif [ "$status" = "conflict" ]; then
+            conflicts="$(cat conflicts.txt 2>/dev/null || echo 'Unable to list conflicting files.')"
+            message="Merge conflict on <feature-branch>. Manual resolution is needed. Conflicting files: ${conflicts}"
+          else
+            message="The daily merge workflow for <feature-branch> failed. Check the GitHub Actions run for details."
+          fi
+
+          jq -n --arg text "$message" '{text: $text}' \
+            | curl -s -X POST "$SLACK_WEBHOOK_URL" \
+              -H "Content-Type: application/json" \
+              -d @-

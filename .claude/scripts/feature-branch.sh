@@ -28,6 +28,30 @@
 #         feature-branch.sh start-task feature/DOCSP-60866-vector-quantization \
 #           DOCSP-60870-quantization-concept
 #
+#   feature-branch.sh daily-sync [<feature-branch> [<slack-webhook-secret>]] [options]
+#       Owner. Runs .github/scripts/create-daily-merge-workflow.sh, which
+#       generates .github/workflows/daily-merge-<name>.yml from
+#       .claude/templates/daily-merge-workflow-template.yml. The workflow merges
+#       main into the feature branch daily and posts the result to Slack.
+#       <feature-branch> defaults to the branch you have checked out. <name> is
+#       the branch's DOCSP key (docsp-xxxxx), or the whole branch name if it
+#       has no key, so it also works for branches created outside this workflow.
+#       <slack-webhook-secret> is the name (not the value) of the GitHub secret
+#       that holds the Slack webhook URL. If you omit it, the script asks you to
+#       confirm the default, DOC_RESYNC_NOTIFICATIONS, or enter another name in
+#       an interactive terminal. Without a terminal, it uses the default without
+#       prompting. The Feature Planner Agent asks the writer which secret to use
+#       and always passes it, so it doesn't rely on this fallback.
+#       The workflow runs daily at 9:00 in your local time zone, converted to
+#       UTC. Scheduled workflows run only from main, so the script cuts a work
+#       branch from origin/main (default DOCSP-XXXXX-daily-merge) and writes the
+#       file there. Requires a clean working tree. It does not commit, push, or
+#       touch secrets unless you pass --open-pr. Other options (--time,
+#       --work-branch, --dry-run, --open-pr, --force) pass through to the
+#       script; run `feature-branch.sh daily-sync --help` to list them.
+#       Example:
+#         feature-branch.sh daily-sync feature/DOCSP-60866-vector-quantization
+#
 # PROCESS OVERVIEW
 # The full feature-docs branch lifecycle this script supports:
 #
@@ -41,7 +65,9 @@
 #      branch off a feature tip that already has them.
 #   4. The feature-branch owner runs `sync` about once a day to merge the
 #      latest main in, then tells collaborators to update their ticket
-#      branches, so the branch does not drift from main.
+#      branches, so the branch does not drift from main. To automate this,
+#      the owner runs `daily-sync` once and merges the generated workflow
+#      into main.
 #   5. When the feature's docs are complete and reviewed, the writer opens one
 #      final PR from the feature branch into main, so the feature publishes as
 #      a unit. To ship the change to other versions, the writer adds
@@ -116,14 +142,44 @@ cmd_start_task() {
   echo "cut ticket branch '$ticket' off origin/$feature. Open its PR with: open-pr --base $feature"
 }
 
+cmd_daily_sync() {
+  # Thin wrapper: .github/scripts/create-daily-merge-workflow.sh does the work,
+  # so agent and manual runs generate the same workflow. The positional
+  # <feature-branch> and <slack-webhook-secret> map to its --branch and
+  # --secret; other options (--time, --work-branch, --dry-run, --open-pr,
+  # --force, --help) pass through unchanged.
+  local -a positional=() passthrough=() args=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --branch|--secret|--time|--work-branch)
+        [[ $# -ge 2 ]] || die "$1 requires a value"
+        passthrough+=("$1" "$2"); shift 2 ;;
+      -*) passthrough+=("$1"); shift ;;
+      *)  positional+=("$1"); shift ;;
+    esac
+  done
+  [[ ${#positional[@]} -le 2 ]] || die \
+    "usage: feature-branch.sh daily-sync [<feature-branch> [<slack-webhook-secret>]] [options]"
+  [[ -z "${positional[0]:-}" ]] || args+=(--branch "${positional[0]}")
+  [[ -z "${positional[1]:-}" ]] || args+=(--secret "${positional[1]}")
+
+  local root script
+  root="$(git rev-parse --show-toplevel)" || die "run this from inside the docs repository"
+  script="$root/.github/scripts/create-daily-merge-workflow.sh"
+  [[ -f "$script" ]] || die "script not found: $script"
+  # The ${arr[@]+...} form keeps empty arrays safe under set -u in bash 3.2.
+  bash "$script" ${args[@]+"${args[@]}"} ${passthrough[@]+"${passthrough[@]}"}
+}
+
 main() {
   local sub="${1:-}"; shift || true
   case "$sub" in
     create)     [[ $# -eq 1 ]] || die "usage: feature-branch.sh create <feature-branch>"; cmd_create "$1" ;;
     sync)       [[ $# -eq 1 ]] || die "usage: feature-branch.sh sync <feature-branch>"; cmd_sync "$1" ;;
     start-task) [[ $# -eq 2 ]] || die "usage: feature-branch.sh start-task <feature-branch> <ticket-branch>"; cmd_start_task "$1" "$2" ;;
-    ""|-h|--help|help) sed -n '2,51p' "$0" ;;
-    *) die "unknown subcommand '$sub' (try: create | sync | start-task)" ;;
+    daily-sync) cmd_daily_sync "$@" ;;
+    ""|-h|--help|help) sed -n '2,/^set -euo pipefail$/p' "$0" | sed '$d' ;;
+    *) die "unknown subcommand '$sub' (try: create | sync | start-task | daily-sync)" ;;
   esac
 }
 

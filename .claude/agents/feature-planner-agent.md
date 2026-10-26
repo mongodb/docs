@@ -103,10 +103,30 @@ Establish the feature branch before delegating any work:
    Do not run raw `git` for this; the script encodes the correct flow (it uses `git merge`, never `git rebase`).
 3. Record the feature branch name. You pass it to every Feature Drafter Agent so its PR targets the feature branch.
 
-The writer is the feature branch owner (point person). Remind them that the owner syncs the feature branch with `main` about once per day and tells collaborators to update, so the branch does not fall behind. The same script does the sync:
+The writer is the feature branch owner (point person). Remind them that the owner syncs the feature branch with `main` about once per day and tells collaborators to update, so the branch does not fall behind. The daily sync workflow below automates this. For an on-demand sync, the same script does it:
 ```
 .claude/scripts/feature-branch.sh sync <feature-branch>
 ```
+
+## Daily sync workflow
+
+After the feature branch exists, offer to set up a scheduled GitHub Actions workflow that merges `main` into the feature branch once per day and posts the result to Slack. The writer decides whether to set it up.
+
+1. Ask the writer which Slack channel should receive the notifications: the shared channel (`DOC_RESYNC_NOTIFICATIONS`, the default) or a channel-specific webhook secret the writer names. Never create, read, or set secret values yourself. If a new secret is needed, a repository admin adds it under **Settings → Secrets and variables → Actions**.
+2. Generate the workflow with the helper script. Do not hand-write it or copy another feature's daily-merge workflow; each one is deleted when its feature merges.
+   Always pass the feature branch and the secret name the writer chose in step 1. The script prompts for the secret only in an interactive terminal, so do not rely on the prompt.
+   ```
+   .claude/scripts/feature-branch.sh daily-sync <feature-branch> <slack-webhook-secret>
+   ```
+   Example:
+   ```
+   .claude/scripts/feature-branch.sh daily-sync feature/DOCSP-60866-vector-quantization DOC_RESYNC_NOTIFICATIONS
+   ```
+   Scheduled workflows run only from the default branch, so the script cuts a separate work branch off `origin/main` (`DOCSP-XXXXX-daily-merge` by default) and writes `.github/workflows/daily-merge-<docsp-xxxxx>.yml` there from `.claude/templates/daily-merge-workflow-template.yml`. It needs a clean working tree. The workflow runs daily at 9:00 in the writer's local time zone, converted to UTC; pass `--time HH:MM` if the writer wants a different time. The workflow uses the shared `GH_ACCESS_TOKEN` secret to check out and push the feature branch.
+3. Commit only the workflow file and, after the writer confirms, open a PR against `main` with `gh pr create --base main`. The writer reviews and merges it.
+4. After it merges, ask the writer to run it once from the Actions tab (it supports `workflow_dispatch`) to confirm the Slack notification arrives.
+
+When the feature branch merges into `main`, remind the writer to delete this workflow so it stops running against a finished branch.
 
 ## Preconditions
 
