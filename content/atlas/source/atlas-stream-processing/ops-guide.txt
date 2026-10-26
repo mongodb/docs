@@ -115,6 +115,51 @@ You can configure {+atlas-sp+} to route unprocessed data to a
 :ref:`dead letter queue (DLQ) <atlas-sp-dlq>`. You can then view
 unprocessed records in the DLQ to remediate processing failures.
 
+The DLQ captures per-document processing failures only. Other errors
+prevent the processor from running and don't produce DLQ records.
+Such errors include invalid pipeline syntax or configuration and
+errors within the {+atlas-sp+} system. For these errors, {+atlas-sp+}
+applies its :ref:`error handling and retry policies
+<atlas-sp-error-handling>`.
+
+If a document fails processing and your stream processor has no
+configured DLQ, {+atlas-sp+} drops the document. DLQ statistics such
+as ``stats.dlqMessageCount`` still record the failure. If you sample
+the processor with :method:`sp.processor.sample()`, the failed
+document still appears in the sample results.
+
+Some pipeline stages define their own error handling behavior, which
+determines whether a failed document reaches the DLQ:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 25 55
+
+   * - Stage
+     - Field
+     - Error Handling Behavior
+
+   * - :ref:`$validate <atlas-sp-agg-validate>`
+     - ``validationAction``
+     - - ``"discard"``: Default behavior. Discards the document without writing to the
+         DLQ.
+       - ``"dlq"``: Writes the document to the DLQ.
+
+   * - :ref:`$https <atlas-sp-agg-https>`
+     - ``onError``
+     - - ``"dlq"``: Default behavior. Writes the document to the DLQ.
+       - ``"ignore"``: passes the document to the next pipeline
+         stage.
+       - ``"fail"``: stops the stream processor, even if you
+         configure a DLQ.
+
+   * - :ref:`$externalFunction <atlas-sp-agg-external-function>`
+     - ``onError``
+     - - ``"dlq"``: Default behavior. Writes the document to the DLQ.
+       - ``"ignore"``: discards the document.
+       - ``"fail"``: stops the stream processor, even if you
+         configure a DLQ.
+
 When you examine your DLQ, look for the following common processing
 errors:
 
@@ -149,6 +194,10 @@ errors:
   Your processor uses :ref:`windows <atlas-sp-windows>` and a given
   document arrived after the configured :ref:`allowed lateness
   <atlas-sp-allowed-late>` period expires.
+
+Each DLQ record contains the failed document and details of the
+failure. For the full DLQ document schema, see the
+:ref:`Monitoring guide <atlas-sp-monitoring-dlq>`.
 
 After you analyze the causes of processing failures, modify either
 your upstream data sources to correct the data before it enters your
