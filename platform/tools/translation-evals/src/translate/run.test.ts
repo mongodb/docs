@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { BackendName } from '@mongodb-docs/translation-service';
 import { loadConfig } from '../config.js';
 import { translateRun } from './run.js';
 import { readManifest, writeManifest } from '../run/manifest.js';
@@ -87,5 +88,16 @@ describe('translateRun', () => {
     );
     expect(recorded.es).toEqual([]);
     expect(recorded['ja-jp']).toHaveLength(3);
+  });
+
+  it('records the configured translator on the manifest', async () => {
+    const { cfg } = setup();
+    cfg.translatorBackend = BackendName.AwsTranslate;
+    cfg.translatorModel = undefined;
+    await translateRun(cfg, 'atlas', 'r', ['es'], echo);
+    expect(readManifest(cfg, 'atlas', 'r').translator).toEqual({
+      provider: 'aws-translate',
+      model: null,
+    });
   });
 });

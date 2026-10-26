@@ -30,6 +30,22 @@ describe('loadConfig', () => {
     expect(cfg.judgeModel).toBeUndefined();
   });
 
+  it('reads TRANSLATOR_BACKEND into a BackendName', () => {
+    const cfg = loadConfig({ TRANSLATOR_BACKEND: 'aws-translate' });
+    expect(cfg.translatorBackend).toBe('aws-translate');
+  });
+
+  it('treats a blank TRANSLATOR_BACKEND as unset', () => {
+    expect(loadConfig({ TRANSLATOR_BACKEND: '' }).translatorBackend).toBeUndefined();
+    expect(loadConfig({}).translatorBackend).toBeUndefined();
+  });
+
+  it('rejects an unknown TRANSLATOR_BACKEND and lists the valid values', () => {
+    expect(() => loadConfig({ TRANSLATOR_BACKEND: 'grove' })).toThrow(
+      /TRANSLATOR_BACKEND must be one of: openai, anthropic, aws-translate, stub/,
+    );
+  });
+
   it('reads EVAL_EXPERIMENT_NAME, treating blank as unset', () => {
     expect(loadConfig({ EVAL_EXPERIMENT_NAME: 'my run' }).experimentName).toBe('my run');
     expect(loadConfig({ EVAL_EXPERIMENT_NAME: '' }).experimentName).toBeUndefined();

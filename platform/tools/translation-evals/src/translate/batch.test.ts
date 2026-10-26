@@ -42,4 +42,11 @@ describe('makeTranslateFn', () => {
       '1 of 2 keys failed; first: "b" BACKEND_ERROR: upstream 500',
     );
   });
+
+  it('uses the configured backend when none is injected', async () => {
+    const cfg = loadConfig({ TRANSLATOR_BACKEND: 'stub' });
+    const fn = makeTranslateFn(cfg, 'es');
+    const out = await fn({ a: 'Hello' }, []);
+    expect(out.a).toContain('Hello');
+  });
 });

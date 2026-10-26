@@ -33,6 +33,8 @@ export interface RunManifest {
   pages: PageRef[];
   translatable: TranslatableSet;
   stages: Record<string, { status: 'pending' | 'done' | 'failed'; at?: string }>;
+  /** The backend that produced the translated overlay. */
+  translator?: { provider: string; model: string | null };
 }
 
 export interface DatasetRow {

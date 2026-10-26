@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { selectBackend } from './backend.js';
+import { BackendName } from '@mongodb-docs/translation-service';
+import { resolveBackendName, selectBackend } from './backend.js';
 
 // selectBackend builds a real backend from process.env, and both factories
 // require the gateway key. Provide one so the test never depends on the
@@ -70,6 +71,41 @@ describe('selectBackend forwards the model to the backend', () => {
     });
     try {
       const result = await selectBackend('gpt-6-astra').translateBatch(REQUEST);
+      expect(result.meta.model).toBe('gpt-6-astra');
+    } finally {
+      restore();
+    }
+  });
+});
+
+describe('resolveBackendName', () => {
+  it('routes by model family when no backend is given', () => {
+    expect(resolveBackendName('claude-sonnet-5-5')).toBe('anthropic');
+    expect(resolveBackendName('gpt-5.5')).toBe('openai');
+    expect(resolveBackendName(undefined)).toBe('openai');
+  });
+
+  it('lets an explicit backend override the model family', () => {
+    expect(resolveBackendName('claude-sonnet-5-5', BackendName.OpenAI)).toBe('openai');
+    expect(resolveBackendName('gpt-5.5', BackendName.AwsTranslate)).toBe('aws-translate');
+  });
+});
+
+describe('selectBackend with an explicit backend', () => {
+  it('builds the aws-translate backend', () => {
+    // The AWS config resolver reads no credentials and no gateway key, so
+    // this needs neither; the SDK resolves creds lazily at call time.
+    expect(selectBackend(undefined, BackendName.AwsTranslate).name).toBe('aws-translate');
+  });
+
+  it('builds the stub backend', () => {
+    expect(selectBackend(undefined, BackendName.Stub).name).toBe('stub');
+  });
+
+  it('forwards the model on the explicitly chosen openai path', async () => {
+    const restore = stubFetch({ output_text: '{"translations":[{"key":"a","value":"b"}]}' });
+    try {
+      const result = await selectBackend('gpt-6-astra', BackendName.OpenAI).translateBatch(REQUEST);
       expect(result.meta.model).toBe('gpt-6-astra');
     } finally {
       restore();

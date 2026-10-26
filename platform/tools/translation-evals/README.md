@@ -127,6 +127,7 @@ exported in your shell takes precedence over `.env`.
 |---|---|---|---|
 | `AI_GATEWAY_API_KEY` | For `translate` and `eval` | — | Shared key for the translator backend and the judge. |
 | `TRANSLATOR_MODEL` | No | `gpt-5.5` | Translator model. A `claude-*` value selects the Anthropic Messages path. |
+| `TRANSLATOR_BACKEND` | No | — | Explicit translator backend: `openai`, `anthropic`, `aws-translate`, or `stub`. Unset selects the backend from `TRANSLATOR_MODEL`. |
 | `JUDGE_MODEL` | For `eval` | — | Judge model. Must differ from the translator model. A `claude-*` value uses the Anthropic Messages path; anything else uses the OpenAI Responses path. |
 | `BRAINTRUST_API_KEY` | For `eval` | — | Read by the `braintrust` CLI. |
 | `BRAINTRUST_PROJECT` | No | `docs-translations` | Braintrust project name. |
@@ -136,7 +137,9 @@ exported in your shell takes precedence over `.env`.
 
 The translator model — and therefore which backend runs — is set with
 `TRANSLATOR_MODEL`: a `claude-*` value selects the Anthropic Messages path, and
-the model name is forwarded to that backend.
+the model name is forwarded to that backend. Setting `TRANSLATOR_BACKEND`
+overrides this: the named backend runs regardless of the model family, and for
+`openai`/`anthropic` the `TRANSLATOR_MODEL` value is still forwarded.
 
 The translation service reads the per-family endpoint and timeout overrides
 directly, so they are not part of this tool's configuration:
@@ -177,6 +180,35 @@ No endpoint is needed: both backends default to the AI Gateway.
 - Failed requests are recorded in
   `data/<project>/<runId>/translate-failures.json` with the gateway's error,
   for example `Grove returned HTTP 401`.
+
+### Evaluating with the AWS Translate baseline
+
+Set `TRANSLATOR_BACKEND=aws-translate` to translate with Amazon Translate
+instead of an LLM. It is a machine-translation baseline for comparing against
+the LLM backends, not a quality target.
+
+```
+TRANSLATOR_BACKEND=aws-translate
+AWS_PROFILE=<your sso profile>
+JUDGE_MODEL=<a gateway model>
+AI_GATEWAY_API_KEY=<your key>
+```
+
+- The `translate` stage needs AWS credentials but no gateway key: the AWS
+  backend reads only `AWS_TRANSLATE_REGION` (falling back to `AWS_REGION`, then
+  `us-east-1`), `AWS_TRANSLATE_TIMEOUT_MS`, and `AWS_TRANSLATE_CONCURRENCY`.
+  See `translation-service/README.md` for the SSO profile setup.
+- The `eval` stage still needs `JUDGE_MODEL` and `AI_GATEWAY_API_KEY`, because
+  the judge is an LLM. AWS Translate cannot be a judge.
+- AWS Translate has no model, so `meta.model` is `translate-text` and the run
+  manifest records `model: null`.
+- All five default locales are supported: `pt-br` and `zh-cn` map to AWS `pt`
+  and `zh`.
+- Run the AWS backend as its own run and compare its Braintrust experiment
+  against an LLM run. Each run's manifest and experiment record
+  `translator_provider`, so the two are distinguishable.
+- `TRANSLATOR_BACKEND=stub` runs the pipeline offline with deterministic
+  output. It is a plumbing check, not an eval.
 
 ### Braintrust credentials
 

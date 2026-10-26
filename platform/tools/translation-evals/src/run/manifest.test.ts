@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { loadConfig } from '../config.js';
-import { newRunId, writeManifest, readManifest, setStage, readManifestLatest } from './manifest.js';
+import { newRunId, writeManifest, readManifest, setStage, setTranslator, readManifestLatest } from './manifest.js';
 
 function tmpCfg() {
   const cfg = loadConfig({});
@@ -27,6 +27,23 @@ describe('manifest', () => {
     const m = readManifest(cfg, 'atlas', id);
     expect(m.stages.resolve!.status).toBe('done');
     expect(m.stages.resolve!.at).toBeTruthy();
+  });
+
+  it('records the translator on the manifest', () => {
+    const cfg = tmpCfg();
+    writeManifest(cfg, 'atlas', 'r', {
+      project: 'atlas',
+      runId: 'r',
+      locales: ['es'],
+      pages: [],
+      translatable: { pages: [], includes: [], substitutions: [] },
+      stages: {},
+    });
+    setTranslator(cfg, 'atlas', 'r', { provider: 'aws-translate', model: null });
+    expect(readManifest(cfg, 'atlas', 'r').translator).toEqual({
+      provider: 'aws-translate',
+      model: null,
+    });
   });
 });
 

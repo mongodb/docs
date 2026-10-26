@@ -2,8 +2,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { TranslateFn } from 'translation-mdx-adapter';
 import type { Config } from '../config.js';
-import { readManifest, runDir, setStage } from '../run/manifest.js';
+import { readManifest, runDir, setStage, setTranslator } from '../run/manifest.js';
 import { makeTranslateFn, translateMdxFile } from './batch.js';
+import { resolveBackendName } from './backend.js';
 import { translateSubstitutions, type SubValue } from './references.js';
 import { writeOverlay } from './overlay.js';
 
@@ -86,6 +87,10 @@ export async function translateRun(
     ? (JSON.parse(fs.readFileSync(failuresPath, 'utf8')) as Record<string, TranslateFailure[]>)
     : {};
   fs.writeFileSync(failuresPath, JSON.stringify({ ...previous, ...summary.failures }, null, 2));
+  setTranslator(cfg, project, runId, {
+    provider: resolveBackendName(cfg.translatorModel, cfg.translatorBackend),
+    model: cfg.translatorModel ?? null,
+  });
   setStage(cfg, project, runId, 'translate', 'done');
   return summary;
 }

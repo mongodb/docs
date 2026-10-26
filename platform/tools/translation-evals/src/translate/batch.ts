@@ -6,7 +6,7 @@ import { selectBackend } from './backend.js';
 export function makeTranslateFn(
   cfg: Config,
   targetLocale: string,
-  backend: TranslationBackend = selectBackend(cfg.translatorModel),
+  backend: TranslationBackend = selectBackend(cfg.translatorModel, cfg.translatorBackend),
 ): TranslateFn {
   return async (payload, nonTranslatableTerms) => {
     const res = await translate(

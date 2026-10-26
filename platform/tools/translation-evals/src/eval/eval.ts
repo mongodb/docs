@@ -3,6 +3,7 @@ import path from 'node:path';
 import { Eval } from 'braintrust';
 import { loadConfig } from '../config.js';
 import { readManifestLatest, runDir } from '../run/manifest.js';
+import { resolveBackendName } from '../translate/backend.js';
 import type { DatasetRow } from '../types.js';
 import { createJudgeOptions } from './judge/backend.js';
 import { buildExperimentName, localesFromRows } from './experiment-name.js';
@@ -47,6 +48,7 @@ Eval(cfg.braintrustProject, {
   metadata: {
     project,
     run: runId,
+    translator_provider: resolveBackendName(cfg.translatorModel, cfg.translatorBackend),
     translator_model: cfg.translatorModel ?? null,
     judge_model: judgeOpts.model,
   },

@@ -1,5 +1,10 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  BACKEND_NAMES,
+  isBackendName,
+  type BackendName,
+} from '@mongodb-docs/translation-service';
 import type { Locale } from './types.js';
 
 export interface Config {
@@ -8,8 +13,10 @@ export interface Config {
   locales: Locale[];
   contentMdxDir: string;
   dataDir: string;
-  /** Translator model. Its family selects the backend (see translate/backend.ts). */
+  /** Translator model. Its family selects the backend unless translatorBackend is set. */
   translatorModel?: string;
+  /** Explicit translator backend; overrides the model-family heuristic when set. */
+  translatorBackend?: BackendName;
   judgeModel?: string;
   braintrustProject: string;
   termsFile?: string;
@@ -26,6 +33,24 @@ const PKG_ROOT = import.meta.url
   ? path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
   : process.cwd();
 
+/**
+ * Read TRANSLATOR_BACKEND, validating against the service's own registry so
+ * a typo fails here with the valid values rather than deep inside a backend.
+ * A blank value is unset, matching the blank-to-undefined rule below.
+ */
+function resolveTranslatorBackend(
+  env: NodeJS.ProcessEnv,
+): BackendName | undefined {
+  const raw = (env.TRANSLATOR_BACKEND ?? '').trim();
+  if (raw === '') return undefined;
+  if (!isBackendName(raw)) {
+    throw new Error(
+      `TRANSLATOR_BACKEND must be one of: ${BACKEND_NAMES.join(', ')}; got "${raw}"`,
+    );
+  }
+  return raw;
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const raw = (env.TARGET_LOCALES ?? '').trim();
   return {
@@ -41,6 +66,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     // `--env-file` loads them as "". Treat a blank as unset so it falls back
     // to the backend default instead of counting as an override.
     translatorModel: env.TRANSLATOR_MODEL || undefined,
+    translatorBackend: resolveTranslatorBackend(env),
     judgeModel: env.JUDGE_MODEL || undefined,
     braintrustProject: env.BRAINTRUST_PROJECT ?? 'docs-translations',
     termsFile: env.TERMS_FILE,

@@ -51,3 +51,14 @@ export function setStage(
   m.stages[stage] = { status, at: new Date().toISOString() };
   writeManifest(cfg, project, runId, m);
 }
+
+export function setTranslator(
+  cfg: Config,
+  project: string,
+  runId: string,
+  translator: { provider: string; model: string | null },
+): void {
+  const m = readManifest(cfg, project, runId);
+  m.translator = translator;
+  writeManifest(cfg, project, runId, m);
+}
