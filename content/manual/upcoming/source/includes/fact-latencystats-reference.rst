@@ -15,9 +15,6 @@
     * - ``commands``
       - Latency statistics for database commands.
 
-    * - ``transactions``
-      - Latency statistics for database transactions.
-
 Each of these fields contains an embedded document with the
 following fields:
 
