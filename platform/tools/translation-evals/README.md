@@ -130,6 +130,7 @@ exported in your shell takes precedence over `.env`.
 | `JUDGE_MODEL` | For `eval` | — | Judge model. Must differ from the translator model. A `claude-*` value uses the Anthropic Messages path; anything else uses the OpenAI Responses path. |
 | `BRAINTRUST_API_KEY` | For `eval` | — | Read by the `braintrust` CLI. |
 | `BRAINTRUST_PROJECT` | No | `docs-translations` | Braintrust project name. |
+| `EVAL_EXPERIMENT_NAME` | No | derived | Overrides the Braintrust experiment name. Default: `<project> <locales> <run id> [<translator> -> <judge>]`, e.g. `atlas es 2026-10-23-a1b2c3 [gpt-5.5 -> claude-sonnet-4-5]`. |
 | `TARGET_LOCALES` | No | `pt-br,es,ko-kr,ja-jp,zh-cn` | Comma-separated target locales. |
 | `TERMS_FILE` | No | — | Path to a JSON file of non-translatable terms, e.g. `{"terms":["MongoDB","Atlas"]}`. |
 
@@ -327,6 +328,16 @@ pnpm eval --project atlas
 Scores the run's dataset in Braintrust. Runs the `braintrust` CLI over
 `src/eval/eval.ts`, so the CLI creates the experiment and reports results. Run
 `dataset` first; the stage fails if the run has no `dataset/rows.json`.
+
+Each run creates one Braintrust experiment, named from the run itself:
+
+```
+<project> <locales> <run id> [<translator> -> <judge>]
+```
+
+For example, `atlas es 2026-10-23-a1b2c3 [gpt-5.5 -> claude-sonnet-4-5]`.
+`locales` lists the locales present in the scored rows. Set
+`EVAL_EXPERIMENT_NAME` to use a name of your own instead.
 
 Flags:
 

@@ -13,6 +13,8 @@ export interface Config {
   judgeModel?: string;
   braintrustProject: string;
   termsFile?: string;
+  /** Overrides the derived Braintrust experiment name (EVAL_EXPERIMENT_NAME). */
+  experimentName?: string;
 }
 
 const DEFAULT_LOCALES = ['pt-br', 'es', 'ko-kr', 'ja-jp', 'zh-cn'];
@@ -42,5 +44,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     judgeModel: env.JUDGE_MODEL || undefined,
     braintrustProject: env.BRAINTRUST_PROJECT ?? 'docs-translations',
     termsFile: env.TERMS_FILE,
+    experimentName: env.EVAL_EXPERIMENT_NAME || undefined,
   };
 }

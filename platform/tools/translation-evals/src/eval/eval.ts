@@ -5,6 +5,7 @@ import { loadConfig } from '../config.js';
 import { readManifestLatest, runDir } from '../run/manifest.js';
 import type { DatasetRow } from '../types.js';
 import { createJudgeOptions } from './judge/backend.js';
+import { buildExperimentName, localesFromRows } from './experiment-name.js';
 import { toEvalScorers } from './scorers/index.js';
 
 function readTerms(termsFile: string | undefined): string[] {
@@ -27,9 +28,19 @@ const rows = JSON.parse(fs.readFileSync(rowsPath, 'utf8')) as DatasetRow[];
 
 const judgeOpts = createJudgeOptions(cfg);
 
+const experimentName = buildExperimentName({
+  project,
+  locales: localesFromRows(rows),
+  runId,
+  translatorModel: cfg.translatorModel,
+  judgeModel: judgeOpts.model,
+  override: cfg.experimentName,
+});
+
 // The Braintrust CLI collects this call and awaits it; awaiting here would
 // block the module before the CLI can report on it.
 Eval(cfg.braintrustProject, {
+  experimentName,
   data: rows,
   task: async (input) => input.local_text,
   scores: toEvalScorers(readTerms(cfg.termsFile), judgeOpts),

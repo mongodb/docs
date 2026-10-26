@@ -29,4 +29,10 @@ describe('loadConfig', () => {
     expect(cfg.translatorModel).toBeUndefined();
     expect(cfg.judgeModel).toBeUndefined();
   });
+
+  it('reads EVAL_EXPERIMENT_NAME, treating blank as unset', () => {
+    expect(loadConfig({ EVAL_EXPERIMENT_NAME: 'my run' }).experimentName).toBe('my run');
+    expect(loadConfig({ EVAL_EXPERIMENT_NAME: '' }).experimentName).toBeUndefined();
+    expect(loadConfig({}).experimentName).toBeUndefined();
+  });
 });
