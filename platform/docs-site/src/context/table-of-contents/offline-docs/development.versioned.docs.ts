@@ -2327,7 +2327,7 @@ export const toc: L1TocItem[] = [
                       {
                         label: 'Query Load Shedding',
                         contentSite: 'search',
-                        url: '/docs/search/performance/search-overload-protection',
+                        url: '/docs/search/performance/load-shedding',
                       },
                     ],
                   },
@@ -2477,7 +2477,7 @@ export const toc: L1TocItem[] = [
                       {
                         label: 'Query Load Shedding',
                         contentSite: 'vector-search',
-                        url: '/docs/vector-search/query/overload-protection',
+                        url: '/docs/vector-search/query/load-shedding',
                       },
                       {
                         label: 'Concurrent Query Execution Across Segments',
@@ -9321,6 +9321,19 @@ export const toc: L1TocItem[] = [
                       },
                     ],
                   },
+                  {
+                    label: 'Langflow',
+                    contentSite: 'cloud-docs',
+                    collapsible: true,
+                    url: '/docs/atlas/ai-integrations/langflow',
+                    items: [
+                      {
+                        label: 'Get Started',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/ai-integrations/langflow/get-started',
+                      },
+                    ],
+                  },
                 ],
               },
               {
@@ -9706,7 +9719,15 @@ export const toc: L1TocItem[] = [
               {
                 label: 'Database Triggers',
                 contentSite: 'cloud-docs',
+                collapsible: true,
                 url: '/docs/atlas/atlas-ui/triggers/database-triggers',
+                items: [
+                  {
+                    label: 'Tutorial: Call a Third-Party API from a Trigger',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/atlas-ui/triggers/call-third-party-api-tutorial',
+                  },
+                ],
               },
               {
                 label: 'Scheduled Triggers',

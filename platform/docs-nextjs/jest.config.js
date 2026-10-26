@@ -20,7 +20,6 @@ const config = {
     '^.+\\.(jpg|jpeg|png|gif|webp|svg)$': '<rootDir>/src/tests/__mocks__/fileMock.ts',
     // gitignored generated files — point to committed stubs so jest.mock() factories can override them
     '^@/context/toc-data/data\\.copied$': '<rootDir>/src/tests/__mocks__/toc-data-stub.ts',
-    '^@/generated/prefix-map\\.json$': '<rootDir>/src/tests/__mocks__/prefix-map-stub.json',
     // Aliases like @components/*, @utils/*
     '^@/(.*)$': '<rootDir>/src/$1',
   },

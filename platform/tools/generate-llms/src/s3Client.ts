@@ -1,8 +1,8 @@
 /**
  * Thin S3 upload wrapper, following the same client setup and credential
- * env vars as platform/nextjs-extension/src/s3Connection/s3connector.ts (the
+ * env vars as platform/nextjs-ssg-extension/src/s3Connection/s3connector.ts (the
  * connector offline-docs and searchManifests already use), so this script
- * doesn't need a workspace dependency on nextjs-extension.
+ * doesn't need a workspace dependency on nextjs-ssg-extension.
  */
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 
@@ -17,7 +17,7 @@ function getClient(): S3Client {
   if (!accessKeyId || !secretAccessKey) {
     throw new Error(
       'Missing AWS credentials: set AWS_S3_ACCESS_KEY_ID and AWS_S3_SECRET_ACCESS_KEY (the same env vars ' +
-        'platform/nextjs-extension/src/s3Connection/s3connector.ts uses).',
+        'platform/nextjs-ssg-extension/src/s3Connection/s3connector.ts uses).',
     );
   }
   // AWS_SESSION_TOKEN is only needed for temporary/SSO-issued credentials

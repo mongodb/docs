@@ -572,6 +572,11 @@ export const toc: L1TocItem[] = [
                     url: '/docs/atlas/backup/cloud-backup/flex-cluster-backup',
                   },
                   {
+                    label: 'Free Cluster',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/backup/cloud-backup/free-cluster-backup',
+                  },
+                  {
                     label: 'Options',
                     contentSite: 'cloud-docs',
                     collapsible: true,
@@ -1223,11 +1228,6 @@ export const toc: L1TocItem[] = [
                 label: 'International Usage & Taxes',
                 contentSite: 'cloud-docs',
                 url: '/docs/atlas/billing/international-usage',
-              },
-              {
-                label: 'FOCUS Data API',
-                contentSite: 'cloud-docs',
-                url: '/docs/atlas/billing/focus-api',
               },
             ],
           },

@@ -58,7 +58,7 @@ describe('loadDirNameToPrefixMap', () => {
   });
 
   it('reads and parses the generated dir-name-to-prefix.json', async () => {
-    const mapPath = path.join(monorepoPath, 'platform', 'docs-nextjs', 'src', 'generated', 'dir-name-to-prefix.json');
+    const mapPath = path.join(monorepoPath, 'platform', 'docs-site', 'src', 'generated', 'dir-name-to-prefix.json');
     await fs.mkdir(path.dirname(mapPath), { recursive: true });
     await fs.writeFile(mapPath, JSON.stringify({ atlas: 'docs/atlas' }), 'utf-8');
 

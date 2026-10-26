@@ -1488,6 +1488,11 @@ export const toc: L1TocItem[] = [
                     contentSite: 'mck',
                     url: '/docs/kubernetes/:version/fts-vs/configuration/secure-connection-search-to-mongodb',
                   },
+                  {
+                    label: 'Expand MongoDB Search Index Storage',
+                    contentSite: 'mck',
+                    url: '/docs/kubernetes/:version/fts-vs/deployment/expand-search-storage',
+                  },
                 ],
               },
               {

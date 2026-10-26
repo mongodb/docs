@@ -184,6 +184,11 @@ export const toc: L1TocItem[] = [
             url: '/docs/agentengine/manage/monitor',
           },
           {
+            label: 'Monitoring UI',
+            contentSite: 'agentengine',
+            url: '/docs/agentengine/manage/monitoring-ui',
+          },
+          {
             label: 'Inspect Agent Execution Traces',
             contentSite: 'agentengine',
             url: '/docs/agentengine/manage/inspect-traces',

@@ -18,7 +18,7 @@ describe('buildUploadManifest', () => {
     outputDir = path.join(monorepoPath, 'llms-output');
 
     await writeFile(
-      path.join(monorepoPath, 'platform', 'docs-nextjs', 'src', 'generated', 'dir-name-to-prefix.json'),
+      path.join(monorepoPath, 'platform', 'docs-site', 'src', 'generated', 'dir-name-to-prefix.json'),
       JSON.stringify({
         'go-driver': 'docs/drivers/go',
         manual: 'docs',
@@ -129,7 +129,7 @@ describe('buildUploadManifest', () => {
   it('skips a generated project directory with no resolvable current source directory', async () => {
     // Mapped in dir-name-to-prefix.json, has generated output, but no content/<project>/source at all.
     await writeFile(
-      path.join(monorepoPath, 'platform', 'docs-nextjs', 'src', 'generated', 'dir-name-to-prefix.json'),
+      path.join(monorepoPath, 'platform', 'docs-site', 'src', 'generated', 'dir-name-to-prefix.json'),
       JSON.stringify({
         'go-driver': 'docs/drivers/go',
         manual: 'docs',
@@ -162,7 +162,7 @@ describe('buildUploadManifest', () => {
   it('throws on an S3 key collision instead of silently letting one entry overwrite the other', async () => {
     // Two distinct projects that both resolve to the same urlSlug + version + filename.
     await writeFile(
-      path.join(monorepoPath, 'platform', 'docs-nextjs', 'src', 'generated', 'dir-name-to-prefix.json'),
+      path.join(monorepoPath, 'platform', 'docs-site', 'src', 'generated', 'dir-name-to-prefix.json'),
       JSON.stringify({
         'go-driver': 'docs/drivers/go',
         manual: 'docs',

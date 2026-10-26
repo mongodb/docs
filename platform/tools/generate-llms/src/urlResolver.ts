@@ -4,9 +4,9 @@
  * project slug + version + page path.
  *
  * The directory-name -> URL-prefix mapping is not hardcoded here. It's read
- * from `platform/docs-nextjs/src/generated/dir-name-to-prefix.json`, the same
- * DB-backed map (built from Atlas docsets/repos_branches, see
- * platform/nextjs-extension/src/blobUploads/{buildPrefixList,mapFilesToUrlPaths}.ts)
+ * from `platform/docs-site/src/generated/dir-name-to-prefix.json`, the same
+ * map (built from platform/versioning, see
+ * platform/nextjs-ssg-extension/src/prefix-map/{buildPrefixList,mapFilesToUrlPaths}.ts)
  * that the Next.js build/offline pipeline already generates and relies on.
  * That keeps this generator from drifting out of sync with the site's real
  * routing as projects are added, renamed, or removed.
@@ -15,20 +15,20 @@ import path from 'node:path';
 import fs from 'node:fs/promises';
 
 /** Relative path (from the monorepo root) to the generated dir-name -> prefix map. */
-const DIR_NAME_TO_PREFIX_PATH = path.join('platform', 'docs-nextjs', 'src', 'generated', 'dir-name-to-prefix.json');
+const DIR_NAME_TO_PREFIX_PATH = path.join('platform', 'docs-site', 'src', 'generated', 'dir-name-to-prefix.json');
 
 /**
- * Absolute path override for that map. The Netlify SSG build writes its own
- * copy under `platform/docs-site/src/generated/` (see
- * platform/nextjs-ssg-extension/src/index.ts), not under docs-nextjs, so the
- * in-build caller points us at that one instead of the local-CLI default.
+ * Absolute path override for that map. The in-build caller (see
+ * platform/nextjs-ssg-extension/src/llms-txt/index.ts) points us at the copy
+ * the Netlify SSG build just wrote instead of resolving it from the
+ * monorepo path.
  */
 const DIR_NAME_TO_PREFIX_PATH_ENV = 'LLMS_DIR_NAME_TO_PREFIX_PATH';
 
 /**
  * Strips a leading "docs" (or "docs/") segment from a docset prefix.
- * Ported from platform/nextjs-extension/src/blobUploads/utils.ts so this
- * package doesn't need a workspace dependency on nextjs-extension.
+ * Ported from platform/nextjs-ssg-extension/src/prefix-map/utils.ts so this
+ * package doesn't need a workspace dependency on nextjs-ssg-extension.
  */
 export function stripDocsPrefix(prefix: string): string {
   return prefix.replace(/^\/?docs(\/|$)/, '');
@@ -40,8 +40,8 @@ export type DirNameToPrefix = Record<string, string>;
  * Loads the generated content-directory -> docset-prefix map.
  *
  * This file is a build artifact (gitignored) written by
- * `pnpm --filter docs-nextjs build:prefix-map`, which itself runs as part of
- * `pnpm dev`/`pnpm build` in docs-nextjs. If it hasn't been generated yet,
+ * `pnpm --filter docs-site build:prefix-map`, which turbo also runs ahead of
+ * `pnpm dev`/`pnpm build`. If it hasn't been generated yet,
  * throws with instructions rather than silently falling back to a hardcoded,
  * potentially stale mapping.
  *
@@ -57,8 +57,8 @@ export async function loadDirNameToPrefixMap(monorepoPath: string, overridePath?
     raw = await fs.readFile(mapPath, 'utf-8');
   } catch {
     throw new Error(
-      `Could not read ${mapPath}. This file is generated from the docsets database and isn't checked into ` +
-        'git. Generate it first by running `pnpm build:prefix-map` in platform/docs-nextjs (or `pnpm dev`/`pnpm build`, ' +
+      `Could not read ${mapPath}. This file is generated from platform/versioning and isn't checked into ` +
+        'git. Generate it first by running `pnpm build:prefix-map` in platform/docs-site (or `pnpm dev`/`pnpm build`, ' +
         'which depend on it), then re-run generate-llms.',
     );
   }

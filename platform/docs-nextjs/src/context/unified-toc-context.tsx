@@ -4,7 +4,6 @@ import type { ReactNode } from 'react';
 import { createContext, useContext, useMemo, useState, useEffect } from 'react';
 import type { TocItem } from '@/mdx-components/UnifiedSidenav/types';
 import { tocData } from '@/context/toc-data/data.copied';
-import { toc as offlineTocData } from '@/context/toc-data/offline-toc-processed';
 import type { ActiveVersions, AvailableVersions } from './version-context';
 import { useVersionContext } from './version-context';
 import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
@@ -96,10 +95,7 @@ export const UnifiedTocProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [eol, project, activeVersions]);
 
-  // For offline builds use the statically-imported TOC (written by build-offline.ts before next build),
-  // for EOL/legacy pages use legacyToc, otherwise use the full tocData.
-  const isLegacyOrProd = useLegacyTocStructure ? legacyToc : (tocData as unknown as TocItem[]);
-  const tree = isOfflineBuild ? offlineTocData : isLegacyOrProd;
+  const tree = useLegacyTocStructure ? legacyToc : (tocData as unknown as TocItem[]);
 
   const processedTree = useMemo(() => {
     if (!tree) return [];

@@ -68,7 +68,7 @@ The bucket is `$S3_OFFLINE_BUCKET`, which must be set; override with `--bucket`.
 
 `--execute` needs AWS credentials: copy `.env.sample` to `.env` and fill in
 `AWS_S3_ACCESS_KEY_ID` / `AWS_S3_SECRET_ACCESS_KEY` (same values used in
-`platform/nextjs-extension/src/s3Connection/s3connector.ts` /
+`platform/nextjs-ssg-extension/src/s3Connection/s3connector.ts` /
 `platform/docs-nextjs/.env` - reuse those, don't create new ones). Add
 `AWS_SESSION_TOKEN` too only if your credentials are temporary/federated
 (e.g. AWS SSO); leave it blank for a permanent IAM access key.

@@ -262,10 +262,6 @@ function splitTocForOffline() {
   const outputDirs = [
     path.join(
       __dirname,
-      '../../../platform/docs-nextjs/src/context/table-of-contents/offline-docs',
-    ),
-    path.join(
-      __dirname,
       '../../../platform/docs-site/src/context/table-of-contents/offline-docs',
     ),
   ];

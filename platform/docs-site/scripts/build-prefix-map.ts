@@ -16,7 +16,7 @@
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import { docsets } from 'versioning';
-import { stripDocsPrefix } from '../../nextjs-extension/src/blobUploads/utils';
+import { stripDocsPrefix } from '../../nextjs-ssg-extension/src/prefix-map/utils';
 
 /** Most `/`-separated segments first, then alphabetical. */
 function sortPrefixesLongestFirst(paths: string[]): string[] {

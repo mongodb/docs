@@ -40,7 +40,7 @@ import { PRODUCTION_BASE_URL } from './types.js';
 
 const LANDING_PROJECT = 'landing';
 const SNAPSHOT_MAP = 'dir-name-to-prefix.snapshot.json';
-const GENERATED_MAP = path.join('platform', 'docs-nextjs', 'src', 'generated', 'dir-name-to-prefix.json');
+const GENERATED_MAP = path.join('platform', 'docs-site', 'src', 'generated', 'dir-name-to-prefix.json');
 
 async function exists(candidate: string): Promise<boolean> {
   try {

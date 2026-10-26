@@ -11,7 +11,7 @@
  * Defaults to a dry run: prints what would be uploaded without touching S3.
  * Pass --execute to actually upload, which requires AWS_S3_ACCESS_KEY_ID and
  * AWS_S3_SECRET_ACCESS_KEY to be set (same env vars
- * platform/nextjs-extension/src/s3Connection/s3connector.ts uses). Copy
+ * platform/nextjs-ssg-extension/src/s3Connection/s3connector.ts uses). Copy
  * .env.sample to a local .env in this package to set them, following the
  * same convention as platform/tools/cdnLogParser. See README.md for details.
  *

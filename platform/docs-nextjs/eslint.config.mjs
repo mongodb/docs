@@ -22,7 +22,6 @@ const eslintConfig = [
       'out/**/*',
       '**/toc-data/data.copied.ts',
       'public/**/*',
-      '**/table-of-contents/offline-docs/**/*',
     ],
   },
 ];
