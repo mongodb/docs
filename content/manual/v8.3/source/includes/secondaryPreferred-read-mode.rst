@@ -1,4 +1,3 @@
-Operations typically read data from :term:`secondary` members of the
-replica set. If the replica set has only one single :term:`primary`
-member and no other members, operations read data from the primary
-member.
+Operations read data from eligible :term:`secondary` members of the replica 
+set. If no eligible secondaries are available, operations read from the 
+:term:`primary` member.
