@@ -184,6 +184,11 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/ai-integrations/mastra',
           },
           {
+            label: 'Claude Agent SDK',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/ai-integrations/claude-agent-sdk',
+          },
+          {
             label: 'Agno',
             contentSite: 'cloud-docs',
             url: '/docs/atlas/ai-integrations/agno',
