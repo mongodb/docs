@@ -3858,6 +3858,103 @@ metrics
    :data:`~<database>.system.profile` collection. This includes queries that
    used both tailable and non-tailable cursors.
 
+.. serverstatus:: metrics.queryLatencies
+
+   A document that reports query latency metrics grouped by the
+   strategy that selected the winning query plan. The document
+   contains one subdocument for each of the following strategies:
+
+   - ``multiPlanner``
+   - ``costBased``
+   - ``singlePlan``
+   - ``cachedPlan``
+   - ``joinOptimization``
+   - ``joinCachedPlan``
+   - ``express``
+
+   Each subdocument contains the following fields:
+
+   - ``histogram``: An array of ``{ lowerBound, count }`` documents.
+     Each document represents a latency bucket and the number of
+     queries in that bucket. The lower bounds start at ``0`` and then
+     double from 64 microseconds up to approximately 19.1 hours. The
+     server always reports every bucket, including buckets with a
+     count of ``0``.
+
+   - ``latency``: The sum of the latency of all observed queries, in
+     microseconds.
+
+   - ``totalCount``: The number of queries observed. This value
+     equals the sum of the bucket counts in ``histogram``.
+
+   The server records one observation for each query. The latency
+   includes the initial :dbcommand:`find` or :dbcommand:`aggregate`
+   operation and all of its :dbcommand:`getMore` operations. The server
+   records the observation when the cursor is exhausted, is killed, or
+   times out, or when a single-batch query completes. If a cursor is
+   killed, the observation includes only the operations that
+   completed.
+
+   The server does not record observations for the following
+   queries:
+
+   - Queries that use :ref:`tailable cursors
+     <tailable-cursors-landing-page>`, including change streams.
+   - Commands that fail before the server selects a query plan.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.queryLatencies.multiPlanner
+
+   Latency metrics for queries whose winning plan the server selected
+   by running candidate plans against each other.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.queryLatencies.costBased
+
+   Latency metrics for queries whose winning plan the server selected
+   by using cost-based plan ranking.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.queryLatencies.singlePlan
+
+   Latency metrics for queries that had only one possible plan, so the
+   server did not rank plans.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.queryLatencies.cachedPlan
+
+   Latency metrics for queries that used a plan from the plan cache,
+   so the server did not rank plans.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.queryLatencies.joinOptimization
+
+   Latency metrics for queries whose plan the server selected by using
+   join optimization.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.queryLatencies.joinCachedPlan
+
+   Latency metrics for queries that used a join-optimized plan from the
+   join plan cache instead of running join enumeration again.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.queryLatencies.express
+
+   Latency metrics for queries that run on the express path. The
+   express path bypasses query planning, for example for an ``_id``
+   equality lookup. Queries that run on the express path are counted
+   only in this metric.
+
+   .. versionadded:: 9.0
+
 .. serverstatus:: metrics.record
 
    A document that reports on data related to record allocation in the
