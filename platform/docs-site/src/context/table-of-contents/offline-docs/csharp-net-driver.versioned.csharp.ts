@@ -430,6 +430,14 @@ export const toc: L1TocItem[] = [
                   excludes: ['v2.x'],
                 },
               },
+              {
+                label: 'OpenTelemetry Tracing',
+                contentSite: 'csharp',
+                url: '/docs/drivers/csharp/:version/logging-and-monitoring/open-telemetry',
+                versions: {
+                  excludes: ['v2.x'],
+                },
+              },
             ],
           },
           {

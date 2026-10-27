@@ -1214,11 +1214,17 @@ export const toc: L1TocItem[] = [
                         label: 'Sharded Collections',
                         contentSite: 'docs',
                         url: '/docs/:version/tutorial/shard-collection-with-unique-index',
+                        versions: {
+                          excludes: ['upcoming'],
+                        },
                       },
                       {
                         label: 'Unique Index on Sharded Collection',
                         contentSite: 'docs',
                         url: '/docs/:version/tutorial/create-unique-index-on-sharded-collection',
+                        versions: {
+                          excludes: ['upcoming'],
+                        },
                       },
                     ],
                   },
@@ -4154,6 +4160,41 @@ export const toc: L1TocItem[] = [
                     label: 'Troubleshoot',
                     contentSite: 'docs',
                     url: '/docs/:version/core/sharding-troubleshooting-shard-keys',
+                  },
+                ],
+              },
+              {
+                label: 'Maintain Uniqueness',
+                contentSite: 'docs',
+                collapsible: true,
+                url: '/docs/:version/tutorial/maintain-uniqueness-in-sharded-clusters',
+                versions: {
+                  excludes: ['v7.0', 'v8.0', 'v8.3', 'manual'],
+                },
+                items: [
+                  {
+                    label: 'Unique Index on Sharded Collection',
+                    contentSite: 'docs',
+                    url: '/docs/:version/tutorial/create-unique-index-on-sharded-collection',
+                    versions: {
+                      excludes: ['v7.0', 'v8.0', 'v8.3', 'manual'],
+                    },
+                  },
+                  {
+                    label: 'Uniqueness on Shard Key Values',
+                    contentSite: 'docs',
+                    url: '/docs/:version/tutorial/enforce-uniqueness-on-shard-key-values',
+                    versions: {
+                      excludes: ['v7.0', 'v8.0', 'v8.3', 'manual'],
+                    },
+                  },
+                  {
+                    label: 'Uniqueness on Non-Shard Key Field',
+                    contentSite: 'docs',
+                    url: '/docs/:version/tutorial/enforce-uniqueness-on-non-shard-key-field',
+                    versions: {
+                      excludes: ['v7.0', 'v8.0', 'v8.3', 'manual'],
+                    },
                   },
                 ],
               },

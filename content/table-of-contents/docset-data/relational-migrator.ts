@@ -522,44 +522,6 @@ const tocData: TocItem[] = [
               },
             ],
           },
-          {
-            label: 'Example: Insurance Data Models',
-            contentSite: 'docs-relational-migrator',
-            url: '/docs/relational-migrator/mapping-rules/example-insurance-data',
-            collapsible: true,
-            items: [
-              {
-                label: 'Connect to Relational Migrator',
-                contentSite: 'docs-relational-migrator',
-                url: '/docs/relational-migrator/mapping-rules/example-insurance-data/connect',
-              },
-              {
-                label: 'Refactor the Party Domain',
-                contentSite: 'docs-relational-migrator',
-                url: '/docs/relational-migrator/mapping-rules/example-insurance-data/refactor-party-domain/',
-              },
-              {
-                label: 'Refactor the Policy Domain',
-                contentSite: 'docs-relational-migrator',
-                url: '/docs/relational-migrator/mapping-rules/example-insurance-data/refactor-policy-domain/',
-              },
-              {
-                label: 'Refactor the Claim Domain',
-                contentSite: 'docs-relational-migrator',
-                url: '/docs/relational-migrator/mapping-rules/example-insurance-data/refactor-claim-domain/',
-              },
-              {
-                label: 'Refactor the Litigation Domain',
-                contentSite: 'docs-relational-migrator',
-                url: '/docs/relational-migrator/mapping-rules/example-insurance-data/refactor-litigation-domain/',
-              },
-              {
-                label: 'Migrate Your Data',
-                contentSite: 'docs-relational-migrator',
-                url: '/docs/relational-migrator/mapping-rules/example-insurance-data/migrate-data/',
-              },
-            ],
-          },
         ],
       },
       {

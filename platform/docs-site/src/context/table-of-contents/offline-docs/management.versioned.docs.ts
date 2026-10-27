@@ -3668,6 +3668,14 @@ export const toc: L1TocItem[] = [
                     contentSite: 'docs',
                     url: '/docs/:version/reference/resource-document',
                   },
+                  {
+                    label: 'SELinux',
+                    contentSite: 'docs',
+                    url: '/docs/:version/tutorial/selinux/mongodb-policy',
+                    versions: {
+                      excludes: ['v7.0', 'v8.0'],
+                    },
+                  },
                 ],
               },
               {
