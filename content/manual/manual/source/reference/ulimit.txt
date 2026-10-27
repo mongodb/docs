@@ -126,8 +126,8 @@ following form:
 
 ``ulimit`` has two types:
 
-- **"hard"** ``ulimit``: The maximum number of processes a user can
-  have active at any time. No non-root process can increase it.
+- **"hard"** ``ulimit``: The maximum value that the "soft" ``ulimit``
+  for a resource can be raised to. No non-root process can increase it.
 - **"soft"** ``ulimit``: The limit enforced for a session or process.
   Any process can increase it up to the "hard" ``ulimit``.
 
@@ -136,6 +136,11 @@ following form:
    A low "soft" ``ulimit`` can cause ``can't create new thread,
    closing connection`` errors if the number of connections grows
    too high. Set *both* ``ulimit`` values to the recommended values.
+
+   .. include:: /includes/fact-ulimit-minimum.rst
+
+   Low ``ulimit`` values can negatively affect MongoDB under heavy use
+   and can lead to failed connections and loss of service.
 
 ``ulimit`` modifies both "hard" and "soft" values unless the
 ``-H`` or ``-S`` modifiers are specified when modifying limit
@@ -190,27 +195,12 @@ system limits on running systems.
 Red Hat Linux Enterprise Server and CentOS
 ``````````````````````````````````````````
 
-Red Hat Enterprise Linux and CentOS 6 and 7 enforce a separate max process
-limitation, ``nproc``, which overrides ``ulimit`` settings. This value is
-defined in the following configuration file, depending on version:
+Red Hat Enterprise Linux and CentOS 7 enforce a separate max process
+limitation, ``nproc``, which overrides ``ulimit`` settings. By default,
+this limit is 4096 and is defined in the
+``/etc/security/limits.d/20-nproc.conf`` configuration file.
 
-.. list-table::
-   :header-rows: 1
-   :widths: 25 8 60
-
-   * - Version
-     - Value
-     - File
-
-   * - RHEL / CentOS 7
-     - 4096
-     - ``/etc/security/limits.d/20-nproc.conf``
-
-   * - RHEL / CentOS 6
-     - 1024
-     - ``/etc/security/limits.d/90-nproc.conf``
-
-To configure an ``nproc`` value for these versions, create a file named
+To configure an ``nproc`` value, create a file named
 ``/etc/security/limits.d/99-mongodb-nproc.conf`` with new ``soft nproc`` and
 ``hard nproc`` values to increase the process limit. For recommended values,
 see :ref:`recommended-ulimit-settings`.
@@ -248,37 +238,6 @@ Considerations
 
 - For the macOS platform, the recommended process limit is ``2500``,
   which is the maximum configurable value for this platform.
-
-Linux distributions using Upstart
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-For Linux distributions that use Upstart, you can specify limits
-within service scripts if you start :binary:`~bin.mongod` or
-:binary:`~bin.mongos` instances as Upstart services. You can do this by
-using ``limit`` `stanzas <http://upstart.ubuntu.com/wiki/Stanzas#limit>`_.
-
-Specify the :ref:`recommended-ulimit-settings`, as in the following
-example:
-
-.. code-block:: bash
-
-   limit fsize unlimited unlimited    # (file size)
-   limit cpu unlimited unlimited      # (cpu time)
-   limit as unlimited unlimited       # (virtual memory size)
-   limit memlock unlimited unlimited  # (locked-in-memory size)
-   limit nofile 64000 64000           # (open files)
-   limit nproc 64000 64000            # (processes/threads)
-
-Each ``limit`` stanza sets the "soft" limit to the first value specified and the "hard"
-limit to the second.
-
-After changing ``limit`` stanzas, ensure that the changes take
-effect by restarting the application services, using the following
-form:
-
-.. code-block:: bash
-
-   restart <service name>
 
 Linux distributions using ``systemd``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -350,7 +309,7 @@ object for a process or processes with a given name:
         for process in $@; do
              process_pids=`ps -C $process -o pid --no-headers | cut -d " " -f 2`
 
-             if [ -z $@ ]; then
+             if [ -z "$process_pids" ]; then
                 echo "[no $process running]"
              else
                 for pid in $process_pids; do
