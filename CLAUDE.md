@@ -76,6 +76,8 @@ A task is complete when:
 - A summary of every change made, including file path, has been provided to the user.
 - The user has been asked whether they are ready to commit and push.
 
+One exemption: a lucid-diagram handover is not a completion summary. The change-summary and commit-confirmation bullets above do not apply to it, and `.claude/skills/lucid-diagram/SKILL.md` step 11 defines that message in full — the edit URL and the housekeeping block, nothing else. The bullets apply again as soon as the run touches files in the repo.
+
 After presenting the completion summary, wait for explicit user instruction before making further changes.
 
 ## Tool Use
