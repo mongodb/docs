@@ -9,22 +9,30 @@ const tocData: TocItem[] = [
     url: '/docs/atlas/',
   },
   {
-    label: 'Atlas Infinite Edition',
+    label: 'Database Editions',
     contentSite: 'cloud-docs',
-    url: '/docs/atlas/infinite/atlas-infinite-landing',
+    url: '/docs/atlas/database-editions',
     collapsible: true,
     items: [
       {
-        label: 'Atlas Infinite Edition Architecture',
+        label: 'Atlas Core Edition',
         contentSite: 'cloud-docs',
-        url: '/docs/atlas/infinite/atlas-infinite-architecture',
+        url: '/docs/atlas/atlas-core-edition',
+      },
+      {
+        label: 'Atlas Infinite Edition',
+        contentSite: 'cloud-docs',
+        url: '/docs/atlas/infinite/atlas-infinite-landing',
+        collapsible: true,
+        items: [
+          {
+            label: 'Atlas Infinite Edition Architecture',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/infinite/atlas-infinite-architecture',
+          },
+        ],
       },
     ],
-  },
-  {
-    label: 'Atlas Core Edition',
-    contentSite: 'cloud-docs',
-    url: '/docs/atlas/atlas-core-edition',
   },
   {
     label: 'Atlas Users',
