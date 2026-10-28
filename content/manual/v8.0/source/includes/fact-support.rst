@@ -2,7 +2,7 @@ MongoDB Communities
 ~~~~~~~~~~~~~~~~~~~
 
 For questions, discussions, or general technical support, visit the MongoDB 
-communities on `Reddit <https://www.reddit.com/r/mongodb/>`__ or 
+communities on `Reddit <https://www.reddit.com/r/MongoDB_Official/>`__ or 
 `Stack Overflow <https://stackoverflow.com/questions/tagged/mongodb>`__. 
 These platforms are great places to connect with other MongoDB users, 
 ask questions, and get answers.
