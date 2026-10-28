@@ -63,9 +63,9 @@ at the time it starts.
 
 `.env.sample` in this directory has real values to copy into `.env`.
 
-The app throws at startup if any required env var is missing: `MONGODB_URI`,
-`JIRA_USERNAME`, `JIRA_PASSWORD`, and `SLACK_QUOKKA_OAUTH_ACCESS_TOKEN`. Ask
-the Documentation Platform team for values.
+The app throws at startup if any required env var is missing: `MONGODB_URI`
+and `SLACK_QUOKKA_OAUTH_ACCESS_TOKEN`. Ask the Documentation Platform team
+for values.
 
 `DOCS_PROJECT`, `NEXT_PUBLIC_DOCS_BASE_PATH`,
 `NEXT_PUBLIC_DOCS_PREFIXES`, and

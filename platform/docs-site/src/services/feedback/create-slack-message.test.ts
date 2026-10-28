@@ -6,10 +6,9 @@
  *
  * `create-slack-message.ts` transitively imports the `@/services/db/*`
  * collection helpers (-> `./client` -> the real `mongodb` package, which
- * jest cannot transform under this config) and `./jira-builder` (->
- * `@/utils/jira-client`, which throws at import time without Jira env
- * vars). `slackLink` itself touches none of that, so these modules are
- * mocked out to isolate the pure function under test.
+ * jest cannot transform under this config). `slackLink` itself touches
+ * none of that, so these modules are mocked out to isolate the pure
+ * function under test.
  */
 jest.mock('@/services/db/docsets', () => ({
   getDocsetByProject: jest.fn(async () => ({
@@ -30,8 +29,6 @@ jest.mock('@/services/db/docsets', () => ({
 }));
 jest.mock('@/services/db/docs-metadata', () => ({}));
 jest.mock('@/services/db/feedback', () => ({}));
-jest.mock('./jira-builder', () => ({ createJiraTicketUrl: jest.fn() }));
-
 import { slackLink } from './create-slack-message';
 
 describe('slackLink', () => {

@@ -4,8 +4,6 @@ export type Environments = (typeof ENVIRONMENT_VALUES)[number];
 
 const REQUIRED_ENV_VARS = [
   'MONGODB_URI',
-  'JIRA_USERNAME',
-  'JIRA_PASSWORD',
   'SLACK_QUOKKA_OAUTH_ACCESS_TOKEN',
   'CONTENTSTACK_API_KEY',
   'CONTENTSTACK_DELIVERY_TOKEN',
@@ -36,8 +34,6 @@ type GlobalEnvConfig = {
   DB_ENV: Environments;
   MONGODB_URI: string;
   IPDATA_API_KEY: string;
-  JIRA_USERNAME: string;
-  JIRA_PASSWORD: string;
   CONTENTSTACK_API_KEY: string;
   CONTENTSTACK_DELIVERY_TOKEN: string;
   CONTENTSTACK_ENVIRONMENT: string;
@@ -59,8 +55,6 @@ const envConfig: GlobalEnvConfig = {
   DB_ENV: (process.env.DB_ENV ?? 'dotcomstg') as Environments,
   MONGODB_URI: process.env.MONGODB_URI ?? '',
   IPDATA_API_KEY: process.env.IPDATA_API_KEY ?? '',
-  JIRA_USERNAME: process.env.JIRA_USERNAME ?? '',
-  JIRA_PASSWORD: process.env.JIRA_PASSWORD ?? '',
   CONTENTSTACK_API_KEY: process.env.CONTENTSTACK_API_KEY ?? '',
   CONTENTSTACK_DELIVERY_TOKEN: process.env.CONTENTSTACK_DELIVERY_TOKEN ?? '',
   CONTENTSTACK_ENVIRONMENT: process.env.CONTENTSTACK_ENVIRONMENT ?? '',

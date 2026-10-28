@@ -4,8 +4,6 @@ export type Environments = (typeof ENVIRONMENT_VALUES)[number];
 
 const REQUIRED_ENV_VARS = [
   'MONGODB_URI',
-  'JIRA_USERNAME',
-  'JIRA_PASSWORD',
   'SLACK_QUOKKA_OAUTH_ACCESS_TOKEN',
 ];
 
@@ -32,8 +30,6 @@ type GlobalEnvConfig = {
   AWS_KEY_REGION: string;
   DB_ENV: Environments;
   MONGODB_URI: string;
-  JIRA_USERNAME: string;
-  JIRA_PASSWORD: string;
   SLACK_QUOKKA_OAUTH_ACCESS_TOKEN: string;
   /**
    * Signing secret of the Slack app that posts the feedback messages. Used to
@@ -49,8 +45,6 @@ const envConfig: GlobalEnvConfig = {
   AWS_KEY_REGION: process.env.AWS_KEY_REGION ?? 'us-east-2',
   DB_ENV: (process.env.DB_ENV ?? 'dotcomstg') as Environments,
   MONGODB_URI: process.env.MONGODB_URI ?? '',
-  JIRA_USERNAME: process.env.JIRA_USERNAME ?? '',
-  JIRA_PASSWORD: process.env.JIRA_PASSWORD ?? '',
   SLACK_QUOKKA_OAUTH_ACCESS_TOKEN: process.env.SLACK_QUOKKA_OAUTH_ACCESS_TOKEN ?? '',
   SLACK_SIGNING_SECRET: process.env.SLACK_SIGNING_SECRET ?? '',
 };
