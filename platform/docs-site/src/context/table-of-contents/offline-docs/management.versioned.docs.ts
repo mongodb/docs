@@ -17,22 +17,30 @@ export const toc: L1TocItem[] = [
             url: '/docs/atlas/',
           },
           {
-            label: 'Atlas Infinite Edition',
+            label: 'Database Editions',
             contentSite: 'cloud-docs',
             collapsible: true,
-            url: '/docs/atlas/infinite/atlas-infinite-landing',
+            url: '/docs/atlas/database-editions',
             items: [
               {
-                label: 'Atlas Infinite Edition Architecture',
+                label: 'Atlas Core Edition',
                 contentSite: 'cloud-docs',
-                url: '/docs/atlas/infinite/atlas-infinite-architecture',
+                url: '/docs/atlas/atlas-core-edition',
+              },
+              {
+                label: 'Atlas Infinite Edition',
+                contentSite: 'cloud-docs',
+                collapsible: true,
+                url: '/docs/atlas/infinite/atlas-infinite-landing',
+                items: [
+                  {
+                    label: 'Atlas Infinite Edition Architecture',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/infinite/atlas-infinite-architecture',
+                  },
+                ],
               },
             ],
-          },
-          {
-            label: 'Atlas Core Edition',
-            contentSite: 'cloud-docs',
-            url: '/docs/atlas/atlas-core-edition',
           },
           {
             label: 'Atlas Users',
@@ -878,6 +886,16 @@ export const toc: L1TocItem[] = [
                     label: 'Real-Time Performance',
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/real-time-performance-panel',
+                  },
+                  {
+                    label: 'Sharding Insights',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/sharding-advisor',
+                  },
+                  {
+                    label: 'Shard Key Analyzer',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/shard-key-analyzer',
                   },
                   {
                     label: 'Search Performance',

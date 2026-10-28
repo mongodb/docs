@@ -880,6 +880,16 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/real-time-performance-panel',
           },
           {
+            label: 'Sharding Insights',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/sharding-advisor',
+          },
+          {
+            label: 'Shard Key Analyzer',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/shard-key-analyzer',
+          },
+          {
             label: 'Search Performance',
             contentSite: 'cloud-docs',
             url: '/docs/atlas/performance-advisor/recommend-search-text',

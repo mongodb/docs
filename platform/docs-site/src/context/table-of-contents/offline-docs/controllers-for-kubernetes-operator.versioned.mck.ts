@@ -1143,6 +1143,14 @@ export const toc: L1TocItem[] = [
                 },
               },
               {
+                label: 'Deploy a Multi-Cluster External Application Database',
+                contentSite: 'mck',
+                url: '/docs/kubernetes/:version/tutorial/deploy-om-external-appdb-multi-cluster',
+                versions: {
+                  includes: ['upcoming'],
+                },
+              },
+              {
                 label: 'Migrate to an External Application Database',
                 contentSite: 'mck',
                 url: '/docs/kubernetes/:version/tutorial/migrate-appdb-to-external',

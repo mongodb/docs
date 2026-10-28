@@ -31,28 +31,30 @@ distribution, and balancer activity in one place. Use Sharding
 Insights to view performance metrics, track workload distribution,
 and identify issues across your sharded cluster's components.
 
-|service| provides recommendations in :ref:`Performance Advisor
-<performance-advisor>` to help you identify when sharding decisions
-may improve your cluster's performance:
+|service| provides the following recommendations in
+:ref:`Performance Advisor <performance-advisor>` to help you
+identify when sharding decisions may improve your cluster's
+performance:
 
-- When to shard a replica set.
-- When to move a collection.
-- When to shard an unsharded collection.
-- When to add more shards.
+- Replica set approaching scale limits
+- Large or growing unsharded collection
+- Cluster approaching storage or resource limits
 
 Use the :ref:`shard-key-analyzer` to analyze candidate shard keys for
 these recommendations.
 
-|sharding-insights| provides a :guilabel:`Shards` view where you
-can monitor individual shard performance, workload distribution,
-and resource usage.
+|sharding-insights| provides :guilabel:`Shards`,
+:guilabel:`Collections`, and :guilabel:`Mongos Instances` views
+where you can monitor performance, workload distribution, and
+resource usage across your cluster's components.
 
 The page displays cluster summary information, active sharding
 recommendations, and charts showing hardware and sharding-specific
 metrics over time.
 
-You can filter metrics by time range from 24 hours to 90 days, or
-select a custom date range to analyze specific time periods.
+You can filter metrics by time range from the last hour to the
+last 90 days, or select a custom date and time range to analyze
+specific time periods.
 
 Access |sharding-insights|
 --------------------------
@@ -66,8 +68,13 @@ Access |sharding-insights|
 
    .. step:: Click :guilabel:`Sharding Insights` in the cluster sidebar.
 
-The |sharding-insights| page displays the :guilabel:`Shards` view,
-where you can monitor metrics for individual shards.
+The |sharding-insights| page provides the following views:
+
+- :guilabel:`Shards`: Monitor metrics for individual shards.
+- :guilabel:`Collections`: Monitor metrics for individual
+  collections.
+- :guilabel:`Mongos Instances`: Monitor metrics for the ``mongos``
+  instances in your cluster.
 
 Use the time range selector to choose a preset time range or select
 a custom date and time range with the :guilabel:`Filter by Date and
@@ -111,8 +118,6 @@ action when it detects:
 
 - A large or growing unsharded collection that might benefit from
   sharding.
-- Resource pressure on a shard that affects a collection, which
-  might benefit from moving the collection to another shard.
 - A cluster approaching storage or resource limits, which might
   benefit from additional shards.
 - A replica set approaching scale limits, which might benefit from
@@ -130,27 +135,125 @@ If your cluster has no active recommendations, the card displays a
 Shard Metrics
 -------------
 
-The :guilabel:`Shards` tab displays performance and resource metrics
-for individual shards. By default, the dashboard shows CPU
-usage, Reads, Writes, and Connections. You can select different
-metrics from the dropdown menu to view additional hardware and
-sharding-specific data.
+The :guilabel:`Shards` view displays time-series charts for the
+metrics you select, followed by a table of your cluster's shards.
+By default, the dashboard shows the :guilabel:`System CPU`,
+:guilabel:`System Memory`, :guilabel:`Connections`, and
+:guilabel:`Opcounters` charts.
 
-The available metrics include hardware resource usage (CPU,
-memory, connections, operations) and data distribution information
-(data size, document count). These metrics help you identify
-performance bottlenecks, capacity issues, and data distribution
-imbalances across your shards.
+To display different metrics, select them from the metrics
+selector. To filter the charts and the shards table by node type,
+select :guilabel:`All Nodes`, :guilabel:`Primaries`, or
+:guilabel:`Secondaries` from the node filter.
+
+|sharding-insights| provides the following metrics, grouped by
+category:
+
+Resources
+~~~~~~~~~
+
+Hardware resource usage metrics aggregated per shard:
+
+- :guilabel:`System CPU`: Percentage of CPU time used across all
+  cores on the shard.
+- :guilabel:`System Memory`: Amount of RAM in use on the shard.
+- :guilabel:`System Network`: Total network bytes in and out per
+  second on the shard.
+- :guilabel:`Disk IOPS`: Number of disk read and write operations
+  per second.
+- :guilabel:`Disk Latency`: Average read and write latency for disk
+  operations.
+- :guilabel:`Disk Throughput`: Bytes read from and written to disk
+  per second.
+- :guilabel:`Disk Space`: Disk space used and available on the
+  shard.
+- :guilabel:`Data Size`: Uncompressed size of user data held on the
+  shard, summed across databases. This chart is empty if database
+  statistics collection is disabled for the project.
+
+Workload
+~~~~~~~~
+
+Query and operation throughput metrics per shard:
+
+- :guilabel:`Connections`: Number of active client connections to
+  the shard.
+- :guilabel:`Opcounters`: Rate of insert, query, update, delete,
+  getmore, and command operations per second.
+- :guilabel:`Queues`: Number of operations waiting to acquire the
+  global lock.
+- :guilabel:`Replication Lag`: Delay in milliseconds between the
+  primary and secondaries during replication.
+- :guilabel:`Read Latency`: Average execution time of read
+  operations on the shard.
+- :guilabel:`Write Latency`: Average execution time of write
+  operations on the shard.
+- :guilabel:`Command Latency`: Average execution time of command
+  operations on the shard.
+
+Cache
+~~~~~
+
+Storage engine cache usage and efficiency per shard:
+
+- :guilabel:`Cache Fill Ratio`: Percentage of the configured
+  storage engine cache currently in use. A ratio near 100%
+  indicates that the working set is larger than the cache.
+- :guilabel:`Dirty Fill Ratio`: Percentage of the configured
+  storage engine cache holding modified pages not yet written to
+  disk. A high ratio can indicate write overload.
+- :guilabel:`Cache Hit Ratio`: Percentage of page requests served
+  from the storage engine cache without reading the page from disk.
+
+Data Distribution
+~~~~~~~~~~~~~~~~~
+
+Per-shard data size, document counts, and chunk distribution for
+sharded collections:
+
+- :guilabel:`Owned Data Size`: Size of data owned by each shard,
+  summed across sharded collections.
+- :guilabel:`Orphaned Data Size`: Size of orphaned data on each
+  shard, summed across sharded collections.
+- :guilabel:`Owned Document Count`: Number of documents owned by
+  each shard, summed across sharded collections.
+- :guilabel:`Orphaned Document Count`: Number of orphaned documents
+  on each shard, summed across sharded collections.
+- :guilabel:`Chunk Count`: Number of chunks on each shard across
+  sharded collections.
+- :guilabel:`Jumbo Chunk Count`: Number of jumbo chunks on each
+  shard. The balancer cannot migrate jumbo chunks.
+
+These metrics help you identify performance bottlenecks, capacity
+issues, and data distribution imbalances across your shards.
+
+Shards Table
+~~~~~~~~~~~~
+
+The shards table below the charts lists each shard with its
+status, data size, average and maximum CPU usage, reads per
+second, and writes per second for the selected time range. The
+table controls which shards appear in the charts. To choose which
+columns the table displays, click :guilabel:`Edit Columns`.
+
+To open a detail panel for a shard, click its row. The panel
+displays the shard's active alerts and overview metrics, including
+the number of sharded collections, average read and write load,
+average operation execution time, cache activity, and range deleter
+activity.
 
 Time Range Selection
 --------------------
 
 Select a time range to view historical metrics:
 
-- **Preset Ranges**: Choose from 24 hours, 7 days, 30 days, or 90
-  days.
-- **Custom Range**: Select specific start and end dates using the
-  calendar picker.
+- **Preset Ranges**: Choose from 1 hour, 8 hours, 12 hours, 24
+  hours, 3 days, 7 days, 30 days, 60 days, or 90 days.
+- **Custom Range**: Select specific start and end dates and times
+  using the :guilabel:`Filter by Date and Time` picker.
+
+To zoom into a specific time window, drag across a chart. To return
+to the selected time range, click :guilabel:`Reset zoom`.
 
 Historical data helps you identify trends, track changes over time,
 and correlate issues with specific events.
@@ -168,6 +271,10 @@ workload characteristics.
 You can also open |shard-key-advisor| from the
 :guilabel:`Recommendations` card on the |sharding-insights| page by
 clicking :guilabel:`Analyze Shard Keys`.
+
+To use |shard-key-advisor|, you must have any data access role,
+such as :authrole:`Project Data Access Read Only`, or the
+:authrole:`Project Sharding Manager` role.
 
 The analyzer appears in the Performance Advisor alongside sharding
 recommendations and provides immediate analysis of:
@@ -198,10 +305,10 @@ requirements:
 Behavior
 --------
 
-When you navigate directly to the Sharding Insights URL, the page
-preserves your selected tab and time range settings across browser
-refreshes. This allows you to bookmark specific views or share URLs
-with your team.
+The page preserves your view settings, including the time range,
+selected metrics, node filter, and selected shards, in the page
+URL. This allows you to bookmark specific views or share URLs with
+your team.
 
 If you access Sharding Insights on a cluster that doesn't meet the
 prerequisites, |service| displays a banner explaining why the feature
@@ -234,14 +341,6 @@ This release does not support:
 - MongoDB MCP Server integration for Sharding Insights metrics.
 
 These capabilities might be added in future releases.
-
-Feature Scope
-~~~~~~~~~~~~~
-
-Future releases will include these advanced features:
-
-- Detailed collections aggregation views.
-- Advanced ``mongos`` performance analytics.
 
 Important Considerations
 ------------------------
