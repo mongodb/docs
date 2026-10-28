@@ -227,6 +227,11 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: '100.20.0',
+            contentSite: 'database-tools',
+            url: '/docs/database-tools/release-notes/dbtools-100.20.0-changelog',
+          },
+          {
             label: '100.19.0',
             contentSite: 'database-tools',
             url: '/docs/database-tools/release-notes/dbtools-100.19.0-changelog',
