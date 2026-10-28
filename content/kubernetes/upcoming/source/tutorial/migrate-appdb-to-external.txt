@@ -98,8 +98,13 @@ Review the following considerations before you migrate:
   different set of containers. If the two configurations are
   semantically identical, the {+appdb+} remains available.
 
-- The |k8s-op-short| supports migration on a single |k8s| cluster
-  only.
+- To migrate a multi-cluster {+appdb+}, the internally managed
+  {+appdb+} must set ``spec.applicationDatabase.topology`` to
+  ``MultiCluster``, and the external {+appdb+} must be a
+  MongoDBMultiCluster resource. The |k8s-op-short| rejects the
+  migration if the topology of the current {+appdb+} doesn't match
+  the kind of the external {+appdb+}. To learn more, see
+  :ref:`migrate-appdb-to-external-multi-cluster`.
 
 Procedure
 ---------
@@ -259,6 +264,58 @@ Procedure
          .. code-block:: sh
 
             kubectl get pods --context "${K8S_CTX}" -n "${MDB_NS}"
+
+.. _migrate-appdb-to-external-multi-cluster:
+
+Migrate a Multi-Cluster Application Database
+--------------------------------------------
+
+If the primary |onprem| resource uses an internally managed
+multi-cluster {+appdb+}, you can migrate it to an external
+MongoDBMultiCluster resource. The |k8s-op-short| detaches the
+{+appdb+} StatefulSet in each :ref:`member cluster
+<central-and-member-clusters>`, and the MongoDBMultiCluster resource
+adopts each one. The |onprem| pods
+don't restart, because the connection string doesn't change.
+
+The procedure matches the single-cluster procedure on this page, with
+the following differences:
+
+- The internally managed {+appdb+} must set
+  ``spec.applicationDatabase.topology`` to ``MultiCluster``.
+
+- The external {+appdb+} must be a MongoDBMultiCluster resource with
+  ``spec.role`` set to ``AppDB``, with the same name, member layout,
+  and |tls| configuration as the internally managed {+appdb+}. A
+  multi-cluster external {+appdb+} requires |tls| encryption and
+  cross-cluster networking between the member clusters, with or
+  without a service mesh. To learn more, see
+  :ref:`deploy-om-external-appdb-multi-cluster`.
+
+- Set ``kind`` to ``MongoDBMultiCluster`` when you add
+  :opsmgrkube:`spec.externalApplicationDatabaseRef`:
+
+  .. code-block:: sh
+
+     kubectl patch om "${PRIMARY_OM_NAME}" \
+       --context "${K8S_CTX}" -n "${MDB_NS}" \
+       --type merge \
+       -p "{\"spec\":{\"externalApplicationDatabaseRef\":{\"name\":\"${APPDB_NAME}\",\"kind\":\"MongoDBMultiCluster\"}}}"
+
+- The |k8s-op-short| performs the ownership handover in each member
+  cluster. To verify the migration, inspect the {+appdb+}
+  StatefulSet in each member cluster, named
+  ``<primary-om-name>-db-<cluster-index>``:
+
+  .. code-block:: sh
+
+     kubectl get statefulset "${APPDB_NAME}-0" --context "${K8S_CTX_MEMBER}" -n "${MDB_NS}" \
+       -o jsonpath='{.metadata.labels.mongodbmulticluster}{"\n"}'
+
+  The command returns ``<namespace>-<appdb-name>``, and the
+  ``mongodb.com/appdb-migration-ready`` annotation is cleared. To
+  learn more about ownership tracking in multi-cluster deployments,
+  see :ref:`om-appdb-backup-annotations`.
 
 Common Migration Issues
 -----------------------

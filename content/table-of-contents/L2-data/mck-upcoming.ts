@@ -263,6 +263,12 @@ const mckUpcoming: TocItem[] = [
         versions: { excludes: ['v1.9', 'v1.10', 'v1.11'] },
       },
       {
+        label: 'Deploy a Multi-Cluster External Application Database',
+        contentSite: 'mck',
+        url: '/docs/kubernetes/:version/tutorial/deploy-om-external-appdb-multi-cluster',
+        versions: { includes: ['upcoming'] },
+      },
+      {
         label: 'Migrate to an External Application Database',
         contentSite: 'mck',
         url: '/docs/kubernetes/:version/tutorial/migrate-appdb-to-external',
