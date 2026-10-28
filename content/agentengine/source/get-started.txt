@@ -166,20 +166,18 @@ scaffold a Hello World agent, run it locally, and deploy it to the
          .. code-block:: none
             :copyable: false
 
-            ◆ Workspace  <your organization>  /  Default Project  /  <your project>
-
+            Using working directory: <path-to-your-agent-directory>
             ✓ Created .agentengine/docker-compose.dev.yml
             ✓ Created .agentengine/Dockerfile.dev
-            ✓ Created .agentengine/Dockerfile.dev.dockerignore
-            ✓ Created .agentengine/dev-entrypoint.py
-            ✓ Created .agentengine/entrypoint.py
+            ...
             ✓ Created .devcontainer/devcontainer.json
-            ✓ Reused existing .agentengineignore
-            [+] Building 1.6s (17/17) FINISHED
+            [+] Building 1.4s (15/15) FINISHED
             [+] up 5/5
-             ✔ Container <your-project>-mongodb-1  Healthy
-             ✔ Container <your-project>-oe-1       Healthy
-             ✔ Container <your-project>-app-1      Started
+             ✔ Image <your-project>-app           Built
+             ✔ Container <your-project>-oe-1      Healthy
+             ✔ Container <your-project>-mongodb-1 Healthy
+             ✔ Container <your-project>-ui        Running
+             ✔ Container <your-project>-app-1     Started
 
             ✓ Stack running (hot-reload)
 
@@ -187,9 +185,12 @@ scaffold a Hello World agent, run it locally, and deploy it to the
               mongo    mongodb://localhost:51333
               ui       http://localhost:3000
 
-              Invoke:  curl -X POST 'http://localhost:3000/invoke' \
-                         -H 'Content-Type: application/json' \
-                         -d '{"message": "Hello"}'
+              Invoke:
+                my-agent    'http://localhost:3000/api/v1/projects/<project-id>/workspaces/<application-name>/invoke'
+
+                curl -X POST 'http://localhost:3000/api/v1/projects/<project-id>/workspaces/<application-name>/invoke' \
+                  -H 'Content-Type: application/json' \
+                  -d '{"message": "Hello"}'
 
               Next:    Open VS Code and run "Dev Containers: Reopen in Container"
                        for editing and debugging inside the running app container
@@ -217,6 +218,41 @@ scaffold a Hello World agent, run it locally, and deploy it to the
                and the corresponding execution trace in the Traces
                panel.
             :figwidth: 720px
+
+      #. Invoke your agent over HTTP.
+
+         In addition to the browser UI, you can invoke your agent directly
+         over HTTP. The ``Invoke`` section of the ``agentengine dev
+         up`` output shows the invoke URL for your agent and a
+         ``curl`` command that sends a message to it. The following
+         example invokes the ``my-agent`` agent with a ``Hello``
+         message:
+
+         .. code-block:: bash
+
+            curl -X POST 'http://localhost:3000/api/v1/projects/<project-id>/workspaces/my-agent/invoke' \
+              -H 'Content-Type: application/json' \
+              -d '{"message": "Hello"}'
+
+         Replace ``<project-id>`` with your project ID, which the
+         ``agentengine dev up`` command prints in the invoke URL, and
+         change the ``message`` value to the text that you want to
+         send. Use the invoke URL exactly as it appears in your command
+         output, because the port might not be ``3000``.
+         
+         The response resembles the following:
+
+         .. code-block:: json
+
+            {
+               "result": "Hello! I'm Daily. 🌟\n\nAs October winds down,
+               remember: you don't have to finish everything to make today
+               meaningful. One small, kind step forward is enough.",
+               "session_id": "...",
+               "user_id": "",
+               "execution_id": "...",
+               "status": "completed"
+            }
 
       #. To stop the local environment, run the following command:
 
