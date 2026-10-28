@@ -1,6 +1,7 @@
 - |mc| can only be run on sharded clusters.
 - |mc| can only move unsharded collections.
-- |mc| can only move a single collection at a time.
+- Only one |mc| operation can run at a time. You cannot run concurrent
+  |mc| operations.
 - |mc| has a 5 minute minimum duration. 
 - :rsconf:`writeConcernMajorityJournalDefault` must be ``true``.
 - To move a collection that has a :ref:`uniqueness
