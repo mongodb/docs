@@ -12,7 +12,7 @@ Get Started with Terraform and the MongoDB Atlas Provider
 
 .. meta:: 
    :description: Learn how to use the MongoDB Atlas Terraform provider to create and destroy Atlas clusters as infrastructure code, with service account authentication.
-   :keywords: atlas terraform provider, terraform
+   :keywords: atlas terraform provider, terraform, atlas infinite terraform
 
 .. contents:: On this page
    :local:
@@ -41,8 +41,8 @@ a Terraform-managed infrastructure with
 from MongoDB and HashiCorp.
 
 {+atlas-infinite-cluster+}s support the |service| Terraform
-provider. To learn more about {+atlas-infinite-full+}, see
-:ref:`atlas-infinite-edition`.
+provider. To learn more, see :ref:`terraform-create-infinite-cluster`
+and :ref:`atlas-infinite-edition`.
 
 Prerequisites
 -------------
@@ -218,76 +218,8 @@ Deploy MongoDB |service| with Terraform
        edition |service| assigned, even if you didn't set
        it yourself.
 
-       To create a dedicated cluster on {+atlas-infinite-full+},
-       set ``database_edition`` to ``"INFINITE"`` and set
-       ``compute_enabled`` in ``auto_scaling``, as the following
-       example shows:
-
-       .. code-block:: terraform
-
-          resource "mongodbatlas_advanced_cluster" "infinite" {
-            project_id       = module.project.id
-            name             = "InfiniteCluster"
-            cluster_type     = "REPLICASET"
-            database_edition = "INFINITE"
-
-            replication_specs = [
-              {
-                region_configs = [
-                  {
-                    provider_name = "AWS"
-                    priority      = 7
-                    region_name   = "US_EAST_1"
-                    electable_specs = {
-                      instance_size = "M10"
-                      node_count    = 2
-                    }
-                    auto_scaling = {
-                      compute_enabled           = true
-                      compute_max_instance_size = "M60_GEN_2"
-                      storage_config = {
-                        shard_size_limit_gb = 10240
-                      }
-                    }
-                  }
-                ]
-              }
-            ]
-          }
-
-       Dedicated {+atlas-infinite-cluster+}s support the
-       ``REPLICASET`` cluster type only.
-
-       ``compute_max_instance_size`` is required when
-       ``compute_enabled`` is ``true``. ``M30+``
-       {+atlas-infinite-cluster+}s are available on |aws| Gen2
-       only, so append ``_GEN_2`` to the tier name, as in
-       ``M60_GEN_2``. To learn more, see
-       :ref:`Gen2 Dedicated Clusters <gen2-clusters>`.
-
-       An {+atlas-infinite-cluster+} has two electable compute
-       nodes, a primary and a standby, so set ``node_count`` to
-       ``2``. To learn more, see :ref:`atlas-infinite-replication`.
-
-       To serve more reads or to isolate analytics queries from
-       your operational workload, add read-only or analytics
-       nodes by setting ``read_only_specs`` or ``analytics_specs``
-       alongside ``electable_specs`` in the same
-       ``region_configs`` object. To learn more, see
-       :ref:`atlas-infinite-workload-isolation`.
-
-       ``storage_config.shard_size_limit_gb`` is required only if
-       you include ``storage_config``. If you omit
-       ``storage_config``, |service| applies the default maximum
-       storage limit. To learn more, see
-       :ref:`atlas-infinite-max-storage-limit`.
-
-       .. note::
-
-          ``storage_config.shard_size_limit_gb`` sets the maximum
-          amount of data the cluster can store. To learn more,
-          see the `Terraform provider documentation
-          <https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster>`__.
+       To create a dedicated {+atlas-infinite-cluster+}, see
+       :ref:`terraform-create-infinite-cluster`.
 
    .. step:: (Optional) Display parameters.
 
@@ -337,6 +269,97 @@ Deploy MongoDB |service| with Terraform
          New |service| resources can take a few minutes to provision.
          The |service| Terraform provider updates you every ten seconds
          until it's complete.
+
+.. _terraform-create-infinite-cluster:
+
+Create an {+atlas-infinite-cluster+} with Terraform
+---------------------------------------------------
+
+The following example uses Terraform to create an {+atlas-infinite-cluster+}
+with compute auto-scaling enabled:
+
+.. code-block:: terraform
+
+   resource "mongodbatlas_advanced_cluster" "infinite" {
+     project_id       = module.project.id
+     name             = "InfiniteCluster"
+     cluster_type     = "REPLICASET"
+     database_edition = "INFINITE"
+
+     replication_specs = [
+       {
+         region_configs = [
+           {
+             provider_name = "AWS"
+             priority      = 7
+             region_name   = "US_EAST_1"
+             electable_specs = {
+               instance_size = "M10"
+               node_count    = 2
+             }
+             auto_scaling = {
+               compute_enabled           = true
+               compute_max_instance_size = "M60_GEN_2"
+               storage_config = {
+                 shard_size_limit_gb = 10240
+               }
+             }
+           }
+         ]
+       }
+     ]
+   }
+
+When you create an {+atlas-infinite-cluster+} with Terraform,
+the following requirements and limitations apply:
+
+- **Required settings**: Set ``database_edition`` to
+  ``"INFINITE"`` on the ``mongodbatlas_advanced_cluster``
+  resource, and set an explicit ``compute_enabled`` value
+  (``true`` or ``false``) under ``auto_scaling``. |service|
+  requires this value at cluster creation.
+
+- **Immutable database edition**: You can't change the
+  database edition of a cluster after you create it.
+
+- **Public preview limitations**: All other
+  {+atlas-infinite-full+} public preview limitations apply to
+  clusters that you deploy with Terraform. To learn more, see
+  :ref:`atlas-infinite-not-supported`.
+
+- **Cluster type**: Dedicated {+atlas-infinite-cluster+}s
+  support the ``REPLICASET`` cluster type only.
+
+- **Auto-scaling maximum tier**: ``compute_max_instance_size``
+  is required when ``compute_enabled`` is ``true``.
+  {+atlas-infinite-cluster+}s at the ``M30`` tier and larger
+  run on |aws| Gen2 hardware, so append ``_GEN_2`` to the
+  tier name, as in ``M60_GEN_2``. To learn more, see
+  :ref:`Gen2 Dedicated Clusters <gen2-clusters>`.
+
+- **Electable nodes**: An {+atlas-infinite-cluster+} has two
+  electable compute nodes, a primary and a standby, so set
+  ``node_count`` to ``2``. To learn more, see
+  :ref:`atlas-infinite-replication`.
+
+- **Read-only and analytics nodes**: To serve more reads or to
+  isolate analytics queries from your operational workload,
+  set ``read_only_specs`` or ``analytics_specs`` alongside
+  ``electable_specs`` in the same ``region_configs`` object.
+  To learn more, see :ref:`atlas-infinite-workload-isolation`.
+
+- **Storage limit**: ``storage_config.shard_size_limit_gb`` is
+  required only if you include ``storage_config``. If you omit
+  ``storage_config``, |service| applies the default maximum
+  storage limit. To learn more, see
+  :ref:`atlas-infinite-max-storage-limit`.
+
+.. note::
+
+   ``storage_config.shard_size_limit_gb`` sets the maximum
+   amount of data the cluster can store. To learn more, see the
+   `Terraform provider documentation
+   <https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster>`__.
 
 .. _getting-started-terraform-verify:
 
