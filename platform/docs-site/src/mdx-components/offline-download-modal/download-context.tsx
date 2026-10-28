@@ -49,9 +49,20 @@ const OFFLINE_BASE_URL =
     ? 'https://mongodbcom-cdn.staging.corp.mongodb.com/docs/offline'
     : 'https://www.mongodb.com/docs/offline';
 
+// Same function as content/table-of-contents/scripts/split-toc-for-offline.ts,
+// Which names the offline TOC files (and therefore the uploaded tarballs). C++ → cpp, C# → csharp,
+function sanitizeFilename(label: string): string {
+  return label
+    .replace(/\+/g, 'p')
+    .replace(/#/g, 'sharp')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 // Creates the offline download URL for a given contentSite Format: base-url/<toc-filen-name>-<version>.tar.gz
 function createOfflineUrl(label: string, version: string = 'main', isVersionedproject: string | null = null): string {
-  const sanitizedLabel = label.replace(/ /g, '-').toLowerCase();
+  const sanitizedLabel = sanitizeFilename(label);
   if (isVersionedproject) {
     return `${OFFLINE_BASE_URL}/${sanitizedLabel}.versioned.${isVersionedproject}-${version}.tar.gz`;
   }
@@ -111,7 +122,7 @@ function findShowSubNavItems(
           for (const version of availVersions) {
             versionEntries.push({
               displayName: version.versionSelectorLabel,
-              url: createOfflineUrl(item.label, version.versionName, item.contentSite),
+              url: createOfflineUrl(item.label, version.versionName, firstChild.contentSite),
               versionName: version.versionName,
               stable: version.stable,
             });
