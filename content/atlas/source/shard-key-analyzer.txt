@@ -1,0 +1,231 @@
+:orphan:
+
+.. _shard-key-analyzer:
+
+==================
+Shard Key Analyzer
+==================
+
+.. meta::
+   :description: Analyze and evaluate candidate shard keys with Atlas Shard Key Analyzer based on your cluster's query patterns.
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+*Requires M10+ clusters running MongoDB 8.0 or later in commercial
+Atlas deployments*
+
+|service| |shard-key-advisor| helps you analyze and evaluate
+candidate shard keys for your collections. Access the analyzer
+through :ref:`Performance Advisor <performance-advisor>` to evaluate
+shard keys based on your cluster's query patterns and workload
+characteristics. The analyzer provides immediate analysis with
+optional query sampling for deeper insights into read and write
+distribution.
+
+|service| provides recommendations in Performance Advisor to help you
+identify when sharding decisions may improve your cluster's
+performance:
+
+- When to shard a replica set.
+- When to move a collection.
+- When to shard an unsharded collection.
+- When to add more shards.
+
+Use |shard-key-advisor| to analyze candidate shard keys for these
+recommendations.
+
+You can also open |shard-key-advisor| from the :ref:`Sharding
+Insights <sharding-advisor>` page. In the :guilabel:`Recommendations`
+card, click :guilabel:`Analyze Shard Keys`.
+
+About This Feature
+------------------
+
+Choosing the right shard key is critical for sharded cluster
+performance. A well-chosen shard key:
+
+- Distributes data evenly across shards.
+- Routes queries efficiently to minimize cross-shard operations.
+- Supports your application's query patterns.
+- Scales as your data grows.
+
+|shard-key-advisor| analyzes your collection's query patterns and
+provides analysis based on:
+
+- Query routing efficiency.
+- Data distribution characteristics.
+- Key cardinality and frequency.
+- Read and write patterns.
+
+How It Works
+------------
+
+|shard-key-advisor| provides immediate analysis and optional deeper
+insights:
+
+**Immediate Analysis**
+
+The analyzer computes key characteristics without requiring query
+sampling:
+
+- **Cardinality**: Measures the uniqueness of values in candidate
+  fields.
+- **Monotonicity**: Identifies whether field values increase or
+  decrease over time.
+- **Frequency**: Analyzes the distribution of values across the field.
+
+These metrics help you understand how well a candidate shard key
+distributes data and avoids hotspots.
+
+**Optional Query Sampling**
+
+For deeper insights into query patterns, enable query sampling to
+view:
+
+- **Read Distribution**: Shows which shard key values your queries
+  access most frequently.
+- **Write Distribution**: Shows which shard key values your writes
+  target most frequently.
+
+Query sampling is optional. The analyzer prompts you to enable it
+when viewing distribution metrics. When enabled, |service| samples
+queries run against your collection and re-analyzes the candidate
+shard keys with the additional data.
+
+Prerequisites
+-------------
+
+To use |shard-key-advisor|, your cluster must meet the following
+requirements:
+
+- **MongoDB Version**: MongoDB 8.0 or later.
+- **Cluster Tier**: ``M10`` cluster tier or higher.
+- **Environment**: Commercial |service| deployments only.
+  |shard-key-advisor| is not available for:
+
+  - |service| Data Regionalization customers.
+  - Cloud Manager deployments.
+  - Ops Manager deployments.
+  - Government cloud environments.
+
+- **Collection Type**: |shard-key-advisor| does not support
+  :manual:`time series collections
+  </core/timeseries-collections/>`.
+
+Get Started
+-----------
+
+To use |shard-key-advisor|:
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-db-deployments-page.rst
+
+   .. step:: Open :ref:`Performance Advisor <performance-advisor>`
+      for your cluster.
+
+      a. Click the :guilabel:`...` button for the cluster you want
+         to analyze.
+
+      #. Click :guilabel:`View Performance Advisor`.
+
+      The :guilabel:`Performance Advisor` page displays.
+
+   .. step:: Go to :guilabel:`Sharding Recommendations`.
+
+      Click the :guilabel:`Sharding Recommendations` tab in the
+      Performance Advisor navigation.
+
+      Sharding recommendations appear when |service| identifies
+      collections that may benefit from sharding or resharding.
+
+   .. step:: Open a recommendation card.
+
+      Click a recommendation card to view its details.
+
+      The recommendation details page displays metrics and analysis
+      for the suggested shard key.
+
+   .. step:: Click :guilabel:`Launch Shard Key Analyzer`.
+
+      The |shard-key-advisor| opens in a new browser tab.
+
+   .. step:: Review the analysis.
+
+      The analyzer provides immediate analysis of candidate shard
+      keys, including:
+
+      - **Cardinality**: Uniqueness of values in the field.
+      - **Monotonicity**: Whether values increase or decrease over
+        time.
+      - **Frequency**: Distribution of values across the field.
+
+      These metrics are available immediately without query sampling.
+
+   .. step:: (Optional) Enable query sampling for deeper analysis.
+
+      To view read and write distribution metrics:
+
+      a. Click :guilabel:`Enable Query Sampling` in the analyzer.
+
+      #. Click :guilabel:`Enable Sampling`.
+
+      #. Wait for |service| to collect query data. The time needed
+         depends on your cluster's query volume.
+
+      #. Click :guilabel:`Re-analyze` to view updated metrics with
+         read/write distribution data.
+
+      When query sampling is disabled, the analyzer prompts you to
+      enable it for distribution metrics.
+
+Performance and Storage Considerations
+--------------------------------------
+
+Sampled queries are stored on your cluster with a 7-day TTL.
+Query sampling does not stop automatically, so you must disable
+it manually when you no longer need it.
+
+|service| sets the sampling rate to 5 samples per second. To
+learn more about how sampling rates and query sizes affect
+storage, see the :dbcommand:`configureQueryAnalyzer`
+documentation.
+
+.. note::
+
+   The sampling rate is set by |service| and cannot be adjusted
+   through |shard-key-advisor|.
+
+The :dbcommand:`analyzeShardKey` command processes each analysis
+phase sequentially, so it might take some time to complete on
+large collections. It does not block reads or writes on your
+cluster.
+
+.. tip::
+
+   To cancel a long-running :dbcommand:`analyzeShardKey`
+   operation, use the :guilabel:`Kill Op` button in the
+   :ref:`Real-Time Performance Panel
+   <real-time-metrics-status-tab>`. You must have the
+   :authrole:`Project Real Time Performance Operator` role.
+
+Learn More
+----------
+
+To learn more about shard keys and sharding concepts, see:
+
+- :manual:`Choose a Shard Key </core/sharding-choose-a-shard-key/>`
+- :manual:`Shard Key Indexes </core/sharding-shard-key-indexes/>`
+- :ref:`Sharding Insights <sharding-advisor>`
+- :ref:`Manage Cluster Sharding <atlas-cluster-sharding>`
