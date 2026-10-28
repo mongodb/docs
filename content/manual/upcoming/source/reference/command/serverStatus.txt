@@ -9929,6 +9929,26 @@ wiredTiger
          time waiting during logging (usecs) : <num>,
          time waiting during read (usecs) : <num>
       },
+      checkpoint : {
+         checkpoints skipped because database was clean : <num>,
+         fsync calls after allocating the transaction ID : <num>,
+         fsync duration after allocating the transaction ID (usecs) : <num>,
+         generation : <num>,
+         max time (msecs) : <num>,
+         min time (msecs) : <num>,
+         most recent time (msecs) : <num>,
+         number of checkpoints started by api : <num>,
+         number of checkpoints started by compaction : <num>,
+         progress state : <num>,
+         scrub dirty target : <num>,
+         scrub max time (msecs) : <num>,
+         scrub min time (msecs) : <num>,
+         scrub most recent time (msecs) : <num>,
+         scrub total time (msecs) : <num>,
+         total failed number of checkpoints : <num>,
+         total succeed number of checkpoints : <num>,
+         total time (msecs) : <num>
+      },
       connection : {
          auto adjusting condition resets : <num>,
          auto adjusting condition wait calls : <num>,
@@ -10175,19 +10195,7 @@ wiredTiger
          set timestamp stable calls : <num>,
          set timestamp stable updates : <num>,
          transaction begins : <num>,
-         transaction checkpoint currently running : <num>,
-         transaction checkpoint generation : <num>,
-         transaction checkpoint max time (msecs) : <num>,
-         transaction checkpoint min time (msecs) : <num>,
-         transaction checkpoint most recent time (msecs) : <num>,
-         transaction checkpoint scrub dirty target : <num>,
-         transaction checkpoint scrub time (msecs) : <num>,
-         transaction checkpoint total time (msecs) : <num>,
-         transaction checkpoints : <num>,
-         transaction checkpoints skipped because database was clean : <num>,
          transaction failures due to cache overflow : <num>,
-         transaction fsync calls for checkpoint after allocating the transaction ID : <num>,
-         transaction fsync duration for checkpoint after allocating the transaction ID (usecs) : <num>,
          transaction range of IDs currently pinned : <num>,
          transaction range of IDs currently pinned by a checkpoint : <num>,
          transaction range of IDs currently pinned by named snapshots : <num>,
@@ -10303,6 +10311,106 @@ wiredTiger
 
    .. include:: /includes/extracts/wt-cache-setting.rst
 
+.. serverstatus:: wiredTiger.checkpoint
+
+   A document that returns statistics on checkpoints.
+
+   The following describes the :serverstatus:`wiredTiger.checkpoint`
+   statistics:
+
+   .. serverstatus:: wiredTiger.checkpoint.checkpoints skipped because database was clean
+
+      Number of checkpoints that MongoDB skipped because the database was
+      clean and no data needed to be written to disk.
+
+   .. serverstatus:: wiredTiger.checkpoint.fsync calls after allocating the transaction ID
+
+      Number of ``fsync`` calls issued after the checkpoint allocated its
+      transaction ID.
+
+   .. serverstatus:: wiredTiger.checkpoint.fsync duration after allocating the transaction ID (usecs)
+
+      Total duration, in microseconds, of the ``fsync`` calls counted by
+      ``fsync calls after allocating the transaction ID``.
+
+   .. serverstatus:: wiredTiger.checkpoint.generation
+
+      Generation number assigned when a checkpoint starts. The value
+      increases steadily with each checkpoint.
+
+   .. serverstatus:: wiredTiger.checkpoint.max time (msecs)
+
+      Longest runtime, in milliseconds, observed for a single checkpoint.
+
+   .. serverstatus:: wiredTiger.checkpoint.min time (msecs)
+
+      Shortest runtime, in milliseconds, observed for a single checkpoint.
+
+   .. serverstatus:: wiredTiger.checkpoint.most recent time (msecs)
+
+      Amount of time, in milliseconds, to create the most recent
+      checkpoint.
+
+   .. serverstatus:: wiredTiger.checkpoint.number of checkpoints started by api
+
+      Number of checkpoints started by an application request to the
+      WiredTiger API.
+
+   .. serverstatus:: wiredTiger.checkpoint.number of checkpoints started by compaction
+
+      Number of checkpoints started by compaction operations. Each pass
+      over a table during compaction starts checkpoints to recover the
+      space that compaction frees. A direct compaction call on a
+      collection also starts an initial checkpoint.
+
+   .. serverstatus:: wiredTiger.checkpoint.progress state
+
+      Current stage of the checkpoint. A non-zero value means a
+      checkpoint is currently running. All other states are
+      implementation-defined.
+
+   .. serverstatus:: wiredTiger.checkpoint.scrub dirty target
+
+      Cache dirty level, as a percentage, that eviction reduces the cache
+      to while a checkpoint prepares to start. The value resets to zero
+      once the checkpoint begins.
+
+   .. serverstatus:: wiredTiger.checkpoint.scrub max time (msecs)
+
+      Longest time, in milliseconds, spent in the scrub phase of a
+      checkpoint, in which the checkpoint waited for eviction to reduce
+      the amount of dirty data in the cache.
+
+   .. serverstatus:: wiredTiger.checkpoint.scrub min time (msecs)
+
+      Shortest time, in milliseconds, spent in the scrub phase of a
+      checkpoint, in which the checkpoint waited for eviction to reduce
+      the amount of dirty data in the cache.
+
+   .. serverstatus:: wiredTiger.checkpoint.scrub most recent time (msecs)
+
+      Time, in milliseconds, spent in the scrub phase during the most
+      recent checkpoint, in which the checkpoint waited for eviction to
+      reduce the amount of dirty data in the cache.
+
+   .. serverstatus:: wiredTiger.checkpoint.scrub total time (msecs)
+
+      Total time, in milliseconds, spent in the scrub phase across all
+      checkpoints, in which the checkpoint waited for eviction to reduce
+      the amount of dirty data in the cache.
+
+   .. serverstatus:: wiredTiger.checkpoint.total failed number of checkpoints
+
+      Total number of checkpoints that failed.
+
+   .. serverstatus:: wiredTiger.checkpoint.total succeed number of checkpoints
+
+      Total number of checkpoints that succeeded.
+
+   .. serverstatus:: wiredTiger.checkpoint.total time (msecs)
+
+      Total time, in milliseconds, spent performing checkpoints.
+
 .. serverstatus:: wiredTiger.connection
 
    A document that returns statistics related to WiredTiger connections.
@@ -10340,11 +10448,4 @@ wiredTiger
 
 .. serverstatus:: wiredTiger.transaction
 
-   A document that returns statistics on transaction checkpoints and
-   operations.
-
-   .. serverstatus:: wiredTiger.transaction.transaction checkpoint most recent time (msecs)
-
-      Amount of time, in milliseconds, to create the most recent
-      checkpoint. An increase in this value under stead write load may
-      indicate saturation on the I/O subsystem.
+   A document that returns statistics on transactions and operations.
