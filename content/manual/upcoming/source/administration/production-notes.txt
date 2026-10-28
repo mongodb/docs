@@ -104,7 +104,7 @@ platforms which do not meet this minimum microarchitecture requirement.
   Kernel (RHCK). MongoDB does **not** support the Unbreakable
   Enterprise Kernel (UEK).
 
-- MongoDB 5.0 requires use of the AVX instruction set, available on
+- MongoDB 5.0 and later requires use of the AVX instruction set, available on
   `select Intel and AMD processors
   <https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#CPUs_with_AVX>`__.
 
@@ -287,22 +287,22 @@ For Windows users, consider the `Windows Server Technet Article on TCP
 Configuration <http://technet.microsoft.com/en-us/library/dd349797.aspx>`_
 when deploying MongoDB on Windows.
 
-Disable HTTP Interface
-~~~~~~~~~~~~~~~~~~~~~~
-
-The HTTP interface is disabled by default. Do not enable the HTTP interface in 
-production environments.
-
 .. _prod-notes-connection-pools:
 
 Manage Connection Pool Sizes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Avoid overloading the connection resources of a :binary:`~bin.mongod` or
-:binary:`~bin.mongos` instance by adjusting the connection pool size to suit
-your use case. Start at 110-115% of the typical number of current database
-requests, and modify the connection pool size as needed. Refer to the
-:ref:`connection-pool-options` for adjusting the connection pool size.
+:binary:`~bin.mongos` instance.
+
+Client drivers maintain a connection pool. Start at 110-115% of the
+typical number of current database requests, and modify the driver
+connection pool size as needed. For driver connection pool options,
+such as ``maxPoolSize``, see :ref:`connection-pool-options`.
+
+To limit the number of simultaneous incoming connections that
+:binary:`~bin.mongod` or :binary:`~bin.mongos` accepts, use the
+:setting:`net.maxIncomingConnections` setting.
 
 The :dbcommand:`connPoolStats` command returns information regarding
 the number of open connections to the current database for
@@ -325,6 +325,14 @@ connections. To reduce this risk, set ``tcp_keepalive_time`` to 120.
 .. include:: /includes/fact-tcp-keepalive-linux.rst
 
 .. include:: /includes/fact-tcp-keepalive-windows.rst
+
+Adjust tcp_retries2
+~~~~~~~~~~~~~~~~~~~
+
+If your systems experience long stalls followed by network timeouts or
+socket errors, set ``net.ipv4.tcp_retries2`` to ``5`` or lower. Most
+Linux operating systems set this value to ``15`` by default. For more
+information, see :ref:`faq-tcp_retries2`.
 
 Hardware Considerations
 -----------------------
@@ -402,22 +410,14 @@ periods of time and high system process usage.
 
 When running MongoDB servers and clients on NUMA hardware, you should configure
 a memory interleave policy so that the host behaves in a non-NUMA fashion.
-MongoDB checks NUMA settings on start up when deployed on Linux (since version
-2.0) and Windows (since version 2.6) machines. If the
-NUMA configuration may degrade performance, MongoDB prints a warning.
+MongoDB checks NUMA settings when it starts on Linux and Windows hosts.
+If the NUMA configuration may degrade performance, MongoDB prints a
+warning.
 
 The ``numad`` daemon process can also reduce :binary:`~bin.mongod` performance. 
 You should ensure ``numad`` is not enabled on MongoDB servers.
 
 .. seealso::
-
-   - `The MySQL "swap insanity" problem and the effects of NUMA
-     <http://jcole.us/blog/archives/2010/09/28/mysql-swap-insanity-and-the-numa-architecture/>`_
-     post, which describes the effects of
-     NUMA on databases. The post introduces NUMA and its goals, and
-     illustrates how these goals are not compatible with production
-     databases. Although the blog post addresses the impact of NUMA for
-     MySQL, the issues for MongoDB are similar.
 
    - `NUMA: An Overview <https://queue.acm.org/detail.cfm?id=2513149>`_.
 
@@ -725,10 +725,11 @@ Clock Synchronization
 ---------------------
 
 MongoDB :ref:`components <mongodb-package-components>` keep logical clocks for
-supporting time-dependent operations. Using `NTP <http://www.ntp.org/>`_
-to synchronize host machine clocks mitigates the risk of clock drift
-between components. Clock drift between components increases the
-likelihood of incorrect or abnormal behavior of time-dependent
+supporting time-dependent operations. To mitigate the risk of clock
+drift between components, synchronize host clocks with an
+NTP-compatible time daemon, such as `NTP <http://www.ntp.org/>`_,
+chrony, or systemd-timesyncd. Clock drift between components increases
+the likelihood of incorrect or abnormal behavior of time-dependent
 operations like the following:
 
 - If the underlying system clock of any given MongoDB
@@ -763,24 +764,18 @@ MongoDB on Linux
 Kernel and File Systems
 ```````````````````````
 
-When running MongoDB in production on Linux, you should use Linux
-kernel version 2.6.36 or later, with either the XFS or EXT4 filesystem.
-If possible, use XFS as it generally performs better with MongoDB.
+When running MongoDB in production on Linux, use either the XFS or
+EXT4 filesystem. If possible, use XFS as it generally performs better
+with MongoDB.
 
 With the :ref:`WiredTiger storage engine <storage-wiredtiger>`, using
 XFS is **strongly recommended** for data bearing nodes to avoid
 performance issues that may occur when using EXT4 with WiredTiger.
 
-- In general, if you use the XFS file system, use at least version
-  ``2.6.25`` of the Linux Kernel.
-
-  .. Required for fallocate()
-
-- If you use the EXT4 file system, use at least version
-  ``2.6.28`` of the Linux Kernel.
-
-- On Red Hat Enterprise Linux and CentOS, use at least version
-  ``2.6.18-194`` of the Linux kernel.
+For the Linux kernel versions that MongoDB supports, see the
+:ref:`community <landing-community-platform-support>` and
+:ref:`enterprise <landing-enterprise-platform-support>` platform
+support tables.
 
 System C Library
 ````````````````
@@ -824,8 +819,7 @@ the Virtual Memory manager. The ``vm.swappiness`` setting ranges from
 ``0`` to ``100``: the higher the value, the more strongly it prefers
 swapping memory pages to disk over dropping pages from RAM.
 
-- A setting of ``0`` disables swapping entirely
-  [#swappiness-kernel-version]_.
+- A setting of ``0`` disables swapping entirely.
 
 - A setting of ``1`` permits the kernel to swap only to avoid
   out-of-memory problems.
@@ -846,13 +840,6 @@ minimum. As such you should set ``vm.swappiness`` to either ``1`` or
    :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS, set 
    ``vm.force_cgroup_v2_swappiness`` to ``1`` to ensure that the specified 
    ``vm.swappiness`` value overrides any cgroup defaults.
-
-.. [#swappiness-kernel-version]
-
-   With Linux kernel versions previous to ``3.5``, or
-   :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS kernel versions
-   previous to ``2.6.32-303``,  a ``vm.swappiness`` setting of ``0``
-   would still allow the kernel to swap in certain emergency situations.
 
 .. note::
 
@@ -894,8 +881,9 @@ Recommended Configuration
 
 For **all** MongoDB deployments:
 
-- Use the Network Time Protocol (NTP) to synchronize time among
-  your hosts. This is especially important in sharded clusters.
+- Use an NTP-compatible time daemon, such as NTP, chrony, or
+  systemd-timesyncd, to synchronize time among your hosts. This is
+  especially important in sharded clusters.
 
 For the **WiredTiger** storage engines,
 consider the following recommendations:
@@ -1046,8 +1034,6 @@ If you are concerned more about reproducible performance on
   .. seealso::
 
      `Amazon blog post on disabling Hyper-Threading <https://aws.amazon.com/blogs/compute/disabling-intel-hyper-threading-technology-on-amazon-linux/>`_.
-
-- Use ``numactl`` to bind memory locality to a single socket.
 
 .. _windows-azure-production-notes:
 
