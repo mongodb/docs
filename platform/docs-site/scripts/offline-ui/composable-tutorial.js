@@ -5,64 +5,64 @@
  * and no content would be visible. This script replaces that React state management
  * with vanilla JS using data attributes stamped onto the DOM at build time:
  *
- *   data-selections="{}"            on .offline-composable (tutorial root)
  *   data-option-value               on .configurable-option (the option key, e.g. "llm_provider")
+ *   data-default                    on .configurable-option (the option's default choice)
  *   data-dependencies               on .configurable-option (JSON array of dependency objects)
  *   data-selection-value            on .configurable-option (tracks current selected value, mutable)
- *   data-value / data-text          on .offline-select-choice <li> items
  *   data-selections                 on .composable-content (JSON of required selections)
  *
- * The .offline-composable-select <ul> is the OfflineMenu component rendered alongside
- * the LeafyGreen Select. Clicking the LG trigger toggles it; clicking a list item
- * selects that option, updates dependent options, and shows the matching content blocks.
+ * Each .configurable-option's choices are [role="option"] items keyed by data-key, in [data-offline-list].
  */
 (function () {
-  function updateSelectButtonText(selectButton, text) {
-    const divs = selectButton?.querySelectorAll('div');
-    const buttonText = divs ? divs[divs.length - 1] : undefined;
-    if (selectButton && buttonText) {
-      buttonText.innerText = text;
+  // Via styles selection from these attributes.
+  function markSelected(configurableOption, option) {
+    const list = configurableOption.querySelector('[data-offline-list]');
+    const checkTemplate = list?.querySelector('template[data-offline-check]');
+    list?.querySelectorAll('[role="option"]').forEach((opt) => {
+      const isSelected = opt === option;
+      opt.setAttribute('aria-selected', String(isSelected));
+      opt.setAttribute('data-selected', String(isSelected));
+      opt.querySelector(':scope > [slot="check"]')?.remove();
+      if (isSelected && checkTemplate) opt.append(checkTemplate.content.cloneNode(true));
+    });
+
+    const valueEl = configurableOption.querySelector('[aria-haspopup="listbox"] span');
+    if (valueEl) {
+      valueEl.replaceChildren(
+        ...Array.from(option.childNodes)
+          .filter((node) => !(node instanceof Element && node.getAttribute('slot') === 'check'))
+          .map((node) => node.cloneNode(true)),
+      );
+      valueEl.removeAttribute('data-placeholder');
     }
   }
 
-  // Returns the [value, text] of the first list item in the option's offline menu
-  // and hides the menu. Called when a dependent option becomes visible without a
-  // previously stored selection value.
-  function autoSelectFirstOption(configurableOption) {
-    const firstItem = configurableOption.querySelector('li.offline-select-choice');
-    const menu = configurableOption.querySelector('.offline-composable-select');
-    if (menu) menu.setAttribute('hidden', 'true');
-    return firstItem?.dataset['value'] && firstItem?.dataset['text']
-      ? [firstItem.dataset['value'], firstItem.dataset['text']]
-      : ['', ''];
+  // Compare directly so option values never need selector escaping.
+  function findOption(configurableOption, value) {
+    return Array.from(configurableOption.querySelectorAll('[data-offline-list] [role="option"]')).find(
+      (option) => option.getAttribute('data-key') === value,
+    );
   }
 
-  function onSelectListItem(listItem, contents, menu, configurableOptions, currentIdx, selectButton) {
+  // Falls back to the first choice; offline can't check the default has content, as the live site does.
+  function defaultOption(configurableOption) {
+    const fallback = configurableOption.querySelector('[data-offline-list] [role="option"]');
+    const value = configurableOption.dataset['default'];
+    return (value && findOption(configurableOption, value)) || fallback;
+  }
+
+  function setOpen(configurableOption, open) {
+    const list = configurableOption.querySelector('[data-offline-list]');
+    const trigger = configurableOption.querySelector('[aria-haspopup="listbox"]');
+    if (list) list.hidden = !open;
+    trigger?.setAttribute('aria-expanded', String(open));
+  }
+
+  function applySelections(configurableOptions, contents) {
     const currentSelections = {};
 
-    const selectedOptionValue = listItem.dataset['value'];
-    const configurableOption = configurableOptions[currentIdx];
-    const optionValue = configurableOption.dataset['optionValue'];
-    if (optionValue && selectedOptionValue) {
-      currentSelections[optionValue] = selectedOptionValue;
-      configurableOption.dataset['selectionValue'] = selectedOptionValue;
-    }
-
-    for (let idx = 0; idx < configurableOptions.length; idx++) {
-      if (idx === currentIdx) continue;
-
-      const opt = configurableOptions[idx];
-      const optBtn = opt.querySelector('button');
+    for (const opt of configurableOptions) {
       const key = opt.dataset['optionValue'] ?? '';
-
-      if (idx < currentIdx) {
-        // Preceding options: read their stored values into currentSelections.
-        const value = opt.dataset['selectionValue'] ?? '';
-        currentSelections[key] = value;
-        continue;
-      }
-
-      // Subsequent options: check if their dependencies are met.
       let dependencies = [];
       try {
         dependencies = JSON.parse(opt.dataset['dependencies'] ?? '[]');
@@ -70,25 +70,25 @@
         // ignore parse errors
       }
 
+      // Matches showComposable: a dependency on "none" always passes.
       const dependencyMet = dependencies.every((dep) =>
-        Object.entries(dep).every(([k, v]) => currentSelections[k] === v),
+        Object.entries(dep).every(([k, v]) => String(v).toLowerCase() === 'none' || currentSelections[k] === v),
       );
 
-      if (dependencyMet) {
-        let value = opt.dataset['selectionValue'] ?? '';
-        let text = optBtn?.innerText ?? '';
-        if (!value) {
-          [value, text] = autoSelectFirstOption(opt);
-        }
-        if (optBtn) updateSelectButtonText(optBtn, text);
-        currentSelections[key] = value;
-        opt.removeAttribute('hidden');
-      } else {
+      if (!dependencyMet) {
         opt.setAttribute('hidden', 'true');
+        continue;
       }
+
+      opt.removeAttribute('hidden');
+      const option = findOption(opt, opt.dataset['selectionValue'] ?? '') ?? defaultOption(opt);
+      if (!option) continue;
+      const value = option.getAttribute('data-key') ?? '';
+      opt.dataset['selectionValue'] = value;
+      currentSelections[key] = value;
+      markSelected(opt, option);
     }
 
-    // Show content blocks whose required selections are all satisfied.
     for (const contentEl of contents) {
       let requiredSelections = {};
       try {
@@ -107,21 +107,6 @@
         contentEl.setAttribute('hidden', 'true');
       }
     }
-
-    if (selectButton) updateSelectButtonText(selectButton, listItem.innerText);
-    menu.setAttribute('hidden', 'true');
-  }
-
-  function onMenuButtonClick(selectButton, menu) {
-    const width = selectButton.clientWidth;
-    // OfflineMenu renders div.offline-composable-select > ul; toggle hidden on the wrapping div.
-    const isHidden = menu?.hasAttribute('hidden');
-    if (isHidden) {
-      menu?.removeAttribute('hidden');
-    } else {
-      menu?.setAttribute('hidden', 'true');
-    }
-    if (menu) menu.style.width = `${width}px`;
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -132,30 +117,26 @@
       // Exclude the [data-selections] on the .offline-composable root itself.
       const contents = Array.from(composable.querySelectorAll('.composable-content[data-selections]'));
 
-      for (let idx = 0; idx < configurableOptions.length; idx++) {
-        const configurableOption = configurableOptions[idx];
-        const selectButton = configurableOption.querySelector('button');
-        // OfflineMenu: div.offline-composable-select wrapping the ul
-        const menu = configurableOption.querySelector('.offline-composable-select');
+      for (const configurableOption of configurableOptions) {
+        const trigger = configurableOption.querySelector('[aria-haspopup="listbox"]');
+        const list = configurableOption.querySelector('[data-offline-list]');
 
-        selectButton?.addEventListener('click', () => {
-          onMenuButtonClick(selectButton, menu ?? undefined);
+        trigger?.addEventListener('click', () => setOpen(configurableOption, !!list?.hidden));
+
+        list?.querySelectorAll('[role="option"]').forEach((option) => {
+          option.addEventListener('click', () => {
+            configurableOption.dataset['selectionValue'] = option.getAttribute('data-key') ?? '';
+            setOpen(configurableOption, false);
+            applySelections(configurableOptions, contents);
+          });
         });
 
-        const listItems = Array.from(menu?.querySelectorAll('li.offline-select-choice') ?? []);
-
-        for (let itemIdx = 0; itemIdx < listItems.length; itemIdx++) {
-          const listItem = listItems[itemIdx];
-          listItem.addEventListener('click', () => {
-            onSelectListItem(listItem, contents, menu, configurableOptions, idx, selectButton ?? undefined);
-          });
-
-          // Auto-select the first option of the first dropdown to show default content on load.
-          if (idx === 0 && itemIdx === 0) {
-            listItem.click();
-          }
-        }
+        document.addEventListener('click', (event) => {
+          if (!configurableOption.contains(event.target)) setOpen(configurableOption, false);
+        });
       }
+
+      applySelections(configurableOptions, contents);
     }
   });
 })();

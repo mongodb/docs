@@ -1,61 +1,12 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Option, Select } from '@leafygreen-ui/select';
-import { css, cx } from '@leafygreen-ui/emotion';
+import { clsx } from 'clsx';
 import type { ComposableTutorialOption } from '@/types/ast';
-import { theme } from '@/styles/theme';
 import { joinKeyValuesAsString } from '@/mdx-components/ComposableTutorial';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
-import { OfflineMenu } from '@/mdx-components/Select';
-
-const mainStyling = css`
-  flex: 1 1 200px;
-  font-size: ${theme.fontSize.small};
-  overflow: ${isOfflineBuild ? 'visible' : 'hidden'};
-  z-index: ${theme.zIndexes.actionBar};
-  max-width: 200px;
-
-  label,
-  button {
-    font-size: inherit;
-  }
-
-  // overwriting lg style to apply to offline docs
-  button {
-    margin-top: 3px;
-  }
-
-  .dark-theme & {
-    > button {
-      background-color: var(--gray-dark4);
-      color: var(--gray-light3);
-    }
-  }
-
-  @media ${theme.screenSize.upToMedium} {
-    flex: 0 1 calc(50% - ${theme.size.small});
-  }
-`;
-
-const selectStyling = css`
-  label {
-    margin-bottom: ${theme.size.tiny};
-    text-transform: uppercase;
-    color: var(--gray-dark1);
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-  }
-  > button {
-    margin-top: 0;
-    height: 22px;
-  }
-`;
-
-const optionStyling = css`
-  font-size: ${theme.fontSize.small};
-`;
+import { OfflineSelectList, Select } from '@/mdx-components/Select';
+import styles from './configurable-option.module.scss';
 
 interface ConfigurationOptionProps {
   validSelections: Set<string>;
@@ -93,26 +44,20 @@ const ConfigurableOption = ({
 
   return (
     <div
-      className={cx('configurable-option', mainStyling)}
+      className={clsx('configurable-option', styles.configurableOption)}
       data-option-value={isOfflineBuild ? option.value : undefined}
+      data-default={isOfflineBuild ? option.default : undefined}
       data-dependencies={isOfflineBuild ? JSON.stringify(option.dependencies) : undefined}
       data-selection-value={isOfflineBuild ? '' : undefined}
     >
       <Select
-        className={cx(selectStyling)}
+        choices={filteredOptions}
         label={option.text}
-        allowDeselect={false}
         value={selections[option.value]}
-        aria-label={`Select your ${option.text}`}
-        onChange={(value) => onSelect(value, option.value, optionIndex)}
-      >
-        {filteredOptions.map((selection, i) => (
-          <Option className={optionStyling} value={selection.value} key={i}>
-            {selection.text}
-          </Option>
-        ))}
-      </Select>
-      {isOfflineBuild && <OfflineMenu choices={option.selections} className="offline-composable-select" />}
+        onChange={({ value }) => onSelect(value, option.value, optionIndex)}
+      />
+      {/* Offline can't filter to valid choices, so list them all. */}
+      {isOfflineBuild && <OfflineSelectList choices={option.selections} label={option.text} />}
     </div>
   );
 };

@@ -44,7 +44,10 @@ const composableOptions = [
 const pageOptions = {
   template: 'document' as PageTemplateType,
   composable_tutorial: {
+    // Generated tutorials include every prefix, which the first dropdown's choices need.
     validSelections: [
+      'interface=driver',
+      'interface=mongosh',
       'interface=driver**language=nodejs',
       'interface=driver**language=python',
       'interface=mongosh**language=nodejs',
@@ -82,6 +85,14 @@ describe('ComposableTutorial (mdx-components) unit tests', () => {
         </ComposableContent>
       </ComposableTutorial>,
     );
+    const triggerValues = Array.from(tree.container.querySelectorAll('.configurable-option button span')).map(
+      (el) => el.textContent,
+    );
+    expect(triggerValues).toEqual(['Driver', 'Node.js']);
+    expect(tree.getByText('Driver + Node.js content')).toBeInTheDocument();
+    expect(tree.queryByText('Driver + Python content')).not.toBeInTheDocument();
+    expect(tree.queryByText('Mongosh + Node.js content')).not.toBeInTheDocument();
+    expect(tree.queryByText('Mongosh + Python content')).not.toBeInTheDocument();
     expect(tree.asFragment()).toMatchSnapshot();
   });
 

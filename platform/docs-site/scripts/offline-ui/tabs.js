@@ -9,6 +9,8 @@
  *
  * Tab syncing mirrors TabContext, so clicking a tab updates every tabset on
  * the page that shares the same name.
+ *
+ * Selector dropdowns hide their tabset's tabs, so [data-offline-selector] options switch the tabset by data-key.
  */
 (function () {
   // Scope to a tabset's own tabs and panels, skipping any nested tabsets.
@@ -54,6 +56,62 @@
 
         targets.forEach((ts) => activateTabById(ts, selectedTabId));
       });
+    });
+  });
+
+  document.querySelectorAll('[data-offline-selector]').forEach((selector) => {
+    const tabsetName = selector.getAttribute('data-offline-selector');
+    const trigger = selector.querySelector('[aria-haspopup="listbox"]');
+    const list = selector.querySelector('[data-offline-list]');
+    const checkTemplate = selector.querySelector('template[data-offline-check]');
+    if (!trigger || !list) return;
+
+    const tabsets = allTabsets.filter((ts) => ts.getAttribute('data-tabset') === tabsetName);
+    const options = Array.from(list.querySelectorAll('[role="option"]'));
+
+    const setOpen = (open) => {
+      list.hidden = !open;
+      trigger.setAttribute('aria-expanded', String(open));
+    };
+
+    // Via styles selection from these attributes.
+    const select = (option) => {
+      options.forEach((opt) => {
+        const isSelected = opt === option;
+        opt.setAttribute('aria-selected', String(isSelected));
+        opt.setAttribute('data-selected', String(isSelected));
+        opt.querySelector(':scope > [slot="check"]')?.remove();
+        if (isSelected && checkTemplate) opt.append(checkTemplate.content.cloneNode(true));
+      });
+
+      const valueEl = trigger.querySelector('span');
+      if (valueEl) {
+        valueEl.replaceChildren(
+          ...Array.from(option.childNodes)
+            .filter((node) => !(node instanceof Element && node.getAttribute('slot') === 'check'))
+            .map((node) => node.cloneNode(true)),
+        );
+        valueEl.removeAttribute('data-placeholder');
+      }
+    };
+
+    // The static export renders nothing selected, so start on the tab activated above.
+    const activeKey = tabsets[0]?.querySelector('[role="tab"][aria-selected="true"]')?.getAttribute('data-key');
+    const initial = options.find((opt) => opt.getAttribute('data-key') === activeKey);
+    if (initial) select(initial);
+
+    trigger.addEventListener('click', () => setOpen(list.hidden));
+
+    options.forEach((option) => {
+      option.addEventListener('click', () => {
+        tabsets.forEach((ts) => activateTabById(ts, option.getAttribute('data-key')));
+        select(option);
+        setOpen(false);
+      });
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!selector.contains(event.target)) setOpen(false);
     });
   });
 })();

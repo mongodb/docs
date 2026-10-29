@@ -3,7 +3,8 @@
 import { useContext, useMemo } from 'react';
 import _ from 'lodash';
 import { cx, css } from '@leafygreen-ui/emotion';
-import { Select } from '@/mdx-components/Select';
+import { OfflineSelectList, Select } from '@/mdx-components/Select';
+import { isOfflineBuild } from '@/utils/isOfflineBuild';
 import { reportAnalytics } from '@/utils/report-analytics';
 import type { DriverMap } from '@/mdx-components/Icons/DriverIconMap';
 import { DRIVER_ICON_MAP } from '@/mdx-components/Icons/DriverIconMap';
@@ -53,9 +54,7 @@ type TabSelectorProps = {
 
 const TabSelector = ({ activeTab, handleClick, iconMapping, name, options }: TabSelectorProps) => {
   const choices = useMemo(() => makeChoices({ name, iconMapping, options }), [name, iconMapping, options]);
-  // usePortal set to true when Select is in main column to
-  // prevent z-index issues with content overlapping dropdown
-  return (
+  const select = (
     <Select
       className={cx(selectStyle)}
       choices={choices}
@@ -70,6 +69,16 @@ const TabSelector = ({ activeTab, handleClick, iconMapping, name, options }: Tab
       }}
       value={activeTab}
     />
+  );
+
+  if (!isOfflineBuild) return select;
+
+  // scripts/offline-ui/tabs.js wires this to the matching hidden tabset.
+  return (
+    <div className={cx(selectStyle)} data-offline-selector={name}>
+      {select}
+      <OfflineSelectList choices={choices} label={getLabel(name)} />
+    </div>
   );
 };
 

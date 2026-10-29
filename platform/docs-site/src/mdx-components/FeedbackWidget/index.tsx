@@ -1,4 +1,5 @@
 import { isBrowser } from '@/utils/is-browser';
+import { isOfflineBuild } from '@/utils/isOfflineBuild';
 import { getPlaintext } from '@/utils/get-plaintext';
 import { getNestedValue } from '@/utils/get-nested-value';
 import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
@@ -28,7 +29,8 @@ const FeedbackRating = ({ className, classNameContainer, position = 'right colum
       'MongoDB Documentation',
   });
 
-  if (options?.hidefeedback === 'page') {
+  // Offline downloads can't submit feedback.
+  if (options?.hidefeedback === 'page' || isOfflineBuild) {
     return null;
   }
 
