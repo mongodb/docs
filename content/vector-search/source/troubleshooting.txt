@@ -10,6 +10,22 @@ Troubleshooting
    :keywords: MongoDB vector search, vector search, $vectorSearch, $vectorSearch pipeline stage, MongoDB vector search pipeline stage, MongoDB vector search query, MongoDB vector search index
    :description: Learn how to address common issues with MongoDB Vector Search queries, index configuration, and deployment, including error messages and recommended solutions.
 
+.. facet::
+   :name: genre
+   :values: reference
+
+.. facet::
+   :name: programming_language
+   :values: python, javascript/typescript, shell
+
+.. facet::
+   :name: target_product
+   :values: atlas
+
+   .. facet::
+      :name: sub_product
+      :values: atlas-vector-search
+
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -106,13 +122,49 @@ one of two reasons:
   you must :ref:`upgrade the MongoDB version of the cluster
   <scale-cluster-version>` to enable {+avs+} for the cluster.
 - You run the command against a {+Free-cluster+} (formerly known as ``M0``). In this
-  case, as long as the cluster is running a compatible MongoDB
+  case, if the cluster is running a compatible MongoDB
   version, you can :ref:`create a {+avs+} index with the {+atlas-ui+}
   <avs-create-index-procedure>`.
 
 Unable to filter on a given field
 ---------------------------------
 
-{+avs+} currently supports filtering only 
+{+avs+} currently supports filtering only
 on fields with boolean, date, number, objectId, string, and
 UUID values. To learn more, see :ref:`avs-types-filter-vector`.
+
+.. _rerank-memory-limit-errors:
+
+``$rerank`` request fails with a memory limit error
+---------------------------------------------------
+
+The ``$rerank`` stage buffers the documents to rerank in memory and
+enforces the following byte limits on that buffer. It rejects,
+rather than truncates, any request that exceeds a limit:
+
+- A single ``$rerank`` request can buffer up to ``30`` MiB of
+  document data. If the request exceeds this limit, the stage fails
+  with error code ``65190`` and a message similar to the following:
+
+  .. code-block:: sh
+
+     $rerank request exceeds the per-request memory limit: 1000
+     documents totalling 40.00 MB against a 30 MB limit. Reduce
+     numDocsToRerank, or add a $project before $rerank to exclude
+     fields that are not reranked.
+
+- All concurrent ``$rerank`` stages on a node can buffer up to a
+  combined ``128`` MiB of document data. If a new ``$rerank`` request
+  would exceed this limit, the stage fails with error code ``65191``
+  and a message similar to the following:
+
+  .. code-block:: sh
+
+     $rerank cannot be admitted: concurrent $rerank operations on
+     this node are using 128.00 MB of the 128 MB limit. Retry, or
+     reduce concurrent $rerank load.
+
+To avoid exceeding the per-request limit, reduce ``numDocsToRerank``
+or use a :pipeline:`$project` stage before ``$rerank`` to exclude
+fields that you aren't reranking. If you receive the node-wide
+limit error, retry the query or reduce concurrent ``$rerank`` load.
