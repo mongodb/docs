@@ -1,6 +1,8 @@
 - |uc| can only be run on sharded clusters.
 - |uc| can only operate on sharded collections.
-- |uc| can only operate on a single collection at a time.
+- Only one |uc| operation can run at a time. You cannot run concurrent
+  |uc| operations.
+- .. include:: /includes/fact-resharding-concurrency.rst
 - |uc| has a 5 minute minimum duration.
 - You must rebuild {+fts+} indexes after |uc| runs.
 - :rsconf:`writeConcernMajorityJournalDefault` must be ``true``.

@@ -2,7 +2,8 @@
 - |mc| can only move unsharded collections.
 - Only one |mc| operation can run at a time. You cannot run concurrent
   |mc| operations.
-- |mc| has a 5 minute minimum duration. 
+- .. include:: /includes/fact-resharding-concurrency.rst
+- |mc| has a 5 minute minimum duration.
 - :rsconf:`writeConcernMajorityJournalDefault` must be ``true``.
 - To move a collection that has a :ref:`uniqueness
   <index-type-unique>` constraint, the new index must satisfy
