@@ -540,13 +540,6 @@ const tocData: TocItem[] = [
             label: 'Shard Key Indexes',
             contentSite: 'docs',
             url: '/docs/:version/core/sharding-shard-key-indexes',
-            versions: { excludes: manualVersions.before('v8.3') },
-          },
-          {
-            label: 'Shard a Collection',
-            contentSite: 'docs',
-            url: '/docs/:version/core/sharding-shard-a-collection',
-            versions: { excludes: manualVersions.after('v8.2') },
           },
           {
             label: 'Choose Shard Key',
