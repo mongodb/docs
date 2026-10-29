@@ -399,6 +399,12 @@ const mckUpcoming: TocItem[] = [
         url: '/docs/kubernetes/:version/tutorial/deploy-prometheus',
       },
       {
+        label: 'Migrate a Standalone to a One-Member Replica Set',
+        contentSite: 'mck',
+        url: '/docs/kubernetes/:version/tutorial/migrate-standalone-to-replica-set',
+        versions: { includes: ['upcoming'] },
+      },
+      {
         label: 'Migrate a Self-Managed Deployment to Kubernetes',
         contentSite: 'mck',
         url: '/docs/kubernetes/:version/migration-om-to-kubernetes',
