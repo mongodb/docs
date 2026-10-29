@@ -45,6 +45,9 @@ const compileMdxWithPlugins = async ({
       components: componentMapping,
       options: {
         parseFrontmatter: true,
+        // next-mdx-remote v6 strips JSX attribute expressions (prop={...}) by default; our
+        // converted MDX relies on them (e.g. composableOptions, selections).
+        blockJS: false,
         mdxOptions: {
           remarkPlugins: [
             [remarkResolveImports, { projectPath, dirNameToPrefix }],
