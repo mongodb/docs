@@ -6,8 +6,15 @@
 
 *Maximum*: ``64``
 
-Explicitly set the batch size for index builds on destination clusters. 
-By default, ``mongosync`` programmatically optimizes this value on Atlas destination clusters.
+Set the batch size for index builds on destination clusters.
+By default, ``mongosync`` programmatically optimizes this value on
+Atlas destination clusters. On non-Atlas destination clusters, the
+default batch size is ``2``.
+
+``mongosync`` groups indexes into batches and issues one
+``createIndexes`` command per batch. Each batch contains indexes for a
+single collection, so a collection with more indexes than the batch size
+requires multiple batches.
 
 
 .. warning::
