@@ -404,6 +404,7 @@ Scorers:
 |---|---|---|
 | `factuality` | LLM judge | The output against the English source, which is ground truth. The production translation calibrates register and terminology only; it is not an answer key. |
 | `fluency` | LLM judge | The output alone, in the target locale. |
+| `grammatical_agreement` | LLM judge | How well determiners, adjectives, and pronouns agree with their noun within each segment. Reported for `es` and `pt-br` only; `null` (not applicable) for locales without grammatical gender. |
 | `terminology_preserved` | Deterministic | Of the glossary's `nonTranslatableTerms` that occur in the English source, the fraction that survive verbatim in the output. With the glossary passed to the translator (the shipped configuration), this confirms the service's placeholder swap-and-restore round-trip, not the model's term choice; without it, it reflects the model's own choice. Scored on word boundaries, so `C` does not match inside `C++`. `null` when the source holds none of them. Per-row metadata: `denominator`, `numerator`, `missing`. |
 | `reference_similarity` | Deterministic | Character-bigram F1 against the production translation. A calibration signal, not a pass/fail. |
 | `language_integrity` | Deterministic | Fraction of page segments detected in the target locale. Flags untranslated (English) spans and wrong-language spans (for example Portuguese in a Spanish page). Code, URLs, numerals, and configured terms are excluded. |
@@ -413,7 +414,8 @@ cannot score a term low unless the placeholder plumbing fails, and a list that
 contains terms production actually translates (for example `Compatibility` or
 `data center`) forces English the score does not see.
 
-The judge runs once per row and returns both `factuality` and `fluency`.
+The judge runs once per row and returns `factuality`, `fluency`, and
+`grammatical_agreement`.
 
 #### language_integrity
 

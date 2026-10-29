@@ -39,6 +39,8 @@ export interface JudgeResult {
   factuality: number;
   /** 0-1, mapped from the model's 1-5 rating. */
   fluency: number;
+  /** 0-1, mapped from the model's 1-5 rating, or null when the judge returns null. */
+  agreement: number | null;
   rationale: string;
 }
 
@@ -93,6 +95,12 @@ export function buildJudgeRequest(
   });
 }
 
+/** Map a 1-5 rating onto 0-1, clamping out-of-range values; null when absent. */
+function mapRating(value: unknown): number | null {
+  if (typeof value !== 'number') return null;
+  return Math.max(0, Math.min(1, (value - 1) / 4));
+}
+
 export async function judgeTranslation(
   input: JudgeInput,
   opts: JudgeOptions,
@@ -120,11 +128,12 @@ export async function judgeTranslation(
   if (!isRecord(parsed)) throw new Error('Judge output was not a JSON object');
 
   const category = typeof parsed['category'] === 'string' ? parsed['category'] : '';
-  const fluency = typeof parsed['fluency'] === 'number' ? parsed['fluency'] : 0;
+  const fluency = mapRating(parsed['fluency']) ?? 0;
 
   return {
     factuality: CATEGORY_SCORE[category] ?? 0,
-    fluency: Math.max(0, Math.min(1, (fluency - 1) / 4)),
+    fluency,
+    agreement: mapRating(parsed['agreement']),
     rationale: typeof parsed['rationale'] === 'string' ? parsed['rationale'] : '',
   };
 }

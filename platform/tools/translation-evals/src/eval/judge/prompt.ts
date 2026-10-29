@@ -24,12 +24,17 @@ export function buildJudgePrompt(i: JudgeInput): string {
     '  A = omission (source meaning missing), B = addition (meaning not in source introduced),',
     '  C = faithful (full source meaning preserved), D = mistranslation (contradicts/distorts source).',
     'Also rate fluency of the OUTPUT in the target locale from 1 (poor) to 5 (native).',
+    'Grammatical agreement (only for languages that mark grammatical gender or number agreement, e.g. Spanish, Portuguese):',
+    'rate 1-5 how well the OUTPUT agrees within each segment — determiners, adjectives, and pronouns must match the gender and number of the noun or antecedent they modify.',
+    'Rate 5 when there are no agreement errors.',
+    'A consistent single-gender rendering of a source whose gender is genuinely ambiguous is NOT an agreement error.',
+    'If the target language does not mark grammatical agreement (e.g. Chinese, Japanese, Korean), return null.',
     '',
     `SOURCE:\n${i.source}`,
     `REFERENCE:\n${i.reference}`,
     `OUTPUT:\n${i.output}`,
     '',
-    'Respond as JSON: {"category":"A|B|C|D","rationale":"...","fluency":1-5}.',
+    'Respond as JSON: {"category":"A|B|C|D","rationale":"...","fluency":1-5,"agreement":1-5|null}.',
   ].join('\n');
 }
 
@@ -39,7 +44,8 @@ export const JUDGE_RESPONSE_SCHEMA = {
     category: { type: 'string', enum: ['A', 'B', 'C', 'D'] },
     rationale: { type: 'string' },
     fluency: { type: 'integer', minimum: 1, maximum: 5 },
+    agreement: { type: ['integer', 'null'], minimum: 1, maximum: 5 },
   },
-  required: ['category', 'rationale', 'fluency'],
+  required: ['category', 'rationale', 'fluency', 'agreement'],
   additionalProperties: false,
 } as const;

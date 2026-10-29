@@ -8,11 +8,15 @@ export type RowInput = DatasetRow['input'];
 export type RowMetadata = DatasetRow['metadata'];
 export type Scorer = EvalScorer<RowInput, string, string, RowMetadata>;
 
+/** Locales that mark grammatical gender/number agreement. Others get a null score. */
+const GENDERED_LOCALES = new Set(['es', 'pt-br']);
+
 /**
  * The eval's scorers. `terminology_preserved`, `reference_similarity`, and
- * `language_integrity` are deterministic; `factuality` and `fluency` come from
- * one judge call per row, which returns both so a row never pays for the judge
- * twice.
+ * `language_integrity` are deterministic; `factuality`, `fluency`, and
+ * `grammatical_agreement` come from one judge call per row, which returns all
+ * three so a row never pays for the judge twice. `grammatical_agreement` is
+ * null for locales that do not mark grammatical gender.
  */
 export function toEvalScorers(
   nonTranslatableTerms: string[],
@@ -40,13 +44,15 @@ export function toEvalScorers(
         { source: input.source_text, output, reference: expected, locale: input.target_locale },
         judgeOpts,
       );
+      const agreement = GENDERED_LOCALES.has(input.target_locale) ? result.agreement : null;
       return [
         { name: 'factuality', score: result.factuality, metadata: { rationale: result.rationale } },
         { name: 'fluency', score: result.fluency, metadata: { rationale: result.rationale } },
+        { name: 'grammatical_agreement', score: agreement, metadata: { rationale: result.rationale } },
       ];
     },
     async ({ output, input }) => {
-      const { score, flags } = languageIntegrity(output, input.target_locale, terms);
+      const { score, flags } = languageIntegrity(output, input.target_locale, nonTranslatableTerms);
       return { name: 'language_integrity', score, metadata: flags.length ? { flags } : undefined };
     },
   ];

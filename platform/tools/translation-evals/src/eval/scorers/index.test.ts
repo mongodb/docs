@@ -56,11 +56,27 @@ describe('toEvalScorers', () => {
     });
   });
 
-  it('returns factuality and fluency from a single judge call', async () => {
-    const scorers = toEvalScorers(['MongoDB'], judgeReturning({ category: 'C', rationale: 'faithful', fluency: 5 }));
+  it('returns factuality, fluency, and grammatical agreement from one judge call', async () => {
+    const scorers = toEvalScorers(['MongoDB'], judgeReturning({ category: 'C', rationale: 'faithful', fluency: 5, agreement: 5 }));
     expect(await scorers[2]!(args('Usa MongoDB', 'Usa MongoDB'))).toEqual([
       { name: 'factuality', score: 1, metadata: { rationale: 'faithful' } },
       { name: 'fluency', score: 1, metadata: { rationale: 'faithful' } },
+      { name: 'grammatical_agreement', score: 1, metadata: { rationale: 'faithful' } },
+    ]);
+  });
+
+  it('reports grammatical agreement as null for locales without grammatical gender', async () => {
+    const scorers = toEvalScorers(['MongoDB'], judgeReturning({ category: 'C', rationale: 'ok', fluency: 5, agreement: 5 }));
+    const jaArgs = {
+      input: { ...INPUT, target_locale: 'ja-jp' },
+      output: 'x',
+      expected: 'y',
+      metadata: { ...METADATA, locale: 'ja-jp' },
+    };
+    expect(await scorers[2]!(jaArgs)).toEqual([
+      { name: 'factuality', score: 1, metadata: { rationale: 'ok' } },
+      { name: 'fluency', score: 1, metadata: { rationale: 'ok' } },
+      { name: 'grammatical_agreement', score: null, metadata: { rationale: 'ok' } },
     ]);
   });
 
@@ -85,6 +101,7 @@ describe('toEvalScorers', () => {
     expect(await scorers[2]!(args('Usa Atlas', 'x'))).toEqual([
       { name: 'factuality', score: 0, metadata: { rationale: 'drift' } },
       { name: 'fluency', score: 0.25, metadata: { rationale: 'drift' } },
+      { name: 'grammatical_agreement', score: null, metadata: { rationale: 'drift' } },
     ]);
 
     const sent = JSON.parse(body) as { input: Array<{ content: Array<{ text: string }> }> };

@@ -249,3 +249,31 @@ describe('createJudgeOptions', () => {
     await expect(opts.transport('{}')).rejects.toThrow(/Anthropic returned HTTP 500/);
   });
 });
+
+describe('grammatical agreement', () => {
+  const withAgreement = (agreement: unknown) =>
+    envelope({ category: 'C', rationale: 'ok', fluency: 3, agreement });
+
+  it('maps the 1-5 agreement rating onto 0-1 and clamps', async () => {
+    const agreement = async (value: unknown) =>
+      (await judgeTranslation(INPUT, optsReturning(withAgreement(value)))).agreement;
+    expect(await agreement(1)).toBe(0);
+    expect(await agreement(3)).toBe(0.5);
+    expect(await agreement(5)).toBe(1);
+    expect(await agreement(99)).toBe(1);
+    expect(await agreement(-4)).toBe(0);
+  });
+
+  it('is null when the judge returns null or omits the field', async () => {
+    expect((await judgeTranslation(INPUT, optsReturning(withAgreement(null)))).agreement).toBeNull();
+    const omitted = envelope({ category: 'C', rationale: 'ok', fluency: 3 });
+    expect((await judgeTranslation(INPUT, optsReturning(omitted))).agreement).toBeNull();
+  });
+
+  it('asks for the agreement rating in the schema and the prompt', () => {
+    const schema = JUDGE_RESPONSE_SCHEMA.properties as Record<string, unknown>;
+    expect(schema['agreement']).toBeDefined();
+    expect((JUDGE_RESPONSE_SCHEMA as { required: readonly string[] }).required).toContain('agreement');
+    expect(buildJudgePrompt(INPUT).toLowerCase()).toContain('agreement');
+  });
+});
