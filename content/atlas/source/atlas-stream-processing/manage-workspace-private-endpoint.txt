@@ -1,0 +1,195 @@
+.. _atlas-sp-manage-workspace-private-endpoint:
+
+==================================
+Manage Workspace Private Endpoints
+==================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas stream processing, private link, private endpoint, aws privatelink, vpc endpoint, code example
+   :description: Learn how to create, list, and delete private endpoints that let you connect to your Atlas Stream Processing workspace over AWS PrivateLink instead of the public internet.
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+A workspace private endpoint connects you to a {+spw+} over |aws|
+private networking. {+atlas-sp+} generates a private,
+workspace-specific hostname for each {+spw+} in the project and maps it
+to your |aws| |vpc| endpoint (VPCE).
+
+Workspace private endpoints control how clients connect to your
+{+spw+}. To instead learn about outbound connections, see
+:ref:`atlas-sp-security-networking`.
+
+.. important::
+
+   Workspace private endpoints currently support |aws| only. To learn
+   more, see :ref:`atlas-sp-limitations`.
+
+.. composable-tutorial::
+   :options: interface-ui-api
+   :defaults: atlas-ui
+
+   Required Access
+   ---------------
+
+   To create, view, or delete a workspace private endpoint, you must
+   have the :authrole:`Organization Stream Processing Admin` or
+   :authrole:`Project Stream Processing Owner` role.
+
+   Prerequisites
+   -------------
+
+   To create a workspace private endpoint, you must have the
+   following:
+
+   - An |service| :ref:`project <manage-projects>`.
+   - An |aws| user account with an |iam| user policy that grants
+     permissions to create, modify, describe, and delete |vpc|
+     endpoints. To learn more, see the :aws:`AWS documentation
+     </vpc/latest/userguide/vpc-endpoints.html>`.
+   - The :aws:`AWS CLI </cli/latest/userguide/cli-chap-install.html>`
+     installed. |service| provides |aws| CLI commands to find your
+     |vpc| details and create your |vpc| endpoint.
+   - A |vpc| in |aws| with at least one subnet.
+
+   .. _atlas-sp-manage-workspace-pe-create:
+
+   Create a Workspace Private Endpoint
+   -----------------------------------
+
+   .. selected-content::
+      :selections: atlas-ui
+
+      .. include:: /includes/procedures/atlas-sp-create-workspace-pe-ui.rst
+
+      After you create a workspace private endpoint, {+atlas-sp+}
+      provisions a private hostname for each existing and future
+      {+spw+} in the project.
+
+      .. important::
+
+         Provisioning can take some time. The endpoint shows no
+         intermediate status, only a status of ``Available`` after
+         you create the endpoint, or ``Error`` if provisioning
+         fails.
+
+   .. selected-content::
+      :selections: atlas-api
+
+      To register a workspace private endpoint through the
+      {+atlas-admin-api+}, send a ``POST`` request to the
+      ``/groups/{groupId}/streamsWorkspacePrivateEndpoints``
+      endpoint with the following fields in the request body:
+
+      - ``id``: The ID of your VPCE.
+      - ``customerDnsName``: The DNS name of your VPCE.
+      - ``region``: The region where you created your VPCE, in the
+        format ``US_EAST_1``.
+
+      The request returns a response with a ``location`` header that
+      points to the new workspace private endpoint.
+
+      After you create a workspace private endpoint, {+atlas-sp+}
+      provisions a private hostname for each existing and future
+      {+spw+} in the project.
+
+      .. important::
+
+         Provisioning can take some time. The response shows no
+         intermediate status, only a final ``status`` of ``OK`` or
+         ``FAILED`` when provisioning completes.
+
+   .. _atlas-sp-manage-workspace-pe-verify:
+
+   View Workspace Private Endpoints
+   --------------------------------
+
+   .. selected-content::
+      :selections: atlas-ui
+
+      .. include:: /includes/procedures/atlas-sp-view-workspace-pe-ui.rst
+
+      Confirm that your endpoint shows a :guilabel:`Status` of
+      ``Available``.
+
+   .. selected-content::
+      :selections: atlas-api
+
+      Send a ``GET`` request to the
+      ``/groups/{groupId}/streamsWorkspacePrivateEndpoints/{id}``
+      endpoint, where ``{id}`` is the ID of your VPCE.
+
+      A ``status`` of ``OK`` in the response confirms that
+      {+atlas-sp+} registered the endpoint. If the status is
+      ``FAILED``, delete the endpoint and create a new one.
+
+   .. _atlas-sp-manage-workspace-pe-connect:
+
+   Connect to a Workspace Using a Private Endpoint
+   -----------------------------------------------
+
+   After {+atlas-sp+} provisions a private hostname for your {+spw+},
+   you can connect to it with {+mongosh+} or  VS Code.
+
+   The private connection string has this format, where
+   ``<tenantId>`` identifies your {+spw+} and ``<vpceId>`` identifies
+   your workspace private endpoint:
+
+   .. code-block:: sh
+      :copyable: false
+
+      mongodb://atlas-stream-<tenantId>-<vpceId>.a-pl.query.mongodb.net/
+
+   .. selected-content::
+      :selections: atlas-ui
+
+      To find the private connection string for a specific {+spw+}:
+
+      .. include:: /includes/procedures/atlas-sp-connect-workspace-pe-ui.rst
+
+   .. selected-content::
+      :selections: atlas-api
+
+      To retrieve the hostnames assigned to a specific Stream
+      Processing workspace, use :oas-bump-atlas-op:`Return One Stream
+      Workspace <getgroupstreamworkspace>`.
+
+   .. _atlas-sp-manage-workspace-pe-delete:
+
+   Delete a Workspace Private Endpoint
+   -----------------------------------
+
+   When you delete a workspace private endpoint, {+atlas-sp+} removes
+   the private hostnames it generated for every {+spw+} in the
+   project. Clients that connect using those hostnames can no longer
+   reach the affected {+spw+}\s over the private endpoint.
+
+   .. selected-content::
+      :selections: atlas-ui
+
+      .. include:: /includes/procedures/atlas-sp-delete-workspace-pe-ui.rst
+
+   .. selected-content::
+      :selections: atlas-api
+
+      To delete a workspace private endpoint through the
+      {+atlas-admin-api+}, send a ``DELETE`` request to the
+      ``/groups/{groupId}/streamsWorkspacePrivateEndpoints/{id}``
+      endpoint, where ``{id}`` is the ID of the endpoint to delete.
+
+Learn More
+----------
+
+- :ref:`atlas-sp-security-networking`
+- :ref:`atlas-sp-pl-kafka-add`
+- :ref:`private-endpoint-overview`
+- :ref:`atlas-sp-limitations`

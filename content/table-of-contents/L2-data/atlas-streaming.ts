@@ -65,6 +65,11 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/atlas-stream-processing/manage-processing-instance',
           },
           {
+            label: 'Manage Workspace Private Endpoints',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/atlas-stream-processing/manage-workspace-private-endpoint',
+          },
+          {
             label: 'Manage Connections',
             contentSite: 'cloud-docs',
             url: '/docs/atlas/atlas-stream-processing/manage-connection-registry',
