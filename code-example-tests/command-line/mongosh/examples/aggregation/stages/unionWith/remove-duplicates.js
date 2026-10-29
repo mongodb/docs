@@ -1,0 +1,12 @@
+// :snippet-start: remove-duplicates
+db.movies.aggregate( [
+   { $match: { runtime: { $gt: 1000 } } },
+   { $project: { title: 1, _id: 0 } },
+   { $unionWith: { coll: "movies", pipeline: [
+      { $match: { runtime: { $gt: 1000 } } },
+      { $project: { title: 1, _id: 0 } }
+   ] } },
+   { $group: { _id: "$title" } },
+   { $sort: { _id: 1 } }
+] )
+// :snippet-end:
