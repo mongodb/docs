@@ -136,6 +136,11 @@ const REGISTRY: Record<string, ComponentRule> = {
   // rule would stop the walk here and drop that text from the payload.
   Include: container(),
 
+  // --- Target (snooty-ast-to-mdx) ---
+  // RST targets and definition directives. Target recurses so its visible
+  // definition body is translated; the self-closing anchor forms have none.
+  Target: container(),
+
   // --- References (resolve-references.ts) ---
   // Reference: `title` is the primary visible text for a self-closing
   // <Reference title="X" />. Inlining it into the parent block string gives
@@ -144,7 +149,6 @@ const REGISTRY: Record<string, ComponentRule> = {
   Reference: reference('title'),
   RefRole: reference(),
   RefTarget: reference(),
-  Target: reference(),
 };
 
 /** The rule for a component, or the safe default for unregistered names. */

@@ -189,10 +189,15 @@ it.
 
 - **container** — recurse into children as blocks (admonitions, `Procedure` /
   `Step`, `Tabs` / `Tab`, tables, `Collapsible`, `Include` / `Replacement`,
-  `IoCodeBlock`, `VersionAdded`).
+  `IoCodeBlock`, `VersionAdded`, `Target`).
 - **opaque** — do not recurse; only listed props translate (`Image`, `Abbr`).
-- **reference** — preserve verbatim (`Reference`, `RefRole`, `RefTarget`,
-  `Target`).
+- **reference** — preserve verbatim (`Reference`, `RefRole`, `RefTarget`).
+
+`Target` is a container, not a reference: the RST definition directives
+(`.. query::`, `.. method::`, …) and `.. _label:` targets both convert to a
+`<Target>` that wraps a reader-visible definition body, so that text must be
+translated. Its identity attributes (`id`, `name`, `term`) are not translatable,
+and a self-closing anchor `<Target … />` has no children.
 
 Unregistered components fall back to `container` with no translatable props,
 matching the build pipeline's unwrap behavior.

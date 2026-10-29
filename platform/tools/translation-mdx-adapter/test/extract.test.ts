@@ -188,3 +188,30 @@ describe('extract — inline JSX translatable props', () => {
     }
   });
 });
+
+const TARGET_DEFINITION_SOURCE = `<Target id="mongodb-query-op.-regex" name="query" term="$regex">
+  Provides regular expression capabilities for pattern matching *strings* in queries.
+</Target>
+`;
+
+describe('extract — <Target> definition bodies', () => {
+  const content = extract(TARGET_DEFINITION_SOURCE);
+
+  it('extracts the visible prose inside a <Target> (definition) block', () => {
+    // RST definition and target directives (`.. query::`, `.. _label:`) become
+    // <Target> elements that wrap reader-visible description text. That text
+    // must reach the payload; treating <Target> as a verbatim reference drops
+    // it and leaks English into translated pages.
+    const values = Object.values(content.payload);
+    expect(values.some((v) => v.includes('Provides regular expression capabilities'))).toBe(true);
+  });
+
+  it('does not extract the <Target> identifier attributes (id/name/term)', () => {
+    const keys = Object.keys(content.payload);
+    expect(keys.some((k) => /\.@(id|name|term)$/.test(k))).toBe(false);
+  });
+
+  it('has one manifest entry per payload key', () => {
+    expect(content.manifest.entries.size).toBe(Object.keys(content.payload).length);
+  });
+});

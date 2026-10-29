@@ -31,9 +31,16 @@ describe('ruleFor — grounded entries', () => {
   });
 
   it('cross-reference roles are references', () => {
-    for (const name of ['Reference', 'RefRole', 'RefTarget', 'Target']) {
+    for (const name of ['Reference', 'RefRole', 'RefTarget']) {
       expect(ruleFor(name).kind).toBe('reference');
     }
+  });
+
+  it('Target is a container so its visible definition body is translated', () => {
+    const rule = ruleFor('Target');
+    expect(rule.kind).toBe('container');
+    expect(isTranslatableProp('Target', 'term')).toBe(false);
+    expect(isTranslatableProp('Target', 'name')).toBe(false);
   });
 });
 
