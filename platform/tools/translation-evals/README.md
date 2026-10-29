@@ -406,6 +406,7 @@ Scorers:
 | `fluency` | LLM judge | The output alone, in the target locale. |
 | `terminology_preserved` | Deterministic | Of the glossary's `nonTranslatableTerms` that occur in the English source, the fraction that survive verbatim in the output. With the glossary passed to the translator (the shipped configuration), this confirms the service's placeholder swap-and-restore round-trip, not the model's term choice; without it, it reflects the model's own choice. Scored on word boundaries, so `C` does not match inside `C++`. `null` when the source holds none of them. Per-row metadata: `denominator`, `numerator`, `missing`. |
 | `reference_similarity` | Deterministic | Character-bigram F1 against the production translation. A calibration signal, not a pass/fail. |
+| `language_integrity` | Deterministic | Fraction of page segments detected in the target locale. Flags untranslated (English) spans and wrong-language spans (for example Portuguese in a Spanish page). Code, URLs, numerals, and configured terms are excluded. |
 
 `terminology_preserved` cannot judge translation quality: in an enforced run it
 cannot score a term low unless the placeholder plumbing fails, and a list that
@@ -413,6 +414,21 @@ contains terms production actually translates (for example `Compatibility` or
 `data center`) forces English the score does not see.
 
 The judge runs once per row and returns both `factuality` and `fluency`.
+
+#### language_integrity
+
+`language_integrity` segments the rendered page and runs language
+identification per segment with the candidate set constrained to every
+locale the tool knows (the five target locales plus English), regardless of
+`TARGET_LOCALES`. It is deterministic and offline. Segments the detector
+cannot decide are not counted. Note that the pipeline's known residual
+English leakage (untranslated `<Reference value>` and rich-substitution
+`nodes`; see the design doc §8) surfaces here and is an adapter gap, not
+necessarily a translator defect. The scorer flags the source language
+(English) and the other target locales. A language outside that set is
+forced to the nearest candidate, so it may be mislabelled or missed;
+constraining the candidates is what makes the closely related
+Spanish/Portuguese case reliable.
 
 ## End-to-end example
 

@@ -30,9 +30,9 @@ function judgeReturning(payload: Record<string, unknown>): JudgeOptions {
 }
 
 describe('toEvalScorers', () => {
-  it('returns terminology, reference-similarity and judge scorers', async () => {
+  it('returns the deterministic and judge scorers', async () => {
     const scorers = toEvalScorers(['MongoDB'], judgeReturning({ category: 'C', rationale: 'faithful', fluency: 5 }));
-    expect(scorers).toHaveLength(3);
+    expect(scorers).toHaveLength(4);
 
     expect(
       await scorers[0]!(args('Usa MongoDB', 'Usa MongoDB', 'Add a user to MongoDB.')),
@@ -91,5 +91,18 @@ describe('toEvalScorers', () => {
     const userPrompt = sent.input[1]!.content[0]!.text;
     expect(userPrompt).toContain('Add a user.');
     expect(userPrompt).toContain('"es"');
+  });
+
+  it('adds a language_integrity scorer that flags non-target segments', async () => {
+    const scorers = toEvalScorers(['MongoDB'], judgeReturning({ category: 'C', rationale: 'ok', fluency: 5, agreement: 5 }));
+    expect(scorers).toHaveLength(4);
+    const result = await scorers[3]!({
+      input: INPUT,
+      output: 'This paragraph was never translated at all.',
+      expected: 'x',
+      metadata: METADATA,
+    });
+    expect(result).toMatchObject({ name: 'language_integrity' });
+    expect((result as { score: number }).score).toBeLessThan(1);
   });
 });

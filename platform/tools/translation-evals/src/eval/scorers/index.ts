@@ -2,15 +2,17 @@ import type { EvalScorer } from 'braintrust';
 import type { DatasetRow } from '../../types.js';
 import { judgeTranslation, type JudgeOptions } from '../judge/judge.js';
 import { referenceSimilarity, terminologyPreserved } from './deterministic.js';
+import { languageIntegrity } from './language.js';
 
 export type RowInput = DatasetRow['input'];
 export type RowMetadata = DatasetRow['metadata'];
 export type Scorer = EvalScorer<RowInput, string, string, RowMetadata>;
 
 /**
- * The eval's scorers. `terminology_preserved` and `reference_similarity` are
- * deterministic; `factuality` and `fluency` come from one judge call per row,
- * which returns both so a row never pays for the judge twice.
+ * The eval's scorers. `terminology_preserved`, `reference_similarity`, and
+ * `language_integrity` are deterministic; `factuality` and `fluency` come from
+ * one judge call per row, which returns both so a row never pays for the judge
+ * twice.
  */
 export function toEvalScorers(
   nonTranslatableTerms: string[],
@@ -42,6 +44,10 @@ export function toEvalScorers(
         { name: 'factuality', score: result.factuality, metadata: { rationale: result.rationale } },
         { name: 'fluency', score: result.fluency, metadata: { rationale: result.rationale } },
       ];
+    },
+    async ({ output, input }) => {
+      const { score, flags } = languageIntegrity(output, input.target_locale, terms);
+      return { name: 'language_integrity', score, metadata: flags.length ? { flags } : undefined };
     },
   ];
 }
