@@ -1,10 +1,6 @@
 # Release Notes Sources
 
-Load this file when release notes are required for a version update and
-you need to check whether the docset has a known GitHub source to fetch
-from automatically. This file covers Kafka, AKO, MCK, and product
-docsets. Driver and framework docsets are handled by the
-`drivers-release-notes` skill.
+Load this file when release notes are required for a version update and you need to check whether the docset has a known GitHub source to fetch from automatically. This file covers Kafka, AKO, MCK, and product docsets. Driver and framework docsets are handled by the `drivers-release-notes` skill.
 
 ## Repo Mapping
 
@@ -21,19 +17,9 @@ docsets. Driver and framework docsets are handled by the
 | `atlas-operator` | `mongodb/mongodb-atlas-kubernetes` | `v{version}` | `v2.14.1` | Link-only (see below) |
 | `kubernetes` | `mongodb/mongodb-kubernetes` | `{version}` | `1.8.0` | Link-only (see below) |
 
-**AKO and MCK (link-only pattern)**: These docsets do not embed release
-body content. Instead, confirm the tag exists, then insert a single line
-linking to the GitHub release following the existing pattern in the
-changelog file. See the existing entries in
-`upcoming/source/ak8so-changelog.txt` (AKO) or
-`upcoming/source/release-notes.txt` (MCK) for the exact format.
+**AKO and MCK (link-only pattern)**: These docsets do not embed release body content. Instead, confirm the tag exists, then insert a single line linking to the GitHub release following the existing pattern in the changelog file. See the existing entries in `upcoming/source/ak8so-changelog.txt` (AKO) or `upcoming/source/release-notes.txt` (MCK) for the exact format.
 
-**No GitHub release content — notes authored by writer**: Atlas CLI,
-MongoCLI, Mongosync, Server Manual, AAC. The GitHub releases for Atlas
-CLI (`mongodb/mongodb-atlas-cli`, tags `atlascli/v{version}`) and
-MongoCLI (same repo, tags `mongocli/v{version}`) exist but their
-release bodies only link back to the docs — no content to fetch. Set
-the reminder flag and surface it in Step 11 for all of these.
+**No GitHub release content — notes authored by writer**: Atlas CLI, MongoCLI, Mongosync, Server Manual, AAC. The GitHub releases for Atlas CLI (`mongodb/mongodb-atlas-cli`, tags `atlascli/v{version}`) and MongoCLI (same repo, tags `mongocli/v{version}`) exist but their release bodies only link back to the docs — no content to fetch. Set the reminder flag and surface it in Step 11 for all of these.
 
 ## How to Fetch Release Notes
 
@@ -55,8 +41,7 @@ To confirm a tag exists without fetching the full body (AKO, MCK):
 gh release view <tag> --repo <repo> --json tagName --jq '.tagName'
 ```
 
-If the command returns an error or an empty body, the release either
-does not exist or has no notes — fall back to the manual reminder path.
+If the command returns an error or an empty body, the release either does not exist or has no notes — fall back to the manual reminder path.
 
 ## Check the Fetched Content for Embargoed Terms
 
@@ -72,21 +57,14 @@ If no content matches, continue to formatting.
 
 ## Formatting the Output
 
-Release body content from GitHub is in Markdown. When inserting into an
-RST file:
+Release body content from GitHub is in Markdown. When inserting into an RST file:
 
-1. Read the existing release notes file in full to confirm heading
-   style, section labels, punctuation conventions, and line-wrap
-   conventions before drafting.
-2. Convert the fetched content to RST following those conventions.
-   Common patterns:
+1. Read the existing release notes file in full to confirm heading style, section labels, punctuation conventions, and line-wrap conventions before drafting.
+2. Convert the fetched content to RST following those conventions. Common patterns:
    - Markdown `##` headings → RST section underlines
-   - Markdown `**bold**` → RST ``**bold**`` or inline code as
-     appropriate
+   - Markdown `**bold**` → RST ``**bold**`` or inline code as appropriate
    - Markdown backtick code → RST double-backtick monospace
    - Markdown bullet lists → RST unordered lists with `-`
-3. Insert the new entry in version-sorted order (newest first). Check
-   existing headings to confirm the correct insertion point.
+3. Insert the new entry in version-sorted order (newest first). Check existing headings to confirm the correct insertion point.
 4. Wrap all lines at 72 characters.
-5. After inserting, report what was added and note any content that
-   needed manual judgment during conversion.
+5. After inserting, report what was added and note any content that needed manual judgment during conversion.

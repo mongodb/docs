@@ -6,10 +6,7 @@ Load this file before beginning PR 3.
 
 ## snooty.toml Constants
 
-Update the following constants in the `[constants]` block of
-`content/manual/upcoming/snooty.toml`. (The `[substitutions]` block
-higher up in the same file has its own `version` / `version-last` keys
-that resolve to `{+version+}` / `{+version-last+}` — do not edit those.)
+Update the following constants in the `[constants]` block of `content/manual/upcoming/snooty.toml`. (The `[substitutions]` block higher up in the same file has its own `version` / `version-last` keys that resolve to `{+version+}` / `{+version-last+}` — do not edit those.)
 
 | Constant | New value |
 |----------|-----------|
@@ -23,9 +20,7 @@ that resolve to `{+version+}` / `{+version-last+}` — do not edit those.)
 | `last-supported-version` | Update per release policy |
 | `minimum-lts-version` | Update alongside `last-supported-version` when an LTS version goes out of support — confirm with release policy |
 
-Do not change any constant whose new value cannot be confirmed from
-the existing file or from user input. List unconfirmed constants and
-ask the user before proceeding.
+Do not change any constant whose new value cannot be confirmed from the existing file or from user input. List unconfirmed constants and ask the user before proceeding.
 
 ---
 
@@ -33,14 +28,11 @@ ask the user before proceeding.
 
 Update `content/table-of-contents/version-arrays/server-docs/manual.ts`:
 
-1. Append `v{NEXT}` to the end of the `allVersions` array (the array
-   is ordered oldest → newest).
+1. Append `v{NEXT}` to the end of the `allVersions` array (the array is ordered oldest → newest).
 2. Update the `namedVersions` map:
    - Change the `'manual'` entry from `v{OUTGOING}` to `v{RELEASING}`.
    - Change the `'upcoming'` entry from `v{RELEASING}` to `v{NEXT}`.
-3. If `v{OUTGOING}` (or any older version) is going EOL with this
-   flip, add it to `deprecatedVersions`. Confirm the EOL list with the
-   release policy before changing.
+3. If `v{OUTGOING}` (or any older version) is going EOL with this flip, add it to `deprecatedVersions`. Confirm the EOL list with the release policy before changing.
 
 Example, flipping from 8.3 → 9.0 (RELEASING = 9.0, NEXT = 9.1):
 
@@ -68,21 +60,21 @@ const namedVersions = new Map<string, string>([
 
 Update `content/table-of-contents/L2-data/release-notes.ts`:
 
-1. In the `{RELEASING} (Upcoming)` collapsible (the one scoped
-   `versions: { includes: ['upcoming'] }`): change the label to
-   `{NEXT} (Upcoming)` and repoint its three URLs from
-   `{RELEASING}`, `{RELEASING}-compatibility`, `{RELEASING}-changelog`
-   to `{NEXT}`, `{NEXT}-compatibility`, `{NEXT}-changelog`.
+1. In the `{RELEASING} (Upcoming)` collapsible (the one scoped `versions: { includes: ['upcoming'] }`): change the label to `{NEXT} (Upcoming)` and repoint its three URLs from `{RELEASING}`, `{RELEASING}-compatibility`, `{RELEASING}-changelog` to `{NEXT}`, `{NEXT}-compatibility`, `{NEXT}-changelog`.
 2. Insert a new sibling collapsible directly below it:
    - Label: `{RELEASING} (Stable Release)`
    - `versions: { excludes: manualVersions.before('v{RELEASING}') }`
-   - URLs: `release-notes/{RELEASING}`, `{RELEASING}-compatibility`,
-     `{RELEASING}-changelog`
-3. Change the existing `{OUTGOING} (Stable Release)` label to
-   `{OUTGOING}` (leave its `versions` and children unchanged).
+   - URLs: `release-notes/{RELEASING}`, `{RELEASING}-compatibility`, `{RELEASING}-changelog`
+3. Change the existing `{OUTGOING} (Stable Release)` label to `{OUTGOING}` (leave its `versions` and children unchanged).
 
 After editing both ToC files, run:
 
 ```bash
 cd content/table-of-contents && pnpm tsc --noEmit
 ```
+
+---
+
+## Versioning catalog: `docs.ts`
+
+Read the **Server Manual** section of `versioning-catalog-updates.md` and apply its `platform/versioning/projects/docs.ts` edits in this PR. Its **Checking your edit** section includes a lint check that catches a ToC version gate above naming a version the catalog does not have, so run it after the ToC edits rather than before.
