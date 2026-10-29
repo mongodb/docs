@@ -1,10 +1,13 @@
 'use client';
 
+import { useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { ViaProvider } from '@via-ds/components/provider';
 import { Toaster } from '@via-ds/components/toast';
 import { Size } from '@via-ds/components/types';
 import '@via-ds/components/index.css';
 import '@via-ds/icons/styles.css';
+import { sameProjectHref } from '@/utils/base-path';
 
 /**
  * Mounts the Via design system provider alongside `LeafyGreenProviderWrapper`
@@ -20,8 +23,20 @@ import '@via-ds/icons/styles.css';
  * theme toggle by `DarkModeContextProvider`.
  */
 export function ViaProviderWrapper({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+
+  // Cross-deploy hrefs need a full load; router.push would prepend this basePath.
+  const navigate = useCallback(
+    (href: string) => {
+      const clientHref = sameProjectHref(href);
+      if (clientHref) router.push(clientHref);
+      else window.location.assign(href);
+    },
+    [router],
+  );
+
   return (
-    <ViaProvider size={Size.Large}>
+    <ViaProvider size={Size.Large} navigate={navigate}>
       {children}
       <Toaster />
     </ViaProvider>

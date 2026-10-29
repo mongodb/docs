@@ -45,8 +45,7 @@ describe('Breadcrumbs', () => {
   it('links to the lowercase URL for a mixed-case ancestor', () => {
     render(<Breadcrumbs />);
 
-    // One set per screen-size layout; all three render in jsdom.
-    const hrefs = [...new Set(screen.getAllByRole('link').map((a) => a.getAttribute('href')))];
-    expect(hrefs).toEqual(['/docs/', '/docs/manual/aggregation/']);
+    const hrefs = screen.getAllByRole('link').map((a) => a.getAttribute('href'));
+    expect(hrefs).toEqual(['/docs/', '/docs/manual/aggregation/', null]);
   });
 });
