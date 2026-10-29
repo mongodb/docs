@@ -36,7 +36,7 @@ $options = [
     ],
 ];
 
-$db->createCollection('restaurants', $options);
+$coll = $db->getCollection('restaurants', $options);
 // end-type-map
 
 // start-person-serialize
