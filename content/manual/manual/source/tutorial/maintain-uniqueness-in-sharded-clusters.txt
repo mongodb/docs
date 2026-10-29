@@ -1,0 +1,192 @@
+.. _manual-maintain-uniqueness-sharded:
+.. _manual-shard-collection-with-unique:
+
+=======================================
+Maintain Uniqueness in Sharded Clusters
+=======================================
+
+.. meta::
+   :description: Enforce a unique constraint on a sharded collection by making the shard key a prefix of the unique index, or by using a proxy collection to maintain uniqueness on other fields.
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language
+   :values: shell
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+A sharded cluster enforces a unique constraint across shards only when
+the unique index is on the shard key or includes the shard key as a
+:ref:`prefix <compound-index-prefix>`. This page describes how to
+maintain uniqueness when you shard a collection.
+
+To create a unique index on a collection
+that is already sharded, see :ref:`manual-create-unique-index-sharded`. To
+enforce uniqueness on the shard key values, see 
+:ref:`manual-uniqueness-shard-key-values`. To enforce uniqueness on a field that
+cannot be part of the shard key, see :ref:`manual-uniqueness-proxy-collection`.
+
+To reshard a collection that has a :ref:`uniqueness <index-type-unique>` 
+constraint, the new shard key must satisfy the :ref:`unique index requirements
+<sharding-shard-key-unique>` for any existing unique indexes. For details, see
+:ref:`sharding-resharding`.
+
+About this Task
+---------------
+
+A unique index ensures that the indexed fields do not store duplicate
+values. On a sharded collection, each shard can only check its own
+data for duplicates, so MongoDB can enforce the constraint across the
+cluster only when every document with a given index key value is
+guaranteed to live on the same shard. Including the shard key as a
+prefix of the index provides that guarantee.
+
+For a ranged sharded collection, only the following indexes can be
+:ref:`unique <index-type-unique>`:
+
+- The index on the shard key
+
+- A :term:`compound index` where the shard key is a :ref:`prefix
+  <compound-index-prefix>`
+
+- The default ``_id`` index; however, the ``_id`` index only
+  enforces the uniqueness constraint **per shard** if the ``_id`` field
+  is not the shard key.
+
+.. include:: /includes/sharding/sharding-unique-index-constraints.rst
+
+The following constraints also apply:
+
+- You cannot specify a unique constraint on a :ref:`hashed index
+  <index-type-hashed>`.
+
+- If there is a :ref:`collation <collation>` on the index key, MongoDB
+  can only ensure uniqueness if the collation is simple.
+
+- A unique index on the shard key enforces uniqueness on the entire
+  key combination, not on the individual components of the shard key.
+
+.. include:: /includes/sharding/shard-collection-uniqueness-enforcement-note.rst
+
+Before You Begin
+----------------
+
+- Identify the shard key for the collection. To view the shard key of
+  a sharded collection, run the :method:`sh.status()` method and
+  locate the collection in the output.
+
+- Confirm that no existing documents violate the uniqueness constraint
+  for the field. If a shard contains documents with duplicate values,
+  the create index operation may succeed on the shards without
+  duplicates but fail on the shard with duplicates, leaving
+  inconsistent indexes across shards.
+
+- Connect :binary:`~bin.mongosh` to a :binary:`~bin.mongos` instance.
+
+Steps
+-----
+
+.. _manual-uniqueness-shard-new-collection:
+
+The following example shards the ``accounts.names`` collection on
+``region_id`` and enforces a unique constraint on the combination of
+``region_id`` and ``email``. 
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create the shard key index.
+
+      Create the index you plan to use as the shard key:
+
+      .. io-code-block::
+
+         .. input::
+            :language: javascript
+
+            db.names.createIndex( { region_id: 1 } )
+
+         .. output::
+            :language: javascript
+
+            region_id_1
+
+   .. step:: Create the unique index.
+
+      Create the unique index for the collection. Include the shard
+      key as a prefix of the index:
+
+      .. io-code-block::
+
+         .. input::
+            :language: javascript
+
+            db.names.createIndex(
+               { region_id: 1, email: 1 },
+               { unique: true }
+            )
+
+         .. output::
+            :language: javascript
+
+            region_id_1_email_1
+
+   .. step:: Shard the collection.
+
+      To shard the collection, run the :method:`sh.shardCollection` method:
+
+      .. io-code-block::
+
+         .. input::
+            :language: javascript
+
+            sh.shardCollection( "accounts.names", { region_id: 1 } )
+
+         .. output::
+            :language: javascript
+
+            {
+               collectionsharded: 'accounts.names',
+               ok: 1,
+               '$clusterTime': {
+                  clusterTime: Timestamp( { t: 1759260515, i: 58 } ),
+                  signature: {
+                     hash: Binary.createFromBase64( 'AAAAAAAAAAAAAAAAAAAAAAAAAAA=', 0 ),
+                     keyId: Long( '0' )
+                  }
+               },
+               operationTime: Timestamp( { t: 1759260515, i: 57 } )
+            }
+
+If you shard a collection that contains a unique index that doesn't
+include the shard key as a prefix, MongoDB returns an error when you
+run the :dbcommand:`shardCollection` command.
+
+Learn More
+----------
+
+- :ref:`index-type-unique`
+
+- :ref:`sharding-shard-key-unique`
+
+- :ref:`sharding-introduction`
+
+- :dbcommand:`createIndexes`
+
+- :method:`db.collection.createIndex`
+
+.. toctree::
+   :titlesonly:
+
+   Unique Index on Sharded Collection </tutorial/create-unique-index-on-sharded-collection.txt>
+   Uniqueness on Shard Key Values </tutorial/enforce-uniqueness-on-shard-key-values.txt>
+   Uniqueness on Non-Shard Key Field </tutorial/enforce-uniqueness-on-non-shard-key-field.txt>

@@ -1,5 +1,4 @@
 import type { TocItem } from '../types';
-import manualVersions from '../version-arrays/server-docs/manual';
 
 const tocData: TocItem[] = [
   {
@@ -376,16 +375,9 @@ const tocData: TocItem[] = [
             url: '/docs/:version/core/index-unique/convert-to-unique',
           },
           {
-            label: 'Sharded Collections',
-            contentSite: 'docs',
-            url: '/docs/:version/tutorial/shard-collection-with-unique-index',
-            versions: { excludes: manualVersions.after('v9.0') },
-          },
-          {
             label: 'Unique Index on Sharded Collection',
             contentSite: 'docs',
             url: '/docs/:version/tutorial/create-unique-index-on-sharded-collection',
-            versions: { excludes: manualVersions.after('v9.0') },
           },
         ],
       },
