@@ -1,46 +1,55 @@
-.. procedure:: 
-   :style: normal 
+.. procedure::
+   :style: normal
 
-   .. include:: /includes/nav/steps-db-deployments-page.rst
+   .. step:: Create a new |n8n| workflow.
 
-   .. include:: /includes/nav/steps-data-explorer.rst
+      Click :guilabel:`+`, and then click :guilabel:`New workflow`.
 
-   .. include:: /includes/nav/steps-atlas-search.rst
+   .. step:: Add a Manual Trigger node.
 
-   .. include:: /includes/nav/steps-configure-index.rst
+      a. Click :guilabel:`Add first step` to open the node menu.
+      #. Search for :guilabel:`Manual Trigger`, and then select it to add
+         the node to the canvas.
 
-   .. step:: Define the {+avs+} index.
+   .. step:: Add a MongoDB node.
 
-      .. tabs::
+      a. Select the :guilabel:`+` connector on the Manual Trigger node.
+      #. Search for :guilabel:`MongoDB`, and then select the MongoDB node.
 
-         .. tab:: Visual Editor 
-            :tabid: vib 
+   .. step:: Configure the MongoDB node.
 
-            Specify |embedding-field-name| as the field to index and specify
-            ``1536`` dimensions.
+      Select the MongoDB credentials that you configured, and then
+      specify the following values:
 
-            .. include:: /includes/avs/extracts/steps-avs-index-basic.rst
+      .. list-table::
+         :widths: 35 65
+         :header-rows: 1
 
-         .. tab:: JSON Editor 
-            :tabid: jsoneditor 
+         * - Setting
+           - Value
+         * - :guilabel:`Resource`
+           - :guilabel:`Search Index`
+         * - :guilabel:`Operation`
+           - :guilabel:`Create Search Index`
+         * - :guilabel:`Collection`
+           - ``embedded_movies``
+         * - :guilabel:`Index Name`
+           - ``vector_index``
+         * - :guilabel:`Index Type`
+           - :guilabel:`Vector Search`
 
-            Paste the following index definition in the JSON editor:
+      For :guilabel:`Index Definition`, paste the following index
+      definition. This definition indexes the ``plot_embedding`` field
+      as the ``vector`` type with ``1536`` dimensions:
 
-            .. code-block:: json 
-               :copyable: true 
-               :linenos: 
+      .. literalinclude:: /includes/ai-integrations/n8n/n8n-vector-index.json
+         :language: json
+         :category: snippet
 
-               {
-                   "fields": [
-                       {
-                           "type": "vector",
-                           "numDimensions": 1536,
-                           "path": "plot_embedding",
-                           "similarity": "dotProduct"
-                       }
-                   ]
-               }
+   .. step:: Run the node to create the index.
 
-   .. step:: Click :guilabel:`Next` to review the index. 
+      Click :guilabel:`Execute step`. When the node runs successfully,
+      the output panel displays the name of the index.
 
-   .. include:: /includes/avs/index-examples/steps-avs-finish-index-creation.rst
+      MongoDB builds the index in the background. You can use the index
+      in your workflows after the build completes.

@@ -2,21 +2,19 @@
 .. procedure::
    :style: normal
 
-   .. step:: Create a new n8n workflow.
+   .. step:: Create a new |n8n| workflow.
 
-      Open n8n where you are hosting it, then create a new workflow:
-
-      - If you have no workflows or are using n8n for the first time, use the empty workflow that is displayed.
-      - If you have existing workflows, click :guilabel:`Create Workflow`.
+      Open |n8n| where you are hosting it, and then click :guilabel:`+`. Then,
+      click :guilabel:`New workflow`.
 
    .. step:: Add a Chat Trigger node.
 
-      All workflows in n8n start with a trigger node.
+      All workflows in |n8n| start with a trigger node.
       For this workflow, you use a chat trigger node so that the AI agent workflow is 
       triggered by a user message.
 
       a. Select :guilabel:`Add first step` or press :guilabel:`Tab` to open the node menu.
-      #. Search for :guilabel:`Chat Trigger`. n8n displays a list of nodes that match the search.
+      #. Search for :guilabel:`Chat Trigger`. |n8n| displays a list of nodes that match the search.
       #. Select :guilabel:`Chat Trigger` to add the node to the canvas.
       #. Click :guilabel:`Back to canvas` in the upper-left corner of your screen.
          You can skip testing this node at this stage. Click :guilabel:`Save`.
@@ -52,7 +50,7 @@
 
       a. Click the :guilabel:`+` connector next to the :guilabel:`Memory` label on the AI Agent node.
       #. From the side panel, select :guilabel:`MongoDB Chat Memory`.
-      #. Click :guilabel:`Select credential`, then select your MongoDB credentials.
+      #. Click :guilabel:`Select credential`, and then select your MongoDB credentials.
       #. Use the default configurations for the MongoDB Chat Memory node. By default,
          n8n creates a collection called ``n8n_chat_histories`` in the specified database.
       #. Click :guilabel:`Back to canvas` in the upper-left corner of your screen.
@@ -76,6 +74,10 @@
               - Value
             * - :guilabel:`Operation Mode`
               - :guilabel:`Retrieve Documents (As Tool for AI Agent)`
+
+                To learn more about this mode, see
+                :ref:`Retrieve Documents (As Tool for AI Agent)
+                <n8n-vector-store-mode-retrieve-agent-tool>`.
             * - :guilabel:`Description`
               - ``"Search through documents about movies to find relevant information"``
             * - :guilabel:`MongoDB Collection`
