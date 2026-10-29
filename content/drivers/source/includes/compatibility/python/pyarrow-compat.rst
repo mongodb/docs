@@ -4,6 +4,8 @@
 
    * - PyMongoArrow Version
      - PyArrow Version
+   * - 1.16.x
+     - 26.x
    * - 1.15.x
      - 25.x
    * - 1.14.x
