@@ -33,9 +33,9 @@ export async function translateMdx(
   options: TranslateMdxOptions = {},
 ): Promise<string> {
   const content = extract(mdx);
-  const terms = [
+  const nonTranslatableTerms = [
     ...new Set([...content.non_translatable_terms, ...(options.nonTranslatableTerms ?? [])]),
   ];
-  const translations = await translate(content.payload, terms);
+  const translations = await translate(content.payload, nonTranslatableTerms);
   return reconstruct(translations, content);
 }

@@ -1,8 +1,47 @@
-/** Fraction of the configured product terms that survive in the output verbatim. */
-export function terminologyPreserved(output: string, terms: string[]): number {
-  if (terms.length === 0) return 1;
-  const kept = terms.filter((term) => output.includes(term)).length;
-  return kept / terms.length;
+export interface NonTranslatableTermScore {
+  /** null when the source holds none of the non-translatable terms — the row was not measured. */
+  score: number | null;
+  denominator: number;
+  numerator: number;
+  missing: string[];
+}
+
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * True when `term` occurs as a whole token. `#` and `+` are word characters so
+ * `C` does not match inside `C++`/`C#`; `-` is one too, so `MongoDB` does not
+ * match inside `MongoDB-related` (a known trade-off, plan section 6.4).
+ */
+function occursAsTerm(text: string, term: string): boolean {
+  return new RegExp(
+    `(?<![\\p{L}\\p{N}_$#+-])${escapeRegExp(term)}(?![\\p{L}\\p{N}_$#+-])`,
+    'u',
+  ).test(text);
+}
+
+/**
+ * Fraction of the configured non-translatable terms that occur in the source
+ * and survive verbatim in the output. Source-scoped: a term the page never
+ * mentioned can be neither preserved nor lost, and a term only the output
+ * carries was not preserved.
+ */
+export function terminologyPreserved(
+  source: string,
+  output: string,
+  nonTranslatableTerms: string[],
+): NonTranslatableTermScore {
+  const presentInSource = nonTranslatableTerms.filter((term) => occursAsTerm(source, term));
+  const missingTerms = presentInSource.filter((term) => !occursAsTerm(output, term));
+  const numerator = presentInSource.length - missingTerms.length;
+  return {
+    score: presentInSource.length === 0 ? null : numerator / presentInSource.length,
+    denominator: presentInSource.length,
+    numerator,
+    missing: missingTerms,
+  };
 }
 
 function bigrams(text: string): Set<string> {

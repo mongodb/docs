@@ -2,17 +2,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { Eval } from 'braintrust';
 import { loadConfig } from '../config.js';
+import { glossaryIdentity, readGlossary } from '../glossary.js';
 import { readManifestLatest, runDir } from '../run/manifest.js';
 import { resolveBackendName } from '../translate/backend.js';
 import type { DatasetRow } from '../types.js';
 import { createJudgeOptions } from './judge/backend.js';
 import { buildExperimentName, localesFromRows } from './experiment-name.js';
 import { toEvalScorers } from './scorers/index.js';
-
-function readTerms(termsFile: string | undefined): string[] {
-  if (!termsFile) return [];
-  return (JSON.parse(fs.readFileSync(termsFile, 'utf8')) as { terms?: string[] }).terms ?? [];
-}
 
 const cfg = loadConfig();
 const project = process.env.EVAL_PROJECT ?? '';
@@ -28,6 +24,7 @@ if (!fs.existsSync(rowsPath)) {
 const rows = JSON.parse(fs.readFileSync(rowsPath, 'utf8')) as DatasetRow[];
 
 const judgeOpts = createJudgeOptions(cfg);
+const glossary = readGlossary(cfg.glossaryFile);
 
 const experimentName = buildExperimentName({
   project,
@@ -44,12 +41,13 @@ Eval(cfg.braintrustProject, {
   experimentName,
   data: rows,
   task: async (input) => input.local_text,
-  scores: toEvalScorers(readTerms(cfg.termsFile), judgeOpts),
+  scores: toEvalScorers(glossary.nonTranslatableTerms, judgeOpts),
   metadata: {
     project,
     run: runId,
     translator_provider: resolveBackendName(cfg.translatorModel, cfg.translatorBackend),
     translator_model: cfg.translatorModel ?? null,
     judge_model: judgeOpts.model,
+    glossary: cfg.glossaryFile ? glossaryIdentity(cfg.glossaryFile, glossary) : null,
   },
 });

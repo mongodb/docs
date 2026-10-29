@@ -4,9 +4,30 @@
  * Non-translatable terms must survive translation byte-for-byte, so we
  * don't rely on prompt instructions. Instead we swap each protected term
  * for an opaque placeholder token before translation and swap it back
- * afterward. Matching is exact and case-sensitive — the whole point is
- * that these terms remain unchanged.
+ * afterward. Matching is exact, case-sensitive, and on word boundaries — the
+ * whole point is that these terms remain unchanged, and a term that only
+ * occurs inside a larger word (`C` in `Connect`) is not that term.
  */
+
+/**
+ * Characters that make an adjacent match a different word. `#` and `+` are
+ * included so `C` does not match inside `C++`/`C#`; `-` is included so a
+ * hyphenated compound (`MongoDB-related`) is treated as one word.
+ */
+const WORD_CHAR = "[\\p{L}\\p{N}_$#+-]";
+
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * A fresh global regex matching `term` as a whole token. Callers must not
+ * reuse one instance for both `test` and `replace`: `test` advances
+ * `lastIndex` on a global regex.
+ */
+function termPattern(term: string): RegExp {
+  return new RegExp(`(?<!${WORD_CHAR})${escapeRegExp(term)}(?!${WORD_CHAR})`, "gu");
+}
 
 /** Result of protecting a single string. */
 export interface ProtectionResult {
@@ -26,16 +47,16 @@ export interface RestorationResult {
 }
 
 /**
- * Returns the distinct protected terms that actually occur in `text`,
- * in the order they were supplied. Empty terms are ignored.
+ * Returns the distinct protected terms that actually occur in `text` as whole
+ * tokens, in the order they were supplied. Empty terms are ignored.
  */
-export function detectTerms(text: string, terms: string[]): string[] {
+export function detectTerms(text: string, nonTranslatableTerms: string[]): string[] {
   const seen = new Set<string>();
   const found: string[] = [];
-  for (const term of terms) {
+  for (const term of nonTranslatableTerms) {
     if (term.length === 0 || seen.has(term)) continue;
     seen.add(term);
-    if (text.includes(term)) found.push(term);
+    if (termPattern(term).test(text)) found.push(term);
   }
   return found;
 }
@@ -54,16 +75,16 @@ export function detectTerms(text: string, terms: string[]): string[] {
  * inserts is guaranteed novel — restore() can then safely replace it
  * without touching pre-existing look-alike text.
  */
-export function protect(text: string, terms: string[]): ProtectionResult {
-  const present = detectTerms(text, terms).sort((a, b) => b.length - a.length);
+export function protect(text: string, nonTranslatableTerms: string[]): ProtectionResult {
+  const present = detectTerms(text, nonTranslatableTerms).sort((a, b) => b.length - a.length);
   const placeholders: Record<string, string> = {};
   let result = text;
   let n = 1;
   for (const term of present) {
-    if (!result.includes(term)) continue;
+    if (!termPattern(term).test(result)) continue;
     while (text.includes(`__PROT${n}__`)) n++;
     const token = `__PROT${n}__`;
-    result = result.replaceAll(term, token);
+    result = result.replace(termPattern(term), token);
     placeholders[token] = term;
     n++;
   }

@@ -15,7 +15,12 @@ const METADATA: RowMetadata = {
   run: 'r',
 };
 
-const args = (output: string, expected: string) => ({ input: INPUT, output, expected, metadata: METADATA });
+const args = (output: string, expected: string, source = INPUT.source_text) => ({
+  input: { ...INPUT, source_text: source },
+  output,
+  expected,
+  metadata: METADATA,
+});
 
 function judgeReturning(payload: Record<string, unknown>): JudgeOptions {
   return {
@@ -29,13 +34,25 @@ describe('toEvalScorers', () => {
     const scorers = toEvalScorers(['MongoDB'], judgeReturning({ category: 'C', rationale: 'faithful', fluency: 5 }));
     expect(scorers).toHaveLength(3);
 
-    expect(await scorers[0]!(args('Usa MongoDB', 'Usa MongoDB'))).toEqual({
+    expect(
+      await scorers[0]!(args('Usa MongoDB', 'Usa MongoDB', 'Add a user to MongoDB.')),
+    ).toEqual({
       name: 'terminology_preserved',
       score: 1,
+      metadata: { denominator: 1, numerator: 1, missing: [] },
     });
     expect(await scorers[1]!(args('Usa MongoDB', 'Usa MongoDB'))).toEqual({
       name: 'reference_similarity',
       score: 1,
+    });
+  });
+
+  it('emits a null terminology score when the source holds no configured non-translatable terms', async () => {
+    const scorers = toEvalScorers(['MongoDB'], judgeReturning({ category: 'C', rationale: 'ok', fluency: 5 }));
+    expect(await scorers[0]!(args('Usa MongoDB', 'Usa MongoDB'))).toEqual({
+      name: 'terminology_preserved',
+      score: null,
+      metadata: { denominator: 0, numerator: 0, missing: [] },
     });
   });
 
@@ -60,9 +77,10 @@ describe('toEvalScorers', () => {
     };
     const scorers = toEvalScorers(['MongoDB', 'Atlas'], judge);
 
-    expect(await scorers[0]!(args('Usa Atlas', 'x'))).toEqual({
+    expect(await scorers[0]!(args('Usa Atlas', 'x', 'MongoDB and Atlas are products.'))).toEqual({
       name: 'terminology_preserved',
       score: 0.5,
+      metadata: { denominator: 2, numerator: 1, missing: ['MongoDB'] },
     });
     expect(await scorers[2]!(args('Usa Atlas', 'x'))).toEqual([
       { name: 'factuality', score: 0, metadata: { rationale: 'drift' } },

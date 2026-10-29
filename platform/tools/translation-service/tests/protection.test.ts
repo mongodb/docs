@@ -18,6 +18,30 @@ describe("detectTerms", () => {
   it("is case-sensitive", () => {
     expect(detectTerms("ask mongodb ai", ["MongoDB"])).toEqual([]);
   });
+
+  it("ignores a term that only occurs inside a larger word", () => {
+    // A short glossary term must not match a word fragment: protecting `C`
+    // inside `Connect` freezes the word and blocks its translation.
+    expect(detectTerms("Connect to Atlas", ["C"])).toEqual([]);
+    expect(detectTerms("Godzilla Returns", ["Go", "R"])).toEqual([]);
+  });
+
+  it("still finds a term that stands alone", () => {
+    expect(detectTerms("C is a language", ["C"])).toEqual(["C"]);
+  });
+});
+
+describe("boundary matching", () => {
+  it("does not freeze a word fragment", () => {
+    const result = protect("Connect to Atlas", ["C", "Atlas"]);
+    expect(result.text).toBe("Connect to __PROT1__");
+    expect(result.placeholders).toEqual({ __PROT1__: "Atlas" });
+  });
+
+  it("still protects C++ and C# as whole terms", () => {
+    const result = protect("C++ and C# are languages", ["C", "C++", "C#"]);
+    expect(result.text).toBe("__PROT1__ and __PROT2__ are languages");
+  });
 });
 
 describe("protect", () => {

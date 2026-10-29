@@ -35,9 +35,9 @@ export async function translateMdxFile(
   mdx: string,
   cfg: Config,
   targetLocale: string,
-  terms: string[],
+  nonTranslatableTerms: string[],
   translateFn?: TranslateFn,
 ): Promise<string> {
   const fn = translateFn ?? makeTranslateFn(cfg, targetLocale);
-  return translateMdx(mdx, fn, { nonTranslatableTerms: terms });
+  return translateMdx(mdx, fn, { nonTranslatableTerms });
 }

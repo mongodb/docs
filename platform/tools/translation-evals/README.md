@@ -133,7 +133,27 @@ exported in your shell takes precedence over `.env`.
 | `BRAINTRUST_PROJECT` | No | `docs-translations` | Braintrust project name. |
 | `EVAL_EXPERIMENT_NAME` | No | derived | Overrides the Braintrust experiment name. Default: `<project> <locales> <run id> [<translator> -> <judge>]`, e.g. `atlas es 2026-10-23-a1b2c3 [gpt-5.5 -> claude-sonnet-4-5]`. |
 | `TARGET_LOCALES` | No | `pt-br,es,ko-kr,ja-jp,zh-cn` | Comma-separated target locales. |
-| `TERMS_FILE` | No | — | Path to a JSON file of non-translatable terms, e.g. `{"terms":["MongoDB","Atlas"]}`. |
+| `GLOSSARY_FILE` | No | — | Path to the glossary JSON. Resolved from the package directory. A path that cannot be read, or does not hold the expected shape, throws. |
+
+The glossary file:
+
+```json
+{
+  "nonTranslatableTerms": ["_id", "MongoDB"],
+  "translatableTerms": { "shard": { "es": ["partición"] } }
+}
+```
+
+`nonTranslatableTerms` applies to every target locale. It is passed to the
+translator, which swaps each term for a `__PROTn__` placeholder before the model
+sees it and restores it verbatim afterward; `terminology_preserved` scores how
+completely that protect-and-restore round-trip survived into the scored output
+(see Scorers below).
+`translatableTerms` maps each English source term to its required translation per
+target locale (a list, because one source term can have several acceptable
+translations). It is carried for the future adherence scorer and is not
+consumed yet. The repo bundles `glossary.json`; set
+`GLOSSARY_FILE=glossary.json` to use it.
 
 The translator model — and therefore which backend runs — is set with
 `TRANSLATOR_MODEL`: a `claude-*` value selects the Anthropic Messages path, and
@@ -384,8 +404,13 @@ Scorers:
 |---|---|---|
 | `factuality` | LLM judge | The output against the English source, which is ground truth. The production translation calibrates register and terminology only; it is not an answer key. |
 | `fluency` | LLM judge | The output alone, in the target locale. |
-| `terminology_preserved` | Deterministic | The fraction of `TERMS_FILE` terms that survive verbatim. |
+| `terminology_preserved` | Deterministic | Of the glossary's `nonTranslatableTerms` that occur in the English source, the fraction that survive verbatim in the output. With the glossary passed to the translator (the shipped configuration), this confirms the service's placeholder swap-and-restore round-trip, not the model's term choice; without it, it reflects the model's own choice. Scored on word boundaries, so `C` does not match inside `C++`. `null` when the source holds none of them. Per-row metadata: `denominator`, `numerator`, `missing`. |
 | `reference_similarity` | Deterministic | Character-bigram F1 against the production translation. A calibration signal, not a pass/fail. |
+
+`terminology_preserved` cannot judge translation quality: in an enforced run it
+cannot score a term low unless the placeholder plumbing fails, and a list that
+contains terms production actually translates (for example `Compatibility` or
+`data center`) forces English the score does not see.
 
 The judge runs once per row and returns both `factuality` and `fluency`.
 

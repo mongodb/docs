@@ -35,6 +35,15 @@ function setup() {
 
 const echo = async (p: Record<string, string>) => ({ ...p });
 
+function writeGlossary(dir: string, terms: string[]): string {
+  const file = path.join(dir, 'glossary.json');
+  fs.writeFileSync(
+    file,
+    JSON.stringify({ nonTranslatableTerms: terms, translatableTerms: {} }),
+  );
+  return file;
+}
+
 describe('translateRun', () => {
   it('writes translated page, include and references under the run dir', async () => {
     const { cfg, overlay } = setup();
@@ -88,6 +97,22 @@ describe('translateRun', () => {
     );
     expect(recorded.es).toEqual([]);
     expect(recorded['ja-jp']).toHaveLength(3);
+  });
+
+  it('passes the glossary non-translatable terms to the translator', async () => {
+    const { cfg } = setup();
+    cfg.glossaryFile = writeGlossary(path.dirname(cfg.dataDir), ['MongoDB']);
+
+    const seen: string[][] = [];
+    const capture = async (p: Record<string, string>, terms: string[]) => {
+      seen.push(terms);
+      return { ...p };
+    };
+
+    await translateRun(cfg, 'atlas', 'r', ['es'], capture);
+
+    expect(seen.length).toBeGreaterThan(0);
+    expect(seen.some((terms) => terms.includes('MongoDB'))).toBe(true);
   });
 
   it('records the configured translator on the manifest', async () => {

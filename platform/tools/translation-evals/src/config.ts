@@ -19,7 +19,7 @@ export interface Config {
   translatorBackend?: BackendName;
   judgeModel?: string;
   braintrustProject: string;
-  termsFile?: string;
+  glossaryFile?: string;
   /** Overrides the derived Braintrust experiment name (EVAL_EXPERIMENT_NAME). */
   experimentName?: string;
 }
@@ -69,7 +69,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     translatorBackend: resolveTranslatorBackend(env),
     judgeModel: env.JUDGE_MODEL || undefined,
     braintrustProject: env.BRAINTRUST_PROJECT ?? 'docs-translations',
-    termsFile: env.TERMS_FILE,
+    // Resolved against the package root so `translate` (in-process, cwd =
+    // wherever the CLI ran) and `eval` (child cd's to PKG_ROOT) agree.
+    glossaryFile: env.GLOSSARY_FILE ? path.resolve(PKG_ROOT, env.GLOSSARY_FILE) : undefined,
     experimentName: env.EVAL_EXPERIMENT_NAME || undefined,
   };
 }

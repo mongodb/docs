@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { TranslateFn } from 'translation-mdx-adapter';
 import type { Config } from '../config.js';
+import { readGlossary } from '../glossary.js';
 import { readManifest, runDir, setStage, setTranslator } from '../run/manifest.js';
 import { makeTranslateFn, translateMdxFile } from './batch.js';
 import { resolveBackendName } from './backend.js';
@@ -21,11 +22,6 @@ export interface TranslateSummary {
 const REFERENCES_FILE = '_references.json';
 const FAILURES_FILE = 'translate-failures.json';
 
-function readTerms(cfg: Config): string[] {
-  if (!cfg.termsFile) return [];
-  return JSON.parse(fs.readFileSync(cfg.termsFile, 'utf8')).terms ?? [];
-}
-
 function describe(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
 }
@@ -39,7 +35,7 @@ export async function translateRun(
 ): Promise<TranslateSummary> {
   const m = readManifest(cfg, project, runId);
   const targets = locales ?? m.locales;
-  const terms = readTerms(cfg);
+  const { nonTranslatableTerms } = readGlossary(cfg.glossaryFile);
   const projectDir = path.join(cfg.contentMdxDir, project);
   const dir = runDir(cfg, project, runId);
   const summary: TranslateSummary = { translated: 0, failures: {} };
@@ -52,7 +48,7 @@ export async function translateRun(
     for (const rel of [...m.translatable.pages, ...m.translatable.includes]) {
       try {
         const src = fs.readFileSync(path.join(projectDir, rel), 'utf8');
-        files[rel] = await translateMdxFile(src, cfg, locale, terms, fn);
+        files[rel] = await translateMdxFile(src, cfg, locale, nonTranslatableTerms, fn);
       } catch (err) {
         failures.push({ file: rel, error: describe(err) });
       }

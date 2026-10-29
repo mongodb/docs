@@ -12,12 +12,23 @@ export type Scorer = EvalScorer<RowInput, string, string, RowMetadata>;
  * deterministic; `factuality` and `fluency` come from one judge call per row,
  * which returns both so a row never pays for the judge twice.
  */
-export function toEvalScorers(terms: string[], judgeOpts: JudgeOptions): Scorer[] {
+export function toEvalScorers(
+  nonTranslatableTerms: string[],
+  judgeOpts: JudgeOptions,
+): Scorer[] {
   return [
-    async ({ output }) => ({
-      name: 'terminology_preserved',
-      score: terminologyPreserved(output, terms),
-    }),
+    async ({ input, output }) => {
+      const { score, denominator, numerator, missing } = terminologyPreserved(
+        input.source_text,
+        output,
+        nonTranslatableTerms,
+      );
+      return {
+        name: 'terminology_preserved',
+        score,
+        metadata: { denominator, numerator, missing },
+      };
+    },
     async ({ output, expected }) => ({
       name: 'reference_similarity',
       score: referenceSimilarity(output, expected),
