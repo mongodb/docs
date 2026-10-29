@@ -7,7 +7,8 @@ export default defineDocset({
 	search: { categoryTitle: "Kafka Connector" },
 	versions: [
 		{ name: "upcoming", noIndexing: true },
-		{ name: "current", label: "v3.0 (current)", stable: true },
+		{ name: "current", label: "v3.1 (current)", stable: true },
+		{ name: "v3.0" },
 		{ name: "v2.2" },
 		{ name: "v2.1" },
 		{ name: "v2.0" },

@@ -10,11 +10,12 @@ const allVersions = [
   'v2.1',
   'v2.2',
   'v3.0',
+  'v3.1',
 ];
 const deprecatedVersions = ['v1.12'];
 const namedVersions = new Map<string, string>([
-  ['v3.0', 'current'],
-  ['v3.1', 'upcoming'],
+  ['v3.1', 'current'],
+  ['v3.2', 'upcoming'],
 ]);
 
 const kafkaConnectorVersions = new Versions(
