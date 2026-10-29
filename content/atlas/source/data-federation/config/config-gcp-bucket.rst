@@ -433,11 +433,3 @@ document. If a matching ``date`` field does not exist in a document,
 Users connected to the {+fdi+} can use the MongoDB Query Language and
 supported aggregations to analyze data in the {+gcs+} bucket through
 the ``datacenter-alpha-metrics.hardware`` collection.
-
-
-
-.. toctree::
-   :titlesonly:
-   :hidden:
-
-   Deploy </data-federation/deployment/deploy-gcp>

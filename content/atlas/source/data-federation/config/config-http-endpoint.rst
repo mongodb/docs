@@ -312,10 +312,3 @@ collected from a datacenter. The following configuration:
 .. seealso::
 
    - :ref:`query-fdi`
-
-.. toctree::
-   :titlesonly:
-   :hidden:
-
-   Deploy </data-federation/deployment/deploy-http>
-

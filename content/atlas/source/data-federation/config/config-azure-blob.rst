@@ -488,10 +488,3 @@ Example Configuration for {+az-bs+} Data Store
    Users connected to the {+fdi+} can use the MongoDB Query Language 
    and supported aggregations to analyze data in the {+az-bs+} container   
    through the ``datacenter-alpha-metrics.hardware`` collection.
-
-
-.. toctree::
-   :titlesonly:
-   :hidden:
-
-   Deploy </data-federation/deployment/deploy-azure>
