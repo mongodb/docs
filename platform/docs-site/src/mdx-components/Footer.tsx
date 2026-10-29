@@ -10,7 +10,13 @@ import { stripLocale } from '@/utils/locale';
 export const Footer = () => {
   const { locale, enabledLocales, onSelectLocale } = useLocale();
   const pathname = usePathname() ?? '';
-  const absolutePath = pathname === '/docs' || pathname.startsWith('/docs/') ? pathname : `${getBasePath()}${pathname}`;
+  // Strip the locale on both sides of the base-path step: depending on the host, usePathname() can
+  // arrive as /pt-br/docs/... or the base path itself can be rewritten to /pt-br/docs.
+  const unlocalizedPath = stripLocale(pathname);
+  const absolutePath =
+    unlocalizedPath === '/docs' || unlocalizedPath.startsWith('/docs/')
+      ? unlocalizedPath
+      : `${getBasePath()}${unlocalizedPath}`;
   const pageUrl = stripLocale(absolutePath);
 
   return (
