@@ -39,8 +39,7 @@ public static class QueryableEncryptionTutorial
         }
 
         var qeHelpers = new QueryableEncryptionHelpers(appSettings);
-        var kmsProviderCredentials = qeHelpers.GetKmsProviderCredentials(kmsProviderName,
-            generateNewLocalKey: true);
+        var kmsProviderCredentials = qeHelpers.GetKmsProviderCredentials(kmsProviderName);
 
         // start-create-client
         MongoClientSettings.Extensions.AddAutoEncryption(); // .NET/C# Driver v3.0 or later only
