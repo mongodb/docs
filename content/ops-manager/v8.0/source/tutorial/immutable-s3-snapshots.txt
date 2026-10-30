@@ -101,10 +101,16 @@ When you plan immutable S3 snapshots, consider the following items:
   Between S3 Stores* feature lets you change which S3 snapshot store   
   a backup job uses for future snapshots. It does not copy or move   
   existing snapshot data between buckets.
-- **Retention and Object Lock on managed stores.** When a snapshot   
-  ages out according to the backup job retention policy, |onprem|   
-  stops exposing it and attempts to delete related objects. |onprem| can
-  delete the objects only after the Object Lock retention period expires.
+- **Retention and Object Lock on managed stores.** When a snapshot
+  ages out according to the backup job retention policy, |onprem|
+  stops exposing it and attempts to delete the related objects.
+  |onprem| can delete the objects only after the Object Lock
+  retention period expires. If the object store rejects a delete,
+  for example because an object is still under retention, the
+  :term:`groom` job does not fail. |onprem| queues the objects that
+  it can't delete, and the Backup Daemon retries the deletion every
+  :setting:`mms.backup.groom.failedDeleteRetryDelayHours` hours until
+  the object store allows them.
 - **Retention on imported stores.** |onprem| never deletes data from   
   imported stores. Retention affects only metadata visibility in
   |onprem|.
