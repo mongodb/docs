@@ -1,50 +1,14 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { cx, css as LeafyCSS } from '@leafygreen-ui/emotion';
-import { palette } from '@leafygreen-ui/palette';
-import { Option, OptionGroup, Select } from '@leafygreen-ui/select';
-import { theme } from '@/styles/theme';
+import { Select, SelectItem, SelectSection } from '@via-ds/components/select';
+import { Header } from '@via-ds/components/structure';
+import { Text } from '@via-ds/components/typography';
 import type { Version, Group } from '@/types/data';
 import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
 import { useVersionContext } from '@/context/version-context';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
-
-export const selectStyling = LeafyCSS`
-  margin: ${theme.size.small} ${theme.size.medium} ${theme.size.small} ${theme.size.medium};
-
-  ${'' /* Render version dropdown text in front of the Sidebar text */}
-  button {
-    z-index: 2;
-    background-color: var(--select-button-bg-color);
-    color: var(--select-button-color);
-
-    div:last-child svg {
-      color: var(--select-button-carot);
-    }
-
-    .dark-theme &:hover {
-      background-color: var(--gray-dark4);
-      color: var(--gray-light3);
-      border-color: var(--gray-base);
-      box-shadow: var(--gray-dark2) 0px 0px 0px 3px;
-    }
-  }
-
-  /* Override LG mobile style of enlarged mobile font */
-  @media ${theme.screenSize.upToLarge} {
-    div,
-    span {
-      font-size: ${theme.fontSize.small};
-    }
-  }
-`;
-
-const listboxStyling = LeafyCSS`
-  [role='listbox'] {
-    overscroll-behavior: contain;
-  }
-`;
+import styles from './version-dropdown.module.scss';
 
 // Gets UI labels for supplied active versions
 export const getUILabel = (version: Version) => {
@@ -99,14 +63,11 @@ const getVersion = (versionName = '', versions: Version[] = []) => {
   return candidates[0] ?? null;
 };
 
-const createOption = (version: Version) => {
-  const UIlabel = getUILabel(version);
-  return (
-    <Option key={version.versionName} value={version.versionName}>
-      {UIlabel}
-    </Option>
-  );
-};
+const createOption = (version: Version) => (
+  <SelectItem key={version.versionName} id={version.versionName}>
+    {getUILabel(version)}
+  </SelectItem>
+);
 
 type VersionDropdownProps = {
   contentSite?: string | null;
@@ -140,12 +101,15 @@ const VersionDropdown = ({ contentSite = null }: VersionDropdownProps) => {
   }, [open]);
 
   const onSelectChange = useCallback(
-    (value: string) => {
-      if (value === 'legacy') {
+    (key: string | number | null) => {
+      if (key === null) {
+        return;
+      }
+      if (key === 'legacy') {
         // Full `/docs/...` path; use window.location so basePath isn't prepended.
         window.location.assign(`/docs/legacy/?site=${project}`);
       } else {
-        onVersionSelect(project, value);
+        onVersionSelect(project, String(key));
       }
     },
     [onVersionSelect, project],
@@ -162,48 +126,40 @@ const VersionDropdown = ({ contentSite = null }: VersionDropdownProps) => {
 
   const activeUngroupedVersions = getActiveUngroupedVersions(versions, groups);
 
-  const eolVersionFlipperStyle = LeafyCSS`
-    & > button {
-      background-color: ${palette.gray.light2} !important;
-      color: ${palette.gray.base} !important;
-    }
-  `;
-
   // Option values and activeVersions are both versionName now, so no translation
   // between a git name and a URL slug is needed.
   const activeVersionValue = activeVersions[project] ?? '';
 
   return (
     <Select
-      role="button"
-      allowDeselect={false}
-      className={cx(selectStyling, listboxStyling, eol ? eolVersionFlipperStyle : '')}
-      aria-labelledby="View a different version of documentation."
-      onChange={onSelectChange}
-      open={open}
-      setOpen={setOpen}
-      placeholder={'Select a version'}
-      value={activeVersionValue}
-      disabled={eol}
+      className={styles.versionDropdown}
+      aria-label="View a different version of documentation."
+      selectedKey={activeVersionValue || null}
+      onSelectionChange={onSelectChange}
+      isOpen={open}
+      onOpenChange={setOpen}
+      placeholder="Select a version"
+      isDisabled={eol}
     >
       {activeUngroupedVersions.map((v) => createOption(v))}
       {groups?.map((group) => {
         const { groupLabel, includedVersions: groupedVersionNames = [] } = group;
         return (
-          <OptionGroup key={groupLabel} label={groupLabel}>
-            <>
-              {groupedVersionNames.reduce<React.ReactNode[]>((res, name) => {
-                const version = getVersion(name, versions);
-                if (version) {
-                  res.push(createOption(version));
-                }
-                return res;
-              }, [])}
-            </>
-          </OptionGroup>
+          <SelectSection key={groupLabel}>
+            <Header>
+              <Text slot="heading">{groupLabel}</Text>
+            </Header>
+            {groupedVersionNames.reduce<React.ReactNode[]>((res, name) => {
+              const version = getVersion(name, versions);
+              if (version) {
+                res.push(createOption(version));
+              }
+              return res;
+            }, [])}
+          </SelectSection>
         );
       })}
-      {showEol && <Option value="legacy">Legacy Docs</Option>}
+      {showEol && <SelectItem id="legacy">Legacy Docs</SelectItem>}
     </Select>
   );
 };
