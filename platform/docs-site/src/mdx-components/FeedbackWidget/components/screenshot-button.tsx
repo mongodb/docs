@@ -1,21 +1,23 @@
-import type { MouseEvent as ReactMouseEvent } from 'react';
-import { useCallback, useState, useEffect, useRef } from 'react';
-import styled from '@emotion/styled';
-import { css, cx } from '@leafygreen-ui/emotion';
-import { useDarkMode } from '@leafygreen-ui/leafygreen-provider';
-import Button from '@leafygreen-ui/button';
-import Icon from '@leafygreen-ui/icon';
-import Portal from '@leafygreen-ui/portal';
+import type { CSSProperties, MouseEvent as ReactMouseEvent } from 'react';
+import { useCallback, useContext, useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { clsx } from 'clsx';
+import { Button } from '@via-ds/components/button';
+import XWithCircle from '@via-ds/icons/XWithCircle';
 import { useFeedbackContext } from '../context';
+import { DarkModeContext } from '@/context/dark-mode-context';
 import { isBrowser } from '@/utils/is-browser';
 import useNoScroll from '@/hooks/use-no-scroll';
-import { theme } from '@/styles/theme';
 import { SCREENSHOT_BUTTON_TEXT, SCREENSHOT_BUTTON_TEXT_LOW, SCREENSHOT_OVERLAY_ALT_TEXT } from '../constants';
 import screenshotIconDark from './screenshoticon-dark.svg';
 import screenshotIconLight from './screenshoticon-light.svg';
 import screenshotCTAImage from './screenshotCTA.svg';
+import styles from './screenshot-button.module.scss';
 
 const HIGHLIGHT_BORDER_SIZE = 5;
+// Marks our own overlay elements so the hover picker skips them. fwInstructionsId
+// contains it too, so the instruction panel is skipped as well.
+const OVERLAY_CLASS = 'overlay';
 
 type ElemProps = {
   width: number;
@@ -27,78 +29,14 @@ type ElemProps = {
   position: string;
 };
 
-const instructionsBorderStyling = css`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border: #ffdd49 solid ${HIGHLIGHT_BORDER_SIZE}px;
-  z-index: 1001;
-`;
-
-const instructionsPanelStyling = css`
-  position: fixed;
-  width: 800px;
-  top: 0;
-  left: 50%;
-  margin-left: -400px;
-  cursor: pointer;
-  z-index: 1003;
-`;
-
-const baseStyle = (position: string, top: number, left: number, width: number, height: number) => css`
-  position: ${position};
-  top: ${top}px;
-  left: ${left}px;
-  width: ${width ? width + 'px' : `100%`};
-  height: ${height}px;
-  cursor: pointer;
-`;
-
-// styling for shadow overlays around the current selected component
-const overlayElementStyle = (position: string, top: number, left: number, width: number, height: number) => css`
-  ${baseStyle(position, top, left, width, height)};
-  background-color: rgba(0, 0, 0, 0.3);
-  z-index: 1000;
-`;
-
-// current hovered or selected component
-const highlightedElementStyle = (
-  position: string,
-  top: number,
-  left: number,
-  width: number,
-  height: number,
-  lineStyle: string,
-) => css`
-  ${baseStyle(position, top, left, width, height)};
-  outline: #ffdd49 ${lineStyle} ${HIGHLIGHT_BORDER_SIZE}px;
-  outline-offset: 3px;
-  float: left;
-  z-index: 1001;
-  cursor: ${lineStyle === 'solid' ? 'unset' : 'pointer'};
-`;
-
-const exitButtonStyle = (position: string, top: number, left: number) => css`
-  position: ${position};
-  top: ${Math.max(top - 1, 8)}px;
-  left: ${Math.max(left - 1, 8)}px;
-  color: #ffdd49;
-  background-color: white;
-  border-radius: 80%;
-  cursor: pointer;
-  z-index: 1002;
-`;
-
-//styling for entire screenshot icon selector
-const ScreenshotSelect = styled(Button)`
-  && {
-    display: block;
-    margin: 0 auto ${theme.size.small} 0;
-    z-index: 5;
-  }
-`;
+// Runtime geometry for the overlays, highlight and exit button. Static rules live in the scss module.
+const geometry = (position: string, top: number, left: number, width: number, height: number): CSSProperties => ({
+  position: position as CSSProperties['position'],
+  top: `${top}px`,
+  left: `${left}px`,
+  width: width ? `${width}px` : '100%',
+  height: `${height}px`,
+});
 
 const ScreenshotButton = ({ ...props }) => {
   const {
@@ -184,7 +122,7 @@ const ScreenshotButton = ({ ...props }) => {
       domElement = listOfElements[0];
       for (let i = 0; i < listOfElements.length; i++) {
         const elem = String(listOfElements[i]?.className);
-        if (!!elem && !elem.includes('overlay')) {
+        if (!!elem && !elem.includes(OVERLAY_CLASS)) {
           domElement = listOfElements[i];
           break;
         }
@@ -282,131 +220,133 @@ const ScreenshotButton = ({ ...props }) => {
   // lock the page when element is selected
   useNoScroll(!!currElem.current && domElementClickedRef.current === 'solid');
 
-  const { darkMode } = useDarkMode();
-  const glyphImage = darkMode ? screenshotIconDark.src : screenshotIconLight.src;
+  const { isDarkMode } = useContext(DarkModeContext);
+  const glyphImage = isDarkMode ? screenshotIconDark.src : screenshotIconLight.src;
 
   return (
     <>
-      {isScreenshotButtonClicked && (
-        <Portal>
+      {isScreenshotButtonClicked &&
+        createPortal(
           <>
             {/* eslint-disable-next-line @next/next/no-img-element -- images are pre-optimized via build pipeline */}
             <img
-              className={cx(fwInstructionsId, instructionsPanelStyling)}
+              className={clsx(fwInstructionsId, styles.instructionsPanel)}
               src={screenshotCTAImage.src}
               alt={SCREENSHOT_OVERLAY_ALT_TEXT}
               onClick={handleInstructionClick}
             />
-            <div className={cx(fwInstructionsId, instructionsBorderStyling)} />
-          </>
-          {!currElem.current && (
-            <div
-              className={cx('overlay', overlayElementStyle('fixed', 0, 0, documentScrollWidth, documentScrollHeight))}
-            />
-          )}
-          {!!currElem.current && (
-            <>
+            <div className={clsx(fwInstructionsId, styles.instructionsBorder)} />
+            {!currElem.current && (
               <div
-                className={cx(
-                  'overlay',
-                  elemProps
-                    ? highlightedElementStyle(
-                        elemProps['position'],
-                        elemProps['top'],
-                        elemProps['left'],
-                        elemProps['width'],
-                        elemProps['height'],
-                        selectedElementBorderStyle,
-                      )
-                    : '',
-                )}
-                onClick={handleDOMElementClick}
-                role="button"
+                className={clsx(OVERLAY_CLASS, styles.overlay)}
+                style={geometry('fixed', 0, 0, documentScrollWidth, documentScrollHeight)}
               />
-              {domElementClickedRef.current === 'solid' && (
-                <div className={fwExitButtonId}>
-                  <Icon
-                    glyph="XWithCircle"
-                    className={
-                      elemProps ? exitButtonStyle(elemProps['position'], elemProps['top'], elemProps['left']) : ''
-                    }
-                    size={24}
-                    onClick={handleExitButtonClick}
-                  />
-                </div>
-              )}
-              <div
-                className={cx(
-                  'overlay-left',
-                  elemProps
-                    ? overlayElementStyle(
-                        elemProps['position'],
-                        0,
-                        0,
-                        elemProps['left'] - HIGHLIGHT_BORDER_SIZE,
-                        documentScrollHeight,
-                      )
-                    : '',
+            )}
+            {!!currElem.current && (
+              <>
+                <div
+                  className={clsx(OVERLAY_CLASS, elemProps && styles.highlight, {
+                    [styles.selected]: !!elemProps && selectedElementBorderStyle === 'solid',
+                  })}
+                  style={
+                    elemProps
+                      ? geometry(
+                          elemProps['position'],
+                          elemProps['top'],
+                          elemProps['left'],
+                          elemProps['width'],
+                          elemProps['height'],
+                        )
+                      : undefined
+                  }
+                  onClick={handleDOMElementClick}
+                  role="button"
+                />
+                {domElementClickedRef.current === 'solid' && (
+                  <div className={fwExitButtonId}>
+                    <XWithCircle
+                      className={elemProps ? styles.exitButton : undefined}
+                      style={
+                        elemProps
+                          ? {
+                              position: elemProps['position'] as CSSProperties['position'],
+                              top: `${Math.max(elemProps['top'] - 1, 8)}px`,
+                              left: `${Math.max(elemProps['left'] - 1, 8)}px`,
+                            }
+                          : undefined
+                      }
+                      size={24}
+                      onClick={handleExitButtonClick}
+                    />
+                  </div>
                 )}
-              />
-              <div
-                className={cx(
-                  'overlay-top',
-                  elemProps
-                    ? overlayElementStyle(
-                        elemProps['position'],
-                        0,
-                        elemProps['left'] - HIGHLIGHT_BORDER_SIZE,
-                        elemProps['width'] + HIGHLIGHT_BORDER_SIZE * 2,
-                        elemProps['top'] - HIGHLIGHT_BORDER_SIZE,
-                      )
-                    : '',
-                )}
-              />
-              <div
-                className={cx(
-                  'overlay-bottom',
-                  elemProps
-                    ? overlayElementStyle(
-                        elemProps['position'],
-                        elemProps['bottom'] + HIGHLIGHT_BORDER_SIZE,
-                        elemProps['left'] - HIGHLIGHT_BORDER_SIZE,
-                        elemProps['width'] + HIGHLIGHT_BORDER_SIZE * 2,
-                        documentScrollHeight - elemProps['bottom'] - HIGHLIGHT_BORDER_SIZE,
-                      )
-                    : '',
-                )}
-              />
-              <div
-                className={cx(
-                  'overlay-right',
-                  elemProps
-                    ? overlayElementStyle(
-                        elemProps['position'],
-                        0,
-                        elemProps['left'] + elemProps['width'] + HIGHLIGHT_BORDER_SIZE,
-                        documentScrollWidth - elemProps['right'],
-                        documentScrollHeight,
-                      )
-                    : '',
-                )}
-              />
-            </>
-          )}
-        </Portal>
-      )}
+                <div
+                  className={clsx(OVERLAY_CLASS, elemProps && styles.overlay)}
+                  style={
+                    elemProps
+                      ? geometry(
+                          elemProps['position'],
+                          0,
+                          0,
+                          elemProps['left'] - HIGHLIGHT_BORDER_SIZE,
+                          documentScrollHeight,
+                        )
+                      : undefined
+                  }
+                />
+                <div
+                  className={clsx(OVERLAY_CLASS, elemProps && styles.overlay)}
+                  style={
+                    elemProps
+                      ? geometry(
+                          elemProps['position'],
+                          0,
+                          elemProps['left'] - HIGHLIGHT_BORDER_SIZE,
+                          elemProps['width'] + HIGHLIGHT_BORDER_SIZE * 2,
+                          elemProps['top'] - HIGHLIGHT_BORDER_SIZE,
+                        )
+                      : undefined
+                  }
+                />
+                <div
+                  className={clsx(OVERLAY_CLASS, elemProps && styles.overlay)}
+                  style={
+                    elemProps
+                      ? geometry(
+                          elemProps['position'],
+                          elemProps['bottom'] + HIGHLIGHT_BORDER_SIZE,
+                          elemProps['left'] - HIGHLIGHT_BORDER_SIZE,
+                          elemProps['width'] + HIGHLIGHT_BORDER_SIZE * 2,
+                          documentScrollHeight - elemProps['bottom'] - HIGHLIGHT_BORDER_SIZE,
+                        )
+                      : undefined
+                  }
+                />
+                <div
+                  className={clsx(OVERLAY_CLASS, elemProps && styles.overlay)}
+                  style={
+                    elemProps
+                      ? geometry(
+                          elemProps['position'],
+                          0,
+                          elemProps['left'] + elemProps['width'] + HIGHLIGHT_BORDER_SIZE,
+                          documentScrollWidth - elemProps['right'],
+                          documentScrollHeight,
+                        )
+                      : undefined
+                  }
+                />
+              </>
+            )}
+          </>,
+          document.body,
+        )}
 
-      <ScreenshotSelect
-        onClick={takeNewScreenshot}
-        size="small"
-        {...props}
-        leftGlyph={
-          /* eslint-disable-next-line @next/next/no-img-element -- images are pre-optimized via build pipeline */
-          <img src={glyphImage} alt="Screenshot Button" />
-        }
-      >
+      <Button className={styles.screenshotSelect} onPress={takeNewScreenshot} {...props}>
+        {/* eslint-disable-next-line @next/next/no-img-element -- images are pre-optimized via build pipeline */}
+        <img slot="icon" src={glyphImage} alt="" width={16} height={16} />
         {selectedRating && selectedRating < 4 ? SCREENSHOT_BUTTON_TEXT_LOW : SCREENSHOT_BUTTON_TEXT}
-      </ScreenshotSelect>
+      </Button>
     </>
   );
 };
