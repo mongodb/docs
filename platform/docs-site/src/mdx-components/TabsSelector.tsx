@@ -2,34 +2,14 @@
 
 import { useContext, useMemo } from 'react';
 import _ from 'lodash';
-import { cx, css } from '@leafygreen-ui/emotion';
 import { OfflineSelectList, Select } from '@/mdx-components/Select';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
 import { reportAnalytics } from '@/utils/report-analytics';
 import type { DriverMap } from '@/mdx-components/Icons/DriverIconMap';
 import { DRIVER_ICON_MAP } from '@/mdx-components/Icons/DriverIconMap';
-import { theme } from '@/styles/theme';
+import styles from './tabs-selector.module.scss';
 import type { ActiveTabs, Selectors } from '@/context/tabs-context';
 import { TabContext, makeChoices } from '@/context/tabs-context';
-
-const selectStyle = css`
-  width: 100%;
-
-  & button > div > div > div {
-    display: flex;
-    align-items: center;
-  }
-
-  @media ${theme.screenSize.smallAndUp} {
-    /* Min width of right panel */
-    max-width: 140px;
-  }
-
-  @media ${theme.screenSize.upToLarge} {
-    /* Supports the alignment when on tablet or mobile */
-    max-width: 300px;
-  }
-`;
 
 const getLabel = (name: string) => {
   switch (name) {
@@ -56,7 +36,7 @@ const TabSelector = ({ activeTab, handleClick, iconMapping, name, options }: Tab
   const choices = useMemo(() => makeChoices({ name, iconMapping, options }), [name, iconMapping, options]);
   const select = (
     <Select
-      className={cx(selectStyle)}
+      className={styles.select}
       choices={choices}
       label={getLabel(name)}
       onChange={({ value }) => {
@@ -75,7 +55,7 @@ const TabSelector = ({ activeTab, handleClick, iconMapping, name, options }: Tab
 
   // scripts/offline-ui/tabs.js wires this to the matching hidden tabset.
   return (
-    <div className={cx(selectStyle)} data-offline-selector={name}>
+    <div className={styles.select} data-offline-selector={name}>
       {select}
       <OfflineSelectList choices={choices} label={getLabel(name)} />
     </div>

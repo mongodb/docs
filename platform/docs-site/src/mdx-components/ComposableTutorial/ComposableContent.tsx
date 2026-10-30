@@ -1,18 +1,12 @@
 'use client';
 
 import { useContext } from 'react';
-import { css, cx } from '@leafygreen-ui/emotion';
+import { clsx } from 'clsx';
 import type { ComposableNode } from '@/types/ast';
-import { theme } from '@/styles/theme';
 import { showComposable } from '@/mdx-components/ComposableTutorial';
 import ComposableContext, { ComposableSelectionsContext } from '@/mdx-components/ComposableTutorial/composable-context';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
-
-const containerStyle = css`
-  > *:first-child:not(script):not(style) {
-    margin-top: ${theme.size.medium};
-  }
-`;
+import styles from './composable-content.module.scss';
 
 export interface ComposableContentProps {
   selections?: ComposableNode['selections'];
@@ -28,7 +22,7 @@ const ComposableContent = ({ children, selections = {} }: ComposableContentProps
     return (
       <ComposableSelectionsContext.Provider value={selections}>
         <div
-          className={cx('composable-content', containerStyle)}
+          className={clsx('composable-content', styles.composableContent)}
           data-selections={isOfflineBuild ? JSON.stringify(selections) : undefined}
         >
           {children}

@@ -1,18 +1,15 @@
 'use client';
 
-import { useCallback, useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useState, useMemo, type ReactNode } from 'react';
 import queryString from 'query-string';
 import { keyBy, isEmpty } from 'lodash';
-import Button from '@leafygreen-ui/button';
-import type { LGGlyph } from '@leafygreen-ui/icon';
-import Icon from '@leafygreen-ui/icon';
-import { css, cx } from '@leafygreen-ui/emotion';
-import { palette } from '@leafygreen-ui/palette';
-import { theme } from '@/styles/theme';
+import { LinkButton, ButtonVariant } from '@via-ds/components/button';
+import DownloadIcon from '@via-ds/icons/Download';
 import type { Version, Docset } from '@/types/data';
 import { useVersionContext } from '@/context/version-context';
 import { isBrowser } from '@/utils/is-browser';
 import { Select } from '@/mdx-components/Select';
+import styles from './deprecated-version-selector.module.scss';
 
 type ProductChoice = {
     text: string;
@@ -24,68 +21,9 @@ export type VersionChoice = {
     value: string;
     versionName: string;
     url?: string;
-    icon?: LGGlyph.Element;
+    isDownload: boolean;
+    icon?: ReactNode;
 };
-
-const SELECT_WIDTH = '336px';
-
-const selectStyle = css`
-  margin-bottom: ${theme.size.medium};
-  width: ${SELECT_WIDTH};
-
-  @media ${theme.screenSize.upToSmall} {
-    width: 100%;
-  }
-`;
-
-const focusBoxShadow = (color: string) => `
-  0 0 0 2px ${color},
-  0 0 0 4px ${palette.blue.light1};
-`;
-
-// TODO: remove once DeprecatedVersionSelector is migrated to Via.
-const disabledStyle = css`
-  &[aria-disabled='true'] {
-    &,
-    &:hover,
-    &[data-hover='true'],
-    &:active,
-    &[data-active='true'] {
-      background-color: ${palette.gray.light2};
-      border-color: ${palette.gray.light1};
-      color: ${palette.gray.base};
-      box-shadow: none;
-      cursor: not-allowed;
-    }
-
-    &:focus-visible,
-    &[data-focus='true'] {
-      color: ${palette.gray.base};
-      box-shadow: ${focusBoxShadow(palette.white)};
-    }
-
-    // Needs to be nested here to ensure proper cascading
-    .dark-theme & {
-      &,
-      &:hover,
-      &[data-hover='true'],
-      &:active,
-      &[data-active='true'] {
-        background-color: ${palette.gray.dark3};
-        border-color: ${palette.gray.dark2};
-        color: ${palette.gray.dark1};
-        box-shadow: none;
-        cursor: not-allowed;
-      }
-
-      &:focus-visible,
-      &[data-focus='true'] {
-        color: ${palette.gray.dark1};
-        box-shadow: ${focusBoxShadow(palette.black)};
-      }
-    }
-  }
-`;
 
 const isPrimaryBranch = (version: string) => {
     return version === 'main' || version === 'master';
@@ -198,7 +136,8 @@ const DeprecatedVersionSelector = () => {
                             text: prefixVersion(version.versionSelectorLabel),
                             value: version.versionSelectorLabel,
                             versionName: version.versionName,
-                            icon: version.eolType === 'download' ? <Icon glyph="Download" /> : null,
+                            isDownload: version.eolType === 'download',
+                            icon: version.eolType === 'download' ? <DownloadIcon /> : null,
                             url: generateUrl(version, reposObj),
                         };
                     } else return null;
@@ -219,6 +158,7 @@ const DeprecatedVersionSelector = () => {
 
     const versionChoicesMap = useMemo(() => keyBy(versionChoices, 'value'), [versionChoices]);
 
+    const isDownload = !!versionChoicesMap[version]?.isDownload;
     const buttonDisabled = !(productName && version && !isEmpty(reposMap));
 
     // Fetch docsets for url
@@ -250,7 +190,7 @@ const DeprecatedVersionSelector = () => {
     return (
         <>
             <Select
-                className={cx(selectStyle)}
+                className={styles.select}
                 choices={productChoices}
                 defaultText="Product"
                 label="Select a Product"
@@ -258,7 +198,7 @@ const DeprecatedVersionSelector = () => {
                 value={productName}
             />
             <Select
-                className={cx(selectStyle)}
+                className={styles.select}
                 choices={versionChoices}
                 defaultText="Version"
                 disabled={productName === ''}
@@ -266,16 +206,14 @@ const DeprecatedVersionSelector = () => {
                 onChange={updateVersion}
                 value={version}
             ></Select>
-            <Button
-                variant="primary"
-                title="View or Download Documentation"
-                rightGlyph={versionChoicesMap[version]?.icon}
+            <LinkButton
+                variant={ButtonVariant.Primary}
                 href={versionChoicesMap[version]?.url}
-                disabled={buttonDisabled}
-                className={cx(disabledStyle)}
+                isDisabled={buttonDisabled}
             >
-                {versionChoicesMap[version]?.icon ? 'Download Documentation' : 'View Documentation'}
-            </Button>
+                {isDownload ? 'Download Documentation' : 'View Documentation'}
+                {isDownload && <DownloadIcon />}
+            </LinkButton>
         </>
     );
 };

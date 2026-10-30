@@ -4,40 +4,20 @@ import { useCallback, useContext, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { isEmpty } from 'lodash';
 import queryString, { type ParsedQuery } from 'query-string';
-import { palette } from '@leafygreen-ui/palette';
-import { css, cx } from '@leafygreen-ui/emotion';
+import { clsx } from 'clsx';
 import type { ComposableTutorialOption } from '@/types/ast';
 import { getLocalValue, setLocalValue } from '@/utils/browser-storage';
 import { isBrowser } from '@/utils/is-browser';
-import { theme } from '@/styles/theme';
 import { useHash, navigate } from '@/hooks/use-hash';
 import { usePageContext } from '@/context/page-context';
 import ConfigurableOption from '@/mdx-components/ComposableTutorial/ConfigurableOption';
 import ComposableContext, { ComposableContextProvider } from '@/mdx-components/ComposableTutorial/composable-context';
 import { ContentsContext } from '@/context/contents-context';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
+import styles from './composable-tutorial.module.scss';
 
 const DELIMITER_KEY = '**';
 const LOCAL_STORAGE_KEY = 'activeComposables';
-
-const containerStyling = css`
-  display: flex;
-  position: sticky;
-  top: ${theme.header.actionBarMobileHeight};
-  background: var(--background-color-primary);
-  column-gap: ${theme.size.default};
-  row-gap: 12px;
-  justify-items: space-between;
-  border-bottom: 1px solid ${palette.gray.light2};
-  padding-bottom: ${theme.size.medium};
-  z-index: ${theme.zIndexes.content + 1};
-
-  @media ${theme.screenSize.upToMedium} {
-    flex-wrap: wrap;
-  }
-
-  ${isOfflineBuild && 'position: relative; top: unset;'}
-`;
 
 /** helper function to join key-value pairs as one string
  * ordered by keys alphabetically
@@ -357,7 +337,7 @@ const ComposableTutorialInternal = ({ children, composableOptions }: ComposableT
 
   return (
     <div className={isOfflineBuild ? 'offline-composable' : ''} data-selections={isOfflineBuild ? '{}' : undefined}>
-      <div className={cx(containerStyling)}>
+      <div className={clsx(styles.optionsBar, isOfflineBuild && styles.offline)}>
         {composableOptions.map((option, index) => {
           if (showComposable(option.dependencies, currentSelections) || isOfflineBuild) {
             return (
@@ -375,13 +355,7 @@ const ComposableTutorialInternal = ({ children, composableOptions }: ComposableT
           return null;
         })}
       </div>
-      <div
-        className={css`
-          margin-top: ${theme.size.medium};
-        `}
-      >
-        {children}
-      </div>
+      <div className={styles.content}>{children}</div>
     </div>
   );
 };

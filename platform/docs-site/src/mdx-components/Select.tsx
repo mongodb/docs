@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import { Dropdown } from '@via-ds/components/dropdown';
 import { Select as ViaSelect, SelectItem } from '@via-ds/components/select';
+import { clsx } from 'clsx';
 import { Checkmark } from '@via-ds/icons';
 import type { IconComponent } from '@/mdx-components/Icons/DriverIconMap';
 import styles from './Select.module.scss';
@@ -10,6 +11,7 @@ import styles from './Select.module.scss';
 export type SelectOption = {
   text: string;
   value: string;
+  /** A Via glyph, which already carries `slot="icon"`. */
   icon?: ReactNode;
   tabSelectorIcon?: IconComponent;
 };
@@ -28,11 +30,7 @@ const renderItems = (choices: Array<SelectOption>) =>
   choices.map(({ value: id, text, icon, tabSelectorIcon: TabSelectorIcon }) => (
     // Via's trigger shows textValue over children, which would drop the icon.
     <SelectItem key={id} id={id} textValue={icon || TabSelectorIcon ? undefined : text}>
-      {icon && (
-        <span slot="icon" className={styles.itemIcon}>
-          {icon}
-        </span>
-      )}
+      {icon}
       {TabSelectorIcon && <TabSelectorIcon slot="icon" className={styles.itemIcon} />}
       {text}
     </SelectItem>
@@ -62,7 +60,7 @@ const Select = ({
   ...props
 }: SelectProps) => (
   <ViaSelect
-    className={className}
+    className={clsx(styles.select, className)}
     selectedKey={value || null}
     isDisabled={disabled}
     placeholder={defaultText}
