@@ -46,6 +46,60 @@ To upgrade the {+driver-short+} to version 3.x, follow these steps:
       to upgrade your driver to v{+last-version-2-number+}. Then, address all breaking
       changes for v3.0.
 
+.. _csharp-breaking-changes-v3.13:
+
+Version 3.13 Breaking Changes
+-----------------------------
+
+- The driver now rejects malformed raw BSON. Writing a raw BSON document
+  or array throws an ``ArgumentException`` if its declared length is
+  inconsistent with the buffer. The driver ignores bytes past the
+  declared length.
+
+- The driver no longer interns ``BsonSymbol`` values, and
+  ``BsonSymbolTable`` is obsolete. Use ``BsonSymbol.Create()`` or the
+  implicit string conversion instead.
+
+- The driver now rejects binary subtypes outside the range 0 through
+  255. This affects the ``BsonBinaryData`` class, the JSON reader
+  (``BinData``, ``HexData``, and the legacy ``$type`` representation),
+  and the binary writer.
+
+- ``PushEach()`` and ``AddToSetEach()`` with a single value now always
+  render ``$each``, and ``PullAll()`` with a single value now always
+  renders ``$pullAll``. Earlier driver versions unwrapped a single
+  value or rendered it as ``$pull``.
+
+- The ``PatternProperty()`` overload that takes a field expression is
+  obsolete and produces a compiler warning. Use ``Property()`` to
+  configure a specific field. The driver now matches field names that
+  you pass to ``PatternProperty()`` both as literal field names and as
+  regular expressions.
+
+- GeoJSON serialization throws a ``BsonSerializationException`` when an
+  extra member has the same name as a declared member.
+
+- Automatic encryption passes the database name to ``libmongocrypt`` as
+  UTF-8 instead of using the Windows ANSI code page. Databases with
+  non-ASCII names now match their schema map namespaces.
+
+- If you use a dictionary key, ``BsonDocument`` key, or ``Mql.Field``
+  name that {+mdb-server+} would reinterpret, LINQ translation now
+  throws a ``NotSupportedException``. This includes names that contain
+  ".", names that start with "$" at the start of a path, and positional
+  operators.
+
+- To determine whether two ``MongoClient`` instances can share a
+  cluster, the driver uses SHA-256 to compare their full client
+  certificates. It also checks whether each certificate has a private
+  key. The driver reads these settings from each client's
+  ``SslSettings`` object. Earlier driver versions compared only the
+  certificate issuer and serial number.
+
+- ``FindOneAndReplace()`` throws an ``ArgumentException`` when the
+  first element name of the replacement document starts with "$",
+  consistent with ``ReplaceOne()`` behavior.
+
 .. _csharp-breaking-changes-v3.10:
 
 Version 3.10 Breaking Changes

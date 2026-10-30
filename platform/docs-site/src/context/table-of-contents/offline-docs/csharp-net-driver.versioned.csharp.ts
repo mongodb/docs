@@ -709,7 +709,7 @@ export const toc: L1TocItem[] = [
           {
             label: 'API Documentation',
             isExternal: true,
-            url: 'https://mongodb.github.io/mongo-csharp-driver/3.12.0/api',
+            url: 'https://mongodb.github.io/mongo-csharp-driver/3.13.0/api',
             versions: {
               excludes: ['v2.x'],
             },
