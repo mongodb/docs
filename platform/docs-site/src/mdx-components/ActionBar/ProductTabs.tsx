@@ -1,95 +1,23 @@
 'use client';
 
-import { Tabs as LeafyTabs, Tab as LeafyTab } from '@leafygreen-ui/tabs';
-import { Body } from '@leafygreen-ui/typography';
+import clsx from 'clsx';
+import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@via-ds/components/tabs';
+import { Text } from '@via-ds/components/typography';
+import { Size } from '@via-ds/components/types';
+import Checkmark from '@via-ds/icons/Checkmark';
 import { useRouter } from 'next/navigation';
-import { css, cx } from '@leafygreen-ui/emotion';
-import { theme } from '@/styles/theme';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
 import useScreenSize from '@/hooks/use-screen-size';
-import Icon from '@leafygreen-ui/icon';
-import { palette } from '@leafygreen-ui/palette';
 import { navigateToDocsPath } from '@/utils/navigate-to-docs-path';
 import { useSidenavContext } from '@/context/sidenav-context';
 import { useCallback, useId } from 'react';
+import styles from './product-tabs.module.scss';
 
 const NAV_TABS = [
   { label: 'Database', path: '/docs' },
   { label: 'Atlas Agent Engine', path: '/docs/agentengine' },
   { label: 'Voyage AI Models', path: '/docs/voyageai' },
 ] as const;
-
-const containerStyling = css`
-  display: flex;
-  align-items: center;
-  gap: ${theme.size.medium};
-`;
-
-const labelStyling = css`
-  margin-left: 20px;
-  padding-top: 5px;
-`;
-
-const forceNoWrapStyling = css`
-  white-space: nowrap;
-`;
-
-const tabsWrapperStyling = css`
-  flex-shrink: 0;
-  align-self: flex-end;
-`;
-
-const productTabsStyling = css`
-  margin-bottom: 0;
-
-  // Hide the empty tab panel area — tabs are navigation only
-  > div:last-of-type {
-    display: none;
-  }
-
-  // Remove the default bottom border on the tab list so it sits flush
-  // with the action bar's own bottom border
-  > div:first-of-type {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
-  }
-
-  button[role='tab'] {
-    font-size: ${theme.fontSize.small};
-    padding-bottom: ${theme.size.small};
-  }
-`;
-
-const mobileListStyling = css`
-  display: flex;
-  margin-left: 15px;
-  margin-top: 10px;
-  flex-direction: column;
-  padding: ${theme.size.small} 0;
-`;
-
-const mobileTitleStyling = css`
-  margin-left: 5px;
-`;
-
-const mobileItemStyling = css`
-  p {
-    font-size: ${theme.fontSize.small};
-  }
-  display: flex;
-  align-items: center;
-  gap: ${theme.size.small};
-  cursor: pointer;
-  padding: 2px 0;
-`;
-
-const mobileDividerStyling = css`
-  border: unset;
-  border-bottom: 1px solid var(--sidenav-border-bottom-color);
-  margin: 6px 5px;
-  width: 90%;
-`;
 
 export const ProductTabs = ({ slug }: { slug: string }) => {
   const router = useRouter();
@@ -105,22 +33,29 @@ export const ProductTabs = ({ slug }: { slug: string }) => {
       ? 2
       : 0;
 
-  if (isOfflineBuild) return <Body className={cx(mobileTitleStyling, forceNoWrapStyling)}>Documentation</Body>;
+  if (isOfflineBuild)
+    return (
+      <Text size={Size.Large} className={clsx(styles.mobileTitle, styles.noWrap)}>
+        Documentation
+      </Text>
+    );
 
   if (isTabletOrMobile) {
     return (
-      <div className={cx(mobileListStyling)}>
-        <Body className={cx(mobileTitleStyling, forceNoWrapStyling)}>Documentation</Body>
-        <hr className={cx(mobileDividerStyling)} />
+      <div className={styles.mobileList}>
+        <Text size={Size.Large} className={clsx(styles.mobileTitle, styles.noWrap)}>
+          Documentation
+        </Text>
+        <hr className={styles.mobileDivider} />
         {NAV_TABS.map(({ label, path }, index) => {
           const isActive = index === activeIndex;
           return (
             <div key={label}>
-              <div className={cx(mobileItemStyling)} onClick={() => navigateToDocsPath(router, path)}>
-                {isActive ? <Icon glyph="Checkmark" color={palette.blue.base} /> : <div style={{ width: 16 }} />}
-                <Body weight={isActive ? 'semiBold' : 'regular'}>{label}</Body>
+              <div className={styles.mobileItem} onClick={() => navigateToDocsPath(router, path)}>
+                {isActive ? <Checkmark /> : <div style={{ width: 16 }} />}
+                <Text>{label}</Text>
               </div>
-              {index < NAV_TABS.length - 1 && <hr className={cx(mobileDividerStyling)} />}
+              {index < NAV_TABS.length - 1 && <hr className={styles.mobileDivider} />}
             </div>
           );
         })}
@@ -129,19 +64,28 @@ export const ProductTabs = ({ slug }: { slug: string }) => {
   }
 
   return (
-    <div className={cx(containerStyling)}>
-      <Body className={cx(labelStyling, forceNoWrapStyling)}>Documentation</Body>
-      <div ref={tabsRef} className={cx(tabsWrapperStyling)}>
-        <LeafyTabs
-          className={cx(productTabsStyling)}
-          selected={activeIndex}
-          setSelected={(index) => navigateToDocsPath(router, NAV_TABS[index].path)}
-          aria-label="Product navigation"
+    <div className={styles.container}>
+      <Text size={Size.Large} className={clsx(styles.label, styles.noWrap)}>
+        Documentation
+      </Text>
+      <div ref={tabsRef} className={styles.tabsWrapper}>
+        {/* Tabs stand in for navigation links until design has a horizontal nav pattern */}
+        <Tabs
+          selectedKey={NAV_TABS[activeIndex].path}
+          onSelectionChange={(key) => navigateToDocsPath(router, String(key))}
+          keyboardActivation="manual"
         >
-          {NAV_TABS.map(({ label }) => (
-            <LeafyTab key={label} name={label} />
-          ))}
-        </LeafyTabs>
+          <TabList aria-label="Product navigation">
+            {NAV_TABS.map(({ label, path }) => (
+              <Tab key={path}>{label}</Tab>
+            ))}
+          </TabList>
+          <TabPanels className={styles.panels}>
+            {NAV_TABS.map(({ path }) => (
+              <TabPanel key={path} />
+            ))}
+          </TabPanels>
+        </Tabs>
       </div>
     </div>
   );
