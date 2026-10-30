@@ -2,19 +2,16 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { css, cx } from '@leafygreen-ui/emotion';
-import IconButton from '@leafygreen-ui/icon-button';
-
-import Icon from '@leafygreen-ui/icon';
-import { SearchInput as LGSearchInput } from '@leafygreen-ui/search-input';
-import { Link } from '@leafygreen-ui/typography';
+import { clsx } from 'clsx';
+import { Button, ButtonVariant } from '@via-ds/components/button';
+import { SearchField } from '@via-ds/components/search-field';
+import MagnifyingGlass from '@via-ds/icons/MagnifyingGlass';
 import useScreenSize from '@/hooks/use-screen-size';
-import { theme } from '@/styles/theme';
 import { isBrowser } from '@/utils/is-browser';
 import { getCompleteUrl } from '@/utils/url-utils';
-import { searchIconStyling, searchInputStyling, StyledInputContainer, StyledSearchBoxRef } from './styles';
 import { reportAnalytics } from '@/utils/report-analytics';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
+import styles from './action-bar.module.scss';
 
 export const PLACEHOLDER_TEXT = `Search MongoDB Docs`;
 const PLACEHOLDER_TEXT_MOBILE = 'Search';
@@ -26,8 +23,7 @@ interface SearchInputProps {
 
 export const SearchInput = ({ className }: SearchInputProps) => {
   const searchParams = useSearchParams();
-  const [searchValue, setSearchValue] = useState(() => searchParams?.get('q') || '');
-  const searchBoxRef = useRef<HTMLDivElement>(null);
+  const [searchValue, setSearchValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const [mobileSearchActive, setMobileSearchActive] = useState(() => false);
   const keyPressHandler = useCallback(async (event: KeyboardEvent) => {
@@ -86,53 +82,47 @@ export const SearchInput = ({ className }: SearchInputProps) => {
   };
 
   return (
-    <StyledInputContainer className={cx(className)} mobileSearchActive={mobileSearchActive}>
-      <StyledSearchBoxRef ref={searchBoxRef}>
-        <LGSearchInput
-          aria-label={PLACEHOLDER_TEXT}
-          className={`sl-search-input ${searchInputStyling({ mobileSearchActive })}`}
-          value={searchValue}
-          placeholder={isMobile ? PLACEHOLDER_TEXT_MOBILE : PLACEHOLDER_TEXT}
-          onChange={(e) => {
-            setSearchValue(e.target.value);
-          }}
-          onFocus={() => {
-            reportAnalytics('Click', {
-              position: 'secondary nav',
-              position_context: 'Search bar selected',
-              scroll_position: currentScrollPosition(),
-              tagbook: 'true',
-            });
-          }}
-          onSubmit={onSubmit}
-          ref={inputRef}
-        />
-      </StyledSearchBoxRef>
+    <div className={clsx(styles['search-input'], mobileSearchActive && styles['mobile-search-active'], className)}>
+      <SearchField
+        aria-label={PLACEHOLDER_TEXT}
+        className={clsx('sl-search-input', styles['search-field'])}
+        value={searchValue}
+        placeholder={isMobile ? PLACEHOLDER_TEXT_MOBILE : PLACEHOLDER_TEXT}
+        onChange={setSearchValue}
+        onFocus={() => {
+          reportAnalytics('Click', {
+            position: 'secondary nav',
+            position_context: 'Search bar selected',
+            scroll_position: currentScrollPosition(),
+            tagbook: 'true',
+          });
+        }}
+        onSubmit={onSubmit}
+        ref={inputRef}
+      />
       {isMedium && mobileSearchActive && (
-        <Link
-          className={cx(css`
-            font-size: ${theme.fontSize.small};
-            font-weight: 400;
-          `)}
-          onClick={() => {
+        <Button
+          variant={ButtonVariant.Tertiary}
+          onPress={() => {
             setSearchValue('');
             setMobileSearchActive(false);
           }}
         >
           Cancel
-        </Link>
+        </Button>
       )}
       {!mobileSearchActive && (
-        <IconButton
+        <Button
+          variant={ButtonVariant.Tertiary}
           aria-label={PLACEHOLDER_TEXT}
-          className={searchIconStyling}
-          onClick={() => {
+          className={styles['search-toggle']}
+          onPress={() => {
             setMobileSearchActive((state) => !state);
           }}
         >
-          <Icon glyph={'MagnifyingGlass'} />
-        </IconButton>
+          <MagnifyingGlass slot="icon" />
+        </Button>
       )}
-    </StyledInputContainer>
+    </div>
   );
 };
