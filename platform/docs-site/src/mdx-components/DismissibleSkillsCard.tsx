@@ -7,7 +7,7 @@ import { Link, LinkStyle, Text, TextStyle } from '@via-ds/components/typography'
 import { Density } from '@via-ds/components/types';
 import { reportAnalytics } from '@/utils/report-analytics';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
-import { CloseButton } from '@/mdx-components/FeedbackWidget/components/close-button';
+import { CloseButton, type CloseButtonProps } from '@/mdx-components/FeedbackWidget/components/close-button';
 import { SkillsBadgeIcon } from '@/mdx-components/svg/SkillsBadgeIcon';
 import { useCookiesContext } from '@/context/cookies-context';
 import { usePageContext } from '@/context/page-context';
@@ -52,8 +52,8 @@ const DismissibleSkillsCard = ({ skill, url }: DismissibleSkillsCardProps) => {
     reportDismissibleSkillsCard(skill, event.currentTarget as HTMLElement);
   };
 
-  const onClose = (event: React.MouseEvent) => {
-    reportDismissibleSkillsCard(skill, event.currentTarget as HTMLElement);
+  const onClose: CloseButtonProps['onPress'] = (event) => {
+    reportDismissibleSkillsCard(skill, event.target as HTMLElement);
 
     // Save to cookie (expires in 1 year)
     setCookie(cookieName, 'true');
@@ -76,7 +76,7 @@ const DismissibleSkillsCard = ({ skill, url }: DismissibleSkillsCardProps) => {
             Earn a Skill Badge
           </Text>
         </div>
-        <CloseButton onClick={onClose} />
+        <CloseButton onPress={onClose} />
         <Text elementType="p">Master &quot;{skill}&quot; for free!</Text>
         <Link href={url} linkStyle={LinkStyle.Internal} onClick={onLinkClick}>
           Learn more

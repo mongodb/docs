@@ -57,7 +57,7 @@ const FeedbackCard = ({ isOpen, children }: FeedbackCardProps) => {
     isOpen && (
       <CardContainer>
         <Card>
-          <CloseButton onClick={onClose} />
+          <CloseButton onPress={onClose} />
           <ProgressBar />
           <div>{children}</div>
         </Card>

@@ -1,53 +1,10 @@
 import type { KeyboardEvent } from 'react';
 import { useState } from 'react';
-import styled from '@emotion/styled';
-import { palette } from '@leafygreen-ui/palette';
-import { css } from '@leafygreen-ui/emotion';
-import Icon from '@leafygreen-ui/icon';
+import { clsx } from 'clsx';
+import FavoriteIcon from '@via-ds/icons/Favorite';
 import { useFeedbackContext } from '../context';
 import useScreenSize from '@/hooks/use-screen-size';
-import { theme } from '@/styles/theme';
-
-const FILLED_STAR_COLOR = palette.green.light1;
-const UNFILLED_STAR_COLOR = palette.white;
-
-const starIconStyle = (isHighlighted: boolean) => css`
-  color: ${isHighlighted ? FILLED_STAR_COLOR : UNFILLED_STAR_COLOR};
-  stroke-width: ${isHighlighted ? 1 : 0.5}px;
-  stroke: ${palette.gray.dark2};
-  // Ensures that containing divs do not overflow
-  display: block;
-
-  // Prevents mousedown events from causing focus styling to appear
-  :focus:not(:focus-visible) {
-    outline: none;
-  }
-
-  // Allows focus styling only on keyboard interaction
-  :focus-visible {
-    outline-color: ${palette.blue.light1};
-    outline-offset: 1px;
-    border-radius: 6px;
-  }
-`;
-
-const Layout = styled.div`
-  display: flex;
-  gap: ${theme.size.small};
-  margin: 10px 0 ${theme.size.default};
-
-  @media ${theme.screenSize.upToLarge} {
-    gap: 12px;
-  }
-`;
-
-const StarContainer = styled.div`
-  cursor: pointer;
-`;
-
-export const StarRatingLabel = styled.div`
-  margin-top: 12px;
-`;
+import styles from './star-rating.module.scss';
 
 export type StarProps = {
   isHighlighted: boolean;
@@ -64,22 +21,19 @@ const Star = ({ isHighlighted, onClick, onMouseEnter, onMouseLeave, onFocus, onK
   const starSize = isTabletOrMobile ? 32 : 24;
 
   return (
-    <div onClick={onClick} onMouseLeave={onMouseLeave}>
-      <StarContainer>
-        <Icon
-          data-testid={`rating-star${isHighlighted ? '-highlighted' : ''}`}
-          className={starIconStyle(isHighlighted)}
-          glyph="Favorite"
-          size={starSize}
-          // Change default viewbox to allow focus outline to be more centered
-          viewBox="0 -0.5 16 16"
-          onMouseEnter={onMouseEnter}
-          tabIndex={0}
-          onFocus={onFocus}
-          onBlur={onBlur}
-          onKeyDown={onKeyDown}
-        />
-      </StarContainer>
+    <div className={styles.starContainer} onClick={onClick} onMouseLeave={onMouseLeave}>
+      <FavoriteIcon
+        data-testid={`rating-star${isHighlighted ? '-highlighted' : ''}`}
+        className={clsx(styles.star, isHighlighted && styles.highlighted)}
+        size={starSize}
+        // Change default viewbox to allow focus outline to be more centered
+        viewBox="0 -0.5 16 16"
+        onMouseEnter={onMouseEnter}
+        tabIndex={0}
+        onFocus={onFocus}
+        onBlur={onBlur}
+        onKeyDown={onKeyDown}
+      />
     </div>
   );
 };
@@ -126,8 +80,8 @@ const StarRating = ({
 
   return (
     <>
-      <Layout
-        className={className}
+      <div
+        className={clsx(styles.layout, className)}
         onMouseLeave={resetHoverStates}
         role={ariaLabelledBy ? 'group' : undefined}
         aria-labelledby={ariaLabelledBy}
@@ -150,7 +104,7 @@ const StarRating = ({
 
           return <Star key={ratingValue} isHighlighted={isHighlighted} {...eventProps} />;
         })}
-      </Layout>
+      </div>
     </>
   );
 };

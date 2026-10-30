@@ -1,38 +1,24 @@
-import { cx, css } from '@leafygreen-ui/emotion';
-import Icon from '@leafygreen-ui/icon';
-import IconButton, { Size } from '@leafygreen-ui/icon-button';
-import { theme } from '@/styles/theme';
+import { Button, ButtonVariant, type ButtonProps } from '@via-ds/components/button';
+import { Size } from '@via-ds/components/types';
+import XIcon from '@via-ds/icons/X';
 import { CLOSE_BUTTON_ALT_TEXT } from '../constants';
-
-const buttonStyles = css`
-  position: absolute !important;
-  top: ${theme.size.default};
-  right: ${theme.size.default};
-  height: ${theme.size.default};
-  width: ${theme.size.default};
-
-  @media ${theme.screenSize.upToSmall} {
-    top: ${theme.size.default};
-    right: ${theme.size.medium};
-  }
-`;
+import styles from './close-button.module.scss';
 
 export type CloseButtonProps = {
-  onClick: (event: React.MouseEvent) => void;
-  size?: Size;
-  className?: string;
+  onPress: NonNullable<ButtonProps['onPress']>;
 };
 
-const CloseButton = ({ onClick, size = Size.Default, className }: CloseButtonProps) => {
+const CloseButton = ({ onPress }: CloseButtonProps) => {
   return (
-    <IconButton
+    <Button
       aria-label={CLOSE_BUTTON_ALT_TEXT}
-      className={cx(buttonStyles, className)}
-      onClick={onClick}
-      size={size}
+      className={styles.closeButton}
+      onPress={onPress}
+      size={Size.Small}
+      variant={ButtonVariant.Tertiary}
     >
-      <Icon size={size} glyph="X" />
-    </IconButton>
+      <XIcon slot="icon" aria-hidden="true" />
+    </Button>
   );
 };
 
