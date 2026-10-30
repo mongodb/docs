@@ -15,8 +15,7 @@ public class QueryableEncryptionHelpers
         _appSettings = appSettings;
     }
 
-    public Dictionary<string, IReadOnlyDictionary<string, object>> GetKmsProviderCredentials(string kmsProviderName,
-        bool generateNewLocalKey)
+    public Dictionary<string, IReadOnlyDictionary<string, object>> GetKmsProviderCredentials(string kmsProviderName)
     {
         if (kmsProviderName == "aws")
         {
@@ -72,11 +71,10 @@ public class QueryableEncryptionHelpers
         }
         else if (kmsProviderName == "local")
         {
-            if (generateNewLocalKey)
+            // start-generate-local-key
+            // Reuse the key from the customer-master-key.txt file if it exists
+            if (!File.Exists("customer-master-key.txt"))
             {
-                File.Delete("customer-master-key.txt");
-
-                // start-generate-local-key
                 using var randomNumberGenerator = RandomNumberGenerator.Create();
                 try
                 {
@@ -89,8 +87,8 @@ public class QueryableEncryptionHelpers
                 {
                     throw new Exception("Unable to write Customer Master Key file due to the following error: " + e.Message);
                 }
-                // end-generate-local-key
             }
+            // end-generate-local-key
 
             // start-get-local-key
             // WARNING: Do not use a local key file in a production application
