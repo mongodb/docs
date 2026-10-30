@@ -1,9 +1,8 @@
 'use client';
 
-import { cx, css } from '@leafygreen-ui/emotion';
-import { theme } from '@/styles/theme';
+import { clsx } from 'clsx';
 import path from 'path';
-import { useState } from 'react';
+import type { CSSProperties } from 'react';
 import NextImage from 'next/image';
 import { Lightbox } from './Lightbox';
 import { Caption } from './Caption';
@@ -11,6 +10,7 @@ import { INTERNAL_IMAGE_API_PATH, ONLINE_IMAGE_PREFIX } from '@/constants';
 import { isDevMode } from '@/utils/isDevBuild';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
 import type { ImageAlign } from './types';
+import styles from './image.module.scss';
 
 const formatImageUrl = (imagePath: string) => {
   const relativePath = imagePath.replace(/^\//, '');
@@ -22,39 +22,11 @@ const formatImageUrl = (imagePath: string) => {
   }
 };
 
-const figureStyle = (width?: string, maxHeight?: string, hasHeroImageClass?: boolean) => css`
-  display: block;
-  width: auto;
-  ${!hasHeroImageClass ? `max-width: ${width && width !== 'auto' ? `min(${width}, 100%)` : '100%'};` : ''}
-  height: auto;
-  ${!hasHeroImageClass && maxHeight && maxHeight !== 'auto' ? `max-height: ${maxHeight};` : ''}
-`;
-
-// Wrapper to ensure alignment and bottom margins.
-const wrapperStyle = (align: ImageAlign) => css`
-  display: flex;
-  flex-direction: column;
-  align-items: ${flexAlignment(align)};
-  width: 100%;
-  margin-top: ${theme.size.medium};
-  margin-bottom: ${theme.size.medium};
-`;
-
-const flexAlignment = (align: ImageAlign) => {
-  switch (align) {
-    case 'center':
-      return 'center';
-    case 'right':
-      return 'flex-end';
-    default:
-      return 'flex-start';
-  }
-};
-
-const borderStyle = css`
-  border-radius: ${theme.size.default};
-  border: 0.5px solid var(--border-color);
-`;
+const sizeVariables = (width: string, maxHeight: string) =>
+  ({
+    ...(width !== 'auto' && { '--image-max-width': width }),
+    ...(maxHeight !== 'auto' && { '--image-max-height': maxHeight }),
+  }) as CSSProperties;
 
 export interface ImageProps {
   projectPath: string;
@@ -91,9 +63,6 @@ export const Image = ({
   intrinsicWidth,
   intrinsicHeight,
 }: ImageProps) => {
-  const [_, setIsModalOpen] = useState(false);
-  const openModal = () => setIsModalOpen(true);
-
   const fullPath = path.join(projectPath, src);
   // See formatImageUrl above: online → /_next/static/images asset URL, offline → /docs/images.
   const imageUrl = formatImageUrl(fullPath);
@@ -129,32 +98,42 @@ export const Image = ({
     lightbox || (typeof figwidth === 'number' && typeof width === 'number' && figwidth / width < 0.9);
 
   // Images are unoptimized (see next.config.mjs), so next/image emits a plain
-  // <img>; the intrinsic width+height prevent layout shift and the emotion class
-  // controls displayed size. Without dimensions, render a bare <img>. All formats
+  // <img>; the intrinsic width+height prevent layout shift and the module classes
+  // control displayed size. Without dimensions, render a bare <img>. All formats
   // (incl. SVG) use the same _next/static URL — no optimizer, no SVG special case.
-  const renderImage = (imgClassName: string, onClick?: () => void) =>
-    hasIntrinsicDimensions ? (
+  const renderImage = (extraClassName?: string, imageAlt = alt) => {
+    const imgClassName = clsx(
+      styles.image,
+      !hasHeroImageClass && styles.sized,
+      border && styles.border,
+      extraClassName,
+    );
+    const style = hasHeroImageClass ? undefined : sizeVariables(normalizeWidth(), normalizeHeight());
+
+    return hasIntrinsicDimensions ? (
       <NextImage
         src={imageUrl}
-        alt={alt}
+        alt={imageAlt}
         width={numericIntrinsicWidth}
         height={numericIntrinsicHeight}
         className={imgClassName}
-        onClick={onClick}
+        style={style}
       />
     ) : (
       // Intentional fallback for images without intrinsic dimensions (e.g. SVGs);
       // next/image requires numeric width+height, which we don't have here.
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={imageUrl} alt={alt} className={imgClassName} onClick={onClick} />
+      <img src={imageUrl} alt={imageAlt} className={imgClassName} style={style} />
     );
+  };
 
   if (showLightbox) {
     return (
       <Lightbox
-        figure={renderImage(
-          cx(figureStyle(normalizeWidth(), normalizeHeight(), hasHeroImageClass), border ? borderStyle : ''),
-        )}
+        figure={renderImage()}
+        // Dialog title already announces alt; an empty alt avoids reading it twice.
+        dialogFigure={renderImage(undefined, '')}
+        alt={alt}
         caption={caption}
         figwidth={normalizeWidth()}
         align={align}
@@ -162,16 +141,13 @@ export const Image = ({
     );
   }
 
-  const image = renderImage(
-    cx(figureStyle(normalizeWidth(), normalizeHeight(), hasHeroImageClass), border ? borderStyle : '', className),
-    openModal,
-  );
+  const image = renderImage(className);
 
   // Landing page CSS targets .hero-img as a direct grid child, so it must not be wrapped.
   if (hasHeroImageClass) return image;
 
   return (
-    <div className={cx(wrapperStyle(align), 'image-wrapper')}>
+    <div className={clsx(styles.wrapper, styles[align])}>
       {image}
       <Caption caption={caption} align={align} />
     </div>
