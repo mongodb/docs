@@ -212,8 +212,15 @@ create an encryption key and configure your project for
       .. _field-level-encryption-data-key-retrieve-csharp:
 
       Add the following code to your ``InsertEncryptedDocument.cs`` file
-      below the ``// Paste encryption schema below`` comment to define
-      an encryption schema:
+      below the ``// Paste encryption schema below`` comment. The code
+      uses the ``CsfleSchemaBuilder`` class to define an encryption
+      schema:
+
+      .. note::
+
+         The ``CsfleSchemaBuilder`` class requires .NET/C# Driver v3.5
+         or later. If you use an earlier version of the .NET/C# Driver,
+         manually define the encryption schema as a ``BsonDocument``.
 
       .. literalinclude:: /includes/csfle/csharp/InsertEncryptedDocument.cs
          :language: csharp

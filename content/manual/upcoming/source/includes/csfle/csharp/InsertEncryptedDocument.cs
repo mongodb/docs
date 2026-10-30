@@ -17,99 +17,28 @@ public static class InsertEncryptedDocument
 
         // start-json-schema
         var dekId = File.ReadAllText(Config.DekIdPath);
-        var schema = new BsonDocument
+        var schemaMap = CsfleSchemaBuilder.Create(schemaBuilder =>
         {
-            { "bsonType", "object" },
-            {
-                "encryptMetadata",
-                new BsonDocument("keyId", new BsonArray(new[]
+            schemaBuilder.Encrypt<BsonDocument>(
+                CollectionNamespace.FromFullName(dbNamespace),
+                builder =>
                 {
-                    new BsonBinaryData(
-                        Convert.FromBase64String(dekId),
-                        BsonBinarySubType.UuidStandard)
-                }))
-            },
-            {
-                "properties", new BsonDocument
-                {
-                    {
-                        "ssn", new BsonDocument
+                    builder
+                        .EncryptMetadata(keyId: GuidConverter.FromBytes(
+                            Convert.FromBase64String(dekId), GuidRepresentation.Standard))
+                        .Property("ssn", BsonType.Int32,
+                            EncryptionAlgorithm.AEAD_AES_256_CBC_HMAC_SHA_512_Deterministic)
+                        .Property("bloodType", BsonType.String,
+                            EncryptionAlgorithm.AEAD_AES_256_CBC_HMAC_SHA_512_Random)
+                        .Property("medicalRecords", BsonType.Array,
+                            EncryptionAlgorithm.AEAD_AES_256_CBC_HMAC_SHA_512_Random)
+                        .Property<BsonDocument>("insurance", insurance =>
                         {
-                            {
-                                "encrypt", new BsonDocument
-                                {
-                                    { "bsonType", "int" },
-                                    {
-                                        "algorithm",
-                                        "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    {
-                        "bloodType", new BsonDocument
-                        {
-                            {
-                                "encrypt", new BsonDocument
-                                {
-                                    { "bsonType", "string" },
-                                    {
-                                        "algorithm",
-                                        "AEAD_AES_256_CBC_HMAC_SHA_512-Random"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    {
-                        "medicalRecords", new BsonDocument
-                        {
-                            {
-                                "encrypt", new BsonDocument
-                                {
-                                    { "bsonType", "array" },
-                                    {
-                                        "algorithm",
-                                        "AEAD_AES_256_CBC_HMAC_SHA_512-Random"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    {
-                        "insurance", new BsonDocument
-                        {
-                            { "bsonType", "object" },
-                            {
-                                "properties", new BsonDocument
-                                {
-                                    {
-                                        "policyNumber", new BsonDocument
-                                        {
-                                            {
-                                                "encrypt", new BsonDocument
-                                                {
-                                                    { "bsonType", "int" },
-                                                    {
-                                                        "algorithm",
-                                                        "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic"
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        };
-        var schemaMap = new Dictionary<string, BsonDocument>
-        {
-            { dbNamespace, schema }
-        };
+                            insurance.Property("policyNumber", BsonType.Int32,
+                                EncryptionAlgorithm.AEAD_AES_256_CBC_HMAC_SHA_512_Deterministic);
+                        });
+                });
+        }).Build();
         // end-json-schema
 
         // start-create-client

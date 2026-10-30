@@ -144,11 +144,28 @@ Create the Application
             :ref:`Generate your {+dek-long+} <csfle-kmip-create-dek>` step of this
             guide.
 
-         .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/kmip/reader/CSFLE/InsertEncryptedDocument.cs
-            :start-after: start-schema
-            :end-before: end-schema
-            :language: csharp
-            :dedent:
+         .. tabs::
+
+            .. tab:: Use CsfleSchemaBuilder
+               :tabid: csharp-schema-builder
+
+               The ``CsfleSchemaBuilder`` class requires .NET/C# Driver
+               v3.5 or later.
+
+               .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/kmip/reader/CSFLE/InsertEncryptedDocument.cs
+                  :start-after: start-schema-builder
+                  :end-before: end-schema-builder
+                  :language: csharp
+                  :dedent:
+
+            .. tab:: Write the Schema Manually
+               :tabid: csharp-schema-manual
+
+               .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/kmip/reader/CSFLE/InsertEncryptedDocument.cs
+                  :start-after: start-schema
+                  :end-before: end-schema
+                  :language: csharp
+                  :dedent:
 
          .. include:: /includes/quick-start/schema/further-reading-note.rst
 

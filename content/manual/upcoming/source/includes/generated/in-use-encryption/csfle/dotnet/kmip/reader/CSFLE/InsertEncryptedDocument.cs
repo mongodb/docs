@@ -187,5 +187,37 @@ namespace Insert
             Console.WriteLine($"\n{secureResult}\n");
             // end-find
         }
+
+        // Builds the same encryption schema as the start-schema block by
+        // using CsfleSchemaBuilder, which requires .NET/C# Driver v3.5 or later.
+        public static Dictionary<string, BsonDocument> BuildSchemaMap(string dbNamespace)
+        {
+            // start-schema-builder
+            var keyId = "<Your base64 DEK ID here>";
+            var schemaMap = CsfleSchemaBuilder.Create(schemaBuilder =>
+            {
+                schemaBuilder.Encrypt<BsonDocument>(
+                    CollectionNamespace.FromFullName(dbNamespace),
+                    builder =>
+                    {
+                        builder
+                            .EncryptMetadata(keyId: GuidConverter.FromBytes(
+                                Convert.FromBase64String(keyId), GuidRepresentation.Standard))
+                            .Property("ssn", BsonType.Int32,
+                                EncryptionAlgorithm.AEAD_AES_256_CBC_HMAC_SHA_512_Deterministic)
+                            .Property("bloodType", BsonType.String,
+                                EncryptionAlgorithm.AEAD_AES_256_CBC_HMAC_SHA_512_Random)
+                            .Property("medicalRecords", BsonType.Array,
+                                EncryptionAlgorithm.AEAD_AES_256_CBC_HMAC_SHA_512_Random)
+                            .Property<BsonDocument>("insurance", insurance =>
+                            {
+                                insurance.Property("policyNumber", BsonType.Int32,
+                                    EncryptionAlgorithm.AEAD_AES_256_CBC_HMAC_SHA_512_Deterministic);
+                            });
+                    });
+            }).Build();
+            // end-schema-builder
+            return schemaMap;
+        }
     }
 }
