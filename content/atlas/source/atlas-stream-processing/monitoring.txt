@@ -327,9 +327,26 @@ The output document has the following fields:
        - ``stats.maxOpenWindowStartTime``
 
        ``stats.operatorStats`` can also include the following
-       field for certain source and sink operators:
+       fields for certain operators:
 
+       - ``stats.operatorStats.connectionType``
+       - ``stats.operatorStats.connectionName``
+       - ``stats.operatorStats.windowDuration``
        - ``stats.operatorStats.targetStats``
+       - ``stats.operatorStats.cache``
+       - ``stats.operatorStats.iceberg``
+       - ``stats.operatorStats.initialSync``
+
+       The :pipeline:`$https` operator adds no fields of its own to its
+       ``stats.operatorStats`` entry. It reports the shared
+       per-operator fields, with ``connectionType`` and
+       ``connectionName``. For ``$https``, ``inputMessageSize`` and
+       ``outputMessageSize`` are populated, and ``dlqMessageCount``
+       and ``dlqMessageSize`` count documents that failed the request
+       and moved to the :ref:`atlas-sp-dlq`. Other operators that
+       aren't sources or sinks don't report message sizes. The
+       processor-level input and output byte totals include
+       ``$https`` bytes.
 
    * - ``stats.operatorStats.maxMemoryUsage``
      - integer
@@ -386,6 +403,71 @@ The output document has the following fields:
        targets; after that, the stream processor stops adding new
        entries to ``targetStats`` but continues updating aggregate
        per-operator statistics.
+
+       Each document can also include the ``table``, ``iceberg``,
+       and ``initialSync`` fields.
+
+   * - ``stats.operatorStats.connectionType``
+     - string
+     - The type of connection that the operator uses, as a lowercase
+       string, such as ``https`` or ``atlas``. {+atlas-sp+} reports
+       this field only for operators that use a connection.
+
+   * - ``stats.operatorStats.connectionName``
+     - string
+     - The name of the connection that the operator uses, as it
+       appears in the connection registry. {+atlas-sp+} reports this
+       field only for operators that use a connection.
+
+   * - ``stats.operatorStats.windowDuration``
+     - document
+     - A percentile summary of recent window durations. {+atlas-sp+}
+       reports this field only for window operators. This document
+       contains the following fields:
+
+       - ``start``
+       - ``end``
+       - ``p50``
+       - ``p99``
+       - ``count``
+       - ``sum``
+       - ``unit``
+
+   * - ``stats.operatorStats.cache``
+     - document
+     - The cache statistics for a cached
+       :ref:`$lookup <atlas-sp-agg-lookup>` stage. This document
+       contains the following fields:
+
+       - ``hits``
+       - ``misses``
+
+   * - ``stats.operatorStats.iceberg``
+     - document
+     - The statistics for a ``$iceberg`` stage that specifies a
+       literal table name. This document contains the following
+       fields:
+
+       - ``totalRecords``
+       - ``totalPositionDeletes``
+       - ``totalDataFiles``
+       - ``totalDeleteFiles``
+       - ``totalFilesSize``
+       - ``committedAt``
+
+       If the ``$iceberg`` stage uses dynamic routing, these
+       statistics appear in ``stats.operatorStats.targetStats.iceberg``
+       instead.
+
+   * - ``stats.operatorStats.initialSync``
+     - document
+     - The initial sync progress for a change stream
+       :pipeline:`$source` stage that performs an initial sync. This
+       document contains the following fields, which sum across all
+       collections:
+
+       - ``copiedDocs``
+       - ``estimatedDocs``
 
    * - ``stats.kafkaPartitions``
      - array
