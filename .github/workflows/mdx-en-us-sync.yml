@@ -1,0 +1,434 @@
+name: Sync MDX to docs-mdx-en-us
+
+# Regenerates MDX for content paths that changed and pushes them to the
+# English mirror repo. Operator notes: .github/scripts/README.md.
+#
+# `mode: full` regenerates every active content path. It is the backfill for a
+# new target repo and the repair lever when a run has failed.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'content/**'
+      - 'platform/snooty-ast-to-mdx/**'
+      - 'platform/versioning/**'
+      - '.github/scripts/detect-mdx-content-paths.mjs'
+      - '.github/workflows/mdx-en-us-sync.yml'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'incremental (changed paths only) or full (every active path)'
+        type: choice
+        options:
+          - incremental
+          - full
+        default: incremental
+      paths:
+        description: 'Optional space-separated content paths to force, bypassing detection'
+        type: string
+        required: false
+      dry_run:
+        description: 'Generate and report without pushing'
+        type: boolean
+        default: false
+  pull_request:
+    paths:
+      - '.github/scripts/detect-mdx-content-paths.mjs'
+      - '.github/scripts/detect-mdx-content-paths.test.mjs'
+      - '.github/workflows/mdx-en-us-sync.yml'
+
+permissions:
+  contents: read
+
+# One run at a time. Runs queue rather than cancel, but GitHub keeps only one
+# pending run per concurrency group, so a superseded run never regenerates its
+# own merge. The last-synced-commit watermark in sync-manifest.json is what
+# makes that safe: each run diffs from the last successful sync to the tip of
+# main, so a later run covers everything the superseded run would have and no
+# merge is lost.
+concurrency:
+  group: mdx-en-us-sync
+  cancel-in-progress: false
+
+env:
+  TARGET_REPO: 10gen/docs-mdx-en-us
+  PNPM_VERSION: '10.27.0'
+
+jobs:
+  sync:
+    if: github.repository == '10gen/docs-mongodb-internal' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: Copy To Public
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # A queued run starts from an older SHA. Reset to the tip of main so the
+      # last run to finish always has the newest content, regardless of order.
+      # This runs on every event, including workflow_dispatch: the workflow
+      # only ever syncs from the tip of main, so generating from a dispatched
+      # branch is never wanted.
+      - name: Reset to tip of main
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git reset --hard origin/main
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: platform/pnpm-lock.yaml
+
+      - name: Install catalog tooling
+        working-directory: platform
+        run: pnpm install --filter versioning --no-frozen-lockfile
+
+      - name: Emit docset catalog
+        working-directory: platform
+        run: pnpm --filter versioning run emit
+
+      - name: Mint installation token
+        id: token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.SERVER_DOCS_PRIVATE_KEY }}
+          owner: 10gen
+          repositories: docs-mdx-en-us
+
+      - name: Read last synced commit
+        id: watermark
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+        run: |
+          set -euo pipefail
+          set +e
+          MANIFEST="$(gh api "repos/${TARGET_REPO}/contents/sync-manifest.json?ref=main" 2>"$RUNNER_TEMP/manifest.err")"
+          STATUS=$?
+          set -e
+          if [ "$STATUS" -ne 0 ]; then
+            if grep -q 'HTTP 404' "$RUNNER_TEMP/manifest.err"; then
+              echo "No sync-manifest.json on main yet; this is the first sync"
+              echo "sha=" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "Failed to read sync-manifest.json from ${TARGET_REPO}:" >&2
+            cat "$RUNNER_TEMP/manifest.err" >&2
+            exit 1
+          fi
+          SHA="$(printf '%s' "$MANIFEST" | jq -r '.content' | base64 -d | jq -r '.sourceCommit // empty')"
+          # The manifest lives in another repository, so treat its value as
+          # untrusted: it is interpolated into shell further down.
+          if ! printf '%s' "$SHA" | grep -qE '^[0-9a-f]{40}$'; then
+            echo "Watermark is absent or not a 40-hex commit SHA; the run will be full"
+            echo "sha=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if git cat-file -e "${SHA}^{commit}" 2>/dev/null; then
+            echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+            echo "Last synced commit: $SHA"
+          else
+            echo "sha=" >> "$GITHUB_OUTPUT"
+            echo "No usable watermark; the run will be full"
+          fi
+
+      - name: Collect changed files
+        id: changed
+        run: |
+          set -euo pipefail
+          WATERMARK='${{ steps.watermark.outputs.sha }}'
+          : > "$RUNNER_TEMP/changed.txt"
+          if [ -n "$WATERMARK" ]; then
+            git diff --name-only "$WATERMARK" origin/main > "$RUNNER_TEMP/changed.txt"
+          fi
+          echo "count=$(wc -l < "$RUNNER_TEMP/changed.txt")" >> "$GITHUB_OUTPUT"
+
+      - name: Determine mode
+        id: mode
+        env:
+          REQUESTED_MODE: ${{ inputs.mode }}
+          FORCED: ${{ inputs.paths }}
+        run: |
+          set -euo pipefail
+          MODE="${REQUESTED_MODE:-incremental}"
+          if [ -z "$FORCED" ]; then
+            if [ -z '${{ steps.watermark.outputs.sha }}' ]; then
+              MODE=full
+            fi
+            if grep -qE '^platform/(snooty-ast-to-mdx|versioning)/' "$RUNNER_TEMP/changed.txt"; then
+              MODE=full
+            fi
+          fi
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+          echo "Mode: $MODE"
+
+      - name: Detect content paths
+        id: detect
+        env:
+          FORCED: ${{ inputs.paths }}
+        run: |
+          set -euo pipefail
+          if [ -n "$FORCED" ]; then
+            read -r -a FORCED_PATHS <<< "$FORCED"
+            : > "$RUNNER_TEMP/paths.txt"
+            for p in "${FORCED_PATHS[@]}"; do
+              if [[ "$p" == *".."* || "$p" == /* || "$p" == *"*"* || "$p" == *"?"* || "$p" == *"["* ]]; then
+                echo "::error::invalid forced content path: $p" >&2
+                exit 1
+              fi
+              printf '%s\n' "$p" >> "$RUNNER_TEMP/paths.txt"
+            done
+          else
+            node .github/scripts/detect-mdx-content-paths.mjs \
+              --content-dir content \
+              --catalog platform/versioning/generated/docsets.json \
+              --mode '${{ steps.mode.outputs.mode }}' \
+              --changed-files "$RUNNER_TEMP/changed.txt" > "$RUNNER_TEMP/paths.txt"
+          fi
+          echo "count=$(grep -c . "$RUNNER_TEMP/paths.txt" || true)" >> "$GITHUB_OUTPUT"
+          echo "Paths to regenerate:"
+          cat "$RUNNER_TEMP/paths.txt"
+
+      - name: Install converter
+        if: steps.detect.outputs.count != '0'
+        working-directory: platform
+        run: pnpm install --filter snooty-ast-to-mdx --no-frozen-lockfile
+
+      - name: Generate MDX
+        if: steps.detect.outputs.count != '0'
+        run: |
+          set -euo pipefail
+          mapfile -t PATHS < "$RUNNER_TEMP/paths.txt"
+          SNOOTY_ARCH=linux ./platform/snooty-ast-to-mdx/convertRstToMdx.sh "${PATHS[@]}"
+
+      # Report only: a pre-existing parse failure somewhere in content-mdx
+      # should not block a sync of an unrelated project.
+      - name: Validate generated MDX parses
+        if: steps.detect.outputs.count != '0'
+        working-directory: platform
+        continue-on-error: true
+        run: pnpm --filter snooty-ast-to-mdx run validate:mdx-parse
+
+      - name: Report generated paths
+        if: steps.detect.outputs.count != '0'
+        run: |
+          set -euo pipefail
+          while IFS= read -r p; do
+            [ -z "$p" ] && continue
+            printf '%-40s %s files\n' "$p" "$(find "content-mdx/$p" -type f 2>/dev/null | wc -l)"
+          done < "$RUNNER_TEMP/paths.txt"
+          du -sh content-mdx
+
+      - name: Clone target
+        if: steps.detect.outputs.count != '0' && inputs.dry_run != true
+        env:
+          TOKEN: ${{ steps.token.outputs.token }}
+        run: |
+          set -euo pipefail
+          git clone "https://x-access-token:${TOKEN}@github.com/${TARGET_REPO}.git" "$RUNNER_TEMP/target"
+          cd "$RUNNER_TEMP/target"
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          # A brand-new repo has no branch to rebase onto.
+          if git ls-remote --exit-code --heads origin main >/dev/null 2>&1; then
+            git checkout -B main origin/main
+            echo "target_has_main=true" >> "$GITHUB_ENV"
+          else
+            git checkout -b main
+            echo "target_has_main=false" >> "$GITHUB_ENV"
+          fi
+
+      - name: Ensure target scaffolding
+        if: steps.detect.outputs.count != '0' && inputs.dry_run != true
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/target"
+          mkdir -p content-mdx
+          cat > README.md <<'EOF'
+          # docs-mdx-en-us
+
+          English MDX content, generated from
+          [10gen/docs-mongodb-internal](https://github.com/10gen/docs-mongodb-internal).
+
+          **Do not edit `content-mdx/` by hand.** It is overwritten on every sync.
+          Make changes in the source repository; the mirror follows `main`.
+
+          See `sync-manifest.json` for the source commit each sync was generated from.
+          EOF
+          cat > .gitattributes <<'EOF'
+          content-mdx/** linguist-generated=true
+          sync-manifest.json linguist-generated=true
+          EOF
+
+      - name: Sync generated content
+        if: steps.detect.outputs.count != '0' && inputs.dry_run != true
+        run: |
+          set -euo pipefail
+          while IFS= read -r p; do
+            [ -z "$p" ] && continue
+            src="content-mdx/$p"
+            dst="$RUNNER_TEMP/target/content-mdx/$p"
+            if [ -d "$src" ]; then
+              mkdir -p "$(dirname "$dst")"
+              # --delete so pages removed from source disappear from the mirror.
+              rsync -a --delete "$src/" "$dst/"
+            else
+              echo "::warning::generated directory $src is missing; removing it from the mirror"
+              rm -rf "$dst"
+            fi
+          done < "$RUNNER_TEMP/paths.txt"
+
+      # A per-path rsync cannot remove a project or version that dropped out of
+      # the active set, because it never appears in paths.txt. Full mode knows
+      # the complete active set, so it prunes everything else.
+      - name: Prune retired content paths
+        if: steps.detect.outputs.count != '0' && inputs.dry_run != true && steps.mode.outputs.mode == 'full' && !inputs.paths
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/target"
+          sed 's|/.*||' "$RUNNER_TEMP/paths.txt" | sort -u > "$RUNNER_TEMP/active-top.txt"
+          for dir in content-mdx/*/; do
+            [ -d "$dir" ] || continue
+            name="$(basename "$dir")"
+            if ! grep -qxF "$name" "$RUNNER_TEMP/active-top.txt"; then
+              echo "pruning retired project: content-mdx/$name"
+              rm -rf "$dir"
+            fi
+          done
+          for dir in content-mdx/*/*/; do
+            [ -f "${dir}_site.json" ] || continue   # only content-path roots, not page dirs
+            rel="${dir#content-mdx/}"
+            rel="${rel%/}"
+            if ! grep -qxF "$rel" "$RUNNER_TEMP/paths.txt"; then
+              echo "pruning retired version: content-mdx/$rel"
+              rm -rf "$dir"
+            fi
+          done
+
+      # sourceCommit is the tip of origin/main this run generated from, not
+      # github.sha: the tree was reset to origin/main before generation, so the
+      # triggering commit may be behind what was actually synced. Using it as
+      # the next watermark would skip everything merged in between.
+      # Skipped on a forced-path run: it regenerates only what the operator
+      # asked for, so it must not advance the last-synced watermark -- the next
+      # normal run then re-covers that range, which is wasteful but never wrong.
+      - name: Write sync manifest
+        if: steps.detect.outputs.count != '0' && inputs.dry_run != true && !inputs.paths
+        run: |
+          set -euo pipefail
+          PATHS_JSON=$(grep . "$RUNNER_TEMP/paths.txt" | sed 's/.*/"&"/' | paste -sd, -)
+          cat > "$RUNNER_TEMP/target/sync-manifest.json" <<EOF
+          {
+            "sourceRepository": "${{ github.repository }}",
+            "sourceCommit": "$(git rev-parse origin/main)",
+            "sourceCommitDate": "$(git show -s --format=%cI HEAD)",
+            "generatedAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "contentPaths": [${PATHS_JSON}]
+          }
+          EOF
+          cat "$RUNNER_TEMP/target/sync-manifest.json"
+
+      # `mode: full` commits one project at a time so the backfill never
+      # approaches the per-push size limit.
+      - name: Commit and push
+        if: steps.detect.outputs.count != '0' && inputs.dry_run != true
+        env:
+          MODE: ${{ steps.mode.outputs.mode }}
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/target"
+          REPO="${{ github.repository }}"
+          SHORT_SHA="${GITHUB_SHA::12}"
+
+          # target_has_main is set by the Clone target step: a brand-new repo
+          # has no branch to rebase onto, so the first push must skip the pull.
+          push_with_retry() {
+            for attempt in 1 2 3; do
+              if [ "${target_has_main:-false}" = "true" ]; then
+                git rebase --abort 2>/dev/null || true
+                if ! git pull --rebase --autostash origin main; then
+                  echo "rebase attempt ${attempt} failed; retrying"
+                  sleep $((attempt * 5))
+                  continue
+                fi
+              fi
+              if git push origin HEAD:main; then
+                target_has_main=true
+                return 0
+              fi
+              echo "push attempt ${attempt} failed; retrying"
+              sleep $((attempt * 5))
+            done
+            return 1
+          }
+
+          if [ "$MODE" = "full" ]; then
+            git add README.md .gitattributes
+            if ! git diff --cached --quiet; then
+              git commit -m "Add mirror scaffolding [skip ci]"
+              push_with_retry
+            fi
+            while IFS= read -r p; do
+              [ -z "$p" ] && continue
+              if [ ! -d "content-mdx/$p" ]; then
+                echo "::warning::no generated output for $p; skipping"
+                continue
+              fi
+              git add -A "content-mdx/$p"
+              if git diff --cached --quiet; then continue; fi
+              git commit -m "Sync ${p} from ${REPO}@${SHORT_SHA} [skip ci]"
+              push_with_retry
+            done < "$RUNNER_TEMP/paths.txt"
+            # Pruning removes directories that are not in paths.txt, so the
+            # per-project loop above cannot stage them. Sweep up the rest.
+            git add -A
+            if ! git diff --cached --quiet; then
+              git commit -m "Prune retired paths and update manifest from ${REPO}@${SHORT_SHA} [skip ci]"
+              push_with_retry
+            fi
+          else
+            git add -A
+            if git diff --cached --quiet; then
+              echo "Mirror already up to date"
+              exit 0
+            fi
+            git commit -m "Sync content-mdx from ${REPO}@${SHORT_SHA} [skip ci]"
+            push_with_retry
+          fi
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## MDX mirror sync"
+            echo ""
+            echo "- Mode: \`${{ steps.mode.outputs.mode }}\`"
+            echo "- Dry run: \`${{ inputs.dry_run }}\`"
+            echo "- Content paths: \`${{ steps.detect.outputs.count }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  test:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run detector tests
+        run: node --test .github/scripts/detect-mdx-content-paths.test.mjs
