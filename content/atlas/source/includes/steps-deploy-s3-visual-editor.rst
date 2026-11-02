@@ -86,8 +86,8 @@ a. Select the dataset for your {+fdi+} from the :guilabel:`Data Sources`
    #. Specify whether the bucket is :guilabel:`Read-only` or both 
       :guilabel:`Read and write`. 
 
-      |service| can only query :guilabel:`Read-only` buckets; if you 
-      wish to query and save query results to your |s3| bucket, choose 
+      |service| can only query :guilabel:`Read-only` buckets. To query
+      and save query results to your |s3| bucket, choose 
       :guilabel:`Read and write`. To save query results to your |s3| 
       bucket, the role policy that grants |service| access to your |aws| 
       resources must include the ``s3:PutObject`` and 
@@ -120,57 +120,53 @@ a. Select the dataset for your {+fdi+} from the :guilabel:`Data Sources`
    i. Follow the steps in the |service| user interface to assign an 
       access policy to your |aws| IAM role.
 
-      Your role policy for read-only or read and write access should look similar to the following:
+      Your role policy should look similar to one of these examples.
 
-      .. tabs:: 
+      For read-only access:
 
-         .. tab:: Read-Only Access 
-            :tabid: readonly
+      .. code-block:: json
 
-            .. code-block:: json 
-              
-               {
-                 "Version": "2012-10-17",
-                 "Statement": [
-                   {
-                     "Effect": "Allow",
-                     "Action": [
-                       "s3:ListBucket",
-                       "s3:GetObject",
-                       "s3:GetObjectVersion",
-                       "s3:GetBucketLocation"
-                     ],
-                     "Resource": [
-                       <role arn>
-                     ]
-                   }
-                 ]
-               }
+         {
+           "Version": "2012-10-17",
+           "Statement": [
+             {
+               "Effect": "Allow",
+               "Action": [
+                 "s3:ListBucket",
+                 "s3:GetObject",
+                 "s3:GetObjectVersion",
+                 "s3:GetBucketLocation"
+               ],
+               "Resource": [
+                 <role arn>
+               ]
+             }
+           ]
+         }
 
-         .. tab:: Read-Write Access 
-            :tabid: readwrite
+      For read and write access:
 
-            .. code-block:: json 
-              
-               {
-                 "Version": "2012-10-17",
-                 "Statement": [
-                   {
-                     "Effect": "Allow",
-                     "Action": [
-                       "s3:ListBucket",
-                       "s3:GetObject",
-                       "s3:GetObjectVersion",
-                       "s3:GetBucketLocation",
-                       "s3:PutObject",
-                       "s3:DeleteObject"
-                     ],
-                     "Resource": [
-                       <role arn>
-                     ]
-                   }
-                 ]
-               }
+      .. code-block:: json
+
+         {
+           "Version": "2012-10-17",
+           "Statement": [
+             {
+               "Effect": "Allow",
+               "Action": [
+                 "s3:ListBucket",
+                 "s3:GetObject",
+                 "s3:GetObjectVersion",
+                 "s3:GetBucketLocation",
+                 "s3:PutObject",
+                 "s3:DeleteObject"
+               ],
+               "Resource": [
+                 <role arn>
+               ]
+             }
+           ]
+         }
 
    #. Click :guilabel:`Next`.
 
