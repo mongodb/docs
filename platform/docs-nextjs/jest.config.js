@@ -6,7 +6,7 @@ const config = {
   testEnvironment: 'jest-environment-jsdom',
   maxWorkers: 8,
 
-  testMatch: ['<rootDir>/src/**/*.test.(ts|tsx)'],
+  testMatch: ['<rootDir>/src/**/*.test.(ts|tsx)', '<rootDir>/netlify/**/*.test.ts'],
 
   setupFiles: ['<rootDir>/src/tests/setup-env.ts'],
   setupFilesAfterEnv: ['<rootDir>/src/tests/test-setup.ts'],

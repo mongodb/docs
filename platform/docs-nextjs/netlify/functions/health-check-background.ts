@@ -10,8 +10,13 @@
  * ~700 pages with retries can take several minutes.
  */
 
+// Imported by path, not as `versioning`: Netlify leaves package imports external
+// and cannot load that package's TypeScript entry at runtime, but it bundles
+// relative imports.
+import { docsets } from '../../../versioning/index';
 import { TOP_PAGES } from './health-check-utils/top-pages';
-import { loadIndexPages, releaseRunLock } from './health-check-utils/blob-store';
+import { buildHealthCheckUrls } from './health-check-utils/build-health-check-urls';
+import { releaseRunLock } from './health-check-utils/blob-store';
 
 // Background mode is enabled via the `-background` filename suffix — the
 // installed @netlify/functions version doesn't yet support the newer
@@ -217,8 +222,7 @@ export default async function handler(): Promise<Response> {
       return new Response('Missing SLACK_WEBHOOK_URL', { status: 500 });
     }
 
-    const indexPages = await loadIndexPages();
-    const allPages = [...TOP_PAGES, ...indexPages];
+    const allPages = [...new Set([...TOP_PAGES, ...buildHealthCheckUrls(docsets)])];
 
     console.log(`Checking ${allPages.length} pages with concurrency ${CONCURRENCY}…`);
 
