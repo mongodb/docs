@@ -92,41 +92,53 @@ your query is running at top speed:
     Generally, sort b-tree indexes in ascending order from 
     the leading field in the index, if it's a compound index.
 
-- The :ref:`WiredTiger Ticket Number <storage-wiredtiger>` 
-  metric reflects the performance of the WiredTiger
-  storage engine.
+- The :ref:`WiredTiger Ticket Number <server-status-wiredTiger>` metric
+  reflects the concurrency state of the WiredTiger storage engine.
 
-  - WiredTiger read and write tickets are the WiredTiger storage engine's 
-    concurrency control mechanism to manage the number of concurrent transactions. 
-    Starting in version 7.0, MongoDB uses a dynamic algorithm to adjust the 
-    maximum number of concurrent storage engine transactions, 
-    optimizing database throughput during cluster overload.
-  
-  - The read and write tickets control the maximum number of concurrent transactions.
-    The WiredTiger ticket number should always be at 128. Sustained 
-    values below 128 indicates a server delay and consequential potential issues.
+  - WiredTiger uses separate pools of read tickets and write tickets
+    to control how many concurrent read and write operations can
+    execute in the storage engine.
+    
+  - The ticket count adjusts dynamically between 4 and 128 based on
+    workload. The initial value at startup approximates the node's
+    vCPU count, with a minimum of 4 tickets. Ticket counts can differ
+    across nodes in a cluster.
 
-  - To remedy a low WiredTiger ticket number: 
+  - To detect storage engine contention, monitor the
+    :serverstatus:`globalLock.currentQueue.readers`,
+    :serverstatus:`globalLock.currentQueue.writers`, and
+    :serverstatus:`globalLock.currentQueue.total` metrics. A sustained
+    rise in queued operations indicates a concurrency bottleneck.
 
-    - Ensure that the Dynamic Adjustment feature is enabled to 
-      manage ticket allocation automatically.
+  - The default upper bound of 128 covers most use cases. MongoDB
+    discourages manually adjusting the ticket count, because the
+    dynamic algorithm gradually increases concurrency and verifies
+    that additional tickets improve throughput. Rare workloads with high resource
+    availability may benefit from a higher ceiling.
 
-    - Ensure that your cluster has sufficient resources, such as 
-      CPU and memory, to handle the workload.
+  - If you observe performance degradation, investigate the
+    underlying bottleneck rather than adjusting ticket parameters
+    directly. Common causes include:
 
-    - If you are using MongoDB 3.2 or earlier,
-      upgrade to a later version that uses WiredTiger.
-  
-    - If you need to manually adjust the maximum number of concurrent 
-      transactions, you can modify the :parameter:`storageEngineConcurrentReadTransactions` and
-      :parameter:`storageEngineConcurrentWriteTransactions` parameters.
+    - Not enough CPU, memory, and disk I/O capacity for the workload.
+    - Poorly targeted queries (a high ratio of documents scanned to
+      documents returned), missing indexes, and high
+      :serverstatus:`metrics.operation.scanAndOrder` counts.
+    - WiredTiger cache pressure: sustained cache usage above the
+      eviction trigger (95%) or dirty data above the dirty trigger
+      (20%).
 
-.. note:: 
+    To learn how to analyze performance issues, see
+    :ref:`performance`.
 
-   Take caution when modifying :parameter:`storageEngineConcurrentReadTransactions` 
-   and :parameter:`storageEngineConcurrentWriteTransactions`, as changing 
-   these settings can lead to performance issues or errors. We recommend
-   you consult with MongoDB Support before changing these parameters.
+.. note::
+
+   You can manually adjust the maximum ticket count with the
+   :parameter:`storageEngineConcurrentReadTransactions` and
+   :parameter:`storageEngineConcurrentWriteTransactions` parameters.
+   Take caution when modifying these settings, as changes can lead to
+   performance issues or errors. Consult MongoDB Support before
+   changing these parameters.
 
 Document Structure Antipatterns 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
