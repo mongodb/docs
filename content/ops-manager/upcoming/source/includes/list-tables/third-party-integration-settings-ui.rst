@@ -190,21 +190,6 @@
        For more information about webhook templating, see
        :ref:`om-webhook-templating`.
 
-   * - CA Flowdock Settings
-   
-     - Sets default values for alert notifications sent to Flowdock.
-       |mms| enters the values by default when you add a Flowdock
-       notification to an :ref:`alert configuration <configure-alerts>`. If you add Flowdock
-       notifications, and if credentials to send notifications become
-       invalid, |service| sends an email to the project owner and
-       eventually removes the credentials.
-
-       Enter the following information from your CA Flowdock account.
-
-       - Org Name
-       - Flow Name
-       - API Token
-
    * - Microsoft Teams Webhook URL
 
      - Configures |mms| to send alerts about your project to 
