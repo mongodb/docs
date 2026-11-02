@@ -2,12 +2,10 @@
 
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
-import Button from '@leafygreen-ui/button';
-import { Icon } from '@leafygreen-ui/icon';
-import { IconButton } from '@leafygreen-ui/icon-button';
-import { cx } from '@leafygreen-ui/emotion';
+import { Button, ButtonVariant } from '@via-ds/components/button';
+import Sparkle from '@via-ds/icons/Sparkle';
 import type { Environments } from '@/utils/env-config';
-import { chatbotButtonStyling, chatbotMobileButtonStyling, ActionsBox as ActionsBoxStyled } from './styles';
+import styles from './action-bar.module.scss';
 import { DarkModeDropdown } from './DarkModeDropdown';
 import { reportAnalytics } from '@/utils/report-analytics';
 import { useChatbotModal } from '@/context/chatbot-context';
@@ -42,19 +40,19 @@ const ActionsContainer = () => {
   };
 
   return (
-    <ActionsBoxStyled>
-      <Button
-        className={cx(chatbotButtonStyling)}
-        leftGlyph={<Icon glyph="Sparkle" />}
-        aria-label={CHATBOT_TEXT}
-        variant={'primaryOutline'}
-        onClick={openChatbot}
-      >
+    <div className={styles.actions}>
+      <Button variant={ButtonVariant.PrimaryOutline} className={styles['chatbot-button']} onPress={openChatbot}>
+        <Sparkle role="presentation" />
         {CHATBOT_TEXT}
       </Button>
-      <IconButton className={cx(chatbotMobileButtonStyling)} aria-label={CHATBOT_TEXT} onClick={openChatbot}>
-        <Icon glyph={'Sparkle'} />
-      </IconButton>
+      <Button
+        variant={ButtonVariant.Tertiary}
+        className={styles['chatbot-mobile-button']}
+        aria-label={CHATBOT_TEXT}
+        onPress={openChatbot}
+      >
+        <Sparkle />
+      </Button>
       {
         <Suspense>
           <Chatbot serverBaseUrl={CHATBOT_SERVER_BASE_URL}>
@@ -63,7 +61,7 @@ const ActionsContainer = () => {
         </Suspense>
       }
       <DarkModeDropdown />
-    </ActionsBoxStyled>
+    </div>
   );
 };
 

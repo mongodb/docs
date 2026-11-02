@@ -5,11 +5,11 @@ import actionBarStyling from '@/mdx-components/ActionBar/action-bar.module.scss'
 import { SearchInput } from '@/mdx-components/ActionBar/SearchInput';
 import { ActionsContainer } from '@/mdx-components/ActionBar/ActionsContainer';
 import { Suspense, useEffect, useRef, useState, type RefObject } from 'react';
-import { Overline } from '@leafygreen-ui/typography';
-import Icon from '@leafygreen-ui/icon';
+import { Button, ButtonVariant } from '@via-ds/components/button';
+import { Text, TextStyle } from '@via-ds/components/typography';
+import ChevronDown from '@via-ds/icons/ChevronDown';
+import ChevronUp from '@via-ds/icons/ChevronUp';
 import { useSidenavContext } from '@/context/sidenav-context';
-import { overlineStyling } from '@/mdx-components/ActionBar/styles';
-import { cx } from '@leafygreen-ui/emotion';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
 import useScreenSize from '@/hooks/use-screen-size';
 
@@ -106,10 +106,17 @@ export const ActionBar = ({ template, sidenav, className }: ActionBarProps) => {
         }
       >
         {sidenav && (
-          <Overline className={cx(overlineStyling)} onClick={() => setHideMobile((state) => !state)}>
-            <Icon glyph={hideMobile ? 'ChevronDown' : 'ChevronUp'} />
-            Docs Menu
-          </Overline>
+          <Button
+            variant={ButtonVariant.Tertiary}
+            className={actionBarStyling['docs-menu-toggle']}
+            aria-expanded={!hideMobile}
+            onPress={() => setHideMobile((state) => !state)}
+          >
+            {hideMobile ? <ChevronDown role="presentation" /> : <ChevronUp role="presentation" />}
+            <Text elementType="span" textStyle={TextStyle.overline} className={actionBarStyling['docs-menu-label']}>
+              Docs Menu
+            </Text>
+          </Button>
         )}
         {!isOfflineBuild && (
           <Suspense fallback={null}>
