@@ -201,6 +201,7 @@ $client = new MongoDB\Client($uri);
 // Connects to a TLS-enabled deployment and disables server certificate verification
 // using client options
 // start-insecure-tls-client
+// Warning: Use the tlsInsecure option only for testing. Don't use it in production.
 $client = new MongoDB\Client(
     'mongodb://<hostname>:<port>/',
     ['tls' => true, 'tlsInsecure' => true],
@@ -210,12 +211,14 @@ $client = new MongoDB\Client(
 // Connects to a TLS-enabled deployment and disables server certificate verification
 // using connection URI parameters
 // start-insecure-tls-uri
+// Warning: Use the tlsInsecure option only for testing. Don't use it in production.
 $uri = 'mongodb://<hostname>:<port>/?tls=true&tlsInsecure=true';
 $client = new MongoDB\Client($uri);
 // end-insecure-tls-uri
 
 // Disables certificate validation using client options
 // start-disable-cert-client
+// Warning: Use the tlsAllowInvalidCertificates option only for testing. Don't use it in production.
 $client = new MongoDB\Client(
     'mongodb://<hostname>:<port>/',
     ['tls' => true, 'tlsAllowInvalidCertificates' => true],
@@ -224,6 +227,7 @@ $client = new MongoDB\Client(
 
 // Disables certificate validation using connection URI parameters
 // start-disable-cert-uri
+// Warning: Use the tlsAllowInvalidCertificates option only for testing. Don't use it in production.
 $uri = 'mongodb://<hostname>:<port>/?tls=true&tlsAllowInvalidCertificates=true';
 $client = new MongoDB\Client($uri);
 // end-disable-cert-uri
@@ -231,6 +235,7 @@ $client = new MongoDB\Client($uri);
 // Connects to a TLS-enabled deployment and disables hostname verification
 // using client options
 // start-disable-hostname-client
+// Warning: Use the tlsAllowInvalidHostnames option only for testing. Don't use it in production.
 $client = new MongoDB\Client(
     'mongodb://<hostname>:<port>/',
     ['tls' => true, 'tlsAllowInvalidHostnames' => true],
@@ -240,6 +245,7 @@ $client = new MongoDB\Client(
 // Connects to a TLS-enabled deployment and disables hostname verification
 // using connection URI parameters
 // start-disable-hostname-uri
+// Warning: Use the tlsAllowInvalidHostnames option only for testing. Don't use it in production.
 $uri = 'mongodb://<hostname>:<port>/?tls=true&tlsAllowInvalidHostnames=true';
 $client = new MongoDB\Client($uri);
 // end-disable-hostname-uri
