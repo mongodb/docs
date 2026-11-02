@@ -18,12 +18,11 @@ export const SUBMITTED_VIEW_TEXT = {
   HEADING: 'Thank you for your feedback!',
   SUB_HEADING: "Your input improves MongoDB's Documentation.",
   RESOURCES_CTA: 'Looking for more resources?',
-  SUPPORT_CTA: 'Have a support contact?',
+  SUPPORT_CTA: 'Have a support contract?',
 };
 
 export const SUBMITTED_VIEW_RESOURCE_LINKS = [
   { text: 'MongoDB Developer Community Forums', href: 'https://www.mongodb.com/community/forums/' },
-  { text: 'MongoDB Developer Center', href: 'https://www.mongodb.com/developer/' },
   { text: 'MongoDB University', href: 'https://learn.mongodb.com/' },
 ];
 
