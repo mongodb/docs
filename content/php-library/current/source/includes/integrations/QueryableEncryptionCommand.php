@@ -35,6 +35,7 @@ class QueryableEncryptionCommand extends Command
 
         // start-cmk
         // Paste encryption credentials below
+        // Warning: Local key files are for development only. Use a remote KMS in production.
         $keyFile = __DIR__ . '/../../master-key.bin';
         if (!file_exists($keyFile)) {
              file_put_contents($keyFile, random_bytes(96));

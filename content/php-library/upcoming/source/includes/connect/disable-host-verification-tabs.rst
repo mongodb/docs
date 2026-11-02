@@ -7,6 +7,7 @@
 
          $uri = 'mongodb://<hostname>:<port>';
 
+         // Warning: Use the tlsAllowInvalidHostnames option only for testing. Don't use it in production.
          $options = [
             'tls' => true,
             'tlsAllowInvalidHostnames' => true,
@@ -19,5 +20,6 @@
 
       .. code-block:: php
 
+         // Warning: Use the tlsAllowInvalidHostnames option only for testing. Don't use it in production.
          $uri = 'mongodb://<hostname>:<port>/?tls=true&tlsAllowInvalidHostnames=true';
          $client = MongoDB\Client($uri);

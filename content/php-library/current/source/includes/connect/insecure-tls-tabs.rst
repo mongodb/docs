@@ -7,6 +7,7 @@
 
          $uri = 'mongodb://<hostname>:<port>';
 
+         // Warning: Use the tlsInsecure option only for testing. Don't use it in production.
          $options = [
             'tls' => true,
             'tlsInsecure' => true,
@@ -19,5 +20,6 @@
 
       .. code-block:: php
 
+         // Warning: Use the tlsInsecure option only for testing. Don't use it in production.
          $uri = 'mongodb://<hostname>:<port>/?tls=true&tlsInsecure=true';
          $client = MongoDB\Client($uri);
