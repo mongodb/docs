@@ -41,6 +41,7 @@ class TestStorage(unittest.TestCase):
         from langchain_mongodb.docstores import MongoDBDocStore
 
         docstore = storage.create_document_store(TestStorage.CONNECTION_STRING)
+        self.addCleanup(docstore.close)
 
         self.assertIsInstance(docstore, MongoDBDocStore)
 
@@ -49,6 +50,7 @@ class TestStorage(unittest.TestCase):
         from langchain_core.documents import Document
 
         docstore = storage.create_document_store(TestStorage.CONNECTION_STRING)
+        self.addCleanup(docstore.close)
 
         docstore.mset(
             [
@@ -65,6 +67,7 @@ class TestStorage(unittest.TestCase):
         from langchain_core.documents import Document
 
         docstore = storage.create_document_store(TestStorage.CONNECTION_STRING)
+        self.addCleanup(docstore.close)
         docstore.mset([("k1", Document(page_content="first"))])
 
         docstore.mdelete(["k1"])

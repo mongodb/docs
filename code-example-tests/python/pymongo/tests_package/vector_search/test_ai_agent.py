@@ -176,3 +176,10 @@ class TestAiAgentUnit(unittest.TestCase):
         if cls.client is not None:
             cls.client.drop_database("ai_agent_db")
             cls.client.close()
+
+
+def tearDownModule():
+    # config.py opens its own MongoClient at import time, separate from the
+    # class-level client above, so close it once the module's tests finish.
+    if CONNECTION_STRING:
+        config.mongo_client.close()

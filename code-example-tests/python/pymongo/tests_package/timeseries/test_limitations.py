@@ -39,4 +39,5 @@ class TestLimitations(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         limitations.cleanup()
+        TestLimitations.client.close()
 

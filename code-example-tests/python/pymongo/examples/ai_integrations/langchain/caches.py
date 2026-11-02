@@ -53,7 +53,9 @@ def cache_llm_response(CONNECTION_STRING):
     cache.update(prompt, llm_string, [Generation(text="Paris")])  # :remove:
 
     hit = cache.lookup(prompt, llm_string)  # :remove:
-    return [generation.text for generation in hit]  # :remove:
+    result = [generation.text for generation in hit]  # :remove:
+    cache.close()  # :remove:
+    return result  # :remove:
 
 
 # :replace-end:

@@ -65,6 +65,7 @@ class TestSecondaryIndexes(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         secondary_indexes.cleanup()
+        TestSecondaryIndexes.client.close()
 
 
 if __name__ == "__main__":

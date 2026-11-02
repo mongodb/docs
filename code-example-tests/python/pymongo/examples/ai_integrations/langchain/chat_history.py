@@ -31,7 +31,9 @@ def get_messages(CONNECTION_STRING):
     print(chat_message_history.messages)
     # :snippet-end:
 
-    return chat_message_history.messages  # :remove:
+    messages = chat_message_history.messages  # :remove:
+    chat_message_history.close()  # :remove:
+    return messages  # :remove:
 
 
 # :replace-end:

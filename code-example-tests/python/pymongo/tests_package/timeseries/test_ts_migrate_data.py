@@ -38,3 +38,7 @@ class TestTimeseries(unittest.TestCase):
         result = migrate_with_aggregation.query_new_ts_collection(TestTimeseries.CONNECTION_STRING)
         output_filepath = "examples/timeseries/ts-migrate-with-aggregation-output.txt"
         Expect.that(result).should_match(output_filepath)
+
+    @classmethod
+    def tearDownClass(cls):
+        TestTimeseries.client.close()

@@ -38,7 +38,8 @@ class TestChatHistory(unittest.TestCase):
 
     def test_add_messages_persists_both_messages(self):
         """Chat History: should store the user and AI messages in the collection."""
-        chat_history.add_messages(TestChatHistory.CONNECTION_STRING)
+        history = chat_history.add_messages(TestChatHistory.CONNECTION_STRING)
+        self.addCleanup(history.close)
 
         count = TestChatHistory.client["langchain_db"][
             "chat_history"
@@ -47,7 +48,8 @@ class TestChatHistory(unittest.TestCase):
 
     def test_add_messages_uses_session_id(self):
         """Chat History: should tag stored messages with the session identifier."""
-        chat_history.add_messages(TestChatHistory.CONNECTION_STRING)
+        history = chat_history.add_messages(TestChatHistory.CONNECTION_STRING)
+        self.addCleanup(history.close)
 
         doc = TestChatHistory.client["langchain_db"]["chat_history"].find_one({})
         self.assertEqual(doc["SessionId"], "chat-session-1")

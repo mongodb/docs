@@ -65,6 +65,7 @@ class TestAutoRemoval(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         auto_removal.cleanup()
+        TestAutoRemoval.client.close()
 
 
 if __name__ == "__main__":

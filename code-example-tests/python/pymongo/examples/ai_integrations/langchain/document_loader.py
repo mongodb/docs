@@ -21,6 +21,7 @@ def load_documents(CONNECTION_STRING):
     docs = loader.load()
     # :snippet-end:
 
+    loader.close()  # :remove:
     return docs  # :remove:
 
 

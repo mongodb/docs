@@ -45,6 +45,7 @@ class TestCaches(unittest.TestCase):
         from langchain_mongodb import MongoDBCache
 
         cache = caches.set_basic_cache(TestCaches.CONNECTION_STRING)
+        self.addCleanup(cache.close)
 
         self.assertIsInstance(cache, MongoDBCache)
 
@@ -74,6 +75,7 @@ class TestCaches(unittest.TestCase):
         ensure_vector_index(collection, index_name="default")
 
         cache = caches.set_semantic_cache(TestCaches.CONNECTION_STRING)
+        self.addCleanup(cache.close)
 
         self.assertIsInstance(cache, MongoDBAtlasSemanticCache)
 

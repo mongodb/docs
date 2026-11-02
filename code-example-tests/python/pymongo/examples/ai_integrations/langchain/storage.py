@@ -47,6 +47,7 @@ def create_byte_store(CONNECTION_STRING):
     mongodb_store.mdelete(["key1", "key2"])
     # :snippet-end:
 
+    mongodb_store.client.close()  # :remove:
     return values  # :remove:
 
 
