@@ -37,3 +37,12 @@ surviving run still picks up everything merged since the last successful sync.
 A run with `-f paths=...` regenerates only the named paths and deliberately
 does not update `sync-manifest.json`, so it never advances that marker. The
 next normal run therefore re-covers that range.
+
+### Credentials
+
+The sync mints its token from the `mongodb-server-docs-sync-bot` GitHub App
+(ID 867845), reading `vars.APP_ID` and `secrets.SERVER_DOCS_PRIVATE_KEY`
+from the `Copy To Public` environment. It reuses that App instead of a
+dedicated one because the App's private key cannot be read back out of
+secrets. The token is scoped to the target repo with `owner: 10gen` and
+`repositories: docs-mdx-en-us`.
