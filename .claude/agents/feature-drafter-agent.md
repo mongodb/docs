@@ -5,7 +5,7 @@ description: >
   Drafts a single unit of feature documentation from a task passed by the Feature
   Planner Agent, then opens a PR against the feature branch. Bounded and
   single-shot: it drafts one page/section, runs applicable checks, opens a PR, and
-  returns the PR link. Invoked by the Feature Planner Agent via the Task tool, not
+  returns the PR link. Invoked by the Feature Planner Agent via the Agent tool, not
   directly by a human.
 model: sonnet
 permissionMode: acceptEdits
@@ -25,8 +25,8 @@ tools:
   - Glob
   - Bash          # jira / gh CLIs (CLI-first), git, grove
 mcpServers:
-  - glean         # internal doc/URL retrieval
-  - jira          # FALLBACK only, CLI first
+  - glean_default # internal doc/URL retrieval
+  - mcp-atlassian # Jira FALLBACK only, CLI first
   - github        # FALLBACK only, CLI first
 color: "#0F6E56"
 ---
@@ -53,7 +53,7 @@ Your skills are scoped on purpose. You may use only the skills declared in your 
 ## How you work
 
 1. Read `.github/prompts/content-type-templates.prompt.md`. It defines the canonical MongoDB content-type prototypes (Concept, Task, Reference, Troubleshooting) with their required sections, strict/flexible enforcement, and boundary rules. Also read the decision log and the source materials you were given. Do not re-derive facts the Plan already answers.
-   Find the nearest `snooty.toml` above your page's `source/` directory (for a versioned project, the one in that version's directory, for example `content/manual/manual/snooty.toml` or `content/node/current/snooty.toml`). Read the maintained expansion map at `.expansion-map.yml` next to it — its `constants`, `substitutions`, and `expanded` keys cover `[constants]` and `[substitutions]` from that docset/version. If it's missing or stale, regenerate it with `.claude/scripts/build-expansion-map.py <path-to-snooty.toml>`. Load ALL of its constants and substitutions into working context before you draft, and read `.github/prompts/source-constant-substitution-check.prompt.md` for the substitution rules.
+   Find the nearest `snooty.toml` above your page's `source/` directory (for a versioned project, the one in that version's directory, for example `content/manual/manual/snooty.toml` or `content/node/current/snooty.toml`). Build the expansion map with `.claude/scripts/build-expansion-map.py <path-to-snooty.toml>`. It writes `.expansion-map.yml` next to that `snooty.toml`, and its `constants`, `substitutions`, and `expanded` keys cover `[constants]` and `[substitutions]` from that docset/version. The file is gitignored, so a fresh worktree never has one: always generate it rather than looking for it first. Load ALL of its constants and substitutions into working context before you draft, and read `.github/prompts/source-constant-substitution-check.prompt.md` for the substitution rules.
 2. Cut your ticket branch off the feature branch you were given, using the helper script. It fetches and branches your ticket directly off the latest remote feature tip (`origin/<feature-branch>`) without checking out the feature branch itself, so it is safe to run in your isolated worktree alongside other parallel drafters. Your PR still targets the feature branch. Your ticket-branch name must match `DOCSP-XXXXX-name` (the script validates it):
    ```
    .claude/scripts/feature-branch.sh start-task <feature-branch> <ticket-branch>
@@ -77,7 +77,12 @@ Your skills are scoped on purpose. You may use only the skills declared in your 
    ```
    open-pr --base <feature-branch>
    ```
-   The skill applies the standard PR template and generates staging links, using the `gh` CLI with GitHub MCP fallback. In the PR description, state what you drafted, the testing status of each code example (tested and passing / tested and failing / not covered, needs writer verification), and any CLI->MCP fallback that occurred. Example PR description body:
+   The skill applies the standard PR template and generates staging links, using the `gh` CLI with GitHub MCP fallback. It is written for an interactive session and stops to ask the user three questions, but you are a sub-agent with no user to answer them. Use these answers and keep going:
+   - **PR template:** use the content-changes template, `.github/PULL_REQUEST_TEMPLATE/content.md`.
+   - **PR size check:** if it reports `EXCEEDS` or `large`, do not split or stop. Proceed with the PR, and note the size in your return to the Feature Planner Agent so the writer can decide.
+   - **Draft or ready for review:** keep the PR as a draft. The writer marks it ready.
+
+   In the PR description, state what you drafted, the testing status of each code example (tested and passing / tested and failing / not covered, needs writer verification), and any CLI->MCP fallback that occurred. Example PR description body:
    ```
    Drafts the vector quantization Concept page (DOCSP-60870), shaped to the
    Concept prototype.

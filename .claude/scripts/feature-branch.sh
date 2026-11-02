@@ -109,6 +109,8 @@ cmd_create() {
     echo "feature branch '$branch' already exists on origin; checking it out"
     git fetch origin "$branch"
     git checkout "$branch"
+    # A local copy from an earlier run can lag origin, where ticket PRs merge.
+    git merge --ff-only "origin/$branch"
   else
     git checkout -b "$branch" origin/main
     git push origin "$branch"
@@ -120,8 +122,11 @@ cmd_sync() {
   local branch="$1"
   validate_feature_branch "$branch"
   warn_if_dirty
-  git checkout "$branch"
   git fetch origin
+  git checkout "$branch"
+  # Ticket PRs merge on GitHub, so the local feature branch is usually behind
+  # origin. Fast-forward it first, or the push below is rejected.
+  git merge --ff-only "origin/$branch"
   git merge origin/main         # merge, never rebase
   git push origin "$branch"
   echo "synced '$branch' with main. Tell collaborators to update their ticket branches."

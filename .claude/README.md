@@ -12,7 +12,7 @@ In brief: the writer authors a Documentation Plan and Docs Scope, the **Feature 
 │   ├── feature-planner-agent.md   # the custom agent (primary/orchestrator)
 │   └── feature-drafter-agent.md   # sub-agent: drafts one unit, opens a PR
 ├── scripts/
-│   └── feature-branch.sh          # deterministic git flow (create/sync/start-task)
+│   └── feature-branch.sh          # deterministic git flow (create/sync/start-task/daily-sync)
 └── templates/                     # writer fills these out per feature
     ├── documentation-plan-template.md
     ├── docs-scope-template.md
@@ -33,7 +33,7 @@ In brief: the writer authors a Documentation Plan and Docs Scope, the **Feature 
 
 - **Content types.** Content is Concept, Task, Reference, or Troubleshooting. Feature Drafter Agents shape each page to the matching prototype in `.github/prompts/content-type-templates.prompt.md`, the single source for the prototypes, kept in sync with the style guide. Product-specific variations the writer notes in the Plan take precedence.
 - **Source constants and substitutions.** Feature Drafter Agents read the target project's `snooty.toml` and use its defined `[constants]` (`{+name+}`) and `[substitutions]` (`|name|`) instead of hardcoding product names, versions, or recurring terms. See `.github/prompts/source-constant-substitution-check.prompt.md`.
-- **Feature branch.** Per the docs team's [Feature Branches Handling](https://wiki.corp.mongodb.com/spaces/DE/pages/239736577/Feature+Branches+Handling) process, Feature Drafter Agent PRs target the feature branch; the writer (branch owner) syncs it with `main` daily and merges the final feature-branch-to-`main` PR. The git flow is encoded in `scripts/feature-branch.sh` (`create` / `sync` / `start-task`), so the agents call the script instead of running raw git (it always uses `git merge`, never `git rebase`).
+- **Feature branch.** Per the docs team's [Feature Branches Handling](https://wiki.corp.mongodb.com/spaces/DE/pages/239736577/Feature+Branches+Handling) process, Feature Drafter Agent PRs target the feature branch; the writer (branch owner) syncs it with `main` daily (or automates that with a generated GitHub Actions workflow) and merges the final feature-branch-to-`main` PR. The git flow is encoded in `scripts/feature-branch.sh` (`create` / `sync` / `start-task` / `daily-sync`, which generates the daily main-merge workflow), so the agents call the script instead of running raw git (it always uses `git merge`, never `git rebase`).
 - **CLI first, MCP fallback.** Jira/GitHub via the `jira`/`gh` CLIs, MCP only as fallback. Glean is always MCP.
 - **Writer owns review.** No review sub-agent. The human is the last word.
 
