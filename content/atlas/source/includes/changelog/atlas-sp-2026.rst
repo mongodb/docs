@@ -1,3 +1,11 @@
+.. _atlas-sp-20261029:
+
+29 October 2026 Release
+-----------------------
+
+- Adds support for |aws| PrivateLink for {+atlas-sp+} workspaces. To
+  learn more, see :ref:`atlas-sp-manage-workspace-private-endpoint`.
+
 .. _atlas-sp-20261008:
 
 8 October 2026 Release
