@@ -63,17 +63,9 @@ const tocData: TocItem[] = [
         ],
       },
       {
-        label: 'SQL Tutorials',
+        label: 'Connect and Query',
         contentSite: 'sql-interface',
-        url: '/docs/sql-interface/tutorials',
-        collapsible: true,
-        items: [
-          {
-            label: 'Connect and Query',
-            contentSite: 'sql-interface',
-            url: '/docs/sql-interface/tutorials/connect-tutorial',
-          },
-        ],
+        url: '/docs/sql-interface/tutorials/connect-tutorial',
       },
       {
         label: 'Authentication',
