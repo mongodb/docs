@@ -497,17 +497,14 @@ const tocData: TocItem[] = [
     ],
   },
   {
+    label: 'Multi-Tenant Architecture',
+    contentSite: 'search',
+    url: '/docs/search/deployment/multi-tenant-architecture',
+  },
+  {
     label: 'Review Deployment Options',
     contentSite: 'search',
     url: '/docs/search/deployment/deployment-options',
-    collapsible: true,
-    items: [
-      {
-        label: 'Multi-Tenant Architecture',
-        contentSite: 'search',
-        url: '/docs/search/deployment/multi-tenant-architecture',
-      },
-    ],
   },
   {
     label: 'Monitor Search',

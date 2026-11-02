@@ -1211,20 +1211,9 @@ export const toc: L1TocItem[] = [
                         url: '/docs/:version/core/index-unique/convert-to-unique',
                       },
                       {
-                        label: 'Sharded Collections',
-                        contentSite: 'docs',
-                        url: '/docs/:version/tutorial/shard-collection-with-unique-index',
-                        versions: {
-                          excludes: ['upcoming'],
-                        },
-                      },
-                      {
                         label: 'Unique Index on Sharded Collection',
                         contentSite: 'docs',
                         url: '/docs/:version/tutorial/create-unique-index-on-sharded-collection',
-                        versions: {
-                          excludes: ['upcoming'],
-                        },
                       },
                     ],
                   },
@@ -2340,17 +2329,14 @@ export const toc: L1TocItem[] = [
                 ],
               },
               {
+                label: 'Multi-Tenant Architecture',
+                contentSite: 'search',
+                url: '/docs/search/deployment/multi-tenant-architecture',
+              },
+              {
                 label: 'Review Deployment Options',
                 contentSite: 'search',
-                collapsible: true,
                 url: '/docs/search/deployment/deployment-options',
-                items: [
-                  {
-                    label: 'Multi-Tenant Architecture',
-                    contentSite: 'search',
-                    url: '/docs/search/deployment/multi-tenant-architecture',
-                  },
-                ],
               },
               {
                 label: 'Monitor Search',
@@ -4106,17 +4092,6 @@ export const toc: L1TocItem[] = [
                     label: 'Shard Key Indexes',
                     contentSite: 'docs',
                     url: '/docs/:version/core/sharding-shard-key-indexes',
-                    versions: {
-                      excludes: ['v7.0', 'v8.0'],
-                    },
-                  },
-                  {
-                    label: 'Shard a Collection',
-                    contentSite: 'docs',
-                    url: '/docs/:version/core/sharding-shard-a-collection',
-                    versions: {
-                      excludes: ['v8.3', 'manual', 'upcoming'],
-                    },
                   },
                   {
                     label: 'Choose Shard Key',
@@ -4168,33 +4143,21 @@ export const toc: L1TocItem[] = [
                 contentSite: 'docs',
                 collapsible: true,
                 url: '/docs/:version/tutorial/maintain-uniqueness-in-sharded-clusters',
-                versions: {
-                  excludes: ['v7.0', 'v8.0', 'v8.3', 'manual'],
-                },
                 items: [
                   {
                     label: 'Unique Index on Sharded Collection',
                     contentSite: 'docs',
                     url: '/docs/:version/tutorial/create-unique-index-on-sharded-collection',
-                    versions: {
-                      excludes: ['v7.0', 'v8.0', 'v8.3', 'manual'],
-                    },
                   },
                   {
                     label: 'Uniqueness on Shard Key Values',
                     contentSite: 'docs',
                     url: '/docs/:version/tutorial/enforce-uniqueness-on-shard-key-values',
-                    versions: {
-                      excludes: ['v7.0', 'v8.0', 'v8.3', 'manual'],
-                    },
                   },
                   {
                     label: 'Uniqueness on Non-Shard Key Field',
                     contentSite: 'docs',
                     url: '/docs/:version/tutorial/enforce-uniqueness-on-non-shard-key-field',
-                    versions: {
-                      excludes: ['v7.0', 'v8.0', 'v8.3', 'manual'],
-                    },
                   },
                 ],
               },
@@ -9540,6 +9503,11 @@ export const toc: L1TocItem[] = [
                     label: 'Manage Stream Processing Workspaces',
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/atlas-stream-processing/manage-processing-instance',
+                  },
+                  {
+                    label: 'Manage Workspace Private Endpoints',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/atlas-stream-processing/manage-workspace-private-endpoint',
                   },
                   {
                     label: 'Manage Connections',
