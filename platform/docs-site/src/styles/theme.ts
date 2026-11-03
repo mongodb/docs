@@ -63,10 +63,6 @@ const header = {
   composableMobileHeight: '190px',
 };
 
-const widgets = {
-  buttonContainerMobileHeight: '60px',
-};
-
 // z-indexes for topmost major elements on the site. Subcomponents should have their own z-indexes set
 const zIndexes = {
   content: 1,
@@ -90,7 +86,6 @@ export const theme = {
   breakpoints,
   fontSize,
   header,
-  widgets,
   screenSize,
   size,
   zIndexes,

@@ -1,18 +1,4 @@
-import { palette } from '@leafygreen-ui/palette';
-import { css, cx } from '@leafygreen-ui/emotion';
-
-const iframeStyle = css`
-  border: var(--border);
-  border-radius: var(--border-radius);
-
-  border: 'none';
-  border-radius: 0;
-
-  .dark-theme & {
-    border: 1px solid ${palette.gray.dark2};
-    border-radius: 5px;
-  }
-`;
+import styles from './instruqt-frame.module.scss';
 
 export type InstruqtFrameProps = {
   title: string;
@@ -29,7 +15,7 @@ export const InstruqtFrame = ({ title, height, embedValue }: InstruqtFrameProps)
 
   return (
     <iframe
-      className={cx(iframeStyle)}
+      className={styles.frame}
       allowFullScreen
       sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals"
       title={frameTitle}

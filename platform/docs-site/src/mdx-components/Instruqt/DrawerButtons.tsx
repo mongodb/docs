@@ -1,25 +1,11 @@
-import Icon from '@leafygreen-ui/icon';
-import { css, cx } from '@leafygreen-ui/emotion';
-import { palette } from '@leafygreen-ui/palette';
-import { theme } from '@/styles/theme';
+import { Button, ButtonVariant } from '@via-ds/components/button';
+import ArrowUpIcon from '@via-ds/icons/ArrowUp';
+import FullScreenEnterIcon from '@via-ds/icons/FullScreenEnter';
+import FullScreenExitIcon from '@via-ds/icons/FullScreenExit';
+import MinusIcon from '@via-ds/icons/Minus';
+import XIcon from '@via-ds/icons/X';
 import { useInstruqt } from '@/context/instruqt-context';
-
-const buttonContainerStyle = css`
-  display: flex;
-  align-items: center;
-  position: absolute;
-  right: 17px;
-  gap: 0 15px;
-
-  @${theme.screenSize.upToMedium} {
-    gap: 0 24px;
-  }
-`;
-
-const iconStyle = css`
-  color: ${palette.white};
-  cursor: pointer;
-`;
+import styles from './drawer-buttons.module.scss';
 
 export type DrawerButtonsProps = {
   height: number;
@@ -33,8 +19,8 @@ export const DrawerButtons = ({ height, minHeight, maxHeight, defaultHeight, set
   const { setIsOpen } = useInstruqt();
   const isMinHeight = height === minHeight;
   const isMaxHeight = height === maxHeight;
-  const minimizeGlyph = isMinHeight ? 'ArrowUp' : 'Minus';
-  const maximizeGlyph = isMaxHeight ? 'FullScreenExit' : 'FullScreenEnter';
+  const MinimizeIcon = isMinHeight ? ArrowUpIcon : MinusIcon;
+  const MaximizeIcon = isMaxHeight ? FullScreenExitIcon : FullScreenEnterIcon;
 
   const handleMinimizeDrawer = () => {
     const minimizeTargetHeight = isMinHeight ? defaultHeight : minHeight;
@@ -51,10 +37,24 @@ export const DrawerButtons = ({ height, minHeight, maxHeight, defaultHeight, set
   };
 
   return (
-    <div className={cx(buttonContainerStyle)}>
-      <Icon className={cx(iconStyle)} width={16} height={16} onClick={handleMinimizeDrawer} glyph={minimizeGlyph} />
-      <Icon className={cx(iconStyle)} width={24} height={24} onClick={handleMaximizeDrawer} glyph={maximizeGlyph} />
-      <Icon className={cx(iconStyle)} width={24} height={24} onClick={handleDrawerClose} glyph="X" />
+    <div className={styles.buttonContainer}>
+      <Button
+        aria-label={isMinHeight ? 'Expand lab' : 'Minimize lab'}
+        onPress={handleMinimizeDrawer}
+        variant={ButtonVariant.Tertiary}
+      >
+        <MinimizeIcon slot="icon" aria-hidden="true" />
+      </Button>
+      <Button
+        aria-label={isMaxHeight ? 'Exit full screen' : 'Maximize lab'}
+        onPress={handleMaximizeDrawer}
+        variant={ButtonVariant.Tertiary}
+      >
+        <MaximizeIcon slot="icon" aria-hidden="true" />
+      </Button>
+      <Button aria-label="Close lab" onPress={handleDrawerClose} variant={ButtonVariant.Tertiary}>
+        <XIcon slot="icon" aria-hidden="true" />
+      </Button>
     </div>
   );
 };

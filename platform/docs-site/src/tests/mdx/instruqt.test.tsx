@@ -88,8 +88,7 @@ describe('Instruqt', () => {
       const wrapper = renderComponent(mockData.exampleDrawer, hasLabDrawer);
       openLabDrawer(wrapper);
       const drawerContainer = await screen.findByTestId('resizable-wrapper');
-      // Label text based on aria labels for LG Icons
-      const minimizeButton = await screen.findByLabelText('Minus Icon');
+      const minimizeButton = await screen.findByRole('button', { name: 'Minimize lab' });
 
       const startingDrawerHeight = (defaultWindowHeight * 2) / 3;
       expect(drawerContainer).toHaveStyle(`height: ${startingDrawerHeight}px`);
@@ -100,7 +99,7 @@ describe('Instruqt', () => {
       await waitFor(() => expect(drawerContainer).toHaveStyle(`height: 60px`));
 
       // Ensure height goes back up to starting height
-      const arrowUpButton = wrapper.getByLabelText('Arrow Up Icon');
+      const arrowUpButton = wrapper.getByRole('button', { name: 'Expand lab' });
       userEvent.click(arrowUpButton);
       await waitFor(() => expect(drawerContainer).toHaveStyle(`height: ${startingDrawerHeight}px`));
     });
@@ -109,7 +108,7 @@ describe('Instruqt', () => {
       const wrapper = renderComponent(mockData.exampleDrawer, hasLabDrawer);
       openLabDrawer(wrapper);
       const drawerContainer = await screen.findByTestId('resizable-wrapper');
-      const fullscreenEnterButton = wrapper.getByLabelText('Full Screen Enter Icon');
+      const fullscreenEnterButton = wrapper.getByRole('button', { name: 'Maximize lab' });
       const startingDrawerHeight = (defaultWindowHeight * 2) / 3;
       expect(drawerContainer).toHaveStyle(`height: ${startingDrawerHeight}px`);
 
@@ -118,7 +117,7 @@ describe('Instruqt', () => {
       await waitFor(() => expect(drawerContainer).toHaveStyle(`height: ${defaultWindowHeight}px`));
 
       // Ensure drawer height goes back down to starting height
-      const fullscreenExitButton = wrapper.getByLabelText('Full Screen Exit Icon');
+      const fullscreenExitButton = wrapper.getByRole('button', { name: 'Exit full screen' });
       userEvent.click(fullscreenExitButton);
       await waitFor(() => expect(drawerContainer).toHaveStyle(`height: ${startingDrawerHeight}px`));
     });
@@ -129,7 +128,7 @@ describe('Instruqt', () => {
       const drawerContainer = await screen.findByTestId('resizable-wrapper');
       expect(drawerContainer).toBeTruthy();
 
-      const xButton = wrapper.getByLabelText('X Icon');
+      const xButton = wrapper.getByRole('button', { name: 'Close lab' });
       userEvent.click(xButton);
 
       // Wait for the drawer to be removed from the DOM
