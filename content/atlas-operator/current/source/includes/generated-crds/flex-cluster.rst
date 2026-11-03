@@ -168,6 +168,11 @@ The entry fields of the flexcluster resource spec. These fields can be set for c
      - Group of cloud provider settings that configure the provisioned ``MongoDB`` flex cluster.
      - true
 
+   * -  ``databaseEdition``
+     - string
+     - Available in Public Preview: Optional field that indicates whether your tenant cluster will be upgraded to Atlas ``INFINITE`` or ``CORE``.
+     - false
+
    * -  ``tags``
      - []object
      - List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the instance.
@@ -363,6 +368,11 @@ The last observed Atlas state of the flexcluster resource for version v20250312.
    * -  ``createDate``
      - string
      - Date and time when ``MongoDB`` Cloud created this instance. This parameter expresses its value in ``ISO`` 8601 format in ``UTC``.
+     - false
+
+   * -  ``databaseEdition``
+     - string
+     - Available in Public Preview: Optional field that indicates whether your tenant cluster will be upgraded to Atlas ``INFINITE`` or ``CORE``.
      - false
 
    * -  ``groupId``
