@@ -1,0 +1,345 @@
+.. _fireworks-ai:
+
+===================================
+Integrate MongoDB with Fireworks AI
+===================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. meta::
+   :keywords: RAG, retrieval, embeddings, reranking, fine-tuning, vector database, vector search, code example, python
+   :description: Integrate MongoDB with Fireworks AI to build retrieval-augmented generation applications and tool-calling AI agents on open embedding, reranking, and chat models.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can integrate MongoDB with `Fireworks AI
+<https://docs.fireworks.ai/getting-started/introduction>`__, an inference
+and training platform for open-source models. This guide shows how
+to use Fireworks chat models alongside MongoDB, which allows you to
+provide context for agent responses and configure your agent's data
+store.
+
+The MongoDB integration for Fireworks AI provides the following features:
+
+- **Chat model data**: Pass MongoDB data to a chat model
+  as context, or expose it to a tool that the model calls.
+- **Agent memory**: Persist agent conversation history and session state
+  as documents.
+- **Training data source**: Use MongoDB data to fine-tune a Fireworks model
+  and customize its behavior for your use cases.
+
+You can call Fireworks chat models by using the Fireworks SDK or
+compatible APIs, such as the OpenAI API. Frameworks that support
+OpenAI-compatible providers, including LangChain, LangGraph, and
+LlamaIndex, also work with Fireworks.
+
+.. TODO: uncomment once get started is created
+.. Get Started
+.. -----------
+..
+.. To complete a tutorial that uses Fireworks models with {+avs+} to
+.. build a |rag| application and a tool-calling agent, see
+.. :ref:`fireworks-ai-get-started`.
+
+Installation
+------------
+
+To install the required packages, run the following command:
+
+.. code-block:: shell
+
+   pip install --quiet --upgrade pymongo openai
+
+This command installs the following packages:
+
+- ``pymongo``: The MongoDB Python driver
+- ``openai``: An OpenAI client, which the examples on this page use
+  to call Fireworks chat models
+
+LangChain Packages
+~~~~~~~~~~~~~~~~~~
+
+If you build with LangChain, use the ``langchain-fireworks`` package's
+``ChatFireworks`` class to call Fireworks chat models. Run
+the following command to install this package:
+
+.. code-block:: shell
+
+   pip install --quiet --upgrade langchain-fireworks
+
+Usage
+-----
+
+To use Fireworks chat models with MongoDB, create the following
+clients:
+
+- A client, such as an OpenAI client, configured to use the
+  Fireworks endpoint
+- A MongoDB client for your deployment
+
+The following example creates both of these clients and selects a
+Fireworks chat model:
+
+.. literalinclude:: /includes/ai-integrations/fireworks-ai/fireworks-ai.py
+   :language: python
+   :start-after: start-create-clients
+   :end-before: end-create-clients
+   :category: usage example
+
+To use this example, set the following environment variables:
+
+- ``FIREWORKS_API_KEY``: Your Fireworks API key. To create an
+  API key, see your `API Keys <https://app.fireworks.ai/settings/users/api-keys>`__
+  settings.
+
+- ``MONGODB_URI``: Your MongoDB connection string. To learn more about
+  finding your connection string, see :ref:`connect-via-driver`.
+
+.. collapsible::
+   :heading: OpenAI Client Parameters
+   :sub_heading: Use these parameters to configure the client that calls Fireworks models.
+   :expanded: false
+
+   .. list-table::
+      :widths: 25 15 60
+      :header-rows: 1
+
+      * - Parameter
+        - Necessity
+        - Description
+
+      * - ``base_url``
+        - Required
+        - The Fireworks inference endpoint. Set this to
+          ``https://api.fireworks.ai/inference/v1`` so that the
+          client sends API calls to Fireworks instead of its
+          default provider.
+
+      * - ``api_key``
+        - Required
+        - Your Fireworks |api| key. To create one, go to :guilabel:`API
+          Keys` in your Fireworks settings.
+
+.. collapsible::
+   :heading: MongoDB Client Parameters
+   :sub_heading: Use these parameters to configure your client that connects to your MongoDB deployment.
+   :expanded: false
+
+   The ``MongoClient`` constructor accepts your MongoDB connection string as
+   a positional argument.
+
+Interact with a Chat Model
+--------------------------
+
+To send a conversation to a Fireworks model and receive a response,
+call the ``chat.completions.create()`` method on the Fireworks client.
+This section shows how to customize your chat model interactions
+in the following ways:
+
+- :ref:`Instruct the model to generate responses from MongoDB data
+  <fireworks-ai-conversations-response>`
+- :ref:`Specify a list of tools that the model can call
+  <fireworks-ai-conversations-tools>`
+- :ref:`Persist conversation history in a MongoDB collection
+  <fireworks-ai-conversations-memory>`
+
+.. collapsible::
+   :heading: chat.completions.create() Parameters
+   :sub_heading: Use these parameters to configure the conversation.
+   :expanded: false
+
+   .. list-table::
+      :widths: 25 15 60
+      :header-rows: 1
+
+      * - Parameter
+        - Necessity
+        - Description
+
+      * - ``model``
+        - Required
+        - The ID of the Fireworks chat model to use, such as
+          ``accounts/fireworks/models/gpt-oss-120b``.
+
+      * - ``messages``
+        - Required
+        - The list of message dictionaries that make up the
+          conversation, each containing a ``role`` and ``content`` key.
+          To learn more, see the following :ref:`fireworks-ai-conversations-response`
+          section.
+
+      * - ``tools``
+        - Optional
+        - A list of function definitions that the model can call.
+          Only models that support function calling, such as
+          ``accounts/fireworks/models/gpt-oss-120b`` and
+          ``accounts/fireworks/models/kimi-k3``, accept this
+          parameter. To learn more, see the :ref:`fireworks-ai-conversations-tools`
+          section.
+
+      * - ``temperature``
+        - Optional
+        - A value between ``0`` and ``2`` that controls response
+          randomness. Lower values produce more deterministic output.
+
+.. _fireworks-ai-conversations-response:
+
+Use MongoDB Data as Context
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To generate an answer based on context that you provide, set the
+``messages`` parameter to a list containing the following messages:
+
+- ``system`` message that instructs the model to answer only from
+  the provided context
+- ``user`` message that contains the context and the question
+
+You can pass any MongoDB query result as the context in your ``user``
+message to generate a response from your MongoDB data.
+
+The following example queries a MongoDB collection for a small set of
+candidate documents. Then, the code provides their titles and plots as
+context to generate a movie recommendation:
+
+.. io-code-block::
+
+   .. input:: /includes/ai-integrations/fireworks-ai/fireworks-ai.py
+      :language: python
+      :start-after: start-generate-response
+      :end-before: end-generate-response
+
+   .. output::
+      :language: text
+      :visible: false
+
+      **The Getaway** -- It follows a newly released ex-con and his
+      loyal wife as they're forced to flee after their heist goes
+      awry.
+
+.. _fireworks-ai-conversations-tools:
+
+Specify Agent Tools
+~~~~~~~~~~~~~~~~~~~
+
+To specify a list of tools that supported Fireworks chat models can call,
+use the ``tools`` parameter. Set this parameter to a list of function
+definitions, each containing a function's name, description, and parameters.
+
+When the model decides to call a function, it returns
+a ``tool_calls`` list on the response message instead of a text
+answer. Your code runs the named function and sends the result back
+as a ``tool`` message to continue the conversation. Use this
+pattern to build an agent that decides when to call a tool, such as
+a function that queries your MongoDB collection.
+
+This example performs the following actions:
+
+- Defines a ``search_movies`` tool that queries MongoDB
+- Allows the model to decide whether to call the tool
+- Runs the ``search_movies`` tool and sends the result back
+  to the model, if the model requests it
+- Generates a final recommendation
+
+.. io-code-block::
+
+   .. input:: /includes/ai-integrations/fireworks-ai/fireworks-ai.py
+      :language: python
+      :start-after: start-generate-response-with-tools
+      :end-before: end-generate-response-with-tools
+
+   .. output::
+      :language: text
+      :visible: false
+
+      I'd recommend **The Asphalt Jungle** -- it's a classic film noir
+      about a meticulously planned heist that initially goes off
+      without a hitch, but then bad luck and double-crosses cause
+      everything to unravel.
+
+.. _fireworks-ai-conversations-memory:
+
+Persist Agent Memory
+~~~~~~~~~~~~~~~~~~~~
+
+To configure an agent that remembers earlier conversation turns,
+store each message in a MongoDB collection. Then, load the message
+history into the ``messages`` list whenever you call the
+``chat.completions.create()`` method. Store a ``session_id`` value in
+each message document to assign the stored history to a single
+conversation.
+
+This example performs the following actions:
+
+- Loads any existing message history for the session from the
+  ``chat_history`` collection
+- Appends a new user message and calls ``chat.completions.create()``
+  with the combined history
+- Saves the new user message and the model's response back to the
+  ``chat_history`` collection
+
+.. io-code-block::
+
+   .. input:: /includes/ai-integrations/fireworks-ai/fireworks-ai.py
+      :language: python
+      :start-after: start-agent-memory
+      :end-before: end-agent-memory
+
+   .. output::
+      :language: text
+      :visible: false
+
+      Reservoir Dogs (1992) is the quintessential heist-gone-wrong
+      movie. Quentin Tarantino's debut shows almost none of the heist
+      itself...
+
+Because the agent loads past messages from the ``chat_history``
+collection on every call, a future call that uses the same ``session_id``
+value can refer back to this conversation.
+
+Train Models on MongoDB Data
+----------------------------
+
+You can train an existing open-source chat model on data stored in
+MongoDB to customize its behavior for specific use cases and improve
+its accuracy.
+
+To use MongoDB data for model training, your documents must store a
+``messages`` array in the chat format that Fireworks expects. Export
+these documents from your collection to a JSONL file, where each line
+is one document's ``messages`` array. Then, upload the dataset and
+use ``firectl``, the Fireworks CLI, to start supervised fine-tuning.
+
+Run the following commands to upload a dataset and
+retrain a model:
+
+.. code-block:: shell
+
+   firectl dataset create <dataset-name> <path-to-jsonl-file>
+   firectl sftj create \
+     --base-model <base-model-id> \
+     --dataset <dataset-name> \
+     --output-model <output-model-name>
+
+When the training finishes, deploy the tuned model and use its model ID
+in place of a base model ID in your chat calls. To
+learn about supported base models, training methods, and deployment
+options, see `Supervised Fine-Tuning
+<https://docs.fireworks.ai/fine-tuning/fine-tuning-models>`__
+in the Fireworks documentation.
+
+Additional Resources
+--------------------
+
+- `Fireworks AI Documentation <https://docs.fireworks.ai/getting-started/introduction>`__
+- `Fireworks Function Calling <https://docs.fireworks.ai/guides/function-calling>`__
+- :github:`Fireworks AI Cookbook <fw-ai/cookbook>` GitHub repository
