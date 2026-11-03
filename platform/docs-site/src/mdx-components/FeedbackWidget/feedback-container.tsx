@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import { useRef } from 'react';
-import { cx } from '@leafygreen-ui/emotion';
 import useClickOutside from '@/hooks/use-click-outside';
 import { useFeedbackContext } from './context';
 
@@ -30,7 +29,7 @@ const FeedbackContainer = ({ children, className }: FeedbackContainerProps) => {
   }
 
   return (
-    <div className={cx(className)} ref={ref} data-testid="feedback-container">
+    <div className={className} ref={ref} data-testid="feedback-container">
       {children}
     </div>
   );

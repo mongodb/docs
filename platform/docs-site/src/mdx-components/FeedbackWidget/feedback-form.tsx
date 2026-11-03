@@ -1,4 +1,4 @@
-import { cx } from '@leafygreen-ui/emotion';
+import { clsx } from 'clsx';
 import Loadable from '@loadable/component';
 import { createPortal } from 'react-dom';
 import useScreenSize from '@/hooks/use-screen-size';
@@ -34,7 +34,7 @@ const FeedbackForm = ({ className }: FeedbackFormProps) => {
   const isOpen = view !== 'waiting';
 
   const renderedComponent = isOpen && (
-    <div ref={formRef} className={cx(fwFormId, className)} id={cardId} hidden={!isOpen}>
+    <div ref={formRef} className={clsx(fwFormId, className)} id={cardId} hidden={!isOpen}>
       <FeedbackCard isOpen={isOpen}>
         <FeedbackContent view={view} />
       </FeedbackCard>

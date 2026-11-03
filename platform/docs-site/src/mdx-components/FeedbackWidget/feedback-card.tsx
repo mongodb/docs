@@ -1,42 +1,11 @@
 import type { ReactNode } from 'react';
-import styled from '@emotion/styled';
-import LeafygreenCard from '@leafygreen-ui/card';
-import { theme } from '@/styles/theme';
+import { Card } from '@via-ds/components/card';
 import useScreenSize from '@/hooks/use-screen-size';
 import ProgressBar from './components/page-indicators';
 import { CloseButton } from './components/close-button';
 import { useFeedbackContext } from './context';
 import useNoScroll from '@/hooks/use-no-scroll';
-
-const CardContainer = styled.div`
-  @media ${theme.screenSize.upToLarge} {
-    height: 100%;
-    background-color: rgba(0, 30, 43, 0.6); /* #001E2B with 60% opacity */
-  }
-`;
-
-const Card = styled(LeafygreenCard)`
-  /* Card Size */
-  width: 290px;
-  padding: ${theme.size.medium} ${theme.size.default};
-  display: flex;
-  flex-direction: column;
-  position: relative;
-
-  @media ${theme.screenSize.upToLarge} {
-    width: 50%;
-    padding: 20px;
-    margin: auto;
-    position: absolute;
-    top: 40%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
-
-  @media ${theme.screenSize.upToSmall} {
-    width: 90%;
-  }
-`;
+import styles from './feedback-card.module.scss';
 
 export type FeedbackCardProps = {
   isOpen: boolean;
@@ -55,13 +24,13 @@ const FeedbackCard = ({ isOpen, children }: FeedbackCardProps) => {
 
   return (
     isOpen && (
-      <CardContainer>
-        <Card>
+      <div className={styles.cardContainer}>
+        <Card className={styles.card}>
           <CloseButton onPress={onClose} />
           <ProgressBar />
           <div>{children}</div>
         </Card>
-      </CardContainer>
+      </div>
     )
   );
 };
