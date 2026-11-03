@@ -65,7 +65,7 @@
          body = <<EOF
            forbid (
                principal,
-               action == ResourcePolicy::Action::"privateEndpoint.modify",
+               action == ResourcePolicy::Action::"project.privateEndpoint.modify",
                resource
            )
            when {context.project.privateEndpoints == [
