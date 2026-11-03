@@ -142,5 +142,3 @@
       .. important::
 
          .. include:: /includes/fact-database-deployment-project-limit-lettered.rst
-
-         .. include:: /includes/footnote-databearing.rst   
