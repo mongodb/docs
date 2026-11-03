@@ -60,7 +60,7 @@ The ``$unionWith`` stage takes a document with the following fields:
     - ..  _unionWith-coll:
 
       The collection or view whose :ref:`pipeline <unionWith-pipeline>`
-      results you wish to include in the result set.
+      results you want to include in the result set.
 
       If you omit the ``coll`` field, you must specify a ``pipeline``
       field with a first stage of :pipeline:`$documents`.
@@ -110,68 +110,33 @@ Duplicate Results
 The combined results from the previous stage and the
 :pipeline:`$unionWith` stage can include duplicates.
 
-For example, create a ``suppliers`` collection and a ``warehouses`` collection:
+For example, the following aggregation combines the ``title`` field
+projection results from two queries on the ``movies`` collection. The
+result set contains duplicates:
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.suppliers.insertMany([
-     { _id: 1, supplier: "Aardvark and Sons", state: "Texas" },
-     { _id: 2, supplier: "Bears Run Amok.", state: "Colorado"},
-     { _id: 3, supplier: "Squid Mark Inc. ", state: "Rhode Island" },
-   ])
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/unionWith/duplicates.snippet.union-with-duplicates.js
+      :language: javascript
+      :category: usage example
 
-.. code-block:: javascript
-
-   db.warehouses.insertMany([
-     { _id: 1, warehouse: "A", region: "West", state: "California" },
-     { _id: 2, warehouse: "B", region: "Central", state: "Colorado"},
-     { _id: 3, warehouse: "C", region: "East", state: "Florida" },
-   ])
-
-The following aggregation combines the ``state`` field projection results from
-the ``suppliers`` and ``warehouse`` collections.
-
-.. code-block:: javascript
-
-   db.suppliers.aggregate([
-      { $project: { state: 1, _id: 0 } },
-      { $unionWith: { coll: "warehouses", pipeline: [ { $project: { state: 1, _id: 0 } } ]} }
-   ])
-
-The result set contains duplicates:
-
-.. code-block:: javascript
-   :emphasize-lines: 2,5
-   :copyable: false
-
-   { "state" : "Texas" }
-   { "state" : "Colorado" }
-   { "state" : "Rhode Island" }
-   { "state" : "California" }
-   { "state" : "Colorado" }
-   { "state" : "Florida" }
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/unionWith/duplicates-output.sh
+      :language: javascript
 
 To remove the duplicates, you can include a :pipeline:`$group` stage to
-group by the ``state`` field:
+group by the ``title`` field. The result set no longer contains
+duplicates:
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.suppliers.aggregate([
-      { $project: { state: 1, _id: 0 } },
-      { $unionWith: { coll: "warehouses", pipeline: [ { $project: { state: 1, _id: 0 } } ]} },
-      { $group: { _id: "$state" } }
-   ])
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/unionWith/remove-duplicates.snippet.remove-duplicates.js
+      :language: javascript
+      :category: usage example
 
-The result set no longer contains duplicates:
-
-.. code-block:: javascript
-  :copyable: false
-
-   { "_id" : "California" }
-   { "_id" : "Texas" }
-   { "_id" : "Florida" }
-   { "_id" : "Colorado" }
-   { "_id" : "Rhode Island" }
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/unionWith/remove-duplicates-output.sh
+      :language: javascript
 
 Collation
 ~~~~~~~~~
@@ -188,9 +153,9 @@ uses the collation for the top-level collection/view on which the
 - If the :ref:`$unionWith coll <unionWith-coll>` is a collection, its
   collation is ignored.
 
-- If the :ref:`$unionWith coll <unionWith-coll>` is a :doc:`view
-  </core/views>`, then its collation must match that of the top-level
-  collection/view.  Otherwise, the operation errors.
+- If the :ref:`$unionWith coll <unionWith-coll>` is a :ref:`view
+  <views-landing-page>`, then its collation must match that of the
+  top-level collection/view. Otherwise, the operation errors.
 
 .. _fts-unionwith-behavior:
 
@@ -251,6 +216,13 @@ To see an example of :pipeline:`$unionWith` with :pipeline:`$search`,
 see the {+fts+} tutorial :atlas:`Run a {+fts+} $search Query
 Using $unionWith </atlas-search/tutorial/search-with-unionwith/>`.
 
+.. _unionWith-example-namespaces-in-subpipelines:
+
+Namespaces in Subpipelines
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/subpipeline-namespaces.rst
+
 Restrictions
 ~~~~~~~~~~~~
 
@@ -284,187 +256,76 @@ Examples
    .. tab::
       :tabid: shell
 
-      Create Sales Reports from the Union of Yearly Data Collections
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      .. include:: /includes/sample-data-usage.rst
 
-      The following examples use the :pipeline:`$unionWith` stage to combine data and
-      return results from multiple collections. In these examples, each collection
-      contains a year of sales data.
+      Create Movie Reports from the Union of Movie Data
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      Populate Sample Data
-      ````````````````````
+      The following examples use the :pipeline:`$unionWith` stage to
+      combine data and return results from the ``movies`` collection.
 
-      #. Create a ``sales_2017`` collection with the following documents:
+      Report 1: All Movies by Category and Year
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-         .. code-block:: javascript
+      The following aggregation creates a movie report that lists movies
+      by category. The pipeline uses :pipeline:`$unionWith` to combine
+      documents from the ``movies`` collection:
 
-            db.sales_2017.insertMany( [
-              { store: "General Store", item: "Chocolates", quantity: 150 },
-              { store: "ShopMart", item: "Chocolates", quantity: 50 },
-              { store: "General Store", item: "Cookies", quantity: 100 },
-              { store: "ShopMart", item: "Cookies", quantity: 120 },
-              { store: "General Store", item: "Pie", quantity: 10 },
-              { store: "ShopMart", item: "Pie", quantity: 5 }
-            ] )
+      .. io-code-block::
+         :copyable: true
 
-      #. Create a ``sales_2018`` collection with the following documents:
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/unionWith/report-by-category.snippet.report-by-category.js
+            :language: javascript
+            :category: usage example
 
-         .. code-block:: javascript
-
-            db.sales_2018.insertMany( [
-              { store: "General Store", item: "Cheese", quantity: 30 },
-              { store: "ShopMart", item: "Cheese", quantity: 50 },
-              { store: "General Store", item: "Chocolates", quantity: 125 },
-              { store: "ShopMart", item: "Chocolates", quantity: 150 },
-              { store: "General Store", item: "Cookies", quantity: 200 },
-              { store: "ShopMart", item: "Cookies", quantity: 100 },
-              { store: "ShopMart", item: "Nuts", quantity: 100 },
-              { store: "General Store", item: "Pie", quantity: 30 },
-              { store: "ShopMart", item: "Pie", quantity: 25 }
-            ] )
-
-
-      #. Create a ``sales_2019`` collection with the following documents:
-
-         .. code-block:: javascript
-
-            db.sales_2019.insertMany( [
-              { store: "General Store", item: "Cheese", quantity: 50 },
-              { store: "ShopMart", item: "Cheese", quantity: 20 },
-              { store: "General Store", item: "Chocolates", quantity: 125 },
-              { store: "ShopMart", item: "Chocolates", quantity: 150 },
-              { store: "General Store", item: "Cookies", quantity: 200 },
-              { store: "ShopMart", item: "Cookies", quantity: 100 },
-              { store: "General Store", item: "Nuts", quantity: 80 },
-              { store: "ShopMart", item: "Nuts", quantity: 30 },
-              { store: "General Store", item: "Pie", quantity: 50 },
-              { store: "ShopMart", item: "Pie", quantity: 75 }
-            ] )
-
-      #. Create a ``sales_2020`` collection with the following documents:
-
-         .. code-block:: javascript
-
-            db.sales_2020.insertMany( [
-              { store: "General Store", item: "Cheese", quantity: 100, },
-              { store: "ShopMart", item: "Cheese", quantity: 100},
-              { store: "General Store", item: "Chocolates", quantity: 200 },
-              { store: "ShopMart", item: "Chocolates", quantity: 300 },
-              { store: "General Store", item: "Cookies", quantity: 500 },
-              { store: "ShopMart", item: "Cookies", quantity: 400 },
-              { store: "General Store", item: "Nuts", quantity: 100 },
-              { store: "ShopMart", item: "Nuts", quantity: 200 },
-              { store: "General Store", item: "Pie", quantity: 100 },
-              { store: "ShopMart", item: "Pie", quantity: 100 }
-            ] )
-
-
-      Report 1: All Sales by Year and Stores and Items
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-      The following aggregation creates a yearly sales report that lists all sales by
-      quarter and stores. The pipeline uses :pipeline:`$unionWith` to combine documents
-      from all four collections:
-
-      .. code-block:: javascript
-
-         db.sales_2017.aggregate( [
-            { $set: { _id: "2017" } },
-            { $unionWith: { coll: "sales_2018", pipeline: [ { $set: { _id: "2018" } } ] } },
-            { $unionWith: { coll: "sales_2019", pipeline: [ { $set: { _id: "2019" } } ] } },
-            { $unionWith: { coll: "sales_2020", pipeline: [ { $set: { _id: "2020" } } ] } },
-            { $sort: { _id: 1, store: 1, item: 1 } }
-         ] )
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/unionWith/report-by-category-output.sh
+            :language: javascript
 
       Specifically, the aggregation pipeline uses:
 
-      - A :pipeline:`$set` stage to update the ``_id`` field to contain the
-        year.
+      - A :pipeline:`$match` stage to select movies released before
+        ``1910``.
 
-      - A sequence of :pipeline:`$unionWith` stages to combine all documents
-        from the four collections, each also using the :pipeline:`$set` stage
-        on its documents.
+      - A :pipeline:`$set` stage to add a ``category`` field with the
+        value ``Early Cinema``.
 
-      - A :pipeline:`$sort` stage to sort by the ``_id`` (the year),
-        the ``store``, and ``item``.
+      - A :pipeline:`$unionWith` stage to combine documents from the
+        ``movies`` collection, filtered to movies with a ``runtime``
+        greater than ``1000`` and tagged with the ``Long Runtime``
+        category.
 
-      Pipeline output:
+      - A :pipeline:`$project` stage to return only the ``title``,
+        ``year``, and ``category`` fields.
 
-      .. code-block:: javascript
-         :copyable: false
+      - A :pipeline:`$sort` stage to sort by the ``category``, the
+        ``year``, and the ``title``.
 
-         { "_id" : "2017", "store" : "General Store", "item" : "Chocolates", "quantity" : 150 }
-         { "_id" : "2017", "store" : "General Store", "item" : "Cookies", "quantity" : 100 }
-         { "_id" : "2017", "store" : "General Store", "item" : "Pie", "quantity" : 10 }
-         { "_id" : "2017", "store" : "ShopMart", "item" : "Chocolates", "quantity" : 50 }
-         { "_id" : "2017", "store" : "ShopMart", "item" : "Cookies", "quantity" : 120 }
-         { "_id" : "2017", "store" : "ShopMart", "item" : "Pie", "quantity" : 5 }
-         { "_id" : "2018", "store" : "General Store", "item" : "Cheese", "quantity" : 30 }
-         { "_id" : "2018", "store" : "General Store", "item" : "Chocolates", "quantity" : 125 }
-         { "_id" : "2018", "store" : "General Store", "item" : "Cookies", "quantity" : 200 }
-         { "_id" : "2018", "store" : "General Store", "item" : "Pie", "quantity" : 30 }
-         { "_id" : "2018", "store" : "ShopMart", "item" : "Cheese", "quantity" : 50 }
-         { "_id" : "2018", "store" : "ShopMart", "item" : "Chocolates", "quantity" : 150 }
-         { "_id" : "2018", "store" : "ShopMart", "item" : "Cookies", "quantity" : 100 }
-         { "_id" : "2018", "store" : "ShopMart", "item" : "Nuts", "quantity" : 100 }
-         { "_id" : "2018", "store" : "ShopMart", "item" : "Pie", "quantity" : 25 }
-         { "_id" : "2019", "store" : "General Store", "item" : "Cheese", "quantity" : 50 }
-         { "_id" : "2019", "store" : "General Store", "item" : "Chocolates", "quantity" : 125 }
-         { "_id" : "2019", "store" : "General Store", "item" : "Cookies", "quantity" : 200 }
-         { "_id" : "2019", "store" : "General Store", "item" : "Nuts", "quantity" : 80 }
-         { "_id" : "2019", "store" : "General Store", "item" : "Pie", "quantity" : 50 }
-         { "_id" : "2019", "store" : "ShopMart", "item" : "Cheese", "quantity" : 20 }
-         { "_id" : "2019", "store" : "ShopMart", "item" : "Chocolates", "quantity" : 150 }
-         { "_id" : "2019", "store" : "ShopMart", "item" : "Cookies", "quantity" : 100 }
-         { "_id" : "2019", "store" : "ShopMart", "item" : "Nuts", "quantity" : 30 }
-         { "_id" : "2019", "store" : "ShopMart", "item" : "Pie", "quantity" : 75 }
-         { "_id" : "2020", "store" : "General Store", "item" : "Cheese", "quantity" : 100 }
-         { "_id" : "2020", "store" : "General Store", "item" : "Chocolates", "quantity" : 200 }
-         { "_id" : "2020", "store" : "General Store", "item" : "Cookies", "quantity" : 500 }
-         { "_id" : "2020", "store" : "General Store", "item" : "Nuts", "quantity" : 100 }
-         { "_id" : "2020", "store" : "General Store", "item" : "Pie", "quantity" : 100 }
-         { "_id" : "2020", "store" : "ShopMart", "item" : "Cheese", "quantity" : 100 }
-         { "_id" : "2020", "store" : "ShopMart", "item" : "Chocolates", "quantity" : 300 }
-         { "_id" : "2020", "store" : "ShopMart", "item" : "Cookies", "quantity" : 400 }
-         { "_id" : "2020", "store" : "ShopMart", "item" : "Nuts", "quantity" : 200 }
-         { "_id" : "2020", "store" : "ShopMart", "item" : "Pie", "quantity" : 100 }
+      Report 2: Aggregated Runtime by Genre
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      Report 2: Aggregated Sales by Items
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      The following aggregation creates a movie report that lists the
+      total runtime per genre. The pipeline uses :pipeline:`$unionWith`
+      to combine documents from the ``movies`` collection:
 
-      The following aggregation creates a sales report that lists the sales quantity
-      per item. The pipeline uses :pipeline:`$unionWith` to combine documents from all
-      four years:
+      .. io-code-block::
+         :copyable: true
 
-      .. code-block:: javascript
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/unionWith/runtime-by-genre.snippet.runtime-by-genre.js
+            :language: javascript
+            :category: usage example
 
-         db.sales_2017.aggregate( [
-            { $unionWith: "sales_2018" },
-            { $unionWith: "sales_2019" },
-            { $unionWith: "sales_2020" },
-            { $group: { _id: "$item", total: { $sum: "$quantity" } } },
-            { $sort: { total: -1 } }
-         ] )
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/unionWith/runtime-by-genre-output.sh
+            :language: javascript
 
-      - The sequence of :pipeline:`$unionWith` stages retrieve documents
-        from the specified collections into the pipeline:
+      - The :pipeline:`$match` and :pipeline:`$unionWith` stages retrieve
+        documents from the ``movies`` collection into the pipeline.
 
-      - The :pipeline:`$group` stage groups by the ``item`` field and uses
-        :group:`$sum` to calculate the total sales quantity per ``item``.
+      - The :pipeline:`$group` stage groups by the ``genres`` field and
+        uses :group:`$sum` to calculate the total ``runtime`` per
+        ``genres`` value.
 
       - The :pipeline:`$sort` stage orders the documents by descending
-        ``total``.
-
-      Pipeline output:
-
-      .. code-block:: javascript
-         :copyable: false
-
-         { "_id" : "Cookies", "total" : 1720 }
-         { "_id" : "Chocolates", "total" : 1250 }
-         { "_id" : "Nuts", "total" : 510 }
-         { "_id" : "Pie", "total" : 395 }
-         { "_id" : "Cheese", "total" : 350 }
+        ``totalRuntime``.
 
       .. _unionWith-example-specified-docs:
 
@@ -476,64 +337,18 @@ Examples
       :pipeline:`$documents` stage in the ``pipeline`` field, you perform a
       union with documents that aren't stored in a separate collection.
 
-      .. include:: /includes/let-example-create-flavors.rst
-
       The following ``$unionWith`` operation performs a union with documents
       specified in the ``pipeline`` :pipeline:`$documents` field:
 
-      .. code-block:: javascript
+      .. io-code-block::
+         :copyable: true
 
-         db.cakeFlavors.aggregate( [
-            {
-               $unionWith: {
-                  pipeline: [
-                     {
-                        $documents: [
-                           { _id: 4, flavor: "orange" },
-                           { _id: 5, flavor: "vanilla", price: 20 }
-                        ]
-                     }
-                  ]
-               }
-            }
-         ] )
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/unionWith/specified-documents.snippet.specified-documents.js
+            :language: javascript
+            :category: usage example
 
-      Output:
-
-      .. code-block:: javascript
-         :copyable: false
-
-         [
-            { _id: 1, flavor: 'chocolate' },
-            { _id: 2, flavor: 'strawberry' },
-            { _id: 3, flavor: 'cherry' },
-            { _id: 4, flavor: 'orange' },
-            { _id: 5, flavor: 'vanilla', price: 20 }
-         ]
-
-      .. _unionWith-example-namespaces-in-subpipelines:
-
-      Namespaces in Subpipelines
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-      .. include:: /includes/subpipeline-namespaces.rst
-
-      Starting in MongoDB 8.0, the following example returns an error because
-      it contains an invalid ``coll`` field:
-
-      .. code-block:: javascript
-         :emphasize-lines: 3
-
-         db.cakeFlavors.aggregate( [ {
-            $unionWith: {
-               coll: "cakeFlavors",
-               pipeline: [ { $documents: [] } ] }
-         } ] )
-
-      In MongoDB versions before 8.0, the previous example runs.
-
-      For an example with a valid ``coll`` field, see
-      :ref:`unionWith-duplicate-results`.
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/unionWith/specified-documents-output.sh
+            :language: javascript
 
    .. tab::
       :tabid: csharp

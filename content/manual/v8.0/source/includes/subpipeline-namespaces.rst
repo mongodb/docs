@@ -14,7 +14,3 @@ Unchanged behavior:
   you must include the ``from`` field and specify the collection.
 - Similarly, for ``$unionWith``, include the ``coll`` field and specify
   the collection.
-
-The following scenario shows an example.
-
-.. include:: /includes/let-example-create-flavors.rst
