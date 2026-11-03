@@ -51,8 +51,8 @@ series collection <manual-timeseries-collection>`, issue the following
       expireAfterSeconds: 604801
    })
 
-Change the ``expireAfterSeconds`` Parameter
--------------------------------------------
+Change the expireAfterSeconds Parameter
+---------------------------------------
 
 To change the ``expireAfterSeconds`` parameter value, issue the following
 :dbcommand:`collMod` command:
@@ -64,8 +64,8 @@ To change the ``expireAfterSeconds`` parameter value, issue the following
       expireAfterSeconds: 604801
    })
 
-Retrieve the Current Value of ``expireAfterSeconds``
-----------------------------------------------------
+Retrieve the Current Value of expireAfterSeconds
+------------------------------------------------
 
 To retrieve the current value of ``expireAfterSeconds``, use the
 :dbcommand:`listCollections` command:

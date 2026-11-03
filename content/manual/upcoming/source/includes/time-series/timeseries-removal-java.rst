@@ -39,8 +39,8 @@ or to modify the expiration time on an existing collection, change the
    :category: syntax example
    :emphasize-lines: 2
 
-Retrieve the Current Value of ``expireAfterSeconds``
-----------------------------------------------------
+Retrieve the Current Value of expireAfterSeconds
+------------------------------------------------
 
 To retrieve the current value of ``expireAfterSeconds``, use the
 ``listCollections`` method. The result document contains the 
