@@ -1695,6 +1695,14 @@ export const toc: L1TocItem[] = [
                 url: '/docs/:version/core/aggregation-pipeline',
                 items: [
                   {
+                    label: 'Expressions, Accumulators, and Window Functions',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/expressions-accumulators-and-window-functions',
+                    versions: {
+                      excludes: ['v7.0', 'v8.0', 'v8.3', 'manual'],
+                    },
+                  },
+                  {
                     label: 'Field Paths',
                     contentSite: 'docs',
                     url: '/docs/:version/core/field-paths',

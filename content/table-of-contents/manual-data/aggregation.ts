@@ -1,4 +1,5 @@
 import type { TocItem } from '../types';
+import manualVersions from '../version-arrays/server-docs/manual';
 
 const tocData: TocItem[] = [
   {
@@ -7,6 +8,12 @@ const tocData: TocItem[] = [
     url: '/docs/:version/core/aggregation-pipeline',
     collapsible: true,
     items: [
+      {
+        label: 'Expressions, Accumulators, and Window Functions',
+        contentSite: 'docs',
+        url: '/docs/:version/core/expressions-accumulators-and-window-functions',
+        versions: { excludes: manualVersions.before('v9.1') },
+      },
       {
         label: 'Field Paths',
         contentSite: 'docs',
