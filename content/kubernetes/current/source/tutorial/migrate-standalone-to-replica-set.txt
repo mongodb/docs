@@ -1,0 +1,235 @@
+:noprevnext:
+
+.. _migrate-standalone-to-replica-set:
+
+==================================================
+Migrate a Standalone to a One-Member Replica Set
+==================================================
+
+.. meta::
+   :description: Migrate a deprecated standalone MongoDB deployment managed by the Kubernetes Operator to a one-member replica set by using mongodump and mongorestore and recreating database users.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Starting in |k8s-op-short| 1.15, standalone deployments are
+deprecated and lose support in the next major version. Migrate your
+standalone deployments to one-member replica sets. A one-member
+replica set provides the same single-node topology as a standalone
+instance and supports adding members later without migrating again.
+
+About this Task
+---------------
+
+- This migration isn't an in-place upgrade. You deploy a new
+  one-member replica set, copy your data with
+  :dbtools:`mongodump </mongodump>` and
+  :dbtools:`mongorestore </mongorestore>`, and then direct your
+  applications to the replica set.
+
+- A |mms| project holds one deployment, so the replica set requires
+  a new project. You can't reuse the project that the standalone
+  deployment uses.
+
+- ``mongodump`` and ``mongorestore`` don't copy database users.
+  After the restore, recreate your users as ``MongoDBUser``
+  resources.
+
+- The standalone deployment stays intact until you delete it. If
+  the migration fails, you can direct your applications back to the
+  standalone deployment.
+
+Before You Begin
+----------------
+
+- Deploy a standalone resource that the |k8s-op-short| manages. To
+  learn more, see :ref:`deploy-standalone`.
+
+- Configure ``kubectl`` to access the |k8s| cluster that hosts the
+  standalone deployment.
+
+- Note the value of :setting:`spec.version` in the standalone
+  resource. The one-member replica set must run the same MongoDB
+  version.
+
+Procedure
+---------
+
+.. procedure::
+
+   .. step:: Create a ConfigMap for a new project.
+
+      A |mms| project holds one deployment, so you can't reuse the
+      project that the standalone deployment uses. Copy the
+      ConfigMap that the standalone deployment references, keep the
+      ``baseUrl`` and ``orgId`` values, and set a new, unique
+      ``projectName``. Apply the ConfigMap to the same |k8s|
+      namespace as the standalone deployment.
+
+      To learn more, see :ref:`create-k8s-project`.
+
+   .. step:: Deploy a one-member replica set.
+
+      Create a ``MongoDB`` resource with ``spec.type`` set to
+      ``ReplicaSet`` and :setting:`spec.members` set to ``1``. Set
+      :setting:`spec.version` to the same MongoDB version that the
+      standalone deployment runs, and reference the ConfigMap that
+      you created in the preceding step. You can reuse the
+      credentials |k8s-secret| that the standalone deployment uses.
+      Copy any additional ``spec`` settings from the standalone
+      resource.
+
+      .. literalinclude:: /includes/code-examples/yaml-files/example-standalone-to-replica-set.yaml
+         :language: yaml
+         :start-after: START-one-member-replica-set
+         :end-before: END-one-member-replica-set
+         :emphasize-lines: 8,10,19
+
+      Apply the resource:
+
+      .. code-block:: sh
+
+         kubectl apply -f <replica-set-yaml> --namespace <my-namespace>
+
+      .. include:: /includes/check-resource-status.rst
+
+   .. step:: Deploy a tools pod.
+
+      The container images that run the database pods don't include
+      the MongoDB Database Tools. To run ``mongodump`` and
+      ``mongorestore``, deploy a dedicated tools pod based on the
+      ``mongodb-enterprise-server`` image. Set the image tag to the
+      same MongoDB version that the standalone deployment runs.
+
+      .. literalinclude:: /includes/code-examples/yaml-files/example-standalone-to-replica-set.yaml
+         :language: yaml
+         :start-after: START-mongodb-tools-pod
+         :end-before: END-mongodb-tools-pod
+
+      Apply the pod:
+
+      .. code-block:: sh
+
+         kubectl apply -f <tools-pod-yaml> --namespace <my-namespace>
+
+   .. step:: Stop writes to the standalone deployment.
+
+      Stop all application writes to the standalone deployment, and
+      keep writes stopped until your applications connect to the new
+      replica set. The dump doesn't capture writes that occur after
+      the dump starts.
+
+   .. step:: Record document counts and a database hash.
+
+      Record the document count of each collection and the
+      `dbHash <https://www.mongodb.com/docs/manual/reference/command/dbHash/>`__
+      of each database on the standalone deployment, except the
+      ``admin``, ``config``, and ``local`` databases. The restore
+      excludes the ``admin`` and ``config`` databases, and
+      replication writes to the ``local`` database, so these values
+      never match. After the restore, you repeat these measurements
+      against the replica set to verify the migration.
+
+   .. step:: Dump the standalone data.
+
+      Run ``mongodump`` from the tools pod against the standalone
+      deployment's service:
+
+      .. code-block:: sh
+
+         kubectl exec mongodb-tools --namespace <my-namespace> -- \
+           mongodump \
+           --host "<my-standalone>-svc.<my-namespace>.svc.cluster.local:27017" \
+           --out /tmp/dump
+
+      If the standalone deployment requires authentication, connect
+      as a user that has the :authrole:`backup` and
+      :authrole:`readAnyDatabase` roles. If the deployment requires
+      |tls|, add the corresponding ``mongodump`` connection options.
+      To learn more, see :dbtools:`mongodump </mongodump>`.
+
+   .. step:: Restore the data to the replica set.
+
+      Run ``mongorestore`` from the tools pod against the replica
+      set's service:
+
+      .. code-block:: sh
+
+         kubectl exec mongodb-tools --namespace <my-namespace> -- \
+           mongorestore \
+           --host "<my-replica-set>-svc.<my-namespace>.svc.cluster.local:27017" \
+           --nsExclude="admin.*" \
+           --nsExclude="config.*" \
+           /tmp/dump
+
+      The ``--nsExclude`` options exclude the ``admin`` and
+      ``config`` databases from the restore. A full ``mongodump``
+      output includes ``admin.system.users`` and
+      ``admin.system.version``. Restoring them would write database
+      users and the authentication schema into the replica set
+      outside of the automation configuration, so the project's
+      user list in |mms| would no longer match the database.
+
+      If the replica set requires authentication, the replica set
+      has no users yet because you recreate your database users in a
+      later step. Create a temporary ``MongoDBUser`` resource in the
+      new project with the :authrole:`restore`,
+      :authrole:`readWriteAnyDatabase`, and
+      :authrole:`dbAdminAnyDatabase` roles, and connect as that
+      user. To learn more about creating users, see
+      :ref:`k8s-manage-db-users`.
+
+      If the replica set requires |tls|, add the corresponding
+      ``mongorestore`` connection options. To learn more, see
+      :dbtools:`mongorestore </mongorestore>`.
+
+   .. step:: Verify the restored data.
+
+      Repeat the document counts and ``dbHash`` measurements from
+      the earlier step against the replica set and confirm that the
+      values match the values that you recorded on the standalone
+      deployment.
+
+   .. step:: Recreate the database users.
+
+      The dump doesn't carry database users. Recreate each user as
+      a ``MongoDBUser`` resource in the new project. If you created
+      a temporary user for the restore, delete it after you
+      recreate your users. To learn more, see
+      :ref:`k8s-manage-db-users` and
+      :ref:`mongodbuser-specification`.
+
+   .. step:: Direct your applications to the replica set.
+
+      Update your applications' connection strings to reference the
+      one-member replica set.
+
+   .. step:: Delete the standalone deployment.
+
+      After you verify the migration, delete the standalone
+      ``MongoDB`` resource. The |k8s-op-short| doesn't delete the
+      persistent volume claim that the standalone deployment used,
+      so delete the claim manually. To learn more, see
+      :ref:`remove-k8s-resource`.
+
+Rollback
+--------
+
+The standalone deployment stays intact until you delete it. To roll
+back the migration, direct your applications back to the standalone
+deployment. The standalone deployment doesn't contain writes that
+the replica set received after the cutover.
+
+Learn More
+----------
+
+- :ref:`deploy-replica-set`
+- :ref:`create-k8s-project`
+- :ref:`remove-k8s-resource`
+- :dbtools:`mongodump </mongodump>`
+- :dbtools:`mongorestore </mongorestore>`

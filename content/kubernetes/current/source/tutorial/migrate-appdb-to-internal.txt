@@ -203,6 +203,57 @@ Procedure
 
             kubectl get pods --context "${K8S_CTX}" -n "${MDB_NS}"
 
+.. _migrate-appdb-to-internal-multi-cluster:
+
+Return a Multi-Cluster Application Database
+-------------------------------------------
+
+If the primary |onprem| resource references an external
+MongoDBMultiCluster {+appdb+}, you can return it to an internally
+managed multi-cluster {+appdb+}. The |k8s-op-short| asks the
+MongoDBMultiCluster resource to release the {+appdb+} StatefulSet in
+each :ref:`member cluster <central-and-member-clusters>`. The
+|onprem| resource then re-adopts each
+StatefulSet as an internal {+appdb+}. The |onprem| pods don't
+restart, because the connection string doesn't change.
+
+The procedure matches the single-cluster procedure on this page, with
+the following differences:
+
+- Set the following additional environment variables for the member
+  clusters and the {+appdb+} |tls| configuration. Use the same values
+  that the external {+appdb+} uses:
+
+  .. code-block:: sh
+
+     export K8S_CTX_MEMBER_1="<member-cluster-1-context>"
+     export K8S_CTX_MEMBER_2="<member-cluster-2-context>"
+     export APPDB_CERT_PREFIX="appdb"
+     export APPDB_CA_CONFIGMAP="${APPDB_NAME}-ca"
+
+- The restored :opsmgrkube:`spec.applicationDatabase` must set
+  ``topology`` to ``MultiCluster`` and must use the same member
+  layout and |tls| configuration as the external {+appdb+}, so that
+  the |onprem| resource can re-adopt the existing StatefulSets:
+
+  .. code-block:: sh
+
+     kubectl patch om "${PRIMARY_OM_NAME}" \
+       --context "${K8S_CTX}" -n "${MDB_NS}" \
+       --type merge \
+       -p "{\"spec\":{\"externalApplicationDatabaseRef\":null,\"applicationDatabase\":{\"topology\":\"MultiCluster\",\"version\":\"${APPDB_VERSION}\",\"security\":{\"certsSecretPrefix\":\"${APPDB_CERT_PREFIX}\",\"tls\":{\"ca\":\"${APPDB_CA_CONFIGMAP}\"}},\"clusterSpecList\":[{\"clusterName\":\"${K8S_CTX_MEMBER_1}\",\"members\":2},{\"clusterName\":\"${K8S_CTX_MEMBER_2}\",\"members\":2}]}}}"
+
+- The MongoDBMultiCluster resource reports the ``Pending`` phase
+  while the |onprem| resource reclaims the StatefulSets. Delete the
+  MongoDBMultiCluster resource only after
+  ``status.applicationDatabase.phase`` reports ``Running``.
+
+- To verify the migration, inspect the {+appdb+} StatefulSet in each
+  member cluster, named ``<primary-om-name>-db-<cluster-index>``.
+  After the handover, the StatefulSet survives with empty
+  ``ownerReferences``, and the |onprem| resource manages it as an
+  internal {+appdb+}.
+
 Common Migration Issues
 -----------------------
 

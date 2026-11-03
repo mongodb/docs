@@ -1,8 +1,8 @@
 .. _k8s-container-images:
 
-================
-Container Images
-================
+=========================================
+Plan Your |k8s-op-short| Container Images
+=========================================
 
 .. meta::
    :description: Plan Kubernetes Operator container images, including static and non-static container architectures, agent image overrides, and Quay.io registry settings.
@@ -59,9 +59,12 @@ To view all available versions for each image, see the following links.
 
    * - :qr-mdb:`mongodb-enterprise-server 
        </mongodb-enterprise-server?tab=tags&tag=latest>`
-     - The Enterprise MongoDB image used for :ref:`static containers <static-containers>` 
-       and the {+appdb+}. For IBM ZSeries (s390x) and Power (ppc64le) architectures, 
-       images run on Red Hat UBI 9 only and support is limited to MongoDB 8.0.12+.
+     - The Enterprise MongoDB image used for :ref:`static containers <static-containers>`
+       and the {+appdb+}. Static containers support the Red Hat UBI 9 and
+       UBI 9 Slim variants of this image. To learn more, see
+       :ref:`static-container-image-variants`. For IBM ZSeries (s390x) and
+       Power (ppc64le) architectures, images run on Red Hat UBI 9 only and
+       support is limited to MongoDB 8.0.12+.
      - x86-64, ARM64, s390x, ppc64le 
 
    * - :qr-mdb:`mongodb-kubernetes-init-appdb 
@@ -105,10 +108,68 @@ downloads the MongoDB binary from |com| or the Internet at runtime.
 You can use the procedures on this page to enable or disable static
 containers for all or individual MongoDB deployments. 
 
-Static containers use the image from the :qr-mdb:`mongodb-enterprise-server 
+Static containers use the image from the :qr-mdb:`mongodb-enterprise-server
 </mongodb-enterprise-server?tab=tags&tag=latest>` Quay.io repository by
 default, but you can use your own registry if you configured it for your
-Kubernetes |k8s-nodes|. 
+Kubernetes |k8s-nodes|.
+
+.. _static-container-image-variants:
+
+Container Image Variants
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB publishes the ``mongodb-enterprise-server`` image in
+``ubi8``, ``ubi9``, and ``ubi9-slim`` variants. MongoDB publishes
+``ubi9-slim`` images starting with MongoDB 6.0.27, 7.0.30, and
+8.0.19.
+
+By default, deployments that use static containers use the ``ubi9``
+variant. The {+appdb+} supports the image variants in both static
+and non-static containers. A non-static {+appdb+} uses the ``ubi8``
+variant by default because MongoDB versions earlier than 6.0.4 have
+no ``ubi9`` images.
+
+The image variant changes only the MongoDB Server image that the
+|k8s-op-short| deploys. The variant doesn't change the MongoDB
+version in ``spec.version`` or in the Automation Config.
+
+To select an image variant, use one of the following methods:
+
+- To set the default image variant for all deployments, set the
+  :ref:`operator.mdbDefaultImageType <mdb-default-image-type-helm>`
+  Helm value. This value configures the
+  :ref:`MDB_DEFAULT_IMAGE_TYPE <mdb-default-image-type>` environment
+  variable on the |k8s-op-short|.
+- To set the image variant for a single deployment, set the
+  :setting:`metadata.annotations.mongodb.com/v1.containerImageType`
+  annotation on the ``MongoDB``, ``MongoDBMultiCluster``, or
+  ``MongoDBOpsManager`` resource. On a ``MongoDBOpsManager``
+  resource, the annotation applies to the {+appdb+}.
+
+The following example deploys a replica set with the ``ubi9-slim``
+image variant:
+
+.. code-block:: yaml
+
+   apiVersion: mongodb.com/v1
+   kind: MongoDB
+   metadata:
+     name: my-replica-set
+     annotations:
+       mongodb.com/v1.containerImageType: "ubi9-slim"
+   spec:
+     version: "8.0.19"
+
+The annotation takes precedence over the operator-wide default. On
+``MongoDB`` and ``MongoDBMultiCluster`` resources that use non-static
+containers, the annotation has no effect. The |k8s-op-short| reports
+a warning in the resource status.
+
+If you set an unsupported value, the |k8s-op-short| ignores the
+value. The deployment falls back to the default image variant. An
+unsupported annotation value produces a warning in the resource
+status. An unsupported Helm value produces a warning in the
+|k8s-op-short| log.
 
 .. _arch-static-containers:
 

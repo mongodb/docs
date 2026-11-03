@@ -667,11 +667,55 @@ Optional ``MongoDBMultiCluster`` Resource Settings
 .. _multi-spec-persistent:
 
 ``spec.persistent``
-  *Type*: boolean  
-  
+  *Type*: boolean
+
   *Default*: true
 
   .. include:: /includes/admonitions/k8s-persistent-volumes.rst
+
+.. _multi-spec-role:
+
+``spec.role``
+  *Type*: string
+
+  Marks this resource as playing a special role for another MongoDB
+  resource in |k8s|. The only accepted value is ``AppDB``, which marks
+  this resource as the externally managed, multi-cluster {+appdb+}
+  for a ``MongoDBOpsManager`` resource. When you omit this setting,
+  the |k8s-op-short| manages the resource as an ordinary MongoDB
+  deployment.
+
+  To learn how to use an externally managed {+appdb+}, see
+  :ref:`om-appdb-backup`.
+
+  .. code-block:: yaml
+
+     apiVersion: mongodb.com/v1
+     kind: MongoDBMultiCluster
+     metadata:
+       name: primary-om-db
+     spec:
+       role: AppDB
+
+  This setting is immutable. You must set it when you create the
+  resource. You can't add it to an existing resource, and you can't
+  change or remove it afterward.
+
+  A |mongodb-multi| that sets ``spec.role`` to ``AppDB`` must meet the
+  following requirements:
+
+  - :setting:`spec.type` must be ``ReplicaSet``.
+  - The total number of members across
+    :ref:`spec.clusterSpecList <multi-spec-clusterspeclist>` must be
+    ``3`` or greater.
+  - The name of the resource must be
+    ``<MongoDBOpsManager-name>-db``.
+  - If you configure
+    :setting:`spec.security.authentication`, you must enable it, set
+    its modes to ``SCRAM`` only, and set
+    :setting:`spec.security.authentication.ignoreUnknownUsers` to
+    ``true``. If you omit authentication settings, the
+    |k8s-op-short| applies this configuration for you.
 
 .. _multi-spec-security-authentication:
 

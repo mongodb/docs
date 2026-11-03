@@ -1,0 +1,112 @@
+.. _k8s-fts-vs-verify-package-integrity:
+
+========================
+Verify Package Integrity
+========================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Verify the integrity of the mongot container image for Community and Enterprise MongoDB Search deployments in a Kubernetes cluster using cosign with a MongoDB-signed PEM key.
+   :keywords: MongoDB Search, vector search, cosign, signature, container image, integrity, verification
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+MongoDB uses digital signatures to certify that each ``mongot``
+package is a valid and unaltered release. Verify the ``mongot``
+container image to confirm its authenticity.
+
+.. _k8s-fts-vs-verify-integrity-community:
+
+Community Edition
+-----------------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Download the PEM file.
+
+      Run the following command to save the PEM file as
+      ``mongodb-search-community.pem``:
+
+      .. code-block:: shell
+         :copyable: true
+
+         curl -fsSL \
+           https://cosign.mongodb.com/mongodb-search-community.pem \
+           -o mongodb-search-community.pem
+
+   .. step:: Verify the container image.
+
+      Replace ``{VERSION}`` with your ``mongot`` version tag and run
+      the following command:
+
+      .. code-block:: shell
+         :copyable: true
+
+         COSIGN_REPOSITORY=docker.io/mongodb/signatures \
+         cosign verify --private-infrastructure \
+           --key=./mongodb-search-community.pem \
+           "docker.io/mongodb/mongodb-community-search:{VERSION}"
+
+      Successful output is similar to the following:
+
+      .. code-block:: none
+         :copyable: false
+
+         Verification for index.docker.io/mongodb/mongodb-community-search:{VERSION} --
+         The following checks were performed on each of these signatures:
+           - The cosign claims were validated
+           - The signatures were verified against the specified public key
+
+.. _k8s-fts-vs-verify-integrity-enterprise:
+
+Enterprise Edition
+------------------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Download the PEM file.
+
+      Run the following command to save the PEM file as
+      ``mongodb-enterprise-kubernetes-operator.pem``:
+
+      .. code-block:: shell
+         :copyable: true
+
+         wget \
+           https://cosign.mongodb.com/mongodb-enterprise-kubernetes-operator.pem
+
+   .. step:: Verify the container image.
+
+      Replace ``{VERSION}`` with your ``mongot`` version tag and run
+      the following command:
+
+      .. code-block:: shell
+         :copyable: true
+
+         cosign verify \
+           --key mongodb-enterprise-kubernetes-operator.pem \
+           quay.io/mongodb/mongodb-search:{VERSION} \
+           --insecure-ignore-tlog
+
+      Successful output is similar to the following:
+
+      .. code-block:: none
+         :copyable: false
+
+         WARNING: Skipping tlog verification is an insecure practice that lacks of transparency and auditability verification for the signature.
+
+         Verification for quay.io/mongodb/mongodb-search:{VERSION} --
+         The following checks were performed on each of these signatures:
+           - The cosign claims were validated
+           - The signatures were verified against the specified public key

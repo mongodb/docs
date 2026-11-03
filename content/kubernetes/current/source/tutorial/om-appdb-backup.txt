@@ -25,6 +25,7 @@ any other MongoDB deployment that the |k8s-op-short| manages.
 To deploy an external {+appdb+}, see the following procedures:
 
 - :ref:`deploy-om-external-appdb`
+- :ref:`deploy-om-external-appdb-multi-cluster`
 - :ref:`migrate-appdb-to-external`
 - :ref:`migrate-appdb-to-internal`
 
@@ -93,8 +94,9 @@ An external {+appdb+} deployment uses the following resources:
        domain, such as a different availability zone.
 
    * - External {+appdb+}
-     - A MongoDB resource with ``spec.role`` set to ``AppDB``. To
-       learn more, see :ref:`k8s-specification`.
+     - A MongoDB or MongoDBMultiCluster resource with ``spec.role``
+       set to ``AppDB``. To learn more, see :ref:`k8s-specification`
+       and :ref:`multi-cluster-specification`.
        Its name must be ``<primary-om-name>-db``. The management
        |onprem| instance manages this resource as a project, so you
        can enable backup on it like any other MongoDB resource.
@@ -123,6 +125,26 @@ If you lose the primary |onprem| instance, you use the management
 |onprem| instance to restore the external {+appdb+}, then recreate the
 primary |onprem| instance against the restored {+appdb+}, then restore
 your MongoDB workloads.
+
+Multi-Cluster External Application Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can deploy the external {+appdb+} as a MongoDBMultiCluster
+resource to spread the {+appdb+} members across multiple |k8s|
+clusters. The |k8s-op-short| creates one {+appdb+} StatefulSet per
+:ref:`member cluster <central-and-member-clusters>`, named
+``<primary-om-name>-db-<cluster-index>``, and
+the primary |onprem| resource references it with
+:opsmgrkube:`spec.externalApplicationDatabaseRef` set to kind
+``MongoDBMultiCluster``.
+
+A multi-cluster external {+appdb+} requires |tls| encryption and
+cross-cluster networking between the member clusters. You can provide
+this networking with a service mesh, such as |istio|, or without a
+service mesh. For a deployment without a service mesh, see
+:ref:`Multi-Cluster Ops Manager Without a Service Mesh
+<reference-architectures-multi-cluster-ops-manager-no-mesh>`. To learn
+more, see :ref:`deploy-om-external-appdb-multi-cluster`.
 
 .. _om-appdb-backup-external-appdb:
 
@@ -164,6 +186,14 @@ external {+appdb+}, the |k8s-op-short| sets an annotation on the
 {+appdb+} StatefulSet to record that the StatefulSet is ready to
 change owners. The |k8s-op-short| sets and reads these annotations.
 Don't set them yourself.
+
+In a multi-cluster deployment, the |k8s-op-short| applies these
+annotations to the {+appdb+} StatefulSet in each :ref:`member cluster
+<central-and-member-clusters>`. The |k8s-op-short| tracks ownership
+of each member-cluster StatefulSet with the ``mongodbmulticluster``
+label instead of an owner reference. A StatefulSet in a member
+cluster can't carry an owner reference to a resource in the
+:ref:`central cluster <central-and-member-clusters>`.
 
 .. list-table::
    :header-rows: 1
@@ -214,13 +244,10 @@ Limitations
 
 External {+appdb+} backup has the following limitations:
 
-- The external {+appdb+} must be a MongoDB resource on a single |k8s|
-  cluster. The |k8s-op-short| rejects MongoDBMultiCluster resources
-  and MongoDB resources that use a multi-cluster topology.
-  Multi-cluster support is planned for a later release.
-
-- This feature doesn't replicate the {+appdb+} across regions or
-  across |k8s| clusters.
+- A MongoDB resource with ``spec.role`` set to ``AppDB`` must use a
+  single-cluster topology. To spread the external {+appdb+} across
+  multiple |k8s| clusters, use a MongoDBMultiCluster resource, as
+  described in :ref:`deploy-om-external-appdb-multi-cluster`.
 
 - This feature doesn't back up or restore |onprem| state other than
   the {+appdb+} itself.

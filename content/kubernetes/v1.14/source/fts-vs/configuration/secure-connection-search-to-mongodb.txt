@@ -1,0 +1,310 @@
+.. _k8s-fts-vs-authentication-authorization:
+
+============================================
+Secure the Connection from Search to MongoDB
+============================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Configure how mongot authenticates to mongod (SCRAM or X.509), which role it needs, and how it trusts the mongod certificate when you run MongoDB Search and Vector Search on Kubernetes.
+   :keywords: mongot, scram, x509, searchCoordinator, tls, certificate, secret, code example
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page describes the connection that ``mongot`` opens *to*
+``mongod`` (or ``mongos``) to source data and read replication state,
+for a |text-search| and |vector-search| deployment that you manage
+with the |k8s-op-full|. On this connection, ``mongot`` is the client
+and ``mongod`` is the server. This page covers how ``mongot``
+authenticates to ``mongod`` (SCRAM or X.509), the role its identity
+needs, and how ``mongot`` trusts the ``mongod`` server certificate
+over TLS.
+
+Application users never connect to ``mongot`` directly. For the
+opposite direction — the connection that ``mongod`` opens to
+``mongot``'s listen server — see :ref:`k8s-fts-vs-tls-encryption`.
+
+For the full schema of each ``MongoDBSearch`` setting referenced on
+this page, see :ref:`k8s-fts-vs-settings`.
+
+How ``mongot`` Authenticates to ``mongod``
+------------------------------------------
+
+When ``mongot`` connects to ``mongod``, it authenticates as a database
+client using one of two mutually exclusive modes:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 30 55
+
+   * - Mode
+     - Credential
+     - Use when
+
+   * - **SCRAM**
+     - Username and password
+     - Your ``mongod`` deployment already uses SCRAM. SCRAM is the
+       default when the |k8s-op-short| also manages your ``MongoDB``
+       or ``MongoDBCommunity`` resource. To add network-layer
+       security without changing the authentication mechanism,
+       combine SCRAM with a TLS certificate.
+
+   * - **X.509**
+     - Client certificate
+     - Your organization provisions certificates from a PKI for
+       cluster services, or compliance requirements favor
+       certificate-based identity over passwords.
+
+You can switch modes after the fact by updating the ``MongoDBSearch``
+resource and letting the |k8s-op-short| restart the ``mongot`` pods.
+The ``mongod``-side identity that ``mongot`` authenticates as does not
+need to change if it holds the required role described in the next
+section.
+
+.. note::
+
+   Switching from SCRAM to X.509 requires TLS on the sync source. The
+   |k8s-op-short| rejects X.509 when the source ``mongod`` is not
+   running TLS. Enabling search TLS for the first time is a brief but
+   real query outage rather than a seamless restart. Plan for a short
+   downtime when you make this switch. See
+   :ref:`k8s-fts-vs-tls-encryption` for the cutover behavior.
+
+The Role ``mongot`` Needs on ``mongod``
+---------------------------------------
+
+Whichever mode ``mongot`` uses, the identity it authenticates as must
+have permission to source data and maintain the search catalog on
+``mongod``. That identity must hold the built-in ``searchCoordinator``
+role, which ships with MongoDB Server 8.2 and later and grants only
+the privileges that ``mongot`` requires.
+
+You always create this identity yourself; the ``MongoDBSearch``
+controller never creates it for you. How you create it depends on
+whether the |k8s-op-short| manages the source ``mongod``:
+
+- **Operator-managed source.** Declare a user that holds the
+  ``searchCoordinator`` role and reference a password ``Secret`` — in
+  the ``users`` list of your ``MongoDBCommunity`` resource for
+  Community, or as a separate ``MongoDBUser`` resource for Enterprise.
+  The |k8s-op-short| provisions that user on ``mongod`` for you. You
+  then reference the same user and ``Secret`` on the ``MongoDBSearch``
+  resource so ``mongot`` can authenticate with it.
+
+- **External source.** Create the user and grant it the
+  ``searchCoordinator`` role directly on your own ``mongod``
+  deployment, then reference its credentials on the ``MongoDBSearch``
+  resource as shown below.
+
+The rest of this page shows how to configure each authentication mode
+on the ``MongoDBSearch`` resource, and how to trust the ``mongod``
+server certificate over TLS.
+
+Configure SCRAM Authentication
+------------------------------
+
+Provide a |k8s| ``Secret`` that contains the password that ``mongot``
+should use to authenticate to ``mongod``. Reference the secret on the
+``MongoDBSearch`` resource through ``spec.source.passwordSecretRef``,
+and set the username through ``spec.source.username``.
+
+.. code-block:: yaml
+
+   spec:
+     source:
+       username: search-sync-source
+       passwordSecretRef:
+         name: my-mongot-password
+
+The referenced ``Secret`` must contain the password under a key named
+``password`` by default. Override the key through
+``spec.source.passwordSecretRef.key`` if you store the password under
+a different key.
+
+The user identified by ``spec.source.username`` must already exist on
+``mongod`` and must hold the :authrole:`searchCoordinator` role. If
+you omit ``spec.source.username``, the |k8s-op-short| assumes the
+username is ``search-sync-source``.
+
+To add network-layer mTLS on top of SCRAM, provide a |k8s| ``Secret``
+containing the client certificate and private key and reference it
+through ``spec.source.tls.clientCertificateSecretRef``. The
+``Secret`` must contain ``tls.crt`` and ``tls.key``. The
+|k8s-op-short| presents this certificate during the TLS handshake
+while still authenticating through username and password.
+
+.. code-block:: yaml
+
+   spec:
+     source:
+       username: search-sync-source
+       passwordSecretRef:
+         name: my-mongot-password
+       tls:
+         clientCertificateSecretRef:
+           name: my-mongot-client-cert
+
+If the client private key is encrypted, provide the passphrase in a
+separate ``Secret`` and reference it through
+``spec.source.tls.keyFilePasswordSecretRef``. The ``Secret`` must
+contain the passphrase at the ``keyFilePassword`` key.
+
+Configure X.509 Authentication
+------------------------------
+
+X.509 authentication identifies ``mongot`` to ``mongod`` through a
+client certificate rather than a username and password. The subject
+distinguished name (DN) on the certificate becomes ``mongot``'s
+identity on ``mongod``.
+
+.. note::
+
+   ``spec.source.x509`` is mutually exclusive with
+   ``spec.source.username`` and ``spec.source.passwordSecretRef``. If
+   you set both, the |k8s-op-short| rejects the ``MongoDBSearch``
+   resource.
+
+Provide a |k8s| ``Secret`` that contains the client certificate and
+private key under the ``tls.crt`` and ``tls.key`` keys, and reference
+it on the ``MongoDBSearch`` resource through
+``spec.source.x509.clientCertificateSecretRef``:
+
+.. code-block:: yaml
+
+   spec:
+     source:
+       x509:
+         clientCertificateSecretRef:
+           name: my-mongot-x509-cert
+
+If the client private key is encrypted, provide the passphrase in a
+separate ``Secret`` under the ``keyFilePassword`` key, and reference
+it through ``spec.source.x509.keyFilePasswordSecretRef``:
+
+.. code-block:: yaml
+
+   spec:
+     source:
+       x509:
+         clientCertificateSecretRef:
+           name: my-mongot-x509-cert
+         keyFilePasswordSecretRef:
+           name: my-mongot-key-password
+
+The client certificate alone does not grant access: ``mongod`` must
+recognize its subject DN as an authorized identity. After you create
+the certificate secret above, authorize that certificate's subject DN
+on ``mongod`` as described next.
+
+Authorize the X.509 Subject DN on ``mongod``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+On the ``mongod`` side, create a user in the ``$external`` database
+whose name matches the subject DN on the client certificate you
+provisioned above, and grant the ``searchCoordinator`` role to that
+user. ``mongod`` uses the ``$external`` database to track identities
+that authenticate through external mechanisms such as X.509. To create
+an X.509 user on a deployment that the |k8s-op-short| manages, see
+:ref:`secure-x509-auth`.
+
+You must also enable TLS on the ``mongod`` deployment and configure
+it to trust the certificate authority (CA) that signed the ``mongot``
+client certificate. You configure this on the ``mongod`` deployment
+itself through the ``MongoDB`` or ``MongoDBCommunity`` resource, not
+the ``MongoDBSearch`` resource. To enable TLS on a managed ``mongod``
+deployment, see :ref:`secure-client-connections`.
+
+.. _k8s-fts-vs-tls-outgoing:
+
+Trust the ``mongod`` Server Certificate
+---------------------------------------
+
+The settings above establish ``mongot``'s identity. Independently,
+when the source ``mongod`` uses TLS, ``mongot`` must trust the
+certificate that ``mongod`` presents when ``mongot`` connects to it.
+``mongot`` is the TLS client on this connection; ``mongod`` presents
+its server certificate, and ``mongot`` validates that certificate
+against a CA that you supply.
+
+When the source ``mongod`` is external to the |k8s-op-short| (that
+is, declared through ``spec.source.external``), provide the CA that
+issued the ``mongod`` server certificate:
+
+.. code-block:: yaml
+
+   spec:
+     source:
+       external:
+         hostAndPorts:
+           - mongod-0.example.com:27017
+         tls:
+           ca:
+             name: my-external-mongod-ca
+
+The ``spec.source.external.tls.ca.name`` field references a |k8s|
+``ConfigMap`` that contains the CA certificate under the ``ca.crt``
+key. The CA must be the one that issued the ``mongod`` server
+certificate.
+
+When the source ``mongod`` is instead managed by the |k8s-op-short|
+(through ``spec.source.mongodbResourceRef``), the |k8s-op-short|
+handles this CA trust for you, and the
+``spec.source.external.tls.ca.name`` field does not apply.
+
+Certificate Rotation
+--------------------
+
+``mongot`` reads its client certificate at process startup. To rotate
+the certificate, update the ``Secret`` referenced by
+``spec.source.x509.clientCertificateSecretRef`` (for X.509) or
+``spec.source.tls.clientCertificateSecretRef`` (for mTLS on top of
+SCRAM) on the ``MongoDBSearch`` resource. The |k8s-op-short| detects
+the change and automatically restarts the ``mongot`` pods to load the
+new certificate material. The same applies to the SCRAM password
+``Secret`` referenced by ``spec.source.passwordSecretRef``.
+
+To rotate an X.509 client certificate under MCK:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Issue the new certificate.
+
+      Issue a new client certificate with the same subject DN as the
+      certificate it replaces, so that the ``$external`` user you
+      created on ``mongod`` does not need to change. MongoDB recommends
+      validity windows of at least 30 days because shorter windows
+      increase rotation frequency.
+
+   .. step:: Update the Secret.
+
+      Update the ``Secret`` referenced by
+      ``spec.source.x509.clientCertificateSecretRef`` with the new
+      ``tls.crt`` and ``tls.key`` values. If the private key is
+      encrypted, also update the ``Secret`` referenced by
+      ``spec.source.x509.keyFilePasswordSecretRef`` with the new
+      passphrase at the ``keyFilePassword`` key. The |k8s-op-short|
+      detects the change and automatically restarts the ``mongot``
+      pods.
+
+   .. step:: Remove the old certificate.
+
+      After all pods restart successfully, revoke the old certificate at 
+      your PKI. If the replacement certificate uses the same subject DN, 
+      you do not need to change the corresponding ``$external`` user on mongod. 
+      Remove the ``$external`` user only if you also want to retire that X.509 
+      identity entirely.
+
+Automated rotation is not configurable through the ``MongoDBSearch``
+CRD. Update the ``Secret`` referenced by
+``spec.source.x509.clientCertificateSecretRef`` to trigger the
+rotation; the |k8s-op-short| restarts the pods automatically.

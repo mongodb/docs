@@ -1,0 +1,239 @@
+.. _migrate-appdb-to-internal:
+
+======================================================
+Return an External Application Database to Ops Manager
+======================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: appdb, statefulset, reverse migration
+   :description: Return an external Ops Manager Application Database to internal management by removing the external reference and letting Ops Manager reclaim the StatefulSet.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can return an **external** {+appdb+} to internal management by the
+|onprem| resource. The |onprem| resource reclaims the existing
+{+appdb+} StatefulSet, and you then delete the MongoDB resource that
+managed it. The |k8s-op-short| doesn't move or recreate your data, and
+it doesn't restart the |onprem| pods.
+
+.. _migrate-appdb-to-internal-how:
+
+How the Migration Works
+-----------------------
+
+The |onprem| resource starts with an external {+appdb+}: a MongoDB
+resource with ``spec.role`` set to ``AppDB``, named
+``<primary-om-name>-db``, that owns the {+appdb+} StatefulSet. The
+migration proceeds as follows:
+
+1. You remove :opsmgrkube:`spec.externalApplicationDatabaseRef` from
+   the |onprem| resource and add
+   :opsmgrkube:`spec.applicationDatabase`.
+
+2. The |k8s-op-short| asks the MongoDB resource to release the
+   StatefulSet. The MongoDB resource reports the ``Pending`` phase
+   while it waits for the |onprem| resource to reclaim it.
+
+3. The |k8s-op-short| reclaims the StatefulSet and manages it as an
+   internal {+appdb+}. Because the connection string doesn't change,
+   the |onprem| pods don't restart.
+
+4. You delete the MongoDB resource, which no longer owns anything.
+
+.. warning::
+
+   Delete the MongoDB resource only after the |onprem| resource
+   manages the internal {+appdb+} again. If you delete the MongoDB
+   resource while it still owns the StatefulSet, |k8s| garbage
+   collects the {+appdb+}. Recovering from that state requires
+   recreating the {+appdb+} from the retained |k8s-pvcs|, which
+   causes downtime and rotates the {+appdb+} credentials.
+
+Prerequisites
+-------------
+
+Before you begin, complete the following tasks:
+
+- Install the |k8s-op-short| and ``kubectl``. To learn more, see
+  :ref:`install-k8s-operator`.
+
+- Confirm that the primary |onprem| resource uses an external
+  {+appdb+}: it sets
+  :opsmgrkube:`spec.externalApplicationDatabaseRef` to a MongoDB
+  resource named ``<primary-om-name>-db``, it doesn't set
+  :opsmgrkube:`spec.applicationDatabase`, and its
+  ``status.applicationDatabase.phase`` reports ``Disabled``.
+
+- Confirm that the MongoDB resource is in the ``Running`` phase and
+  owns the {+appdb+} StatefulSet.
+
+Considerations
+--------------
+
+Review the following considerations before you migrate:
+
+- Set :opsmgrkube:`spec.applicationDatabase.version` to the version
+  that the {+appdb+} already runs. Reusing the same version keeps the
+  same binaries and data in place. A different version starts an
+  {+appdb+} upgrade at the same time as the handover.
+
+- The |k8s-op-short| doesn't delete the |onprem| project that it
+  created for the external {+appdb+}. Removing that project makes the
+  {+appdb+}'s historical metrics unreadable, so cleaning it up is your
+  decision.
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Set the environment variables for the migration.
+
+      .. code-block:: sh
+
+         export K8S_CTX="<your-kube-context>"
+         export MDB_NS="mongodb"
+
+         export PRIMARY_OM_NAME="primary-om"
+         export APPDB_NAME="${PRIMARY_OM_NAME}-db"
+         export APPDB_VERSION="8.0.5-ent"
+
+   .. step:: Confirm the starting state.
+
+      a. Confirm that the |onprem| resource references the external
+         {+appdb+} and reports its {+appdb+} as ``Disabled``:
+
+         .. code-block:: sh
+
+            kubectl get om "${PRIMARY_OM_NAME}" --context "${K8S_CTX}" -n "${MDB_NS}" \
+              -o jsonpath='ref={.spec.externalApplicationDatabaseRef.name} appdb={.status.applicationDatabase.phase}{"\n"}'
+
+      #. Confirm that the MongoDB resource owns the {+appdb+}
+         StatefulSet:
+
+         .. code-block:: sh
+
+            kubectl get statefulset "${APPDB_NAME}" --context "${K8S_CTX}" -n "${MDB_NS}" \
+              -o jsonpath='{range .metadata.ownerReferences[*]}{.kind}/{.name}{"\n"}{end}'
+
+         The command returns ``MongoDB/${APPDB_NAME}``.
+
+   .. step:: Reconfigure the |onprem| resource to use an internal {+appdb+}.
+
+      This patch removes
+      :opsmgrkube:`spec.externalApplicationDatabaseRef` and adds
+      :opsmgrkube:`spec.applicationDatabase`.
+
+      .. code-block:: sh
+
+         kubectl patch om "${PRIMARY_OM_NAME}" \
+           --context "${K8S_CTX}" -n "${MDB_NS}" \
+           --type merge \
+           -p "{\"spec\":{\"externalApplicationDatabaseRef\":null,\"applicationDatabase\":{\"members\":3,\"version\":\"${APPDB_VERSION}\"}}}"
+
+   .. step:: Wait for the |onprem| resource to reclaim the StatefulSet.
+
+      a. Confirm that the MongoDB resource releases the StatefulSet.
+         The resource reports the ``Pending`` phase with a message
+         that it is under reverse migration to the |onprem| resource:
+
+         .. code-block:: sh
+
+            kubectl wait --for=jsonpath='{.status.phase}'=Pending \
+              mdb/"${APPDB_NAME}" --context "${K8S_CTX}" -n "${MDB_NS}" --timeout=300s
+
+            kubectl get mdb "${APPDB_NAME}" --context "${K8S_CTX}" -n "${MDB_NS}" \
+              -o jsonpath='{.status.message}{"\n"}'
+
+      #. Wait for the |onprem| resource to manage the internal
+         {+appdb+} again:
+
+         .. code-block:: sh
+
+            kubectl wait --for=jsonpath='{.status.applicationDatabase.phase}'=Running \
+              om/"${PRIMARY_OM_NAME}" --context "${K8S_CTX}" -n "${MDB_NS}" --timeout=1200s
+
+            kubectl wait --for=jsonpath='{.status.opsManager.phase}'=Running \
+              om/"${PRIMARY_OM_NAME}" --context "${K8S_CTX}" -n "${MDB_NS}" --timeout=1800s
+
+   .. step:: Delete the MongoDB resource.
+
+      Complete this step only after the previous step reports
+      ``applicationDatabase.phase=Running``.
+
+      .. code-block:: sh
+
+         kubectl delete mdb "${APPDB_NAME}" \
+           --context "${K8S_CTX}" -n "${MDB_NS}" --wait=true --timeout=300s
+
+   .. step:: Verify the migration.
+
+      a. Confirm that the |onprem| resource owns the {+appdb+}
+         StatefulSet:
+
+         .. code-block:: sh
+
+            kubectl get statefulset "${APPDB_NAME}" --context "${K8S_CTX}" -n "${MDB_NS}" \
+              -o jsonpath='{range .metadata.ownerReferences[*]}{.kind}/{.name}{"\n"}{end}'
+
+         The command returns
+         ``MongoDBOpsManager/${PRIMARY_OM_NAME}``.
+
+      #. Confirm that the |onprem| resource reports its {+appdb+} as
+         ``Running`` and that the MongoDB resource no longer exists:
+
+         .. code-block:: sh
+
+            kubectl get om "${PRIMARY_OM_NAME}" --context "${K8S_CTX}" -n "${MDB_NS}" \
+              -o jsonpath='{.status.applicationDatabase.phase}{"\n"}'
+
+            kubectl get mdb --context "${K8S_CTX}" -n "${MDB_NS}"
+
+      #. Confirm that the |onprem| pods didn't restart by checking
+         their age and restart counts:
+
+         .. code-block:: sh
+
+            kubectl get pods --context "${K8S_CTX}" -n "${MDB_NS}"
+
+Common Migration Issues
+-----------------------
+
+The MongoDB Resource Doesn't Release the StatefulSet
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the MongoDB resource stays in the ``Running`` phase and still owns
+the StatefulSet, the |onprem| resource hasn't requested the release.
+Confirm that your patch set
+:opsmgrkube:`spec.externalApplicationDatabaseRef` to ``null`` and
+added :opsmgrkube:`spec.applicationDatabase`.
+
+The Application Database Version Doesn't Match
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Set :opsmgrkube:`spec.applicationDatabase.version` to the version that
+the {+appdb+} already runs so that the reclaimed StatefulSet keeps the
+same binaries.
+
+You Deleted the MongoDB Resource Too Early
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you delete the MongoDB resource while it still owns the
+StatefulSet, |k8s| garbage collects the StatefulSet and the secrets
+that it shares with the |onprem| resource. To recover, recreate the
+{+appdb+} from the retained |k8s-pvcs|. This path causes downtime and
+rotates the {+appdb+} credentials. To learn more, see
+:ref:`disaster-recovery-om-appdb`.
+
+Next Steps
+----------
+
+To use an external {+appdb+} again, see
+:ref:`migrate-appdb-to-external`.

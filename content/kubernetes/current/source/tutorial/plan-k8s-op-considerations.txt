@@ -27,7 +27,56 @@ We recommend that you use a single instance of the |k8s-op-short|
 to deploy and manage your MongoDB replica sets.
 
 To deploy more than 10 MongoDB replica sets in parallel,
-you can :ref:`increase the thread count of your Kubernetes Operator instance <increase-thread-count-ops-manager>`. 
+you can :ref:`increase the thread count of your Kubernetes Operator instance <increase-thread-count-ops-manager>`.
+
+.. _k8s-operator-om-list-read-limits:
+
+Consider |onprem| List Read Limits
+----------------------------------
+
+The |k8s-op-short| reads paginated lists from |onprem| during
+reconciliation. These lists include the Automation Agents in a
+project and the list of organizations and projects. The
+|k8s-op-short| stops reading a list after 100 pages or one minute,
+whichever comes first:
+
+- At the |onprem| default of 100 items per page, the page limit
+  covers up to 10,000 Automation Agents in a single project.
+
+- When the |k8s-op-short| lists organizations and projects, it
+  requests 500 items per page, so the page limit covers up to 50,000
+  entries.
+
+If |onprem| reports another page after the |k8s-op-short| reaches the
+page limit, reconciliation fails with the following error:
+
+.. code-block:: text
+   :copyable: false
+
+   pagination exceeded the maximum number of pages: stopped after 100 pages
+
+If the one-minute timeout expires first, the |k8s-op-short| returns a
+timeout error instead, for example:
+
+.. code-block:: text
+   :copyable: false
+
+   timed out traversing Ops Manager pages
+
+Depending on when the minute runs out, the error might instead read
+``failed reading Ops Manager page N``, where ``N`` is the page number,
+followed by ``context deadline exceeded``. These errors can surface
+during reconciliation, for example while the |k8s-op-short| waits for
+Automation Agents to register after you deploy a cluster.
+
+.. note::
+
+   The one-minute limit applies to the total duration of a whole list
+   read, which spans many requests, one page at a time.
+
+If you encounter either error, verify that |onprem| is healthy and
+responsive. The |k8s-op-short| retries the read on the next
+reconciliation. If the errors persist, contact |mdb-support|.
 
 .. _k8s-deployment-scopes:
 

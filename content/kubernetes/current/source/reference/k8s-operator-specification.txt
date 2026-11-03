@@ -96,6 +96,37 @@ Every resource type may use the following settings:
         annotations:
           mongodb.com/v1.architecture: "static"
 
+.. setting:: metadata.annotations.mongodb.com/v1.containerImageType
+
+   *Type*: string
+
+   Determines the variant of the ``mongodb-enterprise-server`` image
+   that the |k8s-op-short| deploys for this resource.
+
+   Accepted values are:
+
+   - ``ubi8``
+   - ``ubi9``
+   - ``ubi9-slim``
+
+   This annotation applies to deployments that use
+   :ref:`static-containers`. On deployments that use non-static
+   containers, the |k8s-op-short| ignores this annotation. The
+   |k8s-op-short| reports a warning in the resource status.
+
+   The annotation takes precedence over the operator-wide default
+   image variant. To learn more, see
+   :ref:`static-container-image-variants`.
+
+   .. code-block:: yaml
+
+      apiVersion: mongodb.com/v1
+      kind: MongoDB
+      metadata:
+        name: my-project
+        annotations:
+          mongodb.com/v1.containerImageType: "ubi9-slim"
+
 .. setting:: spec.agent.backupAgent.logRotate
 
    *Type*: object
@@ -263,8 +294,11 @@ Every resource type may use the following settings:
    - :setting:`spec.type` must be ``ReplicaSet``.
    - :setting:`spec.members` must be ``3`` or greater.
    - The resource must use a single |k8s| cluster. The |k8s-op-short|
-     rejects a ``MongoDBMultiCluster`` resource and a MongoDB resource
-     that uses a multi-cluster topology.
+     rejects a MongoDB resource that sets ``spec.role`` to ``AppDB``
+     and uses a multi-cluster topology. To deploy an external
+     {+appdb+} across multiple |k8s| clusters, use a
+     ``MongoDBMultiCluster`` resource instead, as described in
+     :ref:`spec.role <multi-spec-role>`.
    - The name of the resource must be
      ``<MongoDBOpsManager-name>-db``.
    - If you configure

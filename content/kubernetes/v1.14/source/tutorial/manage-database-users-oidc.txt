@@ -1,0 +1,76 @@
+:noprevnext:
+
+.. _k8s-manage-db-users-oidc:
+
+================================================
+Manage Database Users Using OIDC Authentication
+================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The |k8s-op-short| supports managing database users for deployments
+running with |tls| and OIDC cluster authentication enabled. This allows you to 
+create individual database user objects that authenticate against your 
+configured OIDC provider.
+
+This method is primarily used when your OIDC provider is configured with an 
+``authorizationType`` of ``UserID``. 
+
+For ``GroupMembership`` authorization, roles are managed directly in the ``MongoDB``
+resource specification, not through individual ``MongoDBUser`` resources.
+
+Considerations
+--------------
+
+- ``MongoDBUser`` Resource: Each OIDC user managed this way requires a 
+  corresponding ``MongoDBUser`` custom resource. The |k8s-op-short| uses this 
+  resource to configure the user within MongoDB.
+
+- ``$external`` Database: All users that authenticate via an external mechanism 
+  like OIDC must be created in the ``$external`` virtual database. You must set 
+  ``spec.db`` to "$external" in the ``MongoDBUser`` resource.
+
+- Username Format: The spec.username must follow the format 
+  <configurationName>/<userClaimValue>, combining the OIDC provider's 
+  configuration name with the unique claim from the user's JWT. This 
+  claim is specified by ``userClaim`` in your OIDC provider configuration and 
+  defaults to ``sub``.
+
+- Authentication vs. Authorization: Your OIDC Identity Provider (IdP) is 
+  responsible for authenticating the user (verifying their identity). The 
+  ``MongoDBUser`` resource is responsible for authorizing the user (defining 
+  what they have permission to do) within MongoDB.
+
+Prerequisites
+-------------
+
+Before managing database users, you must deploy a
+:ref:`replica set <deploy-replica-set>` or
+:ref:`sharded cluster <deploy-sharded-cluster>` with |oidc| enabled.
+enabled. Optionally, you can enable |tls|. To learn more, see
+:ref:`Secure a Database Resource <k8s-secure-resources>`.
+
+.. _add-db-user-oidc:
+
+Add a Database User
+-------------------
+
+.. include:: /includes/steps-add-database-user-oidc.rst
+
+Delete a Database User
+----------------------
+
+To delete a database user, you simply delete the ``MongoDBUser`` resource 
+associated with them. The |k8s-op-short| will automatically remove the user from 
+the MongoDB database. Pass the ``metadata.name`` of the ``MongoDBUser`` resource 
+to the following command:
+
+.. code-block:: sh
+
+   kubectl delete mongodbuser oidc-app-user-1

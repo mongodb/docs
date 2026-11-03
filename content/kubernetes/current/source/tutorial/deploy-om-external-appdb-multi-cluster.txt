@@ -1,0 +1,609 @@
+.. _deploy-om-external-appdb-multi-cluster:
+
+====================================================
+Deploy a Multi-Cluster External Application Database
+====================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: appdb, statefulset, ops manager backup, disaster recovery
+   :description: Deploy Ops Manager with a multi-cluster external Application Database, a MongoDBMultiCluster resource spread across Kubernetes clusters that a second Ops Manager instance manages and backs up.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can deploy an |onprem| resource that uses a multi-cluster
+**external** {+appdb+}: a MongoDBMultiCluster custom resource with
+``spec.role`` set to ``AppDB``. This resource spreads the {+appdb+}
+members across multiple |k8s| clusters. A second |onprem| instance
+manages the resource as a project, which lets |onprem| back up and
+restore the {+appdb+}. To learn more, see :ref:`om-appdb-backup`.
+
+This procedure deploys a new |onprem| instance. To convert an existing
+|onprem| instance that uses an internally managed multi-cluster
+{+appdb+}, see :ref:`migrate-appdb-to-external-multi-cluster`. For the
+single-cluster variant of this procedure, see
+:ref:`deploy-om-external-appdb`.
+
+This procedure deploys the following resources:
+
+- A **management** |onprem| instance with its own internally managed
+  {+appdb+}, running on the :ref:`central cluster
+  <central-and-member-clusters>`. This instance manages the project
+  that contains the external {+appdb+}.
+
+- An external {+appdb+}: a MongoDBMultiCluster replica set with
+  ``spec.role`` set to ``AppDB``, named ``<primary-om-name>-db``. The
+  |k8s-op-short| creates one StatefulSet per :ref:`member cluster
+  <central-and-member-clusters>`, named
+  ``<primary-om-name>-db-<cluster-index>``.
+
+- A **primary** |onprem| instance that omits
+  :opsmgrkube:`spec.applicationDatabase` and references the external
+  {+appdb+} with :opsmgrkube:`spec.externalApplicationDatabaseRef`
+  set to kind ``MongoDBMultiCluster``.
+
+Prerequisites
+-------------
+
+Before you begin, complete the following tasks:
+
+- Deploy three |k8s| clusters, each with a default ``StorageClass``:
+  one :ref:`central cluster <central-and-member-clusters>` and two
+  :ref:`member clusters <central-and-member-clusters>`.
+
+- Deploy a service mesh that spans the clusters and provides
+  cross-cluster service discovery. The {+appdb+} members communicate
+  across clusters over the mesh.
+
+  This procedure uses |istio|, but you can use any service mesh that
+  provides |fqdn| hostname resolution between Pods across clusters. A
+  service mesh isn't a requirement for a multi-cluster external
+  {+appdb+} itself. For a no-mesh deployment pattern, see
+  :ref:`Multi-Cluster Ops Manager Without a Service Mesh
+  <reference-architectures-multi-cluster-ops-manager-no-mesh>`.
+
+- Install ``kubectl``, ``helm``, and the ``kubectl mongodb`` plugin,
+  and configure them for all three clusters.
+
+- Obtain access to the |k8s-op-short| Helm chart.
+
+Considerations
+--------------
+
+Review the following considerations before you deploy:
+
+- Set the |onprem| version and the {+appdb+} version to a consistent
+  pair. The management |onprem| instance manages the external
+  {+appdb+}, so the {+appdb+} version must be a MongoDB version that
+  the management |onprem| instance offers in its version manifest.
+  For example, an 8.0.x |onprem| instance offers 8.0.x MongoDB
+  versions, but a 7.0.x |onprem| instance doesn't. To find a
+  compatible pair, see the :opsmgr:`Application Database
+  compatibility matrix
+  </core/requirements/#ops-manager-backing-databases>`.
+
+- A multi-cluster external {+appdb+} requires |tls| encryption. When
+  the {+appdb+} uses |tls|, the {+mdbagent+} validates every outbound
+  HTTPS connection against the CA bundle in
+  ``spec.security.tls.ca``, including the download of the MongoDB
+  binary from ``downloads.mongodb.com``. The CA bundle must include
+  the public roots that sign ``downloads.mongodb.com`` in addition
+  to your own CA. To configure |tls| certificates for a
+  multi-cluster deployment, see :ref:`Manage TLS Certificates
+  <reference-architectures-ca-certs>`.
+
+- The :ref:`central cluster <central-and-member-clusters>` runs the
+  |k8s-op-short|, both |onprem| instances, and holds the
+  MongoDBMultiCluster resource. The :ref:`member clusters
+  <central-and-member-clusters>` run the {+appdb+} data pods.
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Set the environment variables for the deployment.
+
+      .. code-block:: sh
+
+         export K8S_CTX_0="<central-cluster-context>"
+         export K8S_CTX_1="<member-cluster-1-context>"
+         export K8S_CTX_2="<member-cluster-2-context>"
+         export MDB_NS="mongodb"
+
+         export OPERATOR_HELM_CHART="oci://quay.io/mongodb/helm-charts/mongodb-kubernetes"
+
+         export OM_VERSION="8.0.7"
+         export APPDB_VERSION="8.0.5-ent"
+
+         export MANAGEMENT_OM_NAME="management-om"
+         export PRIMARY_OM_NAME="primary-om"
+
+         export APPDB_NAME="${PRIMARY_OM_NAME}-db"
+         export APPDB_MEMBERS_C1=2
+         export APPDB_MEMBERS_C2=2
+
+         export MANAGEMENT_OM_URL="http://${MANAGEMENT_OM_NAME}-svc.${MDB_NS}.svc.cluster.local:8080"
+         export MANAGEMENT_OM_ADMIN_KEY_SECRET="${MDB_NS}-${MANAGEMENT_OM_NAME}-admin-key"
+
+         export APPDB_PROJECT_CONFIGMAP="${APPDB_NAME}-config"
+         export APPDB_PROJECT_NAME="external-appdb"
+         export APPDB_CONNECTION_STRING_SECRET="${APPDB_NAME}-connection-string"
+
+         export CERT_MANAGER_NAMESPACE="cert-manager"
+         export APPDB_TLS_SELF_SIGNED_ISSUER="mongodb-self-signed-issuer"
+         export APPDB_TLS_CA_CERT_NAME="mongodb-ca"
+         export APPDB_TLS_CA_SECRET_NAME="mongodb-ca-key-pair"
+         export APPDB_TLS_CA_ISSUER="mongodb-ca-issuer"
+         export APPDB_CERT_PREFIX="appdb"
+         export APPDB_CA_CONFIGMAP="${APPDB_NAME}-ca"
+
+         export OM_ADMIN_EMAIL="admin@example.com"
+         export OM_ADMIN_PASSWORD="<your-password>"
+         export OM_ADMIN_FIRST_NAME="Admin"
+         export OM_ADMIN_LAST_NAME="User"
+
+      The |k8s-op-short| requires the external {+appdb+} to be named
+      ``<primary-om-name>-db``, which is why ``APPDB_NAME`` derives
+      from ``PRIMARY_OM_NAME``.
+
+   .. step:: Create the namespace in each cluster.
+
+      The namespace must exist on the :ref:`central cluster
+      <central-and-member-clusters>` and on both :ref:`member
+      clusters <central-and-member-clusters>`. The
+      ``istio-injection=enabled`` label adds a
+      sidecar to the {+appdb+} pods so that their agents can resolve
+      the management |onprem| service across clusters.
+
+      .. code-block:: sh
+
+         for ctx in "${K8S_CTX_0}" "${K8S_CTX_1}" "${K8S_CTX_2}"; do
+           kubectl create namespace "${MDB_NS}" --context "${ctx}" --dry-run=client -o yaml \
+             | kubectl apply --context "${ctx}" -f -
+           kubectl label namespace "${MDB_NS}" istio-injection=enabled --overwrite --context "${ctx}"
+         done
+
+   .. step:: Install the |k8s-op-short| in multi-cluster mode.
+
+      Configure service accounts and roles across the clusters with
+      the ``kubectl mongodb`` plugin, then install the
+      |k8s-op-short| on the central cluster with the member clusters
+      registered. To learn more, see :ref:`multi-cluster-prereqs`.
+
+      .. code-block:: sh
+
+         kubectl mongodb multicluster setup \
+           --central-cluster="${K8S_CTX_0}" \
+           --member-clusters="${K8S_CTX_0},${K8S_CTX_1},${K8S_CTX_2}" \
+           --member-cluster-namespace="${MDB_NS}" \
+           --central-cluster-namespace="${MDB_NS}" \
+           --create-service-account-secrets \
+           --install-database-roles=true
+
+         helm upgrade --install --kube-context "${K8S_CTX_0}" \
+           --create-namespace --namespace "${MDB_NS}" \
+           mongodb-kubernetes-operator-multi-cluster \
+           --set operator.name=mongodb-kubernetes-operator-multi-cluster \
+           --set operator.createOperatorServiceAccount=false \
+           --set operator.createResourcesServiceAccountsAndRoles=false \
+           --set "multiCluster.clusters={${K8S_CTX_0},${K8S_CTX_1},${K8S_CTX_2}}" \
+           "${OPERATOR_HELM_CHART}"
+
+         kubectl rollout status deployment/mongodb-kubernetes-operator-multi-cluster \
+           --context "${K8S_CTX_0}" -n "${MDB_NS}" --timeout=300s
+
+   .. step:: Create the |onprem| admin secret.
+
+      Both |onprem| resources reference this secret with
+      :opsmgrkube:`spec.adminCredentials`.
+
+      .. code-block:: sh
+
+         kubectl create secret generic ops-manager-admin-secret \
+           --context "${K8S_CTX_0}" -n "${MDB_NS}" \
+           --from-literal=Username="${OM_ADMIN_EMAIL}" \
+           --from-literal=Password="${OM_ADMIN_PASSWORD}" \
+           --from-literal=FirstName="${OM_ADMIN_FIRST_NAME}" \
+           --from-literal=LastName="${OM_ADMIN_LAST_NAME}"
+
+   .. step:: Install cert-manager on the central cluster.
+
+      The multi-cluster {+appdb+} members use |tls|, so cert-manager
+      must issue the CA and the {+appdb+} server certificate.
+
+      .. code-block:: sh
+
+         helm upgrade --install --kube-context "${K8S_CTX_0}" \
+           cert-manager jetstack/cert-manager \
+           --namespace "${CERT_MANAGER_NAMESPACE}" --create-namespace \
+           --set crds.enabled=true
+
+   .. step:: Configure the |tls| CA.
+
+      Create the signing chain, then publish the CA into a ConfigMap
+      that the |k8s-op-short| references as ``spec.security.tls.ca``.
+      The bundle combines your self-signed CA with the host's public
+      CA bundle, because the {+mdbagent+} validates the MongoDB
+      binary download from ``downloads.mongodb.com`` against this
+      bundle. The combined bundle exceeds the size limit of the
+      client-side ``kubectl apply`` annotation, so apply the
+      ConfigMap server-side.
+
+      .. code-block:: sh
+
+         kubectl apply --context "${K8S_CTX_0}" -f - <<EOF
+         apiVersion: cert-manager.io/v1
+         kind: ClusterIssuer
+         metadata:
+           name: ${APPDB_TLS_SELF_SIGNED_ISSUER}
+         spec:
+           selfSigned: {}
+         EOF
+
+         kubectl apply --context "${K8S_CTX_0}" -n "${CERT_MANAGER_NAMESPACE}" -f - <<EOF
+         apiVersion: cert-manager.io/v1
+         kind: Certificate
+         metadata:
+           name: ${APPDB_TLS_CA_CERT_NAME}
+         spec:
+           isCA: true
+           commonName: mongodb-ca
+           secretName: ${APPDB_TLS_CA_SECRET_NAME}
+           duration: 87600h
+           renewBefore: 8760h
+           privateKey:
+             algorithm: ECDSA
+             size: 256
+           issuerRef:
+             name: ${APPDB_TLS_SELF_SIGNED_ISSUER}
+             kind: ClusterIssuer
+         EOF
+
+         kubectl wait --for=condition=Ready certificate/"${APPDB_TLS_CA_CERT_NAME}" \
+           -n "${CERT_MANAGER_NAMESPACE}" --context "${K8S_CTX_0}" --timeout=120s
+
+         kubectl apply --context "${K8S_CTX_0}" -f - <<EOF
+         apiVersion: cert-manager.io/v1
+         kind: ClusterIssuer
+         metadata:
+           name: ${APPDB_TLS_CA_ISSUER}
+         spec:
+           ca:
+             secretName: ${APPDB_TLS_CA_SECRET_NAME}
+         EOF
+
+         ca_crt=$(kubectl get secret "${APPDB_TLS_CA_SECRET_NAME}" \
+           -n "${CERT_MANAGER_NAMESPACE}" --context "${K8S_CTX_0}" \
+           -o jsonpath='{.data.ca\.crt}' | base64 -d)
+
+         system_ca=""
+         for candidate in /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt /etc/ssl/cert.pem; do
+           [[ -r "${candidate}" ]] && { system_ca=$(cat "${candidate}"); break; }
+         done
+
+         ca_bundle_file=$(mktemp)
+         printf '%s\n%s\n' "${ca_crt}" "${system_ca}" > "${ca_bundle_file}"
+
+         kubectl create configmap "${APPDB_CA_CONFIGMAP}" \
+           --context "${K8S_CTX_0}" -n "${MDB_NS}" \
+           --from-file=ca-pem="${ca_bundle_file}" \
+           --from-file=mms-ca.crt="${ca_bundle_file}" \
+           --dry-run=client -o yaml \
+           | kubectl apply --server-side --force-conflicts --context "${K8S_CTX_0}" -n "${MDB_NS}" -f -
+
+         rm -f "${ca_bundle_file}"
+
+   .. step:: Generate the {+appdb+} server certificate.
+
+      The certificate secret name follows the |k8s-op-short|
+      convention ``<certs-secret-prefix>-<appdb-name>-cert``. The
+      wildcard ``dnsNames`` entry covers the service FQDN of every
+      {+appdb+} member in every cluster.
+
+      .. code-block:: sh
+
+         kubectl apply --context "${K8S_CTX_0}" -n "${MDB_NS}" -f - <<EOF
+         apiVersion: cert-manager.io/v1
+         kind: Certificate
+         metadata:
+           name: ${APPDB_CERT_PREFIX}-${APPDB_NAME}-cert
+         spec:
+           secretName: ${APPDB_CERT_PREFIX}-${APPDB_NAME}-cert
+           duration: 8760h
+           renewBefore: 720h
+           privateKey:
+             algorithm: RSA
+             size: 2048
+           usages: ["server auth", "client auth"]
+           dnsNames:
+             - "*.${MDB_NS}.svc.cluster.local"
+           issuerRef:
+             name: ${APPDB_TLS_CA_ISSUER}
+             kind: ClusterIssuer
+         EOF
+
+         kubectl wait --for=condition=Ready certificate/"${APPDB_CERT_PREFIX}-${APPDB_NAME}-cert" \
+           -n "${MDB_NS}" --context "${K8S_CTX_0}" --timeout=120s
+
+   .. step:: Deploy the management |onprem| instance.
+
+      .. code-block:: sh
+
+         kubectl apply --context "${K8S_CTX_0}" -n "${MDB_NS}" -f - <<EOF
+         apiVersion: mongodb.com/v1
+         kind: MongoDBOpsManager
+         metadata:
+           name: ${MANAGEMENT_OM_NAME}
+         spec:
+           replicas: 1
+           version: ${OM_VERSION}
+           adminCredentials: ops-manager-admin-secret
+           applicationDatabase:
+             members: 3
+             version: ${APPDB_VERSION}
+           backup:
+             enabled: false
+           configuration:
+             automation.versions.source: mongodb
+             mms.ignoreInitialUiSetup: "true"
+             mms.adminEmailAddr: admin@example.com
+             mms.fromEmailAddr: admin@example.com
+             mms.replyToEmailAddr: admin@example.com
+             mms.mail.hostname: email-smtp.us-east-1.amazonaws.com
+             mms.mail.port: "465"
+             mms.mail.ssl: "true"
+             mms.mail.transport: smtp
+             mms.minimumTLSVersion: TLSv1.2
+         EOF
+
+      The ``mms.*`` mail settings are required. When
+      ``mms.ignoreInitialUiSetup`` is ``true``, the |onprem| pre-flight
+      check doesn't start |onprem| unless ``mms.fromEmailAddr`` and the
+      related mail settings are present.
+
+   .. step:: Wait for the management |onprem| instance to become ready.
+
+      a. Wait for the internally managed {+appdb+} and the |onprem|
+         resource:
+
+         .. code-block:: sh
+
+            kubectl wait --for=jsonpath='{.status.applicationDatabase.phase}'=Running \
+              om/"${MANAGEMENT_OM_NAME}" --context "${K8S_CTX_0}" -n "${MDB_NS}" --timeout=1200s
+
+            kubectl wait --for=jsonpath='{.status.opsManager.phase}'=Running \
+              om/"${MANAGEMENT_OM_NAME}" --context "${K8S_CTX_0}" -n "${MDB_NS}" --timeout=1800s
+
+      #. Confirm that the |onprem| public |api| answers requests. An
+         ``opsManager.phase`` of ``Running`` means that the |onprem|
+         pod is up, but the |api| that the |k8s-op-short| uses to
+         create the {+appdb+} project can lag by a few seconds. A
+         ``401`` response is the expected unauthenticated response and
+         means that the |api| is ready:
+
+         .. code-block:: sh
+
+            om_pod="${MANAGEMENT_OM_NAME}-0"
+            until [ "$(kubectl exec "${om_pod}" -c mongodb-ops-manager --context "${K8S_CTX_0}" -n "${MDB_NS}" -- \
+              curl -s -o /dev/null -w '%{http_code}' \
+              "http://$(kubectl get pod "${om_pod}" --context "${K8S_CTX_0}" -n "${MDB_NS}" \
+                -o jsonpath='{.status.podIP}'):8080/api/public/v1.0" 2>/dev/null)" = "401" ]; do
+              echo "waiting for management Ops Manager public API..."; sleep 10
+            done
+
+      #. Confirm that the |k8s-op-short| created the programmatic
+         |api| key secret for the management |onprem| instance:
+
+         .. code-block:: sh
+
+            kubectl get secret "${MANAGEMENT_OM_ADMIN_KEY_SECRET}" \
+              --context "${K8S_CTX_0}" -n "${MDB_NS}"
+
+   .. step:: Create the project ConfigMap for the external {+appdb+}.
+
+      The ``sslMMSCAConfigMap`` entry advertises the CA that the
+      |tls|-enabled {+appdb+} agents must trust when they connect to
+      the management |onprem| instance.
+
+      .. code-block:: sh
+
+         kubectl create configmap "${APPDB_PROJECT_CONFIGMAP}" \
+           --context "${K8S_CTX_0}" -n "${MDB_NS}" \
+           --from-literal=baseUrl="${MANAGEMENT_OM_URL}" \
+           --from-literal=projectName="${APPDB_PROJECT_NAME}" \
+           --from-literal=sslMMSCAConfigMap="${APPDB_CA_CONFIGMAP}" \
+           --from-literal=orgId="" \
+           --dry-run=client -o yaml \
+           | kubectl apply --context "${K8S_CTX_0}" -n "${MDB_NS}" -f -
+
+   .. step:: Create the external {+appdb+}.
+
+      Apply the MongoDBMultiCluster resource on the central cluster.
+      The |k8s-op-short| creates the {+appdb+} members on the member
+      clusters.
+
+      .. code-block:: sh
+
+         kubectl apply --context "${K8S_CTX_0}" -n "${MDB_NS}" -f - <<EOF
+         apiVersion: mongodb.com/v1
+         kind: MongoDBMultiCluster
+         metadata:
+           name: ${APPDB_NAME}
+         spec:
+           version: ${APPDB_VERSION}
+           type: ReplicaSet
+           role: AppDB
+           persistent: true
+           credentials: ${MANAGEMENT_OM_ADMIN_KEY_SECRET}
+           opsManager:
+             configMapRef:
+               name: ${APPDB_PROJECT_CONFIGMAP}
+           security:
+             certsSecretPrefix: ${APPDB_CERT_PREFIX}
+             tls:
+               enabled: true
+               ca: ${APPDB_CA_CONFIGMAP}
+           clusterSpecList:
+             - clusterName: ${K8S_CTX_1}
+               members: ${APPDB_MEMBERS_C1}
+             - clusterName: ${K8S_CTX_2}
+               members: ${APPDB_MEMBERS_C2}
+         EOF
+
+         kubectl wait --for=jsonpath='{.status.phase}'=Running \
+           mdbmc/"${APPDB_NAME}" --context "${K8S_CTX_0}" -n "${MDB_NS}" --timeout=1200s
+
+      When you set ``spec.role`` to ``AppDB``, the
+      |k8s-op-short| configures SCRAM authentication for the
+      resource. To learn more, see :ref:`spec.role
+      <multi-spec-role>`.
+
+   .. step:: Deploy the primary |onprem| instance.
+
+      This resource omits :opsmgrkube:`spec.applicationDatabase` and
+      references the external {+appdb+} with ``kind`` set to
+      ``MongoDBMultiCluster``.
+
+      .. code-block:: sh
+
+         kubectl apply --context "${K8S_CTX_0}" -n "${MDB_NS}" -f - <<EOF
+         apiVersion: mongodb.com/v1
+         kind: MongoDBOpsManager
+         metadata:
+           name: ${PRIMARY_OM_NAME}
+         spec:
+           replicas: 1
+           version: ${OM_VERSION}
+           adminCredentials: ops-manager-admin-secret
+           externalApplicationDatabaseRef:
+             name: ${APPDB_NAME}
+             kind: MongoDBMultiCluster
+           backup:
+             enabled: false
+           configuration:
+             automation.versions.source: mongodb
+             mms.ignoreInitialUiSetup: "true"
+             mms.adminEmailAddr: admin@example.com
+             mms.fromEmailAddr: admin@example.com
+             mms.replyToEmailAddr: admin@example.com
+             mms.mail.hostname: email-smtp.us-east-1.amazonaws.com
+             mms.mail.port: "465"
+             mms.mail.ssl: "true"
+             mms.mail.transport: smtp
+             mms.minimumTLSVersion: TLSv1.2
+         EOF
+
+      To enable backup for your MongoDB deployments, set
+      :opsmgrkube:`spec.backup.enabled` to ``true`` on this resource
+      and configure snapshot storage. To learn more, see
+      :ref:`configure-file-store`.
+
+   .. step:: Wait for the primary |onprem| instance to become ready.
+
+      .. code-block:: sh
+
+         kubectl wait --for=jsonpath='{.status.opsManager.phase}'=Running \
+           om/"${PRIMARY_OM_NAME}" --context "${K8S_CTX_0}" -n "${MDB_NS}" --timeout=1800s
+
+         kubectl wait --for=jsonpath='{.status.applicationDatabase.phase}'=Disabled \
+           om/"${PRIMARY_OM_NAME}" --context "${K8S_CTX_0}" -n "${MDB_NS}" --timeout=600s
+
+      The |k8s-op-short| doesn't manage an internal {+appdb+} for an
+      |onprem| resource that uses an external {+appdb+}, so
+      ``status.applicationDatabase.phase`` reports ``Disabled``. This
+      is expected and isn't an error.
+
+   .. step:: Verify the deployment.
+
+      In a multi-cluster deployment, the {+appdb+} StatefulSets run
+      in the member clusters, and the |k8s-op-short| tracks their
+      ownership with the ``mongodbmulticluster`` label instead of an
+      owner reference.
+
+      a. Confirm that the {+appdb+} pods are running in each member
+         cluster and that each StatefulSet carries the
+         ``mongodbmulticluster`` label set to
+         ``<namespace>-<appdb-name>``:
+
+         .. code-block:: sh
+
+            idx=0
+            for ctx in "${K8S_CTX_1}" "${K8S_CTX_2}"; do
+              sts="${APPDB_NAME}-${idx}"
+              kubectl get pods --context "${ctx}" -n "${MDB_NS}" \
+                -l "mongodbmulticluster=${MDB_NS}-${APPDB_NAME}"
+              kubectl get statefulset "${sts}" --context "${ctx}" -n "${MDB_NS}" \
+                -o jsonpath='{.metadata.labels.mongodbmulticluster}{"\n"}'
+              idx=$((idx + 1))
+            done
+
+      #. Confirm that the |k8s-op-short| created the connection string
+         secret for the primary |onprem| instance:
+
+         .. code-block:: sh
+
+            kubectl get secret "${APPDB_CONNECTION_STRING_SECRET}" \
+              --context "${K8S_CTX_0}" -n "${MDB_NS}"
+
+Common External Application Database Issues
+-------------------------------------------
+
+The Application Database Agents Fail the Binary Download
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the {+appdb+} agents fail to download the MongoDB binary with
+``x509: certificate signed by unknown authority``, the CA bundle in
+``spec.security.tls.ca`` doesn't include the public roots that sign
+``downloads.mongodb.com``. With |tls| enabled, the {+mdbagent+}
+validates the download against this bundle instead of the system
+trust store. Recreate the ConfigMap with both your self-signed CA and
+the host's public CA bundle, as the |tls| CA step shows.
+
+The Application Database Pods Can't Resolve Ops Manager
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the {+appdb+} agents log ``Could not resolve host`` for the
+management |onprem| service, the member-cluster namespace is missing
+the ``istio-injection=enabled`` label. Without the sidecar, the pods
+can't resolve the central-cluster |onprem| service over the mesh.
+Apply the label as the namespace step shows.
+
+The CA ConfigMap Is Rejected as Too Long
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If |k8s| rejects the CA ConfigMap with ``metadata.annotations: Too
+long``, the combined CA bundle exceeds the size limit of the
+client-side ``kubectl apply`` annotation. Apply the ConfigMap with
+``kubectl apply --server-side --force-conflicts``, or create it with
+``kubectl create``.
+
+The MongoDBMultiCluster Resource Reports a Version Error
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the external {+appdb+} reports ``Failed`` with a message that the
+MongoDB version isn't available, set ``spec.version`` to a version
+that the management |onprem| instance offers. Keep the |onprem|
+version and the {+appdb+} version on the same major version.
+
+The Operator Rejects the External Application Database Reference
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The value of
+:opsmgrkube:`spec.externalApplicationDatabaseRef.name` must be exactly
+``<primary-om-name>-db``, and the MongoDBMultiCluster resource must be
+in the same namespace as the |onprem| resource.
+
+Next Steps
+----------
+
+To back up the external {+appdb+}, enable backup on the
+MongoDBMultiCluster resource in the project that the management
+|onprem| instance manages. To learn more, see
+:ref:`back-up-mdb-resources`.

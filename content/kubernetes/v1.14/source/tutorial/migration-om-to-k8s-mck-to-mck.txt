@@ -1,0 +1,112 @@
+.. _k8s-migration-om-to-k8s-mck-to-mck:
+
+===================================
+Migrate Between Two MCK Instances
+===================================
+
+.. meta::
+   :description: Migrate a MongoDB deployment managed by one Kubernetes Operator installation to a second Kubernetes Operator installation in another namespace or cluster.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This procedure migrates a MongoDB deployment that one
+|k8s-op-short| installation manages to a second |k8s-op-short|
+installation, in the same |mms| or Cloud Manager project. Use this
+procedure when you move a deployment across namespaces or across
+Kubernetes clusters, rather than from virtual machines into
+Kubernetes for the first time.
+
+In this migration, the source deployment is already |k8s-op-short|-
+managed: the automation config contains |k8s-op-short|-style
+process names and hostnames. The target is a second |k8s-op-short|
+installation in another namespace or cluster.
+
+Before you Begin
+-----------------
+
+Confirm the following before you migrate a deployment between two
+|k8s-op-short| installations:
+
+.. include:: /includes/facts/fact-migration-prerequisites.rst
+
+You also need:
+
+- A source deployment that a running |k8s-op-short| installation
+  manages.
+
+- A second |k8s-op-short| installation that you want to become the
+  target, in a different namespace or Kubernetes cluster than the
+  source.
+
+- Both installations configured against the same |mms| or Cloud
+  Manager project ConfigMap and credentials.
+
+.. include:: /includes/facts/fact-migration-golden-rules.rst
+
+How This Differs from Migrating from Virtual Machines
+--------------------------------------------------------
+
+An MCK-to-MCK migration uses the same extend, promote, and prune
+loop as migrating a virtual machine deployment. Source members
+appear as ``spec.externalMembers`` in the target resource,
+the same as they do when migrating from virtual machines. For the
+detailed step-by-step mechanics of that loop, see
+:ref:`k8s-migration-om-to-k8s-replica-set`.
+
+This migration has additional requirements that do not apply to a
+virtual-machine migration:
+
+- **Stop or scope down the source operator first.** Before you
+  begin, stop the source |k8s-op-short| installation, or otherwise
+  ensure it stops reconciling the deployment. Two operators must
+  never reconcile the same |mms| or Cloud Manager project at the
+  same time.
+
+- **Both operators must share the same project ConfigMap and
+  credentials.** The source and target |k8s-op-short| installations
+  connect to the same |mms| or Cloud Manager project.
+
+- **Cluster-scoped Helm resource names must not collide.** The two
+  operator Helm installations must use distinct names for any
+  cluster-scoped resource.
+
+- **The namespaces must differ.** If the source and target
+  installations shared a namespace, process names would collide.
+
+Migrate the Deployment
+------------------------
+
+.. important::
+
+   Stop or scope down the source operator before you continue. See
+   the preceding section.
+
+Follow the same extend, promote, and prune sequence described in
+:ref:`k8s-migration-om-to-k8s-replica-set`, generating the target
+MongoDB custom resource against the target |k8s-op-short|
+installation's namespace and cluster. The source members appear in
+``spec.externalMembers`` on the target resource until you
+prune them.
+
+.. include:: /includes/facts/fact-migration-condition-reasons.rst
+
+Clean Up the Source
+---------------------
+
+After migration finishes, delete the source MongoDB custom
+resource. Do not delete the |mms| or Cloud Manager project, and do
+not delete the underlying data. Deleting the source custom resource
+removes only the source |k8s-op-short| installation's management of
+that resource.
+
+Learn More
+----------
+
+- :ref:`k8s-migration-om-to-kubernetes`
+- :ref:`k8s-migration-om-to-k8s-replica-set`
