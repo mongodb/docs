@@ -260,6 +260,33 @@ When the source ``mongod`` is instead managed by the |k8s-op-short|
 handles this CA trust for you, and the
 ``spec.source.external.tls.ca.name`` field does not apply.
 
+.. _k8s-fts-vs-default-trust-store:
+
+Use a Custom Trust Store
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+When a TLS connection does not specify a CA file, ``mongot`` verifies
+the server certificate against the default JVM trust store. On Linux,
+``mongot`` uses the operating system's Java trust store at
+``/etc/pki/java/cacerts`` when the host provides one; the
+|k8s-op-short| image includes the public certificate authorities in
+that store. Otherwise, ``mongot`` uses the trust store that is bundled
+with the JDK that it ships.
+
+To trust a private certificate authority on every connection that does
+not specify a CA file, mount a Java keystore (JKS or PKCS12) over the
+store. Use the ``spec.clusters[].statefulSet`` override on the
+``MongoDBSearch`` resource to add a volume and a volume mount to the
+``mongot`` container, and mount the volume at ``/etc/pki/java`` so that
+the ``cacerts`` file in the volume replaces the default store. Restart
+the ``mongot`` pods after you change the store, because the JVM reads
+the store once at startup.
+
+The mounted keystore replaces the default store, so include both your
+private certificate authority and the public certificate authorities
+that ``mongot`` needs. To trust a private CA for one connection only,
+set its CA file instead.
+
 Certificate Rotation
 --------------------
 
