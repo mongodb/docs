@@ -1,5 +1,5 @@
 Add an {+aws-msk+} Private Link Connection through the {+atlas-cli+}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To add an {+aws-msk+} Private Link connection to your {+spw+} through
 the {+atlas-cli+}, follow these steps:
@@ -23,9 +23,18 @@ the {+atlas-cli+}, follow these steps:
          the {+aws+} account ID. You will need this value for
          your {+aws-msk+} cluster policy.
 
+         Alternatively, you can find this value in the {+atlas-ui+}:
+         on the :guilabel:`Private Endpoint` page, under the
+         :guilabel:`{+atlas-sp+}` tab. Click :guilabel:`Learn About
+         Private Endpoints` and copy the :guilabel:`Atlas AWS Account
+         ID`.
+
       #. Sign in to the {+aws+} Management Console and navigate to the
          {+aws-msk+} console. Ensure that ``multi-VPC connectivity`` is
-         enabled on the cluster to which you want to connect.
+         enabled on the cluster to which you want to connect. To learn
+         more about the requirements for multi-VPC private
+         connectivity, see the :aws:`AWS documentation
+         </msk/latest/developerguide/aws-access-mult-vpc.html#mvpc-requirements>`.
 
       #. Click :guilabel:`Properties`, :guilabel:`Security Settings`,
          and :guilabel:`Edit cluster policy`.
@@ -56,6 +65,11 @@ the {+atlas-cli+}, follow these steps:
                 }
               ]
             }
+
+      If you plan to use SASL/SCRAM authentication for the connection,
+      see :aws:`Set up SASL/SCRAM authentication for an Amazon MSK
+      cluster </msk/latest/developerguide/msk-password-tutorial.html>`
+      in the {+aws+} documentation.
 
    .. step:: Create an {+service+} Private Endpoint.
 
@@ -91,10 +105,10 @@ the {+atlas-cli+}, follow these steps:
          * - ``arn``
            - String representing the Amazon Resource Number of your {+aws-msk+} cluster.
 
-	 * - ``authenticationScheme``
-	   - Must be set to one of ``"IAM"``, ``"SASL_SCRAM"``, or
-	     ``"TLS"``, depending on the authentication mechanism you
-	     plan to use for the connection.
+         * - ``authenticationScheme``
+           - Set to one of ``"IAM"``, ``"SASL_SCRAM"``, or ``"TLS"``,
+             depending on the authentication mechanism you plan to use
+             for the connection.
 
       You can find the |arn| in your {+aws-msk+} cluster's details.
 
