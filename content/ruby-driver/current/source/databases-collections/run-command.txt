@@ -37,18 +37,20 @@ statistics, initializing a replica set, or running an aggregation pipeline.
 
    If there are no available helpers in the driver or the shell, you
    can use the ``db.runCommand()`` shell method or the driver's
-   ``command`` method, which is described in this guide.
+   ``command`` and ``cursor_command`` methods, which are described in
+   this guide.
 
 Sample Data
 ~~~~~~~~~~~
 
-The examples in this guide use the ``sample_restaurants``
-database from the :atlas:`Atlas sample datasets </sample-data>`. To access this database
-from your {+language+} application, create a ``Mongo::Client`` object that connects to an Atlas cluster
-and assign the following value to your ``database`` variable:
+The examples in this guide use the ``sample_restaurants`` database from
+the :atlas:`Atlas sample datasets </sample-data>`. To access this
+database from your {+language+} application, create a ``Mongo::Client``
+object that connects to an Atlas cluster and assign the following value
+to your ``database`` variable:
 
 .. literalinclude:: /includes/databases-collections/run-command.rb
-    :language: scala
+    :language: ruby
     :dedent:
     :start-after: start-db
     :end-before: end-db
@@ -56,17 +58,18 @@ and assign the following value to your ``database`` variable:
 To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
 `MongoDB Get Started <https://www.mongodb.com/docs/get-started/?language=ruby>`__ guide.
 
-Execute a Command
------------------
+Use the ``command`` Method
+--------------------------
 
-To run a database command, run the ``command`` instance method of a ``Mongo::Database``
-instance and pass the name of the operation to run as a parameter.
+To run a database command, call the ``command`` method on your
+``Mongo::Database`` instance and pass the name of the operation to run
+as a parameter.
 
-The following example calls the ``command`` method to run the ``hello`` command, which
-returns information about the server:
+The following example calls the ``command`` method to run the ``hello``
+command, which returns information about the server:
 
 .. literalinclude:: /includes/databases-collections/run-command.rb
-   :language: scala
+   :language: ruby
    :dedent:
    :start-after: start-hello
    :end-before: end-hello
@@ -77,30 +80,8 @@ returns information about the server:
    parameters, see :manual:`Database Commands </reference/command/>` in
    the {+mdb-server+} manual.
 
-Set a Read Preference
-----------------------
-
-The ``command`` method does not inherit the read preference you might
-have set on your ``Database`` instance. By default, ``command``
-uses the ``primary`` read preference.
-
-You can set a read preference for the command execution by passing the
-``:read`` opotion to the ``command`` method, as
-shown in the following code:
-
-.. literalinclude:: /includes/databases-collections/run-command.rb
-   :language: scala
-   :dedent:
-   :start-after: start-readpref
-   :end-before: end-readpref
-
-.. tip::
-
-   To learn more about read preference options, see :manual:`Read
-   Preference </core/read-preference/>` in the {+mdb-server+} manual.
-
-Response
---------
+``command`` Response
+~~~~~~~~~~~~~~~~~~~~
 
 The ``command`` method returns a ``Mongo::Operation::Result`` that contains
 the response from the database for the given command.
@@ -141,9 +122,6 @@ the :ruby-api:`API documentation <Operation/Result.html>`.
    To learn more about logical time, see the Wikipedia entry on
    the :wikipedia:`logical clock <w/index.php?title=Logical_clock&oldid=1072010149>`.
 
-Example
-~~~~~~~
-
 The following example runs the ``dbStats`` command to retrieve
 storage statistics for the ``sample_restaurants`` database, then prints the
 command results by using the ``inspect`` method:
@@ -162,7 +140,116 @@ the database, as shown in the following code:
 
    {"db"=>"sample_restaurants", "collections"=>4, "views"=>0, "objects"=>18767, "avgObjSize"=>596.1911866574306,
    "dataSize"=>11188720, "storageSize"=>7528448, "totalFreeStorageSize"=>0, "numExtents"=>0, "indexes"=>6,
-   "indexSize"=>1519616, "indexFreeStorageSize"=>0, "fileSize"=>0, "nsSizeMB"=>0, "ok"=>1}
+   "indexSize"=>1519616, "indexFreeStorageSize"=>0, "fileSize"=>0,
+   "nsSizeMB"=>0, "ok"=>1}
+
+Use the ``cursor_command`` Method
+---------------------------------
+
+Some database commands return their results in a cursor. To run these
+commands, call the ``cursor_command`` method on your ``Mongo::Database``
+instance. This method returns a ``Mongo::Cursor`` object that retrieves
+additional batches of results from the server as you iterate over it. If
+the command response doesn't contain a cursor, the driver raises a
+``Mongo::Error::InvalidCursorOperation`` error.
+
+The following example runs the ``listCollections`` command by using the
+``cursor_command`` method and prints the name and type of each
+collection in the ``sample_restaurants`` database:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/databases-collections/run-command.rb
+      :language: ruby
+      :dedent:
+      :start-after: start-cursor-command
+      :end-before: end-cursor-command
+
+   .. output::
+      :language: none
+      :visible: false
+
+      {"name"=>"restaurants", "type"=>"collection"}
+      {"name"=>"neighborhoods", "type"=>"collection"}
+
+Command Options
+---------------
+
+You can pass the following options to the ``command`` and
+``cursor_command`` methods:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 25 55
+
+   * - Option
+     - Methods
+     - Description
+
+   * - ``:read``
+     - ``command``, ``cursor_command``
+     - The read preference to use for the command. The
+       ``cursor_command`` method also uses this read preference for
+       subsequent ``getMore`` commands. By default, both methods use
+       the ``primary`` read preference.
+
+   * - ``:session``
+     - ``command``, ``cursor_command``
+     - The session to use for the command. If you don't specify a
+       session for the ``cursor_command`` method, the driver creates an
+       implicit session that lasts for the lifetime of the cursor.
+
+   * - ``:timeout_ms``
+     - ``command``, ``cursor_command``
+     - The operation timeout, in milliseconds. The value must be a
+       non-negative integer. A value of ``0`` means no timeout. If you
+       don't set this option, the method inherits the timeout from the
+       database or the client.
+
+   * - ``:batch_size``
+     - ``cursor_command``
+     - The ``batchSize`` value to send on ``getMore`` commands.
+
+   * - ``:max_time_ms``
+     - ``cursor_command``
+     - The ``maxTimeMS`` value to send on ``getMore`` commands. To set
+       a time limit on the initial command, include the ``maxTimeMS``
+       field in the command document.
+
+   * - ``:comment``
+     - ``cursor_command``
+     - A comment to attach to ``getMore`` commands.
+
+   * - ``:cursor_type``
+     - ``cursor_command``
+     - The cursor type, either ``:tailable`` or ``:tailable_await``.
+       This value must match the flags set in the command document.
+
+   * - ``:timeout_mode``
+     - ``cursor_command``
+     - The timeout mode, either ``:cursor_lifetime`` or ``:iteration``.
+
+Set a Read Preference
+~~~~~~~~~~~~~~~~~~~~~
+
+The ``command`` and ``cursor_command`` methods don't inherit the read
+preference on your ``Database`` instance.
+
+You can set a read preference for the command execution by passing the
+``:read`` option to the ``command`` method, as
+shown in the following code:
+
+.. literalinclude:: /includes/databases-collections/run-command.rb
+   :language: ruby
+   :dedent:
+   :start-after: start-readpref
+   :end-before: end-readpref
+
+.. tip::
+
+   To learn more about read preference options, see :manual:`Read
+   Preference </core/read-preference/>` in the {+mdb-server+} manual.
 
 Additional Information
 ----------------------
@@ -182,3 +269,4 @@ To learn more about any of the methods or types discussed in this
 guide, see the following API documentation:
 
 - :ruby-api:`command <Database.html#command-instance_method>`
+- :ruby-api:`cursor_command <Database.html#cursor_command-instance_method>`
