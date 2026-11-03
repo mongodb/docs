@@ -1,0 +1,223 @@
+.. _agent-engine-openapi-tools:
+
+=================================
+Create Tools from an OpenAPI Spec
+=================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Learn how to compile an OpenAPI 3.0 document into agent tools on the Atlas Agent Engine by using the agentengine agent create-tool command and registering them in agent.yaml.
+   :keywords: rest api, connector, tool.yaml, tool_defs.yaml, agentengine agent create-tool, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+In this guide, you can learn how to convert an OpenAPI 3.0 document to
+agent tools. Use the ``agentengine agent create-tool`` command to
+compile the document into connector files. When you build your agent,
+the {+platform-short+} creates the connector from those files so that
+your agent can call the OpenAPI agent tools.
+
+.. note::
+
+   The ``agentengine agent create-tool`` command is experimental. The
+   flags, output format, and generated file formats might change
+   without notice.
+
+About This Task
+---------------
+
+The ``agentengine agent create-tool`` command generates two files in
+the folder you specify:
+
+- ``tool_defs.yaml``: The catalog of tools that the command compiles
+  from the OpenAPI document. The catalog includes tool names, input
+  schemas, and the HTTP method and path for each operation.
+- ``tool.yaml``: The authoring file that binds the catalog to your API
+  endpoint and credential, and selects which tools your agent exposes.
+  The command scaffolds this file. When you regenerate the catalog, the
+  command doesn't overwrite your edits to the file.
+
+When the agent calls a connector tool, the tool runs in an isolated
+Tool Pod. The call goes through the same Orchestration Engine approval
+gate as other tools. Credential values are never written to
+the generated files, and the files reference the name of a workspace
+secret instead.
+
+You must pass exactly one of the following inputs to the command:
+
+- ``--spec``: Compiles an OpenAPI 3.0 document into a catalog and
+  scaffolds a ``tool.yaml`` file if none exists. The value can be a
+  local file or an HTTPS URL.
+- ``--tool-defs``: Scaffolds only the ``tool.yaml`` file for an
+  existing local catalog. The command doesn't rewrite the catalog.
+- ``--config``: Regenerates a locally owned catalog from the
+  ``tool.yaml`` file that declares the ``source.spec`` field.
+
+To view all flags, see the :ref:`agentengine_create-tool` CLI
+documentation.
+
+Before You Begin
+----------------
+
+Before you begin, ensure that you have the following resources:
+
+- The ``agentengine`` CLI installed and authenticated. To learn more,
+  see :ref:`agent-engine-set-up-install-authenticate`.
+- A valid agent project with an ``agent.yaml`` file. To learn more,
+  see :ref:`agent-engine-set-up-create-project`.
+- Docker running locally.
+- An OpenAPI 3.0 document, either a local file or an HTTPS URL, for the
+  REST API that you want to call.
+- An authentication bearer token for the REST API.
+
+Steps
+-----
+
+.. procedure::
+   :style: connected
+
+   .. step:: Generate the connector files.
+
+      From your agent project directory, run the
+      ``agentengine agent create-tool`` command with the connector
+      name and the ``--spec`` flag. The following example compiles a
+      specification into the ``connectors/orders`` folder and
+      configures bearer token authentication:
+
+      .. code-block:: bash
+
+         agentengine agent create-tool orders \
+           --spec <openapi-document-url-or-path> \
+           --out-dir connectors/orders \
+           --auth bearer
+
+      The command names the workspace secret for the bearer token after
+      the connector. For the ``orders`` connector, the secret name is
+      ``ORDERS_TOKEN``. If you omit the ``--auth`` flag, the command
+      generates the ``auth`` block in the ``tool.yaml`` file from the
+      security schemes that the document declares.
+
+      The command uses the first non-templated server in the document as
+      the base URL. If the document doesn't declare a server, or if
+      you want to call a different endpoint, add the ``--base-url``
+      flag to the command.
+
+      If the document contains operations that the generator can't
+      represent, the command fails and prints the name of the 
+      operation. To exclude those operations instead, add the
+      ``--skip-unsupported`` flag to the command. The command prints
+      every skipped operation and records it in the catalog.
+
+   .. step:: Review the ``tool.yaml`` file.
+
+      Open the ``connectors/orders/tool.yaml`` file. The comment at
+      the top of the file names the endpoint destination and the
+      credential secret that your agent must declare.
+
+      To limit which tools your agent can call, list specific tool names
+      in the ``expose.allow`` field. If you omit this list, the agent
+      can call every generated tool. The following example shows a
+      ``tool.yaml`` file that exposes one tool:
+
+      .. code-block:: yaml
+
+         name: orders
+         tool_defs: tool_defs.yaml
+         source:
+           type: openapi
+           base_url: https://api.example.com
+         expose:
+           allow: [orders_getOrder]
+         auth:
+           bearer: ORDERS_TOKEN
+
+   .. step:: Register the connector.
+
+      In your ``agent.yaml`` file, add a ``connectors`` entry that
+      points to the ``tool.yaml`` file. The path is relative to the
+      ``agent.yaml`` file.
+
+      .. code-block:: yaml
+
+         version: 1
+         connectors:
+           - source: connectors/orders/tool.yaml
+
+   .. step:: Store the API credential as a workspace secret.
+
+      Create a secret with the name that the ``auth`` block in the
+      ``tool.yaml`` file references. In this example, the secret name
+      is ``ORDERS_TOKEN``. To learn how to store secrets, see
+      :ref:`agent-engine-deploy-provision-secrets`.
+
+   .. step:: Grant the tool sandbox access to the secret and the API.
+
+      The comment at the top of the ``tool.yaml`` file reports
+      requirements only and doesn't grant any permissions. In your
+      ``agent.yaml`` file, add the secret to the ``sandboxes.tool.secrets``
+      field and the API hostname to the ``sandboxes.tool.network.egress``
+      field. Keep the secrets and destinations that your other tools
+      already use. The following example adds the ``ORDERS_TOKEN``
+      secret and the ``api.example.com`` host:
+
+      .. code-block:: yaml
+
+         sandboxes:
+           tool:
+             secrets:
+               - ORDERS_TOKEN
+             network:
+               egress_mode: allow_list
+               egress:
+                 - fqdn: api.example.com
+                   ports: [443]
+
+      Replace ``api.example.com`` and ``443`` with the hostname and port
+      of the base URL in your ``tool.yaml`` file. To learn more, see
+      :ref:`agent-engine-agent-contract-yaml` and
+      :ref:`agent-engine-network-egress`.
+
+   .. step:: Build and deploy your agent.
+
+      Build and deploy your agent as usual. The build creates the
+      connector from your ``tool.yaml`` and ``tool_defs.yaml`` files.
+      To learn more, see :ref:`agent-engine-deploy-agent-image`.
+
+Behavior and Limitations
+------------------------
+
+Review the following behavior and limitations for generated connector tools:
+
+- The base URL in the ``tool.yaml`` file applies to every operation.
+  The generator ignores path-level and operation-level ``servers``
+  entries in the OpenAPI document.
+- The generator reads local files. The CLI downloads documents that
+  you specify by URL under the platform transport policy.
+- The generator supports bearer tokens, API keys, and HTTP Basic
+  authentication. The following are outside the generation boundary:
+
+  - OAuth token acquisition and refresh
+  - Interactive or session login
+  - Per-request signing
+  - mTLS-only authentication
+  - Multipart file uploads
+
+- A connector truncates responses larger than 200,000 decoded bytes and
+  marks them as truncated.
+- Each tool invocation times out after 30 seconds.
+
+Learn More
+----------
+
+See the following documentation to learn more about OpenAPI tools:
+
+- :ref:`agentengine_create-tool`
+- :ref:`agent-engine-agent-contract-yaml`
+- :ref:`agent-engine-remote-mcp`

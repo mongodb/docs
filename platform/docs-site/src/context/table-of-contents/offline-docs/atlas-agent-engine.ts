@@ -149,6 +149,11 @@ export const toc: L1TocItem[] = [
             url: '/docs/agentengine/add-features/remote-mcp',
           },
           {
+            label: 'Create Tools from an OpenAPI Spec',
+            contentSite: 'agentengine',
+            url: '/docs/agentengine/add-features/openapi-tools',
+          },
+          {
             label: 'Add Custom Stream Output to Your Agent',
             contentSite: 'agentengine',
             url: '/docs/agentengine/add-features/custom-output',
