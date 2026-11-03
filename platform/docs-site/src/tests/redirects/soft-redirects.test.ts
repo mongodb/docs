@@ -1,4 +1,5 @@
 import { findSoftRedirect } from '@/redirects/soft-redirects';
+import { publicDocsPath } from '@/redirects/markdown-export';
 
 jest.mock('@/redirects/all-redirects', () => ({
   allRedirects: [
@@ -61,6 +62,20 @@ jest.mock('@/redirects/all-redirects', () => ({
 
 describe('soft-redirects', () => {
   describe('findSoftRedirect', () => {
+    it.each([
+      '/docs/atlas/api/markdown/additional-resources/',
+      '/docs/atlas/api/markdown-tabs/additional-resources/',
+      '/docs/atlas/additional-resources.md',
+    ])('matches a markdown request for a redirected page: %s', (pathname) => {
+      const result = findSoftRedirect(publicDocsPath(pathname));
+      expect(result).not.toBeNull();
+      expect(result!.destination).toBe('/docs/atlas/');
+    });
+
+    it('does not match the internal markdown route without publicDocsPath', () => {
+      expect(findSoftRedirect('/docs/atlas/api/markdown/additional-resources/')).toBeNull();
+    });
+
     it('matches a known page-specific redirect', () => {
       const result = findSoftRedirect('/docs/drivers/node/current/fundamentals/connection/');
       expect(result).not.toBeNull();

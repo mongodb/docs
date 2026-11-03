@@ -6,7 +6,7 @@ import type { Config, Context } from '@netlify/edge-functions';
 import { match, compile, type MatchFunction } from 'https://esm.sh/path-to-regexp@6.3.0';
 import allRedirects from '../../src/redirects/all-redirects.json' with { type: 'json' };
 import { hasUppercase, lowercaseRedirectPath } from '../../src/redirects/case-canonical.ts';
-import { markdownExportRewritePath } from '../../src/redirects/markdown-export.ts';
+import { markdownExportRewritePath, publicDocsPath } from '../../src/redirects/markdown-export.ts';
 import { prefersMarkdown } from '../../src/utils/parse-accept-header.ts';
 
 /**
@@ -122,19 +122,21 @@ export default async function handler(request: Request, context: Context): Promi
   // and reaches Next with the suffix still attached to the API route. Rewrite
   // it to the extensionless page, whose middleware negotiates markdown.
   const markdownPath = markdownExportRewritePath(pathname, prefersMarkdown(request.headers.get('Accept')));
+  let res: Response;
   if (markdownPath) {
     const rewriteUrl = new URL(request.url);
     rewriteUrl.pathname = markdownPath;
-    return context.next(new Request(rewriteUrl, request));
+    res = await context.next(new Request(rewriteUrl, request));
+  } else {
+    res = await context.next();
   }
 
-  const res = await context.next();
   if (res.status !== 404) {
     return res;
   }
 
   // Authored soft redirects (Netlify force=false: 404 only).
-  const softMatch = findSoftRedirect(pathname);
+  const softMatch = findSoftRedirect(publicDocsPath(pathname));
   if (softMatch) {
     return redirectTo(softMatch.destination, softMatch.statusCode);
   }

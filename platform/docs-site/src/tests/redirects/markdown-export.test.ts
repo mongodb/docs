@@ -1,4 +1,4 @@
-import { markdownExportRewritePath } from '@/redirects/markdown-export';
+import { markdownExportRewritePath, publicDocsPath } from '@/redirects/markdown-export';
 
 describe('markdownExportRewritePath', () => {
   it.each([
@@ -24,4 +24,27 @@ describe('markdownExportRewritePath', () => {
   ])('leaves %s unchanged when wantsMarkdown is %s', (pathname, wantsMarkdown) => {
     expect(markdownExportRewritePath(pathname, wantsMarkdown)).toBeNull();
   });
+});
+
+describe('publicDocsPath', () => {
+  it.each([
+    ['/docs/atlas/api/markdown/getting-started/', '/docs/atlas/getting-started/'],
+    ['/docs/atlas/api/markdown-tabs/getting-started/', '/docs/atlas/getting-started/'],
+    ['/docs/atlas/api/markdown/', '/docs/atlas/'],
+    ['/docs/kafka-connector/api/markdown/current/sink-connector/', '/docs/kafka-connector/current/sink-connector/'],
+    ['/docs/atlas/getting-started.md', '/docs/atlas/getting-started/'],
+    ['/docs/atlas/getting-started.md/', '/docs/atlas/getting-started/'],
+    ['/docs/voyageai/api/markdown/models.md/', '/docs/voyageai/models/'],
+    ['/docs/voyageai/index.md', '/docs/voyageai/'],
+    ['/docs/voyageai/api/markdown/index.md/', '/docs/voyageai/'],
+  ])('maps %s to %s', (pathname, expected) => {
+    expect(publicDocsPath(pathname)).toBe(expected);
+  });
+
+  it.each(['/docs/atlas/getting-started/', '/docs/atlas/getting-started', '/docs/atlas/'])(
+    'leaves public page path %s unchanged',
+    (pathname) => {
+      expect(publicDocsPath(pathname)).toBe(pathname);
+    },
+  );
 });
