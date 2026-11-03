@@ -248,6 +248,14 @@ const tocData: TocItem[] = [
             label: 'Fireworks AI',
             contentSite: 'cloud-docs',
             url: '/docs/atlas/ai-integrations/fireworks-ai',
+            collapsible: true,
+            items: [
+              {
+                label: 'Get Started',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/ai-integrations/fireworks-ai/get-started',
+              },
+            ],
           },
           {
             label: 'Google Vertex AI',

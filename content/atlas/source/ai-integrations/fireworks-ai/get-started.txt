@@ -1,0 +1,298 @@
+.. _fireworks-ai-get-started:
+
+=====================================================
+Get Started with the MongoDB Fireworks AI Integration
+=====================================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. meta::
+   :keywords: RAG, retrieval, embeddings, reranking, agents, function calling, vector database, vector search, code example, python
+   :description: Build a retrieval-augmented generation application with Voyage AI embedding and reranker models, a Fireworks AI chat model, and MongoDB Vector Search in this Python tutorial.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can integrate MongoDB with Fireworks AI to build retrieval-augmented
+generation (|rag|) applications on open-source models. This
+tutorial uses |voyage| to embed and rerank sample data, and then
+uses a Fireworks chat model to generate a grounded recommendation.
+
+In this tutorial, you perform the following tasks:
+
+#. Set up your environment.
+#. Use a |voyage| embedding model to embed movie data and store the
+   embeddings in MongoDB.
+#. Use {+avs+} and a |voyage| reranker model to retrieve and rerank movie
+   documents.
+#. Instruct a Fireworks chat model to generate a movie recommendation based on
+   the reranked results.
+
+Background
+----------
+
+`Fireworks AI <https://fireworks.ai/>`__ provides a platform
+for training and running open-source AI models. You can use MongoDB
+to store operational and memory data, and to retrain models for
+specific use cases.
+
+A |rag| application retrieves relevant data and passes it to a chat
+model as context, so the model answers from your data instead of
+relying only on what it learned during training. In this tutorial,
+MongoDB stores and retrieves your data. |voyage| provides the
+embedding model that embeds the data and the reranker model that
+reranks the retrieved results, and Fireworks AI provides the chat
+model that generates the final response.
+
+Prerequisites
+-------------
+
+To complete this tutorial, you must have the following resources:
+
+- .. include:: /includes/avs/shared/avs-requirements-cluster.rst
+
+- The :ref:`sample dataset <sample-data>` loaded into your cluster.
+  This tutorial uses the ``sample_mflix.movies`` collection.
+- A Fireworks AI |api| key. To create one, go to `API Keys
+  <https://app.fireworks.ai/settings/users/api-keys>`__ in your
+  Fireworks account settings.
+- A |voyage| |api| key. To create one, see :ref:`voyage-api-keys`.
+- Python v3.11 or later.
+- `uv <https://docs.astral.sh/uv/>`__.
+
+Set Up the Environment
+----------------------
+
+In this section, you prepare your environment by creating a virtual
+environment, installing the required dependencies, setting your
+environment variables, and creating a project file.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create and activate a virtual environment.
+
+      From your terminal, run the following commands to create a new
+      directory named ``fireworks-mongodb-project`` and start
+      a virtual environment:
+
+      .. code-block:: shell
+
+         mkdir fireworks-mongodb-project
+         cd fireworks-mongodb-project
+         uv venv
+         source .venv/bin/activate
+
+   .. step:: Install the dependencies.
+
+      From your ``fireworks-mongodb-project`` directory,
+      run the following command to install the required
+      dependencies:
+
+      .. code-block:: shell
+
+         uv pip install pymongo openai voyageai python-dotenv
+
+   .. step:: Set your environment variables.
+
+      In your ``fireworks-mongodb-project`` directory, create a
+      ``.env`` file and add the following code:
+
+      .. code-block:: shell
+
+         FIREWORKS_API_KEY="<fireworks-api-key>"
+         VOYAGE_API_KEY="<voyage-api-key>"
+         MONGODB_URI="<connection-string>"
+
+      Replace ``<fireworks-api-key>`` with your `Fireworks API key
+      <https://app.fireworks.ai/settings/users/api-keys>`__, and replace
+      ``<voyage-api-key>`` with your :ref:`Voyage AI API key <voyage-api-keys>`.
+
+      .. include:: /includes/search-shared/find-connection-string.rst
+
+   .. step:: Create a project file.
+
+      In your ``fireworks-mongodb-project`` directory, create a file
+      named ``main.py``. Add the following code to this file to load
+      your environment variables and define two command-line
+      arguments, which specify the search query and the number of
+      results:
+
+      .. literalinclude:: /includes/ai-integrations/fireworks-ai-get-started/main.py
+         :language: python
+         :start-after: start-imports
+         :end-before: end-imports
+
+      In future steps, you add code to this file to embed, retrieve,
+      and generate responses from your movie data.
+
+Embed and Store Movie Data
+--------------------------
+
+In this section, you set up your clients, embed the ``plot``
+field of 50 movie documents, and store each vector in a new
+``embedding`` field. Then, you create a {+avs+} index on that field.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create the required clients.
+
+      Add the following code to your ``main.py`` file to create a
+      Fireworks client, a |voyage| client, and a MongoDB client, and
+      to select your models:
+
+      .. literalinclude:: /includes/ai-integrations/fireworks-ai-get-started/main.py
+         :language: python
+         :start-after: start-create-clients
+         :end-before: end-create-clients
+
+      This example selects the following models:
+
+      - ``voyage-4``: A |voyage| embedding model, used to embed movie
+        plots and search queries.
+      - ``rerank-3``: A |voyage| reranker model, used to rescore
+        {+avs+} candidates for relevance.
+      - ``accounts/fireworks/models/gpt-oss-120b``: A Fireworks chat
+        model, used to generate movie recommendations based on
+        MongoDB data.
+
+      .. note::
+
+         This tutorial requests 1024-dimension vectors from the
+         |voyage| embedding model to reduce storage. You can use any
+         |voyage| embedding model, as long as the ``DIMENSIONS`` value matches
+         the size of the vectors that the model returns.
+
+   .. step:: Generate and store embeddings.
+
+      Add the following code to your ``main.py`` file to embed each
+      movie's plot in the ``embedding`` field:
+
+      .. literalinclude:: /includes/ai-integrations/fireworks-ai-get-started/main.py
+         :language: python
+         :start-after: start-generate-embeddings
+         :end-before: end-generate-embeddings
+
+   .. step:: Create the {+avs+} index.
+
+      Add the following code to create a {+avs+} index on the
+      ``embedding`` field and wait until the index finishes building:
+
+      .. literalinclude:: /includes/ai-integrations/fireworks-ai-get-started/main.py
+         :language: python
+         :start-after: start-create-index
+         :end-before: end-create-index
+
+Generate a Response from Vector Search Results
+----------------------------------------------
+
+In this section, you run a {+avs+} query on the documents' ``plot``
+field and rerank the results. Then, you pass the reranked
+movies to a Fireworks chat model as context to generate a
+recommendation.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Run a {+avs+} query.
+
+      Add the following code to your ``main.py`` file to embed a
+      ``plot`` field query and retrieve movies whose plots are
+      similar to the query:
+
+      .. literalinclude:: /includes/ai-integrations/fireworks-ai-get-started/main.py
+         :language: python
+         :start-after: start-vector-search
+         :end-before: end-vector-search
+
+   .. step:: Rerank the results.
+
+      To improve {+avs+} precision, retrieve a larger candidate
+      set and rerank it by using a |voyage| reranker model
+      before you pass the results to a chat model. Add the
+      following code to your ``main.py`` file:
+
+      .. literalinclude:: /includes/ai-integrations/fireworks-ai-get-started/main.py
+         :language: python
+         :start-after: start-rerank
+         :end-before: end-rerank
+
+   .. step:: Generate a response.
+
+      Add the following code to your ``main.py`` file to pass the
+      reranked movies to a Fireworks chat model as context, and
+      instruct the model to answer only from that context:
+
+      .. literalinclude:: /includes/ai-integrations/fireworks-ai-get-started/main.py
+         :language: python
+         :start-after: start-generate-response
+         :end-before: end-generate-response
+
+Run the File
+------------
+
+To run the ``main.py`` file, run the following command from your
+``fireworks-mongodb-project`` directory. Use the ``--query`` and
+``--count`` flags to specify the search query and the number of
+results that the file returns:
+
+.. code-block:: shell
+
+   uv run main.py --query "a heist that goes wrong" --count 5
+
+If the command runs successfully, the output resembles the following:
+
+.. code-block:: text
+   :copyable: false
+
+   Embedded 50 movies.
+   Waiting for the index to build...
+   Index is ready.
+
+   Vector search results:
+   0.724  I Became a Criminal
+   0.664  Hallelujah
+   0.662  Zoo in Budapest
+   0.658  Rear Window
+   0.654  The Long Voyage Home
+
+   Reranked, precise results:
+   I Became a Criminal
+   Hallelujah
+   Foolish Wives
+   Zoo in Budapest
+   A Corner in Wheat
+
+   Recommendation:
+   **I Became a Criminal** -- This gritty film-noir follows cynical
+   ex-RAF flyer Morgan, who joins a break-in gang led by Narcy. Their
+   first job quickly turns disastrous when the getaway car crashes
+   after the crew accidentally kills a policeman. The movie centers on
+   a heist that goes badly wrong, showcasing the chaos, moral fallout,
+   and gritty consequences of a botched robbery.
+
+Next Steps
+----------
+
+To learn more about the Fireworks and |voyage| configuration options
+and the methods used in this tutorial, see :ref:`fireworks-ai`.
+
+To build a tool-calling agent that remembers its conversation history
+in MongoDB, see :ref:`fireworks-ai-conversations-tools` and
+:ref:`fireworks-ai-conversations-memory`.
+
+To learn more about Fireworks AI, see the `Fireworks AI Documentation
+<https://docs.fireworks.ai/getting-started/introduction>`__.
+
+To learn more about |voyage|, see :ref:`voyage-text-embeddings` and
+:ref:`voyage-rerankers`.
