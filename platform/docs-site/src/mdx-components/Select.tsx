@@ -17,6 +17,7 @@ export type SelectOption = {
 };
 
 export type SelectProps = {
+  'aria-label'?: string;
   className?: string;
   choices: Array<SelectOption>;
   onChange: ({ value }: { value: string }) => void;

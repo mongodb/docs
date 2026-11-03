@@ -303,7 +303,7 @@ const OFFLINE_UI_MODULES: OfflineUIModule[] = [
   { detect: 'offline-collapsible', jsFile: 'collapsible.js' },
   { detect: 'offline-composable', jsFile: 'composable-tutorial.js' },
   { detect: 'data-io-toggle', jsFile: 'io-code.js' },
-  { detect: 'data-testid="leafygreen-code-panel"', jsFile: 'code-copy.js' },
+  { detect: 'intro-code-block', jsFile: 'code-copy.js' },
 ];
 
 const loadedOfflineUIModules = OFFLINE_UI_MODULES.map((m) => ({

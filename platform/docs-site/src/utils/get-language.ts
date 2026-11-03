@@ -1,59 +1,57 @@
 /**
  * Returns the specified language if it is valid, otherwise returns none
  */
-import { Language } from '@leafygreen-ui/code';
+import { type CodeLanguage, NONE_LANGUAGE } from '@via-ds/components/code-block';
+import { LanguageName } from '@via-ds/components/code-core';
+
+const LANGUAGES = new Set<string>(Object.values(LanguageName));
 
 // Mapping of formal language names based on loose inputs
-const LANGUAGE_NAMES = {
-  bash: 'Bash',
-  c: 'C',
-  cpp: 'C++',
+const LANGUAGE_NAMES: Record<LanguageName | 'c#' | 'golang', string> = {
+  [LanguageName.Bash]: 'Bash',
+  [LanguageName.C]: 'C',
+  [LanguageName.Cpp]: 'C++',
   'c#': 'C#',
-  cs: 'C#',
-  csharp: 'C#',
-  dart: 'Dart',
-  diff: 'Diff',
-  go: 'Golang',
+  [LanguageName.Cs]: 'C#',
+  [LanguageName.CSharp]: 'C#',
+  [LanguageName.Dart]: 'Dart',
+  [LanguageName.Diff]: 'Diff',
+  [LanguageName.Go]: 'Golang',
   golang: 'Golang',
-  graphql: 'GraphQL',
-  groovy: 'Groovy',
-  html: 'HTML',
-  http: 'HTTP',
-  ini: 'Ini',
-  java: 'Java',
-  javascript: 'JavaScript',
-  js: 'JavaScript',
-  json: 'JSON',
-  kotlin: 'Kotlin',
-  objectivec: 'Objective-C',
-  perl: 'Perl',
-  php: 'PHP',
-  properties: 'Properties',
-  python: 'Python',
-  ruby: 'Ruby',
-  rust: 'Rust',
-  scala: 'Scala',
-  sh: 'Shell',
-  shell: 'Shell',
-  sql: 'SQL',
-  swift: 'Swift',
-  ts: 'TypeScript',
-  typescript: 'TypeScript',
-  xml: 'XML',
-  yaml: 'YAML',
+  [LanguageName.Graphql]: 'GraphQL',
+  [LanguageName.Groovy]: 'Groovy',
+  [LanguageName.Html]: 'HTML',
+  [LanguageName.Http]: 'HTTP',
+  [LanguageName.Ini]: 'Ini',
+  [LanguageName.Java]: 'Java',
+  [LanguageName.JavaScript]: 'JavaScript',
+  [LanguageName.Js]: 'JavaScript',
+  [LanguageName.Json]: 'JSON',
+  [LanguageName.Kotlin]: 'Kotlin',
+  [LanguageName.Markdown]: 'Markdown',
+  [LanguageName.ObjectiveC]: 'Objective-C',
+  [LanguageName.Perl]: 'Perl',
+  [LanguageName.Php]: 'PHP',
+  [LanguageName.Properties]: 'Properties',
+  [LanguageName.Python]: 'Python',
+  [LanguageName.Ruby]: 'Ruby',
+  [LanguageName.Rust]: 'Rust',
+  [LanguageName.Scala]: 'Scala',
+  [LanguageName.Sh]: 'Shell',
+  [LanguageName.Shell]: 'Shell',
+  [LanguageName.Sql]: 'SQL',
+  [LanguageName.Swift]: 'Swift',
+  [LanguageName.Ts]: 'TypeScript',
+  [LanguageName.TypeScript]: 'TypeScript',
+  [LanguageName.Xml]: 'XML',
+  [LanguageName.Yaml]: 'YAML',
 };
 
-export const getLanguage = (lang: string) => {
-  if (Object.values(Language).includes(lang as Language)) {
-    return lang;
-  } else if (lang === 'sh') {
-    // Writers commonly use 'sh' to represent shell scripts, but LeafyGreen and Highlight.js use the key 'shell'
-    return 'shell';
-  } else if (['c', 'cpp'].includes(lang)) {
-    // LeafyGreen renders C and C++ languages with "cs"
-    return 'cs';
+export const getLanguage = (lang: string): CodeLanguage => {
+  if (LANGUAGES.has(lang)) {
+    return lang as LanguageName;
   }
-  return 'none';
+  return NONE_LANGUAGE;
 };
 
 /**

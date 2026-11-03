@@ -66,13 +66,22 @@ it('passes metadata props to Code', () => {
       caption="Example"
     />,
   );
-  expect(wrapper.container.querySelector('[data-testid="leafygreen-code-panel"]')).toBeTruthy();
+  expect(wrapper.getByText('Example')).toHaveAttribute('slot', 'title');
   expect(wrapper.asFragment()).toMatchSnapshot();
 });
 
 it('defaults copyable=true, emphasize_lines=[], linenos=false when meta is absent', () => {
   const wrapper = render(<Code lang="sh" value={'echo hi'} />);
   expect(wrapper.asFragment()).toMatchSnapshot();
+});
+
+it('keeps the copy button visible, without a slot inside a panel', () => {
+  const floating = render(<Code lang="python" value="x = 1" />);
+  expect(floating.getByRole('button', { name: 'Copy' })).toHaveAttribute('slot', 'persist');
+  floating.unmount();
+
+  const inPanel = render(<Code lang="python" value="x = 1" caption="Example" />);
+  expect(inPanel.getByRole('button', { name: 'Copy' })).not.toHaveAttribute('slot');
 });
 
 describe('when rendering with selectors', () => {
@@ -98,7 +107,20 @@ describe('when rendering with selectors', () => {
       </TabProvider>,
     );
 
-    expect(wrapper.getByText('MongoDB Shell')).toBeTruthy();
-    expect(wrapper.getByRole('button')).toHaveAttribute('aria-labelledby', 'Language Picker');
+    expect(wrapper.getByRole('button', { name: /Language Picker/ })).toHaveTextContent('MongoDB Shell');
+  });
+
+  it('shows the active driver icon in the picker, sized by slot', () => {
+    const wrapper = render(
+      <TabProvider selectors={mockSelectors as never}>
+        <CodeProvider>
+          <Code lang="javascript" value="Testing code" />
+        </CodeProvider>
+      </TabProvider>,
+    );
+
+    // The shell icon is a plain SVG, so only the slot and class can size it
+    const icon = wrapper.getByRole('button', { name: /Language Picker/ }).querySelector('svg[slot="icon"]');
+    expect(icon).toHaveClass('itemIcon');
   });
 });

@@ -1,8 +1,8 @@
 'use client';
 
-import LeafyGreenProvider from '@leafygreen-ui/leafygreen-provider';
+import { ColorSchemeProvider } from '@via-ds/components/provider';
+import { ColorScheme } from '@via-ds/components/types';
 import { CodeContext } from '@/context/code-context';
-import { DARK_THEME_CLASSNAME } from '@/context/dark-mode-context';
 
 export type OutputProps = {
   children: React.ReactNode;
@@ -19,14 +19,9 @@ export type OutputProps = {
 // (2) override the block's lang with the active tab language, breaking colors.
 const emptyCodeContext = { codeBlockLanguage: undefined, languageOptions: [] };
 
-// Output blocks are force-rendered dark regardless of page theme. The token
-// palette in IOCode/style.ts is keyed off a .dark-theme ancestor, which is
-// otherwise only set at the document level — without this class, light-mode
-// pages paint light-variant tokens on the dark background (DOP-7345).
+// Output blocks are always dark, regardless of page theme.
 export const Output = ({ children }: OutputProps) => (
-  <LeafyGreenProvider darkMode={true}>
-    <CodeContext.Provider value={emptyCodeContext}>
-      <div className={DARK_THEME_CLASSNAME}>{children}</div>
-    </CodeContext.Provider>
-  </LeafyGreenProvider>
+  <ColorSchemeProvider colorScheme={ColorScheme.Dark}>
+    <CodeContext.Provider value={emptyCodeContext}>{children}</CodeContext.Provider>
+  </ColorSchemeProvider>
 );

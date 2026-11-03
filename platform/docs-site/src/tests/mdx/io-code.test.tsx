@@ -56,8 +56,8 @@ describe('CodeIO', () => {
       </IoCodeBlock>,
     );
 
-    const button = renderResult.getByRole('button');
-    const outputContent = renderResult.getByText('hello world');
+    const button = renderResult.getByRole('button', { name: /output/ });
+    const outputContent = renderResult.container.querySelector('[data-io-output]');
 
     await act(async () => {
       button.click();
@@ -95,16 +95,16 @@ describe('CodeIO', () => {
       </IoCodeBlock>,
     );
 
-    const button = renderResult.getByRole('button');
+    const button = renderResult.getByRole('button', { name: /output/ });
 
     await act(async () => {
       button.click();
     });
-    expect(renderResult.getByText('hello world')).toBeVisible();
+    expect(renderResult.container.querySelector('[data-io-output]')).toBeVisible();
 
     await act(async () => {
       button.click();
     });
-    expect(renderResult.getByText('hello world')).not.toBeVisible();
+    expect(renderResult.container.querySelector('[data-io-output]')).not.toBeVisible();
   });
 });

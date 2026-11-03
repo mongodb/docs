@@ -1,5 +1,6 @@
 import { type ReactNode, createContext, useContext, useMemo } from 'react';
-import { Language } from '@leafygreen-ui/code';
+import { type CodeLanguage, NONE_LANGUAGE } from '@via-ds/components/code-block';
+import { LanguageName } from '@via-ds/components/code-core';
 import { TabContext } from '@/context/tabs-context';
 import type { ASTNode } from '@/types/ast';
 import { getPlaintext } from '@/utils/get-plaintext';
@@ -12,8 +13,7 @@ interface CodeContextType {
 export type LanguageOption = {
   id: string;
   displayName: string;
-  language: Language;
-  image?: JSX.Element;
+  language: CodeLanguage;
 };
 
 const defaultContextValue = {
@@ -23,11 +23,11 @@ const defaultContextValue = {
 
 const CodeContext = createContext<CodeContextType>(defaultContextValue);
 
-const LANGUAGES = new Set(Object.values(Language));
+const LANGUAGES = new Set<string>(Object.values(LanguageName));
 
 type DriverLanguageMappingKey = 'cs' | 'javascript' | 'python';
 
-// Custom mapping for unique drivers that don't have an exact 1:1 name to LG language mapping
+// Custom mapping for unique drivers that don't have an exact 1:1 name to a Via language
 const DRIVER_LANGUAGE_MAPPING: {
   [k in DriverLanguageMappingKey]: Set<string>;
 } = {
@@ -37,17 +37,17 @@ const DRIVER_LANGUAGE_MAPPING: {
 };
 
 // Typeguard for below checking if value is a valid language
-function isLanguage(value: string): value is Language {
-  return LANGUAGES.has(value as Language);
+function isLanguage(value: string): value is LanguageName {
+  return LANGUAGES.has(value);
 }
 
-// Returns the LG-supported language that corresponds with one of our documented drivers
-const getDriverLanguage = (driverArg: string): Language => {
+// Returns the Via-supported language that corresponds with one of our documented drivers
+const getDriverLanguage = (driverArg: string): CodeLanguage => {
   // Simplifies driver to language matching for drivers like "java-sync"
   const driver = driverArg?.split('-')[0];
 
   for (const [language, driversSet] of Object.entries(DRIVER_LANGUAGE_MAPPING)) {
-    if (driversSet.has(driver) && LANGUAGES.has(language as DriverLanguageMappingKey)) {
+    if (driversSet.has(driver) && LANGUAGES.has(language)) {
       return language as DriverLanguageMappingKey;
     }
   }
@@ -56,8 +56,7 @@ const getDriverLanguage = (driverArg: string): Language => {
     return driver;
   }
 
-  // LG Code default language
-  return 'none';
+  return NONE_LANGUAGE;
 };
 
 // Generates language options for code block based on drivers tabset on current page
@@ -82,7 +81,6 @@ const getCurrentLanguageOption = (languageOptions: LanguageOption[], activeTabs:
   if (!currentTab) return;
 
   const currentLangOption = languageOptions.find((option) => option.id === currentTab);
-  // LG Code block's language switcher uses the display name to select the current "language"
   return currentLangOption?.displayName;
 };
 
