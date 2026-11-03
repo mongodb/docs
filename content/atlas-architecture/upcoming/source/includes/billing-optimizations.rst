@@ -30,9 +30,15 @@ To learn more, see :atlas:`Scaling Down a Cluster Reactively
   monitoring the cluster's |cpu|, WireTiger cache, memory, and IOPs
   over a rolling 30 day period of normal use. Generally, if the usage
   is steadily below 45% of allocated resources, we recommend that you
-  scale down. 
+  scale down.
 
-- For {+dedicated-clusters+}, consider scaling down 
+- For Gen2 {+dedicated-clusters+} on |aws| or |gcp|, you can scale
+  storage capacity and |iops| independently. This lets you provision only the
+  storage and |iops| your workload needs. |service| bills for storage
+  and |iops| separately. To learn more, see :ref:`Extended Standard
+  IOPS <extended-iops-gen2>`.
+
+- For {+dedicated-clusters+}, consider scaling down
   to a lower tier or :ref:`pausing <pause-terminate-cluster>` the {+cluster+} 
   if you won't use it for an extended period. 
   
