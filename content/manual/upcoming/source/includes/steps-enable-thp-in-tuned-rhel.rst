@@ -26,7 +26,7 @@
          
       This example inherits from the existing ``virtual-guest`` profile. Select 
       the appropriate profile for your system.
-      
+
    .. step:: Enable the new profile
 
       Run:
