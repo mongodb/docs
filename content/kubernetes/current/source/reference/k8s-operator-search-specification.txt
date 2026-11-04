@@ -714,8 +714,8 @@ Per-Shard Overrides
 ``spec.clusters[].shardOverrides``
   *Type*: array of objects
 
-  Overrides that size specific shards within this cluster entry
-  differently from the cluster defaults.
+  Overrides that size or set metadata for specific shards within
+  this cluster entry differently from the cluster defaults.
 
   You can use this field only with an external sharded cluster
   source (``spec.source.external.shardedCluster``). Each shard name
@@ -725,13 +725,50 @@ Per-Shard Overrides
 
   Each override contains a required ``shardNames`` list (at least
   one entry) and optional ``replicas``, ``resourceRequirements``,
-  ``persistence``, ``jvmFlags``, and ``statefulSet`` fields. If you
-  set ``replicas``, ``resourceRequirements``, ``persistence``, or
-  ``jvmFlags`` in an override, they replace the cluster value for
-  the named shards. ``jvmFlags`` replaces the cluster value only if
-  you set it to a non-empty list. The |k8s-op-short| deep-merges
-  ``statefulSet`` onto the cluster value. Fields that you don't set
-  inherit the cluster value.
+  ``persistence``, ``jvmFlags``, ``statefulSet``, and ``service``
+  fields. If you set ``replicas``, ``resourceRequirements``,
+  ``persistence``, or ``jvmFlags`` in an override, they replace the
+  cluster value for the named shards. ``jvmFlags`` replaces the
+  cluster value only if you set it to a non-empty list. The
+  |k8s-op-short| deep-merges ``statefulSet`` onto the cluster value,
+  and merges ``service`` metadata onto the cluster value per key.
+  Fields that you don't set inherit the cluster value.
+
+``spec.clusters[].shardOverrides[].service``
+  *Type*: object
+
+  Labels and annotations for the Services of the shards that
+  ``shardNames`` lists. The |k8s-op-short| merges these values onto
+  the cluster-level ``spec.clusters[].service`` values per key,
+  separately for labels and annotations, and the shard value wins. A
+  key that appears only at the cluster level, or only in the
+  override, appears on the Service.
+
+  This override applies to the headless Service and the proxy
+  Service of each named shard. It doesn't apply to the cluster-level
+  proxy Service that ``mongos`` uses, which always uses the
+  cluster-level values.
+
+  If you set ``service`` to an empty object or omit it, the named
+  shards inherit the cluster-level values unchanged.
+
+  The |crd| doesn't reject operator-managed label keys in this
+  field. The |k8s-op-short| ignores them, because its own values
+  always win.
+
+``spec.clusters[].shardOverrides[].service.metadata.labels``
+  *Type*: map of string to string
+
+  Labels that the |k8s-op-short| merges onto the Services of the
+  named shards. For the merge rules and the operator-managed keys,
+  see ``spec.clusters[].service.metadata.labels``.
+
+``spec.clusters[].shardOverrides[].service.metadata.annotations``
+  *Type*: map of string to string
+
+  Annotations that the |k8s-op-short| merges onto the Services of
+  the named shards. For the merge rules, see
+  ``spec.clusters[].shardOverrides[].service``.
 
 Sync Source Selection
 `````````````````````
@@ -790,6 +827,74 @@ StatefulSet Overrides
      ``spec.clusters[].statefulSet``. Instead, use the
      ``spec.clusters[].resourceRequirements`` and
      ``spec.clusters[].persistence`` fields respectively.
+
+Service Metadata
+````````````````
+
+``spec.clusters[].service``
+  *Type*: object
+
+  Labels and annotations that the |k8s-op-short| sets on the |k8s|
+  Services it creates for this cluster entry. Use this field to meet
+  admission policies that require metadata on Services.
+
+  The |k8s-op-short| applies the metadata to the following Services:
+
+  - The headless Service for the ``mongot`` pods.
+  - The proxy Service.
+  - The cluster-level proxy Service that ``mongos`` connects to, for
+    sharded cluster sources.
+
+  For a sharded cluster source, the |k8s-op-short| creates a
+  headless Service and a proxy Service for each shard.
+
+  This field applies to Services only. To set metadata on the
+  ``mongot`` StatefulSet, use ``spec.clusters[].statefulSet``.
+
+  The |k8s-op-short| owns the Service metadata. On every reconcile,
+  it replaces the labels and annotations of each Service with the
+  values in this field. If you remove a key from the resource, the
+  |k8s-op-short| removes that key from the Service. The
+  |k8s-op-short| also removes keys that another tool adds.
+
+  If you use an unmanaged load balancer, the |k8s-op-short| doesn't
+  create the proxy Services. In that case, this field applies to the
+  headless Services only.
+
+  If you omit this field, the |k8s-op-short| sets no custom labels
+  and no annotations.
+
+``spec.clusters[].service.metadata.labels``
+  *Type*: map of string to string
+
+  Labels that the |k8s-op-short| adds to the Services. The |k8s|
+  API server rejects the resource if this map contains any of the
+  following operator-managed keys:
+
+  - ``app``
+  - ``component``
+  - ``shard``
+  - ``mongodb.com/search-name``
+  - ``mongodb.com/search-namespace``
+
+  The |k8s-op-short| uses these keys to route traffic and clean up
+  resources.
+
+  The |k8s| API server returns HTTP status 422 (Unprocessable
+  Entity) and the message ``service.metadata.labels must not set
+  operator-managed label keys``. The rule applies to labels only,
+  and no annotation keys are reserved.
+
+  The key ``app.kubernetes.io/component`` isn't reserved. To meet an
+  admission policy that requires it, set it in this map.
+
+``spec.clusters[].service.metadata.annotations``
+  *Type*: map of string to string
+
+  Annotations that the |k8s-op-short| sets on the Services. The
+  |k8s-op-short| owns the Service annotations and removes any
+  annotation that isn't in this map, including an annotation that
+  another tool adds.
 
 Advanced ``mongot`` Settings
 ````````````````````````````
