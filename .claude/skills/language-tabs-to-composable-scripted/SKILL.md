@@ -330,17 +330,21 @@ The script handles pages of any size — follow Steps 1–14. For rare structura
 
 ---
 
+## Example: minimal conversion
+
+For a concrete before/after example of a Case A conversion, read [assets/minimal-example.md](assets/minimal-example.md). It is not needed on every run — consult it only when the conversion shape is unclear.
+
+---
+
 ## Known script limitations
 
-- **Old YAML-format tabs** (`tabs:` / `- id:` syntax) are not supported by analyze.py. Convert to `.. tab::` / `:tabid:` format first.
+- **Old YAML-format tabs** (`tabs:` / `- id:` syntax) are not supported by analyze.py. The analyzer stops with a stop reason (Step 2).
 - **Option over-generation and dead states** — the analyzer proposes one option slot per tab attribute, which on multi-attribute pages can exceed the composable's options or create unresolvable "dead state" `:selections:`. The converter's count validation (Step 11) blocks `--apply` when this happens. Fix by collapsing redundant dimensions into one combined ID (for example, `v7-rpm`, `v7-tar`) and rewriting the affected `:selections:` lines, then re-run.
 - **Titled `.. tab::` children are not parsed as language tabs** — the analyzer only recognizes argument-less `.. tab::` children (with a separate `:tabid:`). A `.. tabs::` block whose children use the title-argument form (`.. tab:: Some Title`) — typical of content-variant tabs like `movies Collection` or `Ascending Sort` — is reported with an empty `tabs` list. The converter does NOT delete these blocks: it passes them through as shared content and prints a note listing their line numbers. Because a bare `.. tabs::` is illegal at document level inside a composable, you must still remediate each one by hand (flatten to sections or `.. collapsible::`; see Step 7). Never `--apply` blindly on a page with pass-through blocks without checking those locations.
 - **Case B default** — when a Case B page has only interface tabs (no driver language tabs), `analyze.py` proposes `:defaults: driver, nodejs`. That is wrong. Correct it in Step 5 to `:defaults: <first-interface-id>, None` (e.g., `:defaults: atlas-ui, None`).
 - **Interface ID for shell** — the script maps `shell` tabids to `shell` regardless of project. Atlas uses `mongosh`. Step 5 (snooty.toml check) will surface this; correct the `:selections:` values after applying.
-- **Scope boundaries** — the script's `composable_scope` covers only the first to last tab block. Expand manually (Step 6).
-- **Substitution definitions** — the script may indent these into the composable. Move to document level (Step 13).
-- **Heading conflicts** — not resolved automatically. Fix by hand (Step 13).
-- **Extra blank lines** — may appear after removing selector lines. Collapse sequences > 2 blank lines (Step 13).
+
+The remaining manual fixes have no script support; the step is the only guidance: scope expansion (Step 6), substitution definitions (Steps 7 and 13), heading conflicts and extra blank lines (Step 13).
 
 ---
 
