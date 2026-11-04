@@ -837,6 +837,26 @@ go test -v -count=1 ./... -run TestExampleOperations/YourExampleName
 > serves stale cached results. To avoid typing it every time, add
 > `export GOFLAGS=-count=1` to your shell profile or `.envrc`.
 
+### Run Encryption Tests from the command line
+
+The tests under `tests/encryption/` use the driver's explicit encryption
+API, which the Go driver only compiles when it is built with the `cse`
+build tag. That build also needs the `libmongocrypt` native library.
+Without the tag, the encryption tests skip themselves instead of failing.
+
+Install `libmongocrypt` by following the instructions for your platform in
+the [libmongocrypt repository](https://github.com/mongodb/libmongocrypt#installing).
+On macOS, the shortest path is `brew install mongodb/brew/libmongocrypt`.
+
+From the `/go/driver/tests` directory, run:
+
+```sh
+go test -v -p 1 -count=1 -tags cse ./encryption/...
+```
+
+CI installs `libmongocrypt` and passes `-tags cse` for the whole suite, so
+the encryption tests run there without any extra setup.
+
 ## To run the tests in CI
 
 A GitHub workflow runs these tests in CI automatically when you change any

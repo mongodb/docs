@@ -186,6 +186,7 @@ Tests auto-skip when required sample databases are unavailable.
 | `go test -v -p 1 -count=1 ./...` | Run all tests (from `tests/` dir) |
 | `go test -v -p 1 -count=1 ./aggregation/pipelines` | Run a specific test package |
 | `go test -v -count=1 ./... -run TestExampleOperations/YourName` | Run a single test |
+| `go test -v -p 1 -count=1 -tags cse ./encryption/...` | Run the encryption tests (requires `libmongocrypt`) |
 | `go fmt ./...` | Format all files |
 | `node snip.js` | Extract snippets via Bluehawk |
 
@@ -198,6 +199,12 @@ at runtime (by `godotenv`), not from the shell environment. Go's test result cac
 keys on shell-level environment variables, so it cannot detect when the connection
 string changes and serves stale cached results. Set `GOFLAGS=-count=1` in your
 shell profile or `.envrc` to avoid passing the flag explicitly on every run.
+
+The tests under `tests/encryption/` use the driver's explicit encryption API, which
+the Go driver only compiles when it is built with the `cse` build tag. That build
+also needs the `libmongocrypt` native library. Without the tag, the encryption tests
+skip themselves instead of failing. CI installs `libmongocrypt` and passes
+`-tags cse` for the whole suite. For installation steps, see the README.
 
 ## Snippet Output
 

@@ -39,6 +39,17 @@ jobs:
         run: |
           curl https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2204-x86_64-100.13.0.deb --output mdb-db-tools.deb
           sudo apt install ./mdb-db-tools.deb
+      # The Go driver needs libmongocrypt to compile in-use encryption support
+      # (the cse build tag below), which the Queryable Encryption examples use.
+      - name: Install libmongocrypt
+        if: steps.detect.outputs.run_all == 'true' || steps.detect.outputs.test_filter != ''
+        run: |
+          base=https://libmongocrypt.s3.amazonaws.com/apt/ubuntu/dists/noble/libmongocrypt/release/universe/binary-amd64
+          curl -fsSL $base/libmongocrypt0_1.21.1-0_amd64.deb --output libmongocrypt0.deb
+          curl -fsSL $base/libmongocrypt-dev_1.21.1-0_amd64.deb --output libmongocrypt-dev.deb
+          echo "4332add4eb3de6057e779495660e1937e2c0536e7694a701a9d3d1de1469e619  libmongocrypt0.deb" | sha256sum -c
+          echo "3999160ccfbbb72c436e07a5022456c2f05ca6d1ed4f642cd6c84c0da3fc9326  libmongocrypt-dev.deb" | sha256sum -c
+          sudo apt install ./libmongocrypt0.deb ./libmongocrypt-dev.deb
       - name: Download sample data
         if: steps.detect.outputs.run_all == 'true' || steps.detect.outputs.test_filter != ''
         run: curl  https://atlas-education.s3.amazonaws.com/sampledata.archive -o sampledata.archive
@@ -66,9 +77,9 @@ jobs:
         run: |
           cd ${{ env.PROJECT_PATH }}tests
           if [[ "${{ steps.detect.outputs.run_all }}" != "false" ]] || [[ -z "${{ steps.detect.outputs.test_filter }}" ]]; then
-            go test -v -p 1 ./... ./../utils/...
+            go test -v -p 1 -tags cse ./... ./../utils/...
           else
-            go test -v -p 1 ${{ steps.detect.outputs.test_filter }}
+            go test -v -p 1 -tags cse ${{ steps.detect.outputs.test_filter }}
           fi
 
       - name: Notify Slack on scheduled run failure
