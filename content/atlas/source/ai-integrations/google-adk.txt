@@ -1,0 +1,845 @@
+.. _google-adk:
+
+=================================
+Integrate MongoDB with Google ADK
+=================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. meta::
+   :keywords: agents, agentic, memory, sessions, RAG, retrieval, vector database, vector search, code example, python
+   :description: Integrate MongoDB with Google ADK to add Atlas-backed vector and hybrid search tools, persistent sessions, and long-term memory to your Python agents.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can integrate MongoDB with `Google ADK
+<https://google.github.io/adk-docs/>`__ , an open-source
+Python framework for building AI agents. The integration
+provides three components:
+
+- **MongoDbToolset**, which provides {+avs+} and hybrid search
+  tools to agents
+- **MongoDbSessionService**, which persists agent sessions, events,
+  and state in MongoDB
+- **MongoDbMemoryService**, which stores session events in MongoDB
+  for keyword-based long-term memory recall
+
+.. TODO: uncomment once get started is created
+.. Get Started
+.. -----------
+..
+.. To complete a tutorial that configures Google ADK to use MongoDB,
+.. see :ref:`google-adk-get-started`.
+
+Installation
+------------
+
+To install Google ADK and the MongoDB dependencies, run the
+following command:
+
+.. code-block:: shell
+
+   pip install "google-adk[mongodb]"
+
+This command also installs the PyMongo driver. The integration
+requires PyMongo v4.9 or later.
+
+Usage
+-----
+
+This section describes the three components that you can use to
+integrate MongoDB with Google ADK.
+
+MongoDbToolset
+~~~~~~~~~~~~~~
+
+``MongoDbToolset`` is a toolset class that includes the
+following read-only search tools, which can access a MongoDB
+database:
+
+- ``mongodb_vector_search``: Ranks documents by embedding similarity
+- ``mongodb_hybrid_search``: Combines that similarity ranking with a full-text
+  ranking
+
+.. important:: Required Indexes
+
+   To use the preceding search tools, you must create the indexes
+   described in the :ref:`google-adk-indexes` section.
+  
+When calling one of these tools, the agent model passes a plain-text
+query as the tool argument. Both tools embed this text internally,
+so the model never produces or handles a vector.
+
+To view an example that binds the toolset to your MongoDB
+database, select the tab corresponding to your preferred
+connection method:
+
+.. tabs::
+
+   .. tab:: Connection string
+      :tabid: connection-string
+
+      The following example shows how to use a connection string
+      to configure a toolset:
+
+      .. code-block:: python
+
+         from google.adk.agents import Agent
+         from google.adk.integrations.mongodb import MongoDbToolset
+
+         toolset = MongoDbToolset(
+             connection_string="<connection_string>",
+             database_name="products_db",
+         )
+
+         agent = Agent(
+             model="gemini-2.5-flash",
+             name="product_search_agent",
+             instruction=(
+                 "Search the products collection with your MongoDB tools."
+             ),
+             tools=[toolset],
+         )
+
+      To learn more about finding your connection string, see
+      :ref:`connect-via-driver`.
+
+   .. tab:: Environment Variable
+      :tabid: connection-string-env-var
+
+      The following example shows how to use a connection string
+      stored in an environment variable to configure a toolset:
+
+      .. code-block:: python
+
+         from google.adk.agents import Agent
+         from google.adk.integrations.mongodb import MongoDbToolset
+
+         toolset = MongoDbToolset(
+             connection_string_env_var="MONGODB_URI",
+             database_name="products_db",
+         )
+
+         agent = Agent(
+             model="gemini-2.5-flash",
+             name="product_search_agent",
+             instruction=(
+                 "Search the products collection with your MongoDB tools."
+             ),
+             tools=[toolset],
+         )
+
+      For Atlas Agent Engine deployments, we recommend that
+      you use this parameter instead of ``connection_string``.
+
+   .. tab:: Existing MongoClient
+      :tabid: existing-client
+
+      For connection options that the toolset doesn't expose, you can
+      use your own ``pymongo.MongoClient`` instance instead of a connection
+      string. The following example shows how to use a client to configure a
+      toolset:
+
+      .. code-block:: python
+
+         from pymongo import MongoClient
+         from google.adk.integrations.mongodb import MongoDbToolset
+
+         client = MongoClient("<connection_string>")
+         toolset = MongoDbToolset(database_name="products_db", mongo_client=client)
+
+         # ... Pass toolset to an agent
+
+      To learn more about PyMongo clients, see :ref:`pymongo-mongoclient`
+      in the PyMongo documentation.
+
+      .. note::
+
+         The toolset doesn't take ownership of this client. You
+         are responsible for closing it.
+
+Name the target collection in the agent's instruction, because the model
+chooses a collection on every call. For the
+implications this has for the data that the toolset can access, see
+the :ref:`google-adk-model-chooses-collection` section.
+
+Credentials for the embedding model come from `Application Default
+Credentials <https://docs.cloud.google.com/docs/authentication/provide-credentials-adc>`__,
+Google Cloud's standard mechanism for discovering credentials.
+Credentials for MongoDB come from the connection string.
+
+.. collapsible::
+   :heading: MongoDbToolset Parameters
+   :sub_heading: Use these parameters to configure the toolset.
+   :expanded: false
+
+   .. list-table::
+      :widths: 25 15 20 40
+      :header-rows: 1
+
+      * - Parameter
+        - Type
+        - Necessity
+        - Description
+
+      * - ``database_name``
+        - ``str``
+        - Required
+        - Name of the database that the toolset searches.
+
+      * - ``connection_string``
+        - ``str | None``
+        - Conditional
+        - Connection string for your MongoDB deployment. Required if
+          you don't specify a ``connection_string_env_var`` or
+          ``mongo_client`` value.
+
+      * - ``connection_string_env_var``
+        - ``str | None``
+        - Conditional
+        - Name of an environment variable that stores your MongoDB
+          connection string. Required if you don't specify a
+          ``connection_string`` or ``mongo_client`` value. Use
+          this parameter instead of ``connection_string`` for Agent Engine
+          deployments, because it keeps the credential out of the
+          pickled deployment package.
+
+      * - ``mongo_client``
+        - ``MongoClient | None``
+        - Conditional
+        - Existing ``pymongo.MongoClient`` instance. Required if you
+          don't specify a ``connection_string`` or
+          ``connection_string_env_var`` value.
+
+      * - ``tool_filter``
+        - ``ToolPredicate | list[str] | None``
+        - Optional
+        - List of tool names, or a predicate function, that
+          restricts which of the toolset's tools the agent can call.
+          If you don't specify a value, the toolset exposes both
+          ``mongodb_vector_search`` and ``mongodb_hybrid_search`` tools.
+
+      * - ``settings``
+        - ``MongoDbToolSettings | None``
+        - Optional
+        - Settings object that configures the embedding model, index
+          names, and search limits. If you don't specify a value, the
+          toolset uses the default values described in the following
+          :ref:`google-adk-configure-settings` section.
+
+      * - ``genai_client``
+        - ``Client | None``
+        - Optional
+        - Existing ``google.genai.Client`` instance used to embed
+          queries. If you don't specify a value, the toolset creates
+          a client that authenticates with Application Default
+          Credentials.
+
+.. _google-adk-configure-settings:
+
+Configure Settings
+``````````````````
+
+``MongoDbToolSettings`` is a settings class that configures the
+embedding model, index names, and search limits that
+``MongoDbToolset`` uses. Pass an instance of this class to the
+``settings`` parameter of ``MongoDbToolset`` to override its
+defaults, as shown in the following example:
+
+.. code-block:: python
+
+   from google.adk.integrations.mongodb import MongoDbToolset
+   from google.adk.integrations.mongodb import MongoDbToolSettings
+
+   toolset = MongoDbToolset(
+       connection_string="<connection_string>",
+       database_name="products_db",
+       settings=MongoDbToolSettings(default_limit=8, max_results=20),
+   )
+
+.. collapsible::
+   :heading: MongoDbToolSettings Options
+   :sub_heading: Use these options to configure the search tools.
+   :expanded: false
+
+   .. list-table::
+      :widths: 30 15 15 55
+      :header-rows: 1
+
+      * - Option
+        - Type
+        - Necessity
+        - Description
+
+      * - ``vertex_ai_embedding_model_name``
+        - ``str``
+        - Optional
+        - Vertex AI model used to embed the query text. Defaults to
+          ``"text-embedding-005"``.
+
+      * - ``vertex_ai_embedding_output_dimensionality``
+        - ``int | None``
+        - Optional
+        - Length of the query embedding, for models that support
+          shortening it. Defaults to the model's native length.
+
+      * - ``use_mongodb_auto_embedding``
+        - ``bool``
+        - Optional
+        - | Whether to send the query text to Atlas and allow Atlas to embed it with
+            the index's Voyage AI model instead of calling the Vertex AI model.
+            Defaults to ``False``.
+          | To learn more, see the following :ref:`google-adk-embedding-modes` section.
+
+      * - ``mongodb_auto_embedding_model``
+        - ``str | None``
+        - Optional
+        - Voyage AI model for auto-embedded queries, such as
+          ``"voyage-4"``. Must be compatible with the index's model.
+          Defaults to the index's model.
+
+      * - ``default_vector_index_name``
+        - ``str``
+        - Optional
+        - Vector search index used when the model doesn't name one.
+          Defaults to ``"vector_index"``.
+
+      * - ``default_search_index_name``
+        - ``str``
+        - Optional
+        - Full-text search index used by hybrid search when the
+          model doesn't name one. Defaults to ``"default"``.
+
+      * - ``default_embedding_field``
+        - ``str``
+        - Optional
+        - Document field holding the stored vectors. Defaults to
+          ``"embedding"``.
+
+      * - ``default_limit``
+        - ``int``
+        - Optional
+        - Documents returned when the model doesn't ask for a
+          number. Defaults to ``4``.
+
+      * - ``max_results``
+        - ``int``
+        - Optional
+        - Ceiling on the documents any one search returns. Defaults
+          to ``50``.
+
+      * - ``default_num_candidates``
+        - ``int``
+        - Optional
+        - Nearest neighbors the vector search considers. Defaults to
+          ``100``.
+
+      * - ``timeout_ms``
+        - ``int``
+        - Optional
+        - Time limit, in milliseconds, for a single search operation. Defaults to
+          ``60000``.
+
+.. _google-adk-embedding-modes:
+
+Embedding Modes
+```````````````
+
+Before running a vector search, the toolset embeds your query text.
+Select the :guilabel:`Atlas Automated Embedding` tab to allow
+Atlas to embed queries automatically, or select the
+:guilabel:`Google embedding models` tab to view the
+default embedding behavior:
+
+.. tabs::
+
+   .. tab:: Atlas Automated Embedding
+      :tabid: auto-embedding
+
+      To use Atlas Automated Embedding, set the ``use_mongodb_auto_embedding``
+      parameter to ``True`` on the ``MongoDbToolSettings`` configuration class.
+      The following example shows this configuration:
+
+      .. code-block:: python
+
+         from google.adk.integrations.mongodb import MongoDbToolset
+         from google.adk.integrations.mongodb import MongoDbToolSettings
+
+         toolset = MongoDbToolset(
+             connection_string="<connection_string>",
+             database_name="products_db",
+             settings=MongoDbToolSettings(
+                 use_mongodb_auto_embedding=True,
+                 mongodb_auto_embedding_model="voyage-4",  # optional
+             ),
+         )
+      
+      With this configuration, the toolset does not make a Google embedding call.
+      Instead, the vector search stage receives the query text, and Atlas generates the
+      embedding with the Voyage AI model configured on the index. The
+      searched field must be indexed as the ``autoEmbed`` type.
+
+      .. important:: Preview Feature
+
+         Automated Embedding is an Atlas Preview feature and
+         isn't available on self-managed deployments.
+         
+   .. tab:: Google embedding models
+      :tabid: google-embedding
+
+      By default, the toolset embeds the query through a Vertex
+      AI embedding model and passes the resulting vector as the
+      ``queryVector`` field of the ``$vectorSearch`` aggregation
+      stage. The following example shows this default configuration:
+
+      .. code-block:: python
+
+         from google.adk.integrations.mongodb import MongoDbToolset
+
+         toolset = MongoDbToolset(
+             connection_string="<connection_string>",
+             database_name="products_db",
+         )
+
+      This mode requires `Application Default Credentials
+      <https://docs.cloud.google.com/docs/authentication/provide-credentials-adc>`__
+      for the embedding API. The embeddings stored in your documents
+      must come from the same Vertex AI model that embeds the query,
+      which the ``vertex_ai_embedding_model_name`` option sets.
+
+.. _google-adk-model-chooses-collection:
+
+Collection Choice
+`````````````````
+
+The model chooses the collection on each call, so a toolset bound to
+a database accesses every collection in that database that has a
+search index. Set the ``database_name`` parameter to a database that
+contains only data the agent is allowed to read, and store any other
+data in a separate database.
+
+The ``tool_filter`` parameter doesn't restrict which collections the
+model can access, because it selects whole tools and doesn't receive
+call arguments. To enforce a collection allowlist, use the
+``before_tool_callback`` hook instead, which does receive the call
+arguments:
+
+.. code-block:: python
+
+   from google.adk.agents import Agent
+   from google.adk.integrations.mongodb import MongoDbToolset
+
+
+   def allow_products_only(tool, args, tool_context):
+     if tool.name.startswith("mongodb_") and args.get("collection_name") != "products":
+       return {
+           "status": "ERROR",
+           "error_details": "Only the products collection may be searched.",
+       }
+     return None
+
+
+   agent = Agent(
+       name="product_search_agent",
+       instruction="Answer questions about products.",
+       tools=[
+           MongoDbToolset(
+               connection_string="<connection_string>",
+               database_name="products_db",
+           )
+       ],
+       before_tool_callback=allow_products_only,
+   )
+
+If the callback returns a dictionary, ADK never runs the search
+tool. Instead, it sends that dictionary to the agent as if it were
+the tool's own output. Returning ``None`` allows the search tool to run
+as normal.
+
+MongoDbSessionService
+~~~~~~~~~~~~~~~~~~~~~
+
+``MongoDbSessionService`` stores sessions, events, and app-, user-,
+and session-scoped state in MongoDB. Pass it to a ``Runner`` object to configure
+persistent conversation history for your agent, as shown in
+the following example:
+
+.. code-block:: python
+
+   from google.adk.integrations.mongodb import MongoDbSessionService
+   from google.adk.runners import Runner
+
+   session_service = MongoDbSessionService(
+       connection_string="<connection_string>",
+       database_name="my_app",
+   )
+
+   runner = Runner(
+       agent=agent,
+       app_name="my_app",
+       session_service=session_service,
+   )
+
+.. collapsible::
+   :heading: MongoDbSessionService Parameters
+   :sub_heading: Use these parameters to configure the session service.
+   :expanded: false
+
+   .. list-table::
+      :widths: 25 15 20 40
+      :header-rows: 1
+
+      * - Parameter
+        - Type
+        - Necessity
+        - Description
+
+      * - ``database_name``
+        - ``str``
+        - Required
+        - Name of the database that holds the session service's
+          collections.
+
+      * - ``connection_string``
+        - ``str | None``
+        - Conditional
+        - Connection string for your MongoDB deployment. Required
+          if you don't specify a ``mongo_client`` value.
+
+      * - ``mongo_client``
+        - ``MongoClient | None``
+        - Conditional
+        - Existing ``pymongo.MongoClient`` instance. Required if you
+          don't specify a ``connection_string`` value.
+
+      * - ``sessions_collection``
+        - ``str``
+        - Optional
+        - Name of the collection that stores session documents.
+          Defaults to ``"sessions"``.
+
+      * - ``events_collection``
+        - ``str``
+        - Optional
+        - Name of the collection that stores event documents.
+          Defaults to ``"events"``.
+
+      * - ``app_state_collection``
+        - ``str``
+        - Optional
+        - Name of the collection that stores app-scoped state.
+          Defaults to ``"app_states"``.
+
+      * - ``user_state_collection``
+        - ``str``
+        - Optional
+        - Name of the collection that stores user-scoped state.
+          Defaults to ``"user_states"``.
+
+      * - ``ensure_indexes``
+        - ``bool``
+        - Optional
+        - Whether to create the recommended secondary indexes on
+          first use. Defaults to ``True``. To learn more, see
+          :ref:`google-adk-indexes` on this page.
+
+Document Layout
+```````````````
+
+``MongoDbSessionService`` stores data in the following
+collections:
+
+.. list-table::
+   :widths: 20 35 45
+   :header-rows: 1
+
+   * - Collection
+     - ``_id`` Value
+     - Contents
+
+   * - ``sessions``
+     - ``<app_name>/<user_id>/<session_id>``
+     - Session-scoped state in JSON, timestamps, and an
+       optimistic-concurrency revision number
+
+   * - ``events``
+     - ``<app_name>/<user_id>/<session_id>/<event_id>``
+     - Full serialized event
+
+   * - ``app_states``
+     - ``<app_name>``
+     - App-scoped state
+
+   * - ``user_states``
+     - ``<app_name>/<user_id>``
+     - User-scoped state
+
+Google ADK scopes state to the app, a user, or the current session with an
+``app:`` or ``user:`` prefix on the state key. ``MongoDbSessionService``
+stores each value in the corresponding collection and strips the prefix
+from the stored key, so a value set with the key ``app:theme`` is
+stored in the ``app_states`` collection as ``theme``.
+
+.. note::
+
+   Each collection's ``state`` field stores its keys and values as a
+   JSON-encoded string, not as a native MongoDB document. As a
+   result, a state key containing a character that MongoDB forbids
+   in document field names, such as ``.`` or ``$``, is stored and
+   retrieved without data loss or corruption.
+
+Concurrency Model
+`````````````````
+
+The service's concurrency model depends on your deployment type:
+
+- On a replica set, sharded cluster, or Atlas cluster, every
+  multi-document write runs in a transaction, so it commits or aborts
+  atomically.
+- On a standalone ``mongod``, or any deployment without transaction
+  support, the service falls back to sequential writes with an
+  optimistic-concurrency revision check on the session document.
+
+Within a single process, a per-session lock prevents concurrent
+writes to the same session. This lock has no effect across multiple
+processes, such as when multiple instances of your application write
+to the same session at the same time.
+
+Across multiple processes, the session document's revision check
+prevents data corruption. If two writes compete, the write that
+completes first increments the revision number, and the other write
+fails its revision check. Your application must catch this failure,
+reload the session to get its current state, and retry the write.
+
+MongoDbMemoryService
+~~~~~~~~~~~~~~~~~~~~
+
+``MongoDbMemoryService`` stores session events in a memory
+collection and retrieves them by keyword matching. Pass it to a
+``Runner`` object to configure long-term memory across
+sessions, as shown in the following example:
+
+.. code-block:: python
+
+   from google.adk.integrations.mongodb import MongoDbMemoryService
+   from google.adk.runners import Runner
+
+   memory_service = MongoDbMemoryService(
+       connection_string="<connection_string>",
+       database_name="my_app",
+   )
+
+   runner = Runner(
+       agent=agent,
+       app_name="my_app",
+       memory_service=memory_service,
+   )
+
+.. collapsible::
+   :heading: MongoDbMemoryService Parameters
+   :sub_heading: Use these parameters to configure the memory service.
+   :expanded: false
+
+   .. list-table::
+      :widths: 25 15 20 40
+      :header-rows: 1
+
+      * - Parameter
+        - Type
+        - Necessity
+        - Description
+
+      * - ``database_name``
+        - ``str``
+        - Required
+        - Name of the database that holds the memory service's
+          collection.
+
+      * - ``connection_string``
+        - ``str | None``
+        - Conditional
+        - Connection string for your MongoDB deployment. Required if
+          you don't specify a ``mongo_client`` value.
+
+      * - ``mongo_client``
+        - ``MongoClient | None``
+        - Conditional
+        - Existing ``pymongo.MongoClient`` instance. Required if you
+          don't specify a ``connection_string`` value.
+
+      * - ``memories_collection``
+        - ``str``
+        - Optional
+        - Name of the collection that stores memory documents.
+          Defaults to ``"memories"``.
+
+      * - ``stop_words``
+        - ``set[str] | None``
+        - Optional
+        - Words to exclude from keyword extraction. Defaults to a
+          compact list of common English stop words, such as ``"the"``
+          and ``"and"``.
+
+      * - ``max_results``
+        - ``int``
+        - Optional
+        - Maximum number of memories returned per query. Defaults to
+          ``50``.
+
+      * - ``ensure_indexes``
+        - ``bool``
+        - Optional
+        - Whether to create the recommended secondary indexes on
+          first use. Defaults to ``True``. To learn more, see
+          :ref:`google-adk-indexes` on this page.
+
+The ``Runner`` object calls the memory service's
+``add_session_to_memory()`` method to ingest a session's events into
+memory. Each ingested event is stored as a memory document in your
+memories collection, which the ``memories_collection`` parameter
+configures. These documents contain the lowercase keywords
+extracted from the event's text content.
+
+Considerations
+``````````````
+
+When using the memory service, consider the following behavior:
+
+- When you search memory, the service returns documents whose
+  keyword array intersects the query's keywords.
+
+- Ingestion is idempotent. If you re-ingest a session, the service overwrites its
+  memories rather than duplicating them.
+
+- Retrieval performs a keyword search and does not require an embedding
+  model, Google credentials, or a vector index. As a result, memory
+  retrieval works on any MongoDB deployment.
+
+.. _google-adk-indexes:
+
+Index Guidelines
+----------------
+
+This section describes the indexes required to integrate
+MongoDB and Google ADK, and it includes recommended
+indexes for performance improvements.
+
+Required MongoDbToolset Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each collection that the agent searches requires the following
+indexes:
+
+- {+avs+} index on the field that stores the embeddings, with the
+  field indexed as the ``vector`` type. If you use Atlas Automated
+  Embedding, index the field as the ``autoEmbed`` type instead.
+- {+fts+} index on the field that stores the text to search,
+  if you use the ``mongodb_hybrid_search`` tool
+
+``MongoDbToolset`` reads these indexes by name and does not create
+them. To learn how to create these indexes, see
+:ref:`avs-create-index` and :ref:`{+fts+} Index <ref-create-index>`.
+
+Suggested Service Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Most reads and all writes use the ``_id`` field, which MongoDB
+indexes automatically. However, the following read patterns don't
+use the ``_id`` field and require a full collection scan unless you
+have an index:
+
+- Reading a session's events by app, user, and session, sorted by
+  timestamp.
+- Searching memory by app and user with a match on the keywords
+  array.
+
+By default, ``MongoDbSessionService`` and ``MongoDbMemoryService``
+create the following suggested indexes on first use:
+
+.. list-table::
+   :widths: 20 25 55
+   :header-rows: 1
+
+   * - Collection
+     - Index
+     - Indexed Fields and Sort Order
+
+   * - ``events``
+     - ``app_user_session_ts``
+     - ``(app_name, user_id, session_id, timestamp DESC, revision DESC)``
+
+   * - ``sessions``
+     - ``app_user``
+     - ``(app_name, user_id)``
+
+   * - ``memories``
+     - ``app_user_keywords``
+     - ``(app_name, user_id, keywords)`` (multikey)
+
+If you set the ``ensure_indexes`` parameter to ``False``, the
+service does not create these suggested indexes.
+
+.. note::
+
+   Index creation is idempotent, so you can safely leave the
+   ``ensure_indexes`` parameter set to its default value of ``True``.
+   This parameter requires the MongoDB user to hold the ``createIndex``
+   action on the ``sessions``, ``events``, and ``memories`` collections.
+
+Permissions Guidelines
+----------------------
+
+Instead of using a single admin user, we recommend that you
+use two separate database users to keep privileges scoped to
+what each component requires.
+
+The following table describes the suggested least-privilege
+configuration for two database users:
+
+.. list-table::
+   :widths: 25 25 50
+   :header-rows: 1
+
+   * - Database User
+     - Used By
+     - Minimum Privileges
+
+   * - Search user (read-only)
+     - ``MongoDbToolset``
+     - ``find`` on each collection the agent searches
+
+   * - State user (read-write)
+     - ``MongoDbSessionService``, ``MongoDbMemoryService``
+     - | * ``find``, ``insert``, ``update``, ``remove`` on the ``sessions``
+           and ``events`` collections
+       | * ``find``, ``insert``, ``update`` on the
+           ``app_states``, ``user_states``, and ``memories`` collections
+       | * If you set ``ensure_indexes`` to ``True``, add the
+           ``createIndex`` action on the ``sessions``, ``events``, and
+           ``memories`` collections
+
+.. important::
+
+   The privileges in the preceding table are MongoDB actions, not
+   Atlas built-in roles. To grant them, create a :ref:`custom role
+   <mongodb-roles>` for each user with these actions, scoped to the
+   listed collections.
+
+Additional Resources
+--------------------
+
+To learn more about using Google ADK with MongoDB, see the following
+resources:
+
+- `Google ADK documentation <https://adk.dev/get-started/>`__
+- :github:`Google ADK <google/adk-python>` GitHub repository
