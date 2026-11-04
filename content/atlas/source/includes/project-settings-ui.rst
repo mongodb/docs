@@ -148,6 +148,8 @@ of operations across your cluster.
 
 Disable this feature to set a fixed, user-specified slow query threshold.
 
+.. _enable-extended-storage:
+
 Enable Extended Storage Sizes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
