@@ -2,15 +2,12 @@ import type { NetlifyPluginUtils } from '@netlify/build';
 import path from 'node:path';
 import fs from 'node:fs/promises';
 
-import type { AllContentData } from '../contentMetadata/processContentMetadata';
 import { buildUnifiedTOC } from '../util/buildTOC/generateJSON';
 import { getRepoPaths } from '../paths';
 
 export const buildToc = async ({
-  allContentData: _allContentData,
   utils,
 }: {
-  allContentData: AllContentData;
   utils: {
     run: NetlifyPluginUtils['run'];
   };

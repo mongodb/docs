@@ -84,7 +84,7 @@ Docset fields: `project`, `displayName` and `prefix` are required, `versions` ne
 | `GET /api/docsets`, `/api/docsets/[project]` | the catalog, plus a host map for snooty-data-api |
 | `GET /api/search-mapping` | derived — keys are `${categoryName}-${versionName}`, skipping inactive and `noIndexing` versions |
 | prefix map (`build-prefix-map.ts`) | derived — `prefix/versionName` for multi-version sites, `prefix` alone for single-version |
-| `nextjs-extension`, `nextjs-ssg-extension` | `loadVersioningFromCheckout()` — runs `pnpm emit` in the build checkout and reads `generated/docsets.json` |
+| `nextjs-ssg-extension` | `loadVersioningFromCheckout()` — runs `pnpm emit` in the build checkout and reads `generated/docsets.json` |
 | `tools/generate-llms` | reads `internalOnly` from the emitted JSON |
 
 The extensions deliberately do **not** import the TypeScript. They are published artifacts, so a module-scope import would freeze the catalog at publish time — a branch adding a new version would then build against a catalog that has never heard of it. Reading the checkout keeps the catalog bound to the branch being built.

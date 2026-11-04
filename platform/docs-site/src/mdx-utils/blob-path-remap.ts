@@ -1,7 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 
-/** Same as nextjs-extension blobUploads/utils (kept local so TS resolves within docs-site). */
+/** Same as nextjs-ssg-extension prefix-map/utils (kept local so TS resolves within docs-site). */
 export function stripDocsPrefix(prefix: string): string {
   if (prefix === 'docs') return '';
   if (prefix.startsWith('docs/')) return prefix.slice(5);
@@ -13,7 +13,7 @@ const DIR_NAME_MAP_FILE = path.join(process.cwd(), 'src/generated/dir-name-to-pr
 let cachedMap: Record<string, string> | undefined;
 let cachedMtimeMs: number | undefined;
 
-/** Same rules as nextjs-extension `remapFilePath` (URL-shaped paths for prefix mapping). */
+/** Same rules as nextjs-ssg-extension prefix-map `remapFilePath` (URL-shaped paths for prefix mapping). */
 export function remapDiskRelativeToBlobRelative(diskRelative: string, dirNameToPrefix: Record<string, string>): string {
   const filePath = diskRelative.split(path.sep).join('/');
   const firstSlash = filePath.indexOf('/');

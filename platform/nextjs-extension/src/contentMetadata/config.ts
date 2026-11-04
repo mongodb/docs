@@ -3,16 +3,10 @@ import { createHash } from 'crypto';
 import type {
   Environments,
   SnootyDBName,
-  SearchDBName,
 } from '../util/databaseConnection/types';
-import { FrontendEnvironments } from '../util/databaseConnection/types';
 import type { ConfigEnvironmentVariables } from '../util/configEnvironment';
 import type { StaticEnvVars } from '../util/assertDbEnvVars';
-import {
-  determineEnvironment,
-  getDbNames,
-  isLocalDevelopment,
-} from '../handleEnvs';
+import { determineEnvironment, getDbNames } from '../handleEnvs';
 
 //Returns appropriate Marian URL (Search Server URL) for the current build environment
 const getMarianURL = (
@@ -28,14 +22,11 @@ const setDbNames = (
   buildEnvironment: Environments,
   configEnvironment: ConfigEnvironmentVariables,
 ) => {
-  // Get the names of the databases associated with given build environment
-  const { snootyDb, searchDb } = getDbNames(buildEnvironment);
+  // Get the name of the database associated with given build environment
+  const { snootyDb } = getDbNames(buildEnvironment);
 
-  // Check if values for the database names have been set as environment variables through Netlify UI
-  // Allows overwriting of database name values for testing
-  configEnvironment.SEARCH_DB_NAME =
-    (process.env.SEARCH_DB_NAME as SearchDBName) ?? searchDb;
-
+  // Check if a value for the database name has been set as an environment variable through Netlify UI
+  // Allows overwriting of the database name for testing
   configEnvironment.SNOOTY_DB_NAME =
     (process.env.SNOOTY_DB_NAME as SnootyDBName) ?? snootyDb;
   //Set SNOOTY_DB_NAME as an env var so it can be accessed by persistence module within same build event handler
@@ -54,10 +45,6 @@ export const updateConfig = async ({
   const buildEnvironment = determineEnvironment();
   configEnvironment.ENV = buildEnvironment;
 
-  configEnvironment.CACHED_COMMIT_REF = process.env.CACHED_COMMIT_REF;
-  configEnvironment.DEPLOY_ID = process.env.DEPLOY_ID;
-  configEnvironment.REVIEW_ID = process.env.REVIEW_ID;
-  configEnvironment.REPOSITORY_URL = process.env.REPOSITORY_URL;
   const rawBranch = process.env.HEAD ?? '';
   const sanitized = rawBranch.replace(/[^a-zA-Z0-9-_]/g, '-');
   // Netlify blob store names must be ≤ 64 bytes; branch stores are named
@@ -71,21 +58,10 @@ export const updateConfig = async ({
     sanitized.length <= MAX_BRANCH_LENGTH
       ? sanitized
       : `${sanitized.slice(0, MAX_BRANCH_LENGTH - HASH_SUFFIX_LENGTH)}-${createHash('sha256').update(rawBranch).digest('hex').slice(0, 8)}`;
-  configEnvironment.BRANCH = sanitizedBranch;
   // Set branch name as env var so Next.js can access it at build & runtime
   configEnvironment.NEXT_PUBLIC_GIT_BRANCH = sanitizedBranch;
-  configEnvironment.IS_LOCAL_DEVELOPMENT = isLocalDevelopment();
 
   setDbNames(buildEnvironment, configEnvironment);
-
-  // TODO: remove snooty_env once completely transitioned to next js
-  // Set process.env SNOOTY_ENV and PREFIX_PATH environment variables for frontend to retrieve at build time
-  process.env.SNOOTY_ENV =
-    FrontendEnvironments[buildEnvironment as Environments];
-  console.log(
-    'Frontend is being built with the following build environment:',
-    process.env.SNOOTY_ENV,
-  );
 
   process.env.NEXT_PUBLIC_MARIAN_URL = getMarianURL(
     buildEnvironment,
@@ -101,8 +77,8 @@ export const logImportantValues = (
   console.info(
     'BUILD ENVIRONMENT: ',
     configEnvironment.ENV,
-    '\n SEARCH DB NAME: ',
-    configEnvironment.SEARCH_DB_NAME,
+    '\n SNOOTY DB NAME: ',
+    configEnvironment.SNOOTY_DB_NAME,
   );
   console.log(
     '======================================================================',

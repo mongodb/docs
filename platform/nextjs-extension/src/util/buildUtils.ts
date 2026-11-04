@@ -22,23 +22,3 @@ export interface BuildRunner {
     options?: RunCommandOptions,
   ): Promise<RunCommandResult | PromiseLike<RunCommandResult>>;
 }
-
-type CachePathOptions = { cwd?: string };
-
-export interface BuildCache {
-  save(path: string, options?: CachePathOptions): Promise<boolean>;
-  restore(path: string, options?: CachePathOptions): Promise<boolean>;
-  remove(path: string, options?: CachePathOptions): Promise<boolean>;
-  has(path: string, options?: CachePathOptions): Promise<boolean>;
-  list(options?: CachePathOptions & { depth?: number }): Promise<string[]>;
-}
-
-export interface BuildStatus {
-  show(options: { title?: string; summary: string; text?: string }): void;
-}
-
-export type BuildUtils = {
-  run: BuildRunner;
-  cache: BuildCache;
-  status: BuildStatus;
-};

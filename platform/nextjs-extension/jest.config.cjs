@@ -6,12 +6,7 @@ const config = {
   testEnvironment: 'jest-environment-node',
   maxWorkers: 1,
 
-  testMatch: [
-    '<rootDir>/src/persistence/tests/**/*.test.(ts|js)',
-    '<rootDir>/tests/**/*.test.(ts|js)',
-  ],
-
-  setupFilesAfterEnv: ['<rootDir>/src/persistence/tests/setupAfterEnv.ts'],
+  testMatch: ['<rootDir>/tests/**/*.test.(ts|js)'],
 
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
