@@ -220,6 +220,9 @@ Bug Fixes
   - `GHSA-7pqw-9j4j-h8q3 <https://github.com/advisories/GHSA-7pqw-9j4j-h8q3>`__
   - `CVE-2025-71329 <https://nvd.nist.gov/vuln/detail/CVE-2025-71329>`__
   - `CVE-2025-71330 <https://nvd.nist.gov/vuln/detail/CVE-2025-71330>`__
+  - `CVE-2026-87108 <https://nvd.nist.gov/vuln/detail/CVE-2026-87108>`__
+  - `CVE-2026-87109 <https://nvd.nist.gov/vuln/detail/CVE-2026-87109>`__
+  - `CVE-2026-87110 <https://nvd.nist.gov/vuln/detail/CVE-2026-87110>`__
 
 .. _opsmgr-server-8.0.26:
 
