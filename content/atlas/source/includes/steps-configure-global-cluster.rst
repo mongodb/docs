@@ -339,7 +339,7 @@
       From the :guilabel:`Additional Settings` section
       for |global-write-clusters|, you can:
       
-      - :ref:`create-cluster-version`
+      - :ref:`atlas-version-availability`
       - :ref:`create-cluster-backups`
       - :ref:`create-cluster-enable-encryption`
       - :ref:`create-cluster-more-configuration-options`

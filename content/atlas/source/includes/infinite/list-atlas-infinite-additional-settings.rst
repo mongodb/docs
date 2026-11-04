@@ -1,4 +1,4 @@
-- :ref:`MongoDB Version <create-cluster-version>`, which {+service+}
+- :ref:`MongoDB Version <atlas-version-availability>`, which {+service+}
   sets to :guilabel:`Latest Version With Auto Upgrades`
 - :ref:`Additional Backup Retention <atlas-infinite-backup-options>`
 - :ref:`Termination Protection <create-cluster-termination-protection>`

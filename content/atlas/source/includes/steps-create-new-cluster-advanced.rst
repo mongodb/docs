@@ -75,7 +75,7 @@
 
       From the :guilabel:`Additional Settings` section, you can:
 
-      - :ref:`create-cluster-version`
+      - :ref:`atlas-version-availability`
 
         On {+atlas-infinite-cluster+}s, {+service+} sets the MongoDB
         version and you can't change it.
