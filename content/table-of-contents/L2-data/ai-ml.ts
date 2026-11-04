@@ -223,6 +223,14 @@ const tocData: TocItem[] = [
             label: 'Google ADK',
             contentSite: 'cloud-docs',
             url: '/docs/atlas/ai-integrations/google-adk',
+            collapsible: true,
+            items: [
+              {
+                label: 'Get Started',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/ai-integrations/google-adk/get-started',
+              },
+            ],
           },
         ],
       },

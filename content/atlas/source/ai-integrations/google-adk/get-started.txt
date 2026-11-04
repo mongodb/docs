@@ -1,0 +1,381 @@
+.. _google-adk-get-started:
+
+===================================================
+Get Started with the MongoDB Google ADK Integration
+===================================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. meta::
+   :keywords: agents, agentic, memory, sessions, retrieval, vector database, vector search, semantic search, code example, Gemini, python
+   :description: Configure a Google ADK agent to search a MongoDB collection with Atlas Automated Embedding and persist conversation history across turns with MongoDbSessionService.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can integrate MongoDB with Google ADK to configure agent search
+tools and persistent conversation history, both backed by MongoDB.
+This tutorial uses the ``MongoDbToolset`` class to enable
+a Google ADK agent to search a collection containing penguin data.
+Then, the tutorial uses the ``MongoDbSessionService`` class, allowing
+the agent to access earlier turns in the conversation.
+
+In this tutorial, you perform the following tasks:
+
+#. Set up your environment.
+#. Create a collection and a vector search index.
+#. Build an agent that searches your collection.
+#. Add persistent sessions so the agent remembers prior turns.
+#. Run the file and review the output.
+
+Background
+----------
+
+`Google ADK <https://google.github.io/adk-docs/>`__
+is an open-source Python framework for building AI
+agents. This tutorial uses the following Google ADK
+components to configure an agent and enable MongoDB
+access:
+
+- ``MongoDbToolset``: Provides {+avs+} and hybrid search tools
+  on a MongoDB database
+- ``MongoDbSessionService``: Persists agent sessions, events, and
+  state in MongoDB
+
+This tutorial configures the ``MongoDbToolset`` class to use :ref:`Atlas
+Automated Embedding <avs-types-auto-embed>`, which embeds both your
+stored documents and your search queries without requiring a
+separate embedding model or Google credentials.
+
+Prerequisites
+-------------
+
+To complete this tutorial, you must have the following resources:
+
+- .. include:: /includes/avs/shared/avs-requirements-cluster.rst
+
+- Gemini API key. This tutorial uses a Gemini model, but you
+  can use any supported provider. To learn more, see
+  `Models <https://google.github.io/adk-docs/agents/models/>`__ in
+  the Google ADK documentation.
+
+- Python v3.11 or later.
+
+Set Up the Environment
+----------------------
+
+In this section, you prepare your environment by installing the
+required dependencies, setting your environment variables, and
+creating a project file.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Install dependencies.
+
+      Run the following commands in your terminal to create a new
+      directory named ``google-adk-mongodb-project`` and install the
+      required dependencies:
+
+      .. code-block:: bash
+
+         mkdir google-adk-mongodb-project
+         cd google-adk-mongodb-project
+         pip install "google-adk[mongodb]" python-dotenv
+
+   .. step:: Set your environment variables.
+
+      In your ``google-adk-mongodb-project`` directory, create a
+      ``.env`` file and add the following code:
+
+      .. code-block:: bash
+
+         GOOGLE_API_KEY="<gemini-api-key>"
+         MONGODB_URI="<connection-string>"
+
+      .. include:: /includes/search-shared/find-connection-string.rst
+
+   .. step:: Create a project file.
+
+      In your ``google-adk-mongodb-project`` directory, create a
+      file named ``main.py``. Add the following code to this file to
+      load your environment variables and import the required
+      modules:
+
+      .. code-block:: python
+
+         import os
+         import time
+         import asyncio
+         from dotenv import load_dotenv
+         from pymongo import MongoClient
+         from pymongo.operations import SearchIndexModel
+         from google.adk.agents import Agent
+         from google.adk.integrations.mongodb import (
+             MongoDbToolset,
+             MongoDbToolSettings,
+             MongoDbSessionService,
+         )
+         from google.adk.runners import Runner
+         from google.genai import types
+
+         load_dotenv()
+
+      In future steps, you add code to this file to create your
+      collection, build your agent, and run it.
+
+.. _google-adk-get-started-collection:
+
+Create Your Collection and Index
+--------------------------------
+
+In this section, you insert sample documents about penguins into a
+MongoDB collection and create the {+avs+} index that Atlas
+Automated Embedding requires.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create your collection.
+
+      Add the following code to your ``main.py`` file to create
+      a ``penguins`` collection in the ``google_adk_tutorial`` database, 
+      or access it if the collection already exists:
+
+      .. code-block:: python
+
+         client = MongoClient(os.environ["MONGODB_URI"])
+         collection = client["google_adk_tutorial"]["penguins"]
+
+   .. step:: Insert sample documents.
+
+      Add the following code to your ``main.py`` file to insert
+      five documents describing penguins into your collection. The
+      ``embeddings`` field stores the text that Atlas embeds
+      automatically:
+
+      .. code-block:: python
+
+         collection.insert_many(
+             [
+                 {
+                     "title": "Emperor Penguins",
+                     "embeddings": "Emperor penguins are the tallest and heaviest of all penguin species, standing up to 4 feet.",
+                 },
+                 {
+                     "title": "Penguin Habitats",
+                     "embeddings": "Penguins are flightless seabirds that live almost exclusively below the equator. Some island-dwellers can be found in warmer climates.",
+                 },
+                 {
+                     "title": "Penguins of Patagonia",
+                     "embeddings": "Patagonia is home to five penguin species: Magellanic, Humboldt, Gentoo, Southern Rockhopper, and King.",
+                 },
+                 {
+                     "title": "Penguin Diving Depths",
+                     "embeddings": "Emperor penguins can dive deeper than any other bird, reaching depths of over 500 meters.",
+                 },
+                 {
+                     "title": "Penguin Nesting Habits",
+                     "embeddings": "Some penguin species mate for life and return to the same nesting site every year.",
+                 },
+             ]
+         )
+
+   .. step:: Create the Atlas Automated Embedding index.
+
+      Add the following code to your ``main.py`` file to create a
+      {+avs+} index on the ``embeddings`` field. The ``autoEmbed``
+      field type instructs Atlas to generate and store embeddings for
+      this field automatically:
+
+      .. code-block:: python
+
+         search_index_model = SearchIndexModel(
+             definition={
+                 "fields": [
+                     {
+                         "type": "autoEmbed",
+                         "path": "embeddings",
+                         "model": "voyage-4",
+                         "modality": "text",
+                     }
+                 ]
+             },
+             name="autoembed_index",
+             type="vectorSearch",
+         )
+
+         collection.create_search_index(model=search_index_model)
+
+         # Index build time varies with collection size and cluster type
+         print("Waiting for the MongoDB Vector Search index to finish building...")
+         time.sleep(60)
+
+         client.close()
+
+      .. include:: /includes/search-shared/fact-index-build-initial-sync.rst
+
+.. _google-adk-get-started-agent:
+
+Configure Agent Tools and Sessions
+----------------------------------
+
+In this section, you build an agent that uses the ``MongoDbToolset`` class
+to search your collection. Then, you configure the ``MongoDbSessionService``
+class to persist the agent's conversation history in MongoDB.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Configure the toolset.
+
+      Add the following code to your ``main.py`` file to bind
+      ``MongoDbToolset`` to your database and configure it to use
+      Atlas Automated Embedding:
+
+      .. code-block:: python
+
+         toolset = MongoDbToolset(
+             connection_string=os.environ["MONGODB_URI"],
+             database_name="google_adk_tutorial",
+             settings=MongoDbToolSettings(
+                 use_mongodb_auto_embedding=True,
+                 default_embedding_field="embeddings",
+                 default_vector_index_name="autoembed_index",
+             ),
+         )
+
+      Because the ``use_mongodb_auto_embedding`` option is set to
+      ``True``, the toolset sends query text to Atlas as plain text
+      instead of calling a Google embedding model.
+
+   .. step:: Define the agent.
+
+      Add the following code to your ``main.py`` file to create an
+      agent that uses a Gemini model and your toolset:
+
+      .. code-block:: python
+
+         root_agent = Agent(
+             model="gemini-2.5-flash",
+             name="penguin_facts_agent",
+             description="Answers questions about penguins.",
+             instruction=(
+                 "Search the penguins collection with your MongoDB"
+                 " tools to answer questions about penguins. Remember"
+                 " what the user has told you earlier in the"
+                 " conversation."
+             ),
+             tools=[toolset],
+         )
+
+   .. step:: Configure the session service and a runner.
+
+      Add the following code to your ``main.py`` file to configure
+      the ``MongoDbSessionService`` class and pass it, along with
+      your agent, to a ``Runner`` object:
+
+      .. code-block:: python
+
+         session_service = MongoDbSessionService(
+             connection_string=os.environ["MONGODB_URI"],
+             database_name="google_adk_tutorial",
+         )
+
+         runner = Runner(
+             agent=root_agent,
+             app_name="google_adk_tutorial",
+             session_service=session_service,
+         )
+
+      By default, ``MongoDbSessionService`` creates the indexes
+      recommended for its use, unless you set the ``ensure_indexes``
+      parameter to ``False``. To learn more, see
+      :ref:`google-adk-indexes` in the Google ADK reference.
+      
+   .. step:: Run the agent across two conversation turns.
+
+      Add the following code to your ``main.py`` file to create a
+      session, then send two messages to the agent through that
+      session:
+
+      .. code-block:: python
+
+         async def ask(runner, session_id, text):
+             content = types.Content(role="user", parts=[types.Part(text=text)])
+             async for event in runner.run_async(
+                 user_id="tutorial_user",
+                 session_id=session_id,
+                 new_message=content,
+             ):
+                 if event.is_final_response() and event.content:
+                     print(f"\n[user]: {text}")
+                     print(f"[agent]: {event.content.parts[0].text}")
+
+
+         async def main():
+             session = await session_service.create_session(
+                 app_name="google_adk_tutorial",
+                 user_id="tutorial_user",
+             )
+
+             await ask(
+                 runner, session.id, "How deep can emperor penguins dive?"
+             )
+             await ask(
+                 runner, session.id, "What was the first thing I asked you?"
+             )
+
+
+         asyncio.run(main())
+
+      Because both calls use the same ``session_id`` value,
+      ``MongoDbSessionService`` loads the first turn's events before
+      the agent responds to the second message. If you create a
+      new session for the second call, the agent has no record of
+      the first turn.
+
+Run the File
+------------
+
+To run the ``main.py`` file, run the following command from your
+``google-adk-mongodb-project`` directory:
+
+.. code-block:: bash
+
+   python main.py
+
+If the command runs successfully, the output resembles the
+following:
+
+.. code-block:: text
+   :copyable: false
+
+   Waiting for the MongoDB Vector Search index to finish building...
+
+   [user]: How deep can emperor penguins dive?
+   [agent]: Emperor penguins can dive deeper than any other bird,
+   reaching depths of over 500 meters.
+
+   [user]: What was the first thing I asked you?
+   [agent]: The first thing you asked me was about how deep emperor
+   penguins can dive.
+
+Next Steps
+----------
+
+To learn more about ``MongoDbToolset``, ``MongoDbSessionService``,
+and ``MongoDbMemoryService``, including their full parameter and
+method reference, see :ref:`google-adk`.
+
+To learn more about Google ADK, see the :github:`adk-python
+<google/adk-python>` GitHub repository.
