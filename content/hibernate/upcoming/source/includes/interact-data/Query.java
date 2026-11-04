@@ -700,6 +700,30 @@ public class Query {
             System.out.println("Year: " + row[0] + ", Count: " + row[1] + ", Total runtime: " + row[2]);
         }
         // end-aggregate-group-by-em
+
+        // Groups movies released between 1998 and 2000 by year and returns the number of movies and the number of distinct titles using a session
+        // start-aggregate-distinct-session
+        var distinctResult = session.createQuery(
+                        "select year, count(*), count(distinct title) from Movie where year between 1998 and 2000 "
+                        + "group by year order by year",
+                        Object[].class)
+                .getResultList();
+        for (var row : distinctResult) {
+            System.out.println("Year: " + row[0] + ", Count: " + row[1] + ", Distinct titles: " + row[2]);
+        }
+        // end-aggregate-distinct-session
+
+        // Groups movies released between 1998 and 2000 by year and returns the number of movies and the number of distinct titles using an entity manager
+        // start-aggregate-distinct-em
+        var distinctResult = entityManager.createQuery(
+                        "select m.year, count(m), count(distinct m.title) from Movie m where m.year between 1998 and 2000 "
+                        + "group by m.year order by m.year",
+                        Object[].class)
+                .getResultList();
+        for (var row : distinctResult) {
+            System.out.println("Year: " + row[0] + ", Count: " + row[1] + ", Distinct titles: " + row[2]);
+        }
+        // end-aggregate-distinct-em
         
         // Groups the "Hairspray" movies by the "year" field using a session
         // start-group-session
