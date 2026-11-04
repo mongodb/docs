@@ -1,6 +1,6 @@
 - To accommodate potential storage size fluctuations related to oplog
   size requirements, we recommend that you choose a destination {+cluster+}
-  tier that is at least two tiers above the source {+cluster+}.
+  tier that is at least one tier above the source {+cluster+}.
 
 - Live migration performs embedded verification by default, which requires
   that the destination {+cluster+} has a large oplog size. This prevents the
