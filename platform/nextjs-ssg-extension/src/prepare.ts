@@ -106,9 +106,10 @@ export const prepare = async ({
 		}),
 	);
 
-	resolvePathsToBuild({
+	await resolvePathsToBuild({
 		contentDirectories,
 		allContentData,
+		run: utils.run,
 	});
 
 	await logDiskMetrics(
