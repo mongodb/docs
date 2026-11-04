@@ -1,9 +1,4 @@
 Accumulators calculate aggregated values like sums, maxima, and minima
-across a variable number of input values. You can use accumulators in
-these aggregation pipeline stages:
+across a variable number of input values.
 
-- :pipeline:`$bucket`
-
-- :pipeline:`$bucketAuto`
-
-- :pipeline:`$group`
+.. include:: /includes/accumulators/accumulator-stages.rst

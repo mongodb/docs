@@ -1698,9 +1698,6 @@ export const toc: L1TocItem[] = [
                     label: 'Expressions, Accumulators, and Window Functions',
                     contentSite: 'docs',
                     url: '/docs/:version/core/expressions-accumulators-and-window-functions',
-                    versions: {
-                      excludes: ['v7.0', 'v8.0', 'v8.3', 'manual'],
-                    },
                   },
                   {
                     label: 'Field Paths',
@@ -9317,6 +9314,19 @@ export const toc: L1TocItem[] = [
                         label: 'Troubleshooting',
                         contentSite: 'cloud-docs',
                         url: '/docs/atlas/ai-integrations/amazon-bedrock/troubleshooting',
+                      },
+                    ],
+                  },
+                  {
+                    label: 'Fireworks AI',
+                    contentSite: 'cloud-docs',
+                    collapsible: true,
+                    url: '/docs/atlas/ai-integrations/fireworks-ai',
+                    items: [
+                      {
+                        label: 'Get Started',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/ai-integrations/fireworks-ai/get-started',
                       },
                     ],
                   },

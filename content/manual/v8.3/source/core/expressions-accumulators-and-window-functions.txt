@@ -1,0 +1,201 @@
+.. _mql-operator-contexts:
+
+===============================================
+Expressions, Accumulators, and Window Functions
+===============================================
+
+.. meta::
+   :description: Learn how MongoDB aggregation operators differ when used as expressions, accumulators, or window functions, and identify which context your operation needs.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Some aggregation operators, such as ``$avg``, ``$sum``, and ``$max``,
+appear in more than one context, and each context gives the operator
+different behavior. For example:
+
+- As an expression, ``$avg`` returns the average of the
+  elements in an array.
+
+- As an accumulator, ``$avg`` returns the average of
+  values across a group of documents.
+
+- As a window function, ``$avg`` returns the average of values from the
+  documents in a window.
+
+The stage that contains an operator determines its behavior. The same
+operator name can accept different arguments and return different
+results depending on where you use it. This page describes the three
+contexts and how to disambiguate them.
+
+The following diagram conceptualizes how expressions, accumulators, and
+window functions execute:
+
+.. figure:: /images/mql-operator-contexts.svg
+   :alt: Expressions and window functions return one value per document. Accumulators return one value per group.
+   :figwidth: 720px
+
+The following table summarizes how the three operator types differ.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 16 41 43
+
+   * - Operator Type
+     - Behavior
+     - Where you can use it
+
+   * - Expression
+     - Evaluated over each input document and returns one value per
+       document.
+     - :pipeline:`$project`, :pipeline:`$addFields`, and many other
+       stages, plus :query:`$expr` predicates and :ref:`find command
+       projections <projection-operators-ref>`.
+
+   * - Accumulator
+     - Aggregates over a group of input documents and returns one
+       aggregate value per group.
+     - :pipeline:`$bucket`, :pipeline:`$bucketAuto`, and
+       :pipeline:`$group`.
+
+   * - Window function
+     - Evaluated over a window of input documents and returns one value
+       per document.
+     - :pipeline:`$setWindowFields` only.
+
+Expressions
+-----------
+
+An expression resolves to a value for a single input document.
+Expressions do not mutate their inputs.
+
+Expression operators accept an array of arguments and have the
+following generic form:
+
+.. code-block:: javascript
+
+   { <operator>: [ <argument1>, <argument2> ... ] }
+
+If an operator accepts a single argument, you can omit the outer
+array.
+
+Expressions also provide the arguments for accumulators and window
+functions. For example, in ``{ $sum: "$price" }``, the field path
+``"$price"`` is an expression.
+
+To learn more, see :ref:`expressions-ref-landing`.
+
+Accumulators
+------------
+
+An accumulator calculates a single aggregated value, such as a sum,
+maximum, or minimum, across a variable number of input documents. In
+practical implementations, accumulators maintain state between the
+documents that they process while executing a grouping operation.
+
+The number of output documents returned by a :pipeline:`$group` stage is
+equal to the number of groups. For each of these groups, an accumulator
+calculates an aggregate value across the group.
+
+.. include:: /includes/accumulators/accumulator-stages.rst
+
+To learn more, see :ref:`accumulators-ref`.
+
+Window Functions
+----------------
+
+A window function returns a value that is based on a window, which is a
+span of documents defined relative to the current document. You define
+the window with the ``partitionBy``, ``sortBy``, and ``window`` fields
+of the :pipeline:`$setWindowFields` stage.
+
+For operators that work as both accumulators and window functions, the
+difference is what the operator aggregates over and how many values it
+returns:
+
+- As an accumulator, the operator aggregates over a group of documents
+  and returns a single value for the group.
+
+- As a window function, the operator aggregates over a window of
+  documents and returns a value for each document.
+
+You can use window functions only in the :pipeline:`$setWindowFields`
+stage. :pipeline:`$setWindowFields` also supports operators that are
+specific to windows, such as ``$rank`` and ``$shift``.
+
+To learn more, see :ref:`window-functions-ref`.
+
+Example
+-------
+
+.. include:: /includes/sample-data-usage.rst
+
+The following examples use ``$sum`` in all three contexts. Each one
+returns a different result, which shows how the context determines an
+operator's behavior.
+
+Expression Example
+~~~~~~~~~~~~~~~~~~
+
+The following example uses ``$sum`` as an expression to add two fields
+within each document. The pipeline returns one total for each document
+that it matches.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/expressions/sum/sum-expression-example.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/expressions/sum/sum-expression-example-output.sh
+      :visible: false
+      :language: javascript
+
+Accumulator Example
+~~~~~~~~~~~~~~~~~~~
+
+The following example uses ``$sum`` as an accumulator to total one field
+across every document in each group. The pipeline returns one total for
+each content rating instead of one total for each document.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/accumulators/sum/sum-group-example.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/accumulators/sum/sum-group-example-output.sh
+      :visible: false
+      :language: javascript
+
+Window Function Example
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses ``$sum`` as a window function to total one
+field across a window of documents. The pipeline returns a running total
+for each document, and that total depends on the document's window.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/sum/sum-window-example.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/window-functions/sum/sum-window-example-output.sh
+      :visible: false
+      :language: javascript
+
+Learn More
+----------
+
+- :ref:`expressions-ref-landing`
+
+- :ref:`accumulators-ref`
+
+- :ref:`window-functions-ref`

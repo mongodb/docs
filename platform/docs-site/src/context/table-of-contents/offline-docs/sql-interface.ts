@@ -68,17 +68,9 @@ export const toc: L1TocItem[] = [
             ],
           },
           {
-            label: 'SQL Tutorials',
+            label: 'Connect and Query',
             contentSite: 'sql-interface',
-            collapsible: true,
-            url: '/docs/sql-interface/tutorials',
-            items: [
-              {
-                label: 'Connect and Query',
-                contentSite: 'sql-interface',
-                url: '/docs/sql-interface/tutorials/connect-tutorial',
-              },
-            ],
+            url: '/docs/sql-interface/tutorials/connect-tutorial',
           },
           {
             label: 'Authentication',
