@@ -20,17 +20,28 @@ Manage Automated Embedding
    :depth: 2
    :class: singlecol
 
-You can manage Automated Embedding from the {+service+} UI. 
+.. composable-tutorial:: 
+   :options: deployment-type
+   :defaults: atlas
 
-.. _auto-embedding-enable-disable:
+   .. selected-content::
+      :selections: atlas
 
-Enable or Disable Automated Embedding 
--------------------------------------
+      You can manage Automated Embedding from the {+atlas-ui+}.
 
-.. tabs:: 
+   .. selected-content::
+      :selections: self
 
-   .. tab:: Atlas
-      :tabid: atlas
+      You can manage Automated Embedding from the {+mongosh+} or a supported
+      :driver:`MongoDB Driver </>`.
+
+   .. _auto-embedding-enable-disable:
+
+   Enable or Disable Automated Embedding 
+   -------------------------------------
+
+   .. selected-content::
+      :selections: atlas
 
       To enable Automated Embedding, you must create a {+avs+} index with 
       the ``autoEmbed`` type. To learn more, see :ref:`Create an Automated 
@@ -109,8 +120,8 @@ Enable or Disable Automated Embedding
 
          .. step:: Click :guilabel:`Create policy`.
 
-   .. tab:: Self-Managed
-      :tabid: self
+   .. selected-content::
+      :selections: self
 
       To enable Automated Embedding, you must do the following: 
 
@@ -133,22 +144,135 @@ Enable or Disable Automated Embedding
 
             To learn more, see :ref:`Create an Automated Embedding Index <avs-types-vector-search>`.
 
-.. _auto-embedding-usage:
+   .. _auto-embed-inference-scope:
 
-View Automated Embedding Usage
-------------------------------
+   Configure the Inference Scope
+   -----------------------------
 
-To view aggregated token usage and embedding model requests for 
-Automated Embedding service, you can use {+avs+} dashboard or 
-|service| metrics.
+   The inference scope controls where |service| runs embedding model
+   inference for the Automated Embedding indexes on a cluster. By default,
+   inference can run in any cloud provider and geography. If you need to
+   keep the processing of your text inside a specific geography, set the
+   inference scope of your cluster to the United States (``US``) or Europe
+   (``EU``).
 
-Monitor Dashboard
-~~~~~~~~~~~~~~~~~
+   .. important::
 
-.. tabs:: 
+      Inference scoped to the United States is Generally Available.
+      Inference scoped to Europe is in Preview and isn't recommended for 
+      production workloads. The Preview feature and the corresponding 
+      documentation might change at any time during thePreview period. 
+      To learn more, see `Preview Features
+      <https://www.mongodb.com/docs/preview-features/>`__.
 
-   .. tab:: Atlas
-      :tabid: atlas
+   .. selected-content::
+      :selections: atlas
+
+      Considerations
+      ~~~~~~~~~~~~~~
+
+      Before you change the inference scope, review the following
+      behavior:
+
+      - You can configure the inference scope only for dedicated clusters.
+        You can't configure it for {+Free-cluster+}s or {+Flex-cluster+}s.
+      - Each cluster has its own inference scope. The scope applies to all
+        existing and new Automated Embedding indexes on the cluster.
+      - |service| doesn't re-embed your data when you change the scope.
+        Existing embeddings remain queryable. The new scope applies to text
+        that |service| processes after the change completes, including
+        index-time and query-time embedding generation.
+      - Some embedding models might not be available in a scoped geography.
+        If an existing index on the cluster uses a model that the new scope
+        doesn't support, |service| rejects the update. Similarly, you can't
+        create an index that uses a model that the current scope doesn't
+        support.
+      - Inference scoped to a specific geography is billed at 1.1 times the
+        rate for unscoped inference, which can run in any geography. To learn
+        more, see :ref:`auto-embed-scoped-inference-pricing`.
+
+      Required Access
+      ~~~~~~~~~~~~~~~
+
+      To view the inference scope, you must have :authrole:`Project Read Only`
+      access or higher to the project. To change the inference scope, you
+      must have :authrole:`Project Search Index Editor` access or higher to
+      the project.
+
+      Procedure
+      ~~~~~~~~~
+
+      To view and change the inference scope, use the {+atlas-ui+}, the
+      {+atlas-cli+}, or the {+atlas-admin-api+}.
+
+      Each scope has a ``cloud`` and a ``geography`` value, which you set
+      together. The following table lists the combinations that you can set:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 20 20 60
+
+         * - ``cloud``
+           - ``geography``
+           - Description
+
+         * - ``ANY``
+           - ``ANY``
+           - Inference can run in any cloud provider and geography. This
+             is the default.
+
+         * - ``ANY``
+           - ``EU``
+           - Inference runs in Europe.
+
+         * - ``ANY``
+           - ``US``
+           - Inference runs in the United States.
+
+      .. tabs:: 
+
+         .. tab:: Atlas UI
+            :tabid: atlas-ui
+
+            .. include:: /includes/crud-embeddings/automated/procedures/steps-auto-embed-configure-inference-scope-ui.rst
+
+         .. tab:: Atlas CLI
+            :tabid: atlas-cli
+
+            .. include:: /includes/crud-embeddings/automated/procedures/steps-auto-embed-configure-inference-scope-acli.rst
+
+         .. tab:: Atlas Administration API
+            :tabid: atlas-api
+
+            The ``autoEmbeddingInference`` resource stores the inference scope in
+            the following fields:
+
+            - ``configured`` contains the scope that you set.
+            - ``effective`` contains the read-only scope that |service| applies to
+              your cluster.
+
+      .. include:: /includes/crud-embeddings/automated/procedures/steps-auto-embed-configure-inference-scope-api.rst
+
+   .. selected-content::
+      :selections: self
+
+      You can configure the inference scope only for {+service+} clusters.
+      The inference scope doesn't apply to self-managed deployments.
+
+   .. _auto-embedding-usage:
+
+   View Automated Embedding Usage
+   ------------------------------
+
+   To view aggregated token usage and embedding model requests for 
+   Automated Embedding service, you can use {+avs+} dashboard or 
+   |service| metrics.
+
+   Monitor Dashboard
+   ~~~~~~~~~~~~~~~~~
+
+   .. selected-content::
+      :selections: atlas
 
       .. procedure:: 
          :style: normal
@@ -186,8 +310,8 @@ Monitor Dashboard
 
          .. step:: Filter the usage data by date range and model.
 
-   .. tab:: Self-Managed
-      :tabid: self
+   .. selected-content::
+      :selections: self
 
       The following procedure only applies to |api| keys created from the 
       {+atlas-ui+}. For |api| keys created directly from |voyage|, see 
@@ -220,17 +344,15 @@ Monitor Dashboard
 
             To learn more, see :ref:`Usage Page Features <voyage-usage-page-features>`.
 
-.. _auto-embed-metrics:
+   .. _auto-embed-metrics:
 
-Monitor Metrics
----------------
+   Monitor Metrics
+   ---------------
 
-To monitor Automated Embedding usage using metrics:
+   .. selected-content::
+      :selections: atlas
 
-.. tabs:: 
-
-   .. tab:: Atlas
-      :tabid: atlas
+      To monitor Automated Embedding usage using metrics:
 
       .. procedure:: 
          :style: normal
@@ -293,29 +415,27 @@ To monitor Automated Embedding usage using metrics:
             displays this graph in the :guilabel:`Search Nodes` metrics view for
             each Search Node instead of the cluster metrics view.
 
-   .. tab:: Self-Managed
-      :tabid: self
+   .. selected-content::
+      :selections: self
 
       Automated Embedding metrics are not available for self-managed deployments.
 
-.. _manage-auto-embed-rate-limits:
+   .. _manage-auto-embed-rate-limits:
 
-Manage Rate Limits
-------------------
+   Manage Rate Limits
+   ------------------
 
-You can manage rate limits for Automated Embedding from the {+atlas-ui+}.
+   You can manage rate limits for Automated Embedding from the {+atlas-ui+}.
 
-.. _auto-embedding-view-rate-limits:
+   .. _auto-embedding-view-rate-limits:
 
-View Rate Limits 
-~~~~~~~~~~~~~~~~
+   View Rate Limits 
+   ~~~~~~~~~~~~~~~~
 
-To view rate limits for Automated Embedding:
+   .. selected-content::
+      :selections: atlas
 
-.. tabs:: 
-
-   .. tab:: Atlas
-      :tabid: atlas
+      To view rate limits for Automated Embedding:
 
       .. procedure:: 
          :style: normal
@@ -359,8 +479,8 @@ To view rate limits for Automated Embedding:
                * - :guilabel:`Requests Per Min (RPM)`
                  - Number of API requests that you can send per minute.
 
-   .. tab:: Self-Managed
-      :tabid: self
+   .. selected-content::
+      :selections: self
 
       The following procedure only applies to |api| keys created from the 
       {+atlas-ui+}. For |api| keys created directly from |voyage|, see 
@@ -401,15 +521,25 @@ To view rate limits for Automated Embedding:
                * - :guilabel:`Requests Per Min (RPM)`
                  - Number of API requests that you can send per minute.
 
-.. _auto-embedding-increase-rate-limits:
+   .. _auto-embedding-increase-rate-limits:
 
-Increase Rate Limits
-~~~~~~~~~~~~~~~~~~~~
+   Increase Rate Limits
+   ~~~~~~~~~~~~~~~~~~~~
 
-If you are using a free cluster and need to increase rate limits for
-Automated Embedding, add a payment method to upgrade to a paid tier. To
-learn more, see :ref:`atlas-payment-method`.
+   .. selected-content::
+      :selections: atlas
 
-If you are on a Paid Tier, MongoDB automatically increases rate limits as 
-your usage increases. If you still need a higher rate limit, contact 
-`MongoDB Support <https://support.mongodb.com/>`__.
+      If you are using a free cluster and need to increase rate limits for
+      Automated Embedding, add a payment method to upgrade to a paid tier. To
+      learn more, see :ref:`atlas-payment-method`.
+
+      If you are on a Paid Tier, rate limits don't increase automatically. To
+      increase your rate limits beyond the baseline limits for your project,
+      contact `MongoDB Support <https://support.mongodb.com/>`__.
+
+   .. selected-content::
+      :selections: self
+
+      For |api| keys created from the {+atlas-ui+}, see :ref:`voyage-rate-limits`. 
+      For |api| keys created directly from |voyage|, see 
+      :voyage-docs:`Rate Limits </rate-limits>`.

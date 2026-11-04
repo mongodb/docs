@@ -20,11 +20,14 @@ there are some additional costs and performance implications:
 - When querying, each shard generates embeddings independently for the 
   same query text. This can increase the cost of embedding generation.  
 
-The embedding model inference runs on a multi-tenant service 
-in the {+service+} Data Plane, available in MongoDB |gcp| based 
-infrastructure in a US region. This means that your data is sent to 
-MongoDB inference infrastructure for embedding generation and retrieval, 
-regardless of your cluster's cloud provider. Data transfer costs apply.
+The embedding model inference runs on a multi-tenant service in the
+{+service+} Data Plane. By default, the inference can run on MongoDB
+infrastructure in any cloud provider and geography. Your data is sent
+to MongoDB inference infrastructure for embedding generation and
+retrieval, regardless of your cluster's cloud provider or region. Data
+transfer costs apply. To restrict inference to the United States or
+Europe, configure the inference scope for your cluster. To learn more,
+see :ref:`auto-embed-inference-scope`.
 
 .. include:: /includes/index/shared/fact-fts-cluster-tier-limitations.rst
 

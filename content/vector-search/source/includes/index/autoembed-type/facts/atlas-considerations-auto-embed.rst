@@ -27,8 +27,10 @@ embeddings depends on the index settings like quantization and
 number of dimensions. You must ensure that there is sufficient disk 
 space available on your cluster to store the embeddings. 
 
-The embedding model inference platform runs on MongoDB's infrastructure 
-in |gcp| in a US region. 
+By default, the embedding model inference platform runs on MongoDB
+infrastructure in any cloud provider and geography. To restrict
+inference to the United States or Europe, see
+:ref:`auto-embed-inference-scope`.
 
 Billing
 ~~~~~~~
