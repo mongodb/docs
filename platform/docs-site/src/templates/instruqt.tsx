@@ -14,7 +14,7 @@ const InstruqtTemplate = ({ children }: BaseTemplateProps) => {
   const { slug: pageSlug } = usePageContext();
 
   return (
-    <MainColumn className={mainColumnStyles['instruqt-wrapper']}>
+    <MainColumn className={mainColumnStyles.instruqtWrapper}>
       {isOfflineBuild && (
         <OfflineBanner
           linkUrl={'https://mongodb.com/' + getFullSlug(pageSlug, siteBasePrefixWithVersion)}
