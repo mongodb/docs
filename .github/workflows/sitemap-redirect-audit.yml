@@ -1,0 +1,50 @@
+name: Sitemap Redirect Audit
+
+# Finds content pages that would appear in an active sitemap but match a force
+# redirect. Warn only for now.
+
+on:
+  pull_request:
+    paths:
+      - 'content/**/*.txt'
+      - 'platform/docs-site/src/redirects/*-redirects.json'
+      - 'platform/versioning/**'
+      - '.github/lint-docs/sitemap-redirect-audit.ts'
+      - '.github/workflows/sitemap-redirect-audit.yml'
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          cd .github/lint-docs && pnpm install
+
+      - name: Run Sitemap Redirect Audit
+        continue-on-error: true  # Warn only, don't fail the PR for now
+        run: |
+          echo "🔀 Checking for published pages that match a force redirect..."
+          .github/lint-docs/node_modules/.bin/tsx .github/lint-docs/sitemap-redirect-audit.ts
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## 🔀 Sitemap Redirect Audit" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Checked whether any page in a published version matches a force redirect, which would put a redirecting URL in the sitemap." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**This check is warn-only.** Findings are listed in the audit step log." >> $GITHUB_STEP_SUMMARY
