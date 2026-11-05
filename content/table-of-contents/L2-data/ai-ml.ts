@@ -122,6 +122,11 @@ const tocData: TocItem[] = [
             contentSite: 'cloud-docs',
             url: '/docs/atlas/ai-integrations/spring-ai',
           },
+          {
+            label: 'Vercel AI SDK',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/ai-integrations/vercel-ai',
+          },
         ],
       },
       {

@@ -1,0 +1,720 @@
+.. _vercel-ai:
+
+========================================
+Integrate MongoDB with the Vercel AI SDK
+========================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. facet::
+   :name: programming_language
+   :values: javascript/typescript
+
+.. meta::
+   :keywords: agents, agentic, memory, sessions, RAG, retrieval, vector database, vector search, code example, typescript
+   :description: Integrate MongoDB with the Vercel AI SDK to give your TypeScript agents persistent memory across sessions, backed by five memory tiers, Atlas Vector Search indexing, and per-type retention policies.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can integrate MongoDB with `the Vercel AI SDK
+<https://ai-sdk.dev>`__, a TypeScript framework for building AI
+applications and agents. The integration is available from the
+`@mongodb-developer/vercel-ai-memory
+<https://www.npmjs.com/package/@mongodb-developer/vercel-ai-memory>`__
+npm package and provides MongoDB-backed persistent memory for agents.
+The integration includes the following memory tiers:
+
+- **Session memory**: Stores the conversation turns of the
+  current session
+- **Semantic memory**: Stores long-term knowledge about named
+  entities, such as people and user preferences
+- **Procedural memory**: Stores how-to knowledge, such as tasks
+  and workflows
+- **Episodic memory**: Stores records of key events and outcomes
+- **Scratchpad memory**: Stores temporary working notes that you
+  can promote to episodic memories
+
+The MongoDB integration stores memories in MongoDB, creates {+avs+} indexes
+automatically, and applies a retention policy to each memory tier. You
+can generate embeddings with a client-side model, or you can use Atlas
+Automated Embedding to generate them server-side.
+
+.. TODO: uncomment once get started is created
+.. Get Started
+.. -----------
+..
+.. To complete a tutorial that configures the Vercel AI SDK to use
+.. MongoDB, see :ref:`vercel-ai-get-started`.
+
+Installation
+------------
+
+To install the MongoDB memory provider for the Vercel AI SDK, run the
+following command:
+
+.. code-block:: shell
+
+   npm install @mongodb-developer/vercel-ai-memory
+
+The package requires the ``ai``, ``mongodb``, and ``zod`` packages as
+dependencies. This page also references Voyage AI embedding models, which
+require the ``voyage-ai-provider`` package. To install these dependencies,
+run the following command:
+
+.. code-block:: shell
+
+   npm install ai mongodb zod voyage-ai-provider
+
+.. note::
+
+   The integration supports Vercel AI SDK v6 and v7.
+
+Usage
+-----
+
+This section describes how to create an agent that uses the MongoDB
+memory provider.
+
+Create a Memory Provider
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To create a MongoDB memory provider, call the ``createMongoDBMemory()``
+method and pass your MongoDB connection string and an embedding model
+as arguments. Select the :guilabel:`Voyage AI` or :guilabel:`OpenAI`
+tab to view an example that uses the corresponding embedding model
+provider:
+
+.. tabs::
+
+   .. tab:: Voyage AI
+      :tabid: voyage-embedder
+
+      To use a Voyage AI embedding model, install the
+      ``voyage-ai-provider`` package. Voyage AI API keys that you
+      create in {+service+} require the MongoDB Voyage AI endpoint,
+      which you specify with the ``baseURL`` option of the
+      ``createVoyage()`` method. To learn how to create a Voyage AI
+      API key, see :ref:`voyage-api-keys`.
+
+      The following example creates a memory provider
+      that uses a Voyage AI embedding model:
+
+      .. code-block:: typescript
+
+         import { createMongoDBMemory } from '@mongodb-developer/vercel-ai-memory'
+         import { createVoyage } from 'voyage-ai-provider'
+
+         const voyage = createVoyage({
+           apiKey: process.env.VOYAGE_API_KEY,
+           baseURL: 'https://ai.mongodb.com/v1',
+         })
+
+         const mongodbMemory = createMongoDBMemory({
+           uri: process.env.MONGODB_URI!,
+           embedder: voyage.embeddingModel('voyage-4'),
+         })
+
+   .. tab:: OpenAI
+      :tabid: openai-embedder
+
+      The following example creates a memory provider that uses an
+      OpenAI embedding model:
+
+      .. code-block:: typescript
+
+         import { createMongoDBMemory } from '@mongodb-developer/vercel-ai-memory'
+         import { openai } from '@ai-sdk/openai'
+
+         const mongodbMemory = createMongoDBMemory({
+           uri: process.env.MONGODB_URI!,
+           embedder: openai.embedding('text-embedding-3-small'),
+         })
+
+The provider connects to MongoDB on the first tool use. To connect and
+create the search indexes before the first request, call the
+``connect()`` method. To close the MongoDB connection when your
+application shuts down, call the ``close()`` method.
+
+.. collapsible::
+   :heading: createMongoDBMemory() Parameters
+   :sub_heading: Use these parameters to configure the memory provider.
+   :expanded: false
+
+   .. list-table::
+      :widths: 25 15 20 40
+      :header-rows: 1
+
+      * - Parameter
+        - Type
+        - Necessity
+        - Description
+
+      * - ``uri``
+        - ``string``
+        - Required
+        - Connection string for your MongoDB deployment. To learn more
+          about finding your connection string, see
+          :ref:`connect-via-driver`.
+
+      * - ``embedder``
+        - ``EmbeddingModel``
+        - Conditional
+        - Any Vercel AI SDK embedding model that generates vectors on
+          the client. You must specify either the ``embedder`` or the
+          ``autoEmbed`` parameter, but not both. To learn more, see the
+          :ref:`vercel-ai-embedding-modes` section.
+
+      * - ``autoEmbed``
+        - ``{ model: string }``
+        - Conditional
+        - Atlas Automated Embedding configuration. The ``model`` value
+          is a Voyage AI model, such as ``voyage-4``. You must specify
+          either the ``autoEmbed`` or the ``embedder`` parameter, but not
+          both.
+
+      * - ``userId``
+        - ``string``
+        - Optional
+        - Default user identifier that applies when a call doesn't
+          specify one. Defaults to ``'default'``.
+
+      * - ``sessionId``
+        - ``string``
+        - Optional
+        - Default session identifier that applies when a call doesn't
+          specify one. Defaults to ``'default'``.
+
+      * - ``topology``
+        - ``TopologyOptions``
+        - Optional
+        - Database, collection, and index names, disabled memory
+          types, and extra filter fields. To learn more, see the
+          :ref:`vercel-ai-topology` section.
+
+      * - ``retention``
+        - ``RetentionOptions``
+        - Optional
+        - Retention policy for each memory type. To learn more, see
+          the :ref:`vercel-ai-retention` section.
+
+      * - ``filtering``
+        - ``FilteringOptions``
+        - Optional
+        - Filters that the integration applies to every vector
+          search, such as a minimum importance and a recency window.
+
+      * - ``defaults``
+        - ``DefaultsOptions``
+        - Optional
+        - Default importance, search limits, and similarity metric
+          that apply when a call doesn't specify them.
+
+Create an Agent
+~~~~~~~~~~~~~~~
+
+To connect the memory provider to your agent, call the MongoDB memory
+provider and pass ``userId`` and ``sessionId`` arguments. Then, pass the memory
+tools to your agent. The following example creates an agent whose
+memory tools are scoped to one user and session:
+
+.. code-block:: typescript
+
+   import { openai } from '@ai-sdk/openai'
+   import { ToolLoopAgent } from 'ai'
+
+   const agent = new ToolLoopAgent({
+     model: openai('gpt-4.1'),
+     tools: mongodbMemory({ userId: 'alice', sessionId: 'sess-001' }),
+   })
+
+Each memory tier stores and retrieves memories scoped to these
+identifiers. To use the ``userId`` and ``sessionId`` values that you
+passed to the ``createMongoDBMemory()`` method, call the MongoDB memory
+provider without arguments.
+
+Configure the Memory Provider
+-----------------------------
+
+This section describes how to customize the MongoDB memory provider by
+setting ``createMongoDBMemory()`` method parameters.
+
+.. _vercel-ai-embedding-modes:
+
+Embedding Modes
+~~~~~~~~~~~~~~~
+
+The ``semantic_search``, ``procedural_search``, and ``episodic_search``
+commands run vector search queries to retrieve memories.
+Before running a vector search, the integration embeds the query text.
+
+.. include:: /includes/ai-integrations/fact-automated-embedding-preview.rst
+
+Select the :guilabel:`Atlas Automated Embedding` tab to allow {+service+} to
+embed the query text automatically, or select the
+:guilabel:`Client embedding model` tab to view the default embedding
+behavior:
+
+.. tabs::
+
+   .. tab:: Atlas Automated Embedding
+      :tabid: auto-embed
+
+      To allow {+service+} to generate and manage embeddings automatically, pass
+      the ``autoEmbed`` parameter to the ``createMongoDBMemory()`` method.
+      The following example shows this configuration:
+
+      .. code-block:: typescript
+
+         import { createMongoDBMemory } from '@mongodb-developer/vercel-ai-memory'
+
+         const mongodbMemory = createMongoDBMemory({
+           uri: process.env.MONGODB_URI!,
+           autoEmbed: { model: 'voyage-4' },
+         })
+
+      In this mode, the integration stores the source text, creates
+      vector indexes for the ``autoEmbed`` type, and issues
+      ``$vectorSearch`` queries with a plain-text string. Atlas
+      Automated Embedding does not require an embedding API key or
+      a client embedding pipeline.
+
+      .. note::
+
+         Automated Embedding requires an {+service+} organization that has
+         Voyage AI enabled. On dedicated clusters (M10 and larger),
+         you must enable storage auto-scaling.
+
+   .. tab:: Client embedding model
+      :tabid: client-embedder
+
+      To generate embeddings on the client, pass the ``embedder`` parameter to the
+      ``createMongoDBMemory()`` method. The following example shows this
+      configuration and uses an OpenAI embedding model:
+
+      .. code-block:: typescript
+
+         import { createMongoDBMemory } from '@mongodb-developer/vercel-ai-memory'
+         import { openai } from '@ai-sdk/openai'
+
+         const mongodbMemory = createMongoDBMemory({
+           uri: process.env.MONGODB_URI!,
+           embedder: openai.embedding('text-embedding-3-small'),
+         })
+
+      The ``embedder`` parameter accepts any model that implements the
+      Vercel AI SDK ``EmbeddingModel`` interface, including models
+      from OpenAI, Cohere, and Google. You can also use Voyage AI
+      embedding models through the ``voyage-ai-provider`` package. To
+      view the available
+      providers, see `AI SDK Providers
+      <https://ai-sdk.dev/providers/ai-sdk-providers>`__ in the
+      Vercel AI SDK documentation. The integration detects the
+      number of vector dimensions automatically, so you don't
+      configure them.
+
+.. _vercel-ai-topology:
+
+Data Topology
+~~~~~~~~~~~~~
+
+By default, the integration stores memories in the ``agent_memory``
+database and uses the default collection and index names described in
+the :ref:`vercel-ai-collections` section. To customize the database,
+collection, and index names, pass the ``topology`` parameter to the
+``createMongoDBMemory()`` method.
+
+The following example provides custom names for the session and semantic memory tiers:
+
+.. code-block:: typescript
+
+   createMongoDBMemory({
+     uri: process.env.MONGODB_URI!,
+     embedder: voyage.embeddingModel('voyage-4'),
+     topology: {
+       dbName: 'my_app',
+       collections: {
+         session: 'agent_sessions',
+         semantic: 'agent_facts',
+       },
+       vectorIndexNames: {
+         semantic: 'agent_facts_vs',
+       },
+     },
+   })
+
+.. collapsible::
+   :heading: topology Options
+   :sub_heading: Use these options to configure where the integration stores data.
+   :expanded: false
+
+   .. list-table::
+      :widths: 30 15 55
+      :header-rows: 1
+
+      * - Option
+        - Type
+        - Description
+
+      * - ``dbName``
+        - ``string``
+        - Name of the database that holds the memory collections.
+          Defaults to ``'agent_memory'``.
+
+      * - ``collections``
+        - ``Partial<Record<MemoryType, string>>``
+        - Collection name for each memory type. To view the default
+          values, see the following :ref:`vercel-ai-collections`
+          section.
+
+      * - ``vectorIndexNames``
+        - ``Partial<Record<VectorMemoryType, string>>``
+        - {+avs+} index name for each tier that uses vector search.
+          Defaults to ``semantic_vector_index``,
+          ``procedural_vector_index``, and ``episodic_vector_index``
+          for the corresponding tiers.
+
+      * - ``disable``
+        - ``MemoryType[]``
+        - Memory types to disable. The integration doesn't create
+          collections or indexes for these types and removes their
+          commands from the memory tool.
+
+      * - ``hideToolCommands``
+        - ``MemoryType[]``
+        - Memory types whose commands the integration hides from the
+          model. These memory types' collections and store methods remain
+          available. Use this option with the hook-driven session memory
+          mode.
+
+      * - ``extraFilterFields``
+        - ``Partial<Record<VectorMemoryType, string[]>>``
+        - Extra scalar fields to index as {+avs+} filters, such as
+          ``tenant_id``, for multi-tenant deployments.
+
+.. _vercel-ai-retention:
+
+Retention Policies
+~~~~~~~~~~~~~~~~~~
+
+To control when memories expire, you can set a retention policy
+for each memory type. Pass the ``retention`` parameter to the
+``createMongoDBMemory()`` method to configure retention policies.
+
+When you configure a policy, specify a ``mode`` field and the
+additional fields that the mode requires. The following table
+describes the available modes and their fields:
+
+.. list-table::
+   :widths: 15 35 50
+   :header-rows: 1
+
+   * - Mode
+     - Fields
+     - Description
+
+   * - ``none``
+     - Required: ``mode``
+     - Memories never expire.
+
+   * - ``ttl``
+     - | Required: ``mode``, ``ttlSeconds``
+       | Optional: ``field``
+     - Memories expire after the number of seconds that the
+       ``ttlSeconds`` field specifies, counted from the timestamp in
+       the indexed ``Date`` field.
+
+   * - ``ttl+importance``
+     - | Required: ``mode``, ``ttlSeconds``, ``minImportance``
+       | Optional: ``field``
+     - The time-to-live (TTL) applies only to memories with an ``importance`` value
+       below the value of the ``minImportance`` field.
+
+   * - ``dynamic``
+     - | Required: ``mode``, ``computeExpireAt``
+       | Optional: ``refreshOnRead``
+     - The ``computeExpireAt()`` function computes each memory's
+       expiration time when the integration writes the memory,
+       and recomputes that time when the memory is read and the ``refreshOnRead``
+       field is ``true``. Use this mode to keep important and frequently
+       retrieved memories longer than rarely used memories.
+
+The following example configures a retention policy for semantic
+memories, storing only important memories after one week:
+
+.. code-block:: typescript
+
+   createMongoDBMemory({
+     uri: process.env.MONGODB_URI!,
+     embedder: voyage.embeddingModel('voyage-4'),
+     retention: {
+       semantic: { mode: 'ttl+importance', ttlSeconds: 604800, minImportance: 6 },
+     },
+   })
+
+.. collapsible::
+   :heading: Default Retention Policies
+   :sub_heading: When you don't configure a retention policy, these default policies apply.
+   :expanded: false
+
+   .. list-table::
+      :widths: 30 70
+      :header-rows: 1
+
+      * - Memory type
+        - Default policy
+
+      * - ``session``
+        - The ``ttl`` mode, which expires memories 24 hours after the
+          timestamp in the document's ``created_at`` field
+
+      * - ``scratchpad``
+        - The ``ttl`` mode, which expires memories 1 hour after the
+          timestamp in the document's ``created_at`` field
+
+      * - ``episodic``
+        - The ``ttl`` mode, which expires memories 1 year after the
+          timestamp in the document's ``stats.last_retrieved`` field
+
+      * - ``semantic``
+        - The ``none`` mode, so memories never expire
+
+      * - ``procedural``
+        - The ``none`` mode, so memories never expire
+
+Session Memory Modes
+--------------------
+
+Session memory supports the following two modes, both backed by the same
+collection:
+
+- **Tool-driven mode**: The model decides when to save and recall session turns
+- **Hook-driven mode**: The runtime saves and recalls session turns automatically
+
+Select the :guilabel:`Tool-driven` or the :guilabel:`Hook-driven` tab to
+view a corresponding code example:
+
+.. tabs::
+
+   .. tab:: Tool-driven
+      :tabid: tool-driven
+
+      In tool-driven mode, the model saves and reads session turns by
+      calling the ``session_append`` and ``session_recent`` commands
+      through the memory tool. This mode is the simplest to configure,
+      but the model might choose not to save a turn or load prior
+      turns. Use tool-driven mode for prototypes and demos, where
+      simplicity is a higher priority than a complete conversation record.
+
+      The following example generates a response and allows the model
+      to decide when to save the turn:
+
+      .. code-block:: typescript
+
+         const result = await agent.generate({
+           prompt: 'My name is Alice and I am a marine biologist. Remember that.',
+         })
+
+   .. tab:: Hook-driven
+      :tabid: hook-driven
+
+      In hook-driven mode, the runtime reads prior turns before every
+      model call and writes every user, assistant, and tool turn after
+      the tool loop finishes, regardless of what the model decides.
+      We recommend that you use this mode in production.
+
+      To hide the session commands from the model while keeping the
+      session collection available, set the ``hideToolCommands``
+      option of the ``topology`` parameter to ``['session']``. The
+      following example restores the session transcript in the
+      ``prepareCall`` hook and persists every turn in the ``onFinish``
+      hook:
+
+      .. code-block:: typescript
+
+         import { createMongoDBMemory } from '@mongodb-developer/vercel-ai-memory'
+         import { openai } from '@ai-sdk/openai'
+         import { ToolLoopAgent, isLoopFinished } from 'ai'
+         import { z } from 'zod'
+
+         const mongodbMemory = createMongoDBMemory({
+           uri: process.env.MONGODB_URI!,
+           embedder: openai.embedding('text-embedding-3-small'),
+           topology: { hideToolCommands: ['session'] },
+         })
+
+         const agent = new ToolLoopAgent({
+           model: openai('gpt-4o-mini'),
+
+           callOptionsSchema: z.object({
+             userId: z.string(),
+             sessionId: z.string(),
+             prompt: z.string(),
+           }),
+
+           prepareCall: async ({ options, prompt: _p, messages: _m, ...settings }) => {
+             const { userId, sessionId, prompt } = options!
+             const history = await mongodbMemory.loadSession({ userId, sessionId })
+             return {
+               ...settings,
+               tools: mongodbMemory({ userId, sessionId }),
+               messages: [...history, { role: 'user', content: prompt }],
+               experimental_context: { userId, sessionId, prompt },
+             }
+           },
+
+           onFinish: mongodbMemory.onFinish(),
+           stopWhen: isLoopFinished(),
+         })
+
+      The ``loadSession()`` method returns the prior user and assistant
+      turns, which you add to the start of the ``messages`` field. The
+      ``onFinish()`` method persists the user prompt and every
+      assistant and tool message. The integration stores tool turns as
+      transcript records, but does not replay them as tool results.
+
+The other memory tiers remain under model control in both modes. The
+model should select which semantic, procedural, and episodic memories
+to save and recall instead of writing every turn.
+
+Memory Tool Commands
+--------------------
+
+The integration provides a single ``memory`` tool that accepts a
+``command`` field and sends the command to the corresponding memory
+tier. The following table describes the available commands for
+each tier:
+
+.. list-table::
+   :widths: 15 25 60
+   :header-rows: 1
+
+   * - Memory tier
+     - Commands
+     - Description
+
+   * - Session
+     - | ``session_append``
+       | ``session_recent``
+     - The ``session_append`` command saves a turn, and the
+       ``session_recent`` command returns the most recent turns.
+
+   * - Semantic
+     - | ``semantic_save``
+       | ``semantic_search``
+     - The ``semantic_save`` command saves entity knowledge, and the
+       ``semantic_search`` command runs a vector search to retrieve it.
+       Semantic memories are temporally versioned, and their history
+       is preserved.
+
+   * - Procedural
+     - | ``procedural_save``
+       | ``procedural_search``
+     - The ``procedural_save`` command saves a procedure, and the
+       ``procedural_search`` command runs a vector search to retrieve
+       it. Procedural memories are temporally versioned, and
+       their history is preserved.
+
+   * - Episodic
+     - | ``episodic_save``
+       | ``episodic_search``
+     - The ``episodic_save`` command records an event, and the
+       ``episodic_search`` command runs a vector search to retrieve it.
+
+   * - Scratchpad
+     - | ``scratchpad_write``
+       | ``scratchpad_read``
+       | ``scratchpad_promote``
+     - The ``scratchpad_write`` command writes a temporary note, the
+       ``scratchpad_read`` command reads the current notes, and the
+       ``scratchpad_promote`` command promotes a note to an episodic
+       memory.
+
+   * - Any tier
+     - ``memory_forget``
+     - The ``memory_forget`` command marks a specific memory for
+       deletion. This command is always available, and you can use it
+       when a user asks the agent to forget a memory.
+
+The model chooses which commands to call, so you don't explicitly
+set the ``command`` field. However, you can reference the
+commands in your agent's instructions. The following example shows an
+agent whose instructions specify which commands to use:
+
+.. code-block:: typescript
+
+   const agent = new ToolLoopAgent({
+     model: openai('gpt-4.1'),
+     tools: mongodbMemory({ userId: 'alice', sessionId: 'sess-001' }),
+     instructions: `You are an assistant with persistent memory.
+       At the start of each session, call session_recent to restore
+       context. Save important facts with semantic_save. If the user
+       asks you to forget something, call memory_forget.`,
+   })
+
+.. _vercel-ai-collections:
+
+Collections and Indexes
+-----------------------
+
+On first use, the integration creates the following collections in
+your database:
+
+.. list-table::
+   :widths: 30 30 40
+   :header-rows: 1
+
+   * - Collection
+     - Default Retention Policy
+     - Vector Index
+
+   * - ``session_memory``
+     - The ``ttl`` mode, which expires memories 24 hours after the
+       timestamp in the document's ``created_at`` field
+     - None
+
+   * - ``semantic_memory``
+     - The ``none`` mode, so memories never expire
+     - ``semantic_vector_index``, which uses cosine similarity and
+       automatically detects the embedding's vector dimensions
+
+   * - ``procedural_memory``
+     - The ``none`` mode, so memories never expire
+     - ``procedural_vector_index``, which uses cosine similarity and
+       automatically detects the embedding's vector dimensions
+
+   * - ``episodic_memory``
+     - The ``ttl`` mode, which expires memories 1 year after the
+       timestamp in the document's ``stats.last_retrieved`` field
+     - ``episodic_vector_index``, which uses cosine similarity and
+       automatically detects the embedding's vector dimensions
+
+   * - ``scratchpad_memory``
+     - The ``ttl`` mode, which expires memories 1 hour after the
+       timestamp in the document's ``created_at`` field
+     - None
+
+The integration also creates an ``expire_at`` TTL index on each
+collection, which expires each memory at the time stored in its
+``expire_at`` field. The ``memory_forget`` command and the ``dynamic``
+retention mode set this field to expire memories.
+
+.. note::
+
+   {+avs+} indexes build asynchronously. On a new database, allow a
+   few seconds for the indexes to build before you search.
+
+Additional Resources
+--------------------
+
+To learn more about using the Vercel AI SDK with MongoDB, see the
+following resources:
+
+- `Vercel AI SDK <https://ai-sdk.dev/docs/agents/memory>`__ documentation
+- `@mongodb-developer/vercel-ai-memory <https://www.npmjs.com/package/@mongodb-developer/vercel-ai-memory>`__ npm package
+- :github:`vercel-ai-memory <mongodb-developer/vercel-ai-memory>` GitHub repository
