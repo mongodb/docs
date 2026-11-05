@@ -17,6 +17,7 @@ export function buildBatchUserPrompt(batch: TranslationBatchRequest): string {
     batch.source_locale,
     batch.target_locale,
     JSON.stringify(content),
+    batch.term_sheet,
   );
 }
 

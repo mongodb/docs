@@ -25,8 +25,11 @@ function escapeRegExp(text: string): string {
  * reuse one instance for both `test` and `replace`: `test` advances
  * `lastIndex` on a global regex.
  */
-function termPattern(term: string): RegExp {
-  return new RegExp(`(?<!${WORD_CHAR})${escapeRegExp(term)}(?!${WORD_CHAR})`, "gu");
+function termPattern(term: string, ignoreCase = false): RegExp {
+  return new RegExp(
+    `(?<!${WORD_CHAR})${escapeRegExp(term)}(?!${WORD_CHAR})`,
+    ignoreCase ? "giu" : "gu",
+  );
 }
 
 /** Result of protecting a single string. */
@@ -46,19 +49,33 @@ export interface RestorationResult {
   missing: string[];
 }
 
+export interface DetectOptions {
+  /** Match regardless of case. Off for protected terms, which must match exactly. */
+  ignoreCase?: boolean;
+}
+
 /**
- * Returns the distinct protected terms that actually occur in `text` as whole
+ * Returns the distinct terms that actually occur in `text` as whole
  * tokens, in the order they were supplied. Empty terms are ignored.
  */
-export function detectTerms(text: string, nonTranslatableTerms: string[]): string[] {
+export function detectTerms(
+  text: string,
+  terms: string[],
+  options: DetectOptions = {},
+): string[] {
   const seen = new Set<string>();
   const found: string[] = [];
-  for (const term of nonTranslatableTerms) {
+  for (const term of terms) {
     if (term.length === 0 || seen.has(term)) continue;
     seen.add(term);
-    if (termPattern(term).test(text)) found.push(term);
+    if (termPattern(term, options.ignoreCase).test(text)) found.push(term);
   }
   return found;
+}
+
+/** `text` with every whole-token occurrence of `term` replaced by a space. */
+export function removeTerm(text: string, term: string, options: DetectOptions = {}): string {
+  return text.replace(termPattern(term, options.ignoreCase), " ");
 }
 
 /**

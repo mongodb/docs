@@ -51,7 +51,7 @@ describe("translate", () => {
       },
       {
         backend: new StubBackend({ corruptTokensFor: ["atlas_cluster"] }),
-        requestId: "req_test_2",
+          requestId: "req_test_2",
       },
     );
     expect(response.translations).toEqual({
@@ -112,7 +112,9 @@ describe("translate", () => {
         return Promise.reject(new Error("connection refused"));
       },
     };
-    const response = await translate(request, { backend: exploding });
+    const response = await translate(request, {
+      backend: exploding,
+    });
     expect(response.translations).toEqual({
       ask_mongodb_ai: null,
       docs_home: null,
@@ -139,7 +141,9 @@ describe("translate", () => {
         );
       },
     };
-    const response = await translate(request, { backend: timingOut });
+    const response = await translate(request, {
+      backend: timingOut,
+    });
     expect(response.errors["ask_mongodb_ai"]?.code).toBe("BACKEND_TIMEOUT");
     expect(response.errors["docs_home"]?.code).toBe("BACKEND_TIMEOUT");
     expect(response.meta.partial_failure).toBe(true);
@@ -152,7 +156,9 @@ describe("translate", () => {
         return Promise.reject(new Error("network exploded"));
       },
     };
-    const response = await translate(request, { backend: exploding });
+    const response = await translate(request, {
+      backend: exploding,
+    });
     expect(response.errors["ask_mongodb_ai"]?.code).toBe("BACKEND_ERROR");
   });
 
@@ -199,5 +205,79 @@ describe("translate", () => {
     expect(response.translations).toEqual({});
     expect(response.errors).toEqual({});
     expect(response.meta.partial_failure).toBe(false);
+  });
+
+  describe("glossary", () => {
+    const glossary = {
+      nonTranslatableTerms: ["MongoDB"],
+      translatableTerms: {
+        access: [{ definition: "to connect to a resource", translations: { es: "acceder" } }],
+      },
+    };
+
+    function spyBackend(seen: TranslationBatchRequest[]): TranslationBackend {
+      return {
+        name: "spy",
+        translateBatch(batch) {
+          seen.push(batch);
+          return new StubBackend().translateBatch(batch);
+        },
+      };
+    }
+
+    it("protects glossary words the caller did not pass", async () => {
+      const seen: TranslationBatchRequest[] = [];
+      await translate(
+        { source_locale: "en", target_locale: "es", payload: { intro: "MongoDB lets you access data." } },
+        { backend: spyBackend(seen), glossary },
+      );
+      expect(seen[0]?.items).toEqual([{ key: "intro", text: "__PROT1__ lets you access data." }]);
+    });
+
+    it("still protects extra words the caller passes", async () => {
+      const seen: TranslationBatchRequest[] = [];
+      await translate(
+        {
+          source_locale: "en",
+          target_locale: "es",
+          payload: { intro: "MongoDB and Compass" },
+          non_translatable_terms: ["Compass"],
+        },
+        { backend: spyBackend(seen), glossary },
+      );
+      expect(seen[0]?.items[0]?.text).toBe("__PROT1__ and __PROT2__");
+    });
+
+    it("puts the translatable terms found in the text on the batch", async () => {
+      const seen: TranslationBatchRequest[] = [];
+      await translate(
+        { source_locale: "en", target_locale: "es", payload: { intro: "MongoDB lets you access data." } },
+        { backend: spyBackend(seen), glossary },
+      );
+      expect(seen[0]?.term_sheet).toEqual([
+        { term: "access", options: [{ option: "acceder", definition: "to connect to a resource" }] },
+      ]);
+    });
+
+    it("sends an empty term sheet when the glossary has no translatable terms", async () => {
+      const seen: TranslationBatchRequest[] = [];
+      await translate(
+        { source_locale: "en", target_locale: "es", payload: { intro: "access data" } },
+        {
+          backend: spyBackend(seen),
+          glossary: { nonTranslatableTerms: [], translatableTerms: {} },
+        },
+      );
+      expect(seen[0]?.term_sheet).toEqual([]);
+    });
+
+    it("uses the bundled glossary by default", async () => {
+      const seen: TranslationBatchRequest[] = [];
+      await translate(
+        { source_locale: "en", target_locale: "es", payload: { intro: "MongoDB" } },
+        { backend: spyBackend(seen) },
+      );
+      expect(seen[0]?.items[0]?.text).toBe("__PROT1__");
+    });
   });
 });

@@ -19,7 +19,7 @@ function makeRequest(overrides: Partial<ResolvedRequest> = {}): ResolvedRequest 
 
 describe("normalize", () => {
   it("converts the flat payload into segments in payload key order", () => {
-    const segments = normalize(makeRequest());
+    const segments = normalize(makeRequest(), ["MongoDB", "Compass", "Atlas", "Docs"]);
     expect(segments).toEqual([
       {
         key: "ask_mongodb_ai",
@@ -43,6 +43,7 @@ describe("normalize", () => {
   it("detects only the terms present in each string", () => {
     const segments = normalize(
       makeRequest({ payload: { plain: "Hello world" } }),
+      ["MongoDB", "Compass", "Atlas", "Docs"],
     );
     expect(segments).toEqual([
       {
@@ -57,13 +58,21 @@ describe("normalize", () => {
   });
 
   it("returns an empty list for an empty payload", () => {
-    expect(normalize(makeRequest({ payload: {} }))).toEqual([]);
+    expect(normalize(makeRequest({ payload: {} }), ["MongoDB", "Compass", "Atlas", "Docs"])).toEqual([]);
   });
 
   it("does not mutate the request", () => {
     const request = makeRequest();
     const snapshot = structuredClone(request);
-    normalize(request);
+    normalize(request, ["MongoDB", "Compass", "Atlas", "Docs"]);
     expect(request).toEqual(snapshot);
+  });
+
+  it("matches the non-translatable terms it is given", () => {
+    const segments = normalize(makeRequest({ payload: { a: "Atlas and Compass" } }), [
+      "Atlas",
+      "Compass",
+    ]);
+    expect(segments[0]?.protected_terms).toEqual(["Atlas", "Compass"]);
   });
 });

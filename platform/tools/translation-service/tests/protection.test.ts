@@ -29,6 +29,16 @@ describe("detectTerms", () => {
   it("still finds a term that stands alone", () => {
     expect(detectTerms("C is a language", ["C"])).toEqual(["C"]);
   });
+
+  it("matches regardless of case when asked", () => {
+    expect(detectTerms("Commit your changes", ["commit"], { ignoreCase: true })).toEqual([
+      "commit",
+    ]);
+  });
+
+  it("stays case-sensitive by default", () => {
+    expect(detectTerms("Commit your changes", ["commit"])).toEqual([]);
+  });
 });
 
 describe("boundary matching", () => {

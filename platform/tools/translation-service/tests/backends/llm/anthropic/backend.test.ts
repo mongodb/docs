@@ -23,6 +23,7 @@ function batch(
     target_locale: "es",
     content_type: "platform_strings",
     items,
+    term_sheet: [],
     backend_preferences: { provider: "auto", model: "auto" },
   };
 }

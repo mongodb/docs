@@ -17,6 +17,7 @@ const batch: TranslationBatchRequest = {
   target_locale: "es",
   content_type: "platform_strings",
   items: [{ key: "docs_home", text: "__PROT1__ Home" }],
+  term_sheet: [],
   backend_preferences: { provider: "auto", model: "auto" },
 };
 

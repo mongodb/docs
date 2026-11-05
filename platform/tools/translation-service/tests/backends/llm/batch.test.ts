@@ -13,6 +13,7 @@ function batch(
     target_locale: "es",
     content_type: "platform_strings",
     items,
+    term_sheet: [],
     backend_preferences: { provider: "auto", model: "auto" },
   };
 }
@@ -22,6 +23,14 @@ describe("buildBatchUserPrompt", () => {
     const prompt = buildBatchUserPrompt(batch([{ key: "docs_home", text: "Home" }]));
     expect(prompt).toContain("from en to es");
     expect(prompt).toContain('[{"key":"docs_home","value":"Home"}]');
+  });
+
+  it("includes the batch's term sheet", () => {
+    const prompt = buildBatchUserPrompt({
+      ...batch([{ key: "a", text: "Access the block" }]),
+      term_sheet: [{ term: "block", options: [{ option: "bloque", definition: "a chunk" }] }],
+    });
+    expect(prompt).toContain('- block: "bloque" (a chunk)');
   });
 });
 

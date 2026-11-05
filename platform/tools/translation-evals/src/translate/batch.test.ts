@@ -8,18 +8,8 @@ const SRC = `# Setup\n\nInstall with \`brew\` and read the [guide](/g).\n\n<Note
 describe('translateMdxFile', () => {
   it('returns reconstructed MDX when the backend echoes translations', async () => {
     const cfg = loadConfig({});
-    const out = await translateMdxFile(SRC, cfg, 'es', ['MongoDB'], async (payload) => ({ ...payload }));
+    const out = await translateMdxFile(SRC, cfg, 'es', async (payload) => ({ ...payload }));
     expect(out).toContain('Keep MongoDB running.');
-  });
-
-  it('passes the caller terms to the translate function', async () => {
-    const cfg = loadConfig({});
-    let seen: string[] = [];
-    await translateMdxFile(SRC, cfg, 'es', ['MongoDB'], async (payload, terms) => {
-      seen = terms;
-      return { ...payload };
-    });
-    expect(seen).toContain('MongoDB');
   });
 });
 

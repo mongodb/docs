@@ -27,6 +27,7 @@ function batch(
     target_locale,
     content_type: "platform_strings",
     items,
+    term_sheet: [],
     backend_preferences: { provider: "auto", model: "auto" },
   };
 }

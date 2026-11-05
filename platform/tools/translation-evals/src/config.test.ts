@@ -1,4 +1,3 @@
-import path from 'node:path';
 import { describe, it, expect } from 'vitest';
 import { loadConfig } from './config.js';
 
@@ -53,23 +52,4 @@ describe('loadConfig', () => {
     expect(loadConfig({}).experimentName).toBeUndefined();
   });
 
-  it('resolves a relative GLOSSARY_FILE against the package root', () => {
-    // The eval stage spawns a child that cd's to the package root, but the
-    // translate stage runs in-process from whatever cwd the CLI was invoked
-    // from. Resolving here makes both behave the same.
-    const cfg = loadConfig({ GLOSSARY_FILE: 'glossary.json' });
-    expect(path.isAbsolute(cfg.glossaryFile!)).toBe(true);
-    expect(cfg.glossaryFile!.endsWith(path.join('translation-evals', 'glossary.json'))).toBe(
-      true,
-    );
-  });
-
-  it('keeps an absolute GLOSSARY_FILE as given', () => {
-    expect(loadConfig({ GLOSSARY_FILE: '/tmp/glossary.json' }).glossaryFile).toBe('/tmp/glossary.json');
-  });
-
-  it('treats a blank GLOSSARY_FILE as unset', () => {
-    expect(loadConfig({ GLOSSARY_FILE: '' }).glossaryFile).toBeUndefined();
-    expect(loadConfig({}).glossaryFile).toBeUndefined();
-  });
 });

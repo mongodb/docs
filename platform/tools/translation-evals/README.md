@@ -133,27 +133,18 @@ exported in your shell takes precedence over `.env`.
 | `BRAINTRUST_PROJECT` | No | `docs-translations` | Braintrust project name. |
 | `EVAL_EXPERIMENT_NAME` | No | derived | Overrides the Braintrust experiment name. Default: `<project> <locales> <run id> [<translator> -> <judge>]`, e.g. `atlas es 2026-10-23-a1b2c3 [gpt-5.5 -> claude-sonnet-4-5]`. |
 | `TARGET_LOCALES` | No | `pt-br,es,ko-kr,ja-jp,zh-cn` | Comma-separated target locales. |
-| `GLOSSARY_FILE` | No | — | Path to the glossary JSON. Resolved from the package directory. A path that cannot be read, or does not hold the expected shape, throws. |
+The glossary lives in `translation-service/src/glossary.json` and is bundled
+with the service. This tool has no copy and nothing to configure.
 
-The glossary file:
+`nonTranslatableTerms` applies to every target locale. The service swaps each
+term for a `__PROTn__` placeholder before the model sees it and restores it
+verbatim afterward; `terminology_preserved` scores how completely that
+protect-and-restore round-trip survived into the scored output (see Scorers
+below).
 
-```json
-{
-  "nonTranslatableTerms": ["_id", "MongoDB"],
-  "translatableTerms": { "shard": { "es": ["partición"] } }
-}
-```
-
-`nonTranslatableTerms` applies to every target locale. It is passed to the
-translator, which swaps each term for a `__PROTn__` placeholder before the model
-sees it and restores it verbatim afterward; `terminology_preserved` scores how
-completely that protect-and-restore round-trip survived into the scored output
-(see Scorers below).
-`translatableTerms` maps each English source term to its required translation per
-target locale (a list, because one source term can have several acceptable
-translations). It is carried for the future adherence scorer and is not
-consumed yet. The repo bundles `glossary.json`; set
-`GLOSSARY_FILE=glossary.json` to use it.
+`translatableTerms` maps each English source term to its entries, one per
+meaning, each with a definition and the allowed translation per locale. The
+service adds the terms found in the text to the model's prompt.
 
 The translator model — and therefore which backend runs — is set with
 `TRANSLATOR_MODEL`: a `claude-*` value selects the Anthropic Messages path, and

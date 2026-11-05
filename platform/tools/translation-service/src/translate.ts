@@ -20,9 +20,13 @@ import { protectSegments } from "./protect-segments.js";
 import { validateOutput } from "./validate-output.js";
 import { buildResponse } from "./build-response.js";
 import { BackendError } from "./backends/errors.js";
+import { DEFAULT_GLOSSARY, type Glossary } from "./glossary.js";
+import { buildTermSheet } from "./term-sheet.js";
 
 export interface TranslateOptions {
   backend: TranslationBackend;
+  /** Defaults to the bundled glossary.json. Pass a different one to override it. */
+  glossary?: Glossary;
   /** Override the generated request id (useful for tracing and tests). */
   requestId?: string | undefined;
 }
@@ -36,7 +40,16 @@ export async function translate(
     throw new RequestValidationError(validation.issues);
   }
   const resolved = validation.request;
-  const segments = protectSegments(normalize(resolved));
+  const glossary = options.glossary ?? DEFAULT_GLOSSARY;
+  const nonTranslatableTerms = [
+    ...new Set([...glossary.nonTranslatableTerms, ...resolved.non_translatable_terms]),
+  ];
+  const segments = protectSegments(normalize(resolved, nonTranslatableTerms));
+  const termSheet = buildTermSheet(
+    segments.map((segment) => segment.source_text),
+    glossary.translatableTerms,
+    resolved.target_locale,
+  );
 
   const batch: TranslationBatchRequest = {
     source_locale: resolved.source_locale,
@@ -46,6 +59,7 @@ export async function translate(
       key: segment.key,
       text: segment.protected_text,
     })),
+    term_sheet: termSheet,
     backend_preferences: resolved.backend_preferences,
   };
 

@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { Eval } from 'braintrust';
 import { loadConfig } from '../config.js';
-import { glossaryIdentity, readGlossary } from '../glossary.js';
+import { DEFAULT_GLOSSARY, glossaryIdentity } from '@mongodb-docs/translation-service';
 import { readManifestLatest, runDir } from '../run/manifest.js';
 import { resolveBackendName } from '../translate/backend.js';
 import type { DatasetRow } from '../types.js';
@@ -24,7 +24,7 @@ if (!fs.existsSync(rowsPath)) {
 const rows = JSON.parse(fs.readFileSync(rowsPath, 'utf8')) as DatasetRow[];
 
 const judgeOpts = createJudgeOptions(cfg);
-const glossary = readGlossary(cfg.glossaryFile);
+const glossary = DEFAULT_GLOSSARY;
 
 const experimentName = buildExperimentName({
   project,
@@ -48,6 +48,6 @@ Eval(cfg.braintrustProject, {
     translator_provider: resolveBackendName(cfg.translatorModel, cfg.translatorBackend),
     translator_model: cfg.translatorModel ?? null,
     judge_model: judgeOpts.model,
-    glossary: cfg.glossaryFile ? glossaryIdentity(cfg.glossaryFile, glossary) : null,
+    glossary: glossaryIdentity(glossary),
   },
 });

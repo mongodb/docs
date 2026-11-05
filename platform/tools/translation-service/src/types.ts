@@ -40,7 +40,7 @@ export interface TranslateRequest {
   content_type?: ContentType;
   /** Flat map; keys are preserved verbatim, only values are translated. */
   payload: Record<string, string>;
-  /** Terms that must survive translation unchanged. Defaults to empty. */
+  /** Extra terms that must survive translation unchanged, added to the glossary's list. Defaults to empty. */
   non_translatable_terms?: string[];
   backend_preferences?: BackendPreferences;
 }
@@ -90,6 +90,14 @@ export interface Segment {
   protected_terms: string[];
 }
 
+/** A translatable term found in the request, with its allowed options. */
+export interface TermSheetEntry {
+  /** The English source term, e.g. "access". */
+  term: string;
+  /** The options for the target locale, in glossary order. */
+  options: Array<{ option: string; definition: string }>;
+}
+
 // --- Backend adapter seam --------------------------------------------------
 
 /** `text` is the protected form (placeholders already substituted in). */
@@ -103,6 +111,8 @@ export interface TranslationBatchRequest {
   target_locale: string;
   content_type: ContentType;
   items: TranslationBatchItem[];
+  /** Translatable terms found in the items, with their allowed options. Empty when none. */
+  term_sheet: TermSheetEntry[];
   backend_preferences: BackendPreferences;
 }
 

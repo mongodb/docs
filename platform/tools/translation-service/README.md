@@ -56,7 +56,6 @@ const response = await translate(
       "actions.ask_mongodb_ai": "Ask MongoDB AI",
       "actions.copy_page": "Copy page",
     },
-    non_translatable_terms: ["MongoDB", "MongoDB AI", "Atlas", "Compass"],
   },
   { backend: new StubBackend() },
 );
@@ -68,10 +67,16 @@ const response = await translate(
 // response.meta          — provider, model, content_type, partial_failure, request_id
 ```
 
-`content_type` is optional and defaults to `platform_strings`;
-`non_translatable_terms` is optional and defaults to empty. A request may
-also carry `backend_preferences: { provider, model }`, both defaulting to
-`"auto"`. Preferences are validated and passed through to the backend on
+`content_type` is optional and defaults to `platform_strings`.
+
+The service applies its glossary (`src/glossary.json`) on its own: it keeps the
+glossary's non-translatable words in English, and adds the translatable terms
+found in the text, with their allowed options, to the model's prompt.
+`non_translatable_terms` is optional and adds extra words to protect. Pass
+`glossary` in the options to use a different glossary.
+
+A request may also carry `backend_preferences: { provider, model }`, both
+defaulting to `"auto"`. Preferences are validated and passed through to the backend on
 the batch request, but no backend reads them yet — routing is currently
 decided by whichever backend you hand to `translate()`. `meta.provider` and
 `meta.model` report what the backend actually used, not what was requested.
