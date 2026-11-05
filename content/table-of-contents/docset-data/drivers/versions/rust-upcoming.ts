@@ -64,7 +64,6 @@ const tocData: TocItem[] = inheritContentSite('rust', [
   },
   {
     label: 'CRUD Operations',
-    url: '/docs/drivers/rust/:version/crud/',
     collapsible: true,
     items: [
       {

@@ -94,7 +94,6 @@ export const toc: L1TocItem[] = [
             label: 'CRUD Operations',
             contentSite: 'rust',
             collapsible: true,
-            url: '/docs/drivers/rust/:version/crud/',
             items: [
               {
                 label: 'Insert Documents',
@@ -534,7 +533,6 @@ export const toc: L1TocItem[] = [
             label: 'CRUD Operations',
             contentSite: 'rust',
             collapsible: true,
-            url: '/docs/drivers/rust/:version/crud/',
             items: [
               {
                 label: 'Insert Documents',

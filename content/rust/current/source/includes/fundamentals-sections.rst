@@ -5,7 +5,7 @@ Fundamentals section:
 - :ref:`Specify the {+stable-api+} Version <rust-stable-api>`
 - :ref:`Authenticate to MongoDB <rust-authentication>`
 - :ref:`Connect By Using Enterprise Authentication Mechanisms <rust-enterprise-auth>`
-- :ref:`Read from and Write to MongoDB <rust-crud>`
+- :ref:`Read from and Write to MongoDB <rust-insert-guide>`
 - :ref:`Convert Data to and from BSON <rust-serialization>`
 - :ref:`Manage Databases and Collections <rust-db-coll>`
 - :ref:`Implement Schema Validation <rust-schema-validation>`
