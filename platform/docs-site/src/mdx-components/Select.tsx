@@ -3,7 +3,6 @@
 import type { ReactNode } from 'react';
 import { Dropdown } from '@via-ds/components/dropdown';
 import { Select as ViaSelect, SelectItem } from '@via-ds/components/select';
-import { clsx } from 'clsx';
 import { Checkmark } from '@via-ds/icons';
 import type { IconComponent } from '@/mdx-components/Icons/DriverIconMap';
 import styles from './Select.module.scss';
@@ -29,8 +28,7 @@ export type SelectProps = {
 
 const renderItems = (choices: Array<SelectOption>) =>
   choices.map(({ value: id, text, icon, tabSelectorIcon: TabSelectorIcon }) => (
-    // Via's trigger shows textValue over children, which would drop the icon.
-    <SelectItem key={id} id={id} textValue={icon || TabSelectorIcon ? undefined : text}>
+    <SelectItem key={id} id={id} textValue={text}>
       {icon}
       {TabSelectorIcon && <TabSelectorIcon slot="icon" className={styles.itemIcon} />}
       {text}
@@ -50,22 +48,11 @@ export const OfflineSelectList = ({ choices, label }: { choices: Array<SelectOpt
   </div>
 );
 
-const Select = ({
-  className,
-  choices,
-  onChange,
-  defaultText = '',
-  disabled = false,
-  label,
-  value = '',
-  ...props
-}: SelectProps) => (
+const Select = ({ choices, onChange, defaultText = '', disabled = false, value = '', ...props }: SelectProps) => (
   <ViaSelect
-    className={clsx(styles.select, className)}
     selectedKey={value || null}
     isDisabled={disabled}
     placeholder={defaultText}
-    label={label}
     onSelectionChange={(key) => {
       if (key !== null) onChange({ value: String(key) });
     }}

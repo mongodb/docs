@@ -85,12 +85,18 @@
       });
 
       const valueEl = trigger.querySelector('span');
-      if (valueEl) {
-        valueEl.replaceChildren(
-          ...Array.from(option.childNodes)
-            .filter((node) => !(node instanceof Element && node.getAttribute('slot') === 'check'))
-            .map((node) => node.cloneNode(true)),
-        );
+      // Via's value span holds an icon and a text span that carries the ellipsis.
+      const textEl = valueEl?.lastElementChild;
+      if (valueEl && textEl) {
+        const slotOf = (node) => (node instanceof Element ? node.getAttribute('slot') : null);
+        const nodes = Array.from(option.childNodes).filter((node) => slotOf(node) !== 'check');
+        valueEl.querySelector(':scope > [slot="icon"]')?.remove();
+        const icon = nodes.find((node) => slotOf(node) === 'icon')?.cloneNode(true);
+        if (icon) {
+          icon.setAttribute('aria-hidden', 'true');
+          valueEl.prepend(icon);
+        }
+        textEl.replaceChildren(...nodes.filter((node) => slotOf(node) !== 'icon').map((node) => node.cloneNode(true)));
         valueEl.removeAttribute('data-placeholder');
       }
     };

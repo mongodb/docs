@@ -85,7 +85,7 @@ describe('ComposableTutorial (mdx-components) unit tests', () => {
         </ComposableContent>
       </ComposableTutorial>,
     );
-    const triggerValues = Array.from(tree.container.querySelectorAll('.configurable-option button span')).map(
+    const triggerValues = Array.from(tree.container.querySelectorAll('.configurable-option button > span')).map(
       (el) => el.textContent,
     );
     expect(triggerValues).toEqual(['Driver', 'Node.js']);

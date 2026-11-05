@@ -92,6 +92,17 @@ describe('offline TabsSelector (tabs.js)', () => {
     expect(menu().hidden).toBe(true);
   });
 
+  it("keeps the label in Via's text span and shows one hidden icon beside it", () => {
+    trigger().click();
+    choice('go').click();
+    trigger().click();
+    choice('go').click();
+    const icons = triggerValue().querySelectorAll(':scope > [slot="icon"]');
+    expect(icons).toHaveLength(1);
+    expect(icons[0].getAttribute('aria-hidden')).toBe('true');
+    expect(triggerValue().lastElementChild?.textContent).toBe('Go');
+  });
+
   it('moves the selection and checkmark to the chosen option', () => {
     trigger().click();
     choice('go').click();
