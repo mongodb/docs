@@ -1,4 +1,14 @@
-.. Prerequisite to Install MongoDB Community on Ubuntu
+
+.. include:: /includes/deploy/before-community-tar.rst
+
+.. include:: /includes/deploy/before-community-base.rst
+
+Prerequisites
+~~~~~~~~~~~~~
+
+Use the following command to install the required dependencies for
+MongoDB {+version+}:
+
 .. tabs::
 
    .. tab:: Ubuntu 26.04 (Resolute)
@@ -15,4 +25,9 @@
       :tabid: ubuntu22
 
       .. include:: /includes/deploy/code/community-prereq-ubuntu22
+
+MongoDB Shell, ``mongosh``
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-have-to-install-mongosh-tgz.rst
 

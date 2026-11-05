@@ -8,27 +8,12 @@ Install MongoDB Community on Red Hat or CentOS using .tgz Tarball
 .. |distro-name| replace:: Red Hat
 .. |package-manager| replace:: ``yum``
 .. |executable-name| replace:: ``mongod``
-.. |mdb-download-link| replace:: `MongoDB Download Center <https://www.mongodb.com/try/download/community>`__
 
 Overview
 --------
 
-Use this tutorial to manually install MongoDB {+version+} |edition|
-Edition on Red Hat Enterprise Linux, CentOS Linux, or Oracle Linux
-[#oracle-linux]_ using a downloaded ``.tgz`` tarball.
-
-MongoDB Version
-~~~~~~~~~~~~~~~
 
 .. include:: /includes/fact-install-past-mongodb.rst
-
-Installation Method
-~~~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/fact-use-package-manager.rst
-
-|arrow| See :ref:`Install MongoDB using the yum Package Manager<install-mdb-community-redhat-centos>`
-for instructions.
 
 Considerations
 --------------
@@ -50,11 +35,6 @@ Production Notes
 
 Install MongoDB Community Edition
 ---------------------------------
-
-Prerequisites
-~~~~~~~~~~~~~
-
-.. include:: /includes/fact-tarball-dependencies.rst
 
 .. include:: /includes/extracts/install-mongodb-community-manually-redhat.rst
 
@@ -108,7 +88,7 @@ to |mongod-user|:
 To Use Non-Default Directories
 ``````````````````````````````
 
-To use a data directory and/or log directory other than the default
+To use a data directory or log directory other than the default
 directories:
 
 #. Create the new directory or directories.

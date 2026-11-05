@@ -1,11 +1,10 @@
 
 After you have installed the required prerequisite packages,
-download the MongoDB |edition| ``tgz`` tarball from the
-following link:
+download the MongoDB |edition| ``tgz`` tarball:
 
-|arrow| |mdb-download-link|
+a. Navigate to |mdb-download-link|.
 
-a. In the :guilabel:`Version` dropdown, select the version of
+#. In the :guilabel:`Version` dropdown, select the version of
    MongoDB to download.
 
 #. In the :guilabel:`Platform` dropdown, select your operating system

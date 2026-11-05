@@ -10,3 +10,4 @@
    .. step:: Install MongoDB Community Server.
 
       .. include:: /includes/deploy/community-amazon-install.rst
+

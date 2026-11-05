@@ -1,6 +1,6 @@
 While you can install MongoDB manually using a downloaded ``.tgz``
-tarball as described in this document, we recommend using the
-|package-manager| package manager on your system if
-possible. Using a package manager automatically installs all needed
-dependencies, provides an example ``mongod.conf`` file,
-and simplifies future upgrade and maintenance tasks.
+tarball as described in this document, MongoDB recommends using the
+system package manager for your distribution. Package managers
+automatically install all necessary dependencies, provide an example
+``mongod.conf`` file and system service configurations, and simplify
+future upgrade and maintenance tasks.
