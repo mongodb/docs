@@ -206,6 +206,7 @@ cd content/search/source && npm run snip -- --validate        # 7.
 | `:snippet-output:` path has no file extension | STOP. Tell user: "Add the file extension, for example `.rst`" |
 | `--sync` reports `✗ Invalid: <file>` | STOP. The file was skipped and `--sync` exited non-zero. Fix the markers, then re-run |
 | `--sync` or `--validate` reports untracked snippet | Run `--sync` to add it to the manifest and generate its output |
+| Merge conflict in `snippet-manifest.json` | Do NOT hand-merge hashes. Resolve the source files, take either side of the manifest, then run `--sync` and `--validate`. See "Resolving Merge Conflicts" in `references/manifest-schema.md` |
 | `--sync` or `--validate` reports output path changed | Run `--sync` to delete the stale output and regenerate at the new path |
 | Target directory missing | CREATE it: `mkdir -p content/<target>/source/includes/path/` |
 | Bluehawk not installed locally | RECOMMEND CI. If local needed: `npm install -g bluehawk` |

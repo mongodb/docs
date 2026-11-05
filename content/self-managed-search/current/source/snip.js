@@ -353,10 +353,24 @@ function loadManifest() {
   return { version: 1, files: {} };
 }
 
-// Save the manifest
+// Save the manifest in a canonical form so concurrent branches only conflict
+// on real changes: file and snippet keys are sorted, so entries added on
+// different branches land on different lines instead of all appending at the
+// end, and no timestamps are stored, since a timestamp changes on every run.
+// The legacy "lastModified" field is dropped on save.
 function saveManifest(manifest) {
   const manifestPath = getManifestPath();
-  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
+  const files = {};
+  for (const filePath of Object.keys(manifest.files).sort()) {
+    const snippets = {};
+    const fileSnippets = manifest.files[filePath].snippets;
+    for (const name of Object.keys(fileSnippets).sort()) {
+      snippets[name] = { outputs: fileSnippets[name].outputs, hash: fileSnippets[name].hash };
+    }
+    files[filePath] = { snippets };
+  }
+  const canonical = { version: manifest.version, files };
+  fs.writeFileSync(manifestPath, JSON.stringify(canonical, null, 2) + "\n");
 }
 
 // Escape regex metacharacters so a snippet name can be used as a literal match in a RegExp.
@@ -427,10 +441,7 @@ function addFileToManifest(filePath) {
     };
   }
 
-  manifest.files[relativePath] = {
-    snippets,
-    lastModified: new Date().toISOString(),
-  };
+  manifest.files[relativePath] = { snippets };
 
   saveManifest(manifest);
   console.log(`Added to manifest: ${relativePath}`);
@@ -795,10 +806,6 @@ async function syncMonitoredFiles() {
         console.log(`  ✓ Changed: ${relativePath}`);
         totalWritten += written;
       }
-    }
-
-    if (fileChanged || removedSnippets.length > 0) {
-      fileInfo.lastModified = new Date().toISOString();
     }
 
     // A file with no snippets left is no longer a snippet source
