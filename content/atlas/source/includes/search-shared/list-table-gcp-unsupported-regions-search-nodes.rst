@@ -4,7 +4,7 @@
    * - Region Name
      - Google Cloud Region  
 
-   * - Queretaro, Mexico
+   * - Querétaro, Mexico
      - ``NORTH_AMERICA_SOUTH_1``
 
    * - Berlin, Germany
@@ -15,3 +15,6 @@
 
    * - Johannesburg, South Africa
      - ``AFRICA_SOUTH_1``
+
+   * - South Carolina, USA
+     - ``EASTERN_US``
