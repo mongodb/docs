@@ -11,3 +11,11 @@
 
    Once you rotate the {+cmk-abbr+}, MongoDB uses it to wrap all new
    DEKs. To re-wrap existing DEKs, continue to the following steps.
+
+   .. note::
+
+      The code examples in this procedure use the same KMS provider
+      credentials and key vault namespace that you used to create
+      your data encryption keys. To learn more, see
+      :ref:`keys and key vaults <qe-reference-keys-key-vaults>` and
+      :ref:`KMS providers <qe-fundamentals-kms-providers>`.
