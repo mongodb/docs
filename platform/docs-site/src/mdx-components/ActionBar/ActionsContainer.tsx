@@ -6,7 +6,7 @@ import { Button, ButtonVariant } from '@via-ds/components/button';
 import Sparkle from '@via-ds/icons/Sparkle';
 import type { Environments } from '@/utils/env-config';
 import styles from './action-bar.module.scss';
-import { DarkModeDropdown } from './DarkModeDropdown';
+import { DarkModeToggle } from './DarkModeToggle';
 import { reportAnalytics } from '@/utils/report-analytics';
 import { useChatbotModal } from '@/context/chatbot-context';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
@@ -60,7 +60,7 @@ const ActionsContainer = () => {
           </Chatbot>
         </Suspense>
       }
-      <DarkModeDropdown />
+      <DarkModeToggle />
     </div>
   );
 };
