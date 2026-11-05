@@ -1,0 +1,284 @@
+.. _vercel-ai-get-started:
+
+======================================================
+Get Started with the MongoDB Vercel AI SDK Integration
+======================================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. facet::
+   :name: programming_language
+   :values: javascript/typescript
+
+.. meta::
+   :keywords: agents, agentic, memory, sessions, retrieval, vector database, vector search, semantic search, code example, OpenAI, typescript
+   :description: Build a TypeScript agent with MongoDB-backed persistent memory by using the Vercel AI SDK. Create a memory provider, wire it into an agent, and demonstrate memory recall across sessions.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can integrate MongoDB with the Vercel AI SDK to configure memory
+for your agents that persists across sessions. This tutorial creates
+a MongoDB memory provider, builds an agent that saves and recalls
+memories, and runs the agent twice to show that it retrieves
+information from a previous run.
+
+In this tutorial, you perform the following tasks:
+
+#. Set up your environment.
+#. Build an agent that has persistent memory.
+#. Run the agent and review the output.
+
+Background
+----------
+
+`The Vercel AI SDK <https://ai-sdk.dev>`__ is a TypeScript framework
+for building AI applications and agents. The
+`@mongodb-developer/vercel-ai-memory
+<https://www.npmjs.com/package/@mongodb-developer/vercel-ai-memory>`__
+package provides MongoDB-backed persistent memory for agents built
+with the SDK. The package stores memories in five tiers. To learn more
+about the memory tiers, see :ref:`vercel-ai`.
+
+This tutorial uses the memory tool commands that the package exposes
+to the agent. The model calls the ``session_recent`` command to
+restore the conversation history at the start of each run, and calls
+the ``session_append`` and ``semantic_save`` commands to store new
+information.
+
+Prerequisites
+-------------
+
+To complete this tutorial, you must have the following resources:
+
+- .. include:: /includes/avs/shared/avs-requirements-cluster.rst
+
+- .. include:: /includes/avs/shared/avs-requirements-openai-api-key.rst
+
+- .. include:: /includes/avs/shared/avs-requirements-voyageai-api-key.rst
+
+  This tutorial configures a base URL that routes embedding requests
+  to MongoDB's Voyage AI endpoint. If you generated your API key
+  directly from Voyage AI, remove the ``baseURL`` option specified
+  in the :ref:`memory provider step <vercel-ai-create-provider>`.
+
+- Node.js and npm.
+
+Set Up the Environment
+----------------------
+
+In this section, you prepare your environment by installing the
+required dependencies, setting your environment variables, and
+creating a project file.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Install dependencies.
+
+      Run the following commands in your terminal to create a new
+      directory named ``vercel-ai-mongodb-project`` and install the
+      required dependencies:
+
+      .. code-block:: bash
+
+         mkdir vercel-ai-mongodb-project
+         cd vercel-ai-mongodb-project
+         npm init -y
+         npm install @mongodb-developer/vercel-ai-memory ai mongodb zod @ai-sdk/openai voyage-ai-provider dotenv
+         npm install --save-dev tsx @types/node
+
+   .. step:: Set your environment variables.
+
+      In your ``vercel-ai-mongodb-project`` directory, create a
+      ``.env`` file and add the following code:
+
+      .. code-block:: bash
+
+         OPENAI_API_KEY="<openai-api-key>"
+         VOYAGE_API_KEY="<voyage-api-key>"
+         MONGODB_URI="<connection-string>"
+
+      .. include:: /includes/search-shared/find-connection-string.rst
+
+   .. step:: Create a project file.
+
+      In your ``vercel-ai-mongodb-project`` directory, create a file
+      named ``main.ts``. Add the following code to this file to load
+      your environment variables and import the required modules:
+
+      .. code-block:: typescript
+
+         import 'dotenv/config'
+         import { createMongoDBMemory } from '@mongodb-developer/vercel-ai-memory'
+         import { createVoyage } from 'voyage-ai-provider'
+         import { openai } from '@ai-sdk/openai'
+         import { ToolLoopAgent } from 'ai'
+
+      In future steps, you add code to this file to create the memory
+      provider and build your agent.
+
+Build an Agent
+--------------
+
+In this section, you create a MongoDB memory provider, build an agent
+that uses the provider to store and retrieve memories, and add the
+code that runs the agent.
+
+.. procedure::
+   :style: normal
+
+   .. _vercel-ai-create-provider:
+
+   .. step:: Create the memory provider.
+
+      Add the following code to your ``main.ts`` file to create a
+      Voyage AI client and a memory provider that uses a Voyage AI
+      embedding model:
+
+      .. code-block:: typescript
+
+         const voyage = createVoyage({
+           apiKey: process.env.VOYAGE_API_KEY,
+           baseURL: 'https://ai.mongodb.com/v1',
+         })
+
+         const mongodbMemory = createMongoDBMemory({
+           uri: process.env.MONGODB_URI!,
+           embedder: voyage.embeddingModel('voyage-4'),
+         })
+      
+      .. important::
+
+         Voyage AI API keys that you create in {+service+} require the
+         MongoDB Voyage AI endpoint, which the ``baseURL`` option
+         specifies. If you generated your API key directly from Voyage AI,
+         remove the ``baseURL`` option.
+
+      The provider connects to MongoDB on first use and
+      creates the ``agent_memory`` database. Then, it adds one collection for
+      each memory tier to the database. The provider also creates
+      the {+avs+} indexes that semantic recall requires. To learn
+      more about the collections and indexes that the provider creates,
+      see :ref:`Collections and Indexes <vercel-ai-collections>` in the Vercel AI SDK
+      reference.
+
+   .. step:: Create the agent.
+
+      Add the following code to your ``main.ts`` file to create an
+      agent whose memory tools are scoped to one user and session:
+
+      .. code-block:: typescript
+
+         const agent = new ToolLoopAgent({
+           model: openai('gpt-4.1'),
+           tools: mongodbMemory({ userId: 'alice', sessionId: 'sess-001' }),
+           instructions: `You are an assistant with persistent memory.
+             At the start of every conversation, call session_recent to
+             restore context and semantic_search to recall facts about
+             the user. Save each conversation turn with session_append.
+             Save important facts about the user with semantic_save.`,
+         })
+
+      The instructions tell the model which memory commands to call.
+      The ``userId`` and ``sessionId`` values scope the memories that
+      the agent stores and retrieves.
+
+   .. step:: Add the code that runs the agent.
+
+      Add the following code to your ``main.ts`` file to pass a
+      prompt to the agent from the command line, print the response,
+      and close the MongoDB connection:
+
+      .. code-block:: typescript
+
+         async function main() {
+           const prompt = process.argv[2]
+
+           if (!prompt) {
+             console.error('Usage: npx tsx main.ts "<your message>"')
+             process.exit(1)
+           }
+
+           const result = await agent.generate({ prompt })
+           console.log('[agent]:', result.text)
+
+           await mongodbMemory.close()
+         }
+
+         main().catch((error) => {
+           console.error(error)
+           process.exit(1)
+         })
+
+Run the Agent
+-------------
+
+In this section, you run the ``main.ts`` file and provide
+information to your agent. Then, you run the agent again and prompt
+it to recall this information.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Run the agent and provide personal information.
+
+      From your ``vercel-ai-mongodb-project`` directory, run the
+      following command:
+
+      .. code-block:: bash
+
+         npx tsx main.ts "I'm a marine biologist who studies emperor penguins in Antarctica. Remember that."
+
+      If the command runs successfully, the output resembles the
+      following:
+
+      .. code-block:: text
+         :copyable: false
+
+         [agent]: I've noted that you are a marine biologist studying emperor
+         penguins in Antarctica.
+
+   .. step:: Prompt the agent to recall information.
+
+      Run the agent again and pass the following prompt that asks the
+      agent to recall previous information:
+
+      .. code-block:: bash
+
+         npx tsx main.ts "What do I study, and where?"
+
+      The output resembles the following:
+
+      .. code-block:: text
+         :copyable: false
+
+         [agent]: You are a marine biologist who studies emperor penguins in
+         Antarctica.
+
+      The agent uses memory to answer the prompt. Both runs pass the
+      same ``userId`` and ``sessionId`` values, so the model calls the
+      ``session_recent`` and ``semantic_search`` commands at the start
+      of the second run. These commands restore the conversation and
+      the memories that the first run stored in MongoDB.
+
+      .. note::
+
+         The {+avs+} indexes build asynchronously after the first run.
+         If the agent doesn't recall the information, wait a few
+         seconds and run the command again.
+
+Next Steps
+----------
+
+To learn more about the memory provider, including the full parameter
+reference, the retention and topology options, and all memory tool
+commands, see :ref:`vercel-ai`.
+
+To learn more about the Vercel AI SDK, see the
+`Vercel AI SDK documentation <https://ai-sdk.dev/docs/agents/memory>`__.
