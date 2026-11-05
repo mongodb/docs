@@ -106,4 +106,10 @@ export const COMMANDS: Record<string, CommandHandler> = {
     const runId = flags.run ? String(flags.run) : readManifestLatest(cfg, project);
     process.exit(await runEval(project, runId));
   },
+  suite: async (flags) => {
+    const configFile = flags.config ? String(flags.config) : '';
+    if (!configFile) throw new Error('--config is required');
+    const { runSuite } = await import('../suite/run.js');
+    process.exit(await runSuite({ configFile, force: flags.force === true, dryRun: flags['dry-run'] === true }));
+  },
 };

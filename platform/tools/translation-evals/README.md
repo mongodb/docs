@@ -432,6 +432,90 @@ forced to the nearest candidate, so it may be mislabelled or missed;
 constraining the candidates is what makes the closely related
 Spanish/Portuguese case reliable.
 
+### suite
+
+```
+pnpm suite --config suites/manual.yaml
+```
+
+Runs a whole evaluation batch: it expands the config into one iteration per
+(translator, repeat), then for each iteration runs the full stage pipeline —
+`translate` through `eval` — against a fresh run seeded from the base run. The
+`resolve` and `scrape-prod` stages run once for the whole batch, so every
+iteration shares one production scrape. The run prints the production-scrape
+yield (pages x locales present under `prod/`) after the base run and in the
+final summary, and marks it `DEGRADED` when `scrape-prod` skipped any page.
+
+Every stage of an iteration runs with that iteration's `TRANSLATOR_BACKEND`,
+`TRANSLATOR_MODEL`, and `TARGET_LOCALES`, and the batch `judge` as
+`JUDGE_MODEL`, so each Braintrust experiment is named and tagged with the
+translator that produced it. `EVAL_EXPERIMENT_NAME` is ignored, because it would
+give every iteration the same experiment name. The state file records each
+iteration's experiment name, and the summary lists it.
+
+`content-mdx/<project>` is snapshotted once per batch and restored before every
+`translate` and `serve`, and again when the batch ends or is interrupted, so
+each iteration starts from the English source and the tree is left clean.
+Before it starts and before each iteration and `serve`, the run checks that
+`localhost:3000` is free and fails with an error if it is not. A copy of the
+config is kept at `data/<project>/<name>/suite/config.yaml`.
+
+The batch is described in a YAML config file. Fields:
+
+| Field | Type | Description |
+|---|---|---|
+| `name` | string | Batch name: letters, digits, `.`, `_`, and `-`. State lives under `data/<project>/<name>/suite/`. |
+| `project` | string | Path under `content-mdx/`, as for `resolve`. |
+| `pages` | string | Path to the eval page list, as for `resolve --pages`. |
+| `locales` | list of strings | Target locales for every iteration. |
+| `judge` | string | Judge model. The batch passes it to the `eval` stage as `JUDGE_MODEL`, overriding any `JUDGE_MODEL` in `.env`, so you do not need to set both. Fixed for the whole batch, so scores are comparable across translators. |
+| `repeats` | integer >= 1 | How many times to repeat each translator. |
+| `translators` | list of mappings | Each has `backend` (`openai`, `anthropic`, `aws-translate`, or `stub`) and an optional `model`. Duplicates are rejected. A `model` equal to `judge` prints a warning. |
+
+The judge is fixed per batch while the translator sweeps: the config expands to
+`translators x repeats` iterations, each scored against the same judge.
+
+A failed iteration is recorded in the batch state and the batch moves on to the
+next one. Re-running the same config resumes: completed and partial iterations
+are skipped, failed and interrupted ones are re-attempted automatically, and
+stale iterations (the project, pages file, locales, or judge changed) fail
+the run unless you pass `--force`. Changing a translator does not make an
+iteration stale; it creates a new iteration. When the project, pages file, or
+locales changed, `--force` also re-runs `resolve` and `scrape-prod` so the new
+iterations are seeded from a matching base run.
+
+Ctrl-C (or `SIGTERM`) stops the running stage, marks the current iteration
+`failed`, restores `content-mdx/<project>`, and exits non-zero. The command
+exits non-zero when any iteration in the batch ended `failed` or none
+succeeded, and zero otherwise.
+
+Flags:
+
+| Flag | Required | Description |
+|---|---|---|
+| `--config <file>` | Yes | Path to the batch config YAML. |
+| `--force` | No | Re-runs every iteration, not just stale ones, bypassing the stale-iteration error. Re-runs `resolve` and `scrape-prod` when the project, pages file, or locales changed. |
+| `--dry-run` | No | Prints what a run would do and exits without running anything: whether the base run would run, then one line per iteration marked `run` (with its translator environment), `skip`, or `stale`. |
+
+Example config:
+
+```yaml
+name: manual-sweep
+project: manual/manual
+pages: pages/manual.txt
+locales: [es, ja-jp]
+judge: claude-opus-5-5
+repeats: 2
+translators:
+  - backend: openai
+    model: gpt-5.5
+  - backend: anthropic
+    model: claude-sonnet-4-5
+  - backend: aws-translate
+```
+
+This runs six iterations: each of the three translators twice.
+
 ## End-to-end example
 
 Evaluate the unversioned manual in Spanish:
