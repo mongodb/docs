@@ -150,9 +150,11 @@ The following considerations apply to the Native Integration of |service| in Ver
   An installed product (resource) in Vercel maps to a project and cluster in |service|.
 
 - **API Access**
-  
+
   Vercel requires programmatic access to |service| APIs to create and manage
   resources on behalf of users and to propagate environmental changes.
+  Vercel also accesses the |service|-managed MongoDB MCP Server through Vercel
+  agents. To learn more, see :ref:`vercel-mcp`.
 
 .. _vercel-sso:
 
@@ -232,9 +234,11 @@ The following considerations apply to the Native Integration of |service| in Ver
   for the |service| Organization, as well as daily usage costs.
 
 - **Security**
-  
+
   |service| ensures secure connections via SCRAM authentication with IP allowlists
   for |service| clusters that you create through the Native Integration in Vercel.
+  Vercel agent access to the MongoDB MCP Server uses short-lived
+  tokens that work only with the MCP Server.
 
 - **Deletion or Uninstallation of the Native Integration**
   
@@ -254,6 +258,9 @@ The following considerations apply to the Native Integration of |service| in Ver
   You can't uninstall or unlink the Native Integration from the {+atlas-ui+},
   although you can always delete your resources in |service|. If you delete a
   Vercel-linked cluster, this is reflected in the Vercel UI.
+
+  Uninstalling the Native Integration also removes all Vercel MCP
+  configurations in the |service| organization.
 
 - **Getting Started in Vercel UI for Next.js**
 
@@ -369,6 +376,82 @@ MongoDB integrates with Vercel's `v0 <https://v0.app/>`__ AI-assisted
 application builder. To use this integration, specify that you want to
 build your application with MongoDB. The integration then automatically
 configures MongoDB as your application's backing database.
+
+.. _vercel-mcp:
+
+MongoDB MCP Server Availability for Vercel Agents
+-------------------------------------------------
+
+Vercel agents can work with the data in your Vercel-managed |service|
+{+clusters+} through the MongoDB MCP Server. The MCP Server exposes
+tools that let an agent query, inspect, and change your data in
+response to natural-language prompts. To learn which tools the MCP
+Server exposes, see :ref:`mcp-server-tools`.
+
+The following considerations apply to MCP Server availability:
+
+- You don't need to configure anything beyond installing the |service-fullname| Native 
+  Integration from the Vercel marketplace. The managed MongoDB MCP Server comes packaged with the
+  integration.
+- Agent conversations in both the :guilabel:`Agent Tools` tab of the
+  Vercel :guilabel:`Storage` view and in v0 have access to the tools
+  that the MCP Server exposes.
+
+MongoDB MCP Server Access for Vercel
+------------------------------------
+
+Vercel agents reach the MongoDB MCP Server through Vercel-managed MCP
+configurations. |service| provisions an MCP configuration the first
+time an agent tries to use a MongoDB MCP Server tool. To learn how MCP
+configurations grant access, see
+:ref:`remote-mcp-access-models-programmatic`.
+
+|service| manages these MCP configurations for you. You can view them
+in the {+atlas-ui+} and through the {+atlas-admin-api+}, but you can't
+modify them.
+
+|service| grants an agent access based on the Vercel role of the user
+who drives the agent conversation:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - Vercel Role
+     - |service| Role
+
+   * - Owner and Member
+     - :authrole:`Organization Owner`
+
+   * - All other roles, Developer, Viewer, and
+       Billing
+     - :authrole:`Organization Read Only`
+
+An agent has organization-level access under these roles. Agents can
+interact with any project and {+cluster+} in the |service|
+organization that Vercel manages. In some cases, Vercel scopes the
+agent to a single Vercel resource through its system prompt, such as
+when you use the agent from the :guilabel:`Storage` view. This scoping
+doesn't prevent the agent from reaching other projects and
+{+clusters+} in the same |service| organization.
+
+Read-Only Mode
+--------------
+
+Vercel agents start in read-only mode. In read-only mode, an agent
+sees only the tools that read data and can't call the tools that
+change it.
+
+Read-only mode applies to each user separately. The :guilabel:`Agent
+Tools` tab provides a toggle that turns read-only mode on or off for
+your own agent conversations. v0 doesn't provide an equivalent toggle.
+Instead, v0 uses an approval setting that asks you to approve each
+MongoDB tool call by default.
+
+Turning off read-only mode doesn't grant extra permissions. If your
+Vercel role maps to the :authrole:`Organization Read Only` role, you
+can still see the tools that change data, but those tools fail when
+the agent runs them.
 
 Contact Support
 ~~~~~~~~~~~~~~~
