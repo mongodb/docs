@@ -1,9 +1,7 @@
 import { useState, useEffect, useId } from 'react';
-import styled from '@emotion/styled';
-import TextArea from '@leafygreen-ui/text-area';
-import TextInput from '@leafygreen-ui/text-input';
-import Button from '@leafygreen-ui/button';
-import { palette } from '@leafygreen-ui/palette';
+import { Button } from '@via-ds/components/button';
+import { TextArea } from '@via-ds/components/text-area';
+import { TextField } from '@via-ds/components/text-field';
 import Loadable from '@loadable/component';
 import sanitizeHtml from 'sanitize-html';
 import { Layout } from '../components/view-components';
@@ -13,7 +11,6 @@ import { useViewport } from '@/hooks/use-viewport';
 import useScreenSize from '@/hooks/use-screen-size';
 import validateEmail from '@/utils/validate-email';
 import StarRating from '../components/star-rating';
-import { theme } from '@/styles/theme';
 import {
   COMMENT_PLACEHOLDER_TEXT,
   COMMENT_PLACEHOLDER_TEXT_LOW,
@@ -21,73 +18,8 @@ import {
   EMAIL_PLACEHOLDER_TEXT,
   FEEDBACK_SUBMIT_BUTTON_TEXT,
 } from '../constants';
+import styles from './comment-view.module.scss';
 const ScreenshotButton = Loadable(() => import('../components/screenshot-button'));
-
-const SubmitButton = styled(Button)`
-  && {
-    display: block;
-    margin-top: 24px;
-    margin-left: auto;
-    width: 55px;
-
-    :focus {
-      box-shadow: 0px 1px 2px rgba(6, 22, 33, 0.3);
-    }
-  }
-`;
-
-const StyledCommentInput = styled(TextArea)`
-  font-size: 13px;
-  height: 140px;
-  width: 100%;
-  z-index: 4;
-
-  textarea {
-    height: 140px;
-  }
-
-  textarea::placeholder {
-    color: ${palette.gray.dark1};
-    line-height: 20px;
-    min-height: 200px !important;
-    border-color: ${palette.gray.base} !important;
-  }
-`;
-
-const StyledEmailInput = styled(TextInput)`
-  margin: ${theme.size.small} 0;
-  min-height: 36px;
-  font-size: 13px;
-  border-color: #89989b !important;
-  width: 100%;
-
-  ::optional {
-    font-size: 300px;
-  }
-
-  div > input {
-    color: initial !important;
-
-    ::placeholder {
-      color: #b8c4c2;
-      height: 40px;
-    }
-
-    // padding within the text input
-    padding-left: 8px !important;
-    padding-right: ${({ state }) => (state === 'error' ? '34px' : '65px')} !important;
-  }
-
-  // optional text styling
-  div > div {
-    font-family: 'Euclid Circular A', 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
-    color: #b8c4c2;
-  }
-`;
-
-const StyledStarRating = styled(StarRating)`
-  margin: 30px 0 ${theme.size.default};
-`;
 
 const useValidation = (inputValue: string, validator: (input: string) => boolean) => {
   const [isValid, setIsValid] = useState<boolean>(() => validator(inputValue));
@@ -139,35 +71,30 @@ const CommentView = () => {
 
   return (
     <Layout>
-      <StyledStarRating handleRatingSelection={setSelectedRating} />
-      {/* TODO(UXE-616): LG forwards aria-label but omits it from its own label
-          guard, so the type demands aria-labelledby. Drop this once the field
-          moves to Via, where aria-label is the supported way to label a field
-          that has no visible label. */}
-      {/* @ts-expect-error -- see above */}
-      <StyledCommentInput
+      <StarRating className={styles.starRating} handleRatingSelection={setSelectedRating} />
+      <TextArea
         id={commentInputId}
         aria-label="Comment Text Box"
+        className={styles.commentInput}
         placeholder={selectedRating < 4 ? COMMENT_PLACEHOLDER_TEXT_LOW : COMMENT_PLACEHOLDER_TEXT}
         value={comment}
-        onChange={(e) => setComment(e.target.value)}
-        baseFontSize={13}
+        onChange={setComment}
       />
-      <StyledEmailInput
+      <TextField
         type="email"
         id={emailInputId}
         aria-label="Email Text Box"
+        className={styles.emailInput}
         placeholder={EMAIL_PLACEHOLDER_TEXT}
         value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        onChange={setEmail}
         errorMessage={EMAIL_ERROR_TEXT}
-        state={hasEmailError ? 'error' : 'none'}
-        optional={true}
+        isInvalid={hasEmailError}
       />
       {!isTabletOrMobile && <ScreenshotButton />}
-      <SubmitButton onClick={() => handleSubmit()} size="small" type="submit">
+      <Button className={styles.submitButton} onPress={() => handleSubmit()} type="submit">
         {FEEDBACK_SUBMIT_BUTTON_TEXT}
-      </SubmitButton>
+      </Button>
     </Layout>
   );
 };

@@ -89,8 +89,7 @@ describe('FeedbackWidget comment view labelling', () => {
       </FeedbackProvider>,
     );
 
-    // LG puts the aria-label on the field wrapper as well as the control.
-    expect(screen.getAllByLabelText('Comment Text Box').length).toBeGreaterThan(0);
-    expect(screen.getAllByLabelText('Email Text Box').length).toBeGreaterThan(0);
+    expect(screen.getByLabelText('Comment Text Box')).toBeInstanceOf(HTMLTextAreaElement);
+    expect(screen.getByLabelText('Email Text Box')).toBeInstanceOf(HTMLInputElement);
   });
 });
