@@ -28,10 +28,10 @@
              elif [ -d /sys/kernel/mm/redhat_transparent_hugepage ]; then
                thp_path=/sys/kernel/mm/redhat_transparent_hugepage
              else
-               return 0
+               exit 0
              fi
 
-             echo 'always' | tee ${thp_path}/enabled > /dev/null && echo defer+madvise | tee ${thp_path}/defrag > /dev/null && echo 0 | tee ${thp_path}/khugepaged/max_ptes_none > /dev/null && echo 1 | tee /proc/sys/vm/overcommit_memory > /dev/null'
+             echo 'always' | tee ${thp_path}/enabled > /dev/null && echo defer+madvise | tee ${thp_path}/defrag > /dev/null && echo 0 | tee ${thp_path}/khugepaged/max_ptes_none > /dev/null && echo 1 | tee /proc/sys/vm/overcommit_memory > /dev/null
 
              unset thp_path
              ;;
@@ -79,7 +79,7 @@
 
    .. step:: Configure your operating system to run it on boot 
     
-      To ensure that this setting is applied each time the operating sytem 
+      To ensure that this setting is applied each time the operating system 
       starts, run the following command for your Linux distribution:
 
       .. list-table::

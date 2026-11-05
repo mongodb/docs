@@ -28,10 +28,10 @@
              elif [ -d /sys/kernel/mm/redhat_transparent_hugepage ]; then
                thp_path=/sys/kernel/mm/redhat_transparent_hugepage
              else
-               return 0
+               exit 0
              fi
 
-             echo 'never' | tee /sys/kernel/mm/transparent_hugepage/enabled > /dev/null && echo 'never' | tee /sys/kernel/mm/transparent_hugepage/defrag > /dev/null
+             echo 'never' | tee ${thp_path}/enabled > /dev/null && echo 'never' | tee ${thp_path}/defrag > /dev/null
 
              unset thp_path
              ;;
@@ -77,7 +77,7 @@
 
    .. step:: Configure your operating system to run it on boot 
     
-      To ensure that this setting is applied each time the operating sytem 
+      To ensure that this setting is applied each time the operating system 
       starts, run the following command for your Linux distribution:
 
       .. list-table::
