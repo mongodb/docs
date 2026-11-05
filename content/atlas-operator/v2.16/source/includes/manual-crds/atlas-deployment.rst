@@ -191,7 +191,7 @@ Configuration for the advanced (v1.5) deployment API `https://www.mongodb.com/do
    * -  ``backupEnabled``
      - boolean
      - Flag that indicates if the deployment uses Cloud Backups for backups.
-       Applicable only for ``M10``+ deployments.
+       Applicable only for ``M10`` and larger deployments.
      - false
 
    * -  ``biConnector``
