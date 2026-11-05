@@ -49,6 +49,7 @@ export async function translate(
     segments.map((segment) => segment.source_text),
     glossary.translatableTerms,
     resolved.target_locale,
+    nonTranslatableTerms,
   );
 
   const batch: TranslationBatchRequest = {

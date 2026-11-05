@@ -271,6 +271,34 @@ describe("translate", () => {
       expect(seen[0]?.term_sheet).toEqual([]);
     });
 
+    const variationGlossary = {
+      nonTranslatableTerms: ["Windows"],
+      translatableTerms: {
+        driver: [{ definition: "a client library", translations: { es: "driver" } }],
+        window: [{ definition: "a screen area", translations: { es: "ventana" } }],
+      },
+    };
+
+    it("puts a term matched by its plural on the batch", async () => {
+      const seen: TranslationBatchRequest[] = [];
+      await translate(
+        { source_locale: "en", target_locale: "es", payload: { intro: "Install the drivers." } },
+        { backend: spyBackend(seen), glossary: variationGlossary },
+      );
+      expect(seen[0]?.term_sheet).toEqual([
+        { term: "driver", options: [{ option: "driver", definition: "a client library" }] },
+      ]);
+    });
+
+    it("does not list a term whose plural is a non-translatable term", async () => {
+      const seen: TranslationBatchRequest[] = [];
+      await translate(
+        { source_locale: "en", target_locale: "es", payload: { intro: "Open Windows." } },
+        { backend: spyBackend(seen), glossary: variationGlossary },
+      );
+      expect(seen[0]?.term_sheet).toEqual([]);
+    });
+
     it("uses the bundled glossary by default", async () => {
       const seen: TranslationBatchRequest[] = [];
       await translate(
