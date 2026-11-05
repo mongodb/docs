@@ -166,22 +166,39 @@ function parseSnippetOutputs(content, sourceFilename) {
   return { outputs, directoryOnlySnippets, duplicateOutputSnippets };
 }
 
-// Strip the ":snippet-output:" tag from generated content and prepend a note
-// identifying the source file. Generated files are overwritten on every sync,
-// so the note directs editors to the source file instead.
+// Matches a ref label definition such as ".. _my-label:". Hyperlink targets
+// that carry a URL after the colon are not labels and do not match.
+const REF_LABEL_PATTERN = /^\.\.\s+_([^\s:][^:]*):\s*$/;
+
+// Strip the ":snippet-output:" tag and any ref label definitions from
+// generated content, then prepend a note identifying the source file. A label
+// copied into a target docset would duplicate the source's label, so it is
+// dropped along with the blank line that follows it. Generated files are
+// overwritten on every sync, so the note directs editors to the source file
+// instead. Returns the formatted content and the labels that were removed.
 function formatGeneratedSnippet(content, sourceRelativePath) {
-  const body = content
-    .split("\n")
-    .filter((line) => !/^\.\.\s*:snippet-output:/.test(line.trim()))
-    .join("\n")
-    .replace(/^\n+/, "");
+  const removedLabels = [];
+  const lines = content.split("\n");
+  const kept = [];
+  for (let i = 0; i < lines.length; i++) {
+    const trimmed = lines[i].trim();
+    if (/^\.\.\s*:snippet-output:/.test(trimmed)) continue;
+    const labelMatch = trimmed.match(REF_LABEL_PATTERN);
+    if (labelMatch) {
+      removedLabels.push(labelMatch[1]);
+      if (i + 1 < lines.length && lines[i + 1].trim() === "") i++;
+      continue;
+    }
+    kept.push(lines[i]);
+  }
+  const body = kept.join("\n").replace(/^\n+/, "");
   const header = [
     `.. This file is snippet output generated from ${sourceRelativePath}.`,
     "   Do not modify this file. Edit the source file instead.",
     "",
     "",
   ].join("\n");
-  return header + body;
+  return { content: header + body, removedLabels };
 }
 
 // Extract every named snippet identifier declared via ":snippet-start:" in a
@@ -865,10 +882,15 @@ function snipFile(filePath, outputDirectory, sourceDocset) {
     const customPaths = snippetName ? customOutputs.get(snippetName) : null;
 
     if (customPaths && customPaths.length > 0) {
-      const generatedContent = formatGeneratedSnippet(
+      const { content: generatedContent, removedLabels } = formatGeneratedSnippet(
         fs.readFileSync(writtenPath, "utf8"),
         sourceRelativePath
       );
+      if (removedLabels.length > 0) {
+        console.warn(
+          `  ⚠ Ref label(s) in snippet "${snippetName}" of ${sourceRelativePath} not copied to output: ${removedLabels.join(", ")}. Move labels outside the :snippet-start:/:snippet-end: block.`
+        );
+      }
       for (const customPath of customPaths) {
         // Append "-snippet-from-<source>" suffix to the output path
         const targetPath = resolvePathFromGitRoot(appendFromSuffix(customPath, sourceDocset));

@@ -52,6 +52,7 @@ Source files MUST contain these exact RST comments:
 - Snippet names MUST be unique within a file — STOP on duplicate `:snippet-start:` names
 - Each block MUST have exactly one `:snippet-output:` — use comma-separated paths for multiple destinations, not repeated tags
 - Output filename gets `-snippet-from-<source>` suffix automatically (do NOT add manually)
+- Ref label definitions (`.. _<label>:`) inside a `:snippet-start:`/`:snippet-end:` block are NOT copied to the output — a copy would duplicate the source docset's label. `snip.js` drops each label line and the blank line after it, and prints `⚠ Ref label(s) in snippet "<name>" of <file> not copied to output: <labels>`. Hyperlink targets with a URL (`.. _name: https://...`) are kept. Before adding or syncing, scan each block for label lines; if any exist, WARN the user that they will be dropped and suggest moving them above `:snippet-start:` in the source file
 - Files in `code-examples/tested/` are FORBIDDEN — STOP immediately if detected. `snip.js` also enforces this: it skips these paths during directory traversal and rejects an explicit `--add` with `Excluded path, not added: <file>`
 
 **References:**
@@ -205,6 +206,7 @@ cd content/search/source && npm run snip -- --validate        # 7.
 | Repeated `:snippet-output:` in one block | STOP. Tell user: "Use one tag with comma-separated paths" |
 | `:snippet-output:` path has no file extension | STOP. Tell user: "Add the file extension, for example `.rst`" |
 | `--sync` reports `✗ Invalid: <file>` | STOP. The file was skipped and `--sync` exited non-zero. Fix the markers, then re-run |
+| Output reports `⚠ Ref label(s) ... not copied to output` | WARN the user which labels were dropped. Generation still succeeded. Suggest moving the labels outside the snippet block, and check that no `:ref:` in the target docset expects them |
 | `--sync` or `--validate` reports untracked snippet | Run `--sync` to add it to the manifest and generate its output |
 | Merge conflict in `snippet-manifest.json` | Do NOT hand-merge hashes. Resolve the source files, take either side of the manifest, then run `--sync` and `--validate`. See "Resolving Merge Conflicts" in `references/manifest-schema.md` |
 | `--sync` or `--validate` reports output path changed | Run `--sync` to delete the stale output and regenerate at the new path |
