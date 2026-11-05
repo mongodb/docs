@@ -27,6 +27,16 @@ export const loadVersioningFromCheckout = async ({
   const versioningPath = path.join(repoRoot, 'platform', 'versioning');
   const artifactPath = path.join(repoRoot, CATALOG_ARTIFACT);
 
+  // onPreBuild runs before the [build] command's install, so `tsx` may be missing.
+  await run.command(
+    `node ${path.join(repoRoot, 'platform', 'scripts', 'install-deps.mjs')} --filter versioning...`,
+    {
+      cwd: versioningPath,
+      stdout: 'inherit',
+      stderr: 'inherit',
+    },
+  );
+
   // Generated here rather than committed: the TypeScript files are the source
   // of truth, and the emit is JSON.stringify(docsets) with no reshaping.
   await run.command('pnpm run emit', {
