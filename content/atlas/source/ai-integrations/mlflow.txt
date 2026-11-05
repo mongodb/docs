@@ -15,7 +15,7 @@ Get Started with the MLflow Integration
    :values: python
 
 .. meta::
-   :description: Store MLflow experiments, runs, registered models, and traces in MongoDB Atlas. Install the MLflow backend, log a run, register a model, and trace an agent.
+   :description: Store MLflow experiments, runs, registered models, and traces in MongoDB. Install the MLflow backend, log a run, register a model, and trace an agent.
    :keywords: observability, tracing, model registry, experiment tracking, GenAI, python, code example
 
 .. contents:: On this page
@@ -24,12 +24,14 @@ Get Started with the MLflow Integration
    :depth: 1
    :class: singlecol
 
-You can integrate MongoDB with `MLflow <https://mlflow.org/>`__ to store
-your MLflow tracking and model registry data in |service|. MLflow is an
-open-source platform for managing the lifecycle of machine learning and
-GenAI applications. This page shows how to configure MLflow to use
-|service|, log a run, register a model, and capture traces from a GenAI
-application.
+You can integrate MongoDB with `MLflow <https://mlflow.org/>`__ to
+store your MLflow tracking and model registry data in MongoDB. MLflow
+is an open-source platform for managing the lifecycle of machine
+learning and GenAI applications. The ``mlflow-mongodb`` integration
+works with |service|, MongoDB Enterprise Advanced, and MongoDB
+Community Edition deployments that run MongoDB 8.0 or later. This page
+shows how to configure MLflow to use MongoDB, log a run, register a
+model, and capture traces from a GenAI application.
 
 Overview
 --------
@@ -66,21 +68,30 @@ Prerequisites
 
 Before you begin, ensure that you have the following:
 
-- An :ref:`{+service+} cluster <create-new-cluster>` that runs MongoDB
-  version 8.0 or later.
-- A :ref:`database user <mongodb-users>` with read and write access
-  to the database that stores your MLflow data.
-- Network access to your cluster from your MLflow server. Ensure that
-  the IP address of your MLflow server is included in your |service|
-  project's :ref:`access list <access-list>`.
+- A MongoDB deployment that runs MongoDB version 8.0 or later.
+- A database user with read and write access to the database that
+  stores your MLflow data.
+- Network access from your MLflow server to the deployment.
 - Python 3.11 through 3.14.
 - MLflow 3.5 or a later 3.x release.
+
+.. note::
+
+   The setup steps differ by deployment type:
+
+   - |service|: Create a :ref:`database user <mongodb-users>`. Then
+     add the IP address of your MLflow server to your project's
+     :ref:`access list <access-list>`.
+   - Enterprise Advanced and Community Edition: :manual:`Create a user
+     </tutorial/create-users/>` with the ``readWrite`` role on the
+     database that stores your MLflow data. Ensure that your MLflow
+     server can connect to the host and port of the deployment.
 
 Install and Configure
 ---------------------
 
 The following procedure installs the ``mlflow-mongodb`` package and
-starts an MLflow server that stores data in |service|:
+starts an MLflow server that stores data in MongoDB:
 
 .. procedure::
    :style: normal
@@ -97,18 +108,33 @@ starts an MLflow server that stores data in |service|:
 
    .. step:: Prepare your connection string.
 
-      To find your |service| connection string, see
-      :ref:`connect-via-driver`.
+      The plugin requires the name of the database that stores your
+      MLflow data in the path of the connection string. Replace the
+      placeholders in the following connection strings with your values:
 
-      The plugin requires a database name in the path of the
-      connection string. Replace the placeholders in the following
-      connection string with your values, including the name of the
-      database that stores your MLflow data:
+      .. tabs::
 
-      .. code-block:: text
-         :copyable: true
+         .. tab:: |service|
+            :tabid: atlas
 
-         mongodb+srv://<db_username>:<db_password>@<cluster-host>/<database>?retryWrites=true&w=majority
+            .. code-block:: text
+               :copyable: true
+
+               mongodb+srv://<db_username>:<db_password>@<cluster-host>/<database>?retryWrites=true&w=majority
+
+            To find your |service| connection string, see
+            :ref:`connect-via-driver`.
+
+         .. tab:: Self-Managed
+            :tabid: self-managed
+
+            .. code-block:: text
+               :copyable: true
+
+               mongodb://<db_username>:<db_password>@<host>:<port>/<database>?retryWrites=true&w=majority
+
+            To learn more about self-managed connection strings, see
+            :manual:`Connection Strings </reference/connection-string/>`.
 
    .. step:: Start the MLflow server.
 
@@ -138,7 +164,7 @@ Log a Run
 ---------
 
 The following procedure logs a run that stores a parameter, a metric,
-and an artifact in |service|:
+and an artifact:
 
 .. procedure::
    :style: normal
@@ -183,7 +209,8 @@ and an artifact in |service|:
          python log_run.py
 
       The output includes the run ID. MLflow stores the experiment,
-      run, parameters, metrics, and artifact in |service|.
+      run, parameters, and metrics in MongoDB, and the artifact in the
+      artifact store that you configured.
 
    .. step:: View the run in the MLflow UI.
 
@@ -272,7 +299,7 @@ Tracing and GenAI Observability
 
 MLflow Tracing records the inputs, outputs, and duration of each step
 in your LLM application or agent. When you use MongoDB for the tracking
-store, MLflow stores traces and their spans in |service|.
+store, MLflow stores traces and their spans in MongoDB.
 
 .. procedure::
    :style: normal
@@ -330,8 +357,8 @@ store, MLflow stores traces and their spans in |service|.
 
    Trace storage and retrieval depend on your MLflow version. MLflow
    3.5 clients upload full trace payloads to the experiment's artifact
-   store. |service| stores the spans. On MLflow 3.6 and later, clients
-   retrieve traces directly from |service|. Aggregated trace metrics
+   store. MongoDB stores the spans. On MLflow 3.6 and later, clients
+   retrieve traces directly from MongoDB. Aggregated trace metrics
    require MLflow 3.9 or later.
 
 Next Steps
