@@ -55,14 +55,8 @@ const tocData: TocItem[] = [
       {
         label: 'Configure',
         contentSite: 'mongodb-shell',
-        url: '/docs/mongodb-shell/configure-mongosh',
         collapsible: true,
         items: [
-          {
-            label: 'Use an Editor',
-            contentSite: 'mongodb-shell',
-            url: '/docs/mongodb-shell/reference/editor-mode',
-          },
           {
             label: 'Configure Settings',
             contentSite: 'mongodb-shell',
@@ -97,6 +91,14 @@ const tocData: TocItem[] = [
         label: 'Run Commands',
         contentSite: 'mongodb-shell',
         url: '/docs/mongodb-shell/run-commands',
+        collapsible: true,
+        items: [
+          {
+            label: 'Use an Editor',
+            contentSite: 'mongodb-shell',
+            url: '/docs/mongodb-shell/run-commands/editor-mode',
+          },
+        ],
       },
       {
         label: 'Perform CRUD Operations',
