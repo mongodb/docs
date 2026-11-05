@@ -329,6 +329,18 @@ const tocData: TocItem[] = [
         ],
       },
       {
+        label: 'Observability',
+        contentSite: 'cloud-docs',
+        collapsible: true,
+        items: [
+          {
+            label: 'MLflow',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/ai-integrations/mlflow',
+          },
+        ],
+      },
+      {
         label: 'API Resources',
         contentSite: 'cloud-docs',
         collapsible: true,

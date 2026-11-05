@@ -1,0 +1,362 @@
+.. _mlflow-get-started:
+
+=======================================
+Get Started with the MLflow Integration
+=======================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. meta::
+   :description: Store MLflow experiments, runs, registered models, and traces in MongoDB Atlas. Install the MLflow backend, log a run, register a model, and trace an agent.
+   :keywords: observability, tracing, model registry, experiment tracking, GenAI, python, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can integrate MongoDB with `MLflow <https://mlflow.org/>`__ to store
+your MLflow tracking and model registry data in |service|. MLflow is an
+open-source platform for managing the lifecycle of machine learning and
+GenAI applications. This page shows how to configure MLflow to use
+|service|, log a run, register a model, and capture traces from a GenAI
+application.
+
+Overview
+--------
+
+The ``mlflow-mongodb`` package is an MLflow plugin that runs inside your
+MLflow server. The plugin stores only the following MLflow metadata
+in MongoDB:
+
+- `Tracking <https://mlflow.org/docs/latest/ml/tracking/>`__ data:
+  experiments, runs, parameters, metrics, logged models, and traces. An
+  experiment groups related runs. A run records one execution of your
+  code, including its parameters and metrics. A `trace
+  <https://mlflow.org/docs/latest/genai/tracing/>`__ records the steps
+  of a GenAI application, such as LLM calls and tool calls.
+- `Model registry <https://mlflow.org/docs/latest/ml/model-registry/>`__
+  data: registered models, versions, aliases, tags, and `prompts
+  <https://mlflow.org/docs/latest/genai/prompt-registry/>`__.
+
+Artifacts are the files that your runs produce, such as model files,
+images, and trace payloads. MLflow writes artifacts to a separate
+`artifact store
+<https://mlflow.org/docs/latest/self-hosting/architecture/artifact-store/>`__,
+not to MongoDB. This tutorial stores artifacts on the local disk of the
+MLflow server. For production deployments, configure an artifact store
+such as Amazon S3.
+
+You can configure the tracking store and the model registry store
+independently. For example, one store can use MongoDB while the other
+uses a different MLflow backend. This tutorial uses MongoDB for both
+stores.
+
+Prerequisites
+-------------
+
+Before you begin, ensure that you have the following:
+
+- An :ref:`{+service+} cluster <create-new-cluster>` that runs MongoDB
+  version 8.0 or later.
+- A :ref:`database user <mongodb-users>` with read and write access
+  to the database that stores your MLflow data.
+- Network access to your cluster from your MLflow server. Ensure that
+  the IP address of your MLflow server is included in your |service|
+  project's :ref:`access list <access-list>`.
+- Python 3.11 through 3.14.
+- MLflow 3.5 or a later 3.x release.
+
+Install and Configure
+---------------------
+
+The following procedure installs the ``mlflow-mongodb`` package and
+starts an MLflow server that stores data in |service|:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Install the ``mlflow-mongodb`` package.
+
+      Run the following command to install the ``mlflow-mongodb``
+      package. The package also installs MLflow.
+
+      .. code-block:: shell
+         :copyable: true
+
+         python -m pip install mlflow-mongodb
+
+   .. step:: Prepare your connection string.
+
+      To find your |service| connection string, see
+      :ref:`connect-via-driver`.
+
+      The plugin requires a database name in the path of the
+      connection string. Replace the placeholders in the following
+      connection string with your values, including the name of the
+      database that stores your MLflow data:
+
+      .. code-block:: text
+         :copyable: true
+
+         mongodb+srv://<db_username>:<db_password>@<cluster-host>/<database>?retryWrites=true&w=majority
+
+   .. step:: Start the MLflow server.
+
+      Run the following commands to start the server. Replace
+      ``<connection-string>`` with the connection string from the
+      previous step:
+
+      .. code-block:: shell
+         :copyable: true
+
+         export TRACKING_STORE_URI="<connection-string>"
+         export REGISTRY_STORE_URI="<connection-string>"
+         export MLFLOW_BIND_HOST="127.0.0.1"
+         export MLFLOW_BIND_PORT="5000"
+
+         mlflow server \
+           --backend-store-uri "${TRACKING_STORE_URI}" \
+           --registry-store-uri "${REGISTRY_STORE_URI}" \
+           --host "${MLFLOW_BIND_HOST}" \
+           --port "${MLFLOW_BIND_PORT}"
+
+      MLflow stores artifacts in the ``mlartifacts`` directory on the
+      server. To view the MLflow UI, open ``http://127.0.0.1:5000`` in
+      your browser.
+
+Log a Run
+---------
+
+The following procedure logs a run that stores a parameter, a metric,
+and an artifact in |service|:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create the example file.
+
+      The following example creates an experiment named
+      ``mongodb-backend-demo``, then starts a run by calling the
+      ``mlflow.start_run()`` method. The run logs the following items:
+
+      - ``model_type`` parameter
+      - ``accuracy`` metric
+      - ``run-summary.txt`` artifact
+
+      The examples in this tutorial connect to the server by calling
+      the ``mlflow.set_tracking_uri()`` method. To connect MLflow
+      clients without changing the client code, set the
+      ``MLFLOW_TRACKING_URI`` environment variable to
+      ``http://127.0.0.1:5000``.
+
+      Save the following code in a file named ``log_run.py``:
+
+      .. code-block:: python
+         :copyable: true
+
+         import mlflow
+
+         mlflow.set_tracking_uri("http://127.0.0.1:5000")
+         mlflow.set_experiment("mongodb-backend-demo")
+
+         with mlflow.start_run() as run:
+             mlflow.log_param("model_type", "example")
+             mlflow.log_metric("accuracy", 0.92)
+             mlflow.log_text("Hello from the MongoDB backend", "run-summary.txt")
+             print("run_id:", run.info.run_id)
+
+   .. step:: Run the file.
+
+      .. code-block:: shell
+         :copyable: true
+
+         python log_run.py
+
+      The output includes the run ID. MLflow stores the experiment,
+      run, parameters, metrics, and artifact in |service|.
+
+   .. step:: View the run in the MLflow UI.
+
+      In your browser, go to ``http://127.0.0.1:5000``, and open the
+      ``mongodb-backend-demo`` experiment. On the :guilabel:`Runs` tab,
+      select the run to view its parameters, metrics, and artifacts.
+      The run in the MLflow UI resembles the following image:
+
+      .. image:: /images/ai-integrations/mlflow-get-started-run.png
+         :alt: MLflow UI showing the run page with the accuracy metric
+               and the model_type parameter.
+         :figwidth: 1200px
+
+Model Registry
+--------------
+
+To register a model, use one of the following methods:
+
+- Pass the ``registered_model_name`` argument when you log a model by
+  using a ``log_model()`` method, such as ``mlflow.pyfunc.log_model()``.
+- Call the ``mlflow.register_model()`` method and pass the URI of a
+  model that a run logged, such as ``runs:/<run-id>/model``.
+
+Each time you register a model with an existing name, MLflow creates a
+new version of that model. To manage versions, use ``MlflowClient``
+methods, such as ``set_registered_model_alias()`` and
+``set_model_version_tag()``.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create the example file.
+
+      The following example calls the ``log_model()`` method and
+      registers the model as ``mongodb-backend-demo-model``. The code
+      then sets the alias and tag. Save the file as
+      ``register_model.py``:
+
+      .. code-block:: python
+         :copyable: true
+
+         import mlflow
+         from mlflow import MlflowClient
+         from mlflow.pyfunc import PythonModel
+
+         mlflow.set_tracking_uri("http://127.0.0.1:5000")
+         mlflow.set_experiment("mongodb-backend-demo")
+
+         class EchoModel(PythonModel):
+             def predict(self, context, model_input):
+                 return model_input
+
+         with mlflow.start_run():
+             mlflow.pyfunc.log_model(
+                 name="model",
+                 python_model=EchoModel(),
+                 registered_model_name="mongodb-backend-demo-model",
+             )
+
+         client = MlflowClient()
+         client.set_registered_model_alias("mongodb-backend-demo-model", "mongo-verified", 1)
+         client.set_model_version_tag("mongodb-backend-demo-model", 1, "validated_by", "doc-test")
+
+   .. step:: Run the file.
+
+      .. code-block:: shell
+         :copyable: true
+
+         python register_model.py
+
+   .. step:: View the model in the MLflow UI.
+
+      In your browser, go to ``http://127.0.0.1:5000``, click
+      :guilabel:`Registered Models`, and select
+      ``mongodb-backend-demo-model`` to view its versions, aliases, and
+      tags. The new model version in the MLflow UI resembles the
+      following image:
+
+      .. image:: /images/ai-integrations/mlflow-get-started-model-registry.png
+         :alt: MLflow UI showing Version 1 of the mongodb-backend-demo-model
+               with the mongo-verified alias and the validated_by tag.
+         :figwidth: 1200px
+
+Tracing and GenAI Observability
+-------------------------------
+
+MLflow Tracing records the inputs, outputs, and duration of each step
+in your LLM application or agent. When you use MongoDB for the tracking
+store, MLflow stores traces and their spans in |service|.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Enable tracing.
+
+      To enable tracing, use one of the following approaches:
+
+      - Call the ``mlflow.<flavor>.autolog()`` method to trace calls to
+        a supported framework or provider, such as OpenAI or LangChain.
+        To learn more, see `Automatic Tracing
+        <https://mlflow.org/docs/latest/genai/tracing/app-instrumentation/automatic/>`__
+        in the MLflow documentation.
+      - Add the ``@mlflow.trace`` decorator to the functions that you
+        want to trace.
+
+      The following example uses the ``@mlflow.trace`` decorator to
+      trace a function that calls an agent. Save the file as
+      ``trace_agent.py``:
+
+      .. code-block:: python
+         :copyable: true
+
+         import mlflow
+
+         mlflow.set_tracking_uri("http://127.0.0.1:5000")
+         mlflow.set_experiment("agent-traces")
+
+         @mlflow.trace
+         def call_agent(prompt: str) -> str:
+             # Replace this line with your actual LLM or agent call
+             return f"Echo: {prompt}"
+
+         call_agent("Summarize this document")
+
+   .. step:: Run the file.
+
+      .. code-block:: shell
+         :copyable: true
+
+         python trace_agent.py
+
+   .. step:: View the trace in the MLflow UI.
+
+      Open the ``agent-traces`` experiment in the MLflow UI and click
+      :guilabel:`Traces`. The trace in the MLflow UI resembles the
+      following image:
+
+      .. image:: /images/ai-integrations/mlflow-get-started-traces.png
+         :alt: MLflow UI showing the Traces tab of the agent-traces
+               experiment with one recorded trace.
+         :figwidth: 1200px
+
+.. note::
+
+   Trace storage and retrieval depend on your MLflow version. MLflow
+   3.5 clients upload full trace payloads to the experiment's artifact
+   store. |service| stores the spans. On MLflow 3.6 and later, clients
+   retrieve traces directly from |service|. Aggregated trace metrics
+   require MLflow 3.9 or later.
+
+Next Steps
+----------
+
+To learn more about MLflow concepts and features, see the following
+MLflow documentation:
+
+- `MLflow Tracking Quickstart
+  <https://mlflow.org/docs/latest/ml/getting-started/quickstart/>`__
+- `Model Registry Tutorials
+  <https://mlflow.org/docs/latest/ml/model-registry/tutorial>`__
+- `MLflow Tracing
+  <https://mlflow.org/docs/latest/genai/tracing/>`__
+
+Learn More
+----------
+
+To learn more about the concepts from this tutorial, see the following
+resources:
+
+- `Backend Stores
+  <https://mlflow.org/docs/latest/self-hosting/architecture/backend-store/>`__
+- `Tracking Server Configuration
+  <https://mlflow.org/docs/latest/self-hosting/architecture/tracking-server/>`__
+- :manual:`Connection Strings </reference/connection-string/>`
+- :github:`MongoDB backend for MLflow repository
+  </mongodb-developer/mlflow-mongodb>`
