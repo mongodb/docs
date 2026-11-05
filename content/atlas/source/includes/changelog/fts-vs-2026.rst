@@ -6,6 +6,16 @@
 - Adds support for binary quantization of ``binData(int8)`` vectors
   for ingestion.
 
+.. _avs20261012:
+
+12 October 2026 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Adds support for setting ``concurrent`` to ``false`` in
+  :pipeline:`$vectorSearch` queries to disable parallel query execution
+  across segments. To learn more, see
+  :ref:`vectorSearch-concurrent-queries`.
+
 .. _fts20260930:
 
 30 September 2026 Release
