@@ -1,0 +1,566 @@
+.. _typescript-packages-agent-engine-sdk-docs-api-interfaces:
+
+@mongodb-js/agent-engine-sdk Interfaces
+=======================================
+
+.. _typescript-packages-agent-engine-sdk-docs-api-agentinput:
+
+AgentInput
+----------
+
+Input for an agent execution. Payload is an opaque JSON value.
+
+Properties
+~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+
+   * - Property
+     - Type
+   * - ``payload``
+     - :ref:`JsonValue <typescript-packages-agent-engine-sdk-docs-api-jsonvalue>`
+
+--------------
+
+.. _typescript-packages-agent-engine-sdk-docs-api-agentoutput:
+
+AgentOutput
+-----------
+
+Output from an agent execution. Response is an opaque JSON value.
+
+Properties
+~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+
+   * - Property
+     - Type
+   * - ``response``
+     - :ref:`JsonValue <typescript-packages-agent-engine-sdk-docs-api-jsonvalue>`
+
+--------------
+
+.. _typescript-packages-agent-engine-sdk-docs-api-baseagent:
+
+BaseAgent
+---------
+
+The contract between agent code and runtimes.
+
+Agents expose a single ``execute()`` method that returns an
+``ExecutionResult``. Callers choose the execution mode:
+
+- ``await agent.execute(ctx, input)`` for a final result (JSON-style)
+- ``for await (const event of agent.execute(ctx, input))`` for streaming
+  (SSE-style)
+
+Methods
+~~~~~~~
+
+.. _typescript-packages-agent-engine-sdk-docs-api-commitcancelledturn:
+
+commitCancelledTurn()?
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: typescript
+
+   optional commitCancelledTurn(ctx, input): Promise<
+     | {
+     checkpoint_id: string;
+     thread_id: string;
+   }
+   | null>;
+
+Checkpoint the cancelled turn so session history can serve it.
+
+The AER calls this from the drain teardown of an execution-cancelled
+run. Optional: only framework adapters backed by a checkpoint store
+(LangGraph) implement it; others omit it and the call is skipped.
+Resolves with the committed checkpoint's coordinate — reported to OE so
+the branch-source selector can fork from the rescued marker — or null
+when nothing was committed.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``ctx``
+     - :ref:`RequestContext <typescript-packages-agent-engine-sdk-docs-api-requestcontext>`
+   * - ``input``
+     - :ref:`AgentInput <typescript-packages-agent-engine-sdk-docs-api-agentinput>`
+
+**Returns**
+
+``Promise``\ < \| { ``checkpoint_id``: ``string``; ``thread_id``:
+``string``; } \| ``null``>
+
+.. _typescript-packages-agent-engine-sdk-docs-api-execute:
+
+execute()
+^^^^^^^^^
+
+.. code-block:: typescript
+
+   execute(ctx, input): ExecutionResult;
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``ctx``
+     - :ref:`RequestContext <typescript-packages-agent-engine-sdk-docs-api-requestcontext>`
+   * - ``input``
+     - :ref:`AgentInput <typescript-packages-agent-engine-sdk-docs-api-agentinput>`
+
+**Returns**
+
+:ref:`ExecutionResult <typescript-packages-agent-engine-sdk-docs-api-executionresult>`
+
+--------------
+
+.. _typescript-packages-agent-engine-sdk-docs-api-baseexecutioncallback:
+
+BaseExecutionCallback
+---------------------
+
+Framework-neutral callback for observability during agent execution.
+
+Replaces LangChain's ``BaseCallbackHandler``. The AER injects an
+implementation that forwards node events to the OE for logging.
+Framework adapters (e.g. sdk-langgraph) bridge from the framework's
+native callback system to this interface.
+
+Prefer subclassing ``NullExecutionCallback`` over implementing this
+interface directly — it provides no-op defaults for all methods
+including optional extensions (e.g. ``onNodeSuspend``) so new methods
+never break existing implementations.
+
+Methods
+~~~~~~~
+
+.. _typescript-packages-agent-engine-sdk-docs-api-onnodeend-1:
+
+onNodeEnd()
+^^^^^^^^^^^
+
+.. code-block:: typescript
+
+   onNodeEnd(
+      nodeName,
+      outputs,
+      opts
+   ): void;
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``nodeName``
+     - ``string``
+   * - ``outputs``
+     - ``Record``\ <``string``, ``unknown``>
+   * - ``opts``
+     - { ``durationMs?``: ``number``; ``metadata?``:
+       ``Record``\ <``string``, ``unknown``>; ``parentRunId?``:
+       ``string``; ``runId``: ``string``; }
+   * - ``opts.durationMs?``
+     - ``number``
+   * - ``opts.metadata?``
+     - ``Record``\ <``string``, ``unknown``>
+   * - ``opts.parentRunId?``
+     - ``string``
+   * - ``opts.runId``
+     - ``string``
+
+**Returns**
+
+``void``
+
+.. _typescript-packages-agent-engine-sdk-docs-api-onnodeerror-1:
+
+onNodeError()
+^^^^^^^^^^^^^
+
+.. code-block:: typescript
+
+   onNodeError(
+      nodeName,
+      error,
+      opts
+   ): void;
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``nodeName``
+     - ``string``
+   * - ``error``
+     - ``string``
+   * - ``opts``
+     - { ``metadata?``: ``Record``\ <``string``, ``unknown``>;
+       ``parentRunId?``: ``string``; ``runId``: ``string``; }
+   * - ``opts.metadata?``
+     - ``Record``\ <``string``, ``unknown``>
+   * - ``opts.parentRunId?``
+     - ``string``
+   * - ``opts.runId``
+     - ``string``
+
+**Returns**
+
+``void``
+
+.. _typescript-packages-agent-engine-sdk-docs-api-onnodestart-1:
+
+onNodeStart()
+^^^^^^^^^^^^^
+
+.. code-block:: typescript
+
+   onNodeStart(
+      nodeName,
+      inputs,
+      opts
+   ): void;
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``nodeName``
+     - ``string``
+   * - ``inputs``
+     - ``Record``\ <``string``, ``unknown``>
+   * - ``opts``
+     - { ``metadata?``: ``Record``\ <``string``, ``unknown``>;
+       ``parentRunId?``: ``string``; ``runId``: ``string``; }
+   * - ``opts.metadata?``
+     - ``Record``\ <``string``, ``unknown``>
+   * - ``opts.parentRunId?``
+     - ``string``
+   * - ``opts.runId``
+     - ``string``
+
+**Returns**
+
+``void``
+
+--------------
+
+.. _typescript-packages-agent-engine-sdk-docs-api-basellm:
+
+BaseLLM
+-------
+
+Framework-neutral LLM protocol.
+
+Used at runtime by the ToolPod. In Python, this protocol exposes both
+``invoke`` (sync) and ``ainvoke`` (async) since Python supports both
+call styles. JS has no sync HTTP, so this interface has a single async
+``invoke`` plus ``stream``.
+
+Methods
+~~~~~~~
+
+.. _typescript-packages-agent-engine-sdk-docs-api-invoke:
+
+invoke()
+^^^^^^^^
+
+.. code-block:: typescript
+
+   invoke(messages, kwargs?): Promise<LLMResponse>;
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``messages``
+     - :ref:`Message <typescript-packages-agent-engine-sdk-docs-api-message>`\ []
+   * - ``kwargs?``
+     - ``Record``\ <``string``, ``unknown``>
+
+**Returns**
+
+``Promise``\\<:ref:`LLMResponse <typescript-packages-agent-engine-sdk-docs-api-llmresponse>`\ >
+
+.. _typescript-packages-agent-engine-sdk-docs-api-stream:
+
+stream()
+^^^^^^^^
+
+.. code-block:: typescript
+
+   stream(messages, kwargs?): AsyncIterable<LLMStreamChunk>;
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``messages``
+     - :ref:`Message <typescript-packages-agent-engine-sdk-docs-api-message>`\ []
+   * - ``kwargs?``
+     - ``Record``\ <``string``, ``unknown``>
+
+**Returns**
+
+``AsyncIterable``\\<:ref:`LLMStreamChunk <typescript-packages-agent-engine-sdk-docs-api-llmstreamchunk>`\ >
+
+--------------
+
+.. _typescript-packages-agent-engine-sdk-docs-api-executionresult:
+
+ExecutionResult
+---------------
+
+Result of an agent execution.
+
+Await for the final result, or async-iterate for streaming events.
+
+.. code-block:: typescript
+
+   // Non-streaming
+   const output = await agent.execute(ctx, input)
+
+   // Streaming
+   for await (const event of agent.execute(ctx, input)) {
+     handle(event)
+   }
+
+Extends
+~~~~~~~
+
+- ``PromiseLike``\\<:ref:`AgentOutput <typescript-packages-agent-engine-sdk-docs-api-agentoutput>`\ >.\ ``AsyncIterable``\\<:ref:`StreamEvent <typescript-packages-agent-engine-sdk-docs-api-streamevent>`\ >
+
+--------------
+
+.. _typescript-packages-agent-engine-sdk-docs-api-llmstreamchunk:
+
+LLMStreamChunk
+--------------
+
+Rich streaming chunk following OpenAI/Anthropic patterns.
+
+All fields are optional since different chunks contain different data:
+
+- Content chunks: text deltas during generation
+- Tool call chunks: partial tool calls being built up
+- Usage chunks: token counts at end of stream
+
+Properties
+~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+
+   * - Property
+     - Type
+   * - ``additionalKwargs?``
+     - ``Record``\ <``string``,
+       :ref:`JsonValue <typescript-packages-agent-engine-sdk-docs-api-jsonvalue>`\ >
+   * - ``content?``
+     - ``string``
+   * - ``id?``
+     - ``string``
+   * - ``name?``
+     - ``string``
+   * - ``responseMetadata?``
+     - ``Record``\ <``string``,
+       :ref:`JsonValue <typescript-packages-agent-engine-sdk-docs-api-jsonvalue>`\ >
+   * - ``toolCalls?``
+     - :ref:`ToolCallChunk <typescript-packages-agent-engine-sdk-docs-api-toolcallchunk>`\ []
+   * - ``usage?``
+     - :ref:`LLMTokenUsage <typescript-packages-agent-engine-sdk-docs-api-llmtokenusage>`
+
+--------------
+
+.. _typescript-packages-agent-engine-sdk-docs-api-message:
+
+Message
+-------
+
+Framework-neutral message.
+
+Content can be a simple string for text-only messages, or a list of
+content blocks for multimodal content (images, documents, etc.).
+
+Properties
+~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+
+   * - Property
+     - Type
+   * - ``additionalKwargs?``
+     - ``Record``\ <``string``,
+       :ref:`JsonValue <typescript-packages-agent-engine-sdk-docs-api-jsonvalue>`\ >
+   * - ``content``
+     - \| ``string`` \| ( \| { ``text``: ``string``; ``type``:
+       ``"text"``; } \| { ``mime_type?``: ``string``; ``type``:
+       ``"image"``; ``url``: ``string``; } \| { ``filename?``:
+       ``string``; ``mime_type?``: ``string``; ``type``: ``"document"``;
+       ``url``: ``string``; })[]
+   * - ``id?``
+     - ``string``
+   * - ``isError?``
+     - ``boolean``
+   * - ``name?``
+     - ``string``
+   * - ``responseMetadata?``
+     - ``Record``\ <``string``,
+       :ref:`JsonValue <typescript-packages-agent-engine-sdk-docs-api-jsonvalue>`\ >
+   * - ``role``
+     - :ref:`Role <typescript-packages-agent-engine-sdk-docs-api-role>`
+   * - ``toolCallId?``
+     - ``string``
+   * - ``toolCalls?``
+     - :ref:`LLMToolCall <typescript-packages-agent-engine-sdk-docs-api-llmtoolcall>`\ []
+
+--------------
+
+.. _typescript-packages-agent-engine-sdk-docs-api-requestcontext:
+
+RequestContext
+--------------
+
+Request-scoped context passed to every agent execution.
+
+Carries framework-neutral execution identity and platform plumbing. The
+caller's invocation input lives in ``AgentInput.payload``, not here.
+Suspend/resume state is opaque to the platform: ``metadata`` is a
+framework-owned blob that the platform forwards unchanged on resume.
+
+Properties
+~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+
+   * - Property
+     - Type
+     - Description
+   * - ``executionId?``
+     - ``string``
+     - -
+   * - ``metadata?``
+     - ``Record``\ <``string``,
+       :ref:`JsonValue <typescript-packages-agent-engine-sdk-docs-api-jsonvalue>`\ >
+       \| ``null``
+     - Opaque framework-owned state passed through by the SDK and AER.
+       Only the selected framework adapter may interpret its keys and
+       values.
+   * - ``previousExecutionCancelled?``
+     - ``boolean``
+     - True when this session's most recent prior execution was
+       cancelled (its pod torn down mid-run). Framework adapters that
+       persist per-step state use it to fence off the killed step's
+       partial writes before running this turn. Mirrors Python's
+       ``previous_execution_cancelled``.
+   * - ``requestHeaders?``
+     - ``Record``\ <``string``, ``string``>
+     - -
+   * - ``resume?``
+     - ``boolean``
+     - Platform suspend/resume plumbing (framework-neutral).
+   * - ``resumeData?``
+     - :ref:`JsonValue <typescript-packages-agent-engine-sdk-docs-api-jsonvalue>`
+     - -
+   * - ``sessionId?``
+     - ``string``
+     - -
+   * - ``signal?``
+     - ``AbortSignal``
+     - Cancellation signal for execution timeout or forced abort. The
+       runtime (and any agent implementation that honours it) should
+       unwind pending awaits and stop emitting events when this signal
+       fires. Python relies on ``asyncio.wait_for`` for the same
+       semantics; JS has no implicit cancellation, so the signal must be
+       plumbed explicitly.
+   * - ``userId?``
+     - ``string``
+     - -
+   * - ``workspaceId?``
+     - ``string``
+     - Tenant scope of the executing agent. Framework adapters use it to
+       scope state stores keyed only by sessionId (e.g. the LangGraph
+       checkpoint thread_id) so agents in the same project DB cannot
+       collide. Mirrors Python's ``RequestContext.workspace_id``.
+
+--------------
+
+.. _typescript-packages-agent-engine-sdk-docs-api-streamevent:
+
+StreamEvent
+-----------
+
+Event streamed back to the caller during execution.
+
+Properties
+~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+
+   * - Property
+     - Type
+   * - ``data``
+     - :ref:`JsonValue <typescript-packages-agent-engine-sdk-docs-api-jsonvalue>`
+   * - ``event?``
+     - ``string``
+
+--------------
+
+.. _typescript-packages-agent-engine-sdk-docs-api-toolcallchunk:
+
+ToolCallChunk
+-------------
+
+Partial tool call during streaming.
+
+All fields are optional since chunks may contain partial data (e.g.,
+just the start of arguments, or just the tool name).
+
+Properties
+~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+
+   * - Property
+     - Type
+   * - ``args?``
+     - ``string``
+   * - ``id?``
+     - ``string``
+   * - ``index?``
+     - ``number``
+   * - ``name?``
+     - ``string``
+   * - ``type?``
+     - ``string``

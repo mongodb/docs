@@ -1,0 +1,40 @@
+.. _python-packages-agent-engine-sdk-memory-release-notes-v0.7.0:
+
+agent-engine-sdk-memory v0.7.0
+==============================
+
+What's new
+----------
+
+- ``delete_procedural`` now accepts ``visibility``. By-name update and
+  delete lookups are identity-scoped with ``user_id`` so the OE memory
+  proxy accepts them. Update name resolution does not filter by
+  visibility (identity is org/project/owner/name), so an update can
+  change visibility. Delete may still pass ``visibility`` when the
+  caller wants to scope the name lookup.
+
+Bug fixes
+---------
+
+- ``save_procedure(update_existing=True)`` in the runner SDK no longer
+  fails silently in deployed agents. Existence checks and post-create
+  readbacks now carry ``user_id`` (the platform memory proxy requires
+  ``user_id``, ``visibility``, or both). The existence check does not
+  filter by visibility, so promotions such as private → org can find and
+  update the existing procedure. The post-create readback still passes
+  the create's visibility.
+- The post-create readback no longer reports a spurious fetch failure
+  after a successful create; ``save_procedure`` returns the full created
+  document.
+- ``update_procedural`` and ``delete_procedural`` by procedure name no
+  longer fail in deployed agents; their name resolution is
+  identity-scoped with ``user_id``.
+
+Breaking changes
+----------------
+
+- ``update_procedural`` and ``delete_procedural`` now require
+  ``user_id`` and raise ``ValueError`` when it is omitted. This matches
+  ``create_procedural``, which has always required an owner for writes.
+  Callers that previously updated or deleted procedural memories without
+  a user must pass the owner's user id.

@@ -1,0 +1,48 @@
+.. _python-packages-agent-engine-sdk-adk-docs-api-agent:
+
+agent_engine_sdk_adk.agent
+==========================
+
+Durable Google ADK adapter over the framework-neutral BaseAgent
+protocol.
+
+``agent.py`` is the orchestrator. Durable setup lives on
+``DurableSession``. Suspend and resume: see the package README.
+
+.. code-block:: text
+
+   agent.py
+   ├── execution_session.py   durable run (attempt, original input, Runner)
+   ├── platform_session.py    scratch BaseSessionService + OE snapshot
+   ├── stream.py              tokens / suspend / result
+   ├── suspend.py             native ADK wait shapes
+   └── workflow.py            OE finalize_step / complete
+
+.. _python-packages-agent-engine-sdk-adk-docs-api-agent_engine_sdk_adk.agent.adkbaseagent:
+
+ADKBaseAgent
+------------
+
+.. code-block:: python
+
+   class ADKBaseAgent(BaseAgent)
+
+Run one ADK 2 agent with OE as its only durable authority.
+
+.. _python-packages-agent-engine-sdk-adk-docs-api-agent_engine_sdk_adk.agent.adkbaseagent.cancelled_history_scope:
+
+cancelled_history_scope
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   @contextmanager
+   def cancelled_history_scope(ctx: RequestContext,
+                               input: AgentInput) -> Generator[CancelledHistory]
+
+Expose cancellation capture to the shared AER reporting lifecycle.
+
+The runner enters this scope before the durable attempt's work runs, so
+a Stop that tears the run down mid-turn can still retain the stopped
+transcript. The opener is the request message under the id the adapter
+seeds; ``normalized_input`` may replace it once the hook input is known.

@@ -282,26 +282,59 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
-            label: 'JavaScript SDK',
+            label: 'TypeScript SDK',
             contentSite: 'agentengine',
             collapsible: true,
-            url: '/docs/agentengine/sdk/javascript',
+            url: '/docs/agentengine/sdk/typescript',
             items: [
-              {
-                label: 'TypeScript SDK Documentation',
-                contentSite: 'agentengine',
-                url: '/docs/agentengine/sdk/javascript/docs',
-              },
               {
                 label: 'agent-engine-runner-shared',
                 contentSite: 'agentengine',
                 collapsible: true,
-                url: '/docs/agentengine/sdk/javascript/packages/agent-engine-runner-shared',
+                url: '/docs/agentengine/sdk/typescript/packages/agent-engine-runner-shared',
                 items: [
                   {
                     label: 'API Reference',
                     contentSite: 'agentengine',
-                    url: '/docs/agentengine/sdk/javascript/packages/agent-engine-runner-shared/docs/api',
+                    collapsible: true,
+                    url: '/docs/agentengine/sdk/typescript/packages/agent-engine-runner-shared/docs/api',
+                    items: [
+                      {
+                        label: 'Namespaces',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/typescript/packages/agent-engine-runner-shared/docs/api/namespaces',
+                      },
+                      {
+                        label: 'Enumerations',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/typescript/packages/agent-engine-runner-shared/docs/api/enumerations',
+                      },
+                      {
+                        label: 'Classes',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/typescript/packages/agent-engine-runner-shared/docs/api/classes',
+                      },
+                      {
+                        label: 'Interfaces',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/typescript/packages/agent-engine-runner-shared/docs/api/interfaces',
+                      },
+                      {
+                        label: 'Type Aliases',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/typescript/packages/agent-engine-runner-shared/docs/api/type-aliases',
+                      },
+                      {
+                        label: 'Variables',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/typescript/packages/agent-engine-runner-shared/docs/api/variables',
+                      },
+                      {
+                        label: 'Functions',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/typescript/packages/agent-engine-runner-shared/docs/api/functions',
+                      },
+                    ],
                   },
                 ],
               },
@@ -309,12 +342,40 @@ const tocData: TocItem[] = [
                 label: 'agent-engine-sdk',
                 contentSite: 'agentengine',
                 collapsible: true,
-                url: '/docs/agentengine/sdk/javascript/packages/agent-engine-sdk',
+                url: '/docs/agentengine/sdk/typescript/packages/agent-engine-sdk',
                 items: [
                   {
                     label: 'API Reference',
                     contentSite: 'agentengine',
-                    url: '/docs/agentengine/sdk/javascript/packages/agent-engine-sdk/docs/api',
+                    collapsible: true,
+                    url: '/docs/agentengine/sdk/typescript/packages/agent-engine-sdk/docs/api',
+                    items: [
+                      {
+                        label: 'Classes',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/typescript/packages/agent-engine-sdk/docs/api/classes',
+                      },
+                      {
+                        label: 'Interfaces',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/typescript/packages/agent-engine-sdk/docs/api/interfaces',
+                      },
+                      {
+                        label: 'Type Aliases',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/typescript/packages/agent-engine-sdk/docs/api/type-aliases',
+                      },
+                      {
+                        label: 'Variables',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/typescript/packages/agent-engine-sdk/docs/api/variables',
+                      },
+                      {
+                        label: 'Functions',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/typescript/packages/agent-engine-sdk/docs/api/functions',
+                      },
+                    ],
                   },
                 ],
               },
@@ -322,17 +383,50 @@ const tocData: TocItem[] = [
                 label: 'agent-engine-sdk-langgraph',
                 contentSite: 'agentengine',
                 collapsible: true,
-                url: '/docs/agentengine/sdk/javascript/packages/agent-engine-sdk-langgraph',
+                url: '/docs/agentengine/sdk/typescript/packages/agent-engine-sdk-langgraph',
                 items: [
                   {
                     label: 'Session Fork vs LangGraph Time-Travel',
                     contentSite: 'agentengine',
-                    url: '/docs/agentengine/sdk/javascript/packages/agent-engine-sdk-langgraph/docs/session-fork',
+                    url: '/docs/agentengine/sdk/typescript/packages/agent-engine-sdk-langgraph/docs/session-fork',
                   },
                   {
                     label: 'API Reference',
                     contentSite: 'agentengine',
-                    url: '/docs/agentengine/sdk/javascript/packages/agent-engine-sdk-langgraph/docs/api',
+                    collapsible: true,
+                    url: '/docs/agentengine/sdk/typescript/packages/agent-engine-sdk-langgraph/docs/api',
+                    items: [
+                      {
+                        label: 'Classes',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/typescript/packages/agent-engine-sdk-langgraph/docs/api/classes',
+                      },
+                      {
+                        label: 'Interfaces',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/typescript/packages/agent-engine-sdk-langgraph/docs/api/interfaces',
+                      },
+                      {
+                        label: 'Type Aliases',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/typescript/packages/agent-engine-sdk-langgraph/docs/api/type-aliases',
+                      },
+                      {
+                        label: 'Variables',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/typescript/packages/agent-engine-sdk-langgraph/docs/api/variables',
+                      },
+                      {
+                        label: 'Functions',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/typescript/packages/agent-engine-sdk-langgraph/docs/api/functions',
+                      },
+                      {
+                        label: 'References',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/typescript/packages/agent-engine-sdk-langgraph/docs/api/references',
+                      },
+                    ],
                   },
                 ],
               },
@@ -340,12 +434,40 @@ const tocData: TocItem[] = [
                 label: 'agent-engine-memory',
                 contentSite: 'agentengine',
                 collapsible: true,
-                url: '/docs/agentengine/sdk/javascript/packages/agent-engine-memory',
+                url: '/docs/agentengine/sdk/typescript/packages/agent-engine-memory',
                 items: [
                   {
                     label: 'API Reference',
                     contentSite: 'agentengine',
-                    url: '/docs/agentengine/sdk/javascript/packages/agent-engine-memory/docs/api',
+                    collapsible: true,
+                    url: '/docs/agentengine/sdk/typescript/packages/agent-engine-memory/docs/api',
+                    items: [
+                      {
+                        label: 'Classes',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/typescript/packages/agent-engine-memory/docs/api/classes',
+                      },
+                      {
+                        label: 'Interfaces',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/typescript/packages/agent-engine-memory/docs/api/interfaces',
+                      },
+                      {
+                        label: 'Type Aliases',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/typescript/packages/agent-engine-memory/docs/api/type-aliases',
+                      },
+                      {
+                        label: 'Variables',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/typescript/packages/agent-engine-memory/docs/api/variables',
+                      },
+                      {
+                        label: 'Functions',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/typescript/packages/agent-engine-memory/docs/api/functions',
+                      },
+                    ],
                   },
                 ],
               },
@@ -358,19 +480,112 @@ const tocData: TocItem[] = [
             url: '/docs/agentengine/sdk/python',
             items: [
               {
-                label: 'Python SDK Documentation',
-                contentSite: 'agentengine',
-                url: '/docs/agentengine/sdk/python/docs',
-              },
-              {
                 label: 'agent-engine-runner-shared',
                 contentSite: 'agentengine',
+                collapsible: true,
                 url: '/docs/agentengine/sdk/python/packages/agent-engine-runner-shared',
+                items: [
+                  {
+                    label: 'API Reference',
+                    contentSite: 'agentengine',
+                    collapsible: true,
+                    url: '/docs/agentengine/sdk/python/packages/agent-engine-runner-shared/docs/api',
+                    items: [
+                      {
+                        label: 'agent_engine_runner_shared.runtime',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/python/packages/agent-engine-runner-shared/docs/api/runtime',
+                      },
+                      {
+                        label: 'agent_engine_runner_shared.agent_config',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/python/packages/agent-engine-runner-shared/docs/api/agent_config',
+                      },
+                      {
+                        label: 'agent_engine_runner_shared.context',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/python/packages/agent-engine-runner-shared/docs/api/context',
+                      },
+                      {
+                        label: 'agent_engine_runner_shared.models',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/python/packages/agent-engine-runner-shared/docs/api/models',
+                      },
+                      {
+                        label: 'agent_engine_runner_shared.progress',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/python/packages/agent-engine-runner-shared/docs/api/progress',
+                      },
+                      {
+                        label: 'agent_engine_runner_shared.custom_events',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/python/packages/agent-engine-runner-shared/docs/api/custom_events',
+                      },
+                      {
+                        label:
+                          'agent_engine_runner_shared.guardrails_evaluator.core',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/python/packages/agent-engine-runner-shared/docs/api/guardrails_evaluator-core',
+                      },
+                      {
+                        label: 'agent_engine_runner_shared.secure_llm_proxy',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/python/packages/agent-engine-runner-shared/docs/api/secure_llm_proxy',
+                      },
+                      {
+                        label: 'agent_engine_runner_shared.secure_wrapper',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/python/packages/agent-engine-runner-shared/docs/api/secure_wrapper',
+                      },
+                      {
+                        label: 'agent_engine_runner_shared.structured_logging',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/python/packages/agent-engine-runner-shared/docs/api/structured_logging',
+                      },
+                      {
+                        label: 'agent_engine_runner_shared.metrics',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/python/packages/agent-engine-runner-shared/docs/api/metrics',
+                      },
+                      {
+                        label: 'agent_engine_runner_shared.utils',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/python/packages/agent-engine-runner-shared/docs/api/utils',
+                      },
+                    ],
+                  },
+                ],
               },
               {
                 label: 'agent-engine-sdk',
                 contentSite: 'agentengine',
+                collapsible: true,
                 url: '/docs/agentengine/sdk/python/packages/agent-engine-sdk',
+                items: [
+                  {
+                    label: 'API Reference',
+                    contentSite: 'agentengine',
+                    collapsible: true,
+                    url: '/docs/agentengine/sdk/python/packages/agent-engine-sdk/docs/api',
+                    items: [
+                      {
+                        label: 'agent_engine_sdk.app',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/python/packages/agent-engine-sdk/docs/api/app',
+                      },
+                      {
+                        label: 'agent_engine_sdk.interfaces',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/python/packages/agent-engine-sdk/docs/api/interfaces',
+                      },
+                      {
+                        label: 'agent_engine_sdk.models',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/python/packages/agent-engine-sdk/docs/api/models',
+                      },
+                    ],
+                  },
+                ],
               },
               {
                 label: 'agent-engine-sdk-adk',
@@ -381,7 +596,30 @@ const tocData: TocItem[] = [
                   {
                     label: 'API Reference',
                     contentSite: 'agentengine',
+                    collapsible: true,
                     url: '/docs/agentengine/sdk/python/packages/agent-engine-sdk-adk/docs/api',
+                    items: [
+                      {
+                        label: 'agent_engine_sdk_adk.runtime',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/python/packages/agent-engine-sdk-adk/docs/api/runtime',
+                      },
+                      {
+                        label: 'agent_engine_sdk_adk.agent',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/python/packages/agent-engine-sdk-adk/docs/api/agent',
+                      },
+                      {
+                        label: 'agent_engine_sdk_adk.runner',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/python/packages/agent-engine-sdk-adk/docs/api/runner',
+                      },
+                      {
+                        label: 'agent_engine_sdk_adk.rewind',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/python/packages/agent-engine-sdk-adk/docs/api/rewind',
+                      },
+                    ],
                   },
                 ],
               },
@@ -419,7 +657,20 @@ const tocData: TocItem[] = [
                   {
                     label: 'API Reference',
                     contentSite: 'agentengine',
+                    collapsible: true,
                     url: '/docs/agentengine/sdk/python/packages/agent-engine-sdk-langgraph/docs/api',
+                    items: [
+                      {
+                        label: 'agent_engine_sdk_langgraph.runtime',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/python/packages/agent-engine-sdk-langgraph/docs/api/runtime',
+                      },
+                      {
+                        label: 'agent_engine_sdk_langgraph.agent',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/python/packages/agent-engine-sdk-langgraph/docs/api/agent',
+                      },
+                    ],
                   },
                 ],
               },
@@ -437,9 +688,37 @@ const tocData: TocItem[] = [
                   {
                     label: 'API Reference',
                     contentSite: 'agentengine',
+                    collapsible: true,
                     url: '/docs/agentengine/sdk/python/packages/agent-engine-sdk-memory/docs/api',
+                    items: [
+                      {
+                        label: 'agent_engine_sdk_memory.memory',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/python/packages/agent-engine-sdk-memory/docs/api/memory',
+                      },
+                      {
+                        label: 'agent_engine_sdk_memory.protocol',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/python/packages/agent-engine-sdk-memory/docs/api/protocol',
+                      },
+                      {
+                        label: 'agent_engine_sdk_memory.errors',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/python/packages/agent-engine-sdk-memory/docs/api/errors',
+                      },
+                      {
+                        label: 'agent_engine_sdk_memory.models',
+                        contentSite: 'agentengine',
+                        url: '/docs/agentengine/sdk/python/packages/agent-engine-sdk-memory/docs/api/models',
+                      },
+                    ],
                   },
                 ],
+              },
+              {
+                label: 'agent-engine-sdk-openai-agents',
+                contentSite: 'agentengine',
+                url: '/docs/agentengine/sdk/python/packages/agent-engine-sdk-openai-agents',
               },
             ],
           },

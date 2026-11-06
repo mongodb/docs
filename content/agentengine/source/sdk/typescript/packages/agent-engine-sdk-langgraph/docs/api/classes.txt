@@ -1,0 +1,1665 @@
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-classes:
+
+@mongodb-js/agent-engine-sdk-langgraph Classes
+==============================================
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-agentenginetoolpodbackend:
+
+AgentEngineToolPodBackend
+-------------------------
+
+Backend that routes every operation through Atlas Agent Engine's secure
+path. Each method delegates to ``SecureToolWrapper.executeTool``, which
+sends the request to the OE for policy approval and audit logging before
+it runs in the Tool Pod.
+
+Implements
+~~~~~~~~~~
+
+- ``SandboxBackendProtocolV2``
+
+Constructor
+~~~~~~~~~~~
+
+.. code-block:: typescript
+
+   new AgentEngineToolPodBackend(): AgentEngineToolPodBackend;
+
+**Returns**
+
+:ref:`AgentEngineToolPodBackend <typescript-packages-agent-engine-sdk-langgraph-docs-api-agentenginetoolpodbackend>`
+
+Properties
+~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+
+   * - Property
+     - Modifier
+     - Type
+     - Default value
+     - Description
+   * - ``id``
+     - ``readonly``
+     - ``"agent-engine-toolpod"``
+     - ``"agent-engine-toolpod"``
+     - Unique identifier for the sandbox backend instance
+
+Methods
+~~~~~~~
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-downloadfiles:
+
+downloadFiles()
+^^^^^^^^^^^^^^^
+
+.. code-block:: typescript
+
+   downloadFiles(paths): Promise<FileDownloadResponse[]>;
+
+Download files via the audited ``filesystem_download`` handler — one
+call per path so each is policy-checked and logged independently — then
+base64-decode the ``content_base64`` field into raw bytes. Responses
+preserve input order; on failure ``content`` is null and ``error``
+carries a classified message.
+
+Native-mode batches fan out on a bounded worker pool so skills loading
+pays one round-trip of latency instead of a sum. Durable attempts stay
+sequential: a worker pool picks up the next file as one finishes, so
+positions would depend on completion order.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``paths``
+     - ``string``\ []
+
+**Returns**
+
+``Promise``\ <``FileDownloadResponse``\ []>
+
+**Implementation of**
+
+.. code-block:: typescript
+
+   SandboxBackendProtocolV2.downloadFiles
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-edit:
+
+edit()
+^^^^^^
+
+.. code-block:: typescript
+
+   edit(
+      filePath,
+      oldString,
+      newString,
+      replaceAll?
+   ): Promise<EditResult>;
+
+Edit a file by replacing string occurrences.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Default value
+     - Description
+   * - ``filePath``
+     - ``string``
+     - ``undefined``
+     - Absolute file path
+   * - ``oldString``
+     - ``string``
+     - ``undefined``
+     - String to find and replace
+   * - ``newString``
+     - ``string``
+     - ``undefined``
+     - Replacement string
+   * - ``replaceAll``
+     - ``boolean``
+     - ``false``
+     - If true, replace all occurrences (default: false)
+
+**Returns**
+
+``Promise``\ <``EditResult``>
+
+EditResult with error, path, filesUpdate, and occurrences
+
+**Implementation of**
+
+.. code-block:: typescript
+
+   SandboxBackendProtocolV2.edit
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-execute:
+
+execute()
+^^^^^^^^^
+
+.. code-block:: typescript
+
+   execute(command): Promise<ExecuteResponse>;
+
+Execute a command in the sandbox.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Description
+   * - ``command``
+     - ``string``
+     - Full shell command string to execute
+
+**Returns**
+
+``Promise``\ <``ExecuteResponse``>
+
+ExecuteResponse with combined output, exit code, and truncation flag
+
+**Implementation of**
+
+.. code-block:: typescript
+
+   SandboxBackendProtocolV2.execute
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-glob:
+
+glob()
+^^^^^^
+
+.. code-block:: typescript
+
+   glob(pattern, path?): Promise<GlobResult>;
+
+Structured glob matching returning FileInfo objects.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Description
+   * - ``pattern``
+     - ``string``
+     - Glob pattern (e.g., ``*.py``, ``**/*.ts``)
+   * - ``path?``
+     - ``string``
+     - Base path to search from (default: "/")
+
+**Returns**
+
+``Promise``\ <``GlobResult``>
+
+GlobResult with list of FileInfo objects matching the pattern on success
+or error on failure
+
+**Implementation of**
+
+.. code-block:: typescript
+
+   SandboxBackendProtocolV2.glob
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-grep:
+
+grep()
+^^^^^^
+
+.. code-block:: typescript
+
+   grep(
+      pattern,
+      path?,
+      glob?,
+      maxCount?
+   ): Promise<GrepResult>;
+
+Search file contents for a literal text pattern.
+
+Binary files (determined by MIME type) are skipped.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Description
+   * - ``pattern``
+     - ``string``
+     - Literal text pattern to search for
+   * - ``path?``
+     - ``string`` \| ``null``
+     - Base path to search from (default: null)
+   * - ``glob?``
+     - ``string`` \| ``null``
+     - Optional glob pattern to filter files (e.g., "\*.py")
+   * - ``maxCount?``
+     - ``number`` \| ``null``
+     - Optional cap on the total number of matches returned. When the
+       cap is hit, results are flagged ``truncated: true``.
+
+**Returns**
+
+``Promise``\ <``GrepResult``>
+
+GrepResult with matches on success or error on failure
+
+**Implementation of**
+
+.. code-block:: typescript
+
+   SandboxBackendProtocolV2.grep
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-ls:
+
+ls()
+^^^^
+
+.. code-block:: typescript
+
+   ls(path): Promise<LsResult>;
+
+Structured listing with file metadata.
+
+Lists files and directories in the specified directory (non-recursive).
+Directories have a trailing / in their path and is_dir=true.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Description
+   * - ``path``
+     - ``string``
+     - Absolute path to directory
+
+**Returns**
+
+``Promise``\ <``LsResult``>
+
+LsResult with list of FileInfo objects on success or error on failure
+
+**Implementation of**
+
+.. code-block:: typescript
+
+   SandboxBackendProtocolV2.ls
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-read:
+
+read()
+^^^^^^
+
+.. code-block:: typescript
+
+   read(
+      filePath,
+      offset?,
+      limit?
+   ): Promise<ReadResult>;
+
+Read file content.
+
+For text files, content is paginated by line offset/limit. For binary
+files, the full raw Uint8Array content is returned.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Default value
+     - Description
+   * - ``filePath``
+     - ``string``
+     - ``undefined``
+     - Absolute file path
+   * - ``offset``
+     - ``number``
+     - ``0``
+     - Line offset to start reading from (0-indexed), default 0
+   * - ``limit``
+     - ``number``
+     - ``2000``
+     - Maximum number of lines to read, default 500
+
+**Returns**
+
+``Promise``\ <``ReadResult``>
+
+ReadResult with content on success or error on failure
+
+**Implementation of**
+
+.. code-block:: typescript
+
+   SandboxBackendProtocolV2.read
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-readraw:
+
+readRaw()
+^^^^^^^^^
+
+.. code-block:: typescript
+
+   readRaw(filePath): Promise<ReadRawResult>;
+
+Raw read is not backed by a dedicated wire handler; the Tool Pod exposes
+only line-oriented ``filesystem_read``. We wrap its text content in a v2
+FileData so binary-unaware callers still work. Genuine binary reads
+should use ``downloadFiles``, which carries raw bytes base64-encoded.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``filePath``
+     - ``string``
+
+**Returns**
+
+``Promise``\ <``ReadRawResult``>
+
+**Implementation of**
+
+.. code-block:: typescript
+
+   SandboxBackendProtocolV2.readRaw
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-uploadfiles:
+
+uploadFiles()
+^^^^^^^^^^^^^
+
+.. code-block:: typescript
+
+   uploadFiles(files): Promise<FileUploadResponse[]>;
+
+Upload multiple files. Optional - backends that don't support file
+upload can omit this.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Description
+   * - ``files``
+     - [``string``, ``Uint8Array``\ <``ArrayBufferLike``>][]
+     - List of [path, content] tuples to upload
+
+**Returns**
+
+``Promise``\ <``FileUploadResponse``\ []>
+
+List of FileUploadResponse objects, one per input file
+
+**Implementation of**
+
+.. code-block:: typescript
+
+   SandboxBackendProtocolV2.uploadFiles
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-write:
+
+write()
+^^^^^^^
+
+.. code-block:: typescript
+
+   write(filePath, content): Promise<WriteResult>;
+
+Create a new file. The Tool Pod handler is create-only — it opens the
+path with ``wx`` and returns an already-exists error rather than
+overwriting — so use
+:ref:`edit <typescript-packages-agent-engine-sdk-langgraph-docs-api-edit>`
+to modify an existing file.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``filePath``
+     - ``string``
+   * - ``content``
+     - ``string``
+
+**Returns**
+
+``Promise``\ <``WriteResult``>
+
+**Implementation of**
+
+.. code-block:: typescript
+
+   SandboxBackendProtocolV2.write
+
+--------------
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-app:
+
+App
+---
+
+LangChain SDK for the Atlas Agent Engine.
+
+Example
+~~~~~~~
+
+.. code-block:: typescript
+
+   import { App } from '@mongodb-js/agent-engine-sdk-langgraph';
+
+   const app = new App({ appName: 'My Agent' });
+
+   app.tool()((args: { query: string }) => 'result');
+
+   app.entrypoint(() => {
+     const llm = app.llm(chatModel);
+     const checkpointer = app.checkpointer();
+     const tools = app.getTools();
+     // Build LangGraph...
+     return graph;
+   });
+
+Extends
+~~~~~~~
+
+- ``BaseApp``
+
+Constructor
+~~~~~~~~~~~
+
+.. code-block:: typescript
+
+   new App(options): App;
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``options``
+     - ``AppOptions``
+
+**Returns**
+
+:ref:`App <typescript-packages-agent-engine-sdk-langgraph-docs-api-app>`
+
+**Overrides**
+
+.. code-block:: typescript
+
+   BaseApp.constructor
+
+Properties
+~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+
+   * - Property
+     - Modifier
+     - Type
+     - Default value
+     - Description
+     - Inherited from
+   * - ``llmWrapper``
+     - ``public``
+     - ``unknown``
+     - ``undefined``
+     - -
+     - ``BaseApp.llmWrapper``
+   * - ``loadStrategy``
+     - ``public``
+     - :ref:`LoadStrategy <typescript-packages-agent-engine-sdk-langgraph-docs-api-loadstrategy>`
+     - ``"global"``
+     - How this agent builds its graph. Set by entrypoint().
+     - -
+   * - ``name``
+     - ``readonly``
+     - ``string``
+     - ``undefined``
+     - -
+     - ``BaseApp.name``
+   * - ``toolWrapper``
+     - ``public``
+     - ``unknown``
+     - ``undefined``
+     - -
+     - ``BaseApp.toolWrapper``
+
+Accessors
+~~~~~~~~~
+
+agentConfig
+^^^^^^^^^^^
+
+**Get Signature**
+
+.. code-block:: typescript
+
+   get agentConfig(): RuntimeAgentConfig;
+
+**Returns**
+
+``RuntimeAgentConfig``
+
+memory
+^^^^^^
+
+**Get Signature**
+
+.. code-block:: typescript
+
+   get memory(): Memory;
+
+Unified memory facade over app-bound adapters.
+
+Lazily constructed on first access and cached (a long-lived singleton
+over per-request context). Operations resolve the end-user and session
+from the ambient execution context, so agent code calls
+``app.memory.saveSemantic(...)`` without threading identity through.
+Requests route through the OE memory proxy; memory is reachable only
+while handling a platform request.
+
+**Returns**
+
+``Memory``
+
+Methods
+~~~~~~~
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-buildgraph:
+
+buildGraph()
+^^^^^^^^^^^^
+
+.. code-block:: typescript
+
+   buildGraph(agentInput?, ctx?): Promise<unknown>;
+
+Build the graph for one invocation.
+
+Returns ``undefined`` for a global agent, which tells the caller to use
+the cached build path unchanged. Under ``per-execution`` the builder
+runs on every invocation with that invocation's ``(input, ctx)``, so it
+can do its own request-scoped I/O before returning the graph. A
+context-free call passes neither and is the platform's discovery path.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``agentInput?``
+     - ``AgentInput``
+   * - ``ctx?``
+     - ``RequestContext``
+
+**Returns**
+
+``Promise``\ <``unknown``>
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-checkpointer:
+
+checkpointer()
+^^^^^^^^^^^^^^
+
+.. code-block:: typescript
+
+   checkpointer(): PlatformCheckpointer | null;
+
+Get the platform checkpointer for LangGraph.
+
+Lazily constructs and wraps a ``MongoDBSaver`` on first call in AER
+mode. Native sessions use that saver through the request-scoped platform
+wrapper. The underlying ``MongoClient`` is closed by ``App.close()``.
+
+The database name is read from ``CHECKPOINT_DB_NAME`` when set (exact
+override, no project scoping). Otherwise the existing
+``MDB_AGENTIC_STORE_DB`` / per-project store resolution is used
+(default: ``"mdb_store"``). The URI comes from ``MONGODB_URI`` — the
+same source ``TenantRuntime`` uses internally.
+
+Mirrors Python ``runtime.py:checkpointer()``.
+
+**Returns**
+
+``PlatformCheckpointer`` \| ``null``
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-close:
+
+close()
+^^^^^^^
+
+.. code-block:: typescript
+
+   close(): Promise<void>;
+
+Release resources held by this App instance.
+
+**Returns**
+
+``Promise``\ <``void``>
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-deepagent:
+
+deepAgent()
+^^^^^^^^^^^
+
+.. code-block:: typescript
+
+   deepAgent(llm, options?): any;
+
+Build a deepagents graph pre-wired for Atlas Agent Engine AER.
+
+Wraps ``llm`` in ``SecureWrappedLLM``, resolves relative skill paths,
+validates the subagent tree (string models are rejected — they would
+bypass OE routing), then delegates to deepagents' ``createDeepAgent``.
+
+Each ``skills`` entry is a parent source directory. At runtime,
+deepagents lists it through the configured backend and treats each
+immediate child directory containing ``SKILL.md`` as one skill;
+discovery is not recursive. deepagents skips unreadable or unparsable
+frontmatter and skills missing ``name`` or ``description``; it warns but
+may still load Agent Skills naming or directory-name violations.
+
+Mirrors Python ``runtime.py:App.deep_agent()``.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``llm``
+     - ``BaseChatModel``
+   * - ``options``
+     - :ref:`DeepAgentOptions <typescript-packages-agent-engine-sdk-langgraph-docs-api-deepagentoptions>`
+
+**Returns**
+
+``any``
+
+**Throws**
+
+``features.deep_agent`` is not enabled, or a subagent spec uses a string
+model, or nesting exceeds the recursion cap.
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-entrypoint:
+
+entrypoint()
+^^^^^^^^^^^^
+
+**Call Signature**
+
+.. code-block:: typescript
+
+   entrypoint<F>(fn, opts?): F;
+
+Mark the graph builder function.
+
+The builder's shape is typed off the strategy: ``"global"`` (the
+default) takes no arguments and is built once, while ``"per-execution"``
+receives the invocation's ``(input, ctx)`` and is built on every
+invocation.
+
+**Type Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Type Parameter
+   * - ``F`` *extends* () => ``unknown``
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``fn``
+     - ``F``
+   * - ``opts?``
+     - { ``loadStrategy?``: ``"global"``; }
+   * - ``opts.loadStrategy?``
+     - ``"global"``
+
+**Returns**
+
+``F``
+
+**Overrides**
+
+.. code-block:: typescript
+
+   BaseApp.entrypoint
+
+**Call Signature**
+
+.. code-block:: typescript
+
+   entrypoint<F>(fn, opts): F;
+
+Mark the graph builder function.
+
+The builder's shape is typed off the strategy: ``"global"`` (the
+default) takes no arguments and is built once, while ``"per-execution"``
+receives the invocation's ``(input, ctx)`` and is built on every
+invocation.
+
+**Type Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Type Parameter
+   * - ``F`` *extends* (``input``, ``ctx``) => ``unknown``
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``fn``
+     - ``F``
+   * - ``opts``
+     - { ``loadStrategy``: ``"per-execution"``; }
+   * - ``opts.loadStrategy``
+     - ``"per-execution"``
+
+**Returns**
+
+``F``
+
+**Overrides**
+
+.. code-block:: typescript
+
+   BaseApp.entrypoint
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-finishsession:
+
+finishSession()
+^^^^^^^^^^^^^^^
+
+.. code-block:: typescript
+
+   finishSession(): SessionFinishStatus;
+
+Mark this session finished so the platform frees its compute now.
+
+Call it when the agent is done with the session. The current turn keeps
+running and returns its result normally; once it completes, the platform
+cancels any live sub-agent runs and releases the session's AER and tool
+pods instead of holding them until the idle timeout expires.
+
+Safe to call more than once: the first call returns "requested", later
+ones "already_requested". Outside an agent run (local scripts, tool
+pods) there is no session to finish and the call returns "unavailable"
+without throwing. Calling it after the turn has already ended - e.g.
+from a setTimeout or a floating promise scheduled during the turn but
+resolving after it - also returns "unavailable": by then nothing is
+listening for the request anymore, so reporting "requested" would
+promise a release that will never happen.
+
+A turn that suspends for human review, or that fails, keeps its
+resources so it stays resumable and diagnosable; the session then falls
+back to the idle timeout.
+
+**Returns**
+
+:ref:`SessionFinishStatus <typescript-packages-agent-engine-sdk-langgraph-docs-api-sessionfinishstatus>`
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-getagent:
+
+getAgent()
+^^^^^^^^^^
+
+.. code-block:: typescript
+
+   getAgent(opts?): LangGraphBaseAgent;
+
+Build and return a ``LangGraphBaseAgent`` instance.
+
+Matches ``GraphBuilderLike.getAgent({ callbacks? })`` —
+agent-engine-runner-shared's ``TenantRuntime.registerAndRun``
+introspects this method to compile the graph. Accepts an options object
+with an optional ``callbacks`` array, each wrapped in
+``LangGraphCallbackAdapter`` before being passed to the graph.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``opts?``
+     - { ``callbacks?``: readonly ``unknown``\ []; ``graph?``:
+       ``unknown``; }
+   * - ``opts.callbacks?``
+     - readonly ``unknown``\ []
+   * - ``opts.graph?``
+     - ``unknown``
+
+**Returns**
+
+:ref:`LangGraphBaseAgent <typescript-packages-agent-engine-sdk-langgraph-docs-api-langgraphbaseagent>`
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-getcurrentsessionid:
+
+getCurrentSessionId()
+^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: typescript
+
+   getCurrentSessionId(): string | null;
+
+**Returns**
+
+``string`` \| ``null``
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-getcurrentuserid:
+
+getCurrentUserId()
+^^^^^^^^^^^^^^^^^^
+
+.. code-block:: typescript
+
+   getCurrentUserId(): string | null;
+
+**Returns**
+
+``string`` \| ``null``
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-gettooldefinitions:
+
+getToolDefinitions()
+^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: typescript
+
+   getToolDefinitions(): object[];
+
+Returns all registered tool definitions. Used by the OE to obtain tool
+execution information.
+
+**Returns**
+
+``object``\ []
+
+**Overrides**
+
+.. code-block:: typescript
+
+   BaseApp.getToolDefinitions
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-gettools:
+
+getTools()
+^^^^^^^^^^
+
+.. code-block:: typescript
+
+   getTools(): readonly StructuredTool<ToolInputSchemaBase, any, any, any, unknown>[];
+
+Get wrapped tools for LangGraph's ``ToolNode``.
+
+In AER mode, every tool is wrapped with ``SecureToolWrapper`` (via
+``createSecureToolFunction``) so executions route through OE for logging
+and policy enforcement. In other modes, the raw LangChain tools are
+returned unchanged.
+
+**Returns**
+
+readonly ``StructuredTool``\ <``ToolInputSchemaBase``, ``any``, ``any``,
+``any``, ``unknown``>[]
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-gettoolschemas:
+
+getToolSchemas()
+^^^^^^^^^^^^^^^^
+
+.. code-block:: typescript
+
+   getToolSchemas(): readonly unknown[];
+
+Get tool schemas for ``llm.bindTools()``. Always the unwrapped LangChain
+tools.
+
+**Returns**
+
+readonly ``unknown``\ []
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-llm:
+
+llm()
+^^^^^
+
+.. code-block:: typescript
+
+   llm(llm, llmId?): BaseChatModel;
+
+Wrap a LangChain LLM for audited I/O through the Orchestration Engine.
+
+In AER mode the LLM is wrapped in ``SecureWrappedLLM``. In TOOL mode the
+raw LLM is returned unwrapped (the tool pod is the execution end of the
+chain).
+
+For agents with a single LLM, call without ``llmId``. For agents with
+multiple LLMs every call must supply a unique ``llmId``: const fast =
+app.llm(ChatOpenAI("gpt-5.4-mini"), "fast") const primary =
+app.llm(ChatOpenAI("gpt-5.4"), "primary") Unnamed calls register under
+the sentinel id ``"__default__"``; a second unnamed call therefore
+raises the same duplicate-id error as a second named call with the same
+id.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``llm``
+     - ``BaseChatModel``
+   * - ``llmId?``
+     - ``string``
+
+**Returns**
+
+``BaseChatModel``
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-prepareagentinput:
+
+prepareAgentInput()
+^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: typescript
+
+   prepareAgentInput<F>(fn): F;
+
+Register a hook that builds the graph's starting input from the caller's
+``AgentInput`` and ``RequestContext`` for a fresh execution. Resume
+stays platform-managed. Returns the function unchanged so it can be used
+as a decorator. Equivalent to the Python SDK's
+``@app.prepare_agent_input``.
+
+**Type Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Type Parameter
+   * - ``F`` *extends*
+       :ref:`PrepareAgentInput <typescript-packages-agent-engine-sdk-langgraph-docs-api-prepareagentinput-1>`
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``fn``
+     - ``F``
+
+**Returns**
+
+``F``
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-ready:
+
+ready()
+^^^^^^^
+
+.. code-block:: typescript
+
+   ready(): Promise<void>;
+
+Resolved once configured MCP servers have been discovered and connector
+tools registered. ``TenantRuntime.runAsync()`` awaits this (via
+``GraphBuilderLike.ready()``) before starting the server.
+
+**Returns**
+
+``Promise``\ <``void``>
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-resolvethreadid:
+
+resolveThreadId()
+^^^^^^^^^^^^^^^^^
+
+.. code-block:: typescript
+
+   resolveThreadId<F>(fn): F;
+
+Register a hook that builds the LangGraph checkpoint ``thread_id``.
+
+Callers manage Atlas Agent Engine ``session_id`` (and authenticated
+``user_id``). The agent owns how those map to the LangGraph checkpoint
+key. When registered, the hook's return value is used verbatim on every
+invocation — fresh and resume — with no workspace suffix appended. When
+no hook is registered, the adapter derives ``session_id:workspace_id``
+as today.
+
+Custom keys are invisible to Atlas Agent Engine session-history queries
+(``/query/sessions*``), which still look up only the default
+session/workspace-derived keys. Agents that bypass workspace scoping
+also own collision isolation within the checkpoint database.
+
+Equivalent to the Python SDK's ``@app.resolve_thread_id``.
+
+**Type Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Type Parameter
+   * - ``F`` *extends*
+       :ref:`ResolveThreadId <typescript-packages-agent-engine-sdk-langgraph-docs-api-resolvethreadid-2>`
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``fn``
+     - ``F``
+
+**Returns**
+
+``F``
+
+**Example**
+
+.. code-block:: typescript
+
+   app.resolveThreadId((ctx) => `${ctx.sessionId}__${actorFrom(ctx.userId)}`);
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-run:
+
+run()
+^^^^^
+
+.. code-block:: typescript
+
+   run(options?): Promise<void>;
+
+Start the agent service.
+
+Async because the per-project store-DB name is resolved against the live
+cluster (an async listDatabases round trip in the Node driver) before
+the query plugin and checkpointer are wired, so AER writes land in the
+same database the OE reads. The synchronous framework hooks are still
+registered before the first ``await``, preserving their ordering
+relative to startup.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``options``
+     - ``Record``\ <``string``, ``unknown``>
+
+**Returns**
+
+``Promise``\ <``void``>
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-suspend:
+
+suspend()
+^^^^^^^^^
+
+.. code-block:: typescript
+
+   suspend(reason, context): string;
+
+Generate a suspend command. If a tool should suspend, return the result
+of this method instead of completing normally.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``reason``
+     - ``string``
+   * - ``context``
+     - ``Record``\ <``string``, ``unknown``>
+
+**Returns**
+
+``string``
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-tool:
+
+tool()
+^^^^^^
+
+.. code-block:: typescript
+
+   tool(options?): <F>(fn) => F;
+
+Register a tool function.
+
+Returns a function that, when applied to a tool function, registers it
+and returns the function unchanged. Mirrors Python's ``@app.tool()``
+shape.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``options``
+     - :ref:`ToolDecoratorOptions <typescript-packages-agent-engine-sdk-langgraph-docs-api-tooldecoratoroptions>`
+
+**Returns**
+
+<``F``>(``fn``) => ``F``
+
+**Overrides**
+
+.. code-block:: typescript
+
+   BaseApp.tool
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-tools:
+
+tools()
+^^^^^^^
+
+.. code-block:: typescript
+
+   tools(): unknown[];
+
+Returns a list of wrapped, framework-specific tools.
+
+**Returns**
+
+``unknown``\ []
+
+**Overrides**
+
+.. code-block:: typescript
+
+   BaseApp.tools
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-usesperinvocationbuild:
+
+usesPerInvocationBuild()
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: typescript
+
+   usesPerInvocationBuild(): boolean;
+
+Whether this agent builds its graph per invocation.
+
+**Returns**
+
+``boolean``
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-warmup:
+
+warmUp()
+^^^^^^^^
+
+.. code-block:: typescript
+
+   warmUp(): void;
+
+Build and cache the graph when explicitly requested. The TypeScript AER
+intentionally leaves construction on the existing lazy ``/execute``
+path: this synchronous builder cannot run during standby warming without
+blocking the Node event loop and server health.
+
+**Returns**
+
+``void``
+
+--------------
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-langgraphbaseagent:
+
+LangGraphBaseAgent
+------------------
+
+LangGraph adapter implementing the BaseAgent protocol.
+
+Implements
+~~~~~~~~~~
+
+- ``BaseAgent``
+
+Constructor
+~~~~~~~~~~~
+
+.. code-block:: typescript
+
+   new LangGraphBaseAgent(
+      graph,
+      callbacks?,
+      prepareInput?,
+      resolveThreadId?
+   ): LangGraphBaseAgent;
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``graph``
+     - ``CompiledStateGraph``\ <``unknown``, ``unknown``>
+   * - ``callbacks?``
+     - readonly ``unknown``\ []
+   * - ``prepareInput?``
+     - :ref:`PrepareAgentInput <typescript-packages-agent-engine-sdk-langgraph-docs-api-prepareagentinput-1>`
+       \| ``null``
+   * - ``resolveThreadId?``
+     - :ref:`ResolveThreadId <typescript-packages-agent-engine-sdk-langgraph-docs-api-resolvethreadid-2>`
+       \| ``null``
+
+**Returns**
+
+:ref:`LangGraphBaseAgent <typescript-packages-agent-engine-sdk-langgraph-docs-api-langgraphbaseagent>`
+
+Accessors
+~~~~~~~~~
+
+compiledGraph
+^^^^^^^^^^^^^
+
+**Get Signature**
+
+.. code-block:: typescript
+
+   get compiledGraph(): CompiledStateGraph<unknown, unknown>;
+
+The wrapped compiled graph (Python ``compiled_graph`` parity).
+
+**Returns**
+
+``CompiledStateGraph``\ <``unknown``, ``unknown``>
+
+resolveThreadId
+^^^^^^^^^^^^^^^
+
+**Get Signature**
+
+.. code-block:: typescript
+
+   get resolveThreadId(): ResolveThreadId | null;
+
+The tenant thread-id hook, or null (Python ``_resolve_thread_id``
+parity).
+
+**Returns**
+
+:ref:`ResolveThreadId <typescript-packages-agent-engine-sdk-langgraph-docs-api-resolvethreadid-2>`
+\| ``null``
+
+Methods
+~~~~~~~
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-commitcancelledturn:
+
+commitCancelledTurn()
+^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: typescript
+
+   commitCancelledTurn(ctx, input): Promise<
+     | {
+     checkpoint_id: string;
+     thread_id: string;
+   }
+   | null>;
+
+Checkpoint the cancelled turn so session history can serve it. Invoked
+by runner-shared when an execution-cancelled drain tears down
+invoke/stream. No-op for durable sessions: their history is OE-owned and
+scratch checkpoints are discarded by design. The attempt-context check
+is a backstop — the caller gates on the attempt it started, because by
+teardown the attempt context may already be closed.
+
+Returns the committed checkpoint's coordinate (``thread_id`` +
+``checkpoint_id``) so the runner can report it to OE — the branch-source
+selector needs it to fork from a session whose only checkpoint is this
+rescued marker — or null when nothing was committed.
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``ctx``
+     - ``RequestContext``
+   * - ``input``
+     - ``AgentInput``
+
+**Returns**
+
+``Promise``\ < \| { ``checkpoint_id``: ``string``; ``thread_id``:
+``string``; } \| ``null``>
+
+**Implementation of**
+
+.. code-block:: typescript
+
+   BaseAgent.commitCancelledTurn
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-execute-1:
+
+execute()
+^^^^^^^^^
+
+.. code-block:: typescript
+
+   execute(ctx, input): ExecutionResult;
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``ctx``
+     - ``RequestContext``
+   * - ``input``
+     - ``AgentInput``
+
+**Returns**
+
+``ExecutionResult``
+
+**Implementation of**
+
+.. code-block:: typescript
+
+   BaseAgent.execute
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-invoke:
+
+invoke()
+^^^^^^^^
+
+.. code-block:: typescript
+
+   invoke(ctx, input): Promise<AgentOutput>;
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``ctx``
+     - ``RequestContext``
+   * - ``input``
+     - ``AgentInput``
+
+**Returns**
+
+``Promise``\ <``AgentOutput``>
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-resume:
+
+resume()
+^^^^^^^^
+
+.. code-block:: typescript
+
+   resume(
+      ctx,
+      input,
+      decision
+   ): Promise<AgentOutput>;
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``ctx``
+     - ``RequestContext``
+   * - ``input``
+     - ``AgentInput``
+   * - ``decision``
+     - ``string``
+
+**Returns**
+
+``Promise``\ <``AgentOutput``>
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-stream:
+
+stream()
+^^^^^^^^
+
+.. code-block:: typescript
+
+   stream(ctx, input): AsyncIterable<StreamEvent>;
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``ctx``
+     - ``RequestContext``
+   * - ``input``
+     - ``AgentInput``
+
+**Returns**
+
+``AsyncIterable``\ <``StreamEvent``>
+
+--------------
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-langgraphqueryplugin:
+
+LangGraphQueryPlugin
+--------------------
+
+AERQueryPlugin backed by LangGraph's MongoDBSaver.
+
+Constructor
+~~~~~~~~~~~
+
+.. code-block:: typescript
+
+   new LangGraphQueryPlugin(params): LangGraphQueryPlugin;
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``params``
+     - :ref:`LangGraphQueryPluginParams <typescript-packages-agent-engine-sdk-langgraph-docs-api-langgraphquerypluginparams>`
+
+**Returns**
+
+:ref:`LangGraphQueryPlugin <typescript-packages-agent-engine-sdk-langgraph-docs-api-langgraphqueryplugin>`
+
+Methods
+~~~~~~~
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-getmessagesforsession:
+
+getMessagesForSession()
+^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: typescript
+
+   getMessagesForSession(sessionId): Promise<{
+     messages: object[];
+     outcome_supported: boolean;
+   }>;
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``sessionId``
+     - ``string``
+
+**Returns**
+
+``Promise``\ <{ ``messages``: ``object``\ []; ``outcome_supported``:
+``boolean``; }>
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-getsummariesforsessions:
+
+getSummariesForSessions()
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: typescript
+
+   getSummariesForSessions(sessionIds): Promise<{
+     sessions: object[];
+   }>;
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``sessionIds``
+     - ``string``\ []
+
+**Returns**
+
+``Promise``\ <{ ``sessions``: ``object``\ []; }>
+
+--------------
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-llmregistrationdrifterror:
+
+LLMRegistrationDriftError
+-------------------------
+
+A per-execution build registered a different LLM id set.
+
+Distinct from an ordinary build failure so the Tool Pod can tell a
+registry that has drifted from one that merely failed to build: a
+drifted registry is not a usable partial discovery. The marker property
+lets runner-shared recognise it without importing this package, which it
+does not depend on.
+
+Extends
+~~~~~~~
+
+- ``Error``
+
+Constructor
+~~~~~~~~~~~
+
+.. code-block:: typescript
+
+   new LLMRegistrationDriftError(message): LLMRegistrationDriftError;
+
+**Parameters**
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``message``
+     - ``string``
+
+**Returns**
+
+:ref:`LLMRegistrationDriftError <typescript-packages-agent-engine-sdk-langgraph-docs-api-llmregistrationdrifterror>`
+
+**Overrides**
+
+.. code-block:: typescript
+
+   Error.constructor
+
+Properties
+~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+
+   * - Property
+     - Modifier
+     - Type
+     - Default value
+   * - ``isLlmRegistrationDrift``
+     - ``readonly``
+     - ``true``
+     - ``true``

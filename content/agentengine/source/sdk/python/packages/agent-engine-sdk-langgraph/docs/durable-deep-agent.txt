@@ -4,7 +4,7 @@ Durable Deep Agent delegation
 =============================
 
 Atlas Agent Engine supports statically configured Deep Agent subagents
-through Deep Agent’s public ```task``
+through Deep Agent's public ```task``
 tool <https://docs.langchain.com/oss/python/deepagents/subagents>`__ and
 `middleware
 hooks <https://docs.langchain.com/oss/python/langchain/middleware/custom>`__.
@@ -12,7 +12,7 @@ The adapter gives each delegated subagent occurrence a deterministic
 durable operation path before that subagent reaches a secure LLM or
 Tool.
 
-Deep Agent builds its agent loop with LangChain’s agent factory. That
+Deep Agent builds its agent loop with LangChain's agent factory. That
 factory uses LangGraph
 ```Send`` <https://docs.langchain.com/oss/python/langgraph/graph-api#send>`__
 packets internally to route pending ToolCalls to ToolNode workers.
@@ -22,7 +22,7 @@ not an OE activity.
 End-to-end flow
 ---------------
 
-.. code:: mermaid
+.. code-block:: text
 
    sequenceDiagram
        participant Model as Secure LLM / model node
@@ -61,14 +61,14 @@ The durable boundary
 
 For this model response:
 
-.. code:: text
+.. code-block:: text
 
    1. task(call-A, subagent_type="research")
    2. task(call-B, subagent_type="research")
 
 the middleware creates these framework-neutral boundaries:
 
-.. code:: text
+.. code-block:: text
 
    ChildOperationBoundary(name="research", occurrence_key="call-A")
    ChildOperationBoundary(name="research", occurrence_key="call-B")
@@ -77,7 +77,7 @@ The subagent type supplies the structural name. The ``task`` ToolCall ID
 supplies an opaque occurrence key. Runner-shared assigns durable child
 ordinals from the ordered batch:
 
-.. code:: text
+.. code-block:: text
 
    call-A -> agent/1 / research/1
    call-B -> agent/1 / research/2
@@ -88,12 +88,11 @@ final operation path.
 Phase 1: preserve model order
 -----------------------------
 
-```DurableDeepAgentMiddleware.after_model`` <../src/agent_engine_sdk_langgraph/durable_deep_agent.py>`__
-runs after the model returns and before LangGraph starts ToolNode
-workers. It extracts every ``task`` ToolCall from the last AI message,
-validates its subagent type and ToolCall ID, and stores the complete
-ordered boundary batch with
-```set_pending_child_operation_batch`` <../../agent-engine-runner-shared/src/agent_engine_runner_shared/workflow/context.py>`__.
+``DurableDeepAgentMiddleware.after_model`` runs after the model returns
+and before LangGraph starts ToolNode workers. It extracts every ``task``
+ToolCall from the last AI message, validates its subagent type and
+ToolCall ID, and stores the complete ordered boundary batch with
+``set_pending_child_operation_batch``.
 
 The pending batch belongs to the current durable attempt. It is held
 inside the mutable attempt state so the Pregel worker contexts copied by
@@ -105,11 +104,11 @@ model node still belongs to root step N.
 How ``Send`` crosses the step boundary
 --------------------------------------
 
-Deep Agent delegates graph assembly to LangChain’s agent factory. For
+Deep Agent delegates graph assembly to LangChain's agent factory. For
 each pending ToolCall, that factory emits an internal packet equivalent
 to:
 
-.. code:: python
+.. code-block:: python
 
    Send("tools", [tool_call])
 
@@ -121,29 +120,22 @@ LangGraph owns the packet lifecycle:
 4. LangGraph creates one ToolNode worker per packet.
 5. Worker scheduling may differ from the original ToolCall order.
 
-Graphs created by ``app.deep_agent()`` receive the private checkpointer
-policy in
-```deep_agent_checkpointer.py`` <../src/agent_engine_sdk_langgraph/deep_agent_checkpointer.py>`__.
-It permits this framework-owned routing and then uses the normal
-inherited ``put_writes`` / ``aput_writes``, scratch persistence, and
-checkpoint finalization behavior. There is no Atlas Agent
-Engine-specific ``Send`` activity, identity resolver, or replay
+Graphs created by ``app.deep_agent()`` receive the checkpointer view in
+``deep_agent_checkpointer.py``. It uses the normal ``put_writes`` /
+``aput_writes``, scratch persistence, and checkpoint finalization
+behavior; the runtime recognizes the view and does not give these
+ToolNode workers their own ``Send`` worker segment (:ref:`Send
+workers <python-packages-agent-engine-sdk-langgraph-docs-durable-subgraphs-send-workers>`).
+Deep Agent's Tool and subagent paths therefore stay as described here.
+There is no Atlas Agent Engine-specific ``Send`` activity or replay
 protocol.
-
-The ordinary
-```PlatformCheckpointer`` <../src/agent_engine_sdk_langgraph/platform_checkpointer.py>`__
-continues to reject ``Send`` in application-authored durable graphs. The
-policy boundary is the opaque graph constructed by ``app.deep_agent()``,
-not inspection of LangChain’s private packet shape.
 
 Phase 2: allocate in the Tool step
 ----------------------------------
 
 The root checkpoint commit calls OE ``FinalizeStep`` and advances the
-current durable step to N+1. LangGraph then invokes ```wrap_tool_call``
-or
-``awrap_tool_call`` <../src/agent_engine_sdk_langgraph/durable_deep_agent.py>`__
-for each ToolNode worker.
+current durable step to N+1. LangGraph then invokes ``wrap_tool_call``
+or ``awrap_tool_call`` for each ToolNode worker.
 
 Before a ``task`` handler runs, the middleware:
 
@@ -151,13 +143,11 @@ Before a ``task`` handler runs, the middleware:
 2. Reads the ordered task batch from ``request.state``, falling back to
    the Phase 1 attempt-scoped batch when the worker state does not carry
    it.
-3. Calls
-   ```preallocate_child_operation_ordinals`` <../../agent-engine-runner-shared/src/agent_engine_runner_shared/workflow/context.py>`__
-   for the whole batch under root step N+1.
+3. Calls ``preallocate_child_operation_ordinals`` for the whole batch
+   under root step N+1.
 4. Clears the pending batch so a later model step cannot consume stale
    data.
-5. Runs the handler inside
-   ```child_operation_boundary_scope`` <../../agent-engine-runner-shared/src/agent_engine_runner_shared/workflow/context.py>`__.
+5. Runs the handler inside ``child_operation_boundary_scope``.
 
 Preallocating the whole batch before any handler starts makes worker
 scheduling irrelevant. If worker B starts before worker A, B still
@@ -186,23 +176,20 @@ replacement. The UUIDs are part of the LLM semantic input and LangGraph
 checkpoint state, so changing them would make the same logical replay
 look like different work even when its operation path is unchanged.
 
-While the ``task`` handler is running,
-```DurableDeepAgentMiddleware`` <../src/agent_engine_sdk_langgraph/durable_deep_agent.py>`__
+While the ``task`` handler is running, ``DurableDeepAgentMiddleware``
 keeps the task ToolCall ID in the delegated context. Before each model
-call,
-```SecureWrappedLLM`` <../src/agent_engine_sdk_langgraph/secure_llm.py>`__
-uses that stable ID to stamp the delegated input and Tool result
-messages. When the handler returns, the middleware stamps the parent
-task result message from the same ID. These are the real message objects
-used by the graph; LangGraph then carries their IDs through
-checkpointing and replay without a separate identity store.
+call, ``SecureWrappedLLM`` uses that stable ID to stamp the delegated
+input and Tool result messages. When the handler returns, the middleware
+stamps the parent task result message from the same ID. These are the
+real message objects used by the graph; LangGraph then carries their IDs
+through checkpointing and replay without a separate identity store.
 Provider-authored AI message IDs remain unchanged because the recorded
 secure LLM response already supplies them deterministically.
 
 For task ToolCall ``call-A``, the relevant identities are therefore
 stable on replacement:
 
-.. code:: text
+.. code-block:: text
 
    delegated input       durable-deep-agent-input:call-A:0
    subagent tool result  durable-deep-agent-tool-result:call-A:<tool-call-id>
@@ -229,15 +216,13 @@ Supported boundary
 A durable graph must use either compiled-subgraph nesting or Deep Agent
 task delegation. A graph that nests a Deep Agent as a compiled child is
 rejected during compiled-topology validation because the Deep Agent owns
-its own checkpointer. LangGraph’s compiled-subgraph contract requires a
+its own checkpointer. LangGraph's compiled-subgraph contract requires a
 child to inherit the root checkpointer instead.
 
-Application-authored LangGraph ``Send`` fan-out remains unsupported for
-durable workflows. Supporting arbitrary ``Send`` would require a public
-occurrence contract across producer order, checkpoint transition,
-PUSH-worker identity, and secure-effect admission. The private Deep
-Agent exception does not expose that framework mechanism as an
-application API.
+Application-authored LangGraph ``Send`` fan-out is supported through
+:ref:`Send
+workers <python-packages-agent-engine-sdk-langgraph-docs-durable-subgraphs-send-workers>`.
+Deep Agent's internal ToolCall routing does not use those segments.
 
 Call-site map
 -------------
@@ -248,27 +233,29 @@ Call-site map
    * - Responsibility
      - Call site
    * - Expose ``app.deep_agent()``
-     - ```runtime.py`` <../src/agent_engine_sdk_langgraph/runtime.py>`__
-   * - Build the Deep Agent and install durable middleware/checkpointer policy
-     - ```deep_agent.py`` <../src/agent_engine_sdk_langgraph/deep_agent.py>`__
-   * - Permit Deep Agent’s internal ``Send`` routing
-     - ```deep_agent_checkpointer.py`` <../src/agent_engine_sdk_langgraph/deep_agent_checkpointer.py>`__
+     - ``runtime.py``
+   * - Build the Deep Agent and install durable middleware/checkpointer
+       policy
+     - ``deep_agent.py``
+   * - Mark Deep Agent graphs so their ToolNode workers keep existing
+       paths
+     - ``deep_agent_checkpointer.py``
    * - Capture Phase 1 and scope Phase 2
-     - ```durable_deep_agent.py`` <../src/agent_engine_sdk_langgraph/durable_deep_agent.py>`__
+     - ``durable_deep_agent.py``
    * - Parse the public Deep Agent ``task`` call
-     - ```deep_agent_task.py`` <../src/agent_engine_sdk_langgraph/deep_agent_task.py>`__
+     - ``deep_agent_task.py``
    * - Persist checkpoint writes and advance the root step
-     - ```platform_checkpointer.py`` <../src/agent_engine_sdk_langgraph/platform_checkpointer.py>`__
+     - ``platform_checkpointer.py``
    * - Store the pending batch and allocate child ordinals
-     - ```context.py`` <../../agent-engine-runner-shared/src/agent_engine_runner_shared/workflow/context.py>`__
+     - ``context.py``
    * - Stamp delegated messages before the secure model boundary
-     - ```secure_llm.py`` <../src/agent_engine_sdk_langgraph/secure_llm.py>`__
+     - ``secure_llm.py``
    * - Admit secure LLM effects
-     - ```secure_llm_proxy.py`` <../../agent-engine-runner-shared/src/agent_engine_runner_shared/secure_llm_proxy.py>`__
+     - ``secure_llm_proxy.py``
    * - Admit secure Tool effects
-     - ```secure_wrapper.py`` <../../agent-engine-runner-shared/src/agent_engine_runner_shared/secure_wrapper.py>`__
+     - ``secure_wrapper.py``
    * - Build the OE activity position
-     - ```activity.py`` <../../agent-engine-runner-shared/src/agent_engine_runner_shared/workflow/activity.py>`__
+     - ``activity.py``
 
 Verification and maintenance
 ----------------------------
@@ -278,9 +265,8 @@ When upgrading Deep Agent, LangChain, or LangGraph:
 1. Revalidate the public Deep Agent ``task``, middleware, and LangGraph
    ``Send`` contracts linked above.
 2. Run sibling ordering, native pass-through, invalid identity, and
-   batch lifecycle scenarios in
-   ```test_durable_deep_agent.py`` <../tests/test_durable_deep_agent.py>`__.
+   batch lifecycle scenarios in ``test_durable_deep_agent.py``.
 3. Run the checkpointer policy scenarios in
-   ```test_deep_agent_checkpointer.py`` <../tests/test_deep_agent_checkpointer.py>`__.
+   ``test_deep_agent_checkpointer.py``.
 4. Run the registered sequential-subagent, same-step-subagent, and Deep
    Agent product-baseline durable qualifications.

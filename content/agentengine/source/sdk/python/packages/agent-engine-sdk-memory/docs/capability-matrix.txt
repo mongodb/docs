@@ -17,12 +17,12 @@ The SDK selects the backend route shape from ``project_id`` *presence*,
 independent of auth. Set means project-scoped Gateway routes
 (``/api/v1/projects/{id}/memory/*``). Empty means flat OE routes
 (``/api/v1/memory/*``). The Gateway column below therefore means
-“project_id set”, the OE column “project_id empty”.
+"project_id set", the OE column "project_id empty".
 
 ``Memory.search(query, sources=[...])`` is a client-side fan-out over
 the per-type searches below that merges results into one
 ``list[MemoryChunk]`` (sorted by ``similarity_score``). It inherits each
-source’s per-backend availability: requesting an endpoint-gapped source
+source's per-backend availability: requesting an endpoint-gapped source
 raises ``MemoryNotSupportedError``. The default ``[semantic, episodic]``
 works on all three backends.
 
@@ -86,7 +86,8 @@ works on all three backends.
      - call/bind
      - call/bind/**contextvars**
    * - tenancy source
-     - api-key + project-scoped path (Gateway pins the key to its project)
+     - api-key + project-scoped path (Gateway pins the key to its
+       project)
      - execution-scoped (OE infers org/project from execution context)
      - ``TenantRuntime`` org/project
 
@@ -119,12 +120,12 @@ backends. The hosted Gateway route
 (``POST /api/v1/projects/{id}/memory/retrieval/context-from-sources``)
 proxies to the same OE ``retrieval/context-from-sources`` handler,
 stamping org/project from the API-key session. On app-bound it flows
-``TenantRuntime`` → ``MemoryClient.build_context2`` → OE’s
+``TenantRuntime`` → ``MemoryClient.build_context2`` → OE's
 ``retrieval/context-from-sources`` proxy, returning the full
 ``ContextResponse`` (unlike ``build_context``, which the app-bound path
 flattens to a string) so ``ranking_strategy`` and ``source_outcomes``
-survive. The runtime stamps org/project; each source’s ``top_k`` is
-honored (it is the caller’s explicit intent, unlike the runtime-owned
+survive. The runtime stamps org/project; each source's ``top_k`` is
+honored (it is the caller's explicit intent, unlike the runtime-owned
 ``top_k`` on ``build_context``); ``session_id`` is required only when
 the ``stm`` source is requested. The read runs inside the durable memory
 activity, so the response round-trips as JSON across a checkpoint.
@@ -137,7 +138,7 @@ empty ``id`` and ``has_embedding=False`` because the tenant write APIs
 return only ``bool`` or a doc id.
 
 Custom-type ``save`` / ``retrieve`` operate on memory types declared in
-the project’s memory configuration and are gated by a deployment feature
+the project's memory configuration and are gated by a deployment feature
 flag. The requests carry no identity or tenancy fields: the platform
 stamps org, project, and user server-side, so the operations work only
 where that stamping exists — project-scoped Gateway routes, or an
@@ -148,12 +149,12 @@ server-side. Client-side validation is syntax-only (built-in type names
 rejected, tag-syntax checks); the declared tag schema is enforced by the
 platform. A platform that does not serve the custom-type routes (bare
 404/405) or has the feature flag off raises ``MemoryNotSupportedError``;
-the server’s structured unknown-type 404 raises
+the server's structured unknown-type 404 raises
 ``MemoryBadRequestError``.
 
 The contextvars identity is the per-call default for app-bound reads,
 but only when the read does not request a broader visibility: a read
-that passes an explicit ``visibility`` (e.g. ``"org"``) is asking for a
+that passes an explicit ``visibility`` (e.g. ``"org"``) is asking for a
 cross-user scope, so the ambient principal is **not** substituted for
 ``user_id`` — it stays unset unless the caller (or ``bind``) supplied
 one, keeping visibility-scoped reads from being silently narrowed to the
@@ -167,7 +168,7 @@ scope episodic or semantic search: ``search_episodes``,
 ``session_id`` from the **call argument only** and never inherit a bound
 or ambient session. Episodic memory is stored session-unscoped
 (consolidated episodes carry ``session_id: null``), so inheriting a
-conversation’s session as a filter would silently drop every durable
+conversation's session as a filter would silently drop every durable
 memory. A caller that genuinely wants a session-scoped episodic read
 still passes ``session_id=`` explicitly. This matches the platform
 (``agent-engine-sdk-langgraph`` / ``TenantRuntime``) path, which already
@@ -210,10 +211,21 @@ configured model. Note the server currently re-infers when the explicit
 value matches its default model type, so an explicit ``"openai"`` is
 honored verbatim only on servers with an OpenAI-family model configured;
 ``"claude"`` and ``"jinja2"`` are always honored.
-``include_memories=True`` populates the response’s ``selected_memories``
+``include_memories=True`` populates the response's ``selected_memories``
 with the post-budget ``MemoryChunk`` list, so callers can inspect
 exactly which memories were selected. Both options work on the Gateway
 and OE HTTP modes. App-bound mode raises ``MemoryNotSupportedError``
 when either is set: app-bound ``build_context`` flattens the response to
 a formatted string, and the per-source path does not thread the options
 through ``TenantRuntime`` yet.
+
+``Memory.build_context_from_sources`` also accepts
+``collapse_duplicate_content`` (default ``True``). Set it to ``False``
+to skip the content-based duplicate collapse — exact text matches and
+near-duplicates — both within a hybrid source and across sources, so
+each source contributes every candidate up to its ``top_k`` (a document
+surfacing from both the vector and text legs is still returned once
+either way; ``max_tokens`` still applies after merging). Like the
+response-shaping options above, app-bound mode raises
+``MemoryNotSupportedError`` when the flag is set to ``False``, because
+``TenantRuntime``'s per-source path does not carry it.

@@ -1,0 +1,849 @@
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-runtime:
+
+agent_engine_sdk_langgraph.runtime
+==================================
+
+LangChain SDK Runtime
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.runtime.llmregistrationdrifterror:
+
+LLMRegistrationDriftError
+-------------------------
+
+.. code-block:: python
+
+   class LLMRegistrationDriftError(RuntimeError)
+
+A per-execution build registered a different LLM id set.
+
+Distinct from an ordinary build failure so the Tool Pod can tell a
+registry that has drifted from one that merely failed to build: a
+drifted registry is not a usable partial discovery. The marker attribute
+lets runner-shared recognise it without importing this SDK, which it is
+not allowed to do.
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.runtime.app:
+
+App
+---
+
+.. code-block:: python
+
+   class App(BaseApp)
+
+LangChain SDK for MongoDB Atlas Agent Engine.
+
+**Example**:
+
+.. code-block:: python
+
+   from agent_engine_sdk_langgraph import App
+   from langchain_openai import ChatOpenAI
+
+   app = App(app_name="My Agent")
+
+
+   @app.tool()
+   def my_tool(query: str) -> str:
+       return "result"
+
+
+   @app.entrypoint
+   def build_agent():
+       llm = app.llm(ChatOpenAI(model="gpt-4"))
+       checkpointer = app.checkpointer()
+       tools = app.get_tools()
+       # Build LangGraph...
+       return graph
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.runtime.app.__init__:
+
+\__init\_\_
+~~~~~~~~~~~
+
+.. code-block:: python
+
+   def __init__(app_name: str,
+                app_version: str = "1.0.0",
+                mongodb_uri: str | None = None,
+                database_name: str | None = None,
+                enable_tracing: bool | None = None,
+                traces_collection_name: str = "traces",
+                enable_memory: bool | None = None,
+                org_id: str | None = None,
+                checkpoint_allowed_types: Iterable[type | tuple[str, str]]
+                | None = None)
+
+Initialize the App.
+
+**Arguments**:
+
+- ``app_name`` - Application name
+- ``app_version`` - Application version
+- ``mongodb_uri`` - MongoDB URI
+- ``database_name`` - Database name
+- ``enable_tracing`` - Deprecated. Tracing is always enabled.
+- ``traces_collection_name`` - Collection name for trace storage
+- ``enable_memory`` - Deprecated. Use agent.yaml features.memory
+  instead.
+- ``org_id`` - Deprecated and ignored. The org is taken from the
+  ``ORG_ID`` environment variable, which the platform injects. Passing
+  this argument raises a DeprecationWarning and will be removed in a
+  future release.
+- ``checkpoint_allowed_types`` - Custom classes, or ``(module, name)``
+  pairs, that checkpoint loads may reconstruct in addition to
+  LangGraph's built-in safe types. Unlisted types come back as raw data.
+  Each entry is called with stored checkpoint data, so list only types
+  that are safe to construct from it.
+
+**Raises**:
+
+- ``TypeError`` - If ``checkpoint_allowed_types`` is not an iterable of
+  classes and ``(module, name)`` string pairs.
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.runtime.app.agent_config:
+
+agent_config
+~~~~~~~~~~~~
+
+.. code-block:: python
+
+   @property
+   def agent_config() -> RuntimeAgentConfig
+
+Return the runtime SDK's parsed view of agent.yaml.
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.runtime.app.memory:
+
+memory
+~~~~~~
+
+.. code-block:: python
+
+   @property
+   def memory() -> Memory
+
+Return the unified Memory facade over app-bound adapters.
+
+The return type is ``agent_engine_sdk_memory.Memory``. Methods return
+typed results (``Create*Result``, ``MemoryChunk``, ``ContextResponse``).
+Identity is supplied via per-call args, ``bind``, or ambient execution
+contextvars.
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.runtime.app.get_tool_definitions:
+
+get_tool_definitions
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def get_tool_definitions() -> list[ToolDefinition]
+
+Return sdk-core ToolDefinitions for all registered tools.
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.runtime.app.tools:
+
+tools
+~~~~~
+
+.. code-block:: python
+
+   def tools() -> list[Any]
+
+Return wrapped, LangGraph-specific tools for ToolNode.
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.runtime.app.tool:
+
+tool
+~~~~
+
+.. code-block:: python
+
+   def tool(is_local: bool = True,
+            *,
+            provider: str | None = None,
+            scopes: list[str] | None = None,
+            network: list[str] | None = None,
+            timeout: int = 30,
+            redact_fields: list[str] | None = None,
+            response_format: Literal["content",
+                                     "content_and_artifact"] = "content",
+            on_unknown_outcome: UnknownOutcomePolicy | None = None)
+
+Register a tool function.
+
+Creates a LangChain tool and registers the raw function on the runtime
+for Tool Pod execution.
+
+**Arguments**:
+
+- ``is_local`` - If True, runs in AER; if False, runs in Tool Pod
+  (default: True)
+- ``provider`` - Credential provider key for delegated auth (e.g.
+  "github")
+- ``scopes`` - OAuth scopes requested for delegated auth
+- ``network`` - Allowed network hosts (for tool pod)
+- ``timeout`` - Execution timeout in seconds
+- ``redact_fields`` - Fields to redact in logs
+- ``response_format`` - LangChain tool response format. ``"content"``
+  (default) treats the return value as the ToolMessage content;
+  ``"content_and_artifact"`` expects a ``(content, artifact)``
+  two-tuple, where ``artifact`` is data for downstream code that is not
+  sent to the model. The artifact must be JSON-serializable so it
+  survives the OE round trip. Note it is still recorded in the execution
+  log and is not covered by ``redact_fields`` (which redacts inputs
+  only), so do not place secrets in it.
+- ``on_unknown_outcome`` - What a retry does when the platform lost the
+  runner while this tool was running in a durable workflow, so nobody
+  knows whether it ran. ``"rerun"`` runs the tool again (at-least-once
+  execution; declare it only for a tool that is safe to run twice).
+  ``"fail"`` refuses the retry, so the tool never runs twice. Leave
+  unset for the platform default.
+
+**Returns**:
+
+Decorator function
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.runtime.app.entrypoint:
+
+entrypoint
+~~~~~~~~~~
+
+.. code-block:: python
+
+   def entrypoint(
+           fn: Callable[..., Any] | None = None,
+           *,
+           load_strategy: Literal["global", "per-execution"] = "global") -> Any
+
+Mark the graph builder function.
+
+Usable bare (``@app.entrypoint``) for the default cached, build-once
+behavior, or called with a strategy:
+
+``load_strategy="global"`` (the default) builds the graph once and
+caches it. ``load_strategy="per-execution"`` runs the builder on every
+invocation with the invocation's ``(input, ctx)``, so it can perform its
+own request-scoped I/O (sync or async) before returning the graph.
+
+**Registering LLMs under ``per-execution``.** Register every ``llm_id``
+the agent could ever use *before* any construction that depends on the
+invocation context:
+
+The Tool Pod discovers an agent's registered ids by building the graph
+with no invocation context, so a builder that needs context cannot be
+built there. It keeps whatever was registered before such a build
+failed, which is why registering first and reading context afterwards is
+the shape that works. Reading context is fine; reading it before the
+registrations is what breaks discovery.
+
+The registered set must also be the same on every invocation, because
+the Tool Pod resolves a model by ``llm_id`` against a registry built
+once per pod. Vary which id the graph *binds* per caller; do not vary
+which ids are *registered*. A per-execution build that registers a
+different set fails at the build, rather than mid-execution when the pod
+cannot resolve the model.
+
+.. code-block:: python
+
+   @app.entrypoint(load_strategy="per-execution")
+   async def build(input: AgentInput, ctx: RequestContext) -> CompiledStateGraph:
+       flag = await fetch_flag(ctx.user_id)
+       return assemble_graph(rollout_enabled=flag)
+
+.. code-block:: python
+
+   @app.entrypoint(load_strategy="per-execution")
+   async def build(input: AgentInput, ctx: RequestContext) -> CompiledStateGraph:
+       llm = app.llm(ChatOpenAI(model="gpt-5.4"), llm_id="primary")  # register first
+       tier = await fetch_tier(ctx.user_id)  # then read context
+       tools = PREMIUM if tier == "premium" else FREE
+       return compile_graph(tools, llm)
+
+**Arguments**:
+
+- ``fn`` - Function that builds and returns a CompiledStateGraph.
+- ``load_strategy`` - ``"global"`` (default) or ``"per-execution"``.
+
+**Returns**:
+
+The original function (unchanged), or a decorator when called with
+keyword arguments.
+
+**Raises**:
+
+- ``ValueError`` - If ``load_strategy`` is not a known strategy.
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.runtime.app.build_graph:
+
+build_graph
+~~~~~~~~~~~
+
+.. code-block:: python
+
+   async def build_graph(agent_input: AgentInput | None = None,
+                         ctx: RequestContext | None = None) -> Any
+
+Build the graph for this invocation.
+
+Returns ``None`` for a global agent, signalling the caller to use the
+cached build path unchanged. For a per-execution agent, runs the builder
+with ``(agent_input, ctx)`` -- awaiting it when the builder is async --
+and returns the compiled graph.
+
+The platform also builds the graph without an invocation to discover an
+agent's registered LLM ids. That call passes ``(None, None)``; a builder
+that needs real context fails there, and the failure names the
+context-free discovery rather than looking like a bug in the builder.
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.runtime.app.prepare_agent_input:
+
+prepare_agent_input
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def prepare_agent_input(fn: PrepareAgentInput) -> PrepareAgentInput
+
+Register a hook that builds graph input from the invocation.
+
+The hook receives the framework-neutral ``AgentInput`` (the opaque
+caller payload) and ``RequestContext``, and returns a value LangGraph
+can ingest directly — a graph state dict or a ``Command``. It lets an
+agent author control how the request becomes the graph's starting input
+(e.g. fold extra payload context into the prompt, seed a system message,
+or populate custom state keys).
+
+Only fresh invocations flow through the hook; HITL resume stays
+platform-managed. When no hook is registered, the default
+message-wrapping behavior is used, so existing agents are unaffected.
+
+**Example**:
+
+.. code-block:: python
+
+   @app.prepare_agent_input
+   def prepare(input: AgentInput, ctx: RequestContext) -> GraphInput:
+       payload = input.payload
+       return {
+           "messages": [HumanMessage(content=payload["message"])],
+           "extra": payload.get("extra"),
+       }
+
+**Arguments**:
+
+- ``fn`` - Callable ``(AgentInput, RequestContext) -> GraphInput``.
+
+**Returns**:
+
+The original function (unchanged), so it can be used as a decorator.
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.runtime.app.resolve_thread_id:
+
+resolve_thread_id
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def resolve_thread_id(fn: ResolveThreadId) -> ResolveThreadId
+
+Register a hook that builds the LangGraph checkpoint ``thread_id``.
+
+Callers manage Atlas Agent Engine ``session_id`` (and authenticated
+``user_id``). The agent owns how those map to the LangGraph checkpoint
+key. When registered, the hook's return value is used verbatim on every
+invocation — fresh and resume — with no workspace suffix appended. When
+no hook is registered, the adapter derives ``session_id:workspace_id``
+as today.
+
+Custom keys are invisible to Atlas Agent Engine session-history queries
+(``/query/sessions*``), which still look up only the default
+session/workspace-derived keys. Agents that bypass workspace scoping
+also own collision isolation within the checkpoint database (for example
+when sharing a project store with other agents).
+
+**Example**:
+
+.. code-block:: python
+
+   @app.resolve_thread_id
+   def resolve_thread_id(ctx: RequestContext) -> str:
+       actor = email_to_actor_id(ctx.user_id or "")
+       return f"{ctx.session_id}__{actor}"
+
+**Arguments**:
+
+- ``fn`` - Callable ``(RequestContext) -> str``.
+
+**Returns**:
+
+The original function (unchanged), so it can be used as a decorator.
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.runtime.app.output_parser:
+
+output_parser
+~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def output_parser(cls: type[OutputParser]) -> type[OutputParser]
+
+Register a custom output parser subclass on this app.
+
+The class is validated with ``issubclass`` here, at decoration time, so
+a non-``OutputParser`` fails on import. The adapter stores the class
+without instantiating it; because ``parse`` and ``on_stream_error`` are
+abstract, a subclass missing either raises ``TypeError`` the moment it
+is instantiated to stream (once the producer wires that up).
+
+**Example**:
+
+.. code-block:: python
+
+   @app.output_parser
+   class BriefParser(LangGraphOutputParser):
+       stream_modes = ("messages", "values")
+
+       async def parse(self, item, ctx): ...
+       async def on_stream_error(self, ctx, error): ...
+
+**Arguments**:
+
+- ``cls`` - An ``OutputParser`` subclass.
+
+**Returns**:
+
+The original class (unchanged), so it can be used as a decorator.
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.runtime.app.warm_up:
+
+warm_up
+~~~~~~~
+
+.. code-block:: python
+
+   def warm_up() -> bool
+
+Build and cache the graph ahead of the first ``/execute`` call.
+
+Never raises: a failure returns ``False`` so the AER records the
+one-shot optimization as incomplete, while the existing lazy build
+remains the fallback for the first real ``get_agent()`` call.
+
+A no-op for ``per-execution`` agents: there is no caller to build for
+yet, so building here would only be discarded by the first real
+invocation. Warm-up still pre-builds for ``global`` agents.
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.runtime.app.get_agent:
+
+get_agent
+~~~~~~~~~
+
+.. code-block:: python
+
+   def get_agent(callbacks: list[Any] | None = None, *, graph: Any = None) -> Any
+
+Build and return a BaseAgent instance.
+
+Calls the registered entrypoint function to build the graph, then wraps
+it in a LangGraphBaseAgent adapter.
+
+**Arguments**:
+
+- ``callbacks`` - Optional list of BaseExecutionCallback instances for
+  observability (e.g., NodeExecutionLogger from the AER). Wrapped in
+  LangGraphCallbackAdapter before passing to the graph.
+- ``graph`` - A graph already built by ``build_graph`` for this
+  invocation (a per-execution agent). ``None`` (the default, and the
+  only value a global agent ever sees) uses the cached build path.
+
+**Returns**:
+
+LangGraphBaseAgent instance implementing BaseAgent protocol
+
+**Raises**:
+
+- ``RuntimeError`` - If no entrypoint function has been registered
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.runtime.app.run:
+
+run
+~~~
+
+.. code-block:: python
+
+   def run(**kwargs) -> None
+
+Start the agent service.
+
+Registers the builder function and starts the runtime server. This is
+called by the platform entrypoint dispatcher.
+
+**Arguments**:
+
+- ``**kwargs`` - Runtime startup options passed to the runtime.
+  ``grpc_port`` and ``log_level`` are supported. Deprecated ``host`` and
+  ``http_port`` values are still accepted for backwards compatibility
+  but are ignored by agent-engine-runner-shared.
+
+**Raises**:
+
+- ``RuntimeError`` - If no @app.entrypoint has been registered
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.runtime.app.llm:
+
+llm
+~~~
+
+.. code-block:: python
+
+   def llm(llm: BaseChatModel, llm_id: str | None = None) -> BaseChatModel
+
+Wrap a LangChain LLM for audited I/O through the Orchestration Engine.
+
+For agents with a single LLM, call without ``llm_id``:
+
+llm = app.llm(ChatOpenAI(model="gpt-5.4"))
+
+For agents with multiple LLMs, every call must supply a unique
+``llm_id``:
+
+llm_a = app.llm(ChatOpenAI(model="gpt-5.4"), llm_id="primary") llm_b =
+app.llm(ChatOpenAI(model="gpt-5.4-mini"), llm_id="fast")
+
+Unnamed calls register under the sentinel id ``"__default__"``; calling
+``app.llm()`` twice without an id therefore raises the same duplicate-id
+error as registering the same named id twice.
+
+**Arguments**:
+
+- ``llm`` - LangChain LLM instance.
+- ``llm_id`` - Unique identifier for this LLM. Optional when the agent
+  uses a single LLM.
+
+**Returns**:
+
+``SecureWrappedLLM`` in AER mode; the raw *llm* in TOOL mode.
+
+**Raises**:
+
+- ``ValueError`` - If ``llm_id`` has already been registered (including
+  a second unnamed call which collides on ``"__default__"``).
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.runtime.app.deep_agent:
+
+deep_agent
+~~~~~~~~~~
+
+.. code-block:: python
+
+   def deep_agent(llm: BaseChatModel,
+                  *,
+                  tools: Sequence[Any] | None = None,
+                  subagents: Sequence[Any] | None = None,
+                  system_prompt: str | None = None,
+                  middleware: Sequence[Any] = (),
+                  checkpointer: Any = _UNSET,
+                  store: Any = None,
+                  skills: list[str] | None = None,
+                  backend: Any = None) -> Any
+
+Create a deep agent graph pre-configured with Atlas Agent Engine secure
+routing.
+
+Wraps ``create_agent_engine_deep_agent()`` with:
+
+- ``SecureWrappedLLM`` as the model (all LLM calls route through OE)
+- Configurable backend (defaults to ``AgentEngineToolPodBackend``)
+- Checkpointer sentinel resolution (``_UNSET`` ->
+  ``app.checkpointer()``, ``None`` -> disable, instance -> use directly)
+- SubAgent model validation (string model specs rejected to prevent OE
+  bypass)
+
+The returned ``CompiledStateGraph`` should be used inside an
+``@app.entrypoint`` function. ``app.get_agent()`` will then wrap it in
+``LangGraphBaseAgent`` for AER compatibility.
+
+**Arguments**:
+
+- ``llm`` - Base LLM instance to wrap with SecureWrappedLLM.
+
+- ``tools`` - Additional tools for the deep agent (merged with built-in
+  tools).
+
+- ``subagents`` - SubAgent specs. Each spec with a ``model`` field must
+  pass a ``BaseChatModel`` instance, not a string.
+
+- ``system_prompt`` - Custom system instructions.
+
+- ``middleware`` - Additional middleware, run after the SDK's default
+  interrupt-recovery and durable-nesting middleware (see
+  create_agent_engine_deep_agent).
+
+- ``checkpointer`` - LangGraph checkpointer for state persistence.
+  Defaults to ``_UNSET`` which resolves to ``app.checkpointer()``
+  (MongoDB). Pass ``None`` to disable checkpointing. Pass a
+  ``BaseCheckpointSaver`` instance to use a custom checkpointer.
+
+- ``store`` - LangGraph store for skills and shared data.
+
+- ``skills`` - Parent directories (as ``str``) for deepagents skill
+  discovery. Each immediate child directory containing ``SKILL.md`` is
+  one skill. Each path must be a ``str`` — ``pathlib.Path`` objects are
+  NOT accepted because deepagents' SkillsMiddleware calls
+  ``.rstrip("/")`` on the value (use ``str(path)`` at the call site if
+  you start from a ``Path``). Relative paths resolve against the
+  directory containing ``agent.yaml``; ``AGENTIC_SKILLS_DIR`` may set a
+  different skills root. When ``None`` (default) no skills are loaded.
+  See the "Skills" section below for runtime behavior.
+
+- ``backend`` - Backend for filesystem/shell ops. Defaults to
+  ``AgentEngineToolPodBackend`` when ``None``. Pass a custom backend
+  (e.g. ``StoreBackend``) to override. **Security note:** custom
+  backends bypass the default OE-audited I/O path — use only in tests or
+  with backends that provide equivalent auditing.
+
+  Skills (progressive disclosure): The ``skills`` parameter enables
+  deepagents' progressive-disclosure pattern — the LLM sees only skill
+  *metadata* (name + description + path) on turn 1 and reads the full
+  SKILL.md body on demand via ``read_file(path)``. This keeps the system
+  prompt small while still giving the agent access to deep domain
+  knowledge.
+
+  Directory layout and frontmatter: Each entry in ``skills=`` is a
+  parent source directory. At runtime, ``SkillsMiddleware`` lists that
+  directory through the configured backend and treats each immediate
+  child containing ``SKILL.md`` as one skill; discovery is not
+  recursive:
+
+  /app/skills/ code-review-style/ SKILL.md examples/ good.py
+  security-checklist/ SKILL.md
+
+  deepagents validates each skill's frontmatter itself. It skips
+  unreadable or unparsable frontmatter and skills missing ``name`` or
+  ``description``; Agent Skills naming or directory-name violations are
+  warned about but may still load. This SDK does not validate or filter
+  declared paths.
+
+  Subagent non-inheritance: Skills attached to the top-level agent DO
+  NOT propagate to subagents. If a subagent needs the same skills, pass
+  ``skills=`` on its own ``SubAgent`` spec. This is a deepagents-level
+  behavior and may change in a future release.
+
+  Runtime state: On the first turn, ``SkillsMiddleware.before_agent``
+  loads the metadata into ``state["skills_metadata"]`` and injects a
+  ``## Skills System`` block into the system prompt. After turn 1 the
+  metadata is cached on the thread; edits to SKILL.md files on disk are
+  NOT picked up inside the same thread (start a new thread to pick up
+  edits).
+
+**Returns**:
+
+CompiledStateGraph ready for LangGraphBaseAgent wrapping.
+
+**Raises**:
+
+- ``RuntimeError`` - If any SubAgent spec uses a string model.
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.runtime.app.checkpointer:
+
+checkpointer
+~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def checkpointer() -> Any | None
+
+Get the request-scoped platform checkpointer for LangGraph.
+
+The returned ``PlatformCheckpointer`` delegates per invocation from
+trusted request context: native sessions use the existing MongoDB-backed
+saver; durable_workflow sessions use attempt-local scratch keyed by
+execution + attempt + fence. It is created lazily on first call and
+cached. The underlying ``MongoClient`` is closed when ``App.close()`` is
+called.
+
+The database name is read from ``CHECKPOINT_DB_NAME`` when set (exact
+override, no project scoping). Otherwise the existing
+``MDB_AGENTIC_STORE_DB`` / per-project store resolution is used
+(default: ``"mdb_store"``).
+
+**Returns**:
+
+PlatformCheckpointer instance in AER mode, None otherwise
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.runtime.app.close:
+
+close
+~~~~~
+
+.. code-block:: python
+
+   def close() -> None
+
+Release resources held by this App instance.
+
+Closes the MongoDB client opened by :meth:``checkpointer``, if any.
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.runtime.app.get_tools:
+
+get_tools
+~~~~~~~~~
+
+.. code-block:: python
+
+   def get_tools() -> list[Any]
+
+Get wrapped tools for ToolNode.
+
+In AER mode, returns tools wrapped with SecureToolWrapper that route all
+executions through OE for logging and policy enforcement. In other
+modes, returns the original LangChain tools.
+
+**Returns**:
+
+List of tools ready for ToolNode
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.runtime.app.get_tool_schemas:
+
+get_tool_schemas
+~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def get_tool_schemas() -> list[Any]
+
+Get tool schemas for llm.bind_tools().
+
+**Returns**:
+
+List of original LangChain tools (not wrapped)
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.runtime.app.suspend:
+
+suspend
+~~~~~~~
+
+.. code-block:: python
+
+   def suspend(reason: str, context: dict[str, Any]) -> str
+
+Generates a suspend command. If a tool should suspend, return the result
+of this function.
+
+Not supported on durable workflow sessions: use LangGraph's native
+``interrupt()`` instead. A tool that returns this payload on a durable
+session fails with a clear error before the wait is recorded.
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.runtime.app.finish_session:
+
+finish_session
+~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def finish_session() -> SessionFinishStatus
+
+Mark this session finished so the platform frees its compute now.
+
+Call it when the agent is done with the session. The current turn keeps
+running and returns its result normally; once it completes, the platform
+cancels any live sub-agent runs and releases the session's AER and tool
+pods instead of holding them until the idle timeout expires.
+
+Safe to call more than once: the first call returns REQUESTED, later
+ones ALREADY_REQUESTED. Outside an agent run (local scripts, tool pods)
+there is no session to finish and the call returns UNAVAILABLE without
+raising. Calling it after the turn has already ended - e.g. from
+background work scheduled during the turn but that runs after it - also
+returns UNAVAILABLE: by then nothing is listening for the request
+anymore, so reporting REQUESTED would promise a release that will never
+happen.
+
+A turn that suspends for human review, or that fails, keeps its
+resources so it stays resumable and diagnosable; the session then falls
+back to the idle timeout.
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.runtime.app.validate_llm_response:
+
+validate_llm_response
+~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def validate_llm_response(response: Any) -> Any
+
+Apply guardrails validation to LLM response.
+
+Checks if the response has content (and no tool calls), runs guardrails
+validation, and returns a new AIMessage with validated content if
+modifications were made.
+
+**Arguments**:
+
+- ``response`` - LangChain AIMessage or similar response object
+
+**Returns**:
+
+Original or modified response after validation
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.runtime.app.validate_output:
+
+validate_output
+~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def validate_output(text: str) -> str
+
+Validate text output using configured guardrails.
+
+**Arguments**:
+
+- ``text`` - Text to validate
+
+**Returns**:
+
+Validated (possibly modified) text
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.runtime.app.a2a_tools:
+
+a2a_tools
+~~~~~~~~~
+
+.. code-block:: python
+
+   def a2a_tools() -> list[Any]
+
+Get LangChain tools for A2A agent discovery and invocation.
+
+Returns StructuredTool instances that execute in the AER process (not
+via the tool pod) because A2A requires the execution context's OE URL
+and A2A JWT.
+
+Bind them to the LLM and pass to ToolNode alongside any @app.tool
+tools:
+
+a2a = app.a2a_tools() llm_with_tools =
+llm.bind_tools(app.get_tool_schemas() + a2a) ToolNode(app.get_tools() +
+a2a)
+
+**Returns**:
+
+List of LangChain tools for discover_agents and invoke_agent. Empty list
+when A2A is not enabled in agent.yaml.
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.runtime.app.get_current_user_id:
+
+get_current_user_id
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def get_current_user_id() -> str | None
+
+Get current execution context user ID.
+
+**Returns**:
+
+User ID from the current execution context, or None

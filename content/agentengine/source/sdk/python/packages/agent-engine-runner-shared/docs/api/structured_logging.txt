@@ -1,0 +1,104 @@
+.. _python-packages-agent-engine-runner-shared-docs-api-structured_logging:
+
+agent_engine_runner_shared.structured_logging
+=============================================
+
+Structured JSON logging for the agent runtime log capture pipeline.
+
+Emits single-line JSON records on container stdout. Fluent Bit tails the
+container log, the Lua filter derives tenant/workspace keys from pod
+metadata, and writes gzipped batches to S3. The API Gateway
+``GET /api/v1/agent-logs`` endpoint reads them back.
+
+Activated by calling ``install_structured_logging()`` at runner startup
+— typically gated by ``STRUCTURED_LOGGING=true``. When inactive, the
+existing human-readable logging in
+``agent_engine_runner_shared.utils.setup_logging`` is unaffected.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.structured_logging.structuredjsonformatter:
+
+StructuredJSONFormatter
+-----------------------
+
+.. code-block:: python
+
+   class StructuredJSONFormatter(logging.Formatter)
+
+Formats LogRecord instances as single-line JSON.
+
+Tenant context is read from agent-engine-runner-shared contextvars at
+format time so that records emitted from inside an execution carry
+executionId/sessionId automatically; records emitted outside execution
+(startup, idle) leave those fields ``null``.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.structured_logging.loggingstream:
+
+LoggingStream
+-------------
+
+.. code-block:: python
+
+   class LoggingStream(IOBase)
+
+Replacement for ``sys.stdout``/``sys.stderr`` that routes writes through
+logging.
+
+Bare ``print()`` calls (and any other code writing directly to the
+captured stream) are rewritten as LogRecord instances tagged with
+``agentic_log_source = "stdout"`` (or ``"stderr"``) so the formatter can
+mark them as such on the wire. Lines are buffered until newline, with a
+hard byte cap so a producer writing without ``\n`` cannot grow the
+buffer until OOM (see ``_MAX_BUFFER_BYTES``).
+
+Holds a reference to the wrapped *original* stream so that a re-install
+can recover and ``fileno()``/``buffer``/``encoding`` requests from
+third-party libraries (subprocess, tqdm, gRPC) can be delegated through
+instead of raising. ``write()``/``flush()`` are guarded by an ``RLock``
+so concurrent producers don't interleave bytes mid-line.
+
+Inherits from ``IOBase`` rather than ``TextIOBase``: ``TextIOBase``
+declares ``encoding`` as a read-only C descriptor and we need a writable
+instance attribute to surface the wrapped stream's encoding to callers
+that probe ``sys.stdout.encoding`` (CLI helpers, click, rich).
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.structured_logging.install_structured_logging:
+
+install_structured_logging
+--------------------------
+
+.. code-block:: python
+
+   def install_structured_logging(stream: Optional[IO[str]] = None,
+                                  level: Optional[str] = None,
+                                  mode: Optional[str] = None) -> None
+
+Install the structured JSON formatter on the root logger and capture
+stdout/stderr.
+
+Idempotent: if already installed, recovers the previously-wrapped
+original stream so a second call does not feed the new handler back into
+its own ``LoggingStream`` (which would recurse to RecursionError).
+
+**Arguments**:
+
+- ``stream`` - Output stream for the JSON handler. Defaults to the
+  *current* (or previously-wrapped) ``sys.stdout`` at install time,
+  captured before stdout is replaced by ``LoggingStream``. Useful in
+  tests to inject a buffer.
+
+- ``level`` - Log level — either a string name (``"DEBUG"``, ``"info"``)
+  or a ``logging.LEVEL`` int. Defaults to ``LOG_LEVEL`` env var, then
+  INFO. Must be honored on rollout because operators continue to flip
+  ``LOG_LEVEL=DEBUG`` to chase issues.
+
+  Applies to ``logging.*`` calls only — stdout/stderr writes captured by
+  ``LoggingStream`` always emit, so a stray ``print()`` does not
+  silently disappear when an operator sets ``LOG_LEVEL=WARNING``.
+  Captures are routed via ``Logger.handle()`` directly, bypassing
+  ``isEnabledFor`` and the handler's level check.
+
+- ``mode`` - Runner mode (``"orchestrator"``, ``"aer"``, ``"tool"``)
+  used to derive ``service`` and ``fields.component`` on the wire. Takes
+  precedence over ``RUNNER_MODE`` env var when set; falls back to env
+  when ``None``. Lets ``setup_logging(mode=...)`` callers stay
+  authoritative even if pod env hasn't been stamped.

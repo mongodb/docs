@@ -1,0 +1,350 @@
+.. _python-packages-agent-engine-sdk-memory-docs-api-models:
+
+agent_engine_sdk_memory.models
+==============================
+
+Canonical Pydantic models for Memory API.
+
+These models define the request/response types for the Memory Server
+HTTP API and are used by both MemoryClient and the server routes.
+
+Single source of truth for Memory API types.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.models.writeturnresult:
+
+WriteTurnResult
+---------------
+
+.. code-block:: python
+
+   class WriteTurnResult(BaseModel)
+
+Result of writing a conversation turn.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.models.createsemanticresult:
+
+CreateSemanticResult
+--------------------
+
+.. code-block:: python
+
+   class CreateSemanticResult(BaseModel)
+
+Result of creating a semantic memory.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.models.bulkcreatesemanticresult:
+
+BulkCreateSemanticResult
+------------------------
+
+.. code-block:: python
+
+   class BulkCreateSemanticResult(BaseModel)
+
+Result of bulk creating semantic memories.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.models.createepisodicresult:
+
+CreateEpisodicResult
+--------------------
+
+.. code-block:: python
+
+   class CreateEpisodicResult(BaseModel)
+
+Result of creating an episodic memory.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.models.createtaxonomicresult:
+
+CreateTaxonomicResult
+---------------------
+
+.. code-block:: python
+
+   class CreateTaxonomicResult(BaseModel)
+
+Result of creating a taxonomic memory.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.models.createproceduralresult:
+
+CreateProceduralResult
+----------------------
+
+.. code-block:: python
+
+   class CreateProceduralResult(BaseModel)
+
+Result of creating a procedural memory.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.models.createusercontextresult:
+
+CreateUserContextResult
+-----------------------
+
+.. code-block:: python
+
+   class CreateUserContextResult(BaseModel)
+
+Result of creating a user context memory.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.models.createsnapshotresult:
+
+CreateSnapshotResult
+--------------------
+
+.. code-block:: python
+
+   class CreateSnapshotResult(BaseModel)
+
+Result of creating a snapshot memory.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.models.promotesnapshotresult:
+
+PromoteSnapshotResult
+---------------------
+
+.. code-block:: python
+
+   class PromoteSnapshotResult(BaseModel)
+
+Result of promoting STM to snapshot.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.models.deleteresult:
+
+DeleteResult
+------------
+
+.. code-block:: python
+
+   class DeleteResult(BaseModel)
+
+Result of a delete operation.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.models.internalstateresult:
+
+InternalStateResult
+-------------------
+
+.. code-block:: python
+
+   class InternalStateResult(BaseModel)
+
+Result of updating internal state.
+
+Returns key information for verification:
+
+- session_id: Which session was updated
+- version: New version number (increments on each update)
+- token_count: Token count of the new content
+- content_hash: SHA256[:16] for integrity verification
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.models.isgenerationresult:
+
+ISGenerationResult
+------------------
+
+.. code-block:: python
+
+   class ISGenerationResult(BaseModel)
+
+Result of automatic IS generation via generate_is_from_turn().
+
+Tracks whether the update happened, was skipped, or coalesced.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.models.memorysource:
+
+MemorySource
+------------
+
+.. code-block:: python
+
+   class MemorySource(str, Enum)
+
+Source type for memory chunks.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.models.searchsource:
+
+SearchSource
+------------
+
+.. code-block:: python
+
+   class SearchSource(str, Enum)
+
+A memory source that ``Memory.search`` can query.
+
+Mirrors ``MemorySource`` minus ``STM`` (short-term turns are not a
+search target). Callers may pass either the enum or its string value.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.models.retrievalmode:
+
+RetrievalMode
+-------------
+
+.. code-block:: python
+
+   class RetrievalMode(str, Enum)
+
+How a single source is searched in per-source context building.
+
+``TEXT`` is lexical (``$search``), ``SEMANTIC`` is vector
+(``$vectorSearch``), and ``HYBRID`` fuses both. Callers may pass either
+the enum or its string value.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.models.formatstyle:
+
+FormatStyle
+-----------
+
+.. code-block:: python
+
+   class FormatStyle(str, Enum)
+
+Output format for built context.
+
+Mirrors the server's format styles: ``OPENAI`` is a chat-message list
+that keeps STM turn roles, ``CLAUDE`` an XML string, and ``JINJA2`` a
+markdown string. Callers may pass either the enum or its string value.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.models.sourcespec:
+
+SourceSpec
+----------
+
+.. code-block:: python
+
+   class SourceSpec(BaseModel)
+
+Per-source retrieval configuration for
+``Memory.build_context_from_sources``.
+
+Each enabled source declares its own retrieval mode, metadata filter,
+and candidate count, unlike ``build_context`` where one filter and one
+mode apply to every source.
+
+A ``metadata_filter`` key is the *fully qualified index path*, not the
+bare attribute name from the project config. An attribute declared as
+``tier`` is indexed at ``metadata.tier``, and that is what the filter
+must say -- nothing is prefixed for you:
+
+.. code-block:: text
+
+   # project config declares metadata partition keys: tier, score
+   SourceSpec(
+       source="semantic",
+       mode="hybrid",
+       metadata_filter={"metadata.tier": "gold", "metadata.score": {"$gt": 0.8}},
+   )
+
+Unlike ``build_context``'s single filter, these keys are validated: an
+undeclared or misspelled path raises ``MemoryBadRequestError`` listing
+the declared paths, so a typo fails at the call instead of silently
+narrowing the result set.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.models.memorychunk:
+
+MemoryChunk
+-----------
+
+.. code-block:: python
+
+   class MemoryChunk(BaseModel)
+
+Unified representation of memory from any source (STM, episodic,
+semantic).
+
+This model provides a common interface for memory chunks retrieved from
+different memory types, enabling uniform processing in the retrieval
+pipeline.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.models.memorychunk.org_id:
+
+org_id
+~~~~~~
+
+.. code-block:: python
+
+   @property
+   def org_id() -> str | None
+
+Get org_id from metadata if available.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.models.sourceoutcome:
+
+SourceOutcome
+-------------
+
+.. code-block:: python
+
+   class SourceOutcome(TypedDict)
+
+One entry of ``ContextMetadata.source_outcomes`` — what happened for a
+single source on the per-source context path.
+
+The wire shape the server emits (per-source builder serializes its
+internal ``SourceOutcome`` dataclass to this dict). Enum-valued fields
+arrive as their string values. ``error`` is ``None`` unless the source
+failed; a ``requested_mode``/``effective_mode`` mismatch flags a source
+that ran in a degraded mode. ``retryable`` is true only for a first-use
+lazy index build — retry shortly rather than treat the empty
+contribution as "no memories". Absent from older servers, so treat a
+missing key as false.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.models.contextmetadata:
+
+ContextMetadata
+---------------
+
+.. code-block:: python
+
+   class ContextMetadata(BaseModel)
+
+Metadata about the context building process.
+
+Provides information about token usage, memory counts, and timing.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.models.contextresponse:
+
+ContextResponse
+---------------
+
+.. code-block:: python
+
+   class ContextResponse(BaseModel)
+
+Final response model for context building.
+
+Contains the formatted context and metadata about the retrieval process.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.models.custommemorysaveresult:
+
+CustomMemorySaveResult
+----------------------
+
+.. code-block:: python
+
+   class CustomMemorySaveResult(BaseModel)
+
+Result of saving a custom-type memory.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.models.retrievedcustommemory:
+
+RetrievedCustomMemory
+---------------------
+
+.. code-block:: python
+
+   class RetrievedCustomMemory(BaseModel)
+
+One retrieved custom-type memory.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.models.custommemoryretrieveresult:
+
+CustomMemoryRetrieveResult
+--------------------------
+
+.. code-block:: python
+
+   class CustomMemoryRetrieveResult(BaseModel)
+
+Result of retrieving custom-type memories.

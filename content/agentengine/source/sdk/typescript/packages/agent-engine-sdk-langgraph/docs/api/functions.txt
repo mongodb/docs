@@ -1,0 +1,166 @@
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-functions:
+
+@mongodb-js/agent-engine-sdk-langgraph Functions
+================================================
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-createagentenginedeepagent:
+
+createAgentEngineDeepAgent()
+----------------------------
+
+.. code-block:: typescript
+
+   function createAgentEngineDeepAgent(
+      secureLlm,
+      backend,
+      options?
+   ): any;
+
+Create a deep-agent graph pre-configured for Atlas Agent Engine AER.
+Resolves relative skill paths, validates the subagent tree, then
+delegates to deepagents' ``createDeepAgent``.
+
+Parameters
+~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Description
+   * - ``secureLlm``
+     - ``BaseChatModel``
+     - A ``SecureWrappedLLM`` instance — every LLM call is OE-audited.
+   * - ``backend``
+     - ``AnyBackendProtocol`` \| ``undefined``
+     - Backend for filesystem/shell ops; resolved by
+       ``App.deepAgent()``.
+   * - ``options``
+     - :ref:`CreateAgentEngineDeepAgentOptions <typescript-packages-agent-engine-sdk-langgraph-docs-api-createagentenginedeepagentoptions>`
+     - -
+
+Returns
+~~~~~~~
+
+``any``
+
+Throws
+~~~~~~
+
+A subagent spec uses a string model, or nesting exceeds the cap.
+
+--------------
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-getcallabortsignal:
+
+getCallAbortSignal()
+--------------------
+
+.. code-block:: typescript
+
+   function getCallAbortSignal(): AbortSignal | undefined;
+
+The per-call stop signal for the in-flight callback-routed tool call.
+Defined only inside a tool body that declared call-interrupt support; a
+cooperative body checks it (or forwards it to ``fetch`` etc.) to stop at
+its next checkpoint. Undefined everywhere else.
+
+Returns
+~~~~~~~
+
+``AbortSignal`` \| ``undefined``
+
+--------------
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-validatesubagenttree:
+
+validateSubagentTree()
+----------------------
+
+.. code-block:: typescript
+
+   function validateSubagentTree(subagents): void;
+
+Walk the subagent tree, throwing on any string-model spec.
+
+String model specs would bypass OE routing because deepagents'
+``resolveModel`` instantiates a raw provider client with no
+``SecureToolWrapper``. Only model instances (e.g. ``SecureWrappedLLM``)
+are accepted.
+
+Spec kinds handled:
+
+- ``CompiledSubAgent`` (``runnable`` set) — pre-built graph; the model
+  is already bound and unreadable here. Skipped.
+- ``AsyncSubAgent`` (``graphId`` set) — remote graph we can't validate
+  in-process. Logged at WARNING and skipped — the receiving end must
+  route through the OE.
+- Plain ``SubAgent`` — validated; a string ``model`` throws.
+
+The depth counter is held in a closure rather than a public parameter so
+callers cannot start recursion mid-tree and bypass the cap.
+
+Parameters
+~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``subagents``
+     - readonly ``AnySubAgent``\ [] \| ``undefined``
+
+Returns
+~~~~~~~
+
+``void``
+
+Throws
+~~~~~~
+
+A subagent spec uses a string ``model``, or nesting exceeds
+:ref:`MAX_SUBAGENT_NESTING_DEPTH <typescript-packages-agent-engine-sdk-langgraph-docs-api-max_subagent_nesting_depth>`.
+
+--------------
+
+.. _typescript-packages-agent-engine-sdk-langgraph-docs-api-withcallinterruptsupport:
+
+withCallInterruptSupport()
+--------------------------
+
+.. code-block:: typescript
+
+   function withCallInterruptSupport<T>(tool): T;
+
+Brand a tool as supporting per-call interrupt. The body must honor the
+signal from ``getCallAbortSignal()`` — check ``signal.aborted`` between
+steps or pass the signal to APIs that accept one (``fetch``, streams).
+
+Returns the same tool for chaining at definition time.
+
+Type Parameters
+~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+
+   * - Type Parameter
+   * - ``T``
+
+Parameters
+~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+   * - ``tool``
+     - ``T``
+
+Returns
+~~~~~~~
+
+``T``

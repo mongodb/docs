@@ -1,0 +1,100 @@
+.. _python-packages-agent-engine-sdk-memory-docs-api-protocol:
+
+agent_engine_sdk_memory.protocol
+================================
+
+Seam primitives: the immutable request context and the runtime Protocol.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.protocol.memoryrequestcontext:
+
+MemoryRequestContext
+--------------------
+
+.. code-block:: python
+
+   class MemoryRequestContext(BaseModel)
+
+Immutable identity context carried across a memory call.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.protocol.memoryruntime:
+
+MemoryRuntime
+-------------
+
+.. code-block:: python
+
+   @runtime_checkable
+   class MemoryRuntime(Protocol)
+
+Transport seam every memory backend implements.
+
+Identity is passed as resolved keyword arguments; tenancy is internal to
+each runtime.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.protocol.ambientidentityruntime:
+
+AmbientIdentityRuntime
+----------------------
+
+.. code-block:: python
+
+   @runtime_checkable
+   class AmbientIdentityRuntime(Protocol)
+
+Optional capability: a runtime that can supply per-call ambient
+identity.
+
+Not all runtimes carry ambient identity — only app-bound runtimes
+running inside the platform stack have access to per-request
+contextvars. This is a separate Protocol (not merged into
+``MemoryRuntime``) so the facade can detect the capability without
+requiring every runtime to implement it.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.protocol.memorycrudclient:
+
+MemoryCrudClient
+----------------
+
+.. code-block:: python
+
+   @runtime_checkable
+   class MemoryCrudClient(Protocol)
+
+CRUD seam the facade's type-specific conveniences delegate to.
+
+Like ``MemoryRuntime``, tenancy is internal to each implementation: the
+method shapes mirror ``MemoryClient`` with ``org_id``/``project_id``
+stripped, so the raw HTTP client never satisfies this Protocol — each
+transport wires in an adapter that supplies tenancy itself.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.protocol.memorycrudclient.create_custom:
+
+create_custom
+~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def create_custom(
+       *,
+       memory_type: str,
+       content: str,
+       tags: Mapping[str, Any] | None = None,
+       contextual_metadata: dict[str, Any] | None = None
+   ) -> CustomMemorySaveResult
+
+Save a custom-type memory. Identity is stamped by the platform.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.protocol.memorycrudclient.retrieve_custom:
+
+retrieve_custom
+~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def retrieve_custom(*,
+                       memory_type: str,
+                       query: str,
+                       tags: Mapping[str, Any] | None = None,
+                       top_k: int = 10) -> CustomMemoryRetrieveResult
+
+Retrieve custom-type memories. Identity is stamped by the platform.

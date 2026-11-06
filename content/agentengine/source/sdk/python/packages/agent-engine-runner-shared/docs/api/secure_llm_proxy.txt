@@ -1,0 +1,122 @@
+.. _python-packages-agent-engine-runner-shared-docs-api-secure_llm_proxy:
+
+agent_engine_runner_shared.secure_llm_proxy
+===========================================
+
+SecureLLMProxy - Framework-neutral proxy for secure LLM calls through
+OE.
+
+The proxy packages intercepted invoke_llm requests for the Orchestration
+Engine and unwraps the streamed OE relay back into sdk-core models. The
+OE owns approval, routing, live SSE relay, and final audit/result
+recording.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_llm_proxy.guardrailreviewpending:
+
+GuardrailReviewPending
+----------------------
+
+.. code-block:: python
+
+   class GuardrailReviewPending(Exception)
+
+A recorded halt whose adapter emits its native wait after the LLM call.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_llm_proxy.guardrail_review_wait_id:
+
+guardrail_review_wait_id
+------------------------
+
+.. code-block:: python
+
+   def guardrail_review_wait_id(value: Any) -> str | None
+
+The review a pause value names, when this attempt paused for that
+review.
+
+The answer to such a pause is the platform's review decision, not part
+of the conversation. An application's own pause is never one, whatever
+its value looks like: only a review the proxy recorded a halt for
+counts.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_llm_proxy.securellmproxy:
+
+SecureLLMProxy
+--------------
+
+.. code-block:: python
+
+   class SecureLLMProxy()
+
+Framework-neutral proxy for secure LLM calls through OE.
+
+Framework callers such as ``SecureWrappedLLM`` own client-side
+``llm_call`` metrics and consume the ``last_*`` fields exposed here
+after each call.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_llm_proxy.securellmproxy.step_counter:
+
+step_counter
+~~~~~~~~~~~~
+
+.. code-block:: python
+
+   @property
+   def step_counter() -> int
+
+Current operational-step watermark for compatibility readers.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_llm_proxy.securellmproxy.invoke:
+
+invoke
+~~~~~~
+
+.. code-block:: python
+
+   def invoke(messages: list[Message],
+              step: int | None = None,
+              stop: list[str] | None = None,
+              options: LLMInvocationOptions | None = None) -> LLMResponse
+
+Invoke LLM by collecting the stream-oriented execution path.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_llm_proxy.securellmproxy.response_from_stream_chunks:
+
+response_from_stream_chunks
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   @classmethod
+   def response_from_stream_chunks(cls,
+                                   chunks: list[LLMStreamChunk]) -> LLMResponse
+
+Collect streamed sdk-core chunks into a final sdk-core LLMResponse.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_llm_proxy.securellmproxy.stream:
+
+stream
+~~~~~~
+
+.. code-block:: python
+
+   def stream(
+       messages: list[Message],
+       step: int | None = None,
+       stop: list[str] | None = None,
+       options: LLMInvocationOptions | None = None,
+       activity_key: str | None = None,
+       pending_review: GuardrailReviewPending | None = None
+   ) -> Iterator[LLMStreamChunk]
+
+Stream invoke_llm chunks through OE approval and OE-owned SSE relay.
+
+``activity_key`` names this call's durable activity. An adapter whose
+framework re-runs code after a pause supplies a key that is the same on
+every run; the default, the operational step, only ever increases within
+an attempt.
+
+Sessions routed to the platform-owned workflow wrap the call in a serial
+LLM activity: a recorded outcome replays without a model call; a fresh
+dispatch streams the model and records the folded response under the
+OE-issued fence.

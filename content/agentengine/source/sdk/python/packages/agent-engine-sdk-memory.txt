@@ -3,7 +3,6 @@
 agent-engine-sdk-memory
 =======================
 
-
 The standalone Python SDK for Atlas Agent Engine Memory — long-term
 memory for AI agents, usable inside or outside Atlas Agent Engine.
 
@@ -23,71 +22,104 @@ against an external agent runs unchanged when you deploy it onto the
 platform, and what you learn from this README applies in both places.
 
 Two things do differ: where identity comes from (see
-`connecting <#connecting>`__), and a handful of calls that the app-bound
-transport cannot serve and which raise ``MemoryNotSupportedError`` —
-listed in `what each connection
-supports <#what-each-connection-supports>`__.
+:ref:`connecting <python-packages-agent-engine-sdk-memory-connecting>`),
+and a handful of calls that the app-bound transport cannot serve and
+which raise ``MemoryNotSupportedError`` — listed in :ref:`what each
+connection
+supports <python-packages-agent-engine-sdk-memory-what-each-connection-supports>`.
 
-Start with `how memory works <#how-memory-works>`__ if this is new to
-you — the shape of the system explains most of the API. Then integrating
-it is three steps: `install <#install>`__, `connecting <#connecting>`__,
-and `use it <#use-it>`__. Server-side settings are covered in
-`configuring the memory server <#configuring-the-memory-server>`__.
-Reference material on `identity <#how-identity-is-resolved>`__,
-`errors <#errors>`__, and `models <#models>`__ follows, with package
-`internals <#internals>`__ last.
+Start with :ref:`how memory
+works <python-packages-agent-engine-sdk-memory-how-memory-works>` if this
+is new to you — the shape of the system explains most of the API. Then
+integrating it is three steps:
+:ref:`install <python-packages-agent-engine-sdk-memory-install>`,
+:ref:`connecting <python-packages-agent-engine-sdk-memory-connecting>`,
+and :ref:`use it <python-packages-agent-engine-sdk-memory-use-it>`.
+Server-side settings are covered in :ref:`configuring the memory
+server <python-packages-agent-engine-sdk-memory-configuring-the-memory-server>`.
+Reference material on
+:ref:`identity <python-packages-agent-engine-sdk-memory-how-identity-is-resolved>`,
+:ref:`errors <python-packages-agent-engine-sdk-memory-errors>`, and
+:ref:`models <python-packages-agent-engine-sdk-memory-models>` follows,
+with package
+:ref:`internals <python-packages-agent-engine-sdk-memory-internals>`
+last.
 
 Contents
 --------
 
-- `How memory works <#how-memory-works>`__
+- :ref:`How memory
+  works <python-packages-agent-engine-sdk-memory-how-memory-works>`
 
-  - `The problem it solves <#the-problem-it-solves>`__
-  - `Two layers <#two-layers>`__
-  - `How writes become memory <#how-writes-become-memory>`__
-  - `When extraction fails <#when-extraction-fails>`__
-  - `How reading works <#how-reading-works>`__
-  - `What scopes a memory <#what-scopes-a-memory>`__
-  - ``user_id and visibility`` answer different
-    questions <#user_id-and-visibility-answer-different-questions>`__
+  - :ref:`The problem it
+    solves <python-packages-agent-engine-sdk-memory-the-problem-it-solves>`
+  - :ref:`Two
+    layers <python-packages-agent-engine-sdk-memory-two-layers>`
+  - :ref:`How writes become
+    memory <python-packages-agent-engine-sdk-memory-how-writes-become-memory>`
+  - :ref:`When extraction
+    fails <python-packages-agent-engine-sdk-memory-when-extraction-fails>`
+  - :ref:`How reading
+    works <python-packages-agent-engine-sdk-memory-how-reading-works>`
+  - :ref:`What scopes a
+    memory <python-packages-agent-engine-sdk-memory-what-scopes-a-memory>`
+  - :ref:`user_id and visibility answer different
+    questions <python-packages-agent-engine-sdk-memory-user_id-and-visibility-answer-different-questions>`
 
-- `Install <#install>`__
-- `Connecting <#connecting>`__
+- :ref:`Install <python-packages-agent-engine-sdk-memory-install>`
+- :ref:`Connecting <python-packages-agent-engine-sdk-memory-connecting>`
 
-  - `The hosted platform <#the-hosted-platform>`__
-  - `Local development <#local-development>`__
-  - `Inside a platform agent
-    (app-bound) <#inside-a-platform-agent-app-bound>`__
-  - `Env vars are a fallback <#env-vars-are-a-fallback>`__
-  - `How routing works <#how-routing-works>`__
-  - `Advanced: authenticated direct
-    backend <#advanced-authenticated-direct-backend>`__
-  - `What each connection supports <#what-each-connection-supports>`__
+  - :ref:`The hosted
+    platform <python-packages-agent-engine-sdk-memory-the-hosted-platform>`
+  - :ref:`Local
+    development <python-packages-agent-engine-sdk-memory-local-development>`
+  - :ref:`Inside a platform agent
+    (app-bound) <python-packages-agent-engine-sdk-memory-inside-a-platform-agent-app-bound>`
+  - :ref:`Env vars are a
+    fallback <python-packages-agent-engine-sdk-memory-env-vars-are-a-fallback>`
+  - :ref:`How routing
+    works <python-packages-agent-engine-sdk-memory-how-routing-works>`
+  - :ref:`Advanced: authenticated direct
+    backend <python-packages-agent-engine-sdk-memory-advanced-authenticated-direct-backend>`
+  - :ref:`What each connection
+    supports <python-packages-agent-engine-sdk-memory-what-each-connection-supports>`
 
-- `Use it <#use-it>`__
-- `Configuring the memory server <#configuring-the-memory-server>`__
+- :ref:`Use it <python-packages-agent-engine-sdk-memory-use-it>`
+- :ref:`Configuring the memory
+  server <python-packages-agent-engine-sdk-memory-configuring-the-memory-server>`
 
-  - `Settings you cannot change
-    later <#settings-you-cannot-change-later>`__
+  - :ref:`Settings you cannot change
+    later <python-packages-agent-engine-sdk-memory-settings-you-cannot-change-later>`
 
-- `How identity is resolved <#how-identity-is-resolved>`__
+- :ref:`How identity is
+  resolved <python-packages-agent-engine-sdk-memory-how-identity-is-resolved>`
 
-  - `Setting visibility on a write <#setting-visibility-on-a-write>`__
-  - `Scoping a read <#scoping-a-read>`__
+  - :ref:`Setting visibility on a
+    write <python-packages-agent-engine-sdk-memory-setting-visibility-on-a-write>`
+  - :ref:`Scoping a
+    read <python-packages-agent-engine-sdk-memory-scoping-a-read>`
 
-- `Errors <#errors>`__
-- `Models <#models>`__
+- :ref:`Errors <python-packages-agent-engine-sdk-memory-errors>`
+- :ref:`Models <python-packages-agent-engine-sdk-memory-models>`
 
-  - `Reading back your own metadata <#reading-back-your-own-metadata>`__
+  - :ref:`Reading back your own
+    metadata <python-packages-agent-engine-sdk-memory-reading-back-your-own-metadata>`
 
-- `Internals <#internals>`__
+- :ref:`Internals <python-packages-agent-engine-sdk-memory-internals>`
 
-  - `Package layout <#package-layout>`__
-  - `Dependency denylist <#dependency-denylist>`__
-  - `Who uses it <#who-uses-it>`__
+  - :ref:`Package
+    layout <python-packages-agent-engine-sdk-memory-package-layout>`
+  - :ref:`Dependency
+    denylist <python-packages-agent-engine-sdk-memory-dependency-denylist>`
+  - :ref:`Who uses
+    it <python-packages-agent-engine-sdk-memory-who-uses-it>`
+
+.. _python-packages-agent-engine-sdk-memory-how-memory-works:
 
 How memory works
 ----------------
+
+.. _python-packages-agent-engine-sdk-memory-the-problem-it-solves:
 
 The problem it solves
 ~~~~~~~~~~~~~~~~~~~~~
@@ -114,10 +146,13 @@ and handle the results itself.
 Or it can hand the whole job over. ``build_context_from_sources`` takes
 one spec per source, each declaring its own retrieval mode, filter and
 candidate count, then retrieves from every source on its own terms,
-ranks and de-duplicates the results together, trims them to a token
-budget, and returns a single block of context to drop into the next
-prompt. ``build_context`` does the same with one mode and one filter for
-every source; reach for the per-source form when they need to differ.
+ranks and de-duplicates the results together (unless
+``collapse_duplicate_content=False``), trims them to a token budget, and
+returns a single block of context to drop into the next prompt.
+``build_context`` does the same with one mode and one filter for every
+source; reach for the per-source form when they need to differ.
+
+.. _python-packages-agent-engine-sdk-memory-two-layers:
 
 Two layers
 ~~~~~~~~~~
@@ -139,19 +174,21 @@ four shapes because they answer different questions:
      - answers
    * - ``semantic``
      - a labelled fact
-     - “what do I know about this?”
+     - "what do I know about this?"
    * - ``episodic``
      - a summarised episode
-     - “what happened before?”
+     - "what happened before?"
    * - ``procedural``
      - a reusable procedure
-     - “how do I do this?”
+     - "how do I do this?"
    * - ``taxonomic``
      - a term and its definition
-     - “what does this word mean here?”
+     - "what does this word mean here?"
 
 Projects can also declare **custom types** for domain records the four
 shapes do not fit.
+
+.. _python-packages-agent-engine-sdk-memory-how-writes-become-memory:
 
 How writes become memory
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -176,6 +213,8 @@ is therefore available to the next one, not to the next turn.
 The consequence worth designing around: **recent turns are visible
 immediately through STM, extracted knowledge appears a little later.**
 Ask for ``stm`` when you need what was just said.
+
+.. _python-packages-agent-engine-sdk-memory-when-extraction-fails:
 
 When extraction fails
 ~~~~~~~~~~~~~~~~~~~~~
@@ -227,6 +266,8 @@ What this means for an agent:
   memories not (yet) appearing in retrieval, or appearing through text
   and hybrid but not semantic search.
 
+.. _python-packages-agent-engine-sdk-memory-how-reading-works:
+
 How reading works
 ~~~~~~~~~~~~~~~~~
 
@@ -234,11 +275,12 @@ Assembled prose, or the records themselves — two different questions.
 
 **``build_context_from_sources(...)``** is the one to reach for by
 default. You give it a query and a token budget; it retrieves across the
-memory types you name, ranks the results together, drops
-near-duplicates, trims to the budget, and returns something you can put
-straight into a prompt. It is the whole retrieval pipeline behind one
-call, and it takes one spec per source, so modes and filters are set per
-source rather than once for all of them.
+memory types you name, ranks the results together, drops near-duplicates
+(unless you pass ``collapse_duplicate_content=False``), trims to the
+budget, and returns something you can put straight into a prompt. It is
+the whole retrieval pipeline behind one call, and it takes one spec per
+source, so modes and filters are set per source rather than once for all
+of them.
 
 Retrieval can match three ways. ``semantic`` compares embeddings and
 finds things that *mean* the same; ``text`` matches words and finds
@@ -254,6 +296,8 @@ one mode and one filter apply to every source it reads.
 assembled prose, for when you want to inspect or post-process them
 yourself.
 
+.. _python-packages-agent-engine-sdk-memory-what-scopes-a-memory:
+
 What scopes a memory
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -264,11 +308,13 @@ optionally the agent, plus a visibility that decides whether a record is
 private to its user or readable more widely.
 
 This matters for a practical reason: a search or ``build_context``
-scoped to a user will not surface another user’s private memory, because
+scoped to a user will not surface another user's private memory, because
 the constraint is part of the query rather than a filter applied to its
 results. So ``bind(...)`` is not a convenience — it is how you declare
 the scope that subsequent reads and writes operate within, and getting
-it wrong writes one user’s memory under another’s identity.
+it wrong writes one user's memory under another's identity.
+
+.. _python-packages-agent-engine-sdk-memory-user_id-and-visibility-answer-different-questions:
 
 ``user_id`` and ``visibility`` answer different questions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -290,10 +336,10 @@ reaches*:
 
 No visibility value reaches outside the project the record was written
 in. Memory is stored per project, so a project boundary is not something
-visibility can cross — ``org`` is a historical name, and it means “not
-restricted to one user”, not “visible to other projects”.
+visibility can cross — ``org`` is a historical name, and it means "not
+restricted to one user", not "visible to other projects".
 
-.. warning::
+.. note::
 
    **⚠️ ``shared`` is deprecated and will be removed in a future
    release.** Use ``org`` for knowledge meant to reach beyond a single
@@ -323,21 +369,25 @@ query; each field you omit leaves that dimension unconstrained:
 
 The third row is the one that surprises people.
 ``search_semantic(query, user_id="user_1", visibility="org")`` does not
-mean “user_1’s memories plus the org’s”. It means “the org-visible
-memories that user_1 owns”, which is smaller than either constraint
-alone. There is no union: to read shared knowledge *and* a user’s own
+mean "user_1's memories plus the org's". It means "the org-visible
+memories that user_1 owns", which is smaller than either constraint
+alone. There is no union: to read shared knowledge *and* a user's own
 private memory, make two calls and merge the results yourself.
+
+.. _python-packages-agent-engine-sdk-memory-install:
 
 Install
 -------
 
-.. code:: bash
+.. code-block:: bash
 
    pip install agent-engine-sdk-memory
 
-.. code:: python
+.. code-block:: python
 
    from agent_engine_sdk_memory import Memory, MemoryRequestContext
+
+.. _python-packages-agent-engine-sdk-memory-connecting:
 
 Connecting
 ----------
@@ -355,15 +405,18 @@ mostly about who supplies the identity.
    * - **on the platform**
      - nothing — the runtime injects ``memory``
      - the runtime, per invocation
-     - `inside a platform agent <#inside-a-platform-agent-app-bound>`__
+     - :ref:`inside a platform
+       agent <python-packages-agent-engine-sdk-memory-inside-a-platform-agent-app-bound>`
    * - **anywhere else**
      - ``Memory(service_account_token=..., project_id=...)``
      - your service-account token, plus what you ``bind``
-     - `hosted platform <#the-hosted-platform>`__
+     - :ref:`hosted
+       platform <python-packages-agent-engine-sdk-memory-the-hosted-platform>`
    * - **locally, in development**
      - ``Memory(base_url=...)``
      - whatever you ``bind``
-     - `local development <#local-development>`__
+     - :ref:`local
+       development <python-packages-agent-engine-sdk-memory-local-development>`
 
 The API is identical in all three. Code written against an externally
 deployed agent runs unchanged when moved onto the platform — you delete
@@ -375,8 +428,10 @@ project, user and session for the invocation it is handling, so it binds
 them for you. An external agent knows only what its service-account
 token implies — the project — so it must tell memory which user and
 session each call belongs to. Get that wrong and you are writing one
-user’s memory under another user’s identity, which is why the external
+user's memory under another user's identity, which is why the external
 path requires you to be explicit.
+
+.. _python-packages-agent-engine-sdk-memory-the-hosted-platform:
 
 The hosted platform
 ~~~~~~~~~~~~~~~~~~~
@@ -384,24 +439,29 @@ The hosted platform
 The managed service. Pass a service-account access token and your
 project id.
 
-Mint the token with the ``agentengine`` CLI. Create a service account once —
-the client secret is shown only once, so save it immediately:
+Mint the token with the ``agentengine`` CLI. Create a service account
+once — the client secret is shown only once, so save it immediately:
 
-.. code-block:: bash
+.. code-block:: text
 
-   agentengine service-account create my-agent --project-id <your-project-id> --role AGENT_DEVELOPER
+   agentengine service-account create my-agent --project-id <your-project-id> --role PROJECT_OWNER
 
 Then exchange the client ID and secret for a short-lived (1-hour) access
 token (curl prompts for the client secret so it stays out of shell
 history):
 
-.. code-block:: bash
+.. code-block:: text
 
-   ACCESS_TOKEN=$(curl --fail-with-body --silent --show-error      --user <client-id>      --data grant_type=client_credentials      https://agentengine.mongodb.com/api/v1/oauth/token | jq -er .access_token)
+   ACCESS_TOKEN=$(curl --fail-with-body --silent --show-error \
+     --user <client-id> \
+     --data grant_type=client_credentials \
+     https://agentengine.mongodb.com/api/v1/oauth/token | jq -er .access_token)
 
-.. code:: python
+.. code-block:: python
 
-   memory = Memory(service_account_token="<your-access-token>", project_id="<your-project-id>")
+   memory = Memory(
+       service_account_token="<your-access-token>", project_id="<your-project-id>"
+   )
 
 .. list-table::
    :header-rows: 1
@@ -411,7 +471,8 @@ history):
      - Notes
    * - ``service_account_token``
      - ``AGENTIC_MEMORY_SERVICE_ACCOUNT_TOKEN``
-     - Service-account access token, sent as the bearer credential. Re-mint when it expires.
+     - Service-account access token, sent as the bearer credential.
+       Re-mint when it expires.
    * - ``project_id``
      - ``AGENTIC_MEMORY_PROJECT_ID``
      - The project to read and write. Required for the hosted service.
@@ -429,13 +490,22 @@ and the legacy input raises ``ValueError``. Project API keys can no
 longer be minted over HTTP, so new integrations must use a
 service-account token.
 
+A service account is the right credential for a **multi-user**
+application: it may name any end user as ``user_id``. Once the project
+enforces identity, a human credential may no longer name an end user
+other than the caller: such a ``user_id`` is rejected with ``403``, and
+updates or deletes of another user's record are refused whatever its
+visibility (a project owner may still delete it).
+
+.. _python-packages-agent-engine-sdk-memory-local-development:
+
 Local development
 ~~~~~~~~~~~~~~~~~
 
 Point at a backend you run yourself, such as the stack
 ``agentengine dev up`` starts.
 
-.. code:: python
+.. code-block:: python
 
    memory = Memory(base_url="http://localhost:8080")
 
@@ -447,24 +517,27 @@ Point at a backend you run yourself, such as the stack
      - Notes
    * - ``base_url``
      - ``AGENTIC_MEMORY_BASE_URL``
-     - Your backend’s URL.
+     - Your backend's URL.
    * - ``service_account_token``
      - ``AGENTIC_MEMORY_SERVICE_ACCOUNT_TOKEN``
-     - Optional. Omit it for local development. (``api_key`` / ``AGENTIC_MEMORY_API_KEY`` are deprecated aliases.)
+     - Optional. Omit it for local development. (``api_key`` /
+       ``AGENTIC_MEMORY_API_KEY`` are deprecated aliases.)
 
 Leave ``project_id`` empty for local development.
+
+.. _python-packages-agent-engine-sdk-memory-inside-a-platform-agent-app-bound:
 
 Inside a platform agent (app-bound)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When your agent runs *on* Atlas Agent Engine, you don’t construct or
+When your agent runs *on* Atlas Agent Engine, you don't construct or
 connect ``Memory`` at all — the platform injects a ready, pre-wired
 instance, with identity, tenancy, and transport already bound.
 Application code passes none of the inputs above; it uses the handle the
 runtime hands it. Identity (user, session, org, project) resolves from
 the ambient runtime context, so operations can be called directly:
 
-.. code:: python
+.. code-block:: python
 
    # `memory` is supplied by the platform runtime — do not construct it.
    memory.record_turn(role="user", content="I'm allergic to penicillin.")
@@ -473,9 +546,13 @@ the ambient runtime context, so operations can be called directly:
    # bind(...) is still available to scope a call chain to a specific identity.
 
 The app-bound path has a few capability gaps (tool-call / model turn
-metadata and some list-style reads); see the App-bound column in `What
-each connection supports <#what-each-connection-supports>`__ and
-```docs/capability-matrix.md`` <docs/capability-matrix.md>`__.
+metadata and some list-style reads); see the App-bound column in
+:ref:`What each connection
+supports <python-packages-agent-engine-sdk-memory-what-each-connection-supports>`
+and
+:ref:`docs/capability-matrix.md <python-packages-agent-engine-sdk-memory-docs-capability-matrix>`.
+
+.. _python-packages-agent-engine-sdk-memory-env-vars-are-a-fallback:
 
 Env vars are a fallback
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -484,21 +561,25 @@ Each input also falls back to an ``AGENTIC_MEMORY_*`` environment
 variable when you omit the argument. An explicit argument always wins.
 ``Memory()`` with no arguments reads all three from the environment.
 
+.. _python-packages-agent-engine-sdk-memory-how-routing-works:
+
 How routing works
 ~~~~~~~~~~~~~~~~~
 
 ``project_id`` decides where calls go. Auth never does.
 
-- Set ``project_id``, and the SDK calls your project’s routes,
+- Set ``project_id``, and the SDK calls your project's routes,
   ``/api/v1/projects/{project_id}/memory/*``.
 - Leave it empty, and the SDK calls the backend directly,
   ``/api/v1/memory/*``.
 
 If ``project_id`` is set but the backend has no matching route, such as
 a local backend, the call raises
-```MemoryRouteNotFoundError`` <#errors>`__ with a hint to unset it. The
-reverse also holds. Target the hosted service with no ``project_id`` and
-the call 404s with a hint to set it.
+:ref:`MemoryRouteNotFoundError <python-packages-agent-engine-sdk-memory-errors>`
+with a hint to unset it. The reverse also holds. Target the hosted
+service with no ``project_id`` and the call 404s with a hint to set it.
+
+.. _python-packages-agent-engine-sdk-memory-advanced-authenticated-direct-backend:
 
 Advanced: authenticated direct backend
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -508,6 +589,8 @@ Auth and routing are independent, so you can pass a
 authenticated calls straight to the backend at ``base_url``, on the
 direct routes, skipping the project path. This suits a hosted
 Orchestration Engine (OE) reached directly.
+
+.. _python-packages-agent-engine-sdk-memory-what-each-connection-supports:
 
 What each connection supports
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -554,17 +637,20 @@ Capabilities follow where the call is routed, not auth.
      - ✗ without execution context
      - ✓
 
-An unsupported call raises ```MemoryNotSupportedError`` <#errors>`__ —
-before any network request for known per-backend gaps, or after the
+An unsupported call raises
+:ref:`MemoryNotSupportedError <python-packages-agent-engine-sdk-memory-errors>`
+— before any network request for known per-backend gaps, or after the
 response for capability gaps only the platform can report (see
-`Errors <#errors>`__) — never a silent failure or a raw HTTP error. The
-full per-backend reference, including app-bound gaps on type-specific
-CRUD, is in
-```docs/capability-matrix.md`` <docs/capability-matrix.md>`__.
+:ref:`Errors <python-packages-agent-engine-sdk-memory-errors>`) — never a
+silent failure or a raw HTTP error. The full per-backend reference,
+including app-bound gaps on type-specific CRUD, is in
+:ref:`docs/capability-matrix.md <python-packages-agent-engine-sdk-memory-docs-capability-matrix>`.
 
 App-bound agents are the exception to all of the above. Inside a
 deployed platform agent, the platform injects a ready ``runtime``, so
 application code passes none of these inputs.
+
+.. _python-packages-agent-engine-sdk-memory-use-it:
 
 Use it
 ------
@@ -572,11 +658,13 @@ Use it
 A complete round trip: construct memory, bind a conversation identity,
 record a turn, and retrieve context.
 
-.. code:: python
+.. code-block:: python
 
    from agent_engine_sdk_memory import Memory, MemoryRequestContext
 
-   memory = Memory(service_account_token="<your-access-token>", project_id="<your-project-id>")
+   memory = Memory(
+       service_account_token="<your-access-token>", project_id="<your-project-id>"
+   )
 
    # Scope every call to a user and conversation.
    session = memory.bind(MemoryRequestContext(user_id="user_1", session_id="thread_123"))
@@ -622,7 +710,7 @@ model. One caveat: the server currently re-infers when the explicit
 value matches its default model type, so an explicit ``"openai"`` is
 honored verbatim only on servers with an OpenAI-family model configured;
 ``"claude"`` and ``"jinja2"`` are always honored.
-``include_memories=True`` populates the response’s ``selected_memories``
+``include_memories=True`` populates the response's ``selected_memories``
 with the post-budget ``MemoryChunk`` list, so you can inspect exactly
 which memories were selected. Both require a hosted or direct HTTP
 connection; app-bound mode raises ``MemoryNotSupportedError`` when
@@ -634,11 +722,16 @@ source, this method lets each source declare its own retrieval ``mode``
 (``text``, ``semantic``, or ``hybrid``), ``metadata_filter``, and
 ``top_k`` via a ``SourceSpec``. Results are merged and de-duplicated
 across sources, optionally reordered by a relevance ``rerank``, then
-formatted and budgeted like ``build_context``.
+formatted and budgeted like ``build_context``. Pass
+``collapse_duplicate_content=False`` to skip the content collapse and
+receive every candidate each source contributed, up to its ``top_k`` — a
+document surfacing from both the vector and text legs is still returned
+once either way, and ``max_tokens`` still applies after merging, so
+disabling the collapse may require a larger budget to see every row.
 ``metadata.ranking_strategy`` and ``metadata.source_outcomes`` report
 how the final order was produced and how each source fared. ``sources``
 must be non-empty and may list each source at most once, and each
-source’s ``top_k`` must be between 1 and 200; ``session_id`` is only
+source's ``top_k`` must be between 1 and 200; ``session_id`` is only
 required when the ``stm`` source is included.
 
 Hybrid is usually the right default for text-bearing sources: vector
@@ -652,7 +745,7 @@ inside the search index rather than over its results. Declare the
 attributes, and the index legs that must serve them, in
 ``project-config.yaml``:
 
-.. code:: yaml
+.. code-block:: yaml
 
    metadata_partition_key:            # Filterable metadata attributes (max 10)
      - name: tier
@@ -674,7 +767,7 @@ attributes, and the index legs that must serve them, in
    ``agentengine memory configure``, then roll the runtime onto the
    current image:
 
-   .. code-block:: bash
+   .. code-block:: text
 
       agentengine memory apply --upgrade
 
@@ -695,7 +788,7 @@ Four consequences worth knowing before you write a filter:
   ``[text]``, or ``[both]``, and a ``hybrid`` source needs ``[both]``: a
   filter its text leg cannot serve is rejected before the query runs
   rather than silently returning less.
-- **A wrong key fails loudly.** Unlike ``build_context``\ ’s single
+- **A wrong key fails loudly.** Unlike ``build_context``'s single
   top-level ``metadata_filter``, per-source keys are validated against
   the declared set. An undeclared or misspelled path raises
   ``MemoryBadRequestError`` whose message lists the paths that are
@@ -731,7 +824,7 @@ access control and cannot be filtered by callers.
 
 **Putting it together.** With the configuration above:
 
-.. code:: python
+.. code-block:: python
 
    from agent_engine_sdk_memory import SourceSpec
 
@@ -776,17 +869,17 @@ exposes:
   ``list_domains``, and ``save_procedure`` / ``get_procedure``.
 - **Custom memory types** — ``save(memory_type, content, tags=...)`` and
   ``retrieve(memory_type, query, tags=..., top_k=...)`` operate on types
-  declared in the project’s memory configuration. Built-in type names
+  declared in the project's memory configuration. Built-in type names
   are rejected — use the dedicated methods above. These calls carry no
   identity fields; the platform stamps org, project, and user from the
   request. On a platform that does not serve custom-type routes, or one
   where the feature is disabled, the call raises
-  ```MemoryNotSupportedError`` <#errors>`__.
+  :ref:`MemoryNotSupportedError <python-packages-agent-engine-sdk-memory-errors>`.
 
 A short example using the bound ``session`` from above — write a fact,
 read it back by label, and search across types:
 
-.. code:: python
+.. code-block:: python
 
    # Save a semantic fact (user_id is inherited from the bound session).
    session.save_semantic(text="Prefers window seats on flights.", label="seat-preference")
@@ -801,22 +894,24 @@ read it back by label, and search across types:
 ``with Memory(service_account_token=...) as memory:`` releases the
 underlying transport on exit.
 
+.. _python-packages-agent-engine-sdk-memory-configuring-the-memory-server:
+
 Configuring the memory server
 -----------------------------
 
 The SDK reads and writes memory; it does not configure the server.
 Settings — embeddings, the extraction LLM, which memory types are
 extracted, filterable metadata — live in the ``memory:`` block of your
-project’s ``project-config.yaml`` and are applied with the CLI. Only
+project's ``project-config.yaml`` and are applied with the CLI. Only
 that sub-document is uploaded; the rest of the file is ignored.
 
-.. code:: bash
+.. code-block:: bash
 
    agentengine memory configure      # store the memory: block for this project
    agentengine memory apply --wait   # roll the memory server so it takes effect
 
 **Storing is not applying.** ``configure`` saves the config and the
-platform delivers it to your project’s memory server on its own, but the
+platform delivers it to your project's memory server on its own, but the
 server reads its configuration *only at startup*. Until a pod restarts,
 the new settings are sitting on disk unread.
 ``agentengine memory apply`` performs that restart — and provisions the
@@ -827,6 +922,8 @@ the memory-server image your environment currently pins, which is how
 you pick up a newer server. Without ``--upgrade`` the image is left
 alone. ``agentengine memory status`` reports the runtime state at any
 time; ``--wait`` on ``apply`` blocks until it is ready.
+
+.. _python-packages-agent-engine-sdk-memory-settings-you-cannot-change-later:
 
 Settings you cannot change later
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -849,6 +946,8 @@ Log level, extraction LLM and the enabled extraction types can be
 changed and re-applied. Changing the embedding model or dimension
 requires migrating and re-embedding existing memories; dimension changes
 also require rebuilding the vector search indexes.
+
+.. _python-packages-agent-engine-sdk-memory-how-identity-is-resolved:
 
 How identity is resolved
 ------------------------
@@ -891,6 +990,8 @@ already requires an explicit ``session_id`` on episodic search.)
 ``user_id`` and ``agent_id`` are unaffected and still inherit from
 ``bind``/runtime on reads.
 
+.. _python-packages-agent-engine-sdk-memory-setting-visibility-on-a-write:
+
 Setting visibility on a write
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -908,7 +1009,7 @@ because the types are used differently:
      - ``org``
 
 Taxonomic memory defaults to ``org`` because a domain vocabulary is
-shared by definition — a term and its meaning are rarely one user’s
+shared by definition — a term and its meaning are rarely one user's
 private business. Everything else defaults to ``private``, so a fact you
 save is scoped to the user it was learned from unless you say otherwise.
 
@@ -917,7 +1018,7 @@ save is scoped to the user it was learned from unless you say otherwise.
 bound user and session, so ``bind(...)`` before recording turns — there
 is no per-call way to set the user on a turn.
 
-.. code:: python
+.. code-block:: python
 
    # Private to user_1 — the default.
    session.save_semantic(text="Prefers window seats.", label="seat-preference")
@@ -928,6 +1029,8 @@ is no per-call way to set the user on a turn.
        label="refund-policy",
        visibility="org",
    )
+
+.. _python-packages-agent-engine-sdk-memory-scoping-a-read:
 
 Scoping a read
 ~~~~~~~~~~~~~~
@@ -942,17 +1045,17 @@ rule bites. A handle bound to ``user_id="user_1"`` still contributes
 that ``user_id``, so this reads only the org-visible records user_1
 owns:
 
-.. code:: python
+.. code-block:: python
 
    session = memory.bind(MemoryRequestContext(user_id="user_1", session_id="thread_123"))
-   session.search_semantic("refund policy", visibility="org")   # user_1 AND org
+   session.search_semantic("refund policy", visibility="org")  # user_1 AND org
 
 Passing ``user_id=None`` does **not** widen it. A ``None`` or blank
-argument counts as “not supplied” at every tier, so it falls through to
+argument counts as "not supplied" at every tier, so it falls through to
 the bound value. Read across all users with a handle that has no
 ``user_id`` bound:
 
-.. code:: python
+.. code-block:: python
 
    # The original handle is unbound, so it carries no user_id.
    memory.search_semantic("refund policy", visibility="org")
@@ -961,13 +1064,15 @@ the bound value. Read across all users with a handle that has no
    thread = memory.bind(MemoryRequestContext(session_id="thread_123"))
    thread.search_semantic("refund policy", visibility="org")
 
-So an assistant that needs both the user’s own history and the team’s
+So an assistant that needs both the user's own history and the team's
 shared knowledge issues two reads and merges them:
 
-.. code:: python
+.. code-block:: python
 
-   personal = session.search_semantic(query, top_k=5)                       # user_1, any visibility
-   shared = memory.search_semantic(query, visibility="org", top_k=5)        # org-wide, any owner
+   personal = session.search_semantic(query, top_k=5)  # user_1, any visibility
+   shared = memory.search_semantic(query, visibility="org", top_k=5)  # org-wide, any owner
+
+.. _python-packages-agent-engine-sdk-memory-errors:
 
 Errors
 ------
@@ -981,11 +1086,12 @@ Errors fall into two families. Client-side errors subclass
   ``MemoryClientError``, so it is not caught by
   ``except MemoryClientError``).
 - ``MemoryNotSupportedError`` — the operation is unavailable for the
-  active connection (see `Connecting <#connecting>`__). The message
-  names the operation and the reason. For the custom-type methods
-  (``save`` / ``retrieve``) it can also be raised after the HTTP call,
-  when the response shows the platform lacks the capability: a bare
-  404/405 (platform too old to serve the route) or the gateway’s
+  active connection (see
+  :ref:`Connecting <python-packages-agent-engine-sdk-memory-connecting>`).
+  The message names the operation and the reason. For the custom-type
+  methods (``save`` / ``retrieve``) it can also be raised after the HTTP
+  call, when the response shows the platform lacks the capability: a
+  bare 404/405 (platform too old to serve the route) or the gateway's
   structured 400 reporting custom memory types disabled on the
   deployment. A structured unknown-type 404 is a request error, not a
   capability gap, and raises ``MemoryBadRequestError``.
@@ -997,15 +1103,17 @@ Transport errors derive from ``MemoryAPIError`` and carry the HTTP
   (401/403).
 - ``MemoryBadRequestError`` — the request was rejected (a 4xx other than
   auth or not-provisioned).
-- ``MemoryRouteNotFoundError`` — a core-loop request 404’d, so the route
+- ``MemoryRouteNotFoundError`` — a core-loop request 404'd, so the route
   shape likely does not match the backend. The message gives a
   directional hint to set or unset ``project_id``. Subclasses
   ``MemoryBadRequestError``.
-- ``MemoryNotProvisionedError`` — the project’s memory runtime is not
+- ``MemoryNotProvisionedError`` — the project's memory runtime is not
   reachable yet.
 - ``MemoryServerError`` — the backend errored (5xx) or returned an
   unparseable or unexpected body.
 - ``MemoryConnectionError`` — the backend could not be reached.
+
+.. _python-packages-agent-engine-sdk-memory-models:
 
 Models
 ------
@@ -1021,13 +1129,15 @@ types. Context building is configured with kwargs on
 ``agent_engine_sdk_memory``, not from ``agent_engine_sdk`` — the models
 used to live there and have moved here.
 
+.. _python-packages-agent-engine-sdk-memory-reading-back-your-own-metadata:
+
 Reading back your own metadata
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ``record_turn`` takes an optional ``metadata`` dict, and short-term
 retrieval returns it in its own slot on the chunk:
 ``chunk.metadata["metadata"]``. Your keys are kept apart from the
-platform’s turn fields (``session_id``, ``role``, ``turn_seq``, …)
+platform's turn fields (``session_id``, ``role``, ``turn_seq``, …)
 rather than mixed in with them, so a key of yours never collides with
 one of theirs — you can name a key ``role`` or ``session_id`` and read
 your own value back.
@@ -1054,13 +1164,13 @@ dict, unrelated keys included, if it happens to contain
 ``citation_score``, ``llm_confidence_score`` and ``combined_score``
 together, since that shape also matches a pre-migration internal blob.
 Retrieval may also carry ``chunk.metadata["contextual_metadata"]`` —
-that is the platform’s own extraction artifact, not your data, and it is
+that is the platform's own extraction artifact, not your data, and it is
 not part of any contract you should depend on.
 
 Short-term memory is scoped to a session, so the write and the read have
 to name the same one — bind it once and pass it through:
 
-.. code:: python
+.. code-block:: python
 
    from agent_engine_sdk_memory import (
        Memory,
@@ -1112,13 +1222,18 @@ accepted paths, so that mistake tells you the answer.
 Filterable metadata has to be declared for the project first:
 ``engagement_id`` above has to appear under ``metadata_partition_key``,
 with ``short_term`` listed in ``metadata_partition_index``. See
-**Declaring filterable metadata** under `Use it <#use-it>`__.
+**Declaring filterable metadata** under :ref:`Use
+it <python-packages-agent-engine-sdk-memory-use-it>`.
+
+.. _python-packages-agent-engine-sdk-memory-internals:
 
 Internals
 ---------
 
 The sections below describe how the package is built. They are not
 needed to use it.
+
+.. _python-packages-agent-engine-sdk-memory-package-layout:
 
 Package layout
 ~~~~~~~~~~~~~~
@@ -1151,6 +1266,8 @@ in a public signature; the only ``project_id`` on the public surface is
 the optional constructor route-shape selector, which goes into the URL,
 not a request body.
 
+.. _python-packages-agent-engine-sdk-memory-dependency-denylist:
+
 Dependency denylist
 ~~~~~~~~~~~~~~~~~~~
 
@@ -1159,6 +1276,8 @@ aspirational. ``_denylist.py`` lists known-heavy distributions and
 import names (langchain, fastapi, pymongo, …), and
 ``tests/test_package_contract.py`` fails if importing the package pulls
 any of them into ``sys.modules``.
+
+.. _python-packages-agent-engine-sdk-memory-who-uses-it:
 
 Who uses it
 ~~~~~~~~~~~
@@ -1169,4 +1288,3 @@ dependency and constructs the internal ``MemoryClient`` in
 lookup as an ``execution_id_provider`` callable so per-request
 execution-id headers work without this package importing any platform
 code.
-

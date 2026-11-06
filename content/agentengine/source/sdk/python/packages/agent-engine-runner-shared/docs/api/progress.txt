@@ -1,0 +1,71 @@
+.. _python-packages-agent-engine-runner-shared-docs-api-progress:
+
+agent_engine_runner_shared.progress
+===================================
+
+emit / emit_step — send a mid-execution chunk from within a tool
+function.
+
+Tool functions running inside a Tool Pod call these to stream events to
+the client while the tool is still executing. Both execution_id and
+oe_url are injected into Python contextvars by the Tool Pod server
+before the tool runs.
+
+The call is best-effort: network errors are logged and swallowed so a
+failed chunk emit never aborts the tool.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.progress.emit:
+
+emit
+----
+
+.. code-block:: python
+
+   def emit(event: str, data: str) -> None
+
+Emit a chunk of the given event type to the client stream.
+
+General-purpose API. For the common textual-step case, prefer
+:func:``emit_step``.
+
+**Arguments**:
+
+- ``event`` - Chunk type identifier (e.g. ``"step"``). Reserved
+  infrastructure event types (``done``, ``error``, ``text``,
+  ``subagent_start``, ``subagent_end``) raise ``ValueError`` to prevent
+  tool code from prematurely closing or spoofing the stream.
+  ``"custom_event"`` is not this API — use
+  :func:``agent_engine_runner_shared.emit_custom_event`` and
+  ``features.use_custom_parser`` in ``agent.yaml``. Gateway drops the
+  ``"custom_event"`` chunk_type unless that feature is on.
+- ``data`` - Payload string for the event.
+
+**Raises**:
+
+- ``ValueError`` - if ``event`` is a reserved infrastructure event type.
+
+  Transport failures are logged at DEBUG and swallowed — best-effort
+  delivery must never abort the tool function. No-op outside an
+  execution context. Synchronous; async tool functions must wrap in
+  ``asyncio.to_thread``.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.progress.emit_step:
+
+emit_step
+---------
+
+.. code-block:: python
+
+   def emit_step(message: str) -> None
+
+Emit a textual progress step from within a running tool function.
+
+Convenience wrapper around ``emit(event="step", data=message)``.
+
+Example:
+
+from agent_engine_runner_shared import emit_step
+
+@app.tool(is_local=False) def crawl_website(url: str) -> str:
+emit_step("Fetching page...") html = fetch(url) emit_step(f"Parsing
+links from {url}...") return parse(html)

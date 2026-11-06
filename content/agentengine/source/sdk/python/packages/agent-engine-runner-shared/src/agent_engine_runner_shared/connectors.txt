@@ -3,38 +3,38 @@
 Compiled connector core
 =======================
 
-This Python-only package implements definition loading, synchronous HTTP
-execution and opt-in registration. It is not exposed through the CLI.
-Connector tools use the existing AER → OE → Tool Pod execution path.
+The Python and TypeScript Runner SDKs share this connector contract. The
+Python implementation covers definition loading, synchronous HTTP
+execution, and opt-in registration; the TypeScript implementation
+mirrors the same materialization, registration, and execution contract.
+It is not exposed through the CLI. Connector tools use the existing AER
+→ OE → Tool Pod execution path.
 
-Runtime integration follows the platform’s config → discover → register
+Runtime integration follows the platform's config → discover → register
 flow: each process derives its own view from the same manifest.
-Resolution order in ``resolve_runtime_bundle``:
+Resolution in ``resolve_runtime_bundle``:
 
-1. A pre-materialized bundle published by the platform build, located
-   via the platform-owned ``AGENTIC_CONNECTOR_BUNDLE_PATH`` environment
-   variable (the deployment contract for hosted builds).
-2. Otherwise, the ``connectors`` entries in ``agent.yaml`` are
-   materialized in memory at startup: each entry names a ``tool.yaml``
-   (resolved relative to ``agent.yaml``) that selects operations from a
-   local catalog file (resolved relative to the ``tool.yaml``, contained
+1. The ``connectors`` entries in ``agent.yaml`` are materialized in
+   memory at startup: each entry names a ``tool.yaml`` (resolved
+   relative to ``agent.yaml``) that selects operations from a local
+   catalog file (resolved relative to the ``tool.yaml``, contained
    within the agent workspace) and binds the endpoint and credential
    environment reference. Catalogs are local files only — HTTPS catalog
    references fail; there is no network fetch.
-3. With neither configured, loading is an immediate no-op without
+2. With no connectors configured, loading is an immediate no-op without
    filesystem or network access.
 
-.. code:: yaml
+.. code-block:: yaml
 
    version: 1
    connectors:
      - source: connectors/jiradc/tool.yaml
 
-Each ``source`` points at the connector’s ``tool.yaml`` (resolved
+Each ``source`` points at the connector's ``tool.yaml`` (resolved
 relative to ``agent.yaml``); that authoring file names the catalog and
 carries the binding:
 
-.. code:: yaml
+.. code-block:: yaml
 
    name: jiradc
    tool_defs: tool_defs.yaml
@@ -44,13 +44,35 @@ carries the binding:
    expose:
      allow: [jiradc_getComments]
    auth:
-     type: bearer
-     env: JIRA_TOKEN
+     bearer: JIRA_TOKEN
 
-The pre-materialized index paths are relative to the index and must
-remain inside its directory. AER loads the schemas as ordinary remote
-tools. Tool Pod startup loads the same materialized view and owns one
-``ConnectorExecutor`` per connector.
+The block names exactly one of ``bearer``, ``basic``, ``api_keys`` or
+``provider``, by workspace secret name or OAuth app; no block means no
+credential. For OAuth, bind the project's OAuth app instead:
+
+.. code-block:: yaml
+
+   auth:
+     provider: github
+     scopes: [repo]
+
+``provider`` names an OAuth app configured for the project, independent
+of the resource API's base URL. The scopes apply to every exposed
+operation in this connector. Registration carries this policy outside
+the model's argument schema. The Orchestration Engine resolves a
+credential and passes it to the Tool Pod for that invocation. The app's
+grant decides whose: an authorization code app gives the saved
+application user's token, and a client credentials app gives the
+project's shared token with no user and no consent. A missing or invalid
+token stops the HTTP call; OAuth never falls back to a tenant
+environment secret. Existing static auth modes continue to use their
+configured environment bindings. Catalog regeneration preserves the
+authored OAuth binding and records only secret-free Bearer presentation
+in the catalog.
+
+AER loads the materialized schemas as ordinary remote tools. Tool Pod
+startup materializes the same view and owns one ``ConnectorExecutor``
+per connector.
 
 ``load_tool_defs(path)`` reads a local compiled YAML artifact into
 ``ToolDefinitions``. ``tool_schemas()`` returns detached name,
@@ -60,8 +82,11 @@ the compiled data.
 Own one ``ConnectorExecutor(definitions)`` per connector in a Tool Pod
 process. Call ``execute(tool_name, arguments, env=tenant_secrets)``
 after authorization; the environment mapping is request-local and
-defaults to the tenant-owned process environment. Close the executor at
-shutdown after in-flight calls finish, or use it as a context manager.
+defaults to the tenant-owned process environment for static auth. OAuth
+additionally requires ``authorization=ToolAuthorization(...)``; the Tool
+Pod supplies it from request context and the executor never retains it.
+Close the executor at shutdown after in-flight calls finish, or use it
+as a context manager.
 
 The compiled format is the stable ``source``, ``auth``, ``tools``,
 ``params`` and ``inputSchema`` contract. ``externalize`` and source
@@ -73,9 +98,10 @@ Authoring-time generation lives in this package too:
 produce these artifacts from OpenAPI 3.0 documents and existing local
 catalogs. The generator reads local files only — document and catalog
 downloads, with their transport policy, belong to the CLI. See the
-`OpenAPI generator atlas <generate/README.md>`__ for the translation
-pipeline, file responsibilities, supported wire shapes, authentication
-boundary, and explicit non-goals.
+:ref:`OpenAPI generator
+atlas <python-packages-agent-engine-runner-shared-src-agent_engine_runner_shared-connectors-generate>`
+for the translation pipeline, file responsibilities, supported wire
+shapes, authentication boundary, and explicit non-goals.
 
 The selected connector base URL is authoritative for every operation;
 nested OpenAPI server declarations do not create runtime routing. Secret
@@ -99,17 +125,21 @@ stayed in its intended path position. Only GET, HEAD and OPTIONS retry
 429/503, at most three times; ``Retry-After`` is capped at 30 seconds.
 Each invocation carries a 30-second budget between requests, redirects,
 response chunks and retry waits. Every request uses its remaining budget
-for HTTPX’s standard connect, read, write and pool timeouts; the read
-timeout bounds each blocking read, as defined by HTTPX.
+for HTTPX's standard connect, read, write and pool timeouts; the read
+timeout bounds each blocking read, as defined by HTTPX. Requests carry
+``User-Agent: agent-engine-connector`` unless the connector sets its own
+in ``auth.headers``, matched case-insensitively.
 
 HTTP failures, including rejected provider redirects, use
 ``httpx.HTTPStatusError``, and transport failures use the existing
 timeout/connection exception types recognized by
 ``classify_tool_api_error``. An HTTP error may retain a bounded provider
 error body (at most 4 KB) so the shared classifier can surface the
-provider’s own explanation. The retained body is never logged; the
-classifier applies rudimentary hygiene to the extracted explanation —
-control characters dropped, URL-shaped text rejected, exact credential
-values redacted, result bounded. This is best-effort, not a guarantee.
-Oversized bodies, redirect locations, and credential-bearing request
-objects are never retained.
+provider's own explanation: a recognized JSON error field, or a
+plain-text body that is not HTML markup, up to its first link. The
+retained body is never logged; the classifier applies rudimentary
+hygiene to the extracted explanation — control characters dropped,
+URL-shaped text rejected, exact credential values redacted, result
+bounded. This is best-effort, not a guarantee. Oversized bodies,
+redirect locations, and credential-bearing request objects are never
+retained.

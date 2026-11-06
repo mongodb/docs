@@ -1,0 +1,121 @@
+.. _typescript-packages-agent-engine-runner-shared-CHANGELOG:
+
+Changelog
+=========
+
+All notable changes to this package will be documented in this file.
+
+The format is based on `Keep a
+Changelog <https://keepachangelog.com/en/1.1.0/>`__, and this project
+adheres to `Semantic
+Versioning <https://semver.org/spec/v2.0.0.html>`__.
+
+[Unreleased]
+------------
+
+Added
+~~~~~
+
+- TypeScript connector execution and Tool Pod registration: the runner
+  now materializes the validated connector bundle at startup, registers
+  one bounded HTTP executor per connector, applies static or delegated
+  auth, and closes pooled transports on shutdown. AER and the server
+  tool mode use the same runtime views, collision preflight, and
+  registration helper.
+- TypeScript connector contract and authoring materializer: validates
+  compiled connector catalogs, applies fail-closed exposure and
+  endpoint/credential bindings, and exposes the shared AER and Tool Pod
+  runtime views.
+
+Changed
+~~~~~~~
+
+- **Breaking:** the connector ``tool.yaml`` ``auth`` block no longer
+  takes ``type``. It names exactly one credential: ``bearer: <secret>``,
+  ``basic: {username, password}``,
+  ``api_keys: [{env, location, name, prefix}]``, or
+  ``provider: <OAuth app>`` with optional ``scopes``, plus optional
+  ``headers``; omit the block for no credential. A block that still uses
+  ``type`` or its fields fails validation with the same message as the
+  Python runner. ``AuthSchema`` validates the new block,
+  ``BasicAuthSchema`` and ``BasicAuth`` are exported, and
+  ``authHeaderName``, ``authCredentialBindings`` and ``AuthType`` are
+  removed; read ``auth.api_keys``.
+- Remote MCP servers now use the MCP TypeScript SDK 2.x
+  (``@modelcontextprotocol/client``). Each call negotiates the protocol
+  automatically: it probes ``server/discover`` and falls back to the
+  legacy ``initialize`` handshake, so servers on ``2025-11-25`` and
+  older keep working while ``2026-07-28`` servers are reached directly.
+  Tool result and schema field names are unchanged, and OAuth caches
+  written by the previous SDK still load; stored tokens and client
+  registrations now also round-trip the authorization server's
+  ``issuer`` when it provides one.
+- Workflow child operation paths gained the Python parity surface for
+  framework adapters that dispatch dynamic children outside the graph
+  topology: ``preallocateChildOperationOrdinals`` assigns ordinals to a
+  complete same-step sibling batch up front, and
+  ``childOperationBoundaryScope`` runs a callback with one appended
+  child boundary (composing with any active operation-path resolver). A
+  pending-batch holder on the attempt context backs the adapter's
+  two-phase model-step/tool-step stamping.
+
+Fixed
+~~~~~
+
+- Connector tools now capture the tenant environment for each Tool Pod
+  invocation, so concurrent calls cannot exchange request-scoped
+  secrets. Connector callables invoked outside a Tool Pod invocation now
+  fail closed; wrap direct calls in ``withConnectorEnvironment``.
+- Uncaught exceptions and unhandled rejections in agent code now emit a
+  filterable ``level=ERROR`` record. Ordinary stderr writes with no
+  associated exception stay ``WARNING``. The record is written even when
+  the agent installed its own crash handler first, and recovering from a
+  crash no longer makes a later graceful shutdown report failure.
+- **Log shape change:** for uncaught exceptions the stack now arrives on
+  the ERROR record's ``fields.exc_traceback`` plus Node's raw output,
+  instead of per-line ``WARNING`` records. Unhandled rejections are
+  unchanged.
+- An unset or unrecognized ``RUNNER_MODE`` no longer drops the crash
+  record from ``/agent-logs``; it falls back to ``aer``.
+- Launcher installs logging before importing ``AGENT_ENTRYPOINT`` and
+  emits ``ERROR`` (with traceback metadata) for import and entrypoint
+  failures, so workspace logs no longer show those crashes as ``INFO``.
+
+Changed
+~~~~~~~
+
+- **Behavioral change (fail closed):** Managed runtimes that require
+  project- scoped storage now require ``APP_ID`` when resolving
+  checkpoint workspace scope. A missing ``APP_ID`` throws instead of
+  trusting the wire workspace or using a bare session key. Intentionally
+  unscoped local runtimes retain the wire fallback and bare-key
+  behavior.
+- **Behavioral change (fail closed):** ``withMetadataEnv`` and
+  ``withMetadataEnvGen`` (``src/server/metadata.ts``) now throw — before
+  touching ``process.env`` — when a region overlaps a concurrent
+  secret-bearing region: either another region already has secrets
+  applied, or this region carries secrets while any region is active.
+  Previously overlap was silent and could swap one request's secrets
+  into another's. In-repo call sites (``/execute``, ``/invoke_llm``,
+  ``/invoke_llm/stream``) are serialized by the ToolServer's
+  per-instance execute gate and are unaffected; a downstream consumer
+  calling these directly, or a second in-process call site, must be
+  prepared to handle the error per request. Note ``withMetadataEnvGen``
+  holds its region open for the whole iteration.
+- A region entered while another region is active now performs a
+  *delete-only* restore: keys it added are removed, but overwritten
+  values are no longer reverted, since its snapshot is tainted with the
+  other region's request-scoped state. Regions entered on a quiet
+  environment (the serialized production flow) keep the full snapshot
+  restore.
+
+Removed
+~~~~~~~
+
+- Unreferenced query/stream response models — execution logs, node
+  executions, cost dashboard, executions, and sessions — and the
+  ``logExecutionStart`` and ``extractPodUsage`` helpers were removed
+  from the public surface. The orchestration-engine query shapes were
+  consumed only by the retired Python orchestration engine, which the Go
+  engine replaced; the session-query shapes and both helpers had no
+  maintained caller.

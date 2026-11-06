@@ -1,0 +1,110 @@
+.. _python-packages-agent-engine-sdk-docs-api-interfaces:
+
+agent_engine_sdk.interfaces
+===========================
+
+Framework-neutral protocols for Atlas Agent Engine.
+
+.. _python-packages-agent-engine-sdk-docs-api-agent_engine_sdk.interfaces.executionresult:
+
+ExecutionResult
+---------------
+
+.. code-block:: python
+
+   @runtime_checkable
+   class ExecutionResult(AsyncIterable[StreamEvent], Protocol)
+
+Result of an agent execution.
+
+Await for the final result, or async-iterate for streaming events.
+
+Usage:
+
+.. code-block:: text
+
+   # Non-streaming
+   output = await agent.execute(ctx, input)
+
+   # Streaming
+   async for event in agent.execute(ctx, input):
+       handle(event)
+
+.. _python-packages-agent-engine-sdk-docs-api-agent_engine_sdk.interfaces.baseagent:
+
+BaseAgent
+---------
+
+.. code-block:: python
+
+   @runtime_checkable
+   class BaseAgent(Protocol)
+
+The contract between agent code and runtimes.
+
+Agents expose a single ``execute()`` method that returns a
+``ExecutionResult``. Callers choose the execution mode:
+
+- ``await agent.execute(ctx, input)`` for a final result (JSON-style)
+- ``async for event in agent.execute(ctx, input)`` for streaming
+  (SSE-style)
+
+.. _python-packages-agent-engine-sdk-docs-api-agent_engine_sdk.interfaces.basellm:
+
+BaseLLM
+-------
+
+.. code-block:: python
+
+   @runtime_checkable
+   class BaseLLM(Protocol)
+
+Framework-neutral LLM protocol.
+
+Used at runtime by the ToolPod.
+
+.. _python-packages-agent-engine-sdk-docs-api-agent_engine_sdk.interfaces.baseexecutioncallback:
+
+BaseExecutionCallback
+---------------------
+
+.. code-block:: python
+
+   @runtime_checkable
+   class BaseExecutionCallback(Protocol)
+
+Framework-neutral callback for observability during agent execution.
+
+Replaces LangChain's ``BaseCallbackHandler``. The AER injects an
+implementation that forwards node events to the OE for logging.
+Framework adapters (e.g. sdk-langgraph) bridge from the framework's
+native callback system to this protocol.
+
+Prefer subclassing ``NullExecutionCallback`` over implementing this
+Protocol directly — it provides no-op defaults for all methods including
+optional extensions (e.g. ``on_node_suspend``) so new methods never
+break existing implementations.
+
+.. _python-packages-agent-engine-sdk-docs-api-agent_engine_sdk.interfaces.nullexecutioncallback:
+
+NullExecutionCallback
+---------------------
+
+.. code-block:: python
+
+   class NullExecutionCallback()
+
+Concrete base class with no-op defaults for all BaseExecutionCallback
+methods.
+
+Subclass this instead of implementing BaseExecutionCallback directly so
+that new methods added to the protocol are automatically satisfied — you
+only override the events you care about.
+
+**Example**:
+
+.. code-block:: python
+
+   class MyCallback(NullExecutionCallback):
+       def on_node_start(self, node_name, inputs, *, run_id, **kwargs):
+           print(f"starting {node_name}")

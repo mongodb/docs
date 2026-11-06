@@ -11,7 +11,7 @@ OpenAPI and does not need a second request plan.
 The boundary
 ------------
 
-.. code:: text
+.. code-block:: text
 
    OpenAPI document + optional endpoint/auth overrides
      generate/
@@ -59,7 +59,7 @@ Compilation has five stages:
    references.
 2. ``catalog.py`` discovers HTTP operations and determines the
    catalog-wide credential presentation.
-3. ``parameters.py`` converts each operation’s parameters and request
+3. ``parameters.py`` converts each operation's parameters and request
    body into a JSON input schema plus compact wire-placement metadata.
 4. ``naming.py`` assigns deterministic, MCP-safe tool names.
 5. ``definitions.py`` validates the finished ``ToolDefinitions`` object
@@ -94,20 +94,33 @@ wire, not how the platform obtains or owns it. ``security.py`` therefore
 reduces them to secret-free presentation metadata:
 
 - no authentication;
-- Bearer tokens, including the presentation of OAuth 2 and OpenID
-  Connect access tokens;
+- Bearer tokens;
+- OAuth 2 and OpenID Connect, which present a delegated token the same
+  way;
 - API keys in a header, query parameter, cookie, or base-URL path
   placeholder;
 - HTTP Basic authentication;
 - multiple required API-key headers and constant non-secret headers.
 
-An explicit authoring override replaces the document’s security choice
-for the whole catalog. The generated ``tool.yaml`` binds the selected
-presentation to tenant secret environment names. Credential fields are
-removed from model arguments so the model cannot supply or override
-them.
+The catalog records only the credential kind and API-key placements, and
+that record covers every compiled operation, not only those ``--allow``
+exposes: it can say ``provider`` while the block proposed for the
+exposed operations is a static token. The generated ``tool.yaml``
+proposes the matching ``auth`` block for the exposed operations: OAuth 2
+and OpenID Connect become ``provider``, which needs the OAuth app from
+the caller and defaults its scopes to those the exposed operations
+declare; static credentials bind secrets named after the connector
+(``JIRA_TOKEN``, ``JIRA_USERNAME``/``JIRA_PASSWORD``,
+``JIRA_<KEY NAME>``). The document and the catalog never choose a secret
+name. An explicit choice replaces the document's security for the whole
+catalog, and regeneration presents the authored block on every
+operation. An operation whose alternatives present differently, such as
+OAuth or an API key, compiles only with an explicit choice, which takes
+the scopes or key placement of the matching alternative. Credential
+fields are removed from model arguments so the model cannot supply or
+override them.
 
-Without an override, the first supported authenticated operation selects
+Without a choice, the first supported authenticated operation selects
 the catalog presentation. Compatibility mode records operations
 requiring another presentation as unsupported; strict mode rejects the
 document. Anonymous operations remain available unless one of their
@@ -157,7 +170,8 @@ corresponding encoding:
    * - OpenAPI media type
      - Generated/runtime behavior
    * - ``application/json``
-     - JSON body; simple object properties may become top-level tool arguments
+     - JSON body; simple object properties may become top-level tool
+       arguments
    * - ``application/*+json``
      - JSON body with the declared vendor media type
    * - ``application/x-www-form-urlencoded``
@@ -200,7 +214,8 @@ Files and responsibilities
      - Compile, scaffold, and regenerate workflows
      - OpenAPI semantics
    * - ``spec.py``
-     - Strict loading, envelope validation, safe errors, local references
+     - Strict loading, envelope validation, safe errors, local
+       references
      - Parameter or auth policy
    * - ``catalog.py``
      - Operation discovery, one base URL/auth choice, skip provenance
@@ -247,10 +262,11 @@ Acceptance corpus
 -----------------
 
 ``tests/corpus/manifest.json`` pins 100 real-world APIs.guru documents
-by URL and SHA-256. The set contains 10,059 declared operations and
-requires at least 9,512 generated tools overall, at least 80% for every
-API, and named Pinecone data-plane operations. The current
-implementation produces 9,880 tools (98.22%) for the pinned inputs.
+by path and SHA-256 within one GitHub commit. The set contains 10,059
+declared operations and requires at least 9,512 generated tools overall,
+at least 80% for every API, and named Pinecone data-plane operations.
+The current implementation produces 9,880 tools (98.22%) for the pinned
+inputs.
 
 ``./scripts/test.sh agent-engine-runner-shared-corpus`` downloads the
 exact documents, verifies their digests, enforces a per-document compile

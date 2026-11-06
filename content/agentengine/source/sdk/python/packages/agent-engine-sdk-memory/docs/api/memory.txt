@@ -1,0 +1,734 @@
+.. _python-packages-agent-engine-sdk-memory-docs-api-memory:
+
+agent_engine_sdk_memory.memory
+==============================
+
+Transport-free public Memory facade.
+
+``Memory`` is the surface platform users interact with. It delegates the
+six high-level workflow operations to an injected ``MemoryRuntime`` and
+the CRUD conveniences to an injected ``MemoryCrudClient``. Identity is
+resolved per call via ``resolve_identity``; tenancy never appears in any
+public signature.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.memory.memory:
+
+Memory
+------
+
+.. code-block:: python
+
+   class Memory()
+
+Public, transport-free memory facade.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.memory.memory.__init__:
+
+\__init\_\_
+~~~~~~~~~~~
+
+.. code-block:: python
+
+   def __init__(*,
+                runtime: MemoryRuntime | None = None,
+                client: MemoryCrudClient | None = None,
+                _bound_ctx: MemoryRequestContext | None = None,
+                service_account_token: str | None = None,
+                api_key: str | None = None,
+                base_url: str | None = None,
+                project_id: str | None = None) -> None
+
+Construct a Memory facade.
+
+Pass the inputs directly. Each one also falls back to an
+``AGENTIC_MEMORY_*`` environment variable when the argument is omitted,
+so an explicit argument always wins over the environment.
+
+- ``service_account_token`` (``AGENTIC_MEMORY_SERVICE_ACCOUNT_TOKEN``)
+  is auth — a service-account access token minted from a service
+  account's client ID and secret at ``POST /api/v1/oauth/token`` (the
+  README's hosted guide walks through it). It becomes a bearer token
+  when set, and there is no auth header when it is absent.
+- ``base_url`` (``AGENTIC_MEMORY_BASE_URL``) is the backend address.
+- ``project_id`` (``AGENTIC_MEMORY_PROJECT_ID``) selects the route
+  shape. Set it to use project-scoped routes
+  (``/api/v1/projects/{id}/memory/*``). Leave it empty to use flat
+  routes (``/api/v1/memory/*``). Auth does not select the route shape,
+  so an authenticated caller with no ``project_id`` still uses flat
+  routes.
+
+``api_key`` (``AGENTIC_MEMORY_API_KEY``) is a deprecated alias for
+``service_account_token``: still accepted, emits a
+``DeprecationWarning``. Setting both the new and the legacy input — in
+any mix of argument and environment variable — raises ``ValueError``. A
+blank environment variable counts as unset (matching ``base_url`` and
+``project_id``), so an empty-exported placeholder never conflicts with
+an explicit argument. A blank argument still raises ``ValueError``.
+
+``base_url`` resolves from the argument, then
+``AGENTIC_MEMORY_BASE_URL``, then the hosted default when an auth token
+is set. With neither a resolvable URL nor an auth token, construction
+raises ``ValueError``.
+
+Type-specific CRUD is available on hosted (Gateway/``project_id`` set)
+and direct (OE/flat) HTTP modes. Per-backend gaps (including app-bound)
+are documented in ``docs/capability-matrix.md`` and raise
+``MemoryNotSupportedError`` when hit. Application code does not
+construct app-bound mode; the platform supplies ``runtime`` / ``client``
+injection instead.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.memory.memory.bind:
+
+bind
+~~~~
+
+.. code-block:: python
+
+   def bind(ctx: MemoryRequestContext) -> Memory
+
+Return a new Memory scoped to ``ctx`` without mutating this handle.
+
+The bound handle shares this handle's transport; closing either one
+closes the shared transport. Ownership propagates, so a bound handle of
+a self-constructed (api-key) Memory still releases the transport on
+close(), while a bound handle of an injected runtime leaves it to its
+owner.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.memory.memory.close:
+
+close
+~~~~~
+
+.. code-block:: python
+
+   def close() -> None
+
+Release the underlying transport(s) when this handle owns them.
+
+A runtime this Memory constructed — and, in direct mode, the CRUD
+adapter alongside it — is closed; an injected or bound runtime belongs
+to its provider and is left untouched.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.memory.memory.record_turn:
+
+record_turn
+~~~~~~~~~~~
+
+.. code-block:: python
+
+   def record_turn(*,
+                   role: str,
+                   content: str | None = None,
+                   session_id: str | None = None,
+                   tool_calls: list[dict[str, Any]] | None = None,
+                   tool_call_id: str | None = None,
+                   tool_name: str | None = None,
+                   is_error: bool = False,
+                   model_name: str | None = None,
+                   metadata: dict[str, Any] | None = None,
+                   idempotency_key: str | None = None) -> WriteTurnResult
+
+Record a single conversation turn (write-accepted semantics).
+
+**Arguments**:
+
+- ``metadata`` - Arbitrary key-value metadata persisted on the turn and
+  returned on retrieval in its own ``chunk.metadata["metadata"]`` slot,
+  kept apart from the platform's turn fields, so any key is safe to use.
+  Matchable by the retrieval ``metadata_filter``, where the key is the
+  qualified index path (``metadata.<name>``) because the filter
+  addresses the stored document. Omitting it preserves prior behavior.
+- ``idempotency_key`` - Deduplication key for the write. Auto-generated
+  per call when omitted, which protects transport-level retries beneath
+  this call only; callers that retry ``record_turn`` itself must supply
+  their own key for cross-call dedupe.
+
+**Notes**:
+
+In app-bound mode the returned ``WriteTurnResult.id`` is ``""`` and
+``turn_seq`` is ``0`` — the platform runtime fires the write
+asynchronously and returns no per-turn identifier or sequence number.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.memory.memory.save_semantic:
+
+save_semantic
+~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def save_semantic(*,
+                     text: str,
+                     label: str,
+                     user_id: str | None = None,
+                     source: str = "agent",
+                     visibility: str = "private",
+                     metadata: dict[str, Any] | None = None,
+                     upsert: bool = True,
+                     agent_id: str | None = None) -> CreateSemanticResult
+
+Save a semantic memory (fact, customer profile).
+
+**Arguments**:
+
+- ``visibility`` - Access scope of the memory ("private" or "org").
+- ``metadata`` - Optional caller-supplied metadata dictionary stored
+  with the memory.
+- ``upsert`` - When True (the default), replace an existing memory with
+  the same label instead of creating a duplicate.
+
+**Raises**:
+
+- ``MemoryIdentityError`` - If ``user_id`` is not supplied and cannot be
+  resolved from the bound context.
+- ``MemoryNotSupportedError`` - If this handle has no CRUD client
+  configured.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.memory.memory.search_semantic:
+
+search_semantic
+~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def search_semantic(query: str,
+                       user_id: str | None = None,
+                       visibility: str | None = None,
+                       top_k: int = 50) -> list[MemoryChunk]
+
+Search semantic memories.
+
+**Arguments**:
+
+- ``visibility`` - When supplied, the ambient (runtime-context)
+  principal is not auto-substituted for ``user_id``; the caller must
+  supply one explicitly if a user-scoped filter is needed.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.memory.memory.get_semantic:
+
+get_semantic
+~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def get_semantic(label: str,
+                    user_id: str | None = None,
+                    visibility: str | None = None) -> Any | None
+
+Get a semantic memory by label.
+
+**Raises**:
+
+- ``MemoryNotSupportedError`` - If this handle has no CRUD client
+  configured.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.memory.memory.save_episode:
+
+save_episode
+~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def save_episode(*,
+                    title: str,
+                    content: str,
+                    user_id: str | None = None,
+                    summary: str | None = None,
+                    session_id: str | None = None,
+                    participants: list[str] | None = None,
+                    tags: list[str] | None = None,
+                    visibility: str = "private",
+                    metadata: dict[str, Any] | None = None,
+                    agent_id: str | None = None) -> CreateEpisodicResult
+
+Save an episodic memory (conversation summary).
+
+**Arguments**:
+
+- ``visibility`` - Access scope of the memory ("private" or "org").
+- ``metadata`` - Optional caller-supplied metadata dictionary stored
+  with the episode.
+
+**Raises**:
+
+- ``MemoryIdentityError`` - If ``user_id`` or ``session_id`` is not
+  supplied and cannot be resolved from the bound context.
+- ``MemoryNotSupportedError`` - If this handle has no CRUD client
+  configured.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.memory.memory.search_episodes:
+
+search_episodes
+~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def search_episodes(query: str,
+                       user_id: str | None = None,
+                       visibility: str | None = None,
+                       session_id: str | None = None,
+                       top_k: int = 50) -> list[MemoryChunk]
+
+Search past episodes.
+
+**Arguments**:
+
+- ``visibility`` - When supplied, the ambient (runtime-context)
+  principal is not auto-substituted for ``user_id``; the caller must
+  supply one explicitly if a user-scoped filter is needed.
+- ``session_id`` - Episodic memory is stored without a session, so a
+  bound or ambient ``session_id`` is not inherited here. Pass one
+  explicitly to filter to a single conversation.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.memory.memory.list_episodes:
+
+list_episodes
+~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def list_episodes(user_id: str | None = None,
+                     visibility: str | None = None,
+                     session_id: str | None = None,
+                     limit: int = 20) -> list[Any]
+
+List episodic memories with optional filters.
+
+**Raises**:
+
+- ``MemoryNotSupportedError`` - If this handle has no CRUD client
+  configured.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.memory.memory.save_taxonomic:
+
+save_taxonomic
+~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def save_taxonomic(
+           *,
+           domain: str,
+           term: str,
+           definition: str,
+           related_terms: list[str] | None = None,
+           visibility: str = "org",
+           user_id: str | None = None,
+           metadata: dict[str, Any] | None = None) -> CreateTaxonomicResult
+
+Save a taxonomic term (knowledge-base entry).
+
+**Arguments**:
+
+- ``visibility`` - Access scope of the entry ("org" by default so the
+  term is shared knowledge; "private" restricts it to the user).
+- ``metadata`` - Arbitrary key-value metadata persisted on the entry and
+  returned on retrieval; matchable by the retrieval ``metadata_filter``.
+  Omitting it preserves prior behavior.
+
+**Raises**:
+
+- ``MemoryIdentityError`` - If ``user_id`` is not supplied and cannot be
+  resolved from the bound context.
+- ``MemoryNotSupportedError`` - If this handle has no CRUD client
+  configured.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.memory.memory.search_taxonomic:
+
+search_taxonomic
+~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def search_taxonomic(query: str,
+                        user_id: str | None = None,
+                        domain: str | None = None,
+                        visibility: str | None = None,
+                        top_k: int = 50) -> list[MemoryChunk]
+
+Search the knowledge base.
+
+**Arguments**:
+
+- ``visibility`` - When supplied, the ambient (runtime-context)
+  principal is not auto-substituted for ``user_id``; the caller must
+  supply one explicitly if a user-scoped filter is needed.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.memory.memory.get_taxonomic_term:
+
+get_taxonomic_term
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def get_taxonomic_term(domain: str,
+                          term: str,
+                          user_id: str | None = None,
+                          visibility: str | None = None) -> Any | None
+
+Get a specific knowledge-base term.
+
+**Raises**:
+
+- ``MemoryNotSupportedError`` - If this handle has no CRUD client
+  configured.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.memory.memory.list_domains:
+
+list_domains
+~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def list_domains(visibility: str | None = None) -> list[str]
+
+List all knowledge-base domains.
+
+**Raises**:
+
+- ``MemoryNotSupportedError`` - If this handle has no CRUD client
+  configured.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.memory.memory.discover_procedures:
+
+discover_procedures
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def discover_procedures(
+           query: str,
+           user_id: str | None = None,
+           *,
+           visibility: str | None = None,
+           tags: list[str] | None = None,
+           top_k: int = 10,
+           similarity_threshold: float = 0.0,
+           metadata_filter: dict[str, Any] | None = None) -> list[dict[str, Any]]
+
+Discover procedures matching a query without loading full content.
+
+**Arguments**:
+
+- ``metadata_filter`` - Field-level filter on procedural metadata. Keys
+  are fully qualified index paths, so an attribute declared as ``tier``
+  in the project's metadata partition configuration is filtered as
+  ``{"metadata.tier": "gold"}``; nothing is prefixed for you. Keys here
+  are not validated against the declared set -- an undeclared or
+  misspelled path is not rejected and silently yields no or degraded
+  matches.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.memory.memory.get_procedure:
+
+get_procedure
+~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def get_procedure(procedure_name: str,
+                     *,
+                     user_id: str | None = None,
+                     visibility: str | None = None,
+                     include_deleted: bool = False) -> Any | None
+
+Get a full procedural memory by procedure name.
+
+**Raises**:
+
+- ``MemoryNotSupportedError`` - If this handle has no CRUD client
+  configured.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.memory.memory.save_procedure:
+
+save_procedure
+~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def save_procedure(*,
+                      procedure: str,
+                      description: str,
+                      content: str,
+                      user_id: str | None = None,
+                      steps: list[dict[str, Any]] | None = None,
+                      resources: list[dict[str, Any]] | None = None,
+                      allowed_tools: list[str] | None = None,
+                      compatibility: str | None = None,
+                      license: str | None = None,
+                      trigger_conditions: list[str] | None = None,
+                      tags: list[str] | None = None,
+                      visibility: str = "private",
+                      agent_id: str | None = None,
+                      extraction_source: str | None = None,
+                      source_format: str | None = None,
+                      source_path: str | None = None,
+                      metadata: dict[str, Any] | None = None,
+                      update_existing: bool = False) -> CreateProceduralResult
+
+Create or update a procedural memory.
+
+**Arguments**:
+
+- ``visibility`` - Access scope of the procedure ("private" or "org").
+- ``metadata`` - Arbitrary key-value metadata persisted on the procedure
+  and returned on retrieval; matchable by the retrieval
+  ``metadata_filter``. Applies to both create and (in app-bound mode)
+  ``update_existing``. Omitting it preserves prior behavior.
+- ``update_existing`` - When True, update the procedure with the same
+  name instead of creating a duplicate. Honored only in app-bound mode;
+  the HTTP backends serve a create-only route, so Gateway and OE modes
+  raise ``MemoryNotSupportedError``.
+
+**Raises**:
+
+- ``MemoryIdentityError`` - If ``user_id`` is not supplied and cannot be
+  resolved from the bound context.
+- ``MemoryNotSupportedError`` - If this handle has no CRUD client
+  configured, or if ``update_existing`` is True against an HTTP backend.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.memory.memory.save:
+
+save
+~~~~
+
+.. code-block:: python
+
+   def save(
+       memory_type: str,
+       content: str,
+       *,
+       tags: Mapping[str, Any] | None = None,
+       contextual_metadata: dict[str, Any] | None = None
+   ) -> CustomMemorySaveResult
+
+Save a memory of a declared custom type.
+
+The platform stamps identity (org, project, user) and enforces the
+type's declared tag schema; this method validates only tag syntax
+client-side so mistakes fail fast with server-matching messages.
+
+**Arguments**:
+
+- ``memory_type`` - A custom type declared in the project's memory
+  configuration. Built-in types (semantic, episodic, taxonomic,
+  procedural) are rejected — use their dedicated methods.
+- ``content`` - The content to store and embed.
+- ``tags`` - Declared tag keys with scalar values. Dotted keys
+  ("profile.location") and one-level nested mappings are equivalent.
+- ``contextual_metadata`` - Arbitrary additional context; stored as-is,
+  never filterable.
+
+**Raises**:
+
+- ``MemoryClientError`` - If the type name is built-in/empty or a tag
+  fails syntax checks (a ``ValueError`` subclass).
+- ``MemoryNotSupportedError`` - If this handle has no CRUD client, or
+  the platform does not support custom memory types.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.memory.memory.retrieve:
+
+retrieve
+~~~~~~~~
+
+.. code-block:: python
+
+   def retrieve(memory_type: str,
+                query: str,
+                *,
+                tags: Mapping[str, Any] | None = None,
+                top_k: int = 10) -> CustomMemoryRetrieveResult
+
+Retrieve memories of a declared custom type by semantic query.
+
+Filters are exact-match equality on declared tag keys; result ordering
+may improve between releases and is not contractual.
+
+**Arguments**:
+
+- ``memory_type`` - A custom type declared in the project's memory
+  configuration; one type per call.
+- ``query`` - Query text for semantic search.
+- ``tags`` - Equality filters on declared tag keys.
+- ``top_k`` - Maximum number of results (server enforces 1-100).
+
+**Raises**:
+
+- ``MemoryClientError`` - If the type name is built-in/empty or a tag
+  fails syntax checks (a ``ValueError`` subclass).
+- ``MemoryNotSupportedError`` - If this handle has no CRUD client, or
+  the platform does not support custom memory types.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.memory.memory.build_context:
+
+build_context
+~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def build_context(query: str,
+                     user_id: str | None = None,
+                     session_id: str | None = None,
+                     visibility: str | None = None,
+                     metadata_filter: dict[str, Any] | None = None,
+                     enabled_sources: set[str] | None = None,
+                     *,
+                     thread_id: str | None = None,
+                     max_tokens: int | None = None,
+                     format_style: FormatStyle | str | None = None,
+                     include_memories: bool = False) -> ContextResponse
+
+Build a unified memory context across memory types.
+
+Omitted ``enabled_sources`` defaults to ``episodic`` and ``semantic``;
+pass ``{"stm", "episodic", "semantic"}`` to include recent
+``record_turn`` content.
+
+``thread_id`` is a deprecated alias for ``session_id``; when both are
+provided, a non-blank ``session_id`` wins.
+
+**Arguments**:
+
+- ``enabled_sources`` - Memory sources to include. ``None`` uses the
+  server default (episodic, semantic).
+- ``metadata_filter`` - One field-level filter applied to every enabled
+  source. Keys are fully qualified index paths, so an attribute declared
+  as ``tier`` in the project's metadata partition configuration is
+  filtered as ``{"metadata.tier": "gold"}``; nothing is prefixed for
+  you. Unlike ``build_context_from_sources``, these keys are *not*
+  validated against the declared set -- an undeclared or misspelled path
+  is not rejected and silently yields no or degraded matches. Use
+  ``build_context_from_sources`` when you want a bad key to fail loudly.
+- ``visibility`` - When supplied, the ambient (runtime-context)
+  principal is not auto-substituted for ``user_id``; the caller must
+  supply one explicitly if a user-scoped filter is needed.
+- ``max_tokens`` - Optional gross context-construction budget. Omitted
+  (``None``) preserves prior behavior. Non-positive, non-integer,
+  non-finite, and bool values raise ``ValueError`` before runtime
+  delegation. After retrieval and ranking, the server subtracts a
+  500-token formatting reserve, then greedily selects whole memory
+  chunks that fit in the remainder. Positive values at or below 500
+  leave no budget for memories. Values above 500 can still yield empty
+  context when no chunk fits. ``metadata.token_count`` reports formatted
+  output only and excludes the reserve.
+- ``format_style`` - Output format for the assembled context:
+  ``"openai"`` (a chat-message list that keeps STM turn roles),
+  ``"claude"`` (an XML string), or ``"jinja2"`` (a markdown string).
+  Unknown values raise ``ValueError`` before any request is made.
+  Omitted (``None``), the server infers the format from its configured
+  model. Caveat: the server currently re-infers from its configured
+  model when the explicit value matches its default model type, so an
+  explicit ``"openai"`` is honored verbatim only on servers with an
+  OpenAI-family model configured; ``"claude"`` and ``"jinja2"`` are
+  always honored.
+- ``include_memories`` - When ``True``, the response's
+  ``selected_memories`` carries the post-budget ``MemoryChunk`` list
+  alongside ``formatted_context``, so callers can inspect exactly which
+  memories were selected.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.memory.memory.build_context_from_sources:
+
+build_context_from_sources
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def build_context_from_sources(
+           query: str,
+           sources: Sequence[SourceSpec],
+           *,
+           user_id: str | None = None,
+           session_id: str | None = None,
+           visibility: str | None = None,
+           rerank: bool = False,
+           thread_id: str | None = None,
+           max_tokens: int | None = None,
+           format_style: FormatStyle | str | None = None,
+           include_memories: bool = False,
+           collapse_duplicate_content: bool = True) -> ContextResponse
+
+Build a memory context from an explicit, per-source-configured source
+set.
+
+Unlike :meth:``build_context``, each source in ``sources`` declares its
+own retrieval mode, metadata filter, and candidate count. Results are
+merged and de-duplicated across sources, optionally reordered by a
+relevance rerank, then formatted and budgeted like
+:meth:``build_context``. ``metadata.ranking_strategy`` and
+``metadata.source_outcomes`` report how the final order was produced and
+how each source fared.
+
+``thread_id`` is a deprecated alias for ``session_id``; when both are
+provided, a non-blank ``session_id`` wins. ``session_id`` is only needed
+when the ``stm`` source is requested.
+
+**Arguments**:
+
+- ``sources`` - One :class:``SourceSpec`` per memory source to search.
+  Must be non-empty, and each source may appear at most once.
+- ``rerank`` - When ``True``, reorder merged results by a relevance
+  rerank if the service is available.
+- ``max_tokens`` - Optional gross context-construction budget; see
+  :meth:``build_context``.
+- ``format_style`` - Output format for the assembled context; see
+  :meth:``build_context``.
+- ``include_memories`` - When ``True``, the response's
+  ``selected_memories`` carries the post-budget ``MemoryChunk`` list;
+  see :meth:``build_context``.
+- ``collapse_duplicate_content`` - When ``True`` (default), collapse
+  duplicate content — exact text matches and near-duplicates — when
+  merging results. Set ``False`` to receive every candidate each source
+  contributed, up to its ``top_k``; a document surfacing from both the
+  vector and text legs is still returned once either way. ``max_tokens``
+  still applies after merging, so disabling this may require a larger
+  budget to see every row.
+
+**Raises**:
+
+- ``ValueError`` - If ``sources`` is empty or lists a source more than
+  once, or if ``max_tokens`` is non-positive.
+- ``MemoryIdentityError`` - If a ``stm`` source is requested but no
+  non-blank ``session_id`` resolves from the argument or execution
+  context.
+
+.. _python-packages-agent-engine-sdk-memory-docs-api-agent_engine_sdk_memory.memory.memory.search:
+
+search
+~~~~~~
+
+.. code-block:: python
+
+   def search(query: str,
+              *,
+              sources: SearchSource | str | Sequence[SearchSource | str]
+              | None = None,
+              top_k: int = 10,
+              user_id: str | None = None,
+              visibility: str | None = None,
+              session_id: str | None = None,
+              domain: str | None = None,
+              tags: list[str] | None = None,
+              similarity_threshold: float = 0.0,
+              metadata_filter: dict[str, Any] | None = None) -> list[MemoryChunk]
+
+Search one or more memory sources and return a single ranked list.
+
+``sources`` defaults to ``[semantic, episodic]``, the two ranked
+similarity sources. It accepts a single source (``"semantic"`` or
+``SearchSource.SEMANTIC``) or a sequence of them. Requesting a source
+the current backend does not serve raises ``MemoryNotSupportedError``;
+see ``docs/capability-matrix.md`` for current per-backend gaps.
+Per-source arguments are forwarded only to the sources that use them:
+``session_id`` (episodic), ``domain`` (taxonomic), and ``tags`` /
+``similarity_threshold`` / ``metadata_filter`` (procedural). Results are
+merged, sorted by ``similarity_score`` (descending, unscored last) and
+truncated to ``top_k``.
+
+``metadata_filter`` keys are fully qualified index paths -- an attribute
+declared as ``tier`` is filtered as ``{"metadata.tier": "gold"}``, and
+nothing is prefixed for you. They are not validated against the declared
+set, so an undeclared or misspelled path is not rejected and silently
+yields no or degraded matches.
+
+**Raises**:
+
+- ``MemoryNotSupportedError`` - If a requested source is unavailable in
+  this mode. See ``docs/capability-matrix.md`` for current gaps.

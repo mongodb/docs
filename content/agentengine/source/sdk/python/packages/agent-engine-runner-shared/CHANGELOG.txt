@@ -1,3 +1,5 @@
+.. _python-packages-agent-engine-runner-shared-CHANGELOG:
+
 Changelog
 =========
 
@@ -10,6 +12,52 @@ Versioning <https://semver.org/spec/v2.0.0.html>`__.
 
 [Unreleased]
 ------------
+
+Changed
+~~~~~~~
+
+- **Breaking:** the connector ``tool.yaml`` ``auth`` block no longer
+  takes ``type``. It names exactly one credential: ``bearer: <secret>``,
+  ``basic: {username, password}``,
+  ``api_keys: [{env, location, name, prefix}]``, or
+  ``provider: <OAuth app>`` with optional ``scopes``, plus optional
+  ``headers``; omit the block for no credential. A block that still uses
+  ``type`` or its fields fails validation and names the key to use
+  instead. ``compile_catalog`` and ``scaffold_tool_yaml`` propose the
+  block from the document's security schemes and derive secret names
+  from the connector name; ``auth`` now takes ``none``, ``bearer``,
+  ``basic`` or ``api_keys``, and an OAuth document needs ``provider``.
+  Generated catalogs record the credential kind without ``type``.
+  ``Auth.header_name()`` and ``Auth.credential_bindings()`` are removed;
+  read ``Auth.api_keys``. Regenerating a connector with no ``auth``
+  block compiles every operation anonymously instead of from the OpenAPI
+  document's security, so operations the first compile skipped can
+  appear as tools; they send no credential.
+
+Removed
+~~~~~~~
+
+- Removed the unused pre-materialized connector bundle override
+  (``AGENTIC_CONNECTOR_BUNDLE_PATH``) and the ``load_connector_bundle``
+  / ``CONNECTOR_BUNDLE_PATH_ENV`` exports. Connectors resolve only from
+  ``agent.yaml`` and its local connector authoring files.
+
+Changed
+~~~~~~~
+
+- Remote MCP servers now use MCP Python SDK 2.x (``mcp==2.3.0``). Each
+  call negotiates the protocol automatically: it probes
+  ``server/discover`` and falls back to the legacy ``initialize``
+  handshake, so servers on ``2025-11-25`` and older keep working while
+  ``2026-07-28`` servers are reached directly. Tool result content keeps
+  its wire field names (``mimeType``, ``readOnlyHint``) and failed HTTP
+  calls keep reporting their status in error messages. OAuth caches
+  written by the previous SDK still load; new entries record the
+  authorization server's ``issuer`` when it provides one.
+- Reuse a process-wide keep-alive mTLS client for OE callbacks (tool
+  execute/result, node events, progress and custom events) and drain
+  callback response bodies so connections return to the pool; removes a
+  full TLS handshake per callback.
 
 Fixed
 ~~~~~
@@ -66,15 +114,15 @@ Changed
   region overlaps a concurrent secret-bearing region: either another
   region already has secrets applied, or this region carries secrets
   while any region is active. Previously overlap was silent and could
-  swap one request’s secrets into another’s. In-repo call sites
+  swap one request's secrets into another's. In-repo call sites
   (``/execute``, ``/invoke_llm``, ``/invoke_llm/stream``) are serialized
-  by the ToolServer’s per-instance execute gate and are unaffected; a
+  by the ToolServer's per-instance execute gate and are unaffected; a
   downstream consumer calling ``applied_metadata_env`` directly, or a
   second in-process call site, must be prepared to handle the exception
   per request.
 - A region entered while another region is active now performs a
   *delete-only* restore: keys it added are removed, but overwritten
   values are no longer reverted, since its snapshot is tainted with the
-  other region’s request-scoped state. Regions entered on a quiet
+  other region's request-scoped state. Regions entered on a quiet
   environment (the serialized production flow) keep the full snapshot
   restore.

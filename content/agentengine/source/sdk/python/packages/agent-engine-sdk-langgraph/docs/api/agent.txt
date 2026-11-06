@@ -1,0 +1,228 @@
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent:
+
+agent_engine_sdk_langgraph.agent
+================================
+
+LangGraph BaseAgent adapter.
+
+Wraps a LangGraph CompiledGraph to implement the framework-neutral
+BaseAgent protocol from agent-engine-sdk. Native vs durable branching
+lives on ``ExecutionSession``; this module stores hooks and drives
+invoke/stream.
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.agent.internalstreamerror:
+
+InternalStreamError
+-------------------
+
+.. code-block:: python
+
+   class InternalStreamError(Exception)
+
+Stand-in passed to ``on_stream_error`` in place of the real exception.
+
+The real exception may be a platform-internal one (LangGraph, an LLM
+client, network/auth libraries) whose message was never meant to reach
+the customer-visible ``custom_event`` stream that ``on_stream_error``'s
+return value feeds into. The real exception is still logged and
+re-raised unchanged; only what the parser sees is replaced.
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.agent.langgraphbaseagent:
+
+LangGraphBaseAgent
+------------------
+
+.. code-block:: python
+
+   class LangGraphBaseAgent(BaseAgent)
+
+LangGraph adapter implementing the BaseAgent protocol.
+
+Wraps a LangGraph CompiledGraph and provides the framework-neutral
+invoke/stream interface that the AER expects.
+
+This adapter handles:
+
+- Converting AgentInput to LangGraph state format (with HumanMessage)
+- Converting Command(resume=...) for HITL resume flows
+- Streaming with token-level events via StreamEvent
+- Converting final results to AgentOutput
+
+Resume state travels on the RequestContext, not the caller payload:
+
+- ctx.resume: Boolean indicating resume vs fresh execution
+- ctx.resume_data: Data for Command(resume=...)
+- ctx.metadata["checkpoint_id"]: Checkpoint to resume from
+
+**Example**:
+
+.. code-block:: python
+
+   from langgraph.graph import StateGraph
+   from agent_engine_sdk_langgraph import LangGraphBaseAgent
+
+   # Build your graph
+   graph = StateGraph(...)
+   compiled = graph.compile(checkpointer=...)
+
+   # Wrap it with optional callbacks
+   agent = LangGraphBaseAgent(compiled, callbacks=[my_callback])
+
+   # Use via BaseAgent protocol
+   output = await agent.execute(ctx, agent_input)  # non-streaming
+   async for event in agent.execute(ctx, agent_input):  # streaming
+       ...
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.agent.langgraphbaseagent.__init__:
+
+\__init\_\_
+~~~~~~~~~~~
+
+.. code-block:: python
+
+   def __init__(graph: CompiledStateGraph,
+                callbacks: list[Any] | None = None,
+                prepare_input: PrepareAgentInput | None = None,
+                output_parser: type[OutputParser] | None = None,
+                use_custom_parser: bool = False,
+                resolve_thread_id: ResolveThreadId | None = None,
+                durable_subgraphs: DurableSubgraphResolver | None = None) -> None
+
+Initialize the adapter with a compiled LangGraph.
+
+**Arguments**:
+
+- ``graph`` - A compiled LangGraph StateGraph with checkpointer
+- ``callbacks`` - Optional list of LangChain callbacks for observability
+- ``prepare_input`` - Optional tenant hook
+  (``@app.prepare_agent_input``) that builds the graph input for a fresh
+  invocation. When None, the default message-wrapping is used.
+- ``output_parser`` - Optional ``OutputParser`` subclass
+  (``@app.output_parser``) used to shape custom stream output.
+- ``use_custom_parser`` - When true, ``stream()`` dual-runs
+  ``output_parser`` and emits its output as ``custom_event``, and Atlas
+  Agent Engine also subscribes to LangGraph's ``custom`` channel so
+  ``emit_custom_event`` reaches the stream (including when the parser
+  does not list ``custom``). Requires a registered parser at deploy /
+  ``get_agent`` time. When false the parser is inert and Atlas Agent
+  Engine does not subscribe to ``custom``.
+- ``resolve_thread_id`` - Optional tenant hook
+  (``@app.resolve_thread_id``) that builds the LangGraph checkpoint
+  ``thread_id``. When None, the adapter derives
+  ``session_id:workspace_id``. When set, the return value is used
+  verbatim (no workspace suffix). Appended after the established
+  positional surface so existing positional callers keep binding
+  ``output_parser`` / ``use_custom_parser``.
+- ``durable_subgraphs`` - Resolver for compiled subgraphs and Send
+  tasks. It is used only while an OE durable attempt is active. When
+  None, a platform-checkpointed graph gets the default resolver.
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.agent.langgraphbaseagent.execute:
+
+execute
+~~~~~~~
+
+.. code-block:: python
+
+   def execute(ctx: RequestContext, input: AgentInput) -> ExecutionResult
+
+Run the agent. Await for a result, or iterate for streaming.
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.agent.langgraphbaseagent.cancelled_history_scope:
+
+cancelled_history_scope
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   @contextmanager
+   def cancelled_history_scope(ctx: RequestContext,
+                               input: AgentInput) -> Iterator[CancelledHistory]
+
+Expose cancellation capture without a runner dependency on LangGraph.
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.agent.langgraphbaseagent.commit_cancelled_turn:
+
+commit_cancelled_turn
+~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   async def commit_cancelled_turn(ctx: RequestContext,
+                                   input: AgentInput) -> "dict[str, str] | None"
+
+Checkpoint the cancelled turn so session history can serve it.
+
+Invoked by runner-shared when an execution-cancelled drain tears down
+invoke/stream. No-op for durable sessions: their history is OE-owned and
+scratch checkpoints are discarded by design. The is_durable check is a
+backstop — the caller gates on the attempt it started, because by
+teardown the attempt context may already be closing.
+
+Returns the committed checkpoint's coordinate (``thread_id`` +
+``checkpoint_id``) so the runner can report it to OE — the branch source
+selector needs it to fork from a session whose only checkpoint is this
+rescued marker — or ``None`` when nothing was committed.
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.agent.langgraphbaseagent.invoke:
+
+invoke
+~~~~~~
+
+.. code-block:: python
+
+   async def invoke(ctx: RequestContext, input: AgentInput) -> AgentOutput
+
+Execute the agent and return the final result.
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.agent.langgraphbaseagent.resume:
+
+resume
+~~~~~~
+
+.. code-block:: python
+
+   async def resume(ctx: RequestContext, input: AgentInput,
+                    decision: str) -> AgentOutput
+
+Resume a suspended agent with a human decision.
+
+Convenience method that sets up resume value fields and delegates to
+invoke(). ``resume`` is the HITL-continuation bit (Command vs a new
+HumanMessage, skip branch copy). ``resume_data`` is the decision
+payload. Presence of data cannot imply the flag: a resume with a missing
+payload must fail closed, not look like a fresh turn.
+
+.. _python-packages-agent-engine-sdk-langgraph-docs-api-agent_engine_sdk_langgraph.agent.langgraphbaseagent.stream:
+
+stream
+~~~~~~
+
+.. code-block:: python
+
+   async def stream(ctx: RequestContext,
+                    input: AgentInput) -> AsyncIterator[StreamEvent]
+
+Stream agent execution with token-level events.
+
+Handles both fresh executions and resume flows based on the context:
+
+- ctx.resume: Boolean indicating resume vs fresh execution
+- ctx.resume_data: Data for Command(resume=...)
+- ctx.metadata["checkpoint_id"]: Checkpoint to resume from
+
+Yields StreamEvent objects with event:
+
+- "token": Streaming LLM token (data["content"], data["source"],
+  data["tool_call_id"])
+- "subagent_start": Subagent dispatch begins (data["source"],
+  data["subagent_name"], data["tool_call_id"], data["description"])
+- "subagent_end": Subagent dispatch completes (data["source"],
+  data["subagent_name"], data["tool_call_id"], data["summary"] with the
+  subagent's final response text; empty string for defensive drain ends)
+- "result": Final completion (data with response + messages)
+- "suspend": HITL interrupt (data with suspend_payload + opaque
+  metadata)
+
+On durable sessions the attempt's scratch is released when the stream
+ends.

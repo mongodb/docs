@@ -13,20 +13,20 @@ Quick Start
 Installation
 ~~~~~~~~~~~~
 
-.. code:: bash
+.. code-block:: bash
 
    pip install agent-engine-sdk-langgraph
 
 Or in a uv project:
 
-.. code:: bash
+.. code-block:: bash
 
    uv add agent-engine-sdk-langgraph
 
 Minimal Agent
 ~~~~~~~~~~~~~
 
-.. code:: python
+.. code-block:: python
 
    from agent_engine_sdk_langgraph import App
    from langgraph.graph import StateGraph, MessagesState
@@ -34,10 +34,12 @@ Minimal Agent
 
    app = App(app_name="my-agent", app_version="1.0.0")
 
+
    @app.tool()
    def lookup(query: str) -> str:
        """Search the knowledge base."""
        return "result for " + query
+
 
    @app.entrypoint
    def build_agent():
@@ -57,18 +59,19 @@ Minimal Agent
        graph.add_edge("tools", "agent")
        return graph.compile(checkpointer=app.checkpointer())
 
+
    app.run()
 
 Using Memory
 ~~~~~~~~~~~~
 
 ``app.memory`` is the unified
-```agent-engine-sdk-memory`` <../agent-engine-sdk-memory/README.md>`__
+:ref:`agent-engine-sdk-memory <python-packages-agent-engine-sdk-memory>`
 ``Memory`` facade (app-bound over the platform runtime). Identity
 resolves per call from the argument, a bound context, or the ambient
 execution context.
 
-.. code:: python
+.. code-block:: python
 
    app = App(app_name="my-agent")
 
@@ -77,7 +80,10 @@ execution context.
        text="User prefers dark mode",
        label="pref-theme",
        user_id="u1",
-       metadata={"channel": "web", "priority": "high"},  # optional caller-supplied metadata
+       metadata={
+           "channel": "web",
+           "priority": "high",
+       },  # optional caller-supplied metadata
    )
    if result.acknowledged:
        ...
@@ -91,7 +97,9 @@ execution context.
    # Default sources are LTM (episodic + semantic); pass
    # enabled_sources={"stm", ...} to include recent turns.
    context = app.memory.build_context(query="help me", user_id="u1")
-   prompt_block = context.formatted_context  # str (or structured list, depending on format)
+   prompt_block = (
+       context.formatted_context
+   )  # str (or structured list, depending on format)
 
 ``build_context_from_sources`` (per-source retrieval modes, filters, and
 ``top_k``) is available on the ambient ``app.memory`` runtime. It
@@ -126,8 +134,8 @@ conventions change.
   ``list[MemoryChunk]`` (``chunk.content``, optional
   ``chunk.similarity_score``). Loose fields that used to be top-level
   dict keys (``title``, ``summary``, ``tags``, ``term``, ``definition``,
-  ``related_terms``, …) live under ``chunk.metadata``
-  (e.g. ``ep.metadata.get("title")`` instead of ``ep.get("title")``).
+  ``related_terms``, …) live under ``chunk.metadata`` (e.g.
+  ``ep.metadata.get("title")`` instead of ``ep.get("title")``).
   ``build_context`` returns ``ContextResponse``; use
   ``context.formatted_context``, not the return value as a string.
 - **Write helpers are keyword-only**
@@ -135,7 +143,7 @@ conventions change.
   ``TypeError``.
 - **Reads with ``visibility="private"`` keep the ambient user filter**
   (previously passing any ``visibility`` argument dropped it):
-  private-visibility searches now return only the current user’s
+  private-visibility searches now return only the current user's
   memories unless an explicit ``user_id`` is passed.
 - **``top_k``:** per-source ``search_semantic`` / ``search_episodes`` /
   ``search_taxonomic`` default to ``top_k=50`` (was often ``10``).
@@ -156,8 +164,8 @@ conventions change.
 - **App-bound create fidelity:** create-result ``id`` may be ``""`` and
   ``has_embedding`` is typically ``False`` — gate success on
   ``.acknowledged``, not ``id``. Details per operation are in the memory
-  package `capability
-  matrix <../agent-engine-sdk-memory/docs/capability-matrix.md>`__.
+  package :ref:`capability
+  matrix <python-packages-agent-engine-sdk-memory-docs-capability-matrix>`.
 - **Gets vs search:** ``get_semantic`` / ``get_taxonomic_term`` /
   ``list_episodes`` still return loosely-typed dicts on app-bound. Only
   ``search*`` methods return ``list[MemoryChunk]``.
@@ -167,7 +175,7 @@ conventions change.
 
 **Before / after**
 
-.. code:: python
+.. code-block:: python
 
    # save_semantic: bool → .acknowledged; positional → keyword-only
    # before
@@ -183,7 +191,7 @@ conventions change.
    if result.acknowledged:
        ...
 
-.. code:: python
+.. code-block:: python
 
    # save_episode: str|None → CreateEpisodicResult (.acknowledged / .id)
    # before
@@ -195,13 +203,16 @@ conventions change.
        title="Quote chat",
        content=summary,
        user_id="u1",
-       metadata={"channel": "web", "priority": "high"},  # optional caller-supplied metadata
+       metadata={
+           "channel": "web",
+           "priority": "high",
+       },  # optional caller-supplied metadata
        # session_id from ambient context, or pass explicitly
    )
    if episode.acknowledged:
        print(episode.id)  # may be "" on app-bound
 
-.. code:: python
+.. code-block:: python
 
    # search_episodes: dict.get → MemoryChunk metadata + content; pin top_k if needed
    # before
@@ -213,7 +224,7 @@ conventions change.
    for ep in episodes:
        print(ep.metadata.get("title"), ep.content)
 
-.. code:: python
+.. code-block:: python
 
    # build_context: str → ContextResponse.formatted_context
    # before
@@ -227,10 +238,10 @@ conventions change.
 - ``agents/insurance-agent/src/insurance_agent/main.py``
 
 Per-backend capability differences and app-bound gaps are documented in
-the memory package `capability
-matrix <../agent-engine-sdk-memory/docs/capability-matrix.md>`__.
+the memory package :ref:`capability
+matrix <python-packages-agent-engine-sdk-memory-docs-capability-matrix>`.
 Method-level docs for the ``Memory`` facade live in
-`agent-engine-sdk-memory <../agent-engine-sdk-memory/README.md>`__.
+:ref:`agent-engine-sdk-memory <python-packages-agent-engine-sdk-memory>`.
 
 Enable memory with ``features.memory: true`` in ``agent.yaml``, or with
 the legacy ``ENABLE_MEMORY=true`` environment variable when that feature
@@ -244,7 +255,7 @@ Skills
 
 Skills are named markdown files (``SKILL.md``) that the LLM can load on
 demand via progressive disclosure. Use them to encode domain expertise
-(e.g. security review rules, coding conventions) that would bloat the
+(e.g. security review rules, coding conventions) that would bloat the
 system prompt if always included.
 
 Directory layout
@@ -267,7 +278,7 @@ skill. Discovery is one level deep, not recursive.
 SKILL.md frontmatter
 ~~~~~~~~~~~~~~~~~~~~
 
-.. code:: markdown
+.. code-block:: text
 
    ---
    name: security-checklist
@@ -298,17 +309,27 @@ Wiring skills into your agent
    ``features.deep_agent: true`` or ``App.deep_agent()`` will raise
    ``RuntimeError`` at construction time:
 
-   .. code:: yaml
+   .. code-block:: yaml
 
       features:
         deep_agent: true
 
-.. code:: python
+.. note::
+
+   **Dependency:** deep-agent graphs need the optional runtime extra:
+   ``pip install "agent-engine-sdk-langgraph[deepagents]"`` (or
+   ``uv add "agent-engine-sdk-langgraph[deepagents]"``). The extra pins
+   the tested ``deepagents`` version so applications track SDK releases
+   instead of the upstream library. Applications that never call
+   ``App.deep_agent()`` don't install it.
+
+.. code-block:: python
 
    from langchain_openai import ChatOpenAI
    from agent_engine_sdk_langgraph import App
 
    app = App(app_name="My Reviewer")
+
 
    @app.entrypoint
    def build_agent():
@@ -317,6 +338,7 @@ Wiring skills into your agent
            system_prompt="You are a code reviewer.",
            skills=["skills"],
        )
+
 
    app.run()
 
@@ -345,7 +367,7 @@ skill) while allowing deep expertise to be loaded on demand.
 Bundled skill files and sandboxing
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ToolPod’s writable filesystem and shell handlers still use
+The ToolPod's writable filesystem and shell handlers still use
 ``WORKSPACE_DIR``, which defaults to ``/tmp/agent-workspace``. Keep that
 as scratch space.
 
@@ -365,11 +387,11 @@ import-order workaround is needed.
 Subagent non-inheritance
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. blockquote::
+.. note::
 
    **Skills are visible only to the agent that declares them.** If your
    agent spawns subagents (via the ``task`` tool), those subagents do
-   **not** inherit the parent’s skills. Pass ``skills=[...]`` on each
+   **not** inherit the parent's skills. Pass ``skills=[...]`` on each
    subagent spec that needs skill files.
 
 Reserved tool names
@@ -385,7 +407,7 @@ the built-in and breaks skills/sandbox behavior:
 - ``write_todos`` (planning)
 - ``task`` (subagent dispatch)
 
-Picking a name that collides will silently shadow the built-in — there’s
+Picking a name that collides will silently shadow the built-in — there's
 no import-time error.
 
 Size guidance
@@ -395,7 +417,7 @@ Target **< 200 lines per SKILL.md body**. Larger skills:
 
 - Consume more context when loaded (each ``read_file`` is a full-body
   dump)
-- Risk hitting the LLM’s single-message context limit on complex turns
+- Risk hitting the LLM's single-message context limit on complex turns
 - Suggest the skill should be split into multiple focused files
 
 Tip: reset threads after editing SKILL.md
@@ -434,13 +456,33 @@ markers, and the final result.
      - ``data`` fields
    * - ``token``
      - Each LLM-token chunk from the root agent or any active subagent.
-     - ``content``: token text. ``source``: ``""`` for the root agent, or the subagent’s graph name. ``tool_call_id``: parent’s ``task`` tool_call_id when one is in flight for this subagent (may be ``""`` until assembled).
+     - ``content``: token text. ``source``: ``""`` for the root agent,
+       or the subagent's graph name. ``tool_call_id``: parent's ``task``
+       tool_call_id when one is in flight for this subagent (may be
+       ``""`` until assembled).
    * - ``subagent_start``
-     - A subagent run begins. Emitted from one of two paths: (1) **primary** — the parent agent’s ``task`` tool_call is observed; (2) **synthetic fallback** — a sourced token arrives before the parent tool_call has assembled (buffered-dispatch providers). The two paths dedup against each other so exactly one start fires per subagent per turn.
-     - ``source`` / ``subagent_name``: the subagent’s graph name. ``tool_call_id``: the parent’s ``task`` tool_call_id, or ``""`` if the synthetic fallback fired before the tool_call assembled. ``description``: the ``description`` arg the parent passed to ``task`` (empty when synthetic fires first).
+     - A subagent run begins. Emitted from one of two paths: (1)
+       **primary** — the parent agent's ``task`` tool_call is observed;
+       (2) **synthetic fallback** — a sourced token arrives before the
+       parent tool_call has assembled (buffered-dispatch providers). The
+       two paths dedup against each other so exactly one start fires per
+       subagent per turn.
+     - ``source`` / ``subagent_name``: the subagent's graph name.
+       ``tool_call_id``: the parent's ``task`` tool_call_id, or ``""``
+       if the synthetic fallback fired before the tool_call assembled.
+       ``description``: the ``description`` arg the parent passed to
+       ``task`` (empty when synthetic fires first).
    * - ``subagent_end``
-     - A subagent run finishes. Primary path: the parent graph observes a ``Command``-close whose ``tool_call_id`` matches an open subagent. Defensive path: stream errors or completes with dangling subagents — one ``subagent_end`` is emitted per orphan so consumers can close their UI state.
-     - ``source`` / ``subagent_name``: same as the start. ``tool_call_id``: the closing ``tool_call_id``, or ``""`` for orphan ends from a synthetic-only start that never received a real tool_call. ``summary``: the subagent’s final ``ToolMessage`` content (empty for defensive ends).
+     - A subagent run finishes. Primary path: the parent graph observes
+       a ``Command``-close whose ``tool_call_id`` matches an open
+       subagent. Defensive path: stream errors or completes with
+       dangling subagents — one ``subagent_end`` is emitted per orphan
+       so consumers can close their UI state.
+     - ``source`` / ``subagent_name``: same as the start.
+       ``tool_call_id``: the closing ``tool_call_id``, or ``""`` for
+       orphan ends from a synthetic-only start that never received a
+       real tool_call. ``summary``: the subagent's final ``ToolMessage``
+       content (empty for defensive ends).
    * - ``result``
      - Final completion of the root agent.
      - ``response`` plus the full message list.
@@ -458,28 +500,30 @@ Notes for consumers:
 - For parallel dispatches of the same subagent type, each invocation has
   its own ``tool_call_id``. Prefer ``tool_call_id`` for routing tokens
   and fall back to ``source`` only when ``tool_call_id == ""``.
-- ``subagent_end.summary`` is the subagent’s final response text — the
-  same string the parent agent will see as the ``task`` tool’s return
+- ``subagent_end.summary`` is the subagent's final response text — the
+  same string the parent agent will see as the ``task`` tool's return
   value.
 
 Durable native interrupts
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Durable workflows replay LangGraph’s native ``interrupt()`` call and
+Durable workflows replay LangGraph's native ``interrupt()`` call and
 translate its newly generated native id to the previously recorded OE
-activity position. See `Durable LangGraph interrupt and
-resume <docs/durable-interrupts.md>`__ for the complete suspension,
-replay, and ``Command(resume=...)`` flow and its code call sites.
+activity position. See :ref:`Durable LangGraph interrupt and
+resume <python-packages-agent-engine-sdk-langgraph-docs-durable-interrupts>`
+for the complete suspension, replay, and ``Command(resume=...)`` flow
+and its code call sites.
 
 API Reference
 -------------
 
-See `docs/api.md <docs/api.md>`__ for the auto-generated App / LangGraph
-surface. For the ``Memory`` facade (methods, return types, identity
-rules), see
-`agent-engine-sdk-memory <../agent-engine-sdk-memory/README.md>`__ and
-its `capability
-matrix <../agent-engine-sdk-memory/docs/capability-matrix.md>`__.
+See
+:ref:`docs/api.md <python-packages-agent-engine-sdk-langgraph-docs-api>`
+for the auto-generated App / LangGraph surface. For the ``Memory``
+facade (methods, return types, identity rules), see
+:ref:`agent-engine-sdk-memory <python-packages-agent-engine-sdk-memory>`
+and its :ref:`capability
+matrix <python-packages-agent-engine-sdk-memory-docs-capability-matrix>`.
 
 Configuration
 -------------
@@ -492,13 +536,18 @@ Configuration
      - Description
    * - ``MDB_AGENTIC_STORE_DB``
      - ``mdb_store``
-     - Base name for the per-project MongoDB store used for LangGraph checkpoints (AER mode only). Project scoping/discovery still applies unless overridden below.
+     - Base name for the per-project MongoDB store used for LangGraph
+       checkpoints (AER mode only). Project scoping/discovery still
+       applies unless overridden below.
    * - ``CHECKPOINT_DB_NAME``
      - *(unset)*
-     - Exact MongoDBSaver database name when set. Skips project scoping and discovery. Opt-in for dual-runtime shared checkpoint DBs (set on the agent AER pod env / SecretRefs).
+     - Exact MongoDBSaver database name when set. Skips project scoping
+       and discovery. Opt-in for dual-runtime shared checkpoint DBs (set
+       on the agent AER pod env / SecretRefs).
    * - ``CHECKPOINTER_SERVER_SELECTION_TIMEOUT``
      - ``5.0``
-     - Seconds for MongoDB checkpointer server selection before checkpoint IO fails.
+     - Seconds for MongoDB checkpointer server selection before
+       checkpoint IO fails.
    * - ``CHECKPOINTER_CONNECT_TIMEOUT``
      - ``5.0``
      - Seconds for MongoDB checkpointer connection establishment.
@@ -517,31 +566,33 @@ also own collision isolation within the checkpoint database.
 LangGraph time-travel would patch the source ``thread_id``. Atlas Agent
 Engine instead creates a new session. Native-checkpoint sessions copy a
 completed checkpoint onto a new thread; durable-workflow sessions branch
-from OE-validated state reconstructed in fenced scratch. See `Session
-fork vs LangGraph time-travel <docs/session-fork.md>`__.
+from OE-validated state reconstructed in fenced scratch. See
+:ref:`Session fork vs LangGraph
+time-travel <python-packages-agent-engine-sdk-langgraph-docs-session-fork>`.
 
-Platform teaching docs (what Durable Workflow is, primitives,
-enablement, restrictions): `Durable
-Workflow <../../../../../docs/orchestration-engine/durable-workflow/>`__.
-The shared Tool and LLM replay model is described in `Durable activity
-identity <docs/durable-activity-identity.md>`__. See `Durable compiled
-subgraphs <docs/durable-subgraphs.md>`__ and `Durable Deep Agent
-delegation <docs/durable-deep-agent.md>`__ for complete sequence
-diagrams, examples, and code call-site maps. Only effects routed through
-Atlas Agent Engine’s secure LLM and Tool wrappers participate in durable
-record/replay. For durable Tool replay, the ToolCall must come from the
-secure LLM wrapper and execute through a Tool returned by
-``app.get_tools()``.
+The shared Tool and LLM replay model is described in :ref:`Durable
+activity
+identity <python-packages-agent-engine-sdk-langgraph-docs-durable-activity-identity>`.
+See :ref:`Durable compiled
+subgraphs <python-packages-agent-engine-sdk-langgraph-docs-durable-subgraphs>`
+and :ref:`Durable Deep Agent
+delegation <python-packages-agent-engine-sdk-langgraph-docs-durable-deep-agent>`
+for complete sequence diagrams, examples, and code call-site maps. Only
+effects routed through Atlas Agent Engine's secure LLM and Tool wrappers
+participate in durable record/replay. For durable Tool replay, the
+ToolCall must come from the secure LLM wrapper and execute through a
+Tool returned by ``app.get_tools()``.
 
-Durable workflows do not expose LangGraph’s dynamic
+Durable workflows support LangGraph
 ```Send`` <https://docs.langchain.com/oss/python/langgraph/graph-api#send>`__
-fan-out. The normal platform checkpointer rejects application-authored
-``Send`` writes. Graphs created by ``app.deep_agent()`` are an opaque
-exception because LangChain uses ``Send`` internally to route ToolCalls;
-this private compatibility does not make ``Send`` a supported
-application API. Use fixed graph edges, compiled subgraphs, or Deep
-Agent task delegation instead. Native-checkpoint workflows are
-unaffected.
+fan-out, such as map-reduce. Each ``Send`` worker records its LLM and
+Tool calls under its own operation path, named by its superstep and its
+index in that superstep's send list, so a replacement attempt replays
+each worker's results even when the workers run in a different order. A
+worker may be a plain node or a compiled subgraph. Plain nodes that run
+in parallel on fixed edges still share one path; keep model calls in
+such branches inside compiled subgraphs. See :ref:`Durable compiled
+subgraphs <python-packages-agent-engine-sdk-langgraph-docs-durable-subgraphs-send-workers>`.
 
 **Reads are scoped-only.** Session history expands each Atlas Agent
 Engine ``session_id`` to only its workspace-scoped composite key; the
@@ -556,6 +607,53 @@ reads and writes fail closed instead of trusting the wire workspace or
 using bare keys. Production adopters of custom keys should still treat
 checkpoint-key uniqueness inside a shared DB as agent-owned.
 
+Checkpoint serialization
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+``app.checkpointer()`` loads checkpoints with an explicit allowlist
+instead of LangGraph's permissive default. In the permissive mode,
+stored checkpoint bytes can name any Python callable for the loader to
+import and call. Anyone who can write the project's store database could
+then run code in another agent's pod.
+
+Checkpoint loads reconstruct only:
+
+- LangGraph's built-in safe types (``SAFE_MSGPACK_TYPES`` in
+  ``langgraph.checkpoint.serde._msgpack``). These cover all LangChain
+  message classes, ``Document``, ``Interrupt``, ``Command``, ``Send``,
+  and standard library values such as ``datetime``, ``UUID``,
+  ``Decimal``, and ``set``.
+- The types you list in ``checkpoint_allowed_types``.
+
+Plain dicts, lists, scalars, and ``TypedDict`` state round-trip
+unchanged.
+
+Any other pydantic model, dataclass, or Enum stored in state is not
+reconstructed. It comes back as its raw field data (usually a ``dict``),
+and LangGraph logs a ``Blocked deserialization of <module>.<name>``
+warning once per type per process. This also applies to a
+``response_format`` model in ``structured_response``. To keep a type,
+add it to the App:
+
+.. code-block:: python
+
+   from my_agent.state import Ticket
+
+   app = App(
+       app_name="My Agent",
+       # Classes, or (module, name) pairs for types you can't import here.
+       checkpoint_allowed_types=[Ticket, ("my_agent.state", "Priority")],
+   )
+
+Only list types whose constructors are safe to call with stored data.
+``checkpoint_allowed_types`` does not accept ``True``, so the permissive
+mode cannot be turned back on.
+
+List your custom state types before upgrading. A session that resumes
+without its type allowlisted writes the raw data into its next
+checkpoint, and adding the type later does not convert it back, so the
+session's current state keeps the raw data.
+
 Development
 -----------
 
@@ -568,7 +666,7 @@ Requirements
 Dev Setup
 ~~~~~~~~~
 
-.. code:: bash
+.. code-block:: bash
 
    uv sync --extra dev
 
@@ -579,28 +677,28 @@ For the same checks CI runs (lint + format + pyright + tests), use the
 unified runner: ``./scripts/test.sh agent-engine-sdk-langgraph`` from
 the repo root.
 
-.. code:: bash
+.. code-block:: bash
 
    uv run pytest
 
 Type Checking
 ~~~~~~~~~~~~~
 
-.. code:: bash
+.. code-block:: bash
 
    uv run pyright
 
 Regenerate API Docs
 ~~~~~~~~~~~~~~~~~~~
 
-.. code:: bash
+.. code-block:: bash
 
    make docs
 
 Linting & Formatting
 ~~~~~~~~~~~~~~~~~~~~
 
-.. code:: bash
+.. code-block:: bash
 
    # Check for lint errors
    uv run ruff check src

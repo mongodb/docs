@@ -1,0 +1,178 @@
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_config:
+
+agent_engine_runner_shared.agent_config
+=======================================
+
+Structured runtime helpers for reading ``agent.yaml``.
+
+Lookup order is intentionally small and explicit:
+
+1. ``config_path`` argument: exact ``agent.yaml`` path, or a directory
+   that contains it
+2. ``AGENTIC_AGENT_CONFIG_PATH``: exact in-container file path baked
+   into runtime images
+3. ``AGENTIC_AGENT_WORKDIR``: agent working directory used by generated
+   local dev stacks
+4. current working directory: supports tests and ad-hoc SDK usage
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.agent_config.agentfeatureconfig:
+
+AgentFeatureConfig
+------------------
+
+.. code-block:: python
+
+   class AgentFeatureConfig(BaseModel)
+
+Runtime feature flags from ``agent.yaml``.
+
+Keep field names in parity with the TypeScript schema and CLI allowlist.
+Add a field here when introducing a flag, then mirror it in those
+surfaces.
+
+``None`` means the flag was omitted, which lets the runtime fall back to
+legacy environment variables during the transition.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.agent_config.agentfeatureconfig.explicit:
+
+explicit
+~~~~~~~~
+
+.. code-block:: python
+
+   def explicit() -> dict[str, bool]
+
+Return only flags present in ``agent.yaml`` (omit unset / ``None``).
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.agent_config.a2askillconfig:
+
+A2ASkillConfig
+--------------
+
+.. code-block:: python
+
+   class A2ASkillConfig(BaseModel)
+
+A skill advertised by the agent for A2A discovery.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.agent_config.a2aconfig:
+
+A2AConfig
+---------
+
+.. code-block:: python
+
+   class A2AConfig(BaseModel)
+
+Agent-to-agent configuration from ``agent.yaml``.
+
+When ``enabled`` is true, this agent is discoverable and callable by
+other agents through the Orchestration Engine.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.agent_config.runtimemcpauthconfig:
+
+RuntimeMCPAuthConfig
+--------------------
+
+.. code-block:: python
+
+   class RuntimeMCPAuthConfig(BaseModel)
+
+Authentication settings for a remote MCP server.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.agent_config.runtimemcpserverconfig:
+
+RuntimeMCPServerConfig
+----------------------
+
+.. code-block:: python
+
+   class RuntimeMCPServerConfig(BaseModel)
+
+Runtime configuration for one remote MCP server.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.agent_config.runtimemcpconfig:
+
+RuntimeMCPConfig
+----------------
+
+.. code-block:: python
+
+   class RuntimeMCPConfig(BaseModel)
+
+Remote MCP server configuration from ``agent.yaml``.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.agent_config.runtimeconnectorreference:
+
+RuntimeConnectorReference
+-------------------------
+
+.. code-block:: python
+
+   class RuntimeConnectorReference(BaseModel)
+
+One ``agent.yaml`` connectors entry linking to a connector
+``tool.yaml``.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.agent_config.runtimeagentconfig:
+
+RuntimeAgentConfig
+------------------
+
+.. code-block:: python
+
+   class RuntimeAgentConfig(BaseModel)
+
+Validated runtime view of ``agent.yaml``.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.agent_config.runtimeagentconfig.feature_enabled:
+
+feature_enabled
+~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def feature_enabled(name: FeatureName, default: bool = False) -> bool
+
+Return a feature flag value, falling back to ``default`` when omitted.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.agent_config.runtimeagentconfig.configured_feature:
+
+configured_feature
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def configured_feature(name: FeatureName) -> bool | None
+
+Return the explicit feature value from ``agent.yaml``, if it exists.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.agent_config.load_runtime_agent_config:
+
+load_runtime_agent_config
+-------------------------
+
+.. code-block:: python
+
+   def load_runtime_agent_config(
+           config_path: ConfigPath | None = None,
+           *,
+           env_vars: Mapping[str, str] | None = None) -> RuntimeAgentConfig
+
+Load and validate ``agent.yaml`` for runtime use.
+
+Missing files are treated as an empty config so unit tests and ad-hoc
+SDK usage can still construct ``App`` / ``TenantRuntime`` outside
+generated runtime environments. When a file exists, the runtime
+validates the fields it owns directly (entrypoint/features) while
+passing the application-owned ``config`` block through as raw data.
+
+``env_vars`` is the substitution mapping used to resolve ``${VAR}``
+references at allowlisted YAML paths (currently ``mcp.servers.*.url``).
+Pass the tenant-owned subset of the process environment -- never raw
+``os.environ`` -- so tenant ``agent.yaml`` cannot dereference platform
+secrets. ``agent_engine_runner_shared.utils.tenant_env_vars()`` builds
+the safe subset. When ``env_vars`` is ``None`` and a ``${...}``
+reference is present at an allowlisted path, the loader raises so the
+misconfiguration is visible instead of falling through to ``urlparse``
+with the literal string.

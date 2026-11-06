@@ -1,0 +1,568 @@
+.. _python-packages-agent-engine-runner-shared-docs-api-secure_wrapper:
+
+agent_engine_runner_shared.secure_wrapper
+=========================================
+
+SecureToolWrapper - Routes all tool/LLM calls through OE for logging and
+policy enforcement.
+
+This module provides:
+
+- SecureToolWrapper: Wraps tool calls to route through OE
+- SecureWrappedLLM: Wraps LLM calls to route through OE
+
+HITL is handled via LangGraph's native interrupt() / Command(resume=...)
+API.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_wrapper._oauthauthorizationrequired:
+
+\_OAuthAuthorizationRequired
+----------------------------
+
+.. code-block:: python
+
+   class _OAuthAuthorizationRequired(Exception)
+
+Leave durable dispatch with typed consent control instead of
+interrupting its activity.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_wrapper._oauthauthorizationrequired.__init__:
+
+\__init\_\_
+~~~~~~~~~~~
+
+.. code-block:: python
+
+   def __init__(elicitation: ElicitationInfo, step: int) -> None
+
+Carry the OE response to its activity boundary without exposing it in
+errors.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_wrapper.oauth_authorization_wait_id:
+
+oauth_authorization_wait_id
+---------------------------
+
+.. code-block:: python
+
+   def oauth_authorization_wait_id(value: Any) -> str | None
+
+Identify a consent wait only when this attempt recorded the platform's
+challenge.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_wrapper.extract_usage:
+
+extract_usage
+-------------
+
+.. code-block:: python
+
+   def extract_usage(response: Any,
+                     fallback_model: Optional[str] = None) -> Dict[str, Any]
+
+Extract token usage from an LLM response's response_metadata.
+
+Handles provider-variant key names:
+
+- OpenAI: response_metadata.usage.{prompt_tokens, completion_tokens,
+  total_tokens}
+- Anthropic: response_metadata.usage.{input_tokens, output_tokens}
+- Some providers: response_metadata.token_usage.{...}
+- Anthropic Usage objects and non-dict Mappings
+
+Returns dict with keys: prompt_tokens, completion_tokens, total_tokens,
+model. All values may be None if unavailable. Malformed blobs do not
+raise.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_wrapper.policydeniedexception:
+
+PolicyDeniedException
+---------------------
+
+.. code-block:: python
+
+   class PolicyDeniedException(Exception)
+
+Raised when OE policy engine denies execution.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_wrapper.oeretryaftererror:
+
+OERetryAfterError
+-----------------
+
+.. code-block:: python
+
+   class OERetryAfterError(Exception)
+
+OE asked the runner to retry /tool/execute after a Retry-After delay.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_wrapper.toolexecutionerror:
+
+ToolExecutionError
+------------------
+
+.. code-block:: python
+
+   class ToolExecutionError(Exception)
+
+Raised when tool execution fails.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_wrapper.tooloutcomeunknownerror:
+
+ToolOutcomeUnknownError
+-----------------------
+
+.. code-block:: python
+
+   class ToolOutcomeUnknownError(ToolExecutionError)
+
+The runner was lost while this durable tool call was in flight.
+
+It may have taken effect and OE did not run it again. ``error`` is OE's
+message, written for the model reading it.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_wrapper.toolplatformerror:
+
+ToolPlatformError
+-----------------
+
+.. code-block:: python
+
+   class ToolPlatformError(ToolExecutionError)
+
+Raised when the platform, not the tool, failed a tool call.
+
+The tool may already have run, for example when OE rejects or never
+acknowledges its result, so an adapter must not report this to the model
+as a failed tool it could call again.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_wrapper.terminalexecutionerror:
+
+TerminalExecutionError
+----------------------
+
+.. code-block:: python
+
+   class TerminalExecutionError(ToolPlatformError)
+
+Raised when OE rejects a tool call because the execution already ended.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_wrapper.raise_for_oe_rejection:
+
+raise_for_oe_rejection
+----------------------
+
+.. code-block:: python
+
+   def raise_for_oe_rejection(
+           reason: str | None,
+           *,
+           guardrail_meta: Optional[GuardrailMeta] = None) -> None
+
+Map a proceed=false OE response to the matching exception. Never
+returns.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_wrapper.toolcalltimeouterror:
+
+ToolCallTimeoutError
+--------------------
+
+.. code-block:: python
+
+   class ToolCallTimeoutError(ToolExecutionError)
+
+Raised when a tool call outlives its deadline.
+
+Distinct from PolicyDeniedException on purpose. A timeout means the call
+was permitted and ran — it just ran too long — so reporting it as a
+denial sends the developer to debug governance instead of their tool.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_wrapper.operationalstepallocator:
+
+OperationalStepAllocator
+------------------------
+
+.. code-block:: python
+
+   class OperationalStepAllocator()
+
+Process-local operational step_number mint for one AER execution.
+
+Shared by SecureToolWrapper and SecureLLMProxy so parallel tools and LLM
+calls cannot collide under a single AER. Not a multi-OE authority.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_wrapper.operationalstepallocator.allocation_count:
+
+allocation_count
+~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def allocation_count() -> int
+
+Count minted request slots independently of replayed step watermarks.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_wrapper.externalapicallerror:
+
+ExternalAPICallError
+--------------------
+
+.. code-block:: python
+
+   class ExternalAPICallError(ToolExecutionError)
+
+Raised when a tool's external API call fails with a classified error.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_wrapper.llminvocationerror:
+
+LLMInvocationError
+------------------
+
+.. code-block:: python
+
+   class LLMInvocationError(Exception)
+
+Raised when an LLM invocation fails after OE approval.
+
+``source`` is optional invoke-owner attribution. Only ``"llm"`` means
+the provider failed; omit it for relay, truncation, or guardrail
+plumbing that uses this same exception type.
+
+``error_code`` is the machine-readable classification the tool pod
+stamped on the failure (e.g. a provider credential rejection), when it
+did. It travels to the OE/UI on the ERROR chunk metadata instead of the
+generic invocation code so consumers can classify without
+string-matching prose. It is ``GUARDRAIL_REVIEW_INVALID`` when OE
+refused to answer a call from a guardrail review: the review is unknown
+or undecided, or the call is not the reviewed one.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_wrapper.request_oe_approval:
+
+request_oe_approval
+-------------------
+
+.. code-block:: python
+
+   def request_oe_approval(
+           oe_url: str,
+           execution_id: str,
+           tool_name: str,
+           arguments: Dict[str, Any],
+           step: int,
+           *,
+           kind: Optional[str] = None,
+           is_local: bool = True,
+           metadata: Optional[Dict[str, Any]] = None,
+           redact_fields: Optional[list[str]] = None,
+           provider: Optional[str] = None,
+           scopes: Optional[list[str]] = None,
+           tool_call_id: Optional[str] = None,
+           custom_headers: Optional[Dict[str, str]] = None,
+           timeout: float | httpx.Timeout | None = None,
+           review_protocol: Optional[int] = None,
+           review_id: Optional[str] = None) -> ToolExecuteResponse
+
+Request approval from OE before executing a tool/LLM call.
+
+**Returns**:
+
+ToolExecuteResponse with proceed flag and optional cached_result
+
+**Raises**:
+
+- ``PolicyDeniedException`` - If OE is unreachable
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_wrapper.request_oe_approval_retryable:
+
+request_oe_approval_retryable
+-----------------------------
+
+.. code-block:: python
+
+   def request_oe_approval_retryable(request: Callable[..., ToolExecuteResponse],
+                                     **kwargs: Any) -> ToolExecuteResponse
+
+Repeat the same /tool/execute while OE says the failure is retryable.
+
+Reservation-loss returns status=error with retryable=true after
+releasing the step stamp. Retrying the same step here keeps durable
+activity from recording FAILED on a call that can still succeed.
+
+Wrapped in a span: without one, a retried call is invisible — the
+surrounding tool-node span just looks slower, with no record of how many
+attempts happened. Started before ``request`` (typically
+``request_oe_approval``) runs, so the trace_id/span_id it reads via
+``_current_trace_context()`` reflect this span.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_wrapper.report_oe_result:
+
+report_oe_result
+----------------
+
+.. code-block:: python
+
+   def report_oe_result(oe_url: str,
+                        execution_id: str,
+                        tool_name: str,
+                        step: int,
+                        status: str,
+                        result: Any,
+                        error: Optional[str],
+                        duration_ms: float,
+                        pod_name: Optional[str] = None,
+                        prompt_tokens: Optional[int] = None,
+                        completion_tokens: Optional[int] = None,
+                        total_tokens: Optional[int] = None,
+                        model: Optional[str] = None,
+                        kind: Optional[str] = None,
+                        metadata: Optional[Dict[str, Any]] = None,
+                        tool_call_id: Optional[str] = None,
+                        owner_url: Optional[str] = None,
+                        on_owner_failure: Optional[Callable[[], None]] = None,
+                        tool_api_error: Optional[ToolAPIError] = None) -> None
+
+Report an execution result and require OE to acknowledge settlement.
+
+``owner_url`` — when given, the replica-specific OE owner base URL
+(already validated against ``oe_url``). A single owner pre-attempt runs
+before the service loop and does not consume the service retry budget;
+the owner is best-effort, so any failure — a transport error OR any
+non-2xx response — marks the replica unusable and falls through to the
+trusted ``oe_url`` loop. The owner is never retried and an owner
+response never raises.
+
+Wrapped in a span: without one, a slow-to-ack OE or a retried settlement
+is invisible — the surrounding tool-node span just looks slower, with no
+record of how many attempts happened. Started before
+``_current_trace_context()`` is read below, so the trace_id/span_id put
+on the wire reflect this span.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_wrapper.securetoolwrapper:
+
+SecureToolWrapper
+-----------------
+
+.. code-block:: python
+
+   class SecureToolWrapper()
+
+Wrap tool calls so OE owns execution, replay, logging, and routing.
+
+Flow for each call:
+
+1. Send the intercepted tool call to OE (POST /tool/execute)
+2. OE returns a final outcome or routes the call back in process
+3. The wrapper logs the outcome and converts suspend payloads back into
+   framework interrupts
+
+This enables:
+
+- Audit logging of all operations
+- Policy enforcement (block if not allowed)
+- Deterministic replay scenarios (resume after SUSPEND)
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_wrapper.securetoolwrapper.__init__:
+
+\__init\_\_
+~~~~~~~~~~~
+
+.. code-block:: python
+
+   def __init__(oe_url: str,
+                execution_id: str,
+                custom_headers: Optional[Dict[str, str]] = None,
+                durable_memory: Optional[DurableMemoryState] = None,
+                oe_owner_url: Optional[str] = None,
+                call_registry: Optional["DrainRegistry"] = None)
+
+Initialize the wrapper.
+
+**Arguments**:
+
+- ``oe_url`` - URL of the Orchestration Engine
+- ``execution_id`` - Unique execution identifier
+- ``custom_headers`` - Caller-provided custom headers forwarded from the
+  invoke request
+- ``durable_memory`` - Durable activity Memory state, when enabled
+- ``oe_owner_url`` - Validated replica-specific OE owner URL for
+  tool-result callback fallback, or None when the request supplied no
+  usable one
+- ``call_registry`` - Per-execution drain registry, enabling the
+  per-call abort (POST /interrupt/call) for tools this wrapper runs
+  locally; None leaves local calls unaddressable, as before
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_wrapper.securetoolwrapper.step_counter:
+
+step_counter
+~~~~~~~~~~~~
+
+.. code-block:: python
+
+   @property
+   def step_counter() -> int
+
+Current operational-step watermark for compatibility readers.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_wrapper.securetoolwrapper.next_operational_step:
+
+next_operational_step
+~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def next_operational_step() -> int
+
+Allocate the next operational step_number for this execution.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_wrapper.securetoolwrapper.observe_operational_step:
+
+observe_operational_step
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def observe_operational_step(n: int) -> None
+
+Raise the allocator watermark (e.g. from OE latest_step_number).
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_wrapper.securetoolwrapper.workflow:
+
+workflow
+~~~~~~~~
+
+.. code-block:: python
+
+   @property
+   def workflow() -> Any
+
+Lazily created workflow client for durable serial tool activities.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_wrapper.securetoolwrapper.close:
+
+close
+~~~~~
+
+.. code-block:: python
+
+   async def close() -> None
+
+Clean up resources owned by this execution's wrapper.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_wrapper.securetoolwrapper.execute_tool:
+
+execute_tool
+~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def execute_tool(tool_name: str,
+                    arguments: Dict[str, Any],
+                    *,
+                    metadata: Optional[Dict[str, Any]] = None,
+                    provider: Optional[str] = None,
+                    scopes: Optional[list[str]] = None,
+                    tool_call_id: Optional[str] = None,
+                    raw_on_interrupt: bool = False,
+                    redact_fields: Optional[list[str]] = None,
+                    is_local: bool = True,
+                    local_executor: Optional[Callable[[], Any]] = None,
+                    is_framework_control_flow: Optional[Callable[[BaseException],
+                                                                 bool]] = None,
+                    call_channel_expected: bool = False,
+                    on_unknown_outcome: Optional[UnknownOutcomePolicy] = None,
+                    owning_tool_call: Optional[OwningToolCall] = None) -> Any
+
+Execute a tool call through OE.
+
+Durable OAuth records a typed challenge before a separate framework
+wait, then records the actual resource call after reauthorization. Its
+consent answer never becomes a tool result or Memory content.
+
+**Arguments**:
+
+- ``tool_name`` - Name of the tool
+- ``arguments`` - Arguments to pass to the tool
+- ``metadata`` - Optional execution metadata to send to OE
+- ``tool_call_id`` - Stable LLM tool-call id used to join this call to
+  its result and session message across the execution-log surface
+- ``raw_on_interrupt`` - When True, return the private
+  ``_CALL_INTERRUPTED`` sentinel on interrupt instead of the plain
+  ``{"interrupted": True}`` dict. Only ``create_secure_tool_function``
+  should pass this; it coerces the sentinel immediately. On the durable
+  workflow route the sentinel is recorded as a reserved wire marker
+  (replay needs JSON) and restored on the caller's side of the replay
+  boundary.
+- ``is_local`` - Whether OE should return the approved call to this AER.
+- ``local_executor`` - Callback that invokes the registered tool on the
+  current framework stack. Required for local tools.
+- ``on_unknown_outcome`` - What a retry does when the runner was lost
+  while this tool was in flight in a durable workflow: ``"rerun"`` runs
+  it again, ``"fail"`` refuses the retry.
+- ``owning_tool_call`` - The tool call or subagent this operation is
+  performed for, when it is not itself a tool the model requested. In a
+  durable workflow it runs alongside other activities, at a position
+  derived from that call.
+
+**Returns**:
+
+Result from execution or cached result
+
+**Raises**:
+
+- ``PolicyDeniedException`` - If OE blocks the call
+- ``ToolExecutionError`` - If execution fails
+- ``langgraph.types.interrupt`` - If result contains **suspend** signal,
+  or if OE returns an elicitation requiring user authorization (triggers
+  suspend with authorization_url in context)
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.secure_wrapper.create_secure_tool_function:
+
+create_secure_tool_function
+---------------------------
+
+.. code-block:: python
+
+   def create_secure_tool_function(
+           original_tool: Any,
+           tool_name: str,
+           *,
+           allow_direct: bool = False,
+           metadata: Optional[Dict[str, Any]] = None,
+           is_local: bool = True,
+           provider: Optional[str] = None,
+           scopes: Optional[list[str]] = None,
+           response_format: Literal["content",
+                                    "content_and_artifact"] = "content",
+           tool_declared_format: Optional[Literal["content",
+                                                  "content_and_artifact"]] = None,
+           redact_fields: Optional[list[str]] = None,
+           is_framework_control_flow: Optional[Callable[[BaseException],
+                                                        bool]] = None,
+           on_unknown_outcome: Optional[UnknownOutcomePolicy] = None) -> Callable
+
+Create a wrapped tool function that routes through SecureToolWrapper.
+
+The wrapper is looked up from context at call time, allowing the tool to
+be built before execution context exists.
+
+**Arguments**:
+
+- ``original_tool`` - The original LangChain tool
+- ``tool_name`` - Name of the tool
+- ``allow_direct`` - Whether to allow direct execution when wrapper is
+  missing
+- ``metadata`` - Optional execution metadata to send to OE
+- ``is_local`` - Whether to execute the approved tool on the current AER
+  stack
+- ``response_format`` - The wire format the caller's StructuredTool is
+  built with. See ``_coerce_content_and_artifact``.
+- ``tool_declared_format`` - The tool author's own original format, used
+  only to decide whether a normal result gets shape-matched into a
+  tuple. Defaults to ``response_format``.
+- ``on_unknown_outcome`` - What a retry does when the runner was lost
+  while this tool was in flight in a durable workflow: ``"rerun"`` runs
+  it again, ``"fail"`` refuses the retry.
+
+**Returns**:
+
+Wrapped function that routes through OE via SecureToolWrapper

@@ -1,0 +1,498 @@
+.. _python-packages-agent-engine-runner-shared-docs-api-context:
+
+agent_engine_runner_shared.context
+==================================
+
+Per-execution context management using contextvars.
+
+This module provides thread-safe, coroutine-safe context for execution
+state. Each concurrent execution gets its own isolated context,
+preventing cross-execution contamination of execution_id, wrapper, and
+OE URL.
+
+Best Practice: All context variables are available for log correlation.
+
+Usage: from agent_engine_runner_shared.context import (
+current_execution_id, current_wrapper, current_oe_url,
+set_execution_context, clear_execution_context, )
+
+.. code-block:: text
+
+   # Set context at start of execution
+   tokens = set_execution_context(execution_id, wrapper, oe_url)
+
+   try:
+       # During execution, access via .get()
+       exec_id = current_execution_id.get()
+       wrapper = current_wrapper.get()
+   finally:
+       # Always clear context when done
+       clear_execution_context(tokens)
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.ownerurlfailurestate:
+
+OwnerUrlFailureState
+--------------------
+
+.. code-block:: python
+
+   @dataclass
+   class OwnerUrlFailureState()
+
+One-way owner-failure latch: once an owner pre-attempt fails, later
+owner-preferring posts in this execution skip the owner URL entirely
+instead of re-paying the pre-attempt timeout on every emit. A mutable
+holder for the same reason as ``_SessionFinishState``: emit() may run on
+a worker thread via ``asyncio.to_thread``, whose copied context shares
+this object reference while a ``ContextVar.set`` there would be
+invisible to the parent. No lock: the only write is the one-way
+``failed = True``, atomic under the GIL. Mirrors the AER stream path's
+per-execution owner-URL discard.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context._sessionfinishstate:
+
+\_SessionFinishState
+--------------------
+
+.. code-block:: python
+
+   @dataclass
+   class _SessionFinishState()
+
+Mutable holder so a request from a copied context (LangGraph node,
+worker thread) is visible to the parent frame reading it later.
+
+Shared across real OS threads (LangGraph worker threads), not just
+copied contexts - request_session_finish()'s read-modify-write of
+``requested`` and ``closed`` must be adjudicated together under one
+lock. Reading either field unlocked while a writer is mid-transition on
+the other reintroduces the exact race the lock exists to close, so every
+access (read or write, of either field) goes through ``lock``.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context._sessionfinishstate.close:
+
+close
+~~~~~
+
+.. code-block:: python
+
+   def close() -> None
+
+Close the latch: nothing outside this run can finish anymore. Called
+from the AER's ``finally`` once the execute frame ends - keeps the lock
+private to the holder rather than making callers take it themselves.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.sessionfinishstatus:
+
+SessionFinishStatus
+-------------------
+
+.. code-block:: python
+
+   class SessionFinishStatus(str, Enum)
+
+Outcome of a request_session_finish() call.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.sessionfinishstatus.requested:
+
+REQUESTED
+~~~~~~~~~
+
+this call recorded the request
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.sessionfinishstatus.already_requested:
+
+ALREADY_REQUESTED
+~~~~~~~~~~~~~~~~~
+
+a previous call in this run did
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.sessionfinishstatus.unavailable:
+
+UNAVAILABLE
+~~~~~~~~~~~
+
+no execution context (local dev, tool pod)
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.set_execution_context:
+
+set_execution_context
+---------------------
+
+.. code-block:: python
+
+   def set_execution_context(
+           execution_id: str,
+           wrapper: Any,
+           oe_url: str,
+           request_id: Optional[str] = None,
+           user_id: Optional[str] = None,
+           session_id: Optional[str] = None,
+           workspace_id: Optional[str] = None,
+           custom_headers: Optional[Dict[str, str]] = None,
+           authorization: Optional["ToolAuthorization"] = None,
+           payload: Optional[Dict[str, Any]] = None,
+           oe_owner_url: Optional[str] = None,
+           owner_url_failure: Optional[OwnerUrlFailureState] = None,
+           *,
+           trace_id: Optional[str] = None) -> ContextTokens
+
+Set execution context for the current async task.
+
+**Arguments**:
+
+- ``execution_id`` - The execution ID for this request
+- ``wrapper`` - The SecureToolWrapper instance
+- ``oe_url`` - The OE callback URL
+- ``trace_id`` - Optional originating platform trace ID for log
+  correlation
+- ``request_id`` - Optional request ID, auto-generated as
+  ``req-<12 hex>`` when omitted
+- ``user_id`` - Optional user ID for the current execution
+- ``session_id`` - Optional session/thread ID for conversation
+  continuity
+- ``workspace_id`` - Optional workspace ID for guardrails/cost
+  attribution
+- ``custom_headers`` - Optional caller-provided custom headers
+  (X-Mdb-Agent-Engine-Custom-\* prefix-stripped and lowercased)
+- ``authorization`` - Optional delegated credential context for tool
+  execution
+- ``payload`` - Optional opaque caller-provided invocation payload
+- ``oe_owner_url`` - Optional validated replica-specific OE owner URL
+  for callback fallback
+
+**Returns**:
+
+Tuple of tokens for resetting context later
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.clear_execution_context:
+
+clear_execution_context
+-----------------------
+
+.. code-block:: python
+
+   def clear_execution_context(tokens: ContextTokens) -> None
+
+Clear execution context using the tokens from set_execution_context.
+
+**Arguments**:
+
+- ``tokens`` - The tuple of tokens returned by set_execution_context
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.get_current_wrapper:
+
+get_current_wrapper
+-------------------
+
+.. code-block:: python
+
+   def get_current_wrapper() -> Optional[Any]
+
+Get the current execution's SecureToolWrapper, or None if not in
+execution context.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.get_current_execution_id:
+
+get_current_execution_id
+------------------------
+
+.. code-block:: python
+
+   def get_current_execution_id() -> Optional[str]
+
+Get the current execution ID, or None if not in execution context.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.get_current_request_id:
+
+get_current_request_id
+----------------------
+
+.. code-block:: python
+
+   def get_current_request_id() -> Optional[str]
+
+Get the current request ID, or None if not in execution context.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.get_current_trace_id:
+
+get_current_trace_id
+--------------------
+
+.. code-block:: python
+
+   def get_current_trace_id() -> Optional[str]
+
+Get the current platform trace ID for log correlation, or None.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.get_current_oe_url:
+
+get_current_oe_url
+------------------
+
+.. code-block:: python
+
+   def get_current_oe_url() -> Optional[str]
+
+Get the current OE URL, or None if not in execution context.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.get_current_oe_owner_url:
+
+get_current_oe_owner_url
+------------------------
+
+.. code-block:: python
+
+   def get_current_oe_owner_url() -> Optional[str]
+
+Get the validated replica-specific OE owner URL.
+
+None if absent or if a previous owner pre-attempt in this execution
+already failed (see :func:``report_oe_owner_url_failure``).
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.report_oe_owner_url_failure:
+
+report_oe_owner_url_failure
+---------------------------
+
+.. code-block:: python
+
+   def report_oe_owner_url_failure() -> None
+
+Mark the current execution's owner URL unusable.
+
+One-way: after this, :func:``get_current_oe_owner_url`` returns None for
+the rest of the execution so repeated emits stop re-paying the
+pre-attempt timeout against a dead owner. No-op outside an execution
+context.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.get_current_user_id:
+
+get_current_user_id
+-------------------
+
+.. code-block:: python
+
+   def get_current_user_id() -> Optional[str]
+
+Get the current user ID, or None if not in execution context.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.get_current_session_id:
+
+get_current_session_id
+----------------------
+
+.. code-block:: python
+
+   def get_current_session_id() -> Optional[str]
+
+Get the current session/thread ID, or None if not in execution context.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.get_current_workspace_id:
+
+get_current_workspace_id
+------------------------
+
+.. code-block:: python
+
+   def get_current_workspace_id() -> Optional[str]
+
+Get the current workspace ID, or None if not in execution context.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.get_current_authorization:
+
+get_current_authorization
+-------------------------
+
+.. code-block:: python
+
+   def get_current_authorization() -> Optional["ToolAuthorization"]
+
+Get delegated authorization for the current execution, if available.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.get_current_custom_headers:
+
+get_current_custom_headers
+--------------------------
+
+.. code-block:: python
+
+   def get_current_custom_headers() -> Dict[str, str]
+
+Get caller-provided custom headers, or empty dict if not set.
+
+Platform-internal headers (``a2a-`` prefix) are stripped - agent code
+should never see A2A tokens or routing metadata. Internal platform code
+that needs the full set (e.g. the A2A client) should call
+:func:``get_all_custom_headers`` instead.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.get_all_custom_headers:
+
+get_all_custom_headers
+----------------------
+
+.. code-block:: python
+
+   def get_all_custom_headers() -> Dict[str, str]
+
+Get all custom headers including platform-internal ``a2a-`` entries.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.get_current_execution_metadata:
+
+get_current_execution_metadata
+------------------------------
+
+.. code-block:: python
+
+   def get_current_execution_metadata() -> Dict[str, Any]
+
+Get metadata accumulated for the current execution step.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.get_current_payload:
+
+get_current_payload
+-------------------
+
+.. code-block:: python
+
+   def get_current_payload() -> Dict[str, Any]
+
+Get the caller-provided invocation payload, or empty dict if not set.
+
+This is the opaque request body the caller sent alongside ``message``
+(e.g. screen state, structured context). Agent code can read it from
+anywhere in the execution, including tool functions.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.request_session_finish:
+
+request_session_finish
+----------------------
+
+.. code-block:: python
+
+   def request_session_finish() -> SessionFinishStatus
+
+Record that the agent considers this session finished.
+
+Mutates a holder shared with child contexts and worker threads on
+purpose: LangGraph nodes run in copied contexts, where a ContextVar.set
+is invisible to the AER frame that reads this at the end of the turn.
+
+``current_wrapper`` is None for Tool/Function contexts (see
+server/tool.py) — only the AER holds the finish latch, so those contexts
+must also report UNAVAILABLE rather than a misleading success.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.is_session_finish_requested:
+
+is_session_finish_requested
+---------------------------
+
+.. code-block:: python
+
+   def is_session_finish_requested() -> bool
+
+Return whether request_session_finish() has been called during this
+execution.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.close_session_finish_latch:
+
+close_session_finish_latch
+--------------------------
+
+.. code-block:: python
+
+   def close_session_finish_latch() -> None
+
+Close the current execution's session-finish latch.
+
+Called from the AER's ``finally`` once the execute frame ends (covers
+the success, error, policy-denied, and suspend paths alike - a finish
+requested from post-turn work on a failed run is equally unactionable).
+After this, request_session_finish() reports UNAVAILABLE instead of
+promising a release that will never happen, because the caller (e.g. an
+asyncio.create_task scheduled during the turn but running after it)
+already got its answer from a latch that no longer has anyone reading
+it.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.record_suspend_request:
+
+record_suspend_request
+----------------------
+
+.. code-block:: python
+
+   def record_suspend_request(payload: Dict[str, Any]) -> None
+
+Record an author-intended HITL suspend for the current tool call.
+
+Called only by ``SuspendPayload.to_json``, so the signal's provenance is
+the tool author's code, not tool-result data. A no-op outside an
+execution context (the holder is unset).
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.get_requested_suspend:
+
+get_requested_suspend
+---------------------
+
+.. code-block:: python
+
+   def get_requested_suspend() -> Optional[Dict[str, Any]]
+
+Return the suspend payload this tool call requested via
+``SuspendPayload.to_json``, or None. The Tool Pod reads this after the
+tool returns to decide whether to report ``status="suspend"``.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.local_suspend_request_context:
+
+local_suspend_request_context
+-----------------------------
+
+.. code-block:: python
+
+   @contextmanager
+   def local_suspend_request_context() -> Iterator[None]
+
+Give one in-process tool call an isolated suspend marker.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.record_current_memory_metadata:
+
+record_current_memory_metadata
+------------------------------
+
+.. code-block:: python
+
+   def record_current_memory_metadata(*,
+                                      action: str,
+                                      memory_type: str,
+                                      content: Optional[str] = None,
+                                      relevance_score: Optional[float] = None,
+                                      query: Optional[str] = None) -> None
+
+Attach explicit memory metadata to the current execution step, if one
+exists.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.get_current_log_origin:
+
+get_current_log_origin
+----------------------
+
+.. code-block:: python
+
+   def get_current_log_origin() -> Optional[str]
+
+Return ``"customer"`` inside a customer-code boundary, else None.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.context.customer_origin_scope:
+
+customer_origin_scope
+---------------------
+
+.. code-block:: python
+
+   @contextmanager
+   def customer_origin_scope() -> Iterator[None]
+
+Mark the dynamic extent of customer agent/tool code for log attribution.
+
+Framework-internal. Nested scopes are a no-op. Missing origin means
+unclassified, not a proven platform-authored record.

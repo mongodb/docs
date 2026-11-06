@@ -1,0 +1,57 @@
+.. _python-packages-agent-engine-sdk-memory-release-notes-v0.2.0:
+
+agent-engine-sdk-memory v0.2.0
+==============================
+
+What's new
+----------
+
+- Memory routing now follows a new optional input, ``project_id``
+  (argument or ``AGENTIC_MEMORY_PROJECT_ID``). Its presence selects the
+  route shape. Set it for the hosted Gateway's project-scoped routes
+  (``/api/v1/projects/{project_id}/memory/*``). Leave it empty for flat
+  routes (``/api/v1/memory/*``, the Orchestration Engine).
+- ``api_key`` (or ``AGENTIC_MEMORY_API_KEY``) is now auth only. It no
+  longer selects the backend, so an authenticated caller can still use
+  flat OE routes.
+- A core-loop request that 404s now raises ``MemoryRouteNotFoundError``
+  with a directional hint to set or unset ``project_id``, instead of an
+  opaque error.
+
+Action required for hosted callers
+----------------------------------
+
+**Hosted (Gateway) callers must provide a ``project_id``.** It is
+optional in the method signature, but the hosted Gateway only serves
+project-scoped routes, so a hosted caller with no ``project_id`` set
+will 404. Provide it either way:
+
+.. code-block:: python
+
+   Memory(api_key="<key>", project_id="<project-id>")
+   # or set AGENTIC_MEMORY_API_KEY + AGENTIC_MEMORY_PROJECT_ID and call Memory()
+
+Setting the ``AGENTIC_MEMORY_PROJECT_ID`` environment variable is one
+way to supply ``project_id``, not a separate requirement. Direct-OE and
+local-dev callers leave ``project_id`` empty and are unaffected.
+
+Bug fixes
+---------
+
+- Fixes hosted SDK traffic that 404'd against the Gateway's disabled
+  flat memory alias. Hosted ``record_turn``, ``build_context``, and
+  ``search`` now use the Gateway's project-scoped routes.
+
+Breaking changes
+----------------
+
+- **Method surface:** none. Public method names and signatures are
+  unchanged, and ``project_id`` is a new optional input.
+- **Behavioral break for hosted callers:** ``api_key`` no longer selects
+  the Gateway. A caller that constructed ``Memory(api_key=...)`` without
+  ``project_id`` previously reached the project-scoped Gateway. It now
+  selects the flat OE route shape and will 404 against the Gateway.
+  Construction still succeeds. The first core-loop call
+  (``record_turn``, ``build_context``, or ``search``) raises
+  ``MemoryRouteNotFoundError`` with a hint to set ``project_id``. Add
+  ``project_id`` (see "Action required" above).

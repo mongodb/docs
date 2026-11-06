@@ -1,0 +1,194 @@
+.. _python-packages-agent-engine-runner-shared-docs-api-custom_events:
+
+agent_engine_runner_shared.custom_events
+========================================
+
+Runtime-transparent custom-event emission across Atlas Agent Engine
+runtimes.
+
+Authors call :func:``emit_custom_event`` without knowing which runtime
+is hosting the code (AER agent process vs Tool Pod). The active runtime
+installs exactly one :class:``CustomEventTransport`` before invoking
+tenant code; the helper dispatches to that transport.
+
+Atlas Agent Engine transports an opaque author-final JSON object as
+``custom_event``. It does not interpret keys — customers who need a
+shaped vocabulary (e.g. Holly ``{event, data}``) build that object in
+their own helper.
+
+Framework adapters (e.g. LangGraph in ``agent-engine-sdk-langgraph``)
+own how AER delivers events. This package only owns the author API, the
+install/dispatch hook, and the Tool Pod OE HTTP transport.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.custom_events.customeventtransport:
+
+CustomEventTransport
+--------------------
+
+.. code-block:: python
+
+   @runtime_checkable
+   class CustomEventTransport(Protocol)
+
+Request-scoped delivery path for author custom events.
+
+The hosting runtime installs one transport per invocation. Tool Pods use
+:class:``OEHTTPCustomEventTransport``; AER framework adapters install
+their own implementation.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.custom_events.customeventtransport.emit_sync:
+
+emit_sync
+~~~~~~~~~
+
+.. code-block:: python
+
+   def emit_sync(payload: Mapping[str, JsonValue]) -> None
+
+Deliver one author-final JSON object from synchronous code.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.custom_events.customeventtransport.emit:
+
+emit
+~~~~
+
+.. code-block:: python
+
+   async def emit(payload: Mapping[str, JsonValue]) -> None
+
+Deliver one author-final JSON object from asynchronous code.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.custom_events.get_custom_event_transport:
+
+get_custom_event_transport
+--------------------------
+
+.. code-block:: python
+
+   def get_custom_event_transport() -> Optional[CustomEventTransport]
+
+Return the transport installed for this request, or None.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.custom_events.set_custom_event_transport:
+
+set_custom_event_transport
+--------------------------
+
+.. code-block:: python
+
+   def set_custom_event_transport(
+       transport: Optional[CustomEventTransport]
+   ) -> Token[Optional[CustomEventTransport]]
+
+Install ``transport`` for the current async task.
+
+Returns a :class:``~contextvars.Token`` that
+:func:``clear_custom_event_transport`` uses to restore the previous
+value (nested installs / concurrent tasks).
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.custom_events.clear_custom_event_transport:
+
+clear_custom_event_transport
+----------------------------
+
+.. code-block:: python
+
+   def clear_custom_event_transport(
+           token: Token[Optional[CustomEventTransport]]) -> None
+
+Restore the previous transport via ``ContextVar.reset(token)``.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.custom_events.custom_event_transport:
+
+custom_event_transport
+----------------------
+
+.. code-block:: python
+
+   @contextmanager
+   def custom_event_transport(
+           transport: CustomEventTransport) -> Iterator[CustomEventTransport]
+
+Install ``transport`` for the block, then restore the previous value.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.custom_events.emit_custom_event_sync:
+
+emit_custom_event_sync
+----------------------
+
+.. code-block:: python
+
+   def emit_custom_event_sync(payload: Mapping[str, Any]) -> None
+
+Emit an author-final JSON object from synchronous tenant code.
+
+Use :func:``emit_custom_event`` from asynchronous code. This synchronous
+sibling is intended for ordinary synchronous Tool Pod handlers and
+synchronous LangGraph nodes.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.custom_events.emit_custom_event:
+
+emit_custom_event
+-----------------
+
+.. code-block:: python
+
+   async def emit_custom_event(payload: Mapping[str, Any]) -> None
+
+Emit an author-final JSON object through the installed runtime
+transport.
+
+Atlas Agent Engine does not interpret keys. Customers who need a shaped
+vocabulary (for example Holly ``{"event": ..., "data": ...}``) build
+that object themselves before calling this helper.
+
+Use :func:``emit_custom_event_sync`` from synchronous tenant code. No-op
+when no transport is installed (outside an execution context).
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.custom_events.oehttpcustomeventtransport:
+
+OEHTTPCustomEventTransport
+--------------------------
+
+.. code-block:: python
+
+   class OEHTTPCustomEventTransport()
+
+Tool Pod transport: POST final ``custom_event`` chunks to OE.
+
+Delivery is awaited with a bounded timeout and is non-fatal: delivery
+failures are logged and swallowed so a progress event cannot fail the
+tool.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.custom_events.featureoffcustomeventtransport:
+
+FeatureOffCustomEventTransport
+------------------------------
+
+.. code-block:: python
+
+   class FeatureOffCustomEventTransport()
+
+Fail closed when ``use_custom_parser`` is disabled.
+
+Runtime-neutral rejecting transport shared by AER streaming (when Atlas
+Agent Engine does not subscribe to LangGraph ``custom``) and the Tool
+Pod (when OE POSTs would otherwise succeed while Gateway strips client
+delivery). Authors must not observe a successful emit when the workspace
+cannot deliver custom events to clients.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.custom_events.install_tool_custom_event_transport:
+
+install_tool_custom_event_transport
+-----------------------------------
+
+.. code-block:: python
+
+   def install_tool_custom_event_transport(
+           *, enabled: bool = True) -> Token[Optional[CustomEventTransport]]
+
+Install the Tool Pod custom-event transport; return reset token.
+
+When ``enabled`` is false (workspace does not have
+``use_custom_parser``), install a rejecting transport so emit fails
+closed instead of POSTing an event that Gateway will strip for clients.

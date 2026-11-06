@@ -1,0 +1,744 @@
+.. _python-packages-agent-engine-runner-shared-docs-api-models:
+
+agent_engine_runner_shared.models
+=================================
+
+Shared Pydantic models for Runner SDK components.
+
+These models define the API contracts between:
+
+- Orchestration Engine (OE)
+- Agent Execution Runtime (AER)
+- Tool Executor Pod
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.executionstatus:
+
+ExecutionStatus
+---------------
+
+.. code-block:: python
+
+   class ExecutionStatus(str, Enum)
+
+Status of an agent execution.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.suspendpayload:
+
+SuspendPayload
+--------------
+
+.. code-block:: python
+
+   class SuspendPayload(BaseModel)
+
+Payload returned by an agent tool to trigger human-in-the-loop
+suspension.
+
+Agent tools signal a suspend by returning a JSON string containing these
+fields. The ``__suspend__`` flag is stripped before the payload is
+passed to LangGraph's ``interrupt()``.
+
+Example usage in an agent tool:
+
+.. code-block:: text
+
+   from agent_engine_runner_shared.models import SuspendPayload
+
+   payload = SuspendPayload(
+       suspend_reason="awaiting_human_review",
+       suspend_context={"claim_id": "C-123", "task_id": "T-456"},
+   )
+   return payload.to_json()
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.suspendpayload.to_json:
+
+to_json
+~~~~~~~
+
+.. code-block:: python
+
+   def to_json() -> str
+
+Serialize to the suspend wire marker, and record an out-of-band suspend
+request on the current execution frame.
+
+The Tool Pod honors suspend from that recorded signal — set only here,
+in the tool author's own code — not by sniffing tool-result content, so
+untrusted data a tool relays can no longer forge a HITL suspend. The
+marker string is still returned unchanged for wire/replay compatibility.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.pendinginterrupt:
+
+PendingInterrupt
+----------------
+
+.. code-block:: python
+
+   class PendingInterrupt(BaseModel)
+
+Framework-native interrupt lifted into the platform envelope.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.interruptresult:
+
+InterruptResult
+---------------
+
+.. code-block:: python
+
+   class InterruptResult(BaseModel)
+
+Result from agent execution when the agent is suspended.
+
+Contains the suspend payload directly (framework-agnostic) rather than
+wrapping LangGraph-specific Interrupt objects. Any framework-specific
+state needed to resume (LangGraph checkpoint id, ADK function-call
+correlation, etc.) is carried opaquely in ``metadata`` — the AER never
+inspects it; the framework adapter writes it on suspend and reads it
+back from ``RequestContext.metadata`` on resume.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.streamingresult:
+
+StreamingResult
+---------------
+
+.. code-block:: python
+
+   class StreamingResult(BaseModel)
+
+Result from agent execution for normal completion.
+
+Returned by \_execute_via_agent_stream when the agent finishes without
+suspend. The caller uses content for the final response and messages for
+memory writing.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.invokerequest:
+
+InvokeRequest
+-------------
+
+.. code-block:: python
+
+   class InvokeRequest(BaseModel)
+
+Request to invoke the agent (compatible with agent-runtime).
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.invokeresponse:
+
+InvokeResponse
+--------------
+
+.. code-block:: python
+
+   class InvokeResponse(BaseModel)
+
+Response from invoking the agent (compatible with agent-runtime).
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.executerequest:
+
+ExecuteRequest
+--------------
+
+.. code-block:: python
+
+   class ExecuteRequest(BaseModel)
+
+Request to execute an agent in AER.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.toolexecuterequest:
+
+ToolExecuteRequest
+------------------
+
+.. code-block:: python
+
+   class ToolExecuteRequest(BaseModel)
+
+Request to execute a tool (AER → OE for approval).
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.elicitationinfo:
+
+ElicitationInfo
+---------------
+
+.. code-block:: python
+
+   class ElicitationInfo(BaseModel)
+
+Authorization details returned when broker consent is required.
+
+Its presence in a ToolExecuteResponse signals that the user must
+authorize via the provided URL before the tool invocation can proceed.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.guardrailmeta:
+
+GuardrailMeta
+-------------
+
+.. code-block:: python
+
+   class GuardrailMeta(BaseModel)
+
+Identity of the policy that caused a guardrail block or require_review
+halt.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.guardrailreviewpolicy:
+
+GuardrailReviewPolicy
+---------------------
+
+.. code-block:: python
+
+   class GuardrailReviewPolicy(BaseModel)
+
+One policy that required a guardrail review.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.guardrailreviewhalt:
+
+GuardrailReviewHalt
+-------------------
+
+.. code-block:: python
+
+   class GuardrailReviewHalt(BaseModel)
+
+The review OE opened for a require_review halt of a review_protocol
+call.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.toolexecuteresponse:
+
+ToolExecuteResponse
+-------------------
+
+.. code-block:: python
+
+   class ToolExecuteResponse(BaseModel)
+
+Response from OE for tool execution request.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.toolresultrequest:
+
+ToolResultRequest
+-----------------
+
+.. code-block:: python
+
+   class ToolResultRequest(BaseModel)
+
+Report tool execution result (AER → OE).
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.toolauthorization:
+
+ToolAuthorization
+-----------------
+
+.. code-block:: python
+
+   class ToolAuthorization(BaseModel)
+
+Delegated credential injected by OE for tool execution.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.toolpodexecuterequest:
+
+ToolPodExecuteRequest
+---------------------
+
+.. code-block:: python
+
+   class ToolPodExecuteRequest(BaseModel)
+
+Request to execute a tool in a Tool Pod.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.toolpodexecuterequest.validate_argument_size:
+
+validate_argument_size
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   @field_validator("arguments")
+   @classmethod
+   def validate_argument_size(cls, arguments: Dict[str, Any]) -> Dict[str, Any]
+
+Bound the JSON payload every Tool Pod callable can receive.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.toolpodexecuteresponse:
+
+ToolPodExecuteResponse
+----------------------
+
+.. code-block:: python
+
+   class ToolPodExecuteResponse(BaseModel)
+
+Response from Tool Pod execution.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.guardrailruntimestage:
+
+GuardrailRuntimeStage
+---------------------
+
+.. code-block:: python
+
+   class GuardrailRuntimeStage(str, Enum)
+
+Runtime stage where OE is asking the Tool Pod to evaluate guardrails.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.guardrailcheckdecision:
+
+GuardrailCheckDecision
+----------------------
+
+.. code-block:: python
+
+   class GuardrailCheckDecision(str, Enum)
+
+Decision returned by the Tool Pod guardrails evaluator.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.guardrailruntimepolicy:
+
+GuardrailRuntimePolicy
+----------------------
+
+.. code-block:: python
+
+   class GuardrailRuntimePolicy(BaseModel)
+
+OE-selected guardrail policy sent to the Tool Pod for evaluation.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.guardrailcheckinput:
+
+GuardrailCheckInput
+-------------------
+
+.. code-block:: python
+
+   class GuardrailCheckInput(BaseModel)
+
+Runtime content and metadata to evaluate.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.guardrailcheckcontext:
+
+GuardrailCheckContext
+---------------------
+
+.. code-block:: python
+
+   class GuardrailCheckContext(BaseModel)
+
+Execution context for a guardrail check.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.guardrailcheckrequest:
+
+GuardrailCheckRequest
+---------------------
+
+.. code-block:: python
+
+   class GuardrailCheckRequest(BaseModel)
+
+Request from OE to Tool Pod to evaluate selected guardrail policies.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.guardrailcheckevidence:
+
+GuardrailCheckEvidence
+----------------------
+
+.. code-block:: python
+
+   class GuardrailCheckEvidence(BaseModel)
+
+Evidence explaining why a guardrail policy triggered.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.guardrailcheckresponse:
+
+GuardrailCheckResponse
+----------------------
+
+.. code-block:: python
+
+   class GuardrailCheckResponse(BaseModel)
+
+Decision returned by the Tool Pod guardrails evaluator.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.invokellmrequestarguments:
+
+InvokeLLMRequestArguments
+-------------------------
+
+.. code-block:: python
+
+   class InvokeLLMRequestArguments(BaseModel)
+
+Typed invoke_llm arguments forwarded through OE and tool pods.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.llmpodinvokerequest:
+
+LLMPodInvokeRequest
+-------------------
+
+.. code-block:: python
+
+   class LLMPodInvokeRequest(BaseModel)
+
+Request to invoke LLM on a tool executor pod.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.coerce_token_usage:
+
+coerce_token_usage
+------------------
+
+.. code-block:: python
+
+   def coerce_token_usage(value: Any) -> Optional[LLMTokenUsage]
+
+Turn a provider usage blob into ``LLMTokenUsage``, or None.
+
+Accepts dicts, non-dict ``Mapping``\ s, Pydantic ``model_dump()``
+objects (Anthropic ``Usage``), and attribute bags (``input_tokens`` /
+``prompt_tokens``). Malformed values return None rather than raising — a
+bad usage blob must not fail the LLM call.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.json_safe_metadata:
+
+json_safe_metadata
+------------------
+
+.. code-block:: python
+
+   def json_safe_metadata(value: Any,
+                          *,
+                          _depth: int = 0) -> Dict[str, JsonValue] | None
+
+Copy a provider metadata mapping into JSON-safe values, or None.
+
+``usage`` / ``token_usage`` are replaced with a dump of the coerced
+``LLMTokenUsage``. Other non-JSON values are omitted so invoke/stream
+cannot fail after a successful model response.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.add_token_usage:
+
+add_token_usage
+---------------
+
+.. code-block:: python
+
+   def add_token_usage(existing: Optional[LLMTokenUsage],
+                       incoming: Any) -> Optional[LLMTokenUsage]
+
+Sum LangChain-style additive usage deltas into a cumulative snapshot.
+
+Missing components count as 0. Tool-pod snapshot merge must not use this
+helper — OpenAI-style last-chunk snapshots would double-count. Adapters
+should call ``accumulate_stream_usage`` so cumulative per-chunk
+snapshots are not added.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.accumulate_stream_usage:
+
+accumulate_stream_usage
+-----------------------
+
+.. code-block:: python
+
+   def accumulate_stream_usage(existing: Optional[LLMTokenUsage],
+                               incoming: Any) -> Optional[LLMTokenUsage]
+
+Fold a stream chunk's usage into a running snapshot.
+
+Cumulative providers repeat growing totals (``10/1`` then ``10/2``);
+last-wins merge keeps ``10/2``. Additive providers zero-fill the
+unchanged side (``18/1`` then ``0/4``); those deltas are summed.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.merge_token_usage:
+
+merge_token_usage
+-----------------
+
+.. code-block:: python
+
+   def merge_token_usage(existing: Optional[LLMTokenUsage],
+                         incoming: Any) -> Optional[LLMTokenUsage]
+
+Merge two usage snapshots field-by-field.
+
+Later chunks fill missing prompt/completion/total/model rather than
+replacing the whole object. Incoming non-null fields win, so an
+Anthropic message_start (input only) plus message_delta (output only)
+yields both. An explicit ``total_tokens`` is preserved.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.llmresult:
+
+LLMResult
+---------
+
+.. code-block:: python
+
+   class LLMResult(BaseModel)
+
+Normalized result from an LLM invocation.
+
+Provides a consistent Pydantic shape for LLM responses regardless of the
+underlying provider (OpenAI, Gemini, Anthropic, etc.).
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.llmresult.from_response:
+
+from_response
+~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   @classmethod
+   def from_response(cls, response: Any) -> "LLMResult"
+
+Extract a normalized result from a LangChain LLM response.
+
+Handles AIMessage, BaseMessage, and arbitrary objects by falling back to
+str() for content extraction.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.llmresult.extract_usage:
+
+extract_usage
+~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   @staticmethod
+   def extract_usage(response: Any) -> Optional[LLMTokenUsage]
+
+Extract token usage metadata from a LangChain response or chunk.
+
+Coerces provider-variant shapes (dicts, non-dict Mappings, Anthropic
+Usage objects, ``.usage`` attribute bags) into ``LLMTokenUsage``.
+Malformed blobs return None rather than raising.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.llmresult.to_response:
+
+to_response
+~~~~~~~~~~~
+
+.. code-block:: python
+
+   def to_response() -> LLMResponse
+
+Convert the normalized runner result to sdk-core's response shape.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.llmpodinvokeresponse:
+
+LLMPodInvokeResponse
+--------------------
+
+.. code-block:: python
+
+   class LLMPodInvokeResponse(BaseModel)
+
+Response from LLM invocation on a tool executor pod.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.llmpodstreamevent:
+
+LLMPodStreamEvent
+-----------------
+
+.. code-block:: python
+
+   class LLMPodStreamEvent(BaseModel)
+
+SSE event emitted by a tool pod during invoke_llm streaming.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.executorcallbackrequest:
+
+ExecutorCallbackRequest
+-----------------------
+
+.. code-block:: python
+
+   class ExecutorCallbackRequest(BaseModel)
+
+Callback from AER to OE when execution completes or suspends.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.humanreviewdata:
+
+HumanReviewData
+---------------
+
+.. code-block:: python
+
+   class HumanReviewData(BaseModel)
+
+Data provided by human reviewer when resuming a suspended execution.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.agentresumerequest:
+
+AgentResumeRequest
+------------------
+
+.. code-block:: python
+
+   class AgentResumeRequest(BaseModel)
+
+Request to resume a suspended execution.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.agentresumeresponse:
+
+AgentResumeResponse
+-------------------
+
+.. code-block:: python
+
+   class AgentResumeResponse(BaseModel)
+
+Response from resuming an execution.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.executionstatusresponse:
+
+ExecutionStatusResponse
+-----------------------
+
+.. code-block:: python
+
+   class ExecutionStatusResponse(BaseModel)
+
+Response for execution status query.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.execution:
+
+Execution
+---------
+
+.. code-block:: python
+
+   class Execution(BaseModel)
+
+Execution record stored in TenantDB.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.execution.to_persistence_doc:
+
+to_persistence_doc
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def to_persistence_doc(
+           updated_at: Optional[datetime] = None) -> Dict[str, Any]
+
+Convert to a document for MongoDB persistence.
+
+**Arguments**:
+
+- ``updated_at`` - Optional timestamp override (defaults to now)
+
+**Returns**:
+
+Dict suitable for MongoDB upsert
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.execution.from_persistence_doc:
+
+from_persistence_doc
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   @classmethod
+   def from_persistence_doc(cls, doc: Dict[str, Any]) -> "Execution"
+
+Rehydrate an Execution from a MongoDB document.
+
+Uses .get() with defaults for all Optional fields so documents created
+before new fields were added still deserialize safely.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.executionstep:
+
+ExecutionStep
+-------------
+
+.. code-block:: python
+
+   class ExecutionStep(BaseModel)
+
+Execution step record stored in TenantDB.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.executionstep.from_log_doc:
+
+from_log_doc
+~~~~~~~~~~~~
+
+.. code-block:: python
+
+   @classmethod
+   def from_log_doc(cls, doc: Dict[str, Any]) -> "ExecutionStep"
+
+Reconstruct an ExecutionStep from an execution_logs MongoDB document.
+
+The execution_logs collection stores tool start/result events with
+fields: execution_id, step_number, tool, inputs, status, output, error,
+duration_ms, timestamp. This method maps those fields back to the
+ExecutionStep model for step cache rehydration after OE restart.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.healthstatus:
+
+HealthStatus
+------------
+
+.. code-block:: python
+
+   class HealthStatus(str, Enum)
+
+Health status of a component.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.healthresponse:
+
+HealthResponse
+--------------
+
+.. code-block:: python
+
+   class HealthResponse(BaseModel)
+
+Health check response.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.tooldefinition:
+
+ToolDefinition
+--------------
+
+.. code-block:: python
+
+   class ToolDefinition(BaseModel)
+
+Definition of a registered tool.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.aerexecuteresponse:
+
+AERExecuteResponse
+------------------
+
+.. code-block:: python
+
+   class AERExecuteResponse(BaseModel)
+
+Response from AER /execute endpoint.
+
+Returned on normal completion, HITL suspension, or cancellation of the
+handler task by a drain/teardown.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.toolslistresponse:
+
+ToolsListResponse
+-----------------
+
+.. code-block:: python
+
+   class ToolsListResponse(BaseModel)
+
+Response from /tools endpoint listing registered tools.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.models.streamchunk:
+
+StreamChunk
+-----------
+
+.. code-block:: python
+
+   class StreamChunk(BaseModel)
+
+A chunk of streaming response from the agent.
+
+Used for real-time streaming of agent responses via SSE or gRPC.

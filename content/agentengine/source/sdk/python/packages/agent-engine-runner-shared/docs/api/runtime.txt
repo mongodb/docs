@@ -1,0 +1,864 @@
+.. _python-packages-agent-engine-runner-shared-docs-api-runtime:
+
+agent_engine_runner_shared.runtime
+==================================
+
+TenantRuntime — framework-agnostic platform runtime for tenant agent
+applications.
+
+The same application code runs in all supported modes:
+
+- aer: Agent execution with secure wrappers
+- tool: Tool function execution
+
+Usage (via a framework SDK, e.g. agent-engine-sdk-langgraph): The
+framework SDK's ``App`` class wraps ``TenantRuntime`` and registers
+hooks so agent-engine-runner-shared can call framework code without
+importing it. See ``agent_engine_runner_shared.hooks`` for the hook
+registry.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime:
+
+TenantRuntime
+-------------
+
+.. code-block:: python
+
+   class TenantRuntime()
+
+Tenant Runtime SDK.
+
+The runtime discovers its role from RUNNER_MODE environment variable:
+
+- aer: Full LangGraph execution with SecureToolWrapper
+- tool: Tool function execution
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.__init__:
+
+\__init\_\_
+~~~~~~~~~~~
+
+.. code-block:: python
+
+   def __init__(app_name: str = "Agent",
+                app_version: str = "1.0.0",
+                mongodb_uri: Optional[str] = None,
+                database_name: Optional[str] = None,
+                enable_tracing: bool | None = None,
+                traces_collection_name: str = "traces",
+                enable_memory: bool | None = None,
+                org_id: Optional[str] = None,
+                project_id: Optional[str] = None)
+
+Initialize the runner runtime.
+
+**Arguments**:
+
+- ``app_name`` - Application name
+- ``app_version`` - Application version
+- ``mongodb_uri`` - MongoDB URI (for OE execution logging)
+- ``database_name`` - Database name
+- ``enable_tracing`` - Deprecated. Tracing is always enabled.
+- ``traces_collection_name`` - Collection name for trace storage
+- ``enable_memory`` - Deprecated. Use agent.yaml features.memory
+  instead.
+- ``org_id`` - Deprecated and ignored. The org is taken from the
+  ``ORG_ID`` environment variable, which the platform injects. Passing
+  this argument raises a DeprecationWarning and will be removed in a
+  future release.
+- ``project_id`` - Deprecated and ignored. The project is taken from the
+  ``PROJECT_ID`` environment variable, which the platform injects.
+  Passing this argument raises a DeprecationWarning and will be removed
+  in a future release.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.agent_config:
+
+agent_config
+~~~~~~~~~~~~
+
+.. code-block:: python
+
+   @property
+   def agent_config() -> RuntimeAgentConfig
+
+Return the parsed runtime view of agent.yaml.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.memory_enabled:
+
+memory_enabled
+~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   @property
+   def memory_enabled() -> bool
+
+Return the resolved agent.yaml Memory feature setting.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.get_agent:
+
+get_agent
+~~~~~~~~~
+
+.. code-block:: python
+
+   def get_agent(callbacks: List[Any] | None = None,
+                 *,
+                 graph: Any = None) -> BaseAgent
+
+Get a BaseAgent instance from the registered App.
+
+Delegates to the App's get_agent() method, which handles
+framework-specific graph building and callback adaptation.
+
+**Arguments**:
+
+- ``callbacks`` - Framework-neutral callbacks for observability (e.g.,
+  NodeExecutionLogger)
+- ``graph`` - A graph already built by ``build_graph`` for this
+  invocation (a per-execution agent). Only forwarded when present, so an
+  App that does not accept it keeps working.
+
+**Returns**:
+
+BaseAgent instance
+
+**Raises**:
+
+- ``RuntimeError`` - If no App has been registered via
+  register_and_run()
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.build_graph:
+
+build_graph
+~~~~~~~~~~~
+
+.. code-block:: python
+
+   async def build_graph(agent_input: Any = None, ctx: Any = None) -> Any
+
+Build the graph for this invocation before ``get_agent``.
+
+The AER awaits this so a per-execution agent's builder -- which may do
+its own async I/O -- runs off the build path. Returns ``None`` when the
+registered App declares no per-execution build (every global agent),
+which tells the caller to use the cached build path unchanged. A
+context-free discovery call passes ``(None, None)``.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.uses_per_invocation_build:
+
+uses_per_invocation_build
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def uses_per_invocation_build() -> bool
+
+Whether the registered App builds its graph per invocation.
+
+True only for an App that opted into ``load_strategy="per-execution"``.
+The Tool Pod reads this to decide whether a failed context-free
+discovery build should keep the registrations the builder made before it
+raised, rather than discarding them.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.warm_up_agent:
+
+warm_up_agent
+~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def warm_up_agent() -> bool
+
+Best-effort pre-build of the agent graph before the first /execute.
+
+Delegates to the framework App's warm_up() if it declares one;
+frameworks that don't opt in keep today's lazy build on first
+get_agent(). A ``False`` result reports that the one-shot optimization
+did not complete; ``None`` from an older or third-party implementation
+remains a successful result for compatibility.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.memory_engine:
+
+memory_engine
+~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   @property
+   def memory_engine() -> Optional[Any]
+
+Get the MemoryEngine instance if configured.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.memory_writer:
+
+memory_writer
+~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   @property
+   def memory_writer() -> Optional[Any]
+
+Get the MemoryWriter instance if configured.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.build_context:
+
+build_context
+~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def build_context(query: str,
+                     user_id: Optional[str] = None,
+                     session_id: Optional[str] = None,
+                     visibility: Optional[str] = None,
+                     metadata_filter: Optional[Dict[str, Any]] = None,
+                     enabled_sources: Optional[set[str]] = None,
+                     max_tokens: Optional[int] = None) -> str
+
+Build memory context for a query.
+
+Works with both MemoryEngine (direct) and MemoryClient (HTTP) backends.
+Backend choice is controlled by USE_MEMORY_CLIENT environment variable
+at initialization time (\_setup_memory).
+
+**Arguments**:
+
+- ``query`` - The user's query/message
+- ``user_id`` - User ID (required for memory isolation)
+- ``session_id`` - Session ID
+- ``visibility`` - Visibility scope filter (private, shared, org)
+- ``max_tokens`` - Optional gross context-construction budget. After
+  retrieval and ranking, the server subtracts a 500-token formatting
+  reserve, then greedily selects whole memory chunks that fit in the
+  remainder. Positive values at or below 500 leave no budget for
+  memories. Values above 500 can still yield empty context when no chunk
+  fits. Omit to use the server default.
+
+**Returns**:
+
+Formatted context string, or empty string if memory is disabled
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.build_context_from_sources:
+
+build_context_from_sources
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def build_context_from_sources(
+           query: str,
+           sources: "list[SourceSpec]",
+           user_id: Optional[str] = None,
+           session_id: Optional[str] = None,
+           visibility: Optional[str] = None,
+           rerank: bool = False,
+           max_tokens: Optional[int] = None) -> "ContextResponse"
+
+Build memory context from an explicit, per-source-configured source set.
+
+The per-source counterpart to :meth:``build_context``. Where that method
+applies one filter and mode to every source and returns a flattened
+string, this preserves the full ``ContextResponse`` so the per-source
+metadata (``ranking_strategy``, ``source_outcomes``) reaches the caller.
+
+Tenancy (``org_id``, ``project_id``) is stamped from the runtime; the
+caller passes none of it. Unlike :meth:``build_context``, each source's
+``top_k`` is honored, since it is the caller's explicit per-source
+intent. ``session_id`` is required only when the ``stm`` source is
+requested; omitting it for any other source set is fine.
+
+Returns an empty ``ContextResponse`` when memory is unavailable or a
+required identity field is unresolved, degrading like
+:meth:``build_context`` rather than raising into the agent turn.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.write_turn_async:
+
+write_turn_async
+~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def write_turn_async(message: str,
+                        result_messages: List[Any],
+                        user_id: Optional[str] = None,
+                        session_id: Optional[str] = None,
+                        include_user_turn: bool = True,
+                        metadata: Optional[Dict[str, Any]] = None,
+                        idempotency_key: Optional[str] = None) -> None
+
+Write turn to memory asynchronously (non-blocking).
+
+**Arguments**:
+
+- ``message`` - Original user message
+- ``result_messages`` - All messages from graph execution
+- ``user_id`` - User ID (defaults to current execution context user)
+- ``session_id`` - Session ID
+- ``include_user_turn`` - Record the user message (default True). Pass
+  False on resume legs, where there is no new user prompt and the user
+  turn was already written when the turn first started.
+- ``metadata`` - Arbitrary key-value metadata stamped on every turn
+  written.
+- ``idempotency_key`` - Deduplication key for single-turn writes;
+  ignored for multi-message writes (see :func:``write_turn_to_memory``).
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.save_semantic:
+
+save_semantic
+~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def save_semantic(text: str,
+                     label: str,
+                     user_id: Optional[str] = None,
+                     source: str = "agent",
+                     visibility: str = "private",
+                     metadata: Optional[Dict[str, Any]] = None,
+                     upsert: bool = True,
+                     agent_id: Optional[str] = None) -> bool
+
+Save a semantic memory to the memory engine.
+
+Handles embedding generation and storage automatically.
+
+**Arguments**:
+
+- ``text`` - The memory content to store
+- ``label`` - A unique label/identifier for this memory
+- ``user_id`` - User ID (required)
+- ``source`` - Source of the memory (default: "agent")
+- ``visibility`` - Memory visibility (private, shared, org)
+- ``metadata`` - Optional caller-supplied metadata dict stored with the
+  memory
+- ``upsert`` - If True, update existing memory with same label (default:
+  True)
+
+**Returns**:
+
+True if saved successfully, False otherwise
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.search_semantic:
+
+search_semantic
+~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def search_semantic(query: str,
+                       user_id: Optional[str] = None,
+                       visibility: Optional[str] = None,
+                       top_k: int = 10) -> List[Dict[str, Any]]
+
+Search semantic memories by query.
+
+**Arguments**:
+
+- ``query`` - Search query text
+- ``user_id`` - Optional user ID filter
+- ``top_k`` - Maximum number of results
+
+**Returns**:
+
+List of matching memories with label, text, and metadata
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.save_custom:
+
+save_custom
+~~~~~~~~~~~
+
+.. code-block:: python
+
+   def save_custom(
+       memory_type: str,
+       content: str,
+       tags: Optional[Dict[str, Any]] = None,
+       contextual_metadata: Optional[Dict[str, Any]] = None
+   ) -> "CustomMemorySaveResult"
+
+Save a memory of a declared custom type.
+
+Identity is stamped by the platform; the OE memory proxy forwards the
+request to the project's memory server.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.retrieve_custom:
+
+retrieve_custom
+~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def retrieve_custom(memory_type: str,
+                       query: str,
+                       tags: Optional[Dict[str, Any]] = None,
+                       top_k: int = 10) -> "CustomMemoryRetrieveResult"
+
+Retrieve memories of a declared custom type by semantic query.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.get_semantic:
+
+get_semantic
+~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def get_semantic(label: str,
+                    user_id: Optional[str] = None,
+                    visibility: Optional[str] = None) -> Optional[Dict[str, Any]]
+
+Get a specific semantic memory by label.
+
+**Arguments**:
+
+- ``label`` - Memory label
+
+**Returns**:
+
+Dict with memory details, or None if not found
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.create_taxonomic:
+
+create_taxonomic
+~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def create_taxonomic(
+           domain: str,
+           term: str,
+           definition: str,
+           related_terms: Optional[List[str]] = None,
+           visibility: str = "org",
+           user_id: Optional[str] = None,
+           metadata: Optional[Dict[str, Any]] = None) -> Optional[str]
+
+Create a taxonomic memory entry (domain-specific term with definition).
+
+Taxonomic memories are used for:
+
+- Domain terminology definitions (e.g., "deductible", "premium")
+- Query expansion (improving search relevance)
+- Semantic linking via related terms
+
+**Arguments**:
+
+- ``domain`` - Domain/category for this term (e.g., "insurance",
+  "coverage_types")
+- ``term`` - The term being defined (e.g., "deductible")
+- ``definition`` - Definition of the term
+- ``related_terms`` - Related terms for semantic linking
+- ``visibility`` - Visibility scope (default: "org" for
+  organization-wide)
+- ``user_id`` - User ID (defaults to current execution context user)
+- ``metadata`` - Arbitrary key-value metadata stored on the entry
+
+**Returns**:
+
+Created document ID, or None if creation fails
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.search_taxonomic:
+
+search_taxonomic
+~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def search_taxonomic(query: str,
+                        user_id: Optional[str] = None,
+                        domain: Optional[str] = None,
+                        visibility: Optional[str] = None,
+                        top_k: int = 10) -> List[Dict[str, Any]]
+
+Search taxonomic memories by query.
+
+**Arguments**:
+
+- ``query`` - Search query text (e.g., "what is a deductible")
+- ``domain`` - Optional domain filter (e.g., "insurance")
+- ``top_k`` - Maximum number of results
+
+**Returns**:
+
+List of matching terms with term, definition, and related_terms
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.get_taxonomic_term:
+
+get_taxonomic_term
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def get_taxonomic_term(
+           domain: str,
+           term: str,
+           user_id: Optional[str] = None,
+           visibility: Optional[str] = None) -> Optional[Dict[str, Any]]
+
+Get a specific taxonomic term by domain and term name.
+
+**Arguments**:
+
+- ``domain`` - Domain name (e.g., "insurance")
+- ``term`` - Term name (e.g., "deductible")
+
+**Returns**:
+
+Dict with term details, or None if not found
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.list_taxonomic_domains:
+
+list_taxonomic_domains
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def list_taxonomic_domains(visibility: Optional[str] = None) -> List[str]
+
+List all distinct taxonomic domains for the organization.
+
+**Returns**:
+
+List of domain names (e.g., ["insurance", "coverage_types",
+"discounts"])
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.save_episode:
+
+save_episode
+~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def save_episode(title: str,
+                    content: str,
+                    user_id: Optional[str] = None,
+                    summary: Optional[str] = None,
+                    session_id: Optional[str] = None,
+                    participants: Optional[List[str]] = None,
+                    tags: Optional[List[str]] = None,
+                    visibility: str = "private",
+                    agent_id: Optional[str] = None,
+                    metadata: Optional[Dict[str, Any]] = None) -> Optional[str]
+
+Save an episodic memory (conversation summary or significant event).
+
+Episodic memories are used for:
+
+- Storing conversation summaries for future recall
+- Recording significant events/interactions
+- Enabling context retrieval across sessions ("last time we
+  discussed...")
+
+**Arguments**:
+
+- ``title`` - Title/label for this episode (e.g., "Customer inquiry
+  about coverage")
+- ``content`` - Full content of the episode
+- ``user_id`` - User ID who owns this memory (required)
+- ``summary`` - Brief summary for search/display (defaults to title)
+- ``session_id`` - Session ID this episode originated from
+- ``participants`` - List of participants (e.g., ["Customer", "Alex"])
+- ``tags`` - Tags for categorization (e.g., ["quote", "auto_insurance"])
+- ``visibility`` - Visibility scope (default: "private")
+- ``metadata`` - Optional caller-supplied metadata dictionary stored
+  with the episode (mirrors save_semantic's metadata)
+
+**Returns**:
+
+Created document ID, or None if creation fails
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.search_episodes:
+
+search_episodes
+~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def search_episodes(query: str,
+                       user_id: Optional[str] = None,
+                       visibility: Optional[str] = None,
+                       session_id: Optional[str] = None,
+                       top_k: int = 10) -> List[Dict[str, Any]]
+
+Search episodic memories by query.
+
+**Arguments**:
+
+- ``query`` - Search query text (e.g., "teenage driver discussion")
+- ``user_id`` - Optional user ID filter
+- ``session_id`` - Optional session ID filter
+- ``top_k`` - Maximum number of results
+
+**Returns**:
+
+List of matching episodes with title, content, summary
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.list_episodes:
+
+list_episodes
+~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def list_episodes(user_id: Optional[str] = None,
+                     visibility: Optional[str] = None,
+                     session_id: Optional[str] = None,
+                     limit: int = 20) -> List[Dict[str, Any]]
+
+List episodic memories with optional filters.
+
+**Arguments**:
+
+- ``user_id`` - Optional user ID filter
+- ``session_id`` - Optional session ID filter
+- ``limit`` - Maximum number of results
+
+**Returns**:
+
+List of episodic memory entries
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.discover_procedures:
+
+discover_procedures
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def discover_procedures(
+           query: str,
+           user_id: Optional[str] = None,
+           *,
+           visibility: Optional[str] = None,
+           tags: Optional[List[str]] = None,
+           top_k: int = 10,
+           similarity_threshold: float = 0.0,
+           metadata_filter: Optional[Dict[str,
+                                          Any]] = None) -> List[Dict[str, Any]]
+
+Discover procedures matching a query (lightweight results).
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.get_procedure:
+
+get_procedure
+~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def get_procedure(procedure_name: str,
+                     *,
+                     user_id: Optional[str] = None,
+                     visibility: Optional[str] = None,
+                     include_deleted: bool = False) -> Optional[Dict[str, Any]]
+
+Get a full procedural memory by procedure name.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.save_procedure:
+
+save_procedure
+~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def save_procedure(*,
+                      procedure: str,
+                      description: str,
+                      content: str,
+                      user_id: Optional[str] = None,
+                      steps: Optional[List[Dict[str, Any]]] = None,
+                      resources: Optional[List[Dict[str, Any]]] = None,
+                      allowed_tools: Optional[List[str]] = None,
+                      compatibility: Optional[str] = None,
+                      license: Optional[str] = None,
+                      trigger_conditions: Optional[List[str]] = None,
+                      tags: Optional[List[str]] = None,
+                      visibility: str = "private",
+                      agent_id: Optional[str] = None,
+                      extraction_source: Optional[str] = None,
+                      source_format: Optional[str] = None,
+                      source_path: Optional[str] = None,
+                      metadata: Optional[Dict[str, Any]] = None,
+                      update_existing: bool = False) -> Optional[Dict[str, Any]]
+
+Create or update a procedural memory.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.get_current_user_id:
+
+get_current_user_id
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def get_current_user_id() -> Optional[str]
+
+Get the current user_id from execution context.
+
+**Returns**:
+
+User ID from the current execution context, or None if not available
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.has_active_guardrail_rules:
+
+has_active_guardrail_rules
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def has_active_guardrail_rules() -> bool
+
+Always returns False. Guardrails enforcement is handled by OE.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.validate_output:
+
+validate_output
+~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def validate_output(text: str) -> str
+
+Pass-through. Guardrails enforcement is handled by OE.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.a2a:
+
+a2a
+~~~
+
+.. code-block:: python
+
+   @property
+   def a2a() -> Optional[Any]
+
+Get an AgentToAgent client for calling other agents.
+
+Lazily creates the client using the OE HTTP URL and A2A token from the
+current execution context. Returns None when not in AER mode or when the
+OE did not provide an A2A token.
+
+The client is cached per OE URL — if the URL changes between requests
+the client is recreated.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.register_tool:
+
+register_tool
+~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def register_tool(name: str, func: Callable, metadata: Dict[str, Any]) -> None
+
+Register a raw tool function and its metadata.
+
+This stores the function for Tool Pod execution and the metadata for
+routing decisions. It does NOT create any framework-specific tool
+objects — that is the responsibility of the framework SDK.
+
+**Arguments**:
+
+- ``name`` - Tool name
+- ``func`` - Raw Python function
+- ``metadata`` - Tool metadata (is_local, network, timeout, etc.)
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.get_tool_metadata:
+
+get_tool_metadata
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def get_tool_metadata(name: str) -> Dict[str, Any]
+
+Get metadata for a registered tool.
+
+**Arguments**:
+
+- ``name`` - Tool name
+
+**Returns**:
+
+Tool metadata dict (is_local, network, timeout, etc.) or empty dict if
+tool not found.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.register_query_plugin:
+
+register_query_plugin
+~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def register_query_plugin(plugin: Any) -> None
+
+Register the framework adapter's :class:``AERQueryPlugin``.
+
+Must be called before the AER server starts — i.e. during framework
+``App`` initialization, before :meth:``register_and_run``, while
+``mode == RuntimeMode.AER``. Calling more than once replaces the
+previous registration. When no plugin is registered, the AER's
+``/query/sessions*`` routes return 501.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.get_query_plugin:
+
+get_query_plugin
+~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def get_query_plugin() -> Optional[Any]
+
+Return the registered :class:``AERQueryPlugin``, or ``None`` if none has
+been registered. Used by the AER routes to decide whether to delegate
+(plugin present) or surface 501 (plugin absent).
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.note_checkpoint_wire_workspace_id:
+
+note_checkpoint_wire_workspace_id
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def note_checkpoint_wire_workspace_id(wire_workspace_id: str | None) -> None
+
+Remember the wire ``workspace_id`` from ``/execute`` for query reads.
+
+Query routes carry no workspace identifier; when ``APP_ID`` is unset the
+read path falls back to the most recently observed wire value so it
+scopes checkpoints the same way the write path does.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.get_checkpoint_workspace_id:
+
+get_checkpoint_workspace_id
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def get_checkpoint_workspace_id() -> str
+
+Resolved workspace scope for checkpoint reads (matches write path).
+
+Returns ``""`` only for intentionally unscoped local runtimes. Managed
+AERs carry ``REQUIRE_PROJECT_SCOPED_DB`` and require ``APP_ID``; they
+deliberately reject the wire fallback if it is missing.
+
+.. _python-packages-agent-engine-runner-shared-docs-api-agent_engine_runner_shared.runtime.tenantruntime.register_and_run:
+
+register_and_run
+~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   def register_and_run(graph_builder: Optional[Callable] = None,
+                        **kwargs) -> None
+
+Register the graph builder and start the runtime.
+
+Behavior depends on RUNNER_MODE:
+
+- aer: Stores graph builder, starts AER server
+- tool: Starts Tool server (no graph needed)
+
+**Arguments**:
+
+- ``graph_builder`` - Function that returns a compiled LangGraph
+- ``**kwargs`` - Runtime startup options. Supported key is
+  ``log_level``. Deprecated ``host``, ``http_port``, and ``grpc_port``
+  keys are still accepted for backwards compatibility but are ignored.
