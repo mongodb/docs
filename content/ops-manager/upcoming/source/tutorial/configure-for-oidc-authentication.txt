@@ -24,6 +24,9 @@ try to access |mms| without an authenticated session, |mms| redirects
 you to your |idp| to log in. After you authenticate, you return to
 |mms|.
 
+For UI authentication, |mms| uses the ID token that your |idp| issues
+rather than the access token.
+
 This tutorial describes how to:
 
 - Configure |oidc| authentication for |mms|.
@@ -52,7 +55,13 @@ your |idp|:
 
    .. step:: Create a client application for |mms|.
 
-      Add your |mms| URL to the list of allowed redirect URIs.
+      Register |mms| as a web application that uses a confidential
+      client with client secret authentication. Add the |mms| callback
+      URL, ``https://<ops-manager-host>:<port>/oidc/callback``, to the
+      list of allowed redirect URIs. Include the full
+      ``/oidc/callback`` path: some identity providers, such as Okta,
+      reject the request during redirect URI validation if you register
+      only the base |mms| URL.
 
    .. step:: (Conditional) Create a user that maps to your |mms| :guilabel:`Global Owner`.
 
@@ -122,9 +131,11 @@ To configure |oidc| authentication:
          * - :guilabel:`Enable PKCE (Proof Key for Code Exchange)`
            - ``mms.oidc.pkce.enabled``
            - Yes
-           - PKCE enablement for the authorization code flow. Recommended and 
-             enabled by default. Disable only if your |idp| does not support 
-             PKCE for confidential clients. Default value: ``true``.
+           - PKCE enablement for the authorization code flow. PKCE adds
+             a verification step that protects against authorization
+             code interception. Recommended and enabled by default.
+             Disable only if your |idp| does not support PKCE for
+             confidential clients. Default value: ``true``.
 
          * - :guilabel:`Requested Scopes`
            - ``mms.oidc.requestedScopes``
@@ -200,6 +211,14 @@ To configure |oidc| authentication:
            - Claim that contains the list of groups |mms|
              uses to map roles to projects and organizations.
              Default value: ``groups``.
+
+      |mms| reads the user's first name, last name, and email address
+      from claims in the ID token. Although the claim settings are
+      optional, the claims themselves must be present in the ID token.
+      |mms| rejects the login if any of these claims are missing or
+      empty. Some identity providers, such as Okta, do not include the
+      ``given_name`` claim in the ID token under the default ``openid``
+      scope. Configure your |idp| to include these claims.
 
    .. step:: Map |oidc| groups to organization and project roles.
 
