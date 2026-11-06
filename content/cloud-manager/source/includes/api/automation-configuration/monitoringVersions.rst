@@ -87,7 +87,7 @@ endpoint.
    * - monitoringVersions.baseUrl
      - string
      - Required
-     - Base |url| used for the :ref:`mmsbaseurl <mmsBaseUrl>` setting.
+     - Base |url| used for the :ref:`mmsBaseUrl <mmsBaseUrl>` setting.
 
    * - monitoringVersions.logPath
      - string
