@@ -53,6 +53,11 @@ export const toc: L1TocItem[] = [
             contentSite: 'agentengine',
             url: '/docs/agentengine/build/build-deep-agent',
           },
+          {
+            label: 'Build an Agent with Google ADK',
+            contentSite: 'agentengine',
+            url: '/docs/agentengine/build/build-adk-agent',
+          },
         ],
       },
       {

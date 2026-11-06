@@ -1,0 +1,274 @@
+.. _agent-engine-build-adk-agent:
+
+==============================
+Build an Agent with Google ADK
+==============================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Learn how to build a durable agent with Google ADK on the Atlas Agent Engine. Includes how to register tools, build the agent, test it locally, and deploy it.
+   :keywords: google adk, agent development kit, agent.yaml, durable workflow, app.tools, sdk, python, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+In this guide, you can learn how to build and run an agent with the
+Google Agent Development Kit (ADK). The ``agent-engine-sdk-adk``
+package is an adapter between ADK and the {+mdb-ai-platform+}. The
+adapter translates ADK agents, workflow nodes, and tool calls into
+operations that the platform's Orchestration Engine runs and records.
+
+The adapter is durable, so ADK agents run in durable workflow mode.
+The Orchestration Engine, not ADK, stores the state for each session.
+The platform also stores the results of each model call and tool call.
+A resumed execution replays recorded results instead of
+repeating execution actions.
+
+Google ADK Considerations
+-------------------------
+
+When you build an ADK agent on the {+platform-short+}, consider the
+following key points:
+
+- The Google ADK SDK is available for Python only. To build an agent
+  in TypeScript, see the :ref:`TypeScript SDK <agent-engine-sdk>` guide.
+- Your agent must set the ``features.durable_workflow`` value to ``true``
+  in the ``agent.yaml`` file. If you omit this field or set it to
+  ``false``, the first invocation fails. To learn more about the
+  available fields in the ``agent.yaml`` file, see the
+  :ref:`agent.yaml schema <agent-engine-agent-contract-yaml>`.
+- The ``agent-engine-sdk-adk`` package accepts either an ADK
+  ``BaseAgent`` or an ADK 2 ``Workflow`` as the root of your agent.
+
+Prerequisites
+-------------
+
+Ensure that you have the following prerequisites before you begin:
+
+- Python 3.11 or later.
+- `uv <https://docs.astral.sh/uv/>`__ package manager.
+- Installed and authenticated ``agentengine`` CLI. To learn how, see
+  :ref:`agent-engine-set-up-create-project`.
+- Google ADK version 2.9.0 or later. To learn how to install ADK, see
+  the `ADK installation documentation
+  <https://adk.dev/get-started/installation/>`__.
+- API key for your LLM provider. The ``agentengine create`` command
+  prompts for the key and saves it to your ``.env`` file as
+  ``LLM_API_KEY``.
+
+Steps
+-----
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create a project from an ADK starter template.
+
+      Run the ``agentengine create`` command with one of the ADK
+      templates:
+
+      .. code-block:: bash
+
+         agentengine create --template hello-world-agent-adk
+
+      The ``hello-world-agent-adk`` template creates a minimal agent.
+      The ``insurance-agent-adk`` template creates an insurance-domain
+      agent. To learn about all available templates and
+      ``agentengine create`` command options, see
+      :ref:`agent-engine-agentic-create-templates`.
+
+   .. step:: Review the template code.
+
+      Open the entrypoint module in your project. The template already
+      registers a tool and builds the agent. The module uses the
+      following SDK features:
+
+      - ``@app.tool()``: Registers a function as a tool with the
+        platform. The decorator doesn't automatically expose the tool
+        to your agent.
+      - ``@app.entrypoint``: Marks the function that returns your ADK
+        agent.
+      - ``app.llm()``: Wraps an ADK ``BaseLlm`` instance so that
+        the platform audits every model call.
+      - ``app.tools()``: Returns your registered tools with the
+        platform's secure wrapper applied.
+
+      .. important::
+
+         Pass the tools that the ``app.tools()`` function returns to
+         your agent, not the functions that you decorate with
+         ``@app.tool()``.
+
+   .. step:: Run the agent locally.
+
+      From your agent directory, run the following command to start
+      the local development environment:
+
+      .. code-block:: bash
+
+         agentengine dev up
+
+      To learn about hot-reload and isolated modes, see
+      :ref:`agent-engine-build-local`.
+
+   .. step:: Deploy the agent.
+
+      Run the following command to build and deploy your agent in one
+      step:
+
+      .. code-block:: bash
+
+         agentengine deploy --auto
+
+      The deployed agent also requires your LLM API key. To learn how
+      to provide secrets to a deployed agent, see
+      :ref:`agent-engine-deploy-provision-secrets`.
+
+      To learn how to build and deploy as separate steps, see
+      :ref:`agent-engine-deploy-agent-image` and
+      :ref:`agent-engine-deploy-build`.
+
+Add Human Review to a Tool
+--------------------------
+
+To pause an execution until a human approves a tool call, wrap a
+callable tool function in the ADK ``FunctionTool`` class and pass the
+``require_confirmation=True`` option to the constructor. To pause an
+execution and collect input other than an approval, use the ADK
+``LongRunningFunctionTool`` class. Wrap the callable tool functions
+that ``app.tools()`` returns, not the raw functions that you decorate
+with ``@app.tool()``.
+
+The following example wraps each callable tool that ``app.tools()``
+returns in the ``FunctionTool`` class, so that every tool call waits for
+human approval before it runs:
+
+.. code-block:: python
+
+   import os
+
+   from google.adk.agents import LlmAgent
+   from google.adk.models.lite_llm import LiteLlm
+   from google.adk.tools.function_tool import FunctionTool
+
+   @app.entrypoint
+   def build_agent():
+       return LlmAgent(
+           name="daily",
+           instruction="You are a helpful assistant.",
+           model=app.llm(
+               LiteLlm(
+                   model="<model-name>",
+                   api_key=os.environ["LLM_API_KEY"],
+               )
+           ),
+           tools=[
+               FunctionTool(tool, require_confirmation=True)
+               for tool in app.tools()
+           ],
+       )
+
+.. note::
+
+   Remote MCP tools that ``app.tools()`` returns are ADK ``BaseTool``
+   objects, not plain callables, so you can't wrap them with the
+   ``FunctionTool`` class. The platform governs MCP tool calls through
+   Orchestration Engine policy and guardrails.
+
+Respond to Tool Requests
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+A confirmation answer has the ADK object syntax
+``{confirmed: true|false}``. The platform records each pause as an
+Orchestration Engine activity and uses the activity ID as the
+interrupt ID.
+
+To resume a paused execution, send a request to the invoke endpoint on
+the same session. In the request, include a ``resume_map`` object that
+maps the ID of every pending pause to its answer. You must answer all
+pending pauses in the same request. To find the IDs, read the
+``suspend_context.interrupts`` list of the paused execution. To learn
+more, see :ref:`agent-engine-invocation-api`.
+
+The following example request body answers two pending pauses. The
+first answer approves a tool call that requires confirmation. The
+second answer returns input that a different paused tool requested.
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "resume_map": {
+       "<activity-id-1>": { "confirmed": true },
+       "<activity-id-2>": "us-east-1"
+     }
+   }
+
+To resume from the CLI, use the ``--session`` and ``--resume`` options
+of the ``agentengine invoke`` command. To learn more, see
+:ref:`agent-engine-invoke-cli`.
+
+.. note::
+
+   ADK agents run in durable workflow mode, so you resume them with a
+   ``resume_map`` request and not with the ``decision`` request body
+   described in the
+   :ref:`Human-in-the-Loop <agent-engine-human-in-the-loop>` guide.
+
+Supported Agent Structures
+--------------------------
+
+The ``agent-engine-sdk-adk`` package requires the complete ``Workflow``
+and agent structure when your agent starts. The platform records each
+step by its path in that structure. The following table lists the ADK
+features that the ``agent-engine-sdk-adk`` package supports:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - ADK Feature
+     - Support
+   * - Plain ``BaseAgent`` root
+     - Supported
+   * - Statically configured ``Workflow`` nodes, including nested
+       serial and parallel graphs
+     - Supported
+   * - Configured ``sub_agents`` parameter, where the model selects the
+       child agent to run by calling the ``transfer_to_agent`` function
+     - Supported
+   * - Workflow agent nodes with configured transfers
+     - Supported when the agent uses ``mode="chat"``
+   * - Agents wrapped with the ``AgentTool`` class
+     - Rejected before execution. Use configured ``sub_agents``
+       instead.
+   * - ``NodeTool`` and nodes passed to ``run_node()`` at runtime
+     - Rejected with an error before the nested agent or node starts.
+
+Add Other Platform Features
+---------------------------
+
+The following platform features work with ADK agents:
+
+- Remote MCP servers that you declare in the ``mcp`` field of the
+  ``agent.yaml`` file. The platform discovers the tools at startup and
+  returns them from ``app.tools()``. To learn more, see
+  :ref:`agent-engine-remote-mcp`.
+- Guardrail output review. An ``llm_output`` guardrail with the
+  ``require_review`` action pauses the model call until a reviewer
+  approves or denies the output. Review the output through the
+  ``resume_map`` request.
+
+Learn More
+----------
+
+- :ref:`Google ADK SDK package reference
+  <python-packages-agent-engine-sdk-adk>`
+- :ref:`agent-engine-agent-contract`
+- :ref:`agent-engine-limitations`
