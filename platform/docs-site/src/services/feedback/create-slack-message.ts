@@ -70,7 +70,7 @@ function checkForLocale(pageUrl: string | null) {
     return false;
   }
 
-  const allowedLocales = ['pt-br', 'es', 'ko-kr', 'ja-jp', 'it-it', 'de-de', 'fr-fr', 'zh-cn'];
+  const allowedLocales = ['pt-br', 'es', 'ko-kr', 'ja-jp', 'zh-cn'];
   try {
     const { pathname } = new URL(pageUrl);
     const potentialLocale = pathname.split('/', 2)[1];

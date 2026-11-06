@@ -3,7 +3,7 @@ import { isBrowser } from './is-browser';
 import { normalizePath } from '@/utils/normalize-path';
 import { removeLeadingSlash } from '@/utils/remove-leading-slash';
 
-export type AvailableLocaleType = 'en-us' | 'pt-br' | 'es' | 'ko-kr' | 'ja-jp' | 'it-it' | 'de-de' | 'fr-fr' | 'zh-cn';
+export type AvailableLocaleType = 'en-us' | 'pt-br' | 'es' | 'ko-kr' | 'ja-jp' | 'zh-cn';
 
 export type AvailableLanguageData = {
   language: string;
