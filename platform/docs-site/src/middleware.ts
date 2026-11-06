@@ -40,9 +40,10 @@ export function middleware(request: NextRequest) {
   if (!pathname.startsWith('/api/')) {
     const lowerPath = lowercaseRedirectPath(pathname);
     if (lowerPath) {
-      const url = request.nextUrl.clone();
-      url.pathname = lowerPath;
-      return NextResponse.redirect(url, 301);
+      // Not nextUrl.clone(): NextURL keeps the original request's trailing-slash
+      // state, so a slashless request would format back to itself and loop.
+      const { basePath, search } = request.nextUrl;
+      return NextResponse.redirect(new URL(`${basePath}${lowerPath}${search}`, request.url), 301);
     }
   }
 

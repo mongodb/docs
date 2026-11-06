@@ -2,6 +2,9 @@ import { mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { withMicrofrontends } from '@vercel/microfrontends/next/config';
+
+const IS_VERCEL_BUILD = process.env.VERCEL === '1';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const requireFile = createRequire(import.meta.url);
@@ -286,4 +289,12 @@ const staticExportConfig = {
   },
 };
 
-export default process.env.BUILD_STATIC_PAGES === 'true' ? staticExportConfig : nextConfig;
+// withMicrofrontends would move a child app's assets to a root-level
+// `/vc-ap-<hash>/_next/` prefix, which Next can't rewrite back into basePath.
+// Keep the basePath asset URLs instead: microfrontends.json already routes each
+// docset's prefix (and manual's docs_static_manual bucket) to its app.
+export default process.env.BUILD_STATIC_PAGES === 'true'
+  ? staticExportConfig
+  : IS_VERCEL_BUILD
+    ? withMicrofrontends(nextConfig, { skipTransforms: ['assetPrefix', 'rewrites'] })
+    : nextConfig;

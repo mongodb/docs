@@ -9,15 +9,18 @@ function fakeRequest({
   pathname,
   search = '',
   accept,
+  basePath = '',
 }: {
   method?: string;
   pathname: string;
   search?: string;
   accept?: string;
+  basePath?: string;
 }): NextRequest {
   const nextUrl = {
     pathname,
     search,
+    basePath,
     searchParams: new URLSearchParams(search),
     clone() {
       return { ...this, pathname: this.pathname, search: this.search };
@@ -27,6 +30,7 @@ function fakeRequest({
     method,
     headers: { get: (key: string) => (key.toLowerCase() === 'accept' ? accept ?? null : null) },
     nextUrl,
+    url: `https://www.mongodb.com${basePath}${pathname}${search}`,
   } as unknown as NextRequest;
 }
 
@@ -127,6 +131,15 @@ describe('middleware', () => {
     expect(res.redirectUrl?.pathname).toBe(
       '/manual/reference/method/db.collection.findoneandupdate/',
     );
+  });
+
+  it('301s a slashless page under a basePath to the slashed form, keeping the query', () => {
+    const res = middleware(
+      fakeRequest({ pathname: '/upcoming', search: '?tabs=nodejs', basePath: '/docs' }),
+    ) as unknown as { status: number; redirectUrl?: URL };
+    expect(res.status).toBe(301);
+    expect(res.redirectUrl?.pathname).toBe('/docs/upcoming/');
+    expect(res.redirectUrl?.search).toBe('?tabs=nodejs');
   });
 
   it('301s a mixed-case .md export to lowercase', () => {
