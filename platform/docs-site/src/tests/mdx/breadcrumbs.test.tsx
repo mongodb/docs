@@ -46,6 +46,6 @@ describe('Breadcrumbs', () => {
     render(<Breadcrumbs />);
 
     const hrefs = screen.getAllByRole('link').map((a) => a.getAttribute('href'));
-    expect(hrefs).toEqual(['/docs/', '/docs/manual/aggregation/', null]);
+    expect(hrefs).toEqual(['/docs/', '/docs/manual/aggregation/']);
   });
 });

@@ -20,9 +20,6 @@ const canonicalCrumbPath = (path: string): string => {
   return lowercased.endsWith('/index.html') ? lowercased : lowercased.replace(/\/?$/, '/index.html');
 };
 
-// Via treats the last crumb as the current page; docs crumbs are all ancestors (UXE-1345).
-const CURRENT_PAGE_ID = 'current-page';
-
 const BreadcrumbContainer = ({ breadcrumbs: rawBreadcrumbs }: { breadcrumbs: Array<BreadcrumbType> }) => {
   const breadcrumbs = useMemo(
     () => rawBreadcrumbs.map((crumb) => ({ ...crumb, path: canonicalCrumbPath(crumb.path) })),
@@ -49,9 +46,6 @@ const BreadcrumbContainer = ({ breadcrumbs: rawBreadcrumbs }: { breadcrumbs: Arr
           {crumb.title}
         </Breadcrumb>
       ))}
-      <Breadcrumb id={CURRENT_PAGE_ID} textValue="">
-        {null}
-      </Breadcrumb>
     </Breadcrumbs>
   );
 };
