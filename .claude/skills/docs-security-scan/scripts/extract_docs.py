@@ -15,7 +15,10 @@ classes a security scan judges, each with per-file provenance and line numbers:
                   inventory) to support category #3 (absence) checks per topic.
 
 Includes are RESOLVED (rendered AST), so a code example defined in a shared
-include is extracted once with its true provenance and never double-counted.
+include is attributed to the include file (its true provenance). An include
+used on several pages appears once per page, with the same provenance and
+line; later stages group those repeats rather than this script dropping them,
+because whether a repeat is caveated can differ by page.
 
 This script is deterministic. Security judgment happens later, in the
 agent-driven scan stage; this stage only faithfully extracts what the rendered
@@ -50,6 +53,7 @@ import fnmatch
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -342,7 +346,7 @@ def load_bundle(path):
 
 
 def build_bundle(docs_path, snooty):
-    out = tempfile.mktemp(prefix="docs-security-ast-")
+    out = os.path.join(tempfile.mkdtemp(prefix="docs-security-ast-"), "bundle.zip")
     env = dict(os.environ, DIAGNOSTICS_FORMAT="JSON")
     r = subprocess.run([snooty, "build", docs_path, f"--output={out}"],
                        env=env, capture_output=True, text=True)
@@ -367,7 +371,11 @@ def main():
 
     bundle = args.bundle or build_bundle(args.docs_path, args.snooty)
     source_root = os.path.join(args.docs_path, "source") if args.docs_path else ""
-    pages = [extract_page(d, source_root) for d in load_bundle(bundle)]
+    try:
+        pages = [extract_page(d, source_root) for d in load_bundle(bundle)]
+    finally:
+        if not args.bundle:
+            shutil.rmtree(os.path.dirname(bundle), ignore_errors=True)
     pages.sort(key=lambda p: p["filename"])
 
     if args.pages:
@@ -379,7 +387,7 @@ def main():
 
     result = {
         "docset_path": args.docs_path or args.bundle,
-        "built_from": bundle,
+        "built_from": args.bundle or "snooty build (temporary bundle, removed)",
         "pages": pages,
     }
     text = json.dumps(result, indent=2, default=str)

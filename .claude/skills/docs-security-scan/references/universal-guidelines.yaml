@@ -1,0 +1,116 @@
+# Universal security guidelines: the MongoDB-relevant baseline Stage 2 checks on every docset, alongside the manifest's security_considerations.
+# Field contract and how to add a guideline: "Universal guidelines" in SCHEMA.md.
+
+guidelines:
+  - id: U-1
+    name: enable-tls-by-default
+    rule: >-
+      Connection examples must enable TLS, either via the `mongodb+srv://` format (which enables TLS automatically) or an explicit `tls=true` parameter.
+      Examples that show plain `mongodb://` without TLS should note that TLS must be enabled separately, or use `+srv`.
+    scope: >-
+      Applies to pages whose subject is establishing a connection (connection guides, connection targets, quick starts, authentication-mechanism pages).
+    exempt:
+      - "`localhost` / `127.0.0.1` connection strings (local development)."
+      - "Examples written as `mongodb[+srv]://` that tell the reader to choose the format; the `+srv` option enables TLS."
+      - "Snippets on a page whose subject is a non-TLS option (timeouts, compression, server selection, Stable API, UUID representation, and so on), when the docset has a dedicated TLS page."
+    notes:
+      - >-
+        SRV host validation: Examples that relax SRV host-name validation (for example, `srvAllowedHostsSuffix`) must specify the narrowest suffix that covers the deployment's hosts, not a broad parent domain such as `.example.com`.
+        Prose must not recommend a broad suffix.
+      - >-
+        Grouping: When the same plain-`mongodb://` pattern repeats across several in-scope pages, raise one candidate listing every affected page rather than one per page.
+    category: [insecure_code_example, counter_best_practice_advice]
+    grounding: >-
+      `content/drivers/source/client-libraries-best-practices.txt`, "Use SRV Connection Strings" section: the `+srv` format "automatically enables Transport Layer Security (TLS) for the connection ... by default. The standard format doesn't enable TLS unless you set it explicitly."
+      Its warning in the same section says drivers trust SRV results that share the seed hostname's parent domain, so a compromised DNS server can redirect the connection.
+      SRV host validation: the Java, Kotlin, Kotlin Sync, and Scala connection-options pages (e.g. `content/java/upcoming/source/connection/specify-connection-options/cluster-settings.txt`): changing the default validation "relaxes a built-in safeguard against DNS spoofing. Specify the narrowest suffix that covers the hosts in your deployment."
+
+  - id: U-2
+    name: validate-untrusted-input-before-json-to-bson
+    rule: >-
+      Examples that convert untrusted JSON to BSON and use the result in a query/update/command must type-check and validate the input first, or use a typed document builder / query builder.
+      Examples must not concatenate untrusted input into a JSON string before conversion.
+    notes:
+      - >-
+        Builders: A typed builder avoids string concatenation, but it is not a sanitization layer.
+        The risk is an untrusted value that can be an object or document (parsed JSON, a dynamic-language dict or hash, a `BsonDocument`), because it can carry operators such as `$ne`.
+        Examples that pass such a value to a builder class (filter, update, aggregation, projection, sort, or index builders) or to a LINQ or ODM query API must validate it first.
+        Prose must not claim that builders sanitize their inputs.
+    exempt:
+      - "A builder that receives a value of a scalar type (e.g. a C++ `std::string`, a Java `String`), or prose that correctly says such a value can't alter the query's structure."
+    category: [insecure_code_example, counter_best_practice_advice]
+    grounding: >-
+      `content/drivers/source/client-libraries-best-practices.txt`, "Validate Untrusted Input Before Converting JSON to BSON" section: an attacker can change the meaning of an operation by substituting an object for an expected scalar (e.g. `{"name": {"$ne": null}}`), and string concatenation "can escape the intended field value and inject arbitrary query syntax."
+      Builders: the drivers' builder input-validation note (e.g. `content/csharp/upcoming/source/includes/builders-input-validation.rst`, `content/php-library/upcoming/source/includes/builders-input-validation.rst`): "By design, the builders are not a security sanitization layer. Validate and sanitize untrusted input in your application before you pass it to a builder."
+
+  - id: U-3
+    name: no-server-side-js-from-user-input
+    rule: >-
+      Examples must not build `$where`, `$function`, `$accumulator`, or `mapReduce` expressions by concatenating or interpolating untrusted input into a JavaScript string.
+      Where server-side scripting is unnecessary, examples may show disabling it (`security.javascriptEnabled: false` or `--noscripting`).
+    category: [insecure_code_example, counter_best_practice_advice]
+    grounding: >-
+      `content/drivers/source/client-libraries-best-practices.txt`, "Restrict Server-Side JavaScript Execution" section: when an application builds one of these expressions from user input, "the server executes that input as code ... the same class of risk as passing untrusted input to an `eval` function."
+
+  - id: U-4
+    name: no-tls-disable-without-justification
+    rule: >-
+      Examples must not disable TLS (`tls=false`, `ssl=false`, `--insecure`, certificate verification skip) without a caveat explaining when that is acceptable (e.g. local development only).
+      Prose must not recommend disabling TLS for production deployments without justification.
+    scope: >-
+      MongoDB connections and deployed MongoDB-backed application endpoints.
+    exempt:
+      - "Single-line diagnostic snippets that make no MongoDB connection and handle no credentials (e.g. a `requests.get(..., verify=False)` probe to a TLS-checker service). Those are ceremony, not MongoDB security guidance."
+    notes:
+      - >-
+        Options: The connection-string options are `tlsInsecure`, `tlsAllowInvalidCertificates`, and `tlsAllowInvalidHostnames` set to true.
+        Each driver also has API equivalents, for example `InsecureSkipVerify` (Go), `invalidHostNameAllowed(true)` (Java, Kotlin, Scala), `allow_invalid_certificates` / `allow_invalid_hostnames` (Rust, C++), `AllowInsecureTls` (C#), and `ssl_verify: false` (Ruby, Mongoid).
+        `tlsDisableOCSPEndpointCheck` does not skip certificate validation and is not covered.
+    category: [insecure_code_example, counter_best_practice_advice]
+    grounding: >-
+      The drivers' TLS pages, which caveat these options as insecure in production: `content/node/upcoming/source/security/tls.txt` ("Specifying any of these options in a production environment makes your application insecure"), `content/rust/upcoming/source/security/tls.txt`, `content/php-library/upcoming/source/security/tls.txt` ("Always set the `tlsInsecure`, `tlsAllowInvalidCertificates`, and `tlsAllowInvalidHostnames` options to `false` in production"), `content/java/upcoming/source/security/tls.txt`, and `content/golang/upcoming/source/security/tls.txt`.
+
+  - id: U-5
+    name: least-privilege-db-users
+    rule: >-
+      Examples and prose that create or configure database users should grant the minimum privileges required, not blanket roles.
+      Prose that recommends a broad role (e.g. `root`, `dbOwner`) where a narrow role suffices is a candidate finding unless the context justifies it.
+    category: [counter_best_practice_advice, absent_consideration]
+    grounding: general
+
+  - id: U-6
+    name: do-not-recommend-disabling-auth
+    rule: >-
+      Prose must not instruct readers to disable authentication (`--noauth`, removing auth mechanisms) for production or general use without an explicit, scoped justification.
+      Disabling auth for a local development sandbox is acceptable if caveated.
+    category: [counter_best_practice_advice]
+    grounding: general
+
+  - id: U-7
+    name: credentials-from-environment
+    rule: >-
+      Connection and integration examples should obtain connection strings and credentials from environment variables, a secret manager, a KMS, or IAM roles, not hardcode them inline in source or configuration files.
+      An example that inlines a connection string (even with a placeholder) teaches an insecure pattern unless the code itself retrieves it from one of those sources.
+      The docset's own idiom for reading the environment counts (e.g. `os.environ`, `process.env`, `os.Getenv`, `env::var`, `Environment.GetEnvironmentVariable`, Laravel `env()`, an ERb interpolation in `mongoid.yml`).
+      Prose that calls a value an environment variable, or says where to copy the string from, does not count.
+      Prose that recommends hardcoding credentials is a counter-best-practice finding.
+    scope: >-
+      Connection guides, quick starts / get-started pages, and integration or framework tutorials.
+    exempt:
+      - "`localhost` / `127.0.0.1` URIs with no credentials, on any page."
+      - "Authentication-mechanism pages, which inline credentials to demonstrate the mechanism."
+      - "A placeholder-only URI on a reference page (connection-options pages and their child pages, API reference pages). Outside integration pages, a bare placeholder with no credential slots (e.g. `uri = \"<connection string>\"`) is also acceptable."
+    category: [counter_best_practice_advice]
+    grounding: >-
+      `content/pymongo-driver/upcoming/source/integrations/fastapi-integration.txt`, "Security and Environment" section: "Storing sensitive credentials directly in your application code might cause accidental exposure in version control systems. Instead, use environment variables to store connection strings, API keys, and other sensitive information."
+
+  - id: U-8
+    name: no-hardcoded-encryption-key-material
+    rule: >-
+      In-use encryption (CSFLE / Queryable Encryption) examples must not hardcode a data encryption key, a customer master key, or KMS provider credentials (e.g. an AWS `accessKeyId` / `secretAccessKey`) in source.
+      Examples must obtain keys and credentials from a KMS or reference a securely provisioned key.
+      A placeholder, an environment-variable reference, or a local key generated at runtime is acceptable.
+      An example that uses the local KMS provider (`"local"`) is acceptable only when it adjoins a caveat that the local provider is for development or testing and that production should use a remote KMS.
+    category: [insecure_code_example]
+    grounding: >-
+      `content/manual/manual/source/includes/queryable-encryption/qe-warning-local-keys.rst`: "We recommend storing your Customer Master Keys in a remote Key Management System ... If you choose to use a local key provider in production, exercise great caution and do not store it on the file system."
