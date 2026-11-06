@@ -161,14 +161,14 @@ receives the following properties:
      - The port of the KMS host that the driver must reach.
 
    * - ``timeoutMS``
-     - The time remaining in the operation's client-side operation timeout
-       (CSOT) budget, in milliseconds. This property is ``undefined`` if the
-       operation has no CSOT configured.
+     - Deprecated in {+driver-short+} 7.8 and later. This property has no
+       effect and is slated for removal in a future release. In earlier
+       driver versions, it contained the time remaining in the operation's
+       client-side operation timeout budget, in milliseconds.
 
    * - ``signal``
-     - An ``AbortSignal`` that aborts when the connection attempt exceeds the
-       timeout budget. When the signal fires, your callback must stop connecting
-       and reject.
+     - An ``AbortSignal`` that aborts when the operation is aborted. When
+       the signal fires, your callback must stop connecting and reject.
 
 The following example defines a callback that opens a tunnel to the KMS host by
 sending an HTTP ``CONNECT`` request to a proxy, and then passes the callback to
@@ -178,26 +178,25 @@ a ``ClientEncryption`` instance:
 
    import * as net from "net";
 
-   const kmsConnectCallback = ({ host, port, timeoutMS, signal }) =>
+   const kmsConnectCallback = ({ host, port, signal }) =>
      new Promise((resolve, reject) => {
        // Opens a plain connection to the proxy, not to the KMS host.
        // Passing signal lets Node abort the connection attempt when the
-       // driver's timeout budget expires.
+       // driver aborts the operation.
        const socket = net.connect({
          host: "proxy.example.com",
          port: 8080,
          signal
        });
 
-       // Applies the remaining CSOT budget to the proxy handshake, so that
-       // a proxy that accepts the connection but never answers CONNECT
-       // can't stall the operation.
-       if (timeoutMS !== undefined) {
-         socket.setTimeout(timeoutMS, () => {
-           socket.destroy();
-           reject(new Error("Timed out waiting for the proxy"));
-         });
-       }
+       // Guards against a proxy that accepts the connection but stops
+       // responding. The driver applies no timeout to the KMS connection,
+       // so use an application-chosen idle timeout. It stays active after
+       // the CONNECT exchange, so it also covers the TLS handshake and
+       // KMS request that the driver performs over this socket.
+       socket.setTimeout(10000, () => {
+         socket.destroy(new Error("KMS connection timed out"));
+       });
 
        socket.once("error", reject);
 
@@ -210,9 +209,8 @@ a ``ClientEncryption`` instance:
 
          socket.once("data", chunk => {
            if (chunk.toString("utf8").startsWith("HTTP/1.1 200")) {
-             // Clears the handshake timeout and returns the socket so that
-             // the driver can perform the TLS handshake
-             socket.setTimeout(0);
+             // Returns the socket so that the driver can perform the
+             // TLS handshake
              resolve(socket);
            } else {
              socket.destroy();
@@ -228,11 +226,19 @@ a ``ClientEncryption`` instance:
      kmsConnectCallback
    });
 
-The ``signal`` property applies to the connection to the proxy, and the
-``timeoutMS`` property applies to the ``CONNECT`` exchange. A socket timeout
-stays active after the ``CONNECT`` exchange ends, so clear the timeout before
-you resolve the promise. Otherwise, the timeout can destroy the socket while the
-driver performs the TLS handshake.
+The ``signal`` property applies to the connection to the proxy. When the
+operation is aborted, the signal fires and Node stops the connection attempt.
+
+The ``setTimeout()`` call guards against a proxy that accepts the
+connection but stops responding. The driver applies no timeout to the
+``kmsConnectCallback`` or to the KMS request that follows. Without an
+idle timeout that you choose, the operation can hang. The timeout fires
+if no data arrives on the socket for 10 seconds. It stays active after
+the ``CONNECT`` exchange, so it also covers the TLS handshake and the
+KMS request that the driver sends over the tunnel. When the timeout
+fires, the example passes an error to ``socket.destroy()``, which
+rejects the pending operation. The driver closes the socket after each
+KMS request.
 
 The preceding example is condensed to show the sequence of calls. In production
 code, buffer the proxy's response until you receive the end of the header block,

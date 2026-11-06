@@ -21,6 +21,7 @@ Release Notes
 
 Learn what's new in:
 
+* :ref:`Version 7.8 <version-7.8>`
 * :ref:`Version 7.7 <version-7.7>`
 * :ref:`Version 7.6 <version-7.6>`
 * :ref:`Version 7.5 <version-7.5>`
@@ -51,6 +52,91 @@ Learn what's new in:
 * :ref:`Version 6.2 <version-6.2>`
 * :ref:`Version 6.1 <version-6.1>`
 * :ref:`Version 6.0 <version-6.0>`
+
+.. _version-7.8:
+
+What's New in 7.8
+-----------------
+
+.. warning:: Upgrade to v7.8
+
+   Driver version 7.8 fixes the following vulnerabilities found in previous
+   driver versions:
+
+   - In driver versions 6.11 through 6.21 and 7.0 through 7.7, the
+     ``timeoutMS`` connection option can cause connection pool
+     desynchronization. The desynchronization occurs after an
+     operation timeout and can expose other users' data.
+
+   - In driver versions 3.3.3 through 7.7, an attacker in control of a
+     DNS response could exploit an SRV host name verification issue
+     and redirect the driver to a host outside your
+     domain.
+
+The {+driver-short+} v7.8 release includes the following changes:
+
+- Deprecates the ``timeoutMS`` and ``timeoutMode`` connection options. These
+  options have no effect and are slated for removal in a future release.
+  Use the per-stage timeout options ``serverSelectionTimeoutMS``,
+  ``waitQueueTimeoutMS``, ``socketTimeoutMS``, and ``maxTimeMS`` instead.
+
+- Adds the following options for validating host names returned by SRV lookups:
+
+  - ``srvAllowedHostsSuffix``: Specifies a host name suffix that every
+    host returned by the SRV lookup must end with. You can configure
+    this option on the client or in the connection string.
+  - ``srvHostValidator``: Specifies a synchronous function that accepts
+    a host name and returns a Boolean value indicating whether the
+    driver may use it. You can configure this option on the client only.
+
+  Modifying the default SRV domain name validation can create
+  vulnerabilities.
+
+- Compares SRV host names case-insensitively, without a trailing dot, and with
+  internationalized names in ``xn--`` form.
+
+- Uses the Node.js built-in ``zstd`` implementation for network compression
+  on Node.js 22.15.0 and later. On older versions, the driver continues
+  to use ``@mongodb-js/zstd``. No changes are needed for existing setups.
+
+- Adds a ``createIndex()`` overload that accepts a third parameter
+  containing options for the ``createIndexes`` command. This form
+  separates command-level options such as ``commitQuorum`` and
+  ``maxTimeMS`` from options that describe the index itself. When you
+  use the three-parameter form, the driver passes index options to the
+  server as written. With this form, you can use new index options
+  without waiting for the driver to support them. The two-parameter
+  form is deprecated and is slated for removal in a future major
+  release. Until then, it continues to filter out invalid index options.
+
+- Removes the ``@experimental`` designation from the ``encryptedFields``
+  options on ``createCollection()`` and ``dropCollection()``, the
+  ``keyMaterial`` option, and the
+  ``ClientEncryptionRewrapManyDataKeyProviderOptions`` and
+  ``ClientEncryptionRewrapManyDataKeyResult`` types. The
+  ``rewrapManyDataKey()`` method now returns the
+  ``ClientEncryptionRewrapManyDataKeyResult`` type.
+
+- Fixes an issue in which sorting by ``$meta`` in a
+  ``[field, direction]`` pair, such as
+  ``cursor.sort(['score', { $meta: 'textScore' }])``, failed with a
+  ``MongoInvalidArgumentError``.
+
+- Fixes an issue in which ``BulkWriteResult.insertedIds`` for unordered
+  bulk writes that mixed inserts with updates or deletes used a running
+  count of inserts as the key. The property is now keyed by each
+  insert's index in the operations list, matching ordered bulk writes.
+
+- Matches file IDs with ``$eq`` in GridFS download, delete, rename,
+  and upload-abort queries. The behavior is unchanged for typical file
+  IDs, such as ``ObjectId`` or string values, but commands appear as
+  ``{ _id: { $eq: <id> } }`` in command monitoring and logs.
+
+- Stops compressing ``hello`` and ``isMaster`` commands on monitoring
+  connections.
+
+To learn more about this release, see the :github:`v7.8.0 Release Notes
+<mongodb/node-mongodb-native/releases/tag/v7.8.0>` on GitHub.
 
 .. _version-7.7:
 
@@ -396,7 +482,7 @@ The {+driver-short+} v6.19 release includes the following features:
 
   .. important:: 
 
-     Substring, prefix and suffix search are in preview and should be used for experimental workloads only.
+     Substring, prefix and suffix search are in preview and are intended for experimental workloads only.
 
 - Deprecates the following options for ``findOne()`` operations:
 
