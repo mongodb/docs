@@ -746,6 +746,11 @@ export const toc: L1TocItem[] = [
                     url: '/docs/agentengine/cli/agentengine_agent_bump-version',
                   },
                   {
+                    label: 'create-tool',
+                    contentSite: 'agentengine',
+                    url: '/docs/agentengine/cli/agentengine_agent_create-tool',
+                  },
+                  {
                     label: 'egress',
                     contentSite: 'agentengine',
                     collapsible: true,
@@ -1014,11 +1019,6 @@ export const toc: L1TocItem[] = [
                 url: '/docs/agentengine/cli/agentengine_create',
               },
               {
-                label: 'create-tool',
-                contentSite: 'agentengine',
-                url: '/docs/agentengine/cli/agentengine_create-tool',
-              },
-              {
                 label: 'debug',
                 contentSite: 'agentengine',
                 collapsible: true,
@@ -1082,11 +1082,6 @@ export const toc: L1TocItem[] = [
                     label: 'clean',
                     contentSite: 'agentengine',
                     url: '/docs/agentengine/cli/agentengine_dev_clean',
-                  },
-                  {
-                    label: 'login',
-                    contentSite: 'agentengine',
-                    url: '/docs/agentengine/cli/agentengine_dev_login',
                   },
                   {
                     label: 'logs',
@@ -1408,6 +1403,11 @@ export const toc: L1TocItem[] = [
                 label: 'artifact-registry-validate',
                 contentSite: 'agentengine',
                 url: '/docs/agentengine/cli/artifact-registry-validate',
+              },
+              {
+                label: 'corporate-tls',
+                contentSite: 'agentengine',
+                url: '/docs/agentengine/cli/corporate-tls',
               },
               {
                 label: 'custom-artifact-source',

@@ -1,7 +1,7 @@
 .. _custom-artifact-source:
 
-Custom artifact source (``AP_SOURCE=custom``)
-=============================================
+Custom artifact source (``AGENTENGINE_IMAGE_SOURCE=custom``)
+============================================================
 
 The ``custom`` source routes CLI binary downloads and dev-stack image
 pulls through your own hosted infrastructure instead of MongoDB’s GitHub
@@ -35,45 +35,25 @@ The five dev-stack images are: ``playground-ui``,
 ``orchestration-engine``, ``memory-server``, ``runner-base``,
 ``runner-base-typescript-langgraph``.
 
-.. code:: mermaid
-
-   flowchart LR
-       Y["source.yaml<br/>(base + release + registry)"] --> R["release block"]
-       Y --> G["registry block"]
-       R --> SU["agentengine self-update<br/>+ update notice"]
-       G --> DU["agentengine dev up<br/>(5 dev images)"]
-       Y -. "omitted block falls back to base<br/>(internal | public baked defaults;<br/>self-update: gateway then GitHub;<br/>version/notice: GitHub or static)" .-> B["base source"]
-
 Prerequisites
 -------------
 
-- ``AP_SOURCE=custom`` in your environment
+- ``AGENTENGINE_IMAGE_SOURCE=custom`` in your environment
 - ``source.yaml`` at ``~/.agentengine/source.yaml`` (or at a path set in
-  ``$AP_SOURCE_FILE``)
+  ``$AGENTENGINE_IMAGE_SOURCE_FILE``)
 - Your corporate CA must be in the OS trust store — there is no
   ``--insecure`` flag (see `Security <#security>`__)
 
 .. note::
 
-   **Variable names change with the public-artifact flag.** This page
-   uses the names in effect while that flag is off. When the platform
-   turns it on, the CLI prefers ``AGENTENGINE_IMAGE_SOURCE`` and
-   ``AGENTENGINE_IMAGE_SOURCE_FILE`` instead. Only the names change —
-   the values, this file’s format, and ``base:`` are all identical
-   either way.
+   **The override variable names are fixed.** The CLI reads
+   ``AGENTENGINE_IMAGE_SOURCE`` and ``AGENTENGINE_IMAGE_SOURCE_FILE``.
+   The retired ``AP_SOURCE`` / ``AP_SOURCE_FILE`` names are no longer
+   read, and setting either one fails the command.
 
-   **Either name works on an isolated network.** The flag that selects
-   the preferred name is fetched from the platform, which an air-gapped
-   or egress-restricted machine cannot reach — so the CLI honors
-   whichever name is actually set rather than the one the flag would
-   have chosen. Setting only ``AGENTENGINE_IMAGE_SOURCE=custom`` works
-   with no connectivity at all. Set both names and the flag decides
-   which wins, and the CLI says so.
-
-   To skip the flag read entirely on such a machine, set
-   ``AGENTENGINE_SKIP_PLATFORM_FLAGS=1``; otherwise each command waits
-   out a short timeout the first time, and once a minute after that.
-   ``agentengine version --full`` reports which names are live. See
+   **No platform connectivity is needed.** The CLI resolves the source
+   locally, so an air-gapped or egress-restricted machine configures
+   itself with ``AGENTENGINE_IMAGE_SOURCE=custom`` alone. See
    :ref:`public-artifacts <public-artifacts>`.
 
 --------------
@@ -135,7 +115,7 @@ Step 4 — Write ``source.yaml``
 ------------------------------
 
 Place at ``~/.agentengine/source.yaml``, or at the path you set in
-``$AP_SOURCE_FILE``.
+``$AGENTENGINE_IMAGE_SOURCE_FILE``.
 
 Recommended: generate it with the CLI
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -158,7 +138,7 @@ Full mirror — binary and images from your host
 
 .. code:: yaml
 
-   base: internal
+   base: public
    release:
      type: static
      url: https://artifactory.example.com/acme-generic/agentic-cli/manifest.json
@@ -172,7 +152,7 @@ Use when your network allows ``github.com`` but blocks ``ghcr.io``:
 
 .. code:: yaml
 
-   base: internal
+   base: public
    registry:
      prefix: artifactory.example.com/acme-docker
 
@@ -184,7 +164,7 @@ downloads:
 
 .. code:: yaml
 
-   base: internal
+   base: public
    release:
      type: static
      url: https://nexus.example.com/agentic-cli/manifest.json
@@ -197,18 +177,17 @@ shape (e.g. GitHub Enterprise) instead of hosting a static manifest:
 
 .. code:: yaml
 
-   base: internal
+   base: public
    release:
      type: github
      url: https://ghe.example.internal/api/v3/repos/acme/agentic-cli/releases
    registry:
      prefix: registry.example.internal/agentic
 
-Public base — mirroring the public release
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Mirroring the public release
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For deployments that mirror the public release artifacts instead of the
-internal ones:
+For deployments that mirror the public release artifacts:
 
 .. code:: yaml
 
@@ -234,8 +213,8 @@ certain of it. See :ref:`public-artifacts.md <public-artifacts>`.
      - Required
      - Description
    * - ``base``
-     - No (default: ``internal``)
-     - Fallback source for anything not overridden: ``internal`` or ``public``
+     - No (default: ``public``)
+     - Fallback source for anything not overridden: ``public``
    * - ``release.type``
      - Yes if ``release`` present
      - ``static`` — static JSON manifest (this doc); ``github`` — GitHub-shaped releases API
@@ -250,16 +229,16 @@ At least one of ``release`` or ``registry`` is required — a
 ``source.yaml`` with neither is equivalent to the base source and is
 rejected.
 
-``$AP_SOURCE_FILE`` overrides the ``~/.agentengine/source.yaml``
-discovery path. When set, a missing or unreadable file is a hard error
+``$AGENTENGINE_IMAGE_SOURCE_FILE`` overrides the
+``~/.agentengine/source.yaml`` discovery path. When set, a missing or unreadable file is a hard error
 rather than a silent fallback to the home file.
 
 Step 5 — Verify
 ---------------
 
 ``agentengine agent source validate`` checks the file without requiring
-``$AP_SOURCE`` to be set first, and on success prints the exact env vars
-to activate it:
+``$AGENTENGINE_IMAGE_SOURCE`` to be set first, and on success prints the
+exact env vars to activate it:
 
 .. code:: bash
 
@@ -268,8 +247,8 @@ to activate it:
 
 .. code-block:: bash
 
-   AP_SOURCE=custom
-   AP_SOURCE_FILE=/Users/you/.agentengine/source.yaml
+   AGENTENGINE_IMAGE_SOURCE=custom
+   AGENTENGINE_IMAGE_SOURCE_FILE=/Users/you/.agentengine/source.yaml
 
 Validation failures surface the same pinned messages listed in
 Troubleshooting below, whether the file came from
@@ -280,7 +259,7 @@ Then activate it and confirm the resolved routing:
 
 .. code:: bash
 
-   export AP_SOURCE=custom
+   export AGENTENGINE_IMAGE_SOURCE=custom
    agentengine version --full
 
 For a full mirror you should see:
@@ -384,10 +363,13 @@ use TLS.
 **Corporate CA.** Air-gapped enterprises typically run an internal
 certificate authority. The CLI uses Go’s TLS stack, which follows the OS
 certificate trust store. Your corporate CA must be installed in the OS
-trust store before using ``AP_SOURCE=custom`` with an internal HTTPS
-host. There is no ``--insecure`` or ``--cacert`` flag. A TLS verify
-failure against an internal host is a trust-store problem, not a CLI
-bug.
+trust store before using ``AGENTENGINE_IMAGE_SOURCE=custom`` with an
+internal HTTPS host. There is no ``--insecure`` or ``--cacert`` flag. A
+TLS verify failure against an internal host is a trust-store problem,
+not a CLI bug.
+
+Package installs inside the generated local-dev image are a separate
+trust store. See :ref:`corporate-tls`.
 
 **Registry authentication.** The CLI never stores or manages Docker
 credentials. If your registry requires authentication, run
@@ -396,8 +378,8 @@ The CLI passes image references to Docker, which uses its own ambient
 credential store.
 
 **``source.yaml`` discovery.** The CLI loads ``source.yaml`` only from
-``$AP_SOURCE_FILE`` (when set) or ``~/.agentengine/source.yaml``. It
-never auto-loads from the current working directory — doing so would
+``$AGENTENGINE_IMAGE_SOURCE_FILE`` (when set) or
+``~/.agentengine/source.yaml``. It never auto-loads from the current working directory — doing so would
 allow a cloned repository to redirect self-update to an
 attacker-controlled host.
 
@@ -412,11 +394,11 @@ Troubleshooting
    * - Error
      - Cause
      - Fix
-   * - ``AP_SOURCE=custom but no source.yaml found``
+   * - ``AGENTENGINE_IMAGE_SOURCE=custom but no source.yaml found``
      - No file at either searched path
-     - Create ``~/.agentengine/source.yaml`` or set ``$AP_SOURCE_FILE``
-   * - ``$AP_SOURCE_FILE points to "..." which does not exist``
-     - ``$AP_SOURCE_FILE`` set but file missing
+     - Create ``~/.agentengine/source.yaml`` or set ``$AGENTENGINE_IMAGE_SOURCE_FILE``
+   * - ``$AGENTENGINE_IMAGE_SOURCE_FILE points to "..." which does not exist``
+     - ``$AGENTENGINE_IMAGE_SOURCE_FILE`` set but file missing
      - Check the path; the file must exist when the env var is set
    * - ``source.yaml: release.url must be an https:// URL``
      - URL starts with ``http://``

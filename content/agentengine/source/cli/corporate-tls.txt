@@ -1,0 +1,69 @@
+.. _corporate-tls:
+
+Corporate TLS inspection in local ``agentengine dev up``
+========================================================
+
+Some corporate networks intercept HTTPS (Zscaler and similar products)
+and re-sign it with a company CA. That CA is trusted on the laptop, but
+not inside the generated local-dev image, so ``uv`` / ``npm`` fail
+during image build with a TLS trust error such as ``UnknownIssuer``.
+
+Supply the company CA
+---------------------
+
+1. Export the **root** intercept CA as PEM. Intermediates only help
+   when the chain is incomplete; the trust anchor is the root. Typical
+   sources:
+
+   - your OS trust store (Keychain / ``certmgr`` / ``/etc/ssl/certs``)
+   - an export your IT team already documents
+
+#. Point the CLI at that file:
+
+   .. code:: bash
+
+      agentengine dev up --ca-bundle /path/to/corp-root.pem
+
+``AGENTENGINE_CA_BUNDLE`` in the process environment is equivalent. A
+value in the workspace ``.env`` is ignored so a cloned repository cannot
+install a CA.
+
+The CLI validates the PEM (certificates only, no private keys), records
+it per workspace under ``~/.agentengine/ca-bundles/``, and embeds the
+authorized copy into the generated image **before** package installs,
+where it is merged into the Amazon Linux trust bundle. The build never
+reads anything from the writable workspace, so repository or container
+changes between runs cannot alter what is trusted. A
+``.agentengine/ca-bundle.crt`` shipped by a repository is never read; it
+only draws a warning.
+
+The recorded CA also applies at **runtime**, not just build time: the
+generated image points the standard CA environment variables
+(``SSL_CERT_FILE``, ``REQUESTS_CA_BUNDLE``, ``CURL_CA_BUNDLE``,
+``NODE_EXTRA_CA_CERTS``, and uv's system-cert mode) at the merged
+bundle, so the agent's own HTTPS calls through the intercepting proxy
+work too. Those variables — and their directory-selector sibling
+``SSL_CERT_DIR`` — are owned by the CLI for the local stack: values for
+them in the workspace ``.env`` are not passed to the dev containers, so
+a cloned repository cannot point the workers' TLS at a certificate it
+ships. If you need another CA (for example a private registry's), add
+it to the bundle you pass to ``--ca-bundle``.
+
+Later ``agentengine dev up`` runs reuse the record on the same machine;
+a different machine or checkout does not inherit it — pass the flag
+again there. ``--clear-ca-bundle`` removes the record and regenerates
+without the CA.
+
+Do not hand-edit ``.agentengine/Dockerfile.dev``. The next
+``agentengine dev up`` regenerates it.
+
+What this does not change
+-------------------------
+
+- Developers who do not supply a CA get the same image build as before.
+- There is no ``--insecure`` flag. A TLS failure without a trusted CA
+  still reports a trust problem.
+- The OS trust store used by the ``agentengine`` binary itself (for
+  example ``AGENTENGINE_IMAGE_SOURCE=custom``) is separate; install that
+  CA on the host as documented in
+  :ref:`custom-artifact-source.md <custom-artifact-source>`.

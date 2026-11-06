@@ -38,6 +38,22 @@ is set.
 Set either variable to ``0``, ``false``, ``no``, or ``off`` to disable
 that channel.
 
+Product analytics also opt out automatically for a synthetic
+(canary/test) account: when a login resolves an account whose telemetry
+is disabled, the CLI records that on the install and stops sending
+product analytics — including pre-login events — until a later login as
+a real account clears it. The variables above still win, so setting
+``AGENTENGINE_TELEMETRY_ENABLED=0`` keeps telemetry off regardless.
+
+Product-usage analytics record that features were used, not what you
+used them on: each CLI invocation is counted with its command path (for
+example ``agentengine dev up``), a success/failure outcome, and a coarse
+error class on failures, alongside install, login, and
+feature-milestone events. Events never contain command arguments, file
+paths, secret values, or error message text. Runs before login are
+recorded under a pseudonymous anonymous ID that is linked to your
+account when you sign in.
+
 For Sentry specifically, the CLI withholds the DSN embedded in release
 builds, so the containers it starts do not report until you opt in.
 Container reporting requires both ``AGENTENGINE_SENTRY_ENABLED=1`` and
@@ -86,15 +102,6 @@ true, case-insensitive. Any other value, including an unset variable, is
 false. The other variables on this page each state their own accepted
 values above.
 
-Platform feature flags
-----------------------
-
-Commands that resolve an artifact source read an environment-wide
-feature flag from the platform. Set ``AGENTENGINE_SKIP_PLATFORM_FLAGS``
-to any value other than ``0`` or ``false`` to skip that read entirely. A
-skipped read resolves to the built-in defaults, which keeps the CLI
-usable on a machine with no route to the platform.
-
 Command output
 --------------
 
@@ -102,3 +109,17 @@ Most commands print a context line at the top of their output showing
 the organization, project, workspace, and environment the command will
 act on. Set ``AGENTENGINE_NO_BREADCRUMB`` to any non-empty value to
 suppress that line, which suits scripts that parse command output.
+
+Local dev TLS inspection
+------------------------
+
+``agentengine dev up`` builds local images that fetch packages from
+PyPI and npm. On a network that intercepts HTTPS with a company CA, set
+``AGENTENGINE_CA_BUNDLE`` to the PEM file of that CA (or pass
+``--ca-bundle``). The CLI embeds it into the generated image before
+package installs, so ``uv`` and ``npm`` trust the re-signed traffic, and
+the agent's runtime HTTPS calls through the proxy work too. The CA is
+recorded per workspace under ``~/.agentengine/`` and reused on later
+runs on the same machine; a value in the workspace ``.env`` is ignored
+so a cloned repository cannot install a CA. See
+:ref:`corporate-tls`.
