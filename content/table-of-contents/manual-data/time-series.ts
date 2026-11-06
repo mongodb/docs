@@ -42,11 +42,13 @@ const tocData: TocItem[] = [
             label: 'Use Aggregation',
             contentSite: 'docs',
             url: '/docs/:version/core/timeseries/timeseries-migrate-with-aggregation',
+            versions: { excludes: ['upcoming'] },
           },
           {
             label: 'Use Tools',
             contentSite: 'docs',
             url: '/docs/:version/core/timeseries/timeseries-migrate-with-tools',
+            versions: { excludes: ['upcoming'] },
           },
         ],
       },

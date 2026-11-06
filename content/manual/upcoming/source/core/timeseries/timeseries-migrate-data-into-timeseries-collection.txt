@@ -13,38 +13,132 @@ Migrate Data into a Time Series Collection
    :class: singlecol
 
 .. meta::
-   :keywords: IOT
-   :description: Migrate data into a time series collection using aggregation pipelines, database tools, or relational migrator for improved performance and storage.
+   :keywords: IOT, code example
+   :description: Migrate data from an existing MongoDB collection into a time series collection using an aggregation pipeline, mongodump and mongorestore, or Relational Migrator.
 
-If your collection stores data that you want to compare across time intervals,
-use a time series collection to improve performance and storage. For more
-information on the benefits of time series collections, see
-:ref:`manual-timeseries-collection`. 
+.. facet::
+   :name: genre
+   :values: tutorial
 
-You can use the following methods to
-migrate data from an existing collection into a :ref:`time series collection
-<manual-timeseries-collection>`:
+.. facet::
+   :name: programming_language
+   :values: csharp, javascript/typescript, java, python, shell
 
-- :ref:`Migrate with an Aggregation Pipeline <migrate-data-into-a-timeseries-collection-with-aggregation>`
-- :ref:`Migrate with Database Tools <migrate-data-into-a-timeseries-collection-with-tools>`
-- `Migrate with Relational Migrator <https://www.mongodb.com/docs/relational-migrator/mapping-rules/mapping-rule-options/time-series/>`__
+If your collection stores data that you want to compare across time
+intervals, use a time series collection to improve performance and storage.
+For more information about the benefits of time series collections, see
+:ref:`manual-timeseries-collection`.
 
-Considerations
---------------
+About this Task
+---------------
 
-If you use MongoDB 7.0 or greater and already have your data in a MongoDB
-database, migrate with an :ref:`aggregation pipeline
-<migrate-data-into-a-timeseries-collection-with-aggregation>`. 
-
+This page covers migrating data that is already in a MongoDB collection.
 If your data is in a relational database, use `Relational Migrator
-<https://www.mongodb.com/docs/relational-migrator/mapping-rules/mapping-rule-options/time-series/>`__
-to migrate your data into a time series collection. 
+<https://www.mongodb.com/docs/relational-migrator/>`__ to migrate your
+data into a time series collection.
 
-If your deployment is not in one of those cases, use :ref:`Database Tools
-<migrate-data-into-a-timeseries-collection-with-tools>` to migrate your data. 
+You can use the :pipeline:`$out` aggregation stage to migrate data from an
+existing collection into a :ref:`time series collection
+<manual-timeseries-collection>`. MongoDB does not guarantee output order when
+you migrate data with :pipeline:`$out`. To maintain order, sort your data before
+you migrate it with an aggregation pipeline.
 
-.. toctree::
-   :titlesonly:
+.. composable-tutorial::
+   :options: interface, language
+   :defaults: mongosh, None
 
-   Use Aggregation </core/timeseries/timeseries-migrate-with-aggregation>
-   Use Tools </core/timeseries/timeseries-migrate-with-tools>
+   Before you Begin
+   ----------------
+
+   Consider a ``weather_data`` collection that contains time and metadata information:
+
+   .. selected-content::
+      :selections: driver, csharp
+
+      .. literalinclude:: /code-examples/tested/csharp/driver/TimeSeries/MigrateWithAggregation/MigrateTimeSeriesCollection.snippet.add-sample-data.cs
+         :language: csharp
+         :category: usage example
+
+   .. selected-content::
+      :selections: driver, java-sync
+
+      .. literalinclude:: /code-examples/tested/java/driver-sync/timeseries/MigrateWithAggregation/Tutorial.snippet.add-sample-data.java
+         :language: java
+         :category: usage example
+
+   .. selected-content::
+      :selections: mongosh, None
+
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/timeseries/migrate-with-aggregation/insert-weather-data.js
+         :language: javascript
+         :category: usage example
+
+   .. selected-content::
+      :selections: driver, nodejs
+
+      .. literalinclude:: /code-examples/tested/javascript/driver/time-series/migrate-with-aggregation/load-sample-data.snippet.load-sample-data.js
+         :language: javascript
+         :category: usage example
+
+   .. selected-content::
+      :selections: driver, python
+
+      .. literalinclude:: /code-examples/tested/python/pymongo/timeseries/migrate_with_aggregation.snippet.add-sample-data.py
+         :language: python
+         :category: usage example
+
+   Steps
+   -----
+
+   .. selected-content::
+      :selections: driver, csharp
+
+      .. include:: /includes/time-series/steps-ts-migrate-with-aggregation-csharp.rst
+
+   .. selected-content::
+      :selections: driver, java-sync
+
+      .. include:: /includes/time-series/steps-ts-migrate-with-aggregation-java.rst
+
+   .. selected-content::
+      :selections: mongosh, None
+
+      .. include:: /includes/time-series/steps-ts-migrate-with-aggregation-mongosh.rst
+
+   .. selected-content::
+      :selections: driver, nodejs
+
+      .. include:: /includes/time-series/steps-ts-migrate-with-aggregation-javascript.rst
+
+   .. selected-content::
+      :selections: driver, python
+
+      .. include:: /includes/time-series/steps-ts-migrate-with-aggregation-python.rst
+
+For more information about additional considerations for migrating your
+data, see :ref:`timeseries-best-practices`.
+
+.. note::
+
+   To migrate your time series data with :binary:`~bin.mongodump` and
+   :binary:`~bin.mongorestore` instead, run :binary:`~bin.mongorestore`
+   with the :option:`--noIndexRestore <mongorestore.--noIndexRestore>`
+   option, because :binary:`~bin.mongorestore` can't create indexes on
+   time series collections. To preserve the time ordering of your
+   measurements, also run the command with the
+   ``--maintainInsertionOrder`` option so that documents are inserted in
+   order, from oldest to newest.
+
+Next Steps
+----------
+
+If your original collection had secondary indexes, manually recreate
+them now.
+
+If your time series collection includes ``timeField`` values before
+``1970-01-01T00:00:00.000Z`` or after ``2038-01-19T03:14:07.000Z``,
+MongoDB logs a warning and disables some query optimizations that make
+use of the :ref:`internal clustered index
+<manual-timeseries-internal-index>`. To regain query performance and
+resolve the log warning, :ref:`create a secondary index
+<timeseries-add-secondary-index>` on the ``timeField``.
