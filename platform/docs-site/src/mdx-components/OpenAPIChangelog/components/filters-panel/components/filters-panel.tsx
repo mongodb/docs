@@ -1,45 +1,12 @@
 import type { Dispatch, SetStateAction } from 'react';
 import { ALL_VERSIONS, COMPARE_VERSIONS } from '@/mdx-components/OpenAPIChangelog/utils/constants';
-import styled from '@emotion/styled';
 import useScreenSize from '@/hooks/use-screen-size';
-import { Combobox, ComboboxOption } from '@leafygreen-ui/combobox';
-import { SegmentedControl, SegmentedControlOption } from '@leafygreen-ui/segmented-control';
-import { theme } from '@/styles/theme';
+import { Combobox, ComboboxItem } from '@via-ds/components/combobox';
+import { SegmentedControl, SegmentedControlItem } from '@via-ds/components/segmented-control';
+import { Size } from '@via-ds/components/types';
+import styles from '../../../openapi-changelog.module.scss';
 
 import DiffSelect from './diff-select';
-
-const Wrapper = styled.div`
-  width: 100%;
-  margin-top: 28px;
-`;
-
-const StyledSegmentedControl = styled(SegmentedControl)`
-  margin-bottom: 28px;
-
-  @media ${theme.screenSize.upToMedium} {
-    button {
-      font-size: 13px;
-    }
-  }
-`;
-
-const ResourceSelectContainer = styled.div`
-  width: 100%;
-  margin-top: 18px;
-`;
-
-const ResourceSelect = styled(Combobox)`
-  margin: 0 5px;
-  width: calc(100% - 10px);
-
-  label {
-    margin-bottom: 0;
-  }
-
-  span > span {
-    text-decoration: none;
-  }
-`;
 
 type FiltersPanelProps = {
   versionMode: string;
@@ -69,19 +36,25 @@ const FiltersPanel = ({
   const { isMobile } = useScreenSize();
 
   return (
-    <Wrapper>
-      <StyledSegmentedControl value={versionMode} onChange={setVersionMode}>
-        <SegmentedControlOption data-testid="all-versions-option" value={ALL_VERSIONS} aria-controls={ALL_VERSIONS}>
+    <div className={styles.section}>
+      <SegmentedControl
+        className={styles.filters}
+        size={Size.Large}
+        aria-label="Version mode"
+        value={versionMode}
+        onChange={(key) => setVersionMode(String(key))}
+      >
+        <SegmentedControlItem data-testid="all-versions-option" value={ALL_VERSIONS} aria-controls={ALL_VERSIONS}>
           All Versions
-        </SegmentedControlOption>
-        <SegmentedControlOption
+        </SegmentedControlItem>
+        <SegmentedControlItem
           data-testid="compare-versions-option"
           value={COMPARE_VERSIONS}
           aria-controls={COMPARE_VERSIONS}
         >
           Compare Two Versions
-        </SegmentedControlOption>
-      </StyledSegmentedControl>
+        </SegmentedControlItem>
+      </SegmentedControl>
       {versionMode === COMPARE_VERSIONS && (
         <DiffSelect
           resourceVersionOne={resourceVersionOne}
@@ -91,23 +64,27 @@ const FiltersPanel = ({
           handleVersionTwoChange={setResourceVersionTwo}
         />
       )}
-      <ResourceSelectContainer>
-        <ResourceSelect
-          label="Select Resource"
-          placeholder="All"
-          value={selectedResources}
-          onChange={setSelectedResources}
-          popoverZIndex={3}
-          searchEmptyMessage="To see results, select two versions to compare"
-          chipCharacterLimit={isMobile ? 12 : 50}
-          multiselect
-        >
-          {resources.map((version) => (
-            <ComboboxOption key={version} value={version} />
-          ))}
-        </ResourceSelect>
-      </ResourceSelectContainer>
-    </Wrapper>
+      <Combobox
+        selectionMode="multiple"
+        size={Size.Large}
+        label="Select Resource"
+        placeholder="All"
+        chipCharacterLimit={isMobile ? 12 : 50}
+        description={
+          versionMode === COMPARE_VERSIONS && !resourceVersionTwo
+            ? 'To see results, select two versions to compare'
+            : undefined
+        }
+        value={selectedResources}
+        onChange={(keys) => setSelectedResources(keys.map(String))}
+      >
+        {resources.map((resource) => (
+          <ComboboxItem key={resource} id={resource} textValue={resource}>
+            {resource}
+          </ComboboxItem>
+        ))}
+      </Combobox>
+    </div>
   );
 };
 

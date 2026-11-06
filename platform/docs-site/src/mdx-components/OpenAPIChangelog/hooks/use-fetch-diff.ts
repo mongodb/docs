@@ -1,5 +1,6 @@
 import type { Dispatch, SetStateAction } from 'react';
 import { useState, useEffect } from 'react';
+import { toast } from '@via-ds/components/toast';
 import { hideDiffChanges } from '@/utils/filter-hidden-changes';
 import { useChangelogData } from '@/context/changelog-context';
 import type { Environments } from '@/utils/env-config';
@@ -11,15 +12,9 @@ export type UseFetchDiffProps = {
   resourceVersionOne: string;
   resourceVersionTwo?: string;
   setIsLoading: Dispatch<SetStateAction<boolean>>;
-  setToastOpen: Dispatch<SetStateAction<boolean>>;
 };
 
-export const useFetchDiff = ({
-  resourceVersionOne,
-  resourceVersionTwo,
-  setIsLoading,
-  setToastOpen,
-}: UseFetchDiffProps) => {
+export const useFetchDiff = ({ resourceVersionOne, resourceVersionTwo, setIsLoading }: UseFetchDiffProps) => {
   const env = process.env.NEXT_PUBLIC_ENV as Environments;
   const { mostRecentDiff } = useChangelogData();
   const [diff, setDiff] = useState<AtlasAdminApiChangelogDiff>([]);
@@ -50,14 +45,16 @@ export const useFetchDiff = ({
         setDiff(filteredDiff);
       } catch (e) {
         console.error(e);
-        setToastOpen(true);
-        setTimeout(() => setToastOpen(false), 5000);
+        toast.warning("We've encountered an error fetching this data", {
+          description: 'Please try again at a later time.',
+          isDismissible: true,
+        });
       }
       setIsLoading(false);
     };
 
     fetchDiff();
-  }, [resourceVersionOne, resourceVersionTwo, mostRecentDiff, setIsLoading, setToastOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [resourceVersionOne, resourceVersionTwo, mostRecentDiff, setIsLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return {
     diff,

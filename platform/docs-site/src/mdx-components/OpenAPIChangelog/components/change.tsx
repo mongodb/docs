@@ -1,22 +1,8 @@
-import styled from '@emotion/styled';
-import { palette } from '@leafygreen-ui/palette';
-import Tooltip, { Align, Justify } from '@leafygreen-ui/tooltip';
-import Icon from '@leafygreen-ui/icon';
-
-export const Flex = styled.div`
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-`;
-
-const ChangeListItem = styled.li`
-  margin-top: 12px;
-  line-height: 28px;
-`;
-
-const IconWrapper = styled(Flex)`
-  margin-right: 5px;
-`;
+import { Tooltip, TooltipRoot, TooltipTrigger } from '@via-ds/components/tooltip';
+import { Size } from '@via-ds/components/types';
+import { Text } from '@via-ds/components/typography';
+import ImportantWithCircleIcon from '@via-ds/icons/ImportantWithCircle';
+import styles from '../openapi-changelog.module.scss';
 
 type ChangeProps = {
   change: string;
@@ -27,22 +13,25 @@ const Change = ({ change, backwardCompatible }: ChangeProps) => {
   const changeStatement = change[0].toUpperCase() + change.slice(1);
 
   return (
-    <ChangeListItem>
+    <li className={styles.change}>
       {!backwardCompatible && (
-        <Tooltip
-          align={Align.Top}
-          justify={Justify.Middle}
-          trigger={
-            <IconWrapper>
-              <Icon glyph="ImportantWithCircle" fill={palette.red.base} />
-            </IconWrapper>
-          }
-        >
-          Breaking change
-        </Tooltip>
+        <TooltipRoot>
+          <TooltipTrigger>
+            <span className={styles.breakingIcon} tabIndex={0} role="img" aria-label="Breaking change">
+              <ImportantWithCircleIcon role="presentation" />
+            </span>
+          </TooltipTrigger>
+          <Tooltip>
+            <Text size={Size.Large} elementType="span" className={styles.tooltipText}>
+              Breaking change
+            </Text>
+          </Tooltip>
+        </TooltipRoot>
       )}
-      {changeStatement}
-    </ChangeListItem>
+      <Text size={Size.Large} elementType="span">
+        {changeStatement}
+      </Text>
+    </li>
   );
 };
 

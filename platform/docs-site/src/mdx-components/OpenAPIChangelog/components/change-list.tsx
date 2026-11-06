@@ -1,14 +1,9 @@
-import styled from '@emotion/styled';
 import type { AtlasAdminApiChangelogDiff, AtlasAdminApiChangelogType } from '@/types/openapi';
 
 import ReleaseDateBlock from './release-date-block';
 import ResourceChangesBlock from './resource-changes-block';
 import { COMPARE_VERSIONS } from '../utils/constants';
-
-const Wrapper = styled.div`
-  width: 100%;
-  margin-top: 32px;
-`;
+import styles from '../openapi-changelog.module.scss';
 
 type ChangeListProps = {
   versionMode: string;
@@ -17,7 +12,7 @@ type ChangeListProps = {
 };
 
 const ChangeList = ({ versionMode, changelog, diff }: ChangeListProps) => (
-  <Wrapper>
+  <div className={styles.changeList}>
     {versionMode === COMPARE_VERSIONS ? (
       <>
         {diff.map((data, i) => (
@@ -31,7 +26,7 @@ const ChangeList = ({ versionMode, changelog, diff }: ChangeListProps) => (
         ))}
       </>
     )}
-  </Wrapper>
+  </div>
 );
 
 export default ChangeList;

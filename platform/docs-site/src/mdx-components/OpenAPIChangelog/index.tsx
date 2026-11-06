@@ -1,15 +1,10 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { css } from '@leafygreen-ui/emotion';
-import styled from '@emotion/styled';
-import { useDarkMode } from '@leafygreen-ui/leafygreen-provider';
-import { palette } from '@leafygreen-ui/palette';
-import { Body, H2 } from '@leafygreen-ui/typography';
-import Button from '@leafygreen-ui/button';
-import { Toast, ToastProvider, Variant } from '@leafygreen-ui/toast';
-import { ParagraphSkeleton } from '@leafygreen-ui/skeleton-loader';
-import { theme } from '@/styles/theme';
+import { Button } from '@via-ds/components/button';
+import { Skeleton } from '@via-ds/components/skeleton';
+import { Text, TextStyle } from '@via-ds/components/typography';
+import { Size } from '@via-ds/components/types';
 import type { Environments } from '@/utils/env-config';
 import { useChangelogData } from '@/context/changelog-context';
 
@@ -18,61 +13,11 @@ import ChangeList from './components/change-list';
 import { useFetchDiff } from './hooks/use-fetch-diff';
 import { ALL_VERSIONS, getDownloadChangelogUrl } from './utils/constants';
 import getDiffResourcesList from './utils/get-diff-resources-list';
-
-const ChangelogPage = styled.div`
-  width: 100%;
-  margin-top: 60px;
-`;
-
-const ChangelogHeader = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-
-  span {
-    font-size: 26px;
-    color: lightgray;
-  }
-
-  @media ${theme.screenSize.upToSmall} {
-    flex-direction: column;
-    align-items: start;
-    gap: 24px;
-  }
-`;
-
-const Title = styled.div`
-  display: flex;
-  align-items: end;
-  gap: 10px;
-
-  @media ${theme.screenSize.upToMedium} {
-    flex-direction: column;
-    align-items: start;
-    gap: 0;
-  }
-`;
-
-const DownloadButton = styled(Button)`
-  min-width: 182px;
-`;
-
-const SkeletonWrapper = styled.div`
-  width: 100%;
-  margin-top: 32px;
-`;
-
-const StyledLoadingSkeleton = styled.div`
-  /* inner div padding */
-  box-sizing: border-box;
-  margin-bottom: 25px;
-`;
+import styles from './openapi-changelog.module.scss';
 
 export const OpenAPIChangelog = () => {
   const env = process.env.NEXT_PUBLIC_ENV as Environments;
 
-  const { darkMode } = useDarkMode();
   const { changelogMetadata, changelog, changelogResourcesList } = useChangelogData();
 
   const resourceVersions = changelogMetadata.versions.slice().reverse();
@@ -83,9 +28,8 @@ export const OpenAPIChangelog = () => {
   const [resourceVersionOne, setResourceVersionOne] = useState(resourceVersions[0]);
   const [resourceVersionTwo, setResourceVersionTwo] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
-  const [toastOpen, setToastOpen] = useState(false);
 
-  const { diff } = useFetchDiff({ resourceVersionOne, resourceVersionTwo, setIsLoading, setToastOpen });
+  const { diff } = useFetchDiff({ resourceVersionOne, resourceVersionTwo, setIsLoading });
   const [diffResourcesList, setDiffResourcesList] = useState(getDiffResourcesList(diff));
 
   const [filteredDiff, setFilteredDiff] = useState(diff);
@@ -155,16 +99,18 @@ export const OpenAPIChangelog = () => {
   };
 
   return (
-    <ChangelogPage>
-      <ChangelogHeader>
-        <Title>
-          <H2 as="h1">API Changelog</H2>
-          <Body style={{ color: darkMode ? palette.gray.light2 : palette.gray.dark1 }}>
+    <div className={styles.page}>
+      <div className={styles.header}>
+        <div className={styles.title}>
+          <Text elementType="h1" textStyle={TextStyle.heading2}>
+            API Changelog
+          </Text>
+          <Text size={Size.Large} className={styles.specRevision}>
             (2.0{!!changelogMetadata.specRevisionShort && `~${changelogMetadata.specRevisionShort}`})
-          </Body>
-        </Title>
-        <DownloadButton onClick={onDownloadChangelog}>Download Full API Changelog</DownloadButton>
-      </ChangelogHeader>
+          </Text>
+        </div>
+        <Button onPress={onDownloadChangelog}>Download Full API Changelog</Button>
+      </div>
       <FiltersPanel
         resources={versionMode === ALL_VERSIONS ? changelogResourcesList : diffResourcesList}
         selectedResources={selectedResources}
@@ -181,27 +127,19 @@ export const OpenAPIChangelog = () => {
         <ChangeList versionMode={versionMode} changelog={filteredChangelog} diff={filteredDiff} />
       )}
       {isLoading && (
-        <SkeletonWrapper>
-          {[...Array(3)].map((_, i) => (
-            <StyledLoadingSkeleton key={i}>
-              <ParagraphSkeleton withHeader={true}></ParagraphSkeleton>
-            </StyledLoadingSkeleton>
-          ))}
-        </SkeletonWrapper>
+        <Skeleton isLoading>
+          <div className={styles.changeList}>
+            {[...Array(3)].map((_, i) => (
+              <div className={styles.skeletonBlock} key={i}>
+                <Text textStyle={TextStyle.heading4}>Loading resource changes</Text>
+                <Text size={Size.Large}>
+                  Loading the list of changes for this resource between the selected versions.
+                </Text>
+              </div>
+            ))}
+          </div>
+        </Skeleton>
       )}
-      <ToastProvider
-        portalClassName={css`
-          z-index: 3;
-        `}
-      >
-        <Toast
-          title="We've encountered an error fetching this data"
-          description="Please try again at a later time."
-          variant={Variant.Warning}
-          open={toastOpen}
-          onClose={() => setToastOpen(false)}
-        />
-      </ToastProvider>
-    </ChangelogPage>
+    </div>
   );
 };

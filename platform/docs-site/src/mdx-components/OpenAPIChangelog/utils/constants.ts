@@ -1,5 +1,5 @@
 import type { Environments } from '@/utils/env-config';
-import { Variant } from '@leafygreen-ui/badge';
+import { BadgeVariant } from '@via-ds/components/badge';
 
 export const ALL_VERSIONS = 'ALL_VERSIONS';
 export const COMPARE_VERSIONS = 'COMPARE_VERSIONS';
@@ -11,19 +11,19 @@ export const getDownloadChangelogUrl = (env: Environments) => {
 
 export const changeTypeBadges = {
   release: {
-    variant: Variant.Green,
+    variant: BadgeVariant.Success,
     label: 'Released',
   },
   deprecate: {
-    variant: Variant.Red,
+    variant: BadgeVariant.Error,
     label: 'Deprecated',
   },
   update: {
-    variant: Variant.Green,
+    variant: BadgeVariant.Success,
     label: 'Updated',
   },
   removed: {
-    variant: Variant.Red,
+    variant: BadgeVariant.Error,
     label: 'Removed',
   },
 };

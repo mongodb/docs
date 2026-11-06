@@ -1,23 +1,7 @@
-import styled from '@emotion/styled';
-import { Combobox, ComboboxOption } from '@leafygreen-ui/combobox';
-import { css, cx } from '@leafygreen-ui/emotion';
+import { Combobox, ComboboxItem } from '@via-ds/components/combobox';
+import { Size } from '@via-ds/components/types';
 import type { Dispatch, SetStateAction } from 'react';
-
-const DiffSelectContainer = styled.div`
-  display: flex;
-  gap: 14px;
-  padding: 0 5px;
-`;
-
-const DiffSelectItem = styled.div`
-  flex-grow: 1;
-`;
-
-const marginlessLabel = css`
-  label {
-    margin-bottom: 0;
-  }
-`;
+import styles from '../../../openapi-changelog.module.scss';
 
 type DiffSelectProps = {
   resourceVersions: string[];
@@ -34,57 +18,40 @@ export default function DiffSelect({
   handleVersionOneChange,
   handleVersionTwoChange,
 }: DiffSelectProps) {
-  const versionOneOptions = resourceVersions
-    .filter((version) => version !== resourceVersionTwo)
-    .map((version) => (
-      <ComboboxOption
-        data-testid="version-one-option"
-        key={version}
-        displayName={version === resourceVersions[0] ? `${version} (latest)` : version}
-        value={version}
-      ></ComboboxOption>
-    ));
-
-  const versionTwoOptions = resourceVersions
-    .filter((version) => version !== resourceVersionOne)
-    .map((version) => (
-      <ComboboxOption
-        data-testid="version-two-option"
-        key={version}
-        displayName={version === resourceVersions[0] ? `${version} (latest)` : version}
-        value={version}
-      ></ComboboxOption>
-    ));
+  const versionOptions = (exclude: string | undefined, testId: string) =>
+    resourceVersions
+      .filter((version) => version !== exclude)
+      .map((version) => {
+        const label = version === resourceVersions[0] ? `${version} (latest)` : version;
+        return (
+          <ComboboxItem data-testid={testId} key={version} id={version} textValue={label}>
+            {label}
+          </ComboboxItem>
+        );
+      });
 
   return (
-    <DiffSelectContainer>
-      <DiffSelectItem>
-        <Combobox
-          clearable={false}
-          placeholder="Select Version"
-          value={resourceVersionOne}
-          label="Resource Version 1"
-          className={cx(marginlessLabel)}
-          // @ts-expect-error - LG Combobox returns a singular string if not a multiselect - their typing does not narrow
-          onChange={(value: string) => handleVersionOneChange(value)}
-          multiselect={false}
-        >
-          {versionOneOptions}
-        </Combobox>
-      </DiffSelectItem>
-      <DiffSelectItem>
-        <Combobox
-          clearable={false}
-          placeholder="Select Version"
-          value={resourceVersionTwo}
-          label="Resource Version 2"
-          className={cx(marginlessLabel)}
-          // @ts-expect-error - LG Combobox returns a singular string if not a multiselect - their typing does not narrow
-          onChange={(value: string) => handleVersionTwoChange(value)}
-        >
-          {versionTwoOptions}
-        </Combobox>
-      </DiffSelectItem>
-    </DiffSelectContainer>
+    <div className={styles.diffSelect}>
+      <Combobox
+        selectionMode="single"
+        size={Size.Large}
+        placeholder="Select Version"
+        label="Resource Version 1"
+        selectedKey={resourceVersionOne}
+        onSelectionChange={(key) => key !== null && handleVersionOneChange(String(key))}
+      >
+        {versionOptions(resourceVersionTwo, 'version-one-option')}
+      </Combobox>
+      <Combobox
+        selectionMode="single"
+        size={Size.Large}
+        placeholder="Select Version"
+        label="Resource Version 2"
+        selectedKey={resourceVersionTwo ?? null}
+        onSelectionChange={(key) => key !== null && handleVersionTwoChange(String(key))}
+      >
+        {versionOptions(resourceVersionOne, 'version-two-option')}
+      </Combobox>
+    </div>
   );
 }
