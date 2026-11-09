@@ -46,3 +46,32 @@ from the `Copy To Public` environment. It reuses that App instead of a
 dedicated one because the App's private key cannot be read back out of
 secrets. The token is scoped to the target repo with `owner: 10gen` and
 `repositories: docs-mdx-en-us`.
+
+## Operating the locale MDX sync
+
+`mdx-locale-sync.yml` mirrors `10gen/docs-mdx-en-us` into a per-locale repo,
+translating only the files that changed since the last run. Dispatch it with
+the target locale and the content path to translate:
+
+    gh workflow run mdx-locale-sync.yml --ref main -f locale=es -f scope=voyageai
+
+`mode: incremental` (the default) translates only files whose source hash
+changed since the previous run. `mode: full` translates every file in scope,
+ignoring the manifest; it is the backfill for a new locale repo and the
+repair lever after a failed run. Use `-f dry_run=true` to translate and
+report without writing anything to the target repo.
+
+The target repo is resolved from the locale by
+`platform/tools/translation-sync/src/locale-targets.ts`, which maps each
+locale to its `10gen/docs-mdx-<locale>` repo. Each run records the source
+commit it synced from in the target repo's `translation-manifest.json` as
+`sourceCommit`. That field is informational: the next run detects changes by
+comparing each file's content hash against the manifest, not by diffing
+commits.
+
+### Prerequisites
+
+The locale repo must already exist, and the `mongodb-server-docs-sync-bot`
+App must be installed on it — the workflow mints one token scoped to both
+the source and target repos. The `AI_GATEWAY_API_KEY` secret must be set in
+the `Copy To Public` environment.

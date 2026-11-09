@@ -1,0 +1,224 @@
+name: Sync MDX to a locale repo
+
+# Mirrors docs-mdx-en-us into a per-locale repo, translating only files that
+# changed since the last run. Operator notes: .github/scripts/README.md.
+
+on:
+  workflow_dispatch:
+    inputs:
+      locale:
+        description: 'Target locale (es, zh-cn, ko-kr, pt-br, ja-jp)'
+        type: string
+        default: es
+      scope:
+        description: 'Content path under content-mdx/ (blank = all)'
+        type: string
+        default: voyageai
+      mode:
+        description: 'incremental (changed files only) or full (every file in scope)'
+        type: choice
+        options:
+          - incremental
+          - full
+        default: incremental
+      dry_run:
+        description: 'Translate but write nothing'
+        type: boolean
+        default: false
+  # Enable once the dispatch path is validated. Fires when the English mirror
+  # finishes; the sync job reads the en-us repo tip, so the triggering run's SHA
+  # is not needed. On this event `inputs.*` are empty, so supply locale/scope/
+  # mode from a matrix or `env` (the concurrency group already falls back to
+  # `es`). Add locales by extending the matrix.
+  # workflow_run:
+  #   workflows: ["Sync MDX to docs-mdx-en-us"]
+  #   types: [completed]
+  pull_request:
+    paths:
+      - 'platform/tools/translation-sync/**'
+      - '.github/workflows/mdx-locale-sync.yml'
+
+permissions:
+  contents: read
+
+env:
+  SOURCE_REPO: 10gen/docs-mdx-en-us
+  PNPM_VERSION: '10.27.0'
+
+jobs:
+  sync:
+    # When workflow_run is enabled, append:
+    #   && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
+    if: github.repository == '10gen/docs-mongodb-internal' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: Copy To Public
+    concurrency:
+      group: mdx-locale-sync-${{ inputs.locale || 'es' }}
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reset to tip of main
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git reset --hard origin/main
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: platform/pnpm-lock.yaml
+
+      - name: Install sync tooling
+        working-directory: platform
+        run: pnpm install --filter translation-sync --filter translation-mdx-adapter --filter @mongodb-docs/translation-service --no-frozen-lockfile
+
+      - name: Build adapter
+        working-directory: platform
+        run: pnpm --filter translation-mdx-adapter build
+
+      - name: Resolve target repo
+        id: target
+        working-directory: platform/tools/translation-sync
+        env:
+          LOCALE: ${{ inputs.locale }}
+        run: |
+          set -euo pipefail
+          REPO="$(pnpm exec tsx src/cli.ts resolve-target --locale "$LOCALE")"
+          echo "repo=$REPO" >> "$GITHUB_OUTPUT"
+
+      - name: Mint installation token
+        id: token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.SERVER_DOCS_PRIVATE_KEY }}
+          owner: 10gen
+          repositories: ${{ env.SOURCE_REPO }},${{ steps.target.outputs.repo }}
+
+      - name: Clone source and target
+        env:
+          TOKEN: ${{ steps.token.outputs.token }}
+        run: |
+          set -euo pipefail
+          git clone --depth 1 "https://x-access-token:${TOKEN}@github.com/${SOURCE_REPO}.git" "$RUNNER_TEMP/source"
+          git clone "https://x-access-token:${TOKEN}@github.com/${{ steps.target.outputs.repo }}.git" "$RUNNER_TEMP/target"
+          cd "$RUNNER_TEMP/target"
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          if git ls-remote --exit-code --heads origin main >/dev/null 2>&1; then
+            git checkout -B main origin/main
+            echo "target_has_main=true" >> "$GITHUB_ENV"
+          else
+            git checkout -b main
+            echo "target_has_main=false" >> "$GITHUB_ENV"
+          fi
+
+      - name: Run translation sync
+        id: sync
+        continue-on-error: true
+        working-directory: platform/tools/translation-sync
+        env:
+          AI_GATEWAY_API_KEY: ${{ secrets.AI_GATEWAY_API_KEY }}
+          LOCALE: ${{ inputs.locale }}
+          SCOPE: ${{ inputs.scope }}
+          MODE: ${{ inputs.mode }}
+        run: |
+          set -euo pipefail
+          SOURCE_COMMIT="$(git -C "$RUNNER_TEMP/source" rev-parse HEAD)"
+          echo "SOURCE_COMMIT=$SOURCE_COMMIT" >> "$GITHUB_ENV"
+          pnpm exec tsx src/cli.ts sync \
+            --source "$RUNNER_TEMP/source" \
+            --target "$RUNNER_TEMP/target" \
+            --locale "$LOCALE" \
+            --scope "$SCOPE" \
+            --mode "$MODE" \
+            --source-commit "$SOURCE_COMMIT" \
+            ${{ inputs.dry_run == true && '--dry-run' || '' }}
+
+      - name: Commit and push
+        if: inputs.dry_run != true
+        env:
+          LOCALE: ${{ inputs.locale }}
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/target"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Locale mirror already up to date"
+            exit 0
+          fi
+          git commit -m "Sync $LOCALE content-mdx from ${SOURCE_REPO}@${SOURCE_COMMIT::12} [skip ci]"
+          for attempt in 1 2 3; do
+            if [ "${target_has_main:-false}" = "true" ]; then
+              git rebase --abort 2>/dev/null || true
+              git pull --rebase --autostash origin main || { sleep $((attempt * 5)); continue; }
+            fi
+            if git push origin HEAD:main; then target_has_main=true; exit 0; fi
+            sleep $((attempt * 5))
+          done
+          exit 1
+
+      - name: Summary
+        if: always()
+        env:
+          LOCALE: ${{ inputs.locale }}
+          SCOPE: ${{ inputs.scope }}
+          MODE: ${{ inputs.mode }}
+        run: |
+          {
+            echo "## Locale MDX sync"
+            echo ""
+            echo "- Locale: \`$LOCALE\`"
+            echo "- Target: \`${{ steps.target.outputs.repo }}\`"
+            echo "- Scope: \`$SCOPE\`"
+            echo "- Mode: \`$MODE\`"
+            echo "- Dry run: \`${{ inputs.dry_run }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail on translation errors
+        if: steps.sync.outcome == 'failure'
+        run: |
+          echo "Translation sync reported one or more failed files; see the FAIL lines above." >&2
+          exit 1
+
+  test:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: platform/pnpm-lock.yaml
+
+      - name: Install
+        working-directory: platform
+        run: pnpm install --filter translation-sync --filter translation-mdx-adapter --filter @mongodb-docs/translation-service --no-frozen-lockfile
+
+      - name: Build adapter
+        working-directory: platform
+        run: pnpm --filter translation-mdx-adapter build
+
+      - name: Test
+        working-directory: platform/tools/translation-sync
+        run: pnpm test
