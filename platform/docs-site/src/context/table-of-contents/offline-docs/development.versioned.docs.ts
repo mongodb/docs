@@ -9292,6 +9292,19 @@ export const toc: L1TocItem[] = [
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/ai-integrations/openai-agents',
                   },
+                  {
+                    label: 'Google ADK',
+                    contentSite: 'cloud-docs',
+                    collapsible: true,
+                    url: '/docs/atlas/ai-integrations/google-adk',
+                    items: [
+                      {
+                        label: 'Get Started',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/ai-integrations/google-adk/get-started',
+                      },
+                    ],
+                  },
                 ],
               },
               {

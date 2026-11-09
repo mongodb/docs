@@ -12,7 +12,7 @@ export const toc: L1TocItem[] = [
         group: true,
         versionDropdown: true,
         versions: {
-          excludes: ['upcoming', 'current', 'v1.9', 'v1.10', 'v1.11', 'v1.12', 'v1.13'],
+          excludes: ['upcoming', 'current', 'v1.9', 'v1.10', 'v1.11', 'v1.12', 'v1.13', 'v1.14'],
         },
         items: [
           {
@@ -953,7 +953,7 @@ export const toc: L1TocItem[] = [
         group: true,
         versionDropdown: true,
         versions: {
-          includes: ['upcoming', 'current', 'v1.9', 'v1.10', 'v1.11', 'v1.12', 'v1.13'],
+          includes: ['upcoming', 'current', 'v1.9', 'v1.10', 'v1.11', 'v1.12', 'v1.13', 'v1.14'],
         },
         items: [
           {

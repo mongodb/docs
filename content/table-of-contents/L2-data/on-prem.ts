@@ -1260,9 +1260,8 @@ const tocData: TocItem[] = [
         url: 'https://www.mongodb.com/docs/manual/faq/diagnostics/',
       },
       {
-        label: 'Management',
+        label: 'Maintenance',
         contentSite: 'docs',
-        url: '/docs/:version/administration/configuration-and-maintenance',
         collapsible: true,
         items: [
           {

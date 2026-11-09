@@ -3238,10 +3238,9 @@ export const toc: L1TocItem[] = [
                 url: 'https://www.mongodb.com/docs/manual/faq/diagnostics/',
               },
               {
-                label: 'Management',
+                label: 'Maintenance',
                 contentSite: 'docs',
                 collapsible: true,
-                url: '/docs/:version/administration/configuration-and-maintenance',
                 items: [
                   {
                     label: 'Terminate Operations',
