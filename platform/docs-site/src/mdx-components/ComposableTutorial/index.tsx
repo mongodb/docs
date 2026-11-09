@@ -2,7 +2,7 @@
 
 import { useCallback, useContext, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { isEmpty } from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import queryString, { type ParsedQuery } from 'query-string';
 import { clsx } from 'clsx';
 import type { ComposableTutorialOption } from '@/types/ast';

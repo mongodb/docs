@@ -1,4 +1,5 @@
-import { isObject, isString } from 'lodash';
+import isObject from 'lodash/isObject';
+import isString from 'lodash/isString';
 import type {
   Directive,
   ParentNode,

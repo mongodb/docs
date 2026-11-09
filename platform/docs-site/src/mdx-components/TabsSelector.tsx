@@ -1,7 +1,7 @@
 'use client';
 
 import { useContext, useMemo } from 'react';
-import _ from 'lodash';
+import capitalize from 'lodash/capitalize';
 import { OfflineSelectList, Select } from '@/mdx-components/Select';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
 import { reportAnalytics } from '@/utils/report-analytics';
@@ -20,7 +20,7 @@ const getLabel = (name: string) => {
     case 'platforms':
       return 'Select your platform';
     default:
-      _.capitalize(name);
+      capitalize(name);
   }
 };
 

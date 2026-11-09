@@ -9,7 +9,7 @@
 
 import type { ReactNode } from 'react';
 import { createContext, useContext, useEffect, useReducer, useRef } from 'react';
-import { isEmpty } from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import { getLocalValue, setLocalValue } from '@/utils/browser-storage';
 import { getDefaultTabs } from '@/utils/get-default-tabs';
 import type { DriverMap, IconComponent } from '@/mdx-components/Icons/DriverIconMap';

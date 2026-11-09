@@ -1,7 +1,7 @@
 'use client';
 
 import { clsx } from 'clsx';
-import { isString } from 'lodash';
+import isString from 'lodash/isString';
 import styles from './product-landing.module.scss';
 import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
 import { usePageContext } from '@/context/page-context';

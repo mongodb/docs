@@ -3,7 +3,7 @@
 import { useContext } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { clsx } from 'clsx';
-import { isEmpty } from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import { ContentsContext, type ActiveSelectorIds } from '@/context/contents-context';
 import type { HeadingNodeSelectorIds } from '@/types/ast';
 import { formatText } from '@/utils/format-text';

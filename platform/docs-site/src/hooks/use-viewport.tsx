@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { isBrowser } from '@/utils/is-browser';
-import { debounce } from 'lodash';
+import debounce from 'lodash/debounce';
 
 export type Viewport = {
   scrollY: number;

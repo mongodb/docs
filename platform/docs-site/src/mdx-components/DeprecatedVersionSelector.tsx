@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState, useMemo, type ReactNode } from 'react';
 import queryString from 'query-string';
-import { keyBy, isEmpty } from 'lodash';
+import keyBy from 'lodash/keyBy';
+import isEmpty from 'lodash/isEmpty';
 import { LinkButton, ButtonVariant } from '@via-ds/components/button';
 import DownloadIcon from '@via-ds/icons/Download';
 import type { Version, Docset } from '@/types/data';
