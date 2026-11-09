@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { withCORS } from '@/app/lib/with-cors';
 import envConfig from '@/utils/env-config';
+import { validateBearerToken } from '@/utils/validate-token';
 import { generateProductUpdatesSlug } from '@/app/products/updates/utils/generate-product-updates-slug';
 
 interface ContentstackWebhookPayload {
@@ -210,6 +211,19 @@ export async function OPTIONS() {
 
 export async function POST(request: NextRequest) {
   try {
+    // Validate Bearer token authentication
+    const authHeader = request.headers.get('authorization');
+    const expectedToken = envConfig.CONTENTSTACK_WEBHOOK_TOKEN.trim();
+
+    if (!expectedToken) {
+      console.warn('CONTENTSTACK_WEBHOOK_TOKEN is not set in environment variables');
+      return withCORS(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }));
+    }
+
+    if (!validateBearerToken(authHeader, expectedToken)) {
+      return withCORS(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }));
+    }
+
     // Get request body
     let body: ContentstackWebhookPayload;
     try {
@@ -256,9 +270,7 @@ export async function POST(request: NextRequest) {
         environmentName,
         recognized: [PRODUCTION_ENVIRONMENT, STAGING_ENVIRONMENT],
       });
-      return withCORS(
-        NextResponse.json({ success: true, message: `Ignored: environment ${environmentName}` }),
-      );
+      return withCORS(NextResponse.json({ success: true, message: `Ignored: environment ${environmentName}` }));
     }
 
     const ahaFeatureUrl = body.data.entry.aha_feature_link;
@@ -298,7 +310,7 @@ export async function POST(request: NextRequest) {
       } catch (err) {
         // Skip rather than fall through: a transient read failure must not be
         // able to overwrite a production URL with a staging one.
-        console.error('Failed to read existing Aha What\'s New post URL; skipping staging write:', err);
+        console.error("Failed to read existing Aha What's New post URL; skipping staging write:", err);
         return withCORS(
           NextResponse.json(
             {
@@ -337,7 +349,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.info('Aha feature What\'s New post URL updated', {
+    console.info("Aha feature What's New post URL updated", {
       featureId: parsedUrl.featureId,
       environmentName,
       whatsNewPostUrl,

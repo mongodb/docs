@@ -42,7 +42,7 @@ Turbo can still run lint, tests, and builds from `platform/`. Run `pnpm dev` fro
 
 ### Product Updates Page
 
-If you would like to test Aha! integration, grab the `CONTENTSTACK_WEBHOOK_TOKEN` value from Netlify env config.
+If you would like to test Aha! integration, grab the `CONTENTSTACK_WEBHOOK_TOKEN` value from Netlify UI environment variables and add it to your .env file.
 
 ## Styling conventions
 
@@ -53,4 +53,3 @@ The design system is moving from [LeafyGreen](https://github.com/mongodb/leafygr
 ## Deploy on Netlify
 
 This application is deployed on Netlify at [Docs on Next](https://app.netlify.com/projects/docs-on-nextjs/overview). Branch and preview deploys can be managed via the UI, under [Project Configuration -> Build & Deploy](https://app.netlify.com/projects/docs-on-nextjs/configuration/deploys#content).
-
