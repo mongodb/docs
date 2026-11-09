@@ -1664,6 +1664,11 @@ const tocData: TocItem[] = [
         url: '/docs/atlas/reference/data-usage-cluster-ai-assistant',
       },
       {
+        label: 'Data Usage for Atlas Home Page Assistant',
+        contentSite: 'cloud-docs',
+        url: '/docs/atlas/reference/data-usage-home-page-ai-assistant',
+      },
+      {
         label: 'Frequently Asked Questions',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/faq',
