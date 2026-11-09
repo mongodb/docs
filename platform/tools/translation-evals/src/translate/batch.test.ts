@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { StubBackend } from '@mongodb-docs/translation-service';
+import {
+  StubBackend,
+  type TranslationBackend,
+} from '@mongodb-docs/translation-service';
 import { makeTranslateFn, translateMdxFile } from './batch.js';
 import { loadConfig } from '../config.js';
 
@@ -10,6 +13,45 @@ describe('translateMdxFile', () => {
     const cfg = loadConfig({});
     const out = await translateMdxFile(SRC, cfg, 'es', async (payload) => ({ ...payload }));
     expect(out).toContain('Keep MongoDB running.');
+  });
+});
+
+describe('adapter tokens reach the model protected', () => {
+  // The adapter delimits every inline placeholder with Private Use Area
+  // characters and glues it to the text it wraps, so the service's
+  // word-boundary protection has to match a token exactly as emitted. If it
+  // does not, the raw delimiters reach the model, which drops them and makes
+  // reconstruction fail.
+  const INLINE_MARKUP = '# Setup\n\nClick **Save** to apply the **shard key**.\n';
+  const PUA = /[\uE000\uE001]/;
+
+  it('sends no raw placeholder delimiter to the backend', async () => {
+    const cfg = loadConfig({});
+    const seen: string[] = [];
+    const capturing: TranslationBackend = {
+      name: 'capturing',
+      async translateBatch(batch) {
+        seen.push(...batch.items.map((item) => item.text));
+        return {
+          items: batch.items.map((item) => ({
+            key: item.key,
+            status: 'ok' as const,
+            text: item.text,
+          })),
+          meta: { provider: 'capturing', model: 'capturing-1' },
+        };
+      },
+    };
+
+    await translateMdxFile(
+      INLINE_MARKUP,
+      cfg,
+      'es',
+      makeTranslateFn(cfg, 'es', capturing),
+    );
+
+    expect(seen.length).toBeGreaterThan(0);
+    expect(seen.filter((text) => PUA.test(text))).toEqual([]);
   });
 });
 

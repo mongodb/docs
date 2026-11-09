@@ -54,6 +54,56 @@ describe("boundary matching", () => {
   });
 });
 
+describe("adapter inline tokens", () => {
+  // The MDX adapter fences every inline placeholder in Private Use Area
+  // delimiters and glues it to the text it wraps (`…O0<delim>Save`), so both
+  // edges of a token are non-word characters. A boundary guard on such an
+  // edge can never match, so the token would reach the model unprotected.
+  const PUA_START = "\uE000";
+  const PUA_END = "\uE001";
+  const open = (n: number) => `${PUA_START}O${n}${PUA_END}`;
+  const close = (n: number) => `${PUA_START}C${n}${PUA_END}`;
+
+  it("protects a wrap pair glued to its text", () => {
+    const result = protect(`Click ${open(0)}Save${close(0)}.`, [open(0), close(0)]);
+    expect(result.text).toBe("Click __PROT1__Save__PROT2__.");
+    expect(result.placeholders).toEqual({
+      __PROT1__: open(0),
+      __PROT2__: close(0),
+    });
+  });
+
+  it("protects every token in a block with two wraps", () => {
+    const text =
+      `Click ${open(0)}Save${close(0)} to apply the ` +
+      `${open(1)}shard key${close(1)}.`;
+    const result = protect(text, [open(0), close(0), open(1), close(1)]);
+    expect(result.text).toBe(
+      "Click __PROT1__Save__PROT2__ to apply the __PROT3__shard key__PROT4__.",
+    );
+    expect(Object.values(result.placeholders)).toEqual([
+      open(0),
+      close(0),
+      open(1),
+      close(1),
+    ]);
+  });
+
+  it("protects an opaque token glued to following text", () => {
+    const self = `${PUA_START}S0${PUA_END}`;
+    const result = protect(`Run ${self}binary now.`, [self]);
+    expect(result.text).toBe("Run __PROT1__binary now.");
+    expect(result.placeholders).toEqual({ __PROT1__: self });
+  });
+
+  it("leaves no delimiter in the text sent to the model", () => {
+    const text = `Click ${open(0)}Save${close(0)}.`;
+    const { text: protectedText } = protect(text, [open(0), close(0)]);
+    expect(protectedText).not.toContain(PUA_START);
+    expect(protectedText).not.toContain(PUA_END);
+  });
+});
+
 describe("protect", () => {
   it("replaces a single term with __PROT1__", () => {
     const result = protect("Ask MongoDB AI", ["MongoDB"]);

@@ -16,6 +16,9 @@
  */
 const WORD_CHAR = "[\\p{L}\\p{N}_$#+-]";
 
+/** True when a single character counts as a word character. */
+const WORD_EDGE = new RegExp(`^${WORD_CHAR}$`, "u");
+
 function escapeRegExp(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -24,10 +27,23 @@ function escapeRegExp(text: string): string {
  * A fresh global regex matching `term` as a whole token. Callers must not
  * reuse one instance for both `test` and `replace`: `test` advances
  * `lastIndex` on a global regex.
+ *
+ * A boundary guard is only meaningful on an edge that is itself a word
+ * character: a term whose edge is not one cannot be part of a larger word on
+ * that side, so guarding it would reject the term's own occurrences. The MDX
+ * adapter's inline tokens are exactly that shape — `U+E000 O0 U+E001`, with
+ * Private Use Area delimiters as their edges — and they sit directly against
+ * the text they wrap (`…O0<delim>Save`). An unconditional guard never matches
+ * them, which leaves the raw tokens in the model input.
  */
 function termPattern(term: string, ignoreCase = false): RegExp {
+  const chars = [...term];
+  const lookbehind = WORD_EDGE.test(chars[0] ?? "") ? `(?<!${WORD_CHAR})` : "";
+  const lookahead = WORD_EDGE.test(chars[chars.length - 1] ?? "")
+    ? `(?!${WORD_CHAR})`
+    : "";
   return new RegExp(
-    `(?<!${WORD_CHAR})${escapeRegExp(term)}(?!${WORD_CHAR})`,
+    `${lookbehind}${escapeRegExp(term)}${lookahead}`,
     ignoreCase ? "giu" : "gu",
   );
 }
