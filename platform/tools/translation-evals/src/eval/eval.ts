@@ -26,6 +26,8 @@ const rows = JSON.parse(fs.readFileSync(rowsPath, 'utf8')) as DatasetRow[];
 const judgeOpts = createJudgeOptions(cfg);
 const glossary = DEFAULT_GLOSSARY;
 
+const rowsWithSegments = rows.filter((row) => (row.input.segments?.length ?? 0) > 0).length;
+
 const experimentName = buildExperimentName({
   project,
   locales: localesFromRows(rows),
@@ -41,7 +43,7 @@ Eval(cfg.braintrustProject, {
   experimentName,
   data: rows,
   task: async (input) => input.local_text,
-  scores: toEvalScorers(glossary.nonTranslatableTerms, judgeOpts),
+  scores: toEvalScorers(glossary, judgeOpts),
   metadata: {
     project,
     run: runId,
@@ -49,5 +51,7 @@ Eval(cfg.braintrustProject, {
     translator_model: cfg.translatorModel ?? null,
     judge_model: judgeOpts.model,
     glossary: glossaryIdentity(glossary),
+    rows: rows.length,
+    rows_with_segments: rowsWithSegments,
   },
 });

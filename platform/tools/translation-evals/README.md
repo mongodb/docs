@@ -351,9 +351,19 @@ pnpm dataset --project atlas
 ```
 
 Joins the three scrapes into Braintrust rows at
-`data/<project>/<runId>/dataset/rows.json`, one row per (page, locale). Pages
-missing any side are skipped. Needs `scrape-prod` and `scrape-local` to have
-run.
+`data/<project>/<runId>/dataset/rows.json`, one row per (page, locale), plus one
+row per translatable include. Each row also carries the paired English/Spanish
+segments the glossary scorers read. Needs `scrape-prod` and `scrape-local` to
+have run.
+
+**A missing source file stops the build and names the file — either language.**
+There is no override. A partial run would silently understate every number, and a
+missing translation means the model failed on that file: regenerate `content-mdx`,
+or re-run the `translate` stage, rather than scoring around it.
+
+Two path conventions meet here: `pages[].mdxPath` is content-mdx-root-relative
+(`manual/manual/aggregation.mdx`), while `translatable.pages[]` and the
+translated overlay are project-relative (`aggregation.mdx`).
 
 Flags:
 
@@ -393,6 +403,9 @@ Scorers:
 
 | Scorer | Kind | Compares |
 |---|---|---|
+| `glossary_terms_used` | Deterministic | **The headline.** Section by section: if the English contains a glossary translatable term, does that same section's Spanish contain the glossary's allowed option? Literal + plural occurrences. Per-row metadata: `total`, `allOccurrences`, `correct`, `wrong`, `notApplicable`, `byKind`, `wrongByReason`, `identity`, `senseBlindTerms`, `unsheeted`, `unseen`, `inactiveSets`, and a per-term `terms[]`. |
+| `terms_exact` | Deterministic | The same check over exact word matches only. |
+| `terms_plural` | Deterministic | The same check over plural forms only (`drivers`). |
 | `factuality` | LLM judge | The output against the English source, which is ground truth. The production translation calibrates register and terminology only; it is not an answer key. |
 | `fluency` | LLM judge | The output alone, in the target locale. |
 | `grammatical_agreement` | LLM judge | How well determiners, adjectives, and pronouns agree with their noun within each segment. Reported for `es` and `pt-br` only; `null` (not applicable) for locales without grammatical gender. |
@@ -436,6 +449,54 @@ Runs a whole evaluation batch: it expands the config into one iteration per
 iteration shares one production scrape. The run prints the production-scrape
 yield (pages x locales present under `prod/`) after the base run and in the
 final summary, and marks it `DEGRADED` when `scrape-prod` skipped any page.
+
+### Reading the glossary score
+
+**One formula: right ÷ everything found.** There is no ignore list. Every
+occurrence the scorer finds is either right or wrong, so nothing can be moved out
+of the calculation to flatter the number. An earlier version had a set-aside
+category, and it let three bad glossary entries go unnoticed for four days.
+
+The three glossary columns come from **one pass** over the rows:
+`glossary_terms_used` is the headline (exact + plural); `terms_exact` and
+`terms_plural` split the same tally by kind. `null` means that population was
+empty for that row.
+
+Verb-form occurrences (`removed` for *remove*) are counted in `allOccurrences` and
+`byKind.verbForm` but held out of the headline — the population is a handful of
+occurrences, too small to carry a score column of its own.
+
+Wrong answers carry a **reason**, so the number explains itself:
+
+| Reason | Means |
+|---|---|
+| `no allowed option` | the translator used a different word |
+| `glossary option is known-bad data` | the glossary entry itself is wrong (`write`→*guardar*) |
+| `inside product/code name` | the term is part of a name (`db.collection.find`) |
+| `known drift word used` | a specific wrong word for a known term |
+| `hand-flagged phrase` | an English phrase, not the term (*For instance*) |
+| `verbal use of the term` | the term used as a verb |
+| `stem extension, may be a conjugation` | **a judgement call** — the Spanish word extends the option's stem. Text matching cannot tell a derived noun (*documentación* for *documento*) from an inflection (*procesan* for *procesar*), so these are labelled rather than hidden. |
+
+`terms[]` carries the per-term tally and up to 12 evidence entries. `identity`
+reports terms whose Spanish option is the same word as the English — for those,
+"correct" only means "kept the English word". `senseBlindTerms` lists terms with
+more than one glossary entry, where either option credits either sense.
+
+**Two aggregations, not one.** Braintrust averages per-row scores, so a
+1-occurrence row moves it as much as a 500-occurrence row; the occurrence-weighted
+number counts every mention. The per-row score is the occurrence-weighted one, and
+the counts behind it ride along in the row metadata, so the two can be reconciled
+rather than disagreeing silently.
+
+`unsheeted` and `unseen` should both be `0`; non-zero means the scorer and the
+term sheet have drifted apart.
+
+**Known data problems, deliberately left visible.** Three bad glossary entries
+(`write`, `mode`, `batch`), the name-like terms that should be non-translatable,
+and the terms that keep the English word by choice all surface as wrongs. That is
+intended — they are separate tickets, and hiding them is what the ignore list used
+to do.
 
 Every stage of an iteration runs with that iteration's `TRANSLATOR_BACKEND`,
 `TRANSLATOR_MODEL`, and `TARGET_LOCALES`, and the batch `judge` as

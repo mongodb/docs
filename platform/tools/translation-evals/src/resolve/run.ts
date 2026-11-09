@@ -42,6 +42,21 @@ function readDirNameToPrefix(): Record<string, string> {
   return JSON.parse(fs.readFileSync(p, 'utf8')) as Record<string, string>;
 }
 
+/**
+ * Strip the `<project>/` prefix from a manifest mdxPath.
+ *
+ * `PageRef.mdxPath` is content-mdx-root-relative ("manual/manual/aggregation.mdx")
+ * while `TranslatableSet` entries and the translated overlay are project-relative
+ * ("aggregation.mdx"). This is the only place the two conventions meet.
+ */
+export function projectRelativeMdx(project: string, mdxPath: string): string {
+  const prefix = `${project}/`;
+  if (!mdxPath.startsWith(prefix)) {
+    throw new Error(`mdxPath "${mdxPath}" is not under content-mdx/${project}/`);
+  }
+  return mdxPath.slice(prefix.length);
+}
+
 export interface ResolveOptions {
   /** Injected prefix map; read from docs-site/generated when omitted. */
   dirNameToPrefix?: Record<string, string>;
@@ -125,13 +140,7 @@ export async function resolveProject(
   // PageRef.mdxPath is now the real content-mdx-relative file (e.g. "atlas/alerts.mdx",
   // "atlas/index.mdx"); strip the project prefix so the closure seed matches the
   // project-relative include-graph keys.
-  const projectPrefix = `${project}/`;
-  const toSeed = (mdxPath: string): string => {
-    if (!mdxPath.startsWith(projectPrefix)) {
-      throw new Error(`mdxPath "${mdxPath}" is not under content-mdx/${project}/`);
-    }
-    return mdxPath.slice(projectPrefix.length);
-  };
+  const toSeed = (mdxPath: string): string => projectRelativeMdx(project, mdxPath);
   const seedPages = [...new Set(pages.map((p) => toSeed(p.mdxPath)))].sort();
   const translatable = computeClosure(seedPages, graph, refKeys, substitutionKeys);
 

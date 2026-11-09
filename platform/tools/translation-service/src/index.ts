@@ -4,6 +4,7 @@
 export * from "./types.js";
 export * from "./glossary.js";
 export * from "./term-sheet.js";
+export * from "./term-variations.js";
 export * from "./excerpt.js";
 export * from "./protection-helpers.js";
 export * from "./validation.js";

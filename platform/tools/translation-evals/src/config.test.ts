@@ -51,5 +51,4 @@ describe('loadConfig', () => {
     expect(loadConfig({ EVAL_EXPERIMENT_NAME: '' }).experimentName).toBeUndefined();
     expect(loadConfig({}).experimentName).toBeUndefined();
   });
-
 });
