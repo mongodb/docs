@@ -131,6 +131,31 @@ type SearchManifestJobParams = {
   configEnvironment: ConfigEnvironmentVariables;
 };
 
+const getDocsProject = (allContentData: AllContentData): string => {
+  const docsProject = process.env.DOCS_PROJECT;
+  if (!docsProject) {
+    throw new Error(
+      '[search-manifest] DOCS_PROJECT is not set; search manifests are scoped to one project directory.',
+    );
+  }
+  if (docsProject.includes('/')) {
+    throw new Error(
+      `[search-manifest] DOCS_PROJECT must be a project directory name such as "manual", not a path: "${docsProject}".`,
+    );
+  }
+  const projectDirNames = new Set(
+    Object.values(allContentData.docsPaths).map(
+      (bundleData) => bundleData.projectDirName,
+    ),
+  );
+  if (!projectDirNames.has(docsProject)) {
+    throw new Error(
+      `[search-manifest] DOCS_PROJECT "${docsProject}" matches none of the ${projectDirNames.size} content project directories.`,
+    );
+  }
+  return docsProject;
+};
+
 // expects contentPath as string of versionName or empty string format
 export const handleSearchManifests = async ({
   allContentData,
@@ -138,6 +163,7 @@ export const handleSearchManifests = async ({
   dbEnvVars,
   configEnvironment,
 }: SearchManifestJobParams) => {
+  const docsProject = getDocsProject(allContentData);
   const promises = Object.entries(allContentData.docsPaths).map(
     async ([contentPath, bundleData]) => {
       const docset = allContentData.docsetsByProject[bundleData.projectName];
@@ -155,7 +181,7 @@ export const handleSearchManifests = async ({
       }
 
       // TODO: do we NEVER rebuild for inactive versions? or just the ones that don't need to be rebuilt
-      if (bundleData.projectDirName !== process.env.DOCS_PROJECT) {
+      if (bundleData.projectDirName !== docsProject) {
         console.log('skipping handleSearchManifests for branch: ', version, 'and project: ', bundleData.projectDirName);
         return;
       }
@@ -181,7 +207,7 @@ export const handleSearchManifests = async ({
   );
 
   try {
-    return Promise.all(promises);
+    return await Promise.all(promises);
   } finally {
     await closeSearchDb();
   }

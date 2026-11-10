@@ -90,13 +90,17 @@ extension.addBuildEventHandler(
 
 			// this should only run on prod build
 			console.log("Generating offline docs ...");
-			await handleOfflineDownloads(
-				allContentData,
-				gitChangedFiles,
-				utils,
-				dbEnvVars,
-				configEnvironment,
-			);
+			try {
+				await handleOfflineDownloads(
+					allContentData,
+					gitChangedFiles,
+					utils,
+					dbEnvVars,
+					configEnvironment,
+				);
+			} catch (error) {
+				console.error("[offline-docs] Failed to build offline docs:", error);
+			}
 
 			await logDiskMetrics(
 				"onSuccess:end",
