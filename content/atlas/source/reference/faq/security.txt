@@ -5,7 +5,8 @@ FAQ: Security
 =============
 
 .. meta::
-   :description: Understand how Atlas encrypts your data, including default AES-256 encryption at rest with cloud provider-managed keys, TLS encryption requirements, and certificate authority details.
+   :keywords: atlas security, encryption at rest, atlas infinite, tenant isolation, compliance, code example
+   :description: Understand how Atlas encrypts your data at rest and in transit, and how Atlas Infinite isolates tenants, encrypts storage, and meets certification, residency, and control requirements.
 
 .. default-domain:: mongodb
 
@@ -18,23 +19,115 @@ FAQ: Security
 How does |service| encrypt my data?
 -----------------------------------
 
-By default, |service| encrypts all cluster storage and snapshot
-volumes at rest using Advanced Encryption Standard (AES)-256.
-Your cloud provider automates this disk encryption and manages the
-encryption keys.
+|service| protects customer data in transit with |tls|. |tls| is
+enabled by default and cannot be disabled; it encrypts data sent to
+|service| and data transmitted between nodes of an |service| cluster.
+|service| also encrypts customer data at rest. Encryption at rest is
+always enabled using Advanced Encryption Standard (AES)-256.
 
-|service| also requires |tls| encryption for client data and
-intra-cluster network communications.
+- **{+atlas-core-full+}:** On an :ref:`{+atlas-core-full+}
+  <atlas-core-edition>` cluster, your cloud provider automates this disk
+  encryption and manages the encryption keys. You can optionally enable
+  :ref:`database-level encryption <atlas-core-encryption-at-rest>` using
+  the WiredTiger Encrypted Storage Engine and bring your own key through
+  :ref:`AWS KMS <security-aws-kms>`, :ref:`Google Cloud KMS
+  <security-gcp-kms>`, or :ref:`Azure Key Vault <security-azure-kms>`.
 
-If your organization requires more specific information regarding
-|service| encryption, please contact |service| |mdb-support|:
+- **{+atlas-infinite-full+}:** :ref:`{+atlas-infinite-full+}
+  <atlas-infinite-edition>` is currently in :ref:`public preview
+  <atlas-infinite-availability>`. In {+atlas-infinite-full+}, compute
+  and storage are separate layers. {+atlas-infinite-full+} always
+  encrypts customer data at the database level, before it leaves the
+  compute layer and reaches the storage layer, which is shared across
+  multiple customers. This storage layer does not have the encryption
+  keys and cannot decrypt customer data. In public preview,
+  customer-managed keys are available through :ref:`AWS KMS
+  <security-aws-kms>`.
 
-.. procedure::
-   :style: normal
+For more detail on encryption and |service| security controls, see
+`Technical and Organizational Security Measures
+<https://www.mongodb.com/legal/customer-service-agreement/technical-and-organizational-security-measures/>`__.
 
-   .. include:: /includes/nav/steps-org-support.rst
+.. _infinite-faq-security:
 
-   .. step:: Request support.
+How does {+atlas-infinite-full+} keep each customer's data separate from other customers?
+--------------------------------------------------------------------------------
+
+MongoDB {+atlas-infinite-cluster+}s are deployed in a dedicated VPC
+that fully isolates customer data at the compute layer.
+{+atlas-infinite-full+} keeps each tenant's data separate in the
+storage layer in two ways:
+
+- Every request your cluster makes to the storage layer is checked
+  against your cluster's identity, so only your data is returned.
+
+- {+atlas-infinite-full+} encrypts data before it reaches the storage
+  layer. By default, MongoDB :ref:`manages a unique encryption key
+  <atlas-infinite-encryption-at-rest>` for each |service| organization
+  and rotates it automatically every 90 days. :ref:`Customer-managed
+  keys <security-kms-encryption>` add another encryption layer, and you
+  can migrate between default and customer-managed encryption in either
+  direction.
+
+Which certifications cover |service|?
+-------------------------------------
+
+For the current list of certifications and attestations that cover
+|service|, see the `MongoDB Atlas Shared Responsibility Model
+<https://www.mongodb.com/resources/products/capabilities/mongodb-atlas-shared-responsibility-model/>`__.
+Further, {+atlas-infinite-full+} is in scope for the same certifications
+and attestations as {+atlas-core-full+}.
+
+Which controls can I configure with {+atlas-infinite-full+}?
+---------------------------------------------------
+
+You can configure the same controls available in |service| today:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Area
+     - Controls
+   * - Networking
+     - :ref:`IP access list <access-list>`, :ref:`VPC peering
+       <vpc-peering>`, and :ref:`private endpoints <private-endpoint>`
+   * - Encryption
+     - :ref:`Customer key management <security-kms-encryption>`
+   * - Backups
+     - :ref:`Backup Compliance Policy <backup-compliance-policy>`
+   * - Support access
+     - :ref:`Temporarily authorizing MongoDB support to access logs and
+       diagnostic data <restrict-access>`
+   * - Region
+     - :ref:`Choosing the region where your cluster runs
+       <create-cluster-cloud-provider-region>`
+   * - Cluster configuration
+     - :ref:`Atlas Resource Policies
+       <atlas-resource-policies-overview>`
+
+Where can my data be processed or stored in {+atlas-infinite-full+}, and can I restrict this by region, jurisdiction, or cloud?
+----------------------------------------------------------------------------------------------------------------------
+
+Consistent with {+atlas-core-full+}, your application data in
+{+atlas-infinite-full+} is only processed in the region(s) in which the
+cluster is located. |service| gives you the ability to choose which
+cloud provider and the specific region(s) a cluster is located in.
+
+What review and analysis has been done to confirm the system is secure?
+-----------------------------------------------------------------------
+
+|service| undergoes regular reviews from both internal and external
+security teams. The |service| production environment is subject to an
+external penetration test by an industry recognized security firm at
+least once per calendar year. Internally, |service| undergoes periodic
+risk assessments, including technical vulnerability discovery and
+analysis of business risks and concerns. Further, MongoDB conducts
+regular scans of the underlying systems on which |service| is deployed
+and of third-party code integrated into its products. For more details
+refer `Technical
+and Organizational Security Measures
+<https://www.mongodb.com/legal/customer-service-agreement/technical-and-organizational-security-measures/>`__.
 
 Can I disable TLS on my deployment?
 -----------------------------------
