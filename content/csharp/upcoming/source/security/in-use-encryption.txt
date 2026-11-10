@@ -1,53 +1,218 @@
 .. _csharp-fle:
 .. _csharp-in-use-encryption:
 
-.. sharedinclude:: dbx/encrypt-fields-upcoming.rst
+=================
+In-Use Encryption
+=================
 
-   .. replacement:: driver-specific-content
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
 
-      .. warning:: MongoDB 8.2 Known Issue
+Overview
+--------
 
-         On Windows platforms, you cannot run version 8.2.0 of ``mongocryptd`` with
-         the default spawn arguments. To avoid this issue, you must manually start the ``mongocryptd``
-         process and specify the ``--logpath`` argument. Alternatively, use the
-         :ref:`Automatic Encryption Shared Library <qe-reference-shared-library>`
-         instead of ``mongocryptd``.
+You can use the {+driver-short+} to encrypt specific document fields by
+using a set of features called **in-use encryption**. In-use encryption
+allows your application to encrypt data *before* sending it to MongoDB
+and to query documents that contain encrypted fields.
 
-         To learn more about this issue and how to resolve it, see :ref:`8.2-known-issues`
-         in the MongoDB 8.2 Release Notes.
+.. warning:: MongoDB 8.2 Known Issue
 
-      .. include:: /includes/security/rerank-automatic-encryption-limitation.rst
-   
-   .. replacement:: driver-specific-queryable-encryption-content
+   On Windows platforms, you cannot run version 8.2.0 of ``mongocryptd``
+   with the default spawn arguments. To avoid this issue, you must
+   manually start the ``mongocryptd`` process and specify the
+   ``--logpath`` argument. Alternatively, use the :ref:`Automatic
+   Encryption Shared Library <qe-reference-shared-library>` instead of
+   ``mongocryptd``.
 
-      The following table lists the {+driver-short+} methods and the
-      equivalent {+mdb-server+} operators for prefix, suffix, and substring
-      queries:
+   To learn more about this issue and how to resolve it, see
+   :ref:`8.2-known-issues` in the MongoDB 8.2 Release Notes.
 
-      .. list-table::
-         :widths: 20 60 20
-         :header-rows: 1
+.. include:: /includes/security/rerank-automatic-encryption-limitation.rst
 
-         * - {+driver-short+} Method
-           - Description
-           - {+mdb-server+} Operator
+In-use encryption prevents unauthorized users from viewing plaintext
+data as it is sent to MongoDB or while it is in an encrypted database. To
+enable in-use encryption in an application and authorize it to decrypt
+data, you must create encryption keys that only your application can
+access. Only applications that have access to your encryption
+keys can access the decrypted, plaintext data. If an attacker gains
+access to the database, they can see only the encrypted ciphertext data
+because they lack access to the encryption keys.
 
-         * - ``EncStrStartsWith()``
-           - Returns ``true`` if the first characters of a string value
-             match the characters in the specified string.
-           - :manual:`$encStrStartsWith </reference/operator/aggregation/encStrStartsWith/>`
+You might use in-use encryption to encrypt fields in your MongoDB
+documents that contain the following types of sensitive data:
 
-         * - ``EncStrEndsWith()``
-           - Returns ``true`` if the last characters of a string value match
-             the characters in the specified string.
-           - :manual:`$encStrEndsWith </reference/operator/aggregation/encStrEndsWith/>`
+- Credit card numbers
+- Addresses
+- Health information
+- Financial information
+- Any other sensitive or personally identifiable information (PII)
 
-         * - ``EncStrContains()``
-           - Returns ``true`` if any subset of characters in a string value
-             match the characters in the specified string.
-           - :manual:`$encStrContains </reference/operator/aggregation/encStrContains/>`
+MongoDB offers the following features to enable in-use encryption:
 
-         * - ``EncStrNormalizedEq()``
-           - Returns ``true`` if a :term:`normalized string` value matches
-             the :term:`normalized string` version of the specified string.
-           - :manual:`$encStrNormalizedEq </reference/operator/aggregation/encStrNormalizedEq/>`
+- :ref:`Queryable Encryption <subsection-qe>`
+- :ref:`Client-side Field Level Encryption <subsection-csfle>`
+
+.. _subsection-qe:
+
+Queryable Encryption
+~~~~~~~~~~~~~~~~~~~~
+
+Queryable Encryption (QE) is an in-use encryption feature that
+supports querying uniquely encrypted field values, including
+equality, range, prefix, suffix, and substring queries. Range
+query support requires MongoDB Server 8.0 or later. Prefix, suffix,
+and substring query support requires MongoDB Server 9.0 or later.
+
+The following table lists the {+driver-short+} methods and the
+equivalent {+mdb-server+} operators for prefix, suffix, and substring
+queries:
+
+.. list-table::
+   :widths: 20 60 20
+   :header-rows: 1
+
+   * - {+driver-short+} Method
+     - Description
+     - {+mdb-server+} Operator
+
+   * - ``EncStrStartsWith()``
+     - Returns ``true`` if the first characters of a string value
+       match the characters in the specified string.
+     - :manual:`$encStrStartsWith </reference/operator/aggregation/encStrStartsWith/>`
+
+   * - ``EncStrEndsWith()``
+     - Returns ``true`` if the last characters of a string value match
+       the characters in the specified string.
+     - :manual:`$encStrEndsWith </reference/operator/aggregation/encStrEndsWith/>`
+
+   * - ``EncStrContains()``
+     - Returns ``true`` if any subset of characters in a string value
+       match the characters in the specified string.
+     - :manual:`$encStrContains </reference/operator/aggregation/encStrContains/>`
+
+   * - ``EncStrNormalizedEq()``
+     - Returns ``true`` if a :term:`normalized string` value matches
+       the :term:`normalized string` version of the specified string.
+     - :manual:`$encStrNormalizedEq </reference/operator/aggregation/encStrNormalizedEq/>`
+
+To learn more about Queryable Encryption, see :manual:`Queryable
+Encryption </core/queryable-encryption/>` in the Server manual.
+
+.. _subsection-csfle:
+
+Client-side Field Level Encryption
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Client-side Field Level Encryption (CSFLE) supports searching encrypted
+fields for equality. MongoDB Server version 4.2 introduced CSFLE.
+
+Unlike QE, CSFLE requires you to select an encryption
+algorithm for each field, and that choice determines whether you can
+query the field. Deterministic encryption always produces the same
+output value for the same input value. Because matching values look
+the same after encryption, you can run equality queries on these
+fields. Randomized encryption produces a different output value each
+time it encrypts the same input value. Drivers can decrypt these fields,
+but you cannot query them.
+
+Deterministic encryption trades some confidentiality for query support.
+When an encrypted field has low cardinality, an attacker can compare
+how often each encrypted value appears and infer the original values.
+This technique is called frequency analysis. To protect fields that
+you do not query, use randomized encryption.
+
+.. tip::
+
+   To learn more about these concepts, see the following Wikipedia
+   entries:
+
+   - :wikipedia:`Cardinality <w/index.php?title=Cardinality_(data_modeling)&oldid=1182661589>`
+   - :wikipedia:`Frequency Analysis <w/index.php?title=Frequency_analysis&oldid=1182536787>`
+
+To learn more about CSFLE, see :manual:`CSFLE </core/csfle/>` in the
+Server manual.
+
+.. _csharp-kms-proxy:
+
+Route KMS Requests Through an HTTP Proxy
+----------------------------------------
+
+Starting in {+driver-short+} version 3.11, you can route key-management
+system (KMS) requests through an HTTP proxy that tunnels them by using
+HTTP ``CONNECT``.
+
+To configure a proxy, implement the ``IKmsConnector`` interface and
+pass your implementation to the ``SetKmsConnector()`` method of
+``ClientEncryptionOptions`` or ``AutoEncryptionOptions``. The driver
+then calls the ``Connect()`` or ``ConnectAsync()`` method of your
+connector instead of connecting to the KMS host directly. Each method
+receives a ``KmsConnectionContext`` object whose ``Host`` and ``Port``
+properties identify the KMS host. The driver performs the TLS handshake
+over the returned stream, so the driver verifies the certificate of the
+KMS host, not the proxy.
+
+Implement a KMS Connector
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example tunnels KMS requests through an HTTPS proxy. For
+a plain HTTP proxy, don't wrap the ``NetworkStream`` in an
+``SslStream`` and don't call ``AuthenticateAsClient()``. Use the
+``NetworkStream`` as the proxy stream instead. The rest of the
+connector doesn't change.
+
+.. literalinclude:: /code-examples/tested/csharp/driver/Encryption/KmsProxy/HttpsProxyKmsConnector.snippet.kms-connector.cs
+   :language: csharp
+   :copyable: true
+   :category: usage example
+
+When you implement ``IKmsConnector``, follow these guidelines:
+
+- Implement both ``Connect()`` and ``ConnectAsync()``. The driver calls
+  the one that matches the current operation.
+- Return a stream from each method. If either method returns ``null``,
+  the driver throws an ``InvalidOperationException``.
+- Don't dispose the returned stream. The driver disposes it.
+- If a connection attempt fails, throw an ``IOException`` or a
+  ``SocketException``. The driver treats these exceptions as network
+  errors and might retry the KMS request. Other exception types
+  propagate to your application.
+- If your proxy uses a certificate from a private certificate
+  authority, pass a custom ``RemoteCertificateValidationCallback`` to
+  the ``SslStream`` constructor. ``AuthenticateAsClient()`` validates
+  certificates against the operating system trust store.
+- In production, add a header size limit and a timeout for the
+  ``CONNECT`` exchange.
+
+Configure the KMS Connector
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example passes an ``HttpsProxyKmsConnector`` for both
+explicit and automatic encryption. The example assumes that you have
+already defined the following objects:
+
+- ``keyVaultClient``: An ``IMongoClient`` connected to the cluster that
+  stores your :ref:`key vault collection <qe-reference-key-vault>`
+- ``keyVaultNamespace``: A ``CollectionNamespace`` that identifies
+  your key vault collection
+- ``kmsProviders``: A dictionary that contains the credentials for
+  your :ref:`KMS providers <qe-fundamentals-kms-providers>`
+
+.. literalinclude:: /code-examples/tested/csharp/driver/Encryption/KmsProxy/KmsProxy.snippet.set-kms-connector.cs
+   :language: csharp
+   :copyable: true
+   :category: usage example
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the types and methods in this section, see the
+following API documentation:
+
+- `IKmsConnector <{+api-root+}/MongoDB.Driver/MongoDB.Driver.Encryption.IKmsConnector.html>`__
+- `KmsConnectionContext <{+api-root+}/MongoDB.Driver/MongoDB.Driver.Encryption.KmsConnectionContext.html>`__
+- `ClientEncryptionOptions <{+api-root+}/MongoDB.Driver.Encryption/MongoDB.Driver.Encryption.ClientEncryptionOptions.html>`__
+- `AutoEncryptionOptions <{+api-root+}/MongoDB.Driver/MongoDB.Driver.AutoEncryptionOptions.html>`__
