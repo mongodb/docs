@@ -1,0 +1,360 @@
+.. _atlas-sp-iceberg-catalogs:
+
+=====================================
+Set Up Data Catalogs for ``$iceberg``
+=====================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas stream processing, $iceberg, apache iceberg, databricks unity catalog, snowflake horizon, data catalog
+   :description: Set up a Databricks Unity Catalog or Snowflake Horizon catalog so the Atlas Stream Processing $iceberg stage can write Apache Iceberg tables to AWS S3 or Azure Blob Storage.
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Configure a Databricks Unity Catalog or a Snowflake Horizon catalog for
+the {+atlas-sp+} :ref:`$iceberg <atlas-sp-agg-iceberg>` stage. The
+stage can then update {+iceberg+} tables in that catalog. Complete this
+setup in your catalog provider first. Then, create a data catalog
+connection.
+
+About This Task
+---------------
+
+The ``$iceberg`` stage supports the following catalog types:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 25 20 40
+
+   * - Catalog Type
+     - Supported Storage
+     - Data Catalog Connection
+     - Setup
+
+   * - ``hadoop``
+     - {+aws+} |s3| and |azure| Blob Storage
+     - Not used
+     - No catalog setup. You need only the storage connection.
+
+   * - ``glue``
+     - {+aws+} |s3|
+     - Not used
+     - Grant your IAM role access to {+aws+} Glue. To learn more, see
+       :ref:`atlas-sp-add-connection`.
+
+   * - ``unity``
+     - {+aws+} |s3| and |azure| Blob Storage
+     - Required
+     - Follow the Databricks Unity steps on this page.
+
+   * - ``horizon``
+     - {+aws+} |s3| and |azure| Blob Storage
+     - Required
+     - Follow the Snowflake Horizon steps on this page.
+
+A data catalog connection stores the URL and credentials that
+{+atlas-sp+} uses to authenticate to your catalog. Databricks Unity
+uses OAuth M2M authentication with a service principal. Snowflake Horizon uses key-pair authentication.
+
+Before You Begin
+----------------
+
+Ensure that you have the following:
+
+- A {+spw+} with a connection to the |s3| bucket or |azure| Blob
+  Storage container where you want to write your {+iceberg+} tables.
+  
+  To learn more, see :ref:`atlas-sp-add-connection`.
+- A Databricks or Snowflake account with permission to create the
+  resources that this page describes.
+
+Steps
+-----
+
+Select your catalog type and cloud provider.
+
+.. composable-tutorial::
+   :options: iceberg-catalog-type, iceberg-cloud-provider
+   :defaults: unity, aws
+
+   .. selected-content::
+      :selections: unity, aws
+
+      To learn more about Unity Catalog, see the `Databricks Unity
+      Catalog setup guide for AWS
+      <https://docs.databricks.com/aws/en/data-governance/unity-catalog/setup-uc>`__.
+
+      To set up your data catalog for Databricks Unity in AWS, follow these steps: 
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Enable external data access on the metastore.
+
+            In Databricks, enable external data access on the
+            metastore that you want to use.
+
+         .. step:: Create a storage credential.
+
+            In Databricks, create a storage credential that grants
+            Databricks access to your |s3| bucket. Create an IAM role
+            and a storage credential in the :guilabel:`Catalog` tab.
+            Databricks provides a trust policy after you create the
+            credential. Update your IAM role to use that trust policy,
+            and add the ARN of the role itself to ``Principal.AWS``.
+            Attach a permissions policy that allows the following
+            actions:
+
+            - On the bucket objects (``arn:aws:s3:::<bucket>/*``):
+              ``s3:GetObject``, ``s3:PutObject``, ``s3:DeleteObject``,
+              ``s3:ListMultipartUploadParts``, and
+              ``s3:AbortMultipartUpload``.
+            - On the bucket (``arn:aws:s3:::<bucket>``):
+              ``s3:ListBucket``, ``s3:GetBucketLocation``, and
+              ``s3:ListBucketMultipartUploads``.
+
+         .. step:: Create an external location.
+
+            Create an external location that points to your |s3| bucket
+            and uses the storage credential.
+
+         .. step:: Create a catalog.
+            
+            Create a catalog that uses the external location as its
+            storage root. The name of this catalog is the value that
+            you use for ``catalog.warehouse`` in the ``$iceberg``
+            stage.
+
+            To learn how to create a catalog in Unity for AWS, see `Databricks Unity 
+            Create catalogs and schemas for AWS <https://docs.databricks.com/aws/en/data-governance/unity-catalog/setup-uc#step-4-create-catalogs-and-schemas>`__.
+
+         .. step:: Create a service principal.
+
+            Create a Databricks service principal and generate an
+            OAuth secret for it. Note the client ID and the client
+            secret. You use them to create the data catalog connection.
+
+         .. step:: Grant privileges to the service principal.
+
+            Grant the service principal the privileges to use the
+            catalog, create tables, and use the catalog from external
+            engines:
+
+            .. code-block:: sql
+               :copyable: true
+
+               GRANT USE CATALOG ON CATALOG <catalog> TO `<principal>`;
+               GRANT USE SCHEMA, CREATE TABLE ON CATALOG <catalog> TO `<principal>`;
+               GRANT EXTERNAL USE SCHEMA ON CATALOG <catalog> TO `<principal>`;
+
+            For further information about granting priviledges to users, see , see `Databricks Unity 
+            Grant privileges to users for AWS <https://docs.databricks.com/aws/en/data-governance/unity-catalog/setup-uc#step-5-grant-privileges-to-users>`__.
+
+   .. selected-content::
+      :selections: unity, azure
+
+      To learn more about Unity Catalog, see the `Databricks Unity
+      Catalog setup guide for Azure
+      <https://learn.microsoft.com/en-us/azure/databricks/data-governance/unity-catalog/setup-uc>`__.
+
+      To set up your data catalog for Databricks Unity in Azure, follow these steps: 
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Enable external data access on the metastore.
+
+            In Databricks, enable external data access on the
+            metastore that you want to use.
+
+         .. step:: Create a storage credential.
+
+            In Databricks, create a storage credential that grants
+            Databricks access to your storage account. You must already
+            have a storage account in Azure Data Lake Storage (ADLS)
+            Gen2 and a Databricks Access Connector in your |azure|
+            account. The managed identity of the connector needs the
+            **Storage Blob Data Contributor** role on the storage
+            account or container that you want to write to. Create the
+            storage credential with the resource ID of the connector.
+
+         .. step:: Create an external location.
+
+            Create an external location that points to your |azure| Blob
+            Storage container and uses the storage credential.
+
+         .. step:: Create a catalog.
+
+            Create a catalog that uses the external location as its
+            storage root. The name of this catalog is the value that
+            you use for ``catalog.warehouse`` in the ``$iceberg``
+            stage.
+
+            To learn how to create a catalog in Unity for Azure, see `Databricks Unity 
+            Create catalogs and schemas for Azure <https://learn.microsoft.com/en-us/azure/databricks/data-governance/unity-catalog/setup-uc#create-catalogs>`__.
+
+         .. step:: Create a service principal.
+
+            Create a Databricks service principal and generate an
+            OAuth secret for it. Note the client ID and the client
+            secret. You use them to create the data catalog connection.
+
+         .. step:: Grant privileges to the service principal.
+
+            Grant the service principal the privileges to use the
+            catalog, create tables, and use the catalog from external
+            engines:
+
+            .. code-block:: sql
+               :copyable: true
+
+               GRANT USE CATALOG ON CATALOG <catalog> TO `<principal>`;
+               GRANT USE SCHEMA, CREATE TABLE ON CATALOG <catalog> TO `<principal>`;
+               GRANT EXTERNAL USE SCHEMA ON CATALOG <catalog> TO `<principal>`;
+
+            For further information about granting priviledges to users, see `Databricks Unity 
+            Grant privileges to users for Azure <https://learn.microsoft.com/en-us/azure/databricks/data-governance/unity-catalog/setup-uc#grant-privileges>`__.
+
+   .. selected-content::
+      :selections: horizon, aws
+
+      To learn more about Snowflake Horizon, see the `Snowflake Horizon
+      Catalog documentation <https://docs.snowflake.com/en/user-guide/snowflake-horizon>`__.
+
+      To set up your data catalog for Snowflake Horizon in AWS, follow these steps: 
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Create an external volume.
+
+            In Snowflake, create an external volume that points to
+            your |s3| bucket and allows writes. Run a command similar to
+            the following:
+
+            .. code-block:: sql
+               :copyable: true
+
+               CREATE OR REPLACE EXTERNAL VOLUME iceberg_external_volume
+                 STORAGE_LOCATIONS =
+                   (
+                     (
+                       NAME = 'my-s3-us-east-1'
+                       STORAGE_PROVIDER = 'S3'
+                       STORAGE_BASE_URL = 's3://<bucket-name>/'
+                       STORAGE_AWS_ROLE_ARN = 'arn:aws:iam::<account-id>:role/<role-name>'
+                       STORAGE_AWS_EXTERNAL_ID = '<external-id>'
+                     )
+                   )
+                 ALLOW_WRITES = TRUE;
+
+            After you create the external volume, run
+            ``DESC EXTERNAL VOLUME <volume>`` and copy the value of
+            ``STORAGE_AWS_IAM_USER_ARN``. Add that value to the trust
+            policy of your {+aws+} IAM role.
+
+         .. step:: Create a schema and a role.
+
+            Create a Snowflake schema for your tables and a role for
+            the {+atlas-sp+} service user.
+
+         .. step:: Grant privileges to the role.
+
+            Grant the role the privileges to create {+iceberg+} tables
+            in the schema and to use the external volume:
+
+            .. code-block:: sql
+               :copyable: true
+
+               GRANT CREATE ICEBERG TABLE ON SCHEMA <database>.<schema> TO ROLE <role>;
+               GRANT USAGE ON EXTERNAL VOLUME iceberg_external_volume TO ROLE <role>;
+
+            For further information about granting privileges to users, see , see `Snowflake Horizon 
+            user privileges <https://docs.snowflake.com/en/user-guide/security-access-control-overview#privileges>`__.
+
+         .. step:: Create a key pair for the service user.
+
+            Create a key pair for the Snowflake service user that
+            {+atlas-sp+} uses. Note your Snowflake account identifier,
+            the user name, and the role, and keep the PEM file of the
+            private key. You use them to create the data catalog
+            connection.
+
+   .. selected-content::
+      :selections: horizon, azure
+
+      To learn more about Snowflake Horizon, see the `Snowflake Horizon
+      Catalog documentation <https://docs.snowflake.com/en/user-guide/snowflake-horizon>`__.
+
+      To set up your data catalog for Snowflake Horizon in Azure, follow these steps: 
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Create an external volume.
+
+            In Snowflake, create an external volume that points to
+            your storage location and allows writes. Create the
+            external volume on the Azure Data Lake Storage (ADLS) Gen2
+            ``dfs`` URL, not the Blob Storage URL. Use the following
+            format for the storage location:
+
+            .. code-block:: text
+               :copyable: false
+
+               azure://<account>.dfs.core.windows.net/<container>/
+
+         .. step:: Create a schema and a role.
+
+            Create a Snowflake schema for your tables and a role for
+            the {+atlas-sp+} service user.
+
+         .. step:: Grant privileges to the role.
+
+            Grant the role the privileges to create {+iceberg+} tables
+            in the schema and to use the external volume:
+
+            .. code-block:: sql
+               :copyable: true
+
+               GRANT CREATE ICEBERG TABLE ON SCHEMA <database>.<schema> TO ROLE <role>;
+               GRANT USAGE ON EXTERNAL VOLUME iceberg_external_volume TO ROLE <role>;
+
+            For further information about granting privileges to users, see , see `Snowflake Horizon 
+            user privileges <https://docs.snowflake.com/en/user-guide/security-access-control-overview#privileges>`__.
+
+         .. step:: Create a key pair for the service user.
+
+            Create a key pair for the Snowflake service user that
+            {+atlas-sp+} uses. Note your Snowflake account identifier,
+            the user name, and the role, and keep the PEM file of the
+            private key. You use them to create the data catalog
+            connection.
+
+Next Steps
+----------
+
+To create the data catalog connection with the credentials that you
+gathered, see :ref:`atlas-sp-add-connection`. Then, to reference the
+connection in your stream processor, see the :ref:`catalog
+<atlas-sp-agg-iceberg-catalog>` field of the ``$iceberg`` stage.
+
+Learn More
+----------
+
+- :ref:`$iceberg Aggregation Stage <atlas-sp-agg-iceberg>`
+- :ref:`Manage Connections <atlas-sp-manage-connections>`
+- `Databricks Unity Catalog setup guide for AWS
+  <https://docs.databricks.com/aws/en/data-governance/unity-catalog/setup-uc>`__
+- `Databricks Unity Catalog setup guide for Azure
+  <https://learn.microsoft.com/en-us/azure/databricks/data-governance/unity-catalog/setup-uc>`__
+- `Snowflake Horizon Catalog documentation <https://docs.snowflake.com/en/user-guide/snowflake-horizon>`__

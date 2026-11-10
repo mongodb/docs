@@ -5,3 +5,4 @@ following roles within your {+atlas-sp+} project:
 
 - :authrole:`Project Owner`
 - :authrole:`Project Stream Processing Owner`
+- :authrole:`Project Stream Processing Manager`

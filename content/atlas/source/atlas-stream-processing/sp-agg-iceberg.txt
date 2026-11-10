@@ -52,6 +52,7 @@ The ``$iceberg`` pipeline stage has the following prototype form:
        "connectionName": "<registered-connection>",
        "bucket": "<target-bucket>",
        "container": "<target-container>",
+       "container": "<target-container>",
        "databaseName": "<database>",
        "tableName": "<string>" | <expression>,
        "path": "<key-prefix>",
@@ -63,7 +64,9 @@ The ``$iceberg`` pipeline stage has the following prototype form:
 	 . . .
        },
        "catalog": {
-         "type": "hadoop" | "glue"
+         "type": "hadoop" | "glue" | "unity" | "horizon",
+         "connectionName": "<data-catalog-connection>",
+         "warehouse": "<warehouse>"
        },
        "schemaInference": {
          "mode": "json" | "nested"
@@ -89,19 +92,28 @@ The ``$iceberg`` stage takes a document with the following fields:
        use for reads and writes. This must match the name of the
        connection in the :ref:`Connection Registry
        <atlas-sp-manage-connections>`.
+     - Name of the {+aws+} |s3| or |azure| Blob Storage connection to
+       use for reads and writes. This must match the name of the
+       connection in the :ref:`Connection Registry
+       <atlas-sp-manage-connections>`.
 
    * - ``bucket``
      - string
      - Conditional
-     - Name of the |s3| bucket containing the target {+iceberg+} database.
-       Required for |s3| connections.
+     - Required for |s3| connections.
+
+       Name of the |s3| bucket containing the target {+iceberg+} database.
+       If you set ``bucket``, you must set
+       ``region``, but don't set ``container``.
 
    * - ``container``
      - string
      - Conditional
-     - Name of the |azure| Blob Storage container containing the target
-       {+iceberg+} database. Required for |azure| Blob Storage
-       connections. If you set ``container``, don't set ``bucket`` or
+     - Required for |azure| Blob Storage
+       connections.
+       
+       Name of the |azure| Blob Storage container containing the target
+       {+iceberg+} database.  If you set ``container``, don't set ``bucket`` or
        ``region``.
 
    * - ``databaseName``
@@ -125,7 +137,9 @@ The ``$iceberg`` stage takes a document with the following fields:
      - string
      - Conditional
      - {+aws+} region of the bucket. Required for stream processors
-       *not* running on {+aws+}. Doesn't apply to |azure| Blob Storage
+       *not* running on {+aws+}. 
+       
+       Does not apply to |azure| Blob Storage
        connections.
 
    * - ``mode``
@@ -140,7 +154,9 @@ The ``$iceberg`` stage takes a document with the following fields:
          the target table as a new row, ignoring operation type
          declarations in the ``stream.source.operationType`` metadata field.
 
-       Defaults to ``cdc``.
+       Defaults to ``cdc``. The ``"unity"`` catalog type doesn't
+       support ``cdc`` mode. If ``catalog.type`` is ``"unity"``, set
+       ``mode`` to ``"insert"``.
 
    * - ``idFieldName``
      - string
@@ -189,10 +205,15 @@ The ``$iceberg`` stage takes a document with the following fields:
      - Document defining the `Iceberg catalog
        <https://iceberg.apache.org/docs/latest/catalog-properties>`__
        to use. Must be a document containing the ``type`` field with a
-       value of either ``"hadoop"`` or ``"glue"``.
+       value of ``"hadoop"``, ``"glue"``, ``"unity"``, or
+       ``"horizon"``. The ``"unity"`` and ``"horizon"`` catalog types
+       also require the ``connectionName`` and ``warehouse`` fields.
+       To learn more, see :ref:`atlas-sp-agg-iceberg-catalog`.
 
-       |azure| Blob Storage connections support only ``"hadoop"``.
-       The ``"glue"`` catalog supports only |s3|.
+       The ``"unity"``, ``"horizon"``, and ``"hadoop"`` catalog types
+       support both |s3| and |azure| Blob Storage connections. 
+       
+       The ``"glue"`` catalog type supports only |s3| connections.
 
    * - ``schemaInference``
      - document
@@ -209,6 +230,86 @@ The ``$iceberg`` stage takes a document with the following fields:
 
        Defaults to ``"json"``. To learn more, see
        :ref:`atlas-sp-agg-iceberg-conversion`.
+
+.. _atlas-sp-agg-iceberg-catalog:
+
+``catalog`` Fields
+``````````````````
+
+The ``catalog`` document takes the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 10 12 40
+
+   * - Field
+     - Type
+     - Necessity
+     - Description
+
+   * - ``type``
+     - string
+     - Optional
+     - Type of {+iceberg+} catalog to use. Must be one of the
+       following values:
+
+       - ``"hadoop"`` for data catalogs in AWS and Azure
+       - ``"glue"`` for data catalogs in AWS
+       - ``"unity"`` for Databricks Unity catalogs in AWS and Azure
+       - ``"horizon"`` for Snowflake Horizon catalogs in AWS and Azure
+
+   * - ``connectionName``
+     - string
+     - Conditional
+     - Name of the data catalog connection to use. This must match
+       the name of a data catalog connection in the :ref:`Connection
+       Registry <atlas-sp-manage-connections>`. 
+       
+       Required if ``type`` is ``"unity"`` or ``"horizon"``. 
+       
+       {+atlas-sp+} rejects this field if ``type`` is ``"hadoop"`` or ``"glue"``.
+
+   * - ``warehouse``
+     - string
+     - Conditional
+     - Location in the catalog that contains the target schema.
+      
+       Required if ``type`` is ``"unity"`` or ``"horizon"``.
+
+       {+atlas-sp+} rejects this field if ``type`` is ``"hadoop"`` or
+       ``"glue"``.
+
+       - For ``"unity"``, the name of the Databricks catalog.
+       - For ``"horizon"``, the name of the Snowflake database.
+
+For ``"unity"`` and ``"horizon"`` catalogs, ``$iceberg`` resolves the
+target table from the ``warehouse``, ``databaseName``, and
+``tableName`` fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 25 25 30
+
+   * - Catalog Type
+     - ``warehouse``
+     - ``databaseName``
+     - ``tableName``
+
+   * - ``"unity"``
+     - Databricks catalog
+     - Databricks schema
+     - Table name
+
+   * - ``"horizon"``
+     - Snowflake database
+     - Snowflake schema
+     - Table name
+
+.. note:: 
+   
+   If {+atlas-sp+} can't find the warehouse or schema, confirm that you
+   specified the ``warehouse`` and ``databaseName`` values in the correct
+   fields. Snowflake database names are usually uppercase.
 
 .. _atlas-sp-agg-iceberg-behavior:
 
@@ -606,3 +707,111 @@ dynamically route documents to various output targets.
        "mode": "cdc"
      }
    }
+
+.. _atlas-sp-agg-iceberg-example-catalog:
+
+Writing to a Data Catalog Table
+```````````````````````````````
+
+The following example demonstrates how to write the initial contents
+and changestream of an {+service+} collection to an {+iceberg+} table
+that a data catalog manages. Select the tab for your catalog type. The
+example sets ``mode`` to ``insert`` to append each document to the
+table as a new row. This aggregation has two stages:
+
+1. The :pipeline:`$source` stage establishes a connection with the
+   {+service+} database, specifically targeting the ``orders``
+   collection in the ``db`` database. It enables initial sync to
+   capture documents in the database at the time of processor
+   activation, and ensures that the full document is captured by each
+   changestream event.
+
+2. The ``$iceberg`` stage writes to the {+aws+} |s3| bucket named
+   ``myData`` through the ``myS3Connection`` connection. It uses a data
+   catalog connection to write to the ``orders`` table of the catalog.
+
+.. tabs::
+
+   .. tab:: Databricks Unity
+      :tabid: iceberg-catalog-unity
+
+      The ``$iceberg`` stage uses the ``myUnityCatalog`` data catalog
+      connection to write to the ``orders`` table in the ``sales``
+      schema of the Databricks ``main`` catalog. The ``unity`` catalog
+      type doesn't support ``cdc`` mode, so you must set ``mode`` to
+      ``insert``.
+
+      .. code-block:: json
+         :copyable: true
+
+         [
+           {
+             "$source": {
+               "connectionName": "atlas1",
+               "db": "db",
+               "coll": "orders",
+               "initialSync": {
+                 "enable": true
+               },
+               "config": {
+                 "fullDocument": "required"
+               }
+             }
+           },
+           {
+             "$iceberg": {
+               "connectionName": "myS3Connection",
+               "bucket": "myData",
+               "path": "iceberg-warehouse/",
+               "databaseName": "sales",
+               "tableName": "orders",
+               "mode": "insert",
+               "catalog": {
+                 "type": "unity",
+                 "connectionName": "myUnityCatalog",
+                 "warehouse": "main"
+               }
+             }
+           }
+         ]
+
+   .. tab:: Snowflake Horizon
+      :tabid: iceberg-catalog-horizon
+
+      The ``$iceberg`` stage uses the ``myHorizonCatalog`` data catalog
+      connection to write to the ``orders`` table in the ``SALES``
+      schema of the Snowflake ``ICEBERG_DB`` database.
+
+      .. code-block:: json
+         :copyable: true
+
+         [
+           {
+             "$source": {
+               "connectionName": "atlas1",
+               "db": "db",
+               "coll": "orders",
+               "initialSync": {
+                 "enable": true
+               },
+               "config": {
+                 "fullDocument": "required"
+               }
+             }
+           },
+           {
+             "$iceberg": {
+               "connectionName": "myS3Connection",
+               "bucket": "myData",
+               "path": "iceberg-warehouse/",
+               "databaseName": "SALES",
+               "tableName": "orders",
+               "mode": "insert",
+               "catalog": {
+                 "type": "horizon",
+                 "connectionName": "myHorizonCatalog",
+                 "warehouse": "ICEBERG_DB"
+               }
+             }
+           }
+         ]

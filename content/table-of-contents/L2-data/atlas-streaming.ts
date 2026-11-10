@@ -81,6 +81,11 @@ const tocData: TocItem[] = [
                 url: '/docs/atlas/atlas-stream-processing/add-sp-connection',
               },
               {
+                label: 'Set Up Data Catalogs for $iceberg',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/atlas-stream-processing/sp-iceberg-catalogs',
+              },
+              {
                 label: 'Advanced Networking',
                 contentSite: 'cloud-docs',
                 collapsible: true,

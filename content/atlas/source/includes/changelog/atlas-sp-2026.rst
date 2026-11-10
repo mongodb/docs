@@ -1,3 +1,16 @@
+.. _atlas-sp-20261104:
+
+4 November 2026 Release
+-----------------------
+
+- Adds support for the ``unity`` and ``horizon`` catalog types in the
+  ``$iceberg`` stage, which write {+iceberg+} tables to Databricks Unity
+  Catalog and Snowflake Horizon catalogs. The new catalog types support
+  {+aws+} |s3| and |azure| Blob Storage. To learn more, see
+  :ref:`atlas-sp-iceberg-catalogs`.
+- Adds the Data Catalog connection type to the connection registry. To
+  learn more, see :ref:`atlas-sp-add-connection`.
+
 .. _atlas-sp-20261029:
 
 29 October 2026 Release
