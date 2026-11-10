@@ -14,11 +14,6 @@ import { APP_DIR } from '../../constants';
 /** Maps a filename (e.g. `"development.versioned.docs.ts"`) to the list of bundle version names that need to be rebuilt (e.g. `["manual", "upcoming"]`). */
 export type OfflineBundlesToBuild = Record<string, string[]>;
 
-// Path relative to repo root where the table of contents for the offline docs is stored
-// Used to filter git changed files (paths reported by git are always relative to repo root)
-const FULL_PATH_TO_OFFLINE_DOCS_DIR =
-  getRepoPaths(undefined, APP_DIR).offlineDocsDir;
-
 // filename format: <label>.versioned.<projectName>.ts (e.g., "development.versioned.docs.ts" → "docs")
 const getProjectNameFromFilename = (filename: string): string | undefined => {
   const match = filename.match(/\.versioned\.([^.]+)/);
@@ -149,11 +144,22 @@ export const getOfflineBundlesToRebuild = (
   gitChangedFiles: readonly string[],
 ): OfflineBundlesToBuild => {
   const { docsetsByProject, pathsToBuild, docsPaths } = allContentData;
-  const { offlineDocsDir: offlineDocsPath } = getRepoPaths(undefined, APP_DIR);
+  const { offlineDocsDir: offlineDocsPath, repoRoot } = getRepoPaths(
+    undefined,
+    APP_DIR,
+  );
+  // git reports paths relative to the repo root
+  const tocDirPrefix = `${path.relative(repoRoot, offlineDocsPath)}/`;
 
-  const changedOfflineDocTocFiles = gitChangedFiles
-    .filter((file) => file.startsWith(FULL_PATH_TO_OFFLINE_DOCS_DIR))
-    .map((file) => file.slice(FULL_PATH_TO_OFFLINE_DOCS_DIR.length));
+  const changedOfflineDocTocFiles = gitChangedFiles.reduce<string[]>(
+    (tocFiles, file) => {
+      if (!file.startsWith(tocDirPrefix)) return tocFiles;
+      const name = file.slice(tocDirPrefix.length);
+      if (name.endsWith('.ts') && !name.includes('/')) tocFiles.push(name);
+      return tocFiles;
+    },
+    [],
+  );
 
   // Only build offline docs for active versions
   const changedProjects = getChangedProjectAndVersions(pathsToBuild, docsPaths);

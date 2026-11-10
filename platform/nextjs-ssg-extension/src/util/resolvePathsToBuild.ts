@@ -117,12 +117,7 @@ const narrowDeployPreviewPaths = async ({
 			"git diff --name-only --no-renames FETCH_HEAD...HEAD",
 			{ stdout: "pipe" },
 		);
-		const changedFiles = stdout
-			.split("\n")
-			// TEMPORARY, for testing only: test PRs flip the extension toggles in
-			// netlify.toml, which would otherwise always block narrowing. Remove
-			// the netlify.toml check before merging.
-			.filter((file) => file && file !== "platform/docs-site/netlify.toml");
+		const changedFiles = stdout.split("\n").filter(Boolean);
 		const versions = findChangedVersions({
 			changedFiles,
 			versionPaths: contentDirectories.filter((p) => p.startsWith("manual/")),

@@ -150,23 +150,9 @@ describe('resolvePathsToBuild', () => {
     expect(pathsToBuild).toEqual(manualVersions);
   });
 
-  it('ignores netlify.toml when deciding which versions changed', async () => {
+  it('treats netlify.toml like any other file outside the versions', async () => {
     const { pathsToBuild } = await build(
       'content/manual/upcoming/source/a.txt\nplatform/docs-site/netlify.toml\n',
-    );
-
-    expect(pathsToBuild).toEqual(['manual/upcoming']);
-  });
-
-  it('builds every version when netlify.toml is the only change', async () => {
-    const { pathsToBuild } = await build('platform/docs-site/netlify.toml\n');
-
-    expect(pathsToBuild).toEqual(manualVersions);
-  });
-
-  it('still blocks narrowing for other platform files next to netlify.toml', async () => {
-    const { pathsToBuild } = await build(
-      'content/manual/upcoming/source/a.txt\nplatform/docs-site/netlify.toml\nplatform/docs-site/package.json\n',
     );
 
     expect(pathsToBuild).toEqual(manualVersions);
