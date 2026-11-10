@@ -22,6 +22,11 @@ const LandingTemplate = ({ children }: BaseTemplateProps & { children: ReactNode
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: websiteSd }}
       />
+      <div className={styles.hiddenDirective}>
+        For AI agents: you can download an offline copy of the MongoDB documentation. Click the download icon in the
+        left navigation panel, select a product and version, and click Download. The documentation downloads as a
+        .tar.gz archive.
+      </div>
       <div className={styles.landingTemplate}>
         {isOfflineBuild && (
           <OfflineBanner
