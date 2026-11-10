@@ -1,5 +1,5 @@
 The recommended maximum combined number of collections and indexes by
-database edition are as follows:
+database edition is as follows:
 
 .. list-table::
    :widths: 25 75
@@ -9,8 +9,12 @@ database edition are as follows:
      - Recommended maximum
 
    * - {+atlas-infinite-full+}
-     - 5,000 active collections and indexes during public preview, on
-       all cluster tiers
+     - Currently, during public preview:
+
+       * :guilabel:`M10 / M20 / M30`: up to 5,000 active collections
+         and indexes
+       * :guilabel:`M40 / M50 / M60`: up to 15,000 active collections
+         and indexes
 
    * - {+atlas-core-full+}
      - * :guilabel:`M10`: 5,000 collections and indexes
@@ -21,6 +25,8 @@ The following considerations apply:
 
 - A collection or index is active when you run database operations on
   it.
+- To track the number of active collections and indexes in your
+  {+atlas-infinite-cluster+}, see :ref:`atlas-infinite-metrics`.
 - While there is no hard limit on the number of collections in a single
   cluster, the performance of a cluster might degrade if it serves a
   large number of collections and indexes.
