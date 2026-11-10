@@ -26,8 +26,9 @@ Definition
 ----------
 
 The ``$iceberg`` stage specifies a connection in the :ref:`Connection
-Registry <atlas-sp-manage-connections>` to an {+aws+} |s3| bucket
-where you can write data to an {+iceberg+} table.
+Registry <atlas-sp-manage-connections>` to an {+aws+} |s3| bucket or
+an |azure| Blob Storage container where you can write data to an
+{+iceberg+} table.
 
 .. _atlas-sp-agg-iceberg-placement:
 
@@ -50,6 +51,7 @@ The ``$iceberg`` pipeline stage has the following prototype form:
      "$iceberg": {
        "connectionName": "<registered-connection>",
        "bucket": "<target-bucket>",
+       "container": "<target-container>",
        "databaseName": "<database>",
        "tableName": "<string>" | <expression>,
        "path": "<key-prefix>",
@@ -83,14 +85,24 @@ The ``$iceberg`` stage takes a document with the following fields:
    * - ``connectionName`` 
      - string
      - Required 
-     - Name, of the {+aws+} |s3| connection to use for reads and
-       writes. This must match the name of the connection in the 
-       :ref:`Connection Registry <atlas-sp-manage-connections>`.
+     - Name of the {+aws+} |s3| or |azure| Blob Storage connection to
+       use for reads and writes. This must match the name of the
+       connection in the :ref:`Connection Registry
+       <atlas-sp-manage-connections>`.
 
    * - ``bucket``
      - string
-     - Required 
+     - Conditional
      - Name of the |s3| bucket containing the target {+iceberg+} database.
+       Required for |s3| connections.
+
+   * - ``container``
+     - string
+     - Conditional
+     - Name of the |azure| Blob Storage container containing the target
+       {+iceberg+} database. Required for |azure| Blob Storage
+       connections. If you set ``container``, don't set ``bucket`` or
+       ``region``.
 
    * - ``databaseName``
      - string
@@ -113,7 +125,8 @@ The ``$iceberg`` stage takes a document with the following fields:
      - string
      - Conditional
      - {+aws+} region of the bucket. Required for stream processors
-       *not* running on {+aws+}.
+       *not* running on {+aws+}. Doesn't apply to |azure| Blob Storage
+       connections.
 
    * - ``mode``
      - string
@@ -177,6 +190,9 @@ The ``$iceberg`` stage takes a document with the following fields:
        <https://iceberg.apache.org/docs/latest/catalog-properties>`__
        to use. Must be a document containing the ``type`` field with a
        value of either ``"hadoop"`` or ``"glue"``.
+
+       |azure| Blob Storage connections support only ``"hadoop"``.
+       The ``"glue"`` catalog supports only |s3|.
 
    * - ``schemaInference``
      - document
