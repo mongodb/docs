@@ -43,6 +43,8 @@ permissions:
 
 env:
   SOURCE_REPO: 10gen/docs-mdx-en-us
+  # Bare name for the app-token repositories: input, which takes names, not owner/name.
+  SOURCE_REPO_NAME: docs-mdx-en-us
   PNPM_VERSION: '10.27.0'
 
 jobs:
@@ -96,6 +98,8 @@ jobs:
           set -euo pipefail
           REPO="$(pnpm exec tsx src/cli.ts resolve-target --locale "$LOCALE")"
           echo "repo=$REPO" >> "$GITHUB_OUTPUT"
+          # repositories: takes the bare name; the clone URLs below use owner/name.
+          echo "repo_name=${REPO##*/}" >> "$GITHUB_OUTPUT"
 
       - name: Mint installation token
         id: token
@@ -104,7 +108,7 @@ jobs:
           app-id: ${{ vars.APP_ID }}
           private-key: ${{ secrets.SERVER_DOCS_PRIVATE_KEY }}
           owner: 10gen
-          repositories: ${{ env.SOURCE_REPO }},${{ steps.target.outputs.repo }}
+          repositories: ${{ env.SOURCE_REPO_NAME }},${{ steps.target.outputs.repo_name }}
 
       - name: Clone source and target
         env:
