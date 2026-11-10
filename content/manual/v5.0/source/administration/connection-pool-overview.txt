@@ -1,0 +1,203 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+.. _connection-pool-overview:
+
+========================
+Connection Pool Overview
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This document describes how to use a connection pool to manage 
+connections between applications and MongoDB instances. 
+
+What is a Connection Pool?
+--------------------------
+
+Definition
+~~~~~~~~~~
+
+A :ref:`connection pool <connection-pool-overview>` is a cache of open,
+ready-to-use database connections maintained by the :driver:`driver </>`. 
+Your application can seamlessly get connections from the pool, perform 
+operations, and return connections back to the pool. Connection pools 
+are thread-safe. 
+
+Benefits of a Connection Pool
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A connection pool helps reduce application latency and the number of 
+times new connections are created.
+
+A connection pool creates connections at startup. Applications do not 
+need to manually return connections to the pool. Instead, connections 
+return to the pool automatically.
+
+Some connections are active and some are inactive but available. 
+If your application requests a connection and there’s an available 
+connection in the pool, a new connection does not need to be created.
+
+Create and Use a Connection Pool
+--------------------------------
+
+Use an Instance of your Driver's ``MongoClient`` Object 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Most :driver:`drivers </>` provide an object of type ``MongoClient``.
+
+Use one ``MongoClient`` instance per application unless the
+application is connecting to many separate clusters. Each 
+``MongoClient`` instance manages its own connection pool to the 
+MongoDB cluster or node specified when the ``MongoClient`` is created.
+``MongoClient`` objects are thread-safe in most drivers.
+
+.. note::
+
+   Store your ``MongoClient`` instance in a place that is globally
+   accessible by your application. 
+
+Authentication
+~~~~~~~~~~~~~~
+
+To use a connection pool with LDAP, see
+:ref:`LDAP Connection Pool Behavior <ldap-connection-pool-behavior>`.
+
+Sharded Cluster Connection Pooling
+----------------------------------
+
+:binary:`~bin.mongos` routers have connection pools for each node in the 
+cluster. The availability of connections to individual nodes within a 
+sharded cluster affects latency. Operations must wait for a connection
+to be established.
+
+.. _connection-pool-settings:
+
+Connection Pool Configuration Settings
+--------------------------------------
+
+To configure the connection pool, set the options:
+
+- through the :ref:`MongoDB URI <mongodb-uri>`, 
+
+- programmatically when building the ``MongoClient`` instance, or
+
+- in your application framework's configuration files.
+
+Settings
+~~~~~~~~
+
+.. list-table::
+   :widths: 25,75                                                          
+   :header-rows: 1
+
+   * - Setting
+     - Description
+     
+   * - :urioption:`maxPoolSize`
+
+     - .. _maxpoolsize-cp-setting:
+       
+       Maximum number of connections opened in the pool. When the 
+       connection pool reaches the maximum number of connections, new 
+       connections wait up until to the value of 
+       :urioption:`waitQueueTimeoutMS`.
+
+       *Default:* ``100`` 
+
+   * - :urioption:`minPoolSize`
+
+     - .. _minpoolsize-cp-setting:
+       
+       Minimum number of connections opened in the pool. 
+       The value of :urioption:`minPoolSize` must be less than 
+       the value of :urioption:`maxPoolSize`.
+
+       *Default*: ``0``
+
+   * - :urioption:`connectTimeoutMS`
+
+     - Most drivers default to never time out. Some versions of the 
+       Java drivers (for example, version 3.7) default to ``10``. 
+       
+       *Default:* ``0`` for most drivers. See your :driver:`driver </>` 
+       documentation.
+
+   * - :urioption:`socketTimeoutMS`
+
+     - Number of milliseconds to wait before timeout on a TCP 
+       connection.
+       
+       Do *not* use :urioption:`socketTimeoutMS` as a mechanism for 
+       preventing long-running server operations.
+
+       Setting low socket timeouts may result in operations that error 
+       before the server responds.
+       
+       *Default*: ``0``, which means no timeout. See your 
+       :driver:`driver </>` documentation.
+
+   * - :urioption:`maxIdleTimeMS`
+   
+     - The maximum number of milliseconds that a connection can 
+       remain idle in the pool before being removed and closed.
+
+       *Default:* See your :driver:`driver </>` documentation.
+
+   * - :urioption:`waitQueueTimeoutMS`
+
+     - Maximum wait time in milliseconds that a thread can wait for 
+       a connection to become available. A value of ``0`` means there
+       is no limit. 
+
+       *Default*: ``0``. See your :driver:`driver </>` documentation.
+  
+   * - :parameter:`ShardingTaskExecutorPoolMinSize` 
+
+     - Minimum number of outbound connections each TaskExecutor 
+       connection pool can open to any given :binary:`~bin.mongod` 
+       instance.
+
+       *Default*: ``1``. See 
+       :parameter:`ShardingTaskExecutorPoolMinSize`.  
+
+       Parameter only applies to sharded deployments.
+
+   * - :parameter:`ShardingTaskExecutorPoolMinSizeForConfigServers`
+
+     - .. include:: /includes/ShardingTaskExecutorPoolMinSizeForConfigServers-parameter.rst
+
+       *Default*: ``-1``
+
+       .. versionadded:: 5.0.10
+
+   * - :parameter:`ShardingTaskExecutorPoolMaxSize` 
+
+     - Maximum number of outbound connections each TaskExecutor 
+       connection pool can open to any given :binary:`~bin.mongod` 
+       instance.  
+
+       *Default*: 2\ :sup:`64` - 1. See 
+       :parameter:`ShardingTaskExecutorPoolMaxSize`.
+
+       Parameter only applies to sharded deployments.
+
+   * - :parameter:`ShardingTaskExecutorPoolMaxSizeForConfigServers`
+
+     - .. include:: /includes/ShardingTaskExecutorPoolMaxSizeForConfigServers-parameter.rst
+
+       *Default*: ``-1``
+
+       .. versionadded:: 5.0.10
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   Tuning </tutorial/connection-pool-performance-tuning>

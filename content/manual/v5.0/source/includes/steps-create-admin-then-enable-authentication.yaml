@@ -1,0 +1,212 @@
+title: Start MongoDB without access control
+stepnum: 1
+level: 4
+ref: start-without-auth
+pre: |
+
+  Start a standalone :binary:`~bin.mongod` instance without access
+  control.
+
+  Open a terminal and run the following command as the ``mongod`` user:
+
+action:
+  language: sh
+  code: |
+    mongod --port 27017 --dbpath /var/lib/mongodb
+post: |
+  The :binary:`~bin.mongod` instance in this tutorial uses
+  :option:`port 27017 <mongod --port>` and the ``/var/lib/mongodb``
+  data directory.
+  
+  The tutorial assumes that the ``/var/lib/mongodb`` directory exists
+  and is the default :setting:`~storage.dbPath`. You may specify a
+  different data directory or port as needed.
+
+  .. tip::
+  
+     When :binary:`mongod` starts, it creates some system files in the
+     ``/var/lib/mongodb`` directory. To ensure the system files have
+     the correct ownership, follow this tutorial as the ``mongod``
+     user. If you start :binary:`mongod` as the ``root`` user you will
+     have to update file ownership later. 
+
+---
+stepnum: 2
+title: Connect to the instance
+level: 4
+ref: connect
+pre: |
+
+  Open a new terminal and connect to the cluster with
+  :binary:`~bin.mongosh`:
+
+action:
+  language: sh
+  code: |
+    mongosh --port 27017
+post: |
+  If you are connecting to a different deployment, specify additional
+  command line options, such as :option:`--host <mongosh --host>`, as
+  needed to connect.
+---
+stepnum: 3
+title: Create the user administrator
+level: 4
+ref: create-user-admin
+pre: |
+
+  .. _create-user-admin:
+
+  .. important:: Localhost Exception
+
+     You can create the user administrator either before or after
+     enabling access control. If you enable access control before
+     creating any user, MongoDB provides a :ref:`localhost exception
+     <localhost-exception>` which allows you to create a user
+     administrator in the ``admin`` database. Once created, you must
+     authenticate as the user administrator to create additional users.
+
+  Using :binary:`~bin.mongosh`:
+
+  1. switch to the ``admin`` database
+  2. add the ``myUserAdmin`` user with the
+     :authrole:`userAdminAnyDatabase` and
+     :authrole:`readWriteAnyDatabase` roles":
+
+action:
+  language: javascript
+  code: |
+
+    use admin
+    db.createUser(
+      {
+        user: "myUserAdmin",
+        pwd: passwordPrompt(), // or cleartext password
+        roles: [
+          { role: "userAdminAnyDatabase", db: "admin" },
+          { role: "readWriteAnyDatabase", db: "admin" }
+        ]
+      }
+    )
+post: |
+
+  .. tip::
+
+     .. include:: /includes/extracts/mongosh-password-prompt.rst
+
+  The :authrole:`userAdminAnyDatabase` role allows this user to:
+
+  - create users
+  - grant or revoke roles from users
+  - create or modify customs roles
+
+  You can assign your user additional :ref:`built-in roles
+  <built-in-roles>` or :ref:`user-defined roles <user-defined-roles>`
+  as needed.
+
+  The database where you create the user, in this example ``admin``,
+  is the user's :ref:`authentication database
+  <user-authentication-database>`. Although the user needs to
+  authenticate to this database, the user can have roles in other
+  databases. The user's authentication database doesn't limit the
+  user's privileges.
+
+---
+title: Re-start the MongoDB instance with access control
+level: 4
+stepnum: 4
+ref: restart-with-auth
+content: |
+
+  Shut down the :binary:`~bin.mongod` instance. Using
+  :binary:`~bin.mongosh`, issue the following command:
+
+  .. code-block:: javascript
+
+     db.adminCommand( { shutdown: 1 } )
+
+  Exit :binary:`~bin.mongosh`.
+
+  Start the :binary:`~bin.mongod` with access control enabled.
+
+  - If you start the :binary:`~bin.mongod` from the command line, add
+    the :option:`--auth <mongod --auth>` command line option:
+
+    .. code-block:: bash
+
+       mongod --auth --port 27017 --dbpath /var/lib/mongodb
+
+  - If you start the :binary:`~bin.mongod` using a
+    :ref:`configuration file <configuration-options>`, add the
+    :setting:`security.authorization` configuration file setting:
+
+    .. code-block:: bash
+
+       security:
+           authorization: enabled
+
+  Clients that connect to this instance must now authenticate
+  themselves and can only perform actions as determined by their
+  assigned roles.
+
+  .. important:: Localhost Exception
+
+     You can create users either before or after enabling access
+     control. If you enable access control before creating any user,
+     MongoDB provides a :ref:`localhost exception
+     <localhost-exception>` which allows you to create a user
+     administrator in the ``admin`` database. Once created, you must
+     authenticate as the user administrator to create additional users.
+
+---
+title: Connect and authenticate as the user administrator
+level: 4
+stepnum: 5
+ref: auth-as-admin
+content: |
+  Using :binary:`~bin.mongosh`, you can:
+
+  .. tabs::
+
+     tabs:
+        - id: cmdline
+          name: Authenticate during Connection
+          content: |
+             Start :binary:`~bin.mongosh` with the :option:`-u
+             \<username\> <mongosh -u>`, :option:`-p <mongosh -p>`, and the
+             :option:`--authenticationDatabase \<database\> <mongo
+             --authenticationDatabase>` command line options:
+
+             .. code-block:: bash
+
+                mongosh --port 27017  --authenticationDatabase \
+                    "admin" -u "myUserAdmin" -p
+
+             Enter your password when prompted.
+
+        - id: authafter
+          name: Authenticate after Connection
+          content: |
+
+             Using :binary:`~bin.mongosh`, connect to your database
+             deployment:
+
+             .. code-block:: bash
+
+                mongosh --port 27017
+
+             In :binary:`~bin.mongosh`, switch to the
+             authentication database (in this case, ``admin``), and
+             use the :method:`db.auth(\<username\>, \<pwd\>)
+             <db.auth()>` method to authenticate:
+
+             .. code-block:: javascript
+
+                use admin
+                db.auth("myUserAdmin", passwordPrompt()) // or cleartext password
+
+             .. tip::
+
+                .. include:: /includes/extracts/mongosh-password-prompt.rst
+
+             Enter the password when prompted.

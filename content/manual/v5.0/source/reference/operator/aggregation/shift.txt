@@ -1,0 +1,245 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+====================
+$shift (aggregation)
+====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. versionadded:: 5.0
+
+.. group:: $shift
+
+Returns the value from an :ref:`expression <aggregation-expressions>`
+applied to a document in a specified position relative to the current
+document in the :pipeline:`$setWindowFields` stage :ref:`partition
+<setWindowFields-partitionBy>`.
+
+The :pipeline:`$setWindowFields` stage :ref:`sortBy
+<setWindowFields-sortBy>` field value determines the document order. For
+more information on how MongoDB compares fields with different types,
+see :ref:`BSON comparison order <bson-types-comparison-order>`.
+
+:group:`$shift` is only available in the :pipeline:`$setWindowFields`
+stage.
+
+:group:`$shift` syntax:
+
+.. code-block:: none
+   :copyable: false
+
+   {
+      $shift: {
+         output: <output expression>, 
+         by: <integer>,
+         default: <default expression>
+      }
+   }
+
+:group:`$shift` takes a document with these fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 85
+
+   * - Field
+     - Description
+
+   * - :ref:`output <shift-output>`
+
+     - .. _shift-output:
+     
+       Specifies an :ref:`expression <aggregation-expressions>` to
+       evaluate and return in the output.
+
+   * - :ref:`by <shift-by>`
+
+     - .. _shift-by:
+       
+       Specifies an ``integer`` with a numeric document position
+       relative to the current document in the output.
+       
+       For example:
+       
+       - ``1`` specifies the document position after the current
+         document.
+       
+       - ``-1`` specifies the document position before the current
+         document.
+
+       - ``-2`` specifies the document position that is two
+         positions before the current document.
+
+   * - :ref:`default <shift-default>`
+
+     - .. _shift-default:
+     
+       Specifies an optional default :ref:`expression
+       <aggregation-expressions>` to evaluate if the document position
+       is outside of the implicit :pipeline:`$setWindowFields` stage
+       :ref:`window <setWindowFields-window>`. The implicit window
+       contains all the documents in the :ref:`partition
+       <setWindowFields-partitionBy>`.
+       
+       The :ref:`default <shift-default>` expression must evaluate to a
+       constant value.
+       
+       If you do not specify a :ref:`default <shift-default>`
+       expression, :group:`$shift` returns ``null`` for documents whose
+       positions are outside of the implicit
+       :pipeline:`$setWindowFields` stage window.
+
+Behavior
+--------
+
+:group:`$shift` returns an error if you specify a :ref:`window
+<setWindowFields-window>` in the :pipeline:`$setWindowFields` stage.
+
+Examples
+--------
+
+.. include:: /includes/setWindowFields-example-collection.rst
+
+The ``cakeSales`` collection is used in the following examples.
+
+Shift Using a Positive Integer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example uses :group:`$shift` in the :pipeline:`$setWindowFields`
+stage to output the ``quantity`` of the cake sales from each document
+following the current document for each ``state``:
+
+.. code-block:: javascript
+
+   db.cakeSales.aggregate( [
+      {
+         $setWindowFields: {
+            partitionBy: "$state",
+            sortBy: { quantity: -1 },
+            output: {
+               shiftQuantityForState: {
+                  $shift: {
+                     output: "$quantity",
+                     by: 1,
+                     default: "Not available"
+                  }
+               }
+            }
+         }
+      }
+   ] )
+
+In the example:
+
+.. include:: /includes/setWindowFields-partition-sort-quantity.rst
+
+- ``output`` after ``sortBy``:
+
+  - Sets the ``shiftQuantityForState`` field to the ``quantity``
+    value from the documents in each ``state``.
+
+  - Uses :group:`$shift` to return the ``quantity`` value
+    from the document that follows the current document in the output.
+
+    - The document position is specified using the :group:`$shift`
+      :ref:`by <shift-by>` ``integer`` set to ``1``.
+    
+    - For documents outside of the implicit
+      :ref:`window <setWindowFields-window>`, :group:`$shift` returns
+      ``"Not available"``, which is specified using the :ref:`default
+      <shift-default>` expression.
+
+In this example output, the shifted ``quantity`` value is shown in the
+``shiftQuantityForState`` field for each returned document:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 4, "type" : "strawberry", "orderDate" : ISODate("2019-05-18T16:09:01Z"),
+     "state" : "CA", "price" : 41, "quantity" : 162, "shiftQuantityForState" : 145 }
+   { "_id" : 2, "type" : "vanilla", "orderDate" : ISODate("2021-01-11T06:31:15Z"),
+     "state" : "CA", "price" : 12, "quantity" : 145, "shiftQuantityForState" : 120 }
+   { "_id" : 0, "type" : "chocolate", "orderDate" : ISODate("2020-05-18T14:10:30Z"),
+     "state" : "CA", "price" : 13, "quantity" : 120, "shiftQuantityForState" : "Not available" }
+   { "_id" : 1, "type" : "chocolate", "orderDate" : ISODate("2021-03-20T11:30:05Z"),
+     "state" : "WA", "price" : 14, "quantity" : 140, "shiftQuantityForState" : 134 }
+   { "_id" : 5, "type" : "strawberry", "orderDate" : ISODate("2019-01-08T06:12:03Z"),
+     "state" : "WA", "price" : 43, "quantity" : 134, "shiftQuantityForState" : 104 }
+   { "_id" : 3, "type" : "vanilla", "orderDate" : ISODate("2020-02-08T13:13:23Z"),
+     "state" : "WA", "price" : 13, "quantity" : 104, "shiftQuantityForState" : "Not available" }
+
+Shift Using a Negative Integer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example uses :group:`$shift` in the :pipeline:`$setWindowFields`
+stage to output the ``quantity`` of the cake sales from each document
+before the current document for each ``state``:
+
+.. code-block:: javascript
+
+   db.cakeSales.aggregate( [
+      {
+         $setWindowFields: {
+            partitionBy: "$state",
+            sortBy: { quantity: -1 },
+            output: {
+               shiftQuantityForState: {
+                  $shift: {
+                     output: "$quantity",
+                     by: -1,
+                     default: "Not available"
+                  }
+               }
+            }
+         }
+      }
+   ] )
+
+In the example:
+
+.. include:: /includes/setWindowFields-partition-sort-quantity.rst
+
+- ``output`` after ``sortBy``:
+
+  - Sets the ``shiftQuantityForState`` field to the ``quantity``
+    value from the documents in each ``state``.
+
+  - Uses :group:`$shift` to return the ``quantity`` value
+    from the document before the current document in the output.
+
+    - The document position is specified using the :group:`$shift`
+      :ref:`by <shift-by>` ``integer`` set to ``-1``.
+    
+    - For documents outside of the implicit
+      :ref:`window <setWindowFields-window>`, :group:`$shift` returns
+      ``"Not available"``, which is specified using the :ref:`default
+      <shift-default>` expression.
+
+In this example output, the shifted ``quantity`` value is shown in the
+``shiftQuantityForState`` field for each returned document:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : 4, "type" : "strawberry", "orderDate" : ISODate("2019-05-18T16:09:01Z"),
+     "state" : "CA", "price" : 41, "quantity" : 162, "shiftQuantityForState" : "Not available" }
+   { "_id" : 2, "type" : "vanilla", "orderDate" : ISODate("2021-01-11T06:31:15Z"),
+     "state" : "CA", "price" : 12, "quantity" : 145, "shiftQuantityForState" : 162 }
+   { "_id" : 0, "type" : "chocolate", "orderDate" : ISODate("2020-05-18T14:10:30Z"),
+     "state" : "CA", "price" : 13, "quantity" : 120, "shiftQuantityForState" : 145 }
+   { "_id" : 1, "type" : "chocolate", "orderDate" : ISODate("2021-03-20T11:30:05Z"),
+     "state" : "WA", "price" : 14, "quantity" : 140, "shiftQuantityForState" : "Not available" }
+   { "_id" : 5, "type" : "strawberry", "orderDate" : ISODate("2019-01-08T06:12:03Z"),
+     "state" : "WA", "price" : 43, "quantity" : 134, "shiftQuantityForState" : 140 }
+   { "_id" : 3, "type" : "vanilla", "orderDate" : ISODate("2020-02-08T13:13:23Z"),
+     "state" : "WA", "price" : 13, "quantity" : 104, "shiftQuantityForState" : 134 }

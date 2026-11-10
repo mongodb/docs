@@ -1,0 +1,75 @@
+title: Add or modify a secondary with votes 1 but priority 0
+stepnum: 1
+ref: modify-psa-replica-set-add-or-modify
+pre: |
+  To avoid rolling back uncommitted writes when adding or changing a
+  voting, data-bearing node, it is required that you add the node with
+  ``{ priority: 0 }`` first.
+
+  In :binary:`~bin.mongosh`, modify the replica set configuration. To
+  reconfigure an existing replica set, first retrieve the current
+  configuration with :method:`rs.conf()`, modify the configuration
+  document as needed, and then pass the modified document to
+  :method:`rs.reconfig()`:
+action:
+  language: javascript
+  code: |
+     cfg = rs.conf();
+     cfg["members"] = [
+       {
+          // existing member or members
+       },
+       {
+          "_id" : <num>,  // The array position of the new member in the
+                          // ``members`` array.
+          "host" : <host>,
+          "arbiterOnly" : false,
+          "buildIndexes" : true,
+          "hidden" : false,
+          "priority" : 0,
+          "tags" : { <tags> },
+          "secondaryDelaySecs" : <num>,
+          "votes" : 1
+       },
+       {
+          // existing member or members
+       }
+     ]
+     rs.reconfig(cfg);
+---
+title: Reconfigure the secondary to have non-zero priority
+stepnum: 2
+ref: modify-psa-replica-set-reconfigure
+pre: |
+  Once the secondary is caught up, set the prority to the desired
+  number. Before this reconfiguration succeeds, the secondary must
+  replicate all the writes that were committed when it had zero votes.
+  This is automatically checked when you issue the
+  :method:`rs.reconfig()` command.
+
+action:
+  language: javascript
+  code: |
+     cfg = rs.conf();
+     cfg["members"] = [
+       {
+          // existing member or members
+       },
+       {
+          "_id" : <num>,  // The array position of the new member in the
+                          // ``members`` array.
+          "host" : <host>,
+          "arbiterOnly" : false,
+          "buildIndexes" : true,
+          "hidden" : false,
+          "priority" : <num>,
+          "tags" : { <tags> },
+          "secondaryDelaySecs" : <num>,
+          "votes" : 1
+       },
+       {
+          // existing member or members
+       }
+     ]
+     rs.reconfig(cfg);
+...

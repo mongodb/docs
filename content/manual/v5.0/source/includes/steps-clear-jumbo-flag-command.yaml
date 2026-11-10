@@ -1,0 +1,79 @@
+title: Connect to ``mongos``.
+ref: connect-mongos
+level: 4
+content: |
+   Connect :binary:`~bin.mongosh` to a :binary:`~bin.mongos`.
+---
+title: Find the ``jumbo`` Chunk.
+ref: find-jumbo
+level: 4
+content: |
+   Run :method:`sh.status(true) <sh.status>` to find the chunk labeled
+   ``jumbo``.
+
+   .. code-block:: bash
+
+      sh.status(true)
+
+   For example, the following output from sh.status(true) shows that
+   chunk with shard key range ``{ "x" : 2 } -->> { "x" : 3 }`` is
+   ``jumbo``.
+   
+   .. code-block:: none
+      :copyable: false
+      :emphasize-lines: 16
+
+       --- Sharding Status ---
+         sharding version: {
+            ...
+         }
+         shards:
+            ...
+         databases:
+            ...
+               test.foo
+                  shard key: { "x" : 1 }
+               chunks:
+                    shard-b  2
+                    shard-a  2
+               { "x" : { "$minKey" : 1 } } -->> { "x" : 1 } on : shard-b Timestamp(2, 0) 
+               { "x" : 1 } -->> { "x" : 2 } on : shard-a Timestamp(3, 1) 
+               { "x" : 2 } -->> { "x" : 3 } on : shard-a Timestamp(2, 2) jumbo 
+               { "x" : 3 } -->> { "x" : { "$maxKey" : 1 } } on : shard-b Timestamp(3, 0)
+   
+---
+title: Run the ``clearJumboFlag`` Command.
+ref: run-command
+level: 4
+content: |
+
+   From the ``admin`` database, run the :dbcommand:`clearJumboFlag`,
+   passing in the namespace of the sharded collection and either:
+      
+   - the :ref:`bounds <clearJumboFlag-bounds>` of the ``jumbo`` chunk:
+      
+     .. code-block:: javascript
+      
+        db.adminCommand( { 
+           clearJumboFlag: "test.foo",
+           bounds: [{ "x" : 2 }, { "x" : 3 }]
+
+        })
+   
+   - the :ref:`find <clearJumboFlag-find>` document with a shard key
+     and value contained in the ``jumbo`` chunk:
+        
+     .. code-block:: javascript
+      
+        db.adminCommand( { 
+           clearJumboFlag: "test.foo",
+           find: { "x" : 2 }
+        })
+   
+     .. note::
+        
+        If the collection uses a hashed shard key, do not use the
+        ``find`` field with :dbcommand:`clearJumboFlag`. For hashed
+        shard keys, use the ``bounds`` field instead.
+
+...

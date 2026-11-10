@@ -1,0 +1,254 @@
+ref: wildcard-index-example-pre
+content: |
+  
+  Consider a collection ``products_catalog`` where documents may contain a
+  ``product_attributes`` field. The ``product_attributes`` field can
+  contain arbitrary nested fields, including embedded 
+  documents and arrays: 
+
+  .. code-block:: javascript
+
+    db.products_catalog.insertMany( [
+      {
+        _id : ObjectId("5c1d358bf383fbee028aea0b"),
+        product_name: "Blaster Gauntlet",
+        product_attributes: {
+          price: {
+            cost: 299.99,
+            currency: "USD"
+          }
+        }
+      },
+      {
+        _id: ObjectId("5c1d358bf383fbee028aea0c"),
+        product_name: "Super Suit",
+        product_attributes: {
+          superFlight: true,
+          resistance: [ "Bludgeoning", "Piercing", "Slashing" ]
+        }
+      }
+    ] )
+---
+ref: wildcard-index-summary
+content: |
+
+  Consider an application that captures user-defined data under the
+  ``userMetadata`` field and supports querying against that data:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     { "userMetadata" : { "likes" : [ "dogs", "cats" ] } }
+     { "userMetadata" : { "dislikes" : "pickles" } }
+     { "userMetadata" : { "age" : 45 } }
+     { "userMetadata" : "inactive" }
+
+  Administrators want to create indexes to support queries on any
+  subfield of ``userMetadata``.
+
+  A wildcard index on ``userMetadata``
+  can support single-field queries on ``userMetadata``,
+  ``userMetadata.likes``, ``userMetadata.dislikes``, and
+  ``userMetadata.age``:
+
+  .. code-block:: bash
+
+     db.userData.createIndex( { "userMetadata.$**" : 1 } )
+
+  The index can support the following queries:
+
+  .. code-block:: bash
+     :copyable: false
+
+     db.userData.find({ "userMetadata.likes" : "dogs" })
+     db.userData.find({ "userMetadata.dislikes" : "pickles" })
+     db.userData.find({ "userMetadata.age" : { $gt : 30 } })
+     db.userData.find({ "userMetadata" : "inactive" })
+
+  A non-wildcard index on ``userMetadata`` can only support queries on
+  values of ``userMetadata``.
+
+---
+ref: wildcard-index-fcv
+content: |
+
+  The :binary:`~bin.mongod` 
+  :ref:`featureCompatibilityVersion <view-fcv>` must be ``4.2`` to
+  create wildcard indexes. For instructions on setting the fCV, see 
+  :ref:`set-fcv`.
+---
+ref: wildcard-index-restrictions
+content: |
+
+  Wildcard indexes do not support the following index types or
+  properties:
+
+  - :doc:`Compound </core/index-compound>`
+  - :doc:`TTL </core/index-ttl>`
+  - :doc:`Text </core/index-text>`
+  - :doc:`2d (Geospatial) </core/geospatial-indexes>`
+  - :doc:`2dsphere (Geospatial) </core/2dsphere>`
+  - :doc:`Hashed </core/index-hashed>`
+  - :doc:`Unique </core/index-unique>`
+
+  .. note::
+
+     Wildcard Indexes are distinct from and incompatible with
+     :ref:`text-index-wildcard`. Wildcard indexes cannot support
+     queries using the :query:`$text` operator. 
+
+---
+ref: wildcard-index-restrictions-query-patterns
+content: |
+
+  Field does **not** exist
+    Wildcard indexes are :doc:`sparse </core/index-sparse>` and do
+    not index empty fields. Wildcard indexes therefore cannot support 
+    querying for documents where a field does **not** exist.
+
+    For example, consider a collection ``inventory`` with a wildcard
+    index on ``product_attributes``. The wildcard index
+    **cannot** support the following queries:
+
+    .. code-block:: javascript
+
+       db.inventory.find( {"product_attributes" : { $exists : false } } )
+
+       db.inventory.aggregate([
+         { $match : { "product_attributes" : { $exists : false } } }
+       ])
+
+  Field is equal to a document or an array
+    Wildcard indexes generate entries for the **contents** of a
+    document or array, and not the document/array itself. Wildcard 
+    indexes therefore cannot support exact document/array equality 
+    matches. Wildcard indexes *can* support querying where 
+    the field equals an empty document ``{}``.
+
+    For example, consider a collection ``inventory`` with a wildcard
+    index on ``product_attributes``. The wildcard index
+    **cannot** support the following queries:
+
+    .. code-block:: javascript
+
+       db.inventory.find({ "product_attributes" : { "price" : 29.99 } } )
+       db.inventory.find({ "product_attributes.tags" : [ "waterproof", "fireproof" ] } )
+
+       db.inventory.aggregate([{ 
+         $match : { "product_attributes" : { "price" : 29.99 } }
+       }])
+
+       db.inventory.aggregate([{ 
+         $match : { "product_attributes.tags" : ["waterproof", "fireproof" ] } }
+       }])
+
+  Field is not equal to a document or array
+    Wildcard indexes generate entries for the **contents** of a
+    document or array, and not the document/array itself. Wildcard 
+    indexes therefore cannot support exact document/array inequality
+    matches.
+
+    For example, consider a collection ``inventory`` with a wildcard
+    index on ``product_attributes``. The wildcard index
+    **cannot** support the following queries:
+
+    .. code-block:: javascript
+
+       db.inventory.find( { $ne : [ "product_attributes", { "price" : 29.99 } ] } )
+       db.inventory.find( { $ne : [ "product_attributes.tags",  [ "waterproof", "fireproof" ] ] } )
+
+       db.inventory.aggregate([{ 
+         $match : { $ne : [ "product_attributes", { "price" : 29.99 } ] }
+       }])
+
+       db.inventory.aggregate([{ 
+         $match : { $ne : [ "product_attributes.tags", [ "waterproof", "fireproof" ] ] }
+       }])
+
+  Array Field is equal or not equal to null
+    If a given field is an array in any document in the collection,
+    wildcard indexes cannot support queries for documents where that
+    field is equal or not equal to null.
+
+    For example, consider a collection ``inventory`` with a wildcard
+    index on ``product_attributes``. The wildcard index
+    **cannot** support the following queries if 
+    ``product_attributes.tags`` is an array in any document in the
+    collection:
+
+    .. code-block:: javascript
+
+       db.inventory.find( { "product_attributes.tags": { $ne: null } } )
+
+       db.inventory.find( { "product_attributes.tags": null } )
+
+       db.inventory.aggregate([{ 
+         $match : { "product_attributes.tags": { $ne: null } }
+       }])
+
+       db.inventory.aggregate([{ 
+         $match : { "product_attributes.tags": null }
+       }])
+
+  Field is equal to null
+    Wildcard indexes cannot support queries for documents where a field
+    is equal to null. The query ``{ $eq: null }`` matches all
+    documents where the field is null or missing. Wildcard are
+    :ref:`sparse <index-type-sparse>`, meaning they do not index the
+    documents where the indexed field is missing, and therefore cannot
+    support a match on null.
+
+    For example, consider a collection ``inventory`` with a wildcard index
+    on ``product_attributes``. The wildcard index cannot support the
+    following queries:
+
+    .. code-block:: javascript
+
+       db.inventory.find( { "product_attributes.price": { $eq: null } } )
+       
+       db.inventory.aggregate([{
+          $match : { "product_attributes.price": { $eq: null } }
+       }])
+
+
+---
+ref: wildcard-index-id
+content: |
+
+  Wildcard indexes omit the ``_id`` field by default. To include the
+  ``_id`` field in the wildcard index, you must explicitly include it
+  in the ``wildcardProjection`` document:
+  
+  .. code-block:: json
+
+     {
+       "wildcardProjection" : {
+         "_id" : 1,
+         "<field>" : 0|1
+       }
+     }
+
+  With the exception of explicitly including  ``_id`` field, you cannot
+  combine inclusion and exclusion statements in the
+  ``wildcardProjection`` document.
+---
+ref: wildcard-index-inclusion-exclusion
+content: |
+
+  Wildcard indexes do not support mixing inclusion and exclusion
+  statements in the ``wildcardProjection`` document *except* when
+  explicitly including the ``_id`` field. For more information on
+  ``wildcardProjection``, see the |projection-ref|.
+
+---
+ref: wildcard-index-planning
+content: |
+  
+  .. important::
+
+     Wildcard indexes are not designed to replace workload-based index
+     planning. For more information on creating indexes to support
+     queries, see :ref:`create-indexes-to-support-queries`. For 
+     complete documentation on wildcard index limitations, see 
+     :ref:`wildcard-index-restrictions`.
+...

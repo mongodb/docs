@@ -1,0 +1,228 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+=========================
+$unsetField (aggregation)
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $unsetField
+
+   .. versionadded:: 5.0
+
+   Removes a specified field in a document.
+
+   You can use :expression:`$unsetField` to remove fields with names
+   that contain periods (``.``) or that start with dollar signs
+   (``$``). 
+
+   :expression:`$unsetField` is an alias for :expression:`$setField`
+   using ``$$REMOVE`` to remove fields.
+
+Syntax
+------
+
+:expression:`$unsetField` has the following syntax:
+
+.. code-block:: javascript
+
+   { 
+      $unsetField: {
+         field: <String>,
+         input: <Object>,
+      }
+   }
+
+You must provide the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``field``
+     - String
+     - Field in the ``input`` object that you want to remove. ``field``
+       can be any valid :ref:`expression <aggregation-expressions>` that
+       resolves to a string constant.
+
+   * - ``input``
+     - Object
+     - Document that contains the ``field`` that you want to remove.
+       ``input`` must resolve to an object, ``missing``, ``null``, or
+       ``undefined``.
+
+Behavior
+--------
+
+- If ``input`` evaluates to ``missing``, ``undefined``, or ``null``,
+  :expression:`$unsetField` returns ``null`` and does not update
+  ``input``.
+
+- If ``input`` evaluates to anything other than an object, ``missing``, 
+  ``undefined``, or ``null``, :expression:`$unsetField` returns an
+  error.
+
+- If ``field`` resolves to anything other than a string constant,
+  :expression:`$unsetField` returns an error.
+
+- :expression:`$unsetField` doesn't implicitly traverse objects or
+  arrays. For example, :expression:`$unsetField` evaluates a ``field``
+  value of ``"a.b.c"`` as a top-level field ``"a.b.c"`` instead of as a
+  nested field, ``{ "a": { "b": { "c": } } }``.
+
+Examples
+--------
+
+Remove Fields that Contain Periods (``.``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider the inventory collection:
+
+.. code-block:: javascript
+
+   db.inventory.insertMany( [
+      { _id: 1, item: "sweatshirt", qty: 300, "price.usd": 45.99 },
+      { _id: 2, item: "winter coat", qty: 200, "price.usd": 499.99 },
+      { _id: 3, item: "sun dress", qty: 250, "price.usd": 199.99 },
+      { _id: 4, item: "leather boots", qty: 300, "price.usd": 249.99 },
+      { _id: 5, item: "bow tie", qty: 180, "price.usd": 9.99 }
+    ] )
+
+Use the :pipeline:`$replaceWith` pipeline stage and the
+:expression:`$unsetField` operator to remove the ``"price.usd"`` field
+from each document:
+
+.. code-block:: javascript
+
+   db.inventory.aggregate( [
+      { $replaceWith: {
+           $unsetField: { 
+              field: "price.usd",
+              input: "$$ROOT"
+      } } }
+    ] )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+     { _id: 1, item: 'sweatshirt', qty: 300 },
+     { _id: 2, item: 'winter coat', qty: 200 },
+     { _id: 3, item: 'sun dress', qty: 250 },
+     { _id: 4, item: 'leather boots', qty: 300 },
+     { _id: 5, item: 'bow tie', qty: 180 }
+   ]
+
+Remove Fields that Start with a Dollar Sign (``$``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider the inventory collection:
+
+.. code-block:: javascript
+
+   db.inventory.insertMany( [
+      { _id: 1, item: "sweatshirt", qty: 300, "$price": 45.99 },
+      { _id: 2, item: "winter coat", qty: 200, "$price": 499.99 },
+      { _id: 3, item: "sun dress", qty: 250, "$price": 199.99 },
+      { _id: 4, item: "leather boots", qty: 300, "$price": 249.99 },
+      { _id: 5, item: "bow tie", qty: 180, "$price": 9.99 }
+    ] )
+
+Use the :pipeline:`$replaceWith` pipeline stage with the
+:expression:`$unsetField` and :expression:`$literal` operators to
+remove the ``"$price"`` field from each document:
+
+.. code-block:: javascript
+
+   db.inventory.aggregate( [
+      { $replaceWith: {
+           $unsetField: { 
+              field: { $literal: "$price" },
+              input: "$$ROOT"
+      } } }
+   ] )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+     { _id: 1, item: 'sweatshirt', qty: 300 },
+     { _id: 2, item: 'winter coat', qty: 200 },
+     { _id: 3, item: 'sun dress', qty: 250 },
+     { _id: 4, item: 'leather boots', qty: 300 },
+     { _id: 5, item: 'bow tie', qty: 180 }
+   ]
+
+Remove A Subfield
+~~~~~~~~~~~~~~~~~
+
+Consider the inventory collection:
+
+.. code-block:: javascript
+
+   db.inventory.insertMany( [
+      { _id: 1, item: "sweatshirt", qty: 300, "price": {"usd":45.99, "euro": 38.77 } },
+      { _id: 2, item: "winter coat", qty: 200, "price": { "usd": 499.99, "euro": 420.51 } },
+      { _id: 3, item: "sun dress", qty: 250, "price": { "usd": 199.99, "euro": 167.70 } },
+      { _id: 4, item: "leather boots", qty: 300, "price": { "usd": 249.99, "euro": 210.68 } },
+      { _id: 5, item: "bow tie", qty: 180, "price": { "usd": 9.99, "euro": 8.42 } }
+    ] )
+
+The ``"price"`` field contains a document with two subfields, ``"usd"``
+and ``"euro"``. You cannot use ``"price.euro"`` to identify and remove
+``"euro"`` because MongoDB parses ``"price.euro"`` as a top level field
+name that happens to contain a period (``.``). 
+
+Use the :pipeline:`$replaceWith` pipeline stage with
+:expression:`$setField` and a nested :expression:`$unsetField`
+operation to remove the ``"euro"`` field:
+
+.. code-block:: javascript
+
+   db.inventory.aggregate( [
+      { $replaceWith: {
+           $setField: {
+              field: "price",
+              input: "$$ROOT",
+              value: {
+                 $unsetField: {
+                    field: "euro",
+                    input: { $getField: "price" }
+      } } } } }
+   ] )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      { _id: 1, item: "sweatshirt", qty: 300, price: { usd: 45.99 } },
+      { _id: 2, item: "winter coat", qty: 200, price: { usd: 499.99 } },
+      { _id: 3, item: "sun dress", qty: 250, price: { usd: 199.99 } },
+      { _id: 4, item: "leather boots", qty: 300, price: { usd: 249.99 } },
+      { _id: 5, item: "bow tie", qty: 180, price: { usd: 9.99 } }
+   ]
+
+Learn More
+----------
+
+:expression:`$setField`

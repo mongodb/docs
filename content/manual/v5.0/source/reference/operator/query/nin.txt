@@ -1,0 +1,110 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+====
+$nin
+====
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language
+   :values: shell
+
+.. meta::
+   :description: Use the $nin operator to select documents where the field value isn't in the specified array or the field doesn't exist.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. query:: $nin
+
+   :query:`$nin` selects the documents where:
+
+   - the specified field value is not in the specified array **or**
+   - the specified field does not exist.
+
+Compatibility
+-------------
+
+.. |operator-method| replace:: ``$nin``
+
+.. include:: /includes/fact-compatibility.rst
+
+Syntax
+------
+
+The :query:`$nin` operator has the following form:
+
+.. code-block:: javascript
+
+   { field: { $nin: [ <value1>, <value2> ... <valueN> ] } }
+
+If the ``field`` holds an array, then the :query:`$nin` operator selects
+the documents whose ``field`` holds an array with **no** element equal to
+a value in the specified array (for example, ``<value1>``,
+``<value2>``, and so on).
+
+.. include:: /includes/fact-comparison-order.rst
+
+Examples
+--------
+
+Create the ``inventory`` collection:
+
+.. code-block:: javascript
+
+   db.inventory.insertMany( [
+      { "item": "Pens", "quantity": 350, "tags": [ "school", "office" ] },
+      { "item": "Erasers", "quantity": 15, "tags": [ "school", "home" ] },
+      { "item": "Maps", "tags": [ "office", "storage" ] },
+      { "item": "Books", "quantity": 5, "tags": [ "school", "storage", "home" ] }
+   ] )
+
+Select on Unmatching Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following query selects all documents from the ``inventory``
+collection where the ``quantity`` does **not** equal either 5 or 15. 
+
+The query also matches documents that do *not* have a ``quantity``
+field.
+
+.. code-block:: javascript
+
+   db.inventory.find( { quantity: { $nin: [ 5, 15 ] } }, { _id: 0 } )
+
+Example output:
+
+.. code-block:: javascript
+
+  { item: 'Pens', quantity: 350, tags: [ 'school', 'office' ] },
+  { item: 'Maps', tags: [ 'office', 'storage' ] }
+
+Select on Elements Not in an Array
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Set the ``exclude`` field to ``true`` for documents that don't have the
+``"school"`` tag.
+
+.. code-block:: javascript
+
+   db.inventory.updateMany(
+       { tags: { $nin: [ "school" ] } },
+       { $set: { exclude: true } }
+   )
+
+:method:`~db.collection.updateMany()` also selects a document when the
+document does not contain the field :query:`$nin` is matching on.
+
+.. include:: /includes/extracts/nin_operators_selectivity.rst
+   
+.. seealso::
+
+   - :method:`~db.collection.find()`
+   - :method:`~db.collection.updateMany()`
+   - :update:`$set`
+

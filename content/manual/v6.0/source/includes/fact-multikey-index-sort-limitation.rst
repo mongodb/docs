@@ -1,0 +1,9 @@
+When you sort based on an array field that is indexed with a :ref:`multikey index
+<index-type-multikey>`, the query plan includes an :term:`in-memory sort` stage unless
+both of the following are true:
+
+- The index :ref:`boundaries <multikey-index-bounds-intersecting>` for all sort 
+  fields are ``[MinKey, MaxKey]``, *and*
+
+- No boundaries for any multikey-indexed field have the same path prefix as the sort 
+  pattern.

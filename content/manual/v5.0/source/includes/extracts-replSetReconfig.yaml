@@ -1,0 +1,99 @@
+ref: replSetReconfig-majority
+content: |
+
+   |reconfig| waits until a majority of voting
+   replica set members install the new replica configuration before
+   returning success. A voting member is *any* replica set member where
+   :rsconf:`members[n].votes` is ``1``, including arbiters.
+
+   Replica set members propagate their replica configuration via
+   :ref:`heartbeats <replica-set-heartbeats>`. Whenever a member learns
+   of a configuration with a higher :rsconf:`version` and
+   :rsconf:`term`, it installs the new configuration. The
+   reconfiguration process has two distinct 'waiting' phases:
+
+   \1) Wait for the current configuration to be *committed* before installing the new configuration.
+      The "current" configuration refers to the replica configuration in
+      use by the primary at the time |reconfig| is issued. 
+      
+      .. _replSetReconfig-configuration-committed:
+
+      A configuration is committed when:
+
+      - A majority of voting replica set members have installed the
+        current configuration, *and*
+
+      - All writes which were :writeconcern:`"majority"` committed in
+        the previous configuration have also replicated to a majority in
+        the current configuration.
+      
+      Typically, the current configuration has already been installed on
+      a majority of voting replica set members. However, the majority
+      committed writes in the previous configuration may not all be
+      committed in the current configuration. :rsconf:`Delayed
+      <members[n].secondaryDelaySecs>` members *or* members that are
+      :method:`lagging behind <rs.printSecondaryReplicationInfo()>` the
+      primary can increase the time spent in this phase.
+         
+      If the operation was issued with a 
+      |reconfig-maxTimeMS| limit *and* 
+      the operation exceeds the limit while waiting, the operation
+      returns an error and discard the new configuration. The 
+      limit is *cumulative* and does not reset after proceeding to 
+      the next phase.
+
+   \2) Wait for a majority of voting members in the new configuration to install the new configuration.
+      The "new" configuration refers to the replica configuration 
+      specified to |reconfig|.
+
+      The primary installs and begins using the new replica
+      configuration before propagating the configuration to the
+      remaining replica set members. The operation only waits for a
+      majority of voting members to install the new configuration, and
+      does not require waiting for the new configuration to be
+      :ref:`committed <replSetReconfig-configuration-committed>`.
+            
+      If the operation was issued with a |reconfig-maxTimeMS| limit
+      *and* the operation exceeds the limit while waiting, the operation
+      returns an error *but* continues using and propagating the new
+      configuration.
+
+   Issuing a |reconfig-force| reconfiguration
+   immediately installs the new configuration regardless of the
+   commitment status of the previous configuration. Force
+   reconfiguration can cause unexpected behavior, such as the
+   rollback of :writeconcern:`"majority"` committed write operations.
+
+   To check the commitment status of the current replica configuration,
+   issue :dbcommand:`replSetGetConfig` with the 
+   :ref:`commitmentStatus <replSetGetConfig-commitmentStatus>` parameter 
+   on the replica set :term:`primary`.
+
+---
+ref: replSetReconfig-single-node
+content: |
+
+   |reconfig| by default allows adding or
+   removing no more than ``1`` :rsconf:`voting <members[n].votes>`
+   member at a time. For example, a new configuration can make at most
+   *one* of the following changes to the cluster :rsconf:`membership
+   <members[n].votes>`:
+
+   - Adding a new voting replica set member.
+
+   - Removing an existing voting replica set member.
+
+   - Modifying the :rsconf:`~members[n].votes` for an existing replica
+     set member.
+
+   To add or remove multiple voting members, issue a series of
+   |reconfig| operations to add or remove one member at a
+   time.
+
+   Issuing a |reconfig-force| reconfiguration
+   immediately installs the new configuration even if it adds or removes
+   multiple voting members. Force reconfiguration can cause unexpected
+   behavior, such as the rollback of :writeconcern:`"majority"`
+   committed write operations.
+
+...

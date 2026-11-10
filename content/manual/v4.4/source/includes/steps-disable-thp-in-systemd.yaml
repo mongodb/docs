@@ -1,0 +1,123 @@
+title: Create the ``systemd`` unit file.
+stepnum: 1
+level: 4
+ref: create-systemd
+action:
+  - pre: |
+      Create the following file at ``/etc/systemd/system/disable-transparent-huge-pages.service``:
+
+    language: sh
+    code: |
+      [Unit]
+      Description=Disable Transparent Huge Pages (THP)
+      DefaultDependencies=no
+      After=sysinit.target local-fs.target
+      Before=mongod.service
+
+      [Service]
+      Type=oneshot
+      ExecStart=/bin/sh -c 'echo never | tee /sys/kernel/mm/transparent_hugepage/enabled > /dev/null'
+
+      [Install]
+      WantedBy=basic.target
+  - post: |
+
+      .. note::
+
+         Some versions of Red Hat Enterprise Linux, and potentially
+         other Red Hat-based derivatives, use a different path
+         for the THP ``enabled`` file:
+
+         .. code-block:: bash
+
+            /sys/kernel/mm/redhat_transparent_hugepage/enabled
+         
+         Check to see which path is in use on your system, and update
+         the ``disable-transparent-huge-pages.service`` file
+         accordingly.
+
+      .. note::
+
+         Prior to version 4.2, MongoDB also checks the THP *defrag*
+         setting and presents a startup warning if defrag is
+         enabled. As long as THP itself is disabled in
+         the ``systemd`` unit file, MongoDB is unaffected by the defrag
+         setting. However, to avoid this message, you may set defrag to
+         ``never`` by adding the following additional line to the
+         ``systemd`` unit file, just after the existing ``ExecStart``
+         statement:
+         
+         .. code-block:: bash
+
+            ExecStart=/bin/sh -c 'echo never | tee /sys/kernel/mm/transparent_hugepage/defrag > /dev/null'
+
+         If on Red Hat or similar, the path to the ``defrag`` file
+         might be different. See the note above for more details, and
+         and update the ``disable-transparent-huge-pages.service`` file
+         accordingly.
+
+---
+title: Reload ``systemd`` unit files.
+stepnum: 2
+level: 4
+ref: reload-systemd
+action:
+  - pre: |
+      Run the following command to reload ``systemd`` unit files to make
+      ``disable-transparent-huge-pages.service`` available for use:
+
+    language: sh
+    code: sudo systemctl daemon-reload
+---
+title: Start the service.
+stepnum: 3
+level: 4
+ref: start-service
+action:
+  - pre: |
+      Start the service manually once to ensure that the appropriate THP
+      setting has been changed:
+
+    language: sh
+    code:
+      sudo systemctl start disable-transparent-huge-pages
+
+  - pre: |
+      Verify that THP has successfully been set to ``[never]`` by running the
+      following command:
+
+    language: sh
+    code:
+       cat /sys/kernel/mm/transparent_hugepage/enabled
+
+  - pre: |
+      On Red Hat Enterprise Linux and potentially other Red Hat-based
+      derivatives, you may instead need to use the following:
+
+    language: sh
+    code:
+       cat /sys/kernel/mm/redhat_transparent_hugepage/enabled
+---
+title: Configure your operating system to run it on boot.
+stepnum: 4
+level: 4
+ref: configure-systemd-enable
+action:
+  - pre: |
+      To ensure that this setting is applied each time your system
+      boots, run the following command:
+
+    language: sh
+    code:
+         sudo systemctl enable disable-transparent-huge-pages
+---
+title: "Customize tuned / ktune profile, if applicable."
+stepnum: 5
+level: 4
+ref: customize-tuned-profile
+action:
+  - pre: |
+      If you are using ``tuned`` or ``ktune`` on
+      :abbr:`RHEL (Red Hat Enterprise Linux)`/ CentOS,
+      you must now also create a custom ``tuned`` profile.
+...

@@ -1,0 +1,144 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+.. _timeseries-add-secondary-index:
+
+================================================
+Add Secondary Indexes on metaField and timeField
+================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. meta::
+   :keywords: IOT
+
+To improve query performance for :term:`time series collections <time
+series collection>`, add one or more :term:`secondary indexes <secondary
+index>` to support common time series query patterns. Specifically, we
+recommend that you create one or more :ref:`compound indexes
+<index-type-compound>` on the fields specified as the ``timeField`` and
+the ``metaField``. If the field value for the ``metaField`` field is a
+document, you can create secondary indexes on fields inside that
+document.
+
+.. note::
+
+   Not all index types are supported. For a list of unsupported index
+   types, see :ref:`Limitations for Secondary Indexes on Time Series
+   Collections <timeseries-limitations-secondary-indexes>`.
+
+For example, this command creates a :ref:`compound index
+<index-type-compound>` on the ``metadata.sensorId`` and ``timestamp``
+fields:
+
+.. code-block:: javascript
+
+   db.weather24h.createIndex({ "metadata.sensorId": 1, "timestamp": 1 })
+
+.. see::
+
+   :method:`db.collection.createIndex()`
+
+.. _timeseries-secondary-index-sort-performance:
+
+Use Secondary Indexes to Improve Sort Performance
+-------------------------------------------------
+
+Sort operations on the ``timeField`` and ``metaField`` can use secondary
+indexes on those fields to improve performance.
+
+For example, the following ``sensorData`` collection contains
+temperature readings:
+
+.. code-block:: javascript
+
+   db.sensorData.insertMany( [
+      {
+         "metadata": { "sensorId": 5578, "type": "temperature" },
+         "timestamp": ISODate("2022-01-15T00:00:00.000Z"),
+         "temperatureReading": 12
+      },
+      {
+         "metadata": { "sensorId": 5578, "type": "temperature" },
+         "timestamp": ISODate("2022-01-15T04:00:00.000Z"),
+         "temperatureReading": 11
+      },
+      {
+         "metadata": { "sensorId": 5579, "type": "temperature" },
+         "timestamp": ISODate("2022-01-15T08:00:00.000Z"),
+         "temperatureReading": 9
+      }
+   ] )
+
+The following command creates a compound ascending secondary index on
+the ``timestamp`` and ``metadata.sensorId``  fields:
+
+.. code-block:: javascript
+
+   db.sensorData.createIndex(
+      { "timestamp": 1, "metadata.sensorId": 1 }
+   )
+   
+The following sort operation on the ``timestamp`` field uses the index
+to improve performance:
+
+.. code-block:: javascript
+
+   db.sensorData.find().sort( { "timestamp": 1 } )
+
+To confirm that the sort operation used the index, run the operation
+again with the ``.explain()`` option:
+
+.. code-block:: javascript
+
+   db.sensorData.find().sort( { "timestamp": 1 } ).explain()
+
+The ``winningPlan.queryPlan.inputStage.stage`` is ``IXSCAN``, which
+indicates that the index was used. For more information on explain plan
+output, see :ref:`explain-results`.
+
+Specify Index Hints for Time Series Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Index hints cause MongoDB to use a specific index for a query. Some
+operations on time series collections can only take advantage of an
+index if that index is specified in a hint.
+
+For example, the following query causes MongoDB to use the
+``timestamp_1_metadata.sensorId_1`` index:
+
+.. code-block:: javascript
+
+   db.sensorData.find( { "metadata.sensorId": 5578 } ).hint( "timestamp_1_metadata.sensorId_1" )
+
+On a time series collection, you can specify hints using either the
+index name or the index key pattern. To get the names of the indexes on
+a collection, use the :method:`db.collection.getIndexes()` method.
+
+.. _timeseries-add-secondary-index-mongodb-6.0:
+
+Time Series Secondary Indexes
+-----------------------------
+
+Starting in MongoDB 6.0 (and 5.0.16):
+
+- You can add a :doc:`compound index </core/index-compound>` on time,
+  metadata, or measurement fields.
+
+- You can use the :query:`$or`, :query:`$in`, and :query:`$geoWithin`
+  operators with :doc:`partial indexes </core/index-partial>` on a time
+  series collection.
+
+- You can add :doc:`partial </core/index-partial>` and :doc:`2dsphere
+  </core/2dsphere>` indexes on any field in a :ref:`time series
+  collection <manual-timeseries-collection>`.
+
+.. note::
+
+   .. include:: /includes/time-series-secondary-indexes-downgrade-FCV.rst

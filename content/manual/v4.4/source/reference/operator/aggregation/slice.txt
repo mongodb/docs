@@ -1,0 +1,164 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+====================
+$slice (aggregation)
+====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $slice
+
+   .. versionadded:: 3.2
+
+   Returns a subset of an array.
+
+   :expression:`$slice` has one of two syntax forms:
+
+   The following syntax returns elements from either the start or end
+   of the array:
+
+   .. code-block:: javascript
+
+      { $slice: [ <array>, <n> ] }
+
+   The following syntax returns elements from the specified position in
+   the array:
+
+   .. code-block:: javascript
+
+      { $slice: [ <array>, <position>, <n> ] }
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 15 85
+
+
+      * - Operand
+        - Description
+
+      * - ``<array>``
+
+        - Any valid :ref:`expression <aggregation-expressions>` as long as
+          it resolves to an array.
+
+      * - ``<position>``
+
+        - Optional. Any valid :ref:`expression <aggregation-expressions>` as long
+          as it resolves to an integer.
+
+          - If positive, :expression:`$slice` determines the starting position from
+            the start of the array. If ``<position>`` is greater than the number of
+            elements, the :expression:`$slice` returns an empty array.
+
+          - If negative, :expression:`$slice` determines the starting position from
+            the end of the array. If the absolute value of the ``<position>`` is
+            greater than the number of elements, the starting position is the start
+            of the array.
+
+      * - ``<n>``
+
+        - Any valid :ref:`expression <aggregation-expressions>` as long as it
+          resolves to an integer. If ``<position>`` is specified, ``<n>`` must
+          resolve to a positive integer.
+
+          - If positive, :expression:`$slice` returns up to the first ``n``
+            elements in the array. If the ``<position>`` is specified,
+            :expression:`$slice` returns the first ``n`` elements starting from the
+            position.
+
+          - If negative, :expression:`$slice` returns up to the last ``n`` elements
+            in the array. ``n`` cannot resolve to a negative number *if*
+            ``<position>`` is specified.
+
+   For more information on expressions, see :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 80 20
+   :class: border-table
+
+   * - Example
+     - Results
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $slice: [ [ 1, 2, 3 ], 1, 1 ] }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          [ 2 ]
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $slice: [ [ 1, 2, 3 ], -2 ] }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          [ 2, 3 ]
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $slice: [ [ 1, 2, 3 ], 15, 2 ] }
+
+     - .. code-block:: javascript
+          :copyable: false
+
+          [  ]
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { $slice: [ [ 1, 2, 3 ], -15, 2 ] }
+          
+     - .. code-block:: javascript
+          :copyable: false
+
+          [ 1, 2 ]
+
+Example
+-------
+
+A collection named ``users`` contains the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "name" : "dave123", favorites: [ "chocolate", "cake", "butter", "apples" ] }
+   { "_id" : 2, "name" : "li", favorites: [ "apples", "pudding", "pie" ] }
+   { "_id" : 3, "name" : "ahn", favorites: [ "pears", "pecans", "chocolate", "cherries" ] }
+   { "_id" : 4, "name" : "ty", favorites: [ "ice cream" ] }
+
+The following example returns at most the first three elements in the
+``favorites`` array for each user:
+
+.. code-block:: javascript
+
+   db.users.aggregate([
+      { $project: { name: 1, threeFavorites: { $slice: [ "$favorites", 3 ] } } }
+   ])
+
+The operation returns the following results:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "name" : "dave123", "threeFavorites" : [ "chocolate", "cake", "butter" ] }
+   { "_id" : 2, "name" : "li", "threeFavorites" : [ "apples", "pudding", "pie" ] }
+   { "_id" : 3, "name" : "ahn", "threeFavorites" : [ "pears", "pecans", "chocolate" ] }
+   { "_id" : 4, "name" : "ty", "threeFavorites" : [ "ice cream" ] }

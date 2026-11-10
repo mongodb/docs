@@ -1,0 +1,101 @@
+title: Connect to ``mongos``.
+ref: connect-mongos
+level: 4
+content: |
+   Connect :binary:`~bin.mongosh` to a :binary:`~bin.mongos`.
+---
+title: Find the ``jumbo`` Chunk.
+ref: find-jumbo
+level: 4
+content: |
+   Run :method:`sh.status(true) <sh.status>` to find the chunk labeled
+   ``jumbo``.
+
+   .. code-block:: bash
+
+      sh.status(true)
+
+   For example, the following output from :method:`sh.status(true)
+   <sh.status>` shows that for the sharded collection ``test.orders``,
+   both the chunk with shard key range ``{ "status" : "A" } -->> {
+   "status" : "D" }`` and the chunk with range ``{ "status" : "D" }
+   -->> { "status" : "P" }`` are ``jumbo``.
+
+   .. code-block:: none
+      :copyable: false
+      :emphasize-lines: 17-18
+
+       --- Sharding Status ---
+         sharding version: {
+           ...
+         }
+         shards:
+           ...
+         databases:
+           ...
+           test.orders
+              shard key: { "status" : 1 }
+              unique: false
+              balancing: true
+              chunks:
+                      shardA	2
+                      shardB	2
+              { "status" : { "$minKey" : 1 } } -->> { "status" : "A" } on : shardB Timestamp(3, 0) 
+              { "status" : "A" } -->> { "status" : "D" } on : shardA Timestamp(5, 1) jumbo 
+              { "status" : "D" } -->> { "status" : "P" } on : shardA Timestamp(4, 2) jumbo 
+              { "status" : "P" } -->> { "status" : { "$maxKey" : 1 } } on : shardB Timestamp(5, 0)
+---
+title: Refine the Shard Key for ``test.orders`` Collection.
+ref: refine-key
+level: 4
+content: |
+   
+   To address the low cardinality of the key ``status``, refine the key
+   for the ``test.orders`` collection. For example, add the
+   ``order_id`` and ``customer_id`` fields as a suffix to the current
+   shard key; i.e. the shard key will be ``{ status: 1, order_id: 1,
+   customer_id: 1 }`` after refinement.
+
+   a. First, :method:`create the index <db.collection.createIndex()>`
+      to support the shard key 
+      ``{ status: 1, order_id: 1, customer_id: 1 }`` if the index does
+      not already exist.
+
+      .. code-block:: javascript
+
+         db.orders.createIndex( { status: 1, order_id: 1, customer_id: 1 } )
+
+      For additional index considerations for refining the shard key,
+      see :ref:`refineCollectionShardKey-index-considerations`.
+
+   #. In the ``admin`` database, run the
+      :dbcommand:`refineCollectionShardKey` command to add the
+      ``order_id`` and ``customer_id`` fields as a suffix to the existing key:
+
+      .. code-block:: javascript
+
+         db.adminCommand( { 
+            refineCollectionShardKey: "test.orders", 
+            key: { status: 1, order_id: 1, customer_id: 1 }
+         } )
+
+   The :dbcommand:`refineCollectionShardKey` command updates the
+   :doc:`chunk ranges </core/sharding-data-partitioning>` and
+   :doc:`zone ranges </core/zone-sharding>` to incorporate the new
+   fields without modifying the range values of the existing key
+   fields. That is, the refinement of the shard key does not
+   immediately affect the distribution of chunks across shards or
+   zones. Any future chunk splits or migration occur as part of the
+   routine sharding operations.
+   
+   .. tip::
+
+      After you refine the shard key, it may be that not all documents in
+      the collection have the suffix field(s). To populate the missing
+      shard key field(s), see :ref:`shard-key-missing`.
+
+      Before refining the shard key, ensure that all or most documents in
+      the collection have the suffix fields, if possible, to avoid having
+      to populate the field afterwards.
+
+...

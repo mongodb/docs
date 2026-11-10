@@ -1,0 +1,267 @@
+title: Copy configuration files.
+stepnum: 1
+ref: copy-config-files
+content: |
+  Copy the MongoDB SNMP configuration files from their installation
+  location to their target directories, according to your platform:
+  
+  .. tabs::
+
+    .. tab:: RHEL / CentOS
+       :tabid: rhel-centos
+
+       #. Navigate to the location where the SNMP files were installed.
+          For example, if you installed the latest version of MongoDB via
+          the ``yum`` package manager:
+
+          .. code-block:: bash
+
+             cd /usr/share/doc/mongodb-enterprise-server-{+release+}
+
+       #. Copy the two MongoDB SNMP files to their target directories:
+
+          .. code-block:: bash
+
+             sudo cp MONGOD-MIB.txt /usr/share/snmp/mibs/
+             sudo cp mongod.conf.subagent /etc/snmp/mongod.conf
+
+    .. tab:: Ubuntu / Debian
+       :tabid: ubuntu-debian
+
+       #. Navigate to the location where the SNMP files were installed.
+          For example, if you installed MongoDB via the ``apt`` package
+          manager:
+
+          .. code-block:: bash
+           
+             cd /usr/share/doc/mongodb-enterprise-server
+
+       #. Copy the ``MONGOD-MIB.txt.gz`` file to its target directory,
+          and unzip it:
+
+          .. code-block:: bash
+
+             sudo cp MONGOD-MIB.txt.gz /usr/share/snmp/mibs/
+             sudo gunzip /usr/share/snmp/mibs/MONGOD-MIB.txt.gz
+
+       #. Copy the ``mongod.conf.subagent`` file to its target directory:
+
+          .. code-block:: bash
+
+             sudo cp mongod.conf.subagent /etc/snmp/mongod.conf
+
+    .. tab:: SUSE
+       :tabid: suse-linux
+
+       #. Navigate to the location where the SNMP files were installed.
+          For example, if you installed the latest version of MongoDB via
+          the ``zypper`` package manager:
+
+          .. code-block:: bash
+
+             cd /usr/share/doc/packages/mongodb-enterprise-server
+
+       #. Copy the two MongoDB SNMP files to their target directories:
+
+          .. code-block:: bash
+
+             sudo cp MONGOD-MIB.txt /usr/share/snmp/mibs/
+             sudo cp mongod.conf.subagent /etc/snmp/mongod.conf
+---
+title: Configure SNMP.
+stepnum: 2
+ref: configure-snmp
+content: |
+
+  .. tabs::
+     :hidden:
+
+     .. tab:: RHEL / CentOS
+        :tabid: rhel-centos
+
+        Edit the ``/etc/snmp/snmpd.conf`` file, and add the following:
+
+        .. code-block:: bash
+
+           # sec.name          source         community
+             com2sec local     localhost       mongodb
+           # group.name        sec.model  sec.name
+             group MyRWGroup   any        local
+           # incl/excl   subtree            mask
+             view all    included  .1       80
+           # context               sec.model sec.level prefix read   write  notif
+             access MyRWGroup ""   any       noauth    0      all    all    all
+
+           master agentx
+           AgentXSocket /tmp/agentx/master
+           AgentXPerms 0777 0777 mongod mongod
+
+
+     .. tab:: Ubuntu / Debian
+        :tabid: ubuntu-debian
+
+        #. Install ``snmpd`` if it is not already installed:
+
+           .. code-block:: bash         
+        
+              sudo apt-get install snmpd
+
+        #. Edit the ``/etc/snmp/snmpd.conf`` file, and add the following:
+
+           .. code-block:: bash
+
+              # sec.name          source         community
+                com2sec local     localhost       mongodb
+              # group.name        sec.model  sec.name
+                group MyRWGroup   any        local
+              # incl/excl   subtree            mask
+                view all    included  .1       80
+              # context               sec.model sec.level prefix read   write  notif
+                access MyRWGroup ""   any       noauth    0      all    all    all
+
+              AgentXSocket /tmp/agentx/master
+              AgentXPerms 0777 0777 mongodb mongodb
+
+     .. tab:: SUSE
+        :tabid: suse-linux
+
+        Edit the ``/etc/snmp/snmpd.conf`` file, and add the following:
+
+        .. code-block:: bash
+
+           # sec.name          source         community
+             com2sec local     localhost       mongodb
+           # group.name        sec.model  sec.name
+             group MyRWGroup   any        local
+           # incl/excl   subtree            mask
+             view all    included  .1       80
+           # context               sec.model sec.level prefix read   write  notif
+             access MyRWGroup ""   any       noauth    0      all    all    all
+
+           master agentx
+           AgentXSocket /tmp/agentx/master
+           AgentXPerms 0777 0777 mongod mongod
+  
+  This configuration defines a UNIX domain socket for communication
+  between the *master* (``snmpd``) and *sub-agent* (MongoDB), and
+  defines basic SNMP permissions for access to the relevant MongoDB
+  SNMP fields.
+
+  .. note::
+
+     To bind your master to a non-localhost IP address, add that IP
+     address to the ``agentaddress`` field in the
+     ``/etc/snmp/snmpd.conf`` file, and update the appropriate network
+     security ACLs to permit a valid address range. An address range of
+     10.0.0.0/8 with a security name of "mynetwork" has been provided in
+     the ``mongod.conf.master`` configuration file as an example.
+
+  The above configuration is given as an example only; you may wish to
+  customize permissions based on your site security requirements. While
+  MongoDB support can provide guidance on configuring MongoDB for SNMP,
+  configuring SNMP on operating systems is out of scope.
+---
+title: Start SNMP.
+stepnum: 3
+ref: start-snmp-service
+content: |
+  Start SNMP on your system using the initialization system appropriate
+  for your version of Linux:
+
+  - For Linux systems using **systemd** (``systemctl`` command):
+
+    .. code-block:: bash
+
+       sudo systemctl start snmpd
+
+  - For Linux systems using **System V init** (``service`` command):
+
+    .. code-block:: bash
+
+       sudo service snmpd start
+---
+title: Start MongoDB.
+stepnum: 4
+ref: start-with-snmp
+pre: |
+  Start |mongod-program| with the
+  :option:`snmp-subagent <mongod --snmp-subagent>` to send data to the
+  SNMP master.
+action:
+  language: sh
+  code: mongod --snmp-subagent
+---
+title: Confirm SNMP data retrieval.
+stepnum: 5
+ref: test-snmp
+content: |
+  Verify that MongoDB is accessible for SNMP queries with the
+  ``snmpwalk`` testing command.
+
+  .. tabs::
+     :hidden:
+
+     .. tab:: RHEL / CentOS
+        :tabid: rhel-centos
+
+        #. Install ``snmpwalk`` on your system:
+
+           .. code-block:: bash
+
+              sudo yum install net-snmp-utils
+
+        #. Run ``snmpwalk`` with the following parameters to verify the
+           ability to collect data from |mongod-program|: 
+
+           .. code-block:: bash
+
+              snmpwalk -m /usr/share/snmp/mibs/MONGOD-MIB.txt -v 2c -c mongodb 127.0.0.1:161 1.3.6.1.4.1.34601
+  
+     .. tab:: Ubuntu / Debian
+        :tabid: ubuntu-debian
+
+        #. **DEBIAN ONLY**: If necessary, add the ``non-free``
+           repository to your ``/etc/apt/sources.list`` file to access
+           the ``snmp-mibs-downloader`` package. For example, on Debian 9
+           "Stretch", the primary repo entries might look like this:
+
+           .. code-block:: bash
+
+              deb http://deb.debian.org/debian stretch main non-free
+              deb-src http://deb.debian.org/debian stretch main non-free
+        
+        #. **DEBIAN / UBUNTU**: Install the ``snmp-mibs-downloader``
+           package to supply necessary MIB files, then restart the
+           ``snmpd`` service to reload the new MIB files:
+
+           .. code-block:: bash
+
+              sudo apt-get update
+              sudo apt-get -y install snmp-mibs-downloader
+              sudo service snmpd restart          
+        
+        #. **DEBIAN / UBUNTU**: Run ``snmpwalk`` with the following
+           parameters to verify the ability to collect data from
+           |mongod-program|: 
+
+           .. code-block:: bash
+
+              snmpwalk -m /usr/share/snmp/mibs/MONGOD-MIB.txt -v 2c -c mongodb 127.0.0.1:161 1.3.6.1.4.1.34601
+
+     .. tab:: SUSE
+        :tabid: suse-linux
+
+        .. code-block:: bash
+
+           snmpwalk -m /usr/share/snmp/mibs/MONGOD-MIB.txt -v 2c -c mongodb 127.0.0.1:161 1.3.6.1.4.1.34601
+  
+  The ``snmpwalk`` command should display current values for SNMP fields
+  such as ``sysUpTime``, and ``memoryResident``, among others.
+
+  .. note:: 
+     The port used in the above ``snmpwalk`` testing command, port 161,
+     is the default port for the ``snmpd`` service, *not* the primary
+     :setting:`~net.port` for the |mongod-program|. If you have
+     configured a different port for your ``snmpd`` service, supply that
+     here instead.
+...

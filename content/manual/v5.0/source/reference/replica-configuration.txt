@@ -1,0 +1,665 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+======================================
+Self-Managed Replica Set Configuration
+======================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can access the configuration of a :term:`replica set` using the
+:method:`rs.conf()` method or the :dbcommand:`replSetGetConfig` command.
+
+To modify the configuration for a replica set, use the
+:method:`rs.reconfig()` method, passing a configuration document to the
+method. See :method:`rs.reconfig()` for more information.
+
+.. warning::
+
+   .. include:: /includes/warning-mixed-version-rs-config.rst
+
+.. _replica-set-configuration-settings:
+.. _replica-set-configuration-document:
+
+Replica Set Configuration Document Example
+------------------------------------------
+
+.. include:: /includes/replica-set-conf-document-output.rst
+
+.. _replSetGetConfig-output:
+
+Replica Set Configuration Fields
+--------------------------------
+
+.. rsconf::  _id
+
+   *Type*: string
+
+   The name of the replica set.
+
+   :rsconf:`_id` *must* be identical to the
+   :setting:`replication.replSetName` or the value of ``--replSet``
+   specified to :binary:`~bin.mongod` on the command line.
+
+   .. see::
+      :setting:`~replication.replSetName` or :option:`--replSet <mongod --replSet>`
+      for information on setting the replica set name.
+
+.. rsconf::  version
+
+   *Type*: int
+
+   An incrementing number used to distinguish revisions of the replica
+   set configuration document from previous iterations of the
+   configuration.
+
+   Replica set members use :rsconf:`term` and :rsconf:`version` to
+   achieve consensus on the "newest" replica configuration. When
+   members compare replica configuration documents, the configuration
+   document with a larger :rsconf:`term` is considered the "newest".
+   If :rsconf:`term` is the same or absent, the configuration
+   document with the larger :rsconf:`version` is considered "newest".
+
+.. rsconf:: term
+   
+   *Type*: int
+
+   Only available with :ref:`featureCompatibilityVersion (fCV) "4.4"
+   <view-fcv>` or later.
+
+
+   An incrementing number used to distinguish revisions of the replica
+   set configuration document from previous iterations of the
+   configuration. The :rsconf:`term` of a configuration document matches
+   the term of the replica set :term:`primary` which performed the
+   reconfiguration. The :term:`primary` increments its term each time it
+   steps up after winning an election. The primary ignores the
+   :rsconf:`term` field if set explicitly in the
+   :dbcommand:`replSetReconfig` operation.
+
+   Issuing a :ref:`force <replSetReconfig-cmd-force>` reconfiguration
+   removes the :rsconf:`term` field. When the primary next issues
+   :dbcommand:`replSetReconfig` *without* force, it sets the
+   :rsconf:`term` to its own term.
+
+   Replica set members use :rsconf:`term` and :rsconf:`version` to
+   achieve consensus on the "newest" replica configuration. When members
+   compare replica configuration documents, the configuration document
+   with a larger :rsconf:`term` is considered the "newest". If
+   :rsconf:`term` is the same or absent, the configuration document with
+   the larger :rsconf:`version` is considered "newest".
+
+.. rsconf:: configsvr
+
+   .. versionadded:: 3.2
+
+   *Type*: boolean
+
+   *Default*: false
+
+   Indicates whether the replica set is used for a sharded cluster's
+   config servers. Set to ``true`` if the replica set is for a sharded
+   cluster's config servers.
+
+.. rsconf:: protocolVersion
+
+   .. versionadded:: 3.2
+
+   *Type*: number
+
+   *Default*: 1
+
+   MongoDB only supports ``protocolVersion: 1`` and no longer supports 
+   ``protocolVersion: 0``.
+
+   .. seealso::
+
+      :doc:`/reference/replica-set-protocol-versions`
+
+.. rsconf:: writeConcernMajorityJournalDefault
+
+   .. versionadded:: 3.2.6
+
+   *Type*: boolean
+
+   *Default*: true
+
+   Determines the behavior of :writeconcern:`{ w: "majority" }
+   <"majority">` write concern if the write concern does not explicitly
+   specify the journal option :ref:`j <wc-j>`.
+   
+   The following table lists the ``writeConcernMajorityJournalDefault``
+   values and the associated :writeconcern:`{ w: "majority" }
+   <"majority">` behavior:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 15 85
+
+      * - Value
+        - ``{ w: "majority" }`` Behavior
+
+      * - true
+
+        - MongoDB acknowledges the write operation after a majority of
+          the voting members have written to the on-disk journal.
+
+          :gold:`IMPORTANT:` All voting members of the replica set must
+          run with journaling when
+          ``writeConcernMajorityJournalDefault`` is ``true``.
+
+          .. include:: /includes/extracts/no-journaling-writeConcernMajorityJournalDefault-true.rst
+
+      * - false
+
+        - MongoDB acknowledges the write operation after a majority of
+          the voting members have applied the operation in
+          memory.
+
+          :red:`WARNING:`
+
+          .. include:: /includes/extracts/no-journaling-writeConcernMajorityJournalDefault-false.rst
+             
+          .. include:: /includes/extracts/4.2-changes-inmem-startup-warning.rst
+
+          .. include:: /includes/extracts/transactions-shards-wcmajority-disabled.rst
+
+   .. seealso::
+
+      - :ref:`wc-ack-behavior`
+      - :doc:`/reference/replica-set-protocol-versions`
+
+.. _replica-set-configuration-buildIndexes:
+
+``members``
+~~~~~~~~~~~
+
+.. rsconf::  members
+
+   *Type*: array
+
+   An array of member configuration documents, one for each member
+   of the replica set. The :rsconf:`members` array
+   is a zero-indexed array.
+
+   Each member-specific configuration document can contain the following
+   fields:
+
+   .. rsconf::  members[n]._id
+
+      *Type*: integer
+
+      An integer identifier for the member in the replica set, unique
+      among all members.
+      
+      Starting in MongoDB 5.0, values may be any integer value greater
+      than or equal to ``0``. Previously, this value was limited to an
+      integer between ``0`` and ``255`` inclusive.
+      
+      Each replica set member must have a unique
+      :rsconf:`_id <members[n]._id>`. Avoid re-using ``_id`` values
+      *even if* no ``members[n]`` entry is using that ``_id`` in
+      the current configuration.
+      
+      Once set, you cannot change the 
+      :rsconf:`_id <members[n]._id>` of a member.
+
+      .. note::
+
+         .. include:: /includes/fact-rs-conf-array-index.rst
+
+   .. rsconf::  members[n].host
+
+      *Type*: string
+
+      The hostname and, if specified, the port number, of the set
+      member.
+
+      The hostname name must be resolvable for every host in the
+      replica set.
+
+      .. warning::
+
+         :rsconf:`members[n].host` cannot hold a
+         value that resolves to ``localhost`` or the local interface
+         unless *all* members of the set are on hosts that resolve to
+         ``localhost``.
+
+   .. rsconf::  members[n].arbiterOnly
+
+      *Optional*.
+
+      *Type*: boolean
+
+      *Default*: false
+
+      A boolean that identifies an arbiter. A value of ``true``
+      indicates that the member is an arbiter.
+
+      When using the :method:`rs.addArb()` method to add an arbiter,
+      the method automatically sets
+      :rsconf:`members[n].arbiterOnly` to ``true``
+      for the added member.
+
+   .. rsconf::  members[n].buildIndexes
+
+      *Optional*.
+
+      *Type*: boolean
+
+      *Default*: true
+
+      A boolean that indicates whether the :binary:`~bin.mongod` builds
+      :term:`indexes <index>` on this member. You can only set this
+      value when adding a member to a replica set. You cannot change
+      :rsconf:`members[n].buildIndexes` field after
+      the member has been added to the set. To add a member, see
+      :method:`rs.add()` and :method:`rs.reconfig()`.
+
+      Do not set to ``false`` for :binary:`~bin.mongod` instances that receive
+      queries from clients.
+
+      Setting ``buildIndexes`` to ``false`` may be useful if **all**
+      the following conditions are true:
+
+      - you are only using this instance to perform backups using
+        :binary:`~bin.mongodump`, *and*
+
+      - this member will receive no queries, *and*
+
+      - index creation and maintenance overburdens the host
+        system.
+
+      Even if set to ``false``, secondaries *will* build indexes on the
+      ``_id`` field in order to facilitate operations required for
+      replication.
+
+      .. warning::
+
+         If you set
+         :rsconf:`members[n].buildIndexes` to
+         ``false``, you must also set
+         :rsconf:`members[n].priority` to ``0``. If
+         :rsconf:`members[n].priority` is not
+         ``0``, MongoDB will return an error when attempting to add a
+         member with
+         :rsconf:`members[n].buildIndexes` equal to
+         ``false``.
+
+         To ensure the member receives no queries, you should make all
+         instances that do not build indexes hidden.
+
+         Other secondaries cannot replicate from a member where
+         :rsconf:`members[n].buildIndexes` is
+         false.
+
+   .. rsconf::  members[n].hidden
+
+      *Optional*.
+
+      *Type*: boolean
+
+      *Default*: false
+
+      When this value is ``true``, the replica set hides this instance
+      and does not include the member in the output of
+      :method:`db.hello()` or :dbcommand:`hello`. This prevents
+      read operations (i.e. queries) from ever reaching this host by
+      way of secondary :term:`read preference`.
+
+      Hidden members can acknowledge write operations
+      issued with :ref:`write-concern`. For write operations issued
+      with :writeconcern:`"majority"` write concern, the member must
+      also be a voting member (i.e. :rsconf:`~members[n].votes` is
+      greater than ``0``).
+
+      .. seealso::
+
+         :ref:`Hidden Replica Set Members <replica-set-hidden-members>`
+
+   .. rsconf::  members[n].priority
+
+      *Optional*.
+
+      *Type*: Number between 0 and 1000 for primary/secondary; 0 or 1 for arbiters.
+
+      *Default*: 1.0 for primary/secondary; 0 for arbiters.
+
+      A number that indicates the relative likelihood of a replica set
+      member to become the :term:`primary`.
+
+      - To increase the likelihood that a member becomes the primary,
+        specify a higher ``priority`` value for that member.
+
+      - To decrease the likelihood that a member becomes the primary,
+        specify a lower ``priority`` value for that member.
+
+      Changing a member's priority triggers one or more elections. The
+      election algorithm makes a best-effort attempt to elect the
+      highest-priority member the primary. However, a lower-priority
+      member may become the primary even if a higher-priority secondary
+      is available.
+      
+      If a lower-priority member becomes the primary, the server
+      continues to periodically call elections until the
+      highest-priority replica set member is the primary. The frequency
+      at which the elections occur depends on the difference in priority
+      between the elected member and the highest-priority member.
+      
+      A member with a priority of ``0`` cannot become the primary.
+
+      Non-voting members (meaning members that have
+      :rsconf:`~members[n].votes` set to ``0``) must have a priority of
+      ``0``.
+
+      .. seealso::
+
+         - :ref:`Replica Set Elections <replica-set-elections>`
+         - :ref:`rs-election-priority`
+
+   .. rsconf::  members[n].tags
+
+      *Optional*.
+
+      *Type*: document
+
+      *Default*: none
+
+      .. include:: /includes/fact-tags-field.rst
+
+   .. rsconf::  members[n].secondaryDelaySecs
+
+      *Optional*.
+
+      *Type*: integer
+
+      *Default*: 0
+
+      The number of seconds "behind" the primary that this
+      replica set member should "lag".
+
+      Use this option to create :ref:`delayed members
+      <replica-set-delayed-members>`. Delayed members maintain a copy
+      of the data that reflects the state of the data at some time in
+      the past.
+
+      Delayed members can contribute to acknowledging write
+      operations issued with :ref:`write-concern`. However,
+      they return write acknowledgment no earlier than the configured
+      delay value. For write operations issued with 
+      :writeconcern:`"majority"` write concern, the member must also be 
+      a voting member (i.e. :rsconf:`~members[n].votes` is greater than 
+      ``0``).
+
+      .. seealso::
+
+         :doc:`/core/replica-set-delayed-member`
+
+   .. rsconf::  members[n].votes
+
+      *Optional*.
+
+      *Type*: integer
+
+      *Default*: 1
+
+      The number of votes a server will cast in a :ref:`replica set
+      election <replica-set-elections>`. The number of votes each
+      member has is either ``1`` or ``0``, and :ref:`arbiters
+      <replica-set-arbiters>` always have exactly ``1`` vote.
+
+      .. include:: /includes/fact-rs-nonzero-priority-vote-restriction.rst
+
+      A replica set can have up to :limit:`50 members
+      <Number of Members of a Replica Set>` but only 7 voting members.
+      If you need more than 7 members in one replica set, set
+      :rsconf:`members[n].votes` to ``0`` for the
+      additional non-voting members.
+
+      .. include:: /includes/fact-rs-non-voting-priority-restriction.rst
+
+      Starting in MongoDB 5.0, a newly added secondary does not count as
+      a voting member and cannot be elected until it has reached
+      :replstate:`SECONDARY` state.
+
+      Non-voting members cannot acknowledge write operations
+      issued with a :writeconcern:`"majority"` write concern.
+
+      .. seealso::
+
+         - :data:`replSetGetStatus.votingMembersCount`
+         - :data:`replSetGetStatus.writableVotingMembersCount`
+
+``settings``
+~~~~~~~~~~~~
+
+.. rsconf::  settings
+
+   *Optional*.
+
+   *Type*: document
+
+   A document that contains configuration options that apply to the
+   whole replica set.
+
+   The :rsconf:`settings` document contain the
+   following fields:
+
+   .. rsconf::  settings.chainingAllowed
+
+      *Optional*.
+
+      *Type*: boolean
+
+      *Default*: true
+
+      In MongoDB 5.0.1 and earlier, if
+      :rsconf:`settings.chainingAllowed` is:
+      
+      - ``true``, replica set :term:`secondary` members can
+        replicate data from other secondary members.
+      
+      - ``false``, secondary members can replicate data only from the
+        :term:`primary`.
+
+      Starting in MongoDB 5.0.2:
+      
+      - Replica set :term:`secondary` members can
+        replicate data from other secondary members even if
+        :rsconf:`settings.chainingAllowed` is ``false``.
+      
+      - To override :rsconf:`settings.chainingAllowed`, set the
+        :parameter:`enableOverrideClusterChainingSetting` server
+        parameter to ``true``.
+
+      - The default for
+        :parameter:`enableOverrideClusterChainingSetting` is ``false``.
+
+      .. seealso::
+
+         :doc:`/tutorial/manage-chained-replication`
+
+   .. rsconf::  settings.getLastErrorDefaults
+
+      *Optional*.
+
+      *Type*: document
+
+      Unavailable starting in MongoDB 5.0.
+
+      .. important::
+
+         .. include:: /includes/5.0-changes-getLastErrorDefaults-removed.rst
+
+   .. rsconf::  settings.getLastErrorModes
+
+      *Optional*.
+
+      *Type*: document
+
+      A document used to define a custom :ref:`write concern
+      <write-concern>` through the use of :rsconf:`members[n].tags`.
+      The custom write concern can provide :term:`data-center
+      awareness`.
+
+      .. code-block:: none
+        
+         { getLastErrorModes: { 
+            <name of write concern> : { <tag1>: <number>, .... },
+            ...
+         } }
+      
+      The ``<number>`` refers to the number of different tag values
+      required to satisfy the write concern. For example, the following
+      :rsconf:`settings.getLastErrorModes` defines a write concern
+      named ``datacenter`` that requires the write to propagate to two
+      members whose ``dc`` tag values differ.
+      
+      .. code-block:: none
+
+         { getLastErrorModes: { datacenter: { "dc": 2 } } }
+
+      To use the custom write concern, pass in the write concern name
+      to the :ref:`wc-w`, e.g.
+
+      .. code-block:: none
+
+         { w: "datacenter" }
+
+      See :doc:`/tutorial/configure-replica-set-tag-sets` for more
+      information and example.
+
+   .. rsconf::  settings.heartbeatTimeoutSecs
+
+      *Optional*.
+
+      *Type*: int
+
+      *Default*: 10
+
+      Number of seconds that the replica set members wait for a
+      successful heartbeat from each other. If a member does not
+      respond in time, other members mark the delinquent member as
+      inaccessible.
+
+   .. rsconf::  settings.electionTimeoutMillis
+
+      .. versionadded:: 3.2
+
+      *Optional*.
+
+      *Type*: int
+
+      *Default*: 10000 (10 seconds)
+
+      The time limit in milliseconds for detecting when a replica set's
+      primary is unreachable. This setting controls failover sensitivity
+      when using :rsconf:`protocolVersion: 1 <protocolVersion>`. You can
+      expect the failover timeout to not exceed the value of
+      ``electionTimeoutMillis``.
+
+      Consider the following when selecting a value:
+
+      - Higher values result in slower failovers but decreased
+        sensitivity to primary node or network slowness or spottiness.
+
+      - Lower values result in faster failover but increased
+        sensitivity to primary node or network slowness or spottiness.
+
+      The setting only applies when using :rsconf:`protocolVersion: 1 <protocolVersion>`.
+
+      .. note::
+
+         .. include:: /includes/extracts/rs-stepdown-election-handoff.rst
+
+   .. rsconf::  settings.catchUpTimeoutMillis
+
+      .. versionadded:: 3.4
+
+      *Optional*.
+
+      *Type*: int
+
+      *Default*: -1, infinite catchup time.
+
+      Time limit in milliseconds for a newly elected primary to sync
+      (catch up) with the other replica set members that may have more
+      recent writes. Infinite or high time limits may reduce the
+      amount of data that the other members would need to roll back
+      after an election but may increase the failover time.
+
+      The newly elected primary ends the catchup period early once it
+      is fully caught up with other members of the set. During the
+      catchup period, the newly elected primary is unavailable for
+      writes from clients. Use :dbcommand:`replSetAbortPrimaryCatchUp`
+      to abort the catchup then complete the transition to primary.
+
+      The setting only applies when using 
+      :rsconf:`protocolVersion: 1<protocolVersion>`.
+
+   .. _repl-conf-catchup-takeover-delay:
+
+   .. rsconf::  settings.catchUpTakeoverDelayMillis
+
+      .. versionadded:: 3.6
+
+      *Optional*.
+
+      *Type*: int
+
+      *Default*: 30000 (30 seconds)
+
+      Time in milliseconds a node waits to initiate a
+      *catchup takeover* after determining it is ahead of the current
+      :term:`primary`. During a catchup takeover, the node ahead of the
+      current primary initiates an :term:`election` to become the new
+      primary of the :term:`replica set`.
+
+      After the node initiating the takeover determines that it is
+      ahead of the current :term:`primary`, it waits the specified
+      number of milliseconds and then verifies the following:
+
+      1. It is still ahead of the current primary,
+
+      #. It is the most up-to-date node among all available nodes,
+
+      #. The current primary is currently catching up to it.
+
+      Once determining that all of these conditions are met, the node
+      initiating the takeover immediately runs for election.
+
+      For more information on Replica
+      Set Elections, see :doc:`/core/replica-set-elections/`.
+
+      .. note::
+
+         Setting ``catchUpTakeoverDelayMillis`` to ``-1`` disables
+         catchup takeover. Setting :rsconf:`catchUpTimeoutMillis 
+         <settings.catchUpTimeoutMillis>` to
+         ``0`` disables *primary catchup* and consequently also catchup
+         takeover.
+
+   .. rsconf::  settings.heartbeatIntervalMillis
+
+      .. versionadded:: 3.2
+
+      *Internal use only*.
+
+      The frequency in milliseconds of the heartbeats.
+
+   .. rsconf::  settings.replicaSetId
+
+      .. versionadded:: 3.2
+
+      *Type*: ObjectId
+
+      The ObjectId associated with the replica set and automatically
+      created during :method:`rs.initiate()` or
+      :dbcommand:`replSetInitiate`. You cannot change the
+      :rsconf:`~settings.replicaSetId`.

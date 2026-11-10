@@ -1,0 +1,241 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+=======
+profile
+=======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: profile
+
+   .. versionchanged:: 5.0
+
+   For a :binary:`~bin.mongod` instance, the command enables, disables,
+   or configures the :ref:`database profiler <database-profiler>`. The
+   profiler captures and records data on the performance of write
+   operations, cursors, and database commands on a running
+   :binary:`~bin.mongod` instance. If the profiler is disabled, the
+   command configures how slow operations are logged to the diagnostic
+   log.
+
+   On :binary:`~bin.mongod`, if the :ref:`database profiler level
+   <set-profiling-level-level>` is ``2``, full logging is enabled on
+   the profiler and the :option:`diagnostic log <mongod --logpath>`.
+
+   At :ref:`database profiler level <set-profiling-level-level>` ``1``,
+   the following settings modify both the profiler and the
+   :option:`diagnostic log <mongod --logpath>`:
+
+   - :ref:`slowms <set-profiling-level-options-slowms>`
+   - :ref:`sampleRate <set-profiling-level-options-sampleRate>`
+   - :ref:`filter <set-profiling-level-options-filter>`
+
+   If the :ref:`database profiler level <set-profiling-level-level>` is
+   ``0``, the :ref:`database profiler <database-profiler>` is disabled.
+   At level ``0`` the following settings only modify the diagnostic log:
+   
+   - :ref:`slowms <set-profiling-level-options-slowms>`
+   - :ref:`sampleRate <set-profiling-level-options-sampleRate>`
+   - :ref:`filter <set-profiling-level-options-filter>`
+
+   For a :binary:`~bin.mongos` instance, the command only configures how 
+   operations get written to the diagnostic log. You cannot enable the 
+   :ref:`database profiler <database-profiler>` on a :binary:`~bin.mongos` 
+   instance because ``mongos`` does not have any collections that the profiler 
+   can write to.
+
+   .. include:: /includes/log-changes-to-database-profiler.rst
+
+   On :binary:`~bin.mongos`, you can set ``profile`` level to:
+
+   - ``0`` to set the ``slowms``, ``sampleRate``, and ``filter`` for
+     the diagnostic log;
+
+   - ``-1`` to read the current settings.
+
+   The profiler is off by default.
+
+   .. include:: /includes/warning-profiler-performance.rst
+
+Compatibility
+-------------
+
+This command is available in deployments hosted in the following environments: 
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-all.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+Syntax
+------
+
+The command has the following syntax:
+
+.. code-block:: javascript
+
+   {
+      profile: <level>,
+      slowms: <threshold>,
+      sampleRate: <rate>,
+      filter: <filter expression>
+   }
+
+.. _slowms-threshold-option:
+
+Command Fields
+--------------
+
+The command takes the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Field
+
+     - Type
+
+     - Description
+
+   * - ``profile``
+
+     - int
+
+     - Configures the profiler level.
+       The following profiler levels are available:
+       
+       .. include:: /includes/database-profiler-levels.rst
+       
+       Since profiling is not available on :binary:`~bin.mongos`, the
+       :dbcommand:`profile` command cannot be used to set the profiling
+       level to a value other than ``0`` on a :binary:`~bin.mongos` instance.
+
+   * - ``slowms``
+
+     - int
+
+     - Optional. Default: 100
+
+       .. include:: /includes/dbcommand-slowms-definition.rst
+
+       This argument affects the same setting as the configuration option
+       :setting:`operationProfiling.slowOpThresholdMs`.
+
+   * - ``sampleRate``
+
+     - double
+
+     - Optional. Default: 1.0
+
+       The fraction of *slow* operations that should be profiled or logged.
+       ``sampleRate`` accepts values between 0 and 1, inclusive.
+
+       This argument affects the same setting as the configuration option
+       :setting:`operationProfiling.slowOpSampleRate` and does not
+       affect the slow oplog entry log messages on secondaries.
+
+   * - ``filter``
+     - object
+     - .. _profile-filter-def:
+
+       Optional.
+       A query that determines which operations are profiled or
+       logged.
+
+       The filter query takes the following form:
+
+       .. code-block:: javascript
+         
+          { <field1>: <expression1>, ... }
+
+       The query can be any legal :method:`~db.collection.find()`
+       operation where the query ``<field>`` matches a field in the
+       :ref:`profiler output <profiler>`.
+
+       This argument affects the same setting as the
+       configuration option :setting:`operationProfiling.filter`.
+       When ``filter`` is set, the ``slowms`` and ``sampleRate``
+       options are not used for profiling and slow-query log
+       lines.
+
+The :method:`db.getProfilingStatus()` and
+:method:`db.setProfilingLevel()` :ref:`shell methods
+<js-administrative-methods>` provide wrappers around the
+:dbcommand:`profile` command.
+
+.. |binary| replace:: :binary:`~bin.mongod` or :binary:`~bin.mongos`
+
+Behavior
+--------
+
+The :dbcommand:`profile` command obtains a write lock on the affected
+database while enabling or disabling the profiler. This is typically a
+short operation. The lock blocks other operations until the
+:dbcommand:`profile` command has completed.
+
+When connected to a sharded cluster through :binary:`~bin.mongos`, you can run 
+the :dbcommand:`profile` command against any database. 
+
+.. seealso::
+
+   :ref:`Database Profiling <database-profiling>`
+
+Example
+-------
+
+Enable Filtering
+~~~~~~~~~~~~~~~~
+
+To enable profiling and filter the logged data:
+
+.. code-block:: javascript
+
+   db.runCommand( 
+      {
+        profile: 1,
+        filter:
+           {
+              $or:
+              [
+                 { millis: { $gte: 100 } },
+                 { user: "testuser@admin" }
+              ]
+           }
+      }
+   )
+
+The :ref:`filter <profile-filter-def>` only selects operations that
+are:
+
+- at least ``100`` milliseconds long, or
+- submitted by the ``testuser``.
+
+Unset a Filter
+~~~~~~~~~~~~~~
+
+To clear a profile filter, run ``profile`` with the ``filter: "unset"``
+option.
+
+.. code-block:: javascript
+
+   db.runCommand(
+      { 
+         profile: 1,
+         filter: "unset" 
+      }
+   )
+
+.. include:: /includes/reference/return-set-profile.rst
+

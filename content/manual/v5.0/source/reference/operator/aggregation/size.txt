@@ -1,0 +1,93 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+===================
+$size (aggregation)
+===================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language
+   :values: shell
+
+.. meta::
+   :description: Learn about the $size aggregation operator, which counts and returns the total number of items in an array.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $size
+
+   Counts and returns the total number of items in an array.
+
+Compatibility
+-------------
+
+.. |operator-method| replace:: ``$size``
+
+.. include:: /includes/fact-compatibility.rst
+
+Syntax
+------
+
+:expression:`$size` has the following syntax:
+
+.. code-block:: javascript
+
+   { $size: <expression> }
+
+The argument for :expression:`$size` can be any :ref:`expression
+<aggregation-expressions>` as long as it resolves to an array. For
+more information on expressions, see :ref:`aggregation-expressions`.
+
+Behavior
+--------
+
+The argument for :expression:`$size` must resolve to an array. If the
+argument for :expression:`$size` is missing or does not resolve to an
+array, :expression:`$size` errors.
+
+Example
+-------
+
+Consider an ``inventory`` collection with the following documents:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "ABC1", "description" : "product 1", colors: [ "blue", "black", "red" ] }
+   { "_id" : 2, "item" : "ABC2", "description" : "product 2", colors: [ "purple" ] }
+   { "_id" : 3, "item" : "XYZ1", "description" : "product 3", colors: [ ] }
+   { "_id" : 4, "item" : "ZZZ1", "description" : "product 4 - missing colors" }
+   { "_id" : 5, "item" : "ZZZ2", "description" : "product 5 - colors is string", colors: "blue,red" }
+
+The following aggregation pipeline operation uses the
+:expression:`$size` operator to return the number of elements in the ``colors``
+array:
+
+.. code-block:: javascript
+
+   db.inventory.aggregate([
+      {
+         $project: {
+            item: 1,
+            numberOfColors: { $cond: { if: { $isArray: "$colors" }, then: { $size: "$colors" }, else: "NA"} }
+         } 
+      }
+   ] )
+
+The operation returns the following:
+
+.. code-block:: javascript
+
+   { "_id" : 1, "item" : "ABC1", "numberOfColors" : 3 }
+   { "_id" : 2, "item" : "ABC2", "numberOfColors" : 1 }
+   { "_id" : 3, "item" : "XYZ1", "numberOfColors" : 0 }
+   { "_id" : 4, "item" : "ZZZ1", "numberOfColors" : "NA" }
+   { "_id" : 5, "item" : "ZZZ2", "numberOfColors" : "NA" }

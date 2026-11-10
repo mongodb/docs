@@ -1,0 +1,176 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+==================
+Index Intersection
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. important::
+
+   This page documents cases where the :doc:`query optimizer 
+   </core/query-plans>` **may** be able to use index intersection. 
+   
+   In practice, the :doc:`query optimizer </core/query-plans>` rarely 
+   selects plans that use index intersection.
+
+   Hash-based index intersection is disabled by default and sort-based 
+   index intersection is disfavored in plan selection. The optimizer 
+   behaves in this fashion in order to prevent bad plan selection. 
+   
+   Schema designs should not rely on index intersection. Instead,
+   :doc:`compound indexes </core/index-compound>` should be used.
+   
+   Future improvements to the query optimizer may allow the system to 
+   better identify cases where an index intersection plan would be 
+   beneficial.
+
+MongoDB can use the intersection of multiple indexes to fulfill
+queries. In general, each index intersection involves two indexes; 
+however, MongoDB can employ multiple/nested index intersections to 
+resolve a query.
+
+To illustrate index intersection, consider a collection ``orders`` that
+has the following indexes:
+
+.. code-block:: javascript
+
+   { qty: 1 }
+   { item: 1 }
+
+MongoDB can use the intersection of the two indexes to support
+the following query:
+
+.. code-block:: javascript
+
+   db.orders.find( { item: "abc123", qty: { $gt: 15 } } )
+
+To determine if MongoDB used index intersection, run
+:method:`~cursor.explain()`; the results of :ref:`explain()
+<explain-output-index-intersection>` will include either an
+``AND_SORTED`` stage or an ``AND_HASH`` stage.
+
+Index Prefix Intersection
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With index intersection, MongoDB can use an intersection of either the
+entire index or the index prefix. An index prefix is a subset of a
+compound index, consisting of one or more keys starting from the
+beginning of the index.
+
+Consider a collection ``orders`` with the following indexes:
+
+.. code-block:: javascript
+
+   { qty: 1 }
+   { status: 1, ord_date: -1 }
+
+To fulfill the following query which specifies a condition on both the
+``qty`` field and the ``status`` field, MongoDB can use the
+intersection of the two indexes:
+
+.. code-block:: javascript
+
+   db.orders.find( { qty: { $gt: 10 } , status: "A" } )
+
+.. _index-intersection-compound-indexes:
+
+Index Intersection and Compound Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Index intersection does not eliminate the need for creating
+:doc:`compound indexes </core/index-compound>`. However, because both
+the list order (i.e. the order in which the keys are listed in the
+index) and the sort order (i.e. ascending or descending), matter in
+:doc:`compound indexes </core/index-compound>`, a compound index may
+not support a query condition that does not include the :ref:`index
+prefix keys <compound-index-prefix>` or that specifies a different sort
+order.
+
+For example, if a collection ``orders`` has the following compound
+index, with the ``status`` field listed before the ``ord_date`` field:
+
+.. code-block:: javascript
+
+   { status: 1, ord_date: -1 }
+
+The compound index can support the following queries:
+
+.. code-block:: javascript
+
+   db.orders.find( { status: { $in: ["A", "P" ] } } )
+   db.orders.find(
+      {
+        ord_date: { $gt: new Date("2014-02-01") },
+        status: {$in:[ "P", "A" ] }
+      }
+   )
+
+But not the following two queries:
+
+.. code-block:: javascript
+
+   db.orders.find( { ord_date: { $gt: new Date("2014-02-01") } } )
+   db.orders.find( { } ).sort( { ord_date: 1 } )
+
+However, if the collection has two separate indexes:
+
+.. code-block:: javascript
+
+   { status: 1 }
+   { ord_date: -1 }
+
+The two indexes can, either individually or through index intersection,
+support all four aforementioned queries.
+
+The choice between creating compound indexes that support your queries
+or relying on index intersection depends on the specifics of your
+system.
+
+.. seealso::
+
+   - :doc:`compound indexes </core/index-compound>`
+   - :ref:`compound-key-indexes`
+
+.. _index-intersection-sort:
+
+Index Intersection and Sort
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Index intersection does not apply when the :method:`~cursor.sort()`
+operation requires an index completely separate from the query
+predicate.
+
+For example, the ``orders`` collection has the following indexes:
+
+.. code-block:: javascript
+
+   { qty: 1 }
+   { status: 1, ord_date: -1 }
+   { status: 1 }
+   { ord_date: -1 }
+
+MongoDB cannot use index intersection for the following query with sort:
+
+.. code-block:: javascript
+
+   db.orders.find( { qty: { $gt: 10 } } ).sort( { status: 1 } )
+
+That is, MongoDB does not use the ``{ qty: 1 }`` index for the query,
+and the separate ``{ status: 1 }`` or the ``{ status: 1, ord_date: -1
+}`` index for the sort.
+
+However, MongoDB can use index intersection for the following query
+with sort since the index ``{ status: 1, ord_date: -1 }`` can fulfill
+part of the query predicate.
+
+.. code-block:: javascript
+
+   db.orders.find( { qty: { $gt: 10 } , status: "A" } ).sort( { ord_date: -1 } )

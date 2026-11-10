@@ -1,0 +1,124 @@
+title:
+  text: Disable the Balancer.
+  character: "'"
+stepnum: 1
+ref: disable-balancer
+content: |
+  Turn off the :ref:`balancer <sharding-balancing-internals>` in the
+  sharded cluster, as described in
+  :ref:`sharding-balancing-disable-temporarily`.
+---
+title:
+  text: Upgrade the cluster's meta data.
+  character: "'"
+stepnum: 2
+ref: perform-mongos-upgrade
+pre: |
+  Start a single 3.0 :binary:`~bin.mongos` instance with
+  the :setting:`~sharding.configDB` pointing to the cluster's config servers and with
+  the ``--upgrade`` option.
+
+  To run a :binary:`~bin.mongos` with the ``--upgrade`` option, you
+  can upgrade an existing :binary:`~bin.mongos` instance to 3.0, or if you
+  need to avoid reconfiguring a production :binary:`~bin.mongos` instance,
+  you can use a new 3.0 :binary:`~bin.mongos` that can reach all the config
+  servers.
+action:
+  - pre: "To upgrade the meta data, run:"
+    language: sh
+    code: |
+      mongos --configdb <configDB string> --upgrade
+    post: |
+      You can include the :option:`--logpath <mongos --logpath>` option
+      to output the log messages to a file instead of the standard
+      output. Also include any other options required to start
+      :binary:`~bin.mongos` instances in your cluster, such as
+      ``--sslOnNormalPorts`` or ``--sslPEMKeyFile``.
+  - pre: |
+      The 3.0 :binary:`~bin.mongos` will output informational log
+      messages.
+    language: sh
+    code: |
+       <timestamp> I SHARDING [mongosMain] MongoS version 3.0.0 starting: ...
+       ...
+       <timestamp> I SHARDING [mongosMain] starting upgrade of config server from v5 to v6
+       <timestamp> I SHARDING [mongosMain] starting next upgrade step from v5 to v6
+       <timestamp> I SHARDING [mongosMain] about to log new metadata event: ...
+       <timestamp> I SHARDING [mongosMain] checking that version of host ... is compatible with 2.6
+       ...
+       <timestamp> I SHARDING [mongosMain] upgrade of config server to v6 successful
+       ...
+       <timestamp> I SHARDING [mongosMain] distributed lock 'configUpgrade/...' unlocked. 
+       <timestamp> I -        [mongosMain] Config database is at version v6
+    post: |
+       The :binary:`~bin.mongos` will exit upon completion of the
+       ``--upgrade`` process.
+post: |
+  The upgrade will prevent any chunk moves or splits from occurring
+  during the upgrade process. If the data files have many sharded
+  collections or if failed processes hold stale locks,
+  acquiring the locks for all collections can take
+  seconds or minutes. Watch the log for progress updates.
+---
+title:
+  text: Ensure ``mongos --upgrade`` process completes successfully.
+  character: "'"
+stepnum: 3
+ref: ensure-mongos-upgrade-complete
+pre: |
+   The :binary:`~bin.mongos` will exit upon completion of the meta data
+   upgrade process. If successful, the process will log the following
+   messages:
+action:
+  language: sh
+  code: |
+      <timestamp> I SHARDING [mongosMain] upgrade of config server to v6 successful
+      ... 
+      <timestamp> I -        [mongosMain] Config database is at version v6
+post: |
+  After a successful upgrade, restart the :binary:`~bin.mongos` instance.
+  If :binary:`~bin.mongos` fails to start, check the log for more
+  information.
+
+  If the :binary:`~bin.mongos` instance loses its connection to the config
+  servers during the upgrade or if the upgrade is otherwise
+  unsuccessful, you may always safely retry the upgrade.
+---
+title:
+  text: Upgrade the remaining ``mongos`` instances to 3.0.
+  character: "'"
+stepnum: 4
+ref: upgrade-remaining-mongos-instances
+content: |
+  Upgrade and restart **without** the ``--upgrade`` option the
+  other :binary:`~bin.mongos` instances in the sharded cluster.
+
+  After you have successfully upgraded *all* :binary:`~bin.mongos`
+  instances, you can proceed to upgrade the other components in your
+  sharded cluster.
+
+---
+title: "Upgrade the config servers."
+level: 5
+ref: 3.0-upgrade-start-standalone-mongod
+content: |  
+  After you have successfully upgraded *all* :binary:`~bin.mongos`
+  instances, upgrade all 3 :binary:`~bin.mongod` config server instances,
+  leaving the *first* config server listed in the 
+  :option:`mongos --configdb` argument to upgrade *last*.
+---
+title: "Upgrade the shards."
+level: 5
+ref: 3.0-upgrade-export-mmap1-data
+content: |
+  Upgrade each shard, one at a time, upgrading the :binary:`~bin.mongod`
+  secondaries before running :dbcommand:`replSetStepDown` and upgrading
+  the primary of each shard.
+---
+title: "Re-enable the balancer."
+level: 5
+ref: reenable-balancer
+content: |
+  Once the upgrade of sharded cluster components is
+  complete, :ref:`Re-enable the balancer <sharding-balancing-enable>`.
+...

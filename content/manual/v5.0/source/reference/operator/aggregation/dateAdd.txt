@@ -1,0 +1,486 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+======================
+$dateAdd (aggregation)
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $dateAdd
+
+   .. versionadded:: 5.0
+
+   Increments a :doc:`Date </reference/method/Date>` object by a
+   specified number of time units.
+
+   The :expression:`$dateAdd` expression has the following syntax:
+
+   .. code-block:: javascript
+
+      {
+         $dateAdd: {
+            startDate: <Expression>,
+            unit: <Expression>,
+            amount: <Expression>,
+            timezone: <tzExpression>
+         }
+      }
+
+   Returns a :doc:`Date </reference/method/Date>`. The ``startDate``  
+   can be any expression that resolves to type Date, Timestamp or
+   ObjectId. No matter which data type is used as input, the value
+   returned will be a :doc:`Date </reference/method/Date>` object.
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 60
+
+      * - Field
+        - Required/Optional
+        - Description
+
+      * - ``startDate``
+        - Required
+        - The beginning date, in UTC, for the addition operation. The
+          ``startDate`` can be any
+          :ref:`expression <aggregation-expressions>` that resolves to
+          a :ref:`Date <document-bson-type-date>`, a
+          :ref:`Timestamp <document-bson-type-timestamp>`,
+          or an :ref:`ObjectID <document-bson-type-object-id>`.
+
+      * - ``unit``
+        - Required
+        - The ``unit`` used to measure the ``amount`` of time added to
+          the ``startDate``. The ``unit`` is an
+          :ref:`expression <aggregation-expressions>` that resolves to
+          one of the following strings:
+
+          - ``year``
+          - ``quarter``
+          - ``week``
+          - ``month``
+          - ``day``
+          - ``hour``
+          - ``minute``
+          - ``second``
+          - ``millisecond``
+
+      * - ``amount``
+        - Required
+        - The number of ``units`` added to the ``startDate``. The
+          ``amount`` is an :ref:`expression <aggregation-expressions>`
+          that resolves to an integer or long. The ``amount`` can also
+          resolve to an integral decimal or a double if that value can
+          be converted to a long without loss of precision.
+
+      * - ``timezone``
+        - Optional
+        -  .. include:: /includes/fact-timezone-description-no-option.rst
+
+   For more information on expressions and types see
+   :ref:`aggregation-expressions` and :ref:`bson-types`.
+
+Behavior
+--------
+
+Time Measurement
+~~~~~~~~~~~~~~~~
+
+MongoDB follows prevaling database usage and works with time in UTC. The
+``dateAdd`` expression always takes a ``startDate`` in UTC and returns
+a result in UTC. If the ``timezone`` is specified, the calculation will
+be done using the specified ``timezone``. The timezone is especially
+important when a calculation involves Daylight Savings Time (DST).
+
+If the ``unit`` is a ``month``, or larger the operation adjusts to
+account for the last day of the month. Adding one ``month`` on the last
+day of October, for example, demonstrates the "last-day-of-the-month"
+adjustment.
+
+.. code-block:: javascript
+
+   {
+      $dateAdd:
+         {
+            startDate: ISODate("2020-10-31T12:10:05Z"),
+            unit: "month",
+            amount: 1
+         }
+   }
+
+Notice that the date returned, ``ISODate("2020-11-30T12:10:05Z")``, is
+the 30th and not the 31st since November has fewer days than October.
+
+Time Zone
+~~~~~~~~~
+
+.. include:: /includes/fact-olson-tz-behavior.rst
+
+Examples
+--------
+
+Add a Future Date
+~~~~~~~~~~~~~~~~~
+
+Consider a collection of customer orders with these documents:
+
+.. code-block:: javascript
+
+   db.shipping.insertMany(
+     [
+        { custId: 456, purchaseDate: ISODate("2020-12-31") },
+        { custId: 457, purchaseDate: ISODate("2021-02-28") },
+        { custId: 458, purchaseDate: ISODate("2021-02-26") }
+     ]
+   )
+
+The normal shipping time is 3 days. You can use ``$dateAdd`` in an
+aggregation pipeline to set an ``expectedDeliveryDate`` 3 days in the
+future.
+
+.. code-block:: javascript
+   :emphasize-lines: 8-13
+
+   db.shipping.aggregate(
+      [
+         {
+            $project:
+               {
+                  expectedDeliveryDate:
+                     {
+                        $dateAdd:
+                           {
+                              startDate: "$purchaseDate",
+                              unit: "day",
+                              amount: 3
+                           }
+                     }
+               }
+          },
+          { 
+             $merge: "shipping" 
+          }
+       ]
+    )
+
+After adding 3 days to the ``purchaseDate`` with ``$dateAdd`` in the
+:pipeline:`$project` stage, the :pipeline:`$merge` stage updates the
+original documents with the ``expectedDeliveryDate``.
+
+The resulting documents look like this:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      "_id" : ObjectId("603dd4b2044b995ad331c0b2"),
+      "custId" : 456,
+      "purchaseDate" : ISODate("2020-12-31T00:00:00Z"),
+      "expectedDeliveryDate" : ISODate("2021-01-03T00:00:00Z")
+   }
+   {
+      "_id" : ObjectId("603dd4b2044b995ad331c0b3"),
+      "custId" : 457,
+      "purchaseDate" : ISODate("2021-02-28T00:00:00Z"),
+      "expectedDeliveryDate" : ISODate("2021-03-03T00:00:00Z")
+   }
+   {
+       "_id" : ObjectId("603dd4b2044b995ad331c0b4"),
+      "custId" : 458,
+      "purchaseDate" : ISODate("2021-02-26T00:00:00Z"),
+      "expectedDeliveryDate" : ISODate("2021-03-01T00:00:00Z")
+   }
+
+Filter on a Date Range
+~~~~~~~~~~~~~~~~~~~~~~
+
+Update the ``shipping`` collection from the last example with this code
+to add delivery dates to the documents:
+
+.. code-block:: javascript
+
+   db.shipping.updateOne(
+      { custId: 456 },
+      { $set: { deliveryDate: ISODate( "2021-01-10" ) } }
+   )
+
+   db.shipping.updateOne(
+     { custId: 457 },
+     { $set: { deliveryDate:  ISODate( "2021-03-01" ) } }
+   )
+
+   db.shipping.updateOne(
+      { custId: 458 },
+      { $set: { deliveryDate:  ISODate( "2021-03-02" ) } }
+   )
+
+You want to find late shipments. Use ``$dateAdd`` in a
+:pipeline:`$match` stage to create a filter that matches documents in a
+range of dates defined by a starting point (``$purchaseDate``) and a
+time period given by ``$dateAdd``.
+
+.. code-block:: javascript
+   :emphasize-lines: 11-16
+
+   db.shipping.aggregate(
+      [
+         {
+            $match: 
+               {
+                  $expr:
+                     {
+                        $gt:
+                           [ "$deliveryDate",
+                             { 
+                                $dateAdd:
+                                   { 
+                                      startDate: "$purchaseDate",
+                                      unit: "day",
+                                      amount: 5
+                                   } 
+                              }
+                           ]
+                     }
+               }
+          },
+          { 
+             $project: 
+                {
+                   _id: 0,
+                   custId: 1,
+                   purchased:
+                      {
+                          $dateToString: 
+                             {
+                                format: "%Y-%m-%d",
+                                date: "$purchaseDate"
+                             }
+                      },
+                   delivery:
+                      {
+                         $dateToString:
+                            {
+                               format: "%Y-%m-%d",
+                               date: "$deliveryDate"
+                            }
+                      }
+                }
+          } 
+      ]
+   ) 
+
+The :pipeline:`$match` stage uses :expression:`$gt` and ``$dateAdd`` in
+an expression (:query:`$expr`) to compare the actual ``deliveryDate``
+with an expected date. Documents with delivery dates more than 5 days
+after the ``purchaseDate`` are passed on to the :pipeline:`$project`
+stage.
+
+The :pipeline:`$project` stage uses the :expression:`$dateToString`
+expression to convert the dates to a more readable format. Without the
+conversion, MongoDB would return the date in :term:`ISODate` format.
+
+In this example only one record is returned:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "custId" : 456, "purchased" : "2020-12-31", "delivery" : "2021-01-10" }
+
+Adjust for Daylight Savings Time
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+All dates are stored internally in UTC time. When a ``timezone`` is
+specified, ``$dateAdd`` uses local time to carry out the calculations.
+The results are displayed in UTC.
+
+You have customers in several timezones and you want to see what effect
+daylight savings time might have on your billing periods if you bill by
+``day`` or by ``hour``.
+
+Create this collection of connection times:
+
+.. code-block:: javascript
+
+   db.billing.insertMany(
+      [
+         {
+            location: "America/New_York",
+            login: ISODate("2021-03-13T10:00:00-0500"),
+            logout: ISODate("2021-03-14T18:00:00-0500")
+         },
+         {
+            location: "America/Mexico_City",
+            login: ISODate("2021-03-13T10:00:00-00:00"),
+            logout: ISODate("2021-03-14T08:00:00-0500")
+         }
+      ]
+   )
+
+
+First add 1 day, then add 24 hours to the ``login`` dates in each
+document.
+
+.. code-block:: javascript
+
+   db.billing.aggregate(
+      [
+         {
+            $project:
+               {
+                  _id: 0,
+                  location: 1,
+                  start:
+                     {
+                        $dateToString:
+                           {
+                              format: "%Y-%m-%d %H:%M",
+                              date: "$login"
+                           }
+                     },
+                  days:
+                     {
+                        $dateToString: 
+                           {
+                              format: "%Y-%m-%d %H:%M", 
+                              date: 
+                                 {
+                                    $dateAdd:
+                                       {
+                                          startDate: "$login",
+                                          unit: "day",
+                                          amount: 1,
+                                          timezone: "$location"
+                                       }
+                                 }
+                           }
+                     },
+                  hours:
+                     {
+                        $dateToString:
+                           {
+                              format: "%Y-%m-%d %H:%M",
+                              date:
+                                 {
+                                    $dateAdd:
+                                    {
+                                       startDate: "$login",
+                                       unit: "hour",
+                                       amount: 24,
+                                       timezone: "$location"
+                                    }
+                                 }
+                           }
+                     },
+                  startTZInfo:
+                     {
+                        $dateToString:
+                           {
+                              format: "%Y-%m-%d %H:%M",
+                              date: "$login",
+                              timezone: "$location"
+                           }
+                     },
+                  daysTZInfo:
+                     {
+                        $dateToString:
+                           {
+                              format: "%Y-%m-%d %H:%M",
+                              date:
+                                 {
+                                    $dateAdd:
+                                       {
+                                          startDate: "$login",
+                                          unit: "day",
+                                          amount: 1,
+                                          timezone: "$location"
+                                       }
+                                 },
+                              timezone: "$location"
+                           }
+                     },
+                  hoursTZInfo:
+                     {
+                        $dateToString:
+                           {
+                              format: "%Y-%m-%d %H:%M",
+                              date:
+                                 {
+                                    $dateAdd:
+                                       {
+                                          startDate: "$login",
+                                          unit: "hour",
+                                          amount: 24,
+                                          timezone: "$location"
+                                       }
+                                 },
+                              timezone: "$location"
+                           }
+                     },
+               }
+         }
+      ]
+   ).pretty()
+
+The :expression:`$dateToString` expression reformats the output for 
+readability. Results are summarized here:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Field
+     - New York
+     - Mexico City
+
+   * - Start
+     - 2021-03-13 15:00
+     - 2021-03-13 10:00
+
+   * - Start, TZ Info
+     - 2021-03-13 10:00
+     - 2021-03-13 04:00
+    
+   * - 1 Day
+     - 2021-03-14 14:00
+     - 2021-03-14 10:00
+
+   * - 1 Day, TZ Info
+     - 2021-03-14 10:00
+     - 2021-03-14 04:00
+
+   * - 24 Hours
+     - 2021-03-14 15:00
+     - 2021-03-14 10:00
+
+   * - 24 Hours, TZ Info
+     - 2021-03-14 11:00
+     - 2021-03-14 04:00
+
+The chart highlights several points: 
+
+- Unformatted dates are returned in UTC. The ``$login`` for New York is
+  UTC -5, however the ``start``, ``days``, and ``hours`` rows display
+  the time in UTC. 
+
+- March 14th is the start of DST in New York, but not in Mexico. The
+  calculated time is adjusted when a location switches to DST and
+  crosses from one ``day`` to the next. 
+
+- DST modifies the length of the ``day``, not the ``hour``. There is no
+  DST change for ``hours``. There is an only an adjustment for DST when
+  the measurement ``unit`` is ``day`` or larger and the computation
+  crosses a clock change in the specified ``timezone``. 
+
+.. seealso:: 
+ 
+   :expression:`$dateSubtract`, :expression:`$dateDiff`
+

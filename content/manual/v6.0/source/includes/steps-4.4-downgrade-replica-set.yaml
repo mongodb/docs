@@ -1,0 +1,85 @@
+title: "Download the latest |oldversion| binaries."
+level: 4
+ref: 4.4-downgrade-binaries-rs
+content: |
+  Using either a package manager or a manual download, get the latest
+  release in the |oldversion| series. If using a package manager, add a new
+  repository for the |oldversion| binaries, then perform the actual downgrade
+  process.
+
+  .. include:: /includes/downgrade-path.rst
+---
+title: "Downgrade secondary members of the replica set."
+level: 4
+ref: 4.4-downgrade-secondaries
+content: |
+
+  Downgrade each :term:`secondary` member of the replica set, one at a
+  time:
+
+  a. .. include:: /includes/4.4-downgrade-clean-shutdown.rst
+
+  #. Replace the |newversion| binary with the |oldversion| binary and restart.
+
+  #. Wait for the member to recover to ``SECONDARY`` state
+     before downgrading the next secondary. To check the member's state,
+     use the :method:`rs.status()` method in the ``mongo`` shell.
+
+  #. Once the member is in ``SECONDARY`` stage, downgrade the next
+     secondary.
+---
+title: "Downgrade arbiter replica set member, if any."
+level: 4
+ref: 4.4-downgrade-arbiters
+content: |
+
+  Skip this step if the replica set does not include an arbiter.
+  
+  Downgrade the :ref:`arbiter <replica-set-arbiter-configuration>` member of
+  the replica set:
+
+  a. .. include:: /includes/4.4-downgrade-clean-shutdown.rst
+
+  #. Delete the contents of the arbiter data directory. The 
+     :setting:`storage.dbPath` configuration setting or 
+     :option:`--dbpath <mongod --dbpath>` command line option specify the
+     data directory of the arbiter :binary:`~bin.mongod`.
+
+     .. code-block:: bash
+
+        rm -rf /path/to/mongodb/datafiles/*
+
+  #. Replace the |newversion| binary with the |oldversion| binary and restart.
+
+  #. Wait for the member to recover to ``ARBITER`` state. To check
+     the member's state, connect a ``mongo`` shell to the
+     member and run :method:`rs.status()` method.
+---
+title: Step down the primary.
+level: 4
+ref: 4.4-step-down-primary
+pre: |
+  Use :method:`rs.stepDown()` in the ``mongo`` shell to
+  step down the :term:`primary` and force the normal :ref:`failover
+  <replica-set-failover>` procedure.
+action:
+  language: javascript
+  code:
+    rs.stepDown()
+post: |
+  :method:`rs.stepDown()` expedites the failover procedure and is
+  preferable to shutting down the primary directly.
+---
+title: "Replace and restart former primary ``mongod``."
+level: 4
+ref: 4.4-downgrade-primary
+content: |
+   When :method:`rs.status()` shows that the primary has stepped down
+   and another member has assumed ``PRIMARY`` state:
+     
+   a. .. include:: /includes/4.4-downgrade-clean-shutdown.rst
+
+   b. Replace the :binary:`~bin.mongod` binary with
+      the |oldversion| binary and restart.
+   
+...
