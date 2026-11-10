@@ -10,6 +10,7 @@ import { Text, TextStyle } from '@via-ds/components/typography';
 import ChevronDown from '@via-ds/icons/ChevronDown';
 import ChevronUp from '@via-ds/icons/ChevronUp';
 import { useSidenavContext } from '@/context/sidenav-context';
+import { getTranslator } from '@/internationalization/get-translator';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
 import useScreenSize from '@/hooks/use-screen-size';
 
@@ -89,6 +90,7 @@ const useProductTabsOverlap = (
 
 export const ActionBar = ({ template, sidenav, className }: ActionBarProps) => {
   const { fakeColumns, searchContainerClassname, containerClassname } = getContainerStyling(template);
+  const { t } = getTranslator();
   const { hideMobile, setHideMobile, productTabsEls } = useSidenavContext();
   const { isTabletOrMobile } = useScreenSize();
   const barRef = useRef<HTMLDivElement>(null);
@@ -114,7 +116,7 @@ export const ActionBar = ({ template, sidenav, className }: ActionBarProps) => {
           >
             {hideMobile ? <ChevronDown role="presentation" /> : <ChevronUp role="presentation" />}
             <Text elementType="span" textStyle={TextStyle.overline} className={actionBarStyling['docs-menu-label']}>
-              Docs Menu
+              {t('actions.docs_menu')}
             </Text>
           </Button>
         )}

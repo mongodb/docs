@@ -11,6 +11,7 @@ import { CloseButton, type CloseButtonProps } from '@/mdx-components/FeedbackWid
 import { SkillsBadgeIcon } from '@/mdx-components/svg/SkillsBadgeIcon';
 import { useCookiesContext } from '@/context/cookies-context';
 import { usePageContext } from '@/context/page-context';
+import { getTranslator } from '@/internationalization/get-translator';
 import styles from './dismissible-skills-card.module.scss';
 
 export const DISMISSIBLE_SKILLS_CARD_CLASSNAME = 'dismissible-skills-card';
@@ -34,6 +35,7 @@ const reportDismissibleSkillsCard = async (skill: string, element?: HTMLElement 
 };
 
 const DismissibleSkillsCard = ({ skill, url }: DismissibleSkillsCardProps) => {
+  const { t } = getTranslator();
   const { getCookie, setCookie } = useCookiesContext();
   const { slug } = usePageContext();
 
@@ -73,13 +75,13 @@ const DismissibleSkillsCard = ({ skill, url }: DismissibleSkillsCardProps) => {
         <div className={styles.titleRow}>
           <SkillsBadgeIcon />
           <Text elementType="span" textStyle={TextStyle.heading4}>
-            Earn a Skill Badge
+            {t('skills.earn_a_skill_badge')}
           </Text>
         </div>
         <CloseButton onPress={onClose} />
-        <Text elementType="p">Master &quot;{skill}&quot; for free!</Text>
+        <Text elementType="p">{t('skills.master_skill_for_free', { skill })}</Text>
         <Link href={url} linkStyle={LinkStyle.Internal} onClick={onLinkClick}>
-          Learn more
+          {t('skills.learn_more')}
         </Link>
       </ViaCard>
       <hr className={styles.hr} />

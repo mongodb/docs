@@ -9,17 +9,19 @@ import Sun from '@via-ds/icons/Sun';
 import type { DarkModePref } from '@/context/dark-mode-context';
 import { DarkModeContext } from '@/context/dark-mode-context';
 import useMedia from '@/hooks/use-media';
+import { getTranslator } from '@/internationalization/get-translator';
 import { theme } from '@/styles/theme';
 import { reportAnalytics } from '@/utils/report-analytics';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
 
 const DarkModeToggle = () => {
+  const { t } = getTranslator();
   const { setDarkModePref, isDarkMode } = useContext(DarkModeContext);
   const systemDark = useMedia(theme.colorPreference.dark);
   const overridingSystem = isDarkMode !== systemDark;
-  const label = overridingSystem
-    ? `Follow system theme (${systemDark ? 'dark' : 'light'})`
-    : `Switch to ${isDarkMode ? 'light' : 'dark'} theme`;
+  const followSystemKey = systemDark ? 'actions.follow_system_theme_dark' : 'actions.follow_system_theme_light';
+  const switchThemeKey = isDarkMode ? 'actions.switch_to_light_theme' : 'actions.switch_to_dark_theme';
+  const label = t(overridingSystem ? followSystemKey : switchThemeKey);
 
   const toggle = () => {
     let next: DarkModePref = 'system';

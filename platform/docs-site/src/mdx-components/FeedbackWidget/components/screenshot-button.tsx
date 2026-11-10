@@ -8,7 +8,7 @@ import { useFeedbackContext } from '../context';
 import { DarkModeContext } from '@/context/dark-mode-context';
 import { isBrowser } from '@/utils/is-browser';
 import useNoScroll from '@/hooks/use-no-scroll';
-import { SCREENSHOT_BUTTON_TEXT, SCREENSHOT_BUTTON_TEXT_LOW, SCREENSHOT_OVERLAY_ALT_TEXT } from '../constants';
+import { getTranslator } from '@/internationalization/get-translator';
 import screenshotIconDark from './screenshoticon-dark.svg';
 import screenshotIconLight from './screenshoticon-light.svg';
 import screenshotCTAImage from './screenshotCTA.svg';
@@ -39,6 +39,7 @@ const geometry = (position: string, top: number, left: number, width: number, he
 });
 
 const ScreenshotButton = ({ ...props }) => {
+  const { t } = getTranslator();
   const {
     setScreenshotTaken,
     selectedRating,
@@ -49,6 +50,8 @@ const ScreenshotButton = ({ ...props }) => {
     formRef,
     savedCardPosition,
   } = useFeedbackContext();
+  const buttonLabelKey =
+    selectedRating && selectedRating < 4 ? 'feedback.screenshot_button_low_rating' : 'feedback.screenshot_button';
   const [currElemState, setCurrElemState] = useState<Element | null>(null);
 
   // border around highlighted element
@@ -232,7 +235,7 @@ const ScreenshotButton = ({ ...props }) => {
             <img
               className={clsx(fwInstructionsId, styles.instructionsPanel)}
               src={screenshotCTAImage.src}
-              alt={SCREENSHOT_OVERLAY_ALT_TEXT}
+              alt={t('feedback.screenshot_alt')}
               onClick={handleInstructionClick}
             />
             <div className={clsx(fwInstructionsId, styles.instructionsBorder)} />
@@ -345,7 +348,7 @@ const ScreenshotButton = ({ ...props }) => {
       <Button className={styles.screenshotSelect} onPress={takeNewScreenshot} {...props}>
         {/* eslint-disable-next-line @next/next/no-img-element -- images are pre-optimized via build pipeline */}
         <img slot="icon" src={glyphImage} alt="" width={16} height={16} />
-        {selectedRating && selectedRating < 4 ? SCREENSHOT_BUTTON_TEXT_LOW : SCREENSHOT_BUTTON_TEXT}
+        {t(buttonLabelKey)}
       </Button>
     </>
   );

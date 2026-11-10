@@ -3,6 +3,7 @@
 import { Select, SelectItem } from '@via-ds/components/select';
 import { Size } from '@via-ds/components/types';
 import { type RefObject, useEffect, useState } from 'react';
+import { getTranslator } from '@/internationalization/get-translator';
 import { type OfflineVersion, type OfflineObject } from './download-context';
 
 type VersionSelectProps = {
@@ -14,6 +15,7 @@ type VersionSelectProps = {
 };
 
 export const VersionSelect = ({ offlineRepo, versions, versionIndex, onSelect, contentRef }: VersionSelectProps) => {
+  const { t } = getTranslator();
   const [selected, setSelected] = useState(() => versionIndex);
   const [open, setOpen] = useState(false);
 
@@ -41,7 +43,7 @@ export const VersionSelect = ({ offlineRepo, versions, versionIndex, onSelect, c
   return (
     <Select
       size={Size.Small}
-      aria-label={`Select Offline Version for ${offlineRepo.displayName}`}
+      aria-label={t('offline.select_version_for', { name: offlineRepo.displayName })}
       selectedKey={selected}
       onSelectionChange={(key) => setSelected(key as number)}
       isDisabled={versions.length < 2}

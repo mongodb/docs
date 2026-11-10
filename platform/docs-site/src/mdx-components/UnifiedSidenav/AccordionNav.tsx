@@ -6,6 +6,7 @@ import { css as LeafyCSS, cx } from '@leafygreen-ui/emotion';
 import { useViewportSize } from '@leafygreen-ui/hooks';
 import { theme } from '@/styles/theme';
 import useScreenSize from '@/hooks/use-screen-size';
+import { getTranslator } from '@/internationalization/get-translator';
 import { DownloadButton } from '@/mdx-components/offline-download-modal/download-button';
 import { NavTopContainer, downloadButtonStlying } from '../UnifiedSidenav';
 import { UnifiedTocNavItem } from './UnifiedTocNavItems';
@@ -101,13 +102,14 @@ export const AccordionNavPanel = ({
   hideMobile,
   isAccordionOnly = false,
 }: AccordionNavPanelProps) => {
+  const { t } = getTranslator();
   const { isTabletOrMobile } = useScreenSize();
   const viewportSize = useViewportSize();
   return (
     <SideNav
       widthOverride={isTabletOrMobile && viewportSize ? viewportSize.width : 290}
       className={cx(sideNavStyle({ hideMobile, isAccordionOnly }))}
-      aria-label="Accordion Side navigation Panel"
+      aria-label={t('nav.accordion_side_navigation')}
     >
       <div className={cx(NavTopContainer(isTabletOrMobile))}>
         <ProductTabs slug={slug}/>
@@ -121,7 +123,7 @@ export const AccordionNavPanel = ({
                 onClick={() => setShowDriverBackBtn(false)}
                 href={currentL1?.newUrl}
               >
-                Back to {currentL1?.label}
+                {t('nav.back_to', { label: currentL1?.label ?? '' })}
               </BackLink>
               {currentL2s?.items?.map((navItem) => (
                 <UnifiedTocNavItem

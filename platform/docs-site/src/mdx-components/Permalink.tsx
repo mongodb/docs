@@ -10,6 +10,7 @@ import { isBrowser } from '@/utils/is-browser';
 import useCopyClipboard from '@/utils/hooks/use-copy-clipboard';
 import useHashAnchor from '@/utils/hooks/use-hash-anchor';
 import { usePageContext } from '@/context/page-context';
+import { getTranslator } from '@/internationalization/get-translator';
 import { useMergedRef } from '@/mdx-utils/use-merged-ref';
 import styles from './permalink.module.scss';
 
@@ -20,6 +21,7 @@ export type PermalinkProps = {
 };
 
 export const Permalink = forwardRef<HTMLDivElement, PermalinkProps>(({ id, description, label }, ref) => {
+  const { t } = getTranslator();
   const { options } = usePageContext();
   const url = isBrowser ? window.location.href.split('#')[0] + '#' + id : '';
 
@@ -47,8 +49,8 @@ export const Permalink = forwardRef<HTMLDivElement, PermalinkProps>(({ id, descr
           <a
             className={clsx('headerlink', styles.heading, copied && styles.copied)}
             href={`#${id}`}
-            title={'Permalink to this ' + description}
-            aria-label={label && `Permalink to ${label}`}
+            title={t('permalink.title', { description })}
+            aria-label={label && t('permalink.to_label', { label })}
             onClick={handleClick}
           >
             <LinkIcon className={styles.icon} size={12} role="presentation" aria-hidden />
@@ -61,12 +63,12 @@ export const Permalink = forwardRef<HTMLDivElement, PermalinkProps>(({ id, descr
         </TooltipTrigger>
         <Tooltip className={styles.tooltip}>
           <Text textStyle={TextStyle.body} size={Size.Large} elementType="span" className={styles.tooltipText}>
-            copied
+            {t('permalink.copied')}
           </Text>
         </Tooltip>
       </TooltipRoot>
       <span role="status" className={styles.visuallyHidden}>
-        {copied && 'Link copied'}
+        {copied && t('permalink.link_copied')}
       </span>
     </>
   );

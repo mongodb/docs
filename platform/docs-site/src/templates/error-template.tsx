@@ -7,6 +7,7 @@ import { Text, TextStyle } from '@via-ds/components/typography';
 import { Link } from '@/mdx-components/Link';
 import layoutStyles from '@/app/layout.module.scss';
 import { ChatbotProvider, useChatbotModal } from '@/context/chatbot-context';
+import { getTranslator } from '@/internationalization/get-translator';
 import styles from './error-template.module.scss';
 
 import { DOTCOM_BASE_URL, DOTCOM_BASE_PREFIX } from '@/constants';
@@ -49,6 +50,7 @@ const ErrorContent = ({
   imageStyle,
   showContactSupport = true,
 }: ErrorPageProps) => {
+  const { t } = getTranslator();
   const { setChatbotClicked } = useChatbotModal();
 
   return (
@@ -63,15 +65,15 @@ const ErrorContent = ({
         {children}
         <div className={styles.linkContainer}>
           <LinkButton href={BASE_URL} variant={ButtonVariant.Primary} className={styles.homeButton}>
-            Go to Docs Home
+            {t('errors.go_to_docs_home')}
           </LinkButton>
           <Button variant={ButtonVariant.AI} onClick={() => setChatbotClicked(true)}>
             <GradientSparkleIcon />
-            Chat with AI Assistant
+            {t('errors.chat_with_ai_assistant')}
           </Button>
           {showContactSupport && (
             <Link to="https://support.mongodb.com/welcome" hideExternalIcon={true} className={styles.supportLink}>
-              Contact Support →
+              {t('errors.contact_support')}
             </Link>
           )}
         </div>

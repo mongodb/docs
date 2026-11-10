@@ -6,12 +6,11 @@ import { Content, Header } from '@via-ds/components/structure';
 import { Text } from '@via-ds/components/typography';
 import { clsx } from 'clsx';
 import { useState, useCallback, type CSSProperties, type ReactNode } from 'react';
+import { getTranslator } from '@/internationalization/get-translator';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
 import { reportAnalytics } from '@/utils/report-analytics';
 import type { ImageAlign } from './types';
 import styles from './lightbox.module.scss';
-
-const CAPTION_TEXT = 'click to enlarge';
 
 interface LightboxProps {
   figure: ReactNode;
@@ -23,6 +22,7 @@ interface LightboxProps {
 }
 
 export const Lightbox = ({ figure, dialogFigure, alt, caption, figwidth = 'auto', align = 'left' }: LightboxProps) => {
+  const { t } = getTranslator();
   const [open, setOpen] = useState(false);
   const openModal = useCallback(() => {
     reportAnalytics('Click', {
@@ -44,7 +44,7 @@ export const Lightbox = ({ figure, dialogFigure, alt, caption, figwidth = 'auto'
         <div onClick={openModal} role="button" tabIndex={-1}>
           {figure}
           <Caption caption={caption} align={align} />
-          <div className={styles.hint}>{CAPTION_TEXT}</div>
+          <div className={styles.hint}>{t('media.click_to_enlarge')}</div>
         </div>
       </div>
       <DialogRoot isOpen={open} onOpenChange={setOpen}>

@@ -5,6 +5,7 @@ import { css as LeafyCSS, cx } from '@leafygreen-ui/emotion';
 import { SideNav } from '@leafygreen-ui/side-nav';
 import { theme } from '@/styles/theme';
 import useScreenSize from '@/hooks/use-screen-size';
+import { getTranslator } from '@/internationalization/get-translator';
 import { tocItemKey } from '@/utils/create-toc-key';
 import { DownloadButton } from '@/mdx-components/offline-download-modal/download-button';
 import { NavTopContainer, downloadButtonStlying } from '../UnifiedSidenav';
@@ -101,13 +102,14 @@ export const DoublePannedNav = ({
   currentL1,
   isAccordionOnly = false,
 }: DoublePannedNavProps) => {
+  const { t } = getTranslator();
   const { isTabletOrMobile } = useScreenSize();
 
   return (
     <SideNav
       widthOverride={currentL2s?.items && currentL2s.items.length > 0 ? 426 : 161}
       className={cx(sideNavStyle({ isAccordionOnly }))}
-      aria-label="Double Panned Side navigation Panel"
+      aria-label={t('nav.double_panned_side_navigation')}
     >
       <div className={cx(NavTopContainer(isTabletOrMobile))}>
         <ProductTabs slug={slug}/>
@@ -135,7 +137,7 @@ export const DoublePannedNav = ({
                 onClick={() => setShowDriverBackBtn(false)}
                 href={currentL1?.newUrl}
               >
-                Back to {currentL1?.label}
+                {t('nav.back_to', { label: currentL1?.label ?? '' })}
               </BackLink>
             )}
             {currentL2s?.items?.map((navItems) => (

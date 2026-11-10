@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import {
   type AvailableLocaleType,
   COOKIE_KEY_PREF_LOCALE,
+  getBuildLocale,
   getCurrLocale,
   getAvailableLanguages,
   getHtmlLangFormat,
@@ -34,10 +35,17 @@ export function LocaleProvider({
   children: ReactNode;
   initialLocale?: AvailableLocaleType;
 }) {
-  const [locale, setLocale] = useState<AvailableLocaleType>(initialLocale);
+  const buildLocale = getBuildLocale();
+  const isLocalizedBuild = buildLocale !== 'en-us';
+  const [locale, setLocale] = useState<AvailableLocaleType>(isLocalizedBuild ? buildLocale : initialLocale);
   const enabledLocales = getAvailableLanguages().map(({ localeCode }) => localeCode);
 
   useEffect(() => {
+    if (isLocalizedBuild) {
+      document.documentElement.lang = getHtmlLangFormat(buildLocale);
+      return;
+    }
+
     const urlLocale = getCurrLocale();
 
     const cookieMatch = document.cookie.match(new RegExp(`(?:^|; )${COOKIE_KEY_PREF_LOCALE}=([^;]+)`));
@@ -47,7 +55,7 @@ export function LocaleProvider({
     const resolvedLocale = urlLocale !== 'en-us' && !isExplicitEnglish ? urlLocale : initialLocale;
     setLocale(resolvedLocale);
     document.documentElement.lang = getHtmlLangFormat(resolvedLocale);
-  }, [initialLocale]);
+  }, [initialLocale, isLocalizedBuild, buildLocale]);
 
   return (
     <LocaleContext.Provider value={{ locale, enabledLocales, onSelectLocale: selectLocale }}>

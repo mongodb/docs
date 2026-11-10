@@ -10,16 +10,18 @@ import { isOfflineBuild } from '@/utils/isOfflineBuild';
 import useScreenSize from '@/hooks/use-screen-size';
 import { navigateToDocsPath } from '@/utils/navigate-to-docs-path';
 import { useSidenavContext } from '@/context/sidenav-context';
+import { getTranslator } from '@/internationalization/get-translator';
 import { useCallback, useId } from 'react';
 import styles from './product-tabs.module.scss';
 
 const NAV_TABS = [
-  { label: 'Database', path: '/docs' },
-  { label: 'Atlas Agent Engine', path: '/docs/agentengine' },
-  { label: 'Voyage AI Models', path: '/docs/voyageai' },
+  { labelKey: 'products.database', path: '/docs' },
+  { labelKey: 'products.atlas_agent_engine', path: '/docs/agentengine' },
+  { labelKey: 'products.voyage_ai_models', path: '/docs/voyageai' },
 ] as const;
 
 export const ProductTabs = ({ slug }: { slug: string }) => {
+  const { t } = getTranslator();
   const router = useRouter();
   const { isTabletOrMobile } = useScreenSize();
   const { registerProductTabs } = useSidenavContext();
@@ -36,7 +38,7 @@ export const ProductTabs = ({ slug }: { slug: string }) => {
   if (isOfflineBuild)
     return (
       <Text size={Size.Large} className={clsx(styles.mobileTitle, styles.noWrap)}>
-        Documentation
+        {t('actions.documentation')}
       </Text>
     );
 
@@ -44,16 +46,16 @@ export const ProductTabs = ({ slug }: { slug: string }) => {
     return (
       <div className={styles.mobileList}>
         <Text size={Size.Large} className={clsx(styles.mobileTitle, styles.noWrap)}>
-          Documentation
+          {t('actions.documentation')}
         </Text>
         <hr className={styles.mobileDivider} />
-        {NAV_TABS.map(({ label, path }, index) => {
+        {NAV_TABS.map(({ labelKey, path }, index) => {
           const isActive = index === activeIndex;
           return (
-            <div key={label}>
+            <div key={path}>
               <div className={styles.mobileItem} onClick={() => navigateToDocsPath(router, path)}>
                 {isActive ? <Checkmark /> : <div style={{ width: 16 }} />}
-                <Text>{label}</Text>
+                <Text>{t(labelKey)}</Text>
               </div>
               {index < NAV_TABS.length - 1 && <hr className={styles.mobileDivider} />}
             </div>
@@ -66,7 +68,7 @@ export const ProductTabs = ({ slug }: { slug: string }) => {
   return (
     <div className={styles.container}>
       <Text size={Size.Large} className={clsx(styles.label, styles.noWrap)}>
-        Documentation
+        {t('actions.documentation')}
       </Text>
       <div ref={tabsRef} className={styles.tabsWrapper}>
         {/* Tabs stand in for navigation links until design has a horizontal nav pattern */}
@@ -75,9 +77,9 @@ export const ProductTabs = ({ slug }: { slug: string }) => {
           onSelectionChange={(key) => navigateToDocsPath(router, String(key))}
           keyboardActivation="manual"
         >
-          <TabList aria-label="Product navigation">
-            {NAV_TABS.map(({ label, path }) => (
-              <Tab key={path}>{label}</Tab>
+          <TabList aria-label={t('actions.product_navigation')}>
+            {NAV_TABS.map(({ labelKey, path }) => (
+              <Tab key={path}>{t(labelKey)}</Tab>
             ))}
           </TabList>
           <TabPanels className={styles.panels}>

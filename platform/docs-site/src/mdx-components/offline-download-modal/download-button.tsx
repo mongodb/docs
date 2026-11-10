@@ -4,12 +4,14 @@ import { Button } from '@via-ds/components/button';
 import { Tooltip, TooltipRoot, TooltipTrigger } from '@via-ds/components/tooltip';
 import { Align, Side, Size } from '@via-ds/components/types';
 import DownloadIcon from '@via-ds/icons/Download';
+import { getTranslator } from '@/internationalization/get-translator';
 import { reportAnalytics } from '@/utils/report-analytics';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
 import { useOfflineDownloadContext } from './download-context';
 import styles from './download-button.module.scss';
 
 export const DownloadButton = () => {
+  const { t } = getTranslator();
   const { setModalOpen } = useOfflineDownloadContext();
 
   const openDownloadModal = () => {
@@ -28,7 +30,7 @@ export const DownloadButton = () => {
         <Button
           size={Size.Small}
           className={styles.downloadButton}
-          aria-label="Download Offline Docs"
+          aria-label={t('offline.download_docs_aria')}
           onPress={openDownloadModal}
           onClick={(e) => {
             // required to prevent being used within links
@@ -38,7 +40,7 @@ export const DownloadButton = () => {
           <DownloadIcon slot="icon" />
         </Button>
       </TooltipTrigger>
-      <Tooltip>Download the Docs</Tooltip>
+      <Tooltip>{t('offline.download_the_docs')}</Tooltip>
     </TooltipRoot>
   );
 };

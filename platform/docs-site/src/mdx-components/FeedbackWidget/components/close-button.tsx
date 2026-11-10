@@ -1,7 +1,7 @@
 import { Button, ButtonVariant, type ButtonProps } from '@via-ds/components/button';
 import { Size } from '@via-ds/components/types';
 import XIcon from '@via-ds/icons/X';
-import { CLOSE_BUTTON_ALT_TEXT } from '../constants';
+import { getTranslator } from '@/internationalization/get-translator';
 import styles from './close-button.module.scss';
 
 export type CloseButtonProps = {
@@ -9,9 +9,11 @@ export type CloseButtonProps = {
 };
 
 const CloseButton = ({ onPress }: CloseButtonProps) => {
+  const { t } = getTranslator();
+
   return (
     <Button
-      aria-label={CLOSE_BUTTON_ALT_TEXT}
+      aria-label={t('feedback.close_form')}
       className={styles.closeButton}
       onPress={onPress}
       size={Size.Small}

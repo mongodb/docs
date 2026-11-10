@@ -9,11 +9,14 @@ import { darkModeScript } from '@/app/lib/dark-mode-script';
 import { DarkModeContextProvider } from '@/context/dark-mode-context';
 import { LeafyGreenProviderWrapper } from '@/app/emotion';
 import { ViaProviderWrapper } from '@/app/via-provider';
+import { getTranslator } from '@/internationalization/get-translator';
 import { getBasePath } from '@/utils/base-path';
 import { reportError } from '@/utils/trackjs';
 import styles from './error.module.scss';
 
 export default function Error({ error }: { error: Error & { digest?: string }; reset: () => void }) {
+  const { t } = getTranslator();
+
   useEffect(() => {
     reportError(error);
   }, [error]);
@@ -27,12 +30,12 @@ export default function Error({ error }: { error: Error & { digest?: string }; r
           <ViaProviderWrapper>
             <ErrorPage
               imageSrc={`${getBasePath()}/500.png`}
-              imageAlt="Internal server error"
+              imageAlt={t('errors.internal_server_error_alt')}
               imageStyle={styles.centeredImage}
-              title="Something went wrong on our end."
+              title={t('errors.something_went_wrong')}
             >
               <Text textStyle={TextStyle.body} size={Size.Large}>
-                Try reloading the page.
+                {t('errors.try_reloading')}
               </Text>
             </ErrorPage>
           </ViaProviderWrapper>

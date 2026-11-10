@@ -12,6 +12,7 @@ import OpenNewTabIcon from '@via-ds/icons/OpenNewTab';
 import { TabContext } from '@/context/tabs-context';
 import { reportAnalytics } from '@/utils/report-analytics';
 import { usePageContext } from '@/context/page-context';
+import { getTranslator } from '@/internationalization/get-translator';
 import { DRIVER_ICON_MAP } from '@/mdx-components/Icons/DriverIconMap';
 import { Select } from '@/mdx-components/Select';
 import { getLanguage } from '@/utils/get-language';
@@ -45,6 +46,7 @@ export const Code = ({
   lineno_start,
   darkMode,
 }: CodeProps) => {
+  const { t } = getTranslator();
   const { setActiveTab } = useContext(TabContext);
   const { languageOptions, codeBlockLanguage } = useContext(CodeContext);
   const { slug } = usePageContext();
@@ -76,7 +78,7 @@ export const Code = ({
   const copyButton = (copyable || isOfflineBuild) && (
     // CodePanel rejects slots, so only the floating button persists
     <CopyButton slot={hasPanel ? undefined : 'persist'} copyText={code} onCopy={reportCodeCopied}>
-      <Button aria-label="Copy">
+      <Button aria-label={t('code.copy')}>
         <CopyIcon role="presentation" />
       </Button>
     </CopyButton>
@@ -108,7 +110,7 @@ export const Code = ({
             {showLanguageSelect && (
               <Select
                 className={styles.languageSelect}
-                aria-label="Language Picker"
+                aria-label={t('code.language_picker')}
                 choices={languageOptions.map(({ id, displayName }) => ({
                   text: displayName,
                   value: id,
@@ -123,7 +125,7 @@ export const Code = ({
                 <TooltipTrigger>
                   {/* CodePanel styles Button but not LinkButton */}
                   <LinkButton
-                    aria-label="View full source in new tab"
+                    aria-label={t('code.view_full_source_in_new_tab')}
                     href={source}
                     size={Size.Small}
                     variant={ButtonVariant.Tertiary}
@@ -131,7 +133,7 @@ export const Code = ({
                     <OpenNewTabIcon role="presentation" />
                   </LinkButton>
                 </TooltipTrigger>
-                <Tooltip>View full source</Tooltip>
+                <Tooltip>{t('code.view_full_source')}</Tooltip>
               </TooltipRoot>
             )}
             {copyButton}

@@ -173,6 +173,16 @@ export const getInitialLocaleFromCookie = (cookieValue?: string): AvailableLocal
   return isValid ? (cookieValue as AvailableLocaleType) : 'en-us';
 };
 
+/**
+ * Locale this site was built for, set per site through NEXT_PUBLIC_DOCS_LOCALE.
+ * Unset or unrecognized values give 'en-us', so existing builds stay English.
+ */
+export const getBuildLocale = (): AvailableLocaleType => {
+  // Must read process.env.NEXT_PUBLIC_DOCS_LOCALE directly so Next inlines it at build time.
+  const configured = process.env.NEXT_PUBLIC_DOCS_LOCALE;
+  return configured && validateLocaleCode(configured) ? (configured as AvailableLocaleType) : 'en-us';
+};
+
 export const getHtmlLangFormat = (localeCode: string) => {
   const parts = localeCode.split('-');
   if (parts.length < 2) {

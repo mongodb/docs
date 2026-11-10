@@ -17,6 +17,7 @@ import { assertLeadingAndTrailingSlash } from '@/utils/assert-trailing-and-leadi
 import { removeLeadingSlash } from '@/utils/remove-leading-slash';
 import { useVersionContext } from '@/context/version-context';
 import { useChatbotModal } from '@/context/chatbot-context';
+import { getTranslator } from '@/internationalization/get-translator';
 import { reportAnalytics } from '@/utils/report-analytics';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
 import { getBasePath } from '@/utils/base-path';
@@ -30,6 +31,7 @@ export type CopyPageMarkdownButtonProps = {
 type CopyPageMenuAction = 'copy-page' | 'ask-question' | 'view-markdown';
 
 const CopyPageMarkdownButton = ({ className, slug }: CopyPageMarkdownButtonProps) => {
+  const { t } = getTranslator();
   const [markdownText, getMarkdownText] = useState<string | null>(null);
   const href = usePathname();
   const { siteBasePrefixWithVersion } = useVersionContext();
@@ -94,10 +96,16 @@ const CopyPageMarkdownButton = ({ className, slug }: CopyPageMarkdownButtonProps
 
       await navigator.clipboard.writeText(markdownText);
 
-      toast.success('Copied', { description: 'Page copied as markdown successfully.', duration: 4000 });
+      toast.success(t('actions.toast_copied_title'), {
+        description: t('actions.toast_copied_description'),
+        duration: 4000,
+      });
     } catch (error) {
       console.error(error);
-      toast.warning('Error', { description: 'Failed to copy markdown.', duration: 4000 });
+      toast.warning(t('actions.toast_error_title'), {
+        description: t('actions.toast_copy_failed_description'),
+        duration: 4000,
+      });
     }
   };
 
@@ -125,32 +133,32 @@ const CopyPageMarkdownButton = ({ className, slug }: CopyPageMarkdownButtonProps
     <ButtonGroup
       className={clsx(styles.splitButton, className)}
       variant={ButtonVariant.Default}
-      aria-label="Copy page options"
+      aria-label={t('actions.copy_page_options')}
     >
       <Button size={Size.Small} onPress={() => copyMarkdown('Copy Page')}>
         <Copy slot="icon" />
-        Copy page
+        {t('actions.copy_page')}
       </Button>
       <MenuRoot>
-        <Button size={Size.Small} aria-label="More copy page options">
+        <Button size={Size.Small} aria-label={t('actions.more_copy_page_options')}>
           <CaretDown slot="icon" aria-hidden="true" />
         </Button>
         <MenuPopover>
-          <Menu aria-label="Copy page options" onAction={(key) => onMenuAction(key as CopyPageMenuAction)}>
-            <MenuItem id="copy-page" textValue="Copy Page">
+          <Menu aria-label={t('actions.copy_page_options')} onAction={(key) => onMenuAction(key as CopyPageMenuAction)}>
+            <MenuItem id="copy-page" textValue={t('actions.copy_page_menu_item')}>
               <Copy slot="icon" />
-              <Text slot="label">Copy Page</Text>
-              <Text slot="description">Copy this page as Markdown for LLMs</Text>
+              <Text slot="label">{t('actions.copy_page_menu_item')}</Text>
+              <Text slot="description">{t('actions.copy_page_as_markdown_description')}</Text>
             </MenuItem>
-            <MenuItem id="ask-question" textValue="Ask a Question">
+            <MenuItem id="ask-question" textValue={t('actions.ask_a_question')}>
               <Sparkle slot="icon" />
-              <Text slot="label">Ask a Question</Text>
-              <Text slot="description">Ask MongoDB AI about this page</Text>
+              <Text slot="label">{t('actions.ask_a_question')}</Text>
+              <Text slot="description">{t('actions.ask_ai_about_page_description')}</Text>
             </MenuItem>
-            <MenuItem id="view-markdown" textValue="View in Markdown">
+            <MenuItem id="view-markdown" textValue={t('actions.view_in_markdown')}>
               <OpenNewTab slot="icon" />
-              <Text slot="label">View in Markdown</Text>
-              <Text slot="description">View this page as Markdown</Text>
+              <Text slot="label">{t('actions.view_in_markdown')}</Text>
+              <Text slot="description">{t('actions.view_page_as_markdown_description')}</Text>
             </MenuItem>
           </Menu>
         </MenuPopover>

@@ -7,14 +7,12 @@ import { Button, ButtonVariant } from '@via-ds/components/button';
 import { SearchField } from '@via-ds/components/search-field';
 import MagnifyingGlass from '@via-ds/icons/MagnifyingGlass';
 import useScreenSize from '@/hooks/use-screen-size';
+import { getTranslator } from '@/internationalization/get-translator';
 import { isBrowser } from '@/utils/is-browser';
 import { getCompleteUrl } from '@/utils/url-utils';
 import { reportAnalytics } from '@/utils/report-analytics';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
 import styles from './action-bar.module.scss';
-
-export const PLACEHOLDER_TEXT = `Search MongoDB Docs`;
-const PLACEHOLDER_TEXT_MOBILE = 'Search';
 
 interface SearchInputProps {
   className?: string;
@@ -22,6 +20,8 @@ interface SearchInputProps {
 }
 
 export const SearchInput = ({ className }: SearchInputProps) => {
+  const { t } = getTranslator();
+  const placeholderText = t('search.placeholder');
   const searchParams = useSearchParams();
   const [searchValue, setSearchValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -84,10 +84,10 @@ export const SearchInput = ({ className }: SearchInputProps) => {
   return (
     <div className={clsx(styles['search-input'], mobileSearchActive && styles['mobile-search-active'], className)}>
       <SearchField
-        aria-label={PLACEHOLDER_TEXT}
+        aria-label={placeholderText}
         className={clsx('sl-search-input', styles['search-field'])}
         value={searchValue}
-        placeholder={isMobile ? PLACEHOLDER_TEXT_MOBILE : PLACEHOLDER_TEXT}
+        placeholder={isMobile ? t('search.placeholder_short') : placeholderText}
         onChange={setSearchValue}
         onFocus={() => {
           reportAnalytics('Click', {
@@ -108,13 +108,13 @@ export const SearchInput = ({ className }: SearchInputProps) => {
             setMobileSearchActive(false);
           }}
         >
-          Cancel
+          {t('actions.cancel')}
         </Button>
       )}
       {!mobileSearchActive && (
         <Button
           variant={ButtonVariant.Tertiary}
-          aria-label={PLACEHOLDER_TEXT}
+          aria-label={placeholderText}
           className={styles['search-toggle']}
           onPress={() => {
             setMobileSearchActive((state) => !state);

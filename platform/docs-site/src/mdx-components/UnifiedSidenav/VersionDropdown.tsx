@@ -7,6 +7,7 @@ import { Text } from '@via-ds/components/typography';
 import type { Version, Group } from '@/types/data';
 import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
 import { useVersionContext } from '@/context/version-context';
+import { getTranslator } from '@/internationalization/get-translator';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
 import styles from './version-dropdown.module.scss';
 
@@ -29,11 +30,12 @@ const createVersionLabel = (versionName = '') => {
   }
 
   const label = versionName;
+  const { t } = getTranslator();
   // If the label is numeric (e.g. "2.0" or "v2.0"), we display "Version 2.0"
   if (!isNaN(Number(label))) {
-    return `Version ${label}`;
+    return t('nav.version_label', { version: label });
   } else if (label.startsWith('v') && !isNaN(Number(label.slice(1)))) {
-    return `Version ${label.slice(1)}`;
+    return t('nav.version_label', { version: label.slice(1) });
   }
 
   return label;
@@ -74,6 +76,7 @@ type VersionDropdownProps = {
 };
 
 const VersionDropdown = ({ contentSite = null }: VersionDropdownProps) => {
+  const { t } = getTranslator();
   const snootyMetadata = useSnootyMetadata();
   const [open, setOpen] = useState(false);
   const { availableVersions, availableGroups, docsets, onVersionSelect, activeVersions } = useVersionContext();
@@ -133,12 +136,12 @@ const VersionDropdown = ({ contentSite = null }: VersionDropdownProps) => {
   return (
     <Select
       className={styles.versionDropdown}
-      aria-label="View a different version of documentation."
+      aria-label={t('nav.view_different_version')}
       selectedKey={activeVersionValue || null}
       onSelectionChange={onSelectChange}
       isOpen={open}
       onOpenChange={setOpen}
-      placeholder="Select a version"
+      placeholder={t('nav.select_a_version')}
       isDisabled={eol}
     >
       {activeUngroupedVersions.map((v) => createOption(v))}
@@ -159,7 +162,7 @@ const VersionDropdown = ({ contentSite = null }: VersionDropdownProps) => {
           </SelectSection>
         );
       })}
-      {showEol && <SelectItem id="legacy">Legacy Docs</SelectItem>}
+      {showEol && <SelectItem id="legacy">{t('nav.legacy_docs')}</SelectItem>}
     </Select>
   );
 };

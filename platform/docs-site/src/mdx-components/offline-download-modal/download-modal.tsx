@@ -21,6 +21,7 @@ import { Content, Footer, Header } from '@via-ds/components/structure';
 import { Dialog, DialogRoot } from '@via-ds/components/dialog';
 import { Link, Text, TextStyle } from '@via-ds/components/typography';
 import { toast } from '@via-ds/components/toast';
+import { getTranslator } from '@/internationalization/get-translator';
 import fetchAndSaveFile from '@/utils/download-file';
 import { VersionSelect } from './version-selector';
 import { useOfflineDownloadContext, type OfflineVersion, type OfflineObject } from './download-context';
@@ -32,6 +33,7 @@ type ModalProps = {
 };
 
 export const DownloadModal = ({ open, setOpen }: ModalProps) => {
+  const { t, t_rich } = getTranslator();
   const [searchText, setSearchText] = useState('');
   const [resultsLoading, setResultsLoading] = useState(false);
   const [rowSelection, setRowSelection] = useState<{ [key: string]: boolean }>({});
@@ -48,7 +50,7 @@ export const DownloadModal = ({ open, setOpen }: ModalProps) => {
   const columns = useMemo(() => {
     return [
       {
-        header: 'Products',
+        header: t('offline.column_products'),
         accessorKey: 'displayName',
         enableGlobalFilter: true,
         cell: (cellContext) => {
@@ -66,7 +68,7 @@ export const DownloadModal = ({ open, setOpen }: ModalProps) => {
         },
       },
       {
-        header: 'Version',
+        header: t('offline.column_version'),
         accessorKey: 'versions',
         cell: (cellContext) => {
           const versions = (cellContext.getValue() ?? []) as OfflineVersion[];
@@ -93,7 +95,7 @@ export const DownloadModal = ({ open, setOpen }: ModalProps) => {
         enableGlobalFilter: true,
       },
     ] as Array<ViaColumnDef<OfflineObject>>;
-  }, []);
+  }, [t]);
 
   const filter = useCallback((row: ViaTableRow<OfflineObject>, _columnId: string, filterValue: string) => {
     const searchText = filterValue.toLowerCase();
@@ -142,9 +144,9 @@ export const DownloadModal = ({ open, setOpen }: ModalProps) => {
         urlsToRequest.map(async (urlData) => {
           try {
             await fetchAndSaveFile(urlData.url, `${urlData.repo}-${urlData.version}.tar.gz`);
-            toast.success('Download Initiated', { description: urlData.repo, isDismissible: true });
+            toast.success(t('offline.toast_download_initiated'), { description: urlData.repo, isDismissible: true });
           } catch (e) {
-            toast.warning('Download Failed', { description: urlData.repo, isDismissible: true });
+            toast.warning(t('offline.toast_download_failed'), { description: urlData.repo, isDismissible: true });
             throw e;
           }
         }),
@@ -161,13 +163,20 @@ export const DownloadModal = ({ open, setOpen }: ModalProps) => {
     <DialogRoot isOpen={open} onOpenChange={setOpen}>
       <Dialog className={styles.dialog} size={Size.Large}>
         <Header>
-          <Text slot="title">Download Documentation</Text>
+          <Text slot="title">{t('offline.modal_title')}</Text>
           <Text slot="description">
-            Navigate the table to find the product and version you wish to download. Looking for another product? Visit
-            our&nbsp;
-            <Link linkStyle="external" isStandalone={false} href={'https://mongodb.com/docs/legacy/'} target="_blank">
-              legacy docs site
-            </Link>
+            {t_rich('offline.modal_description', {
+              link: (chunks) => (
+                <Link
+                  linkStyle="external"
+                  isStandalone={false}
+                  href={'https://mongodb.com/docs/legacy/'}
+                  target="_blank"
+                >
+                  {chunks}
+                </Link>
+              ),
+            })}
           </Text>
         </Header>
 
@@ -211,14 +220,14 @@ export const DownloadModal = ({ open, setOpen }: ModalProps) => {
         </Content>
 
         <Footer>
-          <Button onPress={() => setOpen(false)}>Cancel</Button>
+          <Button onPress={() => setOpen(false)}>{t('actions.cancel')}</Button>
           <Button
             variant="primary"
             isPending={resultsLoading}
             isDisabled={!rowSelection || !Object.keys(rowSelection)?.length}
             onPress={onDownload}
           >
-            Download
+            {t('offline.download')}
           </Button>
         </Footer>
       </Dialog>

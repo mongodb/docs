@@ -11,13 +11,7 @@ import { useViewport } from '@/hooks/use-viewport';
 import useScreenSize from '@/hooks/use-screen-size';
 import validateEmail from '@/utils/validate-email';
 import StarRating from '../components/star-rating';
-import {
-  COMMENT_PLACEHOLDER_TEXT,
-  COMMENT_PLACEHOLDER_TEXT_LOW,
-  EMAIL_ERROR_TEXT,
-  EMAIL_PLACEHOLDER_TEXT,
-  FEEDBACK_SUBMIT_BUTTON_TEXT,
-} from '../constants';
+import { getTranslator } from '@/internationalization/get-translator';
 import styles from './comment-view.module.scss';
 const ScreenshotButton = Loadable(() => import('../components/screenshot-button'));
 
@@ -31,6 +25,7 @@ const useValidation = (inputValue: string, validator: (input: string) => boolean
 };
 
 const CommentView = () => {
+  const { t } = getTranslator();
   const {
     submitAllFeedback,
     screenshotTaken,
@@ -42,6 +37,8 @@ const CommentView = () => {
     email,
     setEmail,
   } = useFeedbackContext();
+  const placeholderKey =
+    selectedRating < 4 ? 'feedback.comment_placeholder_low_rating' : 'feedback.comment_placeholder';
   const instanceId = useId();
   const commentInputId = `feedback-comment-${instanceId}`;
   const emailInputId = `feedback-email-${instanceId}`;
@@ -74,26 +71,26 @@ const CommentView = () => {
       <StarRating className={styles.starRating} handleRatingSelection={setSelectedRating} />
       <TextArea
         id={commentInputId}
-        aria-label="Comment Text Box"
+        aria-label={t('feedback.comment_text_box')}
         className={styles.commentInput}
-        placeholder={selectedRating < 4 ? COMMENT_PLACEHOLDER_TEXT_LOW : COMMENT_PLACEHOLDER_TEXT}
+        placeholder={t(placeholderKey)}
         value={comment}
         onChange={setComment}
       />
       <TextField
         type="email"
         id={emailInputId}
-        aria-label="Email Text Box"
+        aria-label={t('feedback.email_text_box')}
         className={styles.emailInput}
-        placeholder={EMAIL_PLACEHOLDER_TEXT}
+        placeholder={t('feedback.email_placeholder')}
         value={email}
         onChange={setEmail}
-        errorMessage={EMAIL_ERROR_TEXT}
+        errorMessage={t('feedback.email_error')}
         isInvalid={hasEmailError}
       />
       {!isTabletOrMobile && <ScreenshotButton />}
       <Button className={styles.submitButton} onPress={() => handleSubmit()} type="submit">
-        {FEEDBACK_SUBMIT_BUTTON_TEXT}
+        {t('feedback.submit')}
       </Button>
     </Layout>
   );
