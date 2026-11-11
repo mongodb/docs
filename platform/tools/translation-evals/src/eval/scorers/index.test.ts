@@ -81,6 +81,20 @@ describe('toEvalScorers', () => {
     ]);
   });
 
+  it('gives each scorer a stable name so Braintrust labels its span', () => {
+    const scorers = toEvalScorers(
+      GLOSSARY,
+      judgeReturning({ category: 'C', rationale: 'ok', fluency: 5 }),
+    );
+    expect(scorers.map((scorer) => scorer.name)).toEqual([
+      'glossary',
+      'terminology_preserved',
+      'reference_similarity',
+      'judge',
+      'language_integrity',
+    ]);
+  });
+
   it('emits a null terminology score when the source holds no configured non-translatable terms', async () => {
     const scorers = toEvalScorers(GLOSSARY, judgeReturning({ category: 'C', rationale: 'ok', fluency: 5 }));
     expect(await scorers[1]!(args('Usa MongoDB', 'Usa MongoDB'))).toEqual({

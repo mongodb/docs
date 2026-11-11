@@ -23,6 +23,16 @@ const INCLUDE_REASON = 'include row has no scraped text';
 const HEADLINE_METADATA = { of: 'glossary_terms_used' };
 
 /**
+ * Set a scorer's function name. The Braintrust CLI bundles this file with
+ * esbuild `--minify`, which mangles declared function names, so the name has to
+ * be assigned at runtime for Braintrust to use it as the span label. Without it
+ * the span falls back to `scorer_<index>`, which does not say which check it is.
+ */
+function named(name: string, scorer: Scorer): Scorer {
+  return Object.defineProperty(scorer, 'name', { value: name, configurable: true });
+}
+
+/**
  * The eval's scorers, in order: the glossary scorer, then terminology, reference
  * similarity, language integrity, and the judge.
  *
@@ -44,7 +54,7 @@ export function toEvalScorers(glossary: Glossary, judgeOpts: JudgeOptions): Scor
   const isInclude = (metadata: RowMetadata) => metadata.kind === 'include';
 
   return [
-    async ({ input }) => {
+    named('glossary', async ({ input }) => {
       // NOT guarded on include rows: an include has no scraped text, but it does
       // carry segments, and includes hold most of the glossary occurrences.
       const { score, metadata } = scoreGlossaryTerms(input.segments, glossary, input.target_locale);
@@ -54,8 +64,8 @@ export function toEvalScorers(glossary: Glossary, judgeOpts: JudgeOptions): Scor
         { name: 'terms_exact', score: byKind.literal.score, metadata: HEADLINE_METADATA },
         { name: 'terms_plural', score: byKind.plural.score, metadata: HEADLINE_METADATA },
       ];
-    },
-    async ({ input, output, metadata }) => {
+    }),
+    named('terminology_preserved', async ({ input, output, metadata }) => {
       if (isInclude(metadata)) {
         return { name: 'terminology_preserved', score: null, metadata: { reason: INCLUDE_REASON } };
       }
@@ -65,14 +75,14 @@ export function toEvalScorers(glossary: Glossary, judgeOpts: JudgeOptions): Scor
         glossary.nonTranslatableTerms,
       );
       return { name: 'terminology_preserved', score, metadata: { denominator, numerator, missing } };
-    },
-    async ({ output, expected, metadata }) => {
+    }),
+    named('reference_similarity', async ({ output, expected, metadata }) => {
       if (isInclude(metadata)) {
         return { name: 'reference_similarity', score: null, metadata: { reason: INCLUDE_REASON } };
       }
       return { name: 'reference_similarity', score: referenceSimilarity(output, expected) };
-    },
-    async ({ input, output, expected, metadata }) => {
+    }),
+    named('judge', async ({ input, output, expected, metadata }) => {
       if (isInclude(metadata)) {
         const includeMetadata = { reason: INCLUDE_REASON };
         return [
@@ -91,8 +101,8 @@ export function toEvalScorers(glossary: Glossary, judgeOpts: JudgeOptions): Scor
         { name: 'fluency', score: result.fluency, metadata: { rationale: result.rationale } },
         { name: 'grammatical_agreement', score: agreement, metadata: { rationale: result.rationale } },
       ];
-    },
-    async ({ output, input, metadata }) => {
+    }),
+    named('language_integrity', async ({ output, input, metadata }) => {
       if (isInclude(metadata)) {
         return { name: 'language_integrity', score: null, metadata: { reason: INCLUDE_REASON } };
       }
@@ -102,6 +112,6 @@ export function toEvalScorers(glossary: Glossary, judgeOpts: JudgeOptions): Scor
         glossary.nonTranslatableTerms,
       );
       return { name: 'language_integrity', score, metadata: flags.length ? { flags } : undefined };
-    },
+    }),
   ];
 }
