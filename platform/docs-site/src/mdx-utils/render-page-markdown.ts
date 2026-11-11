@@ -53,7 +53,9 @@ export async function renderPageMarkdown(relativePath: string[], mode: MarkdownT
   // Route params are basePath-relative; re-prepend the docset-prefix segments
   // to reconstruct the full urlPath before disk resolution.
   const path = toFullUrlPath(relativePath);
-  if (path.length === 0) return null;
+  // Landing has no docset prefix, so nothing is left at its root. Load `index`,
+  // as the HTML route does for the same page.
+  if (path.length === 0) path.push('index');
 
   const version = getStaticVersion();
   const resolvedPath = path.map((seg) => (isVersionPlaceholder(seg) ? version : seg));
