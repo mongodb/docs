@@ -1,3 +1,15 @@
+.. _atlas_2026_11:
+
+November 2026
+-------------
+
+- Public Preview: Adds |fts| and {+avs+} support to
+  {+atlas-infinite-full+} clusters. {+service+} adds Search Nodes
+  automatically when the co-located |fts| and {+avs+} indexes exceed
+  8 GB, and you can remove them only after you drop all search
+  indexes. To learn more, see
+  :ref:`atlas-infinite-workload-isolation`.
+
 .. _atlas_2026_10:
 
 October 2026

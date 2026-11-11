@@ -20,6 +20,14 @@ project:
   cluster's :ref:`logical data size <atlas-logical-data-size>` exceeds
   90% of its :ref:`max storage limit <atlas-infinite-max-storage-limit>`.
   To learn more, see :ref:`atlas-infinite-storage`.
+
+- :alert:`Search indexes approaching the index size limit`
+
+  Applies to {+atlas-infinite-cluster+}s only. Raised as the co-located
+  |fts| and {+avs+} indexes on a compute node approach the index size
+  limit on {+atlas-infinite-full+}. To learn more, see
+  :ref:`atlas-infinite-alerts`.
+
 - :alert:`Host has index suggestions`
 - :alert:`Query Targeting: Scanned Objects / Returned`, ``above 1000``
      

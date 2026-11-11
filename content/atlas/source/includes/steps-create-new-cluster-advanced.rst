@@ -58,9 +58,9 @@
         cluster tiers have no generation.
 
       - :ref:`Select a different tier for your Search Nodes
-        <select-tiers-for-search-nodes>`. During public preview,
-        {+atlas-infinite-cluster+}s don't support Search Node tier
-        selection.
+        <select-tiers-for-search-nodes>`. On an
+        {+atlas-infinite-cluster+}, this setting appears only after
+        Search Nodes are added to the cluster.
 
       - .. include:: /includes/fact-analytics-nodes-tier.rst
 

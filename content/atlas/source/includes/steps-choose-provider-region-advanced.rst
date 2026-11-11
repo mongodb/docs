@@ -15,8 +15,18 @@ performance. To learn how to deploy a multi-region cluster, see
 
 During public preview, {+atlas-infinite-cluster+}s don't support
 multi-cloud clusters. On an {+atlas-infinite-cluster+}, you can
-configure read-only nodes and analytics nodes for workload isolation.
-To learn more, see :ref:`atlas-infinite-workload-isolation`.
+configure read-only nodes, analytics nodes, and Search Nodes for
+workload isolation.
+
+:guilabel:`Automatically add Search Nodes` is on by default. With this
+setting, {+service+} adds Search Nodes when the co-located |fts| and
+{+avs+} indexes on each compute node exceed 8 GB. The indexes are
+limited to 10 GB per node, at which point the search process pauses
+replication. Search Nodes incur additional
+:ref:`cost <fts-search-node-costs>`. You can turn off automatic
+migration at any time. After |service| adds Search Nodes, you can
+remove them only after you drop all search indexes. To learn more, see
+:ref:`atlas-infinite-workload-isolation`.
 
 If you choose :guilabel:`Multi-Cloud, Multi-Region & Workload Isolation`, 
 you can also choose to configure:

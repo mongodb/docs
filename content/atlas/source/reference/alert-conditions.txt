@@ -329,8 +329,14 @@ used by |fts| processes. You can view |fts| metrics through
 
 .. alert:: Atlas Search: Mongot stopped replication
 
-   Raised if the replication is interrupted by the |fts| ``mongot`` 
-   process due to high disk utilization. 
+   Raised if the replication is interrupted by the |fts| ``mongot``
+   process due to high disk utilization.
+
+   On {+atlas-infinite-cluster+}s, this alert is raised if the
+   co-located |fts| and {+avs+} indexes on the cluster reach the index
+   size limit on {+atlas-infinite-full+}. Replication resumes when
+   index size falls below the limit, or after |fts| and {+avs+} move
+   to the new nodes.
 
 .. alert:: Atlas Search: Number of Error Queries is
 
@@ -1021,6 +1027,44 @@ see :ref:`atlas-infinite-architecture`.
    Raised if the number of started transactions meets the specified
    threshold.
 
+Search Alerts
+`````````````
+
+|service| provides the following alert conditions for co-located
+|fts| and {+avs+} indexes on {+atlas-infinite-cluster+}s. To learn
+more about automatic migration, see
+:ref:`atlas-infinite-workload-isolation`.
+
+.. alert:: Search indexes approaching the index size limit
+
+   Raised if the co-located |fts| and {+avs+} indexes on a compute
+   node are approaching the index size limit for Search on
+   {+atlas-infinite-full+}.
+
+   If the indexes reach the limit, the search process pauses
+   replication and :pipeline:`$search` and :pipeline:`$vectorSearch`
+   results become increasingly outdated.
+
+.. alert:: Automatic migration to Search Nodes started
+
+   Raised if |service| starts automatically adding
+   :ref:`Search Nodes <what-is-search-node>` to an
+   {+atlas-infinite-cluster+} because the co-located |fts| and
+   {+avs+} indexes on a compute node reached the automatic migration
+   threshold.
+
+   |fts| and {+avs+} queries continue to be served during the
+   migration, and |fts| and {+avs+} move to the new nodes after they
+   are ready.
+
+.. alert:: Automatic migration to Search Nodes failed
+
+   Raised if an automatic migration to
+   :ref:`Search Nodes <what-is-search-node>` fails on an
+   {+atlas-infinite-cluster+}. |service| doesn't retry the migration
+   automatically, and your existing |fts| and {+avs+} indexes and
+   queries continue to work as before.
+
 Namespaces
 ~~~~~~~~~~
 
@@ -1281,7 +1325,7 @@ Host Down
    </tutorial/build-indexes-on-replica-sets/>`. If |service-fullname| confirms
    that the downtime was not intentional, |service-fullname| attempts to replace
    the affected node. If failures occur, |service| clusters maintain node
-   availability for both reads and writes as long as a majority of nodes are
+   availability for both reads and writes if a majority of nodes are
    running. To learn more, see :ref:`How does MongoDB Atlas deliver high
    availability? <high-availability>`.
 
