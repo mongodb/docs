@@ -3,9 +3,9 @@ import path from 'node:path';
 import type { ChildProcess } from 'node:child_process';
 import { BackendName } from '@mongodb-docs/translation-service';
 import { loadConfig, type Config } from '../config.js';
-import { buildExperimentName, localesFromRows } from '../eval/experiment-name.js';
+import { buildExperimentName } from '../eval/experiment-name.js';
 import { newRunId, readManifest, runDir } from '../run/manifest.js';
-import type { DatasetRow, RunManifest } from '../types.js';
+import type { RunManifest } from '../types.js';
 import { judgeWarnings, loadSuiteConfig, type SuiteConfig } from './config.js';
 import { expandPlan, type Iteration } from './plan.js';
 import { hasPristine, restorePristine, snapshotPristine } from './isolation.js';
@@ -214,17 +214,11 @@ function hasFailures(failures: Record<string, unknown>): boolean {
   return Object.values(failures).some((entries) => Array.isArray(entries) && entries.length > 0);
 }
 
-function experimentNameFor(cfg: Config, suite: SuiteConfig, it: Iteration, runId: string): string {
-  const rowsPath = path.join(runDir(cfg, suite.project, runId), 'dataset', 'rows.json');
-  const locales = fs.existsSync(rowsPath)
-    ? localesFromRows(JSON.parse(fs.readFileSync(rowsPath, 'utf8')) as DatasetRow[])
-    : [...suite.locales].sort();
+function experimentNameFor(it: Iteration, runId: string): string {
   return buildExperimentName({
-    project: suite.project,
-    locales,
-    runId,
+    provider: it.backend,
     translatorModel: it.model,
-    judgeModel: suite.judge,
+    runId,
   });
 }
 
@@ -322,7 +316,7 @@ async function runIteration(
   const dataset = await deps.runStage('dataset', runArgs, env, STAGE_TIMEOUT_MS);
   if (stageFailed(dataset)) return 'failed';
 
-  record.experimentName = experimentNameFor(cfg, suite, it, runId);
+  record.experimentName = experimentNameFor(it, runId);
   const evaluated = await deps.runStage('eval', runArgs, env, STAGE_TIMEOUT_MS);
   if (stageFailed(evaluated)) return 'failed';
 

@@ -131,7 +131,7 @@ exported in your shell takes precedence over `.env`.
 | `JUDGE_MODEL` | For `eval` | — | Judge model. Must differ from the translator model. A `claude-*` value uses the Anthropic Messages path; anything else uses the OpenAI Responses path. |
 | `BRAINTRUST_API_KEY` | For `eval` | — | Read by the `braintrust` CLI. |
 | `BRAINTRUST_PROJECT` | No | `docs-translations` | Braintrust project name. |
-| `EVAL_EXPERIMENT_NAME` | No | derived | Overrides the Braintrust experiment name. Default: `<project> <locales> <run id> [<translator> -> <judge>]`, e.g. `atlas es 2026-10-23-a1b2c3 [gpt-5.5 -> claude-sonnet-4-5]`. |
+| `EVAL_EXPERIMENT_NAME` | No | derived | Overrides the Braintrust experiment name. When unset the name is `<provider> <model>--<run id>`, e.g. `openai gpt-5.5--2026-10-28-7d42d0`. |
 | `TARGET_LOCALES` | No | `pt-br,es,ko-kr,ja-jp,zh-cn` | Comma-separated target locales. |
 The glossary lives in `translation-service/src/glossary.json` and is bundled
 with the service. This tool has no copy and nothing to configure.
@@ -382,15 +382,22 @@ Scores the run's dataset in Braintrust. Runs the `braintrust` CLI over
 `src/eval/eval.ts`, so the CLI creates the experiment and reports results. Run
 `dataset` first; the stage fails if the run has no `dataset/rows.json`.
 
-Each run creates one Braintrust experiment, named from the run itself:
+Each run creates one Braintrust experiment, named after the translator and the
+run:
 
 ```
-<project> <locales> <run id> [<translator> -> <judge>]
+<provider> <model>--<run id>
 ```
 
-For example, `atlas es 2026-10-23-a1b2c3 [gpt-5.5 -> claude-sonnet-4-5]`.
-`locales` lists the locales present in the scored rows. Set
-`EVAL_EXPERIMENT_NAME` to use a name of your own instead.
+For example, `openai gpt-5.5--2026-10-28-7d42d0`. The model is omitted when the
+backend has none, so AWS Translate reads `aws-translate--2026-10-28-7d42d0`.
+Set `EVAL_EXPERIMENT_NAME` to use a name of your own instead; it is used
+verbatim.
+
+The name carries only what you compare on — the provider and model. Locale,
+page count, and the judge model are filter dimensions and ride in the experiment
+metadata instead, so the name stays short and the alphabetical list groups by
+provider.
 
 Flags:
 
@@ -404,8 +411,8 @@ Scorers:
 | Scorer | Kind | Compares |
 |---|---|---|
 | `glossary_terms_used` | Deterministic | **The headline.** Section by section: if the English contains a glossary translatable term, does that same section's Spanish contain the glossary's allowed option? Literal + plural occurrences. Per-row metadata: `total`, `allOccurrences`, `correct`, `wrong`, `notApplicable`, `byKind`, `wrongByReason`, `identity`, `senseBlindTerms`, `unsheeted`, `unseen`, `inactiveSets`, and a per-term `terms[]`. |
-| `terms_exact` | Deterministic | The same check over exact word matches only. |
-| `terms_plural` | Deterministic | The same check over plural forms only (`drivers`). |
+| `terms_exact` | Deterministic | The same check over exact word matches only. Its per-row metadata is `{ of: "glossary_terms_used" }`. |
+| `terms_plural` | Deterministic | The same check over plural forms only (`drivers`). Metadata as `terms_exact`. |
 | `factuality` | LLM judge | The output against the English source, which is ground truth. The production translation calibrates register and terminology only; it is not an answer key. |
 | `fluency` | LLM judge | The output alone, in the target locale. |
 | `grammatical_agreement` | LLM judge | How well determiners, adjectives, and pronouns agree with their noun within each segment. Reported for `es` and `pt-br` only; `null` (not applicable) for locales without grammatical gender. |
@@ -500,10 +507,10 @@ to do.
 
 Every stage of an iteration runs with that iteration's `TRANSLATOR_BACKEND`,
 `TRANSLATOR_MODEL`, and `TARGET_LOCALES`, and the batch `judge` as
-`JUDGE_MODEL`, so each Braintrust experiment is named and tagged with the
-translator that produced it. `EVAL_EXPERIMENT_NAME` is ignored, because it would
-give every iteration the same experiment name. The state file records each
-iteration's experiment name, and the summary lists it.
+`JUDGE_MODEL`, so each Braintrust experiment is named after the translator that
+produced it. `EVAL_EXPERIMENT_NAME` is ignored, because it would give every
+iteration the same label. The state file records each iteration's experiment
+name, and the summary lists it.
 
 `content-mdx/<project>` is snapshotted once per batch and restored before every
 `translate` and `serve`, and again when the batch ends or is interrupted, so

@@ -3,7 +3,7 @@ import path from 'node:path';
 import { Eval } from 'braintrust';
 import { loadConfig } from '../config.js';
 import { DEFAULT_GLOSSARY, glossaryIdentity } from '@mongodb-docs/translation-service';
-import { readManifestLatest, runDir } from '../run/manifest.js';
+import { readManifest, readManifestLatest, runDir } from '../run/manifest.js';
 import { resolveBackendName } from '../translate/backend.js';
 import type { DatasetRow } from '../types.js';
 import { createJudgeOptions } from './judge/backend.js';
@@ -23,17 +23,17 @@ if (!fs.existsSync(rowsPath)) {
 }
 const rows = JSON.parse(fs.readFileSync(rowsPath, 'utf8')) as DatasetRow[];
 
+const manifest = readManifest(cfg, project, runId);
 const judgeOpts = createJudgeOptions(cfg);
 const glossary = DEFAULT_GLOSSARY;
 
+const provider = resolveBackendName(cfg.translatorModel, cfg.translatorBackend);
 const rowsWithSegments = rows.filter((row) => (row.input.segments?.length ?? 0) > 0).length;
 
 const experimentName = buildExperimentName({
-  project,
-  locales: localesFromRows(rows),
-  runId,
+  provider,
   translatorModel: cfg.translatorModel,
-  judgeModel: judgeOpts.model,
+  runId,
   override: cfg.experimentName,
 });
 
@@ -47,10 +47,12 @@ Eval(cfg.braintrustProject, {
   metadata: {
     project,
     run: runId,
-    translator_provider: resolveBackendName(cfg.translatorModel, cfg.translatorBackend),
+    locale: localesFromRows(rows).join(','),
+    translator_provider: provider,
     translator_model: cfg.translatorModel ?? null,
     judge_model: judgeOpts.model,
     glossary: glossaryIdentity(glossary),
+    pages: manifest.pages.length,
     rows: rows.length,
     rows_with_segments: rowsWithSegments,
   },

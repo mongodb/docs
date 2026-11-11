@@ -1,11 +1,9 @@
 import type { DatasetRow } from '../types.js';
 
 export interface ExperimentNameParts {
-  project: string;
-  locales: string[];
-  runId: string;
+  provider: string;
   translatorModel?: string;
-  judgeModel?: string;
+  runId: string;
   override?: string;
 }
 
@@ -15,18 +13,13 @@ export function localesFromRows(rows: DatasetRow[]): string[] {
 }
 
 /**
- * The Braintrust experiment name. A non-blank override wins; otherwise the name
- * reads `<project> <locales> <run id> [<translator> -> <judge>]`, dropping the
- * locale segment when there are none and rendering an unset model as `default`.
+ * The Braintrust experiment name: `<provider> <model>--<run id>`, dropping the
+ * model when the backend has none (AWS Translate). A non-blank override wins
+ * verbatim.
  */
 export function buildExperimentName(parts: ExperimentNameParts): string {
   const override = parts.override?.trim();
   if (override) return override;
-  const segments = [parts.project];
-  if (parts.locales.length > 0) segments.push(parts.locales.join(','));
-  segments.push(parts.runId);
-  const translator = parts.translatorModel?.trim() || 'default';
-  const judge = parts.judgeModel?.trim() || 'default';
-  segments.push(`[${translator} -> ${judge}]`);
-  return segments.join(' ');
+  const label = [parts.provider, parts.translatorModel?.trim()].filter(Boolean).join(' ');
+  return `${label}--${parts.runId}`;
 }

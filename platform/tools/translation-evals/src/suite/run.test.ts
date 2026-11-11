@@ -289,7 +289,7 @@ describe('runSuite iteration environment (C2)', () => {
     const { configFile, cfg } = fixture({ repeats: 1 });
     await runSuite({ configFile }, okDeps(), cfg, TEST_ENV);
     const [record] = Object.values(readBatchState(cfg).iterations);
-    expect(record!.experimentName).toBe(`atlas es ${record!.runId} [m -> j]`);
+    expect(record!.experimentName).toBe(`anthropic m--${record!.runId}`);
   });
 });
 

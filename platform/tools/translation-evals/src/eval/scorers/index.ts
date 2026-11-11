@@ -16,6 +16,13 @@ const GENDERED_LOCALES = new Set(['es', 'pt-br']);
 const INCLUDE_REASON = 'include row has no scraped text';
 
 /**
+ * `terms_exact` and `terms_plural` read the same tally as `glossary_terms_used`,
+ * so they point at its metadata instead of repeating the whole object three
+ * times per row.
+ */
+const HEADLINE_METADATA = { of: 'glossary_terms_used' };
+
+/**
  * The eval's scorers, in order: the glossary scorer, then terminology, reference
  * similarity, language integrity, and the judge.
  *
@@ -44,8 +51,8 @@ export function toEvalScorers(glossary: Glossary, judgeOpts: JudgeOptions): Scor
       const { byKind } = metadata;
       return [
         { name: 'glossary_terms_used', score, metadata },
-        { name: 'terms_exact', score: byKind.literal.score, metadata },
-        { name: 'terms_plural', score: byKind.plural.score, metadata },
+        { name: 'terms_exact', score: byKind.literal.score, metadata: HEADLINE_METADATA },
+        { name: 'terms_plural', score: byKind.plural.score, metadata: HEADLINE_METADATA },
       ];
     },
     async ({ input, output, metadata }) => {
