@@ -67,6 +67,19 @@ collections. Starting in MongoDB 8.3, the :pipeline:`$search`,
 error message when run on timeseries collections. Previously, these stages
 returned empty results.
 
+|fts| and {+avs+} on {+atlas-infinite-full+} Clusters
+-------------------------------------------------------------------
+
+|fts| and {+avs+} are supported on {+atlas-infinite-cluster+}s during
+public preview.
+
+On an {+atlas-infinite-cluster+}, {+service+} includes |fts| and
+{+avs+} at no additional cost. The co-located |fts| and {+avs+}
+indexes on each compute node are limited to 10 GB. If your indexes
+exceed 8 GB, {+service+} can automatically migrate your search
+workloads to dedicated Search Nodes. To learn more, see
+:ref:`atlas-infinite-workload-isolation`.
+
 .. _atlas-fts-shared-tier-limitations:
 
 Search {+Free-Cluster+} and {+Flex-Clusters+} Limitations
@@ -83,7 +96,7 @@ clusters only:
   cluster tier, which triggers an 
   :ref:`initial sync <troubleshoot-initial-sync>`.
 
-- An index definition JSON object cannot exceed 3KB in size.
+- An index definition JSON object cannot exceed 3 KB in size.
 
 - .. include:: /includes/shared/facts/fact-fts-synonym-mapping-limitation.rst
  
