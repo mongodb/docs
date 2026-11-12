@@ -7,7 +7,9 @@ import { resolveTabDefaults } from '@/mdx-utils/resolve-tab-defaults';
 import { isVersionPlaceholder } from '@/mdx-utils/load-mdx';
 import { loadDirNameToPrefixMap, blobRelativeToDiskCandidates } from '@/mdx-utils/blob-path-remap';
 import { getStaticVersion } from '@/utils/extract-mdx-routes-from-toc';
-import { toFullUrlPath } from '@/utils/base-path';
+import { getBasePath, toFullUrlPath } from '@/utils/base-path';
+import { buildPageLocation } from '@/mdx-utils/page-location';
+import type { RemoteMetadata } from '@/types/data';
 
 /**
  * Which tabs a markdown export emits.
@@ -78,8 +80,9 @@ export async function renderPageMarkdown(relativePath: string[], mode: MarkdownT
 
   const fullPath = (diskPath ?? resolvedPath.join('/')).split('/');
   let projectPath: string;
+  let siteMetadata: RemoteMetadata | null = null;
   try {
-    ({ projectPath } = await findProjectPathAndSiteJson(fullPath));
+    ({ projectPath, siteMetadata } = await findProjectPathAndSiteJson(fullPath));
   } catch {
     // Fallback for include paths or pages where _site.json is not found
     projectPath = fullPath.length >= 2 ? fullPath.slice(0, 2).join('/') : fullPath[0] ?? '';
@@ -99,5 +102,12 @@ export async function renderPageMarkdown(relativePath: string[], mode: MarkdownT
     tabInfoComment,
   });
 
-  return `${LLMS_TXT_DIRECTIVE}\n\n${markdown}`;
+  // EOL docsets keep their own TOC, so the unified TOC cannot place their pages.
+  const pageLocation =
+    siteMetadata && !siteMetadata.eol
+      ? buildPageLocation(`${getBasePath()}/${relativePath.join('/')}`, projectPath.split('/')[1] ?? 'current')
+      : null;
+
+  const header = pageLocation ? `${pageLocation}\n\n${LLMS_TXT_DIRECTIVE}` : LLMS_TXT_DIRECTIVE;
+  return `${header}\n\n${markdown}`;
 }
