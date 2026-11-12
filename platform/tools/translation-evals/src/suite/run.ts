@@ -4,7 +4,7 @@ import type { ChildProcess } from 'node:child_process';
 import { BackendName } from '@mongodb-docs/translation-service';
 import { loadConfig, type Config } from '../config.js';
 import { buildExperimentName } from '../eval/experiment-name.js';
-import { newRunId, readManifest, runDir } from '../run/manifest.js';
+import { newRunId, readManifest, runDir, writeManifest } from '../run/manifest.js';
 import type { RunManifest } from '../types.js';
 import { judgeWarnings, loadSuiteConfig, type SuiteConfig } from './config.js';
 import { expandPlan, type Iteration } from './plan.js';
@@ -193,11 +193,16 @@ function countProdYield(
   return { present, expected: manifest.pages.length * (1 + manifest.locales.length) };
 }
 
-function seedRunDir(cfg: Config, project: string, baseRunId: string, runId: string): void {
+export function seedRunDir(cfg: Config, project: string, baseRunId: string, runId: string): void {
   const source = runDir(cfg, project, baseRunId);
   const target = runDir(cfg, project, runId);
   fs.mkdirSync(target, { recursive: true });
   fs.copyFileSync(path.join(source, 'manifest.json'), path.join(target, 'manifest.json'));
+  // The base manifest carries the base run's id; stages resolve the overlay from
+  // this field, so it must name the iteration's own directory.
+  const seeded = readManifest(cfg, project, runId);
+  seeded.runId = runId;
+  writeManifest(cfg, project, runId, seeded);
   const prod = path.join(source, 'prod');
   if (fs.existsSync(prod)) {
     fs.cpSync(prod, path.join(target, 'prod'), { recursive: true });
@@ -313,6 +318,9 @@ async function runIteration(
     }
   }
 
+  // `serve` overlays the translated MDX onto content-mdx; dataset reads the
+  // English source from there, so restore the pristine tree first.
+  restorePristine(cfg, project, suite.name);
   const dataset = await deps.runStage('dataset', runArgs, env, STAGE_TIMEOUT_MS);
   if (stageFailed(dataset)) return 'failed';
 

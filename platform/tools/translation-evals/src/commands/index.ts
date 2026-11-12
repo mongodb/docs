@@ -9,6 +9,7 @@ import { scrapeProd } from '../scrape/prod.js';
 import { scrapeLocal } from '../scrape/local.js';
 import { materialize } from '../serve/materialize.js';
 import { startServer, stopServer } from '../serve/server.js';
+import { restorePristine, snapshotPristine } from '../suite/isolation.js';
 
 export type FlagBag = Record<string, string | boolean>;
 export type CommandHandler = (flags: FlagBag) => Promise<void>;
@@ -70,16 +71,24 @@ export const COMMANDS: Record<string, CommandHandler> = {
     if (!locale) throw new Error('--locale is required');
     const runId = flags.run ? String(flags.run) : readManifestLatest(cfg, project);
     const production = flags.production === true;
+    // serve overwrites content-mdx with the translated overlay; snapshot the
+    // English tree so dataset still reads English once the server stops.
+    snapshotPristine(cfg, project, runId);
     materialize(cfg, project, runId, locale);
     const platformDir = path.resolve(cfg.contentMdxDir, '..', 'platform');
     const child = startServer(platformDir, project, production);
     console.log(
       `run ${runId}: overlaying ${locale} translations, serving ${project} at ${cfg.localOrigin} — press Ctrl-C to stop`,
     );
+    const restore = (): void => restorePristine(cfg, project, runId);
     for (const sig of ['SIGINT', 'SIGTERM'] as const) {
-      process.on(sig, () => stopServer(child));
+      process.on(sig, () => {
+        stopServer(child);
+        restore();
+      });
     }
     const code = await new Promise<number | null>((resolve) => child.on('exit', resolve));
+    restore();
     process.exit(code ?? 1);
   },
   'scrape-local': async (flags) => {

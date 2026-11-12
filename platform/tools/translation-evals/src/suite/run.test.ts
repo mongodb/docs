@@ -2,7 +2,13 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, it, expect, vi } from 'vitest';
-import { runSuite, preflight, PORT_CHECK_TIMEOUT_MS, type SuiteDeps } from './run.js';
+import {
+  runSuite,
+  preflight,
+  seedRunDir as realSeedRunDir,
+  PORT_CHECK_TIMEOUT_MS,
+  type SuiteDeps,
+} from './run.js';
 import type { BatchState } from './state.js';
 import type { Config } from '../config.js';
 
@@ -236,6 +242,43 @@ describe('runSuite content isolation (C1)', () => {
     expect(fs.readFileSync(path.join(cfg.contentMdxDir, 'atlas', 'index.mdx'), 'utf8')).toBe(
       'english',
     );
+  });
+
+  it('restores pristine content before the dataset stage', async () => {
+    const { configFile, cfg } = fixture({ repeats: 1 });
+    const calls: StageCall[] = [];
+    await runSuite({ configFile }, recordingDeps(cfg, calls), cfg, TEST_ENV);
+
+    const dataset = calls.find((c) => c.stage === 'dataset');
+    expect(dataset?.content).toBe('english');
+  });
+});
+
+describe('runSuite seeded run dir (C4)', () => {
+  it('rewrites the seeded manifest runId to the iteration run id', () => {
+    const { cfg } = fixture();
+    const baseRunId = 'base-run';
+    const runId = '2026-01-01-abc123';
+    const baseDir = path.join(cfg.dataDir, 'atlas', baseRunId);
+    fs.mkdirSync(baseDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(baseDir, 'manifest.json'),
+      JSON.stringify({
+        project: 'atlas',
+        runId: baseRunId,
+        locales: ['es'],
+        pages: [],
+        translatable: { pages: [], includes: [], substitutions: [] },
+        stages: {},
+      }),
+    );
+
+    realSeedRunDir(cfg, 'atlas', baseRunId, runId);
+
+    const seeded = JSON.parse(
+      fs.readFileSync(path.join(cfg.dataDir, 'atlas', runId, 'manifest.json'), 'utf8'),
+    ) as { runId: string };
+    expect(seeded.runId).toBe(runId);
   });
 });
 
