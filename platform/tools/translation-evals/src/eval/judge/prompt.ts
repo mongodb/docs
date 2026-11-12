@@ -38,13 +38,25 @@ export function buildJudgePrompt(i: JudgeInput): string {
   ].join('\n');
 }
 
+/**
+ * The judge's response contract, sent on both the Responses and Messages paths.
+ * Ratings are expressed as `enum` lists rather than `minimum`/`maximum`: the
+ * latter are valid JSON Schema but unsupported by Anthropic's structured
+ * outputs, which rejects the whole request (HTTP 400). `anyOf` with a `null`
+ * branch is the nullable form both providers accept.
+ */
 export const JUDGE_RESPONSE_SCHEMA = {
   type: 'object',
   properties: {
     category: { type: 'string', enum: ['A', 'B', 'C', 'D'] },
     rationale: { type: 'string' },
-    fluency: { type: 'integer', minimum: 1, maximum: 5 },
-    agreement: { type: ['integer', 'null'], minimum: 1, maximum: 5 },
+    fluency: { type: 'integer', enum: [1, 2, 3, 4, 5] },
+    agreement: {
+      anyOf: [
+        { type: 'integer', enum: [1, 2, 3, 4, 5] },
+        { type: 'null' },
+      ],
+    },
   },
   required: ['category', 'rationale', 'fluency', 'agreement'],
   additionalProperties: false,

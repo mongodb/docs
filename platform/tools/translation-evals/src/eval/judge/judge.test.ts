@@ -78,6 +78,16 @@ describe('judgeTranslation', () => {
     expect(await score('unexpected')).toBe(0);
   });
 
+  it('scores the category letter case-insensitively', async () => {
+    const score = async (category: string) =>
+      (await judgeTranslation(INPUT, optsReturning(envelope({ category, rationale: '', fluency: 3 }))))
+        .factuality;
+    expect(await score('c')).toBe(1);
+    expect(await score('b')).toBe(0.6);
+    expect(await score('a')).toBe(0.4);
+    expect(await score('d')).toBe(0);
+  });
+
   it('maps the 1-5 fluency rating onto 0-1 and clamps out-of-range values', async () => {
     const fluency = async (value: number) =>
       (await judgeTranslation(INPUT, optsReturning(envelope({ category: 'C', rationale: '', fluency: value }))))
@@ -275,5 +285,55 @@ describe('grammatical agreement', () => {
     expect(schema['agreement']).toBeDefined();
     expect((JUDGE_RESPONSE_SCHEMA as { required: readonly string[] }).required).toContain('agreement');
     expect(buildJudgePrompt(INPUT).toLowerCase()).toContain('agreement');
+  });
+});
+
+describe('JUDGE_RESPONSE_SCHEMA provider compatibility', () => {
+  // The judge hand-builds its request and posts it with a raw fetch, so no SDK
+  // strips keywords the API does not support. Anthropic's structured outputs
+  // rejects these outright (HTTP 400) rather than ignoring them.
+  const UNSUPPORTED_KEYWORDS = new Set([
+    'minimum',
+    'maximum',
+    'exclusiveMinimum',
+    'exclusiveMaximum',
+    'multipleOf',
+    'minLength',
+    'maxLength',
+    'pattern',
+  ]);
+
+  function collectKeys(node: unknown, out: Set<string> = new Set()): Set<string> {
+    if (Array.isArray(node)) {
+      for (const item of node) collectKeys(item, out);
+    } else if (typeof node === 'object' && node !== null) {
+      for (const [key, value] of Object.entries(node)) {
+        out.add(key);
+        collectKeys(value, out);
+      }
+    }
+    return out;
+  }
+
+  it('carries no keyword Anthropic structured outputs rejects', () => {
+    const present = [...collectKeys(JUDGE_RESPONSE_SCHEMA)].filter((key) =>
+      UNSUPPORTED_KEYWORDS.has(key),
+    );
+    expect(present).toEqual([]);
+  });
+
+  it('constrains fluency to 1-5 as an allowed-value list, not numeric bounds', () => {
+    const props = JUDGE_RESPONSE_SCHEMA.properties as Record<string, unknown>;
+    expect(props['fluency']).toEqual({ type: 'integer', enum: [1, 2, 3, 4, 5] });
+  });
+
+  it('allows agreement to be a 1-5 rating or null', () => {
+    const props = JUDGE_RESPONSE_SCHEMA.properties as Record<string, unknown>;
+    expect(props['agreement']).toEqual({
+      anyOf: [
+        { type: 'integer', enum: [1, 2, 3, 4, 5] },
+        { type: 'null' },
+      ],
+    });
   });
 });

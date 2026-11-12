@@ -131,7 +131,7 @@ export async function judgeTranslation(
   const fluency = mapRating(parsed['fluency']) ?? 0;
 
   return {
-    factuality: CATEGORY_SCORE[category] ?? 0,
+    factuality: CATEGORY_SCORE[category.toUpperCase()] ?? 0,
     fluency,
     agreement: mapRating(parsed['agreement']),
     rationale: typeof parsed['rationale'] === 'string' ? parsed['rationale'] : '',
