@@ -94,6 +94,32 @@ export function variationsOf(term: string): string[] {
   return variations;
 }
 
+/** Terms whose last word has no distinct plural; pluralising them invents a word. */
+const UNCOUNTABLE = new Set([
+  "data",
+  "metadata",
+  "hardware",
+  "software",
+  "information",
+  "documentation",
+  "media",
+]);
+
+/**
+ * The plural of a term's last word, for protecting keep-verbatim plurals
+ * ("string" -> "strings"). Returns [] when the last word is not a plain word,
+ * already reads as plural, or is uncountable — pluralising those invents a
+ * word ("data" -> "datas") that would then be protected as if it were real.
+ */
+export function pluralVariationsOf(term: string): string[] {
+  const words = term.split(/\s+/);
+  const last = words[words.length - 1] ?? "";
+  if (!/^[A-Za-z]+$/.test(last)) return [];
+  const lower = last.toLowerCase();
+  if (lower.endsWith("s") || UNCOUNTABLE.has(lower)) return [];
+  return [[...words.slice(0, -1), plural(last)].join(" ")];
+}
+
 /**
  * Every string the term sheet scans for: each glossary term plus the
  * variations generated for it. A variation that equals a term, ignoring case,

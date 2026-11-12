@@ -68,6 +68,12 @@ export interface TranslateResponse {
     content_type: ContentType;
     partial_failure: boolean;
     request_id: string;
+    /** Custom terminology applied by the backend, when one was configured. */
+    terminology?: string | undefined;
+    /** Glossary terms AWS enforced on this request's strings, deduplicated; may be empty. */
+    terminology_applied?:
+      | Array<{ source_text: string; target_text: string }>
+      | undefined;
   };
 }
 
@@ -123,7 +129,14 @@ export type TranslationBatchResultItem =
 
 export interface TranslationBatchResult {
   items: TranslationBatchResultItem[];
-  meta: { provider: string; model: string };
+  meta: {
+    provider: string;
+    model: string;
+    terminology?: string | undefined;
+    terminologyApplied?:
+      | Array<{ sourceText: string; targetText: string }>
+      | undefined;
+  };
 }
 
 /**

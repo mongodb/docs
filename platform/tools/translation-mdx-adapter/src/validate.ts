@@ -10,6 +10,20 @@ export class ReconstructionError extends Error {
 }
 
 /**
+ * Thrown when a translated string cannot be rebuilt into MDX — a token the
+ * backend dropped or reordered, so the markup cannot be paired. Distinct from
+ * ReconstructionError, which is raised before any rebuild is attempted: a
+ * caller can retry a rebuild failure in a different serialization without
+ * re-sending a file whose keys simply failed.
+ */
+export class RebuildError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'RebuildError';
+  }
+}
+
+/**
  * Enforce the failure policy before any MDX is produced. Throws
  * ReconstructionError naming the first offending key or placeholder.
  */
@@ -28,7 +42,8 @@ export function validateTranslation(
     if (!isBlockEntry(entry)) continue;
     const value = translated[entry.key] as string;
     for (const p of entry.placeholders) {
-      const tokens = p.kind === 'opaque' ? [p.token] : [p.open, p.close];
+      const tokens =
+        p.kind === 'opaque' || p.kind === 'wrap-text' ? [p.token] : [p.open, p.close];
       for (const token of tokens) {
         if (!value.includes(token)) {
           throw new ReconstructionError(

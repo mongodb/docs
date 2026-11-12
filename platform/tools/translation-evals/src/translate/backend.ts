@@ -26,6 +26,15 @@ export function resolveBackendName(
 }
 
 /**
+ * Whether this backend translates with a named model. AWS Translate and the
+ * stub have no model, so naming a run or an experiment after one would credit
+ * the wrong engine.
+ */
+export function backendHasModel(name: BackendName): boolean {
+  return name === BackendName.OpenAI || name === BackendName.Anthropic;
+}
+
+/**
  * Build the translator backend. The LLM backends come from their direct
  * factories so the configured model is forwarded — the registry factories
  * take no model override. AWS Translate and stub have no model, so they go

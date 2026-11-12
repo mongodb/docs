@@ -7,7 +7,7 @@
  * order-preserving: segments appear in the payload's own key order.
  */
 import type { ResolvedRequest, Segment } from "./types.js";
-import { detectTerms } from "./protection-helpers.js";
+import { detectTerms, expandKeepVerbatimTerms } from "./protection-helpers.js";
 
 export function normalize(
   request: ResolvedRequest,
@@ -19,6 +19,9 @@ export function normalize(
     source_locale: request.source_locale,
     target_locale: request.target_locale,
     content_type: request.content_type,
-    protected_terms: detectTerms(source_text, nonTranslatableTerms),
+    protected_terms: detectTerms(
+      source_text,
+      expandKeepVerbatimTerms(nonTranslatableTerms),
+    ),
   }));
 }

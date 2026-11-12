@@ -34,7 +34,14 @@ export interface RunManifest {
   translatable: TranslatableSet;
   stages: Record<string, { status: 'pending' | 'done' | 'failed'; at?: string }>;
   /** The backend that produced the translated overlay. */
-  translator?: { provider: string; model: string | null };
+  translator?: {
+    provider: string;
+    model: string | null;
+    /** The custom terminology configured for this run, or null when none was. */
+    terminology?: string | null;
+    /** Term pairs the backend reported enforcing, deduplicated across locales. */
+    appliedTerms?: string[];
+  };
 }
 
 /** One adapter-keyed translatable string, with its translation in the row's locale. */

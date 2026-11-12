@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { extract } from '../src/extract.js';
 import { parseMdx, stringifyMdx } from '../src/mdast.js';
-import { reconstruct, validateTranslation, ReconstructionError } from '../src/reconstruct.js';
-import { wrapTokens } from '../src/inline.js';
+import { reconstruct, validateTranslation, ReconstructionError, RebuildError } from '../src/reconstruct.js';
+import { wrapTokens, wrapTextToken } from '../src/inline.js';
 
 const SOURCE = `---
 fileId: intro.txt
@@ -67,10 +67,42 @@ describe('validation failures', () => {
 
   it('throws naming a dropped placeholder token', () => {
     const content = extract(SOURCE);
-    const { close } = wrapTokens(0);
-    const broken = content.payload['paragraph[0]'].replace(close, '');
+    // The link around "guide" serializes as an open/close pair; a translator
+    // dropping a token fails validation (ReconstructionError, raised before
+    // any rebuild is attempted — not a RebuildError).
+    const { open } = wrapTokens(0);
+    const broken = content.payload['paragraph[0]'].replace(open, '');
     const translated: Record<string, string> = { ...content.payload, 'paragraph[0]': broken };
-    expect(() => reconstruct(translated, content)).toThrow(close);
+    expect(() => reconstruct(translated, content)).toThrow(ReconstructionError);
+    expect(() => reconstruct(translated, content)).toThrow(open);
+  });
+
+  it('throws naming a dropped wrap-text token with splitTextWraps', () => {
+    const content = extract(SOURCE, { splitTextWraps: true });
+    // With splitTextWraps the text-only link around "guide" serializes as a
+    // single wrap-text token; a translator dropping it must fail validation.
+    const w0 = wrapTextToken(0);
+    const broken = content.payload['paragraph[0]'].replace(w0, '');
+    const translated: Record<string, string> = { ...content.payload, 'paragraph[0]': broken };
+    expect(() => reconstruct(translated, content)).toThrow(ReconstructionError);
+    expect(() => reconstruct(translated, content)).toThrow(w0);
+  });
+
+  it('throws RebuildError when the backend inverts a wrap pair', () => {
+    const content = extract(SOURCE);
+    // Both tokens survive, so validation passes — but a backend that reorders
+    // the sentence can invert the pair, and the rebuild cannot pair the
+    // tokens. That is a RebuildError, the case translateMdx retries with
+    // splitTextWraps.
+    const { open, close } = wrapTokens(0);
+    const swap = (value: string, a: string, b: string) =>
+      value.split(a).join('\u0000').split(b).join(a).split('\u0000').join(b);
+    const translated: Record<string, string> = {
+      ...content.payload,
+      'paragraph[0]': swap(content.payload['paragraph[0]'], open, close),
+    };
+    expect(() => reconstruct(translated, content)).toThrow(RebuildError);
+    expect(() => reconstruct(translated, content)).toThrow(/O0|C0/);
   });
 
   it('validateTranslation passes for a complete payload', () => {
@@ -84,13 +116,29 @@ const INLINE_REF_SOURCE = `See the <Reference name="config/ui-settings" title="O
 const INLINE_ABBR_SOURCE = `The <Abbr tooltip="Application Programming Interface">API</Abbr> works.`;
 
 describe('reconstruct — inline JSX translatable props', () => {
-  it('writes a translated inline Reference title from the block string back to the attribute', () => {
+  it('writes a translated inline Reference title back to the attribute from the pair text', () => {
     const content = extract(INLINE_REF_SOURCE);
-    // The title is inlined in the block string — translate the whole block.
+    // The title sits between the pair in the block string; restoreInline
+    // writes it back to the attribute.
     const { open, close } = wrapTokens(0);
     const translated: Record<string, string> = {
       ...content.payload,
       'paragraph[0]': `Consulte la ${open}Configuración de Ops Manager.${close} página.`,
+    };
+    const out = reconstruct(translated, content);
+    expect(out).toContain('title="Configuración de Ops Manager."');
+    expect(out).toContain('name="config/ui-settings"');
+  });
+
+  it('writes a translated inline Reference title from its inner entry back to the attribute with splitTextWraps', () => {
+    const content = extract(INLINE_REF_SOURCE, { splitTextWraps: true });
+    // The title travels as the block's inner `#w<id>` entry — translate the
+    // block string (token preserved) and the inner entry.
+    const w0 = wrapTextToken(0);
+    const translated: Record<string, string> = {
+      ...content.payload,
+      'paragraph[0]': `Consulte la ${w0} página.`,
+      'paragraph[0]#w0': 'Configuración de Ops Manager.',
     };
     const out = reconstruct(translated, content);
     expect(out).toContain('title="Configuración de Ops Manager."');

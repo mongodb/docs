@@ -3,9 +3,9 @@ import { isBlockEntry, isPropEntry } from './types.js';
 import { stringifyMdx } from './mdast.js';
 import { restoreInline } from './inline.js';
 import { applyFrontmatter } from './frontmatter.js';
-import { validateTranslation, ReconstructionError } from './validate.js';
+import { validateTranslation, ReconstructionError, RebuildError } from './validate.js';
 
-export { ReconstructionError, validateTranslation };
+export { ReconstructionError, RebuildError, validateTranslation };
 
 /**
  * Apply a translated payload to the retained AST and serialize to MDX.
@@ -20,7 +20,11 @@ export function reconstruct(
 
   for (const entry of entries.values()) {
     if (isBlockEntry(entry)) {
-      entry.node.children = restoreInline(translated[entry.key] as string, entry.placeholders);
+      entry.node.children = restoreInline(
+        translated[entry.key] as string,
+        entry.placeholders,
+        (record) => translated[`${entry.key}#w${record.innerId}`] ?? undefined,
+      );
     } else if (isPropEntry(entry)) {
       const attr = (entry.node.attributes ?? []).find(
         (a) => a.type === 'mdxJsxAttribute' && a.name === entry.attr,

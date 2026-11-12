@@ -1,5 +1,5 @@
 import { extract } from './extract.js';
-import { reconstruct } from './reconstruct.js';
+import { reconstruct, RebuildError } from './reconstruct.js';
 
 /**
  * Caller-supplied translator: maps the flat payload plus the terms that must
@@ -26,16 +26,37 @@ export interface TranslateMdxOptions {
  * `translate`, and `reconstruct` validates they survived — so non-translatable
  * content cannot be silently replaced (a dropped/altered token makes
  * reconstruct throw ReconstructionError).
+ *
+ * A wrapper keeps its text inside its sentence by default, as an open/close
+ * pair, so the backend translates it in context. When a backend reorders such
+ * a pair the rebuild cannot pair the tokens (RebuildError); the file is then
+ * re-sent once with each wrapped text split into its own payload entry, where
+ * no pair exists to invert. The retry is bounded to that one case — a key
+ * that simply failed is not re-sent.
  */
 export async function translateMdx(
   mdx: string,
   translate: TranslateFn,
   options: TranslateMdxOptions = {},
 ): Promise<string> {
-  const content = extract(mdx);
-  const nonTranslatableTerms = [
-    ...new Set([...content.non_translatable_terms, ...(options.nonTranslatableTerms ?? [])]),
+  const termsFor = (terms: string[]) => [
+    ...new Set([...terms, ...(options.nonTranslatableTerms ?? [])]),
   ];
-  const translations = await translate(content.payload, nonTranslatableTerms);
-  return reconstruct(translations, content);
+
+  const content = extract(mdx);
+  const translations = await translate(
+    content.payload,
+    termsFor(content.non_translatable_terms),
+  );
+  try {
+    return reconstruct(translations, content);
+  } catch (cause) {
+    if (!(cause instanceof RebuildError)) throw cause;
+    const split = extract(mdx, { splitTextWraps: true });
+    const splitTranslations = await translate(
+      split.payload,
+      termsFor(split.non_translatable_terms),
+    );
+    return reconstruct(splitTranslations, split);
+  }
 }

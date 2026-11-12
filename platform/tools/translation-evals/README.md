@@ -213,6 +213,12 @@ AI_GATEWAY_API_KEY=<your key>
   the judge is an LLM. AWS Translate cannot be a judge.
 - AWS Translate has no model, so `meta.model` is `translate-text` and the run
   manifest records `model: null`.
+- **Attaching the glossary is opt-in.** Set
+  `AWS_TRANSLATE_TERMINOLOGY_NAME=aws-translate-glossary` and run
+  `pnpm sync-terminology` in `translation-service` first to create it — the
+  eval attaches the terminology, it does not create it. Without the variable
+  the baseline runs with **no glossary at all**, while the LLM backends receive
+  the full term sheet, so a comparison run without it understates the baseline.
 - All five default locales are supported: `pt-br` and `zh-cn` map to AWS `pt`
   and `zh`.
 - Run the AWS backend as its own run and compare its Braintrust experiment

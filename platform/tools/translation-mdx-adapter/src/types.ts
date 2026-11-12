@@ -32,6 +32,31 @@ export type PlaceholderRecord =
     }
   | {
       /**
+       * Wraps a single run of translatable text (bold, emphasis, a link with
+       * only text inside). Serialized as ONE token, not an open/close pair:
+       * the backend reorders a pair's tokens when it reorders the sentence
+       * (Spanish moves a postposed adjective or article past its noun), which
+       * leaves a close token with no open. A single token cannot be taken
+       * apart. Its text travels as its own payload entry, `<key>#w<innerId>`.
+       */
+      kind: 'wrap-text';
+      /** Opaque self-closing token, e.g. "W0". */
+      token: string;
+      /** Original inline node; its children or named attribute are restored. */
+      node: PhrasingContent;
+      /** Which inner entry of this block holds the wrapped text. */
+      innerId: number;
+      /** The original inner text, used when no translation is supplied. */
+      text: string;
+      /**
+       * When set, the translated text is written back to this attribute
+       * rather than replacing the node's children — an inlined attribute
+       * value, e.g. `<Reference title="server session" />`.
+       */
+      attr?: string;
+    }
+  | {
+      /**
        * Wraps translatable text sourced from an attribute (e.g. a
        * self-closing `<Reference title="X" />`). The attribute value is
        * inlined into the block string for context; on restoration the
@@ -110,6 +135,12 @@ export function isWrapPlaceholder(
   p: PlaceholderRecord,
 ): p is Extract<PlaceholderRecord, { kind: 'wrap' }> {
   return p.kind === 'wrap';
+}
+
+export function isWrapTextPlaceholder(
+  p: PlaceholderRecord,
+): p is Extract<PlaceholderRecord, { kind: 'wrap-text' }> {
+  return p.kind === 'wrap-text';
 }
 
 export function isAttrWrapPlaceholder(

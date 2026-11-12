@@ -19,7 +19,7 @@ import type {
 } from "../../types.js";
 import { excerpt } from "../../excerpt.js";
 import { BackendError } from "../errors.js";
-import type { TranslateTextFn } from "./client.js";
+import type { AppliedTerm, TranslateTextFn } from "./client.js";
 import { createAwsTranslateText } from "./client.js";
 import type { AwsTranslateConfig } from "./config.js";
 import {
@@ -40,6 +40,19 @@ export interface AwsTranslateBackendOptions {
 
 function failed(key: string, error: TranslationError): TranslationBatchResultItem {
   return { key, status: "error", error };
+}
+
+function dedupeAppliedTerms(terms: readonly AppliedTerm[]): AppliedTerm[] {
+  const seen = new Set<string>();
+  const unique: AppliedTerm[] = [];
+  for (const term of terms) {
+    const id = JSON.stringify([term.sourceText, term.targetText]);
+    if (!seen.has(id)) {
+      seen.add(id);
+      unique.push(term);
+    }
+  }
+  return unique;
 }
 
 function errorName(cause: unknown): string | undefined {
@@ -155,18 +168,30 @@ export class AwsTranslateBackend implements TranslationBackend {
       };
     }
 
+    const appliedTerms: AppliedTerm[] = [];
     const items = await mapWithConcurrency(
       batch.items,
       this.#config.concurrency,
-      (item) => this.#translateItem(item, source, target),
+      (item) => this.#translateItem(item, source, target, appliedTerms),
     );
-    return { items, meta };
+    return {
+      items,
+      meta:
+        this.#config.terminologyName !== undefined
+          ? {
+              ...meta,
+              terminology: this.#config.terminologyName,
+              terminologyApplied: dedupeAppliedTerms(appliedTerms),
+            }
+          : meta,
+    };
   }
 
   async #translateItem(
     item: TranslationBatchItem,
     sourceLanguageCode: string,
     targetLanguageCode: string,
+    appliedTerms: AppliedTerm[],
   ): Promise<TranslationBatchResultItem> {
     // TranslateText requires at least one character.
     if (item.text.trim() === "") {
@@ -184,11 +209,19 @@ export class AwsTranslateBackend implements TranslationBackend {
 
     const signal = AbortSignal.timeout(this.#config.timeoutMs);
     let translated: string;
+    let applied: AppliedTerm[];
     try {
-      translated = await this.#translateText(
-        { text, sourceLanguageCode, targetLanguageCode },
+      const result = await this.#translateText(
+        {
+          text,
+          sourceLanguageCode,
+          targetLanguageCode,
+          terminologyName: this.#config.terminologyName,
+        },
         signal,
       );
+      translated = result.translatedText;
+      applied = result.appliedTerminologies;
     } catch (cause) {
       if (signal.aborted) {
         return failed(item.key, {
@@ -212,6 +245,7 @@ export class AwsTranslateBackend implements TranslationBackend {
         message: `${restored.message}; sent ${excerpt(text)}`,
       });
     }
+    appliedTerms.push(...applied);
     return { key: item.key, status: "ok", text: restored.text };
   }
 }

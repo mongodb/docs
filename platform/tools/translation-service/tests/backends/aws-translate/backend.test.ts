@@ -19,7 +19,10 @@ const config: AwsTranslateConfig = {
 };
 
 function batch(
-  items: Array<{ key: string; text: string }>,
+  items: Array<{ key: string; text: string }> = [
+    { key: "a", text: "Ask MongoDB" },
+    { key: "b", text: "Home" },
+  ],
   target_locale = "es",
 ): TranslationBatchRequest {
   return {
@@ -48,7 +51,7 @@ function recordingFn(): { fn: TranslateTextFn; calls: TranslateTextInput[] } {
   const calls: TranslateTextInput[] = [];
   const fn: TranslateTextFn = async (input) => {
     calls.push(input);
-    return `ES ${input.text}`;
+    return { translatedText: `ES ${input.text}`, appliedTerminologies: [] };
   };
   return { fn, calls };
 }
@@ -85,8 +88,10 @@ describe("AwsTranslateBackend", () => {
   });
 
   it("unwraps tokens and unescapes entities in the output", async () => {
-    const fn: TranslateTextFn = async () =>
-      'Pregunte a <span translate="no">__PROT1__</span> &amp; más';
+    const fn: TranslateTextFn = async () => ({
+      translatedText: 'Pregunte a <span translate="no">__PROT1__</span> &amp; más',
+      appliedTerminologies: [],
+    });
     const backend = new AwsTranslateBackend({ config, translateText: fn });
     const result = await backend.translateBatch(
       batch([{ key: "a", text: "Ask __PROT1__ & more" }]),
@@ -100,7 +105,10 @@ describe("AwsTranslateBackend", () => {
     const fn: TranslateTextFn = async (input) => {
       const delay = input.text === "slow" ? 20 : 0;
       await new Promise((resolve) => setTimeout(resolve, delay));
-      return input.text.toUpperCase();
+      return {
+        translatedText: input.text.toUpperCase(),
+        appliedTerminologies: [],
+      };
     };
     const backend = new AwsTranslateBackend({ config, translateText: fn });
     const result = await backend.translateBatch(
@@ -120,7 +128,7 @@ describe("AwsTranslateBackend", () => {
       peak = Math.max(peak, inFlight);
       await new Promise((resolve) => setTimeout(resolve, 5));
       inFlight--;
-      return input.text;
+      return { translatedText: input.text, appliedTerminologies: [] };
     };
     const backend = new AwsTranslateBackend({
       config: { ...config, concurrency: 2 },
@@ -187,7 +195,10 @@ describe("AwsTranslateBackend", () => {
         ? new Promise((_, reject) =>
             signal.addEventListener("abort", () => reject(signal.reason)),
           )
-        : Promise.resolve(input.text);
+        : Promise.resolve({
+            translatedText: input.text,
+            appliedTerminologies: [],
+          });
     const backend = new AwsTranslateBackend({
       config: { ...config, timeoutMs: 10 },
       translateText: fn,
@@ -214,7 +225,7 @@ describe("AwsTranslateBackend", () => {
       if (input.text === "big") {
         throw awsError("TextSizeLimitExceededException", 400);
       }
-      return input.text;
+      return { translatedText: input.text, appliedTerminologies: [] };
     };
     const backend = new AwsTranslateBackend({ config, translateText: fn });
     const result = await backend.translateBatch(
@@ -238,7 +249,10 @@ describe("AwsTranslateBackend", () => {
   });
 
   it("fails a key with INVALID_OUTPUT and reports what was sent and returned", async () => {
-    const fn: TranslateTextFn = async () => "Pregunte a <b>__PROT1__</b>";
+    const fn: TranslateTextFn = async () => ({
+      translatedText: "Pregunte a <b>__PROT1__</b>",
+      appliedTerminologies: [],
+    });
     const backend = new AwsTranslateBackend({ config, translateText: fn });
     const result = await backend.translateBatch(
       batch([{ key: "a", text: "Ask __PROT1__" }]),
@@ -318,8 +332,10 @@ describe("AwsTranslateBackend", () => {
   });
 
   it("restores protected terms end to end through translate()", async () => {
-    const fn: TranslateTextFn = async (input) =>
-      input.text.replace("Ask", "Pregunte a");
+    const fn: TranslateTextFn = async (input) => ({
+      translatedText: input.text.replace("Ask", "Pregunte a"),
+      appliedTerminologies: [],
+    });
     const response = await translate(
       {
         source_locale: "en-us",
@@ -334,5 +350,65 @@ describe("AwsTranslateBackend", () => {
     });
     expect(response.meta.partial_failure).toBe(false);
     expect(response.meta.provider).toBe("aws-translate");
+  });
+
+  it("passes the configured terminology name on every item", async () => {
+    const { fn, calls } = recordingFn();
+    const backend = new AwsTranslateBackend({
+      config: { ...config, terminologyName: "aws-translate-glossary" },
+      translateText: fn,
+    });
+    await backend.translateBatch(batch());
+    expect(calls.length).toBeGreaterThan(0);
+    for (const call of calls) {
+      expect(call.terminologyName).toBe("aws-translate-glossary");
+    }
+  });
+
+  it("reports the terminology in batch meta only when configured", async () => {
+    const { fn } = recordingFn();
+    const withTerminology = new AwsTranslateBackend({
+      config: { ...config, terminologyName: "aws-translate-glossary" },
+      translateText: fn,
+    });
+    const result = await withTerminology.translateBatch(batch());
+    expect(result.meta).toEqual({
+      provider: "aws-translate",
+      model: "translate-text",
+      terminology: "aws-translate-glossary",
+      terminologyApplied: [],
+    });
+
+    const without = new AwsTranslateBackend({ config, translateText: fn });
+    const plain = await without.translateBatch(batch());
+    expect(plain.meta).toEqual({ provider: "aws-translate", model: "translate-text" });
+  });
+
+  it("aggregates and deduplicates applied terms across items", async () => {
+    const fn: TranslateTextFn = async () => ({
+      translatedText: "traducción",
+      appliedTerminologies: [{ sourceText: "shard", targetText: "partición" }],
+    });
+    const backend = new AwsTranslateBackend({
+      config: { ...config, terminologyName: "aws-translate-glossary" },
+      translateText: fn,
+    });
+    const result = await backend.translateBatch(batch());
+    expect(result.meta).toEqual({
+      provider: "aws-translate",
+      model: "translate-text",
+      terminology: "aws-translate-glossary",
+      terminologyApplied: [{ sourceText: "shard", targetText: "partición" }],
+    });
+  });
+
+  it("fails the batch with a provider error when AWS rejects the terminology name", async () => {
+    const backend = new AwsTranslateBackend({
+      config: { ...config, terminologyName: "does-not-exist" },
+      translateText: async () => {
+        throw awsError("ResourceNotFoundException", 400);
+      },
+    });
+    await expect(backend.translateBatch(batch())).rejects.toBeInstanceOf(BackendError);
   });
 });

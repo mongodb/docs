@@ -36,7 +36,10 @@ function hasStructuralChildren(
  * `non_translatable_terms`, and the in-memory `manifest` needed to rebuild
  * the document from a translated payload.
  */
-export function extract(source: string): ContentObject {
+export function extract(
+  source: string,
+  opts: { splitTextWraps?: boolean } = {},
+): ContentObject {
   const tree = parseMdx(source);
   const payload: Record<string, string> = {};
   const terms = new Set<string>();
@@ -76,7 +79,15 @@ export function extract(source: string): ContentObject {
       }
 
       if (isTextBlock(node)) {
-        const { text, placeholders, tokens } = serializeInline(node.children);
+        const { text, placeholders, tokens, inners } = serializeInline(node.children, opts);
+
+        // Text-only wrappers (bold, a link around plain text) travel as one
+        // token with their text in its own entry, `<key>#w<id>`: a pair of
+        // tokens around text lets the backend reorder them, and a single
+        // token cannot be taken apart.
+        for (const inner of inners) {
+          payload[`${key}#w${inner.id}`] = inner.text;
+        }
 
         // Extract translatable props from inline JSX elements (e.g.
         // <Reference title="..." />, <Abbr tooltip="...">). These are

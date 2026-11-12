@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { loadConfig } from '../config.js';
-import { newRunId, writeManifest, readManifest, setStage, setTranslator, readManifestLatest } from './manifest.js';
+import { newRunId, writeManifest, readManifest, setStage, setTranslator, mergeTranslatorMeta, readManifestLatest } from './manifest.js';
 
 function tmpCfg() {
   const cfg = loadConfig({});
@@ -43,6 +43,39 @@ describe('manifest', () => {
     expect(readManifest(cfg, 'atlas', 'r').translator).toEqual({
       provider: 'aws-translate',
       model: null,
+    });
+  });
+});
+
+describe('mergeTranslatorMeta', () => {
+  it('records the configured terminology and unions the applied terms across locales', () => {
+    const record = mergeTranslatorMeta('aws-translate', null, [
+      {
+        terminology: 'aws-translate-glossary',
+        terminology_applied: [{ source_text: 'shard', target_text: 'partición' }],
+      },
+      {
+        terminology: 'aws-translate-glossary',
+        terminology_applied: [
+          { source_text: 'shard', target_text: 'partición' },
+          { source_text: 'query', target_text: 'query' },
+        ],
+      },
+    ]);
+    expect(record).toEqual({
+      provider: 'aws-translate',
+      model: null,
+      terminology: 'aws-translate-glossary',
+      appliedTerms: ['shard → partición', 'query → query'],
+    });
+  });
+
+  it('records no terminology when the backend reported none', () => {
+    expect(mergeTranslatorMeta('aws-translate', null, [{}, {}])).toEqual({
+      provider: 'aws-translate',
+      model: null,
+      terminology: null,
+      appliedTerms: [],
     });
   });
 });

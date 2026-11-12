@@ -15,7 +15,14 @@ export interface BuildResponseArgs {
   request: ResolvedRequest;
   segments: ProtectedSegment[];
   outcomes: OutputCheck[];
-  backendMeta: { provider: string; model: string };
+  backendMeta: {
+    provider: string;
+    model: string;
+    terminology?: string | undefined;
+    terminologyApplied?:
+      | Array<{ sourceText: string; targetText: string }>
+      | undefined;
+  };
   requestId?: string | undefined;
 }
 
@@ -71,6 +78,17 @@ export function buildResponse(args: BuildResponseArgs): TranslateResponse {
       content_type: request.content_type,
       partial_failure: Object.keys(errors).length > 0,
       request_id: args.requestId ?? `req_${randomUUID()}`,
+      ...(backendMeta.terminology !== undefined
+        ? { terminology: backendMeta.terminology }
+        : {}),
+      ...(backendMeta.terminologyApplied !== undefined
+        ? {
+            terminology_applied: backendMeta.terminologyApplied.map((term) => ({
+              source_text: term.sourceText,
+              target_text: term.targetText,
+            })),
+          }
+        : {}),
     },
   };
 }

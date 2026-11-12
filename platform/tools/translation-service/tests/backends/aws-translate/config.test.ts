@@ -77,4 +77,39 @@ describe("resolveAwsTranslateConfigFromEnv", () => {
     expect(config.region).toBe("ap-northeast-1");
     expect(config.concurrency).toBe(1);
   });
+
+  it("resolves AWS_TRANSLATE_TERMINOLOGY_NAME", () => {
+    const config = resolveAwsTranslateConfigFromEnv({
+      AWS_TRANSLATE_TERMINOLOGY_NAME: "aws-translate-glossary",
+    });
+    expect(config.terminologyName).toBe("aws-translate-glossary");
+  });
+
+  it("treats an empty AWS_TRANSLATE_TERMINOLOGY_NAME as unset", () => {
+    const config = resolveAwsTranslateConfigFromEnv({
+      AWS_TRANSLATE_TERMINOLOGY_NAME: "",
+    });
+    expect(config.terminologyName).toBeUndefined();
+  });
+
+  it("leaves terminologyName absent from an empty env", () => {
+    const config = resolveAwsTranslateConfigFromEnv({});
+    expect(config).not.toHaveProperty("terminologyName");
+  });
+
+  it("rejects an AWS_TRANSLATE_TERMINOLOGY_NAME that AWS would reject", () => {
+    expect(() =>
+      resolveAwsTranslateConfigFromEnv({
+        AWS_TRANSLATE_TERMINOLOGY_NAME: "has space",
+      }),
+    ).toThrow(/AWS_TRANSLATE_TERMINOLOGY_NAME/);
+  });
+
+  it("lets a terminologyName override take precedence over env", () => {
+    const config = resolveAwsTranslateConfigFromEnv(
+      { AWS_TRANSLATE_TERMINOLOGY_NAME: "from-env" },
+      { terminologyName: "from-override" },
+    );
+    expect(config.terminologyName).toBe("from-override");
+  });
 });

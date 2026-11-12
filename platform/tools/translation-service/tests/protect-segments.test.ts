@@ -1,6 +1,7 @@
 import { describe, expect, it } from "@jest/globals";
+import { normalize } from "../src/normalize.js";
 import { protectSegments } from "../src/protect-segments.js";
-import type { Segment } from "../src/types.js";
+import type { ResolvedRequest, Segment } from "../src/types.js";
 
 function makeSegment(overrides: Partial<Segment> = {}): Segment {
   return {
@@ -65,5 +66,31 @@ describe("protectSegments", () => {
       "See __PROT1__ for how __PROT2__ escapes terms",
     );
     expect(result?.placeholders).toEqual({ __PROT2__: "MongoDB" });
+  });
+});
+
+describe("protectSegments (through normalize)", () => {
+  function makeRequest(payload: Record<string, string>, terms: string[]): ResolvedRequest {
+    return {
+      source_locale: "en",
+      target_locale: "es",
+      content_type: "platform_strings",
+      payload,
+      non_translatable_terms: terms,
+      backend_preferences: { provider: "auto", model: "auto" },
+    };
+  }
+
+  it("protects a keep-verbatim plural whose singular is absent from the segment", () => {
+    const request = makeRequest({ compare: "compare strings" }, ["string"]);
+    const [segment] = protectSegments(normalize(request, ["string"]));
+    expect(segment?.protected_text).toBe("compare __PROT1__");
+    expect(segment?.placeholders).toEqual({ __PROT1__: "strings" });
+  });
+
+  it("still protects the singular when both forms are present", () => {
+    const request = makeRequest({ compare: "each string and strings" }, ["string"]);
+    const [segment] = protectSegments(normalize(request, ["string"]));
+    expect(segment?.placeholders).toEqual({ __PROT1__: "string", __PROT2__: "strings" });
   });
 });

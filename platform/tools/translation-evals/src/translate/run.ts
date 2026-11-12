@@ -2,9 +2,16 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { TranslateFn } from 'translation-mdx-adapter';
 import type { Config } from '../config.js';
-import { readManifest, runDir, setStage, setTranslator } from '../run/manifest.js';
+import {
+  mergeTranslatorMeta,
+  readManifest,
+  runDir,
+  setStage,
+  setTranslator,
+  type TranslatorMetaView,
+} from '../run/manifest.js';
 import { makeTranslateFn, translateMdxFile } from './batch.js';
-import { resolveBackendName } from './backend.js';
+import { backendHasModel, resolveBackendName } from './backend.js';
 import { translateSubstitutions, type SubValue } from './references.js';
 import { writeOverlay } from './overlay.js';
 
@@ -38,8 +45,13 @@ export async function translateRun(
   const dir = runDir(cfg, project, runId);
   const summary: TranslateSummary = { translated: 0, failures: {} };
 
+  const metas: TranslatorMetaView[] = [];
   for (const locale of targets) {
-    const fn = translateFn ?? makeTranslateFn(cfg, locale);
+    // A caller-supplied translateFn reports no meta, so the record honestly
+    // shows the terminology as unobserved rather than defaulting it.
+    const fn =
+      translateFn ??
+      makeTranslateFn(cfg, locale, undefined, (meta) => metas.push(meta));
     const files: Record<string, string> = {};
     const failures: TranslateFailure[] = [];
 
@@ -81,10 +93,19 @@ export async function translateRun(
     ? (JSON.parse(fs.readFileSync(failuresPath, 'utf8')) as Record<string, TranslateFailure[]>)
     : {};
   fs.writeFileSync(failuresPath, JSON.stringify({ ...previous, ...summary.failures }, null, 2));
-  setTranslator(cfg, project, runId, {
-    provider: resolveBackendName(cfg.translatorModel, cfg.translatorBackend),
-    model: cfg.translatorModel ?? null,
-  });
+  const provider = resolveBackendName(cfg.translatorModel, cfg.translatorBackend);
+  setTranslator(
+    cfg,
+    project,
+    runId,
+    mergeTranslatorMeta(
+      provider,
+      // A backend with no model records none, rather than the configured LLM
+      // model name — otherwise an AWS Translate run reads as a gpt-* run.
+      backendHasModel(provider) ? (cfg.translatorModel ?? null) : null,
+      metas,
+    ),
+  );
   setStage(cfg, project, runId, 'translate', 'done');
   return summary;
 }

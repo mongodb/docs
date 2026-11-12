@@ -9,6 +9,8 @@
  * occurs inside a larger word (`C` in `Connect`) is not that term.
  */
 
+import { pluralVariationsOf } from "./term-variations.js";
+
 /**
  * Characters that make an adjacent match a different word. `#` and `+` are
  * included so `C` does not match inside `C++`/`C#`; `-` is included so a
@@ -95,6 +97,20 @@ export function removeTerm(text: string, term: string, options: DetectOptions = 
 }
 
 /**
+ * A keep-verbatim term must survive in its plural too: `string` is listed, but
+ * `strings` would otherwise go out as an ordinary word and be translated.
+ *
+ * Every stage that narrows the term list must expand it the same way. The
+ * matcher below expands, but normalize() pre-filters terms with `detectTerms`
+ * and passes only the survivors on, so a term whose singular is absent from the
+ * text would be dropped before the matcher ever saw it. Not folded into
+ * `detectTerms` itself, which the term sheet also calls.
+ */
+export function expandKeepVerbatimTerms(terms: string[]): string[] {
+  return [...terms, ...terms.flatMap(pluralVariationsOf)];
+}
+
+/**
  * Replaces every occurrence of each protected term with a placeholder.
  *
  * Terms are replaced longest-first so an overlapping shorter term can't
@@ -109,19 +125,77 @@ export function removeTerm(text: string, term: string, options: DetectOptions = 
  * without touching pre-existing look-alike text.
  */
 export function protect(text: string, nonTranslatableTerms: string[]): ProtectionResult {
-  const present = detectTerms(text, nonTranslatableTerms).sort((a, b) => b.length - a.length);
+  const expanded = expandKeepVerbatimTerms(nonTranslatableTerms);
+  const present = detectTerms(text, expanded).sort((a, b) => b.length - a.length);
   const placeholders: Record<string, string> = {};
-  let result = text;
+  const tokenForTerm = new Map<string, string>();
+  const matches = findTermMatches(text, present);
+  let result = "";
+  let cursor = 0;
   let n = 1;
-  for (const term of present) {
-    if (!termPattern(term).test(result)) continue;
-    while (text.includes(`__PROT${n}__`)) n++;
-    const token = `__PROT${n}__`;
-    result = result.replace(termPattern(term), token);
+  let index = 0;
+
+  while (index < matches.length) {
+    // Terms that touch are protected as one placeholder. A run of adjacent
+    // terms (a wrap token immediately followed by the token it wraps) holds
+    // no words for the backend to anchor it to, so it may reorder or drop
+    // tokens inside the run; a single placeholder cannot be taken apart.
+    let end = matches[index]!.end;
+    const run = [matches[index]!.term];
+    let next = index + 1;
+    while (next < matches.length && matches[next]!.start === end) {
+      run.push(matches[next]!.term);
+      end = matches[next]!.end;
+      next++;
+    }
+
+    const term = run.join("");
+    let token = run.length === 1 ? tokenForTerm.get(term) : undefined;
+    if (token === undefined) {
+      while (text.includes(`__PROT${n}__`)) n++;
+      token = `__PROT${n}__`;
+      n++;
+      if (run.length === 1) tokenForTerm.set(term, token);
+    }
+
+    result += text.slice(cursor, matches[index]!.start) + token;
     placeholders[token] = term;
-    n++;
+    cursor = end;
+    index = next;
   }
-  return { text: result, placeholders };
+
+  return { text: result + text.slice(cursor), placeholders };
+}
+
+/** A non-overlapping occurrence of a protected term, earliest first. */
+interface TermMatch {
+  start: number;
+  end: number;
+  term: string;
+}
+
+/** Earliest-first, longest-at-a-position term occurrences. */
+function findTermMatches(text: string, terms: readonly string[]): TermMatch[] {
+  const matches: TermMatch[] = [];
+  let pos = 0;
+  while (pos < text.length) {
+    let best: TermMatch | null = null;
+    for (const term of terms) {
+      const pattern = termPattern(term);
+      pattern.lastIndex = pos;
+      const found = pattern.exec(text);
+      if (found === null) continue;
+      const start = found.index;
+      const end = start + found[0].length;
+      if (best === null || start < best.start || (start === best.start && end > best.end)) {
+        best = { start, end, term: found[0] };
+      }
+    }
+    if (best === null) break;
+    matches.push(best);
+    pos = best.end;
+  }
+  return matches;
 }
 
 /**

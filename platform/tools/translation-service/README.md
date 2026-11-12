@@ -324,3 +324,41 @@ SSO sessions expire. If the e2e output shows `CredentialsProviderError`
 or an expired-token error on every key, run `aws sso login --profile
 content-translation-service` again. An `AccessDeniedException` means the
 role you picked doesn't allow `translate:TranslateText`.
+
+### Custom terminology (glossary → AWS Translate)
+
+The aws-translate backend can apply the glossary's translatable terms
+through an AWS Translate custom terminology. Two pieces:
+
+1. Sync the terminology (creates or overwrites `aws-translate-glossary`
+   in the configured account/region):
+
+   ```sh
+   pnpm sync-terminology --dry-run   # print the generated CSV, no AWS calls
+   pnpm sync-terminology             # requires AWS credentials (SSO profile)
+   ```
+
+   The script converts `src/glossary.json` to AWS's CSV format (`en,es`
+   header, one row per term), skips terms it cannot represent (missing
+   translation, over 200 bytes, case-variant duplicates; multi-sense
+   terms keep their first sense), and stores the CSV's identity hash in
+   the terminology Description. Re-running with an unchanged glossary is
+   a no-op; after an overwrite, AWS documents up to 10 minutes before
+   translations see the new terminology. If AWS skips any terms at
+   import, the script prints the per-term warnings file and exits
+   non-zero.
+
+2. Enable it per environment in `.env`:
+
+   ```sh
+   AWS_TRANSLATE_TERMINOLOGY_NAME=aws-translate-glossary
+   ```
+
+   Every TranslateText request then carries
+   `TerminologyNames: ["aws-translate-glossary"]`, and the response meta
+   reports `terminology` (the configured name) plus `terminology_applied`
+   — the deduplicated list of terms AWS actually enforced on that
+   request's strings, possibly empty. Set this only when translating
+   into the terminology's target language — AWS does not document what
+   happens when the terminology does not cover the request's language
+   pair. Term application is not guaranteed: AWS decides per context.

@@ -4,11 +4,15 @@
  * are deliberately absent: the AWS SDK resolves them from its default
  * provider chain (env vars, AWS_PROFILE / SSO, instance roles).
  */
+import { isTerminologyName } from "../../terminology.js";
+
 export interface AwsTranslateConfig {
   region: string;
   timeoutMs: number;
   /** Maximum TranslateText calls in flight at once for a single batch. */
   concurrency: number;
+  /** Custom terminology applied to every TranslateText request, when set. */
+  terminologyName?: string | undefined;
 }
 
 export const AWS_TRANSLATE_PROVIDER = "aws-translate";
@@ -59,6 +63,22 @@ function resolveConcurrency(
   return value;
 }
 
+function resolveTerminologyName(
+  env: NodeJS.ProcessEnv,
+  override: string | undefined,
+): string | undefined {
+  const value = override ?? blankToUndefined(env.AWS_TRANSLATE_TERMINOLOGY_NAME);
+  if (value === undefined) {
+    return undefined;
+  }
+  if (!isTerminologyName(value)) {
+    throw new Error(
+      `AWS_TRANSLATE_TERMINOLOGY_NAME must be 1-256 characters matching ^([A-Za-z0-9-]_?)+$, got "${value}"`,
+    );
+  }
+  return value;
+}
+
 /**
  * Resolve config from env, with optional explicit `overrides` that take
  * precedence over env and defaults. AWS_TRANSLATE_REGION wins over the
@@ -75,9 +95,11 @@ export function resolveAwsTranslateConfigFromEnv(
     blankToUndefined(env.AWS_REGION) ??
     AWS_TRANSLATE_DEFAULTS.region;
 
+  const terminologyName = resolveTerminologyName(env, overrides.terminologyName);
   return {
     region,
     timeoutMs: resolveTimeoutMs(env, overrides.timeoutMs),
     concurrency: resolveConcurrency(env, overrides.concurrency),
+    ...(terminologyName !== undefined ? { terminologyName } : {}),
   };
 }

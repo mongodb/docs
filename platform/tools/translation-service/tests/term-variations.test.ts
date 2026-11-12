@@ -1,11 +1,29 @@
 import { describe, expect, it } from "@jest/globals";
-import { termMatches, variationsOf } from "../src/term-variations.js";
+import { pluralVariationsOf, termMatches, variationsOf } from "../src/term-variations.js";
 import type { TranslatableTerms } from "../src/glossary.js";
 
 /** One glossary entry with one Spanish option. */
 function entry(option: string) {
   return [{ definition: "d", translations: { es: option } }];
 }
+
+describe("pluralVariationsOf", () => {
+  it("returns the plural of a single-word term", () => {
+    expect(pluralVariationsOf("string")).toEqual(["strings"]);
+  });
+
+  it("returns the plural of the last word of a multi-word term", () => {
+    expect(pluralVariationsOf("replica set")).toEqual(["replica sets"]);
+  });
+
+  it("returns nothing for a term that is already plural", () => {
+    expect(pluralVariationsOf("strings")).toEqual([]);
+  });
+
+  it("returns nothing for an uncountable term", () => {
+    expect(pluralVariationsOf("data")).toEqual([]);
+  });
+});
 
 describe("variationsOf", () => {
   it("adds the plural of the last word", () => {

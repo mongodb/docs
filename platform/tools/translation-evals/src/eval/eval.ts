@@ -4,7 +4,7 @@ import { Eval } from 'braintrust';
 import { loadConfig } from '../config.js';
 import { DEFAULT_GLOSSARY, glossaryIdentity } from '@mongodb-docs/translation-service';
 import { readManifest, readManifestLatest, runDir } from '../run/manifest.js';
-import { resolveBackendName } from '../translate/backend.js';
+import { backendHasModel, resolveBackendName } from '../translate/backend.js';
 import type { DatasetRow } from '../types.js';
 import { createJudgeOptions } from './judge/backend.js';
 import { buildExperimentName, localesFromRows } from './experiment-name.js';
@@ -32,7 +32,9 @@ const rowsWithSegments = rows.filter((row) => (row.input.segments?.length ?? 0) 
 
 const experimentName = buildExperimentName({
   provider,
-  translatorModel: cfg.translatorModel,
+  // Name the engine that actually ran: AWS Translate has no model, so
+  // forwarding TRANSLATOR_MODEL would credit a model that never ran.
+  translatorModel: backendHasModel(provider) ? cfg.translatorModel : undefined,
   runId,
   override: cfg.experimentName,
 });
@@ -49,7 +51,9 @@ Eval(cfg.braintrustProject, {
     run: runId,
     locale: localesFromRows(rows).join(','),
     translator_provider: provider,
-    translator_model: cfg.translatorModel ?? null,
+    // A backend with no model records none — an AWS Translate run must not
+    // read as a gpt-* run here either.
+    translator_model: backendHasModel(provider) ? (cfg.translatorModel ?? null) : null,
     judge_model: judgeOpts.model,
     glossary: glossaryIdentity(glossary),
     pages: manifest.pages.length,

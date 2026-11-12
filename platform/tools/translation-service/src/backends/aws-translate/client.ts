@@ -15,12 +15,24 @@ export interface TranslateTextInput {
   text: string;
   sourceLanguageCode: string;
   targetLanguageCode: string;
+  terminologyName?: string | undefined;
+}
+
+/** A glossary term AWS enforced on one translated string. */
+export interface AppliedTerm {
+  sourceText: string;
+  targetText: string;
+}
+
+export interface TranslateTextResult {
+  translatedText: string;
+  appliedTerminologies: AppliedTerm[];
 }
 
 export type TranslateTextFn = (
   input: TranslateTextInput,
   signal: AbortSignal,
-) => Promise<string>;
+) => Promise<TranslateTextResult>;
 
 export interface TranslateTextSender {
   send(
@@ -28,6 +40,16 @@ export interface TranslateTextSender {
     options: { abortSignal: AbortSignal },
   ): Promise<{
     TranslatedText?: string | undefined;
+    AppliedTerminologies?:
+      | Array<{
+          Terms?:
+            | Array<{
+                SourceText?: string | undefined;
+                TargetText?: string | undefined;
+              }>
+            | undefined;
+        }>
+      | undefined;
     $metadata?: { requestId?: string | undefined };
   }>;
 }
@@ -41,6 +63,9 @@ export function createAwsTranslateText(
       Text: input.text,
       SourceLanguageCode: input.sourceLanguageCode,
       TargetLanguageCode: input.targetLanguageCode,
+      ...(input.terminologyName !== undefined
+        ? { TerminologyNames: [input.terminologyName] }
+        : {}),
     });
     const output = await client.send(command, { abortSignal: signal });
     if (typeof output.TranslatedText !== "string") {
@@ -55,6 +80,20 @@ export function createAwsTranslateText(
         ...(requestId !== undefined ? { requestId } : {}),
       });
     }
-    return output.TranslatedText;
+    const appliedTerminologies: AppliedTerm[] = [];
+    for (const applied of output.AppliedTerminologies ?? []) {
+      for (const term of applied.Terms ?? []) {
+        if (
+          typeof term.SourceText === "string" &&
+          typeof term.TargetText === "string"
+        ) {
+          appliedTerminologies.push({
+            sourceText: term.SourceText,
+            targetText: term.TargetText,
+          });
+        }
+      }
+    }
+    return { translatedText: output.TranslatedText, appliedTerminologies };
   };
 }

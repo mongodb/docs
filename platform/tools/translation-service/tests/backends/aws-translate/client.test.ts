@@ -8,6 +8,9 @@ import { BackendError } from "../../../src/backends/errors.js";
 
 function fakeSender(output: {
   TranslatedText?: string;
+  AppliedTerminologies?: Array<{
+    Terms?: Array<{ SourceText?: string; TargetText?: string }>;
+  }>;
   $metadata?: { requestId?: string };
 }): {
   sender: TranslateTextSender;
@@ -29,12 +32,12 @@ describe("createAwsTranslateText", () => {
     const translateText = createAwsTranslateText("us-east-1", sender);
     const signal = new AbortController().signal;
 
-    const text = await translateText(
+    const result = await translateText(
       { text: "Home", sourceLanguageCode: "en", targetLanguageCode: "es" },
       signal,
     );
 
-    expect(text).toBe("Inicio");
+    expect(result.translatedText).toBe("Inicio");
     expect(sent[0]?.command.input).toEqual({
       Text: "Home",
       SourceLanguageCode: "en",
@@ -69,5 +72,63 @@ describe("createAwsTranslateText", () => {
       message: "AWS Translate response had no TranslatedText (request id req-456)",
       requestId: "req-456",
     });
+  });
+
+  it("adds TerminologyNames when the input carries a terminology name", async () => {
+    const { sender, sent } = fakeSender({ TranslatedText: "hola" });
+    const translate = createAwsTranslateText("us-east-1", sender);
+    await translate(
+      {
+        text: "h",
+        sourceLanguageCode: "en",
+        targetLanguageCode: "es",
+        terminologyName: "aws-translate-glossary",
+      },
+      AbortSignal.timeout(1000),
+    );
+    expect(sent[0]?.command.input.TerminologyNames).toEqual(["aws-translate-glossary"]);
+  });
+
+  it("omits TerminologyNames when no terminology name is given", async () => {
+    const { sender, sent } = fakeSender({ TranslatedText: "hola" });
+    const translate = createAwsTranslateText("us-east-1", sender);
+    await translate(
+      { text: "h", sourceLanguageCode: "en", targetLanguageCode: "es" },
+      AbortSignal.timeout(1000),
+    );
+    expect(sent[0]?.command.input.TerminologyNames).toBeUndefined();
+  });
+
+  it("maps AppliedTerminologies into the result, dropping malformed entries", async () => {
+    const { sender } = fakeSender({
+      TranslatedText: "hola",
+      AppliedTerminologies: [
+        {
+          Terms: [
+            { SourceText: "shard", TargetText: "partición" },
+            { SourceText: "cluster" },
+          ],
+        },
+      ],
+    });
+    const translate = createAwsTranslateText("us-east-1", sender);
+    const result = await translate(
+      { text: "h", sourceLanguageCode: "en", targetLanguageCode: "es" },
+      AbortSignal.timeout(1000),
+    );
+    expect(result.translatedText).toBe("hola");
+    expect(result.appliedTerminologies).toEqual([
+      { sourceText: "shard", targetText: "partición" },
+    ]);
+  });
+
+  it("returns an empty appliedTerminologies list when AWS reports none", async () => {
+    const { sender } = fakeSender({ TranslatedText: "hola" });
+    const translate = createAwsTranslateText("us-east-1", sender);
+    const result = await translate(
+      { text: "h", sourceLanguageCode: "en", targetLanguageCode: "es" },
+      AbortSignal.timeout(1000),
+    );
+    expect(result.appliedTerminologies).toEqual([]);
   });
 });

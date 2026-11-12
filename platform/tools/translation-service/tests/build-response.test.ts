@@ -141,4 +141,33 @@ describe("buildResponse", () => {
     });
     expect(overridden.meta.request_id).toBe("req_fixed");
   });
+
+  it("passes backend terminology and applied terms through to response meta when present", () => {
+    const response = buildResponse({
+      request,
+      segments: [],
+      outcomes: [],
+      backendMeta: {
+        provider: "aws-translate",
+        model: "translate-text",
+        terminology: "aws-translate-glossary",
+        terminologyApplied: [{ sourceText: "shard", targetText: "partición" }],
+      },
+    });
+    expect(response.meta.terminology).toBe("aws-translate-glossary");
+    expect(response.meta.terminology_applied).toEqual([
+      { source_text: "shard", target_text: "partición" },
+    ]);
+  });
+
+  it("leaves terminology fields absent from response meta when the backend reported none", () => {
+    const response = buildResponse({
+      request,
+      segments: [],
+      outcomes: [],
+      backendMeta: { provider: "aws-translate", model: "translate-text" },
+    });
+    expect(response.meta).not.toHaveProperty("terminology");
+    expect(response.meta).not.toHaveProperty("terminology_applied");
+  });
 });

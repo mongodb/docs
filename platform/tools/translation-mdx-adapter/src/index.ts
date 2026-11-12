@@ -11,7 +11,7 @@
  * object's manifest holds references into the retained in-memory AST.
  */
 export { extract } from './extract.js';
-export { reconstruct, validateTranslation, ReconstructionError } from './reconstruct.js';
+export { reconstruct, validateTranslation, ReconstructionError, RebuildError } from './reconstruct.js';
 export { translateMdx } from './translate-mdx.js';
 export type {
   ContentObject,

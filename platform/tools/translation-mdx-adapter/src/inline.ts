@@ -1,7 +1,12 @@
 import type { PhrasingContent } from 'mdast';
 import type { PlaceholderRecord } from './types.js';
-import { isWrapPlaceholder, isAttrWrapPlaceholder } from './types.js';
+import {
+  isWrapPlaceholder,
+  isWrapTextPlaceholder,
+  isAttrWrapPlaceholder,
+} from './types.js';
 import { ruleFor } from './component-registry.js';
+import { RebuildError } from './validate.js';
 
 /**
  * Node types that wrap translatable inline children. Restoration refills
@@ -92,6 +97,15 @@ export function selfToken(n: number): string {
 }
 
 /**
+ * Opaque, collision-resistant self-closing token for a wrap-text placeholder
+ * `n` — a wrapper whose only child is translatable text, whose text travels as
+ * its own payload entry rather than between an open/close pair.
+ */
+export function wrapTextToken(n: number): string {
+  return `${PUA_START}W${n}${PUA_END}`;
+}
+
+/**
  * Turn a block's inline (phrasing) children into a single translatable
  * string. Text nodes are emitted verbatim; wrap nodes (emphasis, strong,
  * link, delete, and any inline JSX component whose component-registry rule
@@ -101,13 +115,23 @@ export function selfToken(n: number): string {
  * replaced by a single opaque self token. A single counter, incremented for
  * every placeholder in document order, numbers the tokens.
  */
-export function serializeInline(children: PhrasingContent[]): {
+export function serializeInline(
+  children: PhrasingContent[],
+  opts: { splitTextWraps?: boolean } = {},
+): {
   text: string;
   placeholders: PlaceholderRecord[];
   tokens: string[];
+  inners: { id: number; text: string }[];
 } {
+  // Default: a text-only wrapper keeps its text inside the sentence, as an
+  // open/close pair, so the backend translates it in context. With
+  // `splitTextWraps` the text travels as its own entry instead — the caller's
+  // fallback for a pair the backend reordered, which the rebuild cannot pair.
+  const splitTextWraps = opts.splitTextWraps === true;
   const placeholders: PlaceholderRecord[] = [];
   const tokens: string[] = [];
+  const inners: { id: number; text: string }[] = [];
   let n = 0;
 
   function serializeOne(node: PhrasingContent): string {
@@ -116,24 +140,52 @@ export function serializeInline(children: PhrasingContent[]): {
     }
 
     if (isWrapNode(node)) {
+      const innerChildren = (node as { children: PhrasingContent[] }).children;
+      const shallow = { ...node, children: [] } as unknown as PhrasingContent;
+      const only = innerChildren.length === 1 ? innerChildren[0] : undefined;
+      if (splitTextWraps && only !== undefined && only.type === 'text') {
+        // Text-only wrapper: one token, its text translated as its own entry.
+        // The record keeps the original children so a caller that restores
+        // without a translated inner text still round-trips faithfully.
+        const token = wrapTextToken(n);
+        n++;
+        const id = inners.length;
+        inners.push({ id, text: only.value });
+        placeholders.push({ kind: 'wrap-text', token, node, innerId: id, text: only.value });
+        tokens.push(token);
+        return token;
+      }
       const { open, close } = wrapTokens(n);
       n++;
-      const shallow = { ...node, children: [] } as unknown as PhrasingContent;
       placeholders.push({ kind: 'wrap', open, close, node: shallow });
       tokens.push(open, close);
-      const inner = (node as { children: PhrasingContent[] }).children
-        .map(serializeOne)
-        .join('');
+      const inner = innerChildren.map(serializeOne).join('');
       return `${open}${inner}${close}`;
     }
 
     const attrProp = attrTextProp(node);
     if (attrProp) {
-      const { open, close } = wrapTokens(n);
-      n++;
       const shallow = { ...node } as unknown as PhrasingContent;
       const attrs = (shallow as unknown as { attributes?: { type: string; name: string; value?: unknown }[] }).attributes;
       const innerText = attrs?.find((a) => a.name === attrProp)?.value as string;
+      if (splitTextWraps) {
+        const token = wrapTextToken(n);
+        n++;
+        const id = inners.length;
+        inners.push({ id, text: innerText });
+        placeholders.push({
+          kind: 'wrap-text',
+          token,
+          node: shallow,
+          innerId: id,
+          text: innerText,
+          attr: attrProp,
+        });
+        tokens.push(token);
+        return token;
+      }
+      const { open, close } = wrapTokens(n);
+      n++;
       placeholders.push({ kind: 'attr-wrap', open, close, node: shallow, attr: attrProp });
       tokens.push(open, close);
       return `${open}${innerText}${close}`;
@@ -147,11 +199,11 @@ export function serializeInline(children: PhrasingContent[]): {
   }
 
   const text = children.map(serializeOne).join('');
-  return { text, placeholders, tokens };
+  return { text, placeholders, tokens, inners };
 }
 
 interface TokenEntry {
-  role: 'open' | 'close' | 'self';
+  role: 'open' | 'close' | 'self' | 'wrap-text';
   record: PlaceholderRecord;
 }
 
@@ -166,6 +218,9 @@ interface TokenEntry {
 export function restoreInline(
   text: string,
   placeholders: PlaceholderRecord[],
+  resolveInnerText?: (
+    record: Extract<PlaceholderRecord, { kind: 'wrap-text' }>,
+  ) => string | undefined,
 ): PhrasingContent[] {
   const lookup = new Map<string, TokenEntry>();
   const expectedTokens = new Set<string>();
@@ -175,6 +230,9 @@ export function restoreInline(
       lookup.set(record.close, { role: 'close', record });
       expectedTokens.add(record.open);
       expectedTokens.add(record.close);
+    } else if (isWrapTextPlaceholder(record)) {
+      lookup.set(record.token, { role: 'wrap-text', record });
+      expectedTokens.add(record.token);
     } else {
       lookup.set(record.token, { role: 'self', record });
       expectedTokens.add(record.token);
@@ -215,6 +273,25 @@ export function restoreInline(
       }
 
       const entry = lookup.get(next.token)!;
+      if (entry.role === 'wrap-text' && isWrapTextPlaceholder(entry.record)) {
+        const record = entry.record;
+        const innerText = resolveInnerText?.(record) ?? record.text;
+        const clone = structuredClone(record.node) as PhrasingContent & {
+          children?: PhrasingContent[];
+          attributes?: { type: string; name: string; value?: unknown }[];
+        };
+        if (record.attr !== undefined) {
+          const attr = clone.attributes?.find((a) => a.name === record.attr);
+          if (attr) attr.value = innerText;
+        } else {
+          clone.children = [{ type: 'text', value: innerText }];
+        }
+        nodes.push(clone);
+        consumed.add(record.token);
+        pos = next.index + next.token.length;
+        continue;
+      }
+
       if (entry.role === 'self') {
         nodes.push(structuredClone(entry.record.node));
         consumed.add(next.token);
@@ -227,7 +304,7 @@ export function restoreInline(
           const wrapRecord = entry.record;
           const closeIndex = segment.indexOf(wrapRecord.close, next.index + next.token.length);
           if (closeIndex === -1) {
-            throw new Error(
+            throw new RebuildError(
               `restoreInline: missing close token ${wrapRecord.close} for open token ${wrapRecord.open}`,
             );
           }
@@ -247,7 +324,7 @@ export function restoreInline(
           const awRecord = entry.record;
           const closeIndex = segment.indexOf(awRecord.close, next.index + next.token.length);
           if (closeIndex === -1) {
-            throw new Error(
+            throw new RebuildError(
               `restoreInline: missing close token ${awRecord.close} for open token ${awRecord.open}`,
             );
           }
@@ -267,7 +344,7 @@ export function restoreInline(
 
       // entry.role === 'close' encountered without a matching open in this
       // segment; treat it as an orphan and surface it as an error.
-      throw new Error(`restoreInline: unexpected close token ${next.token}`);
+      throw new RebuildError(`restoreInline: unexpected close token ${next.token}`);
     }
 
     return nodes;
@@ -277,7 +354,7 @@ export function restoreInline(
 
   for (const token of expectedTokens) {
     if (!consumed.has(token)) {
-      throw new Error(`restoreInline: expected token ${token} was not found in the translated text`);
+      throw new RebuildError(`restoreInline: expected token ${token} was not found in the translated text`);
     }
   }
 

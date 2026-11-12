@@ -52,11 +52,53 @@ export function setStage(
   writeManifest(cfg, project, runId, m);
 }
 
+/** What one backend response reported about the custom terminology. */
+export interface TranslatorMetaView {
+  terminology?: string | undefined;
+  terminology_applied?:
+    | ReadonlyArray<{ source_text: string; target_text: string }>
+    | undefined;
+}
+
+/**
+ * One translator record: the configured terminology plus the term pairs the
+ * backend reported enforcing. The terminology is configuration, so the first
+ * non-null wins; the applied terms are output, so they union across locales
+ * rather than letting whichever locale ran last overwrite the others.
+ */
+export function mergeTranslatorMeta(
+  provider: string,
+  model: string | null,
+  metas: readonly TranslatorMetaView[],
+): {
+  provider: string;
+  model: string | null;
+  terminology: string | null;
+  appliedTerms: string[];
+} {
+  let terminology: string | null = null;
+  const applied = new Set<string>();
+  for (const meta of metas) {
+    if (terminology === null && meta.terminology !== undefined) {
+      terminology = meta.terminology;
+    }
+    for (const term of meta.terminology_applied ?? []) {
+      applied.add(`${term.source_text} → ${term.target_text}`);
+    }
+  }
+  return { provider, model, terminology, appliedTerms: [...applied] };
+}
+
 export function setTranslator(
   cfg: Config,
   project: string,
   runId: string,
-  translator: { provider: string; model: string | null },
+  translator: {
+    provider: string;
+    model: string | null;
+    terminology?: string | null;
+    appliedTerms?: string[];
+  },
 ): void {
   const m = readManifest(cfg, project, runId);
   m.translator = translator;

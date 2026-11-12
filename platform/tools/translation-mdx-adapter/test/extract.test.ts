@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { extract } from '../src/extract.js';
-import { wrapTokens, selfToken } from '../src/inline.js';
+import { wrapTokens, selfToken, wrapTextToken } from '../src/inline.js';
 
 const SOURCE = `---
 fileId: intro.txt
@@ -27,6 +27,7 @@ const x = 1;
 
 describe('extract', () => {
   const content = extract(SOURCE);
+  const splitContent = extract(SOURCE, { splitTextWraps: true });
 
   it('extracts allowlisted frontmatter (description only; fileId excluded)', () => {
     expect(content.payload['frontmatter.description']).toBe('Learn about the Stable API.');
@@ -37,7 +38,18 @@ describe('extract', () => {
     expect(content.payload['heading[0]']).toBe('Introduction');
     const { open, close } = wrapTokens(0);
     const s1 = selfToken(1);
+    // The pair keeps the link's label inside its sentence, so the backend
+    // translates "See the guide with mongosh." as one string.
     expect(content.payload['paragraph[0]']).toBe(`See the ${open}guide${close} with ${s1}.`);
+    expect(content.payload['paragraph[0]#w0']).toBeUndefined();
+  });
+
+  it('travels a text-only wrapper label as its own inner payload entry with splitTextWraps', () => {
+    const w0 = wrapTextToken(0);
+    const s1 = selfToken(1);
+    expect(splitContent.payload['paragraph[0]']).toBe(`See the ${w0} with ${s1}.`);
+    // The link's label travels as its own inner payload entry.
+    expect(splitContent.payload['paragraph[0]#w0']).toBe('guide');
   });
 
   it('recurses into container components', () => {
@@ -69,10 +81,27 @@ describe('extract', () => {
     expect(content.non_translatable_terms).toContain(selfToken(1));
   });
 
-  it('has one manifest entry per payload key', () => {
-    expect(content.manifest.entries.size).toBe(Object.keys(content.payload).length);
-    for (const key of Object.keys(content.payload)) {
+  it('has one manifest entry per payload key, with no inner entries in the pair form', () => {
+    const blockKeys = Object.keys(content.payload).filter((k) => !/#w\d+$/.test(k));
+    const innerKeys = Object.keys(content.payload).filter((k) => /#w\d+$/.test(k));
+    expect(innerKeys).toEqual([]);
+    expect(blockKeys.length).toBeGreaterThan(0);
+    expect(content.manifest.entries.size).toBe(blockKeys.length);
+    for (const key of blockKeys) {
       expect(content.manifest.entries.has(key)).toBe(true);
+    }
+  });
+
+  it('has one manifest entry per payload key, excluding wrap-text inner entries, with splitTextWraps', () => {
+    const blockKeys = Object.keys(splitContent.payload).filter((k) => !/#w\d+$/.test(k));
+    const innerKeys = Object.keys(splitContent.payload).filter((k) => /#w\d+$/.test(k));
+    expect(innerKeys).toEqual(['paragraph[0]#w0']);
+    expect(splitContent.manifest.entries.size).toBe(blockKeys.length);
+    for (const key of blockKeys) {
+      expect(splitContent.manifest.entries.has(key)).toBe(true);
+    }
+    for (const key of innerKeys) {
+      expect(splitContent.manifest.entries.has(key)).toBe(false);
     }
   });
 });
@@ -100,12 +129,19 @@ const INCLUDE_REPLACEMENT_SOURCE = `# Quick Start
 
 describe('extract — replacements inside includes', () => {
   const content = extract(INCLUDE_REPLACEMENT_SOURCE);
+  const splitContent = extract(INCLUDE_REPLACEMENT_SOURCE, { splitTextWraps: true });
 
   it('extracts replacement body text, which renders inside the included file', () => {
     const { open, close } = wrapTokens(0);
     expect(content.payload['include[0].replacement[0].paragraph[0]']).toBe(
       `${open}MongoDB Search${close}`,
     );
+  });
+
+  it('travels replacement body text as an inner entry with splitTextWraps', () => {
+    const w0 = wrapTextToken(0);
+    expect(splitContent.payload['include[0].replacement[0].paragraph[0]']).toBe(w0);
+    expect(splitContent.payload['include[0].replacement[0].paragraph[0]#w0']).toBe('MongoDB Search');
   });
 
   it('placeholders code literals inside a replacement body', () => {
@@ -117,10 +153,14 @@ describe('extract — replacements inside includes', () => {
 
   it('keeps inline components in a replacement body while exposing their visible text', () => {
     const outer = wrapTokens(0);
-    const label = wrapTokens(2);
+    const guilabel = wrapTokens(2);
     expect(content.payload['include[0].replacement[2].paragraph[0]']).toBe(
-      `${outer.open}${selfToken(1)} ${label.open}Organizations${label.close} menu${outer.close}`,
+      `${outer.open}${selfToken(1)} ${guilabel.open}Organizations${guilabel.close} menu${outer.close}`,
     );
+  });
+
+  it('exposes a replacement component visible text as an inner entry with splitTextWraps', () => {
+    expect(splitContent.payload['include[0].replacement[2].paragraph[0]#w0']).toBe('Organizations');
   });
 
   it('extracts no text for a pass-through replacement holding only a Reference', () => {
@@ -133,10 +173,19 @@ describe('extract — replacements inside includes', () => {
     expect(content.payload['include[0].replacement[0].@name']).toBeUndefined();
   });
 
-  it('has one manifest entry per payload key', () => {
-    expect(content.manifest.entries.size).toBe(Object.keys(content.payload).length);
-    for (const key of Object.keys(content.payload)) {
-      expect(content.manifest.entries.has(key)).toBe(true);
+  it('has one manifest entry per payload key, excluding wrap-text inner entries, with splitTextWraps', () => {
+    const blockKeys = Object.keys(splitContent.payload).filter((k) => !/#w\d+$/.test(k));
+    const innerKeys = Object.keys(splitContent.payload).filter((k) => /#w\d+$/.test(k));
+    expect(innerKeys).toEqual([
+      'include[0].replacement[0].paragraph[0]#w0',
+      'include[0].replacement[2].paragraph[0]#w0',
+    ]);
+    expect(splitContent.manifest.entries.size).toBe(blockKeys.length);
+    for (const key of blockKeys) {
+      expect(splitContent.manifest.entries.has(key)).toBe(true);
+    }
+    for (const key of innerKeys) {
+      expect(splitContent.manifest.entries.has(key)).toBe(false);
     }
   });
 });
@@ -153,13 +202,24 @@ The <Abbr tooltip="Application Programming Interface">API</Abbr> is useful.
 
 describe('extract — inline JSX translatable props', () => {
   const content = extract(INLINE_REF_SOURCE);
+  const splitContent = extract(INLINE_REF_SOURCE, { splitTextWraps: true });
 
-  it('inlines the Reference title into the block string (not a separate prop entry)', () => {
-    // The title is NOT a separate payload entry — it travels inside the
-    // block string so the translator sees it in context.
+  it('inlines the Reference title between an attr-wrap pair (not a separate prop entry)', () => {
+    // The title is NOT a separate prop payload entry — it is inlined into the
+    // block string between an open/close pair so the translator sees it in
+    // context.
     expect(content.payload['paragraph[0].reference[0].@title']).toBeUndefined();
-    // The block string contains the title text between wrap tokens.
-    expect(content.payload['paragraph[0]']).toContain('Ops Manager Application Settings.');
+    const { open, close } = wrapTokens(0);
+    expect(content.payload['paragraph[0]']).toBe(
+      `See the ${open}Ops Manager Application Settings.${close} page.`,
+    );
+  });
+
+  it('extracts the Reference title as an inner entry with splitTextWraps (not a separate prop entry)', () => {
+    expect(splitContent.payload['paragraph[0].reference[0].@title']).toBeUndefined();
+    const w0 = wrapTextToken(0);
+    expect(splitContent.payload['paragraph[0]']).toBe(`See the ${w0} page.`);
+    expect(splitContent.payload['paragraph[0]#w0']).toBe('Ops Manager Application Settings.');
   });
 
   it('does not extract non-translatable attributes from inline Reference', () => {
@@ -181,10 +241,16 @@ describe('extract — inline JSX translatable props', () => {
     expect(content.payload['paragraph[0]']).toContain('page.');
   });
 
-  it('has one manifest entry per payload key', () => {
-    expect(content.manifest.entries.size).toBe(Object.keys(content.payload).length);
-    for (const key of Object.keys(content.payload)) {
-      expect(content.manifest.entries.has(key)).toBe(true);
+  it('has one manifest entry per payload key, excluding wrap-text inner entries, with splitTextWraps', () => {
+    const blockKeys = Object.keys(splitContent.payload).filter((k) => !/#w\d+$/.test(k));
+    const innerKeys = Object.keys(splitContent.payload).filter((k) => /#w\d+$/.test(k));
+    expect(innerKeys).toEqual(['paragraph[0]#w0']);
+    expect(splitContent.manifest.entries.size).toBe(blockKeys.length);
+    for (const key of blockKeys) {
+      expect(splitContent.manifest.entries.has(key)).toBe(true);
+    }
+    for (const key of innerKeys) {
+      expect(splitContent.manifest.entries.has(key)).toBe(false);
     }
   });
 });
@@ -196,6 +262,7 @@ const TARGET_DEFINITION_SOURCE = `<Target id="mongodb-query-op.-regex" name="que
 
 describe('extract — <Target> definition bodies', () => {
   const content = extract(TARGET_DEFINITION_SOURCE);
+  const splitContent = extract(TARGET_DEFINITION_SOURCE, { splitTextWraps: true });
 
   it('extracts the visible prose inside a <Target> (definition) block', () => {
     // RST definition and target directives (`.. query::`, `.. _label:`) become
@@ -211,7 +278,16 @@ describe('extract — <Target> definition bodies', () => {
     expect(keys.some((k) => /\.@(id|name|term)$/.test(k))).toBe(false);
   });
 
-  it('has one manifest entry per payload key', () => {
-    expect(content.manifest.entries.size).toBe(Object.keys(content.payload).length);
+  it('has one manifest entry per payload key, excluding wrap-text inner entries, with splitTextWraps', () => {
+    const blockKeys = Object.keys(splitContent.payload).filter((k) => !/#w\d+$/.test(k));
+    const innerKeys = Object.keys(splitContent.payload).filter((k) => /#w\d+$/.test(k));
+    expect(innerKeys.length).toBeGreaterThan(0);
+    expect(splitContent.manifest.entries.size).toBe(blockKeys.length);
+    for (const key of blockKeys) {
+      expect(splitContent.manifest.entries.has(key)).toBe(true);
+    }
+    for (const key of innerKeys) {
+      expect(splitContent.manifest.entries.has(key)).toBe(false);
+    }
   });
 });

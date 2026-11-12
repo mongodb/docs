@@ -95,9 +95,13 @@ describe('translateRun', () => {
     cfg.translatorBackend = BackendName.AwsTranslate;
     cfg.translatorModel = undefined;
     await translateRun(cfg, 'atlas', 'r', ['es'], echo);
+    // A caller-supplied translateFn reports no meta, so the terminology reads
+    // as unobserved (null / empty) rather than defaulting to a guess.
     expect(readManifest(cfg, 'atlas', 'r').translator).toEqual({
       provider: 'aws-translate',
       model: null,
+      terminology: null,
+      appliedTerms: [],
     });
   });
 });

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { BackendName } from '@mongodb-docs/translation-service';
-import { resolveBackendName, selectBackend } from './backend.js';
+import { backendHasModel, resolveBackendName, selectBackend } from './backend.js';
 
 // selectBackend builds a real backend from process.env, and both factories
 // require the gateway key. Provide one so the test never depends on the
@@ -89,6 +89,17 @@ describe('resolveBackendName', () => {
   it('lets an explicit backend override the model family', () => {
     expect(resolveBackendName('claude-sonnet-5-5', BackendName.OpenAI)).toBe('openai');
     expect(resolveBackendName('gpt-5.5', BackendName.AwsTranslate)).toBe('aws-translate');
+  });
+});
+
+describe('backendHasModel', () => {
+  it('is true only for the backends that translate with a named model', () => {
+    expect(backendHasModel(BackendName.OpenAI)).toBe(true);
+    expect(backendHasModel(BackendName.Anthropic)).toBe(true);
+    // AWS Translate and the stub have no model, so a run must not be named
+    // after TRANSLATOR_MODEL when one of these ran.
+    expect(backendHasModel(BackendName.AwsTranslate)).toBe(false);
+    expect(backendHasModel(BackendName.Stub)).toBe(false);
   });
 });
 

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { extract } from '../src/extract.js';
+import { wrapTokens } from '../src/inline.js';
 import { parseMdx, stringifyMdx } from '../src/mdast.js';
 import { translateMdx } from '../src/translate-mdx.js';
 import { ReconstructionError } from '../src/reconstruct.js';
@@ -59,6 +60,42 @@ describe('translateMdx', () => {
     expect(Object.keys(recorded.payload!).sort()).toEqual(
       Object.keys(expected.payload).sort(),
     );
+  });
+
+  it('re-translates with the wrapped text split out when a pair cannot be rebuilt', async () => {
+    // A backend that reorders an open/close pair (AWS Translate does this when
+    // Spanish word order moves the wrapped phrase) leaves the rebuild unable
+    // to pair the tokens. The fallback re-sends the file with the wrapped text
+    // as its own entry, where there is no pair to invert.
+    const { open, close } = wrapTokens(0);
+    const swap = (value: string, a: string, b: string) =>
+      value.split(a).join('\u0000').split(b).join(a).split('\u0000').join(b);
+    let calls = 0;
+    const translate = async (payload: Record<string, string>) => {
+      calls++;
+      if (calls === 1) {
+        return Object.fromEntries(
+          Object.entries(payload).map(([key, value]) => [key, swap(value, open, close)]),
+        );
+      }
+      return { ...payload };
+    };
+
+    const out = await translateMdx('Read the [guide](/g) now.\n', translate);
+
+    expect(calls).toBe(2);
+    expect(out).toContain('guide');
+  });
+
+  it('does not re-send the file when a key fails outright', async () => {
+    let calls = 0;
+    const translate = async (payload: Record<string, string>) => {
+      calls++;
+      return { ...payload, 'heading[0]': null };
+    };
+
+    await expect(translateMdx(SOURCE, translate as never)).rejects.toThrow(/heading\[0\]/);
+    expect(calls).toBe(1);
   });
 
   it('propagates a reconstruction failure when a key is dropped or replaced with null', async () => {

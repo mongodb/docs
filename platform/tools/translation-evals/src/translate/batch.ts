@@ -1,5 +1,9 @@
 import { translateMdx, type TranslateFn } from 'translation-mdx-adapter';
-import { translate, type TranslationBackend } from '@mongodb-docs/translation-service';
+import {
+  translate,
+  type TranslateResponse,
+  type TranslationBackend,
+} from '@mongodb-docs/translation-service';
 import type { Config } from '../config.js';
 import { selectBackend } from './backend.js';
 
@@ -7,6 +11,7 @@ export function makeTranslateFn(
   cfg: Config,
   targetLocale: string,
   backend: TranslationBackend = selectBackend(cfg.translatorModel, cfg.translatorBackend),
+  onMeta?: (meta: TranslateResponse['meta']) => void,
 ): TranslateFn {
   return async (payload, nonTranslatableTerms) => {
     const res = await translate(
@@ -19,6 +24,9 @@ export function makeTranslateFn(
       },
       { backend },
     );
+    // Reported before the failure check, so the run's configured terminology
+    // stays auditable even when some keys failed.
+    onMeta?.(res.meta);
     const failed = Object.entries(res.errors);
     if (failed.length > 0) {
       const [key, error] = failed[0]!;

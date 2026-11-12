@@ -22,7 +22,10 @@ import {
 } from "../dist/index.js";
 
 const { values: args } = parseArgs({
-  options: { backend: { type: "string", default: "openai" } },
+  options: {
+    backend: { type: "string", default: "openai" },
+    target: { type: "string", default: "fr" },
+  },
 });
 
 if (!isBackendName(args.backend)) {
@@ -48,7 +51,7 @@ try {
 
 const request = {
   source_locale: "en",
-  target_locale: "fr",
+  target_locale: args.target,
   payload: {
     "actions.ask_mongodb_ai": "Ask MongoDB AI",
     "actions.copy_page": "Copy page",
@@ -108,6 +111,20 @@ if (protectedValue && !protectedValue.includes("MongoDB")) {
   problems.push(
     `Protected term "MongoDB" missing from "actions.ask_mongodb_ai": ${protectedValue}`,
   );
+}
+
+const expectedTerminology = process.env.AWS_TRANSLATE_TERMINOLOGY_NAME;
+if (args.backend === "aws-translate" && expectedTerminology) {
+  if (response.meta?.terminology !== expectedTerminology) {
+    problems.push(
+      `meta.terminology is ${JSON.stringify(response.meta?.terminology)}, expected ${JSON.stringify(expectedTerminology)}`,
+    );
+  }
+  if (!Array.isArray(response.meta?.terminology_applied)) {
+    problems.push(
+      `meta.terminology_applied is ${JSON.stringify(response.meta?.terminology_applied)}, expected an array`,
+    );
+  }
 }
 
 if (problems.length > 0) {

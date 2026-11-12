@@ -3,6 +3,8 @@
  */
 export * from "./types.js";
 export * from "./glossary.js";
+export * from "./terminology.js";
+export * from "./terminology-sync.js";
 export * from "./term-sheet.js";
 export * from "./term-variations.js";
 export * from "./excerpt.js";
