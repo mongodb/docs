@@ -1,4 +1,4 @@
-Devin AI supports the following setup methods:
+Devin Cloud supports the following setup methods:
 
 .. include:: /includes/get-started/plugin-atlas-managed.rst
 
@@ -18,7 +18,7 @@ Devin AI supports the following setup methods:
    .. procedure::
       :style: normal
 
-      .. step:: Open a Devin AI session.
+      .. step:: Open a Devin Cloud session.
 
       .. step:: Install the plugin.
 
@@ -54,4 +54,4 @@ Devin AI supports the following setup methods:
 
 .. note::
    
-   Devin AI does not support {+self-managed-mdb-title+}.   
+   Devin Cloud does not support {+self-managed-mdb-title+}.
