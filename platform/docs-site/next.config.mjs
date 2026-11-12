@@ -2,6 +2,7 @@ import { mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { markdownForceRedirects } from './src/redirects/markdown-export.ts';
 import { withMicrofrontends } from '@vercel/microfrontends/next/config';
 
 const IS_VERCEL_BUILD = process.env.VERCEL === '1';
@@ -21,9 +22,13 @@ const allRedirects = readdirSync(redirectsDir)
 // *-redirects.json sources/destinations are absolute cross-docset `/docs/...`
 // paths, so opt each out of basePath prefixing (else Next doubles it to
 // `/docs/<prefix>/docs/...`).
-const forceRedirects = allRedirects
+const htmlForceRedirects = allRedirects
   .filter((r) => r.force === true)
   .map(({ force, ...rest }) => ({ ...rest, basePath: false }));
+// `.md` copies go first: a `:path*` source with a fixed destination
+// (`/docs/kubernetes-operator/:path*` → `/docs/kubernetes/current/`) also
+// matches `.md` URLs and would send them to the HTML page.
+const forceRedirects = [...markdownForceRedirects(htmlForceRedirects), ...htmlForceRedirects];
 
 // Per-project basePath = `/<rawPrefix>` from dir-name-to-prefix.json (which
 // already includes a leading `docs/`; landing/manual → `docs`; unset DOCS_PROJECT

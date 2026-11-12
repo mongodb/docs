@@ -28,6 +28,8 @@ The app uses a two-tier strategy. Whether a redirect fires depends on whether th
 
 At startup, Next.js loads all `*-redirects.json` files and registers entries with `force: true` via the `async redirects()` config. These fire before Next.js checks whether a page exists.
 
+Each force entry also gets a generated `.md` copy (`markdownForceRedirects`): `/docs/atlas/cli/` → `/docs/atlas/cli/current/` becomes `/docs/atlas/cli.md{/}?` → `/docs/atlas/cli/current.md`. The copies are registered first so a `:path*` source with a fixed destination doesn't send `.md` URLs to its HTML page.
+
 ### Tier 2 — Soft redirects
 
 **Files:** `redirect-utils.ts`, `soft-redirects.ts`, `netlify/edge-functions/soft-redirects.ts`, `src/app/[[...path]]/page.tsx`
@@ -76,6 +78,23 @@ Matchers are pre-compiled on startup and tested in array order; first match wins
 - `301` — permanent (stable renames)
 - `302` — temporary
 
+### Markdown (`.md`) URLs
+
+Every redirect also applies to the page's `.md` export. Do not add `.md`
+entries to `*-redirects.json`; they are derived from the HTML entries.
+
+- **Soft:** the edge function maps a `.md` request back to its page path
+  (`publicDocsPath`: `.md`, `.md/`, `/index.md`), matches it, then converts
+  the destination with `markdownRedirectDestination`.
+- **Force:** the generated `.md` copies described in Tier 1.
+
+`markdownRedirectDestination` appends `.md` (keeping any `?query` or
+`#fragment`), so `/docs/` becomes `/docs.md`. It leaves external
+destinations (GitHub, `www.mongodb.com` pages outside `/docs/`) unchanged.
+
+Absolute `https://www.mongodb.com/docs/...` and `https://mongodb.com/docs/...`
+destinations convert and keep their host.
+
 ---
 
 ## Data flow
@@ -120,8 +139,10 @@ On Netlify the casing 301 is `netlify/edge-functions/soft-redirects.ts`
 | `src/redirects/redirect-utils.ts` | URL matching logic |
 | `src/redirects/soft-redirects.ts` | Soft redirect aggregation |
 | `src/redirects/case-canonical.ts` | Lowercase public-URL helpers (edge 301) |
+| `src/redirects/markdown-export.ts` | `.md` path mapping and redirect destination conversion (shared by the edge function, `next.config.mjs` and Jest) |
 | `netlify/edge-functions/soft-redirects.ts` | Applies soft redirects on 404 and mixed-case 301s at the CDN edge (static host) |
 | `src/app/[[...path]]/page.tsx` | Request handler (renders pages / returns 404; soft redirects handled by the edge function) |
 | `next.config.mjs` | Force redirect registration |
 | `src/tests/redirects/redirect-utils.test.ts` | Matching tests |
 | `src/tests/redirects/soft-redirects.test.ts` | Soft redirect tests |
+| `src/tests/redirects/markdown-export.test.ts` | `.md` redirect tests |

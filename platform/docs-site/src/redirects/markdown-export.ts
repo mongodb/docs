@@ -53,3 +53,47 @@ export function publicDocsPath(pathname: string): string {
 
   return withoutExportRoute;
 }
+
+const DOCS_ORIGIN_RE = /^https:\/\/(?:www\.)?mongodb\.com(?=\/docs\/)/;
+
+/**
+ * Lands a redirect for an explicit `.md` request (soft or force) on the
+ * destination's `.md` export. Leaves non-`.md` requests and external URLs
+ * unchanged.
+ */
+export function markdownRedirectDestination(requestPath: string, destination: string): string {
+  if (!requestPath.endsWith('.md') && !requestPath.endsWith('.md/')) {
+    return destination;
+  }
+
+  // External destinations (GitHub, non-docs mongodb.com pages) have no `.md`
+  // export. Absolute `https://(www.)mongodb.com/docs/` URLs are docs pages and
+  // still convert; the bare host 301s to `www` with the path intact.
+  const origin = DOCS_ORIGIN_RE.exec(destination)?.[0] ?? '';
+  if (/^https?:\/\//.test(destination) && !origin) {
+    return destination;
+  }
+
+  const rest = destination.slice(origin.length);
+  const suffixIndex = rest.search(/[?#]/);
+  const path = suffixIndex === -1 ? rest : rest.slice(0, suffixIndex);
+  const suffix = suffixIndex === -1 ? '' : rest.slice(suffixIndex);
+  return `${origin}${path.replace(/\/$/, '')}.md${suffix}`;
+}
+
+/**
+ * `.md` copies of force redirects for next.config.mjs. Their HTML sources end
+ * in `/`, which a `.md` URL never matches, and Netlify serves `.md` GETs
+ * without running middleware, so the copies have to be redirect rules. `{/}?`
+ * also matches `.md/`, which soft redirects accept too.
+ */
+export function markdownForceRedirects<T extends { source: string; destination: string }>(redirects: T[]): T[] {
+  return redirects.map((redirect) => {
+    const markdownPath = `${redirect.source.replace(/\/$/, '')}.md`;
+    return {
+      ...redirect,
+      source: `${markdownPath}{/}?`,
+      destination: markdownRedirectDestination(markdownPath, redirect.destination),
+    };
+  });
+}

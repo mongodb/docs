@@ -6,7 +6,11 @@ import type { Config, Context } from '@netlify/edge-functions';
 import { match, compile, type MatchFunction } from 'https://esm.sh/path-to-regexp@6.3.0';
 import allRedirects from '../../src/redirects/all-redirects.json' with { type: 'json' };
 import { hasUppercase, lowercaseRedirectPath } from '../../src/redirects/case-canonical.ts';
-import { markdownExportRewritePath, publicDocsPath } from '../../src/redirects/markdown-export.ts';
+import {
+  markdownExportRewritePath,
+  markdownRedirectDestination,
+  publicDocsPath,
+} from '../../src/redirects/markdown-export.ts';
 import { prefersMarkdown } from '../../src/utils/parse-accept-header.ts';
 
 /**
@@ -138,7 +142,12 @@ export default async function handler(request: Request, context: Context): Promi
   // Authored soft redirects (Netlify force=false: 404 only).
   const softMatch = findSoftRedirect(publicDocsPath(pathname));
   if (softMatch) {
-    return redirectTo(softMatch.destination, softMatch.statusCode);
+    const destination = markdownRedirectDestination(pathname, softMatch.destination);
+    // A `.md` export can 404 while its HTML page exists, so a wildcard redirect
+    // may resolve back to the request itself.
+    if (destination !== pathname) {
+      return redirectTo(destination, softMatch.statusCode);
+    }
   }
 
   return res;
