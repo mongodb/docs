@@ -5,15 +5,21 @@ import { Link } from '@/mdx-components/Link';
 import { Text } from '@via-ds/components/typography';
 import ArrowLeftIcon from '@via-ds/icons/ArrowLeft';
 import ArrowRightIcon from '@via-ds/icons/ArrowRight';
+import { getTranslator } from '@/internationalization/get-translator';
 import styles from './next-prev-link.module.scss';
 
-/** Which way the link points. Doubles as the visible label. */
+/** Which way the link points. Also the analytics label, so it stays English; the visible text is translated. */
 export type Direction = 'Back' | 'Next';
 
 const ARROW: Record<Direction, typeof ArrowLeftIcon> = {
   Back: ArrowLeftIcon,
   Next: ArrowRightIcon,
 };
+
+const LABEL_KEY = {
+  Back: 'nav.back',
+  Next: 'nav.next',
+} as const;
 
 export type NextPrevLinkProps = {
   /** Visible label for the destination page. Null when the TOC entry has no label. */
@@ -27,6 +33,7 @@ export type NextPrevLinkProps = {
 };
 
 const NextPrevLink = ({ className, direction, pageTitle, title, targetSlug, onClick }: NextPrevLinkProps) => {
+  const { t } = getTranslator();
   const isNext = direction === 'Next';
   const ArrowIcon = ARROW[direction];
 
@@ -42,7 +49,7 @@ const NextPrevLink = ({ className, direction, pageTitle, title, targetSlug, onCl
           </span>
           <div className={textClass}>
             <Text elementType="div" className={styles.direction}>
-              {direction}
+              {t(LABEL_KEY[direction])}
             </Text>
             <Text elementType="div" textStyle="description">
               {pageTitle}

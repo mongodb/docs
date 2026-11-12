@@ -13,6 +13,7 @@ import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
 import { usePageContext } from '@/context/page-context';
 import { FeedbackRating } from '@/mdx-components/FeedbackWidget';
 import useScreenSize from '@/hooks/use-screen-size';
+import { getTranslator } from '@/internationalization/get-translator';
 import styles from './contents.module.scss';
 
 export const DEPRECATED_PROJECTS = ['atlas-app-services', 'datalake', 'realm'];
@@ -47,6 +48,7 @@ export const Contents = ({ className }: { className?: string }) => {
   const searchDict: URLSearchParams = useSearchParams() ?? new URLSearchParams();
   const { options } = usePageContext();
   const { isTabletOrMobile } = useScreenSize();
+  const { t } = getTranslator();
 
   const filteredNodes = headingNodes.filter((headingNode) => {
     return isHeadingVisible(headingNode.selector_ids, activeSelectorIds, searchDict);
@@ -60,7 +62,7 @@ export const Contents = ({ className }: { className?: string }) => {
     );
   }
 
-  const label = 'On this page';
+  const label = t('nav.on_this_page');
   const shouldProjShowFW = !DEPRECATED_PROJECTS.includes(metadata.project);
   const hideFWOnMobile = options?.hidefeedback === 'header';
 
