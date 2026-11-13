@@ -1,0 +1,306 @@
+.. _license-keys:
+
+=================================
+Ops Manager License Keys Overview
+=================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Learn how Ops Manager uses license keys to determine license key status, how the 90-day grace period works, when renewal reminders start, and how Ops Manager notifies you.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+A license key is a signed file that MongoDB issues to confirm that
+your MongoDB Enterprise Advanced order is active. You install the
+license key in |mms|, and |mms| uses it to show the license key status
+of your installation and to warn you before your order end date.
+
+MongoDB is introducing license keys to bring Enterprise Advanced
+licensing into general alignment with the wider software market.
+License keys give you clear visibility of your license key status and
+renewal timeline inside |mms|.
+
+License keys apply to |mms| 9.0.2, 8.0.28, and later. If you run an
+earlier version, you don't need a license key.
+
+.. important::
+
+   |mms| doesn't restrict any operation in any license key status. Your
+   deployments, backups, and restores keep working, and you can always
+   install a license key.
+
+License Key Lifecycle
+---------------------
+
+A license key goes through four stages. The following sections describe
+each stage in order.
+
+- You generate a license key in the Key Portal for the Key Manager ID of
+  your installation.
+- You install the license key in |mms|. |mms| verifies the license key
+  itself, so you can install it without a connection to MongoDB.
+- |mms| calculates the license key status and warns you before and
+  after the order end date.
+- Before the order end date, you generate a renewed license key. A
+  connected installation installs it automatically. Otherwise, you
+  install it yourself.
+
+.. _license-keys-get-and-install:
+
+Get and Install a License Key
+-----------------------------
+
+You generate a license key in the Key Portal at
+``https://support.mongodb.com/keyportal``. To generate a license key,
+add your |mms| installation to the Key Portal by its Key Manager ID.
+
+The Key Manager ID identifies an |mms| installation, including every
+instance in a high-availability setup. |mms| rejects a license key that
+MongoDB issued for a different Key Manager ID.
+
+If you can't generate a license key, your MongoDB order might be
+expiring or pending renewal. Contact the person who manages your
+MongoDB Enterprise Advanced order or your MongoDB account team.
+
+|mms| verifies each license key with public keys that are built into
+your |mms| installation. To find the Key Manager ID and install a
+license key, see :ref:`om-manage-license-keys`. To learn about the
+errors that |mms| returns when it rejects a license key, see
+:ref:`om-license-key-install-errors`.
+
+License Key Status
+------------------
+
+|mms| calculates the license key status every hour. |mms| also
+recalculates the status immediately after you install or release a
+license key.
+
+A license key that fails verification provides no coverage. |mms|
+treats an installation that has only unverified license keys the same
+as an installation with no license key.
+
+Status Values
+~~~~~~~~~~~~~
+
+The License Key Manager page and the |api| describe the same status
+with different names. The following table maps each |mms| interface
+status to the ``enforcement.effectiveState`` value that the |api|
+returns:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+   :stub-columns: 1
+
+   * - Interface Status
+     - |api| State
+     - Description
+
+   * - ``Active``
+     - ``LICENSED``
+     - A license key covers your installation, and no renewal warning
+       is open.
+
+   * - ``Needs attention``
+     - ``LICENSED``
+     - A license key covers your installation, and a renewal warning
+       is open. The ``enforcement.warnings`` array in the |api|
+       response contains the warning.
+
+   * - ``Grace period``
+     - ``GRACE``
+     - Your installation has no current coverage, and the grace period
+       is running. This status applies when your order end date passes
+       or when you haven't installed a usable license key.
+
+   * - ``Expired``
+     - ``EXPIRED``
+     - Your order end date passed, and the grace period ended without
+       a new license key.
+
+   * - ``Unlicensed``
+     - ``UNLICENSED``
+     - You haven't installed a usable license key, and the grace period
+       ended.
+
+Grace Period
+~~~~~~~~~~~~
+
+The grace period lasts 90 days. After your order end date passes,
+|mms| enters the ``GRACE`` state. If you don't install a new license key
+within 90 days, the state changes to ``EXPIRED``.
+
+If you install |mms|, or upgrade to a version that supports license
+keys, without installing a license key, the grace period starts when
+|mms| first calculates the license key status, within an hour of
+startup. If you still haven't installed a license key after 90 days,
+the state changes to ``UNLICENSED``.
+
+To return to the ``Active`` status, install a license key that covers
+your installation. To learn how, see :ref:`om-manage-license-keys`.
+
+Renewal Reminders
+-----------------
+
+|mms| opens a renewal warning before your order end date:
+
+- For orders of two years or longer, the warning opens six months
+  before the order end date.
+- For shorter orders, the warning opens four months before the order
+  end date.
+
+While the warning is open, the status is ``Needs attention``.
+
+Notifications
+-------------
+
+|mms| notifies you about license key status in the following ways:
+
+- A banner at the top of the |mms| interface.
+- A warning icon on the :guilabel:`License Keys` item in the
+  :guilabel:`Admin` navigation.
+- Messages on the :ref:`License Key Manager page
+  <om-license-key-manager-page>`.
+- System alerts.
+
+|mms| shows the banner, the icon, and the page only to users with the
+:authrole:`Global Owner` role.
+
+Banner
+~~~~~~
+
+The banner links to the :ref:`License Key Manager page
+<om-license-key-manager-page>`. The banner doesn't appear on that page.
+
+The banner is yellow when the status is ``Needs attention`` or
+``Grace period``. The yellow banner shows the following message:
+
+.. code-block:: none
+   :copyable: false
+
+   You are at risk of not meeting your license key requirements.
+
+The banner is red when the status is ``Expired`` or ``Unlicensed``. The
+red banner shows the following message:
+
+.. code-block:: none
+   :copyable: false
+
+   You are not meeting your license key requirements.
+
+License Key Manager Page Messages
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The License Key Manager page shows a message that matches the status:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+   :stub-columns: 1
+
+   * - Status
+     - Message
+
+   * - ``Needs attention``
+     - ``Your license key is about to expire``. The message shows the
+       number of days until the license key expires and the expiry
+       date. The message asks you to contact your MongoDB account team
+       or internal MongoDB administrator.
+
+   * - ``Grace period``
+     - ``Grace Period``. The message shows the number of days that
+       remain and the date by which you must install a valid license
+       key.
+
+   * - ``Expired`` or ``Unlicensed``
+     - ``License key expired``. The message states that the |mms|
+       instance no longer has a valid license key.
+
+System Alerts
+~~~~~~~~~~~~~
+
+|mms| creates the following system alerts by default. By default, each
+alert sends a notification again every week while the alert stays open.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+   :stub-columns: 1
+
+   * - Alert
+     - Opens When
+
+   * - ``At risk of not meeting license key requirements``
+     - The state is ``LICENSED`` and a renewal warning is open. The
+       alert closes when the warning clears or when the state changes.
+
+   * - ``Not meeting license key requirements``
+     - The state is ``GRACE``, ``EXPIRED``, or ``UNLICENSED``. The
+       alert closes when the state returns to ``LICENSED``.
+
+The detail of each alert includes the current state. If |mms| projects
+a state change, the detail also includes the next state and the date of
+the change. The alert email includes a link to the License Key Manager
+page.
+
+By default, |mms| sends the alert email to the :guilabel:`Admin Email
+Address`. To change the notification settings, see
+:ref:`edit-system-alert-notification`.
+
+.. _license-keys-auto-install:
+
+Renew a License Key
+-------------------
+
+Before your order end date, generate a renewed license key in the
+Key Portal for the Key Manager ID of your installation. If your |mms|
+installation can connect to MongoDB, |mms| checks for new license keys
+every hour and installs the renewed license key automatically.
+Automatic installation is always on and you can't turn it off.
+
+You must install the first license key of an installation manually.
+If |mms| can't connect to MongoDB, or if an automatic install fails,
+|mms| tries again at the next check. You can also install a license key
+yourself at any time. To learn how, see :ref:`om-manage-license-keys`.
+
+If your renewal is still in progress, contact your MongoDB account team
+to request a temporary extension. MongoDB must approve any temporary
+extension.
+
+Telemetry and License Keys
+--------------------------
+
+|mms| sends MongoDB product usage telemetry to help MongoDB provide
+better support, understand your deployment models, and identify areas
+for investment. A license key can include a telemetry exemption, which
+gives you the option to turn off product usage telemetry.
+
+The License Key Manager page shows the exemption under
+:guilabel:`Entitlements`.
+
+If your license key doesn't include a telemetry exemption, |mms| sends
+product usage telemetry. In this case, the |mms| interface rejects
+requests to disable product usage collection with the following error:
+
+.. code-block:: none
+   :copyable: false
+
+   Product usage collection requires a license telemetry exemption
+
+For more information about the data that |mms| collects, see
+:ref:`om-telemetry-overview`.
+
+Related Pages
+-------------
+
+For more information about license keys, see the following pages:
+
+- :ref:`om-manage-license-keys`
+- :ref:`om-manage-license-keys-api`
+- :ref:`api-admin-license-keys`
+- :ref:`om-telemetry-overview`

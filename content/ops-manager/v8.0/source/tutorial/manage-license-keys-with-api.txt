@@ -1,0 +1,179 @@
+.. _om-manage-license-keys-api:
+
+===================================
+Manage License Keys Through the API
+===================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Use the Ops Manager API to check license key status, install or release a license key, recalculate the status, and retrieve the Key Manager ID of your Ops Manager installation.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Use the |mms| |api| to check the license key status of your |mms|
+installation and to install or release a license key. To learn how
+|mms| calculates license key status, see :ref:`license-keys`. To manage
+license keys in the |mms| interface, see :ref:`om-manage-license-keys`.
+
+Prerequisites
+-------------
+
+Before you begin, ensure that you have the following:
+
+- An |api| key with the :authrole:`Global Owner` role.
+- A license key file that you generated in the Key Portal. To learn
+  how, see :ref:`om-manage-license-keys`.
+
+Install a License Key
+---------------------
+
+Use the following procedure to install a license key and confirm that
+|mms| applies it.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Check the current license key status
+
+      Send a ``GET`` request to the ``/admin/licenses`` endpoint:
+
+      .. code-block:: sh
+
+         curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+              --header "Accept: application/json" \
+              --include \
+              --request GET \
+              "https://{+opsmgr-url+}/api/public/v1.0/admin/licenses?pretty=true"
+
+      The response includes the ``enforcement.effectiveState`` field
+      and the ``licenses`` array. For a description of each field, see
+      :ref:`om-api-get-license-key-status`.
+
+   .. step:: Install the license key
+
+      Send a ``PUT`` request to the ``/admin/licenses`` endpoint. Use
+      the contents of your license key file as the request body:
+
+      .. code-block:: sh
+
+         curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+              --header "Accept: application/json" \
+              --header "Content-Type: application/json" \
+              --include \
+              --request PUT \
+              "https://{+opsmgr-url+}/api/public/v1.0/admin/licenses?pretty=true" \
+              --data @{LICENSE-KEY-FILE}
+
+      If |mms| accepts the license key, |mms| recalculates the status
+      and returns it. If |mms| rejects the license key, the response
+      contains an error. To resolve an error, see
+      :ref:`om-license-key-install-errors`.
+
+   .. step:: Confirm the new license key status
+
+      In the response from the previous step, check the following
+      fields:
+
+      - ``enforcement.effectiveState`` is ``LICENSED``.
+      - The new license key appears in the ``licenses`` array with a
+        ``status`` of ``ACTIVE``.
+
+      If the state is not what you expect, call the
+      :ref:`om-api-recompute-license-key-status` endpoint to
+      recalculate the status, and then check the fields again.
+
+Release a License Key
+---------------------
+
+Use the following procedure to release a license key from your |mms|
+installation.
+
+.. important::
+
+   After you release a license key, you can't use it again. If you
+   release the only usable license key, your installation has no
+   coverage. The state changes to ``GRACE``, and then to ``UNLICENSED``
+   after 90 days.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Find the license key ID
+
+      Send a ``GET`` request to the ``/admin/licenses`` endpoint. In
+      the response, copy the ``artifactId`` value of the license key
+      that you want to release.
+
+   .. step:: Release the license key
+
+      Send a ``DELETE`` request to the ``/admin/licenses/{artifactId}``
+      endpoint. Replace ``{ARTIFACT-ID}`` with the ``artifactId``
+      value:
+
+      .. code-block:: sh
+
+         curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+              --header "Accept: application/json" \
+              --include \
+              --request DELETE \
+              "https://{+opsmgr-url+}/api/public/v1.0/admin/licenses/{ARTIFACT-ID}?pretty=true"
+
+      |mms| recalculates the status and returns it. To learn more, see
+      :ref:`om-api-release-license-key`.
+
+Retrieve the Key Manager ID
+---------------------------
+
+The Key Manager ID identifies your |mms| installation, including every
+instance in a high-availability setup. The |api| returns the Key
+Manager ID in the ``holderId`` field. To retrieve it, send a ``GET``
+request to the ``/admin/artifacts/identity`` endpoint. To learn more,
+see :ref:`om-api-get-key-manager-id`.
+
+Rotate the Identity Key
+-----------------------
+
+Your |mms| installation generates an identity key: a key pair that the
+installation uses to prove its identity when it connects to MongoDB.
+If you suspect that someone outside your organization obtained the
+private key, rotate the key to replace it with a new key pair. Your
+installation must be able to connect to MongoDB to rotate the key. To
+learn more, see :ref:`om-api-rotate-identity-key`.
+
+Troubleshoot Install Errors
+---------------------------
+
+When |mms| rejects a license key, the response has an HTTP status of
+``400``, ``403``, or ``409`` and a JSON body that describes the error.
+The following fields identify the error:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+   :stub-columns: 1
+
+   * - Field
+     - Description
+
+   * - ``errorCode``
+     - Error code, such as ``ARTIFACT_OUTDATED``.
+
+   * - ``detail``
+     - Message that describes the error and how to proceed.
+
+For the list of error codes, HTTP statuses, and messages, see
+:ref:`om-license-key-install-errors`.
+
+Related Pages
+-------------
+
+For more information about license keys, see the following pages:
+
+- :ref:`api-admin-license-keys`
+- :ref:`license-keys`
+- :ref:`om-manage-license-keys`

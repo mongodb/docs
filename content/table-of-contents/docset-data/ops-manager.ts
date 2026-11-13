@@ -1510,6 +1510,21 @@ const tocData: TocItem[] = [
             contentSite: 'ops-manager',
             url: '/docs/ops-manager/:version/tutorial/update-version-manifest',
           },
+          {
+            label: 'License Keys Overview',
+            contentSite: 'ops-manager',
+            url: '/docs/ops-manager/:version/license-keys',
+          },
+          {
+            label: 'Manage License Keys in Ops Manager',
+            contentSite: 'ops-manager',
+            url: '/docs/ops-manager/:version/tutorial/manage-license-keys',
+          },
+          {
+            label: 'Manage License Keys Through the API',
+            contentSite: 'ops-manager',
+            url: '/docs/ops-manager/:version/tutorial/manage-license-keys-with-api',
+          },
         ],
       },
       {
@@ -3122,6 +3137,49 @@ const tocData: TocItem[] = [
                     label: 'Update Settings',
                     contentSite: 'ops-manager',
                     url: '/docs/ops-manager/:version/reference/api/admin/settings/update-global-app-settings',
+                  },
+                ],
+              },
+              {
+                label: 'License Keys',
+                contentSite: 'ops-manager',
+                url: '/docs/ops-manager/:version/reference/api/admin/license-keys',
+                collapsible: true,
+                items: [
+                  {
+                    label: 'Get Status',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/reference/api/admin/license-keys/get-license-key-status',
+                  },
+                  {
+                    label: 'Install',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/reference/api/admin/license-keys/install-license-key',
+                  },
+                  {
+                    label: 'Release',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/reference/api/admin/license-keys/release-license-key',
+                  },
+                  {
+                    label: 'Recompute Status',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/reference/api/admin/license-keys/recompute-license-key-status',
+                  },
+                  {
+                    label: 'Get Key Manager ID',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/reference/api/admin/license-keys/get-key-manager-id',
+                  },
+                  {
+                    label: 'Rotate Identity Key',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/reference/api/admin/license-keys/rotate-identity-key',
+                  },
+                  {
+                    label: 'Get Release Receipt',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/reference/api/admin/license-keys/get-license-key-release-receipt',
                   },
                 ],
               },

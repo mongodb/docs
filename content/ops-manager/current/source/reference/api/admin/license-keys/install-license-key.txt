@@ -1,0 +1,134 @@
+.. _om-api-install-license-key:
+
+====================================
+Install a License Key in Ops Manager
+====================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Install a signed license key file in your Ops Manager installation and retrieve the recalculated license key status. This endpoint requires the Global Owner role.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Installs a signed license key file in an |mms| installation to add
+coverage after you generate a license key in the Key Portal. If |mms|
+accepts the license key, it recalculates the license key status and
+returns it, and records a ``License installed`` audit event.
+
+Required Roles
+--------------
+
+To access this resource, your |api| key must have
+the :authrole:`Global Owner` role. The Global Owner role is the
+highest role in |mms|. Only users with this role can view and manage
+license keys.
+
+Request
+-------
+
+Send a ``PUT`` request with the license key file contents as the body.
+
+.. include:: /includes/api/base-api-uri.rst
+
+.. code-block:: http
+
+   PUT /admin/licenses
+
+Request Path Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+This endpoint doesn't use HTTP request path parameters.
+
+Request Query Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+This endpoint accepts the following query parameters:
+
+.. include:: /includes/api/base-query-single-parameters.rst
+
+Request Body Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Send the contents of the license key file as the request body. Set
+the ``Content-Type`` header to ``application/json``. The endpoint
+doesn't use named body parameters.
+
+Response
+--------
+
+If |mms| accepts the license key, the response contains the recalculated
+license key status. The response contains the following fields:
+
+.. include:: /includes/api/license-key-status-response-fields.rst
+
+Errors
+~~~~~~
+
+If |mms| rejects the license key, the response has the HTTP status from
+the following table. The ``errorCode`` field of the response body
+contains the error code, and the ``detail`` field contains the message.
+
+The messages use the word ``artifact`` to refer to a license key.
+
+.. include:: /includes/api/license-key-install-errors.rst
+
+Example Request
+---------------
+
+Use ``curl`` to send a ``PUT`` request to the ``/admin/licenses`` endpoint:
+
+.. code-block:: sh
+
+   curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+        --header "Accept: application/json" \
+        --header "Content-Type: application/json" \
+        --include \
+        --request PUT \
+        "https://{+opsmgr-url+}/api/public/v1.0/admin/licenses?pretty=true" \
+        --data @{LICENSE-KEY-FILE}
+
+Example Response
+----------------
+
+The following examples show the response headers and the response body
+of a successful request.
+
+Response Header
+~~~~~~~~~~~~~~~
+
+The following headers show an unauthorized response and a successful
+response:
+
+.. include:: /includes/api/api-headers/401.rst
+
+.. include:: /includes/api/api-headers/200.rst
+
+Response Body
+~~~~~~~~~~~~~
+
+The following example shows the response body:
+
+.. include:: /includes/api/license-key-status-example-response.rst
+
+Example Error Response
+~~~~~~~~~~~~~~~~~~~~~~
+
+The following example shows the response body when |mms| rejects the
+license key:
+
+.. code-block:: json
+   :copyable: false
+   :linenos:
+
+   {
+     "error": 409,
+     "reason": "Conflict",
+     "detail": "This artifact is not newer than one already installed on this Ops Manager. Install the latest artifact issued by your MongoDB account team.",
+     "errorCode": "ARTIFACT_OUTDATED",
+     "parameters": []
+   }
