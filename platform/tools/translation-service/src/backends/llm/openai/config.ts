@@ -1,12 +1,13 @@
 /**
- * OpenAI-Responses backend configuration. The AI Gateway serves GPT models
- * on the Responses path, so this backend speaks that wire format. The key
- * and timeout primitives are shared with the other gateway backends.
+ * OpenAI-Responses backend configuration. Both gateways serve GPT models
+ * on the Responses path, so this backend speaks that wire format. The
+ * gateway selection and the timeout primitives are shared with the other
+ * gateway backends.
  */
 import {
   AI_GATEWAY_BASE,
   blankToUndefined,
-  requireGatewayApiKey,
+  resolveGateway,
   resolveTimeoutMs,
 } from "../config.js";
 
@@ -19,8 +20,11 @@ export interface OpenAiConfig {
 
 export const OPENAI_PROVIDER = "openai";
 
+/** Responses path, shared by both gateways. */
+export const OPENAI_PATH = "/openai/v1/responses";
+
 export const OPENAI_DEFAULTS = {
-  endpoint: `${AI_GATEWAY_BASE}/openai/v1/responses`,
+  endpoint: `${AI_GATEWAY_BASE}${OPENAI_PATH}`,
   model: "gpt-5.5",
   timeoutMs: 30000,
 } as const;
@@ -35,14 +39,15 @@ export function resolveOpenAiConfigFromEnv(
   env: NodeJS.ProcessEnv = process.env,
   overrides: Partial<OpenAiConfig> = {},
 ): OpenAiConfig {
+  const gateway = resolveGateway(env, overrides.apiKey, "OpenAI");
   return {
     endpoint:
       overrides.endpoint ??
       blankToUndefined(env.OPENAI_ENDPOINT) ??
-      OPENAI_DEFAULTS.endpoint,
+      `${gateway.baseUrl}${OPENAI_PATH}`,
     model:
       overrides.model ?? blankToUndefined(env.OPENAI_MODEL) ?? OPENAI_DEFAULTS.model,
-    apiKey: requireGatewayApiKey(env, overrides.apiKey, "OpenAI"),
+    apiKey: gateway.apiKey,
     timeoutMs: resolveTimeoutMs(
       env,
       "OPENAI_TIMEOUT_MS",

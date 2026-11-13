@@ -67,4 +67,20 @@ describe("resolveOpenAiConfigFromEnv", () => {
     expect(config.model).toBe("override-model");
     expect(config.apiKey).toBe("env-key");
   });
+
+  it("defaults to the legacy endpoint when only GROVE_API_KEY is set", () => {
+    const config = resolveOpenAiConfigFromEnv({ GROVE_API_KEY: "legacy" });
+    expect(config.apiKey).toBe("legacy");
+    expect(config.endpoint).toBe(
+      "https://grove-gateway-prod.azure-api.net/grove-foundry-prod/openai/v1/responses",
+    );
+  });
+
+  it("lets OPENAI_ENDPOINT win over the legacy gateway default", () => {
+    const config = resolveOpenAiConfigFromEnv({
+      GROVE_API_KEY: "legacy",
+      OPENAI_ENDPOINT: "https://example.test/openai/v1/responses",
+    });
+    expect(config.endpoint).toBe("https://example.test/openai/v1/responses");
+  });
 });

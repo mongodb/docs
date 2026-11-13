@@ -1,8 +1,9 @@
 import { describe, expect, it } from "@jest/globals";
 import {
   AI_GATEWAY_BASE,
+  LEGACY_GROVE_BASE,
   blankToUndefined,
-  requireGatewayApiKey,
+  resolveGateway,
   resolvePositiveInt,
   resolveTimeoutMs,
 } from "../../../src/backends/llm/config.js";
@@ -54,24 +55,69 @@ describe("resolvePositiveInt", () => {
   });
 });
 
-describe("requireGatewayApiKey", () => {
-  it("reads AI_GATEWAY_API_KEY", () => {
-    expect(requireGatewayApiKey({ AI_GATEWAY_API_KEY: "secret" }, undefined, "OpenAI")).toBe("secret");
+describe("LEGACY_GROVE_BASE", () => {
+  it("is the legacy Azure Grove host with no trailing slash", () => {
+    expect(LEGACY_GROVE_BASE).toBe(
+      "https://grove-gateway-prod.azure-api.net/grove-foundry-prod",
+    );
+  });
+});
+
+describe("resolveGateway", () => {
+  it("selects the AI Gateway from AI_GATEWAY_API_KEY", () => {
+    expect(resolveGateway({ AI_GATEWAY_API_KEY: "secret" }, undefined, "OpenAI")).toEqual({
+      baseUrl: AI_GATEWAY_BASE,
+      apiKey: "secret",
+      anthropicAuthHeader: "x-api-key",
+    });
   });
 
-  it("lets an override satisfy the requirement when the env var is absent", () => {
-    expect(requireGatewayApiKey({}, "override-key", "OpenAI")).toBe("override-key");
+  it("selects the legacy gateway from GROVE_API_KEY alone", () => {
+    expect(resolveGateway({ GROVE_API_KEY: "legacy" }, undefined, "OpenAI")).toEqual({
+      baseUrl: LEGACY_GROVE_BASE,
+      apiKey: "legacy",
+      anthropicAuthHeader: "api-key",
+    });
   });
 
-  it("treats an empty string as absent", () => {
-    expect(() => requireGatewayApiKey({ AI_GATEWAY_API_KEY: "" }, undefined, "Anthropic")).toThrow(/AI_GATEWAY_API_KEY/);
+  it("prefers the AI Gateway when both keys are set", () => {
+    const gateway = resolveGateway(
+      { AI_GATEWAY_API_KEY: "current", GROVE_API_KEY: "legacy" },
+      undefined,
+      "OpenAI",
+    );
+    expect(gateway.baseUrl).toBe(AI_GATEWAY_BASE);
+    expect(gateway.apiKey).toBe("current");
+  });
+
+  it("treats an empty-string AI_GATEWAY_API_KEY as absent", () => {
+    expect(
+      resolveGateway({ AI_GATEWAY_API_KEY: "", GROVE_API_KEY: "legacy" }, undefined, "OpenAI")
+        .baseUrl,
+    ).toBe(LEGACY_GROVE_BASE);
+  });
+
+  it("treats an empty-string GROVE_API_KEY as absent", () => {
+    expect(() => resolveGateway({ GROVE_API_KEY: "" }, undefined, "OpenAI")).toThrow(
+      /GROVE_API_KEY/,
+    );
+  });
+
+  it("resolves an override-only key to the AI Gateway", () => {
+    expect(resolveGateway({}, "override-key", "OpenAI")).toEqual({
+      baseUrl: AI_GATEWAY_BASE,
+      apiKey: "override-key",
+      anthropicAuthHeader: "x-api-key",
+    });
+  });
+
+  it("throws naming both variables and the backend when no key is available", () => {
+    expect(() => resolveGateway({}, undefined, "Anthropic")).toThrow(/AI_GATEWAY_API_KEY/);
+    expect(() => resolveGateway({}, undefined, "Anthropic")).toThrow(/GROVE_API_KEY/);
+    expect(() => resolveGateway({}, undefined, "Anthropic")).toThrow(/Anthropic/);
   });
 
   it("treats an empty-string override as absent rather than a key", () => {
-    expect(() => requireGatewayApiKey({}, "", "OpenAI")).toThrow(/AI_GATEWAY_API_KEY/);
-  });
-
-  it("names the backend in the error message", () => {
-    expect(() => requireGatewayApiKey({}, undefined, "Anthropic")).toThrow(/Anthropic/);
+    expect(() => resolveGateway({}, "", "OpenAI")).toThrow(/AI_GATEWAY_API_KEY/);
   });
 });

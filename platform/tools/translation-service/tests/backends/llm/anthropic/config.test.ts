@@ -15,6 +15,7 @@ describe("resolveAnthropicConfigFromEnv", () => {
       apiKey: "secret",
       timeoutMs: ANTHROPIC_DEFAULTS.timeoutMs,
       maxTokens: ANTHROPIC_DEFAULTS.maxTokens,
+      authHeader: "x-api-key",
     });
   });
 
@@ -63,5 +64,23 @@ describe("resolveAnthropicConfigFromEnv", () => {
       OPENAI_ENDPOINT: "https://example.test/openai/v1/responses",
     });
     expect(config.endpoint).toBe(ANTHROPIC_DEFAULTS.endpoint);
+  });
+
+  it("defaults to the legacy endpoint and the api-key header when only GROVE_API_KEY is set", () => {
+    const config = resolveAnthropicConfigFromEnv({ GROVE_API_KEY: "legacy" });
+    expect(config.apiKey).toBe("legacy");
+    expect(config.authHeader).toBe("api-key");
+    expect(config.endpoint).toBe(
+      "https://grove-gateway-prod.azure-api.net/grove-foundry-prod/anthropic/v1/messages",
+    );
+  });
+
+  it("keeps the legacy header when ANTHROPIC_ENDPOINT overrides the endpoint", () => {
+    const config = resolveAnthropicConfigFromEnv({
+      GROVE_API_KEY: "legacy",
+      ANTHROPIC_ENDPOINT: "https://example.test/anthropic/v1/messages",
+    });
+    expect(config.endpoint).toBe("https://example.test/anthropic/v1/messages");
+    expect(config.authHeader).toBe("api-key");
   });
 });

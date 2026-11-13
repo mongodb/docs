@@ -281,6 +281,21 @@ describe('createJudgeOptions', () => {
     expect(seen!.headers['api-key']).toBeUndefined();
   });
 
+  it('posts a claude-* judge request with the api-key header when only GROVE_API_KEY is set', async () => {
+    let seen: TransportRequest | undefined;
+    const fake: Transport = async (request) => {
+      seen = request;
+      return { ok: true, status: 200, text: async () => messagesEnvelope({ category: 'C', rationale: '', fluency: 5 }) };
+    };
+
+    const legacyEnv = { GROVE_API_KEY: 'legacy', JUDGE_MODEL: 'claude-sonnet-5-5' };
+    const opts = createJudgeOptions(loadConfig(legacyEnv), legacyEnv, fake);
+    await opts.transport('{"probe":true}');
+
+    expect(seen!.headers['api-key']).toBe('legacy');
+    expect(seen!.headers['x-api-key']).toBeUndefined();
+  });
+
   it('labels a claude-* judge HTTP failure as Anthropic', async () => {
     const fake: Transport = async () => ({ ok: false, status: 500, text: async () => '' });
     const claudeEnv = { AI_GATEWAY_API_KEY: 'k', JUDGE_MODEL: 'claude-sonnet-5-5' };

@@ -126,6 +126,7 @@ exported in your shell takes precedence over `.env`.
 | Variable | Required | Default | Purpose |
 |---|---|---|---|
 | `AI_GATEWAY_API_KEY` | For `translate` and `eval` | — | Shared key for the translator backend and the judge. |
+| `GROVE_API_KEY` | No | — | Alternative to `AI_GATEWAY_API_KEY`: selects the legacy Azure Grove gateway. Ignored when `AI_GATEWAY_API_KEY` is set. |
 | `TRANSLATOR_MODEL` | No | `gpt-5.5` | Translator model. A `claude-*` value selects the Anthropic Messages path. |
 | `TRANSLATOR_BACKEND` | No | — | Explicit translator backend: `openai`, `anthropic`, `aws-translate`, or `stub`. Unset selects the backend from `TRANSLATOR_MODEL`. |
 | `JUDGE_MODEL` | For `eval` | — | Judge model. Must differ from the translator model. A `claude-*` value uses the Anthropic Messages path; anything else uses the OpenAI Responses path. |
@@ -174,10 +175,10 @@ No endpoint is needed: both backends default to the AI Gateway.
 
 - Both backends default to the AI Gateway
   (`ai-gateway.corp.mongodb.com`), so an `AI_GATEWAY_API_KEY` works with no
-  endpoint configuration. A 401 means the key does not belong to the gateway
-  being called: if your key is issued for the legacy Azure gateway, override
-  `OPENAI_ENDPOINT` (or `ANTHROPIC_ENDPOINT` for a `claude-*` model) to point at
-  that gateway.
+  endpoint configuration. To use the legacy Azure Grove gateway instead, set
+  `GROVE_API_KEY` and leave `AI_GATEWAY_API_KEY` unset: that switches both the
+  endpoint and the Anthropic auth header. When both are set, the AI Gateway
+  wins. A 401 means the key does not belong to the gateway being called.
 - The tool picks the backend from the model name: a `claude-*` model uses the
   Anthropic Messages path, and any other model uses the OpenAI Responses path.
   List the available models with

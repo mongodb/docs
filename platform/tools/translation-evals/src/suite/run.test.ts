@@ -548,6 +548,25 @@ describe('preflight', () => {
     expect(() => preflight(cfg, suite, { JUDGE_MODEL: 'j', BRAINTRUST_API_KEY: 'k' })).toThrow(
       /AI_GATEWAY_API_KEY/,
     );
+    expect(() => preflight(cfg, suite, { JUDGE_MODEL: 'j', BRAINTRUST_API_KEY: 'k' })).toThrow(
+      /GROVE_API_KEY/,
+    );
+  });
+
+  it('accepts GROVE_API_KEY alone as the gateway key', () => {
+    const { cfg, pages } = fixture();
+    const suite = {
+      name: 'b',
+      project: 'atlas',
+      pages,
+      locales: ['es'],
+      judge: 'j',
+      repeats: 1,
+      translators: [],
+    };
+    expect(() =>
+      preflight(cfg, suite, { GROVE_API_KEY: 'legacy', BRAINTRUST_API_KEY: 'k' }),
+    ).not.toThrow();
   });
 
   it('rejects a project that escapes content-mdx', () => {

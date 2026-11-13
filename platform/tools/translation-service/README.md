@@ -122,11 +122,15 @@ import { translate, createOpenAiBackend } from "./src/index.js";
 const response = await translate(request, { backend: createOpenAiBackend() });
 ```
 
-The key and the endpoint must belong to the same gateway. A key issued
-for a different gateway is rejected with HTTP 401, which looks like an
-auth bug rather than a misconfiguration. Both backends default to the AI
-Gateway; override `OPENAI_ENDPOINT` / `ANTHROPIC_ENDPOINT` if your key is
-for the legacy Azure gateway.
+The key selects the gateway. Both backends default to the AI Gateway and
+read `AI_GATEWAY_API_KEY`. Set `GROVE_API_KEY` instead — with
+`AI_GATEWAY_API_KEY` unset — to use the legacy Azure Grove gateway, which
+environments that cannot reach the corp-only AI Gateway need. When both are
+set, the AI Gateway wins, so an environment holding the current key never
+switches silently. A key issued for one gateway is rejected by the other
+with HTTP 401, which looks like an auth bug rather than a misconfiguration.
+`OPENAI_ENDPOINT` / `ANTHROPIC_ENDPOINT` still override the endpoint, and
+take precedence over whichever gateway's default is in play.
 
 Whole-request failures (HTTP error, timeout, unparseable or mis-shaped
 output) throw `BackendError`; the pipeline degrades them to per-key
@@ -145,10 +149,11 @@ import { translate, createAnthropicBackend } from "./src/index.js";
 const response = await translate(request, { backend: createAnthropicBackend() });
 ```
 
-It differs from `OpenAiBackend` in the wire format: it authenticates with
-the `x-api-key` header (the OpenAI backend sends `api-key`) and sends an
+It differs from `OpenAiBackend` in the wire format: it sends an
 `anthropic-version: 2023-06-01` header, because the Messages API is
-versioned. The request body carries a required `max_tokens` and asks for
+versioned, and it authenticates with `x-api-key` on the AI Gateway or
+`api-key` on the legacy gateway (the OpenAI backend sends `api-key` on
+both). The request body carries a required `max_tokens` and asks for
 structured output through `output_config`.
 
 The Anthropic backend requests structured output via
@@ -212,10 +217,10 @@ factory, use the registry (`src/backends/registry.ts`).
 When the name comes from untyped input such as a CLI flag, check it with
 `isBackendName()` first; `BACKEND_NAMES` lists the valid string values
 (`openai`, `anthropic`, `aws-translate`, `stub`) for error messages. The
-OpenAI and Anthropic backends read the shared `AI_GATEWAY_API_KEY` plus
-the optional `OPENAI_*` and `ANTHROPIC_*` endpoint, model, timeout, and
-`ANTHROPIC_MAX_TOKENS` overrides; `AwsTranslateBackend` reads
-`AWS_TRANSLATE_*`.
+OpenAI and Anthropic backends read the shared `AI_GATEWAY_API_KEY`, or
+`GROVE_API_KEY` for the legacy gateway, plus the optional `OPENAI_*` and
+`ANTHROPIC_*` endpoint, model, timeout, and `ANTHROPIC_MAX_TOKENS`
+overrides; `AwsTranslateBackend` reads `AWS_TRANSLATE_*`.
 Each backend's `name` always matches its enum value, so `meta.provider`
 reports what the caller selected.
 
@@ -266,7 +271,8 @@ latency, and asserts the invariants that matter: keys preserved, no
 partial failures, protected terms intact, and no leaked `__PROTn__`
 tokens. It exits non-zero if any check fails, so it doubles as a smoke
 test. Your key comes from `.env` (gitignored); `AI_GATEWAY_API_KEY` is the
-shared key for the `openai` and `anthropic` backends, and the script reads
+shared key for the `openai` and `anthropic` backends — or set
+`GROVE_API_KEY` instead to exercise the legacy gateway. The script reads
 the same `OPENAI_*`, `ANTHROPIC_*`, and `AWS_TRANSLATE_*` variables as
 `createOpenAiBackend()`, `createAnthropicBackend()`, and
 `createAwsTranslateBackend()`.

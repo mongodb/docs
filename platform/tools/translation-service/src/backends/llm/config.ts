@@ -1,11 +1,28 @@
 /**
- * Config primitives shared by the LLM backends that talk to the Grove AI
- * Gateway. The gateway is one host with one key, so the key variable and
- * the numeric parsing are shared rather than re-implemented per backend.
+ * Config primitives shared by the LLM backends that talk to a Grove
+ * gateway. Both gateways serve the same paths, so the gateway selection,
+ * the key resolution, and the numeric parsing are shared rather than
+ * re-implemented per backend.
  */
 
 /** Base URL for the AI Gateway. Each backend appends its own path. */
 export const AI_GATEWAY_BASE = "https://ai-gateway.corp.mongodb.com";
+
+/**
+ * Legacy Azure Grove gateway. Publicly reachable, unlike the corp-only AI
+ * Gateway, so it is the fallback for environments that cannot reach it.
+ */
+export const LEGACY_GROVE_BASE =
+  "https://grove-gateway-prod.azure-api.net/grove-foundry-prod";
+
+/** Header the Anthropic Messages path authenticates with, per gateway. */
+export type GatewayAuthHeader = "x-api-key" | "api-key";
+
+export interface Gateway {
+  baseUrl: string;
+  apiKey: string;
+  anthropicAuthHeader: GatewayAuthHeader;
+}
 
 /** Treat an unset OR empty-string env var as "not provided". */
 export function blankToUndefined(value: string | undefined): string | undefined {
@@ -45,19 +62,33 @@ export function resolvePositiveInt(
 }
 
 /**
- * Resolve the gateway key. An override can satisfy the requirement even
- * when the env var is absent, so callers and tests can inject a key.
+ * Resolve which gateway to call, its key, and the header the Anthropic
+ * Messages path authenticates with there.
+ *
+ * Selection is key-driven and additive: the legacy gateway is chosen only
+ * when AI_GATEWAY_API_KEY is absent AND no explicit override was passed, so
+ * an environment holding the current key never switches silently. An
+ * override therefore implies the AI Gateway; it exists so callers and tests
+ * can inject a key.
  */
-export function requireGatewayApiKey(
+export function resolveGateway(
   env: NodeJS.ProcessEnv,
   override: string | undefined,
   backendLabel: string,
-): string {
-  const apiKey = blankToUndefined(override) ?? blankToUndefined(env.AI_GATEWAY_API_KEY);
+): Gateway {
+  const overrideKey = blankToUndefined(override);
+  const apiGatewayKey = blankToUndefined(env.AI_GATEWAY_API_KEY);
+  const legacyKey = blankToUndefined(env.GROVE_API_KEY);
+
+  const apiKey = overrideKey ?? apiGatewayKey ?? legacyKey;
   if (apiKey === undefined) {
     throw new Error(
-      `AI_GATEWAY_API_KEY is required to create the ${backendLabel} translation backend`,
+      `AI_GATEWAY_API_KEY (or GROVE_API_KEY for the legacy Grove gateway) is required to create the ${backendLabel} translation backend`,
     );
   }
-  return apiKey;
+
+  const legacy = overrideKey === undefined && apiGatewayKey === undefined;
+  return legacy
+    ? { baseUrl: LEGACY_GROVE_BASE, apiKey, anthropicAuthHeader: "api-key" }
+    : { baseUrl: AI_GATEWAY_BASE, apiKey, anthropicAuthHeader: "x-api-key" };
 }

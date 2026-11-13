@@ -115,7 +115,11 @@ function requireEnv(env: NodeJS.ProcessEnv, key: string): void {
 }
 
 export function preflight(cfg: Config, suite: SuiteConfig, env: NodeJS.ProcessEnv): void {
-  requireEnv(env, 'AI_GATEWAY_API_KEY');
+  if ((env.AI_GATEWAY_API_KEY ?? '').trim() === '' && (env.GROVE_API_KEY ?? '').trim() === '') {
+    throw new Error(
+      'missing required environment variable: AI_GATEWAY_API_KEY (or GROVE_API_KEY for the legacy Grove gateway)',
+    );
+  }
   requireEnv(env, 'BRAINTRUST_API_KEY');
 
   if (suite.translators.some((t) => t.backend === BackendName.AwsTranslate)) {

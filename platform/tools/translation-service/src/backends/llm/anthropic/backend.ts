@@ -49,7 +49,7 @@ export class AnthropicBackend implements TranslationBackend {
       url: this.#config.endpoint,
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": this.#config.apiKey,
+        [this.#config.authHeader]: this.#config.apiKey,
         "anthropic-version": ANTHROPIC_VERSION,
       },
       body: JSON.stringify(body),

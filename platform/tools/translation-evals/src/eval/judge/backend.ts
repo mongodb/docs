@@ -42,7 +42,7 @@ export function createJudgeOptions(
         url: anthropic.endpoint,
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': anthropic.apiKey,
+          [anthropic.authHeader]: anthropic.apiKey,
           'anthropic-version': '2023-06-01',
         },
         body,

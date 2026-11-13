@@ -13,6 +13,7 @@ const config: AnthropicConfig = {
   apiKey: "secret",
   timeoutMs: 120000,
   maxTokens: 4096,
+  authHeader: "x-api-key",
 };
 
 function batch(
@@ -86,6 +87,22 @@ describe("AnthropicBackend", () => {
     expect(seenHeaders["api-key"]).toBeUndefined();
     expect(seenHeaders["anthropic-version"]).toBe("2023-06-01");
     expect(seenHeaders["Content-Type"]).toBe("application/json");
+  });
+
+  it("sends api-key instead of x-api-key when the config selects the legacy header", async () => {
+    let seenHeaders: Record<string, string> = {};
+    const transport: Transport = async (req) => {
+      seenHeaders = req.headers;
+      return okTransport({ a: "A" })(req);
+    };
+    const backend = new AnthropicBackend({
+      config: { ...config, authHeader: "api-key" },
+      transport,
+    });
+    await backend.translateBatch(batch([{ key: "a", text: "A" }]));
+    expect(seenHeaders["api-key"]).toBe("secret");
+    expect(seenHeaders["x-api-key"]).toBeUndefined();
+    expect(seenHeaders["anthropic-version"]).toBe("2023-06-01");
   });
 
   it("sends max_tokens and output_config in the request body", async () => {

@@ -12,6 +12,7 @@ const config: AnthropicConfig = {
   apiKey: "secret",
   timeoutMs: 120000,
   maxTokens: 4096,
+  authHeader: "x-api-key",
 };
 
 const batch: TranslationBatchRequest = {
