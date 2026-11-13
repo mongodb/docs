@@ -41,10 +41,17 @@ jobs:
         with:
           version: 10.27.0
 
-      # Only generate-llms and its dependencies: the rest of the platform
-      # workspace needs CodeArtifact auth this job has no reason to hold.
+      # Only generate-llms, versioning, and their dependencies: the rest of
+      # the platform workspace needs CodeArtifact auth this job has no
+      # reason to hold.
       - name: Install generate-llms
-        run: pnpm install --filter generate-llms
+        run: pnpm install --filter generate-llms --filter versioning
+        working-directory: platform
+
+      # generate-llms reads versioning/generated/docsets.json, which is
+      # not checked into git.
+      - name: Emit docset catalog
+        run: pnpm --filter versioning run emit
         working-directory: platform
 
       # Needs no credentials: generates every project (~7s) and asks the
