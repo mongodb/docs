@@ -10,6 +10,7 @@ import {
   buildJudgeRequest,
   judgeFormatFor,
   judgeTranslation,
+  scoreFactuality,
   type JudgeOptions,
 } from './judge.js';
 import {
@@ -60,37 +61,61 @@ describe('judgeFormatFor', () => {
 });
 
 describe('judgeTranslation', () => {
-  it('scores a faithful translation 1/1', async () => {
-    const r = await judgeTranslation(INPUT, optsReturning(envelope({ category: 'C', rationale: 'faithful', fluency: 5 })));
-    expect(r.factuality).toBe(1);
+  it('returns no issues and full fluency for a faithful translation', async () => {
+    const r = await judgeTranslation(INPUT, optsReturning(envelope({ issues: [], rationale: 'faithful', fluency: 5 })));
+    expect(r.issues).toEqual([]);
     expect(r.fluency).toBe(1);
     expect(r.rationale).toBe('faithful');
   });
 
-  it('maps each factuality category', async () => {
-    const score = async (category: string) =>
-      (await judgeTranslation(INPUT, optsReturning(envelope({ category, rationale: '', fluency: 3 }))))
-        .factuality;
-    expect(await score('A')).toBe(0.4);
-    expect(await score('B')).toBe(0.6);
-    expect(await score('C')).toBe(1);
-    expect(await score('D')).toBe(0);
-    expect(await score('unexpected')).toBe(0);
+  it('parses each issue with its type, severity, quote and explanation', async () => {
+    const issue = { type: 'distortion', severity: 'minor', quote: 'único', explanation: 'plural lost' };
+    const r = await judgeTranslation(
+      INPUT,
+      optsReturning(envelope({ issues: [issue], rationale: '', fluency: 3 })),
+    );
+    expect(r.issues).toEqual([issue]);
   });
 
-  it('scores the category letter case-insensitively', async () => {
-    const score = async (category: string) =>
-      (await judgeTranslation(INPUT, optsReturning(envelope({ category, rationale: '', fluency: 3 }))))
-        .factuality;
-    expect(await score('c')).toBe(1);
-    expect(await score('b')).toBe(0.6);
-    expect(await score('a')).toBe(0.4);
-    expect(await score('d')).toBe(0);
+  it('rejects a response with no issues array instead of scoring it perfect', async () => {
+    await expect(
+      judgeTranslation(INPUT, optsReturning(envelope({ rationale: '', fluency: 3 }))),
+    ).rejects.toThrow(/no issues array/);
+    await expect(
+      judgeTranslation(INPUT, optsReturning(envelope({ issues: 'none', rationale: '', fluency: 3 }))),
+    ).rejects.toThrow(/no issues array/);
+  });
+
+  it('rejects an issue with an unknown type or severity', async () => {
+    const bad = (issue: object) =>
+      judgeTranslation(INPUT, optsReturning(envelope({ issues: [issue], rationale: '', fluency: 3 })));
+    await expect(bad({ type: 'mistranslation', severity: 'minor', quote: '', explanation: '' })).rejects.toThrow(
+      /unknown type/,
+    );
+    await expect(bad({ type: 'omission', severity: 'major', quote: '', explanation: '' })).rejects.toThrow(
+      /unknown severity/,
+    );
+  });
+
+  it('reads issue type and severity case-insensitively', async () => {
+    const r = await judgeTranslation(
+      INPUT,
+      optsReturning(
+        envelope({
+          issues: [{ type: ' Contradiction ', severity: 'CRITICAL', quote: 'q', explanation: 'e' }],
+          rationale: '',
+          fluency: 3,
+        }),
+      ),
+    );
+    expect(r.issues).toEqual([
+      { type: 'contradiction', severity: 'critical', quote: 'q', explanation: 'e' },
+    ]);
   });
 
   it('maps the 1-5 fluency rating onto 0-1 and clamps out-of-range values', async () => {
     const fluency = async (value: number) =>
-      (await judgeTranslation(INPUT, optsReturning(envelope({ category: 'C', rationale: '', fluency: value }))))
+      (await judgeTranslation(INPUT, optsReturning(envelope({ issues: [], rationale: '', fluency: value }))))
         .fluency;
     expect(await fluency(1)).toBe(0);
     expect(await fluency(3)).toBe(0.5);
@@ -105,7 +130,7 @@ describe('judgeTranslation', () => {
         { type: 'reasoning', content: [] },
         {
           type: 'message',
-          content: [{ type: 'output_text', text: JSON.stringify({ category: 'C', rationale: 'ok', fluency: 4 }) }],
+          content: [{ type: 'output_text', text: JSON.stringify({ issues: [], rationale: 'ok', fluency: 4 }) }],
         },
       ],
     });
@@ -124,15 +149,19 @@ describe('judgeTranslation', () => {
   });
 
   it('parses a Messages reply from a claude-* judge model', async () => {
-    const raw = messagesEnvelope({ category: 'B', rationale: 'extra words', fluency: 3 });
+    const raw = messagesEnvelope({
+      issues: [{ type: 'addition', severity: 'minor', quote: 'extra', explanation: 'x' }],
+      rationale: 'extra words',
+      fluency: 3,
+    });
     const r = await judgeTranslation(INPUT, optsReturning(raw, 'claude-sonnet-5-5'));
-    expect(r.factuality).toBe(0.6);
+    expect(r.issues).toHaveLength(1);
     expect(r.fluency).toBe(0.5);
     expect(r.rationale).toBe('extra words');
   });
 
   it('concatenates multiple Messages text blocks', async () => {
-    const payload = JSON.stringify({ category: 'C', rationale: 'ok', fluency: 4 });
+    const payload = JSON.stringify({ issues: [], rationale: 'ok', fluency: 4 });
     const raw = JSON.stringify({
       stop_reason: 'end_turn',
       content: [
@@ -209,7 +238,7 @@ describe('createJudgeOptions', () => {
     let seen: TransportRequest | undefined;
     const fake: Transport = async (request) => {
       seen = request;
-      return { ok: true, status: 200, text: async () => envelope({ category: 'C', rationale: '', fluency: 5 }) };
+      return { ok: true, status: 200, text: async () => envelope({ issues: [], rationale: '', fluency: 5 }) };
     };
 
     const opts = createJudgeOptions(loadConfig(env), env, fake);
@@ -219,7 +248,7 @@ describe('createJudgeOptions', () => {
     expect(seen!.url).toBe('https://grove.test/v1/responses');
     expect(seen!.headers['api-key']).toBe('k');
     expect(seen!.body).toBe('{"probe":true}');
-    expect(JSON.parse(raw).output_text).toContain('"category":"C"');
+    expect(JSON.parse(raw).output_text).toContain('"issues":[]');
   });
 
   it('throws when the gateway responds with a non-ok status', async () => {
@@ -232,7 +261,7 @@ describe('createJudgeOptions', () => {
     let seen: TransportRequest | undefined;
     const fake: Transport = async (request) => {
       seen = request;
-      return { ok: true, status: 200, text: async () => messagesEnvelope({ category: 'C', rationale: '', fluency: 5 }) };
+      return { ok: true, status: 200, text: async () => messagesEnvelope({ issues: [], rationale: '', fluency: 5 }) };
     };
 
     const claudeEnv = {
@@ -262,7 +291,7 @@ describe('createJudgeOptions', () => {
 
 describe('grammatical agreement', () => {
   const withAgreement = (agreement: unknown) =>
-    envelope({ category: 'C', rationale: 'ok', fluency: 3, agreement });
+    envelope({ issues: [], rationale: 'ok', fluency: 3, agreement });
 
   it('maps the 1-5 agreement rating onto 0-1 and clamps', async () => {
     const agreement = async (value: unknown) =>
@@ -276,7 +305,7 @@ describe('grammatical agreement', () => {
 
   it('is null when the judge returns null or omits the field', async () => {
     expect((await judgeTranslation(INPUT, optsReturning(withAgreement(null)))).agreement).toBeNull();
-    const omitted = envelope({ category: 'C', rationale: 'ok', fluency: 3 });
+    const omitted = envelope({ issues: [], rationale: 'ok', fluency: 3 });
     expect((await judgeTranslation(INPUT, optsReturning(omitted))).agreement).toBeNull();
   });
 
@@ -285,6 +314,84 @@ describe('grammatical agreement', () => {
     expect(schema['agreement']).toBeDefined();
     expect((JUDGE_RESPONSE_SCHEMA as { required: readonly string[] }).required).toContain('agreement');
     expect(buildJudgePrompt(INPUT).toLowerCase()).toContain('agreement');
+  });
+});
+
+describe('scoreFactuality', () => {
+  const issue = (type: string, severity: string) =>
+    ({ type, severity, quote: 'q', explanation: 'e' }) as Parameters<typeof scoreFactuality>[0][number];
+
+  it('scores a page with no issues 1 on every factuality score', () => {
+    expect(scoreFactuality([], 10)).toEqual({
+      omission: 1,
+      addition: 1,
+      contradiction: 1,
+      distortion: 1,
+      faithful: 1,
+    });
+  });
+
+  it('zeroes omission on a critical omission, but accepts minor ones', () => {
+    expect(scoreFactuality([issue('omission', 'minor')], 10).omission).toBe(1);
+    const page = scoreFactuality([issue('omission', 'minor'), issue('omission', 'critical')], 10);
+    expect(page.omission).toBe(0);
+    expect(page.addition).toBe(1);
+  });
+
+  it('zeroes addition on a critical addition, but accepts minor ones', () => {
+    expect(scoreFactuality([issue('addition', 'minor')], 10).addition).toBe(1);
+    expect(scoreFactuality([issue('addition', 'critical')], 10).addition).toBe(0);
+  });
+
+  it('zeroes contradiction on any contradiction', () => {
+    expect(scoreFactuality([issue('contradiction', 'critical')], 10).contradiction).toBe(0);
+    expect(scoreFactuality([issue('distortion', 'critical')], 10).contradiction).toBe(1);
+  });
+
+  it('scales distortion by critical distortions per segment and ignores minor ones', () => {
+    expect(scoreFactuality([issue('distortion', 'minor'), issue('distortion', 'minor')], 10).distortion).toBe(1);
+    expect(scoreFactuality([issue('distortion', 'critical')], 20).distortion).toBeCloseTo(1 - 1 / 20);
+    expect(scoreFactuality([issue('distortion', 'critical'), issue('distortion', 'critical')], 1).distortion).toBe(0);
+  });
+
+  it('dilutes one critical distortion across a larger page', () => {
+    const small = scoreFactuality([issue('distortion', 'critical')], 10);
+    const large = scoreFactuality([issue('distortion', 'critical')], 40);
+    expect(large.distortion).toBeGreaterThan(small.distortion);
+  });
+
+  it('treats a page with no segments as one segment', () => {
+    expect(scoreFactuality([issue('distortion', 'critical')], 0).distortion).toBe(0);
+  });
+
+  it('scores faithful 0 on any critical issue or contradiction, and 1 otherwise', () => {
+    const faithful = (...issues: ReturnType<typeof issue>[]) => scoreFactuality(issues, 10).faithful;
+    expect(faithful()).toBe(1);
+    expect(faithful(issue('omission', 'minor'), issue('distortion', 'minor'))).toBe(1);
+    expect(faithful(issue('addition', 'critical'))).toBe(0);
+    expect(faithful(issue('distortion', 'critical'))).toBe(0);
+    expect(faithful(issue('contradiction', 'minor'))).toBe(0);
+  });
+});
+
+describe('factuality prompt and schema', () => {
+  it('defines the four issue types and the critical and minor severities', () => {
+    const prompt = buildJudgePrompt(INPUT);
+    for (const word of ['omission', 'addition', 'contradiction', 'distortion', 'critical', 'minor']) {
+      expect(prompt).toContain(word);
+    }
+    expect(prompt).toContain('valores de expresión único');
+  });
+
+  it('requires a typed, severity-graded issue list in the schema', () => {
+    const schema = JUDGE_RESPONSE_SCHEMA as unknown as {
+      required: string[];
+      properties: { issues: { items: { properties: Record<string, { enum?: string[] }> } } };
+    };
+    expect(schema.required).toContain('issues');
+    const item = schema.properties.issues.items.properties;
+    expect(item['type']!.enum).toEqual(['omission', 'addition', 'contradiction', 'distortion']);
+    expect(item['severity']!.enum).toEqual(['critical', 'minor']);
   });
 });
 

@@ -419,8 +419,12 @@ Scorers:
 | `glossary_terms_used` | Deterministic | **The headline.** Section by section: if the English contains a glossary translatable term, does that same section's Spanish contain the glossary's allowed option? Literal + plural occurrences. Per-row metadata: `total`, `allOccurrences`, `correct`, `wrong`, `notApplicable`, `byKind`, `wrongByReason`, `identity`, `senseBlindTerms`, `unsheeted`, `unseen`, `inactiveSets`, and a per-term `terms[]`. |
 | `terms_exact` | Deterministic | The same check over exact word matches only. Its per-row metadata is `{ of: "glossary_terms_used" }`. |
 | `terms_plural` | Deterministic | The same check over plural forms only (`drivers`). Metadata as `terms_exact`. |
-| `factuality` | LLM judge | The output against the English source, which is ground truth. The production translation calibrates register and terminology only; it is not an answer key. |
-| `fluency` | LLM judge | The output alone, in the target locale. |
+| `omission` | LLM judge | Source information missing from the output. 0 when the page has a critical omission (key information a reader needs), otherwise 1. Minor omissions, such as a dropped filler word or redundant clause, are acceptable and only logged. |
+| `addition` | LLM judge | Information in the output that is not in the source. Scored like `omission`: 0 for a critical addition, otherwise 1. |
+| `contradiction` | LLM judge | The output states the opposite of the source, or something incompatible with it. 0 when the page has any, otherwise 1. |
+| `distortion` | LLM judge | The output stays on the same point but shifts its meaning, emphasis or scope. 1 minus the critical distortions per segment, floored at 0. Minor distortions are acceptable and only logged. |
+| `faithful` | LLM judge | 0 when the page has any critical issue or any contradiction, otherwise 1. Derived from the issue lists, not judged separately. |
+| `fluency` | LLM judge | The output alone, in the target locale, rated 1 to 5 and mapped to 0-100%. |
 | `grammatical_agreement` | LLM judge | How well determiners, adjectives, and pronouns agree with their noun within each segment. Reported for `es` and `pt-br` only; `null` (not applicable) for locales without grammatical gender. |
 | `terminology_preserved` | Deterministic | Of the glossary's `nonTranslatableTerms` that occur in the English source, the fraction that survive verbatim in the output. With the glossary passed to the translator (the shipped configuration), this confirms the service's placeholder swap-and-restore round-trip, not the model's term choice; without it, it reflects the model's own choice. Scored on word boundaries, so `C` does not match inside `C++`. `null` when the source holds none of them. Per-row metadata: `denominator`, `numerator`, `missing`. |
 | `reference_similarity` | Deterministic | Character-bigram F1 against the production translation. A calibration signal, not a pass/fail. |
@@ -431,8 +435,21 @@ cannot score a term low unless the placeholder plumbing fails, and a list that
 contains terms production actually translates (for example `Compatibility` or
 `data center`) forces English the score does not see.
 
-The judge runs once per row and returns `factuality`, `fluency`, and
-`grammatical_agreement`.
+The judge scores each page in one call, against the English source and the
+production reference. It lists every meaning issue it finds, each with a type
+(omission, addition, contradiction or distortion), a severity (critical or
+minor) and a quote, and rates `fluency` and `grammatical_agreement`. The
+factuality scores are computed from the issue list. The prompt
+(`src/eval/judge/prompt.ts`) defines critical and minor: critical means a reader
+relying on the output could do the wrong thing or reach a wrong conclusion, and
+minor means a reader would not be misled. A response with no issue list is
+rejected instead of scored. Each factuality score's metadata in Braintrust lists
+its issues with severity and quote. Include rows are not judged.
+
+A scrape that returns an empty page (for example an error page from the local
+site) is not recorded, and the dataset stage drops that page with a warning. A
+page row whose local text is blank scores `null` with the reason `local scrape
+was empty` for every scorer that reads the scraped text, including the judge.
 
 #### language_integrity
 

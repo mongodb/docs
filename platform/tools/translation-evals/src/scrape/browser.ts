@@ -13,6 +13,10 @@ export function isSkippableStatus(status: number): boolean {
   return status === 403 || status === 404;
 }
 
+export function hasContent(content: string): boolean {
+  return content.trim() !== '';
+}
+
 export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export async function withBrowser<T>(fn: (browser: Browser) => Promise<T>): Promise<T> {
@@ -37,6 +41,12 @@ export async function scrapeOne(
     await page.waitForSelector('main', { timeout: 8000 }).catch(() => {});
     const title = await page.title();
     const content = await page.$eval('main', (el) => (el as HTMLElement).innerText).catch(() => '');
+    // An error page or a timeout leaves `main` empty; recording that as a scrape
+    // would hand the eval a blank page to score.
+    if (!hasContent(content)) {
+      console.warn(`empty page content for ${url} — not recorded`);
+      return null;
+    }
     return { url, title, content };
   } finally {
     await context.close();
