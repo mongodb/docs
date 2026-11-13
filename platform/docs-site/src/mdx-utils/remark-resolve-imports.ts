@@ -1,7 +1,7 @@
 import type { Root, Link, Paragraph, PhrasingContent } from 'mdast';
 import type { Node, Parent } from 'unist';
 import type { MdxJsxAttribute, MdxJsxFlowElement, MdxJsxTextElement } from 'mdast-util-mdx-jsx';
-import { visit } from 'unist-util-visit';
+import { SKIP, visit } from 'unist-util-visit';
 import { remark } from 'remark';
 import remarkMdx from 'remark-mdx';
 import remarkFrontmatter from 'remark-frontmatter';
@@ -50,9 +50,12 @@ export const remarkResolveImports = ({
     const loadedRefs = await loadReferences(projectPath);
     const refs: ReferencesData = loadedRefs ?? { substitutions: {}, refs: {} };
 
-    await resolveIncludes({ tree, projectPath, refs, dirNameToPrefix, isMarkdownExport, docsBaseUrl });
+    const scope = await collectPageScope({ tree, projectPath });
 
-    resolveSubstitutions({ tree, refs, projectPath, dirNameToPrefix, isMarkdownExport, docsBaseUrl });
+    await resolveIncludes({ tree, projectPath, refs, dirNameToPrefix, isMarkdownExport, docsBaseUrl, scope });
+
+    removeDefines(tree);
+    resolveSubstitutions({ tree, refs, projectPath, dirNameToPrefix, isMarkdownExport, docsBaseUrl, scope });
     resolveRefLinks({ tree, refs, projectPath, dirNameToPrefix, isMarkdownExport, docsBaseUrl });
     normalizePhrasingContainers(tree);
     stripUnresolvedImportNodes(tree);
@@ -75,6 +78,7 @@ interface ResolveIncludesArgs {
   dirNameToPrefix: Record<string, string>;
   isMarkdownExport: boolean;
   docsBaseUrl?: string;
+  scope: PageScope;
 }
 
 const resolveIncludes = async ({
@@ -85,6 +89,7 @@ const resolveIncludes = async ({
   dirNameToPrefix,
   isMarkdownExport,
   docsBaseUrl,
+  scope,
 }: ResolveIncludesArgs) => {
   const nodesToReplace: IncludeNode[] = [];
 
@@ -113,6 +118,7 @@ const resolveIncludes = async ({
         dirNameToPrefix,
         isMarkdownExport,
         docsBaseUrl,
+        scope,
       });
       return { ...item, replacement };
     }),
@@ -131,6 +137,12 @@ const resolveIncludes = async ({
   }
 };
 
+const getIncludeFilePath = (src: string, projectPath: string): string => {
+  const mdxFilePath = src.replace(/^\/+/, '').replace(/\.mdx$/, '') + '.mdx';
+  // projectPath is empty string for the landing page (no project path prefix)
+  return projectPath ? `${projectPath}/${mdxFilePath}` : mdxFilePath;
+};
+
 interface FetchAndParseIncludeArgs {
   src: string;
   projectPath: string;
@@ -140,7 +152,25 @@ interface FetchAndParseIncludeArgs {
   dirNameToPrefix: Record<string, string>;
   isMarkdownExport: boolean;
   docsBaseUrl?: string;
+  /** Definitions inherited from the page and the includes above this one. */
+  scope: PageScope;
 }
+
+/**
+ * Works out which definitions an include file should use for its own references.
+ *
+ * It starts with everything the include inherits from the page (and the includes above it), then
+ * lets the file's own `<Define>`s win over those.
+ */
+const buildIncludeScope = (inherited: PageScope, tree: Root): PageScope => {
+  const own = extractDefines(tree);
+  const ownNames = Object.keys(own);
+  if (!ownNames.length) return inherited;
+
+  const ambiguous = new Set(inherited.ambiguous);
+  ownNames.forEach((name) => ambiguous.delete(name));
+  return { defs: { ...inherited.defs, ...own }, ambiguous };
+};
 
 const fetchAndParseInclude = async ({
   src,
@@ -151,10 +181,9 @@ const fetchAndParseInclude = async ({
   dirNameToPrefix,
   isMarkdownExport,
   docsBaseUrl,
+  scope,
 }: FetchAndParseIncludeArgs): Promise<Root | null> => {
-  const mdxFilePath = src.replace(/^\/+/, '').replace(/\.mdx$/, '') + '.mdx';
-  // projectPath is empty string for the landing page (no project path prefix)
-  const filePath = projectPath ? `${projectPath}/${mdxFilePath}` : mdxFilePath;
+  const filePath = getIncludeFilePath(src, projectPath);
 
   if (includeStack.has(filePath)) {
     console.warn(`[remarkResolveImports] Circular include: ${[...includeStack, filePath].join(' → ')}`);
@@ -172,6 +201,8 @@ const fetchAndParseInclude = async ({
     }
 
     const parsed = mdxProcessor.parse(content);
+    const includeScope = buildIncludeScope(scope, parsed);
+    removeDefines(parsed);
 
     await resolveIncludes({
       tree: parsed,
@@ -181,6 +212,7 @@ const fetchAndParseInclude = async ({
       dirNameToPrefix,
       isMarkdownExport,
       docsBaseUrl,
+      scope: includeScope,
     });
 
     resolveReplacementReferences(parsed, replacementSlots ?? {});
@@ -194,12 +226,21 @@ const fetchAndParseInclude = async ({
       dirNameToPrefix,
       isMarkdownExport,
       docsBaseUrl,
+      scope: includeScope,
     });
 
     // Slot values may themselves contain <Reference> nodes (e.g. `|idp-provider|
     // replace:: |azure-ad|`). Resolve them here — before the include is spliced
     // into the page — so leftover Include/Reference never reach React.
-    resolveSubstitutions({ tree: parsed, refs, projectPath, dirNameToPrefix, isMarkdownExport, docsBaseUrl });
+    resolveSubstitutions({
+      tree: parsed,
+      refs,
+      projectPath,
+      dirNameToPrefix,
+      isMarkdownExport,
+      docsBaseUrl,
+      scope: includeScope,
+    });
     resolveRefLinks({ tree: parsed, refs, projectPath, dirNameToPrefix, isMarkdownExport, docsBaseUrl });
     hoistBlocksOutOfParagraphs(parsed);
 
@@ -301,6 +342,16 @@ const buildDocsHref = (
   return withMarkdownSuffix(joined, isRootTarget);
 };
 
+interface ResolveSubstitutionsArgs extends Omit<ResolveRefsArgs, 'tree'> {
+  tree: Parent;
+  /** Page-scoped `<Define>`s. They take precedence over `_references.json`. */
+  scope?: PageScope;
+  /** Aliases currently being expanded, to stop a definition that refers back to itself. */
+  activeKeys?: Set<string>;
+  /** Aliases already reported as ambiguous, so each is warned about once per page. */
+  warnedAmbiguous?: Set<string>;
+}
+
 const resolveSubstitutions = ({
   tree,
   refs,
@@ -308,7 +359,10 @@ const resolveSubstitutions = ({
   dirNameToPrefix = {},
   isMarkdownExport,
   docsBaseUrl,
-}: ResolveRefsArgs) => {
+  scope,
+  activeKeys = new Set<string>(),
+  warnedAmbiguous = new Set<string>(),
+}: ResolveSubstitutionsArgs) => {
   const replacements: JsxReplacement[] = [];
 
   visit(tree, (node, index, parent) => {
@@ -339,6 +393,39 @@ const resolveSubstitutions = ({
       }
       replacements.push({ index, parent, replacement: { type: 'text', value: inlineValue } as PhrasingContent });
       return;
+    }
+
+    const pageScopedValue = scope?.defs[key];
+    if (pageScopedValue) {
+      if (activeKeys.has(key)) {
+        console.warn(`[remarkResolveImports] Circular <Define name="${key}"> — falling back to _references.json`);
+      } else {
+        if (scope.ambiguous.has(key) && !warnedAmbiguous.has(key)) {
+          warnedAmbiguous.add(key);
+          console.warn(
+            `[remarkResolveImports] <Define name="${key}"> has conflicting definitions on this page — using the last one in page order`,
+          );
+        }
+        // A definition is stored once but spliced at every reference to it, so clone it per use.
+        // Reshape it for the reference site: inline references get phrasing content so no <p> 
+        // lands inside a sentence, while block references keep their block structure.
+        const body = replacementSlotToNodes(pageScopedValue.map(cloneMdastTree), node.type === 'mdxJsxTextElement');
+        // A definition can refer to other aliases, so resolve those before splicing it in.
+        const expanded: Parent = { type: 'root', children: body };
+        resolveSubstitutions({
+          tree: expanded,
+          refs,
+          projectPath,
+          dirNameToPrefix,
+          isMarkdownExport,
+          docsBaseUrl,
+          scope,
+          activeKeys: new Set(activeKeys).add(key),
+          warnedAmbiguous,
+        });
+        replacements.push({ index, parent, replacement: expanded.children });
+        return;
+      }
     }
 
     // Rich substitution: the value is inline markup (e.g. |ui-org-menu| = ":icon-mms:`office`
@@ -634,6 +721,133 @@ const extractReplacementSlots = (includeNode: MdxJsxElement): Record<string, Nod
     slots[name] = unwrapNullNameFragments(inner.map(cloneMdastTree));
   }
   return slots;
+};
+
+const defineBody = (node: MdxJsxElement): Node[] =>
+  unwrapNullNameFragments((node.children ?? []).filter((c) => (c as Node).type !== 'yaml').map(cloneMdastTree));
+
+/** Returns a map of every `<Define name>` by name. A later definition replaces an earlier one. */
+export const extractDefines = (tree: Node): Record<string, Node[]> => {
+  const defs: Record<string, Node[]> = {};
+
+  visit(tree, (node) => {
+    if (!isJsxElement(node) || node.name !== 'Define') return;
+    const name = getAttr(node, 'name');
+    if (name) defs[name] = defineBody(node);
+    return SKIP;
+  });
+
+  return defs;
+};
+
+export interface PageScope {
+  /** Winning definition for each alias, in page order. */
+  defs: Record<string, Node[]>;
+  /** Aliases defined more than once with different values, so which one wins depends on order. */
+  ambiguous: Set<string>;
+}
+
+const stripPositions = (nodes: Node[]): string =>
+  JSON.stringify(nodes, (key, value) => (key === 'position' ? undefined : value));
+
+/** What a file contributes to a page's scope, in document order: its `<Define>`s and the includes it pulls in. */
+type ScopeContribution = { kind: 'define'; name: string; body: Node[] } | { kind: 'include'; src: string };
+
+const getScopeContributions = (tree: Node): ScopeContribution[] => {
+  const contributions: ScopeContribution[] = [];
+
+  visit(tree, (node) => {
+    if (!isJsxElement(node)) return;
+
+    if (node.name === 'Define') {
+      const name = getAttr(node, 'name');
+      if (name) contributions.push({ kind: 'define', name, body: defineBody(node) });
+      return SKIP;
+    }
+
+    if (node.name === 'Include') {
+      const src = getAttr(node, 'src');
+      if (src) contributions.push({ kind: 'include', src });
+    }
+  });
+
+  return contributions;
+};
+
+// Cache of the Include and Define contributions for each file
+const scopeContributionsCache = new Map<string, { content: string; contributions: ScopeContribution[] }>();
+
+/**
+ * Collect the `<Define>`s that apply to a page: its own, plus those in every include it pulls in,
+ * walked in document order so the last definition wins. A definition in a sibling include is in
+ * scope for the whole page, matching RST, where a substitution is document-global.
+ */
+export const collectPageScope = async ({
+  tree,
+  projectPath,
+}: {
+  tree: Node;
+  projectPath: string;
+}): Promise<PageScope> => {
+  const defs: Record<string, Node[]> = {};
+  const ambiguous = new Set<string>();
+  const contributionsByFile = new Map<string, ScopeContribution[] | null>();
+
+  const loadScopeContributions = async (filePath: string): Promise<ScopeContribution[] | null> => {
+    if (contributionsByFile.has(filePath)) return contributionsByFile.get(filePath) ?? null;
+    let contributions: ScopeContribution[] | null = null;
+    try {
+      const content = await getContentString(filePath);
+      if (content) {
+        const cached = scopeContributionsCache.get(filePath);
+        if (cached?.content === content) {
+          contributions = cached.contributions;
+        } else {
+          contributions = getScopeContributions(mdxProcessor.parse(content));
+          scopeContributionsCache.set(filePath, { content, contributions });
+        }
+      }
+    } catch (err) {
+      console.warn(`[remarkResolveImports] Failed to read include while collecting definitions: ${filePath}`, err);
+    }
+    contributionsByFile.set(filePath, contributions);
+    return contributions;
+  };
+
+  const walk = async (contributions: ScopeContribution[], includeStack: Set<string>): Promise<void> => {
+    for (const contribution of contributions) {
+      if (contribution.kind === 'define') {
+        // If an alias is defined more than once with different values, add it to the ambiguous set.
+        if (defs[contribution.name] && stripPositions(defs[contribution.name]) !== stripPositions(contribution.body)) {
+          ambiguous.add(contribution.name);
+        }
+        defs[contribution.name] = contribution.body;
+        continue;
+      }
+
+      const filePath = getIncludeFilePath(contribution.src, projectPath);
+      if (includeStack.has(filePath)) continue;
+      const included = await loadScopeContributions(filePath);
+      if (included) await walk(included, new Set(includeStack).add(filePath));
+    }
+  };
+
+  await walk(getScopeContributions(tree), new Set());
+
+  return { defs, ambiguous };
+};
+
+/** `<Define>`s are consumed into the page scope; drop them so they never reach the renderer. */
+const removeDefines = (tree: Root) => {
+  const replacements: JsxReplacement[] = [];
+
+  visit(tree, (node, index, parent) => {
+    if (index === undefined || !parent || !isJsxElement(node) || node.name !== 'Define') return;
+    replacements.push({ index, parent, replacement: [] });
+    return SKIP;
+  });
+
+  applyReplacements(replacements);
 };
 
 const resolveReplacementReferences = (tree: Root, slots: Record<string, Node[]>) => {
