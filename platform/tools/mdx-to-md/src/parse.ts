@@ -6,6 +6,7 @@ import remarkStringify from "remark-stringify";
 import { stripEsm } from "./plugins/strip-esm.js";
 import { resolveIncludes } from "./plugins/resolve-includes.js";
 import { resolveReferences } from "./plugins/resolve-references.js";
+import { resolveDefines } from "./plugins/resolve-defines.js";
 import { transformImage } from "./plugins/transform-image.js";
 import { transformHeading } from "./plugins/transform-heading.js";
 import { transformTabs } from "./plugins/transform-tabs.js";
@@ -72,6 +73,10 @@ export async function mdxToMarkdown(
     processor.use(
       resolveIncludes(contentMdxDir, sourceFilePath, undefined)
     );
+  }
+  // Runs without contentMdxDir too, so a <Define> never reaches stripCustomMdx and prints its body.
+  processor.use(resolveDefines());
+  if (contentMdxDir) {
     processor.use(
       resolveReferences(contentMdxDir, sourceFilePath, referenceOptions)
     );

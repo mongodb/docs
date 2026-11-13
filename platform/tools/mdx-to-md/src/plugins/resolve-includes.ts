@@ -8,6 +8,7 @@ import type { Plugin } from "unified";
 import type { Root } from "mdast";
 import type { VFile } from "vfile";
 import { fileExists } from "../utils/file-exists.js";
+import { collectDefinitions, substituteDefinitions } from "./resolve-defines.js";
 
 /**
  * Resolve Includes in the MDX file
@@ -160,6 +161,9 @@ export function resolveIncludes(
             .use(resolveIncludes(contentMdxDir, normalizedPath, nextStack))
             .parse(content);
 
+          // Read before nested includes are inlined, so this is only what this file defines itself.
+          const ownDefinitions = collectDefinitions(parsed);
+
           const processed = await remark()
             .use(remarkFrontmatter, ["yaml"])
             .use(remarkMdx)
@@ -212,6 +216,10 @@ export function resolveIncludes(
               parent.children.splice(idx, 1, ...nodes);
             }
           }
+
+          // After the caller's <Replacement> slots, so a slot wins. A file's own definition then
+          // applies to every reference left in it, including those from the includes nested inside.
+          substituteDefinitions(processed as Root, ownDefinitions);
 
           return processed as Root;
         } catch (err) {

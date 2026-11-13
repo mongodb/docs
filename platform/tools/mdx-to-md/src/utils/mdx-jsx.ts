@@ -16,7 +16,7 @@ export type MdxJsxElement = Extract<
   { type: "mdxJsxFlowElement" | "mdxJsxTextElement" }
 >;
 
-const isMdxJsxElement = (node: unknown, name: string): node is MdxJsxElement => {
+export const isMdxJsxElement = (node: unknown, name: string): node is MdxJsxElement => {
   if (typeof node !== "object" || node === null) return false;
   const n = node as Record<string, unknown>;
   return (

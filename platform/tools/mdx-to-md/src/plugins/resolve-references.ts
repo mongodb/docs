@@ -7,6 +7,7 @@ import { fileExists } from "../utils/file-exists.js";
 
 interface ReferencesJson {
   refs?: Record<string, string>;
+  substitutions?: Record<string, unknown>;
 }
 
 export interface ResolveReferencesOptions {
@@ -102,12 +103,18 @@ export function resolveReferences(
 
       // --- URL/link references from _references.json ---
       let refs: Record<string, string> = {};
+      // Aliases whose global value is an external link, so a baked-in value keeps the link.
+      const substitutionUrls: Record<string, string> = {};
       const refsJsonPath = join(contentMdxDir, contextPath, "_references.json");
       if (await fileExists(refsJsonPath)) {
         try {
           const raw = await readFile(refsJsonPath, "utf-8");
           const refsData = JSON.parse(raw) as ReferencesJson;
           refs = refsData.refs ?? {};
+          for (const [alias, value] of Object.entries(refsData.substitutions ?? {})) {
+            const url = (value as { url?: unknown } | null)?.url;
+            if (typeof url === "string") substitutionUrls[alias] = url;
+          }
         } catch (err) {
           warn(`Failed to read _references.json: ${refsJsonPath}`, err);
         }
@@ -135,6 +142,25 @@ export function resolveReferences(
 
         // Text substitution: <Reference type="substitution" refKey="..." />
         if (typeAttr?.value === "substitution" && refKeyAttr?.value) {
+          // A value baked in at conversion time is page-specific, so it wins over the global one.
+          const baked = node.attributes?.find((a: any) => a.name === "value")?.value;
+          if (baked) {
+            const url = substitutionUrls[refKeyAttr.value];
+            if (url) {
+              node.type = "link";
+              node.url = resolveUrl(url);
+              node.title = null;
+              node.children = [{ type: "text", value: baked }];
+            } else {
+              node.type = "text";
+              (node as { value?: string }).value = baked;
+              delete node.children;
+            }
+            delete node.name;
+            delete node.attributes;
+            return;
+          }
+
           const value = substitutions[refKeyAttr.value];
           if (value !== undefined) {
             node.type = "text";
