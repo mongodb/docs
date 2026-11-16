@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { Breadcrumb, Breadcrumbs } from '@via-ds/components/breadcrumbs';
+import { getTranslator } from '@/internationalization/get-translator';
 import { reportAnalytics } from '@/utils/report-analytics';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
 import { assertTrailingSlash } from '@/utils/assert-trailing-slash';
@@ -21,6 +22,7 @@ const canonicalCrumbPath = (path: string): string => {
 };
 
 const BreadcrumbContainer = ({ breadcrumbs: rawBreadcrumbs }: { breadcrumbs: Array<BreadcrumbType> }) => {
+  const { t } = getTranslator();
   const breadcrumbs = useMemo(
     () => rawBreadcrumbs.map((crumb) => ({ ...crumb, path: canonicalCrumbPath(crumb.path) })),
     [rawBreadcrumbs],
@@ -39,7 +41,11 @@ const BreadcrumbContainer = ({ breadcrumbs: rawBreadcrumbs }: { breadcrumbs: Arr
   };
 
   return (
-    <Breadcrumbs onAction={onAction} overflowAriaLabel="Show all breadcrumbs">
+    <Breadcrumbs
+      aria-label={t('nav.breadcrumbs')}
+      onAction={onAction}
+      overflowAriaLabel={t('nav.show_all_breadcrumbs')}
+    >
       {breadcrumbs.map((crumb, index) => (
         // TOC ancestors can share a URL.
         <Breadcrumb key={index} id={String(index)} href={crumb.path}>

@@ -1,16 +1,20 @@
 import { format } from 'date-fns';
 import { Text, TextStyle } from '@via-ds/components/typography';
+import { getTranslator } from '@/internationalization/get-translator';
 import type { AtlasAdminApiChangeDateEntry } from '@/types/openapi';
 
 import ResourceChangesBlock from './resource-changes-block';
 import styles from '../openapi-changelog.module.scss';
 
 const ReleaseDateBlock = ({ date: releaseDate, paths }: AtlasAdminApiChangeDateEntry) => {
+  const { t } = getTranslator();
   const formattedReleaseDate = format(new Date(releaseDate.replace(/-/g, '/')), 'dd MMMM y');
 
   return (
     <section className={styles.section}>
-      <Text elementType="h2" textStyle={TextStyle.heading3}>{`${formattedReleaseDate} Release`}</Text>
+      <Text elementType="h2" textStyle={TextStyle.heading3}>
+        {t('changelog.release_heading', { date: formattedReleaseDate })}
+      </Text>
       {paths.map((path, i) => (
         <ResourceChangesBlock key={`resource-${i}`} {...path} />
       ))}

@@ -1,6 +1,7 @@
 import { Combobox, ComboboxItem } from '@via-ds/components/combobox';
 import { Size } from '@via-ds/components/types';
 import type { Dispatch, SetStateAction } from 'react';
+import { getTranslator } from '@/internationalization/get-translator';
 import styles from '../../../openapi-changelog.module.scss';
 
 type DiffSelectProps = {
@@ -18,11 +19,12 @@ export default function DiffSelect({
   handleVersionOneChange,
   handleVersionTwoChange,
 }: DiffSelectProps) {
+  const { t } = getTranslator();
   const versionOptions = (exclude: string | undefined, testId: string) =>
     resourceVersions
       .filter((version) => version !== exclude)
       .map((version) => {
-        const label = version === resourceVersions[0] ? `${version} (latest)` : version;
+        const label = version === resourceVersions[0] ? t('changelog.version_latest', { version }) : version;
         return (
           <ComboboxItem data-testid={testId} key={version} id={version} textValue={label}>
             {label}
@@ -35,8 +37,10 @@ export default function DiffSelect({
       <Combobox
         selectionMode="single"
         size={Size.Large}
-        placeholder="Select Version"
-        label="Resource Version 1"
+        placeholder={t('changelog.select_version')}
+        label={t('changelog.resource_version', { number: '1' })}
+        emptyLabel={t('combobox.no_results')}
+        menuTriggerAriaLabel={t('combobox.show_suggestions')}
         selectedKey={resourceVersionOne}
         onSelectionChange={(key) => key !== null && handleVersionOneChange(String(key))}
       >
@@ -45,8 +49,10 @@ export default function DiffSelect({
       <Combobox
         selectionMode="single"
         size={Size.Large}
-        placeholder="Select Version"
-        label="Resource Version 2"
+        placeholder={t('changelog.select_version')}
+        label={t('changelog.resource_version', { number: '2' })}
+        emptyLabel={t('combobox.no_results')}
+        menuTriggerAriaLabel={t('combobox.show_suggestions')}
         selectedKey={resourceVersionTwo ?? null}
         onSelectionChange={(key) => key !== null && handleVersionTwoChange(String(key))}
       >

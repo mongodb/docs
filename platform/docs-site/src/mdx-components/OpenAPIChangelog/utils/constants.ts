@@ -1,3 +1,4 @@
+import type { PlatformStringKey } from '@/internationalization/catalogs';
 import type { Environments } from '@/utils/env-config';
 import { BadgeVariant } from '@via-ds/components/badge';
 
@@ -12,18 +13,18 @@ export const getDownloadChangelogUrl = (env: Environments) => {
 export const changeTypeBadges = {
   release: {
     variant: BadgeVariant.Success,
-    label: 'Released',
+    labelKey: 'changelog.badge_released',
   },
   deprecate: {
     variant: BadgeVariant.Error,
-    label: 'Deprecated',
+    labelKey: 'changelog.badge_deprecated',
   },
   update: {
     variant: BadgeVariant.Success,
-    label: 'Updated',
+    labelKey: 'changelog.badge_updated',
   },
   removed: {
     variant: BadgeVariant.Error,
-    label: 'Removed',
+    labelKey: 'changelog.badge_removed',
   },
-};
+} satisfies Record<string, { variant: BadgeVariant; labelKey: PlatformStringKey }>;

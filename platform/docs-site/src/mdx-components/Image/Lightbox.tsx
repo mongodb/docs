@@ -48,7 +48,7 @@ export const Lightbox = ({ figure, dialogFigure, alt, caption, figwidth = 'auto'
         </div>
       </div>
       <DialogRoot isOpen={open} onOpenChange={setOpen}>
-        <Dialog className={styles.dialog}>
+        <Dialog className={styles.dialog} closeButtonLabel={t('dialog.close')}>
           {alt && (
             <Header>
               <Text slot="title">{alt}</Text>

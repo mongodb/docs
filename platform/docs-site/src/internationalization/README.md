@@ -125,6 +125,43 @@ build if a locale is missing.
    service (`platform/tools/translation-service/`), reviewed, and committed. A key
    missing from a bundle renders in English.
 
+## Design system (VIA) built-in strings
+
+`@via-ds/components` ships English defaults for its own labels. Each one below is
+overridden through a prop so it follows the build locale (checked against 0.15.0).
+
+Not every default is a `*Label` prop (`headingText`, `aria-label` and the `Table`
+`messages` object are not). VIA tags every English default with `@default '` in
+its `.d.ts` files, so search `node_modules/@via-ds/components/dist` for that. When
+VIA adds a component or a default that docs-site uses, add a row.
+
+| English default                                                           | Keys                                          | Where                                  | Prop                                                                                                                      | Seen by                  |
+| ------------------------------------------------------------------------- | --------------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
+| Note, Tip, Important, Warning, Example                                    | `admonition.*`                                | `Admonition` (`Callout`)               | `headingText`                                                                                                             | Everyone                 |
+| Copied!                                                                   | `code.copied`                                 | `Code` (`CopyButton`)                  | `copiedLabel`                                                                                                             | Everyone                 |
+| Close dialog                                                              | `dialog.close`                                | `Lightbox`, `DownloadModal` (`Dialog`) | `closeButtonLabel`                                                                                                        | Screen readers           |
+| Notifications, Close                                                      | `toast.notifications`, `toast.close`          | `ViaProviderWrapper` (`Toaster`)       | `aria-label`, `closeButtonLabel`                                                                                          | Screen readers           |
+| Clear search                                                              | `search.clear`                                | `SearchInput` (`SearchField`)          | `clearButtonAriaLabel`                                                                                                    | Screen readers           |
+| Loading                                                                   | `actions.loading`                             | `DownloadModal` (`Button`)             | `pendingLabel`                                                                                                            | Screen readers           |
+| Breadcrumbs, Show all breadcrumbs                                         | `nav.breadcrumbs`, `nav.show_all_breadcrumbs` | `BreadcrumbContainer` (`Breadcrumbs`)  | `aria-label`, `overflowAriaLabel`                                                                                         | Screen readers           |
+| No results, Show suggestions, Remove, N items selected, No items selected | `combobox.*`                                  | `OpenAPIChangelog` (`Combobox`)        | `emptyLabel`, `menuTriggerAriaLabel`, `chipRemoveButtonAriaLabel`, `formatSelectionCount`, `multipleSelectionPlaceholder` | Everyone, screen readers |
+
+Not overridden:
+
+- `Select` has `emptyLabel`, `loadingLabel` and `optionalLabel`. None is
+  overridden: no `Select` here sets `isOptional` or `isLoading`, and none is
+  expected to render with no options. Add them if that changes.
+- `Table` takes a `messages` object. `DownloadModal` uses selectable rows, so its
+  "Row selection", "Select all rows" and "Select row {rowId}" defaults are still
+  English for screen readers. The MDX `Table` has no selection, expand or sort.
+- `Combobox` has `loadingLabel` and `optionalLabel`. Neither is overridden: the
+  comboboxes in `OpenAPIChangelog` set neither `isLoading` nor `isOptional`.
+- VIA components docs-site does not import yet (for example `Drawer`, `SidePanel`
+  and `Pagination`) have English defaults too. Check them when one is first used.
+- `UnifiedSidenav` (`AccordionNav`, `DoublePannedNav`) still uses LeafyGreen.
+- `@mdb/consistent-nav` (header and footer) localizes itself from the `locale` it
+  is given. `mongodb-chatbot-ui` has hard-coded English strings with no override.
+
 ## Tests
 
 `src/tests/internationalization/` and `src/tests/utils/build-locale.test.ts`.

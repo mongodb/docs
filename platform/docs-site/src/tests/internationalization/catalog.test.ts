@@ -1,6 +1,24 @@
 import { IntlMessageFormat } from 'intl-messageformat';
+import { getCatalog } from '@/internationalization/catalogs';
 import enUs from '@/internationalization/platform-strings.en-us.json';
 import { createTranslator } from '@/internationalization/translate';
+import type { AvailableLocaleType } from '@/utils/locale';
+
+const TRANSLATED_LOCALES: Record<Exclude<AvailableLocaleType, 'en-us'>, true> = {
+  'pt-br': true,
+  es: true,
+  'ko-kr': true,
+  'ja-jp': true,
+  'zh-cn': true,
+};
+
+const isValidIcu = (message: string, locale: string) => {
+  try {
+    return !!new IntlMessageFormat(message, locale);
+  } catch {
+    return false;
+  }
+};
 
 describe('en-us platform strings', () => {
   it.each(Object.entries(enUs))('%s is a valid ICU message', (_key, message) => {
@@ -36,5 +54,20 @@ describe('en-us platform strings', () => {
       const description = t_rich('offline.modal_description', { link: (chunks) => `[${chunks.join('')}]` });
       expect(description).toContain('Visit our [legacy docs site]');
     });
+  });
+});
+
+describe.each(Object.keys(TRANSLATED_LOCALES))('%s platform strings', (locale) => {
+  const bundle = getCatalog(locale);
+
+  it('only has keys that en-us has', () => {
+    expect(Object.keys(bundle).filter((key) => !(key in enUs))).toEqual([]);
+  });
+
+  it('only has valid ICU messages', () => {
+    const invalid = Object.entries(bundle)
+      .filter(([, message]) => !isValidIcu(message, locale))
+      .map(([key]) => key);
+    expect(invalid).toEqual([]);
   });
 });

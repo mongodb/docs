@@ -7,6 +7,7 @@ import { Text, TextStyle } from '@via-ds/components/typography';
 import { Size } from '@via-ds/components/types';
 import type { Environments } from '@/utils/env-config';
 import { useChangelogData } from '@/context/changelog-context';
+import { getTranslator } from '@/internationalization/get-translator';
 
 import FiltersPanel from './components/filters-panel';
 import ChangeList from './components/change-list';
@@ -16,6 +17,7 @@ import getDiffResourcesList from './utils/get-diff-resources-list';
 import styles from './openapi-changelog.module.scss';
 
 export const OpenAPIChangelog = () => {
+  const { t } = getTranslator();
   const env = process.env.NEXT_PUBLIC_ENV as Environments;
 
   const { changelogMetadata, changelog, changelogResourcesList } = useChangelogData();
@@ -103,13 +105,13 @@ export const OpenAPIChangelog = () => {
       <div className={styles.header}>
         <div className={styles.title}>
           <Text elementType="h1" textStyle={TextStyle.heading2}>
-            API Changelog
+            {t('changelog.api_changelog')}
           </Text>
           <Text size={Size.Large} className={styles.specRevision}>
             (2.0{!!changelogMetadata.specRevisionShort && `~${changelogMetadata.specRevisionShort}`})
           </Text>
         </div>
-        <Button onPress={onDownloadChangelog}>Download Full API Changelog</Button>
+        <Button onPress={onDownloadChangelog}>{t('changelog.download_full_api_changelog')}</Button>
       </div>
       <FiltersPanel
         resources={versionMode === ALL_VERSIONS ? changelogResourcesList : diffResourcesList}
@@ -131,10 +133,8 @@ export const OpenAPIChangelog = () => {
           <div className={styles.changeList}>
             {[...Array(3)].map((_, i) => (
               <div className={styles.skeletonBlock} key={i}>
-                <Text textStyle={TextStyle.heading4}>Loading resource changes</Text>
-                <Text size={Size.Large}>
-                  Loading the list of changes for this resource between the selected versions.
-                </Text>
+                <Text textStyle={TextStyle.heading4}>{t('changelog.loading_resource_changes')}</Text>
+                <Text size={Size.Large}>{t('changelog.loading_resource_changes_description')}</Text>
               </div>
             ))}
           </div>

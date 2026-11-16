@@ -161,7 +161,7 @@ export const DownloadModal = ({ open, setOpen }: ModalProps) => {
 
   return (
     <DialogRoot isOpen={open} onOpenChange={setOpen}>
-      <Dialog className={styles.dialog} size={Size.Large}>
+      <Dialog className={styles.dialog} size={Size.Large} closeButtonLabel={t('dialog.close')}>
         <Header>
           <Text slot="title">{t('offline.modal_title')}</Text>
           <Text slot="description">
@@ -224,6 +224,7 @@ export const DownloadModal = ({ open, setOpen }: ModalProps) => {
           <Button
             variant="primary"
             isPending={resultsLoading}
+            pendingLabel={t('actions.loading')}
             isDisabled={!rowSelection || !Object.keys(rowSelection)?.length}
             onPress={onDownload}
           >

@@ -77,7 +77,12 @@ export const Code = ({
 
   const copyButton = (copyable || isOfflineBuild) && (
     // CodePanel rejects slots, so only the floating button persists
-    <CopyButton slot={hasPanel ? undefined : 'persist'} copyText={code} onCopy={reportCodeCopied}>
+    <CopyButton
+      slot={hasPanel ? undefined : 'persist'}
+      copyText={code}
+      copiedLabel={t('code.copied')}
+      onCopy={reportCodeCopied}
+    >
       <Button aria-label={t('code.copy')}>
         <CopyIcon role="presentation" />
       </Button>

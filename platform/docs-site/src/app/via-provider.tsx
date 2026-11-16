@@ -8,6 +8,7 @@ import { Size } from '@via-ds/components/types';
 import '@via-ds/components/index.css';
 import '@via-ds/icons/styles.css';
 import { useLocale } from '@/context/locale';
+import { getTranslator } from '@/internationalization/get-translator';
 import { sameProjectHref } from '@/utils/base-path';
 import { getHtmlLangFormat } from '@/utils/locale';
 
@@ -27,6 +28,7 @@ import { getHtmlLangFormat } from '@/utils/locale';
 export function ViaProviderWrapper({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { locale } = useLocale();
+  const { t } = getTranslator();
 
   // Cross-deploy hrefs need a full load; router.push would prepend this basePath.
   const navigate = useCallback(
@@ -41,7 +43,7 @@ export function ViaProviderWrapper({ children }: { children: React.ReactNode }) 
   return (
     <ViaProvider size={Size.Large} navigate={navigate} locale={getHtmlLangFormat(locale)}>
       {children}
-      <Toaster />
+      <Toaster aria-label={t('toast.notifications')} closeButtonLabel={t('toast.close')} />
     </ViaProvider>
   );
 }

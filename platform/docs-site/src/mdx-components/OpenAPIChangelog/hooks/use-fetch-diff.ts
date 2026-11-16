@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { toast } from '@via-ds/components/toast';
 import { hideDiffChanges } from '@/utils/filter-hidden-changes';
 import { useChangelogData } from '@/context/changelog-context';
+import { getTranslator } from '@/internationalization/get-translator';
 import type { Environments } from '@/utils/env-config';
 import type { AtlasAdminApiChangelogDiff } from '@/types/openapi';
 
@@ -45,8 +46,9 @@ export const useFetchDiff = ({ resourceVersionOne, resourceVersionTwo, setIsLoad
         setDiff(filteredDiff);
       } catch (e) {
         console.error(e);
-        toast.warning("We've encountered an error fetching this data", {
-          description: 'Please try again at a later time.',
+        const { t } = getTranslator();
+        toast.warning(t('changelog.error_fetching_data'), {
+          description: t('changelog.try_again_later'),
           isDismissible: true,
         });
       }

@@ -1,5 +1,6 @@
 import { Badge } from '@via-ds/components/badge';
 import { Text, TextStyle } from '@via-ds/components/typography';
+import { getTranslator } from '@/internationalization/get-translator';
 import { Link } from '@/mdx-components/Link';
 import type { AtlasAdminApiChangeDiffEntry, AtlasAdminApiChangeEntry, AtlasAdminApiPathEntry } from '@/types/openapi';
 import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
@@ -15,6 +16,7 @@ type ResourceChangeProps =
   | (AtlasAdminApiChangeDiffEntry & { versions?: never });
 
 const ResourceChangesBlock = ({ path, httpMethod, operationId, tag, changes, versions }: ResourceChangeProps) => {
+  const { t } = getTranslator();
   const { openapi_pages } = useSnootyMetadata();
   const { siteBasePrefix } = useVersionContext();
   const resourceLinkUrl = getResourceLinkUrl({ siteBasePrefix, tag, operationId, openapi_pages });
@@ -35,7 +37,7 @@ const ResourceChangesBlock = ({ path, httpMethod, operationId, tag, changes, ver
             {httpMethod} {path}
           </Text>
         </Link>
-        {changeTypeBadge && <Badge variant={changeTypeBadge.variant}>{changeTypeBadge.label}</Badge>}
+        {changeTypeBadge && <Badge variant={changeTypeBadge.variant}>{t(changeTypeBadge.labelKey)}</Badge>}
       </div>
       <ul className={styles.changes}>
         {publicResourceChanges.map((change, i) => (

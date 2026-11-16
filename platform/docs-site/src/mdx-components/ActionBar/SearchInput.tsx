@@ -85,6 +85,7 @@ export const SearchInput = ({ className }: SearchInputProps) => {
     <div className={clsx(styles['search-input'], mobileSearchActive && styles['mobile-search-active'], className)}>
       <SearchField
         aria-label={placeholderText}
+        clearButtonAriaLabel={t('search.clear')}
         className={clsx('sl-search-input', styles['search-field'])}
         value={searchValue}
         placeholder={isMobile ? t('search.placeholder_short') : placeholderText}
