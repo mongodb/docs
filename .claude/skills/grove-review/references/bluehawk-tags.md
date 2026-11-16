@@ -75,3 +75,26 @@ range, read the generated file as a reader would and confirm it's still
 syntactically valid, standalone code — not just "close enough." A botched
 replace or remove can leave a dangling comma, an unclosed block, or a
 reference to something that was removed.
+
+## Worked examples
+
+**Correct placement.** In `code-example-tests/python/pymongo/examples/timeseries/auto_removal.py`, the block sits on lines 1-5, above the module docstring:
+
+```python
+# :replace-start: {
+#    "terms": {
+#       "COLLECTION_NAME": "\"weather24h\""
+#    }
+# }
+```
+
+**Tags drawn too tightly.** No `:replace:` or `:remove:` is involved here. The test ran `limit(5)`; the published snippet does not, so a reader cannot reproduce the recorded output:
+
+```python
+# :snippet-start: find-recent
+cursor = movies.find({"year": 2000})
+# :snippet-end:
+cursor = cursor.limit(5)
+```
+
+**`:uncomment:` done right.** In `code-example-tests/python/pymongo/examples/sample_app.py`, connection setup is commented inside `:uncomment-start:`/`:uncomment-end:` within the snippet. The generated snippet shows runnable code even though the test skipped those lines.
