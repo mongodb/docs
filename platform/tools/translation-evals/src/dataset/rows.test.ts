@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -165,5 +165,91 @@ describe('buildDataset', () => {
     expect(rows).toHaveLength(2);
     expect(rows.map((r) => r.input.local_text)).toEqual(['variant one', 'variant two']);
     for (const row of rows) expect(row.input.segments).toHaveLength(1);
+  });
+
+  it('emits a per-locale info line and a dropped warn', () => {
+    const cfg = loadConfig({});
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ds-'));
+    cfg.dataDir = path.join(root, 'data');
+    cfg.contentMdxDir = path.join(root, 'content-mdx');
+    const run = path.join(cfg.dataDir, 'atlas', 'r');
+
+    const write = (p: string, body: string) => {
+      fs.mkdirSync(path.dirname(p), { recursive: true });
+      fs.writeFileSync(p, body);
+    };
+    write(path.join(cfg.contentMdxDir, 'atlas', 'a.mdx'), 'English source\n');
+    write(path.join(run, 'translated', 'es', 'a.mdx'), 'Traducción\n');
+
+    // Two variants of one page; the second has no local scrape, so it drops
+    // and the per-locale warn fires.
+    const variants = ['s', 's2'];
+    for (const slug of variants) {
+      for (const dir of ['prod/en', 'prod/es']) {
+        write(path.join(run, dir, `${slug}.json`), JSON.stringify({ url: 'u', title: 't', content: 'x' }));
+      }
+    }
+    write(path.join(run, 'local', 'es', 's.json'), JSON.stringify({ url: 'l', title: 't', content: 'Local output' }));
+
+    writeManifest(cfg, 'atlas', 'r', {
+      project: 'atlas',
+      runId: 'r',
+      locales: ['es'],
+      pages: variants.map((slug) => ({ slug, urlPath: '/docs/atlas/a', mdxPath: 'atlas/a.mdx' })),
+      translatable: { pages: [], includes: [], substitutions: [] },
+      stages: {},
+    });
+
+    const lines: string[] = [];
+    const spy = vi.spyOn(console, 'log').mockImplementation((l: string) => void lines.push(l));
+    try {
+      buildDataset(cfg, 'atlas', 'r');
+    } finally {
+      spy.mockRestore();
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+    expect(lines.some((l) => /info {2}stage=dataset locale=es rows=1\/2/.test(l))).toBe(true);
+    expect(lines.some((l) => /warn {2}dataset locale=es dropped=1/.test(l))).toBe(true);
+  });
+
+  it('logs no dataset warn when nothing is dropped', () => {
+    const cfg = loadConfig({});
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ds-'));
+    cfg.dataDir = path.join(root, 'data');
+    cfg.contentMdxDir = path.join(root, 'content-mdx');
+    const run = path.join(cfg.dataDir, 'atlas', 'r');
+
+    const write = (p: string, body: string) => {
+      fs.mkdirSync(path.dirname(p), { recursive: true });
+      fs.writeFileSync(p, body);
+    };
+    write(path.join(cfg.contentMdxDir, 'atlas', 'a.mdx'), 'English source\n');
+    write(path.join(run, 'translated', 'es', 'a.mdx'), 'Traducción\n');
+
+    for (const slug of ['s', 's2']) {
+      for (const dir of ['prod/en', 'prod/es', 'local/es']) {
+        write(path.join(run, dir, `${slug}.json`), JSON.stringify({ url: 'u', title: 't', content: 'x' }));
+      }
+    }
+
+    writeManifest(cfg, 'atlas', 'r', {
+      project: 'atlas',
+      runId: 'r',
+      locales: ['es'],
+      pages: ['s', 's2'].map((slug) => ({ slug, urlPath: '/docs/atlas/a', mdxPath: 'atlas/a.mdx' })),
+      translatable: { pages: [], includes: [], substitutions: [] },
+      stages: {},
+    });
+
+    const lines: string[] = [];
+    const spy = vi.spyOn(console, 'log').mockImplementation((l: string) => void lines.push(l));
+    try {
+      buildDataset(cfg, 'atlas', 'r');
+    } finally {
+      spy.mockRestore();
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+    expect(lines.some((l) => /warn {2}dataset /.test(l))).toBe(false);
+    expect(lines.some((l) => /info {2}stage=dataset locale=es rows=2\/2/.test(l))).toBe(true);
   });
 });

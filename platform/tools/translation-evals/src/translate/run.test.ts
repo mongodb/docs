@@ -1,10 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { BackendName } from '@mongodb-docs/translation-service';
+import { RebuildError } from 'translation-mdx-adapter';
 import { loadConfig } from '../config.js';
-import { translateRun } from './run.js';
+import { keyCount, translateRun } from './run.js';
 import { readManifest, writeManifest } from '../run/manifest.js';
 
 function setup() {
@@ -34,6 +35,15 @@ function setup() {
 }
 
 const echo = async (p: Record<string, string>) => ({ ...p });
+
+describe('keyCount', () => {
+  it('extracts the failed-key fraction', () => {
+    expect(keyCount('2 of 180 keys failed; first: "x" gateway 429')).toBe('2 of 180 failed');
+  });
+  it('returns undefined when the message has no key count', () => {
+    expect(keyCount('network error')).toBeUndefined();
+  });
+});
 
 describe('translateRun', () => {
   it('writes translated page, include and references under the run dir', async () => {
@@ -72,6 +82,52 @@ describe('translateRun', () => {
     );
     expect(recorded.es).toEqual([{ file: '_includes/a.mdx', error: 'backend down' }]);
     expect(readManifest(cfg, 'atlas', 'r').stages.translate!.status).toBe('done');
+  });
+
+  it('warns per failed file and emits a per-locale heartbeat', async () => {
+    const { cfg } = setup();
+    const lines: string[] = [];
+    const spy = vi.spyOn(console, 'log').mockImplementation((l: string) => void lines.push(l));
+    const failOnBody = async (p: Record<string, string>) => {
+      if (Object.values(p).includes('body')) throw new Error('backend down');
+      return { ...p };
+    };
+
+    await translateRun(cfg, 'atlas', 'r', undefined, failOnBody);
+
+    spy.mockRestore();
+    expect(lines.some((l) => /warn {2}translate file=_includes\/a\.mdx/.test(l))).toBe(true);
+    expect(lines.some((l) => /info {2}stage=translate locale=es files=\d+\/\d+/.test(l))).toBe(
+      true,
+    );
+    expect(lines.some((l) => /info {2}stage=translate locale=ja-jp files=\d+\/\d+/.test(l))).toBe(
+      true,
+    );
+  });
+
+  it('logs and counts a retry when the adapter re-sends a file', async () => {
+    const { cfg } = setup();
+    const lines: string[] = [];
+    const spy = vi.spyOn(console, 'log').mockImplementation((l: string) => void lines.push(l));
+    let bodyCalls = 0;
+    const retryOnce = async (p: Record<string, string>) => {
+      if (Object.values(p).includes('body')) {
+        bodyCalls++;
+        if (bodyCalls === 1) throw new RebuildError('placeholder dropped');
+      }
+      return { ...p };
+    };
+
+    const summary = await translateRun(cfg, 'atlas', 'r', ['es'], retryOnce);
+
+    spy.mockRestore();
+    expect(summary.failures.es).toEqual([]);
+    expect(
+      lines.some((l) => /warn {2}translate retrying file=_includes\/a\.mdx reason=service/.test(l)),
+    ).toBe(true);
+    expect(lines.some((l) => l.includes('info  stage=translate locale=es files=2/2 retried=1'))).toBe(
+      true,
+    );
   });
 
   it('keeps failure records for locales that were not rerun', async () => {

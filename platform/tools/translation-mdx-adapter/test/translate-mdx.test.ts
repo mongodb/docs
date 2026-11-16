@@ -71,8 +71,10 @@ describe('translateMdx', () => {
     const swap = (value: string, a: string, b: string) =>
       value.split(a).join('\u0000').split(b).join(a).split('\u0000').join(b);
     let calls = 0;
+    const events: string[] = [];
     const translate = async (payload: Record<string, string>) => {
       calls++;
+      events.push(`translate-${calls}`);
       if (calls === 1) {
         return Object.fromEntries(
           Object.entries(payload).map(([key, value]) => [key, swap(value, open, close)]),
@@ -81,24 +83,51 @@ describe('translateMdx', () => {
       return { ...payload };
     };
 
-    const out = await translateMdx('Read the [guide](/g) now.\n', translate);
+    const out = await translateMdx('Read the [guide](/g) now.\n', translate, {
+      onRetry: (info) => events.push(`onRetry:${info.reason}`),
+    });
 
     expect(calls).toBe(2);
+    expect(events).toEqual(['translate-1', 'onRetry:rebuild', 'translate-2']);
     expect(out).toContain('guide');
   });
 
   it('re-translates with the wrapped text split out when the translate fn reports a rebuild failure', async () => {
     let calls = 0;
+    const events: string[] = [];
     const translate = async (payload: Record<string, string>) => {
       calls++;
+      events.push(`translate-${calls}`);
       if (calls === 1) throw new RebuildError('placeholder token dropped');
       return { ...payload };
     };
 
-    const out = await translateMdx('Read the [guide](/g) now.\n', translate as never);
+    const out = await translateMdx('Read the [guide](/g) now.\n', translate as never, {
+      onRetry: (info) => events.push(`onRetry:${info.reason}`),
+    });
 
     expect(calls).toBe(2);
+    expect(events).toEqual(['translate-1', 'onRetry:service', 'translate-2']);
     expect(out).toContain('guide');
+  });
+
+  it('does not report a retry on a clean pass', async () => {
+    const reasons: string[] = [];
+    await translateMdx(SOURCE, async (p) => ({ ...p }), {
+      onRetry: (info) => reasons.push(info.reason),
+    });
+    expect(reasons).toEqual([]);
+  });
+
+  it('does not report a retry for a non-retryable failure', async () => {
+    const reasons: string[] = [];
+    const translate = async () => {
+      throw new Error('backend down');
+    };
+    await expect(
+      translateMdx(SOURCE, translate, { onRetry: (info) => reasons.push(info.reason) }),
+    ).rejects.toThrow('backend down');
+    expect(reasons).toEqual([]);
   });
 
   it('does not re-send the file when a key fails outright', async () => {

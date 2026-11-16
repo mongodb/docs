@@ -10,6 +10,7 @@ import {
   setTranslator,
   type TranslatorMetaView,
 } from '../run/manifest.js';
+import { logLine } from '../suite/log.js';
 import { makeTranslateFn, translateMdxFile } from './batch.js';
 import { backendHasModel, resolveBackendName } from './backend.js';
 import { translateSubstitutions, type SubValue } from './references.js';
@@ -32,6 +33,11 @@ function describe(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
 }
 
+export function keyCount(message: string): string | undefined {
+  const m = /(\d+) of (\d+) keys failed/.exec(message);
+  return m ? `${m[1]} of ${m[2]} failed` : undefined;
+}
+
 export async function translateRun(
   cfg: Config,
   project: string,
@@ -46,6 +52,8 @@ export async function translateRun(
   const summary: TranslateSummary = { translated: 0, failures: {} };
 
   const metas: TranslatorMetaView[] = [];
+  const scope = process.env.SUITE_SCOPE;
+
   for (const locale of targets) {
     // A caller-supplied translateFn reports no meta, so the record honestly
     // shows the terminology as unobserved rather than defaulting it.
@@ -54,15 +62,39 @@ export async function translateRun(
       makeTranslateFn(cfg, locale, undefined, (meta) => metas.push(meta));
     const files: Record<string, string> = {};
     const failures: TranslateFailure[] = [];
+    let retried = 0;
 
     for (const rel of [...m.translatable.pages, ...m.translatable.includes]) {
       try {
         const src = fs.readFileSync(path.join(projectDir, rel), 'utf8');
-        files[rel] = await translateMdxFile(src, cfg, locale, fn);
+        files[rel] = await translateMdxFile(src, cfg, locale, fn, (info) => {
+          retried++;
+          logLine({
+            scope,
+            event: 'warn',
+            subject: 'translate retrying',
+            attrs: { file: rel, reason: info.reason },
+          });
+        });
       } catch (err) {
-        failures.push({ file: rel, error: describe(err) });
+        const msg = describe(err);
+        failures.push({ file: rel, error: msg });
+        logLine({
+          scope,
+          event: 'warn',
+          subject: 'translate',
+          attrs: { file: rel, keys: keyCount(msg) },
+        });
       }
     }
+
+    const total = m.translatable.pages.length + m.translatable.includes.length;
+    logLine({
+      scope,
+      event: 'info',
+      subject: 'stage=translate',
+      attrs: { locale, files: `${Object.keys(files).length}/${total}`, retried: retried || undefined },
+    });
 
     const refsPath = path.join(projectDir, REFERENCES_FILE);
     if (fs.existsSync(refsPath)) {

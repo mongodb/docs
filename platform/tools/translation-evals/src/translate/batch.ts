@@ -1,4 +1,9 @@
-import { translateMdx, RebuildError, type TranslateFn } from 'translation-mdx-adapter';
+import {
+  translateMdx,
+  RebuildError,
+  type TranslateFn,
+  type TranslateMdxOptions,
+} from 'translation-mdx-adapter';
 import {
   translate,
   type TranslateResponse,
@@ -50,7 +55,8 @@ export async function translateMdxFile(
   cfg: Config,
   targetLocale: string,
   translateFn?: TranslateFn,
+  onRetry?: TranslateMdxOptions['onRetry'],
 ): Promise<string> {
   const fn = translateFn ?? makeTranslateFn(cfg, targetLocale);
-  return translateMdx(mdx, fn);
+  return translateMdx(mdx, fn, { onRetry });
 }

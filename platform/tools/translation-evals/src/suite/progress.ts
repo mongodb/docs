@@ -1,9 +1,5 @@
 import type { Iteration } from './plan.js';
-import type { BatchState, IterationStatus } from './state.js';
-
-export function formatProgress(index: number, total: number, id: string, status: IterationStatus): string {
-  return `[${index}/${total}] ${id} ${status}`;
-}
+import type { BatchState } from './state.js';
 
 export function formatYield(prodYield: BatchState['prodYield']): string {
   if (!prodYield) return 'production scrape yield: unknown';

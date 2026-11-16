@@ -5,6 +5,7 @@ import { describe, it, expect, vi } from 'vitest';
 import {
   runSuite,
   preflight,
+  failReason,
   seedRunDir as realSeedRunDir,
   PORT_CHECK_TIMEOUT_MS,
   type SuiteDeps,
@@ -145,6 +146,17 @@ describe('runSuite', () => {
       fs.readFileSync(path.join(cfg.dataDir, 'atlas', 'b', 'suite', 'state.json'), 'utf8'),
     ) as BatchState;
     expect(Object.values(state.iterations).every((r) => r.status === 'failed')).toBe(true);
+  });
+
+  it('attributes the serve exit code when serve exits before ready', async () => {
+    const { configFile, cfg } = fixture({ repeats: 1 });
+    const deps = okDeps({
+      startServe: () => ({ exited: Promise.resolve(3), kill: () => {} }),
+      waitForHttp: () => new Promise(() => {}),
+    });
+    await runSuite({ configFile }, deps, cfg, TEST_ENV);
+    const [record] = Object.values(readBatchState(cfg).iterations);
+    expect(record!.error).toMatch(/exit code 3/);
   });
 
   it('keeps an existing pristine snapshot instead of re-snapshotting content-mdx', async () => {
@@ -505,6 +517,92 @@ describe('runSuite reporting and exit code', () => {
     }
   });
 
+  it('emits scope banners and stage/iteration completions', async () => {
+    const { configFile, cfg } = fixture({ repeats: 1 });
+    const lines: string[] = [];
+    const spy = vi.spyOn(console, 'log').mockImplementation((l: string) => void lines.push(l));
+    try {
+      await runSuite({ configFile }, okDeps(), cfg, TEST_ENV);
+    } finally {
+      spy.mockRestore();
+    }
+    expect(lines.some((l) => /\[suite\] begin id=b iterations=1/.test(l))).toBe(true);
+    expect(lines.some((l) => /\[1\/1\] begin iteration id=anthropic:m#1 run=/.test(l))).toBe(true);
+    expect(lines.some((l) => /\[1\/1\] done {2}stage=translate dur=\d/.test(l))).toBe(true);
+    expect(lines.some((l) => /\[1\/1\] done {2}iteration status=completed dur=\d/.test(l))).toBe(
+      true,
+    );
+    expect(lines.some((l) => /\[suite\] done {2}id=b completed=1 failed=0/.test(l))).toBe(true);
+  });
+
+  it('warns with yield and missing counts when the prod scrape is degraded', async () => {
+    const { configFile, cfg } = fixture({ repeats: 1 });
+    const lines: string[] = [];
+    const spy = vi.spyOn(console, 'log').mockImplementation((l: string) => void lines.push(l));
+    try {
+      await runSuite({ configFile }, okDeps(), cfg, TEST_ENV);
+    } finally {
+      spy.mockRestore();
+    }
+    expect(lines.some((l) => /\[base\] warn {2}yield=0\/2 missing=2/.test(l))).toBe(true);
+  });
+
+  it('emits a fail line naming the stage and reason on timeout', async () => {
+    const { configFile, cfg } = fixture({ repeats: 1 });
+    const lines: string[] = [];
+    const spy = vi.spyOn(console, 'log').mockImplementation((l: string) => void lines.push(l));
+    const deps = okDeps({
+      runStage: async (stage, args) => {
+        if (stage === 'resolve' || stage === 'scrape-prod') seedRunDir(args);
+        if (stage === 'translate') return { code: null, timedOut: true };
+        return { code: 0, timedOut: false };
+      },
+    });
+    try {
+      await runSuite({ configFile }, deps, cfg, TEST_ENV);
+    } finally {
+      spy.mockRestore();
+    }
+    expect(
+      lines.some((l) => /\[1\/1\] fail {2}stage=translate reason=timeout dur=\d/.test(l)),
+    ).toBe(true);
+    expect(lines.some((l) => /\[1\/1\] done {2}stage=translate/.test(l))).toBe(false);
+  });
+
+  it('emits a fail line when the resolve stage fails', async () => {
+    const { configFile, cfg } = fixture({ repeats: 1 });
+    const lines: string[] = [];
+    const spy = vi.spyOn(console, 'log').mockImplementation((l: string) => void lines.push(l));
+    const deps = okDeps({ runStage: async () => ({ code: 1, timedOut: false }) });
+    try {
+      await expect(runSuite({ configFile }, deps, cfg, TEST_ENV)).rejects.toThrow(
+        /resolve stage failed/,
+      );
+    } finally {
+      spy.mockRestore();
+    }
+    expect(
+      lines.some((l) => /\[base\] fail {2}stage=resolve reason=exit code=1 dur=\d/.test(l)),
+    ).toBe(true);
+  });
+
+  it('emits an iteration fail line when a stage throws', async () => {
+    const { configFile, cfg } = fixture({ repeats: 1 });
+    const lines: string[] = [];
+    const spy = vi.spyOn(console, 'log').mockImplementation((l: string) => void lines.push(l));
+    const deps = okDeps({
+      waitForHttp: () => Promise.reject(new Error('never ready')),
+    });
+    try {
+      await runSuite({ configFile }, deps, cfg, TEST_ENV);
+    } finally {
+      spy.mockRestore();
+    }
+    expect(lines.some((l) => /\[1\/1\] fail {2}iteration reason=exception err=/.test(l))).toBe(
+      true,
+    );
+  });
+
   it('warns when a translator model equals the judge', async () => {
     const { configFile, cfg } = fixture({ repeats: 1, judge: 'm' });
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -530,6 +628,20 @@ describe('runSuite reporting and exit code', () => {
     } finally {
       log.mockRestore();
     }
+  });
+});
+
+describe('failReason', () => {
+  it('names a timeout', () => {
+    expect(failReason({ code: null, timedOut: true })).toEqual({ reason: 'timeout' });
+  });
+
+  it('names a spawn error with no code', () => {
+    expect(failReason({ code: null, timedOut: false })).toEqual({ reason: 'spawn' });
+  });
+
+  it('names a non-zero exit with its code', () => {
+    expect(failReason({ code: 1, timedOut: false })).toEqual({ reason: 'exit', code: 1 });
   });
 });
 

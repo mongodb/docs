@@ -11,7 +11,8 @@ import { expandPlan, type Iteration } from './plan.js';
 import { hasPristine, restorePristine, snapshotPristine } from './isolation.js';
 import { killTree, spawnStage, waitForExit, type StageResult } from './stage.js';
 import { waitForHttp, waitForPortFree } from './server-lifecycle.js';
-import { formatProgress, formatSummary, formatYield } from './progress.js';
+import { formatSummary, formatYield } from './progress.js';
+import { logLine } from './log.js';
 import {
   baseFingerprint,
   planRuns,
@@ -181,6 +182,16 @@ function stageFailed(result: StageResult): boolean {
   return result.timedOut || result.code !== 0;
 }
 
+export function failReason(result: StageResult): { reason: string; code?: number } {
+  if (result.timedOut) return { reason: 'timeout' };
+  if (result.code === null) return { reason: 'spawn' };
+  return { reason: 'exit', code: result.code };
+}
+
+function durationSeconds(startedAt: number): string {
+  return `${((Date.now() - startedAt) / 1000).toFixed(1)}s`;
+}
+
 function countProdYield(
   cfg: Config,
   project: string,
@@ -236,7 +247,10 @@ async function runBase(
   cfg: Config,
   suite: SuiteConfig,
   env: NodeJS.ProcessEnv,
+  scope: string,
 ): Promise<void> {
+  const baseEnv = { ...env, SUITE_SCOPE: scope };
+  const resolveAt = Date.now();
   const resolved = await deps.runStage(
     'resolve',
     [
@@ -249,22 +263,51 @@ async function runBase(
       '--run',
       suite.name,
     ],
-    env,
+    baseEnv,
     STAGE_TIMEOUT_MS,
   );
-  if (stageFailed(resolved)) throw new Error('base run: resolve stage failed');
+  if (stageFailed(resolved)) {
+    logLine({
+      scope,
+      event: 'fail',
+      subject: 'stage=resolve',
+      attrs: { ...failReason(resolved), dur: durationSeconds(resolveAt) },
+    });
+    throw new Error('base run: resolve stage failed');
+  }
+  logLine({
+    scope,
+    event: 'done',
+    subject: 'stage=resolve',
+    attrs: { dur: durationSeconds(resolveAt) },
+  });
 
   fs.rmSync(path.join(runDir(cfg, suite.project, suite.name), 'prod'), {
     recursive: true,
     force: true,
   });
+  const scrapeAt = Date.now();
   const scraped = await deps.runStage(
     'scrape-prod',
     ['--project', suite.project, '--run', suite.name],
-    env,
+    baseEnv,
     STAGE_TIMEOUT_MS,
   );
-  if (stageFailed(scraped)) throw new Error('base run: scrape-prod stage failed');
+  if (stageFailed(scraped)) {
+    logLine({
+      scope,
+      event: 'fail',
+      subject: 'stage=scrape-prod',
+      attrs: { ...failReason(scraped), dur: durationSeconds(scrapeAt) },
+    });
+    throw new Error('base run: scrape-prod stage failed');
+  }
+  logLine({
+    scope,
+    event: 'done',
+    subject: 'stage=scrape-prod',
+    attrs: { dur: durationSeconds(scrapeAt) },
+  });
 }
 
 interface IterationContext {
@@ -274,6 +317,7 @@ interface IterationContext {
   runId: string;
   manifest: RunManifest;
   record: IterationRecord;
+  scope: string;
 }
 
 async function runIteration(
@@ -281,16 +325,31 @@ async function runIteration(
   ctx: IterationContext,
   it: Iteration,
 ): Promise<IterationStatus> {
-  const { cfg, suite, runId, manifest, record } = ctx;
+  const { cfg, suite, runId, manifest, record, scope } = ctx;
   const project = suite.project;
-  const env = iterationEnv(ctx.env, suite, it);
+  const env = { ...iterationEnv(ctx.env, suite, it), SUITE_SCOPE: scope };
   const runArgs = ['--project', project, '--run', runId];
 
   restorePristine(cfg, project, suite.name);
   await ensurePortFree(deps, cfg.localOrigin);
 
+  const translateAt = Date.now();
   const translate = await deps.runStage('translate', runArgs, env, STAGE_TIMEOUT_MS);
-  if (stageFailed(translate)) return 'failed';
+  if (stageFailed(translate)) {
+    logLine({
+      scope,
+      event: 'fail',
+      subject: 'stage=translate',
+      attrs: { ...failReason(translate), dur: durationSeconds(translateAt) },
+    });
+    return 'failed';
+  }
+  logLine({
+    scope,
+    event: 'done',
+    subject: 'stage=translate',
+    attrs: { dur: durationSeconds(translateAt) },
+  });
 
   const partial = hasFailures(readFailures(cfg, project, runId));
 
@@ -301,21 +360,37 @@ async function runIteration(
   for (const locale of suite.locales) {
     restorePristine(cfg, project, suite.name);
     await ensurePortFree(deps, cfg.localOrigin);
+    const serveAt = Date.now();
     const handle = deps.startServe([...runArgs, '--locale', locale], env);
     try {
       await Promise.race([
         deps.waitForHttp(readyUrl, READY_TIMEOUT_MS),
-        handle.exited.then(() => {
-          throw new Error('serve exited before ready');
+        handle.exited.then((code) => {
+          throw new Error(`serve exited before ready (exit code ${code ?? 'unknown'})`);
         }),
       ]);
+      const scrapeAt = Date.now();
       const scraped = await deps.runStage(
         'scrape-local',
         [...runArgs, '--locale', locale],
         env,
         STAGE_TIMEOUT_MS,
       );
-      if (stageFailed(scraped)) return 'failed';
+      if (stageFailed(scraped)) {
+        logLine({
+          scope,
+          event: 'fail',
+          subject: 'stage=scrape-local',
+          attrs: { locale, ...failReason(scraped), dur: durationSeconds(scrapeAt) },
+        });
+        return 'failed';
+      }
+      logLine({
+        scope,
+        event: 'done',
+        subject: 'stage=serve',
+        attrs: { locale, dur: durationSeconds(serveAt) },
+      });
     } finally {
       handle.kill();
       await deps.waitForPortFree(cfg.localOrigin, PORT_FREE_TIMEOUT_MS);
@@ -325,12 +400,42 @@ async function runIteration(
   // `serve` overlays the translated MDX onto content-mdx; dataset reads the
   // English source from there, so restore the pristine tree first.
   restorePristine(cfg, project, suite.name);
+  const datasetAt = Date.now();
   const dataset = await deps.runStage('dataset', runArgs, env, STAGE_TIMEOUT_MS);
-  if (stageFailed(dataset)) return 'failed';
+  if (stageFailed(dataset)) {
+    logLine({
+      scope,
+      event: 'fail',
+      subject: 'stage=dataset',
+      attrs: { ...failReason(dataset), dur: durationSeconds(datasetAt) },
+    });
+    return 'failed';
+  }
+  logLine({
+    scope,
+    event: 'done',
+    subject: 'stage=dataset',
+    attrs: { dur: durationSeconds(datasetAt) },
+  });
 
   record.experimentName = experimentNameFor(it, runId);
+  const evalAt = Date.now();
   const evaluated = await deps.runStage('eval', runArgs, env, STAGE_TIMEOUT_MS);
-  if (stageFailed(evaluated)) return 'failed';
+  if (stageFailed(evaluated)) {
+    logLine({
+      scope,
+      event: 'fail',
+      subject: 'stage=eval',
+      attrs: { ...failReason(evaluated), dur: durationSeconds(evalAt) },
+    });
+    return 'failed';
+  }
+  logLine({
+    scope,
+    event: 'done',
+    subject: 'stage=eval',
+    attrs: { dur: durationSeconds(evalAt) },
+  });
 
   return partial ? 'partial' : 'completed';
 }
@@ -431,6 +536,17 @@ export async function runSuite(
 
   await ensurePortFree(deps, cfg.localOrigin);
 
+  logLine({
+    scope: 'suite',
+    event: 'begin',
+    attrs: {
+      id: suite.name,
+      iterations: iterations.length,
+      locales: suite.locales.join(','),
+      judge: suite.judge,
+    },
+  });
+
   const dir = suiteDir(cfg, suite.project, suite.name);
   fs.mkdirSync(dir, { recursive: true });
   fs.copyFileSync(opts.configFile, path.join(dir, 'config.yaml'));
@@ -464,7 +580,7 @@ export async function runSuite(
     }
 
     if (state.prodYield === undefined || baseChanged) {
-      await runBase(deps, cfg, suite, env);
+      await runBase(deps, cfg, suite, env, 'base');
       state.baseFingerprint = baseFp;
       state.prodYield = countProdYield(
         cfg,
@@ -474,7 +590,16 @@ export async function runSuite(
       );
       writeState(cfg, suite.project, suite.name, state);
     }
-    console.log(formatYield(state.prodYield));
+    if (state.prodYield && state.prodYield.present < state.prodYield.expected) {
+      const { present, expected } = state.prodYield;
+      logLine({
+        scope: 'base',
+        event: 'warn',
+        attrs: { yield: `${present}/${expected}`, missing: expected - present },
+      });
+    } else {
+      console.log(formatYield(state.prodYield));
+    }
 
     if (!hasPristine(cfg, suite.project, suite.name)) {
       snapshotPristine(cfg, suite.project, suite.name);
@@ -487,6 +612,10 @@ export async function runSuite(
       const runId = newRunId();
       seedRunDir(cfg, suite.project, suite.name, runId);
 
+      if (index > 1) console.log('');
+      const scope = `${index}/${total}`;
+      logLine({ scope, event: 'begin', subject: 'iteration', attrs: { id: it.id, run: runId } });
+
       const record: IterationRecord = {
         id: it.id,
         status: 'running',
@@ -498,6 +627,7 @@ export async function runSuite(
       current = record;
       writeState(cfg, suite.project, suite.name, state);
 
+      const iterationAt = Date.now();
       let status: IterationStatus;
       try {
         status = await runIteration(
@@ -509,19 +639,38 @@ export async function runSuite(
             runId,
             manifest: readManifest(cfg, suite.project, runId),
             record,
+            scope,
           },
           it,
         );
       } catch (err) {
+        logLine({
+          scope,
+          event: 'fail',
+          subject: 'iteration',
+          attrs: { reason: 'exception', err: message(err) },
+        });
         record.error = message(err);
         status = 'failed';
       }
       record.status = status;
       record.finishedAt = new Date().toISOString();
       writeState(cfg, suite.project, suite.name, state);
-      console.log(formatProgress(index, total, it.id, status));
+      logLine({
+        scope,
+        event: 'done',
+        subject: 'iteration',
+        attrs: { status, dur: durationSeconds(iterationAt) },
+      });
     }
     current = undefined;
+
+    const done = iterations.filter((i) =>
+      ['completed', 'partial'].includes(state.iterations[i.id]?.status ?? ''),
+    ).length;
+    const failed = iterations.filter((i) => state.iterations[i.id]?.status === 'failed').length;
+    console.log('');
+    logLine({ scope: 'suite', event: 'done', attrs: { id: suite.name, completed: done, failed } });
   } finally {
     uninstall();
     if (!interrupted && hasPristine(cfg, suite.project, suite.name)) {

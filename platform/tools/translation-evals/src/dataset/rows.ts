@@ -5,6 +5,7 @@ import type { ScrapedPage, PageRef, DatasetRow, SegmentPair, SegmentStatus } fro
 import { readManifest, runDir } from '../run/manifest.js';
 import { segmentTargets, readFileSegmentResult, type SegmentResult } from './segments.js';
 import { projectRelativeMdx } from '../resolve/run.js';
+import { logLine } from '../suite/log.js';
 
 function readPage(dir: string, slug: string): ScrapedPage | undefined {
   const p = path.join(dir, `${slug}.json`);
@@ -80,8 +81,11 @@ export function buildDataset(cfg: Config, project: string, runId: string): Datas
   const m = readManifest(cfg, project, runId);
   const base = runDir(cfg, project, runId);
   const rows: DatasetRow[] = [];
+  const scope = process.env.SUITE_SCOPE;
 
   for (const locale of m.locales) {
+    let dropped = 0;
+    let built = 0;
     // Read each file once, then hand its segments to every row that needs them.
     // Rows are driven by `m.pages` (one per variant), not by the deduped targets.
     const byRel = new Map<string, SegmentResult>();
@@ -97,7 +101,10 @@ export function buildDataset(cfg: Config, project: string, runId: string): Datas
 
     for (const page of m.pages) {
       const result = byRel.get(projectRelativeMdx(m.project, page.mdxPath));
-      if (result === undefined) continue;
+      if (result === undefined) {
+        dropped++;
+        continue;
+      }
       const row = buildRows(
         readPage(path.join(base, 'prod', 'en'), page.slug),
         readPage(path.join(base, 'prod', locale), page.slug),
@@ -110,15 +117,29 @@ export function buildDataset(cfg: Config, project: string, runId: string): Datas
         result.status,
       );
       // A page whose scrape is missing is a gap to report, not a row to drop silently.
-      if (row) rows.push(row);
-      else console.warn(`no scrape for ${page.mdxPath} [${locale}] — page dropped`);
+      if (row) {
+        rows.push(row);
+        built++;
+      } else dropped++;
     }
 
     for (const rel of m.translatable.includes) {
       const result = byRel.get(rel);
-      if (result === undefined) continue;
+      if (result === undefined) {
+        dropped++;
+        continue;
+      }
       rows.push(buildIncludeRow(rel, locale, project, runId, result.pairs, result.status));
+      built++;
     }
+
+    if (dropped > 0) logLine({ scope, event: 'warn', subject: 'dataset', attrs: { locale, dropped } });
+    logLine({
+      scope,
+      event: 'info',
+      subject: 'stage=dataset',
+      attrs: { locale, rows: `${built}/${m.pages.length + m.translatable.includes.length}` },
+    });
   }
 
   const out = path.join(base, 'dataset');

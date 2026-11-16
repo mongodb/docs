@@ -18,6 +18,17 @@ export interface TranslateMdxOptions {
    * placeholder tokens; the union is passed to `translate`.
    */
   nonTranslatableTerms?: string[];
+  /**
+   * Called when the first pass raises a `RebuildError` and the file is about
+   * to be re-sent with its wrapped text split into separate entries. Fires at
+   * most once, before the re-send, whether or not the retry succeeds. Must not
+   * throw.
+   *
+   * `reason` names the phase that raised the error: `service` when the
+   * caller's translate function threw (a dropped placeholder token),
+   * `rebuild` when rebuilding the first pass failed.
+   */
+  onRetry?: (info: { reason: 'service' | 'rebuild' }) => void;
 }
 
 /**
@@ -45,15 +56,18 @@ export async function translateMdx(
     ...new Set([...terms, ...(options.nonTranslatableTerms ?? [])]),
   ];
 
+  let phase: 'service' | 'rebuild' = 'service';
   try {
     const content = extract(mdx);
     const translations = await translate(
       content.payload,
       termsFor(content.non_translatable_terms),
     );
+    phase = 'rebuild';
     return reconstruct(translations, content);
   } catch (cause) {
     if (!(cause instanceof RebuildError)) throw cause;
+    options.onRetry?.({ reason: phase });
     const split = extract(mdx, { splitTextWraps: true });
     const splitTranslations = await translate(
       split.payload,

@@ -1,16 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import type { BackendName } from '@mongodb-docs/translation-service';
-import { formatProgress, formatSummary, formatYield } from './progress.js';
+import { formatSummary, formatYield } from './progress.js';
 import type { BatchState } from './state.js';
 import type { Iteration } from './plan.js';
-
-describe('formatProgress', () => {
-  it('renders an index, the iteration id, and its status', () => {
-    expect(formatProgress(3, 60, 'anthropic:m#2', 'completed')).toBe(
-      '[3/60] anthropic:m#2 completed',
-    );
-  });
-});
 
 describe('formatSummary', () => {
   it('counts statuses per translator', () => {

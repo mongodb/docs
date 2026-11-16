@@ -28,26 +28,25 @@ export async function withBrowser<T>(fn: (browser: Browser) => Promise<T>): Prom
   }
 }
 
-export async function scrapeOne(
-  browser: Browser,
-  url: string,
-): Promise<{ url: string; title: string; content: string } | null> {
+export type ScrapeOutcome =
+  | { kind: 'ok'; page: { url: string; title: string; content: string } }
+  | { kind: 'skipped'; status: number }
+  | { kind: 'empty'; page: { url: string; title: string; content: string } };
+
+export async function scrapeOne(browser: Browser, url: string): Promise<ScrapeOutcome> {
   const context = await browser.newContext({ ignoreHTTPSErrors: true });
   try {
     const page = await context.newPage();
     await sleep(jitterMs());
     const response = await page.goto(url, { timeout: 30_000, waitUntil: 'domcontentloaded' });
-    if (response && isSkippableStatus(response.status())) return null;
+    if (response && isSkippableStatus(response.status())) return { kind: 'skipped', status: response.status() };
     await page.waitForSelector('main', { timeout: 8000 }).catch(() => {});
     const title = await page.title();
     const content = await page.$eval('main', (el) => (el as HTMLElement).innerText).catch(() => '');
-    // An error page or a timeout leaves `main` empty; recording that as a scrape
-    // would hand the eval a blank page to score.
-    if (!hasContent(content)) {
-      console.warn(`empty page content for ${url} — not recorded`);
-      return null;
-    }
-    return { url, title, content };
+    // An error page or a timeout leaves `main` empty; return the reason so the
+    // caller can log it and skip writing a blank page.
+    if (!hasContent(content)) return { kind: 'empty', page: { url, title, content } };
+    return { kind: 'ok', page: { url, title, content } };
   } finally {
     await context.close();
   }
