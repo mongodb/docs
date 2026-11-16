@@ -54,6 +54,7 @@ jobs:
     if: github.repository == '10gen/docs-mongodb-internal' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment: Copy To Public
+    timeout-minutes: 120
     concurrency:
       group: mdx-locale-sync-${{ inputs.locale || 'es' }}
       cancel-in-progress: false
@@ -137,6 +138,9 @@ jobs:
           LOCALE: ${{ inputs.locale }}
           SCOPE: ${{ inputs.scope }}
           MODE: ${{ inputs.mode }}
+          # A large page goes to the provider as one request, so the 30s
+          # client default aborts it before the gateway replies.
+          OPENAI_TIMEOUT_MS: '180000'
         run: |
           set -euo pipefail
           SOURCE_COMMIT="$(git -C "$RUNNER_TEMP/source" rev-parse HEAD)"
