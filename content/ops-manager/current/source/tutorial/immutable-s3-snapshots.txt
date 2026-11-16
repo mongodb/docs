@@ -1,11 +1,11 @@
 .. _om-immutable-s3-snapshots:
 
 =====================================
-Immutable S3 Backups with Object Lock
+Portable S3 Backups with Object Lock
 =====================================
 
 .. meta::
-   :description: Configure immutable S3 snapshots and oplogs in Ops Manager with S3 Object Lock to protect backups from deletion or modification, verify immutability, and import for disaster recovery.
+   :description: Configure portable S3 backups in Ops Manager. Ops Manager ingests S3 Object Lock settings from the bucket, writes portable restore metadata, and imports backups for disaster recovery.
 
 .. default-domain:: mongodb
 
@@ -18,39 +18,43 @@ Immutable S3 Backups with Object Lock
 |onprem| can store backups, including snapshots and oplogs, in an S3
 or S3-compatible object store by writing backup data as blocks to an
 S3 bucket and tracking metadata in the |onprem| application database.
-With immutable S3 backups, |onprem| integrates with S3 Object Lock or
+With portable S3 backups, |onprem| integrates with S3 Object Lock or
 an equivalent to provide the following capabilities:
 
 - Store backup data and backup metadata together in the S3 bucket.
 - Protect backup objects from deletion or modification until a
   defined retention period expires, enforced by the object store.
-- Import a full point-in-time restore chain, snapshot and oplog
-  together, from an Object-Lock-enabled bucket into a new or rebuilt
-  |onprem| deployment for disaster recovery or migration.
+- Write portable restore metadata copies into the bucket, so |onprem|
+  can import a full point-in-time restore chain, snapshot and oplog
+  together, into a new or rebuilt |onprem| deployment for disaster
+  recovery or migration.
 
 Use this feature to protect backups against malicious or accidental
 deletion, such as ransomware attacks or operator error. You can
 restore backups in a new |onprem| instance using only what you
 store in S3.
 
-This guide covers immutable S3 backups for Ops Manager
-deployments that you install and manage directly on a host. If you
-deploy Ops Manager using the MongoDB Controllers for Kubernetes
-Operator (MCK), see the :ref:`Ops Manager resource specification
-example <om_resource_spec_example_single_cluster>`.
+This guide covers portable S3 backups for Ops Manager deployments
+that you install and manage directly on a host. If you deploy Ops
+Manager using the MongoDB Controllers for Kubernetes Operator (MCK),
+see the :ref:`Ops Manager resource specification example
+<om_resource_spec_example_single_cluster>`.
 
 .. important::
 
-   |onprem| supports immutable S3 snapshots starting in version
-   8.0.19. Immutable S3 oplogs, which extend this protection to
-   support point-in-time restore from a fully immutable, importable
-   backup, require version 9.0 or 8.0.28.
+   |onprem| supports immutable snapshots on Object-Lock-enabled
+   buckets starting in version 8.0.19. Immutable oplogs, which
+   extend this protection to the entire point-in-time recovery
+   chain, require version 9.0 or 8.0.28. Portable backups, which
+   add portable restore metadata so you can import a full backup
+   from only what the S3 bucket stores, require version 9.0.2 or
+   8.0.28.
 
-How Immutable S3 Backups Work
------------------------------
+How Portable S3 Backups Work
+----------------------------
 
 After you configure an S3 snapshot store with an Object-Lock-enabled
-bucket and enable immutable backups:
+bucket and enable portable backups:
 
 - |onprem| writes snapshot blocks and the metadata required for
   restore into the S3 bucket, instead of keeping metadata only in
@@ -74,13 +78,81 @@ If you also configure an S3 oplog store with Object Lock enabled:
   with an imported immutable snapshot, into another |onprem| instance
   to support point-in-time restore from the imported backup.
 
+Portable Backups
+----------------
+
+A portable backup is a backup that |onprem| can import into another
+|onprem| deployment using only the data stored in the S3 bucket. To
+make a backup portable, |onprem| writes portable restore metadata
+copies of the backup's snapshot or oplog data into the bucket
+alongside the backup data.
+
+Portability is a choice you make for each store:
+
+- On an S3 snapshot store, select :guilabel:`Portable Snapshot` to
+  write portable restore metadata for snapshots.
+- On an S3 oplog store, select :guilabel:`Portable Oplog` to write
+  portable restore metadata for oplog slices.
+
+Portable backups require an Object-Lock-enabled bucket. |onprem|
+rejects the portable choice on a store whose bucket does not have
+Object Lock enabled.
+
+.. important::
+
+   You cannot disable portability after you enable it on a store.
+
+Coverage is forward-looking. |onprem| writes portable restore
+metadata copies only for backups it takes after you enable the
+choice on a store. Snapshots taken before you enable portability on
+the snapshot store never receive metadata copies and are not
+importable, even after the option is on. On-demand snapshots taken
+after enablement are fully covered.
+
+.. warning::
+
+   A bucket can have Object Lock enabled without a default retention
+   rule. Data written to such a bucket is versioned but not
+   protected, because objects can still be deleted. If you select
+   the portable choice on a store backed by such a bucket, |onprem|
+   warns you that nothing written to the store is protected by any
+   retention until you set a default retention rule on the bucket.
+   Setting the rule afterwards is safe. Protection then applies to
+   everything written after the rule is in place.
+
+Object Lock Settings Are Ingested from the Bucket
+-------------------------------------------------
+
+When you create an S3 snapshot store or S3 oplog store on an
+Object-Lock-enabled bucket, |onprem| reads the bucket's Object Lock
+settings and stores them in the store's configuration. You do not
+enter the Object Lock retention mode or period in |onprem|. The
+:guilabel:`Object Lock Enabled`, :guilabel:`Object Retention Mode`,
+and :guilabel:`Object Retention Period (Days)` fields display the
+ingested values and are read-only.
+
+If a request to the S3 store APIs supplies Object Lock retention
+values, |onprem| discards them, logs a warning, and continues the
+operation. The values ingested from the bucket are the only ones
+|onprem| stores.
+
+|onprem| refuses to create the store if it cannot determine the
+bucket's Object Lock state.
+
+A background job realigns each saved store's configuration with its
+bucket every hour. This job is the only mechanism
+that changes a store's ingested retention mode and period. If the
+bucket's settings change, |onprem| updates the store's configuration
+to match. The job never changes the portable choice you made for the
+store.
+
 Prerequisites
 -------------
 
-To use immutable S3 backups, ensure you have the following:
+To use portable S3 backups, ensure you have the following:
 
-- |onprem| 8.0.19 or later for immutable snapshots. Immutable oplogs
-  additionally require version 9.0 or 8.0.28.
+- |onprem| 8.0.19 or later for immutable snapshots. Portable
+  backups additionally require version 9.0.2 or 8.0.28.
 - S3 snapshot store (blockstore) configured in |onprem|. Immutable
   snapshots support only S3-based snapshot stores, not MongoDB
   blockstores or filesystem snapshot stores.
@@ -94,32 +166,30 @@ To use immutable S3 backups, ensure you have the following:
   for |pitr|.
 - An S3 bucket with Object Lock enabled for your snapshot store. The
   bucket doesn't need to be new, and doesn't need to be dedicated to
-  this store, though a dedicated bucket is recommended. You cannot
-  enable Object Lock on an existing S3 snapshot store's configuration
-  in |onprem| by changing its settings. You must configure a new S3
-  snapshot store that points to a bucket with Object Lock enabled.
-- If you use immutable oplogs: an S3 bucket with versioning and
+  this store, though a dedicated bucket is recommended. You can
+  create a new S3 snapshot store that points to the bucket, or enable
+  Object Lock on the bucket of an existing store and let |onprem|
+  detect the change.
+- If you use portable backups: an S3 bucket with versioning and
   Object Lock enabled for your oplog store. The bucket doesn't need
   to be new, and doesn't need to be dedicated to this store, though a
-  dedicated bucket is recommended. You cannot enable Object Lock on
-  an existing S3 oplog store's configuration in |onprem| by changing
-  its settings. You must configure a new S3 oplog store that points
-  to a bucket with versioning and Object Lock enabled.
+  dedicated bucket is recommended. You can create a new S3 oplog
+  store that points to the bucket, or enable versioning and Object
+  Lock on the bucket of an existing store and let |onprem| detect the
+  change.
 
 Considerations
 --------------
 
-When you plan immutable S3 backups, consider the following items:
+When you plan portable S3 backups, consider the following items:
 
-- **No retroactive immutability.** |onprem| protects only snapshots
+- **No retroactive protection.** |onprem| protects only snapshots
   written to a bucket with Object Lock after you enable immutable
   backup. |onprem| does not apply Object Lock to existing snapshot
   objects.
 - **Object Lock configuration.** |onprem| does not provide immutability
   for S3 buckets that do not support Object Lock. You must configure
-  Object Lock on the bucket separately. Configuring Object Lock
-  settings in |onprem| or updating bucket settings after creation
-  does not enable Object Lock on the bucket.
+  Object Lock on the bucket separately.
 - **No automatic migration of existing data.** The *Migrate Backup
   Between S3 Stores* feature lets you change which S3 snapshot store
   a backup job uses for future snapshots. It does not copy or move
@@ -138,19 +208,9 @@ When you plan immutable S3 backups, consider the following items:
   the S3 bucket you imported from. |onprem| can delete the metadata
   it imported into its own application database. Retention affects
   only metadata visibility in |onprem|.
-- **No retroactive oplog immutability.** You can enable Object Lock
-  only when you create an S3 oplog store. You cannot enable Object
-  Lock on an existing S3 oplog store by changing its settings; you
-  must create a new store instead.
-- **Oplog version-pinning defaults to off.** By default, |onprem|
-  doesn't use the exact S3 object version it recorded when it reads
-  an oplog slice back from an immutable oplog store. The
-  ``brs.oplogStoreFallBackToLatestVersion`` application setting
-  defaults to ``true``, which causes |onprem| to always fetch the
-  latest version of the object instead of the version it recorded. To
-  require |onprem| to use the exact recorded version, a global
-  administrator must set ``brs.oplogStoreFallBackToLatestVersion`` to
-  ``false``.
+- **Variable retention mode is not supported.** Use buckets with a
+  fixed default retention mode and period. |onprem| does not detect
+  or validate variable retention configurations on the bucket.
 - **Majority-commit topology requirement for oplog tailing.**
   |onprem| only tails majority-committed oplog entries for an
   Object-Lock-enabled oplog store, since Object Lock means |onprem|
@@ -161,34 +221,24 @@ When you plan immutable S3 backups, consider the following items:
   the topology recovers. |onprem| raises an alert naming the cause
   and the remedy when this happens.
 
-.. warning::
+Configure Portable Snapshot Storage
+-----------------------------------
 
-   |onprem| does not read your bucket's actual retention mode or
-   period, for either snapshot or oplog stores. If the retention
-   values you set in |onprem| don't match the retention settings you
-   configured directly on the S3 bucket, your backups may not be
-   protected against deletion or modification, and |onprem| cleanup
-   jobs can fail if the bucket enforces retention that |onprem|
-   doesn't know about.
-
-Configure Immutable Snapshot Storage
-------------------------------------
-
-To configure immutable snapshot storage, complete the following
+To configure portable snapshot storage, complete the following
 tasks:
 
-1. Enable immutable backups in |onprem|.
+1. Enable portable backups in |onprem|.
 #. Prepare an Object-Lock-enabled S3 bucket.
 #. Configure a new S3 snapshot store in |onprem|.
 
 .. _enable-immutable-backups:
 
-Enable Immutable Backups
-~~~~~~~~~~~~~~~~~~~~~~~~
+Enable Portable Backups
+~~~~~~~~~~~~~~~~~~~~~~~
 
-An application setting controls immutable backups. A global
-administrator must enable this setting before you configure an S3
-snapshot store with Object Lock.
+An application setting controls portable backups. A global
+administrator must enable this setting before you can select the
+portable option on a store backed by an Object-Lock-enabled bucket.
 
 .. procedure::
    :style: normal
@@ -198,7 +248,7 @@ snapshot store with Object Lock.
       Click :guilabel:`Admin`, :guilabel:`General`,
       :guilabel:`Ops Manager Config`.
 
-   .. step:: Add the immutable backup application setting.
+   .. step:: Add the portable backup application setting.
 
       a. Click the :guilabel:`Custom` tab.
       #. Click :guilabel:`+ Add Option`.
@@ -207,8 +257,8 @@ snapshot store with Object Lock.
       #. In the :guilabel:`Value` field, enter ``true``.
       #. Click :guilabel:`Save`.
 
-      This setting enables S3 snapshot immutability for stores backed
-      by Object-Lock-enabled buckets. |onprem| applies this setting
+      This setting enables portable backups on stores backed by
+      Object-Lock-enabled buckets. |onprem| applies this setting
       immediately. You do not need to restart |onprem|.
 
 .. note::
@@ -226,9 +276,9 @@ Prepare an Object-Lock-Enabled S3 Bucket
 
    .. step:: Use an existing bucket, or create a new one.
 
-      You can use an existing S3 or S3-compatible bucket. A bucket
-      dedicated to immutable MongoDB backups isn't required, but is
-      recommended.
+      You can use an existing S3 or S3-compatible bucket. |onprem|
+      doesn't require a bucket dedicated to portable MongoDB
+      backups, though we recommend using one.
 
    .. step:: Enable Object Lock.
 
@@ -241,36 +291,35 @@ Prepare an Object-Lock-Enabled S3 Bucket
    .. step:: (Optional) Configure conditional writes on the bucket.
 
       |onprem| uses your bucket's conditional write support by
-      default to reduce the storage space that immutable snapshot
+      default to reduce the storage space that portable snapshot
       metadata uses. Configure your bucket to support
       :aws:`conditional writes
       </AmazonS3/latest/userguide/conditional-writes-enforce.html>`.
 
       .. important::
 
-         Conditional write support is recommended, not required. If
-         your bucket does not support conditional writes, |onprem|
-         still protects your snapshots with Object Lock, but the
-         bucket can grow at an unexpected rate.
+         We recommend using conditional write support, but |onprem|
+         does not require it. If your bucket does not support
+         conditional writes, |onprem| still protects your snapshots
+         with Object Lock, but the bucket can grow at an unexpected
+         rate.
 
    .. step:: Configure default retention.
 
       Configure a default retention mode (``GOVERNANCE`` or
-      ``COMPLIANCE``) and period in your object store. |onprem| does
-      not set Object Lock retention headers on individual objects,
-      so your bucket's default retention setting is what actually
-      protects your data. Without a default retention configured on
-      the bucket, Object Lock does not protect your objects from
-      deletion or modification.
+      ``COMPLIANCE``) and period on the bucket. |onprem| ingests
+      these settings from the bucket when you create the store.
+      Without a default retention configured on the bucket, Object
+      Lock does not protect your objects from deletion or
+      modification.
 
 .. note::
 
-   You cannot enable Object Lock for an existing S3 snapshot store's
-   configuration in |onprem|. If you already use an S3 bucket for
-   backups but need immutable snapshots, enable Object Lock on that
-   bucket if your provider allows it, or point to a different bucket
-   that already has Object Lock enabled, and configure a new S3
-   snapshot store.
+   If you already use an S3 bucket for backups but need portable
+   snapshots, enable Object Lock on that bucket if your provider
+   allows it, or point to a different bucket that already has Object
+   Lock enabled. |onprem| ingests the bucket's settings when you
+   create the store.
 
 Configure a New S3 Snapshot Store in |onprem|
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -285,28 +334,18 @@ Configure a New S3 Snapshot Store in |onprem|
       bucket. Specify the bucket name, endpoint, region, and
       credentials as required by your S3 provider.
 
-   .. step:: Select :guilabel:`Object Lock Enabled`.
+   .. step:: Review the ingested Object Lock settings.
 
-      Select :guilabel:`Object Lock Enabled` to confirm that the
-      underlying bucket has Object Lock enabled.
+      |onprem| reads the bucket's Object Lock settings when you
+      create the store. The :guilabel:`Object Lock Enabled`,
+      :guilabel:`Object Retention Mode`, and :guilabel:`Object
+      Retention Period (Days)` fields display the ingested values
+      and are read-only.
 
-   .. step:: Set :guilabel:`Object Retention Period (Days)`.
+   .. step:: Select :guilabel:`Portable Snapshot`.
 
-      Enter the number of days |onprem| protects each snapshot's
-      objects with Object Lock. This value must match the retention
-      period you configured directly on the bucket.
-
-   .. step:: Set :guilabel:`Object Retention Mode`.
-
-      Select the Object Lock retention mode, ``GOVERNANCE`` or
-      ``COMPLIANCE``, that |onprem| applies to this snapshot store's
-      objects. When you save the store, |onprem| validates the
-      bucket's Object Lock behavior using temporary test objects.
-      However, |onprem| does not read the bucket's Object Lock configuration,
-      so it cannot detect a mismatch between the mode you set here and the
-      mode configured on the bucket. You must manually set this
-      field to match the retention mode you configured on the
-      bucket.
+      Select :guilabel:`Portable Snapshot` to write portable restore
+      metadata for snapshots.
 
    .. step:: Save the store.
 
@@ -315,15 +354,12 @@ Configure a New S3 Snapshot Store in |onprem|
 
 .. important::
 
-   You can select :guilabel:`Object Lock Enabled` only when you
-   create a new S3 snapshot store. You cannot change this setting
-   after you save the store. You can change :guilabel:`Object
-   Retention Period (Days)` and :guilabel:`Object Retention Mode` at
-   any time.
+   You cannot change the :guilabel:`Portable Snapshot` choice after
+   you save the store.
 
-This snapshot store serves as the target for immutable snapshots. |onprem|
-writes both snapshot blocks and metadata for backups that use this
-store into the bucket.
+This snapshot store serves as the target for portable snapshots.
+|onprem| writes snapshot blocks, metadata, and portable restore
+metadata copies for backups that use this store into the bucket.
 
 .. note::
 
@@ -337,41 +373,41 @@ store into the bucket.
    You still need a MongoDB instance to act as a metadata store for
    |onprem| operations.
 
-Configure Immutable Oplog Storage
----------------------------------
+Configure Portable Oplog Storage
+--------------------------------
 
-To configure immutable oplog storage, complete the following tasks:
+To configure portable oplog storage, complete the following tasks:
 
-1. Enable immutable backups in |onprem|, if you haven't already.
+1. Enable portable backups in |onprem|, if you haven't already.
 #. Prepare a versioned, Object-Lock-enabled S3 bucket.
 #. Configure a new S3 oplog store in |onprem|.
-#. Switch existing backup jobs to the immutable S3 oplog store.
+#. Switch existing backup jobs to the portable S3 oplog store.
 
-Enable Immutable Backups
-~~~~~~~~~~~~~~~~~~~~~~~~
+Enable Portable Backups
+~~~~~~~~~~~~~~~~~~~~~~~
 
-This step uses the same |onprem| application setting as immutable
+This step uses the same |onprem| application setting as portable
 snapshot storage. If you've already completed
-:ref:`Enable Immutable Backups <enable-immutable-backups>` while
-configuring immutable snapshot storage, skip this step.
+:ref:`Enable Portable Backups <enable-immutable-backups>` while
+configuring portable snapshot storage, skip this step.
 
 Prepare a Versioned, Object-Lock-Enabled S3 Bucket
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Prepare a bucket for your immutable oplog store.
+Prepare a bucket for your portable oplog store.
 
 .. procedure::
    :style: normal
 
    .. step:: Use an existing bucket, or create a new one.
 
-      You can use an existing S3 or S3-compatible bucket. A bucket
-      dedicated to immutable MongoDB backups isn't required, but is
-      recommended.
+      You can use an existing S3 or S3-compatible bucket. |onprem|
+      doesn't require a bucket dedicated to portable MongoDB
+      backups, though we recommend using one.
 
    .. step:: Enable versioning and Object Lock.
 
-      Unlike a standard oplog store, an immutable oplog store
+      Unlike a standard oplog store, a portable oplog store
       requires both versioning and Object Lock enabled on the
       bucket. Depending on your provider, you can enable these
       during bucket creation or afterward.
@@ -379,36 +415,35 @@ Prepare a bucket for your immutable oplog store.
    .. step:: (Optional) Configure conditional writes on the bucket.
 
       |onprem| uses your bucket's conditional write support by
-      default to reduce the storage space that immutable backup
+      default to reduce the storage space that portable backup
       metadata uses. Configure your bucket to support
       :aws:`conditional writes
       </AmazonS3/latest/userguide/conditional-writes-enforce.html>`.
 
       .. important::
 
-         Conditional write support is recommended, not required. If
-         your bucket does not support conditional writes, |onprem|
-         still protects your oplogs with Object Lock, but the bucket
-         can grow at an unexpected rate.
+         We recommend using conditional write support, but |onprem|
+         does not require it. If your bucket does not support
+         conditional writes, |onprem| still protects your oplogs
+         with Object Lock, but the bucket can grow at an unexpected
+         rate.
 
    .. step:: Configure default retention.
 
       Configure a default retention mode (``GOVERNANCE`` or
-      ``COMPLIANCE``) and period in your object store. |onprem| does
-      not set Object Lock retention headers on individual objects,
-      so your bucket's default retention setting is what actually
-      protects your data. Without a default retention configured on
-      the bucket, Object Lock does not protect your objects from
-      deletion or modification.
+      ``COMPLIANCE``) and period on the bucket. |onprem| ingests
+      these settings from the bucket when you create the store.
+      Without a default retention configured on the bucket, Object
+      Lock does not protect your objects from deletion or
+      modification.
 
 .. note::
 
-   You cannot enable Object Lock for an existing S3 oplog store's
-   configuration in |onprem|. If you already use an S3 bucket for
-   oplog storage but need immutable oplogs, enable versioning and
-   Object Lock on that bucket if your provider allows it, or point
-   to a different bucket that already has both enabled, and
-   configure a new S3 oplog store.
+   If you already use an S3 bucket for oplog storage but need
+   portable backups, enable versioning and Object Lock on that
+   bucket if your provider allows it, or point to a different bucket
+   that already has both enabled. |onprem| ingests the bucket's
+   settings when you create the store.
 
 Configure a New S3 Oplog Store in |onprem|
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -425,45 +460,19 @@ Configure the new bucket as an S3 oplog store.
       bucket. Specify the bucket name, endpoint, region, and
       credentials as required by your S3 provider.
 
-   .. step:: Select :guilabel:`Object Lock Enabled`.
+   .. step:: Review the ingested Object Lock settings.
 
-      Select :guilabel:`Object Lock Enabled` to enable immutable
-      oplog backups for this store. You must enable Object Lock on
-      the underlying S3 bucket before you select this field.
+      |onprem| reads the bucket's Object Lock settings when you
+      create the store. The :guilabel:`Object Lock Enabled`,
+      :guilabel:`Object Retention Mode`, and :guilabel:`Object
+      Retention Period (Days)` fields display the ingested values
+      and are read-only.
 
-   .. step:: Set :guilabel:`Object Retention Period (Days)`.
+   .. step:: Select :guilabel:`Portable Oplog`.
 
-      Enter the number of days |onprem| protects each oplog slice's
-      objects with Object Lock. This value must match the retention
-      period you configured directly on the bucket. This field does
-      not modify the retention settings on the S3 bucket itself, and
-      |onprem| does not read the bucket's Object Lock configuration,
-      so it cannot detect a mismatch between this field and the
-      bucket's retention period. You must manually set this
-      field to match the retention mode you configured on the
-      bucket.
-
-      .. important::
-
-         We recommend setting this field. If you leave it blank,
-         |onprem| has no record of when your bucket's retention
-         period actually expires. |onprem| attempts to delete an
-         object as soon as its own :term:`grooming <groom>` logic
-         considers it eligible, and the S3 bucket rejects that
-         delete until its retention period ends. |onprem| keeps
-         retrying the delete until the bucket allows it.
-
-   .. step:: Set :guilabel:`Object Retention Mode`.
-
-      Select the Object Lock retention mode, ``GOVERNANCE`` or
-      ``COMPLIANCE``, that |onprem| applies to this oplog store's
-      objects. We recommend setting this field. When you save the
-      store, |onprem| validates the bucket's Object Lock behavior
-      using temporary test objects. However, |onprem| does not read the
-      bucket's Object Lock configuration, so it cannot detect a mismatch
-      between the mode you set here and the mode configured on the bucket.
-      You must manually set this field to match the retention mode you
-      configured on the bucket.
+      Select :guilabel:`Portable Oplog` to write portable restore
+      metadata for oplog slices. You cannot disable this choice
+      after you save the store.
 
    .. step:: Save the store.
 
@@ -472,29 +481,94 @@ Configure the new bucket as an S3 oplog store.
 
 .. important::
 
-   You can select :guilabel:`Object Lock Enabled` only when you
-   create a new S3 oplog store. You cannot change this setting
-   after you save the store. You can change :guilabel:`Object
-   Retention Period (Days)` and :guilabel:`Object Retention Mode` at
-   any time.
+   You cannot change the :guilabel:`Portable Oplog` choice after you
+   save the store.
 
-This oplog store serves as the target for immutable oplog backups.
-|onprem| writes both oplog slices and metadata for backups that use
-this store into the bucket.
+This oplog store serves as the target for portable backups.
+|onprem| writes oplog slices, metadata, and portable restore
+metadata copies for backups that use this store into the bucket.
 
-Switch Existing Backup Jobs to the Immutable S3 Oplog Store
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _enable-portability-on-an-existing-store:
 
-To reassign an existing backup job to the immutable S3 oplog store,
-use assignment labels:
+Enable Portability on an Existing Store
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your backup jobs already use an S3 store, you can make that
+store portable without creating a new one:
 
 .. procedure::
    :style: normal
 
-   .. step:: Add a label to the immutable S3 oplog store.
+   .. step:: Enable Object Lock on the bucket.
+
+      Enable Object Lock on the S3 bucket that backs the store. If
+      your provider allows it, also enable versioning and set a
+      default retention rule on the bucket.
+
+   .. step:: Wait for |onprem| to detect the change.
+
+      |onprem| realigns store configurations with their buckets
+      hourly. After the realignment, the store's Object Lock fields
+      display the values ingested from the bucket.
+
+   .. step:: Select :guilabel:`Portable Oplog` on the store.
+
+      Follow the :ref:`edit-s3-oplogstore` procedure and select
+      :guilabel:`Portable Oplog`. |onprem| writes portable restore
+      metadata for that store's oplog backups. You cannot disable
+      this choice afterwards.
+
+.. important::
+
+   Enable portability on the oplog store before you enable it on
+   the snapshot store, or at the same time. Never enable the
+   snapshot store first.
+
+   |onprem| writes oplog metadata copies only when it writes an
+   oplog slice. There is no backfill for slices written while the
+   choice was off. If you enable portability on the snapshot store
+   first, snapshots taken in the minutes before the oplog store
+   follows become importable while their point-in-time restore
+   window is incomplete. A restore anchored on one of them fails
+   when it tries to replay oplog from that period.
+
+If you enabled the stores in the wrong order, complete the following
+steps. After you finish, every restore anchor is sound:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Enable portability on the oplog store.
+
+      This completes the pair of portable stores.
+
+   .. step:: Take an on-demand snapshot immediately afterwards.
+
+      |onprem| covers this snapshot with complete oplog metadata
+      from its own timestamp forward.
+
+   .. step:: Avoid the snapshots between the two enablements.
+
+      Until they expire from the retention schedule, do not use
+      snapshots taken between the two enablements as point-in-time
+      restore anchors. Plain snapshot restores from them still work.
+      Only point-in-time restores are affected.
+
+Switch Existing Backup Jobs to a Portable S3 Oplog Store
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To reassign an existing backup job to a portable S3 oplog store,
+use assignment labels. This method is a fallback. To keep the
+existing oplog store, follow the steps in
+:ref:`enable-portability-on-an-existing-store` instead.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Add a label to the portable S3 oplog store.
 
       Follow the :ref:`edit-s3-oplogstore` procedure to add a label
-      to the immutable S3 oplog store.
+      to the portable S3 oplog store.
 
    .. step:: Apply the same label to the project's assignment labels.
 
@@ -546,7 +620,7 @@ Import Snapshots for Disaster Recovery
 --------------------------------------
 
 If you need to restore data from a pre-existing S3 bucket that contains
-immutable snapshots and backup metadata, you can import those snapshots
+portable snapshots and backup metadata, you can import those snapshots
 into an |onprem| deployment. Use this workflow for disaster recovery
 scenarios, such as restoring backups after rebuilding |onprem|.
 
@@ -618,7 +692,7 @@ Import Oplogs for Disaster Recovery
 -----------------------------------
 
 If you need point-in-time restore data from a pre-existing S3 bucket
-that contains immutable oplogs, you can import those oplogs into an
+that contains portable oplogs, you can import those oplogs into an
 |onprem| deployment. You must import the corresponding snapshot
 first. |onprem| can only discover oplogs for a cluster that already
 has an imported snapshot.
@@ -626,11 +700,9 @@ has an imported snapshot.
 .. important::
 
    If a metadata file listed in the bucket is missing when |onprem|
-   tries to import it, |onprem| skips that file, logs a warning, and
-   still reports the import job as ``SUCCEEDED``. This can leave a
-   gap in the restorable time range that only surfaces later, as a
-   rejection, when you attempt a point-in-time restore across that
-   gap.
+   tries to import it, the import job fails. Listing the bucket's
+   importable oplogs skips the missing file and logs a warning, but
+   the import job itself reports ``FAILED``.
 
 .. procedure::
    :style: normal
@@ -678,27 +750,27 @@ Interactions with |pitr|
 ------------------------
 
 |pitr| combines a baseline snapshot with oplog
-data stored in an oplog store. Immutable snapshots affect only
+data stored in an oplog store. Portable snapshots affect only
 the baseline snapshot component:
 
-- When you switch to an immutable S3 snapshot store, |pitr| continues
+- When you switch to a portable S3 snapshot store, |pitr| continues
   to work from existing snapshots and oplog data. Old snapshots
   remain in their original store, and the oplog store configuration
   does not change.
-- After the first full immutable snapshot completes on the new store,
-  |pitr| can use that snapshot as the baseline and continue tailing oplogs
-  from your configured oplog store.
+- After the first full portable snapshot completes on the new store,
+  |pitr| can use that snapshot as the baseline and continue tailing
+  oplogs from your configured oplog store.
 - |pitr| from an imported snapshot is available only if you also
-  import the corresponding immutable oplogs. Otherwise, you can
+  import the corresponding portable oplogs. Otherwise, you can
   restore an imported snapshot only to the exact point when
   |onprem| created the snapshot.
 
 .. important::
 
-   For full immutability protection, use an Object-Lock-enabled
+   For full portability protection, use an Object-Lock-enabled
    oplog store together with an Object-Lock-enabled snapshot store.
    By default, |onprem| doesn't enforce this pairing: a backup job
-   can use an immutable snapshot store with a standard oplog store,
+   can use a portable snapshot store with a standard oplog store,
    and |pitr| still works from that combination. To require the
    pairing, a global administrator must enable the
    ``mms.backup.enforceObjectLockOplogsOnObjectLockSnapshot``
@@ -715,7 +787,7 @@ the baseline snapshot component:
 Failure Scenarios and Recovery
 ------------------------------
 
-Immutable S3 snapshots do not introduce additional data-loss scenarios
+Portable S3 snapshots do not introduce additional data-loss scenarios
 when you switch snapshot stores. Each snapshot restores from a single
 store, so restore logic does not require data from multiple buckets for
 one snapshot.
@@ -735,7 +807,7 @@ Crash During the First Full Snapshot on the New Store
 - The last successful snapshot in the original store remains the
   latest restorable snapshot.
 - After |onprem| and the cluster recover, |onprem| schedules a new full
-  snapshot to the immutable store at the next snapshot window.
+  snapshot to the portable store at the next snapshot window.
 
 Because the first snapshot on the new store is always a full snapshot
 and each snapshot restores from a single store, restore logic does not

@@ -837,7 +837,7 @@ export const toc: L1TocItem[] = [
                 ],
               },
               {
-                label: 'Immutable Snapshots',
+                label: 'Portable S3 Backups',
                 contentSite: 'ops-manager',
                 url: '/docs/ops-manager/:version/tutorial/immutable-s3-snapshots',
                 versions: {

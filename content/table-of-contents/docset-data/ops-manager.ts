@@ -824,7 +824,7 @@ const tocData: TocItem[] = [
             ],
           },
           {
-            label: 'Immutable Snapshots',
+            label: 'Portable S3 Backups',
             contentSite: 'ops-manager',
             url: '/docs/ops-manager/:version/tutorial/immutable-s3-snapshots',
             versions: { excludes: ['v7.0'] },
