@@ -91,9 +91,12 @@ them here. See PR #19339 for an example format. Skip if not applicable. -->
       tool names (e.g., `Read`, `Grep`, `WebFetch`). The skill should work
       across Claude Code, Cursor, and other supported platforms.
 - [ ] Added or updated an entry in `.claude/skills/OWNERS.yaml` with the
-      skill's `dris` (1-2 GitHub usernames or emails; first is primary,
-      second is backup) and today's `last_reviewed` date. New skills must
-      include at least one non-`TBD` entry in `dris` before merge.
+      skill's `dris` (1-2 GitHub usernames; first is primary, second is
+      backup) and today's `last_reviewed` date. New skills must include
+      at least one non-`TBD` entry in `dris` before merge.
+- [ ] Added a `people:` entry in `OWNERS.yaml` for any DRI who isn't
+      already listed there, with their `name`, `jira`, and `slack`
+      values.
 - [ ] Set `readme_section` in the skill's `OWNERS.yaml` entry to the
       section it belongs in (e.g. "Universal Skills", "Grove & Code
       Examples" — see existing entries for valid values). Omitting it

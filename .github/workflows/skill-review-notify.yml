@@ -52,10 +52,18 @@ jobs:
                   'days_overdue': days_overdue,
               })
 
+          # DRI identity (Jira username, Slack member ID) lives in the
+          # `people:` table in OWNERS.yaml, so it cannot drift from the
+          # `dris` lists. Hand both maps to the steps that need them.
+          jira_map = {h: p['jira'] for h, p in manifest['people'].items()}
+          slack_map = {h: p['slack'] for h, p in manifest['people'].items()}
+
           with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
               out.write(f"stale_by_dri={json.dumps(stale_by_dri)}\n")
               out.write(f"has_stale={'true' if stale_by_dri else 'false'}\n")
               out.write(f"valid_dri_labels={json.dumps(valid_dri_labels)}\n")
+              out.write(f"jira_map={json.dumps(jira_map)}\n")
+              out.write(f"slack_map={json.dumps(slack_map)}\n")
 
           print(f"Found {sum(len(v) for v in stale_by_dri.values())} stale skill(s) across {len(stale_by_dri)} DRI(s)")
           print(json.dumps(stale_by_dri, indent=2))
@@ -68,6 +76,7 @@ jobs:
           JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
           STALE_BY_DRI: ${{ steps.detect.outputs.stale_by_dri }}
+          JIRA_MAP: ${{ steps.detect.outputs.jira_map }}
         run: |
           python3 - <<'PYEOF'
           import json, os, urllib.request, urllib.parse, urllib.error, sys
@@ -79,25 +88,17 @@ jobs:
               'Content-Type': 'application/json',
           }
 
-          # GitHub username (as used in OWNERS.yaml dris) -> Jira username.
-          # Update this alongside OWNERS.yaml when a skill's DRI changes.
-          # A dri already given as an email address in OWNERS.yaml (Jira's
-          # username format on this instance) needs an entry here too,
-          # since ticket creation always looks up dri in this map.
-          jira_map = {
-              'erabil-mdb': 'evelyn.rabil@mongodb.com',
-              'ajhuh-mdb': 'alison.huh@mongodb.com',
-              'norareidy': 'nora.reidy@mongodb.com',
-              'cbullinger': 'cory.bullinger@mongodb.com',
-              'mcmorisi': 'michael.morisi@mongodb.com',
-              'ltran-mdb2': 'lauren.tran@mongodb.com',
-              'jeff-allen-mongo': 'jeffrey.allen@mongodb.com',
-              'mdb-ashley': 'ashley.brown@mongodb.com',
-              'amalhotra-mdb': 'anika.malhotra@mongodb.com',
-              'jwilliams-mongo': 'john.williams@mongodb.com',
-              'kyle.rollins@mongodb.com': 'kyle.rollins@mongodb.com',
-              'melissa.mahoney@mongodb.com': 'melissa.mahoney@mongodb.com',
-          }
+          # DRI handle -> Jira username, read from the `people:` table in
+          # .claude/skills/OWNERS.yaml and handed in by the detect step.
+          jira_map = json.loads(os.environ['JIRA_MAP'])
+
+          # The people: table is validated in CI
+          # (.github/scripts/check-people.py), so every DRI should resolve.
+          # Fail loudly rather than filing an unassigned ticket if one doesn't.
+          missing = sorted(d for d in stale_by_dri if d not in jira_map)
+          if missing:
+              print(f"::error::DRIs missing from the people: table in OWNERS.yaml: {missing}")
+              sys.exit(1)
 
           # dri -> Slack-formatted link to their ticket, e.g. "<https://.../browse/DOCSP-1|DOCSP-1>"
           dri_tickets = {}
@@ -163,8 +164,7 @@ jobs:
                       blocked_dris.append(dri)
                       continue
                   update_fields = {'summary': summary, 'description': description}
-                  if dri in jira_map:
-                      update_fields['assignee'] = {'name': jira_map[dri]}
+                  update_fields['assignee'] = {'name': jira_map[dri]}
                   update_payload = json.dumps({'fields': update_fields}).encode()
                   update_req = urllib.request.Request(
                       f'{base_url}/rest/api/2/issue/{key}',
@@ -189,8 +189,7 @@ jobs:
                   'description': description,
                   'labels': [dri_label],
               }
-              if dri in jira_map:
-                  create_fields['assignee'] = {'name': jira_map[dri]}
+              create_fields['assignee'] = {'name': jira_map[dri]}
               payload = json.dumps({'fields': create_fields}).encode()
               req = urllib.request.Request(
                   f'{base_url}/rest/api/2/issue', data=payload, headers=headers
@@ -311,31 +310,14 @@ jobs:
           STALE_BY_DRI: ${{ steps.detect.outputs.stale_by_dri }}
           DRI_TICKETS: ${{ steps.jira.outputs.dri_tickets }}
           BLOCKED_DRIS: ${{ steps.jira.outputs.blocked_dris }}
+          SLACK_MAP: ${{ steps.detect.outputs.slack_map }}
         run: |
           python3 - <<'PYEOF'
           import json, os
 
-          # GitHub username (as used in OWNERS.yaml dris) -> Slack member ID.
-          # Update this alongside OWNERS.yaml when a skill's DRI changes.
-          slack_map = {
-              'erabil-mdb': 'U042MBH66Q3',
-              'ajhuh-mdb': 'U023HK3DMFF',
-              'norareidy': 'U03JB19AD4J',
-              'cbullinger': 'U0470DPNTB2',
-              'mcmorisi': 'U070SAN8G9G',
-              'ltran-mdb2': 'U03J9636YKD',
-              'jeff-allen-mongo': 'U5SCV9285',
-              'kyle.rollins@mongodb.com': 'U0453T5AFMM',
-              'melissa.mahoney@mongodb.com': 'UGG3M6A20',
-              'mdb-ashley': 'U02UZB74K7W',
-              'amalhotra-mdb': 'U05A064A4BH',
-              'jwilliams-mongo': 'UN7S9QH54',
-              'emetozar': 'U03UH1SDB2M',
-              'tmcneil-mdb': 'U09H49N4JHH',
-              'mike.woofter@mongodb.com': 'U03LWH2EZTN',
-              'kanchana-mongodb': 'UMK6A8G3Y',
-              'oliviacaulfield': 'U08V05CH1PB',
-          }
+          # DRI handle -> Slack member ID, read from the `people:` table in
+          # .claude/skills/OWNERS.yaml and handed in by the detect step.
+          slack_map = json.loads(os.environ['SLACK_MAP'])
 
           stale_by_dri = json.loads(os.environ['STALE_BY_DRI'])
           dri_tickets = json.loads(os.environ.get('DRI_TICKETS') or '{}')
@@ -349,7 +331,7 @@ jobs:
                   continue
               parts = [f"{s['name']} ({s['days_overdue']} day(s) overdue)" for s in skills]
               ticket_link = dri_tickets.get(dri, '_ticket pending_')
-              mention = f"<@{slack_map[dri]}>" if dri in slack_map else f"*{dri}*"
+              mention = f"<@{slack_map[dri]}>"
               lines.append(f"• {mention} — {', '.join(parts)} — {ticket_link}")
 
           # DOCS_WRITERS_SLACK_WEBHOOK must be a classic Incoming Webhook

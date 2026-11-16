@@ -210,11 +210,10 @@ def main():
         "--base", "main",
         "--head", branch,
     ]
-    # gh pr create --reviewer only accepts GitHub handles/teams, not email
-    # addresses. Some DRIs in OWNERS.yaml are recorded as bare emails (Jira's
-    # username format on this instance) with no GitHub handle on file —
-    # skip requesting a reviewer for those rather than crashing here after
-    # the branch has already been pushed.
+    # gh pr create --reviewer only accepts GitHub handles/teams. Every
+    # `dris` entry is a key in OWNERS.yaml's `people:` table, so it is a
+    # GitHub handle — but skip the reviewer request rather than crashing
+    # here if an entry is malformed, since the branch is already pushed.
     if "@" not in dri:
         pr_args += ["--reviewer", dri]
     pr_url = gh(pr_args).strip()
