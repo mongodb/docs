@@ -25,6 +25,9 @@ and agentic workflows using their no-code visual interface. This page provides a
 overview of the integration and describes the different types of 
 `nodes <https://docs.n8n.io/workflows/components/nodes/>`__  that you can use in your workflows.
 
+The default |n8n| installation includes the MongoDB nodes. The examples
+in this guide use |n8n| version 2.x.
+
 Get Started with |n8n|
 ----------------------
 
@@ -268,6 +271,14 @@ The retrieve document mode is only available in certain workflow patterns.
        parameters
        <https://docs.n8n.io/integrations/builtin/cluster-nodes/root-nodes/n8n-nodes-langchain.vectorstoremongodbatlas/#retrieve-documents-as-tool-for-ai-agent-parameters>`__.
 
+   * - .. _n8n-vector-store-mode-update:
+
+       **Update Documents**
+     - Update an existing document in the vector store by document ID.
+       Specify the document to update in the :guilabel:`ID` parameter.
+       The node embeds the document content from the input items and
+       replaces the existing document.
+
 .. _n8n-vector-store-parameters:
 
 Vector Store Node Parameters
@@ -299,14 +310,16 @@ Vector Store Node Parameters
         - Name of the Vector Search index in your MongoDB collection.
 
       * -
-        - :guilabel:`Embedding Field`
+        - :guilabel:`Embedding`
         - All
         - Field name in your documents that contains the vector embeddings.
+          Defaults to ``embedding``.
 
       * -
         - :guilabel:`Metadata Field`
         - All
         - Field name in your documents that contains the text metadata.
+          Defaults to ``text``.
 
       * - **Mode-Specific Parameters**
         - :guilabel:`Name`
@@ -326,6 +339,11 @@ Vector Store Node Parameters
           <n8n-vector-store-mode-retrieve-agent-tool>`
         - Number of results to retrieve from the vector store.
 
+      * -
+        - :guilabel:`ID`
+        - :ref:`Update Documents <n8n-vector-store-mode-update>`
+        - ID of the document in the vector store to update.
+
       * - **Additional Options**
         - :guilabel:`Metadata Filter`
         - :ref:`Get Many <n8n-vector-store-mode-get-many>`,
@@ -344,10 +362,120 @@ Vector Store Node Parameters
           <n8n-vector-store-mode-retrieve-chain>`
         - Enable result reranking (requires connecting a reranker node).
 
+      * -
+        - :guilabel:`Namespace`
+        - :ref:`Get Many <n8n-vector-store-mode-get-many>`,
+          :ref:`Insert Documents <n8n-vector-store-mode-insert>`,
+          :ref:`Retrieve Documents (As Tool for AI Agent)
+          <n8n-vector-store-mode-retrieve-agent-tool>`,
+          :ref:`Retrieve Documents (As Vector Store for Chain/Tool)
+          <n8n-vector-store-mode-retrieve-chain>`
+        - Logical partition for documents. The node stores the namespace
+          in the ``metadata.namespace`` field to filter results.
+
+      * -
+        - :guilabel:`Clear Namespace`
+        - :ref:`Insert Documents <n8n-vector-store-mode-insert>`
+        - Whether to clear documents in the namespace before inserting
+          new documents.
+
+      * -
+        - :guilabel:`Pre Filter`
+        - :ref:`Get Many <n8n-vector-store-mode-get-many>`,
+          :ref:`Retrieve Documents (As Tool for AI Agent)
+          <n8n-vector-store-mode-retrieve-agent-tool>`,
+          :ref:`Retrieve Documents (As Vector Store for Chain/Tool)
+          <n8n-vector-store-mode-retrieve-chain>`
+        - JSON filter object that the node applies within the
+          ``$vectorSearch`` stage.
+
+      * -
+        - :guilabel:`Post Filter Pipeline`
+        - :ref:`Get Many <n8n-vector-store-mode-get-many>`,
+          :ref:`Retrieve Documents (As Tool for AI Agent)
+          <n8n-vector-store-mode-retrieve-agent-tool>`,
+          :ref:`Retrieve Documents (As Vector Store for Chain/Tool)
+          <n8n-vector-store-mode-retrieve-chain>`
+        - JSON aggregation pipeline that the node applies to the
+          results after the vector search.
+
+      * -
+        - :guilabel:`Embedding Batch Size`
+        - :ref:`Insert Documents <n8n-vector-store-mode-insert>`
+        - Number of documents to embed in a single batch. Defaults to
+          ``200``.
+
+      * -
+        - :guilabel:`Include Metadata`
+        - :ref:`Get Many <n8n-vector-store-mode-get-many>`,
+          :ref:`Retrieve Documents (As Tool for AI Agent)
+          <n8n-vector-store-mode-retrieve-agent-tool>`
+        - Whether to include document metadata in the returned
+          documents. On by default.
+
 .. tip::
 
-   To learn more, see 
+   To learn more, see
    `n8n MongoDB Vector Store node documentation <https://docs.n8n.io/integrations/builtin/cluster-nodes/root-nodes/n8n-nodes-langchain.vectorstoremongodbatlas/>`__
+
+.. _n8n-vector-store-filters:
+
+Filter Vector Search Results
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The MongoDB Atlas Vector Store node can filter documents when you
+retrieve them. Use the :guilabel:`Pre Filter` and :guilabel:`Post
+Filter Pipeline` options in the node's :guilabel:`Options`.
+
+For example, the following pre filter matches movies in the ``Action``
+genre:
+
+.. literalinclude:: /includes/ai-integrations/n8n/n8n-vector-prefilter.json
+   :language: json
+   :category: snippet
+   :copyable: false
+
+.. note::
+
+   A pre filter narrows the scope of the vector search before the query runs. In
+   the :guilabel:`Pre Filter` field, enter a MongoDB Query Language (MQL) match
+   expression for the fields that you want to filter on. To use a pre filter,
+   index the fields as the ``filter`` type in your :ref:`{+avs+} index
+   definition <avs-types-vector-search>`.
+
+A post filter pipeline processes the results further after the vector search
+completes. In the :guilabel:`Post Filter Pipeline` field, enter an aggregation
+pipeline as a JSON array. For example, the following pipeline matches movies
+released in ``2000`` or later:
+
+.. literalinclude:: /includes/ai-integrations/n8n/n8n-vector-postfilter.json
+   :language: json
+   :category: snippet
+   :copyable: false
+
+To learn more about filtering vector search results, see
+:ref:`vectorSearch-agg-pipeline`.
+
+.. _n8n-vector-store-namespaces:
+
+Use Namespaces to Partition Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The MongoDB Atlas Vector Store node supports logical partitioning of documents
+by using the :guilabel:`Namespace` option. When you insert documents with the
+:guilabel:`Namespace` option set, the node stores the namespace value in the
+``metadata.namespace`` field of each document. When the node retrieves documents, it
+returns only the documents in the namespace that you specify.
+
+Use namespaces to isolate documents for different tenants, topics, or
+workflows within the same collection. For example, in a multi-tenant
+deployment, specify a unique namespace for each tenant. This
+separation prevents the agent from retrieving documents that belong
+to other tenants.
+
+When you insert documents, you can also enable the :guilabel:`Clear
+Namespace` option. The node removes the existing documents in the
+namespace, and then inserts the new documents.
 
 .. _n8n-chat-memory:
 
@@ -366,9 +494,10 @@ by adding it to the :guilabel:`Memory` section of an AI agent node. For a tutori
 
 .. note::
 
-   If you add multiple MongoDB Chat Memory nodes to your workflow, all nodes
-   access the same memory instance by default. For separate memory instances,
-   use different session IDs in each memory node.
+   Each MongoDB Chat Memory node scopes its session to that node by
+   default. To share a session between different MongoDB Chat Memory
+   nodes, set :guilabel:`Session ID` to :guilabel:`Define below` and
+   use the same session key in each node.
 
 .. _n8n-chat-memory-parameters:
 
@@ -404,6 +533,7 @@ Chat Memory Node Parameters
 
       * - Context Window Length
         - Number of previous interactions to consider for context.
+          Defaults to ``5``.
 
 .. tip::
 

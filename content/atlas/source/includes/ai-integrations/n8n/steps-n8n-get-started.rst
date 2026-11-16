@@ -107,7 +107,8 @@
 
       a. Click the :guilabel:`+` connector next to the :guilabel:`Embedding` label on the MongoDB Atlas Vector Store node.
       #. From the side panel, select :guilabel:`Embeddings OpenAI`.
-      #. Select your OpenAI credentials, and then specify the ``text-embedding-ada-002`` model.
+      #. Select your OpenAI credentials, and then specify the
+         ``text-embedding-3-small`` model.
       #. Click :guilabel:`Back to canvas` in the upper-left corner of your screen.
          Click :guilabel:`Save`.
 
