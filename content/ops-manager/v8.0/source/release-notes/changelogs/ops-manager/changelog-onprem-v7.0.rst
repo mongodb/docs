@@ -15,7 +15,7 @@ Improvements
 
 - Updates the {+mdbagent+} to :ref:`107.0.23.8832-1 <mongodb-107.0.23.8832-1>`.
 - Supports :dbtools:`MongoDB Database Tools 100.14.1 </release-notes/dbtools-100.14.1-changelog/>`.
-- Updates JDK to `jdk-17.0.18+8 <https://adoptium.net/temurin/release-notes/?version=jdk-17.0.18+8>`__.
+- Updates JDK to ``jdk-17.0.18+8``.
 - Adds support for `MongoDB Shell 2.6.0 <https://github.com/mongodb-js/mongosh/releases>`__.
 
 Bug Fixes
@@ -150,7 +150,7 @@ Improvements
 
 - Updates the {+mdbagent+} to :ref:`107.0.19.8805-1 <mongodb-107.0.19.8805-1>`.
 - Adds support for |bic-full| 2.14.25.
-- Updates JDK to `jdk-17.0.17+10 <https://adoptium.net/temurin/release-notes/?version=jdk-17.0.17+10>`__.
+- Updates JDK to ``jdk-17.0.17+10``.
 - Upgrades ``golangci-lint`` to version 2.5.0.
 - Upgrades deprecated dependencies, including Puppeteer and Sinon packages.
 - Tests and releases BI Connector 2.14.25 in MongoDB Agent.

@@ -19,6 +19,8 @@ Improvements
 - Supports :dbtools:`MongoDB Database Tools 100.20.1
   </release-notes/dbtools-100.20.0-changelog>`.
 - Updates the bundled {+mongosh+} version to 2.14.0.
+- Updates JDK to `jdk-25.0.5+8
+  <https://adoptium.net/temurin/release-notes/?version=jdk-25.0.5+8>`__.
 - Adds public APIs to shut down, start, restart, and resync a
   process. Resync operations require ``votes: 0``.
 - Adds v2.0 versions of the Get Host endpoints, which report
@@ -323,7 +325,8 @@ Improvements
 
 - Updates the {+mdbagent+} to
   :ref:`109.0.1.9309-1 <mongodb-109.0.1.9309-1>`.
-- Updates JDK to jdk-25.0.4.1+1.
+- Updates JDK to `jdk-25.0.4.1+1
+  <https://adoptium.net/temurin/release-notes/?version=jdk-25.0.4.1+1>`__.
 
 Bug Fixes
 ~~~~~~~~~
@@ -363,7 +366,8 @@ Improvements
 - Adds |onprem| and {+mdbagent+} platform support for RHEL 10,
   Debian 13, and SUSE Linux Enterprise Server 16. To learn more,
   see :ref:`ops-manager-os-compatibility`.
-- Updates JDK to Java 25.0.3+9.0.LTS.
+- Updates JDK to `jdk-25.0.3+9
+  <https://adoptium.net/temurin/release-notes/?version=jdk-25.0.3+9>`__.
 - Ends support for the |bic-short-no-link|, which reached end of life
   on September 30, 2026. The binary is no longer available from the
   MongoDB Download Center.

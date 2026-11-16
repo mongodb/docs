@@ -86,7 +86,7 @@
 
 *Released 2021-11-16*
 
-- Updates JDK to jdk-11.0.13+8.
+- Updates JDK to ``jdk-11.0.13+8``.
 - Updates the MongoDB Agent to :ref:`10.14.30.6552 <mongodb-10.14.30.6552>`.
 
 .. _opsmgr-server-4.4.18:

@@ -132,7 +132,7 @@
 
 *Released 2022-08-04*
 
-- Updates JDK to jdk-11.0.16+8.
+- Updates JDK to ``jdk-11.0.16+8``.
 - Updates the {+mdbagent+} to :ref:`11.0.19.7094
   <mongodb-11.0.19.7094>`.
   
@@ -257,7 +257,7 @@
   :ref:`Ops Manager Software Requirements <software-requirements>`.
 - Fixes an issue where S3 Oplog Stores can leave behind S3 objects even
   after the configured retention window has elapsed.
-- Updates JDK to jdk-11.0.14.1+1
+- Updates JDK to ``jdk-11.0.14.1+1``.
 - Keeps legacy monitoring and backup agents in sync with MongoDB agent
   configuration when making ``automationConfig`` API and UI updates.
 - Removes workaround to use an X.509 CommonName instead of a |san-dns|.

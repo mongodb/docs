@@ -19,6 +19,8 @@ Improvements
 - Supports :dbtools:`MongoDB Database Tools 100.20.1
   </release-notes/dbtools-100.20.0-changelog>`.
 - Updates the bundled {+mongosh+} version to 2.14.0.
+- Updates JDK to `jdk-21.0.13+9
+  <https://adoptium.net/temurin/release-notes/?version=jdk-21.0.13+9>`__.
 - Adds public APIs to shut down, start, restart, and resync a
   process. Resync operations require ``votes: 0``.
 - Adds v2.0 versions of the Get Host endpoints, which report
@@ -1553,7 +1555,8 @@ Improvements
 - Updates the MongoDB Agent to :ref:`108.0.12.8846-1
   <mongodb-108.0.12.8846-1>`.
 - Supports |bic-full| 2.14.24.
-- Updates JDK to ``jdk-21.0.8+9``.
+- Updates JDK to `jdk-21.0.8+9
+  <https://adoptium.net/temurin/release-notes/?version=jdk-21.0.8+9>`__.
 - Updates {+mongosh+} to 2.5.6.
 - Updates PACKAGE_OPS_MANAGER to stub out ``sign_artifact`` when
   Garasign credentials aren't available, allowing patch builds without
@@ -1798,7 +1801,8 @@ Improvements
 - Updates the {+mdbagent+} to :ref:`108.0.7.8810 
   <mongodb-108.0.7.8810>`.
 - Supports MongoDB Database Tools 100.12.0.
-- Updates JDK to ``jdk-21.0.7+6``. 
+- Updates JDK to `jdk-21.0.7+6
+  <https://adoptium.net/temurin/release-notes/?version=jdk-21.0.7+6>`__.
 - Supports copying file blocks for incremental snapshot using the
   filesystem store. 
 - Adds a validation on the cluster topology when starting backup for
@@ -1944,7 +1948,8 @@ Improvements
 
 - Updates the {+mdbagent+} to :ref:`108.0.4.8770-1 <mongodb-108.0.4.8770-1>`.
   
-- Updates JDK to ``jdk-21.0.6+7``.
+- Updates JDK to `jdk-21.0.6+7
+  <https://adoptium.net/temurin/release-notes/?version=jdk-21.0.6+7>`__.
   
 - Adds support for |bic-full| 2.14.21.
   
@@ -2060,7 +2065,8 @@ Fixes the following issues:
 
 *Released 2024-11-01*
 
-- Updates JDK to ``jdk-21.0.5+11``.
+- Updates JDK to `jdk-21.0.5+11
+  <https://adoptium.net/temurin/release-notes/?version=jdk-21.0.5+11>`__.
 - Supports :ref:`Workload Identity Federation <om-oidc-authentication-workload>` on top of the already existing Workforce Identity Federation. 
 - Supports configuring separate SAML signature validation for responses and assertions so that only one is 
   required through the :setting:`mms.saml.signedAssertions` and :setting:`mms.saml.signedMessages` settings.
