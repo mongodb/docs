@@ -44,7 +44,7 @@ jira issue view DOCSP-12345 --raw | jq -r '.fields.customfield_12054 // empty'
 
 Filter on it in JQL with `cf[12054]`, for example `cf[12054] is not EMPTY`.
 
-If the field comes back null or empty, look for a complete `mongodb.com/docs/` URL written out in the description or comments. Never construct or guess a docs URL from the summary. Stop and ask the user which page to edit.
+If the field comes back null or empty, look for a complete `mongodb.com/docs/` URL written out in the description or comments. `--plain` shows only the latest comment, so pass `--comments 50` (see View a ticket). Never construct or guess a docs URL from the summary. Stop and ask the user which page to edit.
 
 ### JQL ORDER BY
 
@@ -74,6 +74,14 @@ When uncertain, attempt the move and read the error for valid transition names.
 
 Transition IDs (visible via the MCP tools' `get_transitions` calls, not surfaced by this CLI command) are scoped to the ticket's *current* status, not stable per named transition — e.g., `Close` was id 111 on a ticket in Needs Triage but id 141 on a different ticket in In Progress. The CLI's `move` command takes the transition name directly so this doesn't affect CLI usage, but don't assume an ID seen on one ticket applies to another.
 
+### Text Format Depends on the Command
+
+`jira issue create` and `jira issue comment add` convert Markdown to wiki markup before saving, so write Markdown for them. `jira issue edit` stores the description as-is, so write wiki markup for it. Wiki syntax passed to `create` or `comment add` gets rewritten: `*bold*` becomes italic, `* item` and `-strike-` get escaped, `# item` becomes `h1.`, and `[text|url]` breaks. Three Markdown constructs don't convert, so write them in wiki syntax, which passes through unchanged:
+
+- Code blocks: `{code}...{code}`, not a fence.
+- Tables: `||h1||h2||` and `|a|b|` rows, not a Markdown pipe table.
+- Quotes: `{quote}...{quote}`, not `>`.
+
 ### Description via Stdin
 
 For multi-line descriptions, **always pipe via stdin** — not `-b "$(cat <<'EOF'...)"`. The `-b` flag with `$()` heredocs causes the CLI to hang silently.
@@ -87,7 +95,7 @@ EOF
 
 # CORRECT
 cat <<'EOF' | jira issue create -p DOCSP -t Task -s "Title" --no-input --raw
-h2. Overview
+## Overview
 description here
 EOF
 ```
@@ -118,20 +126,25 @@ Always pass `--no-input` for create/edit operations. Always pass `--plain` for l
 cat <<'EOF' | jira issue create -p DOCSP -t Task \
   -s "Update connection string examples for Atlas shared clusters" \
   -C Atlas -y "Major - P3" --label feature --no-input --raw
-h2. Overview
+## Overview
 Update the connection string examples...
 EOF
 ```
 
-Fix Version, Story Points Estimate, and Epic Name have no dedicated flag — set them with `--custom` (see Gotchas above).
+Set Fix Version with `--fix-version` (repeatable) and Story Points Estimate with `--custom` (see Gotchas above). To create an Epic, use `jira epic create -n "<Epic Name>" -s "<Summary>"` — `jira issue create -t Epic` can't set the required Epic Name.
 
 ---
 
-## Labels
+## Labels, Components, and Fix Versions
+
+On `jira issue edit`, `--label`, `-C`/`--component`, and `--fix-version` all **append** to existing values. Prefix a value with `-` to remove it:
 
 ```bash
-# Replaces existing labels; include all desired labels
+# Appends: existing labels are kept
 jira issue edit DOCSP-12345 --label feature --label seo --no-input
+
+# Removes the "seo" label, the "Drivers" component, and the "v1.0" fix version
+jira issue edit DOCSP-12345 --label -seo -C -Drivers --fix-version -v1.0 --no-input
 ```
 
 ---
@@ -141,8 +154,8 @@ jira issue edit DOCSP-12345 --label feature --label seo --no-input
 ### View a ticket
 
 ```bash
-jira issue view DOCSP-12345 --plain
-jira issue view DOCSP-12345 --raw     # full JSON for parsing fields
+jira issue view DOCSP-12345 --plain --comments 50   # --plain alone shows only the latest comment
+jira issue view DOCSP-12345 --raw                   # full JSON for parsing fields
 ```
 
 ### Search tickets
@@ -190,6 +203,14 @@ To mention a user, use `[~username]` where username is their MongoDB email prefi
 
 ```bash
 jira issue link DOCSP-111 DOCSP-222 "Related"
+jira issue link DOCSP-111 CLOUDP-222 "Documented"   # DOCSP-111 documents CLOUDP-222
+```
+
+### Sub-tasks and epics
+
+```bash
+jira issue create -t Sub-task -P DOCSP-12345 -s "Backport to v8.0" --no-input   # sub-task of DOCSP-12345
+jira epic add DOCSP-11111 DOCSP-12345 DOCSP-12346                              # add issues to epic DOCSP-11111
 ```
 
 ### Other operations
