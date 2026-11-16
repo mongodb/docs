@@ -3,7 +3,7 @@ import { extract } from '../src/extract.js';
 import { wrapTokens } from '../src/inline.js';
 import { parseMdx, stringifyMdx } from '../src/mdast.js';
 import { translateMdx } from '../src/translate-mdx.js';
-import { ReconstructionError } from '../src/reconstruct.js';
+import { ReconstructionError, RebuildError } from '../src/reconstruct.js';
 
 const SOURCE = `# Setup
 
@@ -82,6 +82,20 @@ describe('translateMdx', () => {
     };
 
     const out = await translateMdx('Read the [guide](/g) now.\n', translate);
+
+    expect(calls).toBe(2);
+    expect(out).toContain('guide');
+  });
+
+  it('re-translates with the wrapped text split out when the translate fn reports a rebuild failure', async () => {
+    let calls = 0;
+    const translate = async (payload: Record<string, string>) => {
+      calls++;
+      if (calls === 1) throw new RebuildError('placeholder token dropped');
+      return { ...payload };
+    };
+
+    const out = await translateMdx('Read the [guide](/g) now.\n', translate as never);
 
     expect(calls).toBe(2);
     expect(out).toContain('guide');

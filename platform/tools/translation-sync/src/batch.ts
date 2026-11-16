@@ -1,4 +1,4 @@
-import { translateMdx, type TranslateFn } from 'translation-mdx-adapter';
+import { translateMdx, RebuildError, type TranslateFn } from 'translation-mdx-adapter';
 import { translate, type TranslationBackend } from '@mongodb-docs/translation-service';
 
 export function makeTranslateFn(backend: TranslationBackend, targetLocale: string): TranslateFn {
@@ -16,10 +16,16 @@ export function makeTranslateFn(backend: TranslationBackend, targetLocale: strin
     const failed = Object.entries(res.errors);
     if (failed.length > 0) {
       const [key, error] = failed[0]!;
-      throw new Error(
+      const message =
         `${failed.length} of ${Object.keys(payload).length} keys failed; ` +
-          `first: "${key}" ${error.code}: ${error.message}`,
-      );
+        `first: "${key}" ${error.code}: ${error.message}`;
+      // A dropped inline placeholder token is recoverable: translateMdx retries
+      // the file with the wrapped text split into its own entry, where there is
+      // no open/close pair to lose. Signal it with the adapter's retryable error.
+      if (failed.some(([, e]) => e.code === 'PLACEHOLDER_RESTORATION_FAILED')) {
+        throw new RebuildError(message);
+      }
+      throw new Error(message);
     }
     return res.translations;
   };

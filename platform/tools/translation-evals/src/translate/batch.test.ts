@@ -5,8 +5,11 @@ import {
 } from '@mongodb-docs/translation-service';
 import { makeTranslateFn, translateMdxFile } from './batch.js';
 import { loadConfig } from '../config.js';
+import { RebuildError } from 'translation-mdx-adapter';
 
 const SRC = `# Setup\n\nInstall with \`brew\` and read the [guide](/g).\n\n<Note>\n  Keep MongoDB running.\n</Note>\n`;
+
+const INLINE_MARKUP = '# Setup\n\nClick **Save** to apply the **shard key**.\n';
 
 describe('translateMdxFile', () => {
   it('returns reconstructed MDX when the backend echoes translations', async () => {
@@ -22,7 +25,6 @@ describe('adapter tokens reach the model protected', () => {
   // word-boundary protection has to match a token exactly as emitted. If it
   // does not, the raw delimiters reach the model, which drops them and makes
   // reconstruction fail.
-  const INLINE_MARKUP = '# Setup\n\nClick **Save** to apply the **shard key**.\n';
   const PUA = /[\uE000\uE001]/;
 
   it('sends no raw placeholder delimiter to the backend', async () => {
@@ -52,6 +54,81 @@ describe('adapter tokens reach the model protected', () => {
 
     expect(seen.length).toBeGreaterThan(0);
     expect(seen.filter((text) => PUA.test(text))).toEqual([]);
+  });
+});
+
+describe('dropped inline placeholder recovery', () => {
+  const cfg = loadConfig({});
+
+  it('throws the adapter retryable error when a placeholder token was dropped', async () => {
+    const backend = new StubBackend({
+      errorFor: { b: { code: 'PLACEHOLDER_RESTORATION_FAILED', message: 'token dropped' } },
+    });
+    const fn = makeTranslateFn(cfg, 'es', backend);
+
+    await expect(fn({ a: 'Hello', b: 'World' }, [])).rejects.toBeInstanceOf(RebuildError);
+  });
+
+  it('keeps throwing a plain error for a non-placeholder failure', async () => {
+    const backend = new StubBackend({
+      errorFor: { b: { code: 'BACKEND_ERROR', message: 'upstream 500' } },
+    });
+    const fn = makeTranslateFn(cfg, 'es', backend);
+
+    const err = await fn({ a: 'Hello', b: 'World' }, []).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(Error);
+    expect(err).not.toBeInstanceOf(RebuildError);
+  });
+
+  it('recovers a file when the backend drops an inline token on the first pass', async () => {
+    let calls = 0;
+    const dropping: TranslationBackend = {
+      name: 'dropping',
+      async translateBatch(batch) {
+        calls++;
+        return {
+          items: batch.items.map((item) => ({
+            key: item.key,
+            status: 'ok' as const,
+            text: calls === 1 ? item.text.replace(/__PROT\d+__/g, '') : item.text,
+          })),
+          meta: { provider: 'dropping', model: 'dropping-1' },
+        };
+      },
+    };
+
+    const out = await translateMdxFile(
+      INLINE_MARKUP,
+      cfg,
+      'es',
+      makeTranslateFn(cfg, 'es', dropping),
+    );
+
+    expect(calls).toBe(2);
+    expect(out).toBe(INLINE_MARKUP);
+  });
+
+  it('does not retry more than once when the split pass also drops the token', async () => {
+    let calls = 0;
+    const alwaysDropping: TranslationBackend = {
+      name: 'always-dropping',
+      async translateBatch(batch) {
+        calls++;
+        return {
+          items: batch.items.map((item) => ({
+            key: item.key,
+            status: 'ok' as const,
+            text: item.text.replace(/__PROT\d+__/g, ''),
+          })),
+          meta: { provider: 'always-dropping', model: 'always-dropping-1' },
+        };
+      },
+    };
+
+    await expect(
+      translateMdxFile(INLINE_MARKUP, cfg, 'es', makeTranslateFn(cfg, 'es', alwaysDropping)),
+    ).rejects.toBeInstanceOf(RebuildError);
+    expect(calls).toBe(2);
   });
 });
 

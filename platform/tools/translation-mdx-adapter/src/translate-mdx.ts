@@ -31,8 +31,10 @@ export interface TranslateMdxOptions {
  * pair, so the backend translates it in context. When a backend reorders such
  * a pair the rebuild cannot pair the tokens (RebuildError); the file is then
  * re-sent once with each wrapped text split into its own payload entry, where
- * no pair exists to invert. The retry is bounded to that one case — a key
- * that simply failed is not re-sent.
+ * no pair exists to invert. The retry also covers a `RebuildError` raised by
+ * `translate` itself — a caller that detects a dropped token upstream signals
+ * it the same way. The retry is bounded to that one case — a key that simply
+ * failed is not re-sent.
  */
 export async function translateMdx(
   mdx: string,
@@ -43,12 +45,12 @@ export async function translateMdx(
     ...new Set([...terms, ...(options.nonTranslatableTerms ?? [])]),
   ];
 
-  const content = extract(mdx);
-  const translations = await translate(
-    content.payload,
-    termsFor(content.non_translatable_terms),
-  );
   try {
+    const content = extract(mdx);
+    const translations = await translate(
+      content.payload,
+      termsFor(content.non_translatable_terms),
+    );
     return reconstruct(translations, content);
   } catch (cause) {
     if (!(cause instanceof RebuildError)) throw cause;
