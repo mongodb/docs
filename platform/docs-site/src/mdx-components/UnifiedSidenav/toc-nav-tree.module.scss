@@ -1,0 +1,241 @@
+@use '@/styles/global-theme.scss' as theme;
+
+// Fills the panel, so the tree scrolls and the footer stays put.
+.treeWrapper {
+  height: 100%;
+}
+
+// Via's border would cut through the tabs header, so draw the right edge from below it, as in the LG
+// nav. The tabs extend into the action bar, so let them overflow while the nav is open.
+.tree.tree {
+  position: relative;
+  border-inline-end: none;
+
+  &[data-expanded] {
+    overflow: visible;
+  }
+
+  @media #{theme.$screenSize-largeAndUp} {
+    &::after {
+      position: absolute;
+      z-index: 2;
+      top: var(--tabs-height);
+      right: 0;
+      bottom: 0;
+      border-right: var(--via-border-width-025) solid var(--via-color-border-secondary);
+      content: '';
+      pointer-events: none;
+    }
+  }
+}
+
+// Holds the tabs header, back link and version dropdown in place of Via's header layout.
+.header.header {
+  display: block;
+  overflow: visible;
+  padding-top: calc(var(--tabs-height) + 10px);
+  border-block-end: none;
+  min-block-size: auto;
+}
+
+// In the collapsed rail, show only the nav background and toggle. Hovering opens the nav and fades the
+// header, tree and download button back in, as in the LG nav.
+.header > *,
+.footer > :not(button),
+.tree [role='treegrid'] {
+  transition: opacity var(--via-duration-default) ease-in-out;
+}
+
+.tree:not([data-expanded]) {
+  .header > *,
+  .footer > :not(button),
+  [role='treegrid'] {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header > *,
+  .footer > :not(button),
+  .tree [role='treegrid'] {
+    transition: none;
+  }
+}
+
+// Holds the download button beside the toggle. The mobile menu has neither (no rail, and the download
+// button is desktop-only), and offline builds only keep the download button.
+.footer {
+  position: relative;
+  min-block-size: var(--via-space-1200);
+
+  @media #{theme.$screenSize-upToLarge} {
+    display: none;
+  }
+}
+
+// LG nav metrics: rows indent 20px plus 25px per level, so deep nesting stays readable. An L1 tree's
+// rows start a level deeper than a driver sub-nav's, which has no L1 row.
+.tree.tree {
+  --toc-level-offset: 1;
+
+  &.l1Tree {
+    --toc-level-offset: 2;
+  }
+
+  [role='row'] {
+    --toc-indent: calc(20px + max(0, var(--tree-item-level) - var(--toc-level-offset)) * 25px);
+  }
+
+  [data-testid='via-sidenav-item'] a > div {
+    padding-inline-start: var(--toc-indent);
+  }
+}
+
+// PrimarySideNav section headers sit on a 40px icon gutter, and docs items have no icons. The caret
+// column is narrower than Via's so labels get the same width as in the LG nav.
+.tree .sectionHeader.sectionHeader {
+  grid-template-columns: var(--toc-indent) 0 minmax(0, 1fr) var(--via-space-1000);
+}
+
+// Via styles section labels green and bold. As in the LG nav, every row reads like a plain item.
+.tree.tree [role='row']:not(.l1, .group):not(:has([aria-current='page'])) p {
+  color: var(--sidenav-item-color);
+  font-weight: 400;
+}
+
+// LG row metrics: 32px rows with 20px lines, and long labels wrap instead of truncating.
+.tree.tree [role='row'] :is([data-testid='via-sidenav-section-header'], a > div) {
+  min-block-size: 32px;
+  padding-block: 6px;
+  white-space: normal;
+
+  p {
+    overflow: visible;
+    line-height: 20px;
+    text-overflow: clip;
+    white-space: normal;
+  }
+}
+
+// LG's grey carets and hover colour, in both themes. The 32px caret button overlaps the row padding so
+// collapsible rows stay 32px tall.
+.tree.tree [slot='chevron'] {
+  margin-block: -6px;
+  color: var(--gray-base);
+}
+
+.tree.tree
+  :is([data-testid='via-sidenav-section-header'], a > div):not([class*='_current'], [class*='_static']):is(
+    :hover,
+    [class*='_hovered']
+  ) {
+  background-color: var(--sidenav-hover-bg-color);
+}
+
+.tree.tree .l1.l1 {
+  --toc-indent: 24px;
+
+  [data-testid='via-sidenav-section-header'],
+  a > div {
+    min-block-size: 48px;
+  }
+
+  p {
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 16px;
+    text-transform: uppercase;
+    color: var(--sidenav-item-color);
+  }
+}
+
+.tree.tree .openL1.openL1 {
+  [data-testid='via-sidenav-section-header'] {
+    min-block-size: 40px;
+  }
+
+  p {
+    font-weight: 600;
+  }
+}
+
+// Rule closing the open L1's section: above the L1 that follows it, or after the last row when the open
+// L1 is last.
+.openL1 ~ .l1::before,
+.openL1:not(:has(~ .l1)) ~ [role='row']:last-child::after {
+  display: block;
+  width: 80%;
+  margin: 0 auto 8px;
+  border-bottom: 1px solid var(--sidenav-border-bottom-color);
+  content: '';
+}
+
+.openL1 ~ .l1 ~ .l1::before {
+  content: none;
+}
+
+.tree.tree .group.group [data-testid='via-sidenav-section-header'] {
+  overflow: visible;
+  grid-template-rows: auto auto;
+
+  > p {
+    color: var(--tab-color-primary);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.4px;
+    line-height: 20px;
+    text-transform: uppercase;
+  }
+}
+
+// The group's version dropdown sits on its own line under the heading, full width, as in the LG nav.
+.tree.tree .groupVersion.groupVersion {
+  grid-area: 2 / 1 / auto / -1;
+  padding: 16px 24px 8px;
+  white-space: normal;
+
+  > * {
+    width: 100%;
+    margin: 0;
+  }
+
+  button {
+    width: 100%;
+    block-size: 28px;
+    min-block-size: 28px;
+  }
+
+  &:empty {
+    display: none;
+  }
+}
+
+// The current page uses the docs' green, as in the LG nav.
+.tree.tree :is(a[aria-current='page'] > div, [data-testid='via-sidenav-section-header']:has(> a[aria-current='page'])) {
+  --active-foreground: var(--sidenav-active-before-color);
+  --active-accent: var(--sidenav-active-before-color);
+
+  background-color: var(--sidenav-active-bg-color);
+}
+
+// LG bolds the open L1 when its landing page is current, without the highlight.
+.tree.tree
+  .l1.l1
+  :is(a[aria-current='page'] > div, [data-testid='via-sidenav-section-header']:has(> a[aria-current='page'])) {
+  --active-accent: transparent;
+
+  background-color: transparent;
+}
+
+// Via slots icons into a leading column; LG showed the external icon after the label.
+.tree.tree :is(div, a):has(> .externalIcon) {
+  display: flex;
+  align-items: center;
+}
+
+.externalIcon.externalIcon {
+  flex-shrink: 0;
+  margin-inline-start: var(--via-space-100);
+  color: var(--sidenav-item-color);
+}

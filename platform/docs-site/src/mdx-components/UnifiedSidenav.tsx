@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useContext } from 'react';
+import { useState, useEffect, useRef, useContext, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import styled from '@emotion/styled';
 import { css as LeafyCSS, cx } from '@leafygreen-ui/emotion';
@@ -142,9 +142,9 @@ export const UnifiedSidenav = () => {
   const { slug: pageSlug } = usePageContext();
   const { siteBasePrefixWithVersion } = useVersionContext();
   const pathname = usePathname();
-  // Strip trailing /index so project base paths match TOC urls 
+  // Strip trailing /index so project base paths match TOC urls
   const rawSlug = isOfflineBuild ? pathname ?? '' : getFullSlug(pageSlug, siteBasePrefixWithVersion);
-  const slug = rawSlug.replace(/(^|\/)index\/?$/, '')
+  const slug = rawSlug.replace(/(^|\/)index\/?$/, '');
 
   const { hasBanner } = useSiteBanner();
   const topValues = useStickyTopValues({ eol: false, isAbsolute: true, hasBanner });
@@ -153,7 +153,10 @@ export const UnifiedSidenav = () => {
   const fullTree = useProcessedUnifiedToc();
   const activeNavSection = getActiveNavSection(slug);
   const isAccordionOnly = activeNavSection === 'voyageai' || activeNavSection === 'agentengine';
-  const tree = fullTree.filter((item) => (item.navSection ?? 'docs') === activeNavSection);
+  const tree = useMemo(
+    () => fullTree.filter((item) => (item.navSection ?? 'docs') === activeNavSection),
+    [fullTree, activeNavSection],
+  );
 
   const [isDriver, currentL2List] = findPageParent(tree, slug);
   const [showDriverBackBtn, setShowDriverBackBtn] = useState<boolean>(isDriver);
@@ -203,8 +206,6 @@ export const UnifiedSidenav = () => {
   // listen for scrolls for mobile and tablet menu
   const viewport = useViewport(false);
 
-  // Hide the Sidenav with css while keeping state as open/not collapsed.
-  // This prevents LG's SideNav component from being seen in its collapsed state on mobile
   return (
     <ToastProvider portalClassName={toastPortalStyling}>
       <OfflineDownloadProvider>

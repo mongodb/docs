@@ -10,7 +10,7 @@ import { theme } from '@/styles/theme';
 import { reportAnalytics } from '@/utils/report-analytics';
 import { useVersionContext } from '@/context/version-context';
 import { tocItemKey } from '@/utils/create-toc-key';
-import { Link as LinkComponent} from '@/mdx-components/Link';
+import { Link as LinkComponent } from '@/mdx-components/Link';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
 import { isCurrentPage } from '@/utils/is-current-page';
 import { isSelectedTocNode } from '@/utils/is-selected-toc-node';
@@ -20,13 +20,6 @@ import { getStaticVersion } from '@/utils/extract-mdx-routes-from-toc';
 import { l1ItemStyling, groupHeaderStyling, l2ItemStyling } from './styles/SideNavItem';
 import { VersionDropdown } from './VersionDropdown';
 import type { TocItem } from './types';
-
-export const Border = styled('hr')`
-  border: unset;
-  border-bottom: 1px solid var(--sidenav-border-bottom-color);
-  margin: 0 auto 8px;
-  width: 80%;
-`;
 
 const FormatTitle = styled.div`
   scroll-margin-bottom: ${theme.size.xxlarge};
@@ -49,7 +42,7 @@ const caretStyle = LeafyCSS`
  * the parent element (the rendered <a>) into the sidenav panel's visible area
  * while preserving the page-level window scroll position.
  */
-const ActiveScrollAnchor = () => {
+export const ActiveScrollAnchor = () => {
   const ref = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
@@ -63,7 +56,7 @@ const ActiveScrollAnchor = () => {
   return <span ref={ref} aria-hidden="true" style={{ display: 'none' }} />;
 };
 
-const sidenavAnalytics = (label: string, element?: HTMLElement | null) => {
+export const sidenavAnalytics = (label: string, element?: HTMLElement | null) => {
   const translatedLabel = element?.textContent?.trim() || label;
 
   reportAnalytics('Click', {
@@ -100,8 +93,6 @@ interface UnifiedTocNavItemProps extends TocItem {
   isStatic?: boolean;
   slug: string;
   showSubNav?: boolean;
-  currentL2s?: TocItem | null | undefined;
-  isAccordion: boolean;
   setCurrentL1: (item: TocItem) => void;
   setCurrentL2s: (item: TocItem) => void;
   setShowDriverBackBtn: (show: boolean) => void;
@@ -117,8 +108,6 @@ export const UnifiedTocNavItem = ({
   contentSite,
   slug,
   showSubNav,
-  currentL2s,
-  isAccordion,
   setCurrentL1,
   setCurrentL2s,
   setShowDriverBackBtn,
@@ -129,43 +118,8 @@ export const UnifiedTocNavItem = ({
 }: UnifiedTocNavItemProps) => {
   const { activeVersions } = useVersionContext();
   // These are the tab items that we dont need to show in the second pane but need to go through recursively
-  // Unless in Mobile doing Accordion view
 
   if (isStatic) {
-    if (isAccordion) {
-      return (
-        <>
-          <StaticNavItem
-            label={label}
-            newUrl={newUrl}
-            slug={slug}
-            items={items}
-            contentSite={contentSite}
-            setCurrentL1={setCurrentL1}
-            setCurrentL2s={setCurrentL2s}
-            setShowDriverBackBtn={setShowDriverBackBtn}
-            isAccordion={isAccordion}
-          />
-          {versionDropdown && newUrl === currentL2s?.newUrl && <VersionDropdown contentSite={contentSite} />}
-          {newUrl === currentL2s?.newUrl &&
-            items?.map((tocItem) => (
-              <UnifiedTocNavItem
-                {...tocItem}
-                level={level}
-                key={tocItemKey(tocItem)}
-                slug={slug}
-                isStatic={false}
-                isAccordion={isAccordion}
-                setCurrentL2s={setCurrentL2s}
-                setCurrentL1={setCurrentL1}
-                setShowDriverBackBtn={setShowDriverBackBtn}
-              />
-            ))}
-          {items && items.length > 0 && newUrl === currentL2s?.newUrl && <Border />}
-        </>
-      );
-    }
-
     return (
       <>
         {versionDropdown && <VersionDropdown contentSite={contentSite} />}
@@ -176,7 +130,6 @@ export const UnifiedTocNavItem = ({
             key={tocItemKey(tocItem)}
             slug={slug}
             isStatic={false}
-            isAccordion={isAccordion}
             setCurrentL2s={setCurrentL2s}
             setCurrentL1={setCurrentL1}
             setShowDriverBackBtn={setShowDriverBackBtn}
@@ -202,7 +155,7 @@ export const UnifiedTocNavItem = ({
         isSidenav
         to={newUrl}
         onClick={handleClick}
-        className={cx(l2ItemStyling({ level, isAccordion }))}
+        className={cx(l2ItemStyling({ level }))}
         data-offline-level={isOfflineBuild ? level : undefined}
       >
         {label}
@@ -222,17 +175,16 @@ export const UnifiedTocNavItem = ({
         <SideNavGroup
           header={label}
           collapsible={collapsible}
-          className={cx(groupHeaderStyling({ isAccordion }))}
+          className={cx(groupHeaderStyling())}
           data-offline-level={isOfflineBuild ? level : undefined}
         >
           {versionDropdown && <VersionDropdown contentSite={contentSite} />}
           {items?.map((tocItem) => (
             <UnifiedTocNavItem
               {...tocItem}
-              level={isAccordion ? level + 1 : level}
+              level={level}
               key={tocItemKey(tocItem)}
               slug={slug}
-              isAccordion={isAccordion}
               setCurrentL2s={setCurrentL2s}
               setCurrentL1={setCurrentL1}
               setShowDriverBackBtn={setShowDriverBackBtn}
@@ -251,13 +203,12 @@ export const UnifiedTocNavItem = ({
         label={label}
         newUrl={newUrl}
         level={level}
-        isAccordion={isAccordion}
         setShowDriverBackBtn={setShowDriverBackBtn}
         setCurrentL2s={setCurrentL2s}
         setCurrentL1={setCurrentL1}
         slug={slug}
         contentSite={contentSite}
-        className={cx(l2ItemStyling({ level, isAccordion }))}
+        className={cx(l2ItemStyling({ level }))}
       />
     );
   }
@@ -274,7 +225,7 @@ export const UnifiedTocNavItem = ({
         onClick={(event) => {
           sidenavAnalytics(label, event.currentTarget as HTMLElement);
         }}
-        className={cx(l2ItemStyling({ level, isAccordion }))}
+        className={cx(l2ItemStyling({ level }))}
         data-offline-level={isOfflineBuild ? level : undefined}
       >
         {isActive && !isOfflineBuild && <ActiveScrollAnchor />}
@@ -295,7 +246,6 @@ interface CollapsibleNavItemProps {
   setShowDriverBackBtn: (show: boolean) => void;
   setCurrentL2s: (item: TocItem) => void;
   setCurrentL1: (item: TocItem) => void;
-  isAccordion: boolean;
   level: number;
   className?: string;
 }
@@ -309,7 +259,6 @@ export const CollapsibleNavItem = ({
   setShowDriverBackBtn,
   setCurrentL2s,
   setCurrentL1,
-  isAccordion,
   level,
 }: CollapsibleNavItemProps) => {
   const isActiveCollapsible = isActiveTocNode(slug, newUrl, items);
@@ -346,11 +295,7 @@ export const CollapsibleNavItem = ({
         isSidenav
         to={newUrl || undefined}
         active={isActive}
-        className={cx(
-          l2ItemStyling({ level, isAccordion }),
-          overwriteLinkStyle,
-          isOfflineBuild ? 'offline-collapsible-nav' : '',
-        )}
+        className={cx(l2ItemStyling({ level }), overwriteLinkStyle, isOfflineBuild ? 'offline-collapsible-nav' : '')}
         onClick={handleClick}
         hideExternalIcon={true}
         data-offline-level={isOfflineBuild ? level : undefined}
@@ -374,7 +319,6 @@ export const CollapsibleNavItem = ({
             setShowDriverBackBtn={setShowDriverBackBtn}
             setCurrentL2s={setCurrentL2s}
             setCurrentL1={setCurrentL1}
-            isAccordion={isAccordion}
           />
         ))}
     </>
@@ -390,7 +334,6 @@ interface StaticNavItemProps {
   versionDropdown?: boolean;
   setCurrentL1: (item: TocItem) => void;
   setCurrentL2s: (item: TocItem) => void;
-  isAccordion: boolean;
   setShowDriverBackBtn: (show: boolean) => void;
 }
 
@@ -403,7 +346,6 @@ export const StaticNavItem = ({
   versionDropdown,
   setCurrentL1,
   setCurrentL2s,
-  isAccordion,
   setShowDriverBackBtn,
 }: StaticNavItemProps) => {
   const isActive = useMemo(
@@ -426,7 +368,7 @@ export const StaticNavItem = ({
         setCurrentL2s({ items, newUrl, versionDropdown, label, contentSite });
         setShowDriverBackBtn(false);
       }}
-      className={cx(l1ItemStyling({ isActive, isAccordion }))}
+      className={cx(l1ItemStyling({ isActive }))}
     >
       {label}
     </SideNavItem>

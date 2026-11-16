@@ -112,7 +112,7 @@ export const DoublePannedNav = ({
       aria-label={t('nav.double_panned_side_navigation')}
     >
       <div className={cx(NavTopContainer(isTabletOrMobile))}>
-        <ProductTabs slug={slug}/>
+        <ProductTabs slug={slug} />
       </div>
       <div className={cx(panelStyling)} data-nav-panel="fixed-sidenav">
         <div className={cx(leftPane)} data-nav-pane="left">
@@ -124,7 +124,6 @@ export const DoublePannedNav = ({
               setCurrentL1={setCurrentL1}
               setCurrentL2s={setCurrentL2s}
               setShowDriverBackBtn={setShowDriverBackBtn}
-              isAccordion={false}
             />
           ))}
         </div>
@@ -146,7 +145,6 @@ export const DoublePannedNav = ({
                 level={1}
                 key={tocItemKey(navItems)}
                 slug={slug}
-                isAccordion={false}
                 setCurrentL1={setCurrentL1}
                 setCurrentL2s={setCurrentL2s}
                 setShowDriverBackBtn={setShowDriverBackBtn}

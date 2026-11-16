@@ -1,81 +1,21 @@
 'use client';
 
-import { SideNav } from '@leafygreen-ui/side-nav';
+import { useCallback, useMemo, useState } from 'react';
 import { BackLink } from '@leafygreen-ui/typography';
-import { css as LeafyCSS, cx } from '@leafygreen-ui/emotion';
-import { useViewportSize } from '@leafygreen-ui/hooks';
-import { theme } from '@/styles/theme';
+import { AppLayoutProvider } from '@via-ds/components/app-layout';
+import { clsx } from 'clsx';
 import useScreenSize from '@/hooks/use-screen-size';
 import { getTranslator } from '@/internationalization/get-translator';
 import { DownloadButton } from '@/mdx-components/offline-download-modal/download-button';
-import { NavTopContainer, downloadButtonStlying } from '../UnifiedSidenav';
-import { UnifiedTocNavItem } from './UnifiedTocNavItems';
-import type { TocItem } from './types';
 import { ProductTabs } from '@/mdx-components/ActionBar/ProductTabs';
-import { tocItemKey } from '@/utils/create-toc-key';
+import { TocNavTree } from './TocNavTree';
+import type { TocItem } from './types';
+import styles from './accordion-nav.module.scss';
 
-export const leftPane = LeafyCSS`
-  overflow-y: auto;
-  border-right: 1px solid var(--sidenav-border-bottom-color);
-  width: 100%;
-  padding-top: ${theme.size.default};
-`;
+const NO_ITEMS: TocItem[] = [];
 
-const panelStyling = LeafyCSS`
-    position: fixed;
-    overflow-y: auto;
-    top: 60px;
-    height: calc(100% - 120px);
-    padding-top: 10px;
-    border-bottom: 1px solid var(--sidenav-border-bottom-color);
-    width: 100%;
-    // Height for the version dropdown
-    button {
-      height: 28px;
-    }
-
-    ul {
-      display: block;
-      width: 100%;
-    }
-
-    @media ${theme.screenSize.upToLarge} {
-      top: 190px;
-      height: calc(100% - 205px);
-    }
-`;
-
-const sideNavStyle = ({ hideMobile, isAccordionOnly }: { hideMobile: boolean; isAccordionOnly: boolean }) => LeafyCSS`
-  height: 100%;
-  padding: 0px;
-  overflow: visible !important;
-
-  nav > div,
-  nav > div > ul {
-    overflow: visible !important;
-  }
-
-  ${!isAccordionOnly && `@media ${theme.screenSize['2XLargeAndUp']} { display: none; }`}
-
-  @media ${theme.screenSize.upToLarge} {
-    position: absolute;
-    ${hideMobile && 'display: none;'}
-
-    button[data-testid="side-nav-collapse-toggle"] {
-      display: none;
-    }
-  }
-`;
-
-const backLinkStyling = LeafyCSS`
-  padding-left: ${theme.size.medium};
-  padding-top: ${theme.size.default};
-  font-size: ${theme.fontSize.small};
-
-  :hover {
-    text-decoration: none;
-  }
-`;
+const containsTocItem = (items: TocItem[] = [], target: TocItem): boolean =>
+  items.some((item) => item === target || containsTocItem(item.items, target));
 
 interface AccordionNavPanelProps {
   showDriverBackBtn: boolean;
@@ -104,65 +44,81 @@ export const AccordionNavPanel = ({
 }: AccordionNavPanelProps) => {
   const { t } = getTranslator();
   const { isTabletOrMobile } = useScreenSize();
-  const viewportSize = useViewportSize();
-  return (
-    <SideNav
-      widthOverride={isTabletOrMobile && viewportSize ? viewportSize.width : 290}
-      className={cx(sideNavStyle({ hideMobile, isAccordionOnly }))}
-      aria-label={t('nav.accordion_side_navigation')}
-    >
-      <div className={cx(NavTopContainer(isTabletOrMobile))}>
-        <ProductTabs slug={slug}/>
-      </div>
-      <div className={cx(panelStyling)}>
-        <div className={cx(leftPane)}>
-          {showDriverBackBtn ? (
-            <>
-              <BackLink
-                className={cx(backLinkStyling)}
-                onClick={() => setShowDriverBackBtn(false)}
-                href={currentL1?.newUrl}
-              >
-                {t('nav.back_to', { label: currentL1?.label ?? '' })}
-              </BackLink>
-              {currentL2s?.items?.map((navItem) => (
-                <UnifiedTocNavItem
-                  {...navItem}
-                  level={1}
-                  key={tocItemKey(navItem)}
-                  isStatic={false}
-                  slug={slug}
-                  currentL2s={currentL2s}
-                  isAccordion={true}
-                  setCurrentL1={setCurrentL1}
-                  setCurrentL2s={setCurrentL2s}
-                  setShowDriverBackBtn={setShowDriverBackBtn}
-                />
-              ))}
-            </>
-          ) : (
-            <>
-              {tree.map((navItems) => (
-                <UnifiedTocNavItem
-                  {...navItems}
-                  level={1}
-                  key={tocItemKey(navItems)}
-                  isStatic={true}
-                  slug={slug}
-                  currentL2s={currentL2s}
-                  isAccordion={true}
-                  setCurrentL1={setCurrentL1}
-                  setCurrentL2s={setCurrentL2s}
-                  setShowDriverBackBtn={setShowDriverBackBtn}
-                />
-              ))}
-            </>
-          )}
-        </div>
-      </div>
-      <div className={cx(downloadButtonStlying)}>
+  const items = showDriverBackBtn ? currentL2s?.items ?? NO_ITEMS : tree;
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  // The collapsed rail is desktop-only; the mobile menu always shows the full nav.
+  const isRail = isCollapsed && !isTabletOrMobile;
+
+  // Drivers can be opened without navigating (dev-mode rows have no href), so set their L1 here too.
+  const onDriverPress = useCallback(
+    (driver: TocItem) => {
+      const { items, newUrl, label, contentSite } = driver;
+      const owner = tree.find((l1) => containsTocItem(l1.items, driver));
+      if (owner) setCurrentL1(owner);
+      setShowDriverBackBtn(true);
+      setCurrentL2s({ items, newUrl, label, contentSite });
+    },
+    [tree, setCurrentL1, setShowDriverBackBtn, setCurrentL2s],
+  );
+  const onL1Press = useCallback(
+    (l1: TocItem) => {
+      setCurrentL1(l1);
+      setCurrentL2s(l1);
+      setShowDriverBackBtn(false);
+    },
+    [setCurrentL1, setCurrentL2s, setShowDriverBackBtn],
+  );
+  // Memoized so the memoized tree doesn't re-render on every scroll.
+  const footerAction = useMemo(
+    () => (
+      <div className={styles.download}>
         <DownloadButton />
       </div>
-    </SideNav>
+    ),
+    [],
+  );
+  // Rendered in Via's nav header so hovering anywhere on the collapsed rail opens the whole nav.
+  const header = useMemo(
+    () => (
+      <>
+        <div className={styles.tabs}>
+          <ProductTabs slug={slug} />
+        </div>
+        {showDriverBackBtn && (
+          <BackLink className={styles.backLink} onClick={() => setShowDriverBackBtn(false)} href={currentL1?.newUrl}>
+            {t('nav.back_to', { label: currentL1?.label ?? '' })}
+          </BackLink>
+        )}
+      </>
+    ),
+    [t, slug, showDriverBackBtn, setShowDriverBackBtn, currentL1],
+  );
+
+  return (
+    <AppLayoutProvider isSideNavPinned={!isRail} onSideNavPinnedChange={(isPinned) => setIsCollapsed(!isPinned)}>
+      <div
+        className={clsx(
+          styles.accordionNav,
+          hideMobile && styles.hideMobile,
+          isAccordionOnly && styles.accordionOnly,
+          isRail && styles.rail,
+        )}
+      >
+        <div className={styles.panel}>
+          {/* Keys are relative to the rendered items, so remount when the panel switches. */}
+          <TocNavTree
+            key={showDriverBackBtn ? currentL2s?.newUrl : tree[0]?.navSection ?? 'docs'}
+            items={items}
+            slug={slug}
+            isL1={!showDriverBackBtn}
+            openL1Url={currentL1?.newUrl}
+            onL1Press={onL1Press}
+            onDriverPress={onDriverPress}
+            footerAction={footerAction}
+            header={header}
+          />
+        </div>
+      </div>
+    </AppLayoutProvider>
   );
 };

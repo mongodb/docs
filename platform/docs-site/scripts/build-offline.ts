@@ -293,10 +293,14 @@ const OFFLINE_UI_MODULES: OfflineUIModule[] = [
   {
     detect: 'offline-collapsible-nav',
     jsFile: 'sidenav-collapsible.js',
-    // Rotate the always-rendered CaretDown icon 180° to look like CaretUp when closed.
+    // Rotate the always-rendered CaretDown icon 180° to look like CaretUp when closed (LG). Via rotates
+    // the chevron with `rotate` when expanded, so reset it on rows the script collapsed.
     headStyle: `<style>
   .offline-collapsible-nav:not(.nav-open) svg[aria-label="Caret Down Icon"] {
     transform: rotate(180deg);
+  }
+  .offline-collapsible-nav-tree [role="row"][aria-expanded="false"] [slot="chevron"] svg {
+    rotate: 0deg;
   }
 </style>`,
   },

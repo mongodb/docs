@@ -31,7 +31,7 @@ export const sideNavItemBasePadding = css`
   }
 `;
 
-export const l1ItemStyling = ({ isActive, isAccordion }: { isActive: boolean; isAccordion: boolean }) => css`
+export const l1ItemStyling = ({ isActive }: { isActive: boolean }) => css`
   ${sideNavItemBasePadding}
 
   /* && doubles specificity so these outrank Via Link's padding and type scale. */
@@ -39,7 +39,7 @@ export const l1ItemStyling = ({ isActive, isAccordion }: { isActive: boolean; is
     padding-left: ${theme.size.medium};
     padding-right: ${theme.size.medium};
     padding-top: ${theme.size.default};
-    padding-bottom: ${isActive && isAccordion ? theme.size.small : theme.size.default};
+    padding-bottom: ${theme.size.default};
     font-weight: 500;
     font-size: 12px;
     line-height: 16px;
@@ -49,34 +49,21 @@ export const l1ItemStyling = ({ isActive, isAccordion }: { isActive: boolean; is
   ${isActive &&
   css`
     font-weight: 600 !important;
+    color: ${palette.green.dark1} !important;
+    background-color: ${palette.green.light3};
 
-    ${isAccordion
-      ? css`
-          /* Hides the left tab on Active Selection */
-          background-color: unset !important;
-          color: unset;
+    &:hover {
+      background-color: ${palette.green.light3} !important;
+    }
 
-          ::before {
-            display: none;
-          }
-        `
-      : css`
-          color: ${palette.green.dark1} !important;
-          background-color: ${palette.green.light3};
+    .dark-theme & {
+      color: ${palette.green.base} !important;
+      background-color: ${palette.green.dark3};
 
-          &:hover {
-            background-color: ${palette.green.light3} !important;
-          }
-
-          .dark-theme & {
-            color: ${palette.green.base} !important;
-            background-color: ${palette.green.dark3};
-
-            &:hover {
-              background-color: ${palette.green.dark3} !important;
-            }
-          }
-        `}
+      &:hover {
+        background-color: ${palette.green.dark3} !important;
+      }
+    }
   `}
 
   ::before {
@@ -90,27 +77,20 @@ export const l1ItemStyling = ({ isActive, isAccordion }: { isActive: boolean; is
   }
 `;
 
-export const groupHeaderStyling = ({ isAccordion }: { isAccordion: boolean }) => css`
+export const groupHeaderStyling = () => css`
   div[data-testid*='side-nav-group-header-label'] > div > div {
-    ${isAccordion &&
-    css`
-      padding-left: 4px;
-      button {
-        margin-left: -8px;
-      }
-    `}
     font-weight: 500;
     color: var(--tab-color-primary);
   }
 
   /* Version Dropdown button */
   button {
-    margin-left: ${!isAccordion && '-8px'};
+    margin-left: -8px;
     height: 28px;
   }
 `;
 
-export const l2ItemStyling = ({ level, isAccordion }: { level: number; isAccordion: boolean }) => css`
+export const l2ItemStyling = ({ level }: { level: number }) => css`
   ${sideNavItemBasePadding}
 
   /* && doubles specificity so these outrank Via Link's padding and type scale. */
@@ -119,33 +99,17 @@ export const l2ItemStyling = ({ level, isAccordion }: { level: number; isAccordi
     font-size: ${theme.fontSize.small};
     text-transform: none !important;
 
-    ${isAccordion
-      ? css`
-          padding-left: calc(20px + ${(level - 1) * 25}px);
-        `
-      : css`
-          padding-left: calc(${theme.size.default} + ${(level - 1) * 25}px);
-        `}
+    padding-left: calc(${theme.size.default} + ${(level - 1) * 25}px);
+  }
+
+  &[aria-current='page'] {
+    font-weight: 400;
+    color: var(--font-color-active) !important;
+    background-color: var(--sidenav-active-bg-color);
   }
 
   /* Hides the left tab on Active Selection */
-
-  ${isAccordion
-    ? css`
-        &[aria-current='page'] {
-          color: var(--sidenav-active-before-color) !important;
-          background-color: var(--sidenav-active-bg-color);
-        }
-      `
-    : css`
-        &[aria-current='page'] {
-          font-weight: 400;
-          color: var(--font-color-active) !important;
-          background-color: var(--sidenav-active-bg-color);
-        }
-
-        ::before {
-          display: none;
-        }
-      `}
+  ::before {
+    display: none;
+  }
 `;
