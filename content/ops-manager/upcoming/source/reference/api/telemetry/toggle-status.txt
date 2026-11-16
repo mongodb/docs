@@ -12,7 +12,16 @@ Toggle Telemetry Status
    :depth: 2
    :class: singlecol
 
-Enable or disable telemetry collection for your |onprem| installation.
+Enable or disable telemetry collection for your |mms| installation.
+
+.. important::
+
+   Starting in |mms| 9.0.2 and 8.0.28, this endpoint turns product
+   usage telemetry on or off. Turning it off requires an active
+   telemetry exemption on the installed license key. |mms| checks
+   the license key on every request. To learn how to request an
+   exemption, see :ref:`Telemetry Exemption
+   <om-product-usage-telemetry-exemption>`.
 
 Required Roles
 --------------
@@ -57,7 +66,14 @@ Body Parameters
    * - enabled
      - boolean
      - required
-     - Set to ``true`` to enable telemetry, or ``false`` to disable telemetry.
+     - Set to ``true`` to enable telemetry, or ``false`` to disable
+       telemetry. Starting in |mms| 9.0.2 and 8.0.28, ``false``
+       turns off product usage telemetry: |mms| stops collecting
+       and sending it, and ``next_job`` becomes ``null``. Setting
+       ``false`` requires an active telemetry exemption on the
+       installed license key. To learn how to request an exemption,
+       see :ref:`Telemetry Exemption
+       <om-product-usage-telemetry-exemption>`
 
 Response
 --------
@@ -76,7 +92,8 @@ Example Request
         --header "Accept: application/json" \
         --header "Content-Type: application/json" \
         --include \
-        --request PATCH "https://<OpsManagerHost>:<Port>/api/private/v1.0/telemetry/collection/status"
+        --request PATCH "https://<OpsManagerHost>:<Port>/api/private/v1.0/telemetry/collection/status" \
+        --data '{"enabled": false}'
 
 Example Response
 ----------------
@@ -96,3 +113,22 @@ Response Body
 .. code-block:: json
 
    {}
+
+403 Response Without an Exemption
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This section applies to |mms| 9.0.2, 8.0.28, and later.
+
+If you disable product usage telemetry without an active telemetry
+exemption on the installed license key, the endpoint returns a
+``403`` error and makes no change. The error body reads:
+
+.. code-block:: json
+
+   { "details": "Product usage collection requires a license
+     telemetry exemption", "error": "Forbidden" }
+
+The :ref:`Retrieve Telemetry Data
+<om-get-telemetry-collection-details>` endpoint still reports
+``"enabled": true``. With an active exemption, the request succeeds
+and returns an empty JSON object (``{}``).

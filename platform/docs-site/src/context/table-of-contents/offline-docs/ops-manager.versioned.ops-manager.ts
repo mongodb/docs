@@ -3848,9 +3848,26 @@ export const toc: L1TocItem[] = [
                 url: '/docs/ops-manager/:version/reference/audit-events',
               },
               {
-                label: 'Telemetry ',
+                label: 'Telemetry',
                 contentSite: 'ops-manager',
-                url: '/docs/ops-manager/:version/reference/telemetry-overview',
+                collapsible: true,
+                items: [
+                  {
+                    label: 'Product Usage Telemetry',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/reference/telemetry-overview',
+                  },
+                  {
+                    label: 'Telemetry (8.0.27 and Earlier)',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/reference/telemetry-8-0-27',
+                  },
+                  {
+                    label: 'Telemetry Troubleshooting',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/reference/telemetry-troubleshooting',
+                  },
+                ],
               },
               {
                 label: 'Kubernetes Operator Object Specification',

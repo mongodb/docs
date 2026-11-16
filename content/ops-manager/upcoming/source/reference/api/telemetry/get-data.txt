@@ -12,8 +12,15 @@ Retrieve Telemetry Data
    :depth: 2
    :class: singlecol
 
-Retrieve telemetry collection status and configuration details for your  
-|onprem| installation.
+Retrieve telemetry collection status and configuration details for your
+|mms| installation.
+
+.. important::
+
+   Starting in |mms| 9.0.2 and 8.0.28, this endpoint returns product
+   usage telemetry, which uses a different response structure. For the
+   newer response, see :ref:`Product Usage Telemetry Response
+   <om-get-telemetry-product-usage-response>`.
 
 Required Roles
 --------------
@@ -66,7 +73,8 @@ The response JSON document includes the following fields:
 
    * - enabled
      - boolean
-     - Indicates if the system collects and sends telemetry.
+     - Indicates that the system collects and sends product usage
+       telemetry.
 
    * - last_successful_send
      - datetime
@@ -77,135 +85,302 @@ The response JSON document includes the following fields:
      - Date and time when the next telemetry send is scheduled.
 
    * - data
-     - array
-     - Array of objects defined in the :ref:`Telemetry Data embedded object <om-telemetry-data-embedded-object>`.
-
-.. _om-telemetry-data-embedded-object:
-
-Telemetry Data Embedded Object
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Each element in the ``data`` array describes telemetry details for the
-|onprem| installation.
-
-.. list-table::
-   :widths: 25 15 60
-   :header-rows: 1
-   :stub-columns: 1
-
-   * - Name
-     - Type
-     - Description
-
-   * - app_db_nodes
-     - integer
-     - Number of AppDB nodes that this |onprem| installation uses.
-
-   * - uuid
-     - string
-     - Static unique identifier for this |onprem| installation.
-
-   * - os
-     - array of strings
-     - Operating systems that run on the |onprem| hosts.
-
-   * - version
-     - string
-     - Current |onprem| version.
-
-   * - instances
-     - integer
-     - Number of |onprem| instances in this installation.
-
-   * - backup_daemons
-     - integer
-     - Number of backup daemons running in this installation.
-
-   * - auth_method
-     - string
-     - Authentication method that |onprem| uses. Possible values:
-       ``DB``, ``LDAP``, or ``SAML``.
-
-   * - cpu
-     - array of integers
-     - Number of CPU cores provisioned for each |onprem| host.
-
-   * - memory
-     - array of integers
-     - Amount of memory provisioned for each |onprem| host.
-
-   * - infrastructure
-     - string
-     - Infrastructure type that hosts |onprem|. Possible values:
-       ``Kubernetes``, ``VM``, or ``Bare Metal``.
-
-   * - projects
-     - integer
-     - Total number of projects that currently exist.
-
-   * - orgs
-     - integer
-     - Total number of organizations that currently exist.
-
-   * - deployments
-     - array
-     - Array of objects defined in the :ref:`Telemetry Deployments Embedded Object <om-telemetry-deployments-embedded-object>`.
-
-.. _om-telemetry-deployments-embedded-object:
-
-Telemetry Deployments Embedded Object
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Each element in the ``deployments`` array describes a MongoDB
-deployment that |onprem| manages.
-
-.. list-table::
-   :widths: 25 15 60
-   :header-rows: 1
-   :stub-columns: 1
-
-   * - Name
-     - Type
-     - Description
-
-   * - version
-     - array of strings
-     - MongoDB versions that the deployment uses.
-
-   * - uuid
-     - string
-     - Static unique identifier for the deployment.
-
-   * - tls_enabled
-     - boolean
-     - Indicates if |tls| is enabled for the deployment.
-
-   * - auth_method
-     - string
-     - Authentication method that the deployment uses. Possible values:
-       ``MONGODB-CR``, ``GSSAPI``, ``PLAIN``, or ``MONGODB-X509``.
-
-   * - type
-     - string
-     - Deployment type. Possible values: ``SC``, ``RS``, or ``SA``.
-
-   * - nodes
-     - integer
-     - Number of nodes in the deployment if it is a replica set.
-
-   * - shards
-     - integer
-     - Number of shards in the deployment if it is a sharded cluster.
-
-   * - data_size
-     - integer
-     - Total data size for the deployment, not including local metadata.
-
-   * - edition
      - object
-     - Object that contains two keys, ``community`` and ``enterprise``.
-       Each key has an integer value that represents the number of
-       nodes of that edition in the deployment.
+     - Object that contains the fields defined in the :ref:`Product
+       Usage Telemetry Response
+       <om-get-telemetry-product-usage-response>`.
+
+
+.. _om-get-telemetry-product-usage-response:
+
+Product Usage Telemetry Response
+--------------------------------
+
+Starting in |mms| 9.0.2 and 8.0.28, this endpoint returns product
+usage telemetry. The response JSON document includes the following
+fields:
+
+.. list-table::
+   :widths: 30 25 45
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Description
+
+   * - enabled
+     - boolean
+     - Whether product usage telemetry is on. Always ``true`` unless
+       the license key has an active telemetry exemption. With an
+       exemption, the value reflects the
+       :guilabel:`Product Telemetry Collection` toggle setting.
+
+   * - last_successful_send
+     - string (ISO 8601, UTC) or null
+     - When |mms| last delivered product usage telemetry. ``null``
+       if it never has.
+
+   * - next_job
+     - string (ISO 8601, UTC) or null
+     - When the next weekly send is due. ``null`` before the first
+       collection and while telemetry is off.
+
+   * - data
+     - object
+     - The product usage report that |mms| collects when you make
+       the request. Contains ``generationTimestamp``,
+       ``ingestionTimestamp``, and a nested ``data`` object, which the
+       tables below describe.
+
+
+Installation-Level Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The nested ``data`` object includes the following fields about the
+|mms| installation:
+
+.. list-table::
+   :widths: 25 12 38 25
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Field
+     - Type
+     - Description
+     - Example
+
+   * - ``uuid``
+     - string
+     - Static identifier for your |mms| installation
+     - 3f8a2c6e-9b1d-4e7a-a5c3-8d2f1b6e4a90
+
+   * - ``version``
+     - string
+     - Which version of |mms| the installation runs
+     - 9.0.2
+
+   * - ``instances``
+     - array of objects
+     - For each |mms| host: provisioned memory in bytes, CPU cores,
+       and operating system
+     - 68719476736, 16, Linux 5.14.0-427.el9.x86_64 amd64
+
+   * - ``omAuthMethod``
+     - string
+     - How users authenticate to |mms|
+     - LDAP
+
+   * - ``appDbNodes``
+     - integer
+     - The number of nodes in the |mms| AppDB
+     - 3
+
+   * - ``backupDaemons``
+     - integer
+     - The number of configured Backup Daemons
+     - 1
+
+   * - ``infrastructure``
+     - string
+     - The type of infrastructure that hosts |mms|
+     - VM
+
+   * - ``orgs``
+     - integer
+     - Number of organizations in the installation
+     - 1
+
+   * - ``projects``
+     - integer
+     - Number of projects in the installation
+     - 2
+
+   * - ``generationTimestamp``
+     - integer
+     - When |mms| generated the daily snapshot, in milliseconds
+       since the Unix epoch
+     - 1794442020000
+
+   * - ``ingestionTimestamp``
+     - integer
+     - When |mms| sent the snapshot, in milliseconds since the Unix
+       epoch. In the download and the API, it equals the snapshot
+       time
+     - 1794442020000
+
+   * - ``appDbLastRestoreTime``
+     - integer
+     - When |mms| detected a restore of its AppDB, in milliseconds
+       since the Unix epoch
+     - 1794441600000
+
+Deployment-Level Fields
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Each element in the ``deployments`` array includes the following fields:
+
+.. list-table::
+   :widths: 25 12 38 25
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Field
+     - Type
+     - Description
+     - Example
+
+   * - ``deploymentId``
+     - string
+     - The 24-character cluster ID that |mms| assigns when the
+       deployment is first created. For a standalone deployment, the
+       ID is a 32-character hash of the host identifier
+     - 664f1c2b8e3a4d0012ab34ef
+
+   * - ``type``
+     - string
+     - One of: RS (replica set), SC (sharded cluster), standalone, or
+       search (``mongot``)
+     - RS
+
+   * - ``orgId``
+     - string
+     - The 24-character ID of the organization the deployment belongs
+       to
+     - 664f1c1a8e3a4d0012ab3401
+
+   * - ``projectId``
+     - string
+     - The 24-character ID of the project the deployment belongs to
+     - 664f1c2b8e3a4d0012ab34cd
+
+   * - ``tlsEnabled``
+     - boolean
+     - Whether the deployment uses TLS
+     - true
+
+   * - ``clusterAuthMethod``
+     - string
+     - How |mms| authenticates to the deployment. One of:
+       MONGODB-CR (username and password, including SCRAM), GSSAPI
+       (Kerberos), PLAIN (LDAP), MONGODB-X509, or MONGODB-OIDC
+     - MONGODB-CR
+
+   * - ``irgEnabledTime``
+     - integer or null
+     - If you purchased 30-minute initial response time support, when
+       it was enabled for the deployment, in milliseconds since the
+       Unix epoch. Empty otherwise
+     - 1790847000000
+
+Node-Level Fields
+~~~~~~~~~~~~~~~~~
+
+Each element in the ``nodes`` array includes the following fields:
+
+.. list-table::
+   :widths: 25 12 38 25
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Field
+     - Type
+     - Description
+     - Example
+
+   * - ``hostId``
+     - string
+     - A hash of the project ID and the node's hostname and port. The
+       hostname itself isn't sent
+     - db5a69d233913ff685a5087b0b760671
+
+   * - ``type``
+     - string
+     - One of: MONGOD (database node), MONGOS (sharded cluster
+       router), or MONGOT (search node)
+     - MONGOD
+
+   * - ``version``
+     - string
+     - The MongoDB version the node runs
+     - 8.0.12
+
+   * - ``cpu``
+     - integer
+     - The node's provisioned CPU cores
+     - 8
+
+   * - ``memoryBytes``
+     - integer
+     - The node's provisioned memory, in bytes
+     - 34359738368
+
+   * - ``storageBytes``
+     - integer or null
+     - The node's provisioned storage, in bytes
+     - 214748364800
+
+   * - ``isEnterprise``
+     - boolean or null
+     - Whether the node's binary includes the enterprise module. Empty
+       for MONGOT
+     - true
+
+   * - ``rsId``
+     - string or null
+     - The name of the node's replica set, as you named it
+     - rs0
+
+   * - ``replicaType``
+     - string or null
+     - One of: PRIMARY, SECONDARY, or ARBITER
+     - PRIMARY
+
+   * - ``shardId``
+     - string or null
+     - The name of the node's shard, as you named it. Sharded clusters
+       only
+     - shard01
+
+Backup Fields (If Configured)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the deployment has backup configured, the ``backupConfig`` object
+includes the following fields:
+
+.. list-table::
+   :widths: 25 12 38 25
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Field
+     - Type
+     - Description
+     - Example
+
+   * - ``status``
+     - string
+     - State of the deployment's backup configuration. One of:
+
+       - ``INACTIVE``: Backup has never been activated.
+       - ``PROVISIONING``: Backup is being provisioned and hasn't
+         started yet.
+       - ``STARTED``: Backup is activated and running.
+       - ``STOPPED``: Backup was activated and then stopped. Existing
+         snapshots remain available for restore.
+       - ``TERMINATING``: Backup termination is in progress.
+     - STARTED
+
+   * - ``snapshotScheduleIntervalMinutes``
+     - integer
+     - How often snapshots are taken, in minutes
+     - 360
+
+   * - ``snapshotStoreType``
+     - string
+     - One of: BS (blockstore), FS (file system), S3 (AWS S3
+       bucket), 3PSS (third-party), or MRTS (multi-region temp)
+     - BS
 
 Example Request
 ---------------
@@ -218,76 +393,113 @@ Example Request
      --include \
      --request GET "https://<OpsManagerHost>:<Port>/api/private/v1.0/telemetry/collection/details"
 
-
-Example Response
-----------------
-
-Response Header
-~~~~~~~~~~~~~~~
-
-.. include:: /includes/api/api-headers/401.rst
-
-.. include:: /includes/api/api-headers/200.rst
-
-Response Body
-~~~~~~~~~~~~~
+Example Response (9.0.2 and 8.0.28 and later)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: json
 
    {
      "data": {
-       "app_db_nodes": 1,
-       "auth_method": "DB",
-       "backup_daemons": 3,
-       "cpu": [
-         14,12
-       ],
-       "infrastructure": "Bare Metal",
-       "instances": 2,
-       "memory": [
-         "3221225472","221225472"
-       ],
-       "os": [
-         "RHEL 8.10 aarch64","RHEL 8.11 aarch64"
-       ],
-       "orgs": 3,
-       "projects": 12,
-       "uuid": "84248c7e-94df-4a0c-942a-dfb1fa987edd",
-       "version": "8.0.13",
-       "deployments": [
-         {
-           "auth_method": "MONGODB-CR",
-           "data_size": 3221225472,
-           "edition": {
-             "community": 3,
-             "enterprise": 0
-          },
-           "nodes": 3,
-           "tls_enabled": true,
-           "type": "RS",
-           "uuid": "6907dd45d61b992049366140",
-           "version": [
-             "8.15","7.11"
-           ]
-          },
-          {
-            "auth_method": "MONGODB-CR",
-              "data_size": 221225472,
-              "edition": {
-                "community": 1,
-                "enterprise": 2
-                },
-                "shards": 3,
-                "tls_enabled": false,
-                "type": "SC",
-                "uuid": "6907de15d61b9920493664ca",
-                "version": [
-                  "8.15"
-                ]
-            }
-        ],
+       "data": {
+         "appDbNodes": 3,
+         "backupDaemons": 1,
+         "deployments": [
+           {
+             "backupConfig": {
+               "snapshotScheduleIntervalMinutes": 360,
+               "snapshotStoreType": "FS",
+               "status": "STARTED"
+             },
+             "clusterAuthMethod": "SCRAM-SHA-256",
+             "deploymentId": "6720b1c2d3e4f5a6b7c8d9e0",
+             "irgEnabledTime": 1792056600000,
+             "nodes": [
+               {
+                 "cpu": 8,
+                 "hostId": "3a203aad42cb0c248a606433a2d1e162",
+                 "isEnterprise": true,
+                 "memoryBytes": 34359738368,
+                 "replicaType": "PRIMARY",
+                 "rsId": "rs0",
+                 "shardId": null,
+                 "storageBytes": 536870912000,
+                 "type": "MONGOD",
+                 "version": "8.0.12"
+               },
+               {
+                 "cpu": 8,
+                 "hostId": "2026cb4d8ffc69d2836815a5db3f0b7e",
+                 "isEnterprise": true,
+                 "memoryBytes": 34359738368,
+                 "replicaType": "SECONDARY",
+                 "rsId": "rs0",
+                 "shardId": null,
+                 "storageBytes": 536870912000,
+                 "type": "MONGOD",
+                 "version": "8.0.12"
+               }
+             ],
+             "orgId": "6710a2b3c4d5e6f7a8b9c0d1",
+             "projectId": "6710a2b3c4d5e6f7a8b9c0d2",
+             "tlsEnabled": true,
+             "type": "RS"
+           },
+           {
+             "backupConfig": null,
+             "clusterAuthMethod": "MONGODB-X509",
+             "deploymentId": "6720b1c2d3e4f5a6b7c8d9e1",
+             "irgEnabledTime": null,
+             "nodes": [
+               {
+                 "cpu": 16,
+                 "hostId": "b913467c9fc3426778a02a9d66f08162",
+                 "isEnterprise": true,
+                 "memoryBytes": 68719476736,
+                 "replicaType": "PRIMARY",
+                 "rsId": "shard01",
+                 "shardId": "shard01",
+                 "storageBytes": 1073741824000,
+                 "type": "MONGOD",
+                 "version": "8.0.12"
+               },
+               {
+                 "cpu": 4,
+                 "hostId": "9259f6ae730e17f5031166eeab0f80e9",
+                 "isEnterprise": true,
+                 "memoryBytes": 8589934592,
+                 "replicaType": null,
+                 "rsId": null,
+                 "shardId": null,
+                 "storageBytes": null,
+                 "type": "MONGOS",
+                 "version": "8.0.12"
+               }
+             ],
+             "orgId": "6710a2b3c4d5e6f7a8b9c0d1",
+             "projectId": "6710a2b3c4d5e6f7a8b9c0d3",
+             "tlsEnabled": true,
+             "type": "SC"
+           }
+         ],
+         "infrastructure": "VM",
+         "instances": [
+           {
+             "cpu": 16,
+             "memoryBytes": 68719476736,
+             "os": "Linux 5.14.0-427.13.1.el9_4.x86_64 amd64"
+           }
+         ],
+         "omAuthMethod": "LDAP",
+         "orgs": 1,
+         "projects": 2,
+         "uuid": "3f6c2a9e-8b41-4d7e-9a52-1c0e7b4d2f68",
+         "version": "9.0.2"
+       },
+       "generationTimestamp": 1793664420000,
+       "ingestionTimestamp": 1793664420000
      },
      "enabled": true,
-     "last_successful_send": "2025-10-02T22:26:10Z",
-     "next_job": "2025-10-09T22:26:10Z"
+     "last_successful_send": "2026-10-28T00:07:14Z",
+     "next_job": "2026-11-04T00:07:14Z"
    }
+

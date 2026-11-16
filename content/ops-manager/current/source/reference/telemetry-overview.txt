@@ -1,13 +1,13 @@
 .. _om-telemetry-overview:
 
-==============================
-Ops Manager Telemetry Overview
-==============================
+================================
+Product Usage Telemetry Overview
+================================
 
 .. default-domain:: mongodb
 
 .. meta::
-   :description: Learn about Ops Manager telemetry, including what data is collected, how it is used, and how to enable or disable telemetry collection for your installation.
+   :description: Product usage telemetry in Ops Manager 9.0.2 and 8.0.28 and later: what MongoDB collects, payload security, retention, and how to turn it off.
 
 .. contents:: On this page
    :local:
@@ -15,213 +15,457 @@ Ops Manager Telemetry Overview
    :depth: 2
    :class: singlecol
 
-Telemetry collection gathers usage information about your |onprem|
-installation and sends it to MongoDB. |onprem| enables collecting and
-sending telemetry data by default.
+Product usage telemetry collects structured configuration and health
+metadata from your |mms| installation and the deployments it
+manages. It sends that data to MongoDB. |mms| enables product usage
+telemetry by default.
 
-.. important::
+Starting in |mms| 9.0.2 and 8.0.28, product usage telemetry replaces
+the telemetry used in |mms| 8.0.27 and earlier. Product usage
+telemetry collects configuration and health metadata about your |mms|
+installation and the deployments it manages. MongoDB ties the data to
+your Enterprise Advanced account. |mms| 8.0.27 and earlier
+collected an anonymous report that could identify neither you nor
+your organization. For details, see :ref:`Telemetry in Ops Manager 8.0.27
+and Earlier <om-telemetry-8-0-27>`.
 
-   This feature is available starting in |onprem| 8.0.17 and 7.0.20.
+About Product Usage Telemetry
+-----------------------------
 
-|onprem| performs the initial telemetry data collection seven days 
-after you install or upgrade to |onprem| 8.0.17 or later in the 8.0 
-series, or 7.0.20 or later in the 7.0 series. You can 
-disable telemetry from the |onprem| UI or by using the telemetry API.
+Product usage telemetry describes how your |mms| installation and the
+deployments it manages are configured. It covers versions, topology,
+provisioned resources, backup settings, TLS settings, and
+authentication methods.
 
-About Telemetry
----------------
-
-Telemetry is an automated, anonymous usage report that |onprem|
-generates and sends to MongoDB once a week.
-
-Telemetry describes:
-
-- How you configure and run your |onprem| installation.
-- The MongoDB deployments that |onprem| manages.
-
-Telemetry does not include data that |onprem| can use to uniquely
-identify you or your organization.
-
-Telemetry Purpose and Usage
+Collected and Excluded Data
 ---------------------------
 
-MongoDB uses telemetry data to understand how customers configure and
-use |onprem| and the MongoDB deployments that it manages. This
-information helps MongoDB:
+Product usage telemetry includes the IDs of your |mms|
+organizations, projects, and deployments. It also includes the names of
+your replica sets and shards. For the complete field list, see
+:ref:`Retrieve Telemetry Data
+<om-get-telemetry-collection-details>`.
 
-- Identify the most common deployment patterns.
-- Understand the size and topology of managed deployments.
-- See which backup mechanisms and infrastructures are most common.
+Product usage telemetry doesn't include database or document contents,
+query information, application logs, secrets, or credentials.
 
-MongoDB uses these insights to prioritize product improvements that
-benefit the most customers.
+Product usage telemetry allows MongoDB to tie the collected
+information to your Enterprise Advanced account. To do this, |mms|
+signs each payload with an Ed25519 key unique to your installation
+through its license component. MongoDB verifies the signature and uses
+your license enrollment to associate the telemetry with your account.
+If MongoDB can't verify the signature, it still accepts the telemetry
+but doesn't associate it with your account.
 
-Telemetry Data Collected
-------------------------
+Frequency and Retention
+-----------------------
 
-Telemetry data describes your |onprem| installation and each MongoDB
-deployment that |onprem| manages.
+The following table describes how often |mms| collects and sends
+product usage telemetry, and how long MongoDB retains it.
 
-Installation-Level Data
-~~~~~~~~~~~~~~~~~~~~~~~
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
 
-Telemetry includes information about your |onprem| installation, such
-as:
+   * - Item
+     - Behavior
 
-- A static, unique identifier for the |onprem| installation.
-- The |onprem| version.
-- The operating systems that run on the |onprem| hosts.
-- The number of |onprem| instances in this installation.
-- The number of AppDB nodes.
-- The number of backup daemons running.
-- The authentication method that |onprem| uses.
-- The infrastructure type that hosts |onprem|.
-- CPU cores and memory provisioned for each |onprem| host.
-- The number of projects and organizations that exist in this installation.
+   * - Cadence
+     - |mms| collects a snapshot once a day and sends product usage
+       telemetry to MongoDB once a week. Each week, |mms| sends the
+       daily snapshots from the previous seven days. Each snapshot
+       travels as its own payload. |mms| keeps each snapshot in its
+       AppDB for 90 days after collecting it, then deletes it.
 
-Deployment-Level Data
-~~~~~~~~~~~~~~~~~~~~~
+   * - First collection
+     - Within six hours after you install or upgrade to |mms| 9.0.2,
+       8.0.28, or later. |mms| sends the first payload six days
+       after the first collection.
 
-Telemetry also includes information about each MongoDB deployment that
-|onprem| manages, such as:
+   * - Retries
+     - If a send fails, |mms| keeps the snapshot and retries every
+       six hours until the send succeeds. |mms| continues working
+       normally while it retries. If |mms| can't reach MongoDB, it
+       keeps the daily snapshots from the last 90 days and deletes
+       older ones. If nothing is sent for 8 days, a banner appears on
+       the Deployment pages. To resolve it, see :ref:`Troubleshoot
+       Product Usage Telemetry <om-telemetry-troubleshooting>`.
 
-- A static, unique identifier for the deployment.
-- The MongoDB version or versions that the deployment uses.
-- The deployment type.
-- The number of nodes and, for sharded clusters, the number of shards.
-- The total data size for the deployment, not including local metadata.
-- The MongoDB edition used by the deployment.
-- Whether |tls| is enabled.
-- The authentication method that the deployment uses.
+   * - Retention at MongoDB
+     - MongoDB keeps product usage telemetry for 90 days, starting when
+       MongoDB receives it. An individual daily snapshot can be kept
+       for up to 97 days, after which MongoDB automatically deletes
+       it.
 
-For the complete field list and types, see the telemetry response
-schema in :ref:`Retrieve Telemetry Data <om-get-telemetry-collection-details>`.
+   * - Location
+     - MongoDB stores product usage telemetry in the AWS
+       ``us-east-1`` region.
 
-When Telemetry Runs
+.. _om-product-usage-telemetry-exemption:
+
+Telemetry Exemption
 -------------------
 
-If telemetry is enabled, |onprem| schedules a recurring job that
-collects and sends telemetry data once every seven days.
+Product usage telemetry is on by default. You can turn it off only if
+the installed license key includes an active telemetry exemption. This
+applies in every license status, including Expired and Unlicensed. To
+request an exemption, contact your MongoDB account team.
 
-When you install or upgrade to |onprem| 8.0.17 or later in the 8.0 
-series, or 7.0.20 or later in the 7.0 series, |onprem| enables 
-telemetry by default and waits seven days before it sends the first telemetry 
-snapshot. This grace period gives you time to review and, if needed, disable
-telemetry before any data is sent.
+If the license key includes an active telemetry exemption, the
+License Key Manager page lists the :guilabel:`Telemetry Exemption`
+entitlement under :guilabel:`Entitlements`. To open the page, click
+:guilabel:`Admin`, :guilabel:`License Keys`. The entitlement reads:
 
-|onprem| uses persisting identifiers for telemetry across
-restarts and upgrades. If you reinstall |onprem|, it generates new
-identifiers.
+"An approved exception, included in your license key, that gives you
+the option to turn off product usage telemetry in Ops Manager. This
+exception was requested by your account team."
 
-View Telemetry Data
--------------------
+A telemetry exemption is active only during its validity period. The
+validity period is defined in the license key and can't extend
+beyond the license key grant that includes it.
 
-You can view the telemetry data that |onprem| plans to send before it is sent.
+When the validity period ends, the :guilabel:`Product Telemetry
+Collection` toggle locks on again. Product usage telemetry becomes
+mandatory. To keep it off, request a new exemption from your MongoDB
+account team and install a license key that includes it.
 
-Use the Diagnostics Output
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Earlier |mms| versions use a separate telemetry setting. Turning
+telemetry off in an earlier version doesn't turn off product usage
+telemetry after you upgrade.
 
-|onprem| includes telemetry data in its diagnostics output. The
-diagnostics output contains internal diagnostic information about
-your |onprem| installation, including the telemetry payload.
+For more information about license keys and entitlements, see
+:ref:`Ops Manager License Keys Overview <license-keys>`.
 
-To review telemetry data:
+The following table describes how the :guilabel:`Product Telemetry
+Collection` toggle behaves in each situation.
+
+.. list-table::
+   :widths: 35 25 40
+   :header-rows: 1
+
+   * - Situation
+     - Toggle
+     - Product usage telemetry
+
+   * - No active telemetry exemption
+     - On and locked
+     - Collection continues and data is uploaded on the normal schedule.
+
+   * - A license key with an active telemetry exemption is installed
+     - Unlocked. It stays on until you turn it off. Installing the
+       license key doesn't turn telemetry off
+     - If on, collection and uploads continue until you turn it off.
+
+   * - You have a license key with an active telemetry exemption and
+       turn the toggle off
+     - Off
+     - Not collected or sent.
+
+   * - You have a license key with an active telemetry exemption and
+       turn the toggle back on
+     - On
+     - |mms| collects a snapshot at its next check, within six
+       hours, and resumes sending.
+
+   * - The exemption's validity period ends
+     - On and locked again, even if the license key is still installed
+     - Collection is mandatory again. Uploads follow the normal
+       schedule.
+
+   * - A license key with an active exemption is installed again later
+     - Unlocked, and returns to the setting you last saved
+     - Follows the toggle
+
+View Product Usage Telemetry Settings
+-------------------------------------
+
+To view product usage telemetry settings, you must have the
+:authrole:`Global Owner` role.
 
 .. procedure::
    :style: normal
 
-   .. step:: Open the |onprem| Config page 
+   .. step:: Open the |mms| Config page
 
-      From the |onprem| UI, go to :guilabel:`Admin` > 
-      :guilabel:`General` > :guilabel:`Ops Manager Config`.
+      Click :guilabel:`Admin`, :guilabel:`General`,
+      :guilabel:`Ops Manager Config`.
 
-   .. step:: Download the diagnostics output
+   .. step:: Open the Telemetry tab
 
-      On the :guilabel:`Permissions` tab, in the :guilabel:`Details` section, 
-      click :guilabel:`Download` next to :guilabel:`Current Collected Data`. 
+      Click the :guilabel:`Telemetry` tab.
 
-   .. step:: Review the telemetry data
+The following table describes the elements on the Telemetry tab.
 
-      Extract the diagnostics output and locate the telemetry data in 
-      the archive.
+.. list-table::
+   :widths: 35 65
+   :header-rows: 1
 
-Only a subset of the diagnostics data is sent as telemetry. Review the
-telemetry subset in the archive to see the data values that |onprem|
-plans to send in the next telemetry snapshot.
+   * - UI element
+     - Description
 
-Use the Telemetry API
-~~~~~~~~~~~~~~~~~~~~~
+   * - :guilabel:`Product Telemetry Collection` toggle
+     - Turns product usage telemetry on or off. For details, see
+       :ref:`Telemetry Exemption
+       <om-product-usage-telemetry-exemption>`.
 
-You can also use the telemetry API to view the telemetry status and
-payload that |onprem| plans to send.
+   * - :guilabel:`Learn more`
+     - Opens the product usage telemetry overview page.
 
-The :ref:`Retrieve Telemetry Data <om-get-telemetry-collection-details>` 
-endpoint returns:
+   * - :guilabel:`Next Scheduled Upload`
+     - When |mms| next sends product usage telemetry to MongoDB.
+       Blank when telemetry is turned off, and before the first
+       collection.
 
-- A flag that indicates if telemetry is enabled.
-- The date and time when |onprem| last sent telemetry successfully.
-- The date and time when |onprem| schedules the next telemetry job.
-- The telemetry data object for the next snapshot.
+   * - :guilabel:`Last Successful Upload`
+     - When |mms| last delivered product usage telemetry to MongoDB.
+       Blank until the first successful send.
 
-Control Telemetry Collection
-----------------------------
+   * - :guilabel:`Current Collected Data`: :guilabel:`Download`
+     - Collects fresh data and downloads it as ``telemetry-data.json``.
 
-You can enable or disable telemetry collection for your |onprem|
-installation at any time. 
+   * - :guilabel:`View data details`
+     - Opens a summary of the product usage telemetry configuration and
+       the data categories it collects.
 
-.. important::
+.. note::
 
-   Telemetry is either fully enabled or fully disabled. You cannot enable 
-   or disable individual telemetry fields.
+   During initial setup, the setup wizard shows that product usage
+   telemetry is enabled by default, without a toggle. After setup, you
+   can review the data on the Telemetry tab.
+
+View the Data Before |mms| Sends It
+-----------------------------------
+
+Each time you download the data, |mms| collects it and returns the
+current report. The download doesn't return a stored snapshot.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Open the Telemetry tab
+
+      Click :guilabel:`Admin`, :guilabel:`General`,
+      :guilabel:`Ops Manager Config`, :guilabel:`Telemetry`.
+
+   .. step:: Download the collected data
+
+      Next to :guilabel:`Current Collected Data`, click
+      :guilabel:`Download`.
+
+   .. step:: Review the downloaded file
+
+      Open ``telemetry-data.json``. For a description of its contents,
+      see :ref:`Data Collected <om-product-usage-data-collected>`.
+
+You can also call the :ref:`Retrieve Telemetry Data
+<om-get-telemetry-collection-details>` endpoint. Its ``data`` field
+contains the same content as the downloaded file.
+
+Turn Off Product Usage Telemetry
+--------------------------------
+
+To turn off product usage telemetry, you need:
+
+- The :authrole:`Global Owner` role.
+- An active telemetry exemption on the installed license key.
 
 Use the UI
 ~~~~~~~~~~
 
-Administrators can configure telemetry from the |onprem| UI. 
+You can turn off product usage telemetry from the |mms| UI.
 
-.. procedure::  
-   :style: normal  
+.. procedure::
+   :style: normal
 
-   .. step:: Open the |onprem| Config page 
+   .. step:: Open the Telemetry tab
 
-      From the |onprem| UI, go to :guilabel:`Admin` > 
-      :guilabel:`General` > :guilabel:`Ops Manager Config`.
+      Click :guilabel:`Admin`, :guilabel:`General`,
+      :guilabel:`Ops Manager Config`, :guilabel:`Telemetry`.
 
-   .. step:: Open the Permissions tab
+   .. step:: Turn off the toggle
 
-      Click the :guilabel:`Permissions` tab to view the 
-      :guilabel:`Usage Information Collection` setting.
-
-   .. step:: Enable or disable telemetry
-
-      Use the :guilabel:`Usage Information Collection` control to enable or  
-      disable telemetry.
-
-If you disable telemetry, |onprem| stops sending telemetry snapshots
-starting with the next scheduled run.
+      Turn off the :guilabel:`Product Telemetry Collection` toggle.
+      The change applies immediately, and |mms| displays
+      "Configuration saved successfully."
 
 Use the API
 ~~~~~~~~~~~
 
-You can also control telemetry collection by using the telemetry API.
+You can also turn off product usage telemetry by calling the
+:ref:`Toggle Telemetry Status <om-patch-toggle-telemetry-status>`
+endpoint with ``{ "enabled": false }``.
 
-The :ref:`Toggle Telemetry Status <om-patch-toggle-telemetry-status>`
-endpoint lets you:
+When product usage telemetry is off, |mms| stops collecting and
+sending it. :guilabel:`Next Scheduled Upload` becomes blank, and
+:guilabel:`Last Successful Upload` keeps its value.
 
-- Enable telemetry by setting the ``enabled`` field to ``true``.
-- Disable telemetry by setting the ``enabled`` field to ``false``.
+Product Telemetry Not Sent Banner
+---------------------------------
 
-Network and Connectivity
-------------------------
+If |mms| can't send product usage telemetry, it shows a warning
+banner on the Deployment pages. Every user who can open the
+Deployment page sees the banner on every tab, and you can't dismiss
+it. The banner appears when the license key has no active telemetry
+exemption and 8 or more whole days have passed since the last
+successful send. It clears when a send succeeds or when you install a
+license key with an active telemetry exemption.
 
-Telemetry requires that your |onprem| hosts can reach the MongoDB
-telemetry ingestion endpoint.
+To resolve the banner, see :ref:`Troubleshoot Product Usage Telemetry
+<om-telemetry-troubleshooting>`.
+
+Network Requirements
+--------------------
+
+Each |mms| host must have outbound HTTPS access on TCP port 443 and
+DNS resolution to ``cloud.mongodb.com``.
+
+How Product Usage Telemetry Is Secured
+--------------------------------------
+
+The following table describes the controls that protect product usage
+telemetry.
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Area
+     - Control
+
+   * - In transit
+     - |mms| sends telemetry over HTTPS (TLS 1.2 or later).
+
+   * - Authenticity
+     - Through its license component, |mms| signs each payload with
+       an Ed25519 key unique to your installation. MongoDB verifies the
+       signature when it receives the payload. If signing isn't
+       available, |mms| sends the report unsigned.
+
+   * - At rest
+     - MongoDB encrypts the data in AWS with KMS-managed keys.
+
+   * - Access control
+     - Least-privilege IAM roles on the S3 landing zone restrict access
+       to designated MongoDB engineering personnel.
+
+   * - Auditing
+     - Comprehensive audit logging tracks all access requests and data
+       operations
+
+.. _om-product-usage-data-collected:
+
+Data Collected
+--------------
+
+Each payload that |mms| sends has three parts.
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Part
+     - Description
+
+   * - Payload
+     - A tamper-evident envelope created by your |mms| installation
+       at send time. It contains a fingerprint (SHA-256 digest) of the
+       report and identifiers that tie the report to your |mms|
+       enrollment. It doesn't contain the report itself, which travels
+       in Metrics.
+
+   * - Signature
+     - A digital signature over the envelope, created with your
+       installation's Ed25519 key. The signature proves that the report
+       came from your |mms| installation and hasn't changed in
+       transit.
+
+   * - Metrics
+     - The report itself, in plain JSON
+
+The downloaded ``telemetry-data.json`` file and the API return only
+the report. For the complete field list, types, and examples, see
+:ref:`Retrieve Telemetry Data
+<om-get-telemetry-collection-details>`.
+
+
+Example Payload
+~~~~~~~~~~~~~~~
+
+|mms| sends each snapshot to MongoDB with a payload fingerprint
+and signature over the report. MongoDB uses the ``payload`` and
+``signature`` fields to verify the report. The ``metrics`` field is
+the report itself, in plain JSON. The download and the API return the
+same report:
+
+.. code-block:: json
+
+   {
+     "payload": "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJ...",
+     "signature": "MEUCIQDx8fJ2kQ7vL3mN5pR9sT1uW3yA5bC7dE9fG1hI3jK5wQI...",
+     "metrics": {
+       "data": {
+         "appDbNodes": 3,
+         "backupDaemons": 1,
+         "deployments": [ ... ],
+         "infrastructure": "VM",
+         "instances": [ ... ],
+         "omAuthMethod": "LDAP",
+         "orgs": 1,
+         "projects": 2,
+         "uuid": "3f8a2c6e-9b1d-4e7a-a5c3-8d2f1b6e4a90",
+         "version": "9.0.2"
+       },
+       "generationTimestamp": 1794442020000,
+       "ingestionTimestamp": 1794442020000
+     }
+   }
+
+For a complete example response, see :ref:`Retrieve Telemetry Data
+<om-get-telemetry-collection-details>`.
+
+HTTP Request Headers
+~~~~~~~~~~~~~~~~~~~~
+
+MongoDB infrastructure also records a small set of standard HTTP
+request headers from every HTTPS request that your |mms|
+installation sends. MongoDB uses these headers solely for operational
+integrity: verifying delivery, troubleshooting, and abuse prevention.
+MongoDB doesn't store these headers with product usage telemetry.
+
+.. list-table::
+   :widths: 30 45 25
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Header
+     - Description
+     - Example
+
+   * - User-Agent
+     - Identifies the HTTP client library that sent the request
+     - Apache-HttpClient/5.5 (Java/21)
+
+   * - Host
+     - The telemetry endpoint hostname the request is sent to
+     - cloud.mongodb.com
+
+   * - Content-Type
+     - The media type of the request body
+     - application/json
+
+   * - Content-Length
+     - The size of the request body in bytes
+     - 2847
+
+   * - Content-Encoding
+     - The transfer encoding applied to the body
+     - gzip
+
+   * - X-Forwarded-For / source address
+     - The public IP address |mms| connects from
+     - 203.0.113.42
 
 .. note::
 
-   |onprem| installations that run in air-gapped environments or
-   behind restrictive firewalls might be unable to send telemetry
-   data, even if telemetry is enabled.
-
-MongoDB stores ingested telemetry in an internal system and uses it in
-aggregate form to improve |onprem| and related products.
+   MongoDB retains the HTTP request headers in request logs for 390
+   days, after which it deletes them.

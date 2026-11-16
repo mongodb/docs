@@ -1,0 +1,141 @@
+.. _om-telemetry-troubleshooting:
+
+====================================
+Troubleshoot Product Usage Telemetry
+====================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Resolve product usage telemetry issues in Ops Manager 9.0.2 and 8.0.28 and later: the not-sent banner and a locked collection toggle.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page describes how to resolve issues with product usage telemetry
+in |mms| 9.0.2, 8.0.28, and later. To learn how product usage
+telemetry works, see :ref:`Product Usage Telemetry
+<om-telemetry-overview>`.
+
+Can't Turn Off Product Usage Telemetry
+---------------------------------------
+
+If the :guilabel:`Product Telemetry Collection` toggle is locked on,
+the installed license key doesn't include an active telemetry
+exemption. Without an exemption, product usage telemetry is mandatory.
+
+To turn off product usage telemetry, you need an active telemetry
+exemption on the installed license key. To learn how exemptions
+work, see :ref:`Telemetry Exemption
+<om-product-usage-telemetry-exemption>`. Then use the following
+procedure.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Open the License Key Manager page
+
+      Click :guilabel:`Admin`, :guilabel:`License Keys`.
+
+   .. step:: Check for the telemetry exemption entitlement
+
+      Check whether the active key lists the :guilabel:`Telemetry
+      Exemption` entitlement.
+
+   .. step:: Request or install an exemption
+
+      If the key doesn't list the exemption, contact your MongoDB
+      account team. If your exemption was approved after you generated
+      your key, generate a new key that includes it and install that
+      key. For instructions, see :ref:`Manage License Keys in Ops
+      Manager <om-manage-license-keys>`.
+
+   .. step:: Turn off the toggle
+
+      Reload the Telemetry tab and turn off the
+      :guilabel:`Product Telemetry Collection` toggle.
+
+You can also generate and install a license key with the
+Administration API. For instructions, see :ref:`Manage License Keys
+with the API <om-manage-license-keys-api>`.
+
+Ops Manager Hasn't Sent Product Usage Telemetry
+-----------------------------------------------
+
+If a banner appears on the Deployment pages, |mms| hasn't sent
+product usage telemetry to MongoDB for 8 or more days. To resolve the
+banner, work through the following steps.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Check the upload timestamps
+
+      Click :guilabel:`Admin`, :guilabel:`General`,
+      :guilabel:`Ops Manager Config`, :guilabel:`Telemetry`. Check
+      :guilabel:`Last Successful Upload` and :guilabel:`Next Scheduled
+      Upload`. If |mms| was installed or upgraded less than seven
+      days ago, the first send may not be due yet.
+
+   .. step:: Test the connection to the telemetry endpoint
+
+      From each |mms| host, check that the host can open an HTTPS
+      connection to ``cloud.mongodb.com`` on port 443.
+
+   .. step:: Check the |mms| application log
+
+      Check ``/opt/mongodb/mms/logs/mms0.log`` for these messages:
+
+      .. list-table::
+         :widths: 40 30 30
+         :header-rows: 1
+
+         * - Log message
+           - Description
+           - Resolution
+
+         * - ``Unable to send the product-usage-metrics payload.``
+           - The send to MongoDB failed. The entry includes the
+             underlying error. |mms| keeps the unsent snapshot and
+             retries it automatically.
+           - Continue with the next step to fix connectivity.
+
+         * - ``Unable to collect the product-usage-metrics payload.``
+           - |mms| couldn't build the snapshot. The entry includes the
+             underlying error. No snapshot was created; |mms| retries
+             collection at the next scheduled run.
+           - Check the same log entry for the underlying error.
+
+         * - ``Unable to read the license exemptions; treating usage
+             telemetry as mandatory.``
+           - |mms| couldn't read the license key state, so it treats
+             product usage telemetry as mandatory.
+           - Verify that the license key is installed. If the message
+             persists, contact your MongoDB account team.
+
+         * - ``Product-usage snapshot <id> delivered.``
+           - A send succeeded.
+           - No action needed. The banner clears after a successful
+             send.
+
+      The ``mms0.log`` file rolls over daily. The logs are compressed
+      and kept for 30 days.
+
+   .. step:: Fix connectivity issues
+
+      Fix any firewall, TLS-inspection, or proxy rule that blocks the
+      connection.
+
+   .. step:: Wait for the next send
+
+      Wait for the next job run, within six hours. |mms| retries
+      unsent snapshots automatically, and the banner clears after a
+      successful send.
+
+   .. step:: Request a telemetry exemption
+
+      If your environment can't send data outside your network,
+      contact your account team about a telemetry exemption.
