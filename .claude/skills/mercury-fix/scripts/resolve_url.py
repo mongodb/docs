@@ -516,8 +516,12 @@ SELF_TESTS = [
     ),
     # Not a docs page at all -- must not fall through to a basename search.
     ("https://www.mongodb.com/resources/basics/backup-and-restore", "unresolved", None),
-    # Page exists only in EOL manual versions, which are excluded by policy.
-    ("https://www.mongodb.com/docs/manual/reference/method/js-bulk/", "ambiguous", None),
+    # Page existed only in the EOL v4.4/v5.0/v6.0 docsets, so this returned
+    # `ambiguous` via the EOL-exclusion branch while those docsets were in the
+    # tree. Since #25599 removed them there is no candidate left and it is
+    # `unresolved`. Flips back if the EOL docsets are restored again -- #25540
+    # did exactly that one day before the re-removal.
+    ("https://www.mongodb.com/docs/manual/reference/method/js-bulk/", "unresolved", None),
 ]
 
 
