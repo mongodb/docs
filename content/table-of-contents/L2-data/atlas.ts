@@ -33,7 +33,7 @@ const tocData: TocItem[] = [
           {
             label: 'Atlas Infinite Public Preview Considerations',
             contentSite: 'cloud-docs',
-            url: '/docs/atlas/infinite/atlas-infinite-public-preview',
+            url: '/docs/atlas/infinite/atlas-infinite-preview-considerations',
           },
         ],
       },
