@@ -1,0 +1,304 @@
+.. This file is snippet output generated from content/atlas/source/includes/oidc-okta-instructions.rst.
+   Do not modify this file. Edit the source file instead.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create an application in Okta.
+      
+      In your Okta :guilabel:`Admin` dashboard, use the left navigation pane
+      to go to :guilabel:`Applications → Applications`.
+
+      a. On the :guilabel:`Applications` screen, click :guilabel:`Create App
+         Integration`.
+
+      #. In the :guilabel:`Sign-in method` section, select :guilabel:`OIDC - OpenID Connect`.
+
+      #. In the :guilabel:`Application type` section, select :guilabel:`Native Application`.
+
+      #. Click :guilabel:`Next`.
+
+      To learn more, see `Create OIDC app integrations
+      <https://help.okta.com/en-us/content/topics/apps/apps_app_integration_wizard_oidc.htm>`__.
+    
+   .. step:: Configure your :guilabel:`New Native App Integration`.
+
+      After you create an app integration, you are automatically redirected to the
+      :guilabel:`New Native App Integration` screen.
+
+      a. In the :guilabel:`App integration name` field, enter a name for your
+         application.
+
+      #. In the :guilabel:`Grant type` field, select the grant types.
+
+         Enable the following grant types:
+
+         - :guilabel:`Authorization Code`, :guilabel:`Device Authorization`, or both
+         - *(Optional)* :guilabel:`Refresh Token`
+           
+           Enabling refresh tokens provides a better user experience. If you
+           don't enable refresh tokens, users must re-authenticate with 
+           the identity provider once their access token expires.
+
+      #. In the :guilabel:`Sign-in redirect URIs` section, enter a URL.
+          
+         Enter the following URL: ``http://localhost:27097/redirect``.
+
+      #. In the :guilabel:`Assignments` section, configure the :guilabel:`Controlled access`
+         and :guilabel:`Enable immediate access` fields with the appropriate
+         settings for your security policies.
+
+      #. Click :guilabel:`Save`.
+
+      To learn more, see `Create OIDC app integrations
+      <https://help.okta.com/en-us/content/topics/apps/apps_app_integration_wizard_oidc.htm>`__.
+
+   .. step:: Configure PKCE and obtain client ID.
+
+      On your application dashboard, go to the :guilabel:`General` tab
+      and configure the following:
+
+      a. In the :guilabel:`Client ID` field, click the :icon-fa5:`clipboard-list`
+         icon to copy the client ID for later use.
+
+      #. In the :guilabel:`Proof Key for Code Exchange (PKCE)` field, ensure
+         :guilabel:`Require PKCE as additional verification` is enabled (checked
+         by default).
+
+   .. step:: Add an authorization server.
+
+      In the left navigation pane, go to :guilabel:`Security → API`. Click
+      :guilabel:`Add Authorization Server`.
+
+      a. In the :guilabel:`Name` field, enter a name for your server.
+
+      #. Fill in the :guilabel:`Audience` field.
+
+         The :guilabel:`Audience` is the entity that OIDC intends the token for.
+         While this can be any valid URI, generally, this is the client ID of
+         your application you copied in the previous step.
+
+      #. *(Optional)* In the :guilabel:`Description` field, enter a description of
+         your server.
+
+      #. Click :guilabel:`Save`.
+
+      To learn more, see `Create an Authorization Server
+      <https://help.okta.com/en-us/content/topics/security/api-config-auth-server.htm>`__.
+
+   .. step:: Find and save the issuer URI.
+
+      After you create your authorization server, you are automatically
+      redirected to your authorization server's screen.
+
+      Under the :guilabel:`Settings` tab, save the issuer URI by copying the
+      first part of the :guilabel:`Metadata URI` up to the ``.well-known``
+      section. The URI structure should be similar to:
+      ``https://<your-okta-domain>/oauth2/ausabgmhveoOQSMsE697``.
+
+   .. step:: (Conditionally Required) Add a :guilabel:`Groups` claim.
+
+      This step is only required if you want to authorize users using Okta
+      groups. If you are planning on using User ID for authorization instead,
+      you can skip this step.
+      
+      On your authorization server screen, go to the :guilabel:`Claims` tab and
+      click :guilabel:`Add Claim`.
+
+      a. Configure the :guilabel:`Groups` claim with the following configuration information:
+
+         .. list-table::
+            :header-rows: 1
+            :widths: 40 60
+
+            * - Field
+              - Value
+
+            * - :guilabel:`Name`
+              - Enter a name for your claim.
+
+            * - :guilabel:`Include in token type`
+              - Click the drop-down and select :guilabel:`Access Token`.
+
+            * - :guilabel:`Value type`
+              - Click the drop-down and select :guilabel:`Groups`.
+
+            * - :guilabel:`Filter`
+              - Click the drop-down and select
+                :guilabel:`Matches regex`. Next to the drop-down,
+                enter a regular expression that matches only groups
+                used for |service| authorization. For example, if
+                your |service| authorization groups use a common
+                naming prefix, enter ``^<mongodb-atlas-group-prefix>.*``
+                where ``<mongodb-atlas-group-prefix>`` is your
+                chosen prefix.
+
+            * - :guilabel:`Disable claim`
+              - Do not check.
+
+            * - :guilabel:`Include in`
+              - Select :guilabel:`Any scope`.
+
+      #. Click :guilabel:`Create`.
+
+      .. important::
+
+         Avoid using ``.*`` as the filter value. The ``.*``
+         expression matches every group assigned to the user,
+         including groups unrelated to |service| authorization.
+         A broad filter increases the access token size and can
+         cause authentication failures when the token exceeds the
+         ``preAuthMaximumMessageSizeBytes`` limit (16 KiB by
+         default).
+
+         To reduce token size, create a dedicated naming
+         convention for |service| authorization groups and filter
+         on that convention.
+
+         If your deployment intentionally requires a large groups
+         claim, you can increase the
+         :parameter:`preAuthMaximumMessageSizeBytes`
+         parameter on your cluster. However, increasing this
+         limit has resource and security implications and should
+         not be used as a workaround for an unnecessarily broad
+         claim.
+
+      To learn more, see `Create Claims
+      <https://help.okta.com/en-us/content/topics/security/api-config-claims.htm>`__.
+
+   .. step:: Create an access policy.
+
+      On your authorization server screen, go to the :guilabel:`Access Policies`
+      tab and click :guilabel:`Add Policy`.
+
+      a. In the :guilabel:`Name` field, enter a policy name.
+
+      #. In the :guilabel:`Description` field, enter a description for the policy.
+
+      #. In the :guilabel:`Assign to` field, select :guilabel:`All clients`.
+
+      #. Click :guilabel:`Create Policy`.
+
+      To learn more, see `Create an Access Policy
+      <https://help.okta.com/en-us/content/topics/security/api-config-access-policies.htm>`__.
+
+   .. step:: Create a rule for the access policy.
+
+      Under the :guilabel:`Access Policies` tab, click :guilabel:`Add Rule`.
+
+      a. In the :guilabel:`Rule Name` field, enter a name for the access policy.
+
+      #. For :guilabel:`IF Grant Type is`, select a grant type.
+
+         When configuring grant types, select the appropriate option based on the
+         client behavior:
+
+         - If the client is acting on behalf of itself, select :guilabel:`Client
+           Credentials`.
+         - If the client is acting on behalf of a user, select the following:
+
+           - :guilabel:`Authorization Code`
+           - :guilabel:`Device Authorization`
+
+      #.  Add rule configurations based on your organization's security policy.
+          
+          Example Okta rule configuration:
+
+          .. list-table::
+             :header-rows: 1
+
+             * - Field
+               - Value
+
+             * - :guilabel:`AND user is`
+               - Select :guilabel:`Any user assigned to the app`.
+
+             * - :guilabel:`AND Scopes requested`
+               - Select :guilabel:`Any scopes`.
+
+             * - :guilabel:`THEN Use this inline hook`
+               - None (disabled)
+
+             * - :guilabel:`AND Access token lifetime is`
+               - :guilabel:`1 Hours`
+
+             * - :guilabel:`AND Refresh token lifetime is`
+               - Click the second drop-down and select :guilabel:`Unlimited`.
+
+             * - :guilabel:`but will expire if not used every`
+               - Enter :guilabel:`7 days`.
+
+      #. Click :guilabel:`Create Rule`.
+
+      To learn more, see `Create Rules for each Access Policy
+      <https://developer.okta.com/docs/guides/customize-authz-server/main/#create-rules-for-each-access-policy>`__.
+
+   .. step:: Create a group.
+
+      In the left navigation pane, go to :guilabel:`Directory → Groups` and click
+      :guilabel:`Add Group`.
+
+      a. In the :guilabel:`Name` field, name your directory ``OIDC``.
+
+      #. *(Optional)* In the :guilabel:`Description` field, enter a description
+         for your rule.
+
+      #. Click :guilabel:`Save`.
+
+         To learn more, see `Create a group
+         <https://help.okta.com/en-us/content/topics/users-groups-profiles/usgp-groups-create.htm>`__.
+
+      #. Follow the Okta documentation to 
+         `manually assign people to the group 
+         <https://help.okta.com/en-us/content/topics/users-groups-profiles/usgp-assign-group-people.htm>`__.
+
+   .. step:: Add a user to your organization.
+
+      In the left navigation pane, go to :guilabel:`Directory → People` and click
+      :guilabel:`Add Person`.
+
+      a. Provide user details by entering the following values in the 
+         corresponding fields:
+
+         .. list-table::
+            :header-rows: 1
+
+            * - Field
+              - Value
+
+            * - :guilabel:`User type`
+              - Select :guilabel:`User`.
+
+            * - :guilabel:`First name`
+              - Provide a name as needed.
+
+            * - :guilabel:`Last name`
+              - Provide a name as needed.
+
+            * - :guilabel:`Username`
+              - Enter an email as a username.
+
+            * - :guilabel:`Primary email`
+              - Enter an email. The email must be same as the one used for the
+                :guilabel:`Username` field.
+
+            * - :guilabel:`Secondary email`
+              - Optional.
+
+            * - :guilabel:`Groups`
+              - Enter :guilabel:`OIDC`.
+
+            * - :guilabel:`Activation`
+              - Select :guilabel:`Activate Now` and check :guilabel:`I will set password`.
+
+            * - :guilabel:`Password`
+              - Enter a password.
+
+            * - :guilabel:`User must change password on first login`
+              - Select :guilabel:`Optional`
+
+      #. Click :guilabel:`Save`.
+
+      To learn more, see `Add Users Manually
+      <https://help.okta.com/en-us/content/topics/users-groups-profiles/usgp-add-users.htm>`__.
+

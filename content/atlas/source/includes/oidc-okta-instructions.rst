@@ -2,6 +2,9 @@
 
 To register your |oidc| application with Okta:
 
+.. :snippet-start: oidc-okta-instructions
+.. :snippet-output: content/manual/manual/source/includes/oidc-okta-instructions.rst, content/manual/upcoming/source/includes/oidc-okta-instructions.rst, content/manual/v8.0/source/includes/oidc-okta-instructions.rst, content/manual/v7.0/source/includes/oidc-okta-instructions.rst, content/ops-manager/upcoming/source/includes/oidc-okta-instructions.rst, content/ops-manager/current/source/includes/oidc-okta-instructions.rst
+
 .. procedure::
    :style: normal
 
@@ -30,15 +33,15 @@ To register your |oidc| application with Okta:
       a. In the :guilabel:`App integration name` field, enter a name for your
          application.
 
-      #. In the :guilabel:`Grant type` field, select grant types.
+      #. In the :guilabel:`Grant type` field, select the grant types.
 
          Enable the following grant types:
 
-         - :guilabel:`Authorization Code` or :guilabel:`Device Authorization`
+         - :guilabel:`Authorization Code`, :guilabel:`Device Authorization`, or both
          - *(Optional)* :guilabel:`Refresh Token`
            
-           Enabling refresh tokens provides a better user experience. When 
-           refresh tokens are not enabled, users must re-authenticate with 
+           Enabling refresh tokens provides a better user experience. If you
+           don't enable refresh tokens, users must re-authenticate with 
            the identity provider once their access token expires.
 
       #. In the :guilabel:`Sign-in redirect URIs` section, enter a URL.
@@ -46,13 +49,8 @@ To register your |oidc| application with Okta:
          Enter the following URL: ``http://localhost:27097/redirect``.
 
       #. In the :guilabel:`Assignments` section, configure the :guilabel:`Controlled access`
-         and :guilabel:`Enable immediate access` fields.
-
-         i. For the :guilabel:`Controlled access` field, select :guilabel:`Allow everyone
-            in your organization to access`.
-
-         ii. For :guilabel:`Enable immediate access` field, ensure :guilabel:`Enable immediate
-             access with Federation Broker Mode` is checked.
+         and :guilabel:`Enable immediate access` fields with the appropriate
+         settings for your security policies.
 
       #. Click :guilabel:`Save`.
 
@@ -78,8 +76,11 @@ To register your |oidc| application with Okta:
 
       a. In the :guilabel:`Name` field, enter a name for your server.
 
-      #. In the :guilabel:`Audience` field, paste the client ID from the previous
-         step.
+      #. Fill in the :guilabel:`Audience` field.
+
+         The :guilabel:`Audience` is the entity that OIDC intends the token for.
+         While this can be any valid URI, generally, this is the client ID of
+         your application you copied in the previous step.
 
       #. *(Optional)* In the :guilabel:`Description` field, enter a description of
          your server.
@@ -97,14 +98,18 @@ To register your |oidc| application with Okta:
       Under the :guilabel:`Settings` tab, save the issuer URI by copying the
       first part of the :guilabel:`Metadata URI` up to the ``.well-known``
       section. The URI structure should be similar to:
-      ``https://trial4238026.okta.com/oauth2/ausabgmhveoOQSMsE697``.
+      ``https://<your-okta-domain>/oauth2/ausabgmhveoOQSMsE697``.
 
-   .. step:: Add :guilabel:`Groups` claim.
+   .. step:: (Conditionally Required) Add a :guilabel:`Groups` claim.
 
+      This step is only required if you want to authorize users using Okta
+      groups. If you are planning on using User ID for authorization instead,
+      you can skip this step.
+      
       On your authorization server screen, go to the :guilabel:`Claims` tab and
       click :guilabel:`Add Claim`.
 
-      a. Configure :guilabel:`Groups` claim with the following configuration information:
+      a. Configure the :guilabel:`Groups` claim with the following configuration information:
 
          .. list-table::
             :header-rows: 1
@@ -269,10 +274,10 @@ To register your |oidc| application with Okta:
               - Select :guilabel:`User`.
 
             * - :guilabel:`First name`
-              - Provide name as needed.
+              - Provide a name as needed.
 
             * - :guilabel:`Last name`
-              - Provide name as needed.
+              - Provide a name as needed.
 
             * - :guilabel:`Username`
               - Enter an email as a username.
@@ -300,3 +305,5 @@ To register your |oidc| application with Okta:
 
       To learn more, see `Add Users Manually
       <https://help.okta.com/en-us/content/topics/users-groups-profiles/usgp-add-users.htm>`__.
+
+.. :snippet-end:
