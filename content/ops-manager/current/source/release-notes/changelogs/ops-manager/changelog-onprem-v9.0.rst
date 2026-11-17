@@ -108,13 +108,15 @@ Improvements
   - Fixes broken documentation links under :guilabel:`Deployment` >
     :guilabel:`Modify` > :guilabel:`Advanced Configuration Options`.
 
-- |onprem| collects product usage telemetry, which sends configuration
+- |onprem| includes product usage telemetry, which sends configuration
   and health metadata about your installation and its deployments to
   MongoDB. MongoDB uses this information to understand how you
   configure and use |onprem| and to prioritize product improvements.
   You can turn off product usage telemetry only if your license key
   includes a telemetry exemption. The :guilabel:`Learn more` link in
   the telemetry banner points to the troubleshooting documentation.
+  To learn more, see :ref:`Product Usage Telemetry Overview
+  <om-telemetry-overview>`.
 
 - Makes the following improvements to performance and stability for
   large sharded clusters:

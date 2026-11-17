@@ -113,6 +113,8 @@ Improvements
   You can turn off product usage telemetry only if your license key
   includes a telemetry exemption. The :guilabel:`Learn more` link in
   the telemetry banner points to the troubleshooting documentation.
+  To learn more, see :ref:`Product Usage Telemetry Overview
+  <om-telemetry-overview>`.
 
 - Makes the following improvements to performance and stability for
   large sharded clusters:
