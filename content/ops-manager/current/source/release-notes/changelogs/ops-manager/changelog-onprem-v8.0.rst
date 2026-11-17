@@ -333,7 +333,7 @@ Improvements
 ~~~~~~~~~~~~
 
 - Updates the {+mdbagent+} to
-  :ref:`108.0.27.9089-1 <mongodb-108.0.27.9089-1>`.
+  :ref:`108.0.27.9091-1 <mongodb-108.0.27.9091-1>`.
 - Updates JDK to `jdk-21.0.12.1+1
   <https://adoptium.net/temurin/release-notes/?version=jdk-21.0.12.1+1>`__.
 - Makes the following improvements to the {+admin-api+}:
