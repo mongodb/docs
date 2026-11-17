@@ -16,7 +16,7 @@ The following table shows compatibility between the Java driver and {+mdb-server
      - MongoDB 4.4
      - MongoDB 4.2
 
-   * - 5.12 to 5.13
+   * - 5.12 to 5.14
      - ✓
      - ✓
      - ✓
