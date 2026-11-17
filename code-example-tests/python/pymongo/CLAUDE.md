@@ -3,7 +3,7 @@
 ## Project Setup
 
 - Python 3.x with `venv` for dependency isolation
-- Key deps: `pymongo` 4.19.0, `python-dotenv` 1.2.2, `pylint` 4.0.5
+- Key deps: `pymongo` 4.20.0, `python-dotenv` 1.2.2, `pylint` 4.0.5
 - Test framework: Python's built-in `unittest` (not pytest)
 - Formatter: `black` (line-length 88)
 - `.env` file required at this directory root: `CONNECTION_STRING="..."`
