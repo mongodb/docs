@@ -1,5 +1,7 @@
-- `Microsoft Visual C++ Redistributable 17.0 <https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170>`__
-  or higher for installing Microsoft C and C++ (MSVC) runtime libraries. 
+- Microsoft Visual C++ v14 Redistributable for installing Microsoft C
+  and C++ (MSVC) runtime libraries. Download the latest version from
+  `Microsoft's redistributable downloads page
+  <https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#latest-supported-redistributable-version>`__.
 
   .. note:: 
 
