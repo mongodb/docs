@@ -5,8 +5,7 @@ the shared rules in `release-notes-base/references/rst-formatting.md`.
 
 ## Heading
 
-Bare version number (e.g., `1.9.0`), underlined with `-----`. Do not prefix
-with `v` or use a substitution constant.
+Bare version number (e.g., `1.9.0`), underlined with `-` characters that exactly match the heading length (`1.9.0` takes `-----`, `1.10.0` takes `------`). Do not prefix with `v` or use a substitution constant.
 
 ## Changelog link
 

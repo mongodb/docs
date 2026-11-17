@@ -15,13 +15,21 @@ This skill defines the shared process for drafting release notes for open-source
 
 ## Workflow
 
+If `{VERSION}` is empty, ask the writer which version to draft before you start step 1.
+
 ### 1. Fetch release notes from GitHub
 
 Use the Agent tool (subagent_type: Explore) to fetch the release notes for the `{VERSION}` tag from the `{GITHUB_REPO}` GitHub repository. Return the full list of changes, grouped by new features and bug fixes.
 
+If no GitHub release exists for `{VERSION}`, stop and ask the writer to confirm the version. Do not draft from another source or continue with an empty change list.
+
 ### 2. Read the existing release notes for formatting reference
 
 Read the first 60 lines of `{RELEASE_NOTES_FILE}` to confirm the exact heading style, section labels, issue reference format, and changelog link format used by this product before drafting.
+
+If `{RELEASE_NOTES_FILE}` does not exist, stop and tell the writer the configured path was not found. Do not create the file or guess at a different path.
+
+Search `{RELEASE_NOTES_FILE}` for an existing heading for `{VERSION}`. If one exists, stop and tell the writer that version is already documented. Do not add a duplicate entry.
 
 ### 3. Fetch the release date from GitHub
 
@@ -33,6 +41,8 @@ Format the returned value as `Month D, YYYY` (e.g., `March 11, 2026`). If the su
 
 Use Glean to fetch the Embargoed Features List from the internal wiki (https://wiki.corp.mongodb.com/pages/viewpage.action?pageId=560136334) and return every embargoed feature name and its aliases. The page is internal to MongoDB, so instruct the subagent to read it with Glean.
 
+If Glean is unavailable or unauthenticated, do not skip this check and do not substitute a guess at the embargo list. Stop, tell the user Glean is unavailable, and ask them to review the Embargoed Features List manually (include the wiki URL above in your message) and confirm the change list is clear before you draft.
+
 Scan the change list fetched in step 1 for any embargoed feature name or alias, matching case-insensitively and including aliases.
 
 If any change matches an embargoed term, **stop before drafting**: report the matching term and the affected changes to the writer, then ask how to proceed. Do not draft, include, or publish any release note that references an embargoed feature until the writer confirms the embargo is lifted.
@@ -43,7 +53,7 @@ If no change matches, continue to the next step.
 
 Format the new entry to match the conventions observed in step 2, using the tool-specific overrides supplied by the calling skill. Insert the entry in the correct version-sorted position (newest version first). Do not assume the new entry belongs at the top — scan the existing headings to find where `{VERSION}` falls relative to other versions and insert it there, with a blank line separating it from the entry above and below.
 
-**Format rules:** Read `references/rst-formatting.md` for the heading template and line-length rules. This workflow currently only supports `.txt` (RST) release notes files. If `{RELEASE_NOTES_FILE}` does not end in `.txt`, stop and ask the writer how to proceed rather than guessing at formatting conventions — do not draft against an unsupported format.
+**Format rules:** Read `.claude/skills/release-notes-base/references/rst-formatting.md` for the heading template and line-length rules. This workflow currently only supports `.txt` (RST) release notes files. If `{RELEASE_NOTES_FILE}` does not end in `.txt`, stop and ask the writer how to proceed rather than guessing at formatting conventions — do not draft against an unsupported format.
 
 #### Shared rules (apply to all tools unless the calling skill overrides)
 
@@ -51,7 +61,7 @@ Format the new entry to match the conventions observed in step 2, using the tool
 - Convert PR-style commit messages into clean sentence or noun-phrase descriptions. Drop scope prefixes like `feat(connections):` or `fix(indexes):` — extract only the meaningful description.
 - Preserve issue references for any ticket numbers present. Omit the reference if no ticket is listed.
 - Use the `{PRODUCT_SUBSTITUTION}` value for the heading (e.g. a substitution constant like `|compass|`, or a version prefix like `v`).
-- Use the `{CHANGELOG_LINK}` template for the full changelog entry at the bottom of the section.
+- Use the `{CHANGELOG_LINK}` value for the full changelog link at the bottom of the section, formatted to match the changelog link in the existing entries you read in step 2.
 
 ### 6. Ask about snooty.toml
 
