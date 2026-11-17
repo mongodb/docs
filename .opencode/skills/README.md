@@ -112,4 +112,5 @@ For detecting and fixing linter-flagged issues in content/.
 | `feature-drafter-agent` | Drafts one page or section from a planner task and opens a PR against the feature branch |
 | `feature-planner-agent` | Turns an approved documentation plan into tasks and delegates drafting to feature-drafter-agent sub-agents |
 | `jira-state-transitions` | PostToolUse hooks that transition DOCSP tickets on first edit or commit and on PR review readiness |
+| `mongot-release-notes` | Drafts mongot release notes for the self-managed Search docs and the Atlas Search and Vector Search changelog |
 | `ops-manager-release-notes` | Generate a versioned patch release entry for Ops Manager by fetching improvements and bug fixes from Aha! and Jira, writing RST entries, and prepending the assembled block to the active changelog file |

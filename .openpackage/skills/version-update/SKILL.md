@@ -20,7 +20,11 @@ You are creating a new version of a versioned MongoDB documentation docset.
    with user.
 5. Applies: deletes `current/`, copies `upcoming/` → `current/`, adds a
    consolidation entry to `csharp-redirects.json` (`v3.13` → `v3.x`).
-6. Surfaces Hapley selector-label steps and remaining manual tasks.
+6. Updates the `csharp` version selector label in
+   `platform/versioning/projects/csharp.ts`, then reports the Step 11
+   tasks the user has to do by hand: open and merge the PR, verify the
+   version dropdown on the staging preview, and check redirects and
+   release-notes visibility on the deployed site.
 
 ## Step 1: Identify the Docset and Check Prerequisites
 
@@ -34,6 +38,8 @@ the `content/` directory. Confirm with the user if the input is ambiguous.
 `references/server-manual-prerequisites.md`. Stop and confirm with the user
 that all prerequisites are met before proceeding. Before beginning each PR,
 read the corresponding reference file:
+- PR 1 → no separate file; the two directory commands are in
+  `references/server-manual-prerequisites.md`
 - PR 2 → `references/server-manual-pr2.md`
 - PR 3 → `references/server-manual-pr3.md`
 - PR 4 → `references/server-manual-pr4.md`
@@ -207,7 +213,8 @@ BACKPORT_DIR for `upcoming` throughout this step and Steps 7A and 7B.
 **Server Manual and Atlas Architecture Center**: skip this section entirely —
 those docsets have dedicated workflows (see Step 1).
 
-Update all version-bearing constants. See Step 2 for field names by docset.
+Update all version-bearing constants. See the docset table in Step 1 for
+field names by docset.
 
 - **Major/minor releases**: update the major/minor docs version and reset any
   patch value to `.0`.
@@ -279,6 +286,12 @@ for the docset and inform the user.
 Read the **Docset Data** section of `references/toc-updates.md` and apply
 docset data file updates for this docset. Skip any file that does not exist
 for the docset and inform the user.
+
+## Step 7C: Update the Platform Versioning Catalog
+
+Read `references/versioning-catalog-updates.md` and apply the catalog
+updates for this docset and release type, including the checks in its
+**Checking your edit** section.
 
 ## Step 8: Update Redirects
 
@@ -364,12 +377,6 @@ for the current docset and release type.
 
 Tell the user the remaining manual steps.
 
-### Hapley
-
-Read `references/hapley-updates.md` and surface the Hapley steps for this
-docset and release type to the user. Hapley is a web UI — these are manual
-steps the user must perform, not automated actions.
-
 ### Server Manual
 
 If the docset is Server Manual, read `references/server-manual-manual-steps.md`
@@ -383,8 +390,11 @@ and surface all post-automation steps to the user.
    `drivers-release-notes` sub-skill in Step 3 and should not reach
    this step.)
 2. Open a PR and get it approved. Call out the specific files that need review.
-3. Merge the PR and confirm the new version is live on the website.
-4. Backport changes from `upcoming` to `current` after merge (where
+3. Verify the version dropdown on the PR's staging preview. It builds
+   from this branch's catalog, so a wrong label or a missing version is
+   caught before merge rather than in production.
+4. Merge the PR and confirm the new version is live on the website.
+5. Backport changes from `upcoming` to `current` after merge (where
    applicable).
-5. Check the deployed site for redirect correctness, release-notes visibility,
-   and version switcher behavior.
+6. Check the deployed site for redirect correctness, release-notes
+   visibility, and version dropdown behavior.

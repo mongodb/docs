@@ -1,19 +1,6 @@
 # Snippet Manifest Schema
 
-The manifest tracks monitored source files and their snippet outputs for automated sync detection.
-
-## Location
-
-Each snippet source docset has its own manifest, stored in the docset's snippet root alongside `snip.js`. Two path shapes exist:
-
-| Docset | Manifest path |
-|--------|---------------|
-| atlas | `content/atlas/source/snippet-manifest.json` |
-| self-managed-search | `content/self-managed-search/current/source/snippet-manifest.json` |
-
-Destination docsets have no manifest, because a manifest indexes files carrying `:snippet-start:` markers and a destination has none.
-
-For versioned docsets, only the one version that acts as the snippet source has a manifest — see the "Versioned Docsets" section of SKILL.md. Do NOT assume `content/<docset>/source`.
+`snippet-manifest.json` tracks each source docset's monitored files and their snippet outputs, so `--sync` regenerates only what changed. It sits beside `snip.js` in the docset's snippet root: `content/<docset>/source/`, or `content/<docset>/current/source/` for a versioned docset (see "Versioned Docsets" in SKILL.md). Destination docsets have none.
 
 ## Schema
 
@@ -30,37 +17,31 @@ For versioned docsets, only the one version that acts as the snippet source has 
           ],
           "hash": "a1b2c3d4"
         }
-      },
-      "lastModified": "2026-08-13T10:00:00Z"
+      }
     }
   }
 }
 ```
 
-## Fields
+| Field | Description |
+|-------|-------------|
+| `version` | Schema version, currently `1` |
+| `files.<path>` | Source file, relative to the snippet root |
+| `files.<path>.snippets.<name>.outputs` | Generated file paths, relative to the repo root, in `:snippet-output:` order |
+| `files.<path>.snippets.<name>.hash` | Hash of the text between `:snippet-start:` and `:snippet-end:`. A changed hash means the snippet needs regenerating |
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `version` | number | Manifest schema version (currently 1) |
-| `files` | object | Map of source file paths (relative to docset source/) to file info |
-| `files.<path>.snippets` | object | Map of snippet names to snippet info |
-| `files.<path>.snippets.<name>.outputs` | array | Generated output file paths |
-| `files.<path>.snippets.<name>.hash` | string | Content hash for change detection |
-| `files.<path>.lastModified` | string | ISO timestamp of last file modification |
+## Canonical Form
 
-## Hash Calculation
+`snip.js` rewrites the manifest in canonical form on every save, so concurrent branches conflict only on real changes. Do NOT hand-edit it.
 
-The hash is computed from the snippet content (between `:snippet-start:` and
-`:snippet-end:`). When the hash changes, the snippet needs regeneration.
+- Keys in `files` and each `snippets` map are sorted, so entries added on different branches land on different lines instead of all at the end.
+- No timestamps. The former `lastModified` field changed on every run and caused conflicts even when hashes matched; it was never read and is dropped on the next save.
 
-## Commands and Manifest Updates
+## Resolving Merge Conflicts
 
-Command names match the table in SKILL.md.
+Every hash is recomputed from the source files, so never hand-merge hashes.
 
-| Command | Manifest Action |
-|---------|-----------------|
-| `add snippet <file>` | Adds entry to `files` |
-| `remove snippet <file>` | Removes entry from `files` |
-| `register snippets <dir>` | Scans directory, adds all files with snippets |
-| `sync snippets` | Compares hashes, regenerates changed snippets |
-| `list snippets` | Reads and displays `files` |
+1. Resolve the source files (`includes/**`) first. They are the source of truth.
+2. Take either side of the manifest, for example `git checkout --theirs <manifest>`.
+3. From the snippet root, run `npm run snip -- --sync`. It regenerates snippets whose hash differs from the resolved source, adds missing snippets, and deletes orphaned outputs.
+4. Run `npm run snip -- --validate` and confirm `0 out of sync, 0 missing or invalid`.

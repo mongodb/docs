@@ -1,7 +1,7 @@
 ---
 name: staging-preview
 internal: true
-description: "Generate staging preview links for a MongoDB docs PR. Polls for the builder-bot deploy preview comment, then constructs page-specific URLs for changed .txt files, includes, YAML extracts, images, and TOC files. Use when you need to generate or refresh staging links for a pull request."
+description: "Generate staging preview links for a MongoDB docs PR. Polls for the Netlify deploy preview comments, then constructs page-specific URLs for changed .txt files, includes, YAML extracts, images, and TOC files. Use when you need to generate or refresh staging links for a pull request."
 argument-hint: "<PR_NUMBER>"
 ---
 
@@ -23,66 +23,74 @@ gh pr diff <PR_NUMBER> --name-only
 
 If any line in the output starts with `content/`, proceed to Step 2. Otherwise, return `N/A` as the staging links content and exit.
 
-## Step 2 — Fetch the builder-bot comment
+Read every file through the PR, not the local checkout, because the PR branch may not be checked out. To read a changed file at the PR head, run:
 
-Run the following polling loop as a background Bash process (`run_in_background: true`):
+```bash
+sha=$(gh pr view <PR_NUMBER> --json headRefOid --jq .headRefOid)
+gh api "repos/{owner}/{repo}/contents/<file>?ref=$sha" -H "Accept: application/vnd.github.raw"
+```
+
+Leave `{owner}/{repo}` as written. `gh api` fills it in from the current repository.
+
+Searches for files that include a changed file (Steps 4 and 5) run against the local checkout, which is accurate unless the PR also adds or removes include directives.
+
+## Step 2 — Fetch the deploy preview comments
+
+The `netlify` bot posts one comment per built site. Each comment starts with a heading such as `Deploy Preview for *manual-docs* processing.` and is edited in place to `ready!` when the build finishes, which can take ten minutes. A PR can also get comments for sites it did not change.
+
+Run the following polling loop as a background Bash process (`run_in_background: true`). It waits until at least one comment exists and none is still processing:
 
 ```bash
 attempts=0
-while [ $attempts -lt 10 ]; do
-  result=$(gh pr view <PR_NUMBER> --comments --json comments \
-    --jq '.comments[].body' 2>/dev/null)
-  if echo "$result" | grep -q "😎 Deploy Preview"; then
-    echo "BOT_COMMENT_FOUND"
+while [ $attempts -lt 40 ]; do
+  heads=$(gh pr view <PR_NUMBER> --json comments \
+    --jq '.comments[] | select(.author.login == "netlify") | .body | split("\n")[0]' 2>/dev/null \
+    | grep "Deploy Preview for")
+  if [ -n "$heads" ] && ! echo "$heads" | grep -q "processing"; then
+    echo "PREVIEWS_SETTLED"
     exit 0
   fi
   attempts=$((attempts + 1))
   sleep 15
 done
-echo "BOT_COMMENT_TIMEOUT"
+echo "PREVIEWS_TIMEOUT"
 ```
 
-Watch the background process output and wait for either `BOT_COMMENT_FOUND` or `BOT_COMMENT_TIMEOUT` to appear.
+Wait for either `PREVIEWS_SETTLED` or `PREVIEWS_TIMEOUT` to appear in the background process output.
 
-- If `BOT_COMMENT_FOUND`: fetch the full comments with `gh pr view <PR_NUMBER> --comments --json comments` and parse the builder-bot entry.
-- If `BOT_COMMENT_TIMEOUT`: return a note that staging links were not available and exit.
+- If `PREVIEWS_SETTLED`: extract the site slug, status, and base URL from each comment:
 
-Look for a comment from `docs-builder-bot` (or similar automation account) that contains lines matching the pattern:
+  ```bash
+  gh pr view <PR_NUMBER> --json comments --jq '.comments[] | select(.author.login == "netlify") | .body | [capture("Deploy Preview for \\*(?<site>[^*]+)\\* (?<status>[a-z]+)"), (capture("Deploy Preview \\| \\[(?<url>[^]]+)\\]") // {url: ""})] | add | "\(.site) \(.status) \(.url)"'
+  ```
 
-```
-| 😎 Deploy Preview | <base-url> |
-```
+  Each output line looks like `manual-docs ready https://deploy-preview-25184--manual-docs.netlify.app`. Use only `ready` sites. If a site you need has any other status, such as a failed build, tell the user and skip its files.
+- If `PREVIEWS_TIMEOUT`: return a note that staging links were not available and exit.
 
-Each such line gives you the Netlify base URL for one site (e.g. `https://deploy-preview-19378--mongodb-manual.netlify.app/docs`). Extract the URL from between the second and third pipe characters.
+The emoji in the `😎 Deploy Preview` table row is wrapped in a `<span>` element, so do not grep for the emoji.
 
 ## Step 3 — Construct page-specific URLs for changed pages
 
 For each changed `.txt` file under `content/`, build a full staging URL:
 
-1. **Find the matching base URL** — The bot comment will have one entry per built site. Match the changed file's `<site>` directory to the right base URL (the slug contains the site name, for example - `mongodb-manual` for `content/manual`).
-2. **Extract the page path** — Take everything after `source/` in the file path and drop the `.txt` extension.
-3. **Check for a version segment** — If the path is `content/<site>/<version>/source/<page-path>.txt`, the version segment (such as `upcoming`, `current`, `v8.0`) must be inserted between the base URL and the page path.
-4. **Assemble the URL** — Append `/{version}/{page-path}/` (or just `/{page-path}/` if unversioned) to the base URL from the bot comment.
+1. **Find the matching base URL** — The slug is usually `<project>-docs`, where `<project>` is the directory under `content/` (`manual-docs` for `content/manual`). Some slugs differ (`atlas-mdb-docs` for `content/atlas`). If no slug is `<project>-docs`, try each `ready` base URL and keep the one where the page returns HTTP 200.
+2. **Find the URL prefix** — Look up `<project>` in `platform/tools/generate-llms/dir-name-to-prefix.snapshot.json`. The value is the URL prefix, such as `docs` for `manual` or `docs/languages/python/pymongo-arrow-driver` for `pymongo-arrow-driver`. If the project is not in the file, tell the user and skip the file.
+3. **Extract the page path** — Take everything after `source/` in the file path, drop the `.txt` extension, and lowercase it. Netlify serves lowercase paths.
+4. **Check for a version segment** — If the path is `content/<project>/<version>/source/<page-path>.txt`, insert the version directory name (such as `upcoming`, `current`, `manual`, `v8.0`) between the prefix and the page path.
+5. **Assemble the URL** — `<base-url>/<prefix>/<version>/<page-path>/`, or `<base-url>/<prefix>/<page-path>/` if unversioned.
+6. **Verify the URL** — Run `curl -s -o /dev/null -w '%{http_code}' <url>`. Keep URLs that return 200. If a URL returns anything else, tell the user and leave it out.
 
 ### Examples
 
-Bot comment line:
-```
-😎 Deploy Preview ,https://deploy-preview-19378--mongodb-manual.netlify.app/docs
-```
-
-- File: `content/manual/upcoming/source/reference/operator/aggregation/mergeObjects.txt`
-- Staging URL: `https://deploy-preview-19378--mongodb-manual.netlify.app/docs/upcoming/reference/operator/aggregation/mergeObjects/`
+- Base URL: `https://deploy-preview-25184--manual-docs.netlify.app`
+- File: `content/manual/upcoming/source/reference/command/moveCollection.txt`
+- Staging URL: `https://deploy-preview-25184--manual-docs.netlify.app/docs/upcoming/reference/command/movecollection/`
 
 ---
 
-Bot comment line:
-```
-😎 Deploy Preview ,https://temp-pr-19378--mongodb-csharp.netlify.app/docs/drivers/csharp
-```
-
-- File: `content/csharp/current/source/fundamentals/crud/read.txt`
-- Staging URL: `https://temp-pr-19378--mongodb-csharp.netlify.app/docs/drivers/csharp/current/fundamentals/crud/read/`
+- Base URL: `https://deploy-preview-25170--pymongo-arrow-driver-docs.netlify.app`
+- File: `content/pymongo-arrow-driver/current/source/reference/release-notes.txt`
+- Staging URL: `https://deploy-preview-25170--pymongo-arrow-driver-docs.netlify.app/docs/languages/python/pymongo-arrow-driver/current/reference/release-notes/`
 
 ---
 
@@ -98,7 +106,7 @@ Use a short, human-readable label for each link (e.g., the page heading or opera
 
 Each `<site>/source` directory (or `<site>/<version>/source` directory for versioned docs) has an `includes` directory. Files under `includes/` are rendered on multiple pages using include directives.
 
-**Format reference:** Read `references/rst-include-patterns.md` for include directive names, virtual path formats, and the page file extension. If this project uses `.mdx` pages instead of `.txt`, read `references/mdx-include-patterns.md` instead.
+**Format reference:** Read `references/rst-include-patterns.md` for include directive names, virtual path formats, and the page file extension.
 
 For each changed file that has `includes/` in its path, first check whether the file is a YAML extract container or a regular include file, then follow the appropriate path below.
 
@@ -106,9 +114,9 @@ For each changed file that has `includes/` in its path, first check whether the 
 
 YAML extract files contain multiple named blocks under `ref:` keys. They are never referenced directly — each `ref:` maps to a virtual include path (see `references/rst-include-patterns.md` for the format).
 
-1. **Identify changed refs from the diff** — Run the following two commands and cross-reference their output:
-   - `grep -n "^ref:" <file>` — get the line numbers of all `ref:` blocks in the file.
-   - `git diff $(git merge-base HEAD origin/HEAD)..HEAD -- <file>` — get the diff. Parse the `@@` hunk headers to find the line numbers of changed lines (the `+<start>` value in `@@ -a,b +start,c @@` gives the new-file line number of each hunk).
+1. **Identify changed refs from the diff** — Collect two inputs and cross-reference them:
+   - The line numbers of all `ref:` blocks. Read the file at the PR head (see Step 1) and pipe it through `grep -n "^ref:"`.
+   - The changed hunks. Run `gh api 'repos/{owner}/{repo}/pulls/<PR_NUMBER>/files' --paginate --jq '.[] | select(.filename == "<file>") | .patch'` and parse the `@@` hunk headers. The `+<start>` value in `@@ -a,b +start,c @@` gives the new-file line number of each hunk.
 
    For each changed hunk, find the largest `ref:` line number that is less than or equal to the hunk's starting line number. That is the ref block containing the change. Collect only those ref values.
 2. **For each changed ref**, construct the virtual include path using the format from the format reference file.
@@ -139,7 +147,7 @@ If you did not already, add the constructed staging URL to the list of staging l
 **TOC/navigation changes** (`content/table-of-contents/`) — For each changed hunk in a TOC file, find the parent section URL by scanning the diff context upward from the changed lines to the nearest ancestor `url:` field that belongs to a section node — one that has an `items:` array of child entries. That parent section URL is the staging link target — it shows that the sidebar for that section renders correctly after the change.
 
 - Replace the `:version` placeholder in the URL with the appropriate version string (e.g., `upcoming`, `v8.0`).
-- Assemble the staging URL using the Netlify base URL from the bot comment plus the versioned path.
+- TOC `url:` values already begin with `/docs/`, so append the URL directly to the base URL of the docset's site, with no extra prefix. Add a trailing `/` if the URL lacks one, then verify it as in Step 3.
 - If multiple hunks affect different parent sections, produce one staging link per distinct section.
 - Do this even when the PR also includes content changes — include both section links and any page-specific links.
 - If the hunk removes a page entry entirely (a deleted `.txt` file), note in the PR description that the page was deleted and link to its former parent section to confirm it no longer appears in navigation.

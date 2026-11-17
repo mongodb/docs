@@ -62,9 +62,8 @@ EMBEDDING_IDS = {
     "OpenAI": "openai",
 }
 
-# IDs that are interface-only (never driver languages)
-INTERFACE_ONLY = {k for k in INTERFACE_IDS
-                  if k not in {"shell", "mongosh"} or k in INTERFACE_IDS}
+# IDs that are interface-only (never driver languages). Deliberately excludes
+# shell/mongosh, which can act as either interface (Case B) or language (Case A).
 INTERFACE_ONLY = {"compass", "atlas-ui", "ui", "atlas-cli", "cli",
                   "admin-api", "api", "driver", "drivers"}
 

@@ -22,7 +22,7 @@
 
 - **Categories assessed:** {{categories_assessed}} (categories #1 counter-best-practice advice, #2 insecure code examples; #3 absent considerations {{absence_status}}).
 - **Pages scanned:** {{n_pages}} ({{pages_scope}}).
-- **Criteria:** universal guidelines (`references/universal-guidelines.md`) + per-docset considerations (`references/{{docset}}.yaml`).
+- **Criteria:** universal guidelines (`references/universal-guidelines.yaml`) + per-docset considerations (`references/{{docset}}.yaml`).
 
 ---
 

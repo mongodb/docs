@@ -46,14 +46,14 @@ All files live in `content/table-of-contents/`.
 
 **Versioning**: Some TocItems are scoped to specific product versions using the `versions` field. Use `{ includes: [...] }` or `{ excludes: [...] }` — never both.
 
-- **Adding a page**: If the page exists in all versions, omit the `versions` field. If the page exists from a known minimum version, use `excludes` with a Versions helper if one is imported in the target file (e.g. `excludes: productVersions.before('<version>')`). If the target file has no versions import, use a hardcoded array of the version strings to exclude (e.g. `excludes: ['v1.0', 'v1.1']`). If the minimum version cannot be inferred from the file structure, confirm with the user before proceeding.
-- **Removing a page from specific versions**: Use `excludes` with a Versions helper to identify the versions where the page no longer exists (e.g. `excludes: manualVersions.after('v8.0', { inclusive: true })`). This is self-maintaining — new versions are automatically excluded as they are added to the version array. Do not hardcode version strings in `excludes`.
+- **Adding a page**: If the page exists in all versions, omit the `versions` field. If the page exists from a known minimum version, use `excludes` with a Versions helper if one is imported in the target file (e.g. `excludes: manualVersions.before('v8.0')`). If the target file has no versions import, use a hardcoded array of the version strings to exclude (e.g. `excludes: ['v1.0', 'v1.1']`). If the minimum version cannot be inferred from the file structure, confirm with the user before proceeding.
+- **Removing a page from specific versions**: Use `excludes` with a Versions helper to identify the versions where the page no longer exists (e.g. `excludes: manualVersions.after('v8.0', { inclusive: true })`). This is self-maintaining — new versions are automatically excluded as they are added to the version array. As when adding, use a hardcoded array only if the target file has no versions import.
 
 Version arrays live in `version-arrays/` and are organized by product:
 - `version-arrays/server-docs/manual.ts` — MongoDB Server (Manual)
 - `version-arrays/server-docs/mongosync.ts` — MongoSync
-- `version-arrays/drivers/` — one file per driver (e.g. `node-versions.ts`)
-- `version-arrays/cloud-docs/` — Atlas and cloud products
+- `version-arrays/drivers/` — one file per versioned driver (e.g. `node-versions.ts`)
+- `version-arrays/cloud-docs/` — Kafka Connector (`kafka-connector.ts`)
 
 Each file exports a `Versions` instance with helper methods to generate version arrays without hardcoding strings:
 - `manualVersions.before('v8.0')` — all active versions before v8.0 (exclusive); pass `{ inclusive: true }` to include v8.0
@@ -61,7 +61,7 @@ Each file exports a `Versions` instance with helper methods to generate version 
 
 Deprecated versions are automatically excluded from all helper outputs. Do not reference deprecated versions directly in `includes` or `excludes` arrays.
 
-Use `versionDropdown: true` on a `GroupTocItem` or `CollapsibleTocItem` to render a version selector in the navigation. Use `:version` as a placeholder in `url` values for versioned pages (e.g. `/docs/:version/release-notes`).
+Use `versionDropdown: true` on a `GroupTocItem` or `SubNavTocItem` to render a version selector in the navigation. Use `:version` as a placeholder in `url` values for versioned pages (e.g. `/docs/:version/release-notes`).
 
 ---
 
@@ -73,7 +73,7 @@ When adding entries that have a parent/child relationship (e.g. a new `Collapsib
 
 Before making any change, determine which file owns the entry:
 
-1. Search `docset-data/` for the content site (e.g. `contentSite: 'atlas-cli'`). If a file exists for the product, changes to individual pages go there.
+1. Search `docset-data/`, including its subdirectories (e.g. `docset-data/drivers/cpp/`), for the content site (e.g. `contentSite: 'atlas-cli'`). If a file exists for the product, changes to individual pages go there.
 2. If no docset-data file exists and the page is part of the Database Manual, check `manual-data/` for the relevant topic fragment.
 3. If no docset-data or manual-data file covers the page, search `L2-data/` for the topic area.
 4. If the change affects a top-level navigation group, look in `L1-data/`.
@@ -105,7 +105,7 @@ Before making any change, determine which file owns the entry:
    - `label`: Display text matching the page's H1 title
    - `contentSite`: The DocSite enum value for the product (copy from adjacent entries)
    - `url`: The path relative to the content site's `source/` directory, without the extension, appended to the base URL pattern for that content site. Use adjacent entries to determine the base URL — it is not always derivable from the directory name (e.g. `content/c-driver/` uses `/docs/languages/c/c-driver/:version/`).
-4. If the page applies only to certain versions, add a `versions` field with either `includes` or `excludes`. Use the helper methods from the appropriate `version-arrays/` file (e.g. `manualVersions.before('v8.0')`) rather than hardcoding version strings.
+4. If the page applies only to certain versions, add a `versions` field per the **Versioning** rules above.
 5. If the page has child pages, use `CollapsibleTocItem` and add an `items` array.
 
 ---
@@ -115,7 +115,7 @@ Before making any change, determine which file owns the entry:
 1. Complete Step 1.
 2. Confirm the scope of the removal with the user: is the page being removed from all versions, or only from specific versions?
    - **All versions**: proceed to delete the entry (steps 3–5).
-   - **Specific versions only**: update the entry's `versions` field using `excludes` with a Versions helper to identify the versions where the page no longer exists. Do not delete the entry. Do not hardcode version strings.
+   - **Specific versions only**: update the entry's `versions` field per the **Versioning** rules above. Do not delete the entry.
 3. Locate the source-of-truth `TocItem` entry for the page. Search the ToC for any symlinks pointing to the same page. Inform the user of any symlinks found and confirm whether they should also be removed before proceeding.
 4. Check whether the entry has an `items` array with children. If so, decide with the user whether to remove the children or re-parent them.
 5. Delete the entry. If the parent is now empty (no remaining `items`):
