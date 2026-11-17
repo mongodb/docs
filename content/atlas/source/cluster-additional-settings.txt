@@ -145,7 +145,7 @@ toggle :guilabel:`Shard your cluster (M30 and up)` to ``Yes``.
 :term:`Sharded clusters <sharded cluster>` support horizontal scaling 
 and consist of :manual:`shards </core/sharded-cluster-shards>`,
 :ref:`config servers <sharding-config-server>` and
-:term:`mongos <mongos>` routers.  To learn more, see
+:term:`mongos <mongos>` routers. To learn more, see
 :ref:`nodes-for-config-server`. Config servers must remain readable for sharded read operations to continue to function.
 
 If you enable {+managed-configs+}, |service| may colocate config server
@@ -644,7 +644,7 @@ The minimum oplog size you can set is 990 megabytes.
 
 To check the current oplog size and replication lag time:
 
-1. Connect to your {+cluster+} via {+mongosh+}.
+1. Connect to your {+cluster+} through {+mongosh+}.
 2. Authenticate as a user with the :atlasrole:`Atlas admin` role.
 3. Run the
    :method:`rs.printReplicationInfo() <rs.printReplicationInfo>` method.
@@ -678,7 +678,7 @@ To set a fixed oplog size:
 
       Reducing the size of the oplog requires removing data from the
       oplog. |service| can't access or restore any oplog entries removed
-      as a result of oplog reduction. Consider the ramifications of this
+      because of oplog reduction. Consider the ramifications of this
       data loss before you reduce the oplog.
 
 Disk Space Considerations
@@ -747,7 +747,7 @@ Require Indexes for All Queries
 
 Enable or disable the execution of queries that require a collection
 scan to return results. This option corresponds to modifying the
-:parameter:`notablescan <param.notablescan>` parameter via the
+:parameter:`notablescan <param.notablescan>` parameter through the
 :dbcommand:`setParameter` command for each |mongod| in
 the {+cluster+}.
 
@@ -778,7 +778,7 @@ Set Transaction Lifetime
 Set the maximum lifetime of :manual:`multi-document transactions
 </core/transactions/>`. This option corresponds to modifying the
 :parameter:`transactionLifetimeLimitSeconds
-<param.transactionLifetimeLimitSeconds>` parameter via the 
+<param.transactionLifetimeLimitSeconds>` parameter through the 
 :dbcommand:`setParameter` command for each |mongod| in the {+cluster+}.
 
 .. important::
@@ -918,7 +918,9 @@ For all 8.0 |service| sharded {+clusters+}, {+managed-configs+} are
 :guilabel:`On` by default. To disable {+managed-configs+}, set the
 toggle to :guilabel:`Off`. If the {+cluster+} has fewer than 11 shards and
 embedded config servers, turning off {+managed-configs+} immediately
-transitions the {+cluster+} to dedicated config servers.
+transitions the {+cluster+} to dedicated config servers. Keep the
+:ref:`balancer <sharding-balancing>` on so that the shard drain
+finishes.
 
 .. note::
 
@@ -962,12 +964,24 @@ If you enable {+managed-configs+}, |service| determines the initial
 
 When you add or remove shards with {+managed-configs+} enabled,
 |service| automatically re-selects your sharded cluster's config server
-type using the same criteria.
+type using the same criteria. Keep the balancer on so that the shard
+drain finishes.
 
 When you upgrade an existing sharded {+cluster+} from MongoDB 7.0 to
 8.0, |service| turns on {+managed-configs+} but doesn't change the
 {+cluster+}'s existing config server type. These criteria apply to
 shard-count changes only.
+
+.. _config-server-shard-drain:
+
+Keep the Balancer On During a Config Server Change
+``````````````````````````````````````````````````
+
+When |service| transitions a {+cluster+} from an embedded config
+server to a dedicated config server, it drains user data off the
+config shard to the other shards. The process is called a shard drain.
+To ensure that the shard drain finishes, keep the balancer on. To learn
+more, see :ref:`transition-to-dedicated-config-servers`.
 
 .. _config-server-considerations:
 

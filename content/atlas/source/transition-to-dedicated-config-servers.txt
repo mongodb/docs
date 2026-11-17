@@ -48,6 +48,13 @@ shard. For {+clusters+} with large amounts of data on the config
 shard, the process can take hours to days. Before initiating the
 transition, confirm the following:
 
+- **The balancer must be on for the shard drain.** When |service|
+  drains shards, the balancer moves user data off the config shard
+  to the other shards through chunk migrations. The balancer is a
+  background process that is enabled by default. If you move the
+  data yourself, such as with resharding, you don't need the
+  balancer on.
+
 - **Your destination shards have headroom.** During the migration,
   shards that receive data from the config shard see elevated CPU,
   memory, and I/O. While the transition runs, |service| cannot scale
@@ -107,6 +114,10 @@ count:
   transitions from a dedicated config server to an embedded config
   server.
 
+If you turn off {+managed-configs+} on a {+cluster+} that uses an
+embedded config server, |service| transitions the {+cluster+} to a
+dedicated config server.
+
 .. note::
 
    When you upgrade a sharded {+cluster+} from MongoDB 7.0 to 8.0,
@@ -119,6 +130,15 @@ count:
 
 Manually Transition to Dedicated Config Server
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can also change the config server type yourself. One reason to do
+this is to use resharding to redistribute or move your data. When
+|service| performs the drain, the :ref:`balancer
+<sharding-balancing>` moves user data off the config shard to the
+other shards, so keep the balancer on.
+
+If you move the data yourself, such as with resharding, you can do so
+regardless of the balancer's state.
 
 To manually trigger the transition to a dedicated config server,
 complete the following steps:
@@ -253,7 +273,7 @@ following operational impacts on your cluster:
 .. warning::
    Do not cancel the transition after it has started.
 
-   Do not cancel via the {+atlas-ui+} or by reducing the shard
+   Do not cancel through the {+atlas-ui+} or by reducing the shard
    count while the transition is in progress. If cancellation is
    necessary, contact |mdb-support|.
 
