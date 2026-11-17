@@ -36,21 +36,6 @@ const tocData: TocItem[] = [
         label: 'Migrate Data',
         contentSite: 'docs',
         url: '/docs/:version/core/timeseries/timeseries-migrate-data-into-timeseries-collection',
-        collapsible: true,
-        items: [
-          {
-            label: 'Use Aggregation',
-            contentSite: 'docs',
-            url: '/docs/:version/core/timeseries/timeseries-migrate-with-aggregation',
-            versions: { excludes: ['upcoming'] },
-          },
-          {
-            label: 'Use Tools',
-            contentSite: 'docs',
-            url: '/docs/:version/core/timeseries/timeseries-migrate-with-tools',
-            versions: { excludes: ['upcoming'] },
-          },
-        ],
       },
       {
         label: 'Use Automatic Removal',

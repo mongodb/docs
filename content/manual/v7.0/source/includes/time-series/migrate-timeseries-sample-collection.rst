@@ -1,6 +1,6 @@
 .. code-block:: javascript
 
-   db.weatherdata.insertOne(
+   db.weather_data.insertOne(
       {
          _id: ObjectId("5553a998e4b02cf7151190b8"),
          st: "x+47600-047900",
