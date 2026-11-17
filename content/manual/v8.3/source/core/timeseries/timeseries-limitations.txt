@@ -162,6 +162,45 @@ MongoDB doesn't support the following index types on time series collections:
 
 .. include:: /includes/time-series-secondary-indexes-downgrade-FCV.rst
 
+.. _timeseries-limitations-mixed-schema-index-builds:
+
+Index Build Failures on Mixed-Schema Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Time series collections created before MongoDB 5.2 can contain
+mixed-schema data: internal buckets in both the old and the new 
+storage format. To check for mixed-schema data, run the
+:dbcommand:`validate` command on each time series collection and 
+review the output for ``warnings`` and ``errors``.
+
+If you create an index that includes a measurement field 
+(any field other than the ``timeField`` or ``metaField``) on a
+collection with mixed-schema data, the index build fails with 
+the following error:
+
+.. code-block:: none
+
+   Index build on collection '<namespace>' (<uuid>) failed due to the
+   detection of mixed-schema data in the time-series buckets collection.
+   Starting as of v5.2, time-series measurement bucketing has been
+   modified to ensure that newly created time-series buckets do not
+   contain mixed-schema data. For details, see:
+   https://www.mongodb.com/docs/manual/core/timeseries/timeseries-limitations/
+
+.. warning::
+
+   The remediation script modifies the internal ``system.buckets`` 
+   collection. Before running it, back up your data and test the procedure 
+   in a non-production environment.
+
+First, back up the affected collections. Then, follow the time series 
+mixed-schema remediation procedure in the 
+`MongoDB support tools repository <https://github.com/mongodb/support-tools/tree/master/timeseries-mixed-schema>`__.
+
+The ``rewrite_timeseries_mixed_schema_buckets.js`` script reinserts the
+measurements from each mixed-schema bucket into new buckets. After the script
+completes, retry the index build.
+
 Capped Collections
 ------------------
 
