@@ -87,16 +87,23 @@ jobs:
 
       - name: Send Slack notification
         if: steps.check.outputs.notify == 'true'
-        uses: slackapi/slack-github-action@v2.1.0
-        with:
-          webhook: ${{ secrets.SLACK_MAVERICK_WEBHOOK }}
-          webhook-type: incoming-webhook
-          # Plain text only (Workflow Builder webhook does not parse mrkdwn).
-          # Newlines (\n) render; bare URL stays clickable.
-          payload: |
-            {
-              "text": "${{ steps.check.outputs.author_name }} has created a PR for the team to review.\nPR Name: ${{ github.event.pull_request.title }}\nPR Number: ${{ github.event.pull_request.number }}\nLink: ${{ github.event.pull_request.html_url }}"
-            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_MAVERICK_WEBHOOK }}
+          AUTHOR_NAME: ${{ steps.check.outputs.author_name }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          jq -n \
+            --arg author "$AUTHOR_NAME" \
+            --arg title "$PR_TITLE" \
+            --arg number "$PR_NUMBER" \
+            --arg url "$PR_URL" \
+            '{text: "\($author) has created a PR for the team to review.\nPR Name: \($title)\nPR Number: \($number)\nLink: \($url)"}' \
+            | curl --fail --silent --show-error \
+                --request POST "$SLACK_WEBHOOK_URL" \
+                --header 'Content-Type: application/json' \
+                --data-binary @-
 
       - name: Mark PR as notified
         # Runs only after Slack succeeds, so a failed send leaves no marker
