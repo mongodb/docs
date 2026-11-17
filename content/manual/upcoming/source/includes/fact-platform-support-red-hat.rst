@@ -1,5 +1,5 @@
-MongoDB {+version+} Community Edition supports the following
-:red:`64-bit` versions of Red Hat Enterprise Linux (RHEL), CentOS Linux,
+MongoDB {+version+} Community Edition supports the following 64-bit
+versions of Red Hat Enterprise Linux (RHEL), CentOS Linux,
 Oracle Linux [#oracle-linux]_, Rocky Linux, and AlmaLinux 
 [#rocky-almalinux-note]_
 on :ref:`x86_64 <prod-notes-supported-platforms-x86_64>` architecture:

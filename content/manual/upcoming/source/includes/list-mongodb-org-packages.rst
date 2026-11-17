@@ -17,25 +17,16 @@ repository, and contains the following officially-supported packages:
 
   * - ``{+package-name-org+}-database``
     - A ``metapackage`` that automatically installs the component
-      packages listed below.
+      packages listed below:
 
-      .. list-table::
-         :header-rows: 1
-         :widths: 50 50
+      - ``{+package-name-org+}-server``: Contains the :binary:`~bin.mongod`
+        daemon, associated init script, and a :ref:`configuration file
+        <conf-file>` (``/etc/mongod.conf``). You can use the initialization
+        script to start :binary:`~bin.mongod` with the configuration file.
+        For details, see the "Run MongoDB Community Edition" section, above.
 
-         * - Package Name
-           - Description
-
-         * - ``{+package-name-org+}-server``
-           - Contains the :binary:`~bin.mongod` daemon, associated init
-             script, and a :ref:`configuration file
-             <conf-file>` (``/etc/mongod.conf``). You
-             can use the initialization script to start :binary:`~bin.mongod`
-             with the configuration file. For details, see the "Run MongoDB
-             Community Edition" section, above.
-
-         * - ``{+package-name-org+}-mongos``
-           - Contains the :binary:`~bin.mongos` daemon.
+      - ``{+package-name-org+}-mongos``: Contains the :binary:`~bin.mongos`
+        daemon.
 
   * - ``{+package-name+}-mongosh``
     - Contains the MongoDB Shell (:binary:`~bin.mongosh`).
@@ -44,24 +35,17 @@ repository, and contains the following officially-supported packages:
     - A ``metapackage`` that automatically installs the component
       packages listed below:
 
-      .. list-table::
-         :header-rows: 1
-         :widths: 50 50
+      - ``mongodb-database-tools``: Contains the following MongoDB database
+        tools:
 
-         * - Package Name
-           - Description
+        - :binary:`~bin.mongodump`
+        - :binary:`~bin.mongorestore`
+        - :binary:`~bin.bsondump`
+        - :binary:`~bin.mongoimport`
+        - :binary:`~bin.mongoexport`
+        - :binary:`~bin.mongostat`
+        - :binary:`~bin.mongotop`
+        - :binary:`~bin.mongofiles`
 
-         * - ``mongodb-database-tools``
-           - Contains the following MongoDB database tools:
-
-             - :binary:`~bin.mongodump`
-             - :binary:`~bin.mongorestore`
-             - :binary:`~bin.bsondump`
-             - :binary:`~bin.mongoimport`
-             - :binary:`~bin.mongoexport`
-             - :binary:`~bin.mongostat`
-             - :binary:`~bin.mongotop`
-             - :binary:`~bin.mongofiles`
-             
-         * - ``{+package-name-org+}-database-tools-extra``
-           - Contains the :ref:`install-compass` script
+      - ``{+package-name-org+}-database-tools-extra``: Contains the
+        :ref:`install-compass` script
