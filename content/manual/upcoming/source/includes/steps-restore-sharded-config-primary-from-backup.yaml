@@ -203,7 +203,7 @@ content: |
      db.runCommand({"_configsvrRunRestore":1})
 ---
 title: "For any planned or completed shard hostname or replica set name changes, update the metadata in ``config.shards``."
-stepnum: 4
+stepnum: 5
 ref: metadata-update
 content: |
 
@@ -278,8 +278,127 @@ content: |
 
 
 ---
+stepnum: 6
+ref: create-system
+source:
+  file: steps-restore-sharded-shard-primary-from-backup.yaml
+  ref: create-system
+---
+title: "Remove the ``minOpTimeRecovery`` document from the ``admin.system.version`` collection."
+stepnum: 7
+ref: delete-minOpTimeRecovery
+content: |
+
+  The config server runs shard components and stores this document
+  whether or not it stores application data.
+
+  To update the sharding internals, issue the following
+  :method:`~db.collection.deleteOne()` method on the
+  :data:`system.version <admin.system.version>` collection in the
+  ``admin`` database:
+
+  .. code-block:: javascript
+
+     use admin
+     db.system.version.deleteOne( { _id: "minOpTimeRecovery" } )
+
+  .. note::
+
+     The :data:`system.version <admin.system.version>` collection is an
+     internal system collection. You should only modify it when given
+     specific instructions like these.
+---
+title: "For any CSRS hostname or replica set name changes, update the config server's shard identity document."
+stepnum: 8
+ref: shard-identity-update
+optional: true
+content: |
+
+  You can skip this step if both of the following are true:
+
+  - The hostnames for any CSRS host did not change during this
+    procedure.
+  - The CSRS replica set name did not change during this procedure.
+
+  The :data:`system.version <admin.system.version>` collection on the
+  ``admin`` database contains the config server's shard identity
+  document, which records the CSRS connection string. If either the
+  CSRS name or any member hostnames changed earlier in this procedure,
+  you must update this metadata.
+
+  Issue the following :method:`~db.collection.find()` method on the
+  :data:`system.version <admin.system.version>` collection in the
+  ``admin`` database:
+
+  .. code-block:: javascript
+
+     use admin
+     db.system.version.find( {"_id" : "shardIdentity" } )
+
+  The :method:`~db.collection.find()` method returns a document similar to
+  the following:
+
+  .. code-block:: javascript
+
+     {
+       "_id" : "shardIdentity",
+       "clusterId" : ObjectId("2bba123c6eeedcd192b19024"),
+       "shardName" : "config",
+       "configsvrConnectionString" : "myCSRSName/alpha.example.net:27019,beta.example.net:27019,charlie.example.net:27019" 
+     }
+
+  The following :method:`~db.collection.updateOne` method sets the
+  ``configsvrConnectionString`` field to the most current CSRS connection
+  string:
+
+  .. code-block:: javascript
+
+     db.system.version.updateOne(
+       { "_id" : "shardIdentity" },
+       { $set :
+         { "configsvrConnectionString" : "myNewCSRSName/config1.example.net:27019,config2.example.net:27019,config3.example.net:27019"}
+       }
+     )
+
+  .. important::
+
+     A config server's shard name is always ``config``. Leave the
+     ``shardName`` value unchanged, even if you changed the CSRS
+     replica set name earlier in this procedure.
+---
+title: "Drop the cached routing table collections."
+stepnum: 9
+ref: drop-cached-routing-tables
+content: |
+
+  The config server keeps a local copy of the cluster's routing table
+  in the ``config.cache.*`` collections. It maintains this cache
+  whether or not it stores application data. After a restore, the
+  cached routing information can disagree with the restored sharding
+  metadata.
+
+  Drop these collections instead of modifying them. The config server
+  rebuilds them from the restored metadata:
+
+  .. code-block:: javascript
+
+     use config
+     db.cache.collections.drop()
+     db.cache.databases.drop()
+     db.getCollectionNames().forEach( function(collName) {
+        if ( collName.startsWith( "cache.chunks." ) ) {
+           db.getCollection( collName ).drop()
+        }
+     } )
+---
+stepnum: 10
+ref: remove-system
+source:
+  file: steps-restore-sharded-shard-primary-from-backup.yaml
+  ref: remove-system
+---
 title: "Restart the :binary:`mongod <bin.mongod>` as a new single-node replica set."
-stepnum: 5
+stepnum: 11
 ref: restart-as-repl
 content: |
   
@@ -318,7 +437,7 @@ replacement:
     
 ---
 title: "Initiate the new replica set."
-stepnum: 6
+stepnum: 12
 ref: initiate
 pre: |
   Initiate the replica set using :method:`rs.initiate()` with the 
@@ -332,7 +451,7 @@ post: |
   that the member has become the :term:`primary`. 
 ---
 title: "Add additional replica set members."
-stepnum: 7
+stepnum: 13
 ref: add-members
 content: |
 
@@ -388,7 +507,7 @@ replacement:
   component: "CSRS"
 ---
 title: "Configure any additional required replication settings."
-stepnum: 7
+stepnum: 14
 ref: configure-replication
 content: |
 

@@ -282,7 +282,31 @@ content: |
      CSRS metadata.
 
 ---
+title: "Drop the cached routing table collections."
 stepnum: 6
+ref: drop-cached-routing-tables
+content: |
+
+  Each shard keeps a local copy of the routing information for the
+  collections it owns in the ``config.cache.*`` collections. After a
+  restore, the cached routing information can disagree with the
+  sharding metadata on the config server.
+
+  Drop these collections instead of modifying them. The shard rebuilds
+  them from the config server metadata:
+
+  .. code-block:: javascript
+
+     use config
+     db.cache.collections.drop()
+     db.cache.databases.drop()
+     db.getCollectionNames().forEach( function(collName) {
+        if ( collName.startsWith( "cache.chunks." ) ) {
+           db.getCollection( collName ).drop()
+        }
+     } )
+---
+stepnum: 7
 ref: restart-as-repl
 source:
   file: steps-restore-sharded-config-primary-from-backup.yaml
@@ -298,13 +322,13 @@ replacement:
          clusterRole: shardsvr
 
 ---
-stepnum: 7
+stepnum: 8
 ref: initiate
 source:
   file: steps-restore-sharded-config-primary-from-backup.yaml
   ref: initiate
 ---
-stepnum: 8
+stepnum: 9
 ref: add-members
 source:
   file: steps-restore-sharded-config-primary-from-backup.yaml
@@ -331,14 +355,14 @@ replacement:
        )
   component: "shard replica set"
 ---
-stepnum: 9
+stepnum: 10
 ref: configure-replication
 source:
   file: steps-restore-sharded-config-primary-from-backup.yaml
   ref: configure-replication
 ---
 title: "Remove the temporary privileged user."
-stepnum: 10
+stepnum: 11
 ref: remove-system
 content: |
   
