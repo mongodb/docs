@@ -1,5 +1,6 @@
-- A single Certificate Authority (CA) must issue all X.509 certificates 
-  for the members of a sharded cluster or a replica set.
+- Each member of a sharded cluster or a replica set must trust the
+  Certificate Authority (CA) that issued the X.509 certificates for
+  its peers.
 
 - At least one of the Subject Alternative Name (``SAN``) entries must
   match the server hostname used by other cluster members. When
@@ -8,6 +9,17 @@
   If you don't specify ``subjectAltName``, MongoDB compares the Common
   Name (CN) instead. However, this usage of CN is deprecated per
   `RFC2818 <https://datatracker.ietf.org/doc/html/rfc2818>`_
+
+.. note::
+
+   Members can trust more than one CA. Each member trusts the CAs in
+   its trusted CA file, which you set with
+   :setting:`net.tls.CAFile`.
+
+   When you rotate certificates to a new CA, first add the new CA to
+   the trusted CA file on every member. Then rotate the member
+   certificates. Peers reject a certificate if they don't yet trust
+   its CA.
 
 Key Usage and Extended Key Usage are X.509 extensions that strictly
 define and restrict the use of the key associated with a
