@@ -18,7 +18,7 @@ The following table shows compatibility between the Node.js driver and Node.js:
      - Node.js v6.x.x
      - Node.js v4.x.x
 
-   * - 7.0 to 7.8 [#latest-note]_
+   * - 7.0 to 7.9 [#latest-note]_
      - ✓
      - ✓
      - ✓

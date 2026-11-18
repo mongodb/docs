@@ -159,6 +159,11 @@ export const toc: L1TocItem[] = [
                 contentSite: 'mcp-server',
                 url: '/docs/mcp-server/remote-mcp/rate-limits',
               },
+              {
+                label: 'Troubleshooting',
+                contentSite: 'mcp-server',
+                url: '/docs/mcp-server/remote-mcp/troubleshooting',
+              },
             ],
           },
         ],

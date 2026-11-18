@@ -61,13 +61,7 @@ export const toc: L1TocItem[] = [
             label: 'Configure',
             contentSite: 'mongodb-shell',
             collapsible: true,
-            url: '/docs/mongodb-shell/configure-mongosh',
             items: [
-              {
-                label: 'Use an Editor',
-                contentSite: 'mongodb-shell',
-                url: '/docs/mongodb-shell/reference/editor-mode',
-              },
               {
                 label: 'Configure Settings',
                 contentSite: 'mongodb-shell',
@@ -101,7 +95,15 @@ export const toc: L1TocItem[] = [
           {
             label: 'Run Commands',
             contentSite: 'mongodb-shell',
+            collapsible: true,
             url: '/docs/mongodb-shell/run-commands',
+            items: [
+              {
+                label: 'Use an Editor',
+                contentSite: 'mongodb-shell',
+                url: '/docs/mongodb-shell/run-commands/editor-mode',
+              },
+            ],
           },
           {
             label: 'Perform CRUD Operations',

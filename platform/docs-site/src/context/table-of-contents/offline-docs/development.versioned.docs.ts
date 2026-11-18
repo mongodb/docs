@@ -2695,11 +2695,17 @@ export const toc: L1TocItem[] = [
                         label: 'Use Aggregation',
                         contentSite: 'docs',
                         url: '/docs/:version/core/timeseries/timeseries-migrate-with-aggregation',
+                        versions: {
+                          excludes: ['upcoming'],
+                        },
                       },
                       {
                         label: 'Use Tools',
                         contentSite: 'docs',
                         url: '/docs/:version/core/timeseries/timeseries-migrate-with-tools',
+                        versions: {
+                          excludes: ['upcoming'],
+                        },
                       },
                     ],
                   },
@@ -9588,6 +9594,11 @@ export const toc: L1TocItem[] = [
                         label: 'Add Public Connections',
                         contentSite: 'cloud-docs',
                         url: '/docs/atlas/atlas-stream-processing/add-sp-connection',
+                      },
+                      {
+                        label: 'Set Up Data Catalogs for $iceberg',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/atlas-stream-processing/sp-iceberg-catalogs',
                       },
                       {
                         label: 'Advanced Networking',
