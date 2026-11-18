@@ -1,8 +1,8 @@
 .. _agent-engine-inspect-traces:
 
-===============================
+==============================
 Inspect Agent Execution Traces
-===============================
+==============================
 
 .. facet::
    :name: genre
@@ -10,7 +10,7 @@ Inspect Agent Execution Traces
 
 .. meta::
    :description: Learn how to inspect execution traces on the MongoDB Agentic AI Platform. View sessions, runs, and steps to debug latency and errors.
-   :keywords: observability, debugging, sessions, runs, steps
+   :keywords: observability, debugging, sessions, runs, steps, arize
 
 .. contents:: On this page
    :local:
@@ -127,7 +127,7 @@ tool call inputs and outputs, are redacted in this view. To learn how
 to grant this access, see :ref:`agent-engine-support-access`.
 
 View Traces in the Playground
-------------------------------
+-----------------------------
 
 The {+platform-short+} shows a :guilabel:`Traces` drawer next to the
 Playground chat panel. The drawer updates live as the current run
@@ -174,7 +174,8 @@ Find a Session
 
    .. step:: Open the Traces page.
 
-      In the left navigation, select :guilabel:`Monitor > Traces`.
+      In the left navigation, select :guilabel:`Traces` from the
+      :guilabel:`Monitor` section.
 
    .. step:: Filter the session list.
 
@@ -281,7 +282,7 @@ step's inputs and outputs, such as the messages sent to and returned
 from a model call.
 
 Find the Cause of a Slow Run
------------------------------
+----------------------------
 
 When a run takes longer than expected, use the following signals to
 find the specific step responsible:
@@ -304,6 +305,166 @@ find the specific step responsible:
   review". High review time means the run was paused in the
   human-in-the-loop review queue, not actually running slowly. To
   learn more, see :ref:`agent-engine-human-in-the-loop`.
+
+.. _agentic-platform-inspect-traces-export:
+
+Export Traces to Arize
+----------------------
+
+In addition to viewing your project's traces on the :guilabel:`Traces`
+page, you can export them to your own observability tool. The
+{+platform-short+} sends traces by using the OpenTelemetry Protocol
+(OTLP) over HTTP, a vendor-neutral format that most observability
+tools accept. By default, traces stay on the {+platform-short+} only.
+
+This section shows how to export traces to `Arize
+<https://arize.com/>`__. To export to a destination
+without preset settings, select :guilabel:`Custom (no preset)`
+from the :guilabel:`Preset` menu in the :guilabel:`Trace Export` window,
+and enter its OTLP connection details manually.
+
+.. important::
+
+   Currently, you must export the full content of your traces when
+   configuring trace export. This content includes model prompts
+   and completions, tool call inputs and outputs, and other sensitive
+   information. Metadata-only redaction is not yet available.
+
+.. _agentengine-traces-export-prerequisites:
+
+Before You Start
+~~~~~~~~~~~~~~~~
+
+Before you configure trace export to Arize, ensure that you have the
+following resources:
+
+- Arize project. To learn how to create a tracing project, see
+  `Instrument your Agent <https://arize.com/docs/ax/get-started/get-started-tracing>`__
+  in the Arize documentation.
+- Arize Space ID and project name, which send exported spans to the
+  specified Arize project. The Space ID appears in your browser's
+  address bar when you open your Space's home page in Arize,
+  in the form ``spaces/<space_id>/home``. The project name
+  is the name you gave the project when you created it.
+- Arize API key. To learn how to create an API key, see `Arize API keys
+  <https://arize.com/docs/ax/security-and-settings/api-keys>`__.
+
+Configure Trace Export
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. procedure::
+   :style: normal
+
+   .. step:: Open the Traces page.
+
+      Sign into the {+platform-short+} and navigate to the project that
+      contains the agent you want to export traces from.
+
+      From the left navigation bar, select :guilabel:`Traces` from
+      the :guilabel:`Monitor` section.
+
+   .. step:: Turn on trace export.
+
+      In the top right of the :guilabel:`Traces` page, click
+      the :guilabel:`Export` status chip to open the :guilabel:`Trace Export`
+      window.
+
+      Switch the :guilabel:`Enable trace export` toggle to the on position.
+
+   .. step:: Configure the destination.
+
+      In the :guilabel:`Destination` section of the :guilabel:`Trace Export`
+      window, configure the following settings:
+
+      a. From the :guilabel:`Preset` menu, select :guilabel:`Arize`.
+         The preset prefills the OTLP endpoint and protocol, and it adds
+         the :guilabel:`space_id` and :guilabel:`openinference.project.name`
+         fields.
+
+         .. tip::
+
+            Click the **Setup guide** link below the **Preset**
+            field to open Arize's OpenTelemetry instrumentation documentation.
+
+      #. Confirm the :guilabel:`OTLP endpoint` value. The Arize preset
+         prefills ``https://otlp.arize.com/v1/traces``.
+      #. Confirm the :guilabel:`Protocol` value. The Arize preset sets this
+         field to ``HTTP/protobuf``, the only supported protocol.
+      #. In :guilabel:`space_id`, enter your Arize Space ID.
+      #. In :guilabel:`openinference.project.name`, enter your Arize
+         project name. Arize uses this value to send incoming spans
+         to the correct project.
+      #. In :guilabel:`Destination API key`, enter your Arize API key,
+         and then click :guilabel:`Save key`. The {+platform-short+}
+         stores the key and doesn't display it again.
+      #. Confirm the :guilabel:`Auth header name` value. The Arize
+         preset sets this field to ``api_key``.
+
+   .. step:: Configure content delivery.
+
+      In the :guilabel:`Delivery` section of the :guilabel:`Trace Export`
+      window, configure the following settings:
+
+      a. Confirm that :guilabel:`Egress mode` is set to
+         :guilabel:`Agent Engine + customer mirror`. This field is
+         read-only.
+      #. Select the :guilabel:`I understand that full span content,
+         including prompts, completions, and tool payloads, will be
+         sent to the destination.` checkbox. This sets
+         :guilabel:`Content mode` to :guilabel:`Full content`, which is
+         currently the only available content mode.
+      #. Confirm that :guilabel:`Sampling` is set to :guilabel:`Always
+         on`. Currently, this is the only available sampling policy.
+      #. Leave :guilabel:`Skip TLS verification` unchecked. This feature
+         is not yet available.
+
+   .. step:: Save your settings.
+
+      Click :guilabel:`Save settings`. After saving, a popup message
+      appears that reads ``"Export is on"``. The :guilabel:`Export`
+      status chip updates to include your destination and an
+      :guilabel:`ON` badge.
+
+   .. step:: Verify that traces appear in Arize.
+
+      Invoke the agent in this project, either from the Playground UI or
+      through the invocation API. To learn more, see
+      :ref:`agent-engine-invoke-agent`.
+
+      The resulting trace appears on the :guilabel:`Traces` page in
+      the {+platform-short+} UI. The spans also appear in Arize,
+      on your Space's :guilabel:`Traces` page.
+
+Troubleshoot Trace Export
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the :guilabel:`Save settings` button stays disabled, or saving
+fails, verify the following requirements:
+
+- You must change at least one setting before you can save your
+  settings.
+- You must check the full-content box in the :guilabel:`Delivery`
+  section.
+- If you saved a :guilabel:`Destination API key`, you must also set
+  :guilabel:`Auth header name`.
+- You must save a :guilabel:`Destination API key` or set at least one
+  header value, such as :guilabel:`space_id`. You can save the settings
+  with only one of these set, but Arize requires both to authenticate.
+- Don't check the :guilabel:`Skip TLS verification` box. This can
+  prevent your settings from saving.
+- If the window reports that trace export isn't enabled in this
+  environment, the feature isn't available for your project yet.
+
+If your traces do not appear in Arize after you invoke your agent, verify
+the following requirements:
+
+- You must use the ``https://otlp.arize.com/v1/traces`` endpoint.
+  Ensure that your endpoint doesn't omit the ``/traces`` suffix.
+- Verify that your ``space_id`` and ``openinference.project.name`` match
+  the values in your Arize project.
+- Verify that you saved the correct Arize API key. To change it, click
+  :guilabel:`Replace key` in the :guilabel:`Destination API key`
+  section and enter the new key.
 
 Next Steps
 ----------
