@@ -320,6 +320,125 @@ The following code shows a connection string that uses the SRV connection format
 To learn more about the SRV connection format, see the :manual:`SRV Connection Format </reference/connection-string/#std-label-connections-dns-seedlist>`
 entry in the {+mdb-server+} manual.
 
+SRV Domain Validation
+~~~~~~~~~~~~~~~~~~~~~
+
+A ``mongodb+srv://`` connection string contains a single hostname, called the
+**seed hostname**. {+driver-short+} queries a DNS SRV record for that hostname
+to discover the hosts in your deployment. By default, {+driver-short+} accepts
+a returned host only if it shares the same parent domain as the seed hostname.
+
+Some deployments return hosts that the default check rejects. To connect
+to these deployments, replace the default check by setting the
+``srvAllowedHostsSuffix`` or ``srv_host_validator`` option.
+
+Set only one of these options. If you set both options, {+driver-short+} raises
+a ``ConfigurationError``. Both options are valid only with ``mongodb+srv://``
+connection strings.
+
+.. warning::
+
+   Modifying the default SRV domain name validation can create vulnerabilities.
+   Define the narrowest rule that accepts only the hosts in your
+   deployment.
+
+srvAllowedHostsSuffix
+`````````````````````
+
+When you set the ``srvAllowedHostsSuffix`` option, {+driver-short+}
+accepts a host if its name ends with the specified suffix. Use this
+option when a single suffix covers every host in your deployment. You
+can set this option in the ``MongoClient`` or ``AsyncMongoClient``
+constructor, or as a URI option.
+
+{+driver-short+} validates the suffix as follows:
+
+- The suffix must contain at least two labels separated by periods. If
+  the suffix contains a single label, it must be reserved for private or
+  special use, such as ``localhost``, ``test``, ``internal``, or ``corp``.
+- The suffix must not be a public suffix, as listed in the `Public Suffix
+  List <https://publicsuffix.org/list/>`__.
+
+The following examples connect to a deployment whose SRV record returns
+hosts in the ``internal.example.com`` domain. Select the
+:guilabel:`MongoClient`, :guilabel:`MongoClient (Asynchronous)`, or
+:guilabel:`Connection String` tab to view the corresponding code:
+
+.. tabs::
+
+   .. tab:: MongoClient
+      :tabid: sync
+
+      .. code-block:: python
+
+         client = pymongo.MongoClient(
+             "mongodb+srv://cluster.test.internal.example.com/",
+             srvAllowedHostsSuffix=".internal.example.com",
+         )
+
+   .. tab:: MongoClient (Asynchronous)
+      :tabid: async
+
+      .. code-block:: python
+
+         client = pymongo.AsyncMongoClient(
+             "mongodb+srv://cluster.test.internal.example.com/",
+             srvAllowedHostsSuffix=".internal.example.com",
+         )
+
+   .. tab:: Connection String
+      :tabid: connectionstring
+
+      .. code-block:: python
+
+         uri = ("mongodb+srv://cluster.test.internal.example.com/"
+                "?srvAllowedHostsSuffix=.internal.example.com")
+         client = pymongo.MongoClient(uri)
+
+srv_host_validator
+``````````````````
+
+When you set the ``srv_host_validator`` option, {+driver-short+}
+accepts a host if the specified callback returns ``True`` for that
+host. Use this option when the hosts in your deployment cannot be
+described by a single suffix, such as when they span several domains.
+
+You can set this option only in the ``MongoClient`` or
+``AsyncMongoClient`` constructor.
+
+The following examples connect to a deployment whose SRV record returns
+hosts in the ``a.example.com`` and ``b.example.com`` domains. Select the
+:guilabel:`Synchronous` or :guilabel:`Asynchronous` tab to view the
+corresponding code:
+
+.. tabs::
+
+   .. tab:: Synchronous
+      :tabid: sync
+
+      .. code-block:: python
+
+         def validator(host: str) -> bool:
+             return host.endswith((".a.example.com", ".b.example.com"))
+
+         client = pymongo.MongoClient(
+             "mongodb+srv://cluster.example.com/",
+             srv_host_validator=validator,
+         )
+
+   .. tab:: Asynchronous
+      :tabid: async
+
+      .. code-block:: python
+
+         def validator(host: str) -> bool:
+             return host.endswith((".a.example.com", ".b.example.com"))
+
+         client = pymongo.AsyncMongoClient(
+             "mongodb+srv://cluster.example.com/",
+             srv_host_validator=validator,
+         )
+
 Troubleshooting
 ---------------
 
