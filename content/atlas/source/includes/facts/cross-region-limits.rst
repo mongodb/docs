@@ -1,7 +1,8 @@
 Gen1 clusters can span regions and cloud service providers.
-{+gen-2-clusters-short+} do not offer cross-cloud support, but they
-can span multiple regions so long as all regions support Gen2 clusters
-for a given cloud provider. To learn more, see:
+{+gen-2-clusters-short+} can span multiple regions and cloud service
+providers so long as all nodes are on |aws| or |gcp| and in regions that
+support Gen2 clusters. All nodes in a cluster must be Gen2. You can't mix
+Gen1 and Gen2 nodes in the same cluster. To learn more, see:
 
 - :ref:`AWS Gen2 Supported Regions <aws-reference-gen2-regions>`
 - :ref:`GCP Gen2 Supported Regions <gcp-reference-gen2-regions>`

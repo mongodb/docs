@@ -4,7 +4,8 @@ limitations. You can also
 
 - {+gen-2-clusters-short+} are available only on |aws| and |gcp|.
   {+gen-2-clusters+} are not available on |azure|.
-- Multi-cloud support is not available for {+gen-2-clusters+}.
+- Multi-cloud {+gen-2-clusters+} can span only |aws| and |gcp|
+  regions that support Gen2 clusters.
 - Not all cloud provider regions support {+gen-2-clusters+}. To learn more,
   see:
 
