@@ -9321,7 +9321,15 @@ export const toc: L1TocItem[] = [
                   {
                     label: 'Strands Agents',
                     contentSite: 'cloud-docs',
+                    collapsible: true,
                     url: '/docs/atlas/ai-integrations/strands',
+                    items: [
+                      {
+                        label: 'Get Started',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/ai-integrations/strands/get-started',
+                      },
+                    ],
                   },
                 ],
               },

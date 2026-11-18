@@ -249,6 +249,14 @@ const tocData: TocItem[] = [
             label: 'Strands Agents',
             contentSite: 'cloud-docs',
             url: '/docs/atlas/ai-integrations/strands',
+            collapsible: true,
+            items: [
+              {
+                label: 'Get Started',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/ai-integrations/strands/get-started',
+              },
+            ],
           },
         ],
       },

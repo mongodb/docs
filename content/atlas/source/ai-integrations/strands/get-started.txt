@@ -1,0 +1,375 @@
+.. _strands-get-started:
+
+=======================================================
+Get Started with the MongoDB Strands Agents Integration
+=======================================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. meta::
+   :keywords: agentic, memory, sessions, persistence, vector search, semantic search, code example, python
+   :description: Configure a Strands Agents agent to save its conversation sessions in MongoDB and recall penguin facts with Atlas Automated Embedding and Atlas Vector Search.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can integrate MongoDB with Strands Agents to save an agent's
+conversation sessions and long-term memory in a MongoDB deployment.
+This tutorial uses the `strands-mongodb
+<https://pypi.org/project/strands-mongodb/>`__ package to persist the
+agent's sessions and to save and search data. Then, it runs an
+agent that answers a question about penguins by using the memory
+stored in MongoDB.
+
+In this tutorial, you perform the following tasks:
+
+#. Set up your environment.
+#. Save penguin facts to a memory store and define a {+avs+} query
+   that uses these facts.
+#. Configure an agent that uses MongoDB for sessions and memory.
+#. Run the file and review the output.
+
+Background
+----------
+
+`Strands Agents <https://strandsagents.com/>`__ is AWS's open-source
+Python SDK for building AI agents. This tutorial uses the
+following ``strands-mongodb`` classes to connect an agent to
+MongoDB:
+
+- ``MongoDBStorage``: Persists agent sessions, context management data,
+  and transcripts in MongoDB.
+- ``MongoDBMemoryStore``: Saves information as memory documents in
+  MongoDB, and searches them by meaning, by keyword, or by both.
+
+By default, {+avs+} generates the embeddings for the memories, so
+you don't need an embedding model or an embedding provider API key.
+
+Prerequisites
+-------------
+
+To complete this tutorial, you must have the following resources:
+
+- .. include:: /includes/avs/shared/avs-requirements-cluster.rst
+
+- .. include:: /includes/avs/shared/avs-requirements-openai-api-key.rst
+
+- Python v3.10 or later.
+
+- `uv <https://docs.astral.sh/uv/>`__.
+
+Set Up the Environment
+----------------------
+
+In this section, you prepare your environment by installing the
+required dependencies, setting your environment variables, and
+creating a project file.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create and activate a virtual environment.
+
+      Run the following commands in your terminal to create a new
+      directory named ``strands-mongodb-project`` and start a virtual
+      environment:
+
+      .. code-block:: bash
+
+         mkdir strands-mongodb-project
+         cd strands-mongodb-project
+         uv venv
+         source .venv/bin/activate
+
+   .. step:: Install the dependencies.
+
+      From your ``strands-mongodb-project`` directory, run the
+      following command to install the required dependencies:
+
+      .. code-block:: bash
+
+         uv pip install 'strands-mongodb[all]' 'strands-agents[openai]' python-dotenv
+
+      The ``strands-agents[openai]`` extra installs the OpenAI model
+      provider that this tutorial uses. To use a different provider,
+      see `Model Providers
+      <https://strandsagents.com/docs/user-guide/sdk/model-providers/>`__
+      in the Strands Agents documentation.
+
+   .. step:: Set your environment variables.
+
+      In your ``strands-mongodb-project`` directory, create an
+      ``.env`` file and add the following code:
+
+      .. code-block:: bash
+
+         OPENAI_API_KEY="<openai-api-key>"
+         MONGODB_URI="<connection-string>"
+
+      Replace ``<openai-api-key>`` with your OpenAI API key.
+
+      .. include:: /includes/search-shared/find-connection-string.rst
+
+   .. step:: Create a project file.
+
+      In your ``strands-mongodb-project`` directory, create a file
+      named ``main.py``. Add the following code to this file to load
+      your environment variables, import the required modules, and
+      define the ``--query`` command-line argument:
+
+      .. code-block:: python
+
+         import argparse
+         import asyncio
+         import os
+
+         from dotenv import load_dotenv
+         from strands import Agent
+         from strands.memory import MemoryManager
+         from strands.models.openai import OpenAIModel
+         from strands.session import SnapshotSessionManager
+         from strands_mongodb import MongoDBMemoryStore, MongoDBStorage
+         from strands_mongodb.types import MongoDBConfig
+
+         load_dotenv()
+
+         parser = argparse.ArgumentParser()
+         parser.add_argument("--query", required=True)
+         args = parser.parse_args()
+
+      In future steps, you add code to this file to configure
+      your MongoDB connection, save memory documents, and create
+      an agent that accesses these documents.
+
+.. _strands-get-started-memory:
+
+Configure the Memory Store
+--------------------------
+
+In this section, you connect to MongoDB, save facts about penguins
+to a memory store, and define a {+avs+} query that uses these facts.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Configure the MongoDB connection.
+
+      Add the following code to your ``main.py`` file to create a
+      ``MongoDBConfig`` dictionary that accesses the
+      ``strands_tutorial`` database:
+
+      .. code-block:: python
+
+         connection: MongoDBConfig = {
+             "connection_string": os.environ["MONGODB_URI"],
+             "database": "strands_tutorial",
+         }
+
+      Share this dictionary with every class that connects to
+      MongoDB to ensure that the classes share one connection pool.
+
+   .. step:: Create a writable memory store.
+
+      Add the following code to your ``main.py`` file to create a
+      ``MongoDBMemoryStore`` instance that saves each memory as a
+      document in the ``memory`` collection:
+
+      .. code-block:: python
+
+         store = MongoDBMemoryStore(
+             name="penguin_facts",
+             config=connection,
+             scope="field-researcher",
+             writable=True,
+         )
+
+      This code sets the following parameters:
+
+      - ``name``: Identifies the memory store. The store adds a field named
+        ``store_name`` to every memory document and sets the field's value to
+        ``"penguin_facts"``. The store reads only the memories that hold this
+        value.
+      - ``scope``: Separates these memory documents from memories that other
+        users or agents save in the same collection.
+      - ``writable``: Allows the memory store and the agent to save
+        memories. The default value is ``False``.
+
+   .. step:: Save penguin facts.
+
+      Add the following code to your ``main.py`` file to define the
+      program's entry point and save three memory documents, which
+      store penguin facts:
+
+      .. code-block:: python
+
+         async def main() -> None:
+             await store.add(
+                 "Emperor penguins can dive deeper than any other bird,"
+                 " reaching depths of over 500 meters."
+             )
+             await store.add(
+                 "Gentoo penguins are the fastest underwater swimmers among"
+                 " penguins, reaching speeds of up to 36 kilometers per hour."
+             )
+             await store.add(
+                 "Adélie penguins live along the Antarctic coastline."
+             )
+
+   .. step:: Search the memory documents.
+
+      Add the following code to your ``main()`` function to search the
+      memory documents. The code prints every memory document that the
+      search returns, ranked by relevance to the ``--query`` value.
+
+      .. code-block:: python
+
+             found = []
+             for _ in range(60):
+                 found = await store.search(args.query)
+                 if len(found) >= 3:
+                     break
+                 await asyncio.sleep(5)
+             else:
+                 raise SystemExit("The search indexes are not ready. Try again.")
+
+             print("Search results:")
+             for entry in found:
+                 print(f"- {entry.content}")
+
+      {+avs+} generates the embeddings for each new memory document
+      asynchronously, after the write operation completes. Until the
+      embeddings are ready, your vector search results might be
+      incomplete. The preceding code retries the search every five
+      seconds, for up to five minutes, until it returns all three memories.
+
+.. _strands-get-started-agent:
+
+Configure an Agent
+------------------
+
+In this section, you configure an agent that saves its sessions in
+MongoDB and uses the memory store to answer questions.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create the storage instance.
+
+      Add the following code to your ``main.py`` file's ``main()``
+      function to create a ``MongoDBStorage`` instance. The instance
+      saves the agent's sessions in the ``storage`` collection:
+
+      .. code-block:: python
+
+             storage = MongoDBStorage(connection)
+
+   .. step:: Create the agent.
+
+      Add the following code to your ``main()`` function to create an
+      agent that uses MongoDB for sessions and memory:
+
+      .. code-block:: python
+
+             agent = Agent(
+                 model=OpenAIModel(
+                     client_args={"api_key": os.environ["OPENAI_API_KEY"]},
+                     model_id="gpt-4o",
+                 ),
+                 storage=storage,
+                 session_manager=SnapshotSessionManager(
+                     session_id="penguin-research"
+                 ),
+                 memory_manager=MemoryManager(
+                     stores=[store], add_tool_config=True
+                 ),
+                 callback_handler=None,
+             )
+
+      This code passes the following parameters:
+
+      - ``model``: Uses the ``gpt-4o`` model from OpenAI to generate
+        agent responses.
+      - ``storage``: Provides the backend that the agent's subsystems
+        use to save persistent data.
+      - ``session_manager``: Saves the conversation under the
+        specified session ID. The ``storage`` parameter alone does
+        not persist sessions.
+      - ``memory_manager``: Provides the agent with a ``search_memory`` tool.
+        Setting the ``add_tool_config parameter`` to ``True`` also configures
+        the ``add_memory`` tool for saving new memories.
+      - ``callback_handler``: Hides the SDK's streaming output from your
+        console.
+
+   .. step:: Run a conversation turn.
+
+      Add the following code to your ``main()`` function to send the
+      ``--query`` value to the agent and print the agent's answer. The
+      code also lists the keys prefixed with ``session/`` to show that the
+      agent saved the session in MongoDB.
+
+      .. code-block:: python
+
+             result = await agent.invoke_async(args.query)
+             print("\nAgent:", str(result).strip())
+
+             print("\nSession keys:")
+             for key in await storage.list("session/"):
+                 print(f"- {key}")
+
+             await store.close()
+
+      Then, add the following code after the ``main()`` function to run
+      it:
+
+      .. code-block:: python
+
+         asyncio.run(main())
+
+Run the File
+------------
+
+To run the ``main.py`` file, run the following command from your
+``strands-mongodb-project`` directory. Use the ``--query`` flag to
+specify the question that the application sends to the agent:
+
+.. code-block:: bash
+
+   uv run main.py --query "Which penguin species can dive the deepest?"
+
+If the command runs successfully, the output resembles the
+following:
+
+.. code-block:: text
+   :copyable: false
+
+   Search results:
+   - Emperor penguins can dive deeper than any other bird, reaching depths of over 500 meters.
+   - Adélie penguins live along the Antarctic coastline.
+   - Gentoo penguins are the fastest underwater swimmers among penguins, reaching speeds of up to 36 kilometers per hour.
+
+   Agent: Emperor penguins can dive deeper than any other bird, reaching depths of over 500 meters.
+
+   Session keys:
+   - session/penguin-research/scopes/agent/default/snapshots/snapshot_latest.json
+
+The agent answered the question by using the documents stored
+in MongoDB, and it saved the conversation under the
+``penguin-research`` session ID.
+
+Next Steps
+----------
+
+To learn more about ``MongoDBStorage``, ``MongoDBMemoryStore``, and
+their full parameter and method reference, see :ref:`strands`.
+
+To learn more about Strands Agents, see the `Strands Agents
+documentation <https://strandsagents.com/docs/>`__.
