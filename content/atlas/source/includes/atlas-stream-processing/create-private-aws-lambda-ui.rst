@@ -13,7 +13,7 @@ through the {+atlas-ui+}, follow these steps:
 
       a. In the sidebar, click :guilabel:`Private Endpoint`.
 
-      #. Click the :guilabel:`{+atlas-sp+}` tab.
+      #. In the sidebar, click :guilabel:`{+atlas-sp+}`.
 
 	 If you have not created an {+atlas-sp+} private endpoint
 	 previously, click :guilabel:`Create endpoint`. If you have,

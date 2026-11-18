@@ -13,7 +13,7 @@
    .. step:: Navigate to the private endpoint.
 
       a. In the sidebar, click :guilabel:`Private Endpoint`.
-      #. Click the :guilabel:`Dedicated Cluster` tab.
+      #. In the sidebar, click :guilabel:`Dedicated Cluster`.
       #. Locate the private endpoint service for which you want to
          manage accepted regions.
 

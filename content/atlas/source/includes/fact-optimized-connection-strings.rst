@@ -1,5 +1,10 @@
 .. include:: /includes/fact-optimized-connection-strings-intro.rst
 
+To choose which private endpoints |service| includes in a
+connection string, use :ref:`private endpoint connection strings
+<manage-private-endpoint-connection-strings>`. This feature is in
+Preview.
+
 To use an optimized connection string, you must meet all of the following criteria:
 
 - :ref:`Configure a sharded {+cluster+} <cluster-option-sharding>`.

@@ -6,8 +6,8 @@
    .. step:: Navigate to the private endpoint for your federated database instance or online archive.
 
       a. In the sidebar, click :guilabel:`Private Endpoint`.
-      #. Click the :guilabel:`Federated Database Instance / Online
-         Archive` tab.
+      #. In the sidebar, click :guilabel:`Federated Database
+         Instance / Online Archive`.
       
    .. step:: Click the :guilabel:`Add Private Endpoint` button.
             

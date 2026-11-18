@@ -51,7 +51,7 @@ To add an |azure| Blob Storage Private Link connection to your {+spw+} through t
 
       a. In the sidebar, click :guilabel:`Private Endpoint`.
 
-      #. Click the :guilabel:`{+atlas-sp+}` tab.
+      #. In the sidebar, click :guilabel:`{+atlas-sp+}`.
 
          If you have not created an {+atlas-sp+} private endpoint
          previously, click :guilabel:`Create endpoint`. If you have,

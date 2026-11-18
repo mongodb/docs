@@ -95,7 +95,7 @@ Create the Private Endpoint
 
       a. In the sidebar, click :guilabel:`Private Endpoint`.
 
-      #. Click the :guilabel:`{+atlas-sp+}` tab.
+      #. In the sidebar, click :guilabel:`{+atlas-sp+}`.
 
       #. Under :guilabel:`Connection private endpoint`, click
          :guilabel:`Create`.

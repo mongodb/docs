@@ -28,7 +28,7 @@ To add a {+gcp+} Pub/Sub connection to your {+spw+} through the
 
       a. In the sidebar, click :guilabel:`Private Endpoint`.
 
-      #. Click the :guilabel:`{+atlas-sp+}` tab.
+      #. In the sidebar, click :guilabel:`{+atlas-sp+}`.
 
          If you have not created an {+atlas-sp+} private endpoint
          previously, click :guilabel:`Create endpoint`. If you have,
