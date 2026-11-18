@@ -24,6 +24,32 @@ class Band
 end
 # end-has-one-validation
 
+# start-has-one-build-type
+class RecordingStudio < Studio
+end
+
+band = Band.create
+
+# Builds a RecordingStudio without saving it
+band.build_studio({}, RecordingStudio)
+
+# Creates and saves a RecordingStudio
+band.create_studio({}, RecordingStudio)
+# end-has-one-build-type
+
+# start-belongs-to-build-type
+class TouringBand < Band
+end
+
+studio = Studio.new
+
+# Builds a TouringBand without saving it
+studio.build_band({}, TouringBand)
+
+# Creates and saves a TouringBand
+studio.create_band({}, TouringBand)
+# end-belongs-to-build-type
+
 # start-has-many
 class Band
   include Mongoid::Document
@@ -202,6 +228,19 @@ class Band
   embeds_one :label, store_as: "record_label"
 end
 # end-embed-store-as
+
+# start-embed-one-build-type
+class IndependentLabel < Label
+end
+
+band = Band.create
+
+# Builds an IndependentLabel without saving it
+band.build_label({ name: "Periphery" }, IndependentLabel)
+
+# Creates and saves an IndependentLabel
+band.create_label({ name: "Periphery" }, IndependentLabel)
+# end-embed-one-build-type
 
 # start-embed-many
 class Band
