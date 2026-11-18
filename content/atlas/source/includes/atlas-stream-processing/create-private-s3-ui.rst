@@ -50,27 +50,6 @@ the {+atlas-ui+}, follow these steps:
       Note the ARN value in ``Statement.Principal.AWS`` to use
       later in this procedure.
 
-   .. include:: /includes/nav/steps-project-access-manager
-
-   .. step:: Create an API key.
-
-      The :oas-bump-atlas-op:`Create One Connection
-      <createGroupStreamConnection>` API endpoint
-      requires digest authorization when creating an S3 Connection. To
-      support this, you must create an API Key.
-
-      a. In the :guilabel:`Project Access Manager`, select the
-	 :guilabel:`Applications` tab, then click :guilabel:`API Keys`.
-
-      b. Click :guilabel:`Create API Key`. Provide a short description
-	 for the key.
-
-      c. In the :guilabel:`Project Permissions` dropdown menu,
-	 select both the :guilabel:`Project Stream Processing Owner` and
-	 :guilabel:`Project Owner` roles. Click :guilabel:`Next`.
-
-      d. Save both the public and private keys to use later in this procedure.
-
    .. include:: /includes/nav/steps-stream-processing.rst  
 
    .. step:: Go to the :guilabel:`Connection Registry`.  
