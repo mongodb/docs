@@ -103,6 +103,7 @@ For detecting and fixing linter-flagged issues in content/.
 | Skill | What it does |
 |---|---|
 | `/atlas-events` | Update the MongoDB Atlas event type documentation (event-types.rst) by running the event-types-generator script against the Atlas Admin API, then committing only the regenerated list table |
+| `/atlas-qa-setup` | Provision a temporary Atlas test cluster for testing documentation examples |
 
 ## Other Tools
 
