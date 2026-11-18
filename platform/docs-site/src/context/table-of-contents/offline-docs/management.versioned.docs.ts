@@ -1517,6 +1517,11 @@ export const toc: L1TocItem[] = [
                 url: '/docs/atlas/atlas-ui/sampling',
               },
               {
+                label: 'Read Preference',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/atlas-ui/read-preference',
+              },
+              {
                 label: 'Triggers',
                 isExternal: true,
                 url: 'https://www.mongodb.com/docs/atlas/atlas-ui/triggers',
