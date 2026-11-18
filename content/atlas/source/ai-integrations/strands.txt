@@ -1,0 +1,828 @@
+.. _strands:
+
+=====================================
+Integrate MongoDB with Strands Agents
+=====================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. meta::
+   :keywords: agentic, memory, sessions, storage, RAG, retrieval, vector database, vector search, code example, python
+   :description: Integrate MongoDB with Strands Agents using strands-mongodb to add persistent sessions, context offloading, and Atlas Vector Search-backed long-term memory to your agents.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can integrate MongoDB with `Strands Agents
+<https://strandsagents.com/>`__, an open-source Python SDK for
+building AI agents. The `strands-mongodb
+<https://github.com/mongodb/strands-mongodb>`__ package allows you
+to use a MongoDB deployment as the backend for the following
+classes:
+
+- **MongoDBStorage**, which persists agent sessions, context
+  management, and transcripts in MongoDB.
+- **MongoDBMemoryStore**, which saves and recalls facts by
+  semantic meaning, keyword, or a combination of both.
+
+.. TODO: uncomment once the get started exists
+
+   Get Started
+   -----------
+
+   To complete a tutorial that configures Strands Agents to use
+   MongoDB, see :ref:`strands-get-started`.
+
+Installation
+------------
+
+To install the ``strands-mongodb`` package and the dependencies for
+the ``MongoDBStorage`` and ``MongoDBMemoryStore`` classes, run
+the following command:
+
+.. code-block:: shell
+
+   pip install 'strands-mongodb[all]'
+
+This command installs the following dependencies:
+
+- ``strands-mongodb``: The MongoDB integration package for Strands Agents.
+- ``strands-agents``: The Strands Agents SDK. The package requires
+  v1.54 or later.
+- ``pymongo``: The official Python driver for MongoDB. The package
+  requires v4.14 or later.
+- ``pymongo-search-utils``: Utilities for working with MongoDB's vector
+  search features. The package requires v0.3 or later.
+- ``opentelemetry-api``: The OpenTelemetry API for Python. The package
+  requires v1.30 or later.
+- ``typing-extensions``: Backported typing features for Python. The
+  package requires v4.13.2 or later.
+
+Alternatively, install the dependencies for individual classes by
+running one of the following commands:
+
+.. code-block:: shell
+
+   pip install 'strands-mongodb[storage]'   # MongoDBStorage
+   pip install 'strands-mongodb[memory]'    # MongoDBMemoryStore
+
+Usage
+-----
+
+To configure your MongoDB connection, pass a ``MongoDBConfig`` dictionary
+to the ``MongoDBStorage`` or ``MongoDBMemoryStore`` class.
+Create one ``MongoDBConfig`` dictionary per process and pass it to every
+class you use, which allows them to share one connection pool.
+
+You can specify either an existing client or a connection string
+to configure your connection. Select the :guilabel:`Existing client`
+or :guilabel:`Connection string` tab to view a corresponding example:
+
+.. tabs::
+
+   .. tab:: Existing client
+      :tabid: existing-client
+
+      .. code-block:: python
+
+         from pymongo import AsyncMongoClient
+         from strands_mongodb.types import MongoDBConfig
+
+         client = AsyncMongoClient("<connection-string>")
+         connection: MongoDBConfig = {
+             "client": client,
+             "database": "agents",
+         }
+
+      .. note::
+
+         The package doesn't take ownership of the client. You are
+         responsible for closing it.
+
+      To learn more about ``AsyncMongoClient``, see :ref:`pymongo-mongoclient`.
+
+   .. tab:: Connection string
+      :tabid: connection-string
+
+      .. code-block:: python
+
+         from strands_mongodb.types import MongoDBConfig
+
+         connection: MongoDBConfig = {
+             "connection_string": "<connection-string>",
+             "database": "agents",
+         }
+
+      To learn more about finding your connection string, see
+      :ref:`connect-via-driver`.
+
+.. collapsible::
+   :heading: MongoDBConfig Keys
+   :sub_heading: Use these keys to configure the connection that MongoDBStorage and MongoDBMemoryStore share.
+   :expanded: false
+
+   .. list-table::
+      :widths: 25 15 60
+      :header-rows: 1
+
+      * - Key
+        - Necessity
+        - Description
+
+      * - ``database``
+        - Required
+        - Name of the database that contains every collection that
+          your connection accesses.
+
+      * - ``connection_string``
+        - Conditional
+        - Connection string for your MongoDB deployment. Required if you don't
+          specify a ``client`` value.
+
+      * - ``client``
+        - Conditional
+        - Existing PyMongo ``AsyncMongoClient`` instance. We
+          recommend that you use a client instead of a connection
+          string, because the credential stays
+          inside an object you own instead of a dictionary value.
+          Required if you don't specify a ``connection_string``
+          value.
+
+      * - ``client_args``
+        - Optional
+        - Extra keyword arguments for the client that this package
+          builds. This key is ignored when you specify ``client``.
+
+      * - ``ensure_indexes``
+        - Optional
+        - Whether to create the indexes that the package requires.
+          Defaults to ``True``. If ``False``, MongoDB verifies the
+          indexes and reports whether any are missing instead of creating them.
+
+      * - ``index_ready_timeout``
+        - Optional
+        - Seconds to wait for each search index to become queryable.
+          Defaults to ``300``.
+
+      * - ``search_type``
+        - Optional
+        - Which {+avs+} and {+fts+} search types the
+          ``MongoDBMemoryStore`` class prepares and queries. The
+          values are ``"auto"``, ``"vector"``, ``"text"``, or
+          ``"hybrid"``. Defaults to ``"auto"``, which prepares every
+          search type the deployment offers and prefers the highest
+          one available. The ``MongoDBStorage`` class ignores this
+          key.
+
+      * - ``embedding_model``
+        - Optional
+        - Embedding model to use for Automated Embedding,
+          which MongoDB uses to embed your text automatically.
+          Defaults to ``voyage-4-lite``. The ``MongoDBStorage``
+          class ignores this key.
+
+      * - ``embedding_dimensions``
+        - Optional
+        - Length of the vectors that you supply yourself instead of
+          using Automated Embedding. This key is mutually exclusive with
+          ``embedding_model``, and it requires the ``similarity`` key.
+          The ``MongoDBStorage`` class ignores this key.
+
+      * - ``similarity``
+        - Optional
+        - Distance metric for vectors that you supply yourself. The values are
+          ``"cosine"``, ``"dotProduct"``, or ``"euclidean"``. This key is
+          mutually exclusive with ``embedding_model``, and it requires the
+          ``embedding_dimensions`` key. The ``MongoDBStorage`` class ignores this key.
+
+      * - ``filter_fields``
+        - Optional
+        - Document field paths to declare as filterable in the
+          {+avs+} index, in addition to ``scope`` and ``store_name``.
+          {+avs+} rejects a query that filters on an undeclared field.
+          Defaults to ``[]``. The ``MongoDBStorage`` class ignores this key.
+
+      * - ``vector_index_name``
+        - Optional
+        - Name of the {+avs+} index. Defaults to
+          ``"vector_index"``. The ``MongoDBStorage`` class ignores this key.
+
+      * - ``text_index_name``
+        - Optional
+        - Name of the {+fts+} index. Defaults to
+          ``"text_index"``. The ``MongoDBStorage`` class ignores this key.
+
+MongoDBStorage
+--------------
+
+The ``MongoDBStorage`` class allows you to save an agent's persistent
+data in MongoDB. Once configured, the SDK stores the agent's
+sessions, context management data, and transcripts as documents in a
+MongoDB collection instead of in local files or memory. The
+persistent data is stored under string keys, and each key becomes a
+document's ``_id`` value. As a result, read and write operations perform
+primary-key lookups.
+
+This section describes how to configure and use the methods provided
+by the ``MongoDBStorage`` class.
+
+Configuration
+~~~~~~~~~~~~~
+
+To configure this class, pass a ``MongoDBConfig`` dictionary and a
+collection name to the ``MongoDBStorage`` constructor. The following
+example writes persistent data to MongoDB, retrieves this data, lists
+keys that start with a specified prefix, and deletes the data:
+
+.. io-code-block::
+   :copyable: false
+
+   .. input::
+      :language: python
+
+      import asyncio
+
+      from strands_mongodb import MongoDBStorage
+
+      async def main() -> None:
+          storage = MongoDBStorage(connection, collection="storage")
+          try:
+              await storage.write("notes/colony", b"emperor penguins live in Antarctica")
+              print(await storage.read("notes/colony"))
+              print(await storage.list("notes/"))
+              await storage.delete("notes/colony")
+          finally:
+              await storage.close()
+
+      asyncio.run(main())
+
+   .. output::
+      :visible: false
+
+      b'emperor penguins live in Antarctica'
+      ['notes/colony']
+
+.. collapsible::
+   :heading: MongoDBStorage Parameters
+   :sub_heading: Use these parameters to configure a storage instance.
+   :expanded: false
+
+   .. list-table::
+      :widths: 25 15 60
+      :header-rows: 1
+
+      * - Parameter
+        - Necessity
+        - Description
+
+      * - ``config``
+        - Required
+        - ``MongoDBConfig`` connection. Share the same ``MongoDBConfig``
+          dictionary with a ``MongoDBMemoryStore`` to reuse its connection
+          pool.
+
+      * - ``collection``
+        - Optional
+        - Collection that stores this instance's documents.
+          Defaults to ``"storage"``.
+
+      * - ``prefix``
+        - Optional
+        - Prefix added to every key, scoping this instance's
+          keys within the collection. Defaults to no prefix.
+
+      * - ``ttl_seconds``
+        - Optional
+        - | Lifetime of documents that this instance writes, in
+            seconds from each write. Defaults to no expiration.
+          | This key adds an ``expires_at`` field to each document,
+            and MongoDB deletes the corresponding document only after
+            a TTL index exists on that field. To create a TTL index, call
+            ``await storage.ensure_indexes()`` once at startup.
+
+      * - ``search_strategy``
+        - Optional
+        - What ``search()`` runs instead of the default key-only
+          scan, such as the SDK's ``KeywordSearchStrategy`` or
+          ``MongoDBVectorSearchStrategy``.
+
+To learn how to configure an agent to use this class, see
+:ref:`strands-configure-agent`.
+
+Methods
+~~~~~~~
+
+The following table lists the methods provided by the
+``MongoDBStorage`` class:
+
+.. list-table::
+   :widths: 18 42 22 18
+   :header-rows: 1
+
+   * - Method
+     - Description
+     - Parameters
+     - Return Value
+
+   * - ``write()``
+     - Stores persistent data as bytes in a key, replacing any
+       existing value. If you set ``ttl_seconds``, this method also
+       adds an ``expires_at`` field to the document it writes.
+     - | ``key``: The key to store the data under.
+       | ``data``: The bytes to store.
+     - ``None``
+
+   * - ``read()``
+     - Returns the bytes stored in a key.
+     - ``key``: The key to read.
+     - ``bytes``, or ``None`` when the key is absent
+
+   * - ``delete()``
+     - Removes one key. If you delete a key that doesn't exist, this
+       method doesn't raise an error.
+     - ``key``: The key to remove.
+     - ``None``
+
+   * - ``list()``
+     - Returns the names of keys that start with a prefix, in
+       ascending order. Returns keys only, not the stored values.
+     - ``query``: The key prefix to match.
+     - ``list[str]``
+
+   * - ``search()``
+     - By default, this method ranks stored key names by how many
+       words they share with a query. To search the stored values
+       instead, set ``MongoDBStorage``'s ``search_strategy``
+       parameter to a strategy that reads values, such as the SDK's
+       ``KeywordSearchStrategy`` or ``MongoDBVectorSearchStrategy``
+       for vector search.
+     - ``query``: The text to search for.
+     - ``list[StorageSearchResult]``
+
+   * - ``delete_prefix()``
+     - Removes every key that starts with a specified prefix.
+     - ``prefix``: The key prefix to remove.
+     - ``int``, which indicates the number of documents removed
+
+   * - ``namespace()``
+     - Returns a new ``MongoDBStorage`` scoped to a prefix in the
+       same collection, sharing the original connection pool,
+       collection, TTL, and search strategy. This method is
+       synchronous.
+     - ``prefix``: The prefix that scopes the new instance.
+     - ``MongoDBStorage``
+
+   * - ``ensure_indexes()``
+     - Creates or verifies the TTL index that ``ttl_seconds``
+       requires. Call this method once at startup.
+     - None
+     - ``None``
+
+   * - ``close()``
+     - Releases the connection pool for every instance that shares
+       the same ``MongoDBConfig`` dictionary. Call this method once at
+       process shutdown.
+     - None
+     - ``None``
+
+When you pass a ``MongoDBStorage`` instance to an ``Agent``, the agent's
+session and context subsystems call ``write()``, ``read()``, ``delete()``,
+``list()``, and ``search()`` for you. You call ``ensure_indexes()``,
+``close()``, ``namespace()``, and ``delete_prefix()`` yourself.
+
+MongoDBMemoryStore
+------------------
+
+The ``MongoDBMemoryStore`` class allows you to save an agent's
+long-term memory in MongoDB. Once configured, the agent stores facts
+in a MongoDB collection and retrieves them by meaning, by keyword, or
+both. The store uses {+avs+} for semantic recall and {+fts+} for
+keyword recall.
+
+To use {+avs+}, MongoDB compares the vector embeddings of your data with
+the embedding of the query. By default, MongoDB generates these
+embeddings for you, so you don't need to manage vectors or embedding
+provider API keys.
+
+This section describes how to configure and use the methods provided
+by the ``MongoDBMemoryStore`` class.
+
+Configuration
+~~~~~~~~~~~~~
+
+To configure this class, pass a name and a ``MongoDBConfig`` dictionary
+to the ``MongoDBMemoryStore`` constructor.
+
+This example creates a memory store, adds a memory, and then searches
+for the memory by semantic meaning. When instantiating a
+``MongoDBMemoryStore``, the example also sets the following optional
+parameters:
+
+- ``scope``: Limits the memory store's access to documents that
+  store the specified ``scope`` field value. The example uses the
+  scope ``"user-abc"``.
+- ``writable``: Enables write operations on the memory store.
+
+.. io-code-block::
+   :copyable: false
+
+   .. input::
+      :language: python
+
+      import asyncio
+
+      from strands_mongodb import MongoDBMemoryStore
+
+      async def main() -> None:
+          store = MongoDBMemoryStore(
+              name="preferences", config=connection, scope="user-abc", writable=True
+          )
+          try:
+              await store.add("Studies emperor penguins in Antarctica.")
+
+              results = await store.search("Which animals does this researcher observe?")
+              for entry in results:
+                  print(f"search type: {entry.metadata['_search_type']}")
+                  print(f"score: {entry.metadata['_relevance_score']}")
+                  print(f"content: {entry.content}")
+          finally:
+              await store.close()
+
+      asyncio.run(main())
+
+   .. output::
+      :visible: false
+
+      search type: hybrid
+      score: 0.01639344262295082
+      content: Studies emperor penguins in Antarctica.
+
+Search Types
+````````````
+
+``MongoDBMemoryStore`` uses the following search types to answer a
+query:
+
+- Vector search, which matches by meaning.
+- Text search, which matches by keyword.
+- Hybrid search, which combines both search types.
+
+The ``search_type`` key in the ``MongoDBConfig`` dictionary controls
+which search types the store uses. The default value, ``"auto"``, prepares
+every search type the deployment supports and prefers the highest one
+available.
+
+Because this deployment prepares both indexes, a ``search_type``
+value of ``"auto"`` uses hybrid search. Hybrid search ranks results
+differently from vector search, so scores from the two are not
+directly comparable. A ``min_score`` or ``max_score`` value that you
+configured for vector search can exclude results that you expect to
+keep.
+
+.. collapsible::
+   :heading: MongoDBMemoryStoreConfig Keys
+   :sub_heading: Use these keys to configure a memory store.
+   :expanded: false
+
+   .. list-table::
+      :widths: 25 15 60
+      :header-rows: 1
+
+      * - Key
+        - Necessity
+        - Description
+
+      * - ``name``
+        - Required
+        - Name that identifies the store. The store writes this value
+          to a ``store_name`` field on each memory document, and it
+          filters on that field for every read and delete operation. As
+          a result, a store only sees memories written under its
+          specified name.
+
+      * - ``config``
+        - Required
+        - ``MongoDBConfig`` dictionary that holds the connection
+          details. Reuse one dictionary across stores that differ only
+          by ``scope`` so that the stores share a connection pool.
+
+      * - ``description``
+        - Optional
+        - Description of the store, which the SDK shows to the model
+          when it chooses among several stores.
+
+      * - ``writable``
+        - Optional
+        - Whether the store accepts write and delete operations. Defaults to
+          ``False``, so a store that only reads memories cannot save
+          or delete them.
+
+      * - ``extraction``
+        - Optional
+        - Allows the SDK to pull facts out of a conversation automatically
+          and save them, instead of relying on the model to call the
+          ``add_memory`` tool. The store must also be writable.
+
+      * - ``collection``
+        - Optional
+        - MongoDB collection that holds this store's memories.
+          Defaults to ``"memory"``.
+
+      * - ``scope``
+        - Optional
+        - Separates this store's memories from those of other stores
+          that share the collection, such as another user's or
+          another agent's. The store writes the scope to every memory
+          and applies it to every read and delete operation. If you omit it,
+          the store uses a default scope that no named scope matches.
+
+      * - ``filter``
+        - Optional
+        - Query filter that narrows which memories the store can
+          read or delete. You must list every field in the filter in
+          the ``MongoDBConfig`` dictionary's ``filter_fields`` key.
+
+      * - ``max_search_results``
+        - Optional
+        - Number of results that the ``search()`` method returns by default.
+          Defaults to ``10``. A ``limit`` on a single query overrides
+          this value.
+
+      * - ``min_score`` and ``max_score``
+        - Optional
+        - Lowest (``min_score``) or highest (``max_score``)
+          relevance score that a result can have. You can
+          only set one of these values.
+
+      * - ``ttl_seconds``
+        - Optional
+        - How long the store keeps each memory, in seconds from when
+          it was saved. Defaults to storing memories indefinitely. The
+          store creates the TTL index that enforces this value
+          automatically.
+
+      * - ``embedder``
+        - Optional
+        - Object with an ``async embed(text)`` method that converts
+          memories and queries into vectors. Use this parameter only when you
+          supply your own vectors by setting ``embedding_dimensions``
+          and ``similarity`` in the ``MongoDBConfig`` dictionary. On the default
+          path, MongoDB embeds the text for you.
+
+To learn how to configure an agent to use this class, see
+:ref:`strands-configure-agent`.
+
+Methods
+~~~~~~~
+
+The following table lists the methods provided by the
+``MongoDBMemoryStore`` class:
+
+.. list-table::
+   :widths: 18 42 22 18
+   :header-rows: 1
+
+   * - Method
+     - Description
+     - Parameters
+     - Return Value
+
+   * - ``add()``
+     - Stores one memory in this store's scope. Writes are
+       deduplicated on scope, store name, and content, so adding the
+       same fact again doesn't create a second document.
+     - | ``content``: The text of the memory.
+       | ``metadata``: Optional key-value pairs to store with the
+         memory.
+     - ``MongoDBAddResult``, which contains ``ids``, ``inserted``,
+       and ``duplicates``
+
+   * - ``search()``
+     - Returns the memories that best match a query in order
+       of relevance. Accepts a plain string or a ``MongoDBSearchQuery``
+       dictionary for a per-query filter, limit, or vector.
+     - | ``query``: The text to search for, or a
+         ``MongoDBSearchQuery`` dictionary.
+       | ``options``: Optional SDK search options, such as
+         ``max_search_results``.
+     - ``list[MemoryEntry]``. Each entry's metadata includes
+       ``_relevance_score``, ``_search_type``, ``_scope``, and
+       ``_id``.
+
+   * - ``initialize()``
+     - Identifies which search features the deployment supports, and then
+       creates this store's indexes. This method is called automatically by
+       ``MemoryManager`` and by every method that reads or writes memories.
+     - None
+     - ``None``
+
+   * - ``delete()``
+     - Deletes one memory, identified by the ``_id`` that a search result
+       reports. To use this method, you must set ``writable`` to ``True``.
+     - ``memory_id``: The ``_id`` value from a search result.
+     - ``int``, which is ``1`` if a document was deleted or ``0`` if none
+       matched
+
+   * - ``delete_all()``
+     - Deletes every memory that this store can read. To use this method,
+       you must set ``writable`` to ``True``.
+     - None
+     - ``int``, which indicates the number of documents deleted
+
+   * - ``close()``
+     - Releases the connection pool for every instance that shares
+       the same ``MongoDBConfig`` dictionary.
+     - None
+     - ``None``
+
+When you register this store with ``MemoryManager``, the agent calls
+``initialize()``, ``search()``, and, when you enable it, ``add()``.
+You call ``delete()``, ``delete_all()``, and ``close()`` yourself,
+because the SDK's ``MemoryStore`` interface has no deletion or
+connection methods.
+
+.. _strands-configure-agent:
+
+Configure an Agent
+------------------
+
+You can configure an agent to store its sessions and
+long-term memory in the same MongoDB deployment. This
+configuration lets the agent save and retrieve that data
+automatically as it runs.
+
+To configure the agent, pass a ``MongoDBConfig`` dictionary to
+both the ``MongoDBStorage`` and ``MongoDBMemoryStore``
+constructors, then pass the resulting instances to the ``Agent``
+constructor.
+
+The following example creates an agent that uses MongoDB for both
+sessions and memory:
+
+.. code-block:: python
+
+   from strands import Agent
+   from strands.memory import MemoryManager
+   from strands.session import SnapshotSessionManager
+   from strands_mongodb import MongoDBStorage, MongoDBMemoryStore
+
+   store = MongoDBMemoryStore(
+       name="preferences",
+       config=connection,
+       scope="user-abc",
+       writable=True,
+   )
+
+   agent = Agent(
+       model=your_model,
+       storage=MongoDBStorage(connection),
+       session_manager=SnapshotSessionManager(session_id="support-ticket-4127"),
+       memory_manager=MemoryManager(stores=[store], add_tool_config=True),
+   )
+
+The following considerations apply:
+
+- To allow the agent to save memories, set the ``writable`` key to ``True``.
+- The ``MemoryManager`` class always provides the model with a ``search_memory`` tool,
+  but it provides an ``add_memory`` tool only when ``add_tool_config`` is
+  set to ``True``. If you want the model to decide when to save a memory,
+  enable the ``add_tool_config`` parameter.
+- The ``add_tool_config`` parameter raises a ``ValueError`` if
+  no store you pass is writable.
+- The ``storage`` parameter alone does not persist sessions.
+  You must set ``session_manager`` to save the sessions
+  under the specified ``session_id`` value.
+
+Search Indexes
+--------------
+
+``MongoDBMemoryStore`` creates two search indexes on first use,
+unless you set the ``ensure_indexes`` key to ``False``.
+
+The {+avs+} index is named by the ``MongoDBConfig`` dictionary's
+``vector_index_name`` key and has the following definition:
+
+.. code-block:: json
+
+   {
+     "fields": [
+       {
+         "type": "autoEmbed",
+         "path": "content",
+         "model": "voyage-4-lite",
+         "modality": "text"
+       },
+       { "type": "filter", "path": "scope" },
+       { "type": "filter", "path": "store_name" }
+     ]
+   }
+
+.. note::
+
+   By default, this {+avs+} index uses the ``autoEmbed`` type, which
+   instructs MongoDB to generate the embeddings automatically.
+
+The {+fts+} index is named by the ``MongoDBConfig`` dictionary's
+``text_index_name`` key and has the following definition:
+
+.. code-block:: json
+
+   {
+     "mappings": {
+       "dynamic": false,
+       "fields": {
+         "content": [{ "type": "string" }]
+       }
+     }
+   }
+
+To learn more about creating these indexes manually, see
+:ref:`avs-create-index` and :ref:`{+fts+} Index <ref-create-index>`.
+
+Manual Embedding
+~~~~~~~~~~~~~~~~
+
+To supply your own vector embeddings, set
+the ``MongoDBConfig`` dictionary's ``embedding_dimensions``
+and ``similarity`` keys. Do not set the ``embedding_model`` key.
+With this configuration, MongoDB indexes an ``embedding`` field
+as the ``vector`` type, instead of a ``content`` field as the
+``autoEmbed`` type.
+
+Then, provide the vectors in one of the following ways:
+
+- Pass an ``embedder`` object to the ``MongoDBMemoryStore``
+  constructor, which instructs the store to embed memories
+  and string queries
+
+- When calling the ``search()`` method, pass a precomputed vector
+  in the ``vector`` key of a ``MongoDBSearchQuery`` dictionary
+
+Permissions
+-----------
+
+The following table describes the privileges that your database user
+requires for different actions:
+
+.. list-table::
+   :widths: 30 35 35
+   :header-rows: 1
+
+   * - Privilege
+     - Needed For
+     - Required When
+
+   * - :authaction:`find`
+     - Every read, on both classes
+     - Always
+
+   * - :authaction:`insert`, :authaction:`update`, :authaction:`remove`
+     - ``write()``, ``add()``, ``delete()``, and similar methods
+     - Always, for a writable store or storage instance
+
+   * - :authaction:`listCollections`
+     - Collation check that every ``initialize()`` call runs
+       before any index
+     - Always
+
+   * - :authaction:`listIndexes`, :authaction:`listSearchIndexes`
+     - Verifying indexes
+     - Always
+
+   * - :authaction:`createIndex`, :authaction:`createCollection`,
+       :authaction:`createSearchIndexes`
+     - Creating indexes
+     - Only when ``ensure_indexes`` is set to ``True``, its default value
+
+To grant these privileges, create a :ref:`custom role <mongodb-roles>`
+scoped to your storage and memory collections.
+
+.. note::
+
+   By default, the ``initialize()`` and ``ensure_indexes()`` methods
+   create the indexes the package requires if they don't already exist.
+   Production applications often run as a user without the
+   ``createIndex``, ``createCollection``, and ``createSearchIndexes``
+   privileges, or leave index creation to a separate deployment step. In
+   that case, set the ``MongoDBConfig`` dictionary's ``ensure_indexes`` 
+   key to ``False``. This instructs the package to verify the indexes
+   instead of creating them.
+
+Additional Resources
+--------------------
+
+To learn more about using Strands Agents with MongoDB, see
+the following resources:
+
+- `Strands Agents <https://strandsagents.com/docs/>`__ documentation
+- :github:`strands-mongodb <mongodb/strands-mongodb>` GitHub repository
+- `strands-mongodb <https://pypi.org/project/strands-mongodb/>`__ on PyPI

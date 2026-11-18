@@ -9195,6 +9195,19 @@ export const toc: L1TocItem[] = [
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/ai-integrations/spring-ai',
                   },
+                  {
+                    label: 'Vercel AI SDK',
+                    contentSite: 'cloud-docs',
+                    collapsible: true,
+                    url: '/docs/atlas/ai-integrations/vercel-ai',
+                    items: [
+                      {
+                        label: 'Get Started',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/ai-integrations/vercel-ai/get-started',
+                      },
+                    ],
+                  },
                 ],
               },
               {
@@ -9305,6 +9318,11 @@ export const toc: L1TocItem[] = [
                       },
                     ],
                   },
+                  {
+                    label: 'Strands Agents',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/ai-integrations/strands',
+                  },
                 ],
               },
               {
@@ -9398,6 +9416,18 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/ai-integrations/n8n/build-ai-agent',
                       },
                     ],
+                  },
+                ],
+              },
+              {
+                label: 'Observability',
+                contentSite: 'cloud-docs',
+                collapsible: true,
+                items: [
+                  {
+                    label: 'MLflow',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/ai-integrations/mlflow',
                   },
                 ],
               },
