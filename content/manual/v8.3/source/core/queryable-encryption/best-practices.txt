@@ -1,0 +1,159 @@
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn best practices for production deployments that use Queryable Encryption or Client-Side Field Level Encryption, including schema enforcement, key management, auditing, and network isolation.
+   :keywords: key management, schema enforcement, kms auditing, production security
+
+.. _in-use-encryption-best-practices:
+
+====================================
+Best Practices for In-Use Encryption
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Use these recommendations to harden production deployments that use
+:ref:`{+qe+} <qe-manual-feature-qe>` or
+:ref:`{+csfle+} ({+csfle-abbrev+}) <manual-csfle-feature>`.
+
+Validate and Enforce Encryption Schemas
+---------------------------------------
+
+Configure client-side schemas instead of relying on the
+remote schema from the server. Specify the ``encryptedFieldsMap``
+option for {+qe+} or the ``schemaMap`` option for {+csfle-abbrev+} in
+your client connection configuration. Client-side schemas catch the
+most common failure, where an application incorrectly sends a field in 
+plaintext. For risks of remote schemas, see
+:ref:`Security Considerations <qe-csfle-security-considerations>`.
+
+{+qe+} requires a server-side encryption schema by default. For
+{+csfle-abbrev+} collections, you must configure server-side encryption schema
+enforcement. Server-side enforcement rejects any write where a protected field
+isn't encrypted. This is a second safeguard against a client sending plaintext 
+writes. To learn how to configure server-side schema enforcement, see
+:ref:`Schema Validation <qe-fundamentals-encrypt-query>` for {+qe+} or
+:ref:`CSFLE Server-Side Field Level Encryption Enforcement <field-level-encryption-automatic-remote-schema>`
+for {+csfle-abbrev+}.
+
+
+Securely Manage Encryption Keys
+-------------------------------
+
+Use Short-Lived {+kms-abbr+} Credentials
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Whenever possible, authenticate to your KMS with assumed roles
+and short-term session tokens instead of long-lived credentials. For
+example, on {+aws-long+}, use instance credentials rather than IAM user
+access keys. Drivers that support {+qe+} and {+csfle-abbrev+} can fetch
+temporary AWS credentials automatically. If you must use long-lived
+KMS access keys, rotate them frequently.
+
+To review credential management for your KMS, see
+:ref:`Amazon Web Services KMS <qe-fundamentals-kms-providers-aws>`,
+:ref:`Azure Key Vault <qe-fundamentals-kms-providers-azure>`, or
+:ref:`Google Cloud Platform KMS <qe-fundamentals-kms-providers-gcp>`.
+
+Separate KMS Privileges
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Strictly separate the privileges of KMS key administrators
+from the KMS credentials that your application uses. Key
+administrators can create, revoke, and delete keys and manage
+KMS access policies. Grant your application a role that allows
+only encrypt and decrypt actions for the single {+cmk-long+} that it
+uses.
+
+Audit Key Usage
+~~~~~~~~~~~~~~~
+
+If you use {+atlas+} with a cloud KMS provider, enable audit
+logging for {+cmk-long+} usage. AWS KMS, {+gcp-kms-abbr+}, and
+{+azure-kv+} offer audit tooling, such as 
+`AWS CloudTrail <https://aws.amazon.com/cloudtrail/>`__.
+Monitor the logs, and consider adding key operations to the allowlist at the
+API level.
+
+If you use a self-managed KMS, an HSM, or a KMIP server such
+as HashiCorp Vault, export key audit logs off the host. Store the logs
+in immutable storage and monitor them.
+
+Back Up Keys Before Rotation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Take a full backup of your {+key-vault-long+} before you rotate your
+{+dek-long+}s by rewrapping them with a new {+cmk-long+}.
+
+To learn how to rotate keys, see :ref:`Rotate and Rewrap Encryption
+Keys <qe-fundamentals-manage-keys>` for {+qe+} or
+:ref:`field-level-encryption-data-key-manage` for {+csfle-abbrev+}.
+
+To learn about backup strategies, see :ref:`backup-methods`.
+
+
+Use Private Network Connectivity
+--------------------------------
+
+Whenever possible, connect your {+qe+} or {+csfle-abbrev+}-enabled
+application and your {+atlas+} cluster over private networks. Use VPC
+peering or a private endpoint rather than public internet.
+
+To learn more, see the {+atlas+} documentation on `VPC peering
+<https://www.mongodb.com/docs/atlas/security-vpc-peering/>`__ and
+`private endpoints
+<https://www.mongodb.com/docs/atlas/security-private-endpoint/>`__.
+
+Reuse Client Connections
+------------------------
+
+Keep a long-lived ``MongoClient`` per process or pod, rather than
+creating one per request or invocation. If your workload runs on AWS
+Lambda, initialize the client outside the handler so warm invocations
+can reuse it.
+
+To learn more about connection management, see
+:ref:`connection-pool-overview`.
+
+Audit Encryption Coverage
+-------------------------
+
+Periodically audit your encrypted clusters to confirm that sensitive
+fields remain protected. Use centralized audit scripts that call
+:method:`db.getCollectionInfos()` to query collection metadata across
+every database in one pass:
+
+- For {+qe+} collections, verify that the ``options.encryptedFields``
+  document still marks the expected fields for encryption.
+
+- For {+csfle-abbrev+} collections, verify that the
+  ``options.validator.$jsonSchema`` document still marks the expected
+  fields with the ``encrypt`` keyword. To learn how to view a
+  collection's validation rules, see
+  :ref:`schema-view-validation-rules`.
+
+Harden Self-Managed Hosts
+-------------------------
+
+If you run {+csfle-abbrev+} on a self-managed deployment outside of a
+cloud provider, enable volume encryption on both the database host and
+the application host. On the application side, use a secrets manager,
+such as HashiCorp Vault, to manage access to key services. Do not use
+static or hard-coded access tokens in production applications.
+
+Learn More
+----------
+
+- :ref:`Security Considerations <qe-csfle-security-considerations>`
+- :ref:`qe-fundamentals-kms-providers`
+- :ref:`qe-reference-keys-key-vaults`
+- :ref:`qe-features`
+- :ref:`csfle-features`

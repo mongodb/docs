@@ -2688,26 +2688,7 @@ export const toc: L1TocItem[] = [
                   {
                     label: 'Migrate Data',
                     contentSite: 'docs',
-                    collapsible: true,
                     url: '/docs/:version/core/timeseries/timeseries-migrate-data-into-timeseries-collection',
-                    items: [
-                      {
-                        label: 'Use Aggregation',
-                        contentSite: 'docs',
-                        url: '/docs/:version/core/timeseries/timeseries-migrate-with-aggregation',
-                        versions: {
-                          excludes: ['upcoming'],
-                        },
-                      },
-                      {
-                        label: 'Use Tools',
-                        contentSite: 'docs',
-                        url: '/docs/:version/core/timeseries/timeseries-migrate-with-tools',
-                        versions: {
-                          excludes: ['upcoming'],
-                        },
-                      },
-                    ],
                   },
                   {
                     label: 'Use Automatic Removal',
@@ -3341,7 +3322,7 @@ export const toc: L1TocItem[] = [
                 contentSite: 'docs',
                 url: '/docs/:version/core/queryable-encryption/best-practices',
                 versions: {
-                  includes: ['manual'],
+                  includes: ['upcoming', 'manual', 'v8.3', 'v8.0'],
                 },
               },
               {

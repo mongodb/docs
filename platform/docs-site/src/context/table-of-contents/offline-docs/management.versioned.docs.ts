@@ -38,6 +38,11 @@ export const toc: L1TocItem[] = [
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/infinite/atlas-infinite-architecture',
                   },
+                  {
+                    label: 'Atlas Infinite Public Preview Considerations',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/infinite/atlas-infinite-preview-considerations',
+                  },
                 ],
               },
             ],

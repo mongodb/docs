@@ -37,7 +37,7 @@ const tocData: TocItem[] = [
     label: 'Best Practices for In-Use Encryption',
     contentSite: 'docs',
     url: '/docs/:version/core/queryable-encryption/best-practices',
-    versions: { includes: ['manual'] },
+    versions: { includes: ['upcoming', 'manual', 'v8.3', 'v8.0'] },
   },
   {
     label: 'Queryable Encryption',
