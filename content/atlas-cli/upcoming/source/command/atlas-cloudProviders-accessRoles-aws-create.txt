@@ -76,4 +76,3 @@ If the command succeeds, the CLI returns output similar to the following sample.
    AWS IAM role '<RoleId>' successfully created.
    Atlas AWS Account ARN: <AtlasAWSAccountArn>
    Unique External ID: <AtlasAssumedRoleExternalId>
-

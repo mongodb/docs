@@ -75,7 +75,7 @@ Options
    * - --version
      - string
      - false
-     - API version to use when calling the Atlas API endpoints [options: "2023-01-01", "2024-05-30", "2025-03-12"]. If not set by the user, defaults to the latest version or the profile's api_version config value if set. This value defaults to "2025-03-12".
+     - API version to use when calling the Atlas API endpoints [options: "2023-01-01", "2024-05-30", "2025-03-12", "preview"]. If not set by the user, defaults to the latest version or the profile's api_version config value if set. This value defaults to "preview".
 
 Inherited Options
 -----------------
@@ -96,5 +96,5 @@ Inherited Options
 Examples
 --------
 
-.. literalinclude:: /includes/examples/atlas-api-atlasSearch-getClusterSearchDeployment-2025-03-12-default.sh
+.. literalinclude:: /includes/examples/atlas-api-atlasSearch-getClusterSearchDeployment-preview-default.sh
    :language: shell

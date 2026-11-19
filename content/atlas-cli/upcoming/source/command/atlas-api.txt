@@ -217,6 +217,7 @@ Related Commands
 * :ref:`atlas-api-projectIpAccessList` - Returns, adds, edits, and removes network access limits to database deployments in Atlas.
 * :ref:`atlas-api-projects` - Returns, adds, and edits collections of clusters and users in MongoDB Cloud.
 * :ref:`atlas-api-pushBasedLogExport` - You can continually export mongod, mongos, and audit logs to an AWS S3 bucket.
+* :ref:`atlas-api-querySampling` - Starts, returns, and stops query sampling on one namespace of one cluster.
 * :ref:`atlas-api-queryShapeInsights` -
 * :ref:`atlas-api-rateLimiting` - Returns details about rate limit policies for the Atlas Administration API.
 * :ref:`atlas-api-remoteMcpConfigurations` - Returns and manages Remote MCP configurations for organizations and projects.
@@ -224,6 +225,9 @@ Related Commands
 * :ref:`atlas-api-rollingIndex` - Creates one index to a database deployment in a rolling manner.
 * :ref:`atlas-api-root` - Returns details that describe the MongoDB Cloud build and the access token that requests this resource.
 * :ref:`atlas-api-serviceAccounts` - Endpoints for managing Service Accounts and secrets.
+* :ref:`atlas-api-shardKeyAnalyzer` - Analyzes how well a candidate shard key would distribute a collection across the shards of a cluster.
+* :ref:`atlas-api-shardingInsights` - Returns the cluster-level sharding state of one sharded cluster, including the balancer state, config server availability, and the configured balancing window.
+* :ref:`atlas-api-shardingRecommendations` - Returns Sharding Advisor recommendations for one cluster.
 * :ref:`atlas-api-streams` - Returns, adds, edits, and removes Streams Workspaces.
 * :ref:`atlas-api-teams` - Returns, adds, edits, or removes teams.
 * :ref:`atlas-api-thirdPartyIntegrations` - Returns, adds, edits, and removes third-party service integration configurations.
@@ -276,6 +280,7 @@ Related Commands
    projectIpAccessList </command/atlas-api-projectIpAccessList>
    projects </command/atlas-api-projects>
    pushBasedLogExport </command/atlas-api-pushBasedLogExport>
+   querySampling </command/atlas-api-querySampling>
    queryShapeInsights </command/atlas-api-queryShapeInsights>
    rateLimiting </command/atlas-api-rateLimiting>
    remoteMcpConfigurations </command/atlas-api-remoteMcpConfigurations>
@@ -283,6 +288,9 @@ Related Commands
    rollingIndex </command/atlas-api-rollingIndex>
    root </command/atlas-api-root>
    serviceAccounts </command/atlas-api-serviceAccounts>
+   shardKeyAnalyzer </command/atlas-api-shardKeyAnalyzer>
+   shardingInsights </command/atlas-api-shardingInsights>
+   shardingRecommendations </command/atlas-api-shardingRecommendations>
    streams </command/atlas-api-streams>
    teams </command/atlas-api-teams>
    thirdPartyIntegrations </command/atlas-api-thirdPartyIntegrations>

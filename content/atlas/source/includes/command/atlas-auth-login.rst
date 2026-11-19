@@ -16,6 +16,8 @@ Authenticate with MongoDB Atlas.
 
 This command allows you to authenticate with MongoDB Atlas using User Account, Service Account, or API Key authentication methods.
 
+User Account login uses the Authorization Code and PKCE flow with a local callback server. To use the deprecated device-code flow instead, run ``atlas auth login --authType=UserAccountLegacy --output plaintext``.
+
 Note: If you have credentials set in environment variables, they take precedence over the values you provide during authentication. To learn more, see https://www.mongodb.com/docs/atlas/cli/current/atlas-cli-env-variables/#precedence.
 
 To log in non-interactively, set --authType, --output, and the credential flags that type requires (--clientId and --clientSecret for ServiceAccount, or --publicApiKey and --privateApiKey for APIKeys). Using any one of these flags without the others needed to complete the flow returns an error instead of prompting.
@@ -46,7 +48,7 @@ Options
    * - --authType
      - string
      - false
-     - Authentication type to use. Valid values are UserAccount, ServiceAccount, or APIKeys. If set, skips the authentication type prompt.
+     - Authentication type to use. Valid values are UserAccount, UserAccountLegacy, ServiceAccount, or APIKeys. If set, skips the authentication type prompt.
    * - --clientId
      - string
      - false

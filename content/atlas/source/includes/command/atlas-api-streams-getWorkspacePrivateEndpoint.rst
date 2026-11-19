@@ -45,7 +45,7 @@ Options
    * - --endpointId
      - string
      - true
-     - Unique identifier of the customer's VPC endpoint.
+     - Unique identifier of your VPC endpoint.
    * - --envelope
      - envelope
      - false

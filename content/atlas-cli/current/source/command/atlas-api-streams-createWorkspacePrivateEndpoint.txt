@@ -12,7 +12,7 @@ atlas api streams createWorkspacePrivateEndpoint
    :depth: 1
    :class: singlecol
 
-Registers one customer VPC endpoint for Atlas Stream Processing in the specified project.
+Registers one VPC endpoint for Atlas Stream Processing in the specified project.
 
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.

@@ -65,6 +65,7 @@ Related Commands
 * :ref:`atlas-api-invoices-listInvoicePending` - Returns all invoices accruing charges for the current billing cycle for the specified organization.
 * :ref:`atlas-api-invoices-listInvoices` - Returns all invoices that MongoDB issued to the specified organization.
 * :ref:`atlas-api-invoices-listOrgInvoiceReports` - Returns all unexpired reports for the specified invoice, newest first.
+* :ref:`atlas-api-invoices-listSkuServices` - Returns all launched SKU services.
 * :ref:`atlas-api-invoices-listSkus` - Returns all available SKUs (Stock Keeping Units) that can appear on MongoDB invoices.
 * :ref:`atlas-api-invoices-searchInvoiceLineItems` - Query the lineItems of the specified invoice and return the result JSON.
 
@@ -83,5 +84,6 @@ Related Commands
    listInvoicePending </command/atlas-api-invoices-listInvoicePending>
    listInvoices </command/atlas-api-invoices-listInvoices>
    listOrgInvoiceReports </command/atlas-api-invoices-listOrgInvoiceReports>
+   listSkuServices </command/atlas-api-invoices-listSkuServices>
    listSkus </command/atlas-api-invoices-listSkus>
    searchInvoiceLineItems </command/atlas-api-invoices-searchInvoiceLineItems>

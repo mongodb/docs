@@ -60,7 +60,7 @@ Related Commands
 * :ref:`atlas-api-streams-createStreamConnection` - Creates one connection for a stream workspace in the specified project.
 * :ref:`atlas-api-streams-createStreamProcessor` - Create one Stream Processor within the specified stream workspace.
 * :ref:`atlas-api-streams-createStreamWorkspace` - Creates one stream workspace in the specified project.
-* :ref:`atlas-api-streams-createWorkspacePrivateEndpoint` - Registers one customer VPC endpoint for Atlas Stream Processing in the specified project.
+* :ref:`atlas-api-streams-createWorkspacePrivateEndpoint` - Registers one VPC endpoint for Atlas Stream Processing in the specified project.
 * :ref:`atlas-api-streams-deletePrivateLinkConnection` - Deletes one Private Link in the specified project.
 * :ref:`atlas-api-streams-deleteStreamConnection` - Delete one connection of the specified stream workspace.
 * :ref:`atlas-api-streams-deleteStreamFailoverConnection` - Delete one failover connection of the specified stream workspace.
