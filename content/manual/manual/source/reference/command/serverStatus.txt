@@ -2133,6 +2133,7 @@ metrics
       },
       cursor : {
          moreThanOneBatch : Long("<num>"),
+         shedForMemory : Long("<num>"),
          timedOut : Long("<num>"),
          totalOpened : Long("<num>"),
          lifespan : {
@@ -4443,6 +4444,14 @@ metrics
 
    .. versionadded:: 5.0
 
+.. serverstatus:: metrics.cursor.shedForMemory
+
+   .. versionadded:: 9.1
+
+   The total number of idle cursors that query memory load shedding has
+   disposed of since the server process started. To enable load
+   shedding, set :parameter:`queryMemoryLoadSheddingLowMarkPercent`.
+
 .. serverstatus:: metrics.cursor.timedOut
 
    The total number of cursors that have timed out since the server
@@ -5876,6 +5885,91 @@ profiler
    You can specify the maximum number of lock timeouts per second that disable 
    the profiler by setting the :parameter:`internalProfilingMaxAbandonedWritesPerSecondPerDb`
    parameter.
+
+
+.. _server-status-queryMemory:
+
+queryMemory
+~~~~~~~~~~~
+
+.. versionadded:: 9.0
+
+.. code-block:: javascript
+
+   queryMemory: {
+      loadShedding: {
+         currentUsageBytes: Long("<num>"),
+         lowMarkBytes: Long("<num>"),
+         highMarkBytes: Long("<num>"),
+         memLimitBytes: Long("<num>"),
+         operationsShed: Long("<num>"),
+         idleCursorsShed: Long("<num>"),
+         idleCursorBytesShed: Long("<num>")
+      }
+   }
+
+.. serverstatus:: queryMemory
+
+   A document that reports query memory metrics. The document is empty
+   unless you enable load shedding by setting
+   :parameter:`queryMemoryLoadSheddingLowMarkPercent` to a non-negative
+   value, such as ``70``.
+
+.. serverstatus:: queryMemory.loadShedding
+
+   A document that reports the state of query memory load shedding.
+   This document appears only on a :binary:`~bin.mongod` that has load
+   shedding enabled.
+
+.. serverstatus:: queryMemory.loadShedding.currentUsageBytes
+
+   Most recent sample of the resident memory (RSS) of the
+   ``mongod`` process, in bytes. The value updates at the interval that
+   :parameter:`queryMemoryRssMonitorIntervalMillis` specifies.
+
+.. serverstatus:: queryMemory.loadShedding.memLimitBytes
+
+   Memory limit of the ``mongod`` process, in bytes. ``mongod`` reads
+   this value once at startup. To apply a changed memory limit,
+   restart the process.
+
+.. serverstatus:: queryMemory.loadShedding.lowMarkBytes
+
+   The low-water mark, in bytes. This value is the memory limit
+   multiplied by :parameter:`queryMemoryLoadSheddingLowMarkPercent`.
+   At or below this value, ``mongod`` does not shed operations.
+
+.. serverstatus:: queryMemory.loadShedding.highMarkBytes
+
+   The high-water mark, in bytes. This value is the memory limit
+   multiplied by :parameter:`queryMemoryLoadSheddingHighMarkPercent`.
+   At or above this value, ``mongod`` sheds every eligible operation.
+
+.. serverstatus:: queryMemory.loadShedding.operationsShed
+
+   Cumulative number of operations that load shedding has aborted
+   since ``mongod`` started.
+
+   .. versionchanged:: 9.1
+
+      This value also includes idle cursors that load shedding
+      disposes of.
+
+.. serverstatus:: queryMemory.loadShedding.idleCursorsShed
+
+   .. versionadded:: 9.1
+
+   Cumulative number of idle cursors that load shedding has disposed of
+   since ``mongod`` started. This value is the portion of
+   :serverstatus:`queryMemory.loadShedding.operationsShed` that comes
+   from idle cursors.
+
+.. serverstatus:: queryMemory.loadShedding.idleCursorBytesShed
+
+   .. versionadded:: 9.1
+
+   Cumulative amount of tracked memory, in bytes, that ``mongod``
+   reclaimed by disposing of idle cursors since ``mongod`` started.
 
 
 .. _server-status-queryStats:

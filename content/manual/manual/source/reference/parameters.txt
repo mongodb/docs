@@ -7391,3 +7391,222 @@ Query Stats Parameters
 
       mongod --setParameter internalQueryStatsWriteCmdSampleRate=0.05
 
+.. _query-memory-load-shedding-parameters:
+
+Query Memory Load Shedding Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Query memory load shedding helps protect a :binary:`~bin.mongod`
+process from out-of-memory (OOM) failures. When the resident memory
+(RSS) of the process rises above a low-water mark, ``mongod`` begins to
+abort read operations that use large amounts of tracked memory. As RSS
+approaches a high-water mark, ``mongod`` aborts more operations. At the
+high-water mark, ``mongod`` aborts every eligible operation.
+
+Load shedding is disabled by default. On Atlas, you can enable load
+shedding on M40 or larger replica set clusters that run MongoDB 9.0 or
+later. To do so, enable `Intelligent Workload Management (IWM) Load
+Shedding
+<https://www.mongodb.com/docs/atlas/intelligent-workload-management/#configure-load-shedding>`__.
+
+These parameters configure the following behavior:
+
+- ``mongod`` evaluates active operations. Starting in MongoDB 9.1,
+  ``mongod`` also evaluates idle cursors that are waiting for the next
+  ``getMore`` operation.
+- ``find``, ``aggregate``, ``getMore``, and ``distinct`` operations are
+  eligible to be shed. ``mongod`` sheds only operations that use
+  significant memory, so simple operations such as ``findOne`` are never
+  shed. Operations that have started a write are never shed.
+- ``mongod`` does not shed idle cursors that were opened in a
+  multi-document transaction or that use the ``noCursorTimeout``
+  option.
+- Router-only :binary:`~bin.mongos` processes do not shed operations.
+- A shed operation returns a retriable ``QueryMemoryLimitExceeded``
+  error, which has the ``RetriableError`` and ``SystemOverloadedError``
+  labels. Starting in MongoDB 9.1, if ``mongod`` sheds an idle cursor,
+  the next ``getMore`` operation on that cursor returns the same error.
+
+To monitor load shedding, see the :serverstatus:`queryMemory` section of
+the :dbcommand:`serverStatus` output.
+
+.. parameter:: queryMemoryLoadSheddingLowMarkPercent
+
+   |both|
+
+   *Type*: integer
+
+   *Default*: -1
+
+   .. versionadded:: 9.0
+
+   RSS, as a percentage of the process memory limit, at or below which
+   ``mongod`` does not shed operations. Above this value, the
+   probability that ``mongod`` sheds an operation increases until RSS
+   reaches :parameter:`queryMemoryLoadSheddingHighMarkPercent`.
+
+   The value must be between ``-1`` and ``100``. The default value of
+   ``-1`` disables load shedding. To enable load shedding, set a
+   non-negative value. A value of ``0`` sheds most eligible operations,
+   so use a value such as ``70``.
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   The following command sets ``queryMemoryLoadSheddingLowMarkPercent``
+   to ``70`` at runtime:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, queryMemoryLoadSheddingLowMarkPercent: 70 } )
+
+   The following command sets ``queryMemoryLoadSheddingLowMarkPercent``
+   to ``70`` at startup:
+
+   .. code-block:: bash
+
+      mongod --setParameter queryMemoryLoadSheddingLowMarkPercent=70
+
+.. parameter:: queryMemoryLoadSheddingHighMarkPercent
+
+   |both|
+
+   *Type*: integer
+
+   *Default*: 85
+
+   .. versionadded:: 9.0
+
+   RSS, as a percentage of the process memory limit, at or above which
+   ``mongod`` sheds every eligible operation. The value must be between
+   ``0`` and ``100`` and greater than
+   :parameter:`queryMemoryLoadSheddingLowMarkPercent`.
+
+   To give ``mongod`` time to free memory before the process runs out,
+   and to allow room for the Linux kernel and other system processes,
+   set this value well below ``100``.
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   The following command sets ``queryMemoryLoadSheddingHighMarkPercent``
+   to ``90`` at runtime:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, queryMemoryLoadSheddingHighMarkPercent: 90 } )
+
+   The following command sets ``queryMemoryLoadSheddingHighMarkPercent``
+   to ``90`` at startup:
+
+   .. code-block:: bash
+
+      mongod --setParameter queryMemoryLoadSheddingHighMarkPercent=90
+
+.. parameter:: queryMemoryLoadSheddingSizeReferenceBytes
+
+   |both|
+
+   *Type*: integer
+
+   *Default*: 33554432 (32 MiB)
+
+   .. versionadded:: 9.0
+
+   Reference operation size, in bytes. When RSS is midway between the
+   low-water mark and the high-water mark, an operation of this size
+   has a 50% chance of being shed each second.
+
+   The shedding rate is proportional to the memory that an operation
+   tracks divided by this value. An operation that is twice the
+   reference size is shed twice as fast. An operation that is much
+   smaller than the reference size is rarely shed until RSS nears the
+   high-water mark. Set this value below the size of your largest
+   queries and above the size of your typical queries.
+
+   The value must be greater than ``0`` and no more than ``1073741824``
+   (1 GiB).
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   The following command sets
+   ``queryMemoryLoadSheddingSizeReferenceBytes`` to ``67108864``
+   (64 MiB) at runtime:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, queryMemoryLoadSheddingSizeReferenceBytes: 67108864 } )
+
+   The following command sets
+   ``queryMemoryLoadSheddingSizeReferenceBytes`` to ``67108864``
+   (64 MiB) at startup:
+
+   .. code-block:: bash
+
+      mongod --setParameter queryMemoryLoadSheddingSizeReferenceBytes=67108864
+
+.. parameter:: queryMemoryRssMonitorIntervalMillis
+
+   |both|
+
+   *Type*: integer
+
+   *Default*: 100
+
+   .. versionadded:: 9.0
+
+   How often, in milliseconds, ``mongod`` samples RSS. A shorter
+   interval makes load shedding respond more quickly to memory
+   pressure but increases overhead. The value must be between ``1`` and
+   ``3600000``.
+
+   This interval also controls how often ``mongod`` evaluates
+   operations that are waiting for an execution ticket. Values above
+   ``1000`` limit the effectiveness of load shedding for those
+   operations, so avoid setting a value above ``1000``.
+
+   .. include:: /includes/fact-startup-parameter
+
+   The following command sets ``queryMemoryRssMonitorIntervalMillis`` to
+   ``50`` at startup:
+
+   .. code-block:: bash
+
+      mongod --setParameter queryMemoryRssMonitorIntervalMillis=50
+
+.. parameter:: queryMemoryIdleCursorSheddingIntervalMillis
+
+   |both|
+
+   *Type*: integer
+
+   *Default*: 1000
+
+   .. versionadded:: 9.1
+
+   How often, in milliseconds, ``mongod`` evaluates idle cursors for
+   load shedding. The value must be between ``100`` and ``3600000``.
+   This interval can be shorter than the interval that
+   ``clientCursorMonitorFrequencySecs`` sets for removing timed-out
+   cursors.
+
+   Values above ``1000`` cause ``mongod`` to consistently shed fewer
+   idle cursors than the shedding probability calls for, so avoid
+   setting a value above ``1000``.
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   The following command sets
+   ``queryMemoryIdleCursorSheddingIntervalMillis`` to ``500`` at
+   runtime:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, queryMemoryIdleCursorSheddingIntervalMillis: 500 } )
+
+   The following command sets
+   ``queryMemoryIdleCursorSheddingIntervalMillis`` to ``500`` at
+   startup:
+
+   .. code-block:: bash
+
+      mongod --setParameter queryMemoryIdleCursorSheddingIntervalMillis=500
+
