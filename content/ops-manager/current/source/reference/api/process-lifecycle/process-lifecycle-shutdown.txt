@@ -1,0 +1,256 @@
+.. _api-process-lifecycle-shutdown:
+
+=======================================
+Shut Down a Process with the Public API
+=======================================
+
+.. meta::
+   :description: Use the Ops Manager Public API to gracefully shut down a running MongoDB process by setting disabled to true in the project's automation configuration.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/fact-groups-projects-synonyms.rst
+
+Use this endpoint to gracefully stop a running process. |mms| sets
+``disabled`` to ``true`` for the process in the automation
+configuration and publishes the change. If the process is the current
+primary, the Automation Agent steps it down before it stops the
+process.
+
+The request is asynchronous: ``200 OK`` means |mms| published the
+change, not that the process has stopped. Poll the
+:ref:`automation status <api-automation-status>` resource until the
+process's ``lastGoalVersionAchieved`` equals the plan's
+``goalVersion``.
+
+If the process is already shut down, nothing changes and the agent
+takes no action, but |mms| still publishes the configuration and
+records the event.
+
+.. include:: /includes/api/base-api-uri.rst
+
+Resource
+--------
+
+.. code-block:: http
+   :copyable: false
+
+   POST /groups/{GROUP-ID}/process/{HOST-PORT}:shutdown
+
+Required Roles
+--------------
+
+The API key that makes this request must have the
+:authrole:`Project Automation Admin` role.
+
+Request Path Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 14 11 55
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Necessity
+     - Description
+
+   * - GROUP-ID
+     - string
+     - Required
+     - Unique 24-hexadecimal digit string that identifies your
+       project.
+
+   * - HOST-PORT
+     - string
+     - Required
+     - Target process, as ``hostname:port``. For example,
+       ``node1.example.com:27017``.
+
+Request Query Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 14 11 45 10
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Necessity
+     - Description
+     - Default
+
+   * - dryRun
+     - boolean
+     - Optional
+     - If ``true``, |mms| validates the request and returns the
+       changed process without publishing it or adding an activity
+       feed event. |mms| rejects any value other than ``true`` or
+       ``false`` with ``400 INVALID_QUERY_PARAMETER``.
+     - ``false``
+
+.. include:: /includes/api/no-query-single-parameters.rst
+
+Request Body Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-body-parameters.rst
+
+Response
+--------
+
+|mms| returns ``200 OK`` and the target process as it appears in the
+automation configuration, with the change applied. ``disabled`` is
+``true``. The body is the same whether you set ``dryRun`` or not.
+
+.. list-table::
+   :widths: 20 14 66
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Description
+
+   * - name
+     - string
+     - Name of the process in the automation configuration.
+
+   * - hostname
+     - string
+     - Hostname of the process.
+
+   * - processType
+     - string
+     - Type of process, for example ``mongod``.
+
+   * - version
+     - string
+     - MongoDB version of the process.
+
+   * - disabled
+     - boolean
+     - ``true`` if the process is shut down.
+
+   * - lastRestart
+     - string
+     - Timestamp, in ISO 8601 UTC format, of the last requested
+       restart.
+
+   * - lastResync
+     - string
+     - Timestamp, in ISO 8601 UTC format, of the last requested
+       resync.
+
+The document also contains the rest of the process's automation
+configuration, such as ``args2_6``, ``featureCompatibilityVersion``,
+and ``authSchemaVersion``. See the :ref:`Automation Configuration
+<automation-configuration-resource>` reference.
+
+Example Request
+---------------
+
+The following example shuts down the process running on
+``node1.example.com:27017``.
+
+.. code-block:: sh
+   :linenos:
+
+   curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+        --header "Accept: application/json" \
+        --include \
+        --request POST "https://{+opsmgr-url+}/api/public/v1.0/groups/{GROUP-ID}/process/node1.example.com:27017:shutdown?pretty=true"
+
+Example Response
+----------------
+
+Response Header
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/api-headers/401.rst
+
+.. include:: /includes/api/api-headers/200.rst
+
+Response Body
+~~~~~~~~~~~~~
+
+.. code-block:: json
+   :copyable: false
+   :linenos:
+
+   {
+     "name": "rs0_1",
+     "processType": "mongod",
+     "version": "8.0.4",
+     "hostname": "node1.example.com",
+     "disabled": true,
+     "authSchemaVersion": 5,
+     "featureCompatibilityVersion": "8.0",
+     "args2_6": {
+       "net": { "port": 27017 },
+       "replication": { "replSetName": "rs0" },
+       "storage": { "dbPath": "/data/rs0_1" },
+       "systemLog": { "destination": "file", "path": "/data/rs0_1/mongodb.log" }
+     }
+   }
+
+Response Codes
+--------------
+
+.. list-table::
+   :widths: 14 26 60
+   :header-rows: 1
+
+   * - HTTP Status
+     - Error Code
+     - Description
+
+   * - 200
+     - --
+     - The change was published, or computed with ``dryRun=true``.
+       Returns the process document.
+
+   * - 400
+     - --
+     - The process is in manual mode, or the automation configuration
+       failed validation. The message explains why. Not returned for
+       a dry run.
+
+   * - 409
+     - GROUP_IN_RESTORATION_MODE
+     - The project is reconciling after a restore.
+
+   * - 403
+     - PROCESS_EXTERNALLY_MANAGED
+     - The project's processes are managed by an external system.
+
+   * - 409
+     - AUTOMATION_CONFIG_DRAFT_ALREADY_EXISTS
+     - You have an unpublished automation configuration draft in the
+       project.
+
+   * - 404
+     - PROCESS_NOT_FOUND
+     - ``HOST-PORT`` doesn't match a process in the project's
+       automation configuration.
+
+   * - 400
+     - INVALID_QUERY_PARAMETER
+     - ``dryRun`` isn't ``true`` or ``false``.
+
+   * - 409
+     - AUTOMATION_CONFIG_CONCURRENT_MODIFICATION
+     - Someone published a change while this request was in progress.
+       |mms| returns this code only for a real request.
+
+|mms| checks the shared errors in the order listed. See
+:ref:`Process Lifecycle <api-process-lifecycle>` for prerequisites
+and limitations.

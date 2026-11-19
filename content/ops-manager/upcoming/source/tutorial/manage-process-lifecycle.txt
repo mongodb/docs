@@ -1,0 +1,430 @@
+.. _manage-process-lifecycle:
+
+=================================
+Manage the Lifecycle of a Process
+=================================
+
+.. meta::
+   :description: Use the Ops Manager Public API to shut down, start, restart, and resync MongoDB processes for resiliency testing, planned maintenance, and member recovery.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can use the |mms| |api| to shut down, start, restart, and resync
+a MongoDB process. These operations are useful during resiliency
+testing to simulate downtime or for planned maintenance restarts. You
+can also resync a member that fell too far behind after a long
+shutdown.
+
+When you send a request, |mms| immediately instructs the Automation
+Agent running on that host to shut down, start, restart, or resync
+the MongoDB process. The agent applies the change on its next
+check-in with |mms|. If the process is the current primary,
+the agent first steps it down so that another member can take over,
+then stops or restarts it.
+
+About this Task
+---------------
+
+- Each operation is asynchronous. A ``200 OK`` response means |mms|
+  published the change, not that the process has stopped, started,
+  restarted, or resynced. The response includes no job ID. To follow
+  the change to completion, poll the :ref:`automation status
+  <api-automation-status>` resource. If the agent can't apply the
+  change, the plan shows as failed there and the agent keeps retrying.
+
+- Every endpoint accepts an optional ``dryRun=true`` query parameter.
+  Use it to preview a change before you apply it. |mms| runs all the
+  same checks and returns the process document as it would look after
+  the change, but sends nothing to the agent and changes nothing in
+  your deployment. For example, after a shutdown the returned
+  document contains ``"disabled": true``. Review it, then send the
+  same request without ``dryRun=true`` to apply the change.
+
+Before You Begin
+----------------
+
+- Your deployment must run |mms| 8.0.28 or 9.0.2 or later.
+
+- Automation must be enabled for the project, and the target host's
+  Automation Agent must be running.
+
+- If you have an unpublished automation configuration draft in the
+  project, |mms| rejects every request, including a dry run. Publish
+  or discard the draft before you continue.
+
+- You must have the :authrole:`Project Automation Admin` role.
+
+- These endpoints don't support externally managed projects or
+  Kubernetes Operator (MCK) deployments.
+
+.. warning::
+
+   These endpoints provide no quorum protection. Shutting down too
+   many members of a replica set leaves it without a primary. Shut
+   members down one at a time and wait for each to stop before you
+   continue.
+
+Shut Down a Process
+-------------------
+
+This procedure gracefully stops a running process.
+
+.. procedure::
+
+   .. step:: Find the hostname and port of the process.
+
+      Find the ``hostname:port`` of the process in the |mms| UI or
+      with the :ref:`v2.0 Get All Hosts <api-get-all-hosts-v2>`
+      endpoint.
+
+   .. step:: Optional: preview the change.
+
+      .. code-block:: sh
+
+         curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+              --header "Accept: application/json" \
+              --include \
+              --request POST "https://{+opsmgr-url+}/api/public/v1.0/groups/{GROUP-ID}/process/{HOST-PORT}:shutdown?pretty=true&dryRun=true"
+
+   .. step:: Submit the request.
+
+      Remove ``dryRun=true`` from the request. |mms| returns
+      ``200 OK`` with the process document, now with
+      ``"disabled": true``.
+
+   .. step:: Poll the automation status endpoint.
+
+      Poll the :ref:`automation status <api-automation-status>`
+      resource until the process's ``lastGoalVersionAchieved``
+      equals the plan's ``goalVersion``.
+
+The following table describes how |mms| handles shutdown requests in
+specific scenarios.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Scenario
+     - Behavior
+
+   * - Target is the current primary
+     - The agent steps it down before stopping it.
+
+   * - Target is already shut down
+     - No change to the process. The agent takes no action, but
+       |mms| still publishes the configuration and records the event.
+
+   * - Target is in manual mode
+     - |mms| rejects the request with ``400``. You cannot shut down a
+       manual-mode process through automation.
+
+Start a Process
+---------------
+
+This procedure starts a process that was previously shut down.
+
+.. procedure::
+
+   .. step:: Find the hostname and port of the process.
+
+      Find the ``hostname:port`` of the process in the |mms| UI or
+      with the :ref:`v2.0 Get All Hosts <api-get-all-hosts-v2>`
+      endpoint.
+
+   .. step:: Optional: preview the change.
+
+      .. code-block:: sh
+
+         curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+              --header "Accept: application/json" \
+              --include \
+              --request POST "https://{+opsmgr-url+}/api/public/v1.0/groups/{GROUP-ID}/process/{HOST-PORT}:startup?pretty=true&dryRun=true"
+
+   .. step:: Submit the request.
+
+      Remove ``dryRun=true`` from the request. |mms| returns
+      ``200 OK`` with the process document, now with
+      ``"disabled": false``.
+
+   .. step:: Confirm the member returns to a healthy state.
+
+      Poll the :ref:`automation status <api-automation-status>`
+      resource until the plan completes. Then confirm that the
+      member's ``replicaStateName`` on the
+      :ref:`v2.0 Get One Host by ID <api-get-one-host-by-id-v2>`
+      endpoint returns to ``SECONDARY`` or ``PRIMARY``.
+
+The following table describes how |mms| handles startup requests in
+specific scenarios.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Scenario
+     - Behavior
+
+   * - Target is already running
+     - No change to the process. The agent takes no action, but
+       |mms| still publishes the configuration and records the event.
+
+   * - The oplog rolled over while the process was down
+     - The member starts and stays in ``RECOVERING`` and doesn't
+       resync automatically. Resync the process instead.
+
+Restart a Process
+-----------------
+
+This procedure gracefully restarts a running process. If the target
+is the current primary, the agent steps it down before restarting it.
+
+.. procedure::
+
+   .. step:: Find the hostname and port of the process.
+
+      Find the ``hostname:port`` of the process in the |mms| UI or
+      with the :ref:`v2.0 Get All Hosts <api-get-all-hosts-v2>`
+      endpoint.
+
+   .. step:: Optional: preview the change.
+
+      .. code-block:: sh
+
+         curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+              --header "Accept: application/json" \
+              --include \
+              --request POST "https://{+opsmgr-url+}/api/public/v1.0/groups/{GROUP-ID}/process/{HOST-PORT}:restart?pretty=true&dryRun=true"
+
+   .. step:: Submit the request.
+
+      Remove ``dryRun=true`` from the request. |mms| returns
+      ``200 OK`` with the process document, now with
+      ``lastRestart`` set.
+
+   .. step:: Poll the automation status endpoint.
+
+      Poll the :ref:`automation status <api-automation-status>`
+      resource until the plan completes.
+
+The following table describes how |mms| handles restart requests in
+specific scenarios.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Scenario
+     - Behavior
+
+   * - Target is shut down
+     - |mms| rejects the request with ``400
+       PROCESS_DISABLED_CANNOT_RESTART``. Start the process instead.
+
+   * - The target host's agent has never reported to |mms|
+     - |mms| rejects the request with ``409
+       PROCESS_AGENT_NOT_REPORTING``.
+
+Resync a Process
+----------------
+
+This procedure triggers an initial sync on a replica set member. Use
+it to recover a member stuck in ``RECOVERING`` because it fell behind
+the oplog window.
+
+.. procedure::
+
+   .. step:: Find the hostname and port of the process.
+
+      Find the ``hostname:port`` of the process in the |mms| UI or
+      with the :ref:`v2.0 Get All Hosts <api-get-all-hosts-v2>`
+      endpoint.
+
+   .. step:: Optional: preview the change.
+
+      .. code-block:: sh
+
+         curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+              --header "Accept: application/json" \
+              --include \
+              --request POST "https://{+opsmgr-url+}/api/public/v1.0/groups/{GROUP-ID}/process/{HOST-PORT}:resync?pretty=true&dryRun=true"
+
+   .. step:: Submit the request.
+
+      Remove ``dryRun=true`` from the request. |mms| returns
+      ``200 OK`` with the process document, now with
+      ``lastResync`` set.
+
+   .. step:: Confirm the member completes the initial sync.
+
+      Poll the :ref:`automation status <api-automation-status>`
+      resource until the plan completes. Then poll
+      :ref:`v2.0 Get One Host by ID <api-get-one-host-by-id-v2>`
+      until ``replicaStateName`` is ``SECONDARY``. The initial sync
+      can take a long time on large data sets.
+
+The following table describes how |mms| handles resync requests in
+specific scenarios.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Scenario
+     - Behavior
+
+   * - The target is a ``mongos``, a standalone, or an arbiter
+     - |mms| rejects the request with ``400
+       PROCESS_RESYNC_NOT_SUPPORTED``. You can resync only
+       data-bearing replica set members.
+
+   * - Another member of the replica set already has a resync
+       outstanding
+     - |mms| rejects the request with ``409
+       PROCESS_RESYNC_IN_PROGRESS``, including dry runs. Wait for the
+       deployment to reach goal state, then retry.
+
+   * - The target is the current primary
+     - |mms| returns ``200 OK``, but the Automation Agent doesn't
+       resync a primary. The plan stays pending with the message ``A
+       resync was requested on a primary. This requires manual
+       intervention``. The member keeps running as primary.
+
+   * - The target host's agent has never reported to |mms|
+     - |mms| rejects the request with ``409
+       PROCESS_AGENT_NOT_REPORTING``.
+
+Audit Trail
+-----------
+
+Each successful, non-dry-run request adds one event to the project's
+activity feed, alongside the usual automation configuration published
+event. The activity feed attributes requests made with the |api| to
+the Public API.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 35 45
+
+   * - Operation
+     - Event type
+     - What it tells you
+
+   * - Shut down
+     - ``AUTOMATION_PROCESS_SHUTDOWN_REQUESTED``
+     - A shutdown request was made for this process. Check this
+       event if a member went offline unexpectedly.
+
+   * - Start
+     - ``AUTOMATION_PROCESS_STARTUP_REQUESTED``
+     - A request was made to start a stopped process.
+
+   * - Restart
+     - ``AUTOMATION_PROCESS_RESTART_REQUESTED``
+     - A restart request was made for this process. Check this event
+       if a member briefly dropped out or an election occurred.
+
+   * - Resync
+     - ``AUTOMATION_PROCESS_RESYNC_REQUESTED``
+     - A resync request was made for this process. Check this event
+       if a member went into ``STARTUP2`` or ``RECOVERING`` and is
+       re-copying data.
+
+Troubleshooting
+---------------
+
+The following table describes common errors and symptoms when you use
+the Process Lifecycle endpoints.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 35 35
+
+   * - Symptom
+     - Likely Cause
+     - Resolution
+
+   * - ``409 AUTOMATION_CONFIG_DRAFT_ALREADY_EXISTS``
+     - You have an unpublished automation configuration draft in the
+       project.
+     - Publish or discard the draft, then retry.
+
+   * - ``409 AUTOMATION_CONFIG_CONCURRENT_MODIFICATION``
+     - Someone published a change between |mms| reading and
+       publishing the configuration.
+     - Retry the request.
+
+   * - ``409 GROUP_IN_RESTORATION_MODE``
+     - The project is reconciling after a restore.
+     - Wait for reconciliation to finish, then retry.
+
+   * - ``409 PROCESS_AGENT_NOT_REPORTING``
+     - The target host's agent has never reported to |mms|.
+     - Confirm the agent is installed, running, and can reach
+       |mms|, then retry.
+
+   * - ``403 PROCESS_EXTERNALLY_MANAGED``
+     - The project's processes are managed by an external system.
+     - These endpoints don't apply to externally managed projects.
+
+   * - ``404 PROCESS_NOT_FOUND``
+     - ``hostname:port`` doesn't match a process in the project's
+       automation configuration.
+     - Confirm the value with
+       :ref:`v2.0 Get All Hosts <api-get-all-hosts-v2>`, then retry.
+
+   * - ``400 PROCESS_DISABLED_CANNOT_RESTART``
+     - The process is shut down.
+     - Call the startup endpoint instead.
+
+   * - ``409 PROCESS_RESYNC_IN_PROGRESS``
+     - A resync for this replica set was already requested and the
+       deployment hasn't reached goal state yet. A resync that is
+       stuck, for example one requested on a primary, keeps blocking
+       new requests.
+     - Poll the :ref:`automation status <api-automation-status>`
+       resource until the plan completes, then retry.
+
+   * - ``400 PROCESS_RESYNC_NOT_SUPPORTED``
+     - The target is a ``mongos``, a standalone, or an arbiter,
+       which have no data to sync.
+     - Resync a data-bearing replica set member instead.
+
+   * - ``400 INVALID_QUERY_PARAMETER``
+     - ``dryRun`` isn't ``true`` or ``false``, including an empty
+       value. For example, ``dryRun=tru`` or ``dryRun=``.
+     - Fix the value or omit the parameter.
+
+   * - After resync, automation status shows manual intervention
+       required
+     - The resync was requested on a primary.
+     - :ref:`Step down the primary <api-re-election-jobs-step-down>`
+       to unblock resyncing.
+
+   * - Plan keeps failing in automation status
+     - The agent can't apply the change, for example because the
+       host is unreachable.
+     - Review the process's error in the automation status response
+       and fix the cause. The agent then retries.
+
+   * - Member stays in ``RECOVERING`` after startup
+     - The oplog rolled over while the process was down, so the
+       member couldn't catch up.
+     - Resync the process, then check ``replicaStateName`` on the
+       host until it is ``SECONDARY``.
+
+Learn More
+----------
+
+- :ref:`Process Lifecycle Management API <api-process-lifecycle>`
+- :ref:`Shut Down a Process with the Public API <api-process-lifecycle-shutdown>`
+- :ref:`Start a Process with the Public API <api-process-lifecycle-startup>`
+- :ref:`Restart a Process with the Public API <api-process-lifecycle-restart>`
+- :ref:`Resync a Process with the Public API <api-process-lifecycle-resync>`
+- :ref:`Replica Set Re-Election Jobs API <api-re-election-jobs>`

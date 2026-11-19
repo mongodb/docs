@@ -1,0 +1,151 @@
+.. _api-process-lifecycle:
+
+================================
+Process Lifecycle Management API
+================================
+
+.. meta::
+   :description: Use the Ops Manager Public API to shut down, start, restart, and resync MongoDB processes through the automation configuration, with dry run support and activity feed events.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can use the |mms| |api| to shut down, start, restart, and resync a
+MongoDB process. Each request updates the process in the automation
+configuration and publishes the change immediately. The target host's
+Automation Agent applies the change on its next check-in. If the
+process is the current primary, the agent first steps it down so that
+another member can take over, then stops or restarts it.
+
+Each operation is asynchronous. A ``200 OK`` response means |mms|
+published the change, not that the process has stopped, started,
+restarted, or resynced. The response includes no job ID. To follow
+the change to completion, poll the :ref:`automation status
+<api-automation-status>` resource. If the agent can't apply the
+change, the plan shows as failed there and the agent keeps retrying.
+
+Every endpoint accepts an optional ``dryRun=true`` query parameter.
+Use it to preview a change before you apply it. |mms| runs all the
+same checks and returns the process document as it would look after
+the change, but sends nothing to the agent and changes nothing in your
+deployment. For example, after a shutdown the returned document
+contains ``"disabled": true``. Review it, then send the same request
+without ``dryRun=true`` to apply the change.
+
+Prerequisites
+-------------
+
+Before you use the Process Lifecycle resources, review the following
+requirements.
+
+.. include:: /includes/fact-groups-projects-synonyms.rst
+
+.. include:: /includes/api/base-api-uri.rst
+
+To use the Process Lifecycle resources, you must be |a-mms| user with
+the :authrole:`Project Automation Admin` role.
+
+Your deployment must run |mms| 8.0.28 or 9.0.2 or later. Automation
+must be enabled for the project, and the target host's Automation
+Agent must be running.
+
+If you have an unpublished automation configuration draft in the
+project, |mms| rejects every request, including a dry run, with a
+``409 AUTOMATION_CONFIG_DRAFT_ALREADY_EXISTS`` error. Publish or
+discard the draft before you continue.
+
+All validation applies to dry runs too, so a successful dry run
+predicts that the real request passes the same checks. A real request
+can still fail on a concurrent change or on manual-mode validation.
+
+.. important::
+
+   Process lifecycle operations are not supported for externally
+   managed projects or Kubernetes Operator (MCK) deployments.
+
+.. warning::
+
+   These endpoints provide no quorum protection. Shutting down too
+   many members of a replica set leaves it without a primary. Shut
+   members down one at a time and wait for each to stop before you
+   continue.
+
+Endpoints
+---------
+
+The following table lists the endpoints available for the Process
+Lifecycle resource.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 50 40
+
+   * - Method
+     - Endpoint
+     - Description
+
+   * - ``POST``
+     - :ref:`/groups/{GROUP-ID}/process/{HOST-PORT}:shutdown <api-process-lifecycle-shutdown>`
+     - Gracefully stops a running process.
+
+   * - ``POST``
+     - :ref:`/groups/{GROUP-ID}/process/{HOST-PORT}:startup <api-process-lifecycle-startup>`
+     - Starts a process that was previously shut down.
+
+   * - ``POST``
+     - :ref:`/groups/{GROUP-ID}/process/{HOST-PORT}:restart <api-process-lifecycle-restart>`
+     - Gracefully restarts a running process.
+
+   * - ``POST``
+     - :ref:`/groups/{GROUP-ID}/process/{HOST-PORT}:resync <api-process-lifecycle-resync>`
+     - Triggers an initial sync on a replica set member.
+
+Audit Trail
+-----------
+
+Each successful request that isn't a dry run adds one event to the
+project's activity feed, alongside the usual automation configuration
+published event. The activity feed attributes requests made with
+the |api| to the Public API.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 35 45
+
+   * - Operation
+     - Event type
+     - What it tells you
+
+   * - :ref:`Shut Down a Process <api-process-lifecycle-shutdown>`
+     - ``AUTOMATION_PROCESS_SHUTDOWN_REQUESTED``
+     - A shutdown request was made for this process. Check this
+       event if a member went offline unexpectedly.
+
+   * - :ref:`Start a Process <api-process-lifecycle-startup>`
+     - ``AUTOMATION_PROCESS_STARTUP_REQUESTED``
+     - A request was made to start a stopped process.
+
+   * - :ref:`Restart a Process <api-process-lifecycle-restart>`
+     - ``AUTOMATION_PROCESS_RESTART_REQUESTED``
+     - A restart request was made for this process. Check this event
+       if a member briefly dropped out or an election occurred.
+
+   * - :ref:`Resync a Process <api-process-lifecycle-resync>`
+     - ``AUTOMATION_PROCESS_RESYNC_REQUESTED``
+     - A resync request was made for this process. Check this event
+       if a member went into ``STARTUP2`` or ``RECOVERING`` and is
+       re-copying data.
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   Shut Down a Process </reference/api/process-lifecycle/process-lifecycle-shutdown>
+   Start a Process </reference/api/process-lifecycle/process-lifecycle-startup>
+   Restart a Process </reference/api/process-lifecycle/process-lifecycle-restart>
+   Resync a Process </reference/api/process-lifecycle/process-lifecycle-resync>

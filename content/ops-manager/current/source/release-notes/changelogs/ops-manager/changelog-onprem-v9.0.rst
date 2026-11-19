@@ -22,10 +22,12 @@ Improvements
 - Updates JDK to `jdk-25.0.5+8
   <https://adoptium.net/temurin/release-notes/?version=jdk-25.0.5+8>`__.
 - Adds public APIs to shut down, start, restart, and resync a
-  process. Resync operations require ``votes: 0``.
+  process. Resync operations require ``votes: 0``. To learn more,
+  see :ref:`api-process-lifecycle`.
 - Adds v2.0 versions of the Get Host endpoints, which report
   replica set member replication health through the ``tooStale``
-  and ``lastReplError`` fields.
+  and ``lastReplError`` fields. To learn more, see
+  :ref:`api-get-hosts-replication-health`.
 - Stores and rolls up per-index ``mongot`` metrics, which lets you
   monitor the rebuild progress of individual Atlas Search indexes.
 - Makes the following improvements to snapshot and oplog stores that

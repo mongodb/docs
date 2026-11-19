@@ -1,0 +1,124 @@
+.. _api-get-hosts-replication-health:
+
+=================================
+Get Hosts with Replication Health
+=================================
+
+.. meta::
+   :description: Use the v2.0 Ops Manager Public API Get Host endpoints to check replica set member replication health, including the tooStale and lastReplError fields.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The v2.0 versions of the three Get Host endpoints return everything
+the v1.0 endpoints return. They add two fields that report a replica
+set member's replication health. Use these endpoints to detect a
+member that is too stale to catch up and to read its replication
+error.
+
+Adding fields to an existing response can break clients that validate
+the schema strictly. The v1.0 endpoints are unchanged and never
+return these fields.
+
+Prerequisites
+-------------
+
+Before you use the v2.0 Get Host resources, review the following
+requirements.
+
+.. include:: /includes/fact-groups-projects-synonyms.rst
+
+.. include:: /includes/api/base-api-v2-uri.rst
+
+To use the v2.0 Get Host resources, you must be |a-mms| user with at
+least the :authrole:`Project Read Only` role.
+
+Your deployment must run |mms| 8.0.28 or 9.0.2 or later. Monitoring
+must be enabled for the project. If monitoring is disabled, |mms|
+omits the new fields.
+
+Endpoints
+---------
+
+The following table lists the endpoints available for the v2.0 Get
+Host resources. The paths match the v1.0 endpoints under the v2.0
+base URL.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 50 40
+
+   * - Method
+     - Endpoint
+     - Description
+
+   * - ``GET``
+     - :ref:`/groups/{PROJECT-ID}/hosts/{HOST-ID} <api-get-one-host-by-id-v2>`
+     - Returns one host by its unique identifier.
+
+   * - ``GET``
+     - :ref:`/groups/{PROJECT-ID}/hosts/byName/{HOSTNAME-PORT} <api-get-one-host-by-hostname-port-v2>`
+     - Returns one host by its hostname and port.
+
+   * - ``GET``
+     - :ref:`/groups/{PROJECT-ID}/hosts <api-get-all-hosts-v2>`
+     - Returns all hosts in the project.
+
+New Response Fields
+-------------------
+
+The v2.0 endpoints return the following fields in addition to the
+v1.0 response fields.
+
+.. list-table::
+   :widths: 20 14 66
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Description
+
+   * - tooStale
+     - boolean
+     - ``true`` if this member fell behind the oplog window and cannot
+       catch up. The member requires an initial sync.
+
+   * - lastReplError
+     - string
+     - The member's last replication error, from the ``errmsg``
+       field of ``rs.status()``.
+
+Both fields describe this host's own member entry in its replica set.
+|mms| omits them for hosts that aren't replica set members, and omits
+``lastReplError`` when the member reports no error.
+
+Detect a Stale Member
+---------------------
+
+.. procedure::
+
+   .. step:: Call a v2.0 Get Host endpoint for the member.
+
+   .. step:: Check the ``tooStale`` field.
+
+      If ``tooStale`` is ``true``, the member cannot catch up from the
+      replica set's oplog and requires an initial sync.
+
+   .. step:: Read the ``lastReplError`` field.
+
+      ``lastReplError`` carries the member's replication error
+      message.
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   Get One Host by ID </reference/api/hosts-v2/get-one-host-by-id-v2>
+   Get One Host by Hostname and Port </reference/api/hosts-v2/get-one-host-by-hostname-port-v2>
+   Get All Hosts </reference/api/hosts-v2/get-all-hosts-in-group-v2>

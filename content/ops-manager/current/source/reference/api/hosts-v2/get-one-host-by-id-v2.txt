@@ -1,0 +1,179 @@
+.. _api-get-one-host-by-id-v2:
+
+==========================================
+Get One Host by ID with Replication Health
+==========================================
+
+.. meta::
+   :description: Use the v2.0 Ops Manager Public API to retrieve one host by ID, including the tooStale and lastReplError replication health fields for its replica set member.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/fact-groups-projects-synonyms.rst
+
+Returns one host by its unique identifier, including the replication
+health of the host's replica set member.
+
+.. include:: /includes/api/base-api-v2-uri.rst
+
+Resource
+--------
+
+.. code-block:: http
+   :copyable: false
+
+   GET /groups/{PROJECT-ID}/hosts/{HOST-ID}
+
+Required Roles
+--------------
+
+The API key that makes this request must have the
+:authrole:`Project Read Only` role.
+
+Request Path Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 14 11 55
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Necessity
+     - Description
+
+   * - PROJECT-ID
+     - string
+     - Required
+     - Unique 24-hexadecimal digit string that identifies your
+       project.
+
+   * - HOST-ID
+     - string
+     - Required
+     - Unique identifier of the host.
+
+Request Query Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-query-single-parameters.rst
+
+Request Body Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-body-parameters.rst
+
+Response
+--------
+
+The response contains the same fields as the v1.0 endpoint.
+
+.. include:: /includes/api/list-tables/hosts/response.rst
+
+The v2.0 endpoint also returns the following fields.
+
+.. list-table::
+   :widths: 20 14 66
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Description
+
+   * - tooStale
+     - boolean
+     - ``true`` if this member fell behind the oplog window and cannot
+       catch up. The member requires an initial sync.
+
+   * - lastReplError
+     - string
+     - The member's last replication error, from the ``errmsg``
+       field of ``rs.status()``.
+
+Both fields describe this host's own member entry in its replica set.
+|mms| omits them for hosts that aren't replica set members, and omits
+``lastReplError`` when the member reports no error.
+
+Example Request
+---------------
+
+The following example retrieves the host with the specified host ID.
+
+.. code-block:: sh
+   :linenos:
+
+   curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+        --header "Accept: application/json" \
+        --include \
+        --request GET "https://{+opsmgr-url+}/api/public/v2.0/groups/{PROJECT-ID}/hosts/{HOST-ID}?pretty=true"
+
+Example Response
+----------------
+
+Response Header
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/api-headers/401.rst
+
+.. include:: /includes/api/api-headers/200.rst
+
+Response Body
+~~~~~~~~~~~~~
+
+The document is trimmed for brevity. |mms| returns the complete host
+document.
+
+.. code-block:: json
+   :copyable: false
+   :linenos:
+
+   {
+     "id": "5f5f8e2b1c9d440b8c1a2b3c",
+     "groupId": "5c8100bcf2a30b12ff88258f",
+     "clusterId": "5e84bd8c87d9d6044a1d76c5",
+     "hostname": "node1.example.com",
+     "port": 27017,
+     "replicaSetName": "rs0",
+     "replicaStateName": "RECOVERING",
+     "tooStale": true,
+     "lastReplError": "error RS102 too stale to catch up",
+     "links": [
+       {
+         "href": "https://<OpsManagerHost>:<Port>/api/public/v2.0/groups/5c8100bcf2a30b12ff88258f/hosts/5f5f8e2b1c9d440b8c1a2b3c",
+         "rel": "self"
+       },
+       {
+         "href": "https://<OpsManagerHost>:<Port>/api/public/v1.0/groups/5c8100bcf2a30b12ff88258f",
+         "rel": "http://mms.mongodb.com/group"
+       }
+     ]
+   }
+
+Response Codes
+--------------
+
+.. list-table::
+   :widths: 14 26 60
+   :header-rows: 1
+
+   * - HTTP Status
+     - Error Code
+     - Description
+
+   * - 200
+     - --
+     - Returns the host document.
+
+   * - 404
+     - HOST_NOT_FOUND
+     - ``HOST-ID`` doesn't match a host in the project.
+
+Other response codes match the v1.0 endpoint.

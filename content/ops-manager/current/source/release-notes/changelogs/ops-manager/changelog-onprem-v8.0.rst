@@ -22,10 +22,12 @@ Improvements
 - Updates JDK to `jdk-21.0.13+9
   <https://adoptium.net/temurin/release-notes/?version=jdk-21.0.13+9>`__.
 - Adds public APIs to shut down, start, restart, and resync a
-  process. Resync operations require ``votes: 0``.
+  process. Resync operations require ``votes: 0``. To learn more,
+  see :ref:`api-process-lifecycle`.
 - Adds v2.0 versions of the Get Host endpoints, which report
   replica set member replication health through the ``tooStale``
-  and ``lastReplError`` fields.
+  and ``lastReplError`` fields. To learn more, see
+  :ref:`api-get-hosts-replication-health`.
 - Makes the following improvements to snapshot and oplog stores that
   use |s3|:
 

@@ -1,0 +1,204 @@
+.. _read-replication-health-api:
+
+=================================================
+Read Replication Health Through the Get Host APIs
+=================================================
+
+.. meta::
+   :description: Use the v2.0 Ops Manager Public API Get Host endpoints to check whether a replica set member fell too far behind to catch up and read its last replication error.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can use the |mms| |api| to determine whether a replica set
+member fell too far behind to catch up. You can also read the
+member's last replication error.
+
+|mms| adds two fields to the host document, ``tooStale`` and
+``lastReplError``, and returns them from new **v2.0** versions of the
+three Get Host endpoints. The v1.0 endpoints are unchanged and never
+return the new fields.
+
+To call these endpoints, you must have the
+:authrole:`Project Read Only` role.
+
+What's New
+----------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Item
+     - Detail
+
+   * - New endpoints
+     - v2.0 versions of :ref:`Get One Host by ID
+       <api-get-one-host-by-id-v2>`,
+       :ref:`Get One Host by Hostname and Port
+       <api-get-one-host-by-hostname-port-v2>`, and
+       :ref:`Get All Hosts <api-get-all-hosts-v2>`. Same paths as
+       v1.0 under ``/api/public/v2.0``.
+
+   * - New fields
+     - ``tooStale`` and ``lastReplError`` on the host document.
+
+   * - Existing endpoints
+     - v1.0 is unchanged, including the hosts endpoints in the
+       Admin API.
+
+Before You Begin
+----------------
+
+- Your deployment must run |mms| 8.0.28 or 9.0.2 or later.
+
+- Monitoring must be enabled for the project. If monitoring is
+  disabled, |mms| omits the new fields.
+
+- Change the base path of your requests from ``/api/public/v1.0`` to
+  ``/api/public/v2.0``. The rest of each request is unchanged.
+
+Check a Member's Replication Health
+-----------------------------------
+
+.. procedure::
+
+   .. step:: Find the host.
+
+      Use :ref:`v2.0 Get All Hosts <api-get-all-hosts-v2>` to list
+      hosts, or use the ``hostname:port`` you already know.
+
+   .. step:: Call the v2.0 endpoint.
+
+      .. code-block:: sh
+
+         curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+              --header "Accept: application/json" \
+              --include \
+              --request GET "https://{+opsmgr-url+}/api/public/v2.0/groups/{GROUP-ID}/hosts/byName/{HOSTNAME-PORT}?pretty=true"
+
+   .. step:: Read the new fields.
+
+      .. code-block:: json
+         :copyable: false
+
+         {
+           "hostname": "node1.example.com",
+           "port": 27017,
+           "replicaSetName": "rs0",
+           "replicaStateName": "RECOVERING",
+           "tooStale": true,
+           "lastReplError": "error RS102 too stale to catch up"
+         }
+
+      The document is trimmed for brevity. |mms| returns the
+      complete host document.
+
+New Fields
+----------
+
+.. list-table::
+   :widths: 20 14 66
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Description
+
+   * - tooStale
+     - boolean
+     - The member fell behind the oplog window and could not catch
+       up from the replica set. The member requires an initial sync.
+
+   * - lastReplError
+     - string
+     - The member's last replication error, from ``rs.status()``.
+
+Field Behavior
+--------------
+
+The following table describes how |mms| populates the new fields in
+specific scenarios.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Scenario
+     - Behavior
+
+   * - Host is a healthy replica set member
+     - ``tooStale`` is ``false``. ``lastReplError`` is omitted.
+
+   * - Member is behind the oplog window
+     - ``tooStale`` is ``true``. ``lastReplError`` carries the
+       ``mongod``'s message.
+
+   * - Host isn't a replica set member
+     - Both fields are omitted.
+
+   * - Request uses a v1.0 endpoint
+     - Both fields are omitted.
+
+   * - Get All Hosts
+     - Each host reports its own member's values, not the replica
+       set's.
+
+Both fields describe the single host in the response, not the whole
+replica set.
+
+Troubleshooting
+---------------
+
+The following table describes common errors and symptoms when you use
+the v2.0 Get Host endpoints.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 35 35
+
+   * - Symptom
+     - Likely Cause
+     - Resolution
+
+   * - ``404`` from a v2.0 endpoint
+     - The base path is ``/api/public/v1.0``, or the host isn't in
+       the project.
+     - Use ``/api/public/v2.0`` and confirm the host with
+       :ref:`v2.0 Get All Hosts <api-get-all-hosts-v2>`.
+
+   * - ``tooStale`` and ``lastReplError`` are missing
+     - The host isn't a replica set member, monitoring is disabled,
+       or you called a v1.0 endpoint.
+     - Confirm the host belongs to a replica set, monitoring is
+       enabled, and the path uses v2.0.
+
+   * - ``lastReplError`` is missing but ``tooStale`` is present
+     - The member reports no replication error.
+     - No action needed.
+
+   * - ``404 HOST_NOT_FOUND``
+     - ``HOST-ID`` or ``HOSTNAME-PORT`` doesn't match a host in the
+       project.
+     - Confirm the value with
+       :ref:`v2.0 Get All Hosts <api-get-all-hosts-v2>`.
+
+Use the API
+-----------
+
+To read replication health programmatically, see
+:ref:`Get Hosts with Replication Health <api-get-hosts-replication-health>`.
+
+Learn More
+----------
+
+- :ref:`Get One Host by ID with Replication Health <api-get-one-host-by-id-v2>`
+- :ref:`Get One Host by Hostname and Port with Replication Health <api-get-one-host-by-hostname-port-v2>`
+- :ref:`Get All Hosts with Replication Health <api-get-all-hosts-v2>`
+- :ref:`Manage the Lifecycle of a Process <manage-process-lifecycle>`
