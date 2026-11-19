@@ -1035,6 +1035,7 @@ const tocData: TocItem[] = [
           {
             label: 'Install',
             contentSite: 'ops-manager',
+            url: '/docs/ops-manager/:version/tutorial/nav/install-mongodb-agent',
             collapsible: true,
             items: [
               {
