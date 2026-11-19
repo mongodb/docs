@@ -1,0 +1,176 @@
+name: Offline bundle PoC
+
+# DOP-7414: converts one content directory (RST to MDX), builds its
+# offline bundle on a GitHub runner, and uploads it to a PoC prefix in the
+# staging bucket. The bucket is hard-coded, so it never writes to production.
+# Needs the AWS_ACCESS_KEY_OFFLINE_DOCS_BUNDLES and
+# AWS_SECRET_OFFLINE_DOCS_BUNDLES secrets (write access to the s3 buckets).
+
+on:
+  workflow_dispatch:
+    inputs:
+      content_dir:
+        description: Directory under content/ to convert
+        default: mongodb-intellij
+      toc_file:
+        description: Offline TOC file (without .ts) to build
+        default: intellij-plugin
+      version:
+        description: Version string for the build (non-versioned sites use main)
+        default: main
+      snooty_version:
+        description: snooty-parser release tag
+        default: v0.20.20
+      prefix:
+        description: S3 key prefix in the staging bucket
+        default: docs/offline-poc/
+
+concurrency:
+  group: offline-bundle-poc
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build-bundle:
+    name: Convert and build offline bundle
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: platform
+    env:
+      CONTENT_DIR: ${{ inputs.content_dir || 'mongodb-intellij' }}
+      TOC_FILE: ${{ inputs.toc_file || 'intellij-plugin' }}
+      BUNDLE_VERSION: ${{ inputs.version || 'main' }}
+      SNOOTY_VERSION: ${{ inputs.snooty_version || 'v0.20.20' }}
+      SNOOTY_ARCH: linux
+      NEXT_TELEMETRY_DISABLED: '1'
+      BUCKET: docs-mongodb-org-dotcomstg
+      PREFIX: ${{ inputs.prefix || 'docs/offline-poc/' }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@d648c2dd069001a242c621c8306af467f150e99d
+        with:
+          version: 10.27.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: platform/.nvmrc
+          cache: 'pnpm'
+          cache-dependency-path: platform/pnpm-lock.yaml
+
+      # Private @mdb/* packages install from CodeArtifact, same as platform-ci.yml.
+      - name: Configure AWS credentials (CodeArtifact)
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+        with:
+          aws-access-key-id: ${{ secrets.NPM_AWS_KEY }}
+          aws-secret-access-key: ${{ secrets.NPM_AWS_SECRET }}
+          aws-region: us-east-1
+
+      - name: Authenticate with CodeArtifact
+        run: |
+          CODEARTIFACT_TOKEN=$(aws codeartifact get-authorization-token \
+            --domain mongodb --domain-owner 271346171620 --region us-east-1 \
+            --query authorizationToken --output text)
+          echo "::add-mask::$CODEARTIFACT_TOKEN"
+          echo "NPM_AWS_AUTH=$CODEARTIFACT_TOKEN" >> "$GITHUB_ENV"
+
+      - name: Install dependencies
+        run: |
+          start=$SECONDS
+          pnpm install --frozen-lockfile
+          echo "| Install dependencies | $((SECONDS - start))s |" >> "$RUNNER_TEMP/timings.md"
+
+      # Run the script directly: turbo drops env vars it does not know about,
+      # so SNOOTY_ARCH and SNOOTY_VERSION would not reach it through pnpm convert:rst-to-mdx.
+      - name: Convert RST to MDX
+        working-directory: platform/snooty-ast-to-mdx
+        env:
+          # The script hides parser errors unless this is set.
+          SNOOTY_VERBOSE: 'true'
+          # The Linux parser bundles a Pyston library that needs an executable
+          # stack, which newer glibc refuses to load without this.
+          GLIBC_TUNABLES: glibc.rtld.execstack=2
+        run: |
+          start=$SECONDS
+          ./convertRstToMdx.sh "$CONTENT_DIR"
+          test -d "../../content-mdx/$CONTENT_DIR"
+          echo "| Convert RST to MDX | $((SECONDS - start))s |" >> "$RUNNER_TEMP/timings.md"
+
+      - name: Build prefix map
+        working-directory: platform/docs-site
+        run: |
+          start=$SECONDS
+          pnpm build:prefix-map
+          echo "| Build prefix map | $((SECONDS - start))s |" >> "$RUNNER_TEMP/timings.md"
+
+      - name: Build offline bundle
+        working-directory: platform/docs-site
+        run: |
+          start=$SECONDS
+          pnpm run build:offline -- --tocFile="$TOC_FILE" --version="$BUNDLE_VERSION" --tocDir=offline-docs
+          echo "| Build offline bundle | $((SECONDS - start))s |" >> "$RUNNER_TEMP/timings.md"
+
+      - name: Create tarball
+        working-directory: platform/docs-site
+        run: |
+          start=$SECONDS
+          mkdir -p "$RUNNER_TEMP/offline-bundle-output"
+          tar -czf "$RUNNER_TEMP/offline-bundle-output/${TOC_FILE}-${BUNDLE_VERSION}.tar.gz" -C out ./
+          echo "| Create tarball | $((SECONDS - start))s |" >> "$RUNNER_TEMP/timings.md"
+
+      - name: Upload tarball as artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: offline-bundle-${{ env.TOC_FILE }}-${{ env.BUNDLE_VERSION }}
+          path: ${{ runner.temp }}/offline-bundle-output/*.tar.gz
+          retention-days: 3
+          if-no-files-found: error
+
+      - name: Upload to staging bucket and verify
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_OFFLINE_DOCS_BUNDLES }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_OFFLINE_DOCS_BUNDLES }}
+          AWS_DEFAULT_REGION: us-east-2
+        run: |
+          PREFIX="${PREFIX%/}/"
+          start=$SECONDS
+          NAME="${TOC_FILE}-${BUNDLE_VERSION}.tar.gz"
+          aws s3 cp "$RUNNER_TEMP/offline-bundle-output/$NAME" "s3://$BUCKET/${PREFIX}${NAME}" \
+            --content-type application/octet-stream \
+            --content-disposition "attachment; filename=\"$NAME\"" \
+            --metadata "source-sha=$GITHUB_SHA,parser-version=$SNOOTY_VERSION,built-at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          echo "| Upload to staging bucket | $((SECONDS - start))s |" >> "$RUNNER_TEMP/timings.md"
+          # A Content-Encoding header would make browsers unzip the download.
+          aws s3api head-object --bucket "$BUCKET" --key "${PREFIX}${NAME}" | tee "$RUNNER_TEMP/head-object.json"
+          if grep -q '"ContentEncoding"' "$RUNNER_TEMP/head-object.json"; then
+            echo "::error::Object has a Content-Encoding header"
+            exit 1
+          fi
+
+      - name: Write job summary
+        if: always()
+        run: |
+          {
+            echo "### Offline bundle PoC: ${TOC_FILE}-${BUNDLE_VERSION}"
+            echo
+            echo "Runner: $(nproc) vCPU, $(free -g | awk '/^Mem:/ {print $2}') GB RAM, disk used on /: $(df -h / | awk 'NR==2 {print $3 " of " $2}')"
+            echo
+            echo "| Step | Time |"
+            echo "| :---- | :---- |"
+            cat "$RUNNER_TEMP/timings.md" 2>/dev/null || true
+            echo
+            echo "| Measure | Value |"
+            echo "| :---- | :---- |"
+            echo "| content-mdx size for $CONTENT_DIR | $(du -sh "../content-mdx/$CONTENT_DIR" 2>/dev/null | cut -f1) |"
+            echo "| HTML pages in out/ | $(find docs-site/out -name '*.html' 2>/dev/null | wc -l) |"
+            echo "| Tarball size | $(du -h "$RUNNER_TEMP/offline-bundle-output/${TOC_FILE}-${BUNDLE_VERSION}.tar.gz" 2>/dev/null | cut -f1) |"
+          } >> "$GITHUB_STEP_SUMMARY"

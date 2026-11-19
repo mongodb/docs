@@ -12,7 +12,9 @@ const REQUIRED_ENV_VARS = [
  * Throws an error if any required environment variables are missing or if DB_ENV is invalid.
  */
 const validateEnvConfigs = () => {
-  const missingVars = REQUIRED_ENV_VARS.filter((key) => !process.env[key]);
+  // The offline static export never calls Mongo or Slack.
+  const isStaticBuild = process.env.BUILD_STATIC_PAGES === 'true';
+  const missingVars = isStaticBuild ? [] : REQUIRED_ENV_VARS.filter((key) => !process.env[key]);
   if (missingVars.length > 0) {
     throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
   }
