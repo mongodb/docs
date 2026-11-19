@@ -254,6 +254,88 @@ The following example shows how to use the ``AsBsonDocument`` and
        ];
    }
 
+.. _laravel-model-cast-encrypted-fields:
+
+Automatic Casting for Encrypted Fields
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Starting in {+odm-long+} v5.12, the {+odm-short+} casts encrypted field
+values to the BSON type that you declare in the ``encryptedFieldsMap``
+option. Specify this option in the ``driver_options.autoEncryption``
+setting of your connection. The {+odm-short+} applies
+the cast on write, so the driver receives the declared BSON type before
+it encrypts the value.
+
+The following example shows an ``encryptedFieldsMap`` declaration in
+an application's ``config/database.php`` file:
+
+.. code-block:: php
+   :emphasize-lines: 4-13
+
+   'mongodb' => [
+      'driver' => 'mongodb',
+      'driver_options' => [
+         'autoEncryption' => [
+            'encryptedFieldsMap' => [
+               'patients' => [
+                  'fields' => [
+                     'billing_amount' => [ 'bsonType' => 'int' ],
+                     'ssn' => [ 'bsonType' => 'string' ],
+                  ],
+               ],
+            ],
+         ],
+      ],
+   ],
+
+The following table shows the cast that the {+odm-short+} derives for
+each ``bsonType`` value:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - BSON Type
+     - Derived Cast
+
+   * - ``int``
+     - ``integer``
+
+   * - ``long``
+     - ``integer``
+
+   * - ``double``
+     - ``float``
+
+   * - ``bool``
+     - ``boolean``
+
+   * - ``date``
+     - ``datetime``
+
+   * - ``string``, ``object``, ``decimal``
+     - None
+
+For example, if you assign the string ``"1500"`` to an encrypted field
+declared as ``bsonType: "int"``, the {+odm-short+} stores the integer
+``1500`` in the collection.
+
+If the value can't be converted to the declared type, the {+odm-short+}
+passes the original value to the driver. Automatic encryption then rejects
+the write.
+
+If you declare a cast on a field that is also declared in
+``encryptedFieldsMap``, your cast must produce the declared BSON type.
+For example, an ``integer`` cast is compatible with a field declared as
+``bsonType: "int"``. If your cast produces a different type, the
+{+odm-short+} raises a ``LogicException``.
+
+.. note::
+
+   The {+odm-short+} does not derive a cast for the ``decimal`` BSON type. To
+   store decimal values, declare a ``decimal:<scale>`` cast on the
+   field yourself.
+
 .. _laravel-model-mass-assignment:
 
 Customize Mass Assignment
