@@ -25,7 +25,14 @@ Manage Customer Keys with Azure Key Vault: Public Network
 You can use a customer-managed key (CMK) from Azure Key Vault (AKV)
 to further encrypt your data at rest in |service|. This page describes
 how to configure customer key management using |akv| on your |service|
-project and on the {+clusters+} in that project. 
+project and on the {+clusters+} in that project.
+
+This configuration uses the public network. If you restrict access to
+your |akv| by IP address, you must allow the outbound IP addresses of
+the |service| control plane in your |akv| firewall. To use private
+endpoints instead of IP access lists, see :ref:`Manage Customer Keys
+with Azure Key Vault Over Private Endpoints
+<security-azure-kms-pvt-endpoint>`.
 
 .. _azure-kms-prereqs:
 
@@ -33,34 +40,39 @@ Prerequisites
 -------------
 
 To enable customer-managed keys with |akv| for a MongoDB project, you
-must: 
+must:
 
 .. include:: /includes/fact-azure-kms-prereqs.rst
 
-- To help users easily create or change a {+cluster+}, you 
-  can allow public access to the key. To narrow the scope of the 
+- To help users easily create or change a {+cluster+}, you
+  can allow public access to the key. To narrow the scope of the
   key and mitigate risks, use controls such as |tls| and authentication.
 
-- For restricted access to defined IP ranges, :azure:`allow access 
+- For restricted access to defined IP ranges, :azure:`allow access
   </key-vault/general/network-security>` from :ref:`Atlas IP addresses
   <atlas-add-inbound-ips>` and the public IP addresses of your
-  {+cluster+} nodes. 
+  {+cluster+} nodes.
 
   - Ensure |service| can communicate with your |akv|. To avoid
     connectivity interruptions, update your configuration whenever node
     IP addresses :ref:`change <faq-public-ip-changes>`. For example, you
     might need to update your :ref:`inbound access rules
-    <atlas-add-inbound-ips>`. 
+    <atlas-add-inbound-ips>`.
 
   - If you restrict access to the |akv|, you create more complexity when
     IP addresses change. For example, when you create or update a
     {+cluster+}, you must grant access in the |akv| to any new IP
-    addresses. 
+    addresses.
 
-- Add the outgoing IP addresses of the |service| control plane. To learn 
-  how to retrieve your outgoing IP addresses by using the {+atlas-admin-api+}, see 
-  :ref:`Fetch {+service+} Control Plane IP Addresses <atlas-fetch-control-plane-ips>` or use 
-  the :oas-bump-atlas-op:`List Control Plane IP Addresses <listcontrolplaneipaddresses>` API operation.
+- Add the outbound IP addresses of the |service| control plane
+  (``controlPlane.outbound``) to your |akv| firewall's access list.
+  These are |service| IP addresses; |azure| manages the |akv|
+  service's own IP addresses, which |service| does not provide. To
+  fetch the current control plane IP addresses, send a ``GET`` request
+  to the {+atlas-admin-api+} :oas-bump-atlas-op:`List Control Plane IP
+  Addresses <listcontrolplaneipaddresses>` endpoint. To learn more,
+  see :ref:`Fetch {+service+} Control Plane IP Addresses
+  <atlas-fetch-control-plane-ips>`.
 
 - If your :guilabel:`App registrations` use `conditional access
   policies <https://learn.microsoft.com/en-us/entra/identity/conditional-access/workload-identity>`__,
@@ -93,19 +105,19 @@ Enable Customer-Managed Keys for a Project
 
 You must enable |cmk| for a project before you can enable it on a
 {+cluster+} in that project. You can enable |cmk| for a project from the
-{+atlas-ui+} and {+atlas-admin-api+}. 
+{+atlas-ui+} and {+atlas-admin-api+}.
 
-.. tabs:: 
+.. tabs::
 
-   .. tab:: Atlas UI 
+   .. tab:: Atlas UI
       :tabid: ui
 
       .. include:: /includes/ear/steps-configure-azure-encryption-for-project-ui.rst
 
-   .. tab:: Atlas Admin API 
+   .. tab:: Atlas Admin API
       :tabid: api
 
-      .. include:: /includes/ear/steps-configure-azure-encryption-for-project-api.rst  
+      .. include:: /includes/ear/steps-configure-azure-encryption-for-project-api.rst
 
 .. _azure-enable-cluster-encryption-at-rest:
 
@@ -121,9 +133,9 @@ to encrypt.
    You must have the :authrole:`Project Owner <Project Owner>` role to
    enable customer key management for clusters in that project.
 
-For new clusters, toggle the :ref:`Manage your own encryption keys 
+For new clusters, toggle the :ref:`Manage your own encryption keys
 <create-cluster-enable-encryption>` setting to :guilabel:`Yes` when you
-create the cluster.  
+create the cluster.
 
 For existing clusters:
 
@@ -152,10 +164,10 @@ encryption key unless your |akv| IP access list restricts the |service| control 
 To allow automatic pausing of your {+cluster+}, you must either:
 
 - Disable the IP access list for your |akv|
-- Allow access to your |akv| from the :ref:`Atlas control plane <atlas-add-inbound-ips>`.  
-  
+- Allow access to your |akv| from the :ref:`Atlas control plane <atlas-add-inbound-ips>`.
+
 .. note::
-    
+
    MongoDB adds new |service| control plane IP addresses over time. You must keep
    the IP access list updated to allow automatic {+cluster+} pausing while using an
    IP access list for your |akv|.
@@ -179,7 +191,7 @@ Before you begin, learn :ref:`azure-kms-rotate-key`.
 You must create a new key in the |akv| associated to the
 |service| project.  The following procedure documents how to rotate your
 |service| project Key Identifier by specifying a new key identifier in
-|service|. 
+|service|.
 
 .. include:: /includes/steps-rotate-azure-encryption-key.rst
 
@@ -202,5 +214,5 @@ Related Topics
 
 - To learn more about Encryption at Rest with {+Cloud-Backup+}s, see :ref:`encrypted-cloud-provider-snapshot`.
 
-- To enable customer key Management for Search Nodes, see 
+- To enable customer key Management for Search Nodes, see
   :ref:`Enable Search Node Data Encryption <enable-search-node-encryption>`.
