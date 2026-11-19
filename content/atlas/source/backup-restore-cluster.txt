@@ -6,116 +6,280 @@ Back Up, Restore, and Archive Data
 ==================================
 
 .. meta::
-   :description: Manage backups and restore data for Atlas clusters, including compliance policies and cloud provider snapshots.
+   :description: Overview of Atlas backup, restore, and archive options for Free, Flex, and M10 and larger clusters, including Cloud Backup, snapshot restores, MongoDB Database Tools, and Online Archive.
 
 .. default-domain:: mongodb
 
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 .. note::
 
-   Backup and restore apply to both {+atlas-core-cluster+}s and
-   {+atlas-infinite-cluster+}s, with exceptions. On an
-   {+atlas-infinite-cluster+}, snapshot distribution, snapshot download
-   and local restore, collection-level restore, immutable snapshots,
-   and {+Online-Archive+} aren't supported in public preview. To learn
-   what applies, see :ref:`atlas-infinite-availability`.
+   This page applies to both {+atlas-core-cluster+}s and
+   {+atlas-infinite-cluster+}s. During public preview,
+   {+atlas-infinite-cluster+}s don't support some backup and restore
+   features. To learn more about feature availability on
+   {+atlas-infinite-full+}, see :ref:`atlas-infinite-availability`.
 
 .. dismissible-skills-card::
    :skill: Cluster Reliability  
    :url: https://learn.mongodb.com/skills?openTab=performance+at+scale
 
-.. _backup-cluster:
+On |service|, a backup is a copy of your cluster's data that represents
+the state of your cluster at a specific point in time. You can create
+and retain backups of an |service| cluster to restore in case of
+unexpected events, such as accidental deletions or data corruption.
 
-Backups are copies of your data that encapsulate the state of your
-cluster at a given time. Backups provide a safety measure in the
-event of data loss. If you have strict data protection requirements,
-you can :ref:`enable a {+bcp+} <backup-compliance-policy>` to protect
-your backup data.
+This page is an overview of the backup, restore, and archive options
+available for |service| clusters.
 
 .. note::
 
    .. sharedinclude:: cet/atlas/shared-responsibility-model-intro.rst
 
-.. include:: /includes/atlas-roles/backup-restore.rst
-
-.. include:: /includes/atlas-roles/restore-and-watch.rst
-
-Considerations
+Backup Options
 --------------
 
-Be aware that:
+You can back up your |service| cluster using |service|-managed backup
+features, such as {+Cloud-Backup+}, or manual backups with MongoDB
+Database Tools:
 
-- |service| backups are not available for {+Free-clusters+} (formerly known as ``M0``).
-  You may use :ref:`mongodump <command-line-tools-mongodump>` to back
-  up your {+Free-cluster+} data and
-  :ref:`mongorestore <command-line-tools-mongorestore>` to restore that
-  data. To learn how to manually back up your data, see
-  :ref:`Command Line Tools <command-line-tools>`.
+|service|-Managed Backup Features
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- You can't write to your cluster while 
-  a backup restore is in progress for that cluster.
+|service| offers different backup features depending on your cluster
+tier. When the backup feature is enabled, |service| manages the full
+lifecycle of your backups, including creating, storing, and deleting
+snapshots after a defined retention period.
 
-- You can restore a backup only to a cluster running either:
+The following table describes the |service|-managed backup features
+available for each cluster tier:
 
-  - The same major release version with an equal or higher minor
-    version. For example, if you create a backup for a cluster running
-    MongoDB 8.1.x, you can restore this backup to a cluster running
-    any other 8.1.x version, or any 8.y.x version where ``y >
-    1``, but you can't restore it to any 8.0.x version.
+.. list-table::
+   :header-rows: 1
+   :widths: 25 50 25
 
-  - The next higher major release version. For example, if you create
-    a backup for a cluster running MongoDB 8.y.x, you can restore this
-    backup to a cluster running 9.y.x, but you can't restore it to any
-    7.y.x version.
+   * - {+Cluster+} Tier
+     - Backup Feature
+     - Learn More
 
-  If the backup has a pinned FCV, the major version of the target
-  {+cluster+} must match the major version of that pinned FCV.
+   * - {+Free-clusters+} (``M0``)
+     - {+free-backup+} is an optional, billed backup subscription that
+       you can enable for {+Free-clusters+}. This feature is available
+       only as a private preview. |service| rolls out the preview
+       gradually, so the option might not be available for your cluster.
 
-.. _cloud-backup-overview:
+       When you enable the subscription, |service| takes daily snapshots
+       of your cluster and retains each snapshot for up to four days.
+     - :ref:`free-cluster-backups`
 
-{+Cloud-Backup+}s
------------------
+   * - {+Flex-clusters+}
+     - {+flex-backup+} is the automatic snapshot schedule that you
+       cannot disable for {+Flex-clusters+}. |service| takes daily
+       snapshots and retains each snapshot for up to eight days.
+       |service| starts taking snapshots 24 hours after you create the
+       {+Flex-cluster+}.
+     - :ref:`flex-snapshots`
 
-*Available in M10+ {+Clusters+}.*
+   * - {+Dedicated-clusters+} (``M10`` and larger)
+     - {+Cloud-Backup+} is the default backup option for
+       {+Dedicated-clusters+}. |service| takes scheduled or on-demand
+       snapshots of your cluster according to your backup policy. You
+       can disable {+Cloud-Backup+} or enable :ref:`additional options
+       <cloud-backup-overview>` to control how |service| manages
+       snapshots.
+     - :ref:`dedicated-cluster-backups`
 
-On {+atlas-core-cluster+}s, backups are immutable by default. Therefore,
-it is not possible to modify a snapshot.
+You can download a snapshot as a compressed file to keep a copy outside
+of |service|. To learn more, see :ref:`restore-from-local-file`.
 
-.. note::
+.. _cloud-backup-overview: 
 
-   On an {+atlas-infinite-cluster+}, backups are not immutable.
+{+Cloud-Backup+} Options for {+Dedicated-Clusters+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To enforce indelibility, you can enable a :ref:`Backup Compliance
-Policy <configure-backup-policy>`, which prevents **all** users from
-deleting backups or altering their retention settings, ensuring strict
-backup integrity.
+{+Cloud-Backup+} is the default backup option for {+Dedicated-clusters+}
+(``M10`` and larger). {+Cloud-Backup+} uses your cloud provider's native
+snapshot functionality to create and store full-copy snapshots of your
+cluster. These snapshots are always incremental in nature for low cost
+and fast restores. To control when |service| takes snapshots, you can
+define a :ref:`backup policy <configure-backup-policy>` or take
+snapshots :ref:`on-demand <on-demand-snapshots>`.
 
-|service| supports
-:ref:`{+Cloud-Backup+}s <backup-cloud-provider>` on:
+You can enable or disable {+Cloud-Backup+} in your cluster's
+:ref:`additional settings <create-cluster-backups>`. In these settings,
+you can also configure the following options to control how |service|
+manages {+Cloud-Backup+} snapshots:
 
-- :ref:`Microsoft Azure <microsoft-azure>`
-- :ref:`Amazon Web Services (AWS) <amazon-aws>`
-- :ref:`Google GCP <google-gcp>`
+.. list-table::
+   :header-rows: 1
+   :widths: 30 50 20
 
-To learn more, see :ref:`backup-cloud-provider`.
+   * - {+Cloud-Backup+} Option
+     - Description
+     - Learn More
 
-To learn how to restore cluster from a {+Cloud-Backup+}, see
-:ref:`restore-from-snapshot`.
+   * - {+continuous-backup+}
+     - Storing your cluster's :term:`oplog` alongside your snapshots to
+       enable |pit| restores. During a |pit| restore, |service| replays
+       the oplog to restore your cluster to any point in time between
+       snapshots, within the restore window that you set.
 
-Snapshots for {+Flex-Clusters+}
--------------------------------
+       On {+atlas-infinite-cluster+}s, {+continuous-backup+} is always
+       enabled and you can't disable it. On {+atlas-core-cluster+}s, you
+       can enable {+continuous-backup+} for an additional cost.
+     - :ref:`pit-restore`
 
-.. include:: /includes/shared-to-atlas-flex-migration.rst
+   * - Snapshot Copy Distribution to Additional Regions
+     - Stores copies of your snapshots in additional cloud provider
+       regions, based on a snapshot copy policy that you define. Copied
+       snapshots improve resiliency and restore speeds if your primary
+       region becomes unavailable.
 
-Backups are automatically enabled for {+Flex-clusters+} and can't be disabled.
-|service| takes daily snapshots of your {+Flex-clusters+}, which you can
-restore to {+Flex-cluster+} or ``M10`` and greater tiers.
+       Not supported for {+atlas-infinite-cluster+}s in public preview.
+     - :ref:`snapshot-distribution`
 
-To learn more about backing up your cluster, see :ref:`flex-snapshots`.
+   * - {+bcp+}
+     - Prevents all users from deleting backups or altering their
+       retention settings. To disable a {+bcp+}, you must contact
+       MongoDB Support.
+     - :ref:`backup-compliance-policy`
 
-To learn more about restoring your cluster, see :ref:`restore-from-snapshot`. 
+   * - Export to Cloud Provider Storage
+     - Exports your snapshots to an object storage bucket, either
+       manually or automatically based on an export policy. |service|
+       supports |aws| |s3|, {+az-bs+}, and {+gcs+}.
+     - :ref:`cloud-provider-snapshot-export`
+
+Manual Backups with MongoDB Database Tools
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To manually back up cluster data, you can install the following MongoDB
+Database Tools and run them outside of |service|. These tools create
+backups that aren't snapshots, and |service| doesn't schedule, store, or
+retain them for you. To learn more, see the :ref:`MongoDB Database Tools
+documentation <dbtools_installation>`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 50 20
+
+   * - MongoDB Database Tool
+     - Description
+     - Learn More
+
+   * - ``mongodump``
+     - Use ``mongodump`` to create a binary export of the data in your
+       {+cluster+}. Use ``mongorestore`` to restore that data to an
+       |service| {+cluster+}. These tools work with BSON data dumps and
+       are useful for backing up small deployments.
+     - :ref:`command-line-tools-mongodump`
+
+       :ref:`command-line-tools-mongorestore`
+
+       :ref:`manual-tutorial-backup-and-restore`
+
+   * - ``mongoexport``
+     - Use ``mongoexport`` to export data from a collection to a file.
+       Use ``mongoimport`` to import data from a file into a collection.
+       These tools export and import the data in a collection.
+     - :ref:`command-line-tools-mongoexport`
+
+       :ref:`command-line-tools-mongoimport`
+
+{+Free-clusters+} and {+Flex-clusters+} don't support some options of
+these tools. To learn more, see :ref:`command-line-tools`.
+
+Restore Options
+---------------
+
+You can restore data to an |service| {+cluster+} from the following
+sources:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 50 20
+
+   * - Restore Source
+     - Restore Option
+     - Learn More
+
+   * - Scheduled or On-Demand Snapshots from {+Cloud-Backup+},
+       {+free-backup+}, or {+flex-backup+}
+     - Restore a snapshot to a cluster in the same or a different
+       project using the {+atlas-cli+}, {+atlas-admin-api+}, or
+       {+atlas-ui+}.
+
+       To restore individual databases and collections from a snapshot,
+       both the source and target cluster must be
+       {+Dedicated-clusters+}. If either cluster is a {+Free-cluster+}
+       or {+Flex-cluster+}, |service| restores only the full cluster.
+       Restore restrictions differ by cluster tier.
+     - :ref:`restore-from-snapshot`
+
+   * - Scheduled or On-Demand Snapshots from {+Cloud-Backup+} with
+       {+continuous-backup+} enabled
+     - Perform a |pit| restore from the {+atlas-cli+},
+       {+atlas-admin-api+}, or {+atlas-ui+}. You can choose to restore
+       individual databases and collections or the full cluster.
+     - :ref:`restore-from-continuous`
+
+   * - Locally Downloaded Snapshot Files
+     - Extract the locally downloaded archive using your preferred
+       archive utility, then start a :binary:`~bin.mongod` instance that
+       uses the extracted data files. You cannot import a downloaded
+       snapshot back into an |service| {+cluster+} through the
+       {+atlas-ui+}. {+atlas-infinite-cluster+}s do not support
+       downloading snapshots or restoring from local files.
+     - :ref:`restore-from-local-file`
+
+   * - Snapshots Exported to Cloud Provider Storage
+     - Import a snapshot that you exported to |s3|, {+az-bs+}, or
+       {+gcs+} back into an |service| {+cluster+} by using your cloud
+       provider's CLI, |mongoimport|, and |mongorestore|. You also
+       rebuild your indexes as part of the procedure.
+     - :ref:`cloud-provider-import-archive`
+
+   * - Encrypted Snapshots
+     - Restore a snapshot from a {+Dedicated-cluster+} that uses
+       {+encrypt-at-rest+} to another {+Dedicated-cluster+} that uses
+       the same key management provider. Initiate the restore from the
+       {+atlas-ui+}.
+     - :ref:`restore-from-ear`
+
+   * - Cloud Manager Backup
+     - Restore a Cloud Manager backup to an |service| deployment using
+       the Cloud Manager UI.
+     - :ref:`restore-from-cloud-manager`
+
+   * - Backups Created with MongoDB Database Tools
+     - Use |mongorestore| to restore data from a |mongodump| backup. Use
+       |mongoimport| to import data from a file that you created with
+       |mongoexport|.
+     - :ref:`command-line-tools-mongorestore`
+
+       :ref:`command-line-tools-mongoimport`
+
+   * - {+Online-Archive+} (cloud provider storage)
+     - Restore specific archived documents to your {+cluster+} by using
+       the :pipeline:`$merge` stage. {+Flex-clusters+} do not support
+       {+Online-Archive+}.
+     - :ref:`restore-archived-data`
+
+Archive Data with {+Online-Archive+}
+------------------------------------
+
+{+Online-Archive+} tiers your data. It archives infrequently accessed
+data from your {+cluster+} to cloud object storage and keeps it
+available for queries alongside your live data. {+Online-Archive+}
+doesn't replace backups, so continue to back up your {+cluster+}.
+
+{+Online-Archive+} is available only for {+Dedicated-clusters+} (``M10``
+and larger) on {+atlas-core-full+}.
+
+To learn how to set up and manage {+Online-Archive+}, see
+:ref:`online-archive-overview`. To restore archived documents, see
+:ref:`restore-archived-data`.

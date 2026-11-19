@@ -46,7 +46,7 @@
        or :ref:`scaling <modify-cluster>` a cluster.
 
    * - Backups
-     - No
+     - :ref:`Private Preview <free-cluster-backups>`
      - Yes, :ref:`daily backup snapshots <flex-snapshots>`
      - Yes
 
