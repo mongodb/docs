@@ -766,11 +766,6 @@ export const toc: L1TocItem[] = [
                     url: '/docs/ops-manager/:version/tutorial/delete-backup-snapshots',
                   },
                   {
-                    label: 'Resync',
-                    contentSite: 'ops-manager',
-                    url: '/docs/ops-manager/:version/tutorial/resync-backup',
-                  },
-                  {
                     label: 'Disable',
                     contentSite: 'ops-manager',
                     url: '/docs/ops-manager/:version/tutorial/disable-backup',
