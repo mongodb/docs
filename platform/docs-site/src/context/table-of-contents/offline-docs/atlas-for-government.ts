@@ -75,7 +75,15 @@ export const toc: L1TocItem[] = [
           {
             label: ' User Access',
             contentSite: 'cloudgov',
+            collapsible: true,
             url: '/docs/atlas/government/atlas-access',
+            items: [
+              {
+                label: 'Troubleshoot User Access Issues',
+                contentSite: 'cloudgov',
+                url: '/docs/atlas/government/troubleshoot-user-access',
+              },
+            ],
           },
           {
             label: 'Database Users',
@@ -137,6 +145,11 @@ export const toc: L1TocItem[] = [
             label: 'Support',
             contentSite: 'cloudgov',
             url: '/docs/atlas/government/support',
+          },
+          {
+            label: 'Release Notes',
+            contentSite: 'cloudgov',
+            url: '/docs/atlas/government/release-notes',
           },
         ],
       },

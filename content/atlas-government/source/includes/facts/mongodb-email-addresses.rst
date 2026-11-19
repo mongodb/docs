@@ -1,8 +1,8 @@
-|aws-fr-high| and |gaw| Regions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+|aws-fr-high|, |gaw|, and |azure-gov| Regions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Alerts come from ``mongodb-atlasgov-alerts@mongodb.com``.
-- All other emails come from ``mongodb-atlasgov-support@mongodb.com``.
+- Alerts come from ``mongodb-atlasgov-alerts@mongodbgov.com``.
+- All other emails come from ``mongodb-atlasgov-support@mongodbgov.com``.
 
 |aws-fr-moderate|
 ~~~~~~~~~~~~~~~~~~

@@ -1,3 +1,5 @@
-You must designate projects for either standard or government 
-(``gov``) region usage upon creation. You cannot deploy clusters 
-across government and standard regions in the same project.
+When you create a project, you must designate it as either a
+{+fedramp-c+} project or a {+fedramp-d+} project. To create a
+{+fedramp-d+} project, select :guilabel:`FedRAMP Class D (High) -
+Regions Only`. You cannot deploy clusters within the same
+project across both {+fedramp-d+} and {+fedramp-c+} regions.

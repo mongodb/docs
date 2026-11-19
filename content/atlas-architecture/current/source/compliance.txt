@@ -48,10 +48,12 @@ MongoDB {+service+} for Government
 -----------------------------------
 
 MongoDB |atlas-gov| is a fully-managed multi-cloud developer data 
-platform authorized at FedRAMP® Moderate that:
+platform certified at FedRAMP® Class D (formerly called FedRAMP®
+High). The platform:
 
-- Uses a secure, fully-managed, dedicated FedRAMP® authorized environment.
-- Supports the unique requirements and missions of the U.S. Government.
+- Uses a secure, fully-managed, dedicated FedRAMP® certified environment.
+- Supports the unique requirements and missions of U.S. federal
+  government agencies and their suppliers.
 - Offers a set of features and the scalability needed to modernize legacy applications.
 
 .. _arch-center-resource-policies:
@@ -59,93 +61,52 @@ platform authorized at FedRAMP® Moderate that:
 {+arps+} 
 -----------------------
 
-To support your compliance requirements, {+arps+} offer 
-organization-wide controls for configuring and managing {+service+} resources in 
-alignment with your security, compliance, and operational best practices. Organization 
-Owners can define rules that govern user actions when creating or modifying resources 
-such as clusters, network configurations, and project settings. We 
-recommend that you set a resource policy according to your company's 
-standards at Organization creation time.
+To support your compliance requirements, {+arps+} offer
+organization-wide controls for configuring and managing {+service+}
+resources in alignment with your security, compliance, and
+operational best practices. {+arps+} are controls that enable
+:authrole:`Organization Owners <Organization Owner>` to constrain
+the specific configuration options available to developers when
+they create or configure |service| {+clusters+}.
 
-{+arps+} support your compliance objectives by enabling you to:
+Examples of compliance objectives that you can accomplish using
+{+arps+} are:
 
-- **Enforce Minimum TLS Version:** Mandate the use of modern |tls| protocols across 
-  all {+service+} deployments, enhancing security and mitigating risks associated with 
-  older, less secure versions. This ensures adherence to contemporary encryption 
-  standards for all data in transit.
+- Limit cluster deployment to specific cloud platforms (|aws|,
+  |gcp|, |azure|).
+- Prohibit the use of wildcard IPv4 CIDR ranges (any ``/0`` mask,
+  such as ``0.0.0.0/0`` or ``10.0.0.0/0``) to enforce stricter
+  network controls.
+- Prevent modifications to |vpc| peering and private endpoint
+  connections across cloud providers.
+- Prohibit traffic through public networks by requiring that the
+  IP access list remain empty or by preventing additions to an
+  existing IP access list.
+- Enforce minimum and maximum cluster tiers and auto-scaling
+  sizes across your organization.
+- Require that a project has a maintenance window configured.
 
-- **Customize Default TLS Ciphers:** Select a specific set of allowed |tls| ciphers 
-  to optimize security based on operational needs while avoiding 
-  vulnerabilities associated with legacy encryption methods. This allows for fine-tuning 
-  encryption protocols to meet specific compliance requirements.
-
-- **Restrict VPC Peering Modifications:** Enable secure cross-network communication 
-  through established |vpc| peering connections while preventing configuration changes. 
-  Current project-level peerings remain active with their existing routing tables 
-  and security protocols, allowing customers to view but not alter these one-to-one 
-  |vpc| relationships and their associated network control mechanisms.
-
-- **Restrict Private Endpoint Modifications:** Maintain secure service connectivity 
-  through existing private endpoint configurations with read-only access. Project-level 
-  connections remain functional with their current private IP addressing scheme, while 
-  customers can view but not modify these dedicated service connection points within 
-  their |vpc|.
-
-- **Control IP Access Lists:** Prevent unauthorized modifications to IP access lists, 
-  supporting consistent and controlled network access to your databases. This strengthens 
-  database security by preserving carefully defined network boundaries and protecting 
-  against accidental configuration changes.
-
-- **Set Cluster Tier Limits:** Define deployment guardrails by establishing both 
-  maximum and minimum cluster size limits that developers must adhere to when 
-  provisioning resources. This boundary-setting approach ensures teams can deploy 
-  appropriately sized environments within organization-approved parameters, optimizing 
-  infrastructure utilization while enforcing consistent resource allocation policies 
-  across all project workloads.
-
-- **Set Maintenance Window Requirement:** Enhance platform stability by 
-  requiring a maintenance window for all projects. This governance 
-  control allows organizations to establish a predictable update period 
-  (without dictating a specific timeframe) to support consistent system 
-  maintenance according to operational needs.
-
-- **Set Cloud Provider and Regions:** Set your cloud provider and 
-  distribute clusters across multiple regions and providers to meet 
-  your data residency requirements and ensure high availability.
-
-- **Block Usage of the Wildcard IP Address:** Limit access to your 
-  cluster to only explicitly permitted IP addresses by not 
-  including the wildcard IP address in your IP access list or firewall 
-  rules. The wildcard IP address is 0.0.0.0/0 and allows access from 
-  anywhere.
-
-To learn more, see :atlas:`Atlas Resource Policies </atlas-resource-policies/>`.
-
-The following resource policy example, allows clusters to be created 
-on |aws|:
+The following policy example prevents creation of clusters on
+|aws|:
 
 .. code-block::
    :copyable: true
 
-   {
-     "name": "Only Allow Clusters on AWS",
-     "policies": [
-       {
-         "body": "forbid (principal, action == ResourcePolicy::Action::\"cluster.modify\", resource) unless { context.cluster.cloudProviders == [ResourcePolicy::CloudProvider::\"aws\"] };"
-       }
-     ]
-   }
+   forbid (
+      principal,
+      action == ResourcePolicy::Action::"cluster.modify",
+      resource
+   )
+   when { context.cluster.cloudProviders.contains(ResourcePolicy::CloudProvider::"aws") };
 
-The following example creates a Terraform resource policies file you 
-can use to enforce resource policies in your application. The file 
-enforces the following policies:
-
-- Restricts cluster modification to only a specified cloud provider.
-- Forbids cluster access from a wildcard IP address.
-- Specifies a minimum and maximum cluster size.
-- Prevents modification to private endpoints.
-
-.. include:: /includes/examples/terraform/tf-example-resource-policy.rst
+{+arps+} in |atlas-gov| work similar to that in commercial regions
+except for features that are not available in |atlas-gov|.
+Similarly, when a resource policy applies restriction to gov-only
+regions, the values available are different from commercial e.g.
+``us-gov-east-1`` vs ``us-east-1`` for |aws|. |atlas-gov| supports
+|tls| 1.2 and 1.3 to encrypt connections. You cannot disable
+|tls|. To learn more, see :atlas:`Atlas Resource Policies
+</atlas-resource-policies/>`.
 
 .. _arch-center-compliance-encryption:
 
@@ -158,8 +119,12 @@ requirements for ensuring compliance with industry security standards,
 and {+service+} offers a robust set of encryption options to satisfy 
 the requirements.
 
-- By default, |service| encrypts data in transit. |service| requires 
-  |tls-ssl| to encrypt the connections to your databases.
+- By default, |service| encrypts data in transit. |service| requires
+  |tls-ssl| to encrypt the connections to your databases. You can use
+  {+arps+} to impose a minimum |tls| version or require a specific
+  |tls| cipher suite configuration for {+cluster+} connections.
+  MongoDB |atlas-gov| and databases hosted in AtlasGov support |tls|
+  1.2 and 1.3 to encrypt connections. You cannot disable |tls|.
 
 - By default, |service| encrypts all data at rest using 
   `cloud provider disk encryption <https://www.mongodb.com/docs/atlas/security-kms-encryption/>`__. When using {+service+} cloud backups,
@@ -222,8 +187,70 @@ across multiple regions. When you deploy a
 reside in distinct regions, each situated in a different geographical 
 region. For example, you can store European customer data in Europe 
 and U.S. customer data in the U.S. This allows you flexibility in your 
-data localization choice, and reduces latency for users accessing data 
-from their respective regions.
+data localization choice, and reduces latency for users accessing data
+from their respective regions. MongoDB |atlas-gov| supports only US
+regions across AWS GovCloud, GCP Assured Workloads, Azure
+Government, and AWS Commercial. To learn more, see **Supported
+Cloud Providers and Regions** in the MongoDB |atlas-gov|
+documentation.
+
+MongoDB Atlas for Government Regions
+------------------------------------
+
+On MongoDB |atlas-gov|, you can create multi-cloud clusters across
+US-based regions within the same FedRAMP® class level only.
+Depending on the impact level of the data you must store, select
+one of the following region types:
+
+- **FedRAMP® Class D (High)**: AWS GovCloud (US) regions, GCP
+  Assured Workloads (US) regions, and Azure Government (US)
+  regions.
+
+- **FedRAMP® Class C (Moderate)**: AWS Commercial (US) regions.
+
+The following table lists the regions available in each class
+level:
+
+.. list-table::
+   :widths: 15 40 45
+   :header-rows: 1
+
+   * - Provider
+     - FedRAMP® Class C (Moderate)
+     - FedRAMP® Class D (High)
+
+   * - |aws|
+     - Commercial: Northern Virginia (``us-east-1``), Ohio
+       (``us-east-2``), Northern California (``us-west-1``),
+       Oregon (``us-west-2``)
+     - GovCloud: Northwestern US (``us-gov-west-1``), Eastern US
+       (``us-gov-east-1``)
+
+   * - |azure|
+     - —
+     - USGov Virginia, USGov Texas, USGov Arizona
+
+   * - |gcp|
+     - —
+     - Assured Workloads: all standard US regions
+
+You must designate projects for either FedRAMP® Class C (Moderate)
+or FedRAMP® Class D (High) region usage upon creation. You cannot
+deploy clusters across FedRAMP® Class D (High) and FedRAMP® Class C
+(Moderate) regions in the same project.
+
+.. note::
+
+   Cross-cloud and cross-region impact levels are determined by
+   the lowest region in your configuration. For example, if you
+   have a cluster deployed across AWS Northern Virginia
+   (``us-east-1``) and Azure Government (US Gov Virginia), your
+   highest impact level tier is FedRAMP® Class C (Moderate).
+
+If you have questions about which certification tier applies to
+your workload, consult your company's compliance team. To learn
+more about supported regions, see **Supported Cloud Providers and
+Regions** in the MongoDB |atlas-gov| documentation.
 
 .. _arch-center-compliance-backup-distribution:
 
@@ -243,7 +270,8 @@ your data localization choices. To learn more, see
 Backup Compliance Policy
 ------------------------
 
-You can use |bcp| in {+service+} to secure business-critical data. This 
+You can use |bcp| in {+service+} and MongoDB |atlas-gov| to secure
+business-critical data. This
 feature prevents all backup snapshots and oplog data stored in 
 {+service+} from being modified or deleted for a predefined retention 
 period by any user, regardless of their {+service+} role.
@@ -252,7 +280,7 @@ This helps you guarantee that your backups are fully WORM (Write Once Read Many)
 Only a designated, authorized
 user can turn off this protection after completing a verification
 process with MongoDB support. This adds a mandatory manual 
-delay and cooldown period so that an attacker cannot easily change the 
+delay and cooldown period so that an attacker cannot change the
 backup policy and export the data. To learn more, see 
 :atlas:`Configure a Backup Compliance Policy 
 </backup/cloud-backup/backup-compliance-policy/>`.

@@ -36,7 +36,7 @@
      ]
    }
 
-   resource "mongodbatlas_resource_policy" "restrict_cluster_size: {
+   resource "mongodbatlas_resource_policy" "restrict_cluster_size" {
        org_id = var.org_id
        name   = "restrict-cluster-size"
        policies = [
@@ -50,7 +50,7 @@
                   )
                   when {
                       (context.cluster has minGeneralClassInstanceSizeValue && context.cluster.minGeneralClassInstanceSizeValue < 30) 
-                      || (context.cluster has maxGeneralClassInstanceSizeValue && context.cluster.maxGeneralClassInstanceSize > 60)
+                      || (context.cluster has maxGeneralClassInstanceSizeValue && context.cluster.maxGeneralClassInstanceSizeValue > 60)
                   };
                EOF
            },
@@ -69,9 +69,9 @@
                resource
            )
            when {context.project.privateEndpoints == [
-                   \"aws:<VPC_ENDPOINT_ID>", 
-                   \"azure:<PRIVATE_ENDPOINT_RESOURCE_ID>:<PRIVATE_ENDPOINT_IP_ADDRESS>", 
-                   \"gcp:<GCP_PROJECT_ID>:<VPC_NAME>"
+                   "aws:<VPC_ENDPOINT_ID>",
+                   "azure:<PRIVATE_ENDPOINT_RESOURCE_ID>:<PRIVATE_ENDPOINT_IP_ADDRESS>",
+                   "gcp:<GCP_PROJECT_ID>:<VPC_NAME>"
                ]};
            EOF
        },

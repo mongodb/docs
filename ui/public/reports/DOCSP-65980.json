@@ -1,0 +1,122 @@
+{
+  "bottomLine": {
+    "codeChanges": "Two merged PRs in mongodb/mongodb-cli (#147, plus help-text follow-up #152) add `mongocli om standby-clusters lag`, which reports standby-cluster replication lag read from the object store, without Ops Manager.",
+    "codeChangesConfidence": "verified",
+    "actionable": "yes",
+    "actionableReason": "New customer-facing CLI subcommand with a --shards flag, -o json output contract, and error guidance; the generated reference page already ships in the eng PRs.",
+    "actionableConfidence": "verified",
+    "testable": "yes",
+    "testableReason": "Build from main (or unit tests). Not yet in a numbered release; full end-to-end needs an S3 store and an agent build that publishes the status object.",
+    "testableConfidence": "verified",
+    "startWork": "ask-first",
+    "startWorkReason": "The -o json field names ride on the Public Status Object contract (WRITING-41508), still In Final Review."
+  },
+  "ticket": {
+    "key": "DOCSP-65980",
+    "summary": "[CLOUDP] mongocli: report standby cluster lag for an informed failover",
+    "status": "Needs Triage",
+    "squad": "CET/Cloud (components: Cloud, Ops Manager)",
+    "squadMatchesCode": true,
+    "squadSuggestion": ""
+  },
+  "engineeringLinks": [
+    { "key": "CLOUDP-472112", "type": "ticket", "url": "https://jira.mongodb.org/browse/CLOUDP-472112", "foundVia": "Issue link on DOCSP-65980 (Documented)" },
+    { "key": "CLOUDP-476227", "type": "ticket", "url": "https://jira.mongodb.org/browse/CLOUDP-476227", "foundVia": "Post-merge commit scan of lag.go (PR #152)" },
+    { "key": "WRITING-41508", "type": "ticket", "url": "https://jira.mongodb.org/browse/WRITING-41508", "foundVia": "Depends link on CLOUDP-472112 (unfinalized decision doc)" },
+    { "key": "CLOUDP-458819", "type": "epic", "url": "https://jira.mongodb.org/browse/CLOUDP-458819", "foundVia": "Related link on CLOUDP-472112 (out of scope: lag-gated switchover)" }
+  ],
+  "scopeAnchor": "Document the new mongocli om standby-clusters lag command: reads the Cluster Status Object (cluster_status_v1.bson, schemaVersion 1) directly from the object store so customers can judge data-loss risk before failover when OM/Grafana is down. Includes --shards and -o json. Out of scope per the ticket: switchover via mongocli, lag-gated failover. Sources: DOCSP ticket description incl. Documentation Changes Summary panel; CLOUDP-472112 description; WRITING-41508 decision doc. [Verified]",
+  "scopeDocs": [
+    { "title": "Decision Doc: Public Status Object (WRITING-41508)", "url": "https://jira.mongodb.org/browse/WRITING-41508", "foundVia": "Depends link on CLOUDP-472112", "read": true, "notes": "Shared read-only object with an external contract for non-Monarch processes; still In Final Review, so -o json field names are not final." },
+    { "title": "Monarch object schema (Google Doc)", "url": "https://docs.google.com/document/d/1Zm2xVzsR1X_RGECFpX93hg9lA8LcCJVYwtWmcBWESMc/edit", "foundVia": "Link in CLOUDP-472112 description", "read": false, "notes": "No read permission; ask the team for access or paste the schema section." },
+    { "title": "Documentation Changes Summary panel on DOCSP-65980", "url": "", "foundVia": "DOCSP-65980 description", "read": true, "notes": "States 'The PR includes updated doc' — docs work is review/verify/publish." }
+  ],
+  "fastPath": true,
+  "notChecked": [
+    { "item": "Monarch object schema Google Doc", "reason": "No read permission (Glean: NO_PERMISSION_OR_DELETED)." },
+    { "item": "Jira dev panel", "reason": "Not exposed via CLI/MCP; PR discovery used GitHub key search, which misses PRs that never mention the ticket keys." },
+    { "item": "Monarch relay PRs #1232/#1234 (CLOUDP-471131)", "reason": "Different ticket; publishing side is outside this DOCSP ticket's scope." },
+    { "item": "Local build/test of mongodb/mongodb-cli", "reason": "Repo not cloned locally; findings come from the remote diffs." },
+    { "item": "Assigned Teams sub-squad field", "reason": "Not present in the fields fetched." },
+    { "item": "Reviewer emails", "reason": "Not confirmed for Max (wording review on #152; no GitHub handle or full name known)." }
+  ],
+  "confidence": { "audience": "verified", "gating": "verified", "testing": "verified", "docsImpact": "inferred", "squad": "inferred" },
+  "prs": [
+    {
+      "repo": "mongodb/mongodb-cli", "number": 147,
+      "title": "CLOUDP-472112: mongocli om standby-clusters lag — report standby replication lag",
+      "url": "https://github.com/mongodb/mongodb-cli/pull/147",
+      "tier": "relevant", "tierReason": "Fast path: single linked eng ticket, single candidate PR implementing exactly the documented command",
+      "state": "merged", "baseBranch": "main", "mergedAt": "2026-11-10T16:57:17Z",
+      "summary": "Adds mongocli ops-manager standby-clusters lag: fetches cluster_status_v1.bson from the same S3 prefix as the configured DR state file, decodes it via a mirrored wire-contract struct enforcing schemaVersion, and prints estimated data loss, per-shard pending apply (--shards, relayed not recomputed), and standby lag (EDL + ESTS-MCTS). NA/not-available-yet fill-ins keep output shape stable; -o json prints the full contract document and other -o values are rejected. Ships with unit tests, fake-S3 store tests, testcontainers-MinIO integration tests, and the generated command reference page.",
+      "audience": "customer",
+      "files": [
+        { "path": "internal/cli/opsmanager/standbyclusters/lag.go", "summary": "New lag command: output formatting, --shards flag, -o json-only restriction." },
+        { "path": "internal/cli/opsmanager/standbyclusters/standby_clusters.go", "summary": "Registers LagBuilder under the standby-clusters parent command." },
+        { "path": "internal/flag/flags.go", "summary": "Adds the shards flag constant." },
+        { "path": "internal/usage/usage.go", "summary": "Help text for --shards." },
+        { "path": "internal/standby/clusterstatus.go", "summary": "Mirrored wire-contract struct for cluster_status_v1.bson with schemaVersion enforcement." },
+        { "path": "internal/standby/clusterstatus_store.go", "summary": "S3 fetch/decode of the status object; actionable not-found and access errors." },
+        { "path": "internal/standby/client.go", "summary": "StateStore interface gains FetchClusterStatus." },
+        { "path": "docs/command/mongocli-ops-manager-standby-clusters-lag.txt", "summary": "New generated command reference page (syntax, options, inherited options)." },
+        { "path": "docs/command/mongocli-ops-manager-standby-clusters.txt", "summary": "Adds lag to related commands and toctree." }
+      ]
+    },
+    {
+      "repo": "mongodb/mongodb-cli", "number": 152,
+      "title": "CLOUDP-476227: update lag help text for estimated data loss",
+      "url": "https://github.com/mongodb/mongodb-cli/pull/152",
+      "tier": "relevant", "tierReason": "Rewrites the user-facing help text and generated docs page for the command being documented",
+      "state": "merged", "baseBranch": "main", "mergedAt": "2026-11-11T13:58:41Z",
+      "summary": "Rewords the estimated-data-loss help text in lag.go and the generated docs page: committed operations that either haven't been uploaded to object storage or won't be applied by the standby if failover is triggered now — worst case, even with no recent activity. Help text only, no behavior change. Docs must track this wording, not the #147 original.",
+      "audience": "customer",
+      "files": [
+        { "path": "internal/cli/opsmanager/standbyclusters/lag.go", "summary": "Updates the estimated-data-loss paragraph in the command help text." },
+        { "path": "docs/command/mongocli-ops-manager-standby-clusters-lag.txt", "summary": "Regenerated reference page with the new wording." }
+      ]
+    }
+  ],
+  "gates": [
+    { "name": "Relay-published status object (cluster_status_v1.bson, schemaVersion 1)", "kind": "fcv-or-version", "location": "internal/standby/clusterstatus.go; internal/standby/clusterstatus_store.go", "default": "unknown", "addedByPr": false, "changeableBy": "No one — determined by the deployed agent/relay build (monarch CLOUDP-471131)", "notes": "Minimum-version/capability check, not a flag: absent object or unsupported schemaVersion → actionable not-found/upgrade error. No feature flag, server parameter, or rollout flag exists in either PR (all 21 file patches read)." }
+  ],
+  "availability": [
+    { "environment": "build-from-source", "available": "yes", "how": "Merged #147 (67c4931, Nov 10) + #152 (00b8cfb2, Nov 11) on main; no flag to set. go build; go test -tags unit ./internal/...", "confidence": "verified" },
+    { "environment": "upcoming-binaries", "available": "unknown", "how": "Fix version next-mongocli-release is targeted; no downloadable RC confirmed.", "confidence": "verified" },
+    { "environment": "released", "available": "no", "how": "Merged Nov 10; targeted at the next release only.", "confidence": "inferred" },
+    { "environment": "other", "available": "no", "how": "Customer-visible today: no — ships with the next mongocli release; end-to-end also needs a relay build publishing the status object.", "confidence": "inferred" }
+  ],
+  "testing": {
+    "testable": "yes",
+    "steps": [
+      "Build main at or after 00b8cfb2 (go build).",
+      "Run unit tests: go test -tags unit ./internal/... (output/JSON contract).",
+      "Integration suite uses testcontainers MinIO plus the real binary for the S3 path.",
+      "Manual: mongocli om standby-clusters configure against an S3-compatible store (MinIO works) holding <cluster-prefix>/dr_status_<componentId>.json, then lag / lag --shards / lag -o json.",
+      "Full end-to-end needs a relay build publishing cluster_status_v1.bson; on older builds the documented not-found path is itself testable."
+    ],
+    "releaseBranch": "main; fixVersion next-mongocli-release"
+  },
+  "docsImpact": [
+    { "page": "docs/command/mongocli-ops-manager-standby-clusters-lag.txt (eng repo)", "change": "Authored in #147, reworded in #152 — review/verify/publish, not authoring.", "audience": "customer" },
+    { "page": "content/standby-clusters/source/index.txt (this repo; currently a stub)", "change": "Natural home for conceptual coverage: lag semantics per the new worst-case definition, pre-failover checks, lag alongside configure/describe/failover.", "audience": "customer" },
+    { "page": "content/ops-manager, content/cloud-manager", "change": "No existing standby-cluster or disaster-recovery pages found; nothing to update.", "audience": "customer" }
+  ],
+  "deferRecommended": false,
+  "deferReason": "",
+  "reviewers": [
+    { "name": "Tony Clarke", "github": "tonyclarkemonogodb", "email": "tony.clarke@mongodb.com", "role": "author", "prs": ["mongodb/mongodb-cli#147", "mongodb/mongodb-cli#152"] },
+    { "name": "Aarush Talwar", "github": "aarushtalwar", "email": "aarush.talwar@mongodb.com", "role": "reviewer", "prs": ["mongodb/mongodb-cli#147", "mongodb/mongodb-cli#152"] },
+    { "name": "Daniel Blanco Calviño", "github": "danielblanco96", "email": "daniel.blancocalvino@mongodb.com", "role": "reviewer", "prs": ["mongodb/mongodb-cli#147"] },
+    { "name": "Max (surname unknown)", "github": "", "email": "", "role": "reviewer", "prs": ["mongodb/mongodb-cli#152"] }
+  ],
+  "missingRepos": [
+    { "repo": "mongodb/mongodb-cli", "cloneCommand": "git clone git@github.com:mongodb/mongodb-cli.git" }
+  ],
+  "openQuestions": [
+    "Blocking (drives ASK FIRST): is the Public Status Object contract final? WRITING-41508 is In Final Review and -o json exposes field names verbatim.",
+    "Which OM/agent (monarch) release first publishes cluster_status_v1.bson? The error text names no version; docs need a minimum-version statement.",
+    "OM-only, or also Cloud Manager (mongocli cm)?",
+    "Can someone grant access to (or paste) the Monarch schema Google Doc? It may settle question 1.",
+    "#152 landed a day after #147 with agreed wording — is the output text stable now, or is more churn expected before release?"
+  ]
+}

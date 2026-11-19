@@ -127,7 +127,7 @@ tab for your preferred method of authentication:
                   :language: sh
                   :visible: false
 
-                  {"access_token":"{accessToken}","expires_in":3600,"token_type":"Bearer"}%
+                  {"access_token":"{accessToken}","expires_in":3600,"token_type":"Bearer"}
 
          .. step:: Make an |api| call.
 
@@ -140,7 +140,7 @@ tab for your preferred method of authentication:
             .. code-block:: sh
 
                curl --request GET \
-                  --url https://cloudgov.mongodb.com/api/atlas/v2/groups \
+                  --url https://cloud.mongodbgov.com/api/atlas/v2/groups \
                   --header 'Authorization: Bearer {accessToken}' \
                   --header 'Accept: application/vnd.atlas.2023-02-01+json' \
                   --header 'Content-Type: application/json'
@@ -155,7 +155,7 @@ tab for your preferred method of authentication:
                   --header "Content-Type: application/json" \
                   --header "Accept: application/vnd.atlas.2023-02-01+json" \
                   --include \
-                  --request POST "https://cloudgov.mongodb.com/api/atlas/v2/groups" \
+                  --request POST "https://cloud.mongodbgov.com/api/atlas/v2/groups" \
                   --data '
                      {
                         "name": "MyProject",
@@ -202,16 +202,20 @@ Creating a Project
 
 .. include:: /includes/considerations/gov-commercial-regions.rst
 
-By default, the |cloudgov-short| API designates new projects for
-standard region usage.
+By default, the |cloudgov-short| API designates new projects as
+{+fedramp-c+} projects.
 
-To use the API to create a project for government regions, include
-the following in your ``POST`` request data:
+To use the API to create a {+fedramp-d+} project, send a ``POST``
+request with the following body:
 
 .. code-block:: json
    :copyable: true
 
-   "regionUsageRestrictions" : "GOV_REGIONS_ONLY"
+   {
+      "name": "MyProject",
+      "orgId": "5a0a1e7e0f2912c554080adc",
+      "regionUsageRestrictions" : "GOV_REGIONS_ONLY"
+   }
 
 .. tip:: |service| documentation
 
@@ -226,8 +230,6 @@ the following in your ``POST`` request data:
 
 The following cloud providers, MongoDB products, and features are
 unavailable for all |api| resources:
-
-- |azure|
 
 - |service| Online Archives
 
@@ -246,12 +248,25 @@ Database Users
 ~~~~~~~~~~~~~~
 
 Database users who authenticate with
-:manual:`SCRAM </core/security-scram/>` must use ``SCRAM-SHA-256``.
+:ref:`SCRAM <authentication-scram>` must use ``SCRAM-SHA-256``.
 
 Clusters
 ~~~~~~~~
 
 .. include:: /includes/m20-required.rst
+
+.. _atlasgov-api-azure-government:
+
+Azure Government Regions
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To deploy |azure-gov| clusters through the |api|, create the
+project with ``"regionUsageRestrictions": "GOV_REGIONS_ONLY"``.
+
+.. include:: /includes/facts/azure-gov-m30-minimum.rst
+
+To learn more about supported regions, see :ref:`supported-regions`.
+
 
 Alerts
 ~~~~~~
@@ -275,13 +290,16 @@ Datadog
 Cloud Backups
 ~~~~~~~~~~~~~
 
-Restores between standard projects and Gov region-only projects aren't allowed.
-If you create a backup from a cluster in a Gov region-only
-(|aws-fr-high| or |gaw|) project, you can restore the data to a cluster only
-in a Gov region-only project. The same restriction applies to standard projects,
-where backups in standard regions can only be restored to clusters in standard projects.
+You cannot restore backups between {+fedramp-c+} projects and
+{+fedramp-d+} projects. If you create a backup from a cluster in
+a {+fedramp-d+} project, you can restore the data to clusters in
+{+fedramp-d+} projects. The same restriction applies to
+{+fedramp-c+} projects.
 
-Cross-cloud restore is supported between |aws-fr-high| and |gaw| regions.
+Cross-cloud restore is supported among |aws-fr-high|, |gaw|, and
+|azure-gov| regions. |azure-gov| regions support only ``M30`` or
+higher cluster tiers, so restores to |azure-gov| require a target
+cluster of ``M30`` or higher.
 
 Flex Cluster Snapshots and Restore Jobs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -301,6 +319,8 @@ Network Peering
   with MongoDB clusters only in |aws-fr-moderate| regions.
 - You can peer |gaw| regions with MongoDB clusters only in
   |gaw| regions.
+- You can peer |azure-gov| regions with MongoDB clusters only in
+  |azure-gov| regions.
 
 Private Endpoints
 ~~~~~~~~~~~~~~~~~
@@ -310,6 +330,8 @@ Private Endpoints
   with MongoDB clusters only in |aws-fr-moderate| regions.
 - You can link |gaw| regions with MongoDB clusters only in
   |gaw| regions.
+- You can link |azure-gov| regions with MongoDB clusters only in
+  |azure-gov| regions.
 
 Monitoring and Logs
 ~~~~~~~~~~~~~~~~~~~
@@ -322,10 +344,11 @@ authentications.
 Encryption at Rest using Customer Key Management
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- You must use KMS keys in |aws-fr-high| and |gaw| regions to encrypt data in
-  |aws-fr-high| and |gaw| region-only projects. You must use KMS keys in
-  |aws-fr-moderate| regions to encrypt data in |aws-fr-moderate|
-  region-only projects.
+If you choose to enable customer-managed keys (CMK), you must use
+KMS keys in |aws-fr-high|, |gaw|, or |azure-gov| regions for
+|cloudgov-short| projects restricted to {+fedramp-d+} regions. For
+|aws-fr-moderate| region-only projects, you must use KMS keys in
+|aws-fr-moderate| regions.
 
 Atlas Users
 ~~~~~~~~~~~

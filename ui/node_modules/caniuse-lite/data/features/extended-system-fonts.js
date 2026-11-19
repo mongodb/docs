@@ -1,0 +1,1 @@
+module.exports={A:{A:{"2":"_E"},B:{"2":"_J"},C:{"2":"_S"},D:{"2":"_Q"},E:{"1":"_hE","2":"_AI"},F:{"2":"_b"},G:{"1":"_XD","2":"_hJ"},H:{"2":"5D"},I:{"2":"_O"},J:{"2":"_B"},K:{"2":"_N"},L:{"2":"VB"},M:{"2":"bC"},N:{"2":"_A"},O:{"2":"eC"},P:{"2":"_F"},Q:{"2":"NE"},R:{"2":"OE"},S:{"2":"_C"}},B:5,C:"ui-serif, ui-sans-serif, ui-monospace and ui-rounded values for font-family",D:true};
