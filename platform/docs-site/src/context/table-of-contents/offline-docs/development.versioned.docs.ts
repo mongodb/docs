@@ -8694,51 +8694,11 @@ export const toc: L1TocItem[] = [
                     url: '/docs/:version/reference/mql/update',
                     items: [
                       {
-                        label: 'Arrays',
+                        label: 'Array Update Modifiers',
                         contentSite: 'docs',
                         collapsible: true,
-                        url: '/docs/:version/reference/operator/update-array',
+                        url: '/docs/:version/reference/mql/update/array-modifiers',
                         items: [
-                          {
-                            label: '$ (update)',
-                            contentSite: 'docs',
-                            url: '/docs/:version/reference/operator/update/positional',
-                          },
-                          {
-                            label: '$[]',
-                            contentSite: 'docs',
-                            url: '/docs/:version/reference/operator/update/positional-all',
-                          },
-                          {
-                            label: '$[<identifier>]',
-                            contentSite: 'docs',
-                            url: '/docs/:version/reference/operator/update/positional-filtered',
-                          },
-                          {
-                            label: '$addToSet',
-                            contentSite: 'docs',
-                            url: '/docs/:version/reference/operator/update/addToSet',
-                          },
-                          {
-                            label: '$pop',
-                            contentSite: 'docs',
-                            url: '/docs/:version/reference/operator/update/pop',
-                          },
-                          {
-                            label: '$pull',
-                            contentSite: 'docs',
-                            url: '/docs/:version/reference/operator/update/pull',
-                          },
-                          {
-                            label: '$push',
-                            contentSite: 'docs',
-                            url: '/docs/:version/reference/operator/update/push',
-                          },
-                          {
-                            label: '$pullAll',
-                            contentSite: 'docs',
-                            url: '/docs/:version/reference/operator/update/pullAll',
-                          },
                           {
                             label: '$each',
                             contentSite: 'docs',
@@ -8762,10 +8722,43 @@ export const toc: L1TocItem[] = [
                         ],
                       },
                       {
-                        label: 'Bitwise',
+                        label: 'Array Update Operators',
                         contentSite: 'docs',
                         collapsible: true,
-                        url: '/docs/:version/reference/operator/update-bitwise',
+                        url: '/docs/:version/reference/mql/update/array-operators',
+                        items: [
+                          {
+                            label: '$addToSet',
+                            contentSite: 'docs',
+                            url: '/docs/:version/reference/operator/update/addToSet',
+                          },
+                          {
+                            label: '$pop',
+                            contentSite: 'docs',
+                            url: '/docs/:version/reference/operator/update/pop',
+                          },
+                          {
+                            label: '$pull',
+                            contentSite: 'docs',
+                            url: '/docs/:version/reference/operator/update/pull',
+                          },
+                          {
+                            label: '$pullAll',
+                            contentSite: 'docs',
+                            url: '/docs/:version/reference/operator/update/pullAll',
+                          },
+                          {
+                            label: '$push',
+                            contentSite: 'docs',
+                            url: '/docs/:version/reference/operator/update/push',
+                          },
+                        ],
+                      },
+                      {
+                        label: 'Bitwise Update Operators',
+                        contentSite: 'docs',
+                        collapsible: true,
+                        url: '/docs/:version/reference/mql/update/bitwise',
                         items: [
                           {
                             label: '$bit',
@@ -8775,10 +8768,10 @@ export const toc: L1TocItem[] = [
                         ],
                       },
                       {
-                        label: 'Fields',
+                        label: 'Field Update Operators',
                         contentSite: 'docs',
                         collapsible: true,
-                        url: '/docs/:version/reference/operator/update-field',
+                        url: '/docs/:version/reference/mql/update/field',
                         items: [
                           {
                             label: '$currentDate',
@@ -8824,6 +8817,29 @@ export const toc: L1TocItem[] = [
                             label: '$unset',
                             contentSite: 'docs',
                             url: '/docs/:version/reference/operator/update/unset',
+                          },
+                        ],
+                      },
+                      {
+                        label: 'Positional Update Operators',
+                        contentSite: 'docs',
+                        collapsible: true,
+                        url: '/docs/:version/reference/mql/update/positional',
+                        items: [
+                          {
+                            label: '$ (update)',
+                            contentSite: 'docs',
+                            url: '/docs/:version/reference/operator/update/positional',
+                          },
+                          {
+                            label: '$[]',
+                            contentSite: 'docs',
+                            url: '/docs/:version/reference/operator/update/positional-all',
+                          },
+                          {
+                            label: '$[<identifier>]',
+                            contentSite: 'docs',
+                            url: '/docs/:version/reference/operator/update/positional-filtered',
                           },
                         ],
                       },

@@ -4301,51 +4301,11 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
-            label: 'Arrays',
+            label: 'Array Update Modifiers',
             contentSite: 'docs',
-            url: '/docs/:version/reference/operator/update-array',
+            url: '/docs/:version/reference/mql/update/array-modifiers',
             collapsible: true,
             items: [
-              {
-                label: '$ (update)',
-                contentSite: 'docs',
-                url: '/docs/:version/reference/operator/update/positional',
-              },
-              {
-                label: '$[]',
-                contentSite: 'docs',
-                url: '/docs/:version/reference/operator/update/positional-all',
-              },
-              {
-                label: '$[<identifier>]',
-                contentSite: 'docs',
-                url: '/docs/:version/reference/operator/update/positional-filtered',
-              },
-              {
-                label: '$addToSet',
-                contentSite: 'docs',
-                url: '/docs/:version/reference/operator/update/addToSet',
-              },
-              {
-                label: '$pop',
-                contentSite: 'docs',
-                url: '/docs/:version/reference/operator/update/pop',
-              },
-              {
-                label: '$pull',
-                contentSite: 'docs',
-                url: '/docs/:version/reference/operator/update/pull',
-              },
-              {
-                label: '$push',
-                contentSite: 'docs',
-                url: '/docs/:version/reference/operator/update/push',
-              },
-              {
-                label: '$pullAll',
-                contentSite: 'docs',
-                url: '/docs/:version/reference/operator/update/pullAll',
-              },
               {
                 label: '$each',
                 contentSite: 'docs',
@@ -4369,9 +4329,42 @@ const tocData: TocItem[] = [
             ],
           },
           {
-            label: 'Bitwise',
+            label: 'Array Update Operators',
             contentSite: 'docs',
-            url: '/docs/:version/reference/operator/update-bitwise',
+            url: '/docs/:version/reference/mql/update/array-operators',
+            collapsible: true,
+            items: [
+              {
+                label: '$addToSet',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/operator/update/addToSet',
+              },
+              {
+                label: '$pop',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/operator/update/pop',
+              },
+              {
+                label: '$pull',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/operator/update/pull',
+              },
+              {
+                label: '$pullAll',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/operator/update/pullAll',
+              },
+              {
+                label: '$push',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/operator/update/push',
+              },
+            ],
+          },
+          {
+            label: 'Bitwise Update Operators',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/mql/update/bitwise',
             collapsible: true,
             items: [
               {
@@ -4382,9 +4375,9 @@ const tocData: TocItem[] = [
             ],
           },
           {
-            label: 'Fields',
+            label: 'Field Update Operators',
             contentSite: 'docs',
-            url: '/docs/:version/reference/operator/update-field',
+            url: '/docs/:version/reference/mql/update/field',
             collapsible: true,
             items: [
               {
@@ -4431,6 +4424,29 @@ const tocData: TocItem[] = [
                 label: '$unset',
                 contentSite: 'docs',
                 url: '/docs/:version/reference/operator/update/unset',
+              },
+            ],
+          },
+          {
+            label: 'Positional Update Operators',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/mql/update/positional',
+            collapsible: true,
+            items: [
+              {
+                label: '$ (update)',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/operator/update/positional',
+              },
+              {
+                label: '$[]',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/operator/update/positional-all',
+              },
+              {
+                label: '$[<identifier>]',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/operator/update/positional-filtered',
               },
             ],
           },
