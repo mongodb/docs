@@ -3337,6 +3337,14 @@ export const toc: L1TocItem[] = [
                 ],
               },
               {
+                label: 'Best Practices for In-Use Encryption',
+                contentSite: 'docs',
+                url: '/docs/:version/core/queryable-encryption/best-practices',
+                versions: {
+                  includes: ['manual'],
+                },
+              },
+              {
                 label: 'Queryable Encryption',
                 contentSite: 'docs',
                 collapsible: true,
