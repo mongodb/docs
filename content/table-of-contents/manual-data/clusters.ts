@@ -163,27 +163,19 @@ const tocData: TocItem[] = [
     ],
   },
   {
-    label: 'Cloud Provider Access',
+    label: 'Unified AWS',
     contentSite: 'cloud-docs',
-    url: '/docs/atlas/security/cloud-provider-access',
-    collapsible: true,
-    items: [
-      {
-        label: 'Unified AWS',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/security/set-up-unified-aws-access',
-      },
-      {
-        label: 'Azure Service',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/security/set-up-azure-access',
-      },
-      {
-        label: 'GCP Service Account',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/security/set-up-gcp-access',
-      },
-    ],
+    url: '/docs/atlas/security/set-up-unified-aws-access',
+  },
+  {
+    label: 'Azure Service',
+    contentSite: 'cloud-docs',
+    url: '/docs/atlas/security/set-up-azure-access',
+  },
+  {
+    label: 'GCP Service Account',
+    contentSite: 'cloud-docs',
+    url: '/docs/atlas/security/set-up-gcp-access',
   },
   {
     label: 'Private Endpoints',

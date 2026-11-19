@@ -1659,11 +1659,6 @@ const tocData: TocItem[] = [
         url: '/docs/atlas/tags',
       },
       {
-        label: 'Supported Browsers',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/reference/supported-browsers',
-      },
-      {
         label: 'Internal Databases',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/reference/internal-database',
@@ -1698,11 +1693,6 @@ const tocData: TocItem[] = [
             label: 'FAQ: Applications',
             contentSite: 'cloud-docs',
             url: '/docs/atlas/reference/faq/applications',
-          },
-          {
-            label: 'FAQ: Backup',
-            contentSite: 'cloud-docs',
-            url: '/docs/atlas/reference/faq/backup',
           },
           {
             label: 'FAQ: Billing',
@@ -1882,32 +1872,24 @@ const tocData: TocItem[] = [
             ],
           },
           {
-            label: 'More API Resources',
+            label: 'Return the Latest Targets for Prometheus',
             contentSite: 'cloud-docs',
-            url: '/docs/atlas/reference/more-api-resources',
-            collapsible: true,
-            items: [
-              {
-                label: 'Return the Latest Targets for Prometheus',
-                contentSite: 'cloud-docs',
-                url: '/docs/atlas/reference/third-party-integration-settings-discovery',
-              },
-              {
-                label: 'Custom Role Actions',
-                contentSite: 'cloud-docs',
-                url: '/docs/atlas/reference/custom-role-actions',
-              },
-              {
-                label: 'Generate Service Account Token',
-                contentSite: 'cloud-docs',
-                url: '/docs/atlas/api/service-accounts/generate-oauth2-token',
-              },
-              {
-                label: 'Revoke Service Account Token',
-                contentSite: 'cloud-docs',
-                url: '/docs/atlas/api/service-accounts/revoke-oauth2-token',
-              },
-            ],
+            url: '/docs/atlas/reference/third-party-integration-settings-discovery',
+          },
+          {
+            label: 'Custom Role Actions',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/reference/custom-role-actions',
+          },
+          {
+            label: 'Generate Service Account Token',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/api/service-accounts/generate-oauth2-token',
+          },
+          {
+            label: 'Revoke Service Account Token',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/api/service-accounts/revoke-oauth2-token',
           },
         ],
       },
