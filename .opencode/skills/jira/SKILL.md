@@ -13,7 +13,7 @@ Unified Jira skill for the DOCSP project. Supports three interchangeable backend
 - Never modify or comment on a Jira ticket unless explicitly authorized by the user.
 - Always present a plan and get confirmation before making changes.
 - Field values are case-sensitive.
-- Always use Jira wiki markup in descriptions and comments, never Markdown.
+- Write descriptions and comments in the format your tool's reference file specifies. Some commands store text as-is and expect Jira wiki markup; others convert Markdown to wiki markup on save.
 - When referencing a ticket key back to the user, include its title (e.g., "DOCSP-12345 — Fix broken link on X page") so it's identifiable without a lookup.
 - When asked to "add" or "update" ticket content without a target specified, ask whether it goes in the description or as a comment rather than defaulting to a comment.
 - DOCSP tickets identify the page(s) to change in a `URL(s)` custom field (`customfield_12054`), and the default ticket view of every backend omits it unless you request it. Whenever a ticket's target page matters, read that field explicitly — see your tool's reference file for the syntax. An absent field is not the same as an empty one.
@@ -48,13 +48,11 @@ Three tools can back this skill:
 
 ### Writing Tool Preference to Memory
 
-After determining session-preferred, write a `feedback` memory entry to the project's auto-memory directory so future sessions skip the probe, plus the corresponding line to `MEMORY.md`:
+After determining session-preferred, write a `feedback` memory entry to the project's auto-memory directory so future sessions skip the probe, and add its line to `MEMORY.md`. `<Tool>` is `Jira CLI`, `mcp-atlassian`, or `DevProd Gateway`; `<key>` is `cli`, `mcp`, or `devprod_gateway`:
 
-| Result | Filename | name slug | Body | MEMORY.md line |
-|---|---|---|---|---|
-| CLI | `feedback_jira_cli_preferred.md` | `feedback-jira-cli-preferred` | "User prefers the Jira CLI. Skip probe and use CLI directly." | `- [Jira CLI preferred — skip probe](feedback_jira_cli_preferred.md) — User prefers jira CLI; skip probe, go straight to CLI` |
-| mcp-atlassian | `feedback_jira_mcp_preferred.md` | `feedback-jira-mcp-preferred` | "User prefers the mcp-atlassian MCP server. Skip probe and use it directly." | `- [mcp-atlassian preferred — skip probe](feedback_jira_mcp_preferred.md) — User prefers mcp-atlassian MCP; skip probe, go straight to it` |
-| DevProd Gateway | `feedback_jira_devprod_gateway_preferred.md` | `feedback-jira-devprod-gateway-preferred` | "User prefers the DevProd MCP Gateway's Jira backend. Skip probe and use it directly." | `- [DevProd Gateway preferred — skip probe](feedback_jira_devprod_gateway_preferred.md) — User prefers the DevProd MCP Gateway's Jira backend; skip probe, go straight to it` |
+- Filename: `feedback_jira_<key>_preferred.md`; `name` slug: the same with hyphens (e.g., `feedback-jira-cli-preferred`)
+- Body: "User prefers <Tool>. Skip probe and use it directly."
+- `MEMORY.md` line: `- [<Tool> preferred — skip probe](<filename>) — skip probe, go straight to <Tool>`
 
 If an existing memory entry uses the old "Jira CLI available" / "Jira MCP preferred" naming from before the three-way split, treat it as CLI / mcp-atlassian respectively and update the filename/slug to the new naming next time you'd write to it.
 
@@ -84,9 +82,23 @@ Do not post the PR URL as a comment when moving a ticket to Internal Review or N
 
 Before closing, confirm the PR has been merged.
 
-The Close transition requires Story Points and "Did you use AI?" — see Closing Issues in your tool's reference file.
+The Close transition requires Story Points and "Did you use AI?" — see Closing Issues in your tool's reference file. Two exceptions:
+
+- **Epics** have no "Did you use AI?" field. Set only Story Points before closing an epic. Jira automation also closes an epic as `Done` when its last child closes, so check its status before you transition it.
+- **Parents** can't close until all of their sub-tasks are closed. Close the sub-tasks first.
 
 Before attempting the Close transition, check whether Story Points is already set. If not, ask the user for an estimate (see Story Point Estimation below) rather than attempting the transition first and reacting to the failure.
+
+### Automatic Transitions
+
+Hooks in `.claude/hooks/docs-git-process-hooks/` move the branch's ticket (`DOCSP-XXXXX-...`) forward, never back. Don't make these moves manually:
+
+| Target | Fires on |
+|---|---|
+| In Progress | First file edit, `git commit`, or CLI `jira issue edit` setting `story-points-estimate`. Waits for Story Points Estimate. |
+| Internal Review | Non-draft `gh pr create`, or `gh pr ready` |
+
+If the hook asks for an estimate, propose one, confirm it with the writer, set it, and stop. Make every other transition manually, including these two when a hook didn't fire.
 
 ### Resolution Values
 
@@ -171,7 +183,7 @@ Common link types (same across all three tools; syntax to create a link is tool-
 |---|---|---|
 | `Related` | (none) | General cross-reference between two tickets |
 | `Depends` | `depends on` / `is depended on by` | This ticket is blocked on or waiting for another (often an engineering ticket in CLOUDP, JAVA, etc.) |
-| `documents` | outward: `documents` / inward: `is documented by` | Use when a DOCSP ticket documents an engineering ticket. The DOCSP ticket is the outward link ("documents"); the engineering ticket is the inward link ("is documented by"). |
+| `Documented` | outward: `documents` / inward: `is documented by` | Use when a DOCSP ticket documents an engineering ticket. On every backend, pass the DOCSP ticket as the first (CLI) or inward (MCP) argument and the engineering ticket as the second or outward one. Reading the DOCSP ticket back then shows the engineering ticket under `outwardIssue`. |
 | `Cloners` | `clones` / `is cloned by` | This ticket was cloned from a template (common for recurring release notes tickets) |
 
 ---

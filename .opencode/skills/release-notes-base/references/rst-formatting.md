@@ -4,11 +4,13 @@ Use these rules when `{RELEASE_NOTES_FILE}` ends in `.txt`.
 
 ## Heading template
 
-```
-{PRODUCT_SUBSTITUTION}X.Y.Z
------------
+Build the heading from `{PRODUCT_SUBSTITUTION}` and `{VERSION}`, followed by the release date line. For example, the Compass 1.53.2 heading is 16 characters, so it takes a 16-character underline:
 
-*Released Month D, YYYY*
+```
+|compass| 1.53.2
+----------------
+
+*Released October 27, 2026*
 ```
 
 The heading underline (`-`) must exactly match the heading length:

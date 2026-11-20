@@ -30,11 +30,7 @@ This is a read-only review skill. It never edits files or comments on the
 PR — it reports findings for the user to act on, one question at a time or
 as a full pass, matching how the user asks.
 
-Provenance: this checklist is derived from the
-[Grove Review conventions doc](https://docs.google.com/document/d/1hHzmT_WcDHxq1aVKDEgdJ_cOi7fXf3p-a9tNkRFMvzk/edit?tab=t.0).
-Do not fetch or review against that doc — the checklist below is what you
-run. The link is there so a human can update the checklist when the doc
-changes.
+Provenance: derived from the [Grove Review conventions doc](https://docs.google.com/document/d/1hHzmT_WcDHxq1aVKDEgdJ_cOi7fXf3p-a9tNkRFMvzk/edit?tab=t.0). Review against this checklist, not that doc; the link exists so a human can update the checklist when the doc changes.
 
 ## Getting the PR
 
@@ -55,33 +51,21 @@ gh api repos/10gen/docs-mongodb-internal/pulls/<number>/comments --jq '.[] | {us
 gh pr view <number> --repo 10gen/docs-mongodb-internal --json comments
 ```
 
-A PR under review is a moving target: some of what looks non-standard is
-the *result* of an earlier review round, not an oversight. Never recommend
-reverting a change that a prior comment already argued for without engaging
-with that argument — if you still disagree, say what the earlier round
-missed. Silently re-litigating a settled point wastes the author's time and
-erodes trust in the rest of the checklist.
+A PR under review is a moving target: some of what looks non-standard is the *result* of an earlier review round. Never recommend reverting a change a prior comment argued for without engaging with that argument — if you still disagree, say what the earlier round missed.
 
 If the user asks about a specific file or check rather than the whole PR,
 answer just that question — don't run the full checklist unprompted.
 
 ## Establishing what the convention actually is
 
-Several checks below turn on "does this match the established pattern?"
-Do not answer that from the handful of adjacent examples in the same file
-or directory — a local anomaly reads exactly like a convention at that
-sample size, and treating it as one launders it into a standard. Count
-across the whole suite before calling anything conventional:
+Several checks below turn on "does this match the established pattern?" Don't answer from adjacent examples — a local anomaly looks like a convention at that sample size. Count across the whole suite first:
 
 ```
 grep -rn "shouldMatch" code-example-tests/<suite>/tests | wc -l
 grep -rn "shouldResemble" code-example-tests/<suite>/tests | wc -l
 ```
 
-When the local pattern and the suite-wide pattern disagree, say so
-explicitly and treat the suite-wide count as the convention. A PR that
-moves an outlier file *toward* the suite norm is an improvement, not a
-deviation — don't flag it as one.
+When local and suite-wide patterns disagree, say so and treat the suite-wide count as the convention. A PR that moves an outlier *toward* the suite norm is an improvement — don't flag it.
 
 ## Language reference
 
@@ -116,14 +100,7 @@ nothing to flag.
 
 ### 1. New source files are in the correct location
 
-Example files must live under the language's `Examples`/`examples` root
-(see table above), organized **by topic** (e.g., `Crud/Query`,
-`Aggregation/Pipelines/Filter`), not by docs-page structure, and follow the
-language's file-naming convention (e.g., `PascalCase.cs` for C#,
-`kebab-case.js` for JS/Mongosh — check the language's CLAUDE.md under
-`code-example-tests/{language}/` for the exact rule). Flag any new file
-placed outside `Examples/`/`examples/`, misnamed for its language, or filed
-under a topic that doesn't match its actual content.
+Example files must live under the language's `Examples`/`examples` root (see table above), organized **by topic** (e.g., `Crud/Query`, `Aggregation/Pipelines/Filter`), not by docs-page structure, and follow the language's file-naming convention (e.g., `PascalCase.cs` for C#, `kebab-case.js` for JS/Mongosh — check the suite's CLAUDE.md at the suite root, such as `code-example-tests/javascript/driver/CLAUDE.md`, for the exact rule). Flag any new file placed outside `Examples/`/`examples/`, misnamed for its language, or filed under a topic that doesn't match its actual content.
 
 ### 2. Testable methods/functions
 
@@ -173,29 +150,11 @@ is a naming choice, not a location violation — note it, don't fail it.
 
 ### 5. Correct comparison APIs
 
-All test suites must use the Grove comparison API for the language (see
-table above) — never the platform's native assert/expect (e.g., raw NUnit
-`Assert.That`, Go's `t.Errorf` without going through `compare.ExpectThat`,
-plain `assert` in Python/JS).
+All test suites must use the Grove comparison API for the language (see table above) — never the platform's native assert/expect (e.g., NUnit `Assert.That`, Go's `t.Errorf`, plain `assert` in Python/JS).
 
-Casing differs by language — C#/Go use PascalCase (as written here), the
-Java/JS suites use camelCase, and Python uses snake_case. Match the casing
-to the suite under review; don't flag a suite for not matching this file's
-PascalCase. Method names throughout this check are written in C# form —
-translate to the suite's actual API from the language reference table
-before flagging anything.
+Casing differs: C#/Go use PascalCase, Java/JS camelCase, Python snake_case. Method names here are written in C# form — translate via the language table before flagging, and don't flag a suite for not matching this file's casing.
 
-`ShouldMatch` is the default and the overwhelming norm (roughly 8:1 in
-mongosh). Server-generated timestamps and ObjectIds are *not* a reason to
-abandon it — the comparison engine supports ellipsis patterns (`...`,
-`ObjectId('...')`) and `WithIgnoredFields` for exactly that. Reach for
-`ShouldResemble` only given non-determinism that an ellipsis can't express:
-Atlas Vector/Search relevance ordering, or a result set whose shape (not
-just its values) varies across environments.
-"I can't personally guarantee the order" is not such a
-reason — an unsorted `find()` over a static, read-only sample dataset is
-deterministic in practice and the suites rely on it. Don't flag a missing
-`sort()`, and don't suggest adding one to settle a theoretical worry.
+`ShouldMatch` is the default and the overwhelming norm (roughly 11:1 in mongosh). Timestamps and ObjectIds are *not* a reason to abandon it — use ellipsis patterns (`...`, `ObjectId('...')`) or `WithIgnoredFields`. Reach for `ShouldResemble` only for non-determinism an ellipsis can't express: Atlas Vector/Search relevance ordering, or a result set whose shape varies across environments. "I can't guarantee the order" is not such a reason — an unsorted `find()` over static, read-only sample data is deterministic in practice. Don't flag a missing `sort()` or suggest adding one for a theoretical worry.
 
 Decision logic per test:
 
@@ -349,30 +308,11 @@ not just "close enough." See references/bluehawk-tags.md.
 
 ### 14. Snippet completeness (self-contained)
 
-A snippet must be usable on its own: every variable/helper it references
-must either be defined inside the tagged block, or be something a docs
-reader would obviously already have (e.g., a client/collection handle held
-as an instance field or module-level variable and used directly, matching
-the established stub/base-example pattern for that language — check for an
-`ExampleStub`-style file or equivalent shared setup under the language's
-`Examples`/`examples` root, plus a couple of existing examples in the same
-topic, before judging what's idiomatic).
+A snippet must be usable on its own: every variable/helper it references must be defined inside the tagged block, or be something a reader already has (a client/collection handle held as a field or module-level variable, per the language's stub pattern — check for an `ExampleStub`-style file and a couple of existing examples in the same topic before judging what's idiomatic).
 
-Flag it when a snippet references a **local variable** assigned just
-outside the tag (e.g., a collection handle re-assigned to a local one line
-above `:snippet-start:`) purely to keep plumbing out of the snippet — that
-produces a generated snippet that uses an undefined name. Point to the
-established fix for that language: either move the assignment inside the
-tags (per the stub pattern), or reference the pre-existing field/variable
-directly instead of re-assigning it to a local (per existing examples in
-the same topic/file).
+Flag a snippet that references a **local variable** assigned just outside the tag purely to keep plumbing out of the snippet — the generated snippet then uses an undefined name. Fix it by moving the assignment inside the tags (per the stub pattern) or by using the existing field/variable directly.
 
-Note: client/connection creation living *outside* the snippet is the
-existing, accepted pattern — but only when that setup is itself snippeted
-onto the same page, so a reader can see where `client`/`collection` comes
-from. If nothing on the page defines it, the name is dangling: report it
-as a page-level gap (the setup snippet is missing) rather than a defect in
-the snippet under review.
+Client/connection creation outside the snippet is accepted, but only when that setup is itself snippeted onto the same page so the reader can see where `client`/`collection` comes from. If nothing on the page defines it, report the missing setup snippet as a page-level gap.
 
 ## Documentation Pages
 
@@ -389,22 +329,11 @@ a value other than `usage example` without a clear reason.
 
 ### 16. `io-code-block` for output, both paths in `tested/`, input has `:category:`
 
-When an output file exists for a snippet, the docs page should show both
-input and output via `io-code-block`, with **both** the input and output
-paths pointing into `content/code-examples/tested/...`. Flag pages that use
-a bare `literalinclude` (input only) when a corresponding output file
-exists — the output isn't surfaced to readers even though it was tested. If
-Check 8 already found the output file wasn't copied to `tested/`, note that
-this blocks adding `io-code-block` until that's fixed.
+When an output file exists for a snippet, show both input and output via `io-code-block`, with both paths pointing into `content/code-examples/tested/...`. Flag a bare `literalinclude` (input only) when an output file exists — readers never see output that was tested. If Check 8 found the output wasn't copied to `tested/`, note that this blocks `io-code-block` until it is.
 
-Before flagging, check whether *any* sibling snippet on the same page
-surfaces its output. If none do, this is page-wide convention rather than
-something the PR introduced — report it as a question for the author about
-the page as a whole, not as a defect in the diff under review.
+Before flagging, check whether *any* sibling snippet on the page surfaces its output. If none do, it's page-wide convention — raise it as a question about the page, not a defect in the diff.
 
-The **input** side of the `io-code-block` needs `:category:` (same rule as
-Check 15 — almost always `usage example`). The **output** side does not
-take a `:category:` — don't flag its absence there.
+The **input** side needs `:category:` (as in Check 15, almost always `usage example`). The **output** side does not — don't flag its absence.
 
 ### 17. `:language:` matches extension
 

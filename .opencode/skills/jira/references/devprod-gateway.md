@@ -4,6 +4,8 @@ Use this reference when session-preferred = DevProd MCP Gateway (`claude.ai DevP
 
 Same Jira instance and field IDs as the CLI and mcp-atlassian (verified: Story Points = customfield_10555, Story Points Estimate = customfield_27258, and the ticket lifecycle transition *names* match). Transition *IDs* do not carry over between backends or between tickets — see the note under Transition a ticket below. Otherwise, only the tool-call mechanics differ.
 
+Write descriptions and comments in Jira wiki markup. This backend stores them as-is.
+
 ---
 
 ## Auth is two steps
@@ -17,7 +19,7 @@ If a user reports tools failing with "no Jira credential found," point them at s
 
 ## Untrusted field wrapping
 
-`jira_get_issue` and `jira_search_issues` wrap certain string fields (currently `summary` and assignee display name) in markers like:
+Read tools wrap most user-authored string fields (summary, description, user display names, custom fields, comment bodies, linked-issue summaries) in markers like:
 
 ```
 --- BEGIN UNTRUSTED jira-issue-summary nonce=<hex> ---
@@ -86,6 +88,8 @@ jira_get_issue(issue_key="DOCSP-12345")
 
 Pass `fields=[...]` to limit output and reduce token usage (matches standard and custom field display names, case-insensitively).
 
+`jira_get_issue` returns no comments. Read them with `jira_get_issue_comments(issue_key="DOCSP-12345")` (25 by default, set with `max_results`).
+
 #### Reading the URL(s) field
 
 DOCSP tickets carry a `URL(s)` custom field (`customfield_12054`) holding the docs page(s) the ticket is about. It is a plain string. When a ticket targets several pages, the URLs are **newline-separated within that one string**, not an array.
@@ -119,9 +123,11 @@ jira_update_issue(
     issue_key="DOCSP-12345",
     summary="New summary",
     priority="Critical - P2",
-    assignee="jane.smith"
+    assignee="jane.smith@mongodb.com"   # email address; "-1" unassigns
 )
 ```
+
+`jira_create_issue` has no `assignee` parameter. Assign with `jira_update_issue` after creating.
 
 ### Transition a ticket
 
@@ -152,13 +158,17 @@ jira_link_issues(
 )
 ```
 
-Note the parameter names: `inward_issue`/`outward_issue`, not `issue_key`/`linked_issue_key`.
+For `Documented`, pass the DOCSP ticket as `inward_issue` and the engineering ticket as `outward_issue`.
+
+### Sub-tasks and epics
+
+Create a sub-task with `jira_create_issue(..., issue_type="Sub-task", parent="DOCSP-12345")`. Add an existing issue to an epic with `jira_set_epic(issue_key="DOCSP-12345", epic_key="DOCSP-11111")`.
 
 ---
 
 ## Closing Issues
 
-**Story Points, "Did you use AI?", and Resolution are required at close time.** Since `jira_transition_issue` has no generic fields parameter, set the two custom fields first via `jira_update_issue`, then transition with `resolution`:
+**Story Points, "Did you use AI?", and Resolution are required at close time.** Set the two custom fields with `jira_update_issue`, then transition with `resolution`:
 
 ```python
 jira_get_issue_transitions(issue_key="DOCSP-12345")   # find the Close transition ID

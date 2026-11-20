@@ -16,6 +16,7 @@ Skills every writer should know, regardless of team.
 | `/dochub` | Create or update a DocHub link (dochub.mongodb.org/core/<key>) so product UI and error messages point at docs through a stable vanity URL, or check whether a moved/renamed/deleted docs page has broken any DocHub link |
 | `/jira` | Use this skill for any Jira operation in the DOCSP project — creating, viewing, searching, updating, transitioning, commenting on, or linking tickets |
 | `/local-build-check` | Run local docs build checks on pending content/ changes before opening a PR |
+| `/lucid-diagram` | Create MongoDB architecture diagrams in Lucidchart via the Lucid MCP — sharded clusters, replica sets, Atlas topologies, data flows, connection architectures — using official MongoDB brand icons from the repo icon catalog (diagram-icons.csv) |
 | `/open-pr` | Opens a GitHub Pull Request with the standard PR template: Description, Staging Links, and JIRA ticket |
 | `/pr-coverage-check` | Compare a docs PR against the engineering PR (and Jira) it documents, and produce a short list of pointers — not a full report — telling an engineering reviewer exactly where to look and why, to speed up tech review |
 | `/staging-preview` | Generate staging preview links for a MongoDB docs PR |
@@ -102,13 +103,14 @@ For detecting and fixing linter-flagged issues in content/.
 | Skill | What it does |
 |---|---|
 | `/atlas-events` | Update the MongoDB Atlas event type documentation (event-types.rst) by running the event-types-generator script against the Atlas Admin API, then committing only the regenerated list table |
+| `/atlas-qa-setup` | Provision a temporary Atlas test cluster for testing documentation examples |
 
 ## Other Tools
 
 | Tool | What it does |
 |---|---|
 | `atlas-release-notes` | Generates the monthly Atlas changelog by pulling features from Aha! and Jira, writing RST entries, and updating the changelog file |
-| `feature-branch` | Deterministic git flow for the feature-branch workflow: create, sync, and start-task |
+| `feature-branch` | Deterministic git flow for the feature-branch workflow: create, sync, start-task, and daily-sync |
 | `feature-drafter-agent` | Drafts one page or section from a planner task and opens a PR against the feature branch |
 | `feature-planner-agent` | Turns an approved documentation plan into tasks and delegates drafting to feature-drafter-agent sub-agents |
 | `jira-state-transitions` | PostToolUse hooks that transition DOCSP tickets on first edit or commit and on PR review readiness |

@@ -54,7 +54,7 @@ await Expect
 
 The mongosh suite relies on stable natural order over static, read-only
 sample datasets, and does so at scale: `shouldMatch` outnumbers
-`shouldResemble` roughly 8:1 (410 vs 50), and 106 of 141 `find()` examples
+`shouldResemble` roughly 11:1 (580 vs 53), and 125 of 162 `find()` examples
 have no `sort()`. Do not flag a missing `sort()`, and do not suggest adding
 one to satisfy a theoretical determinism worry — it puts noise into an
 example whose subject is something else.
