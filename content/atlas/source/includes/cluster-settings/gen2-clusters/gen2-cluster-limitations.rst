@@ -28,6 +28,3 @@ limitations. You can also
   unintentionally change the cluster's generation. To keep the cluster
   on Gen2, specify the corresponding ``_GEN_2`` instance size, such as
   ``M200_GEN_2``.
-- {+gen-2-clusters-short+} support only reactive auto-scaling, not predictive
-  auto-scaling. To learn more, see :ref:`Scaling a Gen2 Dedicated Cluster
-  <reactive-autoscaling-gen2-cluster>`.
