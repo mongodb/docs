@@ -22,11 +22,11 @@ page. Changes can take up to 5 minutes to take effect.
 
 Click :guilabel:`Pre-Configure New Daemon` at the bottom of the page if
 you want to add a daemon but do not want it to take new jobs. Type the
-``<machine>:/<roothead path>/`` in the text field above
-:guilabel:`Pre-Configure New Daemon`. *You must include a slash at the end* (``/``) or 
-the Backup Daemon won't run and instead generates a Java exception error in the 
-Backup Daemon logs.
-Click the button to configure the new Backup Daemon.
+``<machine>:/<roothead path>`` in the text field above
+:guilabel:`Pre-Configure New Daemon`. If you omit the trailing slash,
+|onprem| adds it automatically and always stores the directory in its
+canonical form, with a trailing slash. Click the button to configure
+the new Backup Daemon.
 
 For each daemon, the page lists the server name, configuration,
 :opsmgr:`head </reference/glossary/#std-term-head-database>` space used, head space free, the number of
@@ -34,6 +34,9 @@ replica sets backed up, the percentage of time the Backup Daemon
 Service was busy, and job runtime counts by 1 minute, 10 minutes,
 60 minutes, less than or equal to 180 minutes, and greater than 180
 minutes.
+
+Daemon Configuration Options
+----------------------------
 
 The page includes the following fields and links to manage and
 configure daemons:
@@ -50,23 +53,39 @@ configure daemons:
      - Action
 
    * - Show Detailed JSON
-     - Click this link to display the Backup Daemon |json|. When the
-       |json| displays, the :guilabel:`View raw runtime data` link
-       appears following the code to view the raw data.
+     - Click the :guilabel:`Show Detailed JSON` link to display the
+       Backup Daemon |json|. When the |json| displays, the
+       :guilabel:`View raw runtime data` link appears following the
+       code to view the raw data.
 
    * - Move all heads
-     - Click this link to move all the Backup Daemon jobs that live on
-       this daemon to a new daemon location.
+     - Click the :guilabel:`Move all heads` link to move all the
+       Backup Daemon jobs that live on this daemon to a new daemon
+       location.
 
        #. Click the link.
        #. Click the location.
        #. Click :guilabel:`Move all heads`.
 
    * - Delete Daemon
-     - Click this link to delete the Backup Daemon.
+     - Click the :guilabel:`Delete Daemon` link to delete the Backup
+       Daemon.
 
        You must restart the daemon to reconfigure the daemon after
        deletion.
+
+       If backup jobs are still bound to the daemon, |onprem| denies
+       the deletion and returns a ``BACKUP_CANNOT_REMOVE_DAEMON_CONFIG``
+       error. The check finds bound jobs regardless of how you
+       entered the head directory, with or without a trailing slash. |onprem| stores
+       every head directory in its canonical form and matches jobs
+       against that form. If you delete a daemon configuration
+       that doesn't exist, |onprem| returns a 404 error.
+
+       To decommission a daemon, first click :guilabel:`Move all
+       heads` to move its jobs to another daemon, then delete the
+       daemon. :guilabel:`Move all heads` reports how many jobs it
+       moved.
 
    * - Assignment
      - Select this to allow the daemon to process more jobs. If the
@@ -121,3 +140,70 @@ configure daemons:
        process at one time.
 
        .. include:: /includes/extracts/queryable-backup-workers.rst
+
+.. _backup-daemon-head-directory-canonicalization:
+
+Head Directory Canonicalization
+-------------------------------
+
+|onprem| stores each Backup Daemon :term:`head directory` in a
+single canonical form: the path with one trailing slash.
+The API and UI accept a head directory with or without a trailing
+slash and always store and return the canonical form. For example,
+if you enter ``/data`` or ``/data//``, |onprem| stores and returns
+``/data/``.
+
+When you upgrade to |onprem| 8.0.28, 9.0.2, or a later version, a
+one-time migration canonicalizes the existing daemon data. The
+migration runs at startup, before |onprem| serves requests, and
+performs the following actions:
+
+- Converts slash-less and multi-slash head directories to the
+  canonical spelling, rebinds their jobs, and rewrites the group
+  and restore ``daemonFilter`` entries.
+- Merges configurations that spelled the same identity in two
+  ways. The canonical-spelling document wins, and the migration
+  removes the duplicate and drops its settings, such as workers
+  and assignment flags. The migration logs the full duplicate
+  document so that you can reapply its settings by hand.
+- Skips any document that it can't migrate, such as a document
+  with no hostname or with malformed ``machine`` or ``head``
+  fields, and logs an ``ERROR`` line in ``logs/mms-migration.log``
+  that names the document's ``_id``. The skipped document is inert
+  and |onprem| starts normally. Repair the document instead of
+  rolling back: delete it or restore its hostname:
+
+  .. code-block:: javascript
+
+     db.getSiblingDB("backupconfig").daemon.deleteOne({
+       _id: <_id from the log line>
+     })
+     db.getSiblingDB("backupconfig").daemon.updateOne(
+       { _id: <_id from the log line> },
+       { $set: { "machine.machine": "<hostname>" } }
+     )
+
+If the migration itself fails, for example because of an
+unexpected database error, startup aborts with a ``migrations
+failed`` message and |onprem| doesn't start. The log names the
+problem. Fix the problem and start |onprem| again instead of
+rolling back. The migration re-runs on the next start. To trigger
+a re-run, start |onprem| with ``-Dforce-rerun=true``. Do not add
+a ``migration.`` prefix to the flag name.
+
+During a rolling upgrade, while any node still runs an earlier
+version, all API writes return a ``405``
+``WRITES_NOT_ALLOWED_DURING_APP_UPGRADES`` error. This behavior is
+by design and lifts when the last node completes its upgrade.
+
+After the upgrade, you might observe the following effects:
+
+- Backup pickup can lag up to one hour for jobs that were in
+  flight during the upgrade. This gap is self-healing and causes
+  no data loss.
+- Head directory paths display with a trailing slash. Statistics
+  rows stored under the old spelling become unreachable and age
+  out on their own.
+- The migration logs to ``logs/mms-migration.log``, which the
+  group diagnostic archive does not collect. When you triage an
+  upgrade, collect this file from the host.

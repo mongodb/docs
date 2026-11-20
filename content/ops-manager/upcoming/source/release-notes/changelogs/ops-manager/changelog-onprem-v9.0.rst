@@ -179,6 +179,17 @@ Improvements
     and ``ip-address`` as part of a Q4 2026 security dependency
     update
 
+- Enforces a single canonical spelling for each Backup Daemon head
+  directory identity: exactly one trailing slash. The API and UI
+  accept paths with or without a trailing slash and always store
+  and return the canonical form, for example ``/data/``. This
+  change also removes the startup Java Exception error that a
+  missing trailing slash caused. At startup, a one-time migration
+  canonicalizes the existing daemon data. For migration details,
+  repair steps, and known upgrade effects, see :ref:`Head
+  Directory Canonicalization
+  <backup-daemon-head-directory-canonicalization>`.
+
 Bug Fixes
 ~~~~~~~~~
 

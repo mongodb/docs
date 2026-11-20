@@ -182,6 +182,17 @@ Improvements
     ``ip-address``, and ``hono`` as part of a Q4 2026 security
     dependency update
 
+- Enforces a single canonical spelling for each Backup Daemon head
+  directory identity: exactly one trailing slash. The API and UI
+  accept paths with or without a trailing slash and always store
+  and return the canonical form, for example ``/data/``. This
+  change also removes the startup Java Exception error that a
+  missing trailing slash caused. At startup, a one-time migration
+  canonicalizes the existing daemon data. For migration details,
+  repair steps, and known upgrade effects, see :ref:`Head
+  Directory Canonicalization
+  <backup-daemon-head-directory-canonicalization>`.
+
 Bug Fixes
 ~~~~~~~~~
 
@@ -392,7 +403,7 @@ Bug Fixes
   report available leases, pool size, and per-request demand as
   separate numbers instead of presenting the request batch count
   as the free-thread count.
-- Fixes a race condition where cancelling an in-progress
+- Fixes a race condition where canceling an in-progress
   automated restore while the mongod is in read-only mode could
   leave the deployment unrecoverable because the automation
   agent failed to write to the local database.
@@ -589,8 +600,8 @@ Improvements
   log collection operations, reducing the risk of server
   crashes from temporary-storage exhaustion and the need to
   provision oversized temporary volumes.
-- Supports cancelling in-progress log collection jobs so
-  cancelled work stops immediately, reducing wasted network,
+- Supports canceling in-progress log collection jobs so
+  canceled work stops immediately, reducing wasted network,
   CPU, and storage resources when a job is deleted.
 
 Bug Fixes
@@ -1009,7 +1020,7 @@ Improvements
 
   - Adds a Content-Security-Policy header to responses.
   - Encrypts |aws| S3 credentials at rest in AppDB.
-  - Fixes an open redirect bypass via backslash in the login redirect.
+  - Fixes an open redirect bypass through a backslash in the login redirect.
   - Replaces MD5-based session ID generation with a 256-bit secure
     value.
   - Fixes cleartext storage of sensitive database credentials.
@@ -1033,7 +1044,7 @@ Bug Fixes
   appropriate.
 - Fixes |onprem| not displaying the arbiter version in
   monitoring-only mode with authentication enabled for MongoDB
-  server versions prior to 8.1.0. Arbiter version information
+  server versions earlier than 8.1.0. Arbiter version information
   remains unavailable for MongoDB 8.1.0 and later.
 - Fixes a bug where the Content Security Policy ``connect-src``
   directive blocked version manifest fetches.
@@ -1462,7 +1473,7 @@ Improvements
     minor versions is not supported when upgrading.
   - Upgrading to a new minor version requires updating the Feature
     Compatibility Version (FCV). This step is critical in the upgrade
-    process and follows the same logic as a :doc:`major version upgrade </tutorial/change-mongodb-version>`.
+    process and follows the same logic as a :ref:`major version upgrade <change-mongodb-version>`.
   - You have a 2-month grace period after the next release becomes
     available to complete your upgrade and remain supported.
 
@@ -1487,9 +1498,9 @@ Bug Fixes
 Improvements
 ~~~~~~~~~~~~
 
-- Adds support for API import of existing deployments into automation 
-  management by |mms|. For more information, see 
-  :doc:`Import Deployments </reference/api/import-deployments>`.
+- Adds support for API import of existing deployments into automation
+  management by |mms|. For more information, see
+  :ref:`Import Deployments <om-import-deployments>`.
 - Adds MongoDB 8.2 deployment support as a preview, not for production use.
   Full support will be available in |onprem| 8.0.14
 - Updates the {+mdbagent+} to :ref:`108.0.13.8870-1 <mongodb-108.0.13.8870-1>`
@@ -1592,7 +1603,7 @@ Bug Fixes
   a "Changes you made may not be saved" warning, even when no changes
   were made.
 - Fixes an Agent bug that caused crashes when modifying a process's
-  storage fields. Now includes ENCRYPTION_CIPHER_MODE  in removed fields
+  storage fields. Now includes ENCRYPTION_CIPHER_MODE in removed fields
   for ephemeral standalone instances to prevent crashes.
 - Adds a retry loop when setting group config to inactive during
   terminate job operations to enhance reliability.
@@ -1688,9 +1699,9 @@ Improvements
   108.0.9.8818-1 to Ops Manager 8.0.
 - Adds a cap to the retryability of ``moveCollection`` for each 
   collection, returning an error code upon continual failure.
-- MongoDB Agent now attempts to abort currently active 
-  ``moveCollection`` commands via ``abortMoveCollection`` when a shard 
-  removal is canceled.
+- MongoDB Agent now attempts to abort currently active
+  ``moveCollection`` commands through ``abortMoveCollection`` when a
+  shard removal is canceled.
 - Auto extends the queryable restore job expiry to account for long 
   queryable mounting times.
 - Improves agent job logging for better debugging.
@@ -1698,20 +1709,20 @@ Improvements
   in a gap.
 - Improves agent discovery to avoid project-wide failures after config
   node is removed.
-- Ops Manager now allows users to download logs for a specific time range 
-  via UI, CLI, and API
+- Adds the ability to download logs for a specific time range
+  through the UI, CLI, and API
 
 Bug Fixes 
 ~~~~~~~~~
 
-- Disallows KMIP key rotation via the OM UI when ``kmip.keyIdentifier``
+- Disallows KMIP key rotation through the OM UI when ``kmip.keyIdentifier``
   is specified. Users must clear the value or rotate manually.
 - Ensures SSL socket factory is recomputed for new S3 store configs by
   using the current timestamp.
 - Defaults S3 v2 client to ``us-east-1`` region when region is not 
   provided for bucket access with keys.
-- Fixes a failure when connecting to S3 buckets via IAM roles and via 
-  keys.
+- Fixes a failure when connecting to S3 buckets through IAM roles and
+  through keys.
 - Disallows key rotation when ``kmip.keyIdentifier`` is specified in the
   UI.
 - Fixes issue with reporting failure status in the ``ADD_NODE`` job when
@@ -1873,7 +1884,7 @@ Bug Fixes
     After logging out of |mms|, users are now reminded to also log out of the
     |idp-full| to complete the logout process.
 
-  - Fixes possibly inaccurate restore job statuses when cancelled.
+  - Fixes possibly inaccurate restore job statuses when canceled.
 
   - Fixes an issue where the user interface passes incorrect values
     for ``pemFilePwd`` for the ``verifyTLSCertificate`` job.

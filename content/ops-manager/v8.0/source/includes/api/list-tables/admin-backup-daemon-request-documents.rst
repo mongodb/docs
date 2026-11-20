@@ -64,9 +64,14 @@
      - string
      - Optional
      - Root-relative path of the :term:`head directory` on this
-       :opsmgr:`Backup Daemon </reference/glossary/#std-term-backup-daemon>` host. This directory must end with a slash
-       (``/``). If you omit the slash, the Backup Daemon generates a
-       Java Exception error.
+       :opsmgr:`Backup Daemon </reference/glossary/#std-term-backup-daemon>` host.
+       Accepts paths with or without a trailing slash. |onprem|
+       normalizes the path to the canonical form, with exactly one
+       trailing slash, and always stores and returns that form.
+       Multiple trailing slashes collapse to one. For example, if
+       you submit ``/data`` or ``/data//``, |onprem| stores and
+       returns ``/data/``. Lookups accept any spelling and match
+       the canonical form.
 
    * - ``machine.machine``
      - string
@@ -77,7 +82,7 @@
      - number
      - Optional
      - Number of worker processes that can perform tasks
-       (i.e. backup, restore, or groom) for the :opsmgr:`Backup Daemon </reference/glossary/#std-term-backup-daemon>`.
+       (that is, backup, restore, or groom) for the :opsmgr:`Backup Daemon </reference/glossary/#std-term-backup-daemon>`.
 
    * - ``resourceUsageEnabled``
      - boolean
@@ -89,4 +94,4 @@
      - boolean
      - Optional
      - Flag indicating whether this :opsmgr:`Backup Daemon </reference/glossary/#std-term-backup-daemon>` can perform
-       :doc:`queryable restores </tutorial/query-backup>`.
+       :ref:`queryable restores <om-query-backup>`.
