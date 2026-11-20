@@ -402,6 +402,22 @@ export const toc: L1TocItem[] = [
                     contentSite: 'ops-manager',
                     url: '/docs/ops-manager/:version/tutorial/remove-process-from-monitoring',
                   },
+                  {
+                    label: 'Manage the Lifecycle of a Process',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/tutorial/manage-process-lifecycle',
+                    versions: {
+                      excludes: ['v7.0'],
+                    },
+                  },
+                  {
+                    label: 'Read Replication Health',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/tutorial/read-replication-health-api',
+                    versions: {
+                      excludes: ['v7.0'],
+                    },
+                  },
                 ],
               },
               {
@@ -1057,6 +1073,7 @@ export const toc: L1TocItem[] = [
                 label: 'Install',
                 contentSite: 'ops-manager',
                 collapsible: true,
+                url: '/docs/ops-manager/:version/tutorial/nav/install-mongodb-agent',
                 items: [
                   {
                     label: 'Manage Deployments',
@@ -1604,7 +1621,7 @@ export const toc: L1TocItem[] = [
                             url: '/docs/ops-manager/:version/reference/api/hosts/get-one-host-by-id',
                           },
                           {
-                            label: 'Get by Hostname & Port',
+                            label: 'Get by Hostname and Port',
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/hosts/get-one-host-by-hostname-port',
                           },
@@ -1622,6 +1639,32 @@ export const toc: L1TocItem[] = [
                             label: 'Stop Monitoring',
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/hosts/delete-one-host',
+                          },
+                        ],
+                      },
+                      {
+                        label: 'Hosts v2.0',
+                        contentSite: 'ops-manager',
+                        collapsible: true,
+                        url: '/docs/ops-manager/:version/reference/api/hosts-v2',
+                        versions: {
+                          excludes: ['v7.0'],
+                        },
+                        items: [
+                          {
+                            label: 'Get All',
+                            contentSite: 'ops-manager',
+                            url: '/docs/ops-manager/:version/reference/api/hosts-v2/get-all-hosts-in-group-v2',
+                          },
+                          {
+                            label: 'Get by ID',
+                            contentSite: 'ops-manager',
+                            url: '/docs/ops-manager/:version/reference/api/hosts-v2/get-one-host-by-id-v2',
+                          },
+                          {
+                            label: 'Get by Hostname and Port',
+                            contentSite: 'ops-manager',
+                            url: '/docs/ops-manager/:version/reference/api/hosts-v2/get-one-host-by-hostname-port-v2',
                           },
                         ],
                       },
@@ -1717,6 +1760,37 @@ export const toc: L1TocItem[] = [
                             label: 'Get All',
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/re-election-jobs/re-election-jobs-get-all',
+                          },
+                        ],
+                      },
+                      {
+                        label: 'Process Lifecycle',
+                        contentSite: 'ops-manager',
+                        collapsible: true,
+                        url: '/docs/ops-manager/:version/reference/api/process-lifecycle',
+                        versions: {
+                          excludes: ['v7.0'],
+                        },
+                        items: [
+                          {
+                            label: 'Shut Down a Process',
+                            contentSite: 'ops-manager',
+                            url: '/docs/ops-manager/:version/reference/api/process-lifecycle/process-lifecycle-shutdown',
+                          },
+                          {
+                            label: 'Start a Process',
+                            contentSite: 'ops-manager',
+                            url: '/docs/ops-manager/:version/reference/api/process-lifecycle/process-lifecycle-startup',
+                          },
+                          {
+                            label: 'Restart a Process',
+                            contentSite: 'ops-manager',
+                            url: '/docs/ops-manager/:version/reference/api/process-lifecycle/process-lifecycle-restart',
+                          },
+                          {
+                            label: 'Resync a Process',
+                            contentSite: 'ops-manager',
+                            url: '/docs/ops-manager/:version/reference/api/process-lifecycle/process-lifecycle-resync',
                           },
                         ],
                       },
