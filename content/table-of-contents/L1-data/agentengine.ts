@@ -271,6 +271,11 @@ const tocData: TocItem[] = [
         isExternal: true,
       },
       {
+        label: 'Agent Skills',
+        url: 'https://github.com/mongodb/agent-engine-examples/tree/main/.agents/skills',
+        isExternal: true,
+      },
+      {
         label: 'Atlas Agent Engine API Reference',
         url: 'https://www.mongodb.com/docs/api/doc/agentengine',
         isExternal: true,
