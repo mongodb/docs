@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Tabs, Tab } from '@/mdx-components/Tabs';
 import { TabProvider } from '@/context/tabs-context';
@@ -185,6 +185,128 @@ describe('Tabs MDX component', () => {
       await userEvent.click(screen.getAllByRole('tab', { name: 'Linux' })[0]);
       const linuxTabs = screen.getAllByRole('tab', { name: 'Linux' });
       expect(linuxTabs.map((tab) => tab.getAttribute('aria-selected'))).toEqual(['true', 'true']);
+    });
+  });
+
+  describe('hash target inside a tab', () => {
+    let scrolledTo: Element[];
+    const originalScrollIntoView = Element.prototype.scrollIntoView;
+
+    beforeEach(() => {
+      window.localStorage.clear();
+      scrolledTo = [];
+      Element.prototype.scrollIntoView = function scrollIntoView(this: Element) {
+        scrolledTo.push(this);
+      };
+    });
+
+    afterEach(() => {
+      Element.prototype.scrollIntoView = originalScrollIntoView;
+    });
+
+    const mountCliAndUiTabs = () =>
+      mountTabs(
+        <Tabs tabset="interface">
+          <Tab tabid="cli" name="CLI">
+            <p>CLI content</p>
+            <span id="in-cli" />
+          </Tab>
+          <Tab tabid="ui" name="UI">
+            <p>UI content</p>
+            <span id="in-ui" />
+          </Tab>
+        </Tabs>,
+      );
+
+    const selectedTab = () => screen.getByRole('tab', { selected: true });
+
+    it('opens the tab that contains the target and scrolls it into view', async () => {
+      mockLocation({ hash: '#in-ui' });
+      mountCliAndUiTabs();
+
+      await waitFor(() => expect(selectedTab()).toHaveTextContent('UI'));
+      expect(screen.getByText('UI content').closest('[role="tabpanel"]')).not.toHaveAttribute('hidden');
+      await waitFor(() => expect(scrolledTo).toEqual([document.getElementById('in-ui')]));
+    });
+
+    it('opens the tab when the hash changes after the page has loaded', async () => {
+      mountCliAndUiTabs();
+      expect(selectedTab()).toHaveTextContent('CLI');
+
+      act(() => {
+        mockLocation({ hash: '#in-ui' });
+        window.dispatchEvent(new HashChangeEvent('hashchange'));
+      });
+
+      await waitFor(() => expect(selectedTab()).toHaveTextContent('UI'));
+      await waitFor(() => expect(scrolledTo).toEqual([document.getElementById('in-ui')]));
+    });
+
+    it('scrolls to a target whose tab was already open', async () => {
+      mockLocation({ hash: '#in-cli' });
+      mountCliAndUiTabs();
+
+      await waitFor(() => expect(scrolledTo).toEqual([document.getElementById('in-cli')]));
+      expect(selectedTab()).toHaveTextContent('CLI');
+    });
+
+    it('scrolls to the target once per hash', async () => {
+      mockLocation({ hash: '#in-ui' });
+      mountCliAndUiTabs();
+      await waitFor(() => expect(scrolledTo).toHaveLength(1));
+
+      await userEvent.click(screen.getByRole('tab', { name: 'CLI' }));
+
+      expect(scrolledTo).toHaveLength(1);
+    });
+
+    it('does not pull the reader back after they pick another tab', async () => {
+      mockLocation({ hash: '#in-ui' });
+      mountCliAndUiTabs();
+      await waitFor(() => expect(selectedTab()).toHaveTextContent('UI'));
+
+      await userEvent.click(screen.getByRole('tab', { name: 'CLI' }));
+
+      expect(selectedTab()).toHaveTextContent('CLI');
+    });
+
+    it('opens every tab on the path to a target in nested tabs', async () => {
+      mockLocation({ hash: '#deep' });
+      mountTabs(
+        <Tabs tabset="outer">
+          <Tab tabid="a" name="Outer A">
+            <p>Outer A content</p>
+          </Tab>
+          <Tab tabid="b" name="Outer B">
+            <Tabs tabset="inner">
+              <Tab tabid="x" name="Inner X">
+                <p>Inner X content</p>
+              </Tab>
+              <Tab tabid="y" name="Inner Y">
+                <span id="deep" />
+              </Tab>
+            </Tabs>
+          </Tab>
+        </Tabs>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByRole('tab', { name: 'Outer B' })).toHaveAttribute('aria-selected', 'true');
+        expect(screen.getByRole('tab', { name: 'Inner Y' })).toHaveAttribute('aria-selected', 'true');
+      });
+      expect(document.getElementById('deep')?.closest('[role="tabpanel"][hidden]')).toBeNull();
+    });
+
+    it('ignores a hash that is not on the page or is malformed', async () => {
+      mockLocation({ hash: '#missing' });
+      const { unmount } = mountCliAndUiTabs();
+      await waitFor(() => expect(selectedTab()).toHaveTextContent('CLI'));
+      unmount();
+
+      mockLocation({ hash: '#%E0%A4%A' });
+      mountCliAndUiTabs();
+      await waitFor(() => expect(selectedTab()).toHaveTextContent('CLI'));
+      expect(scrolledTo).toEqual([]);
     });
   });
 });

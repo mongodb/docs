@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useContext, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { Tabs as ViaTabs, TabList, Tab as ViaTab, TabPanels, TabPanel } from '@via-ds/components/tabs';
 import { Size } from '@via-ds/components/types';
@@ -24,6 +24,15 @@ const getPosition = (element: HTMLElement) => {
   if (!isBrowser || !element) return { x: 0, y: 0 };
   const { x, y } = element.getBoundingClientRect();
   return { x, y };
+};
+
+const getHashTarget = (hash: string) => {
+  if (hash.length < 2) return null;
+  try {
+    return document.getElementById(decodeURIComponent(hash.slice(1)));
+  } catch {
+    return null;
+  }
 };
 
 export type TabProps = {
@@ -70,6 +79,9 @@ export const Tabs = ({ children, tabset, hidden }: TabsProps) => {
   const isProductLanding = template === 'product-landing';
 
   const initLoad = useRef(false);
+  const panelRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const handledHash = useRef('');
+  const [hashTarget, setHashTarget] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
     if (initLoad.current) return;
@@ -87,6 +99,26 @@ export const Tabs = ({ children, tabset, hidden }: TabsProps) => {
     const tabId = tabIdArray[localTabIdx > -1 ? localTabIdx : 0];
     if (tabId) setActiveTab({ [tabsetName]: tabId });
   }, [setActiveTab, tabIdArray, tabsetName, hash]);
+
+  // Handle each hash once so a tab the reader picks afterwards is not overridden.
+  useEffect(() => {
+    if (handledHash.current === hash) return;
+    handledHash.current = hash;
+
+    const target = getHashTarget(hash);
+    const tabId = target && tabIdArray.find((id) => panelRefs.current[id]?.contains(target));
+    if (!target || !tabId) return;
+
+    setActiveTab({ [tabsetName]: tabId });
+    setHashTarget(target);
+  }, [hash, tabIdArray, tabsetName, setActiveTab]);
+
+  // The browser's own scroll to the hash runs before this tab is visible, so scroll once it is.
+  useEffect(() => {
+    if (!hashTarget) return;
+    hashTarget.scrollIntoView();
+    setHashTarget(null);
+  }, [hashTarget]);
 
   const handleSelectionChange = useCallback(
     (key: React.Key) => {
@@ -149,7 +181,14 @@ export const Tabs = ({ children, tabset, hidden }: TabsProps) => {
               {tabs.map(({ tabid, children: tabContent }) => (
                 <TabPanel key={tabid} shouldForceMount>
                   <TabHashProvider tabName={tabsetName} tabId={tabid} switchToParentTab={switchToParentTab}>
-                    <div className={clsx(styles.panel, isProductLanding && styles.landingPanel)}>{tabContent}</div>
+                    <div
+                      ref={(el) => {
+                        panelRefs.current[tabid] = el;
+                      }}
+                      className={clsx(styles.panel, isProductLanding && styles.landingPanel)}
+                    >
+                      {tabContent}
+                    </div>
                   </TabHashProvider>
                 </TabPanel>
               ))}
