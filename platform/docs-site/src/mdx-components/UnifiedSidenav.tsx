@@ -2,11 +2,8 @@
 
 import { useState, useEffect, useRef, useContext, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
-import styled from '@emotion/styled';
-import { css as LeafyCSS, cx } from '@leafygreen-ui/emotion';
 import { isActiveTocNode, removeAnchor } from './UnifiedSidenav/UnifiedTocNavItems';
 import { usePageContext } from '@/context/page-context';
-import { theme } from '@/styles/theme';
 import { isCurrentPage } from '@/utils/is-current-page';
 import useStickyTopValues from '@/hooks/use-sticky-top-values';
 import { isBrowser } from '@/utils/is-browser';
@@ -24,73 +21,7 @@ import { AccordionNavPanel } from './UnifiedSidenav/AccordionNav';
 import type { TocItem } from './UnifiedSidenav/types';
 import { useSiteBanner } from '@/mdx-components/SiteBannerProvider';
 import { OfflineDownloadProvider } from '@/mdx-components/offline-download-modal/download-context';
-import { ToastProvider } from '@leafygreen-ui/toast';
-
-// have Toasts come up with z index above the side nav
-const toastPortalStyling = LeafyCSS`
-  z-index: ${theme.zIndexes.sidenav + 1};
-`;
-
-export const downloadButtonStlying = LeafyCSS`
-  bottom: 20px;
-  position: absolute;
-  width: 100%;
-  text-align: right;
-  padding-right: 30px;
-`;
-
-export const NavTopContainer = (isTabletOrMobile: boolean) => LeafyCSS`
-  ${!isTabletOrMobile && 'background-color: var(--background-color-primary)'};
-  position: absolute;
-  top: -0px;
-  height: ${isTabletOrMobile ? '190px' : '60px'};
-  width: 100%;
-  border-bottom: 1px solid var(--sidenav-border-bottom-color);
-  z-index: 1;
-`;
-
-const getTopAndHeight = (topValue: string) => {
-  return LeafyCSS`
-    top: max(calc(${topValue} - var(--scroll-y)), ${theme.header.actionBarMobileHeight});
-    height: calc(100vh - max(calc(${topValue} - var(--scroll-y)), ${theme.header.actionBarMobileHeight}));
-  `;
-};
-
-interface SidenavContainerProps {
-  topLarge: string;
-  topMedium: string;
-  topSmall: string;
-}
-
-const SidenavContainer = ({ topLarge, topMedium, topSmall }: SidenavContainerProps) => LeafyCSS`
-  grid-area: sidenav;
-  position: sticky;
-  z-index: ${theme.zIndexes.sidenav};
-  top: 0px;
-  height: calc(
-    100vh + ${theme.header.actionBarMobileHeight} - ${topLarge} +
-      min(calc(${topLarge} - ${theme.header.actionBarMobileHeight}), var(--scroll-y))
-  );
-
-  @media ${theme.screenSize.upToLarge} {
-    ${getTopAndHeight(topMedium)};
-  }
-
-  @media ${theme.screenSize.upToSmall} {
-    ${getTopAndHeight(topSmall)};
-  }
-
-  nav {
-    background-color: var(--sidenav-bg-color);
-  }
-
-   [class*='lg-ui-side-nav-item'] {
-      color: var(--sidenav-item-color);
-      :not([aria-current='page']):hover {
-        background-color: var(--sidenav-hover-bg-color);
-      }
-    }
-`;
+import styles from './unified-sidenav.module.scss';
 
 const findPageParent = (tree: TocItem[], targetUrl: string): [boolean, TocItem | null] => {
   const path: TocItem[] = [];
@@ -207,38 +138,43 @@ export const UnifiedSidenav = () => {
   const viewport = useViewport(false);
 
   return (
-    <ToastProvider portalClassName={toastPortalStyling}>
-      <OfflineDownloadProvider>
-        <div
-          className={cx(SidenavContainer({ ...topValues }))}
-          style={{ '--scroll-y': `${viewport.scrollY}px` } as React.CSSProperties}
-          id={SIDE_NAV_CONTAINER_ID}
-        >
-          <AccordionNavPanel
-            showDriverBackBtn={showDriverBackBtn}
-            setShowDriverBackBtn={setShowDriverBackBtn}
-            slug={slug}
-            currentL2s={currentL2s}
-            setCurrentL1={setCurrentL1}
-            setCurrentL2s={setCurrentL2s}
-            hideMobile={hideMobile}
-            currentL1={currentL1}
-            tree={tree}
-            isAccordionOnly={isAccordionOnly}
-          />
-          <DoublePannedNav
-            showDriverBackBtn={showDriverBackBtn}
-            setShowDriverBackBtn={setShowDriverBackBtn}
-            tree={tree}
-            slug={slug}
-            currentL2s={currentL2s}
-            setCurrentL1={setCurrentL1}
-            setCurrentL2s={setCurrentL2s}
-            currentL1={currentL1}
-            isAccordionOnly={isAccordionOnly}
-          />
-        </div>
-      </OfflineDownloadProvider>
-    </ToastProvider>
+    <OfflineDownloadProvider>
+      <div
+        className={styles.container}
+        style={
+          {
+            '--scroll-y': `${viewport.scrollY}px`,
+            '--top-large': topValues.topLarge,
+            '--top-medium': topValues.topMedium,
+            '--top-small': topValues.topSmall,
+          } as React.CSSProperties
+        }
+        id={SIDE_NAV_CONTAINER_ID}
+      >
+        <AccordionNavPanel
+          showDriverBackBtn={showDriverBackBtn}
+          setShowDriverBackBtn={setShowDriverBackBtn}
+          slug={slug}
+          currentL2s={currentL2s}
+          setCurrentL1={setCurrentL1}
+          setCurrentL2s={setCurrentL2s}
+          hideMobile={hideMobile}
+          currentL1={currentL1}
+          tree={tree}
+          isAccordionOnly={isAccordionOnly}
+        />
+        <DoublePannedNav
+          showDriverBackBtn={showDriverBackBtn}
+          setShowDriverBackBtn={setShowDriverBackBtn}
+          tree={tree}
+          slug={slug}
+          currentL2s={currentL2s}
+          setCurrentL1={setCurrentL1}
+          setCurrentL2s={setCurrentL2s}
+          currentL1={currentL1}
+          isAccordionOnly={isAccordionOnly}
+        />
+      </div>
+    </OfflineDownloadProvider>
   );
 };

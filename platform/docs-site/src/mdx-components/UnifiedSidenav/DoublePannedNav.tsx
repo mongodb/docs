@@ -1,83 +1,17 @@
 'use client';
 
-import { BackLink } from '@leafygreen-ui/typography';
-import { css as LeafyCSS, cx } from '@leafygreen-ui/emotion';
-import { SideNav } from '@leafygreen-ui/side-nav';
-import { theme } from '@/styles/theme';
-import useScreenSize from '@/hooks/use-screen-size';
-import { getTranslator } from '@/internationalization/get-translator';
-import { tocItemKey } from '@/utils/create-toc-key';
+import { useCallback, useMemo, useState } from 'react';
+import { AppLayoutProvider } from '@via-ds/components/app-layout';
+import { Link, LinkStyle } from '@via-ds/components/typography';
+import { clsx } from 'clsx';
 import { DownloadButton } from '@/mdx-components/offline-download-modal/download-button';
-import { NavTopContainer, downloadButtonStlying } from '../UnifiedSidenav';
-import { StaticNavItem, UnifiedTocNavItem } from './UnifiedTocNavItems';
-import { VersionDropdown } from './VersionDropdown';
-import type { TocItem } from './types';
 import { ProductTabs } from '@/mdx-components/ActionBar/ProductTabs';
-
-export const leftPane = LeafyCSS`
-  flex: 0 0 161px;
-  overflow-y: auto;
-  border-right: 1px solid var(--sidenav-border-bottom-color);
-  width: 161px !important;
-  padding-top: ${theme.size.default};
-`;
-
-export const rightPane = LeafyCSS`
-  flex: 0 0 264px;
-  overflow-y: auto;
-  border-right: 1px solid var(--sidenav-border-bottom-color);
-  padding-top: ${theme.size.default};
-
-  // Height for the version dropdown
-  button {
-    margin-left: -8px;
-    height: 28px;
-  }
-`;
-
-const backLinkStyling = LeafyCSS`
-  padding-left: ${theme.size.default};
-  padding-top: ${theme.size.small};
-  font-size: ${theme.fontSize.small};
-
-  :hover {
-    text-decoration: none;
-  }
-`;
-
-const sideNavStyle = ({ isAccordionOnly }: { isAccordionOnly: boolean }) => LeafyCSS`
-  height: 100%;
-  padding: 0px;
-  overflow: visible !important;
-
- nav > div,
-  nav > div > ul {
-    overflow: visible !important;
-  }
-
-  @media ${theme.screenSize.upTo2XLarge} {
-    display: none;
-  }
-
-  ${isAccordionOnly && 'display: none !important;'}
-`;
-
-const panelStyling = LeafyCSS`
-    display: flex;
-    flex-direction: row;
-    position: fixed;
-    top: 60px;
-    height: calc(100% - 120px);
-    padding-top: 10px;
-    border-bottom: 1px solid var(--sidenav-border-bottom-color);
-    width: 100%;
-
-    ul {
-      display: block;
-      width: 100%;
-    }
-
-`;
+import { getTranslator } from '@/internationalization/get-translator';
+import { useDriverPress } from './AccordionNav';
+import { TocNavTree } from './TocNavTree';
+import type { TocItem } from './types';
+import accordionStyles from './accordion-nav.module.scss';
+import styles from './double-panned-nav.module.scss';
 
 interface DoublePannedNavProps {
   showDriverBackBtn: boolean;
@@ -103,59 +37,90 @@ export const DoublePannedNav = ({
   isAccordionOnly = false,
 }: DoublePannedNavProps) => {
   const { t } = getTranslator();
-  const { isTabletOrMobile } = useScreenSize();
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const l2Items = currentL2s?.items;
+  const hasL2 = !!l2Items?.length;
+
+  const onDriverPress = useDriverPress(tree, setCurrentL1, setShowDriverBackBtn, setCurrentL2s);
+  const onL1Press = useCallback(
+    (l1: TocItem) => {
+      setCurrentL1(l1);
+      setCurrentL2s(l1);
+      setShowDriverBackBtn(false);
+    },
+    [setCurrentL1, setCurrentL2s, setShowDriverBackBtn],
+  );
+
+  // Stable so the memoized trees skip scroll re-renders.
+  const footerAction = useMemo(
+    () => (
+      <div className={accordionStyles.download}>
+        <DownloadButton />
+      </div>
+    ),
+    [],
+  );
+  const header = useMemo(
+    () =>
+      showDriverBackBtn && (
+        <Link
+          className={styles.backLink}
+          linkStyle={LinkStyle.Back}
+          onPress={() => setShowDriverBackBtn(false)}
+          href={currentL1?.newUrl}
+        >
+          {t('nav.back_to', { label: currentL1?.label ?? '' })}
+        </Link>
+      ),
+    [showDriverBackBtn, setShowDriverBackBtn, currentL1, t],
+  );
 
   return (
-    <SideNav
-      widthOverride={currentL2s?.items && currentL2s.items.length > 0 ? 426 : 161}
-      className={cx(sideNavStyle({ isAccordionOnly }))}
-      aria-label={t('nav.double_panned_side_navigation')}
+    <div
+      className={clsx(
+        styles.doublePannedNav,
+        hasL2 && styles.withL2,
+        isCollapsed && styles.rail,
+        isAccordionOnly && styles.accordionOnly,
+      )}
     >
-      <div className={cx(NavTopContainer(isTabletOrMobile))}>
+      <div className={styles.tabs}>
         <ProductTabs slug={slug} />
       </div>
-      <div className={cx(panelStyling)} data-nav-panel="fixed-sidenav">
-        <div className={cx(leftPane)} data-nav-pane="left">
-          {tree.map((staticTocItem) => (
-            <StaticNavItem
-              {...staticTocItem}
+      <div className={styles.panes}>
+        <AppLayoutProvider
+          isSideNavPinned={!isCollapsed}
+          onSideNavPinnedChange={(isPinned) => setIsCollapsed(!isPinned)}
+        >
+          <div className={styles.left}>
+            <TocNavTree
+              aria-label={t('nav.double_panned_side_navigation')}
+              items={tree}
               slug={slug}
-              key={staticTocItem.newUrl + staticTocItem.label}
-              setCurrentL1={setCurrentL1}
-              setCurrentL2s={setCurrentL2s}
-              setShowDriverBackBtn={setShowDriverBackBtn}
+              isL1
+              isRail
+              onL1Press={onL1Press}
+              onDriverPress={onDriverPress}
+              footerAction={footerAction}
             />
-          ))}
-        </div>
-        {currentL1?.versionDropdown && <VersionDropdown contentSite={currentL1?.contentSite} />}
-        {currentL2s?.items?.length !== undefined && (
-          <div className={cx(rightPane)} data-nav-pane="right">
-            {showDriverBackBtn && (
-              <BackLink
-                className={cx(backLinkStyling)}
-                onClick={() => setShowDriverBackBtn(false)}
-                href={currentL1?.newUrl}
-              >
-                {t('nav.back_to', { label: currentL1?.label ?? '' })}
-              </BackLink>
-            )}
-            {currentL2s?.items?.map((navItems) => (
-              <UnifiedTocNavItem
-                {...navItems}
-                level={1}
-                key={tocItemKey(navItems)}
-                slug={slug}
-                setCurrentL1={setCurrentL1}
-                setCurrentL2s={setCurrentL2s}
-                setShowDriverBackBtn={setShowDriverBackBtn}
-              />
-            ))}
+          </div>
+        </AppLayoutProvider>
+        {hasL2 && (
+          <div className={styles.right}>
+            {/* Remount when the panel switches; tree keys are panel-relative. */}
+            <TocNavTree
+              key={`${currentL2s?.newUrl}|${currentL2s?.label}`}
+              items={l2Items ?? []}
+              slug={slug}
+              onDriverPress={onDriverPress}
+              header={header}
+              isPanel
+              hasToggle={false}
+              aria-label={t('nav.section_navigation')}
+            />
           </div>
         )}
       </div>
-      <div className={cx(downloadButtonStlying)}>
-        <DownloadButton />
-      </div>
-    </SideNav>
+    </div>
   );
 };

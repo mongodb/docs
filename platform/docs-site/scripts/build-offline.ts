@@ -293,12 +293,8 @@ const OFFLINE_UI_MODULES: OfflineUIModule[] = [
   {
     detect: 'offline-collapsible-nav',
     jsFile: 'sidenav-collapsible.js',
-    // Rotate the always-rendered CaretDown icon 180° to look like CaretUp when closed (LG). Via rotates
-    // the chevron with `rotate` when expanded, so reset it on rows the script collapsed.
+    // Via rotates the chevron with `rotate` when expanded, so reset it on rows the script collapsed.
     headStyle: `<style>
-  .offline-collapsible-nav:not(.nav-open) svg[aria-label="Caret Down Icon"] {
-    transform: rotate(180deg);
-  }
   .offline-collapsible-nav-tree [role="row"][aria-expanded="false"] [slot="chevron"] svg {
     rotate: 0deg;
   }
@@ -343,9 +339,9 @@ const MIN_PAGE_BYTES = 40_000;
  * Verify that each HTML file was fully server-rendered and correctly
  * post-processed.  Checks are grouped into four failure classes:
  *
- * 1. SSR / Emotion – Emotion SSR must have run so LeafyGreen styles are
- *    inlined. Missing styles means a client component (or context provider)
- *    returned null during static generation.
+ * 1. SSR / Emotion – A page that renders Emotion class names must have
+ *    their styles inlined. Missing styles means a client component (or context
+ *    provider) returned null during static generation.
  *
  * 2. Content  – The page body must not be an empty layout shell, must
  *    reach a minimum byte size, and must not silently resolve to a 404 page.
@@ -378,11 +374,11 @@ async function verifyOutput(): Promise<void> {
     const content = await fs.readFile(filePath, 'utf-8');
     const rel = path.relative(OUT_DIR, filePath);
 
-    // 1. SSR / Emotion
-    if (!content.includes('<style data-emotion=')) {
+    // 1. SSR / Emotion. Only pages with Emotion classes need inlined styles.
+    if (/class="(?:[^"]*\s)?css-[a-z0-9]+/.test(content) && !content.includes('<style data-emotion=')) {
       failures.push({
         file: rel,
-        reason: 'missing <style data-emotion="…"> — Emotion SSR did not run',
+        reason: 'Emotion class names without <style data-emotion="…"> — Emotion SSR did not run',
       });
     }
 

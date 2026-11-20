@@ -168,4 +168,27 @@ describe('TocNavTree', () => {
     expect(screen.getByRole('row', { name: 'Manual, View a different version of documentation.' })).toBeInTheDocument();
     expect(screen.getByRole('row', { name: 'Tools' })).toBeInTheDocument();
   });
+
+  it('renders rail L1s as flat current-section links that report presses', async () => {
+    const user = userEvent.setup();
+    const onL1Press = jest.fn();
+    render(
+      <TocNavTree
+        items={items}
+        slug="/docs/atlas/clusters/create/"
+        isL1
+        isRail
+        onL1Press={onL1Press}
+        onDriverPress={jest.fn()}
+      />,
+    );
+
+    expect(row('Atlas')).not.toHaveAttribute('aria-expanded');
+    expect(screen.queryByRole('link', { name: 'Clusters' })).not.toBeInTheDocument();
+    expect(link('Atlas')).toHaveAttribute('aria-current', 'page');
+
+    await user.click(link('Atlas'));
+    expect(onL1Press).toHaveBeenCalledWith(items[0]);
+    expect(sidenavAnalytics).toHaveBeenCalledWith('Atlas', expect.anything());
+  });
 });

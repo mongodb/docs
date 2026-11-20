@@ -1,8 +1,8 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import { BackLink } from '@leafygreen-ui/typography';
 import { AppLayoutProvider } from '@via-ds/components/app-layout';
+import { Link, LinkStyle } from '@via-ds/components/typography';
 import { clsx } from 'clsx';
 import useScreenSize from '@/hooks/use-screen-size';
 import { getTranslator } from '@/internationalization/get-translator';
@@ -16,6 +16,24 @@ const NO_ITEMS: TocItem[] = [];
 
 const containsTocItem = (items: TocItem[] = [], target: TocItem): boolean =>
   items.some((item) => item === target || containsTocItem(item.items, target));
+
+// Dev-mode driver rows have no href, so set the L1 here.
+export const useDriverPress = (
+  tree: TocItem[],
+  setCurrentL1: (item: TocItem) => void,
+  setShowDriverBackBtn: (show: boolean) => void,
+  setCurrentL2s: (item: TocItem) => void,
+) =>
+  useCallback(
+    (driver: TocItem) => {
+      const { items, newUrl, label, contentSite } = driver;
+      const owner = tree.find((l1) => containsTocItem(l1.items, driver));
+      if (owner) setCurrentL1(owner);
+      setShowDriverBackBtn(true);
+      setCurrentL2s({ items, newUrl, label, contentSite });
+    },
+    [tree, setCurrentL1, setShowDriverBackBtn, setCurrentL2s],
+  );
 
 interface AccordionNavPanelProps {
   showDriverBackBtn: boolean;
@@ -49,17 +67,7 @@ export const AccordionNavPanel = ({
   // The collapsed rail is desktop-only; the mobile menu always shows the full nav.
   const isRail = isCollapsed && !isTabletOrMobile;
 
-  // Drivers can be opened without navigating (dev-mode rows have no href), so set their L1 here too.
-  const onDriverPress = useCallback(
-    (driver: TocItem) => {
-      const { items, newUrl, label, contentSite } = driver;
-      const owner = tree.find((l1) => containsTocItem(l1.items, driver));
-      if (owner) setCurrentL1(owner);
-      setShowDriverBackBtn(true);
-      setCurrentL2s({ items, newUrl, label, contentSite });
-    },
-    [tree, setCurrentL1, setShowDriverBackBtn, setCurrentL2s],
-  );
+  const onDriverPress = useDriverPress(tree, setCurrentL1, setShowDriverBackBtn, setCurrentL2s);
   const onL1Press = useCallback(
     (l1: TocItem) => {
       setCurrentL1(l1);
@@ -85,9 +93,14 @@ export const AccordionNavPanel = ({
           <ProductTabs slug={slug} />
         </div>
         {showDriverBackBtn && (
-          <BackLink className={styles.backLink} onClick={() => setShowDriverBackBtn(false)} href={currentL1?.newUrl}>
+          <Link
+            className={styles.backLink}
+            linkStyle={LinkStyle.Back}
+            onPress={() => setShowDriverBackBtn(false)}
+            href={currentL1?.newUrl}
+          >
             {t('nav.back_to', { label: currentL1?.label ?? '' })}
-          </BackLink>
+          </Link>
         )}
       </>
     ),

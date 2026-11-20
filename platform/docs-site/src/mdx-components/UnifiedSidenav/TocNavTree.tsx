@@ -1,7 +1,7 @@
 'use client';
 
 import { memo, useMemo, useRef, useState } from 'react';
-import type { KeyboardEvent, MouseEvent, ReactNode } from 'react';
+import type { CSSProperties, KeyboardEvent, MouseEvent, ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import {
   PrimarySideNav,
@@ -74,11 +74,25 @@ interface TocNavNodeProps {
   slug: string;
   isL1: boolean;
   onDriverPress: (item: TocItem) => void;
+  depth?: number;
+  isPanel?: boolean;
   isOpenL1?: boolean;
+  isRailL1?: boolean;
   onL1Press?: (item: TocItem) => void;
 }
 
-const TocNavNode = ({ item, id, slug, isL1, onDriverPress, isOpenL1 = false, onL1Press }: TocNavNodeProps) => {
+const TocNavNode = ({
+  item,
+  id,
+  slug,
+  isL1,
+  onDriverPress,
+  depth = 0,
+  isPanel = false,
+  isOpenL1 = false,
+  isRailL1 = false,
+  onL1Press,
+}: TocNavNodeProps) => {
   const { activeVersions } = useVersionContext();
   const { href } = resolveDocsHref(item.newUrl ?? '', usePathname());
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -87,24 +101,27 @@ const TocNavNode = ({ item, id, slug, isL1, onDriverPress, isOpenL1 = false, onL
 
   if (!isL1 && !isDriver && !isTocItemVersionAllowed(item, activeVersions)) return null;
 
-  // As in the LG nav, only the open L1 shows its children; the others are plain links.
+  // Only the open L1 shows its children; the others are plain links.
   const isSection = (isL1 ? isOpenL1 : group || collapsible) && !isDriver && items.length > 0;
   const isAlwaysOpen = (!!group && !collapsible) || isOpenL1;
   const isLinked = !!newUrl && !group && !((isL1 || isDriver) && isUnifiedTOCInDevMode);
   // A section sharing its URL with a descendant (e.g. an L1 and its "Introduction") defers to the descendant.
-  const isCurrent =
-    isLinked &&
-    isSelectedTocNode(newUrl.replace(/#.*/, ''), slug) &&
-    !(isSection && items.some((child) => isActiveTocNode(slug, child.newUrl, child.items)));
+  // A rail L1 is current while the page is anywhere under it.
+  const isCurrent = isRailL1
+    ? isActiveTocNode(slug, newUrl, items)
+    : isLinked &&
+      isSelectedTocNode(newUrl.replace(/#.*/, ''), slug) &&
+      !(isSection && items.some((child) => isActiveTocNode(slug, child.newUrl, child.items)));
   const scrollAnchor = isCurrent && !isOfflineBuild && <ActiveScrollAnchor />;
   const url = isLinked && !isRelativeUrl(href) ? new URL(href, 'https://www.mongodb.com') : undefined;
   const isMongoDB = !!url && (url.hostname === 'mongodb.com' || url.hostname.endsWith('.mongodb.com'));
-  // Other sites open in a new tab. Like the LG nav, they and links to another docs property get the icon.
+  // Other sites open in a new tab. They and links to another docs property get the icon.
   const isExternal = !!url && !isMongoDB;
   const externalIcon = (isExternal || (isMongoDB && url?.pathname.startsWith('/docs/'))) && (
     <OpenNewTab role="presentation" size={12} className={styles.externalIcon} />
   );
   const hasVersionDropdown = !!group && !!versionDropdown && !isOfflineBuild;
+  const style = { '--toc-depth': depth } as CSSProperties;
 
   if (isSection) {
     return (
@@ -116,6 +133,7 @@ const TocNavNode = ({ item, id, slug, isL1, onDriverPress, isOpenL1 = false, onL
         // Enter on a linked row navigates through the router without a click event.
         onAction={isLinked ? () => sidenavAnalytics(label, sectionRef.current) : undefined}
         isCurrent={isCurrent}
+        style={style}
         // The dropdown is reached with the arrow keys from this row, so name it in the row's label.
         textValue={hasVersionDropdown ? `${label}, ${getTranslator().t('nav.view_different_version')}` : label}
         className={clsx(isL1 && styles.l1, isOpenL1 && styles.openL1, group && styles.group)}
@@ -143,6 +161,9 @@ const TocNavNode = ({ item, id, slug, isL1, onDriverPress, isOpenL1 = false, onL
             slug={slug}
             isL1={false}
             onDriverPress={onDriverPress}
+            isPanel={isPanel}
+            // In the two-panel nav's panel, group items share the group's indent.
+            depth={isL1 || (group && isPanel) ? depth : depth + 1}
           />
         ))}
       </SideNavSection>
@@ -153,6 +174,7 @@ const TocNavNode = ({ item, id, slug, isL1, onDriverPress, isOpenL1 = false, onL
     <SideNavItem
       href={isLinked ? href : undefined}
       isCurrent={isCurrent}
+      style={style}
       textValue={label}
       variant={SideNavItemVariant.Secondary}
       onPress={isDriver ? () => onDriverPress(item) : isL1 ? () => onL1Press?.(item) : undefined}
@@ -178,10 +200,16 @@ interface TocNavTreeProps {
   /** Called when a closed L1 is pressed, so it can open without navigating (dev-mode L1s have no href). */
   onL1Press?: (item: TocItem) => void;
   onDriverPress: (item: TocItem) => void;
+  /** Renders L1s as flat rows, for the two-panel nav's rail. */
+  isRail?: boolean;
+  /** The two-panel nav's section panel, with flush group items and tighter group headings. */
+  isPanel?: boolean;
   /** Rendered in the nav header, above the tree. */
   header?: ReactNode;
   /** Rendered in the footer row beside the collapse toggle. */
   footerAction?: ReactNode;
+  hasToggle?: boolean;
+  'aria-label'?: string;
 }
 
 // Memoized: UnifiedSidenav re-renders on every scroll for its sticky offsets.
@@ -192,8 +220,12 @@ export const TocNavTree = memo(function TocNavTree({
   openL1Url,
   onL1Press,
   onDriverPress,
+  isRail = false,
+  isPanel = false,
   footerAction,
   header,
+  hasToggle = true,
+  'aria-label': ariaLabel = getTranslator().t('nav.accordion_side_navigation'),
 }: TocNavTreeProps) {
   const routeKeys = useMemo(() => getExpandedTocKeys(items, slug), [items, slug]);
   const [prevRouteKeys, setPrevRouteKeys] = useState(routeKeys);
@@ -212,10 +244,11 @@ export const TocNavTree = memo(function TocNavTree({
   }
 
   // Fall back to the slug when the stored L1 no longer matches, e.g. after a version change rewrites its URL.
-  const openL1 = isL1
-    ? items.find((item) => openL1Url !== undefined && item.newUrl === openL1Url) ??
-      items.find((item) => isActiveTocNode(slug, item.newUrl, item.items))
-    : undefined;
+  const openL1 =
+    isL1 && !isRail
+      ? items.find((item) => openL1Url !== undefined && item.newUrl === openL1Url) ??
+        items.find((item) => isActiveTocNode(slug, item.newUrl, item.items))
+      : undefined;
 
   // RAC drops onClick and SideNavSection keeps onPress off its label link, so read link clicks here.
   // Clicks elsewhere on a row go through onAction.
@@ -228,8 +261,13 @@ export const TocNavTree = memo(function TocNavTree({
   return (
     <div className={styles.treeWrapper} onClickCapture={handleClickCapture} onKeyDownCapture={handleListboxKeysCapture}>
       <PrimarySideNav
-        aria-label={getTranslator().t('nav.accordion_side_navigation')}
-        className={clsx(styles.tree, isL1 && styles.l1Tree, isOfflineBuild && 'offline-collapsible-nav-tree')}
+        aria-label={ariaLabel}
+        className={clsx(
+          styles.tree,
+          isRail && styles.railTree,
+          isPanel && styles.panelTree,
+          isOfflineBuild && 'offline-collapsible-nav-tree',
+        )}
         expandedKeys={expandedKeys}
         onExpandedChange={(keys) => setExpandedKeys(new Set([...keys].map(String)))}
       >
@@ -242,14 +280,18 @@ export const TocNavTree = memo(function TocNavTree({
             slug={slug}
             isL1={isL1}
             isOpenL1={item === openL1}
+            isRailL1={isL1 && isRail}
+            isPanel={isPanel}
             onL1Press={onL1Press}
             onDriverPress={onDriverPress}
           />
         ))}
-        <SideNavFooter className={styles.footer}>
-          {!isOfflineBuild && <SideNavToggle />}
-          {footerAction}
-        </SideNavFooter>
+        {(hasToggle || footerAction) && (
+          <SideNavFooter className={styles.footer}>
+            {hasToggle && !isOfflineBuild && <SideNavToggle />}
+            {footerAction}
+          </SideNavFooter>
+        )}
       </PrimarySideNav>
     </div>
   );
