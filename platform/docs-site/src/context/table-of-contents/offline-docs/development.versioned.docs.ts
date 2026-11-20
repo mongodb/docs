@@ -9557,6 +9557,11 @@ export const toc: L1TocItem[] = [
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/atlas-stream-processing/multi-collection-initial-sync',
                   },
+                  {
+                    label: 'Call an LLM from a Stream Processing Pipeline',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/atlas-stream-processing/call-llm-from-pipeline',
+                  },
                 ],
               },
               {

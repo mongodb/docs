@@ -1,0 +1,386 @@
+.. _atlas-sp-https-llm-call:
+
+=============================================
+Call an LLM from a Stream Processing Pipeline
+=============================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas stream processing, genai, https
+   :description: Learn how to call an LLM from an Atlas Stream Processing pipeline. Group streaming data into windows, send each window to the LLM with the $https stage, and store the results in Atlas.
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This tutorial demonstrates an example {+atlas-sp+} pipeline that
+asks an LLM to flag unusual temperature and power readings from
+streaming solar-device data. The pipeline groups readings into
+30-second windows to reduce API calls and stores the analysis in
+|service|.
+
+About This Task
+---------------
+
+This tutorial creates a pipeline that monitors a fleet of solar
+devices. For each 30-second window, the pipeline sends the LLM a
+JSON array with one entry per device. Each entry contains the
+device's maximum temperature, its average, median, maximum, and
+minimum power readings, and its reading count. The LLM returns an
+``anomalies`` array with the ``device_id``, ``reason``, and
+``severity`` of each unusual device, plus a ``snark`` remark about
+the fleet's performance. If nothing is unusual, the LLM returns an
+empty ``anomalies`` array.
+
+This tutorial uses `OpenAI
+<https://platform.openai.com/api-keys>`__. The ``messages`` and
+``response_format`` payload fields and the
+``apiResults.choices[0].message.content`` response path are
+specific to OpenAI. To use another provider, adapt the API
+endpoint, authentication header, request payload, and response
+fields for that provider.
+
+To stay under the LLM provider's rate limit, this tutorial groups
+input documents in a :ref:`$hoppingWindow <atlas-sp-agg-hopping>`
+stage. The pipeline makes one API call per window instead of one
+call per document.
+
+The pipeline calls the ``gpt-6-luna`` model. To use another model,
+replace the ``model`` value in the ``$https`` stage. The model must
+support JSON mode, which the
+``response_format: { type: "json_object" }`` field requests. JSON
+mode requires the prompt to contain the word ``JSON``, so keep that
+word if you modify the system prompt.
+
+The system prompt describes the input fields and defines a fixed
+output format. This format keeps the shape of the documents that
+the pipeline writes to |service| consistent across runs.
+
+The pipeline's ``$https`` stage sets
+``config: { parseJsonStrings: true }``. This setting parses JSON
+strings in the API response into objects, so
+``apiResults.choices[0].message.content`` returns as an object
+instead of a JSON string.
+
+Prerequisites
+-------------
+
+To complete this tutorial you need:
+
+- An |service| cluster and a database user. To create these, see
+  :ref:`atlas-sp-quickstart`.
+
+- A :ref:`{+spw+} <atlas-sp-quickstart>`.
+
+- A ``sample_stream_solar`` sample connection in your connection
+  registry. To add a sample connection, see
+  :ref:`atlas-sp-add-connection`.
+
+- An API key for your selected LLM provider.
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create an |service| connection.
+
+      a. In the {+atlas-ui+}, click :guilabel:`Stream Processing`
+         in the sidebar, click :guilabel:`Manage` for your {+spw+},
+         and select the :guilabel:`Connection Registry` tab.
+
+      #. Click the :guilabel:`+ Add Connection` button.
+
+      #. Select :guilabel:`Atlas Database` from the
+         :guilabel:`Connection Type` dropdown menu.
+
+      #. Provide a :guilabel:`Connection Name`. This tutorial uses
+         an |service| connection named ``AtlasConnection``.
+
+      #. From the dropdown menu, select the :guilabel:`{+service+}
+         {+Cluster+}` that stores the LLM responses.
+
+      #. Click :guilabel:`Add connection`.
+
+   .. step:: Create an HTTPS connection to your LLM provider.
+
+      a. From the :guilabel:`Connection Registry` tab of your
+         {+spw+}, click the :guilabel:`+ Add Connection` button.
+
+      #. Select :guilabel:`HTTPS` from the :guilabel:`Connection
+         Type` dropdown menu.
+
+      #. Provide a :guilabel:`Connection Name`. This tutorial uses
+         an HTTPS connection named ``OpenAI``.
+
+      #. Populate the :guilabel:`URL` input field with the URL of
+         your LLM API. This tutorial uses the OpenAI chat
+         completions endpoint:
+
+         .. code-block::
+
+            https://api.openai.com/v1/chat/completions
+
+      #. Add a header that authenticates requests with your API key.
+         For OpenAI, add the following header:
+
+         - Key: ``Authorization``
+         - Value: ``Bearer <your-api-key>``
+
+         The header format varies by provider.
+
+      #. Click :guilabel:`Create Connection`.
+
+   .. step:: Define an {+atlas-sp+} pipeline.
+
+      You can define the pipeline in {+mongosh+} after connecting to
+      your {+spw+} with your :ref:`connection string
+      <atlas-sp-tutorial-procedure>`.
+
+      a. Define the source from which to stream data in the
+         {+atlas-sp+} pipeline:
+
+         .. code-block:: javascript
+
+            let source = {
+              $source: {
+                connectionName: "sample_stream_solar"
+              }
+            }
+
+      #. Create a ``$hoppingWindow`` stage in your pipeline to
+         group multiple documents, which reduces the number of
+         calls you make to the API.
+
+         This example creates two ``$group`` stages in this
+         pipeline stage:
+
+         - The first ``$group`` stage groups incoming documents by
+           ``device_id`` and calculates the values shown below for
+           each group.
+
+         - The second ``$group`` stage combines the resulting
+           document for each device into a single array stored in
+           a field called ``allDocuments``.
+
+         .. code-block:: javascript
+
+            let hoppingWindow = {
+              $hoppingWindow: {
+                interval: { size: 30, unit: "second" },
+                hopSize: { size: 30, unit: "second" },
+                pipeline: [
+                  {
+                    $group: {
+                      _id: "$device_id",
+                      max_temp: { $max: "$obs.temp" },
+                      avg_watts: { $avg: "$obs.watts" },
+                      median_watts: {
+                        $median: {
+                          input: "$obs.watts",
+                          method: "approximate"
+                        }
+                      },
+                      max_watts: { $max: "$obs.watts" },
+                      min_watts: { $min: "$obs.watts" },
+                      count: { $count: {} }
+                    }
+                  },
+                  {
+                    $group: {
+                      _id: { $meta: "stream.window.start" },
+                      allDocuments: { $push: "$$CURRENT" }
+                    }
+                  }
+                ]
+              }
+            }
+
+      #. Prepare your data for LLM ingestion. The following stage
+         filters out the ``_id`` field that the ``$hoppingWindow``
+         stage generates and defines a field called ``prompt`` that
+         contains the array of grouped documents:
+
+         .. code-block:: javascript
+
+            let buildPrompt = {
+              $project: {
+                _id: 0,
+                prompt: "$allDocuments"
+              }
+            }
+
+      #. Convert the ``prompt`` array into a string to send to the
+         LLM. The ``body`` field of the
+         :ref:`$function <atlas-sp-agg-function>` expression must
+         contain a function definition with named parameters:
+
+         .. code-block:: javascript
+
+            let stringifyPrompt = {
+              $project: {
+                prompt: {
+                  $function: {
+                    body: "function (prompt) { return JSON.stringify(prompt); }",
+                    args: ["$prompt"],
+                    lang: "js"
+                  }
+                }
+              }
+            }
+
+      #. Send the prompt to the LLM API in the ``payload`` of the
+         HTTPS request:
+
+         .. code-block:: javascript
+
+            let llmAPICall = {
+              $https: {
+                connectionName: "OpenAI",
+                method: "POST",
+                as: "apiResults",
+                config: { parseJsonStrings: true },
+                payload: [
+                  {
+                    $project: {
+                      model: "gpt-6-luna",
+                      response_format: { type: "json_object" },
+                      messages: [
+                        {
+                          role: "system",
+                          content: "You are monitoring a fleet of solar devices. The user message is a JSON array with one entry per device for a 30-second window. Each entry has _id (the device_id), max_temp, avg_watts, median_watts, max_watts, min_watts, and count (the number of readings in the window). Identify devices whose output or temperature is unusual compared with the rest of the fleet in this window. Return JSON in this format: {\"anomalies\": [{\"device_id\": string, \"reason\": string, \"severity\": \"low\" | \"medium\" | \"high\"}], \"snark\": string}. Return an empty anomalies array if nothing is unusual. The snark field must always be present: one short, snarky remark about the fleet's performance in this window."
+                        },
+                        { role: "user", content: "$prompt" }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+
+         In the preceding stage:
+
+         - This tutorial uses the ``gpt-6-luna`` model. To use
+           another model, replace the ``model`` value. The model
+           must support JSON mode, which the
+           ``response_format: { type: "json_object" }`` field
+           requests. JSON mode requires the prompt to contain the
+           word ``JSON``, so keep that word if you modify the
+           system prompt.
+
+         - The system prompt describes the input fields and
+           defines a fixed output format, so the shape of the
+           documents that the pipeline writes to |service| stays
+           consistent across runs.
+
+         - The ``config: { parseJsonStrings: true }`` setting
+           parses JSON strings in the API response into objects,
+           so ``apiResults.choices[0].message.content`` returns
+           as an object instead of a JSON string.
+
+      #. Write the LLM response to your |service| cluster:
+
+         .. code-block:: javascript
+
+            let writeToAtlas = {
+              $merge: {
+                into: {
+                  connectionName: "AtlasConnection",
+                  db: "streamTutorialOutput",
+                  coll: "llm_tutorial_output"
+                }
+              }
+            }
+
+      #. After pasting each of the preceding snippets into
+         {+mongosh+}, paste the following snippet to combine all
+         the stages you defined into a single {+atlas-sp+} pipeline
+         definition:
+
+         .. code-block:: javascript
+
+            let processor = [
+              source,
+              hoppingWindow,
+              buildPrompt,
+              stringifyPrompt,
+              llmAPICall,
+              writeToAtlas
+            ];
+
+   .. step:: Create your stream processor with a dead letter queue.
+
+      a. Define a :ref:`dead letter queue <atlas-sp-dlq>` (DLQ) so
+         that documents that fail processing, such as failed HTTPS
+         requests, are written to a collection with error details
+         instead of being dropped:
+
+         .. code-block:: javascript
+
+            let options = {
+              dlq: {
+                connectionName: "AtlasConnection",
+                db: "streamTutorialOutput",
+                coll: "llm_tutorial_dlq"
+              }
+            }
+
+      #. Create the stream processor with your pipeline and DLQ:
+
+         .. code-block:: javascript
+
+            sp.createStreamProcessor("llm_stream", processor, options);
+
+   .. step:: Start your stream processor.
+
+      .. code-block:: javascript
+
+         sp.llm_stream.start();
+
+   .. step:: Validate the pipeline.
+
+      Run the following commands against the cluster that the
+      ``AtlasConnection`` connection uses. To connect, see
+      :ref:`connect-mongo-shell`.
+
+      a. After a 30-second window completes, query the output
+         collection:
+
+         .. code-block:: javascript
+
+            db.getSiblingDB("streamTutorialOutput").llm_tutorial_output.findOne()
+
+      #. In the returned document, verify that the
+         ``apiResults.choices[0].message.content`` field is an
+         object, which confirms that the pipeline parsed and
+         stored the LLM's JSON response. The object's
+         ``anomalies`` array contains the analysis result. An
+         unusual device has a ``device_id``, ``reason``, and
+         ``severity``. An empty array means the LLM found no
+         anomaly in that window. Also verify that the ``snark``
+         string is present. The system prompt requires this
+         field, so its presence confirms that the response
+         follows the requested format.
+
+      If no output document appears, query the dead letter queue
+      for a failed request:
+
+      .. code-block:: javascript
+
+         db.getSiblingDB("streamTutorialOutput").llm_tutorial_dlq.findOne()
+
+Learn More
+----------
+
+- :ref:`$https stage reference <atlas-sp-agg-https>`
+- :ref:`$function expression reference <atlas-sp-agg-function>`
+- :ref:`Dead letter queues <atlas-sp-dlq>`
+- :ref:`Add an {+atlas-sp+} connection <atlas-sp-add-connection>`
