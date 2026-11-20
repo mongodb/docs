@@ -205,7 +205,7 @@ const tocData: TocItem[] = [
       {
         label: 'Release Notes',
         contentSite: 'self-managed-search',
-        url: 'https://www.mongodb.com/docs/search/self-managed/current/release-notes',
+        url: 'https://www.mongodb.com/docs/search/self-managed/current/release-notes/?edition=community',
       },
     ],
   },
