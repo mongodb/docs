@@ -6,13 +6,12 @@ snooty.toml's [constants] and [substitutions] tables. It is written as YAML
 next to the snooty.toml so skills can read it directly instead of
 re-parsing TOML on every run.
 
-Usage: build-expansion-map.py <path-to-snooty.toml>
+Usage: build-expansion-map.py [--json] <path-to-snooty.toml>
 """
+import json
 import sys
 import tomllib
 from pathlib import Path
-
-import yaml
 
 
 def load_toml_map(snooty_toml: Path) -> dict[str, dict[str, str]]:
@@ -41,16 +40,29 @@ def build_expansion_map(snooty_toml: Path) -> dict:
 
 
 def main() -> int:
-    if len(sys.argv) != 2:
-        print("Usage: build-expansion-map.py <path-to-snooty.toml>", file=sys.stderr)
+    args = sys.argv[1:]
+    output_json = args[:1] == ["--json"]
+    if output_json:
+        args = args[1:]
+    if len(args) != 1:
+        print(
+            "Usage: build-expansion-map.py [--json] <path-to-snooty.toml>",
+            file=sys.stderr,
+        )
         return 1
 
-    snooty_toml = Path(sys.argv[1]).resolve()
+    snooty_toml = Path(args[0]).resolve()
     if not snooty_toml.is_file():
         print(f"Not a file: {snooty_toml}", file=sys.stderr)
         return 1
 
     expansion_map = build_expansion_map(snooty_toml)
+    if output_json:
+        print(json.dumps(expansion_map))
+        return 0
+
+    import yaml
+
     out_path = snooty_toml.parent / ".expansion-map.yml"
     out_path.write_text(yaml.dump(expansion_map, sort_keys=True, default_flow_style=False))
     print(f"Wrote {out_path}")

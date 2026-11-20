@@ -8,6 +8,7 @@
  * Usage (from any directory in the repo):
  *   npx tsx .github/lint-docs/404-lint-cli.ts file1.txt file2.rst ...
  *   npx tsx .github/lint-docs/404-lint-cli.ts content/manual/source/*.txt
+ *   npx tsx .github/lint-docs/404-lint-cli.ts content/manual/snooty.toml
  * 
  * Options:
  *   -o, --output <file>  Write results to a file instead of just terminal
@@ -16,10 +17,32 @@
  *   - lychee must be installed (brew install lychee / cargo install lychee)
  */
 
-import { execSync, spawnSync } from 'child_process';
+import { execFileSync, execSync, spawnSync } from 'child_process';
 import { existsSync, writeFileSync, readFileSync, mkdtempSync, rmSync } from 'fs';
-import { resolve, isAbsolute, join } from 'path';
+import { resolve, isAbsolute, join, dirname } from 'path';
 import { tmpdir } from 'os';
+import { fileURLToPath } from 'url';
+import {
+  expandSnootyTomlInputs,
+  expandTemplateMarkers,
+  findSnootyToml,
+  removeUnexpandedTemplateUrls,
+  type ExpansionMap,
+} from './404-lint-rules.js';
+
+const EXPANSION_MAP_BUILDER = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  '../../.claude/scripts/build-expansion-map.py',
+);
+
+function loadExpansionMap(snootyToml: string): ExpansionMap {
+  const output = execFileSync('python3', [EXPANSION_MAP_BUILDER, '--json', snootyToml], {
+    encoding: 'utf-8',
+    maxBuffer: 16 * 1024 * 1024,
+  });
+  const parsed = JSON.parse(output) as { expanded: ExpansionMap };
+  return parsed.expanded;
+}
 
 /**
  * Parse command line arguments for output file option
@@ -128,10 +151,6 @@ const EXCLUDE_PATTERNS: string[] = [
   
   // Google Docs (requires auth)
   'docs\\.google\\.com',
-  
-  // URL templates
-  '%7B\\+',
-  '\\{\\+',
 ];
 
 // Accept these status codes as "OK"
@@ -258,8 +277,9 @@ function formatBrokenLinks(links: BrokenLink[]): string {
   for (const [file, fileLinks] of byFile) {
     for (const link of fileLinks) {
       lines.push(`🔴 ${file}${link.line ? `:${link.line}` : ''}`);
-      lines.push(`   [404] ${link.url}`);
-      if (link.status) {
+      const label = link.status === 'unresolved template' ? 'Unresolved template' : '404';
+      lines.push(`   [${label}] ${link.url}`);
+      if (link.status && link.status !== 'unresolved template') {
         lines.push(`   Status: ${link.status}`);
       }
       lines.push('');
@@ -331,7 +351,8 @@ function runLychee(files: string[]): BrokenLink[] {
 
 function main(): void {
   const { files: rawFiles, outputFile } = parseArgs(process.argv.slice(2));
-  const files = rawFiles.map(resolveFilePath);
+  const inputFiles = expandSnootyTomlInputs(rawFiles.map(resolveFilePath));
+  const files = [...new Set(inputFiles)];
   
   if (files.length === 0) {
     console.log('Usage: npx tsx 404-lint-cli.ts [options] <file1> [file2] ...');
@@ -384,12 +405,33 @@ function main(): void {
   // Create temp directory for normalized files
   const tempDir = mkdtempSync(join(tmpdir(), '404-lint-'));
   const fileMap = new Map<string, string>(); // temp path -> original path
+  const expansionMaps = new Map<string, ExpansionMap>();
+  const expansionErrors: string[] = [];
+  const brokenLinks: BrokenLink[] = [];
   
   try {
     for (const file of docFiles) {
-      const content = readFileSync(file, 'utf-8');
-      const stripped = stripCodeBlocks(content);
-      const normalized = normalizeMultiLineUrls(stripped);
+      let content = stripCodeBlocks(readFileSync(file, 'utf-8'));
+      const snootyToml = findSnootyToml(file);
+      if (snootyToml) {
+        try {
+          let expansionMap = expansionMaps.get(snootyToml);
+          if (!expansionMap) {
+            expansionMap = loadExpansionMap(snootyToml);
+            expansionMaps.set(snootyToml, expansionMap);
+          }
+          content = expandTemplateMarkers(content, expansionMap);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          expansionErrors.push(`Could not load expansions from ${snootyToml}: ${message}`);
+        }
+      }
+
+      const unresolved = removeUnexpandedTemplateUrls(content);
+      for (const url of unresolved.urls) {
+        brokenLinks.push({ url, status: 'unresolved template', file });
+      }
+      const normalized = normalizeMultiLineUrls(unresolved.content);
       
       // Create temp file with same name structure
       const tempFile = join(tempDir, file.replace(/\//g, '_'));
@@ -402,10 +444,10 @@ function main(): void {
     const brokenLinksTemp = runLychee(tempFiles);
     
     // Map results back to original file paths
-    var brokenLinks = brokenLinksTemp.map(link => ({
+    brokenLinks.push(...brokenLinksTemp.map(link => ({
       ...link,
       file: fileMap.get(link.file) || link.file,
-    }));
+    })));
   } finally {
     // Clean up temp directory
     rmSync(tempDir, { recursive: true, force: true });
@@ -414,15 +456,19 @@ function main(): void {
   // Output results
   const output = formatBrokenLinks(brokenLinks);
   console.log(output);
+  for (const error of expansionErrors) {
+    console.error(`❌ ${error}`);
+  }
   
   // Also write to file if specified
   if (outputFile) {
-    const fullOutput = `404 Linter Results\n${'='.repeat(50)}\nChecked ${docFiles.length} file(s)\n\n${output}\n`;
+    const errorOutput = expansionErrors.length > 0 ? `\n${expansionErrors.join('\n')}\n` : '';
+    const fullOutput = `404 Linter Results\n${'='.repeat(50)}\nChecked ${docFiles.length} file(s)\n\n${output}\n${errorOutput}`;
     writeFileSync(outputFile, fullOutput);
     console.log(`\n📄 Results written to: ${outputFile}`);
   }
   
-  process.exit(brokenLinks.length > 0 ? 1 : 0);
+  process.exit(brokenLinks.length > 0 || expansionErrors.length > 0 ? 1 : 0);
 }
 
 main();

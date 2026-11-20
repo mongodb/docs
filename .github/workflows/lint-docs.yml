@@ -7,6 +7,7 @@ on:
       - 'content/**/*.rst'
       - 'content/**/*.md'
       - 'content/**/*.mdx'
+      - 'content/**/snooty.toml'
 
 jobs:
   lint:
@@ -32,11 +33,12 @@ jobs:
         run: |
           cd .github/lint-docs && pnpm install
       
-      - name: Get changed doc files
+      - name: Get changed docs and docset configs
         id: changed-files
         run: |
           # Get list of changed doc files in this PR (space-separated for CLI)
           FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.(rst|txt|md|mdx)$' | grep -v "^content/table-of-contents/" | tr '\n' ' ' || true)
+          SNOOTY_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '(^|/)snooty\.toml$' | tr '\n' ' ' || true)
           
           if [ -n "$FILES" ]; then
             echo "has_files=true" >> $GITHUB_OUTPUT
@@ -48,6 +50,13 @@ jobs:
             echo "has_files=false" >> $GITHUB_OUTPUT
             echo "No doc files changed"
           fi
+
+          if [ -n "$FILES" ] || [ -n "$SNOOTY_FILES" ]; then
+            echo "has_404_inputs=true" >> $GITHUB_OUTPUT
+            printf '%s %s\n' "$FILES" "$SNOOTY_FILES" > /tmp/changed-404-files.txt
+          else
+            echo "has_404_inputs=false" >> $GITHUB_OUTPUT
+          fi
       
       - name: Run SEO Linter
         if: steps.changed-files.outputs.has_files == 'true'
@@ -58,7 +67,7 @@ jobs:
           npx tsx .github/lint-docs/seo-lint-cli.ts $FILES
       
       - name: Run 404 Linter
-        if: steps.changed-files.outputs.has_files == 'true'
+        if: steps.changed-files.outputs.has_404_inputs == 'true'
         continue-on-error: true  # Warn only, don't fail the PR
         run: |
           echo "🔗 Running 404 linter..."
@@ -70,7 +79,7 @@ jobs:
           chmod +x lychee
           sudo mv lychee /usr/local/bin/
 
-          FILES=$(cat /tmp/changed-files.txt)
+          FILES=$(cat /tmp/changed-404-files.txt)
           npx tsx .github/lint-docs/404-lint-cli.ts $FILES
 
       - name: Fetch synonyms file
@@ -116,7 +125,7 @@ jobs:
         run: |
           echo "## 📋 Documentation Lint Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Linters ran on changed documentation files." >> $GITHUB_STEP_SUMMARY
+          echo "Linters ran on changed documentation files and applicable docset configs." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **SEO Linter**: Checks titles, meta descriptions, headings, images" >> $GITHUB_STEP_SUMMARY
           echo "- **404 Linter**: Checks for broken external links" >> $GITHUB_STEP_SUMMARY
