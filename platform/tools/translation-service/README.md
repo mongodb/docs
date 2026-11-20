@@ -134,7 +134,10 @@ take precedence over whichever gateway's default is in play.
 
 Whole-request failures (HTTP error, timeout, unparseable or mis-shaped
 output) throw `BackendError`; the pipeline degrades them to per-key
-errors so the response shape stays stable.
+errors so the response shape stays stable. A timed-out request is retried
+once after a delay of up to 1 s, so a timed-out call can take up to twice
+its configured timeout plus a second, and the same batch may reach the
+provider twice.
 
 `AnthropicBackend` (`src/backends/llm/anthropic/backend.ts`) calls the AI
 Gateway's Anthropic Messages API (`claude-sonnet-5-5`) and implements the
