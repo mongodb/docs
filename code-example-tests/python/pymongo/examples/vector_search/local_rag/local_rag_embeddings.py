@@ -1,20 +1,10 @@
 # :replace-start: {
 #   "terms": {
-#     "CONNECTION_STRING": "MONGODB_URI",
-#     "_MODEL_PATH": "\"<model-path>\""
+#     "CONNECTION_STRING": "MONGODB_URI"
 #   }
 # }
-import os
-import tempfile
-
-from pymongo import MongoClient
-
-# Directory the embedding model is saved to. In the docs snippet this is the
-# ``<model-path>`` placeholder that the reader replaces with their own project
-# directory; the tests use a temporary directory so the model is not written
-# into the repository.
-_MODEL_PATH = os.path.join(tempfile.gettempdir(), "local-rag-mongodb")
-
+# The embedding model is downloaded from the Hugging Face model hub on first
+# use. The hub caches it locally, so later runs do not download it again.
 _model = None
 
 
@@ -27,15 +17,18 @@ def _load_model():
 
     global _model
     if _model is None:
-        _model = SentenceTransformer("mixedbread-ai/mxbai-embed-large-v1")
-        _model.save(_MODEL_PATH)
-        _model = SentenceTransformer(_MODEL_PATH)
+        _model = SentenceTransformer("voyageai/voyage-4-nano", trust_remote_code=True)
     return _model
 
 
 def get_embedding(text):
-    """Generates a vector embedding for the given text."""
-    return _load_model().encode(text).tolist()
+    """Generates a vector embedding for the given document text."""
+    return _load_model().encode_document(text).tolist()
+
+
+def get_query_embedding(text):
+    """Generates a vector embedding for the given search query."""
+    return _load_model().encode_query(text).tolist()
 
 
 def create_embeddings(CONNECTION_STRING):
@@ -57,15 +50,12 @@ def create_embeddings(CONNECTION_STRING):
         # Select the sample_airbnb.listingsAndReviews collection
         collection = client["sample_airbnb"]["listingsAndReviews"]
 
-        # Load the embedding model (https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1)
-        model_path = _MODEL_PATH
-        model = SentenceTransformer("mixedbread-ai/mxbai-embed-large-v1")
-        model.save(model_path)
-        model = SentenceTransformer(model_path)
+        # Load the embedding model (https://huggingface.co/voyageai/voyage-4-nano)
+        model = SentenceTransformer("voyageai/voyage-4-nano", trust_remote_code=True)
 
-        # Define function to generate embeddings
+        # Define a function to generate embeddings for documents
         def get_embedding(text):
-            return model.encode(text).tolist()
+            return model.encode_document(text).tolist()
 
         global _model  # :remove:
         _model = model  # :remove:

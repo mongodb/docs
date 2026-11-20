@@ -3,7 +3,7 @@ Tests for the local RAG examples (local embedding model + local LLM).
 
 These tests run against real services — nothing is mocked:
 
-- Embeddings come from the real ``mixedbread-ai/mxbai-embed-large-v1``
+- Embeddings come from the real ``voyageai/voyage-4-nano``
   sentence-transformers model, downloaded from the Hugging Face model hub on
   first run and cached locally afterward.
 - Retrieval runs a real ``$vectorSearch`` query against the
@@ -153,8 +153,8 @@ class TestLocalRag(unittest.TestCase):
         )
 
     @requires_sample_data(DATABASE_NAME, collections=[COLLECTION_NAME])
-    def test_create_embeddings_stores_1024_dimension_vectors(self):
-        """Create embeddings: each updated document should store a 1024-dimension vector."""
+    def test_create_embeddings_stores_2048_dimension_vectors(self):
+        """Create embeddings: each updated document should store a 2048-dimension vector."""
         local_rag_embeddings.create_embeddings(TestLocalRag.CONNECTION_STRING)
 
         document = TestLocalRag._collection_for(TestLocalRag.client).find_one(
@@ -162,7 +162,7 @@ class TestLocalRag(unittest.TestCase):
         )
 
         Expect.that({"dimensions": len(document["embeddings"])}).should_match(
-            {"dimensions": 1024}
+            {"dimensions": 2048}
         )
 
     @requires_sample_data(DATABASE_NAME, collections=[COLLECTION_NAME])
@@ -192,15 +192,12 @@ class TestLocalRag(unittest.TestCase):
             TestLocalRag.CONNECTION_STRING, "beach house"
         )
 
-        # Vector search scores and result order vary across environments, so
-        # validate the shape of the results rather than exact values.
-        Expect.that(results).should_resemble(
+        # The pipeline uses "exact": True and the embedding model is pinned,
+        # so the result set is deterministic and recorded verbatim in the
+        # output file. Only the scores are ellipsized: they vary slightly
+        # across environments.
+        Expect.that(results).should_match(
             "examples/vector_search/local_rag/local-rag-query-results-output.txt"
-        ).with_schema(
-            {
-                "count": 5,
-                "required_fields": ["summary", "listing_url", "score"],
-            }
         )
 
     @requires_sample_data(DATABASE_NAME, collections=[COLLECTION_NAME])

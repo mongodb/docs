@@ -41,5 +41,7 @@
 
          from atlas_local import LocalDeployment
 
-         deployment = LocalDeployment.get_or_create(name="local-atlas-deployment")
+         deployment = LocalDeployment.get_or_create(
+             name="local-atlas-deployment", load_sample_data=True
+         )
          MONGODB_URI = deployment.connection_string()

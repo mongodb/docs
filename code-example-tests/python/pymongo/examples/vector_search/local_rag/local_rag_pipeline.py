@@ -6,7 +6,9 @@
 # }
 from pymongo import MongoClient
 
-from examples.vector_search.local_rag.local_rag_embeddings import get_embedding
+from examples.vector_search.local_rag.local_rag_embeddings import (
+    get_query_embedding as _get_query_embedding,
+)
 
 # The docs snippet loads the model from a file the reader downloads into their
 # project directory. The tests pass the model name instead so that GPT4All
@@ -30,7 +32,7 @@ def create_vector_index(CONNECTION_STRING):
                 "fields": [
                     {
                         "type": "vector",
-                        "numDimensions": 1024,
+                        "numDimensions": 2048,
                         "path": "embeddings",
                         "similarity": "cosine",
                     }
@@ -53,12 +55,19 @@ def get_query_results(CONNECTION_STRING, query):
         collection = client["sample_airbnb"]["listingsAndReviews"]
 
         # :snippet-start: local-rag-get-query-results
+        # Function to generate an embedding for the search query
+        def get_query_embedding(text):
+            return _get_query_embedding(text)  # :remove:
+            # :uncomment-start:
+            # return model.encode_query(text).tolist()
+            # :uncomment-end:
+
         # Function to get the results of a vector search query
         def _run_vector_search(query):  # :remove:
         # :uncomment-start:
         # def get_query_results(query):
         # :uncomment-end:
-            query_embedding = get_embedding(query)
+            query_embedding = get_query_embedding(query)
 
             pipeline = [
                 {

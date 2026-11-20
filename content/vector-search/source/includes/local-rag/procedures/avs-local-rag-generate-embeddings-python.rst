@@ -8,12 +8,14 @@
 
       - Connects to your cluster and selects the
         ``sample_airbnb.listingsAndReviews`` collection.  
-      - Loads the `mixedbread-ai/mxbai-embed-large-v1
-        <https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1>`__ model
-        from the Hugging Face model hub and saves it locally.
+      - Loads the `voyageai/voyage-4-nano
+        <https://huggingface.co/voyageai/voyage-4-nano>`__ model
+        from the Hugging Face model hub. Hugging Face caches the model
+        locally, so subsequent runs do not download it again.
         To learn more, see `Downloading models <https://huggingface.co/docs/hub/en/models-downloading>`__.
 
-      - Defines a function that uses the model to generate vector embeddings.
+      - Defines a function that uses the model to generate vector
+        embeddings for documents.
       - For a subset of documents in the collection:
 
         - Generates an embedding from the document's ``summary`` field.
@@ -34,8 +36,4 @@
            .. output:: /code-examples/tested/python/pymongo/vector_search/local_rag/local-rag-create-embeddings-output.txt
               :language: console
 
-   .. step:: Replace ``<model-path>``  with the path to your project directory.
-    
-      This path should resemble: ``/Users/<username>/local-rag-mongodb``
-      
    .. step:: Run the code.

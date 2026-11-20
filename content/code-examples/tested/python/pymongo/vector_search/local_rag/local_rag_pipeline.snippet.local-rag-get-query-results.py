@@ -1,6 +1,10 @@
+# Function to generate an embedding for the search query
+def get_query_embedding(text):
+    return model.encode_query(text).tolist()
+
 # Function to get the results of a vector search query
 def get_query_results(query):
-    query_embedding = get_embedding(query)
+    query_embedding = get_query_embedding(query)
 
     pipeline = [
         {

@@ -7,15 +7,12 @@ client = MongoClient(MONGODB_URI)
 # Select the sample_airbnb.listingsAndReviews collection
 collection = client["sample_airbnb"]["listingsAndReviews"]
 
-# Load the embedding model (https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1)
-model_path = "<model-path>"
-model = SentenceTransformer("mixedbread-ai/mxbai-embed-large-v1")
-model.save(model_path)
-model = SentenceTransformer(model_path)
+# Load the embedding model (https://huggingface.co/voyageai/voyage-4-nano)
+model = SentenceTransformer("voyageai/voyage-4-nano", trust_remote_code=True)
 
-# Define function to generate embeddings
+# Define a function to generate embeddings for documents
 def get_embedding(text):
-    return model.encode(text).tolist()
+    return model.encode_document(text).tolist()
 
 
 # Filters for only documents with a summary field and without an embeddings field

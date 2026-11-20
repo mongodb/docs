@@ -6,7 +6,7 @@ search_index_model = SearchIndexModel(
         "fields": [
             {
                 "type": "vector",
-                "numDimensions": 1024,
+                "numDimensions": 2048,
                 "path": "embeddings",
                 "similarity": "cosine",
             }
