@@ -89,10 +89,10 @@
 25 June 2025 Release 
 ~~~~~~~~~~~~~~~~~~~~
 
-- :manual:`MongoDB v8.1 </release-notes/8.2/#support-for-search-index-commands-on-views>` supports: 
-  
+- MongoDB v8.1 supports:
+
   - Creating search indexes on Views using :binary:`~bin.mongosh` and :driver:`Driver </>`
-    methods. 
+    methods.
   - Running ``$search``, ``$searchMeta``, and ``$vectorSearch`` queries against standard Views.
 
 .. _ fts20250610:
