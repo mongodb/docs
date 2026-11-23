@@ -11,9 +11,6 @@ jest.mock('@/templates/error-template', () => ({
     </div>
   ),
 }));
-jest.mock('@/app/emotion', () => ({
-  LeafyGreenProviderWrapper: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-}));
 jest.mock('@/app/via-provider', () => ({
   ViaProviderWrapper: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));

@@ -1,9 +1,7 @@
 import { render } from '@testing-library/react';
-import { ThemeProvider } from '@emotion/react';
 import Card from '@/mdx-components/Card';
 import { CardGroupContextProvider } from '@/mdx-components/Card/card-group-context';
 import { mockLocation } from '@/tests/utils/mock-location';
-import { theme } from '@/styles/theme';
 import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
 import { navigateToDocsPath } from '@/utils/navigate-to-docs-path';
 
@@ -61,28 +59,22 @@ const cardProps = {
 };
 
 it('renders correctly', () => {
-  const tree = render(
-    <ThemeProvider theme={theme}>
-      <Card {...cardProps}>Test card paragraph</Card>
-    </ThemeProvider>,
-  );
+  const tree = render(<Card {...cardProps}>Test card paragraph</Card>);
   expect(tree.asFragment()).toMatchSnapshot();
 });
 
 const clickCard = (url: string) => {
   const { getByText } = render(
-    <ThemeProvider theme={theme}>
-      <CardGroupContextProvider
-        isCompact={true}
-        isExtraCompact={false}
-        isCenterContentStyle={false}
-        isLargeIconStyle={false}
-      >
-        <Card {...cardProps} url={url}>
-          Test card paragraph
-        </Card>
-      </CardGroupContextProvider>
-    </ThemeProvider>,
+    <CardGroupContextProvider
+      isCompact={true}
+      isExtraCompact={false}
+      isCenterContentStyle={false}
+      isLargeIconStyle={false}
+    >
+      <Card {...cardProps} url={url}>
+        Test card paragraph
+      </Card>
+    </CardGroupContextProvider>,
   );
 
   getByText('Test card headline').click();

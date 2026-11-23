@@ -1,8 +1,6 @@
 import type { ReactElement } from 'react';
-import { CacheProvider } from '@emotion/react';
-import LGProvider from '@leafygreen-ui/leafygreen-provider';
-import { BaseFontSize } from '@leafygreen-ui/tokens';
-import { cache } from '@leafygreen-ui/emotion';
+import { ViaProvider } from '@via-ds/components/provider';
+import { ColorScheme, Size } from '@via-ds/components/types';
 
 interface TestWrapperProps {
   children: React.ReactNode;
@@ -10,26 +8,12 @@ interface TestWrapperProps {
 }
 
 /**
- * Test wrapper that provides the necessary context for LeafyGreen components
- * to render properly in Jest tests, including Emotion CSS-in-JS injection.
+ * Test wrapper that provides the Via context components need to render in Jest tests.
  */
 export function TestWrapper({ children, darkMode = false }: TestWrapperProps): ReactElement {
   return (
-    <CacheProvider value={cache}>
-      <LGProvider darkMode={darkMode} baseFontSize={BaseFontSize.Body2}>
-        {children}
-      </LGProvider>
-    </CacheProvider>
+    <ViaProvider size={Size.Large} colorScheme={darkMode ? ColorScheme.Dark : ColorScheme.Light}>
+      {children}
+    </ViaProvider>
   );
-}
-
-/**
- * Custom render function that wraps components with necessary providers
- */
-export function renderWithProviders(ui: ReactElement, { darkMode = false, ...renderOptions } = {}) {
-  const Wrapper = ({ children }: { children: React.ReactNode }) => (
-    <TestWrapper darkMode={darkMode}>{children}</TestWrapper>
-  );
-
-  return { Wrapper, ...renderOptions };
 }

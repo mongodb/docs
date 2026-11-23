@@ -2,7 +2,7 @@
  * A layout is UI that is shared all pages prepended by /docs/<path>.
  * On navigation, layouts preserve state, remain interactive, and do not rerender.
  */
-import { LeafyGreenProviderWrapper } from '@/app/emotion';
+import { EmotionCacheProvider } from '@/app/emotion';
 import { ViaProviderWrapper } from '@/app/via-provider';
 import { SiteBannerProvider } from '@/mdx-components/SiteBannerProvider';
 import { Analytics } from '@/mdx-components/Analytics';
@@ -45,13 +45,13 @@ export default async function Layout({ children }: { children: React.ReactNode }
           <SiteBannerProvider bannerData={bannerData}>
             <DarkModeContextProvider>
               <CookiesProvider cookies={cookieValues}>
-                <LeafyGreenProviderWrapper>
+                <EmotionCacheProvider>
                   <ViaProviderWrapper>
                     <Analytics />
                     {children}
                     <Footer />
                   </ViaProviderWrapper>
-                </LeafyGreenProviderWrapper>
+                </EmotionCacheProvider>
               </CookiesProvider>
             </DarkModeContextProvider>
           </SiteBannerProvider>

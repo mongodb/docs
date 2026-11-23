@@ -1,4 +1,4 @@
-import { LeafyGreenProviderWrapper } from '@/app/emotion';
+import { EmotionCacheProvider } from '@/app/emotion';
 import { ViaProviderWrapper } from '@/app/via-provider';
 import { DarkModeContextProvider } from '@/context/dark-mode-context';
 import { darkModeScript } from '@/app/lib/dark-mode-script';
@@ -19,9 +19,9 @@ export default function LayoutOffline({ children }: { children: React.ReactNode 
       <div className={mdxLayoutStyles.layout}>
         <DarkModeContextProvider>
           <CookiesProvider cookies={{}}>
-            <LeafyGreenProviderWrapper>
+            <EmotionCacheProvider>
               <ViaProviderWrapper>{children}</ViaProviderWrapper>
-            </LeafyGreenProviderWrapper>
+            </EmotionCacheProvider>
           </CookiesProvider>
         </DarkModeContextProvider>
       </div>

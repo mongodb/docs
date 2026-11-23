@@ -13,10 +13,7 @@ import { sameProjectHref } from '@/utils/base-path';
 import { getHtmlLangFormat } from '@/utils/locale';
 
 /**
- * Mounts the Via design system provider alongside `LeafyGreenProviderWrapper`
- * for the duration of the LeafyGreen-to-Via migration. It is kept out of
- * `src/app/emotion.tsx` so that file remains unmodified and can be deleted in
- * one commit once the migration completes.
+ * Mounts the Via design system provider and its Toaster.
  *
  * This must be a client component. The layouts that mount it are async server
  * components using `next/headers`, so they cannot participate in React context.

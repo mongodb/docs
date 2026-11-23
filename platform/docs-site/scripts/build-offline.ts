@@ -374,8 +374,8 @@ async function verifyOutput(): Promise<void> {
     const content = await fs.readFile(filePath, 'utf-8');
     const rel = path.relative(OUT_DIR, filePath);
 
-    // 1. SSR / Emotion. Only pages with Emotion classes need inlined styles.
-    if (/class="(?:[^"]*\s)?css-[a-z0-9]+/.test(content) && !content.includes('<style data-emotion=')) {
+    // 1. SSR / Emotion. `docs-` is the cache key set in src/app/emotion.tsx.
+    if (/class="(?:[^"]*\s)?docs-[a-z0-9]+/.test(content) && !content.includes('<style data-emotion=')) {
       failures.push({
         file: rel,
         reason: 'Emotion class names without <style data-emotion="…"> — Emotion SSR did not run',

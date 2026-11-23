@@ -1,8 +1,6 @@
 import { render, fireEvent } from '@testing-library/react';
-import { ThemeProvider } from '@emotion/react';
 import { Wayfinding, MAX_INIT_OPTIONS } from '@/mdx-components/Wayfinding/Wayfinding';
 import { WayfindingOption } from '@/mdx-components/Wayfinding/WayfindingOption';
-import { theme } from '@/styles/theme';
 
 jest.mock('@/utils/report-analytics', () => ({
   reportAnalytics: jest.fn(),
@@ -12,7 +10,7 @@ jest.mock('@/utils/current-scroll-position', () => ({
   currentScrollPosition: jest.fn(() => 0),
 }));
 
-const mountWayfinding = (ui: React.ReactElement) => render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>);
+const mountWayfinding = (ui: React.ReactElement) => render(ui);
 
 describe('Wayfinding MDX component', () => {
   it('renders correctly', () => {

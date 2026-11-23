@@ -1,6 +1,4 @@
 import { render } from '@testing-library/react';
-import { ThemeProvider } from '@emotion/react';
-import { theme } from '@/styles/theme';
 import ComposableTutorial from '@/mdx-components/ComposableTutorial';
 import ComposableContent from '@/mdx-components/ComposableTutorial/ComposableContent';
 import { PageContextProvider } from '@/context/page-context';
@@ -59,11 +57,9 @@ const pageOptions = {
 
 function renderWithProviders(ui: React.ReactElement) {
   return render(
-    <ThemeProvider theme={theme}>
-      <PageContextProvider template="document" slug="/test" tabsMainColumn={null} options={pageOptions}>
-        {ui}
-      </PageContextProvider>
-    </ThemeProvider>,
+    <PageContextProvider template="document" slug="/test" tabsMainColumn={null} options={pageOptions}>
+      {ui}
+    </PageContextProvider>,
   );
 }
 
