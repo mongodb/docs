@@ -382,6 +382,103 @@ resources.
       |application| based on the container's memory. Changing the
       ``-Xms`` and ``-Xmx`` values can cause issues with |onprem|.
 
+.. opsmgrkube:: spec.license
+
+   *Type*: collection
+
+   *Optional*. Configuration object that manages the |onprem|
+   Enterprise Advanced license and its release receipts. To learn how
+   to use these settings, see :ref:`mck-om-license-management`.
+
+   .. code-block:: yaml
+
+      spec:
+        license:
+          secretRef:
+            name: om-license
+          releaseReceiptsPolicy: Automatic
+          releasedLicenses:
+            - secretRef:
+                name: old-license
+
+.. opsmgrkube:: spec.license.secretRef
+
+   *Type*: collection
+
+   *Optional*. Reference to the |k8s-secret| that holds the signed
+   license in its ``license`` key. The |k8s-op-short| installs the
+   license in |onprem|, and releases it when you remove this setting.
+
+   Keep the Secret until |onprem| releases the license, because the
+   |k8s-op-short| identifies the license that it installed by this
+   Secret. If you want to remove the setting, don't replace the license
+   in the Secret or delete the Secret during the removal. The
+   |k8s-op-short| can't then tell which license to release, so it
+   releases nothing. Remove this setting first, wait until the
+   ``OperatorManagedLicense`` condition reports ``NotProvided``, and
+   change the Secret afterward.
+
+   If you omit this setting, the |k8s-op-short| doesn't install or
+   release a license.
+
+.. opsmgrkube:: spec.license.secretRef.name
+
+   *Type*: string
+
+   *Optional*. Name of the |k8s-secret| that holds the signed license.
+   The Secret must be in the same |k8s-ns| as the ``MongoDBOpsManager``
+   resource.
+
+.. opsmgrkube:: spec.license.releaseReceiptsPolicy
+
+   *Type*: string
+
+   *Optional*. Which released licenses the |k8s-op-short| writes a
+   release receipt for. Accepted values are:
+
+   - ``OnlyListed``: Writes a receipt for the licenses in
+     :opsmgrkube:`spec.license.releasedLicenses` only. This is the
+     default value.
+
+   - ``Automatic``: Writes a receipt for every license that the
+     |k8s-op-short| releases, in addition to the licenses in
+     :opsmgrkube:`spec.license.releasedLicenses`.
+
+   To learn more, see :ref:`mck-om-license-management`.
+
+.. opsmgrkube:: spec.license.releasedLicenses
+
+   *Type*: array of objects
+
+   *Optional*. The released licenses to write a release receipt for.
+   Each entry points at a |k8s-secret| that holds a released license,
+   usually the Secret that held the previous license.
+
+   The |k8s-op-short| writes the receipt to a Secret named
+   ``<licenseSecret>-<artifactId>-release-receipt``, or to
+   ``<artifactId>-release-receipt`` if it doesn't know the license
+   Secret. Listing a license doesn't release it.
+
+   - List up to 16 entries.
+   - Each entry must point at a different Secret.
+   - An entry can't point at the same Secret as
+     :opsmgrkube:`spec.license.secretRef`.
+
+.. opsmgrkube:: spec.license.releasedLicenses[*].secretRef
+
+   *Type*: collection
+
+   *Required*. Reference to a |k8s-secret| that holds a released
+   license.
+
+.. opsmgrkube:: spec.license.releasedLicenses[*].secretRef.name
+
+   *Type*: string
+
+   *Required*. Name of the |k8s-secret| that holds the released
+   license. The Secret must be in the same |k8s-ns| as the
+   ``MongoDBOpsManager`` resource.
+
 .. opsmgrkube:: spec.security.certsSecretPrefix
 
    *Type*: string

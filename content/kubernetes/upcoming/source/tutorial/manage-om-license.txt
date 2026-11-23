@@ -1,0 +1,375 @@
+.. _mck-om-license-management:
+
+==================================================
+Manage the Ops Manager Enterprise Advanced License
+==================================================
+
+.. meta::
+   :description: Install, renew, and release the Ops Manager Enterprise Advanced license with the Kubernetes Operator, and monitor the license state and release receipts.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+MongoDB Enterprise Advanced combines a MongoDB license and commercial
+support with a control plane that runs MongoDB at scale across your
+infrastructure. A license key is a signed file that MongoDB issues to
+confirm that your order is active. Use the
+:opsmgrkube:`spec.license` settings on the ``MongoDBOpsManager``
+resource to install, renew, and release that license. The
+|k8s-op-short| also reports the license that |onprem| holds, whoever
+installed it, through the ``LicenseActive`` condition.
+
+About this Task
+---------------
+
+The following behaviors apply when you manage the license with the
+|k8s-op-short|:
+
+- |onprem| holds one license at a time.
+- The |k8s-op-short| identifies the license it installed by the
+  |k8s-secret| that :opsmgrkube:`spec.license.secretRef` points at.
+  Keep that Secret until |onprem| releases the license.
+
+.. important::
+
+   Installing a license through :opsmgrkube:`spec.license` replaces
+   an existing |onprem| license, if the existing license is older. The
+   replacement also applies to a license you installed from the
+   |onprem| UI or that MongoDB Enterprise Advanced topped up.
+
+   Removing :opsmgrkube:`spec.license.secretRef` is narrower. The
+   |k8s-op-short| releases only a license that it installed itself. The
+   |k8s-op-short| leaves a license from the |onprem| UI or from MongoDB
+   Enterprise Advanced in place.
+
+To learn how |onprem| calculates license state, see :ref:`license-keys`.
+
+Before you Begin
+----------------
+
+Ensure that you have:
+
+- An |onprem| deployment at version 8.0.28 or later, or at version
+  9.0.2 or later. These versions provide the Enterprise Advanced
+  license |api|. To learn more, see :ref:`api-admin-license-keys`.
+- The ``.json`` license key file for your deployment, :ref:`generated
+  in the Key Portal <om-manage-license-keys>`.
+- Permission to create |k8s-secrets| and to update the
+  ``MongoDBOpsManager`` resource in the |k8s-ns| that hosts your
+  |onprem| deployment.
+
+Install a License
+-----------------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create a |k8s-secret| that holds the license key.
+
+      Store the license key file under the ``license`` key in a Secret
+      in the same |k8s-ns| as the ``MongoDBOpsManager`` resource:
+
+      .. code-block:: sh
+
+         kubectl create secret generic om-license \
+           --from-file=license=<path-to-license-key-file>
+
+   .. step:: Point :opsmgrkube:`spec.license.secretRef` at that Secret.
+
+      .. code-block:: yaml
+
+         spec:
+           license:
+             secretRef:
+               name: om-license
+
+   .. step:: Apply the updated resource specification.
+
+      .. code-block:: sh
+
+         kubectl apply -f <om-resource-file>
+
+   .. step:: Confirm that the |k8s-op-short| manages the license.
+
+      Confirm that the ``OperatorManagedLicense`` condition in
+      ``status.opsManager.conditions`` is ``True`` with reason
+      ``Managed``. To learn what each condition value means, see
+      :ref:`mck-om-license-conditions`.
+
+      .. code-block:: sh
+
+         kubectl get om <resourceName> \
+           -o jsonpath='{.status.opsManager.conditions}'
+
+Renew a License
+---------------
+
+Put the new license key in the same Secret, or point
+:opsmgrkube:`spec.license.secretRef` at a different Secret. Because
+|onprem| holds one license at a time, installing the new license
+releases the old one.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Replace the license key in the Secret.
+
+      .. code-block:: sh
+
+         kubectl create secret generic om-license \
+           --from-file=license=<path-to-new-license-key-file> \
+           --dry-run=client -o yaml | kubectl apply -f -
+
+   .. step:: Confirm that |onprem| holds the new license.
+
+      Confirm the ``LicenseActive`` condition in
+      ``status.opsManager.conditions`` reports the new |onprem| license
+      and its end date.
+
+.. note::
+
+   If your |onprem| installation can connect to MongoDB and its license
+   is renewed, |onprem| installs the renewed license key automatically.
+   You can't turn that off. If that happens while
+   :opsmgrkube:`spec.license.secretRef` still points at the old key,
+   the |k8s-op-short| doesn't overwrite the renewed key. The
+   |k8s-op-short| reports ``OperatorManagedLicense`` as ``False`` with
+   reason ``Rejected``. Put the renewed key in the Secret to hand it
+   back to the |k8s-op-short|.
+
+Release a License
+-----------------
+
+If you want the |k8s-op-short| to stop managing the Enterprise
+Advanced license, you can release it. After a release, |onprem| holds
+no license and treats the released license key as outdated, so you
+can't install that key again. |onprem| doesn't restrict any operation
+while it holds no license.
+
+To release the license, remove :opsmgrkube:`spec.license.secretRef`
+from the resource specification and apply the change. The
+|k8s-op-short| releases the license.
+
+Keep the license Secret until the release completes. The
+|k8s-op-short| identifies the license that it installed by that Secret.
+Don't replace the license in the Secret in the same change that removes
+:opsmgrkube:`spec.license.secretRef`. If the Secret holds a license that
+|onprem| doesn't hold, the |k8s-op-short| releases nothing and reports
+no error. The release appears to succeed, and the license |onprem|
+holds stays installed.
+
+If the Secret is deleted or no longer holds a license, the
+|k8s-op-short| can't identify the license that it installed. The
+|k8s-op-short| releases nothing, and reports the
+``OperatorManagedLicense`` condition as ``False`` with reason
+``Failed`` once, then as ``False`` with reason ``NotProvided``. The
+license stays installed in |onprem|. To release it, use the |onprem|
+UI. To learn how, see :ref:`om-manage-license-keys`.
+
+After the release, the ``OperatorManagedLicense`` condition is
+``False`` with reason ``NotProvided``.
+
+Delete the MongoDBOpsManager Resource
+-------------------------------------
+
+Deleting the ``MongoDBOpsManager`` resource releases the license. The
+|k8s-op-short| holds the resource with a finalizer until the release
+succeeds.
+
+If the Secret is deleted or no longer holds a license, the
+|k8s-op-short| can't identify the license that it installed. The
+deletion then waits until the Secret holds the license again, or until
+the license is released in the |onprem| UI.
+
+The |k8s-op-short| also writes the release receipt for the license if
+you list it in :opsmgrkube:`spec.license.releasedLicenses`, or if
+:opsmgrkube:`spec.license.releaseReceiptsPolicy` is ``Automatic``.
+
+Collect Release Receipts
+------------------------
+
+Only air-gapped deployments need release receipts, because they send
+the receipts to MongoDB by hand. To learn how to download a receipt
+from the |onprem| UI, see :ref:`om-manage-license-keys`.
+
+:opsmgrkube:`spec.license.releasedLicenses` lists the released licenses
+to write a receipt for. Each entry points at a |k8s-secret| that holds
+a released license, which is usually the Secret that held the previous
+license.
+
+The |k8s-op-short| names each receipt Secret as
+``<licenseSecret>-<artifactId>-release-receipt``. The license Secret
+is the Secret that the entry points at. If
+:opsmgrkube:`spec.license.releaseReceiptsPolicy` is ``Automatic``, it
+is the Secret that the |k8s-op-short| last installed a license from.
+
+If the |k8s-op-short| hasn't installed a license yet, the receipt
+Secret is named ``<artifactId>-release-receipt`` instead. This happens
+when the first install replaces a license from the |onprem| UI.
+
+For each entry, the |k8s-op-short| takes these steps:
+
+- Reads the artifact ID from the license in the Secret.
+- Waits while |onprem| still holds that license, and adds a warning to
+  ``status.opsManager.warnings``. Listing a license never releases it.
+- Writes the receipt to the receipt Secret under the ``release-receipt``
+  key once |onprem| no longer holds the license.
+
+The |k8s-op-short| never deletes a receipt Secret. If you delete a
+receipt Secret while its entry is still listed, the |k8s-op-short|
+writes it again. You can list up to 16 entries, and each entry must
+point at a different Secret. An entry can't point at the same Secret as
+:opsmgrkube:`spec.license.secretRef`.
+
+The following example lists one released license and requests receipts
+for every license that the |k8s-op-short| releases:
+
+.. code-block:: yaml
+
+   spec:
+     license:
+       secretRef:
+         name: om-license
+       releaseReceiptsPolicy: Automatic
+       releasedLicenses:
+         - secretRef:
+             name: old-license
+
+:opsmgrkube:`spec.license.releaseReceiptsPolicy` controls which
+released licenses get a receipt:
+
+- ``OnlyListed`` writes a receipt for the licenses in
+  :opsmgrkube:`spec.license.releasedLicenses` only. ``OnlyListed`` is
+  the default value.
+- ``Automatic`` writes a receipt for every license that the
+  |k8s-op-short| releases, whether on release, on renewal, or when you
+  delete the resource. ``Automatic`` also writes a receipt for the
+  licenses in :opsmgrkube:`spec.license.releasedLicenses`.
+
+The |k8s-op-short| writes a receipt that ``Automatic`` covers one time.
+If you delete that receipt Secret later, add the license to
+:opsmgrkube:`spec.license.releasedLicenses` to get it back.
+
+Recompute or Rotate the License Identity
+----------------------------------------
+
+Two annotations trigger one-off actions. The |k8s-op-short| runs each
+action one time, and then removes the annotation. If the action failed,
+apply the annotation again.
+
+``mongodb.com/license-recompute``
+   Asks |onprem| to evaluate its license state right away.
+
+``mongodb.com/license-rotate-identity``
+   Rotates the deployment identity. Use this annotation when MongoDB
+   Enterprise Advanced support asks you to.
+
+.. code-block:: sh
+
+   kubectl annotate om <resourceName> \
+     mongodb.com/license-recompute=true
+
+.. _mck-om-license-conditions:
+
+License Conditions
+------------------
+
+Both conditions appear in ``status.opsManager.conditions`` on the
+``MongoDBOpsManager`` resource.
+
+The ``LicenseActive`` condition reports the license that |onprem| holds,
+whoever installed it. The message includes the license state, end date,
+and holder ID.
+
+.. list-table::
+   :widths: 15 25 60
+   :header-rows: 1
+
+   * - Condition Status
+     - Reason
+     - Meaning
+
+   * - ``True``
+     - ``Active``
+     - The license is valid.
+
+   * - ``False``
+     - ``Inactive``
+     - |onprem| is in the grace period, is unlicensed, or has an expired
+       license. The message names the state.
+
+   * - ``Unknown``
+     - ``Unknown``
+     - |onprem| hasn't reported a license state yet, or reported one
+       that the |k8s-op-short| doesn't recognize.
+
+The ``OperatorManagedLicense`` condition reports whether the
+|k8s-op-short| manages the license from
+:opsmgrkube:`spec.license.secretRef`.
+
+.. list-table::
+   :widths: 15 25 60
+   :header-rows: 1
+
+   * - Condition Status
+     - Reason
+     - Meaning
+
+   * - ``True``
+     - ``Managed``
+     - |onprem| holds the license from
+       :opsmgrkube:`spec.license.secretRef`.
+
+   * - ``False``
+     - ``NotProvided``
+     - :opsmgrkube:`spec.license.secretRef` is not set, including right
+       after a release.
+
+   * - ``False``
+     - ``Rejected``
+     - |onprem| rejected the license from
+       :opsmgrkube:`spec.license.secretRef` as outdated. Either |onprem|
+       holds a license that is as new or newer, or |onprem| released
+       that license key before.
+
+   * - ``False``
+     - ``Failed``
+     - The license reconcile failed. The message describes the error.
+       The |k8s-op-short| retries, and the ``MongoDBOpsManager``
+       resource reports ``Failed`` in ``status.opsManager.phase``.
+
+If the license in :opsmgrkube:`spec.license.secretRef` is missing or
+invalid, the |k8s-op-short| leaves |onprem| unchanged. The
+|k8s-op-short| retries the install until the Secret holds a valid
+license. If |onprem| already holds a license that is as recent or more
+recent, the |k8s-op-short| doesn't install the license. |onprem| keeps
+its current license until the Secret holds a license that is newer than
+the one that |onprem| holds.
+
+Monitor the ``OperatorManagedLicense`` condition to detect when
+|onprem| holds a newer license than the one defined in
+:opsmgrkube:`spec.license.secretRef`.
+
+If You Don't Set :opsmgrkube:`spec.license`
+-------------------------------------------
+
+The |k8s-op-short| installs and releases nothing. It still reports the
+license that |onprem| holds through the ``LicenseActive`` condition,
+and the ``OperatorManagedLicense`` condition is ``False`` with reason
+``NotProvided``.
+
+If the |onprem| version does not provide the license |api|, the
+|k8s-op-short| skips license management.
+
+Learn More
+----------
+
+- :ref:`k8s-om-specification`
+- :ref:`om-manage-license-keys`
+- :ref:`license-keys`
+- :ref:`api-admin-license-keys`

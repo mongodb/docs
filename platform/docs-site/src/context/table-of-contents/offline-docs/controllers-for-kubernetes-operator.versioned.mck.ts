@@ -1117,6 +1117,14 @@ export const toc: L1TocItem[] = [
                 url: '/docs/kubernetes/:version/tutorial/cert-manager-integration',
               },
               {
+                label: 'Manage the Ops Manager License',
+                contentSite: 'mck',
+                url: '/docs/kubernetes/:version/tutorial/manage-om-license',
+                versions: {
+                  includes: ['upcoming'],
+                },
+              },
+              {
                 label: 'Deploy the Ops Manager Custom Resource',
                 contentSite: 'mck',
                 url: '/docs/kubernetes/:version/tutorial/deploy-om-container',
