@@ -30,7 +30,7 @@ export const collectDefinitions = (tree: Parent): Definitions => {
 };
 
 /** An inline reference sits in a sentence, so a lone paragraph body is unwrapped to avoid a stray block. */
-const unwrapParagraphIfInline = (nodes: RootContent[], inline: boolean): RootContent[] =>
+export const unwrapParagraphIfInline = (nodes: RootContent[], inline: boolean): RootContent[] =>
   inline && nodes.length === 1 && nodes[0].type === "paragraph"
     ? nodes[0].children
     : nodes;
