@@ -10,7 +10,22 @@
       By default, |service| logs the failed authentication attempts of both
       known and unknown users in the audit log of the :term:`primary` node.
       
-   .. step:: Select the database users, |service| roles, and LDAP groups whose actions you want to audit in :guilabel:`Select users and roles`.
+   .. step:: Select the database users, |service| roles, and LDAP groups whose actions you want to audit in :guilabel:`Select users and/or roles to target for auditing`.
+
+      Audit only the users and roles that you need. Auditing logs on
+      all users might generate excessive levels of log entries that
+      might exceed the levels that |service| can collect. For
+      each type that you audit, choose the option to select specific
+      users or roles:
+
+      - :guilabel:`Select SCRAM Users` instead of
+        :guilabel:`All SCRAM Users`
+      - :guilabel:`Select External DB Users` instead of
+        :guilabel:`All External DB Users`
+      - :guilabel:`Select Database Roles / Groups` instead of
+        :guilabel:`All Database Roles / Groups`
+
+      Then select only the users and roles that you need to audit.
 
       Alternatively, click :guilabel:`Use Custom JSON Filter` to manually
       enter an :manual:`audit filter </tutorial/configure-audit-filters/#auditfilter-option>`
@@ -18,9 +33,15 @@
       filters in |service|, see :ref:`auditing-custom-filter`.
       
    .. step:: Select the event actions that you want to audit in :guilabel:`Select actions to audit`.
-      
+
+      Clear the actions that you don't need to audit. For ``authCheck``
+      actions, select :guilabel:`Failures` instead of
+      :guilabel:`Successes and Failures` where possible. To audit only
+      specific operations, :ref:`configure a custom auditing filter
+      <auditing-custom-filter>`.
+
       .. note::
-      
+
          Deselecting the ``authenticate`` action prevents |service| from
          auditing authentication failures.
       

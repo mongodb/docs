@@ -72,12 +72,22 @@ Considerations
   :ref:`data-transfer-costs`.
 - Network issues or retries can cause duplicate log entries in
   your external service.
+- Log export does not guarantee delivery of every log entry.
+  {+service+} delivers logs on a best-effort basis. Rare edge cases
+  can cause {+service+} to drop log entries before the log collector
+  processes them. {+service+} does not retry or queue log entries
+  that it drops during collection, and you cannot recover them. For
+  more information, see :ref:`Risk of Dropped Log Entries
+  <export-logs-dropped-logs>`.
 
 Failure Handling and Automatic Recovery
 ----------------------------------------
 
-{+service+} automatically handles log export failures and recovers
-without manual intervention:
+{+service+} automatically handles failures when delivering logs to
+your external sink and recovers without manual intervention. This
+recovery applies only to delivery of logs from {+service+} to the
+configured log sink. {+service+} does not recover log entries that
+are dropped before the log collector processes them:
 
 Retry and Circuit Breaker
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -122,6 +132,49 @@ sink. No manual intervention is required.
    another, queued logs will be sent to the new bucket rather than the
    original destination.
 
+.. _export-logs-dropped-logs:
+
+Risk of Dropped Log Entries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+service+} attempts to collect and export all logs to the configured
+log sink. Rare edge cases can prevent delivery of a subset of log
+entries.
+In those cases, {+service+} can drop log entries before the log
+collector processes them, and you cannot recover the log entries from
+the export destination.
+
+{+service+} can drop log entries in these cases:
+
+- **High log volume.** If your cluster writes logs faster than
+  {+service+} can collect and forward them, {+service+} can drop
+  log entries. Verbose logging, high-throughput workloads, and database
+  auditing on busy clusters make this more likely. To reduce audit log
+  volume, :ref:`configure a custom auditing filter
+  <auditing-custom-filter>`.
+
+- **Limited cluster resources.** A cluster that is low on network
+  capacity can drop log entries. If you see gaps, consider
+  :ref:`increasing your cluster tier <scale-cluster-instance>`.
+
+- **Large log entries.** {+service+} doesn't collect log entries that
+  exceed 1 MB. These log entries aren't available for download or log
+  export. This can affect database audit entries for very large
+  operations.
+
+- **Log rotation.** If {+service+} rotates logs before collecting
+  them, those log entries are lost.
+
+:ref:`Narrow your audit filter <enable-auditing-atlas>` to audit only
+the users, roles, and actions that you need, or
+:ref:`configure a custom auditing filter <auditing-custom-filter>` for
+more control. If you audit all users,
+roles, and actions, your audit filter can generate a large volume of
+log entries. This volume increases the chance that {+service+} drops
+log entries before export. Narrowing your filter doesn't guarantee
+that {+service+} doesn't drop log entries. Ensure that your filter still
+captures the events that you need for compliance.
+
 Monitoring and Alerts
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -131,7 +184,7 @@ users when:
 
 - Log export encounters non-retryable errors (logs queued in DLQ).
 - Log export fails after multiple retry attempts (logs queued in DLQ).
-- Log export replay fails to deliver records.
+- Log export replay fails to deliver log entries.
 
 These alerts are informational, which means they appear only in the
 :ref:`Project Activity Feed <activity-feed>` and don't appear on the
