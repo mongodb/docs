@@ -81,6 +81,34 @@
 				:language: javascript
 				:dedent:
 
+		.. step:: Set automatic encryption options.
+
+			.. note:: Automatic Encryption Options
+
+				The automatic encryption options provide configuration information
+				to the {+shared-library+}, which modifies the application's behavior
+				when accessing encrypted fields.
+
+				To learn more about the {+shared-library+}, see
+				the :ref:`<qe-reference-shared-library>` page.
+
+			Create an ``autoEncryptionOptions`` object with the following
+			options:
+
+			- The namespace of your {+key-vault-long+}
+			- The ``kmsProviderCredentials`` object, which
+			  contains your {+kmip-kms-no-hover+} credentials
+
+			.. literalinclude:: /includes/qe-tutorials/mongosh/queryable-encryption-helpers.js
+				:start-after: start-kmip-encryption-options
+				:end-before: end-kmip-encryption-options
+				:language: javascript
+				:dedent:
+
+			Because {+kmip-kms-no-hover+} requires mutual TLS, the automatic
+			encryption options also specify the paths to your certificate
+			authority file and client certificate file.
+
 		.. step:: Create an encryption client.
 
 			To create a client for encrypting and decrypting data in
@@ -176,6 +204,37 @@
 				:end-before: end-kmip-local-cmk-credentials
 				:language: javascript
 				:dedent:
+
+		.. step:: Set automatic encryption options.
+
+			.. note:: Automatic Encryption Options
+
+				The automatic encryption options provide configuration information
+				to the {+shared-library+}, which modifies the application's behavior
+				when accessing encrypted fields.
+
+				To learn more about the {+shared-library+}, see
+				the :ref:`<qe-reference-shared-library>` page.
+
+			Create an ``autoEncryptionOptions`` object with the following
+			options:
+
+			- The namespace of your {+key-vault-long+}
+			- The ``kmsProviders`` object, which contains your
+			  {+kmip-kms-no-hover+} credentials
+			- The ``sharedLibraryPathOptions`` object, which
+			  contains the path to your {+shared-library+}
+
+			.. literalinclude:: /includes/qe-tutorials/node/queryable-encryption-helpers.js
+				:start-after: start-kmip-encryption-options
+				:end-before: end-kmip-encryption-options
+				:emphasize-lines: 5-9
+				:language: javascript
+				:dedent:
+
+			Because {+kmip-kms-no-hover+} requires mutual TLS, the automatic
+			encryption options also specify the paths to your certificate
+			authority file and client certificate file.
 
 		.. step:: Create an encryption client.
 
@@ -273,6 +332,35 @@
 				:language: python
 				:dedent:
 
+		.. step:: Set automatic encryption options.
+
+			.. note:: Automatic Encryption Options
+
+				The automatic encryption options provide configuration information
+				to the {+shared-library+}, which modifies the application's behavior
+				when accessing encrypted fields.
+
+				To learn more about the {+shared-library+}, see
+				the :ref:`<qe-reference-shared-library>` page.
+
+			Create an ``AutoEncryptionOpts`` object with the following
+			options:
+
+			- The ``kms_provider_credentials`` object, which
+			  contains your {+kmip-kms-no-hover+} credentials
+			- The namespace of your {+key-vault-long+}
+			- The path to your {+shared-library+}
+
+			.. literalinclude:: /includes/qe-tutorials/python/queryable_encryption_helpers.py
+				:start-after: start-kmip-encryption-options
+				:end-before: end-kmip-encryption-options
+				:language: python
+				:dedent:
+
+			Because {+kmip-kms-no-hover+} requires mutual TLS, the automatic
+			encryption options also specify the paths to your certificate
+			authority file and client certificate file.
+
 		.. step:: Create an encryption client.
 
 			To create a client for encrypting and decrypting data in
@@ -369,6 +457,44 @@
 				:language: java
 				:dedent:
 
+		.. step:: Set automatic encryption options.
+
+			.. note:: Automatic Encryption Options
+
+				The automatic encryption options provide configuration information
+				to the {+shared-library+}, which modifies the application's behavior
+				when accessing encrypted fields.
+
+				To learn more about the {+shared-library+}, see
+				the :ref:`<qe-reference-shared-library>` page.
+
+			Create an ``AutoEncryptionSettings`` object with the following
+			options:
+
+			- The namespace of your {+key-vault-long+}
+			- The ``kmsProviderCredentials`` object, which
+			  contains your {+kmip-kms-no-hover+} credentials
+			- The ``extraOptions`` object, which contains the path
+			  to your {+shared-library+}
+
+			.. literalinclude:: /includes/qe-tutorials/java/src/main/java/com/mongodb/tutorials/qe/util/QueryableEncryptionHelpers.java
+				:start-after: start-auto-encryption-options
+				:end-before: end-auto-encryption-options
+				:emphasize-lines: 4-8
+				:language: java
+				:dedent:
+
+			If you omit the ``keyVaultClient`` option or set
+			``bypassAutomaticEncryption`` to ``false`` in your
+			``AutoEncryptionSettings`` object, the driver creates a separate,
+			internal ``MongoClient`` instance. The internal ``MongoClient``
+			configuration differs from the parent ``MongoClient`` by setting the
+			``minPoolSize`` option to 0 and omitting the
+			``AutoEncryptionSettings`` object.
+
+			Because {+kmip-kms-no-hover+} requires mutual TLS, configure the TLS
+			certificate and truststore options in your JVM.
+
 		.. step:: Create an encryption client.
 
 			To create a client for encrypting and decrypting data in
@@ -449,6 +575,37 @@
 				:end-before: end-kmip-local-cmk-credentials
 				:language: go
 				:dedent:
+
+		.. step:: Set automatic encryption options.
+
+			.. note:: Automatic Encryption Options
+
+				The automatic encryption options provide configuration information
+				to the {+shared-library+}, which modifies the application's behavior
+				when accessing encrypted fields.
+
+				To learn more about the {+shared-library+}, see
+				the :ref:`<qe-reference-shared-library>` page.
+
+			Create an ``AutoEncryption`` object with the following
+			options:
+
+			- The namespace of your {+key-vault-long+}
+			- The ``kmsProviderCredentials`` object, which
+			  contains your {+kmip-kms-no-hover+} credentials
+			- The ``cryptSharedLibraryPath`` object, which
+			  contains the path to your {+shared-library+}
+
+			.. literalinclude:: /includes/qe-tutorials/go/queryable_encryption_helpers.go
+				:start-after: start-kmip-encryption-options
+				:end-before: end-kmip-encryption-options
+				:emphasize-lines: 5-9
+				:language: go
+				:dedent:
+
+			Because {+kmip-kms-no-hover+} requires mutual TLS, the automatic
+			encryption options also specify the paths to your certificate
+			authority file and client certificate file.
 
 		.. step:: Create an encryption client.
 
@@ -545,6 +702,37 @@
 				:end-before: end-kmip-local-cmk-credentials
 				:language: csharp
 				:dedent:
+
+		.. step:: Set automatic encryption options.
+
+			.. note:: Automatic Encryption Options
+
+				The automatic encryption options provide configuration information
+				to the {+shared-library+}, which modifies the application's behavior
+				when accessing encrypted fields.
+
+				To learn more about the {+shared-library+}, see
+				the :ref:`<qe-reference-shared-library>` page.
+
+			Create an ``AutoEncryptionOptions`` object with the following
+			options:
+
+			- The namespace of your {+key-vault-long+}
+			- The ``kmsProviderCredentials`` object, which
+			  contains your {+kmip-kms-no-hover+} credentials
+			- The ``extraOptions`` object, which contains the path
+			  to your {+shared-library+}
+
+			.. literalinclude:: /includes/qe-tutorials/csharp/QueryableEncryptionHelpers.cs
+				:start-after: start-kmip-encryption-options
+				:end-before: end-kmip-encryption-options
+				:emphasize-lines: 7-10
+				:language: csharp
+				:dedent:
+
+			Because {+kmip-kms-no-hover+} requires mutual TLS, the automatic
+			encryption options also specify the paths to your certificate
+			authority file and client certificate file.
 
 		.. step:: Create an encryption client.
 
@@ -654,6 +842,35 @@
 				:language: rust
 				:dedent:
 
+		.. step:: Set automatic encryption options.
+
+			.. note:: Automatic Encryption Options
+
+				The automatic encryption options provide configuration information
+				to the {+shared-library+}, which modifies the application's behavior
+				when accessing encrypted fields.
+
+				To learn more about the {+shared-library+}, see
+				the :ref:`<qe-reference-shared-library>` page.
+
+			Create an ``EncryptedClientBuilder`` object that contains the
+			following options:
+
+			- A ``ClientOptions`` object
+			- The namespace of your {+key-vault-long+}
+			- The ``kms_providers`` object, which
+			  contains your {+kmip-kms-no-hover+} credentials
+
+			.. literalinclude:: /includes/qe-tutorials/rust/src/queryable_encryption_helpers.rs
+				:start-after: start-auto-encryption-options
+				:end-before: end-auto-encryption-options
+				:language: rust
+				:dedent:
+
+			Because {+kmip-kms-no-hover+} requires mutual TLS, the
+			``kms_providers`` object includes the TLS options that your
+			{+kmip-kms-no-hover+} requires.
+
 		.. step:: Create an encryption client.
 
 			To create a client for encrypting and decrypting data in
@@ -752,6 +969,34 @@
 				:language: php
 				:dedent:
 
+		.. step:: Set automatic encryption options.
+
+			.. note:: Automatic Encryption Options
+
+				The automatic encryption options provide configuration information
+				to the {+shared-library+}, which modifies the application's behavior
+				when accessing encrypted fields.
+
+				To learn more about the {+shared-library+}, see
+				the :ref:`<qe-reference-shared-library>` page.
+
+			Create an ``$autoEncryptionOptions`` object that contains the
+			following options:
+
+			- The namespace of your {+key-vault-long+}
+			- The ``$kmsProviders`` object, defined in the previous step
+			- The path to your {+shared-library+}
+
+			.. literalinclude:: /includes/qe-tutorials/php/queryable-encryption-helpers.php
+				:start-after: start-kmip-encryption-options
+				:end-before: end-kmip-encryption-options
+				:language: php
+				:dedent:
+
+			Because {+kmip-kms-no-hover+} requires mutual TLS, the automatic
+			encryption options also specify the paths to your certificate
+			authority file and client certificate file.
+
 		.. step:: Create an encryption client.
 
 			To create a client for encrypting and decrypting data in
@@ -832,6 +1077,35 @@
 				:end-before: end-kmip-local-cmk-credentials
 				:language: ruby
 				:dedent:
+
+		.. step:: Set automatic encryption options.
+
+			.. note:: Automatic Encryption Options
+
+				The automatic encryption options provide configuration information
+				to the {+shared-library+}, which modifies the application's behavior
+				when accessing encrypted fields.
+
+				To learn more about the {+shared-library+}, see
+				the :ref:`<qe-reference-shared-library>` page.
+
+			Create an ``auto_encryption_options`` hash that contains the
+			following options:
+
+			- The namespace of your {+key-vault-long+}
+			- The ``kms_providers`` hash, which contains your
+			  {+kmip-kms-no-hover+} credentials
+			- The path to your {+shared-library+}
+
+			.. literalinclude:: /includes/qe-tutorials/ruby/queryable-encryption-helpers.rb
+				:start-after: start-kmip-encryption-options
+				:end-before: end-kmip-encryption-options
+				:language: ruby
+				:dedent:
+
+			Because {+kmip-kms-no-hover+} requires mutual TLS, the automatic
+			encryption options also specify the paths to your certificate
+			authority file and client certificate file.
 
 		.. step:: Create an encryption client.
 
@@ -926,6 +1200,43 @@
 			.. literalinclude:: /includes/qe-tutorials/cpp/queryable_encryption_tutorial.cpp
 				:start-after: start-kmip-local-cmk-credentials
 				:end-before: end-kmip-local-cmk-credentials
+				:language: cpp
+				:dedent:
+
+		.. step:: Set automatic encryption options.
+
+			.. note:: Automatic Encryption Options
+
+				The automatic encryption options provide configuration information
+				to the {+shared-library+}, which modifies the application's behavior
+				when accessing encrypted fields.
+
+				To learn more about the {+shared-library+}, see
+				the :ref:`<qe-reference-shared-library>` page.
+
+			Create a ``mongocxx::options::auto_encryption`` object that sets
+			the following options:
+
+			- The namespace of your {+key-vault-long+}
+			- The ``kms_providers`` document, which
+			  contains your {+kmip-kms-no-hover+} credentials
+			- The ``extra_options`` document, which contains the path
+			  to your {+shared-library+}
+
+			.. literalinclude:: /includes/qe-tutorials/cpp/queryable_encryption_tutorial.cpp
+				:start-after: start-auto-encryption-options
+				:end-before: end-auto-encryption-options
+				:language: cpp
+				:dedent:
+
+			Because {+kmip-kms-no-hover+} requires mutual TLS, set the
+			``tls_opts`` option on your automatic encryption options. Specify the
+			paths to your {+kmip-kms-no-hover+} certificate authority file and
+			client certificate file, as shown in the following code:
+
+			.. literalinclude:: /includes/qe-tutorials/cpp/queryable_encryption_tutorial.cpp
+				:start-after: start-kmip-tls-options
+				:end-before: end-kmip-tls-options
 				:language: cpp
 				:dedent:
 

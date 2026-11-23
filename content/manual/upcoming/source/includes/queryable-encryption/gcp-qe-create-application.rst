@@ -82,6 +82,30 @@
 				:language: javascript
 				:dedent:
 
+		.. step:: Set automatic encryption options.
+
+			.. note:: Automatic Encryption Options
+
+				The automatic encryption options provide configuration information
+				to the {+shared-library+}, which modifies the application's behavior
+				when accessing encrypted fields.
+
+				To learn more about the {+shared-library+}, see
+				the :ref:`<qe-reference-shared-library>` page.
+
+			Create an ``autoEncryptionOptions`` object with the following
+			options:
+
+			- The namespace of your {+key-vault-long+}
+			- The ``kmsProviderCredentials`` object, which
+			  contains your GCP KMS credentials
+
+			.. literalinclude:: /includes/qe-tutorials/mongosh/queryable-encryption-helpers.js
+				:start-after: start-auto-encryption-options
+				:end-before: end-auto-encryption-options
+				:language: javascript
+				:dedent:
+
 		.. step:: Create an encryption client.
 
 			To create a client for encrypting and decrypting data in
@@ -176,6 +200,33 @@
 			.. literalinclude:: /includes/qe-tutorials/node/queryable-encryption-helpers.js
 				:start-after: start-gcp-cmk-credentials
 				:end-before: end-gcp-cmk-credentials
+				:language: javascript
+				:dedent:
+
+		.. step:: Set automatic encryption options.
+
+			.. note:: Automatic Encryption Options
+
+				The automatic encryption options provide configuration information
+				to the {+shared-library+}, which modifies the application's behavior
+				when accessing encrypted fields.
+
+				To learn more about the {+shared-library+}, see
+				the :ref:`<qe-reference-shared-library>` page.
+
+			Create an ``autoEncryptionOptions`` object with the following
+			options:
+
+			- The namespace of your {+key-vault-long+}
+			- The ``kmsProviders`` object, which contains your GCP KMS
+			  credentials
+			- The ``sharedLibraryPathOptions`` object, which
+			  contains the path to your {+shared-library+}
+
+			.. literalinclude:: /includes/qe-tutorials/node/queryable-encryption-helpers.js
+				:start-after: start-auto-encryption-options
+				:end-before: end-auto-encryption-options
+				:emphasize-lines: 5-9
 				:language: javascript
 				:dedent:
 
@@ -276,6 +327,31 @@
 				:language: python
 				:dedent:
 
+		.. step:: Set automatic encryption options.
+
+			.. note:: Automatic Encryption Options
+
+				The automatic encryption options provide configuration information
+				to the {+shared-library+}, which modifies the application's behavior
+				when accessing encrypted fields.
+
+				To learn more about the {+shared-library+}, see
+				the :ref:`<qe-reference-shared-library>` page.
+
+			Create an ``AutoEncryptionOpts`` object with the following
+			options:
+
+			- The ``kms_provider_credentials`` object, which
+			  contains your GCP KMS credentials
+			- The namespace of your {+key-vault-long+}
+			- The path to your {+shared-library+}
+
+			.. literalinclude:: /includes/qe-tutorials/python/queryable_encryption_helpers.py
+				:start-after: start-auto-encryption-options
+				:end-before: end-auto-encryption-options
+				:language: python
+				:dedent:
+
 		.. step:: Create an encryption client.
 
 			To create a client for encrypting and decrypting data in
@@ -373,6 +449,41 @@
 				:language: java
 				:dedent:
 
+		.. step:: Set automatic encryption options.
+
+			.. note:: Automatic Encryption Options
+
+				The automatic encryption options provide configuration information
+				to the {+shared-library+}, which modifies the application's behavior
+				when accessing encrypted fields.
+
+				To learn more about the {+shared-library+}, see
+				the :ref:`<qe-reference-shared-library>` page.
+
+			Create an ``AutoEncryptionSettings`` object with the following
+			options:
+
+			- The namespace of your {+key-vault-long+}
+			- The ``kmsProviderCredentials`` object, which
+			  contains your GCP KMS credentials
+			- The ``extraOptions`` object, which contains the path
+			  to your {+shared-library+}
+
+			.. literalinclude:: /includes/qe-tutorials/java/src/main/java/com/mongodb/tutorials/qe/util/QueryableEncryptionHelpers.java
+				:start-after: start-auto-encryption-options
+				:end-before: end-auto-encryption-options
+				:emphasize-lines: 4-8
+				:language: java
+				:dedent:
+
+			If you omit the ``keyVaultClient`` option or set
+			``bypassAutomaticEncryption`` to ``false`` in your
+			``AutoEncryptionSettings`` object, the driver creates a separate,
+			internal ``MongoClient`` instance. The internal ``MongoClient``
+			configuration differs from the parent ``MongoClient`` by setting the
+			``minPoolSize`` option to 0 and omitting the
+			``AutoEncryptionSettings`` object.
+
 		.. step:: Create an encryption client.
 
 			To create a client for encrypting and decrypting data in
@@ -452,6 +563,33 @@
 			.. literalinclude:: /includes/qe-tutorials/go/queryable_encryption_helpers.go
 				:start-after: start-gcp-cmk-credentials
 				:end-before: end-gcp-cmk-credentials
+				:language: go
+				:dedent:
+
+		.. step:: Set automatic encryption options.
+
+			.. note:: Automatic Encryption Options
+
+				The automatic encryption options provide configuration information
+				to the {+shared-library+}, which modifies the application's behavior
+				when accessing encrypted fields.
+
+				To learn more about the {+shared-library+}, see
+				the :ref:`<qe-reference-shared-library>` page.
+
+			Create an ``AutoEncryption`` object with the following
+			options:
+
+			- The namespace of your {+key-vault-long+}
+			- The ``kmsProviderCredentials`` object, which
+			  contains your GCP KMS credentials
+			- The ``cryptSharedLibraryPath`` object, which
+			  contains the path to your {+shared-library+}
+
+			.. literalinclude:: /includes/qe-tutorials/go/queryable_encryption_helpers.go
+				:start-after: start-auto-encryption-options
+				:end-before: end-auto-encryption-options
+				:emphasize-lines: 5-8
 				:language: go
 				:dedent:
 
@@ -549,6 +687,33 @@
 			.. literalinclude:: /includes/qe-tutorials/csharp/QueryableEncryptionHelpers.cs
 				:start-after: start-gcp-cmk-credentials
 				:end-before: end-gcp-cmk-credentials
+				:language: csharp
+				:dedent:
+
+		.. step:: Set automatic encryption options.
+
+			.. note:: Automatic Encryption Options
+
+				The automatic encryption options provide configuration information
+				to the {+shared-library+}, which modifies the application's behavior
+				when accessing encrypted fields.
+
+				To learn more about the {+shared-library+}, see
+				the :ref:`<qe-reference-shared-library>` page.
+
+			Create an ``AutoEncryptionOptions`` object with the following
+			options:
+
+			- The namespace of your {+key-vault-long+}
+			- The ``kmsProviderCredentials`` object, which
+			  contains your GCP KMS credentials
+			- The ``extraOptions`` object, which contains the path
+			  to your {+shared-library+}
+
+			.. literalinclude:: /includes/qe-tutorials/csharp/QueryableEncryptionHelpers.cs
+				:start-after: start-auto-encryption-options
+				:end-before: end-auto-encryption-options
+				:emphasize-lines: 6-9
 				:language: csharp
 				:dedent:
 
@@ -661,6 +826,31 @@
 				:language: rust
 				:dedent:
 
+		.. step:: Set automatic encryption options.
+
+			.. note:: Automatic Encryption Options
+
+				The automatic encryption options provide configuration information
+				to the {+shared-library+}, which modifies the application's behavior
+				when accessing encrypted fields.
+
+				To learn more about the {+shared-library+}, see
+				the :ref:`<qe-reference-shared-library>` page.
+
+			Create an ``EncryptedClientBuilder`` object that contains the
+			following options:
+
+			- A ``ClientOptions`` object
+			- The namespace of your {+key-vault-long+}
+			- The ``kms_providers`` object, which
+			  contains your GCP KMS credentials
+
+			.. literalinclude:: /includes/qe-tutorials/rust/src/queryable_encryption_helpers.rs
+				:start-after: start-auto-encryption-options
+				:end-before: end-auto-encryption-options
+				:language: rust
+				:dedent:
+
 		.. step:: Create an encryption client.
 
 			To create a client for encrypting and decrypting data in
@@ -760,6 +950,30 @@
 				:language: php
 				:dedent:
 
+		.. step:: Set automatic encryption options.
+
+			.. note:: Automatic Encryption Options
+
+				The automatic encryption options provide configuration information
+				to the {+shared-library+}, which modifies the application's behavior
+				when accessing encrypted fields.
+
+				To learn more about the {+shared-library+}, see
+				the :ref:`<qe-reference-shared-library>` page.
+
+			Create an ``$autoEncryptionOptions`` object that contains the
+			following options:
+
+			- The namespace of your {+key-vault-long+}
+			- The ``$kmsProviders`` object, defined in the previous step
+			- The path to your {+shared-library+}
+
+			.. literalinclude:: /includes/qe-tutorials/php/queryable-encryption-helpers.php
+				:start-after: start-auto-encryption-options
+				:end-before: end-auto-encryption-options
+				:language: php
+				:dedent:
+
 		.. step:: Create an encryption client.
 
 			To create a client for encrypting and decrypting data in
@@ -839,6 +1053,30 @@
 			.. literalinclude:: /includes/qe-tutorials/ruby/queryable-encryption-helpers.rb
 				:start-after: start-gcp-cmk-credentials
 				:end-before: end-gcp-cmk-credentials
+				:language: ruby
+				:dedent:
+
+		.. step:: Set automatic encryption options.
+
+			.. note:: Automatic Encryption Options
+
+				The automatic encryption options provide configuration information
+				to the {+shared-library+}, which modifies the application's behavior
+				when accessing encrypted fields.
+
+				To learn more about the {+shared-library+}, see
+				the :ref:`<qe-reference-shared-library>` page.
+
+			Create an ``auto_encryption_options`` hash that contains the
+			following options:
+
+			- The namespace of your {+key-vault-long+}
+			- The ``kms_providers`` hash, which contains your GCP KMS credentials
+			- The path to your {+shared-library+}
+
+			.. literalinclude:: /includes/qe-tutorials/ruby/queryable-encryption-helpers.rb
+				:start-after: start-auto-encryption-options
+				:end-before: end-auto-encryption-options
 				:language: ruby
 				:dedent:
 
@@ -936,6 +1174,32 @@
 			.. literalinclude:: /includes/qe-tutorials/cpp/queryable_encryption_tutorial.cpp
 				:start-after: start-gcp-cmk-credentials
 				:end-before: end-gcp-cmk-credentials
+				:language: cpp
+				:dedent:
+
+		.. step:: Set automatic encryption options.
+
+			.. note:: Automatic Encryption Options
+
+				The automatic encryption options provide configuration information
+				to the {+shared-library+}, which modifies the application's behavior
+				when accessing encrypted fields.
+
+				To learn more about the {+shared-library+}, see
+				the :ref:`<qe-reference-shared-library>` page.
+
+			Create a ``mongocxx::options::auto_encryption`` object that sets
+			the following options:
+
+			- The namespace of your {+key-vault-long+}
+			- The ``kms_providers`` document, which
+			  contains your GCP KMS credentials
+			- The ``extra_options`` document, which contains the path
+			  to your {+shared-library+}
+
+			.. literalinclude:: /includes/qe-tutorials/cpp/queryable_encryption_tutorial.cpp
+				:start-after: start-auto-encryption-options
+				:end-before: end-auto-encryption-options
 				:language: cpp
 				:dedent:
 
