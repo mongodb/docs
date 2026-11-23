@@ -177,6 +177,76 @@ options like ``hint`` and ``comment``.
 For the complete list of options included in a query stats entry, see
 :ref:`queryStats-find-query-shape`.
 
+How $queryStats Optimizes Top-K Sorts
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 9.1
+
+For ``$queryStats`` pipelines that sort query stats entries by a
+metric and limit the number of results, ``$queryStats`` uses a top-K
+sort optimization. It scans the entire ``$queryStats`` virtual
+collection, and builds output documents for only the top entries.
+
+The optimization applies to pipelines with the following stages, in
+this order:
+
+#. ``$queryStats`` as the first stage.
+
+#. An optional ``$project`` stage that only includes fields.
+
+#. A ``$sort`` stage that sorts on a single supported metric, such as
+   ``metrics.execCount``.
+
+#. A ``$limit`` stage that directly follows the ``$sort`` stage and
+   specifies a value of ``10,000`` or less.
+
+The optimization does not change the number of documents that the
+pipeline returns or their order. The ``$sort`` and ``$limit`` stages
+still run.
+
+To see whether ``$queryStats`` applies the optimization, set
+``explain`` to ``true`` on the pipeline, then inspect the
+``$queryStats`` stage:
+
+.. code-block:: javascript
+
+   db.adminCommand( {
+      aggregate: 1,
+      pipeline: [
+         { $queryStats: {} },
+         { $sort: { "metrics.execCount": -1 } },
+         { $limit: 10 }
+      ],
+      explain: true,
+      cursor: {}
+   } )
+
+When the optimization is used, the ``$queryStats`` stage in the output
+contains a ``topKSortOptimization`` document:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 40
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``topKSortOptimization.path``
+     - String
+     - The query stats metric that the pipeline sorts on.
+
+   * - ``topKSortOptimization.limit``
+     - Number
+     - The value of the ``$limit`` stage.
+
+   * - ``topKSortOptimization.isAscending``
+     - Boolean
+     - Whether the sort order is ascending.
+
+If the optimization does not apply, the ``topKSortOptimization``
+document is absent.
+
 How $queryStats Transforms Data Using transformIdentifiers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -292,7 +362,9 @@ Query stats entries contain the following top-level documents:
        ``$queryStats`` virtual collection. ``asOf`` does not necessarily
        return the same UTC time for each result. Internally, the data
        structure is partitioned, and each partition will be read at an
-       individual point in time.
+       individual point in time. If the pipeline uses the top-K sort
+       optimization, all entries report the timestamp captured at the
+       start of the scan.
 
    * - ``metrics``
      - Contains aggregated runtime metrics associated with each query
