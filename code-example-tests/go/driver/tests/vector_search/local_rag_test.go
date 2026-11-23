@@ -31,7 +31,7 @@ type queryResult struct {
 }
 
 // requiresOllama skips the test when a local Ollama server is unreachable. The
-// examples generate embeddings with nomic-embed-text and answers with mistral,
+// examples generate embeddings with voyage-4-nano and answers with mistral,
 // both served by Ollama on the host in OLLAMA_HOST (or localhost:11434).
 func requiresOllama(t *testing.T) {
 	t.Helper()
@@ -111,7 +111,7 @@ func TestLocalRag(t *testing.T) {
 			ShouldMatch("examples/vector_search/local_rag/generate-embeddings-output.txt")
 	})
 
-	t.Run("EmbeddingsHave768Dimensions", func(t *testing.T) {
+	t.Run("EmbeddingsHave2048Dimensions", func(t *testing.T) {
 		coll := client.Database(databaseName).Collection(collectionName)
 		filter := bson.D{{Key: local_rag.EmbeddingsField, Value: bson.D{{Key: "$exists", Value: true}}}}
 
@@ -121,7 +121,7 @@ func TestLocalRag(t *testing.T) {
 		}
 
 		actual := []bson.D{{{Key: "dimensions", Value: len(listing.Embeddings)}}}
-		expected := []bson.D{{{Key: "dimensions", Value: 768}}}
+		expected := []bson.D{{{Key: "dimensions", Value: 2048}}}
 		compare.ExpectThat(t, actual).ShouldMatch(expected)
 	})
 

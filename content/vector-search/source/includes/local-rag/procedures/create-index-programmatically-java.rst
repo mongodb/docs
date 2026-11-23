@@ -14,7 +14,7 @@
         <avs-types-vector-search>` index type for the
         ``sample_airbnb.listingsAndReviews`` collection.
         This field contains the embedding created using the embedding model.
-      - Enforce ``768`` vector dimensions and measure similarity between
+      - Enforce ``2048`` vector dimensions and measure similarity between
         vectors using ``cosine``.
 
       .. literalinclude:: /code-examples/tested/java/driver-sync/vectorSearch/localRag/VectorIndex.snippet.vector-index.java

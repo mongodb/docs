@@ -3,78 +3,30 @@
 
    .. step:: Download the local embedding model.
 
-      This example uses the `mixedbread-ai/mxbai-embed-large-v1
-      <https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1>`__ model
-      from the Hugging Face model hub. The simplest method to download the
-      model files is to clone the repository using Git with Git Large File
-      Storage. Hugging Face requires a `user access token
-      <https://huggingface.co/docs/hub/en/security-tokens>`__ or
-      `Git over SSH <https://huggingface.co/docs/hub/en/security-git-ssh>`__
-      to authenticate your request to clone the repository.
+      This example uses the `voyage-4-nano
+      <https://huggingface.co/voyageai/voyage-4-nano>`__ embedding model,
+      which you run locally with Ollama by using the official GGUF build
+      from the `MongoDB Hugging Face organization
+      <https://huggingface.co/MongoDB/voyage-4-nano-GGUF>`__. This model
+      requires Ollama 0.40.7 or later. Use only the official build because
+      community GGUF conversions are incompatible with the voyage-4
+      embedding space.
 
-      .. tabs::
-        
-         .. tab:: User Access Token
-            :tabid: user-access-token
+      Run the following command to pull the embedding model:
 
-            .. code-block:: shell
+      .. code-block:: shell
 
-               git clone https://<your-hugging-face-username>:<your-hugging-face-user-access-token>@huggingface.co/mixedbread-ai/mxbai-embed-large-v1
-
-         .. tab:: SSH
-            :tabid: ssh
-
-            .. code-block:: shell
-
-               git clone git@hf.co:mixedbread-ai/mxbai-embed-large-v1
-
-      .. tip:: Git Large File Storage
-
-         The Hugging Face model files are large, and require Git Large File
-         Storage (`git-lfs <https://git-lfs.com/>`__) to clone the repositories.
-         If you see errors related to large file storage, ensure you have
-         installed git-lfs.
-
-   .. step:: Get the local path to the model files.
-
-      Get the path to the local model files on your machine. This is the
-      parent directory that contains the git repository you just cloned.
-      If you cloned the model repository inside the project directory you
-      created for this tutorial, the parent directory path should resemble:
-
-      ``/Users/<username>/local-rag-mongodb``
-
-      Check the model directory and make sure it contains an ``onnx`` directory
-      that has a ``model_quantized.onnx`` file:
-
-      .. io-code-block::
-         :copyable: true
-
-         .. input::
-            :language: shell
-
-            cd mxbai-embed-large-v1/onnx
-            ls
-
-         .. output::
-            :language: console
-
-            model.onnx      model_fp16.onnx     model_quantized.onnx
+         ollama pull hf.co/MongoDB/voyage-4-nano-GGUF:Q8_0
 
    .. step:: Generate embeddings.
 
-      a. Navigate back to the ``local-rag-mongodb`` parent directory.
-
-      #. Create a file called ``get-embeddings.js``, and paste the following code
+      a. Create a file called ``get-embeddings.js``, and paste the following code
          into it:
 
          .. literalinclude:: /code-examples/tested/javascript/driver/vector_search/local_rag/get-embeddings.snippet.local-rag-get-embeddings.js
             :language: javascript
             :caption: get-embeddings.js
             :category: usage example
-
-         Replace the ``'/Users/<username>/local-rag-mongodb/'`` with the local
-         path from the prior step.
 
       #. Create another file called ``generate-embeddings.js`` and paste the
          following code into it:

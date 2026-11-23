@@ -51,7 +51,7 @@ func main() {
 			Fields: []vectorDefinitionField{{
 				Type:          "vector",
 				Path:          "embeddings",
-				NumDimensions: 768,
+				NumDimensions: 2048,
 				Similarity:    "cosine"}},
 		},
 		Options: opts,

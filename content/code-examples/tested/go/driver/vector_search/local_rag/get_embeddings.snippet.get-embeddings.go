@@ -8,7 +8,7 @@ import (
 )
 
 func GetEmbeddings(documents []string) [][]float32 {
-	llm, err := ollama.New(ollama.WithModel("nomic-embed-text"))
+	llm, err := ollama.New(ollama.WithModel("hf.co/MongoDB/voyage-4-nano-GGUF:Q8_0"))
 	if err != nil {
 		log.Fatalf("failed to connect to ollama: %v", err)
 	}

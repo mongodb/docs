@@ -11,7 +11,7 @@ namespace Tests.VectorSearch;
 ///     Tests for the local RAG C# examples.
 ///     <para>
 ///         Nothing is mocked. Embeddings come from a real Ollama server running
-///         at http://localhost:11434/ with the nomic-embed-text model pulled,
+///         at http://localhost:11434/ with the voyage-4-nano model pulled,
 ///         retrieval runs a real $vectorSearch query, and generation runs the
 ///         real mistral model through Ollama. Tests skip rather than fail when
 ///         Ollama or the search index is unavailable.
@@ -210,14 +210,14 @@ public class LocalRagTests
 
     [Test]
     [RequiresSampleData(DatabaseName, [CollectionName])]
-    [Description("Verifies that the Ollama embedding model returns a 768-dimension vector")]
+    [Description("Verifies that the Ollama embedding model returns a 2048-dimension vector")]
     public async Task TestGetEmbeddingReturnsVector()
     {
         var service = new OllamaAIService();
 
         var embedding = await service.GetEmbedding("Ocean Living! Secluded Secret Beach!");
 
-        Expect.That(embedding.Length).ShouldMatch(768);
+        Expect.That(embedding.Length).ShouldMatch(2048);
     }
 
     [Test]
@@ -259,7 +259,7 @@ public class LocalRagTests
 
     [Test]
     [RequiresSampleData(DatabaseName, [CollectionName])]
-    [Description("Verifies that each updated document stores a 768-dimension vector")]
+    [Description("Verifies that each updated document stores a 2048-dimension vector")]
     public async Task TestGenerateEmbeddingsStoresVectors()
     {
         _wroteEmbeddings = true;
@@ -270,7 +270,7 @@ public class LocalRagTests
         var document = _collection.Find(filter).First();
 
         Expect.That(document[LocalRagNames.EmbeddingsFieldName].AsBsonArray.Count)
-            .ShouldMatch(768);
+            .ShouldMatch(2048);
     }
 
     [Test]

@@ -15,7 +15,7 @@ try {
       fields: [
         {
           type: 'vector',
-          numDimensions: 1024,
+          numDimensions: 2048,
           path: 'embeddings',
           similarity: 'cosine',
         },

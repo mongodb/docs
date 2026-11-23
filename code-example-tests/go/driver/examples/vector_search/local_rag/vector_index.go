@@ -75,7 +75,7 @@ func CreateVectorIndex() string { // :remove:
 			Fields: []vectorDefinitionField{{
 				Type:          "vector",
 				Path:          EmbeddingsField,
-				NumDimensions: 768,
+				NumDimensions: 2048,
 				Similarity:    "cosine"}},
 		},
 		Options: opts,

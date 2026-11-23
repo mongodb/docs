@@ -60,7 +60,7 @@ public class MongoDBDataService
                         {
                             { "type", "vector" },
                             { "path", "embeddings" },
-                            { "numDimensions", 768 },
+                            { "numDimensions", 2048 },
                             { "similarity", "cosine" }
                         }
                     }

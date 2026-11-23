@@ -15,7 +15,7 @@
       in an index of the :ref:`vectorSearch <avs-types-vector-search>` type
       for the ``sample_airbnb.listingsAndReviews`` collection.
       This field contains the embeddings created using the
-      embedding model. The index definition specifies ``1024`` vector
+      embedding model. The index definition specifies ``2048`` vector
       dimensions and measures similarity using ``cosine``.
 
    .. step:: Create the {+avs+} index.

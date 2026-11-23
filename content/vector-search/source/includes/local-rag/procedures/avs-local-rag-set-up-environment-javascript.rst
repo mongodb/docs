@@ -19,7 +19,7 @@
 
       .. code-block:: console
 
-         npm install mongodb @xenova/transformers node-gyp gpt4all
+         npm install mongodb ollama node-gyp gpt4all
 
    .. step:: Update your ``package.json`` file.
 

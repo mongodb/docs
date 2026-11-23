@@ -59,7 +59,7 @@ func RetrieveDocuments(query string) []schema.Document {
 		log.Fatal(err)
 	}
 
-	llm, err := ollama.New(ollama.WithModel("nomic-embed-text"))
+	llm, err := ollama.New(ollama.WithModel("hf.co/MongoDB/voyage-4-nano-GGUF:Q8_0"))
 	if err != nil {
 		log.Fatalf("failed to create an embeddings client: %v", err)
 	}

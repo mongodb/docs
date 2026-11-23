@@ -1,13 +1,10 @@
-import { env, pipeline } from '@xenova/transformers';
+import ollama from 'ollama';
 
 // Function to generate embeddings for given data
 export async function getEmbedding(data) {
-  // Replace this path with the parent directory that contains the model files
-  env.localModelPath = '/Users/<username>/local-rag-mongodb/';
-  env.allowRemoteModels = false;
-  const task = 'feature-extraction';
-  const model = 'mxbai-embed-large-v1';
-  const embedder = await pipeline(task, model);
-  const results = await embedder(data, { pooling: 'mean', normalize: true });
-  return Array.from(results.data);
+  const response = await ollama.embed({
+    model: 'hf.co/MongoDB/voyage-4-nano-GGUF:Q8_0',
+    input: data,
+  });
+  return response.embeddings[0];
 }

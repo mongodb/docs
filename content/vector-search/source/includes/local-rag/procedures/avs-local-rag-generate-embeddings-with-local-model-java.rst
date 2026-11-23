@@ -3,13 +3,20 @@
 
    .. step:: Download the local embedding model.
 
-      Run the following command to pull the `nomic-embed-text
-      <https://ollama.com/library/nomic-embed-text>`__ model
-      from Ollama:
+      This example uses the `voyage-4-nano
+      <https://huggingface.co/voyageai/voyage-4-nano>`__ embedding model,
+      which you run locally with Ollama by using the official GGUF build
+      from the `MongoDB Hugging Face organization
+      <https://huggingface.co/MongoDB/voyage-4-nano-GGUF>`__. This model
+      requires Ollama 0.40.7 or later. Use only the official build because
+      community GGUF conversions are incompatible with the voyage-4
+      embedding space.
+
+      Run the following command to pull the embedding model:
 
       .. code-block:: shell
 
-         ollama pull nomic-embed-text
+         ollama pull hf.co/MongoDB/voyage-4-nano-GGUF:Q8_0
 
    .. step:: Define your model and method to generate vector embeddings.
 

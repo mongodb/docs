@@ -33,7 +33,7 @@ import vectorSearch.localRag.VectorIndex;
 
 /**
  * Tests the local RAG tutorial examples. These tests require a running Ollama
- * instance with the 'nomic-embed-text' and 'mistral' models pulled locally, and
+ * instance with the 'voyage-4-nano' and 'mistral' models pulled locally, and
  * skip automatically when Ollama is unreachable.
  *
  * <p>The examples write to the shared 'sample_airbnb.listingsAndReviews'
@@ -89,7 +89,7 @@ public class LocalRagTests {
                     .build();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             return response.statusCode() == 200
-                    && response.body().contains("nomic-embed-text")
+                    && response.body().contains("voyage-4-nano")
                     && response.body().contains("mistral");
         } catch (Exception e) {
             return false;
@@ -109,7 +109,7 @@ public class LocalRagTests {
 
         Document embedded = collection.find(Filters.exists(EMBEDDING_FIELD)).first();
         Expect.that(embedded != null).shouldMatch(true);
-        Expect.that(embedded.getList(EMBEDDING_FIELD, Double.class).size()).shouldMatch(768);
+        Expect.that(embedded.getList(EMBEDDING_FIELD, Double.class).size()).shouldMatch(2048);
     }
 
     @Test
@@ -138,10 +138,10 @@ public class LocalRagTests {
 
         // OllamaModels has no dedicated test; it is exercised transitively here
         // and in testGenerateEmbeddings. Assert that the query embedding matches
-        // the stored 'embeddings_java' dimensions (768) so a wrong or empty query
+        // the stored 'embeddings_java' dimensions (2048) so a wrong or empty query
         // vector can't silently return results and pass unnoticed.
         BsonArray queryEmbedding = OllamaModels.getEmbedding(question);
-        Expect.that(queryEmbedding.size()).shouldMatch(768);
+        Expect.that(queryEmbedding.size()).shouldMatch(2048);
 
         List<Document> documents = LocalLLM.retrieveDocuments(question, collection);
 

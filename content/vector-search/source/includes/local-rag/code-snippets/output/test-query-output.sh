@@ -1,25 +1,25 @@
 {
-  listing_url: 'https://www.airbnb.com/rooms/10317142',
-  summary: 'Ocean Living! Secluded Secret Beach! Less than 20 steps to the Ocean! This spacious 4 Bedroom and 4 Bath house has all you need for your family or group. Perfect for Family Vacations and executive retreats. We are in a gated beachfront estate, with lots of space for your activities.',
-  score: 0.8703486323356628
+  listing_url: 'https://www.airbnb.com/rooms/10266175',
+  summary: "A beautiful and comfortable 1 Bedroom Air Conditioned Condo in Makaha Valley - stunning Ocean & Mountain views All the amenities of home, suited for longer stays. Full kitchen & large bathroom.  Several gas BBQ's for all guests to use & a large heated pool surrounded by reclining chairs to sunbathe.  The Ocean you see in the pictures is not even a mile away, known as the famous Makaha Surfing Beach. Golfing, hiking,snorkeling  paddle boarding, surfing are all just minutes from the front door.",
+  score: 0.7713099718093872
 }
 {
-  listing_url: 'https://www.airbnb.com/rooms/10488837',
-  summary: 'There are 2 bedrooms and a living room in the house. 1 Bathroom. 1 Kitchen. Friendly neighbourhood. Close to sea side and Historical places.',
-  score: 0.861828088760376
+  listing_url: 'https://www.airbnb.com/rooms/10209136',
+  summary: 'A friendly apartment block where everyone knows each other and there is a strong communal vibe. Property has a huge backyard with vege garden and skate ramp. 7min walk to the beach and 2min to buses.',
+  score: 0.7708027362823486
 }
 {
-  listing_url: 'https://www.airbnb.com/rooms/11719579',
-  summary: 'This is a gorgeous home just off the main rd, with lots of sun and new amenities. room has own entrance with small deck, close proximity to the beach , bus to the junction , around the corner form all the cafes, bars and restaurants (2 mins).',
-  score: 0.8616757392883301
+  listing_url: 'https://www.airbnb.com/rooms/1016739',
+  summary: 'Room 2  Private room in charming recently renovated federation guest house at Coogee Beach. Prices are per room for 2 People only. A queen  and a single bed. Not suitable for group booking All rooms have  TV, desk, wardrobe, beds, unlimited wifi 2 mins from the beach, cafes and transport. This is not a party house but a safe and clean place to stay. Share bathrooms and kitchen... All common areas are cleaned daily.',
+  score: 0.761394202709198
 }
 {
-  listing_url: 'https://www.airbnb.com/rooms/12657285',
-  summary: 'This favourite home offers a huge balcony, lots of space, easy life, all the comfort you need and a fantastic location! The beach is only 3 minutes away. Metro is 2 blocks away (starting august 2016).',
-  score: 0.8583258986473083
+  listing_url: 'https://www.airbnb.com/rooms/10220130',
+  summary: 'Cozy and comfortable apartment. Ideal for families and vacations.  3 bedrooms, 2 of them suites.  Located 20-min walk to the beach and close to the Rio 2016 Olympics Venues. Situated in a modern and secure condominium, with many entertainment available options around.',
+  score: 0.7610522508621216
 }
 {
-  listing_url: 'https://www.airbnb.com/rooms/10985735',
-  summary: '5 minutes to seaside where you can swim, and 5 minutes to the woods, this two floors single house contains a cultivated garden with fruit trees, two large bedrooms and a big living room with a large sea view.',
-  score: 0.8573609590530396
+  listing_url: 'https://www.airbnb.com/rooms/10186755',
+  summary: 'Near to underground metro station. Walking distance to seaside. 2 floors 1 entry. Husband, wife, girl and boy is living.',
+  score: 0.7486934065818787
 }

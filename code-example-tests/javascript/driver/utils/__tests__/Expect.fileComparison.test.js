@@ -256,6 +256,29 @@ describe('Expect API (file-based comparison tests)', () => {
     });
   });
 
+  describe('plain-text fallback', () => {
+    it('matches identical plain-text output when the expected file is not JSON', () => {
+      fs.writeFileSync(
+        tempFile,
+        'Generating embeddings and updating documents...\nCount of documents updated: 50\n'
+      );
+      const actual =
+        'Generating embeddings and updating documents...\nCount of documents updated: 50';
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).not.toThrow();
+    });
+
+    it('does not match different plain-text output', () => {
+      fs.writeFileSync(tempFile, 'Count of documents updated: 50');
+      expect(() => {
+        Expect.that('Count of documents updated: 51').shouldMatch(
+          'temp-output.json'
+        );
+      }).toThrow();
+    });
+  });
+
   describe('handles unacceptable structure by returning false', () => {
     it('returns false and logs if expected output file is invalid', () => {
       fs.writeFileSync(tempFile, '{ invalid json }');

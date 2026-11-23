@@ -3,9 +3,9 @@
  *
  * These tests run against real services — nothing is mocked:
  *
- * - Embeddings come from the real `mixedbread-ai/mxbai-embed-large-v1` model
- *   through `@xenova/transformers`, downloaded from the Hugging Face model hub
- *   on first run and cached locally afterward.
+ * - Embeddings come from the real `voyage-4-nano` model, pulled from the
+ *   official MongoDB GGUF repository on Hugging Face and served by a locally
+ *   running Ollama server through the `ollama` package.
  * - Retrieval runs a real `$vectorSearch` query against the
  *   `sample_airbnb.listingsAndReviews` collection on the deployment in
  *   CONNECTION_STRING. The deployment must have Search and Vector Search
@@ -18,9 +18,9 @@
  * on that collection. Both are reverted in teardown. The sample database
  * itself is never dropped.
  *
- * Because the two models together are several gigabytes and download on first
+ * Because the LLM download is several gigabytes and downloads on first
  * run, these tests are opt-in. Set `RUN_LOCAL_MODEL_TESTS=true` to run them.
- * `@xenova/transformers` and `gpt4all` are optional dependencies installed
+ * `ollama` and `gpt4all` are optional dependencies installed
  * separately (see package-models.json); CI leaves the variable unset, so the
  * suite skips there and never needs them.
  */
@@ -32,7 +32,7 @@ import { checkSampleDataAvailable } from '../../utils/sampleDataChecker.js';
 const DATABASE_NAME = 'sample_airbnb';
 const COLLECTION_NAME = 'listingsAndReviews';
 const INDEX_NAME = 'vector_index';
-const EMBEDDING_DIMENSIONS = 1024;
+const EMBEDDING_DIMENSIONS = 2048;
 
 // Model downloads and a 50-document embedding pass are slow; allow generous
 // time so a first run that fetches the models does not fail on the timeout.
@@ -132,6 +132,20 @@ describeOrSkip('Vector Search local RAG tutorial', () => {
     );
   }
 
+  // The search index refreshes asynchronously after the embedding writes, so
+  // a query issued immediately after generateEmbeddings() can return no
+  // documents. Poll until the freshly embedded documents are visible.
+  async function runTestQueryWhenIndexed(timeoutSeconds = 120) {
+    const deadline = Date.now() + timeoutSeconds * 1000;
+    let results = [];
+    while (Date.now() < deadline) {
+      results = await runTestQuery();
+      if (results && results.length > 0) return results;
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+    }
+    return results;
+  }
+
   function skipWithoutSampleData() {
     if (!sampleDataAvailable) {
       console.warn(
@@ -158,7 +172,7 @@ describeOrSkip('Vector Search local RAG tutorial', () => {
     );
 
     it(
-      'Should store a 1024-dimension vector on each updated document',
+      'Should store a 2048-dimension vector on each updated document',
       async () => {
         if (skipWithoutSampleData()) return;
 
@@ -209,7 +223,7 @@ describeOrSkip('Vector Search local RAG tutorial', () => {
         await ensureIndex();
         await waitForQueryableIndex();
 
-        const results = await runTestQuery();
+        const results = await runTestQueryWhenIndexed();
 
         // Vector search scores and result order vary across environments, so
         // validate the shape of the results rather than exact values.
@@ -249,6 +263,10 @@ describeOrSkip('Vector Search local RAG tutorial', () => {
         await generateEmbeddings();
         await ensureIndex();
         await waitForQueryableIndex();
+
+        // Wait until the freshly embedded documents are visible to the
+        // vector search query before generating an answer from them.
+        await runTestQueryWhenIndexed();
 
         const answer = await answerQuestion();
 

@@ -9,7 +9,7 @@ namespace Examples.VectorSearch.LocalRag;
 ///         the PyMongo local RAG suite, which writes 1024-dimension vectors to
 ///         <c>embeddings</c> and builds a <c>vector_index</c> of the same name on
 ///         the same collection. The Ollama model used here produces
-///         768-dimension vectors, so sharing either name would break both
+///         2048-dimension vectors, so sharing either name would break both
 ///         suites whenever they run against the same deployment.
 ///     </para>
 ///     <para>

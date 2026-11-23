@@ -1,26 +1,35 @@
 Question: Can you recommend me a few AirBnBs that are beach houses? Include a link to the listings.
 Generating a response from the retrieved documents. This may take a few moments.
-Answer:  Based on the context provided, here are some beach house Airbnb listings that might suit your needs:
+Answer:  Based on the provided context, here are three Airbnb listings that are beach houses:
 
-1. Lani Beach House - Aloha: This luxurious beach house offers ocean views from all bedrooms and features vaulted ceilings, skylights, granite countertops, stainless steel appliances, and a gourmet kitchen. You can find it at this link: https://www.airbnb.com/rooms/11553333
-2. Ocean Living! Secluded Secret Beach!: This spacious 4-bedroom, 4-bath beach house is perfect for families or groups and is less than 20 steps from the ocean. It's located in a gated beachfront estate with lots of space for activities. You can find it at this link: https://www.airbnb.com/rooms/10317142
-3. A beautiful and comfortable 1-Bedroom Condo in Makaha Valley: This condo offers stunning ocean and mountain views, a full kitchen, large bathroom, and is suited for longer stays. The famous Makaha Surfing Beach is not even a mile away. You can find it at this link: https://www.airbnb.com/rooms/10266175
-4. There are 2 bedrooms and a living room in the house: This listing does not provide much information about the beach, but it mentions that the house is close to the sea side and historical places. You can find it at this link: https://www.airbnb.com/rooms/10488837
-5. The Apartment on Copacabana beach block: This apartment is well-located, a 5-minute walk from Ipanema beach, and offers all the amenities of home, including a kitchen, washing machine, and several utensils for use. You can find it at this link: https://www.airbnb.com/rooms/10038496
+1. The Sugar Beach Resort - Enjoy a beachfront setting with this postcard-worthy listing. You can find it here: https://www.airbnb.com/rooms/11319047
+
+2. The 2 bed, 2 bath condo - This condo is within walking distance to the beach for swimming, surfing, and kayaking. You can check it out here: https://www.airbnb.com/rooms/11695887
+
+3. The gorgeous home just off the main road - This home has a small deck, is close to the beach, and has a bus to the junction nearby. The cafes, bars, and restaurants are around the corner (2 mins away). You can find it here: https://www.airbnb.com/rooms/11719579
+
+4. Lani Beach House - This luxurious island-style home has been completely redecorated and all bedrooms have ocean views. However, please be aware of the state tax as mentioned in the "Other Things to Note" section. You can find it here: https://www.airbnb.com/rooms/11553333
+
+5. The quiet cottage - This cottage is steps from the ocean and is located on a 2-acre property with tropical greenhouses. You can find it here: https://www.airbnb.com/rooms/10392282
 ______________________
 Final Prompt Sent to LLM:
 Use the following pieces of context to answer the question at the end:
+Listing URL: https://www.airbnb.com/rooms/11319047
+Summary: The Sugar Beach Resort enjoys a beachfront setting fit for a postcard.
+
+Listing URL: https://www.airbnb.com/rooms/11695887
+Summary: Location, location, location... This is a great 2 bed, 2 bath condo is within walking distance to fabulous restaurants, all kinds of shopping, and even the grocery store.  Simply walk across the street to the beach for swimming, surfing & kayaking.
+
+Listing URL: https://www.airbnb.com/rooms/11719579
+Summary: This is a gorgeous home just off the main rd, with lots of sun and new amenities. room has own entrance with small deck, close proximity to the beach , bus to the junction , around the corner form all the cafes, bars and restaurants (2 mins).
 
 Listing URL: https://www.airbnb.com/rooms/11553333
- Summary: "Lani Beach House" Aloha - Please do not reserve until reading about the State Tax in "Other Things to Note" section. Please do not reserve unless you agree to pay taxes to Hawaii Beach Homes directly. If you have questions, please inquire before booking.   The home has been completely redecorated in a luxurious island style: vaulted ceilings, skylights, granite counter tops, stainless steel appliances and a gourmet kitchen are just some of the the features. All bedrooms have ocean views
-Listing URL: https://www.airbnb.com/rooms/10317142
- Summary: Ocean Living! Secluded Secret Beach! Less than 20 steps to the Ocean! This spacious 4 Bedroom and 4 Bath house has all you need for your family or group. Perfect for Family Vacations and executive retreats. We are in a gated beachfront estate, with lots of space for your activities.
-Listing URL: https://www.airbnb.com/rooms/10266175
- Summary: A beautiful and comfortable 1 Bedroom Air Conditioned Condo in Makaha Valley - stunning Ocean & Mountain views All the amenities of home, suited for longer stays. Full kitchen & large bathroom.  Several gas BBQ's for all guests to use & a large heated pool surrounded by reclining chairs to sunbathe.  The Ocean you see in the pictures is not even a mile away, known as the famous Makaha Surfing Beach. Golfing, hiking,snorkeling  paddle boarding, surfing are all just minutes from the front door.
-Listing URL: https://www.airbnb.com/rooms/10488837
- Summary: There are 2 bedrooms and a living room in the house. 1 Bathroom. 1 Kitchen. Friendly neighbourhood. Close to sea side and Historical places.
-Listing URL: https://www.airbnb.com/rooms/10038496
- Summary: The Apartment has a living room, toilet, bedroom (suite) and American kitchen. Well located, on the Copacabana beach block a 05 Min. walk from Ipanema beach (Arpoador). Internet wifi, cable tv, air conditioning in the bedroom, ceiling fans in the bedroom and living room, kitchen with microwave, cooker, Blender, dishes, cutlery and service area with fridge, washing machine, clothesline for drying clothes and closet with several utensils for use.  The property boasts 45 m2.
+Summary: "Lani Beach House" Aloha - Please do not reserve until reading about the State Tax in "Other Things to Note" section. Please do not reserve unless you agree to pay taxes to Hawaii Beach Homes directly. If you have questions, please inquire before booking.   The home has been completely redecorated in a luxurious island style: vaulted ceilings, skylights, granite counter tops, stainless steel appliances and a gourmet kitchen are just some of the the features. All bedrooms have ocean views
+
+Listing URL: https://www.airbnb.com/rooms/10392282
+Summary: The place to be on the north shore is where you can be steps from the ocean and watch the stars at night.  Our 2 acre property (with tropical greenhouses) hosts a quiet cottage with private driveway/private access.
+
+
 ---------------
 Can you recommend me a few AirBnBs that are beach houses? Include a link to the listings.
 

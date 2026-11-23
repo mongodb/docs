@@ -125,6 +125,22 @@ class ComparisonEngine {
       return ComparisonResult.success();
     }
 
+    // The kernel only parses JSON-shaped expected content. When it cannot
+    // parse the expected value and both sides are plain strings, fall back
+    // to a direct text comparison, mirroring the Go bridge.
+    const expectedParseFailed = (response.errors || []).some(
+      (e) =>
+        e.path === 'expected' &&
+        typeof e.message === 'string' &&
+        e.message.includes('failed to parse expected content')
+    );
+    if (expectedParseFailed && typeof actual === 'string') {
+      const normalizeText = (s) => s.replace(/\r\n/g, '\n').replace(/[ \t\n]+$/, '');
+      if (normalizeText(expectedContent) === normalizeText(actual)) {
+        return ComparisonResult.success();
+      }
+    }
+
     if (response.error) {
       return ComparisonResult.failure('root', expected, actual, response.error);
     }

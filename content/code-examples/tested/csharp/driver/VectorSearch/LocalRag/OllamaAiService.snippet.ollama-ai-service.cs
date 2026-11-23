@@ -5,7 +5,7 @@ namespace MyCompany.RAG.Local;
 public class OllamaAIService
 {
     private static readonly Uri OllamaUri = new("http://localhost:11434/");
-    private static readonly string EmbeddingModelName = "nomic-embed-text";
+    private static readonly string EmbeddingModelName = "hf.co/MongoDB/voyage-4-nano-GGUF:Q8_0";
     private static readonly OllamaEmbeddingGenerator EmbeddingGenerator = new OllamaEmbeddingGenerator(OllamaUri, EmbeddingModelName);
     private static readonly string ChatModelName = "mistral";
     private static readonly OllamaChatClient ChatClient = new OllamaChatClient(OllamaUri, ChatModelName);

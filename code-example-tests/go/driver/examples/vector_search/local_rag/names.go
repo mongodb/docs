@@ -7,7 +7,7 @@ package local_rag
 // suite cannot collide with the PyMongo local RAG suite, which writes
 // 1024-dimension vectors to "embeddings" and builds a "vector_index" of the
 // same name on the same collection. The Ollama model used here produces
-// 768-dimension vectors, so sharing either name would break both suites
+// 2048-dimension vectors, so sharing either name would break both suites
 // whenever they run against the same deployment.
 //
 // Bluehawk replace terms substitute the documented names back into the

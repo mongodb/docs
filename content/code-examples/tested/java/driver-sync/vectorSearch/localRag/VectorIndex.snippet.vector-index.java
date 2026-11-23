@@ -32,7 +32,7 @@ public class VectorIndex {
                     "fields",
                     Collections.singletonList(new Document("type", "vector")
                             .append("path", "embeddings")
-                            .append("numDimensions", 768)
+                            .append("numDimensions", 2048)
                             .append("similarity", "cosine")));
             SearchIndexModel indexModel = new SearchIndexModel(indexName, definition, SearchIndexType.vectorSearch());
 
@@ -67,15 +67,18 @@ public class VectorIndex {
                 if (!cursor.hasNext()) {
                     break;
                 }
-                Document current = cursor.next();
-                String name = current.getString("name");
-                boolean queryable = current.getBoolean("queryable");
-                if (name.equals(indexName) && queryable) {
-                    System.out.println(indexName + " index is ready to query");
-                    return;
-                } else {
-                    Thread.sleep(500);
+                // The collection can have multiple search indexes, so check
+                // every index in the cursor for the target name.
+                while (cursor.hasNext()) {
+                    Document current = cursor.next();
+                    String name = current.getString("name");
+                    boolean queryable = current.getBoolean("queryable");
+                    if (name.equals(indexName) && queryable) {
+                        System.out.println(indexName + " index is ready to query");
+                        return;
+                    }
                 }
+                Thread.sleep(500);
             }
         }
     }

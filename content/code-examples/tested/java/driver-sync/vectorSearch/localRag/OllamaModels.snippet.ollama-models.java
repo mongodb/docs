@@ -23,7 +23,7 @@ public class OllamaModels {
         if (embeddingModel == null) {
             embeddingModel = OllamaEmbeddingModel.builder()
                     .timeout(ofSeconds(10))
-                    .modelName("nomic-embed-text")
+                    .modelName("hf.co/MongoDB/voyage-4-nano-GGUF:Q8_0")
                     .baseUrl(host)
                     .build();
         }
