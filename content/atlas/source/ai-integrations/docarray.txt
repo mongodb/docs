@@ -1,0 +1,819 @@
+.. _docarray:
+
+===============================
+Integrate MongoDB with DocArray
+===============================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. meta::
+   :keywords: vector database, vector search, multimodal, pydantic, code example, python
+   :description: Integrate MongoDB with DocArray to persist multimodal document collections and run Vector Search, Full-Text Search, hybrid search, and MQL filter queries through the MongoDBAtlasDocumentIndex backend.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can integrate MongoDB with `DocArray <https://docs.docarray.org/>`__,
+an open-source Python library built on top of Pydantic document
+schemas. DocArray was created by `Jina AI <https://jina.ai/>`__ and
+is hosted by the `Linux Foundation AI & Data initiative <https://lfaidata.foundation/>`__.
+The library is designed to natively support nested, unstructured,
+and mixed-media data.
+
+The ``MongoDBAtlasDocumentIndex`` backend allows you to persist
+DocArray document collections in MongoDB, and you can run {+avs+},
+{+fts+}, hybrid search, and MQL filter queries against them from
+the same index object.
+
+.. tip::
+
+   To learn more about the Pydantic data validation library,
+   see the `Pydantic <https://pydantic.dev/docs/validation/latest/>`__
+   documentation.
+
+.. TODO: uncomment once get started is created
+.. Get Started
+.. -----------
+..
+.. To complete a tutorial that configures DocArray to use MongoDB, see :ref:`docarray-get-started`.
+
+Installation
+------------
+
+DocArray requires PyMongo v4.6.2 or later. To install the latest
+DocArray and PyMongo versions, select the tab corresponding to
+your package manager and run the following command:
+
+.. tabs::
+
+   .. tab:: pip
+      :tabid: pip
+
+      .. code-block:: shell
+
+         pip install "docarray[mongodb]"
+
+   .. tab:: poetry
+      :tabid: poetry
+
+      .. code-block:: shell
+
+         poetry add docarray --extras mongodb
+
+   .. tab:: uv
+      :tabid: uv
+
+      .. code-block:: shell
+
+         uv add "docarray[mongodb]"
+
+Environment Variables
+~~~~~~~~~~~~~~~~~~~~~
+
+Before you run the examples on this page, set the 
+``MONGODB_URI`` environment variable to the connection string
+for your MongoDB deployment.
+
+Usage
+-----
+
+To use MongoDB as the storage backend for a DocArray document
+collection, define a document schema by subclassing ``BaseDoc``,
+DocArray's base document class. Then, pass your MongoDB connection
+string and database name to the ``MongoDBAtlasDocumentIndex``
+constructor.
+
+Select the :guilabel:`Basic initialization` tab to view a minimal
+MongoDB and DocArray configuration example, or select the
+:guilabel:`Custom configuration` tab to see how to configure the
+integration with custom settings.
+
+.. tabs::
+
+   .. tab:: Basic initialization
+      :tabid: basic
+
+      To enable searches on a field, pass an ``index_name`` key
+      in that field's ``json_schema_extra`` dictionary. For a
+      vector field, specify the embedding dimensionality in the
+      field's type annotation, such as ``NdArray[768]``. The
+      following example defines a schema with a text field and a
+      vector field, then initializes an index typed to that
+      schema:
+
+      .. code-block:: python
+
+         import os
+         from pydantic import Field
+         from docarray import BaseDoc
+         from docarray.index import MongoDBAtlasDocumentIndex
+         from docarray.typing import NdArray
+
+
+         class ArticleDoc(BaseDoc):
+             title: str
+             body: str = Field(json_schema_extra={"index_name": "body_text_index"})
+             embedding: NdArray[768] = Field(json_schema_extra={"index_name": "embedding_vector_index"})
+
+
+         index = MongoDBAtlasDocumentIndex[ArticleDoc](
+             mongo_connection_uri=os.environ["MONGODB_URI"],
+             database_name="my_database",
+             index_name="articles",
+         )
+
+   .. tab:: Custom configuration
+      :tabid: custom
+
+      To override DocArray's default search parameters for a field
+      type, pass a ``DBConfig`` instance to the ``MongoDBAtlasDocumentIndex``
+      constructor. The instance's ``default_column_config`` dictionary
+      maps a column's underlying type, such as an array or a string,
+      to a dictionary of parameter overrides.
+
+      The following example overrides the default search
+      parameters for array fields:
+
+      .. code-block:: python
+
+         import os
+         from pydantic import Field
+         from docarray import BaseDoc
+         from docarray.index import MongoDBAtlasDocumentIndex
+         from docarray.typing import NdArray
+         import bson
+
+
+         class ArticleDoc(BaseDoc):
+             title: str
+             body: str = Field(json_schema_extra={"index_name": "body_text_index"})
+             embedding: NdArray[768] = Field(json_schema_extra={"index_name": "embedding_vector_index"})
+
+
+         db_config = MongoDBAtlasDocumentIndex.DBConfig(
+             mongo_connection_uri=os.environ["MONGODB_URI"],
+             database_name="my_database",
+             index_name="articles",
+         )
+         db_config.default_column_config[bson.BSONARR]["oversample_factor"] = 10
+         db_config.default_column_config[bson.BSONARR]["max_candidates"] = 10000
+
+         index = MongoDBAtlasDocumentIndex[ArticleDoc](db_config=db_config)
+
+Before running a {+fts+} or {+avs+} query, you must create the
+corresponding indexes on your deployment. To learn more, see the
+:ref:`docarray-search-indexes` section on this page.
+
+.. collapsible::
+   :heading: MongoDBAtlasDocumentIndex Parameters
+   :sub_heading: Use these parameters to configure the index, either directly or through a DBConfig instance.
+   :expanded: false
+
+   .. list-table::
+      :widths: 25 15 60
+      :header-rows: 1
+
+      * - Parameter
+        - Necessity
+        - Description
+
+      * - ``mongo_connection_uri``
+        - Required
+        - MongoDB connection string. Defaults to
+          ``localhost`` if not set, which requires a MongoDB
+          deployment running locally. To learn more about finding
+          your connection string, see :ref:`connect-via-driver`.
+
+      * - ``database_name``
+        - Required
+        - Name of the database that holds the collection.
+          Defaults to ``default`` if not set.
+
+      * - ``index_name``
+        - Optional
+        - Name of the MongoDB collection that stores your
+          documents. If you don't set this value, DocArray uses
+          the lowercase name of your schema class as the
+          collection name.
+
+      * - ``default_column_config``
+        - Optional
+        - Dictionary that maps a column type, such as
+          ``bson.BSONARR`` for vector fields or ``bson.BSONSTR``
+          for string fields, to a dictionary of default search
+          parameter overrides for that type. Accepts keys such as
+          ``distance``, ``oversample_factor``, ``max_candidates``,
+          and ``operator``.
+
+Methods
+-------
+
+This section describes the methods that the ``MongoDBAtlasDocumentIndex``
+class provides. Each method operates on the collection that you configure
+when you initialize the index.
+
+The following examples use the ``ArticleDoc`` schema and ``index``
+object from the :guilabel:`Basic initialization` example, and
+assume that you've already created the corresponding {+avs+} and
+{+fts+} indexes on your deployment.
+
+index()
+~~~~~~~
+
+The ``index()`` method inserts one or more documents into the
+MongoDB collection.
+
+The following example creates five ``ArticleDoc`` documents and
+inserts them into the collection:
+
+.. code-block:: python
+
+   import numpy as np
+   from docarray import DocList
+
+   docs = DocList[ArticleDoc](
+       [
+           ArticleDoc(
+               title="Emperor Penguins",
+               body="Emperor penguins are the tallest and heaviest of all penguin species, standing up to 4 feet.",
+               embedding=np.random.rand(768),
+           ),
+           ArticleDoc(
+               title="Penguin Habitats",
+               body="Penguins are flightless seabirds that live almost exclusively below the equator. Some island-dwellers can be found in warmer climates.",
+               embedding=np.random.rand(768),
+           ),
+           ArticleDoc(
+               title="Penguins of Patagonia",
+               body="Patagonia is home to five penguin species: Magellanic, Humboldt, Gentoo, Southern Rockhopper, and King.",
+               embedding=np.random.rand(768),
+           ),
+           ArticleDoc(
+               title="Penguin Diving Depths",
+               body="Emperor penguins can dive deeper than any other bird, reaching depths of over 500 meters.",
+               embedding=np.random.rand(768),
+           ),
+           ArticleDoc(
+               title="Penguin Nesting Habits",
+               body="Some penguin species mate for life and return to the same nesting site every year.",
+               embedding=np.random.rand(768),
+           ),
+       ]
+   )
+
+   index.index(docs)
+
+.. collapsible::
+   :heading: index() Parameters
+   :sub_heading: Use this parameter to add documents to your collection.
+   :expanded: false
+
+   .. list-table::
+      :widths: 25 15 60
+      :header-rows: 1
+
+      * - Parameter
+        - Necessity
+        - Description
+
+      * - ``docs``
+        - Required
+        - Single document or sequence of documents to insert.
+          For best performance, pass a ``DocList`` rather than a
+          Python list.
+
+find()
+~~~~~~
+
+The ``find()`` method runs an approximate nearest-neighbor
+{+avs+} query on a single vector field and returns the
+matching documents together with their similarity scores.
+
+The following example searches the ``embedding`` field for the
+five documents most similar to a query vector:
+
+.. io-code-block::
+   :copyable: false
+
+   .. input::
+      :language: python
+
+      query_vector = np.random.rand(768)
+
+      result = index.find(
+          query=query_vector,
+          search_field="embedding",
+          limit=5,
+      )
+
+      for doc, score in zip(result.documents, result.scores):
+          print(f"[{score:.4f}] {doc.title}")
+
+   .. output::
+      :visible: false
+
+      # Your output might differ
+      [0.8844] Penguin Nesting Habits
+      [0.8806] Penguin Diving Depths
+      [0.8783] Emperor Penguins
+      [0.8764] Penguin Habitats
+      [0.8751] Penguins of Patagonia
+
+.. collapsible::
+   :heading: find() Parameters
+   :sub_heading: Use these parameters to configure the vector search query.
+   :expanded: false
+
+   .. list-table::
+      :widths: 25 15 60
+      :header-rows: 1
+
+      * - Parameter
+        - Necessity
+        - Description
+
+      * - ``query``
+        - Required
+        - Query embedding vector, or a document instance from
+          which DocArray extracts the vector for ``search_field``.
+
+      * - ``search_field``
+        - Required
+        - Name of the schema field to search against. This
+          field's ``json_schema_extra`` dictionary must include the
+          ``index_name`` key, and its type annotation must
+          specify the embedding dimensionality, such as
+          ``NdArray[768]``.
+
+      * - ``limit``
+        - Optional
+        - Maximum number of results to return. Defaults to
+          ``10``.
+
+   The ``find()`` method returns a named tuple of ``documents``
+   and ``scores``.
+
+find_batched()
+~~~~~~~~~~~~~~
+
+The ``find_batched()`` method runs a ``find()`` operation
+for multiple query vectors in a single call.
+
+The following example runs three searches on the ``embedding``
+field in a single call:
+
+.. io-code-block::
+   :copyable: false
+
+   .. input::
+      :language: python
+
+      queries = np.stack([np.random.rand(768) for _ in range(3)])
+
+      result = index.find_batched(
+          queries=queries,
+          search_field="embedding",
+          limit=3,
+      )
+
+      for batch_docs, batch_scores in zip(result.documents, result.scores):
+          for doc, score in zip(batch_docs, batch_scores):
+              print(f"[{score:.4f}] {doc.title}")
+
+   .. output::
+      :visible: false
+
+      # Your output might differ
+      # Query 1
+      [0.8872] Penguin Diving Depths
+      [0.8829] Penguins of Patagonia
+      [0.8745] Penguin Habitats
+      # Query 2
+      [0.8838] Penguin Diving Depths
+      [0.8750] Penguin Nesting Habits
+      [0.8728] Emperor Penguins
+      # Query 3
+      [0.8808] Penguin Diving Depths
+      [0.8798] Emperor Penguins
+      [0.8795] Penguin Nesting Habits
+
+.. collapsible::
+   :heading: find_batched() Parameters
+   :sub_heading: Use these parameters to configure the batched vector search query.
+   :expanded: false
+
+   .. list-table::
+      :widths: 25 15 60
+      :header-rows: 1
+
+      * - Parameter
+        - Necessity
+        - Description
+
+      * - ``queries``
+        - Required
+        - Sequence of query embedding vectors.
+
+      * - ``search_field``
+        - Required
+        - Name of the schema field to search against. This
+          field's ``json_schema_extra`` dictionary must include the
+          ``index_name`` key, and its type annotation must
+          specify the embedding dimensionality, such as
+          ``NdArray[768]``.
+
+      * - ``limit``
+        - Optional
+        - Maximum number of results to return per query.
+          Defaults to ``10``.
+
+   The ``find_batched()`` method returns a named tuple of
+   ``documents`` and ``scores``, where each element is a list with
+   one entry per query.
+
+text_search()
+~~~~~~~~~~~~~
+
+The ``text_search()`` method runs an {+fts+} query against a
+``str`` field whose ``json_schema_extra`` dictionary includes
+an ``index_name`` key.
+
+The following example searches the ``body`` field for the
+documents that best match a text query:
+
+.. io-code-block::
+   :copyable: false
+
+   .. input::
+      :language: python
+
+      result = index.text_search(
+          query="flightless seabirds",
+          search_field="body",
+      )
+
+      for doc, score in zip(result.documents, result.scores):
+          print(f"[{score:.4f}] {doc.title}")
+
+   .. output::
+      :visible: false
+
+      # Your output might differ
+      [1.1433] Penguin Habitats
+
+.. collapsible::
+   :heading: text_search() Parameters
+   :sub_heading: Use these parameters to configure the text search query.
+   :expanded: false
+
+   .. list-table::
+      :widths: 25 15 60
+      :header-rows: 1
+
+      * - Parameter
+        - Necessity
+        - Description
+
+      * - ``query``
+        - Required
+        - Text query string, or a document instance from
+          which DocArray extracts the text for ``search_field``.
+
+      * - ``search_field``
+        - Required
+        - Name of the ``str`` schema field to search. This
+          field's ``json_schema_extra`` dictionary must include the
+          ``index_name`` key.
+
+      * - ``limit``
+        - Optional
+        - Maximum number of results to return. Defaults to
+          ``10``.
+
+   The ``text_search()`` method returns a named tuple of
+   ``documents`` and ``scores``.
+
+text_search_batched()
+~~~~~~~~~~~~~~~~~~~~~
+
+The ``text_search_batched()`` method runs ``text_search()`` for
+multiple query strings in a single call.
+
+The following example runs three searches on the ``body`` field
+in a single call:
+
+.. io-code-block::
+   :copyable: false
+
+   .. input::
+      :language: python
+
+      queries = ["flightless seabirds", "nesting site", "dive deeper"]
+
+      result = index.text_search_batched(
+          queries=queries,
+          search_field="body",
+          limit=5,
+      )
+
+      for query, docs, scores in zip(queries, result.documents, result.scores):
+          print(f"Query: {query!r}")
+          for doc, score in zip(docs, scores):
+              print(f"  [{score:.4f}] {doc.title}")
+
+   .. output::
+      :visible: false
+
+      # Your output might differ
+      Query: 'flightless seabirds'
+        [1.1433] Penguin Habitats
+      Query: 'nesting site'
+        [1.2933] Penguin Nesting Habits
+      Query: 'dive deeper'
+        [1.2933] Penguin Diving Depths
+
+.. collapsible::
+   :heading: text_search_batched() Parameters
+   :sub_heading: Use these parameters to configure the batched text search query.
+   :expanded: false
+
+   .. list-table::
+      :widths: 25 15 60
+      :header-rows: 1
+
+      * - Parameter
+        - Necessity
+        - Description
+
+      * - ``queries``
+        - Required
+        - Sequence of text query strings.
+
+      * - ``search_field``
+        - Required
+        - Name of the ``str`` schema field to search. This
+          field's ``json_schema_extra`` dictionary must include the
+          ``index_name`` key.
+
+      * - ``limit``
+        - Optional
+        - Maximum number of results to return per query.
+          Defaults to ``10``.
+
+   The ``text_search_batched()`` method returns a named tuple of
+   ``documents`` and ``scores``, where each element is a list with
+   one entry per query.
+
+filter()
+~~~~~~~~
+
+The ``filter()`` method filters documents by using a MongoDB
+Query Language (MQL) expression. This method doesn't require a
+vector or text index, and it queries collection documents directly.
+
+The following examples filter documents by a set of exact title
+matches and by a text pattern:
+
+.. io-code-block::
+   :copyable: false
+
+   .. input::
+      :language: python
+
+      # Documents whose title exactly matches one of a set of values
+      exact_matches = index.filter(filter_query={"title": {"$in": ["Emperor Penguins", "Penguin Habitats"]}})
+      for doc in exact_matches:
+          print(doc.title)
+
+      # Documents matching a regular expression on a text field
+      pattern_matches = index.filter(filter_query={"title": {"$regex": "Penguin"}})
+      for doc in pattern_matches:
+          print(doc.title)
+
+   .. output::
+      :visible: false
+
+      # Exact matches
+      Emperor Penguins
+      Penguin Habitats
+      # Pattern matches
+      Emperor Penguins
+      Penguin Habitats
+      Penguins of Patagonia
+      Penguin Diving Depths
+      Penguin Nesting Habits
+
+.. collapsible::
+   :heading: filter() Parameters
+   :sub_heading: Use this parameter to configure the filter query.
+   :expanded: false
+
+   .. list-table::
+      :widths: 25 15 60
+      :header-rows: 1
+
+      * - Parameter
+        - Necessity
+        - Description
+
+      * - ``filter_query``
+        - Required
+        - MQL filter expression. Supports standard MongoDB
+          query operators such as ``$eq``, ``$gt``, ``$lt``,
+          ``$in``, and ``$regex``.
+
+      * - ``limit``
+        - Optional
+        - Maximum number of results to return. Defaults to
+          ``10``.
+
+   The ``filter()`` method returns a ``DocList`` of matching
+   documents.
+
+Subscript and Membership Syntax
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``MongoDBAtlasDocumentIndex`` supports Python's subscript and
+membership syntax for looking up documents by their ``id`` value
+rather than providing separate named methods.
+
+The following example retrieves, checks for, and deletes
+documents by ``id`` value:
+
+.. code-block:: python
+
+   # Retrieve a single document by id
+   doc = index[docs[0].id]
+
+   # Retrieve multiple documents by id
+   some_docs = index[[docs[0].id, docs[1].id]]
+
+   # Check whether a document exists in the index
+   docs[0] in index
+
+   # Delete a single document by id
+   del index[docs[0].id]
+
+   # Delete multiple documents by id
+   del index[[docs[0].id, docs[1].id]]
+
+Both the subscript getter and ``del`` accept either a single
+``id`` string or a sequence of ``id`` strings. If any requested
+``id`` value doesn't exist in the collection, the getter and ``del``
+raise a ``KeyError``.
+
+QueryBuilder
+------------
+
+Use the ``build_query()`` method to define hybrid queries that combine
+vector search, full-text search, and MQL filters into a single
+MongoDB aggregation pipeline. 
+
+The ``build_query()`` method returns a ``QueryBuilder`` object. Chain
+method calls on the returned ``QueryBuilder``, call ``build()`` to compile
+the query, then pass the result to the ``execute_query()`` method.
+
+The following example combines a vector search, a text search,
+and a filter into a single hybrid query:
+
+.. io-code-block::
+   :copyable: false
+
+   .. input::
+      :language: python
+
+      query_vector = np.random.rand(768)
+
+      query = (
+          index.build_query()
+          .find(query=query_vector, search_field="embedding")
+          .text_search(query="flightless seabirds", search_field="body")
+          .filter(query={"title": {"$in": ["Emperor Penguins", "Penguin Habitats"]}})
+          .build(limit=5)
+      )
+
+      result = index.execute_query(query)
+
+      for doc, score in zip(result.documents, result.scores):
+          print(f"[{score:.4f}] {doc.title}")
+
+   .. output::
+      :visible: false
+
+      # Your output might differ
+      [0.6667] Penguin Habitats
+      [0.1429] Emperor Penguins
+
+.. important:: Modify Your Index Definition
+
+   To use a field in a filter that you chain to
+   ``.find()``, you must index that field as the ``filter``
+   type in your {+avs+} index definition. To learn more,
+   see :ref:`avs-create-index`.
+
+When you combine ``.filter()`` with ``.find()``, the filter
+query runs inside the {+avs+} ``$vectorSearch`` stage. This
+stage supports only a subset of MQL operators. To learn which
+operators you can use, see :ref:`vector-search-pre-filter`.
+
+.. collapsible::
+   :heading: QueryBuilder Methods
+   :sub_heading: Use these methods to chain together and compose a query.
+   :expanded: false
+
+   .. list-table::
+      :widths: 25 35 40
+      :header-rows: 1
+
+      * - Method
+        - Parameters
+        - Description
+
+      * - ``find(query, search_field)``
+        - ``query``: vector, ``search_field``: ``str``
+        - Adds a vector search stage to the query.
+
+      * - ``text_search(query, search_field)``
+        - ``query``: ``str``, ``search_field``: ``str``
+        - Adds a full-text search stage to the query.
+
+      * - ``filter(query)``
+        - ``query``: ``dict``
+        - Adds an MQL filter stage to the query.
+
+      * - ``build(limit)``
+        - ``limit``: ``int``
+        - Compiles the staged operations into a query that you can
+          pass to ``execute_query()``.
+
+.. _docarray-search-indexes:
+
+Search Indexes
+--------------
+
+The ``MongoDBAtlasDocumentIndex`` class doesn't automatically
+create Search indexes for your schema. You must manually create
+a {+fts+} index for each text field and a {+avs+} index for each
+vector field that you plan to search. To learn how to create
+these indexes, see :ref:`avs-create-index`.
+
+The following {+fts+} index definition covers the ``body`` field
+in the ``ArticleDoc`` schema used in the examples on this
+page:
+
+.. code-block:: json
+
+   {
+     "mappings": {
+       "dynamic": false,
+       "fields": {
+         "body": [
+           {
+             "type": "string"
+           }
+         ]
+       }
+     }
+   }
+
+The following {+avs+} index definition covers the ``embedding``
+field:
+
+.. code-block:: json
+
+   {
+     "fields": [
+       {
+         "type": "vector",
+         "path": "embedding",
+         "numDimensions": 768,
+         "similarity": "cosine"
+       }
+     ]
+   }
+
+Ensure that the index name matches the ``index_name`` value from
+your schema, such as ``embedding_vector_index`` or
+``body_text_index``. If a search query references a field whose
+``index_name`` doesn't match an existing Search index, the query
+returns an error or no results.
+
+Additional Resources
+--------------------
+
+To learn more about using DocArray with MongoDB, see the
+following resources:
+
+- `DocArray <https://docs.docarray.org/>`__ documentation
+- `DocArray <https://github.com/docarray/docarray>`__ GitHub repository
