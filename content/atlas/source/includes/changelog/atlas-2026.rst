@@ -10,6 +10,35 @@ November 2026
   indexes. To learn more, see
   :ref:`atlas-infinite-workload-isolation`.
 
+- Adds the ``Encryption at Rest configuration update stalled`` alert,
+  which notifies you when an encryption at rest configuration change
+  remains pending beyond a configurable threshold. To learn more, see
+  :ref:`Encryption at Rest Alerts <alert-conditions-encryption-at-rest>`.
+
+- Lets you switch customer-managed key providers or encryption keys
+  through the {+atlas-ui+} or {+atlas-admin-api+} while keeping
+  :ref:`Encryption at Rest <security-kms-encryption>` enabled.
+
+- Updates the shard-count threshold for
+  :ref:`{+Managed-Configs+} <config-server-management>` from five to
+  10. |service| now uses an embedded config server for sharded
+  {+clusters+} with up to 10 shards and transitions to a dedicated
+  config server when the shard count exceeds 10.
+
+- Adds support for
+  :ref:`config server type transitions
+  <transition-to-dedicated-config-servers>` in sharded {+clusters+}
+  with unsharded time series collections on MongoDB 8.0.10 or later.
+
+- Adds :ref:`Sharding Recommendations <sharding-advisor>` to
+  |sharding-insights|, which provide guidance on when to shard a
+  cluster and how to optimize your shard key.
+
+- Adds support for integrating MongoDB with
+  :ref:`Google ADK <google-adk>`, which provides MongoDB-backed
+  search tools, persistent sessions, and long-term memory for
+  Python agents.
+
 .. _atlas_2026_10:
 
 October 2026
@@ -27,6 +56,16 @@ October 2026
   domain matches a verified domain in your identity provider
   configuration, so they no longer need to accept an invitation.
   To learn more, see :ref:`inviting-federated-users`.
+
+- Adds the :ref:`MongoDB session store adapter <claude-agent-sdk>`
+  for the Claude Agent SDK, which persists agent session
+  transcripts in MongoDB and lets you resume sessions across
+  processes and hosts.
+
+- Adds support for {+oauth-2+} authentication when you export
+  metrics to :ref:`OpenTelemetry <otel-integration>`, so you can
+  use short-lived credentials instead of long-lived static
+  headers.
 
 .. _atlas_2026_09:
 
@@ -498,4 +537,4 @@ January 2026
   with data exfiltration prevention policies enabled.
 
 
-.. last-run: 2026-10-14
+.. last-run: 2026-11-04
