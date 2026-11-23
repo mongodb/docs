@@ -103,7 +103,7 @@ end
 # end-timestamps-specific
 
 # start-timestamps-disable
-post.timeless.save
+post.timeless { post.save }
 # end-timestamps-disable
 
 # start-timestamps-short
