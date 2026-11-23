@@ -13,14 +13,47 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
   merge:
     runs-on: ubuntu-latest
 
     steps:
+      # A scheduled workflow keeps running after its feature branch is merged
+      # and deleted, and the checkout step below would then fail every day and
+      # post a failure to Slack. Check that the branch still exists first, and
+      # stop quietly when it doesn't.
+      - name: Check whether the feature branch still exists
+        id: branch
+        env:
+          GH_TOKEN: ${{ secrets.<github-token-secret> }}
+        run: |
+          set +e
+          git ls-remote --exit-code --heads \
+            "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" \
+            "<feature-branch>" >/dev/null 2>&1
+          rc=$?
+          set -e
+
+          case "$rc" in
+            0)
+              echo "exists=true" >> "$GITHUB_OUTPUT"
+              ;;
+            2)
+              # Exit code 2 means no matching ref, so the branch is gone.
+              echo "exists=false" >> "$GITHUB_OUTPUT"
+              echo "::notice::<feature-branch> no longer exists. Nothing to merge; delete this workflow."
+              ;;
+            *)
+              # Any other code is a real failure (bad token, network), which
+              # must not be mistaken for a deleted branch.
+              echo "::error::git ls-remote failed with exit code $rc."
+              exit 1
+              ;;
+          esac
+
       - name: Check out the feature branch
+        if: steps.branch.outputs.exists == 'true'
         uses: actions/checkout@v4
         with:
           ref: <feature-branch>
@@ -28,11 +61,13 @@ jobs:
           token: ${{ secrets.<github-token-secret> }}
 
       - name: Configure Git
+        if: steps.branch.outputs.exists == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Merge main into the feature branch
+        if: steps.branch.outputs.exists == 'true'
         id: merge
         run: |
           git fetch origin main
@@ -43,16 +78,31 @@ jobs:
             echo conflict | tee merge_status.txt
             git diff --name-only --diff-filter=U | tee conflicts.txt
             git merge --abort
+            # Fail the job so a conflict is not reported as a green run. The
+            # report step below still runs and posts the conflicting files.
+            exit 1
           fi
 
       - name: Push the merged branch
+        if: steps.branch.outputs.exists == 'true'
         run: |
-          if [ "$(cat merge_status.txt)" = "success" ]; then
-            git push origin <feature-branch>
+          if [ "$(cat merge_status.txt)" != "success" ]; then
+            exit 0
           fi
 
+          if git push origin <feature-branch>; then
+            echo "Pushed the merge commit."
+          else
+            # Record the failure so the report step does not report success.
+            echo push_failed | tee merge_status.txt
+            exit 1
+          fi
+
+      # Skip the report only when the branch is confirmed deleted. If the
+      # branch check itself fails (bad token, network), exists is never set,
+      # so the report still runs and posts the generic failure message.
       - name: Report the merge result
-        if: always()
+        if: always() && steps.branch.outputs.exists != 'false'
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.<slack-webhook-secret> }}
         run: |
@@ -68,6 +118,6 @@ jobs:
           fi
 
           jq -n --arg text "$message" '{text: $text}' \
-            | curl -s -X POST "$SLACK_WEBHOOK_URL" \
+            | curl -sS --fail -X POST "$SLACK_WEBHOOK_URL" \
               -H "Content-Type: application/json" \
               -d @-
