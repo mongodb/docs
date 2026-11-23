@@ -1,6 +1,18 @@
 Infrastructure
 ~~~~~~~~~~~~~~
 
+MongoDB Entry Point
+```````````````````
+
+Serves as the front door for MongoDB and MongoDB Atlas. This skill
+routes each task to the matching specialized MongoDB skill and offers to
+install that skill if needed. For general MongoDB development questions,
+such as CRUD operations, transactions, drivers, and ODMs, the skill
+answers from current MongoDB documentation. To recommend or create a
+deployment, the skill helps select and set up the right deployment path.
+For a no-signup test database, the skill recommends an Atlas Ephemeral
+cluster and offers to provision it.
+
 MongoDB MCP Setup
 `````````````````
 
