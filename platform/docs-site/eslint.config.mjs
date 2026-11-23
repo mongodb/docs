@@ -10,6 +10,17 @@ const compat = new FlatCompat({
   baseDirectory: __dirname,
 });
 
+const leafygreenBan = {
+  group: ['@leafygreen-ui/*'],
+  message:
+    'Deprecated in docs-site — use the @via-ds equivalent instead: @via-ds/components/* for components, @via-ds/icons for @leafygreen-ui/icon, @via-ds/tokens for @leafygreen-ui/palette and @leafygreen-ui/tokens, and CSS/SCSS modules for @leafygreen-ui/emotion. See UXE-1113.',
+};
+
+const emotionBan = {
+  group: ['@emotion/*'],
+  message: 'Use CSS/SCSS modules. Only src/app/emotion.tsx may import Emotion, for the @mdb/consistent-nav Header and Footer.',
+};
+
 const eslintConfig = [
   ...compat.extends('next/core-web-vitals', 'next/typescript'),
   ...nextConfig,
@@ -27,25 +38,13 @@ const eslintConfig = [
   },
   {
     rules: {
-      '@typescript-eslint/no-restricted-imports': [
-        'warn',
-        {
-          paths: [
-            {
-              name: '@emotion/styled',
-              message:
-                'Deprecated in docs-site — use CSS/SCSS modules instead. See UXE-1113.',
-            },
-          ],
-          patterns: [
-            {
-              group: ['@leafygreen-ui/*'],
-              message:
-                'Deprecated in docs-site — use the @via-ds equivalent instead: @via-ds/components/* for components, @via-ds/icons for @leafygreen-ui/icon, @via-ds/tokens for @leafygreen-ui/palette and @leafygreen-ui/tokens, and CSS/SCSS modules for @leafygreen-ui/emotion. See UXE-1113.',
-            },
-          ],
-        },
-      ],
+      '@typescript-eslint/no-restricted-imports': ['warn', { patterns: [leafygreenBan, emotionBan] }],
+    },
+  },
+  {
+    files: ['src/app/emotion.tsx'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': ['warn', { patterns: [leafygreenBan] }],
     },
   },
 ];

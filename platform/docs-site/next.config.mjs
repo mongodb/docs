@@ -164,12 +164,6 @@ const nextConfig = {
     NEXT_PUBLIC_MARIAN_URL: getMarianUrl(),
     NEXT_PUBLIC_BUILD_DOCS_PROJECT: process.env.DOCS_PROJECT ?? '',
   },
-  compiler: {
-    emotion: true,
-  },
-  experimental: {
-    optimizePackageImports: ['@leafygreen-ui/emotion'],
-  },
   webpack(config, { isServer }) {
     if (BUNDLE_STATS && !isServer) {
       config.plugins.push(bundleStatsPlugin());
@@ -283,12 +277,6 @@ const staticExportConfig = {
   // Only files with extension .offline.tsx / .offline.ts are built for static export.
   // See: https://github.com/vercel/next.js/discussions/51891#discussioncomment-6297178
   pageExtensions: ['offline.tsx', 'offline.ts'],
-  compiler: {
-    emotion: true,
-  },
-  experimental: {
-    optimizePackageImports: ['@leafygreen-ui/emotion'],
-  },
   images: {
     unoptimized: true,
   },

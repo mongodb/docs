@@ -1,8 +1,10 @@
 # Inline CSS Byte Baseline
 
-docs-site inlines its LeafyGreen styles into every served HTML document. `src/app/emotion.tsx`
-installs LeafyGreen's Emotion cache app-wide and serializes every generated rule into
-`<style data-emotion=...>` tags through `useServerInsertedHTML`. That markup sits ahead of the page
+docs-site inlines its Emotion styles into every served HTML document. `src/app/emotion.tsx`
+installs an Emotion cache app-wide and serializes every generated rule into
+`<style data-emotion=...>` tags through `useServerInsertedHTML`. When the baseline below was taken,
+LeafyGreen components rendered through that cache. Since UXE-1133 the only Emotion styles left are
+those of the `@mdb/consistent-nav` Header and Footer. That markup sits ahead of the page
 content, so anything reading the raw HTML pays for the whole stylesheet before reaching a line of
 prose. An AI agent fetching a docs page pays it in full.
 
@@ -232,15 +234,11 @@ when it lands.
 
 ## What moves this number
 
-Nothing in Via migration Phase 1. Phase 1 replaces component call sites while the Emotion cache
-stays installed app-wide, so the LeafyGreen components not yet converted still render correctly.
-`app/emotion.tsx` is untouched by design this cycle, and the baseline should hold roughly flat
-through it.
+UXE-1133 removed the last LeafyGreen component and replaced LeafyGreen's cache with a docs-owned
+one, which takes most of the baseline away. `app/emotion.tsx` stays for `@mdb/consistent-nav`, whose
+Header and Footer are built on Flora and theme-ui and style through Emotion at runtime. Inline
+`<style>` bytes fall to approximately zero only when that dependency stops using Emotion. Re-run
+this report against the same sample and record the result beside the baseline.
 
-The drop lands in the follow-on cycle, when the last LeafyGreen component leaves the tree and
-`app/emotion.tsx` can be deleted outright. Inline `<style>` bytes should then fall to approximately
-zero, with styling served as static CSS. Re-run this report against the same sample and record the
-result beside the baseline.
-
-A CI ratchet on this metric was deferred to that cycle so the guard lands with the deletion it
-protects rather than months ahead of it.
+A CI ratchet on this metric (UXE-1134) was deferred until the LeafyGreen styles were gone, so the
+guard lands with the drop it protects rather than months ahead of it.

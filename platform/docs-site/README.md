@@ -143,9 +143,9 @@ Output is written to `platform/docs-site/out/`.
 
 Prefer CSS/SCSS modules ([docs](https://nextjs.org/docs/app/getting-started/css#css-modules)) for layouts and server components that don't hydrate on the client.
 
-The design system is moving from [LeafyGreen](https://github.com/mongodb/leafygreen-ui) to Via (`@via-ds/components`, `@via-ds/icons`, `@via-ds/tokens`). Prefer Via for new components and for any LeafyGreen call site you touch. Remaining LeafyGreen components still use [Emotion](https://emotion.sh/docs/introduction); pass styles with `className`.
+Components come from Via (`@via-ds/components`, `@via-ds/icons`, `@via-ds/tokens`); pass styles with `className`. docs-site no longer depends on [LeafyGreen](https://github.com/mongodb/leafygreen-ui), and ESLint flags any `@leafygreen-ui/*` import.
 
-`src/app/emotion.tsx` inlines those Emotion styles into every served HTML document, ahead of the page content, until the last LeafyGreen component is gone. [INLINE-CSS-BASELINE.md](INLINE-CSS-BASELINE.md) records how many bytes that costs and how to re-measure it with `pnpm measure:inline-css`.
+The Header and Footer from `@mdb/consistent-nav` are built on Flora and theme-ui, which style through [Emotion](https://emotion.sh/docs/introduction) at runtime. `src/app/emotion.tsx` inlines those styles into every served HTML document, ahead of the page content. [INLINE-CSS-BASELINE.md](INLINE-CSS-BASELINE.md) records how many bytes that costs and how to re-measure it with `pnpm measure:inline-css`.
 
 ## Deploy
 
