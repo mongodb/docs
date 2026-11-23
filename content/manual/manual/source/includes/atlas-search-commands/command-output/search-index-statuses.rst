@@ -44,8 +44,17 @@ following:
      - The index build failed. Indexes can enter the ``FAILED`` state
        due to an invalid index definition.
 
+       ``mongot`` also reports an index as ``FAILED`` when it cannot
+       parse the index definition. An index definition can become
+       unparseable after a rollback to an earlier ``mongot`` version
+       that is incompatible with the definition. In this case,
+       ``mongot`` quarantines the index. The
+       index does not serve queries, but you can still view, update,
+       or delete it, and the index status details describe the parse
+       error.
+
        An index in the ``FAILED`` state may be queryable or
-       non-queryable. 
+       non-queryable. A quarantined index is always non-queryable.
    
    * - ``PENDING``
      - MongoDB has not yet started building the index.

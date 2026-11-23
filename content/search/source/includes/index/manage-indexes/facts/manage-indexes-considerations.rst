@@ -95,8 +95,48 @@ When creating and managing {+fts+} indexes, consider the following:
    If there are too many concurrent index creation or other index management
    operation requests, {+fts+} returns the following error:  
 
-   .. code-block:: shell 
+   .. code-block:: shell
 
       Too many concurrent requests. Please try again later.
-      
+
    We recommend trying again after some time.
+
+.. collapsible::
+   :heading: Quarantined Indexes
+   :sub_heading: How {+fts+} handles an unparseable index definition
+   :expanded: false
+
+   If the ``mongot`` process cannot parse an index definition that
+   it previously stored to disk, it quarantines the index. An index
+   definition can become unparseable
+   after a rollback to an earlier ``mongot`` version that is
+   incompatible with the definition. Quarantine does not occur during
+   standard version upgrades.
+
+   A quarantined index does not serve queries, and queries against it
+   return an error. You can still view, update, or delete a
+   quarantined index. All other indexes continue to serve queries.
+   {+fts+} reports a quarantined index with a ``FAILED`` status, and
+   the index status details describe the parse error, prefixed with
+   ``INIT_PARSE_FAILURE:``.
+
+   On |service|, the {+atlas-ui+} displays the index with a
+   :guilabel:`Failed` status and an error message, and |service|
+   pauses rolling restarts on the cluster while an index is
+   quarantined. For self-managed deployments, check the ``mongot``
+   logs for the parse error.
+
+   To recover a quarantined index, take one of the following actions:
+
+   - Edit the index definition. {+fts+} rebuilds the index from the
+     new definition. The index does not serve queries until the
+     rebuild completes.
+
+   - Delete the index.
+
+   - Revert ``mongot`` to a version that is compatible with the
+     index definition. ``mongot`` retains the quarantined index on
+     disk, so the index resumes from its previous state without a
+     rebuild. The index might not become queryable immediately if it
+     was not queryable before the rollback or if it has fallen
+     significantly behind.

@@ -3,7 +3,7 @@ $listSearchIndexes (aggregation stage)
 ======================================
 
 .. meta::
-   :description: Retrieve information about existing {+fts+} indexes on a specified collection using the `$listSearchIndexes` aggregation command.
+   :description: Retrieve information about existing {+fts+} indexes on a specified collection, including index status and queryability, by using the `$listSearchIndexes` aggregation command.
 
 .. default-domain:: mongodb
 
@@ -110,6 +110,40 @@ Synonym Mapping Details
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/atlas-search-commands/command-output/search-index-statuses.rst
+
+.. _listSearchIndexes-quarantined-indexes:
+
+Quarantined Indexes
+~~~~~~~~~~~~~~~~~~~
+
+If ``mongot`` cannot parse an index definition that it previously
+stored to disk, it quarantines the index. An index definition can
+become unparseable after a rollback to
+an earlier ``mongot`` version that is incompatible with the
+definition. Quarantine does not occur during standard version
+upgrades.
+
+A quarantined index reports a ``status`` of ``FAILED`` and a
+``queryable`` value of ``false``, and the index status details
+describe the parse error, prefixed with ``INIT_PARSE_FAILURE:``.
+Queries against a quarantined index return an error. All other
+indexes continue to serve queries.
+
+To recover a quarantined index, take one of the following actions:
+
+- Update the index definition with
+  :method:`db.collection.updateSearchIndex()`. ``mongot`` rebuilds the
+  index from the new definition. The index does not serve queries
+  until the rebuild completes.
+
+- Delete the index with :method:`db.collection.dropSearchIndex()`.
+
+- Revert to a ``mongot`` version that is compatible with the index
+  definition. ``mongot`` retains the quarantined index on disk, so
+  the index resumes from its previous state without a rebuild. The
+  index might not become queryable immediately if it was not
+  queryable before the rollback or if it has fallen significantly
+  behind.
 
 Errors
 ~~~~~~

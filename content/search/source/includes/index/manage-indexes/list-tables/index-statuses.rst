@@ -49,11 +49,13 @@
        :guilabel:`View status details` modal window to troubleshoot the
        issue. To learn more, see :ref:`atlas-search-alerts`.
 
-   * - Failed 
-     - |service| could not build the index. Use the error  
-       in the :guilabel:`View status details` modal window to 
-       troubleshoot the issue. To learn more, see 
-       :ref:`atlas-search-alerts`.
+   * - Failed
+     - |service| could not build the index, or ``mongot`` quarantined
+       the index because it cannot parse the index definition. A
+       quarantined index does not serve queries, but you can still
+       update or delete it. Use the error in the :guilabel:`View
+       status details` modal window to troubleshoot the issue. To
+       learn more, see :ref:`atlas-search-alerts`.
 
    * - Deleting
      - MongoDB is deleting the index from the cluster nodes.
