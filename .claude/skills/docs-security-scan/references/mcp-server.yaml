@@ -1,0 +1,85 @@
+# Security-scan manifest for the MCP Server docset. Conforms to
+# references/SCHEMA.md.
+
+docset: mcp-server
+# Verified DOCSP Jira components (DOCSP-65924, DOCSP-65618).
+component:
+  - "mcp-server"
+
+docs:
+  path: content/mcp-server
+
+security_considerations:
+
+  - id: mcp-server-read-only-mode-for-ai-clients
+    # Grounded in local-mcp/security-best-practices.txt and remote-mcp/security.txt.
+    rule: >-
+      Examples and prose that configure the MCP Server for AI clients should
+      enable read-only access (--readOnly or MDB_MCP_READ_ONLY=true for
+      self-managed, a read-only MCP configuration or access mode for the
+      Atlas-managed server) and connect with a read-only database user,
+      unless the surrounding context justifies write access. Extends
+      universal U-5 to the MCP Server's own access mode for agents, which
+      database-user roles alone do not cover.
+    applies_to: ["security", "configuration", "get-started", "tools"]
+    category: counter_best_practice_advice
+    severity: Medium
+
+  - id: mcp-server-no-http-transport-exposed-without-auth
+    # Grounded in includes/warning-bind-security-risk.rst and local-mcp/security-best-practices.txt.
+    rule: >-
+      Examples and prose must not expose the MCP Server's HTTP transport
+      beyond localhost (--httpHost=0.0.0.0 or another non-loopback host)
+      without an adjoining caveat that the MCP Server has no inbound
+      authentication of its own and needs a reverse proxy or equivalent
+      authentication in front of it.
+    applies_to: ["configuration", "security", "troubleshooting"]
+    category: counter_best_practice_advice
+    severity: High
+
+  - id: mcp-server-atlas-api-service-account-least-privilege
+    # Grounded in local-mcp/security-best-practices.txt ("Avoid the Organization Owner role").
+    rule: >-
+      Examples and prose that create Atlas service accounts or MCP
+      configurations should grant the minimum Atlas roles the workflow
+      requires, typically project-level roles, not broad roles such as
+      ORG_OWNER or Organization Owner, unless the context justifies them.
+      Extends universal U-5 to Atlas API service-account roles, which U-5's
+      database-user scope does not cover.
+    applies_to: ["get-started", "prerequisites", "security", "configuration"]
+    category: counter_best_practice_advice
+    severity: Medium
+
+  # Category #3 (absent_consideration) is not assessed yet.
+
+exception_markers:
+  # Taken from callouts in the built MCP Server AST.
+  - directive: warning
+    phrases:
+      - "exposes the MCP Server to the entire local network"
+      - "not recommended for production"
+  - directive: note
+    phrases:
+      - "not recommended for production"
+
+validation:
+  known_intentional:
+    - page: local-mcp/configuration/standalone-service.txt
+      pattern: >-
+        The Remote Connections example starting the HTTP transport with
+        --httpHost=0.0.0.0 to accept connections from other computers.
+      caveat: >-
+        Same-page `.. warning::` — "Binding to 0.0.0.0 exposes the MCP Server
+        to the entire local network ... implement strong security
+        authentication" (includes/warning-bind-security-risk.rst).
+    - page: local-mcp/configuration/options.txt
+      pattern: >-
+        The Positional Arguments example passing the connection string
+        (mongodb+srv://<user-name>:<password>@...) as the first positional
+        CLI argument.
+      caveat: >-
+        Relies on same-page prose and the `.. important::` from
+        includes/fact-mcp-connection-string-flag-deprecated.rst, not an
+        exception_markers phrase — "As a security best practice, use the
+        MDB_MCP_CONNECTION_STRING environment variable ... If environment
+        variables are not an option, use the first positional argument".

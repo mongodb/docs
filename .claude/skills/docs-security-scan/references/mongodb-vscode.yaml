@@ -1,0 +1,50 @@
+# Security-scan manifest for the MongoDB VS Code Extension docset.
+# Conforms to references/SCHEMA.md.
+
+docset: mongodb-vscode
+# Verified against DOCSP-64822.
+component:
+  - "vscode"
+
+docs:
+  path: content/mongodb-vscode
+
+# Connections are stored via the VS Code API; no env-var idiom for credentials.
+disable_universal: [U-7]
+
+security_considerations:
+
+  - id: vscode-terraform-credentials-not-committed
+    # Grounded in the warning in
+    # includes/steps-atlas-terraform-file-from-template.yaml.
+    rule: >-
+      Terraform examples that configure Atlas provider credentials
+      (mongodb_atlas_client_id, mongodb_atlas_client_secret) must use
+      placeholder values, and any example that inlines the credentials in
+      local variables must carry the caveat that they must not be checked
+      in to a publicly available repository.
+    applies_to: ["terraform", "create-cluster"]
+    category: counter_best_practice_advice
+    severity: Medium
+
+  # Category #3 (absent_consideration) is not assessed yet.
+
+exception_markers:
+  # Taken from callouts in the built VS Code Extension AST.
+  - directive: warning
+    phrases:
+      - "check these values in to a repository that is available publicly"
+  - directive: tip
+    phrases:
+      - "for production use, your mongodb deployment should use valid certificates"
+
+validation:
+  known_intentional:
+    - page: create-cluster-terraform.txt
+      pattern: >-
+        Terraform local variables inlining Atlas provider credentials
+        (defaults "my-client-id" and "my-client-secret").
+      caveat: >-
+        Same-procedure `.. warning::` — "The local variables contain
+        sensitive information. Do not check these values in to a
+        repository that is available publicly."

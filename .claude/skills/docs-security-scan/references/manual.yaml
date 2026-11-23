@@ -1,0 +1,126 @@
+# Security-scan manifest for the MongoDB Database Manual (manual) docset.
+# Conforms to references/SCHEMA.md.
+
+docset: manual
+# Verified against recent Server DOCSP tickets (e.g. DOCSP-66068).
+component:
+  - "manual"
+  - "Server"
+
+docs:
+  path: content/manual/upcoming
+  # Security, auth, TLS, in-use encryption, U-3 server-side JS, and U-5 user/role pages.
+  surface_pages:
+    - "core/security*"
+    - "core/authentication*"
+    - "core/authorization*"
+    - "core/kerberos*"
+    - "core/tls*"
+    - "core/oidc*"
+    - "core/csfle*"
+    - "core/queryable-encryption*"
+    - "core/localhost-exception*"
+    - "core/*-authentication*"
+    - "tutorial/*auth*"
+    - "tutorial/*x509*"
+    - "tutorial/*ssl*"
+    - "tutorial/*kerberos*"
+    - "tutorial/*ldap*"
+    - "tutorial/*keyfile*"
+    - "tutorial/*encrypt*"
+    - "tutorial/*user*"
+    - "tutorial/*role*"
+    - "tutorial/*audit*"
+    - "tutorial/*selinux*"
+    - "tutorial/*fips*"
+    - "administration/security-checklist*"
+    - "administration/production-notes*"
+    - "administration/configuration.txt"
+    - "administration/run-mongodb*"
+    - "administration/*security*"
+    - "appendix/security/*"
+    - "reference/configuration-options*"
+    - "reference/program/*"
+    - "reference/security*"
+    - "reference/parameters*"
+    - "reference/connection-string*"
+    - "reference/command/*User*"
+    - "reference/command/*Role*"
+    - "reference/command/usersInfo.txt"
+    - "reference/method/db.*User*"
+    - "reference/method/db.*Role*"
+    - "reference/method/db.changeUserPassword.txt"
+    - "reference/method/passwordPrompt.txt"
+    - "reference/operator/query/where.txt"
+    - "reference/operator/aggregation/function.txt"
+    - "reference/operator/aggregation/accumulator.txt"
+    - "reference/command/mapReduce.txt"
+    - "reference/method/db.collection.mapReduce.txt"
+    - "changeStreams.txt"
+    - "connect-to-cluster.txt"
+    - "tutorial/backup-and-restore-tools.txt"
+    - "security.txt"
+
+security_considerations:
+
+  - id: manual-bind-ip-restrict-interfaces
+    # Grounded in administration/configuration.txt ("Only bind to secure interfaces") and administration/run-mongodb-manual.txt.
+    rule: >-
+      Examples and prose that configure network binding for mongod or mongos
+      must not recommend binding to all network interfaces (net.bindIp set to
+      0.0.0.0, ::,0.0.0.0, or "*", or --bind_ip_all) without a caveat that
+      access control and network filtering (firewall) are required. Examples
+      should bind to localhost or a private/internal interface.
+    applies_to: ["configuration", "run", "deploy", "checklist", "program"]
+    category: counter_best_practice_advice
+    severity: High
+
+  # Category #3 (absent_consideration) is not assessed yet.
+
+exception_markers:
+  # Taken from callouts in the built manual AST.
+  - directive: warning
+    phrases:
+      # Shared include includes/queryable-encryption/qe-warning-local-keys.rst.
+      - "local key provider in production"
+      # OpenSSL test-certificate appendices, Disclaimer warning.
+      - "do not use these certificates for production"
+  - directive: important
+    phrases:
+      # Shared include includes/queryable-encryption/quick-start/production-warning.rst.
+      - "not use an unmodified version of this application in production"
+  - directive: note
+    phrases:
+      # Shared include includes/audit-local-key-file-option.rst.
+      - "only use this option for testing because the key is not secured"
+
+validation:
+  known_intentional:
+    - page: core/queryable-encryption/quick-start.txt
+      pattern: >-
+        Queryable Encryption quick-start application examples that use the
+        local KMS provider and read the Customer Master Key from a local
+        file instead of a remote KMS.
+      caveat: >-
+        Same-page `.. important::` (shared include
+        includes/queryable-encryption/quick-start/production-warning.rst) —
+        "you should not use an unmodified version of this application in
+        production"; also the `.. warning::` qe-warning-local-keys include —
+        "If you choose to use a local key provider in production, exercise
+        great caution".
+    - page: core/csfle/quick-start.txt
+      pattern: >-
+        CSFLE quick-start examples that use the local KMS provider and read
+        the Customer Master Key from a local file instead of a remote KMS.
+      caveat: >-
+        Same-page `.. warning::` qe-warning-local-keys include — "If you
+        choose to use a local key provider in production, exercise great
+        caution and do not store it on the file system".
+    - page: appendix/security/appendixA-openssl-ca.txt
+      pattern: >-
+        OpenSSL examples that generate a test Certificate Authority and test
+        certificates for TLS tutorials.
+      caveat: >-
+        Same-page `.. warning::` Disclaimer — "Do not use these certificates
+        for production. Instead, follow your security policies"; the page is
+        "provided for testing purposes only".

@@ -1,0 +1,51 @@
+# Security-scan manifest for the Database Tools docset. Conforms to
+# references/SCHEMA.md.
+
+docset: database-tools
+# Verified against recent Database Tools DOCSP tickets (DOCSP-66064, DOCSP-66063).
+component:
+  - "TOOLS"
+
+docs:
+  path: content/database-tools
+
+# No environment-variable idiom for connection strings; the docs' remedy is a --config file, which U-7 disallows.
+disable_universal: [U-7]
+
+security_considerations:
+
+  - id: database-tools-no-password-on-command-line
+    # Grounded in includes/fact-warning-password-config.rst, fact-warning-uri-config.rst, and fact-warning-sslpemkeypassword-config.rst.
+    rule: >-
+      Examples must not place a real password on the command line, whether
+      with --password, --sslPEMKeyPassword, or an inline user:password@ in a
+      --uri connection string, because system status programs such as ps can
+      expose it. A compliant example omits the password to receive an
+      interactive password prompt or loads it from a configuration file
+      specified with --config. Placeholder credentials (e.g. <password>,
+      <aws secret access key>, myuser:mypassword) are acceptable.
+    category: insecure_code_example
+    severity: Medium
+
+exception_markers:
+  # Taken from callouts in the built Database Tools AST.
+  - directive: warning
+    phrases:
+      - "visible to system status programs"
+      - "avoid using the --sslAllowInvalidCertificates"
+      - "without validating server certificates is a potential security risk"
+
+validation:
+  known_intentional:
+    - page: mongodump.txt
+      pattern: >-
+        The usage synopsis `mongodump --username joe --password secret1
+        mongodb://mongodb0.example.com:27017 --ssl` and the --uri example
+        showing an inline user:password@ connection string. The same synopsis
+        and ps warnings repeat on mongoexport.txt, mongoimport.txt,
+        mongofiles.txt, mongorestore.txt, mongostat.txt, and mongotop.txt.
+      caveat: >-
+        Each page includes fact-warning-password-config.rst and
+        fact-warning-uri-config.rst — a password on the command line "may be
+        visible to system status programs such as ps"; omit it for an
+        interactive prompt or use --config.
