@@ -1,0 +1,80 @@
+# Security-scan manifest for the self-managed MongoDB Search (mongot)
+# docset. Conforms to references/SCHEMA.md.
+
+docset: self-managed-search
+# Verified DOCSP Jira components (DOCSP-65929, DOCSP-65898).
+component:
+  - "mongot"
+  - "Atlas Search"
+  - "Atlas Vector Search"
+
+docs:
+  path: content/self-managed-search/upcoming
+
+security_considerations:
+
+  - id: self-managed-search-grpc-bind-address-restrict-interfaces
+    # Grounded in configuration/reference.txt and installation/linux.txt (includes/global-interface-warning.rst).
+    rule: >-
+      Examples and prose that configure the mongot query server's
+      server.grpc.address must not bind it to all interfaces (0.0.0.0) without
+      an adjoining caveat that this exposes the server and that the address
+      should be restricted to localhost or a trusted internal interface,
+      protected at the network layer. Examples should bind to localhost or a
+      private/internal interface.
+    applies_to: ["configuration", "installation"]
+    category: counter_best_practice_advice
+    severity: High
+
+  - id: self-managed-search-mongot-service-user-least-privilege
+    # Grounded in security/authentication-and-authorization.txt and connection/connect-to-search.txt.
+    rule: >-
+      Examples and prose that create the database user mongot authenticates
+      with must grant only the searchCoordinator built-in role (plus any role
+      the stated workflow requires), not broader roles such as readAnyDatabase
+      or root. Extends universal U-5 to the mongot service identity.
+    applies_to: ["security", "connection", "installation"]
+    category: counter_best_practice_advice
+    severity: Medium
+
+  - id: self-managed-search-health-metrics-endpoints-unauthenticated
+    # Grounded in security/authentication-and-authorization.txt and monitoring/metrics-reference.txt.
+    rule: >-
+      Examples and prose that configure the mongot healthCheck or metrics
+      endpoints must not expose them beyond localhost without an adjoining
+      caveat that these endpoints support neither TLS nor authentication and
+      must be restricted at the network layer.
+    applies_to: ["security", "monitoring", "configuration"]
+    category: counter_best_practice_advice
+    severity: High
+
+  # Category #3 (absent_consideration) is not assessed yet.
+
+exception_markers:
+  # Taken from callouts in the built self-managed-search AST.
+  - directive: warning
+    phrases:
+      # installation/docker.txt insecure-default-configuration warning.
+      - "minimal and insecure default configuration"
+      - "intended for local experimentation only"
+      - "Before exposing these containers and using your setup in production"
+      # includes/global-interface-warning.rst and includes/linux/install/global-interface-warning.rst.
+      - "exposes the server to all public networks"
+  - directive: important
+    phrases:
+      # monitoring/metrics-reference.txt unauthenticated /metrics caveat.
+      - "requires no authentication by default"
+
+validation:
+  known_intentional:
+    - page: installation/docker.txt
+      pattern: >-
+        The Docker procedure runs mongod with bindIpAll: true and no access
+        control, and its mongot.conf sets syncSource tls.enabled: false and
+        server.grpc.tls.mode: disabled.
+      caveat: >-
+        Same-page `.. warning::` — "This procedure provides a minimal and
+        insecure default configuration that does not enable access control.
+        The steps create a deployment intended for local experimentation
+        only," followed by the warning listing the security checklist and
+        hardening resources to apply before production.

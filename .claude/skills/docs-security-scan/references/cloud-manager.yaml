@@ -1,0 +1,122 @@
+# Security-scan manifest for the Cloud Manager docset. Conforms to
+# references/SCHEMA.md.
+
+docset: cloud-manager
+# Verified against recent Cloud Manager DOCSP tickets (DOCSP-66045, DOCSP-66046).
+component:
+  - "Cloud Manager"
+
+docs:
+  path: content/cloud-manager
+  # Everything except reference/api/* (U-7-exempt curl reference) and release-notes/*.
+  surface_pages:
+    - "tutorial/*"
+    - "core/*"
+    - "security/*"
+    - "data-explorer/*"
+    - "performance-advisor/*"
+    - "schema-advisor/*"
+    - "reference/alerts/*"
+    - "reference/faq/*"
+    - "reference/legal/*"
+    - "reference/troubleshooting/*"
+    - "reference/alert-types.txt"
+    - "reference/alerts.txt"
+    - "reference/api-error-codes.txt"
+    - "reference/audit-events.txt"
+    - "reference/cluster-configuration.txt"
+    - "reference/cluster-configuration-process-options.txt"
+    - "reference/deployment-advanced-options.txt"
+    - "reference/firewall-configuration.txt"
+    - "reference/glossary.txt"
+    - "reference/health-score.txt"
+    - "reference/mongodb-agent-external-configuration.txt"
+    - "reference/mongodb-agent-settings.txt"
+    - "reference/mongodb-compatibility.txt"
+    - "reference/monitoring-metrics-per-plan.txt"
+    - "reference/monitoring.txt"
+    - "reference/required-access-mongodb-agent.txt"
+    - "reference/required-permissions-aws-user.txt"
+    - "reference/resilient-application.txt"
+    - "reference/supported-browsers.txt"
+    - "reference/user-roles.txt"
+    - "index.txt"
+    - "application.txt"
+    - "data-explorer.txt"
+    - "faq.txt"
+    - "invitations.txt"
+    - "migration.txt"
+    - "organizations-projects.txt"
+    - "analyze-slow-queries.txt"
+    - "query-insights.txt"
+    - "troubleshooting.txt"
+    - "view-mongodb-process-metrics.txt"
+    - "view-real-time-metrics.txt"
+    - "view-replica-set-metrics.txt"
+    - "view-sharded-cluster-metrics.txt"
+
+security_considerations:
+
+  - id: cloud-manager-admin-api-keys-require-ip-access-list
+    # Grounded in tutorial/configure-public-api-access.txt and tutorial/manage-organizations.txt.
+    rule: >-
+      Prose and examples that configure or use Cloud Manager Administration
+      API keys or service accounts must not present unrestricted API access
+      as the default. Examples that create an API key or service account
+      should pair it with an IP access list entry, and prose should recommend
+      keeping Require IP Access List for Cloud Manager Administration API
+      enabled (the default for new organizations), unless the context
+      justifies open access.
+    applies_to: ["api", "api-keys", "service-accounts", "access-list", "organizations"]
+    category: counter_best_practice_advice
+    severity: Medium
+
+  - id: cloud-manager-api-key-role-least-privilege
+    # Grounded in reference/user-roles.txt.
+    rule: >-
+      Prose and examples that create Cloud Manager Administration API keys,
+      service accounts, or assign Cloud Manager roles should grant the
+      minimum role the workflow requires, preferring project-level roles over
+      global roles such as Global Owner, unless the context justifies the
+      broader role. Extends universal U-5 to Cloud Manager users and
+      programmatic API keys, whose role model U-5's database-user scope does
+      not cover.
+    applies_to: ["api", "api-keys", "service-accounts", "users", "roles", "organizations"]
+    category: counter_best_practice_advice
+    severity: Medium
+
+  - id: cloud-manager-agent-no-plaintext-http
+    # Grounded in tutorial/configure-mongodb-agent-for-tls.txt.
+    rule: >-
+      Examples and prose must not configure the MongoDB Agent to connect to
+      Cloud Manager over plaintext HTTP, such as an mmsBaseUrl with http://,
+      without an adjoining caveat that the connection is unencrypted. The
+      MongoDB Agent uses TLS to connect to Cloud Manager by default, so a
+      compliant example uses https://.
+    applies_to: ["agent", "settings", "configuration", "install"]
+    category: insecure_code_example
+    severity: Medium
+
+  # Category #3 (absent_consideration) is not assessed yet.
+
+exception_markers:
+  # Taken from callouts in the built Cloud Manager AST.
+  - directive: warning
+    phrases:
+      # includes/agents/sslRequireValidServerCertificates-*.rst (2 callouts).
+      - "only for testing purposes"
+
+validation:
+  known_intentional:
+    - page: reference/mongodb-agent-settings.txt
+      pattern: >-
+        The monitoring/backup agent settings pages describing
+        sslRequireValidServerCertificates and the TLS wrapper settings being
+        set to false, which disable certificate verification for agent
+        connections to MongoDB deployments and to Cloud Manager.
+      caveat: >-
+        Same-page `.. warning::` (includes/agents/
+        sslRequireValidServerCertificates-monitoring.rst and the
+        backup-settings equivalent) — "Changing this setting to false
+        disables certificate verification ... Change this setting to false
+        only for testing purposes."

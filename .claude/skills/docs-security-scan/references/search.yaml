@@ -1,0 +1,58 @@
+# Security-scan manifest for the Atlas Search (search) docset. Conforms to
+# references/SCHEMA.md.
+
+docset: search
+# Verified DOCSP Jira components (DOCSP-66007, DOCSP-65883).
+component:
+  - "Atlas Search"
+  - "Atlas Vector Search"
+
+docs:
+  path: content/search
+  # Tutorials, deployment guidance, and overview pages. query/* and indexes/* reference pages repeat the tutorials' shared connection includes.
+  surface_pages:
+    - "index.txt"
+    - "faq.txt"
+    - "tutorial.txt"
+    - "tutorial/*"
+    - "deployment/*"
+    - "about/*"
+
+# No environment-variable idiom: connection strings are pasted-in placeholders (includes/shared/facts/fact-fts-driver-connection-string.rst).
+disable_universal: [U-7]
+
+security_considerations:
+
+  - id: search-multi-tenant-query-must-filter-tenant-id
+    # Grounded in deployment/multi-tenant-architecture.txt.
+    rule: >-
+      Examples and prose that run $search, $searchMeta, or $vectorSearch
+      against a shared multi-tenant collection must filter on the tenant
+      identifier (tenant_id) using the equals operator in the compound filter
+      clause. Prose must not claim tenant isolation without that query filter.
+    applies_to: ["multi-tenant", "design-patterns", "tutorial"]
+    category: counter_best_practice_advice
+    severity: High
+
+  # Category #3 (absent_consideration) is not assessed yet.
+
+exception_markers:
+  # Taken from callouts in the built search AST.
+  - directive: note
+    phrases:
+      # includes/tutorial/facts/create-atlas-search-index-self.rst and self-managed-quick-start-intro.rst.
+      - "resulting set up of this quick start is not secure"
+
+validation:
+  known_intentional:
+    - page: tutorial.txt
+      pattern: >-
+        The Quick Start's self-managed Docker samples: mongod.conf with
+        bindIpAll: true and searchTLSMode: disabled, and mongot.conf with
+        TLS disabled for syncSource and the gRPC server.
+      caveat: >-
+        Same-page `.. note::` (shared include
+        includes/tutorial/facts/create-atlas-search-index-self.rst) —
+        "The resulting set up of this quick start is not secure. For more
+        information on securing your deployment, see Security for
+        Self-Managed Deployments."

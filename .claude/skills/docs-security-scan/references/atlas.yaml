@@ -1,0 +1,132 @@
+# Security-scan manifest for the Atlas docset. Conforms to
+# references/SCHEMA.md.
+
+docset: atlas
+# Verified DOCSP Jira components (DOCSP-66089, DOCSP-66039).
+component:
+  - "Atlas"
+
+docs:
+  path: content/atlas
+  # Security focus set: network access, auth, API keys, connections, migration, and integration surfaces (AI, Stream Processing, Data Federation, SDK, Triggers).
+  surface_pages:
+    - "security/*"
+    - "security-*"
+    - "setup-cluster-security.txt"
+    - "database-auditing.txt"
+    - "access/*"
+    - "access-tracking.txt"
+    - "connect-to-database-deployment.txt"
+    - "driver-connection.txt"
+    - "compass-connection.txt"
+    - "mongo-shell-connection.txt"
+    - "mongodb-for-vscode.txt"
+    - "troubleshoot-connection.txt"
+    - "manage-connections-*"
+    - "app-connections/*"
+    - "app-connections.txt"
+    - "resilient-application.txt"
+    - "production-notes.txt"
+    - "configure-api-access*"
+    - "api/*"
+    - "api.txt"
+    - "command-line-tools.txt"
+    - "manage-atlas-cli.txt"
+    - "terraform*.txt"
+    - "partner-integrations.txt"
+    - "live-migration.txt"
+    - "import/*"
+    - "import.txt"
+    - "workforce-oidc.txt"
+    - "workload-oidc.txt"
+    - "atlas-ui-authentication.txt"
+    - "atlas-ui-authorization.txt"
+    - "build-multi-tenant-arch.txt"
+    - "tutorial/*"
+    - "ai-integrations/*"
+    - "ai-integrations.txt"
+    - "atlas-stream-processing/*"
+    - "data-federation/*"
+    - "sdk/*"
+    - "sdk.txt"
+    - "atlas-ui/triggers/*"
+    - "atlas-resource-policies.txt"
+    - "reference/mongomirror*.txt"
+    - "backup/cloud-backup/cloud-backup-encryption.txt"
+    - "backup/cloud-backup/backup-compliance-policy.txt"
+
+security_considerations:
+
+  - id: atlas-no-unrestricted-ip-access-list
+    # Grounded in security/ip-access-list.txt (includes/security/fact-unrestricted-ip-access.rst) and manage-connections-aws-lambda.txt.
+    rule: >-
+      Prose and examples that configure the project IP access list must not
+      recommend adding a wildcard /0 CIDR entry (0.0.0.0/0 or any IPv4 /0)
+      except when the connectivity constraint genuinely requires it (e.g.
+      serverless functions without a static egress IP), and then only with
+      an adjoining caveat about allowing access from anywhere. The default
+      recommendation should be specific trusted IP addresses or CIDR ranges.
+    applies_to: ["ip access list", "network access", "connection", "peering", "private endpoint"]
+    category: counter_best_practice_advice
+    severity: High
+
+  - id: atlas-api-keys-service-accounts-least-privilege
+    # Grounded in configure-api-access.txt, configure-api-access-org.txt, and tutorial/rotate-service-account-secrets.txt.
+    rule: >-
+      Examples and prose that create Atlas Administration API programmatic
+      keys or service accounts should grant the minimum organization or
+      project roles the workflow requires (project-level rather than
+      org-level where possible), scope them with an API IP access list, and
+      store the private key or client secret securely. Prose must not
+      recommend broad roles such as Organization Owner where a narrower
+      role suffices.
+    applies_to: ["api", "service account", "api key", "programmatic"]
+    category: counter_best_practice_advice
+    severity: Medium
+
+  - id: atlas-sp-processor-least-privilege-execution
+    # Grounded in atlas-stream-processing/security.txt, "Execution Profiles".
+    rule: >-
+      Stream Processing examples and prose that configure a Connection
+      Registry entry or stream processor should execute as a least-privilege
+      custom role scoped to the workspace, not the elevated-privilege user
+      that configured the workspace or connection, to avoid indirect access
+      through that user's credentials.
+    applies_to: ["stream processing", "connection registry", "stream processor"]
+    category: counter_best_practice_advice
+    severity: Medium
+
+exception_markers:
+  # Taken from callouts in the built Atlas AST.
+  - directive: warning
+    phrases:
+      # manage-connections-aws-lambda.txt — instructs 0.0.0.0/0 for Lambda when no NAT gateway is used.
+      - "allows cluster access from anywhere in the public Internet"
+  - directive: note
+    phrases:
+      # tutorial/create-ephemeral-cluster.txt — ephemeral clusters default to 0.0.0.0/0 until claimed.
+      - "allows connections from any IP address"
+
+validation:
+  known_intentional:
+    - page: manage-connections-aws-lambda.txt
+      pattern: >-
+        The step instructing the reader to "allow all IP addresses
+        (0.0.0.0/0) to access your service cluster" when AWS Lambda has no
+        NAT gateway / static egress IP. The same warning text repeats on
+        manage-connections-google-cloud.txt.
+      caveat: >-
+        Same-page `.. warning::` — "Adding 0.0.0.0/0 to your IP access list
+        allows cluster access from anywhere in the public Internet. Ensure
+        that you're using strong credentials for all database users."
+    - page: tutorial/create-ephemeral-cluster.txt
+      pattern: >-
+        The Ephemeral cluster tutorial, which provisions a cluster reachable
+        from any IP address (0.0.0.0/0) and instructs treating the returned
+        connectionString as a secret.
+      caveat: >-
+        Same-page `.. note::` — "The Ephemeral cluster allows connections
+        from any IP address (0.0.0.0/0). You can restrict IP access when you
+        claim the cluster"; plus the `.. warning::` to save the
+        connectionString and claimUrl "to a shared secrets manager or a
+        git-ignored local .env file".

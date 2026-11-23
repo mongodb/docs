@@ -1,0 +1,68 @@
+# Security-scan manifest for the MongoDB Controllers for Kubernetes
+# (kubernetes) docset. Conforms to references/SCHEMA.md.
+
+docset: kubernetes
+# Verified DOCSP Jira components (DOCSP-65940, DOCSP-66037).
+component:
+  - "Kubernetes Operator"
+  - "MCK"
+
+docs:
+  path: content/kubernetes/upcoming
+
+security_considerations:
+
+  - id: kubernetes-operator-api-key-role-least-privilege
+    # Grounded in tutorial/create-operator-credentials.txt.
+    rule: >-
+      Prose and examples that create the Kubernetes Operator's credentials
+      should assign the programmatic API key the minimum role the workflow
+      requires — Project Owner when the operator manages existing projects,
+      and Organization Owner or Global Owner only when the operator must
+      create projects — not a broader role than the workflow needs. Extends
+      universal U-5 to Ops Manager / Cloud Manager API key roles, which
+      U-5's database-user scope does not cover.
+    applies_to: ["credentials", "prerequisites", "quick-start"]
+    category: counter_best_practice_advice
+    severity: Medium
+
+  # Category #3 (absent_consideration) is not assessed yet.
+
+exception_markers:
+  # Taken from callouts in the built Kubernetes AST.
+  - directive: note
+    phrases:
+      # includes/steps-source-deploy-k8s-resource.yaml and includes/steps-multi-cluster-enable-split-horizon.yaml (--sslAllowInvalidCertificates).
+      - "Don't use the --sslAllowInvalidCertificates flag in production"
+  - directive: important
+    phrases:
+      # tutorial/deploy-prometheus.txt: Prometheus ServiceMonitor tlsConfig.insecureSkipVerify example.
+      - "Do NOT use this configuration in Production environments"
+
+validation:
+  known_intentional:
+    - page: tutorial/connect-from-outside-k8s.txt
+      pattern: >-
+        The development-environment mongosh example connecting with --ssl
+        --sslAllowInvalidCertificates (include
+        includes/steps-enable-split-horizon.yaml).
+      caveat: >-
+        Adjoining `.. note::` — "Don't use the --sslAllowInvalidCertificates
+        flag in production."
+    - page: tutorial/multi-cluster-connect-from-outside-k8s.txt
+      pattern: >-
+        The development-environment mongosh example connecting with --ssl
+        --sslAllowInvalidCertificates (include
+        includes/steps-multi-cluster-enable-split-horizon.yaml).
+      caveat: >-
+        Adjoining `.. note::` — "Don't use the --sslAllowInvalidCertificates
+        flag in production."
+    - page: tutorial/deploy-prometheus.txt
+      pattern: >-
+        The Prometheus ServiceMonitor patch setting
+        tlsConfig.insecureSkipVerify: true for scraping the MongoDB resource
+        over HTTPS.
+      caveat: >-
+        Same-page `.. important::` — "Do NOT use this configuration in
+        Production environments! A security expert should advise you about
+        how to configure TLS."

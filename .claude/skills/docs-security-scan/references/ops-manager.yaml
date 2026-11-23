@@ -1,0 +1,146 @@
+# Security-scan manifest for the Ops Manager docset. Conforms to
+# references/SCHEMA.md.
+
+docset: ops-manager
+# Verified against recent Ops Manager DOCSP tickets (DOCSP-65943, DOCSP-66087).
+component:
+  - "Ops Manager"
+
+docs:
+  path: content/ops-manager/upcoming
+  # Everything except reference/api/* (U-7-exempt curl reference) and release-notes/*.
+  surface_pages:
+    - "tutorial/*"
+    - "core/*"
+    - "admin/*"
+    - "data-explorer/*"
+    - "performance-advisor/*"
+    - "schema-advisor/*"
+    - "reference/alerts/*"
+    - "reference/config/*"
+    - "reference/faq/*"
+    - "reference/legal/*"
+    - "reference/troubleshooting/*"
+    - "reference/alert-types.txt"
+    - "reference/alerts.txt"
+    - "reference/api-error-codes.txt"
+    - "reference/audit-events.txt"
+    - "reference/cluster-configuration.txt"
+    - "reference/cluster-configuration-process-options.txt"
+    - "reference/configuration.txt"
+    - "reference/deployment-advanced-options.txt"
+    - "reference/firewall-configuration.txt"
+    - "reference/glossary.txt"
+    - "reference/mongodb-agent-external-configuration.txt"
+    - "reference/mongodb-agent-settings.txt"
+    - "reference/mongodb-compatibility.txt"
+    - "reference/monitoring.txt"
+    - "reference/required-access-mongodb-agent.txt"
+    - "reference/resilient-application.txt"
+    - "reference/supported-browsers.txt"
+    - "reference/telemetry-8-0-27.txt"
+    - "reference/telemetry-overview.txt"
+    - "reference/telemetry-troubleshooting.txt"
+    - "reference/third-party-licenses.txt"
+    - "reference/user-roles.txt"
+    - "index.txt"
+    - "api.txt"
+    - "application.txt"
+    - "data-explorer.txt"
+    - "faq.txt"
+    - "invitations.txt"
+    - "license-keys.txt"
+    - "migration.txt"
+    - "organizations-projects.txt"
+    - "admin-console.txt"
+    - "administration.txt"
+    - "analyze-slow-queries.txt"
+    - "review-available-metrics.txt"
+    - "troubleshooting.txt"
+    - "view-mongodb-process-metrics.txt"
+    - "view-real-time-metrics.txt"
+    - "view-replica-set-metrics.txt"
+    - "view-search-node-metrics.txt"
+    - "view-sharded-cluster-metrics.txt"
+
+security_considerations:
+
+  - id: ops-manager-admin-api-keys-require-ip-access-list
+    # Grounded in tutorial/configure-public-api-access.txt and tutorial/manage-organizations.txt.
+    rule: >-
+      Prose and examples that configure or use Ops Manager Administration API
+      keys must not present unrestricted API access as the default. Examples
+      that create an API key should pair it with an IP access list entry, and
+      prose should recommend enabling Require IP Access List for Ops Manager
+      Administration API, unless the context justifies open access.
+    applies_to: ["api", "api-keys", "access-list", "organizations"]
+    category: counter_best_practice_advice
+    severity: Medium
+
+  - id: ops-manager-api-key-role-least-privilege
+    # Grounded in reference/user-roles.txt and tutorial/create-cluster-with-api.txt.
+    rule: >-
+      Prose and examples that create Ops Manager Administration API keys or
+      assign Ops Manager roles should grant the minimum role the workflow
+      requires, preferring project-level roles over global roles such as
+      Global Owner, unless the context justifies the broader role. Extends
+      universal U-5 to Ops Manager users and programmatic API keys, whose
+      role model U-5's database-user scope does not cover.
+    applies_to: ["api", "api-keys", "users", "roles", "organizations"]
+    category: counter_best_practice_advice
+    severity: Medium
+
+  - id: ops-manager-app-no-plaintext-http
+    # Grounded in tutorial/configure-ssl-connection-to-web-interface.txt, tutorial/otel-integration.txt, and reference/configuration.txt.
+    rule: >-
+      Examples and prose must not configure the Ops Manager application to
+      serve or send plaintext HTTP — mms.centralUrl with http://, an http://
+      OpenTelemetry export endpoint, or mms.https.dualConnectors left true —
+      without an adjoining caveat that the connection is unencrypted and
+      pointing at the page that configures TLS for the web interface.
+    applies_to: ["configuration", "tutorial", "otel", "webhook"]
+    category: insecure_code_example
+    severity: Medium
+
+  # Category #3 (absent_consideration) is not assessed yet.
+
+exception_markers:
+  # Taken from callouts in the built Ops Manager AST.
+  - directive: warning
+    phrases:
+      # includes/agents/sslRequireValidServerCertificates-*.rst (5 callouts).
+      - "only for testing purposes"
+      # tutorial/configure-for-ldap-authentication.txt (LDAP endpoint identification disable).
+      - "Disabling this functionality impacts"
+      # tutorial/otel-integration.txt (http:// export endpoint).
+      - "prevents insecure export in production"
+      # tutorial/install-simple-test-deployment.txt (http:// test install).
+      - "not suitable for a production deployment"
+      # reference/configuration.txt (mms.disableCiphers).
+      - "could re-enable one or more of these disabled ciphers"
+  - directive: important
+    phrases:
+      # reference/configuration.txt (mms.https.dualConnectors).
+      - "using insecure connections while"
+
+validation:
+  known_intentional:
+    - page: reference/mongodb-agent-settings.txt
+      pattern: >-
+        The monitoring/backup agent settings pages describing
+        sslRequireValidServerCertificates and the TLS wrapper settings being
+        set to false, which disable certificate verification for agent
+        connections to MongoDB deployments and to Ops Manager.
+      caveat: >-
+        Same-page `.. warning::` (includes/agents/
+        sslRequireValidServerCertificates-monitoring.rst and the
+        backup-settings / monitoring-settings equivalents) — "Changing this
+        setting to false disables certificate verification ... Change this
+        setting to false only for testing purposes."
+    - page: tutorial/install-simple-test-deployment.txt
+      pattern: >-
+        The simple test deployment walkthrough reaching the Ops Manager
+        interface over plain http://<OpsManagerHost>:<Port> with no TLS.
+      caveat: >-
+        Same-page `.. warning::` — "This setup is not suitable for a
+        production deployment."
