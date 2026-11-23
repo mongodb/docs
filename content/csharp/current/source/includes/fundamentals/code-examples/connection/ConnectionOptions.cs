@@ -596,6 +596,23 @@ public class ConnectionOptions
         // end-builder-servers
     }
 
+    public void SrvAllowedHostsSuffix()
+    {
+        // start-settings-srv-allowed-hosts-suffix
+        var settings = new MongoClientSettings
+        {
+            SrvAllowedHostsSuffix = "mongodb.net"
+        };
+        // end-settings-srv-allowed-hosts-suffix
+
+        // start-builder-srv-allowed-hosts-suffix
+        var builder = new MongoUrlBuilder
+        {
+            SrvAllowedHostsSuffix = "mongodb.net"
+        };
+        // end-builder-srv-allowed-hosts-suffix
+    }
+
     public void SrvMaxHosts()
     {
         // start-settings-srv-max-hosts
