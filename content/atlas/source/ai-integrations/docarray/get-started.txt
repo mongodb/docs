@@ -1,0 +1,386 @@
+.. _docarray-get-started:
+
+=================================================
+Get Started with the MongoDB DocArray Integration
+=================================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. meta::
+   :keywords: multimodal, vector database, vector search, semantic search, hybrid search, code example, python
+   :description: Configure DocArray to use MongoDB as its document index backend, then store documents and run vector search, full-text search, and hybrid queries against them.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can integrate MongoDB with DocArray to persist multimodal
+document collections and search them by using MongoDB's search
+capabilities. This tutorial configures DocArray to use MongoDB
+as the storage backend for a collection of documents, then
+runs vector search, full-text search, and a hybrid query against
+that collection. In this tutorial, you perform the following
+tasks:
+
+#. Set up your environment.
+#. Configure your MongoDB collection and its indexes.
+#. Define vector search, full-text search, and hybrid queries.
+#. Run the file.
+
+Background
+----------
+
+`DocArray <https://docs.docarray.org/>`__ is an open-source
+Python library for representing, sending, and storing multimodal
+data by using Pydantic-based document schemas. The
+``MongoDBAtlasDocumentIndex`` class persists a DocArray
+document schema in a MongoDB collection and routes search queries
+to the corresponding {+avs+} or {+fts+} index.
+
+DocArray does not create these indexes for you. Before you can
+run search queries, you must create a {+avs+} index for each
+vector field and a {+fts+} index for each text field that your
+schema defines. This tutorial includes a step for creating both indexes.
+
+Prerequisites
+-------------
+
+To complete this tutorial, you must have the following resources:
+
+- .. include:: /includes/avs/shared/avs-requirements-cluster.rst
+
+- Python v3.8 or later.
+
+Set Up the Environment
+----------------------
+
+In this section, you prepare your environment by installing the
+required dependencies, setting your environment variables, and
+creating a project file.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Install dependencies.
+
+      Run the following commands in your terminal to create a new
+      directory named ``docarray-mongodb-project`` and install the
+      required dependencies:
+
+      .. code-block:: text
+
+         mkdir docarray-mongodb-project
+         cd docarray-mongodb-project
+         pip install "docarray[mongo]" python-dotenv
+
+      DocArray requires PyMongo v4.6.2 or later. The preceding
+      command installs the latest version of PyMongo.
+
+   .. step:: Set your environment variables.
+
+      In your ``docarray-mongodb-project`` directory, create a
+      ``.env`` file and add the following code:
+
+      .. code-block:: text
+
+         MONGODB_URI="<connection-string>"
+
+      .. include:: /includes/search-shared/find-connection-string.rst
+
+   .. step:: Create a project file.
+
+      In your ``docarray-mongodb-project`` directory, create a
+      file named ``main.py``. Add the following code to this file
+      to load your environment variables:
+
+      .. code-block:: python
+
+         import os
+         from dotenv import load_dotenv
+         import numpy as np
+         from pydantic import Field
+         from docarray import BaseDoc, DocList
+         from docarray.index import MongoDBAtlasDocumentIndex
+         from docarray.typing import NdArray
+
+         load_dotenv()
+
+      In future steps, you add code to this file to define your
+      schema, create your indexes, and query your data.
+
+.. _docarray-get-started-configure-collection:
+
+Configure Your MongoDB Collection
+---------------------------------
+
+In this section, you define a document schema for a MongoDB
+collection, insert documents into that collection, and
+create the {+avs+} and {+fts+} indexes that your search queries
+require.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Define your document schema.
+
+      Add the following code to your ``main.py`` file to define a
+      schema with a text field and a vector field, then connect
+      that schema to a MongoDB collection:
+
+      .. code-block:: python
+
+         class ArticleDoc(BaseDoc):
+             title: str
+             body: str = Field(json_schema_extra={"index_name": "body_text_index"})
+             embedding: NdArray[768] = Field(json_schema_extra={"index_name": "embedding_vector_index"})
+
+
+         index = MongoDBAtlasDocumentIndex[ArticleDoc](
+             mongo_connection_uri=os.environ["MONGODB_URI"],
+             database_name="docarray_tutorial",
+             index_name="articles",
+         )
+
+      The ``index_name`` key in each field's ``json_schema_extra``
+      dictionary sets the name of the {+avs+} or {+fts+} index
+      that covers that field. The vector field's type annotation,
+      ``NdArray[768]``, sets the embedding dimensionality.
+
+   .. step:: Insert documents into your collection.
+
+      Add the following code to your ``main.py`` file to create
+      five documents and insert them into your collection:
+
+      .. code-block:: python
+
+         docs = DocList[ArticleDoc](
+             [
+                 ArticleDoc(
+                     title="Emperor Penguins",
+                     body="Emperor penguins are the tallest and heaviest of all penguin species, standing up to 4 feet.",
+                     embedding=np.random.rand(768),
+                 ),
+                 ArticleDoc(
+                     title="Penguin Habitats",
+                     body="Penguins are flightless seabirds that live almost exclusively below the equator. Some island-dwellers can be found in warmer climates.",
+                     embedding=np.random.rand(768),
+                 ),
+                 ArticleDoc(
+                     title="Penguins of Patagonia",
+                     body="Patagonia is home to five penguin species: Magellanic, Humboldt, Gentoo, Southern Rockhopper, and King.",
+                     embedding=np.random.rand(768),
+                 ),
+                 ArticleDoc(
+                     title="Penguin Diving Depths",
+                     body="Emperor penguins can dive deeper than any other bird, reaching depths of over 500 meters.",
+                     embedding=np.random.rand(768),
+                 ),
+                 ArticleDoc(
+                     title="Penguin Nesting Habits",
+                     body="Some penguin species mate for life and return to the same nesting site every year.",
+                     embedding=np.random.rand(768),
+                 ),
+             ]
+         )
+
+         index.index(docs)
+         print(f"Indexed {len(docs)} documents.")
+
+      This tutorial uses randomly generated vectors as a
+      placeholder for the ``embedding`` field. In production,
+      generate this vector from an embedding model.
+
+   .. step:: Create the Search indexes.
+
+      Add the following code to your ``main.py`` file to create a
+      {+avs+} index on the ``embedding`` field and a {+fts+} index
+      on the ``body`` field:
+
+      .. code-block:: python
+
+         import time
+         from pymongo.mongo_client import MongoClient
+         from pymongo.operations import SearchIndexModel
+
+         client = MongoClient(os.environ["MONGODB_URI"])
+         collection = client["docarray_tutorial"]["articles"]
+
+         vector_index_model = SearchIndexModel(
+             definition={
+                 "fields": [
+                     {
+                         "type": "vector",
+                         "path": "embedding",
+                         "numDimensions": 768,
+                         "similarity": "cosine",
+                     },
+                     {
+                         "type": "filter",
+                         "path": "title",
+                     },
+                 ]
+             },
+             name="embedding_vector_index",
+             type="vectorSearch",
+         )
+
+         text_index_model = SearchIndexModel(
+             definition={
+                 "mappings": {
+                     "dynamic": False,
+                     "fields": {
+                         "body": [
+                             {"type": "string"},
+                         ],
+                     },
+                 }
+             },
+             name="body_text_index",
+         )
+
+         collection.create_search_index(model=vector_index_model)
+         collection.create_search_index(model=text_index_model)
+
+         print("\nWaiting for the MongoDB Vector Search index to finish building...")
+         time.sleep(60)
+
+         client.close()
+
+      The vector index definition also indexes the ``title``
+      field as the ``filter`` type. In a future step, you will combine
+      a filter on the ``title`` field with a vector search, which requires
+      this ``filter`` type index.
+
+      .. include:: /includes/search-shared/fact-index-build-initial-sync.rst
+
+.. _docarray-get-started-query-data:
+
+Query Your Data
+---------------
+
+In this section, you run a vector search, a full-text search,
+and a hybrid query that combines both search types with an MQL
+filter.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Run a vector search query.
+
+      Add the following code to your ``main.py`` file to search
+      the ``embedding`` field for the documents most similar to a
+      query vector:
+
+      .. code-block:: python
+
+         query_vector = np.random.rand(768)
+
+         result = index.find(
+             query=query_vector,
+             search_field="embedding",
+             limit=5,
+         )
+
+         print("\nVector search results:")
+         for doc, score in zip(result.documents, result.scores):
+             print(f"  [{score:.4f}] {doc.title}")
+
+      Because ``query_vector`` is also a randomly generated
+      vector, the ranking and scores in your output differ from
+      the example output in this tutorial.
+
+   .. step:: Run a full-text search query.
+
+      Add the following code to your ``main.py`` file to search
+      the ``body`` field for documents that match a text query:
+
+      .. code-block:: python
+
+         result = index.text_search(
+             query="flightless seabirds",
+             search_field="body",
+         )
+
+         print("\nFull-text search results:")
+         for doc, score in zip(result.documents, result.scores):
+             print(f"  [{score:.4f}] {doc.title}")
+
+   .. step:: Run a hybrid query.
+
+      Add this code to your ``main.py`` file to run a
+      query that performs the following tasks:
+
+      - Searches the ``embedding`` field for vectors similar to
+        ``query_vector``
+      - Searches the ``body`` field for the text ``"flightless
+        seabirds"``
+      - Filters the combined results for documents whose ``title``
+        value is ``Emperor Penguins`` or ``Penguin Habitats``
+
+      .. code-block:: python
+
+         hybrid_query = (
+             index.build_query()
+             .find(query=query_vector, search_field="embedding")
+             .text_search(query="flightless seabirds", search_field="body")
+             .filter(query={"title": {"$in": ["Emperor Penguins", "Penguin Habitats"]}})
+             .build(limit=5)
+         )
+
+         result = index.execute_query(hybrid_query)
+
+         print("\nHybrid query results:")
+         for doc, score in zip(result.documents, result.scores):
+             print(f"  [{score:.4f}] {doc.title}")
+
+Run the File
+------------
+
+To run the ``main.py`` file, run the following command from your
+``docarray-mongodb-project`` directory:
+
+.. code-block:: text
+
+   python main.py
+
+If the command runs successfully, the output resembles the
+following:
+
+.. code-block:: text
+   :copyable: false
+
+   Indexed 5 documents.
+
+   Waiting for the MongoDB Vector Search index to finish building...
+
+   Vector search results:
+    [0.8853] Penguin Diving Depths
+    [0.8775] Emperor Penguins
+    [0.8766] Penguin Habitats
+    [0.8744] Penguin Nesting Habits
+    [0.8672] Penguins of Patagonia
+
+   Full-text search results:
+     [1.1433] Penguin Habitats
+
+   Hybrid query results:
+    [0.6429] Penguin Habitats
+    [0.1667] Emperor Penguins
+
+Next Steps
+----------
+
+To learn more about the ``MongoDBAtlasDocumentIndex`` class,
+including its full parameter and method reference, see
+:ref:`docarray`.
+
+To learn more about the {+avs+} and {+fts+} indexes that this
+tutorial creates, see :ref:`avs-create-index`.

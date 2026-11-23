@@ -126,6 +126,14 @@ const tocData: TocItem[] = [
             label: 'DocArray',
             contentSite: 'cloud-docs',
             url: '/docs/atlas/ai-integrations/docarray',
+            collapsible: true,
+            items: [
+              {
+                label: 'Get Started',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/ai-integrations/docarray/get-started',
+              },
+            ],
           },
           {
             label: 'Vercel AI SDK',
