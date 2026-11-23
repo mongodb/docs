@@ -7,7 +7,7 @@ import { resolveTabDefaults } from '@/mdx-utils/resolve-tab-defaults';
 import { isVersionPlaceholder } from '@/mdx-utils/load-mdx';
 import { loadDirNameToPrefixMap, blobRelativeToDiskCandidates } from '@/mdx-utils/blob-path-remap';
 import { getStaticVersion } from '@/utils/extract-mdx-routes-from-toc';
-import { getBasePath, toFullUrlPath } from '@/utils/base-path';
+import { getUnlocalizedBasePath, toFullUrlPath } from '@/utils/base-path';
 import { buildPageLocation } from '@/mdx-utils/page-location';
 import type { RemoteMetadata } from '@/types/data';
 
@@ -103,9 +103,11 @@ export async function renderPageMarkdown(relativePath: string[], mode: MarkdownT
   });
 
   // EOL docsets keep their own TOC, so the unified TOC cannot place their pages.
+  // The unified TOC is keyed on unprefixed `/docs/...` paths, so use the
+  // locale-stripped basePath to match on a locale build.
   const pageLocation =
     siteMetadata && !siteMetadata.eol
-      ? buildPageLocation(`${getBasePath()}/${relativePath.join('/')}`, projectPath.split('/')[1] ?? 'current')
+      ? buildPageLocation(`${getUnlocalizedBasePath()}/${relativePath.join('/')}`, projectPath.split('/')[1] ?? 'current')
       : null;
 
   const header = pageLocation ? `${pageLocation}\n\n${LLMS_TXT_DIRECTIVE}` : LLMS_TXT_DIRECTIVE;

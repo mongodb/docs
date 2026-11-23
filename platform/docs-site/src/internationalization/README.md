@@ -84,9 +84,10 @@ within the sentence instead of forcing a fixed word order.
 
 ## Locale selection
 
-The locale is fixed at build time by the `NEXT_PUBLIC_DOCS_LOCALE` environment
-variable, for example `es`. Set it per site. When it is unset, or is not a
-supported locale code, the build is `en-us`.
+The locale is fixed at build time by the `DOCS_LOCALE` environment variable, for
+example `es`. Set it per site; `next.config.mjs` validates it and maps it to
+`NEXT_PUBLIC_DOCS_LOCALE`, which the app reads. When it is unset or `en-us`, the
+build is `en-us`; an unsupported value fails the build.
 
 The URL prefix and the `mdb_docsPrefLocale` cookie are deliberately ignored.
 Smartling still serves translated pages of the English build at locale-prefixed

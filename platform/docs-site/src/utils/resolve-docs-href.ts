@@ -1,7 +1,7 @@
 import { isRelativeUrl } from '@/utils/is-relative-url';
 import { assertLeadingAndTrailingSlash } from '@/utils/assert-leading-and-trailing-slash';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
-import { getBasePath, sameProjectHref } from '@/utils/base-path';
+import { getUnlocalizedBasePath, sameProjectHref } from '@/utils/base-path';
 
 export type ResolvedDocsHref = {
   href: string;
@@ -29,8 +29,10 @@ function stripSamePageHash(to: string, pathname: string | null): string {
   if (!pathname || isOfflineBuild) return to;
   const hashIdx = to.indexOf('#');
   if (hashIdx <= 0) return to;
-  // usePathname() is basePath-relative but `to` is a full `/docs/<prefix>/...` path.
-  const fullPathname = `${getBasePath()}${pathname}`;
+  // usePathname() is basePath-relative but `to` is a full `/docs/<prefix>/...`
+  // path. Use the locale-stripped basePath: on a locale build basePath carries
+  // the locale, while `to` (like every in-content link) stays unprefixed.
+  const fullPathname = `${getUnlocalizedBasePath()}${pathname}`;
   return to.slice(0, hashIdx).replace(/\/+$/, '') === fullPathname.replace(/\/+$/, '') ? to.slice(hashIdx) : to;
 }
 

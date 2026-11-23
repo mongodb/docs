@@ -52,6 +52,13 @@ describe('resolveDocsHref', () => {
     expect(resolve('/docs/atlas/cluster/#step', '/cluster')).toEqual({ href: '#step', clientHref: null });
   });
 
+  it('strips a same-page link down to its hash on a locale build', async () => {
+    // basePath carries the locale but `to` stays unprefixed, so the match must
+    // use the locale-stripped basePath.
+    const resolve = await load('/es/docs/atlas');
+    expect(resolve('/docs/atlas/cluster/#step', '/cluster')).toEqual({ href: '#step', clientHref: null });
+  });
+
   it('keeps the full path for a hash on another page', async () => {
     const resolve = await load('/docs/atlas');
     expect(resolve('/docs/atlas/other#step', '/cluster/')).toEqual({

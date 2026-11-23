@@ -47,9 +47,18 @@ export const getPageMetadata = ({
   // DB_ENV is a UI-managed variable that is not scoped per deploy context, so
   // branch deploys and previews inherit 'dotcomprd'. NEXT_PUBLIC_ALLOW_INDEXING
   // is set only in netlify.toml's production context, so every other context
-  // fails closed.
+  // fails closed. A locale site is cloned from English and shares that production
+  // context, so the build locale has to gate indexing too.
+  //
+  // Read the raw value rather than getBuildLocale(): that helper falls back to
+  // 'en-us' for anything it does not recognise, so a locale the config accepts
+  // but the app's locale list does not would be indexed. Unset, empty and 'en-us'
+  // mean the English build, the same rule next.config.mjs uses for the prefix.
+  const buildLocale = process.env.NEXT_PUBLIC_DOCS_LOCALE;
   const isProduction =
-    process.env.DB_ENV === 'dotcomprd' && parseBooleanEnv(process.env.NEXT_PUBLIC_ALLOW_INDEXING);
+    process.env.DB_ENV === 'dotcomprd' &&
+    parseBooleanEnv(process.env.NEXT_PUBLIC_ALLOW_INDEXING) &&
+    (!buildLocale || buildLocale === 'en-us');
   const noindex = !isProduction || noIndexing || !!robots?.includes('noindex');
 
   const metadata = {

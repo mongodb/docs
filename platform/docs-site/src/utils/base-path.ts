@@ -31,12 +31,42 @@ export function getAssetBucketSuffix(): string {
 }
 
 /**
+ * This deploy's leading locale segment, or '' for the English build. Locale
+ * builds serve under `/<locale>/docs/...` (e.g. `/es/docs/voyageai`), prefixing
+ * basePath and every NEXT_PUBLIC_DOCS_PREFIXES entry. `docs` is never a locale,
+ * so a leading `docs` segment means no locale. Same rule as next.config.mjs
+ * getLocalePrefix(): unset, empty and `en-us` are all the English build.
+ */
+function getLocaleSegment(): string {
+  const [first] = getBasePath().replace(/^\//, '').split('/');
+  return first && first !== 'docs' ? first : '';
+}
+
+/** Remove this deploy's locale segment from a leading-slash path, if present. */
+function stripLocaleSegment(path: string): string {
+  const locale = getLocaleSegment();
+  if (!locale) return path;
+  const prefix = `/${locale}`;
+  if (path === prefix) return '/';
+  return path.startsWith(`${prefix}/`) ? path.slice(prefix.length) : path;
+}
+
+/**
+ * getBasePath() with the locale segment stripped, so it matches the unprefixed
+ * `/docs/...` paths used in content links, the unified TOC and the URL bar.
+ * Identical to getBasePath() on the English build, where there is no locale.
+ */
+export function getUnlocalizedBasePath(): string {
+  return stripLocaleSegment(getBasePath());
+}
+
+/**
  * The docset-prefix segments in the basePath (everything after `/docs`), e.g.
  * `['languages','python','django-mongodb']`, or `[]` for `/docs`.
  * generateStaticParams strips these off; content loaders re-prepend them.
  */
 function getDocsetPrefixSegments(): string[] {
-  const stripped = stripDocsPrefix(getBasePath().replace(/^\//, ''));
+  const stripped = stripDocsPrefix(stripLocaleSegment(getBasePath()).replace(/^\//, ''));
   return stripped ? stripped.split('/') : [];
 }
 
@@ -77,12 +107,19 @@ export function sameProjectHref(to: string): string | null {
   if (getDocsetPrefixSegments().length === 0) return null;
 
   const path = to.split(/[?#]/)[0];
-  const match = SORTED_DOCS_PREFIXES.find(
-    (p) => path === p || path === `${p}/` || path.startsWith(`${p}/`),
+  const suffix = to.slice(path.length);
+  // Locale builds prefix basePath and every SORTED_DOCS_PREFIXES entry with the
+  // locale, but in-content links stay unprefixed, so strip it from both sides
+  // before matching. The match is on the stripped link, so slice by its length
+  // (not basePath.length) and let next/link re-add the locale-prefixed basePath.
+  const strippedPath = stripLocaleSegment(path);
+  const strippedBasePath = stripLocaleSegment(basePath);
+  const match = SORTED_DOCS_PREFIXES.map(stripLocaleSegment).find(
+    (p) => strippedPath === p || strippedPath === `${p}/` || strippedPath.startsWith(`${p}/`),
   );
-  if (match !== basePath) return null;
+  if (match !== strippedBasePath) return null;
 
-  // Strip basePath, preserving query/hash; next/link re-adds it.
-  const rel = to.slice(basePath.length);
+  // Strip the matched prefix, preserving query/hash; next/link re-adds basePath.
+  const rel = `${strippedPath.slice(match.length)}${suffix}`;
   return rel.startsWith('/') ? rel : `/${rel}`;
 }

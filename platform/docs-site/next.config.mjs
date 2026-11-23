@@ -44,9 +44,36 @@ function isInactiveManualBuild() {
   return process.env.NEXT_PUBLIC_INACTIVE_MANUAL === 'true';
 }
 
+// Must match AvailableLocaleType in src/utils/locale.ts, the source of truth.
+// Duplicated rather than imported: locale.ts pulls in browser-only and
+// `@/`-aliased modules that don't resolve in the config context.
+const SUPPORTED_LOCALES = ['en-us', 'pt-br', 'es', 'ko-kr', 'ja-jp', 'zh-cn'];
+
+// DOCS_LOCALE is operator-supplied per site, so a value we don't recognise must
+// fail the build: silently prefixing the site would leave getBuildLocale() in
+// src/utils/locale.ts reading it as English and indexing a locale site.
+function getSupportedLocale() {
+  const raw = process.env.DOCS_LOCALE?.trim().toLowerCase();
+  if (!raw) return '';
+  if (!SUPPORTED_LOCALES.includes(raw)) {
+    throw new Error(`DOCS_LOCALE "${process.env.DOCS_LOCALE}" is not a supported locale (expected one of ${SUPPORTED_LOCALES.join(', ')})`);
+  }
+  return raw;
+}
+
+// The app is statically generated, so it cannot vary its output by request-time
+// locale: the locale has to be baked in at build time. Same rule as the SSG
+// extension's isLocaleBuild: DOCS_LOCALE unset, empty or "en-us" is the English
+// build and adds no prefix.
+function getLocalePrefix() {
+  const locale = getSupportedLocale();
+  return locale && locale !== 'en-us' ? `/${locale}` : '';
+}
+
 function getBuildBasePathEnv() {
+  const localePrefix = getLocalePrefix();
   const docsProject = process.env.DOCS_PROJECT;
-  if (!docsProject) return { basePath: '/docs', prefixes: [], assetBucketSuffix: '' };
+  if (!docsProject) return { basePath: `${localePrefix}/docs`, prefixes: [], assetBucketSuffix: '' };
 
   const mapPath = join(__dirname, 'src/generated/dir-name-to-prefix.json');
   const dirNameToPrefix = requireFile(mapPath);
@@ -55,7 +82,7 @@ function getBuildBasePathEnv() {
   if (!rawPrefix) {
     throw new Error(`DOCS_PROJECT "${docsProject}" has no entry in dir-name-to-prefix.json`);
   }
-  const prefixes = [...new Set(Object.values(dirNameToPrefix).map((p) => `/${p}`))].sort((a, b) => b.length - a.length);
+  const prefixes = [...new Set(Object.values(dirNameToPrefix).map((p) => `${localePrefix}/${p}`))].sort((a, b) => b.length - a.length);
 
   // manual and landing both resolve to the empty prefix ("docs") and would
   // otherwise be indistinguishable to b2k's asset routing. landing is the
@@ -83,7 +110,7 @@ function getBuildBasePathEnv() {
     }
   }
 
-  return { basePath: `/${rawPrefix}`, prefixes, assetBucketSuffix };
+  return { basePath: `${localePrefix}/${rawPrefix}`, prefixes, assetBucketSuffix };
 }
 
 const { basePath: BASE_PATH, prefixes: DOCS_PREFIXES, assetBucketSuffix: ASSET_BUCKET_SUFFIX } = getBuildBasePathEnv();
@@ -157,6 +184,10 @@ const nextConfig = {
   // basePath/assetPrefix (raw <img> src, client fetches). See src/utils/base-path.ts.
   env: {
     NEXT_PUBLIC_DOCS_BASE_PATH: BASE_PATH,
+    // getBuildLocale() reads this to pick the chrome language bundle
+    // (platform-strings.<locale>.json). Empty or "en-us" resolves to English.
+    // The normalised locale, so the app sees the same value the basePath used.
+    NEXT_PUBLIC_DOCS_LOCALE: getSupportedLocale(),
     NEXT_PUBLIC_DOCS_PREFIXES: JSON.stringify(DOCS_PREFIXES),
     // Keep getAssetBucketSuffix() in lockstep with assetPrefix for this build
     // (active vs inactive manual, or empty for every other project).

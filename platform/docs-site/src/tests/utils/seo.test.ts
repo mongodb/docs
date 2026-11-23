@@ -136,4 +136,59 @@ describe('getPageMetadata', () => {
       ]);
     });
   });
+
+  describe('robots', () => {
+    const originalAllowIndexing = process.env.NEXT_PUBLIC_ALLOW_INDEXING;
+    const originalBuildLocale = process.env.NEXT_PUBLIC_DOCS_LOCALE;
+
+    afterEach(() => {
+      if (originalAllowIndexing === undefined) delete process.env.NEXT_PUBLIC_ALLOW_INDEXING;
+      else process.env.NEXT_PUBLIC_ALLOW_INDEXING = originalAllowIndexing;
+      if (originalBuildLocale === undefined) delete process.env.NEXT_PUBLIC_DOCS_LOCALE;
+      else process.env.NEXT_PUBLIC_DOCS_LOCALE = originalBuildLocale;
+    });
+
+    it('emits noindex for a locale build even in a production environment', () => {
+      // A locale site is cloned from English, so it inherits DB_ENV, and it shares
+      // netlify.toml's production context with every other site. The locale is the
+      // only signal that can keep it out of the index.
+      process.env.NEXT_PUBLIC_ALLOW_INDEXING = 'true';
+      process.env.NEXT_PUBLIC_DOCS_LOCALE = 'es';
+
+      const result = getMetadata({ fileId: 'data-modeling.txt' });
+
+      expect(result.robots.index).toBe(false);
+    });
+
+    it('indexes a production English build with no locale configured', () => {
+      process.env.NEXT_PUBLIC_ALLOW_INDEXING = 'true';
+      delete process.env.NEXT_PUBLIC_DOCS_LOCALE;
+
+      const result = getMetadata({ fileId: 'data-modeling.txt' });
+
+      expect(result.robots.index).toBe(true);
+    });
+
+    it('indexes a production build that explicitly configures en-us', () => {
+      process.env.NEXT_PUBLIC_ALLOW_INDEXING = 'true';
+      process.env.NEXT_PUBLIC_DOCS_LOCALE = 'en-us';
+
+      const result = getMetadata({ fileId: 'data-modeling.txt' });
+
+      expect(result.robots.index).toBe(true);
+    });
+
+    it('emits noindex for a locale value the app does not recognise', () => {
+      // next.config.mjs rejects an unsupported DOCS_LOCALE before the app runs, so
+      // this should not be reachable in a real build. The gate reads the raw value
+      // rather than getBuildLocale(), which falls back to en-us, so that a locale
+      // next.config accepts but locale.ts does not still fails closed.
+      process.env.NEXT_PUBLIC_ALLOW_INDEXING = 'true';
+      process.env.NEXT_PUBLIC_DOCS_LOCALE = 'fr';
+
+      const result = getMetadata({ fileId: 'data-modeling.txt' });
+
+      expect(result.robots.index).toBe(false);
+    });
+  });
 });

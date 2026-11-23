@@ -48,6 +48,44 @@ describe('sameProjectHref', () => {
   });
 });
 
+// Locale builds prefix both basePath and every NEXT_PUBLIC_DOCS_PREFIXES entry
+// with the locale segment (e.g. `/es/docs/voyageai`), while in-content links
+// stay unprefixed (`/docs/voyageai/...`).
+describe('locale-prefixed builds', () => {
+  const setEnv = (basePath: string, prefixes: string[]) => {
+    process.env.NEXT_PUBLIC_DOCS_BASE_PATH = basePath;
+    process.env.NEXT_PUBLIC_DOCS_PREFIXES = JSON.stringify(prefixes);
+  };
+
+  const load = async () => {
+    jest.resetModules();
+    return import('@/utils/base-path');
+  };
+
+  afterEach(() => {
+    delete process.env.NEXT_PUBLIC_DOCS_BASE_PATH;
+    delete process.env.NEXT_PUBLIC_DOCS_PREFIXES;
+  });
+
+  it('re-prepends docset segments without the locale', async () => {
+    setEnv('/es/docs/voyageai', ['/docs/voyageai', '/es/docs/voyageai']);
+    const { toFullUrlPath } = await load();
+    expect(toFullUrlPath(['quickstart'])).toEqual(['voyageai', 'quickstart']);
+  });
+
+  it('resolves an unprefixed link on a locale-prefixed build', async () => {
+    setEnv('/es/docs/voyageai', ['/docs/voyageai', '/es/docs/voyageai']);
+    const { sameProjectHref } = await load();
+    expect(sameProjectHref('/docs/voyageai/quickstart/')).toBe('/quickstart/');
+  });
+
+  it('still returns null for another docset on a locale build', async () => {
+    setEnv('/es/docs/voyageai', ['/docs/voyageai', '/es/docs/voyageai', '/docs/atlas']);
+    const { sameProjectHref } = await load();
+    expect(sameProjectHref('/docs/atlas/current/')).toBeNull();
+  });
+});
+
 describe('getAssetBucketSuffix', () => {
   const load = async () => {
     jest.resetModules();
