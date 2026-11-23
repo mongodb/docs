@@ -326,6 +326,7 @@ Bug Fixes
   - `CVE-2026-93566 <https://nvd.nist.gov/vuln/detail/CVE-2026-93566>`__
   - `CVE-2026-108106 <https://nvd.nist.gov/vuln/detail/CVE-2026-108106>`__
   - `CVE-2026-108104 <https://nvd.nist.gov/vuln/detail/CVE-2026-108104>`__
+  - `CVE-2026-93451 <https://nvd.nist.gov/vuln/detail/CVE-2026-93451>`__
   - `GHSA-p498-v437-472g <https://github.com/advisories/GHSA-p498-v437-472g>`__
 
 .. _opsmgr-server-9.0.1:

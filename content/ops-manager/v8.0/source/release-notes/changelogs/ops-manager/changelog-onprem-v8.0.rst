@@ -332,6 +332,7 @@ Bug Fixes
   - `CVE-2026-19880 <https://nvd.nist.gov/vuln/detail/CVE-2026-19880>`__
   - `CVE-2026-118259 <https://nvd.nist.gov/vuln/detail/CVE-2026-118259>`__
   - `CVE-2026-106444 <https://nvd.nist.gov/vuln/detail/CVE-2026-106444>`__
+  - `CVE-2026-93451 <https://nvd.nist.gov/vuln/detail/CVE-2026-93451>`__
   - `GHSA-p498-v437-472g <https://github.com/advisories/GHSA-p498-v437-472g>`__
   - `GHSA-qr28-fpjm-wq7f <https://github.com/advisories/GHSA-qr28-fpjm-wq7f>`__
 
