@@ -398,7 +398,7 @@ Backup
 Monitoring
 ``````````
 
-- Added :ref:`Real-Time Metrics <real-time-metrics-status-tab>`.
+- Added :ref:`Real-Time Metrics <om-real-time-metrics-status-tab>`.
 
 - Added the :doc:`Performance Advisor </tutorial/performance-advisor>`.
   The Performance Advisor monitors any operation with a query predicate

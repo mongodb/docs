@@ -6,6 +6,6 @@
 
    
    Maximum number of entries that |mms| should retrieve from the
-   :ref:`activity feed <activity-feed>`.
+   :ref:`activity feed <om-activity-feed>`.
    
 

@@ -45,7 +45,7 @@ Automation Support Changes
 - Removes support for |snmp| alerts. 
 
   - You can monitor your clusters with |onprem| instead. To
-    learn about other alert options, see :ref:`third-party-integrations`.
+    learn about other alert options, see :ref:`om-third-party-integrations`.
 
 - Removes support for the Manage Sharded Collections UI. 
   

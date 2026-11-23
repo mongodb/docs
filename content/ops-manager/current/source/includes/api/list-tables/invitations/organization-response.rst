@@ -38,7 +38,7 @@
 
    * - roles
      - array of strings
-     - |mms| :ref:`roles <organization-roles>` to assign to the 
+     - |mms| :ref:`roles <om-organization-roles>` to assign to the 
        invited user.
 
        If the user accepts the invitation, |mms| assigns these roles

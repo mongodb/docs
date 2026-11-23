@@ -12,7 +12,7 @@
      - Default service key for alert notifications sent to a
        `PagerDuty <http://www.pagerduty.com/?utm_source=mongodb&utm_medium=docs&utm_campaign=partner>`__
        account. |mms| enters the key by default when you add a
-       PagerDuty notification to an :ref:`alert configuration <configure-alerts>`. If you add
+       PagerDuty notification to an :ref:`alert configuration <om-configure-alerts>`. If you add
        PagerDuty notifications and if the key used to send the
        notifications becomes invalid, |mms| sends an email to the
        project owner and eventually removes the key.
@@ -33,7 +33,7 @@
 
      - Default room and |api| token for alert notifications sent to
        a HipChat account. |mms| enters the values by default when
-       you add a HipChat notification to an :ref:`alert configuration <configure-alerts>`.
+       you add a HipChat notification to an :ref:`alert configuration <om-configure-alerts>`.
        If you add HipChat notifications and the token used to send
        notifications becomes invalid, |mms| sends an email to the
        :authrole:`Project Owner` and eventually removes the token.
@@ -176,7 +176,7 @@
 
        To send alert notifications to a Webhook, select the Webhook
        notification option when creating or editing an
-       :ref:`alert configuration <configure-alerts>`. If you add a Webhook notification and
+       :ref:`alert configuration <om-configure-alerts>`. If you add a Webhook notification and
        the |url|, optional key, or OAuth credentials become invalid, |mms| sends an email
        to the :authrole:`Project Owner` and eventually removes the
        Webhook settings.

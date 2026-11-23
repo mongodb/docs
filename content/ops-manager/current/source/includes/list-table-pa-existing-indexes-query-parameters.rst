@@ -27,7 +27,7 @@
      - Optional
      - boolean
      - Specifies whether or not to wrap the response in an
-       :ref:`envelope <api-envelope>`. The default is ``false``.
+       :ref:`envelope <om-api-envelope>`. The default is ``false``.
 
    * - ``pretty``
      - Optional

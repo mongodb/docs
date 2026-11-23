@@ -1409,12 +1409,12 @@ Improvements
 
   - Removes the :guilabel:`Preview` tag from :ref:`OIDC <enable-oidc-auth>` 
     options in the UI and documentation.
-  - Adds an :guilabel:`Options` menu to the :ref:`Logs <mongodb-logs>` page
+  - Adds an :guilabel:`Options` menu to the :ref:`Logs <om-mongodb-logs>` page
     for ``mongos`` instances in sharded clusters.
   - Adds server list to the :guilabel:`Shutdown` dialog for replica sets to 
     show all affected servers.
   - Adds alerts for detecting stale workloads through :guilabel:`OpCounter` 
-    in :ref:`Available Metrics <review-available-metrics>`.
+    in :ref:`Available Metrics <om-review-available-metrics>`.
 
 - Makes the following improvements to the {+admin-api+}:
 
@@ -2145,7 +2145,7 @@ MongoDB Cluster Management
 Backup
 ``````
 
-- Supports performing :ref:`on-demand snapshots <on-demand-snapshots>` 
+- Supports performing :ref:`on-demand snapshots <om-on-demand-snapshots>` 
   in addition to scheduled snapshots.
 - Supports enabling and configuring :ref:`regional backups <regional-backup>`.
 - Supports parsing multiple certificates, or a chain, from PEM

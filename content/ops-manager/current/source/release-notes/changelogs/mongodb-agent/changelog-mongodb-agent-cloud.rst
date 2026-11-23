@@ -150,7 +150,7 @@ MongoDB Agent 12.11.0.7961
   :method:`db.currentOp() <db.currentOp>` commands
   so that they use corresponding aggregation stages. To learn more,
   see :ref:`Database Commands Used by {+magent+} <db-commands-used-by-agent>`
-  and :ref:`Real Time Metrics <real-time-metrics-status-tab>`.
+  and :ref:`Real Time Metrics <om-real-time-metrics-status-tab>`.
 - Improves logging.
 
 .. _12.10.2.7935-1:

@@ -6,5 +6,5 @@ You can choose to restore to a cluster of a different project:
   target project.
 
 - To restore to another |service| project, you must have
-  :ref:`Project Owner <project-roles>` role for the target project.
+  :ref:`Project Owner <om-project-roles>` role for the target project.
 

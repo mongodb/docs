@@ -41,7 +41,7 @@
    * - ``postAuthRoleGrants``
      - array
      - Optional
-     - List that contains the default :ref:`roles <organization-roles>` 
+     - List that contains the default :ref:`roles <om-organization-roles>` 
        granted to users who authenticate through the |idp| in a 
        connected organization.
 

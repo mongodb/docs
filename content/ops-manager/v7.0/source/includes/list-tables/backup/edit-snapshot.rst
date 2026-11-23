@@ -47,7 +47,7 @@
 
      - Sets the number of days that |mms| retains oplogs alongside
        snapshots. To learn how snapshots and point-in-time restores work,
-       see :ref:`restore-overview`.
+       see :ref:`om-restore-overview`.
 
    * - Reference Time of Day (UTC)
 

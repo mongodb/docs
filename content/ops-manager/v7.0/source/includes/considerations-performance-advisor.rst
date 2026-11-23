@@ -7,4 +7,4 @@ modified to take advantage of existing indexes, as well as whether a
 query occurs often enough to justify the cost of a new index.
 
 The Performance Advisor can help identify and remove unnecessary 
-indexes. To learn more, see :ref:`pa-drop-index`.
+indexes. To learn more, see :ref:`om-pa-drop-index`.

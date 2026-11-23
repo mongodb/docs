@@ -477,14 +477,14 @@
   If you had not enabled the :doc:`Profiler </tutorial/profile-database>`:
     You now see the :doc:`Profiler </tutorial/profile-database>`. |mms|
     sources the data points from your
-    :ref:`slow query logs <pa-slow-queries>`. These
+    :ref:`slow query logs <om-pa-slow-queries>`. These
     :ref:`data points <operation-profiling-configuration-options>` have
     been logged since |onprem| 4.2 through the
-    :ref:`Performance Advisor <pa-slow-queries>`.
+    :ref:`Performance Advisor <om-pa-slow-queries>`.
 
   If you had enabled the :doc:`Profiler </tutorial/profile-database>`:
     You continue to see the Profiler. |mms| sources the data points
-    from your :ref:`slow query logs <pa-slow-queries>`  rather than
+    from your :ref:`slow query logs <om-pa-slow-queries>`  rather than
     through the
     :doc:`MongoDB Profiler entries </tutorial/profile-database>`.
     (These entries continue to be ingested.) The MongoDB Profiler

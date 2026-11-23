@@ -17,7 +17,7 @@ The following query parameters are optional:
 
   * - envelope
     - boolean
-    - Specifies whether or not to wrap the response in an :ref:`envelope <api-envelope>`.
+    - Specifies whether or not to wrap the response in an :ref:`envelope <om-api-envelope>`.
     - ``false``
 
   * - includeRaw

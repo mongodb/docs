@@ -532,7 +532,7 @@ Fixes the following issues:
 - Supports configuring separate SAML signature validation for responses and assertions so that only one is 
   required through the :setting:`mms.saml.signedAssertions` and :setting:`mms.saml.signedMessages` settings.
 - Supports ability to set a custom idle session timeout using new application settings, :guilabel:`Idle Session Timeout Mode` and :guilabel:`Idle Session Timeout Max Minutes`.
-- Supports taking :ref:`on-demand snapshots <on-demand-snapshots>` in addition to scheduled snapshots.
+- Supports taking :ref:`on-demand snapshots <om-on-demand-snapshots>` in addition to scheduled snapshots.
 - Removes the |onprem| version number from the login page if you set :setting:`mms.security.show.om.version` to false.
 - Updates the {+mdbagent+} to :ref:`107.0.12.8669-1 <mongodb-107.0.12.8669-1>`.
 - Adds support for |bic-full| 2.14.17.
@@ -746,7 +746,7 @@ Fixes the following issues:
   :guilabel:`network bytes out` metric that appears in the 
   :guilabel:`System Network` chart. This release resets this metric and 
   the previous values no longer appear. To learn more, see 
-  :ref:`review-available-metrics` and :ref:`system-disk-alerts`.
+  :ref:`om-review-available-metrics` and :ref:`om-system-disk-alerts`.
 
 .. _opsmgr-server-7.0.2:
 
@@ -773,7 +773,7 @@ Fixes the following issues:
   - ``Oplog Behind`` warning could be displayed for non-active shards.
   - ``LOW_APP_DB_FREE_SPACE_PERCENT`` alert was not working correctly.
   - Servers might display stale statuses in the |onprem| UI.
-- Removes ability to :ref:`delete a project <delete-project>` that has 
+- Removes ability to :ref:`delete a project <om-delete-project>` that has 
   managed deployments.
 
 .. _opsmgr-server-7.0.1:
@@ -831,7 +831,7 @@ Alerting
 - Removes support for |snmp| alerts. 
 
   - You can monitor your clusters with |onprem| instead. To
-    learn about other alert options, see :ref:`third-party-integrations`.
+    learn about other alert options, see :ref:`om-third-party-integrations`.
 
 - Redacts third-party credentials.
   
