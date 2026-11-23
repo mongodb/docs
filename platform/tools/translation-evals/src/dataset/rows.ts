@@ -1,9 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 import type { Config } from '../config.js';
-import type { ScrapedPage, PageRef, DatasetRow, SegmentPair, SegmentStatus } from '../types.js';
+import type { ScrapedPage, PageRef, DatasetRow } from '../types.js';
 import { readManifest, runDir } from '../run/manifest.js';
 import { segmentTargets, readFileSegmentResult, type SegmentResult } from './segments.js';
+import { buildPageSegments, type PageSegments } from './page-segments.js';
 import { projectRelativeMdx } from '../resolve/run.js';
 import { logLine } from '../suite/log.js';
 
@@ -20,12 +22,15 @@ export function buildRows(
   project: string,
   run: string,
   locale: string,
-  segments: SegmentPair[] = [],
-  status: SegmentStatus = 'ok',
-): DatasetRow | null {
-  if (!en || !ref || !local) return null;
+  segments: PageSegments,
+): DatasetRow {
+  if (!en || !ref || !local) {
+    throw new Error(
+      `missing page scrape for "${page.mdxPath}" [${locale}] — re-run scrape-prod/scrape-local before building the dataset`,
+    );
+  }
   return {
-    input: { source_text: en.content, target_locale: locale, local_text: local.content, segments },
+    input: { source_text: en.content, target_locale: locale, local_text: local.content, segments: segments.pairs },
     expected: ref.content,
     metadata: {
       project,
@@ -35,47 +40,23 @@ export function buildRows(
       run,
       kind: 'page',
       mdxPath: page.mdxPath,
-      segmentStatus: status,
-      segmentPairs: segments.length,
-    },
-  };
-}
-
-/**
- * One row per reachable include, per locale. Includes are never scraped, so the
- * three text fields are empty and only `segments` carries data. The manual
- * scoring covered all 70 translatable files (8 pages + 62 includes); without
- * these rows the population is not comparable.
- */
-export function buildIncludeRow(
-  rel: string,
-  locale: string,
-  project: string,
-  run: string,
-  segments: SegmentPair[],
-  status: SegmentStatus,
-): DatasetRow {
-  return {
-    input: { source_text: '', target_locale: locale, local_text: '', segments },
-    expected: '',
-    metadata: {
-      project,
-      url: '',
-      slug: rel,
-      locale,
-      run,
-      kind: 'include',
-      mdxPath: rel,
-      segmentStatus: status,
-      segmentPairs: segments.length,
+      case_id: [project, 'page', page.slug, locale].join(':'),
+      source_digest: createHash('sha256').update(en.content).digest('hex'),
+      included_files: segments.includedFiles,
+      own_segments: segments.ownPairCount,
+      included_segments: segments.includedPairCount,
+      segmentPairs: segments.pairs.length,
+      segmentStatus: segments.status,
+      enOnly: segments.enOnly.length,
+      esOnly: segments.esOnly.length,
     },
   };
 }
 
 /**
  * Join the prod-en (source), prod-<locale> (reference) and local (output)
- * scrapes into rows, one per (page, locale), plus one row per translatable
- * include. Writes `rows.json`.
+ * scrapes into one row per (page, locale), with every reachable include's
+ * segments folded into the page row. Writes `rows.json`.
  */
 export function buildDataset(cfg: Config, project: string, runId: string): DatasetRow[] {
   const m = readManifest(cfg, project, runId);
@@ -84,9 +65,8 @@ export function buildDataset(cfg: Config, project: string, runId: string): Datas
   const scope = process.env.SUITE_SCOPE;
 
   for (const locale of m.locales) {
-    let dropped = 0;
     let built = 0;
-    // Read each file once, then hand its segments to every row that needs them.
+    // Read each file once, then hand its segments to every page that needs them.
     // Rows are driven by `m.pages` (one per variant), not by the deduped targets.
     const byRel = new Map<string, SegmentResult>();
     for (const target of segmentTargets(m)) {
@@ -100,45 +80,29 @@ export function buildDataset(cfg: Config, project: string, runId: string): Datas
     }
 
     for (const page of m.pages) {
-      const result = byRel.get(projectRelativeMdx(m.project, page.mdxPath));
-      if (result === undefined) {
-        dropped++;
-        continue;
-      }
-      const row = buildRows(
-        readPage(path.join(base, 'prod', 'en'), page.slug),
-        readPage(path.join(base, 'prod', locale), page.slug),
-        readPage(path.join(base, 'local', locale), page.slug),
-        page,
-        project,
-        runId,
-        locale,
-        result.pairs,
-        result.status,
+      const pageRel = projectRelativeMdx(m.project, page.mdxPath);
+      const segments = buildPageSegments(m, pageRel, byRel);
+      rows.push(
+        buildRows(
+          readPage(path.join(base, 'prod', 'en'), page.slug),
+          readPage(path.join(base, 'prod', locale), page.slug),
+          readPage(path.join(base, 'local', locale), page.slug),
+          page,
+          project,
+          runId,
+          locale,
+          segments,
+        ),
       );
-      // A page whose scrape is missing is a gap to report, not a row to drop silently.
-      if (row) {
-        rows.push(row);
-        built++;
-      } else dropped++;
-    }
-
-    for (const rel of m.translatable.includes) {
-      const result = byRel.get(rel);
-      if (result === undefined) {
-        dropped++;
-        continue;
-      }
-      rows.push(buildIncludeRow(rel, locale, project, runId, result.pairs, result.status));
       built++;
     }
 
-    if (dropped > 0) logLine({ scope, event: 'warn', subject: 'dataset', attrs: { locale, dropped } });
+    // Page-relative cases carry every include. Base the denominator on pages.
     logLine({
       scope,
       event: 'info',
       subject: 'stage=dataset',
-      attrs: { locale, rows: `${built}/${m.pages.length + m.translatable.includes.length}` },
+      attrs: { locale, rows: `${built}/${m.pages.length}` },
     });
   }
 

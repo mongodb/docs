@@ -19,6 +19,23 @@ export function buildIncludeGraph(
   return graph;
 }
 
+/**
+ * Reachable files for a single seed, in sorted form. Computed alongside the
+ * existing shared closure so the manifest records the same relationship used
+ * for translation rather than a separately reconstructed include inventory.
+ */
+export function includeClosureForSeed(seed: string, graph: Map<string, string[]>): string[] {
+  const seen = new Set<string>();
+  const stack = [...(graph.get(seed) ?? [])];
+  while (stack.length) {
+    const file = stack.pop()!;
+    if (seen.has(file)) continue;
+    seen.add(file);
+    stack.push(...(graph.get(file) ?? []));
+  }
+  return [...seen].sort();
+}
+
 export function computeClosure(
   pageMdxPaths: string[],
   graph: Map<string, string[]>,

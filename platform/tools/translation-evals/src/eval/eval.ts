@@ -29,6 +29,11 @@ const glossary = DEFAULT_GLOSSARY;
 
 const provider = resolveBackendName(cfg.translatorModel, cfg.translatorBackend);
 const rowsWithSegments = rows.filter((row) => (row.input.segments?.length ?? 0) > 0).length;
+const includedFiles = new Set(
+  rows.flatMap((row) =>
+    (row.metadata.included_files ?? []).map((include) => include.file),
+  ),
+);
 
 const experimentName = buildExperimentName({
   provider,
@@ -59,5 +64,7 @@ Eval(cfg.braintrustProject, {
     pages: manifest.pages.length,
     rows: rows.length,
     rows_with_segments: rowsWithSegments,
+    covered_includes: includedFiles.size,
+    include_coverage: 'include segments are evaluated within the pages that inline them',
   },
 });

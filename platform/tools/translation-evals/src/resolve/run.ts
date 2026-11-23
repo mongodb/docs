@@ -4,7 +4,7 @@ import type { Config } from '../config.js';
 import type { RunManifest, PageRef } from '../types.js';
 import { enumeratePages } from './enumerate.js';
 import { buildPageRefs } from './urls.js';
-import { buildIncludeGraph, computeClosure } from './closure.js';
+import { buildIncludeGraph, computeClosure, includeClosureForSeed } from './closure.js';
 import { newRunId, writeManifest } from '../run/manifest.js';
 
 const REFKEY_RE = /refKey="([^"]+)"/g;
@@ -142,7 +142,8 @@ export async function resolveProject(
   // project-relative include-graph keys.
   const toSeed = (mdxPath: string): string => projectRelativeMdx(project, mdxPath);
   const seedPages = [...new Set(pages.map((p) => toSeed(p.mdxPath)))].sort();
-  const translatable = computeClosure(seedPages, graph, refKeys, substitutionKeys);
+  const pageIncludes = Object.fromEntries(seedPages.map((seed) => [seed, includeClosureForSeed(seed, graph)]));
+  const translatable = { ...computeClosure(seedPages, graph, refKeys, substitutionKeys), pageIncludes };
 
   const manifest: RunManifest = {
     project,

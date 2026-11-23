@@ -24,6 +24,8 @@ export interface TranslatableSet {
   includes: string[];
   /** Keys from `_references.json` referenced by the closure. */
   substitutions: string[];
+  /** Include files reachable for each project-relative seed-page path. */
+  pageIncludes?: Record<string, string[]>;
 }
 
 export interface RunManifest {
@@ -52,6 +54,8 @@ export interface SegmentPair {
   en: string;
   /** Translated text for this segment in the row's locale. */
   es: string;
+  /** Project-relative MDX file containing this string. Absent on historical and synthetic pairs. */
+  source?: string;
 }
 
 /** Why a file's segments are (or are not) usable. Recorded per row. */
@@ -87,9 +91,17 @@ export interface DatasetRow {
     kind?: 'page' | 'include';
     /** content-mdx-relative path this row came from. */
     mdxPath?: string;
+    /** Stable logical identity for Braintrust comparisons: project:page:slug:locale. */
+    case_id?: string;
+    /** SHA-256 of the English source text, for content-version compatibility checks. */
+    source_digest?: string;
     segmentStatus?: SegmentStatus;
     segmentPairs?: number;
     enOnly?: number;
     esOnly?: number;
+    /** Includes reachable from this page, each with its pair count and status. */
+    included_files?: { file: string; pairCount: number; status: SegmentStatus }[];
+    own_segments?: number;
+    included_segments?: number;
   };
 }

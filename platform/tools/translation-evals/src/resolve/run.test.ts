@@ -30,6 +30,15 @@ describe('resolveProject', () => {
     expect(manifest.translatable.includes).toContain('_includes/a.mdx');
   });
 
+  it('records per-page include ownership keyed by project-relative MDX path', async () => {
+    const { cfg } = setup();
+    const { manifest } = await resolveProject(cfg, 'atlas', 'test-run', { dirNameToPrefix: PREFIX_MAP });
+    expect(manifest.translatable.pageIncludes).toEqual({
+      'alerts.mdx': ['_includes/a.mdx'],
+      'connect.mdx': [],
+    });
+  });
+
   it('filters the eval set to --pages by urlPath and mdxPath', async () => {
     const { cfg } = setup();
     const { manifest } = await resolveProject(cfg, 'atlas', 'test-run', {

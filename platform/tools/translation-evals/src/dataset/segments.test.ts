@@ -2,7 +2,12 @@ import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { buildSegmentPairs, segmentTargets, readFileSegmentResult } from './segments.js';
+import {
+  buildSegmentPairs,
+  segmentTargets,
+  readFileSegmentResult,
+  classifySegmentStatus,
+} from './segments.js';
 import { projectRelativeMdx } from '../resolve/run.js';
 import { loadConfig } from '../config.js';
 import type { RunManifest, SegmentTarget } from '../types.js';
@@ -88,7 +93,7 @@ describe('readFileSegmentResult', () => {
     writeEs('Nota.\n');
     const r = readFileSegmentResult(cfg, m, 'es', target);
     expect(r.status).toBe('ok');
-    expect(r.pairs).toEqual([{ key: 'paragraph[0]', en: 'Note.', es: 'Nota.' }]);
+    expect(r.pairs).toEqual([{ key: 'paragraph[0]', en: 'Note.', es: 'Nota.', source: EN_REL }]);
   });
 
   it('reports no-shared-keys when the two sides extract disjoint keys', () => {
@@ -117,5 +122,22 @@ describe('readFileSegmentResult', () => {
     const { cfg, m, target, writeEn } = setup();
     writeEn('Note.\n');
     expect(() => readFileSegmentResult(cfg, m, 'es', target)).toThrow(/missing translated overlay/);
+  });
+
+  it('attaches each pair to the file that produced it', () => {
+    const { cfg, m, target, writeEn, writeEs } = setup();
+    writeEn('Note.\n');
+    writeEs('Nota.\n');
+    const result = readFileSegmentResult(cfg, m, 'es', target);
+    expect(result.pairs.map((pair) => pair.source)).toEqual([EN_REL]);
+    expect(result.rel).toBe(EN_REL);
+  });
+});
+
+describe('classifySegmentStatus', () => {
+  it('keeps the existing three-way segment classification', () => {
+    expect(classifySegmentStatus({ pairs: [], enOnly: [], esOnly: [] })).toBe('no-translatable-content');
+    expect(classifySegmentStatus({ pairs: [], enOnly: ['a'], esOnly: [] })).toBe('no-shared-keys');
+    expect(classifySegmentStatus({ pairs: [{ key: 'paragraph[0]', en: 'A', es: 'Un' }], enOnly: [], esOnly: [] })).toBe('ok');
   });
 });

@@ -9,7 +9,6 @@ import {
   wordMatches,
   hasStemExtension,
   matchKind,
-  tokensIn,
   scoreGlossaryTerms,
 } from './glossary-terms.js';
 import type { SegmentPair } from '../../types.js';
@@ -99,13 +98,6 @@ describe('matchKind', () => {
     expect(matchKind('driver', 'drivers')).toBe('plural');
     expect(matchKind('block', 'blocked')).toBe('verbForm');
     expect(matchKind('encrypted', 'encrypted')).toBe('literal');
-  });
-});
-
-describe('tokensIn', () => {
-  it('finds adapter tokens and leaves a bare U+E000 alone', () => {
-    expect(tokensIn('x \u{E000}O1\u{E001} y')).toEqual(['\u{E000}O1\u{E001}']);
-    expect(tokensIn('x \u{E000} y')).toEqual([]); // not followed by [A-Z]\d+
   });
 });
 
@@ -399,6 +391,39 @@ describe('scoreGlossaryTerms — A4: credit per occurrence', () => {
     const r = scoreGlossaryTerms([seg('The field and the field.', 'El campo y el campo.')], g, 'es');
     expect(r.metadata.correct).toBe(2);
     expect(r.metadata.wrong).toBe(0);
+  });
+});
+
+describe('scoreGlossaryTerms — evidence provenance', () => {
+  it('carries the segment source on each evidence entry without changing the score', () => {
+    const sourced: SegmentPair[] = [
+      { key: 'paragraph[0]', en: 'Use the driver.', es: 'Usa el controlador.', source: 'aggregation.mdx' },
+      { key: 'paragraph[0]', en: 'A collection of documents.', es: 'Una colección de documentos.', source: '_includes/intro' },
+    ];
+    const bare = sourced.map(({ key, en, es }) => ({ key, en, es }));
+    const g = glossaryOf({ driver: 'controlador', collection: 'colección' });
+
+    const withProvenance = scoreGlossaryTerms(sourced, g, 'es');
+    const withoutProvenance = scoreGlossaryTerms(bare, g, 'es');
+
+    // Provenance is metadata only: the score must not see it.
+    expect(withProvenance.score).toBe(withoutProvenance.score);
+    expect(withProvenance.metadata.correct).toBe(withoutProvenance.metadata.correct);
+    expect(withProvenance.metadata.wrong).toBe(withoutProvenance.metadata.wrong);
+
+    const driver = withProvenance.metadata.terms.find((t) => t.term === 'driver')!;
+    expect(driver.evidence).toEqual([
+      {
+        key: 'paragraph[0]',
+        verdict: 'correct',
+        why: 'allowed option used',
+        match: 'driver',
+        kind: 'literal',
+        source: 'aggregation.mdx',
+      },
+    ]);
+    const collection = withProvenance.metadata.terms.find((t) => t.term === 'collection')!;
+    expect(collection.evidence[0]!.source).toBe('_includes/intro');
   });
 });
 

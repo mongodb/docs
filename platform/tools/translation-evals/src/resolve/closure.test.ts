@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildIncludeGraph, computeClosure } from './closure.js';
+import { buildIncludeGraph, computeClosure, includeClosureForSeed } from './closure.js';
 
 const FILES: Record<string, string> = {
   'alerts.mdx': '<Include src="/_includes/a"><Replacement name="svc">Atlas</Replacement></Include>\n<Reference refKey="ui-org-menu" type="substitution" />',
@@ -7,6 +7,21 @@ const FILES: Record<string, string> = {
   '_includes/b.mdx': 'deep <Reference refKey="service" type="substitution" />',
   '_includes/unused.mdx': 'never referenced',
 };
+
+describe('includeClosureForSeed', () => {
+  it('keeps an include closure per seed, including nested references', () => {
+    const graph = new Map([
+      ['aggregation.mdx', ['_includes/a.mdx']],
+      ['other.mdx', ['_includes/a.mdx']],
+      ['_includes/a.mdx', ['_includes/b.mdx']],
+      ['_includes/b.mdx', []],
+    ]);
+
+    expect(includeClosureForSeed('aggregation.mdx', graph)).toEqual(['_includes/a.mdx', '_includes/b.mdx']);
+    expect(includeClosureForSeed('other.mdx', graph)).toEqual(['_includes/a.mdx', '_includes/b.mdx']);
+    expect(includeClosureForSeed('other.mdx', new Map())).toEqual([]);
+  });
+});
 
 describe('computeClosure', () => {
   it('collects transitive includes once and only referenced substitutions', () => {

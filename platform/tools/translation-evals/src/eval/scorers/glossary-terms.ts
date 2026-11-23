@@ -7,17 +7,11 @@
  * slash-variant rules.
  */
 import { buildTermSheet, termMatches, variationsOf, type Glossary } from '@mongodb-docs/translation-service';
+import { tokensIn } from '../../adapter-tokens.js';
 import type { SegmentPair } from '../../types.js';
 import { activeClassifications, type Classifications } from './glossary-classifications.js';
 
 const WORD_CHAR = '[\\p{L}\\p{N}_$#+-]';
-
-/**
- * The adapter's Private Use Area inline tokens. Written as `\u` escapes, never
- * literal PUA characters: a transcription through any ASCII-normalizing view
- * silently turns a literal class into a no-op that matches nothing.
- */
-const ADAPTER_TOKEN = /[\u{E000}-\u{F8FF}][A-Z]\d+[\u{E000}-\u{F8FF}]?/gu;
 
 function escapeRegExp(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -35,11 +29,6 @@ export function countMatches(text: string, term: string): number {
 /** `text` with every occurrence of `term` blanked, so shorter terms cannot re-count it. */
 export function maskMatches(text: string, term: string): string {
   return text.replace(tokenPattern(term), ' ');
-}
-
-/** The adapter's inline tokens present in `text`. */
-export function tokensIn(text: string): string[] {
-  return [...text.matchAll(ADAPTER_TOKEN)].map((m) => m[0]);
 }
 
 /** Lowercase with combining marks removed, so accented and plain forms compare equal. */
@@ -212,6 +201,8 @@ export interface TermResult {
     why: string;
     match: string;
     kind: 'literal' | 'plural' | 'verbForm';
+    /** The segment's source file, when the pair carries one. */
+    source?: string;
   }>;
 }
 
@@ -412,7 +403,7 @@ export function scoreGlossaryTerms(
         }
 
         const list = evidenceByTerm.get(term) ?? [];
-        list.push({ key: pair.key, verdict, why, match, kind });
+        list.push({ key: pair.key, verdict, why, match, kind, source: pair.source });
         evidenceByTerm.set(term, list);
       }
     }

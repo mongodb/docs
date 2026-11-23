@@ -229,6 +229,9 @@ describe('toEvalScorers', () => {
       }
     }
     expect(judgeCalled).toBe(false);
+
+    const first = await scorers[1]!(includeRow);
+    expect((first as { metadata?: { reason?: string } }).metadata?.reason).toContain('glossary');
   });
 
   it('judges the page in one call, with the reference, and scales distortion by segment count', async () => {
@@ -267,6 +270,49 @@ describe('toEvalScorers', () => {
     expect(byName['contradiction']).toBe(1);
     expect(byName['faithful']).toBe(0);
     expect(byName['fluency']).toBe(1);
+  });
+
+  // A page row folds its includes' segments into `input.segments`, but the
+  // distortion denominator stays at the page's own pair count — the expanded
+  // list would silently soften the score. 3 total pairs, own_segments 2, one
+  // critical distortion: 0.5, not the ~0.667 the merged count would give.
+  it('scales distortion by the page-own segment count when includes are folded in', async () => {
+    let prompts = 0;
+    const judge: JudgeOptions = {
+      model: 'judge-model',
+      transport: async (requestBody) => {
+        prompts += 1;
+        void JSON.parse(requestBody);
+        return JSON.stringify({
+          output_text: JSON.stringify({
+            issues: [{ type: 'distortion', severity: 'critical', quote: 'q', explanation: 'e' }],
+            rationale: 'r',
+            fluency: 5,
+            agreement: 5,
+          }),
+        });
+      },
+    };
+    const segments: SegmentPair[] = [
+      { key: 'p[0]', en: 's0.', es: 't0.' },
+      { key: 'p[1]', en: 's1.', es: 't1.' },
+      { key: 'p[2]', en: 's2.', es: 't2.' },
+    ];
+    const scorers = toEvalScorers(GLOSSARY, judge);
+    const result = (await scorers[3]!({
+      input: { ...INPUT, segments },
+      output: 'x',
+      expected: 'y',
+      metadata: {
+        ...METADATA,
+        own_segments: 2,
+        case_id: ['atlas', 'page', METADATA.slug, METADATA.locale].join(':'),
+      },
+    })) as Array<{ name: string; score: number | null }>;
+    const byName = Object.fromEntries(result.map((r) => [r.name, r.score]));
+
+    expect(prompts).toBe(1);
+    expect(byName['distortion']).toBe(0.5);
   });
 
   describe('a page row whose local scrape is empty', () => {

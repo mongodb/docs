@@ -358,10 +358,36 @@ pnpm dataset --project atlas
 ```
 
 Joins the three scrapes into Braintrust rows at
-`data/<project>/<runId>/dataset/rows.json`, one row per (page, locale), plus one
-row per translatable include. Each row also carries the paired English/Spanish
-segments the glossary scorers read. Needs `scrape-prod` and `scrape-local` to
-have run.
+`data/<project>/<runId>/dataset/rows.json`, one row per (page, locale). A page
+row carries translatable segments from its own MDX file and all the includes it
+reaches, each with its `source` file. Includes are not emitted as separate
+nearly-empty rows. The glossary scorer reads all the merged segment pairs; the
+page/judge scorers continue to use the rendered page output. Row metadata lists
+`included_files`, own/included segment counts and a stable `case_id`;
+error/no-content states remain explicit in per-file status and coverage fields.
+Needs `scrape-prod` and `scrape-local` to have run.
+
+`Output` and `Expected` are the full rendered page content — the local scrape
+and the production reference — not segment-joined text. `included_files` is a
+list of `{file, pairCount, status}` objects, one per include the page reaches;
+the counts sit next to the row's own `own_segments`, `included_segments`, and
+`segmentPairs` totals. One-sided keys contribute `enOnly`/`esOnly` counts, so an
+unmatched field remains visible rather than becoming secretly undiagnosed. These
+coverage fields are counts and provenance, not another text score.
+
+A run manifest predating pageIncludes must be re-resolved before rebuilding its dataset.
+That is a historical migration consequence, not a silent fallback:
+a manifest without `pageIncludes` has no include ownership to read, so the
+dataset stage fails and names the run instead of scoring pages without their
+includes.
+
+#### Row identity
+
+`case_id` is `<project>:page:<slug>:<locale>` — the project, the page kind, the
+page's current slug, and the locale. Path separators in a slug become `__`, and
+a composable variant's query string is appended after another `__`, so variants
+of the same page get distinct identities. `case_id` distinguishes the (page,
+locale) rows of one run; no stronger uniqueness is implied.
 
 **A missing source file stops the build and names the file — either language.**
 There is no override. A partial run would silently understate every number, and a
@@ -445,12 +471,19 @@ factuality scores are computed from the issue list. The prompt
 relying on the output could do the wrong thing or reach a wrong conclusion, and
 minor means a reader would not be misled. A response with no issue list is
 rejected instead of scored. Each factuality score's metadata in Braintrust lists
-its issues with severity and quote. Include rows are not judged.
+its issues with severity and quote. There are no separate include rows to
+judge: an include is evaluated as part of the page that inlines it. The
+`distortion` denominator is the page's own segment count (`own_segments`), so
+included segments cannot dilute it. Experiment metadata records
+`covered_includes` (distinct includes reached across the rows) and
+`include_coverage`, which states that include segments are scored inside their
+pages — it is provenance, not a score.
 
 A scrape that returns an empty page (for example an error page from the local
-site) is not recorded, and the dataset stage drops that page with a warning. A
-page row whose local text is blank scores `null` with the reason `local scrape
-was empty` for every scorer that reads the scraped text, including the judge.
+site) is not recorded: the scrape stage warns and skips it, and the dataset
+stage then fails on the missing scrape instead of scoring a blank. The scorers
+still return `null` with the reason `local scrape was empty` for a blank
+`local_text`, which only a dataset built before that guard can produce.
 
 #### language_integrity
 

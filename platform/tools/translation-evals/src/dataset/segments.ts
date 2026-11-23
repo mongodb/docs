@@ -16,6 +16,8 @@ export interface SegmentBuild {
 
 export interface SegmentResult extends SegmentBuild {
   status: SegmentStatus;
+  /** Project-relative path of the target this result was built from. */
+  rel: string;
 }
 
 /**
@@ -48,7 +50,7 @@ export function segmentTargets(m: RunManifest): SegmentTarget[] {
  * One-sided keys are reported rather than dropped, so a pairing regression
  * stays visible.
  */
-export function buildSegmentPairs(enSource: string, esSource: string): SegmentBuild {
+export function buildSegmentPairs(enSource: string, esSource: string, source?: string): SegmentBuild {
   const en = extract(enSource).payload;
   const es = extract(esSource).payload;
   const pairs: SegmentPair[] = [];
@@ -57,10 +59,20 @@ export function buildSegmentPairs(enSource: string, esSource: string): SegmentBu
   for (const [key, text] of Object.entries(en)) {
     const translated = es[key];
     if (translated === undefined) enOnly.push(key);
-    else pairs.push({ key, en: text, es: translated });
+    else pairs.push({ key, en: text, es: translated, source });
   }
   for (const key of Object.keys(es)) if (en[key] === undefined) esOnly.push(key);
   return { pairs, enOnly, esOnly };
+}
+
+/**
+ * Why a build's pairs are (or are not) usable. Zero translatable content
+ * beats zero-shared-keys: an empty file is not a pairing regression.
+ */
+export function classifySegmentStatus(build: SegmentBuild): SegmentStatus {
+  if (build.pairs.length) return 'ok';
+  if (build.enOnly.length === 0 && build.esOnly.length === 0) return 'no-translatable-content';
+  return 'no-shared-keys';
 }
 
 /**
@@ -91,10 +103,10 @@ export function readFileSegmentResult(
     );
   }
 
-  const build = buildSegmentPairs(fs.readFileSync(enPath, 'utf8'), fs.readFileSync(esPath, 'utf8'));
-  if (build.pairs.length === 0 && build.enOnly.length === 0 && build.esOnly.length === 0) {
-    return { ...build, status: 'no-translatable-content' };
-  }
-  if (build.pairs.length === 0) return { ...build, status: 'no-shared-keys' };
-  return { ...build, status: 'ok' };
+  const build = buildSegmentPairs(
+    fs.readFileSync(enPath, 'utf8'),
+    fs.readFileSync(esPath, 'utf8'),
+    target.rel,
+  );
+  return { ...build, status: classifySegmentStatus(build), rel: target.rel };
 }

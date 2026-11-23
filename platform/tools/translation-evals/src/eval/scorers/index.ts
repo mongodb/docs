@@ -14,7 +14,7 @@ export type Scorer = EvalScorer<RowInput, string, string, RowMetadata>;
 /** Locales that mark grammatical gender/number agreement. Others get a null score. */
 const GENDERED_LOCALES = new Set(['es', 'pt-br']);
 
-const INCLUDE_REASON = 'include row has no scraped text';
+const INCLUDE_REASON = 'include row has no rendered page text; scored on glossary terms from segments only';
 const EMPTY_SCRAPE_REASON = 'local scrape was empty';
 
 const JUDGE_SCORE_NAMES = [
@@ -66,9 +66,9 @@ function named(name: string, scorer: Scorer): Scorer {
  * otherwise. `grammatical_agreement` is null for locales that do not mark
  * grammatical gender.
  *
- * An include row has no scraped text, so every scorer that reads it returns null
- * rather than a misleading number, and the judge is never called. A page row
- * whose local scrape is blank gets the same treatment.
+ * An include row has no rendered page text, so every scorer that reads it
+ * returns null rather than a misleading number, and the judge is never called.
+ * A page row whose local scrape is blank gets the same treatment.
  * The glossary scorer is deliberately NOT guarded: it reads segments, and includes carry
  * glossary occurrences.
  */
@@ -78,8 +78,9 @@ export function toEvalScorers(glossary: Glossary, judgeOpts: JudgeOptions): Scor
 
   return [
     named('glossary', async ({ input }) => {
-      // NOT guarded on include rows: an include has no scraped text, but it does
-      // carry segments, and includes hold most of the glossary occurrences.
+      // NOT guarded on include rows: an include has no rendered page text, but
+      // it does carry segments, and includes hold most of the glossary
+      // occurrences.
       const { score, metadata } = scoreGlossaryTerms(input.segments, glossary, input.target_locale);
       const { byKind } = metadata;
       return [
@@ -118,7 +119,10 @@ export function toEvalScorers(glossary: Glossary, judgeOpts: JudgeOptions): Scor
         { source: input.source_text, output, reference: expected, locale: input.target_locale },
         judgeOpts,
       );
-      const scores = scoreFactuality(result.issues, input.segments?.length ?? 0);
+      const scores = scoreFactuality(
+        result.issues,
+        metadata.own_segments ?? input.segments?.length ?? 0,
+      );
       const issuesOf = (type: IssueType) => {
         const issues = result.issues
           .filter((i) => i.type === type)
