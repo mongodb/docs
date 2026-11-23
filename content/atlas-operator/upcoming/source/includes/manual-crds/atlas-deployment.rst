@@ -191,7 +191,7 @@ Configuration for the advanced (v1.5) deployment API `https://www.mongodb.com/do
    * -  ``backupEnabled``
      - boolean
      - Flag that indicates if the deployment uses Cloud Backups for backups.
-       Applicable only for ``M10`` and larger deployments.
+       Applicable only for ``M10+`` deployments.
      - false
 
    * -  ``biConnector``
@@ -216,6 +216,40 @@ Configuration for the advanced (v1.5) deployment API `https://www.mongodb.com/do
    * -  ``customZoneMapping``
      - []object
      - List that contains Global Cluster parameters that map zones to geographic regions.
+     - false
+
+   * -  ``databaseEdition``
+     - enum
+     - Type of database topology.
+       Setting this field to ``INFINITE`` creates an Atlas Infinite cluster, where compute is detached
+       from storage. Atlas assigns the edition at creation time, and the field is immutable afterwards.
+       Leave it unset to let Atlas pick the default ``CORE`` edition.
+
+       An Atlas Infinite cluster has the following constraints:
+
+       - Topology: ``REPLICASET`` or ``SHARDED``
+       - Regions: exactly one
+       - Electable nodes: exactly two
+       - The topology can't change after creation
+
+       Atlas reports an Infinite cluster's topology as ``CONTINUOUS`` and manages its storage. The
+       following fields aren't configurable on it:
+
+       - ``versionReleaseSystem``
+       - ``pitEnabled``
+       - ``autoScaling``
+       - ``diskGB``
+       - ``diskSizeGB``
+       - ``diskIOPS``
+
+       On an Atlas Infinite cluster, ``backupEnabled`` instead selects Additional Backup Retention,
+       and defaults to enabled. Backups always run either way.
+
+       **Validations:**
+
+       - self == ``oldSelf``: ``databaseEdition`` is immutable
+
+       *Enum*: ``CORE``, ``INFINITE``
      - false
 
    * -  ``diskSizeGB``
@@ -1627,6 +1661,13 @@ AtlasDeploymentStatus defines the observed state of AtlasDeployment.
      - object
      - List that contains key value pairs to map zones to geographic regions.
        These pairs map an ``ISO`` 3166-1a2 location code, with an ``ISO`` 3166-2 subdivision code when possible, to a unique 24-hexadecimal string that identifies the custom zone.
+     - false
+
+   * -  ``databaseEdition``
+     - string
+     - ``DatabaseEdition`` is the database edition Atlas assigned to the cluster, either ``CORE`` or
+       ``INFINITE``. Atlas picks a default when spec.``deploymentSpec``.``databaseEdition`` is left unset,
+       so this reports the edition actually in effect rather than the one requested.
      - false
 
    * -  ``managedNamespaces``
