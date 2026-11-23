@@ -8,362 +8,1589 @@ Specify Connection Options
    :name: genre
    :values: reference
 
-.. meta:: 
-   :keywords: node.js, customize
-   :description: Explore the MongoDB Node.js Driver's connection and authentication options, including app name, authentication mechanism, and TLS configuration settings.
+.. meta::
+   :keywords: connection string, URI, server, Atlas, settings, configure
+   :description: Explore MongoDB Node.js driver connection options, including replica set, TLS, timeout, compression, pool, and read and write concern settings in a connection string or options object.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
 
 .. toctree::
-   :titlesonly:
-   :maxdepth: 2
+   :caption: Specify Connection Options
 
    Compress Network Traffic </connect/connection-options/network-compression>
    Stable API </connect/connection-options/stable-api>
    Limit Server Execution Time </connect/connection-options/csot>
    Connection Pools </connect/connection-options/connection-pools>
 
-This section explains the MongoDB connection and authentication options
-supported by the {+driver-short+} that you can set within a ``MongoClientOptions`` instance. 
+Overview
+--------
 
-For more information on setting connection options directly in a connection 
-string, see :manual:`Connection Strings </reference/connection-string/>` in the 
+This page describes the connection options available in the {+driver-short+}
+and explains how to apply them to your MongoDB connection.
+
+How to Specify Connection Options
+---------------------------------
+
+The following sections describe how you can specify connection options by
+using a connection string or a ``MongoClientOptions`` object.
+
+.. _node-connection-options-uri:
+
+Use the Connection String
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can include connection options in a connection string as
+``<name>=<value>`` pairs. Pass the connection string to the ``MongoClient``
+constructor. In the following example, the connection string contains the
+``connectTimeoutMS`` option with a value of ``60000`` and the ``tls`` option
+with a value of ``true``:
+
+.. literalinclude:: /includes/connect/connection-options.js
+   :language: javascript
+   :dedent:
+   :start-after: start-uri-connect-options
+   :end-before: end-uri-connect-options
+   :copyable: true
+
+To learn more about connection string options, see
+:ref:`Connection String Options <connections-connection-options>` in the
 {+mdb-server+} manual.
 
-.. list-table::
-   :header-rows: 1
-   :widths: 30 20 10 40
+.. _node-connection-options-client:
 
-   * - Name
-     - Accepted Values
-     - Default Value
-     - Description
+Use the MongoClientOptions Object
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   * - **appName**
-     - string
-     - ``null``
-     - Specifies the app name the driver passes to the server in the client
-       metadata as part of the connection handshake. The driver sends the
-       ``appName`` value to MongoDB when establishing the connection.
-       This value is recorded in the log file, the slow query logs, and
-       profile collections.
+You can pass a ``MongoClientOptions`` object to the ``MongoClient``
+constructor to configure connection settings in code. Configuring the
+connection this way makes it easier to change settings at runtime and
+helps you catch errors during compilation. This approach also provides
+more configuration options than the connection string.
 
-   * - **authMechanism**
-     - string
-     - ``null``
-     - Specifies the authentication mechanism method to use for connection to the
-       server. If you do not specify a value, the driver uses the default mechanism,
-       either ``SCRAM-SHA-1`` or ``SCRAM-SHA-256`` depending on the server version. See
-       the :ref:`Authentication Mechanisms <node-authentication-mechanisms>` section for available
-       authentication mechanisms.
+The following example sets the ``connectTimeoutMS`` option to ``60000``
+milliseconds and enables TLS:
 
-   * - **authMechanismProperties**
-     - comma separated key:value pairs, for example, "opt1:val1,opt2:val2"
-     - ``null``
-     - Specifies other options provided for authentication, such as the option to enable
-       hostname canonicalization for GSSAPI.
+.. literalinclude:: /includes/connect/connection-options.js
+   :language: javascript
+   :dedent:
+   :start-after: start-client-connect-options
+   :end-before: end-client-connect-options
+   :copyable: true
 
-   * - **authSource**
-     - string
-     - ``null``
-     - Specifies the database that connections authenticate against.
+Replica Set Options
+-------------------
 
-   * - **autoSelectFamily**
-     - boolean
-     - ``true``
-     - If set to ``true``, the socket attempts to connect to IPv6 and IPv4 addresses
-       until a connection is established. If available, the driver will select 
-       the first IPv6 address.
+.. tabs::
 
-   * - **autoSelectFamilyAttemptTimeout**
-     - non-negative integer
-     - ``null``
-     - Specifies the amount of time in milliseconds to wait for a connection
-       attempt to finish before trying the next address when using the 
-       ``autoSelectFamily`` option. If set to a positive integer less than ``10``,
-       the value ``10`` is used instead.
+   .. tab:: Connection String
+      :tabid: connection-string
 
-   * - **compressors**
-     - comma separated list of strings, for example, "snappy,zlib,zstd"
-     - ``null``
-     - Specifies the allowed compression types for wire protocol messages
-       sent to or received from the server. See :ref:`node-network-compression`
-       for more information.
+      Direct Connection
+      ~~~~~~~~~~~~~~~~~
 
-   * - **connectTimeoutMS**
-     - non-negative integer
-     - ``30000``
-     - Specifies the amount of time in milliseconds to wait to establish a single TCP
-       socket connection to the server before raising an error. Specifying
-       ``0``  means your application sets an infinite socket timeout when establishing a socket.
+      .. sharedinclude:: dbx/connection-options/directConnection.rst
 
-   * - **directConnection**
-     - boolean
-     - ``false``
-     - Specifies whether to force dispatch **all** operations to the host
-       specified in the connection URI.
+      **Data Type:** ``boolean``
 
-   * - **enableOverloadRetargeting**
-     - boolean
-     - ``false``
-     - Specifies whether the driver deprioritizes a server that
-       returns an overload error, reducing the likelihood of
-       retrying on the same overloaded server.
+      **Default Value:** ``false``
 
-   * - **enableUtf8Validation**
-     - boolean
-     - ``true``
-     - Specifying ``true`` enables UTF-8 validation for the 
-       connection. MongoDB throws an error when 
-       it attempts to serialize string data that contains invalid 
-       UTF-8 characters to BSON. This applies to both document keys and 
-       document values, this validation adds processing overhead.
+      **Example:**
 
-       Specifying ``false`` disables UTF-8 validation for the 
-       connection. MongoDB does not throw errors when 
-       data contains invalid UTF-8 data. If you disable validation, 
-       your application avoids the validation processing overhead. 
-       **Editing data** while validation is disabled
-       can result in loss of data. Disabling UTF-8 validation is a 
-       temporary workaround to query or export data only.
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-direct-connection
+         :end-before: end-uri-direct-connection
+         :copyable: true
 
-       To learn more about UTF-8 characters, see :wikipedia:`UTF-8
-       <UTF-8>` on Wikipedia.
+      Replica Set
+      ~~~~~~~~~~~
 
-   * - **heartbeatFrequencyMS**
-     - integer greater than or equal to 500
-     - ``null``
-     - Specifies the interval, in milliseconds, between regular server monitoring checks.
+      .. sharedinclude:: dbx/connection-options/replicaSetName.rst
 
-   * - **loadBalanced**
-     - boolean
-     - ``null``
-     - Specifies whether the driver is connecting to a load balancer.
+      **Data Type:** ``string``
 
-   * - **localThresholdMS**
-     - non-negative integer
-     - ``15``
-     - Specifies the size of the latency window, in milliseconds, on round trip time for
-       selecting between suitable servers. Specifying ``0`` means no wait,
-       meaning the fastest available server.
+      **Default Value:** ``null``
 
-   * - **maxAdaptiveRetries**
-     - non-negative integer
-     - ``2``
-     - Specifies the maximum number of retries to attempt when the
-       driver encounters overload errors.
+      **Example:**
 
-   * - **maxIdleTimeMS**
-     - non-negative integer
-     - ``0``
-     - Specifies the amount of time, in milliseconds, a connection can be idle before it's closed.
-       Specifying ``0`` means no minimum.
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-replica-set
+         :end-before: end-uri-replica-set
+         :copyable: true
 
-   * - **maxPoolSize**
-     - non-negative integer
-     - ``100``
-     - Specifies the maximum number of clients or connections the driver
-       can create in its connection pool. This count includes connections
-       in use.
+   .. tab:: Client Options
+      :tabid: client-options
 
-   * - **maxConnecting**
-     - non-negative integer
-     - ``2``
-     - Specifies the maximum number of connections a driver's connection
-       pool may be establishing concurrently.
+      Direct Connection
+      ~~~~~~~~~~~~~~~~~
 
-   * - **maxStalenessSeconds**
-     - -1, or an integer greater than or equal 90
-     - ``null``
-     - Specifies the maximum replication lag, in :term:`wall clock time`, that
-       a secondary can experience and still be eligible for server selection.
-       Specifying ``-1`` means no maximum.
+      .. sharedinclude:: dbx/connection-options/directConnection.rst
 
-   * - **minPoolSize**
-     - non-negative integer
-     - ``0``
-     - Specifies the number of connections the driver creates and
-       maintains in the connection pool even when no operations are occurring.
-       This count includes connections in use.
+      **Data Type:** ``boolean``
 
-   * - **proxyHost**
-     - string
-     - ``null``
-     - Specifies the SOCKS5 proxy IPv4 address, IPv6 address, or domain
-       name.
+      **Default Value:** ``false``
 
-   * - **proxyPort**
-     - non-negative integer
-     - ``null``
-     - Specifies the TCP port number of the SOCKS5 proxy server. If you
-       set the ``proxyHost`` option, the value of this option defaults
-       to ``1080``.
+      **Example:**
 
-   * - **proxyUsername**
-     - string
-     - ``null``
-     - Specifies the username for authentication to the SOCKS5
-       proxy server. If you set
-       this option to a zero-length string, the driver ignores it.
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-direct-connection
+         :end-before: end-client-direct-connection
+         :copyable: true
 
-   * - **proxyPassword**
-     - string
-     - ``null``
-     - Specifies the password for authentication to the SOCKS5
-       proxy server. If you set
-       this option to a zero-length string, the driver ignores it.
+      Replica Set
+      ~~~~~~~~~~~
 
-   * - **readConcernLevel**
-     - string
-     - ``null``
-     - Specifies the default read concern for the client. See :ref:`read concern
-       <read-concern>` for more information.
+      .. sharedinclude:: dbx/connection-options/replicaSetName.rst
 
-   * - **readPreference**
-     - string
-     - ``"primary"``
-     - Specifies the default read preference for the client (excluding tags). See :ref:`read preference <read-preference>` for more information.
+      **Data Type:** ``string``
 
-   * - **readPreferenceTags**
-     - comma-separated key:value pairs, for example, "dc:ny,rack:1" and "dc:ny
-       can be specified multiple times, each instance of this key is a
-       separate tag set
-     - ``null``
-     - Specifies the default read preference tags for the client. This option is
-       valid only if the read preference mode is not primary.
+      **Default Value:** ``null``
 
-       The driver uses the order of the tags in the URI as the order
-       for the read preference.
+      **Example:**
 
-   * - **replicaSet**
-     - string
-     - ``null``
-     - Specifies the name of the replica set to connect to.
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-replica-set
+         :end-before: end-client-replica-set
+         :copyable: true
 
-   * - **retryReads**
-     - boolean
-     - ``true``
-     - Enables retryable reads.
+TLS Options
+-----------
 
-   * - **retryWrites**
-     - boolean
-     - ``true``
-     - Enables retryable writes.
+.. tabs::
 
-   * - **runtimeAdapters**
-     - object
-     - ``null``
-     - *(Experimental)* Specifies custom implementations of core {+environment+} APIs
-       to enable the driver to run in alternative runtimes that are not compatible
-       with {+environment+} or work in restricted environments. This option accepts
-       a ``RuntimeAdapters`` object, which has an ``os`` property. The ``os`` property
-       must be an object compatible with {+environment+}'s OS module that contains
-       the ``release()``, ``platform()``, ``arch()``, and ``type()`` methods.
+   .. tab:: Connection String
+      :tabid: connection-string
 
-   * - **serverMonitoringMode**
-     - ``auto``, ``stream``, ``poll``
-     - ``auto``
-     - Specifies the monitoring mode that the driver monitors use. When
-       this option is set to ``auto``, the monitoring mode is determined
-       by the environment in which the driver is running. The driver
-       uses polling mode in function-as-a-service (FaaS) environments
-       and the streaming mode in other environments.
+      Enable TLS
+      ~~~~~~~~~~
 
-   * - **serverSelectionTimeoutMS**
-     - non-negative integer
-     - ``30000``
-     - Specifies the timeout, in milliseconds, to block for server selection
-       before raising an error.
+      .. sharedinclude:: dbx/connection-options/useTls.rst
 
-   * - **socketTimeoutMS**
-     - non-negative integer
-     - ``0``
-     - Specifies the amount of time in milliseconds spent attempting to send or receive
-       on a socket before timing out. Specifying ``0`` means your application sets an
-       infinite socket timeout when establishing a socket.
+      The ``ssl`` option is an alias for the ``tls`` option.
 
-   * - **srvMaxHosts**
-     - non-negative integer
-     - ``0``
-     - Specifies the maximum number of SRV results to randomly select when initially
-       populating the seedlist or, during SRV polling, adding new hosts to the
-       topology.
+      **Data Type:** ``boolean``
 
-   * - **srvServiceName**
-     - a valid SRV service name according to `RFC 6335 <https://datatracker.ietf.org/doc/html/rfc6335#section-5.1>`_
-     - ``"mongodb"``
-     - Specifies the service name to use for SRV lookup in initial DNS seedlist discovery.
+      **Default Value:** ``false``
 
-   * - **ssl**
-     - boolean
-     - ``false``
-     - The ``ssl`` is an alias for the ``tls`` option.
+      **Example:**
 
-   * - **tls**
-     - boolean
-     - ``false``
-     - Specifies whether TLS is required for connections to the server.
-       Using a ``srvServiceName`` of  ``"mongodb+srv"``, or specifying other
-       ``tls``-prefixed options implicitly sets the value of ``tls`` to
-       ``true``.
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-tls
+         :end-before: end-uri-tls
+         :copyable: true
 
-   * - **tlsAllowInvalidCertificates**
-     - boolean
-     - ``false``
-     - Specifies whether the driver generates an error when the server's
-       TLS certificate is invalid. Set this option to ``true`` for testing
-       purposes only.
+      Specify the CA File
+      ~~~~~~~~~~~~~~~~~~~
 
-   * - **tlsAllowInvalidHostnames**
-     - boolean
-     - ``false``
-     - Specifies whether the driver generates an error when there is a mismatch
-       between the server's hostname and the hostname specified by the
-       TLS certificate. Set this option to ``true`` for testing purposes only.
+      The ``tlsCAFile`` option specifies the path to a file with either a
+      single or bundle of certificate authorities to trust when making a
+      TLS connection. To learn more about setting this option, see the
+      :ref:`Provide Certificate Filepaths <node-tls-filepaths>` section of
+      the TLS guide.
 
-   * - **tlsCAFile**
-     - string
-     - ``null``
-     - Specifies the path to a file with either a single or bundle of certificate
-       authorities to trust when making a TLS connection. To learn more
-       about setting this connection option, see the :ref:`Provide
-       Certificate Filepaths <node-tls-filepaths>` section of the TLS guide.
+      **Data Type:** ``string``
 
-   * - **tlsCertificateKeyFile**
-     - string
-     - ``null``
-     - Specifies the path to the client certificate file or the client
-       private key file. If you need both, you must concatenate the
-       files. To learn more about setting this connection option, see
-       the :ref:`Provide Certificate Filepaths <node-tls-filepaths>`
-       section of the TLS guide.
+      **Default Value:** ``null``
 
-   * - **tlsCertificateKeyFilePassword**
-     - string
-     - ``null``
-     - Specifies the password to decrypt the client private key to be used
-       for TLS connections.
+      **Example:**
 
-   * - **tlsInsecure**
-     - boolean
-     - ``false``
-     - Specifies to relax TLS constraints as much as possible, such as
-       allowing invalid certificates or hostname mismatches. Set this option
-       to ``true`` for testing purposes only.
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-tls-ca-file
+         :end-before: end-uri-tls-ca-file
+         :copyable: true
 
-   * - **waitQueueTimeoutMS**
-     - non-negative integer
-     - ``0``
-     - Specifies the amount of time, in milliseconds, spent attempting to check out a connection
-       from a server's connection pool before timing out.
-       
-       ``0`` signifies no timeout.
+      Specify the Client Certificate Key File
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   * - **zlibCompressionLevel**
-     - integer between ``-1`` and ``9`` (inclusive)
-     - ``-1``
-     - Specifies the level of compression when using zlib to compress wire
-       protocol messages. ``-1`` signifies the default level, ``0`` signifies
-       no compression, ``1`` signifies the fastest speed, and ``9`` signifies
-       the best compression. See :ref:`node-network-compression` for more information.
+      The ``tlsCertificateKeyFile`` option specifies the path to the client
+      certificate file or the client private key file. If you need both,
+      you must concatenate the files. To learn more about setting this
+      option, see the :ref:`Provide Certificate Filepaths
+      <node-tls-filepaths>` section of the TLS guide.
+
+      **Data Type:** ``string``
+
+      **Default Value:** ``null``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-tls-cert-key-file
+         :end-before: end-uri-tls-cert-key-file
+         :copyable: true
+
+      Specify the Client Certificate Key File Password
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      The ``tlsCertificateKeyFilePassword`` option specifies the password
+      to decrypt the client private key used for TLS connections.
+
+      **Data Type:** ``string``
+
+      **Default Value:** ``null``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-tls-cert-key-password
+         :end-before: end-uri-tls-cert-key-password
+         :copyable: true
+
+      Allow Invalid Certificates
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      The ``tlsAllowInvalidCertificates`` option specifies whether the
+      driver generates an error when the server's TLS certificate is
+      invalid. Set this option to ``true`` for testing purposes only.
+
+      **Data Type:** ``boolean``
+
+      **Default Value:** ``false``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-tls-allow-invalid-certs
+         :end-before: end-uri-tls-allow-invalid-certs
+         :copyable: true
+
+      Allow Invalid Hostnames
+      ~~~~~~~~~~~~~~~~~~~~~~~
+
+      The ``tlsAllowInvalidHostnames`` option specifies whether the driver
+      generates an error when there is a mismatch between the server's
+      hostname and the hostname specified by the TLS certificate. Set this
+      option to ``true`` for testing purposes only.
+
+      **Data Type:** ``boolean``
+
+      **Default Value:** ``false``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-tls-allow-invalid-hostnames
+         :end-before: end-uri-tls-allow-invalid-hostnames
+         :copyable: true
+
+      Relax TLS Constraints
+      ~~~~~~~~~~~~~~~~~~~~~
+
+      The ``tlsInsecure`` option relaxes TLS constraints as much as
+      possible, such as allowing invalid certificates or hostname
+      mismatches. Set this option to ``true`` for testing purposes only.
+
+      **Data Type:** ``boolean``
+
+      **Default Value:** ``false``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-tls-insecure
+         :end-before: end-uri-tls-insecure
+         :copyable: true
+
+   .. tab:: Client Options
+      :tabid: client-options
+
+      Enable TLS
+      ~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/useTls.rst
+
+      The ``ssl`` option is an alias for the ``tls`` option.
+
+      **Data Type:** ``boolean``
+
+      **Default Value:** ``false``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-tls
+         :end-before: end-client-tls
+         :copyable: true
+
+      Specify the CA File
+      ~~~~~~~~~~~~~~~~~~~
+
+      The ``tlsCAFile`` option specifies the path to a file with either a
+      single or bundle of certificate authorities to trust when making a
+      TLS connection. To learn more about setting this option, see the
+      :ref:`Provide Certificate Filepaths <node-tls-filepaths>` section of
+      the TLS guide.
+
+      **Data Type:** ``string``
+
+      **Default Value:** ``null``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-tls-ca-file
+         :end-before: end-client-tls-ca-file
+         :copyable: true
+
+      Specify the Client Certificate Key File
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      The ``tlsCertificateKeyFile`` option specifies the path to the client
+      certificate file or the client private key file. If you need both,
+      you must concatenate the files. To learn more about setting this
+      option, see the :ref:`Provide Certificate Filepaths
+      <node-tls-filepaths>` section of the TLS guide.
+
+      **Data Type:** ``string``
+
+      **Default Value:** ``null``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-tls-cert-key-file
+         :end-before: end-client-tls-cert-key-file
+         :copyable: true
+
+      Specify the Client Certificate Key File Password
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      The ``tlsCertificateKeyFilePassword`` option specifies the password
+      to decrypt the client private key used for TLS connections.
+
+      **Data Type:** ``string``
+
+      **Default Value:** ``null``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-tls-cert-key-password
+         :end-before: end-client-tls-cert-key-password
+         :copyable: true
+
+      Allow Invalid Certificates
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      The ``tlsAllowInvalidCertificates`` option specifies whether the
+      driver generates an error when the server's TLS certificate is
+      invalid. Set this option to ``true`` for testing purposes only.
+
+      **Data Type:** ``boolean``
+
+      **Default Value:** ``false``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-tls-allow-invalid-certs
+         :end-before: end-client-tls-allow-invalid-certs
+         :copyable: true
+
+      Allow Invalid Hostnames
+      ~~~~~~~~~~~~~~~~~~~~~~~
+
+      The ``tlsAllowInvalidHostnames`` option specifies whether the driver
+      generates an error when there is a mismatch between the server's
+      hostname and the hostname specified by the TLS certificate. Set this
+      option to ``true`` for testing purposes only.
+
+      **Data Type:** ``boolean``
+
+      **Default Value:** ``false``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-tls-allow-invalid-hostnames
+         :end-before: end-client-tls-allow-invalid-hostnames
+         :copyable: true
+
+      Relax TLS Constraints
+      ~~~~~~~~~~~~~~~~~~~~~
+
+      The ``tlsInsecure`` option relaxes TLS constraints as much as
+      possible, such as allowing invalid certificates or hostname
+      mismatches. Set this option to ``true`` for testing purposes only.
+
+      **Data Type:** ``boolean``
+
+      **Default Value:** ``false``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-tls-insecure
+         :end-before: end-client-tls-insecure
+         :copyable: true
+
+For more information about TLS options, see the :ref:`node-tls` guide.
+
+Timeout Options
+---------------
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: connection-string
+
+      Connect Timeout
+      ~~~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/connectTimeout.rst
+
+      **Data Type:** non-negative ``number``
+
+      **Default Value:** ``30000`` milliseconds
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-connect-timeout
+         :end-before: end-uri-connect-timeout
+         :copyable: true
+
+      Socket Timeout
+      ~~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/socketTimeout.rst
+
+      If a MongoDB process fails with an error or the network connection
+      drops, you might not receive confirmation that the driver closed
+      the corresponding socket. To ensure that the driver closes the
+      socket in these cases, set the ``socketTimeoutMS`` option. Select
+      a value for ``socketTimeoutMS`` that is two to three times longer
+      than the expected duration of your slowest operation.
+
+      **Data Type:** non-negative ``number``
+
+      **Default Value:** ``0`` (no timeout)
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-socket-timeout
+         :end-before: end-uri-socket-timeout
+         :copyable: true
+
+      Server Selection Timeout
+      ~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/serverSelectionTimeout.rst
+
+      **Data Type:** non-negative ``number``
+
+      **Default Value:** ``30000`` milliseconds
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-server-selection-timeout
+         :end-before: end-uri-server-selection-timeout
+         :copyable: true
+
+   .. tab:: Client Options
+      :tabid: client-options
+
+      Connect Timeout
+      ~~~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/connectTimeout.rst
+
+      **Data Type:** non-negative ``number``
+
+      **Default Value:** ``30000`` milliseconds
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-connect-timeout
+         :end-before: end-client-connect-timeout
+         :copyable: true
+
+      Socket Timeout
+      ~~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/socketTimeout.rst
+
+      If a MongoDB process fails with an error or the network connection
+      drops, you might not receive confirmation that the driver closed
+      the corresponding socket. To ensure that the driver closes the
+      socket in these cases, set the ``socketTimeoutMS`` option. Select
+      a value for ``socketTimeoutMS`` that is two to three times longer
+      than the expected duration of your slowest operation.
+
+      **Data Type:** non-negative ``number``
+
+      **Default Value:** ``0`` (no timeout)
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-socket-timeout
+         :end-before: end-client-socket-timeout
+         :copyable: true
+
+      Server Selection Timeout
+      ~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/serverSelectionTimeout.rst
+
+      **Data Type:** non-negative ``number``
+
+      **Default Value:** ``30000`` milliseconds
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-server-selection-timeout
+         :end-before: end-client-server-selection-timeout
+         :copyable: true
+
+To learn how to limit the server execution time of individual operations,
+see the :ref:`node-csot` guide.
+
+Compression Options
+-------------------
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: connection-string
+
+      Compressors
+      ~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/compressors.rst
+
+      **Data Type:** comma-separated ``string``
+
+      **Default Value:** ``null``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-compressors
+         :end-before: end-uri-compressors
+         :copyable: true
+
+      Zlib Compression Level
+      ~~~~~~~~~~~~~~~~~~~~~~
+
+      The ``zlibCompressionLevel`` option sets the compression level for
+      ``zlib`` to use. This option accepts an integer value between ``-1``
+      and ``9``:
+
+      - ``-1``: Default compression level.
+      - ``0``: No compression.
+      - ``1``: Fastest speed but lowest compression.
+      - ``9``: Best compression but slowest speed.
+
+      **Data Type:** ``number`` between ``-1`` and ``9`` (inclusive)
+
+      **Default Value:** ``-1``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-zlib-level
+         :end-before: end-uri-zlib-level
+         :copyable: true
+
+   .. tab:: Client Options
+      :tabid: client-options
+
+      Compressors
+      ~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/compressors.rst
+
+      **Data Type:** array of ``string`` values
+
+      **Default Value:** ``null``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-compressors
+         :end-before: end-client-compressors
+         :copyable: true
+
+      Zlib Compression Level
+      ~~~~~~~~~~~~~~~~~~~~~~
+
+      The ``zlibCompressionLevel`` option sets the compression level for
+      ``zlib`` to use. This option accepts an integer value between ``-1``
+      and ``9``:
+
+      - ``-1``: Default compression level.
+      - ``0``: No compression.
+      - ``1``: Fastest speed but lowest compression.
+      - ``9``: Best compression but slowest speed.
+
+      **Data Type:** ``number`` between ``-1`` and ``9`` (inclusive)
+
+      **Default Value:** ``-1``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-zlib-level
+         :end-before: end-client-zlib-level
+         :copyable: true
+
+For more information about compression, see the :ref:`node-network-compression`
+guide.
+
+Connection Pool Options
+-----------------------
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: connection-string
+
+      Max Pool Size
+      ~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/maxConnectionPoolSize.rst
+
+      **Data Type:** non-negative ``number``
+
+      **Default Value:** ``100``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-max-pool-size
+         :end-before: end-uri-max-pool-size
+         :copyable: true
+
+      Min Pool Size
+      ~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/minConnectionPoolSize.rst
+
+      **Data Type:** non-negative ``number``
+
+      **Default Value:** ``0``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-min-pool-size
+         :end-before: end-uri-min-pool-size
+         :copyable: true
+
+      Max Connection Idle Time
+      ~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/maxConnectionIdleTime.rst
+
+      **Data Type:** non-negative ``number``
+
+      **Default Value:** ``0`` (no limit)
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-max-idle-time
+         :end-before: end-uri-max-idle-time
+         :copyable: true
+
+      Max Connecting
+      ~~~~~~~~~~~~~~
+
+      The ``maxConnecting`` option sets the maximum number of connections
+      the connection pool may establish concurrently.
+
+      **Data Type:** non-negative ``number``
+
+      **Default Value:** ``2``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-max-connecting
+         :end-before: end-uri-max-connecting
+         :copyable: true
+
+      Wait Queue Timeout
+      ~~~~~~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/waitQueueTimeout.rst
+
+      **Data Type:** non-negative ``number``
+
+      **Default Value:** ``0`` (no timeout)
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-wait-queue-timeout
+         :end-before: end-uri-wait-queue-timeout
+         :copyable: true
+
+   .. tab:: Client Options
+      :tabid: client-options
+
+      Max Pool Size
+      ~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/maxConnectionPoolSize.rst
+
+      **Data Type:** non-negative ``number``
+
+      **Default Value:** ``100``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-max-pool-size
+         :end-before: end-client-max-pool-size
+         :copyable: true
+
+      Min Pool Size
+      ~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/minConnectionPoolSize.rst
+
+      **Data Type:** non-negative ``number``
+
+      **Default Value:** ``0``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-min-pool-size
+         :end-before: end-client-min-pool-size
+         :copyable: true
+
+      Max Connection Idle Time
+      ~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/maxConnectionIdleTime.rst
+
+      **Data Type:** non-negative ``number``
+
+      **Default Value:** ``0`` (no limit)
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-max-idle-time
+         :end-before: end-client-max-idle-time
+         :copyable: true
+
+      Max Connecting
+      ~~~~~~~~~~~~~~
+
+      The ``maxConnecting`` option sets the maximum number of connections
+      the connection pool may establish concurrently.
+
+      **Data Type:** non-negative ``number``
+
+      **Default Value:** ``2``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-max-connecting
+         :end-before: end-client-max-connecting
+         :copyable: true
+
+      Wait Queue Timeout
+      ~~~~~~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/waitQueueTimeout.rst
+
+      **Data Type:** non-negative ``number``
+
+      **Default Value:** ``0`` (no timeout)
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-wait-queue-timeout
+         :end-before: end-client-wait-queue-timeout
+         :copyable: true
+
+To learn more about connection pools, see the :ref:`node-connection-pools`
+guide.
+
+Write Concern Options
+---------------------
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: connection-string
+
+      Write Concern
+      ~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/wConcern.rst
+
+      You can also set the following options in the connection string to
+      complete the write concern:
+
+      - ``journal``: specifies whether the driver waits for the server to
+        group commit to the journal file on disk.
+      - ``wtimeoutMS``: specifies a time limit for the write concern.
+
+      To learn more, see :manual:`Write Concern
+      </reference/write-concern/>` in the {+mdb-server+} manual.
+
+      **Data Type:**
+
+      - ``w`` option: ``number`` or ``string``
+      - ``journal`` option: ``boolean``
+      - ``wtimeoutMS`` option: non-negative ``number``
+
+      **Default Value:**
+
+      - ``w`` option: ``1``
+      - ``journal`` option: depends on the
+        ``writeConcernMajorityJournalDefault`` replica set
+        configuration setting
+      - ``wtimeoutMS`` option: ``0`` (no timeout)
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-write-concern
+         :end-before: end-uri-write-concern
+         :copyable: true
+
+   .. tab:: Client Options
+      :tabid: client-options
+
+      Write Concern
+      ~~~~~~~~~~~~~
+
+      The ``writeConcern`` option specifies the level of acknowledgement
+      requested from MongoDB for write operations, including the time
+      limit.
+
+      To learn more, see :manual:`Write Concern
+      </reference/write-concern/>` in the {+mdb-server+} manual.
+
+      The ``MongoClientOptions`` type also defines top-level ``w``,
+      ``wtimeoutMS``, and ``journal`` options. These top-level options
+      are deprecated. Set the properties on the ``writeConcern`` option
+      instead, as shown in the example below.
+
+      **Data Type:** ``WriteConcern`` or ``WriteConcernSettings`` object
+
+      **Default Value:** ``w: 1``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-write-concern
+         :end-before: end-client-write-concern
+         :copyable: true
+
+Read Concern Options
+--------------------
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: connection-string
+
+      Read Concern Level
+      ~~~~~~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/readConcernLevel.rst
+
+      **Data Type:** ``string``
+
+      **Default Value:** ``null``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-read-concern-level
+         :end-before: end-uri-read-concern-level
+         :copyable: true
+
+   .. tab:: Client Options
+      :tabid: client-options
+
+      Read Concern Level
+      ~~~~~~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/readConcernLevel.rst
+
+      **Data Type:** ``string``
+
+      **Default Value:** ``null``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-read-concern-level
+         :end-before: end-client-read-concern-level
+         :copyable: true
+
+Read Preference Options
+-----------------------
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: connection-string
+
+      Read Preference
+      ~~~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/readPreference.rst
+
+      **Data Type:** ``string``
+
+      **Default Value:** ``primary``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-read-preference
+         :end-before: end-uri-read-preference
+         :copyable: true
+
+      Read Preference Tags
+      ~~~~~~~~~~~~~~~~~~~~
+
+      The ``readPreferenceTags`` option specifies the default read
+      preference tags for the client as comma-separated ``key:value``
+      pairs. This option is valid only if the read preference mode is
+      not ``primary``. The driver uses the order of the tags in the URI
+      as the order for the read preference. To learn more about read
+      preference tags, see :manual:`tags </core/read-preference-tags/>`
+      in the {+mdb-server+} manual.
+
+      **Data Type:** comma-separated ``key:value`` pairs
+
+      **Default Value:** ``null``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-read-preference-tags
+         :end-before: end-uri-read-preference-tags
+         :copyable: true
+
+      Max Staleness Seconds
+      ~~~~~~~~~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/maxStaleness.rst
+
+      To apply no maximum, omit this option rather than setting it
+      explicitly.
+
+      **Data Type:** ``number`` greater than or equal to ``90``
+
+      **Default Value:** ``null`` (no maximum)
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-max-staleness-seconds
+         :end-before: end-uri-max-staleness-seconds
+         :copyable: true
+
+      Local Threshold
+      ~~~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/localThreshold.rst
+
+      **Data Type:** non-negative ``number``
+
+      **Default Value:** ``15`` milliseconds
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-local-threshold
+         :end-before: end-uri-local-threshold
+         :copyable: true
+
+   .. tab:: Client Options
+      :tabid: client-options
+
+      Read Preference
+      ~~~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/readPreference.rst
+
+      **Data Type:** ``ReadPreferenceMode`` or ``ReadPreference`` object
+
+      **Default Value:** ``primary``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-read-preference
+         :end-before: end-client-read-preference
+         :copyable: true
+
+      Read Preference Tags
+      ~~~~~~~~~~~~~~~~~~~~
+
+      The ``readPreferenceTags`` option specifies the default read
+      preference tags for the client. Each tag set is an object that maps
+      tag keys to values. This option is valid only if the read preference
+      mode is not ``primary``. To learn more about read preference tags,
+      see :manual:`tags </core/read-preference-tags/>` in the
+      {+mdb-server+} manual.
+
+      **Data Type:** array of tags documents
+
+      **Default Value:** ``null``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-read-preference-tags
+         :end-before: end-client-read-preference-tags
+         :copyable: true
+
+      Max Staleness Seconds
+      ~~~~~~~~~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/maxStaleness.rst
+
+      To apply no maximum, omit this option rather than setting it
+      explicitly.
+
+      **Data Type:** ``number`` greater than or equal to ``90``
+
+      **Default Value:** ``null`` (no maximum)
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-max-staleness-seconds
+         :end-before: end-client-max-staleness-seconds
+         :copyable: true
+
+      Local Threshold
+      ~~~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/localThreshold.rst
+
+      **Data Type:** non-negative ``number``
+
+      **Default Value:** ``15`` milliseconds
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-local-threshold
+         :end-before: end-client-local-threshold
+         :copyable: true
+
+Authentication Options
+----------------------
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: connection-string
+
+      Authentication Mechanism
+      ~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/authMechanism.rst
+
+      To learn more about available authentication mechanisms, see the
+      :ref:`Authentication Mechanisms <node-authentication-mechanisms>`
+      guide.
+
+      **Data Type:** ``string``
+
+      **Default Value:** ``null`` (the driver uses ``SCRAM-SHA-1`` or
+      ``SCRAM-SHA-256`` depending on the server version)
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-auth-mechanism
+         :end-before: end-uri-auth-mechanism
+         :copyable: true
+
+      Authentication Mechanism Properties
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      The ``authMechanismProperties`` option specifies properties for the
+      authentication mechanism set in the ``authMechanism`` option, such
+      as the service name for Kerberos (GSSAPI) authentication.
+
+      **Data Type:** comma-separated key:value pairs
+
+      **Default Value:** ``null``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-auth-mechanism-properties
+         :end-before: end-uri-auth-mechanism-properties
+         :copyable: true
+
+      Auth Source
+      ~~~~~~~~~~~
+
+      The ``authSource`` option specifies the database that contains the
+      user's credentials.
+
+      **Data Type:** ``string``
+
+      **Default Value:** ``null``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-auth-source
+         :end-before: end-uri-auth-source
+         :copyable: true
+
+   .. tab:: Client Options
+      :tabid: client-options
+
+      Authentication Mechanism
+      ~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/authMechanism.rst
+
+      To learn more about available authentication mechanisms, see the
+      :ref:`Authentication Mechanisms <node-authentication-mechanisms>`
+      guide.
+
+      **Data Type:** ``AuthMechanism``
+
+      **Default Value:** ``null`` (the driver uses ``SCRAM-SHA-1`` or
+      ``SCRAM-SHA-256`` depending on the server version)
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-auth-mechanism
+         :end-before: end-client-auth-mechanism
+         :copyable: true
+
+      Authentication Mechanism Properties
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      The ``authMechanismProperties`` option specifies properties for the
+      authentication mechanism set in the ``authMechanism`` option, such
+      as the service name for Kerberos (GSSAPI) authentication.
+
+      **Data Type:** ``AuthMechanismProperties`` object
+
+      **Default Value:** ``null``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-auth-mechanism-properties
+         :end-before: end-client-auth-mechanism-properties
+         :copyable: true
+
+      Auth Source
+      ~~~~~~~~~~~
+
+      The ``authSource`` option specifies the database that contains the
+      user's credentials.
+
+      **Data Type:** ``string``
+
+      **Default Value:** ``null``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-auth-source
+         :end-before: end-client-auth-source
+         :copyable: true
+
+Server Monitoring Options
+-------------------------
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: connection-string
+
+      Heartbeat Frequency
+      ~~~~~~~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/heartbeatFrequency.rst
+
+      The {+driver-short+} maintains a connection pool, so the driver
+      defaults to pooled mode.
+
+      **Data Type:** ``number`` greater than or equal to ``500``
+
+      **Default Value:** ``10000`` milliseconds
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-heartbeat-frequency
+         :end-before: end-uri-heartbeat-frequency
+         :copyable: true
+
+      Server Monitoring Mode
+      ~~~~~~~~~~~~~~~~~~~~~~
+
+      The ``serverMonitoringMode`` option specifies the monitoring mode
+      that the driver monitors use. When this option is set to ``auto``,
+      the monitoring mode is determined by the environment in which the
+      driver runs. The driver uses polling mode in function-as-a-service
+      (FaaS) environments and the streaming mode in other environments.
+
+      **Data Type:** ``auto``, ``stream``, or ``poll``
+
+      **Default Value:** ``auto``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-server-monitoring-mode
+         :end-before: end-uri-server-monitoring-mode
+         :copyable: true
+
+   .. tab:: Client Options
+      :tabid: client-options
+
+      Heartbeat Frequency
+      ~~~~~~~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/heartbeatFrequency.rst
+
+      The {+driver-short+} maintains a connection pool, so the driver
+      defaults to pooled mode.
+
+      **Data Type:** ``number`` greater than or equal to ``500``
+
+      **Default Value:** ``10000`` milliseconds
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-heartbeat-frequency
+         :end-before: end-client-heartbeat-frequency
+         :copyable: true
+
+      Server Monitoring Mode
+      ~~~~~~~~~~~~~~~~~~~~~~
+
+      The ``serverMonitoringMode`` option specifies the monitoring mode
+      that the driver monitors use. When this option is set to ``auto``,
+      the monitoring mode is determined by the environment in which the
+      driver runs. The driver uses polling mode in function-as-a-service
+      (FaaS) environments and the streaming mode in other environments.
+
+      **Data Type:** ``auto``, ``stream``, or ``poll``
+
+      **Default Value:** ``auto``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-server-monitoring-mode
+         :end-before: end-client-server-monitoring-mode
+         :copyable: true
+
+Retry Options
+-------------
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: connection-string
+
+      Retry Reads
+      ~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/retryReads.rst
+
+      **Data Type:** ``boolean``
+
+      **Default Value:** ``true``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-retry-reads
+         :end-before: end-uri-retry-reads
+         :copyable: true
+
+      Retry Writes
+      ~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/retryWrites.rst
+
+      **Data Type:** ``boolean``
+
+      **Default Value:** ``true``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-retry-writes
+         :end-before: end-uri-retry-writes
+         :copyable: true
+
+      Max Adaptive Retries
+      ~~~~~~~~~~~~~~~~~~~~
+
+      The ``maxAdaptiveRetries`` option sets the maximum number of retries
+      to attempt when the driver encounters overload errors. Specifying
+      ``0`` disables adaptive retries. This option requires MongoDB Atlas
+      9.0 or later.
+
+      **Data Type:** non-negative ``number``
+
+      **Default Value:** ``2``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-max-adaptive-retries
+         :end-before: end-uri-max-adaptive-retries
+         :copyable: true
+
+      Overload Retargeting
+      ~~~~~~~~~~~~~~~~~~~~
+
+      The ``enableOverloadRetargeting`` option specifies whether the
+      driver deprioritizes a server that returns an overload error,
+      reducing the likelihood of retrying on the same overloaded server.
+      This option requires MongoDB Atlas 9.0 or later.
+
+      **Data Type:** ``boolean``
+
+      **Default Value:** ``false``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-overload-retargeting
+         :end-before: end-uri-overload-retargeting
+         :copyable: true
+
+   .. tab:: Client Options
+      :tabid: client-options
+
+      Retry Reads
+      ~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/retryReads.rst
+
+      **Data Type:** ``boolean``
+
+      **Default Value:** ``true``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-retry-reads
+         :end-before: end-client-retry-reads
+         :copyable: true
+
+      Retry Writes
+      ~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/retryWrites.rst
+
+      **Data Type:** ``boolean``
+
+      **Default Value:** ``true``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-retry-writes
+         :end-before: end-client-retry-writes
+         :copyable: true
+
+      Max Adaptive Retries
+      ~~~~~~~~~~~~~~~~~~~~
+
+      The ``maxAdaptiveRetries`` option sets the maximum number of retries
+      to attempt when the driver encounters overload errors. Specifying
+      ``0`` disables adaptive retries. This option requires MongoDB Atlas
+      9.0 or later.
+
+      **Data Type:** non-negative ``number``
+
+      **Default Value:** ``2``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-max-adaptive-retries
+         :end-before: end-client-max-adaptive-retries
+         :copyable: true
+
+      Overload Retargeting
+      ~~~~~~~~~~~~~~~~~~~~
+
+      The ``enableOverloadRetargeting`` option specifies whether the
+      driver deprioritizes a server that returns an overload error,
+      reducing the likelihood of retrying on the same overloaded server.
+      This option requires MongoDB Atlas 9.0 or later.
+
+      **Data Type:** ``boolean``
+
+      **Default Value:** ``false``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-overload-retargeting
+         :end-before: end-client-overload-retargeting
+         :copyable: true
 
 .. sharedinclude:: dbx/adaptive-rate-limiting.rst
 
@@ -379,114 +1606,400 @@ string, see :manual:`Connection Strings </reference/connection-string/>` in the
 
       {+language+}
 
-Connection Timeout Options
---------------------------
-
-.. list-table::
-   :widths: 22 78
-   :header-rows: 1
-
-   * - Setting
-     - Description
-     
-   * - **connectTimeoutMS**
-     - ``connectTimeoutMS`` is a :ref:`connection option
-       <node-connection-options>` that sets the time, in milliseconds,
-       for an individual connection from your connection pool to
-       establish a TCP connection to the {+mdb-server+} before
-       timing out. To modify the allowed time for 
-       `MongoClient.connect <{+api+}/classes/MongoClient.html#connect>`__ to establish a  
-       connection to a {+mdb-server+}, use the ``serverSelectionTimeoutMS`` option instead.
-
-       **Default:** 30000
-
-   * - **socketTimeoutMS**
-     - ``socketTimeoutMS`` specifies the amount of time the driver waits
-       for an inactive socket before closing it. The default value is to
-       never time out the socket. This option applies only to sockets that
-       have already been connected.
-
-   * - **maxTimeMS**
-     - `maxTimeMS <{+api+}/classes/FindCursor.html#maxTimeMS>`__
-       specifies the maximum amount of time that the server 
-       waits for an operation to complete after it has reached the
-       server. If an operation runs over the specified time limit, it
-       returns a timeout error. You can pass ``maxTimeMS`` only to an
-       individual operation or to a cursor.
-
-To specify the optional settings for your ``MongoClient``, declare one or
-more available settings in the ``options`` object of the constructor as
-follows:
-
-.. literalinclude:: /code-examples/tested/javascript/driver/connect/connection-options/connection-options.snippet.connection-timeout-options.js
-  :language: javascript
-  :category: usage example
-
-To see all the available settings, see the
-`MongoClientOptions <{+api+}/interfaces/MongoClientOptions.html>`__
-API Documentation.
-
-To specify ``maxTimeMS``, pass it as an option to an individual operation:
-
-.. literalinclude:: /code-examples/tested/javascript/driver/connect/connection-options/connection-options.snippet.connection-maxTimeMS-option.js
-  :language: javascript
-  :category: usage example
-
-Close Sockets After Connection
-------------------------------
-
-If you experience unexpected network behavior or if a MongoDB process
-fails with an error, you might not receive confirmation that the
-driver correctly closed the corresponding socket.
-
-To make sure that the driver correctly closes the socket in these cases,
-set the ``socketTimeoutMS`` option. When a MongoDB process times out, the driver
-will close the socket. We recommend that you select a value
-for ``socketTimeoutMS`` that is two to three times longer than the
-expected duration of the slowest operation that your application executes.
-
-Prevent Long-Running Operations From Slowing Down the Server
-------------------------------------------------------------
-
-You can prevent long-running operations from slowing down the server by
-specifying a timeout value. You can chain the ``maxTimeMS()`` method to
-an individual operation to set a timeout on a specific action.
-
-The following example shows how you can chain the ``maxTimeMS()`` method
-to the ``find()`` operation, which returns a cursor:
-
-.. literalinclude:: /code-examples/tested/javascript/driver/connect/connection-options/connection-options.snippet.connection-maxTimeMS-cursor.js
-  :language: javascript
-  :category: usage example
-
+.. _node-connection-miscellaneous-options:
 .. _node-faq-keepalive:
 
-keepAlive Connection Option
----------------------------
+Miscellaneous Options
+---------------------
 
-The ``keepAlive`` connection option specifies whether to enable
-:wikipedia:`Transmission Control Protocol (TCP) keepalives
-<Keepalive#TCP_keepalive>` on a TCP socket. If you enable keepalives,
-the driver checks whether the connection is active by sending periodic pings
-to your MongoDB deployment. This functionality works only if your
-operating system supports the ``SO_KEEPALIVE`` socket option.
+.. tabs::
 
-The ``keepAliveInitialDelay`` option specifies the number of
-milliseconds that the driver waits before initiating a keepalive.
+   .. tab:: Connection String
+      :tabid: connection-string
 
-The 5.3 driver version release deprecated these options. Starting in
-version 6.0 of the driver, the ``keepAlive`` option is permanently set
-to ``true``, and the ``keepAliveInitialDelay`` is set to 300000
-milliseconds (300 seconds).
+      Application Name
+      ~~~~~~~~~~~~~~~~
 
-.. warning::
-   
-   If your firewall ignores or drops the keepalive messages, you might
-   not be able to identify dropped connections.
+      .. sharedinclude:: dbx/connection-options/applicationName.rst
+
+      **Data Type:** ``string``
+
+      **Default Value:** ``null``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-app-name
+         :end-before: end-uri-app-name
+         :copyable: true
+
+      Load Balanced
+      ~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/loadBalanced.rst
+
+      The {+driver-short+} supports this option only in the connection
+      string. You cannot set it in a ``MongoClientOptions`` object.
+
+      **Data Type:** ``boolean``
+
+      **Default Value:** ``false``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-load-balanced
+         :end-before: end-uri-load-balanced
+         :copyable: true
+
+      SRV Max Hosts
+      ~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/srvMaxHosts.rst
+
+      **Data Type:** non-negative ``number``
+
+      **Default Value:** ``0`` (unlimited)
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-srv-max-hosts
+         :end-before: end-uri-srv-max-hosts
+         :copyable: true
+
+      SRV Service Name
+      ~~~~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/srvServiceName.rst
+
+      **Data Type:** ``string``
+
+      **Default Value:** ``mongodb``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-srv-service-name
+         :end-before: end-uri-srv-service-name
+         :copyable: true
+
+      Auto Select Family
+      ~~~~~~~~~~~~~~~~~~
+
+      If you set the ``autoSelectFamily`` option to ``true``, the socket
+      attempts to connect to IPv6 and IPv4 addresses until a connection
+      is established. If available, the driver selects the first IPv6
+      address.
+
+      **Data Type:** ``boolean``
+
+      **Default Value:** ``true``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-auto-select-family
+         :end-before: end-uri-auto-select-family
+         :copyable: true
+
+      Auto Select Family Attempt Timeout
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      The ``autoSelectFamilyAttemptTimeout`` option specifies the amount
+      of time in milliseconds to wait for a connection attempt to finish
+      before trying the next address when using the ``autoSelectFamily``
+      option. If you set a positive integer less than ``10``, the driver
+      uses ``10`` instead.
+
+      **Data Type:** non-negative ``number``
+
+      **Default Value:** ``null``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-auto-select-family-attempt-timeout
+         :end-before: end-uri-auto-select-family-attempt-timeout
+         :copyable: true
+
+      UTF-8 Validation
+      ~~~~~~~~~~~~~~~~
+
+      The ``enableUtf8Validation`` option specifies whether the driver
+      validates UTF-8 characters when it deserializes BSON documents
+      from MongoDB. If you enable validation, the driver throws a
+      ``BSONError`` when it reads data that contains invalid UTF-8
+      characters. Disable UTF-8 validation only as a temporary
+      workaround to query or export data.
+
+      To learn more about UTF-8 characters, see `UTF-8
+      <https://en.wikipedia.org/wiki/UTF-8>`__ on Wikipedia.
+
+      **Data Type:** ``boolean``
+
+      **Default Value:** ``true``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-utf8-validation
+         :end-before: end-uri-utf8-validation
+         :copyable: true
+
+      SOCKS5 Proxy
+      ~~~~~~~~~~~~
+
+      You can route connections through a SOCKS5 proxy by setting the
+      ``proxyHost`` option to the proxy's IPv4 address, IPv6 address, or
+      domain name. The ``proxyPort`` option specifies the TCP port number
+      of the proxy server. To authenticate to the proxy server, set the
+      ``proxyUsername`` and ``proxyPassword`` options. If you omit the
+      ``proxyPort`` option, the driver uses ``1080``. If you set one of
+      the ``proxyUsername`` or ``proxyPassword`` options, you must set
+      both. To learn more, see :ref:`node-socks`.
+
+      **Data Type:**
+
+      - ``string`` for the ``proxyHost``, ``proxyUsername``, and
+        ``proxyPassword`` options
+      - non-negative ``number`` for the ``proxyPort`` option
+
+      **Default Value:** ``null`` for all four options
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-uri-proxy
+         :end-before: end-uri-proxy
+         :copyable: true
+
+   .. tab:: Client Options
+      :tabid: client-options
+
+      Application Name
+      ~~~~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/applicationName.rst
+
+      **Data Type:** ``string``
+
+      **Default Value:** ``null``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-app-name
+         :end-before: end-client-app-name
+         :copyable: true
+
+      SRV Max Hosts
+      ~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/srvMaxHosts.rst
+
+      **Data Type:** non-negative ``number``
+
+      **Default Value:** ``0`` (unlimited)
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-srv-max-hosts
+         :end-before: end-client-srv-max-hosts
+         :copyable: true
+
+      SRV Service Name
+      ~~~~~~~~~~~~~~~~
+
+      .. sharedinclude:: dbx/connection-options/srvServiceName.rst
+
+      **Data Type:** ``string``
+
+      **Default Value:** ``mongodb``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-srv-service-name
+         :end-before: end-client-srv-service-name
+         :copyable: true
+
+      Auto Select Family
+      ~~~~~~~~~~~~~~~~~~
+
+      If you set the ``autoSelectFamily`` option to ``true``, the socket
+      attempts to connect to IPv6 and IPv4 addresses until a connection
+      is established. If available, the driver selects the first IPv6
+      address.
+
+      **Data Type:** ``boolean``
+
+      **Default Value:** ``true``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-auto-select-family
+         :end-before: end-client-auto-select-family
+         :copyable: true
+
+      Auto Select Family Attempt Timeout
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      The ``autoSelectFamilyAttemptTimeout`` option specifies the amount
+      of time in milliseconds to wait for a connection attempt to finish
+      before trying the next address when using the ``autoSelectFamily``
+      option. If you set a positive integer less than ``10``, the driver
+      uses ``10`` instead.
+
+      **Data Type:** non-negative ``number``
+
+      **Default Value:** ``null``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-auto-select-family-attempt-timeout
+         :end-before: end-client-auto-select-family-attempt-timeout
+         :copyable: true
+
+      UTF-8 Validation
+      ~~~~~~~~~~~~~~~~
+
+      The ``enableUtf8Validation`` option specifies whether the driver
+      validates UTF-8 characters when it deserializes BSON documents
+      from MongoDB. If you enable validation, the driver throws a
+      ``BSONError`` when it reads data that contains invalid UTF-8
+      characters. Disable UTF-8 validation only as a temporary
+      workaround to query or export data.
+
+      To learn more about UTF-8 characters, see `UTF-8
+      <https://en.wikipedia.org/wiki/UTF-8>`__ on Wikipedia.
+
+      **Data Type:** ``boolean``
+
+      **Default Value:** ``true``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-utf8-validation
+         :end-before: end-client-utf8-validation
+         :copyable: true
+
+      SOCKS5 Proxy
+      ~~~~~~~~~~~~
+
+      You can route connections through a SOCKS5 proxy by setting the
+      ``proxyHost`` option to the proxy's IPv4 address, IPv6 address, or
+      domain name. The ``proxyPort`` option specifies the TCP port number
+      of the proxy server. To authenticate to the proxy server, set the
+      ``proxyUsername`` and ``proxyPassword`` options. If you omit the
+      ``proxyPort`` option, the driver uses ``1080``. If you set one of
+      the ``proxyUsername`` or ``proxyPassword`` options, you must set
+      both. To learn more, see :ref:`node-socks`.
+
+      **Data Type:**
+
+      - ``string`` for the ``proxyHost``, ``proxyUsername``, and
+        ``proxyPassword`` options
+      - non-negative ``number`` for the ``proxyPort`` option
+
+      **Default Value:** ``null`` for all four options
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-proxy
+         :end-before: end-client-proxy
+         :copyable: true
+
+      Runtime Adapters
+      ~~~~~~~~~~~~~~~~
+
+      *(Experimental)* The ``runtimeAdapters`` option specifies custom
+      implementations of core {+environment+} APIs. Use this option to
+      run the driver in restricted environments or in alternative
+      runtimes incompatible with {+environment+}. This option is not
+      supported in a connection string.
+
+      **Data Type:** ``RuntimeAdapters`` object
+
+      **Default Value:** ``null``
+
+      **Example:**
+
+      .. literalinclude:: /includes/connect/connection-options.js
+         :language: javascript
+         :dedent:
+         :start-after: start-client-runtime-adapters
+         :end-before: end-client-runtime-adapters
+         :copyable: true
+
+      Keep Alive Initial Delay
+      ~~~~~~~~~~~~~~~~~~~~~~~~
+
+      The ``keepAliveInitialDelay`` option specifies the number of
+      milliseconds that the driver waits before initiating a
+      :wikipedia:`Transmission Control Protocol (TCP) keepalive
+      <Keepalive#TCP_keepalive>` on a socket. When the driver sends TCP
+      keepalives, it checks whether the connection is active by sending
+      periodic pings to your MongoDB deployment. This functionality
+      works only if your operating system supports the
+      ``SO_KEEPALIVE`` socket option. This option is not supported in a
+      connection string.
+
+      Driver version 5.3 deprecated the ``keepAlive`` option. As of
+      driver version 6.0, the driver always sets ``keepAlive`` to
+      ``true``.
+
+      .. warning::
+
+         If your firewall ignores or drops the keepalive messages, you
+         might not be able to identify dropped connections.
+
+      **Data Type:** non-negative ``number``
+
+      **Default Value:** ``120000`` milliseconds (120 seconds)
 
 Additional Information
 ----------------------
 
-To learn more about connection options that you can set within a
-``MongoClientOptions`` instance, see `MongoClientOptions <{+api+}/interfaces/MongoClientOptions.html>`__ 
-in the API Documentation. 
+To see all the available settings, see the
+`MongoClientOptions <{+api+}/interfaces/MongoClientOptions.html>`__ API
+documentation.
+
+To learn more about connection string options, see
+:ref:`Connection String Options <connections-connection-options>` in the
+{+mdb-server+} manual.
