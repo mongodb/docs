@@ -1,0 +1,70 @@
+import { cache } from './react-cache';
+import type { Store } from '@netlify/blobs';
+import { getProductionStore, getBranchStore } from './blob-store';
+import { BLOB_STORE_NAME } from './blob-constants';
+/**
+ * Thrown when a blob read fails for a reason other than the key being absent
+ * (timeouts, 5xx, connection resets — i.e. transient infrastructure errors).
+ * A genuinely-missing key returns `null` instead of throwing. Callers use this
+ * type to tell "page does not exist" (a legitimate, cacheable 404) apart from
+ * "storage hiccup" (must NOT be frozen into a cached 404).
+ */
+export class BlobStoreReadError extends Error {
+  readonly key: string;
+  constructor(key: string, attemptedStores: string, cause: unknown) {
+    const causeMsg = cause instanceof Error ? cause.message : String(cause);
+    super(`Blob store read failed for key "${key}" (stores: ${attemptedStores}): ${causeMsg}`);
+    this.name = 'BlobStoreReadError';
+    this.key = key;
+    this.cause = cause;
+  }
+}
+
+/** A "not found" response is a legitimate miss, not a transient failure. */
+const isNotFoundError = (msg: string): boolean =>
+  msg.toLowerCase().includes('not found') ||
+  msg.includes('404') ||
+  msg.includes('401') ||
+  msg.includes('no such key');
+
+/** Try branch store first, fall back to production store. */
+async function getFromStores(key: string, type: 'string' | 'blob'): Promise<string | Blob | null> {
+  const branchStore = getBranchStore();
+  const storeEntries: Array<{ store: Store; name: string }> =
+    branchStore !== null
+      ? [
+          { store: branchStore.store, name: branchStore.name },
+          { store: getProductionStore(), name: BLOB_STORE_NAME },
+        ]
+      : [{ store: getProductionStore(), name: BLOB_STORE_NAME }];
+
+  for (const { store } of storeEntries) {
+    try {
+      if (type === 'blob') {
+        const result = await store.get(key, { type: 'blob' });
+        if (result) return result;
+      } else {
+        const result = await store.get(key, { type: 'text' });
+        if (result) return result;
+      }
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      if (isNotFoundError(msg)) {
+        continue;
+      }
+      const attempted = storeEntries.map((e) => `"${e.name}"`).join(', ');
+      console.error(`Blob store error for key "${key}", attempted stores: ${attempted}`);
+      throw new BlobStoreReadError(key, attempted, error);
+    }
+  }
+  return null;
+}
+
+export const getBlobString = cache(async (key: string): Promise<string | null> => {
+  return (await getFromStores(key, 'string')) as string | null;
+});
+
+export const getBlob = async (key: string): Promise<Blob | null> => {
+  return (await getFromStores(key, 'blob')) as Blob | null;
+};
+
