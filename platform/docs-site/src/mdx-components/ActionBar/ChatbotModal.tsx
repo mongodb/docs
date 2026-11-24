@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useChatbotContext, ModalView, mongoDbVerifyInformationMessage } from 'mongodb-chatbot-ui';
+import { useChatbotContext, ModalView } from 'mongodb-chatbot-ui';
 import { useChatbotModal } from '@/context/chatbot-context';
 
 const defaultSuggestedPrompts = [
@@ -23,13 +23,7 @@ const ChatbotModal = () => {
     }
   }, [chatbotClicked, openChat, setChatbotClicked, setText, text, setInputText]);
 
-  return (
-    <ModalView
-      inputBottomText={mongoDbVerifyInformationMessage}
-      initialMessageText={'Welcome to MongoDB AI'}
-      initialMessageSuggestedPrompts={defaultSuggestedPrompts}
-    />
-  );
+  return <ModalView initialMessageSuggestedPrompts={defaultSuggestedPrompts} />;
 };
 
 export { ChatbotModal };

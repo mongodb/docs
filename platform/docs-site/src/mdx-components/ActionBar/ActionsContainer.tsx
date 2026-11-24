@@ -19,7 +19,7 @@ const ChatbotModal = dynamic(() => import('@/mdx-components/ActionBar/ChatbotMod
   ssr: false,
 });
 
-const CHATBOT_TEXT = 'Ask MongoDB AI';
+const CHATBOT_TEXT = 'MongoDB Assistant';
 
 const ActionsContainer = () => {
   const { setChatbotClicked } = useChatbotModal();
@@ -55,7 +55,7 @@ const ActionsContainer = () => {
       </Button>
       {
         <Suspense>
-          <Chatbot serverBaseUrl={CHATBOT_SERVER_BASE_URL}>
+          <Chatbot serverBaseUrl={CHATBOT_SERVER_BASE_URL} chat={{ model: 'mongodb-chat-latest', store: true }}>
             <ChatbotModal />
           </Chatbot>
         </Suspense>
