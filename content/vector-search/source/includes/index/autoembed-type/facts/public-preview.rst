@@ -1,11 +1,10 @@
-.. important:: 
+.. important::
 
-   Automated Embedding is generally available on Atlas. For
-   self-managed deployments only, Automated Embedding is available
-   as a Preview feature. The feature and the corresponding
-   documentation for self-managed deployments might change at any
-   time during the Preview period. Do not use this feature in your
-   self-managed production environment. We do not use any customer
-   data from this feature to train our models at this time. To
-   learn more, see `Preview Features
-   <https://www.mongodb.com/docs/preview-features/>`__. 
+   Automated Embedding is generally available in MongoDB Atlas.
+
+   On self-managed deployments (MongoDB Enterprise Advanced and
+   MongoDB Community), Automated Embedding is a Preview feature and
+   is intended for development and evaluation. Preview features and
+   their documentation might change before general availability. For
+   details, see `Preview Features
+   <https://www.mongodb.com/docs/preview-features/>`__.
