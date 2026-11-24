@@ -10,6 +10,7 @@ required_vars=(
   "MDB_EXTERNAL_HOST_0"
   "MDB_EXTERNAL_HOST_1"
   "MDB_EXTERNAL_HOST_2"
+  "MDB_SEARCH_EXTERNAL_HOSTNAME"
   "MDB_PROXY_HOST"
   "MDB_ADMIN_USER_PASSWORD"
   "MDB_USER_PASSWORD"
@@ -36,4 +37,5 @@ else
   echo "  Search resource name: ${MDB_SEARCH_RESOURCE_NAME}"
   echo "  RS members: ${MDB_RS_MEMBERS}"
   echo "  mongot replicas: ${MDB_MONGOT_REPLICAS:-1}"
+  echo "  Envoy endpoint for mongod: ${MDB_PROXY_HOST}"
 fi

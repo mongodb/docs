@@ -49,8 +49,13 @@ run 10_0304_internal_generate_tls_certificates.sh
 # ============================================================================
 
 # Create simulated external MongoDB replica set (using Enterprise operator)
-# Note: MongoDB is created WITH search config from the start (pointing to Envoy proxy endpoint)
+# Note: MongoDB is created WITH search config from the start (pointing to the external Envoy hostname)
 run 10_0310_internal_create_external_mongodb_rs.sh
+
+# Map the published external Envoy hostname to the proxy Service so the
+# simulated external mongod can resolve it, the way customer DNS would
+run 10_0311_internal_update_coredns_configmap.sh
+
 run_for_output 10_0315_internal_wait_for_external_cluster.sh
 
 # Create users AFTER cluster is ready (MongoDBUser CRDs reference the cluster)

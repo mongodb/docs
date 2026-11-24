@@ -52,7 +52,8 @@ run 07_0304_internal_generate_tls_certificates.sh
 # Note: MongoDB is created WITH search config from the start (pointing to Envoy proxy endpoints)
 run 07_0310_internal_create_external_mongodb_sharded_cluster.sh
 
-# Update CoreDNS to resolve external domain to mongos pod IP
+# Update CoreDNS to resolve external domain to mongos/shard pod IPs and the
+# external Envoy hostnames to the proxy Services.
 # Must happen BEFORE waiting for the cluster — the mongos agent needs DNS resolution
 # for the external hostname to report the process as up.
 run 07_0311_internal_update_coredns_configmap.sh

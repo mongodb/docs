@@ -33,7 +33,7 @@ export OPS_MANAGER_ORG_ID="<SET ORG ID>"
 # MONGODB VERSION
 # ======================================================================
 
-# Minimum required MongoDB version for Search is 8.2
+# Minimum required MongoDB version for Search is 8.3
 export MDB_VERSION="8.3.13-ent"
 
 # ======================================================================
@@ -85,17 +85,33 @@ export MDB_EXTERNAL_MONGOS_HOST="<mongos-host>:27017"
 # ======================================================================
 export MDB_MONGOT_REPLICAS=2
 
+# Port where Envoy listens for mongod connections (operator default)
+export ENVOY_PROXY_PORT="27028"
+
+# DNS domain your mongod and mongos hosts use to reach Envoy. Replace with
+# your own domain whose names point at the Envoy proxy Services (or a load
+# balancer in front of them). Envoy routes by TLS SNI on these names.
+export MDB_SEARCH_EXTERNAL_DOMAIN="search.example.com"
+# Per-shard hostname; the operator replaces {shardName} with each shard name
+export MDB_SEARCH_EXTERNAL_HOSTNAME="{shardName}.${MDB_SEARCH_EXTERNAL_DOMAIN}"
+# Shard-agnostic hostname for mongos
+export MDB_SEARCH_ROUTER_HOSTNAME="router.${MDB_SEARCH_EXTERNAL_DOMAIN}"
+
 # ======================================================================
 # DERIVED VALUES (computed from topology + search config)
 # ======================================================================
-# Proxy service names (operator-derived, do not change)
+# Proxy service names (operator-derived, do not change). Your external
+# hostnames must resolve to these Services.
 SEARCH_PFX="${MDB_SEARCH_RESOURCE_NAME}-search-0"
 export MDB_PROXY_SVC_SHARD_0="${SEARCH_PFX}-${MDB_EXTERNAL_SHARD_0_NAME}-proxy-svc"
 export MDB_PROXY_SVC_SHARD_1="${SEARCH_PFX}-${MDB_EXTERNAL_SHARD_1_NAME}-proxy-svc"
+export MDB_PROXY_SVC_ROUTER="${SEARCH_PFX}-proxy-svc"
 
-SVC_SUFFIX="${MDB_NS}.svc.cluster.local:27028"
-export MDB_PROXY_HOST_SHARD_0="${MDB_PROXY_SVC_SHARD_0}.${SVC_SUFFIX}"
-export MDB_PROXY_HOST_SHARD_1="${MDB_PROXY_SVC_SHARD_1}.${SVC_SUFFIX}"
+# mongotHost / searchIndexManagementHostAndPort values for each shard's
+# mongod and for mongos
+export MDB_PROXY_HOST_SHARD_0="${MDB_EXTERNAL_SHARD_0_NAME}.${MDB_SEARCH_EXTERNAL_DOMAIN}:${ENVOY_PROXY_PORT}"
+export MDB_PROXY_HOST_SHARD_1="${MDB_EXTERNAL_SHARD_1_NAME}.${MDB_SEARCH_EXTERNAL_DOMAIN}:${ENVOY_PROXY_PORT}"
+export MDB_PROXY_HOST_ROUTER="${MDB_SEARCH_ROUTER_HOSTNAME}:${ENVOY_PROXY_PORT}"
 
 # Connection strings (built from mongos host)
 MDB_TLS_OPTS="tls=true&tlsCAFile=/tls/ca-pem"
