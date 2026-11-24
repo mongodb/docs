@@ -50,6 +50,11 @@
    `Complete PHP Application <{+sample-app-url-qe+}/php/>`__
 
 .. selected-content::
+   :selections: c
+
+   `Complete C Application <{+sample-app-url-qe+}/c/>`__
+
+.. selected-content::
    :selections: ruby
 
    `Complete Ruby Application <{+sample-app-url-qe+}/ruby/>`__
