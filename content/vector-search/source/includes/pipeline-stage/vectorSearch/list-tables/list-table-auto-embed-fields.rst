@@ -10,9 +10,7 @@
    * - ``exact``
      - Boolean
      - Optional 
-     - This is required if ``numCandidates`` is omitted. 
-
-       Flag that specifies whether to run |enn| or |ann| search. Value
+     - Flag that specifies whether to run |enn| or |ann| search. Value
        can be one of the following: 
 
        - ``false`` - to run |ann| search 
@@ -104,24 +102,17 @@
        - ``max`` - use the maximum score of the nested array elements.
 
    * - ``numCandidates``
-     - Int 
-     - Conditional 
-     - This field is required if ``exact`` is ``false`` or omitted.
-        
-       Number of nearest neighbors to use during the search. Value must 
+     - Int
+     - Optional
+     - Number of nearest neighbors to use during the search. Value must
        be less than or equal to (``<=``) ``10000``. You can't specify a
        number less than the number of documents to return (``limit``).
-        
-       We recommend that you specify a number at least 20 times higher than the 
-       number of documents to return (``limit``) to increase accuracy.
-        
-       This overrequest pattern is the recommended way to 
-       trade off latency and :term:`recall` in your |ann| searches, 
-       and we recommend tuning this parameter based on your specific dataset 
-       size and query requirements.
 
-       To learn more about other variables that might impact this
-       parameter, see :ref:`avs-num-candidates`. 
+       If you omit this field for an |ann| search, {+avs+} computes a
+       value based on the ``limit`` value and the configured
+       quantization.
+
+       .. include:: /includes/pipeline-stage/vectorSearch/facts/fact-avs-numcandidates-tuning.rst
 
    * - ``parentFilter``
      - Object
