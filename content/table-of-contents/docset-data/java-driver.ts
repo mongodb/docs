@@ -384,6 +384,11 @@ const tocData: TocItem[] = [
             contentSite: 'java',
             url: '/docs/drivers/java/sync/:version/logging-monitoring/change-streams',
           },
+          {
+            label: 'OpenTelemetry Tracing',
+            contentSite: 'java',
+            url: '/docs/drivers/java/sync/:version/logging-monitoring/open-telemetry',
+          },
         ],
       },
       {

@@ -1,0 +1,493 @@
+.. _java-open-telemetry:
+
+===================================
+Trace Operations with OpenTelemetry
+===================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: tracing, span, observability, micrometer, code example
+   :description: Learn how to enable and configure OpenTelemetry tracing in the MongoDB Java driver by using Micrometer Observation to collect spans and span attributes for your database operations.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use OpenTelemetry tracing with the
+{+driver-short+}. `OpenTelemetry <https://opentelemetry.io/>`__ is an open
+source observability framework that provides a standardized way to
+instrument, generate, collect, and export telemetry data.
+
+The {+driver-short+} emits trace data through `Micrometer Observation
+<https://docs.micrometer.io/micrometer/reference/observation.html>`__.
+Register an ``ObservationRegistry`` that connects to OpenTelemetry on
+your ``MongoClientSettings`` object. The driver then creates spans that
+represent your MongoDB operations, such as queries and transactions. The
+spans include attributes that follow OpenTelemetry semantic conventions.
+
+.. note::
+
+   OpenTelemetry tracing is available in {+driver-short+} 5.7 or later.
+   The observability API has Alpha release status and might change in
+   future driver versions.
+
+Sample Data
+~~~~~~~~~~~
+
+The example on this page uses the ``sample_mflix.movies`` collection from
+the :atlas:`Atlas sample datasets </sample-data>`. To learn how to create
+a free MongoDB Atlas cluster and load the sample datasets, see
+:ref:`<java-get-started>`.
+
+Dependencies
+~~~~~~~~~~~~
+
+The driver doesn't depend on the Micrometer or OpenTelemetry libraries. To
+use tracing, add the following dependencies to your application:
+
+- ``micrometer-tracing-bom``: Micrometer Tracing Bill of Materials (BOM).
+  Manages compatible versions of the Micrometer and Micrometer Tracing
+  dependencies.
+- ``micrometer-observation``: Provides the ``ObservationRegistry`` and
+  the Micrometer Observation API.
+- ``micrometer-tracing-bridge-otel``: Bridges Micrometer Observation to
+  OpenTelemetry.
+- ``micrometer-tracing-integration-test``: Provides an in-memory
+  OpenTelemetry exporter. The example on this page uses this exporter so
+  you can inspect the spans the driver produces. In your application,
+  replace this dependency with the exporter for your tracing backend,
+  such as the OTLP (OpenTelemetry Protocol) exporter,
+  ``opentelemetry-exporter-otlp``.
+
+Select from the following :guilabel:`Maven` and :guilabel:`Gradle` tabs
+to view instructions for adding the dependencies:
+
+.. tabs::
+
+   .. tab:: Maven
+      :tabid: maven dependencies
+
+      Add the following code to your ``pom.xml`` file:
+
+      .. code-block:: xml
+
+         <dependencyManagement>
+             <dependencies>
+                 <dependency>
+                     <groupId>io.micrometer</groupId>
+                     <artifactId>micrometer-tracing-bom</artifactId>
+                     <version>{+micrometerTracingVersion+}</version>
+                     <type>pom</type>
+                     <scope>import</scope>
+                 </dependency>
+             </dependencies>
+         </dependencyManagement>
+
+         <dependencies>
+             <dependency>
+                 <groupId>io.micrometer</groupId>
+                 <artifactId>micrometer-observation</artifactId>
+             </dependency>
+             <dependency>
+                 <groupId>io.micrometer</groupId>
+                 <artifactId>micrometer-tracing-bridge-otel</artifactId>
+             </dependency>
+             <dependency>
+                 <groupId>io.micrometer</groupId>
+                 <artifactId>micrometer-tracing-integration-test</artifactId>
+             </dependency>
+         </dependencies>
+
+   .. tab:: Gradle
+      :tabid: gradle dependencies
+
+      Add the following code to your ``build.gradle.kts`` file:
+
+      .. code-block:: kotlin
+
+         dependencies {
+             implementation(platform("io.micrometer:micrometer-tracing-bom:{+micrometerTracingVersion+}"))
+             implementation("io.micrometer:micrometer-observation")
+             implementation("io.micrometer:micrometer-tracing-bridge-otel")
+             implementation("io.micrometer:micrometer-tracing-integration-test")
+         }
+
+Spring Boot
+```````````
+
+If your application uses Spring Boot, select from the following
+:guilabel:`Maven` and :guilabel:`Gradle` tabs to view the dependencies
+to add instead:
+
+.. tabs::
+
+   .. tab:: Maven
+      :tabid: maven spring boot dependencies
+
+      Add the following code to your ``pom.xml`` file. Spring Boot's
+      dependency management pins an older driver version than the one
+      the observability API requires, so set the ``mongodb.version``
+      property to override it:
+
+      .. code-block:: xml
+
+         <properties>
+             <mongodb.version>{+full-version+}</mongodb.version>
+         </properties>
+
+         <dependencies>
+             <dependency>
+                 <groupId>org.springframework.boot</groupId>
+                 <artifactId>spring-boot-starter-data-mongodb</artifactId>
+             </dependency>
+             <dependency>
+                 <groupId>org.springframework.boot</groupId>
+                 <artifactId>spring-boot-starter-opentelemetry</artifactId>
+             </dependency>
+         </dependencies>
+
+   .. tab:: Gradle
+      :tabid: gradle spring boot dependencies
+
+      Add the following code to your ``build.gradle.kts`` file. Spring
+      Boot's dependency management pins an older driver version than
+      the one the observability API requires, so override the
+      ``mongodb.version`` property:
+
+      .. code-block:: kotlin
+
+         ext["mongodb.version"] = "{+full-version+}"
+
+         dependencies {
+           implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
+           implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
+         }
+
+Spring Boot's dependency management supplies compatible versions for
+these starters, with the Micrometer and Micrometer Tracing versions
+they depend on. To use this dependency management, inherit
+from ``spring-boot-starter-parent`` or import the
+``spring-boot-dependencies`` BOM. You don't need the Micrometer
+Tracing BOM shown earlier in this section.
+
+This section targets Spring Boot 4. If your application uses Spring Boot
+3, add the following dependencies instead of ``spring-boot-starter-opentelemetry``:
+
+-   ``spring-boot-starter-actuator``
+-   ``micrometer-tracing-bridge-otel``
+-   ``opentelemetry-exporter-otlp``
+
+Enable OpenTelemetry Tracing
+----------------------------
+
+To enable tracing, create an ``ObservationRegistry`` and connect it to your
+OpenTelemetry SDK and exporter. Then, pass the registry to a
+``MicrometerObservabilitySettings`` object, and apply the settings to your
+``MongoClientSettings`` object by using the ``observabilitySettings()``
+method.
+
+The following example configures the driver to emit tracing spans by
+using an in-memory OpenTelemetry exporter, then runs a ``find`` command
+to generate ``mongodb.operation`` and ``mongodb.command`` spans. Replace
+the in-memory exporter with the exporter for your tracing backend:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/code-examples/tested/java/driver-sync/monitoring/opentelemetry/OpenTelemetryTracing.snippet.enable-tracing.java
+      :language: java
+      :category: usage example
+
+   .. output:: /includes/code-examples/tested/java/driver-sync/monitoring/opentelemetry/OutputFiles/OpenTelemetryOutput.txt
+      :language: json
+      :visible: false
+
+Spring Boot
+~~~~~~~~~~~
+
+Spring Boot Actuator already creates an ``ObservationRegistry`` bean
+when Micrometer Observation is on the classpath, and Spring Boot's
+auto-configuration creates the ``MongoClient`` for you. To connect
+the two, define a ``MongoClientSettingsBuilderCustomizer`` bean that
+applies ``ObservabilitySettings`` to the auto-configured
+``MongoClientSettings.Builder``:
+
+.. note::
+
+   The following example uses the Spring Boot 4
+   ``MongoClientSettingsBuilderCustomizer`` package. If your
+   application uses Spring Boot 3, import this class from
+   ``org.springframework.boot.autoconfigure.mongo`` instead.
+
+.. code-block:: java
+
+   import com.mongodb.observability.ObservabilitySettings;
+   import io.micrometer.observation.ObservationRegistry;
+   import org.springframework.boot.mongodb.autoconfigure.MongoClientSettingsBuilderCustomizer;
+   import org.springframework.context.annotation.Bean;
+   import org.springframework.context.annotation.Configuration;
+
+   @Configuration
+   public class MongoTracingConfig {
+
+       @Bean
+       public MongoClientSettingsBuilderCustomizer otelMongoClientSettingsBuilderCustomizer(
+               ObservationRegistry observationRegistry) {
+           return builder -> builder.observabilitySettings(
+                   ObservabilitySettings.micrometerBuilder()
+                           .observationRegistry(observationRegistry)
+                           .build());
+       }
+
+   }
+
+Configure the sampling rate and the OTLP exporter endpoint in your
+application properties instead of building an OpenTelemetry SDK, as shown
+in the following example:
+
+.. code-block:: yaml
+
+   management:
+     tracing:
+       sampling:
+         probability: 1.0
+     otlp:
+       tracing:
+         endpoint: "http://localhost:4318/v1/traces"
+
+To learn more, see `Tracing
+<https://docs.spring.io/spring-boot/reference/actuator/tracing.html>`__
+in the Spring Boot reference documentation.
+
+Configure Tracing Options
+-------------------------
+
+To configure tracing, use the following
+``MicrometerObservabilitySettings.Builder`` methods:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 15 55
+
+   * - Method
+     - Argument Type
+     - Description
+
+   * - ``observationRegistry()``
+     - ``ObservationRegistry``
+     - Sets the registry the driver uses to create tracing spans. This
+       setting is required to enable tracing.
+
+   * - ``enableCommandPayloadTracing()``
+     - ``boolean``
+     - When set to ``true``, the driver attaches the ``db.query.text``
+       attribute to command spans.
+
+       **Default:** ``false``
+
+   * - ``maxQueryTextLength()``
+     - ``int``
+     - Sets the maximum length of the command text captured in the
+       ``db.query.text`` attribute. The driver truncates longer command
+       text to this length.
+
+       **Default:** ``Integer.MAX_VALUE`` (the entire command payload)
+
+   * - ``observationConvention()``
+     - ``ObservationConvention<MongodbObservationContext>``
+     - Sets a custom convention to control the tag names and values the
+       driver produces for MongoDB observations. If you don't set a
+       convention, the driver uses ``DefaultMongodbObservationConvention``.
+
+The following example sets ``enableCommandPayloadTracing`` to ``true``
+and ``maxQueryTextLength`` to ``1024``, which captures up to 1024
+characters of the command text:
+
+.. literalinclude:: /includes/code-examples/tested/java/driver-sync/monitoring/opentelemetry/OpenTelemetryTracing.snippet.configure-tracing-options.java
+   :language: java
+   :copyable: true
+   :category: usage example
+
+You can also configure the following environment variables at the driver
+level:
+
+- ``OBSERVABILITY_MONGODB_ENABLED``: Enables or disables tracing for every
+  ``MongoClient`` instance that has an ``ObservationRegistry`` configured.
+- ``OBSERVABILITY_MONGODB_QUERY_TEXT_MAX_LENGTH``: Sets the maximum length
+  of the command text captured in the ``db.query.text`` attribute.
+
+Operation Tracing
+-----------------
+
+The {+driver-short+} creates the following types of spans:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Span Type
+     - Description
+   * - ``mongodb.operation``
+     - Created for each user-initiated operation, such as ``find`` or
+       ``insertOne``.
+   * - ``mongodb.command``
+     - Created for each wire-protocol command the driver sends to the
+       server. Command spans are nested under their corresponding
+       operation span.
+   * - ``mongodb.transaction``
+     - Created when you start a transaction, and ended when the
+       transaction commits or aborts.
+
+For example, a find operation creates an operation-level span that
+contains a nested command-level span, as shown in the following hierarchy:
+
+.. code-block:: none
+   :copyable: false
+
+   find sample_mflix.movies
+     └── find
+
+Span Attributes
+~~~~~~~~~~~~~~~
+
+The {+driver-short+} follows OpenTelemetry semantic conventions and
+includes attributes that provide context about each operation.
+
+General Attributes
+``````````````````
+
+Spans include the following general attributes:
+
+- ``db.system.name``: Always set to ``mongodb``
+- ``db.operation.name``: Name of the high-level operation (operation
+  spans only)
+- ``db.operation.summary``: Summary of the high-level operation
+  (operation spans only)
+- ``db.command.name``: Name of the MongoDB command (command spans only)
+- ``db.namespace``: Database name
+- ``db.collection.name``: Collection name, when applicable
+- ``db.query.summary``: Summary of the query (command spans only)
+
+Network and Connection Attributes
+`````````````````````````````````
+
+Command spans include the following attributes:
+
+- ``server.address``: MongoDB server host
+- ``server.port``: MongoDB server port
+- ``network.transport``: Transport protocol, such as ``tcp``
+- ``db.mongodb.server_connection_id``: Server-assigned connection ID
+- ``db.mongodb.driver_connection_id``: Driver-assigned connection ID
+
+Session, Transaction, and Cursor Attributes
+```````````````````````````````````````````
+
+When applicable, command spans include the following attributes:
+
+- ``db.mongodb.lsid``: Logical session ID
+- ``db.mongodb.txn_number``: Transaction number
+- ``db.mongodb.cursor_id``: Cursor ID, for operations that return cursors
+
+Query Attributes
+````````````````
+
+When you set ``enableCommandPayloadTracing`` to ``true``, command spans
+include the following attribute:
+
+- ``db.query.text``: Command text, truncated to the configured
+  ``maxQueryTextLength``
+
+Error Attributes
+````````````````
+
+When an operation fails, the driver records exception details as the
+following attributes:
+
+- ``exception.type``: Type of the exception
+- ``exception.message``: Exception message
+- ``exception.stacktrace``: Exception stack trace
+- ``db.response.status_code``: MongoDB error code (command spans only)
+
+Security and Redaction
+----------------------
+
+The driver applies the following security measures to protect sensitive
+information:
+
+- The driver doesn't create command spans for the following commands:
+
+  - ``authenticate``
+  - ``saslStart``
+  - ``saslContinue``
+  - ``getnonce``
+  - ``createUser``
+  - ``updateUser``
+  - ``copydbgetnonce``
+  - ``copydbsaslstart``
+  - ``copydb``
+  - ``hello``
+  - ``isMaster``
+
+- By default, the driver doesn't attach the ``db.query.text`` attribute to
+  command spans. Enable this attribute only when necessary.
+
+.. warning::
+
+   When you enable the ``db.query.text`` attribute, the driver includes
+   the command text in span attributes, and your exporter sends the spans
+   to your tracing backend. The tracing backend records filter values,
+   query operators, and the contents of inserted or updated documents.
+
+Error Handling
+--------------
+
+When an operation fails, the driver sets the status of both the operation
+span and its command span to ``Error``. The driver records the exception
+details as span attributes that follow OpenTelemetry semantic conventions.
+
+Some write errors, such as a duplicate key error, arrive in an otherwise
+successful command response. These errors don't set the command span's
+``db.response.status_code`` attribute. The driver records them as
+exception attributes on the operation span instead.
+
+Errors don't prevent the driver from raising the exception to your
+application.
+
+Performance Considerations
+--------------------------
+
+Consider the following performance implications when you use OpenTelemetry
+tracing:
+
+- Capturing the ``db.query.text`` attribute adds overhead. Capture command
+  text only when necessary.
+- If you don't configure an ``ObservationRegistry``, tracing has negligible
+  performance impact, because the driver skips all tracing work.
+
+To learn more about the performance tradeoffs of instrumentation, see
+`Performance <https://opentelemetry.io/docs/concepts/instrumentation/libraries/#performance>`__
+in the OpenTelemetry documentation.
+
+Additional Information
+----------------------
+
+To learn more about OpenTelemetry tracing, see the `OpenTelemetry Java
+<https://opentelemetry.io/docs/languages/java/>`__ documentation.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the classes mentioned in this guide, see the following
+API documentation:
+
+- `ObservabilitySettings <{+core-api+}/observability/ObservabilitySettings.html>`__
+- `MicrometerObservabilitySettings <{+core-api+}/observability/micrometer/MicrometerObservabilitySettings.html>`__
+- `MongoClientSettings <{+core-api+}/MongoClientSettings.html>`__

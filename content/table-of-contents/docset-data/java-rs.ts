@@ -326,6 +326,11 @@ const tocData: TocItem[] = [
             contentSite: 'java-rs',
             url: '/docs/languages/java/reactive-streams-driver/:version/logging-monitoring/change-streams',
           },
+          {
+            label: 'OpenTelemetry Tracing',
+            contentSite: 'java-rs',
+            url: '/docs/languages/java/reactive-streams-driver/:version/logging-monitoring/open-telemetry',
+          },
         ],
       },
       {
