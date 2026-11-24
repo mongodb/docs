@@ -1,0 +1,51 @@
+.. reference/configuration.txt
+.. reference/mongosync.txt
+
+Sets an identifer for hot documents, or documents that update very
+frequently on source clusters. ``mongosync`` then copies these documents
+during the migration commit stage. 
+
+Use this |opt-term| for migrations that have replication lag due to hot 
+documents when running ``mongosync``.
+
+Provide the identifers in the following format:
+
+.. code-block::
+
+    {
+       “db”: <string>, // the name of the database
+       "collection" : <string>, // name of the collection
+       "ids"    : [ {“_id”:<Object>”}, ...],
+    }
+
+The objects in the ``ids`` field
+must be valid :ref:`canonical mode extended JSON strings <mongodb-extended-json-v2>`.
+
+You can use this |opt-term| multiple times to provide hot document identifiers 
+from multiple collections. The following is an example that provides two hot 
+document identifiers from collections ``coll1`` and ``coll2``:
+
+.. code-block:: 
+
+    mongosync \
+    --hotDocIDs '{"db":"db1","collection":"coll1","ids":[{"_id":{"$oid":"doc1"}},{"_id":{"$oid":"6aa23c249cef3cd958e43785"}}]}' \
+    --hotDocIDs '{"db":"db2","collection":"coll2","ids":[{"_id":{"$oid":"70023c249cef3cd958e43269"}},{"_id":{"$oid":"7aa23c249cef3cd958e43785"}}]}' \
+    ... other CLI arguments ...
+
+During an in-progress migration, you can add more hot document
+identifiers. To add identifiers, stop ``mongosync``, update the
+:option:`--hotDocIDs` option or :setting:`hotDocIDs` setting with
+the new identifiers, and resume the migration. ``mongosync`` retains
+all supplied identifiers across restarts.
+
+You cannot remove supplied hot document identifiers during a
+migration. To restart the migration from scratch and remove or
+correct supplied identifiers, see :ref:`mongosync-restart-migration`.
+
+.. note::
+
+   ``mongosync`` does not retain hot documents on a
+   :ref:`reverse <c2c-api-reverse>` sync. If replication lag occurs
+   due to hot documents during a reverse sync, restart the
+   ``mongosync`` process and specify the hot document identifiers
+   for the reverse direction. Do not restart the migration from scratch.

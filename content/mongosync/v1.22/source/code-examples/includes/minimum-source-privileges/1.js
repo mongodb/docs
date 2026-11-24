@@ -1,0 +1,61 @@
+[
+   {
+       "resource": { "cluster": true },
+       "actions": [
+          "appendOplogNote",
+          "bypassWriteBlockingMode",
+          "getDefaultRWConcern",
+          "getShardMap",
+          "hostInfo",
+          "listDatabases",
+          "listShards",
+          "replSetGetConfig",
+          "replSetGetStatus",
+          "serverStatus",
+          "setUserWriteBlockMode"
+       ]
+   },
+   {
+       "resource": { "db": "", "collection": "" },
+       "actions": [
+          "changeStream",
+          "collStats",
+          "find",
+          "indexStats",
+          "listCollections",
+          "listIndexes"
+     ]
+   },
+   {
+       "resource": { "db": "local", "collection": "oplog.rs" },
+       "actions": [ "find", "collStats" ]
+   },
+   {
+       "resource": { "db": "admin", "collection": "system.version" },
+       "actions": [ "find", "collStats" ]
+   },
+   {
+       "resource": { "db": "", "collection": "system.js" },
+       "actions": [ "listCollections", "listIndexes" ]
+   },
+   {
+       "resource": { "db": "config", "collection": "shards" },
+       "actions": [ "find" ]
+   },
+   {
+       "resource": { "db": "config", "collection": "collections" },
+       "actions": [ "find" ]
+   },
+   {
+       "resource": { "db": "config", "collection": "version" },
+       "actions": [ "find" ]
+   },
+   {
+       "resource": { "db": "config", "collection": "settings" },
+       "actions": [ "find", "update" ]
+   },
+   {
+       "resource": { "system_buckets": "" },
+       "actions": [ "listCollections", "listIndexes" ]
+   }
+]

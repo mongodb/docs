@@ -35,6 +35,39 @@
           ``canCommit`` is ``false`` when ``mongosync`` or the
           embedded verifier reports more than 30 seconds of lag.
 
+   * - ``commitBlockers``
+     - array of strings
+     - Lists the conditions that currently prevent ``mongosync`` from
+       committing the migration. ``mongosync`` populates this field
+       only during the :ref:`Change Event Application <c2c-cea>` (CEA)
+       phase and only while ``canCommit`` is ``false``. When
+       populated, the array contains every current blocker.
+
+       This field can contain the following values:
+
+       - ``"mongosync_lag_too_high"``: ``mongosync`` reports more than
+         30 seconds of lag.
+       - ``"verifier_source_not_in_stream_hashing"``: The embedded
+         verifier has not reached the ``"stream hashing"`` phase on the
+         source cluster. The verifier reaches this phase after it
+         finishes its initial scan of the cluster and starts following
+         the cluster's change stream.
+       - ``"verifier_source_lag_too_high"``: The embedded verifier
+         reports more than 30 seconds of lag on the source cluster.
+       - ``"verifier_destination_not_in_stream_hashing"``: The embedded
+         verifier has not reached the ``"stream hashing"`` phase on the
+         destination cluster. The verifier reaches this phase after it
+         finishes its initial scan of the cluster and starts following
+         the cluster's change stream.
+       - ``"verifier_destination_lag_too_high"``: The embedded verifier
+         reports more than 30 seconds of lag on the destination cluster.
+       - ``"building_indexes"``: ``mongosync`` is still building indexes
+         on the destination cluster. This value appears only if you set
+         :ref:`buildIndexes <mongosync-build-indexes>` to
+         ``"afterDataCopy"`` or ``"excludeHashedAfterCopy"``.
+
+       .. versionadded:: 1.23
+
    * - ``canWrite``
      - boolean
      - If ``true``, indicates that writes are permitted on the

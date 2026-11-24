@@ -1,0 +1,95 @@
+.. _c2c-release-notes-1.21:
+
+================================
+Release Notes for mongosync 1.21
+================================
+
+.. meta::
+   :keywords: cluster to cluster sync, cluster-to-cluster sync
+   :description: Release notes for mongosync 1.21.0 covering the new lag object in the /progress API response, canCommit lag enforcement, and changes to estimatedTotalBytes behavior.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page describes changes and new features introduced in  
+{+c2c-full-product-name+} 1.21.
+
+.. _1.21.0-c2c-release-notes:
+
+1.21.0 Release
+--------------
+
+**June 25, 2026**
+
+New Features
+~~~~~~~~~~~~
+
+- Adds the ``lag`` object to the ``/progress`` API response. The
+  ``lag`` object reports synchronization lag as
+  ``overallLagSeconds``, ``crudLagSeconds``, and
+  ``ddlLagSeconds``. The ``lagTimeSeconds`` field is deprecated
+  in favor of ``lag.overallLagSeconds``. See
+  :ref:`c2c-api-progress` for more details.
+
+
+Fixed Issues
+~~~~~~~~~~~~
+
+- Fixes an issue where create, read, update, and delete (CRUD)
+  events applied during Change Event Application (CEA) were
+  sometimes double-counted in metrics and trace-level log
+  messages.
+
+- Fixes an issue where the embedded verifier could get stuck,
+  causing some collections to never enter the initial hashing
+  phase and preventing commit.
+
+- Fixes an issue where ``mongosync`` incorrectly calculated
+  remaining oplog time for sharded clusters, which resulted
+  in an incorrect ``estimatedOplogTimeRemaining`` field or
+  spurious warning messages in the ``/progress`` response.
+
+- Fixes an issue where calling ``/resume`` very quickly after
+  ``mongosync`` starts could cause ``mongosync`` to crash.
+  Calling ``/resume`` before ``mongosync`` reaches the
+  ``PAUSED`` state now returns an error.
+
+
+Other Changes
+~~~~~~~~~~~~~
+
+- ``canCommit`` is ``false`` when ``mongosync`` or the embedded
+  verifier reports more than 30 seconds of lag. Calling
+  ``/commit`` when ``canCommit`` is ``false`` returns an error.
+  See :ref:`c2c-api-commit` and :ref:`c2c-api-progress` for
+  more details.
+
+- Updates the behavior of ``estimatedTotalBytes`` and
+  ``estimatedCopiedBytes`` in the ``/progress`` API response.
+  If ``estimatedCopiedBytes`` exceeds ``estimatedTotalBytes``
+  during collection copy, ``mongosync`` raises
+  ``estimatedTotalBytes`` to equal ``estimatedCopiedBytes``.
+  After collection copy, both values are equal. See
+  :ref:`c2c-api-progress` for more details.
+
+- When resuming a migration, ``mongosync`` now verifies that
+  the ``--cluster0`` and ``--cluster1`` connection strings have
+  not changed since the migration started. This check compares
+  hostnames and ports to prevent potential data loss from
+  accidentally swapping source and destination clusters.
+
+
+Live Upgrades
+~~~~~~~~~~~~~
+
+Live upgrades to ``mongosync`` 1.21 are not supported.
+
+Minimum Supported Version
+-------------------------
+
+.. include:: /includes/fact-version-compatibility.rst
+
+.. include:: /includes/migration-upgrade-recommendation.rst

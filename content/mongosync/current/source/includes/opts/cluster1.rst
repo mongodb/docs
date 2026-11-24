@@ -2,9 +2,9 @@
 .. reference/mongosync.txt
 
 Sets the :ref:`connection URI <mongodb-uri>` for the second cluster.
-The second cluster can serve as either the source or the destination
-in the sync process. Designate the source and destination clusters
-in the call to the :ref:`c2c-api-start` API endpoint.
+The second cluster is the destination cluster in the sync process.
+When you call the :ref:`c2c-api-start` API endpoint, you must specify
+``cluster1`` as the destination.
 
 For more information on connecting ``mongosync``, see
 :ref:`Atlas to Atlas <c2c-conn-atlas2atlas>`,

@@ -38,7 +38,7 @@ actions at the same time:
 If either action is missing, ``mongosync`` stops and reports the missing
 privileges.
 
-``atlasAdmin`` is a built-in |service| role, and these two actions are
+``atlasAdmin`` is a built-in Atlas role, and these two actions are
 privilege actions, not roles. To grant them, create a custom role that
 includes both actions and assign the custom role to the database user.
 
@@ -54,7 +54,7 @@ includes both actions and assign the custom role to the database user.
 
          .. step:: Go to the :guilabel:`Database & Network Access` page.
 
-            a. In |service|, select your organization from the
+            a. In Atlas, select your organization from the
                organization menu in the navigation bar.
 
             #. Select your project from the :guilabel:`Projects` menu

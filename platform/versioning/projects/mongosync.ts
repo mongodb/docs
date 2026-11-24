@@ -6,7 +6,8 @@ export default defineDocset({
 	prefix: "docs/mongosync",
 	search: { categoryTitle: "Mongosync" },
 	versions: [
-		{ name: "current", label: "v1.22 (current)", stable: true },
+		{ name: "current", label: "v1.23 (current)", stable: true },
+		{ name: "v1.22" },
 		{ name: "v1.21" },
 		{ name: "v1.20" },
 		{ name: "v1.19", active: false, eol: "download" },

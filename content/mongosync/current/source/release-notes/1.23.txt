@@ -1,0 +1,203 @@
+.. _c2c-release-notes-1.23:
+
+================================
+Release Notes for mongosync 1.23
+================================
+
+.. meta::
+   :keywords: cluster to cluster sync, cluster-to-cluster sync
+   :description: Release notes for mongosync 1.23.0 covering MongoDB 9.0 support, the new commitBlockers field in /progress, event coalescing, and stricter /start validation.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page describes changes and new features introduced in
+{+c2c-full-product-name+} 1.23.
+
+.. _1.23.0-c2c-release-notes:
+
+1.23.0 Release
+--------------
+
+**November 24, 2026**
+
+New Features
+~~~~~~~~~~~~
+
+- ``mongosync`` now supports MongoDB 9.0 as a source cluster and as a
+  destination cluster. You can migrate from MongoDB 7.0, 8.0, or 9.0
+  source clusters to MongoDB 9.0 destination clusters. For more
+  information, see :ref:`c2c-server-version-compatibility`.
+
+- ``mongosync`` now supports collections that use the ``constraint``
+  or ``prepareConstraintValidationLevel`` validation level.
+
+API Changes
+~~~~~~~~~~~
+
+- Adds the ``commitBlockers`` field to the ``/progress`` API response.
+  The ``commitBlockers`` field lists the conditions that currently
+  prevent ``mongosync`` from committing the migration. See
+  :ref:`c2c-api-progress` for more details.
+
+- The ``/start`` endpoint now requires ``cluster0`` to be the source
+  cluster and ``cluster1`` to be the destination cluster. Otherwise,
+  ``/start`` fails.
+
+- ``mongosync`` now rejects unrecognized fields in ``/start`` requests
+  and unrecognized command-line options, rather than ignoring them.
+
+- If ``mongosync`` detects a verifier mismatch, it now exits with exit
+  code ``65`` (``EX_DATAERR``) instead of ``2``.
+
+Behavior Changes
+~~~~~~~~~~~~~~~~
+
+- ``mongosync`` now checks that its user has all required privileges
+  before a migration starts. If any privileges are missing, the
+  migration doesn't start. For more information, see
+  :ref:`c2c-minimum-privileges`.
+
+- If you run ``shardCollection`` during a migration from a MongoDB 6.0
+  or 7.0 source cluster, ``mongosync`` invalidates the migration. You
+  must then restart the migration from scratch.
+
+- If you run ``shardCollection`` during a migration that uses multiple
+  ``mongosync`` instances, ``mongosync`` invalidates the migration. You
+  must then restart the migration from scratch.
+
+- ``mongosync`` now locks its logging and metrics directories and
+  writes a ``.mongosync-log.lock`` PID file to each locked directory.
+  A second ``mongosync`` process can't use the same directories.
+
+- ``mongosync`` and the embedded verifier now send query hints so
+  that MongoDB 9.0 doesn't reject migrations that scan large
+  collections because of the :parameter:`maxEstimatedScanBytes`
+  limit. If you set ``maxEstimatedScanBytes``, ``mongosync`` bypasses
+  this setting and performs a full collection scan regardless of
+  collection size. For more information, see
+  :ref:`c2c-mongosync-behavior`.
+
+- As in previous releases, ``mongosync`` doesn't support migrating
+  documents that have ``$``-prefixed field names. Starting in 1.23,
+  ``mongosync`` might stop the migration with an unrecoverable error if
+  it encounters these fields. For more information, see
+  :ref:`c2c-limitations`.
+
+Performance Improvements
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- ``mongosync`` now enables event coalescing by default. Event
+  coalescing improves change event application performance for
+  workloads with frequently modified ("hot") documents by batching
+  updates and skipping events for documents that are later deleted or
+  replaced.
+
+- Improves collection copy performance for collections that
+  ``mongosync`` copies as a single partition, such as collections
+  copied in natural order. ``mongosync`` now shares insert concurrency
+  across all partitions, so a single large partition can use the full
+  insert capacity when other partitions are idle.
+
+- Improves performance on replica set source clusters with
+  insert-heavy workloads by reducing duplicate key errors during the
+  collection copy drain. Collections with non-default collation and
+  capped collections don't currently benefit from this improvement.
+
+Fixed Issues
+~~~~~~~~~~~~
+
+- Fixes an issue where ``mongosync`` could hang if you called
+  ``/pause`` as :ref:`Change Event Application <c2c-cea>` (CEA) was
+  starting.
+
+- Fixes an issue where the embedded verifier could cause ``mongosync``
+  to crash if a collection was dropped or renamed while its change
+  stream was lagging.
+
+- Fixes an issue where ``mongosync`` and the embedded verifier crashed
+  repeatedly when using OIDC authentication with Google Cloud.
+
+- Fixes an issue where the embedded verifier didn't correctly handle
+  leftover temporary collections on MongoDB 6.0 and later source
+  clusters.
+
+- Fixes an issue where ``mongosync`` could lose data when different
+  shards on a sharded source cluster returned conflicting errors for
+  the same operation. This issue was rare and required all of the
+  following: a source cluster running MongoDB 6.0 or later, an
+  unsharded collection that had been renamed, and a sharded collection
+  that used the unsharded collection's former name, with both
+  collections existing at the same time.
+
+- Fixes an issue where newer MongoDB patch releases (7.0.48, 8.0.37,
+  and 9.0.7) caused ``mongosync`` to fail when it applied replace
+  events, refetched documents, or replaced frequently updated
+  documents.
+
+- Fixes an issue that could cause documents to be missing from the
+  destination cluster. The issue affected migrations from sharded
+  source collections when a same-shard update or replace operation
+  either added a missing shard key field or changed a shard key field
+  from a BSON regular expression to a matching string. Shard keys that
+  consist only of ``_id`` weren't affected.
+
+- Fixes an issue where index initialization failed if an index build
+  was still in progress on some shards.
+
+Security
+~~~~~~~~
+
+- ``mongosync`` is now built with Go 1.27.4, which addresses
+  CVE-2026-111943 and other vulnerabilities in the Go compiler and
+  standard library.
+
+- Updates the following libraries to address security
+  vulnerabilities:
+
+  - ``golang.org/x/net`` 0.61.0: CVE-2026-78663, CVE-2026-78660,
+    CVE-2026-78659, and CVE-2026-78669
+  - ``golang.org/x/crypto`` 0.58.0: CVE-2026-56855, CVE-2026-78662,
+    and CVE-2026-56854
+  - ``golang.org/x/text`` 0.43.0: CVE-2026-56851
+  - ``go.opentelemetry.io/otel/sdk`` 1.47.0: CVE-2026-81870
+
+Other Changes
+~~~~~~~~~~~~~
+
+- ``mongosync`` now publishes release builds for the following
+  platforms:
+
+  - RHEL 8.8 ARM64
+  - RHEL 9.0 ARM64 and PPC64LE
+  - RHEL 10 x86-64 and ARM64
+  - Debian 12 x86-64
+  - Debian 13 x86-64
+  - SUSE 15 x86-64
+  - SUSE 16 x86-64
+  - Ubuntu 20 ARM64
+  - Ubuntu 22 ARM64
+  - Ubuntu 24 ARM64
+  - Ubuntu 26 x86-64 and ARM64
+
+- The minimum supported macOS version is now macOS 13 (Ventura).
+  Earlier versions required macOS 10.15 (Catalina) or later.
+
+Live Upgrades
+-------------
+
+Live upgrades to ``mongosync`` 1.23 are not supported.
+
+Minimum Supported Version
+-------------------------
+
+``mongosync`` 1.23 adds MongoDB 9.0.7 as the minimum supported version
+of MongoDB 9.0. The minimum supported versions of MongoDB 5.0, 6.0,
+7.0, and 8.0 are unchanged.
+
+.. include:: /includes/fact-version-compatibility.rst
+
+.. include:: /includes/migration-upgrade-recommendation.rst
