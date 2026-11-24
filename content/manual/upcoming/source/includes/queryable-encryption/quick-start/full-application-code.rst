@@ -58,3 +58,8 @@
    :selections: cpp
 
    `Complete C++ Application <{+sample-app-url-qe+}/cpp/>`__
+
+.. selected-content::
+   :selections: c
+
+   `Complete C Application <{+sample-app-url-qe+}/c/>`__
