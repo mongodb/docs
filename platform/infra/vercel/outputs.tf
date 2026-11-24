@@ -1,11 +1,7 @@
-output "project_ids" {
-  value = { for name, project in vercel_project.app : name => project.id }
+output "project_id" {
+  value = vercel_project.app.id
 }
 
-output "default_app_domain" {
-  value = vercel_project_domain.default_app.domain
-}
-
-output "microfrontend_group_id" {
-  value = vercel_microfrontend_group.docs.id
+output "domain" {
+  value = vercel_project_domain.app.domain
 }
