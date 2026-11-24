@@ -4928,11 +4928,27 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
+                        label: 'createEndpointConnectionString',
+                        contentSite: 'atlas-cli',
+                        url: '/docs/atlas/cli/:version/command/atlas-api-clusters-createEndpointConnectionString/',
+                        versions: {
+                          includes: ['current', 'upcoming'],
+                        },
+                      },
+                      {
                         label: 'deleteCluster',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-clusters-deleteCluster/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.55', 'v1.56', 'v1.57', 'v1.58', 'v1.59'],
+                        },
+                      },
+                      {
+                        label: 'deleteEndpointConnectionString',
+                        contentSite: 'atlas-cli',
+                        url: '/docs/atlas/cli/:version/command/atlas-api-clusters-deleteEndpointConnectionString/',
+                        versions: {
+                          includes: ['current', 'upcoming'],
                         },
                       },
                       {
@@ -4981,6 +4997,14 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/cli/:version/command/atlas-api-clusters-getClusterStatus/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.55', 'v1.56', 'v1.57', 'v1.58', 'v1.59'],
+                        },
+                      },
+                      {
+                        label: 'getEndpointConnectionString',
+                        contentSite: 'atlas-cli',
+                        url: '/docs/atlas/cli/:version/command/atlas-api-clusters-getEndpointConnectionString/',
+                        versions: {
+                          includes: ['current', 'upcoming'],
                         },
                       },
                       {
@@ -5037,6 +5061,14 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/cli/:version/command/atlas-api-clusters-listClusters/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.55', 'v1.56', 'v1.57', 'v1.58', 'v1.59'],
+                        },
+                      },
+                      {
+                        label: 'listEndpointConnectionStrings',
+                        contentSite: 'atlas-cli',
+                        url: '/docs/atlas/cli/:version/command/atlas-api-clusters-listEndpointConnectionStrings/',
+                        versions: {
+                          includes: ['current', 'upcoming'],
                         },
                       },
                       {
@@ -5120,6 +5152,14 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
+                        label: 'updateEndpointConnectionString',
+                        contentSite: 'atlas-cli',
+                        url: '/docs/atlas/cli/:version/command/atlas-api-clusters-updateEndpointConnectionString/',
+                        versions: {
+                          includes: ['current', 'upcoming'],
+                        },
+                      },
+                      {
                         label: 'updateProcessArgs',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-clusters-updateProcessArgs/',
@@ -5140,7 +5180,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-clusters-validateGroupClusterConfigurations/',
                         versions: {
-                          includes: ['v1.56', 'v1.57'],
+                          includes: ['current', 'upcoming', 'v1.56', 'v1.57'],
                         },
                       },
                     ],

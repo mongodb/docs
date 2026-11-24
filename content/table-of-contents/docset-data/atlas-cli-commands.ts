@@ -1,7 +1,7 @@
 /**
  * Atlas CLI Commands Table of Contents
  * Generated automatically from MongoDB Atlas CLI repository
- * Source: mongodb/mongodb-atlas-cli repository (v1.60.0)
+ * Source: mongodb/mongodb-atlas-cli repository (v1.60.1)
  *
  * DO NOT EDIT MANUALLY - this file is auto-generated
  * To regenerate: run the atlas-cli-commands generation script
@@ -9148,6 +9148,14 @@ export const atlasCliCommands: TocItem[] = [
             },
           },
           {
+            label: 'createEndpointConnectionString',
+            contentSite: 'atlas-cli',
+            url: '/docs/atlas/cli/:version/command/atlas-api-clusters-createEndpointConnectionString/',
+            versions: {
+              includes: ['current', 'upcoming'],
+            },
+          },
+          {
             label: 'deleteCluster',
             contentSite: 'atlas-cli',
             url: '/docs/atlas/cli/:version/command/atlas-api-clusters-deleteCluster/',
@@ -9161,6 +9169,14 @@ export const atlasCliCommands: TocItem[] = [
                 'v1.58',
                 'v1.59',
               ],
+            },
+          },
+          {
+            label: 'deleteEndpointConnectionString',
+            contentSite: 'atlas-cli',
+            url: '/docs/atlas/cli/:version/command/atlas-api-clusters-deleteEndpointConnectionString/',
+            versions: {
+              includes: ['current', 'upcoming'],
             },
           },
           {
@@ -9225,6 +9241,14 @@ export const atlasCliCommands: TocItem[] = [
                 'v1.58',
                 'v1.59',
               ],
+            },
+          },
+          {
+            label: 'getEndpointConnectionString',
+            contentSite: 'atlas-cli',
+            url: '/docs/atlas/cli/:version/command/atlas-api-clusters-getEndpointConnectionString/',
+            versions: {
+              includes: ['current', 'upcoming'],
             },
           },
           {
@@ -9329,6 +9353,14 @@ export const atlasCliCommands: TocItem[] = [
                 'v1.58',
                 'v1.59',
               ],
+            },
+          },
+          {
+            label: 'listEndpointConnectionStrings',
+            contentSite: 'atlas-cli',
+            url: '/docs/atlas/cli/:version/command/atlas-api-clusters-listEndpointConnectionStrings/',
+            versions: {
+              includes: ['current', 'upcoming'],
             },
           },
           {
@@ -9460,6 +9492,14 @@ export const atlasCliCommands: TocItem[] = [
             },
           },
           {
+            label: 'updateEndpointConnectionString',
+            contentSite: 'atlas-cli',
+            url: '/docs/atlas/cli/:version/command/atlas-api-clusters-updateEndpointConnectionString/',
+            versions: {
+              includes: ['current', 'upcoming'],
+            },
+          },
+          {
             label: 'updateProcessArgs',
             contentSite: 'atlas-cli',
             url: '/docs/atlas/cli/:version/command/atlas-api-clusters-updateProcessArgs/',
@@ -9496,7 +9536,7 @@ export const atlasCliCommands: TocItem[] = [
             contentSite: 'atlas-cli',
             url: '/docs/atlas/cli/:version/command/atlas-api-clusters-validateGroupClusterConfigurations/',
             versions: {
-              includes: ['v1.56', 'v1.57'],
+              includes: ['current', 'upcoming', 'v1.56', 'v1.57'],
             },
           },
         ],

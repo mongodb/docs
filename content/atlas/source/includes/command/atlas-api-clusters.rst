@@ -55,13 +55,16 @@ Related Commands
 ----------------
 
 * :ref:`atlas-api-clusters-createCluster` - Creates one cluster in the specified project.
+* :ref:`atlas-api-clusters-createEndpointConnectionString` - Creates one private endpoint connection string for the specified cluster.
 * :ref:`atlas-api-clusters-deleteCluster` - Removes one cluster from the specified project.
+* :ref:`atlas-api-clusters-deleteEndpointConnectionString` - Deletes one private endpoint connection string from the specified cluster.
 * :ref:`atlas-api-clusters-getAutoEmbeddingInference` - Returns the configured and effective inference scope for Auto-Embedding indexes on the specified cluster.
 * :ref:`atlas-api-clusters-getAutoEmbeddingOperation` - Returns one tracked Auto-Embedding inference scope operation.
 * :ref:`atlas-api-clusters-getCluster` - Returns the details for one cluster in the specified project.
 * :ref:`atlas-api-clusters-getClusterAdaptiveSettings` - Returns the Adaptive Settings for the specified cluster, including client-provided overrides and the effective settings derived from those overrides and Atlas-managed defaults.
 * :ref:`atlas-api-clusters-getClusterSqlInterface` - Returns the current SQL Interface status, either ON or OFF, for the specified cluster.
 * :ref:`atlas-api-clusters-getClusterStatus` - Returns the status of all changes that you made to the specified cluster in the specified project.
+* :ref:`atlas-api-clusters-getEndpointConnectionString` - Returns one private endpoint connection string from the specified cluster.
 * :ref:`atlas-api-clusters-getProcessArgs` - Returns the advanced configuration details for one cluster in the specified project.
 * :ref:`atlas-api-clusters-getSampleDatasetLoad` - Checks the progress of loading the sample dataset into one cluster.
 * :ref:`atlas-api-clusters-grantMongoEmployeeAccess` - Grants MongoDB employee cluster access for the given duration and at the specified level for one cluster.
@@ -69,6 +72,7 @@ Related Commands
 * :ref:`atlas-api-clusters-listClusterDetails` - Returns the details for all clusters in all projects to which you have access.
 * :ref:`atlas-api-clusters-listClusterProviderRegions` - Returns the list of regions available for the specified cloud provider at the specified tier.
 * :ref:`atlas-api-clusters-listClusters` - Returns the details for all clusters in the specific project to which you have access.
+* :ref:`atlas-api-clusters-listEndpointConnectionStrings` - Returns all private endpoint connection strings for the specified cluster.
 * :ref:`atlas-api-clusters-pinFeatureCompatibilityVersion` - Pins the Feature Compatibility Version (FCV) to the current MongoDB version and sets the pin expiration date.
 * :ref:`atlas-api-clusters-requestSampleDatasetLoad` - Requests loading the MongoDB sample dataset into the specified cluster.
 * :ref:`atlas-api-clusters-resetAutoEmbeddingInference` - Resets the explicit inference scope so that Atlas manages the Auto-Embedding scope.
@@ -79,21 +83,26 @@ Related Commands
 * :ref:`atlas-api-clusters-updateCluster` - Updates the details for one cluster in the specified project.
 * :ref:`atlas-api-clusters-updateClusterAdaptiveSettings` - Updates the client-provided Adaptive Settings overrides for the specified cluster and returns the resulting Adaptive Settings, including the effective settings derived from those overrides and Atlas-managed defaults.
 * :ref:`atlas-api-clusters-updateClusterSqlInterface` - Enables or disables the SQL Interface for the specified cluster by setting its status to ON or OFF.
+* :ref:`atlas-api-clusters-updateEndpointConnectionString` - Updates one private endpoint connection string.
 * :ref:`atlas-api-clusters-updateProcessArgs` - Updates the advanced configuration details for one cluster in the specified project.
 * :ref:`atlas-api-clusters-upgradeTenantUpgrade` - Upgrades a shared-tier cluster to a Flex or Dedicated (M10+) cluster in the specified project.
+* :ref:`atlas-api-clusters-validateGroupClusterConfigurations` - Checks if the given cluster configuration is valid and ready to be used to create or edit a cluster.
 
 
 .. toctree::
    :titlesonly:
 
    createCluster </command/atlas-api-clusters-createCluster>
+   createEndpointConnectionString </command/atlas-api-clusters-createEndpointConnectionString>
    deleteCluster </command/atlas-api-clusters-deleteCluster>
+   deleteEndpointConnectionString </command/atlas-api-clusters-deleteEndpointConnectionString>
    getAutoEmbeddingInference </command/atlas-api-clusters-getAutoEmbeddingInference>
    getAutoEmbeddingOperation </command/atlas-api-clusters-getAutoEmbeddingOperation>
    getCluster </command/atlas-api-clusters-getCluster>
    getClusterAdaptiveSettings </command/atlas-api-clusters-getClusterAdaptiveSettings>
    getClusterSqlInterface </command/atlas-api-clusters-getClusterSqlInterface>
    getClusterStatus </command/atlas-api-clusters-getClusterStatus>
+   getEndpointConnectionString </command/atlas-api-clusters-getEndpointConnectionString>
    getProcessArgs </command/atlas-api-clusters-getProcessArgs>
    getSampleDatasetLoad </command/atlas-api-clusters-getSampleDatasetLoad>
    grantMongoEmployeeAccess </command/atlas-api-clusters-grantMongoEmployeeAccess>
@@ -101,6 +110,7 @@ Related Commands
    listClusterDetails </command/atlas-api-clusters-listClusterDetails>
    listClusterProviderRegions </command/atlas-api-clusters-listClusterProviderRegions>
    listClusters </command/atlas-api-clusters-listClusters>
+   listEndpointConnectionStrings </command/atlas-api-clusters-listEndpointConnectionStrings>
    pinFeatureCompatibilityVersion </command/atlas-api-clusters-pinFeatureCompatibilityVersion>
    requestSampleDatasetLoad </command/atlas-api-clusters-requestSampleDatasetLoad>
    resetAutoEmbeddingInference </command/atlas-api-clusters-resetAutoEmbeddingInference>
@@ -111,5 +121,7 @@ Related Commands
    updateCluster </command/atlas-api-clusters-updateCluster>
    updateClusterAdaptiveSettings </command/atlas-api-clusters-updateClusterAdaptiveSettings>
    updateClusterSqlInterface </command/atlas-api-clusters-updateClusterSqlInterface>
+   updateEndpointConnectionString </command/atlas-api-clusters-updateEndpointConnectionString>
    updateProcessArgs </command/atlas-api-clusters-updateProcessArgs>
    upgradeTenantUpgrade </command/atlas-api-clusters-upgradeTenantUpgrade>
+   validateGroupClusterConfigurations </command/atlas-api-clusters-validateGroupClusterConfigurations>

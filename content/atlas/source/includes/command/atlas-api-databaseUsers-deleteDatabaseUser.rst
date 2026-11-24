@@ -85,8 +85,8 @@ Options
        | x.509 | ``x509Type`` | ``MANAGED`` | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |
        | LDAP | ``ldapAuthType`` | ``USER`` | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |
        | LDAP | ``ldapAuthType`` | ``GROUP`` | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |
-       | OIDC Workforce | ``oidcAuthType`` | ``IDP_GROUP`` | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP group name |
-       | OIDC Workload | ``oidcAuthType`` | ``USER`` | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP user name |
+       | OIDC Workforce or Workload | ``oidcAuthType`` | ``IDP_GROUP`` | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by a group identifier from the IdP's configured ``groupsClaim``. Use when the IdP's ``authorizationType`` is ``GROUP``. The groups claim can be a custom claim, such as ``roles``. |
+       | OIDC Workforce or Workload | ``oidcAuthType`` | ``USER`` | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by a user identifier from the IdP's configured ``userClaim``. Use when the IdP's ``authorizationType`` is ``USER``. |
        | SCRAM-SHA | ``awsIAMType``, ``x509Type``, ``ldapAuthType``, ``oidcAuthType`` | ``NONE`` | Alphanumeric string |
 
    * - --version
