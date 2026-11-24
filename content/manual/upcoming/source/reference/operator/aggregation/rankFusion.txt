@@ -20,7 +20,7 @@ $rankFusion (aggregation)
 .. important::
 
    ``$rankFusion`` is only available for deployments that use MongoDB
-   8.0 or higher. 
+   8.0 or later.
 
 Definition
 ----------
@@ -236,7 +236,7 @@ the RRF score for that document would be higher than if that same document has
 the same ranking in some input pipelines, but is not present (or has a
 lower ranking) in the other pipelines
 
-The  Reciprocal Rank Fusion (RRF) Formula is equivalent to the following
+The Reciprocal Rank Fusion (RRF) Formula is equivalent to the following
 algebraic operation:
 
 .. figure:: /images/rrf-score.png
@@ -440,7 +440,7 @@ Explain Results
 ~~~~~~~~~~~~~~~
 
 MongoDB converts ``$rankFusion`` operations into a set of existing aggregation
-stages that, in combination, compute the output result prior to query execution.
+stages that, in combination, compute the output result before query execution.
 The :ref:`Explain Results <explain-results>` for a ``$rankFusion`` operation
 show the full execution of the underlying aggregation stages that
 ``$rankFusion`` uses to compose the final result. 
@@ -448,49 +448,35 @@ show the full execution of the underlying aggregation stages that
 Examples
 --------
 
+.. include:: /includes/sample-data-usage.rst
+
 .. tabs-drivers::
 
    .. tab::
       :tabid: shell
 
-      This example uses a collection with embeddings and text fields. Create 
-      ``search`` and ``vectorSearch`` type indexes on the collection. 
+      This example uses the ``embedded_movies`` collection from the
+      ``sample_mflix`` sample database. The collection contains embeddings
+      and text fields. Create ``search`` and ``vectorSearch`` type indexes
+      on the collection.
 
       The following index definition automatically indexes all the 
       dynamically indexable fields in the collection for running
       :pipeline:`$search` queries against the indexed fields.
 
-      .. code-block:: js
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/rankFusion/create-search-index.snippet.rankfusion-search-index.js
+         :language: javascript
+         :category: usage example
          :caption: search Index
-
-         db.embedded_movies.createSearchIndex(
-            "search_index",
-            {
-               mappings: { dynamic: true }
-            }
-         )
 
       The following index definition indexes the field with the embeddings in
       the collection for running :pipeline:`$vectorSearch` queries against
       that field. 
 
-      .. code-block:: js 
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/rankFusion/create-vector-index.snippet.rankfusion-vector-index.js
+         :language: javascript
+         :category: usage example
          :caption: vectorSearch Index
-
-         db.embedded_movies.createSearchIndex(
-            "vector_index", 
-            "vectorSearch", 
-            {
-               "fields": [
-                  {
-                     "type": "vector",
-                     "path": "<FIELD_NAME>",
-                     "numDimensions": <NUMBER_OF_DIMENSIONS>,
-                     "similarity": "dotProduct"
-                  }
-               ]
-            }
-         );
 
       The following aggregation pipeline uses ``$rankFusion`` with the following input
       pipelines:
@@ -520,43 +506,16 @@ Examples
            - Runs a full-text search for the same term and limits the results to
              20 documents. 
 
-      .. code-block:: js
-         :linenos:
+      .. io-code-block::
+         :copyable: true
 
-         db.embedded_movies.aggregate( [
-            {
-               $rankFusion: {
-                  input: {
-                     pipelines: {
-                        searchOne: [
-                           {
-                              "$vectorSearch": {
-                                 "index": "<INDEX_NAME>",
-                                 "path": "<FIELD_NAME>",
-                                 "queryVector": <QUERY_EMBEDDINGS>,
-                                 "numCandidates": 500,
-                                 "limit": 20
-                              }
-                           }
-                        ],
-                        searchTwo: [
-                           {
-                              "$search": {
-                                 "index": "<INDEX_NAME>",
-                                 "text": {
-                                    "query": "<QUERY_TERM>",
-                                    "path": "<FIELD_NAME>"
-                                 }
-                              }
-                           },
-                           { "$limit": 20 }
-                        ],
-                     }
-                  }
-               }
-            },
-            { $limit: 20 }
-         ] )
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/rankFusion/rank-fusion-pipeline.snippet.rankfusion-pipeline.js
+            :language: javascript
+            :category: usage example
+            :linenos:
+
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/rankFusion/rank-fusion-pipeline-output.sh
+            :language: javascript
 
       This operation performs the following actions:
 

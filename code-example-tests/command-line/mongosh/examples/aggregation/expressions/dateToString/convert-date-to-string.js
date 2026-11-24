@@ -1,0 +1,15 @@
+// :snippet-start: convert-date-to-string
+db.comments.aggregate( [
+   { $match: { date: ISODate("1975-01-21T00:31:22.000Z") } },
+   { $project: {
+      _id: 0,
+      yearMonthDayUTC: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+      timewithOffsetNY: { $dateToString: { format: "%H:%M:%S:%L%z", date: "$date", timezone: "America/New_York" } },
+      timewithOffset430: { $dateToString: { format: "%H:%M:%S:%L%z", date: "$date", timezone: "+04:30" } },
+      minutesOffsetNY: { $dateToString: { format: "%Z", date: "$date", timezone: "America/New_York" } },
+      minutesOffset430: { $dateToString: { format: "%Z", date: "$date", timezone: "+04:30" } },
+      abbreviated_month: { $dateToString: { format: "%b", date: "$date", timezone: "+04:30" } },
+      full_month: { $dateToString: { format: "%B", date: "$date", timezone: "+04:30" } }
+   } }
+] )
+// :snippet-end:
