@@ -1,5 +1,6 @@
 import { Agent } from '@mastra/core/agent';
 import { openai } from '@ai-sdk/openai';
+import { voyageEmbedding } from '@mastra/voyageai';
 import { MONGODB_PROMPT } from "@mastra/mongodb";
 import { createVectorQueryTool } from "@mastra/rag";
 
@@ -7,7 +8,10 @@ import { createVectorQueryTool } from "@mastra/rag";
 const vectorQueryTool = createVectorQueryTool({
   vectorStoreName: "mongoVector",                    // Name of MongoDB vector store
   indexName: "vector_index",                         // Name of Vector Search index
-  model: openai.embedding("text-embedding-3-small"), // Embedding model
+  model: voyageEmbedding({                           // Embedding model
+    model: "voyage-4",
+    baseUrl: "https://ai.mongodb.com/v1",            // MongoDB-hosted embedding endpoint
+  }),
 });
 
 // Define an AI agent with RAG capabilities

@@ -276,6 +276,11 @@ export const toc: L1TocItem[] = [
             url: 'https://github.com/mongodb/agent-engine-examples',
           },
           {
+            label: 'Agent Skills',
+            isExternal: true,
+            url: 'https://github.com/mongodb/agent-engine-examples/tree/main/.agents/skills',
+          },
+          {
             label: 'Atlas Agent Engine API Reference',
             isExternal: true,
             url: 'https://www.mongodb.com/docs/api/doc/agentengine',

@@ -1,17 +1,15 @@
-import { openai } from "@ai-sdk/openai";
+import { voyageEmbedding } from "@mastra/voyageai";
 import { embed } from "ai";
-import { MongoDBVector } from "@mastra/mongodb";
+
+const embeddingModel = voyageEmbedding({
+  model: "voyage-4",
+  baseUrl: "https://ai.mongodb.com/v1", // MongoDB-hosted embedding endpoint
+});
 
 // Convert query to embedding
 const { embedding } = await embed({
   value: "What are the main points in the article?",  // Query text
-  model: openai.embedding("text-embedding-3-small"), // Embedding model
-});
-
-// Instantiate MongoDB as a vector store
-const mongoVector = new MongoDBVector({
-  uri: process.env.MONGODB_URI,        // MongoDB connection string
-  dbName: process.env.MONGODB_DATABASE // Database name
+  model: embeddingModel,                             // Embedding model
 });
 
 // Query the vector store for similar documents

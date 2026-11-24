@@ -1,0 +1,382 @@
+.. _mastra-agents:
+
+==============================
+Use Mastra Agents with MongoDB
+==============================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. facet::
+   :name: programming_language
+   :values: javascript/typescript
+
+.. meta::
+   :description: Use MongoDB as a vector store and storage backend for Mastra AI agents. Implement agentic RAG, store agent memory, and search agent workspaces with MongoDB Vector Search.
+   :keywords: RAG, retrieval, AI agent, agent memory, semantic recall, workspace search, vector search, TypeScript, integration
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+You can use MongoDB with `Mastra <https://mastra.ai/>`__ AI agents to
+retrieve data, store past interactions, and search indexed content.
+MongoDB supports the following Mastra agent features:
+
+- :ref:`RAG with AI Agents <mastra-rag-agents>`: Configure an agent
+  to retrieve relevant data by using {+avs+}
+- :ref:`Memory with AI Agents <mastra-agent-memory>`: Store your agent's
+  conversation history in MongoDB
+- :ref:`Workspace Search <mastra-workspace-search>`: Index text in an
+  agent's workspace, and search the text by using BM25 keyword, vector, or hybrid
+  search
+
+.. tip::
+
+   To learn how to use MongoDB as a vector store and install the
+   required ``@mastra/mongodb`` and ``@mastra/voyageai`` packages,
+   see :ref:`Integrate MongoDB with Mastra <mastra>`.
+
+.. _mastra-rag-agents:
+
+RAG with AI Agents
+------------------
+
+You can use MongoDB as a vector store within 
+`Mastra AI agents <https://mastra.ai/en/docs/agents/overview>`__ to implement 
+:ref:`agentic RAG <agentic-rag>`. This allows your agents to use MongoDB 
+vector search as a tool to help complete tasks.
+
+Mastra also provides a ``MONGODB_PROMPT`` constant that you can include in your 
+agent instructions to optimize how the agent uses MongoDB for retrieval.
+To learn more, see `Vector Store Prompts <https://mastra.ai/en/docs/rag/retrieval#vector-store-prompts>`__.
+
+Usage
+~~~~~
+
+The following example shows how to create an AI agent with 
+RAG capabilities using MongoDB as a vector store:
+
+.. literalinclude:: /includes/ai-integrations/mastra/rag-agent.ts
+   :language: typescript
+
+.. _mastra-agent-memory:
+
+Memory with AI Agents
+---------------------
+
+You can use Mastra's memory system with MongoDB as the storage backend.
+This allows your agent to remember past interactions and use that 
+information to inform future decisions.
+
+For a complete tutorial, see `Memory with MongoDB 
+<https://mastra.ai/en/examples/memory/memory-with-mongodb>`__.
+
+Usage
+~~~~~
+
+This example demonstrates how to use memory with AI agents.
+The code uses the ``options`` field of the ``memory`` object to
+scope recall for the request. Set ``lastMessages: 5`` to include only
+the 5 most recent messages in the agent's context.
+
+.. literalinclude:: /includes/ai-integrations/mastra/memory-usage-example.ts
+   :language: typescript
+
+Semantic Recall
+~~~~~~~~~~~~~~~
+
+Mastra's semantic recall feature retrieves previous messages whose
+meaning is similar to the user's latest message. Then, Mastra adds the
+most relevant previous messages to the agent's context. Use this feature
+when the agent requires details that are no longer in recent
+message history.
+
+By default, semantic recall generates embeddings by using the model
+that you set on the ``embedder`` option of the ``Memory`` object. If
+you use :ref:`Automated Embedding <avs-auto-embeddings>`, MongoDB
+generates the embeddings instead, and your application does not need
+an embedder.
+
+The following example configures semantic recall. Select the
+:guilabel:`Automated Embedding` or :guilabel:`Manual Embedding` tab to
+view an example that uses your preferred embedding mode:
+
+.. tabs::
+
+   .. tab:: Automated Embedding
+      :tabid: semantic-recall-auto
+
+      This example sets the following options:
+
+      - ``autoEmbed``: Instructs MongoDB to generate embeddings by using
+        the ``voyage-4`` model.
+      - ``semanticRecall``: Enables semantic recall for the agent's memory,
+        and sets the nested ``topK`` and ``messageRange`` options to
+        refine the recall results. To learn more about ``semanticRecall``
+        options, see `Recall Configuration
+        <https://mastra.ai/docs/memory/semantic-recall#recall-configuration>`__
+        in the Mastra documentation.
+
+      .. literalinclude:: /includes/ai-integrations/mastra/memory-semantic-recall.ts
+         :language: typescript
+         :category: usage example
+
+   .. tab:: Manual Embedding
+      :tabid: semantic-recall-manual
+
+      This example sets the following options:
+
+      - ``embedder``: Instructs Mastra to generate embeddings by using
+        the ``voyage-4`` model. The ``baseUrl`` option targets the
+        MongoDB-hosted embedding endpoint.
+      - ``semanticRecall``: Enables semantic recall for the agent's memory,
+        and sets the nested ``topK`` and ``messageRange`` options to
+        refine the recall results. To learn more about ``semanticRecall``
+        options, see `Recall Configuration
+        <https://mastra.ai/docs/memory/semantic-recall#recall-configuration>`__
+        in the Mastra documentation.
+
+      .. literalinclude:: /includes/ai-integrations/mastra/memory-semantic-recall-manual.ts
+         :language: typescript
+         :category: usage example
+
+When you use semantic recall, the following considerations apply:
+
+- Semantic recall requires either an embedder or a vector store that
+  generates embeddings. If you configure neither, Mastra raises an error.
+- Mastra creates an {+avs+} index the first time your agent uses
+  memory. Before you use semantic recall, ensure that your index status is
+  ``READY``.
+
+.. note:: Data Security
+
+   When you use Automated Embedding, {+avs+} forwards the indexed
+   message text and each recall query to a |voyage| service managed
+   by MongoDB. This processing occurs outside your application, and
+   the text may include what end users send to the agent.
+
+   By default, semantic recall searches messages from every thread that
+   belongs to the ``resource`` value that you pass in each request. To
+   limit the search to the current thread, set the ``scope`` option in
+   the ``semanticRecall`` object to ``'thread'``.
+
+Observational Memory
+~~~~~~~~~~~~~~~~~~~~
+
+Mastra's Observational Memory feature summarizes older messages in a
+thread into observations. As a result, your agent's context remains
+small as the thread grows. You can store observations in MongoDB and
+search them semantically.
+
+To enable Observational Memory, specify the ``observationalMemory``
+option in your ``Memory`` object. Set this option to ``true`` to apply
+the default settings, or set it to a configuration object to customize
+the settings.
+
+The following example configures Observational Memory. Select the
+:guilabel:`Automated Embedding` or :guilabel:`Manual Embedding` tab to
+view an example that uses your preferred embedding mode:
+
+.. tabs::
+
+   .. tab:: Automated Embedding
+      :tabid: observational-memory-auto
+
+      This example performs the following actions:
+
+      - Specifies the ``observationalMemory`` option, which enables
+        Observational Memory
+      - Specifies the ``retrieval`` option, which gives an agent access
+        to the raw messages that an observation summarizes
+      - Sets the nested ``vector`` option to ``true``, which enables
+        semantic search on observations. MongoDB generates the embeddings.
+
+      .. literalinclude:: /includes/ai-integrations/mastra/memory-observational-memory.ts
+         :language: typescript
+         :category: usage example
+
+   .. tab:: Manual Embedding
+      :tabid: observational-memory-manual
+
+      This example performs the following actions:
+
+      - Specifies the ``observationalMemory`` option, which enables
+        Observational Memory
+      - Specifies the ``retrieval`` option, which gives an agent access
+        to the raw messages that an observation summarizes
+      - Sets the nested ``vector`` option to ``true``, which enables
+        semantic search on observations. The ``embedder`` option
+        specifies the model that generates the embeddings in your
+        application.
+
+      .. literalinclude:: /includes/ai-integrations/mastra/memory-observational-memory-manual.ts
+         :language: typescript
+         :category: usage example
+
+.. note:: Data Security
+
+   Observations summarize end-user conversation content. When you
+   enable semantic search, {+avs+} forwards observation text and each
+   search query to a |voyage| service managed by MongoDB. This
+   processing occurs outside your application.
+
+   By default, the agent can use retrieval to access every thread of the
+   resource. To limit the agent's access to the current thread, set the
+   ``scope`` option in the ``retrieval`` object to ``'thread'``.
+
+.. _mastra-workspace-search:
+
+Workspace Search
+----------------
+
+You can use Mastra's ``Workspace`` class to provide an agent with an
+environment, such as a filesystem or a sandbox, and an optional
+{+avs+} index. A workspace searches the text that you index by using
+`BM25 <https://mastra.ai/docs/sandbox/search#bm25-keyword-search>`__
+keyword, vector, or hybrid search. You can use MongoDB as the
+vector store for vector and hybrid search. If you use
+:ref:`Automated Embedding <avs-auto-embeddings>`, MongoDB generates the
+embeddings for stored text and search queries, and your
+application does not need a separate embedder.
+
+To learn more about Mastra workspaces, see the `Workspace class
+reference <https://mastra.ai/reference/workspace/workspace-class>`__ in
+the Mastra documentation.
+
+.. important::
+
+   To use workspace search, you must use ``@mastra/core`` version
+   1.82.0 or later.
+
+Configure Your Vector Store
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To use MongoDB as your vector store, set your workspace's
+``vectorStore`` option to a ``MongoDBVector`` instance. Select
+the :guilabel:`Automated Embedding` or :guilabel:`Manual Embedding`
+tab to view an example that uses your preferred embedding mode:
+
+.. tabs::
+
+   .. tab:: Automated Embedding
+      :tabid: workspace-config-auto
+
+      To use Automated Embedding, pass the ``autoEmbed`` option to the
+      ``MongoDBVector`` constructor. Set the nested ``model`` option to the
+      |voyage| model that you want to use.
+
+      .. literalinclude:: /includes/ai-integrations/mastra/workspace-search.ts
+         :language: typescript
+         :category: usage example
+         :start-after: start-workspace
+         :end-before: end-workspace
+
+   .. tab:: Manual Embedding
+      :tabid: workspace-config-manual
+
+      To manually embed your text, set your workspace's ``embedder``
+      option to a function that returns the embedding for one text
+      input. Mastra generates the embeddings in your application and
+      creates the {+avs+} index with the dimensions of your embedding
+      model.
+
+      .. literalinclude:: /includes/ai-integrations/mastra/workspace-search-manual.ts
+         :language: typescript
+         :category: usage example
+         :start-after: start-workspace-manual
+         :end-before: end-workspace-manual
+
+Index Your Data
+~~~~~~~~~~~~~~~
+
+To add content to the search index, use the ``index()`` method. Pass an
+ID for the content and the text you want to index, as shown in the following
+example:
+
+.. literalinclude:: /includes/ai-integrations/mastra/workspace-search.ts
+   :language: typescript
+   :category: usage example
+   :start-after: start-index
+   :end-before: end-index
+
+Search Your Data
+~~~~~~~~~~~~~~~~
+
+To retrieve content from the index, use the ``search()`` method. The
+following example runs a {+avs+} query for content that is conceptually
+similar to the query:
+
+.. literalinclude:: /includes/ai-integrations/mastra/workspace-search.ts
+   :language: typescript
+   :category: usage example
+   :start-after: start-search
+   :end-before: end-search
+
+To combine keyword and vector results, run a hybrid search.
+Mastra stores the BM25 index in your application's memory, and MongoDB
+runs the {+avs+} query. Select the :guilabel:`Automated Embedding` or
+:guilabel:`Manual Embedding` tab to view an example that uses your
+preferred embedding mode:
+
+.. tabs::
+
+   .. tab:: Automated Embedding
+      :tabid: hybrid-auto
+
+      .. literalinclude:: /includes/ai-integrations/mastra/workspace-search.ts
+         :language: typescript
+         :category: usage example
+         :start-after: start-hybrid
+         :end-before: end-hybrid
+
+   .. tab:: Manual Embedding
+      :tabid: hybrid-manual
+
+      .. literalinclude:: /includes/ai-integrations/mastra/workspace-search-manual.ts
+         :language: typescript
+         :category: usage example
+         :start-after: start-hybrid-manual
+         :end-before: end-hybrid-manual
+
+If you omit the ``mode`` option, Mastra uses hybrid search when you
+specify both ``bm25`` and ``vectorStore`` workspace options. To learn
+more about workspace search options, see `Search and indexing
+<https://mastra.ai/docs/sandbox/search>`__ in the Mastra documentation.
+
+Considerations
+~~~~~~~~~~~~~~
+
+When you use Automated Embedding with workspace search, the following
+considerations apply:
+
+- Mastra creates the {+avs+} index the first time you index content.
+  The index name is ``_search_selfembed`` prefixed with the workspace
+  ``id`` value, unless you set the ``searchIndexName`` workspace option.
+
+- MongoDB generates embeddings asynchronously, and the first index build
+  can take several minutes. Before running a {+avs+} query, ensure that the
+  index status is ``READY``.
+
+- BM25 indexes are not persistent. After your application restarts, call
+  ``index()`` again to rebuild the BM25 index for hybrid search. Vector
+  embeddings and {+avs+} indexes persist in MongoDB.
+
+Learn More
+----------
+
+To learn more about using Mastra agents with MongoDB, see the following
+resources:
+
+- :ref:`Integrate MongoDB with Mastra <mastra>`
+- `Mastra Agents Documentation <https://mastra.ai/en/docs/agents/overview>`__
+- `Mastra Memory with MongoDB <https://mastra.ai/en/examples/memory/memory-with-mongodb>`__
+- `Mastra Workspace Class Reference <https://mastra.ai/reference/workspace/workspace-class>`__

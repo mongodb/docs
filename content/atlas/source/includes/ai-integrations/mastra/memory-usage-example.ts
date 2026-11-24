@@ -19,13 +19,9 @@ await message.textStream.pipeTo(new WritableStream());
 const stream = await agent.stream("What's my name?", {
   memory: {
     thread: threadId,
-    resource: resourceId
-  },
-  memoryOptions: {
-    lastMessages: 5,
-    semanticRecall: {
-      topK: 3,
-      messageRange: 2
+    resource: resourceId,
+    options: {
+      lastMessages: 5
     }
   }
 });

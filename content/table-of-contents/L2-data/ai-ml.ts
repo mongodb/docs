@@ -208,6 +208,14 @@ const tocData: TocItem[] = [
             label: 'Mastra',
             contentSite: 'cloud-docs',
             url: '/docs/atlas/ai-integrations/mastra',
+            collapsible: true,
+            items: [
+              {
+                label: 'Mastra AI Agents',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/ai-integrations/mastra-agents',
+              },
+            ],
           },
           {
             label: 'Claude Agent SDK',

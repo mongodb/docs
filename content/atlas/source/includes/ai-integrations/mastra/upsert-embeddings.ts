@@ -1,7 +1,11 @@
-import { openai } from "@ai-sdk/openai";
-import { MongoDBVector } from "@mastra/mongodb";
 import { MDocument } from "@mastra/rag";
+import { voyageEmbedding } from "@mastra/voyageai";
 import { embedMany } from "ai";
+
+const embeddingModel = voyageEmbedding({
+  model: "voyage-4",
+  baseUrl: "https://ai.mongodb.com/v1", // MongoDB-hosted embedding endpoint
+});
 
 // Create a document from text
 const doc = MDocument.fromText("Your text content...");
@@ -12,13 +16,7 @@ const chunks = await doc.chunk();
 // Generate embeddings for each chunk
 const { embeddings } = await embedMany({
   values: chunks.map(chunk => chunk.text), // Text content to embed
-  model: openai.embedding("text-embedding-3-small"), // Embedding model
-});
-
-// Instantiate MongoDB as a vector store
-const mongoVector = new MongoDBVector({
-  uri: process.env.MONGODB_URI,   // MongoDB connection string
-  dbName: process.env.MONGODB_DB_NAME, // Database name
+  model: embeddingModel,                           // Embedding model
 });
 
 // Store vector embeddings with metadata

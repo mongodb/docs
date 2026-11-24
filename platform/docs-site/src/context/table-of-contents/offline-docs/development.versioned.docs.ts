@@ -9270,7 +9270,15 @@ export const toc: L1TocItem[] = [
                   {
                     label: 'Mastra',
                     contentSite: 'cloud-docs',
+                    collapsible: true,
                     url: '/docs/atlas/ai-integrations/mastra',
+                    items: [
+                      {
+                        label: 'Mastra AI Agents',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/ai-integrations/mastra-agents',
+                      },
+                    ],
                   },
                   {
                     label: 'Claude Agent SDK',

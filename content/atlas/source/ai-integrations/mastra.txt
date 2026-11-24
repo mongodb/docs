@@ -15,8 +15,8 @@ Integrate MongoDB with Mastra
    :values: javascript/typescript
 
 .. meta::
-   :description: Integrate MongoDB with Mastra, the TypeScript Agent Framework, to build AI agents and RAG applications.
-   :keywords: RAG, retrieval, mastra, vector database, vector search, semantic search, AI agent, TypeScript, integration
+   :description: Integrate MongoDB with Mastra to use MongoDB Vector Search as a vector store, with filtering, reranking, and hybrid search for RAG and semantic search applications.
+   :keywords: RAG, retrieval, mastra, vector database, vector search, semantic search, AI agent, TypeScript, integration, code example
 
 .. contents:: On this page
    :local:
@@ -24,7 +24,8 @@ Integrate MongoDB with Mastra
    :depth: 2
    :class: singlecol
 
-You can integrate MongoDB with `Mastra <https://mastra.ai/>`__ to build AI agents. 
+You can integrate MongoDB with `Mastra <https://mastra.ai/>`__ to store
+and search vector embeddings for your AI applications.
 Mastra is an open-source TypeScript agent framework that 
 provides primitives for building AI applications, including workflows,
 RAG, and evals.
@@ -37,17 +38,20 @@ To learn more, see the `Mastra documentation <https://mastra.ai/en/docs>`__ or t
 Overview
 --------
 
-You can use MongoDB with Mastra to build AI agents. By combining 
-{+avs+} with Mastra's agent framework, you can implement
-the following capabilities for your agents:
+You can use MongoDB as a vector store in Mastra. By combining
+{+avs+} with the Mastra ``MongoDBVector`` class, you can implement
+the following capabilities:
 
 - Store and retrieve vector embeddings using MongoDB as your vector database
 - Filter your vector search results using MongoDB query syntax
-- Implement |rag| as a tool in your agents
-- Store your agent's memory in MongoDB
+- Rerank your search results
+- Run a hybrid search that combines semantic and full-text search
 
-Installation and Setup
-----------------------
+To use MongoDB with Mastra agents, including agentic RAG, agent memory,
+and workspace search, see :ref:`mastra-agents`.
+
+Installation
+------------
 
 To use MongoDB with Mastra, install the ``@mastra/mongodb`` package:
 
@@ -57,10 +61,26 @@ To use MongoDB with Mastra, install the ``@mastra/mongodb`` package:
 To get started with Mastra and learn how to create a project, 
 see `Install Mastra <https://mastra.ai/en/docs/getting-started/installation>`__.
 
+Manual Embedding
+~~~~~~~~~~~~~~~~
+
+The :guilabel:`Manual Embedding` examples on this page use the
+``@mastra/voyageai`` package. Examples that call the
+``voyageEmbedding()`` function count tokens locally before each request,
+which requires a tokenizer. Before running these examples, install the
+following packages:
+
+.. code-block:: shell
+
+   npm install @mastra/voyageai @huggingface/transformers onnxruntime-node
+
+To run these manual embedding examples, set a :ref:`Voyage AI API key
+<voyage-api-keys>` created in {+service+}.
+
 .. _mastra-vector-store:
 
-Vector Store
-------------
+Vector Store Configuration
+--------------------------
 
 MongoDB is a `supported database <https://mastra.ai/en/docs/rag/vector-databases#supported-databases>`__ in Mastra.
 The ``MongoDBVector`` class allows you to store and retrieve vector embeddings 
@@ -69,9 +89,6 @@ embeddings from your data and retrieving them using {+avs+}.
 
 This component requires that you create an :ref:`{+avs+} Index <avs-types-vector-search>`.
 
-Usage
-~~~~~
-
 To use the MongoDB vector store with Mastra, import the ``MongoDBVector`` class,
 create an object with the class, and specify your MongoDB connection details.
 For example:
@@ -79,115 +96,705 @@ For example:
 .. literalinclude:: /includes/ai-integrations/mastra/instantiate-vector-store.ts
    :language: typescript
 
+The examples in the following sections use this ``MongoDBVector`` instance.
+
 Methods
-~~~~~~~
+-------
 
 This section highlights 
 the most relevant methods for working with MongoDB as a vector store.
 For a full list of methods, see the `Mastra documentation 
 <https://mastra.ai/en/reference/vectors/mongodb>`__. 
 
+MongoDB supports the following embedding modes:
+
+- **Automated Embedding**: MongoDB uses a |voyage| model to automatically
+  generate vector embeddings for your text data and your query string.
+  To learn more, see :ref:`Automated Embedding <avs-auto-embeddings>` in the
+  {+avs+} documentation.
+
+- **Manual Embedding**: Generate the vector embeddings yourself by
+  managing the embedding model, the index dimensions, and the embedding
+  operation. To learn more, see :ref:`Create Vector Embeddings
+  Manually <create-vector-embeddings>` in the {+avs+} documentation.
+
+.. _mastra-create-index:
+
+createIndex()
+~~~~~~~~~~~~~
+
+Before you can search your vector embeddings, you must create a {+avs+}
+index on your collection and wait for the index to become queryable. Select
+the :guilabel:`Automated Embedding` or :guilabel:`Manual Embedding` tab
+to view an example that uses your preferred embedding mode:
+
 .. tabs::
 
-   .. tab:: createIndex()
-      :tabid: create-index
+   .. tab:: Automated Embedding
+      :tabid: create-index-auto
 
-      Before you can search your embeddings, you must create a vector search index on your collection.
-      The ``dimension`` parameter must match the number of dimensions required by your embedding model.
+      To enable Automated Embedding, pass the ``autoEmbed`` parameter to the
+      ``createIndex()`` method, as shown in the following example:
+
+      .. literalinclude:: /includes/ai-integrations/mastra/automated-embedding.ts
+         :language: typescript
+         :start-after: start-create-index
+         :end-before: end-create-index
+
+      To view the ``autoEmbed`` object fields, see `Automated Embedding
+      <https://mastra.ai/integrations/vectors/mongodb#automated-embedding>`__
+      in the Mastra documentation.
+
+   .. tab:: Manual Embedding
+      :tabid: create-index-manual
+
+      The following example creates a {+avs+} index with ``1024`` dimensions:
 
       .. literalinclude:: /includes/ai-integrations/mastra/create-index.ts
          :language: typescript
 
-   .. tab:: upsert()
-      :tabid: upsert
+      The ``dimension`` parameter must match the number of dimensions required
+      by your embedding model.
 
-      After creating an index, you can store vector embeddings with associated metadata.
-      For a complete example, see the `Mastra upsert embeddings example <https://mastra.ai/en/examples/rag/upsert/upsert-embeddings>`__.
+.. _mastra-upsert:
+
+upsert()
+~~~~~~~~
+
+After creating your {+avs+} index, you can store embeddings with associated
+metadata. Select the :guilabel:`Automated Embedding` or
+:guilabel:`Manual Embedding` tab to view an example that uses your preferred
+embedding mode:
+
+.. tabs::
+
+   .. tab:: Automated Embedding
+      :tabid: upsert-auto
+
+      To have MongoDB automatically embed your text, pass the text
+      in the ``documents`` parameter, as shown in the following example:
+
+      .. literalinclude:: /includes/ai-integrations/mastra/automated-embedding.ts
+         :language: typescript
+         :start-after: start-upsert
+         :end-before: end-upsert
+
+      On an ``autoEmbed`` index, the ``upsert()`` method
+      rejects the ``vectors`` parameter because MongoDB
+      generates the vectors automatically.
+
+   .. tab:: Manual Embedding
+      :tabid: upsert-manual
+
+      The following example manually generates and stores embeddings in MongoDB:
 
       .. literalinclude:: /includes/ai-integrations/mastra/upsert-embeddings.ts
          :language: typescript
 
-   .. tab:: query()
-      :tabid: query
+query()
+~~~~~~~
 
-      To retrieve semantically similar documents, first convert your query to an embedding, then query the vector store.
-      To learn more, see `Retrieval in Mastra <https://mastra.ai/en/docs/rag/retrieval>`__.
+To retrieve semantically similar documents, run a {+avs+} query
+by using the ``query()`` method. Select the :guilabel:`Automated Embedding` or
+:guilabel:`Manual Embedding` tab to view an example that uses your preferred
+embedding mode:
+
+.. tabs::
+
+   .. tab:: Automated Embedding
+      :tabid: query-auto
+
+      To run a {+avs+} query, pass the ``queryText`` parameter to
+      the ``query()`` method. MongoDB embeds the query text at search
+      time.
+
+      .. literalinclude:: /includes/ai-integrations/mastra/automated-embedding.ts
+         :language: typescript
+         :start-after: start-query
+         :end-before: end-query
+
+      After you upsert documents, MongoDB generates embeddings
+      asynchronously. Depending on the amount of data, it can take time
+      for the documents to be indexed and available for semantic search.
+      On large collections, the first embedding can take several
+      hours to complete.
+
+      When using Automated Embedding, the following restrictions apply:
+
+      - The ``queryVector`` parameter is supported, but it is
+        mutually exclusive with ``queryText``. Ensure that the specified
+        vector matches the index's ``quantization`` and comes from
+        a compatible embedding model.
+        
+      - The ``includeVector`` parameter is not supported. MongoDB stores the
+        generated vectors outside your collection, so there is no
+        vector on the document to include.
+
+   .. tab:: Manual Embedding
+      :tabid: query-manual
+
+      The following example manually generates embeddings for a query string
+      and then runs a {+avs+} query:
 
       .. literalinclude:: /includes/ai-integrations/mastra/query-vector-store.ts
          :language: typescript
 
+      To learn more, see `Retrieval in Mastra <https://mastra.ai/en/docs/rag/retrieval>`__.
+
 .. _mastra-metadata-filtering:
 
 Metadata Filtering
-~~~~~~~~~~~~~~~~~~
+------------------
 
 The MongoDB vector store supports metadata filtering
 on your vector search query results:
 
-- Use the Mastra `query syntax <https://mastra.ai/en/reference/rag/metadata-filters>`__, 
-  without limitations.
+- Use the Mastra `query syntax
+  <https://mastra.ai/en/reference/rag/metadata-filters>`__.
 - Use standard comparison, array, logical, and element operators
-- Use mested fields and arrays in metadata
+- Use nested fields and arrays in metadata
 - Filter on metadata and the contents of the original documents
 
-The following usage example demonstrates the filtering syntax:
+The following usage example demonstrates the filtering syntax. Select the
+:guilabel:`Automated Embedding` or :guilabel:`Manual Embedding` tab to view
+an example that uses your preferred embedding mode:
 
-.. literalinclude:: /includes/ai-integrations/mastra/metadata-filtering-example.ts
-   :language: typescript
+.. tabs::
+
+   .. tab:: Automated Embedding
+      :tabid: filter-auto
+
+      To use Automated Embedding, pass the query text in the ``queryText``
+      parameter. MongoDB embeds the text when you run the query.
+
+      .. literalinclude:: /includes/ai-integrations/mastra/automated-embedding.ts
+         :language: typescript
+         :category: snippet
+         :start-after: start-query-filter
+         :end-before: end-query-filter
+
+   .. tab:: Manual Embedding
+      :tabid: filter-manual
+
+      To manually embed your query text, pass the resulting embedding in
+      the ``queryVector`` parameter.
+
+      .. literalinclude:: /includes/ai-integrations/mastra/metadata-filtering-example.ts
+         :language: typescript
+         :category: snippet
 
 .. tip::
 
    For optimal performance, create indexes on metadata fields that you 
    frequently filter on. To learn more, see :ref:`{+avs+} Indexes <avs-types-filter-vector>`.
 
-To learn more, see 
+To learn more, see
 `Metadata Filters <https://mastra.ai/en/reference/rag/metadata-filters#mongodb>`__.
 
-.. _mastra-rag-agents:
+.. _mastra-existing-collection:
 
-RAG with AI Agents
-------------------
+Existing Collection Indexes
+---------------------------
 
-You can use MongoDB as a vector store within 
-`Mastra AI agents <https://mastra.ai/en/docs/agents/overview>`__ to implement 
-:ref:`agentic RAG <agentic-rag>`. This allows your agents to use MongoDB 
-vector search as a tool to help complete tasks.
+You can create a {+avs+} index on an existing MongoDB collection,
+instead of copying the data into a collection that Mastra manages.
+To specify the collection, pass the ``collectionName`` parameter to
+the ``createIndex()`` method. These examples require
+``@mastra/mongodb`` version 1.28.0 or later.
 
-Mastra also provides a ``MONGODB_PROMPT`` constant that you can include in your 
-agent instructions to optimize how the agent uses MongoDB for retrieval.
-To learn more, see `Vector Store Prompts <https://mastra.ai/en/docs/rag/retrieval#vector-store-prompts>`__.
+.. note::
 
-Usage
-~~~~~
+   A new index on an existing collection is read-only by default. The
+   ``upsert()``, ``updateVector()``, ``deleteVector()``, and
+   ``deleteVectors()`` methods generate an error instead of modifying
+   your documents. To store embeddings, write them to your corresponding
+   documents from your application, or use :ref:`Automated Embedding
+   <avs-auto-embeddings>`.
 
-The following example shows how to create an AI agent with 
-RAG capabilities using MongoDB as a vector store:
+.. _mastra-existing-collection-idx:
 
-.. literalinclude:: /includes/ai-integrations/mastra/rag-agent.ts
+Create the Index
+~~~~~~~~~~~~~~~~
+
+Select the :guilabel:`Automated Embedding` or :guilabel:`Manual
+Embedding` tab to view an example that uses your preferred embedding
+mode:
+
+.. tabs::
+
+   .. tab:: Automated Embedding
+      :tabid: existing-collection-create-auto
+
+      The following example creates an ``autoEmbed`` index on the
+      existing ``movies`` collection's ``plot`` field:
+
+      .. literalinclude:: /includes/ai-integrations/mastra/existing-collection.ts
+         :language: typescript
+         :start-after: start-create-index-auto
+         :end-before: end-create-index-auto
+
+   .. tab:: Manual Embedding
+      :tabid: existing-collection-create-manual
+
+      The following example creates a vector index on the existing
+      ``movies`` collection's ``embedding`` field:
+
+      .. literalinclude:: /includes/ai-integrations/mastra/existing-collection.ts
+         :language: typescript
+         :start-after: start-create-index-manual
+         :end-before: end-create-index-manual
+
+      Your documents must already contain the vector embeddings in an
+      ``embedding`` field. To store embeddings in a different field, set
+      the ``embeddingFieldPath`` option in the ``MongoDBVector``
+      constructor.
+
+.. note:: Data Security
+
+   When you use Automated Embedding on an existing collection,
+   {+avs+} forwards the text in the indexed field and each text query
+   to a |voyage| service managed by MongoDB. This processing occurs
+   outside your application.
+
+Query the Index
+~~~~~~~~~~~~~~~
+
+By default, query results from an existing collection include the
+``id`` and ``score`` fields. For an ``autoEmbed`` index, results also
+include the indexed text in the ``document`` field. To retrieve the
+full document in the ``metadata`` field of each result, set the
+``metadataMode`` parameter to ``"document"``.
+
+Select the :guilabel:`Automated Embedding` or :guilabel:`Manual
+Embedding` tab to view an example that uses your preferred embedding
+mode:
+
+.. tabs::
+
+   .. tab:: Automated Embedding
+      :tabid: existing-collection-query-auto
+
+      The following example queries the ``movies`` collection for
+      documents that match the specified query text:
+
+      .. literalinclude:: /includes/ai-integrations/mastra/existing-collection.ts
+         :language: typescript
+         :start-after: start-query-auto
+         :end-before: end-query-auto
+
+   .. tab:: Manual Embedding
+      :tabid: existing-collection-query-manual
+
+      The following example queries the ``movies`` collection for
+      documents that match the specified embedding:
+
+      .. literalinclude:: /includes/ai-integrations/mastra/existing-collection.ts
+         :language: typescript
+         :start-after: start-query-manual
+         :end-before: end-query-manual
+
+      By default, results omit the embedding from the ``metadata`` field. To
+      include it, set the ``includeVector`` parameter to ``true``.
+
+.. tip:: Filter Fields
+
+   The preceding example filters documents by the ``year`` field, which the
+   :ref:`createIndex() example <mastra-existing-collection-idx>` declares
+   in the ``filterFields`` parameter. If you filter on a field that you
+   don't declare in ``filterFields``, or use an operator that
+   ``$vectorSearch`` doesn't support, ``MongoDBVector`` filters the
+   results in two steps. The vector store first runs a separate
+   ``$match`` query and loads the matching ``_id`` values into memory.
+   Then, the store passes those values to {+avs+}.
+
+   These additional steps increase costs and latency, since the
+   ``$match`` query runs a collection scan unless a regular MongoDB
+   index covers the filtered fields. If more than 100,000 documents
+   match the filter, the query throws a ``TOO_MANY_CANDIDATES``
+   error.
+
+Delete the Index
+~~~~~~~~~~~~~~~~
+
+To delete a {+avs+} index, call the ``deleteIndex()`` method and pass
+the same ``indexName`` value that you passed to ``createIndex()``.
+The method behavior differs depending on collection ownership:
+
+- **Mastra collection**: This method deletes the entire collection that
+  ``MongoDBVector`` created, including its documents. If another index
+  uses the collection, the method throws an error and has no effect.
+- **Existing MongoDB collection**: This method deletes only the {+avs+}
+  and full-text indexes that ``MongoDBVector`` created. Your
+  collection, documents, and other indexes remain.
+
+The following example deletes the ``movies_index`` index:
+
+.. literalinclude:: /includes/ai-integrations/mastra/existing-collection.ts
    :language: typescript
+   :start-after: start-delete-index
+   :end-before: end-delete-index
 
-Memory with AI Agents
----------------------
+If you pass an index name that the ``createIndex()`` method didn't
+register, the method throws an error and does not delete anything.
 
-You can use Mastra's memory system with MongoDB as the storage backend.
-This allows you your agent to remember past interactions and use that 
-information to inform future decisions.
+.. _mastra-reranking:
 
-For a complete tutorial, see `Memory with MongoDB 
-<https://mastra.ai/en/examples/memory/memory-with-mongodb>`__.
+Reranking
+---------
 
-Usage
-~~~~~
+The ``@mastra/voyageai`` package provides a reranker that rescores
+your {+avs+} results against the original query, improving on
+the initial similarity ranking. This section shows how to create a
+reranker and use it to rescore vector search results in your
+application.
 
-The following example demonstrates how to use memory with AI agents.
-This example uses ``memoryOptions`` to scope recall for the request.
-Set ``lastMessages: 5`` to limit recency-based recall. Use 
-``semanticRecall`` to fetch the ``topK: 3`` most relevant messages,
-including ``messageRange: 2`` neighboring messages for context around
-each match.
+To run the examples in this section, add the following import statements
+to your code:
 
-.. literalinclude:: /includes/ai-integrations/mastra/memory-usage-example.ts
+.. literalinclude:: /includes/ai-integrations/mastra/create-voyage-reranker.ts
    :language: typescript
+   :start-after: // start-imports
+   :end-before: // end-imports
+
+Create a Reranker
+~~~~~~~~~~~~~~~~~
+
+To use the default reranker that the ``@mastra/voyageai`` package
+provides, access the ``voyage`` object's ``reranker`` property,
+as shown in the following example:
+
+.. literalinclude:: /includes/ai-integrations/mastra/create-voyage-reranker.ts
+   :language: typescript
+   :start-after: // start-default-reranker
+   :end-before: // end-default-reranker
+
+This default reranker uses the ``rerank-2.5`` model and sends requests
+to the |voyage| endpoint. If you created your API key in |service|, use
+the MongoDB endpoint instead. You can use the
+``createVoyageReranker()`` function or the ``VoyageRelevanceScorer``
+class to create a reranker that specifies a different model or endpoint.
+To view an example, select the tab corresponding to your preferred
+method:
+
+.. tabs::
+
+   .. tab:: createVoyageReranker()
+      :tabid: create-voyage-reranker
+
+      .. literalinclude:: /includes/ai-integrations/mastra/create-voyage-reranker.ts
+         :language: typescript
+         :start-after: // start-reranker-factory
+         :end-before: // end-reranker-factory
+
+   .. tab:: VoyageRelevanceScorer
+      :tabid: voyage-relevance-scorer
+
+      .. literalinclude:: /includes/ai-integrations/mastra/create-voyage-reranker.ts
+         :language: typescript
+         :start-after: // start-reranker-class
+         :end-before: // end-reranker-class
+
+Configuration Options
+~~~~~~~~~~~~~~~~~~~~~
+
+When you create a reranker, you can set the following configuration
+options:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Option
+     - Description
+   * - ``model``
+     - **(Required)** The reranking model to use. To view the available
+       models, see :ref:`voyage-rerankers` in the |voyage| documentation.
+   * - ``apiKey``
+     - Your API key. MongoDB model API keys work only with MongoDB
+       endpoints, and Voyage AI API keys work only with Voyage AI
+       endpoints. Defaults to the ``VOYAGE_API_KEY`` environment
+       variable.
+   * - ``baseUrl``
+     - The endpoint for the Voyage API. Defaults to
+       ``https://api.voyageai.com/v1``, the Voyage AI endpoint.
+   * - ``truncation``
+     - Whether to truncate inputs that exceed the model's context
+       length. Defaults to ``true``.
+
+Rerank Results
+~~~~~~~~~~~~~~
+
+After creating a reranker, you can rescore your {+avs+}
+results by using the ``rerankWithScorer()`` function. Alternatively,
+pass the reranker directly to the ``createVectorQueryTool()``
+function to instruct an agent to rerank results automatically. To view an example,
+select the tab corresponding to your preferred method:
+
+.. tabs::
+
+   .. tab:: rerankWithScorer()
+      :tabid: rerank-with-scorer
+
+      Pass the following arguments to the ``rerankWithScorer()`` function:
+
+      .. list-table::
+         :header-rows: 1
+
+         * - Argument
+           - Data Type
+           - Required
+           - Description
+         * - ``results``
+           - ``QueryResult[]``
+           - Yes
+           - Results returned by your {+avs+} query.
+         * - ``query``
+           - ``string``
+           - Yes
+           - Original search query.
+         * - ``scorer``
+           - ``RelevanceScoreProvider``
+           - Yes
+           - Reranker to use.
+         * - ``options``
+           - ``RerankerFunctionOptions``
+           - Yes
+           - Configuration options for the rescore.
+
+      .. literalinclude:: /includes/ai-integrations/mastra/create-voyage-reranker.ts
+         :language: typescript
+         :start-after: // start-rerank-with-scorer
+         :end-before: // end-rerank-with-scorer
+
+   .. tab:: createVectorQueryTool()
+      :tabid: vector-query-tool-reranking
+
+      Pass the following arguments to the ``createVectorQueryTool()`` function:
+
+      .. list-table::
+         :header-rows: 1
+
+         * - Argument
+           - Data Type
+           - Required
+           - Description
+         * - ``vectorStoreName``
+           - ``string``
+           - Yes
+           - Name of your MongoDB vector store.
+         * - ``indexName``
+           - ``string``
+           - Yes
+           - Name of your {+avs+} index.
+         * - ``model``
+           - ``MastraEmbeddingModel``
+           - Yes
+           - Embedding model to use.
+         * - ``reranker``
+           - ``RerankConfig``
+           - No
+           - Reranker to use. Defaults to no reranking.
+
+      .. literalinclude:: /includes/ai-integrations/mastra/create-voyage-reranker.ts
+         :language: typescript
+         :start-after: // start-vector-query-tool-reranking
+         :end-before: // end-vector-query-tool-reranking
+
+
+
+.. tip::
+
+   To learn more about reranking vector search results, see
+   the following resources:
+
+   - `Re-ranking <https://mastra.ai/reference/rag/retrieval#re-ranking>`__ 
+     in the Mastra documentation
+   - :ref:`Rerankers <voyage-rerankers>` in the |voyage| documentation
+
+.. _mastra-hybrid-search:
+
+Hybrid Search
+-------------
+
+.. important::
+
+   Hybrid search requires MongoDB 8.0 or later.
+
+You can use the Mastra ``MongoDBVector`` class to run a
+:ref:`hybrid search <as_hybrid-search>` on your data. Hybrid search
+combines semantic search with {+avs+} and full-text search with
+{+fts+} to help improve the relevance of your search results. When
+your queries need both semantic matches and exact keyword matches,
+such as product names or error codes, use hybrid search. The
+``hybridQuery()`` method runs both searches and then merges the
+results by using the :pipeline:`$rankFusion` stage.
+
+To filter the results, pass a ``filter`` object that uses the same
+syntax as :ref:`metadata filtering <mastra-metadata-filtering>`.
+MongoDB applies the filter to both searches before it merges the
+results, but each search applies the filter at a different point:
+
+- {+avs+} filters documents before it searches. You can declare the
+  fields that you filter on in the ``filterFields`` parameter when you
+  create the index. If your filter uses only declared fields and
+  `operators that {+avs+} supports
+  <https://www.mongodb.com/docs/vector-search/query/aggregation-stages/vector-search-stage/#pre-filter-for-top-level-embeddings>`__,
+  MongoDB applies it inside the search. Otherwise, if the filter
+  matches more than 100,000 documents, the query fails.
+
+- {+fts+} applies the filter after it searches. MongoDB applies the
+  filter on the server, not in your application. A broad full-text
+  query combined with a narrow filter can be slower.
+
+Hybrid search requires an existing {+avs+} index that contains
+documents. To create the index and store documents, see the
+:ref:`createIndex() <mastra-create-index>` and
+:ref:`upsert() <mastra-upsert>` sections. The ``createIndex()``
+method also creates a full-text search index on all fields in your
+collection. To index only specific fields, or to search an
+:ref:`existing collection <mastra-existing-collection>`, use the
+``createSearchIndex()`` method instead. To learn more, see
+`createSearchIndex()
+<https://mastra.ai/integrations/vectors/mongodb#createsearchindex>`__
+in the Mastra documentation.
+
+Before you run a hybrid search, use the `waitForSearchIndexReady()
+<https://mastra.ai/integrations/vectors/mongodb#waitforsearchindexready>`__
+method to wait for the full-text search index to be ready. Then,
+complete the following steps.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Run a hybrid search query.
+
+      Call the ``hybridQuery()`` method with two queries: a ``vector``
+      object for the {+avs+} query and a ``text`` object for the
+      full-text query. MongoDB ranks the results of each search, and
+      then merges the two rankings into a fusion score. MongoDB returns
+      this score in the ``score`` field of each result.
+
+      Optionally, set the ``weights`` field to control how much each
+      search counts toward the final order. By default, both searches
+      count equally. To favor vector matches instead, give ``vector``
+      the higher weight. Each weight must be a non-negative number,
+      and at least one weight must be greater than ``0``. An omitted
+      weight defaults to ``1``.
+
+      The following examples search for
+      ``space opera about isolation``. They count full-text matches
+      twice as heavily as vector matches and return the top 5
+      results.
+
+      Select the :guilabel:`Automated Embedding` or
+      :guilabel:`Manual Embedding` tab to view an example that uses
+      your preferred embedding mode:
+
+      .. tabs::
+
+         .. tab:: Automated Embedding
+            :tabid: hybrid-query-auto
+
+            The following example passes your query text in
+            ``vector.query``, and MongoDB generates the query vector.
+
+            .. literalinclude:: /includes/ai-integrations/mastra/hybrid-search.ts
+               :language: typescript
+               :category: snippet
+               :start-after: start-hybrid-query-auto
+               :end-before: end-hybrid-query-auto
+
+            The full-text query searches the ``document`` field, where
+            MongoDB stores your text by using Automated Embedding.
+            MongoDB sends both the text that you store and your query
+            text to an embedding model to generate vectors. By default,
+            the model runs on MongoDB infrastructure in any cloud
+            provider and geography. To restrict where MongoDB processes
+            your text, see `Configure the Inference Scope
+            <https://www.mongodb.com/docs/vector-search/crud-embeddings/automated-embedding/management/?deployment-type=atlas#configure-the-inference-scope>`__.
+
+         .. tab:: Manual Embedding
+            :tabid: hybrid-query-manual
+
+            The following example generates an embedding for your
+            query and passes it in ``vector.queryVector``.
+
+            .. literalinclude:: /includes/ai-integrations/mastra/hybrid-search.ts
+               :language: typescript
+               :category: snippet
+               :start-after: start-hybrid-query-manual
+               :end-before: end-hybrid-query-manual
+
+            The full-text query searches the ``metadata.text`` field,
+            where the ``upsert()`` example stores your text.
+
+   .. step:: (Optional) Add native reranking.
+
+      .. important::
+
+         Native reranking requires an |service| cluster that runs
+         MongoDB 9.0 or later, with :guilabel:`Native Reranking`
+         enabled in your project settings. Reranking sends your query
+         and the text in the ``rerank.paths`` fields to a |voyage|
+         reranking model, which runs outside your cluster. By
+         default, MongoDB uses the ``rerank-2.5`` model. To use a
+         different model, set the ``rerank.model`` field. To learn
+         about the requirements for each model, see
+         :ref:`rerank-requirements`.
+
+      You can refine the order of your hybrid search results by adding
+      a ``rerank`` object to your query. MongoDB passes the merged
+      results to a reranking model, which scores each document by its
+      relevance to your query and reorders the results. Because the
+      reranker sets the final order, the ``weights`` field affects only
+      which documents MongoDB reranks.
+
+      With native reranking, MongoDB calls the reranking model as part
+      of your hybrid search query. If your cluster doesn't meet the
+      requirements for native reranking, you can call a reranking model
+      from your application instead. To learn more, see
+      :ref:`mastra-reranking`.
+
+      When you enable reranking, the ``score`` field of each result
+      contains the reranking score instead of the fusion score. The
+      two scores use different scales.
+
+      Select the :guilabel:`Automated Embedding` or
+      :guilabel:`Manual Embedding` tab to view an example that uses
+      your preferred embedding mode:
+
+      .. tabs::
+
+         .. tab:: Automated Embedding
+            :tabid: rerank-auto
+
+            The following example adds a ``rerank`` object to a hybrid
+            search query. MongoDB reranks up to 50 merged documents
+            based on the text in the ``document`` field, and then
+            returns the 5 highest-scoring results. The highlighted
+            lines show the ``rerank`` object:
+
+            .. literalinclude:: /includes/ai-integrations/mastra/hybrid-search.ts
+               :language: typescript
+               :category: snippet
+               :start-after: start-rerank-auto
+               :end-before: end-rerank-auto
+               :emphasize-lines: 7-11
+
+         .. tab:: Manual Embedding
+            :tabid: rerank-manual
+
+            The following example adds a ``rerank`` object to a hybrid
+            search query. MongoDB reranks up to 50 merged documents
+            based on the text in the ``metadata.text`` field, and then
+            returns the 5 highest-scoring results. The highlighted
+            lines show the ``rerank`` object:
+
+            .. literalinclude:: /includes/ai-integrations/mastra/hybrid-search.ts
+               :language: typescript
+               :category: snippet
+               :start-after: start-rerank-manual
+               :end-before: end-rerank-manual
+               :emphasize-lines: 7-11
 
 Additional Resources
 --------------------
@@ -195,7 +802,7 @@ Additional Resources
 To learn more about using Mastra with MongoDB, see:
 
 - `Mastra MongoDB Vector Store Reference <https://mastra.ai/en/reference/vectors/mongodb>`__
+- `Mastra MongoDB Hybrid Search Reference <https://mastra.ai/integrations/vectors/mongodb#hybridquery>`__
 - `Mastra Vector Databases Documentation <https://mastra.ai/en/docs/rag/vector-databases>`__
-- `Mastra Memory with MongoDB <https://mastra.ai/en/examples/memory/memory-with-mongodb>`__.
 - `Mastra RAG Documentation <https://mastra.ai/en/docs/rag/overview>`__
 - `Mastra GitHub Repository <https://github.com/mastra-ai/mastra>`__
