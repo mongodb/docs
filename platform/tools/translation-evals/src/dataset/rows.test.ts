@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { buildRows, buildDataset } from './rows.js';
+import { buildRows, buildDataset, buildProductionBaselineRows } from './rows.js';
 import { loadConfig } from '../config.js';
 import { writeManifest } from '../run/manifest.js';
 import type { ScrapedPage, PageRef } from '../types.js';
@@ -37,6 +37,64 @@ describe('buildRows', () => {
   it('throws with the page path and locale when any scrape is missing', () => {
     expect(() => buildRows(en, undefined, loc, page, 'atlas', 'r', 'es', bundle())).toThrow(
       'missing page scrape for "atlas/a.mdx" [es]',
+    );
+  });
+});
+
+describe('buildProductionBaselineRows', () => {
+  it('scores the production reference as the candidate without an overlay', () => {
+    const cfg = loadConfig({});
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ds-'));
+    cfg.dataDir = path.join(root, 'data');
+    cfg.contentMdxDir = path.join(root, 'content-mdx');
+    const run = path.join(cfg.dataDir, 'atlas', 'r');
+    for (const [dir, content] of [
+      ['prod/en', 'English source'],
+      ['prod/es', 'Traducción'],
+    ] as Array<[string, string]>) {
+      fs.mkdirSync(path.join(run, dir), { recursive: true });
+      fs.writeFileSync(path.join(run, dir, 's.json'), JSON.stringify({ url: 'u', title: 't', content }));
+    }
+    writeManifest(cfg, 'atlas', 'r', {
+      project: 'atlas',
+      runId: 'r',
+      locales: ['es'],
+      pages: [page],
+      translatable: { pages: [], includes: [], substitutions: [] },
+      stages: {},
+    });
+
+    const rows = buildProductionBaselineRows(cfg, 'atlas', 'r');
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.input.local_text).toBe('Traducción');
+    expect(rows[0]!.expected).toBe('Traducción');
+    expect(rows[0]!.input.segments).toEqual([{ key: 's', en: 'English source', es: 'Traducción' }]);
+    expect(rows[0]!.metadata.baseline).toBe('production');
+  });
+
+  it('fails a degraded capture instead of silently dropping a page', () => {
+    const cfg = loadConfig({});
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ds-'));
+    cfg.dataDir = path.join(root, 'data');
+    cfg.contentMdxDir = path.join(root, 'content-mdx');
+    const run = path.join(cfg.dataDir, 'atlas', 'r');
+    fs.mkdirSync(path.join(run, 'prod', 'en'), { recursive: true });
+    fs.writeFileSync(
+      path.join(run, 'prod', 'en', 's.json'),
+      JSON.stringify({ url: 'u', title: 't', content: 'English source' }),
+    );
+    writeManifest(cfg, 'atlas', 'r', {
+      project: 'atlas',
+      runId: 'r',
+      locales: ['es'],
+      pages: [page],
+      translatable: { pages: [], includes: [], substitutions: [] },
+      stages: {},
+    });
+
+    expect(() => buildProductionBaselineRows(cfg, 'atlas', 'r')).toThrow(
+      'baseline needs prod/en and prod/es for s — re-run scrape-prod',
     );
   });
 });

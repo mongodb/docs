@@ -10,6 +10,7 @@ const cfg: SuiteConfig = {
   locales: ['es'],
   judge: 'j',
   repeats: 2,
+  productionBaseline: false,
   translators: [
     { backend: 'anthropic' as BackendName, model: 'claude-sonnet-5-5' },
     { backend: 'aws-translate' as BackendName },

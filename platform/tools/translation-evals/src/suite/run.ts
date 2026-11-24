@@ -6,7 +6,7 @@ import { loadConfig, type Config } from '../config.js';
 import { buildExperimentName } from '../eval/experiment-name.js';
 import { newRunId, readManifest, runDir, writeManifest } from '../run/manifest.js';
 import type { RunManifest } from '../types.js';
-import { judgeWarnings, loadSuiteConfig, type SuiteConfig } from './config.js';
+import { judgeWarnings, loadSuiteConfig, isSafeSegment, type SuiteConfig } from './config.js';
 import { expandPlan, type Iteration } from './plan.js';
 import { hasPristine, restorePristine, snapshotPristine } from './isolation.js';
 import { killTree, spawnStage, waitForExit, type StageResult } from './stage.js';
@@ -215,8 +215,23 @@ function countProdYield(
 }
 
 export function seedRunDir(cfg: Config, project: string, baseRunId: string, runId: string): void {
+  if (!project.split('/').every(isSafeSegment)) {
+    throw new Error(`unsafe project path: "${project}"`);
+  }
+  if (!isSafeSegment(baseRunId)) throw new Error(`unsafe base run id: "${baseRunId}"`);
+  if (!isSafeSegment(runId)) throw new Error(`unsafe target run id: "${runId}"`);
+  if (baseRunId === runId) throw new Error(`cannot seed "${runId}" from itself`);
   const source = runDir(cfg, project, baseRunId);
   const target = runDir(cfg, project, runId);
+  if (!fs.existsSync(path.join(source, 'manifest.json'))) {
+    throw new Error(`base run "${baseRunId}" not found — expected ${source}/manifest.json`);
+  }
+  const prod = path.join(source, 'prod');
+  if (!fs.existsSync(prod)) {
+    throw new Error(`base run "${baseRunId}" has no prod/ scrape — run resolve and scrape-prod first`);
+  }
+  // A stale dataset/rows.json would otherwise be scored against the new manifest.
+  fs.rmSync(target, { recursive: true, force: true });
   fs.mkdirSync(target, { recursive: true });
   fs.copyFileSync(path.join(source, 'manifest.json'), path.join(target, 'manifest.json'));
   // The base manifest carries the base run's id; stages resolve the overlay from
@@ -224,10 +239,7 @@ export function seedRunDir(cfg: Config, project: string, baseRunId: string, runI
   const seeded = readManifest(cfg, project, runId);
   seeded.runId = runId;
   writeManifest(cfg, project, runId, seeded);
-  const prod = path.join(source, 'prod');
-  if (fs.existsSync(prod)) {
-    fs.cpSync(prod, path.join(target, 'prod'), { recursive: true });
-  }
+  fs.cpSync(prod, path.join(target, 'prod'), { recursive: true });
 }
 
 function readFailures(cfg: Config, project: string, runId: string): Record<string, unknown> {
@@ -447,6 +459,70 @@ async function runIteration(
   return partial ? 'partial' : 'completed';
 }
 
+type BaselineStatus = 'completed' | 'failed';
+
+interface BaselineResult {
+  status: BaselineStatus;
+  runId: string;
+}
+
+async function runBaseline(
+  deps: SuiteDeps,
+  cfg: Config,
+  suite: SuiteConfig,
+  env: NodeJS.ProcessEnv,
+): Promise<BaselineResult> {
+  const runId = `prod-baseline-${newRunId()}`;
+  logLine({ scope: 'baseline', event: 'begin', attrs: { run: runId } });
+  try {
+    seedRunDir(cfg, suite.project, suite.name, runId);
+    const args = ['--project', suite.project, '--run', runId];
+    const stageEnv = {
+      ...env,
+      SUITE_SCOPE: 'baseline',
+      JUDGE_MODEL: suite.judge,
+      TARGET_LOCALES: suite.locales.join(','),
+      TRANSLATOR_BACKEND: '',
+      TRANSLATOR_MODEL: '',
+      EVAL_EXPERIMENT_NAME: '',
+    };
+    const dataset = await deps.runStage(
+      'dataset',
+      [...args, '--candidate', 'production'],
+      stageEnv,
+      STAGE_TIMEOUT_MS,
+    );
+    if (stageFailed(dataset)) {
+      logLine({
+        scope: 'baseline',
+        event: 'fail',
+        subject: 'stage=dataset',
+        attrs: failReason(dataset),
+      });
+      return { status: 'failed', runId };
+    }
+    const evaluated = await deps.runStage('eval', args, stageEnv, STAGE_TIMEOUT_MS);
+    if (stageFailed(evaluated)) {
+      logLine({
+        scope: 'baseline',
+        event: 'fail',
+        subject: 'stage=eval',
+        attrs: failReason(evaluated),
+      });
+      return { status: 'failed', runId };
+    }
+    logLine({ scope: 'baseline', event: 'done', attrs: { run: runId } });
+    return { status: 'completed', runId };
+  } catch (err) {
+    logLine({
+      scope: 'baseline',
+      event: 'fail',
+      attrs: { reason: 'exception', err: message(err) },
+    });
+    return { status: 'failed', runId };
+  }
+}
+
 function printDryRun(
   suite: SuiteConfig,
   iterations: Iteration[],
@@ -492,9 +568,17 @@ function printDryRun(
   if (stale.length > 0 && !force) {
     console.log(`${stale.length} stale iteration(s): a real run fails without --force`);
   }
+  if (suite.productionBaseline) {
+    console.log('baseline: will run once after iterations (fresh run id)');
+  }
 }
 
-function batchExitCode(iterations: Iteration[], state: BatchState): number {
+function batchExitCode(
+  iterations: Iteration[],
+  state: BatchState,
+  baseline?: BaselineResult,
+): number {
+  if (baseline?.status === 'failed') return 1;
   const statuses = iterations.map((it) => state.iterations[it.id]?.status);
   if (statuses.some((s) => s === 'failed')) return 1;
   if (!statuses.some((s) => s === 'completed' || s === 'partial')) return 1;
@@ -561,6 +645,7 @@ export async function runSuite(
   fs.copyFileSync(opts.configFile, path.join(dir, 'config.yaml'));
 
   let current: IterationRecord | undefined;
+  let baseline: BaselineResult | undefined;
   let interrupted = false;
   const uninstall = deps.onSignal((signal) => {
     if (interrupted) return;
@@ -674,6 +759,9 @@ export async function runSuite(
       });
     }
     current = undefined;
+    if (suite.productionBaseline) {
+      baseline = await runBaseline(deps, cfg, suite, env);
+    }
 
     const done = iterations.filter((i) =>
       ['completed', 'partial'].includes(state.iterations[i.id]?.status ?? ''),
@@ -689,5 +777,5 @@ export async function runSuite(
   }
 
   console.log(formatSummary(iterations, state));
-  return batchExitCode(iterations, state);
+  return batchExitCode(iterations, state, baseline);
 }

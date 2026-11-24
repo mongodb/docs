@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { buildExperimentName, localesFromRows } from './experiment-name.js';
+import {
+  buildExperimentName,
+  isProductionBaselineRows,
+  localesFromRows,
+} from './experiment-name.js';
 import type { DatasetRow } from '../types.js';
 
 function row(locale: string): DatasetRow {
@@ -26,6 +30,26 @@ describe('localesFromRows', () => {
   });
 });
 
+describe('isProductionBaselineRows', () => {
+  const productionRow: DatasetRow = {
+    ...row('es'),
+    metadata: { ...row('es').metadata, baseline: 'production' },
+  };
+  const translatorRow = row('es');
+
+  it('accepts a non-empty set containing only production rows', () => {
+    expect(isProductionBaselineRows([productionRow, productionRow])).toBe(true);
+  });
+
+  it('rejects mixed production and translator rows', () => {
+    expect(isProductionBaselineRows([productionRow, translatorRow])).toBe(false);
+  });
+
+  it('rejects an empty set', () => {
+    expect(isProductionBaselineRows([])).toBe(false);
+  });
+});
+
 describe('buildExperimentName', () => {
   const base = {
     provider: 'openai',
@@ -35,6 +59,12 @@ describe('buildExperimentName', () => {
 
   it('builds provider, model, and run id', () => {
     expect(buildExperimentName(base)).toBe('openai gpt-5.5--2026-10-28-7d42d0');
+  });
+
+  it('names a production baseline with its fresh run id', () => {
+    expect(buildExperimentName({ provider: 'production', runId: 'prod-baseline-r1' })).toBe(
+      'production--prod-baseline-r1',
+    );
   });
 
   it('omits the model when the backend has none', () => {

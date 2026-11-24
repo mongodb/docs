@@ -1,5 +1,9 @@
 import type { DatasetRow } from '../types.js';
 
+export function isProductionBaselineRows(rows: DatasetRow[]): boolean {
+  return rows.length > 0 && rows.every((row) => row.metadata.baseline === 'production');
+}
+
 export interface ExperimentNameParts {
   provider: string;
   translatorModel?: string;

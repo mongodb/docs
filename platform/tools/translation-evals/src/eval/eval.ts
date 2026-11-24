@@ -7,7 +7,11 @@ import { readManifest, readManifestLatest, runDir } from '../run/manifest.js';
 import { backendHasModel, resolveBackendName } from '../translate/backend.js';
 import type { DatasetRow } from '../types.js';
 import { createJudgeOptions } from './judge/backend.js';
-import { buildExperimentName, localesFromRows } from './experiment-name.js';
+import {
+  buildExperimentName,
+  isProductionBaselineRows,
+  localesFromRows,
+} from './experiment-name.js';
 import { toEvalScorers } from './scorers/index.js';
 
 const cfg = loadConfig();
@@ -36,11 +40,17 @@ const includedFiles = new Set(
 );
 const suiteRunId = process.env.EVAL_SUITE_RUN_ID?.trim();
 
+// The production reference is the candidate; it is not a translator run.
+const isProductionBaseline = isProductionBaselineRows(rows);
+const experimentProvider = isProductionBaseline ? 'production' : provider;
+// Name the engine that actually ran: AWS Translate has no model, so
+// forwarding TRANSLATOR_MODEL would credit a model that never ran.
+const translatorModel =
+  !isProductionBaseline && backendHasModel(provider) ? (cfg.translatorModel ?? null) : null;
+
 const experimentName = buildExperimentName({
-  provider,
-  // Name the engine that actually ran: AWS Translate has no model, so
-  // forwarding TRANSLATOR_MODEL would credit a model that never ran.
-  translatorModel: backendHasModel(provider) ? cfg.translatorModel : undefined,
+  provider: experimentProvider,
+  translatorModel: translatorModel ?? undefined,
   runId,
   override: cfg.experimentName,
 });
@@ -57,10 +67,10 @@ Eval(cfg.braintrustProject, {
     project,
     run: runId,
     locale: localesFromRows(rows).join(','),
-    translator_provider: provider,
+    translator_provider: experimentProvider,
     // A backend with no model records none — an AWS Translate run must not
     // read as a gpt-* run here either.
-    translator_model: backendHasModel(provider) ? (cfg.translatorModel ?? null) : null,
+    translator_model: translatorModel,
     judge_model: judgeOpts.model,
     glossary: glossaryIdentity(glossary),
     pages: manifest.pages.length,

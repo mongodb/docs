@@ -167,7 +167,7 @@ depending on the model. Set these in `.env`:
 
 ```
 AI_GATEWAY_API_KEY=<your key>
-TRANSLATOR_MODEL=gpt-6-astra
+TRANSLATOR_MODEL=<grove model>
 JUDGE_MODEL=<a different model>
 ```
 
@@ -228,6 +228,140 @@ AI_GATEWAY_API_KEY=<your key>
 - `TRANSLATOR_BACKEND=stub` runs the pipeline offline with deterministic
   output. It is a plumbing check, not an eval.
 
+### Scoring the production baseline
+
+Every suite run captures production as its base run: `resolve` and
+`scrape-prod` write `data/<project>/<suite-name>/prod/`. The baseline reuses
+that capture instead of a translator's output — production is both the
+candidate and the expected value — and skips `translate`, `serve`, and
+`scrape-local`. Only `reference_similarity` is directly comparable to a
+translator run; see Notes.
+
+#### Standard: enable it in the suite
+
+Add the optional setting to the suite YAML:
+
+```yaml
+production_baseline: true
+```
+
+Then run `pnpm suite --config suites/<config>.yaml`; see [suite](#suite). The
+setting defaults to `false`. Every real suite invocation with it enabled runs
+production once after the translator iterations, including an identical repeat
+invocation. Set it to `false` to disable the baseline.
+
+- Completed translator iterations may skip; the enabled baseline still runs.
+- The baseline uses the suite's capture, project, locales, and judge.
+- Each invocation creates a fresh `prod-baseline-<run id>` run directory and
+  `production--prod-baseline-<run id>` Braintrust experiment.
+- `--dry-run` prints `baseline: will run once after iterations (fresh run id)`
+  without running the baseline.
+- Baseline failure makes the suite exit non-zero. A translator failure does not
+  prevent the baseline attempt.
+- An incomplete capture fails the baseline rather than silently scoring a
+  partial reference.
+- A stub suite with the flag enabled still runs a real gateway judge eval; the
+  baseline is not an offline stub check.
+
+Expected: one row per page per locale, then a printed Braintrust URL. Generated
+baseline run directories can become the flagless `readManifestLatest` choice,
+so manual stage examples should keep an explicit `--run`.
+
+#### Manual fallback: score an existing capture outside a suite
+
+Use this three-command procedure when you need to score an existing capture
+yourself rather than as part of a suite. Here `--run` is a baseline name you
+choose; it is separate from the fresh IDs the suite generates.
+
+Run these from `platform/tools/translation-evals`. The last step needs `.env`
+with `AI_GATEWAY_API_KEY`, `JUDGE_MODEL`, and `BRAINTRUST_API_KEY`.
+
+1. **Freeze the capture.** Copy the capture's `manifest.json` and `prod/` into
+   a new baseline run. No network. `--project` comes from the suite config's
+   `project:` field; `--from` comes from its `name:` field. `--run` is a safe
+   name you choose for the new baseline; seed creates it.
+
+   ```
+   pnpm reference:seed --project <project> --from <capture-run> --run <baseline-run>
+   ```
+
+   Example:
+
+   ```
+   pnpm reference:seed --project manual/manual --from manual-providers-2 --run prod-baseline
+   ```
+
+2. **Build the rows.** Production becomes both the candidate and the expected
+   value. Use the same `--project` and `--run` values from step 1.
+   `--candidate production` is a fixed literal, not a value to retrieve.
+
+   ```
+   pnpm dataset --project <project> --run <baseline-run> --candidate production
+   ```
+
+   Example:
+
+   ```
+   pnpm dataset --project manual/manual --run prod-baseline --candidate production
+   ```
+
+3. **Score the baseline.** `<judge-model>` comes from the suite config's
+   `judge:` field or the experiments you compare against. Use the same
+   `--project` and `--run` values again.
+
+   ```
+   JUDGE_MODEL=<judge-model> pnpm eval --project <project> --run <baseline-run>
+   ```
+
+   Example:
+
+   ```
+   JUDGE_MODEL=claude-fable-5-2 pnpm eval --project manual/manual --run prod-baseline
+   ```
+
+To find an existing capture for `--from`, list the run directories containing
+`prod/`. For the example project:
+
+```
+ls -d data/manual/manual/*/prod | awk -F/ '{print $(NF-1)}'
+```
+
+- Locales are not a flag in these steps: `dataset --candidate production` and
+  `eval` read them from the captured manifest, which holds the suite config's
+  `locales:` list. That keeps the baseline on the same population as the
+  suite's translator runs.
+- To capture without a suite run, choose a new `<capture-run>` name and the
+  `<locales>` to capture, then run `pnpm resolve --project <project> --pages
+  <pages-file> --locales <locales> --run <capture-run>` and `pnpm scrape-prod
+  --project <project> --run <capture-run>`. `<pages-file>` is a path such as
+  `pages/manual.txt`. Then do step 1 with that capture in `--from`.
+
+Expected: `seeded data/<project>/<baseline-run> from <capture-run>`, then one
+row per page per locale, then a printed Braintrust URL and experiment
+`production--<baseline-run>` (unless `EVAL_EXPERIMENT_NAME` is set).
+
+#### Retry and recapture
+
+Rerunning helps transient provider, judge, and network failures. It does not
+repair an incomplete capture or refresh production; recapture first for those
+cases. `--force` alone does not recapture unchanged inputs.
+
+#### Notes
+
+- The capture is whatever production served when the base run was created. An
+  identical suite rerun reuses that fixed reference; running the baseline again
+  does not refresh it.
+- `reference_similarity` is always 1 (100%) for every scored baseline row:
+  the scorer compares production against itself. It is a sanity check, not a
+  quality signal.
+- **Not every metric is comparable to a translator run.** Baseline rows are one
+  whole-page segment each, while a translator row can hold up to ~200 segments,
+  so `distortion` has a per-page denominator of 1: one critical distortion
+  zeroes a baseline row. Baseline rows score rendered page text without per-file
+  include instrumentation, while translator rows carry explicit include
+  segments, so glossary and terminology coverage is not identical. Read those
+  metrics as directional, not as a ceiling.
+
 ### Braintrust credentials
 
 The `braintrust` CLI does not load a plain `.env` on its own. The `eval` stage
@@ -237,8 +371,19 @@ passes this process's environment to the CLI, so for `pnpm eval` a variable in
 
 ## Commands
 
-Run every command from this directory. Stages run in the order below; `resolve`
-must run first.
+Run every command from this directory. The standard way to run an evaluation is
+`pnpm suite --config <file>`; the stage commands below run individual stages,
+and `resolve` must run first.
+
+### reference:seed
+
+```
+pnpm reference:seed --project <project> --from <capture-run> --run <baseline-run>
+```
+
+Copies an existing capture into a new production-baseline run. All three flags
+are required strings. `--from` selects the existing capture; `--run` is the new
+baseline name you choose. This is a copy operation, not a pipeline stage.
 
 ### resolve
 
@@ -510,9 +655,11 @@ Runs a whole evaluation batch: it expands the config into one iteration per
 (translator, repeat), then for each iteration runs the full stage pipeline —
 `translate` through `eval` — against a fresh run seeded from the base run. The
 `resolve` and `scrape-prod` stages run once for the whole batch, so every
-iteration shares one production scrape. The run prints the production-scrape
-yield (pages x locales present under `prod/`) after the base run and in the
-final summary, and marks it `DEGRADED` when `scrape-prod` skipped any page.
+iteration shares one production scrape. With `production_baseline: true`, the
+suite then scores production once after the translator iterations. The run
+prints the production-scrape yield (pages x locales present under `prod/`)
+after the base run and in the final summary, and marks it `DEGRADED` when
+`scrape-prod` skipped any page.
 
 ### Reading the glossary score
 
@@ -594,14 +741,16 @@ The batch is described in a YAML config file. Fields:
 | `judge` | string | Judge model. The batch passes it to the `eval` stage as `JUDGE_MODEL`, overriding any `JUDGE_MODEL` in `.env`, so you do not need to set both. Fixed for the whole batch, so scores are comparable across translators. |
 | `repeats` | integer >= 1 | How many times to repeat each translator. |
 | `translators` | list of mappings | Each has `backend` (`openai`, `anthropic`, `aws-translate`, or `stub`) and an optional `model`. Duplicates are rejected. A `model` equal to `judge` prints a warning. |
+| `production_baseline` | boolean | Optional; default `false`. When true, scores production once after translator iterations on every real suite invocation. |
 
 The judge is fixed per batch while the translator sweeps: the config expands to
 `translators x repeats` iterations, each scored against the same judge.
 
 A failed iteration is recorded in the batch state and the batch moves on to the
 next one. Re-running the same config resumes: completed and partial iterations
-are skipped, failed and interrupted ones are re-attempted automatically, and
-stale iterations (the project, pages file, locales, or judge changed) fail
+are skipped, failed and interrupted ones are re-attempted automatically, and an
+enabled production baseline runs again. Stale iterations (the project, pages
+file, locales, or judge changed) fail
 the run unless you pass `--force`. Changing a translator does not make an
 iteration stale; it creates a new iteration. When the project, pages file, or
 locales changed, `--force` also re-runs `resolve` and `scrape-prod` so the new
@@ -609,8 +758,9 @@ iterations are seeded from a matching base run.
 
 Ctrl-C (or `SIGTERM`) stops the running stage, marks the current iteration
 `failed`, restores `content-mdx/<project>`, and exits non-zero. The command
-exits non-zero when any iteration in the batch ended `failed` or none
-succeeded, and zero otherwise.
+exits non-zero when any iteration in the batch ended `failed`, none succeeded,
+or an enabled production baseline failed — even when every iteration succeeded.
+It exits zero otherwise.
 
 Flags:
 
@@ -618,7 +768,7 @@ Flags:
 |---|---|---|
 | `--config <file>` | Yes | Path to the batch config YAML. |
 | `--force` | No | Re-runs every iteration, not just stale ones, bypassing the stale-iteration error. Re-runs `resolve` and `scrape-prod` when the project, pages file, or locales changed. |
-| `--dry-run` | No | Prints what a run would do and exits without running anything: whether the base run would run, then one line per iteration marked `run` (with its translator environment), `skip`, or `stale`. |
+| `--dry-run` | No | Prints what a run would do and exits without running anything: whether the base run would run, one line per iteration marked `run` (with its translator environment), `skip`, or `stale`, and the baseline-intent line when `production_baseline` is enabled. |
 
 Example config:
 
@@ -635,6 +785,8 @@ translators:
   - backend: anthropic
     model: claude-sonnet-4-5
   - backend: aws-translate
+# Optional: score production once after every real suite invocation.
+# production_baseline: true
 ```
 
 This runs six iterations: each of the three translators twice.
@@ -644,17 +796,18 @@ This runs six iterations: each of the three translators twice.
 Evaluate the unversioned manual in Spanish:
 
 ```
-pnpm resolve      --project manual/manual --pages pages/manual.txt --locales es
-pnpm scrape-prod  --project manual/manual
-pnpm translate    --project manual/manual
-pnpm serve        --project manual/manual --locale es   # terminal 1, leave running
-pnpm scrape-local --project manual/manual --locale es   # terminal 2
-pnpm dataset      --project manual/manual
-pnpm eval         --project manual/manual
+pnpm resolve      --project manual/manual --pages pages/manual.txt --locales es --run manual-eval
+pnpm scrape-prod  --project manual/manual --run manual-eval
+pnpm translate    --project manual/manual --run manual-eval
+pnpm serve        --project manual/manual --locale es --run manual-eval   # terminal 1, leave running
+pnpm scrape-local --project manual/manual --locale es --run manual-eval   # terminal 2
+pnpm dataset      --project manual/manual --run manual-eval
+pnpm eval         --project manual/manual --run manual-eval
 ```
 
-Every stage after `resolve` picks up the run `resolve` created, so `--run` is
-only needed to target an older run.
+The explicit `--run` keeps every stage on the same run. Without it, later
+stages choose the most recent run, which can be a generated production-baseline
+run rather than the translator run you intended.
 
 ## Related packages
 

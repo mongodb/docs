@@ -29,6 +29,20 @@ describe('parseSuiteConfig', () => {
     ]);
   });
 
+  it('defaults productionBaseline to false when absent', () => {
+    expect(parseSuiteConfig(VALID).productionBaseline).toBe(false);
+  });
+
+  it('parses production_baseline: true', () => {
+    expect(parseSuiteConfig(`${VALID}production_baseline: true\n`).productionBaseline).toBe(true);
+  });
+
+  it('rejects a non-boolean production_baseline', () => {
+    expect(() => parseSuiteConfig(`${VALID}production_baseline: yes\n`)).toThrow(
+      /production_baseline must be a boolean/,
+    );
+  });
+
   it('rejects an unknown backend and lists the valid values', () => {
     expect(() => parseSuiteConfig(VALID.replace('aws-translate', 'grove'))).toThrow(
       /must be one of: openai, anthropic, aws-translate, stub/,

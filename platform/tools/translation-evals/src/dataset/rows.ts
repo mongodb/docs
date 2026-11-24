@@ -54,6 +54,47 @@ export function buildRows(
 }
 
 /**
+ * Production baseline rows: the production reference is the candidate. There
+ * is no translated overlay, so each page is a single whole-page segment pair —
+ * the glossary scorer only needs paired text. Include rows are omitted because
+ * production has no per-file translation for them; their text is already
+ * inside the page scrape.
+ */
+export function buildProductionBaselineRows(cfg: Config, project: string, runId: string): DatasetRow[] {
+  const m = readManifest(cfg, project, runId);
+  const baselineRunDir = runDir(cfg, project, runId);
+  const rows: DatasetRow[] = [];
+  for (const locale of m.locales) {
+    for (const page of m.pages) {
+      const englishProductionPage = readPage(path.join(baselineRunDir, 'prod', 'en'), page.slug);
+      const translatedProductionPage = readPage(path.join(baselineRunDir, 'prod', locale), page.slug);
+      if (!englishProductionPage || !translatedProductionPage) {
+        throw new Error(
+          `baseline needs prod/en and prod/${locale} for ${page.slug} — re-run scrape-prod`,
+        );
+      }
+      const row = buildRows(englishProductionPage, translatedProductionPage, translatedProductionPage, page, project, runId, locale, {
+        pairs: [{ key: page.slug, en: englishProductionPage.content, es: translatedProductionPage.content }],
+        ownPairCount: 1,
+        includedPairCount: 0,
+        enOnly: [],
+        esOnly: [],
+        status: 'ok',
+        includedFiles: [],
+      });
+      row.metadata.baseline = 'production';
+      rows.push(row);
+    }
+  }
+  if (rows.length === 0) throw new Error('baseline produced no rows — check the manifest locales and pages');
+  const datasetDir = path.join(baselineRunDir, 'dataset');
+  fs.mkdirSync(datasetDir, { recursive: true });
+  fs.writeFileSync(path.join(datasetDir, 'rows.json'), JSON.stringify(rows, null, 2));
+  console.error(`dataset: ${rows.length} baseline rows`);
+  return rows;
+}
+
+/**
  * Join the prod-en (source), prod-<locale> (reference) and local (output)
  * scrapes into one row per (page, locale), with every reachable include's
  * segments folded into the page row. Writes `rows.json`.

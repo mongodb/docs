@@ -1,18 +1,58 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { loadConfig } from '../config.js';
-import { buildDataset } from '../dataset/rows.js';
+import { loadConfig, type Config } from '../config.js';
+import { buildDataset, buildProductionBaselineRows } from '../dataset/rows.js';
 import { runEval } from '../eval/run.js';
 import { resolveProject } from '../resolve/run.js';
-import { readManifestLatest } from '../run/manifest.js';
+import { readManifestLatest, runDir } from '../run/manifest.js';
 import { scrapeProd } from '../scrape/prod.js';
 import { scrapeLocal } from '../scrape/local.js';
 import { materialize } from '../serve/materialize.js';
 import { startServer, stopServer } from '../serve/server.js';
 import { restorePristine, snapshotPristine } from '../suite/isolation.js';
+import { seedRunDir } from '../suite/run.js';
 
 export type FlagBag = Record<string, string | boolean>;
 export type CommandHandler = (flags: FlagBag) => Promise<void>;
+
+function requiredStringFlag(flags: FlagBag, name: string): string {
+  const value = flags[name];
+  if (value === undefined || (typeof value === 'string' && value.trim() === '')) {
+    throw new Error(`--${name} is required`);
+  }
+  if (typeof value !== 'string') throw new Error(`--${name} must be a string`);
+  return value;
+}
+
+export function referenceSeed(flags: FlagBag, cfg: Config = loadConfig()): void {
+  const project = requiredStringFlag(flags, 'project');
+  const baseRunId = requiredStringFlag(flags, 'from');
+  const runId = requiredStringFlag(flags, 'run');
+  if (fs.existsSync(runDir(cfg, project, runId))) {
+    throw new Error(`run "${runId}" already exists — choose a different --run`);
+  }
+  seedRunDir(cfg, project, baseRunId, runId);
+  console.log(`seeded data/${project}/${runId} from ${baseRunId}`);
+}
+
+export async function runDataset(flags: FlagBag, cfg: Config = loadConfig()): Promise<void> {
+  const project = String(flags.project ?? '');
+  if (!project) throw new Error('--project is required');
+  if (flags.candidate !== undefined && flags.candidate !== 'production') {
+    throw new Error(`unknown --candidate value: ${String(flags.candidate)} (expected "production")`);
+  }
+  if (flags.candidate === 'production' && flags.run === undefined) {
+    throw new Error('--run is required with --candidate production');
+  }
+  const runId = flags.run ? String(flags.run) : readManifestLatest(cfg, project);
+  const rows =
+    flags.candidate === 'production'
+      ? buildProductionBaselineRows(cfg, project, runId)
+      : buildDataset(cfg, project, runId);
+  console.log(
+    `run ${runId}: ${rows.length} dataset rows written to data/${project}/${runId}/dataset/rows.json`,
+  );
+}
 
 function readPagesFile(file: string): string[] {
   return fs
@@ -22,8 +62,11 @@ function readPagesFile(file: string): string[] {
     .filter(Boolean);
 }
 
-/** Stage registry. The seven stages are: resolve, scrape-prod, translate, serve, scrape-local, dataset, eval. */
+/** Stage registry, plus the suite orchestrator and the manual production-baseline seed command. */
 export const COMMANDS: Record<string, CommandHandler> = {
+  'reference-seed': async (flags) => {
+    referenceSeed(flags);
+  },
   resolve: async (flags) => {
     const cfg = loadConfig();
     const project = String(flags.project ?? '');
@@ -99,14 +142,7 @@ export const COMMANDS: Record<string, CommandHandler> = {
     await scrapeLocal(cfg, project, runId, flags.locale ? [String(flags.locale)] : undefined);
   },
   dataset: async (flags) => {
-    const cfg = loadConfig();
-    const project = String(flags.project ?? '');
-    if (!project) throw new Error('--project is required');
-    const runId = flags.run ? String(flags.run) : readManifestLatest(cfg, project);
-    const rows = buildDataset(cfg, project, runId);
-    console.log(
-      `run ${runId}: ${rows.length} dataset rows written to data/${project}/${runId}/dataset/rows.json`,
-    );
+    await runDataset(flags);
   },
   eval: async (flags) => {
     const cfg = loadConfig();

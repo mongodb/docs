@@ -16,18 +16,22 @@ import type { Config } from '../config.js';
 let dataDir = '';
 
 interface FixtureOptions {
+  name?: string;
   locales?: string;
   repeats?: number;
   translators?: string;
   judge?: string;
+  productionBaseline?: boolean;
 }
 
 function writeConfig(configFile: string, pages: string, opts: FixtureOptions = {}): void {
   const translators = opts.translators ?? '  - { backend: anthropic, model: m }\n';
+  const productionBaseline = opts.productionBaseline ? 'production_baseline: true\n' : '';
   fs.writeFileSync(
     configFile,
-    `name: b\nproject: atlas\npages: ${pages}\nlocales: ${opts.locales ?? '[es]'}\n` +
-      `judge: ${opts.judge ?? 'j'}\nrepeats: ${opts.repeats ?? 2}\ntranslators:\n${translators}`,
+    `name: ${opts.name ?? 'b'}\nproject: atlas\npages: ${pages}\nlocales: ${opts.locales ?? '[es]'}\n` +
+      `judge: ${opts.judge ?? 'j'}\nrepeats: ${opts.repeats ?? 2}\ntranslators:\n${translators}` +
+      productionBaseline,
   );
 }
 
@@ -60,6 +64,8 @@ function seedRunDir(args: string[]): void {
       stages: {},
     }),
   );
+  // scrape-prod creates the prod dirs; seedRunDir now requires the scrape.
+  for (const locale of ['en', 'es']) fs.mkdirSync(path.join(dir, 'prod', locale), { recursive: true });
 }
 
 const TEST_ENV = { AI_GATEWAY_API_KEY: 'k', JUDGE_MODEL: 'j', BRAINTRUST_API_KEY: 'k' };
@@ -198,6 +204,7 @@ function argValue(args: string[], flag: string): string {
 interface StageCall {
   stage: string;
   runId: string;
+  args: string[];
   env: NodeJS.ProcessEnv;
   content?: string;
 }
@@ -211,6 +218,7 @@ function recordingDeps(cfg: Config, calls: StageCall[], overrides: Partial<Suite
       calls.push({
         stage,
         runId: argValue(args, '--run'),
+        args,
         env,
         content: fs.readFileSync(path.join(projectDir, 'index.mdx'), 'utf8'),
       });
@@ -220,11 +228,24 @@ function recordingDeps(cfg: Config, calls: StageCall[], overrides: Partial<Suite
       const locale = argValue(args, '--locale');
       fs.writeFileSync(path.join(projectDir, 'index.mdx'), `translated-${locale}`);
       fs.writeFileSync(path.join(projectDir, 'overlay-only.mdx'), locale);
-      calls.push({ stage: 'serve', runId: argValue(args, '--run'), env });
+      calls.push({ stage: 'serve', runId: argValue(args, '--run'), args, env });
       return { exited: new Promise(() => {}), kill: () => {} };
     },
     ...overrides,
   });
+}
+
+function failStage(
+  deps: SuiteDeps,
+  shouldFail: (stage: string, runId: string) => boolean,
+): void {
+  const runStage = deps.runStage;
+  deps.runStage = async (stage, args, env, timeoutMs) => {
+    const result = await runStage(stage, args, env, timeoutMs);
+    return shouldFail(stage, argValue(args, '--run'))
+      ? { code: 1, timedOut: false }
+      : result;
+  };
 }
 
 describe('runSuite content isolation (C1)', () => {
@@ -267,12 +288,12 @@ describe('runSuite content isolation (C1)', () => {
 });
 
 describe('runSuite seeded run dir (C4)', () => {
-  it('rewrites the seeded manifest runId to the iteration run id', () => {
+  it('rewrites the seeded manifest runId and clears a stale target', () => {
     const { cfg } = fixture();
     const baseRunId = 'base-run';
     const runId = '2026-01-01-abc123';
     const baseDir = path.join(cfg.dataDir, 'atlas', baseRunId);
-    fs.mkdirSync(baseDir, { recursive: true });
+    fs.mkdirSync(path.join(baseDir, 'prod', 'en'), { recursive: true });
     fs.writeFileSync(
       path.join(baseDir, 'manifest.json'),
       JSON.stringify({
@@ -284,6 +305,9 @@ describe('runSuite seeded run dir (C4)', () => {
         stages: {},
       }),
     );
+    const stale = path.join(cfg.dataDir, 'atlas', runId, 'dataset', 'rows.json');
+    fs.mkdirSync(path.dirname(stale), { recursive: true });
+    fs.writeFileSync(stale, '[]');
 
     realSeedRunDir(cfg, 'atlas', baseRunId, runId);
 
@@ -291,6 +315,48 @@ describe('runSuite seeded run dir (C4)', () => {
       fs.readFileSync(path.join(cfg.dataDir, 'atlas', runId, 'manifest.json'), 'utf8'),
     ) as { runId: string };
     expect(seeded.runId).toBe(runId);
+    expect(fs.existsSync(stale)).toBe(false);
+  });
+
+  it('rejects a base run with no production scrape', () => {
+    const { cfg } = fixture();
+    const baseDir = path.join(cfg.dataDir, 'atlas', 'base-run');
+    fs.mkdirSync(baseDir, { recursive: true });
+    fs.writeFileSync(path.join(baseDir, 'manifest.json'), '{}');
+
+    expect(() => realSeedRunDir(cfg, 'atlas', 'base-run', 'target')).toThrow(/no prod\/ scrape/);
+  });
+
+  it('rejects a base run that does not exist', () => {
+    const { cfg } = fixture();
+
+    expect(() => realSeedRunDir(cfg, 'atlas', 'missing', 'target')).toThrow(/not found/);
+  });
+
+  it.each([
+    ['../escape', 'base-run', 'target'],
+    ['atlas', '../escape', 'target'],
+    ['atlas', 'base-run', '../../outside'],
+  ])('rejects unsafe seed paths before any filesystem write', (project, baseRunId, runId) => {
+    const { cfg } = fixture();
+    expect(() => realSeedRunDir(cfg, project, baseRunId, runId)).toThrow(/unsafe/);
+  });
+
+  it('does not delete a canary outside the data directory when the target escapes', () => {
+    const { cfg, root } = fixture();
+    const escaped = path.join(root, 'outside');
+    const canary = path.join(escaped, 'canary.txt');
+    fs.mkdirSync(escaped, { recursive: true });
+    fs.writeFileSync(canary, 'keep');
+    const baseDir = path.join(cfg.dataDir, 'atlas', 'base-run');
+    fs.mkdirSync(path.join(baseDir, 'prod'), { recursive: true });
+    fs.writeFileSync(
+      path.join(baseDir, 'manifest.json'),
+      JSON.stringify({ project: 'atlas', runId: 'base-run', locales: ['es'], pages: [], translatable: {}, stages: {} }),
+    );
+
+    expect(() => realSeedRunDir(cfg, 'atlas', 'base-run', '../../outside')).toThrow(/unsafe/);
+    expect(fs.readFileSync(canary, 'utf8')).toBe('keep');
   });
 });
 
@@ -366,6 +432,282 @@ describe('runSuite iteration environment (C2)', () => {
     await runSuite({ configFile }, okDeps(), cfg, TEST_ENV);
     const [record] = Object.values(readBatchState(cfg).iterations);
     expect(record!.experimentName).toBe(`anthropic m--${record!.runId}`);
+  });
+});
+
+describe('runSuite production baseline', () => {
+  it('runs one production baseline after the translator iterations', async () => {
+    const { configFile, cfg } = fixture({ repeats: 1, productionBaseline: true });
+    const calls: StageCall[] = [];
+    const code = await runSuite({ configFile }, recordingDeps(cfg, calls), cfg, TEST_ENV);
+
+    expect(code).toBe(0);
+    const baselineDataset = calls.find(
+      (c) => c.stage === 'dataset' && c.runId.startsWith('prod-baseline-'),
+    )!;
+    expect(baselineDataset.args[baselineDataset.args.indexOf('--candidate') + 1]).toBe(
+      'production',
+    );
+    const baselineEval = calls.find(
+      (c) => c.stage === 'eval' && c.runId === baselineDataset.runId,
+    )!;
+    expect(baselineEval).toBeDefined();
+    const lastIterationEval = calls
+      .map((c) => c.stage === 'eval' && !c.runId.startsWith('prod-baseline-'))
+      .lastIndexOf(true);
+    expect(calls.indexOf(baselineDataset)).toBeGreaterThan(lastIterationEval);
+    expect(calls.filter((c) => c.runId === baselineDataset.runId).map((c) => c.stage)).toEqual([
+      'dataset',
+      'eval',
+    ]);
+    expect(baselineDataset.runId).toMatch(/^prod-baseline-.+/);
+    expect(
+      calls.some(
+        (c) =>
+          c.runId === baselineDataset.runId &&
+          ['translate', 'serve', 'scrape-local'].includes(c.stage),
+      ),
+    ).toBe(false);
+    const manifest = JSON.parse(
+      fs.readFileSync(
+        path.join(cfg.dataDir, 'atlas', baselineDataset.runId, 'manifest.json'),
+        'utf8',
+      ),
+    ) as { runId: string };
+    expect(manifest.runId).toBe(baselineDataset.runId);
+  });
+
+  it('runs a fresh baseline on an identical second invocation', async () => {
+    const { configFile, cfg } = fixture({ repeats: 1, productionBaseline: true });
+    const calls: StageCall[] = [];
+    const deps = recordingDeps(cfg, calls);
+
+    await runSuite({ configFile }, deps, cfg, TEST_ENV);
+    await runSuite({ configFile }, deps, cfg, TEST_ENV);
+
+    const baselineRuns = calls.filter(
+      (c) => c.stage === 'dataset' && c.runId.startsWith('prod-baseline-'),
+    );
+    expect(baselineRuns).toHaveLength(2);
+    expect(baselineRuns[0]!.runId).not.toBe(baselineRuns[1]!.runId);
+    expect(calls.filter((c) => c.stage === 'translate')).toHaveLength(1);
+  });
+
+  it('uses different baseline run IDs for suites sharing a project', async () => {
+    const { configFile, cfg, pages } = fixture({ repeats: 1, productionBaseline: true });
+    const calls: StageCall[] = [];
+    const deps = recordingDeps(cfg, calls);
+
+    await runSuite({ configFile }, deps, cfg, TEST_ENV);
+    writeConfig(configFile, pages, { name: 'other', repeats: 1, productionBaseline: true });
+    await runSuite({ configFile }, deps, cfg, TEST_ENV);
+
+    const ids = calls
+      .filter((c) => c.stage === 'dataset' && c.runId.startsWith('prod-baseline-'))
+      .map((c) => c.runId);
+    expect(new Set(ids).size).toBe(2);
+  });
+
+  it('isolates the baseline environment from shell overrides', async () => {
+    const { configFile, cfg } = fixture({ repeats: 1, productionBaseline: true });
+    const calls: StageCall[] = [];
+    const shellEnv = {
+      ...TEST_ENV,
+      JUDGE_MODEL: 'shell-judge',
+      TRANSLATOR_BACKEND: 'aws-translate',
+      TRANSLATOR_MODEL: 'shell-model',
+      EVAL_EXPERIMENT_NAME: 'shell-name',
+    };
+
+    await runSuite({ configFile }, recordingDeps(cfg, calls), cfg, shellEnv);
+
+    const baselineCalls = calls.filter(
+      (c) =>
+        c.runId.startsWith('prod-baseline-') && (c.stage === 'dataset' || c.stage === 'eval'),
+    );
+    expect(baselineCalls).toHaveLength(2);
+    for (const call of baselineCalls) {
+      expect(call.env.JUDGE_MODEL).toBe('j');
+      expect(call.env.TARGET_LOCALES).toBe('es');
+      expect(call.env.TRANSLATOR_BACKEND).toBe('');
+      expect(call.env.TRANSLATOR_MODEL).toBe('');
+      expect(call.env.EVAL_EXPERIMENT_NAME).toBe('');
+      expect(call.env.SUITE_SCOPE).toBe('baseline');
+    }
+  });
+});
+
+describe('runSuite production baseline dry run and default-off behavior', () => {
+  it('prints the baseline intent without running stages on an enabled dry run', async () => {
+    const { configFile, cfg } = fixture({ repeats: 1, productionBaseline: true });
+    const calls: StageCall[] = [];
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    let code = -1;
+    let out = '';
+    try {
+      code = await runSuite(
+        { configFile, dryRun: true },
+        recordingDeps(cfg, calls),
+        cfg,
+        TEST_ENV,
+      );
+      out = log.mock.calls.map((c) => String(c[0])).join('\n');
+    } finally {
+      log.mockRestore();
+    }
+
+    expect(code).toBe(0);
+    expect(out).toContain('baseline: will run once after iterations (fresh run id)');
+    expect(calls).toHaveLength(0);
+  });
+
+  it('prints no baseline line on a disabled dry run', async () => {
+    const { configFile, cfg } = fixture({ repeats: 1 });
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    let out = '';
+    try {
+      await runSuite({ configFile, dryRun: true }, okDeps(), cfg, TEST_ENV);
+      out = log.mock.calls.map((c) => String(c[0])).join('\n');
+    } finally {
+      log.mockRestore();
+    }
+
+    expect(out).not.toContain('baseline:');
+  });
+
+  it('keeps the exact default-off stage sequence', async () => {
+    const { configFile, cfg } = fixture({ repeats: 1 });
+    const calls: StageCall[] = [];
+
+    expect(await runSuite({ configFile }, recordingDeps(cfg, calls), cfg, TEST_ENV)).toBe(0);
+    expect(calls.map((c) => c.stage)).toEqual([
+      'resolve',
+      'scrape-prod',
+      'translate',
+      'serve',
+      'scrape-local',
+      'dataset',
+      'eval',
+    ]);
+    expect(calls.some((c) => c.runId.startsWith('prod-baseline-'))).toBe(false);
+  });
+});
+
+describe('runSuite production baseline failures', () => {
+  it('fails the suite and skips baseline eval when baseline dataset fails', async () => {
+    const { configFile, cfg } = fixture({ repeats: 1, productionBaseline: true });
+    const calls: StageCall[] = [];
+    const deps = recordingDeps(cfg, calls);
+    failStage(
+      deps,
+      (stage, runId) => stage === 'dataset' && runId.startsWith('prod-baseline-'),
+    );
+
+    expect(await runSuite({ configFile }, deps, cfg, TEST_ENV)).toBe(1);
+
+    const baselineDataset = calls.find(
+      (c) => c.stage === 'dataset' && c.runId.startsWith('prod-baseline-'),
+    )!;
+    expect(
+      calls.some((c) => c.stage === 'eval' && c.runId === baselineDataset.runId),
+    ).toBe(false);
+    expect(Object.values(readBatchState(cfg).iterations)[0]!.status).toBe('completed');
+  });
+
+  it('fails the suite when baseline eval fails', async () => {
+    const { configFile, cfg } = fixture({ repeats: 1, productionBaseline: true });
+    const calls: StageCall[] = [];
+    const deps = recordingDeps(cfg, calls);
+    failStage(deps, (stage, runId) => stage === 'eval' && runId.startsWith('prod-baseline-'));
+
+    expect(await runSuite({ configFile }, deps, cfg, TEST_ENV)).toBe(1);
+  });
+
+  it('runs the baseline after an iteration eval failure', async () => {
+    const { configFile, cfg } = fixture({ repeats: 1, productionBaseline: true });
+    const calls: StageCall[] = [];
+    const deps = recordingDeps(cfg, calls);
+    failStage(deps, (stage, runId) => stage === 'eval' && !runId.startsWith('prod-baseline-'));
+
+    expect(await runSuite({ configFile }, deps, cfg, TEST_ENV)).toBe(1);
+    expect(
+      calls
+        .filter((c) => c.runId.startsWith('prod-baseline-'))
+        .map((c) => c.stage),
+    ).toEqual(['dataset', 'eval']);
+  });
+
+  it('contains a seed exception and exits non-zero', async () => {
+    const { configFile, cfg, pages } = fixture({ repeats: 1 });
+    const calls: StageCall[] = [];
+    const deps = recordingDeps(cfg, calls);
+    await runSuite({ configFile }, deps, cfg, TEST_ENV);
+    calls.length = 0;
+    fs.rmSync(path.join(cfg.dataDir, 'atlas', 'b', 'prod'), { recursive: true, force: true });
+    writeConfig(configFile, pages, { repeats: 1, productionBaseline: true });
+
+    expect(await runSuite({ configFile }, deps, cfg, TEST_ENV)).toBe(1);
+    expect(calls.some((c) => c.runId.startsWith('prod-baseline-'))).toBe(false);
+  });
+
+  it('attempts another fresh baseline after a failed baseline without adding state', async () => {
+    const { configFile, cfg } = fixture({ repeats: 1, productionBaseline: true });
+    const calls: StageCall[] = [];
+    const deps = recordingDeps(cfg, calls);
+    failStage(
+      deps,
+      (stage, runId) => stage === 'dataset' && runId.startsWith('prod-baseline-'),
+    );
+
+    expect(await runSuite({ configFile }, deps, cfg, TEST_ENV)).toBe(1);
+    expect(await runSuite({ configFile }, deps, cfg, TEST_ENV)).toBe(1);
+
+    const ids = calls
+      .filter((c) => c.stage === 'dataset' && c.runId.startsWith('prod-baseline-'))
+      .map((c) => c.runId);
+    expect(ids).toHaveLength(2);
+    expect(ids[0]).not.toBe(ids[1]);
+    expect(readBatchState(cfg)).not.toHaveProperty('baseline');
+  });
+
+  it('uses the existing signal cleanup during a baseline stage', async () => {
+    const { configFile, cfg } = fixture({ repeats: 1, productionBaseline: true });
+    let handler: ((signal: NodeJS.Signals) => void) | undefined;
+    let killed = false;
+    let exitCode: number | undefined;
+    const exited = new Promise<void>((resolve) => {
+      const deps = recordingDeps(cfg, [], {
+        killActive: () => {
+          killed = true;
+        },
+        onSignal: (h) => {
+          handler = h;
+          return () => {};
+        },
+        exit: (code) => {
+          exitCode = code;
+          resolve();
+        },
+      });
+      const runStage = deps.runStage;
+      deps.runStage = (stage, args, env, timeoutMs) => {
+        if (stage === 'dataset' && argValue(args, '--run').startsWith('prod-baseline-')) {
+          handler!('SIGINT');
+          return new Promise(() => {});
+        }
+        return runStage(stage, args, env, timeoutMs);
+      };
+      void runSuite({ configFile }, deps, cfg, TEST_ENV);
+    });
+    await exited;
+
+    expect(killed).toBe(true);
+    expect(exitCode).toBe(130);
+    expect(Object.values(readBatchState(cfg).iterations)[0]!.status).toBe('completed');
+    expect(readBatchState(cfg)).not.toHaveProperty('baseline');
+    expect(fs.readFileSync(path.join(cfg.contentMdxDir, 'atlas', 'index.mdx'), 'utf8')).toBe(
+      'english',
+    );
   });
 });
 
@@ -676,6 +1018,7 @@ describe('preflight', () => {
       locales: ['es'],
       judge: 'j',
       repeats: 1,
+      productionBaseline: false,
       translators: [],
     };
     expect(() => preflight(cfg, suite, { JUDGE_MODEL: 'j', BRAINTRUST_API_KEY: 'k' })).toThrow(
@@ -695,6 +1038,7 @@ describe('preflight', () => {
       locales: ['es'],
       judge: 'j',
       repeats: 1,
+      productionBaseline: false,
       translators: [],
     };
     expect(() =>
@@ -711,6 +1055,7 @@ describe('preflight', () => {
       locales: ['es'],
       judge: 'j',
       repeats: 1,
+      productionBaseline: false,
       translators: [],
     };
     expect(() => preflight(cfg, suite, TEST_ENV)).toThrow(/escapes content-mdx/);

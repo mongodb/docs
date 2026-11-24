@@ -16,6 +16,7 @@ const suite: SuiteConfig = {
   locales: ['es'],
   judge: 'j',
   repeats: 2,
+  productionBaseline: false,
   translators: [{ backend: 'anthropic' as BackendName, model: 'm' }],
 };
 const its = expandPlan(suite);

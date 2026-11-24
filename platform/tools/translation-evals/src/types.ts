@@ -99,6 +99,8 @@ export interface DatasetRow {
     segmentPairs?: number;
     enOnly?: number;
     esOnly?: number;
+    /** Set when the candidate is the production reference itself, not a translation. */
+    baseline?: 'production';
     /** Includes reachable from this page, each with its pair count and status. */
     included_files?: { file: string; pairCount: number; status: SegmentStatus }[];
     own_segments?: number;

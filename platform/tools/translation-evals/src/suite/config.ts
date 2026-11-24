@@ -19,6 +19,7 @@ export interface SuiteConfig {
   judge: string;
   repeats: number;
   translators: Translator[];
+  productionBaseline: boolean;
 }
 
 function requireString(record: Record<string, unknown>, field: string): string {
@@ -31,7 +32,7 @@ function requireString(record: Record<string, unknown>, field: string): string {
 
 const SEGMENT = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
 
-function isSafeSegment(segment: string): boolean {
+export function isSafeSegment(segment: string): boolean {
   return SEGMENT.test(segment) && segment !== '.' && segment !== '..' && !segment.includes('..');
 }
 
@@ -98,6 +99,11 @@ export function parseSuiteConfig(text: string): SuiteConfig {
     throw new Error(`suite config: repeats must be an integer >= 1; got ${String(repeats)}`);
   }
 
+  const productionBaseline = record.production_baseline;
+  if (productionBaseline !== undefined && typeof productionBaseline !== 'boolean') {
+    throw new Error('suite config: production_baseline must be a boolean');
+  }
+
   const entries = record.translators;
   if (!Array.isArray(entries) || entries.length === 0) {
     throw new Error('suite config: translators must be a non-empty list');
@@ -121,6 +127,7 @@ export function parseSuiteConfig(text: string): SuiteConfig {
     judge: requireString(record, 'judge'),
     repeats,
     translators,
+    productionBaseline: productionBaseline === true,
   };
 }
 
