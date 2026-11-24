@@ -25,44 +25,87 @@ initial sync to populate new members
 with the full data set, and replication to apply ongoing changes to the
 entire data set.
 
+Use Cases
+---------
+
+A member of a replica set requires an initial sync in the following
+scenarios:
+
+- **Add a new node to a replica set.** For self-managed deployments,
+  initial sync is the process that MongoDB uses to add a new node to a
+  replica set. To add a new member, see
+  :ref:`server-replica-set-deploy-expand`.
+
+- **Rebuild an existing stale member.** A replica set member becomes
+  stale when it falls too far behind to catch up through replication.
+  To resynchronize a stale member, see :ref:`resync-replica-member`.
+
+- **Perform a rolling initial sync.** To resync every member of a
+  replica set one at a time without losing the replica set's voting
+  majority, see :ref:`replica-set-rolling-initial-sync`.
+
+Initial sync is different from
+:ref:`cloud-based initial syncs <cloud-based-initial-sync>` available in
+{+atlas+}. Cloud-based initial syncs use your cloud provider's native
+capabilities to snapshot the source node's data and restore it to the
+new node.
+
+Considerations
+--------------
+
+Consider the following behavior and limitations when you perform an
+initial sync:
+
+- During the initial sync, MongoDB truncates the oplog on the |destin|.
+  This oplog truncation can impact processes such as :ref:`change
+  streams <changeStreams>` and :ref:`Atlas Stream Processing checkpoints
+  <atlas-sp-checkpoints>` that depend on oplog data.
+
+- The startup parameter :parameter:`initialSyncSourceReadPreference`
+  takes precedence over the replica set's
+  :rsconf:`settings.chainingAllowed` setting when selecting an initial
+  sync source. After a replica set member successfully performs
+  initial sync, it defers to the value of
+  :rsconf:`~settings.chainingAllowed` when selecting a replication sync source.
+
+- For a :ref:`file copy based initial sync
+  <replica-set-initial-sync-file-copy-based>`:
+
+  - You cannot run a backup on the member that is being *synced to* or
+    the member that is being *synced from*.
+
+  - You cannot write to the ``local`` database on the member that is
+    being *synced to*.
+
+  - You can only run an initial sync from one given member at a time.
+
+  - When using the encrypted storage engine, MongoDB uses the source
+    key to encrypt the destination.
+
+  - After the sync completes, if you run the
+    :method:`~db.collection.count()` method without a query predicate,
+    the count of documents returned may be inaccurate. A ``count``
+    method without a query predicate looks like
+    ``db.<collection>.count()``. To learn more, see
+    :ref:`count-method-behavior-query-predicate`.
+
 .. _replica-set-initial-sync:
 
 Initial Sync
 ------------
 
 Initial sync copies all the data from one member of the replica set to
-another member. See :ref:`replica-set-initial-sync-source-selection` for
-more information on initial sync source selection criteria.
+another member. To learn how MongoDB chooses the initial sync source,
+see :ref:`replica-set-initial-sync-source-selection`.
 
 The ``local`` database stores the :term:`oplog` data that the initial
 sync process uses. Ensure the destination member has enough space in the
 ``local`` database to store the oplog data for the initial sync process
 to complete.
 
-.. note:: 
+Starting in MongoDB 5.2, initial syncs can be *logical* or *file copy
+based*.
 
-   During the initial sync, MongoDB truncates the oplog on the
-   |destin|. This oplog truncation can impact processes such as
-   :ref:`change streams <changeStreams>` and :ref:`Atlas Stream
-   Processing checkpoints <atlas-sp-checkpoints>` that depend on
-   oplog data.
-
-You can specify the preferred initial sync source using the 
-:parameter:`initialSyncSourceReadPreference` parameter. This parameter can 
-only be specified when starting the :binary:`~bin.mongod`.
-
-Starting in MongoDB 5.2, initial syncs can be *logical* or *file copy 
-based*. 
-
-.. note:: Cloud-based Initial Sync Disambiguation
-
-   For self-managed deployments, initial sync is the process that
-   MongoDB uses to add a new node to a replica set. This is different
-   from :ref:`cloud-based initial syncs <cloud-based-initial-sync>`
-   available in {+atlas+}, which leverage your cloud provider's
-   native capabilities to create a snapshot of the source node's data
-   and restore it to the new node.
-   
 .. _replica-set-initial-sync-logical:
 
 Logical Initial Sync Process
@@ -75,7 +118,7 @@ When you perform a logical initial sync, MongoDB:
    :binary:`~bin.mongod` scans every collection in each source database and
    inserts all data into its own copies of these collections.
 
-#. In parallel with the data clone, ``mongod`` builds all collection indexes as 
+#. In parallel with the data clone, ``mongod`` builds all collection indexes as
    it copies all the documents for each collection.
 
 #. Applies oplog records that buffered during the data copy.
@@ -89,10 +132,10 @@ When you perform a logical initial sync, MongoDB:
    * During steps 1 and 2, the ``mongod`` pulls newly added oplog records and
      stores them in a temporary collection in the ``local`` database. Ensure that
      the target member has enough disk space in the ``local`` database to temporarily
-     store these oplog records for the duration of this data copy stage. 
+     store these oplog records for the duration of this data copy stage.
 
-   * During steps 3 and 4, the syncing node checks for continuity of operations 
-     against the source node. If a gap is found, restart the initial sync from 
+   * During steps 3 and 4, the syncing node checks for continuity of operations
+     against the source node. If a gap is found, restart the initial sync from
      the beginning. To avoid this, make sure that the size of the oplog provisioned
      provides enough of an oplog window to cover the time it takes for steps 3
      and 4 to complete.
@@ -106,7 +149,7 @@ To perform an initial sync, see
 .. _replica-set-initial-sync-file-copy-based:
 
 File Copy Based Initial Sync
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------
 
 *Available in MongoDB Enterprise only.*
 
@@ -114,50 +157,36 @@ File copy based initial sync runs the initial sync process by copying
 and moving files on the file system. This sync method can be faster than
 :ref:`logical initial sync <replica-set-initial-sync-logical>`.
 
-.. important:: File copy based initial sync may cause inaccurate counts
-
-   After file copy based initial sync completes, if you run the
-   :method:`~db.collection.count()` method without a query predicate, the
-   count of documents returned may be inaccurate.
-
-   A ``count`` method without a query predicate looks like this:
-   ``db.<collection>.count()``.
-
-   To learn more, see :ref:`count-method-behavior-query-predicate`.
-
 Enable File Copy Based Initial Sync
-```````````````````````````````````
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To enable file copy based initial sync, set the
-:parameter:`initialSyncMethod` parameter to ``fileCopyBased`` on the
-destination member for the initial sync. This parameter can only be set
-at startup.
+.. procedure::
+   :style: normal
+
+   .. step:: Set the ``initialSyncMethod`` parameter to
+      ``fileCopyBased``.
+
+      Set this parameter on the |destin| for the initial sync. Add it to
+      the :setting:`setParameter` section of the member's configuration
+      file, or specify it with the
+      :option:`--setParameter <mongod --setParameter>` option.
+
+   .. step:: Restart the destination member.
+
+      This parameter can only be set at startup. :ref:`Restart the
+      mongod process <manage-mongodb-processes>` to apply the change.
 
 Behavior
-````````
+~~~~~~~~
 
 File copy based initial sync replaces the ``local`` database of the
-target member with the ``local`` database of the source member when 
+target member with the ``local`` database of the source member when
 syncing.
 
-Limitations
-```````````
-
-- During a file copy based initial sync:
-
-  - You cannot run a backup on the member that is being *synced to* or
-    the member that is being *synced from*.
-
-  - You cannot write to the ``local`` database on the member that is
-    being *synced to*.
-
-- You can only run an initial sync from one given member at a time. 
-
-- When using the encrypted storage engine, MongoDB uses the source
-  key to encrypt the destination.
+.. _replica-set-initial-sync-nvme:
 
 Initial Sync on NVMe Clusters
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------
 
 You must perform an initial sync on clusters that use the local
 Non-Volatile Memory Express (:term:`NVMe`) SSD storage option, including
@@ -167,34 +196,14 @@ space is full. An initial sync takes longer to complete compared to
 subsequent syncs, and reduces the performance of the :term:`primary`
 from which the data is read.
 
-.. _init-sync-retry:
-
-Fault Tolerance
-~~~~~~~~~~~~~~~
-
-If a secondary performing initial sync encounters a *non-transient*
-(i.e. persistent) network error during the sync process, the secondary
-restarts the initial sync process from the beginning. 
-
-A secondary performing initial sync can attempt to resume the sync process if 
-interrupted by a *transient* (i.e. temporary) network error, collection drop, or
-collection rename.
-
-By default, the secondary tries to resume initial sync for 24 hours.
-You can use the :parameter:`initialSyncTransientErrorRetryPeriodSeconds` server
-parameter to control the amount of time the secondary attempts to
-resume initial sync. If the secondary cannot successfully resume the
-initial sync process during the configured time period, it selects a new
-healthy source from the replica set and restarts the initial
-synchronization process from the beginning. 
-
-The secondary attempts to restart the initial sync up to ``10`` times
-before returning a fatal error.
-
 .. _replica-set-initial-sync-source-selection:
 
 Initial Sync Source Selection
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------
+
+You can specify the preferred initial sync source using the
+:parameter:`initialSyncSourceReadPreference` parameter. This parameter
+can only be specified when starting the :binary:`~bin.mongod`.
 
 Initial sync source selection depends on the value of the
 :binary:`~bin.mongod` startup parameter
@@ -223,7 +232,7 @@ the list of all replica set members:
    .. tab:: First Pass
       :tabid: firstpass
 
-      The member applies the following criteria to each replica 
+      The member applies the following criteria to each replica
       set member when making the first pass for selecting a
       initial sync source:
 
@@ -266,7 +275,7 @@ the list of all replica set members:
    .. tab:: Second Pass
       :tabid: second pass
 
-      The member applies the following criteria to each replica 
+      The member applies the following criteria to each replica
       set member when making the second pass for selecting a
       initial sync source:
 
@@ -293,8 +302,34 @@ process. The secondary :binary:`~bin.mongod` can restart the initial
 sync source selection process up to ``10`` times before exiting with an
 error.
 
+.. _init-sync-retry:
+
+Fault Tolerance
+---------------
+
+If a secondary performing initial sync encounters a *non-transient*
+(i.e. persistent) network error during the sync process, the secondary
+restarts the initial sync process from the beginning. 
+
+A secondary performing initial sync can attempt to resume the sync process if 
+interrupted by a *transient* (i.e. temporary) network error, collection drop, or
+collection rename.
+
+By default, the secondary tries to resume initial sync for 24 hours.
+You can use the :parameter:`initialSyncTransientErrorRetryPeriodSeconds` server
+parameter to control the amount of time the secondary attempts to
+resume initial sync. If the secondary cannot successfully resume the
+initial sync process during the configured time period, it selects a new
+healthy source from the replica set and restarts the initial
+synchronization process from the beginning. 
+
+The secondary attempts to restart the initial sync up to ``10`` times
+before returning a fatal error.
+
+.. _replica-set-initial-sync-oplog-window:
+
 Oplog Window
-~~~~~~~~~~~~
+------------
 
 The :term:`oplog window` must be long enough so that a |destin| can
 fetch any new :term:`oplog` entries that occur between the start and
@@ -319,8 +354,8 @@ process. [#slow-oplogs]_
 
 Secondaries may automatically change their *sync from* source as needed
 based on changes in the ping time and state of other members'
-replication. See :ref:`replica-set-replication-sync-source-selection`
-for more information on sync source selection criteria.
+replication. To learn how members choose a sync source, see
+:ref:`replica-set-replication-sync-source-selection`.
 
 .. [#slow-oplogs]
 
@@ -328,7 +363,7 @@ for more information on sync source selection criteria.
 
 .. _replica-set-streaming-replication:
 
-Streaming Replication 
+Streaming Replication
 ~~~~~~~~~~~~~~~~~~~~~
 
 *Sync from* sources send a continuous stream 
@@ -337,16 +372,16 @@ secondaries. Streaming replication mitigates replication lag in
 high-load and high-latency networks. It also: 
 
 - Reduces staleness for reads from secondaries.
-- Reduces risk of losing write operations with :ref:`w: 1 <wc-w>` due to 
+- Reduces risk of losing write operations with :ref:`w: 1 <wc-w>` due to
   primary failover.
-- Reduces latency on write operations with :writeconcern:`w: "majority" 
-  <"majority">` and :ref:`w: >1 <wc-w>` (that is, any write concern that 
+- Reduces latency on write operations with :writeconcern:`w: "majority"
+  <"majority">` and :ref:`w: >1 <wc-w>` (that is, any write concern that
   requires waiting for replication).
 
 Use the :parameter:`oplogFetcherUsesExhaust` startup parameter to disable 
 streaming replication and using the older replication behavior. 
 Set the :parameter:`oplogFetcherUsesExhaust` parameter to ``false`` only if 
-there are any resource constraints on the *sync from* source or if you wish 
+there are any resource constraints on the *sync from* source or if you want
 to limit MongoDB's usage of network bandwidth for replication.
 
 .. _replica-set-internals-multi-threaded-replication:
@@ -365,7 +400,7 @@ Read operations that
 configured with a :ref:`read concern<read-concern>` level of
 :readconcern:`"local"` or  :readconcern:`"majority"` read from
 a :ref:`WiredTiger<storage-wiredtiger>` snapshot of the data if the read
-takes place on a secondary where replication batches are being applied. 
+takes place on a secondary where replication batches are being applied.
 
 Reading from a snapshot guarantees a consistent view of the
 data, and allows the read to occur simultaneously with the ongoing
@@ -384,7 +419,7 @@ For more information, see :ref:`flow-control`.
 .. _replica-set-replication-sync-source-selection:
 
 Replication Sync Source Selection
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------------
 
 Replication sync source selection depends on the replica set 
 :rsconf:`chaining <settings.chainingAllowed>` setting:
@@ -404,7 +439,7 @@ through the list of all replica set members:
    .. tab:: First Pass
       :tabid: firstpass
 
-      The member applies the following criteria to each replica 
+      The member applies the following criteria to each replica
       set member when making the first pass for selecting a
       replication sync source:
 
@@ -445,8 +480,8 @@ through the list of all replica set members:
 
    .. tab:: Second Pass
       :tabid: second pass
-     
-      The member applies the following criteria to each replica 
+
+      The member applies the following criteria to each replica
       set member when making the second pass for selecting a
       replication sync source:
 
@@ -468,16 +503,4 @@ error and waits ``1`` second before restarting the selection process.
 
 The number of times a source can be changed per hour is
 configurable by setting the :parameter:`maxNumSyncSourceChangesPerHour`
-parameter. 
-
-.. note::
-
-   The startup parameter :parameter:`initialSyncSourceReadPreference` takes 
-   precedence over the replica set's :rsconf:`settings.chainingAllowed` setting 
-   when selecting an initial sync source. After a replica set member
-   successfully performs initial sync, it defers to the value of
-   :rsconf:`~settings.chainingAllowed` when selecting a replication sync
-   source.
-
-   See :ref:`replica-set-initial-sync-source-selection` for more
-   information on initial sync source selection.
+parameter.
