@@ -1,8 +1,10 @@
-.. _atlas-sp-20261104:
+.. _atlas-sp-20261112:
 
-4 November 2026 Release
------------------------
+12 November 2026 Release
+------------------------
 
+- Adds support for |azure| Blob Storage in the ``$iceberg`` stage. To
+  learn more, see :ref:`$iceberg <atlas-sp-agg-iceberg>`.
 - Adds support for the ``unity`` and ``horizon`` catalog types in the
   ``$iceberg`` stage, which write {+iceberg+} tables to Databricks Unity
   Catalog and Snowflake Horizon catalogs. The new catalog types support
