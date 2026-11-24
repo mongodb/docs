@@ -1,0 +1,98 @@
+Community Edition didn't release ``mongot`` v1.79.0. It moved
+directly from v1.78.0 to v1.79.1. These release notes therefore cover
+changes from **both v1.79.0 and v1.79.1**.
+
+New Features and Improvements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- **Server ID and name in logs and FTDC.** ``mongot`` now includes
+  its server ID, and its server name if you configure one, in JSON
+  log lines and in full time diagnostic data capture (FTDC) metadata,
+  so you can tell ``mongot`` instances apart.
+  *Introduced in v1.79.0.*
+
+- **Crash log for initial sync timeouts.** ``mongot`` now writes a
+  crash log when initial sync times out. *Introduced in v1.79.0.*
+
+Bug Fixes
+~~~~~~~~~
+
+- **Mitigation for CVE-2026-114938.** The bundled ``mongot``
+  launcher now starts the Java runtime with
+  ``-XX:-UseBASE64Intrinsics``, which disables the affected Base64
+  decoder. The flag is applied after any ``--jvm-flags`` value that
+  you supply, so a custom Java option cannot re-enable the affected
+  code path. This release does not change the bundled JDK version.
+  A patched Java runtime is planned for a later ``mongot`` release.
+  For the security notice, see `MongoDB Security Bulletins
+  <https://www.mongodb.com/resources/products/alerts/>`__.
+  *Mitigated in v1.79.1.*
+
+- **Distrusted root certificates in the bundled JDK trust store.**
+  The bundled JDK uses its own trust store, so operating system
+  distrust of compromised root certificates didn't apply to
+  ``mongot``. The ``AAA Certificate Services`` and
+  ``emSign ECC Root CA - G3`` root certificates are now removed from
+  the bundled trust store. *Fixed in v1.79.0.*
+
+- **Unclear error for text queries on regular vector fields.** A
+  ``$vectorSearch`` query that passed text in ``query`` on a vector
+  field without ``autoEmbed`` failed with the error
+  ``queryVector must be present``. The query now fails with an error
+  that explains that text queries require an ``autoEmbed`` field.
+  *Fixed in v1.79.0.*
+
+- **Repeated warnings for missing indexes.** ``mongot`` logged a
+  ``No index in catalog`` warning for every query against an index
+  that doesn't exist, which could flood the logs when a client
+  retried in a loop. ``mongot`` now rate-limits this warning.
+  *Fixed in v1.79.0.*
+
+- **Security dependency upgrades.** Third-party libraries with known
+  vulnerabilities were updated: Jackson upgraded to 2.18.12
+  (CVE-2026-110879), and OpenTelemetry upgraded to 1.67.0
+  (CVE-2026-118259). *Fixed in v1.79.0.*
+
+Compatibility Notes
+~~~~~~~~~~~~~~~~~~~
+
+- **Validation of autoEmbed numDimensions values.** ``mongot`` now
+  rejects an ``autoEmbed`` index definition whose ``numDimensions``
+  value the embedding model doesn't support, such as ``3072`` for
+  ``voyage-4``. Previously, ``mongot`` accepted the definition, but
+  every embedding request failed and the index stayed in
+  ``BUILDING``. The error message lists the supported values.
+  *Introduced in v1.79.0.*
+
+- **New install path in mongot Docker images.** The ``mongot``
+  Docker images now install ``mongot`` under ``/mongot-on-prem/``.
+  A ``/mongot-community/`` symbolic link remains for compatibility
+  with existing deployments. *Introduced in v1.79.0.*
+
+- **Restart required for the CVE-2026-114938 mitigation.** The
+  mitigation takes effect only after ``mongot`` restarts. Restart
+  ``mongot`` after you upgrade to v1.79.1. *Introduced in v1.79.1.*
+
+- **Affected hosts.** CVE-2026-114938 affects x86-64 hosts whose
+  CPUs support AVX-512 Vector Byte Manipulation Instructions (VBMI).
+  To check a Linux host, run
+  ``grep -o -m1 avx512vbmi /proc/cpuinfo``. The command prints
+  ``avx512vbmi`` if the host CPU supports VBMI. Otherwise, it prints
+  nothing. ARM64 hosts aren't currently known to be affected.
+  Because virtual machines can move to different hardware, upgrade
+  every x86-64 host. *The v1.79.1 bundled launcher mitigates this
+  existing vulnerability on affected hosts.*
+
+- **Manual mitigation for custom Java commands.** The bundled
+  launcher applies ``-XX:-UseBASE64Intrinsics`` automatically. If
+  you start ``mongot`` with your own ``java`` command instead of the
+  bundled launcher, add ``-XX:-UseBASE64Intrinsics`` to your Java
+  arguments and restart ``mongot``. *Introduced in v1.79.1.*
+
+- **If you can't upgrade yet.** Add ``-XX:-UseBASE64Intrinsics`` to
+  the Java options that start ``mongot``, then restart ``mongot``.
+  For the standalone binary, pass the option with ``--jvm-flags``.
+  For the ``mongot`` Docker image, set the ``JDK_JAVA_OPTIONS``
+  environment variable to ``-XX:-UseBASE64Intrinsics``, for example
+  with ``docker run -e`` or the ``environment`` key in Docker Compose.
+  *Introduced in v1.79.1.*
