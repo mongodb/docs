@@ -9,7 +9,8 @@
      
    * - ``inputs``
      - Array of Objects or Array of Arrays
-       (``List[dict]`` or ``List[List[Union[str, PIL.Image.Image]]]``)
+       (``List[dict]`` or
+       ``List[List[Union[str, PIL.Image.Image, voyageai.video_utils.Video]]]``)
      - Yes
      - List of multimodal inputs to vectorize.
 
@@ -21,20 +22,27 @@
          dictionary schema is identical to that of an input in the
          ``inputs`` parameter of the REST API.
 
-       - A list containing text strings and/or PIL image objects 
-         (``List[Union[str, PIL.Image.Image]]``), where each image is an 
-         instance of the Pillow Image class. For example: ``["This is a 
-         banana.", PIL.Image.open("banana.jpg")]``.
+       - A list containing text strings, image objects, or video
+         objects (``List[Union[str, PIL.Image.Image, voyageai.video_utils.Video]]``),
+         where each image is an instance of the Pillow Image class. 
+         For example: ``["This is a banana.",
+         PIL.Image.open("banana.jpg"), voyageai.video_utils.Video.from_path("banana.mp4",
+         model="voyage-multimodal-3.5")]``.
+
+         Only ``voyage-multimodal-3.5`` supports video inputs. When you
+         create a ``Video`` object with ``Video.from_path()``, you must
+         pass the model name.
 
        The following constraints apply to the ``inputs`` list:
 
        - The list must not contain more than 1,000 inputs.
-       - Each image must not contain more than 16 million pixels or be 
+       - Each image must not contain more than 16 million pixels or be
          larger than 20 MB in size.
-       - With every 560 pixels of an image being counted as a token, 
-         each input in the list must not exceed 32,000 tokens, and the 
-         total number of tokens across all inputs must not exceed 
-         320,000.
+       - Each video must not be larger than 20 MB in size.
+       - With every 560 pixels of an image or every 1120 pixels of a
+         video being counted as a token, each input in the list must not
+         exceed 32,000 tokens, and the total number of tokens across all
+         inputs must not exceed 320,000.
 
    * - ``model``
      - String
