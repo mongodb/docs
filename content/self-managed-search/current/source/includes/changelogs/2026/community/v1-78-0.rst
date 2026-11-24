@@ -1,0 +1,254 @@
+These release notes cover the ``mongot`` v1.78.0 release. Community
+Edition deployments move from v1.70.6 to v1.78.0, so these notes
+cover the changes between those versions. Fixes already backported
+to a v1.70.x release appear in the notes for that release.
+
+New Features and Improvements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- **Facet aggregations.** Facet definitions in ``$searchMeta`` and
+  ``$search`` queries can include an ``aggregations`` document that
+  computes ``count``, ``sum``, ``avg``, ``min``, ``max``, ``first``,
+  and ``last`` metrics for each bucket from the search index. The
+  ``$search`` explain output also includes an aggregation section
+  with timings for each phase. To learn more, see
+  :ref:`fts-facet-aggregation`. This feature is in Public Preview.
+  *Introduced in v1.78.0.*
+
+- **Updates to automated embedding fields without recreating the
+  index.** You can now use ``updateSearchIndex`` to change the
+  ``path``, ``model``, ``quantization``, or ``numDimensions`` of an
+  ``autoEmbed`` field without dropping and recreating the index.
+  ``mongot`` re-embeds the data with the updated definition, and
+  later cleans up the data that the previous definition used.
+  *Introduced in v1.78.0.*
+
+- **Fewer re-embeddings on document updates.** When an update changes
+  only some fields in a document, ``mongot`` re-embeds only the
+  ``autoEmbed`` fields whose source text changed. Updates that change
+  only filter fields no longer trigger re-embedding, including for
+  indexes on views and indexes with a ``nestedRoot``. This reduces
+  calls to the embedding provider. *Introduced in v1.78.0.*
+
+- **Embeddings for every element under a nested root.** In
+  automated embedding indexes that define a ``nestedRoot``,
+  ``mongot`` now generates an embedding for every array element
+  under the nested root instead of only the first element, so each
+  nested item is searchable with ``$vectorSearch``.
+  *Introduced in v1.78.0.*
+
+- **Queries on automated embedding indexes while mongod is
+  unavailable.** If ``mongot`` restarts while ``mongod`` is
+  unreachable, automated embedding indexes now report a ``STALE``
+  status and continue to serve queries from the local index instead
+  of reporting ``FAILED``. *Introduced in v1.78.0.*
+
+- **DNS SRV connections to the sync source.** The
+  ``syncSource.replicaSet`` configuration accepts a new ``srvHost``
+  field so that ``mongot`` discovers replica set members through DNS
+  SRV records. ``srvHost`` and ``hostPorts`` are mutually exclusive.
+  *Introduced in v1.78.0.*
+
+- **doubleMetaphone token filter.** Custom analyzers support the
+  :ref:`doubleMetaphone <doubleMetaphone-tf-ref>` token filter for
+  phonetic search, with the optional ``originalTokens`` and
+  ``maxCodeLength`` settings. *Introduced in v1.78.0.*
+
+- **concurrent option for $vectorSearch.** ``$vectorSearch`` accepts
+  an optional ``concurrent`` Boolean that controls whether the query
+  uses concurrent segment search, matching the ``$search`` option.
+  Existing queries are unchanged. *Introduced in v1.78.0.*
+
+- **Index type in $listSearchIndexes output.** The
+  ``$listSearchIndexes`` output now includes the top-level ``type``
+  field, with a value of ``search`` or ``vectorSearch``, matching
+  Atlas. Clients that require this field no longer fail.
+  *Introduced in v1.78.0.*
+
+- **OpenTelemetry query tracing and log export.** A new optional
+  ``tracing`` configuration block samples ``$search`` and
+  ``$vectorSearch`` query traces and writes them to the ``mongot``
+  logs. A ``tracing.otlp`` block sends sampled traces to an
+  OpenTelemetry Protocol (OTLP) collector, and a ``logging.otlp``
+  block forwards ``mongot`` logs to an OTLP collector. Tracing is
+  disabled by default.
+  *Introduced in v1.78.0.*
+
+- **mTLS for the Prometheus metrics endpoint.** A new optional
+  ``metrics.tls`` configuration block serves the ``/metrics``
+  endpoint over HTTPS and requires client certificates signed by
+  the configured CA. If you omit the block, the endpoint is
+  unchanged. *Introduced in v1.78.0.*
+
+- **New Prometheus metrics.** The ``/metrics`` endpoint now exposes
+  ``mongot_build_version``, which reports the ``mongot``, Java, and
+  Lucene versions, and
+  ``mongot_system_process_residentMemory_bytes``, which reports the
+  resident memory of the ``mongot`` process.
+  *Introduced in v1.78.0.*
+
+- **Natural-order initial sync scans.** The new
+  ``advancedConfigs.replication.initialSync.bufferless.enableNaturalOrderScan``
+  setting, disabled by default, scans collections in natural order
+  during initial sync. The related ``enableParallelNaturalOrderScan``
+  and ``parallelPartitionCount`` settings parallelize the scan.
+  *Introduced in v1.78.0.*
+
+- **Optional configuration file.** You can now start ``mongot``
+  without the ``configPath`` option. ``mongot`` treats a missing
+  configuration path as an empty configuration file.
+  *Introduced in v1.78.0.*
+
+- **Search performance improvements.** ``mongot`` now uses Lucene
+  10.4.0, with optimizations for exact nearest-neighbor vector
+  search on sparse or filtered queries. The on-disk index format is
+  unchanged. *Introduced in v1.78.0.*
+
+- **MongoDB Java driver upgrade.** The bundled MongoDB Java driver
+  is upgraded to 5.8.0. *Introduced in v1.78.0.*
+
+- **Sanitized queries in failure logs.** When a query fails,
+  ``mongot`` logs the query shape with filter and equality values
+  removed. *Introduced in v1.78.0.*
+
+- **Clearer errors and crash diagnostics.** Parse errors for
+  unrecognized fields now list the expected field names. Directory
+  creation failures report the underlying operating system error.
+  ``mongot`` now writes a crash log when its configuration fails to
+  parse, and crashes caused by a full disk include a thread dump.
+  Unknown commands return the ``CommandNotFound`` error code.
+  *Introduced in v1.78.0.*
+
+- **Source archive for each release.** Each Community release on
+  GitHub now includes a source archive and checksum as a release
+  asset. *Introduced in v1.78.0.*
+
+Bug Fixes
+~~~~~~~~~
+
+- **No results for nested automated embedding queries with child
+  filters.** A ``$vectorSearch`` query on an automated embedding
+  index with a ``nestedRoot`` could return no results when the query
+  also filtered on a child field of the nested root. The filter now
+  matches the embedded vectors. *Fixed in v1.78.0.*
+
+- **Stale or missing embeddings after rapid updates.** When one
+  change stream batch contained multiple events for the same
+  document, automated embedding indexes could keep stale embeddings
+  or miss embeddings. ``mongot`` now applies every embedding-related
+  change in the batch. *Fixed in v1.78.0.*
+
+- **Lost documents during automated embedding resync.** Resyncing an
+  automated embedding index could lose documents when the source
+  collection used a non-simple collation or had ``_id`` values of
+  mixed types. ``mongot`` now creates the index data with the source
+  collection's collation. Existing indexes on collated collections
+  must be dropped and recreated to apply the fix.
+  *Fixed in v1.78.0.*
+
+- **Duplicated array values in automated embedding indexes.** Adding
+  an ``autoEmbed`` field could duplicate array values in the indexed
+  data, which indexed UUID array elements twice and caused geo
+  queries to miss affected documents. ``mongot`` now copies array
+  values once. *Fixed in v1.78.0.*
+
+- **Incorrect status for automated embedding indexes.** Automated
+  embedding indexes could report ``READY`` while replication was
+  paused, for example when ``mongod`` was unreachable. They now
+  report ``STALE``, as other index types do. *Fixed in v1.78.0.*
+
+- **Indexes stuck in initial sync after a sync source restart.**
+  When the sync source was unhealthy, ``mongot`` shutdown could hang
+  and leave automated embedding indexes in ``INITIAL_SYNC`` after a
+  sync source restart or failover. *Fixed in v1.78.0.*
+
+- **Embedding provider errors.** An HTTP 400 response from Voyage AI
+  could cause ``mongot`` to skip documents silently while the index
+  reported ``READY``. HTTP 429 rate-limit responses were reported as
+  internal errors. ``mongot`` now stops indexing at the failed
+  documents until the error is resolved, and returns rate-limit
+  errors to the client at query time. *Fixed in v1.78.0.*
+
+- **Silent empty results for mismatched query vectors.** A
+  ``queryVector`` whose data type didn't match the quantization of
+  an automated embedding index returned no results. The query now
+  fails with an error that names the expected encoding.
+  *Fixed in v1.78.0.*
+
+- **$vectorSearch failures with non-integer _id values.** Merging
+  ``$vectorSearch`` results could fail when ``_id`` values weren't
+  32-bit integers. ``mongot`` now compares ``_id`` values of any BSON
+  type by using MongoDB query sort order. *Fixed in v1.78.0.*
+
+- **in operator ignored additional paths.** An ``in`` query with a
+  single value and multiple paths matched only the first path. The
+  query now matches all specified paths. *Fixed in v1.78.0.*
+
+- **Errors on sharded queries with large facet results.** Sharded
+  queries with large facet results could fail with an
+  ``IllegalArgumentException``. *Fixed in v1.78.0.*
+
+- **Initial sync failures.** Initial sync could fail when it resumed
+  from a different sync source host, or when the source collection
+  was missing the field that initial sync uses to track progress.
+  ``mongot`` now resumes from the new host, and falls back to a scan
+  by ``_id`` when the field is missing. *Fixed in v1.78.0.*
+
+- **File handle leak when dropping indexes.** Dropping an index could
+  leave Lucene files open. *Fixed in v1.78.0.*
+
+- **Startup failure when the metrics port is busy.** ``mongot``
+  could fail to start when the Prometheus metrics port was
+  temporarily unavailable. ``mongot`` now starts and handles the
+  condition. *Fixed in v1.78.0.*
+
+- **Connection resets and log noise during shutdown.** Clients that
+  connected while ``mongot`` was shutting down could connect and then
+  be reset, which produced error log entries. ``mongot`` now refuses
+  new connections during shutdown. *Fixed in v1.78.0.*
+
+- **Incorrect server name validation message.** The error message
+  for the server name length limit said that names must be shorter
+  than 253 characters. Names of exactly 253 characters are valid,
+  and the message now says so. *Fixed in v1.78.0.*
+
+- **Memory optimizations.** ``mongot`` includes improvements to how
+  it manages memory. *Fixed in v1.78.0.*
+
+- **Dependency upgrades.** Third-party libraries were updated to
+  address known security vulnerabilities. *Fixed in v1.78.0.*
+
+Compatibility Notes
+~~~~~~~~~~~~~~~~~~~
+
+- **Edition-specific configuration options.** The Community Edition
+  ``mongot`` binary now rejects configuration options that are
+  available only in Enterprise Advanced. Before you upgrade, remove
+  any Enterprise-only options from your configuration file.
+  *Introduced in v1.78.0.*
+
+- **OpenSSL 3.x for native TLS.** On x86-64 hosts, ``mongot`` now
+  links dynamically to OpenSSL 3.x for native TLS. If native TLS
+  is unavailable or fails to load, ``mongot`` falls back to the JVM
+  TLS provider. Confirm that OpenSSL 3.x is installed on each host
+  before you upgrade.
+  *Introduced in v1.78.0.*
+
+- **Nesting limit for embeddedDocuments fields.** ``mongot`` now
+  enforces the ``maxEmbeddedDocumentsNestingLevel`` limit, which has
+  a default value of 4, when you create or update a search index. Index
+  definitions that nest ``embeddedDocuments`` fields more deeply
+  are rejected. *Introduced in v1.78.0.*
+
+- **Stricter index definition validation.** ``mongot`` now rejects
+  index definitions that it previously accepted but couldn't use:
+  ``binaryNoRescore`` quantization with a similarity other than
+  ``euclidean``, which produced an empty index, and a base-only
+  stock analyzer such as ``lucene.stop`` as a synonym mapping
+  analyzer, which caused ``mongot`` to crash.
+  *Introduced in v1.78.0.*
+
+- **Bucket limit for facet queries.** Facet queries that request
+  more than 100,000 total buckets are now rejected. To learn how
+  ``mongot`` counts buckets, see :ref:`fts-facet-nested`.
+  *Introduced in v1.78.0.*
