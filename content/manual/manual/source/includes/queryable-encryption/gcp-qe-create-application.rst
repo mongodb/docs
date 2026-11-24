@@ -951,3 +951,126 @@
 				:end-before: end-create-client
 				:language: cpp
 				:dedent:
+
+.. selected-content::
+	:selections: google, c
+
+	Full Application Code
+	~~~~~~~~~~~~~~~~~~~~~
+
+	To see the complete code for the sample application, select your programming
+	language in the language selector.
+
+	`Complete C Application <{+sample-app-url-qe+}/c/>`__
+
+	Each sample application repository includes a ``README.md``
+	file that you can use to learn how to set up your environment and run
+	the application.
+
+	.. procedure::
+
+		.. step:: Assign application variables.
+
+			.. include:: /includes/queryable-encryption/tutorials/assign-app-variables-c.rst
+
+			You can declare these variables by using the following code:
+
+			.. literalinclude:: /includes/qe-tutorials/c/queryable_encryption_tutorial.c
+				 :start-after: start-setup-application-variables
+				 :end-before: end-setup-application-variables
+				 :language: c
+				 :dedent:
+
+			.. important:: {+key-vault-long-title+} Namespace Permissions
+
+				The {+key-vault-long+} is in the ``encryption.__keyVault``
+				namespace. Ensure that the database user your application uses to connect
+				to MongoDB has :ref:`ReadWrite <manual-reference-role-read-write>`
+				permissions on this namespace.
+
+			.. tip:: Environment Variables
+
+				The sample code in this tutorial references environment variables that
+				you need to set. Alternatively, you can replace the values directly in
+				the code.
+
+				To learn how you can setup these environment variables, see the
+				`README.md <{+sample-app-url-qe+}/c/README.md>`__ file
+				included in the sample application on GitHub.
+
+		.. step:: Add your KMS credentials.
+
+			Create a variable containing your KMS credentials with the
+			following structure.
+
+			.. literalinclude:: /includes/qe-tutorials/c/queryable_encryption_tutorial.c
+				:start-after: start-gcp-kms-credentials
+				:end-before: end-gcp-kms-credentials
+				:language: c
+				:dedent:
+
+			You can also provide a custom name for your KMS provider by using a
+			document key that includes the name of the KMS provider, followed by a
+			colon and the custom name. Providing a unique name for a KMS provider
+			allows you to specify multiple KMS providers of the same type.
+
+			For example, you can name your GCP KMS provider "my_gcp_provider" in your KMS
+			credentials variable as shown in the following code:
+
+			.. literalinclude:: /includes/queryable-encryption/tutorials/automatic/gcp/named-kms/named_kms.c
+				:language: c
+				:dedent:
+
+			:gold:`NOTE:` The remaining steps in this tutorial use
+			the default KMS provider string, ``"gcp"``.
+
+		.. step:: Add your CMK credentials.
+
+			Create a variable containing your {+cmk-long+} credentials
+			with the following structure. Use the credentials you recorded
+			when you :ref:`created a CMK <qe-create-cmk-gcp>`.
+
+			.. literalinclude:: /includes/qe-tutorials/c/queryable_encryption_tutorial.c
+				:start-after: start-gcp-cmk-credentials
+				:end-before: end-gcp-cmk-credentials
+				:language: c
+				:dedent:
+
+		.. step:: Set automatic encryption options.
+
+			.. note:: Automatic Encryption Options
+
+				The automatic encryption options provide configuration
+				information to the {+shared-library+},
+				which modifies the application's behavior when accessing encrypted fields.
+
+				To learn more about the {+shared-library+}, see
+				the :ref:`<qe-reference-shared-library>` page.
+
+			Create a ``mongoc_auto_encryption_opts_t`` object that sets
+			the following options:
+
+			- The namespace of your {+key-vault-long+}
+			- The ``kms_providers`` document, which
+			  contains your GCP KMS credentials
+			- The ``extra`` document, which contains the path
+			  to your {+shared-library+}
+
+			.. literalinclude:: /includes/qe-tutorials/c/queryable_encryption_tutorial.c
+				:start-after: start-auto-encryption-options
+				:end-before: end-auto-encryption-options
+				:language: c
+				:dedent:
+
+		.. step:: Create an encryption client.
+
+			To create a client for encrypting and decrypting data in
+			encrypted collections, instantiate a new ``mongoc_client_t``
+			using your connection URI, then enable automatic encryption
+			on it with your automatic encryption options.
+
+			.. literalinclude:: /includes/qe-tutorials/c/queryable_encryption_tutorial.c
+				:start-after: start-create-client
+				:end-before: end-create-client
+				:language: c
+				:dedent:
