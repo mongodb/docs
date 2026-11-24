@@ -340,6 +340,27 @@ describe('runSuite iteration environment (C2)', () => {
     });
   });
 
+  it('shares one suite invocation id across iterations and renews it on the next invocation', async () => {
+    const { configFile, cfg } = fixture({
+      repeats: 1,
+      translators: '  - { backend: anthropic, model: m1 }\n  - { backend: openai, model: m2 }\n',
+    });
+    const calls: StageCall[] = [];
+    const deps = recordingDeps(cfg, calls);
+    await runSuite({ configFile }, deps, cfg, TEST_ENV);
+    await runSuite({ configFile, force: true }, deps, cfg, TEST_ENV);
+
+    const evalCalls = calls.filter((c) => c.stage === 'eval');
+    expect(evalCalls).toHaveLength(4);
+    const invocationIds = [evalCalls.slice(0, 2), evalCalls.slice(2)].map((invocation) => {
+      expect(new Set(invocation.map((c) => c.env.EVAL_SUITE_RUN_ID)).size).toBe(1);
+      return invocation[0]!.env.EVAL_SUITE_RUN_ID;
+    });
+    expect(invocationIds[0]).toBeTruthy();
+    expect(invocationIds[1]).toBeTruthy();
+    expect(invocationIds[0]).not.toBe(invocationIds[1]);
+  });
+
   it('records the experiment name of each iteration', async () => {
     const { configFile, cfg } = fixture({ repeats: 1 });
     await runSuite({ configFile }, okDeps(), cfg, TEST_ENV);
@@ -526,7 +547,7 @@ describe('runSuite reporting and exit code', () => {
     } finally {
       spy.mockRestore();
     }
-    expect(lines.some((l) => /\[suite\] begin id=b iterations=1/.test(l))).toBe(true);
+    expect(lines.some((l) => /\[suite\] begin id=b suite_run=\S+ iterations=1/.test(l))).toBe(true);
     expect(lines.some((l) => /\[1\/1\] begin iteration id=anthropic:m#1 run=/.test(l))).toBe(true);
     expect(lines.some((l) => /\[1\/1\] done {2}stage=translate dur=\d/.test(l))).toBe(true);
     expect(lines.some((l) => /\[1\/1\] done {2}iteration status=completed dur=\d/.test(l))).toBe(

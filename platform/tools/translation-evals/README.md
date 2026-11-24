@@ -569,6 +569,13 @@ produced it. `EVAL_EXPERIMENT_NAME` is ignored, because it would give every
 iteration the same label. The state file records each iteration's experiment
 name, and the summary lists it.
 
+Every real suite invocation generates one `suite_run_id`, added to each
+iteration's Braintrust experiment as `metadata.suite_run_id`. Filter on
+`metadata.suite_run_id = "<id>"` to get every experiment from that invocation.
+The id is also on the `[suite] begin` log line. A resumed invocation generates
+a new id and only retries unfinished work; dry runs and evals run outside a
+suite add no such field.
+
 `content-mdx/<project>` is snapshotted once per batch and restored before every
 `translate` and `serve`, and again when the batch ends or is interrupted, so
 each iteration starts from the English source and the tree is left clean.

@@ -170,8 +170,14 @@ export function iterationEnv(
   env: NodeJS.ProcessEnv,
   suite: SuiteConfig,
   it: Iteration,
+  suiteRunId: string,
 ): NodeJS.ProcessEnv {
-  return { ...env, ...iterationOverrides(suite, it), EVAL_EXPERIMENT_NAME: '' };
+  return {
+    ...env,
+    ...iterationOverrides(suite, it),
+    EVAL_EXPERIMENT_NAME: '',
+    EVAL_SUITE_RUN_ID: suiteRunId,
+  };
 }
 
 function message(err: unknown): string {
@@ -314,6 +320,7 @@ interface IterationContext {
   cfg: Config;
   suite: SuiteConfig;
   env: NodeJS.ProcessEnv;
+  suiteRunId: string;
   runId: string;
   manifest: RunManifest;
   record: IterationRecord;
@@ -327,7 +334,7 @@ async function runIteration(
 ): Promise<IterationStatus> {
   const { cfg, suite, runId, manifest, record, scope } = ctx;
   const project = suite.project;
-  const env = { ...iterationEnv(ctx.env, suite, it), SUITE_SCOPE: scope };
+  const env = { ...iterationEnv(ctx.env, suite, it, ctx.suiteRunId), SUITE_SCOPE: scope };
   const runArgs = ['--project', project, '--run', runId];
 
   restorePristine(cfg, project, suite.name);
@@ -519,6 +526,7 @@ export async function runSuite(
   }
 
   preflight(cfg, suite, env);
+  const suiteRunId = newRunId();
 
   const { toRun, stale } = planRuns(suite, iterations, state, pagesDigest, force);
   if (stale.length > 0 && !force) {
@@ -541,6 +549,7 @@ export async function runSuite(
     event: 'begin',
     attrs: {
       id: suite.name,
+      suite_run: suiteRunId,
       iterations: iterations.length,
       locales: suite.locales.join(','),
       judge: suite.judge,
@@ -636,6 +645,7 @@ export async function runSuite(
             cfg,
             suite,
             env,
+            suiteRunId,
             runId,
             manifest: readManifest(cfg, suite.project, runId),
             record,

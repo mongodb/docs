@@ -34,6 +34,7 @@ const includedFiles = new Set(
     (row.metadata.included_files ?? []).map((include) => include.file),
   ),
 );
+const suiteRunId = process.env.EVAL_SUITE_RUN_ID?.trim();
 
 const experimentName = buildExperimentName({
   provider,
@@ -52,6 +53,7 @@ Eval(cfg.braintrustProject, {
   task: async (input) => input.local_text,
   scores: toEvalScorers(glossary, judgeOpts),
   metadata: {
+    ...(suiteRunId ? { suite_run_id: suiteRunId } : {}),
     project,
     run: runId,
     locale: localesFromRows(rows).join(','),
