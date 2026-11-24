@@ -16,6 +16,7 @@ import type {
 import { lowercaseRelativeHref } from '../lowercase-page-path';
 import { convertDirectiveImage } from './convertDirectiveImage';
 import { convertDirectiveInclude } from './convertDirectiveInclude';
+import { wrapInlineInFragment } from './wrapInlineInFragment';
 import { convertDirectiveListTable } from './convertDirectiveListTable';
 import { convertDirectiveProcedure } from './convertDirectiveProcedure';
 import { convertDirectiveStep } from './convertDirectiveStep';
@@ -243,6 +244,14 @@ const setCollectedSubstitution = (ctx: ConversionContext, refname: string, value
   if (existing && typeof existing === 'object' && 'nodes' in existing && typeof value === 'string') return;
   ctx.collectedSubstitutions.set(refname, value);
 };
+
+/**
+ * True when a page in the docset defines this alias. A shared include body is converted once for
+ * the whole docset, so a reference to such an alias must stay bare and resolve against each
+ * calling page's own definition rather than bake one page's value.
+ */
+const isDefinedByPageScope = (ctx: ConversionContext, refname: string): boolean =>
+  !!ctx.substitutionRefXref?.has(refname) || !!ctx.substitutionDefLiterals?.has(refname);
 
 const convertChildren = ({ nodes, depth, ctx, parentType }: ConvertChildrenArgs): MdastNode[] => {
   if (!nodes || !Array.isArray(nodes)) return [];
@@ -1952,9 +1961,18 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       // Named references are link reference definitions that we've already resolved elsewhere; omit.
       return null;
 
-    case 'substitution_definition':
-      // Substitution definitions are processed elsewhere, skip them here
-      return null;
+    case 'substitution_definition': {
+      const name = String(node.refname || node.name || '');
+      const body = name ? convertChildren({ nodes: node.children, depth, ctx }) : [];
+      if (!body.length) return null;
+
+      return {
+        type: 'mdxJsxFlowElement',
+        name: 'Define',
+        attributes: [{ type: 'mdxJsxAttribute', name: 'name', value: name }],
+        children: wrapInlineInFragment(body),
+      };
+    }
 
     case 'substitution_reference':
     case 'substitution': {
@@ -2006,8 +2024,28 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       }
 
       const externalHyperlinkRef = findExternalHyperlinkReference(node.children);
-      // Plain includes suppress baked values so callers replace via `<Replacement>`;
-      // keep `<Reference type="substitution" />` there instead of inlining `[text](url)`.
+      // Plain include bodies keep `<Reference type="substitution" />` instead of inlining
+      // `[text](url)`, and record the link as the `_references.json` fallback.
+      if (
+        externalHyperlinkRef &&
+        typeof externalHyperlinkRef.refuri === 'string' &&
+        ctx.suppressSubstitutionInlineValues &&
+        refname
+      ) {
+        const linkLabel = extractInlineDisplayText(externalHyperlinkRef.children ?? []);
+        if (linkLabel) {
+          setCollectedSubstitution(ctx, refname, { text: linkLabel, url: externalHyperlinkRef.refuri });
+        }
+        return {
+          type: 'mdxJsxTextElement',
+          name: 'Reference',
+          attributes: [
+            { type: 'mdxJsxAttribute', name: 'refKey', value: refname },
+            { type: 'mdxJsxAttribute', name: 'type', value: 'substitution' },
+          ],
+          children: [],
+        };
+      }
       if (
         externalHyperlinkRef &&
         typeof externalHyperlinkRef.refuri === 'string' &&
@@ -2051,9 +2089,13 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
             };
           }
 
-          // Plain include bodies with a page-level literal override: suppress baked xref so the
-          // per-page <Replacement> slot can provide the literal value instead.
-          if (ctx.suppressSubstitutionInlineValues && ctx.substitutionDefLiterals?.has(refname)) {
+          // Plain include bodies: leave the reference bare when a page defines this alias, and keep
+          // this value (with its link, when known) as the _references.json fallback.
+          if (ctx.suppressSubstitutionInlineValues && isDefinedByPageScope(ctx, refname)) {
+            if (title) {
+              const href = ctx.substitutionRefXref?.get(refname)?.href;
+              setCollectedSubstitution(ctx, refname, href ? { text: title, url: lowercaseRelativeHref(href) } : title);
+            }
             return {
               type: 'mdxJsxTextElement',
               name: 'Reference',
@@ -2088,6 +2130,27 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       const typedRefNode = findTypedRefRoleInSubstitution(node.children);
       if (typedRefNode) {
         if (ctx.suppressSubstitutionInlineValues && refname) {
+          // A global alias has no page definition, so this is the only place its value is seen.
+          // Keep it as the `_references.json` fallback.
+          const fallbackRoleName = typeof typedRefNode.name === 'string' ? typedRefNode.name : '';
+          const fallbackKey = extractRefTargetKeyFromRefRoleLike(typedRefNode) ?? '';
+          if (fallbackRoleName && fallbackKey) {
+            collectRefTargetFromRefRoleLike(typedRefNode, ctx);
+            setCollectedSubstitution(ctx, refname, {
+              text: extractInlineDisplayText(typedRefNode.children ?? []),
+              nodes: [
+                {
+                  type: 'mdxJsxTextElement',
+                  name: 'RefRole',
+                  attributes: [
+                    { type: 'mdxJsxAttribute', name: 'type', value: fallbackRoleName },
+                    { type: 'mdxJsxAttribute', name: 'name', value: fallbackKey },
+                  ],
+                  children: convertChildren({ nodes: typedRefNode.children, depth, ctx }),
+                },
+              ],
+            });
+          }
           return {
             type: 'mdxJsxTextElement',
             name: 'Reference',
@@ -2141,21 +2204,28 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       if (
         !fromCatalog &&
         !ctx.emitSubstitutionReferencesAsReplacement &&
-        !ctx.suppressSubstitutionInlineValues &&
         refname &&
         (node.children ?? []).some((child) => child.type !== 'text')
       ) {
+        // Snooty wraps a global value in a paragraph. Unwrap it: a block stored here would be spliced
+        // into the middle of a sentence at render time.
+        const [onlyChild] = node.children ?? [];
+        const inlineChildren =
+          node.children?.length === 1 && onlyChild.type === 'paragraph'
+            ? onlyChild.children ?? []
+            : node.children ?? [];
         // Icon roles carry the icon's *name* as their text (`:icon-mms:`office`` → "office"),
         // which is meaningless in prose, so drop them from the flattened fallback.
         const flattened = extractInlineDisplayText(
-          (node.children ?? []).filter(
-            (child) => !(child.type === 'role' && String(child.name ?? '').startsWith('icon')),
-          ),
+          inlineChildren.filter((child) => !(child.type === 'role' && String(child.name ?? '').startsWith('icon'))),
         ).trim();
-        setCollectedSubstitution(ctx, refname, {
-          text: flattened,
-          nodes: convertChildren({ nodes: node.children ?? [], depth, ctx }),
-        });
+        setCollectedSubstitution(
+          ctx,
+          refname,
+          inlineChildren.every((child) => child.type === 'text')
+            ? flattened
+            : { text: flattened, nodes: convertChildren({ nodes: inlineChildren, depth, ctx }) },
+        );
         return {
           type: 'mdxJsxTextElement',
           name: 'Reference',
@@ -2229,10 +2299,14 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
             children: [],
           };
         }
-        // Plain include bodies with a page-level literal override: suppress baked xref so the
-        // per-page <Replacement> slot can provide the literal value instead.
-        if (ctx.suppressSubstitutionInlineValues && ctx.substitutionDefLiterals?.has(refname)) {
-          setCollectedSubstitution(ctx, refname, fromCatalog.title);
+        if (ctx.suppressSubstitutionInlineValues && isDefinedByPageScope(ctx, refname)) {
+          setCollectedSubstitution(
+            ctx,
+            refname,
+            fromCatalog.href
+              ? { text: fromCatalog.title, url: lowercaseRelativeHref(fromCatalog.href) }
+              : fromCatalog.title,
+          );
           return {
             type: 'mdxJsxTextElement',
             name: 'Reference',

@@ -14,6 +14,9 @@ import { buildSubstitutionRefXrefMap } from '../src/core/convertSnootyAstToMdast
 import type { RichSubstitution, SnootyNode } from '../src/core/convertSnootyAstToMdast/types';
 import type { ReferencesArtifact } from '../src/core/convertJsonAstToMdxFiles/buildReferencesArtifacts';
 
+/** A substitution definition now emits a <Define>; these tests are about the references around it. */
+const withoutDefines = (mdx: string): string => mdx.replace(/<Define name="[^"]*">[\s\S]*?<\/Define>\n*/g, '').trim();
+
 describe('convertSnootyAstToMdast', () => {
   it('converts plain text paragraph', () => {
     const ast: SnootyNode = {
@@ -429,9 +432,10 @@ describe('convertSnootyAstToMdast', () => {
     const { mdx } = convertSnootyAst({ ast });
 
     // The heading must carry the local value, not the cross-scope catalog xref.
-    expect(mdx).toContain('autocomplete');
-    expect(mdx).not.toContain('bson-data-types-date-facet');
-    expect(mdx).not.toContain('dateFacet');
+    const body = withoutDefines(mdx);
+    expect(body).toContain('autocomplete');
+    expect(body).not.toContain('bson-data-types-date-facet');
+    expect(body).not.toContain('dateFacet');
     // The local definition is inline code (``autocomplete``), so the heading must preserve that
     // formatting by inlining the resolved children — not flatten it to a plain `value` string
     // (which the runtime renders as unstyled text).
@@ -694,7 +698,7 @@ describe('convertSnootyAstToMdast', () => {
     expect(convertMdastToMdx(mdast)).toContain('title="area"');
   });
 
-  it('passes :pipeline: substitution_definition into Include body as linked Reference (empty substitution_reference)', () => {
+  it('leaves a :pipeline: alias in the Include body bare, with the linked value kept as the fallback', () => {
     const ast: SnootyNode = {
       type: 'root',
       children: [
@@ -735,12 +739,14 @@ describe('convertSnootyAstToMdast', () => {
     expect(onEmitMdxFile).toHaveBeenCalledTimes(1);
     const [{ mdastRoot }] = onEmitMdxFile.mock.calls[0];
     const includedMdx = convertMdastToMdx(mdastRoot as Parameters<typeof convertMdastToMdx>[0]).trim();
-    expect(includedMdx).toContain('name="pipe.$vectorSearch"');
-    expect(includedMdx).toContain('title="$vectorSearch"');
-    expect(includedMdx).not.toContain('type="substitution"');
-    expect(mdx).toBe(`<Include src="/_includes/quick-start/facts/prereqs" />`);
+    expect(includedMdx).toBe('<Reference refKey="search-stage" type="substitution" />');
+    expect(mdx).toContain('<Define name="search-stage">');
+    expect(withoutDefines(mdx)).toBe(`<Include src="/_includes/quick-start/facts/prereqs" />`);
     const refs = (mdastRoot as { __references?: ReferencesArtifact }).__references;
-    expect(refs?.substitutions?.['search-stage']).toBe('$vectorSearch');
+    expect(refs?.substitutions?.['search-stage']).toEqual({
+      text: '$vectorSearch',
+      url: 'query/aggregation-stages/vector-search-stage#mongodb-pipeline-pipe.-vectorSearch',
+    });
     expect(refs?.refs?.['pipe.$vectorSearch']).toBe(
       'query/aggregation-stages/vector-search-stage#mongodb-pipeline-pipe.-vectorSearch',
     );
@@ -988,10 +994,11 @@ describe('convertSnootyAstToMdast', () => {
     expect(emittedMdx).not.toContain('<RefRole');
     expect(emittedMdx).not.toContain('name="bin.mongos"');
 
-    // Calling page: <Include> carries a <Replacement> slot with this page's typed-role value.
-    expect(mdx).toContain('<Replacement name="mongos">');
+    // Calling page: the value travels as a <Define>, not a <Replacement> slot on the <Include>.
+    expect(mdx).toContain('<Define name="mongos">');
     expect(mdx).toContain('type="binary"');
     expect(mdx).toContain('name="bin.mongos"');
+    expect(mdx).not.toContain('<Replacement');
   });
 
   it('emits identical placeholder include files when a shared extract is reused with different per-page substitutions', () => {
@@ -1056,11 +1063,13 @@ describe('convertSnootyAstToMdast', () => {
       expect(includeMdx).not.toContain('bsondump');
     }
 
-    // Each page supplies its own value via a <Replacement> slot.
-    expect(mongofilesMdx).toContain('<Replacement name="tool-binary">');
+    // Each page supplies its own value via a <Define>, not a <Replacement> slot.
+    expect(mongofilesMdx).toContain('<Define name="tool-binary">');
     expect(mongofilesMdx).toContain('name="bin.mongofiles"');
-    expect(bsondumpMdx).toContain('<Replacement name="tool-binary">');
+    expect(bsondumpMdx).toContain('<Define name="tool-binary">');
     expect(bsondumpMdx).toContain('`bsondump`');
+    expect(mongofilesMdx).not.toContain('<Replacement');
+    expect(bsondumpMdx).not.toContain('<Replacement');
   });
 
   /**
@@ -1100,8 +1109,8 @@ describe('convertSnootyAstToMdast', () => {
       ]);
 
       // Not the bare first role the unguarded lookup used to emit.
-      expect(mdx).not.toBe('<RefRole type="binary" name="bin.mongod">`mongod`</RefRole>');
-      expect(mdx).toBe('<Reference refKey="x" type="substitution" />');
+      expect(withoutDefines(mdx)).not.toBe('<RefRole type="binary" name="bin.mongod">`mongod`</RefRole>');
+      expect(withoutDefines(mdx)).toBe('<Reference refKey="x" type="substitution" />');
 
       const value = (references as ReferencesArtifact).substitutions.x as RichSubstitution;
       expect(value.text).toBe('Available for both mongod and mongos.');
@@ -1123,7 +1132,8 @@ describe('convertSnootyAstToMdast', () => {
         { type: 'text', value: ' for details.' },
       ]);
 
-      expect(mdx).toBe('<Reference refKey="x" type="substitution" />');
+      expect(withoutDefines(mdx)).toBe('<Reference refKey="x" type="substitution" />');
+      expect(mdx).toContain('<Define name="x">');
       expect((references as ReferencesArtifact).substitutions.x).toMatchObject({
         text: 'See the guide for details.',
       });
@@ -1142,7 +1152,7 @@ describe('convertSnootyAstToMdast', () => {
         { type: 'text', value: ' stage.' },
       ]);
 
-      expect(mdx).toBe('<Reference refKey="x" type="substitution" />');
+      expect(withoutDefines(mdx)).toBe('<Reference refKey="x" type="substitution" />');
       expect((references as ReferencesArtifact).substitutions.x).toMatchObject({
         text: 'Use the $vectorSearch stage.',
       });
@@ -1150,7 +1160,7 @@ describe('convertSnootyAstToMdast', () => {
 
     it('still emits a bare RefRole when the typed role is the entire body', () => {
       const { mdx } = convertSubstitution([binaryRole('mongos')]);
-      expect(mdx).toBe('<RefRole type="binary" name="bin.mongos">`mongos`</RefRole>');
+      expect(withoutDefines(mdx)).toBe('<RefRole type="binary" name="bin.mongos">`mongos`</RefRole>');
     });
   });
 
@@ -1223,13 +1233,14 @@ describe('convertSnootyAstToMdast', () => {
     const refs = (mdastRoot as { __references?: ReferencesArtifact }).__references;
     expect(refs?.substitutions).toHaveProperty('service', 'Atlas');
 
-    // Calling page: <Include> carries a <Replacement> slot with the page-specific value
+    // Calling page: no page defines |service|, so there is no slot and no <Define>; the value
+    // comes from the _references.json fallback asserted above.
     expect(mdx).toContain('<Include src="/_includes/nav/steps"');
-    expect(mdx).toContain('<Replacement name="service">');
-    expect(mdx).toContain('Atlas');
+    expect(mdx).not.toContain('<Replacement');
+    expect(mdx).not.toContain('<Define');
   });
 
-  it('plain include <Replacement> slot uses page-level substitution_definition, not Snooty-resolved global default', () => {
+  it('plain include resolves against the page-level substitution_definition, not the Snooty-resolved global default', () => {
     // Reproduces the Search docs issue: |fts-field-type| is defined per-page (e.g. ``geo``) but
     // Snooty resolves it inside includes against the global references file (e.g. "dateFacet").
     // The <Replacement> slot on the <Include> must carry the page-level value, not the global one.
@@ -1265,15 +1276,16 @@ describe('convertSnootyAstToMdast', () => {
     const onEmitMdxFile = jest.fn();
     const { mdx } = convertSnootyAst({ ast, onEmitMdxFile });
 
-    // The <Replacement> slot should carry the page-level value (geo as inline code)
+    // The page's <Define> carries the page-level value (geo as inline code); the <Include> has no slot
     expect(mdx).toContain('<Include src="/_includes/search/field-types"');
-    expect(mdx).toContain('<Replacement name="fts-field-type">');
+    expect(mdx).toContain('<Define name="fts-field-type">');
     expect(mdx).toContain('`geo`');
+    expect(mdx).not.toContain('<Replacement');
     // Must NOT carry the global default
     expect(mdx).not.toContain('dateFacet');
   });
 
-  it('plain include <Replacement> slot uses page-level literal even when Snooty resolved a :ref: xref globally', () => {
+  it('plain include uses the page-level literal even when Snooty resolved a :ref: xref globally', () => {
     // Same scenario as above, but the global Snooty definition is a :ref: cross-reference
     // (ref_role node) rather than plain text. The include body must emit
     // <Reference refKey="fts-field-type" type="substitution" /> so the page's <Replacement>
@@ -1325,11 +1337,12 @@ describe('convertSnootyAstToMdast', () => {
     expect(includeMdx).not.toContain('bson-data-types-date-facet');
     expect(includeMdx).not.toContain('dateFacet');
 
-    // Calling page: <Replacement> slot carries the page-specific literal value
+    // Calling page: the <Define> carries the page-specific literal value
     expect(mdx).toContain('<Include src="/_includes/search/field-types"');
-    expect(mdx).toContain('<Replacement name="fts-field-type">');
+    expect(mdx).toContain('<Define name="fts-field-type">');
     expect(mdx).toContain('`geo`');
     expect(mdx).not.toContain('dateFacet');
+    expect(mdx).not.toContain('<Replacement');
   });
 
   it('keeps per-include substitution redefinitions on a composable-tutorial page', () => {
@@ -1415,24 +1428,8 @@ describe('convertSnootyAstToMdast', () => {
     const onEmitMdxFile = jest.fn();
     const { mdx } = convertSnootyAst({ ast, onEmitMdxFile });
 
-    const includeBlock = (fileStem: string): string => {
-      const marker = `src="/_includes/token-filters/atlas-ui/${fileStem}"`;
-      const markerAt = mdx.indexOf(marker);
-      expect(markerAt).toBeGreaterThan(-1);
-      const start = mdx.lastIndexOf('<Include', markerAt);
-      const end = mdx.indexOf('</Include>', markerAt);
-      expect(end).toBeGreaterThan(start);
-      return mdx.slice(start, end);
-    };
-
-    const doubleMetaBlock = includeBlock('doublemetaphone_ui');
-    expect(doubleMetaBlock).toContain('<Replacement name="analyzer-name">');
-    expect(doubleMetaBlock).toContain('`doubleMetaphoneAnalyzer`');
-    expect(doubleMetaBlock).not.toContain(LAST_WINS);
-
-    const wordDelimBlock = includeBlock('worddelimitergraph_ui');
-    expect(wordDelimBlock).toContain('<Replacement name="analyzer-name">');
-    expect(wordDelimBlock).toContain(`\`${LAST_WINS}\``);
+    // The page itself carries no slots: each *_ui file defines its own value.
+    expect(mdx).not.toContain('<Replacement');
 
     const emittedFor = (stem: string): string => {
       const call = onEmitMdxFile.mock.calls.find(([{ outfilePath }]) => String(outfilePath).includes(stem));
@@ -1440,15 +1437,16 @@ describe('convertSnootyAstToMdast', () => {
       return convertMdastToMdx(call![0].mdastRoot);
     };
 
-    // Each *_ui.mdx bakes its own local definition into the nested config include, rather than
-    // forwarding a placeholder that the page-level last-wins slot would then fill incorrectly.
+    // Each *_ui.mdx defines its own value, so the nested config include resolves against it
+    // rather than against the page-level last-wins value.
     const doubleMetaUi = emittedFor('doublemetaphone_ui');
-    expect(doubleMetaUi).toContain('<Replacement name="analyzer-name">');
+    expect(doubleMetaUi).toContain('<Define name="analyzer-name">');
     expect(doubleMetaUi).toContain('`doubleMetaphoneAnalyzer`');
     expect(doubleMetaUi).not.toContain(LAST_WINS);
     expect(doubleMetaUi).not.toContain('type="replacement"');
 
     const wordDelimUi = emittedFor('worddelimitergraph_ui');
+    expect(wordDelimUi).toContain('<Define name="analyzer-name">');
     expect(wordDelimUi).toContain(`\`${LAST_WINS}\``);
 
     // Shared config file stays a placeholder so whichever *_ui writes last cannot clobber the others.
@@ -1521,10 +1519,11 @@ describe('convertSnootyAstToMdast', () => {
     expect(includeMdx).toContain('type="substitution"');
     expect(includeMdx).not.toContain('<RefRole');
 
-    // Calling page: <Replacement> slot carries the page's typed ref role value
+    // Calling page: the typed ref role value travels as a <Define>, not a <Replacement> slot
     expect(mdx).toContain('<Include src="/_includes/extracts/4.2-changes-disconnect"');
-    expect(mdx).toContain('<Replacement name="operation">');
+    expect(mdx).toContain('<Define name="operation">');
     expect(mdx).toContain('dbcmd.aggregate');
+    expect(mdx).not.toContain('<Replacement');
   });
 
   it('emits substitution_reference in include body as Reference type replacement (not _references)', () => {
@@ -1632,7 +1631,7 @@ describe('convertSnootyAstToMdast', () => {
     expect(emittedMdx).not.toContain('value="PLACEHOLDER"');
   });
 
-  it('emits Replacement slots for link-valued substitutions in plain include content', () => {
+  it('keeps a link-valued substitution in plain include content as a link fallback', () => {
     const ast: SnootyNode = {
       type: 'root',
       children: [
@@ -1671,13 +1670,13 @@ describe('convertSnootyAstToMdast', () => {
     expect(emittedMdx).toContain('type="substitution"');
     expect(emittedMdx).not.toContain('value=');
 
-    // Calling page: <Replacement> slot carries the link, not stripped text
-    expect(mdx).toContain('<Replacement name="ldap-provider-link">');
-    expect(mdx).toContain('Okta');
-    expect(mdx).toContain('https://okta.com');
+    // The link is kept as the _references.json fallback, not stripped to text
+    const refs = (mdastRoot as { __references?: ReferencesArtifact }).__references;
+    expect(refs?.substitutions?.['ldap-provider-link']).toEqual({ text: 'Okta', url: 'https://okta.com' });
+    expect(mdx).not.toContain('<Replacement');
   });
 
-  it('propagates per-page substitution values through nested shared includes via placeholder slots', () => {
+  it('propagates per-page substitution values through nested shared includes via the page <Define>', () => {
     // Reproduces the reference/command.txt collision: |fts-index| is only *used* inside a
     // description include that is itself nested inside a shared table include. Multiple pages
     // include that same table with different |fts-index| definitions, so the shared table.mdx must
@@ -1757,10 +1756,8 @@ describe('convertSnootyAstToMdast', () => {
       return convertMdastToMdx(call![0].mdastRoot);
     };
     for (const tableMdx of [getTableMdx(linkEmit), getTableMdx(plainEmit)]) {
-      expect(tableMdx).toContain('<Replacement name="fts-index">');
-      expect(tableMdx).toContain('refKey="fts-index"');
-      expect(tableMdx).toContain('type="replacement"');
-      // Caller-agnostic: no baked value (neither the link nor inline `value=`).
+      // Caller-agnostic: no slot, no baked value (neither the link nor inline `value=`).
+      expect(tableMdx).not.toContain('<Replacement');
       expect(tableMdx).not.toContain(LINK_URL);
       expect(tableMdx).not.toContain('value=');
     }
@@ -1774,13 +1771,113 @@ describe('convertSnootyAstToMdast', () => {
     expect(descMdx).toContain('type="substitution"');
     expect(descMdx).not.toContain('value=');
 
-    // Each top page carries its OWN value on its <Include table> slot.
-    expect(linkPageMdx).toContain('<Replacement name="fts-index">');
+    // Each top page carries its OWN value as a <Define>, which the nested includes resolve against.
+    expect(linkPageMdx).toContain('<Define name="fts-index">');
     expect(linkPageMdx).toContain(LINK_URL);
+    expect(linkPageMdx).not.toContain('<Replacement');
 
-    expect(plainPageMdx).toContain('<Replacement name="fts-index">');
+    expect(plainPageMdx).toContain('<Define name="fts-index">');
     expect(plainPageMdx).toContain('MongoDB Search index');
     expect(plainPageMdx).not.toContain(LINK_URL);
+    expect(plainPageMdx).not.toContain('<Replacement');
+  });
+
+  it('keeps a typed-role value as the fallback when no page defines the alias used in an include', () => {
+    // |mongod| is a global alias, so no page defines it. Snooty resolves it onto each reference,
+    // and the include body stays bare, so the value has to live in the shared references artifact.
+    const onEmitMdxFile = jest.fn();
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'directive',
+          name: 'include',
+          argument: 'storage/oplog.rst',
+          children: [
+            {
+              type: 'paragraph',
+              children: [
+                { type: 'text', value: 'Run ' },
+                {
+                  type: 'substitution_reference',
+                  refname: 'mongod',
+                  children: [
+                    {
+                      type: 'ref_role',
+                      name: 'binary',
+                      target: 'bin.mongod',
+                      url: 'https://www.mongodb.com/docs/manual/reference/program/mongod/#mongodb-binary-bin.mongod',
+                      children: [{ type: 'literal', value: 'mongod' }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    convertSnootyAst({ ast, onEmitMdxFile });
+
+    const [{ mdastRoot }] = onEmitMdxFile.mock.calls[0];
+    expect(convertMdastToMdx(mdastRoot)).toContain('<Reference refKey="mongod" type="substitution" />');
+
+    const rich = (mdastRoot as { __references?: ReferencesArtifact }).__references?.substitutions?.mongod as
+      | { text: string; nodes: SnootyNode[] }
+      | undefined;
+    expect(rich?.text).toBe('mongod');
+    expect(convertMdastToMdx({ type: 'root', children: [{ type: 'paragraph', children: rich?.nodes ?? [] }] })).toContain(
+      '<RefRole type="binary" name="bin.mongod">`mongod`</RefRole>',
+    );
+  });
+
+  describe('substitution values Snooty wraps in a paragraph', () => {
+    const referenceTo = (refname: string, children: SnootyNode[]): SnootyNode => ({
+      type: 'root',
+      children: [
+        {
+          type: 'paragraph',
+          children: [
+            { type: 'text', value: 'Use ' },
+            { type: 'substitution_reference', refname, children },
+            { type: 'text', value: ' here.' },
+          ],
+        },
+      ],
+    });
+
+    it('stores plain text, not a block paragraph, as the fallback for a text-only value', () => {
+      // Snooty hands a global value such as |service| back as paragraph > text. A rich fallback that
+      // keeps the paragraph is spliced into the sentence as a block at render time.
+      const { mdx, references } = convertSnootyAst({
+        ast: referenceTo('service', [{ type: 'paragraph', children: [{ type: 'text', value: 'Atlas' }] }]),
+      });
+
+      expect(mdx).toContain('<Reference refKey="service" type="substitution" />');
+      expect((references as { substitutions: Record<string, unknown> }).substitutions.service).toBe('Atlas');
+    });
+
+    it('keeps inline markup as a rich fallback but drops the wrapping paragraph', () => {
+      const { references } = convertSnootyAst({
+        ast: referenceTo('ui-org-menu', [
+          {
+            type: 'paragraph',
+            children: [
+              { type: 'role', name: 'guilabel', children: [{ type: 'text', value: 'Organizations' }] },
+              { type: 'text', value: ' menu' },
+            ],
+          },
+        ]),
+      });
+
+      const rich = (references as { substitutions: Record<string, { text: string; nodes: SnootyNode[] }> })
+        .substitutions['ui-org-menu'];
+      expect(rich.text).toBe('Organizations menu');
+      expect(rich.nodes.map((node) => node.type)).not.toContain('paragraph');
+      expect(convertMdastToMdx({ type: 'root', children: [{ type: 'paragraph', children: rich.nodes }] })).toContain(
+        '<Guilabel>Organizations</Guilabel>',
+      );
+    });
   });
 
   it('stores page-level rich substitution markup in the shared references artifact', () => {
@@ -1824,7 +1921,7 @@ describe('convertSnootyAstToMdast', () => {
     expect(richMdx).toContain('<Guilabel>Organizations</Guilabel>');
   });
 
-  it('wraps inline role nodes (icon, guilabel) in a fragment inside Replacement slot', () => {
+  it('keeps inline role nodes (icon, guilabel) as a rich fallback for an include-only substitution', () => {
     // |ui-org-menu| = ":icon-mms:`office` :guilabel:`Organizations` menu"
     // The children of the substitution_reference are inline role nodes (not wrapped in a paragraph).
     // Without the fragment wrap the MDX serializer emits each inline element on its own line
@@ -1870,20 +1967,15 @@ describe('convertSnootyAstToMdast', () => {
     const emittedMdx = convertMdastToMdx(mdastRoot);
     expect(emittedMdx).toContain('type="substitution"');
 
-    // Calling page: <Replacement> slot contains icon and guilabel
-    expect(mdx).toContain('<Replacement name="ui-org-menu">');
-    expect(mdx).toContain('<Icon');
-    expect(mdx).toContain('<Guilabel>Organizations</Guilabel>');
-
-    // The slot content must NOT have blank lines between Icon and Guilabel.
-    // Blank lines would cause remark to re-parse them as block-level (mdxJsxFlowElement),
-    // which cannot replace an inline <Reference> at render time.
-    const replacementBlock = mdx.slice(
-      mdx.indexOf('<Replacement name="ui-org-menu">'),
-      mdx.indexOf('</Replacement>', mdx.indexOf('<Replacement name="ui-org-menu">')) + '</Replacement>'.length,
-    );
-    expect(replacementBlock).not.toMatch(/<Icon[^>]*\/>\s*\n\s*\n/);
-    expect(replacementBlock).not.toMatch(/<\/Guilabel>\s*\n\s*\n/);
+    // Calling page: no slot; the icon and guilabel markup is kept as a rich _references.json fallback
+    expect(mdx).not.toContain('<Replacement');
+    const rich = (mdastRoot as { __references?: ReferencesArtifact }).__references?.substitutions?.['ui-org-menu'] as
+      | { text: string; nodes: SnootyNode[] }
+      | undefined;
+    expect(rich?.text).toBe('Organizations menu');
+    const richMdx = convertMdastToMdx({ type: 'root', children: [{ type: 'paragraph', children: rich?.nodes ?? [] }] });
+    expect(richMdx).toContain('<Icon');
+    expect(richMdx).toContain('<Guilabel>Organizations</Guilabel>');
   });
 
   it('round-trips RST tabs wrapping includes with a nested |idp-provider| → |azure-ad| substitution', () => {
@@ -1995,16 +2087,15 @@ describe('convertSnootyAstToMdast', () => {
     expect(mdx).toContain('<Tabs>');
     expect(mdx).toContain('tabid="integrated"');
     expect(mdx).toContain('<Include src="/_includes/steps/idp-add-azure-ad-as-idp-gallery"');
-    expect(mdx).toContain('<Replacement name="idp-provider">');
-    // Nested `|idp-provider| replace:: |azure-ad|` must expand to the concrete
-    // value in the slot — a leftover `<Reference>` would crash React render.
-    const idpSlot = mdx.slice(
-      mdx.indexOf('<Replacement name="idp-provider">'),
-      mdx.indexOf('</Replacement>', mdx.indexOf('<Replacement name="idp-provider">')) + '</Replacement>'.length,
+    expect(mdx).toContain('<Define name="idp-provider">');
+    expect(mdx).not.toContain('<Replacement');
+    // Nested `|idp-provider| replace:: |azure-ad|` keeps its baked value inside the definition,
+    // so resolving it needs no further lookup.
+    const idpDefine = mdx.slice(
+      mdx.indexOf('<Define name="idp-provider">'),
+      mdx.indexOf('</Define>', mdx.indexOf('<Define name="idp-provider">')) + '</Define>'.length,
     );
-    expect(idpSlot).toContain('Microsoft Entra ID');
-    expect(idpSlot).not.toContain('<Reference');
-    expect(idpSlot).not.toContain('refKey="azure-ad"');
+    expect(idpDefine).toContain('Microsoft Entra ID');
 
     const parsed = remark().use(remarkFrontmatter, ['yaml']).use(remarkGfm).use(remarkMdx).parse(mdx);
 
@@ -2019,7 +2110,7 @@ describe('convertSnootyAstToMdast', () => {
     expect(names.filter((n) => n === 'Include').length).toBeGreaterThanOrEqual(2);
     expect(names).toContain('Tabs');
     expect(names).toContain('Tab');
-    expect(names).toContain('Replacement');
+    expect(names).toContain('Define');
   });
 
   it('collects substitutions and refs into root.__references', () => {
