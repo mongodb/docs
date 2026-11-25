@@ -7,6 +7,8 @@ connection to a connection registry.
 
 .. include:: /includes/fact-service-accounts-first.rst
 
+.. include:: /includes/atlas-stream-processing/lambda-iam-permissions.rst
+
 You can update the ``roleArn`` placeholder in the following
 example with the ``arn`` from your `AWS IAM configuration
 <https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-arns>`__.

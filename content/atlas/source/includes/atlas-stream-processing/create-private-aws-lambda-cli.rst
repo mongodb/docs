@@ -9,8 +9,11 @@ through the {+atlas-cli+}, follow these steps:
 
    .. step:: Create {+aws+} resources.
 
-      Follow the procedure described in the :ref:`$externalFunction
-      <atlas-sp-agg-externalFunction-auth>` documentation.
+      Follow the procedure described in :ref:`Create an AWS Lambda and
+      Authenticate with Unified AWS Access
+      <atlas-sp-agg-externalFunction-auth>`.
+
+      .. include:: /includes/atlas-stream-processing/lambda-iam-permissions.rst
 
    .. step:: Configure a Service Account.
 

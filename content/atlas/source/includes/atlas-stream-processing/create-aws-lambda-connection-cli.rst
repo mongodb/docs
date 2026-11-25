@@ -7,6 +7,14 @@ To add an {+aws+} Lambda connection to your {+spw+} through the
 .. procedure:: 
    :style: normal
 
+   .. step:: Set up Unified AWS Access.
+
+      Follow the procedure described in :ref:`Create an AWS Lambda and
+      Authenticate with Unified AWS Access
+      <atlas-sp-agg-externalFunction-auth>`.
+
+      .. include:: /includes/atlas-stream-processing/lambda-iam-permissions.rst
+
    .. step:: Create a ``config.json`` file.
 
       .. code-block:: javascript

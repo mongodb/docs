@@ -34,12 +34,11 @@ through the {+atlas-ui+}, follow these steps:
 
    .. step:: Set up Unified AWS Access.
 
-      Follow the procedure described in `Set Up Unified AWS
-      Access
-      <https://docs.mongodb.com/atlas/security/set-up-unified-aws-access/?interface=atlas-ui>`__.
+      Follow the procedure described in :ref:`Create an AWS Lambda and
+      Authenticate with Unified AWS Access
+      <atlas-sp-agg-externalFunction-auth>`.
 
-      Note the ARN value in ``Statement.Principal.AWS`` to use
-      later in this procedure.
+      .. include:: /includes/atlas-stream-processing/lambda-iam-permissions.rst
 
    .. include:: /includes/nav/steps-project-access-manager
 
