@@ -21,7 +21,7 @@
    * - pretty
      - boolean
      - Indicates whether to return the response body in a
-       :wikipedia:`prettyprint <Prettyprint?oldid=791126873>` format.
+       :wikipedia:`prettyprint <Pretty-printing>` format.
      - ``false``
 
    * - envelope

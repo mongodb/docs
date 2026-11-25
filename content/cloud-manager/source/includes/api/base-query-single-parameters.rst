@@ -13,7 +13,7 @@
      - boolean
      - Optional
      - Flag indicating whether to return the response body in a
-       :wikipedia:`prettyprint <Prettyprint?oldid=791126873>` format.
+       :wikipedia:`prettyprint <Pretty-printing>` format.
      - ``false``
 
    * - envelope

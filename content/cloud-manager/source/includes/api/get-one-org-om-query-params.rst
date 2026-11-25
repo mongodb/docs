@@ -11,7 +11,7 @@
    * - ``pretty``
      - boolean
      - Flag indicating whether the response body should be in a
-       :wikipedia:`prettyprint <Prettyprint?oldid=791126873>` format.
+       :wikipedia:`prettyprint <Pretty-printing>` format.
      - ``false``
 
    * - ``envelope``

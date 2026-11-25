@@ -33,5 +33,5 @@
      - Optional
      - boolean
      - Indicates whether the response body should be in a 
-       `prettyprint <https://en.wikipedia.org/wiki/Prettyprint?oldid=791126873>`_ format.
+       `prettyprint <https://en.wikipedia.org/wiki/Pretty-printing>`_ format.
        The default value is ``false``.
