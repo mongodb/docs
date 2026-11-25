@@ -14,22 +14,37 @@
            source sharded cluster.
          - |tls| certificates using the ``certsSecretPrefix``.
          - A managed load balancer mode for routing traffic through Envoy.
-         - An ``externalHostname`` template that the |k8s-op-short|
-           expands per shard. The value contains the ``{shardName}``
-           placeholder, which the |k8s-op-short| replaces at runtime
-           with each shard's ``shardName`` from the ``spec.source.external.shards``
-           list. This produces a unique proxy Service hostname for each
-           shard. 
-           
-           For example, suppose the ``externalHostname`` is set to
-           ``mdbs-search-0-{shardName}-proxy-svc.mongodb.svc.cluster.local``
-           and the shards are named ``shard-0`` and ``shard-1``. The
-           |k8s-op-short| creates proxy Services with the following 
-           hostnames: 
+         - An ``externalHostname`` template in a DNS domain that you
+           control. The value contains the ``{shardName}`` placeholder,
+           which the |k8s-op-short| replaces at runtime with each
+           shard's ``shardName`` from the
+           ``spec.source.external.shards`` list. This produces a unique
+           hostname for each shard. The Envoy proxy matches these
+           hostnames against the SNI of incoming ``mongod`` connections,
+           so the load balancer's TLS certificate must include every
+           expanded hostname in its SANs. A wildcard certificate, such
+           as ``*.search.example.com``, covers all shards with a single
+           certificate.
 
-           - ``mdbs-search-0-shard-0-proxy-svc.mongodb.svc.cluster.local``
-           - ``mdbs-search-0-shard-1-proxy-svc.mongodb.svc.cluster.local``
-         
+           For example, suppose the ``externalHostname`` is set to
+           ``{shardName}.search.example.com`` and the shards are named
+           ``shard-0`` and ``shard-1``. The resulting hostnames are:
+
+           - ``shard-0.search.example.com``
+           - ``shard-1.search.example.com``
+
+         - A ``routerHostname`` in the same domain. This shard-agnostic
+           hostname is the entry point that ``mongos`` routers use to
+           reach ``mongot``. Unlike ``externalHostname``, the
+           |k8s-op-short| uses this value verbatim.
+
+           You must create DNS records that resolve each expanded
+           ``externalHostname`` value and the ``routerHostname`` to the
+           corresponding proxy Service, or to a load balancer in front
+           of the proxy Services. The |k8s-op-short| creates a proxy
+           Service named ``{name}-search-0-{shardName}-proxy-svc`` for
+           each shard and ``{name}-search-0-proxy-svc`` for the router.
+
          - Resource limits and requests for ``mongot`` pods.
 
          .. literalinclude:: /includes/code-examples/search/07-search-external-sharded-mongod-managed-lb/code_snippets/07_0320_create_mongodb_search_resource.sh
